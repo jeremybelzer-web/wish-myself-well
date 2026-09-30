@@ -1,0 +1,57 @@
+/* Curiosities: measurable variables a live-action render or a comic can change.
+   The list is a working catalog, meant to grow. The board plays the ones marked live. */
+
+const CURIOSITIES = [
+  { id: "shotSize", group: "Camera", label: "Shot size", note: "Wide, medium, close, insert. How much of the body the frame keeps." },
+  { id: "angleHeight", group: "Camera", label: "Angle height", note: "Eye, low, high, overhead, floor." },
+  { id: "lensLength", group: "Camera", label: "Lens length", note: "Wide lens deepens the room. Long lens flattens people together." },
+  { id: "dutch", group: "Camera", label: "Dutch / level", note: "Horizon tilted or true." },
+  { id: "pov", group: "Camera", label: "Point of view", note: "Whose eyes, or nobody’s." },
+  { id: "angleCount", group: "Camera", label: "Angles per scene", live: true, kind: "range", min: 1, max: 8, value: 4, note: "How many distinct setups the scene is allowed." },
+  { id: "angleFamily", group: "Camera", label: "Angles grouped", live: true, kind: "select", value: "coverage", options: ["coverage", "oner", "montage", "handheld"], note: "Coverage cuts around a line. An oner stays. Montage stacks. Handheld hunts." },
+  { id: "angleChange", group: "Camera", label: "When the angle changes", live: true, kind: "select", value: "on the line", options: ["on the line", "on the action", "both", "locked"], note: "The relationship between a cut and a spoken line, or a cut and a thing done." },
+  { id: "angleToLine", group: "Camera", label: "Angle matched to the line", note: "Close on a confession. Wide on a lie. Or the reverse, on purpose." },
+  { id: "angleToAction", group: "Camera", label: "Angle matched to the action", note: "The insert for a hand. The wide for a crossing of the room." },
+  { id: "cutRate", group: "Camera", label: "Frequency of angle changes", note: "How often the setup is allowed to move, per line or per beat." },
+  { id: "shotDuration", group: "Camera", label: "Hold", note: "How long a panel stays before the next angle." },
+
+  { id: "key", group: "Light", label: "Key direction", note: "Side, front, back, under, none." },
+  { id: "contrast", group: "Light", label: "Contrast", note: "How far the shadow is from the face." },
+  { id: "colorTemp", group: "Light", label: "Color of the light", note: "Warm practical, cold day, mixed." },
+  { id: "lighting", group: "Light", label: "Lighting", live: true, kind: "select", value: "practical", options: ["dusk", "flat", "practical", "hard", "moon"], note: "The look of the room as a single choice the board can render." },
+  { id: "timeOfDay", group: "Light", label: "Time of day", note: "The sun’s job, if any." },
+
+  { id: "setting", group: "Place", label: "Setting", note: "Kitchen, lab, courtyard, wall, commute." },
+  { id: "intExt", group: "Place", label: "Interior or exterior", note: "A door changes the sound as much as the light." },
+  { id: "envMotion", group: "Place", label: "Motion of the environment", live: true, kind: "select", value: "still", options: ["still", "wind", "crowd", "water", "transit"], note: "What the room does while people talk." },
+  { id: "temperature", group: "Place", label: "Temperature", live: true, kind: "select", value: "mild", options: ["cold", "mild", "hot"], note: "How the bodies behave before anyone speaks." },
+  { id: "weather", group: "Place", label: "Weather", note: "Rain, dust, nothing." },
+  { id: "scale", group: "Place", label: "Scale of the place", note: "A closet, a hall, a city that is only as big as the heart." },
+
+  { id: "peopleCount", group: "People", label: "Number of people", live: true, kind: "range", min: 1, max: 8, value: 3, note: "Bodies in the shot, not names in the episode." },
+  { id: "blocking", group: "People", label: "Where they stand", note: "Line, triangle, depth, one seated. What the bodies do." },
+  { id: "eyeline", group: "People", label: "Eyelines", note: "Who is allowed to look at whom." },
+  { id: "focus", group: "People", label: "Who is sharp", note: "The face, the hand, the crystal, the door." },
+  { id: "look", group: "People", label: "Look of the actor", note: "Wardrobe, face, age the camera reads, how still they are." },
+
+  { id: "volume", group: "Sound", label: "Volume of the lines", live: true, kind: "range", min: 1, max: 5, value: 3, note: "How loud the speech is rendered." },
+  { id: "dynamicRange", group: "Sound", label: "Dynamic range of the lines", live: true, kind: "select", value: "wide", options: ["narrow", "wide"], note: "Whether the quiet line and the loud line are far apart." },
+  { id: "rangeChanges", group: "Sound", label: "How often the range changes", live: true, kind: "select", value: "every other", options: ["rare", "every other", "every line"], note: "Frequency of the jump between quiet and loud." },
+  { id: "pace", group: "Sound", label: "Pace", note: "Speed of the line against the hold of the shot." },
+  { id: "silence", group: "Sound", label: "Silence length", note: "The dash. How long nobody fills it." },
+  { id: "breath", group: "Sound", label: "Breathing and speaking", live: true, kind: "select", value: "breath then speak", options: ["breath then speak", "speak on the breath", "ignore breath"], note: "Whether a breath is a panel, or the line rides it, or the board pretends bodies do not breathe." },
+  { id: "eating", group: "Sound", label: "Eating and speaking", live: true, kind: "select", value: "none", options: ["none", "eat then speak", "speak while eating"], note: "The mouth has one job at a time, or it doesn’t." },
+
+  { id: "gesture", group: "Body", label: "Size of gesture", note: "A hand, or the whole arm, or nothing." },
+  { id: "stillness", group: "Body", label: "Stillness", note: "How much of the person is allowed to move." },
+  { id: "blink", group: "Body", label: "Blink", note: "A tell. Easy to fake. The crystal does not use it." },
+
+  { id: "panelCount", group: "Comic", label: "Panels", note: "The strip’s length. Tied to angles when the board is in coverage." },
+  { id: "gutter", group: "Comic", label: "Gutter", note: "The gap where time happens off-panel." },
+  { id: "balloon", group: "Comic", label: "Balloon against caption", note: "Speech, or a box that knows more than the people." },
+
+  { id: "mains", group: "Story", label: "Featured mains", live: true, kind: "range", min: 2, max: 4, value: 2, note: "Our hour follows two to four. Not a crowd of points of view." },
+  { id: "groups", group: "Story", label: "Groups in the hour", live: true, kind: "select", value: "1", options: ["1", "2"], note: "One company of people, or two mains inside the same company." },
+  { id: "exit", group: "Story", label: "Exit", live: true, kind: "select", value: "stay", options: ["stay", "leave", "die"], note: "The other ensemble lets principals out by death. Ours may also walk out." },
+  { id: "featureRate", group: "Story", label: "How often a main is in the season", note: "Count the hours. A leave is a stop. A death is a stop. A trip that returns is neither." },
+];
