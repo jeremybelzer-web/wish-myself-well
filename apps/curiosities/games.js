@@ -535,6 +535,7 @@
       #games .bar-actions label.field { min-width: 0; }
       #games .use { background: var(--saffron); color: white; border-color: var(--saffron); }
       #games .g-q td, #games .g-q th { text-align: center; }
+      #games [hidden] { display: none !important; }
     `;
     document.head.appendChild(st);
   }

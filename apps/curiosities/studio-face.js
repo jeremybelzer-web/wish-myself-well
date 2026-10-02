@@ -66,6 +66,19 @@
     return "rest";
   }
   let anim = null;
+  let offAuto = null;
+  let liveAnim = null;
+  const AUTO_IDS = ["faceIntensity", "gazeShift", "blink", "eyeline", "emotion"];
+  /* emotion words from the catalog, each read as a pose */
+  const EMOTION_POSE = { loving: "joy", joyful: "joy", curious: "surprise", melancholy: "sorrow", anxious: "fear", fearful: "fear", angry: "anger", triumphant: "joy", absurd: "sly", dreamlike: "deadpan" };
+  function eyelineWord(v) {
+    if (EYELINES[v]) return v;
+    if (v === "on" || v === "yes") return "at the lens";
+    if (v === "off" || v === "no") return "away";
+    const n = Number(v);
+    if (!isNaN(n)) return Object.keys(EYELINES)[Math.max(0, Math.min(3, Math.round(n)))];
+    return null;
+  }
 
   function lerp(a, b, t) {
     return a + (b - a) * t;
@@ -79,7 +92,7 @@
     st.textContent = `.fc-t{display:grid;grid-template-columns:1fr 84px;gap:2px 8px;align-items:center}.fc-t label.field{margin:0}.fc-t svg{width:84px;height:22px;display:block}
       .fc-strip{width:100%;height:auto;display:block;border:2px solid var(--ink);background:#fff}
       .fc-beats td,.fc-beats th{text-align:center;padding:2px 4px}.fc-beats select{max-width:120px}.fc-beats th.on,.fc-beats td.on{background:var(--ink);color:var(--paper)}
-      .fc-prox li{font-size:13px}.fc-prox .ok{color:#2e7d32}.fc-prox .no{color:#a33}`;
+      .fc-prox li{font-size:13px}.fc-prox .ok{color:#2e7d32}.fc-prox .no{color:#a33}.auto-badge{font-family:var(--mono);font-size:10px;background:var(--ink);color:var(--paper);padding:0 4px;margin-left:4px;text-transform:none}#fc-chips .chip[data-auto]{cursor:pointer}#fc-chips .chip.auto-on{background:var(--ink);color:var(--paper)}`;
     document.head.appendChild(st);
   }
 
@@ -225,6 +238,22 @@
     return out;
   }
 
+  function chipsHtml(s, w, live) {
+    const run = (id) => window.CurioAuto && window.CurioAuto.running().includes("c:" + id);
+    const chip = (id, v) => `<span class="chip${run(id) ? " auto-on" : ""}" data-auto="c:${id}" title="Click to automate ${id}">${id} ${String(v).replace(/</g, "&lt;")}${run(id) ? " · automated" : ""}</span>`;
+    const cur = s.cur;
+    const L = live || {};
+    return [
+      chip("faceIntensity", L.faceIntensity != null ? L.faceIntensity : intensityOf(w)),
+      `<span class="chip">reads as ${nearestPose(w)}</span>`,
+      chip("eyeline", s.eyelines[cur]),
+      chip("gazeShift", Number(s.gaze[cur]) || 0),
+      chip("blink", s.blinks[cur] ? "yes" : "no"),
+      chip("emotion", L.emotion ? L.emotion + " → " + (EMOTION_POSE[L.emotion] || s.b) : "→ " + s.b),
+      asymmetryOf(w) ? `<span class="chip">split ${asymmetryOf(w)}</span>` : "",
+    ].join(" ");
+  }
+
   function normalize(s) {
     const n = s.beats.length;
     const fill = (arr, v) => {
@@ -275,7 +304,8 @@
       </div>
       <div>
         <div id="face-view" style="max-width:320px">${faceSvg(wCur, { eye: el0, lid: el0.lid })}</div>
-        <p id="fc-chips"><span class="chip">faceIntensity ${intensityOf(wCur)}</span> <span class="chip">reads as ${esc(nearestPose(wCur))}</span> <span class="chip">eyeline ${esc(s.eyelines[cur])}</span> <span class="chip">gazeShift ${Number(s.gaze[cur]) || 0}</span> <span class="chip">blink ${s.blinks[cur] ? "yes" : "no"}</span>${asymmetryOf(wCur) ? ` <span class="chip">split ${asymmetryOf(wCur)}</span>` : ""}</p>
+        <p id="fc-chips">${chipsHtml(s, wCur, null)}</p>
+        <p class="cap">Click a chip to automate it, or open Automate. Emotion picks the To pose of the In-between; faceIntensity moves its blend.</p>
         <h3>Beat strip</h3>
         <p class="cap">Blue ticks are eye darts: each one snaps in about 2 frames at ${FPS} fps. Orange bars are blinks, about 6 frames. Click a beat to key it.</p>
         ${stripSvg(s, cur)}
@@ -305,6 +335,159 @@
         <div class="bar-actions"><button type="button" data-act="speak">Speak it</button></div>
       </div></div>`;
     const view = el.querySelector("#face-view");
+
+    /* ---------- automation: CurioAuto drives the face live ---------- */
+    const live = { driven: new Set(), last: 0, darts: [], nextDart: 0, eye: { dx: el0.dx, dy: el0.dy }, from: { dx: el0.dx, dy: el0.dy }, dartAt: 0, blinkAt: -1, prevBlink: false };
+    const liveWeights = () => {
+      if (live.driven.has("faceIntensity") || live.driven.has("emotion")) {
+        const A = expand(POSES[s.a] || {}), B = expand(POSES[s.b] || {});
+        const w = {};
+        TARGETS.forEach(([k]) => (w[k] = lerp(A[k] || 0, B[k] || 0, s.mix)));
+        return w;
+      }
+      return beatWeights(s, cur);
+    };
+    const wireChips = () =>
+      el.querySelectorAll("#fc-chips [data-auto]").forEach((c) =>
+        c.addEventListener("click", () => {
+          const A = window.CurioAuto;
+          if (!A) return;
+          if (A.running().includes(c.dataset.auto)) A.stop(c.dataset.auto);
+          else A.start(c.dataset.auto);
+        })
+      );
+    const refreshChips = (lv) => {
+      const c = el.querySelector("#fc-chips");
+      if (c) c.innerHTML = chipsHtml(s, liveWeights(), lv);
+      wireChips();
+    };
+    const ctlFor = (id) =>
+      ({ faceIntensity: `[data-s="mix"]`, emotion: `[data-s="b"]`, gazeShift: `[data-gaze="${cur}"]`, blink: `[data-blink="${cur}"]`, eyeline: `[data-eye="${cur}"]` })[id];
+    const badge = (id, on) => {
+      const ctl = el.querySelector(ctlFor(id));
+      if (!ctl) return;
+      const host = ctl.closest("label") || ctl.parentElement;
+      let b = host.querySelector(".auto-badge");
+      if (on && !b) {
+        b = document.createElement("span");
+        b.className = "auto-badge";
+        b.textContent = "automated";
+        host.appendChild(b);
+      } else if (!on && b) b.remove();
+    };
+    const liveLoop = (t) => {
+      if (!view.isConnected || document.getElementById("studio").classList.contains("hidden")) return (liveAnim = null);
+      if (t - live.last > 400) {
+        /* automation stopped: back to the still face of this beat */
+        liveAnim = null;
+        live.driven.forEach((id) => badge(id, false));
+        live.driven = new Set();
+        view.innerHTML = faceSvg(beatWeights(s, cur), { eye: el0, lid: el0.lid });
+        refreshChips(null);
+        return;
+      }
+      const frame = 1000 / FPS;
+      const base = EYELINES[s.eyelines[cur]] || EYELINES["at the lens"];
+      const n = Number(s.gaze[cur]) || 0;
+      if (t >= live.nextDart) {
+        live.from = { dx: live.eye.dx, dy: live.eye.dy };
+        live.to = { dx: base.dx + (n ? (Math.random() - 0.5) * 7 : 0), dy: base.dy + (n ? (Math.random() - 0.5) * 4 : 0) };
+        live.dartAt = t;
+        live.nextDart = t + (n ? s.beatMs / n : 400) * (0.7 + Math.random() * 0.6);
+      }
+      const u = Math.min(1, (t - live.dartAt) / (2 * frame));
+      const to = live.to || base;
+      live.eye = { dx: lerp(live.from.dx, to.dx, u), dy: lerp(live.from.dy, to.dy, u) };
+      let blink = 0;
+      if (live.blinkAt >= 0) {
+        const bu = (t - live.blinkAt) / (6 * frame);
+        if (bu <= 1) blink = 1 - Math.abs(2 * bu - 1);
+        else live.blinkAt = -1;
+      }
+      view.innerHTML = faceSvg(liveWeights(), { eye: live.eye, lid: base.lid, blink });
+      liveAnim = requestAnimationFrame(liveLoop);
+    };
+    if (offAuto) offAuto();
+    offAuto = null;
+    if (liveAnim) cancelAnimationFrame(liveAnim);
+    liveAnim = null;
+    if (window.CurioAuto)
+      offAuto = window.CurioAuto.on((type, d) => {
+        if (!el.isConnected || !view.isConnected) {
+          if (offAuto) offAuto();
+          offAuto = null;
+          return;
+        }
+        if (type === "change") return refreshChips(null);
+        if (type !== "tick" || !d || !d.panels || !d.panels[0]) return;
+        const v = d.panels[0];
+        const now = new Set(AUTO_IDS.filter((id) => d.ms["c:" + id] != null));
+        if (!now.size) return;
+        live.last = performance.now();
+        let changed = false;
+        const lv = {};
+        if (now.has("emotion")) {
+          lv.emotion = v.emotion;
+          const pose = EMOTION_POSE[v.emotion];
+          if (pose && s.b !== pose) {
+            s.b = pose;
+            const c = el.querySelector('[data-s="b"]');
+            if (c) c.value = pose;
+            changed = true;
+          }
+        }
+        if (now.has("faceIntensity")) {
+          const fi = Math.max(0, Math.min(5, Math.round(Number(v.faceIntensity)) || 0));
+          lv.faceIntensity = fi;
+          if (s.mix !== fi / 5) {
+            s.mix = fi / 5;
+            const c = el.querySelector('[data-s="mix"]');
+            if (c) {
+              c.value = s.mix;
+              if (c.parentElement.firstChild.nodeType === 3) c.parentElement.firstChild.textContent = `Blend ${Math.round(s.mix * 100)}%`;
+            }
+            changed = true;
+          }
+        }
+        if (now.has("gazeShift")) {
+          const g = Math.max(0, Math.min(8, Math.round(Number(v.gazeShift)) || 0));
+          if (Number(s.gaze[cur]) !== g) {
+            s.gaze[cur] = g;
+            const c = el.querySelector(`[data-gaze="${cur}"]`);
+            if (c) c.value = String(g);
+            live.nextDart = 0;
+            changed = true;
+          }
+        }
+        if (now.has("blink")) {
+          const on = v.blink === "yes" || v.blink === true || v.blink === "on";
+          if (on && !live.prevBlink) live.blinkAt = performance.now();
+          live.prevBlink = on;
+          if (!!s.blinks[cur] !== on) {
+            s.blinks[cur] = on;
+            const c = el.querySelector(`[data-blink="${cur}"]`);
+            if (c) c.checked = on;
+            changed = true;
+          }
+        }
+        if (now.has("eyeline")) {
+          const word = eyelineWord(v.eyeline);
+          if (word && s.eyelines[cur] !== word) {
+            s.eyelines[cur] = word;
+            const c = el.querySelector(`[data-eye="${cur}"]`);
+            if (c) c.value = word;
+            live.nextDart = 0;
+            changed = true;
+          }
+        }
+        AUTO_IDS.forEach((id) => now.has(id) !== live.driven.has(id) && badge(id, now.has(id)));
+        const setChanged = now.size !== live.driven.size || [...now].some((x) => !live.driven.has(x));
+        live.driven = now;
+        if (changed) st.set(s);
+        if (changed || setChanged) refreshChips(lv);
+        if (!liveAnim) liveAnim = requestAnimationFrame(liveLoop);
+      });
+    wireChips();
     const setKey = (k, v) => {
       s.keys[k][cur] = v;
       if (s.link) {
