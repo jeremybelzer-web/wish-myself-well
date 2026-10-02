@@ -31,6 +31,16 @@ assert.deepStrictEqual(plain(B.fromOsc(osc.address, osc.args)), { type: "set", k
 B.handle({ type: "trigger", key, on: false });
 assert(!core.CurioAuto.running().includes(key), "trigger off stops it");
 assert.strictEqual(B.handle({ type: "panels" }).type, "error", "panels needs the board (none headless)");
+/* Other parts send values out through addSource: bad entries and a throwing source are skipped. */
+const drop = B.addSource(() => [{ type: "value", key: "m:attention", m: 1.7 }, { key: "m:over" }, null]);
+const dropBad = B.addSource(() => {
+  throw new Error("broken source");
+});
+assert.deepStrictEqual(plain(B.values().filter((v) => v.key.startsWith("m:"))), [{ type: "value", key: "m:attention", m: 1 }], "addSource values, clamped");
+assert.strictEqual(B.toOsc({ type: "value", key: "m:attention", m: 1 }).address, "/curio/value/m/attention", "momentum keys over OSC");
+drop();
+dropBad();
+assert(!B.values().some((v) => v.key.startsWith("m:")), "a removed source stops sending");
 assert(core.localStorage.getItem("curiosities-automation-v1"), "patches save to the storage given");
 
 /* With the curiosity database (data/, #7) every one of its items is a parameter the bridge can move. */
