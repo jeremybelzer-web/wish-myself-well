@@ -299,7 +299,7 @@
     const across = Number(o.across) || 0;
     if (o.mod === "follow") return master * (1 - across + across * rel);
     if (o.mod === "manual" || o.mod === "midi") return Math.max(0, Math.min(1, Number(o.manual) || 0)) * (1 - across + across * rel);
-    const phase = ((now - (t0[key] || now)) / 1000) * (Number(o.rate) || 1) + across * rel;
+    const phase = ((now - (t0[key] || now)) / 1000) * (Number(o.rate) || 1) + (across * rel) / 2; /* half a cycle, so the two ends of the moment sit opposite */
     return shapeAt(o.shape || "sine", phase, key + ":" + Math.round(across * rel * 8)) * (o.depth == null ? 1 : Number(o.depth));
   }
   /* What a lane is worth: a curiosity value, a number of beats, a share of panels, or a size of step. */

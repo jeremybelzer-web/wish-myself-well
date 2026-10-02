@@ -58,7 +58,7 @@ const SUITES = [
 const PROXIMITIES = [
   {
     id: "handheld-gesture",
-    when: "cameraCarry is handheld",
+    when: "the camera goes handheld",
     then: "gesture grows",
     within: 2,
     x: { curiosity: "cameraCarry", is: "handheld" },

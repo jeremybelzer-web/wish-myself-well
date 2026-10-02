@@ -32,6 +32,9 @@
     const games = document.getElementById("games");
     games.classList.toggle("hidden", tab !== "games");
     if (tab === "games" && window.CuriosityGames) window.CuriosityGames.draw();
+    const prism = document.getElementById("prism");
+    prism.classList.toggle("hidden", tab !== "prism");
+    if (tab === "prism" && window.CuriosityPrism) window.CuriosityPrism.draw();
   });
 
   function load() {
