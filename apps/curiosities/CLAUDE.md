@@ -35,7 +35,8 @@ A model of a movie, a TV hour, or a video game is only those three. If a fact ca
 13. `core/README.md` — the shared core: the files every version loads (web, desktop, a Maya panel), which never touch the page. `bridge.js` (`window.CurioBridge`) is the one message format for VCV Rack, OSC and tool bridges. `node core/check.js` loads the core with no page. `sw.js`, `offline.js` and `manifest.webmanifest` make the app installable and offline when served from a web address.
 14. `maya/` — the Maya panel (`maya/README.md`): the app docked in Maya, each panel's camera curiosities driving `curioCam`, Key shots and Read camera. `maya/scripts/curiosities_maya/curio_camera.py` is the curiosity-to-camera mapping with no Maya in it.
 15. `desktop/` — the desktop app (`desktop/README.md`): Electron around the same files, MIDI everywhere, a File menu, and the local bridge (`bridge-server.js`: WebSocket on 7577, OSC in 7000 and out 7001). `npm run check` there tests the bridge.
-16. `index.html` — open this in a browser. No build step.
+16. `blender/` — the Blender add-on (`blender/README.md`): connects to the desktop app's bridge and drives `CurioCam` with the same camera mapping as Maya. `make_zip.py` builds the installable zip; `tests/test_blender.py` runs with bpy.
+17. `index.html` — open this in a browser. No build step.
 
 State is `localStorage` key `curiosities-board-v2`.
 
