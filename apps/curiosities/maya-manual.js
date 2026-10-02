@@ -54,7 +54,148 @@ window.MAYA_MANUAL = {
   "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html",
   "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
  ],
- "gaps": [],
+ "gaps": [
+  {
+   "rank": 1,
+   "id": "motion-paths",
+   "area": "animation",
+   "missing": "Draw your own path on the floor plan for a character, prop or camera, with follow and bank; Motion only offers preset path shapes.",
+   "status": "partly covered by motion"
+  },
+  {
+   "rank": 2,
+   "id": "motion-trails",
+   "area": "animation",
+   "missing": "Drag the spacing dots on the trail to retime; the trail is display only today.",
+   "status": "partly covered by motion"
+  },
+  {
+   "rank": 3,
+   "id": "retime-tool",
+   "area": "animation",
+   "missing": "Retime markers inside a curve to squeeze or stretch a span; Remix only retimes whole clips.",
+   "status": "partly covered by remix"
+  },
+  {
+   "rank": 4,
+   "id": "camera-shake",
+   "area": "animation",
+   "missing": "Keyed camera shake for impacts and handheld; no tool sets cameraShake over time.",
+   "status": "not covered"
+  },
+  {
+   "rank": 5,
+   "id": "focus-pull",
+   "area": "animation",
+   "missing": "Keyed focus pull between two subjects on a line or action; Camera has only a one-shot rack button.",
+   "status": "partly covered by camera"
+  },
+  {
+   "rank": 6,
+   "id": "dope-sheet",
+   "area": "animation",
+   "missing": "A full Dope Sheet that moves and scales keys for every curiosity at once; Curves has one row only.",
+   "status": "partly covered by curves"
+  },
+  {
+   "rank": 7,
+   "id": "arnold-shadow-density-color",
+   "area": "lighting",
+   "missing": "Shadow density and color controls (blue night shadows, faint fill shadows).",
+   "status": "partly covered by light"
+  },
+  {
+   "rank": 8,
+   "id": "arnold-snapshots-ab",
+   "area": "lighting",
+   "missing": "Snapshot a look and wipe A/B against the current one in Light & look.",
+   "status": "not covered"
+  },
+  {
+   "rank": 9,
+   "id": "arnold-physical-sky",
+   "area": "lighting",
+   "missing": "A sun position (elevation, azimuth) driving sky color and time of day; today only presets.",
+   "status": "partly covered by light"
+  },
+  {
+   "rank": 10,
+   "id": "toon-profile-lines",
+   "area": "shading",
+   "missing": "Line weight and color controls for ink outlines in panels; Ink is on or off.",
+   "status": "partly covered by light"
+  },
+  {
+   "rank": 11,
+   "id": "arnold-toon-outlines",
+   "area": "shading",
+   "missing": "Same as above for Arnold toon edges: silhouette, crease, line width by depth.",
+   "status": "partly covered by light"
+  },
+  {
+   "rank": 12,
+   "id": "_note-dynamics-fur-bifrost",
+   "area": "dynamics/fur/Bifrost",
+   "missing": "No major build topic is uncovered in dynamics; fur (XGen, nHair) and Bifrost liquids have no tool yet (studio-fur.js, studio-bifrost.js not in the folder), and their rows are fit curiosity, so they are listed here as the next Sharani areas to build.",
+   "status": "not covered"
+  },
+  {
+   "rank": 13,
+   "id": "playblast",
+   "area": "other",
+   "missing": "Export the board or ubershot as a WebM or GIF flipbook with MediaRecorder; no tool exports a movie yet.",
+   "status": "not covered"
+  },
+  {
+   "rank": 14,
+   "id": "seq-playblast",
+   "area": "other",
+   "missing": "Same as playblast, from the Shots sequencer.",
+   "status": "not covered"
+  },
+  {
+   "rank": 15,
+   "id": "mash-audio",
+   "area": "other",
+   "missing": "Drive a crowd or any curiosity from the loaded sound's loudness (WebAudio) for performers.",
+   "status": "not covered"
+  },
+  {
+   "rank": 16,
+   "id": "seq-hold-transitions",
+   "area": "other",
+   "missing": "Pre/post hold and dissolve or wipe transitions between shots in Shots.",
+   "status": "not covered"
+  },
+  {
+   "rank": 17,
+   "id": "type-tool",
+   "area": "other",
+   "missing": "Title and caption type-on by letter, word or line with delay and reverse order.",
+   "status": "partly covered by crowd"
+  },
+  {
+   "rank": 18,
+   "id": "time-slider",
+   "area": "other",
+   "missing": "Named bookmark spans over the beat strip.",
+   "status": "partly covered by sequencer"
+  },
+  {
+   "rank": 19,
+   "id": "image-plane",
+   "area": "other",
+   "missing": "Drop a reference still or storyboard image behind a panel.",
+   "status": "not covered"
+  },
+  {
+   "rank": 20,
+   "id": "arnold-camera-exposure",
+   "area": "other",
+   "missing": "Exposure in stops on the camera, tied to Light & look.",
+   "status": "partly covered by camera"
+  }
+ ],
  "topics": [
   {
    "id": "camera-animation",
@@ -141,7 +282,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Non-destructive remix layers fit remixers and live performers.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-BBCA0BC3-7608-4E86-8E9F-B4099C316156.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-BBCA0BC3-7608-4E86-8E9F-B4099C316156.htm",
+   "tool": "remix",
+   "built": "yes",
+   "toolDoes": "Stacks tracks as layers that override only the curiosities they carry, with a weight, mute and solo per track."
   },
   {
    "id": "animation-principles-maya",
@@ -193,7 +337,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "The core of the Animation group.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "motion",
+   "built": "yes",
+   "toolDoes": "Plays spacing, ones/twos/threes, anticipation, overshoot and squash on one object at a chosen frame rate."
   },
   {
    "id": "audio-lipsync",
@@ -227,7 +374,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Dialogue scenes depend on it.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "face",
+   "built": "partly",
+   "toolDoes": "Breaks a typed line into mouth shapes per second and plays them; it doesn't sync to an audio file."
   },
   {
    "id": "auto-key",
@@ -252,7 +402,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Live performers record by playing.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "Record samples the mouse, number keys or a MIDI controller into keys while the playhead runs."
   },
   {
    "id": "cycles-walks",
@@ -326,7 +479,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Grid of ticks is how studies are read.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "curves",
+   "built": "partly",
+   "toolDoes": "Shows a Dope Sheet row of key ticks under the graph."
   },
   {
    "id": "motion-trails",
@@ -362,7 +518,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Spacing dots make ease visible.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-2DFBE283-1A1E-4194-B6C5-B4E0F72D61CA.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-2DFBE283-1A1E-4194-B6C5-B4E0F72D61CA.htm",
+   "tool": "motion",
+   "built": "partly",
+   "toolDoes": "Draws the motion trail with spacing dots; the trail can't be dragged to edit."
   },
   {
    "id": "ghosting",
@@ -399,7 +558,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Onion skin is the oldest animator check.",
-   "source": "https://help.autodesk.com/cloudhelp/2023/ENU/Maya-Animation/files/GUID-2656574F-FBC6-457B-B0C1-5C1249DA89EF.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2023/ENU/Maya-Animation/files/GUID-2656574F-FBC6-457B-B0C1-5C1249DA89EF.htm",
+   "tool": "motion",
+   "built": "yes",
+   "toolDoes": "Draws onion-skin ghosts of earlier frames around one moving object."
   },
   {
    "id": "graph-editor-curves",
@@ -441,7 +603,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Curves over beats are the app's main drawing.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-43A4FE2C-4863-4EA6-B6AE-6D2B6757F6C7.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-43A4FE2C-4863-4EA6-B6AE-6D2B6757F6C7.htm",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "Draws a key curve per curiosity across the beats, with infinity that repeats the curve before and after its keys."
   },
   {
    "id": "graph-editor-tangents",
@@ -505,7 +670,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Tangent type is the plainest measurable motion feel.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-43A4FE2C-4863-4EA6-B6AE-6D2B6757F6C7.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-43A4FE2C-4863-4EA6-B6AE-6D2B6757F6C7.htm",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "Sets each key's tangent to auto, spline, linear, flat, stepped, clamped or plateau."
   },
   {
    "id": "motion-paths",
@@ -550,7 +718,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Floor plan paths are already drawn; markers make timing editable.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-A8D2F488-8215-46F2-8D96-9503E2D0669A.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-A8D2F488-8215-46F2-8D96-9503E2D0669A.htm",
+   "tool": "motion",
+   "built": "partly",
+   "toolDoes": "A path shape setting (straight, arc, figure eight) sets the arcs curiosity on one object; you can't draw your own path."
   },
   {
    "id": "pose-library",
@@ -593,7 +764,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Pose reuse is fast for beginners and live pads.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "face",
+   "built": "yes",
+   "toolDoes": "Applies saved facial poses (joy, fear, deadpan and others) as sets of blend shape weights."
   },
   {
    "id": "retime-tool",
@@ -625,7 +799,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Direct timing control everyone uses.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-65271F97-19E4-4E3E-A541-F89F7247B6BF.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-65271F97-19E4-4E3E-A541-F89F7247B6BF.htm",
+   "tool": "remix",
+   "built": "partly",
+   "toolDoes": "Retimes a whole clip from 0.25x to 4x with an ease curve; there are no in-graph retime markers."
   },
   {
    "id": "time-warp",
@@ -668,7 +845,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Speed ramps are a filmmaker staple.",
-   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya/files/GUID-32296732-723B-457F-88EB-681A2965ED3E.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya/files/GUID-32296732-723B-457F-88EB-681A2965ED3E.htm",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "A Time Warp curve maps output beats to input beats, which gives slow motion and speed ramps."
   },
   {
    "id": "set-key",
@@ -708,7 +888,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Keys versus in-betweens is the first thing an animator learns.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "Lets you add, move and delete keys on beats in the graph."
   },
   {
    "id": "timing-charts",
@@ -758,7 +941,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Core timing vocabulary.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "motion",
+   "built": "yes",
+   "toolDoes": "Plays spacing, ones/twos/threes, anticipation, overshoot and squash on one object at a chosen frame rate."
   },
   {
    "id": "time-editor",
@@ -811,7 +997,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Clip mixing is the remixer and live-set workflow.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E4B5DB7D-7351-4561-BD8B-60AC9D48DDF6.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E4B5DB7D-7351-4561-BD8B-60AC9D48DDF6.htm",
+   "tool": "remix",
+   "built": "yes",
+   "toolDoes": "Builds clips from study spans, suites or the board on stacked tracks, with move, trim, loop, retime, reverse and crossfade."
   },
   {
    "id": "bake-simulation",
@@ -898,7 +1087,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Remixers compare original vs remixed curve.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "Keeps the last version of a curve ghosted as a buffer curve."
   },
   {
    "id": "character-sets",
@@ -951,7 +1143,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Basic editing.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "Lets you add, move and delete keys on beats in the graph."
   },
   {
    "id": "expressions",
@@ -985,7 +1180,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Noise and sine drive shake and idle motion.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "curves",
+   "built": "partly",
+   "toolDoes": "Infinity cycling repeats a curve, but there are no sine or noise expressions."
   },
   {
    "id": "ghost-layers",
@@ -1068,7 +1266,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Performer audience.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "rig",
+   "built": "partly",
+   "toolDoes": "Live puppeteer mode: number keys or MIDI CCs turn joints in real time and can be keyed to beats."
   },
   {
    "id": "trax-editor",
@@ -1095,7 +1296,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Legacy, covered by the Time Editor row.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "remix",
+   "built": "yes",
+   "toolDoes": "Builds clips from study spans, suites or the board on stacked tracks, with move, trim, loop, retime, reverse and crossfade."
   },
   {
    "id": "visibility-keys",
@@ -1156,7 +1360,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Sound drives timing.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-22BF637E-5F92-4D2E-91E6-2FF1CA392270.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-22BF637E-5F92-4D2E-91E6-2FF1CA392270.htm",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "Loads a sound file that plays under the edit; the sound is never stored or uploaded."
   },
   {
    "id": "audio-waveform",
@@ -1207,7 +1414,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Waveform is the bridge to performers and editors.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-22BF637E-5F92-4D2E-91E6-2FF1CA392270.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-22BF637E-5F92-4D2E-91E6-2FF1CA392270.htm",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "Draws the sound's waveform under the edit when the browser can decode it."
   },
   {
    "id": "audio-scrub",
@@ -1235,7 +1445,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Small but expected.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "sequencer",
+   "built": "partly",
+   "toolDoes": "Scrubbing the ruler moves the playhead in step with the sound playback."
   },
   {
    "id": "camera-sequencer",
@@ -1291,7 +1504,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Closest Maya feature to the app itself: shots, cameras, cuts, audio.",
-   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya/files/GUID-FDCA1426-D7FE-41A5-9563-5628C736BCCC.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya/files/GUID-FDCA1426-D7FE-41A5-9563-5628C736BCCC.htm",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "Puts camera shots on two tracks; the top track wins where shots overlap, and you can drag to reorder and trim."
   },
   {
    "id": "camera-attributes",
@@ -1345,7 +1561,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Lens is the most-used camera measure.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "camera",
+   "built": "yes",
+   "toolDoes": "Sets focal length and film back with real optics and reads them back as lensLength, shotSize and aspect."
   },
   {
    "id": "playback-speed-fps",
@@ -1387,7 +1606,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Live performers need loop and ping-pong; students need fps vs drawn-on-twos.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-1EC3357B-62DD-424F-9595-277C373D133C.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-1EC3357B-62DD-424F-9595-277C373D133C.htm",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "A frame rate picker sets 24, 25, 30 fps and similar, and playback runs in real time with looping."
   },
   {
    "id": "playblast",
@@ -1458,7 +1680,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Lip sync, music video and live performance all key off audio.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "Loads a sound file that plays under the edit; the sound is never stored or uploaded."
   },
   {
    "id": "time-slider",
@@ -1499,7 +1724,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "The beat strip is the app's spine; bookmarks name sections for students and remixers.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "sequencer",
+   "built": "partly",
+   "toolDoes": "Gives a ruler to click or drag to scrub, with timecode; there are no named bookmarks."
   },
   {
    "id": "viewports-cameras",
@@ -1564,7 +1792,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Existing Maya-sourced rows; keeps them tied to the manual.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "camera",
+   "built": "yes",
+   "toolDoes": "Computes depth of field from f-stop and focus distance and reports the depthOfField curiosity."
   },
   {
    "id": "camera-rigs",
@@ -1594,7 +1825,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Aim-at-subject is how a follow pan is built.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "rig",
+   "built": "partly",
+   "toolDoes": "Has an aim constraint for where the head looks and a point or parent constraint that puts a prop in a hand."
   },
   {
    "id": "display-layers",
@@ -1622,7 +1856,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Layer toggles reduce clutter on busy panels.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "passes",
+   "built": "partly",
+   "toolDoes": "Solo and mute on passes toggles groups of curiosities, like display layers."
   },
   {
    "id": "references-assets",
@@ -1649,7 +1886,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Remixers reuse other people's strands; maps to Shelf import.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "remix",
+   "built": "partly",
+   "toolDoes": "Pulls slices from other studies and suites into a clip by reference, including the A-is-to-B slice swap."
   },
   {
    "id": "hud",
@@ -1912,7 +2152,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Edit time vs story time is a key remix lens.",
-   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya-Tech-Docs/Commands/shot.html"
+   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya-Tech-Docs/Commands/shot.html",
+   "tool": "sequencer",
+   "built": "partly",
+   "toolDoes": "Measures shot length in frames and seconds on the sequence timeline."
   },
   {
    "id": "seq-shot-audio",
@@ -1946,7 +2189,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Cutting on sound is basic editing craft.",
-   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya-Tech-Docs/Commands/shot.html"
+   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya-Tech-Docs/Commands/shot.html",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "Loads a sound file that plays under the edit; the sound is never stored or uploaded."
   },
   {
    "id": "seq-shots",
@@ -1982,7 +2228,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Core edit model maps directly to beats.",
-   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya/files/GUID-FDCA1426-D7FE-41A5-9563-5628C736BCCC.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya/files/GUID-FDCA1426-D7FE-41A5-9563-5628C736BCCC.htm",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "Puts camera shots on two tracks; the top track wins where shots overlap, and you can drag to reorder and trim."
   },
   {
    "id": "seq-editorial",
@@ -2037,7 +2286,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Small organizing win.",
-   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya-Tech-Docs/Commands/shot.html"
+   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya-Tech-Docs/Commands/shot.html",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "Lets you name shots and mark favorites on the shot track."
   },
   {
    "id": "seq-ubercam",
@@ -2064,7 +2316,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Same as the app's play mode.",
-   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya/files/GUID-FDCA1426-D7FE-41A5-9563-5628C736BCCC.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2016/ENU/Maya/files/GUID-FDCA1426-D7FE-41A5-9563-5628C736BCCC.htm",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "Play draws the winning shot at the playhead as a board panel, which acts as the ubershot."
   },
   {
    "id": "focus-pull",
@@ -2104,7 +2359,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Focus pulls are a direct storytelling tool.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "partly",
+   "toolDoes": "A Rack focus button moves focus to the subject; it is a single jump, not a keyed focus pull."
   },
   {
    "id": "camera-shake",
@@ -2208,7 +2466,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Shallow focus is a core visual signature filmmakers talk about.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "yes",
+   "toolDoes": "Computes depth of field from f-stop and focus distance and reports the depthOfField curiosity."
   },
   {
    "id": "focal-length",
@@ -2266,7 +2527,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Lens choice is the most used camera value after shot size.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "yes",
+   "toolDoes": "Sets focal length and film back with real optics and reads them back as lensLength, shotSize and aspect."
   },
   {
    "id": "image-plane",
@@ -2374,7 +2638,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Shutter look is a known genre cue (war films, action).",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "partly",
+   "toolDoes": "A shutter angle slider sets the motionBlur curiosity; there is no shutter curve shape."
   },
   {
    "id": "lens-zoom-vs-dolly",
@@ -2425,7 +2692,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Classic filmmaker trick that is easy to explain in a timeline.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "yes",
+   "toolDoes": "Compares a zoom with a dolly so you can see how the background changes against the subject."
   },
   {
    "id": "2d-pan-zoom",
@@ -2563,7 +2833,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Aim-locked cameras explain why a move tracks a person.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "partly",
+   "toolDoes": "Covers the perspective camera's lens and film settings; aim and up rig types are not built."
   },
   {
    "id": "thirds-guides",
@@ -2591,7 +2864,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Feeds the existing composition curiosity directly.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "camera",
+   "built": "yes",
+   "toolDoes": "Draws composition guides over the frame and reports where the subject sits."
   },
   {
    "id": "film-back-gate",
@@ -2630,7 +2906,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Explains why the same mm looks different across formats.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "partly",
+   "toolDoes": "Lets you pick a film back preset and a film fit mode, which set the frame shape (aspect)."
   },
   {
    "id": "film-fit",
@@ -2668,7 +2947,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Vertical reframes of films are a common remix task.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "partly",
+   "toolDoes": "Lets you pick a film back preset and a film fit mode, which set the frame shape (aspect)."
   },
   {
    "id": "film-offset-roll",
@@ -2825,7 +3107,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Visual aid for frame edges.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "partly",
+   "toolDoes": "Lets you pick a film back preset and a film fit mode, which set the frame shape (aspect)."
   },
   {
    "id": "safe-frames",
@@ -2860,7 +3145,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Cheap overlay, teaches framing basics.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-C3EBB008-7DBE-4B9D-B9AC-1DA974CEFE15.htm",
+   "tool": "camera",
+   "built": "yes",
+   "toolDoes": "Draws safe action and safe title frames over the frame."
   },
   {
    "id": "stereo-interaxial",
@@ -3003,7 +3291,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Collage remix use.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "passes",
+   "built": "partly",
+   "toolDoes": "Clicking a cell shows an id matte of every panel that shares that value."
   },
   {
    "id": "mocap-live-stream",
@@ -3035,7 +3326,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Body straps are named audience hardware.",
-   "source": "https://download.autodesk.com/global/docs/maya2014/en_US/files/GUID-E1BB9406-F1BC-4784-B89C-E289D07A3C31.htm"
+   "source": "https://download.autodesk.com/global/docs/maya2014/en_US/files/GUID-E1BB9406-F1BC-4784-B89C-E289D07A3C31.htm",
+   "tool": "rig",
+   "built": "partly",
+   "toolDoes": "Live puppeteer mode: number keys or MIDI CCs turn joints in real time and can be keyed to beats."
   },
   {
    "id": "device-midi",
@@ -3077,7 +3371,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Performer audience needs this.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "Connects a MIDI controller through Web MIDI to drive a curiosity live, which is the performer's input."
   },
   {
    "id": "device-record",
@@ -3105,7 +3402,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Turns performance into a study.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "Record samples the mouse, number keys or a MIDI controller into keys while the playhead runs."
   },
   {
    "id": "humanik-retarget",
@@ -3220,7 +3520,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Costume weight changes how a move reads.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-10701398-2AE0-4A3A-8C9F-F26C4EB4D4CE.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-10701398-2AE0-4A3A-8C9F-F26C4EB4D4CE.htm",
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Runs Verlet cloth pinned at the top with heavy denim, t-shirt, silk and chain mail presets."
   },
   {
    "id": "bifrost-fluids",
@@ -3315,7 +3618,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Weather moods.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-F7BE47E6-76D5-47F0-8159-9F39FF0C4215.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-F7BE47E6-76D5-47F0-8159-9F39FF0C4215.htm",
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Has gravity with drag, wind with gusts, and turbulence; there is no vortex, radial or newton field."
   },
   {
    "id": "nucleus",
@@ -3347,7 +3653,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Kept as the source of gravity and wind values.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-F7BE47E6-76D5-47F0-8159-9F39FF0C4215.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-F7BE47E6-76D5-47F0-8159-9F39FF0C4215.htm",
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "One shared solver drives cloth, particles and boxes under the same fields, with one beat equal to one second."
   },
   {
    "id": "paint-effects",
@@ -3406,7 +3715,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Collision beats.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Drops boxes that collide, bounce and break, recording impacts and breakage."
   },
   {
    "id": "dynamics-cache",
@@ -3520,7 +3832,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Breakage already exists.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E43621EC-5810-47FF-90FE-168ADFA63C4E.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E43621EC-5810-47FF-90FE-168ADFA63C4E.htm",
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Cloth is pinned at the top; tearing is not modeled."
   },
   {
    "id": "nhair",
@@ -3592,7 +3907,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Debris and dust punctuate hits.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Runs an emitter of rain, dust, sparks or confetti."
   },
   {
    "id": "light-animation",
@@ -3633,7 +3951,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Live light cues suit performers.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Looks that run over beats include flicker (fire) and fades."
   },
   {
    "id": "light-area",
@@ -3674,7 +3995,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Soft vs hard light is basic.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Adds area lights with size that sets shadow softness on the 2D lighting stage."
   },
   {
    "id": "light-directional",
@@ -3726,7 +4050,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Key direction is a major lighting value the user asked for.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Adds a directional sun or moon light."
   },
   {
    "id": "light-fog",
@@ -3774,7 +4101,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Haze beams are a strong look.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-62FA61B5-4A76-4525-83BC-550EEF245936.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-62FA61B5-4A76-4525-83BC-550EEF245936.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A haze amount fills the air and sets the atmosphere curiosity."
   },
   {
    "id": "light-intensity-color",
@@ -3808,7 +4138,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Already central.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Sets intensity and exposure in stops (intensity x 2^exposure), with normalize."
   },
   {
    "id": "light-point",
@@ -3849,7 +4182,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Practicals are a common look.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Adds point lights to the lighting stage."
   },
   {
    "id": "shadows-depth-raytrace",
@@ -3898,7 +4234,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Shadows are visible story cues.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "light",
+   "built": "partly",
+   "toolDoes": "Shadow softness comes from light size and shadows render on the wall; there is little shadow color control."
   },
   {
    "id": "light-spot",
@@ -3945,7 +4284,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Performers and theater-style scenes use pools.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Adds spot lights to the lighting stage and renders them on a head against a wall."
   },
   {
    "id": "light-count-rig",
@@ -4005,7 +4347,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Most taught lighting concept.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Builds key, fill and rim setups and reports key, rim and lightCount."
   },
   {
    "id": "light-ambient",
@@ -4040,7 +4385,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Fill amount sets mood.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A skydome gives one-color light from the whole sky as ambient fill."
   },
   {
    "id": "barn-doors-decay-regions",
@@ -4066,7 +4414,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Shapes light like a set flag.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-62FA61B5-4A76-4525-83BC-550EEF245936.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-62FA61B5-4A76-4525-83BC-550EEF245936.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A barndoor filter crops a light."
   },
   {
    "id": "light-decay",
@@ -4102,7 +4453,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Explains pools of dark.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Applies quadratic decay with distance."
   },
   {
    "id": "light-glow",
@@ -4212,7 +4566,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Classic noir signature.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3B4D131E-D001-4415-8BF9-250612C3A81D.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A gobo filter (blinds and similar) shapes the light and sets lightShape."
   },
   {
    "id": "light-volume",
@@ -4558,7 +4915,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Repetition patterns are a music-video staple.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-B718F1FE-8688-4A57-95DD-5B22C4D40F1A.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-B718F1FE-8688-4A57-95DD-5B22C4D40F1A.htm",
+   "tool": "crowd",
+   "built": "yes",
+   "toolDoes": "Distributes copies in a line, grid, radial, scatter or along a path."
   },
   {
    "id": "type-tool",
@@ -4602,7 +4962,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Titles, captions, comic SFX lettering.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-92112B70-161B-4D89-A1E5-BC3D58274EFB.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-92112B70-161B-4D89-A1E5-BC3D58274EFB.htm",
+   "tool": "crowd",
+   "built": "partly",
+   "toolDoes": "Turns a word into letters to distribute as a crowd; there is no type-on animation by letter or word."
   },
   {
    "id": "mash-other",
@@ -4641,7 +5004,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Crowd cohesion is a staging value.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-D4FECFDC-F91A-4BDC-A1B0-A24EB087B2DD.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-D4FECFDC-F91A-4BDC-A1B0-A24EB087B2DD.htm",
+   "tool": "crowd",
+   "built": "partly",
+   "toolDoes": "Has Offset, color by id and Flight flocking (separation, alignment, cohesion)."
   },
   {
    "id": "mash-signal",
@@ -4677,7 +5043,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Order vs chaos is measurable.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-D4FECFDC-F91A-4BDC-A1B0-A24EB087B2DD.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-D4FECFDC-F91A-4BDC-A1B0-A24EB087B2DD.htm",
+   "tool": "crowd",
+   "built": "yes",
+   "toolDoes": "Random jitters copies from a seed, and Signal animates them with noise or sine."
   },
   {
    "id": "render-resolution",
@@ -4735,7 +5104,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Teaches the suite idea through a known tool.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-B1BBD05B-0172-4626-A85C-35943A67E8BE.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-B1BBD05B-0172-4626-A85C-35943A67E8BE.htm",
+   "tool": "passes",
+   "built": "yes",
+   "toolDoes": "Render Setup layers are named sets of overrides that set one curiosity to one value, on all panels or ticked ones."
   },
   {
    "id": "toon-profile-lines",
@@ -4768,7 +5140,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Outline weight is a comic signature.",
-   "source": "https://download.autodesk.com/us/maya/2009help/files/Toon_shading_Types_of_toon_lines.htm"
+   "source": "https://download.autodesk.com/us/maya/2009help/files/Toon_shading_Types_of_toon_lines.htm",
+   "tool": "light",
+   "built": "partly",
+   "toolDoes": "An Ink look draws outlines for comic panels."
   },
   {
    "id": "toon-fill",
@@ -4817,7 +5192,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Comic and animation users want cel look.",
-   "source": "https://download.autodesk.com/us/maya/2009help/files/Toon_shading_Types_of_toon_lines.htm"
+   "source": "https://download.autodesk.com/us/maya/2009help/files/Toon_shading_Types_of_toon_lines.htm",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A Toon look renders the panel in flat color bands."
   },
   {
    "id": "render-aovs",
@@ -4853,7 +5231,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Depth view helps blocking study.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-B1BBD05B-0172-4626-A85C-35943A67E8BE.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-B1BBD05B-0172-4626-A85C-35943A67E8BE.htm",
+   "tool": "passes",
+   "built": "partly",
+   "toolDoes": "Splits the scene into curiosity passes, one per catalog group, that you can solo and mute like AOVs."
   },
   {
    "id": "render-batch",
@@ -5093,7 +5474,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Facial weights are a core acting value; pad performers can drive weights live.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3C92402C-B24E-4874-AC8D-EADF976A19DC.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-3C92402C-B24E-4874-AC8D-EADF976A19DC.htm",
+   "tool": "face",
+   "built": "yes",
+   "toolDoes": "Sets ten blend shape target sliders on a drawn face, blends between two poses and reports faceIntensity."
   },
   {
    "id": "driven-keys",
@@ -5125,7 +5509,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Driver to driven is exactly how a live performer's controller maps to curiosities.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-D2B1C7EF-F177-4B0E-9E41-B479CFF2AFD4.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-D2B1C7EF-F177-4B0E-9E41-B479CFF2AFD4.htm",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "Set Driven Key lets one curiosity's value drive another's."
   },
   {
    "id": "constraints",
@@ -5168,7 +5555,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Handing props off is a staple staging beat.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "rig",
+   "built": "partly",
+   "toolDoes": "Has an aim constraint for where the head looks and a point or parent constraint that puts a prop in a hand."
   },
   {
    "id": "rig-controls",
@@ -5195,7 +5585,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "UI idea only.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "rig",
+   "built": "partly",
+   "toolDoes": "Lets you pose the whole puppet and key the pose to beats; there is no HumanIK effector pinning."
   },
   {
    "id": "humanik",
@@ -5226,7 +5619,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Performers with body straps map onto a few effectors like HumanIK.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-19B154DE-58F2-46AF-B2EF-7D00B2E46476.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-19B154DE-58F2-46AF-B2EF-7D00B2E46476.htm",
+   "tool": "rig",
+   "built": "partly",
+   "toolDoes": "Lets you pose the whole puppet and key the pose to beats; there is no HumanIK effector pinning."
   },
   {
    "id": "ik-fk",
@@ -5266,7 +5662,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Planted contact is a readable acting beat.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "rig",
+   "built": "yes",
+   "toolDoes": "Poses limbs with FK rotation or IK, and reads the pose back as posture, gesture and leadPart."
   },
   {
    "id": "deformers",
@@ -5341,7 +5740,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "A minimal stick body makes body curiosities visible.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "rig",
+   "built": "yes",
+   "toolDoes": "Poses a 2D side-view puppet with a joint hierarchy."
   },
   {
    "id": "skinning",
@@ -5670,7 +6072,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Needed to turn beats into time.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-4D653DC9-57AA-4D8B-987A-5B7A9735CAF0.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-4D653DC9-57AA-4D8B-987A-5B7A9735CAF0.htm",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "A frame rate picker sets 24, 25, 30 fps and similar, and playback runs in real time with looping."
   },
   {
    "id": "time-playback-speed",
@@ -5699,7 +6104,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Live loops suit performers.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "A frame rate picker sets 24, 25, 30 fps and similar, and playback runs in real time with looping."
   },
   {
    "id": "time-warp-2",
@@ -5737,7 +6145,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Speed ramps are an action signature.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "curves",
+   "built": "yes",
+   "toolDoes": "A Time Warp curve maps output beats to input beats, which gives slow motion and speed ramps."
   },
   {
    "id": "time-timecode",
@@ -5765,7 +6176,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Lines up studies with real cuts.",
-   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-4D653DC9-57AA-4D8B-987A-5B7A9735CAF0.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-4D653DC9-57AA-4D8B-987A-5B7A9735CAF0.htm",
+   "tool": "sequencer",
+   "built": "yes",
+   "toolDoes": "Shows timecode and seconds at the playhead."
   },
   {
    "id": "arnold-aov-beauty-components",
@@ -5802,7 +6216,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Seeing light layers teaches lighting.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html",
+   "tool": "passes",
+   "built": "partly",
+   "toolDoes": "Splits the scene into curiosity passes, one per catalog group, that you can solo and mute like AOVs."
   },
   {
    "id": "arnold-cryptomatte",
@@ -5824,7 +6241,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "skip",
    "reason": "Compositing mask tool.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "passes",
+   "built": "partly",
+   "toolDoes": "Clicking a cell shows an id matte of every panel that shares that value."
   },
   {
    "id": "arnold-depth-aov",
@@ -5873,7 +6293,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Relighting in comp is advanced but useful to see.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html",
+   "tool": "passes",
+   "built": "partly",
+   "toolDoes": "Shows which suites and proximities a layer lights up, the way a light group shows its contributions."
   },
   {
    "id": "arnold-camera-exposure",
@@ -5911,7 +6334,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Exposure shifts sell bright/dark transitions.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html",
+   "tool": "camera",
+   "built": "partly",
+   "toolDoes": "Shows the exposure that comes from the shutter angle and frame rate; there is no exposure stops control."
   },
   {
    "id": "arnold-camera-dof",
@@ -5954,7 +6380,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Focus is a primary storytelling tool.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html",
+   "tool": "camera",
+   "built": "yes",
+   "toolDoes": "Computes depth of field from f-stop and focus distance and reports the depthOfField curiosity."
   },
   {
    "id": "arnold-perspective-camera",
@@ -5986,7 +6415,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Base camera; covered by existing ids.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html",
+   "tool": "camera",
+   "built": "partly",
+   "toolDoes": "Covers the perspective camera's lens and film settings; aim and up rig types are not built."
   },
   {
    "id": "arnold-shutter-curve",
@@ -6032,7 +6464,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Narrow shutter equals jittery action; known since Saving Private Ryan.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html",
+   "tool": "camera",
+   "built": "partly",
+   "toolDoes": "A shutter angle slider sets the motionBlur curiosity; there is no shutter curve shape."
   },
   {
    "id": "arnold-aperture-blades",
@@ -6316,7 +6751,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Shaping light into a slash is classic thriller lighting.",
-   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/arnold_for_maya_shading_am_Using_Barndoor_Filter_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/arnold_for_maya_shading_am_Using_Barndoor_Filter_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A barndoor filter crops a light."
   },
   {
    "id": "arnold-gobo-filter",
@@ -6377,7 +6815,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Patterned light is the cheapest strong look and already a curiosity.",
-   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A gobo filter (blinds and similar) shapes the light and sets lightShape."
   },
   {
    "id": "arnold-light-blocker",
@@ -6419,7 +6860,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Flagging light off walls is how pros add contrast.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/ac-light-filters/arnold_user_guide_ac_light_filters_ac_light_blocker_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/ac-light-filters/arnold_user_guide_ac_light_filters_ac_light_blocker_html.html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A light blocker cuts light from part of the stage."
   },
   {
    "id": "arnold-light-decay",
@@ -6463,7 +6907,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Steep falloff makes isolated pools of light.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Applies quadratic decay with distance."
   },
   {
    "id": "arnold-light-animation",
@@ -6521,7 +6968,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Light that changes in time is the most filmic of lighting acts.",
-   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html ; knowledge"
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html ; knowledge",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Looks that run over beats include flicker (fire) and fades."
   },
   {
    "id": "arnold-area-light",
@@ -6584,7 +7034,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "The main film light; size and spread map straight to soft versus hard light.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Adds area lights with size that sets shadow softness on the 2D lighting stage."
   },
   {
    "id": "arnold-light-color-temperature",
@@ -6633,7 +7086,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Color of light is one of the strongest mood levers.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Sets light color from Kelvin or a swatch, which reads back as colorTemp."
   },
   {
    "id": "arnold-directional-light",
@@ -6685,7 +7141,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Sun angle is the base of every exterior.",
-   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Adds a directional sun or moon light."
   },
   {
    "id": "arnold-light-intensity-exposure",
@@ -6735,7 +7194,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Stops are how cinematographers talk; the manual uses the same math.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Sets intensity and exposure in stops (intensity x 2^exposure), with normalize."
   },
   {
    "id": "arnold-physical-sky",
@@ -6793,7 +7255,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "One knob that explains why sunlight changes through a day.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "light",
+   "built": "partly",
+   "toolDoes": "Sky color presets plus a low sun stand in for a physical sky."
   },
   {
    "id": "arnold-shadow-density-color",
@@ -6847,7 +7312,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Shadow depth and tint are easy to read and to remix.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html",
+   "tool": "light",
+   "built": "partly",
+   "toolDoes": "Shadow softness comes from light size and shadows render on the wall; there is little shadow color control."
   },
   {
    "id": "arnold-skydome-light",
@@ -6902,7 +7370,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Environment light is how most 3D scenes start; plain fill level is measurable.",
-   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html ; https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html ; https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A skydome gives one-color light from the whole sky as ambient fill."
   },
   {
    "id": "arnold-spot-light",
@@ -6955,7 +7426,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Live performers and theatre-style staging use spots constantly.",
-   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Adds spot lights to the lighting stage and renders them on a head against a wall."
   },
   {
    "id": "arnold-light-aov-group",
@@ -6982,7 +7456,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Soloing lights is a strong teaching view.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html",
+   "tool": "passes",
+   "built": "partly",
+   "toolDoes": "Shows which suites and proximities a layer lights up, the way a light group shows its contributions."
   },
   {
    "id": "arnold-light-linking",
@@ -7145,7 +7622,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Neon, screens and lamp shades are practicals the board already tracks.",
-   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A mesh light acts as a practical lamp in frame and sets practicalInFrame."
   },
   {
    "id": "arnold-light-normalize",
@@ -7171,7 +7651,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Teaches that size equals softness without confounding brightness.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Sets intensity and exposure in stops (intensity x 2^exposure), with normalize."
   },
   {
    "id": "arnold-photometric-light",
@@ -7244,7 +7727,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Classic interrogation-room bulb.",
-   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Adds point lights to the lighting stage."
   },
   {
    "id": "arnold-light-volume-contribution",
@@ -7877,7 +8363,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Comic and zine panels depend on line weight.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html",
+   "tool": "light",
+   "built": "partly",
+   "toolDoes": "An Ink look draws outlines for comic panels."
   },
   {
    "id": "arnold-toon-shader",
@@ -7930,7 +8419,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Animation and comic users want cel looks.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A Toon look renders the panel in flat color bands."
   },
   {
    "id": "arnold-ambient-occlusion",
@@ -8493,7 +8985,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "The first lighting lesson for every beginner.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "Builds key, fill and rim setups and reports key, rim and lightCount."
   },
   {
    "id": "arnold-natural-history-museum",
@@ -8585,7 +9080,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Haze is a defining cinematic look.",
-   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A haze amount fills the air and sets the atmosphere curiosity."
   },
   {
    "id": "arnold-fog",
@@ -8631,7 +9129,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Depth fade separates planes.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "light",
+   "built": "yes",
+   "toolDoes": "A haze amount fills the air and sets the atmosphere curiosity."
   },
   {
    "id": "arnold-vdb-volume",
