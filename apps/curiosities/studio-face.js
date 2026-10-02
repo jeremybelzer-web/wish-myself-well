@@ -439,6 +439,13 @@
         if (now.has("faceIntensity")) {
           const fi = Math.max(0, Math.min(5, Math.round(Number(v.faceIntensity)) || 0));
           lv.faceIntensity = fi;
+          /* intensity 0 is a neutral face: the blend runs from neutral to the To pose */
+          if (s.a !== "neutral") {
+            s.a = "neutral";
+            const ca = el.querySelector('[data-s="a"]');
+            if (ca) ca.value = "neutral";
+            changed = true;
+          }
           if (s.mix !== fi / 5) {
             s.mix = fi / 5;
             const c = el.querySelector('[data-s="mix"]');
