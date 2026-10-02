@@ -8,7 +8,7 @@
 (function () {
   if (window.__curioScreenLoad) return;
   window.__curioScreenLoad = true;
-  const FILES = ["levels.js", "frame.js", "lanes.js", "ui.js"];
+  const FILES = ["edit-curiosities.js", "levels.js", "frame.js", "lanes.js", "ui.js"];
   const me = document.currentScript && document.currentScript.src;
   const base = me ? me.replace(/load\.js(\?.*)?$/, "") : "screen/";
   const css = document.createElement("link");

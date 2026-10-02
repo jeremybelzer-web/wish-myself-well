@@ -25,21 +25,28 @@
   const root = typeof window !== "undefined" ? window : globalThis;
   const DB = () => root.CuriosityDB || null;
 
-  /* Twelve categories: the families that matter to filmmaking, not every fine distinction. Each groups
-     workspaces from data/db-workspaces.js. windows: the layout the category opens with. */
+  /* Sixteen categories: the families that matter to filmmaking, not every fine distinction. They are the
+     Screen's top icon row, the way CapCut's tabs are (Jeremy, 2026-10-02 18:00Z: CapCut is now the main
+     model). Each groups workspaces from data/db-workspaces.js (and screen/edit-curiosities.js, the editing
+     curiosities from Final Cut Pro and CapCut). windows: the layout the category opens with. icon: its
+     picture in the top row (ui.js ICONS). */
   const CATEGORIES = [
-    { id: "camera", label: "Camera", workspaces: ["camera-angle", "camera-motion", "placement"], windows: 2, plain: "Where the lens is, what it sees and how it moves." },
-    { id: "performance", label: "Performance", workspaces: ["lines", "movement-lines", "character-motion"], windows: 2, plain: "What the actors say and do: delivery, gesture, paths." },
-    { id: "light", label: "Light & color", workspaces: ["light", "color"], windows: 3, plain: "Where light comes from, how hard and warm it is, and the color of the picture." },
-    { id: "world", label: "Set & background", workspaces: ["set", "background"], windows: 3, plain: "The place itself and what happens behind the people." },
-    { id: "wardrobe", label: "Wardrobe", workspaces: ["wardrobe"], windows: 3, plain: "What the main character and everyone else wear." },
-    { id: "sound", label: "Music & sound", workspaces: ["music"], windows: 2, plain: "The music, the choice to have none, and the sound around the scene." },
-    { id: "feeling", label: "Feeling", workspaces: ["emotion", "emo-road"], windows: 2, plain: "The feeling of the scene and each character's emotional road." },
-    { id: "comedy", label: "Comedy", workspaces: ["comedy", "comedy-mix"], windows: 3, plain: "How it is funny, and what the mix of people does for the laughs." },
-    { id: "effects", label: "Effects", workspaces: ["effects"], windows: 2, plain: "Wind, cloth, breakage, smoke, fire, water, snow." },
-    { id: "story", label: "Story & character", workspaces: ["arc", "plot", "mindset", "focus", "archetype", "herd"], windows: 1, plain: "Arcs, personal plots, mindset, focus, personality, the group." },
-    { id: "editing", label: "Editing & structure", workspaces: ["structure"], windows: 2, plain: "How scenes are cut and ordered: rhythm, transitions, reveals." },
-    { id: "page", label: "Page & panel", workspaces: ["page"], windows: 1, plain: "How a storyboard, comic or zine page is laid out." },
+    { id: "camera", label: "Camera", icon: "camera", workspaces: ["camera-angle", "camera-motion", "placement"], windows: 2, plain: "Where the lens is, what it sees and how it moves." },
+    { id: "performance", label: "Performance", icon: "person", workspaces: ["lines", "movement-lines", "character-motion"], windows: 2, plain: "What the actors say and do: delivery, gesture, paths." },
+    { id: "light", label: "Light & color", icon: "sun", workspaces: ["light", "color"], windows: 3, plain: "Where light comes from, how hard and warm it is, and the color of the picture." },
+    { id: "grade", label: "Filters", icon: "filter", workspaces: ["grade"], windows: 3, plain: "Filters and adjustments laid over the picture: the look, exposure, warmth, texture, matching shots." },
+    { id: "world", label: "Set", icon: "house", workspaces: ["set", "background"], windows: 3, plain: "The place itself and what happens behind the people." },
+    { id: "wardrobe", label: "Wardrobe", icon: "shirt", workspaces: ["wardrobe"], windows: 3, plain: "What the main character and everyone else wear." },
+    { id: "sound", label: "Audio", icon: "note", workspaces: ["music", "audio-mix"], windows: 2, plain: "The music, the sound around the scene, and the mix: levels, fades, voice effects, sound hits." },
+    { id: "text", label: "Text", icon: "text", workspaces: ["titles"], windows: 2, plain: "Words and stickers on the screen: titles, captions, sound words, emoji." },
+    { id: "effects", label: "Effects", icon: "star", workspaces: ["effects", "layers"], windows: 2, plain: "Wind, smoke, fire and breakage, plus the editor's layers: overlays, cutouts, masks, video effects." },
+    { id: "transitions", label: "Transitions", icon: "bowtie", workspaces: ["transitions"], windows: 2, plain: "How one shot hands over to the next: cuts, dissolves, wipes, fades, clip animations." },
+    { id: "speed", label: "Speed", icon: "gauge", workspaces: ["speed"], windows: 2, plain: "How fast clips play and how the cutting breathes: slow motion, freezes, jump cuts, the beat." },
+    { id: "editing", label: "Editing", icon: "scissors", workspaces: ["structure", "canvas"], windows: 2, plain: "How scenes are cut and ordered, and what the editor does to the frame: punch-ins, steadying, edges." },
+    { id: "feeling", label: "Feeling", icon: "heart", workspaces: ["emotion", "emo-road"], windows: 2, plain: "The feeling of the scene and each character's emotional road." },
+    { id: "comedy", label: "Comedy", icon: "smile", workspaces: ["comedy", "comedy-mix"], windows: 3, plain: "How it is funny, and what the mix of people does for the laughs." },
+    { id: "story", label: "Story", icon: "book", workspaces: ["arc", "plot", "mindset", "focus", "archetype", "herd"], windows: 1, plain: "Arcs, personal plots, mindset, focus, personality, the group." },
+    { id: "page", label: "Page", icon: "page", workspaces: ["page"], windows: 1, plain: "How a storyboard, comic or zine page is laid out." },
   ];
   const CAT_OF_WS = {};
   CATEGORIES.forEach((c) => c.workspaces.forEach((w) => (CAT_OF_WS[w] = c.id)));

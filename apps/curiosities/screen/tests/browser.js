@@ -59,8 +59,37 @@ const ok = (cond, msg) => {
   ok(true, "the Screen opens on start");
   ok(await page.evaluate(() => window.CurioEngine.state().rows.length > 0), "my film has moments");
   ok((await page.$$(".sc-viewer")).length === 2, "one inspiration viewer and my film by default");
-  ok((await page.$$(".sc-cat")).length >= 10, "the inspector shows the major categories");
+  ok((await page.$$(".sc-icons [data-icat]")).length >= 16, "the categories are the library's row of icon tabs, like CapCut's");
+  /* CapCut's four panels: library top left, Player in the middle, Details on the right, the timeline below. */
+  const geo0 = await page.evaluate(() => Object.fromEntries([".sc-lib", ".sc-player", ".sc-inspector", ".sc-timeline"].map((q) => { const r = document.querySelector(q).getBoundingClientRect(); return [q, { l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width }]; })));
+  ok(geo0[".sc-lib"].r <= geo0[".sc-player"].l && geo0[".sc-player"].r <= geo0[".sc-inspector"].l, "library, Player and Details sit left to right");
+  ok(geo0[".sc-timeline"].t >= geo0[".sc-player"].b && geo0[".sc-timeline"].w > 1300, "the timeline runs full width under them");
+  ok(await page.evaluate(() => { const c = getComputedStyle(document.querySelector(".sc-page")).backgroundColor.match(/\d+/g).map(Number); return c[0] < 40 && c[1] < 40 && c[2] < 40; }), "the Screen is dark like CapCut");
+  ok(await page.evaluate(() => document.querySelector(".sc-details").textContent === "Details"), "the inspector is CapCut's Details panel");
   await page.screenshot({ path: path.join(SHOTS, "screen-1-start.png") });
+
+  /* The editing curiosities from Final Cut Pro and CapCut: the Transitions tab, a card, its +, a control. */
+  await page.click('[data-icat="transitions"]');
+  ok(await page.$('.sc-card [data-pick-card="curiosity|transitionKind"]'), "the Transitions tab shows its curiosities as cards");
+  await page.click('[data-add-card="curiosity|transitionKind"]');
+  ok(await page.evaluate(() => window.CurioScreen.state().lanes.includes("transitionKind")), "a card's + puts the curiosity on the timeline");
+  ok(await page.evaluate(() => [...document.querySelectorAll(".sl-name")].some((b) => b.textContent === "Transition style")), "its lane shows in the timeline");
+  await page.evaluate(() => {
+    const s = document.querySelector('.sc-inspector select[data-set="transitionKind"]');
+    s.value = "cross dissolve";
+    s.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  ok(await page.evaluate(() => Object.keys(window.CurioEngine.state().lanes).some((k) => k.endsWith("|transitionKind"))), "Details writes a transition node into my film");
+  ok(await page.evaluate(() => !!document.querySelector('.sc-viewer.mine [data-cat="transitions"]')), "my film's frame draws the transition");
+  await page.click('[data-pick-card="curiosity|transitionKind"]');
+  ok(await page.evaluate(() => window.CurioScreen.state().sel.id === "transitionKind"), "clicking a card looks through it");
+  await page.click('[data-group="suite"]');
+  ok((await page.$$('.sc-card[data-card="suite"]')).length >= 1, "the sidebar opens the category's suites");
+  await page.fill("[data-lib-search]", "freeze");
+  ok(await page.$('[data-pick-card="curiosity|freezeFrame"]'), "the library search finds curiosities in any category");
+  await page.fill("[data-lib-search]", "");
+  await page.click('[data-act="clear-lanes"]');
+  await page.screenshot({ path: path.join(SHOTS, "screen-1b-transitions.png") });
 
   for (const lv of ["suite", "proximity", "proximitySuite", "curiosity"]) {
     await page.click(`[data-level="${lv}"]`);

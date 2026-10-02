@@ -1,5 +1,15 @@
-/* screen/ui.js: the Screen, Curiomatic's main layout, modeled on Final Cut Pro (Jeremy, 2026-10-02 17:18Z to
-   17:24Z; his words are in /mnt/project-files/decisions/jeremys-words.md, the choices in layout-thread.md).
+/* screen/ui.js: the Screen, Curiomatic's main layout. First modeled on Final Cut Pro (Jeremy, 2026-10-02 17:18Z
+   to 17:24Z), now laid out and dark like CapCut (18:00Z: "I'm leaning towards mainly using CapCut... I think their
+   user interface is great"). His words are in /mnt/project-files/decisions/jeremys-words.md, the choices in
+   layout-thread.md.
+
+   CapCut's four panels, with curiosities in them:
+   - Top left, the library: the categories as a row of icon tabs (CapCut's Media, Audio, Text, Effects,
+     Transitions, Filters...), a sidebar of groups (the category's workspaces, then its suites, proximities and
+     proximity suites), and a grid of cards. Click a card to look through it; its + puts it on the timeline.
+   - Center, the Player: the viewers, timecode and play controls, the window layout.
+   - Right, Details: the inspector for the selected category and viewer.
+   - Bottom, full width, the timeline.
 
    - Viewers on top: one or more inspiration films (curated films, as cheap animated storyboards) and one
      viewer for your own film. Add as many inspiration viewers as you like; it starts with one. Side by side
@@ -47,6 +57,8 @@
     showSuites: false,
     openSuites: {},
     openCats: {},
+    groups: {},
+    search: "",
   };
   let prefs = load();
   function load() {
@@ -101,6 +113,8 @@
     return st.rows.map((r) => {
       const values = {};
       order.forEach((t) => t.curiosities.forEach((c) => values[c] == null && (values[c] = Eng.value(r.id, t.id, c))));
+      /* "transitionKind.setting" is the curiosity's own value, so the frame reads it as transitionKind. */
+      Object.keys(values).forEach((k) => /\.setting$/.test(k) && values[L().base(k)] == null && (values[L().base(k)] = values[k]));
       return { at: null, note: r.label, values, row: r.id };
     });
   }
@@ -130,7 +144,18 @@
   function selection() {
     return L() ? L().resolve(prefs.sel.level, prefs.sel.id) : { curiosities: [], pairs: [], categories: [] };
   }
+  /* A curiosity's own setting as a lane id. The engine knows the catalog's curiosities by their bare id; one
+     it doesn't know yet (the editing rows in screen/edit-curiosities.js, until they move into data/) is
+     reached through its main slider, "transitionKind.setting". */
+  function keyFor(id) {
+    if (!S() || S().known(id) || !L()) return id;
+    const c = L().get("curiosity", id);
+    const k = c && id + "." + (c.main || "setting");
+    return k && S().known(k) ? k : id;
+  }
   function labelOf(id) {
+    const c = L() && /\.setting$/.test(id) ? L().get("curiosity", L().base(id)) : null;
+    if (c && c.main === "setting") return c.label;
     return S() ? S().label(id) : id;
   }
   function frameOpts(sel, values) {
@@ -179,7 +204,11 @@
     page = document.createElement("section");
     page.className = "sc-page";
     page.setAttribute("aria-label", "Screen");
-    page.innerHTML = `<header class="sc-bar"></header><div class="sc-main"><div class="sc-left"><div class="sc-viewers"></div><div class="sc-timeline"></div></div><aside class="sc-inspector" aria-label="Inspector"></aside></div>`;
+    page.innerHTML = `<header class="sc-bar"></header><div class="sc-main">
+      <section class="sc-lib sc-panel" aria-label="Curiosity library"><nav class="sc-icons" aria-label="Categories"></nav><div class="sc-lib-body"><div class="sc-side"></div><div class="sc-grid"></div></div></section>
+      <section class="sc-player sc-panel" aria-label="Player"><header class="sc-ph"></header><div class="sc-viewers"></div><div class="sc-transport"></div></section>
+      <aside class="sc-inspector sc-panel" aria-label="Details"></aside>
+      <div class="sc-timeline sc-panel"></div></div>`;
     document.body.appendChild(page);
     page.addEventListener("click", onClick);
     page.addEventListener("change", onChange);
@@ -208,6 +237,7 @@
     page.dataset.view = prefs.view;
     page.dataset.arrange = prefs.arrange;
     drawBar();
+    drawLibrary();
     drawViewers();
     drawInspector();
     drawTimeline(fromEngine);
@@ -230,7 +260,7 @@
     bar.innerHTML = `
       <strong class="sc-title">Curiomatic</strong>
       <div class="sc-seg" role="group" aria-label="View">
-        <button type="button" data-view="screen" class="${prefs.view === "screen" ? "on" : ""}" title="Viewers on top, the timeline under them">Screen</button>
+        <button type="button" data-view="screen" class="${prefs.view === "screen" ? "on" : ""}" title="Library, player and details on top, the timeline under them">Screen</button>
         <button type="button" data-view="arrange" class="${prefs.view === "arrange" ? "on" : ""}" title="Every automated curiosity as a track, left to right">Arrange</button>
       </div>
       <div class="sc-look">
@@ -240,24 +270,109 @@
           .join("")}</div>
         <select data-pick-item aria-label="Which ${esc(prefs.sel.level)}">${selectOptions()}</select>
       </div>
-      <div class="sc-seg" role="group" aria-label="Lens">
-        ${[
-          ["highlight", "Highlight", "Light up only what it is about"],
-          ["overlay", "Overlay", "Write its values on the picture"],
-          ["only", "Lens only", "Draw only what it is about"],
-          ["off", "Off", "The plain picture"],
-        ]
-          .map(([id, l, t]) => `<button type="button" data-lens="${id}" class="${prefs.lens === id ? "on" : ""}" title="${t}">${l}</button>`)
-          .join("")}
-      </div>
-      <div class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}<button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button></div>
-      <div class="sc-seg" role="group" aria-label="Viewer layout">
-        <button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}">Side by side</button>
-        <button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}">Stacked</button>
-      </div>
-      ${prefs.view === "arrange" ? `<label class="sc-chk"><input type="checkbox" data-act="viewers-in-arrange" ${prefs.viewersInArrange ? "checked" : ""}> Show viewers</label>` : ""}
+      ${prefs.view === "arrange" ? `<label class="sc-chk"><input type="checkbox" data-act="viewers-in-arrange" ${prefs.viewersInArrange ? "checked" : ""}> Show the player</label>` : ""}
       <button type="button" data-act="close" class="sc-close">Back to the app</button>
       <p class="sc-what">${esc(sel.label)}${sel.plain ? ": " + esc(sel.plain) : ""}</p>`;
+  }
+
+  /* ---------- the library (CapCut's top-left panel) ---------- */
+  /* Line icons for the category tabs, drawn on a 20 by 20 grid in the current text color. */
+  const ICONS = {
+    camera: '<rect x="2" y="6" width="12" height="9" rx="1"/><path d="M14 9l4-2v7l-4-2"/>',
+    person: '<circle cx="10" cy="5" r="3"/><path d="M4 18c0-4 3-6 6-6s6 2 6 6"/>',
+    sun: '<circle cx="10" cy="10" r="3.5"/><path d="M10 1v3M10 16v3M1 10h3M16 10h3M3.6 3.6l2 2M14.4 14.4l2 2M3.6 16.4l2-2M14.4 5.6l2-2"/>',
+    filter: '<circle cx="7.5" cy="8" r="4.5"/><circle cx="12.5" cy="8" r="4.5"/><circle cx="10" cy="12.5" r="4.5"/>',
+    house: '<path d="M3 9l7-6 7 6v8H3z"/><path d="M8 17v-5h4v5"/>',
+    shirt: '<path d="M7 3L3 6l2 3 2-1v9h6V8l2 1 2-3-4-3c-1 1.5-2 2-3 2S8 4.5 7 3z"/>',
+    note: '<path d="M8 15V4l8-2v11"/><circle cx="6" cy="15" r="2"/><circle cx="14" cy="13" r="2"/>',
+    text: '<path d="M3 4h10M8 4v13M13 9h5M15.5 9v8"/>',
+    star: '<path d="M10 2l2.4 5 5.6.6-4.2 3.8 1.2 5.6L10 14.2 5 17l1.2-5.6L2 7.6 7.6 7z"/>',
+    bowtie: '<path d="M3 4l7 6-7 6zM17 4l-7 6 7 6z"/>',
+    gauge: '<path d="M3 15a7 7 0 1 1 14 0"/><path d="M10 15l4-5"/>',
+    scissors: '<circle cx="5" cy="15" r="2.5"/><circle cx="15" cy="15" r="2.5"/><path d="M6.5 13L15 3M13.5 13L5 3"/>',
+    heart: '<path d="M10 17s-7-4.5-7-9a4 4 0 0 1 7-2.5A4 4 0 0 1 17 8c0 4.5-7 9-7 9z"/>',
+    smile: '<circle cx="10" cy="10" r="8"/><path d="M6.5 12a4 4 0 0 0 7 0M7.5 7.5v1M12.5 7.5v1"/>',
+    book: '<path d="M3 4h5a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2H3zM17 4h-5a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2h5z"/>',
+    page: '<rect x="4" y="2" width="12" height="16"/><path d="M4 9h12M10 9v9"/>',
+  };
+  const icon = (name) => `<svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true">${ICONS[name] || ICONS.star}</svg>`;
+  function category() {
+    return L().CATEGORIES.find((c) => c.id === prefs.cat) || L().CATEGORIES[0];
+  }
+  /* The sidebar's groups for a category: its workspaces, then its suites, proximities and proximity suites. */
+  function groupsOf(cat) {
+    const ws = (window.CuriosityDB && window.CuriosityDB.data.workspaces) || [];
+    const out = cat.workspaces
+      .map((w) => ({ id: "ws:" + w, label: (ws.find((x) => x.id === w) || {}).label || w, level: "curiosity", items: L().curiosities(cat.id).filter((c) => c.workspace === w) }))
+      .filter((g) => g.items.length);
+    [["suite", "Suites"], ["proximity", "Proximities"], ["proximitySuite", "Proximity suites"]].forEach(([lv, label]) => {
+      const items = L().items(lv, cat.id);
+      if (items.length) out.push({ id: lv, label, level: lv, items });
+    });
+    return out;
+  }
+  function cardHtml(level, it) {
+    const on = prefs.sel.level === level && prefs.sel.id === it.id;
+    let sub = it.plain || "";
+    if (level === "suite") sub = (it.members || []).length + " curiosities: " + [...new Set((it.members || []).map((m) => labelOf(keyFor(m.curiosity))))].slice(0, 4).join(", ");
+    const tag = level === "curiosity" ? (it.source === "Final Cut Pro and CapCut" ? "New from editing" : "") : L().LEVELS.find((l) => l.id === level).label;
+    const add = level === "proximity" || level === "proximitySuite" ? "Add it to my film" : level === "suite" ? "Put its curiosities on the timeline" : "Put it on the timeline";
+    return `<div class="sc-card${on ? " on" : ""}" data-card="${esc(level)}" data-id="${esc(it.id)}" title="${esc(it.plain || it.label)}">
+      <button type="button" class="sc-card-b" data-pick-card="${esc(level)}|${esc(it.id)}"><strong>${esc(it.label)}</strong><small>${esc(sub)}</small>${tag ? `<em>${esc(tag)}</em>` : ""}</button>
+      <button type="button" class="sc-plus" data-add-card="${esc(level)}|${esc(it.id)}" aria-label="${esc(add)}: ${esc(it.label)}" title="${esc(add)}">+</button>
+    </div>`;
+  }
+  function drawLibrary() {
+    if (!page || !L()) return;
+    const box = page.querySelector(".sc-lib");
+    box.hidden = prefs.view === "arrange";
+    if (box.hidden) return;
+    const cat = category();
+    page.querySelector(".sc-icons").innerHTML = L()
+      .CATEGORIES.map((c) => `<button type="button" data-icat="${c.id}" class="${c.id === cat.id ? "on" : ""}" aria-pressed="${c.id === cat.id}" title="${esc(c.plain)}">${icon(c.icon)}<span>${esc(c.label)}</span></button>`)
+      .join("");
+    const groups = groupsOf(cat);
+    const gid = groups.some((g) => g.id === prefs.groups[cat.id]) ? prefs.groups[cat.id] : (groups[0] || {}).id;
+    page.querySelector(".sc-side").innerHTML = groups.map((g) => `<button type="button" class="sc-pill${g.id === gid && !prefs.search ? " on" : ""}" data-group="${esc(g.id)}"><span>${esc(g.label)}</span><small>${g.items.length}</small></button>`).join("");
+    let cards;
+    let head;
+    const q = String(prefs.search || "").trim().toLowerCase();
+    if (q) {
+      const hits = L()
+        .items("curiosity")
+        .filter((c) => (c.label + " " + (c.plain || "")).toLowerCase().includes(q))
+        .slice(0, 60);
+      head = `${hits.length} curiosit${hits.length === 1 ? "y" : "ies"} match`;
+      cards = hits.map((c) => cardHtml("curiosity", c)).join("");
+    } else {
+      const g = groups.find((x) => x.id === gid);
+      head = g ? g.label : "Nothing here yet";
+      cards = g ? g.items.map((it) => cardHtml(g.level, it)).join("") : "";
+    }
+    const grid = page.querySelector(".sc-grid");
+    const had = grid.querySelector("[data-lib-search]");
+    const focused = had && document.activeElement === had;
+    grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}"><p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>`;
+    if (focused) {
+      const inp = grid.querySelector("[data-lib-search]");
+      inp.focus();
+      inp.setSelectionRange(inp.value.length, inp.value.length);
+    }
+  }
+  /* A card's + : a curiosity goes on the timeline, a suite's curiosities go on it, a proximity (or proximity
+     suite) goes into my film as lane rules. */
+  function addCard(level, id) {
+    if (level === "proximity" || level === "proximitySuite") {
+      prefs.sel = { level, id };
+      save();
+      addProximity();
+      return drawAll();
+    }
+    const ids = level === "suite" ? ((L().get("suite", id) || {}).members || []).map((m) => m.curiosity) : [id];
+    ids.map(keyFor).forEach((k) => !prefs.lanes.includes(k) && prefs.lanes.push(k));
+    save();
+    toast(ids.length > 1 ? `${ids.length} curiosities are on the timeline.` : `${labelOf(keyFor(id))} is on the timeline. Click its lane to add nodes.`);
+    drawTimeline();
   }
 
   /* ---------- viewers ---------- */
@@ -297,13 +412,27 @@
       <p class="sc-vnote">${esc(f.beats[b].at || "")} ${esc(f.beats[b].note || "")}${fires.length ? ` · ${esc(sel.label)}: ${fires.length} time${fires.length === 1 ? "" : "s"}` : ""}</p>
     </article>`;
   }
+  /* CapCut-style timecode: one moment of my film counts as one second. */
+  const tc = (n) => "00:00:" + String(Math.floor(n / 60)).padStart(2, "0") + ":" + String(n % 60).padStart(2, "0");
   function drawViewers() {
     if (!page || !L() || !F()) return;
-    const box = page.querySelector(".sc-viewers");
+    const box = page.querySelector(".sc-player");
     const hide = prefs.view === "arrange" && !prefs.viewersInArrange;
     box.hidden = hide;
+    page.querySelector(".sc-viewers").hidden = hide;
     if (hide) return;
-    box.innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine") + `<div class="sc-transport"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><label>Speed <select data-speed>${[0.5, 1, 2, 4].map((s) => `<option value="${s}"${prefs.speed === s ? " selected" : ""}>${s}×</option>`).join("")}</select></label><span class="sc-k">Space plays, arrows step, Ctrl+Z undoes</span></div>`;
+    page.querySelector(".sc-ph").innerHTML = `<strong>Player</strong><div class="sc-seg sc-lens" role="group" aria-label="Lens">${[
+      ["highlight", "Highlight", "Light up only what it is about"],
+      ["overlay", "Overlay", "Write its values on the picture"],
+      ["only", "Lens only", "Draw only what it is about"],
+      ["off", "Off", "The plain picture"],
+    ]
+      .map(([id, l, t]) => `<button type="button" data-lens="${id}" class="${prefs.lens === id ? "on" : ""}" title="${t}">${l}</button>`)
+      .join("")}</div>`;
+    page.querySelector(".sc-viewers").innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine");
+    page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is one second">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
+      <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select></span>
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}">Side by side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}">Stacked</button></span></span>`;
   }
 
   /* ---------- the inspector ---------- */
@@ -311,7 +440,7 @@
     return (c.sliders || []).length;
   }
   function sliderId(c, s) {
-    return s.id === c.main || s.id === "setting" ? c.id : c.id + "." + s.id;
+    return s.id === c.main || s.id === "setting" ? keyFor(c.id) : c.id + "." + s.id;
   }
   function knob(id, s, val, disabled) {
     const r = s.range;
@@ -343,20 +472,21 @@
     return `<svg class="sc-spark" viewBox="0 0 72 16" aria-hidden="true"><polyline points="${ok.map((p) => p.join(",")).join(" ")}"/></svg>`;
   }
   function curiosityRow(c, ctx) {
-    const sel = prefs.sel.level === "curiosity" && prefs.sel.id === c.id;
-    const mainVal = ctx.value(c.id);
+    const key = keyFor(c.id);
+    const sel = prefs.sel.level === "curiosity" && (prefs.sel.id === c.id || prefs.sel.id === key);
+    const mainVal = ctx.value(key);
     const open = !!prefs.folds[c.id];
     const fine = (c.sliders || []).filter((s) => s.id !== c.main && s.id !== "setting");
     const mainS = (c.sliders || []).find((s) => s.id === c.main || s.id === "setting") || (c.sliders || [])[0];
-    const take = ctx.insp ? Number((ctx.insp.takes || {})[c.id]) || 0 : 0;
+    const take = ctx.insp ? Number((ctx.insp.takes || {})[key]) || 0 : 0;
     return `<div class="sc-cur${sel ? " sel" : ""}">
       <div class="sc-cur-top">
         <button type="button" class="sc-cur-name" data-select-cur="${esc(c.id)}" title="${esc(c.plain || "")}">${esc(c.label)}</button>
-        ${spark(c.id, ctx.beats)}
+        ${spark(key, ctx.beats)}
         ${fine.length ? `<button type="button" class="sc-fold" data-fold="${esc(c.id)}" aria-expanded="${open}" title="The fine controls inside it">${open ? "▾" : "▸"} ${fine.length}</button>` : ""}
       </div>
-      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${esc(mainS.label)}</span>${controlHtml(c.id, mainS, mainVal, !ctx.edit)}</div>` : ""}
-      ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(c.id)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(c.id)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
+      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
+      ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
       ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
     </div>`;
   }
@@ -388,28 +518,24 @@
       };
     }
     const sel = selection();
-    const cats = L().CATEGORIES;
-    const openCat = prefs.cat;
-    const body = cats
-      .map((cat) => {
-        let list = L().curiosities(cat.id);
-        if (!list.length) return "";
-        /* An inspiration film shows the curiosities it actually uses first. */
-        if (insp) list = list.filter((c) => ctx.value(c.id) != null).concat(list.filter((c) => ctx.value(c.id) == null));
-        const isOpen = openCat === cat.id;
-        const lit = sel.categories.includes(cat.id);
-        let inner = "";
-        if (isOpen) {
-          const all = !!prefs.showFine[cat.id];
-          /* The main ones, plus whatever you are looking through, so it is always in reach. */
-          const shown = all ? list : list.filter((c, i) => i < MAIN_SHOWN || sel.curiosities.includes(c.id));
-          inner = `<p class="sc-cat-plain">${esc(cat.plain)} <button type="button" class="sc-wins" data-wins="${cat.windows}" title="The window layout suggested for ${esc(cat.label)}">Use ${cat.windows} window${cat.windows === 1 ? "" : "s"}</button></p>${shown.map((c) => curiosityRow(c, ctx)).join("")}${list.length > MAIN_SHOWN ? `<button type="button" class="sc-more" data-more="${cat.id}">${all ? "Show only the main ones" : `Show all ${list.length} in ${esc(cat.label)}`}</button>` : ""}`;
-        }
-        return `<section class="sc-cat${isOpen ? " open" : ""}${lit ? " lit" : ""}"><button type="button" class="sc-cat-h" data-icat="${cat.id}" aria-expanded="${isOpen}"><span>${esc(cat.label)}</span><small>${list.length}</small></button>${inner}</section>`;
-      })
-      .join("");
+    /* Details shows the category picked in the library's icon row, like CapCut's Details panel follows what
+       is selected. An inspiration film shows the curiosities it actually uses first. */
+    const cat = category();
+    let list = L().curiosities(cat.id);
+    if (insp) list = list.filter((c) => ctx.value(keyFor(c.id)) != null).concat(list.filter((c) => ctx.value(keyFor(c.id)) == null));
+    const all = !!prefs.showFine[cat.id];
+    /* The main ones, plus whatever you are looking through, so it is always in reach. */
+    const shown = all ? list : list.filter((c, i) => i < MAIN_SHOWN || sel.curiosities.includes(c.id) || sel.curiosities.includes(keyFor(c.id)));
+    const others = sel.categories.filter((id) => id !== cat.id).map((id) => L().CATEGORIES.find((c) => c.id === id)).filter(Boolean);
+    const body = `<section class="sc-cat open${sel.categories.includes(cat.id) ? " lit" : ""}" data-cat-id="${cat.id}">
+      <h3 class="sc-cat-h">${icon(cat.icon)}<span>${esc(cat.label)}</span><small>${list.length}</small></h3>
+      <p class="sc-cat-plain">${esc(cat.plain)} <button type="button" class="sc-wins" data-wins="${cat.windows}" title="The window layout suggested for ${esc(cat.label)}">Use ${cat.windows} window${cat.windows === 1 ? "" : "s"}</button></p>
+      ${shown.map((c) => curiosityRow(c, ctx)).join("")}
+      ${list.length > MAIN_SHOWN ? `<button type="button" class="sc-more" data-more="${cat.id}">${all ? "Show only the main ones" : `Show all ${list.length} in ${esc(cat.label)}`}</button>` : ""}
+      ${others.length ? `<p class="sc-also">What you are looking through is also in ${others.map((c) => `<button type="button" data-icat="${c.id}">${esc(c.label)}</button>`).join(" ")}</p>` : ""}
+    </section>`;
     const blend = insp ? blendHtml() : "";
-    box.innerHTML = `<header class="sc-insp-h"><strong>${esc(ctx.title)}</strong><span>${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
+    box.innerHTML = `<header class="sc-insp-h"><strong class="sc-details">Details</strong><span><b>${esc(ctx.title)}</b> · ${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
   }
 
   /* ---------- blending inspiration films onto my film ---------- */
@@ -492,12 +618,15 @@
     const out = [];
     const seen = new Set();
     const add = (cur, extra) => {
+      cur = cur && keyFor(cur);
       if (!cur || seen.has(cur) || !S() || !S().known(cur)) return;
       seen.add(cur);
-      out.push(Object.assign({ cur, track: null }, extra || {}));
+      out.push(Object.assign({ cur, track: null, label: labelOf(cur) }, extra || {}));
     };
     if (prefs.view === "screen") {
+      /* What you are looking through, then the tracks you put on with a card's + . */
       sel.curiosities.forEach((c) => add(c));
+      prefs.lanes.forEach((c) => add(c));
       return out;
     }
     /* Arrange: every automated curiosity, the ones you added, then the potential ones. */
@@ -520,9 +649,9 @@
   function laneHeader(ln, i) {
     const cat = L().categoryOf(ln.cur);
     const opts = L()
-      .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(x.id)}"${x.id === ln.cur ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</optgroup>`)
+      .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(keyFor(x.id))}"${keyFor(x.id) === ln.cur ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</optgroup>`)
       .join("");
-    const known = L().get("curiosity", ln.cur);
+    const known = L().get("curiosity", L().base(ln.cur)) && keyFor(L().base(ln.cur)) === ln.cur;
     return `<select class="sl-pick" data-lane-cur="${esc(ln.cur)}" aria-label="Curiosity on this track" title="${esc(((L().CATEGORIES.find((c) => c.id === cat) || {}).label || "") + (ln.group ? " · " + ln.group : ""))}: change which curiosity this track is">${known ? "" : `<option selected>${esc(labelOf(ln.cur))}</option>`}${opts}</select>`;
   }
   function clipRows() {
@@ -550,12 +679,12 @@
           <button type="button" data-act="show-all" class="${prefs.showAll ? "on" : ""}" aria-pressed="${prefs.showAll}">Show all potential curiosities</button>
           <button type="button" data-act="show-suites" class="${prefs.showSuites ? "on" : ""}" aria-pressed="${prefs.showSuites}">Show all potential curiosity suites</button>
           <select data-add-lane aria-label="Add a curiosity track"><option value="">+ Add a curiosity track</option>${L()
-            .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join("")}</optgroup>`)
+            .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(keyFor(x.id))}">${esc(x.label)}</option>`).join("")}</optgroup>`)
             .join("")}</select>
           ${prefs.showAll ? `<div class="sc-chips">${L().CATEGORIES.map((c) => `<button type="button" data-open-cat="${c.id}" class="${prefs.openCats[c.id] ? "on" : ""}">${esc(c.label)} <small>${L().curiosities(c.id).length}</small></button>`).join("")}</div>` : ""}
           ${prefs.showSuites ? `<div class="sc-chips">${L().CATEGORIES.map((c) => { const list = L().items("suite", c.id); return list.length ? `<details${list.some((s) => prefs.openSuites[s.id]) ? " open" : ""}><summary>${esc(c.label)} <small>${list.length} suites</small></summary>${list.map((s) => `<button type="button" data-open-suite="${esc(s.id)}" class="${prefs.openSuites[s.id] ? "on" : ""}" title="${esc(s.plain || "")}">${esc(s.label)}</button>`).join("")}</details>` : ""; }).join("")}</div>` : ""}
         </div>`
-        : `<p class="sc-tl-h"><strong>Automation</strong> for ${esc(sel.label)}${sel.pairs.length ? ` · ${sel.pairs.length} proximit${sel.pairs.length === 1 ? "y" : "ies"}: <button type="button" data-act="add-prox">Add ${sel.level === "proximitySuite" ? "this proximity suite" : "this proximity"} to my film</button>` : ""}</p>`;
+        : `<p class="sc-tl-h"><strong>Timeline</strong> ${esc(sel.label)}${sel.pairs.length ? ` · ${sel.pairs.length} proximit${sel.pairs.length === 1 ? "y" : "ies"}: <button type="button" data-act="add-prox">Add ${sel.level === "proximitySuite" ? "this proximity suite" : "this proximity"} to my film</button>` : ""}${prefs.lanes.length ? ` · ${prefs.lanes.length} track${prefs.lanes.length === 1 ? "" : "s"} you added <button type="button" data-act="clear-lanes" title="Take the tracks you added off the timeline (their nodes stay in your film)">Clear</button>` : ""}</p>`;
     if (!fromEngine || !lanes) {
       if (lanes) lanes.destroy();
       box.innerHTML = potential + `<div class="sc-lanes"></div>`;
@@ -661,9 +790,27 @@
       return drawAll();
     }
     if (d.icat) {
-      prefs.cat = prefs.cat === d.icat ? "" : d.icat;
+      prefs.cat = d.icat;
+      prefs.search = "";
       save();
+      drawLibrary();
       return drawInspector();
+    }
+    if (d.group) {
+      prefs.groups[prefs.cat || category().id] = d.group;
+      prefs.search = "";
+      save();
+      return drawLibrary();
+    }
+    if (d.pickCard) {
+      const [level, id] = d.pickCard.split("|");
+      prefs.sel = { level, id };
+      save();
+      return drawAll();
+    }
+    if (d.addCard) {
+      const [level, id] = d.addCard.split("|");
+      return addCard(level, id);
     }
     if (d.more) {
       prefs.showFine[d.more] = !prefs.showFine[d.more];
@@ -712,6 +859,11 @@
       return drawTimeline();
     }
     if (act === "add-prox") return addProximity();
+    if (act === "clear-lanes") {
+      prefs.lanes = [];
+      save();
+      return drawTimeline();
+    }
   }
   /* A new inspiration viewer, on a film no other viewer shows yet. */
   function addInspiration() {
@@ -785,6 +937,11 @@
   function onInput(e) {
     const t = e.target;
     const d = t.dataset;
+    if ("libSearch" in d) {
+      prefs.search = t.value;
+      save();
+      return drawLibrary();
+    }
     if (d.stepSet) {
       const scale = JSON.parse(d.scale);
       const o = t.parentNode.querySelector("output");

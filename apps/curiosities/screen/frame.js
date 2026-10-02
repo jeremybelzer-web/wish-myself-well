@@ -130,6 +130,22 @@
     /* Story: the film's emotional road as an arrow in the top left. */
     const road = String(v.emoRoadFilm || v.emoRoadCharacter || "");
     if (road) parts.push(`<g data-cat="feeling"><path d="M10 ${/rising|highest/.test(road) ? 26 : /falling|lowest/.test(road) ? 10 : 18} L34 ${/rising|highest/.test(road) ? 10 : /falling|lowest/.test(road) ? 26 : 18}" stroke="#c45c26" stroke-width="3" marker-end="url(#cf-arrow)"/></g>`);
+    /* The editing curiosities from Final Cut Pro and CapCut (screen/edit-curiosities.js). Filters: a tint laid
+       over the whole picture, with grain dots for a gritty texture. */
+    const look = String(v.filterLook || "none");
+    const TINT = { "warm film": "rgba(255,150,60,.22)", "cool film": "rgba(60,140,255,.2)", "black and white": "rgba(128,128,128,.55)", vintage: "rgba(190,150,90,.3)", faded: "rgba(255,255,255,.3)", "high contrast": "rgba(0,0,0,.18)", "teal and orange": "rgba(0,150,160,.2)", pastel: "rgba(255,190,220,.25)", night: "rgba(10,20,70,.45)", dreamy: "rgba(255,230,255,.35)" };
+    const dark = { "very dark": 0.5, dark: 0.3, bright: 0, "blown out": 0 }[String(v.exposure || "")];
+    parts.push(`<g data-cat="grade" pointer-events="none">${TINT[look] ? `<rect x="0" y="0" width="${W}" height="${H}" fill="${TINT[look]}"/>` : ""}${dark ? `<rect x="0" y="0" width="${W}" height="${H}" fill="rgba(0,0,0,${dark})"/>` : ""}${has(v.exposure, /bright|blown/) ? `<rect x="0" y="0" width="${W}" height="${H}" fill="rgba(255,255,255,${/blown/.test(v.exposure) ? 0.45 : 0.2})"/>` : ""}${has(v.texture, /gritty/) ? Array.from({ length: 40 }, (_, i) => `<circle cx="${(i * 73) % W}" cy="${(i * 41) % H}" r="0.8" fill="#1c1712"/>`).join("") : ""}</g>`);
+    /* Text: a caption bar or title card across the bottom, stickers in the corner. */
+    const txt = String(v.onScreenText || (v.captions && v.captions !== "off" ? "caption" : ""));
+    if (txt && txt !== "none") parts.push(`<g data-cat="text">${txt === "title card" ? `<rect x="40" y="${H / 2 - 18}" width="${W - 80}" height="36" fill="#1c1712"/><text x="${W / 2}" y="${H / 2 + 5}" font-size="14" text-anchor="middle" font-family="serif" fill="#fffaf2">TITLE</text>` : txt === "sound word" ? `<text x="${W / 2 + 50}" y="60" font-size="22" font-weight="900" font-family="sans-serif" fill="#ffd34d" stroke="#1c1712" stroke-width="1.5">BAM!</text>` : `<rect x="70" y="${H - 30}" width="${W - 140}" height="16" rx="3" fill="rgba(0,0,0,.7)"/><line x1="82" x2="${W - 82}" y1="${H - 22}" y2="${H - 22}" stroke="#fff" stroke-width="2"/>`}</g>`);
+    if (v.stickers && v.stickers !== "none") parts.push(`<g data-cat="text"><circle cx="${W - 40}" cy="${horizon - 20}" r="10" fill="#ffd34d" stroke="#1c1712"/><circle cx="${W - 43}" cy="${horizon - 22}" r="1.2" fill="#1c1712"/><circle cx="${W - 37}" cy="${horizon - 22}" r="1.2" fill="#1c1712"/><path d="M${W - 45} ${horizon - 17} Q${W - 40} ${horizon - 12} ${W - 35} ${horizon - 17}" stroke="#1c1712" fill="none"/></g>`);
+    /* Transitions: the next shot wiping or dissolving in from the right edge. */
+    const tr = String(v.transitionKind || "");
+    if (tr && tr !== "cut") parts.push(`<g data-cat="transitions">${/dissolve|fade|flash|morph/.test(tr) ? `<rect x="${W - 70}" y="0" width="70" height="${H}" fill="${/black/.test(tr) ? "rgba(0,0,0,.6)" : /white|flash/.test(tr) ? "rgba(255,255,255,.7)" : "rgba(160,120,200,.35)"}"/>` : `<path d="M${W - 50} 0 L${W} 0 L${W} ${H} L${W - 90} ${H} Z" fill="rgba(70,160,220,.45)" stroke="#1c1712" stroke-width="1.5"/>`}<text x="${W - 8}" y="${H / 2}" font-size="9" text-anchor="end" font-family="sans-serif" fill="#1c1712">${esc(tr)}</text></g>`);
+    /* Speed: motion streaks for fast, a slow-motion tag, a freeze border. */
+    const sp = String(v.clipSpeed || "");
+    if (/fast|slow|frozen/.test(sp) || (v.freezeFrame && v.freezeFrame !== "none")) parts.push(`<g data-cat="speed">${/fast/.test(sp) ? [30, 46, 62].map((y) => `<line x1="8" x2="${36 + (y % 20)}" y1="${y}" y2="${y}" stroke="#1c1712" stroke-width="2"/>`).join("") : ""}${/slow/.test(sp) ? `<text x="10" y="${H / 2}" font-size="10" font-family="sans-serif" fill="#1c1712">slow-mo</text>` : ""}${/frozen/.test(sp) || (v.freezeFrame && v.freezeFrame !== "none") ? `<rect x="3" y="3" width="${W - 6}" height="${H - 6}" fill="none" stroke="#fffaf2" stroke-width="4"/>` : ""}</g>`);
     /* Camera: how it moves, drawn as corner brackets. */
     const move = String(v.cameraMove || "none");
     const camTag = move !== "none" ? move : String(v.cameraCarry || "") === "handheld" ? "handheld" : "";

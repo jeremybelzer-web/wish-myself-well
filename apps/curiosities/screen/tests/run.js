@@ -7,7 +7,7 @@ const vm = require("vm");
 const load = require(path.join(__dirname, "..", "..", "engine", "tests", "load.js"));
 const core = load();
 const w = core.window;
-["levels.js", "frame.js", "lanes.js"].forEach((f) => {
+["edit-curiosities.js", "levels.js", "frame.js", "lanes.js"].forEach((f) => {
   const code = fs.readFileSync(path.join(__dirname, "..", f), "utf8");
   vm.runInContext(code, core.context || vm.createContext(w), { filename: f });
 });
@@ -40,6 +40,14 @@ L.items("proximity").forEach((p) => scenes.forEach((s) => (fired += L.fires("pro
 ok(fired > 0, "proximities are found firing in the model scenes (" + fired + ")");
 ok(L.fires("curiosity", "shotSize", scenes[0].beats).length > 1, "a curiosity is found where it changes");
 ok(L.control({ scale: ["off", "on"] }) === "toggle" && L.control({ scale: ["a", "b", "c"], unordered: true }) === "choice" && L.control({ range: { min: 0, max: 5 } }) === "knob" && L.control({ range: { min: 0, max: 100 } }) === "slider", "each slider gets a fitting control");
+
+/* The editing curiosities from Final Cut Pro and CapCut (edit-curiosities.js). */
+const edit = DB.data.curiosities.filter((c) => c.source === "Final Cut Pro and CapCut");
+ok(edit.length >= 30 && edit.every((c) => c.momentum && c.sliders.length >= 4), "the editing curiosities load, each with a momentum note and its sliders (" + edit.length + ")");
+ok(["transitions", "grade", "text", "speed"].every((id) => L.curiosities(id).length >= 3), "the new CapCut categories (Transitions, Filters, Text, Speed) have curiosities");
+ok(DB.check().length === 0, "the database check finds no problems with them");
+const ed = w.CurioFrame.svg({ transitionKind: "wipe", filterLook: "night", onScreenText: "title card", clipSpeed: "fast" }, { highlight: ["transitions"] });
+ok(["transitions", "grade", "text", "speed"].every((c) => ed.includes(`data-cat="${c}"`)) && /data-cat="grade" opacity="0.18"/.test(ed), "the frame draws transitions, filters, text and speed, and dims them by category");
 
 /* The frame. */
 const svg = w.CurioFrame.svg(scenes[0].beats[0].values, { highlight: ["camera"], labels: [["Shot size", "wide"]] });
