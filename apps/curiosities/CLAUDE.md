@@ -82,6 +82,8 @@ A study is a trace: beat, which curiosities are on, which suites contain them, w
 
 Tick a span of beats and keep one curiosity or one suite on the Shelf. Apply a strand and the board plays it panel by panel. Studies export and import as JSON. State is `localStorage` key `curiosities-studies-v1`. Read `STUDY-PLAN.md` for what comes next.
 
+Unreal Engine (`unreal/`, an editor plugin, Tools > Curiosities): a CineCamera that follows the storyboard, shots keyed into a Level Sequence, and a hand-set camera read back onto the board, using the same camera mapping as Maya and Blender. See `unreal/README.md`.
+
 ## Games are paused
 
 Games wait until the curiosity model is fleshed out; they will be the last thing built. `play.js` (the Flip Book) and `games.js` (the Cross-pollinate games) stay in the folder but are not loaded or shown.
