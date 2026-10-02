@@ -47,8 +47,12 @@ Tick a span of beats and keep one curiosity or one suite on the Shelf. Apply a s
 
 The Flip Book cuts each panel into three flaps: Camera, Bodies and Mood. Flipping one swaps in a slice from a study, a suite or the emotion map. Suites that fire and proximities that hold across panels score, and a goal card asks for one suite in one panel. Its best score is `localStorage` key `curiosities-flipbook-best-v1`.
 
+## Automation (the core)
+
+Every curiosity, suite, proximity and proximity suite is an automatable parameter (`automation.js`, `window.CurioAuto`): two settings, A and B, and a modulator between them (LFO, manual knob, or MIDI CC), started by a trigger (MIDI note, key, or button). A performer can wear MIDI straps and make a parameter flick between two settings at a rate they set. Running parameters play on the Board as the applied strand "Automation" and can send their position out as MIDI CC for VCV Rack and other modular synths (and take CCs in). The Automate tab is the patch bay; the Cross-pollinate tab has one game per level, using studies as inspiration films. Patches and bindings are `localStorage` key `curiosities-automation-v1`.
+
 ## Studio
 
-Camera (lens, film back, depth of field, motion blur), Shots (Camera Sequencer, frame rate, playblast, sound), Curves (Graph Editor, Set Driven Key, Time Warp, live MIDI record), Motion (spacing, stepping, anticipation, overshoot, ghosting), Face (blend shapes, pose library, lip sync), Rig & pose (FK, IK, constraints, live puppeteering), Light & look (Arnold lights, exposure, filters, toon), Crowd (MASH), Passes (render layers and AOVs as curiosity passes) and Manual (every topic, filterable, with your keep or skip calls). Every tool sets curiosities and can send them to the Board. Each tool keeps its own `localStorage` key, `curiosities-studio-<tool>-v1`.
+Camera (lens, film back, depth of field, motion blur), Shots (Camera Sequencer, frame rate, playblast, sound), Curves (Graph Editor, Set Driven Key, Time Warp, live MIDI record), Motion (spacing, stepping, anticipation, overshoot, ghosting), Face (blend shapes, pose library, lip sync), Rig & pose (FK, IK, constraints, live puppeteering), Light & look (Arnold lights, exposure, filters, toon), Crowd (MASH), Passes (render layers and AOVs as curiosity passes), Shading, Dynamics, Fur & hair, Bifrost, Chain (Sharani's six areas linked by proximities), Live, Remix, Print, Start here and Manual (every topic, filterable, with your keep or skip calls). Every tool sets curiosities and can send them to the Board. Each tool keeps its own `localStorage` key, `curiosities-studio-<tool>-v1`.
 
 Keep the static files and the look of this folder. Do not add a second git repo inside `apps/`.

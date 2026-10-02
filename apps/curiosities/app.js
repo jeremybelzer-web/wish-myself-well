@@ -26,6 +26,12 @@
     const studio = document.getElementById("studio");
     studio.classList.toggle("hidden", tab !== "studio");
     if (tab === "studio" && window.CuriosityStudio) window.CuriosityStudio.draw();
+    const automate = document.getElementById("automate");
+    automate.classList.toggle("hidden", tab !== "automate");
+    if (tab === "automate" && window.CuriosityAutomate) window.CuriosityAutomate.draw();
+    const games = document.getElementById("games");
+    games.classList.toggle("hidden", tab !== "games");
+    if (tab === "games" && window.CuriosityGames) window.CuriosityGames.draw();
   });
 
   function load() {

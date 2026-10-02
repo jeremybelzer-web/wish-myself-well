@@ -100,10 +100,40 @@
     );
     try {
       m.draw(document.getElementById("studio-body"), api);
+      linkChips();
     } catch (e) {
       document.getElementById("studio-body").innerHTML = `<p>This tool failed to draw: ${esc(e.message)}</p>`;
     }
   }
+
+  /* Leaving the Studio tab detaches the tool body (its nodes stay intact, just off the page),
+     so every animation loop that checks isConnected stops. app.js redraws the Studio when its
+     tab is shown again. */
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest && e.target.closest("button[data-tab]");
+    if (!b || b.dataset.tab === "studio") return;
+    setTimeout(() => {
+      const body = document.getElementById("studio-body");
+      if (body && root.classList.contains("hidden")) body.remove();
+    }, 0);
+  });
+
+  /* Every curiosity a tool shows as a chip can be automated: click it to open its module in Automate. */
+  const known = new Set(CURIOSITIES.map((c) => c.id));
+  function linkChips() {
+    root.querySelectorAll(".chip").forEach((chip) => {
+      const id = (chip.textContent.trim().match(/^([A-Za-z]+)/) || [])[1];
+      if (!id || !known.has(id) || chip.dataset.auto) return;
+      chip.dataset.auto = id;
+      chip.title = "Automate " + id;
+      chip.style.cursor = "pointer";
+    });
+  }
+  root.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip[data-auto]");
+    if (chip && window.CuriosityAutomate && window.CuriosityAutomate.open) window.CuriosityAutomate.open("c:" + chip.dataset.auto);
+  });
+  new MutationObserver(() => linkChips()).observe(root, { childList: true, subtree: true });
 
   window.CuriosityStudio = {
     register(m) {
