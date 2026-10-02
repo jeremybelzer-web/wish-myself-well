@@ -1,0 +1,19 @@
+[
+  "curiosity-db.js",
+  "db-workspaces.js",
+  "db-catalog.js",
+  "db-catalog-sliders.js",
+  "db-music.js",
+  "db-emotion.js",
+  "db-comedy.js",
+  "db-design.js",
+  "db-look.js",
+  "db-character.js",
+  "db-story.js",
+  "db-feeling-comedy.js",
+  "db-mix-road.js",
+  "db-arc-body.js",
+  "db-proximity-words.js",
+  "db-model-scenes.js",
+  "db-finish.js"
+]
