@@ -5,6 +5,9 @@
    Time Warp remaps output beats to input beats, Set Driven Key lets one curiosity drive another,
    and an additive layer rides on the base with a weight. Record samples the mouse, number keys
    or a MIDI controller into keys while the playhead runs. Send to board samples one value per panel.
+   The full Dope Sheet view shows a row per animated curve: box-select keys across rows, nudge them by
+   beats, scale them around the pivot, copy and paste. Retime markers (Maya's Retime tool) squeeze or
+   stretch the span between their neighbours and every key in it moves proportionally.
    State is localStorage key curiosities-studio-curves-v1. */
 
 (function () {
@@ -32,6 +35,10 @@
   let rec = null;
   const src = { mouse: 0.5, val: 0.5, midiStatus: "", learn: false, cc: null, midiOn: false };
   let globalsBound = false;
+  /* Dope Sheet: selected key objects, the clipboard and the pointer gesture in progress. */
+  let dsel = new Set();
+  let clip = null;
+  let dsDrag = null;
 
   function esc(s) {
     return api ? api.esc(s) : String(s == null ? "" : s);
@@ -91,6 +98,11 @@
       sdk: { on: false, driver: "volume", driven: "moveSpeed", pairs: [[1, 1], [5, 5]] },
       recSource: "mouse",
       recRate: 0.5,
+      view: "graph",
+      pivot: 1,
+      retime: [],
+      dsStep: 1,
+      dsScale: 2,
     };
     s.curves.moveSpeed = { keys: [k(1, 1), k(6, 4), k(10, 2, "flat"), k(16, 5)], pre: "constant", post: "constant", layer: [], layerW: 1, layerMute: false, buffer: null };
     s.curves.volume = { keys: [k(1, 3), k(5, 1, "stepped"), k(9, 5, "linear"), k(16, 3)], pre: "constant", post: "constant", layer: [], layerW: 1, layerMute: false, buffer: null };
@@ -110,6 +122,7 @@
     if (!out.sel.includes(out.active)) out.active = out.sel[0] || null;
     out.warp = Object.assign(f.warp, s.warp || {});
     out.sdk = Object.assign(f.sdk, s.sdk || {});
+    if (!Array.isArray(out.retime)) out.retime = [];
     return out;
   }
 
@@ -452,6 +465,326 @@
     return `<svg class="cv-sdk" viewBox="0 0 ${w} ${h}" role="img" aria-label="Driven curve"><path d="${drv}" fill="none" stroke="${colorOf(sd.driver)}" stroke-opacity="0.35" stroke-width="1.5"/><path d="${res}" fill="none" stroke="var(--saffron)" stroke-width="2"/></svg>`;
   }
 
+  /* ---------- full Dope Sheet ---------- */
+
+  const DL = 96; /* label gutter */
+  const DR = 10;
+  const RH = 24; /* ruler */
+  const ROWH = 24;
+  function XD(t) {
+    return DL + ((t - 1) / (S.beats - 1)) * (W - DL - DR);
+  }
+  function TD(x) {
+    return 1 + ((x - DL) / (W - DL - DR)) * (S.beats - 1);
+  }
+
+  /* Every animated curve gets a row: base keys, a layer row when it has keys, and the time warp. */
+  function dsRows() {
+    const rows = [];
+    S.sel.forEach((id) => {
+      const c = S.curves[id];
+      if (!c) return;
+      rows.push({ id, label: def(id).label, keys: c.keys, color: colorOf(id) });
+      if (c.layer.length) rows.push({ id: id + ":layer", label: def(id).label + " layer", keys: c.layer, color: "#8a2f6b" });
+    });
+    if (S.warp.on) rows.push({ id: "warp", label: "Time warp", keys: S.warp.keys, color: "#2f6b8a" });
+    return rows;
+  }
+
+  function dsHeight() {
+    return RH + Math.max(1, dsRows().length) * ROWH + 4;
+  }
+
+  function dsInner() {
+    const rows = dsRows();
+    const h = dsHeight();
+    const parts = [];
+    parts.push(`<rect x="0" y="0" width="${W}" height="${RH}" fill="rgba(28,23,18,0.06)" data-ruler="1"/>`);
+    for (let b = 1; b <= S.beats; b++) {
+      parts.push(`<line x1="${XD(b)}" y1="${RH - 6}" x2="${XD(b)}" y2="${h}" stroke="var(--line)"/>`);
+      parts.push(`<text x="${XD(b)}" y="${RH - 9}" text-anchor="middle" class="cv-ax">${b}</text>`);
+    }
+    rows.forEach((r, ri) => {
+      const y = RH + ri * ROWH;
+      if (ri % 2) parts.push(`<rect x="0" y="${y}" width="${W}" height="${ROWH}" fill="rgba(184,137,45,0.06)"/>`);
+      parts.push(`<text x="4" y="${y + 15}" class="cv-ax" style="text-anchor:start;fill:${r.color}">${esc(r.label.length > 13 ? r.label.slice(0, 12) + "…" : r.label)}</text>`);
+      r.keys.forEach((key, i) => {
+        const x = XD(key.t);
+        const cy = y + ROWH / 2;
+        const on = dsel.has(key);
+        parts.push(`<polygon data-dk="${ri}:${i}" points="${x},${cy - 7} ${x + 6},${cy} ${x},${cy + 7} ${x - 6},${cy}" fill="${on ? "var(--saffron)" : "white"}" stroke="${r.color}" stroke-width="2"/>`);
+      });
+    });
+    /* retime spans and markers */
+    const ms = S.retime.slice().sort((a, b) => a - b);
+    ms.forEach((m, i) => {
+      const x = XD(m);
+      parts.push(`<line x1="${x}" y1="${RH}" x2="${x}" y2="${h}" stroke="#2f6b8a" stroke-dasharray="3 3"/>`);
+      parts.push(`<polygon data-marker="${i}" points="${x - 7},2 ${x + 7},2 ${x},${RH - 2}" fill="#2f6b8a"><title>Retime marker at beat ${m}</title></polygon>`);
+    });
+    /* pivot for scaling and pasting */
+    parts.push(`<line x1="${XD(S.pivot)}" y1="0" x2="${XD(S.pivot)}" y2="${h}" stroke="var(--gold)" stroke-width="2" stroke-dasharray="6 3" pointer-events="none"/>`);
+    parts.push(`<rect id="cv-box" x="0" y="0" width="0" height="0" fill="rgba(196,92,38,0.12)" stroke="var(--saffron)" stroke-dasharray="3 2" pointer-events="none"/>`);
+    parts.push(`<line id="cv-head3" x1="-10" y1="0" x2="-10" y2="${h}" stroke="var(--saffron)" stroke-width="2" pointer-events="none"/>`);
+    return parts.join("");
+  }
+
+  function fullDopeSvg() {
+    return `<svg id="cv-ds" class="cv-ds" viewBox="0 0 ${W} ${dsHeight()}" role="img" aria-label="Dope sheet: rows of keys per curve">${dsInner()}</svg>`;
+  }
+
+  function dsPanel() {
+    const n = dsel.size;
+    return `<div class="bar-actions cv-dsbar">
+        <button type="button" data-ds="all">Select all</button>
+        <button type="button" data-ds="none">Select none</button>
+        <button type="button" data-ds="del"${n ? "" : " disabled"}>Delete</button>
+        <span class="mono">${n} key${n === 1 ? "" : "s"} selected · pivot beat ${S.pivot}</span>
+      </div>
+      <div class="bar-actions cv-dsbar">
+        <button type="button" data-ds="left"${n ? "" : " disabled"}>◀ Move</button>
+        <label class="field cv-small">By<select id="cv-ds-step">${options([[0.25, "¼ beat"], [0.5, "½ beat"], [1, "1 beat"], [2, "2 beats"], [4, "4 beats"]], S.dsStep)}</select></label>
+        <button type="button" data-ds="right"${n ? "" : " disabled"}>Move ▶</button>
+      </div>
+      <div class="bar-actions cv-dsbar">
+        <label class="field cv-small">Scale ×<input type="number" id="cv-ds-scale" min="0.1" max="4" step="0.25" value="${S.dsScale}"></label>
+        <button type="button" data-ds="scale"${n ? "" : " disabled"}>Scale around pivot</button>
+        <button type="button" data-ds="squeeze"${n ? "" : " disabled"}>Squeeze ×½</button>
+        <button type="button" data-ds="stretch"${n ? "" : " disabled"}>Stretch ×2</button>
+      </div>
+      <div class="bar-actions cv-dsbar">
+        <button type="button" data-ds="copy"${n ? "" : " disabled"}>Copy</button>
+        <label class="field cv-small">Paste at beat<input type="number" id="cv-ds-at" min="1" max="${S.beats}" step="0.25" value="${S.pivot}"></label>
+        <button type="button" data-ds="paste"${clip ? "" : " disabled"}>Paste</button>
+        <span class="cap">${clip ? `${clip.items.length} key${clip.items.length === 1 ? "" : "s"} on the clipboard` : "Nothing copied yet"}</span>
+      </div>
+      <div class="g">Retime</div>
+      <p class="cap">Drop two or more markers. Drag a marker along the ruler: the span to each neighbouring marker (or the timeline end) squeezes or stretches, and every key inside moves in proportion. Click the ruler to set the pivot.</p>
+      <div class="bar-actions cv-dsbar">
+        <button type="button" data-ds="marker">Add marker at pivot</button>
+        <button type="button" data-ds="markers-keys">Markers on selected keys</button>
+        <button type="button" data-ds="markers-clear"${S.retime.length ? "" : " disabled"}>Clear markers</button>
+        <span class="mono">${S.retime.length ? "markers at " + S.retime.slice().sort((a, b) => a - b).join(", ") : "no markers"}</span>
+      </div>`;
+  }
+
+  function dsAllKeys() {
+    const out = [];
+    dsRows().forEach((r) => r.keys.forEach((key) => out.push({ row: r, key })));
+    return out;
+  }
+
+  /* After a move: sort each row, and where two keys share a beat keep the moved (selected) one. */
+  function dsSettle() {
+    dsRows().forEach((r) => {
+      r.keys.sort((a, b) => a.t - b.t || (dsel.has(a) ? 1 : 0) - (dsel.has(b) ? 1 : 0));
+      for (let i = r.keys.length - 2; i >= 0; i--) {
+        const a = r.keys[i];
+        const b = r.keys[i + 1];
+        if (Math.abs(a.t - b.t) < 1e-6) r.keys.splice(dsel.has(a) && !dsel.has(b) ? i + 1 : i, 1);
+      }
+    });
+    const alive = new Set(dsAllKeys().map((x) => x.key));
+    dsel = new Set([...dsel].filter((key) => alive.has(key)));
+    sel.i = -1;
+  }
+
+  function round2(t) {
+    return Math.round(t * 100) / 100;
+  }
+
+  function dsMove(d) {
+    const ks = [...dsel];
+    if (!ks.length) return;
+    const lo = Math.min(...ks.map((x) => x.t));
+    const hi = Math.max(...ks.map((x) => x.t));
+    d = Math.max(1 - lo, Math.min(S.beats - hi, d));
+    ks.forEach((x) => (x.t = round2(x.t + d)));
+    dsSettle();
+  }
+
+  function dsScaleBy(f) {
+    if (!(f > 0)) return;
+    dsel.forEach((x) => (x.t = round2(Math.max(1, Math.min(S.beats, S.pivot + (x.t - S.pivot) * f)))));
+    dsSettle();
+  }
+
+  function dsCopy() {
+    const rows = dsRows();
+    const items = [];
+    rows.forEach((r) => r.keys.forEach((key) => dsel.has(key) && items.push({ row: r.id, t: key.t, v: key.v, tan: key.tan })));
+    if (!items.length) return;
+    const t0 = Math.min(...items.map((x) => x.t));
+    clip = { items: items.map((x) => ({ row: x.row, dt: x.t - t0, v: x.v, tan: x.tan })) };
+  }
+
+  function dsPaste(at) {
+    if (!clip) return;
+    const rows = dsRows();
+    const fresh = new Set();
+    clip.items.forEach((it) => {
+      const r = rows.find((x) => x.id === it.row);
+      const t = round2(at + it.dt);
+      if (!r || t < 1 || t > S.beats) return;
+      const key = k(t, it.v, it.tan);
+      putKey(r.keys, key);
+      fresh.add(key);
+    });
+    dsel = fresh;
+    dsSettle();
+  }
+
+  /* Retime: the marker moves from m0 to m1; keys between its neighbours scale proportionally. */
+  function retimeApply(orig, prev, m0, m1, next) {
+    orig.forEach(([key, t]) => {
+      if (t >= prev && t <= m0 && m0 > prev) key.t = round2(prev + ((t - prev) * (m1 - prev)) / (m0 - prev));
+      else if (t > m0 && t <= next && next > m0) key.t = round2(m1 + ((t - m0) * (next - m1)) / (next - m0));
+      else key.t = t;
+    });
+  }
+
+  function redrawDope() {
+    const ds = root && root.querySelector("#cv-ds");
+    if (!ds) return;
+    ds.setAttribute("viewBox", `0 0 ${W} ${dsHeight()}`);
+    ds.innerHTML = dsInner();
+    paintHead(play ? play.b : null);
+  }
+
+  function bindFullDope() {
+    const g = root.querySelector("#cv-ds");
+    if (!g) return;
+    g.addEventListener("pointerdown", (e) => {
+      const p = svgPoint(g, e);
+      const mk = e.target.closest ? e.target.closest("[data-marker]") : null;
+      const dk = e.target.closest ? e.target.closest("[data-dk]") : null;
+      if (mk) {
+        const ms = S.retime.slice().sort((a, b) => a - b);
+        const i = Number(mk.dataset.marker);
+        S.retime = ms;
+        dsDrag = { kind: "marker", i, m0: ms[i], prev: i > 0 ? ms[i - 1] : 1, next: i < ms.length - 1 ? ms[i + 1] : S.beats, orig: dsAllKeys().map((x) => [x.key, x.key.t]) };
+      } else if (dk) {
+        const [ri, i] = dk.dataset.dk.split(":").map(Number);
+        const key = dsRows()[ri].keys[i];
+        if (e.shiftKey) {
+          if (dsel.has(key)) dsel.delete(key);
+          else dsel.add(key);
+        } else if (!dsel.has(key)) dsel = new Set([key]);
+        dsDrag = { kind: "keys", b0: TD(p.x), orig: [...dsel].map((x) => [x, x.t]), moved: false };
+      } else if (p.y < RH) {
+        S.pivot = Math.max(1, Math.min(S.beats, Math.round(TD(p.x) * 4) / 4));
+        dsDrag = { kind: "pivot" };
+      } else {
+        if (!e.shiftKey) dsel = new Set();
+        dsDrag = { kind: "box", x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+      }
+      try {
+        g.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      e.preventDefault();
+      redrawDope();
+    });
+    g.addEventListener("pointermove", (e) => {
+      if (!dsDrag) return;
+      const p = svgPoint(g, e);
+      if (dsDrag.kind === "box") {
+        dsDrag.x1 = p.x;
+        dsDrag.y1 = p.y;
+        const b = g.querySelector("#cv-box");
+        if (b) {
+          b.setAttribute("x", Math.min(dsDrag.x0, p.x));
+          b.setAttribute("y", Math.min(dsDrag.y0, p.y));
+          b.setAttribute("width", Math.abs(p.x - dsDrag.x0));
+          b.setAttribute("height", Math.abs(p.y - dsDrag.y0));
+        }
+      } else if (dsDrag.kind === "keys") {
+        const ts = dsDrag.orig.map((o) => o[1]);
+        let d = Math.round((TD(p.x) - dsDrag.b0) * 4) / 4;
+        d = Math.max(1 - Math.min(...ts), Math.min(S.beats - Math.max(...ts), d));
+        dsDrag.orig.forEach(([key, t]) => (key.t = round2(t + d)));
+        dsDrag.moved = dsDrag.moved || d !== 0;
+        redrawDope();
+      } else if (dsDrag.kind === "marker") {
+        const m1 = Math.max(dsDrag.prev + 0.25, Math.min(dsDrag.next - 0.25, Math.round(TD(p.x) * 4) / 4));
+        if (dsDrag.prev === dsDrag.next) return;
+        S.retime[dsDrag.i] = m1;
+        retimeApply(dsDrag.orig, dsDrag.prev, dsDrag.m0, m1, dsDrag.next);
+        redrawDope();
+      } else if (dsDrag.kind === "pivot") {
+        S.pivot = Math.max(1, Math.min(S.beats, Math.round(TD(p.x) * 4) / 4));
+        redrawDope();
+      }
+    });
+    const end = () => {
+      if (!dsDrag) return;
+      const d = dsDrag;
+      dsDrag = null;
+      if (d.kind === "box") {
+        const x0 = Math.min(d.x0, d.x1);
+        const x1 = Math.max(d.x0, d.x1);
+        const y0 = Math.min(d.y0, d.y1);
+        const y1 = Math.max(d.y0, d.y1);
+        dsRows().forEach((r, ri) => {
+          const cy = RH + ri * ROWH + ROWH / 2;
+          if (cy < y0 - 6 || cy > y1 + 6) return;
+          r.keys.forEach((key) => {
+            const x = XD(key.t);
+            if (x >= x0 - 4 && x <= x1 + 4) dsel.add(key);
+          });
+        });
+      } else if (d.kind === "keys" || d.kind === "marker") dsSettle();
+      save();
+      render();
+    };
+    g.addEventListener("pointerup", end);
+    g.addEventListener("pointercancel", end);
+
+    root.querySelectorAll("[data-ds]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const a = b.dataset.ds;
+        if (a === "all") dsel = new Set(dsAllKeys().map((x) => x.key));
+        else if (a === "none") dsel = new Set();
+        else if (a === "del") {
+          dsRows().forEach((r) => {
+            for (let i = r.keys.length - 1; i >= 0; i--) if (dsel.has(r.keys[i]) && !(r.id === "warp" && r.keys.length <= 1)) r.keys.splice(i, 1);
+          });
+          dsel = new Set();
+          sel.i = -1;
+        } else if (a === "left" || a === "right") dsMove((a === "left" ? -1 : 1) * (Number(S.dsStep) || 1));
+        else if (a === "scale") dsScaleBy(Number(root.querySelector("#cv-ds-scale").value));
+        else if (a === "squeeze") dsScaleBy(0.5);
+        else if (a === "stretch") dsScaleBy(2);
+        else if (a === "copy") dsCopy();
+        else if (a === "paste") {
+          const at = Number(root.querySelector("#cv-ds-at").value);
+          dsPaste(Math.max(1, Math.min(S.beats, isNaN(at) ? S.pivot : at)));
+        } else if (a === "marker") {
+          if (!S.retime.some((m) => Math.abs(m - S.pivot) < 1e-6)) S.retime.push(S.pivot);
+        } else if (a === "markers-keys") {
+          dsel.forEach((key) => {
+            const t = Math.round(key.t * 4) / 4;
+            if (!S.retime.some((m) => Math.abs(m - t) < 1e-6)) S.retime.push(t);
+          });
+        } else if (a === "markers-clear") S.retime = [];
+        S.retime.sort((x, y) => x - y);
+        save();
+        render();
+      })
+    );
+    const st = root.querySelector("#cv-ds-step");
+    if (st)
+      st.addEventListener("change", () => {
+        S.dsStep = Number(st.value) || 1;
+        save();
+      });
+    const sc = root.querySelector("#cv-ds-scale");
+    if (sc)
+      sc.addEventListener("change", () => {
+        S.dsScale = Number(sc.value) || 2;
+        save();
+      });
+  }
+
   function chipsHtml(b) {
     return S.sel
       .map((id) => {
@@ -569,13 +902,19 @@
             ["layer", "Layer"],
             ["warp", "Time warp"],
           ]
-            .map((x) => `<button type="button" data-target="${x[0]}" class="${sel.target === x[0] ? "on" : ""}">${x[1]}</button>`)
-            .join("")}</nav>
+            .map((x) => `<button type="button" data-target="${x[0]}" class="${S.view === "graph" && sel.target === x[0] ? "on" : ""}">${x[1]}</button>`)
+            .join("")}<button type="button" data-view="dope" class="${S.view === "dope" ? "on" : ""}">Dope Sheet</button></nav>
         </div>
-        ${S.active || sel.target === "warp" ? graphSvg() : `<p class="cap">Add a curiosity to animate.</p>`}
+        ${
+          S.view === "dope"
+            ? `${fullDopeSvg()}
+        <p class="cap cv-legend">Drag across empty rows to box-select keys (shift adds). Drag a selected key to slide the selection. Gold dashed line: the pivot. Blue triangles: retime markers.</p>
+        ${dsPanel()}`
+            : `${S.active || sel.target === "warp" ? graphSvg() : `<p class="cap">Add a curiosity to animate.</p>`}
         <p class="cap cv-legend">Thick pale line: what plays (warp, layer and driven key included). Dark line: the keys you edit. Dashed beyond the keys: infinity. Dashed ghost: buffer.</p>
         <div class="g">Dope Sheet</div>
-        ${dopeSvg()}
+        ${dopeSvg()}`
+        }
         ${proxHtml()}
         <div class="bar-actions cv-play">
           <button type="button" data-act="play">${play ? "Stop" : "Play"}</button>
@@ -920,7 +1259,15 @@
   function bind() {
     bindGraph();
     bindDope();
+    bindFullDope();
     const q = (s) => root.querySelector(s);
+    root.querySelectorAll("[data-view]").forEach((b) =>
+      b.addEventListener("click", () => {
+        S.view = b.dataset.view;
+        save();
+        render();
+      })
+    );
     q("#cv-add").addEventListener("change", (e) => {
       const id = e.target.value;
       if (!id || !def(id)) return;
@@ -951,6 +1298,7 @@
     root.querySelectorAll("[data-target]").forEach((b) =>
       b.addEventListener("click", () => {
         sel = { target: b.dataset.target, i: -1 };
+        S.view = "graph";
         if (sel.target === "warp") S.warp.on = true;
         save();
         render();
@@ -1050,6 +1398,8 @@
       S.warp.keys = S.warp.keys.filter((x) => x.t <= n).map((x) => Object.assign(x, { v: Math.min(x.v, n) }));
       if (!S.warp.keys.length) S.warp.keys = [k(1, 1, "linear")];
       S.beats = n;
+      S.retime = S.retime.filter((m) => m <= n);
+      S.pivot = Math.min(S.pivot, n);
       if (S.warp.keys.length === 1) S.warp.keys.push(k(n, n, "linear"));
     });
     val("#cv-src", (v) => (S.recSource = v));
@@ -1068,6 +1418,12 @@
         l.setAttribute("x2", x);
       }
     });
+    const l3 = root.querySelector("#cv-head3");
+    if (l3) {
+      const x3 = b == null ? -10 : XD(b);
+      l3.setAttribute("x1", x3);
+      l3.setAttribute("x2", x3);
+    }
     if (b == null) return;
     const lab = root.querySelector("#cv-beat");
     if (lab) lab.textContent = `beat ${b.toFixed(2)}${S.warp.on ? ` → reads ${warpBeat(b).toFixed(2)}` : ""}`;
@@ -1211,6 +1567,11 @@
 .cv-graph { width: 100%; height: auto; display: block; background: white; border: 2px solid var(--ink); touch-action: none; cursor: crosshair; user-select: none; }
 .cv-dope { width: 100%; height: auto; display: block; background: rgba(255,255,255,0.6); border: 1px solid var(--line); }
 .cv-dope [data-dope] { cursor: pointer; }
+.cv-ds { width: 100%; height: auto; display: block; background: white; border: 2px solid var(--ink); touch-action: none; user-select: none; cursor: crosshair; }
+.cv-ds [data-dk] { cursor: ew-resize; }
+.cv-ds [data-marker], .cv-ds [data-ruler] { cursor: col-resize; }
+.cv-dsbar { align-items: end; margin: 6px 0; }
+.cv-tool .subtabs button.on { background: var(--ink); color: var(--paper); }
 .cv-sdk { width: 100%; height: auto; display: block; background: white; border: 1px solid var(--line); margin-top: 6px; }
 .cv-ax { font-family: var(--mono); font-size: 9px; fill: #6a5f52; }
 .cv-key { cursor: grab; }
