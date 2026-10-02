@@ -51,6 +51,8 @@ its own bindings in `automation.js`.
 | `{ type: "trigger", key: "s:noir", on: true }` | Switch a parameter on or off |
 | `{ type: "stopAll" }` | Stop every running parameter |
 | `{ type: "list" }` | Reply `{ type: "params", params: [{ key, level, label }] }` |
+| `{ type: "panels", ids }` | Reply `{ type: "panels", panels: [{ shotSize: "wide", ... }] }`: what each storyboard panel plays now (needs the board, so not headless) |
+| `{ type: "apply", label, values }` | Play `{ id: [value per panel] }` on the board as a named strand ("Blender camera") |
 | `{ type: "value", key, m }` | Sent out: where a running parameter sits now (`CurioBridge.values()`) |
 
 Keys are automation keys: `c:` curiosity, `s:` suite, `p:` proximity, `ps:` proximity suite, plus

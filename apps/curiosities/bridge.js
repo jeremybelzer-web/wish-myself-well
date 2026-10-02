@@ -8,8 +8,12 @@
      { type: "trigger", key: "s:noir", on: true }      switch a parameter on or off (its own gate or toggle mode)
      { type: "stopAll" }                               stop every running parameter
      { type: "list" }                                  ask what can be moved
+     { type: "panels", ids: ["shotSize", ...] }        what each storyboard panel plays now (ids optional)
+     { type: "apply", label: "Blender camera", values: { shotSize: ["wide", "close"] } }
+                                                       play values on the board panel by panel, as a named strand
    Replies and news going out:
      { type: "params", params: [{ key, level, label }] }
+     { type: "panels", panels: [{ <curiosity id>: value }] }
      { type: "value", key, m }                         a running parameter's position, 0 to 1
      { type: "error", error }
 
@@ -36,6 +40,24 @@
     if (!A) return { type: "error", error: "automation is not loaded" };
     if (!msg || typeof msg.type !== "string") return { type: "error", error: "no type" };
     if (msg.type === "list") return { type: "params", params: A.PARAMS.map((p) => ({ key: p.key, level: p.level, label: p.label })) };
+    /* The board: a tool bridge (Blender, Unreal) reads what each panel plays and can write a strand back. */
+    if (msg.type === "panels" || msg.type === "apply") {
+      const board = window.CuriosityBoard;
+      if (!board) return { type: "error", error: "no board here" };
+      if (msg.type === "apply") {
+        board.apply(String(msg.label || "Bridge"), msg.values && typeof msg.values === "object" ? msg.values : {});
+        return null;
+      }
+      const ids = Array.isArray(msg.ids) ? msg.ids : typeof CURIOSITIES !== "undefined" ? CURIOSITIES.map((c) => c.id) : [];
+      return {
+        type: "panels",
+        panels: board.panels().map((st) => {
+          const out = {};
+          ids.forEach((id) => st[id] != null && st[id] !== "" && (out[id] = st[id]));
+          return out;
+        }),
+      };
+    }
     if (msg.type === "stopAll") {
       A.stopAll();
       return null;
