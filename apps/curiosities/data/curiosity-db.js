@@ -291,6 +291,15 @@
         ref("proximity " + p.id + " cause", p.when);
         ref("proximity " + p.id + " effect", p.then);
       });
+      /* Every curiosity carries a momentum note (data/db-momentum.js) once that file has loaded. */
+      if (api.MOMENTUM_CUES)
+        db.curiosities.forEach((c) => {
+          const m = c.momentum;
+          if (!m) return out.push(`curiosity ${c.id}: no momentum note`);
+          if (!Number.isInteger(m.push) || m.push < 0 || m.push > 5) out.push(`curiosity ${c.id}: momentum push must be a whole number from 0 to 5`);
+          if (!api.MOMENTUM_CUES.includes(m.cue)) out.push(`curiosity ${c.id}: momentum cue "${m.cue}" is not one of ${api.MOMENTUM_CUES.join(", ")}`);
+          ["plot", "theme", "pull", "tryThis"].forEach((k) => (typeof m[k] === "string" && m[k].trim()) || out.push(`curiosity ${c.id}: momentum ${k} is empty`));
+        });
       db.proximitySuites.forEach((ps) => ps.members.forEach((m) => index.proximity[m] || out.push(`proximity suite ${ps.id}: unknown member ${m}`)));
       db.scenes.forEach((sc) =>
         sc.beats.forEach((b) =>
@@ -330,6 +339,9 @@
       db.curiosities.forEach((c) => {
         const main = c.sliders.find((s) => s.id === c.main);
         row(c.id, c.group || c.workspace, c.label, main, c.plain);
+        /* The momentum note (data/db-momentum.js) rides on the curiosity's own row, where momentum/notes.js looks. */
+        const own = rows.find((r) => r.id === c.id);
+        if (own && c.momentum) own.momentum = Object.assign({}, c.momentum);
         c.sliders.forEach((s) => s.id !== "amount" && s.id !== c.main && !s.ref && row(c.id + "." + s.id, c.group || c.workspace, c.label + ": " + s.label, s, s.plain, c.id));
       });
       return rows;

@@ -45,7 +45,7 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
 Lives in `apps/curiosities/data/` (draft PR #7). Today: 333 curiosities, 187 suites, 150 proximities,
-44 proximity suites and 3,798 sliders, across 25 workspaces, plus 8 model scenes.
+44 proximity suites and 4,797 sliders, across 25 workspaces, plus 8 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -68,6 +68,8 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 333 curiosities, 187 sui
 - [x] Deeper comedy and emotion: comic flaw, premise, topper, oddly specific, talking to camera, exaggeration, humiliation, the lie that grows, misunderstanding, cutaways; mixed feelings, said against meant, eyes, hands, personal space, release, what the audience feels, catharsis, feeling held in; real sliders on every comedy and emotion row (data/db-feeling-comedy.js)
 - [x] Deeper Comedy from the mix and Emotional road: the double act, the straight man, the odd one out, clash of egos, who knows what, the unwanted guest, chemistry; hope, what they stand to lose, breathers, false highs, two roads, a feeling that comes back, warmth, dread (data/db-mix-road.js)
 - [x] Deeper Character arc and Movement with lines: which way they change, the lie they believe, the old wound, fighting the change, the test, slipping back, how the change shows; walk and talk, business with a prop, move on the line, the listener's body; plus suites and proximities for Camera angle and Character motion (data/db-arc-body.js)
+- [x] Every curiosity carries a momentum note: how it moves the plot and the themes forward, how it pulls the audience's attention onward, its usual cue, how hard it pushes the story (0 to 5) and one thing to try; plus three sliders every curiosity shares (pushes the story, points ahead, tied to a theme) so momentum can be automated (data/db-momentum.js)
+- [ ] Momentum: attention meter, pie, timeline, cues, momentum notes, film rates (estimates; measurable from traces). Built in draft PR #18
 - [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop. The review page is ready: https://claude.ai/artifact/MRmTHSusCBtFhkXgkBXoY8 (share it with Sharani from its Share menu)
 - [x] The three new workspaces (Music & sound, Editing & structure, Page & panel) show as tabs: Music under a new Sound group, Page under Look, Editing under Story (app thread). Jeremy can still say no.
 
