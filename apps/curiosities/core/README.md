@@ -15,6 +15,7 @@ The core is these files, in load order (`core/files.json`):
 | `maya-manual.js` | The Maya manual inventory; its new curiosities become parameters |
 | `automation.js` | `window.CurioAuto`: every curiosity, suite, proximity and proximity suite as an automatable parameter |
 | `bridge.js` | `window.CurioBridge`: the one message format for anything outside the app |
+| `trace.js` | `window.CuriosityTrace`: a curated film as a small counts-only trace file to share (Library: Share a film). Its page part is skipped with no page. See `docs/shared-library-plan.md` |
 
 Everything else (`app.js`, `workspaces.js`, `study.js`, `prism.js`, the Studio tools, `project.js`)
 is a screen: it draws the page and calls the core. Rule for new code: a file that only holds or computes
