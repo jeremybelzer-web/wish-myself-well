@@ -46,6 +46,7 @@ New lens rows should go in one place: send them to the database thread, or add t
 | `db-feeling-comedy.js` | Deeper comedy and emotion: new curiosities (comic flaw, topper, the lie that grows, misunderstanding, mixed feelings, said against meant, eyes, hands, release, catharsis...), real sliders on every comedy and emotion row, and their suites and proximities |
 | `db-mix-road.js` | Comedy from the mix and the emotional road, deeper: the double act, the straight man, the odd one out, clash of egos, who knows what, the unwanted guest, chemistry; hope, stakes, breathers, false highs, two roads, a feeling that comes back, warmth, dread; with their suites and proximities |
 | `db-arc-body.js` | Character arc and Movement with lines, deeper (the lie they believe, the old wound, the test, slipping back; walk and talk, business with a prop, the listener's body), plus suites and proximities for Camera angle and Character motion |
+| `db-momentum.js` | Momentum, the heart of the app: a `momentum` note on every curiosity ({ push 0 to 5, plot, theme, pull, cue, tryThis }, the shape of momentum/notes.js's FIELD, PR #18) and three shared sliders on every curiosity: push, pointsAhead, themeLink. Loaded after db-finish.js |
 | `db-proximity-words.js` | Plain "When ..., ..." halves for proximities named another way ("Pride before a fall") |
 | `db-model-scenes.js` | Eight made-up scenes written as beat-by-beat traces (a diner standoff, a meet-cute, a dinner party, a dark hallway, a montage, a deadpan office, a quiet goodbye, a kitchen disaster), so the Prism and Study views have films to split. Not real films |
 | `model-scenes.studies.json` | Those scenes as a file the Study tab's Import button reads. Written by `check-db.js` |
@@ -82,6 +83,7 @@ The database is switched on in `index.html` (this PR): the block below sits righ
    <script src="data/db-proximity-words.js"></script>
    <script src="data/db-model-scenes.js"></script>
    <script src="data/db-finish.js"></script>
+   <script src="data/db-momentum.js"></script>
    <script>CuriosityDB.install({ CURIOSITIES, SUITES, PROXIMITIES });</script>
    ```
 
