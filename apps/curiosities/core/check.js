@@ -53,6 +53,56 @@ if (core.CuriosityDB) {
   console.log(`database: ${rows.length} items, all addressable`);
 }
 
+/* Shared films: a study becomes a counts-only trace and back, with notes and unknown ids left out. */
+const T = core.CuriosityTrace;
+assert(T, "trace.js is in the core");
+const sel = core.CURIOSITIES.find((c) => c.kind === "select");
+const rng = core.CURIOSITIES.find((c) => c.kind === "range");
+const study = {
+  id: "s1",
+  title: "A film I traced",
+  kind: "film",
+  camera: "authored",
+  beats: [
+    { id: "x", at: "0:00", note: "a line someone says", values: { [sel.id]: sel.options[0], [rng.id]: rng.max + 50, notACuriosity: 3 } },
+    { id: "y", at: "0:04", note: "", values: { [sel.id]: "not on its scale", [rng.id]: rng.min } },
+  ],
+  moments: [{ id: "m", name: "the entrance", from: "x", to: "y" }],
+};
+const tr = T.fromStudy(study, { tracedBy: "Jeremy" });
+assert.strictEqual(tr.format, "curiosities-trace");
+assert.strictEqual(tr.beats.length, 2);
+assert(!JSON.stringify(tr).includes("a line someone says"), "beat notes never go in");
+assert.strictEqual(tr.beats[0].values[rng.id], rng.max, "range values are kept on their scale");
+assert(!("notACuriosity" in tr.beats[0].values), "unknown ids are dropped");
+assert(!(sel.id in tr.beats[1].values), "values off the scale are dropped");
+assert.deepStrictEqual(plain(tr.moments), [{ name: "the entrance", from: 0, to: 1 }], "moments by beat number");
+const again = T.fromStudy(Object.assign({}, study, { id: "other" }), { tracedBy: "someone else" });
+assert.strictEqual(again.id, tr.id, "the id comes from the content, not who traced it");
+const read = T.check(T.json(tr));
+assert(read.ok, "a trace file reads back");
+assert.deepStrictEqual(plain(read.trace.beats), plain(tr.beats), "beats survive the file");
+const st = T.toStudy(read.trace);
+assert.strictEqual(st.id, "trace-" + tr.id);
+assert.strictEqual(st.moments[0].from, st.beats[0].id, "moments point at the study's beats");
+const fromExport = T.check({ format: "curiosities-studies-v1", studies: [study] });
+assert(fromExport.ok && fromExport.dropped.notes === 1 && fromExport.dropped.ids.notACuriosity === 1 && fromExport.dropped.values === 1, "a studies export reads too, with a tally");
+assert(!T.check("{nope").ok && !T.check({ beats: [] }).ok && !T.check({ format: "curiosities-trace", version: 99, beats: [{}] }).ok, "bad files are refused");
+if (core.CuriosityDB && core.CuriosityDB.studiesExport) {
+  const scenes = core.CuriosityDB.studiesExport().studies;
+  const unknown = new Set();
+  scenes.forEach((sc) => {
+    const r = T.check(T.json(T.fromStudy(sc)));
+    assert(r.ok, sc.id + " traces");
+    Object.keys(T.check(sc).dropped.ids).forEach((id) => unknown.add(sc.id + ": " + id));
+  });
+  /* A model scene value whose id is not a curiosity is a data slip in data/; it is left out of the trace, and named here. */
+  if (unknown.size) console.log("traces: model scene ids that are not curiosities (left out): " + [...unknown].join(", "));
+  const sizes = scenes.map((sc) => T.json(T.fromStudy(sc)).length);
+  console.log(`traces: ${scenes.length} model scenes, ${Math.round(Math.max(...sizes) / 1024)} KB at most`);
+}
+console.log("traces ok");
+
 console.log(
   `core ok: ${core.CURIOSITIES.length} curiosities, ${core.SUITES.length} suites, ${core.PROXIMITIES.length} proximities, ${list.params.length} automatable parameters, bridge ok`
 );

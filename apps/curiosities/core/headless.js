@@ -72,6 +72,7 @@ function load(options) {
     CurioAuto: sandbox.CurioAuto,
     CurioBridge: sandbox.CurioBridge,
     CuriosityDB: sandbox.CuriosityDB,
+    CuriosityTrace: sandbox.CuriosityTrace,
     /* Run one automation frame (what the browser does about 60 times a second). */
     tick() {
       const due = frames.splice(0);

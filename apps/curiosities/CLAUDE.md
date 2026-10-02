@@ -84,6 +84,8 @@ A study is a trace: beat, which curiosities are on, which suites contain them, w
 
 Tick a span of beats and keep one curiosity or one suite on the Shelf. Apply a strand and the board plays it panel by panel. Studies export and import as JSON. State is `localStorage` key `curiosities-studies-v1`. Read `STUDY-PLAN.md` for what comes next.
 
+Share a film (Library menu, `trace.js`, `window.CuriosityTrace`) saves any curated film as a counts-only trace file (`.curiotrace.json`: known curiosity ids and values on their scales, no notes) and loads other people's into Curated films and the Prism. The cloud library is a plan: `docs/shared-library-plan.md`.
+
 ## Games are paused
 
 Games wait until the curiosity model is fleshed out; they will be the last thing built. `play.js` (the Flip Book) and `games.js` (the Cross-pollinate games) stay in the folder but are not loaded or shown.
