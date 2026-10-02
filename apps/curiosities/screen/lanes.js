@@ -313,7 +313,7 @@
         .map(
           (ln, i) => `<div class="sl-head${ln.group ? " sl-in-group" : ""}${sel && sel.endsWith("@" + ln.lk) ? " on" : ""}" style="height:${LANE_H}px" data-i="${i}">
             ${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}
-            <span class="sl-sub">${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
+            <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${st.lanes[ln.lk].mode === "hold" ? "Jumps: holds each node's setting until the next node (Maya's stepped curve). Click to glide." : "Glides: moves in a straight line from node to node (Maya's linear curve). Click to jump."}">${st.lanes[ln.lk].mode === "hold" ? "⌐ Jump" : "⟋ Glide"}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
           </div>`
         )
         .join("");
@@ -587,6 +587,14 @@
       }
       if (act === "del" && sel) return removeNode(sel);
       if (act === "link-settings") return linkSettings();
+      if (act === "mode" && b.dataset.lk) {
+        /* Maya's graph editor tangents in plain words: glide (linear) or jump (stepped). */
+        const st = E().state();
+        const lane = st.lanes[b.dataset.lk];
+        const at = b.dataset.lk.indexOf("|");
+        if (lane) send({ type: "laneMode", track: b.dataset.lk.slice(0, at), curiosity: b.dataset.lk.slice(at + 1), mode: lane.mode === "hold" ? "ramp" : "hold", label: lane.mode === "hold" ? "Make a lane glide" : "Make a lane jump" });
+        return draw();
+      }
       if (TOOL_ACTS[act]) return command(TOOL_ACTS[act]);
       draw();
       if (act === "copy" || act === "paste") say(msg);

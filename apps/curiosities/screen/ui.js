@@ -61,6 +61,7 @@
     search: "",
     layout: "center",
     playerZoom: 1,
+    libTab: "",
     guides: false,
     rulers: false,
   };
@@ -416,6 +417,8 @@
     smile: '<circle cx="10" cy="10" r="8"/><path d="M6.5 12a4 4 0 0 0 7 0M7.5 7.5v1M12.5 7.5v1"/>',
     book: '<path d="M3 4h5a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2H3zM17 4h-5a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2h5z"/>',
     page: '<rect x="4" y="2" width="12" height="16"/><path d="M4 9h12M10 9v9"/>',
+    film: '<rect x="2" y="4" width="16" height="12" rx="1"/><path d="M5 4v12M15 4v12M2 8h3M2 12h3M15 8h3M15 12h3"/>',
+    grid: '<rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/>',
   };
   const icon = (name) => `<svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true">${ICONS[name] || ICONS.star}</svg>`;
   function category() {
@@ -433,15 +436,44 @@
     });
     return out;
   }
+  /* "My film": every lane with nodes (an outliner), then the proximities and suites already joined in. */
+  function mineGroups() {
+    const st = E() && E().state();
+    if (!st) return [];
+    const lanes = Object.keys(st.lanes).map((lk) => {
+      const cur = lk.slice(lk.indexOf("|") + 1);
+      const t = st.tracks.find((x) => lk.startsWith(x.id + "|"));
+      const n = Object.keys(st.lanes[lk].points).length;
+      return { id: cur, label: labelOf(cur), plain: `${n} node${n === 1 ? "" : "s"} on ${t ? t.label : "a track"}${st.lanes[lk].mode === "hold" ? ", jumps between them" : ""}` };
+    });
+    const out = [{ id: "mine:lanes", label: "Automated curiosities", level: "curiosity", items: lanes }];
+    const links = st.links.map((l) => ({ id: l.id, label: l.label || "A proximity", plain: (l.on ? "" : "Switched off. ") + (l.scope ? "Joins two nodes." : "A rule for the whole lane."), link: true }));
+    if (links.length) out.push({ id: "mine:links", label: "Proximities in my film", level: "link", items: links });
+    return out;
+  }
+  /* "Templates": every suite, by category, and the proximity suites as linked recipes. */
+  function templateGroups() {
+    const out = L()
+      .CATEGORIES.map((c) => ({ id: "tpl:" + c.id, label: c.label, level: "suite", items: L().items("suite", c.id) }))
+      .filter((g) => g.items.length);
+    const ps = L().items("proximitySuite");
+    if (ps.length) out.push({ id: "tpl:linked", label: "Linked recipes", level: "proximitySuite", items: ps });
+    return out;
+  }
   function cardHtml(level, it) {
+    if (level === "link") return `<div class="sc-card" data-card="link"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Proximity</em></div></div>`;
     const on = prefs.sel.level === level && prefs.sel.id === it.id;
     let sub = it.plain || "";
     if (level === "suite") sub = (it.members || []).length + " curiosities: " + [...new Set((it.members || []).map((m) => labelOf(keyFor(m.curiosity))))].slice(0, 4).join(", ");
     const tag = level === "curiosity" ? (it.source === "Final Cut Pro and CapCut" ? "New from editing" : "") : L().LEVELS.find((l) => l.id === level).label;
     const add = level === "proximity" || level === "proximitySuite" ? "Add it to my film" : level === "suite" ? "Put its curiosities on the timeline" : "Put it on the timeline";
-    return `<div class="sc-card${on ? " on" : ""}" data-card="${esc(level)}" data-id="${esc(it.id)}" title="${esc(it.plain || it.label)}">
+    const k = level === "curiosity" ? keyFor(it.id) : "";
+    const tiles = on && k && prefs.view !== "arrange" ? tilesOf(k) : [];
+    const here = tiles.length ? String(valueHere(k)) : "";
+    return `<div class="sc-card${on ? " on" : ""}${tiles.length ? " wide" : ""}" data-card="${esc(level)}" data-id="${esc(it.id)}" title="${esc(it.plain || it.label)}">
       <button type="button" class="sc-card-b" data-pick-card="${esc(level)}|${esc(it.id)}"><strong>${esc(it.label)}</strong><small>${esc(sub)}</small>${tag ? `<em>${esc(tag)}</em>` : ""}</button>
       <button type="button" class="sc-plus" data-add-card="${esc(level)}|${esc(it.id)}" aria-label="${esc(add)}: ${esc(it.label)}" title="${esc(add)}">+</button>
+      ${tiles.length ? `<div class="sc-tiles" role="group" aria-label="Settings of ${esc(it.label)}"><span class="sc-k">Drop a setting at moment ${row + 1}:</span>${tiles.map((v) => `<button type="button" data-drop="${esc(k)}" data-v="${esc(v)}" class="${String(v) === here ? "on" : ""}">${esc(v)}${S().domain(k).unit && typeof v === "number" ? esc(S().domain(k).unit) : ""}</button>`).join("")}</div>` : ""}
     </div>`;
   }
   function drawLibrary() {
@@ -450,11 +482,16 @@
     box.hidden = prefs.view === "arrange";
     if (box.hidden) return;
     const cat = category();
-    page.querySelector(".sc-icons").innerHTML = L()
-      .CATEGORIES.map((c) => `<button type="button" data-icat="${c.id}" class="${c.id === cat.id ? "on" : ""}" aria-pressed="${c.id === cat.id}" title="${esc(c.plain)}">${icon(c.icon)}<span>${esc(c.label)}</span></button>`)
-      .join("");
-    const groups = groupsOf(cat);
-    const gid = groups.some((g) => g.id === prefs.groups[cat.id]) ? prefs.groups[cat.id] : (groups[0] || {}).id;
+    const tab = ["mine", "templates"].includes(prefs.libTab) ? prefs.libTab : "";
+    const extra = [["mine", "My film", "film", "Everything automated in my film so far (like Maya's Outliner, or CapCut's Yours)"], ["templates", "Templates", "grid", "Ready-made recipes: every suite, dropped at the playhead as a set of nodes (CapCut's Templates)"]];
+    page.querySelector(".sc-icons").innerHTML =
+      extra.map(([id, label, ic, t]) => `<button type="button" data-libtab="${id}" class="${tab === id ? "on" : ""}" aria-pressed="${tab === id}" title="${esc(t)}">${icon(ic)}<span>${esc(label)}</span></button>`).join("") +
+      L()
+        .CATEGORIES.map((c) => `<button type="button" data-icat="${c.id}" class="${!tab && c.id === cat.id ? "on" : ""}" aria-pressed="${!tab && c.id === cat.id}" title="${esc(c.plain)}">${icon(c.icon)}<span>${esc(c.label)}</span></button>`)
+        .join("");
+    const groups = tab === "mine" ? mineGroups() : tab === "templates" ? templateGroups() : groupsOf(cat);
+    const gkey = tab || cat.id;
+    const gid = groups.some((g) => g.id === prefs.groups[gkey]) ? prefs.groups[gkey] : (groups[0] || {}).id;
     page.querySelector(".sc-side").innerHTML = groups.map((g) => `<button type="button" class="sc-pill${g.id === gid && !prefs.search ? " on" : ""}" data-group="${esc(g.id)}"><span>${esc(g.label)}</span><small>${g.items.length}</small></button>`).join("");
     let cards;
     let head;
@@ -490,10 +527,17 @@
       addProximity();
       return drawAll();
     }
-    const ids = level === "suite" ? ((L().get("suite", id) || {}).members || []).map((m) => m.curiosity) : [id];
-    ids.map(keyFor).forEach((k) => !prefs.lanes.includes(k) && prefs.lanes.push(k));
+    /* Everything picked lands as nodes on automation lanes at the playhead: a curiosity at its current setting,
+       a suite (a template) with each member at the suite's own setting. */
+    const s = level === "suite" ? L().get("suite", id) : null;
+    const list = s ? (s.members || []).filter((m) => m.curiosity).map((m) => [m.slider ? m.curiosity + "." + m.slider : keyFor(m.curiosity), m.value]) : [[keyFor(id), valueHere(keyFor(id))]];
+    const ok = list.filter(([k]) => S() && S().known(k));
+    ok.forEach(([k]) => showLane(k));
     save();
-    toast(ids.length > 1 ? `${ids.length} curiosities are on the timeline.` : `${labelOf(keyFor(id))} is on the timeline. Click its lane to add nodes.`);
+    if (E() && ok.length) {
+      const res = setValues(ok.map(([k, v]) => [k, v == null ? S().start(k) : v]), s ? `Drop ${s.label} at moment ${row + 1}` : null);
+      if (res && res.ok) toast(s ? `${s.label}: ${ok.length} nodes dropped at moment ${row + 1}. Each one is a lane you can automate.` : `${labelOf(ok[0][0])} is on the timeline with a node at moment ${row + 1}. Drag it, or click the lane to add more.`);
+    } else toast(`${list.length > 1 ? list.length + " curiosities are" : labelOf(keyFor(id)) + " is"} on the timeline.`);
     drawTimeline();
   }
 
@@ -593,6 +637,14 @@
     if (!ok.length) return `<svg class="sc-spark" viewBox="0 0 72 16"></svg>`;
     return `<svg class="sc-spark" viewBox="0 0 72 16" aria-hidden="true"><polyline points="${ok.map((p) => p.join(",")).join(" ")}"/></svg>`;
   }
+  /* The key diamond in front of every control (Maya's channel box): filled when there is a node at this moment,
+     hollow when the lane has nodes elsewhere, faint when it is not automated yet. Click to set or take off a key. */
+  function keyBtn(id, ctx) {
+    if (!ctx.edit || !S() || !S().known(id)) return "";
+    const k = keyState(id);
+    const t = k === "here" ? "A key (node) is set here; click to take it off" : k === "lane" ? "Automated, no key at this moment; click to set one" : "Not automated yet; click to set a key here and put it on the timeline";
+    return `<button type="button" class="sc-key ${k || "none"}" data-key="${esc(id)}" title="${t}" aria-label="${esc(t)}: ${esc(labelOf(id))}">${k === "here" ? "◆" : "◇"}</button>`;
+  }
   function curiosityRow(c, ctx) {
     const key = keyFor(c.id);
     const sel = prefs.sel.level === "curiosity" && (prefs.sel.id === c.id || prefs.sel.id === key);
@@ -607,9 +659,9 @@
         ${spark(key, ctx.beats)}
         ${fine.length ? `<button type="button" class="sc-fold" data-fold="${esc(c.id)}" aria-expanded="${open}" title="The fine controls inside it">${open ? "▾" : "▸"} ${fine.length}</button>` : ""}
       </div>
-      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
+      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyBtn(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
       ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
-      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
+      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyBtn(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
     </div>`;
   }
   function drawInspector() {
@@ -845,22 +897,60 @@
     toast.t = setTimeout(() => (t.textContent = ""), 5000);
   }
   function setValue(id, v) {
-    if (!E()) return;
+    return setValues([[id, v]]);
+  }
+  /* Nodes at the playhead for several curiosities at once (a suite or template dropped in), as one undo step. */
+  function setValues(list, label) {
+    if (!E()) return { ok: false };
     const st = E().state();
     const r = st.rows[row];
-    if (!r) return;
-    let track = (st.tracks.find((t) => t.curiosities.includes(id)) || {}).id;
+    if (!r) return { ok: false };
     const cmds = [];
-    if (!track) {
-      track = window.CurioLanes.trackFor(id, st);
-      if (!track) return toast("Every track is full; remove a lane in Arrange first.");
-      cmds.push({ type: "addCuriosity", track, curiosity: id });
-    }
-    const val = S().fix(id, v);
-    if (val == null) return;
-    cmds.push({ type: "setPoint", row: r.id, track, curiosity: id, value: val });
-    const res = E().send({ type: "batch", label: `${labelOf(id)}: ${val} at moment ${row + 1}`, commands: cmds });
+    const placed = {};
+    let full = false;
+    list.forEach(([id, v]) => {
+      let track = placed[id] || (st.tracks.find((t) => t.curiosities.includes(id)) || {}).id;
+      if (!track) {
+        track = window.CurioLanes.trackFor(id, st);
+        if (!track) return (full = true);
+        cmds.push({ type: "addCuriosity", track, curiosity: id });
+      }
+      placed[id] = track;
+      const val = S().fix(id, v);
+      if (val != null) cmds.push({ type: "setPoint", row: r.id, track, curiosity: id, value: val });
+    });
+    if (full) toast("Every track is full; remove a lane in Arrange first.");
+    if (!cmds.length) return { ok: false };
+    const one = list.length === 1 ? list[0] : null;
+    const res = E().send({ type: "batch", label: label || (one ? `${labelOf(one[0])}: ${S().fix(one[0], one[1])} at moment ${row + 1}` : `${list.length} nodes at moment ${row + 1}`), commands: cmds });
     if (!res.ok) toast(res.error);
+    return res;
+  }
+  /* What the current value of a curiosity is at the playhead in my film. */
+  function valueHere(id) {
+    const st = E() && E().state();
+    const r = st && st.rows[row];
+    if (!r) return undefined;
+    const t = st.tracks.find((x) => x.curiosities.includes(id));
+    return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
+  }
+  /* Maya's channel box colors a channel by its keys; here: a key at this moment, a lane with keys elsewhere, or none. */
+  function keyState(id) {
+    const st = E() && E().state();
+    const r = st && st.rows[row];
+    if (!r) return "";
+    const t = st.tracks.find((x) => x.curiosities.includes(id));
+    const lane = t && st.lanes[t.id + "|" + id];
+    if (!lane) return "";
+    return lane.points[r.id] != null ? "here" : "lane";
+  }
+  const showLane = (id) => !prefs.lanes.includes(id) && prefs.lanes.push(id);
+  /* A curiosity's settings as tiles, like CapCut's grid of effect thumbnails: every option, or five steps of a range. */
+  function tilesOf(id) {
+    if (!S() || !S().known(id)) return [];
+    const d = S().domain(id);
+    if (d.kind === "range") return [0, 0.25, 0.5, 0.75, 1].map((p) => S().at(id, p)).filter((v, i, a) => a.indexOf(v) === i);
+    return (d.options || []).slice(0, 18);
   }
   function onClick(e) {
     const t = e.target.closest("button, [data-scrub], .sc-frame");
@@ -912,7 +1002,36 @@
       save();
       return drawAll();
     }
+    if (d.libtab) {
+      prefs.libTab = prefs.libTab === d.libtab ? "" : d.libtab;
+      prefs.search = "";
+      save();
+      return drawLibrary();
+    }
+    if ("drop" in d && d.drop) {
+      showLane(d.drop);
+      save();
+      const res = setValue(d.drop, d.v);
+      if (res && res.ok) toast(`${labelOf(d.drop)}: ${S().fix(d.drop, d.v)} at moment ${row + 1}.`);
+      return drawTimeline(), drawLibrary();
+    }
+    if ("key" in d && d.key) {
+      /* Maya's Set Key: keep the setting at this moment as a node; on a key already here, take it off. */
+      const st = E() && E().state();
+      const r = st && st.rows[row];
+      if (!r) return;
+      const t = st.tracks.find((x) => x.curiosities.includes(d.key));
+      if (keyState(d.key) === "here") E().send({ type: "removePoint", row: r.id, track: t.id, curiosity: d.key, label: `Take the key off ${labelOf(d.key)}` });
+      else {
+        showLane(d.key);
+        save();
+        setValue(d.key, valueHere(d.key));
+        drawTimeline();
+      }
+      return;
+    }
     if (d.icat) {
+      prefs.libTab = "";
       prefs.cat = d.icat;
       prefs.search = "";
       save();
@@ -920,7 +1039,7 @@
       return drawInspector();
     }
     if (d.group) {
-      prefs.groups[prefs.cat || category().id] = d.group;
+      prefs.groups[prefs.libTab || prefs.cat || category().id] = d.group;
       prefs.search = "";
       save();
       return drawLibrary();

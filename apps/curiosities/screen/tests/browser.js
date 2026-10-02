@@ -83,6 +83,33 @@ const ok = (cond, msg) => {
   ok(await page.evaluate(() => !!document.querySelector('.sc-viewer.mine [data-cat="transitions"]')), "my film's frame draws the transition");
   await page.click('[data-pick-card="curiosity|transitionKind"]');
   ok(await page.evaluate(() => window.CurioScreen.state().sel.id === "transitionKind"), "clicking a card looks through it");
+  /* Curiosity-first CapCut panels: a picked card shows its settings as tiles; a tile drops a node at the playhead. */
+  const allNodes = () => page.evaluate(() => Object.values(window.CurioEngine.state().lanes).reduce((a, l) => a + Object.keys(l.points).length, 0));
+  ok((await page.$$('.sc-card.on [data-drop="transitionKind"]')).length >= 10, "a picked curiosity card shows its settings as tiles, like CapCut's effect grid");
+  await page.click('.sc-card.on [data-drop="transitionKind"][data-v="wipe"]');
+  ok(await page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|transitionKind")); return lk && st.lanes[lk].points[st.rows[0].id] === "wipe"; }), "a tile drops that setting as a node at the playhead");
+  /* Templates: every suite, dropped at the playhead as nodes. */
+  await page.click('[data-libtab="templates"]');
+  ok((await page.$$('.sc-card[data-card="suite"]')).length >= 1 && (await page.$$(".sc-side .sc-pill")).length >= 5, "the Templates tab lists suites by category");
+  const n0 = await allNodes();
+  await page.click('.sc-card[data-card="suite"] .sc-plus');
+  ok((await allNodes()) >= n0 + 2, "a template's + drops each member as a node on its own lane");
+  await page.keyboard.press("Control+z");
+  ok((await allNodes()) === n0, "and one undo takes the whole template back");
+  /* My film: an outliner of every automated curiosity. */
+  await page.click('[data-libtab="mine"]');
+  ok(await page.evaluate(() => [...document.querySelectorAll('.sc-card[data-card="curiosity"] strong')].some((x) => x.textContent === "Transition style")), "the My film tab lists what is automated (Maya's Outliner)");
+  /* Maya's channel box keys: the diamond in Details. */
+  const keyed = await page.evaluate(() => { const b = document.querySelector(".sc-inspector .sc-key.here"); return b ? b.dataset.key : null; });
+  ok(keyed === "transitionKind", "Details marks a control keyed at this moment with a filled diamond");
+  await page.click('.sc-inspector .sc-key.here[data-key="transitionKind"]');
+  ok(!(await page.$('.sc-inspector .sc-key.here[data-key="transitionKind"]')), "clicking it takes the key off");
+  await page.click('.sc-inspector .sc-key[data-key="transitionKind"]');
+  ok(!!(await page.$('.sc-inspector .sc-key.here[data-key="transitionKind"]')), "clicking again sets the key");
+  /* Maya's graph editor curves: glide or jump. */
+  await page.click('.sl-mode[data-lk$="|transitionKind"]');
+  ok(await page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|transitionKind")); return st.lanes[lk].mode === "hold"; }), "a lane can jump between nodes instead of gliding");
+  await page.click('[data-icat="transitions"]');
   await page.click('[data-group="suite"]');
   ok((await page.$$('.sc-card[data-card="suite"]')).length >= 1, "the sidebar opens the category's suites");
   await page.fill("[data-lib-search]", "freeze");
