@@ -106,7 +106,9 @@
     }
     if (p.level === "suite") {
       const s = SUITES.find((y) => y.id === p.id);
-      return s ? (s.note || "") + " Sets " + Object.entries(s.set).map(([k, v]) => `${k} ${v}`).join(", ") + "." : "";
+      if (!s) return "";
+      if (!Object.keys(s.set || {}).length) return (s.note || "") + " A group of lenses: " + (s.lenses || []).join(", ") + ".";
+      return (s.note || "") + " Sets " + Object.entries(s.set).map(([k, v]) => `${k} ${v}`).join(", ") + ".";
     }
     const d = p.domain;
     return `${p.group}. ${d.kind === "range" ? `${d.min} to ${d.max}` : d.options.join(" · ")}${p.live || ["shotSize", "angleHeight", "dutch"].includes(p.id) ? ". On the board." : ". Not a board control; it still runs and goes out as MIDI."}`;
@@ -164,15 +166,23 @@
     const v = Number(val) || 0;
     return `<label class="au-knob au-sweep"><span title="0: every panel in the moment gets the same setting. 1: the setting moves through the moment, first panel to last.">Sweep across the moment</span><input type="range" ${attr} min="0" max="1" step="0.05" value="${v}"><b>${Math.round(v * 100)}%</b></label>`;
   }
-  function momentHtml(pt) {
-    const n = panelCount();
+  /* The moment is a span of panels, or of scenes on a story workspace (unit "scene"). */
+  function sceneCount() {
+    const st = window.CuriosityStory;
+    const n = st && st.scenes ? st.scenes().length : 0;
+    return Math.max(1, Math.min(16, n || 8));
+  }
+  function momentHtml(pt, unit) {
+    const scene = unit === "scene";
+    const n = scene ? sceneCount() : panelCount();
+    const u = scene ? "scene" : "panel";
     const w = pt.where || {};
     const from = Math.max(0, Math.min(n - 1, Number(w.from) || 0));
     const to = w.to == null || w.to === "" ? "" : Math.min(n - 1, Number(w.to));
     const opts = (sel, last) => (last ? `<option value=""${sel === "" ? " selected" : ""}>last (${n})</option>` : "") + Array.from({ length: n }, (_, i) => `<option value="${i}"${String(sel) === String(i) ? " selected" : ""}>${i + 1}</option>`).join("");
-    return `<div class="au-row au-moment"><span class="au-lab" title="Which panels of your film it plays in.">Moment</span>
-      <label class="cap">from panel <select data-where="from">${opts(from, false)}</select></label>
-      <label class="cap">to panel <select data-where="to">${opts(to, true)}</select></label>
+    return `<div class="au-row au-moment"><span class="au-lab" title="Which ${u}s of your film it plays in.">Moment</span>
+      <label class="cap">from ${u} <select data-where="from">${opts(from, false)}</select></label>
+      <label class="cap">to ${u} <select data-where="to">${opts(to, true)}</select></label>
       <span class="cap">of ${n}${from === 0 && to === "" ? " · all of them" : ""}</span></div>`;
   }
 
@@ -197,7 +207,7 @@
   /* The lanes a parameter starts with; any other curiosity lane was added and can be removed. */
   function defaultTargets(p) {
     if (p.level === "curiosity") return (A().FACETS[p.id] || []).map((f) => "c:" + f);
-    if (p.level === "suite") return Object.keys((SUITES.find((s) => s.id === p.id) || { set: {} }).set).map((k) => "c:" + k);
+    if (p.level === "suite") return (window.CuriositySuites ? window.CuriositySuites.members(p.id) : Object.keys((SUITES.find((s) => s.id === p.id) || { set: {} }).set)).map((k) => "c:" + k);
     return [];
   }
   function laneHtml(c, p, l) {
@@ -305,7 +315,7 @@
           <div class="au-seg">${[["gate", "on while held"], ["toggle", "tap on, tap off"]].map(([m, n]) => `<button type="button" data-mode="${m}" class="${pt.mode === m ? "on" : ""}">${n}</button>`).join("")}</div>
           <span class="au-run"><button type="button" data-r="run">${runText(pt)}</button></span>
         </div>
-        ${momentHtml(pt)}`;
+        ${momentHtml(pt, c.unit)}`;
     const body = c.compact
       ? `${top}
         <div class="au-mainlane">
@@ -524,7 +534,7 @@
     opts = opts || {};
     if (host.__auCard) dropCard(host.__auCard);
     const wrap = document.createElement("div");
-    const c = { host, wrap, key, compact: !!opts.compact, bay: !!opts.bay, more: false, lanesOpen: null, learnFor: null, self: 0, sig: "", stale: false, scope: [], born: performance.now(), seen: false };
+    const c = { host, wrap, key, compact: !!opts.compact, bay: !!opts.bay, unit: opts.unit === "scene" ? "scene" : "panel", more: false, lanesOpen: null, learnFor: null, self: 0, sig: "", stale: false, scope: [], born: performance.now(), seen: false };
     host.innerHTML = "";
     host.appendChild(wrap);
     host.__auCard = c;
@@ -1009,8 +1019,8 @@
   function sideHolds(x, panels, i) {
     if (!x) return false;
     if (x.suite) {
-      const s = SUITES.find((y) => y.id === x.suite);
-      return !!s && Object.entries(s.set).every(([k, v]) => String(panels[i][k]) === String(v));
+      /* Present when at least half the suite's members match, as in automation.js. */
+      return !!window.CuriositySuites && window.CuriositySuites.present(x.suite, panels[i]);
     }
     const v = panels[i][x.curiosity];
     if ("is" in x) return String(v) === String(x.is);
@@ -1137,7 +1147,8 @@
         el.innerHTML = `<p class="cap">Automation did not load.</p>`;
         return null;
       }
-      const c = mountCard(el, key, { compact: !!(opts && opts.compact) });
+      /* unit "scene": the moment reads from scene / to scene (story workspaces). */
+      const c = mountCard(el, key, { compact: !!(opts && opts.compact), unit: opts && opts.unit });
       return {
         el: c.wrap,
         key,

@@ -488,7 +488,8 @@
     const CA = window.CuriosityAutomate;
     if (CA && typeof CA.mount === "function") {
       try {
-        CA.mount(el, key, { compact: true });
+        const ws = byId[view.ws];
+        CA.mount(el, key, { compact: true, unit: ws && ws.scope === "story" ? "scene" : "panel" });
         return;
       } catch (e) {
         el.innerHTML = `<p class="cap ws-fallback">This automation could not draw here (${esc(e.message)}).</p>`;
@@ -505,7 +506,10 @@
 
   function related(ids) {
     const has = new Set(ids);
-    const suites = (window.SUITES || (typeof SUITES !== "undefined" ? SUITES : [])).filter((s) => Object.keys(s.set || {}).some((id) => has.has(id)));
+    const CS = window.CuriositySuites;
+    if (CS) CS.sync();
+    const membersOf = (s) => (CS ? CS.members(s) : Object.keys(s.set || {}));
+    const suites = (window.SUITES || (typeof SUITES !== "undefined" ? SUITES : [])).filter((s) => membersOf(s).some((id) => has.has(id)));
     const suiteIds = new Set(suites.map((s) => s.id));
     const touches = (side) => side && ((side.curiosity && has.has(side.curiosity)) || (side.suite && suiteIds.has(side.suite)));
     const proxList = typeof PROXIMITIES !== "undefined" ? PROXIMITIES : [];
@@ -527,6 +531,15 @@
     drawRelated(ws, ids);
   }
 
+  /* What my film plays, per panel (scene workspaces) or per scene for the chosen character (story ones). */
+  function suiteValues(ws) {
+    if (ws.scope === "story") {
+      const st = S();
+      return st && view.character ? st.values(view.character) : [];
+    }
+    return playing();
+  }
+
   function drawRelated(ws, ids) {
     const r = related(ids);
     const el = document.getElementById("ws-related");
@@ -535,12 +548,23 @@
       return;
     }
     const opened = view.opened[ws.id] || (view.opened[ws.id] = []);
-    const chip = (key, label, title) =>
-      `<button type="button" class="chip-btn ${opened.includes(key) ? "on" : ""}" data-related="${esc(key)}" title="${esc(title || "")}">${esc(label)}</button>`;
+    const chip = (key, label, title, extra) =>
+      `<button type="button" class="chip-btn ${opened.includes(key) ? "on" : ""}" data-related="${esc(key)}" title="${esc(title || "")}">${esc(label)}${extra || ""}</button>`;
+    /* A suite matches by degree: the share of its lenses my film shows, on average across the panels
+       (or this character's scenes). A lens suite has nothing to match; it only groups lenses. */
+    const CS = window.CuriositySuites;
+    const mine = suiteValues(ws);
+    const suiteChip = (s) => {
+      const m = CS && CS.fixed(s) ? CS.across(s, mine) : null;
+      const extra = m
+        ? ` <span class="suite-n">${m.on} of ${m.total} ${m.total === 1 ? "lens" : "lenses"}, ${CS.pct(m.mean)}</span>${CS.bar(m.mean)}`
+        : ` <span class="suite-n">${CS ? CS.members(s).length : ""} lenses, side by side</span>`;
+      return chip("s:" + s.id, s.label, (s.note || "") + (m ? ` In my film: ${CS.pct(m.mean)} on average, best ${CS.pct(m.peak)}.` : ""), extra);
+    };
     const block = (title, items) => (items.length ? `<p class="ws-g">${esc(title)}</p><div class="ws-chips">${items.join("")}</div>` : "");
     el.innerHTML = `<h4>Suites and proximities that involve these</h4>
       <p class="cap">Tap one to open its automation here.</p>
-      ${block("Suites", r.suites.map((s) => chip("s:" + s.id, s.label, s.note)))}
+      ${block("Suites, by how much my film shows of each", r.suites.map(suiteChip))}
       ${block("Proximities", r.prox.map((p) => chip("p:" + p.id, `When ${p.when}, ${p.then}`)))}
       ${block("Proximity suites", r.ps.map((p) => chip("ps:" + p.id, p.label)))}
       <div class="ws-mods" id="ws-related-mods"></div>`;

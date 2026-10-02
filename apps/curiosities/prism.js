@@ -1,5 +1,5 @@
 /* Prism: a curated film goes in like white light and comes out split into four bands, the
-   curiosities it uses (and how low to how high each one went), the suites that fully held,
+   curiosities it uses (and how low to how high each one went), the suites it shows (by degree: the share of each suite's lenses at each beat),
    the proximities that held (and after how many beats), and the proximity suites whose members held.
    Any row can be dropped onto a moment of your own film (a span of board panels): it becomes an
    automation in CurioAuto built from the film's own ranges, and starts playing on the board.
@@ -9,7 +9,7 @@
   const VIEW = "curiosities-prism-view-v1";
   const BANDS = [
     { id: "curiosity", label: "Curiosities", hue: 12, note: "One measurable thing each, and how far it moved." },
-    { id: "suite", label: "Suites", hue: 40, note: "Groups of curiosities that all held at once." },
+    { id: "suite", label: "Suites", hue: 40, note: "Groups of lenses you look through together. Each beat shows a share of a suite, from none to all of it." },
     { id: "proximity", label: "Proximities", hue: 150, note: "When X happened, Y followed within a few beats." },
     { id: "proximity suite", label: "Proximity suites", hue: 232, note: "Groups of proximities that held together." },
   ];
@@ -87,10 +87,13 @@
   function suiteSet(id) {
     return (SUITES.find((s) => s.id === id) || { set: {} }).set;
   }
+  const CS = () => window.CuriositySuites;
+  function suiteMembers(id) {
+    return CS() ? CS().members(id) : Object.keys(suiteSet(id));
+  }
+  /* A suite as a proximity's cause or effect counts as present when at least half its members match. */
   function suiteHolds(id, beat) {
-    const set = suiteSet(id);
-    const ks = Object.keys(set);
-    return ks.length > 0 && ks.every((k) => same(beat.values[k], set[k]));
+    return !!CS() && CS().present(id, beat.values);
   }
   /* Does a condition hold at beat i? A change compares with the beat before, the same way automation.js does. */
   function holds(c, beats, i) {
@@ -164,7 +167,20 @@
         .slice(0, 2)
         .map((x) => x.o);
     });
-    const suites = SUITES.map((s) => ({ s, at: beats.map((b, i) => (suiteHolds(s.id, b) ? i : -1)).filter((i) => i >= 0) })).filter((x) => x.at.length);
+    /* Suites by degree: the share at each beat. at is where at least half of it shows. Lens suites
+       (no values to match) show up when the film measures any of their lenses. */
+    if (CS()) CS().sync();
+    const fixedSuites = CS()
+      ? SUITES.filter((s) => CS().fixed(s))
+          .map((s) => {
+            const m = CS().across(s, beats.map((b) => b.values));
+            return { s, m, at: m.shares.map((x, i) => (x >= CS().CAUSE_SHARE ? i : -1)).filter((i) => i >= 0) };
+          })
+          .filter((x) => x.m.peak > 0)
+          .sort((a, b) => b.m.mean - a.m.mean || b.m.peak - a.m.peak)
+      : [];
+    const lensSuites = CS() ? SUITES.filter((s) => (s.kind || "") === "lens" && !CS().fixed(s) && CS().members(s).some((k) => ids.includes(k))).map((s) => ({ s, lens: true, at: [] })) : [];
+    const suites = fixedSuites.concat(lensSuites);
     const proximities = PROXIMITIES.map((p) => Object.assign({ p }, measure(p, beats))).filter((x) => x.h > 0);
     const proxAll = Object.fromEntries(PROXIMITIES.map((p) => [p.id, measure(p, beats)]));
     const proxSuites = (A().PROXIMITY_SUITES || [])
@@ -178,12 +194,11 @@
      sets kept as "not measured" rows) and the suites, proximities and proximity suites that touch them. */
   function filtered(sp, ids) {
     const has = new Set(ids);
-    const touches = (set) => Object.keys(set || {}).some((k) => has.has(k));
-    const involves = (c) => !!c && (has.has(c.curiosity) || (c.suite && touches(suiteSet(c.suite))));
+    const involves = (c) => !!c && (has.has(c.curiosity) || (c.suite && suiteMembers(c.suite).some((k) => has.has(k))));
     const proxIn = (p) => involves(p.x) || involves(p.y);
     return Object.assign({}, sp, {
       curiosities: ids.map((id) => sp.curiosities.find((c) => c.id === id) || { id, label: label(id), absent: true }),
-      suites: sp.suites.filter((x) => touches(x.s.set)),
+      suites: sp.suites.filter((x) => suiteMembers(x.s.id).some((k) => has.has(k))),
       proximities: sp.proximities.filter((x) => proxIn(x.p)),
       proxSuites: sp.proxSuites.filter((x) => x.members.some((m) => proxIn(m.p))),
     });
@@ -243,7 +258,33 @@
         return row(c.label, cells, `<b>${range}</b>${with_}`, dropBtn("curiosity", c.id));
       });
     } else if (band === "suite") {
-      rows = sp.suites.map(({ s, at }) => row(s.label, litStrip(beats, at, b.hue), `<b>holds at ${at.length} of ${beats.length} beats</b><span class="cap">${esc(at.map((i) => beats[i].at || "beat " + (i + 1)).join(", "))}</span>`, dropBtn("suite", s.id)));
+      rows = sp.suites.map((x) => {
+        const s = x.s;
+        if (x.lens) {
+          /* A lens suite: its lenses side by side, how low to how high each went in this film. */
+          const parts = CS()
+            .members(s)
+            .map((k) => {
+              const c = sp.curiosities.find((y) => y.id === k);
+              return `<span class="chip">${esc(label(k))}: ${c && !c.absent ? (c.moved ? `${esc(c.lo)} to ${esc(c.hi)}` : esc(c.lo)) : "—"}</span>`;
+            })
+            .join(" ");
+          return row(s.label, `<span class="cap">a group of lenses, no values to match</span>`, `<b>${esc(s.note || "Lenses you look through together.")}</b><span class="suite-side">${parts}</span>`, dropBtn("suite", s.id));
+        }
+        const m = x.m;
+        const cells = strip(beats, (bt, i) => {
+          const sh = m.shares[i];
+          const col = cellColor(b.hue, sh > 0 ? 0.15 + sh * 0.85 : null);
+          return `<span class="pr-cell" style="background:${col.bg};color:${col.fg}" title="${esc((bt.at || "beat " + (i + 1)) + ": " + CS().text(m.each[i]))}">${sh > 0 ? Math.round(sh * 100) : ""}</span>`;
+        });
+        const bestAt = beats[m.best] ? beats[m.best].at || "beat " + (m.best + 1) : "";
+        return row(
+          s.label,
+          cells,
+          `<b>${esc(CS().text(m.each[m.best]))} at best${bestAt ? " (" + esc(bestAt) + ")" : ""}</b>${CS().bar(m.peak)}<span class="cap">${esc(CS().pct(m.mean))} on average across ${beats.length} beats</span>`,
+          dropBtn("suite", s.id)
+        );
+      });
     } else if (band === "proximity") {
       rows = sp.proximities.map((x) => row(`When ${x.p.when}, ${x.p.then}`, litStrip(beats, x.at, b.hue), `<b>held ${x.h} of ${x.n} times</b><span class="cap">${delaysText(x.delays)}</span>`, dropBtn("proximity", x.p.id)));
     } else {
@@ -332,7 +373,7 @@
       : `<h2>Prism</h2>
       <div class="pr-head">
         ${beam()}
-        <p class="cap">A film is white light. The Prism splits it into its colors: the curiosities it uses and how low to how high each went, the suites that fully held, the proximities that held and after how many beats, and the proximity suites whose members held. Pick a moment of your own film, then drop any color onto it. It plays there, built from the film's own ranges, and you can develop it from there.</p>
+        <p class="cap">A film is white light. The Prism splits it into its colors: the curiosities it uses and how low to how high each went, the suites it shows and how much of each, the proximities that held and after how many beats, and the proximity suites whose members held. Pick a moment of your own film, then drop any color onto it. It plays there, built from the film's own ranges, and you can develop it from there.</p>
       </div>`;
     root.innerHTML = `
       ${head}
@@ -454,17 +495,25 @@
       const x = sp.suites.find((s) => s.s.id === id);
       const key = "s:" + id;
       const set = suiteSet(id);
+      if (x.lens) {
+        /* A lens suite: each lens grades from how low to how high it went in this film. */
+        const ms = suiteMembers(id).map((k) => sp.curiosities.find((c) => c.id === k)).filter((c) => c && !c.absent && A().param("c:" + c.id));
+        A().set(key, { a: "", b: id, mod: "lfo", shape: "triangle", rate: 0.5, depth: 1, across: 1, where });
+        laneOff(key, ms.map((c) => "c:" + c.id));
+        ms.forEach((c) => onLane(key, "c:" + c.id, { from: c.lo, to: c.hi, mod: "follow" }));
+        return { key, title: x.s.label, how: `${ms.length} lenses move together from how low to how high each went in the film.` };
+      }
       A().set(key, { a: "", b: id, mod: "lfo", shape: "triangle", rate: 0.5, depth: 1, across: x.at.length < beats.length ? 1 : 0, where });
       const targets = Object.keys(set).filter((k) => A().param("c:" + k)).map((k) => "c:" + k);
       laneOff(key, targets);
-      const first = x.at[0];
+      const first = x.at.length ? x.at[0] : Math.max(0, x.m.best);
       Object.keys(set).forEach((k) => {
         if (!A().param("c:" + k)) return;
         const before = beats.slice(0, first).reverse().map((b) => b.values[k]).find((v) => v != null && !same(v, set[k]));
         const other = before != null ? before : beats.map((b) => b.values[k]).find((v) => v != null && !same(v, set[k]));
         onLane(key, "c:" + k, Object.assign({ to: set[k], mod: "follow" }, other != null ? { from: other } : {}));
       });
-      return { key, title: x.s.label, how: `The suite comes and goes, and its ${Object.keys(set).length} curiosities grade toward it the way the film led into it.` };
+      return { key, title: x.s.label, how: `The suite comes and goes, and its ${Object.keys(set).length} lenses grade toward it the way the film led into it (the film showed ${CS().pct(x.m.peak)} of it at best).` };
     }
     if (kind === "proximity") {
       const x = sp.proxAll[id];
@@ -581,7 +630,7 @@
       if (other)
         moves.push({
           head: "Answer it:",
-          text: `add the suite ${other.s.label}, which this film holds too.`,
+          text: `add the suite ${other.s.label}, which this film shows too.`,
           run() {
             const r = apply("suite", other.s.id, sp, playing.m);
             A().start(r.key);

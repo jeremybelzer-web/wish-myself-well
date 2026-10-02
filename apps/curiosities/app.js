@@ -1,3 +1,134 @@
+/* Suites, measured by degree. A curiosity is a lens: one way to look at a scene. A suite is a group of
+   lenses you look through together, so a beat matches it by degree, the share of its members whose value
+   is on (0 to 100%), never all-or-nothing. A suite with no fixed values (a lens suite, set {}) is only a
+   named group of lenses: show its members' values side by side instead of a match.
+   window.CuriositySuites is shared by the Board, Study, the Prism, automation and the workspaces. */
+(function () {
+  /* A suite as a proximity's cause counts as present when at least this share of its members match.
+     Half: most of the look is there, even if a lens or two differs. */
+  const SUITE_CAUSE_SHARE = 0.5;
+
+  const list = () => (typeof SUITES !== "undefined" ? SUITES : []);
+  /* Lens suites come from lenses.js, which may load before or after this file: pick them up whenever asked. */
+  function sync() {
+    const extra = window.CURIOSITY_LENS_SUITES;
+    if (!Array.isArray(extra) || typeof SUITES === "undefined") return list();
+    extra.forEach((s) => {
+      if (!s || !s.id) return;
+      const have = SUITES.find((x) => x.id === s.id);
+      if (have) {
+        if (!have.kind) have.kind = "lens";
+        if (!have.set) have.set = {};
+        return;
+      }
+      SUITES.push(Object.assign({}, s, { kind: "lens", set: s.set || {} }));
+    });
+    return SUITES;
+  }
+  sync();
+  function find(s) {
+    return typeof s === "string" ? list().find((x) => x.id === s) || null : s || null;
+  }
+  /* Does the suite name values to look for? A lens suite does not. */
+  function fixed(s) {
+    s = find(s);
+    return !!s && !!s.set && Object.keys(s.set).length > 0;
+  }
+  /* Its members: the curiosities with fixed values, or the lenses of a lens suite. */
+  function members(s) {
+    s = find(s);
+    if (!s) return [];
+    return fixed(s) ? Object.keys(s.set) : (s.lenses || []).slice();
+  }
+  function same(a, b) {
+    return a != null && b != null && a !== "" && String(a) === String(b);
+  }
+  /* How much of a suite one set of values shows: {on: [ids that match], total, share 0 to 1}. null for a lens suite. */
+  function match(s, values) {
+    s = find(s);
+    if (!fixed(s)) return null;
+    values = values || {};
+    const ids = Object.keys(s.set);
+    const on = ids.filter((id) => same(values[id], s.set[id]));
+    return { on, total: ids.length, share: ids.length ? on.length / ids.length : 0 };
+  }
+  /* Across many beats or panels: the average share, the best beat, and the share at each one. */
+  function across(s, list_) {
+    s = find(s);
+    if (!fixed(s)) return null;
+    const each = (list_ || []).map((v) => match(s, v));
+    const shares = each.map((m) => m.share);
+    let best = -1;
+    shares.forEach((x, i) => (best < 0 || x > shares[best]) && (best = i));
+    const mean = shares.length ? shares.reduce((a, b) => a + b, 0) / shares.length : 0;
+    const total = Object.keys(s.set).length;
+    return { shares, each, mean, best, peak: best >= 0 ? shares[best] : 0, total, on: Math.round(mean * total) };
+  }
+  /* A suite cause is present at a beat when at least half its members match. */
+  function present(s, values) {
+    const m = match(s, values);
+    return !!m && m.total > 0 && m.share >= SUITE_CAUSE_SHARE;
+  }
+  const pct = (x) => Math.round((Number(x) || 0) * 100) + "%";
+  const esc = (v) =>
+    String(v == null ? "" : v)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  const word = (n) => (n === 1 ? "lens" : "lenses");
+  /* "3 of 5 lenses, 60%" */
+  function text(m) {
+    if (!m) return "";
+    const on = m.on && m.on.length != null ? m.on.length : m.on;
+    return `${on} of ${m.total} ${word(m.total)}, ${pct(m.share != null ? m.share : m.mean)}`;
+  }
+  /* A graded bar: how full the match is. */
+  function bar(share) {
+    const p = Math.max(0, Math.min(100, Math.round((Number(share) || 0) * 100)));
+    return `<span class="suite-bar" role="img" aria-label="${p}% of the suite matches"><i style="width:${p}%"></i></span>`;
+  }
+  /* One line: "Noir 3 of 5 lenses, 60%" and its bar. */
+  function html(s, m, extra) {
+    s = find(s);
+    if (!s || !m) return "";
+    return `<span class="suite-share" title="${esc(s.note || "")}"><b>${esc(s.label)}</b> <span class="suite-n">${esc(text(m))}</span>${bar(m.share != null ? m.share : m.mean)}${extra ? ` <span class="cap">${extra}</span>` : ""}</span>`;
+  }
+  /* A lens suite: its members' values side by side. label(id) names a curiosity. */
+  function side(s, values, label) {
+    s = find(s);
+    if (!s) return "";
+    values = values || {};
+    const name = label || ((id) => ((typeof CURIOSITIES !== "undefined" && CURIOSITIES.find((c) => c.id === id)) || { label: id }).label);
+    return `<span class="suite-side">${members(s)
+      .map((id) => {
+        const v = values[id];
+        const set = v != null && v !== "";
+        return `<span class="chip${set ? "" : " suite-unset"}">${esc(name(id))}: ${set ? esc(v) : "—"}</span>`;
+      })
+      .join("")}</span>`;
+  }
+
+  if (!document.getElementById("suite-share-css")) {
+    const st = document.createElement("style");
+    st.id = "suite-share-css";
+    st.textContent = `
+.suite-share { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; max-width: 100%; }
+.suite-share .suite-n { font-family: var(--mono, monospace); font-size: 11px; }
+.suite-bar { display: inline-block; width: 64px; height: 6px; border: 1px solid currentColor; border-radius: 3px; overflow: hidden; vertical-align: middle; opacity: .85; flex: none; }
+.suite-bar i { display: block; height: 100%; background: currentColor; }
+.suite-side { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.suite-side .suite-unset { opacity: .55; }
+.suite-list { display: grid; gap: 4px; margin: 6px 0; font-size: 13px; }
+.suite-list .suite-share { display: flex; }
+td .suite-share { display: flex; margin: 2px 0; }
+`;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  window.CuriositySuites = { CAUSE_SHARE: SUITE_CAUSE_SHARE, sync, find, fixed, members, match, across, present, text, bar, html, side, pct };
+})();
+
 (function () {
   const live = CURIOSITIES.filter((c) => c.live);
   const state = load();
@@ -382,6 +513,25 @@
       <button type="button" id="clear-applied">Clear</button></p>`;
   }
 
+  /* The suites this scene looks through, by degree: the share of each suite's lenses the panels show, on
+     average, with the best panel. Lens suites (no fixed values) list their members' values side by side. */
+  function suitesHere(panels) {
+    const CS = window.CuriositySuites;
+    if (!CS) return "";
+    CS.sync();
+    const rows = SUITES.filter((x) => CS.fixed(x))
+      .map((x) => ({ x, m: CS.across(x, panels) }))
+      .filter((r) => r.m.peak > 0)
+      .sort((a, b) => b.m.mean - a.m.mean || b.m.peak - a.m.peak)
+      .slice(0, 8);
+    const lensRows = SUITES.filter((x) => (x.kind || "") === "lens" && CS.members(x).filter((id) => panels.some((p) => p[id] != null && p[id] !== "")).length >= 2);
+    if (!rows.length && !lensRows.length) return `<p class="cap">No suite shows in these panels yet.</p>`;
+    const peakNote = (m) => (panels.length > 1 && m.peak > m.mean ? `best on panel ${m.best + 1}: ${CS.pct(m.peak)}` : "");
+    return `<div class="suite-list"><p class="cap">Suites in these panels, by how much of each one shows (average across ${panels.length} panel${panels.length === 1 ? "" : "s"}):</p>
+      ${rows.map((r) => CS.html(r.x, r.m, peakNote(r.m))).join("")}
+      ${lensRows.map((x) => `<span class="suite-share"><b>${esc(x.label)}</b> ${CS.side(x, panels[0], labelOf)}</span>`).join("")}</div>`;
+  }
+
   function drawBoard() {
     const s = scene();
     const count = Math.max(1, Number(state.angleCount) || 1);
@@ -404,6 +554,7 @@
       ${appliedNote()}
       <div class="strip">${panels}</div>
       <p class="prox">${fired ? esc(fired) : "No seed proximity is firing. Change the carry, the path, or whether an object enters."}</p>
+      ${suitesHere(lines.map((_, i) => panelState(i)))}
       <div class="lineage" id="lineage">${chips}</div>
       <p class="cap">The chips are the combination that made this board. Change one and the strip changes. That is the same device as opening a song or a shot to see which ideas parented it.</p>`;
     const clear = document.getElementById("clear-applied");
@@ -506,17 +657,19 @@
       return;
     }
     if (catView.tab === "suites") {
+      if (window.CuriositySuites) window.CuriositySuites.sync();
       const kinds = [
         ["", "Suites"],
         ["genre", "Genres"],
         ["emotion", "Angle by emotion"],
+        ["lens", "Lens suites: lenses you look through together"],
       ];
       body.innerHTML =
-        `<p class="cap">A suite is a named group of curiosities that change together. Play one from the Board’s Suite menu, or count where it fires in Study.</p>` +
+        `<p class="cap">A suite is a group of lenses (curiosities) you look through together. A beat matches it by degree: the share of its lenses that show, from 0 to 100%. Play one from the Board’s Suite menu, or see how much of it each beat shows in Study. A lens suite names no values; it only groups lenses.</p>` +
         kinds
           .map(
             ([k, title]) => `<p class="g">${esc(title)}</p><div class="scroll"><table class="trace"><tbody>${SUITES.filter((x) => (x.kind || "") === k)
-              .map((x) => `<tr><td><strong>${esc(x.label)}</strong><br><span class="cap">${esc(x.note)}</span></td><td>${Object.entries(x.set).map(([id, v]) => `<span class="chip">${esc(labelOf(id))}: ${esc(v)}</span>`).join("")}</td></tr>`)
+              .map((x) => `<tr><td><strong>${esc(x.label)}</strong><br><span class="cap">${esc(x.note)}</span></td><td>${Object.keys(x.set || {}).length ? Object.entries(x.set).map(([id, v]) => `<span class="chip">${esc(labelOf(id))}: ${esc(v)}</span>`).join("") : (x.lenses || []).map((id) => `<span class="chip">${esc(labelOf(id))}</span>`).join("")}</td></tr>`)
               .join("")}</tbody></table></div>`
           )
           .join("");

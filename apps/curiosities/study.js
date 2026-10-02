@@ -71,7 +71,10 @@
     return store.studies.find((s) => s.id === view.studyId) || null;
   }
 
+  /* Suites are measured by degree (window.CuriositySuites, app.js): a beat shows a share of a suite's lenses. */
+  const CS = () => window.CuriositySuites;
   function allSuites() {
+    if (CS()) CS().sync();
     return SUITES;
   }
 
@@ -83,8 +86,25 @@
     return a != null && b != null && String(a) === String(b);
   }
 
+  /* A suite as a proximity's cause or effect counts as present when at least half its members match. */
   function suiteOn(suite, beat) {
-    return Object.entries(suite.set).every(([id, v]) => same(beat.values[id], v));
+    return !!CS() && CS().present(suite, beat.values);
+  }
+  /* How much of a suite a beat shows: {on, total, share}, or null for a lens suite. */
+  function suiteMatch(suite, beat) {
+    return CS() ? CS().match(suite, beat.values) : null;
+  }
+  /* The trace's suites cell: the suites this beat shows any of, by share, most first. */
+  function suitesCell(beat) {
+    if (!CS()) return `<span class="cap">—</span>`;
+    const rows = allSuites()
+      .filter((x) => CS().fixed(x))
+      .map((x) => ({ x, m: suiteMatch(x, beat) }))
+      .filter((r) => r.m.share > 0)
+      .sort((a, b) => b.m.share - a.m.share || b.m.on.length - a.m.on.length);
+    const shown = rows.slice(0, 5).map((r) => CS().html(r.x, r.m)).join("");
+    const more = rows.length > 5 ? `<span class="cap">and ${rows.length - 5} more with less</span>` : "";
+    return shown ? shown + more : `<span class="cap">—</span>`;
   }
 
   function condText(c) {
@@ -190,7 +210,6 @@
     allProximities().forEach((p) => measure(p, s.beats).at.forEach((i) => (fired[i] = (fired[i] || []).concat(p))));
     const rows = s.beats
       .map((beat, i) => {
-        const suites = allSuites().filter((x) => suiteOn(x, beat));
         const prox = (fired[i] || []).map((p) => `${condText(p.x)} → ${condText(p.y)}`);
         const editing = view.editing === beat.id;
         return `<tr class="${view.picked.has(beat.id) ? "picked" : ""}">
@@ -198,7 +217,7 @@
           <td class="mono">${i + 1}</td>
           <td class="mono">${esc(beat.at)}</td>
           <td>${chips(beat.values)}${beat.note ? `<p class="cap">${esc(beat.note)}</p>` : ""}</td>
-          <td>${suites.map((x) => `<span class="chip suite">${esc(x.label)}</span>`).join("") || `<span class="cap">—</span>`}</td>
+          <td>${suitesCell(beat)}</td>
           <td class="cap">${prox.map(esc).join("<br>") || "—"}</td>
           <td><button type="button" data-edit="${esc(beat.id)}">${editing ? "Close" : "Edit"}</button></td>
         </tr>${editing ? `<tr class="editor"><td colspan="7">${editor(beat)}</td></tr>` : ""}`;
@@ -209,7 +228,7 @@
     return `
       <p class="cap">${esc(s.kind)}${s.kind === "game" ? " · camera: " + esc(s.camera === "player" ? "the player’s" : "authored") : ""} · ${s.beats.length} beats</p>
       <div class="scroll"><table class="trace">
-        <thead><tr><th></th><th>Beat</th><th>At</th><th>Curiosities on</th><th>Suites</th><th>Proximities that held from here</th><th></th></tr></thead>
+        <thead><tr><th></th><th>Beat</th><th>At</th><th>Curiosities on</th><th>Suites, by share</th><th>Proximities that held from here</th><th></th></tr></thead>
         <tbody>${rows || `<tr><td colspan="7" class="cap">No beats yet.</td></tr>`}</tbody>
       </table></div>
       <p class="row-actions">
@@ -350,15 +369,21 @@
       ["", "Suites"],
       ["genre", "Genres"],
       ["emotion", "Angle by emotion"],
+      ["lens", "Lens suites"],
     ];
+    const allBeats = [].concat(...store.studies.map((s) => s.beats));
     const row = (x) => {
-        const counts = store.studies.map((s) => s.beats.filter((b) => suiteOn(x, b)).length);
-        const total = counts.reduce((a, b) => a + b, 0);
+        const lens = !CS() || !CS().fixed(x);
+        const m = lens ? null : CS().across(x, allBeats.map((b) => b.values));
+        const members = lens ? `${(x.lenses || []).map((id) => `<span class="chip">${esc((byId[id] || { label: id }).label)}</span>`).join("")}` : chips(x.set, view.suite === x.id ? Object.keys(x.set) : null);
+        const share = lens
+          ? `<span class="cap">a group of lenses, no values to match</span>`
+          : `<span class="suite-share"><span class="suite-n">${esc(CS().pct(m.mean))} on average, best ${esc(CS().pct(m.peak))}</span>${CS().bar(m.mean)}</span>`;
         return `<tr class="${view.suite === x.id ? "picked" : ""}">
           <td><button type="button" class="link" data-suite="${x.id}">${esc(x.label)}</button><br><span class="cap">${esc(x.note)}</span></td>
-          <td>${chips(x.set, view.suite === x.id ? Object.keys(x.set) : null)}</td>
-          <td class="mono">${total}</td>
-          <td><button type="button" data-play="${x.id}">Play on the board</button></td>
+          <td>${members}</td>
+          <td>${share}</td>
+          <td>${lens ? "" : `<button type="button" data-play="${x.id}">Play on the board</button>`}</td>
         </tr>`;
     };
     const list = KINDS.map(
@@ -366,26 +391,39 @@
     ).join("");
     let lanes = "";
     const sel = allSuites().find((x) => x.id === view.suite);
-    if (sel) {
+    if (sel && CS() && !CS().fixed(sel)) {
+      /* A lens suite: each lens's value, beat by beat, side by side. */
+      lanes =
+        `<p class="g">${esc(sel.label)}, beat by beat</p>` +
+        store.studies
+          .map((s) => {
+            const rows = (sel.lenses || [])
+              .map((id) => `<tr><th>${esc((byId[id] || { label: id }).label)}</th>${s.beats.map((b) => `<td class="${b.values[id] == null ? "off" : ""}">${b.values[id] == null ? "—" : esc(b.values[id])}</td>`).join("")}</tr>`)
+              .join("");
+            return `<p class="cap">${esc(s.title)}</p><div class="scroll"><table class="lane"><tbody>${rows}</tbody></table></div>`;
+          })
+          .join("") +
+        `<p class="cap">A lens suite names no values to match. It is a set of lenses you look through together, so here they are side by side.</p>`;
+    } else if (sel) {
       lanes =
         `<p class="g">${esc(sel.label)}, beat by beat</p>` +
         store.studies
           .map((s) => {
             const cells = s.beats
               .map((b) => {
-                const on = Object.keys(sel.set).filter((id) => same(b.values[id], sel.set[id]));
-                const full = on.length === Object.keys(sel.set).length;
-                return `<td class="${full ? "full" : on.length ? "part" : "off"}" title="${esc(on.join(", "))}">${on.length}/${Object.keys(sel.set).length}</td>`;
+                const m = suiteMatch(sel, b);
+                const a = (0.1 + m.share * 0.9).toFixed(2);
+                return `<td class="${m.on.length ? "" : "off"}" style="${m.on.length ? `background:rgba(196, 92, 38, ${a});color:${m.share > 0.55 ? "white" : "inherit"}` : ""}" title="${esc(m.on.map((id) => (byId[id] || { label: id }).label).join(", "))}">${m.on.length} of ${m.total}<br>${esc(CS().pct(m.share))}</td>`;
               })
               .join("");
             return `<div class="scroll"><table class="lane"><tbody><tr><th>${esc(s.title)}</th>${cells}</tr></tbody></table></div>`;
           })
           .join("") +
-        `<p class="cap">Each cell counts how many of the suite’s curiosities are on in that beat. A full cell is the suite firing.</p>`;
+        `<p class="cap">Each cell shows how many of the suite’s lenses that beat shows, and the share. The darker the cell, the more of the suite is there.</p>`;
     }
-    return `<p class="cap">A suite is a group of curiosities that fire together. Pick one to light its curiosities and see where it fires. Beats counts where it fires across all studies.</p>
+    return `<p class="cap">A suite is a group of lenses you look through together. A beat matches it by degree: the share of its lenses that beat shows. Pick one to light its lenses and see the share beat by beat. Match is the average share across all studies, and the best beat.</p>
       ${lanes}
-      <div class="scroll"><table class="trace"><thead><tr><th>Suite</th><th>Curiosities in it</th><th>Beats</th><th></th></tr></thead><tbody>${list}</tbody></table></div>`;
+      <div class="scroll"><table class="trace"><thead><tr><th>Suite</th><th>Lenses in it</th><th>Match</th><th></th></tr></thead><tbody>${list}</tbody></table></div>`;
   }
 
   function proximityTab() {
@@ -470,7 +508,7 @@
       name = byId[ref].label;
     } else {
       const suite = SUITES.find((x) => x.id === ref);
-      ids = Object.keys(suite.set);
+      ids = CS() ? CS().members(suite) : Object.keys(suite.set);
       name = suite.label;
     }
     const values = {};

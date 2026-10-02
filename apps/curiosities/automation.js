@@ -73,6 +73,7 @@
   }
 
   function params() {
+    if (window.CuriositySuites) window.CuriositySuites.sync(); /* lens suites from lenses.js */
     const out = [];
     CURIOSITIES.concat(EXTRA).forEach((c) => out.push({ key: "c:" + c.id, level: "curiosity", id: c.id, label: c.label, group: c.group, live: !!c.live, domain: domain(c.id) }));
     SUITES.forEach((s) => out.push({ key: "s:" + s.id, level: "suite", id: s.id, label: s.label, group: s.kind || "suite" }));
@@ -122,7 +123,11 @@
     if (!p) return [];
     const out = [lane("amount", "amount", "Amount: share of panels it plays in", 1, 1)];
     if (p.level === "curiosity") (FACETS[p.id] || []).filter((f) => byId[f]).forEach((f) => out.push(curiosityLane(f)));
-    if (p.level === "suite") Object.entries(suiteSet(p.id)).forEach(([k, v]) => byId[k] && out.push(curiosityLane(k, null, v)));
+    if (p.level === "suite") {
+      Object.entries(suiteSet(p.id)).forEach(([k, v]) => byId[k] && out.push(curiosityLane(k, null, v)));
+      /* A lens suite names no values: each of its lenses gets a lane through its whole scale. */
+      if (!Object.keys(suiteSet(p.id)).length) ((SUITES.find((x) => x.id === p.id) || {}).lenses || []).forEach((k) => byId[k] && out.push(curiosityLane(k)));
+    }
     if (p.level === "proximity") {
       const x = PROXIMITIES.find((q) => q.id === p.id) || {};
       out.push(lane("cause", "cause", "Cause: share of panels where the cause is set", 0, 1));
@@ -257,8 +262,14 @@
     const x = Math.sin((i + 1) * 12.9898 + h * 0.37) * 43758.5453;
     return x - Math.floor(x);
   }
+  /* A suite cause is a matter of degree: it counts as present when at least half its members match
+     (CuriositySuites.CAUSE_SHARE, set in app.js). A suite effect still applies all of the suite's values. */
+  function suitePresent(id, values) {
+    const CS = window.CuriositySuites;
+    return !!CS && CS.present(id, values);
+  }
   function holds(x, panels, i) {
-    if (x.suite) return Object.entries(suiteSet(x.suite)).every(([k, v]) => String(panels[i][k]) === String(v));
+    if (x.suite) return suitePresent(x.suite, panels[i]);
     const v = panels[i][x.curiosity];
     if ("is" in x) return String(v) === String(x.is);
     if (i === 0) return false;
