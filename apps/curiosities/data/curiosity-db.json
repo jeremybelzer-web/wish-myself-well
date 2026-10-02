@@ -47434,6 +47434,1221 @@
     "cue": "visual",
     "tryThis": "Switch the scene that is a phone video to vertical."
    }
+  },
+  {
+   "id": "transitionFamily",
+   "level": "curiosity",
+   "label": "Transition family",
+   "plain": "Which family of transition crosses the cut, sorted the way CapCut's Transitions tab sorts them.",
+   "workspace": "transitions",
+   "also": [],
+   "group": "Editing (Final Cut Pro and CapCut)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Family",
+     "plain": "The family of transition.",
+     "scale": [
+      "basic",
+      "slide",
+      "movement",
+      "blur",
+      "light",
+      "overlay",
+      "mask",
+      "3D",
+      "glitch",
+      "whimsical"
+     ],
+     "from": "basic",
+     "to": "whimsical",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "energy",
+     "label": "Energy",
+     "plain": "How much force it hits with.",
+     "scale": [
+      "calm",
+      "lively",
+      "punchy",
+      "explosive"
+     ],
+     "from": "calm",
+     "to": "explosive",
+     "curve": "linear"
+    },
+    {
+     "id": "flash",
+     "label": "Flash",
+     "plain": "Light thrown across the cut.",
+     "scale": [
+      "none",
+      "light leak",
+      "white flash",
+      "light bars"
+     ],
+     "from": "none",
+     "to": "light bars",
+     "curve": "linear"
+    },
+    {
+     "id": "motionBlur",
+     "label": "Motion blur",
+     "plain": "How smeared the move is.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": [
+    "editing",
+    "capcut",
+    "final-cut-pro"
+   ],
+   "momentum": {
+    "push": 2,
+    "plot": "A punchy transition family says the story just jumped; a calm one says it flowed.",
+    "theme": "Light and blur transitions feel like memory; slides and pushes feel like moving on.",
+    "pull": "A hard-hitting transition jolts the audience into the next scene.",
+    "cue": "visual",
+    "tryThis": "Use the calmest family inside a scene and save the explosive one for the jump to a new place."
+   }
+  },
+  {
+   "id": "introOutro",
+   "level": "curiosity",
+   "label": "Intro and outro effect",
+   "plain": "How the film or a scene opens and closes: an opening arc, a swirl in, a light fall, a slam, a fade (CapCut's Intro & Outro effects and Intro&End clips).",
+   "workspace": "transitions",
+   "also": [],
+   "group": "Editing (Final Cut Pro and CapCut)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Intro and outro",
+     "plain": "The effect at the start or end.",
+     "scale": [
+      "none",
+      "opening arc",
+      "swirl in",
+      "light fall",
+      "slam in",
+      "smooth scroll",
+      "end card"
+     ],
+     "from": "none",
+     "to": "end card",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "where",
+     "label": "Where",
+     "plain": "Which edge it sits on.",
+     "scale": [
+      "film start",
+      "scene start",
+      "scene end",
+      "film end"
+     ],
+     "from": "film start",
+     "to": "film end",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "length",
+     "label": "Length",
+     "plain": "How long it lasts.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "seconds",
+      "step": 0.5
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": [
+    "editing",
+    "capcut",
+    "final-cut-pro"
+   ],
+   "momentum": {
+    "push": 2,
+    "plot": "An opening effect promises what kind of ride this is; an outro tells the audience it is over, or not quite.",
+    "theme": "A playful opening sets a playful film.",
+    "pull": "The first second decides whether a viewer keeps watching.",
+    "cue": "visual",
+    "tryThis": "Open on a slam and end on a slow fade, so the film feels like it calmed down."
+   }
+  },
+  {
+   "id": "videoEffectFamily",
+   "level": "curiosity",
+   "label": "Effect family",
+   "plain": "Which family of video effect is laid over the picture, sorted the way CapCut's Effects tab sorts them.",
+   "workspace": "layers",
+   "also": [],
+   "group": "Editing (Final Cut Pro and CapCut)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Family",
+     "plain": "The family of effect.",
+     "scale": [
+      "none",
+      "classic",
+      "whimsical",
+      "motion",
+      "3D",
+      "light",
+      "edits",
+      "retro",
+      "glitch",
+      "distortion",
+      "decor",
+      "screen",
+      "sparkle",
+      "texture",
+      "comics",
+      "party"
+     ],
+     "from": "none",
+     "to": "party",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "intensity",
+     "label": "Intensity",
+     "plain": "How strong it is.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "spread",
+     "label": "Covers",
+     "plain": "How much of the frame it covers.",
+     "scale": [
+      "a corner",
+      "around the subject",
+      "the whole frame"
+     ],
+     "from": "a corner",
+     "to": "the whole frame",
+     "curve": "linear"
+    },
+    {
+     "id": "onBeat",
+     "label": "Pulses",
+     "plain": "Whether it pulses with the music.",
+     "scale": [
+      "steady",
+      "on the beat"
+     ],
+     "from": "steady",
+     "to": "on the beat",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": [
+    "editing",
+    "capcut",
+    "final-cut-pro"
+   ],
+   "momentum": {
+    "push": 1,
+    "plot": "A change of effect family can mark a new chapter: retro for the past, glitch for a breakdown, comics for a fantasy.",
+    "theme": "The effect family is the film's attitude worn on its surface.",
+    "pull": "A new effect makes the eye re-read the whole frame.",
+    "cue": "visual",
+    "tryThis": "Switch to the comics family for the daydream and snap back to clean picture when it ends."
+   }
+  },
+  {
+   "id": "cameraEffect",
+   "level": "curiosity",
+   "label": "Fake camera move",
+   "plain": "A camera move added in the edit, not shot: slam zoom, zoom lens, sway, shake, radial blur, tracking (CapCut's Motion effects).",
+   "workspace": "canvas",
+   "also": [],
+   "group": "Editing (Final Cut Pro and CapCut)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Move",
+     "plain": "Which move is added.",
+     "scale": [
+      "none",
+      "slam zoom",
+      "zoom lens",
+      "gentle sway",
+      "subtle shake",
+      "wobble",
+      "radial blur",
+      "tracking shot",
+      "camera roll"
+     ],
+     "from": "none",
+     "to": "camera roll",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "strength",
+     "label": "Strength",
+     "plain": "How big the move is.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "speed",
+     "label": "Speed",
+     "plain": "How fast it moves.",
+     "scale": [
+      "slow",
+      "medium",
+      "fast"
+     ],
+     "from": "slow",
+     "to": "fast",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": [
+    "editing",
+    "capcut",
+    "final-cut-pro"
+   ],
+   "momentum": {
+    "push": 2,
+    "plot": "A slam zoom tells the audience this beat is the one that matters.",
+    "theme": "A fake move gives a still shot a heartbeat; a shake says something hit.",
+    "pull": "Sudden movement grabs the eye instantly.",
+    "cue": "movement",
+    "tryThis": "Slam zoom on the face the instant the bad news lands."
+   }
+  },
+  {
+   "id": "multiplyEffect",
+   "level": "curiosity",
+   "label": "Copies of the picture",
+   "plain": "The picture split into copies: a grid, a polaroid stack, spinning copies, a gallery wall, a cube (CapCut's Wild Pics and 3D effects).",
+   "workspace": "layers",
+   "also": [],
+   "group": "Editing (Final Cut Pro and CapCut)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Copies",
+     "plain": "How the picture is multiplied.",
+     "scale": [
+      "none",
+      "split copies",
+      "polaroid stack",
+      "spinning copies",
+      "grid",
+      "gallery wall",
+      "cube"
+     ],
+     "from": "none",
+     "to": "cube",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "count",
+     "label": "How many",
+     "plain": "How many copies show.",
+     "range": {
+      "min": 1,
+      "max": 16,
+      "unit": "copies",
+      "step": 1
+     },
+     "from": 1,
+     "to": 16,
+     "curve": "linear"
+    },
+    {
+     "id": "motion",
+     "label": "Motion",
+     "plain": "How the copies move.",
+     "scale": [
+      "still",
+      "drifting",
+      "spinning",
+      "on the beat"
+     ],
+     "from": "still",
+     "to": "on the beat",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": [
+    "editing",
+    "capcut",
+    "final-cut-pro"
+   ],
+   "momentum": {
+    "push": 1,
+    "plot": "Copies of one moment can show it repeating in a character's head.",
+    "theme": "A wall of copies says sameness, obsession or fame.",
+    "pull": "Many copies at once make the eye search for the difference.",
+    "cue": "visual",
+    "tryThis": "Multiply the embarrassing moment into a grid as the character replays it in their mind."
+   }
+  },
+  {
+   "id": "lightEffect",
+   "level": "curiosity",
+   "label": "Light effect",
+   "plain": "Light added over the picture: god rays, a flare, a halo, a light leak, lightning, a burn (CapCut's Light effects).",
+   "workspace": "layers",
+   "also": [],
+   "group": "Editing (Final Cut Pro and CapCut)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Light effect",
+     "plain": "Which light is added.",
+     "scale": [
+      "none",
+      "god rays",
+      "sun flare",
+      "halo",
+      "light leak",
+      "blaze burst",
+      "lightning",
+      "film burn"
+     ],
+     "from": "none",
+     "to": "film burn",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "strength",
+     "label": "Strength",
+     "plain": "How bright it is.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "warmth",
+     "label": "Warmth",
+     "plain": "Its color.",
+     "scale": [
+      "cool",
+      "neutral",
+      "warm",
+      "golden"
+     ],
+     "from": "cool",
+     "to": "golden",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": [
+    "editing",
+    "capcut",
+    "final-cut-pro"
+   ],
+   "momentum": {
+    "push": 1,
+    "plot": "A halo or god rays can crown the moment someone is forgiven or chosen.",
+    "theme": "Light from nowhere makes a moment sacred, magical or remembered.",
+    "pull": "The brightest thing in the frame pulls the eye, so added light points.",
+    "cue": "visual",
+    "tryThis": "Give the villain a halo for the moment they pretend to be good."
+   }
+  },
+  {
+   "id": "textureEffect",
+   "level": "curiosity",
+   "label": "Texture effect",
+   "plain": "A surface laid over the picture: torn frames, wrinkled paper, grain, a silkscreen, dual tone, a polaroid border (CapCut's Texture and Retro effects).",
+   "workspace": "grade",
+   "also": [],
+   "group": "Editing (Final Cut Pro and CapCut)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Texture",
+     "plain": "Which surface.",
+     "scale": [
+      "none",
+      "torn paper",
+      "wrinkled paper",
+      "grain",
+      "silkscreen dots",
+      "dual tone",
+      "polaroid",
+      "old film"
+     ],
+     "from": "none",
+     "to": "old film",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "strength",
+     "label": "Strength",
+     "plain": "How strong it is.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "edges",
+     "label": "Edges",
+     "plain": "What the frame's edges look like.",
+     "scale": [
+      "clean",
+      "torn",
+      "burned"
+     ],
+     "from": "clean",
+     "to": "burned",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": [
+    "editing",
+    "capcut",
+    "final-cut-pro"
+   ],
+   "momentum": {
+    "push": 1,
+    "plot": "A paper texture can turn a scene into a scrapbook, a letter or a memory.",
+    "theme": "Handmade textures make the film feel personal and crafted, like a zine.",
+    "pull": "A rough edge frames the picture and draws the eye inward.",
+    "cue": "visual",
+    "tryThis": "Lay torn paper over every flashback, like pages from a diary."
+   }
+  },
+  {
+   "id": "bodyEffect",
+   "level": "curiosity",
+   "label": "Body effect",
+   "plain": "An effect that follows a person's body: a clone trail, glowing lines, an outline, superpowers, a hallucination (CapCut's Body effects).",
+   "workspace": "layers",
+   "also": [],
+   "group": "Editing (Final Cut Pro and CapCut)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Body effect",
+     "plain": "Which effect is on the person.",
+     "scale": [
+      "none",
+      "clone trail",
+      "glowing lines",
+      "outline",
+      "superpower",
+      "hallucination",
+      "portrait glow"
+     ],
+     "from": "none",
+     "to": "portrait glow",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "who",
+     "label": "On whom",
+     "plain": "Who wears it.",
+     "scale": [
+      "the main character",
+      "another character",
+      "everyone"
+     ],
+     "from": "the main character",
+     "to": "everyone",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "intensity",
+     "label": "Intensity",
+     "plain": "How strong it is.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": [
+    "editing",
+    "capcut",
+    "final-cut-pro"
+   ],
+   "momentum": {
+    "push": 1,
+    "plot": "Glowing lines around one person single them out as the one who matters now.",
+    "theme": "A body effect shows the inside of a person on the outside: power, panic, fame.",
+    "pull": "Something moving with a person keeps the eye on them.",
+    "cue": "movement",
+    "tryThis": "Give the character a clone trail as they rush around trying to do everything at once."
+   }
+  },
+  {
+   "id": "moodEffect",
+   "level": "curiosity",
+   "label": "Mood sticker on a face",
+   "plain": "A cartoon mood stuck to a face: red cheeks, tears, hearts, a light bulb, steam, a halo of confusion, a soul leaving, a mallet (CapCut's Mood body effects).",
+   "workspace": "titles",
+   "also": [],
+   "group": "Editing (Final Cut Pro and CapCut)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Mood",
+     "plain": "Which mood is drawn on the face.",
+     "scale": [
+      "none",
+      "sunny",
+      "loved",
+      "struck",
+      "bright idea",
+      "red face",
+      "sad tears",
+      "shy",
+      "confused",
+      "departing soul",
+      "cool",
+      "angry steam",
+      "laughing till crying",
+      "mallet bonk"
+     ],
+     "from": "none",
+     "to": "mallet bonk",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "size",
+     "label": "Size",
+     "plain": "How big it is drawn.",
+     "scale": [
+      "small",
+      "medium",
+      "big"
+     ],
+     "from": "small",
+     "to": "big",
+     "curve": "linear"
+    },
+    {
+     "id": "timing",
+     "label": "Timing",
+     "plain": "When it pops on.",
+     "scale": [
+      "before the line",
+      "on the line",
+      "after the line"
+     ],
+     "from": "before the line",
+     "to": "after the line",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": [
+    "editing",
+    "capcut",
+    "final-cut-pro"
+   ],
+   "momentum": {
+    "push": 2,
+    "plot": "A drawn mood tells the audience exactly how a character took what just happened.",
+    "theme": "Cartoon moods make the film wink at itself.",
+    "pull": "A face suddenly decorated is impossible not to look at.",
+    "cue": "visual",
+    "tryThis": "Pop a departing soul out of the character a beat after the insult."
+   }
   }
  ],
  "suites": [
@@ -74124,6 +75339,486 @@
    ],
    "source": "Final Cut Pro and CapCut",
    "tags": []
+  },
+  {
+   "id": "reaction-comedy-edit",
+   "level": "suite",
+   "label": "Reaction comedy",
+   "plain": "A cartoon mood on the face, a fake slam zoom, a sound hit and a short freeze, the way phone comedy lands a reaction.",
+   "workspace": "titles",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "moodEffect",
+     "value": "departing soul"
+    },
+    {
+     "weight": 100,
+     "curiosity": "cameraEffect",
+     "value": "slam zoom"
+    },
+    {
+     "weight": 100,
+     "curiosity": "sfxHits",
+     "slider": "kind",
+     "value": "hit"
+    },
+    {
+     "weight": 100,
+     "curiosity": "freezeFrame",
+     "value": "short freeze"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:moodEffect",
+     "label": "Weight of moodEffect",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:cameraEffect",
+     "label": "Weight of cameraEffect",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:sfxHits.kind",
+     "label": "Weight of sfxHits kind",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:freezeFrame",
+     "label": "Weight of freezeFrame",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
+  },
+  {
+   "id": "zine-scrapbook",
+   "level": "suite",
+   "label": "Zine scrapbook",
+   "plain": "Torn paper, polaroid copies, stickers and a handwritten title: the film as a scrapbook.",
+   "workspace": "grade",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "textureEffect",
+     "value": "torn paper"
+    },
+    {
+     "weight": 100,
+     "curiosity": "multiplyEffect",
+     "value": "polaroid stack"
+    },
+    {
+     "weight": 100,
+     "curiosity": "stickers",
+     "value": "a few"
+    },
+    {
+     "weight": 100,
+     "curiosity": "textStyle",
+     "value": "handwritten"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:textureEffect",
+     "label": "Weight of textureEffect",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:multiplyEffect",
+     "label": "Weight of multiplyEffect",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:stickers",
+     "label": "Weight of stickers",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:textStyle",
+     "label": "Weight of textStyle",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
+  },
+  {
+   "id": "heavenly-light",
+   "level": "suite",
+   "label": "Heavenly light",
+   "plain": "God rays, a golden warmth, a slow light-leak transition and a soft texture.",
+   "workspace": "layers",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "lightEffect",
+     "value": "god rays"
+    },
+    {
+     "weight": 100,
+     "curiosity": "lightEffect",
+     "slider": "warmth",
+     "value": "golden"
+    },
+    {
+     "weight": 100,
+     "curiosity": "transitionFamily",
+     "value": "light"
+    },
+    {
+     "weight": 100,
+     "curiosity": "texture",
+     "value": "soft"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lightEffect",
+     "label": "Weight of lightEffect",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lightEffect.warmth",
+     "label": "Weight of lightEffect warmth",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:transitionFamily",
+     "label": "Weight of transitionFamily",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:texture",
+     "label": "Weight of texture",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
+  },
+  {
+   "id": "party-edit",
+   "level": "suite",
+   "label": "Party edit",
+   "plain": "Party and sparkle effects pulsing on the beat, spinning copies, punchy transitions.",
+   "workspace": "layers",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "videoEffectFamily",
+     "value": "party"
+    },
+    {
+     "weight": 100,
+     "curiosity": "videoEffectFamily",
+     "slider": "onBeat",
+     "value": "on the beat"
+    },
+    {
+     "weight": 100,
+     "curiosity": "multiplyEffect",
+     "value": "spinning copies"
+    },
+    {
+     "weight": 100,
+     "curiosity": "transitionFamily",
+     "slider": "energy",
+     "value": "punchy"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:videoEffectFamily",
+     "label": "Weight of videoEffectFamily",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:videoEffectFamily.onBeat",
+     "label": "Weight of videoEffectFamily onBeat",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:multiplyEffect",
+     "label": "Weight of multiplyEffect",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:transitionFamily.energy",
+     "label": "Weight of transitionFamily energy",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
   }
  ],
  "proximities": [
@@ -89029,6 +90724,527 @@
    ],
    "source": "Final Cut Pro and CapCut",
    "tags": []
+  },
+  {
+   "id": "payoff-mood-face",
+   "level": "proximity",
+   "label": "When the joke pays off, a mood pops onto a face",
+   "plain": "When the joke pays off, a mood pops onto a face at once.",
+   "workspace": "titles",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "comicBeat",
+    "is": "payoff lands"
+   },
+   "then": {
+    "curiosity": "moodEffect",
+    "change": "changes"
+   },
+   "whenText": "the joke pays off",
+   "thenText": "a mood pops onto a face",
+   "within": 0,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
+  },
+  {
+   "id": "angry-steam",
+   "level": "proximity",
+   "label": "When someone gets angry, steam pops onto their face",
+   "plain": "When someone gets angry, steam pops onto their face at once.",
+   "workspace": "titles",
+   "also": [
+    "lines"
+   ],
+   "when": {
+    "curiosity": "emotion",
+    "is": "angry"
+   },
+   "then": {
+    "curiosity": "moodEffect",
+    "is": "angry steam"
+   },
+   "whenText": "someone gets angry",
+   "thenText": "steam pops onto their face",
+   "within": 0,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
+  },
+  {
+   "id": "dreamlike-halo",
+   "level": "proximity",
+   "label": "When the feeling turns dreamlike, light blooms",
+   "plain": "When the feeling turns dreamlike, light blooms within 1 beat.",
+   "workspace": "layers",
+   "also": [
+    "lines"
+   ],
+   "when": {
+    "curiosity": "emotion",
+    "is": "dreamlike"
+   },
+   "then": {
+    "curiosity": "lightEffect",
+    "is": "halo"
+   },
+   "whenText": "the feeling turns dreamlike",
+   "thenText": "light blooms",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
+  },
+  {
+   "id": "impact-slam-zoom",
+   "level": "proximity",
+   "label": "When impacts rise, the editor slam zooms",
+   "plain": "When impacts rise, the editor slam zooms at once.",
+   "workspace": "canvas",
+   "also": [
+    "effects"
+   ],
+   "when": {
+    "curiosity": "impacts",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "cameraEffect",
+    "is": "slam zoom"
+   },
+   "whenText": "impacts rise",
+   "thenText": "the editor slam zooms",
+   "within": 0,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
+  },
+  {
+   "id": "featured-music-pulse",
+   "level": "proximity",
+   "label": "When the music is featured, the effects pulse on the beat",
+   "plain": "When the music is featured, the effects pulse on the beat at once.",
+   "workspace": "layers",
+   "also": [
+    "music"
+   ],
+   "when": {
+    "curiosity": "music",
+    "is": "featured"
+   },
+   "then": {
+    "curiosity": "videoEffectFamily",
+    "slider": "onBeat",
+    "is": "on the beat"
+   },
+   "whenText": "the music is featured",
+   "thenText": "the effects pulse on the beat",
+   "within": 0,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
+  },
+  {
+   "id": "scene-end-outro",
+   "level": "proximity",
+   "label": "When the pace races then stops, an outro effect closes it",
+   "plain": "When the pace races then stops, an outro effect closes it at once.",
+   "workspace": "transitions",
+   "also": [
+    "speed"
+   ],
+   "when": {
+    "curiosity": "pacingCurve",
+    "is": "speeds up then stops"
+   },
+   "then": {
+    "curiosity": "introOutro",
+    "change": "changes"
+   },
+   "whenText": "the pace races then stops",
+   "thenText": "an outro effect closes it",
+   "within": 0,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
   }
  ],
  "proximitySuites": [
@@ -95446,6 +97662,135 @@
     {
      "id": "chance:sign-tracks",
      "label": "How often sign-tracks",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro and CapCut",
+   "tags": []
+  },
+  {
+   "id": "phone-comedy-reactions",
+   "level": "proximitySuite",
+   "label": "Phone comedy reactions",
+   "plain": "The joke pays off and a mood pops onto a face, anger brings steam, and an impact brings a slam zoom.",
+   "workspace": "titles",
+   "also": [],
+   "members": [
+    "payoff-mood-face",
+    "angry-steam",
+    "impact-slam-zoom"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:payoff-mood-face",
+     "label": "Delay of payoff-mood-face",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:payoff-mood-face",
+     "label": "How often payoff-mood-face",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:angry-steam",
+     "label": "Delay of angry-steam",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:angry-steam",
+     "label": "How often angry-steam",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:impact-slam-zoom",
+     "label": "Delay of impact-slam-zoom",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:impact-slam-zoom",
+     "label": "How often impact-slam-zoom",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,
