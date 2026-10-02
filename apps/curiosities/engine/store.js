@@ -30,6 +30,9 @@
   if (root.CurioStore) return; /* index.html may load it early (before app.js) and engine/load.js again */
   const MERGE_MS = 1500;
   const LIMIT = 300;
+  /* Steps keep two copies of a part; a big part (a storyboard can be most of a megabyte) would fill memory
+     long before 300 steps, so the oldest steps go once the list holds about this many characters. */
+  const MAX_CHARS = 40e6;
   let storage = null;
   try {
     storage = root.localStorage || null;
@@ -112,12 +115,14 @@
       const label = typeof msg.label === "string" && msg.label ? msg.label.slice(0, 80) : msg.type;
       if (!(opt && opt.record === false)) {
         const last = undoList[undoList.length - 1];
+        const size = JSON.stringify(before).length + JSON.stringify(next).length;
         if (last && msg.merge && last.part === name && last.merge === msg.merge && now() - last.at < MERGE_MS) {
           last.after = clone(next);
           last.at = now();
+          last.size = size;
         } else {
-          undoList.push({ part: name, label, merge: msg.merge || null, at: now(), before: clone(before), after: clone(next) });
-          if (undoList.length > LIMIT) undoList.shift();
+          undoList.push({ part: name, label, merge: msg.merge || null, at: now(), before: clone(before), after: clone(next), size });
+          trim();
         }
         redoList = [];
       }
@@ -150,10 +155,15 @@
 
   /* A step kept by another undo list (the engine's film): it undoes and redoes itself, and says false when
      it can no longer (it was undone there already), so it is dropped and the next one is tried. */
+  function trim() {
+    let total = 0;
+    undoList.forEach((st) => (total += st.size || 0));
+    while (undoList.length > LIMIT || (total > MAX_CHARS && undoList.length > 1)) total -= undoList.shift().size || 0;
+  }
   function external(name, ext) {
     if (!isObj(ext) || typeof ext.undo !== "function" || typeof ext.redo !== "function") return false;
     undoList.push({ part: String(name || "other"), label: String(ext.label || "Change").slice(0, 80), at: now(), ext });
-    if (undoList.length > LIMIT) undoList.shift();
+    trim();
     redoList = [];
     return true;
   }
