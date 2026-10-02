@@ -5482,6 +5482,418 @@
    "does": "moveWith",
    "when": "the pace races then stops",
    "then": "an outro effect closes it"
+  },
+  {
+   "id": "p:face-loving",
+   "proximity": "face-loving",
+   "label": "When someone feels loving, hearts pop onto their face",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "loving",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "loved",
+   "when": "someone feels loving",
+   "then": "hearts pop onto their face"
+  },
+  {
+   "id": "p:face-joyful",
+   "proximity": "face-joyful",
+   "label": "When someone is joyful, a sun pops onto their face",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "joyful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "sunny",
+   "when": "someone is joyful",
+   "then": "a sun pops onto their face"
+  },
+  {
+   "id": "p:face-melancholy",
+   "proximity": "face-melancholy",
+   "label": "When someone turns sad, tears are drawn on",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "melancholy",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "sad tears",
+   "when": "someone turns sad",
+   "then": "tears are drawn on"
+  },
+  {
+   "id": "p:face-anxious",
+   "proximity": "face-anxious",
+   "label": "When someone is anxious, they blush",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "anxious",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shy",
+   "when": "someone is anxious",
+   "then": "they blush"
+  },
+  {
+   "id": "p:face-fearful",
+   "proximity": "face-fearful",
+   "label": "When someone is scared, their soul leaves their body",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "fearful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "departing soul",
+   "when": "someone is scared",
+   "then": "their soul leaves their body"
+  },
+  {
+   "id": "p:face-curious",
+   "proximity": "face-curious",
+   "label": "When someone gets curious, a light bulb pops on",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "curious",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "bright idea",
+   "when": "someone gets curious",
+   "then": "a light bulb pops on"
+  },
+  {
+   "id": "p:face-triumphant",
+   "proximity": "face-triumphant",
+   "label": "When someone triumphs, shades pop on",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "triumphant",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cool",
+   "when": "someone triumphs",
+   "then": "shades pop on"
+  },
+  {
+   "id": "p:face-absurd",
+   "proximity": "face-absurd",
+   "label": "When things turn absurd, question marks pop on",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "absurd",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "confused",
+   "when": "things turn absurd",
+   "then": "question marks pop on"
+  },
+  {
+   "id": "p:tears-lower",
+   "proximity": "tears-lower",
+   "label": "When tears are drawn on, the feeling drops",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "sad tears",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion.valence",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "tears are drawn on",
+   "then": "the feeling drops"
+  },
+  {
+   "id": "p:sun-lifts",
+   "proximity": "sun-lifts",
+   "label": "When a sun pops onto a face, the feeling lifts",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "sunny",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion.valence",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a sun pops onto a face",
+   "then": "the feeling lifts"
+  },
+  {
+   "id": "p:steam-winds-up",
+   "proximity": "steam-winds-up",
+   "label": "When steam pops on, the feeling winds up",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "angry steam",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion.arousal",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "steam pops on",
+   "then": "the feeling winds up"
+  },
+  {
+   "id": "p:crackle-winds-up",
+   "proximity": "crackle-winds-up",
+   "label": "When a face crackles, the feeling winds up",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "crackling",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion.arousal",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a face crackles",
+   "then": "the feeling winds up"
+  },
+  {
+   "id": "p:laugh-tears-laughter",
+   "proximity": "laugh-tears-laughter",
+   "label": "When someone laughs till they cry, the audience laughs more",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "laughing till crying",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRoadFilm.laughter",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone laughs till they cry",
+   "then": "the audience laughs more"
+  },
+  {
+   "id": "p:mallet-absurd",
+   "proximity": "mallet-absurd",
+   "label": "When the mallet bonks, the feeling turns absurd",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "mallet bonk",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "absurd",
+   "when": "the mallet bonks",
+   "then": "the feeling turns absurd"
+  },
+  {
+   "id": "p:triumph-eyes",
+   "proximity": "triumph-eyes",
+   "label": "When someone triumphs, their eyes light up",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "triumphant",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "superpowerEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "electric eyes",
+   "when": "someone triumphs",
+   "then": "their eyes light up"
+  },
+  {
+   "id": "p:anxious-glitch",
+   "proximity": "anxious-glitch",
+   "label": "When someone panics, the picture glitches",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "anxious",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "glitchEffect",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shaky glitch",
+   "when": "someone panics",
+   "then": "the picture glitches"
+  },
+  {
+   "id": "p:dreamlike-vortex",
+   "proximity": "dreamlike-vortex",
+   "label": "When the feeling turns dreamlike, the room spins",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "dreamlike",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "hallucinationEffect",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the feeling turns dreamlike",
+   "then": "the room spins"
+  },
+  {
+   "id": "p:impact-shockwave",
+   "proximity": "impact-shockwave",
+   "label": "When impacts rise, a shockwave flashes",
+   "from": {
+    "curiosity": "impacts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "partyEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shockwave",
+   "when": "impacts rise",
+   "then": "a shockwave flashes"
+  },
+  {
+   "id": "p:music-party-beat",
+   "proximity": "music-party-beat",
+   "label": "When the music is featured, the flashes hit the beat",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "featured",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "partyEffect.onBeat",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "on the beat",
+   "when": "the music is featured",
+   "then": "the flashes hit the beat"
+  },
+  {
+   "id": "p:outro-end-card",
+   "proximity": "outro-end-card",
+   "label": "When an outro effect closes the film, an end card follows",
+   "from": {
+    "curiosity": "introOutro",
+    "track": "master",
+    "is": "end card",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "endCard",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "an outro effect closes the film",
+   "then": "an end card follows"
   }
  ],
  "groups": [
@@ -6325,6 +6737,69 @@
     "p:payoff-mood-face",
     "p:angry-steam",
     "p:impact-slam-zoom"
+   ]
+  },
+  {
+   "id": "ps:face-tells-the-feeling",
+   "label": "The face tells the feeling",
+   "plain": "Every feeling brings its cartoon mood onto the face: hearts, a sun, tears, a blush, a soul leaving, a light bulb, shades, question marks.",
+   "proximities": [
+    "face-loving",
+    "face-joyful",
+    "face-melancholy",
+    "face-anxious",
+    "face-fearful",
+    "face-curious",
+    "face-triumphant",
+    "face-absurd"
+   ],
+   "links": [
+    "p:face-loving",
+    "p:face-joyful",
+    "p:face-melancholy",
+    "p:face-anxious",
+    "p:face-fearful",
+    "p:face-curious",
+    "p:face-triumphant",
+    "p:face-absurd"
+   ]
+  },
+  {
+   "id": "ps:mood-moves-the-feeling",
+   "label": "The mood moves the feeling",
+   "plain": "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh.",
+   "proximities": [
+    "tears-lower",
+    "sun-lifts",
+    "steam-winds-up",
+    "crackle-winds-up",
+    "laugh-tears-laughter",
+    "mallet-absurd"
+   ],
+   "links": [
+    "p:tears-lower",
+    "p:sun-lifts",
+    "p:steam-winds-up",
+    "p:crackle-winds-up",
+    "p:laugh-tears-laughter",
+    "p:mallet-absurd"
+   ]
+  },
+  {
+   "id": "ps:effects-show-the-inside",
+   "label": "Effects show the inside",
+   "plain": "What a character feels shows on the picture: triumph lights the eyes, panic glitches the frame, a dream spins the room or blooms with light.",
+   "proximities": [
+    "triumph-eyes",
+    "anxious-glitch",
+    "dreamlike-vortex",
+    "dreamlike-halo"
+   ],
+   "links": [
+    "p:triumph-eyes",
+    "p:anxious-glitch",
+    "p:dreamlike-vortex",
+    "p:dreamlike-halo"
    ]
   }
  ]
