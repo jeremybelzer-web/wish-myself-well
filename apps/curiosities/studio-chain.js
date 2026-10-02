@@ -512,9 +512,8 @@
       showBeat();
     });
     const playBtn = el.querySelector('[data-act="play"]');
-    const studio = document.getElementById("studio");
     function step() {
-      if (!el.isConnected || (studio && studio.classList.contains("hidden")) || !playBtn.isConnected) {
+      if (!el.isConnected || !playBtn.isConnected) {
         timer = null;
         return;
       }

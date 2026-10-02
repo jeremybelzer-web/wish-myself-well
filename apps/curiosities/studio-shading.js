@@ -744,8 +744,7 @@
       const per = 1100;
       let last = -2;
       const step = (now) => {
-        const studio = document.getElementById("studio");
-        if (!canvas.isConnected || (studio && studio.classList.contains("hidden"))) { anim = null; return; }
+        if (!canvas.isConnected) { anim = null; return; }
         const i = Math.max(0, Math.floor((now - t0) / per)); /* a frame's timestamp can precede t0 */
         if (i >= s.beats.length) {
           playing = -1;

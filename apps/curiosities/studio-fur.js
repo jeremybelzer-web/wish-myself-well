@@ -695,8 +695,7 @@
 
     let last = null, frameN = 0;
     function tick(now) {
-      const studio = document.getElementById("studio");
-      if (!canvas.isConnected || (studio && studio.classList.contains("hidden"))) { timer = null; return; }
+      if (!canvas.isConnected) { timer = null; return; }
       const dt = last == null ? 1 / 60 : Math.min(0.05, (now - last) / 1000);
       last = now;
       const sub = 2;

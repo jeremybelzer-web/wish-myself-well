@@ -1261,7 +1261,7 @@
     }
 
     function tick() {
-      if (!canvas.isConnected || document.getElementById("studio").classList.contains("hidden")) {
+      if (!canvas.isConnected) {
         anim = null;
         return;
       }

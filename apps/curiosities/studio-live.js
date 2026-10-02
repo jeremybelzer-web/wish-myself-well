@@ -636,8 +636,7 @@
 
   function tick(now) {
     raf = 0;
-    const studio = document.getElementById("studio");
-    if (!root || !document.body.contains(root) || (studio && studio.classList.contains("hidden"))) {
+    if (!root || !document.body.contains(root)) {
       rec = null;
       return;
     }

@@ -6,8 +6,6 @@
    A Develop card then offers three next moves. The engine is window.CurioAuto (automation.js). */
 
 (function () {
-  const root = document.getElementById("prism");
-  if (!root) return;
   const VIEW = "curiosities-prism-view-v1";
   const BANDS = [
     { id: "curiosity", label: "Curiosities", hue: 12, note: "One measurable thing each, and how far it moved." },
@@ -16,15 +14,14 @@
     { id: "proximity suite", label: "Proximity suites", hue: 232, note: "Groups of proximities that held together." },
   ];
 
+  /* The film and the moment are shared by every Prism on the page (the Prism tab and the
+     filtered ones a workspace mounts), so "my moment" means the same panels everywhere. */
   let view = { film: "", band: "all", from: 1, to: 3 };
   try {
     view = Object.assign(view, JSON.parse(localStorage.getItem(VIEW) || "{}"));
   } catch (e) {}
-  /* What the Prism started: keys it plays, the row it came from, and the moment. */
-  let playing = null;
-  let boardFilm = null;
-  let lastSig = "";
-  let lastPaint = 0;
+  /* Every Prism on the page, by its host element. */
+  const instances = new Map();
 
   const A = () => window.CurioAuto;
   function esc(s) {
@@ -37,7 +34,9 @@
   }
   function label(id) {
     const p = A() && A().param("c:" + id);
-    return p ? p.label : id;
+    if (p) return p.label;
+    const c = (window.CURIOSITIES || (typeof CURIOSITIES !== "undefined" ? CURIOSITIES : [])).find((x) => x.id === id);
+    return c ? c.label || c.name || id : id;
   }
   function panelCount() {
     const n = Number(window.CuriosityBoard && window.CuriosityBoard.values().angleCount);
@@ -59,17 +58,17 @@
     out.push({ id: "__board", title: "My board", kind: "board", beats: null });
     return out;
   }
-  function film() {
+  function film(inst) {
     const all = films();
     let f = all.find((x) => x.id === view.film) || all.find((x) => /crystal is quiet/i.test(x.title)) || all[0];
     view.film = f.id;
     if (f.id === "__board") {
-      if (!boardFilm) {
+      if (!inst.boardFilm) {
         const n = panelCount();
         const panels = A() ? A().resolve(n).panels : Array.from({ length: n }, () => window.CuriosityBoard.values());
-        boardFilm = panels.map((v, i) => ({ at: "panel " + (i + 1), values: v }));
+        inst.boardFilm = panels.map((v, i) => ({ at: "panel " + (i + 1), values: v }));
       }
-      f = Object.assign({}, f, { beats: boardFilm });
+      f = Object.assign({}, f, { beats: inst.boardFilm });
     }
     return f;
   }
@@ -175,6 +174,21 @@
     return { beats, curiosities, suites, proximities, proxAll, proxSuites };
   }
 
+  /* A workspace's view of the spectrum: its own curiosities (in its order, the ones this film never
+     sets kept as "not measured" rows) and the suites, proximities and proximity suites that touch them. */
+  function filtered(sp, ids) {
+    const has = new Set(ids);
+    const touches = (set) => Object.keys(set || {}).some((k) => has.has(k));
+    const involves = (c) => !!c && (has.has(c.curiosity) || (c.suite && touches(suiteSet(c.suite))));
+    const proxIn = (p) => involves(p.x) || involves(p.y);
+    return Object.assign({}, sp, {
+      curiosities: ids.map((id) => sp.curiosities.find((c) => c.id === id) || { id, label: label(id), absent: true }),
+      suites: sp.suites.filter((x) => touches(x.s.set)),
+      proximities: sp.proximities.filter((x) => proxIn(x.p)),
+      proxSuites: sp.proxSuites.filter((x) => x.members.some((m) => proxIn(m.p))),
+    });
+  }
+
   /* ---------- drawing ---------- */
   function cellColor(hue, t) {
     if (t == null || !isFinite(t)) return { bg: "#ece6dc", fg: "#3a3229" };
@@ -218,6 +232,7 @@
     let rows = [];
     if (band === "curiosity") {
       rows = sp.curiosities.map((c) => {
+        if (c.absent) return row(c.label, strip(beats, () => `<span class="pr-cell"></span>`), `<span class="cap">not measured in this film yet</span>`, "");
         const cells = strip(beats, (bt, i) => {
           const v = c.vals[i];
           const col = cellColor(b.hue, position(c.id, v));
@@ -259,6 +274,19 @@
     </svg>`;
   }
 
+  /* One Prism, drawn into root. opts.curiosities (a list of ids) filters it to those curiosities
+     and the suites, proximities and proximity suites that involve them; opts.title heads it. */
+  function Prism(root, opts) {
+  opts = opts || {};
+  const only = Array.isArray(opts.curiosities) && opts.curiosities.length ? opts.curiosities.slice() : null;
+  const mounted = !!opts.mounted;
+  const inst = { root, boardFilm: null, draw, paint: (panels) => paintPanels(panels), visible };
+  /* What this Prism started: keys it plays, the row it came from, and the moment. */
+  let playing = null;
+  let lastSig = "";
+  let band = mounted ? "all" : view.band;
+  const titleText = () => opts.title || "Cross-pollinate from a film";
+
   function playingHtml() {
     if (!playing) return "";
     const run = A().running();
@@ -269,14 +297,14 @@
     }
     const m = playing.m;
     const moves = developMoves();
-    return `<div class="pr-play" id="pr-play">
+    return `<div class="pr-play" data-pr="play">
       <p class="pr-line"><span class="pr-dot"></span> Playing on your board in ${span(m)}: <b>${esc(playing.title)}</b></p>
       <p class="cap">${esc(playing.how)}</p>
       <div class="bar-actions">
-        ${window.CuriosityAutomate && window.CuriosityAutomate.open ? `<button type="button" id="pr-open">Open in Automate</button>` : ""}
-        <button type="button" id="pr-stop">Stop</button>
+        ${window.CuriosityAutomate && window.CuriosityAutomate.open ? `<button type="button" data-pr="open">Open in Automate</button>` : ""}
+        <button type="button" data-pr="stop">Stop</button>
       </div>
-      <div class="pr-panels scroll"><div class="strip" id="pr-panels"></div></div>
+      <div class="pr-panels scroll"><div class="strip" data-pr="panels"></div></div>
       <div class="pr-develop">
         <h3>Develop</h3>
         <p class="cap">Three next moves for this idea. Each one changes what is playing now.</p>
@@ -292,59 +320,68 @@
       return;
     }
     css();
-    const f = film();
-    const sp = spectrum(f);
+    const f = film(inst);
+    const whole = spectrum(f);
+    const sp = only ? filtered(whole, only) : whole;
     const m = moment();
     const opts = (n) => Array.from({ length: m.n }, (_, i) => `<option value="${i}" ${i === n ? "selected" : ""}>${i + 1}</option>`).join("");
-    const bands = view.band === "all" ? BANDS.map((b) => b.id) : [view.band];
-    root.innerHTML = `
-      <h2>Prism</h2>
+    const bands = band === "all" ? BANDS.map((b) => b.id) : [band];
+    const head = mounted
+      ? `<h3 class="pr-title">${esc(titleText())}</h3>
+         <p class="cap">Pick a curated film and a moment of your own film, then drop any row onto that moment. It plays there, built from the film's own ranges.</p>`
+      : `<h2>Prism</h2>
       <div class="pr-head">
         ${beam()}
         <p class="cap">A film is white light. The Prism splits it into its colors: the curiosities it uses and how low to how high each went, the suites that fully held, the proximities that held and after how many beats, and the proximity suites whose members held. Pick a moment of your own film, then drop any color onto it. It plays there, built from the film's own ranges, and you can develop it from there.</p>
-      </div>
+      </div>`;
+    root.innerHTML = `
+      ${head}
       <div class="bar-actions pr-bar">
-        <label class="field">Film <select id="pr-film">${films().map((x) => `<option value="${esc(x.id)}" ${x.id === f.id ? "selected" : ""}>${esc(x.title)}</option>`).join("")}</select></label>
-        ${f.id === "__board" ? `<button type="button" id="pr-reread">Read my board again</button>` : ""}
+        <label class="field">Film <select data-pr="film">${films().map((x) => `<option value="${esc(x.id)}" ${x.id === f.id ? "selected" : ""}>${esc(x.title)}</option>`).join("")}</select></label>
+        ${f.id === "__board" ? `<button type="button" data-pr="reread">Read my board again</button>` : ""}
         <span class="cap">${esc(f.kind || "")} · ${sp.beats.length} beats</span>
       </div>
       <div class="bar-actions pr-bar">
-        <span class="mono">My moment: from panel</span> <select id="pr-from" class="pr-n">${opts(m.from)}</select>
-        <span class="mono">to</span> <select id="pr-to" class="pr-n">${opts(m.to)}</select>
+        <span class="mono">My moment: from panel</span> <select data-pr="from" class="pr-n">${opts(m.from)}</select>
+        <span class="mono">to</span> <select data-pr="to" class="pr-n">${opts(m.to)}</select>
         <span class="cap">of ${m.n} panels on the board</span>
       </div>
       ${playingHtml()}
       <nav class="subtabs pr-filter">
-        <button type="button" data-band="all" class="${view.band === "all" ? "on" : ""}">All four</button>
-        ${BANDS.map((b) => `<button type="button" data-band="${esc(b.id)}" class="${view.band === b.id ? "on" : ""}" style="--hue:${b.hue}"><span class="pr-swatch"></span>${esc(b.label)}</button>`).join("")}
+        <button type="button" data-band="all" class="${band === "all" ? "on" : ""}">All four</button>
+        ${BANDS.map((b) => `<button type="button" data-band="${esc(b.id)}" class="${band === b.id ? "on" : ""}" style="--hue:${b.hue}"><span class="pr-swatch"></span>${esc(b.label)}</button>`).join("")}
       </nav>
       ${sp.beats.length ? bands.map((b) => bandHtml(b, sp)).join("") : `<p class="cap">This film has no beats yet. Trace some in Study.</p>`}
     `;
-    root.querySelector("#pr-film").addEventListener("change", (e) => {
+    root.querySelector('[data-pr="film"]').addEventListener("change", (e) => {
       view.film = e.target.value;
-      boardFilm = null;
+      inst.boardFilm = null;
       saveView();
       draw();
     });
-    const rr = root.querySelector("#pr-reread");
-    if (rr) rr.addEventListener("click", () => ((boardFilm = null), draw()));
-    root.querySelector("#pr-from").addEventListener("change", (e) => {
+    const rr = root.querySelector('[data-pr="reread"]');
+    if (rr) rr.addEventListener("click", () => ((inst.boardFilm = null), draw()));
+    root.querySelector('[data-pr="from"]').addEventListener("change", (e) => {
       view.from = Number(e.target.value);
       if (view.to < view.from) view.to = view.from;
       saveView();
       replay();
     });
-    root.querySelector("#pr-to").addEventListener("change", (e) => {
+    root.querySelector('[data-pr="to"]').addEventListener("change", (e) => {
       view.to = Number(e.target.value);
       if (view.from > view.to) view.from = view.to;
       saveView();
       replay();
     });
-    root.querySelectorAll("[data-band]").forEach((b) => b.addEventListener("click", () => ((view.band = b.dataset.band), saveView(), draw())));
+    root.querySelectorAll("[data-band]").forEach((b) => b.addEventListener("click", () => {
+      band = b.dataset.band;
+      if (!mounted) (view.band = band), saveView();
+      draw();
+    }));
     root.querySelectorAll(".pr-drop").forEach((b) => b.addEventListener("click", () => drop(b.dataset.kind, b.dataset.id, sp)));
-    const st = root.querySelector("#pr-stop");
+    const st = root.querySelector('[data-pr="stop"]');
     if (st) st.addEventListener("click", stopAll);
-    const op = root.querySelector("#pr-open");
+    const op = root.querySelector('[data-pr="open"]');
     if (op) op.addEventListener("click", () => window.CuriosityAutomate.open(playing.keys[0]));
     root.querySelectorAll(".pr-move").forEach((b) => b.addEventListener("click", () => {
       const mv = developMoves()[Number(b.dataset.move)];
@@ -457,7 +494,7 @@
     A().start(r.key);
     playing = { kind, id, keys: [r.key], title: r.title, how: r.how, m, sp, msg: "" };
     draw();
-    const el = root.querySelector("#pr-play");
+    const el = root.querySelector('[data-pr="play"]');
     if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
@@ -572,14 +609,15 @@
 
   /* ---------- the board, live ---------- */
   function visible() {
-    return !root.classList.contains("hidden") && root.isConnected;
+    if (!root.isConnected || root.classList.contains("hidden")) return false;
+    return root.checkVisibility ? root.checkVisibility() : root.getClientRects().length > 0;
   }
   function paintPanels(panels) {
-    const el = root.querySelector("#pr-panels");
+    const el = root.querySelector('[data-pr="panels"]');
     const B = window.CuriosityBoard;
     if (!el || !playing || !B || !B.panel) return;
     const n = playing.m.n;
-    if (!panels) panels = A().resolve(n).panels;
+    if (!panels || panels.length !== n) panels = A().resolve(n).panels;
     const sig = JSON.stringify(panels);
     if (sig === lastSig) return;
     lastSig = sig;
@@ -590,14 +628,19 @@
       el.innerHTML = `<p class="cap">The board could not draw.</p>`;
     }
   }
+  return inst;
+  }
+
+  /* While a Prism plays, its preview panels follow the automation, a few times a second. */
+  let lastPaint = 0;
   function hook() {
     if (!A()) return;
     A().on((type, data) => {
-      if (type !== "tick" || !playing || !visible()) return;
+      if (type !== "tick") return;
       const now = performance.now();
       if (now - lastPaint < 200) return;
       lastPaint = now;
-      if (data.panels.length === playing.m.n) paintPanels(data.panels);
+      instances.forEach((inst) => inst.visible() && inst.paint(data.panels));
     });
   }
 
@@ -606,53 +649,77 @@
     const st = document.createElement("style");
     st.id = "prism-style";
     st.textContent = `
-      #prism, #prism * { box-sizing: border-box; }
-      #prism { max-width: 100%; overflow-wrap: anywhere; }
-      #prism .pr-head { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 14px; align-items: center; }
-      #prism .pr-beam { width: 100%; height: auto; display: block; }
-      #prism .pr-bar { margin: 10px 0; }
-      #prism .pr-bar select { max-width: 100%; font-family: var(--mono); }
-      #prism .pr-bar select.pr-n { width: auto; min-width: 56px; flex: 0 0 auto; }
-      #prism .pr-bar label.field { min-width: 0; flex: 1 1 260px; max-width: 520px; }
-      #prism .pr-swatch { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; background: hsl(var(--hue) 65% 50%); border: 1px solid var(--ink); }
-      #prism .pr-filter button { white-space: nowrap; }
-      #prism .pr-band { border-left: 8px solid hsl(var(--hue) 65% 50%); padding: 6px 0 6px 12px; margin: 14px 0; background: linear-gradient(90deg, hsl(var(--hue) 70% 50% / 0.08), transparent 40%); }
-      #prism .pr-band h3 { font-family: var(--serif); font-weight: 500; font-size: 18px; margin: 0 0 2px; }
-      #prism .pr-row { display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr) minmax(140px, 220px) auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
-      #prism .pr-name { font-weight: 500; }
-      #prism .pr-scroll { overflow-x: auto; min-width: 0; }
-      #prism .pr-strip { display: flex; gap: 2px; width: max-content; }
-      #prism .pr-cell { flex: 0 0 48px; width: 48px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; border: 1px solid rgba(28,23,18,0.18); overflow: hidden; white-space: nowrap; }
-      #prism .pr-info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
-      #prism .pr-info b { font-family: var(--mono); font-size: 12px; font-weight: 500; }
-      #prism .pr-drop { white-space: nowrap; }
-      #prism .pr-drop:hover, #prism .pr-move:hover:not([disabled]) { background: var(--ink); color: var(--paper); }
-      #prism .pr-play { border: 3px solid var(--ink); background: white; padding: 10px 12px; margin: 12px 0; }
-      #prism .pr-line { margin: 0 0 4px; font-size: 15px; }
-      #prism .pr-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--saffron); animation: pr-pulse 1s infinite alternate; }
+      .prism-view, .prism-view * { box-sizing: border-box; }
+      .prism-view { max-width: 100%; overflow-wrap: anywhere; }
+      .prism-view .pr-head { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 14px; align-items: center; }
+      .prism-view .pr-beam { width: 100%; height: auto; display: block; }
+      .prism-view .pr-bar { margin: 10px 0; }
+      .prism-view .pr-bar select { max-width: 100%; font-family: var(--mono); }
+      .prism-view .pr-bar select.pr-n { width: auto; min-width: 56px; flex: 0 0 auto; }
+      .prism-view .pr-bar label.field { min-width: 0; flex: 1 1 260px; max-width: 520px; }
+      .prism-view .pr-swatch { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; background: hsl(var(--hue) 65% 50%); border: 1px solid var(--ink); }
+      .prism-view .pr-filter button { white-space: nowrap; }
+      .prism-view .pr-band { border-left: 8px solid hsl(var(--hue) 65% 50%); padding: 6px 0 6px 12px; margin: 14px 0; background: linear-gradient(90deg, hsl(var(--hue) 70% 50% / 0.08), transparent 40%); }
+      .prism-view .pr-band h3 { font-family: var(--serif); font-weight: 500; font-size: 18px; margin: 0 0 2px; }
+      .prism-view .pr-row { display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr) minmax(140px, 220px) auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+      .prism-view .pr-name { font-weight: 500; }
+      .prism-view .pr-scroll { overflow-x: auto; min-width: 0; }
+      .prism-view .pr-strip { display: flex; gap: 2px; width: max-content; }
+      .prism-view .pr-cell { flex: 0 0 48px; width: 48px; height: 26px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; border: 1px solid rgba(28,23,18,0.18); overflow: hidden; white-space: nowrap; }
+      .prism-view .pr-info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+      .prism-view .pr-info b { font-family: var(--mono); font-size: 12px; font-weight: 500; }
+      .prism-view .pr-drop { white-space: nowrap; }
+      .prism-view .pr-drop:hover, .prism-view .pr-move:hover:not([disabled]) { background: var(--ink); color: var(--paper); }
+      .prism-view .pr-play { border: 3px solid var(--ink); background: white; padding: 10px 12px; margin: 12px 0; }
+      .prism-view .pr-line { margin: 0 0 4px; font-size: 15px; }
+      .prism-view .pr-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--saffron); animation: pr-pulse 1s infinite alternate; }
       @keyframes pr-pulse { from { opacity: 1; } to { opacity: 0.3; } }
-      #prism .pr-panels { max-width: 100%; margin: 10px 0; }
-      #prism .pr-panels .strip { display: flex; gap: 6px; width: max-content; overflow: visible; }
-      #prism .pr-pan { opacity: 0.45; }
-      #prism .pr-pan.in { opacity: 1; }
-      #prism .pr-pan .panel { width: 180px; flex: 0 0 180px; }
-      #prism .pr-pan.in .panel { outline: 3px solid var(--saffron); outline-offset: 2px; }
-      #prism .pr-develop h3 { font-family: var(--serif); font-weight: 500; font-size: 17px; margin: 6px 0 2px; }
-      #prism .pr-move { display: block; width: 100%; text-align: left; margin: 6px 0; padding: 8px 10px; font-family: var(--sans); font-size: 14px; white-space: normal; }
-      #prism .pr-move b { font-family: var(--mono); font-weight: 500; }
-      #prism .pr-move[disabled] { opacity: 0.5; }
-      #prism .pr-msg { color: var(--saffron); min-height: 1em; }
+      .prism-view .pr-panels { max-width: 100%; margin: 10px 0; }
+      .prism-view .pr-panels .strip { display: flex; gap: 6px; width: max-content; overflow: visible; }
+      .prism-view .pr-pan { opacity: 0.45; }
+      .prism-view .pr-pan.in { opacity: 1; }
+      .prism-view .pr-pan .panel { width: 180px; flex: 0 0 180px; }
+      .prism-view .pr-pan.in .panel { outline: 3px solid var(--saffron); outline-offset: 2px; }
+      .prism-view .pr-develop h3 { font-family: var(--serif); font-weight: 500; font-size: 17px; margin: 6px 0 2px; }
+      .prism-view .pr-move { display: block; width: 100%; text-align: left; margin: 6px 0; padding: 8px 10px; font-family: var(--sans); font-size: 14px; white-space: normal; }
+      .prism-view .pr-move b { font-family: var(--mono); font-weight: 500; }
+      .prism-view .pr-move[disabled] { opacity: 0.5; }
+      .prism-view .pr-msg { color: var(--saffron); min-height: 1em; }
+      .prism-view.pr-mounted { display: block; min-width: 0; }
+      .prism-view.pr-mounted .pr-title { font-family: var(--serif); font-weight: 500; font-size: 18px; margin: 0 0 4px; }
+      :where(.prism-view.pr-mounted) button { font-family: var(--mono); font-size: 11px; border: 1px solid var(--ink); background: var(--panel); padding: 4px 8px; cursor: pointer; }
+      .prism-view.pr-mounted .pr-drop:hover, .prism-view.pr-mounted .subtabs button.on { background: var(--ink); color: var(--paper); }
       @media (max-width: 760px) {
-        #prism .pr-head { grid-template-columns: 1fr; }
-        #prism .pr-row { grid-template-columns: minmax(0, 1fr) auto; }
-        #prism .pr-scroll, #prism .pr-info { grid-column: 1 / -1; }
-        #prism .pr-act { grid-column: 2; grid-row: 1; }
-        #prism .pr-drop { white-space: normal; }
+        .prism-view .pr-head { grid-template-columns: 1fr; }
+        .prism-view .pr-row { grid-template-columns: minmax(0, 1fr) auto; }
+        .prism-view .pr-scroll, .prism-view .pr-info { grid-column: 1 / -1; }
+        .prism-view .pr-act { grid-column: 2; grid-row: 1; }
+        .prism-view .pr-drop { white-space: normal; }
       }
     `;
     document.head.appendChild(st);
   }
 
   hook();
-  window.CuriosityPrism = { draw };
+  const main = document.getElementById("prism");
+  if (main) main.classList.add("prism-view");
+  window.CuriosityPrism = {
+    /* The Prism tab. */
+    draw() {
+      const el = document.getElementById("prism");
+      if (!el) return;
+      if (!instances.has(el)) instances.set(el, Prism(el, {}));
+      instances.get(el).draw();
+    },
+    /* A Prism inside any element, filtered to some curiosities: mount(el, {curiosities: [ids], title}). */
+    mount(el, o) {
+      if (!el) return null;
+      o = o || {};
+      el.classList.add("prism-view", "pr-mounted");
+      const inst = Prism(el, { curiosities: o.curiosities, title: o.title, mounted: true });
+      instances.set(el, inst);
+      inst.draw();
+      return { el, redraw: () => inst.draw() };
+    },
+  };
 })();

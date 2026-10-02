@@ -11,6 +11,66 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <style id="workspaces-style">
+      /* The bar: My film and the workspaces scroll sideways inside the bar; the Library menu stays put. */
+      .tabs { flex-wrap: nowrap; align-items: flex-start; gap: 8px; }
+      .tabs-scroll { display: flex; flex: 1 1 auto; min-width: 0; gap: 6px; align-items: center; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+      .tabs-ws { display: contents; }
+      .tabs-scroll button { flex: none; white-space: nowrap; }
+      .ws-group { flex: none; font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--saffron); margin-left: 8px; }
+      .lib { position: relative; flex: none; }
+      .tabs #lib-btn::after { content: " ▾"; }
+      .lib-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 40; width: 250px; max-width: calc(100vw - 32px); background: var(--panel); border: 3px solid var(--ink); box-shadow: 4px 4px 0 rgba(28, 23, 18, 0.25); display: grid; }
+      .lib-menu[hidden] { display: none; }
+      .tabs .lib-menu button { display: grid; text-align: left; border: 0; border-bottom: 1px solid var(--line); padding: 8px 10px; background: none; }
+      .tabs .lib-menu button:last-child { border-bottom: 0; }
+      .tabs .lib-menu button:hover, .tabs .lib-menu button:focus-visible { background: var(--ink); color: var(--paper); }
+      .lib-menu small { font-family: var(--sans); font-size: 12px; text-transform: none; letter-spacing: 0; opacity: 0.75; }
+      @media (min-width: 900px) { .tabs-scroll { flex-wrap: wrap; overflow: visible; row-gap: 8px; } }
+      @media (max-width: 600px) {
+        header.top { flex-direction: column; align-items: start; padding: 16px 16px 10px; }
+        .tabs { padding: 10px 16px 0; }
+        main { padding: 12px 16px 40px; }
+      }
+      /* A workspace page */
+      .ws { min-width: 0; }
+      .ws h3 { font-family: var(--serif); font-weight: 500; font-size: 18px; margin: 0 0 6px; }
+      .ws h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin: 14px 0 4px; }
+      .ws-jump { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 4px; font-family: var(--mono); font-size: 11px; }
+      .ws-jump a { color: var(--saffron); }
+      .ws-part { border-top: 2px solid var(--ink); padding-top: 10px; margin-top: 14px; min-width: 0; }
+      .ws-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: end; margin: 6px 0; }
+      .ws-row > label.field { margin: 0; min-width: 0; }
+      .ws-step { display: inline-flex; align-items: center; gap: 8px; }
+      .ws-step b { font-family: var(--mono); font-size: 14px; min-width: 2ch; text-align: center; }
+      .ws-step button { width: 30px; height: 28px; padding: 0; font-size: 16px; }
+      .ws-add { display: flex; gap: 6px; }
+      .ws-add input { width: 130px; min-width: 0; }
+      .ws-scroll { overflow-x: auto; max-width: 100%; }
+      .ws-grid { border-collapse: collapse; font-size: 13px; }
+      .ws-grid th, .ws-grid td { border: 1px solid var(--line); padding: 4px 6px; vertical-align: top; text-align: left; }
+      .ws-grid thead th { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+      .ws-grid tbody th { font-weight: 500; min-width: 120px; max-width: 220px; }
+      .ws-grid td { min-width: 104px; }
+      .ws-grid select, .ws-grid input { width: 100%; min-width: 92px; font-size: 13px; }
+      .ws-now { display: block; font-family: var(--mono); font-size: 10px; color: var(--saffron); min-height: 0; }
+      .ws-tag { font-family: var(--mono); font-size: 9px; text-transform: uppercase; color: #7a6f63; border: 1px solid var(--line); padding: 0 3px; }
+      .ws-mini { margin-top: 10px; }
+      .ws-mini .panel { flex: 0 0 180px; min-height: 0; }
+      .ws-mini .balloon { font-size: 13px !important; }
+      .ws-mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 10px; align-items: start; }
+      .ws-mod { min-width: 0; }
+      .ws-mod.ws-flash { outline: 3px solid var(--saffron); outline-offset: 3px; }
+      .ws-g { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--saffron); margin: 10px 0 4px; }
+      .ws-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+      .ws-chips button { font-family: var(--mono); font-size: 11px; text-align: left; max-width: 100%; white-space: normal; }
+      .ws-fallback { border: 1px dashed var(--saffron); background: #fff8ef; padding: 6px 8px; }
+      .ws-matrix { margin-top: 10px; }
+      .ws-all { margin-top: 10px; }
+      .ws-all summary { cursor: pointer; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+      .ws-tool { min-width: 0; max-width: 100%; }
+      .ws-subtabs button { font-family: var(--mono); font-size: 11px; }
+    </style>
   </head>
   <body>
     <header class="top">
@@ -24,41 +84,48 @@
       </div>
       <p><a href="../../web/index.html#skits/5">Back to Book 05</a></p>
     </header>
-    <nav class="tabs" id="tabs">
-      <button type="button" data-tab="board" class="on">Board</button>
-      <button type="button" data-tab="prism">Prism</button>
-      <button type="button" data-tab="automate">Automate</button>
-      <button type="button" data-tab="study">Study</button>
-      <button type="button" data-tab="play">Play</button>
-      <button type="button" data-tab="games">Cross-pollinate</button>
-      <button type="button" data-tab="studio">Studio</button>
-      <button type="button" data-tab="catalog">Catalog</button>
-      <button type="button" data-tab="reference">Ensembles</button>
+    <nav class="tabs" id="tabs" aria-label="Workspaces">
+      <div class="tabs-scroll" id="tabs-scroll">
+        <button type="button" data-tab="board" class="on">My film</button>
+        <span class="tabs-ws" id="ws-buttons"></span>
+      </div>
+      <div class="lib">
+        <button type="button" id="lib-btn" aria-haspopup="true" aria-expanded="false" aria-controls="lib-menu">Library</button>
+        <div class="lib-menu" id="lib-menu" hidden>
+          <button type="button" data-tab="study">Curated films<small>studies and the Shelf</small></button>
+          <button type="button" data-tab="prism">Prism<small>split a whole film</small></button>
+          <button type="button" data-tab="catalog">All curiosities<small>suites, proximities, moves</small></button>
+          <button type="button" data-tab="tool" data-tool="manual">Maya manual<small>every topic, and Start here</small></button>
+          <button type="button" data-tab="tool" data-tool="print">Print<small>pages and frames</small></button>
+          <button type="button" data-tab="reference">Show structure<small>companies and exits</small></button>
+          <button type="button" data-tab="automate">Automation patch bay<small>every automation at once</small></button>
+        </div>
+      </div>
     </nav>
     <main class="layout">
       <section class="controls" id="controls"></section>
       <section class="board" id="board"></section>
+      <section class="study workspace hidden" id="workspace" style="grid-column: 1 / -1"></section>
       <section class="catalog hidden" id="catalog" style="grid-column: 1 / -1"></section>
       <section class="ref hidden" id="ref" style="grid-column: 1 / -1"></section>
       <section class="study hidden" id="study" style="grid-column: 1 / -1"></section>
-      <section class="study play hidden" id="play" style="grid-column: 1 / -1"></section>
       <section class="study studio hidden" id="studio" style="grid-column: 1 / -1"></section>
       <section class="study automate hidden" id="automate" style="grid-column: 1 / -1"></section>
-      <section class="study games hidden" id="games" style="grid-column: 1 / -1"></section>
       <section class="study prism hidden" id="prism" style="grid-column: 1 / -1"></section>
     </main>
+    <!-- Games (play.js, games.js) are paused until the curiosity model is fleshed out: kept in the folder, not loaded. -->
     <script src="catalog.js"></script>
     <script src="library.js"></script>
+    <script src="story-curiosities.js"></script>
     <script src="model.js"></script>
     <script src="reference.js"></script>
     <script src="app.js"></script>
+    <script src="story.js"></script>
     <script src="study.js"></script>
-    <script src="play.js"></script>
     <script src="maya-manual.js"></script>
     <script src="automation.js"></script>
     <script src="prism.js"></script>
     <script src="automate.js"></script>
-    <script src="games.js"></script>
     <script src="studio.js"></script>
     <script src="studio-start.js"></script>
     <script src="studio-manual.js"></script>
@@ -79,5 +146,6 @@
     <script src="studio-chain.js"></script>
     <script src="studio-live.js"></script>
     <script src="studio-print.js"></script>
+    <script src="workspaces.js"></script>
   </body>
 </html>

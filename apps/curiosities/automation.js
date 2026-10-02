@@ -54,6 +54,9 @@
     moveTemper: ["moveSpeed", "cutRate"],
     weather: ["wetness", "envMotion"],
   };
+  /* Lens files (lenses.js and others loaded before this one) add their own sub-parameters and scales. */
+  Object.entries(window.CURIOSITY_FACETS || {}).forEach(([id, list]) => (FACETS[id] = (FACETS[id] || []).concat(list.filter((x) => !(FACETS[id] || []).includes(x)))));
+  Object.assign(ORDER, window.CURIOSITY_ORDER || {});
 
   /* The values a curiosity can take: a list of words, or a number range. */
   function domain(id) {

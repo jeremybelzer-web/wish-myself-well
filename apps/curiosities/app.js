@@ -8,33 +8,78 @@
   const catalog = document.getElementById("catalog");
   const ref = document.getElementById("ref");
   const study = document.getElementById("study");
-  const play = document.getElementById("play");
+
+  /* The bar: My film (the board), the workspaces (workspaces.js draws them into #workspace), and the
+     Library menu, whose items open the older full views (Curated films, Prism, All curiosities, Show
+     structure, the automation patch bay, and Studio pages). Games are paused: not loaded, not shown. */
+  const SECTIONS = {
+    board: ["board", "controls"],
+    ws: ["workspace"],
+    tool: ["workspace"],
+    catalog: ["catalog"],
+    reference: ["ref"],
+    study: ["study"],
+    studio: ["studio"],
+    automate: ["automate"],
+    prism: ["prism"],
+  };
+  const DRAW = {
+    study: () => window.CuriosityStudy && window.CuriosityStudy.draw(),
+    studio: () => window.CuriosityStudio && window.CuriosityStudio.draw(),
+    automate: () => window.CuriosityAutomate && window.CuriosityAutomate.draw(),
+    prism: () => window.CuriosityPrism && window.CuriosityPrism.draw(),
+  };
+  let currentTab = "board";
+  function showTab(tab, button) {
+    if (!SECTIONS[tab]) tab = "board";
+    currentTab = tab;
+    const shown = new Set(SECTIONS[tab]);
+    document.querySelectorAll("main.layout > section").forEach((el) => el.classList.toggle("hidden", !shown.has(el.id)));
+    const libBtn = document.getElementById("lib-btn");
+    document.querySelectorAll("#tabs button").forEach((x) => x.classList.remove("on"));
+    if (button && !button.closest("#lib-menu")) button.classList.add("on");
+    else if (button && libBtn) libBtn.classList.add("on");
+    else if (tab === "board") {
+      const b = document.querySelector('#tabs button[data-tab="board"]');
+      if (b) b.classList.add("on");
+    }
+    if (DRAW[tab]) DRAW[tab]();
+    if (tab === "board") {
+      try {
+        localStorage.setItem("curiosities-workspace-v1", "board");
+      } catch (e) {}
+    }
+  }
+  window.CuriosityTabs = { show: showTab, current: () => currentTab };
+
+  /* The Library menu: one button that opens a short list. */
+  const libBtn = document.getElementById("lib-btn");
+  const libMenu = document.getElementById("lib-menu");
+  function libOpen(on) {
+    if (!libBtn || !libMenu) return;
+    libMenu.hidden = !on;
+    libBtn.setAttribute("aria-expanded", on ? "true" : "false");
+  }
+  if (libBtn && libMenu) {
+    libBtn.addEventListener("click", () => libOpen(libMenu.hidden));
+    document.addEventListener("click", (e) => {
+      if (!libMenu.hidden && !e.target.closest(".lib")) libOpen(false);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !libMenu.hidden) {
+        libOpen(false);
+        libBtn.focus();
+      }
+    });
+  }
 
   document.getElementById("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-tab]");
     if (!b) return;
-    document.querySelectorAll(".tabs button").forEach((x) => x.classList.toggle("on", x === b));
-    const tab = b.dataset.tab;
-    board.classList.toggle("hidden", tab !== "board");
-    controls.classList.toggle("hidden", tab !== "board");
-    catalog.classList.toggle("hidden", tab !== "catalog");
-    ref.classList.toggle("hidden", tab !== "reference");
-    study.classList.toggle("hidden", tab !== "study");
-    if (tab === "study" && window.CuriosityStudy) window.CuriosityStudy.draw();
-    play.classList.toggle("hidden", tab !== "play");
-    if (tab === "play" && window.CuriosityPlay) window.CuriosityPlay.draw();
-    const studio = document.getElementById("studio");
-    studio.classList.toggle("hidden", tab !== "studio");
-    if (tab === "studio" && window.CuriosityStudio) window.CuriosityStudio.draw();
-    const automate = document.getElementById("automate");
-    automate.classList.toggle("hidden", tab !== "automate");
-    if (tab === "automate" && window.CuriosityAutomate) window.CuriosityAutomate.draw();
-    const games = document.getElementById("games");
-    games.classList.toggle("hidden", tab !== "games");
-    if (tab === "games" && window.CuriosityGames) window.CuriosityGames.draw();
-    const prism = document.getElementById("prism");
-    prism.classList.toggle("hidden", tab !== "prism");
-    if (tab === "prism" && window.CuriosityPrism) window.CuriosityPrism.draw();
+    if (b.closest("#lib-menu")) libOpen(false);
+    /* Workspaces and Studio pages are drawn by workspaces.js, which listens for its own buttons. */
+    if (b.dataset.ws || b.dataset.tool) return;
+    showTab(b.dataset.tab, b);
   });
 
   function load() {
@@ -43,7 +88,12 @@
       const raw = localStorage.getItem("curiosities-board-v2");
       if (raw) saved = JSON.parse(raw);
     } catch (e) {}
-    const base = { sceneId: saved.sceneId || "glass", suite: saved.suite || "", applied: saved.applied || null };
+    const base = { sceneId: saved.sceneId || "glass", suite: saved.suite || "", applied: saved.applied || null, auto: saved.auto || null };
+    /* Before workspaces, running automation replaced the applied strand. It now has its own layer. */
+    if (base.applied && base.applied.label === "Automation" && !base.auto) {
+      base.auto = base.applied.values;
+      base.applied = null;
+    }
     live.forEach((c) => {
       base[c.id] = saved[c.id] != null ? saved[c.id] : c.value;
     });
@@ -135,10 +185,15 @@
     }
     save();
     drawBoard();
+    notify();
   }
 
   /* A control you touch by hand wins over a strand applied from the Shelf. */
   function unapply(id) {
+    if (state.auto && id in state.auto) {
+      delete state.auto[id];
+      if (!Object.keys(state.auto).length) state.auto = null;
+    }
     if (!state.applied || !(id in state.applied.values)) return;
     delete state.applied.values[id];
     if (!Object.keys(state.applied.values).length) state.applied = null;
@@ -258,13 +313,17 @@
   }
 
   /* A strand applied from the Shelf sets one value per panel, cycled when the strip is longer. */
+  /* Running automation plays on top of the applied strand (a Shelf strand or a workspace's cells),
+     so stopping it hands the panels back to what you set. */
   function panelState(i) {
-    if (!state.applied) return state;
+    if (!state.applied && !state.auto) return state;
     const st = Object.assign({}, state);
-    Object.entries(state.applied.values).forEach(([id, vals]) => {
-      const v = vals.length ? vals[i % vals.length] : null;
-      if (v != null && v !== "") st[id] = v;
-    });
+    [state.applied && state.applied.values, state.auto].forEach((layer) =>
+      Object.entries(layer || {}).forEach(([id, vals]) => {
+        const v = Array.isArray(vals) && vals.length ? vals[i % vals.length] : null;
+        if (v != null && v !== "") st[id] = v;
+      })
+    );
     return st;
   }
 
@@ -310,11 +369,16 @@
   }
 
   function appliedNote() {
-    if (!state.applied) return "";
-    const ids = Object.keys(state.applied.values)
-      .map((id) => (CURIOSITIES.find((c) => c.id === id) || { label: id }).label)
-      .join(", ");
-    return `<p class="applied">From the Shelf: <strong>${esc(state.applied.label)}</strong>. Panel by panel: ${esc(ids)}.
+    if (!state.applied && !state.auto) return "";
+    const names = (vals) =>
+      Object.keys(vals || {})
+        .map((id) => (CURIOSITIES.find((c) => c.id === id) || { label: id }).label)
+        .join(", ");
+    const parts = [];
+    if (state.applied && Object.keys(state.applied.values).length) parts.push(`From <strong>${esc(state.applied.label)}</strong>, panel by panel: ${esc(names(state.applied.values))}.`);
+    if (state.auto && Object.keys(state.auto).length) parts.push(`<strong>Automation</strong>, panel by panel: ${esc(names(state.auto))}.`);
+    if (!parts.length) return "";
+    return `<p class="applied">${parts.join(" ")}
       <button type="button" id="clear-applied">Clear</button></p>`;
   }
 
@@ -346,8 +410,10 @@
     if (clear)
       clear.onclick = () => {
         state.applied = null;
+        state.auto = null;
         save();
         drawBoard();
+        notify();
       };
     document.getElementById("lineage").onclick = (e) => {
       const b = e.target.closest("button[data-focus]");
@@ -531,6 +597,15 @@
       <p>These rows measure companies and exits. They do not retell the hours.</p>`;
   }
 
+  const listeners = [];
+  function notify() {
+    listeners.slice().forEach((fn) => {
+      try {
+        fn();
+      } catch (e) {}
+    });
+  }
+
   /* The study view reads the board and applies Shelf strands to it through this. */
   window.CuriosityBoard = {
     scene() {
@@ -545,9 +620,37 @@
       return out;
     },
     apply(label, values) {
-      state.applied = { label, values };
+      if (label === "Automation") state.auto = values && Object.keys(values).length ? values : null;
+      else state.applied = values && Object.keys(values).length ? { label, values } : null;
       save();
       drawBoard();
+      notify();
+    },
+    /* The strand under the automation: {label, values} or null. */
+    applied() {
+      return state.applied ? { label: state.applied.label, values: JSON.parse(JSON.stringify(state.applied.values)) } : null;
+    },
+    /* How many panels the strip shows. */
+    count() {
+      return Math.max(1, Number(state.angleCount) || 1);
+    },
+    /* What each panel actually plays: the controls, then the applied strand, then automation. */
+    panels() {
+      return Array.from({ length: Math.max(1, Number(state.angleCount) || 1) }, (_, i) => Object.assign({}, panelState(i)));
+    },
+    /* Set one control for the whole scene, as if moved by hand. */
+    set(id, value) {
+      if (!live.find((c) => c.id === id)) return;
+      state[id] = value;
+      unapply(id);
+      save();
+      drawControls();
+      drawBoard();
+      notify();
+    },
+    on(fn) {
+      listeners.push(fn);
+      return () => listeners.splice(listeners.indexOf(fn), 1);
     },
     playSuite(id) {
       const suite = SUITES.find((s) => s.id === id);

@@ -540,8 +540,7 @@
   let lastPreview = "";
 
   function tick(force) {
-    const sec = document.getElementById("studio");
-    if (!host || !host.isConnected || (sec && sec.classList.contains("hidden"))) {
+    if (!host || !host.isConnected) {
       stopPlay(true);
       return;
     }

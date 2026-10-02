@@ -1019,8 +1019,7 @@
     cancelAnimationFrame(raf);
     last = 0;
     function tick(now) {
-      const studio = document.getElementById("studio");
-      if (!canvas.isConnected || (studio && studio.classList.contains("hidden"))) return;
+      if (!canvas.isConnected) return;
       const real = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
       last = now;
       if (!paused) {

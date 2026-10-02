@@ -377,7 +377,7 @@
       } else if (!on && b) b.remove();
     };
     const liveLoop = (t) => {
-      if (!view.isConnected || document.getElementById("studio").classList.contains("hidden")) return (liveAnim = null);
+      if (!view.isConnected) return (liveAnim = null);
       if (t - live.last > 400) {
         /* automation stopped: back to the still face of this beat */
         liveAnim = null;
@@ -633,7 +633,7 @@
         return { dx: lerp(from.dx, to.dx, u), dy: lerp(from.dy, to.dy, u), lid: base.lid };
       };
       const step = (t) => {
-        if (!view.isConnected || document.getElementById("studio").classList.contains("hidden")) return;
+        if (!view.isConnected) return;
         const e = t - t0;
         const i = Math.floor(e / per);
         if (i >= n) {

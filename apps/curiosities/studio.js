@@ -76,6 +76,7 @@
   }
 
   function draw() {
+    if (!root) return;
     if (!modules.length) {
       root.innerHTML = "<p>No studio tools loaded.</p>";
       return;
@@ -100,7 +101,7 @@
     );
     try {
       m.draw(document.getElementById("studio-body"), api);
-      linkChips();
+      linkChips(root);
     } catch (e) {
       document.getElementById("studio-body").innerHTML = `<p>This tool failed to draw: ${esc(e.message)}</p>`;
     }
@@ -114,14 +115,15 @@
     if (!b || b.dataset.tab === "studio") return;
     setTimeout(() => {
       const body = document.getElementById("studio-body");
-      if (body && root.classList.contains("hidden")) body.remove();
+      if (body && root && root.classList.contains("hidden")) body.remove();
     }, 0);
   });
 
-  /* Every curiosity a tool shows as a chip can be automated: click it to open its module in Automate. */
+  /* Every curiosity a tool shows as a chip can be automated: click it to open its workspace
+     (or, without workspaces, its module in Automate). */
   const known = new Set(CURIOSITIES.map((c) => c.id));
-  function linkChips() {
-    root.querySelectorAll(".chip").forEach((chip) => {
+  function linkChips(scope) {
+    (scope || root).querySelectorAll(".chip").forEach((chip) => {
       const id = (chip.textContent.trim().match(/^([A-Za-z]+)/) || [])[1];
       if (!id || !(known.has(id) || (window.CurioAuto && window.CurioAuto.param("c:" + id))) || chip.dataset.auto) return;
       chip.dataset.auto = id;
@@ -129,11 +131,93 @@
       chip.style.cursor = "pointer";
     });
   }
-  root.addEventListener("click", (e) => {
-    const chip = e.target.closest(".chip[data-auto]");
-    if (chip && window.CuriosityAutomate && window.CuriosityAutomate.open) window.CuriosityAutomate.open("c:" + chip.dataset.auto);
-  });
-  new MutationObserver(() => linkChips()).observe(root, { childList: true, subtree: true });
+  function chipClick(e) {
+    const chip = e.target.closest && e.target.closest(".chip[data-auto]");
+    if (!chip) return;
+    const key = "c:" + chip.dataset.auto;
+    const W = window.CuriosityWorkspaces;
+    if (W && W.openFor) W.openFor(key);
+    else if (window.CuriosityAutomate && window.CuriosityAutomate.open) window.CuriosityAutomate.open(key);
+  }
+  if (root) {
+    root.addEventListener("click", chipClick);
+    new MutationObserver(() => linkChips(root)).observe(root, { childList: true, subtree: true });
+  }
+
+  /* ---------- one tool mounted into any element ----------
+     A mounted tool draws into its own body inside the host. Whenever the host is hidden (by any
+     ancestor) or taken off the page, the body is detached, so every animation loop that checks
+     isConnected stops; when the host shows again the tool is drawn fresh from its saved settings.
+     Tools keep one set of loops each, so a newly shown mount takes over a tool from any other. */
+  const mounts = new Set();
+  function shown(el) {
+    if (!el.isConnected) return false;
+    return el.checkVisibility ? el.checkVisibility() : el.getClientRects().length > 0;
+  }
+  function check() {
+    const now = Date.now();
+    /* The Studio tab's own body follows the same rule, however the section was hidden. */
+    const tabBody = document.getElementById("studio-body");
+    if (tabBody && root && root.contains(tabBody) && !shown(root)) tabBody.remove();
+    mounts.forEach((h) => {
+      const vis = shown(h.el);
+      if (vis && !h.live) h.attach();
+      else if (!vis && h.live) h.detach();
+      if (h.el.isConnected) h.seen = now;
+      else if (now - h.seen > 300000) mounts.delete(h);
+    });
+  }
+  setInterval(check, 300);
+  function mount(el, toolId) {
+    if (!el) return null;
+    mounts.forEach((h) => h.el === el && h.stop());
+    const m = modules.find((x) => x.id === toolId);
+    if (!m) {
+      el.innerHTML = `<p class="cap">This tool is not loaded.</p>`;
+      return null;
+    }
+    el.classList.add("studio-mount");
+    const h = {
+      el,
+      id: toolId,
+      live: false,
+      body: null,
+      seen: Date.now(),
+      attach() {
+        h.live = true;
+        if (h.body) h.body.remove();
+        const body = document.createElement("div");
+        body.className = "studio-body";
+        body.dataset.tool = toolId;
+        el.innerHTML = m.maya ? `<p class="cap">In Maya: ${esc(m.maya)}</p>` : "";
+        el.appendChild(body);
+        h.body = body;
+        try {
+          m.draw(body, api);
+          linkChips(el);
+        } catch (e) {
+          body.innerHTML = `<p>This tool failed to draw: ${esc(e.message)}</p>`;
+        }
+      },
+      detach() {
+        h.live = false;
+        if (h.body) h.body.remove();
+      },
+      stop() {
+        h.detach();
+        h.obs.disconnect();
+        el.removeEventListener("click", chipClick);
+        mounts.delete(h);
+      },
+    };
+    h.obs = new MutationObserver(() => linkChips(el));
+    h.obs.observe(el, { childList: true, subtree: true });
+    el.addEventListener("click", chipClick);
+    mounts.add(h);
+    if (shown(el)) h.attach();
+    else el.innerHTML = "";
+    return { el, redraw: () => (shown(el) ? h.attach() : null), stop: () => h.stop() };
+  }
 
   window.CuriosityStudio = {
     register(m) {
@@ -142,6 +226,12 @@
     },
     draw,
     api,
+    /* Draw one tool, without the sub-tab bar, into any element: mount(el, "camera"). */
+    mount,
+    /* Every registered tool: [{id, label, maya}]. */
+    tools() {
+      return modules.map((x) => ({ id: x.id, label: x.label, maya: x.maya || "" }));
+    },
     /* Open one tool by id, e.g. from the Manual's "Open" buttons. */
     open(id) {
       current = id;
@@ -149,7 +239,7 @@
         localStorage.setItem(VIEW_KEY, current);
       } catch (e) {}
       draw();
-      root.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (root) root.scrollIntoView({ behavior: "smooth", block: "start" });
     },
     label(id) {
       const m = modules.find((x) => x.id === id);

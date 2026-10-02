@@ -8,8 +8,8 @@
    The engine is window.CurioAuto (automation.js); this file is only its face. */
 
 (function () {
-  const root = document.getElementById("automate");
-  if (!root) return;
+  /* The patch bay draws into #automate (the Automate tab) or wherever mountFull put it. Cards can go anywhere. */
+  let root = document.getElementById("automate");
   const VIEW = "curiosities-automate-view-v1";
   const LEVELS = [
     ["curiosity", "Curiosities"],
@@ -49,11 +49,9 @@
   } catch (e) {}
   let raf = 0;
   let unsub = null;
-  let learnFor = null; // { key, what: "note"|"cc-manual"|"cc-rate"|"key" }
   let lastPanels = 0;
   let lastPanelSig = "";
-  const scope = {};
-  const lanesOpen = {}; // key -> true/false once the person opens or closes its Lanes
+  const lanesOpen = {}; // key -> true once a patch preset opens its Lanes
 
   function A() {
     return window.CurioAuto;
@@ -71,7 +69,7 @@
     } catch (e) {}
   }
   function visible() {
-    return root.isConnected && !root.classList.contains("hidden");
+    return !!root && root.isConnected && !root.classList.contains("hidden") && root.getClientRects().length > 0;
   }
 
   /* ---------- pickers ---------- */
@@ -121,7 +119,7 @@
     return "bound";
   }
 
-  /* ---------- drawing ---------- */
+  /* ---------- the patch bay's parameter list ---------- */
 
   function listHtml() {
     const all = A().PARAMS.filter((p) => p.level === view.level);
@@ -142,7 +140,7 @@
   }
 
   function knob(name, label, min, max, step, val, fmt) {
-    return `<label class="au-knob"><span>${esc(label)}</span><input type="range" data-k="${name}" min="${min}" max="${max}" step="${step}" value="${val}"><b id="au-kv-${name}">${esc(fmt ? fmt(val) : val)}</b></label>`;
+    return `<label class="au-knob"><span>${esc(label)}</span><input type="range" data-k="${name}" min="${min}" max="${max}" step="${step}" value="${val}"><b data-kv="${name}">${esc(fmt ? fmt(val) : val)}</b></label>`;
   }
 
   function panelCount() {
@@ -202,11 +200,11 @@
     if (p.level === "suite") return Object.keys((SUITES.find((s) => s.id === p.id) || { set: {} }).set).map((k) => "c:" + k);
     return [];
   }
-  function laneHtml(p, l) {
+  function laneHtml(c, p, l) {
     const lk = p.key + "#" + l.id;
     const added = l.target.startsWith("c:") && !defaultTargets(p).includes(l.target);
     const bind = A().bindings()[lk];
-    const learning = learnFor && learnFor.key === lk;
+    const learning = c.learnFor && c.learnFor.key === lk;
     const mod = l.mod || "follow";
     return `<div class="au-lane ${l.on ? "on" : ""}" data-lane="${esc(l.id)}">
       <div class="au-lane-head">
@@ -236,41 +234,44 @@
       .map((g) => `<optgroup label="${esc(g)}">${groups[g].map((x) => `<option value="c:${esc(x.id)}">${esc(x.label)}</option>`).join("")}</optgroup>`)
       .join("")}</select></label>`;
   }
-  function lanesHtml(p) {
+  function lanesHtml(c, p) {
     const lanes = A().lanes(p.key);
     const on = lanes.filter((l) => l.on).length;
-    const open = p.key in lanesOpen ? lanesOpen[p.key] : on > 0;
-    return `<details class="au-lanes" id="au-lanes"${open ? " open" : ""}><summary>Lanes (${on} on)</summary>
+    const open = c.lanesOpen != null ? c.lanesOpen : p.key in lanesOpen ? lanesOpen[p.key] : on > 0;
+    return `<details class="au-lanes" data-r="lanes"${open ? " open" : ""}><summary>Lanes (${on} on)</summary>
       <p class="cap">Each lane grades one more part of this between two settings. Switch one on to make it act.</p>
-      ${lanes.map((l) => laneHtml(p, l)).join("")}
+      ${lanes.map((l) => laneHtml(c, p, l)).join("")}
       ${addLaneHtml(p)}
     </details>`;
   }
+  function trigText(pt) {
+    return `<span class="au-onoff">${pt.running ? "ON" : "OFF"}</span><small>${pt.mode === "gate" ? "hold to play" : pt.running ? "tap to turn off" : "tap to turn on"}</small>`;
+  }
+  function runText(pt) {
+    return pt.running ? "Turn off" : "Turn on (stays on)";
+  }
 
-  function moduleHtml() {
-    const p = A().param(view.sel);
-    if (!p) return `<p class="cap">Pick a parameter to open its module.</p>`;
+  /* ---------- one module card: used by the patch bay and by CuriosityAutomate.mount ---------- */
+  /* A card is { host, wrap, key, compact, bay, more, lanesOpen, learnFor, self, sig, scope }.
+     Every live card is in `cards`; one CurioAuto listener and one animation frame serve them all,
+     and a card whose element has left the page is dropped on the next event or frame. */
+
+  const cards = new Set();
+  let hubUnsub = null;
+  let hubRaf = 0;
+  let keyLearner = null; // the card waiting for "Bind a key"
+
+  function cardHtml(c) {
+    const p = A().param(c.key);
+    if (!p) return `<p class="cap">There is no automation for “${esc(c.key)}”.</p>`;
     const pt = A().patch(p.key);
     const b = A().bindings()[p.key];
     const outs = A().midi.outputs || [];
-    return `<div class="au-module ${pt.running ? "run" : ""}">
-      <div class="au-face">
-        <div class="au-title"><span class="au-level">${esc(p.level)}</span><strong>${esc(p.label)}</strong><button type="button" class="au-star ${starred(p.key) ? "on" : ""}" data-star="${esc(p.key)}" aria-pressed="${starred(p.key)}">${starred(p.key) ? "★ On the performer pads" : "☆ Add to performer pads"}</button></div>
-        <p class="au-desc">${esc(describe(p))}</p>
-        <button type="button" class="au-trigger ${pt.running ? "on" : ""}" id="au-trig" role="switch" aria-checked="${pt.running}">${trigText(pt)}</button>
-        <div class="au-row">
-          <span class="au-lab">Switch</span>
-          <div class="au-seg">${[["gate", "on while held"], ["toggle", "tap on, tap off"]].map(([m, n]) => `<button type="button" data-mode="${m}" class="${pt.mode === m ? "on" : ""}">${n}</button>`).join("")}</div>
-          <span class="au-run"><button type="button" id="au-run">${pt.running ? "Turn off" : "Turn on (stays on)"}</button></span>
-        </div>
-        ${momentHtml(pt)}
-        <div class="au-mainlane">
-          <div class="au-lab au-mainname" id="au-mainname">${esc(mainName(p, pt))}</div>
-          <div class="au-ab">
-            <div><span class="au-jack"></span><span class="au-lab">from</span>${abPicker(p, pt, "a")}</div>
-            <div><span class="au-jack"></span><span class="au-lab">to</span>${abPicker(p, pt, "b")}</div>
-          </div>
-          <div class="au-row"><label class="cap">curve ${curveSelect("data-main-curve", pt.curve)}</label></div>
+    const lf = c.learnFor;
+    const star = c.bay ? `<button type="button" class="au-star ${starred(p.key) ? "on" : ""}" data-star aria-pressed="${starred(p.key)}">${starred(p.key) ? "★ On the performer pads" : "☆ Add to performer pads"}</button>` : "";
+    const desc = `<p class="au-desc">${esc(describe(p))}</p>`;
+    const meterRow = `<div class="au-row"><span class="au-meter au-mmeter"><i data-r="meter"></i></span><span class="mono" data-r="m">m —</span><span class="cap">0 is “from”, 1 is “to”</span></div>`;
+    const mover = `<div class="au-row"><label class="cap">curve ${curveSelect("data-main-curve", pt.curve)}</label></div>
           ${sweepHtml("data-main-across", pt.across)}
           <div class="au-row">
             <span class="au-lab">Moved by</span>
@@ -282,11 +283,8 @@
                  <div class="au-knobs">${knob("rate", "Rate Hz", 0.05, 10, 0.05, pt.rate, (v) => Number(v).toFixed(2))}${knob("depth", "Depth", 0, 1, 0.05, pt.depth, (v) => Math.round(v * 100) + "%")}</div>`
               : `<div class="au-knobs">${knob("manual", pt.mod === "midi" ? "CC value" : "Knob", 0, 1, 0.01, pt.manual, (v) => Number(v).toFixed(2))}</div>`
           }
-          <div class="au-row"><span class="mono" id="au-m">m —</span><span class="cap">0 is “from”, 1 is “to”</span></div>
-          <canvas class="au-scope" id="au-scope" width="300" height="70"></canvas>
-        </div>
-        ${lanesHtml(p)}
-        <div class="au-row"><span class="au-lab">Bind</span><span class="cap" id="au-bind">${esc(learnFor && learnFor.key === p.key ? (learnFor.what === "key" ? "Press a key…" : "Move or play a MIDI control…") : bindingText(b))}</span></div>
+          <canvas class="au-scope" data-r="scope" width="300" height="70"></canvas>`;
+    const binds = `<div class="au-row"><span class="au-lab">Bind</span><span class="cap" data-r="bind">${esc(lf && lf.key === p.key ? (lf.what === "key" ? "Press a key…" : "Move or play a MIDI control…") : bindingText(b))}</span></div>
         <div class="bar-actions au-binds">
           <button type="button" data-learn="note">Learn switch (note)</button>
           <button type="button" data-learn="cc-manual">Learn CC → knob</button>
@@ -294,13 +292,466 @@
           <button type="button" data-learn="key">Bind a key</button>
           ${b ? `<button type="button" data-learn="clear">Clear</button>` : ""}
         </div>
-        <div class="au-row"><span class="au-jack out"></span><span class="au-lab">MIDI out CC</span><input type="number" id="au-outcc" min="0" max="127" placeholder="off" value="${pt.outCC == null ? "" : pt.outCC}"><span class="cap">${outs.length ? "" : "connect MIDI to send"}</span></div>
-      </div>
-    </div>`;
+        <div class="au-row"><span class="au-jack out"></span><span class="au-lab">MIDI out CC</span><input type="number" class="au-outcc" data-r="outcc" min="0" max="127" placeholder="off" value="${pt.outCC == null ? "" : pt.outCC}"><span class="cap">${outs.length ? "" : "connect MIDI to send"}</span></div>`;
+    const ab = `<div class="au-ab">
+            <div><span class="au-jack"></span><span class="au-lab">from</span>${abPicker(p, pt, "a")}</div>
+            <div><span class="au-jack"></span><span class="au-lab">to</span>${abPicker(p, pt, "b")}</div>
+          </div>`;
+    const top = `<div class="au-title"><span class="au-level">${esc(p.level)}</span><strong>${esc(p.label)}</strong>${star}</div>
+        ${c.compact ? "" : desc}
+        <button type="button" class="au-trigger ${pt.running ? "on" : ""}" data-r="trig" role="switch" aria-checked="${pt.running}" aria-label="${esc(p.label)}: switch">${trigText(pt)}</button>
+        <div class="au-row">
+          <span class="au-lab">Switch</span>
+          <div class="au-seg">${[["gate", "on while held"], ["toggle", "tap on, tap off"]].map(([m, n]) => `<button type="button" data-mode="${m}" class="${pt.mode === m ? "on" : ""}">${n}</button>`).join("")}</div>
+          <span class="au-run"><button type="button" data-r="run">${runText(pt)}</button></span>
+        </div>
+        ${momentHtml(pt)}`;
+    const body = c.compact
+      ? `${top}
+        <div class="au-mainlane">
+          <div class="au-lab au-mainname" data-r="mainname">${esc(mainName(p, pt))}</div>
+          ${ab}
+          ${meterRow}
+        </div>
+        <button type="button" class="link au-moretog" data-r="moretog" aria-expanded="${!!c.more}">${c.more ? "Less" : "More: curve, mover, lanes, MIDI"}</button>
+        <div class="au-more" data-r="more"${c.more ? "" : " hidden"}>
+          ${desc}
+          <div class="au-mainlane">${mover}</div>
+          ${lanesHtml(c, p)}
+          ${binds}
+        </div>`
+      : `${top}
+        <div class="au-mainlane">
+          <div class="au-lab au-mainname" data-r="mainname">${esc(mainName(p, pt))}</div>
+          ${ab}
+          ${meterRow}
+          ${mover}
+        </div>
+        ${lanesHtml(c, p)}
+        ${binds}`;
+    return `<div class="au-module ${pt.running ? "run" : ""}"><div class="au-face">${body}</div></div>`;
   }
-  function trigText(pt) {
-    return `<span class="au-onoff">${pt.running ? "ON" : "OFF"}</span><small>${pt.mode === "gate" ? "hold to play" : pt.running ? "tap to turn off" : "tap to turn on"}</small>`;
+
+  /* What a card shows, minus the parts that move by themselves (on/off, knob and rate values),
+     so a change made elsewhere redraws the card only when its controls would look different. */
+  function cardSig(c) {
+    const pt = A().patch(c.key);
+    const bs = A().bindings();
+    const lanes = (pt.lanes || []).map((l) => Object.assign({}, l, { manual: undefined }));
+    const lb = Object.keys(bs).filter((k) => k === c.key || k.startsWith(c.key + "#")).map((k) => [k, bs[k]]);
+    return JSON.stringify([Object.assign({}, pt, { running: undefined, manual: undefined, rate: undefined, lanes }), lb, c.bay && starred(c.key), (A().midi.outputs || []).length]);
   }
+
+  function renderCard(c) {
+    if (!c.wrap.isConnected && c.wrap.parentNode !== c.host) return;
+    c.wrap.className = "au-card" + (c.compact ? " compact" : "") + (c.bay ? " au-card-bay" : "");
+    c.wrap.innerHTML = cardHtml(c);
+    c.sig = A().param(c.key) ? cardSig(c) : "";
+    c.stale = false;
+    if (A().param(c.key)) wireCard(c);
+    paintCard(c, performance.now());
+  }
+
+  /* Small updates that never redraw: the switch, the run button, the main lane's name, knob positions. */
+  function liveUpdate(c) {
+    const p = A().param(c.key);
+    if (!p) return;
+    const pt = A().patch(c.key);
+    const q = (r) => c.wrap.querySelector(`[data-r="${r}"]`);
+    const t = q("trig");
+    if (t) {
+      t.classList.toggle("on", pt.running);
+      t.setAttribute("aria-checked", String(pt.running));
+      t.innerHTML = trigText(pt);
+    }
+    const r = q("run");
+    if (r) r.textContent = runText(pt);
+    const mn = q("mainname");
+    if (mn) mn.textContent = mainName(p, pt);
+    const mod = c.wrap.querySelector(".au-module");
+    if (mod) mod.classList.toggle("run", pt.running);
+    const rate = c.wrap.querySelector('[data-k="rate"]');
+    if (rate && document.activeElement !== rate && Math.abs(Number(rate.value) - pt.rate) > 0.01) {
+      rate.value = pt.rate;
+      const o = c.wrap.querySelector('[data-kv="rate"]');
+      if (o) o.textContent = Number(pt.rate).toFixed(2);
+    }
+    const man = c.wrap.querySelector('[data-k="manual"]');
+    if (man && document.activeElement !== man) {
+      man.value = pt.manual;
+      const o = c.wrap.querySelector('[data-kv="manual"]');
+      if (o) o.textContent = Number(pt.manual).toFixed(2);
+    }
+    (pt.lanes || []).forEach((l) => {
+      const row = c.wrap.querySelector(`[data-lane="${CSS.escape(l.id)}"] [data-lane-manual]`);
+      if (row && document.activeElement !== row) row.value = Number(l.manual) || 0;
+    });
+    if (!pt.running) c.wrap.querySelectorAll("[data-lmeter]").forEach((i) => ((i.style.width = "0%"), i.parentNode.classList.remove("live")));
+  }
+
+  function cardVisible(c) {
+    return c.wrap.isConnected && c.wrap.getClientRects().length > 0;
+  }
+
+  /* The main meter, m and the scope, drawn every frame while the card is on screen. */
+  function paintCard(c, now) {
+    if (!A().param(c.key)) return;
+    const m = A().m(c.key);
+    const buf = c.scope;
+    buf.push([now, m]);
+    while (buf.length && now - buf[0][0] > 4000) buf.shift();
+    const mt = c.wrap.querySelector('[data-r="m"]');
+    if (mt) mt.textContent = m == null ? "m — (off)" : `m ${m.toFixed(2)}`;
+    const mm = c.wrap.querySelector('[data-r="meter"]');
+    if (mm) mm.style.width = Math.round(Math.max(0, Math.min(1, m || 0)) * 100) + "%";
+    const cv = c.wrap.querySelector('[data-r="scope"]');
+    if (!cv || !cv.getClientRects().length) return;
+    const g = cv.getContext("2d");
+    const W = cv.width;
+    const H = cv.height;
+    g.fillStyle = "#1c1712";
+    g.fillRect(0, 0, W, H);
+    g.strokeStyle = "rgba(247,239,226,0.15)";
+    g.lineWidth = 1;
+    g.beginPath();
+    for (let s = 1; s < 4; s++) {
+      g.moveTo((s / 4) * W, 0);
+      g.lineTo((s / 4) * W, H);
+    }
+    g.moveTo(0, H / 2);
+    g.lineTo(W, H / 2);
+    g.stroke();
+    g.strokeStyle = "#e0a070";
+    g.lineWidth = 2;
+    g.beginPath();
+    let pen = false;
+    buf.forEach(([t, v]) => {
+      const x = W - ((now - t) / 4000) * W;
+      if (v == null) {
+        pen = false;
+        return;
+      }
+      const y = H - 6 - v * (H - 12);
+      pen ? g.lineTo(x, y) : g.moveTo(x, y);
+      pen = true;
+    });
+    g.stroke();
+    g.fillStyle = "rgba(247,239,226,0.6)";
+    g.font = "10px monospace";
+    g.fillText("to", 4, 12);
+    g.fillText("from", 4, H - 4);
+  }
+
+  function dropCard(c) {
+    cards.delete(c);
+    if (keyLearner === c) keyLearner = null;
+    if (c.host && c.host.__auCard === c) c.host.__auCard = null;
+  }
+  function prune() {
+    const now = performance.now();
+    cards.forEach((c) => {
+      if (c.wrap.isConnected) c.seen = true;
+      /* A card mounted into an element not yet on the page gets two seconds to arrive. */
+      else if (c.seen || now - c.born > 2000) dropCard(c);
+    });
+    if (!cards.size && hubUnsub) {
+      const u = hubUnsub;
+      hubUnsub = null;
+      queueMicrotask(u); // not while CurioAuto is still walking its listener list
+    }
+  }
+
+  function hubEvent(type, data) {
+    prune();
+    if (!cards.size) return;
+    if (type === "tick") {
+      cards.forEach((c) => {
+        if (!cardVisible(c)) return;
+        c.wrap.querySelectorAll("[data-lmeter]").forEach((i) => {
+          const v = data.ms ? data.ms[i.dataset.lmeter] : null;
+          i.style.width = v == null ? "0%" : Math.round(Math.max(0, Math.min(1, v)) * 100) + "%";
+          i.parentNode.classList.toggle("live", v != null);
+        });
+      });
+    } else if (type === "change") {
+      cards.forEach((c) => {
+        if (data && data.key && data.key !== c.key) return;
+        if (!A().param(c.key)) return;
+        const sig = cardSig(c);
+        if (sig !== c.sig) {
+          if (c.self) c.sig = sig; // this card made the change and already shows it
+          else if (c.wrap.contains(document.activeElement) && /input|select|textarea/i.test(document.activeElement.tagName)) c.stale = true; // redraw once the person leaves the field
+          else renderCard(c);
+        }
+        liveUpdate(c);
+      });
+    } else if (type === "learned") {
+      let done = false;
+      cards.forEach((c) => {
+        const lf = c.learnFor;
+        if (!lf || lf.key !== data.key) return;
+        if (!done) {
+          done = true;
+          const b = data.binding;
+          if (lf.what === "lane") {
+            const [pk, lid] = data.key.split("#");
+            if (b.kind === "cc") A().setLane(pk, lid, { mod: "midi" });
+          } else {
+            if (b.kind === "cc" && lf.what === "cc-rate") A().bind(data.key, Object.assign({}, b, { target: "rate" }));
+            if (b.kind === "cc" && lf.what === "cc-manual" && A().patch(data.key).mod === "lfo") A().set(data.key, { mod: "midi" });
+          }
+        }
+        c.learnFor = null;
+        renderCard(c);
+      });
+    }
+  }
+
+  function hubFrame(now) {
+    hubRaf = 0;
+    prune();
+    if (!cards.size) return;
+    cards.forEach((c) => cardVisible(c) && paintCard(c, now));
+    hubRaf = requestAnimationFrame(hubFrame);
+  }
+  function hubStart() {
+    if (!hubUnsub) hubUnsub = A().on(hubEvent);
+    if (!hubRaf) hubRaf = requestAnimationFrame(hubFrame);
+  }
+
+  /* Draw one module card into host. Returns the card. */
+  function mountCard(host, key, opts) {
+    opts = opts || {};
+    if (host.__auCard) dropCard(host.__auCard);
+    const wrap = document.createElement("div");
+    const c = { host, wrap, key, compact: !!opts.compact, bay: !!opts.bay, more: false, lanesOpen: null, learnFor: null, self: 0, sig: "", stale: false, scope: [], born: performance.now(), seen: false };
+    host.innerHTML = "";
+    host.appendChild(wrap);
+    host.__auCard = c;
+    wrap.addEventListener("focusout", () =>
+      setTimeout(() => {
+        if (c.stale && !wrap.contains(document.activeElement)) renderCard(c);
+      }, 0)
+    );
+    cards.add(c);
+    renderCard(c);
+    hubStart();
+    return c;
+  }
+
+  function wireCard(c) {
+    const el = c.wrap;
+    const key = c.key;
+    const p = A().param(key);
+    const pt = () => A().patch(key);
+    /* Changes this card makes: it already shows them, so the change event does not redraw it mid-drag. */
+    const own = (fn) => {
+      c.self++;
+      try {
+        fn();
+      } finally {
+        c.self--;
+      }
+    };
+    const set = (changes) => own(() => A().set(key, changes));
+    const redraw = () => renderCard(c);
+    const r = (name) => el.querySelector(`[data-r="${name}"]`);
+
+    el.querySelectorAll("[data-ab]").forEach((inp) =>
+      inp.addEventListener("change", () => {
+        const side = inp.dataset.ab;
+        if (p.level === "curiosity") set({ [side]: p.domain.kind === "range" ? Number(inp.value) : inp.value });
+        else if (p.level === "suite") set({ [side]: inp.value });
+        else {
+          const cur = Object.assign({ on: false, within: 0 }, pt()[side]);
+          if (inp.dataset.part === "on") cur.on = inp.checked;
+          else cur.within = Math.max(0, Math.min(8, Number(inp.value) || 0));
+          set({ [side]: cur });
+        }
+      })
+    );
+    const mt = r("moretog");
+    if (mt)
+      mt.addEventListener("click", () => {
+        c.more = !c.more;
+        const box = r("more");
+        if (box) box.hidden = !c.more;
+        mt.textContent = c.more ? "Less" : "More: curve, mover, lanes, MIDI";
+        mt.setAttribute("aria-expanded", String(c.more));
+      });
+    /* Main lane curve and sweep, and the moment. */
+    const mc = el.querySelector("[data-main-curve]");
+    if (mc) mc.addEventListener("change", () => set({ curve: mc.value }));
+    const ma = el.querySelector("[data-main-across]");
+    if (ma)
+      ma.addEventListener("input", () => {
+        set({ across: Number(ma.value) });
+        ma.nextElementSibling.textContent = Math.round(Number(ma.value) * 100) + "%";
+      });
+    el.querySelectorAll("[data-where]").forEach((sel) =>
+      sel.addEventListener("change", () => {
+        const w = Object.assign({ from: 0, to: null }, pt().where);
+        if (sel.dataset.where === "from") w.from = Number(sel.value) || 0;
+        else w.to = sel.value === "" ? null : Number(sel.value);
+        if (w.to != null && w.to < w.from) w.to = w.from;
+        set({ where: w });
+        redraw();
+      })
+    );
+    const lanesEl = r("lanes");
+    if (lanesEl) lanesEl.addEventListener("toggle", () => (c.lanesOpen = lanesEl.open));
+    el.querySelectorAll("[data-lane]").forEach((row) => {
+      const id = row.dataset.lane;
+      const lane = () => A().lanes(key).find((l) => l.id === id) || {};
+      const setL = (changes, again) => {
+        own(() => A().setLane(key, id, changes));
+        if (again) {
+          c.lanesOpen = true;
+          redraw();
+        }
+      };
+      const q = (sel) => row.querySelector(sel);
+      q("[data-lane-on]").addEventListener("change", (e) => setL({ on: e.target.checked }, true));
+      row.querySelectorAll("[data-lane-v]").forEach((inp) =>
+        inp.addEventListener("change", () => {
+          const d = laneSpec(lane());
+          let v = inp.value;
+          if (d.kind === "range") v = Math.max(d.min, Math.min(d.max, Number(v) || 0));
+          setL({ [inp.dataset.laneV]: v });
+        })
+      );
+      q("[data-lane-curve]").addEventListener("change", (e) => setL({ curve: e.target.value }));
+      q("[data-lane-mod]").addEventListener("change", (e) => setL({ mod: e.target.value }, true));
+      const sh = q("[data-lane-shape]");
+      if (sh) sh.addEventListener("change", () => setL({ shape: sh.value }));
+      const rt = q("[data-lane-rate]");
+      if (rt) rt.addEventListener("change", () => setL({ rate: Math.max(0.05, Math.min(10, Number(rt.value) || 0.5)) }));
+      const mn = q("[data-lane-manual]");
+      if (mn) mn.addEventListener("input", () => setL({ manual: Number(mn.value) }));
+      const ac = q("[data-lane-across]");
+      ac.addEventListener("input", () => {
+        setL({ across: Number(ac.value) });
+        ac.nextElementSibling.textContent = Math.round(Number(ac.value) * 100) + "%";
+      });
+      const lr = q("[data-lane-learn]");
+      if (lr)
+        lr.addEventListener("click", () => {
+          c.learnFor = { key: key + "#" + id, what: "lane" };
+          if (A().midi.status === "off") A().connectMidi();
+          A().learn(key + "#" + id);
+          c.lanesOpen = true;
+          redraw();
+        });
+      const ub = q("[data-lane-unbind]");
+      if (ub) ub.addEventListener("click", () => (own(() => A().bind(key + "#" + id, null)), redraw()));
+      const rm = q("[data-lane-remove]");
+      if (rm) rm.addEventListener("click", () => (own(() => A().removeLane(key, id)), redraw()));
+    });
+    const addSel = el.querySelector("[data-lane-add]");
+    if (addSel)
+      addSel.addEventListener("change", () => {
+        if (!addSel.value) return;
+        own(() => A().addLane(key, addSel.value));
+        c.lanesOpen = true;
+        redraw();
+      });
+    el.querySelectorAll("[data-mod]").forEach((b) => b.addEventListener("click", () => (set({ mod: b.dataset.mod }), redraw())));
+    el.querySelectorAll("[data-shape]").forEach((b) => b.addEventListener("click", () => (set({ shape: b.dataset.shape }), redraw())));
+    el.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => (set({ mode: b.dataset.mode }), redraw())));
+    el.querySelectorAll("[data-k]").forEach((rg) =>
+      rg.addEventListener("input", () => {
+        const v = Number(rg.value);
+        set({ [rg.dataset.k]: v });
+        const out = el.querySelector(`[data-kv="${rg.dataset.k}"]`);
+        if (out) out.textContent = rg.dataset.k === "depth" ? Math.round(v * 100) + "%" : v.toFixed(2);
+      })
+    );
+    const star = el.querySelector("[data-star]");
+    if (star)
+      star.addEventListener("click", () => {
+        view.stars = view.stars || [];
+        if (starred(key)) view.stars = view.stars.filter((k) => k !== key);
+        else view.stars.push(key);
+        saveView();
+        redraw();
+      });
+    const trig = r("trig");
+    trig.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      try {
+        trig.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      trig.classList.add("held");
+      A().trigger(key, true);
+    });
+    const up = () => {
+      trig.classList.remove("held");
+      if (pt().mode === "gate") A().trigger(key, false);
+    };
+    trig.addEventListener("pointerup", up);
+    trig.addEventListener("pointercancel", up);
+    trig.addEventListener("keydown", (e) => {
+      if ((e.key === " " || e.key === "Enter") && !e.repeat) {
+        e.preventDefault();
+        A().trigger(key, true);
+      }
+    });
+    trig.addEventListener("keyup", (e) => {
+      if (e.key === " " || e.key === "Enter") up();
+    });
+    r("run").addEventListener("click", () => (pt().running ? A().stop(key) : A().start(key)));
+    el.querySelectorAll("[data-learn]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const what = b.dataset.learn;
+        if (what === "clear") {
+          c.learnFor = null;
+          if (keyLearner === c) keyLearner = null;
+          own(() => A().bind(key, null));
+          return redraw();
+        }
+        c.learnFor = { key, what };
+        if (what === "key") keyLearner = c;
+        else {
+          if (A().midi.status === "off") A().connectMidi();
+          A().learn(key);
+        }
+        redraw();
+      })
+    );
+    const oc = r("outcc");
+    oc.addEventListener("change", () => set({ outCC: oc.value === "" ? null : Math.max(0, Math.min(127, Number(oc.value) || 0)) }));
+  }
+
+  /* Key binding: the next key pressed while a card's "Bind a key" is waiting. */
+  window.addEventListener(
+    "keydown",
+    (e) => {
+      const c = keyLearner;
+      if (!c || !c.learnFor || c.learnFor.what !== "key") return;
+      if (!cardVisible(c)) {
+        if (!c.wrap.isConnected) keyLearner = null;
+        return;
+      }
+      if (/input|select|textarea/i.test(e.target.tagName)) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      keyLearner = null;
+      c.learnFor = null;
+      own0(() => A().bind(c.key, { kind: "key", code: e.code }), c);
+      renderCard(c);
+    },
+    true
+  );
+  function own0(fn, c) {
+    c.self++;
+    try {
+      fn();
+    } finally {
+      c.self--;
+    }
+  }
+
+  /* ---------- the patch bay (the whole Automate view) ---------- */
 
   function bayHtml() {
     const keys = A().running();
@@ -383,6 +834,8 @@
   }
 
   function render() {
+    if (!root) return;
+    root.classList.add("automate");
     if (!A()) {
       root.innerHTML = `<h2>Automate</h2><p>The automation layer (automation.js) did not load.</p>`;
       return;
@@ -397,24 +850,30 @@
       <div class="studio-grid au-grid">
         <div class="au-side" id="au-side">${listHtml()}</div>
         <div class="au-main">
-          <div id="au-module">${moduleHtml()}</div>
+          <div id="au-module"></div>
           <div class="g au-g">Board, live</div>
           <div class="au-panels" id="au-panels"></div>
           <div id="au-holds" class="au-holds"></div>
           ${helpHtml()}
         </div>
       </div>`}`;
+    refreshModule();
     wire();
     lastPanelSig = "";
     drawPanels(null);
   }
 
   function refreshModule() {
-    const el = root.querySelector("#au-module");
-    if (el) {
-      el.innerHTML = moduleHtml();
-      wireModule();
+    const el = root && root.querySelector("#au-module");
+    if (!el) return;
+    if (!A().param(view.sel)) {
+      if (el.__auCard) dropCard(el.__auCard);
+      el.innerHTML = `<p class="cap">Pick a parameter to open its module.</p>`;
+      return;
     }
+    const c = el.__auCard;
+    if (c && c.key === view.sel && c.wrap.isConnected) renderCard(c);
+    else mountCard(el, view.sel, { bay: true });
   }
   function refreshBay() {
     const el = root.querySelector("#au-bay");
@@ -455,8 +914,6 @@
     refreshModule();
   }
 
-  /* ---------- wiring ---------- */
-
   function wire() {
     root.querySelectorAll("[data-level]").forEach((b) =>
       b.addEventListener("click", () => {
@@ -479,6 +936,7 @@
           });
           A().lanes(pr.key).forEach((l) => A().setLane(pr.key, l.id, pr.lanes[l.id] ? JSON.parse(JSON.stringify(pr.lanes[l.id])) : { on: false }));
           lanesOpen[pr.key] = true;
+          cards.forEach((c) => c.key === pr.key && c.bay && (c.lanesOpen = true));
         }
         A().start(pr.key);
         select(pr.key);
@@ -492,10 +950,7 @@
         render();
       });
     if (view.perf) wirePads();
-    else {
-      wireSide();
-      wireModule();
-    }
+    else wireSide();
     wireBay();
     const midiBtn = root.querySelector("#au-midi");
     if (midiBtn)
@@ -549,182 +1004,7 @@
     if (all) all.addEventListener("click", () => A().stopAll());
   }
 
-  function wireModule() {
-    const el = root.querySelector("#au-module");
-    const key = view.sel;
-    const p = A().param(key);
-    if (!p) return;
-    const pt = () => A().patch(key);
-    el.querySelectorAll("[data-ab]").forEach((inp) =>
-      inp.addEventListener("change", () => {
-        const side = inp.dataset.ab;
-        if (p.level === "curiosity") A().set(key, { [side]: p.domain.kind === "range" ? Number(inp.value) : inp.value });
-        else if (p.level === "suite") A().set(key, { [side]: inp.value });
-        else {
-          const cur = Object.assign({ on: false, within: 0 }, pt()[side]);
-          if (inp.dataset.part === "on") cur.on = inp.checked;
-          else cur.within = Math.max(0, Math.min(8, Number(inp.value) || 0));
-          A().set(key, { [side]: cur });
-        }
-      })
-    );
-    /* Main lane curve and sweep, and the moment. */
-    const mc = el.querySelector("[data-main-curve]");
-    if (mc) mc.addEventListener("change", () => A().set(key, { curve: mc.value }));
-    const ma = el.querySelector("[data-main-across]");
-    if (ma)
-      ma.addEventListener("input", () => {
-        A().set(key, { across: Number(ma.value) });
-        ma.nextElementSibling.textContent = Math.round(Number(ma.value) * 100) + "%";
-      });
-    el.querySelectorAll("[data-where]").forEach((sel) =>
-      sel.addEventListener("change", () => {
-        const w = Object.assign({ from: 0, to: null }, pt().where);
-        if (sel.dataset.where === "from") w.from = Number(sel.value) || 0;
-        else w.to = sel.value === "" ? null : Number(sel.value);
-        if (w.to != null && w.to < w.from) w.to = w.from;
-        A().set(key, { where: w });
-        refreshModule();
-      })
-    );
-    const lanesEl = el.querySelector("#au-lanes");
-    if (lanesEl) lanesEl.addEventListener("toggle", () => (lanesOpen[key] = lanesEl.open));
-    el.querySelectorAll("[data-lane]").forEach((row) => {
-      const id = row.dataset.lane;
-      const lane = () => A().lanes(key).find((l) => l.id === id) || {};
-      const set = (changes, redraw) => {
-        A().setLane(key, id, changes);
-        if (redraw) {
-          lanesOpen[key] = true;
-          refreshModule();
-        }
-      };
-      const q = (sel) => row.querySelector(sel);
-      q("[data-lane-on]").addEventListener("change", (e) => set({ on: e.target.checked }, true));
-      row.querySelectorAll("[data-lane-v]").forEach((inp) =>
-        inp.addEventListener("change", () => {
-          const d = laneSpec(lane());
-          let v = inp.value;
-          if (d.kind === "range") v = Math.max(d.min, Math.min(d.max, Number(v) || 0));
-          set({ [inp.dataset.laneV]: v });
-        })
-      );
-      q("[data-lane-curve]").addEventListener("change", (e) => set({ curve: e.target.value }));
-      q("[data-lane-mod]").addEventListener("change", (e) => set({ mod: e.target.value }, true));
-      const sh = q("[data-lane-shape]");
-      if (sh) sh.addEventListener("change", () => set({ shape: sh.value }));
-      const rt = q("[data-lane-rate]");
-      if (rt) rt.addEventListener("change", () => set({ rate: Math.max(0.05, Math.min(10, Number(rt.value) || 0.5)) }));
-      const mn = q("[data-lane-manual]");
-      if (mn) mn.addEventListener("input", () => set({ manual: Number(mn.value) }));
-      const ac = q("[data-lane-across]");
-      ac.addEventListener("input", () => {
-        set({ across: Number(ac.value) });
-        ac.nextElementSibling.textContent = Math.round(Number(ac.value) * 100) + "%";
-      });
-      const lr = q("[data-lane-learn]");
-      if (lr)
-        lr.addEventListener("click", () => {
-          learnFor = { key: key + "#" + id, what: "lane" };
-          if (A().midi.status === "off") A().connectMidi();
-          A().learn(key + "#" + id);
-          lanesOpen[key] = true;
-          refreshModule();
-        });
-      const ub = q("[data-lane-unbind]");
-      if (ub) ub.addEventListener("click", () => (A().bind(key + "#" + id, null), refreshModule()));
-      const rm = q("[data-lane-remove]");
-      if (rm) rm.addEventListener("click", () => (A().removeLane(key, id), refreshModule()));
-    });
-    const addSel = el.querySelector("[data-lane-add]");
-    if (addSel)
-      addSel.addEventListener("change", () => {
-        if (!addSel.value) return;
-        A().addLane(key, addSel.value);
-        lanesOpen[key] = true;
-        refreshModule();
-      });
-    el.querySelectorAll("[data-mod]").forEach((b) => b.addEventListener("click", () => (A().set(key, { mod: b.dataset.mod }), refreshModule())));
-    el.querySelectorAll("[data-shape]").forEach((b) => b.addEventListener("click", () => (A().set(key, { shape: b.dataset.shape }), refreshModule())));
-    el.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => (A().set(key, { mode: b.dataset.mode }), refreshModule())));
-    el.querySelectorAll("[data-k]").forEach((r) =>
-      r.addEventListener("input", () => {
-        const v = Number(r.value);
-        A().set(key, { [r.dataset.k]: v });
-        const out = el.querySelector("#au-kv-" + r.dataset.k);
-        if (out) out.textContent = r.dataset.k === "depth" ? Math.round(v * 100) + "%" : v.toFixed(2);
-      })
-    );
-    const star = el.querySelector("[data-star]");
-    if (star)
-      star.addEventListener("click", () => {
-        view.stars = view.stars || [];
-        if (starred(key)) view.stars = view.stars.filter((k) => k !== key);
-        else view.stars.push(key);
-        saveView();
-        refreshModule();
-      });
-    const trig = el.querySelector("#au-trig");
-    trig.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      try {
-        trig.setPointerCapture(e.pointerId);
-      } catch (err) {}
-      trig.classList.add("held");
-      A().trigger(key, true);
-    });
-    const up = () => {
-      trig.classList.remove("held");
-      if (pt().mode === "gate") A().trigger(key, false);
-    };
-    trig.addEventListener("pointerup", up);
-    trig.addEventListener("pointercancel", up);
-    trig.addEventListener("keydown", (e) => {
-      if ((e.key === " " || e.key === "Enter") && !e.repeat) {
-        e.preventDefault();
-        A().trigger(key, true);
-      }
-    });
-    trig.addEventListener("keyup", (e) => {
-      if (e.key === " " || e.key === "Enter") up();
-    });
-    el.querySelector("#au-run").addEventListener("click", () => (pt().running ? A().stop(key) : A().start(key)));
-    el.querySelectorAll("[data-learn]").forEach((b) =>
-      b.addEventListener("click", () => {
-        const what = b.dataset.learn;
-        if (what === "clear") {
-          learnFor = null;
-          A().bind(key, null);
-          return refreshModule();
-        }
-        learnFor = { key, what };
-        if (what !== "key") {
-          if (A().midi.status === "off") A().connectMidi();
-          A().learn(key);
-        }
-        refreshModule();
-      })
-    );
-    const oc = el.querySelector("#au-outcc");
-    oc.addEventListener("change", () => A().set(key, { outCC: oc.value === "" ? null : Math.max(0, Math.min(127, Number(oc.value) || 0)) }));
-  }
-
-  /* Key binding: the next key pressed while "Bind a key" is waiting. */
-  window.addEventListener(
-    "keydown",
-    (e) => {
-      if (!learnFor || learnFor.what !== "key" || !visible()) return;
-      if (/input|select|textarea/i.test(e.target.tagName)) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      A().bind(learnFor.key, { kind: "key", code: e.code });
-      learnFor = null;
-      refreshModule();
-    },
-    true
-  );
-
-  /* ---------- the live board and the scope ---------- */
+  /* ---------- the live board in the patch bay ---------- */
 
   function sideHolds(x, panels, i) {
     if (!x) return false;
@@ -758,7 +1038,7 @@
   }
 
   function drawPanels(panels) {
-    const el = root.querySelector("#au-panels");
+    const el = root && root.querySelector("#au-panels");
     const b = window.CuriosityBoard;
     if (!el || !b || !b.panel) return;
     const n = panelCount();
@@ -778,52 +1058,9 @@
     if (h) h.innerHTML = holdsHtml(panels);
   }
 
-  function frame(now) {
+  function frame() {
     raf = 0;
     if (!visible()) return;
-    const key = view.sel;
-    const m = key && A().param(key) ? A().m(key) : null;
-    const buf = (scope[key] = scope[key] || []);
-    buf.push([now, m]);
-    while (buf.length && now - buf[0][0] > 4000) buf.shift();
-    const c = root.querySelector("#au-scope");
-    if (c) {
-      const g = c.getContext("2d");
-      const W = c.width;
-      const H = c.height;
-      g.fillStyle = "#1c1712";
-      g.fillRect(0, 0, W, H);
-      g.strokeStyle = "rgba(247,239,226,0.15)";
-      g.beginPath();
-      for (let s = 1; s < 4; s++) {
-        g.moveTo((s / 4) * W, 0);
-        g.lineTo((s / 4) * W, H);
-      }
-      g.moveTo(0, H / 2);
-      g.lineTo(W, H / 2);
-      g.stroke();
-      g.strokeStyle = "#e0a070";
-      g.lineWidth = 2;
-      g.beginPath();
-      let pen = false;
-      buf.forEach(([t, v]) => {
-        const x = W - ((now - t) / 4000) * W;
-        if (v == null) {
-          pen = false;
-          return;
-        }
-        const y = H - 6 - v * (H - 12);
-        pen ? g.lineTo(x, y) : g.moveTo(x, y);
-        pen = true;
-      });
-      g.stroke();
-      g.fillStyle = "rgba(247,239,226,0.6)";
-      g.font = "10px monospace";
-      g.fillText("to", 4, 12);
-      g.fillText("from", 4, H - 4);
-    }
-    const mt = root.querySelector("#au-m");
-    if (mt) mt.textContent = m == null ? "m — (off)" : `m ${m.toFixed(2)}`;
     root.querySelectorAll("[data-meter]").forEach((i) => {
       const v = A().m(i.dataset.meter);
       i.style.width = Math.round((v || 0) * 100) + "%";
@@ -834,13 +1071,14 @@
   function listen() {
     if (unsub) return;
     unsub = A().on((type, data) => {
+      if (!root || !root.isConnected) {
+        const u = unsub;
+        unsub = null;
+        if (u) queueMicrotask(u);
+        return;
+      }
       if (!visible()) return;
       if (type === "tick") {
-        root.querySelectorAll("[data-lmeter]").forEach((i) => {
-          const v = data.ms ? data.ms[i.dataset.lmeter] : null;
-          i.style.width = v == null ? "0%" : Math.round(Math.max(0, Math.min(1, v)) * 100) + "%";
-          i.parentNode.classList.toggle("live", v != null);
-        });
         const now = performance.now();
         if (now - lastPanels > 100) {
           lastPanels = now;
@@ -849,48 +1087,11 @@
       } else if (type === "change") {
         refreshBay();
         root.querySelectorAll("[data-pad]").forEach((pd) => pd.classList.toggle("on", A().patch(pd.dataset.pad).running));
-        if (view.perf && data && data.key && !root.querySelector(`[data-pad="${data.key}"]`) && A().param(data.key) && padKeys().includes(data.key)) render();
-        if (data && data.key === view.sel) {
-          const t = root.querySelector("#au-trig");
-          const pt = A().patch(view.sel);
-          if (t) {
-            t.classList.toggle("on", pt.running);
-            t.setAttribute("aria-checked", String(pt.running));
-            t.innerHTML = trigText(pt);
-          }
-          const r = root.querySelector("#au-run");
-          if (r) r.textContent = pt.running ? "Turn off" : "Turn on (stays on)";
-          const mn = root.querySelector("#au-mainname");
-          const pp = A().param(view.sel);
-          if (mn && pp) mn.textContent = mainName(pp, pt);
-          const mod = root.querySelector(".au-module");
-          if (mod) mod.classList.toggle("run", pt.running);
-          const rate = root.querySelector('[data-k="rate"]');
-          if (rate && document.activeElement !== rate && Math.abs(Number(rate.value) - pt.rate) > 0.01) {
-            rate.value = pt.rate;
-            const o = root.querySelector("#au-kv-rate");
-            if (o) o.textContent = Number(pt.rate).toFixed(2);
-          }
-          const man = root.querySelector('[data-k="manual"]');
-          if (man && document.activeElement !== man) man.value = pt.manual;
-        }
+        if (view.perf && data && data.key && !root.querySelector(`[data-pad="${CSS.escape(data.key)}"]`) && A().param(data.key) && padKeys().includes(data.key)) render();
         if (!A().running().length) {
-          root.querySelectorAll("[data-lmeter]").forEach((i) => (i.style.width = "0%"));
           lastPanelSig = "";
           drawPanels(null);
         }
-      } else if (type === "learned") {
-        if (learnFor && learnFor.key === data.key && learnFor.what === "lane") {
-          const [pk, lid] = data.key.split("#");
-          if (data.binding.kind === "cc") A().setLane(pk, lid, { mod: "midi" });
-          learnFor = null;
-        } else if (learnFor && learnFor.key === data.key) {
-          const b = data.binding;
-          if (b.kind === "cc" && learnFor.what === "cc-rate") A().bind(data.key, Object.assign({}, b, { target: "rate" }));
-          if (b.kind === "cc" && learnFor.what === "cc-manual" && A().patch(data.key).mod === "lfo") A().set(data.key, { mod: "midi" });
-          learnFor = null;
-        }
-        refreshModule();
       } else if (type === "midi-status") {
         const s = root.querySelector("#au-midistat");
         if (s) s.textContent = data;
@@ -899,6 +1100,10 @@
   }
 
   function draw() {
+    const tab = document.getElementById("automate");
+    if (tab && !tab.classList.contains("hidden")) root = tab;
+    else if (!root || !root.isConnected) root = tab || null;
+    if (!root) return;
     if (!A()) return render();
     listen();
     render();
@@ -916,18 +1121,47 @@
         saveView();
       }
       const b = document.querySelector('.tabs button[data-tab="automate"]');
-      if (b && root.classList.contains("hidden")) b.click();
-      else draw();
-      const card = root.querySelector("#au-module");
+      const tab = document.getElementById("automate");
+      if (b && tab && tab.classList.contains("hidden")) {
+        root = tab;
+        b.click();
+      } else draw();
+      const card = root && root.querySelector("#au-module");
       if (card && card.scrollIntoView) card.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    /* One module card in any element: the switch, the moment, the main lane, lanes, MIDI learn and meters.
+       compact: the main lane only, with a "More" toggle for the rest. Cards for the same key stay in sync. */
+    mount(el, key, opts) {
+      if (!el) return null;
+      if (!A()) {
+        el.innerHTML = `<p class="cap">Automation did not load.</p>`;
+        return null;
+      }
+      const c = mountCard(el, key, { compact: !!(opts && opts.compact) });
+      return {
+        el: c.wrap,
+        key,
+        refresh: () => renderCard(c),
+        destroy: () => {
+          dropCard(c);
+          c.wrap.remove();
+        },
+      };
+    },
+    /* The whole patch bay (list, presets, performer pads, live board) in any element. */
+    mountFull(el) {
+      if (!el) return;
+      if (root && root !== el && root.isConnected && root.id !== "automate") root.innerHTML = "";
+      root = el;
+      draw();
     },
   };
 
   const css = document.createElement("style");
   css.id = "automate-style";
   css.textContent = `
-.automate, .automate * { box-sizing: border-box; }
-.automate { max-width: 100%; overflow-wrap: anywhere; }
+.automate, .automate *, .au-card, .au-card * { box-sizing: border-box; }
+.automate, .au-card { max-width: 100%; overflow-wrap: anywhere; }
 .automate .au-g { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--saffron); margin: 12px 0 6px; }
 .au-lab { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
 .au-n { opacity: 0.6; font-size: 10px; }
@@ -960,17 +1194,17 @@
 .au-jack.out { background: radial-gradient(circle, #111 35%, #e0a070 40%, #c45c26 70%); }
 .au-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .au-seg { display: flex; flex-wrap: wrap; gap: 0; }
-.automate .au-seg button { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); background: #f7f2e9; padding: 4px 7px; margin: 0 -1px 0 0; cursor: pointer; }
-.automate .au-seg button.on { background: var(--ink); color: var(--paper); }
+:is(.automate, .au-card) .au-seg button { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); background: #f7f2e9; padding: 4px 7px; margin: 0 -1px 0 0; cursor: pointer; }
+:is(.automate, .au-card) .au-seg button.on { background: var(--ink); color: var(--paper); }
 .au-knobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 130px), 1fr)); gap: 8px; }
 .au-knob { display: grid; gap: 2px; font-family: var(--mono); font-size: 10px; text-transform: uppercase; }
 .au-knob input { width: 100%; accent-color: var(--saffron); }
 .au-knob b { font-weight: 500; font-size: 12px; }
-.automate .au-trigger { width: 100%; min-height: 72px; font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: 3px solid var(--ink); border-radius: 6px; background: radial-gradient(circle at 50% 35%, #fbe3cf, #e8a77c); color: var(--ink); cursor: pointer; touch-action: none; user-select: none; transition: background 0.05s, box-shadow 0.05s; }
-.automate .au-trigger.on, .automate .au-trigger.held { background: radial-gradient(circle at 50% 35%, #fff4d6, #ff7a2e); box-shadow: 0 0 18px #ff7a2e, inset 0 0 0 3px #fff4d6; }
+:is(.automate, .au-card) .au-trigger { width: 100%; min-height: 72px; font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: 3px solid var(--ink); border-radius: 6px; background: radial-gradient(circle at 50% 35%, #fbe3cf, #e8a77c); color: var(--ink); cursor: pointer; touch-action: none; user-select: none; transition: background 0.05s, box-shadow 0.05s; }
+:is(.automate, .au-card) .au-trigger.on, :is(.automate, .au-card) .au-trigger.held { background: radial-gradient(circle at 50% 35%, #fff4d6, #ff7a2e); box-shadow: 0 0 18px #ff7a2e, inset 0 0 0 3px #fff4d6; }
 .au-trigger.held { transform: translateY(1px); }
-.automate .au-star { justify-self: start; font-family: var(--mono); font-size: 11px; border: 1px solid var(--ink); background: #f7f2e9; padding: 3px 7px; cursor: pointer; margin-top: 4px; }
-.automate .au-star.on { background: var(--gold); color: white; border-color: var(--gold); }
+:is(.automate, .au-card) .au-star { justify-self: start; font-family: var(--mono); font-size: 11px; border: 1px solid var(--ink); background: #f7f2e9; padding: 3px 7px; cursor: pointer; margin-top: 4px; }
+:is(.automate, .au-card) .au-star.on { background: var(--gold); color: white; border-color: var(--gold); }
 .automate .au-perf-btn { font-family: var(--mono); font-size: 12px; font-weight: 600; border: 2px solid var(--ink); background: var(--saffron); color: white; padding: 5px 10px; }
 .automate .au-perf-btn.on { background: var(--ink); }
 .au-pads { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); gap: 10px; }
@@ -982,7 +1216,7 @@
 .au-run button { font-family: var(--mono); font-size: 11px; }
 .au-scope { width: 100%; height: auto; display: block; border: 1px solid #000; border-radius: 2px; }
 .au-binds button { font-family: var(--mono); font-size: 10px; }
-#au-outcc { width: 64px; }
+.au-outcc { width: 64px; }
 .au-bay { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .au-slot { display: flex; gap: 6px; align-items: center; border: 1px solid var(--ink); background: white; padding: 3px 6px; max-width: 100%; }
 .au-slot .link { font-size: 12px; text-align: left; }
@@ -1020,6 +1254,17 @@
 .au-lmeter.live { border-color: var(--saffron); }
 .au-addlane { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
 .au-addlane select { flex: 1 1 160px; min-width: 0; max-width: 100%; }
+.au-card { min-width: 0; }
+.au-card .au-module { height: 100%; }
+.au-mmeter { width: 72px; }
+.au-moretog { justify-self: start; font-family: var(--mono); font-size: 11px; }
+.au-more { display: grid; gap: 8px; }
+.au-more[hidden] { display: none; }
+.au-card.compact .au-face { gap: 6px; padding: 10px 8px 8px; }
+.au-card.compact .au-title strong { font-size: 16px; }
+.au-card.compact .au-trigger { min-height: 48px; font-size: 14px; }
+.au-card.compact .au-onoff { font-size: 18px; }
+.au-card.compact .au-ab { gap: 6px; }
 @media (max-width: 480px) { .au-ab { grid-template-columns: 1fr; } .au-list { max-height: 240px; } }
 `;
   document.head.appendChild(css);

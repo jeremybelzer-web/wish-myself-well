@@ -888,7 +888,6 @@
         const keep = { focal: s.focal, focus: s.focus, focusFollows: s.focusFollows };
         const BEAT = 1300;
         const t0 = performance.now();
-        const studio = document.getElementById("studio");
         const off = document.createElement("canvas");
         cancelAnimationFrame(anim);
         playing = { keep };
@@ -896,7 +895,7 @@
         const ease = (u) => u * u * (3 - 2 * u);
         const step = (t) => {
           if (!playing) return;
-          if (!view.isConnected || (studio && studio.classList.contains("hidden"))) return stop(true);
+          if (!view.isConnected) return stop(true);
           const el_ = Math.max(0, (t - t0) / BEAT);
           const i = Math.floor(el_);
           if (i >= beats.length) return stop();
