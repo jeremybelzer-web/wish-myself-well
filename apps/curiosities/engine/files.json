@@ -1,0 +1,17 @@
+{
+  "note": "The engine, in load order. 'core' never touches the page and loads after the app's core (core/files.json), in the browser and in Node; 'screens' draw. load.js adds them all to the app's page and must list the same files.",
+  "core": [
+    "catalog.js",
+    "state.js",
+    "host.js",
+    "fake-host.js",
+    "seeds.js",
+    "analyze.js"
+  ],
+  "screens": [
+    "app-undo.js",
+    "selfcheck.js",
+    "ui.js",
+    "cube.js"
+  ]
+}

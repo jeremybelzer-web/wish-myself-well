@@ -109,3 +109,7 @@ Keep the static files and the look of this folder. Do not add a second git repo 
 ## Saving
 
 `project.js` (`window.CuriosityProject`) bundles every `curiosities-*` localStorage key into one `.curio` file (JSON, format `curiosities-project`, version 1): Save, Save as, Open and New project from the Library menu, with a save indicator in the bar. Autosave history keeps the last 20 snapshots in IndexedDB; any snapshot can be restored and the restore undone.
+
+## The engine
+
+`engine/` (guide: `docs/engine.md`) is the Curiosity Lane letter built for this app: one shared state for a film (moments down, tracks across, a lane per curiosity), a rewrite in a fixed order (your material, automation lanes, links, pins), links between curiosities as plain data with chain reactions, undo for every change (and an app-wide history), saving checked by fingerprint, the clip-matrix cube, and analysis of scripts and shot lists. It opens from Library, Engine once `<script src="engine/load.js"></script>` is the last script in `index.html`; `engine/index.html` runs it on its own. Saved under `curiosities-engine-v1`. Tests: `node engine/tests/run.js` and `node engine/tests/browser.js`. Jeremy's words, numbered and verbatim: `docs/jeremys-words.md`.
