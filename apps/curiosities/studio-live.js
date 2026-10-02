@@ -26,12 +26,17 @@
   }
 
   const BUILT_IN = {
-    "Body strap: arms = camera, legs = motion": [
-      row({ type: "cc", num: 1 }, "moveSpeed"),
-      row({ type: "cc", num: 2 }, "cameraMove", { shape: "step" }),
-      row({ type: "cc", num: 3 }, "characterSpeed"),
-      row({ type: "cc", num: 4 }, "characterPath", { shape: "step" }),
-      row({ type: "cc", num: 5 }, "cameraCarry", { shape: "step", smooth: 0.3 }),
+    /* Worn sensors, on the same CC numbers as the Body presets in the Automate patch bay (automate.js). */
+    "Dancer (worn sensors): wrists steer the camera, ankles the pace": [
+      row({ type: "cc", num: 21 }, "cameraMove", { shape: "step", part: "Left wrist" }),
+      row({ type: "cc", num: 22 }, "moveSpeed", { part: "Right wrist" }),
+      row({ type: "cc", num: 24 }, "characterSpeed", { part: "Left ankle" }),
+      row({ type: "cc", num: 25 }, "characterPath", { shape: "step", part: "Right ankle" }),
+      row({ type: "note", num: 60 }, "cameraCarry", { shape: "step", smooth: 0.3, mode: "toggle", part: "Hip button" }),
+    ],
+    "Actor (worn sensors): breath steers voice loudness": [
+      row({ type: "cc", num: 2 }, "volume", { smooth: 0.8, part: "Breath sensor on the chest" }),
+      row({ type: "cc", num: 26 }, "moveSpeed", { part: "Lean sensor on the back" }),
     ],
     "Keyboard: home row": [
       row({ type: "key", key: "a" }, "volume", { smooth: 0.85 }),
@@ -275,7 +280,7 @@
         <label class="field">Shape<select data-f="shape">${SHAPES.map((s) => `<option${s === r.shape ? " selected" : ""}>${s}</option>`).join("")}</select></label>
         <label class="cap lv-inv"><input type="checkbox" data-f="invert"${r.invert ? " checked" : ""}> invert</label>
       </div>
-      <p class="cap lv-range">${esc(inputName(r.input))} to ${esc(c ? c.label : "a suite")}: ${esc(range)}</p>
+      <p class="cap lv-range">${r.part ? `<b>${esc(r.part)}</b> · ` : ""}${esc(inputName(r.input))} to ${esc(c ? c.label : "a suite")}: ${esc(range)}</p>
     </div>`;
   }
 
@@ -284,7 +289,7 @@
   }
 
   function render() {
-    root.innerHTML = `<p class="cap lv-auto-note">The <button type="button" class="linkish" data-act="automate"><u>Automate</u></button> tab is the main place for LFOs, MIDI bindings and modular synths (VCV Rack). “Make it an automation” turns a mapping row into a patch there.</p>
+    root.innerHTML = `<p class="cap lv-auto-note">The <button type="button" class="linkish" data-act="automate"><u>Automate</u></button> tab is the main place for LFOs, MIDI bindings and modular synths (VCV Rack). “Make it an automation” turns a mapping row into a patch there. For worn sensors (wrist, ankle, chest, a bend sensor in a glove) and pad grids, the Body presets there set everything up and walk you through teaching it your own device.</p>
     <div class="studio-grid lv">
       <div class="lv-side">
         <div class="g">Preset</div>

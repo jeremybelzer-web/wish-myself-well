@@ -6,8 +6,10 @@
    how often per member. Each patch plays in a moment: a span of panels, and a lane can sweep across it.
    The main lane has two settings, A and B, and a modulator that moves between them (m = 0 is A, m = 1 is B):
    manual (a knob), LFO (sine, triangle, square, saw, random at a rate in Hz), or a MIDI control.
-   A trigger (a MIDI note, a key, a click) starts and stops it, so a performer wearing MIDI straps can
-   set a curiosity flicking between two settings at the rate they chose. The result is sent to the
+   A trigger (a MIDI note, a key, a click) starts and stops it, so a performer wearing sensors (wrist, ankle,
+   chest, a bend sensor in a glove, all sending MIDI CC) or playing pads (MIDI notes) can steer lanes and
+   switch curiosities on and off. A CC bound to "<key>#main" steers a patch's main lane while a note bound to
+   "<key>" switches it, so a pad and a knob can share one curiosity. The result is sent to the
    board as an applied strand, panel by panel, and every parameter's m can go out as a MIDI CC so a
    modular synth (VCV Rack through a virtual MIDI port) can follow it, or come in from one to drive it.
 
@@ -19,7 +21,13 @@
    Nessa's arc can rise while Riven's falls. A suffixed patch starts as a copy of the shared one, plays after
    it (so it wins where both set a value), never plays on the board's panels, and has its own bindings
    ("c:arcStage@Nessa" or "c:arcStage@Nessa#<lane>"). resolve(count, now, base, character) plays the patches
-   for one character; without a character it plays every unsuffixed patch, as before. */
+   for one character; without a character it plays every unsuffixed patch, as before.
+
+   Suites have a Blend lane ("blend", 0 to 1) and a Weight lane per member ("weight:<curiosity>", 0 to 1), off
+   at first, as in the curiosity database. Blend is how strongly the suite's values replace what is there: a
+   number moves that share of the way from the panel's value to the suite's, and a word is taken when the
+   panel's dice roll is under the blend (one roll per panel, so blend 0.5 changes about half the panels).
+   A member's weight works the same way for that member alone, on top of the blend. */
 
 (function () {
   const KEY = "curiosities-automation-v1";
@@ -166,6 +174,7 @@
       Object.entries(suiteSet(p.id)).forEach(([k, v]) => byId[k] && out.push(curiosityLane(k, null, v)));
       /* A lens suite names no values: each of its lenses gets a lane through its whole scale. */
       if (!Object.keys(suiteSet(p.id)).length) ((SUITES.find((x) => x.id === p.id) || {}).lenses || []).forEach((k) => byId[k] && out.push(curiosityLane(k)));
+      blendLanes(p.id).forEach((l) => out.push(l));
     }
     if (p.level === "proximity") {
       const x = PROXIMITIES.find((q) => q.id === p.id) || {};
@@ -183,6 +192,17 @@
         out.push(lane("chance:" + id, "chance:" + id, `How often: ${x.then}`, 1, 0.5));
       });
     }
+    return out;
+  }
+  /* A suite's Blend and a Weight per member (off at first). A suite may carry weights: {member: 0..1}. */
+  function blendLanes(id) {
+    const s = SUITES.find((x) => x.id === id) || {};
+    const w = s.weights || {};
+    const out = [lane("blend", "blend", "Blend: how strongly the suite replaces what is there", 0, 1)];
+    Object.keys(s.set || {}).forEach((k) => {
+      const v = w[k] == null ? 1 : Math.max(0, Math.min(1, Number(w[k]) > 1 ? Number(w[k]) / 100 : Number(w[k])));
+      out.push(lane("weight:" + k, "weight:" + k, `Weight of ${(byId[k] || {}).label || k}: how strongly the suite pushes it`, v, v));
+    });
     return out;
   }
   /* Any curiosity can be added as a lane on any parameter. */
@@ -232,6 +252,8 @@
     const p = store.patches[key];
     /* Patches saved before lanes existed get them now. */
     if (p && !p.lanes) Object.assign(p, { lanes: lanesFor(key), curve: p.curve || "linear", across: p.across || 0, where: p.where || { from: 0, to: null } });
+    /* Suite patches saved before Blend and Weight existed get those lanes, switched off. */
+    if (p && p.lanes && paramOf(key) && paramOf(key).level === "suite" && !p.lanes.some((l) => l.id === "blend")) blendLanes(paramOf(key).id).forEach((l) => p.lanes.some((x) => x.id === l.id) || p.lanes.push(l));
     return p;
   }
   function laneOf(key) {
@@ -399,12 +421,29 @@
       const amount = find("amount");
       const inPlay = (i) => !amount || dice(p.key, i, "amount") < lane(amount, i);
       const level = p.key.split(":")[0];
+      /* Blend and Weight: a number moves part of the way, a word is taken when the dice roll is under it. */
+      const share = (l, i) => (l ? Math.max(0, Math.min(1, Number(lane(l, i)) || 0)) : 1);
+      const blendSuite = (panel, set, i) => {
+        const bl = find("blend");
+        const blend = share(bl, i);
+        Object.entries(set).forEach(([k, v]) => {
+          const wl = find("weight:" + k);
+          if (!bl && !wl) return (panel[k] = v);
+          const w = share(wl, i);
+          const d = domain(k);
+          const was = Number(panel[k]);
+          if (d.kind === "range" && panel[k] !== "" && panel[k] != null && !isNaN(was) && !isNaN(Number(v))) {
+            const step = d.step || 1;
+            panel[k] = Math.round((was + (Number(v) - was) * blend * w) / step) * step;
+          } else if (dice(p.key, i, "blend") < blend && (!wl || dice(p.key, i, "weight:" + k) < w)) panel[k] = v;
+        });
+      };
       if (level === "s" || level === "c") {
         for (let i = from; i <= to; i++) {
           if (!inPlay(i)) continue;
           if (level === "s") {
             const id = master(i) < 0.5 ? p.a : p.b;
-            if (id) Object.assign(panels[i], suiteSet(id));
+            if (id) blendSuite(panels[i], suiteSet(id), i);
           } else panels[i][paramOf(p.key).id] = curiosityValue(p, master(i));
           lanes.filter((l) => l.target.startsWith("c:")).forEach((l) => (panels[i][l.target.slice(2)] = lane(l, i)));
         }
@@ -505,22 +544,36 @@
     if (!ev) return;
     emit("midi", ev);
     if (midi.learning) {
-      store.bindings[midi.learning] = { kind: ev.kind, num: ev.num };
-      emit("learned", { key: midi.learning, binding: store.bindings[midi.learning] });
+      /* Cleared before "learned" goes out, so a listener can start the next learn (Body presets walk through several). */
+      const k = midi.learning;
       midi.learning = null;
+      store.bindings[k] = { kind: ev.kind, num: ev.num };
       save();
+      emit("learned", { key: k, binding: store.bindings[k] });
       return;
     }
     Object.entries(store.bindings).forEach(([key, b]) => {
       if (b.kind !== ev.kind || b.num !== ev.num) return;
       /* A control bound to one lane moves only that lane. */
       if (key.includes("#")) {
+        const pk = splitLane(key)[0];
+        if (!paramOf(pk)) return;
+        /* "<key>#main": a knob on the main lane, so a note on "<key>" can still switch it. */
+        if (splitLane(key)[1] === "main") {
+          if (ev.kind === "note") return trigger(pk, ev.on);
+          const mp = patch(pk);
+          mp.manual = ev.val / 127;
+          mp.mod = "midi";
+          if (!mp.running) start(pk);
+          return emit("change", { key: pk });
+        }
         const l = laneOf(key);
         if (!l) return;
-        const pk = splitLane(key)[0];
         if (ev.kind === "note") return trigger(pk, ev.on);
         l.manual = ev.val / 127;
         l.mod = "midi";
+        /* A worn sensor moving a lane plays it: the patch switches on if it was off. */
+        if (!patch(pk).running) start(pk);
         return emit("change", { key: pk });
       }
       if (!paramOf(key)) return;

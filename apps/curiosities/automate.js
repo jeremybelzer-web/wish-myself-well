@@ -1,10 +1,13 @@
 /* Automate: every curiosity, suite, proximity and proximity suite as a module on a patch bay.
-   The trigger is an on/off switch (the big button, a MIDI note a performer wears, a computer key),
+   The trigger is an on/off switch (the big button, a MIDI note from a pad or a worn button, a computer key),
    held as a gate or tapped as a toggle. Inside, lanes grade each part between two settings: the main
    lane (an angle from low to high), and more lanes for its other dimensions (how close to how far),
    each with its own curve, modulator (follows the main one, an LFO, a knob, a MIDI CC) and sweep
    across the moment, the span of panels it plays in. Every running module's position can go out as a
    MIDI CC to a modular synth (VCV Rack) and come back in. The board below shows the result live.
+   Body presets (dancer, actor, comedian) bind worn sensors (MIDI CC) and buttons (MIDI notes) to modules and
+   lanes in plain words, with a step-by-step Learn and an Undo; pad and keyboard layouts put the most used
+   modules on a 16-pad grid or a 25-key keyboard, with a printable cheat sheet.
    The engine is window.CurioAuto (automation.js); this file is only its face. */
 
 (function () {
@@ -193,6 +196,8 @@
     chance: { min: 0, max: 1, step: 0.05, unit: "share" },
     delay: { min: 0, max: 8, step: 1, unit: "beats" },
     effect: { min: 1, max: 5, step: 1, unit: "steps" },
+    blend: { min: 0, max: 1, step: 0.05, unit: "share" },
+    weight: { min: 0, max: 1, step: 0.05, unit: "share" },
   };
   function laneSpec(l) {
     if (l.target.startsWith("c:")) return A().domain(l.target.slice(2));
@@ -840,6 +845,337 @@
     }
   }
 
+  /* ---------- body presets and controller layouts ---------- */
+  /* A rig is a ready mapping from a device to modules. Each part names the body part or pad, what to do with it,
+     what that changes, the module (key), an optional lane, the MIDI it listens to (bind), and the settings it
+     puts on the module (set) or lane (laneSet). A "main" part binds "<key>#main" so a knob steers the main lane
+     while a note on "<key>" switches the module. Worn sensors usually send MIDI CC (0 to 127, a smooth amount);
+     buttons and pads send MIDI notes (on and off). The CC numbers here are a starting guess: Learn fixes them. */
+  const cc = (num) => ({ kind: "cc", num });
+  const note = (num) => ({ kind: "note", num });
+  const RIGS = [
+    {
+      id: "dancer",
+      kind: "body",
+      name: "Dancer",
+      line: "Wrists steer the camera, chest steers the feeling, ankles steer the pace.",
+      wear: "Five small motion sensors (one on each wrist, one on the chest, one on each ankle) and a button at the hip.",
+      parts: [
+        { part: "Left wrist", how: "raise and lower the arm", does: "moves the camera from low to high", key: "c:angleHeight", bind: cc(21), set: { a: "low", b: "high", mod: "midi", manual: 0.5, mode: "toggle" } },
+        { part: "Right wrist", how: "reach out, pull in", does: "moves the shot from close to wide", key: "c:angleHeight", lane: "c:shotSize", bind: cc(22), laneSet: { from: "close", to: "wide" } },
+        { part: "Chest", how: "open up, curl in", does: "turns the strength of the feeling up or down", key: "c:emotionIntensity", bind: cc(23), set: { a: 0, b: 5, mod: "midi", manual: 0.4, mode: "toggle" } },
+        { part: "Left ankle", how: "step faster or slower", does: "sets how fast people move in the frame", key: "c:characterSpeed", bind: cc(24), set: { a: 1, b: 5, mod: "midi", manual: 0.3, mode: "toggle" } },
+        { part: "Right ankle", how: "kick or slide", does: "sets how fast the camera travels", key: "c:characterSpeed", lane: "c:moveSpeed", bind: cc(25), laneSet: { from: 1, to: 5 } },
+        { part: "Hip button", how: "tap", does: "switches the shaky handheld camera on and off", key: "c:cameraCarry", bind: note(60), set: { a: "locked", b: "handheld", mod: "manual", manual: 1, mode: "toggle" }, noStart: true },
+      ],
+    },
+    {
+      id: "actor",
+      kind: "body",
+      name: "Actor",
+      line: "Breath steers how loud the voice is, lean steers how high the camera sits.",
+      wear: "A breath sensor (a stretchy band around the chest), a lean sensor on the back, a bend sensor in one glove finger, and a squeeze button in the hand.",
+      parts: [
+        { part: "Breath band", how: "breathe in deep or shallow", does: "makes the lines quieter or louder", key: "c:volume", bind: cc(2), set: { a: 1, b: 5, mod: "midi", manual: 0.5, mode: "toggle" } },
+        { part: "Lean sensor", how: "lean back or lean in", does: "moves the camera from low (looking up at you) to high (looking down)", key: "c:angleHeight", bind: cc(26), set: { a: "low", b: "high", mod: "midi", manual: 0.5, mode: "toggle" } },
+        { part: "Glove bend", how: "curl a finger", does: "makes the hand gestures smaller or bigger", key: "c:gesture", bind: cc(27), set: { a: 0, b: 5, mod: "midi", manual: 0.3, mode: "toggle" } },
+        { part: "Squeeze button", how: "hold it", does: "tilts the frame crooked while you hold it", key: "c:dutch", bind: note(61), set: { a: "level", b: "tilted", mod: "manual", manual: 1, mode: "gate" }, noStart: true },
+      ],
+    },
+    {
+      id: "comedian",
+      kind: "body",
+      name: "Comedian",
+      line: "A foot pedal holds the pause before the punchline, a pad fires the callback.",
+      wear: "A foot pedal (an expression pedal you rock with your foot), two pads by the hand, and one wrist sensor.",
+      parts: [
+        { part: "Foot pedal", how: "press it down further", does: "holds a longer pause before the punchline (0 to 4 beats)", key: "c:comicTiming", bind: cc(11), set: { a: 0, b: 4, mod: "midi", manual: 0.25, mode: "toggle" } },
+        { part: "Pad 1", how: "hit it", does: "fires the callback: an earlier joke comes back and the payoff lands", key: "c:comedyDevice", lane: "c:comicBeat", bind: note(62), set: { a: "callback", b: "callback", mod: "manual", manual: 1, mode: "toggle" }, laneSet: { from: "payoff lands", to: "payoff lands", mod: "follow" }, noStart: true },
+        { part: "Pad 2", how: "hold it", does: "drops to a dead straight face (deadpan) while you hold it", key: "c:comicRegister", bind: note(63), set: { a: "deadpan", b: "deadpan", mod: "manual", manual: 1, mode: "gate" }, noStart: true },
+        { part: "Wrist", how: "raise the arm", does: "lets things snowball: escalation from small to out of control", key: "c:comicEscalation", bind: cc(21), set: { a: 0, b: 5, mod: "midi", manual: 0.2, mode: "toggle" } },
+      ],
+    },
+  ];
+  /* The most used modules, for a 16-pad grid and a 25-key keyboard. Pads and keys switch them on and off;
+     the eight knobs (CC 70 to 77, the usual first knobs on small controllers) steer the main lane of the first eight. */
+  const MOST_USED = [
+    ["c:cameraCarry", "locked", "handheld", "Handheld camera"],
+    ["c:angleHeight", "low", "high", "Camera low to high"],
+    ["c:shotSize", "close", "wide", "Close to wide"],
+    ["c:moveSpeed", 1, 5, "Camera speed"],
+    ["c:characterSpeed", 1, 5, "People speed"],
+    ["c:volume", 1, 5, "Loudness"],
+    ["c:emotionIntensity", 0, 5, "Strength of feeling"],
+    ["c:comicTiming", 0, 4, "Pause before the punchline"],
+    ["c:dutch", "level", "tilted", "Crooked frame"],
+    ["c:cameraMove", null, null, "Camera move"],
+    ["c:lighting", null, null, "Lighting"],
+    ["c:envMotion", null, null, "The room moves"],
+    ["c:characterPath", null, null, "Walking path"],
+    ["c:comedyDevice", "callback", "callback", "Callback"],
+    ["c:comicEscalation", 0, 5, "Escalation"],
+    ["s:noir", "", "noir", "Noir look"],
+    ["c:bodyEnter", "already", "enters", "Someone enters"],
+    ["c:whoMoves", "speaker", "both", "Who moves"],
+    ["c:temperature", "cold", "hot", "Cold to hot"],
+    ["c:saturation", null, null, "Color strength"],
+    ["c:wallArt", null, null, "Art on the walls"],
+    ["c:cringe", 0, 5, "Cringe"],
+    ["c:absurdity", 0, 5, "Absurdity"],
+    ["c:comicRegister", "deadpan", "cartoon", "Deadpan to broad"],
+    ["c:comicBeat", "setup planted", "payoff lands", "Setup to payoff"],
+  ];
+  function layoutParts(count, first) {
+    const parts = [];
+    MOST_USED.forEach(([key, a, b, name]) => {
+      if (parts.length >= count || !A().param(key)) return;
+      const n = parts.length;
+      const set = { mod: "manual", manual: 1, mode: "toggle" };
+      if (a != null) set.a = a;
+      if (b != null) set.b = b;
+      parts.push({ part: (count === 16 ? "Pad " : "Key ") + (n + 1), how: "tap", does: "switches on: " + name, name, key, bind: note(first + n), set, noStart: true, slot: n });
+    });
+    parts.slice(0, 8).forEach((p, i) => parts.push({ part: "Knob " + (i + 1), how: "turn", does: "steers " + p.name, name: p.name, key: p.key, main: true, bind: cc(70 + i), noStart: true, knob: i }));
+    return parts;
+  }
+  const LAYOUTS = [
+    { id: "pads16", kind: "layout", name: "16-pad grid", line: "The 16 most used modules on a 4 by 4 pad grid (notes 36 to 51), and the first eight on knobs.", wear: "A pad controller with 16 pads and up to 8 knobs. Pad 1 is at the bottom left on most pad grids.", first: 36, count: 16 },
+    { id: "keys25", kind: "layout", name: "25-key keyboard", line: "The 25 most used modules on a two-octave keyboard (notes 48 to 72, middle C is key 13), and the first eight on knobs.", wear: "A small 25-key keyboard with up to 8 knobs.", first: 48, count: 25 },
+  ];
+  function rigParts(r) {
+    return r.kind === "layout" ? layoutParts(r.count, r.first) : r.parts.filter((p) => A().param(p.key));
+  }
+  function rigById(id) {
+    return RIGS.concat(LAYOUTS).find((r) => r.id === id);
+  }
+  function bindKey(p) {
+    return p.lane ? p.key + "#" + p.lane : p.main ? p.key + "#main" : p.key;
+  }
+  const clone = (x) => JSON.parse(JSON.stringify(x));
+  let rigLearn = null; // { id, i, done, skipped, waiting }
+  let rigSheet = view.sheet || "";
+  let rigMsg = {};
+
+  function applyRig(id) {
+    const r = rigById(id);
+    if (!r) return;
+    const parts = rigParts(r);
+    const undo = view.rigUndo && view.rigUndo[id] ? view.rigUndo[id] : { patches: {}, binds: {}, running: [] };
+    if (!(view.rigUndo && view.rigUndo[id])) {
+      parts.forEach((p) => {
+        if (!(p.key in undo.patches)) {
+          const pt = A().patch(p.key);
+          undo.patches[p.key] = clone(pt);
+          if (pt.running) undo.running.push(p.key);
+        }
+        const bk = bindKey(p);
+        if (!(bk in undo.binds)) undo.binds[bk] = A().bindings()[bk] ? clone(A().bindings()[bk]) : null;
+      });
+    }
+    parts.forEach((p) => {
+      if (p.set) A().set(p.key, clone(p.set));
+      if (p.lane) {
+        if (!A().lanes(p.key).some((l) => l.id === p.lane)) A().addLane(p.key, p.lane);
+        A().setLane(p.key, p.lane, Object.assign({ on: true, mod: "midi", manual: 0.5, curve: "linear", across: 0 }, clone(p.laneSet || {})));
+      }
+      A().bind(bindKey(p), clone(p.bind));
+    });
+    parts.forEach((p) => !p.noStart && !A().patch(p.key).running && A().start(p.key));
+    view.rigUndo = Object.assign({}, view.rigUndo, { [id]: undo });
+    rigMsg[id] = `${r.name} is set up: ${parts.length} ${r.kind === "layout" ? "pads, keys and knobs" : "body parts"} are bound. Plug the device in and play; if nothing moves, press Learn each one from my device.`;
+    saveView();
+    /* MIDI switches on with the preset (the browser may ask first), so the device plays straight away. */
+    if (!A().midi.access) A().connectMidi();
+  }
+  function undoRig(id) {
+    const u = view.rigUndo && view.rigUndo[id];
+    if (!u) return;
+    if (rigLearn && rigLearn.id === id) stopLearn();
+    Object.entries(u.patches).forEach(([k, pt]) => {
+      A().stop(k);
+      A().set(k, Object.assign(clone(pt), { running: false }));
+    });
+    Object.entries(u.binds).forEach(([k, b]) => A().bind(k, b));
+    u.running.forEach((k) => A().start(k));
+    delete view.rigUndo[id];
+    rigMsg[id] = "Undone: those modules and bindings are back as they were.";
+    saveView();
+  }
+  function stopLearn() {
+    if (A().midi.learning) A().learn(null);
+    rigLearn = null;
+  }
+  function learnStep() {
+    if (!rigLearn) return;
+    const parts = rigParts(rigById(rigLearn.id));
+    if (rigLearn.i >= parts.length) {
+      A().learn(null);
+      rigMsg[rigLearn.id] = `Learned ${rigLearn.done} of ${parts.length} from your device${rigLearn.skipped ? ` (${rigLearn.skipped} skipped, they keep their guessed numbers)` : ""}.`;
+      rigLearn = null;
+      return;
+    }
+    A().learn(bindKey(parts[rigLearn.i]));
+  }
+  function startLearn(id) {
+    if (!view.rigUndo || !view.rigUndo[id]) applyRig(id);
+    rigLearn = { id, i: 0, done: 0, skipped: 0 };
+    delete rigMsg[id];
+    const go = () => {
+      if (rigLearn && rigLearn.id === id) learnStep();
+      paintRigs();
+    };
+    if (A().midi.access) go();
+    else A().connectMidi().then(go);
+  }
+  function learnHtml(r) {
+    if (!rigLearn || rigLearn.id !== r.id) return "";
+    const parts = rigParts(r);
+    const p = parts[rigLearn.i];
+    if (!p) return "";
+    const access = !!A().midi.access;
+    const isNote = p.bind.kind === "note";
+    return `<div class="au-learnstep" role="status">
+      <div class="au-lab">Step ${rigLearn.i + 1} of ${parts.length}</div>
+      <p><b>${esc(p.part)}</b>: ${esc(p.how)} now. ${isNote ? "Press it once." : "Move it from one end to the other."}</p>
+      <p class="cap">It ${esc(p.does)}. ${access ? "Waiting for your device…" : "MIDI is not connected yet: plug the device in and use Chrome or Edge, then press Connect MIDI below."}</p>
+      <div class="bar-actions"><button type="button" data-rig-skip>Skip this one</button><button type="button" data-rig-stoplearn>Stop learning</button></div>
+    </div>`;
+  }
+  function partRow(p) {
+    const b = A().bindings()[bindKey(p)];
+    const via = b ? (b.kind === "note" ? `note ${b.num}` : b.kind === "cc" ? `CC ${b.num}` : "a key") : "not bound";
+    return `<li><b>${esc(p.part)}</b> <span class="cap">(${esc(p.how)})</span> ${esc(p.does)} <span class="au-via">${esc(via)}</span></li>`;
+  }
+  function rigCardHtml(r) {
+    const parts = rigParts(r);
+    const on = !!(view.rigUndo && view.rigUndo[r.id]);
+    const shown = r.kind === "layout" ? parts.slice(0, 4).concat(parts.filter((p) => p.knob === 0)) : parts;
+    return `<div class="au-rig ${on ? "on" : ""}" data-rig="${esc(r.id)}">
+      <div class="au-rig-h"><strong>${esc(r.name)}</strong>${on ? `<span class="au-lab au-rig-on">in use</span>` : ""}</div>
+      <p class="au-rig-line">${esc(r.line)}</p>
+      <p class="cap">${esc(r.wear)}</p>
+      <ul class="au-rig-parts">${shown.map(partRow).join("")}${r.kind === "layout" ? `<li class="cap">…and ${parts.length - shown.length} more on the cheat sheet.</li>` : ""}</ul>
+      <div class="bar-actions">
+        <button type="button" data-rig-apply="${esc(r.id)}" class="${on ? "" : "au-rig-go"}">${on ? "Use it again" : "Use this preset"}</button>
+        <button type="button" data-rig-learn="${esc(r.id)}">Learn each one from my device</button>
+        ${on ? `<button type="button" data-rig-undo="${esc(r.id)}">Undo this preset</button>` : ""}
+        ${r.kind === "layout" ? `<button type="button" data-rig-sheet="${esc(r.id)}">${rigSheet === r.id ? "Hide the cheat sheet" : "Cheat sheet"}</button>` : ""}
+      </div>
+      ${learnHtml(r)}
+      ${rigMsg[r.id] ? `<p class="cap au-rig-msg">${esc(rigMsg[r.id])}</p>` : ""}
+    </div>`;
+  }
+  function sheetHtml(id) {
+    const r = rigById(id);
+    if (!r || r.kind !== "layout") return "";
+    const parts = rigParts(r);
+    const notes = parts.filter((p) => p.knob == null);
+    const knobs = parts.filter((p) => p.knob != null);
+    const cell = (p) => `<div class="au-sh-cell"><span class="au-sh-n">${esc(p.part)}</span><span class="au-sh-l">${esc(p.name)}</span><span class="au-sh-b">${esc(A().bindings()[bindKey(p)] ? (A().bindings()[bindKey(p)].kind === "note" ? "note " : "CC ") + A().bindings()[bindKey(p)].num : "note " + p.bind.num)}</span></div>`;
+    let body = "";
+    if (r.count === 16) {
+      /* Rows top to bottom: pads 13-16, 9-12, 5-8, 1-4, so pad 1 sits bottom left as on the device. */
+      const rows = [];
+      for (let row = 3; row >= 0; row--) rows.push(notes.slice(row * 4, row * 4 + 4));
+      body = `<div class="au-sh-pads">${rows.map((row) => row.map(cell).join("")).join("")}</div>`;
+    } else {
+      const black = [1, 3, 6, 8, 10];
+      body = `<div class="au-sh-keys" aria-hidden="true">${notes.map((p, i) => `<span class="au-sh-key ${black.includes((r.first + i) % 12) ? "blk" : ""}">${i + 1}</span>`).join("")}</div>
+        <ol class="au-sh-list">${notes.map((p) => `<li><span>${esc(p.name)}</span> <span class="au-sh-b">note ${esc(p.bind.num)}</span></li>`).join("")}</ol>`;
+    }
+    return `<div class="au-sheet" id="au-sheet">
+      <div class="au-sh-head"><strong>Cheat sheet: ${esc(r.name)}</strong><button type="button" id="au-sheet-print">Print this sheet</button></div>
+      <p class="cap">Tap to switch a module on, tap again to switch it off. Knobs slide the first eight between their two settings.</p>
+      ${body}
+      <div class="au-lab">Knobs</div>
+      <div class="au-sh-knobs">${knobs.map(cell).join("")}</div>
+    </div>`;
+  }
+  function rigsHtml() {
+    const open = view.rigsOpen != null ? view.rigsOpen : !!view.perf;
+    return `<details class="au-rigs" id="au-rigs"${open ? " open" : ""}><summary>Body presets, pads and keyboards</summary>
+      <p class="cap">A performer can wear small sensors (on a wrist, an ankle, the chest, a bend sensor in a glove) that send a smooth amount as MIDI CC, and press buttons or pads that send MIDI notes. A body preset binds each one to a module or a lane, in plain words below. Use one, then press Learn to teach it your own device step by step. Undo puts everything back.</p>
+      <div class="g au-g">Body presets</div>
+      <div class="au-rig-grid">${RIGS.map(rigCardHtml).join("")}</div>
+      <div class="g au-g">Pads and keyboards</div>
+      <div class="au-rig-grid">${LAYOUTS.map(rigCardHtml).join("")}</div>
+      <div id="au-sheet-slot">${rigSheet ? sheetHtml(rigSheet) : ""}</div>
+    </details>`;
+  }
+  function paintRigs() {
+    const el = root && root.querySelector("#au-rigs");
+    if (!el) return;
+    const open = el.open;
+    el.outerHTML = rigsHtml();
+    const el2 = root.querySelector("#au-rigs");
+    if (el2) el2.open = open;
+    wireRigs();
+  }
+  function afterRig() {
+    if (view.perf) render();
+    else paintRigs();
+  }
+  function wireRigs() {
+    const el = root.querySelector("#au-rigs");
+    if (!el) return;
+    el.addEventListener("toggle", () => {
+      view.rigsOpen = el.open;
+      saveView();
+    });
+    el.querySelectorAll("[data-rig-apply]").forEach((b) => b.addEventListener("click", () => (applyRig(b.dataset.rigApply), afterRig())));
+    el.querySelectorAll("[data-rig-undo]").forEach((b) => b.addEventListener("click", () => (undoRig(b.dataset.rigUndo), afterRig())));
+    el.querySelectorAll("[data-rig-learn]").forEach((b) => b.addEventListener("click", () => (startLearn(b.dataset.rigLearn), afterRig())));
+    el.querySelectorAll("[data-rig-sheet]").forEach((b) =>
+      b.addEventListener("click", () => {
+        rigSheet = rigSheet === b.dataset.rigSheet ? "" : b.dataset.rigSheet;
+        view.sheet = rigSheet;
+        saveView();
+        paintRigs();
+      })
+    );
+    const skip = el.querySelector("[data-rig-skip]");
+    if (skip)
+      skip.addEventListener("click", () => {
+        rigLearn.skipped++;
+        rigLearn.i++;
+        learnStep();
+        paintRigs();
+      });
+    const stopL = el.querySelector("[data-rig-stoplearn]");
+    if (stopL)
+      stopL.addEventListener("click", () => {
+        const id = rigLearn && rigLearn.id;
+        stopLearn();
+        if (id) rigMsg[id] = "Stopped learning. What was learned so far is kept.";
+        paintRigs();
+      });
+    const pr = el.querySelector("#au-sheet-print");
+    if (pr)
+      pr.addEventListener("click", () => {
+        document.body.classList.add("au-printing");
+        const done = () => {
+          document.body.classList.remove("au-printing");
+          window.removeEventListener("afterprint", done);
+        };
+        window.addEventListener("afterprint", done);
+        window.print();
+        setTimeout(done, 1000);
+      });
+  }
+  /* A step of Learn finished: the device's control is bound. A CC on a lane makes the lane follow MIDI. */
+  function rigLearned(data) {
+    if (!rigLearn) return;
+    const parts = rigParts(rigById(rigLearn.id));
+    const p = parts[rigLearn.i];
+    if (!p || data.key !== bindKey(p)) return;
+    if (p.lane && data.binding.kind === "cc") A().setLane(p.key, p.lane, { on: true, mod: "midi" });
+    if (!p.lane && !p.main && data.binding.kind === "cc" && A().patch(p.key).mod === "lfo") A().set(p.key, { mod: "midi" });
+    rigLearn.done++;
+    rigLearn.i++;
+    learnStep();
+    paintRigs();
+  }
+
   /* ---------- the patch bay (the whole Automate view) ---------- */
 
   function bayHtml() {
@@ -862,7 +1198,7 @@
         <li>Press Connect MIDI here, then pick that port as MIDI out. Give a module a MIDI out CC number.</li>
         <li>In VCV Rack, add MIDI-CC to CV on the same port: the CC's voltage follows m, so the LFO here can drive a filter or a sequencer.</li>
         <li>To send in, add CV-MIDI (or CV-CC) in VCV Rack pointed at the port, then Learn CC on a module and wiggle the knob in Rack.</li>
-        <li>Note and CC triggers work the same from body straps, pads and keyboards.</li>
+        <li>Worn sensors, pads and keyboards plug in the same way: see Body presets, pads and keyboards at the top.</li>
       </ol>
       <div class="bar-actions"><button type="button" id="au-midi">Connect MIDI</button>
         <select id="au-out"><option value="">MIDI out: none</option>${outs.map((o) => `<option value="${esc(o.id)}"${m.out && m.out.id === o.id ? " selected" : ""}>${esc(o.name)}</option>`).join("")}</select>
@@ -933,6 +1269,7 @@
     root.innerHTML = `<h2>Automate</h2>
       <p class="cap">Every curiosity, suite, proximity and proximity suite is a module. Its switch (the big button, a MIDI note, a key) turns it on and off. Inside, lanes grade each part between two settings: an angle from low to high, a shot from close to wide. Each lane has its own curve and its own mover (an LFO, a knob, a MIDI control), and plays in the panels you choose. Modules that are on play on the board.</p>
       <div class="bar-actions au-presets"><button type="button" id="au-perf" class="au-perf-btn ${view.perf ? "on" : ""}">${view.perf ? "Back to the modules" : "Performer view"}</button><span class="au-lab">Patches</span>${PRESETS.map((p, i) => `<button type="button" data-preset="${i}">${esc(p.name)}</button>`).join("")}</div>
+      ${rigsHtml()}
       <div class="g au-g">Patch bay</div>
       <div id="au-bay">${bayHtml()}</div>
       ${view.perf ? perfHtml() : `<nav class="subtabs">${LEVELS.map(([l, n]) => `<button type="button" data-level="${esc(l)}" class="${view.level === l ? "on" : ""}">${n} <span class="au-n">${counts[l]}</span></button>`).join("")}</nav>
@@ -1040,6 +1377,7 @@
       });
     if (view.perf) wirePads();
     else wireSide();
+    wireRigs();
     wireBay();
     const midiBtn = root.querySelector("#au-midi");
     if (midiBtn)
@@ -1184,7 +1522,8 @@
       } else if (type === "midi-status") {
         const s = root.querySelector("#au-midistat");
         if (s) s.textContent = data;
-      }
+        if (rigLearn) paintRigs();
+      } else if (type === "learned") rigLearned(data);
     });
   }
 
@@ -1362,6 +1701,43 @@
 .au-card.compact .au-onoff { font-size: 18px; }
 .au-card.compact .au-ab { gap: 6px; }
 @media (max-width: 480px) { .au-ab { grid-template-columns: 1fr; } .au-list { max-height: 240px; } }
+.au-rigs { margin: 8px 0 4px; border: 2px solid var(--ink); background: #fff8ef; padding: 6px 10px 10px; }
+.au-rigs > summary { cursor: pointer; font-family: var(--mono); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.au-rig-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }
+.au-rig { border: 1px solid var(--ink); background: white; padding: 8px 10px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.au-rig.on { box-shadow: inset 4px 0 0 var(--saffron); }
+.au-rig-h { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.au-rig-h strong { font-family: var(--serif); font-weight: 500; font-size: 18px; }
+.au-rig-on { color: var(--saffron); }
+.au-rig-line { margin: 0; font-size: 14px; }
+.au-rig p.cap { margin: 0; }
+.au-rig-parts { margin: 2px 0; padding-left: 18px; font-size: 13px; display: grid; gap: 3px; }
+.au-via { font-family: var(--mono); font-size: 10px; border: 1px solid var(--line); padding: 0 4px; white-space: nowrap; }
+.au-rig .bar-actions button { font-family: var(--mono); font-size: 11px; }
+.automate .au-rig-go { background: var(--saffron); color: white; border-color: var(--ink); }
+.au-learnstep { border: 2px dashed var(--saffron); background: #fff4d6; padding: 6px 8px; }
+.au-learnstep p { margin: 2px 0; }
+.au-rig-msg { color: #2f6b3a; }
+.au-sheet { margin-top: 10px; border: 2px solid var(--ink); background: white; padding: 10px; display: grid; gap: 8px; }
+.au-sh-head { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; }
+.au-sh-head strong { font-family: var(--serif); font-weight: 500; font-size: 20px; }
+.au-sh-pads, .au-sh-knobs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.au-sh-cell { border: 2px solid var(--ink); border-radius: 6px; padding: 6px; min-height: 64px; display: flex; flex-direction: column; justify-content: space-between; gap: 2px; background: #fbe3cf; min-width: 0; }
+.au-sh-knobs .au-sh-cell { border-radius: 30px; background: #f3ede2; text-align: center; min-height: 52px; }
+.au-sh-n, .au-sh-b { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; }
+.au-sh-l { font-size: 13px; line-height: 1.15; }
+.au-sh-keys { display: grid; grid-template-columns: repeat(25, minmax(0, 1fr)); height: 54px; border: 2px solid var(--ink); }
+.au-sh-key { border-right: 1px solid var(--ink); font-family: var(--mono); font-size: 8px; display: flex; align-items: flex-end; justify-content: center; background: white; color: var(--ink); padding-bottom: 2px; }
+.au-sh-key.blk { background: var(--ink); color: white; height: 62%; }
+.au-sh-list { columns: 2 220px; column-gap: 18px; font-size: 13px; margin: 0; padding-left: 26px; }
+.au-sh-list li { break-inside: avoid; }
+@media (max-width: 480px) { .au-sh-pads, .au-sh-knobs { gap: 4px; } .au-sh-cell { padding: 4px; } .au-sh-l { font-size: 11px; } }
+@media print {
+  body.au-printing * { visibility: hidden !important; }
+  body.au-printing .au-sheet, body.au-printing .au-sheet * { visibility: visible !important; }
+  body.au-printing .au-sheet { position: absolute; left: 0; top: 0; width: 100%; border: 0; }
+  body.au-printing #au-sheet-print { display: none; }
+}
 `;
   document.head.appendChild(css);
 })();
