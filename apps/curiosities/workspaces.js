@@ -333,6 +333,7 @@
     root.innerHTML = `<div class="ws">
       <h2>${esc(ws.label)}</h2>
       ${ws.question ? `<p class="ws-question">${esc(ws.question)}</p>` : ""}
+      <div class="ws-momentum" id="ws-momentum"></div>
       <p class="cap">${esc(ws.note)} ${ws.scope === "story" ? "A story workspace: one character, scene by scene through the whole story." : "A scene workspace: panel by panel through My film."}${
         ws.lens ? " This is a lens, one way of looking at the scene: its main curiosity comes first and its sliders under it. Every slider can be set per " + (ws.scope === "story" ? "scene" : "panel") + " and automated." : ""
       }</p>
@@ -349,6 +350,13 @@
       <section class="ws-part" id="ws-prism"><h3>Cross-pollinate from a film</h3><div id="ws-prism-body"></div></section>
       ${ws.tools.length ? `<section class="ws-part" id="ws-tools"><h3>Tools</h3><div id="ws-tools-body"></div></section>` : ""}
     </div>`;
+    /* How this workspace's main curiosity drives the film forward (momentum PR, when loaded). */
+    if (window.CurioMomentumUI && typeof CurioMomentumUI.mountNote === "function") {
+      const main = (ws.sections && ws.sections[0] && ws.sections[0].main) || ids[0];
+      try {
+        if (main) CurioMomentumUI.mountNote(root.querySelector("#ws-momentum"), main);
+      } catch (e) {}
+    }
     drawGrid();
     if (ws.scope === "story") drawRoad(ws);
     if (ws.matrix) drawMatrix();
