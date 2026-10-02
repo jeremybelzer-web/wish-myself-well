@@ -589,6 +589,7 @@
         .bif-prox li { margin: 4px 0; }
         .bif-prox .ok { color: #2e7d32; font-weight: 600; } .bif-prox .no { color: #b3261e; font-weight: 600; } .bif-prox .wait { opacity: 0.7; }
         .bif-grid > div { min-width: 0; }
+        .bif-auto { display: inline-block; margin-left: 6px; padding: 0 4px; font-size: 10px; font-family: var(--mono, monospace); background: var(--saffron, #c45c26); color: #fff; text-transform: none; letter-spacing: 0; }
         .bif-tablewrap { overflow-x: auto; max-width: 100%; }
       `;
       document.head.appendChild(style);
@@ -627,6 +628,7 @@
         <div class="bif-ramp" title="Growth ramp over the shot"><i id="bif-ramp"></i></div>
         <div class="bif-read" id="bif-read"></div>
         <p id="bif-chips"></p>
+        <p class="cap">Click a chip to automate it, or open Automate.</p>
         <h3>Proximities</h3>
         <ul class="bif-prox" id="bif-prox"></ul>
         <div class="bar-actions"><button type="button" data-act="shelf">Keep on Shelf</button> <button type="button" data-act="board">Send to board</button> <span class="cap" id="bif-boardcap"></span></div>
@@ -1280,6 +1282,81 @@
       anim = requestAnimationFrame(tick);
     }
     anim = requestAnimationFrame(tick);
+
+    /* ---- performable: follow the automation layer (LFOs, MIDI) ---- */
+    const AUTO_IDS = ["element", "density", "growth", "curl", "scatter", "viscosity", "waveHeight"];
+    el.querySelectorAll("[data-k]").forEach((x) => {
+      if (!AUTO_IDS.includes(x.dataset.k)) return;
+      const lab = x.closest("label");
+      const b = document.createElement("span");
+      b.className = "bif-auto";
+      b.dataset.auto4 = x.dataset.k;
+      b.textContent = "automated";
+      b.hidden = true;
+      (lab || x.parentNode).insertBefore(b, x);
+    });
+    /* splash is performed as a drop: a cue to drip or burst throws something into the water */
+    const splashBadge = document.createElement("span");
+    splashBadge.className = "bif-auto";
+    splashBadge.textContent = "automated";
+    splashBadge.hidden = true;
+    el.querySelector('[data-act="drop"]').after(splashBadge);
+    const hearthBtn = el.querySelector('[data-suite="hearth"]');
+    const hearthBadge = document.createElement("span");
+    hearthBadge.className = "bif-auto";
+    hearthBadge.textContent = "automated";
+    hearthBadge.hidden = true;
+    hearthBtn.after(hearthBadge);
+    let lastSplashCue = "none", hearthOn = false;
+    function drive(k, v) {
+      if (v == null || v === "") return;
+      const x = el.querySelector(`[data-k="${k}"]`);
+      if (!x) return;
+      if (x.type === "range") {
+        const n = clamp(Math.round(Number(v)), Number(x.min), Number(x.max));
+        if (Number.isNaN(n) || n === s[k]) return;
+        x.value = n;
+        x.dispatchEvent(new Event("input"));
+      } else {
+        if (!CHOICES[k] || !CHOICES[k].includes(String(v)) || s[k] === String(v)) return;
+        x.value = String(v);
+        x.dispatchEvent(new Event("change"));
+      }
+    }
+    const offAuto = window.CurioAuto
+      ? window.CurioAuto.on((type, d) => {
+          if (!el.isConnected || !canvas.isConnected) {
+            if (offAuto) offAuto();
+            return;
+          }
+          if (type !== "tick" || !d || !d.ms || !d.panels || !d.panels[0]) return;
+          const v0 = d.panels[0];
+          AUTO_IDS.forEach((k) => {
+            const on = d.ms["c:" + k] != null;
+            const badge = el.querySelector(`.bif-auto[data-auto4="${k}"]`);
+            if (badge && badge.hidden === on) badge.hidden = !on;
+            if (!on) return;
+            if (k === "waveHeight" && s.element === "water" && s.liquidMode !== "ocean" && Number(v0[k]) > 0) drive("liquidMode", "ocean");
+            drive(k, v0[k]);
+          });
+          const sp = d.ms["c:splash"] != null;
+          splashBadge.hidden = !sp;
+          if (sp) {
+            const cue = String(v0.splash || "none");
+            if (cue !== lastSplashCue && (cue === "drip" || cue === "burst")) {
+              s.dropSize = cue === "burst" ? "boulder" : "pebble";
+              syncControls();
+              dropAt(W * (0.3 + Math.random() * 0.4));
+            }
+            lastSplashCue = cue;
+          }
+          const hm = d.ms["s:hearth"];
+          hearthBadge.hidden = hm == null;
+          const now = hm != null && hm >= 0.5;
+          if (now && !hearthOn) hearthBtn.click();
+          hearthOn = now;
+        })
+      : null;
     /* expose for tests */
     el._bifrost = { get s() { return s; }, get history() { return history; }, get m() { return lastMeasure; }, drops };
   }

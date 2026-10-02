@@ -11,6 +11,15 @@
 (function () {
   const KEY = "curiosities-automation-v1";
   const byId = Object.fromEntries(CURIOSITIES.map((c) => [c.id, c]));
+  /* Curiosities the Maya manual and the Studio tools add (viscosity, waveHeight, swirl...) are parameters too. */
+  const EXTRA = [];
+  ((window.MAYA_MANUAL && window.MAYA_MANUAL.topics) || []).forEach((t) =>
+    (t.newCuriosities || []).forEach((n) => {
+      if (!n || !n.id || byId[n.id]) return;
+      byId[n.id] = { id: n.id, label: n.label || n.id, group: "Maya: " + (t.area || ""), values: n.values || "" };
+      EXTRA.push(byId[n.id]);
+    })
+  );
 
   /* Groups of proximities that act together, the fourth level. */
   const PROXIMITY_SUITES = [
@@ -36,7 +45,7 @@
 
   function params() {
     const out = [];
-    CURIOSITIES.forEach((c) => out.push({ key: "c:" + c.id, level: "curiosity", id: c.id, label: c.label, group: c.group, live: !!c.live, domain: domain(c.id) }));
+    CURIOSITIES.concat(EXTRA).forEach((c) => out.push({ key: "c:" + c.id, level: "curiosity", id: c.id, label: c.label, group: c.group, live: !!c.live, domain: domain(c.id) }));
     SUITES.forEach((s) => out.push({ key: "s:" + s.id, level: "suite", id: s.id, label: s.label, group: s.kind || "suite" }));
     PROXIMITIES.forEach((p) => out.push({ key: "p:" + p.id, level: "proximity", id: p.id, label: `When ${p.when}, ${p.then}`, group: "proximity" }));
     PROXIMITY_SUITES.forEach((p) => out.push({ key: "ps:" + p.id, level: "proximity suite", id: p.id, label: p.label, group: "proximity suite" }));
@@ -333,6 +342,14 @@
     PROXIMITY_SUITES,
     param: (key) => PARAM[key],
     domain,
+    /* A tool can register a curiosity it measures so it can be automated: addCuriosity({id, label, values, group}). */
+    addCuriosity(c) {
+      if (!c || !c.id || PARAM["c:" + c.id]) return;
+      byId[c.id] = c;
+      const p = { key: "c:" + c.id, level: "curiosity", id: c.id, label: c.label || c.id, group: c.group || "Studio", live: false, domain: domain(c.id) };
+      PARAMS.push(p);
+      PARAM[p.key] = p;
+    },
     patch,
     set(key, changes) {
       Object.assign(patch(key), changes);

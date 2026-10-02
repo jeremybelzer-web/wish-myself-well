@@ -123,7 +123,7 @@
   function linkChips() {
     root.querySelectorAll(".chip").forEach((chip) => {
       const id = (chip.textContent.trim().match(/^([A-Za-z]+)/) || [])[1];
-      if (!id || !known.has(id) || chip.dataset.auto) return;
+      if (!id || !(known.has(id) || (window.CurioAuto && window.CurioAuto.param("c:" + id))) || chip.dataset.auto) return;
       chip.dataset.auto = id;
       chip.title = "Automate " + id;
       chip.style.cursor = "pointer";
