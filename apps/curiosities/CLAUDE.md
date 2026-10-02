@@ -25,7 +25,8 @@ A model of a movie, a TV hour, or a video game is only those three. If a fact ca
 3. `catalog.js` — the curiosity list. `live: true` rows are the board controls.
 4. `model.js` — eight suites and four seed proximities.
 5. `app.js` — draws the strip, the paths, and which proximities are firing.
-6. `index.html` — open this in a browser. No build step.
+6. `study.js` — the Study tab and the Shelf.
+7. `index.html` — open this in a browser. No build step.
 
 State is `localStorage` key `curiosities-board-v2`.
 
@@ -33,8 +34,10 @@ State is `localStorage` key `curiosities-board-v2`.
 
 Thirty live controls. A comic strip. A stage on each panel: character dots, an object, and a camera path. Handheld is a wobble. Smooth is one line. Locked is a still frame. The Suite menu writes a suite into the controls. Seed proximities print under the strip when they match.
 
-## Next
+## The study view
 
-A study view. Jeremy names a scene, a timecode, or types notes. The view stores a trace: beat, which curiosities are on, which suites contain them, which proximities fired. Counts and ids only. Do not paste scripts, lyrics, level dialogue, or a shot list that recreates a commercial film, episode, or game. Games use the same three objects. Mark whether the camera is authored or the player’s.
+The Study tab is built. A study is a trace: beat, which curiosities are on, which suites contain them, which proximities held. Counts and ids only. Do not paste scripts, lyrics, level dialogue, or a shot list that recreates a commercial film, episode, or game. Games mark whether the camera is authored or the player’s.
+
+Tick a span of beats and keep one curiosity or one suite on the Shelf. Apply a strand and the board plays it panel by panel. Studies export and import as JSON. State is `localStorage` key `curiosities-studies-v1`. Read `STUDY-PLAN.md` for what comes next.
 
 Keep the static files and the look of this folder. Do not add a second git repo inside `apps/`.

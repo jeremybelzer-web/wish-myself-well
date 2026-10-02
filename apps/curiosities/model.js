@@ -1,5 +1,8 @@
 /* Suites group curiosities. Proximities say: when X, Y follows within N beats.
-   A model of a scene is only these, plus the curiosities they name. */
+   A model of a scene is only these, plus the curiosities they name.
+   x and y are what a study counts: a curiosity that is a value, a curiosity that
+   rises or drops against the beat where x held, or a whole suite.
+   test is what the board checks to print a seed under the strip. */
 
 const SUITES = [
   {
@@ -58,6 +61,8 @@ const PROXIMITIES = [
     when: "cameraCarry is handheld",
     then: "gesture grows",
     within: 2,
+    x: { curiosity: "cameraCarry", is: "handheld" },
+    y: { curiosity: "gesture", change: "rises" },
     test: (state) => state.cameraCarry === "handheld",
   },
   {
@@ -65,6 +70,8 @@ const PROXIMITIES = [
     when: "shot size becomes close",
     then: "volume drops",
     within: 1,
+    x: { curiosity: "shotSize", is: "close" },
+    y: { curiosity: "volume", change: "drops" },
     test: (state, shot) => shot === "close",
   },
   {
@@ -72,6 +79,8 @@ const PROXIMITIES = [
     when: "a person approaches",
     then: "the camera pushes in",
     within: 2,
+    x: { curiosity: "characterPath", is: "approach" },
+    y: { curiosity: "cameraMove", is: "push in" },
     test: (state) => state.characterPath === "approach",
   },
   {
@@ -79,6 +88,8 @@ const PROXIMITIES = [
     when: "an object enters",
     then: "the frame becomes an insert",
     within: 1,
+    x: { curiosity: "objectEnter", is: "enters" },
+    y: { curiosity: "shotSize", is: "insert" },
     test: (state) => state.objectEnter === "enters",
   },
 ];

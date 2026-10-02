@@ -1,6 +1,6 @@
 # Study view plan
 
-Status: plan only. Not built. Jeremy says go before any code changes.
+Status: built on 2026-10-02 (the Study tab and `study.js`). The Later list is not built.
 
 This is step 4 in `HANDOFF.md`. It borrows the working parts of Jeremy's music app, where curiosities are called essences. The two music-app notes are in `reference/`.
 

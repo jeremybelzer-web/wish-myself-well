@@ -1,12 +1,13 @@
 /* Curiosities: measurable variables a live-action render or a comic can change.
-   The list is a working catalog, meant to grow. The board plays the ones marked live. */
+   The list is a working catalog, meant to grow. The board plays the ones marked live.
+   A row with options or a range can be recorded in a study, live or not. */
 
 const CURIOSITIES = [
-  { id: "shotSize", group: "Camera", label: "Shot size", note: "Wide, medium, close, insert. How much of the body the frame keeps." },
-  { id: "angleHeight", group: "Camera", label: "Angle height", note: "Eye, low, high, overhead, floor." },
+  { id: "shotSize", group: "Camera", label: "Shot size", kind: "select", options: ["wide", "medium", "close", "insert"], note: "Wide, medium, close, insert. How much of the body the frame keeps." },
+  { id: "angleHeight", group: "Camera", label: "Angle height", kind: "select", options: ["eye", "low", "high", "overhead", "floor"], note: "Eye, low, high, overhead, floor." },
   { id: "lensLength", group: "Camera", label: "Lens length", note: "Wide lens deepens the room. Long lens flattens people together." },
-  { id: "dutch", group: "Camera", label: "Dutch / level", note: "Horizon tilted or true." },
-  { id: "pov", group: "Camera", label: "Point of view", note: "Whose eyes, or nobody’s." },
+  { id: "dutch", group: "Camera", label: "Dutch / level", kind: "select", options: ["level", "tilted"], note: "Horizon tilted or true." },
+  { id: "pov", group: "Camera", label: "Point of view", kind: "select", options: ["nobody", "a person", "an object"], note: "Whose eyes, or nobody’s." },
   { id: "angleCount", group: "Camera", label: "Angles per scene", live: true, kind: "range", min: 1, max: 8, value: 4, note: "How many distinct setups the scene is allowed." },
   { id: "angleFamily", group: "Camera", label: "Angles grouped", live: true, kind: "select", value: "coverage", options: ["coverage", "oner", "montage", "handheld"], note: "Coverage cuts around a line. An oner stays. Montage stacks. Handheld hunts." },
   { id: "angleChange", group: "Camera", label: "When the angle changes", live: true, kind: "select", value: "on the line", options: ["on the line", "on the action", "both", "locked"], note: "The relationship between a cut and a spoken line, or a cut and a thing done." },
@@ -30,14 +31,14 @@ const CURIOSITIES = [
   { id: "objectSpeed", group: "Motion", label: "Object speed", live: true, kind: "range", min: 1, max: 5, value: 2, note: "How fast the object travels." },
   { id: "objectEnter", group: "Motion", label: "Object in frame", live: true, kind: "select", value: "stays", options: ["stays", "enters", "leaves"], note: "The object stays, enters, or leaves." },
 
-  { id: "key", group: "Light", label: "Key direction", note: "Side, front, back, under, none." },
+  { id: "key", group: "Light", label: "Key direction", kind: "select", options: ["side", "front", "back", "under", "none"], note: "Side, front, back, under, none." },
   { id: "contrast", group: "Light", label: "Contrast", note: "How far the shadow is from the face." },
-  { id: "colorTemp", group: "Light", label: "Color of the light", note: "Warm practical, cold day, mixed." },
+  { id: "colorTemp", group: "Light", label: "Color of the light", kind: "select", options: ["warm practical", "cold day", "mixed"], note: "Warm practical, cold day, mixed." },
   { id: "lighting", group: "Light", label: "Lighting", live: true, kind: "select", value: "practical", options: ["dusk", "flat", "practical", "hard", "moon"], note: "The look of the room as a single choice the board can render." },
   { id: "timeOfDay", group: "Light", label: "Time of day", note: "The sun’s job, if any." },
 
   { id: "setting", group: "Place", label: "Setting", note: "Kitchen, lab, courtyard, wall, commute." },
-  { id: "intExt", group: "Place", label: "Interior or exterior", note: "A door changes the sound as much as the light." },
+  { id: "intExt", group: "Place", label: "Interior or exterior", kind: "select", options: ["interior", "exterior"], note: "A door changes the sound as much as the light." },
   { id: "envMotion", group: "Place", label: "Motion of the environment", live: true, kind: "select", value: "still", options: ["still", "wind", "crowd", "water", "transit"], note: "What the room does while people talk." },
   { id: "temperature", group: "Place", label: "Temperature", live: true, kind: "select", value: "mild", options: ["cold", "mild", "hot"], note: "How the bodies behave before anyone speaks." },
   { id: "weather", group: "Place", label: "Weather", note: "Rain, dust, nothing." },
@@ -57,7 +58,7 @@ const CURIOSITIES = [
   { id: "breath", group: "Sound", label: "Breathing and speaking", live: true, kind: "select", value: "breath then speak", options: ["breath then speak", "speak on the breath", "ignore breath"], note: "Whether a breath is a panel, or the line rides it, or the board pretends bodies do not breathe." },
   { id: "eating", group: "Sound", label: "Eating and speaking", live: true, kind: "select", value: "none", options: ["none", "eat then speak", "speak while eating"], note: "The mouth has one job at a time, or it doesn’t." },
 
-  { id: "gesture", group: "Body", label: "Size of gesture", note: "A hand, or the whole arm, or nothing." },
+  { id: "gesture", group: "Body", label: "Size of gesture", kind: "range", min: 0, max: 5, note: "A hand, or the whole arm, or nothing." },
   { id: "stillness", group: "Body", label: "Stillness", note: "How much of the person is allowed to move." },
   { id: "blink", group: "Body", label: "Blink", note: "A tell. Easy to fake. The crystal does not use it." },
 
