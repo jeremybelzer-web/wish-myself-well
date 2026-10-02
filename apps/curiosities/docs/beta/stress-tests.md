@@ -22,7 +22,7 @@ Run every command from the repository root.
 This takes about half an hour. It runs four parts, and `--only monkey,chains,keys,bridge` picks some of them:
 
 1. **monkey**: every page the app has gets its share of the random events. That covers My film, the
-   storyboard, every workspace, every Library page, the engine and momentum. The events are clicks, key
+   storyboard, the Screen, every workspace, every Library page, the engine and momentum. The events are clicks, key
    presses, wheel turns, hovers and changed values. Any page error or console error fails the run, reported
    with the page and the last action.
 2. **chains**: random changes on random pages, then undo all the way back. Every saved part must come back
