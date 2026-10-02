@@ -53,10 +53,27 @@
   }
 
   /* ---------- films ---------- */
+  /* Whole films first, then each film's favorite moments (starred in Curated films), then my board.
+     A moment is a film of its own: just the beats it spans. */
   function films() {
-    const out = ((window.CuriosityStudy && window.CuriosityStudy.studies()) || []).map((s) => ({ id: s.id, title: s.title, kind: s.kind, beats: s.beats || [] }));
+    const S = window.CuriosityStudy;
+    const studies = (S && S.studies()) || [];
+    const out = studies.map((s) => ({ id: s.id, title: s.title, kind: s.kind, beats: s.beats || [] }));
+    studies.forEach((s) =>
+      ((S.moments && S.moments(s.id)) || []).forEach((m) =>
+        out.push({ id: "m:" + s.id + ":" + m.id, title: "★ " + m.name + " · " + s.title, name: m.name, kind: "favorite moment", moment: true, beats: m.beats })
+      )
+    );
     out.push({ id: "__board", title: "My board", kind: "board", beats: null });
     return out;
+  }
+  function filmOptions(f) {
+    const all = films();
+    const o = (x) => `<option value="${esc(x.id)}" ${x.id === f.id ? "selected" : ""}>${esc(x.title)}</option>`;
+    const moments = all.filter((x) => x.moment);
+    return `<optgroup label="Whole films">${all.filter((x) => !x.moment && x.id !== "__board").map(o).join("")}</optgroup>
+      ${moments.length ? `<optgroup label="Favorite moments">${moments.map(o).join("")}</optgroup>` : ""}
+      <optgroup label="Mine">${all.filter((x) => x.id === "__board").map(o).join("")}</optgroup>`;
   }
   function film(inst) {
     const all = films();
@@ -241,6 +258,34 @@
     return lo === hi ? `after ${w(lo)}` : `after ${lo} to ${hi} beats`;
   }
 
+  /* The curiosities band, grouped by lens (lenses.js, CURIOSITY_LENSES): "this moment's comedy",
+     "this moment's color". A curiosity sits in the first lens that names it; the rest fall into
+     Camera, People, Story, and Everything else. Every lens shows, with a count of what is recorded. */
+  const CAMERA_G = ["Camera", "Camera move"];
+  const PEOPLE_G = ["People", "Body", "Motion"];
+  function groupOf(id) {
+    const c = (window.CURIOSITIES || (typeof CURIOSITIES !== "undefined" ? CURIOSITIES : [])).find((x) => x.id === id);
+    const g = (c && c.group) || "";
+    if (CAMERA_G.includes(g)) return "camera";
+    if (PEOPLE_G.includes(g)) return "people";
+    if (g.startsWith("Story")) return "story";
+    return "other";
+  }
+  function lensGroups(list, filteredView) {
+    const lenses = (window.CURIOSITY_LENSES || []).map((l) => ({ id: "lens:" + l.id, label: l.label, ids: [l.main].concat(l.subs || []), rows: [] }));
+    const rest = [
+      { id: "camera", label: "Camera", rows: [] },
+      { id: "people", label: "People", rows: [] },
+      { id: "story", label: "Story", rows: [] },
+      { id: "other", label: "Everything else", rows: [] },
+    ];
+    list.forEach((c) => {
+      const l = lenses.find((x) => x.ids.includes(c.id));
+      (l || rest.find((x) => x.id === groupOf(c.id))).rows.push(c);
+    });
+    return lenses.filter((l) => !filteredView || l.rows.length).concat(rest.filter((g) => g.rows.length));
+  }
+
   /* The suites band shows the top SUITE_TOP by best share; "Show all N" opens the rest. */
   const SUITE_TOP = 6;
   function bandHtml(band, sp, o) {
@@ -248,8 +293,9 @@
     const b = BANDS.find((x) => x.id === band);
     const beats = sp.beats;
     let rows = [];
+    let grouped = "";
     if (band === "curiosity") {
-      rows = sp.curiosities.map((c) => {
+      const one = (c) => {
         if (c.absent) return row(c.label, strip(beats, () => `<span class="pr-cell"></span>`), `<span class="cap">not measured in this film yet</span>`, "");
         const cells = strip(beats, (bt, i) => {
           const v = c.vals[i];
@@ -259,7 +305,21 @@
         const range = c.moved ? `${esc(c.lo)} to ${esc(c.hi)}` : `stays ${esc(c.lo)}`;
         const with_ = c.partners.length ? `<span class="cap">moves with ${c.partners.map((o) => esc(o.label.toLowerCase())).join(", ")}</span>` : "";
         return row(c.label, cells, `<b>${range}</b>${with_}`, dropBtn("curiosity", c.id));
-      });
+      };
+      rows = sp.curiosities.map(one);
+      const who = o.moment ? "This moment’s" : "This film’s";
+      const open = o.lensOpen || {};
+      grouped = lensGroups(sp.curiosities, !!o.filtered)
+        .map((g) => {
+          const n = g.rows.filter((c) => !c.absent).length;
+          const isOpen = g.id in open ? open[g.id] : n > 0;
+          const count = g.ids ? `${n} of ${g.ids.length} recorded` : `${n} recorded`;
+          return `<details class="pr-lens${n ? "" : " empty"}" data-lgroup="${esc(g.id)}" ${isOpen ? "open" : ""}>
+            <summary><span class="pr-lname">${esc(who)} ${esc(g.label.toLowerCase())}</span> <span class="mono">${esc(count)}</span></summary>
+            ${g.rows.length ? g.rows.map(one).join("") : `<p class="cap">Nothing recorded through this lens yet. In Curated films, open a beat and look at it through ${esc(g.label.toLowerCase())}.</p>`}
+          </details>`;
+        })
+        .join("");
     } else if (band === "suite") {
       rows = sp.suites.map((x) => {
         const s = x.s;
@@ -306,7 +366,7 @@
     return `<section class="pr-band" style="--hue:${b.hue}">
       <h3><span class="pr-swatch"></span>${esc(b.label)} <span class="mono">${total}</span></h3>
       <p class="cap">${esc(b.note)}</p>
-      ${rows.length ? rows.join("") : `<p class="cap">This film has none in this band.</p>`}
+      ${grouped || (rows.length ? rows.join("") : `<p class="cap">This film has none in this band.</p>`)}
       ${more}
     </section>`;
   }
@@ -337,6 +397,8 @@
   let lastSig = "";
   let band = mounted ? "all" : view.band;
   let allSuites = false;
+  /* Lens groups the student opened or closed by hand, by group id. */
+  const lensOpen = {};
   const titleText = () => opts.title || "Cross-pollinate from a film";
 
   function playingHtml() {
@@ -389,7 +451,7 @@
     root.innerHTML = `
       ${head}
       <div class="bar-actions pr-bar">
-        <label class="field">Film <select data-pr="film">${films().map((x) => `<option value="${esc(x.id)}" ${x.id === f.id ? "selected" : ""}>${esc(x.title)}</option>`).join("")}</select></label>
+        <label class="field">Film <select data-pr="film">${filmOptions(f)}</select></label>
         ${f.id === "__board" ? `<button type="button" data-pr="reread">Read my board again</button>` : ""}
         <span class="cap">${esc(f.kind || "")} · ${sp.beats.length} beats</span>
       </div>
@@ -403,7 +465,7 @@
         <button type="button" data-band="all" class="${band === "all" ? "on" : ""}">All four</button>
         ${BANDS.map((b) => `<button type="button" data-band="${esc(b.id)}" class="${band === b.id ? "on" : ""}" style="--hue:${b.hue}"><span class="pr-swatch"></span>${esc(b.label)}</button>`).join("")}
       </nav>
-      ${sp.beats.length ? bands.map((b) => bandHtml(b, sp, { allSuites })).join("") : `<p class="cap">This film has no beats yet. Trace some in Study.</p>`}
+      ${sp.beats.length ? bands.map((b) => bandHtml(b, sp, { allSuites, lensOpen, moment: !!f.moment, filtered: !!only })).join("") : `<p class="cap">This film has no beats yet. Trace some in Study.</p>`}
     `;
     root.querySelector('[data-pr="film"]').addEventListener("change", (e) => {
       view.film = e.target.value;
@@ -431,6 +493,7 @@
       draw();
     }));
     root.querySelectorAll(".pr-drop").forEach((b) => b.addEventListener("click", () => drop(b.dataset.kind, b.dataset.id, sp)));
+    root.querySelectorAll("[data-lgroup]").forEach((d) => d.addEventListener("toggle", () => (lensOpen[d.dataset.lgroup] = d.open)));
     const sa = root.querySelector('[data-pr="suites-all"]');
     if (sa) sa.addEventListener("click", () => ((allSuites = !allSuites), draw()));
     const st = root.querySelector('[data-pr="stop"]');
@@ -723,6 +786,14 @@
       .prism-view .pr-filter button { white-space: nowrap; }
       .prism-view .pr-band { border-left: 8px solid hsl(var(--hue) 65% 50%); padding: 6px 0 6px 12px; margin: 14px 0; background: linear-gradient(90deg, hsl(var(--hue) 70% 50% / 0.08), transparent 40%); }
       .prism-view .pr-band h3 { font-family: var(--serif); font-weight: 500; font-size: 18px; margin: 0 0 2px; }
+      .prism-view .pr-lens { border-top: 1px solid var(--line); }
+      .prism-view .pr-lens > summary { cursor: pointer; padding: 6px 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+      .prism-view .pr-lens > summary::before { content: "▸"; font-family: var(--mono); }
+      .prism-view .pr-lens[open] > summary::before { content: "▾"; }
+      .prism-view .pr-lens > summary::-webkit-details-marker { display: none; }
+      .prism-view .pr-lens .pr-lname { font-family: var(--serif); font-size: 16px; }
+      .prism-view .pr-lens.empty .pr-lname { color: #8a8075; }
+      .prism-view .pr-lens > .pr-row:last-child { border-bottom: 0; }
       .prism-view .pr-row { display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr) minmax(140px, 220px) auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
       .prism-view .pr-name { font-weight: 500; }
       .prism-view .pr-scroll { overflow-x: auto; min-width: 0; }
@@ -753,7 +824,15 @@
       .prism-view.pr-mounted .pr-drop:hover, .prism-view.pr-mounted .subtabs button.on { background: var(--ink); color: var(--paper); }
       @media (max-width: 760px) {
         .prism-view .pr-head { grid-template-columns: 1fr; }
-        .prism-view .pr-row { grid-template-columns: minmax(0, 1fr) auto; }
+        .prism-view .pr-lens { border-top: 1px solid var(--line); }
+      .prism-view .pr-lens > summary { cursor: pointer; padding: 6px 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+      .prism-view .pr-lens > summary::before { content: "▸"; font-family: var(--mono); }
+      .prism-view .pr-lens[open] > summary::before { content: "▾"; }
+      .prism-view .pr-lens > summary::-webkit-details-marker { display: none; }
+      .prism-view .pr-lens .pr-lname { font-family: var(--serif); font-size: 16px; }
+      .prism-view .pr-lens.empty .pr-lname { color: #8a8075; }
+      .prism-view .pr-lens > .pr-row:last-child { border-bottom: 0; }
+      .prism-view .pr-row { grid-template-columns: minmax(0, 1fr) auto; }
         .prism-view .pr-scroll, .prism-view .pr-info { grid-column: 1 / -1; }
         .prism-view .pr-act { grid-column: 2; grid-row: 1; }
         .prism-view .pr-drop { white-space: normal; }
@@ -772,6 +851,12 @@
       if (!el) return;
       if (!instances.has(el)) instances.set(el, Prism(el, {}));
       instances.get(el).draw();
+    },
+    /* Choose the film (a study id, or "m:<study>:<moment>" for a favorite moment) every Prism shows. */
+    pick(id) {
+      view.film = String(id || "");
+      saveView();
+      instances.forEach((inst) => ((inst.boardFilm = null), inst.visible() && inst.draw()));
     },
     /* A Prism inside any element, filtered to some curiosities: mount(el, {curiosities: [ids], title}). */
     mount(el, o) {

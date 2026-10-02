@@ -12,7 +12,39 @@
   const byId = Object.fromEntries(CURIOSITIES.map((c) => [c.id, c]));
   const root = document.getElementById("study");
   const store = load();
-  const view = { tab: "trace", studyId: store.studies[0] ? store.studies[0].id : "", picked: new Set(), editing: "", suite: "", lens: ["cameraCarry", "shotSize"], cross: ["emotion", "angleHeight"], openGroups: new Set(["Camera", "Scene memory"]), msg: "" };
+  const view = { tab: "trace", studyId: store.studies[0] ? store.studies[0].id : "", picked: new Set(), editing: "", suite: "", lens: ["cameraCarry", "shotSize"], cross: ["emotion", "angleHeight"], openGroups: new Set(["Camera", "Scene memory"]), looks: new Set(), msg: "" };
+
+  /* "Look at this beat through…": every lens (lenses.js, CURIOSITY_LENSES) plus three plain groups,
+     each a set of curiosity ids the beat editor opens as sliders. A curiosity may sit in two lenses. */
+  function looks() {
+    const has = (id) => !!byId[id] && recordable.includes(byId[id]);
+    const out = (window.CURIOSITY_LENSES || []).map((l) => ({ id: "lens:" + l.id, label: l.label, question: l.question, ids: [l.main].concat(l.subs || []).filter(has) }));
+    const byGroups = (id, label, question, test) => ({ id, label, question, ids: recordable.filter((c) => test(c.group || "")).map((c) => c.id) });
+    out.push(byGroups("camera", "Camera", "Where is the camera, how close, how high, and how does it move?", (g) => g === "Camera" || g === "Camera move"));
+    out.push(byGroups("people", "People", "Who is in the frame, where they stand, and how their bodies move?", (g) => g === "People" || g === "Body" || g === "Motion"));
+    out.push(byGroups("story", "Story", "Where is each character on their road through the whole story?", (g) => g.startsWith("Story")));
+    return out.filter((l) => l.ids.length);
+  }
+  /* The quick columns: the original board groups, without the lens and story ones (those open from the picker). */
+  const quick = (c) => !/^(Lens|Story)/.test(c.group || "");
+
+  /* Favorite moments: a beat or a span of beats starred with a short name ("the bar entrance").
+     Stored on the study as {id, name, from, to} with beat ids; the Prism can pick one instead of the whole film. */
+  const NAME_MAX = 40;
+  function moments(s) {
+    if (!s) return [];
+    if (!Array.isArray(s.moments)) s.moments = [];
+    return s.moments;
+  }
+  function momentBeats(s, m) {
+    const a = s.beats.findIndex((b) => b.id === m.from);
+    const z = s.beats.findIndex((b) => b.id === m.to);
+    if (a < 0 || z < 0) return [];
+    return s.beats.slice(Math.min(a, z), Math.max(a, z) + 1);
+  }
+  function starredAt(s, beat) {
+    return moments(s).filter((m) => momentBeats(s, m).includes(beat));
+  }
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -214,7 +246,7 @@
         const editing = view.editing === beat.id;
         return `<tr class="${view.picked.has(beat.id) ? "picked" : ""}">
           <td><input type="checkbox" data-pick="${esc(beat.id)}" ${view.picked.has(beat.id) ? "checked" : ""} aria-label="Pick beat ${i + 1}" /></td>
-          <td class="mono">${i + 1}</td>
+          <td class="mono">${i + 1}${starredAt(s, beat).length ? ` <span class="fav-star" title="${esc(starredAt(s, beat).map((m) => m.name).join(", "))}">★</span>` : ""}</td>
           <td class="mono">${esc(beat.at)}</td>
           <td>${chips(beat.values)}${beat.note ? `<p class="cap">${esc(beat.note)}</p>` : ""}</td>
           <td>${suitesCell(beat)}</td>
@@ -225,8 +257,22 @@
       .join("");
     const picked = s.beats.filter((b) => view.picked.has(b.id));
     const keepFrom = recordable.filter((c) => picked.some((b) => b.values[c.id] != null));
+    const favs = moments(s)
+      .map((m) => {
+        const bs = momentBeats(s, m);
+        const at = bs.map((b) => s.beats.indexOf(b) + 1);
+        const where = !at.length ? "its beats were deleted" : at.length === 1 ? "beat " + at[0] : "beats " + at[0] + " to " + at[at.length - 1];
+        return `<li><span class="fav-star">★</span> <b>${esc(m.name)}</b> <span class="cap">${esc(where)}</span>
+          ${bs.length ? `<button type="button" data-prism-moment="${esc(m.id)}">Open in the Prism</button>` : ""}
+          <button type="button" data-unstar="${esc(m.id)}">Unstar</button></li>`;
+      })
+      .join("");
     return `
       <p class="cap">${esc(s.kind)}${s.kind === "game" ? " · camera: " + esc(s.camera === "player" ? "the player’s" : "authored") : ""} · ${s.beats.length} beats</p>
+      <div class="favs">
+        <p class="g">Favorite moments</p>
+        ${favs ? `<ul class="fav-list">${favs}</ul>` : `<p class="cap">None yet. Tick one beat or a few beats in a row, then star them below with a short name, like “the bar entrance”. The Prism can then split just that moment.</p>`}
+      </div>
       <div class="scroll"><table class="trace">
         <thead><tr><th></th><th>Beat</th><th>At</th><th>Curiosities on</th><th>Suites, by share</th><th>Proximities that held from here</th><th></th></tr></thead>
         <tbody>${rows || `<tr><td colspan="7" class="cap">No beats yet.</td></tr>`}</tbody>
@@ -246,7 +292,12 @@
               <optgroup label="A suite">${allSuites().map((x) => `<option value="s:${x.id}">${esc(x.label)}</option>`).join("")}</optgroup>
             </select>
           </label>
-          <button type="button" data-act="keep">Keep</button> <button type="button" data-act="unpick">Clear picks</button>`
+          <button type="button" data-act="keep">Keep</button> <button type="button" data-act="unpick">Clear picks</button>
+          <div class="fav-form">
+            <label class="field">Star as a favorite moment <input id="fav-name" maxlength="${NAME_MAX}" placeholder="A short name, like the bar entrance" /></label>
+            <button type="button" data-act="star">★ Star ${picked.length === 1 ? "this beat" : "these beats"}</button>
+          </div>
+          <p class="cap">A starred moment runs from the first ticked beat to the last.</p>`
             : `<p class="cap">Tick beats in the trace to keep a span.</p>`
         }
       </div>`;
@@ -254,7 +305,7 @@
 
   function editor(beat) {
     const groups = [];
-    recordable.forEach((c) => {
+    recordable.filter(quick).forEach((c) => {
       if (!groups.includes(c.group)) groups.push(c.group);
     });
     const field = (c) => {
@@ -279,11 +330,65 @@
         return `<details class="beat-group" data-group="${esc(g)}" ${open}><summary>${esc(g)}${set ? ` · ${set}` : ""}</summary><div class="beat-grid">${items.map(field).join("")}</div></details>`;
       })
       .join("");
+    const s = current();
+    const stars = s ? starredAt(s, beat) : [];
     return `<div class="beat-edit" data-beat="${esc(beat.id)}">
       <label class="field">At <input data-at value="${esc(beat.at)}" maxlength="24" placeholder="0:42, or a scene name" /></label>
       <label class="field">Note <input data-note value="${esc(beat.note)}" maxlength="${NOTE_MAX}" placeholder="A pointer, not a transcript" /></label>
+      <div class="fav-form">
+        <label class="field">${stars.length ? "★ Starred as " + esc(stars.map((m) => m.name).join(", ")) + ". Star again as" : "Star this beat as a favorite moment"} <input data-star-name maxlength="${NAME_MAX}" placeholder="A short name, like the bar entrance" /></label>
+        <button type="button" data-act="star-beat" data-beat="${esc(beat.id)}">★ Star</button>
+      </div>
+      ${lensPicker(beat)}
+      <p class="g">Quick columns</p>
       ${fields}
       <button type="button" data-act="delete-beat" data-beat="${esc(beat.id)}">Delete beat</button>
+    </div>`;
+  }
+
+  /* One slider per curiosity, graded along its own scale words. A beat that does not record it shows
+     "not set"; moving the slider records it, the × clears it. Tags (free words) stay a text box. */
+  function slider(c, beat) {
+    const v = beat.values[c.id];
+    const set = v != null && v !== "";
+    if (c.kind === "tag")
+      return `<label class="field lens-slide">${esc(c.label)}
+        <input data-val="${c.id}" value="${esc(set ? v : "")}" maxlength="${TAG_MAX}" placeholder="a word" />
+      </label>`;
+    const words = c.kind === "range" ? null : c.options;
+    const lo = c.kind === "range" ? c.min : 0;
+    const hi = c.kind === "range" ? c.max : words.length - 1;
+    const at = set ? (words ? Math.max(0, words.indexOf(String(v))) : Number(v)) : lo;
+    const ends = words ? [words[0], words[words.length - 1]] : [String(c.min), String(c.max)];
+    return `<div class="lens-slide${set ? "" : " unset"}">
+      <div class="ls-head"><span class="ls-name">${esc(c.label)}</span> <b class="ls-val" data-show="${c.id}">${set ? esc(v) : "not set"}</b>
+        ${set ? `<button type="button" class="ls-clear" data-clear="${c.id}" aria-label="Clear ${esc(c.label)}">×</button>` : ""}</div>
+      <input type="range" min="${lo}" max="${hi}" step="1" value="${at}" data-slide="${c.id}" aria-label="${esc(c.label)}" />
+      <div class="ls-ends"><span>${esc(ends[0])}</span><span>${esc(ends[1])}</span></div>
+      ${c.note || c.view ? `<p class="cap">${esc(c.note || c.view)}</p>` : ""}
+    </div>`;
+  }
+
+  function lensPicker(beat) {
+    const all = looks();
+    const count = (l) => l.ids.filter((id) => beat.values[id] != null && beat.values[id] !== "").length;
+    const btns = all
+      .map((l) => {
+        const n = count(l);
+        return `<button type="button" class="chip-btn${view.looks.has(l.id) ? " on" : ""}" data-look="${esc(l.id)}" aria-pressed="${view.looks.has(l.id)}">${esc(l.label)}${n ? ` · ${n}` : ""}</button>`;
+      })
+      .join("");
+    const open = all
+      .filter((l) => view.looks.has(l.id))
+      .map((l) => `<div class="lens-pane"><p class="g">${esc(l.label)} <span class="cap">${count(l)} of ${l.ids.length} recorded</span></p>
+        <p class="cap">${esc(l.question || "")}</p>
+        <div class="lens-grid">${l.ids.map((id) => slider(byId[id], beat)).join("")}</div></div>`)
+      .join("");
+    return `<div class="lens-pick">
+      <p class="g">Look at this beat through…</p>
+      <p class="rule">Record what you notice as values: a word on a scale, or a number. Never copy the dialogue, the script or a shot list.</p>
+      <div class="lens-btns">${btns}</div>
+      ${open}
     </div>`;
   }
 
@@ -572,6 +677,19 @@
       else view.picked.delete(t.dataset.pick);
     } else if (t.dataset.edit) {
       view.editing = view.editing === t.dataset.edit ? "" : t.dataset.edit;
+    } else if (t.dataset.look) {
+      if (view.looks.has(t.dataset.look)) view.looks.delete(t.dataset.look);
+      else view.looks.add(t.dataset.look);
+    } else if (t.dataset.clear && s) {
+      const beat = s.beats.find((b) => b.id === t.closest("[data-beat]").dataset.beat);
+      if (beat) delete beat.values[t.dataset.clear];
+      save();
+    } else if (t.dataset.unstar && s) {
+      s.moments = moments(s).filter((m) => m.id !== t.dataset.unstar);
+      save();
+    } else if (t.dataset.prismMoment && s) {
+      openPrism("m:" + s.id + ":" + t.dataset.prismMoment);
+      return;
     } else if (t.dataset.lens) {
       const i = view.lens.indexOf(t.dataset.lens);
       if (i >= 0) view.lens.splice(i, 1);
@@ -628,6 +746,18 @@
         save();
       } else if (act === "keep") {
         keep();
+      } else if ((act === "star" || act === "star-beat") && s) {
+        const box = act === "star" ? document.getElementById("fav-name") : t.closest("[data-beat]").querySelector("[data-star-name]");
+        const name = ((box && box.value) || "").trim().slice(0, NAME_MAX);
+        const span = act === "star" ? s.beats.filter((b) => view.picked.has(b.id)) : s.beats.filter((b) => b.id === t.dataset.beat);
+        if (!name) say("Give the moment a short name first, like “the bar entrance”.");
+        else if (!span.length) say("Tick the beats to star first.");
+        else {
+          moments(s).push({ id: uid("m"), name, from: span[0].id, to: span[span.length - 1].id });
+          if (act === "star") view.picked.clear();
+          save();
+          say(`Starred “${name}”. Pick it in the Prism’s film list to split just that moment.`);
+        }
       } else if (act === "unpick") {
         view.picked.clear();
       } else if (act === "export") {
@@ -685,6 +815,12 @@
       valueOptions("px-xv", false);
     } else if (t.id === "px-y") {
       valueOptions("px-yv", true);
+    } else if (t.dataset.slide && s) {
+      const beat = s.beats.find((b) => b.id === t.closest("[data-beat]").dataset.beat);
+      const c = byId[t.dataset.slide];
+      beat.values[c.id] = c.kind === "range" ? Number(t.value) : c.options[Number(t.value)];
+      save();
+      draw();
     } else if (t.dataset.val && s) {
       const beat = s.beats.find((b) => b.id === t.closest("[data-beat]").dataset.beat);
       const c = byId[t.dataset.val];
@@ -702,7 +838,59 @@
     }
   });
 
+  /* While a slider moves, show the word it is on; the beat saves when it is let go. */
+  root.addEventListener("input", (e) => {
+    const t = e.target;
+    if (!t.dataset.slide) return;
+    const c = byId[t.dataset.slide];
+    const out = t.parentNode.querySelector(`[data-show="${c.id}"]`);
+    if (out) out.textContent = c.kind === "range" ? t.value : c.options[Number(t.value)];
+    t.parentNode.classList.remove("unset");
+  });
+
+  function openPrism(filmId) {
+    if (window.CuriosityPrism && window.CuriosityPrism.pick) window.CuriosityPrism.pick(filmId);
+    const b = document.querySelector('#tabs button[data-tab="prism"]');
+    if (b) b.click();
+  }
+
+  function css() {
+    if (document.getElementById("study-lens-style")) return;
+    const st = document.createElement("style");
+    st.id = "study-lens-style";
+    st.textContent = `
+      .study tr.editor .beat-edit { position: sticky; left: 0; max-width: calc(100vw - 62px); box-sizing: border-box; }
+      .study .lens-pick { border-top: 1px solid var(--line); margin: 8px 0; }
+      .study .lens-pick .rule { margin: 0 0 8px; padding: 6px 8px; border-left: 3px solid var(--saffron); background: #fff3e6; font-size: 13px; }
+      .study .lens-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+      .study .lens-btns button { font-family: var(--mono); font-size: 11px; border: 1px solid var(--ink); background: var(--panel); padding: 4px 8px; cursor: pointer; }
+      .study .lens-btns button.on { background: var(--ink); color: var(--paper); }
+      .study .lens-pane { border-left: 3px solid var(--gold); padding: 2px 0 6px 10px; margin: 10px 0; }
+      .study .lens-pane .g { margin-top: 4px; }
+      .study .lens-pane .g .cap { text-transform: none; letter-spacing: 0; color: #6b6158; font-size: 12px; }
+      .study .lens-slide input[type="range"] { accent-color: var(--saffron); }
+      .study .lens-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 16px; }
+      .study .lens-slide { min-width: 0; }
+      .study .lens-slide .ls-head { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; font-size: 13px; }
+      .study .lens-slide .ls-name { font-weight: 500; }
+      .study .lens-slide .ls-val { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--saffron); }
+      .study .lens-slide.unset .ls-val { color: #9a8f84; font-weight: 400; }
+      .study .lens-slide.unset input[type="range"] { opacity: 0.4; }
+      .study .lens-slide .ls-clear { border: 1px solid var(--line); background: white; font-size: 11px; line-height: 1; padding: 1px 5px; cursor: pointer; }
+      .study .lens-slide .ls-ends { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 10px; color: #6b6158; }
+      .study .lens-slide .cap { margin: 2px 0 0; font-size: 12px; }
+      .study .fav-star { color: var(--saffron); }
+      .study .fav-list { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; }
+      .study .fav-list li { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+      .study .fav-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin-top: 8px; }
+      .study .fav-form label.field { flex: 1 1 220px; margin: 0; max-width: 420px; }
+      .study .fav-form input { font-family: var(--sans); font-size: 14px; border: 1px solid var(--ink); background: white; padding: 4px 6px; text-transform: none; letter-spacing: 0; }
+    `;
+    document.head.appendChild(st);
+  }
+
   function draw() {
+    css();
     render();
     if (view.tab === "proximity") {
       valueOptions("px-xv", false);
@@ -729,6 +917,11 @@
     },
     studies() {
       return store.studies;
+    },
+    /* A study's favorite moments, each with its beats: [{id, name, beats}]. */
+    moments(studyId) {
+      const s = store.studies.find((x) => x.id === studyId);
+      return s ? moments(s).map((m) => ({ id: m.id, name: m.name, beats: momentBeats(s, m) })).filter((m) => m.beats.length) : [];
     },
   };
 })();
