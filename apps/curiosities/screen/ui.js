@@ -64,6 +64,7 @@
     playerZoom: 1,
     libTab: "",
     ghost: false,
+    overview: true,
     range: null,
     guides: false,
     rulers: false,
@@ -353,7 +354,7 @@
     page.setAttribute("aria-label", "Screen");
     page.innerHTML = `<header class="sc-bar"></header><div class="sc-main">
       <section class="sc-lib sc-panel" aria-label="Curiosity library"><nav class="sc-icons" aria-label="Categories"></nav><div class="sc-lib-body"><div class="sc-side"></div><div class="sc-grid"></div></div></section>
-      <section class="sc-player sc-panel" aria-label="Player"><header class="sc-ph"></header><div class="sc-viewers"></div><div class="sc-transport"></div></section>
+      <section class="sc-player sc-panel" aria-label="Player"><header class="sc-ph"></header><div class="sc-viewers"></div><div class="sc-overview" aria-label="Whole film"></div><div class="sc-transport"></div></section>
       <aside class="sc-inspector sc-panel" aria-label="Details"></aside>
       <div class="sc-timeline sc-panel"></div></div>`;
     document.body.appendChild(page);
@@ -361,7 +362,8 @@
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
     page.addEventListener("pointerdown", onKnobDown);
-    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e));
+    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || onOverviewDrag(e));
+    page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
     document.addEventListener("keydown", (e) => {
       if (page.hidden) return;
       const tag = (e.target && e.target.tagName) || "";
@@ -705,6 +707,83 @@
       <p class="sc-vnote">${esc(f.beats[b].at || "")} ${esc(f.beats[b].note || "")}${fires.length ? ` · ${esc(sel.label)}: ${fires.length} time${fires.length === 1 ? "" : "s"}` : ""}</p>
     </article>`;
   }
+  /* ---------- the whole film at a glance (decision 74) ----------
+     The viewers show one moment at a time, so this strip shows every moment of My film as a small storyboard
+     frame, always squeezed to fit, like the thumbnails on CapCut's main track and Final Cut Pro's filmstrips.
+     Click or drag along it to jump anywhere. The bright box is the stretch the timeline below shows now. */
+  const thumbs = new Map();
+  function thumb(values) {
+    const k = castOf() + JSON.stringify(values);
+    if (!thumbs.has(k)) {
+      if (thumbs.size > 400) thumbs.clear();
+      thumbs.set(k, F().svg(values, { title: "", cast: castOf() }).replace("<svg ", '<svg preserveAspectRatio="xMidYMid slice" '));
+    }
+    return thumbs.get(k);
+  }
+  function overviewHtml() {
+    const beats = mineBeats();
+    const n = beats.length;
+    if (!prefs.overview) return `<div class="sc-ov-h"><button type="button" data-act="overview" class="sc-ov-toggle" title="Show every moment of your film in one strip">▸ Whole film</button></div>`;
+    if (!n) return "";
+    const rg = rangeNow();
+    const fires = new Set(L().fires(prefs.sel.level, prefs.sel.id, beats).map((f) => f.beat));
+    const sel = selection();
+    return `<div class="sc-ov-h"><button type="button" data-act="overview" class="sc-ov-toggle" title="Hide the whole-film strip">▾ Whole film</button><span>${n} moment${n === 1 ? "" : "s"} · ${n * secondsPerMoment()} seconds</span>${fires.size ? `<span class="sc-ov-key"><em></em>${esc(sel.label)}</span>` : ""}<span class="sc-ov-tip">Click or drag to jump anywhere</span></div>
+      <div class="sc-ov-strip" data-ov-strip style="--n:${n}">${beats
+        .map((b, j) => `<button type="button" class="sc-ov-f${j === row ? " on" : ""}${rg && (j < rg[0] || j > rg[1]) ? " out" : ""}" data-ov="${j}" title="Moment ${j + 1}${b.note ? ": " + esc(b.note) : ""}. Click to jump here." aria-label="Jump to moment ${j + 1}">${thumb(b.values)}<i>${j + 1}</i>${fires.has(j) ? `<em title="${esc(sel.label)} happens here"></em>` : ""}</button>`)
+        .join("")}<span class="sc-ov-win" hidden></span></div>`;
+  }
+  /* The box on the strip that shows which part of the film the timeline is scrolled to. */
+  function showTimelineWindow() {
+    const box = page && page.querySelector(".sc-ov-win");
+    const sc = page && page.querySelector(".sl-scroll");
+    if (!box) return;
+    const head = sc && sc.querySelector(".sl-heads");
+    const hw = head ? head.offsetWidth : 0;
+    const total = sc ? sc.scrollWidth - hw : 0;
+    const seen = sc ? sc.clientWidth - hw : 0;
+    if (!sc || total <= 0 || seen >= total - 2) return (box.hidden = true);
+    box.hidden = false;
+    box.style.left = (100 * sc.scrollLeft) / total + "%";
+    box.style.width = (100 * Math.min(seen, total)) / total + "%";
+  }
+  /* Jump to a moment from the strip, and scroll the timeline so the playhead is in view. */
+  function jumpTo(j) {
+    setRow(j);
+    const sc = page.querySelector(".sl-scroll");
+    const play = sc && sc.querySelector(".sl-lanes .sl-play, .sl-topsvg .sl-play");
+    const head = sc && sc.querySelector(".sl-heads");
+    if (!play) return;
+    const hw = head ? head.offsetWidth : 0;
+    const x = Number(play.getAttribute("x"));
+    const w = Number(play.getAttribute("width")) || 0;
+    const seen = sc.clientWidth - hw;
+    if (x < sc.scrollLeft || x + w > sc.scrollLeft + seen) sc.scrollLeft = Math.max(0, w > seen ? x : x + w / 2 - seen / 2);
+    showTimelineWindow();
+  }
+  function onOverviewDrag(e) {
+    const strip = e.target.closest && e.target.closest("[data-ov-strip]");
+    if (!strip || e.button > 0) return false;
+    const at = (ev) => {
+      const s = page.querySelector("[data-ov-strip]");
+      const r = s.getBoundingClientRect();
+      return Math.floor(Math.max(0, Math.min(0.9999, (ev.clientX - r.left) / r.width)) * nRows());
+    };
+    let last = at(e);
+    jumpTo(last);
+    const move = (ev) => {
+      const j = at(ev);
+      if (j !== last) jumpTo((last = j));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+    return true;
+  }
   /* CapCut-style timecode: one moment of my film counts as one second. */
   /* Seconds per moment: the Momentum window's own setting (localStorage "curiosities-momentum-v1",
      secondsPerPanel, 3 by default), so the Screen's clock and the momentum meter agree. */
@@ -735,6 +814,8 @@
       .map(([id, l, t]) => `<button type="button" data-lens="${id}" class="${prefs.lens === id ? "on" : ""}" title="${t}">${l}</button>`)
       .join("")}</div><button type="button" data-act="ghost" class="sc-ghost-b${prefs.ghost ? " on" : ""}" aria-pressed="${!!prefs.ghost}" title="Ghosts: see the moments before and after faintly over your film (Maya's ghosting, an animator's onion skin)">Ghosts</button>`;
     page.querySelector(".sc-viewers").innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine");
+    page.querySelector(".sc-overview").innerHTML = overviewHtml();
+    showTimelineWindow();
     page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
       <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span></span>`;
@@ -1324,6 +1405,8 @@
     const d = t.dataset;
     if (d.openWin && !t.closest(".sl")) return openWin(d.openWin);
     if (winClick(d, t)) return;
+    if (d.ov != null && !e.detail) return jumpTo(Number(d.ov));
+    if (d.ov != null) return;
     if (t.matches("[data-scrub]")) {
       const r = t.getBoundingClientRect();
       const fr = Math.max(0, Math.min(0.999, (e.clientX - r.left) / r.width));
@@ -1456,6 +1539,11 @@
     const act = d.act;
     if (act === "close") return close();
     if (act === "shortcuts") return showKeys(!keysOpen);
+    if (act === "overview") {
+      prefs.overview = !prefs.overview;
+      save();
+      return drawViewers();
+    }
     if (act === "ghost") {
       prefs.ghost = !prefs.ghost;
       save();

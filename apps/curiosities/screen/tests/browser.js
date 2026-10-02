@@ -172,6 +172,37 @@ const ok = (cond, msg) => {
   ok(await page.evaluate(() => { const r = window.CurioScreen.row(); return r >= 1 && r <= 3; }), "Play loops inside the range");
   await page.click('[data-act="range-clear"]');
   ok(!(await page.evaluate(() => window.CurioScreen.state().range)), "the range clears");
+
+  /* The whole film at a glance: a frame per moment under the viewers; click or drag to jump (decision 74). */
+  const ovN = await page.evaluate(() => [document.querySelectorAll(".sc-ov-f").length, window.CurioEngine.state().rows.length]);
+  ok(ovN[0] > 1 && ovN[0] === ovN[1], "the whole-film strip shows every moment (" + ovN[0] + ")");
+  const ovFit = await page.evaluate(() => { const s = document.querySelector(".sc-ov-strip"); return s.scrollWidth <= s.clientWidth + 1; });
+  ok(ovFit, "the whole film fits in the strip without scrolling");
+  await page.click('.sc-ov-f[data-ov="2"]');
+  ok((await page.evaluate(() => window.CurioScreen.row())) === 2 && !!(await page.$('.sc-ov-f.on[data-ov="2"]')), "clicking a frame in the strip jumps the playhead there");
+  const ovBox = await (await page.$(".sc-ov-strip")).boundingBox();
+  await page.mouse.move(ovBox.x + 3, ovBox.y + ovBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(ovBox.x + ovBox.width - 3, ovBox.y + ovBox.height / 2, { steps: 6 });
+  await page.mouse.up();
+  ok((await page.evaluate(() => window.CurioScreen.row())) === ovN[1] - 1, "dragging along the strip scrubs to the end of the film");
+  const lanesBox = await (await page.$(".sl-lanes")).boundingBox();
+  await page.mouse.move(lanesBox.x + 40, lanesBox.y + 10);
+  await page.keyboard.down("Control");
+  for (let k = 0; k < 6; k++) await page.mouse.wheel(0, -200);
+  await page.keyboard.up("Control");
+  await page.waitForTimeout(100);
+  const ovWin = await page.evaluate(() => { const w = document.querySelector(".sc-ov-win"); return w && !w.hidden ? parseFloat(w.style.width) : null; });
+  ok(ovWin > 0 && ovWin < 100, "when the timeline is zoomed in, a box on the strip shows which part it is showing (" + ovWin + ")");
+  await page.click('.sc-ov-f[data-ov="' + (ovN[1] - 1) + '"]');
+  const ovSeen = await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); const p = sc.querySelector(".sl-lanes .sl-play"); const hw = sc.querySelector(".sl-heads").offsetWidth; const x = Number(p.getAttribute("x")); return [x, sc.scrollLeft, sc.clientWidth, hw, sc.scrollWidth, document.querySelectorAll(".sl-scroll").length]; });
+  ok(ovSeen[0] >= ovSeen[1] - 1 && ovSeen[0] <= ovSeen[1] + ovSeen[2] - ovSeen[3], "jumping from the strip scrolls the timeline so the playhead is in view (" + ovSeen + ")");
+  await page.click('[data-act="zoom-fit"]');
+  await page.click('.sc-ov-f[data-ov="1"]');
+  await page.screenshot({ path: path.join(SHOTS, "screen-1d-whole-film.png") });
+  await page.click('[data-act="overview"]');
+  ok((await page.$$(".sc-ov-f")).length === 0 && !!(await page.$('[data-act="overview"]')), "the strip folds away and comes back");
+  await page.click('[data-act="overview"]');
   await page.evaluate(() => window.CurioScreen.setRow(0));
   ok(await page.evaluate(() => !!document.querySelector(".sc-cur.sel .sc-mom")), "the picked curiosity shows its momentum: how it drives the story");
 

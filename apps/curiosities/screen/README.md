@@ -52,6 +52,10 @@ Jeremy, 2026-10-02 20:26Z (his words #25). In `lanes.js`:
 
 In `ui.js`, **curiosity windows**: ⧉ on every lane and Details row (or `CurioScreen.openWin(id)`) opens a floating window built from the curiosity's sliders, each with its control, key diamond, "+ lane" and a chart. Hand-made parts: Emotion's feeling pad and emotional road, Shot size's frames around a person, Comedy's joke timing (setup, payoff, Rule of three, Callback).
 
+## Whole film strip
+
+Jeremy, 2026-10-02 20:27Z. The viewers show one moment at a time, so the Player has a **Whole film** strip under them (`ui.js` `overviewHtml`): every moment of My film as a small storyboard frame, always squeezed to fit the width, like the thumbnails on CapCut's main track and Final Cut Pro's filmstrips. Click or drag along it to jump anywhere; the timeline scrolls to follow. The current moment is outlined, moments outside the play range are dimmed, a dot marks where the picked curiosity shows up, and a white box shows the stretch the zoomed-in timeline is showing. "▾ Whole film" folds it away (`prefs.overview`).
+
 ## ADVANCED: Final Cut Pro's features
 
 Jeremy, 2026-10-02 20:21Z: "keep the features of Final Cut Pro and hide them under a tab that says ADVANCED and then focus on the features of CapCut". The library's icon row ends with an **ADVANCED** tab, pinned at the right. It holds:

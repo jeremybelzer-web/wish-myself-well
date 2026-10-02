@@ -61,7 +61,7 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-page[data-view="arrange"] .sc-main:has(.sc-player:not([hidden])) { grid-template-rows: minmax(0, 45fr) minmax(0, 55fr); grid-template-areas: "player insp" "tl insp"; }
 .sc-panel { background: var(--cc-panel); border-radius: 8px; min-height: 0; min-width: 0; }
 .sc-lib { grid-area: lib; display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
-.sc-player { grid-area: player; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; }
+.sc-player { grid-area: player; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; overflow: hidden; }
 .sc-inspector { grid-area: insp; overflow: auto; }
 .sc-timeline { grid-area: tl; overflow: auto; padding: 6px 8px 12px; }
 
@@ -118,6 +118,25 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-frame { position: relative; cursor: pointer; background: #f7efe2; line-height: 0; border-radius: 3px; overflow: hidden; }
 .sc-frame svg, .sc-mini svg { width: 100%; height: auto; display: block; }
 .sc-att { position: absolute; right: 6px; top: 6px; line-height: 1.2; background: rgba(0, 0, 0, 0.75); color: #ffd9a8; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+/* The whole film at a glance: every moment as a small frame, squeezed to fit (decision 74). */
+.sc-overview { padding: 4px 8px 6px; background: #18181b; border-top: 1px solid #2a2a2d; min-width: 0; }
+.sc-overview:empty { display: none; }
+.sc-ov-h { display: flex; align-items: center; gap: 10px; font-size: 11px; color: #9a9aa2; margin-bottom: 3px; white-space: nowrap; overflow: hidden; }
+.sc-ov-h:only-child { margin-bottom: 0; }
+.sc-ov-toggle { border: 0; color: #d8d8dc; font: inherit; font-weight: 600; padding: 2px 0; cursor: pointer; }
+.sc-ov-key em { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--cc-accent); margin-right: 4px; }
+.sc-ov-tip { margin-left: auto; overflow: hidden; text-overflow: ellipsis; }
+.sc-ov-strip { position: relative; display: flex; height: 46px; gap: 1px; background: #000; border-radius: 4px; overflow: hidden; cursor: pointer; touch-action: none; user-select: none; }
+.sc-page .sc-ov-f, .sc-page .sc-ov-f:hover:not(:disabled), .sc-page .sc-ov-f.on { box-shadow: none; border-radius: 0; padding: 0; background: #e9e4d8; }
+.sc-page .sc-ov-toggle, .sc-page .sc-ov-toggle:hover:not(:disabled) { background: none; padding: 2px 0; }
+.sc-ov-f { position: relative; flex: 1 1 0; min-width: 0; padding: 0; border: 0; background: #e9e4d8; cursor: pointer; overflow: hidden; }
+.sc-ov-f svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+.sc-ov-f i { position: absolute; left: 2px; bottom: 1px; font: 600 9px/1 system-ui, sans-serif; font-style: normal; color: #fff; background: rgba(0, 0, 0, 0.55); padding: 1px 3px; border-radius: 2px; pointer-events: none; }
+.sc-ov-f em { position: absolute; top: 3px; right: 3px; width: 7px; height: 7px; border-radius: 50%; background: var(--cc-accent); box-shadow: 0 0 0 1px #000; pointer-events: none; }
+.sc-ov-f.out { filter: brightness(0.45); }
+.sc-ov-f.on { outline: 2px solid var(--cc-accent); outline-offset: -2px; z-index: 1; }
+.sc-ov-f:hover { filter: brightness(1.1); }
+.sc-ov-win { position: absolute; top: 0; bottom: 0; border: 1px solid #fff; background: rgba(255, 255, 255, 0.08); border-radius: 3px; pointer-events: none; z-index: 2; }
 .sc-scrub { position: relative; display: flex; height: 8px; margin-top: 5px; background: #2a2a2d; cursor: pointer; border-radius: 4px; }
 .sc-scrub b { border-right: 1px solid #000; }
 .sc-scrub b.on { background: var(--cc-accent); }
