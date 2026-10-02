@@ -12,6 +12,7 @@
   const PRESETS = {
     skin: { base: "#e0ac8a", diffRough: 0.5, specW: 0.5, specRough: 0.45, sss: 0.85, sssColor: "#d0443a", sheen: 0.1 },
     "wet asphalt": { base: "#2b2b2e", diffRough: 0.9, specW: 0.5, specRough: 0.6, coatW: 1, coatRough: 0.04, bump: 0.5 },
+    "wet skin": { base: "#e0ac8a", diffRough: 0.5, specW: 0.5, specRough: 0.4, sss: 0.85, sssColor: "#d0443a", coatW: 1, coatRough: 0.03 },
     velvet: { base: "#6a1030", diffRough: 1, specW: 0.1, specRough: 0.8, sheen: 1 },
     chrome: { base: "#dcdfe4", metal: 1, specW: 1, specRough: 0.06 },
     glass: { base: "#e8f4ff", specW: 1, specRough: 0.03, trans: 1 },
@@ -27,6 +28,13 @@
     "Wet night": { mat: { coatW: 1, coatRough: 0.03, specRough: 0.05, specW: 0.8, emit: 0.6, emitColor: "#ffb347", base: "#30343c" }, env: "#1b2540", glowScope: "object" },
     "Clean product": { mat: { specRough: 0.3, specW: 0.6, coatW: 0, bump: 0, metal: 0 }, keySize: 0.7, fillI: 0.6 },
   };
+  const RAMPS = { sunset: ["#1d1f4a", "#c04a5a", "#ffd08a"], "cel two-tone": ["#2c3550", "#e8c49a"], "x-ray": ["#ffffff", "#5ab4ff", "#0a1030"], "toxic": ["#120a1f", "#3f8f2a", "#c8ff5a", "#ffffff"] };
+  const LAYERS = {
+    "Rust over metal": { base: "chrome", top: "rusty metal", mask: "noise", amount: 0.55, soft: 0.25 },
+    "Wet over skin": { base: "skin", top: "wet skin", mask: "gradient", amount: 0.45, soft: 0.2 },
+    "Dust over glass": { base: "glass", top: "rubber", mask: "gradient", amount: 0.3, soft: 0.5 },
+  };
+  const AOVS = ["diffuse", "specular", "coat", "sheen", "subsurface", "emission"];
   const OPT = {
     shape: ["sphere", "head", "cloth"],
     shot: ["wide", "medium", "close"],
@@ -94,9 +102,9 @@
     return z < 0 ? -1 : z * k;
   }
 
-  /* Build every number the pixel loop needs from a parameter set. */
-  function prep(P) {
-    const m = P.mat;
+  /* Build every number the pixel loop needs from a parameter set. mat overrides P.mat (layer shader top). */
+  function prep(P, mat, isBase) {
+    const m = mat || P.mat;
     const kz = Math.sqrt(Math.max(0.08, 1 - P.kx * P.kx - P.ky * P.ky));
     const ln = Math.hypot(P.kx, P.ky, kz);
     const L = [P.kx / ln, P.ky / ln, kz / ln];
@@ -105,10 +113,40 @@
     const emitC = lin(m.emitColor);
     let env = lin(P.env);
     if (glowOn && P.glowScope === "room") env = env.map((c, i) => c + emitC[i] * m.emit * 0.35);
-    return { m, L, F: [-L[0] / fl, 0.2 / fl, 0.7 / fl], base: lin(m.base).map((c) => c * m.baseW), sssC: lin(m.sssColor), emitC, env, k: SCALE[P.shot] || 0.8, sssF: SSS_SHOT[P.shot] || 0.75 };
+    const tex = isBase !== false && P.tex && P.tex.kind !== "none" ? P.tex : null;
+    const ramp = P.ramp && P.ramp.on ? P.ramp.stops.map(lin) : null;
+    return { m, L, F: [-L[0] / fl, 0.2 / fl, 0.7 / fl], base: lin(m.base).map((c) => c * m.baseW), sssC: lin(m.sssColor), emitC, env, k: SCALE[P.shot] || 0.8, sssF: SSS_SHOT[P.shot] || 0.75, tex, tex2: tex ? lin(tex.color2) : null, ramp, rampBy: P.ramp ? P.ramp.by : "light" };
+  }
+
+  function fbm(x, y) {
+    return (noise(x, y) + 0.5 * noise(x * 2.1 + 5, y * 2.1) + 0.25 * noise(x * 4.3, y * 4.3 + 9)) / 1.75;
+  }
+  /* Procedural textures, 0 to 1, in object space. */
+  function pattern(kind, u, v, sc) {
+    const x = u * sc * 4, y = v * sc * 4;
+    if (kind === "noise") return fbm(x, y);
+    if (kind === "checker") return (Math.floor(x + 64) + Math.floor(y + 64)) & 1;
+    if (kind === "stripes") return clamp(0.5 + 2 * Math.sin(u * sc * 14), 0, 1);
+    if (kind === "wood") { const r = Math.hypot(u + 0.35, v * 0.25 + 0.1) * sc * 9 + fbm(x * 0.5, y * 2) * 1.5; const f = r - Math.floor(r); return clamp(Math.abs(f - 0.5) * 3 - 0.3, 0, 1); }
+    if (kind === "grunge") return clamp((fbm(x * 1.5, y * 1.5) - 0.42) * 3.5, 0, 1);
+    return 0;
+  }
+  function rampAt(stops, t) {
+    if (stops.length === 1) return stops[0];
+    const f = clamp(t, 0, 1) * (stops.length - 1);
+    const i = Math.min(stops.length - 2, Math.floor(f));
+    const k = f - i;
+    return stops[i].map((c, j) => mix(c, stops[i + 1][j], k));
+  }
+  /* Layer shader mask: 1 where the top material shows. */
+  function layerMask(Y, u, v) {
+    const thr = 1 - Y.amount, sft = Math.max(0.01, Y.soft * 0.3);
+    const x = Y.mask === "noise" ? fbm(u * 3 + 2, v * 3) * 1.25 - 0.12 : (v + 1) / 2;
+    return clamp((x - (thr - sft)) / (2 * sft), 0, 1);
   }
 
   function bg(Q, P, u, v) {
+    if (P.aov) return [0, 0, 0];
     const ch = (Math.floor(u * 4 + 8) + Math.floor(v * 4 + 8)) & 1 ? 1 : 0.72;
     const g = 0.35 + 0.45 * (v + 1) / 2;
     let c = Q.env.map((e) => e * g * ch + 0.02);
@@ -122,15 +160,27 @@
     return c;
   }
 
+  const ZERO = [0, 0, 0];
   function shade(Q, P, u, v, N, look) {
     const m = Q.m, L = Q.L;
     const nv = clamp(N[2], 0, 1);
     const nl = N[0] * L[0] + N[1] * L[1] + N[2] * L[2];
     const lam = Math.max(0, nl);
     let base = Q.base;
-    const dirt = m.bump * noise(u * 6 + 3, v * 6) * 0.55;
-    base = base.map((c) => c * (1 - 0.4 * m.coatW) * (1 - dirt));
+    let rough = m.specRough;
+    if (Q.tex) {
+      const p = pattern(Q.tex.kind, u, v, Q.tex.scale);
+      if (Q.tex.target !== "roughness") base = base.map((c, i) => mix(c, Q.tex2[i], p));
+      if (Q.tex.target !== "base color") rough = clamp(rough + (p - 0.5) * 0.6, 0.02, 1);
+    }
+    // grunge, driven by wear (bump): darker base, rougher surface
+    const gr = m.bump > 0 ? pattern("grunge", u, v, 1.6) * m.bump : 0;
+    if (gr) rough = Math.min(1, rough + gr * 0.45);
+    base = base.map((c) => c * (1 - 0.4 * m.coatW) * (1 - gr * 0.6));
+    if (Q.ramp && look !== "toon" && look !== "flat") base = rampAt(Q.ramp, Q.rampBy === "facing" ? nv : nl * 0.5 + 0.5);
     const emitAdd = Q.emitC.map((c) => c * m.emit * 2);
+    const A = P.aov;
+    if (A && look !== "photoreal" && look !== "painterly") look = "photoreal";
     if (look === "flat") return base.map((c, i) => c * 0.9 + 0.03 + emitAdd[i]);
     if (look === "toon") {
       const q = P.bands;
@@ -139,55 +189,64 @@
       let c = base.map((x, i) => x * lv * P.keyI + Q.env[i] * 0.08);
       const hh = Math.hypot(L[0], L[1], L[2] + 1);
       const nh = (N[0] * L[0] + N[1] * L[1] + N[2] * (L[2] + 1)) / hh;
-      if (m.specW > 0.2 && nh > 1 - 0.04 * (1 - m.specRough) - 0.002) c = c.map((x) => x + 0.8);
+      if (m.specW > 0.2 && nh > 1 - 0.04 * (1 - rough) - 0.002) c = c.map((x) => x + 0.8);
       if (m.trans > 0.3) { const b = bg(Q, P, u - N[0] * 0.25, v - N[1] * 0.25); c = c.map((x, i) => mix(x, b[i], m.trans * 0.8)); }
       return c.map((x, i) => x + emitAdd[i]);
     }
     const ks = P.keySize;
-    let d = lam * (1 - 0.25 * m.diffRough) + 0.25 * m.diffRough * Math.max(0, (nl + 0.4) / 1.4);
-    d = mix(d, Math.max(0, (nl + 0.5) / 1.5), ks * 0.5);
     const w = clamp(m.sss * Q.sssF, 0, 1);
-    const wrap = Math.max(0, (nl + 0.6) / 1.6);
-    const fd = Math.max(0, N[0] * Q.F[0] + N[1] * Q.F[1] + N[2] * Q.F[2]) * P.fillI;
-    const amb = 0.15 * (0.7 + 0.3 * N[1]);
-    let col = base.map((b, i) => {
-      let x = b * d * (1 - w) + (wrap * b * 0.75 + Q.sssC[i] * Math.max(0, wrap - lam) * 1.3) * w;
-      x = x * P.keyI + b * fd * [0.8, 0.9, 1][i] + b * Q.env[i] * amb * 2;
-      return x * (1 - m.metal);
-    });
+    let diff, sssPart;
+    if (Q.ramp) {
+      // the ramp is the lighting: the color comes from the light angle or facing ratio
+      diff = base.map((c) => c * (0.75 + 0.25 * P.keyI) * (1 - m.metal));
+      sssPart = ZERO;
+    } else {
+      let d = lam * (1 - 0.25 * m.diffRough) + 0.25 * m.diffRough * Math.max(0, (nl + 0.4) / 1.4);
+      d = mix(d, Math.max(0, (nl + 0.5) / 1.5), ks * 0.5);
+      const wrap = Math.max(0, (nl + 0.6) / 1.6);
+      const fd = Math.max(0, N[0] * Q.F[0] + N[1] * Q.F[1] + N[2] * Q.F[2]) * P.fillI;
+      const amb = 0.15 * (0.7 + 0.3 * N[1]);
+      diff = base.map((b, i) => (b * d * (1 - w) * P.keyI + b * fd * [0.8, 0.9, 1][i] + b * Q.env[i] * amb * 2) * (1 - m.metal));
+      sssPart = base.map((b, i) => (wrap * b * 0.75 + Q.sssC[i] * Math.max(0, wrap - lam) * 1.3) * w * P.keyI * (1 - m.metal));
+    }
     if (m.trans > 0) {
-      const b = bg(Q, P, u - N[0] * 0.3, v - N[1] * 0.3);
+      const b = A ? ZERO : bg(Q, P, u - N[0] * 0.3, v - N[1] * 0.3);
       const tint = Q.base.map((c) => mix(1, c, 0.5));
-      col = col.map((x, i) => mix(x, b[i] * tint[i], m.trans));
+      diff = diff.map((x, i) => mix(x, b[i] * tint[i], m.trans));
+      sssPart = sssPart.map((x) => x * (1 - m.trans));
     }
     // specular and environment reflection
-    const sr = Math.max(m.specRough, ks * 0.3);
-    const F0 = Q.base.map((c) => mix(0.04, c, m.metal));
+    const sr = Math.max(rough, ks * 0.3);
+    const F0 = base.map((c) => mix(0.04, c, m.metal));
     const hl = Math.hypot(L[0], L[1], L[2] + 1);
     const nh = Math.max(0, (N[0] * L[0] + N[1] * L[1] + N[2] * (L[2] + 1)) / hl);
     const vh = Math.max(0, (L[2] + 1) / hl);
     const R = [2 * N[2] * N[0], 2 * N[2] * N[1], 2 * N[2] * N[2] - 1];
     const sky = (R[1] + 1) / 2;
-    const win = Math.pow(Math.max(0, R[0] * L[0] + R[1] * L[1] + R[2] * L[2]), 1 / (sr * sr * 0.5 + 0.004)) * P.keyI * 3;
+    const rl = Math.max(0, R[0] * L[0] + R[1] * L[1] + R[2] * L[2]);
+    const win = Math.pow(rl, 1 / (sr * sr * 0.5 + 0.004)) * P.keyI * 3;
     const envAvg = (Q.env[0] + Q.env[1] + Q.env[2]) / 3;
     const film = m.film > 0 ? rainbow((1 - nv) * 2.2 + 0.15).map((c) => mix(1, c * 1.6, m.film)) : [1, 1, 1];
     const fnv = Math.pow(1 - nv, 5);
     const D = ggx(nh, sr) * lam * 0.25 * P.keyI;
-    col = col.map((x, i) => {
-      const fh = F0[i] + (1 - F0[i]) * Math.pow(1 - vh, 5);
-      const fe = F0[i] + (1 - F0[i]) * fnv;
+    let spec = F0.map((f0, i) => {
+      const fh = f0 + (1 - f0) * Math.pow(1 - vh, 5);
+      const fe = f0 + (1 - f0) * fnv;
       const e = mix(mix(Q.env[i] * 0.3, Q.env[i] * 1.4, sky), envAvg, sr) + win;
-      return x + m.specW * (D * fh + e * fe * (1 - sr * 0.8)) * film[i];
+      return m.specW * (D * fh + e * fe * (1 - sr * 0.8)) * film[i];
     });
-    if (m.film > 0) { const rb = rainbow((1 - nv) * 2.5); col = col.map((x, i) => x + rb[i] * m.film * (0.08 + fnv * 0.5)); }
-    if (m.sheen > 0) { const sh = m.sheen * Math.pow(1 - nv, 3) * (0.4 + lam) * P.keyI; col = col.map((x, i) => x + mix(Q.base[i], 1, 0.35) * sh); }
+    if (m.film > 0) { const rb = rainbow((1 - nv) * 2.5); spec = spec.map((x, i) => x + rb[i] * m.film * (0.08 + fnv * 0.5)); }
+    let sheen = ZERO;
+    if (m.sheen > 0) { const sh = m.sheen * Math.pow(1 - nv, 3) * (0.4 + lam) * P.keyI; sheen = Q.base.map((c) => mix(c, 1, 0.35) * sh); }
+    let coat = ZERO;
     if (m.coatW > 0) {
       const fc = 0.04 + 0.96 * fnv;
-      const cw = Math.pow(Math.max(0, R[0] * L[0] + R[1] * L[1] + R[2] * L[2]), 1 / (m.coatRough * m.coatRough * 0.5 + 0.003)) * P.keyI * 3;
+      const cw = Math.pow(rl, 1 / (m.coatRough * m.coatRough * 0.5 + 0.003)) * P.keyI * 3;
       const cd = ggx(nh, m.coatRough) * lam * 0.25 * P.keyI;
-      col = col.map((x, i) => x + m.coatW * (cd * 0.04 + (mix(Q.env[i] * 0.3, Q.env[i] * 1.4, sky) + cw) * fc));
+      coat = Q.env.map((e) => m.coatW * (cd * 0.04 + (mix(e * 0.3, e * 1.4, sky) + cw) * fc));
     }
-    return col.map((x, i) => x + emitAdd[i]);
+    if (A) return { diffuse: diff, specular: spec, coat, sheen, subsurface: sssPart, emission: emitAdd }[A] || ZERO;
+    return diff.map((x, i) => x + sssPart[i] + spec[i] + sheen[i] + coat[i] + emitAdd[i]);
   }
 
   function tone(x, view) {
@@ -200,6 +259,8 @@
     const ctx = canvas.getContext("2d");
     const img = ctx.createImageData(W, H);
     const Q = prep(P);
+    const Y = P.layer && P.layer.on && PRESETS[P.layer.top] ? P.layer : null;
+    const Q2 = Y ? prep(P, Object.assign({}, MAT0, PRESETS[Y.top]), false) : null;
     const e = 2 / W;
     const buf = new Float32Array(W * H * 3);
     const mask = new Uint8Array(W * H);
@@ -226,6 +287,10 @@
           const n = Math.hypot(N[0], N[1], N[2]);
           N = [N[0] / n, N[1] / n, N[2] / n];
           c = shade(Q, P, u, v, N, P.look);
+          if (Y) {
+            const t = layerMask(Y, u, v);
+            if (t > 0) { const c2 = shade(Q2, P, u, v, N, P.look); c = c.map((x, i) => mix(x, c2[i], t)); }
+          }
           mask[y * W + x] = 1;
           nzs[y * W + x] = N[2];
         }
@@ -270,8 +335,17 @@
   }
 
   /* ---------- curiosities ---------- */
+  function effMat(P) {
+    const Y = P.layer;
+    if (!Y || !Y.on || !PRESETS[Y.top]) return P.mat;
+    const top = Object.assign({}, MAT0, PRESETS[Y.top]);
+    const out = Object.assign({}, P.mat);
+    Object.keys(MAT0).forEach((k) => { if (typeof MAT0[k] === "number") out[k] = mix(P.mat[k], top[k], Y.amount); });
+    return out;
+  }
+
   function derive(P) {
-    const m = P.mat;
+    const m = effMat(P);
     const rs = [];
     if (m.specW > 0.2 || m.metal > 0.5) rs.push(m.specRough);
     if (m.coatW > 0.3) rs.push(m.coatRough);
@@ -344,6 +418,10 @@
       .shd-prox .no { color: #b23a1f; font-weight: 600; }
       .shd-prox .idle { color: var(--muted, #777); }
       @media (max-width: 760px) { .shd-tool > div:last-child { order: -1; } }
+      .shd-aov { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; max-width: 360px; margin: 4px 0; }
+      .shd-aov figure { margin: 0; }
+      .shd-aov canvas { width: 100%; aspect-ratio: 1; display: block; background: #000; }
+      .shd-aov figcaption { font-family: var(--mono); font-size: 9px; text-align: center; overflow: hidden; text-overflow: ellipsis; }
       .shd-tool details { border-top: 1px solid var(--line); padding: 4px 0; }
       .shd-tool summary { cursor: pointer; font-weight: 600; }
     `;
@@ -353,6 +431,9 @@
   function defaults() {
     return {
       mat: Object.assign({}, MAT0), shape: "sphere", shot: "medium", look: "photoreal", line: "none", bands: 3, sat: 3, view: "filmic",
+      ramp: { on: false, by: "light", stops: ["#1d1f4a", "#c04a5a", "#ffd08a"] },
+      tex: { kind: "none", scale: 1, color2: "#3a2a1a", target: "base color" },
+      layer: { on: false, top: "rusty metal", mask: "noise", amount: 0.5, soft: 0.3 },
       kx: 0.55, ky: 0.45, keyI: 1, keySize: 0.3, fillI: 0.3, env: "#7d8ca3", weather: "clear", glowScope: "object", preset: "",
       beats: [
         { weather: "clear", shotSize: "wide", wetness: "dry", wear: "new", glow: "none", look: "photoreal" },
@@ -370,6 +451,10 @@
     const saved = st.get({});
     const s = Object.assign(defaults(), saved);
     s.mat = Object.assign({}, MAT0, saved.mat || {});
+    const d0 = defaults();
+    s.ramp = Object.assign(d0.ramp, saved.ramp || {});
+    s.tex = Object.assign(d0.tex, saved.tex || {});
+    s.layer = Object.assign(d0.layer, saved.layer || {});
     if (!Array.isArray(s.beats) || s.beats.length !== 4) s.beats = defaults().beats;
     if (anim) cancelAnimationFrame(anim);
     anim = null;
@@ -393,6 +478,30 @@
           <label class="field">Emission color<input type="color" data-c="emitColor" value="${esc(s.mat.emitColor)}"></label>
           ${sel("glowScope", "What glows", OPT.glow.slice(1))}
         </details>
+        <details ${s.ramp.on ? "open" : ""}><summary>Ramp shader</summary>
+          <p class="cap">Maya's Ramp Shader: the surface color comes from a ramp read by light angle or by facing ratio.</p>
+          <label class="field"><span><input type="checkbox" data-r="on" ${s.ramp.on ? "checked" : ""}> Use the ramp</span></label>
+          <label class="field">Read the ramp by<select data-r="by">${["light", "facing"].map((o) => `<option value="${o}" ${o === s.ramp.by ? "selected" : ""}>${o === "light" ? "light angle" : "facing ratio"}</option>`).join("")}</select></label>
+          <p>${s.ramp.stops.map((c, i) => `<input type="color" data-rs="${i}" value="${esc(c)}" aria-label="Ramp stop ${i + 1}">`).join(" ")}
+            <button type="button" data-ract="add" ${s.ramp.stops.length >= 4 ? "disabled" : ""}>+ stop</button> <button type="button" data-ract="del" ${s.ramp.stops.length <= 2 ? "disabled" : ""}>- stop</button></p>
+          <p>${Object.entries(RAMPS).map(([k]) => `<button type="button" class="chip-btn" data-rpre="${esc(k)}">${esc(k)}</button>`).join(" ")}</p>
+        </details>
+        <details ${s.tex.kind !== "none" ? "open" : ""}><summary>Texture</summary>
+          <label class="field">Procedural texture<select data-t="kind">${["none", "noise", "checker", "stripes", "wood", "grunge"].map((o) => `<option ${o === s.tex.kind ? "selected" : ""}>${o}</option>`).join("")}</select></label>
+          <label class="field">Drives<select data-t="target">${["base color", "roughness", "both"].map((o) => `<option ${o === s.tex.target ? "selected" : ""}>${o}</option>`).join("")}</select></label>
+          ${rng("scale", "Scale", s.tex.scale, "data-t", 0.25, 4, 0.05)}
+          <label class="field">Second color<input type="color" data-t="color2" value="${esc(s.tex.color2)}"></label>
+          <p class="cap">Grunge also follows wear: the bump slider (new, used, ruined) darkens and roughens the surface in patches.</p>
+        </details>
+        <details ${s.layer.on ? "open" : ""}><summary>Layer shader</summary>
+          <p class="cap">Blend a second material over this one through a mask.</p>
+          <label class="field"><span><input type="checkbox" data-y="on" ${s.layer.on ? "checked" : ""}> Layer on top</span></label>
+          <label class="field">Top material<select data-y="top">${Object.keys(PRESETS).map((o) => `<option ${o === s.layer.top ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></label>
+          <label class="field">Mask<select data-y="mask">${["gradient", "noise"].map((o) => `<option value="${o}" ${o === s.layer.mask ? "selected" : ""}>${o === "gradient" ? "top to bottom gradient" : "noise patches"}</option>`).join("")}</select></label>
+          ${rng("amount", "Top coverage", s.layer.amount, "data-y", 0, 1, 0.01)}
+          ${rng("soft", "Mask softness", s.layer.soft, "data-y", 0, 1, 0.01)}
+          <p>${Object.keys(LAYERS).map((k) => `<button type="button" class="chip-btn" data-lpre="${esc(k)}">${esc(k)}</button>`).join(" ")}</p>
+        </details>
         <details open><summary>Light</summary>
           <p class="cap">Drag on the ball to move the key light.</p>
           ${rng("keyI", "Key intensity", s.keyI, "data-n", 0, 2, 0.05)}
@@ -411,6 +520,8 @@
       <div>
         <div class="bar-actions">${sel("shape", "Shape", OPT.shape)}${sel("shot", "Shot size", OPT.shot)}${sel("weather", "Weather", OPT.weather)}</div>
         <canvas class="shd-view" width="160" height="160" aria-label="Shader ball"></canvas>
+        <p class="cap">Material AOVs: each layer's contribution on its own, like Arnold's AOVs.</p>
+        <div class="shd-aov" id="shd-aov">${AOVS.map((a) => `<figure><canvas width="56" height="56" data-aov="${a}"></canvas><figcaption>${a}</figcaption></figure>`).join("")}</div>
         <p id="shd-chips"></p>
         <p class="cap">Suites</p>
         <p>${Object.keys(SUITES).map((k) => `<button type="button" class="chip suite" data-suite="${esc(k)}">${esc(k)}</button>`).join(" ")}</p>
@@ -436,9 +547,15 @@
       requestAnimationFrame(() => {
         queued = false;
         paint();
+        aovs();
         chips();
       });
     };
+
+    function aovs() {
+      const P0 = playing >= 0 ? beatParams(s, s.beats[playing]) : s;
+      el.querySelectorAll("canvas[data-aov]").forEach((c) => render(c, Object.assign({}, P0, { aov: c.dataset.aov, line: "none", look: "photoreal", sat: 3 })));
+    }
 
     function chips() {
       const P = playing >= 0 ? beatParams(s, s.beats[playing]) : s;
@@ -546,6 +663,55 @@
       })
     );
 
+    const nested = (attr, obj) =>
+      el.querySelectorAll(`[${attr}]`).forEach((x) =>
+        x.addEventListener(x.type === "range" || x.type === "color" ? "input" : "change", () => {
+          const k = x.getAttribute(attr);
+          obj[k] = x.type === "checkbox" ? x.checked : x.type === "range" ? Number(x.value) : x.value;
+          if (x.type === "range") x.parentElement.querySelector("b").textContent = Number(x.value).toFixed(2);
+          save();
+          repaint();
+          if (x.type !== "range") (beatsUI(), prox());
+        })
+      );
+    nested("data-r", s.ramp);
+    nested("data-t", s.tex);
+    nested("data-y", s.layer);
+    el.querySelectorAll("[data-rs]").forEach((x) =>
+      x.addEventListener("input", () => {
+        s.ramp.stops[Number(x.dataset.rs)] = x.value;
+        save();
+        repaint();
+      })
+    );
+    el.querySelectorAll("[data-ract]").forEach((b) =>
+      b.addEventListener("click", () => {
+        if (b.dataset.ract === "add" && s.ramp.stops.length < 4) s.ramp.stops.push(s.ramp.stops[s.ramp.stops.length - 1]);
+        if (b.dataset.ract === "del" && s.ramp.stops.length > 2) s.ramp.stops.pop();
+        save();
+        draw(el, api);
+      })
+    );
+    el.querySelectorAll("[data-rpre]").forEach((b) =>
+      b.addEventListener("click", () => {
+        s.ramp.stops = RAMPS[b.dataset.rpre].slice();
+        s.ramp.on = true;
+        save();
+        draw(el, api);
+      })
+    );
+    el.querySelectorAll("[data-lpre]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const lp = LAYERS[b.dataset.lpre];
+        s.mat = Object.assign({}, MAT0, PRESETS[lp.base]);
+        delete s.mat.look;
+        s.preset = lp.base;
+        Object.assign(s.layer, { on: true, top: lp.top, mask: lp.mask, amount: lp.amount, soft: lp.soft });
+        save();
+        draw(el, api);
+      })
+    );
+
     // drag the key light
     const setKey = (ev) => {
       const r = canvas.getBoundingClientRect();
@@ -619,6 +785,7 @@
     });
 
     paint();
+    aovs();
     chips();
     beatsUI();
     prox();

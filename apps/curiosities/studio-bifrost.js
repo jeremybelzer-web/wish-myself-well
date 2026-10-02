@@ -14,6 +14,7 @@
     element: "fire", rate: 3, growth: "steady", size: 3, density: "plume", curl: 2,
     collider: "figure", beam: false, scatterKind: "leaves", scatter: 2, dropSize: "stone",
     ex: 150, ey: 200, cx: 228, cy: 182,
+    viscosity: 0, liquidMode: "particles", waveHeight: 2, chop: 2, wind: "right", wet: false,
   };
   const CHOICES = {
     element: ["water", "smoke", "fire", "sand", "snow"],
@@ -22,6 +23,8 @@
     collider: ["none", "box", "figure"],
     scatterKind: ["leaves", "debris", "rocks"],
     dropSize: ["pebble", "stone", "boulder"],
+    liquidMode: ["particles", "ocean"],
+    wind: ["left", "right"],
   };
   const EMIT_AT = { water: [90, 40], smoke: [150, 200], fire: [150, 200], sand: [110, 14], snow: [110, 14] };
   const SUITES = [
@@ -195,7 +198,7 @@
   /* ---------- Liquid: particles with double-density relaxation ---------- */
   const LH = 11, RHO0 = 4.2, KP = 0.09, KN = 0.35, LMAX = 640;
   function makeLiquid() {
-    const L = { n: 0, x: new Float32Array(LMAX), y: new Float32Array(LMAX), px: new Float32Array(LMAX), py: new Float32Array(LMAX), vx: new Float32Array(LMAX), vy: new Float32Array(LMAX), born: new Float32Array(LMAX), cells: new Map(), drop: null };
+    const L = { n: 0, x: new Float32Array(LMAX), y: new Float32Array(LMAX), px: new Float32Array(LMAX), py: new Float32Array(LMAX), vx: new Float32Array(LMAX), vy: new Float32Array(LMAX), born: new Float32Array(LMAX), cells: new Map(), drop: null, foam: [] };
     for (let y = GROUND - 4; y > GROUND - 48; y -= 5.2) for (let x = 4; x < W - 4; x += 5.2) addParticle(L, x + Math.random(), y, 0, 0, -10);
     return L;
   }
@@ -215,7 +218,7 @@
     /* emitter */
     const thick = { wisp: 0.4, plume: 1, wall: 2 }[s.density];
     L.acc = (L.acc || 0) + emit * thick * 0.5;
-    const spread = s.density === "wall" ? s.size * 9 : s.size * 2;
+    const spread = (s.density === "wall" ? s.size * 9 : s.size * 2) * (1 - s.viscosity * 0.1);
     while (L.acc >= 1) {
       L.acc -= 1;
       addParticle(L, s.ex + (Math.random() - 0.5) * spread, s.ey + (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 0.3, 1.5, now);
@@ -288,6 +291,7 @@
       }
       if (touching && !o.hit) {
         o.hit = now;
+        spawnFoam(L.foam, o.x, o.y + o.r * 0.5, Math.round(o.r * 3.5 * (1 - s.viscosity / 6)), 2.2);
         meas.drops++;
         meas.impacts += 1 + Math.round(o.r / 6);
       }
@@ -325,14 +329,109 @@
       if (x[i] > W - 2) x[i] = W - 2;
       if (y[i] > GROUND - 2) y[i] = GROUND - 2 - Math.random() * 0.1;
       if (y[i] < 2) y[i] = 2;
-      vx[i] = (x[i] - px[i]) * 0.985;
-      vy[i] = (y[i] - py[i]) * 0.985;
+      /* viscosity: water 0 to honey 3 to lava 5 damps the motion and slows the spread */
+      const damp = 0.985 - s.viscosity * 0.024;
+      vx[i] = (x[i] - px[i]) * damp * (1 - s.viscosity * 0.025);
+      vy[i] = (y[i] - py[i]) * damp;
+      if (s.viscosity < 4.5 && vx[i] * vx[i] + vy[i] * vy[i] > 6 && Math.random() < 0.05 * (1 - s.viscosity / 5)) spawnFoam(L.foam, x[i], y[i], 1, 0.6);
       if (now - L.born[i] > 2) {
         ke += vx[i] * vx[i] + vy[i] * vy[i];
         cnt++;
       }
     }
     meas.liquidSpeed = cnt ? Math.sqrt(ke / cnt) : 0;
+    stepFoam(L.foam);
+  }
+
+  /* ---------- Foam: white particles that fade ---------- */
+  function spawnFoam(foam, x, y, n, kick) {
+    for (let i = 0; i < n && foam.length < 420; i++)
+      foam.push({ x: x + (Math.random() - 0.5) * 6, y: y + (Math.random() - 0.5) * 4, vx: (Math.random() - 0.5) * kick * 2, vy: -Math.random() * kick * 1.6, life: 1, rate: 0.006 + Math.random() * 0.008 });
+  }
+  function stepFoam(foam) {
+    for (let i = foam.length - 1; i >= 0; i--) {
+      const f = foam[i];
+      f.vy += 0.04;
+      f.vx *= 0.95;
+      f.vy *= 0.92;
+      f.x += f.vx;
+      f.y += f.vy;
+      if (f.y > GROUND - 2) f.y = GROUND - 2;
+      f.life -= f.rate;
+      if (f.life <= 0) foam.splice(i, 1);
+    }
+  }
+  const foamWord = (n) => (n < 6 ? "none" : n < 70 ? "froth" : "surf");
+  const viscWord = (v) => (v <= 1 ? "thin" : v <= 3 ? "syrupy" : "thick");
+  function liquidColor(v, a) {
+    const A = [70, 130, 190], B = [196, 138, 38], C = [226, 78, 22];
+    const t = v / 5, c = t < 0.5 ? A.map((x, i) => x + (B[i] - x) * t * 2) : B.map((x, i) => x + (C[i] - x) * (t - 0.5) * 2);
+    return `rgba(${c.map(Math.round).join(",")},${a})`;
+  }
+
+  /* ---------- Ocean: a sum of directional waves with a floating object ---------- */
+  const SEA = 150;
+  const WAVES = [[150, 3.0, 0], [92, 1.7, 1.3], [57, 0.9, 2.1], [34, 0.45, 4.0]];
+  function makeOcean() {
+    return { t: 0, foam: [], float: { x: 160, y: SEA - 4, vy: 0, ang: 0, inAir: false } };
+  }
+  /* surface point for rest position x0: Gerstner-style, choppiness pulls crests sideways */
+  function seaPoint(s, x0, t) {
+    const dir = s.wind === "left" ? -1 : 1;
+    let x = x0, y = SEA;
+    for (const [len, amp, ph] of WAVES) {
+      const k = (2 * Math.PI) / len, w = Math.sqrt(9.8 * k * 60), A = amp * s.waveHeight;
+      const th = dir * k * x0 - w * t * 0.5 + ph;
+      const Q = A ? Math.min(0.9 / (k * A * WAVES.length), 1e3) * (s.chop / 5) : 0;
+      x += dir * Q * A * Math.cos(th);
+      y -= A * Math.sin(th);
+    }
+    return [x, y];
+  }
+  function seaY(s, x, t) {
+    return seaPoint(s, x, t)[1];
+  }
+  function oceanStep(O, s, dt, meas) {
+    O.t += dt;
+    const f = O.float, dir = s.wind === "left" ? -1 : 1;
+    const sy = seaY(s, f.x, O.t);
+    if (f.inAir || f.y < sy - 8) {
+      f.vy += 0.3;
+      f.y += f.vy;
+      if (f.y >= sy - 4) {
+        const v = f.vy;
+        f.inAir = false;
+        const sp = v > 7 ? "burst" : v > 3.5 ? "drip" : "none";
+        meas.splash = sp;
+        meas.impacts += v > 3.5 ? 1 : 0;
+        spawnFoam(O.foam, f.x, sy, Math.round(v * 5), 2.4);
+      }
+    } else {
+      /* bob: a damped spring onto the surface */
+      f.vy += (sy - 4 - f.y) * 0.08;
+      f.vy *= 0.86;
+      f.y += f.vy;
+    }
+    const slope = (seaY(s, f.x + 6, O.t) - seaY(s, f.x - 6, O.t)) / 12;
+    f.ang += (Math.atan(slope) - f.ang) * 0.15;
+    f.x += dir * (0.05 + s.waveHeight * 0.03);
+    if (f.x > W + 10) f.x = -10;
+    if (f.x < -10) f.x = W + 10;
+    /* whitecaps on steep crests */
+    if (s.waveHeight > 0) {
+      for (let x0 = 0; x0 < W; x0 += 5) {
+        const [x, y] = seaPoint(s, x0, O.t), [x2, y2] = seaPoint(s, x0 + 3, O.t);
+        const steep = Math.abs((y2 - y) / Math.max(0.3, x2 - x));
+        if (y < SEA - s.waveHeight * 2.4 && steep > 0.25 && Math.random() < 0.012 * s.waveHeight * (0.4 + s.chop / 3)) spawnFoam(O.foam, x, y, 2, 0.5);
+      }
+    }
+    for (let i = O.foam.length - 1; i >= 0; i--) {
+      const p = O.foam[i];
+      const sy2 = seaY(s, p.x, O.t);
+      if (p.y > sy2) p.y += (sy2 - p.y) * 0.3;
+      p.x += dir * 0.3;
+    }
+    stepFoam(O.foam);
   }
 
   /* ---------- Granular: sand and snow grains on a 160 x 120 grid ---------- */
@@ -369,6 +468,7 @@
   function grainStep(G, s, emit, meas) {
     const g = G.g, fall = G.fall, stick = G.stick;
     const snow = s.element === "snow";
+    const wet = !snow && !!s.wet; /* MPM-style cohesion: wet sand stands steeper and clumps */
     const empty = (x, y) => x >= 0 && x < GW && y >= 0 && y < GFLOOR && g[y * GW + x] === 0;
     /* emitter */
     const thick = { wisp: 0.5, plume: 1, wall: 2.2 }[s.density];
@@ -380,10 +480,13 @@
       const x = clamp(Math.round(gx0 + (Math.random() - 0.5) * spread), 0, GW - 1);
       const y = clamp(gy0 + ((Math.random() * 3) | 0), 0, GFLOOR - 1);
       const k = y * GW + x;
-      if (!g[k]) {
-        g[k] = 1;
-        fall[k] = 0;
-        stick[k] = 0;
+      const clump = wet ? [0, 1, GW, GW + 1] : [0];
+      for (const o of clump) {
+        if (k + o < GW * GFLOOR && !g[k + o]) {
+          g[k + o] = 1;
+          fall[k + o] = 0;
+          stick[k + o] = 0;
+        }
       }
     }
     const aval = G.aval > 0;
@@ -410,7 +513,7 @@
             if (y + 1 < GFLOOR && g[(y + 1) * GW + x] === 3) meas.hits++;
           }
           fall[k] = 0;
-          const loose = aval || (snow ? stick[k] < 5 : true);
+          const loose = aval || (snow ? stick[k] < 5 : wet ? stick[k] < 2 : true);
           if (loose) {
             let d = Math.random() < 0.5 ? -1 : 1;
             if (aval) {
@@ -420,13 +523,13 @@
             }
             if (empty(x + d, y + 1) && empty(x + d, y)) nx = x + d, ny = y + 1;
             else if (empty(x - d, y + 1) && empty(x - d, y)) nx = x - d, ny = y + 1;
-            if (nx === x && (aval || (!snow && Math.random() < 0.4)) && empty(x + d, y) && empty(x + 2 * d, y) && empty(x + 2 * d, y + 1)) nx = x + 2 * d, ny = y + 1;
+            if (nx === x && (aval || (!snow && !wet && Math.random() < 0.4)) && empty(x + d, y) && empty(x + 2 * d, y) && empty(x + 2 * d, y + 1)) nx = x + 2 * d, ny = y + 1;
             if (nx === x && aval && empty(x + d, y) && !empty(x + d, y + 1) && Math.random() < 0.08) nx = x + d;
             if (nx !== x) {
               if (aval) meas.slides++;
               const side = x + 2 * (nx - x);
               if (side >= 0 && side < GW && g[ny * GW + side] === 3 && aval) meas.hits++;
-            } else if (snow) stick[k]++;
+            } else if (snow || wet) stick[k]++;
           }
         }
         if (nx !== x || ny !== y) {
@@ -506,10 +609,16 @@
         <fieldset><legend>Aero</legend>${rg("curl", "Curl (vorticity)", 0, 5)}
           <label class="field"><input type="checkbox" data-k="beam" ${s.beam ? "checked" : ""}> Window beam through the air</label></fieldset>
         <fieldset><legend>Collider</legend>${sel("collider", "Collider")}<p class="cap">Drag it on the canvas.</p></fieldset>
-        <fieldset><legend>Liquid</legend>${sel("dropSize", "Drop")}
+        <fieldset><legend>Liquid</legend>${sel("liquidMode", "Liquid as")}
+          ${rg("viscosity", "Viscosity (water, honey, lava)", 0, 5)}
+          ${rg("waveHeight", "Ocean wave height", 0, 5)}
+          ${rg("chop", "Ocean choppiness", 0, 5)}
+          ${sel("wind", "Wind toward")}
+          ${sel("dropSize", "Drop")}
           <div class="bar-actions"><button type="button" data-act="drop">Drop into water</button></div>
           <p class="cap">Or tap the water. Switches to water if needed.</p></fieldset>
-        <fieldset><legend>Granular</legend><div class="bar-actions"><button type="button" data-act="avalanche">Avalanche</button></div></fieldset>
+        <fieldset><legend>Granular</legend><div class="bar-actions"><button type="button" data-act="avalanche">Avalanche</button></div>
+          <label class="field"><input type="checkbox" data-k="wet" ${s.wet ? "checked" : ""}> Wet sand (cohesion)</label></fieldset>
         <fieldset><legend>Scatter</legend>${sel("scatterKind", "Scatter")}${rg("scatter", "Scatter density", 0, 5)}</fieldset>
       </div>
       <div>
@@ -543,7 +652,7 @@
     const gctx = goff.getContext("2d");
     const gImg = gctx.createImageData(GW, GH);
 
-    let F = null, L = null, G = null;
+    let F = null, L = null, G = null, O = null;
     let paused = false, clock = 0, frame = 0;
     const brightHist = [];
     let history = [];
@@ -556,11 +665,14 @@
       return { bright: 0, n: 0, smoke: 0, contrast: 0, impacts: 0, landings: 0, hits: 0, slides: 0, drops: 0, splash: null, liquidSpeed: 0, samples: [] };
     }
     function resetSim(extra) {
-      F = L = G = null;
+      F = L = G = O = null;
       if (s.element === "smoke" || s.element === "fire") {
         F = makeAero();
         aeroSolid(F, s);
-      } else if (s.element === "water") L = makeLiquid();
+      } else if (s.element === "water") {
+        if (s.liquidMode === "ocean") O = makeOcean();
+        else L = makeLiquid();
+      }
       else {
         G = makeGrain();
         grainStamp(G, s);
@@ -591,7 +703,12 @@
         s[k] = x.type === "checkbox" ? x.checked : x.type === "range" ? Number(x.value) : x.value;
         const v = el.querySelector(`[data-v="${k}"]`);
         if (v) v.textContent = s[k];
-        if (k === "element") {
+        if (k === "liquidMode" && s.element !== "water") {
+          s.element = "water";
+          [s.ex, s.ey] = EMIT_AT.water;
+          syncControls();
+        }
+        if (k === "element" || k === "liquidMode") {
           [s.ex, s.ey] = EMIT_AT[s.element];
           resetSim();
         }
@@ -615,6 +732,13 @@
         syncControls();
         save();
         resetSim();
+      }
+      if (O) {
+        O.float.x = clamp(x, 20, W - 20);
+        O.float.y = 10;
+        O.float.vy = 2;
+        O.float.inAir = true;
+        return;
       }
       const r = { pebble: 4, stone: 8, boulder: 13 }[s.dropSize];
       L.drop = { x: clamp(x, 20, W - 20), y: 10, vx: 0, vy: 2, r, hit: 0, launched: new Set(), splash: null };
@@ -804,8 +928,49 @@
       ctx.imageSmoothingEnabled = true;
     }
 
+    function renderFoam(foam) {
+      for (const f of foam) {
+        ctx.fillStyle = `rgba(255,255,255,${(f.life * 0.9).toFixed(2)})`;
+        ctx.fillRect(f.x - 1.2, f.y - 1.2, 2.4, 2.4);
+      }
+    }
+    function renderOcean() {
+      const t = O.t;
+      const g = ctx.createLinearGradient(0, SEA - 20, 0, H);
+      g.addColorStop(0, "#3f7fa8");
+      g.addColorStop(1, "#14324a");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for (let x0 = -20; x0 <= W + 20; x0 += 3) {
+        const [x, y] = seaPoint(s, x0, t);
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "rgba(220,240,255,0.5)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x0 = -20; x0 <= W + 20; x0 += 3) {
+        const [x, y] = seaPoint(s, x0, t);
+        if (x0 === -20) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      const f = O.float;
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      ctx.rotate(f.ang);
+      ctx.fillStyle = "#8a6a3e";
+      ctx.strokeStyle = "#1c1712";
+      ctx.fillRect(-9, -7, 18, 12);
+      ctx.strokeRect(-9, -7, 18, 12);
+      ctx.restore();
+      renderFoam(O.foam);
+    }
     function renderLiquid() {
-      ctx.fillStyle = "rgba(70,130,190,0.85)";
+      ctx.fillStyle = liquidColor(s.viscosity, 0.88);
       ctx.beginPath();
       for (let i = 0; i < L.n; i++) {
         ctx.moveTo(L.x[i] + 4, L.y[i]);
@@ -822,6 +987,7 @@
         }
       }
       ctx.fill();
+      renderFoam(L.foam);
       const o = L.drop;
       if (o) {
         ctx.fillStyle = "#4a443c";
@@ -890,6 +1056,7 @@
         fireLight: bright < 0.12 ? "no" : bright < 0.62 ? "flicker" : "floods",
         K, colorTemp: kWord(K), contrastF, contrast: Math.round(contrastF),
         atmosphere: m.atmosphere, smoke, bright, cv: m.cv,
+        viscosity: viscWord(s.viscosity), foam: foamWord(a.foamMax || 0), waveHeight: O ? s.waveHeight : 0, cohesion: s.wet ? "wet" : "dry",
         splash: a.splash || "none", impacts: clamp(Math.round(impactsRaw), 0, 8), drops: a.drops, liquidSpeed: a.liquidSpeed / n,
       };
       history.push(rec);
@@ -944,7 +1111,7 @@
       return live;
     }
     function produced(r) {
-      return { element: r.element, density: r.density, growth: r.growth, curl: r.curl, splash: r.splash, scatter: r.scatter, fireLight: r.fireLight, colorTemp: r.colorTemp, contrast: r.contrast, impacts: r.impacts, atmosphere: r.atmosphere };
+      return { element: r.element, density: r.density, growth: r.growth, curl: r.curl, splash: r.splash, scatter: r.scatter, fireLight: r.fireLight, colorTemp: r.colorTemp, contrast: r.contrast, impacts: r.impacts, atmosphere: r.atmosphere, viscosity: r.viscosity, foam: r.foam, waveHeight: r.waveHeight, cohesion: r.cohesion };
     }
     function boardFor(r, live) {
       const out = {};
@@ -994,10 +1161,11 @@
       rampEl.style.width = `${clamp((growthMul() / 1.75) * 100, 2, 100)}%`;
       const ent = history.length ? history[history.length - 1] : null;
       const impacts = ent ? ent.impacts : 0;
-      readEl.innerHTML = `<span>beat <b>${beatInShot}/${SHOT}</b></span><span>emit ×<b>${growthMul().toFixed(2)}</b></span><span>fire <b>${m.bright.toFixed(2)}</b></span><span>fireLight <b>${m.fireLight}</b></span><span><i class="bif-swatch" style="background:rgb(${c.join(",")})"></i><b>${m.K}K</b> ${kWord(m.K)}</span><span>contrast <b>${m.contrast}</b></span><span>air <b>${m.atmosphere}</b></span>${L ? `<span>surface <b>${m.liquidSpeed < 0.35 ? "settled" : "moving"}</b></span>` : ""}${G ? `<span>grains <b>${G.count}</b>${G.aval > 0 ? " · sliding" : ""}</span>` : ""}`;
+      readEl.innerHTML = `<span>beat <b>${beatInShot}/${SHOT}</b></span><span>emit ×<b>${growthMul().toFixed(2)}</b></span><span>fire <b>${m.bright.toFixed(2)}</b></span><span>fireLight <b>${m.fireLight}</b></span><span><i class="bif-swatch" style="background:rgb(${c.join(",")})"></i><b>${m.K}K</b> ${kWord(m.K)}</span><span>contrast <b>${m.contrast}</b></span><span>air <b>${m.atmosphere}</b></span>${O ? `<span>sea <b>h${s.waveHeight} chop${s.chop}</b> wind ${s.wind}</span>` : ""}${L || O ? `<span>foam <b>${m.foamN || 0}</b></span>` : ""}${L ? `<span>surface <b>${m.liquidSpeed < 0.35 ? "settled" : "moving"}</b></span>` : ""}${G ? `<span>grains <b>${G.count}</b>${G.aval > 0 ? " · sliding" : ""}</span>` : ""}`;
       const chips = [
         ["element", s.element], ["density", s.density], ["growth", s.growth], ["curl", s.curl], ["splash", lastSplash], ["scatter", s.scatter],
         ["fireLight", m.fireLight], ["colorTemp", `${kWord(m.K)} (${m.K}K)`], ["contrast", m.contrast], ["impacts", impacts], ["atmosphere", m.atmosphere],
+        ["viscosity", viscWord(s.viscosity)], ["foam", foamWord(m.foamN || 0)], ["waveHeight", O ? s.waveHeight : 0], ["cohesion", s.wet ? "wet" : "dry"],
       ];
       chipEl.innerHTML = chips.map(([k, v]) => `<span class="chip${["fireLight", "colorTemp", "contrast", "atmosphere"].includes(k) && m.bright > 0.12 ? " lit" : ""}">${esc(k)} ${esc(v)}</span>`).join(" ") +
         " " + SUITES.filter((su) => suiteFires(su, m, impacts)).map((su) => `<span class="chip suite">suite ${esc(su.label)}</span>`).join(" ");
@@ -1035,6 +1203,7 @@
       drawScatter();
       if (G) renderGrain();
       if (L) renderLiquid();
+      if (O) renderOcean();
       let fireLayer = null;
       if (F) fireLayer = renderAero(m);
       drawCollider(m);
@@ -1055,7 +1224,7 @@
       /* emitter */
       ctx.save();
       ctx.setLineDash([3, 3]);
-      ctx.strokeStyle = "#f2c14e";
+      ctx.strokeStyle = O ? "rgba(0,0,0,0)" : "#f2c14e";
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       const er = s.density === "wall" ? s.size * 12 + 16 : 6 + s.size * 3;
@@ -1079,10 +1248,12 @@
         const meas = { impacts: 0, hits: 0, landings: 0, slides: 0, drops: 0, splash: null, liquidSpeed: 0 };
         if (F) aeroStep(F, s, emit, dt * 6);
         if (L) liquidStep(L, s, emit * 0.6, clock, meas);
+        if (O) oceanStep(O, s, dt, meas);
         if (G) grainStep(G, s, emit, meas);
         clock += dt;
         const m = measureNow();
         m.liquidSpeed = meas.liquidSpeed;
+        m.foamN = L ? L.foam.length : O ? O.foam.length : 0;
         lastMeasure = m;
         const a = beatAcc;
         a.n++;
@@ -1095,6 +1266,7 @@
         a.slides += meas.slides;
         a.drops += meas.drops;
         a.liquidSpeed += meas.liquidSpeed;
+        a.foamMax = Math.max(a.foamMax || 0, m.foamN);
         if (meas.splash) a.splash = lastSplash = meas.splash;
         /* settle tracking for drops */
         drops.forEach((d) => {
