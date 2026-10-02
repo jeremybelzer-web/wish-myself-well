@@ -33,7 +33,8 @@ A model of a movie, a TV hour, or a video game is only those three. If a fact ca
 11. `prism.js` — the Prism. `study.js` — Curated films and the Shelf.
 12. `studio.js` and `studio-*.js` — working tools taken from the Maya and Arnold for Maya manuals. Each file registers one tool with `CuriosityStudio.register`; workspaces show them as their Tools. `maya-manual.js` is the topic inventory; `docs/maya-manual-review.md` is the keep or skip list.
 13. `core/README.md` — the shared core: the files every version loads (web, desktop, a Maya panel), which never touch the page. `bridge.js` (`window.CurioBridge`) is the one message format for VCV Rack, OSC and tool bridges. `node core/check.js` loads the core with no page. `sw.js`, `offline.js` and `manifest.webmanifest` make the app installable and offline when served from a web address.
-14. `index.html` — open this in a browser. No build step.
+14. `desktop/` — the desktop app (`desktop/README.md`): Electron around the same files, MIDI everywhere, a File menu, and the local bridge (`bridge-server.js`: WebSocket on 7577, OSC in 7000 and out 7001). `npm run check` there tests the bridge.
+15. `index.html` — open this in a browser. No build step.
 
 State is `localStorage` key `curiosities-board-v2`.
 
