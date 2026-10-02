@@ -16,6 +16,10 @@
    character's clothes and the background clothes, as two sections.
    The bar groups the workspaces into labelled sections: Camera, People, Look, Feeling, Comedy, Story.
    "storyboard" is a page of its own (storyboard.js, CuriosityStoryboard.mount).
+   Story workspaces also open with a Roadmap: one line chart per curiosity, scenes across, the curiosity's scale up
+   the side (in CurioAuto.domain order), one line per character (each can be hidden), the chosen character's
+   line showing running automation live. Emotional road adds "The film" (story.js FILM): its own row where set,
+   otherwise the average of the characters shown. Each story scene column links to its storyboard scenes.
    window.CuriosityWorkspaces = { open(id), openFor(paramKey), list() }. Last open: curiosities-workspace-v1. */
 
 (function () {
@@ -81,7 +85,7 @@
   ];
   const byId = Object.fromEntries(WORKSPACES.map((w) => [w.id, w]));
   const CUR = Object.fromEntries(CURIOSITIES.map((c) => [c.id, c]));
-  const view = { ws: null, tool: {}, character: null, opened: {} };
+  const view = { ws: null, tool: {}, character: null, opened: {}, roadHide: {} };
   let page = null; /* "ws" or "tool" */
 
   const A = () => window.CurioAuto;
@@ -221,8 +225,9 @@
         ws.lens ? " This is a lens, one way of looking at the scene: its main curiosity comes first and its sliders under it. Every slider can be set per " + (ws.scope === "story" ? "scene" : "panel") + " and automated." : ""
       }</p>
       <nav class="ws-jump" aria-label="Parts of this workspace">
-        <a href="#ws-film">In my film</a><a href="#ws-auto">Automate</a><a href="#ws-prism">Cross-pollinate</a>${ws.tools.length ? `<a href="#ws-tools">Tools</a>` : ""}
+        ${ws.scope === "story" ? `<a href="#ws-road">Roadmap</a>` : ""}<a href="#ws-film">In my film</a><a href="#ws-auto">Automate</a><a href="#ws-prism">Cross-pollinate</a>${ws.tools.length ? `<a href="#ws-tools">Tools</a>` : ""}
       </nav>
+      ${ws.scope === "story" ? `<section class="ws-part" id="ws-road"><h3>Roadmap</h3><div id="ws-road-body"></div></section>` : ""}
       <section class="ws-part" id="ws-film"><h3>In my film</h3><div id="ws-grid"></div>
         ${ws.matrix ? `<div class="ws-matrix" id="ws-matrix"></div>` : ""}</section>
       <section class="ws-part" id="ws-auto"><h3>Automate</h3>
@@ -233,6 +238,7 @@
       ${ws.tools.length ? `<section class="ws-part" id="ws-tools"><h3>Tools</h3><div id="ws-tools-body"></div></section>` : ""}
     </div>`;
     drawGrid();
+    if (ws.scope === "story") drawRoad(ws);
     if (ws.matrix) drawMatrix();
     drawAutomate(ws, ids);
     drawPrism(ws, ids);
@@ -383,13 +389,16 @@
       return;
     }
     const chars = st.characters();
-    if (!chars.includes(view.character)) view.character = chars[0];
+    const pickable = withFilm(ws) ? st.withFilm() : chars;
+    if (!pickable.includes(view.character)) view.character = chars[0];
     const who = view.character;
     const scenes = st.scenes();
     const vals = st.values(who);
     const over = storyOverlay(scenes.length);
     const ids = idsOf(ws);
-    const head = scenes.map((s) => `<th>${esc(s)}</th>`).join("");
+    const head = scenes
+      .map((s, i) => `<th>${esc(s)}<a href="#" class="ws-sblink" data-sb-scene="${i}" title="Open the Storyboard at the scenes tied to ${esc(s)}">See this scene's storyboard</a></th>`)
+      .join("");
     const rows = gridRows(ws, scenes.length, (id, cls) => {
         const cells = scenes
           .map((_, i) => {
@@ -403,7 +412,7 @@
       });
     el.innerHTML = `<div class="ws-row">
         <label class="field">Character
-          <select id="ws-char">${chars.map((c) => `<option ${c === who ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
+          <select id="ws-char">${pickable.map((c) => `<option ${c === who ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
         </label>
         <label class="field">Add character
           <span class="ws-add"><input type="text" id="ws-newchar" placeholder="a name" /><button type="button" id="ws-addchar">Add</button></span>
@@ -412,7 +421,7 @@
           <span class="ws-step"><button type="button" data-scenes="-1" aria-label="One scene fewer">−</button><b>${scenes.length}</b><button type="button" data-scenes="1" aria-label="One scene more">+</button></span>
         </label>
       </div>
-      <p class="cap">Set ${esc(who)}'s value for each scene. It is kept in this browser and comes back when you reload.</p>
+      <p class="cap">Set ${esc(who)}'s value for each scene${st.isFilm && st.isFilm(who) ? " (the whole film's own road, apart from any one character)" : ""}. It is kept in this browser and comes back when you reload.</p>
       <div class="scroll ws-scroll"><table class="trace ws-grid"><thead><tr><th>Curiosity</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
       ${drawStoryAll(ws, chars)}`;
   }
@@ -432,6 +441,191 @@
     return `<details class="ws-all"><summary>${esc(labelOf(id))} for everyone</summary>
       <div class="scroll ws-scroll"><table class="trace ws-grid"><thead><tr><th>Character</th>${Array.from({ length: n }, (_, i) => `<th>${i + 1}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div></details>`;
   }
+
+
+  /* ---------- 0. Roadmap (story workspaces) ---------- */
+  /* Colors that stay apart for most kinds of color blindness, dark enough to read on the paper. */
+  const ROAD_COLORS = ["#0068a8", "#c2410c", "#00805a", "#b4508f", "#7a5c00", "#3d8fc4", "#6b3fa0", "#555555"];
+  const withFilm = (ws) => !!(ws && ws.id === "emo-road" && S() && S().withFilm);
+  function roadColor(name, chars) {
+    if (S() && S().isFilm && S().isFilm(name)) return "#1c1712";
+    const k = chars.indexOf(name);
+    return ROAD_COLORS[(k < 0 ? 0 : k) % ROAD_COLORS.length];
+  }
+  /* Where a value sits on its curiosity's scale: a step number, or null when it is not on the scale. */
+  function scaleOf(id) {
+    const d = domainOf(id);
+    if (d.kind === "choice") {
+      const words = d.options.map(String);
+      return { levels: words, min: 0, max: Math.max(1, words.length - 1), pos: (v) => (v == null || v === "" ? null : words.indexOf(String(v)) >= 0 ? words.indexOf(String(v)) : null) };
+    }
+    if (d.kind === "number") {
+      const span = d.max - d.min || 1;
+      const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => +(d.min + f * span).toFixed(2));
+      return { levels: null, ticks, min: d.min, max: d.max, pos: (v) => (v == null || v === "" || isNaN(Number(v)) ? null : Math.max(d.min, Math.min(d.max, Number(v)))) };
+    }
+    return null;
+  }
+  /* One line's points for one curiosity: the kept values, with running automation laid over the chosen character. */
+  function roadSeries(ws, id, sc, n) {
+    const st = S();
+    const chars = st.characters();
+    const over = storyOverlay(n);
+    const names = withFilm(ws) ? st.withFilm() : chars;
+    const out = names.map((name) => {
+      const vals = st.values(name);
+      const pts = Array.from({ length: n }, (_, i) => {
+        const auto = name === view.character && over && over[i] && over[i][id] != null ? over[i][id] : null;
+        const raw = auto != null ? auto : vals[i] ? vals[i][id] : null;
+        const y = sc.pos(raw);
+        return y == null ? null : { y, raw, live: auto != null };
+      });
+      return { name, color: roadColor(name, chars), pts, film: !!(st.isFilm && st.isFilm(name)) };
+    });
+    /* The film: its own row where set, else the average of the characters on show. */
+    const film = out.find((s) => s.film);
+    if (film) {
+      const shown = out.filter((s) => !s.film && !view.roadHide[s.name]);
+      film.pts = film.pts.map((p, i) => {
+        if (p) return p;
+        const ys = shown.map((s) => s.pts[i]).filter(Boolean).map((q) => q.y);
+        if (!ys.length) return null;
+        const y = ys.reduce((a, b) => a + b, 0) / ys.length;
+        return { y, raw: sc.levels ? "average, near " + sc.levels[Math.round(y)] : "average " + +y.toFixed(2), avg: true };
+      });
+    }
+    return out;
+  }
+  function roadSvg(ws, id, width) {
+    const st = S();
+    const sc = scaleOf(id);
+    const n = st.scenes().length;
+    if (!sc) return `<p class="cap">This one is free text, so it has no scale to draw.</p>`;
+    const series = roadSeries(ws, id, sc, n).filter((s) => !view.roadHide[s.name]);
+    const W = Math.max(280, Math.round(width));
+    const labels = sc.levels || sc.ticks.map(String);
+    const longest = Math.max(...labels.map((l) => l.length));
+    const L = Math.min(Math.round(W * 0.36), Math.max(44, longest * 6.4 + 14));
+    const fit = Math.max(4, Math.floor((L - 12) / 6.4));
+    const short = (l) => (l.length > fit ? l.slice(0, fit - 1) + "…" : l);
+    const steps = sc.levels ? sc.levels.length : 5;
+    const rowH = steps > 10 ? 17 : 22;
+    const T = 12, Bm = 36, R = 16;
+    const H = T + (steps - 1) * rowH + Bm;
+    const plotW = W - L - R;
+    const x = (i) => L + 8 + (n === 1 ? (plotW - 16) / 2 : (i * (plotW - 16)) / (n - 1));
+    const y = (v) => T + (steps - 1) * rowH * (1 - (v - sc.min) / (sc.max - sc.min || 1));
+    let g = "";
+    const tickVals = sc.levels ? sc.levels.map((_, k) => k) : sc.ticks;
+    tickVals.forEach((v, k) => {
+      const yy = y(v).toFixed(1);
+      g += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="rgba(28,23,18,0.12)" />`;
+      g += `<text x="${L - 6}" y="${yy}" dy="0.35em" text-anchor="end" class="ws-road-y"><title>${esc(labels[k])}</title>${esc(short(labels[k]))}</text>`;
+    });
+    const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(plotW / 28))));
+    for (let i = 0; i < n; i++) if (i % every === 0 || i === n - 1) g += `<text x="${x(i).toFixed(1)}" y="${H - Bm + 16}" text-anchor="middle" class="ws-road-x">${i + 1}</text>`;
+    g += `<line x1="${L}" x2="${W - R}" y1="${H - Bm + 4}" y2="${H - Bm + 4}" stroke="#1c1712" />`;
+    g += `<text x="${W - R}" y="${H - 4}" text-anchor="end" class="ws-road-x">scene →</text>`;
+    /* Lines that share a value sit a hair apart, so every one can be seen. */
+    const spread = Math.min(2.5, rowH / (series.length + 2));
+    series.forEach((s, k) => {
+      const off = (k - (series.length - 1) / 2) * spread;
+      const pts = s.pts.map((p, i) => (p ? { X: x(i), Y: y(p.y) + off, p, i } : null));
+      let d = "";
+      let pen = false;
+      pts.forEach((q) => {
+        if (!q) return (pen = false);
+        d += `${pen ? "L" : "M"}${q.X.toFixed(1)} ${q.Y.toFixed(1)} `;
+        pen = true;
+      });
+      const dash = s.film ? ` stroke-dasharray="7 4"` : "";
+      if (d) g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.film ? 3 : 2.2}" stroke-linejoin="round" stroke-linecap="round"${dash} />`;
+      pts.forEach((q) => {
+        if (!q) return;
+        const tip = `<title>${esc(s.name)}, scene ${q.i + 1}: ${esc(q.p.raw)}${q.p.live ? " (automation playing)" : ""}</title>`;
+        if (q.p.live) g += `<circle cx="${q.X.toFixed(1)}" cy="${q.Y.toFixed(1)}" r="6.5" fill="none" stroke="#c45c26" stroke-width="2" />`;
+        g += q.p.avg
+          ? `<circle cx="${q.X.toFixed(1)}" cy="${q.Y.toFixed(1)}" r="3.6" fill="#fffaf2" stroke="${s.color}" stroke-width="2">${tip}</circle>`
+          : `<circle cx="${q.X.toFixed(1)}" cy="${q.Y.toFixed(1)}" r="3.6" fill="${s.color}" stroke="#fffaf2" stroke-width="1">${tip}</circle>`;
+      });
+    });
+    if (!series.some((s) => s.pts.some(Boolean))) g += `<text x="${(L + (W - R)) / 2}" y="${T + ((steps - 1) * rowH) / 2}" dy="0.35em" text-anchor="middle" class="ws-road-empty">Nothing set yet for the lines shown</text>`;
+    const told = series.map((s) => s.name + " " + s.pts.map((p, i) => (p ? `scene ${i + 1} ${p.raw}` : "")).filter(Boolean).join(", ")).join("; ");
+    return `<svg class="ws-road-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(labelOf(id))} by scene. ${esc(told || "Nothing set yet.")}">${g}</svg>`;
+  }
+  function drawRoad(ws) {
+    const el = document.getElementById("ws-road-body");
+    if (!el || !ws) return;
+    const st = S();
+    if (!st) {
+      el.innerHTML = `<p class="cap">The story store is not loaded.</p>`;
+      return;
+    }
+    const chars = st.characters();
+    const names = withFilm(ws) ? st.withFilm() : chars;
+    const ids = idsOf(ws).filter((id) => scaleOf(id));
+    const toggles = names
+      .map((name) => {
+        const on = !view.roadHide[name];
+        const film = st.isFilm && st.isFilm(name);
+        return `<button type="button" class="ws-road-who ${on ? "on" : ""}" data-road-who="${esc(name)}" aria-pressed="${on}" title="${on ? "Hide" : "Show"} ${esc(name)}'s line"><span class="ws-road-key${film ? " film" : ""}" style="--c:${roadColor(name, chars)}"></span>${esc(name)}${name === view.character ? " ·&nbsp;chosen" : ""}</button>`;
+      })
+      .join("");
+    el.innerHTML = `<p class="cap">${withFilm(ws) ? "Each character's road, and the film's own, " : "Each character "}through the ${st.scenes().length} scenes. Low on the scale is at the bottom, high at the top. Tap a name to hide or show its line. A ring marks a value that running automation is playing now (it plays on the chosen character, ${esc(view.character || "")}).${
+      withFilm(ws) ? " The film's line is dashed: a filled dot is its own row, a hollow dot is the average of the characters shown." : ""
+    }</p>
+      <div class="ws-road-who-row" role="group" aria-label="Lines on the roadmap">${toggles}</div>
+      <div class="ws-road-grid" id="ws-road-charts">${ids.map((id) => `<figure class="ws-road-fig" data-road="${esc(id)}"><figcaption><b>${esc(labelOf(id))}</b> <span class="cap">${esc((CUR[id] && CUR[id].note) || "")}</span></figcaption><div class="ws-road-plot"></div></figure>`).join("") || `<p class="cap">Nothing here has a scale to draw.</p>`}</div>`;
+    drawRoadCharts(ws);
+  }
+  function drawRoadCharts(ws) {
+    if (!ws || ws.scope !== "story" || !S()) return;
+    root.querySelectorAll("#ws-road-charts [data-road]").forEach((fig) => {
+      const plot = fig.querySelector(".ws-road-plot");
+      const w = plot.clientWidth || fig.clientWidth || 320;
+      const html = roadSvg(ws, fig.dataset.road, w);
+      if (plot.innerHTML !== html) plot.innerHTML = html;
+    });
+  }
+  let roadResize = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(roadResize);
+    roadResize = setTimeout(() => {
+      const ws = byId[view.ws];
+      if (page === "ws" && ws && ws.scope === "story") drawRoadCharts(ws);
+    }, 150);
+  });
+  /* The story scene's storyboard: open the Storyboard at the scenes tied to it. */
+  function openStoryScene(i) {
+    open("storyboard");
+    const SB = window.CuriosityStoryboard;
+    if (SB && SB.focusStory) SB.focusStory(i);
+  }
+  function injectRoadStyle() {
+    if (document.getElementById("ws-road-style")) return;
+    const st = document.createElement("style");
+    st.id = "ws-road-style";
+    st.textContent = `
+      .ws-road-who-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+      .ws-road-who { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 12px; background: var(--panel); color: var(--ink); border: 2px solid var(--ink); padding: 4px 8px; cursor: pointer; }
+      .ws-road-who:not(.on) { opacity: 0.5; text-decoration: line-through; border-style: dashed; }
+      .ws-road-who:focus-visible { outline: 3px solid var(--saffron); outline-offset: 2px; }
+      .ws-road-empty { font: 12px var(--sans); fill: #7a6f63; }
+      .ws-road-key { display: inline-block; width: 18px; height: 0; border-top: 3px solid var(--c); }
+      .ws-road-key.film { border-top-style: dashed; }
+      .ws-road-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 12px; min-width: 0; }
+      .ws-road-fig { margin: 0; border: 1px solid var(--line); background: var(--panel); padding: 8px; min-width: 0; }
+      .ws-road-fig figcaption { font-size: 13px; margin-bottom: 4px; }
+      .ws-road-fig figcaption .cap { display: block; font-size: 12px; }
+      .ws-road-plot { min-width: 0; overflow: hidden; }
+      .ws-road-svg { display: block; max-width: 100%; height: auto; }
+      .ws-road-y { font: 11px var(--sans); fill: #3a3229; }
+      .ws-road-x { font: 10px var(--mono); fill: #3a3229; }
+      .ws-grid thead th .ws-sblink { display: block; white-space: normal; text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: 11px; color: var(--saffron); max-width: 120px; margin-top: 2px; }
+    `;
+    document.head.appendChild(st);
+  }
+  injectRoadStyle();
 
   function drawMatrix() {
     const slot = document.getElementById("ws-matrix");
@@ -477,6 +671,7 @@
           const html = plays != null && String(plays) !== String(mine) ? `now ${esc(plays)} (automation)` : "";
           if (s.innerHTML !== html) s.innerHTML = html;
         });
+        drawRoadCharts(ws);
       }
     });
   }
@@ -514,6 +709,7 @@
     if (t.id === "ws-char") {
       view.character = t.value;
       drawGrid();
+      drawRoad(ws);
     }
   });
   root.addEventListener("keydown", (e) => {
@@ -527,6 +723,7 @@
     S().addCharacter(name);
     view.character = name;
     drawGrid();
+    drawRoad(byId[view.ws]);
   }
   root.addEventListener("click", (e) => {
     const t = e.target.closest("button, a");
@@ -539,6 +736,16 @@
       return;
     }
     if (t.id === "ws-addchar") return addCharacter();
+    if (t.dataset.roadWho != null && ws) {
+      const name = t.dataset.roadWho;
+      view.roadHide[name] = !view.roadHide[name];
+      drawRoad(ws);
+      return;
+    }
+    if (t.dataset.sbScene != null) {
+      e.preventDefault();
+      return openStoryScene(Number(t.dataset.sbScene));
+    }
     if (t.dataset.count && B()) {
       const c = CUR.angleCount || { min: 1, max: 8 };
       const n = Math.max(c.min || 1, Math.min(c.max || 8, panelCount() + Number(t.dataset.count)));
@@ -549,6 +756,7 @@
     if (t.dataset.scenes && S()) {
       S().setSceneCount(S().scenes().length + Number(t.dataset.scenes));
       drawGrid();
+      drawRoad(ws);
       return;
     }
     if (t.dataset.clear && ws) {

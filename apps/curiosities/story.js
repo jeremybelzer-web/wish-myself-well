@@ -1,11 +1,14 @@
 /* The story store: values that belong to a character across the scenes of the whole story
    (arc stage, Enneagram health, herd mentality...), as opposed to the board's values per panel.
    Shape: { scenes: <count>, characters: [names], values: { name: [ {curiosityId: value} per scene ] } }.
-   localStorage key curiosities-story-v1. Characters start as the speakers of the board's scene. */
+   localStorage key curiosities-story-v1. Characters start as the speakers of the board's scene.
+   "The film" (FILM) is a row of its own for the whole film's road: kept in values like a character but never
+   listed by characters(); withFilm() lists it last. */
 
 (function () {
   const KEY = "curiosities-story-v1";
   const DEFAULT_SCENES = 8;
+  const FILM = "The film";
 
   function defaultCharacters() {
     const names = [];
@@ -25,6 +28,7 @@
     } catch (e) {}
     const st = saved && typeof saved === "object" ? saved : {};
     st.scenes = Math.max(1, Math.min(40, Number(st.scenes) || DEFAULT_SCENES));
+    if (Array.isArray(st.characters)) st.characters = st.characters.filter((c) => c !== FILM);
     if (!Array.isArray(st.characters) || !st.characters.length) st.characters = defaultCharacters();
     if (!st.values || typeof st.values !== "object") st.values = {};
     return st;
@@ -45,6 +49,7 @@
 
   window.CuriosityStory = {
     KEY,
+    FILM,
     scenes() {
       return Array.from({ length: store.scenes }, (_, i) => "Scene " + (i + 1));
     },
@@ -55,14 +60,24 @@
     characters() {
       return store.characters.slice();
     },
+    /* The characters, then the film itself. */
+    withFilm() {
+      return store.characters.concat([FILM]);
+    },
+    isFilm: (name) => name === FILM,
+    /* The film's own row: one object per scene. */
+    film() {
+      return this.get(FILM);
+    },
     addCharacter(name) {
       name = String(name || "").trim();
-      if (!name || store.characters.includes(name)) return false;
+      if (!name || name === FILM || store.characters.includes(name)) return false;
       store.characters.push(name);
       save();
       return true;
     },
     removeCharacter(name) {
+      if (name === FILM) return;
       store.characters = store.characters.filter((c) => c !== name);
       delete store.values[name];
       if (!store.characters.length) store.characters = defaultCharacters();
@@ -74,7 +89,7 @@
     },
     /* An empty value clears the cell. */
     set(character, sceneIndex, id, value) {
-      if (!store.characters.includes(character)) store.characters.push(character);
+      if (character !== FILM && !store.characters.includes(character)) store.characters.push(character);
       const r = rows(character);
       const i = Math.max(0, Number(sceneIndex) || 0);
       while (r.length <= i) r.push({});

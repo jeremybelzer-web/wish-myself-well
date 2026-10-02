@@ -2,7 +2,10 @@
    through them like a flip book. Panels are drawn with CuriosityBoard.panel, so they look like My film.
    "Make many" samples running automation at evenly spaced moments: the cheap way to get lots of boards.
    Shape: { scenes: [ { id, name, note, made, board: {id, title, slug, people}, panels: [ { v: {curiosityId: value}, line: {who, text} } ] } ] }.
-   localStorage key curiosities-storyboard-v1. Exposes window.CuriosityStoryboard = { mount(el) }. */
+   A scene can be tied to a scene of the story (story.js): scene.story = its index, -1 for none, unset = same
+   place (storyboard scene 3 is story scene 3). The flip book then shows, under the panel, the story values of
+   the characters in that panel (arc stage, emotional road, role, herd mentality).
+   localStorage key curiosities-storyboard-v1. Exposes window.CuriosityStoryboard = { mount(el), focusStory(i) }. */
 
 (function () {
   const KEY = "curiosities-storyboard-v1";
@@ -62,6 +65,55 @@
     } catch (e) {}
     return "Scene " + (i + 1);
   }
+
+  /* ---------- the tie to the story ---------- */
+  const ST = () => window.CuriosityStory;
+  function storyCount() {
+    try {
+      return ST() ? ST().scenes().length : 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+  /* The story scene a storyboard scene belongs to, or -1. */
+  function storyOf(scene, si) {
+    const n = storyCount();
+    if (!n) return -1;
+    const k = scene && scene.story != null && scene.story !== "" ? Number(scene.story) : si;
+    return k >= 0 && k < n ? k : -1;
+  }
+  const STORY_BITS = [
+    ["arcStage", "arc"],
+    ["emoRoadCharacter", "road"],
+    ["emotion", "feeling"],
+    ["dramaticRole", "role"],
+    ["herdMentality", "herd"],
+  ];
+  /* One plain line: the story values for the characters in this panel, in this story scene. */
+  function storyLine(scene, si, p) {
+    const st = ST();
+    if (!st) return "";
+    const k = storyOf(scene, si);
+    if (k < 0) return `<span class="sb-small">Not tied to a story scene. Pick one under All scenes.</span>`;
+    const chars = st.characters();
+    const here = [];
+    const add = (w) => {
+      if (w && chars.includes(w) && !here.includes(w)) here.push(w);
+    };
+    add(p && p.line && p.line.who);
+    ((scene.board && scene.board.people) || []).forEach((w) => add(typeof w === "string" ? w : w && w.name));
+    const who = here.slice(0, 3);
+    const head = `<b>Story scene ${k + 1}</b>`;
+    if (!who.length) return `${head} · <span class="sb-small">no story character is in this panel.</span>`;
+    const parts = who.map((w) => {
+      const v = st.values(w)[k] || {};
+      const bits = STORY_BITS.filter(([id]) => v[id] != null && v[id] !== "").map(([id, word]) => `${word} ${esc(v[id])}${id === "herdMentality" ? " of 5" : ""}`);
+      return `<span class="sb-who">${esc(w)}</span>: ${bits.length ? bits.join(", ") : `<span class="sb-small">nothing set yet</span>`}`;
+    });
+    return `${head} · ${parts.join(" · ")}`;
+  }
+  let active = null; /* the mounted page, so the story workspaces can jump into it */
+  let pendingStory = null;
 
   /* ---------- capturing My film ---------- */
   function boardInfo() {
@@ -260,6 +312,10 @@
       .sb-scene .balloon { font-size: 12px !important; }
       .sb-scene .stage { height: 64px; }
       .sb-small { font-family: var(--mono); font-size: 11px; color: #7a6f63; }
+      .sb-story { font-size: 13px; text-align: center; margin: 6px auto 0; max-width: 620px; color: #3a3229; }
+      .sb-story .sb-who { font-weight: 600; }
+      .sb-tie { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; }
+      .sb-tie select { font-size: 12px; max-width: 150px; }
       .sb-status { font-family: var(--mono); font-size: 12px; color: var(--saffron); min-height: 1.3em; margin: 4px 0; }
     `;
     document.head.appendChild(st);
@@ -381,6 +437,7 @@
       return `<div class="sb-viewer" tabindex="0" data-sb="viewer" aria-label="Flip book. Left and right arrows move, space plays.">
           <p class="sb-count" data-sb="count"></p>
           <div class="sb-stagewrap"><div class="sb-big" data-sb="big"></div></div>
+          <p class="sb-story" data-sb="story"></p>
           <div class="sb-transport">
             <button type="button" data-sb="prev" aria-label="Previous panel">◀</button>
             <button type="button" data-sb="play">${playing ? "Pause" : "Play"}</button>
@@ -401,6 +458,8 @@
       const big = el.querySelector("[data-sb=big]");
       const count = el.querySelector("[data-sb=count]");
       if (big) big.innerHTML = panelHtml(s, s.panels[pg.pi], pg.pi);
+      const tie = el.querySelector("[data-sb=story]");
+      if (tie) tie.innerHTML = storyLine(s, pg.si, s.panels[pg.pi]);
       if (count)
         count.innerHTML = `Scene <b>${pg.si + 1}</b> of ${store.scenes.length} · ${esc(s.name)}${s.note ? ` <span class="sb-small">(${esc(s.note)})</span>` : ""} · panel <b>${pg.pi + 1}</b> of ${s.panels.length} · ${at + 1} / ${all.length}`;
       const strip = el.querySelector("[data-sb=thumbs]");
@@ -430,6 +489,7 @@
               <button type="button" data-act="del" data-i="${si}">Delete</button>
             </div>
           </div>
+          ${tieHtml(s, si)}
           <p class="sb-small">${s.panels.length} panel${s.panels.length === 1 ? "" : "s"}${s.note ? " · " + esc(s.note) : ""}${s.board && s.board.title ? " · from " + esc(s.board.title) : ""}</p>
           <div class="strip">${s.panels
             .map((p, pi) => panelHtml(s, p, pi).replace("<figure ", `<figure data-open="${si}:${pi}" role="button" tabindex="0" aria-label="Open scene ${si + 1}, panel ${pi + 1} in the flip book" `))
@@ -437,6 +497,34 @@
         </section>`
         )
         .join("")}</div>`;
+    }
+
+    function tieHtml(s, si) {
+      const n = storyCount();
+      if (!n) return "";
+      const k = storyOf(s, si);
+      const opts = Array.from({ length: n }, (_, i) => `<option value="${i}" ${i === k ? "selected" : ""}>Story scene ${i + 1}</option>`).join("");
+      return `<label class="sb-tie">Tied to <select data-tie="${si}" aria-label="Story scene for storyboard scene ${si + 1}"><option value="-1" ${k < 0 ? "selected" : ""}>no story scene</option>${opts}</select></label>`;
+    }
+    /* Jump to the first storyboard scene tied to story scene k. */
+    function jumpStory(k) {
+      const si = store.scenes.findIndex((s, i) => storyOf(s, i) === k);
+      if (si < 0) {
+        draw();
+        setStatus(`No storyboard scene is tied to story scene ${k + 1} yet. Save My film into a scene, then tie it under All scenes.`);
+        return false;
+      }
+      at = pages().findIndex((pg) => pg.si === si);
+      if (view.view !== "flip") {
+        view.view = "flip";
+        savePrefs(view);
+      }
+      setPlaying(false);
+      draw();
+      setStatus(`Showing storyboard scene ${si + 1}, tied to story scene ${k + 1}.`);
+      const v = el.querySelector("[data-sb=viewer]");
+      if (v && v.scrollIntoView) v.scrollIntoView({ block: "start" });
+      return true;
     }
 
     /* ---------- actions ---------- */
@@ -581,6 +669,15 @@
       if (t.dataset.sb === "many" || t.dataset.sb === "as") {
         view[t.dataset.sb] = t.value;
         savePrefs(view);
+      } else if (t.dataset.tie != null) {
+        const i = Number(t.dataset.tie);
+        const s = store.scenes[i];
+        if (s) {
+          const k = Number(t.value);
+          if (k === i) delete s.story;
+          else s.story = k;
+          persist(k < 0 ? `Scene ${i + 1} is not tied to the story.` : `Scene ${i + 1} is tied to story scene ${k + 1}.`);
+        }
       } else if (t.dataset.rename != null) {
         const s = store.scenes[Number(t.dataset.rename)];
         if (s) {
@@ -631,19 +728,38 @@
       });
 
     draw();
-    return {
+    const api = {
       redraw: draw,
+      jumpStory,
+      isLive: () => el.isConnected,
       destroy() {
         setPlaying(false);
         document.removeEventListener("keydown", onKey);
         el.innerHTML = "";
+        if (active === api) active = null;
       },
     };
+    active = api;
+    if (pendingStory != null) {
+      const k = pendingStory;
+      pendingStory = null;
+      jumpStory(k);
+    }
+    return api;
   }
 
   window.CuriosityStoryboard = {
     KEY,
     mount,
+    /* Show the storyboard scenes tied to story scene k (0-based). Waits for the next mount if none is on screen. */
+    focusStory(k) {
+      k = Number(k) || 0;
+      if (active && active.isLive()) return active.jumpStory(k);
+      pendingStory = k;
+      return false;
+    },
+    /* The story scene a storyboard scene is tied to (-1 for none). */
+    storyOf: (si) => storyOf(store.scenes[si], si),
     /* A copy of everything kept, for other pages (and a future film or AI video export). */
     data: () => JSON.parse(JSON.stringify(store)),
   };
