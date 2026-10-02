@@ -11,9 +11,12 @@
      { type: "panels", ids: ["shotSize", ...] }        what each storyboard panel plays now (ids optional)
      { type: "apply", label: "Blender camera", values: { shotSize: ["wide", "close"] } }
                                                        play values on the board panel by panel, as a named strand
+     { type: "timeline" }                              the engine's whole film: every moment, not just 8 panels
    Replies and news going out:
      { type: "params", params: [{ key, level, label }] }
      { type: "panels", panels: [{ <curiosity id>: value }] }
+     { type: "timeline", name, rows: [{ id, label }], tracks: [{ id, kind, label }], panels: [{ <curiosity id>: value }],
+       byTrack: { <track id>: [{ <curiosity id>: value }] } }
      { type: "value", key, m }                         a running parameter's position, 0 to 1
      { type: "error", error }
 
@@ -39,6 +42,12 @@
     const A = auto();
     if (!A) return { type: "error", error: "automation is not loaded" };
     if (!msg || typeof msg.type !== "string") return { type: "error", error: "no type" };
+    /* The engine's whole film, every moment (My film's panels stop at 8): engine/host.js timeline(). */
+    if (msg.type === "timeline") {
+      const E = window.CurioEngine;
+      const H = window.CurioHost;
+      return E && H && H.timeline ? H.timeline(E.state(), E.result()) : { type: "error", error: "the engine is not loaded" };
+    }
     if (msg.type === "list") return { type: "params", params: A.PARAMS.map((p) => ({ key: p.key, level: p.level, label: p.label })) };
     /* The board: a tool bridge (Blender, Unreal) reads what each panel plays and can write a strand back. */
     if (msg.type === "panels" || msg.type === "apply") {
@@ -99,5 +108,5 @@
     return { address: "/curio/" + msg.type + path, args };
   }
 
-  window.CurioBridge = { handle, values, fromOsc, toOsc };
+  window.CurioBridge = { handle, values, fromOsc, toOsc, TIMELINE: true };
 })();

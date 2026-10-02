@@ -12,6 +12,7 @@
     "automation.js",
     "bridge.js",
     "trace.js",
+    "engine/store.js",
     "engine/catalog.js",
     "engine/state.js",
     "engine/host.js",
