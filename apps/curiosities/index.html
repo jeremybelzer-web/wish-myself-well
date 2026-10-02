@@ -27,6 +27,7 @@
     <nav class="tabs" id="tabs">
       <button type="button" data-tab="board" class="on">Board</button>
       <button type="button" data-tab="study">Study</button>
+      <button type="button" data-tab="play">Play</button>
       <button type="button" data-tab="catalog">Catalog</button>
       <button type="button" data-tab="reference">Ensembles</button>
     </nav>
@@ -36,11 +37,14 @@
       <section class="catalog hidden" id="catalog" style="grid-column: 1 / -1"></section>
       <section class="ref hidden" id="ref" style="grid-column: 1 / -1"></section>
       <section class="study hidden" id="study" style="grid-column: 1 / -1"></section>
+      <section class="study play hidden" id="play" style="grid-column: 1 / -1"></section>
     </main>
     <script src="catalog.js"></script>
+    <script src="library.js"></script>
     <script src="model.js"></script>
     <script src="reference.js"></script>
     <script src="app.js"></script>
     <script src="study.js"></script>
+    <script src="play.js"></script>
   </body>
 </html>

@@ -23,10 +23,12 @@ A model of a movie, a TV hour, or a video game is only those three. If a fact ca
 1. `HANDOFF.md` — the build brief and the study rules.
 2. `CURIOSITIES-REVIEW.md` — every listed row is marked **keep**. Jeremy can change a row to **drop**. Honor a drop.
 3. `catalog.js` — the curiosity list. `live: true` rows are the board controls.
-4. `model.js` — eight suites and four seed proximities.
-5. `app.js` — draws the strip, the paths, and which proximities are firing.
-6. `study.js` — the Study tab and the Shelf.
-7. `index.html` — open this in a browser. No build step.
+4. `library.js` — the filmmaking catalog (`docs/filmmaking-curiosities-catalog.md`) as data, merged into the curiosity list. 157 curiosities.
+5. `model.js` — suites (catalog, genre, and angle-by-emotion), the emotion map, and the proximities a study can count.
+6. `app.js` — draws the strip, the paths, and which proximities are firing. The Catalog tab browses curiosities, suites, proximities and development moves.
+7. `study.js` — the Study tab and the Shelf.
+8. `play.js` — the Play tab: the Flip Book game.
+9. `index.html` — open this in a browser. No build step.
 
 State is `localStorage` key `curiosities-board-v2`.
 
@@ -39,5 +41,9 @@ Thirty live controls. A comic strip. A stage on each panel: character dots, an o
 The Study tab is built. A study is a trace: beat, which curiosities are on, which suites contain them, which proximities held. Counts and ids only. Do not paste scripts, lyrics, level dialogue, or a shot list that recreates a commercial film, episode, or game. Games mark whether the camera is authored or the player’s.
 
 Tick a span of beats and keep one curiosity or one suite on the Shelf. Apply a strand and the board plays it panel by panel. Studies export and import as JSON. State is `localStorage` key `curiosities-studies-v1`. Read `STUDY-PLAN.md` for what comes next.
+
+## Play
+
+The Flip Book cuts each panel into three flaps: Camera, Bodies and Mood. Flipping one swaps in a slice from a study, a suite or the emotion map. Suites that fire and proximities that hold across panels score, and a goal card asks for one suite in one panel. Its best score is `localStorage` key `curiosities-flipbook-best-v1`.
 
 Keep the static files and the look of this folder. Do not add a second git repo inside `apps/`.

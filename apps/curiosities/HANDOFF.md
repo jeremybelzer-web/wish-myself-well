@@ -38,6 +38,8 @@ Vanilla HTML, CSS, and JS. No build. Open `index.html`. State is `localStorage` 
 | `catalog.js` | `CURIOSITIES` array. `live: true` items are the controls |
 | `model.js` | `SUITES` and `PROXIMITIES` |
 | `app.js` | Draws the strip, the paths, and the proximities that are firing |
+| `library.js` | The filmmaking catalog as data, merged into `CURIOSITIES` |
+| `play.js` | Play tab: the Flip Book game |
 | `study.js` | Study tab: traces, the Shelf, Curiosity / Suite / Proximity views. State is `localStorage` key `curiosities-studies-v1` |
 | `STUDY-PLAN.md` | What the study view borrows from the music app, and what comes later |
 | `reference/` | Decoded notes from Jeremy's music app, where curiosities are called essences |
@@ -72,7 +74,9 @@ Games use the same three objects. Mark whether the camera is the player’s or a
 2. Done. Suites and proximities live in `model.js`.
 3. Done. The board draws character paths, object paths, and camera moves that are locked, smooth, or handheld.
 4. Done. The Study tab: traces, the Shelf, and Curiosity / Suite / Proximity views. See `STUDY-PLAN.md`.
-5. Keep it static files. Keep the look of this folder.
+5. Done. The filmmaking catalog is loaded (157 curiosities, 42 suites including genres and angle by emotion, 15 countable proximities), and the Flip Book is the first game.
+6. Next. Trace curated scenes so the genre suites and the emotion map become counts. Then the Library screen, development moves, and live MIDI control (see `docs/scene-memory-app-framework.md`).
+7. Keep it static files. Keep the look of this folder.
 
 ## Out of scope
 
