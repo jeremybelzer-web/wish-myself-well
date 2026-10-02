@@ -11,7 +11,7 @@
    Under the strip, bands line up with the panels: a feeling line per character (the panel's emotion where
    they speak, else the story's value), comedy beats (setup, payoff, callback, escalation) and, when music
    curiosities exist, music on or off and how loud. Print (studio-print.js) prints the storyboard.
-   localStorage key curiosities-storyboard-v1. Exposes window.CuriosityStoryboard = { mount(el), focusStory(i), data(), caption(panel, prev, max) }. */
+   localStorage key curiosities-storyboard-v1. Exposes window.CuriosityStoryboard = { mount(el), focusStory(i), data(), caption(panel, prev, max), putScenes(tag, scenes) }. */
 
 (function () {
   const KEY = "curiosities-storyboard-v1";
@@ -1237,6 +1237,19 @@
     data: () => JSON.parse(JSON.stringify(store)),
     /* A panel's plain-word caption (the curiosities that are on), for Print and other pages. */
     caption: (p, prev, max) => captionText(p, prev, max),
+    /* Scenes another part keeps here, marked with its tag (the engine prints its film as scenes with
+       engine: true): replaces every scene that carries the tag, keeps yours, saves, and redraws. */
+    putScenes(tag, scenes) {
+      if (!/^[a-z]{1,20}$/.test(String(tag)) || !Array.isArray(scenes)) return false;
+      const made = scenes
+        .filter((s) => s && Array.isArray(s.panels))
+        .slice(0, 40)
+        .map((s) => Object.assign({}, s, { id: newId(), name: String(s.name || "Scene"), [tag]: true, panels: s.panels.slice(0, MAX_PER) }));
+      store.scenes = store.scenes.filter((s) => s[tag] !== true).concat(made);
+      save();
+      if (active && active.isLive()) active.redraw();
+      return !saveError;
+    },
     MAX_PER,
   };
 })();
