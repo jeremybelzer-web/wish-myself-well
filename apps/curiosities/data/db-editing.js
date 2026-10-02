@@ -541,6 +541,77 @@
   ps("mood-moves-the-feeling", "The mood moves the feeling", "emotion", "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh.", ["tears-lower", "sun-lifts", "steam-winds-up", "crackle-winds-up", "laugh-tears-laughter", "mallet-absurd"]);
   ps("effects-show-the-inside", "Effects show the inside", "layers", "What a character feels shows on the picture: triumph lights the eyes, panic glitches the frame, a dream spins the room or blooms with light.", ["triumph-eyes", "anxious-glitch", "dreamlike-vortex", "dreamlike-halo"]);
 
+  /* ---------- Ideas from the Main layout thread (Jeremy, 2026-10-02 18:03Z: "Plus any other ones you've come up
+     with"). Story and momentum curiosities the database did not have yet, plus a few from short phone videos. ---------- */
+  c("sceneEnding", "How the scene ends", "structure", "The last beat of a scene: a button joke, a cliffhanger, a quiet fade, an open question, a cut on action, a smash cut to something opposite.", [
+    S("Ending", ["button joke", "cliffhanger", "quiet fade", "open question", "cut on action", "smash cut", "callback"], "How the scene goes out.", { unordered: true }),
+    ["late", "Leaves", ["right after the point", "a beat after", "lingers"], "How soon after its point the scene ends."],
+  ], [4, "A cliffhanger or an open question makes the next scene a must-see.", "How every scene ends sets the film's voice: jokey, haunted, relentless.", "The last beat is what the audience carries into the next scene.", "plot", "End the quiet dinner on a smash cut to the loudest place in the story."]);
+  c("openQuestions", "Questions the audience is holding", "plot", "How many questions the audience is waiting to have answered (who did it, will they make it, why did she lie), and what kind.", [
+    S("Questions", [0, 5, "questions"], "How many are open right now."),
+    ["kind", "Biggest question", ["what happens next", "will they make it", "who did it", "why", "what is it"], "The question pulling hardest.", { unordered: true }],
+    ["answered", "Answered here", [0, 3, "questions"], "How many get answered in this moment."],
+  ], [5, "Every open question is a reason to keep watching; answer one and open another.", "What the audience wonders about is what the film is really about to them.", "An unanswered question keeps attention on the screen.", "thought", "Answer the small question right as you open a bigger one."]);
+  c("tickingClock", "A clock running out", "plot", "A deadline the audience can feel: a bomb, a train leaving, a parent coming home, a show starting.", [
+    S("Clock", ["none", "loose", "tight", "seconds left"], "How close the deadline is."),
+    ["shown", "Shown", ["only mentioned", "seen now and then", "on screen"], "How often the audience is reminded."],
+  ], [4, "A deadline turns every scene into a step toward or away from it.", "A ticking clock says time is precious, or that the characters are trapped.", "A visible countdown keeps eyes glued to the screen.", "plot", "Put the clock in the background of a scene that is about something else."]);
+  c("openingGrab", "The opening grab", "structure", "What happens in the first seconds to stop someone scrolling or settling in: start mid-action, ask a question, a shock, a joke, a promise of what is coming.", [
+    S("Grab", ["none", "mid-action", "a question", "a shock", "a joke", "a promise"], "How it grabs.", { unordered: true }),
+    ["seconds", "Lands by", [0, 10, "seconds", 1], "How many seconds in it lands."],
+  ], [4, "A strong grab buys the patience to set up the rest of the story.", "The opening tells the audience what kind of ride this is.", "The first seconds decide whether anyone keeps watching.", "visual", "Open on the worst moment of the day, then rewind to that morning."]);
+  c("loopEnding", "Ends where it starts", "structure", "A film or short whose last moment leads back into its first, so it plays again without a seam (common in phone videos), or a story that comes full circle.", [
+    S("Loop", ["none", "full circle", "soft loop", "seamless loop"], "How the end meets the start."),
+    ["match", "What matches", ["the picture", "the sound", "the line", "everything"], "What joins the end to the start.", { unordered: true }],
+  ], [1, "A full circle tells the audience the journey changed the character, not the place.", "Coming back to the start invites comparing then and now.", "A seamless loop keeps people watching a second time without noticing.", "visual", "End on the same shot you opened with, but the character now smiles."]);
+  c("matchCut", "Match cut", "transitions", "A cut that joins two shots by something they share: a shape, a movement, a sound, a color, a word.", [
+    S("Match", ["none", "shape", "movement", "sound", "color", "word"], "What the two shots share.", { unordered: true }),
+    ["leap", "Leap", ["the next minute", "days later", "years later", "another world"], "How far the cut jumps."],
+  ], [3, "A match cut can leap years in a single cut and still feel smooth.", "Matching two things says they are connected: a bone and a spaceship.", "The eye follows the matched shape straight through the cut.", "visual", "Match the spinning coin in the bet to the spinning wheel of the getaway car."]);
+  c("knowledgeGap", "Who knows first", "plot", "Who knows the important thing first: the audience before the character (suspense), together (discovery), the character before the audience (mystery), or nobody until it hits (surprise).", [
+    S("Who knows", ["audience first", "together", "character first", "nobody (surprise)"], "Who is ahead.", { unordered: true }),
+    ["gap", "How far ahead", ["a moment", "a scene", "most of the film"], "How long the gap lasts."],
+  ], [4, "When the audience knows about the bomb under the table, a dull chat becomes unbearable.", "Who knows first decides whether the film feels tense, curious or shocking.", "Knowing more than the character makes the audience watch every move.", "thought", "Show the audience the surprise party before the character walks in grumpy."]);
+  c("musicSting", "Music sting", "audio-mix", "A short burst of music that punctuates a moment: a rise, a hit, a record scratch, a sad trombone, a choir.", [
+    S("Sting", ["none", "rise", "hit", "record scratch", "sad trombone", "choir", "drum roll"], "Which sting.", { unordered: true }),
+    ["level", "Loudness", ["soft", "clear", "loud"], "How loud it is."],
+  ], [2, "A sting tells the audience exactly how big a moment is.", "A sad trombone or a choir makes the film comment on itself.", "A sudden sound snaps attention back.", "audio", "Hit a record scratch right as the plan goes wrong, then freeze."]);
+  c("attentionReset", "Something new every", "speed", "How often something new appears to win back attention: a cut, a sound, a joke, a new face, a change of place.", [
+    S("Something new", ["every 1 to 2 seconds", "every 3 to 5 seconds", "every 10 seconds", "rarely"], "How often."),
+    ["kind", "Usually", ["a cut", "a sound", "a joke", "a new face", "a new place"], "What the new thing tends to be.", { unordered: true }],
+  ], [3, "Fresh things on schedule keep the audience moving forward with the story.", "A fast rate feels like phone video; a slow one asks the audience to settle in.", "Attention drifts after a few seconds with nothing new.", "movement", "Cut to a new angle on every joke and hold still for the sad part."]);
+  c("chapterCard", "Chapter cards", "titles", "Cards that split the film into parts: a number, a title, both, or a date and place.", [
+    S("Chapter card", ["none", "number", "title", "number and title", "date and place"], "What the card says."),
+    ["style", "Style", ["plain", "handwritten", "bold", "typewriter"], "How it looks.", { unordered: true }],
+  ], [2, "A chapter card promises the audience a new part with a new question.", "Titled chapters make the film feel like a book or a list of lessons.", "A card on its own is read every time.", "visual", "Give each chapter a funny title that the chapter then proves wrong."]);
+
+  suite("viral-short", "Viral short", "structure", "Start mid-action, something new every couple of seconds, captions on, and an end that loops into the start.", [
+    { curiosity: "openingGrab", value: "mid-action" },
+    { curiosity: "attentionReset", value: "every 1 to 2 seconds" },
+    { curiosity: "captions", value: "word by word" },
+    { curiosity: "loopEnding", value: "seamless loop" },
+  ]);
+  suite("episode-cliffhanger", "Episode cliffhanger", "structure", "A tight clock, a rising sting, the scene ending on a cliffhanger and a To Be Continued card.", [
+    { curiosity: "tickingClock", value: "tight" },
+    { curiosity: "musicSting", value: "rise" },
+    { curiosity: "sceneEnding", value: "cliffhanger" },
+    { curiosity: "endCard", value: "to be continued" },
+  ]);
+  suite("bomb-under-the-table", "Bomb under the table", "plot", "The audience knows first, the clock is tight and shown on screen, and the music rises: suspense.", [
+    { curiosity: "knowledgeGap", value: "audience first" },
+    { curiosity: "tickingClock", value: "tight" },
+    { curiosity: "tickingClock", slider: "shown", value: "on screen" },
+    { curiosity: "musicSting", value: "rise" },
+  ]);
+
+  prox("button-sting", "When a scene ends on a button joke, a sting hits", "audio-mix", { curiosity: "sceneEnding", is: "button joke" }, { curiosity: "musicSting", is: "hit" }, 0, ["comedy"]);
+  prox("cliffhanger-questions", "When a scene ends on a cliffhanger, the audience's questions rise", "plot", { curiosity: "sceneEnding", is: "cliffhanger" }, { curiosity: "openQuestions", change: "rises" }, 0, ["structure"]);
+  prox("grab-question", "When the opening grabs with a question, a question opens", "plot", { curiosity: "openingGrab", is: "a question" }, { curiosity: "openQuestions", change: "rises" }, 0, ["structure"]);
+  prox("payoff-sting", "When the joke pays off, a music sting lands", "audio-mix", { curiosity: "comicBeat", is: "payoff lands" }, { curiosity: "musicSting", change: "changes" }, 0, ["comedy"]);
+  prox("seconds-fast-cuts", "When seconds are left on the clock, the cutting gets fast", "speed", { curiosity: "tickingClock", is: "seconds left" }, { curiosity: "cutRate", is: "fast" }, 0, ["plot"]);
+  prox("loop-match", "When the end loops into the start, the cut matches movement", "transitions", { curiosity: "loopEnding", is: "seamless loop" }, { curiosity: "matchCut", is: "movement" }, 0, ["structure"]);
+  ps("questions-pull-forward", "Questions pull the audience forward", "plot", "Cliffhangers and opening questions open questions the audience carries forward, and a running clock speeds the cutting.", ["cliffhanger-questions", "grab-question", "seconds-fast-cuts"]);
+
   /* Loaded after the app's install(): refresh the links the engine reads, so these proximities can be added. */
   if (typeof window !== "undefined" && window.CURIOSITY_LINKS && typeof DB.links === "function") window.CURIOSITY_LINKS = DB.links();
 })(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));

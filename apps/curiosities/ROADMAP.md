@@ -44,8 +44,8 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (draft PR #7). Today: 392 curiosities, 204 suites, 190 proximities,
-51 proximity suites and 5,571 sliders, across 32 workspaces, plus 8 model scenes.
+Lives in `apps/curiosities/data/` (draft PR #7). Today: 402 curiosities, 207 suites, 196 proximities,
+52 proximity suites and 5,685 sliders, across 32 workspaces, plus 8 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog

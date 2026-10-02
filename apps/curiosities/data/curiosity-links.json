@@ -5894,6 +5894,129 @@
    "does": "moveWith",
    "when": "an outro effect closes the film",
    "then": "an end card follows"
+  },
+  {
+   "id": "p:button-sting",
+   "proximity": "button-sting",
+   "label": "When a scene ends on a button joke, a sting hits",
+   "from": {
+    "curiosity": "sceneEnding",
+    "track": "master",
+    "is": "button joke",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicSting",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "hit",
+   "when": "a scene ends on a button joke",
+   "then": "a sting hits"
+  },
+  {
+   "id": "p:cliffhanger-questions",
+   "proximity": "cliffhanger-questions",
+   "label": "When a scene ends on a cliffhanger, the audience's questions rise",
+   "from": {
+    "curiosity": "sceneEnding",
+    "track": "master",
+    "is": "cliffhanger",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a scene ends on a cliffhanger",
+   "then": "the audience's questions rise"
+  },
+  {
+   "id": "p:grab-question",
+   "proximity": "grab-question",
+   "label": "When the opening grabs with a question, a question opens",
+   "from": {
+    "curiosity": "openingGrab",
+    "track": "master",
+    "is": "a question",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the opening grabs with a question",
+   "then": "a question opens"
+  },
+  {
+   "id": "p:payoff-sting",
+   "proximity": "payoff-sting",
+   "label": "When the joke pays off, a music sting lands",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicSting",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the joke pays off",
+   "then": "a music sting lands"
+  },
+  {
+   "id": "p:seconds-fast-cuts",
+   "proximity": "seconds-fast-cuts",
+   "label": "When seconds are left on the clock, the cutting gets fast",
+   "from": {
+    "curiosity": "tickingClock",
+    "track": "character",
+    "is": "seconds left",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fast",
+   "when": "seconds are left on the clock",
+   "then": "the cutting gets fast"
+  },
+  {
+   "id": "p:loop-match",
+   "proximity": "loop-match",
+   "label": "When the end loops into the start, the cut matches movement",
+   "from": {
+    "curiosity": "loopEnding",
+    "track": "master",
+    "is": "seamless loop",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "matchCut",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "movement",
+   "when": "the end loops into the start",
+   "then": "the cut matches movement"
   }
  ],
  "groups": [
@@ -6800,6 +6923,21 @@
     "p:anxious-glitch",
     "p:dreamlike-vortex",
     "p:dreamlike-halo"
+   ]
+  },
+  {
+   "id": "ps:questions-pull-forward",
+   "label": "Questions pull the audience forward",
+   "plain": "Cliffhangers and opening questions open questions the audience carries forward, and a running clock speeds the cutting.",
+   "proximities": [
+    "cliffhanger-questions",
+    "grab-question",
+    "seconds-fast-cuts"
+   ],
+   "links": [
+    "p:cliffhanger-questions",
+    "p:grab-question",
+    "p:seconds-fast-cuts"
    ]
   }
  ]
