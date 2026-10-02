@@ -11796,6 +11796,35 @@
      "curve": "linear"
     },
     {
+     "id": "stakes",
+     "label": "What they stand to lose",
+     "plain": "How much rides on this character's own plot.",
+     "scale": [
+      "nothing much",
+      "pride",
+      "a relationship",
+      "a livelihood",
+      "a life"
+     ],
+     "from": "nothing much",
+     "to": "a life",
+     "curve": "linear"
+    },
+    {
+     "id": "screenShare",
+     "label": "Share of the scene",
+     "plain": "How much of the scene's time goes to this character's own plot.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
      "id": "amount",
      "label": "Amount",
      "plain": "Share of panels in the moment where it plays.",
@@ -11864,6 +11893,20 @@
      ],
      "from": "holds",
      "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "who",
+     "label": "Who it meets",
+     "plain": "Whose plot this character's own plot runs into.",
+     "scale": [
+      "no one",
+      "a side character",
+      "the main character",
+      "everyone"
+     ],
+     "from": "no one",
+     "to": "everyone",
      "curve": "linear"
     },
     {
@@ -11939,6 +11982,19 @@
      "curve": "linear"
     },
     {
+     "id": "shift",
+     "label": "Circle growing or shrinking",
+     "plain": "Whether the character starts caring about more people, or fewer.",
+     "scale": [
+      "shrinking",
+      "holding",
+      "growing"
+     ],
+     "from": "shrinking",
+     "to": "growing",
+     "curve": "linear"
+    },
+    {
      "id": "amount",
      "label": "Amount",
      "plain": "Share of panels in the moment where it plays.",
@@ -12007,6 +12063,34 @@
      ],
      "from": "holds",
      "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "challenge",
+     "label": "Belief challenged",
+     "plain": "How hard the scene pushes against what the character believes.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "selfDeceit",
+     "label": "Fooling themself",
+     "plain": "How much the character lies to themself about what is going on.",
+     "scale": [
+      "honest with themself",
+      "a little",
+      "a lot",
+      "completely"
+     ],
+     "from": "honest with themself",
+     "to": "completely",
      "curve": "linear"
     },
     {
@@ -12080,6 +12164,19 @@
      ],
      "from": "invisible",
      "to": "showy",
+     "curve": "linear"
+    },
+    {
+     "id": "camera",
+     "label": "Camera agrees",
+     "plain": "Whether the shots narrow or widen with the character's attention (close shots for one thing, wide for the room).",
+     "scale": [
+      "ignores it",
+      "hints",
+      "follows it"
+     ],
+     "from": "ignores it",
+     "to": "follows it",
      "curve": "linear"
     },
     {
@@ -12375,6 +12472,34 @@
      ],
      "from": "holds",
      "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "size",
+     "label": "Size of the herd",
+     "plain": "How many people think as one.",
+     "scale": [
+      "two",
+      "a few",
+      "a group",
+      "a crowd"
+     ],
+     "from": "two",
+     "to": "a crowd",
+     "curve": "linear"
+    },
+    {
+     "id": "speed",
+     "label": "How fast it spreads",
+     "plain": "How quickly a view goes round the group.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
      "curve": "linear"
     },
     {
@@ -21502,6 +21627,660 @@
    ],
    "source": "character matrix",
    "tags": []
+  },
+  {
+   "id": "plotWant",
+   "level": "curiosity",
+   "label": "What they want, against what they need",
+   "plain": "Every character chases something they want; often what they really need is different. How far apart the two are, and whether the character sees it.",
+   "workspace": "plot",
+   "also": [
+    "arc"
+   ],
+   "group": "Story",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "gap",
+   "sliders": [
+    {
+     "id": "gap",
+     "label": "Want and need apart",
+     "plain": "From wanting exactly what they need to wanting the very thing that hurts them.",
+     "scale": [
+      "the same",
+      "close",
+      "different",
+      "opposite"
+     ],
+     "from": "the same",
+     "to": "opposite",
+     "curve": "linear"
+    },
+    {
+     "id": "sees",
+     "label": "Sees the gap",
+     "plain": "Whether the character knows their want is wrong for them.",
+     "scale": [
+      "blind to it",
+      "suspects",
+      "knows"
+     ],
+     "from": "blind to it",
+     "to": "knows",
+     "curve": "linear"
+    },
+    {
+     "id": "chase",
+     "label": "How hard they chase",
+     "plain": "How much effort they put into the want in this scene.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "plotSecret",
+   "level": "curiosity",
+   "label": "Secret",
+   "plain": "Something the character hides, and who knows it. Secrets drive both suspense and comedy (the audience knows, the room doesn't).",
+   "workspace": "plot",
+   "also": [
+    "lines",
+    "comedy"
+   ],
+   "group": "Story",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "kept",
+   "sliders": [
+    {
+     "id": "kept",
+     "label": "How well kept",
+     "plain": "From the secret being out to safely hidden.",
+     "scale": [
+      "out",
+      "slipping",
+      "close call",
+      "safe"
+     ],
+     "from": "out",
+     "to": "safe",
+     "curve": "linear"
+    },
+    {
+     "id": "whoKnows",
+     "label": "Who knows",
+     "plain": "Who is in on it.",
+     "scale": [
+      "only them",
+      "the audience too",
+      "one other",
+      "most of the room"
+     ],
+     "from": "only them",
+     "to": "most of the room",
+     "curve": "linear"
+    },
+    {
+     "id": "cost",
+     "label": "Cost if it comes out",
+     "plain": "How bad it would be if the secret came out.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "plotProgress",
+   "level": "curiosity",
+   "label": "Closer to or further from the goal",
+   "plain": "Whether this scene moves the character toward what they want or knocks them back.",
+   "workspace": "plot",
+   "also": [
+    "arc",
+    "emo-road"
+   ],
+   "group": "Story",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "move",
+   "sliders": [
+    {
+     "id": "move",
+     "label": "Which way",
+     "plain": "How the scene leaves them, against how it found them.",
+     "scale": [
+      "big setback",
+      "setback",
+      "no change",
+      "step forward",
+      "big step forward"
+     ],
+     "from": "big setback",
+     "to": "big step forward",
+     "curve": "linear"
+    },
+    {
+     "id": "cause",
+     "label": "Whose doing",
+     "plain": "What moved them.",
+     "scale": [
+      "their own",
+      "another character",
+      "luck",
+      "the world"
+     ],
+     "from": "their own",
+     "to": "the world",
+     "curve": "linear"
+    },
+    {
+     "id": "noticeable",
+     "label": "How noticeable",
+     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "scale": [
+      "invisible",
+      "subtle",
+      "clear",
+      "showy"
+     ],
+     "from": "invisible",
+     "to": "showy",
+     "curve": "linear"
+    },
+    {
+     "id": "change",
+     "label": "How it changes",
+     "plain": "How closer to or further from the goal moves to a new setting: holds still, drifts, steps, or snaps.",
+     "scale": [
+      "holds",
+      "drifts",
+      "steps",
+      "snaps"
+     ],
+     "from": "holds",
+     "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "beliefShown",
+   "level": "curiosity",
+   "label": "How the belief shows",
+   "plain": "How we learn what a character believes: said out loud, shown in a choice, or only hinted.",
+   "workspace": "mindset",
+   "also": [
+    "lines",
+    "character-motion"
+   ],
+   "group": "Story",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "how",
+   "sliders": [
+    {
+     "id": "how",
+     "label": "Shown by",
+     "plain": "From a hint to the character stating it.",
+     "scale": [
+      "hinted",
+      "a small act",
+      "a big choice",
+      "said out loud"
+     ],
+     "from": "hinted",
+     "to": "said out loud",
+     "curve": "linear"
+    },
+    {
+     "id": "against",
+     "label": "Against their words",
+     "plain": "Whether what they do matches what they say they believe.",
+     "scale": [
+      "matches",
+      "slightly off",
+      "opposite"
+     ],
+     "from": "matches",
+     "to": "opposite",
+     "curve": "linear"
+    },
+    {
+     "id": "noticeable",
+     "label": "How noticeable",
+     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "scale": [
+      "invisible",
+      "subtle",
+      "clear",
+      "showy"
+     ],
+     "from": "invisible",
+     "to": "showy",
+     "curve": "linear"
+    },
+    {
+     "id": "change",
+     "label": "How it changes",
+     "plain": "How how the belief shows moves to a new setting: holds still, drifts, steps, or snaps.",
+     "scale": [
+      "holds",
+      "drifts",
+      "steps",
+      "snaps"
+     ],
+     "from": "holds",
+     "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "distraction",
+   "level": "curiosity",
+   "label": "Distraction",
+   "plain": "What pulls the character's attention off what matters, and how much. A big comedy and suspense tool.",
+   "workspace": "focus",
+   "also": [
+    "comedy",
+    "background"
+   ],
+   "group": "Story",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "pull",
+   "sliders": [
+    {
+     "id": "pull",
+     "label": "How strong",
+     "plain": "From nothing distracting to completely pulled away.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "source",
+     "label": "Pulled by",
+     "plain": "What does the pulling.",
+     "scale": [
+      "a thought",
+      "a person",
+      "an object",
+      "a sound",
+      "a screen"
+     ],
+     "from": "a thought",
+     "to": "a screen",
+     "curve": "linear"
+    },
+    {
+     "id": "missed",
+     "label": "What they miss",
+     "plain": "What slips past them while distracted.",
+     "scale": [
+      "nothing",
+      "a detail",
+      "a warning",
+      "the whole point"
+     ],
+     "from": "nothing",
+     "to": "the whole point",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "fixation",
+   "level": "curiosity",
+   "label": "Fixation",
+   "plain": "One thing the character cannot stop looking at or thinking about.",
+   "workspace": "focus",
+   "also": [
+    "comedy",
+    "emotion"
+   ],
+   "group": "Story",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "grip",
+   "sliders": [
+    {
+     "id": "grip",
+     "label": "How tight",
+     "plain": "From a passing interest to an obsession.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "shared",
+     "label": "Others notice",
+     "plain": "Whether the others see the fixation.",
+     "scale": [
+      "no one",
+      "one person",
+      "everyone"
+     ],
+     "from": "no one",
+     "to": "everyone",
+     "curve": "linear"
+    },
+    {
+     "id": "noticeable",
+     "label": "How noticeable",
+     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "scale": [
+      "invisible",
+      "subtle",
+      "clear",
+      "showy"
+     ],
+     "from": "invisible",
+     "to": "showy",
+     "curve": "linear"
+    },
+    {
+     "id": "change",
+     "label": "How it changes",
+     "plain": "How fixation moves to a new setting: holds still, drifts, steps, or snaps.",
+     "scale": [
+      "holds",
+      "drifts",
+      "steps",
+      "snaps"
+     ],
+     "from": "holds",
+     "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "dissenter",
+   "level": "curiosity",
+   "label": "Dissenter",
+   "plain": "One character who goes against the group, and what it costs them.",
+   "workspace": "herd",
+   "also": [
+    "comedy-mix",
+    "arc"
+   ],
+   "group": "Story",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "against",
+   "sliders": [
+    {
+     "id": "against",
+     "label": "How openly",
+     "plain": "From going along to open defiance.",
+     "scale": [
+      "goes along",
+      "quiet doubts",
+      "speaks up",
+      "openly defies"
+     ],
+     "from": "goes along",
+     "to": "openly defies",
+     "curve": "linear"
+    },
+    {
+     "id": "cost",
+     "label": "What it costs",
+     "plain": "How much the group punishes the dissent.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "joined",
+     "label": "Others join",
+     "plain": "Whether anyone follows the dissenter.",
+     "scale": [
+      "no one",
+      "one",
+      "a few",
+      "the whole group turns"
+     ],
+     "from": "no one",
+     "to": "the whole group turns",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "groupPressure",
+   "level": "curiosity",
+   "label": "Group pressure",
+   "plain": "How hard the group leans on one person to agree, and how it shows in the frame (the group on one side, the person alone).",
+   "workspace": "herd",
+   "also": [
+    "placement",
+    "comedy-mix"
+   ],
+   "group": "Story",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "press",
+   "sliders": [
+    {
+     "id": "press",
+     "label": "How hard",
+     "plain": "From no pressure to everyone leaning in.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "shownBy",
+     "label": "Shown by",
+     "plain": "How we see the pressure.",
+     "scale": [
+      "words",
+      "looks",
+      "placement",
+      "all three"
+     ],
+     "from": "words",
+     "to": "all three",
+     "curve": "linear"
+    },
+    {
+     "id": "noticeable",
+     "label": "How noticeable",
+     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "scale": [
+      "invisible",
+      "subtle",
+      "clear",
+      "showy"
+     ],
+     "from": "invisible",
+     "to": "showy",
+     "curve": "linear"
+    },
+    {
+     "id": "change",
+     "label": "How it changes",
+     "plain": "How group pressure moves to a new setting: holds still, drifts, steps, or snaps.",
+     "scale": [
+      "holds",
+      "drifts",
+      "steps",
+      "snaps"
+     ],
+     "from": "holds",
+     "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
   }
  ],
  "suites": [
@@ -30280,7 +31059,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:music.presence",
+     "id": "weight:music",
      "label": "Weight of music presence",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -30522,7 +31301,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:music.presence",
+     "id": "weight:music",
      "label": "Weight of music presence",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -30634,7 +31413,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:music.presence",
+     "id": "weight:music",
      "label": "Weight of music presence",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -30870,7 +31649,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:music.presence",
+     "id": "weight:music",
      "label": "Weight of music presence",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -30912,7 +31691,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:noMusic.length",
+     "id": "weight:noMusic",
      "label": "Weight of noMusic length",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -31023,7 +31802,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:music.presence",
+     "id": "weight:music",
      "label": "Weight of music presence",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -31118,7 +31897,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:music.presence",
+     "id": "weight:music",
      "label": "Weight of music presence",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -31246,7 +32025,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:music.presence",
+     "id": "weight:music",
      "label": "Weight of music presence",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -32011,7 +32790,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:emotionGap.gap",
+     "id": "weight:emotionGap",
      "label": "Weight of emotionGap gap",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -32485,7 +33264,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:physicalComedy.size",
+     "id": "weight:physicalComedy",
      "label": "Weight of physicalComedy size",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -32527,7 +33306,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:comicSound.effects",
+     "id": "weight:comicSound",
      "label": "Weight of comicSound effects",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -33130,7 +33909,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:understatement.direction",
+     "id": "weight:understatement",
      "label": "Weight of understatement direction",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -33274,7 +34053,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:wordplay.kind",
+     "id": "weight:wordplay",
      "label": "Weight of wordplay kind",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -33411,7 +34190,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:emotionGap.gap",
+     "id": "weight:emotionGap",
      "label": "Weight of emotionGap gap",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -33715,7 +34494,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:comicEdit.smashCut",
+     "id": "weight:comicEdit",
      "label": "Weight of comicEdit smashCut",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -33729,7 +34508,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:irony.kind",
+     "id": "weight:irony",
      "label": "Weight of irony kind",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -33826,7 +34605,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:visualGag.place",
+     "id": "weight:visualGag",
      "label": "Weight of visualGag place",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36487,7 +37266,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-stability.position",
+     "id": "weight:cm-stability",
      "label": "Weight of cm-stability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36501,7 +37280,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-agency.position",
+     "id": "weight:cm-agency",
      "label": "Weight of cm-agency position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36515,7 +37294,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-freedom.position",
+     "id": "weight:cm-freedom",
      "label": "Weight of cm-freedom position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36529,7 +37308,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-morality.position",
+     "id": "weight:cm-morality",
      "label": "Weight of cm-morality position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36543,7 +37322,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-risk.position",
+     "id": "weight:cm-risk",
      "label": "Weight of cm-risk position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36557,7 +37336,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-control.position",
+     "id": "weight:cm-control",
      "label": "Weight of cm-control position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36571,7 +37350,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-worldview.position",
+     "id": "weight:cm-worldview",
      "label": "Weight of cm-worldview position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36585,7 +37364,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-openness.position",
+     "id": "weight:cm-openness",
      "label": "Weight of cm-openness position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36599,7 +37378,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-emotion.position",
+     "id": "weight:cm-emotion",
      "label": "Weight of cm-emotion position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36613,7 +37392,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-adaptability.position",
+     "id": "weight:cm-adaptability",
      "label": "Weight of cm-adaptability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36627,7 +37406,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-conflict.position",
+     "id": "weight:cm-conflict",
      "label": "Weight of cm-conflict position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36641,7 +37420,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-temperament.position",
+     "id": "weight:cm-temperament",
      "label": "Weight of cm-temperament position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36655,7 +37434,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-truth.position",
+     "id": "weight:cm-truth",
      "label": "Weight of cm-truth position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36669,7 +37448,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-competence.position",
+     "id": "weight:cm-competence",
      "label": "Weight of cm-competence position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36683,7 +37462,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-need.position",
+     "id": "weight:cm-need",
      "label": "Weight of cm-need position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36697,7 +37476,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-motivation.position",
+     "id": "weight:cm-motivation",
      "label": "Weight of cm-motivation position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36711,7 +37490,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-focus.position",
+     "id": "weight:cm-focus",
      "label": "Weight of cm-focus position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36725,7 +37504,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-perspective.position",
+     "id": "weight:cm-perspective",
      "label": "Weight of cm-perspective position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36890,7 +37669,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-stability.position",
+     "id": "weight:cm-stability",
      "label": "Weight of cm-stability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36904,7 +37683,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-agency.position",
+     "id": "weight:cm-agency",
      "label": "Weight of cm-agency position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36918,7 +37697,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-freedom.position",
+     "id": "weight:cm-freedom",
      "label": "Weight of cm-freedom position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36932,7 +37711,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-morality.position",
+     "id": "weight:cm-morality",
      "label": "Weight of cm-morality position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36946,7 +37725,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-risk.position",
+     "id": "weight:cm-risk",
      "label": "Weight of cm-risk position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36960,7 +37739,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-control.position",
+     "id": "weight:cm-control",
      "label": "Weight of cm-control position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36974,7 +37753,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-worldview.position",
+     "id": "weight:cm-worldview",
      "label": "Weight of cm-worldview position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -36988,7 +37767,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-openness.position",
+     "id": "weight:cm-openness",
      "label": "Weight of cm-openness position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37002,7 +37781,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-emotion.position",
+     "id": "weight:cm-emotion",
      "label": "Weight of cm-emotion position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37016,7 +37795,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-adaptability.position",
+     "id": "weight:cm-adaptability",
      "label": "Weight of cm-adaptability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37030,7 +37809,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-conflict.position",
+     "id": "weight:cm-conflict",
      "label": "Weight of cm-conflict position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37044,7 +37823,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-temperament.position",
+     "id": "weight:cm-temperament",
      "label": "Weight of cm-temperament position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37058,7 +37837,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-truth.position",
+     "id": "weight:cm-truth",
      "label": "Weight of cm-truth position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37072,7 +37851,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-competence.position",
+     "id": "weight:cm-competence",
      "label": "Weight of cm-competence position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37086,7 +37865,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-need.position",
+     "id": "weight:cm-need",
      "label": "Weight of cm-need position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37100,7 +37879,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-motivation.position",
+     "id": "weight:cm-motivation",
      "label": "Weight of cm-motivation position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37114,7 +37893,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-focus.position",
+     "id": "weight:cm-focus",
      "label": "Weight of cm-focus position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37128,7 +37907,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-perspective.position",
+     "id": "weight:cm-perspective",
      "label": "Weight of cm-perspective position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37293,7 +38072,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-stability.position",
+     "id": "weight:cm-stability",
      "label": "Weight of cm-stability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37307,7 +38086,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-agency.position",
+     "id": "weight:cm-agency",
      "label": "Weight of cm-agency position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37321,7 +38100,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-freedom.position",
+     "id": "weight:cm-freedom",
      "label": "Weight of cm-freedom position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37335,7 +38114,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-morality.position",
+     "id": "weight:cm-morality",
      "label": "Weight of cm-morality position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37349,7 +38128,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-risk.position",
+     "id": "weight:cm-risk",
      "label": "Weight of cm-risk position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37363,7 +38142,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-control.position",
+     "id": "weight:cm-control",
      "label": "Weight of cm-control position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37377,7 +38156,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-worldview.position",
+     "id": "weight:cm-worldview",
      "label": "Weight of cm-worldview position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37391,7 +38170,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-openness.position",
+     "id": "weight:cm-openness",
      "label": "Weight of cm-openness position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37405,7 +38184,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-emotion.position",
+     "id": "weight:cm-emotion",
      "label": "Weight of cm-emotion position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37419,7 +38198,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-adaptability.position",
+     "id": "weight:cm-adaptability",
      "label": "Weight of cm-adaptability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37433,7 +38212,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-conflict.position",
+     "id": "weight:cm-conflict",
      "label": "Weight of cm-conflict position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37447,7 +38226,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-temperament.position",
+     "id": "weight:cm-temperament",
      "label": "Weight of cm-temperament position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37461,7 +38240,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-truth.position",
+     "id": "weight:cm-truth",
      "label": "Weight of cm-truth position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37475,7 +38254,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-competence.position",
+     "id": "weight:cm-competence",
      "label": "Weight of cm-competence position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37489,7 +38268,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-need.position",
+     "id": "weight:cm-need",
      "label": "Weight of cm-need position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37503,7 +38282,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-motivation.position",
+     "id": "weight:cm-motivation",
      "label": "Weight of cm-motivation position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37517,7 +38296,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-focus.position",
+     "id": "weight:cm-focus",
      "label": "Weight of cm-focus position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37531,7 +38310,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-perspective.position",
+     "id": "weight:cm-perspective",
      "label": "Weight of cm-perspective position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37696,7 +38475,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-stability.position",
+     "id": "weight:cm-stability",
      "label": "Weight of cm-stability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37710,7 +38489,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-agency.position",
+     "id": "weight:cm-agency",
      "label": "Weight of cm-agency position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37724,7 +38503,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-freedom.position",
+     "id": "weight:cm-freedom",
      "label": "Weight of cm-freedom position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37738,7 +38517,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-morality.position",
+     "id": "weight:cm-morality",
      "label": "Weight of cm-morality position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37752,7 +38531,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-risk.position",
+     "id": "weight:cm-risk",
      "label": "Weight of cm-risk position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37766,7 +38545,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-control.position",
+     "id": "weight:cm-control",
      "label": "Weight of cm-control position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37780,7 +38559,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-worldview.position",
+     "id": "weight:cm-worldview",
      "label": "Weight of cm-worldview position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37794,7 +38573,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-openness.position",
+     "id": "weight:cm-openness",
      "label": "Weight of cm-openness position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37808,7 +38587,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-emotion.position",
+     "id": "weight:cm-emotion",
      "label": "Weight of cm-emotion position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37822,7 +38601,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-adaptability.position",
+     "id": "weight:cm-adaptability",
      "label": "Weight of cm-adaptability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37836,7 +38615,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-conflict.position",
+     "id": "weight:cm-conflict",
      "label": "Weight of cm-conflict position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37850,7 +38629,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-temperament.position",
+     "id": "weight:cm-temperament",
      "label": "Weight of cm-temperament position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37864,7 +38643,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-truth.position",
+     "id": "weight:cm-truth",
      "label": "Weight of cm-truth position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37878,7 +38657,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-competence.position",
+     "id": "weight:cm-competence",
      "label": "Weight of cm-competence position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37892,7 +38671,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-need.position",
+     "id": "weight:cm-need",
      "label": "Weight of cm-need position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37906,7 +38685,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-motivation.position",
+     "id": "weight:cm-motivation",
      "label": "Weight of cm-motivation position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37920,7 +38699,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-focus.position",
+     "id": "weight:cm-focus",
      "label": "Weight of cm-focus position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -37934,7 +38713,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-perspective.position",
+     "id": "weight:cm-perspective",
      "label": "Weight of cm-perspective position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38099,7 +38878,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-stability.position",
+     "id": "weight:cm-stability",
      "label": "Weight of cm-stability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38113,7 +38892,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-agency.position",
+     "id": "weight:cm-agency",
      "label": "Weight of cm-agency position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38127,7 +38906,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-freedom.position",
+     "id": "weight:cm-freedom",
      "label": "Weight of cm-freedom position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38141,7 +38920,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-morality.position",
+     "id": "weight:cm-morality",
      "label": "Weight of cm-morality position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38155,7 +38934,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-risk.position",
+     "id": "weight:cm-risk",
      "label": "Weight of cm-risk position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38169,7 +38948,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-control.position",
+     "id": "weight:cm-control",
      "label": "Weight of cm-control position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38183,7 +38962,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-worldview.position",
+     "id": "weight:cm-worldview",
      "label": "Weight of cm-worldview position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38197,7 +38976,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-openness.position",
+     "id": "weight:cm-openness",
      "label": "Weight of cm-openness position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38211,7 +38990,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-emotion.position",
+     "id": "weight:cm-emotion",
      "label": "Weight of cm-emotion position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38225,7 +39004,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-adaptability.position",
+     "id": "weight:cm-adaptability",
      "label": "Weight of cm-adaptability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38239,7 +39018,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-conflict.position",
+     "id": "weight:cm-conflict",
      "label": "Weight of cm-conflict position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38253,7 +39032,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-temperament.position",
+     "id": "weight:cm-temperament",
      "label": "Weight of cm-temperament position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38267,7 +39046,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-truth.position",
+     "id": "weight:cm-truth",
      "label": "Weight of cm-truth position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38281,7 +39060,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-competence.position",
+     "id": "weight:cm-competence",
      "label": "Weight of cm-competence position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38295,7 +39074,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-need.position",
+     "id": "weight:cm-need",
      "label": "Weight of cm-need position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38309,7 +39088,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-motivation.position",
+     "id": "weight:cm-motivation",
      "label": "Weight of cm-motivation position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38323,7 +39102,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-focus.position",
+     "id": "weight:cm-focus",
      "label": "Weight of cm-focus position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38337,7 +39116,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-perspective.position",
+     "id": "weight:cm-perspective",
      "label": "Weight of cm-perspective position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38502,7 +39281,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-stability.position",
+     "id": "weight:cm-stability",
      "label": "Weight of cm-stability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38516,7 +39295,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-agency.position",
+     "id": "weight:cm-agency",
      "label": "Weight of cm-agency position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38530,7 +39309,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-freedom.position",
+     "id": "weight:cm-freedom",
      "label": "Weight of cm-freedom position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38544,7 +39323,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-morality.position",
+     "id": "weight:cm-morality",
      "label": "Weight of cm-morality position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38558,7 +39337,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-risk.position",
+     "id": "weight:cm-risk",
      "label": "Weight of cm-risk position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38572,7 +39351,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-control.position",
+     "id": "weight:cm-control",
      "label": "Weight of cm-control position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38586,7 +39365,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-worldview.position",
+     "id": "weight:cm-worldview",
      "label": "Weight of cm-worldview position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38600,7 +39379,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-openness.position",
+     "id": "weight:cm-openness",
      "label": "Weight of cm-openness position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38614,7 +39393,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-emotion.position",
+     "id": "weight:cm-emotion",
      "label": "Weight of cm-emotion position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38628,7 +39407,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-adaptability.position",
+     "id": "weight:cm-adaptability",
      "label": "Weight of cm-adaptability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38642,7 +39421,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-conflict.position",
+     "id": "weight:cm-conflict",
      "label": "Weight of cm-conflict position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38656,7 +39435,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-temperament.position",
+     "id": "weight:cm-temperament",
      "label": "Weight of cm-temperament position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38670,7 +39449,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-truth.position",
+     "id": "weight:cm-truth",
      "label": "Weight of cm-truth position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38684,7 +39463,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-competence.position",
+     "id": "weight:cm-competence",
      "label": "Weight of cm-competence position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38698,7 +39477,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-need.position",
+     "id": "weight:cm-need",
      "label": "Weight of cm-need position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38712,7 +39491,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-motivation.position",
+     "id": "weight:cm-motivation",
      "label": "Weight of cm-motivation position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38726,7 +39505,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-focus.position",
+     "id": "weight:cm-focus",
      "label": "Weight of cm-focus position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38740,7 +39519,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-perspective.position",
+     "id": "weight:cm-perspective",
      "label": "Weight of cm-perspective position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38905,7 +39684,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-stability.position",
+     "id": "weight:cm-stability",
      "label": "Weight of cm-stability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38919,7 +39698,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-agency.position",
+     "id": "weight:cm-agency",
      "label": "Weight of cm-agency position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38933,7 +39712,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-freedom.position",
+     "id": "weight:cm-freedom",
      "label": "Weight of cm-freedom position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38947,7 +39726,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-morality.position",
+     "id": "weight:cm-morality",
      "label": "Weight of cm-morality position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38961,7 +39740,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-risk.position",
+     "id": "weight:cm-risk",
      "label": "Weight of cm-risk position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38975,7 +39754,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-control.position",
+     "id": "weight:cm-control",
      "label": "Weight of cm-control position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -38989,7 +39768,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-worldview.position",
+     "id": "weight:cm-worldview",
      "label": "Weight of cm-worldview position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39003,7 +39782,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-openness.position",
+     "id": "weight:cm-openness",
      "label": "Weight of cm-openness position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39017,7 +39796,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-emotion.position",
+     "id": "weight:cm-emotion",
      "label": "Weight of cm-emotion position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39031,7 +39810,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-adaptability.position",
+     "id": "weight:cm-adaptability",
      "label": "Weight of cm-adaptability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39045,7 +39824,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-conflict.position",
+     "id": "weight:cm-conflict",
      "label": "Weight of cm-conflict position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39059,7 +39838,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-temperament.position",
+     "id": "weight:cm-temperament",
      "label": "Weight of cm-temperament position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39073,7 +39852,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-truth.position",
+     "id": "weight:cm-truth",
      "label": "Weight of cm-truth position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39087,7 +39866,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-competence.position",
+     "id": "weight:cm-competence",
      "label": "Weight of cm-competence position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39101,7 +39880,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-need.position",
+     "id": "weight:cm-need",
      "label": "Weight of cm-need position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39115,7 +39894,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-motivation.position",
+     "id": "weight:cm-motivation",
      "label": "Weight of cm-motivation position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39129,7 +39908,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-focus.position",
+     "id": "weight:cm-focus",
      "label": "Weight of cm-focus position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39143,7 +39922,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-perspective.position",
+     "id": "weight:cm-perspective",
      "label": "Weight of cm-perspective position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39308,7 +40087,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-stability.position",
+     "id": "weight:cm-stability",
      "label": "Weight of cm-stability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39322,7 +40101,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-agency.position",
+     "id": "weight:cm-agency",
      "label": "Weight of cm-agency position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39336,7 +40115,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-freedom.position",
+     "id": "weight:cm-freedom",
      "label": "Weight of cm-freedom position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39350,7 +40129,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-morality.position",
+     "id": "weight:cm-morality",
      "label": "Weight of cm-morality position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39364,7 +40143,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-risk.position",
+     "id": "weight:cm-risk",
      "label": "Weight of cm-risk position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39378,7 +40157,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-control.position",
+     "id": "weight:cm-control",
      "label": "Weight of cm-control position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39392,7 +40171,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-worldview.position",
+     "id": "weight:cm-worldview",
      "label": "Weight of cm-worldview position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39406,7 +40185,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-openness.position",
+     "id": "weight:cm-openness",
      "label": "Weight of cm-openness position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39420,7 +40199,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-emotion.position",
+     "id": "weight:cm-emotion",
      "label": "Weight of cm-emotion position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39434,7 +40213,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-adaptability.position",
+     "id": "weight:cm-adaptability",
      "label": "Weight of cm-adaptability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39448,7 +40227,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-conflict.position",
+     "id": "weight:cm-conflict",
      "label": "Weight of cm-conflict position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39462,7 +40241,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-temperament.position",
+     "id": "weight:cm-temperament",
      "label": "Weight of cm-temperament position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39476,7 +40255,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-truth.position",
+     "id": "weight:cm-truth",
      "label": "Weight of cm-truth position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39490,7 +40269,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-competence.position",
+     "id": "weight:cm-competence",
      "label": "Weight of cm-competence position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39504,7 +40283,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-need.position",
+     "id": "weight:cm-need",
      "label": "Weight of cm-need position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39518,7 +40297,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-motivation.position",
+     "id": "weight:cm-motivation",
      "label": "Weight of cm-motivation position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39532,7 +40311,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-focus.position",
+     "id": "weight:cm-focus",
      "label": "Weight of cm-focus position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39546,7 +40325,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-perspective.position",
+     "id": "weight:cm-perspective",
      "label": "Weight of cm-perspective position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39711,7 +40490,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-stability.position",
+     "id": "weight:cm-stability",
      "label": "Weight of cm-stability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39725,7 +40504,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-agency.position",
+     "id": "weight:cm-agency",
      "label": "Weight of cm-agency position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39739,7 +40518,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-freedom.position",
+     "id": "weight:cm-freedom",
      "label": "Weight of cm-freedom position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39753,7 +40532,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-morality.position",
+     "id": "weight:cm-morality",
      "label": "Weight of cm-morality position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39767,7 +40546,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-risk.position",
+     "id": "weight:cm-risk",
      "label": "Weight of cm-risk position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39781,7 +40560,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-control.position",
+     "id": "weight:cm-control",
      "label": "Weight of cm-control position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39795,7 +40574,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-worldview.position",
+     "id": "weight:cm-worldview",
      "label": "Weight of cm-worldview position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39809,7 +40588,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-openness.position",
+     "id": "weight:cm-openness",
      "label": "Weight of cm-openness position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39823,7 +40602,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-emotion.position",
+     "id": "weight:cm-emotion",
      "label": "Weight of cm-emotion position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39837,7 +40616,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-adaptability.position",
+     "id": "weight:cm-adaptability",
      "label": "Weight of cm-adaptability position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39851,7 +40630,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-conflict.position",
+     "id": "weight:cm-conflict",
      "label": "Weight of cm-conflict position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39865,7 +40644,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-temperament.position",
+     "id": "weight:cm-temperament",
      "label": "Weight of cm-temperament position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39879,7 +40658,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-truth.position",
+     "id": "weight:cm-truth",
      "label": "Weight of cm-truth position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39893,7 +40672,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-competence.position",
+     "id": "weight:cm-competence",
      "label": "Weight of cm-competence position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39907,7 +40686,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-need.position",
+     "id": "weight:cm-need",
      "label": "Weight of cm-need position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39921,7 +40700,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-motivation.position",
+     "id": "weight:cm-motivation",
      "label": "Weight of cm-motivation position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39935,7 +40714,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-focus.position",
+     "id": "weight:cm-focus",
      "label": "Weight of cm-focus position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39949,7 +40728,7 @@
      "curve": "linear"
     },
     {
-     "id": "weight:cm-perspective.position",
+     "id": "weight:cm-perspective",
      "label": "Weight of cm-perspective position",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
@@ -39978,6 +40757,1981 @@
     }
    ],
    "source": "character matrix",
+   "tags": []
+  },
+  {
+   "id": "hidden-agenda",
+   "level": "suite",
+   "label": "Hidden agenda",
+   "plain": "A character pushes their own plot in secret while seeming to help the main one.",
+   "workspace": "plot",
+   "also": [
+    "lines"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "plotSecret",
+     "slider": "kept",
+     "value": "safe"
+    },
+    {
+     "weight": 70,
+     "curiosity": "plotWeight",
+     "value": 4
+    },
+    {
+     "weight": 60,
+     "curiosity": "plotTouch",
+     "value": "crossing"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotSecret",
+     "label": "Weight of plotSecret kept",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotWeight",
+     "label": "Weight of plotWeight",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotTouch",
+     "label": "Weight of plotTouch",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "wrong-goal",
+   "level": "suite",
+   "label": "Chasing the wrong thing",
+   "plain": "The character runs hard after a want that is the opposite of what they need.",
+   "workspace": "plot",
+   "also": [
+    "arc"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "plotWant",
+     "slider": "gap",
+     "value": "opposite"
+    },
+    {
+     "weight": 70,
+     "curiosity": "plotWant",
+     "slider": "sees",
+     "value": "blind to it"
+    },
+    {
+     "weight": 70,
+     "curiosity": "plotWant",
+     "slider": "chase",
+     "value": 5
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotWant",
+     "label": "Weight of plotWant gap",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotWant.sees",
+     "label": "Weight of plotWant sees",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotWant.chase",
+     "label": "Weight of plotWant chase",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "dramatic-irony",
+   "level": "suite",
+   "label": "We know, they don't",
+   "plain": "The audience is in on a secret the people in the room are not. Suspense or comedy.",
+   "workspace": "plot",
+   "also": [
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "plotSecret",
+     "slider": "whoKnows",
+     "value": "the audience too"
+    },
+    {
+     "weight": 70,
+     "curiosity": "plotSecret",
+     "slider": "kept",
+     "value": "close call"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotSecret.whoKnows",
+     "label": "Weight of plotSecret whoKnows",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotSecret",
+     "label": "Weight of plotSecret kept",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "closed-mind",
+   "level": "suite",
+   "label": "Closed mind",
+   "plain": "A character who won't hear it: fixed mindset, small circle, fooling themself.",
+   "workspace": "mindset",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "mindset",
+     "value": "fixed"
+    },
+    {
+     "weight": 70,
+     "curiosity": "perspectiveWidth",
+     "value": "self"
+    },
+    {
+     "weight": 60,
+     "curiosity": "mindset",
+     "slider": "selfDeceit",
+     "value": "a lot"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:mindset",
+     "label": "Weight of mindset",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:perspectiveWidth",
+     "label": "Weight of perspectiveWidth",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:mindset.selfDeceit",
+     "label": "Weight of mindset selfDeceit",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "widening-circle",
+   "level": "suite",
+   "label": "The circle widens",
+   "plain": "A character starts to care about more than themself.",
+   "workspace": "mindset",
+   "also": [
+    "arc"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "mindset",
+     "value": "questioning"
+    },
+    {
+     "weight": 100,
+     "curiosity": "perspectiveWidth",
+     "slider": "shift",
+     "value": "growing"
+    },
+    {
+     "weight": 60,
+     "curiosity": "beliefShown",
+     "value": "a big choice"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:mindset",
+     "label": "Weight of mindset",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:perspectiveWidth.shift",
+     "label": "Weight of perspectiveWidth shift",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:beliefShown",
+     "label": "Weight of beliefShown",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "tunnel-vision",
+   "level": "suite",
+   "label": "Tunnel vision",
+   "plain": "The character sees only one thing and misses everything else, and the camera narrows with them.",
+   "workspace": "focus",
+   "also": [
+    "camera-angle"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "focusWidth",
+     "value": "one thing"
+    },
+    {
+     "weight": 80,
+     "curiosity": "fixation",
+     "value": 5
+    },
+    {
+     "weight": 60,
+     "curiosity": "focusWidth",
+     "slider": "camera",
+     "value": "follows it"
+    },
+    {
+     "weight": 40,
+     "curiosity": "shotSize",
+     "value": "close"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:focusWidth",
+     "label": "Weight of focusWidth",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:fixation",
+     "label": "Weight of fixation",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 80,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:focusWidth.camera",
+     "label": "Weight of focusWidth camera",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:shotSize",
+     "label": "Weight of shotSize",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "distracted-miss",
+   "level": "suite",
+   "label": "Looks away at the wrong moment",
+   "plain": "The important thing happens while the character is distracted.",
+   "workspace": "focus",
+   "also": [
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "distraction",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "distraction",
+     "slider": "missed",
+     "value": "the whole point"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:distraction",
+     "label": "Weight of distraction",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:distraction.missed",
+     "label": "Weight of distraction missed",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "mob-forms",
+   "level": "suite",
+   "label": "A mob forms",
+   "plain": "A crowd turns into one mind with one loud voice.",
+   "workspace": "herd",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "herdMentality",
+     "value": 5
+    },
+    {
+     "weight": 80,
+     "curiosity": "herdLeader",
+     "value": "one voice"
+    },
+    {
+     "weight": 60,
+     "curiosity": "herdMentality",
+     "slider": "size",
+     "value": "a crowd"
+    },
+    {
+     "weight": 60,
+     "curiosity": "groupPressure",
+     "value": 4
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:herdMentality",
+     "label": "Weight of herdMentality",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:herdLeader",
+     "label": "Weight of herdLeader",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 80,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:herdMentality.size",
+     "label": "Weight of herdMentality size",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:groupPressure",
+     "label": "Weight of groupPressure",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "lone-voice",
+   "level": "suite",
+   "label": "The lone voice",
+   "plain": "One person stands against the group, framed alone.",
+   "workspace": "herd",
+   "also": [
+    "placement"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "dissenter",
+     "value": "openly defies"
+    },
+    {
+     "weight": 70,
+     "curiosity": "groupPressure",
+     "value": 5
+    },
+    {
+     "weight": 50,
+     "curiosity": "groupPressure",
+     "slider": "shownBy",
+     "value": "placement"
+    },
+    {
+     "weight": 40,
+     "curiosity": "emptySpace",
+     "value": "some"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:dissenter",
+     "label": "Weight of dissenter",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:groupPressure",
+     "label": "Weight of groupPressure",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:groupPressure.shownBy",
+     "label": "Weight of groupPressure shownBy",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:emptySpace",
+     "label": "Weight of emptySpace",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "six-panel-grid",
+   "level": "suite",
+   "label": "Steady six-panel grid",
+   "plain": "A calm, even page: six panels of the same size, small gutters, a few words each.",
+   "workspace": "page",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "panelCount",
+     "value": 6
+    },
+    {
+     "weight": 100,
+     "curiosity": "panelSize",
+     "value": "medium"
+    },
+    {
+     "weight": 60,
+     "curiosity": "gutter",
+     "value": "beat"
+    },
+    {
+     "weight": 50,
+     "curiosity": "textDensity",
+     "value": "few"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelCount",
+     "label": "Weight of panelCount",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelSize",
+     "label": "Weight of panelSize",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:gutter",
+     "label": "Weight of gutter",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:textDensity",
+     "label": "Weight of textDensity",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "splash-reveal",
+   "level": "suite",
+   "label": "Splash-page reveal",
+   "plain": "Turn the page to one huge panel that breaks the frame: the big reveal.",
+   "workspace": "page",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "panelCount",
+     "value": 1
+    },
+    {
+     "weight": 100,
+     "curiosity": "panelSize",
+     "value": "splash"
+    },
+    {
+     "weight": 70,
+     "curiosity": "panelBreak",
+     "value": "splash"
+    },
+    {
+     "weight": 100,
+     "curiosity": "pageTurn",
+     "value": "reveal"
+    },
+    {
+     "weight": 60,
+     "curiosity": "textDensity",
+     "value": "none"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelCount",
+     "label": "Weight of panelCount",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelSize",
+     "label": "Weight of panelSize",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelBreak",
+     "label": "Weight of panelBreak",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:pageTurn",
+     "label": "Weight of pageTurn",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:textDensity",
+     "label": "Weight of textDensity",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "silent-page",
+   "level": "suite",
+   "label": "Silent page",
+   "plain": "No words at all: the pictures carry it, often for a sad or tense moment.",
+   "workspace": "page",
+   "also": [
+    "emotion"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "textDensity",
+     "value": "none"
+    },
+    {
+     "weight": 30,
+     "curiosity": "balloon",
+     "value": "caption"
+    },
+    {
+     "weight": 60,
+     "curiosity": "soundLettering",
+     "value": "none"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:textDensity",
+     "label": "Weight of textDensity",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:balloon",
+     "label": "Weight of balloon",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 30,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:soundLettering",
+     "label": "Weight of soundLettering",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "talky-page",
+   "level": "suite",
+   "label": "Talky page",
+   "plain": "Many small panels full of balloons: a fast conversation.",
+   "workspace": "page",
+   "also": [
+    "lines"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "panelCount",
+     "value": 8
+    },
+    {
+     "weight": 100,
+     "curiosity": "panelSize",
+     "value": "small"
+    },
+    {
+     "weight": 100,
+     "curiosity": "textDensity",
+     "value": "many"
+    },
+    {
+     "weight": 60,
+     "curiosity": "balloon",
+     "value": "balloon"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelCount",
+     "label": "Weight of panelCount",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelSize",
+     "label": "Weight of panelSize",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:textDensity",
+     "label": "Weight of textDensity",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:balloon",
+     "label": "Weight of balloon",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "strip-gag",
+   "level": "suite",
+   "label": "Three-panel strip gag",
+   "plain": "A newspaper-strip joke: setup, beat, punchline, in three panels.",
+   "workspace": "page",
+   "also": [
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "panelCount",
+     "value": 3
+    },
+    {
+     "weight": 70,
+     "curiosity": "comicBeat",
+     "value": "payoff lands"
+    },
+    {
+     "weight": 50,
+     "curiosity": "ruleOfThree",
+     "value": 3
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelCount",
+     "label": "Weight of panelCount",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:comicBeat",
+     "label": "Weight of comicBeat",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:ruleOfThree",
+     "label": "Weight of ruleOfThree",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "action-page",
+   "level": "suite",
+   "label": "Action page",
+   "plain": "Slanted, uneven panels, big sound effects, panels breaking their borders.",
+   "workspace": "page",
+   "also": [
+    "effects"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "panelSize",
+     "slider": "variation",
+     "value": 5
+    },
+    {
+     "weight": 100,
+     "curiosity": "soundLettering",
+     "value": "page-sized"
+    },
+    {
+     "weight": 70,
+     "curiosity": "panelBreak",
+     "value": "edge"
+    },
+    {
+     "weight": 50,
+     "curiosity": "textDensity",
+     "value": "few"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelSize.variation",
+     "label": "Weight of panelSize variation",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:soundLettering",
+     "label": "Weight of soundLettering",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:panelBreak",
+     "label": "Weight of panelBreak",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:textDensity",
+     "label": "Weight of textDensity",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "power-staging",
+   "level": "suite",
+   "label": "Power staging",
+   "plain": "The one in charge stands high and central; the others are lower, to the side, looking up.",
+   "workspace": "placement",
+   "also": [
+    "comedy-mix",
+    "camera-angle"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 60,
+     "curiosity": "blocking",
+     "value": "one seated"
+    },
+    {
+     "weight": 100,
+     "curiosity": "composition",
+     "value": "center"
+    },
+    {
+     "weight": 60,
+     "curiosity": "angleHeight",
+     "value": "low"
+    },
+    {
+     "weight": 60,
+     "curiosity": "statusGap",
+     "value": "big gap"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:blocking",
+     "label": "Weight of blocking",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:composition",
+     "label": "Weight of composition",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:angleHeight",
+     "label": "Weight of angleHeight",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:statusGap",
+     "label": "Weight of statusGap",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "isolated-in-frame",
+   "level": "suite",
+   "label": "Alone in the frame",
+   "plain": "A small figure in a big empty frame: loneliness.",
+   "workspace": "placement",
+   "also": [
+    "emotion"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "emptySpace",
+     "value": "most"
+    },
+    {
+     "weight": 100,
+     "curiosity": "peopleCount",
+     "value": 1
+    },
+    {
+     "weight": 70,
+     "curiosity": "shotSize",
+     "value": "wide"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:emptySpace",
+     "label": "Weight of emptySpace",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:peopleCount",
+     "label": "Weight of peopleCount",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:shotSize",
+     "label": "Weight of shotSize",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "pathetic-fallacy",
+   "level": "suite",
+   "label": "The weather feels it too",
+   "plain": "Rain and cold for sadness, sun for joy: the place mirrors the feeling.",
+   "workspace": "background",
+   "also": [
+    "emotion"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "weather",
+     "value": "rain"
+    },
+    {
+     "weight": 60,
+     "curiosity": "temperature",
+     "value": "cold"
+    },
+    {
+     "weight": 60,
+     "curiosity": "emotion",
+     "value": "melancholy"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:weather",
+     "label": "Weight of weather",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:temperature",
+     "label": "Weight of temperature",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:emotion",
+     "label": "Weight of emotion",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
    "tags": []
   }
  ],
@@ -47669,6 +50423,1511 @@
    ],
    "source": "character matrix",
    "tags": []
+  },
+  {
+   "id": "secret-slips-cringe",
+   "level": "proximity",
+   "label": "When a secret starts slipping, cringe rises",
+   "plain": "A secret that starts to slip makes the room more uncomfortable within two beats.",
+   "workspace": "plot",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "plotSecret",
+    "is": "slipping"
+   },
+   "then": {
+    "curiosity": "cringe",
+    "change": "rises"
+   },
+   "whenText": "a secret starts slipping",
+   "thenText": "cringe rises",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "setback-feeling-drops",
+   "level": "proximity",
+   "label": "When the character is set back, their emotional road drops",
+   "plain": "A setback in their own plot pulls the character's emotional road down within a beat.",
+   "workspace": "plot",
+   "also": [
+    "emo-road"
+   ],
+   "when": {
+    "curiosity": "plotProgress",
+    "is": "setback"
+   },
+   "then": {
+    "curiosity": "emoRoadCharacter",
+    "change": "drops"
+   },
+   "whenText": "the character is set back",
+   "thenText": "their emotional road drops",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "challenge-questioning",
+   "level": "proximity",
+   "label": "When a belief is challenged hard, the mindset opens",
+   "plain": "A hard push on what a character believes moves them toward questioning within a scene or two.",
+   "workspace": "mindset",
+   "also": [
+    "arc"
+   ],
+   "when": {
+    "curiosity": "mindset",
+    "slider": "challenge",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "mindset",
+    "change": "rises"
+   },
+   "whenText": "a belief is challenged hard",
+   "thenText": "the mindset opens",
+   "within": 8,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 8,
+     "to": 10,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "fixation-close",
+   "level": "proximity",
+   "label": "When a fixation tightens, the shots get closer",
+   "plain": "The camera tightens with the character's fixation within a beat.",
+   "workspace": "focus",
+   "also": [
+    "camera-angle"
+   ],
+   "when": {
+    "curiosity": "fixation",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "shotSize",
+    "change": "drops"
+   },
+   "whenText": "a fixation tightens",
+   "thenText": "the shots get closer",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "distraction-miss",
+   "level": "proximity",
+   "label": "When a distraction pulls hard, something is missed",
+   "plain": "A strong distraction is followed by a missed warning within two beats.",
+   "workspace": "focus",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "distraction",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "distraction",
+    "slider": "missed",
+    "change": "rises"
+   },
+   "whenText": "a distraction pulls hard",
+   "thenText": "something is missed",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "dissent-pressure",
+   "level": "proximity",
+   "label": "When someone defies the group, the pressure rises",
+   "plain": "Open dissent brings more group pressure within a beat.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "dissenter",
+    "is": "openly defies"
+   },
+   "then": {
+    "curiosity": "groupPressure",
+    "change": "rises"
+   },
+   "whenText": "someone defies the group",
+   "thenText": "the pressure rises",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "herd-quiet-dissent",
+   "level": "proximity",
+   "label": "When the herd grows, doubts go quiet",
+   "plain": "As the herd mentality grows, a dissenter drops back toward going along within a few beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "herdMentality",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "dissenter",
+    "change": "drops"
+   },
+   "whenText": "the herd grows",
+   "thenText": "doubts go quiet",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "cliffhanger-turn",
+   "level": "proximity",
+   "label": "When a page ends on a cliffhanger, the next page opens big",
+   "plain": "A cliffhanger at the bottom of a page is followed by a large panel at the top of the next.",
+   "workspace": "page",
+   "also": [],
+   "when": {
+    "curiosity": "pageTurn",
+    "is": "cliffhanger"
+   },
+   "then": {
+    "curiosity": "panelSize",
+    "change": "rises"
+   },
+   "whenText": "a page ends on a cliffhanger",
+   "thenText": "the next page opens big",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "peak-big-panel",
+   "level": "proximity",
+   "label": "When the feeling peaks, the panel grows",
+   "plain": "At the most intense moment, panels get bigger within a beat.",
+   "workspace": "page",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "emotionIntensity",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "panelSize",
+    "change": "rises"
+   },
+   "whenText": "the feeling peaks",
+   "thenText": "the panel grows",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "fast-talk-small-panels",
+   "level": "proximity",
+   "label": "When the talk speeds up, panels shrink and multiply",
+   "plain": "Quick dialogue brings more, smaller panels within a beat.",
+   "workspace": "page",
+   "also": [
+    "lines"
+   ],
+   "when": {
+    "curiosity": "wordsAmount",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "panelCount",
+    "change": "rises"
+   },
+   "whenText": "the talk speeds up",
+   "thenText": "panels shrink and multiply",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "quiet-wide-gutter",
+   "level": "proximity",
+   "label": "When a scene ends, the gutter widens",
+   "plain": "A wide gutter (a scene break) follows the last beat of a scene.",
+   "workspace": "page",
+   "also": [
+    "structure"
+   ],
+   "when": {
+    "curiosity": "tensionCurve",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "gutter",
+    "is": "scene"
+   },
+   "whenText": "a scene ends",
+   "thenText": "the gutter widens",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "approach-eyeline",
+   "level": "proximity",
+   "label": "When people get closer, they hold each other's look",
+   "plain": "As characters move closer, the eyelines lock within two beats.",
+   "workspace": "placement",
+   "also": [
+    "character-motion"
+   ],
+   "when": {
+    "curiosity": "blocking",
+    "slider": "distance",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "eyeline",
+    "change": "rises"
+   },
+   "whenText": "people get closer",
+   "thenText": "they hold each other's look",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "sad-rain",
+   "level": "proximity",
+   "label": "When sadness rises, the rain starts",
+   "plain": "A sad turn is followed by rain or grey weather within a few beats.",
+   "workspace": "background",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "emotion",
+    "is": "melancholy"
+   },
+   "then": {
+    "curiosity": "weather",
+    "is": "rain"
+   },
+   "whenText": "sadness rises",
+   "thenText": "the rain starts",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "tension-crowd-still",
+   "level": "proximity",
+   "label": "When tension rises, the background goes still",
+   "plain": "As tension rises, the moving background (crowd, traffic) stops within a beat.",
+   "workspace": "background",
+   "also": [
+    "structure"
+   ],
+   "when": {
+    "curiosity": "tensionCurve",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "envMotion",
+    "change": "drops"
+   },
+   "whenText": "tension rises",
+   "thenText": "the background goes still",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "anger-warm-red",
+   "level": "proximity",
+   "label": "When anger rises, the color runs warm",
+   "plain": "Anger is followed by warmer color within two beats.",
+   "workspace": "color",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "emotion",
+    "is": "angry"
+   },
+   "then": {
+    "curiosity": "warmCool",
+    "change": "drops"
+   },
+   "whenText": "anger rises",
+   "thenText": "the color runs warm",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "fear-color-drains",
+   "level": "proximity",
+   "label": "When fear rises, the color drains",
+   "plain": "Fear is followed by fewer, more muted colors within two beats.",
+   "workspace": "color",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "emotion",
+    "is": "fearful"
+   },
+   "then": {
+    "curiosity": "colorRange",
+    "change": "drops"
+   },
+   "whenText": "fear rises",
+   "thenText": "the color drains",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
   }
  ],
  "proximitySuites": [
@@ -50779,6 +55038,809 @@
     }
    ],
    "source": "character matrix",
+   "tags": []
+  },
+  {
+   "id": "secrets-and-lies",
+   "level": "proximitySuite",
+   "label": "Secrets and lies",
+   "plain": "A slipping secret makes the room cringe, the setbacks pile up, and the feeling drops.",
+   "workspace": "plot",
+   "also": [
+    "comedy",
+    "emo-road"
+   ],
+   "members": [
+    "secret-slips-cringe",
+    "setback-feeling-drops"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:secret-slips-cringe",
+     "label": "Delay of secret-slips-cringe",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:secret-slips-cringe",
+     "label": "How often secret-slips-cringe",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:setback-feeling-drops",
+     "label": "Delay of setback-feeling-drops",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:setback-feeling-drops",
+     "label": "How often setback-feeling-drops",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "eyes-on-one-thing",
+   "level": "proximitySuite",
+   "label": "Eyes on one thing",
+   "plain": "Fixation narrows the frame while a distraction lets the important thing slip by.",
+   "workspace": "focus",
+   "also": [
+    "camera-angle"
+   ],
+   "members": [
+    "fixation-close",
+    "distraction-miss"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:fixation-close",
+     "label": "Delay of fixation-close",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:fixation-close",
+     "label": "How often fixation-close",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:distraction-miss",
+     "label": "Delay of distraction-miss",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:distraction-miss",
+     "label": "How often distraction-miss",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "group-closes-ranks",
+   "level": "proximitySuite",
+   "label": "The group closes ranks",
+   "plain": "Someone defies the group, the pressure rises, and the doubts go quiet.",
+   "workspace": "herd",
+   "also": [
+    "comedy-mix"
+   ],
+   "members": [
+    "dissent-pressure",
+    "herd-quiet-dissent"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:dissent-pressure",
+     "label": "Delay of dissent-pressure",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:dissent-pressure",
+     "label": "How often dissent-pressure",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:herd-quiet-dissent",
+     "label": "Delay of herd-quiet-dissent",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:herd-quiet-dissent",
+     "label": "How often herd-quiet-dissent",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "page-breathes",
+   "level": "proximitySuite",
+   "label": "The page breathes with the story",
+   "plain": "Panels grow at the peaks, shrink when talk speeds up, and the page turns on a cliffhanger.",
+   "workspace": "page",
+   "also": [
+    "structure"
+   ],
+   "members": [
+    "peak-big-panel",
+    "fast-talk-small-panels",
+    "cliffhanger-turn",
+    "quiet-wide-gutter"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:peak-big-panel",
+     "label": "Delay of peak-big-panel",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:peak-big-panel",
+     "label": "How often peak-big-panel",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:fast-talk-small-panels",
+     "label": "Delay of fast-talk-small-panels",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:fast-talk-small-panels",
+     "label": "How often fast-talk-small-panels",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:cliffhanger-turn",
+     "label": "Delay of cliffhanger-turn",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:cliffhanger-turn",
+     "label": "How often cliffhanger-turn",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:quiet-wide-gutter",
+     "label": "Delay of quiet-wide-gutter",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:quiet-wide-gutter",
+     "label": "How often quiet-wide-gutter",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "closing-in",
+   "level": "proximitySuite",
+   "label": "Closing in",
+   "plain": "People move closer, look at each other, and the camera pushes in.",
+   "workspace": "placement",
+   "also": [
+    "camera-motion"
+   ],
+   "members": [
+    "approach-eyeline",
+    "approach-push"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:approach-eyeline",
+     "label": "Delay of approach-eyeline",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:approach-eyeline",
+     "label": "How often approach-eyeline",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:approach-push",
+     "label": "Delay of approach-push",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:approach-push",
+     "label": "How often approach-push",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "world-mirrors-feeling",
+   "level": "proximitySuite",
+   "label": "The world mirrors the feeling",
+   "plain": "The weather and the background follow the characters' feelings.",
+   "workspace": "background",
+   "also": [
+    "emotion"
+   ],
+   "members": [
+    "sad-rain",
+    "tension-crowd-still"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:sad-rain",
+     "label": "Delay of sad-rain",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:sad-rain",
+     "label": "How often sad-rain",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:tension-crowd-still",
+     "label": "Delay of tension-crowd-still",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:tension-crowd-still",
+     "label": "How often tension-crowd-still",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "color-follows-feeling",
+   "level": "proximitySuite",
+   "label": "Color follows the feeling",
+   "plain": "Anger warms the picture, fear drains it, joy warms the light.",
+   "workspace": "color",
+   "also": [
+    "emotion",
+    "light"
+   ],
+   "members": [
+    "anger-warm-red",
+    "fear-color-drains",
+    "joy-light-warms"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:anger-warm-red",
+     "label": "Delay of anger-warm-red",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:anger-warm-red",
+     "label": "How often anger-warm-red",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:fear-color-drains",
+     "label": "Delay of fear-color-drains",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:fear-color-drains",
+     "label": "How often fear-color-drains",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:joy-light-warms",
+     "label": "Delay of joy-light-warms",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:joy-light-warms",
+     "label": "How often joy-light-warms",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
    "tags": []
   }
  ],

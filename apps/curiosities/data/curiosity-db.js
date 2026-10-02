@@ -128,7 +128,12 @@
     suite(s) {
       const members = (s.members || []).map((m) => Object.assign({ weight: 100 }, m));
       const sliders = [slider({ id: "blend", label: "Blend", range: { min: 0, max: 100, unit: "%" }, from: 0, to: 100, plain: "How much of the suite is laid over the moment, from none to all of it." })];
-      members.forEach((m) => sliders.push(slider({ id: "weight:" + m.curiosity + (m.slider ? "." + m.slider : ""), label: "Weight of " + m.curiosity + (m.slider ? " " + m.slider : ""), range: { min: 0, max: 100, unit: "%" }, from: 0, to: m.weight, plain: "How strongly the suite pushes this member toward its setting." })));
+      /* Same key as the app's suite set: a member naming its curiosity's main slider is the curiosity itself. */
+      const memberKey = (m) => {
+        const c = (index.curiosity || {})[m.curiosity];
+        return m.slider && !(c && c.main === m.slider) ? m.curiosity + "." + m.slider : m.curiosity;
+      };
+      members.forEach((m) => sliders.push(slider({ id: "weight:" + memberKey(m), label: "Weight of " + m.curiosity + (m.slider ? " " + m.slider : ""), range: { min: 0, max: 100, unit: "%" }, from: 0, to: m.weight, plain: "How strongly the suite pushes this member toward its setting." })));
       (s.sliders || []).forEach((x) => sliders.push(slider(x)));
       sliders.push(AMOUNT());
       return put("suite", { id: s.id, level: "suite", label: s.label, plain: s.plain || "", workspace: s.workspace, also: s.also || [], kind: s.kind || "", members, sliders, source: s.source || "database", tags: s.tags || [] });

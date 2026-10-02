@@ -44,8 +44,8 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 suites, 87 proximities,
-20 proximity suites and 2,696 sliders, across 25 workspaces, plus 8 model scenes.
+Lives in `apps/curiosities/data/` (draft PR #7). Today: 287 curiosities, 139 suites, 103 proximities,
+27 proximity suites and 2,964 sliders, across 25 workspaces, plus 8 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -64,6 +64,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 - [x] Merge with the app's own lens list (lenses.js) so nothing is listed twice
 - [x] Switch the database on in the app: one block of script lines in index.html (PR #7, tested: all 25 workspaces open with no errors)
 - [x] Workspaces read their curiosity lists from the database (app thread, PR #4)
+- [x] Fill the thin workspaces: Personal plot, Perspective & mindset, Focus, Herd mentality and Page & panel now have their own suites and proximities (data/db-story.js)
 - [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop. The review page is ready: https://claude.ai/artifact/MRmTHSusCBtFhkXgkBXoY8 (share it with Sharani from its Share menu)
 - [x] The three new workspaces (Music & sound, Editing & structure, Page & panel) show as tabs: Music under a new Sound group, Page under Look, Editing under Story (app thread). Jeremy can still say no.
 
@@ -91,7 +92,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 
 - [x] Trigger any item on and off from a key, a button or a MIDI note
 - [x] Move any slider with a knob, an LFO or a MIDI control, and send it out to VCV Rack
-- [x] Every database item shows up as automation lanes: all 279 curiosities, 121 suites, 87 proximities and 20 proximity suites (tested). Suites have Blend and a Weight lane per member, with the database's weights
+- [x] Every database item shows up as automation lanes: all 287 curiosities, 139 suites, 103 proximities and 27 proximity suites (tested). Suites have Blend and a Weight lane per member, with the database's weights
 - [x] Wearable MIDI (straps, gloves) presets for performers: Dancer, Actor and Comedian, with step-by-step learn and undo (PR #4)
 - [x] Pads and keyboards: a ready layout of the most used curiosities (16 pads, 25 keys, 8 knobs, printable cheat sheets, PR #4)
 
