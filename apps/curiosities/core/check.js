@@ -32,6 +32,26 @@ B.handle({ type: "trigger", key, on: false });
 assert(!core.CurioAuto.running().includes(key), "trigger off stops it");
 assert(core.localStorage.getItem("curiosities-automation-v1"), "patches save to the storage given");
 
+/* With the curiosity database (data/, #7) every one of its items is a parameter the bridge can move. */
+if (core.CuriosityDB) {
+  const keys = new Set(list.params.map((p) => p.key));
+  const db = core.CuriosityDB.data;
+  const rows = [].concat(
+    (db.curiosities || []).map((r) => "c:" + r.id),
+    (db.suites || []).map((r) => "s:" + r.id),
+    (db.proximities || []).map((r) => "p:" + r.id),
+    (db.proximitySuites || []).map((r) => "ps:" + r.id)
+  );
+  const missing = rows.filter((k) => !keys.has(k));
+  assert(rows.length > 0, "the database has rows");
+  assert.deepStrictEqual(missing, [], "every database item is a bridge key");
+  const dbKey = rows.find((k) => k.startsWith("c:music")) || rows.at(-1);
+  assert.strictEqual(B.handle({ type: "set", key: dbKey, m: 0.6 }), null, "a database item takes /curio/set");
+  assert.strictEqual(core.CurioAuto.m(dbKey), 0.6);
+  B.handle({ type: "trigger", key: dbKey, on: false });
+  console.log(`database: ${rows.length} items, all addressable`);
+}
+
 console.log(
   `core ok: ${core.CURIOSITIES.length} curiosities, ${core.SUITES.length} suites, ${core.PROXIMITIES.length} proximities, ${list.params.length} automatable parameters, bridge ok`
 );
