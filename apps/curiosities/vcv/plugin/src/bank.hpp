@@ -16,7 +16,7 @@ struct CurioBank {
   CurioJack jacks[16];
 };
 
-static const int CURIO_BANK_COUNT = 56;
+static const int CURIO_BANK_COUNT = 63;
 static const int CURIO_FOCUS_CHANNEL = 16;
 
 static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
@@ -845,5 +845,78 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 97, 2, "When the talk speeds up, panels shrink and multiply", "p:fast-talk-small-panels" },
     { 98, 2, "When a scene ends, the gutter widens", "p:quiet-wide-gutter" },
     { 99, 3, "The page breathes with the story", "ps:page-breathes" },
+  } },
+  { "Curio-transitions", "Transitions", 9, 7, {
+    { 1, 0, "Transition style", "c:transitionKind" },
+    { 2, 0, "Clip animation", "c:clipAnimation" },
+    { 3, 0, "Fade in and out", "c:fadeEdge" },
+    { 4, 1, "Classic and gentle", "s:classic-dissolve" },
+    { 5, 2, "When cutting gets fast, transitions become plain cuts", "p:fast-cuts-plain" },
+    { 6, 2, "When the feeling turns dreamlike, shots dissolve", "p:dream-dissolve" },
+    { 7, 2, "When the pace speeds up then stops, the scene fades out", "p:stop-fade-out" },
+  } },
+  { "Curio-grade", "Filters & adjustments", 9, 7, {
+    { 17, 0, "Filter", "c:filterLook" },
+    { 18, 0, "Exposure", "c:exposure" },
+    { 19, 0, "Warmth and tint", "c:whiteBalance" },
+    { 20, 0, "Film texture", "c:texture" },
+    { 21, 0, "Shot matching", "c:colorMatch" },
+    { 22, 1, "Dream sequence", "s:dream-edit" },
+    { 23, 1, "Silent film", "s:silent-film-edit" },
+  } },
+  { "Curio-titles", "Text & captions", 9, 7, {
+    { 33, 0, "On-screen text", "c:onScreenText" },
+    { 34, 0, "Captions", "c:captions" },
+    { 35, 0, "Text style", "c:textStyle" },
+    { 36, 0, "Stickers and emoji", "c:stickers" },
+    { 37, 1, "Comedy punch", "s:comedy-punch-edit" },
+    { 38, 2, "When the picture freezes, a title appears", "p:freeze-title" },
+    { 39, 3, "Words that point", "ps:words-on-screen" },
+  } },
+  { "Curio-speed", "Speed & timing", 9, 12, {
+    { 49, 0, "Clip speed", "c:clipSpeed" },
+    { 50, 0, "Reverse and replay", "c:playDirection" },
+    { 51, 0, "Freeze frame", "c:freezeFrame" },
+    { 52, 0, "Jump cuts", "c:jumpCut" },
+    { 53, 0, "Cutting to the beat", "c:beatSync" },
+    { 54, 0, "Pace across the scene", "c:pacingCurve" },
+    { 55, 1, "Viral edit", "s:viral-edit" },
+    { 56, 1, "Music video", "s:music-video-cut" },
+    { 57, 1, "Trailer", "s:trailer-edit" },
+    { 58, 2, "When the music is featured, the cuts find the beat", "p:featured-music-beat" },
+    { 59, 2, "When jump cuts go rhythmic, a joke builds", "p:jumpcut-laugh" },
+    { 60, 3, "Music leads the edit", "ps:music-leads-the-edit" },
+  } },
+  { "Curio-audio-mix", "Audio mix", 9, 10, {
+    { 65, 0, "Music under speech", "c:musicLevel" },
+    { 66, 0, "Audio fades", "c:audioFade" },
+    { 67, 0, "Voice effect", "c:voiceEffect" },
+    { 68, 0, "Edited-in sound hits", "c:sfxHits" },
+    { 69, 0, "Loudness", "c:loudness" },
+    { 70, 0, "Voice-over", "c:voiceover" },
+    { 71, 2, "When the joke pays off, a sound hit lands", "p:payoff-sound-hit" },
+    { 72, 2, "When the clip slows down, the music rises", "p:slowmo-music" },
+    { 73, 2, "When the clip rewinds, a sound hit plays", "p:rewind-sound" },
+    { 74, 2, "When a cutaway covers the talking, the music sits under", "p:cutaway-music-under" },
+  } },
+  { "Curio-layers", "Layers, masks & effects", 9, 9, {
+    { 81, 0, "Overlay", "c:overlay" },
+    { 82, 0, "Blend mode", "c:blendMode" },
+    { 83, 0, "Cutout and green screen", "c:cutout" },
+    { 84, 0, "Mask", "c:maskShape" },
+    { 85, 0, "Tracking", "c:tracking" },
+    { 86, 0, "Video effect", "c:videoEffect" },
+    { 87, 1, "Documentary", "s:documentary-edit" },
+    { 88, 2, "When impacts rise, the picture flashes", "p:impact-flash" },
+    { 89, 2, "When text labels something, it follows it", "p:sign-tracks" },
+  } },
+  { "Curio-canvas", "Frame & canvas", 9, 7, {
+    { 97, 0, "Punch-in and reframe", "c:reframe" },
+    { 98, 0, "Mirror and rotate", "c:imageTransform" },
+    { 99, 0, "Steadying", "c:stabilization" },
+    { 100, 0, "Canvas edges", "c:canvasFill" },
+    { 101, 2, "When the joke pays off, the editor punches in", "p:payoff-punch-in" },
+    { 102, 2, "When the camera goes handheld, the shake is left in", "p:handheld-steady-off" },
+    { 103, 3, "The editor tells the joke", "ps:editor-jokes" },
   } },
 };

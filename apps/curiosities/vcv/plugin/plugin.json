@@ -518,6 +518,69 @@
       ]
     },
     {
+      "slug": "Curio-transitions",
+      "name": "Transitions",
+      "description": "7 curiosities, suites and pairs from Transitions, one jack each, sent to the Curiosities app as MIDI CC on channel 9.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-grade",
+      "name": "Filters & adjustments",
+      "description": "7 curiosities, suites and pairs from Filters & adjustments, one jack each, sent to the Curiosities app as MIDI CC on channel 9.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-titles",
+      "name": "Text & captions",
+      "description": "7 curiosities, suites and pairs from Text & captions, one jack each, sent to the Curiosities app as MIDI CC on channel 9.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-speed",
+      "name": "Speed & timing",
+      "description": "12 curiosities, suites and pairs from Speed & timing, one jack each, sent to the Curiosities app as MIDI CC on channel 9.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-audio-mix",
+      "name": "Audio mix",
+      "description": "10 curiosities, suites and pairs from Audio mix, one jack each, sent to the Curiosities app as MIDI CC on channel 9.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-layers",
+      "name": "Layers, masks & effects",
+      "description": "9 curiosities, suites and pairs from Layers, masks & effects, one jack each, sent to the Curiosities app as MIDI CC on channel 9.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-canvas",
+      "name": "Frame & canvas",
+      "description": "7 curiosities, suites and pairs from Frame & canvas, one jack each, sent to the Curiosities app as MIDI CC on channel 9.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
       "slug": "Curio-Return",
       "name": "Return",
       "description": "Place right of any Curiosities module: 16 outputs carry its items' current values back from the desktop app (OSC, UDP 7001) as 0 to 10 V.",

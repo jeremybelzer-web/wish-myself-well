@@ -1,13 +1,13 @@
 {
  "made": "vcv/tools/make-vcv.js from the curiosity database",
  "counts": {
-  "workspaces": 25,
-  "curiosities": 333,
-  "suites": 187,
-  "proximities": 150,
-  "proximitySuites": 44,
+  "workspaces": 32,
+  "curiosities": 367,
+  "suites": 195,
+  "proximities": 164,
+  "proximitySuites": 47,
   "scenes": 8,
-  "sliders": 3798
+  "sliders": 5183
  },
  "focus": {
   "channel": 16,
@@ -7170,6 +7170,596 @@
    "workspace": "page",
    "module": 56,
    "jack": 3
+  },
+  {
+   "key": "c:transitionKind",
+   "channel": 9,
+   "cc": 1,
+   "label": "Transition style",
+   "level": "curiosity",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 1
+  },
+  {
+   "key": "c:clipAnimation",
+   "channel": 9,
+   "cc": 2,
+   "label": "Clip animation",
+   "level": "curiosity",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 2
+  },
+  {
+   "key": "c:fadeEdge",
+   "channel": 9,
+   "cc": 3,
+   "label": "Fade in and out",
+   "level": "curiosity",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 3
+  },
+  {
+   "key": "s:classic-dissolve",
+   "channel": 9,
+   "cc": 4,
+   "label": "Classic and gentle",
+   "level": "suite",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 4
+  },
+  {
+   "key": "p:fast-cuts-plain",
+   "channel": 9,
+   "cc": 5,
+   "label": "When cutting gets fast, transitions become plain cuts",
+   "level": "proximity",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 5
+  },
+  {
+   "key": "p:dream-dissolve",
+   "channel": 9,
+   "cc": 6,
+   "label": "When the feeling turns dreamlike, shots dissolve",
+   "level": "proximity",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 6
+  },
+  {
+   "key": "p:stop-fade-out",
+   "channel": 9,
+   "cc": 7,
+   "label": "When the pace speeds up then stops, the scene fades out",
+   "level": "proximity",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 7
+  },
+  {
+   "key": "c:filterLook",
+   "channel": 9,
+   "cc": 17,
+   "label": "Filter",
+   "level": "curiosity",
+   "workspace": "grade",
+   "module": 58,
+   "jack": 1
+  },
+  {
+   "key": "c:exposure",
+   "channel": 9,
+   "cc": 18,
+   "label": "Exposure",
+   "level": "curiosity",
+   "workspace": "grade",
+   "module": 58,
+   "jack": 2
+  },
+  {
+   "key": "c:whiteBalance",
+   "channel": 9,
+   "cc": 19,
+   "label": "Warmth and tint",
+   "level": "curiosity",
+   "workspace": "grade",
+   "module": 58,
+   "jack": 3
+  },
+  {
+   "key": "c:texture",
+   "channel": 9,
+   "cc": 20,
+   "label": "Film texture",
+   "level": "curiosity",
+   "workspace": "grade",
+   "module": 58,
+   "jack": 4
+  },
+  {
+   "key": "c:colorMatch",
+   "channel": 9,
+   "cc": 21,
+   "label": "Shot matching",
+   "level": "curiosity",
+   "workspace": "grade",
+   "module": 58,
+   "jack": 5
+  },
+  {
+   "key": "s:dream-edit",
+   "channel": 9,
+   "cc": 22,
+   "label": "Dream sequence",
+   "level": "suite",
+   "workspace": "grade",
+   "module": 58,
+   "jack": 6
+  },
+  {
+   "key": "s:silent-film-edit",
+   "channel": 9,
+   "cc": 23,
+   "label": "Silent film",
+   "level": "suite",
+   "workspace": "grade",
+   "module": 58,
+   "jack": 7
+  },
+  {
+   "key": "c:onScreenText",
+   "channel": 9,
+   "cc": 33,
+   "label": "On-screen text",
+   "level": "curiosity",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 1
+  },
+  {
+   "key": "c:captions",
+   "channel": 9,
+   "cc": 34,
+   "label": "Captions",
+   "level": "curiosity",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 2
+  },
+  {
+   "key": "c:textStyle",
+   "channel": 9,
+   "cc": 35,
+   "label": "Text style",
+   "level": "curiosity",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 3
+  },
+  {
+   "key": "c:stickers",
+   "channel": 9,
+   "cc": 36,
+   "label": "Stickers and emoji",
+   "level": "curiosity",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 4
+  },
+  {
+   "key": "s:comedy-punch-edit",
+   "channel": 9,
+   "cc": 37,
+   "label": "Comedy punch",
+   "level": "suite",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 5
+  },
+  {
+   "key": "p:freeze-title",
+   "channel": 9,
+   "cc": 38,
+   "label": "When the picture freezes, a title appears",
+   "level": "proximity",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 6
+  },
+  {
+   "key": "ps:words-on-screen",
+   "channel": 9,
+   "cc": 39,
+   "label": "Words that point",
+   "level": "proximitySuite",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 7
+  },
+  {
+   "key": "c:clipSpeed",
+   "channel": 9,
+   "cc": 49,
+   "label": "Clip speed",
+   "level": "curiosity",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 1
+  },
+  {
+   "key": "c:playDirection",
+   "channel": 9,
+   "cc": 50,
+   "label": "Reverse and replay",
+   "level": "curiosity",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 2
+  },
+  {
+   "key": "c:freezeFrame",
+   "channel": 9,
+   "cc": 51,
+   "label": "Freeze frame",
+   "level": "curiosity",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 3
+  },
+  {
+   "key": "c:jumpCut",
+   "channel": 9,
+   "cc": 52,
+   "label": "Jump cuts",
+   "level": "curiosity",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 4
+  },
+  {
+   "key": "c:beatSync",
+   "channel": 9,
+   "cc": 53,
+   "label": "Cutting to the beat",
+   "level": "curiosity",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 5
+  },
+  {
+   "key": "c:pacingCurve",
+   "channel": 9,
+   "cc": 54,
+   "label": "Pace across the scene",
+   "level": "curiosity",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 6
+  },
+  {
+   "key": "s:viral-edit",
+   "channel": 9,
+   "cc": 55,
+   "label": "Viral edit",
+   "level": "suite",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 7
+  },
+  {
+   "key": "s:music-video-cut",
+   "channel": 9,
+   "cc": 56,
+   "label": "Music video",
+   "level": "suite",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 8
+  },
+  {
+   "key": "s:trailer-edit",
+   "channel": 9,
+   "cc": 57,
+   "label": "Trailer",
+   "level": "suite",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 9
+  },
+  {
+   "key": "p:featured-music-beat",
+   "channel": 9,
+   "cc": 58,
+   "label": "When the music is featured, the cuts find the beat",
+   "level": "proximity",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 10
+  },
+  {
+   "key": "p:jumpcut-laugh",
+   "channel": 9,
+   "cc": 59,
+   "label": "When jump cuts go rhythmic, a joke builds",
+   "level": "proximity",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 11
+  },
+  {
+   "key": "ps:music-leads-the-edit",
+   "channel": 9,
+   "cc": 60,
+   "label": "Music leads the edit",
+   "level": "proximitySuite",
+   "workspace": "speed",
+   "module": 60,
+   "jack": 12
+  },
+  {
+   "key": "c:musicLevel",
+   "channel": 9,
+   "cc": 65,
+   "label": "Music under speech",
+   "level": "curiosity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 1
+  },
+  {
+   "key": "c:audioFade",
+   "channel": 9,
+   "cc": 66,
+   "label": "Audio fades",
+   "level": "curiosity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 2
+  },
+  {
+   "key": "c:voiceEffect",
+   "channel": 9,
+   "cc": 67,
+   "label": "Voice effect",
+   "level": "curiosity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 3
+  },
+  {
+   "key": "c:sfxHits",
+   "channel": 9,
+   "cc": 68,
+   "label": "Edited-in sound hits",
+   "level": "curiosity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 4
+  },
+  {
+   "key": "c:loudness",
+   "channel": 9,
+   "cc": 69,
+   "label": "Loudness",
+   "level": "curiosity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 5
+  },
+  {
+   "key": "c:voiceover",
+   "channel": 9,
+   "cc": 70,
+   "label": "Voice-over",
+   "level": "curiosity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 6
+  },
+  {
+   "key": "p:payoff-sound-hit",
+   "channel": 9,
+   "cc": 71,
+   "label": "When the joke pays off, a sound hit lands",
+   "level": "proximity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 7
+  },
+  {
+   "key": "p:slowmo-music",
+   "channel": 9,
+   "cc": 72,
+   "label": "When the clip slows down, the music rises",
+   "level": "proximity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 8
+  },
+  {
+   "key": "p:rewind-sound",
+   "channel": 9,
+   "cc": 73,
+   "label": "When the clip rewinds, a sound hit plays",
+   "level": "proximity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 9
+  },
+  {
+   "key": "p:cutaway-music-under",
+   "channel": 9,
+   "cc": 74,
+   "label": "When a cutaway covers the talking, the music sits under",
+   "level": "proximity",
+   "workspace": "audio-mix",
+   "module": 61,
+   "jack": 10
+  },
+  {
+   "key": "c:overlay",
+   "channel": 9,
+   "cc": 81,
+   "label": "Overlay",
+   "level": "curiosity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 1
+  },
+  {
+   "key": "c:blendMode",
+   "channel": 9,
+   "cc": 82,
+   "label": "Blend mode",
+   "level": "curiosity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 2
+  },
+  {
+   "key": "c:cutout",
+   "channel": 9,
+   "cc": 83,
+   "label": "Cutout and green screen",
+   "level": "curiosity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 3
+  },
+  {
+   "key": "c:maskShape",
+   "channel": 9,
+   "cc": 84,
+   "label": "Mask",
+   "level": "curiosity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 4
+  },
+  {
+   "key": "c:tracking",
+   "channel": 9,
+   "cc": 85,
+   "label": "Tracking",
+   "level": "curiosity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 5
+  },
+  {
+   "key": "c:videoEffect",
+   "channel": 9,
+   "cc": 86,
+   "label": "Video effect",
+   "level": "curiosity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 6
+  },
+  {
+   "key": "s:documentary-edit",
+   "channel": 9,
+   "cc": 87,
+   "label": "Documentary",
+   "level": "suite",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 7
+  },
+  {
+   "key": "p:impact-flash",
+   "channel": 9,
+   "cc": 88,
+   "label": "When impacts rise, the picture flashes",
+   "level": "proximity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 8
+  },
+  {
+   "key": "p:sign-tracks",
+   "channel": 9,
+   "cc": 89,
+   "label": "When text labels something, it follows it",
+   "level": "proximity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 9
+  },
+  {
+   "key": "c:reframe",
+   "channel": 9,
+   "cc": 97,
+   "label": "Punch-in and reframe",
+   "level": "curiosity",
+   "workspace": "canvas",
+   "module": 63,
+   "jack": 1
+  },
+  {
+   "key": "c:imageTransform",
+   "channel": 9,
+   "cc": 98,
+   "label": "Mirror and rotate",
+   "level": "curiosity",
+   "workspace": "canvas",
+   "module": 63,
+   "jack": 2
+  },
+  {
+   "key": "c:stabilization",
+   "channel": 9,
+   "cc": 99,
+   "label": "Steadying",
+   "level": "curiosity",
+   "workspace": "canvas",
+   "module": 63,
+   "jack": 3
+  },
+  {
+   "key": "c:canvasFill",
+   "channel": 9,
+   "cc": 100,
+   "label": "Canvas edges",
+   "level": "curiosity",
+   "workspace": "canvas",
+   "module": 63,
+   "jack": 4
+  },
+  {
+   "key": "p:payoff-punch-in",
+   "channel": 9,
+   "cc": 101,
+   "label": "When the joke pays off, the editor punches in",
+   "level": "proximity",
+   "workspace": "canvas",
+   "module": 63,
+   "jack": 5
+  },
+  {
+   "key": "p:handheld-steady-off",
+   "channel": 9,
+   "cc": 102,
+   "label": "When the camera goes handheld, the shake is left in",
+   "level": "proximity",
+   "workspace": "canvas",
+   "module": 63,
+   "jack": 6
+  },
+  {
+   "key": "ps:editor-jokes",
+   "channel": 9,
+   "cc": 103,
+   "label": "The editor tells the joke",
+   "level": "proximitySuite",
+   "workspace": "canvas",
+   "module": 63,
+   "jack": 7
   }
  ]
 }
