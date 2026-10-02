@@ -82,9 +82,11 @@
   function selectInScreen(id) {
     const q = () => document.querySelector(`.sc-inspector [data-select-cur="${CSS.escape(id)}"]`);
     if (!q() && window.CurioLevels) {
+      /* The category may be a heading in the inspector (first Screen) or a tab in the library bar (CapCut layout). */
       const cat = CurioLevels.categoryOf(id);
-      const head = document.querySelector(`.sc-inspector [data-icat="${CSS.escape(cat)}"]`);
-      if (head && !head.closest(".sc-cat").classList.contains("open")) head.click();
+      const head = document.querySelector(`.sc-inspector [data-icat="${CSS.escape(cat)}"]`) || document.querySelector(`[data-icat="${CSS.escape(cat)}"]`);
+      const sec = head && head.closest(".sc-cat");
+      if (head && !(sec ? sec.classList.contains("open") : head.classList.contains("on"))) head.click();
       const more = document.querySelector(`.sc-inspector [data-more="${CSS.escape(cat)}"]`);
       if (!q() && more) more.click();
     }
@@ -122,9 +124,9 @@
 .sc-maya button{font:inherit;font-size:.78rem;padding:.1rem .45rem;border-radius:.35rem;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer;opacity:.85}
 .sc-maya button:hover,.sc-maya button:focus-visible{opacity:1}
 .sc-maya small{font-size:.72rem;opacity:.7}
-.sc-maya-dlg{width:min(980px,96vw);max-height:92vh;overflow:auto;padding:0;border:1px solid #888;border-radius:.6rem;background:var(--bg,#fff);color:var(--fg,#111)}
+.sc-maya-dlg{width:min(980px,96vw);max-height:92vh;overflow:auto;padding:0;border:1px solid #888;border-radius:.6rem;background:var(--cc-panel,#fff);color:var(--cc-text,#111)}
 .sc-maya-dlg::backdrop{background:rgba(0,0,0,.55)}
-.sc-maya-dlg header{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.6rem .9rem;background:inherit;border-bottom:1px solid #8884}
+.sc-maya-dlg header{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.6rem .9rem;background:inherit;border-bottom:1px solid var(--cc-line,#8884)}
 .sc-maya-how{margin:.6rem .9rem;font-size:.85rem;opacity:.8}
 .sc-maya-body{padding:0 .9rem .9rem}`;
     document.head.appendChild(css);
