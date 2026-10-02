@@ -11,7 +11,7 @@
   const W = 320;
   const H = 200;
   const FLOOR = 190;
-  const DEFAULTS = { cloth: "t-shirt", gravity: "real", drag: 1, wind: 1, windDir: 0, gusts: false, turb: 1, mode: "dust", rate: 20, life: 3, size: 2, hit: 120, strength: 260, camera: "locked", figure: true, tear: 1.6 };
+  const DEFAULTS = { cloth: "t-shirt", gravity: "real", drag: 1, wind: 1, windDir: 0, gusts: false, turb: 1, mode: "dust", rate: 20, life: 3, size: 2, hit: 120, strength: 260, camera: "locked", figure: true, tear: 1.6, spawn: true, fields: [] };
   const CLOTHS = {
     "heavy denim": { mass: 2.2, iter: 8, bend: 0.5, resp: 0.5, damp: 0.985, word: "stiff" },
     "t-shirt": { mass: 1, iter: 5, bend: 0.15, resp: 1, damp: 0.99, word: "loose" },
@@ -121,6 +121,64 @@
     return (Math.sin(x * 0.05 + t * 1.7) + Math.sin(y * 0.07 - t * 2.3) + Math.sin((x + y) * 0.03 + t * 0.9)) / 3;
   }
 
+  /* Maya's dynamic fields as gizmos: magnitude 0-5, attenuation 0-5 (falloff with distance). */
+  const FIELD_TYPES = {
+    newton: { label: "Newton", tip: "attracts" },
+    radial: { label: "Radial", tip: "pushes out" },
+    vortex: { label: "Vortex", tip: "spins" },
+    uniform: { label: "Uniform", tip: "constant push one way" },
+    volume: { label: "Volume axis", tip: "a cylinder that pushes along its axis and draws in toward it" },
+  };
+  const MAX_FIELDS = 6;
+  let selField = -1;
+
+  /* Force from the placed fields at a point, split so swirl and blast can be measured. */
+  function gizmoForce(x, y) {
+    const out = { x: 0, y: 0, swirl: 0, blast: 0, other: 0 };
+    (s.fields || []).forEach((f) => {
+      const dx = x - f.x;
+      const dy = y - f.y;
+      const d = Math.hypot(dx, dy) || 0.001;
+      const fall = Math.exp((-f.att * d) / 100);
+      const k = f.mag * 160 * fall;
+      const a = (f.ang * Math.PI) / 180;
+      let fx = 0;
+      let fy = 0;
+      if (f.type === "newton") {
+        const kk = k * Math.min(1, d / 12);
+        fx = (-dx / d) * kk;
+        fy = (-dy / d) * kk;
+      } else if (f.type === "radial") {
+        fx = (dx / d) * k;
+        fy = (dy / d) * k;
+        out.blast += Math.hypot(fx, fy);
+      } else if (f.type === "vortex") {
+        fx = (-dy / d) * k;
+        fy = (dx / d) * k;
+        out.swirl += Math.hypot(fx, fy);
+      } else if (f.type === "uniform") {
+        fx = Math.cos(a) * k;
+        fy = Math.sin(a) * k;
+      } else if (f.type === "volume") {
+        const ax = Math.cos(a);
+        const ay = Math.sin(a);
+        const u = dx * ax + dy * ay;
+        const v = -dx * ay + dy * ax;
+        if (Math.abs(u) < 60 && Math.abs(v) < 20) {
+          const kv = f.mag * 160 * Math.exp((-f.att * Math.abs(v)) / 40);
+          const inflow = (-v / 20) * kv * 0.4;
+          fx = ax * kv - ay * inflow;
+          fy = ay * kv + ax * inflow;
+          out.swirl += Math.abs(inflow);
+        }
+      }
+      out.x += fx;
+      out.y += fy;
+      if (f.type !== "vortex" && f.type !== "radial") out.other += Math.hypot(fx, fy);
+    });
+    return out;
+  }
+
   function field(x, y, t, resp) {
     const a = (s.windDir * Math.PI) / 180;
     const w = (s.wind * (1 + sim.gust * 1.5) + sim.gust * 3) * 40;
@@ -131,9 +189,10 @@
       const front = age * 700;
       if (age < 1.2 && x < front) door = 3000 * Math.exp(-age * 1.8) * Math.max(0, 1 - (front - x) / 320);
     }
+    const gz = s.fields && s.fields.length ? gizmoForce(x, y) : { x: 0, y: 0 };
     return {
-      x: (Math.cos(a) * w + tu * noise(x, y, t) + door) * resp,
-      y: (Math.sin(a) * w + tu * noise(y + 40, x - 20, t * 1.3)) * resp,
+      x: (Math.cos(a) * w + tu * noise(x, y, t) + door + gz.x) * resp,
+      y: (Math.sin(a) * w + tu * noise(y + 40, x - 20, t * 1.3) + gz.y) * resp,
     };
   }
 
@@ -246,6 +305,11 @@
     const dead = new Set();
     boxes.forEach((b) => {
       const f = field(b.x, b.y, t, 0.08);
+      if (s.fields && s.fields.length) {
+        const gz = gizmoForce(b.x + b.w / 2, b.y + b.h / 2);
+        b.vx += gz.x * 0.5 * dt;
+        b.vy += gz.y * 0.5 * dt;
+      }
       b.vx += f.x * dt;
       b.vy += (g + f.y * 0.3) * dt;
       b.vx *= 1 - drag;
@@ -347,7 +411,19 @@
         emit();
       }
     }
-    const pm = { rain: [1.2, 0.2, 0.02], dust: [0.04, 1.4, 0.6], sparks: [1, 0.3, 0.05], confetti: [0.25, 1.6, 0.35] };
+    const pm = { rain: [1.2, 0.2, 0.02], dust: [0.04, 1.4, 0.6], sparks: [1, 0.3, 0.05], confetti: [0.25, 1.6, 0.35], splash: [1, 0.3, 0.1], ember: [0.8, 0.3, 0.2] };
+    const kids = [];
+    /* nParticle collision event: a drop or a spark that lands makes a few short-lived children. */
+    const spawn = (p, x, y) => {
+      sim.pcoll = (sim.pcoll || 0) + 1;
+      if (!s.spawn || p.child || sim.parts.length + kids.length > 520) return;
+      const n = 2 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < n; i++) {
+        const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+        const v = (p.mode === "rain" ? 40 : 70) + Math.random() * 50;
+        kids.push({ mode: p.mode === "rain" ? "splash" : "ember", child: true, age: 0, life: 0.25 + Math.random() * 0.3, size: Math.max(1, p.size * 0.6), hue: 0, x, y: y - 1, vx: Math.cos(a) * v, vy: Math.sin(a) * v });
+      }
+    };
     sim.parts = sim.parts.filter((p) => {
       p.age += dt;
       if (p.age > p.life || p.y > FLOOR + 2 || p.x < -20 || p.x > W + 20) return false;
@@ -359,16 +435,23 @@
       p.vy *= 1 - Math.min(0.5, (m[2] + drag) * dt * 4);
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      collideFigure(p, p.size / 2, p.mode === "rain" ? 0.1 : 0.5);
+      if (collideFigure(p, p.size / 2, p.mode === "rain" ? 0.1 : 0.5) && (p.mode === "rain" || p.mode === "sparks")) {
+        spawn(p, p.x, p.y);
+        if (p.mode === "rain") return false;
+      }
       if (p.y > FLOOR) {
         if (p.mode === "dust" || p.mode === "confetti") {
           p.y = FLOOR;
           p.vy = 0;
           p.vx *= 0.5;
-        } else return false;
+        } else {
+          if (p.mode === "rain" || p.mode === "sparks") spawn(p, p.x, FLOOR);
+          return false;
+        }
       }
       return true;
     });
+    if (kids.length) sim.parts.push(...kids);
 
     /* Measures: energy, settle, beats. */
     let ke = 0;
@@ -454,7 +537,30 @@
       settleTime,
       settleSec,
       gravityFeel: s.gravity,
+      ...swirlBlast(),
     };
+  }
+
+  /* swirl: the vortex and turbulence share of the non-gravity push, sampled over the room.
+     blast: how hard radial fields push out. */
+  function swirlBlast() {
+    let sw = 0;
+    let tot = 0;
+    let blast = 0;
+    const a = (s.windDir * Math.PI) / 180;
+    for (let gx = 20; gx < W; gx += 40)
+      for (let gy = 20; gy < FLOOR; gy += 40) {
+        const gz = gizmoForce(gx, gy);
+        const turb = s.turb * 45 * 0.6;
+        const wind = s.wind * 40;
+        sw += gz.swirl + turb;
+        tot += gz.swirl + turb + gz.blast + gz.other + wind;
+        blast = Math.max(blast, gz.blast);
+        void a;
+      }
+    const swirl = tot > 0 ? Math.round((sw / tot) * 5) : 0;
+    const bl = blast < 40 ? "none" : blast < 400 ? "push" : "explosion";
+    return { swirl, blast: bl };
   }
 
   function cameraFor(impacts) {
@@ -587,7 +693,10 @@
         ctx.moveTo(p.x, p.y);
         ctx.lineTo(p.x - p.vx * 0.02, p.y - p.vy * 0.02);
         ctx.stroke();
-      } else if (p.mode === "sparks") {
+      } else if (p.mode === "splash") {
+        ctx.fillStyle = `rgba(63,110,140,${0.8 * fade})`;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      } else if (p.mode === "sparks" || p.mode === "ember") {
         ctx.fillStyle = `rgba(255,${120 + Math.floor(100 * fade)},40,${fade})`;
         ctx.fillRect(p.x, p.y, p.size, p.size);
       } else if (p.mode === "confetti") {
@@ -599,9 +708,63 @@
         ctx.fillRect(p.x, p.y, p.size, p.size);
       }
     });
+    paintFields(ctx);
     ctx.fillStyle = "#1c1712";
     ctx.font = "9px monospace";
     ctx.fillText(`${sim.t.toFixed(1)}s${slow ? " · 0.25x" : ""}${paused ? " · paused" : ""}`, W - 78, H - 2);
+  }
+
+  function paintFields(ctx) {
+    (s.fields || []).forEach((f, i) => {
+      const on = i === selField;
+      ctx.strokeStyle = on ? "#c45c26" : "rgba(28,23,18,0.75)";
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.lineWidth = on ? 1.6 : 1;
+      const a = (f.ang * Math.PI) / 180;
+      if (f.att > 0 && f.type !== "volume") {
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, Math.min(200, (100 * Math.LN2) / f.att), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      if (f.type === "volume") {
+        ctx.save();
+        ctx.translate(f.x, f.y);
+        ctx.rotate(a);
+        ctx.strokeRect(-60, -20, 120, 40);
+        ctx.beginPath();
+        ctx.ellipse(60, 0, 4, 20, 0, 0, Math.PI * 2);
+        ctx.moveTo(-40, 0);
+        ctx.lineTo(40, 0);
+        ctx.lineTo(34, -4);
+        ctx.moveTo(40, 0);
+        ctx.lineTo(34, 4);
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        if (f.type === "newton" || f.type === "radial") {
+          for (let k = 0; k < 4; k++) {
+            const r = (k * Math.PI) / 2 + Math.PI / 4;
+            const [r0, r1] = f.type === "newton" ? [16, 11] : [11, 16];
+            ctx.moveTo(f.x + Math.cos(r) * r0, f.y + Math.sin(r) * r0);
+            ctx.lineTo(f.x + Math.cos(r) * r1, f.y + Math.sin(r) * r1);
+          }
+        } else if (f.type === "vortex") {
+          ctx.arc(f.x, f.y, 14, 0, Math.PI * 1.5);
+        } else {
+          ctx.moveTo(f.x - Math.cos(a) * 14, f.y - Math.sin(a) * 14);
+          ctx.lineTo(f.x + Math.cos(a) * 16, f.y + Math.sin(a) * 16);
+        }
+        ctx.stroke();
+      }
+      ctx.font = "8px monospace";
+      ctx.fillText(FIELD_TYPES[f.type].label[0], f.x - 2.5, f.y + 3);
+    });
   }
 
   function paintEnergy(ctx, w, h) {
@@ -644,7 +807,7 @@
 
   function chipsHtml(m) {
     const esc = api.esc;
-    const ids = ["envMotion", "windForce", "turbulence", "clothResponse", "impacts", "breakage", "settleTime", "gravityFeel"];
+    const ids = ["envMotion", "windForce", "turbulence", "clothResponse", "impacts", "breakage", "settleTime", "gravityFeel", "swirl", "blast"];
     return ids.map((id) => `<span class="chip ${id === "envMotion" ? "lit" : ""}">${esc(id)} ${esc(m[id])}</span>`).join(" ") + ` <span class="chip">cameraCarry ${esc(cameraFor(m.impacts))}</span>`;
   }
 
@@ -685,6 +848,7 @@
         ${rng("hit", "Impact threshold (px/s)", 40, 300, 10)}
         ${rng("strength", "Breaks above (px/s)", 80, 600, 10)}
         ${rng("tear", "Cloth tears above (stretch ×, 1.6 = never)", 1.05, 1.6, 0.05)}
+        <label class="field"><span><input type="checkbox" data-k="spawn" ${s.spawn ? "checked" : ""}> Collisions spawn (splashes and sparks)</span></label>
         <label class="field"><span><input type="checkbox" data-k="figure" ${s.figure ? "checked" : ""}> Person under the cloth (collider)</span></label>
         ${sel("camera", "Camera", CAMERAS)}
       </div>
@@ -698,6 +862,9 @@
           <button type="button" data-act="slow" class="${slow ? "on" : ""}">Slow motion 0.25x</button>
           <button type="button" data-act="reset">Reset</button>
         </div>
+        <p class="group-label">Fields (drag a gizmo on the canvas)</p>
+        <div class="bar-actions">${Object.entries(FIELD_TYPES).map(([k, v]) => `<button type="button" data-addfield="${k}" title="${esc(v.tip)}">+ ${esc(v.label)}</button>`).join(" ")}</div>
+        <div id="dyn-field"></div>
         <canvas width="${W}" height="60" class="dyn-energy" id="dyn-energy" aria-label="Energy over time"></canvas>
         <p class="cap">Energy: bodies in orange, cloth in blue; ticks along the top are impacts.</p>
         <p class="cap" id="dyn-meter"></p>
@@ -765,12 +932,96 @@
         breakage: beats.map((b) => b.breakage),
         settleTime: beats.map(() => m.settleTime),
         gravityFeel: beats.map(() => m.gravityFeel),
+        swirl: beats.map(() => m.swirl),
+        blast: beats.map(() => m.blast),
         cameraCarry: beats.map((b) => cameraFor(b.impacts)),
       });
     });
 
     const canvas = el.querySelector("#dyn-canvas");
     const ctx = canvas.getContext("2d");
+    s.fields = Array.isArray(s.fields) ? s.fields.map((f) => Object.assign({}, f)).slice(0, MAX_FIELDS) : [];
+    const fieldBox = el.querySelector("#dyn-field");
+    function fieldPanel() {
+      const f = s.fields[selField];
+      canvas.style.touchAction = s.fields.length ? "none" : "pan-y";
+      el.querySelectorAll("[data-addfield]").forEach((b) => (b.disabled = s.fields.length >= MAX_FIELDS));
+      if (!f) {
+        fieldBox.innerHTML = s.fields.length ? `<p class="cap">${s.fields.length} of ${MAX_FIELDS} fields. Tap a gizmo to set it.</p>` : `<p class="cap">No fields placed. Up to ${MAX_FIELDS}.</p>`;
+        return;
+      }
+      const r = (k, label, min, max, st) => `<label class="field">${esc(label)}: <span data-fv="${k}">${f[k]}</span><input type="range" min="${min}" max="${max}" step="${st}" data-fk="${k}" value="${f[k]}"></label>`;
+      fieldBox.innerHTML = `<p class="cap"><strong>${esc(FIELD_TYPES[f.type].label)}</strong> · ${esc(FIELD_TYPES[f.type].tip)} · at ${Math.round(f.x)}, ${Math.round(f.y)}</p>
+        ${r("mag", "Magnitude", 0, 5, 0.5)}${r("att", "Attenuation", 0, 5, 0.5)}${f.type === "uniform" || f.type === "volume" ? r("ang", "Direction (degrees)", -180, 180, 15) : ""}
+        <div class="bar-actions"><button type="button" data-delfield>Remove field</button></div>`;
+      fieldBox.querySelectorAll("[data-fk]").forEach((x) =>
+        x.addEventListener("input", () => {
+          f[x.dataset.fk] = Number(x.value);
+          fieldBox.querySelector(`[data-fv="${x.dataset.fk}"]`).textContent = x.value;
+          store.set(s);
+        })
+      );
+      fieldBox.querySelector("[data-delfield]").addEventListener("click", () => {
+        s.fields.splice(selField, 1);
+        selField = -1;
+        store.set(s);
+        fieldPanel();
+      });
+    }
+    el.querySelectorAll("[data-addfield]").forEach((b) =>
+      b.addEventListener("click", () => {
+        if (s.fields.length >= MAX_FIELDS) return;
+        const type = b.dataset.addfield;
+        s.fields.push({ type, x: 60 + ((s.fields.length * 47) % 200), y: 70 + ((s.fields.length * 29) % 80), mag: type === "radial" ? 3 : 2, att: type === "uniform" ? 0 : 1, ang: type === "volume" ? -90 : 0 });
+        selField = s.fields.length - 1;
+        store.set(s);
+        fieldPanel();
+      })
+    );
+    const toSim = (e) => {
+      const r = canvas.getBoundingClientRect();
+      return { x: ((e.clientX - r.left) / r.width) * W, y: ((e.clientY - r.top) / r.height) * H };
+    };
+    canvas.addEventListener("pointerdown", (e) => {
+      const p = toSim(e);
+      let hit = -1;
+      let best = 16;
+      s.fields.forEach((f, i) => {
+        const d = Math.hypot(f.x - p.x, f.y - p.y);
+        if (d < best) {
+          best = d;
+          hit = i;
+        }
+      });
+      if (hit < 0) {
+        if (selField >= 0) {
+          selField = -1;
+          fieldPanel();
+        }
+        return;
+      }
+      e.preventDefault();
+      selField = hit;
+      fieldPanel();
+      canvas.setPointerCapture(e.pointerId);
+      const f = s.fields[hit];
+      const move = (ev) => {
+        const q = toSim(ev);
+        f.x = Math.max(0, Math.min(W, q.x));
+        f.y = Math.max(0, Math.min(FLOOR, q.y));
+      };
+      const up = () => {
+        canvas.removeEventListener("pointermove", move);
+        canvas.removeEventListener("pointerup", up);
+        canvas.removeEventListener("pointercancel", up);
+        store.set(s);
+        fieldPanel();
+      };
+      canvas.addEventListener("pointermove", move);
+      canvas.addEventListener("pointerup", up);
+      canvas.addEventListener("pointercancel", up);
+    });
+    fieldPanel();
     const ectx = el.querySelector("#dyn-energy").getContext("2d");
     let uiAt = 0;
     cancelAnimationFrame(raf);
@@ -792,7 +1043,7 @@
         paintEnergy(ectx, W, 60);
         el.querySelector("#dyn-chips").innerHTML = chipsHtml(m);
         el.querySelector("#dyn-prox").innerHTML = proxHtml(m);
-        el.querySelector("#dyn-meter").textContent = `Impacts in the last beats: ${sim.beats.slice(-4).map((b) => b.impacts).join(" · ") || "—"} · settle ${m.settleSec.toFixed(2)} s · ${sim.boxes.length} bodies · ${sim.torn || 0} cloth links torn · ${sim.parts.length} particles`;
+        el.querySelector("#dyn-meter").textContent = `Impacts in the last beats: ${sim.beats.slice(-4).map((b) => b.impacts).join(" · ") || "—"} · settle ${m.settleSec.toFixed(2)} s · ${sim.boxes.length} bodies · ${sim.torn || 0} cloth links torn · ${sim.parts.length} particles · ${sim.pcoll || 0} particle collisions`;
       }
       raf = requestAnimationFrame(tick);
     }
