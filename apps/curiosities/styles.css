@@ -284,3 +284,5 @@ table.cross td.expect { background: rgba(196, 92, 38, 0.15); outline: 1px solid 
 .studio-grid { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 16px; align-items: start; }
 @media (max-width: 760px) { .studio-grid { grid-template-columns: 1fr; } }
 .studio-body canvas, .studio-body svg.view { width: 100%; height: auto; display: block; border: 2px solid var(--ink); background: #fff; }
+button.linkish { background: none; border: 0; padding: 0; font: inherit; text-align: left; cursor: pointer; color: var(--ink); }
+table.manual select { width: auto; }
