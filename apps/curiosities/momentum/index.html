@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Curiosities Momentum</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="momentum.css" />
+    <style>body { background: #efe4d2; margin: 0; } #momentum { max-width: 1100px; margin: 0 auto; background: var(--panel, #fffaf2); } .mo-standalone-note { max-width: 1100px; margin: 0 auto; padding: 10px 16px 0; font-size: 13px; }</style>
+  </head>
+  <body>
+    <p class="mo-standalone-note">Momentum on its own page, reading your saved storyboard and curated films. In the app it opens from Library, Momentum, and can also follow My film live.</p>
+    <div id="momentum"></div>
+    <script src="../catalog.js"></script>
+    <script src="../library.js"></script>
+    <script src="../story-curiosities.js"></script>
+    <script src="../lenses.js"></script>
+    <script src="../model.js"></script>
+    <script src="../data/curiosity-db.js"></script>
+    <script src="../data/db-workspaces.js"></script>
+    <script src="../data/db-catalog.js"></script>
+    <script src="../data/db-catalog-sliders.js"></script>
+    <script src="../data/db-music.js"></script>
+    <script src="../data/db-emotion.js"></script>
+    <script src="../data/db-comedy.js"></script>
+    <script src="../data/db-design.js"></script>
+    <script src="../data/db-look.js"></script>
+    <script src="../data/db-character.js"></script>
+    <script src="../data/db-story.js"></script>
+    <script src="../data/db-feeling-comedy.js"></script>
+    <script src="../data/db-mix-road.js"></script>
+    <script src="../data/db-arc-body.js"></script>
+    <script src="../data/db-proximity-words.js"></script>
+    <script src="../data/db-model-scenes.js"></script>
+    <script src="../data/db-finish.js"></script>
+    <script>if (window.CuriosityDB && CuriosityDB.install) try { CuriosityDB.install({ CURIOSITIES, SUITES, PROXIMITIES }); } catch (e) {}</script>
+    <script src="notes.js"></script>
+    <script src="attention.js"></script>
+    <script src="rates.js"></script>
+    <script src="ui.js"></script>
+    <script>CurioMomentumUI.mount(document.getElementById("momentum"));</script>
+  </body>
+</html>
