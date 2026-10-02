@@ -11,6 +11,12 @@
     "maya-manual.js",
     "automation.js",
     "bridge.js",
-    "trace.js"
+    "trace.js",
+    "engine/catalog.js",
+    "engine/state.js",
+    "engine/host.js",
+    "engine/fake-host.js",
+    "engine/seeds.js",
+    "engine/analyze.js"
   ]
 }

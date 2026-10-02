@@ -103,6 +103,13 @@ if (core.CuriosityDB && core.CuriosityDB.studiesExport) {
 }
 console.log("traces ok");
 
+/* The engine (engine/, #17) when the core list carries it: its core loads with no page. */
+if (require("./headless.js").files.some((f) => f.startsWith("engine/"))) {
+  const missing = ["CurioEngine", "CurioHost", "CurioFakeHost", "CurioSeeds", "CurioAnalyze"].filter((g) => !core.window[g]);
+  assert.deepStrictEqual(missing, [], "the engine's core loads headless");
+  console.log("engine core ok");
+}
+
 console.log(
   `core ok: ${core.CURIOSITIES.length} curiosities, ${core.SUITES.length} suites, ${core.PROXIMITIES.length} proximities, ${list.params.length} automatable parameters, bridge ok`
 );
