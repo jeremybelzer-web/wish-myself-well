@@ -1193,7 +1193,11 @@
           .join("");
         const bv = boardValues(v);
         out("chips").innerHTML = `<p class="group-label">Curiosities this setup produces</p><p>${Object.entries(v)
-          .map(([k, val]) => `<span class="chip ${bv[k] ? "lit" : ""}" title="${bv[k] ? "Live on the board" : "Recorded in a study"}">${esc(k)}: ${esc(val)}${k === "colorTemp" ? " K" : k === "contrast" ? " stops" : ""}</span>`)
+          .map(([k, val]) => {
+            const fine = k === "timeOfDay" ? todOf(st, m.keyLight) : null;
+            const extra = k === "colorTemp" ? " K" : k === "contrast" ? " stops" : fine && fine !== val ? ` (${fine})` : "";
+            return `<span class="chip ${bv[k] ? "lit" : ""}" title="${bv[k] ? "Live on the board" : "Recorded in a study"}">${esc(k)}: ${esc(val)}${esc(extra)}</span>`;
+          })
           .join("")}</p>`;
         drawTime();
         const S = sunLook(st.sun.elev, st.sun.az);
@@ -1362,9 +1366,19 @@
       if (k === "on") {
         st.sun.on = inp.checked;
         /* Turning the sky on starts an exterior: the sun is the key, the skydome the fill. */
+        /* The sun takes over as key; the rest of the rig is set aside and comes back exactly when the sun goes off. */
         if (st.sun.on) {
+          st.sunStash = clone(st.lights);
           st.lights = st.lights.filter((L) => L.type === "directional" || L.type === "skydome");
           st.sel = 0;
+        } else if (st.sunStash) {
+          st.lights = st.sunStash.map((L) => light(L.type, L));
+          st.sunStash = null;
+          st.sel = 0;
+          preset = "";
+          save();
+          update(true);
+          return;
         }
       }
       else {
