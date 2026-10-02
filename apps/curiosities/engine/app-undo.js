@@ -38,7 +38,8 @@
     if (m) return "Tool: " + m[1].replace(/-/g, " ");
     return k.replace(/^curiosities-/, "").replace(/-v\d+$/, "").replace(/-/g, " ");
   }
-  const tracked = (k) => typeof k === "string" && k.startsWith(PREFIX) && !SKIP.test(k);
+  /* Parts that live on the shared store (engine/store.js) are undone there, in place; not here. */
+  const tracked = (k) => typeof k === "string" && k.startsWith(PREFIX) && !SKIP.test(k) && !(window.CurioStore && window.CurioStore.owns(k));
 
   let data = { steps: [], redo: [] };
   try {

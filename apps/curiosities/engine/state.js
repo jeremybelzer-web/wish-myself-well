@@ -35,7 +35,8 @@
   const root = typeof window !== "undefined" ? window : globalThis;
   const S = root.CurioScale;
   const KEY = "curiosities-engine-v1";
-  const LIMIT = { rows: 64, tracks: 16, perTrack: 24, links: 200, refs: 12, refRows: 200, text: 80, undo: 300, hops: 8 };
+  const VERSION = 2; /* 2: link suites, a link's chance, the print window */
+  const LIMIT = { suites: 60, rows: 64, tracks: 16, perTrack: 24, links: 200, refs: 12, refRows: 200, text: 80, undo: 300, hops: 8 };
   const DOES = ["follow", "oppose", "rise", "fall", "moveWith", "set"];
   const CHANGE = ["any", "rises", "drops"];
   const KINDS = ["master", "camera", "character", "look", "sound", "other"];
@@ -93,7 +94,7 @@
 
   /* ---------- a valid state from anything ---------- */
   function blank() {
-    return { v: 1, name: "My film", rows: [], tracks: [], source: {}, lanes: {}, links: [], edits: {}, refs: [], print: { auto: false }, next: 1 };
+    return { v: VERSION, name: "My film", rows: [], tracks: [], source: {}, lanes: {}, links: [], suites: [], edits: {}, refs: [], print: { auto: false, from: 0 }, next: 1 };
   }
   function fixValue(cur, v) {
     if (v === null) return null;
@@ -158,6 +159,12 @@
         if (!Object.keys(points).length) return;
         st.lanes[k] = { on: l.on !== false, mode: l.mode === "hold" ? "hold" : "ramp", points };
       });
+    (Array.isArray(raw.suites) ? raw.suites : []).slice(0, LIMIT.suites).forEach((x) => {
+      if (!isObj(x) || !idOk(x.id) || st.suites.some((y) => y.id === x.id)) return;
+      const out = { id: x.id, label: text(x.label, 160) || x.id, on: x.on !== false };
+      if (x.seed && typeof x.seed === "string") out.seed = text(x.seed);
+      st.suites.push(out);
+    });
     const linkIds = new Set();
     (Array.isArray(raw.links) ? raw.links : []).forEach((l) => {
       if (st.links.length >= LIMIT.links) return;
@@ -171,7 +178,7 @@
       const fixed = fixRef(r);
       if (fixed && !st.refs.some((x) => x.id === fixed.id)) st.refs.push(fixed);
     });
-    st.print = { auto: !!(isObj(raw.print) && raw.print.auto === true) };
+    st.print = { auto: !!(isObj(raw.print) && raw.print.auto === true), from: int(isObj(raw.print) ? raw.print.from : 0, 0, Math.max(0, st.rows.length - 1), 0) };
     return st;
   }
   function fixEnd(e, trackOf) {
@@ -192,7 +199,8 @@
     if (!from || !to) return null;
     delete to.is;
     delete to.change;
-    if (from.track === to.track && from.curiosity === to.curiosity) return null;
+    /* A link inside one lane ("x is A, then x becomes B": a setup and its payoff) must look ahead. */
+    if (from.track === to.track && from.curiosity === to.curiosity && !(int(l.within, 0, 16, 0) >= 1 && from.is != null)) return null;
     const does = DOES.includes(l.does) ? l.does : "follow";
     const out = {
       id: l.id,
@@ -213,6 +221,10 @@
     const rowIds = st.rows.map((r) => r.id);
     if (isObj(l.scope) && rowIds.includes(l.scope.from) && rowIds.includes(l.scope.to)) out.scope = { from: l.scope.from, to: l.scope.to };
     if (l.seed && typeof l.seed === "string") out.seed = text(l.seed);
+    /* How often it fires when its leader moves (the database's "How often"), 0 to 1; left out when always. */
+    const chance = Math.round(num(l.chance, 0, 1, 1) * 1000) / 1000;
+    if (chance < 1) out.chance = chance;
+    if (typeof l.suite === "string" && (st.suites || []).some((x) => x.id === l.suite)) out.suite = l.suite;
     return out;
   }
   function fixRef(r) {
@@ -290,6 +302,11 @@
     }
     return cur;
   }
+  function roll(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+    return ((h >>> 0) % 100000) / 100000;
+  }
   function rewrite(st) {
     const n = st.rows.length;
     const dest = Object.create(null);
@@ -321,7 +338,8 @@
       });
     /* 3. links: changes down each column fire the links they lead; followers that change fire theirs. */
     const ix = rowIndex(st);
-    const live = st.links.filter((l) => l.on);
+    const suiteOff = new Set((st.suites || []).filter((x) => !x.on).map((x) => x.id));
+    const live = st.links.filter((l) => l.on && !(l.suite && suiteOff.has(l.suite)));
     if (live.length && n) {
       const leads = Object.create(null);
       live.forEach((l) => {
@@ -368,6 +386,9 @@
             const once = l.id + "@" + t;
             if (fired.has(once)) return;
             fired.add(once);
+            /* A link that fires only some of the time decides by a fixed roll per link and moment, so the same
+               film always rewrites the same way (and undo, reload and the tests agree). */
+            if (l.chance != null && roll(once) >= l.chance) return;
             const fk = cellKey(st.rows[t].id, l.to.track, l.to.curiosity);
             const before = dest[fk];
             const after = apply(l, leader, e.dir, before);
@@ -465,6 +486,7 @@
       if (!Object.keys(st.lanes[k].points).length) delete st.lanes[k];
     });
     st.links.forEach((l) => l.scope && (l.scope.from === id || l.scope.to === id) && delete l.scope);
+    st.print.from = Math.min(st.print.from, Math.max(0, st.rows.length - 1));
   }
   function dropCuriosity(st, t, c) {
     t.curiosities = t.curiosities.filter((x) => x !== c);
@@ -488,6 +510,75 @@
     const l = fixLink(Object.assign({}, m, { id }), st, trackOf);
     need(l, "A link needs a leader and a follower that are on tracks (and a value when it sets one).");
     return l;
+  }
+
+  /* Place a pack's links on this film's tracks (engine/LINKS.md). Two shapes are read: the curiosity
+     database's export ({ format: "curiosities-links", links, groups }) and the engine's own
+     ({ format: "curio-links", links, suites }). Each end names a curiosity ("curiosity.slider" for a
+     lens's slider) and may hint its kind of track: "master", "camera" or "character". An end goes on the
+     track that already has its curiosity (the first character's, for a character curiosity); failing that,
+     with addLanes, the curiosity is added to the first track of the hinted kind; otherwise the link waits.
+     only: a list of link ids or group ids to take (a group brings its links). */
+  function packSide(e) {
+    if (!isObj(e)) return null;
+    const c = typeof e.curiosity === "string" ? e.curiosity + (typeof e.slider === "string" && e.slider ? "." + e.slider : "") : null;
+    return c && idOk(c) ? c : null;
+  }
+  const packId = (x) => typeof x === "string" && x.length > 0 && x.length <= 120 && !/[\u0000-\u001f]/.test(x);
+  function placeLinks(st, pack, opts) {
+    opts = opts || {};
+    const links = Array.isArray(pack.links) ? pack.links.slice(0, 2000) : [];
+    const groups = (Array.isArray(pack.groups) ? pack.groups.map((g) => isObj(g) && { id: g.id, label: g.label, members: g.links }) : Array.isArray(pack.suites) ? pack.suites : []).slice(0, 500);
+    const src = text(pack.source, 24) || (pack.format === "curiosities-links" ? "db" : "pack");
+    const only = Array.isArray(opts.only) ? new Set(opts.only.filter(packId)) : null;
+    const suiteOf = Object.create(null);
+    groups.forEach((x) => isObj(x) && packId(x.id) && Array.isArray(x.members) && x.members.forEach((id) => packId(id) && !suiteOf[id] && (suiteOf[id] = x.id)));
+    if (only) groups.forEach((x) => isObj(x) && only.has(x.id) && Array.isArray(x.members) && x.members.forEach((id) => only.add(id)));
+    const usedSuites = new Set();
+    const lanesAdded = [];
+    const trackOf = Object.create(null);
+    st.tracks.forEach((t) => (trackOf[t.id] = t));
+    const where = (hint) => (KINDS.includes(hint) ? hint : null);
+    function trackFor(c, hint) {
+      const has = st.tracks.filter((t) => t.curiosities.includes(c));
+      if (has.length) return has.find((t) => t.kind === where(hint)) || has[0];
+      if (!opts.addLanes || !S.known(c)) return null;
+      const room = st.tracks.filter((x) => x.curiosities.length < LIMIT.perTrack);
+      const t = room.find((x) => x.kind === (where(hint) || "master")) || room.find((x) => x.kind === "master") || room[0];
+      if (!t) return null;
+      t.curiosities.push(c);
+      lanesAdded.push(t.id + "|" + c);
+      return t;
+    }
+    const out = [];
+    let waiting = 0;
+    links.forEach((l) => {
+      if (!isObj(l) || !packId(l.id) || (only && !only.has(l.id))) return;
+      const fc = packSide(l.from);
+      const tc = packSide(l.to);
+      if (!fc || !tc) return;
+      const lt = trackFor(fc, l.from.track || l.from.where);
+      const tt = lt && trackFor(tc, l.to.track || l.to.where);
+      if (!lt || !tt) {
+        waiting++;
+        return;
+      }
+      const from = { track: lt.id, curiosity: fc };
+      if (l.from.is != null) from.is = l.from.is;
+      if (l.from.change === "rises" || l.from.change === "drops") from.change = l.from.change;
+      const body = { label: text(l.label, 160) || S.label(fc) + " leads " + S.label(tc), from, to: { track: tt.id, curiosity: tc }, does: l.does, value: l.value, amount: l.amount, within: l.within, every: l.every, chance: l.chance, seed: src + ":" + l.id };
+      if (!fixLink(Object.assign({ id: "check" }, body), st, trackOf)) {
+        waiting++;
+        return;
+      }
+      if (suiteOf[l.id]) {
+        body.suiteSeed = src + ":" + suiteOf[l.id];
+        usedSuites.add(suiteOf[l.id]);
+      }
+      out.push(body);
+    });
+    const outSuites = groups.filter((x) => isObj(x) && usedSuites.has(x.id)).map((x) => ({ seed: src + ":" + x.id, label: text(x.label, 160) || String(x.id) }));
+    return { links: out, suites: outSuites, waiting, lanesAdded };
   }
 
   const COMMANDS = {
@@ -618,6 +709,56 @@
       st.links = st.links.filter((l) => l.id !== m.link);
       need(st.links.length < n, "There is no link " + text(m && m.link) + ".");
     },
+    /* A link suite (a proximity suite): links that switch on and off together. */
+    toggleSuite(st, m) {
+      const x = st.suites.find((y) => y.id === (m && m.suite));
+      need(x, "There is no suite " + text(m && m.suite) + ".");
+      x.on = m.on == null ? !x.on : m.on === true;
+    },
+    removeSuite(st, m) {
+      const x = st.suites.find((y) => y.id === (m && m.suite));
+      need(x, "There is no suite " + text(m && m.suite) + ".");
+      st.suites = st.suites.filter((y) => y !== x);
+      if (m.links === true) st.links = st.links.filter((l) => l.suite !== x.id);
+      else st.links.forEach((l) => l.suite === x.id && delete l.suite);
+    },
+    /* A pack of links (the curiosity database's proximities and proximity suites, or any export in the same
+       shape: engine/LINKS.md). Each link is placed on your tracks; links whose curiosities are on no track
+       wait (counted in the reply). Importing the same pack again updates its links, keeping your on/off. */
+    importLinks(st, m) {
+      need(isObj(m) && isObj(m.pack), "Nothing to import.");
+      const placed = placeLinks(st, m.pack, { only: m.only, addLanes: m.addLanes === true });
+      need(placed.links.length || placed.suites.length, placed.waiting ? "None of these links fit your tracks yet (" + placed.waiting + " wait for curiosities your tracks do not have)." : "That pack has no links.");
+      placed.suites.forEach((x) => {
+        const old = st.suites.find((y) => y.seed && y.seed === x.seed);
+        if (old) old.label = x.label;
+        else {
+          need(st.suites.length < LIMIT.suites, "A film holds " + LIMIT.suites + " suites here.");
+          st.suites.push({ id: newId(st, "s"), label: x.label, on: true, seed: x.seed });
+        }
+      });
+      const suiteBySeed = Object.create(null);
+      st.suites.forEach((x) => x.seed && (suiteBySeed[x.seed] = x.id));
+      let added = 0;
+      let updated = 0;
+      placed.links.forEach((l) => {
+        const at = (x) => x.seed === l.seed && x.from.track === l.from.track && x.to.track === l.to.track;
+        const i = st.links.findIndex(at);
+        const body = Object.assign({}, l, { suite: l.suiteSeed ? suiteBySeed[l.suiteSeed] : undefined });
+        if (i >= 0) {
+          st.links[i] = linkFrom(st, Object.assign(body, { on: st.links[i].on }), st.links[i].id);
+          updated++;
+        } else {
+          need(st.links.length < LIMIT.links, "A film holds " + LIMIT.links + " links here; " + added + " were added before it filled.");
+          st.links.push(linkFrom(st, body, newId(st, "l")));
+          added++;
+        }
+      });
+      return { added, updated, waiting: placed.waiting, suites: placed.suites.length, lanesAdded: placed.lanesAdded.length };
+    },
+    printFrom(st, m) {
+      st.print.from = int(m && m.from, 0, Math.max(0, st.rows.length - 1), 0);
+    },
     toggleLink(st, m) {
       const l = st.links.find((x) => x.id === m.link);
       need(l, "There is no link " + text(m && m.link) + ".");
@@ -704,6 +845,10 @@
   let lastCheck = { ok: true, at: 0 };
   const drift = [];
   const LABELS = {
+    importLinks: "Add links",
+    toggleSuite: "Switch a suite",
+    removeSuite: "Remove a suite",
+    printFrom: "Show other moments on My film",
     setSource: "Change a value",
     clearSource: "Reset a value",
     edit: "Hand edit",
@@ -826,6 +971,11 @@
     const next = normalize(saved.state);
     const fp = fingerprint(next);
     lastCheck = { ok: fp === saved.fp, at: Date.now(), saved: saved.fp, loaded: fp };
+    /* An older version's film gains the new parts (empty), so its fingerprint changes by design. */
+    if (!lastCheck.ok && saved.state.v !== VERSION && fingerprint(normalize(Object.assign({}, saved.state, { v: VERSION, suites: [], print: Object.assign({ from: 0 }, saved.state.print) }))) === fp) {
+      lastCheck.ok = true;
+      lastCheck.note = "Brought up to date from an older version of the engine.";
+    }
     if (!lastCheck.ok) lastCheck.note = "The saved film came back different from how it was saved. Parts that did not fit were dropped.";
     state = next;
     result = rewrite(state);

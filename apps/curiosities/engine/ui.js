@@ -53,13 +53,35 @@
     else if (window.CurioFakeHost && window.CurioHost) host = window.CurioHost.board(window.CurioFakeHost.board({ values: { angleCount: 8 } }));
     return host;
   }
+  let board = null;
+  function getStoryboard() {
+    if (board) return board;
+    if (window.CuriosityStoryboard && window.CuriosityStoryboard.data && window.CurioHost && window.CurioHost.storyboard) board = window.CurioHost.storyboard(window.CuriosityStoryboard);
+    return board;
+  }
+  const REOPEN = "curio-engine-reopen";
   function print() {
     const h = getHost();
     if (!h) return say("There is no My film to send to on this page.");
     const out = h.print(E.state(), E.result());
     lastPrint = out;
     if (out.error) return say(out.error);
-    say(out.sent ? "Sent to My film: " + out.printed.map(S.label).join(", ") + "." : "My film already shows this.");
+    const span = out.of > out.count ? " (moments " + (out.from + 1) + " to " + (out.from + out.count) + " of " + out.of + ")" : "";
+    say(out.sent ? "Sent to My film" + span + ": " + out.printed.map(S.label).join(", ") + "." : "My film already shows this" + span + ".");
+  }
+  /* A storyboard without its own door for the engine is written to its saved key, and the page reloads so
+     the storyboard reads it; the engine opens again on the same tab. */
+  function afterStoryboard(out, done) {
+    if (!out || out.error) return say((out && out.error) || "The storyboard did not answer.");
+    if (out.reload) {
+      try {
+        sessionStorage.setItem(REOPEN, tab);
+      } catch (e) {}
+      say(done + " Reloading so the storyboard shows it…");
+      setTimeout(() => location.reload(), 300);
+      return;
+    }
+    say(done);
   }
   function startFilm(from) {
     const h = getHost();
@@ -163,7 +185,12 @@
     const fired = new Set(res.events.map((e) => e.toRow + "|" + e.to));
     const points = new Set();
     Object.keys(st.lanes).forEach((lk) => Object.keys(st.lanes[lk].points).forEach((r) => points.add(r + "|" + lk)));
-    const head = `<tr><th class="en-lane">Track and lane</th>${st.rows.map((r, i) => `<th><button data-act="row" data-row="${esc(r.id)}" title="Rename, move, add or remove this row">${esc(r.label)}</button></th>`).join("")}<th><button data-act="add-row" title="Add a row at the end">+ row</button></th></tr>`;
+    let shown = 8;
+    try {
+      shown = Math.max(1, Number(window.CuriosityBoard ? window.CuriosityBoard.count() : 8) || 8);
+    } catch (e) {}
+    const inWin = (i) => st.rows.length > shown && i >= st.print.from && i < st.print.from + shown;
+    const head = `<tr><th class="en-lane">Track and lane</th>${st.rows.map((r, i) => `<th${inWin(i) ? ' class="en-win"' : ""}><button data-act="row" data-row="${esc(r.id)}" title="Rename, move, add or remove this row">${esc(r.label)}</button></th>`).join("")}<th><button data-act="add-row" title="Add a row at the end">+ row</button></th></tr>`;
     const body = st.tracks
       .map((t) => {
         const top = `<tr class="en-track"><th class="en-lane">${esc(t.label)} ${t.label.toLowerCase() === t.kind ? "" : `<small style="display:inline;opacity:.7">${esc(t.kind)}</small>`}
@@ -193,7 +220,34 @@
     return `<p class="en-note">Your film as one timeline. Each track is a column of the clip matrix (Master for the whole film, Camera, one per character); each line under it is one curiosity, moment by moment. Click a cell to change it. A change ripples through your links; a pin stays put whatever the links do.</p>
       <div class="en-legend"><span style="--sw:transparent">your material</span><span style="--sw:#dce9f2">automation lane (● a point)</span><span style="--sw:#f6e2b8">set by a link</span><span style="--sw:#e7dcf3">pinned by hand</span><span style="--sw:#e4e0da">switched off</span></div>
       <div class="en-scroll en-panel"><table class="en-tl"><thead>${head}</thead><tbody>${body}</tbody></table></div>
-      <p><button data-act="add-track">Add a track</button> <button data-act="start-board">Read My film again</button> <button data-act="start-new">Start a new film</button> <button data-act="unprint" title="Put back what My film showed before the engine sent anything">Take back from My film</button></p>`;
+      <p><button data-act="add-track">Add a track</button> <button data-act="start-board">Read My film again</button> <button data-act="start-new">Start a new film</button> <button data-act="unprint" title="Put back what My film showed before the engine sent anything">Take back from My film</button></p>
+      ${windowHtml(st)}${storyboardHtml()}`;
+  }
+  /* My film shows as many moments as it has panels (Angles per scene, up to 8); a longer film is sent a
+     window at a time. The storyboard takes the whole film. */
+  function windowHtml(st) {
+    const h = getHost();
+    let n = 8;
+    try {
+      n = Math.max(1, Number(window.CuriosityBoard ? window.CuriosityBoard.count() : 8) || 8);
+    } catch (e) {}
+    if (!h || st.rows.length <= n) return "";
+    const from = st.print.from;
+    const to = Math.min(st.rows.length, from + n);
+    return `<div class="en-panel en-window"><b>My film shows moments ${from + 1} to ${to} of ${st.rows.length}</b> <span class="en-note">(it has ${n} panels; the outlined moments are the ones it shows)</span>
+      <div class="en-row" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><button data-act="win-prev" ${from ? "" : "disabled"}>Earlier moments</button><button data-act="win-next" ${to < st.rows.length ? "" : "disabled"}>Later moments</button></div></div>`;
+  }
+  function storyboardHtml() {
+    const sb = getStoryboard();
+    if (!sb) return "";
+    const list = sb.scenes();
+    if (!Array.isArray(list)) return "";
+    const mine = list.filter((x) => !x.engine);
+    const printed = list.filter((x) => x.engine).length;
+    return `<div class="en-panel" style="margin-top:10px"><h3 style="margin:0 0 4px">The storyboard</h3>
+      <p class="en-note">The storyboard has no 8-panel limit: send the whole film there as scenes of up to ${sb.PER} panels, or read storyboard scenes in as moments (up to 64).</p>
+      <div class="en-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><button class="en-primary" data-act="sb-print">Send the whole film to the storyboard</button>${printed ? `<button data-act="sb-unprint">Remove the engine's scenes (${printed})</button>` : ""}</div>
+      ${mine.length ? `<div class="en-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px"><label class="en-note">Read <select data-field="sb-scene"><option value="all">every scene</option>${mine.map((x) => `<option value="${x.index}">${esc(x.name)} (${x.panels} panels)</option>`).join("")}</select></label><button data-act="sb-read">Read it as the film</button></div>` : ""}</div>`;
   }
 
   /* A small window next to the thing clicked. */
@@ -373,7 +427,7 @@
       ? `<table class="en-list"><thead><tr><th>On</th><th>The link</th><th>Leader</th><th>Follower</th><th>Rule</th><th>Fired</th><th></th></tr></thead><tbody>${st.links
           .map(
             (l) => `<tr class="${l.on ? "" : "off"}"><td><input type="checkbox" data-act="link-on" data-link="${esc(l.id)}" ${l.on ? "checked" : ""} aria-label="Switch this link"/></td>
-          <td>${esc(l.label || linkWords(st, l))}${l.label ? `<div class="en-note">${esc(linkWords(st, l))}</div>` : ""}${l.seed ? `<div class="en-note">from ${esc(l.seed.startsWith("catalog:") ? "the app's catalog" : "the letter")}</div>` : ""}</td>
+          <td>${esc(l.label || linkWords(st, l))}${l.label ? `<div class="en-note">${esc(linkWords(st, l))}${l.chance != null ? ", " + Math.round(l.chance * 100) + "% of the time" : ""}</div>` : ""}${l.seed ? `<div class="en-note">from ${esc(seedWords(st, l))}</div>` : ""}</td>
           <td>${esc(endName(st, l.from))}</td><td>${esc(endName(st, l.to))}</td>
           <td>${esc(l.does === "set" ? "becomes " + l.value : DOES[l.does])}<div class="en-row" style="display:flex;gap:4px;align-items:center;font-size:11px">amount <input type="range" min="0" max="100" value="${Math.round(l.amount * 100)}" data-act="link-amount" data-link="${esc(l.id)}" aria-label="Amount" style="width:80px"/> later <input type="number" min="0" max="16" value="${l.within}" data-act="link-within" data-link="${esc(l.id)}" style="width:44px" aria-label="Rows later"/></div></td>
           <td>${firedBy[l.id] || 0}</td><td><button class="en-small" data-act="link-remove" data-link="${esc(l.id)}">Remove</button></td></tr>`
@@ -412,9 +466,49 @@
         <label>Name <input name="label" placeholder="optional" style="width:12em"/></label>
         <button class="en-primary" data-act="link-add">Add the link</button>
       </div>
-      <p><button data-act="seed-letter">Add the letter's links</button> <button data-act="seed-catalog">Add the app's proximities that fit your tracks</button></p></div>
+      <p><button data-act="seed-letter">Add the letter's links</button></p></div>
+      ${proximitiesHtml(st)}
       <div class="en-panel" style="margin-top:12px"><h3 style="margin:0 0 6px">Your links (${st.links.length})</h3><div class="en-scroll">${list}</div></div>
       <div class="en-panel" style="margin-top:12px"><h3 style="margin:0 0 6px">What fired, as chains</h3>${chainHtml}</div>`;
+  }
+  function seedWords(st, l) {
+    const suite = l.suite && st.suites.find((x) => x.id === l.suite);
+    if (suite) return "the suite " + suite.label;
+    if (l.seed.startsWith("letter")) return "the letter";
+    return "the app's proximities";
+  }
+  /* The app's proximities and proximity suites (the curiosity database), added a suite at a time: there are
+     more than a film holds, and a suite brings the lanes it needs. */
+  let pack = null;
+  function getPack() {
+    if (!pack && window.CurioSeeds && window.CurioSeeds.dbPack) pack = window.CurioSeeds.dbPack();
+    return pack;
+  }
+  function proximitiesHtml(st) {
+    const p = getPack();
+    const groups = p ? p.groups || (p.suites || []).map((x) => ({ id: x.id, label: x.label, links: x.members })) : [];
+    const have = new Set(st.suites.map((x) => x.seed));
+    const src = p && p.format === "curiosities-links" ? "db" : "app";
+    const yours = st.suites.length
+      ? `<table class="en-list" style="margin-bottom:8px"><thead><tr><th>On</th><th>Suite in your film</th><th>Links</th><th></th></tr></thead><tbody>${st.suites
+          .map((x) => `<tr class="${x.on ? "" : "off"}"><td><input type="checkbox" data-act="suite-on" data-suite="${esc(x.id)}" ${x.on ? "checked" : ""} aria-label="Switch this suite"/></td><td>${esc(x.label)}</td><td>${st.links.filter((l) => l.suite === x.id).length}</td><td><button class="en-small" data-act="suite-remove" data-suite="${esc(x.id)}">Remove with its links</button></td></tr>`)
+          .join("")}</tbody></table>`
+      : "";
+    const rows = groups
+      .filter((g) => g && g.id && (g.links || []).length)
+      .map((g) => `<tr><td>${esc(g.label || g.id)}${g.plain ? `<div class="en-note">${esc(String(g.plain).slice(0, 220))}</div>` : ""}</td><td>${(g.links || []).length}</td><td>${have.has(src + ":" + g.id) ? `<span class="en-note">in your film</span>` : `<button class="en-small" data-act="pack-group" data-group="${esc(g.id)}">Add</button>`}</td></tr>`)
+      .join("");
+    return `<div class="en-panel" style="margin-top:12px"><h3 style="margin:0 0 4px">The app's proximities</h3>
+      <p class="en-note">${p ? p.links.length + " proximities from the curiosity database, in " + groups.length + " suites." : "The curiosity database is not loaded on this page."} A film holds ${E.LIMIT.links} links, so add a suite at a time: its links come in together, switch on and off together, and any lane they need is added to the right track.</p>
+      ${yours}${p ? `<p><button data-act="pack-fit">Add every proximity that fits your tracks now</button></p>` : ""}
+      ${rows ? `<div class="en-scroll" style="max-height:320px"><table class="en-list"><thead><tr><th>Proximity suite</th><th>Links</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}</div>`;
+  }
+  function importPack(only, addLanes) {
+    const p = getPack();
+    if (!p) return { ok: false, error: "The curiosity database is not loaded on this page." };
+    const out = E.send({ type: "importLinks", label: "Add the app's proximities", pack: p, only, addLanes });
+    if (out.ok) say((out.added || 0) + " links added" + (out.updated ? ", " + out.updated + " brought up to date" : "") + (out.lanesAdded ? ", " + out.lanesAdded + " lanes added for them" : "") + (out.waiting ? ". " + out.waiting + " wait for curiosities your tracks do not have" : "") + ".");
+    return out;
   }
   function addLinkFromForm(form) {
     const f = (n) => form.querySelector(`[name=${n}]`);
@@ -489,8 +583,18 @@
       </div></div>
       <div class="en-panel" style="margin-top:12px"><h3 style="margin:0 0 6px">Everything else in the app</h3>
         <p class="en-note">Changes made anywhere else (My film, workspaces, the storyboard, curated films, automations, tools), newest first. Undoing one puts back what was there before it and reloads the page, because those parts each keep their own copy while open.</p>
+        ${storeHtml()}
         ${app ? (appSteps.length ? `<ol>${appSteps.map((s, i) => `<li>${esc(s.label)} <span class="en-note">${esc(s.when)}</span> <button class="en-small" data-act="app-undo" data-i="${i}">Undo back to before this</button></li>`).join("")}</ol>` : `<p class="en-note">No changes recorded since this page opened.</p>`) + (app.canRedo() ? `<p><button data-act="app-redo">Redo the last app undo</button></p>` : "") : `<p class="en-note">Not available on this page.</p>`}
       </div>`;
+  }
+
+  /* Parts of the app already on the shared store (engine/store.js) undo in place, no reload. */
+  function storeHtml() {
+    const C = window.CurioStore;
+    if (!C || !C.parts().length) return "";
+    const h = C.history();
+    return `<p class="en-note">On the shared state now: ${esc(C.parts().join(", "))}. Their changes undo in place (Ctrl+Z outside this window).</p>
+      <p><button data-act="store-undo" ${C.canUndo() ? "" : "disabled"}>Undo ${esc(h.undo[h.undo.length - 1] || "")}</button> <button data-act="store-redo" ${C.canRedo() ? "" : "disabled"}>Redo ${esc(h.redo[0] || "")}</button></p>`;
   }
 
   /* ---------- events ---------- */
@@ -545,10 +649,48 @@
         out = cmds.length ? E.send({ type: "batch", label: "Add the letter's links", commands: cmds }) : { ok: false, error: "None of the letter's links fit your tracks." };
         break;
       }
-      case "seed-catalog": {
-        const cmds = window.CurioSeeds.catalogLinks(E.state()).filter((c) => !E.state().links.some((l) => l.seed === c.seed));
-        out = cmds.length ? E.send({ type: "batch", label: "Add the app's proximities", commands: cmds.slice(0, E.LIMIT.links - E.state().links.length) }) : { ok: false, error: "No more of the app's proximities fit your tracks. Add lanes for their curiosities first." };
-        if (out.ok) say(cmds.length + " links added from the app's catalog.");
+      case "pack-fit":
+        out = importPack(null, false);
+        break;
+      case "pack-group":
+        out = importPack([b.dataset.group], true);
+        break;
+      case "suite-remove":
+        out = E.send({ type: "removeSuite", suite: b.dataset.suite, links: true });
+        break;
+      case "win-prev":
+      case "win-next": {
+        let n = 8;
+        try {
+          n = Math.max(1, Number(window.CuriosityBoard ? window.CuriosityBoard.count() : 8) || 8);
+        } catch (e) {}
+        const from = E.state().print.from + (act === "win-next" ? n : -n);
+        out = E.send({ type: "printFrom", label: "Show other moments on My film", from: Math.max(0, from) });
+        if (out.ok) print();
+        break;
+      }
+      case "sb-print": {
+        const sb = getStoryboard();
+        const r = sb && sb.print(E.state(), E.result());
+        return afterStoryboard(r, r && !r.error ? "Sent " + r.panels + " moments to the storyboard as " + r.scenes + " scene" + (r.scenes === 1 ? "" : "s") + "." : "");
+      }
+      case "sb-unprint": {
+        const sb = getStoryboard();
+        const r = sb && sb.unprint();
+        if (r === false) return say("The storyboard has no scenes from the engine.");
+        return afterStoryboard(r, "Removed the engine's scenes from the storyboard.");
+      }
+      case "sb-read": {
+        const sb = getStoryboard();
+        const v = root.querySelector("[data-field=sb-scene]").value;
+        const film = sb && sb.read(v === "all" ? null : [Number(v)]);
+        if (!film || film.error || !film.rows.length) return say((film && film.error) || "That scene has no panels.");
+        out = E.send({ type: "batch", label: "Read the storyboard", commands: [{ type: "importFilm", film }] });
+        if (out.ok) {
+          const links = window.CurioSeeds.letterLinks(E.state());
+          if (links.length && !E.state().links.length) E.send({ type: "batch", label: "Add the letter's links", commands: links });
+          say("Read " + film.rows.length + " storyboard panels as moments.");
+        }
         break;
       }
       case "analyze": {
@@ -593,6 +735,12 @@
         return draw();
       case "app-undo":
         return window.CurioAppUndo && window.CurioAppUndo.undoTo(Number(b.dataset.i));
+      case "store-undo":
+        window.CurioStore && window.CurioStore.undo();
+        return draw();
+      case "store-redo":
+        window.CurioStore && window.CurioStore.redo();
+        return draw();
       case "app-redo":
         return window.CurioAppUndo && window.CurioAppUndo.redo();
     }
@@ -604,6 +752,7 @@
     let out = null;
     if (act === "name") out = E.send({ type: "rename", name: t.value });
     else if (act === "auto") out = E.send({ type: "printAuto", on: t.checked });
+    else if (act === "suite-on") out = E.send({ type: "toggleSuite", suite: t.dataset.suite, on: t.checked });
     else if (act === "link-on") out = E.send({ type: "toggleLink", link: t.dataset.link, on: t.checked });
     else if (act === "link-amount") out = E.send({ type: "updateLink", link: t.dataset.link, changes: { amount: Number(t.value) / 100 } });
     else if (act === "link-within") out = E.send({ type: "updateLink", link: t.dataset.link, changes: { within: Number(t.value) } });
@@ -698,5 +847,13 @@
 
   E.load();
   addMenuItem();
+  if (window.CurioHost && window.CurioHost.extendBridge) window.CurioHost.extendBridge();
+  try {
+    const again = sessionStorage.getItem(REOPEN);
+    if (again) {
+      sessionStorage.removeItem(REOPEN);
+      setTimeout(() => open(again), 0);
+    }
+  } catch (e) {}
   window.CurioEngineUI = { open, close, mount, host: getHost, draw, say };
 })();

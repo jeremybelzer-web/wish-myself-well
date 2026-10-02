@@ -11,6 +11,8 @@
    - fix(id, value): the value if it is allowed, otherwise the nearest allowed one (or null when nothing fits).
    - start(id): the value a new cell starts with (the catalog's own value, or the middle of the scale).
    - label(id): the curiosity's plain name.
+   - A curiosity's own graded sliders (the curiosity database) work too, named "curiosity.slider"
+     ("shotSize.headroom"): their scale or range comes from window.CuriosityDB.
 
    window.CurioTracks: the starting layout of a film, the tracks of the letter's table. A track is a column of
    the clip matrix: Master (the film-wide curiosities), Camera, and one track per character. */
@@ -33,10 +35,30 @@
     if (c.kind === "range" || (c.min != null && c.max != null)) return { kind: "range", min: Number(c.min) || 0, max: Number(c.max) || 0, step: Number(c.step) || 1 };
     return { kind: "choice", options: ["off", "on"] };
   }
+  /* A graded slider inside a curiosity (the curiosity database's lenses), named "curiosity.slider":
+     "shotSize.headroom", "wardrobe.era". Its scale or range comes from the database. */
+  function slider(id) {
+    const dot = id.indexOf(".");
+    const DB = root.CuriosityDB;
+    if (dot < 1 || !DB || typeof DB.get !== "function") return null;
+    let c = null;
+    try {
+      c = DB.get("curiosity", id.slice(0, dot));
+    } catch (e) {
+      c = null;
+    }
+    const s = c && Array.isArray(c.sliders) ? c.sliders.find((x) => x && x.id === id.slice(dot + 1)) : null;
+    if (!s) return null;
+    if (Array.isArray(s.scale) && s.scale.length) return { c, s, d: { kind: "choice", options: s.scale.map(String) } };
+    if (s.range && isFinite(s.range.min) && isFinite(s.range.max) && s.range.max > s.range.min) return { c, s, d: { kind: "range", min: Number(s.range.min), max: Number(s.range.max), step: Number(s.range.step) || 1 } };
+    return null;
+  }
   const cache = Object.create(null);
   function domain(id) {
     id = String(id);
     if (cache[id]) return cache[id];
+    const sl = !byId[id] ? slider(id) : null;
+    if (sl) return (cache[id] = Object.freeze(sl.d.kind === "choice" ? { kind: "choice", options: Object.freeze(sl.d.options) } : sl.d));
     let d = null;
     try {
       if (root.CurioAuto && root.CurioAuto.domain && byId[id]) d = root.CurioAuto.domain(id);
@@ -50,13 +72,17 @@
     return d;
   }
   function known(id) {
-    return !!byId[id];
+    return !!byId[id] || !!slider(String(id));
   }
   function label(id) {
-    return byId[id] ? byId[id].label || id : String(id);
+    if (byId[id]) return byId[id].label || id;
+    const sl = slider(String(id));
+    return sl ? (sl.c.label || sl.c.id) + ": " + String(sl.s.label || sl.s.id).toLowerCase() : String(id);
   }
   function group(id) {
-    return byId[id] ? byId[id].group || "" : "";
+    if (byId[id]) return byId[id].group || "";
+    const sl = slider(String(id));
+    return sl ? sl.c.group || "" : "";
   }
   function snapRange(d, n) {
     if (!isFinite(n)) return null;
@@ -105,7 +131,8 @@
   }
   function start(id) {
     const c = byId[id];
-    const v = c && c.value != null ? fix(id, c.value) : null;
+    const sl = !c ? slider(String(id)) : null;
+    const v = c && c.value != null ? fix(id, c.value) : sl && sl.s.from != null ? fix(id, sl.s.from) : null;
     return v != null ? v : at(id, 0.5);
   }
 

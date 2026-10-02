@@ -106,6 +106,36 @@ const ok = (cond, text) => {
   });
   measured.forEach((m) => ok(m.real === m.fake, "host rule " + m.step + (m.real === m.fake ? "" : ": real " + m.real + " but fake " + m.fake)));
 
+  /* My film on the shared store (when app.js has the store migration): a change is one step, undone in place. */
+  if (await page.evaluate(() => !!(window.CurioStore && CurioStore.parts().includes("board")))) {
+    const r = await page.evaluate(() => {
+      const before = CuriosityBoard.values().cameraCarry;
+      const other = (CURIOSITIES.find((c) => c.id === "cameraCarry").options || []).find((o) => o !== before);
+      const sel = document.querySelector('#controls [data-id="cameraCarry"]');
+      sel.value = other;
+      sel.dispatchEvent(new Event("change", { bubbles: true }));
+      const changed = CuriosityBoard.values().cameraCarry;
+      const saved = JSON.parse(localStorage.getItem("curiosities-board-v2")).cameraCarry;
+      return { before, other, changed, saved };
+    });
+    ok(r.changed === r.other && r.saved === r.other, "My film on the shared state: a control change is saved under its own key");
+    await page.keyboard.press("Escape");
+    await page.click("body", { position: { x: 5, y: 5 } }).catch(() => {});
+    await page.keyboard.press("Control+z");
+    const back = await page.evaluate(() => ({ v: CuriosityBoard.values().cameraCarry, shown: document.querySelector('#controls [data-id="cameraCarry"]').value, saved: JSON.parse(localStorage.getItem("curiosities-board-v2")).cameraCarry, reloads: performance.getEntriesByType("navigation").length }));
+    ok(back.v === r.before && back.shown === r.before && back.saved === r.before, "Ctrl+Z undoes it in place: the control, the board and the save (" + JSON.stringify(back) + ")");
+    await page.keyboard.press("Control+Shift+z");
+    ok((await page.evaluate(() => CuriosityBoard.values().cameraCarry)) === r.other, "Ctrl+Shift+Z redoes it");
+    await page.keyboard.press("Control+z");
+    const auto = await page.evaluate(() => {
+      const n = CurioStore.history().undo.length;
+      for (let i = 0; i < 20; i++) CuriosityBoard.apply("Automation", { volume: [1 + (i % 5)] });
+      CuriosityBoard.apply("Automation", {});
+      return CurioStore.history().undo.length - n;
+    });
+    ok(auto === 0, "running automation is saved but adds no undo steps");
+  }
+
   /* 2. Walk through it. */
   await page.click("#lib-btn");
   await page.click("#lib-menu [data-engine]");
@@ -138,8 +168,34 @@ const ok = (cond, text) => {
   await page.selectOption("[data-form=link] [name=does]", "rise");
   await page.click("[data-act=link-add]");
   ok((await page.evaluate(() => CurioEngine.state().links.some((l) => l.from.curiosity === "cameraCarry" && l.does === "rise"))) === true, "a link added from the form");
-  await page.click("[data-act=seed-catalog]");
+  const n0 = await page.evaluate(() => CurioEngine.state().links.length);
+  await page.click("[data-act=pack-group]");
+  const afterGroup = await page.evaluate(() => ({ links: CurioEngine.state().links.length, suites: CurioEngine.state().suites.length }));
+  ok(afterGroup.links > n0 && afterGroup.suites === 1, "a proximity suite from the database comes in as links (" + (afterGroup.links - n0) + ")");
+  await page.click("[data-act=suite-on]");
+  ok((await page.evaluate(() => CurioEngine.state().suites[0].on)) === false, "and switches off together");
+  await page.click("[data-act=pack-fit]");
   await page.screenshot({ path: path.join(SHOTS, "engine-links.png"), fullPage: false });
+
+  /* Past 8 moments: My film shows a window; the storyboard takes the whole film. */
+  await page.click("[data-tab=timeline]");
+  await page.evaluate(() => { for (let i = 0; i < 10; i++) CurioEngine.send({ type: "addRow" }); });
+  await page.click("[data-act=print]");
+  const panels0 = await page.evaluate(() => CuriosityBoard.count());
+  await page.click("[data-act=win-next]");
+  const win = await page.evaluate(() => ({ from: CurioEngine.state().print.from, applied: CuriosityBoard.applied() }));
+  ok(win.from === panels0 && win.applied && win.applied.label === "Engine", "Later moments moves My film's window and sends it (from " + win.from + ")");
+  ok((await page.evaluate(() => CurioBridge.handle({ type: "timeline" }).panels.length)) === (await page.evaluate(() => CurioEngine.state().rows.length)), "a tool asking the bridge for the timeline gets every moment");
+  const sbBefore = await page.evaluate(() => CuriosityStoryboard.data().scenes.length);
+  /* Without the storyboard's own door (putScenes) the page reloads to show the new scenes. */
+  if (await page.evaluate(() => typeof CuriosityStoryboard.putScenes === "function")) await page.click("[data-act=sb-print]");
+  else await Promise.all([page.waitForNavigation({ timeout: 15000 }), page.click("[data-act=sb-print]")]);
+  await page.waitForFunction(() => window.CuriosityBoard && window.CurioEngineUI && document.querySelector(".en-overlay:not([hidden])"), null, { timeout: 15000 });
+  const sb = await page.evaluate(() => CuriosityStoryboard.data().scenes.filter((s) => s.engine).map((s) => s.panels.length));
+  ok(sb.reduce((a, b) => a + b, 0) === (await page.evaluate(() => CurioEngine.state().rows.length)) && sb.every((n) => n <= 24), "the whole film went to the storyboard as scenes of up to 24 panels (" + sb.join(", ") + "), and the engine opened again");
+  ok((await page.evaluate(() => CuriosityStoryboard.data().scenes.length)) === sbBefore + sb.length, "the storyboard's own scenes are kept");
+  await page.screenshot({ path: path.join(SHOTS, "engine-window.png") });
+  await page.selectOption("[data-field=sb-scene]", "all").catch(() => {});
 
   await page.click("[data-tab=analyze]");
   await page.fill("[data-field=ref-text]", "INT. KITCHEN - NIGHT\n\nShe paces, glances at the clock.\n\nANA\n(whispering)\nWhere is he?\n\nBEN\nI'm HERE!\n\nEXT. ROOF - DAWN\n\nThey sit. She smiles.\n\nANA\nI love this.\n\nINT. CAR - DAY\n\nBEN\nHa!");
@@ -207,7 +263,7 @@ const ok = (cond, text) => {
         continue;
       }
       const scope = document.querySelector(".en-pop") && R() < 0.6 ? document.querySelector(".en-pop") : document.querySelector(".en-overlay");
-      const els = [...scope.querySelectorAll("button, input, select, textarea, canvas")].filter((e) => !e.disabled && e.dataset.act !== "close" && e.dataset.act !== "app-undo" && e.dataset.act !== "app-redo");
+      const els = [...scope.querySelectorAll("button, input, select, textarea, canvas")].filter((e) => !e.disabled && e.dataset.act !== "close" && e.dataset.act !== "app-undo" && e.dataset.act !== "app-redo" && e.dataset.act !== "sb-print" && e.dataset.act !== "sb-unprint");
       if (!els.length) continue;
       const el = pick(els);
       try {
@@ -265,16 +321,21 @@ const ok = (cond, text) => {
   const back = await page.evaluate(() => ({ fp: CurioEngine.fingerprint(), check: CurioEngine.lastCheck() }));
   ok(back.fp === fp && back.check.ok, "after a page reload the film comes back with the same fingerprint");
 
-  /* The app-wide undo, which reloads the page. */
+  /* The app-wide undo, which reloads the page, for parts not yet on the shared store. When My film is on the
+     store its changes undo there instead (above), so a stand-in part's key is used. */
+  const onStore = await page.evaluate(() => !!(window.CurioStore && CurioStore.parts().includes("board")));
+  const put = (v) => (onStore ? page.evaluate((x) => localStorage.setItem("curiosities-testpart-v1", JSON.stringify({ volume: x })), v) : page.evaluate((x) => CuriosityBoard.set("volume", x), v));
+  const got = () => (onStore ? page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-testpart-v1")).volume) : page.evaluate(() => CuriosityBoard.values().volume));
   await page.evaluate(() => CurioAppUndo.clear());
-  await page.evaluate(() => CuriosityBoard.set("volume", 5));
+  await put(5);
   await page.waitForTimeout(1700);
-  await page.evaluate(() => CuriosityBoard.set("volume", 1));
+  await put(1);
   const stepsNow = await page.evaluate(() => CurioAppUndo.steps().length);
-  ok(stepsNow === 2, "two board changes, more than 1.5 seconds apart, are two app undo steps (" + stepsNow + ")");
+  ok(stepsNow === 2, "two changes to a part, more than 1.5 seconds apart, are two app undo steps (" + stepsNow + ")");
   await Promise.all([page.waitForNavigation(), page.evaluate(() => CurioAppUndo.undoTo(0))]);
   await page.waitForFunction(() => window.CuriosityBoard);
-  ok((await page.evaluate(() => CuriosityBoard.values().volume)) === 5, "app undo puts My film back and reloads");
+  ok((await got()) === 5, "app undo puts the part back and reloads");
+  if (onStore) await page.evaluate(() => localStorage.removeItem("curiosities-testpart-v1"));
 
   ok(errors.length === 0, "no errors on the page" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
