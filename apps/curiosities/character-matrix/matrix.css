@@ -1,0 +1,74 @@
+/* Character matrix workspace. Scoped under .cm so it can sit inside the main app as a tab. */
+.cm {
+  --cm-ink: var(--ink, #1c1712);
+  --cm-panel: var(--panel, #fffaf2);
+  --cm-accent: var(--saffron, #c45c26);
+  --cm-line: var(--line, rgba(28, 23, 18, 0.14));
+  font-family: var(--sans, "Outfit", sans-serif);
+  color: var(--cm-ink);
+}
+.cm h2 { font-family: var(--serif, "Fraunces", serif); font-weight: 500; font-size: 20px; margin: 0 0 8px; }
+.cm button {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  border: 2px solid var(--cm-ink);
+  background: var(--cm-panel);
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.cm button.on { background: var(--cm-ink); color: var(--cm-panel); }
+.cm-head { display: flex; justify-content: space-between; gap: 16px; align-items: start; flex-wrap: wrap; margin-bottom: 12px; }
+.cm-head p { max-width: 80ch; }
+.cm-btns { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.cm-small { font-size: 13px; color: #3a3229; margin: 4px 0; }
+.cm-sub { font-family: var(--mono, monospace); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin: 10px 0 2px; color: #6b5f52; }
+.cm-note { padding: 16px; font-size: 14px; }
+.cm-grid { display: grid; grid-template-columns: 290px minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.cm-grid > aside, .cm-stage, .cm-auto { background: var(--cm-panel); border: 3px solid var(--cm-ink); padding: 12px; min-width: 0; }
+.cm-grid > aside { max-height: 78vh; overflow: auto; }
+.cm-stage { padding: 0; display: flex; flex-direction: column; }
+.cm-bar-top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px 10px; border-bottom: 2px solid var(--cm-ink); font-family: var(--mono, monospace); font-size: 11px; }
+.cm-bar-top label { display: inline-flex; align-items: center; gap: 4px; }
+.cm-bar-top input[type="range"] { width: 120px; }
+.cm-bar-top select { width: auto; max-width: 180px; }
+.cm-seg { display: inline-flex; }
+.cm-seg button + button { border-left: 0; }
+.cm-view { position: relative; height: 72vh; min-height: 420px; }
+.cm-view canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.cm-tip { position: absolute; display: none; pointer-events: none; background: var(--cm-ink); color: #f7efe2; font-size: 12px; padding: 6px 8px; max-width: 260px; }
+.cm-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.cm .cm-chip { border-color: var(--c, var(--cm-ink)); }
+.cm .cm-chip.on { background: var(--c, var(--cm-ink)); color: #fff; }
+.cm .cm-chip small { opacity: 0.7; }
+.cm .cm-chip.add { border-style: dashed; }
+.cm-row2 { display: grid; grid-template-columns: 1fr 64px; gap: 8px; }
+.cm label.field input:not([type="range"]):not([type="color"]), .cm label.field select { font: inherit; font-size: 13px; padding: 3px 4px; text-transform: none; letter-spacing: 0; }
+.cm label.field input[type="color"] { width: 100%; height: 28px; padding: 0; border: 1px solid var(--cm-line); }
+.cm-axis { display: grid; grid-template-columns: 74px 1fr 74px; gap: 4px; align-items: center; font-size: 11px; margin: 2px 0; }
+.cm-axis span:last-child { text-align: right; }
+.cm-track { position: relative; }
+.cm-track input { width: 100%; margin: 0; }
+.cm-track i { position: absolute; top: -3px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--cm-accent); pointer-events: none; }
+.cm-read p { margin: 6px 0; font-size: 14px; }
+.cm-type { font-size: 14px; }
+.cm-drift { border-left: 3px solid var(--cm-accent); padding-left: 8px; }
+.cm-near { margin: 4px 0; padding-left: 20px; font-size: 14px; }
+.cm-arc { font-size: 12px; line-height: 1.7; }
+.cm-arc span.on { background: var(--cm-ink); color: var(--cm-panel); padding: 1px 4px; }
+.cm-bar { display: inline-block; width: 100px; height: 8px; border: 1px solid var(--cm-ink); vertical-align: middle; margin-left: 6px; }
+.cm-bar i { display: block; height: 100%; background: var(--cm-accent); }
+.cm-auto { margin-top: 16px; }
+.cm-scroll { overflow-x: auto; }
+.cm-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.cm-table th { text-align: left; font-family: var(--mono, monospace); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 2px solid var(--cm-ink); padding: 4px; }
+.cm-table td { border-bottom: 1px solid var(--cm-line); padding: 3px 4px; white-space: nowrap; }
+.cm-table tr.run td { background: rgba(196, 92, 38, 0.1); }
+.cm-table input[type="number"] { width: 64px; }
+.cm-table input[type="range"] { width: 120px; }
+.cm-table select { width: auto; }
+@media (max-width: 1100px) {
+  .cm-grid { grid-template-columns: 1fr; }
+  .cm-stage { order: -1; }
+  .cm-grid > aside { max-height: none; }
+  .cm-view { height: 60vh; min-height: 320px; }
+}
