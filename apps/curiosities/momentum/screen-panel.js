@@ -162,10 +162,11 @@
     const reason = o.reasons[0] || "";
     const n = o.note;
     return `<div class="mo-sp-next">
-      <p class="mo-sp-name"><b>Next</b><small>compared with ${esc(about)}</small></p>
-      <p class="mo-sp-fam"><i style="background:${colorOf(o.family)}"></i><b>${esc(o.label)}</b><small>${esc(cueLabel(o.cue))} cue</small></p>
+      <p class="mo-sp-name"><b>Move attention next to</b></p>
+      <p class="mo-sp-fam"><i style="background:${colorOf(o.family)}"></i><b>${esc(o.label)}</b><small>${esc(cueLabel(o.cue))}</small></p>
       ${reason ? `<p class="mo-sp-why">${esc(reason)}</p>` : ""}
       ${n ? `<p class="mo-sp-why">Try: <b>${esc(n.label)}</b>. ${esc(n.tryThis || "")}</p>` : ""}
+      <p class="mo-sp-why"><small>Compared with ${esc(about)}.</small></p>
       <button type="button" data-mo-sp="move" title="Write a node at the playhead that moves attention to ${esc(o.label)} (one undo step)">Make this move here</button>
     </div>`;
   }

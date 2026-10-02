@@ -178,24 +178,24 @@
 .mo-stage-x { position: absolute; top: 12px; right: 16px; background: none; border: 0; color: #fff; font-size: 36px; cursor: pointer; }
 
 /* ---------- The momentum panel beside the Screen's Player (screen-panel.js). Dark, like the Screen. ---------- */
-.sc-player.mo-sp-host { grid-template-columns: minmax(0, 1fr) 224px; }
+.sc-player.mo-sp-host { grid-template-columns: minmax(0, 1fr) 204px; }
 .sc-player.mo-sp-host:has(> .mo-sp.folded) { grid-template-columns: minmax(0, 1fr) 34px; }
 .sc-player.mo-sp-host > .sc-ph, .sc-player.mo-sp-host > .sc-viewers, .sc-player.mo-sp-host > .sc-transport { grid-column: 1; }
 .sc-player.mo-sp-host > .mo-sp { grid-column: 2; grid-row: 1 / -1; }
-.mo-sp { min-width: 0; min-height: 0; overflow-y: auto; border-left: 1px solid var(--cc-line, #2e2e33); background: var(--cc-panel, #1c1c1e); color: var(--cc-text, #ececee); font-size: 12px; }
+.mo-sp { min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; border-left: 1px solid var(--cc-line, #2e2e33); background: var(--cc-panel, #1c1c1e); color: var(--cc-text, #ececee); font-size: 12px; }
 .mo-sp p { margin: 0; }
 .mo-sp button { font: inherit; color: inherit; background: var(--cc-raised, #2a2a2d); border: 1px solid var(--cc-line, #2e2e33); border-radius: 5px; padding: 2px 8px; cursor: pointer; }
 .mo-sp button:hover { background: var(--cc-hover, #34343a); }
 .mo-sp button:focus-visible, .mo-sp input:focus-visible { outline: 2px solid var(--cc-accent, #22d3ee); outline-offset: 1px; }
 .mo-sp-h { position: sticky; top: 0; z-index: 1; display: flex; gap: 6px; align-items: center; padding: 6px 8px; background: var(--cc-panel, #1c1c1e); border-bottom: 1px solid var(--cc-line, #2e2e33); }
 .mo-sp-h strong { margin-right: auto; }
-.mo-sp-body { display: grid; gap: 10px; padding: 8px; }
+.mo-sp-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 8px; }
 .mo-sp-empty, .mo-sp-flash { padding: 8px; color: var(--cc-dim, #9b9ba3); }
 .mo-sp-flash { color: var(--cc-accent, #22d3ee); }
-.mo-sp-film, .mo-sp-next { display: grid; gap: 4px; }
+.mo-sp-film, .mo-sp-next { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; min-width: 0; }
 .mo-sp-next { border-top: 1px solid var(--cc-line, #2e2e33); padding-top: 8px; }
 .mo-sp-name { display: flex; justify-content: space-between; gap: 6px; }
-.mo-sp-name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mo-sp-name b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mo-sp small { color: var(--cc-dim, #9b9ba3); }
 .mo-sp-fam { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
 .mo-sp-fam i { width: 9px; height: 9px; border-radius: 2px; flex: none; align-self: center; }
@@ -212,7 +212,7 @@
 .mo-sp-rib i.on { box-shadow: inset 0 0 0 2px #fff; }
 .mo-sp-why { color: var(--cc-dim, #9b9ba3); line-height: 1.35; }
 .mo-sp-why b { color: var(--cc-text, #ececee); }
-.mo-sp-next button { justify-self: start; margin-top: 2px; background: var(--cc-accent, #22d3ee); color: var(--cc-accent-ink, #062a31); border-color: transparent; font-weight: 600; }
+.mo-sp .mo-sp-next button { justify-self: start; margin-top: 2px; background: var(--cc-accent, #22d3ee); color: var(--cc-accent-ink, #062a31); border-color: transparent; font-weight: 600; }
 .mo-sp-foot { color: var(--cc-dim, #9b9ba3); line-height: 1.35; }
 .mo-sp-foot label { display: flex; gap: 4px; align-items: center; margin-top: 4px; color: var(--cc-text, #ececee); }
 .mo-sp.folded { overflow: hidden; }

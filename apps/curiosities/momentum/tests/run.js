@@ -147,6 +147,37 @@ ok("the engine's film gets attention and cue lanes, and a too-long stretch gets 
   const band = ME.band({ limit: 6 });
   assert.strictEqual(band.lanes.map((l) => l.id).join(","), "attention,cue");
 });
+ok("the Screen's view of the engine film reads one value per curiosity, and a Compass move is one engine undo step", () => {
+  const E = ctx.CurioEngine;
+  const ME = ctx.CurioMomentumEngine;
+  const st = E.state();
+  const flat = ME.flatBeats();
+  assert.strictEqual(flat.length, st.rows.length);
+  assert(flat.every((b) => Object.keys(b.values).every((k) => !k.includes("@"))), "no track suffixes");
+  const r = ctx.CurioAttention.read(flat, { limit: 12 });
+  const c = ctx.CurioCompass.point(r, [ctx.CurioRates.DEFAULT_FILMS[0]]);
+  const row = st.rows[2].id;
+  let mv = null;
+  for (const o of c.options) if ((mv = ME.moveAt(o, row))) break;
+  assert(mv, "some option moves");
+  assert.strictEqual(ctx.CurioMomentum.familyOf(mv.curiosity), mv.family);
+  const before = E.history().undo.length;
+  assert(ME.applyMove(mv).ok);
+  assert.strictEqual(String(E.value(row, mv.track, mv.curiosity)), String(mv.value));
+  assert.strictEqual(E.history().undo.length, before + 1);
+  E.undo();
+  assert.strictEqual(E.history().undo.length, before, "one undo step");
+  /* A family no track has yet adds its curiosity to a track first. */
+  const onTracks = new Set();
+  st.tracks.forEach((t) => t.curiosities.forEach((x) => onTracks.add(ctx.CurioMomentum.familyOf(x))));
+  const missing = ctx.CurioMomentum.FAMILIES.find((f) => !onTracks.has(f.id) && ME.moveAt({ family: f.id }, row));
+  if (missing) {
+    const m2 = ME.moveAt({ family: missing.id }, row);
+    assert.strictEqual(m2.commands[0].type, "addCuriosity");
+    assert(ME.applyMove(m2).ok);
+    E.undo();
+  }
+});
 ok("perform follows a board and sends the meter to the bridge", () => {
   const P = ctx.CurioPerform;
   const listeners = [];
