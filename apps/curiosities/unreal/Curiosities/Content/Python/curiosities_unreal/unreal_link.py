@@ -28,7 +28,8 @@ EYE = 1.6
 POLL = 0.25
 FPS = 24
 
-state = {"client": None, "tick": None, "since": 0.0, "panel": 0, "follow": True, "panels": [], "waiting": None}
+state = {"client": None, "tick": None, "since": 0.0, "panel": 0, "follow": True, "panels": [], "waiting": None,
+         "timeline": True}
 
 
 def say(text):
@@ -144,8 +145,16 @@ def _tick(dt):
     if not c:
         return
     for msg in c.poll():
-        if msg.get("type") == "panels":
-            state["panels"] = msg.get("panels") or []
+        kind = msg.get("type")
+        if kind == "timeline" and not msg.get("panels"):
+            _send({"type": "panels", "ids": list(cc.CURIOSITIES)})  # the engine has no film yet: My film's panels
+            continue
+        if kind == "error" and "unknown type timeline" in str(msg.get("error")):
+            state["timeline"] = False  # an app without the engine: ask for panels from now on
+            _send({"type": "panels", "ids": list(cc.CURIOSITIES)})
+            continue
+        if kind in ("panels", "timeline"):
+            state["panels"] = [{k: v for k, v in p.items() if k in cc.CURIOSITIES} for p in (msg.get("panels") or [])]
             done = state["waiting"]
             state["waiting"] = None
             if done:
@@ -161,7 +170,7 @@ def _tick(dt):
     state["since"] += dt
     if state["since"] >= POLL and state["waiting"] is None:
         state["since"] = 0.0
-        _send({"type": "panels", "ids": list(cc.CURIOSITIES)})
+        _ask()
 
 
 def follow(panels):
@@ -196,7 +205,12 @@ def _with_panels(fn):
     if not state["client"] and not connect():
         return
     state["waiting"] = fn
-    _send({"type": "panels", "ids": list(cc.CURIOSITIES)})
+    _ask()
+
+
+def _ask():
+    """The film: the engine's whole timeline (every moment) when the app has it, else My film's 8 panels."""
+    _send({"type": "timeline"} if state["timeline"] else {"type": "panels", "ids": list(cc.CURIOSITIES)})
 
 
 def _apply(label, values_per_panel):

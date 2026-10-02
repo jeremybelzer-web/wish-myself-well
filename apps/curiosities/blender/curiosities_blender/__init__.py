@@ -30,9 +30,16 @@ class _State(object):
     panels = []
     status = "Not connected"
     since_poll = 0.0
+    timeline = True  # False once the app says it has no engine
+    source = "panels"
 
 
 S = _State()
+
+
+def ask():
+    """The film: the engine's whole timeline (every moment) when the app has it, else My film's panels."""
+    S.client.send({"type": "timeline"} if S.timeline else {"type": "panels", "ids": IDS})
 
 
 def _redraw():
@@ -62,10 +69,17 @@ def tick():
         return None
     try:
         for msg in S.client.poll():
-            if msg.get("type") == "panels":
-                changed = msg.get("panels") != S.panels
-                S.panels = msg.get("panels") or []
-                S.status = "Connected: %d panels" % len(S.panels)
+            kind = msg.get("type")
+            if kind == "timeline" and not msg.get("panels"):
+                S.client.send({"type": "panels", "ids": IDS})  # the engine has no film yet: My film's panels
+            elif kind == "error" and "unknown type timeline" in str(msg.get("error")):
+                S.timeline = False  # an app without the engine
+                S.client.send({"type": "panels", "ids": IDS})
+            elif kind in ("panels", "timeline"):
+                got = [{k: v for k, v in p.items() if k in IDS} for p in (msg.get("panels") or [])]
+                changed = got != S.panels
+                S.panels, S.source = got, kind
+                S.status = "Connected: %d %s" % (len(S.panels), "moments of the engine's film" if kind == "timeline" else "panels")
                 scene = bpy.context.scene
                 if changed and scene and scene.curio_follow:
                     follow(scene)
@@ -76,7 +90,7 @@ def tick():
         S.since_poll += TICK
         if S.since_poll >= POLL_EVERY:
             S.since_poll = 0.0
-            S.client.send({"type": "panels", "ids": IDS})
+            ask()
     except (OSError, ConnectionError) as e:
         S.client, S.status = None, "Disconnected: %s" % e
         _redraw()
@@ -101,8 +115,8 @@ class CURIO_OT_connect(bpy.types.Operator):
             S.client, S.status = None, "Could not connect: %s. Is the desktop app open?" % e
             self.report({"WARNING"}, S.status)
             return {"CANCELLED"}
-        S.status, S.since_poll = "Connected", POLL_EVERY
-        S.client.send({"type": "panels", "ids": IDS})
+        S.status, S.since_poll, S.timeline = "Connected", POLL_EVERY, True
+        ask()
         if not bpy.app.timers.is_registered(tick):
             bpy.app.timers.register(tick, first_interval=TICK)
         return {"FINISHED"}
@@ -111,7 +125,7 @@ class CURIO_OT_connect(bpy.types.Operator):
 class CURIO_OT_key_shots(bpy.types.Operator):
     bl_idname = "curio.key_shots"
     bl_label = "Key shots"
-    bl_description = "One shot per storyboard panel on CurioCam, back to back, with timeline markers"
+    bl_description = "One shot per moment of the film (the engine's timeline, or the storyboard panels) on CurioCam, back to back, with timeline markers"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -176,7 +190,7 @@ CLASSES = (CURIO_OT_connect, CURIO_OT_key_shots, CURIO_OT_read_camera, CURIO_PT_
 PROPS = {
     "curio_url": lambda: bpy.props.StringProperty(name="Bridge", default="ws://127.0.0.1:7577"),
     "curio_follow": lambda: bpy.props.BoolProperty(name="Follow board", default=True, update=_on_panel),
-    "curio_panel": lambda: bpy.props.IntProperty(name="Panel", default=1, min=1, max=64, update=_on_panel),
+    "curio_panel": lambda: bpy.props.IntProperty(name="Panel", default=1, min=1, max=999, update=_on_panel),
     "curio_eye": lambda: bpy.props.FloatProperty(name="Eyes (m)", default=1.6, min=0.1, max=10.0, update=_on_panel),
     "curio_subject": lambda: bpy.props.PointerProperty(name="Subject", type=bpy.types.Object, update=_on_panel),
 }

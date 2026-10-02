@@ -3,7 +3,7 @@ a small channel carries each storyboard panel's camera curiosities to a Maya cam
 
     import curiosities_maya; curiosities_maya.show()
 
-Follow board: the camera takes the chosen panel's curiosities as they change (automation included).
+Follow board: the camera takes the chosen moment (the engine's whole film when it has one, else the storyboard panel)'s curiosities as they change (automation included).
 Key shots: one shot per panel on curioCam, keyed, with a Camera Sequencer shot each.
 Read camera: the camera at the start of each shot, read back onto the board as the strand "Maya camera".
 Subject: the selected object (its pivot is the subject's feet); otherwise the origin."""

@@ -104,10 +104,12 @@ class Resolve(object):
 
 
 class FakeBridge(object):
-    """Answers like the desktop app: panels, apply (no answer), errors."""
+    """Answers like the desktop app: panels, apply (no answer), errors. timeline=None is an app without the engine
+    (it answers "unknown type"); a list is the engine's film, every moment."""
 
-    def __init__(self, panels):
+    def __init__(self, panels, timeline=None):
         self.panels, self.sent, self.queue, self.closed, self.applied = panels, [], [], False, None
+        self.timeline = timeline
 
     def send(self, msg):
         self.sent.append(msg)
@@ -117,6 +119,11 @@ class FakeBridge(object):
             self.queue.append({"type": "panels", "panels": [{k: v for k, v in p.items() if not ids or k in ids} for p in self.panels]})
         elif msg["type"] == "apply":
             self.applied = msg
+        elif msg["type"] == "timeline" and self.timeline is not None:
+            self.queue.append({"type": "timeline", "name": "Film", "rows": [{"id": "r%d" % i, "label": str(i)} for i in range(len(self.timeline))],
+                               "tracks": [], "panels": self.timeline, "byTrack": {}})
+        else:
+            self.queue.append({"type": "error", "error": "unknown type " + msg["type"]})
 
     def poll(self):
         out, self.queue = self.queue, []
@@ -174,6 +181,19 @@ class InResolve(unittest.TestCase):
         ours = [f for f, m in tl.markers.items() if m["customData"].startswith("curio:")]
         self.assertEqual(ours, [0])
         self.assertIn(500, tl.markers, "other people's markers stay")
+
+    def test_send_uses_the_engines_whole_film(self):
+        tl = Timeline(clips=[(0, 24 * 600)])
+        film = [{"shotSize": "wide", "shotDuration": "short", "laughsPerMinute": 1}] * 12
+        bridge = FakeBridge(PANELS, timeline=film)
+        self.assertEqual(rl.send_storyboard(Resolve(tl), client=bridge), 12)
+        self.assertEqual([m["type"] for m in bridge.sent], ["timeline"])
+
+    def test_send_falls_back_to_the_storyboard(self):
+        for timeline in (None, []):  # an app without the engine, an engine with no film yet
+            bridge = FakeBridge(PANELS, timeline=timeline)
+            self.assertEqual(rl.send_storyboard(Resolve(Timeline(clips=[(0, 2400)])), client=bridge), 3)
+            self.assertEqual([m["type"] for m in bridge.sent], ["timeline", "panels"])
 
     def test_send_makes_a_timeline_when_none_is_open(self):
         r = Resolve(None)

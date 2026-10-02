@@ -1,5 +1,5 @@
 /* Injected into the Curiosities app by the Maya panel (panel.py), never loaded by index.html.
-   Sends what each storyboard panel plays (its camera curiosities, running automation included) to Maya
+   Sends what each moment of the film plays (the engine's whole timeline when it has one, else each storyboard panel) (its camera curiosities, running automation included) to Maya
    whenever it changes, and takes a camera read back from Maya as the applied strand "Maya camera". */
 (function () {
   if (window.CurioMaya || typeof QWebChannel === "undefined" || !window.qt) return;
@@ -7,9 +7,15 @@
   let host = null;
   let last = "";
 
+  /* The film: the engine's whole timeline (every moment) when it has one, else My film's panels. */
+  function film() {
+    const B = window.CurioBridge;
+    const t = B && typeof B.handle === "function" ? B.handle({ type: "timeline" }) : null;
+    if (t && t.type === "timeline" && Array.isArray(t.panels) && t.panels.length) return t.panels;
+    return window.CuriosityBoard ? window.CuriosityBoard.panels() : [];
+  }
   function panels() {
-    if (!window.CuriosityBoard) return [];
-    return window.CuriosityBoard.panels().map((st) => {
+    return film().map((st) => {
       const out = {};
       IDS.forEach((id) => st[id] != null && st[id] !== "" && (out[id] = st[id]));
       return out;

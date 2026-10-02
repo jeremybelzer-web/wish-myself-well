@@ -36,3 +36,7 @@ The scripts run inside Resolve from its own menu, which works in the free versio
 - It has not been run inside Resolve; there is no Resolve here. The scripting calls (`GetCurrentTimeline`, `GetItemListInTrack`, `AddMarker`, `GetMarkers`, `DeleteMarkerAtFrame`, `CreateEmptyTimeline`, `GetSetting("timelineFrameRate")`) and the scripts folders are written from memory of Resolve's scripting documentation.
 - Marker frames are taken as counted from the timeline's start, and clip frames as absolute. That is how I remember the API working, and it is the first thing to check in a real Resolve.
 - The tests use a stand-in Resolve. The two bridge entries were also run against the real desktop app: the storyboard came out as markers, and an edit went back onto the board as "Resolve edit".
+
+## Whole films from the engine
+
+The plugin asks the app for `{type: "timeline"}` first: when the engine (Library > Engine) has a film, every moment of it arrives, not just My film's 8 storyboard panels, so Key shots and markers cover the whole film. With no engine film yet, or an older app, it asks for `panels` as before. Reading a camera or an edit back still lands on My film as a named strand.
