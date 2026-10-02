@@ -52,6 +52,7 @@
         barndoor: 0,
         gobo: "none",
         blocker: false,
+        flicker: 0,
       },
       o || {}
     );
@@ -132,7 +133,7 @@
     },
   ];
 
-  const DEFAULTS = { camExp: 0, haze: 0, look: "realistic", bands: 3, sel: 0, lights: PRESETS[0].lights };
+  const DEFAULTS = { camExp: 0, haze: 0, look: "realistic", bands: 3, sel: 0, lights: PRESETS[0].lights, beatCount: 4, beats: [], beatSel: 0 };
 
   function clone(o) {
     return JSON.parse(JSON.stringify(o));
@@ -553,7 +554,8 @@
     let key = null,
       best = -1;
     Ls.forEach((L) => {
-      if (L.type === "skydome" && Ls.some((o) => o.type !== "skydome")) return;
+      if (effective(L.src) < 0.05) return;
+      if (L.type === "skydome" && Ls.some((o) => o.type !== "skydome" && effective(o.src) >= 0.05)) return;
       const v = Math.max.apply(null, probes.map((n) => at(n, L)));
       if (v > best) {
         best = v;
@@ -645,6 +647,219 @@
     return out;
   }
 
+  /* ---------- light through time ---------- */
+
+  /* A beat stores a snapshot of the rig. ease says where in the beat the change lands:
+     cut (on the cut), action (a switch flicked partway in), fade (spread over the hold). */
+  function snap(st, ease) {
+    return { lights: clone(st.lights), camExp: st.camExp, haze: st.haze, ease: ease || "fade" };
+  }
+  function beatsOf(lights, ease, o) {
+    return Object.assign({ lights: lights.map((L) => light(L.type, L)), camExp: 0, haze: 0, ease }, o || {});
+  }
+  const sky = (e, c) => light("skydome", { x: 20, y: 180, exposure: e, sky: c || "#1a2440", useK: false });
+  const lamp = (e, o) => light("mesh", Object.assign({ x: 74, y: 86, elev: -8, exposure: e, kelvin: 2700, size: 0.5 }, o || {}));
+
+  const ANIMS = [
+    {
+      name: "Practical switch-on",
+      note: "A dark room under a blue sky fill. On beat 3 a hand reaches the lamp and it comes on: the key moves to the practical.",
+      beats: [
+        beatsOf([sky(-1), lamp(-6)], "cut", { camExp: 0.3 }),
+        beatsOf([sky(-1), lamp(-6)], "cut", { camExp: 0.3 }),
+        beatsOf([sky(-1), lamp(3.4)], "action", { camExp: 0.3 }),
+        beatsOf([sky(-1), lamp(3.4)], "cut", { camExp: 0.3 }),
+      ],
+    },
+    {
+      name: "Fire flicker",
+      note: "A low fire grows over four beats. It flickers through every hold and warms as it builds.",
+      beats: [1.5, 2.3, 3, 3.6].map((e, i) =>
+        beatsOf([sky(-3, "#203048"), light("mesh", { x: 66, y: 122, elev: -25, exposure: e, kelvin: 2600 - i * 250, size: 0.8, flicker: 0.7 })], "fade", { haze: 0.12 })
+      ),
+    },
+    {
+      name: "Lightning flash",
+      note: "Night. On beat 3 a white flash cuts in through the window and is gone on the next cut.",
+      beats: [0, 1, 2, 3, 4].map((i) =>
+        beatsOf(
+          [sky(-1.4), light("directional", { x: 30, y: 70, elev: 30, exposure: i === 2 ? 3.5 : -6, kelvin: 9000, size: 0.05, gobo: "window" })],
+          "cut",
+          { haze: i === 2 ? 0.3 : 0.1, camExp: -0.3 }
+        )
+      ),
+    },
+    {
+      name: "Police lights",
+      note: "Red and blue from outside, swapping on every cut.",
+      beats: [0, 1, 2, 3, 4, 5].map((i) =>
+        beatsOf(
+          [
+            sky(-3),
+            light("point", { x: 30, y: 120, elev: 10, exposure: i % 2 ? -6 : 5, useK: false, color: "#ff2a2a", size: 0.1 }),
+            light("point", { x: 170, y: 120, elev: 10, exposure: i % 2 ? 5 : -6, useK: false, color: "#2a5cff", size: 0.1 }),
+          ],
+          "cut",
+          { haze: 0.15 }
+        )
+      ),
+    },
+    {
+      name: "Dusk fall",
+      note: "The sun sinks and reddens across the holds, the sky goes blue, and on the last beat the lamp is switched on.",
+      beats: [
+        [30, 5200, 1.6, -1],
+        [20, 4200, 1.3, -1.2],
+        [10, 3000, 0.8, -1.5],
+        [3, 2200, -0.5, -1.6],
+        [3, 2200, -1.5, -1.6],
+      ].map(([el, k, e, s], i) =>
+        beatsOf([light("directional", { x: 30, y: 85, elev: el, exposure: e, kelvin: k, size: 0.2 }), sky(s, i < 2 ? "#9fb6d6" : "#3a4c80"), lamp(i === 4 ? 3.4 : -6)], i === 4 ? "action" : "fade", { haze: 0.15 })
+      ),
+    },
+  ];
+
+  /* Fill empty beats with the one before (or the first keyed beat). */
+  function resolveBeats(st) {
+    const n = st.beatCount;
+    const b = (st.beats || []).slice(0, n);
+    const first = b.find((x) => x) || snap(st);
+    const out = [];
+    for (let j = 0; j < n; j++) out.push(b[j] ? { s: b[j], own: true } : { s: j ? out[j - 1].s : first, own: false });
+    return out;
+  }
+
+  function mixLight(a, b, f) {
+    if (!a) a = Object.assign({}, b, { intensity: 0 });
+    if (!b) b = Object.assign({}, a, { intensity: 0 });
+    const m = (k) => a[k] + (b[k] - a[k]) * f;
+    const o = Object.assign({}, f < 0.5 ? a : b);
+    ["x", "y", "elev", "intensity", "exposure", "size", "cone", "penumbra", "barndoor", "flicker"].forEach((k) => (o[k] = m(k) || 0));
+    /* Fade through black from a dark light: blend effective intensity, not exposure. */
+    const ea = a.intensity * Math.pow(2, a.exposure),
+      eb = b.intensity * Math.pow(2, b.exposure);
+    o.intensity = ea + (eb - ea) * f;
+    o.exposure = 0;
+    const ca = lightColor(a),
+      cb = lightColor(b);
+    if (a.useK && b.useK && a.type !== "skydome") o.kelvin = m("kelvin");
+    else {
+      const c = rgbHex(ca.map((v, i) => v + (cb[i] - v) * f));
+      if (o.type === "skydome") o.sky = c;
+      else {
+        o.useK = false;
+        o.color = c;
+      }
+    }
+    return o;
+  }
+
+  function easeAt(e, u) {
+    if (e === "cut") return 1;
+    if (e === "action") return u >= 0.35 ? 1 : 0;
+    return clamp(u / 0.9, 0, 1);
+  }
+
+  /* The rig at time t (in beats). */
+  function frameAt(st, t) {
+    const R = resolveBeats(st);
+    const j = clamp(Math.floor(t), 0, R.length - 1);
+    const prev = j ? R[j - 1].s : R[j].s;
+    const cur = R[j].s;
+    const f = R[j].own && j ? easeAt(cur.ease, t - j) : 1;
+    const n = Math.max(prev.lights.length, cur.lights.length);
+    const lights = [];
+    for (let i = 0; i < n; i++) {
+      const L = mixLight(prev.lights[i], cur.lights[i], f);
+      if (L.flicker > 0.02) {
+        const q = Math.sin(t * 37.1 + i) * 0.5 + Math.sin(t * 61.7 + i * 2) * 0.3 + Math.sin(t * 13.3) * 0.2;
+        L.intensity *= 1 - L.flicker * 0.45 * (0.5 + 0.5 * q);
+      }
+      lights.push(L);
+    }
+    return {
+      lights,
+      camExp: prev.camExp + (cur.camExp - prev.camExp) * f,
+      haze: prev.haze + (cur.haze - prev.haze) * f,
+      look: st.look,
+      bands: st.bands,
+    };
+  }
+
+  function rigDiffers(a, b) {
+    const n = Math.max(a.lights.length, b.lights.length);
+    for (let i = 0; i < n; i++) {
+      const p = a.lights[i],
+        q = b.lights[i];
+      if (!p || !q) return true;
+      const ep = effective(p),
+        eq = effective(q);
+      if (Math.max(ep, eq) > 0.05 && Math.max(ep, eq) / Math.max(1e-3, Math.min(ep, eq)) > 1.25) return true;
+      if (Math.abs(colorKelvin(p) - colorKelvin(q)) > 250) return true;
+      if (Math.hypot(p.x - q.x, p.y - q.y) > 4 || Math.abs(p.elev - q.elev) > 5) return true;
+    }
+    return Math.abs(a.haze - b.haze) > 0.05;
+  }
+
+  const CHANGE = { cut: "on the cut", action: "on the action", fade: "during the hold" };
+
+  /* Per-beat measurements: key, contrast, colorTemp, lightChange and what fires for the proximities. */
+  function measureBeats(st) {
+    const R = resolveBeats(st);
+    return R.map((r, j) => {
+      const s = Object.assign({ look: st.look }, r.s);
+      const m = measure(s);
+      const v = curiosities(s, m);
+      let change = "never";
+      if (j && r.own && rigDiffers(R[j - 1].s, r.s)) change = CHANGE[r.s.ease] || "during the hold";
+      else if (s.lights.some((L) => (L.flicker || 0) > 0.05 && effective(L) > 0.05)) change = "during the hold";
+      const glow = s.lights.filter((L) => L.type === "mesh").reduce((a, L) => a + effective(L), 0);
+      return { v, m, change, glow, keyType: m.keyLight ? m.keyLight.type : "none", kelvin: m.keyLight ? colorKelvin(m.keyLight) : 0 };
+    });
+  }
+
+  function overallChange(B) {
+    const c = {};
+    B.forEach((b) => b.change !== "never" && (c[b.change] = (c[b.change] || 0) + 1));
+    const k = Object.keys(c).sort((a, b) => c[b] - c[a]);
+    return k[0] || "never";
+  }
+
+  /* Volume per beat from the board: an applied strand's per-panel volume, else the live control. */
+  function boardVolumes(n) {
+    let vals = null;
+    try {
+      const s = JSON.parse(localStorage.getItem("curiosities-board-v2") || "null");
+      if (s && s.applied && s.applied.values && s.applied.values.volume && s.applied.values.volume.length) vals = s.applied.values.volume.map(Number);
+    } catch (e) {}
+    if (!vals) {
+      const b = window.CuriosityBoard && window.CuriosityBoard.values ? window.CuriosityBoard.values() : {};
+      vals = [Number(b.volume) || 0];
+    }
+    return Array.from({ length: n }, (_, i) => vals[i % vals.length]);
+  }
+
+  /* Lighting proximities from the Maya map, checked on the beat strip. */
+  function proximities(B) {
+    const n = B.length;
+    const vol = boardVolumes(n);
+    const check = (label, within, xs, y) => {
+      const fires = [];
+      for (let j = 1; j < n; j++) if (xs(j)) fires.push(j);
+      if (!fires.length) return { label, within, state: "idle", text: "the first half never happens in this strip" };
+      const held = fires.filter((j) => {
+        for (let k = j; k <= Math.min(n - 1, j + within); k++) if (y(k, j)) return true;
+        return false;
+      });
+      return { label, within, state: held.length === fires.length ? "holds" : "breaks", text: `${held.length} of ${fires.length} (beat${fires.length > 1 ? "s" : ""} ${fires.map((j) => j + 1).join(", ")})` };
+    };
+    return [
+      check("When a practical switches on, the key moves to it", 0, (j) => B[j].glow > 0.5 && B[j].glow > B[j - 1].glow * 2, (k) => B[k].keyType === "mesh"),
+      check("When the volume drops, the contrast rises", 2, (j) => vol[j] < vol[j - 1], (k, j) => B[k].m.stops > B[j - 1].m.stops + 0.3),
+      check("When a glow or fire builds, the key warms", 1, (j) => B[j].glow > 0.5 && B[j].glow > B[j - 1].glow * 1.2, (k, j) => B[k].kelvin && B[k].kelvin < B[j - 1].kelvin - 50),
+    ];
+  }
+
   /* ---------- UI ---------- */
 
   const CSS = `
@@ -668,6 +883,15 @@
   .lt-box { border: 1px solid var(--line); background: var(--panel); padding: 10px; margin: 0 0 12px; }
   .lt-box h3 { margin: 0 0 8px; font-family: var(--serif); font-weight: 500; font-size: 16px; }
   .studio-body .lt-render canvas { image-rendering: auto; }
+  .lt-beats { display: grid; grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); gap: 4px; margin: 0 0 8px; }
+  .lt-beats button { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); background: white; padding: 4px 2px; cursor: pointer; text-align: center; line-height: 1.4; }
+  .lt-beats button.empty { border-style: dashed; color: #8a7d6f; }
+  .lt-beats button.on { outline: 3px solid var(--saffron); outline-offset: -3px; }
+  .lt-beats button.now { background: var(--ink); color: var(--paper); }
+  .lt-beats i { display: block; height: 8px; margin: 2px 4px 0; border: 1px solid var(--line); }
+  .lt-prox { font-size: 13px; margin: 0 0 4px; }
+  .lt-prox b { font-family: var(--mono); font-size: 10px; text-transform: uppercase; padding: 1px 4px; border: 1px solid currentColor; margin-right: 6px; }
+  .lt-prox.holds b { color: #2f7a3a; } .lt-prox.breaks b { color: var(--saffron); } .lt-prox.idle b { color: #8a7d6f; }
   .studio-body .lt-render.crisp canvas { image-rendering: pixelated; }
   `;
   function injectCss() {
@@ -683,7 +907,12 @@
     const esc = api.esc;
     const db = api.store(KEY);
     let st = Object.assign(clone(DEFAULTS), db.get({}) || {});
-    st.lights = (st.lights || []).map((L) => light(L.type in TYPES ? L.type : "point", L));
+    const norml = (ls) => (ls || []).map((L) => light(L.type in TYPES ? L.type : "point", L));
+    st.lights = norml(st.lights);
+    st.beatCount = clamp(Number(st.beatCount) || 4, 4, 8);
+    st.beats = (st.beats || []).map((b) => (b ? Object.assign({}, b, { lights: norml(b.lights) }) : null));
+    st.beatSel = clamp(Number(st.beatSel) || 0, 0, st.beatCount - 1);
+    let playing = null;
     if (st.sel >= st.lights.length) st.sel = st.lights.length - 1;
     let preset = "";
     const save = () => db.set(st);
@@ -728,6 +957,7 @@
           ${check("blocker", "Blocker (cuts the lower beam)", L.blocker)}`
             : ""
         }
+        ${point ? rng("flicker", "Flicker (plays in time)", 0, 1, 0.05, L.flicker || 0) : ""}
         <button type="button" data-act="remove">Remove light</button>
       </div>`;
     }
@@ -759,6 +989,26 @@
         <div class="lt-read" data-out="read"></div>
         <div data-out="chips"></div>
         <p><button type="button" data-act="board">Send to board</button> <span class="cap" data-out="boardNote"></span></p>
+        <div class="lt-box lt-time">
+          <h3>Light through time</h3>
+          <p class="cap" style="margin-bottom:8px">Each beat keeps a snapshot of the rig. Pick a beat, set the lights, press Key beat. Play cross-fades between them in the render.</p>
+          <div class="lt-row">
+            <label class="field">Animated preset<select data-t="anim"><option value="">Choose a change</option>${ANIMS.map((a, i) => `<option value="${i}">${esc(a.name)}</option>`).join("")}</select></label>
+            <label class="field">Beats<select data-t="beatCount">${[4, 5, 6, 7, 8].map((n) => `<option ${n === st.beatCount ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+          </div>
+          <p class="cap" data-out="anote" style="margin:-4px 0 8px"></p>
+          <div class="lt-beats" data-out="beats"></div>
+          <div class="lt-add">
+            <button type="button" data-act="keybeat">Key beat</button>
+            <button type="button" data-act="clearbeat">Clear beat</button>
+            <label class="lt-check" style="margin:0">Change lands <select data-t="ease"><option value="cut">on the cut</option><option value="action">on the action</option><option value="fade">during the hold</option></select></label>
+            <button type="button" data-act="play">Play</button>
+          </div>
+          <div data-out="beatRead"></div>
+          <p class="group-label">Lighting proximities</p>
+          <div data-out="prox"></div>
+          <p><button type="button" data-act="shelf">Keep on Shelf</button> <span class="cap">Keeps key, contrast, colorTemp, lightChange and lighting, one value per beat.</span></p>
+        </div>
       </div>
     </div>`;
 
@@ -844,6 +1094,7 @@
         out("chips").innerHTML = `<p class="group-label">Curiosities this setup produces</p><p>${Object.entries(v)
           .map(([k, val]) => `<span class="chip ${bv[k] ? "lit" : ""}" title="${bv[k] ? "Live on the board" : "Recorded in a study"}">${esc(k)}: ${esc(val)}${k === "colorTemp" ? " K" : k === "contrast" ? " stops" : ""}</span>`)
           .join("")}</p>`;
+        drawTime();
         out("boardNote").textContent = Object.keys(bv).length ? `Sends ${Object.keys(bv).join(", ")} to all four panels.` : "None of these are live on the board yet.";
       });
     }
@@ -983,6 +1234,129 @@
     };
     svg.addEventListener("pointerup", end);
     svg.addEventListener("pointercancel", end);
+
+    function drawTime(now) {
+      const R = resolveBeats(st);
+      const B = measureBeats(st);
+      out("beats").innerHTML = R.map((r, j) => {
+        const k = r.s.lights.reduce((a, L) => (effective(L) > (a ? effective(a) : 0.05) ? L : a), null);
+        const c = k ? rgbHex(lightColor(k)) : "#333";
+        return `<button type="button" data-beat="${j}" class="${r.own ? "" : "empty"} ${j === st.beatSel ? "on" : ""} ${j === now ? "now" : ""}" title="${r.own ? "Keyed, " + esc(CHANGE[r.s.ease] || "") : "Holds the beat before"}">${j + 1}${r.own ? " ●" : ""}<br>${esc(B[j].v.key)} ${esc(B[j].v.contrast)}st<i style="background:${c}"></i></button>`;
+      }).join("");
+      const sel = R[st.beatSel];
+      const es = el.querySelector('[data-t="ease"]');
+      if (es && sel && sel.own) es.value = sel.s.ease || "fade";
+      out("beatRead").innerHTML = `<p class="cap mono" style="margin-bottom:8px">lightChange: <b>${esc(overallChange(B))}</b> · per beat: ${B.map((b) => esc(b.change)).join(" / ")}</p>`;
+      out("prox").innerHTML = proximities(B)
+        .map((p) => `<p class="lt-prox ${p.state}"><b>${p.state === "idle" ? "no test" : p.state === "holds" ? "holds" : "doesn’t hold"}</b>${esc(p.label)} (within ${p.within} beat${p.within === 1 ? "" : "s"}): ${esc(p.text)}</p>`)
+        .join("");
+    }
+
+    function syncGlobals() {
+      ["camExp", "haze"].forEach((g) => {
+        el.querySelector(`[data-g="${g}"]`).value = st[g];
+        out(g).textContent = Math.round(st[g] * 100) / 100;
+      });
+    }
+    function loadBeat(j) {
+      const b = (st.beats || [])[j];
+      if (!b) return;
+      st.lights = clone(b.lights);
+      st.camExp = b.camExp;
+      st.haze = b.haze;
+      st.sel = Math.min(st.sel, st.lights.length - 1);
+      syncGlobals();
+    }
+    function stop() {
+      if (playing) cancelAnimationFrame(playing.raf);
+      playing = null;
+      const b = el.querySelector('[data-act="play"]');
+      if (b) b.textContent = "Play";
+      update(false);
+    }
+    function play() {
+      if (playing) return stop();
+      const t0 = performance.now();
+      const per = 1100;
+      el.querySelector('[data-act="play"]').textContent = "Stop";
+      let last = -1;
+      const tick = (now) => {
+        if (!el.isConnected) return (playing = null);
+        const t = (now - t0) / per;
+        if (t >= st.beatCount) return stop();
+        render(frameAt(st, t), canvas);
+        const j = Math.floor(t);
+        if (j !== last) {
+          last = j;
+          drawTime(j);
+        }
+        playing.raf = requestAnimationFrame(tick);
+      };
+      playing = { raf: requestAnimationFrame(tick) };
+    }
+
+    el.addEventListener("click", (e) => {
+      const bt = e.target.closest("[data-beat]");
+      const act = e.target.closest("[data-act]");
+      if (bt) {
+        st.beatSel = Number(bt.dataset.beat);
+        loadBeat(st.beatSel);
+        save();
+        update(true);
+      } else if (act && act.dataset.act === "keybeat") {
+        const es = el.querySelector('[data-t="ease"]');
+        st.beats[st.beatSel] = snap(st, es ? es.value : "fade");
+        if (st.beatSel < st.beatCount - 1) st.beatSel++;
+        save();
+        update(false);
+      } else if (act && act.dataset.act === "clearbeat") {
+        st.beats[st.beatSel] = null;
+        save();
+        update(false);
+      } else if (act && act.dataset.act === "play") {
+        play();
+      } else if (act && act.dataset.act === "shelf") {
+        const B = measureBeats(st);
+        const vals = {
+          key: B.map((b) => b.v.key),
+          contrast: B.map((b) => b.v.contrast),
+          colorTemp: B.map((b) => b.v.colorTemp),
+          lightChange: B.map((b) => b.change),
+          lighting: B.map((b) => b.v.lighting),
+          practicalInFrame: B.map((b) => b.v.practicalInFrame),
+        };
+        if (api.toShelf) api.toShelf(`Light: ${animName || preset || "rig"}`, vals);
+      }
+    });
+    let animName = "";
+    el.querySelectorAll("[data-t]").forEach((inp) =>
+      inp.addEventListener("change", () => {
+        const k = inp.dataset.t;
+        if (k === "beatCount") {
+          st.beatCount = Number(inp.value);
+          st.beatSel = Math.min(st.beatSel, st.beatCount - 1);
+        } else if (k === "ease") {
+          const b = st.beats[st.beatSel];
+          if (b) b.ease = inp.value;
+        } else if (k === "anim") {
+          if (inp.value === "") return;
+          const a = ANIMS[Number(inp.value)];
+          animName = a.name;
+          st.beats = clone(a.beats);
+          st.beatCount = a.beats.length;
+          el.querySelector('[data-t="beatCount"]').value = String(st.beatCount);
+          st.beatSel = 0;
+          st.sel = 0;
+          loadBeat(0);
+          out("anote").textContent = a.note;
+          save();
+          update(true);
+          return;
+        }
+        save();
+        update(false);
+      })
+    );
 
     update(false);
   }
