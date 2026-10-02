@@ -17,7 +17,8 @@
      { type: "panels", panels: [{ <curiosity id>: value }] }
      { type: "timeline", name, rows: [{ id, label }], tracks: [{ id, kind, label }], panels: [{ <curiosity id>: value }],
        byTrack: { <track id>: [{ <curiosity id>: value }] } }
-     { type: "value", key, m }                         a running parameter's position, 0 to 1
+     { type: "value", key, m }                         a running parameter's position, 0 to 1 (and addSource values:
+                                                       m:attention, m:over, m:momentum, m:family, m:compass)
      { type: "error", error }
 
    Keys are automation.js keys: "c:<curiosity>", "s:<suite>", "p:<proximity>", "ps:<proximity suite>",
@@ -84,11 +85,36 @@
     return { type: "error", error: "unknown type " + msg.type };
   }
 
+  /* Other parts of the app can send values out too: addSource(fn), fn() -> [{ type: "value", key, m }].
+     Momentum (momentum/perform.js) adds m:attention, m:over, m:momentum, m:family and m:compass, each 0 to 1,
+     which go out over OSC as /curio/value/m/<name>. The bridge's own values come first; a source that throws or
+     sends something that is not a value is skipped. */
+  const sources = [];
+  function addSource(fn) {
+    if (typeof fn !== "function") return () => {};
+    sources.push(fn);
+    return () => {
+      const i = sources.indexOf(fn);
+      if (i >= 0) sources.splice(i, 1);
+    };
+  }
+
   /* Where every running parameter sits now, for a bridge to send out. */
   function values() {
     const A = auto();
-    if (!A) return [];
-    return A.running().map((key) => ({ type: "value", key, m: A.m(key) }));
+    const out = A ? A.running().map((key) => ({ type: "value", key, m: A.m(key) })) : [];
+    sources.forEach((fn) => {
+      let got;
+      try {
+        got = fn();
+      } catch (e) {
+        return;
+      }
+      (Array.isArray(got) ? got : []).forEach((v) => {
+        if (v && typeof v.key === "string" && Number.isFinite(v.m)) out.push({ type: "value", key: v.key, m: clamp(v.m) });
+      });
+    });
+    return out;
   }
 
   /* "/curio/set/c/angleHeight", [0.42] -> { type: "set", key: "c:angleHeight", m: 0.42 } */
@@ -108,5 +134,5 @@
     return { address: "/curio/" + msg.type + path, args };
   }
 
-  window.CurioBridge = { handle, values, fromOsc, toOsc, TIMELINE: true };
+  window.CurioBridge = { handle, values, addSource, fromOsc, toOsc, TIMELINE: true };
 })();

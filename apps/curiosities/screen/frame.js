@@ -1,0 +1,158 @@
+/* screen/frame.js: draws one storyboard frame from curiosity values, as SVG. Part of the Screen core (no page).
+
+   The beta is storyboards first (Jeremy, 2026-10-02), so a "film" in a viewer is a curated film's beats drawn
+   as cheap flip-book frames: counts and settings only, no footage. Every drawn part belongs to one of the
+   major categories (screen/levels.js), so a viewer can light up only what the selected curiosity is about
+   ("Highlight"), or draw only that ("Lens only").
+
+   window.CurioFrame
+   - svg(values, opts) -> an <svg> string
+       values  { curiosityId: value } for this beat
+       opts    { highlight: [category ids] (others are dimmed), only: true (draw only the highlighted
+                 categories), labels: [[label, value]] (an overlay box), cast: number of people, title } */
+(function () {
+  const root = typeof window !== "undefined" ? window : globalThis;
+  const W = 320;
+  const H = 180;
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const num = (v, d) => (v == null || v === "" || !isFinite(Number(v)) ? d : Number(v));
+  const has = (v, re) => v != null && re.test(String(v));
+
+  function wallColor(v) {
+    const warm = String(v.warmCool || "neutral");
+    let hue = warm.includes("very warm") ? 28 : warm.includes("warm") ? 36 : warm.includes("very cool") ? 205 : warm.includes("cool") ? 200 : 40;
+    let sat = has(v.colorRange, /vivid/) ? 55 : has(v.colorRange, /muted/) ? 14 : has(v.colorRange, /black and white|mono/) ? 0 : 32;
+    let light = 82;
+    if (has(v.lightingMood, /dark|dim/) || has(v.timeOfDay, /night/) || has(v.valueKey, /low/)) light = 34;
+    else if (has(v.timeOfDay, /dusk|dawn/)) light = 60;
+    else if (has(v.lightingMood, /bright/)) light = 90;
+    if (has(v["colorRange.paletteHue"], /./)) {
+      const H2 = { red: 0, orange: 25, yellow: 50, green: 120, teal: 175, blue: 210, purple: 275, pink: 330 };
+      const h = H2[String(v["colorRange.paletteHue"])];
+      if (h != null) hue = h;
+    }
+    return { wall: `hsl(${hue} ${sat}% ${light}%)`, floor: `hsl(${hue} ${Math.max(0, sat - 8)}% ${Math.max(18, light - 22)}%)`, dark: light < 50 };
+  }
+  function shirt(v, back) {
+    const cost = String(back ? v.backCost || "" : v.mainCost || "");
+    const era = String(back ? v.backEra || "" : v.mainEra || "");
+    let hue = /1970/.test(era) ? 30 : /1950|victorian|1800/.test(era) ? 280 : /1990/.test(era) ? 160 : 215;
+    if (back && has(v.backSameness, /uniform/)) hue = 120;
+    const light = /smart|formal|rich/.test(cost) ? 32 : /cheap/.test(cost) ? 62 : 48;
+    const sat = has(v.mainWear, /torn|worn out/) && !back ? 12 : 45;
+    return `hsl(${hue} ${sat}% ${light}%)`;
+  }
+  function mouth(emotion) {
+    const e = String(emotion || "curious");
+    if (/joy|triumph|loving|absurd/.test(e)) return 4;
+    if (/angry|fear|anxious|melancholy/.test(e)) return -4;
+    return 0;
+  }
+
+  /* One person at x, standing on the floor line, s = size. */
+  function person(x, floorY, s, v, i, back) {
+    const headR = 9 * s;
+    const bodyH = 34 * s;
+    const top = floorY - bodyH - headR * 2 - 22 * s;
+    const sh = shirt(v, back);
+    const m = mouth(v.emotion) * s * (i === 0 || !back ? 1 : 0.5);
+    const big = num(v.gesture, num(v.emotionIntensity, 2)) >= 4;
+    const arm = big ? -14 * s : 8 * s;
+    const face = `<g data-cat="feeling"><circle cx="${x - 3 * s}" cy="${top + headR - 1 * s}" r="${1.2 * s}" fill="#1c1712"/><circle cx="${x + 3 * s}" cy="${top + headR - 1 * s}" r="${1.2 * s}" fill="#1c1712"/><path d="M${x - 4 * s} ${top + headR + 4 * s} Q${x} ${top + headR + 4 * s + m} ${x + 4 * s} ${top + headR + 4 * s}" stroke="#1c1712" stroke-width="${1.1 * s}" fill="none"/></g>`;
+    return `<g class="cf-person">
+      <g data-cat="performance"><line x1="${x - 6 * s}" y1="${floorY}" x2="${x - 3 * s}" y2="${top + headR * 2 + bodyH}" stroke="#1c1712" stroke-width="${2.4 * s}"/><line x1="${x + 6 * s}" y1="${floorY}" x2="${x + 3 * s}" y2="${top + headR * 2 + bodyH}" stroke="#1c1712" stroke-width="${2.4 * s}"/>
+      <line x1="${x - 8 * s}" y1="${top + headR * 2 + 6 * s}" x2="${x - 14 * s}" y2="${top + headR * 2 + 22 * s + arm}" stroke="#1c1712" stroke-width="${2.2 * s}"/><line x1="${x + 8 * s}" y1="${top + headR * 2 + 6 * s}" x2="${x + 14 * s}" y2="${top + headR * 2 + 22 * s + arm}" stroke="#1c1712" stroke-width="${2.2 * s}"/></g>
+      <rect data-cat="wardrobe" x="${x - 9 * s}" y="${top + headR * 2 + 2 * s}" width="${18 * s}" height="${bodyH}" rx="${4 * s}" fill="${sh}" stroke="#1c1712" stroke-width="${1 * s}"/>
+      <circle data-cat="performance" cx="${x}" cy="${top + headR}" r="${headR}" fill="#f1d7b8" stroke="#1c1712" stroke-width="${1.2 * s}"/>
+      ${face}
+    </g>`;
+  }
+
+  function svg(values, opts) {
+    const v = values || {};
+    opts = opts || {};
+    const hl = Array.isArray(opts.highlight) && opts.highlight.length ? opts.highlight : null;
+    const col = wallColor(v);
+    const shot = String(v.shotSize || "medium");
+    const angle = String(v.angleHeight || "eye");
+    const horizon = angle === "low" ? 140 : angle === "high" ? 70 : /overhead/.test(angle) ? 30 : /floor/.test(angle) ? 160 : 112;
+    const scale = shot === "wide" ? 0.75 : shot === "close" ? 2.6 : shot === "insert" ? 1 : 1.35;
+    const cast = Math.max(1, Math.min(6, num(opts.cast, num(v.peopleCount, 2))));
+    const parts = [];
+    /* Light & color and the set: the wall, the floor, a window, art, clutter. */
+    parts.push(`<g data-cat="light"><rect x="0" y="0" width="${W}" height="${horizon}" fill="${col.wall}"/><rect x="0" y="${horizon}" width="${W}" height="${H - horizon}" fill="${col.floor}"/></g>`);
+    const setStyle = String(v.setStyle || "");
+    const winFill = col.dark ? "#26313f" : "#dfe9f2";
+    parts.push(`<g data-cat="world">
+      <rect x="${W - 84}" y="${Math.max(8, horizon - 70)}" width="56" height="44" fill="${winFill}" stroke="#1c1712" stroke-width="2"/>${/victorian|1950/.test(setStyle) ? `<line x1="${W - 56}" y1="${Math.max(8, horizon - 70)}" x2="${W - 56}" y2="${Math.max(8, horizon - 70) + 44}" stroke="#1c1712" stroke-width="2"/>` : ""}
+      ${Array.from({ length: Math.min(4, num(v.wallArt, 1)) }, (_, i) => `<rect x="${18 + i * 30}" y="${Math.max(6, horizon - 64)}" width="20" height="16" fill="none" stroke="#1c1712" stroke-width="1.5"/>`).join("")}
+      ${Array.from({ length: Math.min(6, num(v.clutter, 2)) }, (_, i) => `<rect x="${12 + i * 50}" y="${horizon + 4 + (i % 2) * 6}" width="${10 + (i % 3) * 4}" height="${8 + (i % 2) * 5}" fill="${has(v.setMaterial, /metal/) ? "#9aa3ab" : has(v.setMaterial, /glass/) ? "#bfe1e6" : "#a0784e"}" stroke="#1c1712" stroke-width="1"/>`).join("")}
+      ${has(v.setUpkeep, /shabby|ruined/) ? `<path d="M30 ${horizon - 30} l12 8 l-6 10" stroke="#1c1712" fill="none" stroke-width="1.2"/>` : ""}
+    </g>`);
+    /* The people, sized by the shot. An insert shows the object that matters instead. */
+    const floorY = shot === "close" ? H + 120 : Math.min(H - 6, horizon + 40 + (shot === "wide" ? 0 : 20));
+    const people = [];
+    if (shot === "insert") {
+      people.push(`<g data-cat="world"><rect x="${W / 2 - 40}" y="${H / 2 - 30}" width="80" height="60" rx="8" fill="#e7c27a" stroke="#1c1712" stroke-width="3"/><text x="${W / 2}" y="${H / 2 + 5}" text-anchor="middle" font-size="11" font-family="sans-serif">${esc(v.objectKind || "prop")}</text></g>`);
+    } else {
+      const n = shot === "close" ? 1 : cast;
+      const span = shot === "wide" ? 200 : 170;
+      for (let i = 0; i < n; i++) {
+        const x = n === 1 ? (has(v.composition, /left/) ? W * 0.36 : W / 2) : W / 2 - span / 2 + (span * i) / (n - 1);
+        people.push(person(x, floorY, scale * (i === 0 ? 1 : 0.92), v, i, i > 0));
+      }
+      const path = String(v.characterPath || "");
+      if (/approach|retreat/.test(path)) {
+        const dir = /approach/.test(path) ? 1 : -1;
+        people.push(`<g data-cat="performance"><path d="M${W / 2 - 30 * dir} ${H - 10} L${W / 2 + 30 * dir} ${H - 10}" stroke="#c45c26" stroke-width="3" marker-end="url(#cf-arrow)"/></g>`);
+      }
+    }
+    parts.push(people.join(""));
+    /* What someone says: a balloon as big as the line is loud. */
+    const vol = num(v.volume, 0);
+    const words = num(v.wordsAmount, vol ? 2 : 0);
+    if (words > 0 && shot !== "insert") {
+      const bw = 40 + vol * 10;
+      parts.push(`<g data-cat="performance"><ellipse cx="${W * 0.3}" cy="28" rx="${bw / 2}" ry="${12 + vol * 1.5}" fill="#fff" stroke="#1c1712" stroke-width="${vol >= 5 ? 3 : 1.5}"/>${Array.from({ length: Math.min(3, Math.ceil(words / 2)) }, (_, i) => `<line x1="${W * 0.3 - bw / 3}" x2="${W * 0.3 + bw / 3 - i * 6}" y1="${22 + i * 6}" y2="${22 + i * 6}" stroke="#1c1712" stroke-width="1.5"/>`).join("")}</g>`);
+    }
+    /* Music & sound: notes in the corner, one per level of how present the music is. */
+    const music = String(v.music || "");
+    const notes = /wall of sound|featured/.test(music) ? 3 : /equal/.test(music) ? 2 : /under|barely/.test(music) ? 1 : 0;
+    parts.push(`<g data-cat="sound" font-size="16" font-family="serif">${notes ? Array.from({ length: notes }, (_, i) => `<text x="${12 + i * 14}" y="${H - 10 - (i % 2) * 6}" fill="#1c1712">♪</text>`).join("") : music === "none" || has(v.silence, /long/) ? `<text x="12" y="${H - 10}" fill="#1c1712">♪</text><line x1="10" y1="${H - 24}" x2="24" y2="${H - 8}" stroke="#c45c26" stroke-width="2"/>` : ""}</g>`);
+    /* Comedy: a "ha" for every two laughs a minute, a burst for physical comedy, the device as a tag. */
+    const laughs = num(v.laughsPerMinute, 0);
+    parts.push(`<g data-cat="comedy" font-family="sans-serif" font-weight="700" fill="#b8892d">${Array.from({ length: Math.min(4, Math.ceil(laughs / 2)) }, (_, i) => `<text x="${W - 70 + i * 16}" y="${H - 14 - i * 6}" font-size="11">ha</text>`).join("")}${v.physicalComedy ? `<path d="M${W / 2 + 40} ${floorY - 50} l6 -14 l4 12 l12 -6 l-6 12 l12 4 l-14 4 l2 12 l-10 -8 l-8 10 l0 -14 l-12 -2 l12 -6 z" fill="#ffd34d" stroke="#1c1712" stroke-width="1"/>` : ""}${v.comedyDevice ? `<text x="${W - 8}" y="16" font-size="9" text-anchor="end" fill="#1c1712">${esc(v.comedyDevice)}</text>` : ""}</g>`);
+    /* Effects: shards for breakage and impacts. */
+    const hits = num(v.impacts, v.breakage ? 2 : 0);
+    if (hits) parts.push(`<g data-cat="effects">${Array.from({ length: Math.min(5, hits) }, (_, i) => `<path d="M${60 + i * 44} ${horizon + 10 + (i % 2) * 12} l8 -6 l3 9 z" fill="#c9e4ef" stroke="#1c1712" stroke-width="1"/>`).join("")}</g>`);
+    /* Editing: scissors marks for fast cutting at the top edge. */
+    if (has(v.cutRate, /fast/) || has(v.shotDuration, /short/)) parts.push(`<g data-cat="editing"><text x="${W / 2}" y="12" font-size="10" text-anchor="middle" font-family="sans-serif" fill="#1c1712">✂ ✂ ✂</text></g>`);
+    /* Story: the film's emotional road as an arrow in the top left. */
+    const road = String(v.emoRoadFilm || v.emoRoadCharacter || "");
+    if (road) parts.push(`<g data-cat="feeling"><path d="M10 ${/rising|highest/.test(road) ? 26 : /falling|lowest/.test(road) ? 10 : 18} L34 ${/rising|highest/.test(road) ? 10 : /falling|lowest/.test(road) ? 26 : 18}" stroke="#c45c26" stroke-width="3" marker-end="url(#cf-arrow)"/></g>`);
+    /* Camera: how it moves, drawn as corner brackets. */
+    const move = String(v.cameraMove || "none");
+    const camTag = move !== "none" ? move : String(v.cameraCarry || "") === "handheld" ? "handheld" : "";
+    parts.push(`<g data-cat="camera" stroke="#1c1712" stroke-width="2" fill="none"><path d="M6 20 V6 H20 M${W - 20} 6 H${W - 6} V20 M6 ${H - 20} V${H - 6} H20 M${W - 20} ${H - 6} H${W - 6} V${H - 20}"/>${camTag ? `<text x="${W - 26}" y="${H - 26}" text-anchor="end" font-size="9" font-family="sans-serif" fill="#1c1712" stroke="none">${esc(camTag)}</text>` : ""}</g>`);
+    /* The overlay box: the selected curiosities' values in words. */
+    let overlay = "";
+    if (Array.isArray(opts.labels) && opts.labels.length) {
+      const rows = opts.labels.slice(0, 6);
+      const bh = 8 + rows.length * 13;
+      overlay = `<g class="cf-overlay"><rect x="8" y="${H - bh - 8}" width="190" height="${bh}" rx="4" fill="rgba(28,23,18,.82)"/>${rows.map(([l, val], i) => `<text x="14" y="${H - bh + 6 + i * 13}" font-size="10" font-family="sans-serif" fill="#fffaf2">${esc(String(l).slice(0, 22))}: <tspan font-weight="700" fill="#ffd9a8">${esc(val == null ? "not set" : String(val).slice(0, 18))}</tspan></text>`).join("")}</g>`;
+    }
+    let body = parts.join("");
+    if (hl) {
+      /* Dim every part outside the highlighted categories (or leave it out for Lens only). */
+      body = body.replace(/<(g|rect|circle|line|path|ellipse|text)( [^>]*?)data-cat="([a-z]+)"/g, (m, tag, pre, cat) =>
+        hl.includes(cat) ? m : `<${tag}${pre}data-cat="${cat}" ${opts.only ? 'display="none"' : 'opacity="0.18"'}`
+      );
+    }
+    const shake = String(v.cameraCarry || "") === "handheld" ? " cf-shake" : "";
+    const tilt = has(v.angleHeight, /dutch|tilt/) ? ` transform="rotate(-6 ${W / 2} ${H / 2})"` : "";
+    return `<svg class="cf-frame${shake}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.title || "Storyboard frame")}"><defs><marker id="cf-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#c45c26"/></marker></defs><g${tilt}>${body}</g>${overlay}</svg>`;
+  }
+
+  root.CurioFrame = { svg, W, H };
+  if (typeof module !== "undefined" && module.exports) module.exports = root.CurioFrame;
+})();

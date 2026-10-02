@@ -21,6 +21,8 @@
     "engine/analyze.js",
     "momentum/notes.js",
     "momentum/attention.js",
-    "momentum/rates.js"
+    "momentum/rates.js",
+    "momentum/compass.js",
+    "momentum/engine-lanes.js"
   ]
 }

@@ -10,7 +10,7 @@ const assert = require("assert");
 const ROOT = path.join(__dirname, "..", "..");
 const core = require(path.join(ROOT, "core", "headless.js")).load();
 const ctx = core.window;
-["notes.js", "attention.js", "rates.js"].forEach((f) => {
+["notes.js", "attention.js", "rates.js", "compass.js", "engine-lanes.js", "perform.js"].forEach((f) => {
   const file = path.join(ROOT, "momentum", f);
   vm.runInContext(fs.readFileSync(file, "utf8"), vm.isContext(ctx) ? ctx : vm.createContext(ctx), { filename: file });
 });
@@ -106,5 +106,61 @@ ok("a traced film measures into a profile with the same fields, marked measured"
   assert(avg.estimate, "an average with an estimate in it is marked");
   const lines = R.compare(A.fromStudy(s).stats, R.DEFAULT_FILMS[0]);
   assert(lines.length >= 1 && lines.every((l) => typeof l === "string"));
+});
+ok("the compass points away from the family holding attention, with reasons and a try-this", () => {
+  const C = ctx.CurioCompass;
+  const still = Array.from({ length: 10 }, (_, i) => ({ at: i * 4, values: { emotion: i % 2 ? "angry" : "melancholy" } }));
+  const r = A.read(still, { limit: 20 });
+  const res = C.point(r, [R.DEFAULT_FILMS[0]]);
+  assert(res.now && res.options.length > 3);
+  assert(res.options.every((o) => o.family !== res.now.family), "the current family is never the next");
+  assert(res.options[0].reasons.length > 0 && res.options[0].note, "reasons and a note");
+  assert.strictEqual(res.basis, "shares");
+  const measured = core.CuriosityDB.studiesExport().studies.map((s) => R.measure(s));
+  const res2 = C.point(r, measured);
+  assert.strictEqual(res2.basis, "measured");
+  assert(res2.options.some((o) => o.parts.follow > 0), "measured films teach which family follows which");
+});
+ok("the compass makes a real move on a board", () => {
+  const C = ctx.CurioCompass;
+  const live = core.CURIOSITIES.filter((c) => c.live && Array.isArray(c.options));
+  const fam = M.familyOf(live[0].id);
+  const vals = Object.fromEntries(live.map((c) => [c.id, c.options[0]]));
+  const mv = C.move({ family: fam, curiosity: null }, { values: () => vals });
+  assert(mv && live.find((c) => c.id === mv.id).options.includes(mv.value) && mv.value !== vals[mv.id]);
+});
+ok("the engine's film gets attention and cue lanes, and a too-long stretch gets a link that the engine takes", () => {
+  const E = ctx.CurioEngine;
+  const ME = ctx.CurioMomentumEngine;
+  assert(E.send({ type: "importFilm", film: ctx.CurioSeeds.starter() }).ok);
+  const L = ME.lanes({ limit: 6 });
+  assert.strictEqual(L.attention.length, E.state().rows.length);
+  assert.strictEqual(L.cue.length, E.state().rows.length);
+  assert(L.attention.every((c) => c.family));
+  const sg = ME.suggestions({ limit: 6 });
+  assert(sg.length >= 1, "a stretch past 6 seconds");
+  const before = E.state().links.length;
+  assert(ME.addSuggestion(sg[0]).ok);
+  assert.strictEqual(E.state().links.length, before + 1);
+  E.undo();
+  assert.strictEqual(E.state().links.length, before, "one undo step");
+  const band = ME.band({ limit: 6 });
+  assert.strictEqual(band.lanes.map((l) => l.id).join(","), "attention,cue");
+});
+ok("perform follows a board and sends the meter to the bridge", () => {
+  const P = ctx.CurioPerform;
+  const listeners = [];
+  let vals = { emotion: "joyful" };
+  ctx.CuriosityBoard = { panels: () => [vals], values: () => vals, on: (fn) => (listeners.push(fn), () => {}) };
+  assert(P.start());
+  P.tick();
+  const msgs = ctx.CurioBridge.values().filter((m) => m.key && m.key.startsWith("m:"));
+  assert.strictEqual(msgs.map((m) => m.key).sort().join(","), "m:attention,m:compass,m:family,m:momentum,m:over");
+  assert(msgs.every((m) => m.m >= 0 && m.m <= 1));
+  const osc = ctx.CurioBridge.toOsc(msgs.find((m) => m.key === "m:attention"));
+  assert.strictEqual(osc.address, "/curio/value/m/attention");
+  P.stop();
+  assert.strictEqual(ctx.CurioBridge.values().filter((m) => m.key && m.key.startsWith("m:")).length, 0, "nothing sent once stopped");
+  delete ctx.CuriosityBoard;
 });
 console.log(`\n${n} momentum checks passed`);
