@@ -27,12 +27,13 @@ A model of a movie, a TV hour, or a video game is only those three. If a fact ca
 5. `story-curiosities.js` — the story curiosities (arc stage, role in the scene, own plot weight, perspective, mindset, focus, Enneagram type and health, herd mentality and who leads it), plus foreshortening. Options are in scale order.
 6. `lenses.js` — lenses. A curiosity is a filter, one way of looking at a scene (someone walks into a bar: look at its color, at the clothes, at the set, at the feeling, at the comedy). `window.CURIOSITY_LENSES` lists each lens as `{id, label, question, main, subs, scope}`: a main curiosity and its sliders (graded sub-parameters, options in scale order). The sliders are also lanes of the main curiosity in automation (`CURIOSITY_FACETS`). Lenses: color, main character's clothes, background clothes, set design, emotion, emotional road (story scope), comedy, comedy from the mix. Comedy is central and has the most sliders. Also lens suites and lens proximities.
 7. `model.js` — suites (catalog, genre, and angle-by-emotion), the emotion map, and the proximities a study can count.
-8. `app.js` — `window.CuriositySuites` (suites graded by share, see below), then My film: draws the strip, the paths, and which proximities are firing; switches the bar's tabs; draws All curiosities and Show structure. `window.CuriosityBoard` is how everything else reads and writes the board.
+8. `suites.js` — `window.CuriositySuites` (suites graded by share, see below). `app.js` — My film: draws the strip, the paths, and which proximities are firing; switches the bar's tabs; draws All curiosities and Show structure. `window.CuriosityBoard` is how everything else reads and writes the board.
 9. `workspaces.js` — the workspaces (see below). `story.js` — the story store: values per character per scene. `storyboard.js` — the Storyboard (`window.CuriosityStoryboard.mount(el)`).
 10. `automation.js` and `automate.js` — the automation engine and its modules (see Automation).
 11. `prism.js` — the Prism. `study.js` — Curated films and the Shelf.
 12. `studio.js` and `studio-*.js` — working tools taken from the Maya and Arnold for Maya manuals. Each file registers one tool with `CuriosityStudio.register`; workspaces show them as their Tools. `maya-manual.js` is the topic inventory; `docs/maya-manual-review.md` is the keep or skip list.
-13. `index.html` — open this in a browser. No build step.
+13. `core/README.md` — the shared core: the files every version loads (web, desktop, a Maya panel), which never touch the page. `bridge.js` (`window.CurioBridge`) is the one message format for VCV Rack, OSC and tool bridges. `node core/check.js` loads the core with no page. `sw.js`, `offline.js` and `manifest.webmanifest` make the app installable and offline when served from a web address.
+14. `index.html` — open this in a browser. No build step.
 
 State is `localStorage` key `curiosities-board-v2`.
 
