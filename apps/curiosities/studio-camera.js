@@ -58,6 +58,20 @@
     { name: "Comic panel: square, 35 mm", note: "A square gate and frame, like a single comic panel. Thirds become a three by three grid.", set: { gate: "comic", aspect: "1.0", fit: "fill", focal: 35, fstop: 8, distance: 3, focus: 3 } },
   ];
 
+  /* Maya's camera shake as amplitude (0 to 5) and frequency (Hz), as presets. */
+  const SHAKES = {
+    handheld: { shake: 2, freq: 3 },
+    "impact jolt": { shake: 5, freq: 14 },
+    "vehicle rumble": { shake: 2, freq: 18 },
+    earthquake: { shake: 5, freq: 5 },
+  };
+  const SHOT_DEFAULT = [
+    { target: "foreground", dist: 3, focal: 35, pull: "on the line", shake: 0, freq: 3, preset: "custom" },
+    { target: "subject", dist: 3, focal: 50, pull: "on the line", shake: 2, freq: 3, preset: "handheld" },
+    { target: "subject", dist: 3, focal: 85, pull: "on the action", shake: 5, freq: 14, preset: "impact jolt" },
+    { target: "background", dist: 3, focal: 50, pull: "on the action", shake: 1, freq: 3, preset: "custom" },
+  ];
+
   function clamp(v, a, b) {
     return Math.max(a, Math.min(b, v));
   }
@@ -143,6 +157,12 @@
       .cam-tool table.trace td { padding: 3px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
       .cam-tool table.trace td:last-child { font-family: var(--mono); font-size: 12px; text-align: right; white-space: nowrap; }
       .cam-tool .chip small { opacity: 0.65; }
+      .cam-shot { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 8px; }
+      .cam-shot .shot-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+      .cam-shot .shot-beat { border: 1px solid var(--line); padding: 6px; background: var(--panel); min-width: 0; }
+      .cam-shot .shot-beat.on { outline: 2px solid var(--saffron); }
+      .cam-shot .shot-beat select, .cam-shot .shot-beat input { width: 100%; }
+      .cam-shot .shot-beat .chip { font-size: 10px; }
       .cam-tool .cam-controls { min-width: 0; }
       .cam-tool.studio-grid { grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); }
       @media (max-width: 760px) {
@@ -205,7 +225,8 @@
           <span class="cap" id="cam-send-note"></span>
         </div>
       </div>
-    </div>`;
+    </div>
+    <section class="cam-tool cam-shot" id="cam-shot"></section>`;
 
     const view = el.querySelector("#cam-view");
     const plan = el.querySelector("#cam-plan");
@@ -588,8 +609,10 @@
 
     el.querySelector("#cam-reset").addEventListener("click", () => {
       cancelAnimationFrame(anim);
+      const keepShot = s.shot;
       Object.keys(s).forEach((k) => delete s[k]);
       Object.assign(s, DEFAULTS);
+      if (keepShot) s.shot = keepShot;
       lastNote = "Back to a 35 mm lens on Super 35 at 1.85.";
       syncInputs();
       update();
@@ -619,6 +642,192 @@
     if (s.focusFollows) s.focus = s.distance;
     el.querySelector("#cam-send-note").textContent = "Sends shot size, angle height and dutch (the lit chips) to every panel.";
     render();
+    throughTheShot();
+
+    /* Through the shot: 4 to 8 beats, each keying focus, focal length and Maya's camera shake
+       (amplitude and frequency). Play eases the pulls and the zoom between keys and jitters the
+       viewfinder with noise. Curiosities per beat: rackFocus, cameraShake, lensLength, depthOfField. */
+    function throughTheShot() {
+      const host = el.querySelector("#cam-shot");
+      if (!host) return;
+      if (!s.shot || !Array.isArray(s.shot.beats) || s.shot.beats.length < 4) s.shot = { beats: SHOT_DEFAULT.map((b) => Object.assign({}, b)) };
+      const beats = s.shot.beats;
+      let playing = null;
+
+      function focusOf(b) {
+        const d = s.distance;
+        if (b.target === "background") return d * 2.5 + 3;
+        if (b.target === "foreground") return Math.max(0.35, d * 0.4);
+        if (b.target === "distance") return clamp(Number(b.dist) || d, 0.3, 40);
+        return d;
+      }
+      function beatState(b) {
+        return Object.assign({}, s, { focal: Number(b.focal), focus: focusOf(b), focusFollows: false });
+      }
+      function perBeat() {
+        return beats.map((b, i) => {
+          const st = beatState(b);
+          const o = optics(st);
+          const cs = curiosities(st, o);
+          const get = (id) => (cs.find((c) => c.id === id) || {}).value;
+          const prev = i ? focusOf(beats[i - 1]) : null;
+          const pulled = i > 0 && Math.abs(prev - focusOf(b)) > 0.05;
+          return {
+            rackFocus: pulled ? b.pull : "none",
+            cameraShake: clamp(Math.round(Number(b.shake) || 0), 0, 5),
+            lensLength: get("lensLength"),
+            depthOfField: get("depthOfField"),
+            shotSize: get("shotSize"),
+            angleHeight: get("angleHeight"),
+          };
+        });
+      }
+      function saveShot() {
+        save();
+      }
+
+      function paint() {
+        const pb = perBeat();
+        const opt = (list, v) => list.map((x) => `<option${String(x) === String(v) ? " selected" : ""}>${esc(x)}</option>`).join("");
+        host.innerHTML = `<h3>Through the shot</h3>
+          <p class="cap">Key each beat: where focus sits, the focal length and the camera shake (Maya's Camera Shake: amplitude and frequency). Play eases the focus pull on the line (early in the beat) or on the action (late), eases the zoom, and shakes the frame with noise.</p>
+          <div class="cam-row">
+            <button type="button" class="primary" data-shot="play">${playing ? "Stop" : "Play"}</button>
+            <button type="button" data-shot="add"${beats.length >= 8 ? " disabled" : ""}>+ beat</button>
+            <button type="button" data-shot="del"${beats.length <= 4 ? " disabled" : ""}>- beat</button>
+            <button type="button" data-shot="keep">Keep on Shelf</button>
+            <button type="button" data-shot="board">Send to board</button>
+            <span class="cap" id="shot-now"></span>
+          </div>
+          <div class="shot-strip">${beats
+            .map((b, i) => `<div class="shot-beat" data-i="${i}">
+              <strong>Beat ${i + 1}</strong>
+              <label class="field">Focus on<select data-b="target">${opt(["subject", "background", "foreground", "distance"], b.target)}</select></label>
+              ${b.target === "distance" ? `<label class="field">Distance ${esc(b.dist)} m<input type="range" data-b="dist" min="0.3" max="30" step="0.1" value="${esc(b.dist)}"></label>` : ""}
+              <label class="field">Focal ${esc(b.focal)} mm<input type="range" data-b="focal" min="12" max="300" step="1" value="${esc(b.focal)}"></label>
+              <label class="field">Pull<select data-b="pull">${opt(["on the line", "on the action"], b.pull)}</select></label>
+              <label class="field">Shake preset<select data-b="preset">${opt(["custom"].concat(Object.keys(SHAKES)), b.preset || "custom")}</select></label>
+              <label class="field">Shake ${esc(b.shake)}<input type="range" data-b="shake" min="0" max="5" step="1" value="${esc(b.shake)}"></label>
+              <label class="field">Frequency ${esc(b.freq)} Hz<input type="range" data-b="freq" min="1" max="20" step="1" value="${esc(b.freq)}"></label>
+              <div>${Object.entries(pb[i])
+                .map(([id, v]) => `<span class="chip${id === "shotSize" || id === "angleHeight" ? " lit" : ""}">${esc(id)} ${esc(v)}</span>`)
+                .join(" ")}</div>
+            </div>`)
+            .join("")}</div>`;
+        host.querySelectorAll("[data-b]").forEach((inp) => {
+          const ev = inp.tagName === "SELECT" ? "change" : "input";
+          inp.addEventListener(ev, () => {
+            const b = beats[Number(inp.closest(".shot-beat").dataset.i)];
+            const k = inp.dataset.b;
+            if (k === "preset") {
+              b.preset = inp.value;
+              if (SHAKES[inp.value]) Object.assign(b, SHAKES[inp.value]);
+            } else if (inp.type === "range") {
+              b[k] = Number(inp.value);
+              if (k === "shake" || k === "freq") b.preset = "custom";
+              const lab = inp.closest("label");
+              if (lab && lab.firstChild) lab.firstChild.textContent = { dist: `Distance ${b[k]} m`, focal: `Focal ${b[k]} mm`, shake: `Shake ${b[k]}`, freq: `Frequency ${b[k]} Hz` }[k];
+              saveShot();
+              if (ev === "input") return;
+            } else b[k] = inp.value;
+            saveShot();
+            paint();
+          });
+          if (inp.type === "range") inp.addEventListener("change", () => paint());
+        });
+        host.querySelectorAll("[data-shot]").forEach((btn) =>
+          btn.addEventListener("click", () => {
+            const a = btn.dataset.shot;
+            if (a === "play") return playing ? stop() : play();
+            if (a === "add" && beats.length < 8) beats.push(Object.assign({}, beats[beats.length - 1]));
+            if (a === "del" && beats.length > 4) beats.pop();
+            if (a === "keep") {
+              const pbv = perBeat();
+              const out = {};
+              ["rackFocus", "cameraShake", "lensLength", "depthOfField", "shotSize", "angleHeight"].forEach((id) => (out[id] = pbv.map((x) => x[id])));
+              if (api.toShelf) api.toShelf("Through the shot", out);
+              return;
+            }
+            if (a === "board") {
+              const pbv = perBeat();
+              api.toBoard("Through the shot", { shotSize: pbv.map((x) => x.shotSize), angleHeight: pbv.map((x) => x.angleHeight) });
+              return;
+            }
+            saveShot();
+            paint();
+          })
+        );
+      }
+
+      function noise(t, seed) {
+        return Math.sin(t * 1.0 + seed) * 0.5 + Math.sin(t * 2.3 + seed * 1.7) * 0.3 + Math.sin(t * 5.1 + seed * 2.9) * 0.2;
+      }
+
+      function play() {
+        const keep = { focal: s.focal, focus: s.focus, focusFollows: s.focusFollows };
+        const BEAT = 1300;
+        const t0 = performance.now();
+        const studio = document.getElementById("studio");
+        const off = document.createElement("canvas");
+        cancelAnimationFrame(anim);
+        playing = { keep };
+        paint();
+        const ease = (u) => u * u * (3 - 2 * u);
+        const step = (t) => {
+          if (!playing) return;
+          if (!view.isConnected || (studio && studio.classList.contains("hidden"))) return stop(true);
+          const el_ = (t - t0) / BEAT;
+          const i = Math.floor(el_);
+          if (i >= beats.length) return stop();
+          const u = el_ - i;
+          const b = beats[i];
+          const a = i ? beats[i - 1] : b;
+          const win = b.pull === "on the action" ? [0.55, 0.9] : [0.05, 0.4];
+          const fu = ease(clamp((u - win[0]) / (win[1] - win[0]), 0, 1));
+          s.focusFollows = false;
+          s.focus = focusOf(a) + (focusOf(b) - focusOf(a)) * fu;
+          s.focal = Number(a.focal) + (Number(b.focal) - Number(a.focal)) * ease(clamp(u / 0.8, 0, 1));
+          render();
+          const amp = Number(b.shake) || 0;
+          if (amp > 0) {
+            off.width = view.width;
+            off.height = view.height;
+            off.getContext("2d").drawImage(view, 0, 0);
+            const ctx = view.getContext("2d");
+            const sec = t / 1000;
+            const w = Number(b.freq) * Math.PI * 2;
+            const dx = noise(sec * w, 1) * amp * 4;
+            const dy = noise(sec * w, 7) * amp * 3;
+            const rot = noise(sec * w, 13) * amp * 0.004;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.fillStyle = "#1c1712";
+            ctx.fillRect(0, 0, view.width, view.height);
+            ctx.translate(view.width / 2 + dx, view.height / 2 + dy);
+            ctx.rotate(rot);
+            ctx.scale(1.03, 1.03);
+            ctx.drawImage(off, -view.width / 2, -view.height / 2);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+          }
+          const now = host.querySelector("#shot-now");
+          if (now) now.textContent = `beat ${i + 1}/${beats.length} · ${Math.round(s.focal)} mm · focus ${fmtM(s.focus)} · shake ${amp}`;
+          host.querySelectorAll(".shot-beat").forEach((c) => c.classList.toggle("on", Number(c.dataset.i) === i));
+          anim = requestAnimationFrame(step);
+        };
+        anim = requestAnimationFrame(step);
+      }
+
+      function stop(silent) {
+        if (!playing) return;
+        cancelAnimationFrame(anim);
+        Object.assign(s, playing.keep);
+        playing = null;
+        if (silent) return;
+        render();
+        paint();
+      }
+
+      paint();
+    }
   }
 
   window.CuriosityStudio.register({
