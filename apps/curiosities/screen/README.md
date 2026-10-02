@@ -30,7 +30,7 @@ One line in `index.html`, after `engine/load.js`:
 <script src="screen/load.js"></script>
 ```
 
-It opens on start; `?screen=0` skips it, and Back to the app closes it (it then stays closed until you open it again).
+It opens on start; `?screen=0` skips it (so do automated browser tests, unless the address has `?screen=1`), and Back to the app closes it (it then stays closed until you open it again).
 
 ## Tests
 
