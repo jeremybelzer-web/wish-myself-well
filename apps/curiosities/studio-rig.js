@@ -3,6 +3,8 @@
    (posture, gesture, stillness, leadPart, arcs); keyed poses play on a beat strip and go to the board. */
 
 (function () {
+  let prevKeyOff = null;
+  let prevAutoOff = null;
   if (!window.CuriosityStudio) return;
 
   const KEY = "curiosities-studio-rig-v1";
@@ -972,6 +974,9 @@
       } else return;
       ev.preventDefault();
     }
+    /* One key listener per tool: a fresh draw removes the last one (and the old page it holds). */
+    if (prevKeyOff) prevKeyOff();
+    prevKeyOff = () => document.removeEventListener("keydown", onKey);
     document.addEventListener("keydown", onKey);
     $("#rig-perf-on").addEventListener("change", (e) => {
       s.perf.on = e.target.checked;
@@ -1071,6 +1076,9 @@
     }
     const suiteOn = {};
     if (window.CurioAuto && window.CurioAuto.on) {
+      /* One listener per tool: a fresh draw lets go of the last one (and the old page it holds). */
+      if (prevAutoOff) prevAutoOff();
+      prevAutoOff = () => off();
       const off = window.CurioAuto.on((type, d) => {
         if (!el.isConnected || !svg.isConnected) return off();
         const badge = $("#rig-autobadge");

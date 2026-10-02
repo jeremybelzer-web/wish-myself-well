@@ -164,7 +164,9 @@
       if (vis && !h.live) h.attach();
       else if (!vis && h.live) h.detach();
       if (h.el.isConnected) h.seen = now;
-      else if (now - h.seen > 300000) mounts.delete(h);
+      /* A host off the page for two seconds is gone for good (its page was drawn again): let it go, so the old
+         page and everything in it can be freed. Keeping it longer held every redrawn page in memory. */
+      else if (now - h.seen > 2000) h.stop();
     });
   }
   setInterval(check, 300);

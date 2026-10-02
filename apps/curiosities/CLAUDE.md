@@ -10,6 +10,8 @@ Clone that repo. Work only in `apps/curiosities/`. The rest of the repository is
 
 ## What this product is
 
+Working title: **Film Curio** (Jeremy, 2026-10-02). Use it in visible text; code ids, globals and folder names keep "curiosities".
+
 A live-action, animation, zine, comic-strip, and storyboard app. Every scene is made of three kinds of thing:
 
 1. **Curiosities** — one measurable value in a beat. Shot size. A person crossing. A cup lifted. A camera that is locked, smooth, or handheld.
