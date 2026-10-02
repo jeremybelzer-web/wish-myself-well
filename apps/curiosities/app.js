@@ -23,6 +23,9 @@
     if (tab === "study" && window.CuriosityStudy) window.CuriosityStudy.draw();
     play.classList.toggle("hidden", tab !== "play");
     if (tab === "play" && window.CuriosityPlay) window.CuriosityPlay.draw();
+    const studio = document.getElementById("studio");
+    studio.classList.toggle("hidden", tab !== "studio");
+    if (tab === "studio" && window.CuriosityStudio) window.CuriosityStudio.draw();
   });
 
   function load() {

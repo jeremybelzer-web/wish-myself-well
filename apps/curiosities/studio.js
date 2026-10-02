@@ -1,0 +1,95 @@
+/* Studio: working tools taken from the Maya and Arnold for Maya manuals, one sub-tab each.
+   Every tool reads and writes curiosities, so whatever you set here can be kept on the Shelf,
+   counted in a study or played on the board. A tool registers itself with
+   CuriosityStudio.register({ id, label, maya, draw(el, api) }) from its own file.
+   api.board is window.CuriosityBoard; api.store(key) gives a small localStorage helper. */
+
+(function () {
+  const root = document.getElementById("studio");
+  const modules = [];
+  const VIEW_KEY = "curiosities-studio-tab-v1";
+  let current = null;
+  try {
+    current = localStorage.getItem(VIEW_KEY);
+  } catch (e) {}
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function store(key) {
+    return {
+      get(fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch (e) {
+          return fallback;
+        }
+      },
+      set(value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {}
+      },
+    };
+  }
+
+  const api = {
+    esc,
+    store,
+    get board() {
+      return window.CuriosityBoard;
+    },
+    /* Send values to the board as an applied strand, then show the board. */
+    toBoard(label, values) {
+      if (!window.CuriosityBoard) return;
+      window.CuriosityBoard.apply(label, values);
+      const b = document.querySelector('.tabs button[data-tab="board"]');
+      if (b) b.click();
+    },
+  };
+
+  function draw() {
+    if (!modules.length) {
+      root.innerHTML = "<p>No studio tools loaded.</p>";
+      return;
+    }
+    if (!modules.find((m) => m.id === current)) current = modules[0].id;
+    const m = modules.find((x) => x.id === current);
+    root.innerHTML = `<h2>Studio</h2>
+      <p class="cap">Tools taken from the Maya and Arnold for Maya manuals. Each one sets curiosities, so a look you build here can go to the board, the Shelf or a study.</p>
+      <nav class="subtabs">${modules
+        .map((x) => `<button type="button" data-studio="${esc(x.id)}" class="${x.id === current ? "on" : ""}" title="${esc(x.maya || "")}">${esc(x.label)}</button>`)
+        .join("")}</nav>
+      ${m.maya ? `<p class="cap">In Maya: ${esc(m.maya)}</p>` : ""}
+      <div class="studio-body" id="studio-body"></div>`;
+    root.querySelectorAll("button[data-studio]").forEach((b) =>
+      b.addEventListener("click", () => {
+        current = b.dataset.studio;
+        try {
+          localStorage.setItem(VIEW_KEY, current);
+        } catch (e) {}
+        draw();
+      })
+    );
+    try {
+      m.draw(document.getElementById("studio-body"), api);
+    } catch (e) {
+      document.getElementById("studio-body").innerHTML = `<p>This tool failed to draw: ${esc(e.message)}</p>`;
+    }
+  }
+
+  window.CuriosityStudio = {
+    register(m) {
+      modules.push(m);
+      modules.sort((a, b) => (a.order || 50) - (b.order || 50));
+    },
+    draw,
+    api,
+  };
+})();
