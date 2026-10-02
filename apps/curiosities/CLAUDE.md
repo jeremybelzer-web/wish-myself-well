@@ -28,7 +28,8 @@ A model of a movie, a TV hour, or a video game is only those three. If a fact ca
 6. `app.js` — draws the strip, the paths, and which proximities are firing. The Catalog tab browses curiosities, suites, proximities and development moves.
 7. `study.js` — the Study tab and the Shelf.
 8. `play.js` — the Play tab: the Flip Book game.
-9. `index.html` — open this in a browser. No build step.
+9. `studio.js` and `studio-*.js` — the Studio tab: working tools taken from the Maya and Arnold for Maya manuals. Each file registers one sub-tab with `CuriosityStudio.register`. `maya-manual.js` is the topic inventory; `docs/maya-manual-review.md` is the keep or skip list.
+10. `index.html` — open this in a browser. No build step.
 
 State is `localStorage` key `curiosities-board-v2`.
 
@@ -45,5 +46,9 @@ Tick a span of beats and keep one curiosity or one suite on the Shelf. Apply a s
 ## Play
 
 The Flip Book cuts each panel into three flaps: Camera, Bodies and Mood. Flipping one swaps in a slice from a study, a suite or the emotion map. Suites that fire and proximities that hold across panels score, and a goal card asks for one suite in one panel. Its best score is `localStorage` key `curiosities-flipbook-best-v1`.
+
+## Studio
+
+Camera (lens, film back, depth of field, motion blur), Shots (Camera Sequencer, frame rate, playblast, sound), Curves (Graph Editor, Set Driven Key, Time Warp, live MIDI record), Motion (spacing, stepping, anticipation, overshoot, ghosting), Face (blend shapes, pose library, lip sync), Rig & pose (FK, IK, constraints, live puppeteering), Light & look (Arnold lights, exposure, filters, toon), Crowd (MASH), Passes (render layers and AOVs as curiosity passes) and Manual (every topic, filterable, with your keep or skip calls). Every tool sets curiosities and can send them to the Board. Each tool keeps its own `localStorage` key, `curiosities-studio-<tool>-v1`.
 
 Keep the static files and the look of this folder. Do not add a second git repo inside `apps/`.

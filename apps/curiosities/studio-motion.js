@@ -179,7 +179,7 @@
     let start = null;
     const total = s.frames + Math.round(s.fps / 2);
     function tick(now) {
-      if (!canvas.isConnected) return;
+      if (!canvas.isConnected || document.getElementById("studio").classList.contains("hidden")) return;
       if (start == null) start = now;
       const f = Math.floor(((now - start) / 1000) * s.fps) % total;
       render(canvas, s, Math.min(f, s.frames - 1));
