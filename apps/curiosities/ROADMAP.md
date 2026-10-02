@@ -84,20 +84,20 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 - [ ] Jeremy picks three to five real films or scenes to trace for the Prism (counts only, never scripts)
 - [x] Show the model scenes as curated films in the app, marked "made up for practice" (app thread)
 - [ ] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, comedy
-- [ ] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours (being built, PR #4)
-- [ ] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film (being built, PR #4)
+- [x] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours ("Make it an analogy" on every Prism row, PR #4)
+- [x] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film ("Borrow this film's emotional road", PR #4)
 
 ## 4. Automation and performance
 
 - [x] Trigger any item on and off from a key, a button or a MIDI note
 - [x] Move any slider with a knob, an LFO or a MIDI control, and send it out to VCV Rack
 - [x] Every database item shows up as automation lanes: all 279 curiosities, 121 suites, 87 proximities and 20 proximity suites (tested). Suite Blend and member Weight lanes come later (app thread)
-- [ ] Wearable MIDI (straps, gloves) presets for performers
-- [ ] Pads and keyboards: a ready layout of the most used curiosities
+- [ ] Wearable MIDI (straps, gloves) presets for performers (being built, PR #4)
+- [ ] Pads and keyboards: a ready layout of the most used curiosities (being built, PR #4)
 
 ## 5. Saving and platforms
 
-- [ ] Safe saving: one project file (`.curio`), Save and Open, autosave history (Phase 0 of the plan) (being built, PR #4)
+- [x] Safe saving: one project file (`.curio`), Save and Open, autosave history (Phase 0 of the plan, PR #4)
 - [ ] Split the core from the screens so web, desktop and Maya share it (Phase 1)
 - [ ] Web app online, free to open, works offline (Phase 2)
 - [ ] Logins and cloud sync, optional (Phase 3)
