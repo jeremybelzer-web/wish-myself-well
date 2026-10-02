@@ -64,7 +64,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 - [x] Merge with the app's own lens list (lenses.js) so nothing is listed twice
 - [ ] Switch the database on in the app: one block of script lines in index.html (job for the app thread, lines in PR #7)
 - [ ] Workspaces read their curiosity lists from the database instead of their own lists (job for the app thread)
-- [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop
+- [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop. The review page is ready: https://claude.ai/artifact/MRmTHSusCBtFhkXgkBXoY8 (share it with Sharani from its Share menu)
 - [ ] Decide whether the three new workspaces (Music & sound, Editing & structure, Page & panel) become tabs
 
 ## 2. Storyboard beta **(beta)**
