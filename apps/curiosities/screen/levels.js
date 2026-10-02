@@ -27,7 +27,7 @@
 
   /* Sixteen categories: the families that matter to filmmaking, not every fine distinction. They are the
      Screen's top icon row, the way CapCut's tabs are (Jeremy, 2026-10-02 18:00Z: CapCut is now the main
-     model). Each groups workspaces from data/db-workspaces.js (and screen/edit-curiosities.js, the editing
+     model). Each groups workspaces from data/db-workspaces.js (and data/db-editing.js, the editing
      curiosities from Final Cut Pro and CapCut). windows: the layout the category opens with. icon: its
      picture in the top row (ui.js ICONS). */
   const CATEGORIES = [

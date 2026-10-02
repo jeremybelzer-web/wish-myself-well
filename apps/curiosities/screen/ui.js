@@ -259,7 +259,7 @@
     return L() ? L().resolve(prefs.sel.level, prefs.sel.id) : { curiosities: [], pairs: [], categories: [] };
   }
   /* A curiosity's own setting as a lane id. The engine knows the catalog's curiosities by their bare id; one
-     it doesn't know yet (the editing rows in screen/edit-curiosities.js, until they move into data/) is
+     it doesn't know yet (rows loaded after install) is
      reached through its main slider, "transitionKind.setting". */
   function keyFor(id) {
     if (!S() || S().known(id) || !L()) return id;

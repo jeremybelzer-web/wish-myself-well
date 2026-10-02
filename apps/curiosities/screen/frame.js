@@ -130,7 +130,7 @@
     /* Story: the film's emotional road as an arrow in the top left. */
     const road = String(v.emoRoadFilm || v.emoRoadCharacter || "");
     if (road) parts.push(`<g data-cat="feeling"><path d="M10 ${/rising|highest/.test(road) ? 26 : /falling|lowest/.test(road) ? 10 : 18} L34 ${/rising|highest/.test(road) ? 10 : /falling|lowest/.test(road) ? 26 : 18}" stroke="#c45c26" stroke-width="3" marker-end="url(#cf-arrow)"/></g>`);
-    /* The editing curiosities from Final Cut Pro and CapCut (screen/edit-curiosities.js). Filters: a tint laid
+    /* The editing curiosities from Final Cut Pro and CapCut (data/db-editing.js). Filters: a tint laid
        over the whole picture, with grain dots for a gritty texture. */
     const look = String(v.filterLook || "none");
     const TINT = { "warm film": "rgba(255,150,60,.22)", "cool film": "rgba(60,140,255,.2)", "black and white": "rgba(128,128,128,.55)", vintage: "rgba(190,150,90,.3)", faded: "rgba(255,255,255,.3)", "high contrast": "rgba(0,0,0,.18)", "teal and orange": "rgba(0,150,160,.2)", pastel: "rgba(255,190,220,.25)", night: "rgba(10,20,70,.45)", dreamy: "rgba(255,230,255,.35)" };

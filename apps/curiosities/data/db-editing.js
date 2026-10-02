@@ -1,18 +1,17 @@
-/* screen/edit-curiosities.js: editing curiosities taken from the Final Cut Pro User Guide and CapCut (Jeremy,
+/* data/db-editing.js: editing curiosities taken from the Final Cut Pro User Guide and CapCut (Jeremy,
    2026-10-02 18:00Z: "I'm leaning towards mainly using CapCut... I think their user interface is great").
    Everything an editor changes in those two apps (transitions, filters, adjustments, text, speed, the audio
    mix, overlays, masks, the canvas) is a curiosity here, in the curiosity database's own format.
 
-   Proposed for data/ (the database thread's folder): until it moves there, index.html loads it right after
-   data/db-momentum.js, before CuriosityDB.install, so the app, the engine and the Screen's new categories all
-   know these rows.
+   Written by the Main layout thread (draft PR #28) as screen/edit-curiosities.js and moved here; loaded after
+   db-momentum.js (data/files.json), so the app, the engine and the Screen's new categories all know these rows.
    Sources: Final Cut Pro User Guide (transitions p.389, retiming p.558, beat detection p.210, stabilization
    p.216, masking p.642, color correction p.708) and CapCut Desktop (its Media, Audio, Text, Stickers,
    Effects, Transitions, Filters and Adjustment tabs, the timeline tools, the 2025 CapCut Desktop Guide).
    Film knowledge in plain words, not copied text. */
 (function (DB) {
-  /* index.html loads this before CuriosityDB.install (so the app and the engine know these rows by their own
-     ids); screen/load.js lists it too, for pages without that line. The second load does nothing. */
+  /* A second load does nothing (the Screen's own copy, screen/edit-curiosities.js, may still be loaded until
+     PR #28 drops it). */
   if (!DB || typeof DB.curiosity !== "function" || DB.data.curiosities.some((x) => x.id === "transitionKind")) return;
   const SRC = "Final Cut Pro and CapCut";
   const W = [
@@ -544,4 +543,4 @@
 
   /* Loaded after the app's install(): refresh the links the engine reads, so these proximities can be added. */
   if (typeof window !== "undefined" && window.CURIOSITY_LINKS && typeof DB.links === "function") window.CURIOSITY_LINKS = DB.links();
-})(typeof window !== "undefined" ? window.CuriosityDB : require("../data/curiosity-db.js"));
+})(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));
