@@ -80,10 +80,13 @@ const PAGES_JS = () => {
     seen.add(id);
     out.push({ id, label: (b.childNodes[0] && b.childNodes[0].textContent ? b.childNodes[0].textContent : b.textContent).trim().slice(0, 40) });
   });
+  if (window.CurioScreen) out.unshift({ id: "screen", label: "Screen" });
   return out;
 };
 const OPEN_JS = (id) => {
   const sel = id.startsWith("ws:") ? `[data-ws="${id.slice(3)}"]` : id.startsWith("tool:") ? `[data-tool="${id.slice(5)}"]` : id.startsWith("tab:") ? `#tabs [data-tab="${id.slice(4)}"]:not([data-ws]):not([data-tool])` : id === "engine" ? "[data-engine]" : "[data-momentum]";
+  if (id === "screen") return !!(window.CurioScreen && (CurioScreen.open(), CurioScreen.isOpen()));
+  if (window.CurioScreen && CurioScreen.isOpen()) CurioScreen.close();
   /* Close overlays first, so each page starts from the app. */
   document.querySelectorAll(".en-overlay:not([hidden]) [data-act=close], .mo-overlay:not([hidden]) [data-act=close], [data-momentum-close]").forEach((x) => x.click());
   const b = document.querySelector(sel);
@@ -108,7 +111,7 @@ const MONKEY_JS = async ({ n, seed }) => {
   };
   const stats = { click: 0, key: 0, wheel: 0, hover: 0, change: 0, last: "" };
   for (let i = 0; i < n; i++) {
-    const overlay = document.querySelector(".en-overlay:not([hidden]), .mo-overlay:not([hidden]), [role=dialog]:not([hidden])");
+    const overlay = document.querySelector(".en-overlay:not([hidden]), .mo-overlay:not([hidden]), [role=dialog]:not([hidden]), .sc-page:not([hidden])");
     const scope = overlay || document.querySelector("main") || document.body;
     const els = [...scope.querySelectorAll("button, input, select, textarea, summary, canvas, [role=button], [data-act], [tabindex]")].filter(
       (e) => visible(e) && !(e.dataset && SKIP_ACT.test(e.dataset.act || "")) && !(e.type === "file") && !SKIP_TEXT.test(e.textContent || e.value || "") && !(e.tagName === "A" && e.href)
@@ -192,6 +195,8 @@ const diffSnap = (a, b) => {
   };
   await page.goto(url);
   await ready();
+  /* The Screen opens on start; it is one of the pages below, and the rest start from the app. */
+  await page.evaluate(() => window.CurioScreen && CurioScreen.isOpen() && CurioScreen.close());
   const pages = await page.evaluate(PAGES_JS);
   report.pages = pages.map((p) => p.id);
   console.log("seed " + SEED + "; " + pages.length + " pages: " + pages.map((p) => p.label).join(", "));

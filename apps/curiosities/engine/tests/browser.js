@@ -58,6 +58,9 @@ const ok = (cond, text) => {
   const three = arg("--three", "");
   if (three) await page.route(/three\.min\.js$/, (r) => r.fulfill({ contentType: "text/javascript", body: fs.readFileSync(three, "utf8") }));
   await page.goto(url);
+  /* The Screen opens on start over the whole app; this walkthrough is about the app behind it. */
+  await page.waitForFunction(() => document.readyState === "complete");
+  await page.evaluate(() => window.CurioScreen && CurioScreen.isOpen() && CurioScreen.close());
   await page.waitForFunction(() => window.CuriosityBoard && window.CurioAuto);
   await page.waitForFunction(() => window.CurioEngineUI && window.CurioCube && window.CurioSelfCheck);
   ok(true, "the engine loads from its script tag in index.html");
@@ -140,7 +143,7 @@ const ok = (cond, text) => {
   await page.click("#lib-btn");
   await page.click("#lib-menu [data-engine]");
   await page.waitForSelector(".en-overlay:not([hidden])");
-  const startBtn = await page.$("[data-act=start-board]");
+  const startBtn = await page.$(".en-overlay [data-act=start-board]");
   if (startBtn) await startBtn.click();
   const rows = await page.evaluate(() => CurioEngine.state().rows.length);
   ok(rows >= 1, "Read My film: " + rows + " rows from the board's panels");
@@ -157,28 +160,28 @@ const ok = (cond, text) => {
   await page.click(".en-pop [data-pop=pin]");
   ok((await page.evaluate(() => { const st = CurioEngine.state(); return CurioEngine.why(st.rows[0].id, "master", "cutRate"); })) === "edit", "a pin is kept as a hand edit");
   await page.screenshot({ path: path.join(SHOTS, "engine-timeline.png") });
-  await page.click("[data-act=undo]");
+  await page.click(".en-overlay [data-act=undo]");
   ok((await page.evaluate(() => { const st = CurioEngine.state(); return CurioEngine.value(st.rows[0].id, "master", "cutRate"); })) === "fast", "Undo takes the pin back");
   await page.keyboard.press("Control+Shift+Z");
   ok((await page.evaluate(() => { const st = CurioEngine.state(); return CurioEngine.value(st.rows[0].id, "master", "cutRate"); })) === "slow", "Ctrl+Shift+Z redoes it");
 
-  await page.click("[data-tab=links]");
-  await page.selectOption("[data-form=link] [name=from]", "camera|cameraCarry");
-  await page.selectOption("[data-form=link] [name=to]", "camera|moveSpeed");
-  await page.selectOption("[data-form=link] [name=does]", "rise");
-  await page.click("[data-act=link-add]");
+  await page.click(".en-overlay [data-tab=links]");
+  await page.selectOption(".en-overlay [data-form=link] [name=from]", "camera|cameraCarry");
+  await page.selectOption(".en-overlay [data-form=link] [name=to]", "camera|moveSpeed");
+  await page.selectOption(".en-overlay [data-form=link] [name=does]", "rise");
+  await page.click(".en-overlay [data-act=link-add]");
   ok((await page.evaluate(() => CurioEngine.state().links.some((l) => l.from.curiosity === "cameraCarry" && l.does === "rise"))) === true, "a link added from the form");
   const n0 = await page.evaluate(() => CurioEngine.state().links.length);
-  await page.click("[data-act=pack-group]");
+  await page.click(".en-overlay [data-act=pack-group]");
   const afterGroup = await page.evaluate(() => ({ links: CurioEngine.state().links.length, suites: CurioEngine.state().suites.length }));
   ok(afterGroup.links > n0 && afterGroup.suites === 1, "a proximity suite from the database comes in as links (" + (afterGroup.links - n0) + ")");
-  await page.click("[data-act=suite-on]");
+  await page.click(".en-overlay [data-act=suite-on]");
   ok((await page.evaluate(() => CurioEngine.state().suites[0].on)) === false, "and switches off together");
-  await page.click("[data-act=pack-fit]");
+  await page.click(".en-overlay [data-act=pack-fit]");
   await page.screenshot({ path: path.join(SHOTS, "engine-links.png"), fullPage: false });
 
   /* Read-only bands from other parts (momentum): drawn under the timeline, a broken one skipped. */
-  await page.click("[data-tab=timeline]");
+  await page.click(".en-overlay [data-tab=timeline]");
   const band = await page.evaluate(() => {
     const rows = CurioEngine.state().rows;
     const stop = CurioEngineUI.addBand(() => ({ id: "t", label: "Test band", lanes: [{ id: "a", label: "Attention", cells: [{ row: rows[0].id, text: "<b>face</b> 4 s", title: "x", family: "face", warn: true }] }] }));
@@ -186,68 +189,68 @@ const ok = (cond, text) => {
       throw new Error("broken provider");
     });
     CurioEngineUI.draw();
-    const cell = document.querySelector(".en-band ~ tr .en-bandcell.en-warn");
+    const cell = document.querySelector('tr[data-band="t"]:not(.en-band) .en-bandcell.en-warn');
     const out = { text: cell && cell.textContent, fam: cell && cell.dataset.family, html: !!document.querySelector(".en-tl b") };
     stop();
-    out.gone = !document.querySelector(".en-bandcell");
+    out.gone = !document.querySelector('tr[data-band="t"]');
     return out;
   });
   ok(band.text === "<b>face</b> 4 s" && band.fam === "face" && !band.html && band.gone, "a band from another part draws read-only under the timeline, escaped, and a broken one is skipped");
 
   /* Past 8 moments: My film shows a window; the storyboard takes the whole film. */
   await page.evaluate(() => { for (let i = 0; i < 10; i++) CurioEngine.send({ type: "addRow" }); });
-  await page.click("[data-act=print]");
+  await page.click(".en-overlay [data-act=print]");
   const panels0 = await page.evaluate(() => CuriosityBoard.count());
-  await page.click("[data-act=win-next]");
+  await page.click(".en-overlay [data-act=win-next]");
   const win = await page.evaluate(() => ({ from: CurioEngine.state().print.from, applied: CuriosityBoard.applied() }));
   ok(win.from === panels0 && win.applied && win.applied.label === "Engine", "Later moments moves My film's window and sends it (from " + win.from + ")");
   ok((await page.evaluate(() => CurioBridge.handle({ type: "timeline" }).panels.length)) === (await page.evaluate(() => CurioEngine.state().rows.length)), "a tool asking the bridge for the timeline gets every moment");
   const sbBefore = await page.evaluate(() => CuriosityStoryboard.data().scenes.length);
   /* Without the storyboard's own door (putScenes) the page reloads to show the new scenes. */
-  if (await page.evaluate(() => typeof CuriosityStoryboard.putScenes === "function")) await page.click("[data-act=sb-print]");
-  else await Promise.all([page.waitForNavigation({ timeout: 15000 }), page.click("[data-act=sb-print]")]);
+  if (await page.evaluate(() => typeof CuriosityStoryboard.putScenes === "function")) await page.click(".en-overlay [data-act=sb-print]");
+  else await Promise.all([page.waitForNavigation({ timeout: 15000 }), page.click(".en-overlay [data-act=sb-print]")]);
   await page.waitForFunction(() => window.CuriosityBoard && window.CurioEngineUI && document.querySelector(".en-overlay:not([hidden])"), null, { timeout: 15000 });
   const sb = await page.evaluate(() => CuriosityStoryboard.data().scenes.filter((s) => s.engine).map((s) => s.panels.length));
   ok(sb.reduce((a, b) => a + b, 0) === (await page.evaluate(() => CurioEngine.state().rows.length)) && sb.every((n) => n <= 24), "the whole film went to the storyboard as scenes of up to 24 panels (" + sb.join(", ") + "), and the engine opened again");
   ok((await page.evaluate(() => CuriosityStoryboard.data().scenes.length)) === sbBefore + sb.length, "the storyboard's own scenes are kept");
   await page.screenshot({ path: path.join(SHOTS, "engine-window.png") });
-  await page.selectOption("[data-field=sb-scene]", "all").catch(() => {});
+  await page.selectOption(".en-overlay [data-field=sb-scene]", "all").catch(() => {});
 
-  await page.click("[data-tab=analyze]");
+  await page.click(".en-overlay [data-tab=analyze]");
   await page.fill("[data-field=ref-text]", "INT. KITCHEN - NIGHT\n\nShe paces, glances at the clock.\n\nANA\n(whispering)\nWhere is he?\n\nBEN\nI'm HERE!\n\nEXT. ROOF - DAWN\n\nThey sit. She smiles.\n\nANA\nI love this.\n\nINT. CAR - DAY\n\nBEN\nHa!");
-  await page.click("[data-act=analyze]");
-  await page.click("[data-act=ref-keep]");
-  await page.selectOption("[data-form=carry] [name=cur]", "emotion");
-  await page.selectOption("[data-form=carry] [name=track]", "master");
-  await page.click("[data-act=carry]");
+  await page.click(".en-overlay [data-act=analyze]");
+  await page.click(".en-overlay [data-act=ref-keep]");
+  await page.selectOption(".en-overlay [data-form=carry] [name=cur]", "emotion");
+  await page.selectOption(".en-overlay [data-form=carry] [name=track]", "master");
+  await page.click(".en-overlay [data-act=carry]");
   ok((await page.evaluate(() => Object.keys(CurioEngine.state().lanes).includes("master|emotion"))) === true, "a script's emotional road carried onto the Master track");
   ok((await page.evaluate(() => !JSON.stringify(CurioEngine.state()).includes("clock"))) === true, "the script's text was not kept");
   await page.screenshot({ path: path.join(SHOTS, "engine-analyze.png") });
 
-  await page.click("[data-tab=cube]");
+  await page.click(".en-overlay [data-tab=cube]");
   await page.waitForFunction(() => document.querySelector(".en-cube"), null, { timeout: 20000 }).catch(() => {});
   await page.waitForTimeout(600);
   const canvas = await page.$(".en-cube canvas");
   ok(!!canvas, "the cube draws (WebGL)");
   await page.screenshot({ path: path.join(SHOTS, "engine-cube-front.png") });
-  await page.click("[data-c=next]");
-  await page.click("[data-c=next]");
+  await page.click(".en-overlay [data-c=next]");
+  await page.click(".en-overlay [data-c=next]");
   await page.waitForTimeout(300);
   await page.screenshot({ path: path.join(SHOTS, "engine-cube-layer.png") });
-  await page.click("[data-c=turn]");
+  await page.click(".en-overlay [data-c=turn]");
   await page.waitForTimeout(900);
   await page.screenshot({ path: path.join(SHOTS, "engine-cube-turned.png") });
-  await page.click("[data-c=inside]");
+  await page.click(".en-overlay [data-c=inside]");
   await page.waitForTimeout(900);
   await page.screenshot({ path: path.join(SHOTS, "engine-cube-inside.png") });
 
-  await page.click("[data-tab=timeline]");
-  await page.click("[data-act=print]");
+  await page.click(".en-overlay [data-tab=timeline]");
+  await page.click(".en-overlay [data-act=print]");
   ok((await page.evaluate(() => (CuriosityBoard.applied() || {}).label)) === "Engine", "Send to My film plays the result on the board's panels");
-  await page.click("[data-act=unprint]");
+  await page.click(".en-overlay [data-act=unprint]");
   ok((await page.evaluate(() => (CuriosityBoard.applied() || {}).label)) !== "Engine", "Take back puts My film back");
-  await page.click("[data-tab=history]");
-  await page.click("[data-act=selfcheck]");
+  await page.click(".en-overlay [data-tab=history]");
+  await page.click(".en-overlay [data-act=selfcheck]");
   const sc = await page.evaluate(() => document.querySelector(".en-body").innerText);
   ok(/Self-check passed/.test(await page.evaluate(() => document.querySelector(".en-msg").textContent)), "the self-check passes and leaves nothing behind");
   if (!/Self-check passed/.test(await page.evaluate(() => document.querySelector(".en-msg").textContent))) console.log(sc.slice(0, 800));

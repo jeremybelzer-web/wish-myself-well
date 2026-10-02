@@ -276,7 +276,8 @@
           b = null;
         }
         if (!b || !Array.isArray(b.lanes) || !b.lanes.length) return "";
-        const top = `<tr class="en-track en-band"><th class="en-lane">${esc(String(b.label || b.id || "Band").slice(0, 60))} <small style="display:inline;opacity:.7">read only</small></th><td colspan="${st.rows.length + 1}"></td></tr>`;
+        const bid = esc(String(b.id == null ? "" : b.id).slice(0, 60));
+        const top = `<tr class="en-track en-band" data-band="${bid}"><th class="en-lane">${esc(String(b.label || b.id || "Band").slice(0, 60))} <small style="display:inline;opacity:.7">read only</small></th><td colspan="${st.rows.length + 1}"></td></tr>`;
         return (
           top +
           b.lanes
@@ -292,7 +293,7 @@
                   return `<td><div class="en-bandcell${c.warn ? " en-warn" : ""}"${fam ? ` data-family="${fam}"` : ""} title="${esc(String(c.title == null ? "" : c.title).slice(0, 300))}">${esc(String(c.text == null ? "" : c.text).slice(0, 40))}</div></td>`;
                 })
                 .join("");
-              return `<tr><th class="en-lane">${esc(String((lane && (lane.label || lane.id)) || "").slice(0, 60))}</th>${cells}<td></td></tr>`;
+              return `<tr data-band="${bid}"><th class="en-lane">${esc(String((lane && (lane.label || lane.id)) || "").slice(0, 60))}</th>${cells}<td></td></tr>`;
             })
             .join("")
         );
