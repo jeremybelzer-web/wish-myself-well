@@ -1,50 +1,27 @@
-/* Emotion: what a character feels and every channel it shows through, plus the emotional roadmap
-   (per character and for the whole film, scene by scene). Jeremy, 2026-10-02 12:36Z: emotion shows in
-   movement, speech, face, posture, how much action and dialogue there is, the setting, the lighting,
-   and how the scene sits against the one before. Adds sliders to the catalog's "emotion" row. */
+/* Emotion. Jeremy, 2026-10-02 12:36Z: emotion shows in movement, speech, face, posture, how much action and
+   dialogue there is, the setting, the lighting, and how the scene sits against the one before; with emotional
+   roadmaps per character and for the film. The app's lenses.js has the Emotion lens (main: the catalog's
+   "emotion", sliders emotionIntensity, emoMove, emoVoice...) and the Emotional road lens (emoRoadCharacter,
+   emoRoadFilm...), imported in db-catalog.js. This file adds what they lack, the feeling gap between two
+   characters, and the suites and proximities. */
 (function (DB) {
   const W = "emotion";
 
   DB.curiosity({
     id: "emotion",
-    label: "Emotion",
-    override: ["workspace", "also", "plain", "kind"],
-    workspace: W,
-    also: ["lines", "movement-lines"],
-    plain: "What a character feels in this beat, and how strongly it shows in body, voice, face, words, the room and the light.",
+    override: ["kind"],
+    kind: "lens",
     sliders: [
-      ["valence", "Unhappy to happy", [-5, 5], "How bad or good the feeling is, from misery to delight."],
+      ["valence", "Unhappy to happy", [-5, 5], "How bad or good the feeling is, from misery to delight, whichever feeling it is."],
       ["arousal", "Calm to wound up", [0, 5], "How much energy is in the feeling, from limp to frantic."],
-      ["intensity", "Intensity", [0, 5], "How strongly it is felt, whatever the feeling."],
-      ["shown", "Hidden or shown", ["hidden completely", "leaks out", "shown", "overflowing"], "How much of the feeling the character lets others see."],
-      ["movement", "Shows in movement", [0, 5], "How much the feeling drives how they move: pacing, freezing, flinging."],
-      ["voice", "Shows in the voice", [0, 5], "How much the feeling colors the voice: pitch, wobble, edge, warmth."],
-      ["face", "Shows on the face", [0, 5], "How much the face gives away."],
-      ["posture", "Posture", ["collapsed", "slumped", "neutral", "upright", "puffed up"], "How the body is held under the feeling."],
-      ["postureChange", "Posture changes", [0, 5], "How often the posture shifts during the beat."],
-      ["actionAmount", "How much they do", [0, 5], "Amount of physical action, from none to constant."],
-      ["dialogueAmount", "How much they say", [0, 5], "Amount of talking, from silent to unstoppable."],
-      ["actions", "What the hands do", ["nothing", "small fidgets", "busy work", "grabbing and throwing"], "The kind of action the feeling produces."],
-      ["settingMood", "The room agrees", ["fights the feeling", "neutral", "matches the feeling"], "Whether the place reflects the feeling (rain on a sad day) or fights it (a party for a grieving person)."],
-      ["lightingMood", "The light agrees", ["fights the feeling", "neutral", "matches the feeling"], "Whether the light matches the feeling or plays against it."],
-      ["contrastPrev", "Against the scene before", ["same feeling", "a step away", "a big swing", "the opposite"], "How far this feeling is from the one in the previous scene."],
-      ["contagion", "Spreads to others", [0, 5], "How much the feeling passes to the other people in the scene."],
     ],
   });
 
   DB.curiosity({
-    id: "emotionRoadmap",
-    label: "Character's emotional roadmap",
-    workspace: W,
-    also: ["arc"],
-    per: "character per scene",
-    group: "Emotion",
-    plain: "The feeling of one character scene by scene through the story, drawn as a line you can borrow from a curated film.",
-    main: "level",
+    id: "emoRoadCharacter",
     sliders: [
-      ["level", "Where they are", [-5, 5], "Low to high, scene by scene: the height of the line."],
+      ["height", "Height of the line", [-5, 5], "Low to high: how good or bad things are for the character in this scene."],
       ["swing", "Size of the swings", [0, 5], "How far the feeling moves between scenes."],
-      ["direction", "Heading", ["falling", "flat", "rising"], "Whether the line is going down, holding, or going up."],
       ["turns", "Turning points", [0, 8], "How many times the direction changes over the story."],
       ["lowPoint", "Lowest point", [0, 100, "% through the story"], "Where the lowest scene falls in the story."],
       ["highPoint", "Highest point", [0, 100, "% through the story"], "Where the highest scene falls in the story."],
@@ -53,16 +30,8 @@
   });
 
   DB.curiosity({
-    id: "filmEmotion",
-    label: "Film's emotional roadmap",
-    workspace: W,
-    also: ["structure"],
-    per: "scene",
-    group: "Emotion",
-    plain: "The feeling the audience is meant to have scene by scene across the whole film.",
-    main: "level",
+    id: "emoRoadFilm",
     sliders: [
-      ["level", "Audience feeling", [-5, 5], "How low or high the audience should feel in this scene."],
       ["tension", "Tension", [0, 5], "How tight the audience is, from at ease to on the edge of the seat."],
       ["laughter", "Laughter", [0, 5], "How much the audience should be laughing."],
       ["relief", "Release", [0, 5], "How much tension is let go in this scene."],
@@ -75,7 +44,7 @@
     id: "emotionGap",
     label: "Feeling gap between characters",
     workspace: W,
-    also: ["comedy", "placement"],
+    also: ["comedy-mix", "placement"],
     group: "Emotion",
     plain: "How different two characters in the same scene feel. A big gap is drama, or comedy when one is calm and the other is panicking.",
     main: "gap",
@@ -86,62 +55,64 @@
     ],
   });
 
-  DB.suite({ id: "held-back-tears", label: "Held-back tears", workspace: W, plain: "A strong sad feeling kept almost hidden: a still body, a wavering voice, a face that slips.", members: [
-    { curiosity: "emotion", slider: "setting", value: "melancholy", weight: 100 },
-    { curiosity: "emotion", slider: "intensity", value: 4, weight: 80 },
-    { curiosity: "emotion", slider: "shown", value: "leaks out", weight: 100 },
-    { curiosity: "emotion", slider: "voice", value: 3, weight: 60 },
+  const S = (id, label, plain, members, extra) => DB.suite(Object.assign({ id, label, plain, workspace: W, members }, extra || {}));
+  S("held-back-tears", "Held-back tears", "A strong sad feeling kept almost hidden: a still body, a wavering voice, a face that slips.", [
+    { curiosity: "emotion", value: "melancholy" },
+    { curiosity: "emotionIntensity", value: 4, weight: 80 },
+    { curiosity: "emoShown", value: "leaks out" },
+    { curiosity: "emoVoice", value: "a hint", weight: 60 },
     { curiosity: "stillness", value: 4, weight: 50 },
-  ] });
-  DB.suite({ id: "rage-boils-over", label: "Rage boils over", workspace: W, also: ["camera-motion"], plain: "Anger rising until it spills: louder, bigger moves, a shakier camera.", members: [
-    { curiosity: "emotion", slider: "setting", value: "angry", weight: 100 },
-    { curiosity: "emotion", slider: "arousal", from: 2, to: 5, weight: 100 },
-    { curiosity: "emotion", slider: "shown", value: "overflowing", weight: 80 },
-    { curiosity: "emotion", slider: "actions", value: "grabbing and throwing", weight: 60 },
+  ]);
+  S("rage-boils-over", "Rage boils over", "Anger rising until it spills: louder, bigger moves, a shakier camera.", [
+    { curiosity: "emotion", value: "angry" },
+    { curiosity: "emotion", slider: "arousal", from: 2, to: 5 },
+    { curiosity: "emoShown", value: "fully shown", weight: 80 },
+    { curiosity: "emoActions", value: "drastic", weight: 60 },
     { curiosity: "cameraCarry", value: "handheld", weight: 50 },
-  ] });
-  DB.suite({ id: "quiet-joy", label: "Quiet joy", workspace: W, plain: "Happiness that does not need to shout: warm light, a small smile, little said.", members: [
-    { curiosity: "emotion", slider: "setting", value: "joyful", weight: 100 },
+  ], { also: ["camera-motion"] });
+  S("quiet-joy", "Quiet joy", "Happiness that does not need to shout: warm light, a small smile, little said.", [
+    { curiosity: "emotion", value: "joyful" },
     { curiosity: "emotion", slider: "arousal", value: 1, weight: 70 },
-    { curiosity: "emotion", slider: "dialogueAmount", value: 1, weight: 60 },
-    { curiosity: "emotion", slider: "lightingMood", value: "matches the feeling", weight: 60 },
-  ] });
-  DB.suite({ id: "frozen-fear", label: "Frozen fear", workspace: W, plain: "Fear that locks the body: no movement, no words, eyes darting.", members: [
-    { curiosity: "emotion", slider: "setting", value: "fearful", weight: 100 },
-    { curiosity: "emotion", slider: "actionAmount", value: 0, weight: 90 },
-    { curiosity: "emotion", slider: "dialogueAmount", value: 0, weight: 80 },
+    { curiosity: "wordsAmount", value: 1, weight: 60 },
+    { curiosity: "lightingMood", value: "bright and warm", weight: 60 },
+  ]);
+  S("frozen-fear", "Frozen fear", "Fear that locks the body: no movement, no words, eyes darting.", [
+    { curiosity: "emotion", value: "fearful" },
+    { curiosity: "emoMove", value: "frozen", weight: 90 },
+    { curiosity: "wordsAmount", value: 0, weight: 80 },
     { curiosity: "gazeShift", value: 6, weight: 60 },
-  ] });
-  DB.suite({ id: "mood-whiplash", label: "Mood whiplash", workspace: W, also: ["structure", "comedy"], plain: "The feeling swings to its opposite from one scene to the next.", members: [
-    { curiosity: "emotion", slider: "contrastPrev", value: "the opposite", weight: 100 },
-    { curiosity: "filmEmotion", slider: "alternation", value: "every scene", weight: 60 },
-  ] });
-  DB.suite({ id: "calm-in-the-storm", label: "Calm in the storm", workspace: W, also: ["comedy"], plain: "One character stays perfectly calm while everyone around them panics.", members: [
-    { curiosity: "emotionGap", slider: "gap", value: 5, weight: 100 },
+  ]);
+  S("mood-whiplash", "Mood whiplash", "The feeling swings to its opposite from one scene to the next.", [
+    { curiosity: "emoContrastPrev", value: "the opposite" },
+    { curiosity: "emoRoadFilm", slider: "alternation", value: "every scene", weight: 60 },
+  ], { also: ["structure", "comedy"] });
+  S("calm-in-the-storm", "Calm in the storm", "One character stays perfectly calm while everyone around them panics.", [
+    { curiosity: "emotionGap", slider: "gap", value: 5 },
     { curiosity: "emotionGap", slider: "awareness", value: "one notices", weight: 60 },
-    { curiosity: "emotion", slider: "contagion", value: 0, weight: 60 },
-  ] });
-  DB.suite({ id: "mask-slips", label: "The mask slips", workspace: W, also: ["lines"], plain: "A character performing one feeling while another leaks out through the face and hands.", members: [
-    { curiosity: "emotion", slider: "shown", value: "leaks out", weight: 100 },
-    { curiosity: "emotion", slider: "face", value: 2, weight: 70 },
-    { curiosity: "emotion", slider: "actions", value: "small fidgets", weight: 70 },
-  ] });
-  DB.suite({ id: "rock-bottom", label: "Rock bottom", workspace: W, also: ["arc"], plain: "The lowest scene of a character's roadmap: collapsed posture, little said, a room that agrees.", members: [
-    { curiosity: "emotionRoadmap", slider: "level", value: -5, weight: 100 },
-    { curiosity: "emotion", slider: "posture", value: "collapsed", weight: 80 },
-    { curiosity: "emotion", slider: "settingMood", value: "matches the feeling", weight: 60 },
-  ] });
+    { curiosity: "emoSpread", value: "no one", weight: 60 },
+  ], { also: ["comedy-mix"] });
+  S("mask-slips", "The mask slips", "A character performing one feeling while another leaks out through the face and hands.", [
+    { curiosity: "emoShown", value: "leaks out" },
+    { curiosity: "faceIntensity", value: 2, weight: 70 },
+    { curiosity: "emoActions", value: "small", weight: 70 },
+  ], { also: ["lines"] });
+  S("rock-bottom", "Rock bottom", "The lowest scene of a character's road: closed posture, little said, a room that agrees.", [
+    { curiosity: "emoRoadCharacter", value: "lowest point" },
+    { curiosity: "posture", value: "closed", weight: 80 },
+    { curiosity: "settingMood", value: "oppressive", weight: 60 },
+  ], { workspace: "emo-road", also: ["arc"] });
 
-  DB.proximity({ id: "feeling-shows-face-first", label: "When a feeling rises, the face shows it before the words", workspace: W, also: ["movement-lines"], plain: "As intensity rises, the face changes within a beat, before the character says anything about it.", when: { curiosity: "emotion", slider: "intensity", change: "rises" }, then: { curiosity: "emotion", slider: "face", change: "rises" }, within: 1 });
-  DB.proximity({ id: "anger-louder", label: "When anger rises, the voice gets louder", workspace: W, also: ["lines"], plain: "Anger is followed by louder lines within a beat.", when: { curiosity: "emotion", slider: "setting", is: "angry" }, then: { curiosity: "volume", change: "rises" }, within: 1 });
-  DB.proximity({ id: "fear-still", label: "When fear rises, movement stops", workspace: W, also: ["character-motion"], plain: "Fear tends to freeze characters within a beat.", when: { curiosity: "emotion", slider: "setting", is: "fearful" }, then: { curiosity: "emotion", slider: "actionAmount", change: "drops" }, within: 1 });
-  DB.proximity({ id: "contagion-spreads", label: "When one character's feeling overflows, others catch it", workspace: W, also: ["herd"], plain: "A feeling shown openly spreads to the others in the scene within three beats.", when: { curiosity: "emotion", slider: "shown", is: "overflowing" }, then: { curiosity: "herdMentality", change: "rises" }, within: 3 });
-  DB.proximity({ id: "low-then-laugh", label: "After a low scene, a laugh", workspace: W, also: ["comedy", "structure"], plain: "After the film hits a low scene, a laugh tends to follow within the next scene or two (about eight beats).", when: { curiosity: "filmEmotion", slider: "level", change: "drops" }, then: { curiosity: "filmEmotion", slider: "laughter", change: "rises" }, within: 8 });
-  DB.proximity({ id: "hidden-then-burst", label: "A hidden feeling bursts out later", workspace: W, also: ["arc"], plain: "A feeling held completely hidden comes out overflowing a few scenes later.", when: { curiosity: "emotion", slider: "shown", is: "hidden completely" }, then: { curiosity: "emotion", slider: "shown", is: "overflowing" }, within: 12 });
-  DB.proximity({ id: "joy-light-warms", label: "When joy rises, the light warms", workspace: W, also: ["light"], plain: "Joyful beats are followed by warmer light within two beats.", when: { curiosity: "emotion", slider: "setting", is: "joyful" }, then: { curiosity: "colorTemp", is: "warm practical" }, within: 2 });
-  DB.proximity({ id: "tension-release", label: "After tension peaks, release follows", workspace: W, also: ["structure"], plain: "When the film's tension peaks, a release follows within a few beats.", when: { curiosity: "filmEmotion", slider: "tension", change: "rises" }, then: { curiosity: "filmEmotion", slider: "relief", change: "rises" }, within: 4 });
+  const P = (id, label, plain, when, then, within, extra) => DB.proximity(Object.assign({ id, label, plain, workspace: W, when, then, within }, extra || {}));
+  P("feeling-shows-face-first", "When a feeling rises, the face shows it before the words", "As the feeling grows stronger, the face changes within a beat, before the character says anything about it.", { curiosity: "emotionIntensity", change: "rises" }, { curiosity: "faceIntensity", change: "rises" }, 1, { also: ["movement-lines"] });
+  P("anger-louder", "When anger rises, the voice gets louder", "Anger is followed by louder lines within a beat.", { curiosity: "emotion", is: "angry" }, { curiosity: "volume", change: "rises" }, 1, { also: ["lines"] });
+  P("fear-still", "When fear rises, movement stops", "Fear tends to freeze characters within a beat.", { curiosity: "emotion", is: "fearful" }, { curiosity: "movementAmount", change: "drops" }, 1, { also: ["character-motion"] });
+  P("contagion-spreads", "When one character's feeling overflows, others catch it", "A feeling shown openly spreads to the others in the scene within three beats.", { curiosity: "emoShown", is: "fully shown" }, { curiosity: "emoSpread", change: "rises" }, 3, { also: ["herd"] });
+  P("low-then-laugh", "After a low scene, a laugh", "After the film hits a low scene, a laugh tends to follow within the next scene or two (about eight beats).", { curiosity: "emoRoadFilm", is: "lowest point" }, { curiosity: "emoRoadFilm", slider: "laughter", change: "rises" }, 8, { workspace: "emo-road", also: ["comedy", "structure"] });
+  P("hidden-then-burst", "A hidden feeling bursts out later", "A feeling held completely hidden comes out fully a few scenes later.", { curiosity: "emoShown", is: "fully hidden" }, { curiosity: "emoShown", is: "fully shown" }, 12, { workspace: "emo-road", also: ["arc"] });
+  P("joy-light-warms", "When joy rises, the light warms", "Joyful beats are followed by warmer light within two beats.", { curiosity: "emotion", is: "joyful" }, { curiosity: "lightingMood", is: "bright and warm" }, 2, { also: ["light", "color"] });
+  P("tension-release", "After tension peaks, release follows", "When the film's tension peaks, a release follows within a few beats.", { curiosity: "emoRoadFilm", slider: "tension", change: "rises" }, { curiosity: "emoRoadFilm", slider: "relief", change: "rises" }, 4, { workspace: "emo-road", also: ["structure"] });
 
-  DB.proximitySuite({ id: "body-tells-first", label: "The body tells first", workspace: W, also: ["movement-lines"], plain: "Feelings reach the face and body before they reach the words.", members: ["feeling-shows-face-first", "fear-still", "anger-louder"] });
-  DB.proximitySuite({ id: "emotional-rollercoaster", label: "Emotional rollercoaster", workspace: W, also: ["structure"], plain: "The film's feeling rises and falls in a rhythm: tension then release, low then a laugh.", members: ["tension-release", "low-then-laugh"] });
-  DB.proximitySuite({ id: "feelings-spread", label: "Feelings spread", workspace: W, also: ["herd", "light"], plain: "A feeling moves outward from one character to the others, the room and the light.", members: ["contagion-spreads", "joy-light-warms", "hidden-then-burst"] });
+  DB.proximitySuite({ id: "body-tells-first", label: "The body tells first", workspace: W, also: ["movement-lines"], plain: "Feelings reach the face and body before they reach the words.", members: ["feeling-shows-face-first", "fear-still", "anger-louder", "intensity-moves"] });
+  DB.proximitySuite({ id: "emotional-rollercoaster", label: "Emotional rollercoaster", workspace: "emo-road", also: ["structure"], plain: "The film's feeling rises and falls in a rhythm: tension then release, low then a laugh, a low point that turns.", members: ["tension-release", "low-then-laugh", "lowpoint-turn"] });
+  DB.proximitySuite({ id: "feelings-spread", label: "Feelings spread", workspace: W, also: ["herd", "light"], plain: "A feeling moves outward from one character to the others, the room and the light.", members: ["contagion-spreads", "joy-light-warms", "hidden-then-burst", "light-mood-intensity"] });
 })(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));

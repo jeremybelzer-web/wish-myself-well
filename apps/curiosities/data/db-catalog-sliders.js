@@ -202,4 +202,5 @@
   X("enneagramHealth", R("level", "Level", 1, 9, "1 most healthy to 9 least healthy, as in the character matrix."), CHANGE("their health"));
   X("herdMentality", R("pressure", "Peer pressure", 0, 5, "How much the group pushes."), CHANGE("the herd"));
   X("herdLeader", R("strength", "Leader's pull", 0, 5, "How strongly the leader pulls the herd."), CHANGE("who leads"));
+
 })(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));

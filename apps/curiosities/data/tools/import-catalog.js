@@ -1,4 +1,4 @@
-/* One-off importer: turns the app's existing catalog (catalog.js, library.js, story-curiosities.js, model.js)
+/* Importer: turns the app's existing catalog (catalog.js, library.js, story-curiosities.js, lenses.js, model.js)
    and workspace lists (workspaces.js) into data/db-catalog.js, in the database's shape.
    Run from apps/curiosities:  node data/tools/import-catalog.js
    Re-running overwrites db-catalog.js; hand-written additions live in other data files, so nothing is lost. */
@@ -7,8 +7,14 @@ const fs = require("fs");
 const path = require("path");
 const APP = path.join(__dirname, "..", "..");
 global.window = global;
-const src = ["catalog.js", "library.js", "story-curiosities.js", "model.js"].map((f) => fs.readFileSync(path.join(APP, f), "utf8")).join("\n");
-(0, eval)(src + "\nglobal.__C = CURIOSITIES; global.__S = SUITES; global.__P = PROXIMITIES;");
+/* Each file runs as its own global script, as the browser's script tags do (so a later const is not visible early). */
+const vm = require("vm");
+["catalog.js", "library.js", "story-curiosities.js", "lenses.js", "model.js"]
+  .filter((f) => fs.existsSync(path.join(APP, f)))
+  .forEach((f) => vm.runInThisContext(fs.readFileSync(path.join(APP, f), "utf8"), { filename: f }));
+vm.runInThisContext("global.__C = CURIOSITIES; global.__S = SUITES; global.__P = PROXIMITIES;");
+/* lenses.js only adds its lens suites when SUITES already exists; add them here as the app's own list would. */
+(global.CURIOSITY_LENS_SUITES || []).forEach((s) => global.__S.some((x) => x.id === s.id) || global.__S.push(s));
 const C = global.__C, S = global.__S, P = global.__P;
 
 /* Workspace lists, read from workspaces.js so the database matches what the app shows. */
@@ -17,6 +23,12 @@ const WS = [];
 wsSrc.replace(/\{ id: "([^"]+)", scope: "(scene|story)", label: "([^"]+)", note: "([^"]+)", ids: \[([^\]]*)\]/g, (_, id, scope, label, note, ids) => {
   WS.push({ id, scope, label, note, ids: (ids.match(/"([^"]+)"/g) || []).map((s) => s.slice(1, -1)) });
 });
+
+/* Lens workspaces (workspaces.js builds them from lenses.js's CURIOSITY_LENSES). */
+const LENS_WS = { color: "color", wardrobeMain: "wardrobe", wardrobeBack: "wardrobe", set: "set", emotion: "emotion", emoRoad: "emo-road", comedy: "comedy", comedyMix: "comedy-mix" };
+const LENSES = global.CURIOSITY_LENSES || [];
+const lensOf = {};
+LENSES.forEach((l) => [l.main].concat(l.subs || []).forEach((id) => (lensOf[id] = lensOf[id] || []).push(LENS_WS[l.id] || l.id)));
 
 /* Groups whose rows no workspace lists yet. New workspaces are marked proposed. */
 const GROUP_WS = {
@@ -56,10 +68,10 @@ const TAG_SCALES = {
 };
 
 /* Scales in a better order than the catalog's (so a sweep passes through the middle). */
-const ORDER = {
+const ORDER = Object.assign({
   angleHeight: ["floor", "low", "eye", "high", "overhead"],
   shotSize: ["insert", "close", "medium", "wide"],
-};
+}, global.CURIOSITY_ORDER || {});
 
 const out = [];
 const J = (x) => JSON.stringify(x);
@@ -82,9 +94,12 @@ C.forEach((c) => {
     s = ["setting", c.label, opts.length >= 2 ? opts : ["off", "on"], "Its setting in this panel."];
   } else if (c.kind === "range") s = ["setting", c.label, [c.min, c.max], "Its setting in this panel."];
   else s = ["setting", c.label, ["off", "on"], "Its setting in this panel."];
-  const ws = primary[c.id] || GROUP_WS[c.group] || (c.group || "").replace(/^Story: .*/, "") || "structure";
+  const lensWs = c.source === "lenses" ? (lensOf[c.id] || [])[0] : null;
+  const ws = lensWs || primary[c.id] || GROUP_WS[c.group] || (c.group || "").replace(/^Story: .*/, "") || "structure";
   const row = { id: c.id, label: c.label, plain: c.note || c.view || c.label, workspace: ws, group: c.group, kind: "measure", sliders: [s], source: c.source || "catalog" };
-  if (also[c.id]) row.also = also[c.id];
+  const al = [].concat(also[c.id] || [], lensOf[c.id] || []).filter((w, i, a) => w !== ws && a.indexOf(w) === i);
+  if (al.length) row.also = al;
+  if (c.lens) row.lens = c.lens;
   if (c.live) row.tags = ["board"];
   out.push(`DB.curiosity(${J(row)});`);
 });
@@ -93,7 +108,7 @@ const wsOf = (ids) => {
   const n = {};
   ids.forEach((id) => {
     const c = C.find((x) => x.id === id);
-    const w = primary[id] || (c && GROUP_WS[c.group]);
+    const w = (c && c.source === "lenses" && (lensOf[id] || [])[0]) || primary[id] || (c && GROUP_WS[c.group]);
     if (w) n[w] = (n[w] || 0) + 1;
   });
   return Object.entries(n).sort((a, b) => b[1] - a[1]).map((e) => e[0]);
@@ -101,7 +116,10 @@ const wsOf = (ids) => {
 
 S.forEach((s) => {
   const members = Object.entries(s.set || {}).map(([curiosity, value]) => ({ curiosity, value }));
-  const w = s.kind === "emotion" ? ["emotion"] : s.kind === "genre" ? ["structure"] : wsOf(Object.keys(s.set || {}));
+  /* A lens suite has no fixed values: its members are the lenses looked through together. */
+  (s.lenses || []).forEach((curiosity) => members.some((m) => m.curiosity === curiosity) || members.push({ curiosity }));
+  const lensW = s.lenses ? s.lenses.map((id) => (lensOf[id] || [])[0]).filter(Boolean) : [];
+  const w = s.kind === "emotion" ? ["emotion"] : s.kind === "genre" ? ["structure"] : lensW.length ? lensW.filter((x, i, a) => a.indexOf(x) === i) : wsOf(Object.keys(s.set || {}));
   const row = { id: s.id, label: s.label, plain: s.note, workspace: w[0] || "structure", also: w.slice(1, 3), kind: s.kind || "", members, source: "model.js" };
   out.push(`DB.suite(${J(row)});`);
 });

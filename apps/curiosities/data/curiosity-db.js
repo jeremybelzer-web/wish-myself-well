@@ -23,6 +23,7 @@
   const LEVELS = ["curiosity", "suite", "proximity", "proximitySuite"];
 
   const db = { workspaces: [], curiosities: [], suites: [], proximities: [], proximitySuites: [] };
+  const clashes = [];
   const index = { workspace: {}, curiosity: {}, suite: {}, proximity: {}, proximitySuite: {} };
 
   /* ---------- sliders ---------- */
@@ -74,7 +75,9 @@
          fill gaps, and fields named in item.override (workspace, plain...) replace the earlier value. */
       const old = index[level][item.id];
       (item.sliders || []).forEach((s) => {
-        if (!old.sliders || old.sliders.some((o) => o.id === s.id)) return;
+        if (!old.sliders) return;
+        const same = old.sliders.find((o) => o.id === s.id);
+        if (same) return same.label !== s.label && s.id !== "amount" && clashes.push(`${level} ${item.id}: slider ${s.id} ("${s.label}") was dropped, "${same.label}" already uses that id`);
         const at = old.sliders.findIndex((o) => o.id === "amount");
         at < 0 ? old.sliders.push(s) : old.sliders.splice(at, 0, s);
       });
@@ -207,7 +210,7 @@
     /* Returns a list of problems; empty means the database is whole. */
     check() {
       api.resolve();
-      const out = [];
+      const out = clashes.slice();
       const ws = new Set(db.workspaces.map((w) => w.id));
       const graded = (s) => (s.scale && s.scale.length >= 2) || (s.range && s.range.max > s.range.min);
       const all = [].concat(db.curiosities, db.suites, db.proximities, db.proximitySuites);
@@ -326,7 +329,8 @@
       };
       return db.proximities.filter((p) => !known.has(p.id)).map((p) => ({ id: p.id, when: p.whenText || p.label, then: p.thenText || "", within: p.within, x: side(p.when), y: side(p.then), note: p.plain }));
     },
-    /* One call for the app: adds the database's rows to CURIOSITIES, SUITES and PROXIMITIES in place.
+    /* One call for the app: adds the database's rows to CURIOSITIES, SUITES and PROXIMITIES in place, and its
+       sliders to window.CURIOSITY_FACETS (which automation.js turns into lanes).
        Call it after model.js and before automation.js builds its parameter list. Those three are top-level
        consts in the app (not window properties), so pass them in: install({ CURIOSITIES, SUITES, PROXIMITIES }). */
     install(t) {
@@ -335,10 +339,14 @@
       if (t.CURIOSITIES) api.legacyRows(t.CURIOSITIES).forEach((r) => t.CURIOSITIES.push(r));
       if (t.SUITES) api.legacySuites(t.SUITES).forEach((r) => t.SUITES.push(r));
       if (t.PROXIMITIES) api.legacyProximities(t.PROXIMITIES).forEach((r) => t.PROXIMITIES.push(r));
+      /* automation.js merges window.CURIOSITY_FACETS into its lanes when it loads, so the sliders become lanes. */
+      const F = (root.CURIOSITY_FACETS = root.CURIOSITY_FACETS || {});
+      const f = api.facets();
+      Object.keys(f).forEach((id) => (F[id] = (F[id] || []).concat(f[id].filter((x) => !(F[id] || []).includes(x)))));
       return api.counts();
     },
-    /* After automation.js has loaded: gives every lens its sliders as lanes (CurioAuto.FACETS), keeping any
-       lanes the app already lists first. */
+    /* Only needed if install() ran after automation.js: gives every lens its sliders as lanes
+       (CurioAuto.FACETS), keeping any lanes the app already lists first. */
     installAutomation(auto) {
       const A = auto || root.CurioAuto;
       if (!A || !A.FACETS) return 0;

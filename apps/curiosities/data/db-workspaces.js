@@ -1,7 +1,7 @@
 /* Workspaces: the families of curiosities a filmmaker keeps coming back to. Each one is a tab in the app.
-   The first fifteen match workspaces.js. Rows marked proposed are new homes this database needed
-   (music, emotion, comedy, wardrobe and sets, editing and structure, page and panel); the app thread
-   decides whether they become tabs or fold into an existing one. */
+   The first twenty-two match workspaces.js (fifteen general ones and seven lens workspaces built from lenses.js).
+   Rows marked proposed are new homes this database needed (music, editing and structure, page and panel);
+   the app thread decides whether they become tabs or fold into an existing one. */
 (function (DB) {
   const W = (id, label, scope, plain, proposed) => DB.workspace({ id, label, scope, plain, proposed });
   W("camera-angle", "Camera angle", "scene", "Where the lens sits and what it sees: how close, how high, how long a lens, level or tilted, whose eyes.");
@@ -19,10 +19,14 @@
   W("focus", "Focus", "story", "What the character pays attention to, and whether it is narrowing or widening.");
   W("archetype", "Archetype", "story", "The character's personality: the character matrix axes, Enneagram type, and how healthy it plays in each scene.");
   W("herd", "Herd mentality", "story", "How much the group thinks as one through the scenes, and who it follows.");
+  W("wardrobe", "Wardrobe", "scene", "What the main character and the people in the background are wearing: era, cost, skin covered, and what the clothes are for.");
+  W("color", "Color", "scene", "The color of the picture: black and white or full color, tinted, warm or cool.");
+  W("set", "Set design", "scene", "The place itself: its style, materials, the art on the walls, how cramped or open it is.");
+  W("emotion", "Emotion", "scene", "The feeling of the scene and every way it shows: movement, voice, face, posture, words, place and light.");
+  W("emo-road", "Emotional road", "story", "Each character's emotional road through the story, and the film's own road.");
+  W("comedy", "Comedy", "scene", "How the scene is funny: the kind of joke, what it is about, how big, how timed, who carries it.");
+  W("comedy-mix", "Comedy from the mix", "scene", "Who is in the room and what putting them together does for the laughs, the plot and the characters.");
   W("music", "Music & sound", "scene", "The music chosen for the scene, or the choice to have none, and the sound around it.", true);
-  W("emotion", "Emotion", "scene", "What each character feels, how it shows in body, voice and face, and the emotional roadmap of the film.", true);
-  W("comedy", "Comedy", "scene", "What makes it funny: timing, escalation, surprise, status, callbacks, and how the camera and edit sell the joke.", true);
-  W("design", "Wardrobe & sets", "scene", "What people wear and the world they stand in: clothes for main and background characters, set style, materials, art and clutter.", true);
   W("structure", "Editing & structure", "story", "How scenes are cut and ordered: rhythm, transitions, repetition, reveals, whose story each scene tells, genre shape.", true);
   W("page", "Page & panel", "scene", "How a storyboard, comic or zine page is laid out: panel count and size, gutters, balloons, lettering, page turns.", true);
 })(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));

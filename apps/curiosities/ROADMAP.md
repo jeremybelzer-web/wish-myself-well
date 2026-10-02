@@ -35,14 +35,17 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 - [x] Workspaces instead of tabs, each with "In my film", "Automate", "Cross-pollinate" and "Tools" (PR #4)
 - [x] Maya and Arnold tools in the workspaces (PR #4)
 - [x] Story workspaces: character arc, personal plot, perspective, focus, archetype, herd mentality (PR #4)
+- [x] Lens workspaces with graded sliders: color, wardrobe, set design, emotion, emotional road, comedy, comedy from the mix (PR #4)
+- [x] Suites graded by how much of them matches, instead of all or nothing (PR #4)
+- [x] Storyboard page that keeps many scenes and flips through them like a flip book (PR #4)
 - [x] 3D character matrix: 18 personality axes, nine Enneagram types, health 1 to 9, dramatic roles (PR #6)
 - [x] Plan for saving and for web, desktop, Maya and VCV versions (PR #5, plan only)
 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (draft PR #7). Today: 225 curiosities, 107 suites, 76 proximities,
-19 proximity suites, 2,346 sliders, across 21 workspaces.
+Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 suites, 87 proximities,
+20 proximity suites and 2,742 sliders, across 25 workspaces.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -58,15 +61,16 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 225 curiosities, 107 sui
 - [x] A checker that makes sure every item is complete and every link points somewhere real
 - [x] A JSON copy of the database for other tools (Maya, the desktop app)
 - [x] Give every older catalog curiosity at least three sliders of its own
+- [x] Merge with the app's own lens list (lenses.js) so nothing is listed twice
+- [ ] Switch the database on in the app: one block of script lines in index.html (job for the app thread, lines in PR #7)
 - [ ] Workspaces read their curiosity lists from the database instead of their own lists (job for the app thread)
-- [ ] Automation reads sliders from the database (job for the app thread)
 - [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop
-- [ ] Decide whether the six new workspaces (Music & sound, Emotion, Comedy, Wardrobe & sets, Editing & structure, Page & panel) become tabs
+- [ ] Decide whether the three new workspaces (Music & sound, Editing & structure, Page & panel) become tabs
 
 ## 2. Storyboard beta **(beta)**
 
 - [ ] Many panels per scene (dozens), cheap to draw
-- [ ] Flip-book playback: flick through panels at a speed you choose
+- [x] Flip-book playback: flick through panels at a speed you choose (PR #4)
 - [ ] Each panel shows the curiosities that are on, in plain words, under the drawing (like a comic caption)
 - [ ] Draw wardrobe, set and color changes on the panel, simply (not full renders)
 - [ ] Music and silence shown on the strip as a band under the panels
