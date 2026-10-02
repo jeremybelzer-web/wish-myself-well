@@ -88,6 +88,8 @@ Share a film (Library menu, `trace.js`, `window.CuriosityTrace`) saves any curat
 
 DaVinci Resolve (`resolve/`, Workspace > Scripts > Curiosities): storyboard panels as timeline markers, an edit read back onto the board, and any edit traced into a shared-film file. See `resolve/README.md`.
 
+Unreal Engine (`unreal/`, an editor plugin, Tools > Curiosities): a CineCamera that follows the storyboard, shots keyed into a Level Sequence, and a hand-set camera read back onto the board, using the same camera mapping as Maya and Blender. See `unreal/README.md`.
+
 ## Games are paused
 
 Games wait until the curiosity model is fleshed out; they will be the last thing built. `play.js` (the Flip Book) and `games.js` (the Cross-pollinate games) stay in the folder but are not loaded or shown.
