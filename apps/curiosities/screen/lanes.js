@@ -54,13 +54,24 @@
   const PAD = 7;
   const RULER = 18;
   const TOOLS_KEY = "curiosities-screen-tools-v1";
-  const TOOL_DEFAULTS = { tool: "select", magnet: false, linkage: true, snap: true, skim: false, zoom: 1, markers: [] };
+  const TOOL_DEFAULTS = { tool: "select", magnet: false, linkage: true, linkKinds: {}, linkDelete: false, snap: true, skim: false, zoom: 1, markers: [] };
   let tools = Object.assign({}, TOOL_DEFAULTS);
   try {
     const t = JSON.parse(localStorage.getItem(TOOLS_KEY));
     if (t && typeof t === "object") tools = Object.assign({}, TOOL_DEFAULTS, t);
   } catch (e) {}
   if (!Array.isArray(tools.markers)) tools.markers = [];
+  if (!tools.linkKinds || typeof tools.linkKinds !== "object") tools.linkKinds = {};
+  /* Linkage settings, modeled on CapCut's Linkage settings box ("When linkage is turned on, the selected items
+     will move or get deleted with the clips on the main track", with a tick per kind: Text, Effects, Stickers,
+     Filters, Adjust, Overlay, Audio, Sound effects, Text to speech). Here the kinds are the Screen's categories:
+     a joined node comes along only when its curiosity's category is ticked (all are, to start). The node you
+     grab always moves. tools.linkDelete: Delete takes the ticked joined nodes too (off to start). */
+  function kindOf(key) {
+    const cur = key.slice(key.indexOf("|") + 1);
+    return L() && L().categoryOf ? L().categoryOf(cur) : "";
+  }
+  const kindOk = (key) => tools.linkKinds[kindOf(key)] !== false;
   function saveTools() {
     try {
       localStorage.setItem(TOOLS_KEY, JSON.stringify(tools));
@@ -92,7 +103,7 @@
     if (!l.scope) return null;
     return [nodeKey(l.scope.from, l.from.track + "|" + l.from.curiosity), nodeKey(l.scope.to, l.to.track + "|" + l.to.curiosity)];
   }
-  function group(key, st) {
+  function group(key, st, allow) {
     st = st || E().state();
     const nodes = new Set([key]);
     const links = new Set();
@@ -103,6 +114,7 @@
         const ends = linkEnds(l);
         if (!ends || links.has(l.id)) return;
         if (nodes.has(ends[0]) || nodes.has(ends[1])) {
+          if (allow && !ends.every((n) => nodes.has(n) || allow(n))) return;
           links.add(l.id);
           ends.forEach((n) => nodes.add(n));
           grew = true;
@@ -128,13 +140,13 @@
     opt = opt || {};
     const ix = {};
     st.rows.forEach((r, i) => (ix[r.id] = i));
-    const keys = new Set(opt.solo ? [key] : group(key, st).nodes);
+    const keys = new Set(opt.solo ? [key] : group(key, st, opt.allow).nodes);
     if (opt.ripple) {
       const k0 = split(key);
       const lane = st.lanes[k0.lk];
       if (lane)
         Object.keys(lane.points).forEach((r) => {
-          if (ix[r] != null && ix[r] > ix[k0.row]) (opt.solo ? [nodeKey(r, k0.lk)] : group(nodeKey(r, k0.lk), st).nodes).forEach((k) => keys.add(k));
+          if (ix[r] != null && ix[r] > ix[k0.row]) (opt.solo ? [nodeKey(r, k0.lk)] : group(nodeKey(r, k0.lk), st, opt.allow).nodes).forEach((k) => keys.add(k));
         });
     }
     const nodes = [...keys].map(split);
@@ -198,9 +210,10 @@
   } catch (e) {
     clip = null;
   }
-  function copyGroup(key) {
+  function copyGroup(key, opt) {
+    opt = opt || {};
     const st = E().state();
-    const g = group(key, st);
+    const g = opt.solo ? { nodes: [key], links: [] } : group(key, st, opt.allow);
     const ix = {};
     st.rows.forEach((r, i) => (ix[r.id] = i));
     const nodes = g.nodes.map(split).filter((n) => ix[n.row] != null);
@@ -378,7 +391,7 @@
           ${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off")}
           ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
           ${tb("snap", "Snapping", "Auto snapping (N): a node dropped next to a marker lands on it", tools.snap)}
-          ${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}
+          <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
           ${tb("skim", "Preview axis", "Preview axis (S): hover over the timeline to see that moment in the player", tools.skim)}
           <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−)")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+)")}</span>
           <span class="sl-msg" role="status">${esc(msg || (others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag a node onto another lane's node to join them."))}</span>
@@ -498,7 +511,7 @@
       const cmds = [];
       let label = "Change a node";
       if (dj !== 0) {
-        const sh = shiftCommands(st, d.key, dj, copy, { solo: !tools.linkage, ripple: tools.magnet && !copy });
+        const sh = shiftCommands(st, d.key, dj, copy, { solo: !tools.linkage, ripple: tools.magnet && !copy, allow: kindOk });
         if (sh.error) return say(sh.error), draw();
         cmds.push(...sh.cmds);
         label = (copy ? "Copy " : "Move ") + (sh.links ? (sh.links > 1 ? "a proximity suite" : "a proximity") : "a node");
@@ -521,14 +534,17 @@
     }
     function removeNode(key) {
       const st = E().state();
-      const n = split(key);
+      const doomed = tools.linkage && tools.linkDelete ? group(key, st, kindOk).nodes : [key];
       const cmds = [];
       st.links.forEach((l) => {
         const ends = linkEnds(l);
-        if (ends && ends.includes(key)) cmds.push({ type: "removeLink", link: l.id });
+        if (ends && ends.some((k) => doomed.includes(k))) cmds.push({ type: "removeLink", link: l.id });
       });
-      if (st.lanes[n.lk] && st.lanes[n.lk].points[n.row] != null) cmds.push({ type: "removePoint", row: n.row, track: n.track, curiosity: n.cur });
-      if (cmds.length) send({ type: "batch", label: "Remove a node", commands: cmds });
+      doomed.forEach((k) => {
+        const n = split(k);
+        if (st.lanes[n.lk] && st.lanes[n.lk].points[n.row] != null) cmds.push({ type: "removePoint", row: n.row, track: n.track, curiosity: n.cur });
+      });
+      if (cmds.length) send({ type: "batch", label: doomed.length > 1 ? "Remove joined nodes" : "Remove a node", commands: cmds });
       sel = null;
       draw();
     }
@@ -562,7 +578,7 @@
       if (act === "undo") E().undo();
       if (act === "redo") E().redo();
       if (act === "copy" && sel) {
-        const r = copyGroup(sel);
+        const r = copyGroup(sel, { solo: !tools.linkage, allow: kindOk });
         say(r.ok ? `Copied ${r.nodes} node${r.nodes === 1 ? "" : "s"} and ${r.links} line${r.links === 1 ? "" : "s"}. Move the playhead and press Paste.` : r.error);
       }
       if (act === "paste") {
@@ -570,6 +586,7 @@
         say(r.ok ? `Pasted ${r.nodes} nodes and ${r.links} lines.` : r.error);
       }
       if (act === "del" && sel) return removeNode(sel);
+      if (act === "link-settings") return linkSettings();
       if (TOOL_ACTS[act]) return command(TOOL_ACTS[act]);
       draw();
       if (act === "copy" || act === "paste") say(msg);
@@ -642,7 +659,7 @@
         say(out.ok ? `Removed ${doomed.length} node${doomed.length === 1 ? "" : "s"} ${name === "deleteLeft" ? "before" : "after"} the playhead.` : out.error);
       } else if (name === "cut") {
         if (!sel) return { ok: false, error: "Pick a node first." };
-        out = copyGroup(sel);
+        out = copyGroup(sel, { solo: !tools.linkage, allow: kindOk });
         if (out.ok) removeNode(sel);
         say(out.ok ? "Cut: move the playhead and paste." : out.error);
         return out;
@@ -681,7 +698,7 @@
         return out;
       } else if (name === "copy") {
         if (!sel) return { ok: false, error: "Pick a node first." };
-        out = copyGroup(sel);
+        out = copyGroup(sel, { solo: !tools.linkage, allow: kindOk });
         say(out.ok ? `Copied ${out.nodes} node${out.nodes === 1 ? "" : "s"} and ${out.links} line${out.links === 1 ? "" : "s"}. Move the playhead and press Paste.` : out.error);
       } else if (name === "paste") {
         out = paste(playRow);
@@ -692,6 +709,42 @@
       draw();
       say(keep);
       return out;
+    }
+    /* CapCut's Linkage settings box: a tick per kind of node, Select all, Cancel and Done. */
+    function linkSettings() {
+      const old = el.querySelector(".sl-pop");
+      if (old) old.remove();
+      const cats = L() ? L().CATEGORIES : [];
+      const pop = document.createElement("div");
+      pop.className = "sl-pop sl-linkset";
+      pop.setAttribute("role", "dialog");
+      pop.setAttribute("aria-label", "Linkage settings");
+      pop.innerHTML = `<p><strong>Linkage settings</strong></p><p class="sl-note">When linkage is on, the kinds you tick move, copy and paste with the node you grab. The node you grab always moves.</p>
+        <div class="sl-kinds">${cats.map((c) => `<label><input type="checkbox" data-kind="${esc(c.id)}"${tools.linkKinds[c.id] !== false ? " checked" : ""}> ${esc(c.label)}</label>`).join("")}</div>
+        <label class="sl-all"><input type="checkbox" data-kind-all${cats.every((c) => tools.linkKinds[c.id] !== false) ? " checked" : ""}> Select all</label>
+        <label><input type="checkbox" data-link-delete${tools.linkDelete ? " checked" : ""}> Delete them with it too</label>
+        <div class="sl-pop-btns"><button type="button" data-l="cancel">Cancel</button><button type="button" data-l="done" class="on">Done</button></div>`;
+      pop.addEventListener("change", (ev) => {
+        if (ev.target.matches("[data-kind-all]")) pop.querySelectorAll("[data-kind]").forEach((b) => (b.checked = ev.target.checked));
+        else if (ev.target.matches("[data-kind]")) pop.querySelector("[data-kind-all]").checked = [...pop.querySelectorAll("[data-kind]")].every((b) => b.checked);
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("[data-l]");
+        if (!b) return;
+        if (b.dataset.l === "done") {
+          const kinds = {};
+          pop.querySelectorAll("[data-kind]").forEach((x) => !x.checked && (kinds[x.dataset.kind] = false));
+          tools.linkKinds = kinds;
+          tools.linkDelete = pop.querySelector("[data-link-delete]").checked;
+          saveTools();
+          const off = Object.keys(kinds).length;
+          say(off ? `Linkage leaves ${off} kind${off === 1 ? "" : "s"} of node behind.` : "Linkage takes every kind of joined node along.");
+        }
+        pop.remove();
+      };
+      el.appendChild(pop);
+      return pop;
     }
     function onDbl(e) {
       const node = e.target.closest && e.target.closest("[data-node]");
@@ -714,6 +767,7 @@
       draw,
       select: (key) => ((sel = key), draw()),
       selected: () => sel,
+      linkSettings,
       command,
       destroy() {
         window.removeEventListener("pointermove", onMove);

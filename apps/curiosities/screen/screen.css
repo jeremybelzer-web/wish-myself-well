@@ -224,6 +224,11 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-clip text { font-size: 10px; fill: #fff; font-family: system-ui, sans-serif; pointer-events: none; }
 .sl-pop { position: absolute; z-index: 5; background: var(--cc-raised); border: 1px solid var(--cc-line); border-radius: 8px; padding: 8px; display: grid; gap: 4px; max-width: 260px; font-size: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); }
 .sl-pop p { margin: 0; }
+.sl-linkset { top: 40px; left: 8px; max-width: 360px; }
+.sl-linkset .sl-note { color: var(--cc-dim); }
+.sl-kinds { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 2px 8px; margin: 4px 0; }
+.sl-linkset label { display: flex; gap: 6px; align-items: center; }
+.sl-pop-btns { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; }
 
 /* A small viewer on other screens of the app (CurioScreen.mountViewer). It sits on the app's paper page. */
 .sc-mini { border: 3px solid var(--ink, #1c1712); background: #1c1712; max-width: 480px; }

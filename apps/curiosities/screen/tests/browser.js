@@ -115,6 +115,17 @@ const ok = (cond, msg) => {
   await page.keyboard.press("Backquote");
   ok((await T()).linkage === false, "~ turns linkage off");
   await page.keyboard.press("Backquote");
+  await page.click('[data-act="link-settings"]');
+  ok((await page.$$(".sl-linkset [data-kind]")).length >= 16, "Linkage settings lists a tick for every kind of node, like CapCut's box");
+  await page.click('.sl-linkset [data-kind="feeling"]');
+  await page.click('.sl-linkset [data-l="done"]');
+  ok((await T()).linkKinds.feeling === false, "unticking Feeling leaves feeling nodes behind");
+  await page.click('[data-act="link-settings"]');
+  ok(!(await page.$eval(".sl-linkset [data-kind-all]", (b) => b.checked)), "Select all shows unticked while a kind is off");
+  await page.screenshot({ path: path.join(SHOTS, "screen-1e-linkage-settings.png") });
+  await page.click(".sl-linkset [data-kind-all]");
+  await page.click('.sl-linkset [data-l="done"]');
+  ok(Object.keys((await T()).linkKinds).length === 0, "Select all ticks every kind again");
   await page.keyboard.press("p");
   ok((await T()).magnet === true, "P turns the main track magnet on");
   await page.keyboard.press("p");

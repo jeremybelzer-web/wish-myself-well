@@ -95,6 +95,15 @@ ok(E.send({ type: "batch", commands: rip.cmds }).ok, "the magnet moves later nod
 const s3 = E.state().lanes["camera|shotSize"].points;
 ok(s3[r[4].id] === "close" && s3[r[7].id] === "wide" && s3[r[6].id] == null, "every later node in the lane slid along by the same amount");
 E.undo();
+/* Linkage settings (CapCut's box of kinds): with the emotion curiosity's kind unticked, its node stays behind and its line stretches. */
+const emoCat = w.CurioLevels.categoryOf("emotion");
+const noFeel = (k) => w.CurioLevels.categoryOf(k.slice(k.indexOf("|") + 1)) !== emoCat;
+ok(w.CurioLanes.group(k3, E.state(), noFeel).nodes.length === 1 && w.CurioLanes.group(k3, E.state()).nodes.length === 2, "linkage settings leave unticked kinds out of the group");
+const kinded = w.CurioLanes.shiftCommands(E.state(), k3, 1, false, { allow: noFeel });
+ok(E.send({ type: "batch", commands: kinded.cmds }).ok && E.state().lanes["master|emotion"].points[r[5].id] === "angry" && E.state().lanes["camera|shotSize"].points[r[4].id] === "close", "the grabbed node moves and the unticked partner stays put");
+E.undo();
+const cpk = w.CurioLanes.copyGroup(k3, { allow: noFeel });
+ok(cpk.ok && cpk.nodes === 1 && cpk.links === 0, "copy leaves unticked kinds behind too");
 ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === true, "linkage starts on, as in CapCut");
 
 console.log(fails ? fails + " failed" : "all passed");
