@@ -312,9 +312,10 @@
   /* Values per panel: the board's own values, then curiosities, suites, proximities, proximity suites.
      Each patch is on or off (its trigger), plays only in its moment (a span of panels), and each of its lanes
      grades one thing between two settings. */
-  function resolve(count, now) {
+  function resolve(count, now, baseValues) {
     now = now || performance.now();
-    const base = window.CuriosityBoard ? window.CuriosityBoard.values() : {};
+    /* A story workspace passes its own base (one character through the scenes); otherwise the board's. */
+    const base = baseValues || (window.CuriosityBoard ? window.CuriosityBoard.values() : {});
     const panels = Array.from({ length: count }, () => Object.assign({}, base));
     const active = Object.values(store.patches).filter((p) => p.running);
     const ms = {};
