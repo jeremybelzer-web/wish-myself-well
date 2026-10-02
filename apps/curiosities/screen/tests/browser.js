@@ -518,6 +518,27 @@ const ok = (cond, msg) => {
   await page.evaluate(() => window.CurioScreen.openWin("comedyDevice"));
   await page.click('.sc-win[data-win="comedyDevice"] [data-joke="three"]');
   ok(await page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|comicBeat")); return lk && ["setup planted", "building", "payoff lands"].every((v, j) => st.lanes[lk].points[st.rows[j].id] === v); }), "Comedy's window: Rule of three writes setup, build and payoff on three moments");
+  /* Camera height, camera moves and how much color have hand-made windows too (decision 75). */
+  const laneVal = (suffix) => page.evaluate((sfx) => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + sfx)); return lk ? st.lanes[lk].points[st.rows[window.CurioScreen.row()].id] : undefined; }, suffix);
+  await page.evaluate(() => window.CurioScreen.setRow(1));
+  await page.evaluate(() => window.CurioScreen.openWin("angleHeight"));
+  ok((await page.$$('.sc-win[data-win="angleHeight"] .sc-heights button')).length === 5, "Camera height's window draws five camera heights around a person");
+  await page.click('.sc-win[data-win="angleHeight"] .sc-heights button[data-v="low"]');
+  ok((await laneVal("angleHeight")) === "low", "clicking the low camera sets a low angle here");
+  await page.screenshot({ path: path.join(SHOTS, "screen-7b-camera-height.png") });
+  await page.click('.sc-win[data-win="angleHeight"] [data-win-close]');
+  await page.evaluate(() => window.CurioScreen.openWin("cameraMove"));
+  ok((await page.$$('.sc-win[data-win="cameraMove"] .sc-moves button')).length >= 8, "Camera move's window shows a picture for every move");
+  await page.click('.sc-win[data-win="cameraMove"] .sc-moves button[data-v="orbit"]');
+  ok((await laneVal("cameraMove")) === "orbit", "clicking a move's picture sets that move here");
+  await page.screenshot({ path: path.join(SHOTS, "screen-7c-camera-moves.png") });
+  await page.click('.sc-win[data-win="cameraMove"] [data-win-close]');
+  await page.evaluate(() => window.CurioScreen.openWin("colorRange"));
+  await page.click('.sc-win[data-win="colorRange"] .sc-hues button[data-v="teal"]');
+  ok((await laneVal("colorRange.paletteHue")) === "teal", "clicking a swatch sets the film's main color here");
+  ok(await page.$eval('.sc-win[data-win="colorRange"] .sc-colors button[data-v="vivid color"] .sc-chips i', (i) => /hsl|rgb/.test(getComputedStyle(i).backgroundColor) && getComputedStyle(i).backgroundColor !== "rgba(0, 0, 0, 0)"), "the color choices are painted in the main color");
+  await page.click('.sc-win[data-win="colorRange"] .sc-colors button[data-v="muted color"]');
+  ok(/muted color/.test(String((await laneVal("colorRange")) || (await laneVal("colorRange.setting")))), "clicking a color choice sets how much color there is here");
   await page.screenshot({ path: path.join(SHOTS, "screen-7-windows.png") });
   while (await page.$(".sc-win [data-win-close]")) await page.click(".sc-win [data-win-close]");
   ok((await page.$$(".sc-win")).length === 0, "windows close");

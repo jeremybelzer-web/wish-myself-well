@@ -975,6 +975,50 @@
         <div class="sc-frames"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="24" r="8"/><path d="M50 32v30M50 40l-14 14M50 40l14 12M50 62l-10 30M50 62l10 30"/><rect x="62" y="54" width="10" height="7" rx="1"/></svg>${["wide", "medium", "close", "insert"].map((o) => { const r = F[o]; return `<button type="button" data-set="${esc(key)}" data-v="${o}" class="${String(cur) === o ? "on" : ""}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2]}%;height:${r[3]}%" title="${o}"><span>${o}</span></button>`; }).join("")}</div>
         <h4>Through my film</h4>${strip(key)}</div>`;
     }
+    if (c.id === "angleHeight") {
+      /* Camera height seen from the side: a person, and a camera at each height on an arc around them. */
+      const cur = ctx.value(key);
+      const SPOT = { floor: [12, 90, -8], low: [16, 70, -25], eye: [20, 40, 0], high: [24, 14, 30], overhead: [50, 4, 85] };
+      return `<div class="sc-wpart"><h4>Camera height</h4><p class="sc-k">Seen from the side. Click where the camera should be: lower makes a person look bigger and stronger, higher makes them look smaller.</p>
+        <div class="sc-heights"><svg viewBox="0 0 100 100" aria-hidden="true"><path class="arc" d="M12 92 Q14 10 50 4"/><circle cx="72" cy="34" r="7"/><path d="M72 41v28M72 48l-10 12M72 48l10 12M72 69l-8 23M72 69l8 23"/><line class="floor" x1="0" y1="93" x2="100" y2="93"/></svg>${["floor", "low", "eye", "high", "overhead"]
+          .map((o) => { const p = SPOT[o]; return `<button type="button" data-set="${esc(key)}" data-v="${o}" class="${String(cur) === o ? "on" : ""}" style="left:${p[0]}%;top:${p[1]}%" title="${o}"><svg viewBox="0 0 20 12" aria-hidden="true" style="transform:rotate(${p[2]}deg)"><rect x="1" y="2" width="12" height="8" rx="1.5"/><path d="M13 4l6-3v10l-6-3z"/></svg><span>${o}</span></button>`; })
+          .join("")}</div>
+        <h4>Through my film</h4>${strip(key)}</div>`;
+    }
+    if (c.id === "cameraMove") {
+      /* Each camera move as a small picture of what the camera does. */
+      const cur = ctx.value(key);
+      const PIC = {
+        none: '<rect x="9" y="10" width="14" height="10" rx="2"/>',
+        pan: '<rect x="11" y="11" width="10" height="8" rx="2"/><path d="M4 24 Q16 30 28 24" class="mv"/><path d="M28 24l-4 0M28 24l-2 -3" class="mv"/>',
+        tilt: '<rect x="11" y="11" width="10" height="8" rx="2"/><path d="M27 4 Q32 15 27 26" class="mv"/><path d="M27 4l0 4M27 4l3 2" class="mv"/>',
+        "push in": '<rect x="3" y="11" width="9" height="8" rx="2"/><path d="M14 15h12M26 15l-4-3M26 15l-4 3" class="mv"/><circle cx="29" cy="15" r="2"/>',
+        "pull out": '<rect x="20" y="11" width="9" height="8" rx="2"/><path d="M18 15H6M6 15l4-3M6 15l4 3" class="mv"/><circle cx="3" cy="15" r="2"/>',
+        track: '<rect x="11" y="6" width="10" height="8" rx="2"/><path d="M3 22h26M29 22l-4-3M29 22l-4 3" class="mv"/><path d="M3 26h26" class="rail"/>',
+        crane: '<rect x="18" y="3" width="10" height="8" rx="2"/><path d="M4 28L22 11" class="rail"/><path d="M8 18 Q10 8 16 5" class="mv"/>',
+        zoom: '<rect x="4" y="11" width="10" height="8" rx="2"/><path d="M14 13l14-7M14 17l14 7" class="mv"/>',
+        orbit: '<circle cx="16" cy="15" r="3"/><ellipse cx="16" cy="15" rx="13" ry="7" class="mv"/><rect x="25" y="9" width="6" height="5" rx="1"/>',
+      };
+      return `<div class="sc-wpart"><h4>Camera moves</h4><p class="sc-k">Click the move the camera makes at this moment.</p>
+        <div class="sc-moves">${(S().domain(key).options || Object.keys(PIC))
+          .map((o) => `<button type="button" data-set="${esc(key)}" data-v="${esc(o)}" class="${String(cur) === o ? "on" : ""}"><svg viewBox="0 0 32 30" aria-hidden="true">${PIC[o] || PIC.none}</svg><span>${esc(o)}</span></button>`)
+          .join("")}</div>
+        <h4>Through my film</h4>${strip(key)}</div>`;
+    }
+    if (c.id === "colorRange") {
+      /* From black and white to vivid color, painted in the picked main color; the main colors as swatches. */
+      const cur = ctx.value(key);
+      const hk = c.id + ".paletteHue";
+      const hue = S().known(hk) ? ctx.value(hk) : null;
+      const H = { red: 0, orange: 28, yellow: 50, green: 120, teal: 175, blue: 215, purple: 275, pink: 325 };
+      const h = H[hue] != null ? H[hue] : 28;
+      const SAT = { "black and white": [0, 0], "one color": [55, 0], "two or three colors": [60, 1], "muted color": [28, 3], "natural color": [50, 3], "vivid color": [90, 4] };
+      const chips = (o) => { const [sat, more] = SAT[o] || [40, 2]; return [0, 1, 2, 3, 4].map((k) => `<i style="background:hsl(${(h + (k <= more ? k * 72 : 0)) % 360} ${sat}% ${30 + k * 10}%)"></i>`).join(""); };
+      return `<div class="sc-wpart"><h4>How much color</h4><p class="sc-k">From black and white to vivid color. Each choice is painted in your film's main color.</p>
+        <div class="sc-colors">${(S().domain(key).options || Object.keys(SAT)).map((o) => `<button type="button" data-set="${esc(key)}" data-v="${esc(o)}" class="${String(cur) === o ? "on" : ""}"><span class="sc-chips">${chips(o)}</span><span>${esc(o)}</span></button>`).join("")}</div>
+        ${S().known(hk) ? `<h4>Main color</h4><div class="sc-hues">${(S().domain(hk).options || Object.keys(H)).map((o) => `<button type="button" data-set="${esc(hk)}" data-v="${esc(o)}" class="${String(hue) === o ? "on" : ""}" style="--sw:hsl(${H[o] || 0} 75% 52%)" title="${esc(o)}" aria-label="${esc(o)}"></button>`).join("")}</div>
+        <h4>Main color through my film</h4>${strip(hk, (v) => (H[v] != null ? `--feel:hsl(${H[v]} 75% 52%)` : ""))}` : `<h4>Through my film</h4>${strip(key)}`}</div>`;
+    }
     if (c.id === "comedyDevice") {
       /* Joke timing: where setups and payoffs land, and quick ways to build a joke from the playhead. */
       const bk = keyFor("comicBeat");
