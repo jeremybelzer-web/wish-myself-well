@@ -1,7 +1,11 @@
-/* Print: the board strip drawn as a printable page, after Maya's Render settings (Toon shader and
-   outlines, render layers, image size and formats, batch render to frames).
+/* Print: the board strip, or the whole Storyboard, drawn as printable pages, after Maya's Render settings
+   (Toon shader and outlines, render layers, image size and formats, batch render to frames).
    Layouts: comic strip (4 across), comic page (2x3), zine (8 pages folded from one sheet, with fold
    and cut guides and the right imposition) and a storyboard sheet with shot notes.
+   Source: My film (the board's panels) or the Storyboard (storyboard.js: every scene, or one), split into as
+   many pages as it needs, a scene never sharing a page. Each panel can carry its plain-word caption (the
+   curiosities that are on). Download one page or every page as PNG, or "Printable page": the pages go into
+   a print-only part of this page and the browser's print dialog opens, so "Save as PDF" makes a PDF.
    Curiosities: renderStyle, lineWeight, saturation. The default look comes from the Shading tool. */
 
 (function () {
@@ -63,6 +67,57 @@
       out.push({ i, st, line, shot: shotOf(i, st), people: sc.people.slice(0, clamp(Number(st.peopleCount) || 1, 1, 3)) });
     }
     return { scene: sc, list: out };
+  }
+
+  /* How many panels one page holds, per layout. */
+  const PER_PAGE = { strip: 4, page: 6, board: 6, zine: 6 };
+  function sbScenes() {
+    try {
+      const SB = window.CuriosityStoryboard;
+      return SB && SB.data ? SB.data().scenes || [] : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function sbCaption(p, prev, max) {
+    try {
+      const SB = window.CuriosityStoryboard;
+      return SB && SB.caption ? SB.caption(p, prev, max) : "";
+    } catch (e) {
+      return "";
+    }
+  }
+  /* The pages to print: [{scene: {title, slug}, list: [panel], label}], one scene per page or more. */
+  function chunks(s) {
+    const per = PER_PAGE[s.layout] || 6;
+    const scenes = s.source === "storyboard" ? sbScenes() : [];
+    if (!scenes.length) {
+      const { scene, list } = panels(s.layout === "zine" ? 6 : s.layout === "strip" ? 4 : 6);
+      list.forEach((P) => (P.caption = ""));
+      return [{ scene, list, label: "", fill: false }];
+    }
+    const base = boardState();
+    const out = [];
+    const pick = s.scene === "all" || s.scene == null || !scenes[Number(s.scene)] ? scenes.map((x, i) => i) : [Number(s.scene)];
+    pick.forEach((si) => {
+      const sc = scenes[si];
+      const people = ((sc.board && sc.board.people) || []).map((w) => (typeof w === "string" ? w : (w && w.name) || "")).filter(Boolean);
+      const list = sc.panels.map((p, pi) => {
+        const st = Object.assign({}, base, p.v || {});
+        const line = p.line || { who: "", text: "" };
+        const ppl = people.length ? people.slice(0, clamp(Number(st.peopleCount) || 1, 1, 3)) : [line.who || "A"];
+        return { i: pi, st, line, shot: shotOf(pi, st), people: ppl, caption: sbCaption(p, pi > 0 ? sc.panels[pi - 1] : null, 3) };
+      });
+      const pagesHere = Math.max(1, Math.ceil(list.length / per));
+      for (let k = 0; k < pagesHere; k++)
+        out.push({
+          scene: { title: `${si + 1}. ${sc.name || "Scene " + (si + 1)}`, slug: (sc.board && sc.board.slug) || sc.note || "" },
+          list: list.slice(k * per, (k + 1) * per),
+          label: pagesHere > 1 ? `part ${k + 1} of ${pagesHere}` : "",
+          fill: true,
+        });
+    });
+    return out;
   }
 
   /* ---------- drawing ---------- */
@@ -250,6 +305,20 @@
     }
     ctx.fillStyle = "#1c1712";
     lines.forEach((l, k) => ctx.fillText(l, bx + fs * 0.6, by + fs * 1.05 + k * fs * 1.2));
+    // the plain-word caption: a comic narration box along the bottom
+    if (P.caption && P.showCap) {
+      const cf = clamp(Math.round(w / 30), 7 * u, 12 * u);
+      ctx.font = `${cf}px system-ui, sans-serif`;
+      const cl = wrap(ctx, P.caption, w - cf * 2).slice(0, 2);
+      const ch = cl.length * cf * 1.2 + cf * 0.6;
+      ctx.fillStyle = "#fff1c9";
+      ctx.fillRect(x, y + h - ch, w, ch);
+      ctx.strokeStyle = "#1c1712";
+      ctx.lineWidth = Math.max(1, 1.2 * u);
+      ctx.strokeRect(x, y + h - ch, w, ch);
+      ctx.fillStyle = "#1c1712";
+      cl.forEach((l, k) => ctx.fillText(l, x + cf * 0.6, y + h - ch + cf * 1.05 + k * cf * 1.2));
+    }
     // frame
     ctx.strokeStyle = "#1c1712";
     ctx.lineWidth = Math.max(1.5 * u, lw(L, u) * 1.2);
@@ -277,7 +346,7 @@
     return [w, h];
   }
 
-  function renderPage(canvas, s, L) {
+  function renderPage(canvas, s, L, chunk) {
     const [W, H] = pageSize(s);
     canvas.width = W;
     canvas.height = H;
@@ -288,11 +357,15 @@
     const m = Math.round(Math.min(W, H) * 0.05);
     const gut = Math.round(m * 0.35);
     const titleFs = Math.round(16 * u);
-    const { scene, list } = panels(s.layout === "zine" ? 6 : s.layout === "strip" ? 4 : 6);
+    const ch0 = chunk || chunks(s)[0];
+    const scene = ch0.scene;
+    const list = ch0.list.map((P) => Object.assign({}, P, { showCap: s.captions !== false }));
+    /* A storyboard page keeps its panel size when the scene's last page is short. */
+    const slots = ch0.fill ? PER_PAGE[s.layout] || list.length : list.length;
     const title = () => {
       ctx.fillStyle = "#1c1712";
       ctx.font = `bold ${titleFs}px system-ui, sans-serif`;
-      ctx.fillText(scene.title, m, m * 0.6 + titleFs * 0.6);
+      ctx.fillText(scene.title + (ch0.label ? ` (${ch0.label})` : ""), m, m * 0.6 + titleFs * 0.6);
       ctx.font = `${Math.round(titleFs * 0.6)}px monospace`;
       ctx.fillText(`${scene.slug || ""}  ·  ${L.style}, ink ${L.line}, saturation ${L.sat}`, m, m * 0.6 + titleFs * 1.5);
     };
@@ -300,7 +373,7 @@
       title();
       const top = m + titleFs * 1.8;
       const cols = s.layout === "strip" ? Math.min(4, W > H ? 4 : 2) : 2;
-      const rows = Math.ceil(list.length / cols);
+      const rows = Math.ceil(slots / cols);
       const pw = (W - 2 * m - gut * (cols - 1)) / cols;
       let ph = (H - top - m - gut * (rows - 1)) / rows;
       let y0 = top;
@@ -309,7 +382,7 @@
     } else if (s.layout === "board") {
       title();
       const top = m + titleFs * 1.8;
-      const cols = W > H ? 3 : 2, rows = Math.ceil(list.length / cols);
+      const cols = W > H ? 3 : 2, rows = Math.ceil(slots / cols);
       const pw = (W - 2 * m - gut * (cols - 1)) / cols;
       const cell = (H - top - m - gut * (rows - 1)) / rows;
       const nh = Math.min(cell * 0.32, 80 * u);
@@ -385,6 +458,8 @@
       .prt-prox li { font-size: 13px; }
       .prt-prox .holds { color: #2c7a3f; font-weight: 600; }
       .prt-prox .no { color: #b23a1f; font-weight: 600; }
+      .prt-pages { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-family: var(--mono); font-size: 12px; }
+      .prt-pages button { min-width: 40px; }
     `;
     document.head.appendChild(st);
   }
@@ -395,7 +470,7 @@
     const st = api.store(KEY);
     const shade = api.store(SHADING_KEY).get(null);
     const fromShading = shade ? { style: STYLES.includes(shade.look) ? shade.look : "toon", line: LINES.includes(shade.line) ? shade.line : "thin", sat: Number.isFinite(shade.sat) ? shade.sat : 3, bands: clamp(Number(shade.bands) || 2, 2, 4) } : {};
-    const s = Object.assign({ layout: "strip", size: "letter", dpi: 150, guides: true, look: Object.assign({ style: "toon", line: "thin", sat: 3, bands: 3, halftone: false, paper: "#fffdf6" }, fromShading) }, st.get({}));
+    const s = Object.assign({ layout: "strip", size: "letter", dpi: 150, guides: true, source: "board", scene: "all", page: 0, captions: true, look: Object.assign({ style: "toon", line: "thin", sat: 3, bands: 3, halftone: false, paper: "#fffdf6" }, fromShading) }, st.get({}));
     const L = s.look;
     if (s.layout === "zine" && L.halftone == null) L.halftone = true;
     const save = () => st.set(s);
@@ -403,8 +478,18 @@
     const list = (arr, v) => arr.map((k) => `<option ${k === v ? "selected" : ""}>${esc(k)}</option>`).join("");
     const sizesL = {};
     Object.entries(SIZES).forEach(([k, z]) => (sizesL[k] = z.label));
+    const scenes = sbScenes();
+    if (s.source === "storyboard" && !scenes.length) s.source = "board";
+    const nPanels = scenes.reduce((n, x) => n + x.panels.length, 0);
+    const sceneOpts = `<option value="all" ${s.scene === "all" ? "selected" : ""}>Every scene</option>` + scenes.map((x, i) => `<option value="${i}" ${String(s.scene) === String(i) ? "selected" : ""}>${i + 1}. ${esc(x.name || "Scene " + (i + 1))} (${x.panels.length} panels)</option>`).join("");
     el.innerHTML = `<div class="studio-grid prt-tool">
       <div>
+        <label class="field">Print from<select data-s="source">
+          <option value="board" ${s.source === "board" ? "selected" : ""}>My film (the board)</option>
+          <option value="storyboard" ${s.source === "storyboard" ? "selected" : ""} ${scenes.length ? "" : "disabled"}>Storyboard${scenes.length ? ` (${scenes.length} scene${scenes.length === 1 ? "" : "s"}, ${nPanels} panels)` : " (save a scene there first)"}</option>
+        </select></label>
+        ${s.source === "storyboard" ? `<label class="field">Scenes<select data-s="scene">${sceneOpts}</select></label>
+        <label class="field"><span><input type="checkbox" data-s="captions" ${s.captions !== false ? "checked" : ""}> Captions: what is on, in plain words</span></label>` : ""}
         <label class="field">Layout<select data-s="layout">${opts(LAYOUTS, s.layout)}</select></label>
         <label class="field">Image size<select data-s="size">${opts(sizesL, s.size)}</select></label>
         <label class="field">DPI (paper sizes)<select data-s="dpi">${list(["72", "150", "300"], String(s.dpi))}</select></label>
@@ -419,34 +504,47 @@
         <label class="field">Paper color<input type="color" data-l="paper" value="${esc(L.paper)}"></label>
       </div>
       <div>
+        <div class="prt-pages"><button type="button" data-act="prev" aria-label="Previous page">◀</button> <span id="prt-pageno"></span> <button type="button" data-act="next" aria-label="Next page">▶</button></div>
         <canvas class="prt-view" aria-label="Printable page preview"></canvas>
         <p id="prt-chips"></p>
         <ul class="prt-prox" id="prt-prox"></ul>
         <div class="bar-actions">
-          <button type="button" data-act="png">Download PNG</button>
+          <button type="button" data-act="png">Download this page (PNG)</button>
+          <button type="button" data-act="all">Download every page (PNG)</button>
+          <button type="button" data-act="printable">Printable page (print or save as PDF)</button>
           <button type="button" data-act="frames">Download each panel</button>
           <button type="button" data-act="shelf">Keep on Shelf</button>
           <button type="button" data-act="redraw">Redraw from the board</button>
         </div>
         <p class="cap" id="prt-size"></p>
-        <p class="cap">The panels are the board's scene, one per line, with any Shelf strand applied panel by panel. Change the board and press Redraw.</p>
+        <p class="cap">${s.source === "storyboard" ? "The panels are the Storyboard's, each with the values it was saved with. A scene starts on a new page." : "The panels are the board's scene, one per line, with any Shelf strand applied panel by panel. Change the board and press Redraw."} Printable page opens your browser's print window; choose "Save as PDF" there to keep a PDF.</p>
       </div></div>`;
     const canvas = el.querySelector(".prt-view");
 
+    let pages = chunks(s);
+    function current() {
+      pages = chunks(s);
+      s.page = clamp(Number(s.page) || 0, 0, pages.length - 1);
+      return pages[s.page];
+    }
     function preview() {
       const [W, H] = pageSize(s);
+      const ch = current();
+      el.querySelector("#prt-pageno").textContent = `Page ${s.page + 1} of ${pages.length}`;
+      el.querySelector('[data-act="prev"]').disabled = s.page <= 0;
+      el.querySelector('[data-act="next"]').disabled = s.page >= pages.length - 1;
       // the preview renders at 72 DPI equivalent for speed; the download uses the chosen DPI
       const ps = Object.assign({}, s, { dpi: 72 });
-      renderPage(canvas, SIZES[s.size].px ? Object.assign(ps, {}) : ps, L);
+      renderPage(canvas, SIZES[s.size].px ? Object.assign(ps, {}) : ps, L, ch);
       if (SIZES[s.size].px && canvas.width > 1100) {
         const k = 1100 / canvas.width;
         const off = document.createElement("canvas");
-        renderPage(off, s, L);
+        renderPage(off, s, L, ch);
         canvas.width = Math.round(off.width * k);
         canvas.height = Math.round(off.height * k);
         canvas.getContext("2d").drawImage(off, 0, 0, canvas.width, canvas.height);
       }
-      el.querySelector("#prt-size").textContent = `Download: ${W} x ${H} px${SIZES[s.size].px ? "" : ` at ${s.dpi} DPI`}, PNG.`;
+      el.querySelector("#prt-size").textContent = `Download: ${pages.length} page${pages.length === 1 ? "" : "s"}, each ${W} x ${H} px${SIZES[s.size].px ? "" : ` at ${s.dpi} DPI`}, PNG.`;
       el.querySelector("#prt-chips").innerHTML = [["renderStyle", L.style], ["lineWeight", L.line], ["saturation", L.sat]].map(([k, v]) => `<span class="chip">${esc(k)} ${esc(v)}</span>`).join("");
       const triggered = L.style === "toon";
       const holds = L.bands === 2 && L.line !== "none";
@@ -460,6 +558,11 @@
       x.addEventListener("change", () => {
         const k = x.dataset.s;
         s[k] = x.type === "checkbox" ? x.checked : k === "dpi" ? Number(x.value) : x.value;
+        if (k === "source" || k === "scene" || k === "layout") s.page = 0;
+        if (k === "source") {
+          save();
+          return draw(el, api);
+        }
         rerender();
       })
     );
@@ -489,14 +592,73 @@
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
       }, "image/png");
     }
+    const fileBase = () => `curiosities-${s.source === "storyboard" ? "storyboard-" : ""}${s.layout}-${s.size}`;
     el.querySelector('[data-act="png"]').addEventListener("click", () => {
       const off = document.createElement("canvas");
-      renderPage(off, s, L);
-      download(off, `curiosities-${s.layout}-${s.size}.png`);
+      renderPage(off, s, L, current());
+      download(off, `${fileBase()}${pages.length > 1 ? "-p" + String(s.page + 1).padStart(2, "0") : ""}.png`);
+    });
+    el.querySelector('[data-act="all"]').addEventListener("click", () => {
+      current();
+      pages.forEach((ch, k) =>
+        setTimeout(() => {
+          const off = document.createElement("canvas");
+          renderPage(off, s, L, ch);
+          download(off, `${fileBase()}-p${String(k + 1).padStart(2, "0")}.png`);
+        }, k * 300)
+      );
+    });
+    el.querySelector('[data-act="prev"]').addEventListener("click", () => {
+      s.page = Math.max(0, s.page - 1);
+      rerender();
+    });
+    el.querySelector('[data-act="next"]').addEventListener("click", () => {
+      s.page = s.page + 1;
+      rerender();
+    });
+    /* Printable page: every page as a picture in a print-only part of the document, then the print dialog. */
+    el.querySelector('[data-act="printable"]').addEventListener("click", () => {
+      current();
+      const ps = Object.assign({}, s, { dpi: Math.min(150, Number(s.dpi) || 150) });
+      const [W, H] = pageSize(ps);
+      let box = document.getElementById("prt-printout");
+      if (!box) {
+        box = document.createElement("div");
+        box.id = "prt-printout";
+        box.setAttribute("aria-hidden", "true");
+        document.body.appendChild(box);
+      }
+      let css = document.getElementById("prt-print-css");
+      if (!css) {
+        css = document.createElement("style");
+        css.id = "prt-print-css";
+        document.head.appendChild(css);
+      }
+      css.textContent = `
+        #prt-printout { display: none; }
+        @media print {
+          @page { size: ${SIZES[s.size].px ? "auto" : (SIZES[s.size] === SIZES.a4 ? "A4 " : "letter ") + (W > H ? "landscape" : "portrait")}; margin: 0.25in; }
+          html, body { background: #fff !important; }
+          body > *:not(#prt-printout) { display: none !important; }
+          #prt-printout { display: block !important; }
+          #prt-printout img { display: block; width: 100%; height: auto; max-height: 99vh; object-fit: contain; margin: 0 auto; break-after: page; page-break-after: always; }
+          #prt-printout img:last-child { break-after: auto; page-break-after: auto; }
+        }`;
+      box.innerHTML = "";
+      const waits = pages.map((ch, k) => {
+        const off = document.createElement("canvas");
+        renderPage(off, ps, L, ch);
+        const img = new Image();
+        img.alt = `Page ${k + 1}`;
+        img.src = off.toDataURL("image/png");
+        box.appendChild(img);
+        return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+      });
+      Promise.all(waits).then(() => window.print());
     });
     el.querySelector('[data-act="frames"]').addEventListener("click", () => {
-      // batch render to frames: one PNG per panel at 16:9
-      const { list } = panels(s.layout === "strip" ? 4 : 6);
+      // batch render to frames: one PNG per panel at 16:9 (the panels of the page shown)
+      const list = current().list.map((P) => Object.assign({}, P, { showCap: s.captions !== false }));
       list.forEach((P, k) => {
         const c = document.createElement("canvas");
         c.width = 1280;
