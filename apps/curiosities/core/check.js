@@ -30,6 +30,7 @@ assert.deepStrictEqual(plain(osc), { address: "/curio/set/c/angleHeight", args: 
 assert.deepStrictEqual(plain(B.fromOsc(osc.address, osc.args)), { type: "set", key: "c:angleHeight", m: 0.5 }, "OSC address back in");
 B.handle({ type: "trigger", key, on: false });
 assert(!core.CurioAuto.running().includes(key), "trigger off stops it");
+assert.strictEqual(B.handle({ type: "panels" }).type, "error", "panels needs the board (none headless)");
 assert(core.localStorage.getItem("curiosities-automation-v1"), "patches save to the storage given");
 
 /* With the curiosity database (data/, #7) every one of its items is a parameter the bridge can move. */
