@@ -23,13 +23,20 @@ from curiosities_unreal import unreal_link as link  # noqa: E402
 
 
 class Bridge(object):
-    def __init__(self, panels):
-        self.panels, self.sent, self.queue, self.closed = panels, [], [], False
+    """timeline=None is an app without the engine ("unknown type"); a list is the engine's film."""
+
+    def __init__(self, panels, timeline=None):
+        self.panels, self.sent, self.queue, self.closed, self.timeline = panels, [], [], False, timeline
 
     def send(self, msg):
         self.sent.append(msg)
         if msg["type"] == "panels":
             self.queue.append({"type": "panels", "panels": self.panels})
+        elif msg["type"] == "timeline":
+            if self.timeline is None:
+                self.queue.append({"type": "error", "error": "unknown type timeline"})
+            else:
+                self.queue.append({"type": "timeline", "panels": self.timeline, "rows": [], "tracks": [], "byTrack": {}})
 
     def poll(self):
         out, self.queue = self.queue, []
@@ -91,7 +98,8 @@ class InUnreal(unittest.TestCase):
         fake_unreal.EditorActorSubsystem.actors = []
         fake_unreal.EditorActorSubsystem.selected = []
         fake_unreal._Assets.store = {}
-        link.state.update({"client": None, "tick": None, "panel": 0, "follow": True, "panels": [], "waiting": None, "since": 0.0})
+        link.state.update({"client": None, "tick": None, "panel": 0, "follow": True, "panels": [], "waiting": None, "since": 0.0,
+                           "timeline": True})
 
     def test_camera_is_made_once_with_a_full_frame_back(self):
         a = link.camera()
@@ -103,12 +111,34 @@ class InUnreal(unittest.TestCase):
         bridge = Bridge(PANELS)
         link.state["client"] = bridge
         link.state["panel"] = 1
-        link._tick(0.3)  # asks for panels
+        link._tick(0.3)  # asks for the timeline
+        link._tick(0.01)  # no engine here: asks for panels
         link._tick(0.01)  # gets them and moves the camera
         cam = link.camera(create=False)
         self.assertEqual(cam.comp.current_focal_length, 85.0)
         self.assertLess(cam.loc.z, 160.0)  # low angle
         self.assertEqual(ue_map.values_from_ue(link.read_pose(cam))["shotSize"], "close")
+
+    def test_key_the_engines_whole_film(self):
+        film = PANELS * 4  # 12 moments, more than My film's 8 panels
+        bridge = Bridge(PANELS[:1], timeline=film + [{"notACameraCuriosity": 1}])
+        link.state["client"] = bridge
+        got = []
+        link._with_panels(got.append)
+        link._tick(0.01)
+        self.assertEqual(len(got[0]), 13)
+        self.assertNotIn("notACameraCuriosity", got[0][-1])
+        self.assertEqual([m["type"] for m in bridge.sent], ["timeline"])
+
+    def test_empty_engine_film_falls_back_to_panels(self):
+        bridge = Bridge(PANELS, timeline=[])
+        link.state["client"] = bridge
+        got = []
+        link._with_panels(got.append)
+        link._tick(0.01)
+        link._tick(0.01)
+        self.assertEqual(len(got[0]), 3)
+        self.assertTrue(link.state["timeline"], "still asks the engine next time")
 
     def test_key_shots(self):
         seq = link._key_shots(PANELS)
