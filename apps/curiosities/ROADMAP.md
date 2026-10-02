@@ -44,8 +44,8 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (draft PR #7). Today: 322 curiosities, 171 suites, 134 proximities,
-39 proximity suites and 3,552 sliders, across 25 workspaces, plus 8 model scenes.
+Lives in `apps/curiosities/data/` (draft PR #7). Today: 333 curiosities, 187 suites, 150 proximities,
+44 proximity suites and 3,798 sliders, across 25 workspaces, plus 8 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -67,6 +67,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 322 curiosities, 171 sui
 - [x] Fill the thin workspaces: Personal plot, Perspective & mindset, Focus, Herd mentality and Page & panel now have their own suites and proximities (data/db-story.js)
 - [x] Deeper comedy and emotion: comic flaw, premise, topper, oddly specific, talking to camera, exaggeration, humiliation, the lie that grows, misunderstanding, cutaways; mixed feelings, said against meant, eyes, hands, personal space, release, what the audience feels, catharsis, feeling held in; real sliders on every comedy and emotion row (data/db-feeling-comedy.js)
 - [x] Deeper Comedy from the mix and Emotional road: the double act, the straight man, the odd one out, clash of egos, who knows what, the unwanted guest, chemistry; hope, what they stand to lose, breathers, false highs, two roads, a feeling that comes back, warmth, dread (data/db-mix-road.js)
+- [x] Deeper Character arc and Movement with lines: which way they change, the lie they believe, the old wound, fighting the change, the test, slipping back, how the change shows; walk and talk, business with a prop, move on the line, the listener's body; plus suites and proximities for Camera angle and Character motion (data/db-arc-body.js)
 - [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop. The review page is ready: https://claude.ai/artifact/MRmTHSusCBtFhkXgkBXoY8 (share it with Sharani from its Share menu)
 - [x] The three new workspaces (Music & sound, Editing & structure, Page & panel) show as tabs: Music under a new Sound group, Page under Look, Editing under Story (app thread). Jeremy can still say no.
 
@@ -94,7 +95,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 322 curiosities, 171 sui
 
 - [x] Trigger any item on and off from a key, a button or a MIDI note
 - [x] Move any slider with a knob, an LFO or a MIDI control, and send it out to VCV Rack
-- [x] Every database item shows up as automation lanes: all 322 curiosities, 171 suites, 134 proximities and 39 proximity suites (tested). Suites have Blend and a Weight lane per member, with the database's weights
+- [x] Every database item shows up as automation lanes: all 333 curiosities, 187 suites, 150 proximities and 44 proximity suites (tested). Suites have Blend and a Weight lane per member, with the database's weights
 - [x] Wearable MIDI (straps, gloves) presets for performers: Dancer, Actor and Comedian, with step-by-step learn and undo (PR #4)
 - [x] Pads and keyboards: a ready layout of the most used curiosities (16 pads, 25 keys, 8 knobs, printable cheat sheets, PR #4)
 
@@ -106,7 +107,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 322 curiosities, 171 sui
 - [ ] Logins and cloud sync, optional (Phase 3)
 - [ ] Desktop app (Phase 4)
 - [ ] Panel inside Maya, with curiosities driving the camera and keys (Phase 5)
-- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built in draft PR #9: a jack for each of the 666 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). Next: someone with VCV Rack opens the files and builds the plugin
+- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built in draft PR #9: a jack for each of the 714 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). Next: someone with VCV Rack opens the files and builds the plugin
 - [ ] Other tools: Unreal, Blender, Resolve (Phase 7)
 
 ## 6. Checks with people
