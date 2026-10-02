@@ -129,9 +129,11 @@
     return { type };
   }
   function toOsc(msg) {
-    const path = msg.key ? "/" + msg.key.replace(":", "/") : "";
-    const args = msg.type === "trigger" ? [msg.on ? 1 : 0] : "m" in msg ? [msg.m] : [];
-    return { address: "/curio/" + msg.type + path, args };
+    /* Never throws: a message with no type or a key that is not text still gives an address. */
+    const m = msg && typeof msg === "object" ? msg : {};
+    const path = typeof m.key === "string" && m.key ? "/" + m.key.replace(":", "/") : "";
+    const args = m.type === "trigger" ? [m.on ? 1 : 0] : "m" in m ? [m.m] : [];
+    return { address: "/curio/" + (typeof m.type === "string" && m.type ? m.type : "unknown") + path, args };
   }
 
   window.CurioBridge = { handle, values, addSource, fromOsc, toOsc, TIMELINE: true };
