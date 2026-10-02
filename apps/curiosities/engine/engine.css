@@ -37,6 +37,10 @@
 .en-cell.en-point::after { content: "●"; position: absolute; right: 3px; top: 1px; font-size: 9px; color: #2c6a94; }
 .en-tl thead th.en-win { box-shadow: inset 0 -4px 0 var(--saffron, #c45c26); }
 .en-window { margin-top: 10px; }
+.en-tl tr.en-band th { background: #5b5048; }
+.en-tl tr.en-band td { background: #5b5048; }
+.en-bandcell { min-width: 74px; height: 28px; padding: 3px 5px; font-size: 11px; font-family: var(--mono, monospace); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #f3ece1; }
+.en-bandcell.en-warn { background: #f4d3c4; color: #8a2b0e; font-weight: 600; }
 .en-cell.en-fired { outline: 2px solid var(--saffron, #c45c26); outline-offset: -2px; }
 
 /* The cell editor */

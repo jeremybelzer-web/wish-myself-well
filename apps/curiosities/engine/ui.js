@@ -2,7 +2,7 @@
    own page (engine/index.html). Every part is a view of window.CurioEngine: it reads state() and result()
    and changes things only by sending messages (send, undo, redo). It keeps no copy of the film.
 
-   window.CurioEngineUI = { open(tab), close(), host(), mount(el) }
+   window.CurioEngineUI = { open(tab), close(), host(), mount(el), addBand(provider) }
    Tabs: Timeline (the master: tracks down, moments across, a lane per curiosity), Links (proximities as a
    list, and what fired), Cube (cube.js), Analyze (pull curiosities out of a script or shot list, carry one
    onto your film), History (undo, the save-and-reload check, host calls, and the app-wide history). */
@@ -45,6 +45,27 @@
   try {
     tab = localStorage.getItem("curiosities-engine-view-v1") || "timeline";
   } catch (e) {}
+
+  /* three.js r128, the version the app uses, loaded once on demand; without it the cube shows a flat grid. */
+  const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+  let threeTried = false;
+  let threeLoad = null;
+  function loadThree() {
+    if (window.THREE) return Promise.resolve(true);
+    if (threeLoad) return threeLoad;
+    threeLoad = new Promise((done) => {
+      const sc = document.createElement("script");
+      sc.src = THREE_URL;
+      sc.onload = () => done(!!window.THREE);
+      sc.onerror = () => done(false);
+      document.head.appendChild(sc);
+      setTimeout(() => done(!!window.THREE), 15000);
+    }).then((ok) => {
+      threeTried = true;
+      return ok;
+    });
+    return threeLoad;
+  }
 
   /* ---------- the host ---------- */
   function getHost() {
@@ -165,8 +186,16 @@
     else if (tab === "links") body.innerHTML = linksHtml();
     else if (tab === "cube") {
       body.innerHTML = `<p class="en-note">The clip matrix as a cube. The front face is the matrix: tracks across, moments down, each cell a clip (the whole of that track at that moment). Step back a layer and each cell shows one curiosity of its clip. Turn the cube to see every clip's curiosities lined up behind it. Double-click to go inside: each clip is a block with a node per curiosity. Click one node, then another, to link them.</p><div class="en-cube-host"></div>`;
-      if (window.CurioCube) window.CurioCube.mount(body.querySelector(".en-cube-host"), { onLink: draftLink });
-      else body.querySelector(".en-cube-host").textContent = "The cube is not loaded on this page.";
+      const cubeHost = body.querySelector(".en-cube-host");
+      if (!window.CurioCube) cubeHost.textContent = "The cube is not loaded on this page.";
+      else if (window.THREE || threeTried) window.CurioCube.mount(cubeHost, { onLink: draftLink });
+      else {
+        /* three.js is no longer on every page (the app loads it when a 3D view opens), so load it here once. */
+        cubeHost.textContent = "Loading the 3D view…";
+        loadThree().then(() => {
+          if (root && !root.hidden && tab === "cube" && cubeHost.isConnected) window.CurioCube.mount(cubeHost, { onLink: draftLink });
+        });
+      }
     } else if (tab === "analyze") body.innerHTML = analyzeHtml();
     else if (tab === "history") body.innerHTML = historyHtml();
     const sc = root.querySelector(".en-scroll");
@@ -219,10 +248,59 @@
       .join("");
     return `<p class="en-note">Your film as one timeline. Each track is a column of the clip matrix (Master for the whole film, Camera, one per character); each line under it is one curiosity, moment by moment. Click a cell to change it. A change ripples through your links; a pin stays put whatever the links do.</p>
       <div class="en-legend"><span style="--sw:transparent">your material</span><span style="--sw:#dce9f2">automation lane (● a point)</span><span style="--sw:#f6e2b8">set by a link</span><span style="--sw:#e7dcf3">pinned by hand</span><span style="--sw:#e4e0da">switched off</span></div>
-      <div class="en-scroll en-panel"><table class="en-tl"><thead>${head}</thead><tbody>${body}</tbody></table></div>
+      <div class="en-scroll en-panel"><table class="en-tl"><thead>${head}</thead><tbody>${body}${bandsHtml(st)}</tbody></table></div>
       <p><button data-act="add-track">Add a track</button> <button data-act="start-board">Read My film again</button> <button data-act="start-new">Start a new film</button> <button data-act="unprint" title="Put back what My film showed before the engine sent anything">Take back from My film</button></p>
       ${windowHtml(st)}${storyboardHtml()}`;
   }
+  /* Read-only bands under the timeline, drawn by other parts of the app (momentum's Attention and Cue).
+     addBand(provider): provider() -> { id, label, lanes: [{ id, label, cells: [{ row, text, title, family?,
+     warn? }] }] }, asked again on every redraw. A provider that throws or returns nothing is skipped. */
+  const bands = [];
+  function addBand(provider) {
+    if (typeof provider !== "function" || bands.includes(provider)) return false;
+    bands.push(provider);
+    if (root && !root.hidden && tab === "timeline") draw();
+    return () => {
+      const i = bands.indexOf(provider);
+      if (i >= 0) bands.splice(i, 1);
+      if (root && !root.hidden && tab === "timeline") draw();
+    };
+  }
+  function bandsHtml(st) {
+    return bands
+      .map((fn) => {
+        let b = null;
+        try {
+          b = fn();
+        } catch (e) {
+          b = null;
+        }
+        if (!b || !Array.isArray(b.lanes) || !b.lanes.length) return "";
+        const bid = esc(String(b.id == null ? "" : b.id).slice(0, 60));
+        const top = `<tr class="en-track en-band" data-band="${bid}"><th class="en-lane">${esc(String(b.label || b.id || "Band").slice(0, 60))} <small style="display:inline;opacity:.7">read only</small></th><td colspan="${st.rows.length + 1}"></td></tr>`;
+        return (
+          top +
+          b.lanes
+            .slice(0, 12)
+            .map((lane) => {
+              const byRow = Object.create(null);
+              (Array.isArray(lane && lane.cells) ? lane.cells : []).forEach((c) => c && typeof c.row === "string" && (byRow[c.row] = c));
+              const cells = st.rows
+                .map((r) => {
+                  const c = byRow[r.id];
+                  if (!c) return `<td></td>`;
+                  const fam = typeof c.family === "string" ? c.family.replace(/[^a-z0-9-]/gi, "").slice(0, 30) : "";
+                  return `<td><div class="en-bandcell${c.warn ? " en-warn" : ""}"${fam ? ` data-family="${fam}"` : ""} title="${esc(String(c.title == null ? "" : c.title).slice(0, 300))}">${esc(String(c.text == null ? "" : c.text).slice(0, 40))}</div></td>`;
+                })
+                .join("");
+              return `<tr data-band="${bid}"><th class="en-lane">${esc(String((lane && (lane.label || lane.id)) || "").slice(0, 60))}</th>${cells}<td></td></tr>`;
+            })
+            .join("")
+        );
+      })
+      .join("");
+  }
+
   /* My film shows as many moments as it has panels (Angles per scene, up to 8); a longer film is sent a
      window at a time. The storyboard takes the whole film. */
   function windowHtml(st) {
@@ -855,5 +933,5 @@
       setTimeout(() => open(again), 0);
     }
   } catch (e) {}
-  window.CurioEngineUI = { open, close, mount, host: getHost, draw, say };
+  window.CurioEngineUI = { open, close, mount, host: getHost, draw, say, addBand };
 })();
