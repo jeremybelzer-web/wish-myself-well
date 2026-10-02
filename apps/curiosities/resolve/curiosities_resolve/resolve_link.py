@@ -85,6 +85,20 @@ def request(msg, want, url=None, timeout=5.0, client=None):
             client.close()
 
 
+def film_panels(ids, url=None, client=None):
+    """The whole film: the engine's timeline (every moment) when it has one, else My film's storyboard panels.
+    Returns (panels, where) with where "engine" or "storyboard". An app without the engine answers with an error,
+    and an engine with no film yet answers with no panels; both fall back to the storyboard."""
+    try:
+        reply = request({"type": "timeline"}, "timeline", url, client=client)
+        if reply.get("panels"):
+            return [{k: v for k, v in p.items() if k in ids} for p in reply["panels"]], "engine"
+    except Problem as e:
+        if not str(e).startswith("The app said"):
+            raise
+    return request({"type": "panels", "ids": list(ids)}, "panels", url, client=client).get("panels") or [], "storyboard"
+
+
 def clear_ours(timeline):
     """Remove the markers this bridge made before (custom data starts with "curio:"); leave everyone else's."""
     n = 0
@@ -96,9 +110,19 @@ def clear_ours(timeline):
 
 
 def send_storyboard(resolve, url=None, client=None):
-    """Storyboard panels -> markers on the current timeline (an empty one is made if none is open)."""
-    reply = request({"type": "panels", "ids": list(cr.PANEL_IDS)}, "panels", url, client=client)
-    panels = reply.get("panels") or []
+    """The film -> markers on the current timeline (an empty one is made if none is open): every moment of the
+    engine's film when it has one, else the storyboard panels."""
+    own = client is None
+    if own:
+        try:
+            client = Client(url or DEFAULT_URL).connect()
+        except OSError:
+            raise Problem("The Curiosities desktop app is not answering at %s. Open it, then try again." % (url or DEFAULT_URL))
+    try:
+        panels, where = film_panels(cr.PANEL_IDS, url, client=client)
+    finally:
+        if own:
+            client.close()
     if not panels:
         raise Problem("The storyboard has no panels.")
     _, timeline = current(resolve, make=True)
@@ -109,8 +133,8 @@ def send_storyboard(resolve, url=None, client=None):
         if timeline.AddMarker(m["frame"], m["color"], m["name"], m["note"], m["duration"], m["customData"]):
             made += 1
     seconds = sum(cr.hold_frames(p, rate) for p in panels) / rate
-    print("Curiosities: put %d of %d panels on \"%s\" as markers (%.0f seconds)%s." % (
-        made, len(panels), timeline.GetName(), seconds, ", replacing %d old ones" % cleared if cleared else ""))
+    print("Curiosities: put %d of %d %s on \"%s\" as markers (%.0f seconds)%s." % (
+        made, len(panels), "moments of the engine's film" if where == "engine" else "panels", timeline.GetName(), seconds, ", replacing %d old ones" % cleared if cleared else ""))
     if made < len(panels):
         print("Curiosities: some markers did not fit. Resolve only keeps markers inside the timeline; add clips or a"
               " generator as long as the storyboard and send it again.")
