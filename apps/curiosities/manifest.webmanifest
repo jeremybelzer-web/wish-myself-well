@@ -1,6 +1,6 @@
 {
-  "name": "Curiosities",
-  "short_name": "Curiosities",
+  "name": "Film Curio",
+  "short_name": "Film Curio",
   "description": "Model a film as curiosities, suites and proximities, and cross-pollinate them onto your own.",
   "start_url": "./index.html",
   "scope": "./",
