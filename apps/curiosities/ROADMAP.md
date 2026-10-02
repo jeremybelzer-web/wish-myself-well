@@ -83,7 +83,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 - [x] Eight made-up model scenes (diner standoff, meet-cute, dinner party, dark hallway, montage, deadpan office, quiet goodbye, kitchen disaster) so the Prism has something to split on first open (PR #7)
 - [ ] Jeremy picks three to five real films or scenes to trace for the Prism (counts only, never scripts)
 - [x] Show the model scenes as curated films in the app, marked "made up for practice" (app thread)
-- [ ] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, comedy
+- [x] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, emotional road, comedy and comedy from the mix (grouping in PR #4; every model scene now has values through every lens, tested)
 - [x] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours ("Make it an analogy" on every Prism row, PR #4)
 - [x] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film ("Borrow this film's emotional road", PR #4)
 

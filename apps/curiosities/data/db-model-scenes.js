@@ -4,6 +4,49 @@
    user can see what a curated film looks like as curiosities. Each beat keeps the values of the beat before
    unless it changes them. Values use database ids ("music" is its main slider, "music.tempo" a named one). */
 (function (DB) {
+  /* Every lens in every scene, so the Prism has something to show through each one (clothes, set, color,
+     feeling, emotional road, comedy, comedy from the mix, music). Keyed by scene, then beat number (from 0);
+     values carry forward like the rest. */
+  const LENS_FILL = {
+    "diner-standoff": {
+      0: { mainEra: "1990s", mainCost: "smart", mainCoverage: "fully covered", mainUtility: "mostly looks", backEra: "1990s", backCost: "cheap", backSameness: "mixed", backVsMain: "clearly apart", emoRoadCharacter: "steady", emoRoadFilm: "steady", typeClash: "different types", chaosInRoom: "one loose person", mixLaughs: "steady" },
+      4: { emoRoadFilm: "falling", emoTurn: "flips", chaosInRoom: "mostly chaos" },
+      7: { emoRoadFilm: "rising", mixLaughs: "a few" },
+    },
+    "bookshop-meet-cute": {
+      0: { mainEra: "today", backEra: "today", backCost: "everyday", backSameness: "all different", backVsMain: "slightly apart", emoRoadCharacter: "steady", emoRoadFilm: "steady" },
+      5: { emoRoadCharacter: "rising", emoTurn: "shifts" },
+      6: { emoRoadCharacter: "falling" },
+      7: { emoRoadCharacter: "highest point", emoRoadFilm: "rising" },
+    },
+    "dinner-party": {
+      0: { warmCool: "warm", colorRange: "natural color", emoRoadCharacter: "steady", emoRoadFilm: "steady" },
+      2: { warmCool: "neutral", emoRoadCharacter: "falling" },
+      4: { warmCool: "cool", colorRange: "muted color", emoRoadCharacter: "lowest point", emoTurn: "flips" },
+    },
+    "night-hallway": {
+      0: { mainEra: "today", mainCost: "everyday", mainWear: "worn in", mainCoverage: "most", backEra: "today", backSameness: "a common style", backVsMain: "main blends in", typeClash: "the same type", chaosInRoom: "all orderly", mixLaughs: "none" },
+    },
+    "getting-good-montage": {
+      0: { backEra: "today", backCost: "cheap", backSameness: "uniforms", backVsMain: "main blends in", setStyle: "industrial", setUpkeep: "shabby", typeClash: "different types", chaosInRoom: "all orderly", mixLaughs: "a few" },
+      3: { backVsMain: "clearly apart", setUpkeep: "lived in" },
+    },
+    "deadpan-office": {
+      0: { emoRoadCharacter: "falling", emoRoadFilm: "steady" },
+      3: { emoRoadCharacter: "lowest point", emoTurn: "wobbles" },
+      5: { emoRoadCharacter: "rising", emoRoadFilm: "rising" },
+    },
+    "quiet-goodbye": {
+      0: { mainEra: "1970s", mainCost: "everyday", mainWear: "worn in", mainCoverage: "fully covered", backEra: "1970s", backSameness: "all different", backVsMain: "main blends in", comedyDevice: "understatement", laughsPerMinute: 1, typeClash: "close types", chaosInRoom: "all orderly", mixLaughs: "none" },
+      2: { laughsPerMinute: 0 },
+    },
+    "kitchen-disaster": {
+      0: { mainEra: "today", mainCost: "everyday", mainUtility: "all function", mainWear: "clean", backEra: "today", backSameness: "uniforms", backVsMain: "slightly apart", emoRoadCharacter: "rising", emoRoadFilm: "steady", typeClash: "opposite types", chaosInRoom: "one chaos character", mixLaughs: "the main source" },
+      2: { mainWear: "worn out", chaosInRoom: "mostly chaos", emoRoadCharacter: "falling" },
+      4: { mainWear: "torn and dirty", chaosInRoom: "all chaos", emoRoadCharacter: "lowest point", emoTurn: "flips" },
+      5: { emoRoadCharacter: "rising", emoRoadFilm: "rising" },
+    },
+  };
   function scene(id, title, genre, plain, beats) {
     let carry = {};
     DB.modelScene({
@@ -11,8 +54,8 @@
       title: "Model scene: " + title,
       genre,
       plain,
-      beats: beats.map(([at, values, note]) => {
-        carry = Object.assign({}, carry, values);
+      beats: beats.map(([at, values, note], i) => {
+        carry = Object.assign({}, carry, values, (LENS_FILL[id] || {})[i]);
         return { at, note: note || "", values: carry };
       }),
     });
