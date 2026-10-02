@@ -81,7 +81,8 @@ below switches it off (`/curio/trigger`). The OSC message format was tested by s
 **Values coming back: the Return module.** Place a Curio Return module directly to the right of any Curiosities
 module. Its 16 output jacks carry the current value of the same 16 items, sent by the desktop app
 (`/curio/value/<level>/<id>` on UDP port 7001), as 0 to 10 V. So when a curated film plays in the app, Rack can turn
-its music, comedy or camera moves into sound or light. Its panel prints the names of the module it sits beside.
+its music, comedy or camera moves into sound or light. Its panel prints the names of the module it sits beside. Only one program on the computer should listen on port
+7001 at a time: if two do, each value reaches only one of them.
 
 **Not built yet.** The VCV Rack SDK download is blocked where this was written. `sh vcv/tools/check-plugin.sh`
 checks the generated C++ against a small stand-in for Rack's API, which catches typos only. To build it for real
