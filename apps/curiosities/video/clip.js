@@ -75,6 +75,7 @@
     if (pcmCache.has(clip)) return pcmCache.get(clip);
     let out = null;
     try {
+      if (clip.file && clip.file.size > 600e6) throw new Error("too big");
       const buf = clip.file ? await clip.file.arrayBuffer() : await (await fetch(clip.url)).arrayBuffer();
       if (buf.byteLength > 600e6) throw new Error("too big");
       const AC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
@@ -122,8 +123,8 @@
     }
     return { samples, gw: GRAY_W };
   }
-  function evenTimes(duration, fps) {
-    const n = Math.max(2, Math.min(MAX_LOOKS, Math.round(duration * fps)));
+  function evenTimes(duration, fps, maxLooks) {
+    const n = Math.max(2, Math.min(maxLooks || MAX_LOOKS, Math.round(duration * fps)));
     const out = [];
     for (let i = 0; i < n; i++) out.push(Math.min(duration - 0.02, (i * duration) / n + 0.01));
     return out;
@@ -131,7 +132,8 @@
   async function dissect(clip, opts) {
     opts = opts || {};
     const fps = opts.fps || Math.max(6, Math.min(15, MAX_LOOKS / Math.max(0.1, clip.duration)));
-    const times = evenTimes(clip.duration, fps);
+    /* Never more than maxLooks seeks in all (900 unless asked for fewer), so a long film is looked at more sparsely. */
+    const times = evenTimes(clip.duration, fps, opts.maxLooks);
     const prog = (p) => opts.onProgress && opts.onProgress(p * 0.85, "Looking at the picture");
     const fr = await frames(
       clip,
@@ -143,7 +145,10 @@
       prog
     );
     if (opts.onProgress) opts.onProgress(0.88, "Listening to the sound");
-    const p = await pcm(clip);
+    /* The sound is decoded whole, so it is skipped when asked (sound: false) or the file is bigger than maxSoundBytes
+       (300 MB unless set): those clips get no loudness or talking lanes. */
+    const big = clip.file && clip.file.size > (opts.maxSoundBytes || 300e6);
+    const p = opts.sound === false || big ? null : await pcm(clip);
     const sound = p ? V().envelope(p.data, p.rate) : null;
     const d = V().analyze({ name: clip.name, duration: clip.duration, aspect: clip.height / clip.width, samples: fr.samples, gw: fr.gw, sound });
     if (opts.onProgress) opts.onProgress(1, "Done");
