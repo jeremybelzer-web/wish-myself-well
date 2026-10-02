@@ -29,7 +29,7 @@ Limits of stage 1:
   CC into voltage) covers the other direction for now.
 - It needs a virtual MIDI cable (IAC on Mac, loopMIDI on Windows), and the browser must be Chrome or Edge.
 
-## Stage 2: a real plugin, generated from the database
+## Stage 2: a real plugin, generated from the database (started: vcv/plugin, not built yet)
 
 A VCV Rack plugin is written in C++ against the Rack SDK. Ours would be generated, not hand-written:
 
