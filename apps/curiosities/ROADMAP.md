@@ -69,14 +69,14 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 
 ## 2. Storyboard beta **(beta)**
 
-- [ ] Many panels per scene (dozens), cheap to draw
+- [x] Many panels per scene (up to 24 per take, tested at 768 panels in a scene) (PR #4)
 - [x] Flip-book playback: flick through panels at a speed you choose (PR #4)
-- [ ] Each panel shows the curiosities that are on, in plain words, under the drawing (like a comic caption)
+- [x] Each panel shows the curiosities that are on, in plain words, under the drawing, like a comic caption (PR #4)
 - [x] Draw wardrobe, set and color changes on the panel, simply (not full renders) (PR #4: wardrobe, set, color, emotion and comedy marks)
-- [ ] Music and silence shown on the strip as a band under the panels
-- [ ] Emotion shown as a line across the panels, per character
-- [ ] Comedy beats marked on the strip (setup, payoff, callback)
-- [ ] Print or export the storyboard as images or a PDF, zine and comic layouts included
+- [x] Music and silence shown on the strip as a band under the panels (PR #4)
+- [x] Emotion shown as a line across the panels, per character (PR #4)
+- [x] Comedy beats marked on the strip (setup, payoff, callback) (PR #4)
+- [x] Print or export the storyboard as images or a PDF, zine and comic layouts included (PR #4)
 
 ## 3. Prism and cross-pollinating **(beta)**
 
@@ -84,8 +84,8 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 - [ ] Jeremy picks three to five real films or scenes to trace for the Prism (counts only, never scripts)
 - [x] Show the model scenes as curated films in the app, marked "made up for practice" (app thread)
 - [ ] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, comedy
-- [ ] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours
-- [ ] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film
+- [ ] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours (being built, PR #4)
+- [ ] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film (being built, PR #4)
 
 ## 4. Automation and performance
 
@@ -97,7 +97,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 
 ## 5. Saving and platforms
 
-- [ ] Safe saving: one project file (`.curio`), Save and Open, autosave history (Phase 0 of the plan)
+- [ ] Safe saving: one project file (`.curio`), Save and Open, autosave history (Phase 0 of the plan) (being built, PR #4)
 - [ ] Split the core from the screens so web, desktop and Maya share it (Phase 1)
 - [ ] Web app online, free to open, works offline (Phase 2)
 - [ ] Logins and cloud sync, optional (Phase 3)
