@@ -10,6 +10,7 @@
     "suites.js",
     "maya-manual.js",
     "automation.js",
-    "bridge.js"
+    "bridge.js",
+    "trace.js"
   ]
 }
