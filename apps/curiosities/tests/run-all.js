@@ -62,6 +62,7 @@ const suites = [
   { name: "screen in a browser", browser: true, ...node("screen/tests/browser.js") },
   { name: "engine in a browser", browser: true, ...node("engine/tests/browser.js", threeArgs) },
   { name: "momentum in a browser", browser: true, ...node("momentum/tests/browser.js", threeArgs) },
+  { name: "storyboard flip book", browser: true, ...node("tests/flipbook.js") },
   { name: "save, new, open a project", browser: true, ...node("tests/save-open.js") },
   /* --browser uses the first 60 kinds of control on each page (about 15 minutes); --full uses them all. */
   { name: "every control in a browser", browser: true, ...node("tests/every-control.js", [...threeArgs, "--max", FULL ? "250" : "60"]) },
