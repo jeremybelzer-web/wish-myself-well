@@ -6017,6 +6017,68 @@
    "value": "movement",
    "when": "the end loops into the start",
    "then": "the cut matches movement"
+  },
+  {
+   "id": "p:speaker-angle-dialogue",
+   "proximity": "speaker-angle-dialogue",
+   "label": "When the multicam switches on the speaker, dialogue leads the mix",
+   "from": {
+    "curiosity": "multicamSwitch",
+    "track": "master",
+    "is": "switch on the speaker",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundRoles",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "dialogue",
+   "when": "the multicam switches on the speaker",
+   "then": "dialogue leads the mix"
+  },
+  {
+   "id": "p:montage-music-leads",
+   "proximity": "montage-music-leads",
+   "label": "When a running montage rides above the story, the music leads",
+   "from": {
+    "curiosity": "sideStoryline",
+    "track": "master",
+    "is": "a running montage",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundRoles",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "music",
+   "when": "a running montage rides above the story",
+   "then": "the music leads"
+  },
+  {
+   "id": "p:object-focus-push",
+   "proximity": "object-focus-push",
+   "label": "When the focus pulls to an object, the shadows turn",
+   "from": {
+    "curiosity": "editFocus",
+    "track": "master",
+    "is": "pull to an object",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorWheels",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the focus pulls to an object",
+   "then": "the shadows turn"
   }
  ],
  "groups": [
