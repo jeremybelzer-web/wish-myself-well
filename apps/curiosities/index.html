@@ -89,6 +89,12 @@
       .ws-lens .ws-q { margin: 0 0 6px; }
       .ws-sliders { margin-top: 8px; }
       #workspace .ws-sb .sb > h3:first-child { display: none; }
+      /* Lens marks on a panel (app.js): the words for clothes, set and color under the stage drawing. */
+      .lens-line { margin: -4px 0 0; font-family: var(--mono); font-size: 10px; line-height: 1.35; color: #3a3229; overflow-wrap: anywhere; }
+      .lens-line span { display: inline; margin-right: 6px; }
+      .lens-line b { color: var(--saffron); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; font-size: 9px; }
+      .stage.lensed { background: #fffaf2; height: auto; aspect-ratio: 200 / 90; }
+      .sb-thumb .stage.lensed { height: 29px; aspect-ratio: auto; }
     </style>
   </head>
   <body>
