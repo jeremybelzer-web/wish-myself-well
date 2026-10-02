@@ -33,7 +33,7 @@ header.top h1 {
 }
 header.top p { margin: 4px 0 0; max-width: 62ch; }
 header.top a { color: var(--ink); }
-.tabs { display: flex; gap: 8px; padding: 12px 28px 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 28px 0; }
 .tabs button {
   font-family: var(--mono);
   font-size: 11px;
@@ -91,6 +91,7 @@ select, input[type="range"] { width: 100%; }
   padding-bottom: 8px;
 }
 .panel {
+  margin: 0;
   flex: 0 0 220px;
   min-height: 160px;
   border: 3px solid var(--ink);
@@ -245,3 +246,35 @@ table.six td.yes { color: #2f6b3a; }
 table.six td.part { color: var(--gold); }
 table.six td.no { color: #9a8f84; }
 .catalog input.note { width: 100%; min-width: 110px; cursor: text; font-family: var(--sans); font-size: 13px; background: white; }
+
+/* Flip Book */
+.scoreboard { display: flex; flex-wrap: wrap; gap: 16px; align-items: baseline; font-family: var(--mono); font-size: 13px; margin: 8px 0; }
+.scoreboard strong { font-family: var(--serif); font-size: 28px; font-weight: 500; }
+.goal-card { border: 2px solid var(--saffron); background: #fff3e6; padding: 8px 10px; margin: 8px 0; font-size: 14px; }
+.flash { animation: pop 0.6s ease-out; border-style: solid; }
+@keyframes pop { from { transform: scale(1.04); background: #ffe2c4; } to { transform: scale(1); } }
+.flipbook { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
+.flip-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.flip-col .panel { flex: none; width: 100%; }
+.goal-col .panel { outline: 3px dashed var(--saffron); outline-offset: 3px; }
+.flaps { display: grid; gap: 4px; }
+.flap { display: grid; grid-template-columns: 30px 1fr 30px; border: 2px solid var(--ink); background: white; perspective: 400px; }
+.flap .flip-btn { border: 0; background: var(--paper); font-family: var(--mono); font-size: 16px; cursor: pointer; padding: 0; }
+.flap .flip-btn:hover { background: var(--ink); color: var(--paper); }
+.flap-face { padding: 4px 6px; display: grid; gap: 1px; min-width: 0; }
+.flap.flipped .flap-face { animation: flip 0.35s ease-out; transform-origin: top; }
+@keyframes flip { from { transform: rotateX(-80deg); opacity: 0.3; } to { transform: rotateX(0); opacity: 1; } }
+.flap-name { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--saffron); }
+.flap-from { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.flap-vals { font-size: 11px; color: #3a3229; }
+.fires { min-height: 22px; }
+.lens-bar { max-width: 360px; }
+.beat-group { border-top: 1px solid var(--line); padding: 4px 0; }
+.beat-group summary { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; color: var(--saffron); padding: 4px 0; }
+tr.kind-row th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--saffron); padding-top: 14px; }
+table.cross td.expect { background: rgba(196, 92, 38, 0.15); outline: 1px solid var(--saffron); }
+.catalog .subtabs button, .catalog .prox-form input { font-family: var(--mono); font-size: 11px; border: 1px solid var(--ink); background: var(--panel); padding: 4px 8px; cursor: pointer; }
+.catalog .subtabs button.on { background: var(--ink); color: var(--paper); }
+.catalog .prox-form input { font-family: var(--sans); font-size: 14px; background: white; cursor: text; width: 100%; }
+.catalog .chip { display: inline-block; font-family: var(--mono); font-size: 10px; border: 1px solid var(--line); padding: 2px 5px; margin: 0 4px 4px 0; background: white; }
+.catalog .mono { font-family: var(--mono); font-size: 11px; }

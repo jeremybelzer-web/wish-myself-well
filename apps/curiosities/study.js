@@ -7,11 +7,12 @@
 (function () {
   const KEY = "curiosities-studies-v1";
   const NOTE_MAX = 120;
-  const recordable = CURIOSITIES.filter((c) => c.kind === "select" || c.kind === "range");
+  const recordable = CURIOSITIES.filter((c) => c.kind === "select" || c.kind === "range" || c.kind === "tag");
+  const TAG_MAX = 24;
   const byId = Object.fromEntries(CURIOSITIES.map((c) => [c.id, c]));
   const root = document.getElementById("study");
   const store = load();
-  const view = { tab: "trace", studyId: store.studies[0] ? store.studies[0].id : "", picked: new Set(), editing: "", suite: "", lens: ["cameraCarry", "shotSize"], msg: "" };
+  const view = { tab: "trace", studyId: store.studies[0] ? store.studies[0].id : "", picked: new Set(), editing: "", suite: "", lens: ["cameraCarry", "shotSize"], cross: ["emotion", "angleHeight"], openGroups: new Set(["Camera", "Scene memory"]), msg: "" };
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -31,6 +32,9 @@
       saved = JSON.parse(localStorage.getItem(KEY));
     } catch (e) {}
     if (saved && Array.isArray(saved.studies)) {
+      /* Refresh the shipped example when it predates the scene-memory curiosities. */
+      const i = saved.studies.findIndex((x) => x.id === "example-glass");
+      if (i >= 0 && !saved.studies[i].beats.some((b) => b.values.emotion != null)) saved.studies[i] = example();
       return { studies: saved.studies, shelf: saved.shelf || [], proximities: saved.proximities || [] };
     }
     return { studies: [example()], shelf: [], proximities: [] };
@@ -51,14 +55,14 @@
       kind: "episode",
       camera: "authored",
       beats: [
-        b("0:00", { shotSize: "wide", cameraCarry: "locked", cameraMove: "none", characterPath: "cross", characterToLens: "across", angleFamily: "coverage", volume: 3, gesture: 1 }),
-        b("0:06", { shotSize: "medium", cameraCarry: "locked", cameraMove: "none", characterPath: "approach", volume: 3, gesture: 1 }),
-        b("0:11", { shotSize: "medium", cameraCarry: "smooth", cameraMove: "push in", characterPath: "approach", volume: 3, gesture: 2 }),
-        b("0:15", { shotSize: "close", cameraCarry: "smooth", cameraMove: "push in", volume: 1, breath: "breath then speak", angleFamily: "coverage", gesture: 1 }),
-        b("0:21", { shotSize: "insert", objectEnter: "enters", objectPath: "lift", moveFollows: "object", cameraCarry: "smooth", cameraMove: "push in", volume: 1 }),
-        b("0:24", { shotSize: "medium", cameraCarry: "handheld", cameraMove: "track", angleFamily: "handheld", volume: 4, gesture: 2 }),
-        b("0:28", { shotSize: "close", cameraCarry: "handheld", cameraMove: "track", volume: 4, gesture: 4 }),
-        b("0:33", { shotSize: "wide", cameraCarry: "locked", cameraMove: "none", characterPath: "still", volume: 2, gesture: 0 }),
+        b("0:00", { emotion: "curious", angleHeight: "eye", vocalTone: "flat", timePerCharacter: "Nessa", moveTemper: 2, cutRate: "slow", shotSize: "wide", cameraCarry: "locked", cameraMove: "none", characterPath: "cross", characterToLens: "across", angleFamily: "coverage", volume: 3, gesture: 1 }),
+        b("0:06", { emotion: "curious", angleHeight: "eye", vocalTone: "rising", timePerCharacter: "Subject", moveTemper: 2, cutRate: "slow", shotSize: "medium", cameraCarry: "locked", cameraMove: "none", characterPath: "approach", volume: 3, gesture: 1 }),
+        b("0:11", { emotion: "anxious", angleHeight: "high", vocalTone: "flat", timePerCharacter: "Ida", moveTemper: 2, cutRate: "medium", shotSize: "medium", cameraCarry: "smooth", cameraMove: "push in", characterPath: "approach", volume: 3, gesture: 2 }),
+        b("0:15", { emotion: "loving", angleHeight: "eye", vocalTone: "whispered", timePerCharacter: "Nessa", moveTemper: 1, cutRate: "slow", shotSize: "close", cameraCarry: "smooth", cameraMove: "push in", volume: 1, breath: "breath then speak", angleFamily: "coverage", gesture: 1 }),
+        b("0:21", { emotion: "loving", angleHeight: "high", timePerCharacter: "Nessa", moveTemper: 1, cutRate: "slow", shotSize: "insert", objectEnter: "enters", objectPath: "lift", moveFollows: "object", cameraCarry: "smooth", cameraMove: "push in", volume: 1 }),
+        b("0:24", { emotion: "angry", angleHeight: "low", vocalTone: "shouted", timePerCharacter: "Riven", moveTemper: 4, cutRate: "fast", shotSize: "medium", cameraCarry: "handheld", cameraMove: "track", angleFamily: "handheld", volume: 4, gesture: 2 }),
+        b("0:28", { emotion: "angry", angleHeight: "low", vocalTone: "breaking", timePerCharacter: "Petra", moveTemper: 5, cutRate: "fast", shotSize: "close", cameraCarry: "handheld", cameraMove: "track", volume: 4, gesture: 4 }),
+        b("0:33", { emotion: "melancholy", angleHeight: "high", vocalTone: "falling", timePerCharacter: "Nessa", moveTemper: 1, cutRate: "slow", shotSize: "wide", cameraCarry: "locked", cameraMove: "none", characterPath: "still", volume: 2, gesture: 0 }),
       ],
     };
   }
@@ -91,8 +95,8 @@
     return label + " is " + c.is;
   }
 
-  /* Does cond hold at beat j, measured against the beat where x held (i)? */
-  function holds(cond, beats, j, i) {
+  /* Does cond hold at beat j? A change compares beat j with the beat before it. */
+  function holds(cond, beats, j) {
     const beat = beats[j];
     if (!beat) return false;
     if (cond.suite) {
@@ -101,10 +105,10 @@
     }
     const v = beat.values[cond.curiosity];
     if (cond.change) {
-      if (i == null || j === i) return false;
-      const base = Number(beats[i].values[cond.curiosity]);
-      if (v == null || Number.isNaN(base)) return false;
-      return cond.change === "rises" ? Number(v) > base : Number(v) < base;
+      const prev = j > 0 ? beats[j - 1].values[cond.curiosity] : null;
+      if (v == null || prev == null) return false;
+      if (cond.change === "changes") return !same(v, prev);
+      return cond.change === "rises" ? Number(v) > Number(prev) : Number(v) < Number(prev);
     }
     return same(v, cond.is);
   }
@@ -118,7 +122,7 @@
       if (!holds(p.x, beats, i)) return;
       n++;
       for (let j = i; j <= i + p.within && j < beats.length; j++) {
-        if (holds(p.y, beats, j, i)) {
+        if (holds(p.y, beats, j)) {
           h++;
           at.push(i);
           break;
@@ -230,9 +234,16 @@
   }
 
   function editor(beat) {
-    const fields = recordable
-      .map((c) => {
+    const groups = [];
+    recordable.forEach((c) => {
+      if (!groups.includes(c.group)) groups.push(c.group);
+    });
+    const field = (c) => {
         const v = beat.values[c.id];
+        if (c.kind === "tag")
+          return `<label class="field">${esc(c.label)}
+            <input data-val="${c.id}" value="${esc(v == null ? "" : v)}" maxlength="${TAG_MAX}" placeholder="a word" />
+          </label>`;
         const opts =
           c.kind === "range"
             ? Array.from({ length: c.max - c.min + 1 }, (_, k) => String(c.min + k))
@@ -240,19 +251,28 @@
         return `<label class="field">${esc(c.label)}
           <select data-val="${c.id}"><option value="">—</option>${opts.map((o) => `<option ${same(v, o) ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>
         </label>`;
+    };
+    const fields = groups
+      .map((g) => {
+        const items = recordable.filter((c) => c.group === g);
+        const set = items.filter((c) => beat.values[c.id] != null).length;
+        const open = set || view.openGroups.has(g) ? "open" : "";
+        return `<details class="beat-group" data-group="${esc(g)}" ${open}><summary>${esc(g)}${set ? ` · ${set}` : ""}</summary><div class="beat-grid">${items.map(field).join("")}</div></details>`;
       })
       .join("");
     return `<div class="beat-edit" data-beat="${esc(beat.id)}">
       <label class="field">At <input data-at value="${esc(beat.at)}" maxlength="24" placeholder="0:42, or a scene name" /></label>
       <label class="field">Note <input data-note value="${esc(beat.note)}" maxlength="${NOTE_MAX}" placeholder="A pointer, not a transcript" /></label>
-      <div class="beat-grid">${fields}</div>
+      ${fields}
       <button type="button" data-act="delete-beat" data-beat="${esc(beat.id)}">Delete beat</button>
     </div>`;
   }
 
   function curiosityTab() {
-    const toggles = recordable
-      .map((c) => `<button type="button" class="chip-btn ${view.lens.includes(c.id) ? "on" : ""}" data-lens="${c.id}">${esc(c.label)}</button>`)
+    const opts = (picked) =>
+      groupedOptions((c) => `<option value="${c.id}" ${c.id === picked ? "selected" : ""}>${esc(c.label)}</option>`);
+    const lensChips = view.lens
+      .map((id) => `<button type="button" class="chip-btn on" data-lens="${id}" title="Remove">${esc(byId[id].label)} ×</button>`)
       .join("");
     const blocks = view.lens
       .map((id) => {
@@ -261,25 +281,77 @@
           .map((s) => {
             const cells = s.beats.map((b) => `<td class="${b.values[id] == null ? "off" : ""}">${esc(b.values[id] == null ? "" : b.values[id])}</td>`).join("");
             const counts = {};
+            let n = 0;
             s.beats.forEach((b) => {
-              if (b.values[id] != null) counts[b.values[id]] = (counts[b.values[id]] || 0) + 1;
+              if (b.values[id] == null) return;
+              counts[b.values[id]] = (counts[b.values[id]] || 0) + 1;
+              n++;
             });
             const tally = Object.entries(counts)
-              .map(([v, n]) => `${v} ×${n}`)
+              .map(([v, k]) => `${v} ×${k} (${Math.round((100 * k) / n)}%)`)
               .join(", ");
             return `<tr><th>${esc(s.title)}</th>${cells}<td class="cap">${esc(tally || "not recorded")}</td></tr>`;
           })
           .join("");
-        return `<p class="g">${esc(c.label)}</p><div class="scroll"><table class="lane"><tbody>${rows}</tbody></table></div>`;
+        return `<p class="g">${esc(c.label)}</p>${c.view ? `<p class="cap">${esc(c.view)}</p>` : ""}<div class="scroll"><table class="lane"><tbody>${rows}</tbody></table></div>`;
       })
       .join("");
-    return `<p class="cap">Pick one curiosity to follow it through every study, beat by beat. Pick several to see them side by side.</p>
-      <div class="lineage">${toggles}</div>${blocks || `<p class="cap">Nothing picked.</p>`}`;
+    return `<p class="cap">Look at every study through one curiosity, beat by beat. Add more to see them side by side, the way a suite does.</p>
+      <div class="lens-bar"><label class="field">Add a view <select id="lens-add"><option value="">Pick a curiosity</option>${opts("")}</select></label></div>
+      <div class="lineage">${lensChips}</div>${blocks || `<p class="cap">Nothing picked.</p>`}
+      ${crossView(opts)}`;
+  }
+
+  /* Two curiosities against each other, counted over every beat that records both.
+     Emotion against angle height is the angle-by-emotion view. */
+  function crossView(opts) {
+    const [a, b] = view.cross;
+    const ca = byId[a];
+    const cb = byId[b];
+    const counts = {};
+    const rowsSeen = [];
+    const colsSeen = [];
+    store.studies.forEach((s) =>
+      s.beats.forEach((beat) => {
+        const va = beat.values[a];
+        const vb = beat.values[b];
+        if (va == null || vb == null) return;
+        if (!rowsSeen.includes(String(va))) rowsSeen.push(String(va));
+        if (!colsSeen.includes(String(vb))) colsSeen.push(String(vb));
+        const k = va + "|" + vb;
+        counts[k] = (counts[k] || 0) + 1;
+      })
+    );
+    const expected = a === "emotion" ? (emo) => (EMOTION_MAP[emo] || {})[b] : () => null;
+    const table = rowsSeen.length
+      ? `<div class="scroll"><table class="trace cross"><thead><tr><th>${esc(ca.label)} × ${esc(cb.label)}</th>${colsSeen.map((v) => `<th>${esc(v)}</th>`).join("")}${a === "emotion" ? "<th>Film grammar says</th>" : ""}</tr></thead><tbody>${rowsSeen
+          .map(
+            (r) =>
+              `<tr><th>${esc(r)}</th>${colsSeen.map((c) => `<td class="mono ${same(expected(r), c) ? "expect" : ""}">${counts[r + "|" + c] || ""}</td>`).join("")}${a === "emotion" ? `<td class="cap">${esc(expected(r) == null ? "—" : expected(r))}</td>` : ""}</tr>`
+          )
+          .join("")}</tbody></table></div>`
+      : `<p class="cap">No beat records both yet.</p>`;
+    return `<p class="g">Cross two curiosities</p>
+      <p class="cap">How often each pair shows up together. With emotion first, the highlighted cell is the emotion map's default, so you can see where a film follows it or breaks it.</p>
+      <div class="prox-form"><label class="field">Rows <select id="cross-a">${opts(a)}</select></label><label class="field">Columns <select id="cross-b">${opts(b)}</select></label></div>
+      ${table}`;
+  }
+
+  function groupedOptions(fn) {
+    const groups = [];
+    recordable.forEach((c) => {
+      if (!groups.includes(c.group)) groups.push(c.group);
+    });
+    return groups.map((g) => `<optgroup label="${esc(g)}">${recordable.filter((c) => c.group === g).map(fn).join("")}</optgroup>`).join("");
   }
 
   function suiteTab() {
-    const list = allSuites()
-      .map((x) => {
+    const KINDS = [
+      ["", "Suites"],
+      ["genre", "Genres"],
+      ["emotion", "Angle by emotion"],
+    ];
+    const row = (x) => {
         const counts = store.studies.map((s) => s.beats.filter((b) => suiteOn(x, b)).length);
         const total = counts.reduce((a, b) => a + b, 0);
         return `<tr class="${view.suite === x.id ? "picked" : ""}">
@@ -288,8 +360,10 @@
           <td class="mono">${total}</td>
           <td><button type="button" data-play="${x.id}">Play on the board</button></td>
         </tr>`;
-      })
-      .join("");
+    };
+    const list = KINDS.map(
+      ([kind, title]) => `<tr class="kind-row"><th colspan="4">${esc(title)}</th></tr>` + allSuites().filter((x) => (x.kind || "") === kind).map(row).join("")
+    ).join("");
     let lanes = "";
     const sel = allSuites().find((x) => x.id === view.suite);
     if (sel) {
@@ -309,8 +383,9 @@
           .join("") +
         `<p class="cap">Each cell counts how many of the suite’s curiosities are on in that beat. A full cell is the suite firing.</p>`;
     }
-    return `<p class="cap">A suite is a group of curiosities that fire together. Pick one to light its curiosities and see where it fires. Total counts the beats across all studies.</p>
-      <div class="scroll"><table class="trace"><thead><tr><th>Suite</th><th>Curiosities in it</th><th>Beats</th><th></th></tr></thead><tbody>${list}</tbody></table></div>${lanes}`;
+    return `<p class="cap">A suite is a group of curiosities that fire together. Pick one to light its curiosities and see where it fires. Beats counts where it fires across all studies.</p>
+      ${lanes}
+      <div class="scroll"><table class="trace"><thead><tr><th>Suite</th><th>Curiosities in it</th><th>Beats</th><th></th></tr></thead><tbody>${list}</tbody></table></div>`;
   }
 
   function proximityTab() {
@@ -333,7 +408,7 @@
           <td>${mine ? `<button type="button" data-delprox="${esc(p.id)}">Remove</button>` : ""}</td></tr>`;
       })
       .join("");
-    const curOpts = recordable.map((c) => `<option value="${c.id}">${esc(c.label)}</option>`).join("");
+    const curOpts = groupedOptions((c) => `<option value="${c.id}">${esc(c.label)}</option>`);
     const suiteOpts = SUITES.map((x) => `<option value="s:${x.id}">Suite: ${esc(x.label)}</option>`).join("");
     return `<p class="cap">When X happens, does Y follow within N beats? Each cell is held / times X happened, in that study. Proximities are measured, so they can be wrong for the next work.</p>
       <div class="scroll"><table class="trace"><thead><tr><th>Proximity</th>${studies.map((s) => `<th>${esc(s.title)}</th>`).join("")}<th>All</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
@@ -359,10 +434,11 @@
       return;
     }
     const c = byId[src.value];
-    const opts = c.kind === "range" ? Array.from({ length: c.max - c.min + 1 }, (_, k) => String(c.min + k)) : c.options;
+    const opts = c.kind === "range" ? Array.from({ length: c.max - c.min + 1 }, (_, k) => String(c.min + k)) : c.options || [];
     out.innerHTML =
       opts.map((o) => `<option value="is:${esc(o)}">${esc(o)}</option>`).join("") +
-      (withChange && c.kind === "range" ? `<option value="change:rises">rises</option><option value="change:drops">drops</option>` : "");
+      `<option value="change:changes">changes</option>` +
+      (c.kind === "range" ? `<option value="change:rises">rises</option><option value="change:drops">drops</option>` : "");
   }
 
   function shelfTab() {
@@ -525,7 +601,8 @@
           if (a.startsWith("s:")) return { suite: a.slice(2) };
           const v = document.getElementById(val).value;
           const [k, x] = [v.slice(0, v.indexOf(":")), v.slice(v.indexOf(":") + 1)];
-          return k === "change" ? { curiosity: a, change: x } : { curiosity: a, is: x };
+          if (k === "change") return { curiosity: a, change: x };
+          return { curiosity: a, is: byId[a].kind === "range" ? Number(x) : x };
         };
         const within = Math.max(0, Math.min(16, Number(document.getElementById("px-n").value) || 0));
         store.proximities.push({ id: uid("p"), x: read("px-x", "px-xv"), y: read("px-y", "px-yv"), within });
@@ -539,10 +616,27 @@
     draw();
   });
 
+  root.addEventListener(
+    "toggle",
+    (e) => {
+      const g = e.target.dataset && e.target.dataset.group;
+      if (!g) return;
+      if (e.target.open) view.openGroups.add(g);
+      else view.openGroups.delete(g);
+    },
+    true
+  );
+
   root.addEventListener("change", (e) => {
     const t = e.target;
     const s = current();
-    if (t.id === "st-pick") {
+    if (t.id === "lens-add" && t.value) {
+      if (!view.lens.includes(t.value)) view.lens.push(t.value);
+      draw();
+    } else if (t.id === "cross-a" || t.id === "cross-b") {
+      view.cross[t.id === "cross-a" ? 0 : 1] = t.value;
+      draw();
+    } else if (t.id === "st-pick") {
       view.studyId = t.value;
       view.picked.clear();
       view.editing = "";
@@ -556,8 +650,9 @@
     } else if (t.dataset.val && s) {
       const beat = s.beats.find((b) => b.id === t.closest("[data-beat]").dataset.beat);
       const c = byId[t.dataset.val];
-      if (t.value === "") delete beat.values[c.id];
-      else beat.values[c.id] = c.kind === "range" ? Number(t.value) : t.value;
+      const val = c.kind === "tag" ? t.value.trim().slice(0, TAG_MAX) : t.value;
+      if (val === "") delete beat.values[c.id];
+      else beat.values[c.id] = c.kind === "range" ? Number(val) : val;
       save();
       draw();
     } else if ((t.hasAttribute("data-at") || t.hasAttribute("data-note")) && s) {
@@ -577,5 +672,10 @@
     }
   }
 
-  window.CuriosityStudy = { draw };
+  window.CuriosityStudy = {
+    draw,
+    studies() {
+      return store.studies;
+    },
+  };
 })();

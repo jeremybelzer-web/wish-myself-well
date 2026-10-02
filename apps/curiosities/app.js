@@ -8,6 +8,7 @@
   const catalog = document.getElementById("catalog");
   const ref = document.getElementById("ref");
   const study = document.getElementById("study");
+  const play = document.getElementById("play");
 
   document.getElementById("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-tab]");
@@ -20,6 +21,8 @@
     ref.classList.toggle("hidden", tab !== "reference");
     study.classList.toggle("hidden", tab !== "study");
     if (tab === "study" && window.CuriosityStudy) window.CuriosityStudy.draw();
+    play.classList.toggle("hidden", tab !== "play");
+    if (tab === "play" && window.CuriosityPlay) window.CuriosityPlay.draw();
   });
 
   function load() {
@@ -65,7 +68,14 @@
       <label class="field">Suite
         <select id="suite">
           <option value="">Custom</option>
-          ${SUITES.map((s) => `<option value="${s.id}" ${s.id === state.suite ? "selected" : ""}>${esc(s.label)}</option>`).join("")}
+          ${[["", "Suites"], ["genre", "Genres"], ["emotion", "Angle by emotion"]]
+            .map(
+              ([k, title]) =>
+                `<optgroup label="${title}">${SUITES.filter((s) => (s.kind || "") === k)
+                  .map((s) => `<option value="${s.id}" ${s.id === state.suite ? "selected" : ""}>${esc(s.label)}</option>`)
+                  .join("")}</optgroup>`
+            )
+            .join("")}
         </select>
       </label>`;
     const fields = groups
@@ -224,7 +234,15 @@
       op === "still" && st.objectEnter === "stays"
         ? `<rect x="24" y="68" width="14" height="10" fill="none" stroke="#b8892d" stroke-width="2"/>`
         : `<rect x="${ox.toFixed(1)}" y="${oy.toFixed(1)}" width="14" height="10" fill="#b8892d"/>`;
-    return `<svg class="stage ${esc(carry)}" viewBox="0 0 200 90" role="img" aria-label="Camera ${esc(carry)}, people ${esc(st.characterPath)}, object ${esc(op)}">${cam}${bodies.join("")}${obj}</svg>`;
+    /* Angle height moves the horizon: a low camera sees it low, a high one sees it high. Dutch tilts the stage. */
+    const horizonY = { low: 80, eye: 50, high: 24, floor: 86, overhead: null }[st.angleHeight];
+    const horizon = st.angleHeight
+      ? horizonY == null
+        ? `<path d="M0,30 H200 M0,60 H200 M66,0 V90 M133,0 V90" stroke="#1c1712" stroke-opacity="0.12" fill="none"/>`
+        : `<line x1="0" y1="${horizonY}" x2="200" y2="${horizonY}" stroke="#1c1712" stroke-opacity="0.25" stroke-dasharray="3 3"/>`
+      : "";
+    const tilt = st.dutch === "tilted" ? ` transform="rotate(-8 100 45)"` : "";
+    return `<svg class="stage ${esc(carry)}" viewBox="0 0 200 90" role="img" aria-label="Camera ${esc(carry)}, people ${esc(st.characterPath)}, object ${esc(op)}"><g${tilt}>${horizon}${cam}${bodies.join("")}${obj}</g></svg>`;
   }
 
   /* A strand applied from the Shelf sets one value per panel, cycled when the strip is longer. */
@@ -236,6 +254,47 @@
       if (v != null && v !== "") st[id] = v;
     });
     return st;
+  }
+
+  /* One comic panel. The Play tab draws its flip book with this too. */
+  function panelHtml(line, i, count, st, people) {
+    const bits = [];
+    if (st.breath === "breath then speak" && line.text !== "—") bits.push("Breath.");
+    if (st.eating === "eat then speak" && line.text !== "—") bits.push("Chews. Then:");
+    if (st.eating === "speak while eating" && line.text !== "—") bits.push("Mouth full.");
+    const motion =
+      st.envMotion === "still"
+        ? ""
+        : st.envMotion === "wind"
+          ? "The air moves."
+          : st.envMotion === "crowd"
+            ? "People pass behind."
+            : st.envMotion === "water"
+              ? "Water in the frame."
+              : "The room is going somewhere.";
+    const temp = st.temperature === "mild" ? "" : st.temperature === "cold" ? "Cold." : "Hot.";
+    const cut =
+      st.angleChange === "on the action"
+        ? "Cut on the action."
+        : st.angleChange === "both"
+          ? "Cut on the line and the action."
+          : st.angleChange === "locked"
+            ? "Angle held."
+            : "Cut on the line.";
+    const exit =
+      i === count - 1 && st.exit === "leave"
+        ? "They take the bag. No body."
+        : i === count - 1 && st.exit === "die"
+          ? "The hour ends them."
+          : "";
+    const moveLine = [st.cameraCarry, st.cameraMove, "follows " + st.moveFollows].join(" · ");
+    const quiet = shotWord(i, st) === "close" ? Math.max(11, volumeSize(i, st) - 4) : volumeSize(i, st);
+    return `<figure class="panel ${esc(st.lighting)} ${esc(st.temperature)}">
+      <header><span>SC ${String(i + 1).padStart(2, "0")}${st.emotion ? " · " + esc(st.emotion) : ""}</span><span>${esc([st.angleHeight && st.angleHeight !== "eye" ? st.angleHeight : "", angleLabel(i, st)].filter(Boolean).join(" "))}</span></header>
+      ${stageSvg(i, count, st)}
+      <p class="cap">${esc([moveLine, st.characterPath, st.objectKind + " " + st.objectPath, temp, motion, cut, bits.join(" "), people.join(", "), exit].filter(Boolean).join(" "))}</p>
+      <p class="balloon" style="font-size:${quiet}px"><strong>${esc(line.who)}</strong> ${esc(line.text)}</p>
+    </figure>`;
   }
 
   function appliedNote() {
@@ -253,49 +312,8 @@
     const people = s.people.slice(0, Number(state.peopleCount) || 1);
     const lines = s.lines.slice(0, count);
     while (lines.length < count) lines.push(s.lines[lines.length % s.lines.length]);
-    const panels = lines
-      .map((line, i) => {
-        const st = panelState(i);
-        const bits = [];
-        if (st.breath === "breath then speak" && line.text !== "—") bits.push("Breath.");
-        if (st.eating === "eat then speak" && line.text !== "—") bits.push("Chews. Then:");
-        if (st.eating === "speak while eating" && line.text !== "—") bits.push("Mouth full.");
-        const motion =
-          st.envMotion === "still"
-            ? ""
-            : st.envMotion === "wind"
-              ? "The air moves."
-              : st.envMotion === "crowd"
-                ? "People pass behind."
-                : st.envMotion === "water"
-                  ? "Water in the frame."
-                  : "The room is going somewhere.";
-        const temp = st.temperature === "mild" ? "" : st.temperature === "cold" ? "Cold." : "Hot.";
-        const cut =
-          st.angleChange === "on the action"
-            ? "Cut on the action."
-            : st.angleChange === "both"
-              ? "Cut on the line and the action."
-              : st.angleChange === "locked"
-                ? "Angle held."
-                : "Cut on the line.";
-        const exit =
-          i === lines.length - 1 && st.exit === "leave"
-            ? "They take the bag. No body."
-            : i === lines.length - 1 && st.exit === "die"
-              ? "The hour ends them."
-              : "";
-        const moveLine = [st.cameraCarry, st.cameraMove, "follows " + st.moveFollows].join(" · ");
-        const quiet = shotWord(i, st) === "close" ? Math.max(11, volumeSize(i, st) - 4) : volumeSize(i, st);
-        return `<figure class="panel ${esc(st.lighting)} ${esc(st.temperature)}">
-          <header><span>SC ${String(i + 1).padStart(2, "0")}</span><span>${esc(angleLabel(i, st))}</span></header>
-          ${stageSvg(i, lines.length, st)}
-          <p class="cap">${esc([moveLine, st.characterPath, st.objectKind + " " + st.objectPath, temp, motion, cut, bits.join(" "), people.join(", "), exit].filter(Boolean).join(" "))}</p>
-          <p class="balloon" style="font-size:${quiet}px"><strong>${esc(line.who)}</strong> ${esc(line.text)}</p>
-        </figure>`;
-      })
-      .join("");
-    const fired = PROXIMITIES.filter((p) => lines.some((_, i) => p.test(panelState(i), shotWord(i, panelState(i)))))
+    const panels = lines.map((line, i) => panelHtml(line, i, lines.length, panelState(i), people)).join("");
+    const fired = PROXIMITIES.filter((p) => p.test && lines.some((_, i) => p.test(panelState(i), shotWord(i, panelState(i)))))
       .map((p) => `When ${p.when}, ${p.then} within ${p.within} beat${p.within === 1 ? "" : "s"}.`)
       .join(" ");
     const chips = live
@@ -343,7 +361,7 @@
   }
 
   function measured(c) {
-    const recordable = c.kind === "select" || c.kind === "range";
+    const recordable = c.kind === "select" || c.kind === "range" || c.kind === "tag";
     return {
       extract: recordable ? "yes" : "not yet",
       apply: c.live || BOARD_ALSO_PLAYS.includes(c.id) ? "yes" : "not yet",
@@ -352,24 +370,127 @@
     };
   }
 
+  const catView = { tab: "curiosities", q: "", group: "" };
+
   function drawCatalog() {
+    const tabs = [
+      ["curiosities", `Curiosities (${CURIOSITIES.length})`],
+      ["suites", `Suites (${SUITES.length})`],
+      ["proximities", `Proximities (${PROXIMITIES.length + LIBRARY.proximities.length})`],
+      ["moves", `Development moves (${LIBRARY.moves.length})`],
+    ];
+    catalog.innerHTML = `<h2>The Curiosities library</h2>
+      <p class="cap">Everything in the filmmaking catalog, in the three categories: curiosities, suites and proximities, plus the development moves that change a motif.</p>
+      <nav class="subtabs">${tabs.map(([k, l]) => `<button type="button" data-cat="${k}" class="${catView.tab === k ? "on" : ""}">${esc(l)}</button>`).join("")}</nav>
+      <div id="cat-body"></div>`;
+    drawCatalogBody();
+    catalog.onclick = (e) => {
+      const b = e.target.closest("button[data-cat]");
+      if (!b) return;
+      catView.tab = b.dataset.cat;
+      drawCatalog();
+    };
+    catalog.oninput = (e) => {
+      const t = e.target;
+      if (t.id === "cat-q") {
+        catView.q = t.value;
+        drawCatalogRows();
+        return;
+      }
+      if (!t.dataset.note) return;
+      const all = loadNotes();
+      all[t.dataset.note] = Object.assign({}, all[t.dataset.note], { [t.dataset.col]: t.value });
+      try {
+        localStorage.setItem(NOTES_KEY, JSON.stringify(all));
+      } catch (err) {}
+    };
+    catalog.onchange = (e) => {
+      if (e.target.id !== "cat-group") return;
+      catView.group = e.target.value;
+      drawCatalogRows();
+    };
+  }
+
+  function drawCatalogBody() {
+    const body = document.getElementById("cat-body");
+    if (catView.tab === "curiosities") {
+      const groups = [];
+      CURIOSITIES.forEach((c) => {
+        if (!groups.includes(c.group)) groups.push(c.group);
+      });
+      body.innerHTML = `<p class="cap">Extract: a study can record it. Apply: the board can play it. Expand: a Shelf strand can swap it in, panel by panel; variations come later. Automate: no lanes yet. Game and gizmo are yours and Sharani’s to fill in; they save in this browser.</p>
+        <div class="prox-form">
+          <label class="field">Search <input id="cat-q" value="${esc(catView.q)}" placeholder="camera, emotion, rain…" /></label>
+          <label class="field">Group <select id="cat-group"><option value="">All groups</option>${groups.map((g) => `<option ${g === catView.group ? "selected" : ""}>${esc(g)}</option>`).join("")}</select></label>
+        </div>
+        <div id="cat-rows"></div>`;
+      drawCatalogRows();
+      return;
+    }
+    if (catView.tab === "suites") {
+      const kinds = [
+        ["", "Suites"],
+        ["genre", "Genres"],
+        ["emotion", "Angle by emotion"],
+      ];
+      body.innerHTML =
+        `<p class="cap">A suite is a named group of curiosities that change together. Play one from the Board’s Suite menu, or count where it fires in Study.</p>` +
+        kinds
+          .map(
+            ([k, title]) => `<p class="g">${esc(title)}</p><div class="scroll"><table class="trace"><tbody>${SUITES.filter((x) => (x.kind || "") === k)
+              .map((x) => `<tr><td><strong>${esc(x.label)}</strong><br><span class="cap">${esc(x.note)}</span></td><td>${Object.entries(x.set).map(([id, v]) => `<span class="chip">${esc(labelOf(id))}: ${esc(v)}</span>`).join("")}</td></tr>`)
+              .join("")}</tbody></table></div>`
+          )
+          .join("");
+      return;
+    }
+    if (catView.tab === "proximities") {
+      const counted = PROXIMITIES.map(
+        (p) => `<tr><td>When ${esc(p.when)}, ${esc(p.then)}</td><td class="mono">${p.within}</td><td class="cap">counted in Study</td></tr>`
+      ).join("");
+      const text = LIBRARY.proximities.map(
+        (p) => `<tr><td>When ${esc(p.when)}, ${esc(p.then)}</td><td class="mono">${p.within}</td><td class="cap">${esc(p.source)}${p.source === "suite" ? "" : " · a guess until counted"}</td></tr>`
+      ).join("");
+      body.innerHTML = `<p class="cap">When X happens, Y follows within N beats. The first table can be counted in Study today. The second is the catalog’s full list; every row is a guess until we count it in works we curate.</p>
+        <p class="g">Countable now</p><div class="scroll"><table class="trace"><thead><tr><th>Proximity</th><th>Within</th><th></th></tr></thead><tbody>${counted}</tbody></table></div>
+        <p class="g">The catalog’s list</p><div class="scroll"><table class="trace"><thead><tr><th>Proximity</th><th>Within</th><th>Source</th></tr></thead><tbody>${text}</tbody></table></div>`;
+      return;
+    }
+    body.innerHTML = `<p class="cap">The Bach and Beethoven moves, treated as curiosities too. Run through “A is to B as C is to D”, a move read from a curated work is applied to our motif. Not playable yet.</p>
+      <div class="scroll"><table class="trace"><tbody>${LIBRARY.moves.map((m) => `<tr><td><strong>${esc(m.label)}</strong></td><td>${esc(m.does)}</td><td class="cap">${esc(m.source)}</td></tr>`).join("")}</tbody></table></div>`;
+  }
+
+  function labelOf(id) {
+    return (CURIOSITIES.find((c) => c.id === id) || { label: id }).label;
+  }
+
+  function drawCatalogRows() {
+    const out = document.getElementById("cat-rows");
+    if (!out) return;
     const notes = loadNotes();
+    const q = catView.q.trim().toLowerCase();
+    const shown = CURIOSITIES.filter(
+      (c) =>
+        (!catView.group || c.group === catView.group) &&
+        (!q || [c.id, c.label, c.note, c.view, c.group].filter(Boolean).join(" ").toLowerCase().includes(q))
+    );
     const groups = [];
-    CURIOSITIES.forEach((c) => {
+    shown.forEach((c) => {
       if (!groups.includes(c.group)) groups.push(c.group);
     });
     const cell = (v) => `<td class="m ${v === "yes" ? "yes" : v === "swap" ? "part" : "no"}">${esc(v)}</td>`;
-    catalog.innerHTML =
-      `<h2>Every curiosity on the list</h2>
-      <p>${CURIOSITIES.length} so far. A render can change these. The list is supposed to grow.</p>
-      <p class="cap">Extract: a study can record it. Apply: the board can play it. Expand: a Shelf strand can swap it in, panel by panel; variations come later. Automate: no lanes yet. Game and gizmo are yours and Sharani’s to fill in; they save in this browser.</p>` +
+    const values = (c) =>
+      c.kind === "range" ? `${c.min} to ${c.max}` : c.kind === "select" ? c.options.join(", ") : c.kind === "tag" ? "a word" : "";
+    out.innerHTML =
+      `<p class="cap">${shown.length} of ${CURIOSITIES.length}.</p>` +
       groups
         .map((g) => {
-          const rows = CURIOSITIES.filter((c) => c.group === g)
+          const rows = shown
+            .filter((c) => c.group === g)
             .map((c) => {
               const m = measured(c);
               const n = notes[c.id] || {};
-              return `<tr><td><strong>${esc(c.label)}</strong><br><span class="cap">${esc(c.note)}</span></td>
+              return `<tr><td><strong>${esc(c.label)}</strong> <span class="mono cap">${esc(c.id)}</span><br><span class="cap">${esc(c.view || c.note)}</span><br><span class="cap">${esc(values(c))}${c.source ? " · " + esc(c.source) : ""}</span></td>
                 ${cell(m.extract)}${cell(m.apply)}${cell(m.expand)}${cell(m.automate)}
                 <td><input class="note" data-note="${c.id}" data-col="game" value="${esc(n.game || "")}" placeholder="game" aria-label="Game for ${esc(c.label)}" /></td>
                 <td><input class="note" data-note="${c.id}" data-col="gizmo" value="${esc(n.gizmo || "")}" placeholder="gizmo" aria-label="Gizmo for ${esc(c.label)}" /></td></tr>`;
@@ -379,15 +500,6 @@
             <div class="scroll"><table class="six"><thead><tr><th>Curiosity</th><th>Extract</th><th>Apply</th><th>Expand</th><th>Automate</th><th>Game</th><th>Gizmo</th></tr></thead><tbody>${rows}</tbody></table></div>`;
         })
         .join("");
-    catalog.oninput = (e) => {
-      const t = e.target;
-      if (!t.dataset.note) return;
-      const all = loadNotes();
-      all[t.dataset.note] = Object.assign({}, all[t.dataset.note], { [t.dataset.col]: t.value });
-      try {
-        localStorage.setItem(NOTES_KEY, JSON.stringify(all));
-      } catch (err) {}
-    };
   }
 
   function drawRef() {
@@ -409,6 +521,12 @@
 
   /* The study view reads the board and applies Shelf strands to it through this. */
   window.CuriosityBoard = {
+    scene() {
+      return scene();
+    },
+    panel(line, i, count, values) {
+      return panelHtml(line, i, count, Object.assign({}, state, values), scene().people.slice(0, Number(state.peopleCount) || 1));
+    },
     values() {
       const out = {};
       live.forEach((c) => (out[c.id] = state[c.id]));
