@@ -172,3 +172,8 @@ PROXIMITIES.push(
   { id: "aggressive-quiet", when: "suite Aggressive camera", then: "suite Quiet confession", within: 6, x: { suite: "aggressive-camera" }, y: { suite: "quiet-confession" } },
   { id: "storm-room", when: "suite Storm", then: "suite Breathing room", within: 8, x: { suite: "storm" }, y: { suite: "breathing-room" } }
 );
+
+/* Cause-and-effect pairs from the lenses (comedy, emotion, color, wardrobe, set), when lenses.js is loaded. */
+(window.CURIOSITY_LENS_PROXIMITIES || []).forEach((p) => {
+  if (p && p.id && !PROXIMITIES.some((q) => q.id === p.id)) PROXIMITIES.push(p);
+});
