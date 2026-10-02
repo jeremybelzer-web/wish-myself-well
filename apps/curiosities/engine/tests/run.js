@@ -711,6 +711,27 @@ check("bridge: a tool can ask for the whole film as a timeline", () => {
   assert.strictEqual(B.handle({ type: "list" }).type, "params", "everything else still reaches bridge.js");
 });
 
+check("store: the engine's changes are on the app-wide undo list too, and its own Undo stays in step", () => {
+  const C = A.window.CurioStore;
+  E.reset();
+  E.send({ type: "importFilm", film: tiny() });
+  const v = () => E.value("r2", "a", "volume");
+  const start = v();
+  assert.ok(E.send({ type: "setPoint", row: "r2", track: "a", curiosity: "volume", value: 2 }).ok);
+  assert.ok(E.send({ type: "setPoint", row: "r2", track: "a", curiosity: "volume", value: 4 }).ok);
+  assert.strictEqual(C.history().undo.slice(-1)[0], "Engine: Set an automation point");
+  assert.ok(C.undo());
+  assert.strictEqual(v(), 2, "the page's undo undoes the engine's newest step");
+  assert.ok(C.redo());
+  assert.strictEqual(v(), 4, "and redoes it");
+  assert.ok(E.undo(), "the engine's own Undo");
+  assert.strictEqual(v(), 2);
+  assert.ok(C.undo(), "the page's undo skips the step the engine already undid");
+  assert.strictEqual(v(), start, "and undoes the one before it");
+  assert.ok(E.redo());
+  assert.strictEqual(v(), 2, "the engine's own Redo still works after the page's undo");
+});
+
 /* ---------- the shared store (engine/store.js): one undo list for the app's parts ---------- */
 check("store: parts change by commands, undo in place across parts, and keep their own saved keys", () => {
   const C = A.window.CurioStore;

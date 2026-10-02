@@ -271,6 +271,9 @@ const diffSnap = (a, b) => {
       await page.reload();
       await ready();
       await settle();
+      /* The engine saves its (empty) film on its first undo; save it first, so "no film yet" and "an empty
+         film" do not read as a difference. */
+      await page.evaluate(() => window.CurioEngine && CurioEngine.save());
       await page.evaluate(() => window.CurioAppUndo && CurioAppUndo.clear());
       const base = await page.evaluate(SNAP_JS);
       /* The store keeps undo from before this chain (the monkey part): undo only what this chain added. */
@@ -306,8 +309,7 @@ const diffSnap = (a, b) => {
       const back = await page.evaluate(SNAP_JS);
       /* A store part first saved during the chain stays saved at its starting values after the store's undo. */
       const owned = await page.evaluate((ks) => ks.filter((k) => window.CurioStore && CurioStore.owns(k)), Object.keys(back).filter((k) => !(k in base)));
-      /* The engine's film has its own undo (tested in run.js), so the app-wide history leaves it alone. */
-      const d1 = diffSnap(base, back).filter((k) => !owned.includes(k) && k !== "curiosities-engine-v1");
+      const d1 = diffSnap(base, back).filter((k) => !owned.includes(k));
       if (d1.length) fail("undo", where, "after undoing " + steps + " app steps (pages " + used.join(", ") + "), these parts did not come back: " + d1.join(", "), around(base, back, d1));
       else console.log("ok   " + where + ": " + steps + " app steps over " + used.join(", ") + " undone back to the start exactly");
       /* Redo it all. */
@@ -316,15 +318,15 @@ const diffSnap = (a, b) => {
         await Promise.all([page.waitForNavigation({ timeout: 20000 }).catch(() => null), page.evaluate(() => CurioAppUndo.redo())]);
         await ready();
       }
-      /* The undo reloaded the page, so the store's own redo is gone; put its parts back by hand from the
-         snapshot taken before the undo (the store's parts are checked by the undo above). */
+      /* The undo reloaded the page, so the store's own redo is gone (the engine's film included); put its
+         parts back by hand from the snapshot taken before the undo (they are checked by the undo above). */
       if (canRedo || storeSteps > 0) {
         if (storeSteps > 0) await page.evaluate((snap) => {
-          Object.keys(snap).forEach((k) => window.CurioStore && CurioStore.owns(k) && localStorage.setItem(k, snap[k]));
+          Object.keys(snap).forEach((k) => window.CurioStore && (CurioStore.owns(k) || k === "curiosities-engine-v1") && localStorage.setItem(k, snap[k]));
         }, changed);
         if (storeSteps > 0) { await page.reload(); await ready(); }
         const again = await page.evaluate(SNAP_JS);
-        const d2 = diffSnap(changed, again).filter((k) => k !== "curiosities-engine-v1");
+        const d2 = diffSnap(changed, again);
         if (d2.length) fail("redo", where, "after redo these parts differ from before the undo: " + d2.join(", "), around(changed, again, d2));
       }
       /* Reload twice: nothing may change. */

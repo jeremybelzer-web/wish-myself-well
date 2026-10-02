@@ -20,6 +20,8 @@
        reload()        read the saved key again (after a project file was opened)
    - undo(), redo(), canUndo(), canRedo(), history() -> { undo: [labels], redo: [labels] }: one list for
      every part, newest last
+   - external(name, { label, undo(), redo() }): a step another undo list keeps (the engine's film) joins this
+     list; its undo() and redo() return false when the step is gone there, and it is skipped
    - owns(key) -> true when a part saves under that key (engine/app-undo.js leaves those to this list)
    - parts() -> the registered names
    Storage is window.localStorage; useStorage(s) swaps it (tests). */
@@ -146,25 +148,43 @@
     return api;
   }
 
-  function undo() {
-    const step = undoList.pop();
-    if (!step) return false;
-    redoList.push(step);
-    parts[step.part]._restore(step.before, "Undo " + step.label);
+  /* A step kept by another undo list (the engine's film): it undoes and redoes itself, and says false when
+     it can no longer (it was undone there already), so it is dropped and the next one is tried. */
+  function external(name, ext) {
+    if (!isObj(ext) || typeof ext.undo !== "function" || typeof ext.redo !== "function") return false;
+    undoList.push({ part: String(name || "other"), label: String(ext.label || "Change").slice(0, 80), at: now(), ext });
+    if (undoList.length > LIMIT) undoList.shift();
+    redoList = [];
     return true;
   }
+  function undo() {
+    for (;;) {
+      const step = undoList.pop();
+      if (!step) return false;
+      if (step.ext) {
+        if (!step.ext.undo()) continue;
+      } else parts[step.part]._restore(step.before, "Undo " + step.label);
+      redoList.push(step);
+      return true;
+    }
+  }
   function redo() {
-    const step = redoList.pop();
-    if (!step) return false;
-    undoList.push(step);
-    parts[step.part]._restore(step.after, "Redo " + step.label);
-    return true;
+    for (;;) {
+      const step = redoList.pop();
+      if (!step) return false;
+      if (step.ext) {
+        if (!step.ext.redo()) continue;
+      } else parts[step.part]._restore(step.after, "Redo " + step.label);
+      undoList.push(step);
+      return true;
+    }
   }
 
   root.CurioStore = {
     part,
     undo,
     redo,
+    external,
     canUndo: () => undoList.length > 0,
     canRedo: () => redoList.length > 0,
     history: () => ({ undo: undoList.map((s) => s.label), redo: redoList.slice().reverse().map((s) => s.label) }),
