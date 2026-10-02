@@ -137,6 +137,12 @@ td .suite-share { display: flex; margin: 2px 0; }
      change it with change(). Without the store (an older page) the same commands run on a plain copy. */
   const boardPart = window.CurioStore ? window.CurioStore.part("board", { key: "curiosities-board-v2", initial: () => ({}), normalize: fixBoard, commands: boardCommands() }) : null;
   const state = boardPart ? boardPart.view() : load();
+  /* Automation never survives a reload (every patch starts stopped): empty its layer once at start, not in
+     fixBoard, which the store runs after every command. */
+  if (state.auto && !(window.CurioAuto && CurioAuto.running && CurioAuto.running().length)) {
+    if (boardPart) boardPart.send({ type: "apply", label: "Automation", values: {} }, { record: false });
+    else { state.auto = null; save(); }
+  }
   function change(msg, opt) {
     if (boardPart) return boardPart.send(msg, opt);
     boardCommands()[msg.type](state, msg);
@@ -232,11 +238,11 @@ td .suite-share { display: flex; margin: 2px 0; }
     } catch (e) {}
     return fixBoard(saved);
   }
-  /* What My film keeps, from whatever was saved: the scene, the suite, the live controls and the applied strand.
-     Automation never survives a reload (every patch starts stopped), so its layer starts empty. */
+  /* What My film keeps, from whatever was saved: the scene, the suite, the live controls, the applied strand
+     and the automation layer (emptied once at start, above). */
   function fixBoard(saved) {
     if (!saved || typeof saved !== "object" || Array.isArray(saved)) saved = {};
-    const base = { sceneId: saved.sceneId || "glass", suite: saved.suite || "", applied: saved.applied || null, auto: null };
+    const base = { sceneId: saved.sceneId || "glass", suite: saved.suite || "", applied: saved.applied || null, auto: saved.auto || null };
     /* Before workspaces, running automation replaced the applied strand: drop that stale strand. */
     if (base.applied && base.applied.label === "Automation") base.applied = null;
     live.forEach((c) => {
