@@ -1,5 +1,7 @@
 # Handoff — Curiosities storyboard app
 
+Status: the review list is marked keep for the motion set. `model.js` holds the eight suites and four seed proximities. The board draws character dots, an object, and a camera path that is locked, smooth, or handheld. A suite menu writes those values into the controls. Next work is a study view that loads a trace from a film, an episode, or a game and stores only curiosities, suites, and proximities.
+
 Read this file first. Work only in `apps/curiosities/`. Leave `web/`, `bible/`, and `memos/` alone unless Jeremy points at a show rule you must match.
 
 Jeremy wants a new chat for this app. This folder is that chat’s whole job.
@@ -27,18 +29,20 @@ Show the path on the scene, not only as a word in a caption. A handheld move sho
 
 ## What already exists
 
-Vanilla HTML, CSS, and JS. No build. Open `index.html`. State is `localStorage` key `curiosities-board-v1`.
+Vanilla HTML, CSS, and JS. No build. Open `index.html`. State is `localStorage` key `curiosities-board-v2`.
 
 | File | Job |
 | --- | --- |
+| `CLAUDE.md` | Entry note for Claude. Repo URL and folder. |
 | `index.html` | Board, Catalog, Ensembles |
 | `catalog.js` | `CURIOSITIES` array. `live: true` items are the controls |
-| `app.js` | Draws the strip from those controls |
+| `model.js` | `SUITES` and `PROXIMITIES` |
+| `app.js` | Draws the strip, the paths, and the proximities that are firing |
 | `reference.js` | Hour-shape notes. Structural counts only. Not episode recaps |
 | `styles.css` | Paper and ink, same family as the show site |
-| `CURIOSITIES-REVIEW.md` | The list Jeremy will mark keep or drop |
+| `CURIOSITIES-REVIEW.md` | Marked keep for the motion set. Change a row to drop to remove it. |
 
-Fifteen controls are live. The catalog is a starter, not the full list. Do not treat the Catalog tab as finished.
+Thirty controls are live, including camera carry, character paths, and object paths. The catalog still has rows that are not controls. Do not treat the Catalog tab as finished.
 
 Parent repo: `https://github.com/jeremybelzer-web/wish-myself-well` on branch `main`. This folder ships inside that repo. Do not create a second git repo inside `apps/`. Do not commit `memos/`. The repo is public.
 
@@ -61,10 +65,10 @@ Games use the same three objects. Mark whether the camera is the player’s or a
 
 ## Build order
 
-1. Wait for Jeremy’s marks on `CURIOSITIES-REVIEW.md`. Add only the rows he keeps. Drop the rows he excludes, including starter rows if he says so.
-2. Add suites as data, then proximities as data. A suite references curiosity ids. A proximity references two ids (curiosity or suite), a direction (X then Y), and a window in beats.
-3. Teach the board to draw character paths, object paths, and camera moves (handheld or smooth).
-4. Add a study view: load a trace, show the suites, show the proximities. A control that plays one suite should light the curiosities inside it.
+1. Done. The review list is marked keep for the motion set. Honor a later drop.
+2. Done. Suites and proximities live in `model.js`.
+3. Done. The board draws character paths, object paths, and camera moves that are locked, smooth, or handheld.
+4. Next. Add a study view: load a trace, show the suites, show the proximities. A control that plays one suite should light the curiosities inside it.
 5. Keep it static files. Keep the look of this folder.
 
 ## Out of scope

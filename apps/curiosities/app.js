@@ -20,19 +20,20 @@
   });
 
   function load() {
+    let saved = {};
     try {
-      const raw = localStorage.getItem("curiosities-board-v1");
-      if (raw) return JSON.parse(raw);
+      const raw = localStorage.getItem("curiosities-board-v2");
+      if (raw) saved = JSON.parse(raw);
     } catch (e) {}
-    const base = { sceneId: "glass" };
+    const base = { sceneId: saved.sceneId || "glass", suite: saved.suite || "" };
     live.forEach((c) => {
-      base[c.id] = c.value;
+      base[c.id] = saved[c.id] != null ? saved[c.id] : c.value;
     });
     return base;
   }
 
   function save() {
-    localStorage.setItem("curiosities-board-v1", JSON.stringify(state));
+    localStorage.setItem("curiosities-board-v2", JSON.stringify(state));
   }
 
   function esc(s) {
@@ -55,6 +56,12 @@
       <label class="field">Scene
         <select id="scene">
           ${SCENES.map((s) => `<option value="${s.id}" ${s.id === state.sceneId ? "selected" : ""}>${esc(s.title)}</option>`).join("")}
+        </select>
+      </label>
+      <label class="field">Suite
+        <select id="suite">
+          <option value="">Custom</option>
+          ${SUITES.map((s) => `<option value="${s.id}" ${s.id === state.suite ? "selected" : ""}>${esc(s.label)}</option>`).join("")}
         </select>
       </label>`;
     const fields = groups
@@ -86,6 +93,11 @@
     const t = e.target;
     if (t.id === "scene") {
       state.sceneId = t.value;
+    } else if (t.id === "suite") {
+      state.suite = t.value;
+      const suite = SUITES.find((s) => s.id === t.value);
+      if (suite) Object.assign(state, suite.set);
+      drawControls();
     } else if (t.dataset.id) {
       state[t.dataset.id] = t.type === "range" ? Number(t.value) : t.value;
       const read = document.getElementById("read-" + t.dataset.id);
@@ -117,6 +129,85 @@
     const list = names[family] || names.coverage;
     if (family === "oner" || state.angleChange === "locked") return list[0];
     return list[i % list.length];
+  }
+
+  function shotWord(i) {
+    const label = angleLabel(i);
+    if (label.indexOf("close") >= 0) return "close";
+    if (label === "insert" || label === "detail" || label === "hand") return "insert";
+    if (label === "wide" || label === "room") return "wide";
+    return "medium";
+  }
+
+  function stageSvg(i, count) {
+    const t = count <= 1 ? 0 : i / (count - 1);
+    const carry = state.cameraCarry || "smooth";
+    const speed = Number(state.moveSpeed) || 2;
+    const move = state.cameraMove || "none";
+    let cam = "";
+    if (carry === "locked" || move === "none") {
+      cam = `<rect x="8" y="8" width="184" height="74" fill="none" stroke="#1c1712" stroke-width="1.5"/>`;
+    } else if (carry === "handheld") {
+      const pts = [];
+      for (let k = 0; k <= 8; k++) {
+        const x = 16 + k * 20;
+        const y = 28 + Math.sin(k * 1.7 + i) * (3 + speed) + (k % 2 ? 5 : -4);
+        pts.push(x + "," + y.toFixed(1));
+      }
+      cam = `<polyline points="${pts.join(" ")}" fill="none" stroke="#c45c26" stroke-width="2"/>`;
+    } else {
+      const y1 = move === "crane" ? 68 : 46;
+      const y2 = move === "crane" || move === "tilt" ? 18 : move === "push in" ? 40 : 46;
+      const x2 = move === "push in" ? 110 : move === "pull out" ? 48 : move === "orbit" ? 100 : 180;
+      cam = `<path d="M16,${y1} C80,${y1} 120,${y2} ${x2},${y2}" fill="none" stroke="#1c1712" stroke-width="2"/>`;
+    }
+    const n = Math.min(4, Math.max(1, Number(state.peopleCount) || 1));
+    const bodies = [];
+    for (let p = 0; p < n; p++) {
+      if (state.whoMoves === "neither") {
+        bodies.push(`<circle cx="${40 + p * 28}" cy="58" r="5" fill="#1c1712"/>`);
+        continue;
+      }
+      let x = 40 + p * 28;
+      let y = 58;
+      const path = state.characterPath;
+      if (path === "cross") x = 18 + t * 130 + p * 10;
+      if (path === "approach") {
+        x = 78 + p * 16;
+        y = 72 - t * 40;
+      }
+      if (path === "retreat") {
+        x = 78 + p * 16;
+        y = 28 + t * 40;
+      }
+      if (path === "circle") {
+        const a = t * Math.PI * 2 + p * 0.8;
+        x = 100 + Math.cos(a) * (28 + speed * 3);
+        y = 48 + Math.sin(a) * 18;
+      }
+      if (state.characterToLens === "toward" && path === "still") y = 68 - t * 24;
+      if (state.characterToLens === "away" && path === "still") y = 36 + t * 20;
+      const enter = state.bodyEnter;
+      if (enter === "enters") x = 8 + t * (x - 8);
+      if (enter === "leaves") x = x + t * (190 - x);
+      const r = Math.min(10, 4 + Number(state.characterSpeed || 1));
+      bodies.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="#1c1712"/>`);
+    }
+    let ox = 28;
+    let oy = 70;
+    const op = state.objectPath;
+    const os = Number(state.objectSpeed) || 1;
+    if (op === "slide" || op === "pass") ox = 16 + t * (20 + os * 28);
+    if (op === "lift") oy = 70 - t * (8 + os * 8);
+    if (op === "drop") oy = 24 + t * (8 + os * 8);
+    if (op === "open") ox = 28 + t * 16;
+    if (state.objectEnter === "enters") ox = -10 + t * (ox + 10);
+    if (state.objectEnter === "leaves") ox = ox + t * 40;
+    const obj =
+      op === "still" && state.objectEnter === "stays"
+        ? `<rect x="24" y="68" width="14" height="10" fill="none" stroke="#b8892d" stroke-width="2"/>`
+        : `<rect x="${ox.toFixed(1)}" y="${oy.toFixed(1)}" width="14" height="10" fill="#b8892d"/>`;
+    return `<svg class="stage ${esc(carry)}" viewBox="0 0 200 90" role="img" aria-label="Camera ${esc(carry)}, people ${esc(state.characterPath)}, object ${esc(op)}">${cam}${bodies.join("")}${obj}</svg>`;
   }
 
   function drawBoard() {
@@ -156,13 +247,19 @@
             : i === lines.length - 1 && state.exit === "die"
               ? "The hour ends them."
               : "";
+        const moveLine = [state.cameraCarry, state.cameraMove, "follows " + state.moveFollows].join(" · ");
+        const quiet = shotWord(i) === "close" ? Math.max(11, volumeSize(i) - 4) : volumeSize(i);
         return `<figure class="panel ${esc(state.lighting)} ${esc(state.temperature)}">
           <header><span>SC ${String(i + 1).padStart(2, "0")}</span><span>${esc(angleLabel(i))}</span></header>
-          <p class="cap">${esc([temp, motion, cut, bits.join(" "), people.join(", "), exit].filter(Boolean).join(" "))}</p>
-          <p class="balloon" style="font-size:${volumeSize(i)}px"><strong>${esc(line.who)}</strong> ${esc(line.text)}</p>
+          ${stageSvg(i, lines.length)}
+          <p class="cap">${esc([moveLine, state.characterPath, state.objectKind + " " + state.objectPath, temp, motion, cut, bits.join(" "), people.join(", "), exit].filter(Boolean).join(" "))}</p>
+          <p class="balloon" style="font-size:${quiet}px"><strong>${esc(line.who)}</strong> ${esc(line.text)}</p>
         </figure>`;
       })
       .join("");
+    const fired = PROXIMITIES.filter((p) => lines.some((_, i) => p.test(state, shotWord(i))))
+      .map((p) => `When ${p.when}, ${p.then} within ${p.within} beat${p.within === 1 ? "" : "s"}.`)
+      .join(" ");
     const chips = live
       .map(
         (c) =>
@@ -173,6 +270,7 @@
       <h2>${esc(s.title)}</h2>
       <p class="cap">${esc(s.slug)}. ${esc(s.action)} Mains in the hour: ${esc(state.mains)}. Groups: ${esc(state.groups)}.</p>
       <div class="strip">${panels}</div>
+      <p class="prox">${fired ? esc(fired) : "No seed proximity is firing. Change the carry, the path, or whether an object enters."}</p>
       <div class="lineage" id="lineage">${chips}</div>
       <p class="cap">The chips are the combination that made this board. Change one and the strip changes. That is the same device as opening a song or a shot to see which ideas parented it.</p>`;
     document.getElementById("lineage").onclick = (e) => {
