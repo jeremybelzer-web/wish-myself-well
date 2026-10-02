@@ -312,6 +312,92 @@
   ps("music-leads-the-edit", "Music leads the edit", "speed", "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out.", ["featured-music-beat", "slowmo-music", "stop-fade-out"]);
   ps("words-on-screen", "Words that point", "titles", "A freeze brings a title, and a label follows what it names.", ["freeze-title", "sign-tracks"]);
 
+  /* ---------- CapCut's effect and transition families (Jeremy's second set of screenshots, 2026-10-02) ----------
+     CapCut sorts its Transitions and Effects tabs into families (Classic, Light, Movement, Blur, Mask, Slide...;
+     Motion, 3D, Light, Retro, Glitch, Distortion, Texture, Comics...; and body effects such as Clone, Glowing
+     lines, Superpowers, Mood). Each family a filmmaker reaches for is a curiosity with its own sliders; the
+     effect's name in CapCut is just one setting of it. */
+  c("transitionFamily", "Transition family", "transitions", "Which family of transition crosses the cut, sorted the way CapCut's Transitions tab sorts them.", [
+    S("Family", ["basic", "slide", "movement", "blur", "light", "overlay", "mask", "3D", "glitch", "whimsical"], "The family of transition.", { unordered: true }),
+    ["energy", "Energy", ["calm", "lively", "punchy", "explosive"], "How much force it hits with."],
+    ["flash", "Flash", ["none", "light leak", "white flash", "light bars"], "Light thrown across the cut."],
+    ["motionBlur", "Motion blur", [0, 100, "%"], "How smeared the move is."],
+  ], [2, "A punchy transition family says the story just jumped; a calm one says it flowed.", "Light and blur transitions feel like memory; slides and pushes feel like moving on.", "A hard-hitting transition jolts the audience into the next scene.", "visual", "Use the calmest family inside a scene and save the explosive one for the jump to a new place."]);
+  c("introOutro", "Intro and outro effect", "transitions", "How the film or a scene opens and closes: an opening arc, a swirl in, a light fall, a slam, a fade (CapCut's Intro & Outro effects and Intro&End clips).", [
+    S("Intro and outro", ["none", "opening arc", "swirl in", "light fall", "slam in", "smooth scroll", "end card"], "The effect at the start or end.", { unordered: true }),
+    ["where", "Where", ["film start", "scene start", "scene end", "film end"], "Which edge it sits on.", { unordered: true }],
+    ["length", "Length", [0, 5, "seconds", 0.5], "How long it lasts."],
+  ], [2, "An opening effect promises what kind of ride this is; an outro tells the audience it is over, or not quite.", "A playful opening sets a playful film.", "The first second decides whether a viewer keeps watching.", "visual", "Open on a slam and end on a slow fade, so the film feels like it calmed down."]);
+  c("videoEffectFamily", "Effect family", "layers", "Which family of video effect is laid over the picture, sorted the way CapCut's Effects tab sorts them.", [
+    S("Family", ["none", "classic", "whimsical", "motion", "3D", "light", "edits", "retro", "glitch", "distortion", "decor", "screen", "sparkle", "texture", "comics", "party"], "The family of effect.", { unordered: true }),
+    ["intensity", "Intensity", [0, 100, "%"], "How strong it is."],
+    ["spread", "Covers", ["a corner", "around the subject", "the whole frame"], "How much of the frame it covers."],
+    ["onBeat", "Pulses", ["steady", "on the beat"], "Whether it pulses with the music."],
+  ], [1, "A change of effect family can mark a new chapter: retro for the past, glitch for a breakdown, comics for a fantasy.", "The effect family is the film's attitude worn on its surface.", "A new effect makes the eye re-read the whole frame.", "visual", "Switch to the comics family for the daydream and snap back to clean picture when it ends."]);
+  c("cameraEffect", "Fake camera move", "canvas", "A camera move added in the edit, not shot: slam zoom, zoom lens, sway, shake, radial blur, tracking (CapCut's Motion effects).", [
+    S("Move", ["none", "slam zoom", "zoom lens", "gentle sway", "subtle shake", "wobble", "radial blur", "tracking shot", "camera roll"], "Which move is added.", { unordered: true }),
+    ["strength", "Strength", [0, 100, "%"], "How big the move is."],
+    ["speed", "Speed", ["slow", "medium", "fast"], "How fast it moves."],
+  ], [2, "A slam zoom tells the audience this beat is the one that matters.", "A fake move gives a still shot a heartbeat; a shake says something hit.", "Sudden movement grabs the eye instantly.", "movement", "Slam zoom on the face the instant the bad news lands."]);
+  c("multiplyEffect", "Copies of the picture", "layers", "The picture split into copies: a grid, a polaroid stack, spinning copies, a gallery wall, a cube (CapCut's Wild Pics and 3D effects).", [
+    S("Copies", ["none", "split copies", "polaroid stack", "spinning copies", "grid", "gallery wall", "cube"], "How the picture is multiplied.", { unordered: true }),
+    ["count", "How many", [1, 16, "copies"], "How many copies show."],
+    ["motion", "Motion", ["still", "drifting", "spinning", "on the beat"], "How the copies move."],
+  ], [1, "Copies of one moment can show it repeating in a character's head.", "A wall of copies says sameness, obsession or fame.", "Many copies at once make the eye search for the difference.", "visual", "Multiply the embarrassing moment into a grid as the character replays it in their mind."]);
+  c("lightEffect", "Light effect", "layers", "Light added over the picture: god rays, a flare, a halo, a light leak, lightning, a burn (CapCut's Light effects).", [
+    S("Light effect", ["none", "god rays", "sun flare", "halo", "light leak", "blaze burst", "lightning", "film burn"], "Which light is added.", { unordered: true }),
+    ["strength", "Strength", [0, 100, "%"], "How bright it is."],
+    ["warmth", "Warmth", ["cool", "neutral", "warm", "golden"], "Its color."],
+  ], [1, "A halo or god rays can crown the moment someone is forgiven or chosen.", "Light from nowhere makes a moment sacred, magical or remembered.", "The brightest thing in the frame pulls the eye, so added light points.", "visual", "Give the villain a halo for the moment they pretend to be good."]);
+  c("textureEffect", "Texture effect", "grade", "A surface laid over the picture: torn frames, wrinkled paper, grain, a silkscreen, dual tone, a polaroid border (CapCut's Texture and Retro effects).", [
+    S("Texture", ["none", "torn paper", "wrinkled paper", "grain", "silkscreen dots", "dual tone", "polaroid", "old film"], "Which surface.", { unordered: true }),
+    ["strength", "Strength", [0, 100, "%"], "How strong it is."],
+    ["edges", "Edges", ["clean", "torn", "burned"], "What the frame's edges look like."],
+  ], [1, "A paper texture can turn a scene into a scrapbook, a letter or a memory.", "Handmade textures make the film feel personal and crafted, like a zine.", "A rough edge frames the picture and draws the eye inward.", "visual", "Lay torn paper over every flashback, like pages from a diary."]);
+  c("bodyEffect", "Body effect", "layers", "An effect that follows a person's body: a clone trail, glowing lines, an outline, superpowers, a hallucination (CapCut's Body effects).", [
+    S("Body effect", ["none", "clone trail", "glowing lines", "outline", "superpower", "hallucination", "portrait glow"], "Which effect is on the person.", { unordered: true }),
+    ["who", "On whom", ["the main character", "another character", "everyone"], "Who wears it.", { unordered: true }],
+    ["intensity", "Intensity", [0, 100, "%"], "How strong it is."],
+  ], [1, "Glowing lines around one person single them out as the one who matters now.", "A body effect shows the inside of a person on the outside: power, panic, fame.", "Something moving with a person keeps the eye on them.", "movement", "Give the character a clone trail as they rush around trying to do everything at once."]);
+  c("moodEffect", "Mood sticker on a face", "titles", "A cartoon mood stuck to a face: red cheeks, tears, hearts, a light bulb, steam, a halo of confusion, a soul leaving, a mallet (CapCut's Mood body effects).", [
+    S("Mood", ["none", "sunny", "loved", "struck", "bright idea", "red face", "sad tears", "shy", "confused", "departing soul", "cool", "angry steam", "laughing till crying", "mallet bonk"], "Which mood is drawn on the face.", { unordered: true }),
+    ["size", "Size", ["small", "medium", "big"], "How big it is drawn."],
+    ["timing", "Timing", ["before the line", "on the line", "after the line"], "When it pops on."],
+  ], [2, "A drawn mood tells the audience exactly how a character took what just happened.", "Cartoon moods make the film wink at itself.", "A face suddenly decorated is impossible not to look at.", "visual", "Pop a departing soul out of the character a beat after the insult."]);
+
+  suite("reaction-comedy-edit", "Reaction comedy", "titles", "A cartoon mood on the face, a fake slam zoom, a sound hit and a short freeze, the way phone comedy lands a reaction.", [
+    { curiosity: "moodEffect", value: "departing soul" },
+    { curiosity: "cameraEffect", value: "slam zoom" },
+    { curiosity: "sfxHits", slider: "kind", value: "hit" },
+    { curiosity: "freezeFrame", value: "short freeze" },
+  ]);
+  suite("zine-scrapbook", "Zine scrapbook", "grade", "Torn paper, polaroid copies, stickers and a handwritten title: the film as a scrapbook.", [
+    { curiosity: "textureEffect", value: "torn paper" },
+    { curiosity: "multiplyEffect", value: "polaroid stack" },
+    { curiosity: "stickers", value: "a few" },
+    { curiosity: "textStyle", value: "handwritten" },
+  ]);
+  suite("heavenly-light", "Heavenly light", "layers", "God rays, a golden warmth, a slow light-leak transition and a soft texture.", [
+    { curiosity: "lightEffect", value: "god rays" },
+    { curiosity: "lightEffect", slider: "warmth", value: "golden" },
+    { curiosity: "transitionFamily", value: "light" },
+    { curiosity: "texture", value: "soft" },
+  ]);
+  suite("party-edit", "Party edit", "layers", "Party and sparkle effects pulsing on the beat, spinning copies, punchy transitions.", [
+    { curiosity: "videoEffectFamily", value: "party" },
+    { curiosity: "videoEffectFamily", slider: "onBeat", value: "on the beat" },
+    { curiosity: "multiplyEffect", value: "spinning copies" },
+    { curiosity: "transitionFamily", slider: "energy", value: "punchy" },
+  ]);
+
+  prox("payoff-mood-face", "When the joke pays off, a mood pops onto a face", "titles", { curiosity: "comicBeat", is: "payoff lands" }, { curiosity: "moodEffect", change: "changes" }, 0, ["comedy"]);
+  prox("angry-steam", "When someone gets angry, steam pops onto their face", "titles", { curiosity: "emotion", is: "angry" }, { curiosity: "moodEffect", is: "angry steam" }, 0, ["lines"]);
+  prox("dreamlike-halo", "When the feeling turns dreamlike, light blooms", "layers", { curiosity: "emotion", is: "dreamlike" }, { curiosity: "lightEffect", is: "halo" }, 1, ["lines"]);
+  prox("impact-slam-zoom", "When impacts rise, the editor slam zooms", "canvas", { curiosity: "impacts", change: "rises" }, { curiosity: "cameraEffect", is: "slam zoom" }, 0, ["effects"]);
+  prox("featured-music-pulse", "When the music is featured, the effects pulse on the beat", "layers", { curiosity: "music", is: "featured" }, { curiosity: "videoEffectFamily", slider: "onBeat", is: "on the beat" }, 0, ["music"]);
+  prox("scene-end-outro", "When the pace races then stops, an outro effect closes it", "transitions", { curiosity: "pacingCurve", is: "speeds up then stops" }, { curiosity: "introOutro", change: "changes" }, 0, ["speed"]);
+  ps("phone-comedy-reactions", "Phone comedy reactions", "titles", "The joke pays off and a mood pops onto a face, anger brings steam, and an impact brings a slam zoom.", ["payoff-mood-face", "angry-steam", "impact-slam-zoom"]);
+
   /* Loaded after the app's install(): refresh the links the engine reads, so these proximities can be added. */
   if (typeof window !== "undefined" && window.CURIOSITY_LINKS && typeof DB.links === "function") window.CURIOSITY_LINKS = DB.links();
 })(typeof window !== "undefined" ? window.CuriosityDB : require("../data/curiosity-db.js"));
