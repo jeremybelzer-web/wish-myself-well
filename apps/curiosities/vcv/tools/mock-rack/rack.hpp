@@ -26,8 +26,8 @@ namespace midi { struct Message{void setStatus(int){} void setNote(int){} void s
  struct Output{void reset(){} void setChannel(int){} int getDeviceId(){return 0;} json_t* toJson(){return nullptr;} void fromJson(json_t*){} void sendMessage(const Message&){}}; }
 namespace window { struct Font{int handle=0;}; }
 struct Window{std::shared_ptr<window::Font> loadFont(std::string){return nullptr;}}; struct App{Window* window;}; inline App* APP;
-namespace engine { struct Input{bool isConnected(){return true;} float getVoltage(){return 0;}};
- struct Module{ std::vector<Input> inputs; struct ProcessArgs{}; virtual ~Module(){} void config(int,int,int,int){} void configInput(int,std::string){}
+namespace engine { struct Input{bool isConnected(){return true;} float getVoltage(){return 0;}}; struct Output{void setVoltage(float){}}; struct Expander{struct Module* module=nullptr;};
+ struct Module{ std::vector<Input> inputs; std::vector<Output> outputs; Expander leftExpander; void configOutput(int,std::string){} struct ProcessArgs{}; virtual ~Module(){} void config(int,int,int,int){} void configInput(int,std::string){}
   virtual void onReset(){} virtual void process(const ProcessArgs&){} virtual json_t* dataToJson(){return nullptr;} virtual void dataFromJson(json_t*){} }; }
 using engine::Module;
 namespace widget { struct Widget{ struct{Vec pos,size;} box; struct DrawArgs{NVGcontext* vg;}; virtual ~Widget(){} virtual void draw(const DrawArgs&){} void addChild(Widget*){} }; }
@@ -36,11 +36,12 @@ namespace ui { struct Menu:Widget{}; struct MenuSeparator:Widget{}; }
 using ui::Menu; using ui::MenuSeparator;
 inline Widget* createMenuLabel(std::string){return new Widget;}
 inline Widget* createBoolPtrMenuItem(std::string,std::string,bool*){return new Widget;}
-namespace app { struct SvgPanel:Widget{}; struct PortWidget:Widget{}; struct ModuleWidget:Widget{ Module* module; void setModule(Module* m){module=m;} void setPanel(Widget*){} void addInput(PortWidget*){} virtual void appendContextMenu(Menu*){} };
+namespace app { struct SvgPanel:Widget{}; struct PortWidget:Widget{}; struct ModuleWidget:Widget{ Module* module; void setModule(Module* m){module=m;} void setPanel(Widget*){} void addInput(PortWidget*){} void addOutput(PortWidget*){} virtual void appendContextMenu(Menu*){} };
  inline void appendMidiMenu(Menu*, midi::Output*){} }
 using app::ModuleWidget; using app::appendMidiMenu;
 struct PJ301MPort: app::PortWidget{};
 template<class T> T* createInputCentered(Vec, Module*, int){return new T;}
+template<class T> T* createOutputCentered(Vec, Module*, int){return new T;}
 inline Widget* createPanel(std::string){return new Widget;}
 inline Vec mm2px(Vec v){return v;}
 struct Model; struct plugin_Plugin { void addModel(Model*){} }; using Plugin=plugin_Plugin;

@@ -9,4 +9,5 @@ void init(Plugin* p) {
   for (int i = 0; i < CURIO_BANK_COUNT; i++)
     p->addModel(curioModels[i]);
   p->addModel(modelCurioFocus);
+  p->addModel(modelCurioReturn);
 }

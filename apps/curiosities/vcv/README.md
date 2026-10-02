@@ -64,7 +64,7 @@ MIDI channels 1 to 8 and CC numbers 1 to 112. Channel 16 is kept for Focus.
 
 See `SPEC.md`. The plan is a VCV Rack plugin generated from the same database: one panel per workspace with every
 jack printed by name, a Focus module with a knob to pick the item, 14-bit precision, and output jacks so the app
-can drive Rack the other way.
+can drive Rack the other way (all now started in `vcv/plugin/`, below).
 
 ## Stage 2 started: the generated plugin
 
@@ -77,6 +77,11 @@ app (or `node apps/curiosities/desktop/bridge-server.js`) running, values go str
 your own computer (UDP port 7000, `/curio/set/<level>/<id>` with a value from 0 to 1), with fine steps and no
 virtual MIDI cable. In OSC mode, the second jack beside each item is a gate: above 1 V switches the item on,
 below switches it off (`/curio/trigger`). The OSC message format was tested by sending to a local port and reading it back.
+
+**Values coming back: the Return module.** Place a Curio Return module directly to the right of any Curiosities
+module. Its 16 output jacks carry the current value of the same 16 items, sent by the desktop app
+(`/curio/value/<level>/<id>` on UDP port 7001), as 0 to 10 V. So when a curated film plays in the app, Rack can turn
+its music, comedy or camera moves into sound or light. Its panel prints the names of the module it sits beside.
 
 **Not built yet.** The VCV Rack SDK download is blocked where this was written. `sh vcv/tools/check-plugin.sh`
 checks the generated C++ against a small stand-in for Rack's API, which catches typos only. To build it for real

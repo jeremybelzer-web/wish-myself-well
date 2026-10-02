@@ -464,6 +464,15 @@
       ]
     },
     {
+      "slug": "Curio-Return",
+      "name": "Return",
+      "description": "Place right of any Curiosities module: 16 outputs carry its items' current values back from the desktop app (OSC, UDP 7001) as 0 to 10 V.",
+      "tags": [
+        "Controller",
+        "Expander"
+      ]
+    },
+    {
       "slug": "Curio-Focus",
       "name": "Focus",
       "description": "16 jacks for the sliders of the one item in focus in the Curiosities app (MIDI channel 16).",

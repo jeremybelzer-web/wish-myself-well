@@ -40,15 +40,16 @@ A VCV Rack plugin is written in C++ against the Rack SDK. Ours would be generate
 - **A Focus module** with a knob or a jack that picks the item (by workspace, then item) and 16 named jacks for
   its sliders, which update their labels when the item changes.
 - **Better precision:** 14-bit values (two CCs per jack, or NRPN), so 16,384 steps instead of 128.
-- **Both directions:** output jacks that carry each item's current value back from the app. The app plays a
+- **Both directions (Return module, started):** output jacks that carry each item's current value back from the app. The app plays a
   curated film's curiosities, and Rack turns them into sound or light.
-- **Triggers:** a gate jack per item that turns it on and off, the same as a MIDI note or key in the app today.
+- **Triggers (started):** a gate jack per item that turns it on and off, the same as a MIDI note or key in the app today.
 - **Transport:** MIDI for the web app (Web MIDI), and OSC for the desktop app. The platform thread's bridge listens
   on UDP 7000 for `/curio/set/<level>/<id> f` and `/curio/trigger/<level>/<id> i`, and sends
   `/curio/value/<level>/<id> f` back on UDP 7001 (desktop/README.md, PR #11). The generated modules already
   send `/curio/set` when "Send by OSC" is ticked. Each item also has a gate jack beside it
-  that sends `/curio/trigger` (on above 1 V, off below). Still to come: output jacks reading `/curio/value` back
-  as voltage (a small Return module, so the panels stay readable).
+  that sends `/curio/trigger` (on above 1 V, off below). Values come back through a small **Return** module placed
+  to the right of any bank: it listens on UDP 7001 for `/curio/value` and puts out each of that bank's 16 items as
+  0 to 10 V, so the bank panels stay readable.
 - **Built with the Rack SDK** for Mac, Windows and Linux, and submitted to the VCV Library (free) once it is
   stable.
 

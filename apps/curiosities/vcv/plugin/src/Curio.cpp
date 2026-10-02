@@ -355,3 +355,177 @@ struct FocusWidget : CurioWidget {
   }
 };
 Model* modelCurioFocus = createModel<FocusModule, FocusWidget>("Curio-Focus");
+
+// ---------- Return: values coming back from the desktop app ----------
+// The desktop bridge sends /curio/value/<level>/<id> f (0..1) on UDP 7001 about 30 times a second. One socket is
+// shared by every Return module; whichever module gets the lock first reads what has arrived.
+#include <map>
+#include <mutex>
+#if !defined(ARCH_WIN)
+  #include <fcntl.h>
+#endif
+
+struct CurioReceiver {
+  std::mutex lock;
+  curio_socket sock = CURIO_BAD_SOCKET;
+  bool failed = false;
+  std::map<std::string, float> values; // "c:music" -> 0..1
+
+  bool open() {
+    if (sock != CURIO_BAD_SOCKET)
+      return true;
+    if (failed)
+      return false;
+#if defined(ARCH_WIN)
+    WSADATA wsa;
+    WSAStartup(MAKEWORD(2, 2), &wsa);
+#endif
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock == CURIO_BAD_SOCKET) {
+      failed = true;
+      return false;
+    }
+    int yes = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &yes, sizeof(yes));
+#if defined(ARCH_WIN)
+    u_long nb = 1;
+    ioctlsocket(sock, FIONBIO, &nb);
+#else
+    fcntl(sock, F_SETFL, fcntl(sock, F_GETFL, 0) | O_NONBLOCK);
+#endif
+    sockaddr_in a;
+    std::memset(&a, 0, sizeof(a));
+    a.sin_family = AF_INET;
+    a.sin_port = htons(7001);
+    a.sin_addr.s_addr = htonl(0x7f000001);
+    if (bind(sock, (const sockaddr*) &a, sizeof(a)) != 0) {
+      failed = true;
+      return false;
+    }
+    return true;
+  }
+
+  static size_t padded(size_t n) {
+    return (n + 4) & ~((size_t) 3);
+  }
+
+  // One OSC message or bundle element. Only /curio/value/<level>/<id> with a float is kept.
+  void parse(const char* d, size_t n) {
+    if (n >= 16 && std::memcmp(d, "#bundle", 8) == 0) {
+      size_t i = 16;
+      while (i + 4 <= n) {
+        uint32_t len;
+        std::memcpy(&len, d + i, 4);
+        len = ntohl(len);
+        i += 4;
+        if (i + len > n)
+          break;
+        parse(d + i, len);
+        i += len;
+      }
+      return;
+    }
+    size_t alen = strnlen(d, n);
+    if (alen == n)
+      return;
+    std::string address(d, alen);
+    size_t t = padded(alen);
+    if (t + 2 > n || d[t] != ',' || d[t + 1] != 'f')
+      return;
+    size_t v = t + padded(strnlen(d + t, n - t));
+    if (v + 4 > n)
+      return;
+    const std::string prefix = "/curio/value/";
+    if (address.compare(0, prefix.size(), prefix) != 0)
+      return;
+    std::string rest = address.substr(prefix.size());
+    size_t slash = rest.find('/');
+    if (slash == std::string::npos)
+      return;
+    uint32_t u;
+    std::memcpy(&u, d + v, 4);
+    u = ntohl(u);
+    float f;
+    std::memcpy(&f, &u, 4);
+    values[rest.substr(0, slash) + ":" + rest.substr(slash + 1)] = f;
+  }
+
+  void poll() {
+    if (!open())
+      return;
+    char buf[2048];
+    for (int k = 0; k < 256; k++) {
+      int got = (int) recvfrom(sock, buf, sizeof(buf), 0, NULL, NULL);
+      if (got <= 0)
+        break;
+      parse(buf, (size_t) got);
+    }
+  }
+};
+static CurioReceiver curioReceiver;
+
+struct ReturnModule : Module {
+  const CurioBank* bank = NULL; // the bank of the module on the left, if it is a Curiosities module
+  dsp::ClockDivider divider;
+  float out[16] = {};
+
+  ReturnModule() {
+    config(0, 0, 16, 0);
+    for (int i = 0; i < 16; i++)
+      configOutput(i, string::f("Value back from the app %d", i + 1));
+    divider.setDivision(256);
+  }
+
+  void process(const ProcessArgs& args) override {
+    if (divider.process()) {
+      CurioModule* left = dynamic_cast<CurioModule*>(leftExpander.module);
+      bank = (left && left->bank->jacks[0].key[0]) ? left->bank : NULL;
+      if (bank && curioReceiver.lock.try_lock()) {
+        curioReceiver.poll();
+        for (int i = 0; i < 16; i++) {
+          auto it = i < bank->count ? curioReceiver.values.find(bank->jacks[i].key) : curioReceiver.values.end();
+          out[i] = it != curioReceiver.values.end() ? clamp(it->second, 0.f, 1.f) * 10.f : 0.f;
+        }
+        curioReceiver.lock.unlock();
+      }
+    }
+    for (int i = 0; i < 16; i++)
+      outputs[i].setVoltage(bank ? out[i] : 0.f);
+  }
+};
+
+// A label that names the item of the module on the left, so the same Return module works beside any bank.
+struct ReturnLabel : CurioLabel {
+  ReturnModule* module = NULL;
+  int index = 0;
+  void draw(const DrawArgs& args) override {
+    text = (module && module->bank && index < module->bank->count) ? module->bank->jacks[index].label : "";
+    if (index == 0 && !(module && module->bank))
+      text = "Place me right of a Curiosities module";
+    CurioLabel::draw(args);
+  }
+};
+
+struct ReturnWidget : ModuleWidget {
+  ReturnWidget(ReturnModule* module) {
+    setModule(module);
+    setPanel(createPanel(asset::plugin(pluginInstance, "res/Curio.svg")));
+    addChild(makeLabel(mm2px(Vec(4.f, 6.f)), mm2px(Vec(73.f, 8.f)), "Return", nvgRGB(0x21, 0x1d, 0x1a), 14.f));
+    addChild(makeLabel(mm2px(Vec(4.f, 14.f)), mm2px(Vec(73.f, 8.f)), "Values back from the desktop app, 0 to 10 V (OSC on port 7001).", nvgRGB(0x6d, 0x65, 0x5d), 8.f));
+    for (int i = 0; i < 16; i++) {
+      int col = i / 8;
+      int row = i % 8;
+      float x = 6.f + col * 40.f;
+      float y = 30.f + row * 12.f;
+      addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(x, y)), module, i));
+      ReturnLabel* l = new ReturnLabel;
+      l->box.pos = mm2px(Vec(x + 5.f, y - 4.2f));
+      l->box.size = mm2px(Vec(30.f, 9.f));
+      l->module = module;
+      l->index = i;
+      l->fontSize = 8.f;
+      addChild(l);
+    }
+  }
+};
+Model* modelCurioReturn = createModel<ReturnModule, ReturnWidget>("Curio-Return");

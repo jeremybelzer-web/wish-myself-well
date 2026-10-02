@@ -7,3 +7,4 @@ using namespace rack;
 extern Plugin* pluginInstance;
 extern Model* curioModels[];
 extern Model* modelCurioFocus;
+extern Model* modelCurioReturn;
