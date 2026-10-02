@@ -39,7 +39,7 @@
 
   /* ---------- Transitions ---------- */
   c("transitionKind", "Transition style", "transitions", "The effect between two clips (CapCut's Transitions tab, Final Cut's Transitions browser).", [
-    S("Transition style", ["cut", "fade to black", "fade to white", "cross dissolve", "wipe", "push", "zoom", "spin", "whip pan", "flash", "glitch", "morph"], "Which transition crosses this cut.", { unordered: true }),
+    S("Transition style", ["cut", "fade to black", "fade to white", "cross dissolve", "wipe", "push", "zoom", "spin", "whip pan", "flash", "glitch", "morph", "flash zoom", "slam merge", "slice reveal", "brush cuts", "phone swipe", "smear"], "Which transition crosses this cut.", { unordered: true }),
     ["duration", "Length", [0, 3, "seconds", 0.25], "How long the transition takes."],
     ["direction", "Direction", ["left", "right", "up", "down", "in", "out"], "Which way a wipe, push or zoom travels.", { unordered: true }],
     ["ease", "Ease", ["steady", "eases in", "eases out", "eases in and out"], "Whether it starts or ends gently."],
@@ -317,7 +317,7 @@
      lines, Superpowers, Mood). Each family a filmmaker reaches for is a curiosity with its own sliders; the
      effect's name in CapCut is just one setting of it. */
   c("transitionFamily", "Transition family", "transitions", "Which family of transition crosses the cut, sorted the way CapCut's Transitions tab sorts them.", [
-    S("Family", ["basic", "slide", "movement", "blur", "light", "overlay", "mask", "3D", "glitch", "whimsical"], "The family of transition.", { unordered: true }),
+    S("Family", ["basic", "slide", "movement", "blur", "light", "overlay", "mask", "3D", "glitch", "whimsical", "classic", "pixel bead"], "The family of transition.", { unordered: true }),
     ["energy", "Energy", ["calm", "lively", "punchy", "explosive"], "How much force it hits with."],
     ["flash", "Flash", ["none", "light leak", "white flash", "light bars"], "Light thrown across the cut."],
     ["motionBlur", "Motion blur", [0, 100, "%"], "How smeared the move is."],
@@ -328,7 +328,7 @@
     ["length", "Length", [0, 5, "seconds", 0.5], "How long it lasts."],
   ], [2, "An opening effect promises what kind of ride this is; an outro tells the audience it is over, or not quite.", "A playful opening sets a playful film.", "The first second decides whether a viewer keeps watching.", "visual", "Open on a slam and end on a slow fade, so the film feels like it calmed down."]);
   c("videoEffectFamily", "Effect family", "layers", "Which family of video effect is laid over the picture, sorted the way CapCut's Effects tab sorts them.", [
-    S("Family", ["none", "classic", "whimsical", "motion", "3D", "light", "edits", "retro", "glitch", "distortion", "decor", "screen", "sparkle", "texture", "comics", "party"], "The family of effect.", { unordered: true }),
+    S("Family", ["none", "classic", "whimsical", "motion", "3D", "light", "edits", "retro", "glitch", "distortion", "decor", "screen", "sparkle", "texture", "comics", "party", "pet", "magic cutout", "wild pics"], "The family of effect.", { unordered: true }),
     ["intensity", "Intensity", [0, 100, "%"], "How strong it is."],
     ["spread", "Covers", ["a corner", "around the subject", "the whole frame"], "How much of the frame it covers."],
     ["onBeat", "Pulses", ["steady", "on the beat"], "Whether it pulses with the music."],
@@ -359,7 +359,7 @@
     ["intensity", "Intensity", [0, 100, "%"], "How strong it is."],
   ], [1, "Glowing lines around one person single them out as the one who matters now.", "A body effect shows the inside of a person on the outside: power, panic, fame.", "Something moving with a person keeps the eye on them.", "movement", "Give the character a clone trail as they rush around trying to do everything at once."]);
   c("moodEffect", "Mood sticker on a face", "titles", "A cartoon mood stuck to a face: red cheeks, tears, hearts, a light bulb, steam, a halo of confusion, a soul leaving, a mallet (CapCut's Mood body effects).", [
-    S("Mood", ["none", "sunny", "loved", "struck", "bright idea", "red face", "sad tears", "shy", "confused", "departing soul", "cool", "angry steam", "laughing till crying", "mallet bonk"], "Which mood is drawn on the face.", { unordered: true }),
+    S("Mood", ["none", "sunny", "loved", "struck", "bright idea", "red face", "sad tears", "shy", "confused", "departing soul", "cool", "angry steam", "laughing till crying", "mallet bonk", "crackling"], "Which mood is drawn on the face.", { unordered: true }),
     ["size", "Size", ["small", "medium", "big"], "How big it is drawn."],
     ["timing", "Timing", ["before the line", "on the line", "after the line"], "When it pops on."],
   ], [2, "A drawn mood tells the audience exactly how a character took what just happened.", "Cartoon moods make the film wink at itself.", "A face suddenly decorated is impossible not to look at.", "visual", "Pop a departing soul out of the character a beat after the insult."]);
@@ -396,6 +396,150 @@
   prox("featured-music-pulse", "When the music is featured, the effects pulse on the beat", "layers", { curiosity: "music", is: "featured" }, { curiosity: "videoEffectFamily", slider: "onBeat", is: "on the beat" }, 0, ["music"]);
   prox("scene-end-outro", "When the pace races then stops, an outro effect closes it", "transitions", { curiosity: "pacingCurve", is: "speeds up then stops" }, { curiosity: "introOutro", change: "changes" }, 0, ["speed"]);
   ps("phone-comedy-reactions", "Phone comedy reactions", "titles", "The joke pays off and a mood pops onto a face, anger brings steam, and an impact brings a slam zoom.", ["payoff-mood-face", "angry-steam", "impact-slam-zoom"]);
+
+  /* ---------- CapCut batch 3 (Jeremy, 2026-10-02 18:00Z): Body, Video, Filters, Adjustment, Templates, AI avatar,
+     the Library and the Record panel. Names in the scales are plain descriptions of CapCut's effect names. ---------- */
+  c("superpowerEffect", "Superpower effect", "layers", "A power drawn onto a person: light trails, flaming or electric eyes, laser eyes, lightning, speed streaks, horns (CapCut's Superpowers body effects).", [
+    S("Superpower", ["none", "light trails", "flame eyes", "electric eyes", "laser eyes", "lightning", "speed streaks", "flaming horns", "roaring tiger", "outline scan", "face glitch", "violet galaxy"], "Which power shows.", { unordered: true }),
+    ["who", "On whom", ["the main character", "another character", "everyone"], "Who has it.", { unordered: true }],
+    ["shape", "How it comes", ["builds up", "bursts on", "stays on"], "How it arrives."],
+    ["intensity", "Intensity", [0, 100, "%"], "How strong it is."],
+  ], [2, "Eyes lighting up says a character has just decided to fight back.", "A drawn superpower shows how a person feels inside: unstoppable, furious, chosen.", "Light on a face pulls every eye to it.", "visual", "Give the meekest character laser eyes for one second when they finally say no."]);
+  c("hallucinationEffect", "Hallucination effect", "layers", "The world bending around a person: vortex rings, a stellar burst, endless travel, a spinning axis, fire wisps, a melting figure (CapCut's Hallucination body effects).", [
+    S("Hallucination", ["none", "vortex rings", "stellar burst", "one-way shift", "rotating swing", "infinite travel", "axis rotation", "fire wisps", "electric current", "absorption", "molten figure", "spin bounce"], "Which vision.", { unordered: true }),
+    ["intensity", "Intensity", [0, 100, "%"], "How strong it is."],
+    ["length", "Length", [0, 5, "seconds", 0.5], "How long it lasts."],
+  ], [2, "A hallucination tells the audience we are inside a character's head now.", "When the world bends, the film admits the character's grip on reality is slipping.", "Moving patterns grab the eye and hold it in the center.", "movement", "Let the room spin into vortex rings the moment the character hears the bad news."]);
+  c("cloneEffect", "Copies of a person", "layers", "A person repeated: a clone trail, ninja doubles, an X of copies, a burst of fragments, a phantom (CapCut's Clone body effects).", [
+    S("Copies", ["none", "clone trail", "ninja doubles", "X clone", "clone burst", "fragment clone", "phantom"], "How the person is copied.", { unordered: true }),
+    ["count", "How many", [1, 8, "copies"], "How many copies show."],
+    ["delay", "Lag", ["together", "a little behind", "far behind"], "How far behind the copies follow."],
+  ], [1, "A person split into copies can show them pulled in many directions at once.", "Copies of yourself are a picture of a busy or divided mind.", "Many copies of one person make the eye count them.", "movement", "Split the host into ninja doubles while they try to answer every phone at once."]);
+  c("outlineEffect", "Outline and glow on a person", "layers", "A line or glow drawn around a person: glowing lines, a sparkle edge, a rainbow edge, a paper or hand-drawn stroke, a flame outline, an aura (CapCut's Glowing lines, Stroke and Pro body effects).", [
+    S("Outline", ["none", "glowing lines", "sparkle edge", "rainbow edge", "paper stroke", "hand-drawn", "flame outline", "aura", "figure glare"], "Which line or glow.", { unordered: true }),
+    ["thickness", "Thickness", ["thin", "medium", "thick"], "How thick the line is."],
+    ["color", "Color", ["white", "gold", "neon", "rainbow", "the character's color"], "What color it is.", { unordered: true }],
+  ], [1, "An outline singles out the one person this moment is about.", "A glow says special; a hand-drawn line says this is a story someone is telling.", "A bright edge separates a person from the background and pulls the eye.", "visual", "Draw a paper stroke around the kid in every scene where they feel like an outsider."]);
+  c("retroEffect", "Retro look", "grade", "The film made to look like an old format: VHS tape, an old projector, flicker, noise, a burned edge, home video (CapCut's Retro video effects).", [
+    S("Retro look", ["none", "VHS tape", "retro film", "projector", "retro flicker", "nostalgic light", "chalk graffiti", "white noise", "black noise", "pink burn", "old film", "home video"], "Which old format.", { unordered: true }),
+    ["era", "Era", ["1920s", "1950s", "1970s", "1980s", "1990s", "2000s"], "When it seems to be from."],
+    ["wear", "Wear", [0, 100, "%"], "How worn and damaged it looks."],
+  ], [2, "A retro look tells the audience this is the past, a memory or found footage.", "Old formats bring nostalgia, or the creepiness of a tape no one should have found.", "Flicker and noise make the audience lean in to see what is there.", "visual", "Shoot the parents' love story as worn VHS tape and the present day clean."]);
+  c("glitchEffect", "Glitch", "layers", "The picture breaking: split colors, shaking glitch, digital blocks, scanner burn, a cold shadow (CapCut's Glitch video effects).", [
+    S("Glitch", ["none", "split colors", "shaky glitch", "black and white glitch burn", "70s glitch", "cult classic", "glitch cutter", "spooky camera", "cyber fright", "glitchy digits", "color quake", "grunge grime"], "Which glitch.", { unordered: true }),
+    ["intensity", "Intensity", [0, 100, "%"], "How badly it breaks."],
+    ["often", "How often", ["once", "now and then", "constantly"], "How often it hits."],
+  ], [2, "A glitch says something is wrong: a lie, a breakdown, a broken world.", "The picture breaking is the film showing a mind or a system breaking.", "A sudden break jolts the audience to attention.", "visual", "Glitch the frame for a split second every time the character lies."]);
+  c("distortionEffect", "Distortion", "layers", "The picture bent or smeared: ripples, a strong blur, turning to stardust, mist, a shaky outline, glassy swirls (CapCut's Distortion video effects).", [
+    S("Distortion", ["none", "ripple", "power blur", "insistent blur", "into stardust", "mist dissipates", "shaky outline", "water shine", "ripple warp", "glassy stir", "projector clones"], "How it bends.", { unordered: true }),
+    ["strength", "Strength", [0, 100, "%"], "How bent it is."],
+    ["settles", "Then", ["stays bent", "settles back"], "Whether it returns to normal."],
+  ], [1, "A ripple can carry the audience into a dream or a memory and back out.", "Bent pictures show a world that is unsteady or unreal.", "Movement across the whole frame makes the audience wait for it to clear.", "movement", "Ripple into the flashback and let it settle back when we return."]);
+  c("partyEffect", "Party flash", "layers", "Flashing and pulsing for energy: flashes, a shockwave, a spotlight, strobe pulses, jitters, black flashes, party beats (CapCut's Party video effects).", [
+    S("Party flash", ["none", "flash", "flashy dance", "pulse", "vibration flash", "shockwave", "spotlight expands", "cross flash", "strobe pulse", "vertical jitters", "black flash", "party beats"], "Which flash.", { unordered: true }),
+    ["onBeat", "Timing", ["free", "on the beat"], "Whether it hits with the music."],
+    ["strength", "Strength", [0, 100, "%"], "How bright and strong it is."],
+  ], [1, "A shockwave on an entrance announces that someone important has arrived.", "Flashing says party, energy and youth, or panic when it goes too far.", "Flashes grab attention, so use them where the audience should look.", "visual", "Hit a shockwave the moment the guest of honor walks in."]);
+  c("frameMove3D", "3D frame move", "canvas", "The whole frame moved in 3D: a cube spin, a shattering mirror, an earth zoom, a door opening, a gallery wheel, a phone showcase (CapCut's 3D and Motion video effects).", [
+    S("3D move", ["none", "cube spin", "shatter mirror", "earth zoom", "unfurl", "phone showcase", "wheel gallery", "floating widgets", "door opens", "mosaic zoom"], "Which move.", { unordered: true }),
+    ["speed", "Speed", ["slow", "medium", "fast"], "How fast it moves."],
+  ], [2, "A 3D move is a showy jump to a new place, a new chapter or a big reveal.", "Moving the whole frame says the film is a made thing, playful and proud of it.", "A spinning frame makes the audience wait for what is on the other side.", "movement", "Use an earth zoom to jump from the bedroom to the other side of the world."]);
+  c("stockClip", "Stock clip", "layers", "A ready-made clip from a library: green screen, a background, an intro or end card, scenery, atmosphere, everyday life (CapCut's Library). CapCut warns not to export library clips that were not edited in the app.", [
+    S("Stock clip", ["none", "green screen", "background", "intro or end card", "scenery", "atmosphere", "everyday life", "transition clip"], "Which kind of library clip.", { unordered: true }),
+    ["use", "Used as", ["the background", "a cutaway", "laid over the top"], "Where it sits in the picture.", { unordered: true }],
+    ["length", "Length", [0, 30, "seconds", 1], "How long it runs."],
+  ], [0, "A scenery clip can say where we are now without a word.", "Stock footage can be played straight or used as a joke about cheap filmmaking.", "A new place on screen makes the audience look around.", "visual", "Cut to cheesy stock footage of a sunrise whenever the narrator gets too sentimental."]);
+  c("endCard", "End card", "titles", "A card that closes the film or an episode: thank you for watching, to be continued, the end, subscribe (CapCut's Intro&End library).", [
+    S("End card", ["none", "thank you for watching", "to be continued", "the end", "subscribe", "thanks"], "Which card.", { unordered: true }),
+    ["style", "Style", ["plain", "handwritten", "animated", "old film"], "How it looks.", { unordered: true }],
+  ], [2, "To be continued keeps the audience hungry for the next episode.", "An end card tells the audience how to feel about leaving: finished, cliffhung, thanked.", "Words alone on screen are read every time.", "visual", "Freeze on the worst moment and slap on To Be Continued."]);
+  c("filterFamily", "Filter family", "grade", "Which shelf the filter comes from, the way CapCut's Filters tab sorts them: featured, life, landscape, portrait, mono, movies, retro, night, cool, warm.", [
+    S("Filter family", ["featured", "life", "landscape", "portrait", "mono", "movies", "retro", "night", "cool", "warm"], "Which family.", { unordered: true }),
+    ["strength", "Strength", [0, 100, "%"], "How strongly it is laid over."],
+  ], [1, "A switch from a warm family to a cool one marks a turn in the story.", "The family of look is the genre the film is borrowing: movie, memory, night out.", "A new look makes the audience re-read the whole picture.", "visual", "Keep the life family for home and jump to the movies family when the dream begins."]);
+  c("lut", "LUT (a color recipe)", "grade", "A saved color recipe applied in one go, from CapCut's Adjustment tab (LUT) and Final Cut's Custom LUT effect: a film stock look, teal and orange, bleach bypass, day for night.", [
+    S("LUT", ["none", "film stock", "teal and orange", "bleach bypass", "day for night", "warm print", "cool print", "log to normal"], "Which recipe.", { unordered: true }),
+    ["strength", "Strength", [0, 100, "%"], "How much of it is applied."],
+  ], [1, "One color recipe across a whole storyline ties its scenes together.", "A recipe like bleach bypass makes a world harsh; a warm print makes it kind.", "Color sets the mood before the audience reads anything else.", "visual", "Give each of the two families in the story its own LUT."]);
+  c("editTemplate", "Edit template", "speed", "A ready-made edit you drop your clips into, sorted the way CapCut's Templates tab sorts them: cinematic, daily life, selfie, velocity, lyrics, meme, travel, family.", [
+    S("Template", ["none", "cinematic", "daily life", "selfie", "velocity", "lyrics", "meme", "travel", "relationship", "friendship", "family", "school life", "business"], "Which kind of template.", { unordered: true }),
+    ["clips", "Clips", [1, 12, "clips"], "How many clips it takes."],
+  ], [1, "A template carries a whole rhythm, so the scene moves the way that genre of video moves.", "Using a meme template says the film is in on the joke of the internet.", "A familiar template makes the audience expect its punchline.", "movement", "Cut the family argument into a velocity template so it plays like a sports highlight."]);
+  c("translatedVoice", "Translated voice", "audio-mix", "Speech translated into another language, with or without the lips matched (CapCut's AI avatar, Video translator).", [
+    S("Translated voice", ["original", "translated", "translated with lip sync"], "Whether the voice is translated."),
+    ["language", "Into", ["English", "Spanish", "French", "Arabic", "Hindi", "Japanese", "another language"], "Which language.", { unordered: true }],
+  ], [0, "A character suddenly speaking another language can reveal where they come from.", "Translation can make a film travel, or be played for a joke when the lips don't match.", "An unexpected language makes the audience listen hard.", "audio", "Let the dubbed lips fall out of sync on purpose when the character is lying."]);
+  c("generatedShot", "Generated shot", "layers", "A shot made from a description instead of filmed: an image, a video or a two-person dialogue scene (CapCut's Generate: AI image, AI video, AI dialogue scene). Use only material you have the rights to.", [
+    S("Generated shot", ["none", "image", "video", "dialogue scene"], "What is generated."),
+    ["length", "Length", [0, 30, "seconds", 1], "How long it is."],
+    ["from", "Made from", ["a description", "a picture", "several frames"], "What it starts from.", { unordered: true }],
+  ], [0, "A generated shot can fill a gap in the story you could not film.", "Made-up shots let a small film show impossible places.", "A new kind of image makes the audience look closely.", "visual", "Generate the one impossible shot (the house floating away) and film everything else."]);
+  c("voiceCleanup", "Voice cleanup", "audio-mix", "Cleaning a recorded voice: taking out the room's echo and making the voice clearer (CapCut's Record panel: Echo reduction and Enhance voice).", [
+    S("Cleanup", ["none", "echo reduced", "voice enhanced", "both"], "What was cleaned."),
+    ["room", "Room left in", ["none", "a little", "all of it"], "How much of the room's sound stays."],
+  ], [0, "A suddenly clean voice can feel like a thought or a confession.", "Leaving the echo in feels real and raw; cleaning it feels polished.", "A clear voice is easier to follow, so the audience stays with it.", "audio", "Leave the bathroom echo in for the pep talk in the mirror."]);
+  const mood = DB.data.curiosities.find((x) => x.id === "moodEffect");
+  if (mood) mood.also = (mood.also || []).concat("emotion"); /* Body Mood effects feed the Emotion curiosities (shows under Feeling too). */
+
+  suite("superhero-moment", "Superhero moment", "layers", "Electric eyes, a slam zoom, lightning and a hit on the sound: the turn where someone becomes powerful.", [
+    { curiosity: "superpowerEffect", value: "electric eyes" },
+    { curiosity: "cameraEffect", value: "slam zoom" },
+    { curiosity: "lightEffect", value: "lightning" },
+    { curiosity: "sfxHits", slider: "kind", value: "hit" },
+  ]);
+  suite("home-video", "Old home video", "grade", "VHS tape, grain, a faded filter and the 1990s: the film as a family tape.", [
+    { curiosity: "retroEffect", value: "VHS tape" },
+    { curiosity: "retroEffect", slider: "era", value: "1990s" },
+    { curiosity: "textureEffect", value: "grain" },
+    { curiosity: "filterLook", value: "faded" },
+  ]);
+  suite("breakdown", "Breakdown", "layers", "A shaking glitch, a ripple warp and a glitch transition: the picture falling apart with the person.", [
+    { curiosity: "glitchEffect", value: "shaky glitch" },
+    { curiosity: "distortionEffect", value: "ripple warp" },
+    { curiosity: "transitionFamily", value: "glitch" },
+    { curiosity: "videoEffectFamily", value: "glitch" },
+  ]);
+  suite("trippy-vision", "Trippy vision", "layers", "Vortex rings, a glassy swirl, a halo and a dissolve: a dream or a high.", [
+    { curiosity: "hallucinationEffect", value: "vortex rings" },
+    { curiosity: "distortionEffect", value: "glassy stir" },
+    { curiosity: "lightEffect", value: "halo" },
+    { curiosity: "transitionKind", value: "cross dissolve" },
+  ]);
+  suite("cartoon-feelings", "Cartoon feelings", "emotion", "A feeling made loud: the emotion, a big mood drawn on the face, popping on right after the line.", [
+    { curiosity: "emotion", value: "absurd" },
+    { curiosity: "moodEffect", value: "confused" },
+    { curiosity: "moodEffect", slider: "size", value: "big" },
+    { curiosity: "moodEffect", slider: "timing", value: "after the line" },
+  ]);
+
+  /* Body Mood effects feed the Emotion curiosities, both ways: a feeling brings its mood sticker, and a mood
+     sticker moves the feeling's sliders. */
+  const FACE = [
+    ["loving", "loved", "When someone feels loving, hearts pop onto their face"],
+    ["joyful", "sunny", "When someone is joyful, a sun pops onto their face"],
+    ["melancholy", "sad tears", "When someone turns sad, tears are drawn on"],
+    ["anxious", "shy", "When someone is anxious, they blush"],
+    ["fearful", "departing soul", "When someone is scared, their soul leaves their body"],
+    ["curious", "bright idea", "When someone gets curious, a light bulb pops on"],
+    ["triumphant", "cool", "When someone triumphs, shades pop on"],
+    ["absurd", "confused", "When things turn absurd, question marks pop on"],
+  ];
+  FACE.forEach(([feel, face, label]) => prox("face-" + feel, label, "emotion", { curiosity: "emotion", is: feel }, { curiosity: "moodEffect", is: face }, 0, ["titles"]));
+  prox("tears-lower", "When tears are drawn on, the feeling drops", "emotion", { curiosity: "moodEffect", is: "sad tears" }, { curiosity: "emotion", slider: "valence", change: "drops" }, 0, ["titles"]);
+  prox("sun-lifts", "When a sun pops onto a face, the feeling lifts", "emotion", { curiosity: "moodEffect", is: "sunny" }, { curiosity: "emotion", slider: "valence", change: "rises" }, 0, ["titles"]);
+  prox("steam-winds-up", "When steam pops on, the feeling winds up", "emotion", { curiosity: "moodEffect", is: "angry steam" }, { curiosity: "emotion", slider: "arousal", change: "rises" }, 0, ["titles"]);
+  prox("crackle-winds-up", "When a face crackles, the feeling winds up", "emotion", { curiosity: "moodEffect", is: "crackling" }, { curiosity: "emotion", slider: "arousal", change: "rises" }, 0, ["titles"]);
+  prox("laugh-tears-laughter", "When someone laughs till they cry, the audience laughs more", "emotion", { curiosity: "moodEffect", is: "laughing till crying" }, { curiosity: "emoRoadFilm", slider: "laughter", change: "rises" }, 1, ["titles", "comedy"]);
+  prox("mallet-absurd", "When the mallet bonks, the feeling turns absurd", "emotion", { curiosity: "moodEffect", is: "mallet bonk" }, { curiosity: "emotion", is: "absurd" }, 0, ["titles", "comedy"]);
+  prox("triumph-eyes", "When someone triumphs, their eyes light up", "layers", { curiosity: "emotion", is: "triumphant" }, { curiosity: "superpowerEffect", is: "electric eyes" }, 0, ["emotion"]);
+  prox("anxious-glitch", "When someone panics, the picture glitches", "layers", { curiosity: "emotion", is: "anxious" }, { curiosity: "glitchEffect", is: "shaky glitch" }, 1, ["emotion"]);
+  prox("dreamlike-vortex", "When the feeling turns dreamlike, the room spins", "layers", { curiosity: "emotion", is: "dreamlike" }, { curiosity: "hallucinationEffect", change: "changes" }, 1, ["emotion"]);
+  prox("impact-shockwave", "When impacts rise, a shockwave flashes", "layers", { curiosity: "impacts", change: "rises" }, { curiosity: "partyEffect", is: "shockwave" }, 0, ["effects"]);
+  prox("music-party-beat", "When the music is featured, the flashes hit the beat", "layers", { curiosity: "music", is: "featured" }, { curiosity: "partyEffect", slider: "onBeat", is: "on the beat" }, 0, ["music"]);
+  prox("outro-end-card", "When an outro effect closes the film, an end card follows", "titles", { curiosity: "introOutro", is: "end card" }, { curiosity: "endCard", change: "changes" }, 1, ["transitions"]);
+  ps("face-tells-the-feeling", "The face tells the feeling", "emotion", "Every feeling brings its cartoon mood onto the face: hearts, a sun, tears, a blush, a soul leaving, a light bulb, shades, question marks.", FACE.map((f) => "face-" + f[0]));
+  ps("mood-moves-the-feeling", "The mood moves the feeling", "emotion", "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh.", ["tears-lower", "sun-lifts", "steam-winds-up", "crackle-winds-up", "laugh-tears-laughter", "mallet-absurd"]);
+  ps("effects-show-the-inside", "Effects show the inside", "layers", "What a character feels shows on the picture: triumph lights the eyes, panic glitches the frame, a dream spins the room or blooms with light.", ["triumph-eyes", "anxious-glitch", "dreamlike-vortex", "dreamlike-halo"]);
 
   /* Loaded after the app's install(): refresh the links the engine reads, so these proximities can be added. */
   if (typeof window !== "undefined" && window.CURIOSITY_LINKS && typeof DB.links === "function") window.CURIOSITY_LINKS = DB.links();
