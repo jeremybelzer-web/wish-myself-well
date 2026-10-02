@@ -59,3 +59,7 @@ python3 -m unittest discover -s apps/curiosities/maya/tests
 
 `tests/test_maya_camera.py` runs the keying and read-back against a stand-in for `maya.cmds`. The panel itself
 (`panel.py`) needs Maya to run; it has not been opened in Maya yet.
+
+## Whole films from the engine
+
+The plugin asks the app for `{type: "timeline"}` first: when the engine (Library > Engine) has a film, every moment of it arrives, not just My film's 8 storyboard panels, so Key shots and markers cover the whole film. With no engine film yet, or an older app, it asks for `panels` as before. Reading a camera or an edit back still lands on My film as a named strand.
