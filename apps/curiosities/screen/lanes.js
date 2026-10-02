@@ -28,7 +28,21 @@
    - trackFor(cur)       the track a curiosity goes on when it is not on one yet
    - group(nodeKey)      the nodes and links joined to a node
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
-   - ensure(cur)         make sure a lane's curiosity is on a track (one undo step), returns the track id */
+   - ensure(cur)         make sure a lane's curiosity is on a track (one undo step), returns the track id
+   - tools()             the timeline toolbar settings, kept in localStorage "curiosities-screen-tools-v1"
+
+   The toolbar copies CapCut's timeline toolbar (Jeremy's screenshots, 2026-10-02): the Select (A) and Split (B)
+   tools, Undo, Delete, Add marker (M), the main track magnet (P), linkage (~), the preview axis (S) and zoom.
+   Each one means the nearest thing for nodes and lines:
+   - Select: click an empty spot to add a node where you click (as before). Split: click a lane to drop a node
+     right on its line, so the line is cut there without changing what plays.
+   - Magnet on: moving a node sideways moves every later node in its lane along with it, like CapCut closing
+     the gap on the main track.
+   - Linkage on (the default): joined nodes move and copy together. Off: a node moves alone and its lines stretch.
+   - Auto snapping on (the default): a node dragged sideways to within one moment of a marker lands on it.
+   - Preview axis on: hovering over the timeline moves the player to that moment (opts.onHover).
+   - Markers: flags on moments of the film, kept by row id.
+   The mounted lanes answer command(name) so the Screen's keyboard shortcuts can drive them. */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
   const E = () => root.CurioEngine;
@@ -39,6 +53,19 @@
   const LANE_H = 50;
   const PAD = 7;
   const RULER = 18;
+  const TOOLS_KEY = "curiosities-screen-tools-v1";
+  const TOOL_DEFAULTS = { tool: "select", magnet: false, linkage: true, snap: true, skim: false, zoom: 1, markers: [] };
+  let tools = Object.assign({}, TOOL_DEFAULTS);
+  try {
+    const t = JSON.parse(localStorage.getItem(TOOLS_KEY));
+    if (t && typeof t === "object") tools = Object.assign({}, TOOL_DEFAULTS, t);
+  } catch (e) {}
+  if (!Array.isArray(tools.markers)) tools.markers = [];
+  function saveTools() {
+    try {
+      localStorage.setItem(TOOLS_KEY, JSON.stringify(tools));
+    } catch (e) {}
+  }
 
   function trackFor(cur, st) {
     st = st || E().state();
@@ -95,12 +122,22 @@
     if (lane && lane.points[n.row] != null) return lane.points[n.row];
     return E().value(n.row, n.track, n.cur);
   }
-  /* Commands that move (or copy) a group by d moments. */
-  function shiftCommands(st, key, d, copy) {
-    const g = group(key, st);
+  /* Commands that move (or copy) a group by d moments. opt.solo: only this node (linkage off); opt.ripple: also
+     every later node in its lane (the magnet). Lines with one end left behind stretch to the new moment. */
+  function shiftCommands(st, key, d, copy, opt) {
+    opt = opt || {};
     const ix = {};
     st.rows.forEach((r, i) => (ix[r.id] = i));
-    const nodes = g.nodes.map(split);
+    const keys = new Set(opt.solo ? [key] : group(key, st).nodes);
+    if (opt.ripple) {
+      const k0 = split(key);
+      const lane = st.lanes[k0.lk];
+      if (lane)
+        Object.keys(lane.points).forEach((r) => {
+          if (ix[r] != null && ix[r] > ix[k0.row]) (opt.solo ? [nodeKey(r, k0.lk)] : group(nodeKey(r, k0.lk), st).nodes).forEach((k) => keys.add(k));
+        });
+    }
+    const nodes = [...keys].map(split);
     for (const n of nodes) {
       const to = ix[n.row] + d;
       if (ix[n.row] == null || to < 0 || to >= st.rows.length) return { error: "That would push part of the proximity off the end of the film." };
@@ -114,15 +151,24 @@
         if (lane && lane.points[n.row] != null) cmds.push({ type: "removePoint", row: n.row, track: n.track, curiosity: n.cur });
       });
     nodes.forEach((n, i) => vals[i] != null && cmds.push({ type: "setPoint", row: at(n.row), track: n.track, curiosity: n.cur, value: vals[i] }));
-    g.links.forEach((l) => {
-      const scope = { from: at(l.scope.from), to: at(l.scope.to) };
+    let joined = 0;
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends) return;
+      const a = keys.has(ends[0]);
+      const b = keys.has(ends[1]);
+      if (!a && !b) return;
+      if (a && b) joined++;
+      const scope = { from: a ? at(l.scope.from) : l.scope.from, to: b ? at(l.scope.to) : l.scope.to };
       if (copy) {
+        if (!(a && b)) return;
         const body = JSON.parse(JSON.stringify(l));
         delete body.id;
         cmds.push(Object.assign({ type: "addLink" }, body, { scope }));
-      } else cmds.push({ type: "updateLink", link: l.id, changes: { scope } });
+      } else if (a && b) cmds.push({ type: "updateLink", link: l.id, changes: { scope } });
+      else cmds.push({ type: "updateLink", link: l.id, changes: { scope, within: Math.max(0, Math.min(16, Math.abs(ix[scope.to] - ix[scope.from]))) } });
     });
-    return { cmds, size: nodes.length, links: g.links.length };
+    return { cmds, size: nodes.length, links: joined };
   }
   function linkCommand(st, a, b) {
     const ix = {};
@@ -239,7 +285,9 @@
       const lanes = lanesNow(st);
       const n = st.rows.length;
       const width = el.clientWidth || 800;
-      const colW = Math.max(46, Math.floor((width - 200) / Math.max(1, n)));
+      const fit = Math.floor((width - 200) / Math.max(1, n));
+      const zoom = Math.max(0.25, Math.min(8, Number(tools.zoom) || 1));
+      const colW = Math.max(zoom < 1 ? 14 : 46, Math.floor(fit * zoom));
       const svgW = colW * n;
       const clipRows = opts.clips ? opts.clips() : [];
       const CLIP_H = 28;
@@ -275,6 +323,11 @@
       });
       for (let j = 0; j <= n; j++) svg.push(`<line class="sl-grid" x1="${j * colW}" x2="${j * colW}" y1="0" y2="${svgH}"/>`);
       if (playRow >= 0 && playRow < n) svg.push(`<rect class="sl-play" x="${playRow * colW}" y="0" width="${colW}" height="${svgH}"/>`);
+      st.rows.forEach((r, j) => {
+        if (!tools.markers.includes(r.id)) return;
+        const x = j * colW + colW / 2;
+        svg.push(`<g class="sl-marker" data-marker="${j}"><line x1="${x}" x2="${x}" y1="0" y2="${svgH}"/><path d="M${x - 5} 0h10v7l-5 4-5-4z"/><title>Marker at moment ${j + 1}</title></g>`);
+      });
       lanes.forEach((ln, i) => {
         if (!ln.track) return;
         /* The result line (what plays), then the automation: nodes joined by lines. */
@@ -315,11 +368,19 @@
         svg.push(`<path class="sl-link${l.on ? "" : " off"}" d="M${x1} ${y1} Q${mx} ${(y1 + y2) / 2} ${x2} ${y2}" data-link="${esc(l.id)}"><title>${esc(l.label || "Proximity")}${l.suite ? " (in a proximity suite)" : ""}. Click to switch off or remove.</title></path>`);
       });
       const others = st.links.filter((l) => !l.scope && laneIx[l.from.track + "|" + l.from.curiosity] != null && laneIx[l.to.track + "|" + l.to.curiosity] != null).length;
+      const tb = (act, label, title, on) => `<button type="button" data-act="${act}" class="sl-tb${on ? " on" : ""}" title="${esc(title)}"${on == null ? "" : ` aria-pressed="${!!on}"`}>${label}</button>`;
       el.innerHTML = `<div class="sl-tools">
+          <span class="sl-seg" role="group" aria-label="Tool">${tb("tool-select", "Select", "Select (A): click a node to pick it, click an empty spot to add a node there", tools.tool === "select")}${tb("tool-split", "Split", "Split (B): click a lane to cut its line with a node, keeping what plays", tools.tool === "split")}</span>
           <button type="button" data-act="undo" ${Eng.canUndo() ? "" : "disabled"}>Undo</button><button type="button" data-act="redo" ${Eng.canRedo() ? "" : "disabled"}>Redo</button>
           <button type="button" data-act="copy" ${sel ? "" : "disabled"} title="Copy the picked node with every node joined to it">Copy proximity</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="Paste at the playhead's moment">Paste at moment ${playRow + 1}</button>
-          <button type="button" data-act="del" ${sel ? "" : "disabled"}>Remove node</button>
+          <button type="button" data-act="del" ${sel ? "" : "disabled"} title="Delete (⌫)">Remove node</button>
+          ${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off")}
+          ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
+          ${tb("snap", "Snapping", "Auto snapping (N): a node dropped next to a marker lands on it", tools.snap)}
+          ${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}
+          ${tb("skim", "Preview axis", "Preview axis (S): hover over the timeline to see that moment in the player", tools.skim)}
+          <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−)")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+)")}</span>
           <span class="sl-msg" role="status">${esc(msg || (others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag a node onto another lane's node to join them."))}</span>
         </div>
         <div class="sl-body"><div class="sl-heads">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${opts.ruler ? `<div style="height:${RULER}px"></div>` : ""}${heads}</div>
@@ -372,7 +433,13 @@
       if (!a.ln) return;
       drag = { add: true, start: a };
     }
+    let hoverJ = -1;
     function onMove(e) {
+      if (!drag && tools.skim && opts.onHover && geo && e.target.closest && e.target.closest(".sl-svg") && el.contains(e.target)) {
+        const a = at(e);
+        if (a.j !== hoverJ) opts.onHover((hoverJ = a.j));
+        return;
+      }
       if (!drag || drag.add) return;
       const a = at(e);
       if (Math.abs(a.x - drag.start.x) + Math.abs(a.y - drag.start.y) > 4) drag.moved = true;
@@ -399,8 +466,9 @@
         let track = a.ln.track;
         if (!track) track = ensure(a.ln.cur);
         if (!track) return say("Every track is full; remove a lane first.");
-        const v = S().at(a.ln.cur, a.p);
-        const r = send({ type: "setPoint", row: E().state().rows[a.j].id, track, curiosity: a.ln.cur, value: v, label: "Add a node" });
+        const rowId = E().state().rows[a.j].id;
+        const v = tools.tool === "split" ? E().value(rowId, track, a.ln.cur) : S().at(a.ln.cur, a.p);
+        const r = send({ type: "setPoint", row: rowId, track, curiosity: a.ln.cur, value: v, label: tools.tool === "split" ? "Split a line" : "Add a node" });
         if (r.ok) {
           sel = nodeKey(E().state().rows[a.j].id, track + "|" + a.ln.cur);
           say(`${S().label(a.ln.cur)} is ${v} at moment ${a.j + 1}.`);
@@ -418,12 +486,19 @@
         return draw();
       }
       const ix = st.rows.findIndex((r) => r.id === from.row);
-      const dj = a.j - ix;
+      let tj = a.j;
+      if (tools.snap && tj !== ix) {
+        /* Auto snapping: a marker one moment away pulls the node onto it (moments are whole steps already). */
+        const pulls = st.rows.map((r, j) => (tools.markers.includes(r.id) ? j : -9));
+        const near = pulls.filter((j) => j !== ix && Math.abs(j - tj) === 1);
+        if (near.length && !pulls.includes(tj)) tj = near[0];
+      }
+      const dj = tj - ix;
       const onOwnLane = a.ln && a.ln.lk === from.lk;
       const cmds = [];
       let label = "Change a node";
       if (dj !== 0) {
-        const sh = shiftCommands(st, d.key, dj, copy);
+        const sh = shiftCommands(st, d.key, dj, copy, { solo: !tools.linkage, ripple: tools.magnet && !copy });
         if (sh.error) return say(sh.error), draw();
         cmds.push(...sh.cmds);
         label = (copy ? "Copy " : "Move ") + (sh.links ? (sh.links > 1 ? "a proximity suite" : "a proximity") : "a node");
@@ -495,8 +570,128 @@
         say(r.ok ? `Pasted ${r.nodes} nodes and ${r.links} lines.` : r.error);
       }
       if (act === "del" && sel) return removeNode(sel);
+      if (TOOL_ACTS[act]) return command(TOOL_ACTS[act]);
       draw();
       if (act === "copy" || act === "paste") say(msg);
+    }
+    let look = null; /* copied attributes: one node's setting */
+    const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit" };
+    /* The nodes of a lane in film order, as keys. */
+    function laneNodes(st, lk) {
+      const lane = st.lanes[lk];
+      if (!lane) return [];
+      const ix = st.rows.map((r) => r.id);
+      return Object.keys(lane.points).filter((r) => ix.includes(r)).sort((a, b) => ix.indexOf(a) - ix.indexOf(b)).map((r) => nodeKey(r, lk));
+    }
+    /* Step to the node on the left or right: of the picked node in its lane, or of the playhead in the first lane with nodes. */
+    function step(dir) {
+      const st = E().state();
+      const ix = st.rows.map((r) => r.id);
+      let lk = sel ? split(sel).lk : null;
+      let from = sel ? ix.indexOf(split(sel).row) : opts.row ? opts.row() + (dir < 0 ? 0.5 : -0.5) : 0;
+      if (!lk) lk = (geo ? geo.lanes : []).map((ln) => ln.lk).find((k) => k && laneNodes(st, k).length);
+      if (!lk) return { ok: false, error: "There are no nodes to pick yet." };
+      const list = laneNodes(st, lk).map((k) => [k, ix.indexOf(split(k).row)]);
+      const hit = dir < 0 ? list.filter((x) => x[1] < from).pop() : list.find((x) => x[1] > from);
+      if (!hit) return { ok: false, error: dir < 0 ? "No node further left in this lane." : "No node further right in this lane." };
+      sel = hit[0];
+      if (opts.onSelect) opts.onSelect(split(sel).cur);
+      return { ok: true };
+    }
+    /* command(name): what the toolbar buttons and the Screen's keyboard shortcuts do. */
+    function command(name) {
+      const st = E() && E().state();
+      if (!st) return { ok: false };
+      let out = { ok: true };
+      const playRow = opts.row ? opts.row() : 0;
+      if (name === "select" || name === "split") {
+        tools.tool = name;
+        say(name === "split" ? "Split: click a lane to cut its line with a node." : "Select: click a node to pick it, or an empty spot to add one.");
+      } else if (name === "magnet") {
+        tools.magnet = !tools.magnet;
+        say(tools.magnet ? "Magnet on: later nodes in a lane move along with the one you move." : "Magnet off.");
+      } else if (name === "snap") {
+        tools.snap = !tools.snap;
+        say(tools.snap ? "Auto snapping on: nodes dropped next to a marker land on it." : "Auto snapping off.");
+      } else if (name === "splitHere" || name === "splitAll") {
+        /* CapCut's Split (⌘B) and Split all (⌘⇧B): a node on the line at the playhead, keeping what plays. */
+        const r = st.rows[playRow];
+        const lns = (geo ? geo.lanes : []).filter((ln) => ln.track && (name === "splitAll" || (sel ? ln.lk === split(sel).lk : ln === geo.lanes.find((x) => x.track))));
+        const cmds = r ? lns.filter((ln) => !(st.lanes[ln.lk] && st.lanes[ln.lk].points[r.id] != null)).map((ln) => ({ type: "setPoint", row: r.id, track: ln.track, curiosity: ln.cur, value: E().value(r.id, ln.track, ln.cur) })) : [];
+        if (!cmds.length) return say("Nothing to split at this moment."), { ok: false };
+        out = send({ type: "batch", label: name === "splitAll" ? "Split every lane" : "Split a line", commands: cmds });
+        if (out.ok && name === "splitHere") sel = nodeKey(r.id, cmds[0].track + "|" + cmds[0].curiosity);
+        say(out.ok ? `Split ${cmds.length} lane${cmds.length === 1 ? "" : "s"} at moment ${playRow + 1}.` : out.error);
+      } else if (name === "deleteLeft" || name === "deleteRight") {
+        /* CapCut's Delete left (Q) and Delete right (W): every node of the picked lane before or after the playhead. */
+        const lkey = sel ? split(sel).lk : ((geo ? geo.lanes : []).find((ln) => ln.lk && laneNodes(st, ln.lk).length) || {}).lk;
+        const ix = st.rows.map((x) => x.id);
+        const doomed = lkey ? laneNodes(st, lkey).filter((k) => (name === "deleteLeft" ? ix.indexOf(split(k).row) < playRow : ix.indexOf(split(k).row) > playRow)) : [];
+        if (!doomed.length) return say("No nodes on that side of the playhead."), { ok: false };
+        const cmds = [];
+        st.links.forEach((l) => {
+          const ends = linkEnds(l);
+          if (ends && ends.some((k) => doomed.includes(k))) cmds.push({ type: "removeLink", link: l.id });
+        });
+        doomed.forEach((k) => {
+          const n = split(k);
+          cmds.push({ type: "removePoint", row: n.row, track: n.track, curiosity: n.cur });
+        });
+        out = send({ type: "batch", label: name === "deleteLeft" ? "Delete left" : "Delete right", commands: cmds });
+        if (sel && doomed.includes(sel)) sel = null;
+        say(out.ok ? `Removed ${doomed.length} node${doomed.length === 1 ? "" : "s"} ${name === "deleteLeft" ? "before" : "after"} the playhead.` : out.error);
+      } else if (name === "cut") {
+        if (!sel) return { ok: false, error: "Pick a node first." };
+        out = copyGroup(sel);
+        if (out.ok) removeNode(sel);
+        say(out.ok ? "Cut: move the playhead and paste." : out.error);
+        return out;
+      } else if (name === "copyLook") {
+        /* CapCut's Copy attributes (⌘⇧C): the picked node's setting. */
+        if (!sel) return { ok: false, error: "Pick a node first." };
+        const n = split(sel);
+        look = { cur: n.cur, value: pointValue(st, n) };
+        say(`Copied the setting: ${S().label(n.cur)} is ${look.value}.`);
+      } else if (name === "pasteLook") {
+        if (!look || !sel) return say(look ? "Pick a node to paste onto." : "Copy a node's setting first."), { ok: false };
+        const n = split(sel);
+        if (n.cur !== look.cur) return say(`That setting is for ${S().label(look.cur)}; pick one of its nodes.`), { ok: false };
+        out = send({ type: "setPoint", row: n.row, track: n.track, curiosity: n.cur, value: look.value, label: "Paste a setting" });
+      } else if (name === "linkage") {
+        tools.linkage = !tools.linkage;
+        say(tools.linkage ? "Linkage on: joined nodes move and copy together." : "Linkage off: a node moves alone and its lines stretch.");
+      } else if (name === "skim") {
+        tools.skim = !tools.skim;
+        say(tools.skim ? "Preview axis on: hover over the timeline to see that moment." : "Preview axis off.");
+      } else if (name === "marker") {
+        const r = st.rows[playRow];
+        if (!r) return { ok: false };
+        const had = tools.markers.includes(r.id);
+        tools.markers = had ? tools.markers.filter((m) => m !== r.id) : tools.markers.concat(r.id);
+        say(had ? `Marker taken off moment ${playRow + 1}.` : `Marker added at moment ${playRow + 1}.`);
+      } else if (name === "zoomIn" || name === "zoomOut" || name === "zoomFit") {
+        const z = Number(tools.zoom) || 1;
+        tools.zoom = name === "zoomFit" ? 1 : Math.max(0.25, Math.min(8, name === "zoomIn" ? z * 1.5 : z / 1.5));
+      } else if (name === "left" || name === "right") {
+        out = step(name === "left" ? -1 : 1);
+        if (!out.ok) say(out.error);
+      } else if (name === "delete") {
+        if (!sel) return { ok: false, error: "Pick a node first." };
+        removeNode(sel);
+        return out;
+      } else if (name === "copy") {
+        if (!sel) return { ok: false, error: "Pick a node first." };
+        out = copyGroup(sel);
+        say(out.ok ? `Copied ${out.nodes} node${out.nodes === 1 ? "" : "s"} and ${out.links} line${out.links === 1 ? "" : "s"}. Move the playhead and press Paste.` : out.error);
+      } else if (name === "paste") {
+        out = paste(playRow);
+        say(out.ok ? `Pasted ${out.nodes} nodes and ${out.links} lines.` : out.error);
+      } else return { ok: false, error: "Unknown command." };
+      saveTools();
+      const keep = msg;
+      draw();
+      say(keep);
+      return out;
     }
     function onDbl(e) {
       const node = e.target.closest && e.target.closest("[data-node]");
@@ -518,6 +713,8 @@
     return {
       draw,
       select: (key) => ((sel = key), draw()),
+      selected: () => sel,
+      command,
       destroy() {
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", onUp);
@@ -525,5 +722,5 @@
     };
   }
 
-  root.CurioLanes = { mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
+  root.CurioLanes = { tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
 })();

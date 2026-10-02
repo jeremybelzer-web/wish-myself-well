@@ -92,7 +92,8 @@
   }
   const push = (c) => (c && c.momentum && Number(c.momentum.push)) || 0;
   function curiosities(cat) {
-    const list = data().curiosities.filter((c) => !cat || categoryOfItem(c) === cat);
+    /* A curiosity shows in its own category and in any its also-workspaces belong to (Mood stickers under Feeling). */
+    const list = data().curiosities.filter((c) => !cat || categoryOfItem(c) === cat || (c.also || []).some((w) => CAT_OF_WS[w] === cat && w !== c.workspace));
     return list
       .map((c, i) => ({ c, i }))
       .sort((a, b) => push(b.c) - push(a.c) || a.i - b.i)

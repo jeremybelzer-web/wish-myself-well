@@ -91,6 +91,53 @@ const ok = (cond, msg) => {
   await page.click('[data-act="clear-lanes"]');
   await page.screenshot({ path: path.join(SHOTS, "screen-1b-transitions.png") });
 
+  /* CapCut's keyboard shortcuts and layouts. */
+  await page.evaluate(() => document.activeElement && document.activeElement.blur());
+  await page.click('[data-act="shortcuts"]');
+  ok((await page.$$(".sc-keys-in p")).length >= 40, "the Shortcuts button lists CapCut's keys (" + (await page.$$(".sc-keys-in p")).length + ")");
+  await page.screenshot({ path: path.join(SHOTS, "screen-1c-shortcuts.png") });
+  await page.keyboard.press("Escape");
+  ok(!(await page.$(".sc-keys")), "Esc closes the list");
+  const T = () => page.evaluate(() => window.CurioLanes.tools());
+  const m0 = (await T()).markers.length;
+  await page.keyboard.press("m");
+  ok((await T()).markers.length === m0 + 1 && !!(await page.$(".sl-marker")), "M adds a marker at the playhead");
+  await page.keyboard.press("m");
+  ok((await T()).markers.length === m0, "M again takes it off");
+  await page.keyboard.press("Control+Equal");
+  ok((await T()).zoom > 1, "⌘+ zooms the timeline in");
+  await page.keyboard.press("Shift+Z");
+  ok((await T()).zoom === 1, "⇧Z fits the timeline");
+  await page.keyboard.press("b");
+  ok((await T()).tool === "split", "B is Split mode");
+  await page.keyboard.press("a");
+  ok((await T()).tool === "select", "A is Select mode");
+  await page.keyboard.press("Backquote");
+  ok((await T()).linkage === false, "~ turns linkage off");
+  await page.keyboard.press("Backquote");
+  await page.keyboard.press("p");
+  ok((await T()).magnet === true, "P turns the main track magnet on");
+  await page.keyboard.press("p");
+  const nodeCount = () => page.evaluate(() => Object.values(window.CurioEngine.state().lanes).reduce((a, l) => a + Object.keys(l.points).length, 0));
+  const p0 = await nodeCount();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Control+b");
+  ok((await nodeCount()) === p0 + 1, "⌘B splits the lane's line at the playhead with a node");
+  await page.keyboard.press("Control+z");
+  ok((await nodeCount()) === p0, "⌘Z undoes it");
+  await page.keyboard.press("ArrowLeft");
+  for (const [lay, test, msg] of [
+    ["right", (g) => g.player.l >= g.insp.r - 1 && g.player.b > g.tl.t, "Player on the right runs full height beside the timeline"],
+    ["media", (g) => g.lib.b > g.tl.t && g.tl.l >= g.lib.r - 1, "Library full height runs down the left beside the timeline"],
+    ["details", (g) => g.insp.b > g.tl.t && g.tl.r <= g.insp.l + 1, "Details full height runs down the right beside the timeline"],
+    ["center", (g) => g.tl.t >= g.player.b - 1, "the default layout puts the timeline under everything"],
+  ]) {
+    await page.selectOption("[data-pick-layout]", lay);
+    const g = await page.evaluate(() => Object.fromEntries([["lib", ".sc-lib"], ["player", ".sc-player"], ["insp", ".sc-inspector"], ["tl", ".sc-timeline"]].map(([k, q]) => { const r = document.querySelector(q).getBoundingClientRect(); return [k, { l: r.left, r: r.right, t: r.top, b: r.bottom }]; })));
+    ok(test(g), msg);
+    if (lay === "right") await page.screenshot({ path: path.join(SHOTS, "screen-1d-player-right.png") });
+  }
+
   for (const lv of ["suite", "proximity", "proximitySuite", "curiosity"]) {
     await page.click(`[data-level="${lv}"]`);
     ok(await page.evaluate((l) => window.CurioScreen.state().sel.level === l, lv), "looks through a " + lv);

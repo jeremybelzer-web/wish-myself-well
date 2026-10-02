@@ -59,7 +59,119 @@
     openCats: {},
     groups: {},
     search: "",
+    layout: "center",
+    playerZoom: 1,
+    guides: false,
+    rulers: false,
   };
+  /* CapCut's layout menu (the layout icon at the top right of its window). Jeremy's screenshots show four
+     arrangements: the default, the media panel full height on the left, Details full height on the right, and
+     the Player full height on the right. */
+  const LAYOUTS = [
+    ["center", "Player in the middle", "Library, Player and Details across the top, the timeline under them (CapCut's default)"],
+    ["media", "Library full height", "The library runs down the whole left side; Player and Details on the right, the timeline under them"],
+    ["details", "Details full height", "Details runs down the whole right side; library and Player on the left, the timeline under them"],
+    ["right", "Player on the right", "Library and Details side by side over the timeline, the Player as a tall column on the right"],
+  ];
+  /* CapCut's keyboard shortcuts (its Shortcut window: Timeline, Player, Basic and Other tabs, plus the toolbar's
+     tooltips), each mapped to the nearest thing on the Screen. [keys, CapCut's name, what it does here, test(e), run(e)].
+     A row without test/run is a CapCut key with nothing to do on the Screen yet, listed so nothing is hidden. */
+  const mod = (e) => e.ctrlKey || e.metaKey;
+  const plain = (e) => !mod(e) && !e.altKey;
+  const key = (e, k) => e.key.toLowerCase() === k;
+  const lk = (name) => () => lanes && lanes.command(name);
+  const SHORTCUTS = [
+    ["Timeline", [
+      ["⌘B", "Split", "Cut the picked lane's line at the playhead with a node, keeping what plays", (e) => mod(e) && !e.shiftKey && key(e, "b"), lk("splitHere")],
+      ["⇧⌘B", "Split all", "Cut every lane on the timeline at the playhead", (e) => mod(e) && e.shiftKey && key(e, "b"), lk("splitAll")],
+      ["A", "Select mode", "Click a node to pick it, click an empty spot to add one", (e) => plain(e) && !e.shiftKey && key(e, "a"), lk("select")],
+      ["B", "Split mode", "Click a lane to cut its line with a node", (e) => plain(e) && !e.shiftKey && key(e, "b"), lk("split")],
+      ["[", "Select leftward", "Pick the node to the left (CapCut picks every clip to the left)", (e) => plain(e) && e.key === "[", lk("left")],
+      ["]", "Select rightward", "Pick the node to the right", (e) => plain(e) && e.key === "]", lk("right")],
+      ["P", "Main track magnet", "Moving a node moves every later node in its lane too", (e) => plain(e) && key(e, "p"), lk("magnet")],
+      ["N", "Auto snapping", "A node dropped next to a marker lands on it", (e) => plain(e) && key(e, "n"), lk("snap")],
+      ["~", "Linkage switch", "Joined nodes move and copy together (on) or alone (off)", (e) => plain(e) && (e.key === "~" || e.key === "`"), lk("linkage")],
+      ["S", "Preview axis switch", "Hover over the timeline to see that moment in the player", (e) => plain(e) && !e.shiftKey && key(e, "s"), lk("skim")],
+      ["M", "Add marker", "Put a marker on the playhead's moment (again to take it off)", (e) => plain(e) && key(e, "m"), lk("marker")],
+      ["⌘+", "Zoom in", "Wider moments on the timeline", (e) => mod(e) && !e.altKey && (e.key === "=" || e.key === "+"), lk("zoomIn")],
+      ["⌘−", "Zoom out", "Narrower moments on the timeline", (e) => mod(e) && !e.altKey && (e.key === "-" || e.key === "_"), lk("zoomOut")],
+      ["⇧Z", "Zoom to fit timeline", "The whole film fits the timeline", (e) => plain(e) && e.shiftKey && key(e, "z"), lk("zoomFit")],
+      ["J", "Shuttle left", "Play backward; press again to go faster", (e) => plain(e) && key(e, "j"), () => shuttle(-1)],
+      ["K", "Shuttle stop", "Stop playing", (e) => plain(e) && key(e, "k"), () => play(false)],
+      ["L", "Shuttle right", "Play forward; press again to go faster", (e) => plain(e) && key(e, "l"), () => shuttle(1)],
+      ["Q", "Delete left", "Remove the picked lane's nodes before the playhead", (e) => plain(e) && key(e, "q"), lk("deleteLeft")],
+      ["W", "Delete right", "Remove the picked lane's nodes after the playhead", (e) => plain(e) && key(e, "w"), lk("deleteRight")],
+      ["⇧⌥K", "Add keyframe", "Add a node at the playhead on the picked lane (a node is a keyframe)", (e) => e.altKey && e.shiftKey && !mod(e) && e.code === "KeyK", lk("splitHere")],
+      ["⇧↩", "In", "Nothing on the Screen yet (CapCut marks where a clip starts)"],
+      ["⌥K", "Show/hide keyframe panel", "Nothing yet: the timeline's lanes are always the keyframe panel"],
+    ]],
+    ["Player", [
+      ["Space", "Play/Pause", "Play the film from the playhead", (e) => plain(e) && e.key === " ", () => play(!timer)],
+      ["← →", "Back or forward", "One moment back or forward", (e) => plain(e) && (e.key === "ArrowLeft" || e.key === "ArrowRight"), (e) => setRow(row + (e.key === "ArrowRight" ? 1 : -1))],
+      ["⇧⌘F", "Enter/Exit full screen", "The Player fills the window (Esc to leave)", (e) => mod(e) && e.shiftKey && key(e, "f"), () => fullPlayer(!page.dataset.fullplayer)],
+      ["⌥⇧+", "Zoom in player", "Bigger frames in the Player", (e) => e.altKey && e.shiftKey && (e.code === "Equal" || e.code === "NumpadAdd"), () => zoomPlayer(1.25)],
+      ["⌥⇧−", "Zoom out player", "Smaller frames in the Player", (e) => e.altKey && e.shiftKey && (e.code === "Minus" || e.code === "NumpadSubtract"), () => zoomPlayer(0.8)],
+      ["⌥⇧Z", "Zoom to fit player", "Frames fit the Player again", (e) => e.altKey && e.shiftKey && e.code === "KeyZ", () => zoomPlayer(0)],
+      ["⌘⌥R", "Show/hide rulers", "Rulers along the frames' edges", (e) => mod(e) && e.altKey && e.code === "KeyR", () => toggleView("rulers")],
+      ["⌘;", "Show/hide guides", "Thirds guides over the frames", (e) => mod(e) && !e.altKey && e.key === ";", () => toggleView("guides")],
+      ["Long press ⌘", "Cancel player alignment", "Nothing yet (CapCut lets you place a clip freely while ⌘ is held)"],
+    ]],
+    ["Basic", [
+      ["⌘C", "Copy", "Copy the picked node with every node joined to it", (e) => mod(e) && !e.shiftKey && !e.altKey && key(e, "c"), lk("copy")],
+      ["⌘X", "Cut", "Copy it, then take it out", (e) => mod(e) && !e.shiftKey && !e.altKey && key(e, "x"), lk("cut")],
+      ["⌘V", "Paste", "Paste it at the playhead's moment", (e) => mod(e) && !e.shiftKey && !e.altKey && key(e, "v"), lk("paste")],
+      ["⇧⌘C", "Copy attributes", "Copy the picked node's setting", (e) => mod(e) && e.shiftKey && key(e, "c"), lk("copyLook")],
+      ["⇧⌘V", "Paste attributes", "Give that setting to another node of the same curiosity", (e) => mod(e) && e.shiftKey && key(e, "v"), lk("pasteLook")],
+      ["⌫", "Delete", "Remove the picked node", (e) => plain(e) && (e.key === "Backspace" || e.key === "Delete"), lk("delete")],
+      ["⌘Z", "Undo", "Undo the last change to your film", (e) => mod(e) && !e.shiftKey && key(e, "z"), () => E() && E().undo()],
+      ["⇧⌘Z", "Reset (redo)", "Redo what you undid", (e) => mod(e) && e.shiftKey && key(e, "z"), () => E() && E().redo()],
+      ["?", "Shortcuts", "Show or hide this list", (e) => !mod(e) && e.key === "?", () => showKeys(!keysOpen)],
+      ["esc", "Exit full screen", "Leave the full-screen Player, or close this list", null, null],
+      ["⌘I, ⌘E, ⌘N", "Import, Export, New project", "In the app's Library menu (Open, Print, New project); the browser keeps these keys"],
+      ["⇥", "Switch material panel", "Tab moves between buttons, as on any web page; click the icon row instead"],
+      ["⌘Q, ⌘⌥Q, ⌘^F", "Quit, Back to edit, Full screen", "Handled by the browser or the desktop app"],
+    ]],
+    ["Other", [["⌥ drag", "Resize the text box from the center", "Nothing yet: there are no text boxes on the Screen"]]],
+  ];
+  /* J and L: each press goes one step faster in that direction, like CapCut's shuttle. */
+  let playDir = 1;
+  let playRate = 1;
+  function shuttle(dir) {
+    if (timer && playDir === dir) playRate = Math.min(8, playRate * 2);
+    else playRate = 1;
+    playDir = dir;
+    play(true);
+  }
+  function fullPlayer(on) {
+    if (on) page.dataset.fullplayer = "1";
+    else delete page.dataset.fullplayer;
+  }
+  function zoomPlayer(f) {
+    prefs.playerZoom = f ? Math.max(0.5, Math.min(3, (Number(prefs.playerZoom) || 1) * f)) : 1;
+    save();
+    page.style.setProperty("--sc-pz", String(prefs.playerZoom));
+  }
+  function toggleView(k) {
+    prefs[k] = !prefs[k];
+    save();
+    page.dataset[k] = prefs[k] ? "1" : "";
+  }
+  let keysOpen = false;
+  function showKeys(on) {
+    keysOpen = !!on;
+    let box = page.querySelector(".sc-keys");
+    if (!keysOpen) return box && box.remove();
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "sc-keys";
+      box.setAttribute("role", "dialog");
+      box.setAttribute("aria-label", "Keyboard shortcuts");
+      page.appendChild(box);
+    }
+    box.innerHTML = `<div class="sc-keys-in"><header><strong>Keyboard shortcuts</strong><span class="sc-k">CapCut's keys, doing the nearest thing for curiosity nodes. ⌘ is Ctrl on Windows; faded rows have nothing to do here yet.</span><button type="button" data-act="keys-close" aria-label="Close">×</button></header>${SHORTCUTS.map(
+      ([h, rows]) => `<section><h3>${esc(h)}</h3>${rows.map(([k, name, what, test]) => `<p${test === undefined ? ' class="sc-key-none"' : ""}><kbd>${esc(k)}</kbd><b>${esc(name)}</b><span>${esc(what)}</span></p>`).join("")}</section>`
+    ).join("")}</div>`;
+  }
   let prefs = load();
   function load() {
     try {
@@ -135,7 +247,8 @@
   function play(on) {
     if (timer) clearInterval(timer);
     timer = null;
-    if (on) timer = setInterval(() => setRow(row + 1 >= nRows() ? 0 : row + 1), Math.round(1100 / (prefs.speed || 1)));
+    if (!on) (playDir = 1), (playRate = 1);
+    if (on) timer = setInterval(() => setRow(playDir < 0 ? (row <= 0 ? nRows() - 1 : row - 1) : row + 1 >= nRows() ? 0 : row + 1), Math.round(1100 / ((prefs.speed || 1) * playRate)));
     const b = page && page.querySelector('[data-act="play"]');
     if (b) b.textContent = on ? "Pause" : "Play";
   }
@@ -217,16 +330,19 @@
     document.addEventListener("keydown", (e) => {
       if (page.hidden) return;
       const tag = (e.target && e.target.tagName) || "";
-      if (/INPUT|SELECT|TEXTAREA/.test(tag)) return;
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && E()) {
-        e.preventDefault();
-        if (e.shiftKey) E().redo();
-        else E().undo();
-      } else if (e.key === " ") {
-        e.preventDefault();
-        play(!timer);
-      } else if (e.key === "ArrowRight") setRow(row + 1);
-      else if (e.key === "ArrowLeft") setRow(row - 1);
+      if (/INPUT|SELECT|TEXTAREA/.test(tag) || (e.target && e.target.isContentEditable)) return;
+      if (e.key === "Escape" && keysOpen) return showKeys(false);
+      if (e.key === "Escape" && page.dataset.fullplayer) return fullPlayer(false);
+      /* Leave the browser's own copy alone when text is selected. */
+      if (mod(e) && e.key.toLowerCase() === "c" && String(window.getSelection && window.getSelection()).length) return;
+      for (const [, rows] of SHORTCUTS)
+        for (const r of rows)
+          if (r[3] && r[3](e)) {
+            e.preventDefault();
+            r[4](e);
+            if (keysOpen && r[0] !== "?") showKeys(true);
+            return;
+          }
     });
     if (E()) E().on(() => !page.hidden && drawAll(true));
     window.addEventListener("resize", () => !page.hidden && lanes && lanes.draw());
@@ -236,6 +352,10 @@
     row = Math.min(row, nRows() - 1);
     page.dataset.view = prefs.view;
     page.dataset.arrange = prefs.arrange;
+    page.dataset.layout = LAYOUTS.some((l) => l[0] === prefs.layout) ? prefs.layout : "center";
+    page.dataset.guides = prefs.guides ? "1" : "";
+    page.dataset.rulers = prefs.rulers ? "1" : "";
+    page.style.setProperty("--sc-pz", String(Number(prefs.playerZoom) || 1));
     drawBar();
     drawLibrary();
     drawViewers();
@@ -271,6 +391,8 @@
         <select data-pick-item aria-label="Which ${esc(prefs.sel.level)}">${selectOptions()}</select>
       </div>
       ${prefs.view === "arrange" ? `<label class="sc-chk"><input type="checkbox" data-act="viewers-in-arrange" ${prefs.viewersInArrange ? "checked" : ""}> Show the player</label>` : ""}
+      <label class="sc-layout" title="Layout, like CapCut's layout menu"><span class="sc-k">Layout</span><select data-pick-layout aria-label="Layout">${LAYOUTS.map(([id, l, t]) => `<option value="${id}" title="${esc(t)}"${prefs.layout === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
+      <button type="button" data-act="shortcuts" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="5" width="17" height="10" rx="1.5"/><path d="M5 8h1M8 8h1M11 8h1M14 8h1M5 11.5h10"/></svg> Shortcuts</button>
       <button type="button" data-act="close" class="sc-close">Back to the app</button>
       <p class="sc-what">${esc(sel.label)}${sel.plain ? ": " + esc(sel.plain) : ""}</p>`;
   }
@@ -695,6 +817,7 @@
         clips: clipRows,
         header: prefs.view === "arrange" ? laneHeader : null,
         onClip: (j) => setRow(j),
+        onHover: (j) => setRow(j),
         onSelect: (cur) => {
           if (prefs.sel.level === "curiosity" && prefs.sel.id === cur) return;
           if (prefs.view === "screen" && prefs.sel.level !== "curiosity") return;
@@ -844,6 +967,8 @@
     }
     const act = d.act;
     if (act === "close") return close();
+    if (act === "shortcuts") return showKeys(!keysOpen);
+    if (act === "keys-close") return showKeys(false);
     if (act === "play") return play(!timer);
     if (act === "prev") return setRow(row - 1);
     if (act === "next") return setRow(row + 1);
@@ -885,6 +1010,11 @@
   function onChange(e) {
     const t = e.target;
     const d = t.dataset;
+    if ("pickLayout" in d) {
+      prefs.layout = t.value;
+      save();
+      return drawAll();
+    }
     if ("pickItem" in d) {
       prefs.sel = { level: prefs.sel.level, id: t.value };
       const r = selection();

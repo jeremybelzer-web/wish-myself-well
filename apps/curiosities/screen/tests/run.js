@@ -25,8 +25,10 @@ const ws = DB.data.workspaces.map((x) => x.id);
 const inCats = [].concat(...L.CATEGORIES.map((c) => c.workspaces));
 ok(ws.every((id) => inCats.filter((x) => x === id).length === 1), "every workspace sits in exactly one of the " + L.CATEGORIES.length + " categories");
 ok(L.CATEGORIES.every((c) => [1, 2, 3].includes(c.windows)), "every category opens with one, two or three windows");
-const total = L.CATEGORIES.reduce((a, c) => a + L.curiosities(c.id).length, 0);
-ok(total === DB.data.curiosities.length, "the categories hold every curiosity once (" + total + ")");
+const total = L.CATEGORIES.reduce((a, c) => a + L.curiosities(c.id).filter((x) => L.categoryOf(x.id) === c.id).length, 0);
+ok(total === DB.data.curiosities.length, "the categories hold every curiosity once in its home category (" + total + ")");
+ok(L.curiosities("feeling").some((x) => x.id === "moodEffect") && L.curiosities("text").some((x) => x.id === "moodEffect"), "Mood stickers on faces show under Text and under Feeling");
+ok(L.items("proximity", "feeling").filter((p) => /^face-/.test(p.id)).length === 8 && L.items("proximitySuite", "feeling").some((p) => p.id === "mood-moves-the-feeling"), "Body Mood effects feed the Emotion curiosities, both ways");
 
 /* The four levels resolve to curiosities to look at. */
 for (const lv of ["curiosity", "suite", "proximity", "proximitySuite"]) {
@@ -45,7 +47,7 @@ ok(L.control({ scale: ["off", "on"] }) === "toggle" && L.control({ scale: ["a", 
 const edit = DB.data.curiosities.filter((c) => c.source === "Final Cut Pro and CapCut");
 ok(edit.length >= 30 && edit.every((c) => c.momentum && c.sliders.length >= 4), "the editing curiosities load, each with a momentum note and its sliders (" + edit.length + ")");
 ok(["transitions", "grade", "text", "speed"].every((id) => L.curiosities(id).length >= 3), "the new CapCut categories (Transitions, Filters, Text, Speed) have curiosities");
-ok(DB.check().length === 0, "the database check finds no problems with them");
+ok(DB.check().length === 0, "the database check finds no problems with them" + (DB.check().length ? ": " + DB.check().slice(0, 6).join("; ") : ""));
 const ed = w.CurioFrame.svg({ transitionKind: "wipe", filterLook: "night", onScreenText: "title card", clipSpeed: "fast" }, { highlight: ["transitions"] });
 ok(["transitions", "grade", "text", "speed"].every((c) => ed.includes(`data-cat="${c}"`)) && /data-cat="grade" opacity="0.18"/.test(ed), "the frame draws transitions, filters, text and speed, and dims them by category");
 
@@ -78,6 +80,22 @@ const pa = w.CurioLanes.paste(0);
 ok(pa.ok && E.state().links.length === n0 + 1 && E.state().lanes["camera|shotSize"].points[r[0].id] === "close", "paste puts the pair and its line at another moment");
 E.undo();
 ok(E.state().links.length === n0, "undo takes the paste back");
+
+/* CapCut's linkage (~) off: a node moves alone and its line stretches. The magnet (P): later nodes come along. */
+const k3 = r[3].id + "@camera|shotSize";
+const solo = w.CurioLanes.shiftCommands(E.state(), k3, -1, false, { solo: true });
+ok(E.send({ type: "batch", commands: solo.cmds }).ok, "a node can move alone with linkage off");
+const s2 = E.state();
+const ln2 = s2.links.find((l) => l.to.curiosity === "emotion" && l.scope);
+ok(s2.lanes["camera|shotSize"].points[r[2].id] === "close" && s2.lanes["master|emotion"].points[r[5].id] === "angry" && ln2.scope.from === r[2].id && ln2.scope.to === r[5].id && ln2.within === 3, "its partner stays put and the line stretches");
+E.undo();
+E.send({ type: "setPoint", row: r[6].id, track: "camera", curiosity: "shotSize", value: "wide" });
+const rip = w.CurioLanes.shiftCommands(E.state(), k3, 1, false, { solo: true, ripple: true });
+ok(E.send({ type: "batch", commands: rip.cmds }).ok, "the magnet moves later nodes too");
+const s3 = E.state().lanes["camera|shotSize"].points;
+ok(s3[r[4].id] === "close" && s3[r[7].id] === "wide" && s3[r[6].id] == null, "every later node in the lane slid along by the same amount");
+E.undo();
+ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === true, "linkage starts on, as in CapCut");
 
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);
