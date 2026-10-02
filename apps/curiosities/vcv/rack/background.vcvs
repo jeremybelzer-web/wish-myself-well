@@ -1,0 +1,67 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "BACKGROUND ACTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 2, CC 49 to 60\n   1 Setting\n   2 Interior or exterior\n   3 Motion of the environment\n   4 Temperature\n   5 Weather\n   6 Scale of the place\n   7 Repetition in frame\n   8 suite: The weather feels it too\n   9 pair: When it rains, surfaces are soaked\n  10 pair: When sadness rises, the rain starts\n  11 pair: When tension rises, the background goes still\n  12 pairs: The world mirrors the feeling"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 1
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}

@@ -1,0 +1,67 @@
+# Curiosities in VCV Rack
+
+VCV Rack is a free program that works like a modular synthesizer on your computer. You build a patch by
+running cables between modules. An **LFO** is a module that sends out a slow, endless wave, and a **sequencer**
+steps through values in time. This folder lets those things drive the app. Every curiosity, suite, proximity
+and proximity suite in the database has its own **jack** (a socket for a cable). Patch an LFO into the jack for
+Music and the music in your scene swells and fades with the wave.
+
+## How it works today (no plugin to install)
+
+```
+VCV Rack                                   your computer                 the Curiosities app
+LFO / sequencer ──► CV-CC module ──► MIDI ──► a virtual MIDI cable ──► vcv/bridge.js ──► automation lanes
+(voltage 0 to 10 V)  (VCV's own, free)                                   (Web MIDI)          (the board)
+```
+
+1. **A virtual MIDI cable** connects VCV Rack to the browser.
+   - **Mac:** open Audio MIDI Setup, show the MIDI Studio, double-click IAC Driver, and tick "Device is online".
+   - **Windows:** install the free loopMIDI and add one port.
+   - **Linux:** `sudo modprobe snd-virmidi`.
+2. **In VCV Rack 2**, use File > Import selection and pick a file from `vcv/rack/`. Each workspace has its own file
+   (`music.vcvs`, `comedy.vcvs` and so on), and `all-curiosities.vcvs` has every one. Each file brings in:
+   - a **Notes** module listing every jack: what it drives, its MIDI channel and its CC number,
+   - one or more **CV-CC** modules (VCV's own), each with 16 jacks already set to the right numbers,
+   - an **LFO** already cabled into the first jack, so something moves straight away.
+   
+   On each CV-CC module, click the MIDI device name and pick your virtual cable.
+3. **In the app** (Chrome or Edge, which have Web MIDI), click the **VCV** badge at the bottom left and allow MIDI.
+   The badge shows what is coming in, for example "VCV: Music 64%".
+
+0 V is the item's From setting and 10 V its To setting, the same two ends its automation module shows. The first
+value that arrives switches the item on. Any jack can take any voltage source, such as an LFO, an envelope, a
+sequencer, a MIDI keyboard's mod wheel, or a VCV module that follows a microphone.
+
+### The Focus module: one item's sliders
+
+Every item also has many sliders, called lanes (Music has 18, including tempo, mood and how it comes in). There
+are about 3,000 lanes in all, which is too many for one jack each. `focus-lanes.vcvs` adds one CV-CC module on MIDI
+channel 16. In the app's VCV badge, type the item to focus, for example Music. Jack 1 then moves the item itself,
+and jacks 2 to 16 move its sliders in the order its automation module lists them.
+
+## Making the files again
+
+The jack list is generated from the database. When the database changes, run:
+
+```
+node vcv/tools/make-vcv.js
+```
+
+This rewrites `curiosity-jacks.js` (read by the app), `curiosity-jacks.json` and `rack/*.vcvs`. Each workspace
+starts on a fresh CV-CC module, so its jacks stay together. Today there are 556 jacks on 46 CV-CC modules, using
+MIDI channels 1 to 7 and CC numbers 1 to 112. Channel 16 is kept for Focus.
+
+## Tested
+
+- In headless Chromium with a stand-in MIDI device: a CC on Music's jack moved the board's Music from "none"
+  (0) through "equal to the voices" (64) to "wall of sound" (127). Jacks for a suite, a proximity and a proximity
+  suite each switched their item on. The Focus jacks moved Music's own slider lanes.
+- The `.vcvs` files follow VCV Rack 2's own source code for the selection format, the CV-CC module ("ccs",
+  "midi") and the LFO. **They have not been opened in a real VCV Rack yet.** That needs someone with Rack
+  installed (Jeremy or Sharani).
+
+## Later: a real Curiosities plugin
+
+See `SPEC.md`. The plan is a VCV Rack plugin generated from the same database: one panel per workspace with every
+jack printed by name, a Focus module with a knob to pick the item, 14-bit precision, and output jacks so the app
+can drive Rack the other way.

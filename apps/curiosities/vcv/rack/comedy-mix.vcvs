@@ -1,0 +1,67 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "COMEDY FROM THE MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 49 to 62\n   1 How different the personalities are\n   2 Chaos in an orderly room\n   3 Gap in rank\n   4 What the mix does to the plot\n   5 What the mix does to the characters\n   6 Laughs from the mix\n   7 suite: Comedy from the mix lens\n   8 suite: Straight one and funny one\n   9 suite: Chaos agent\n  10 pair: When a chaos character enters an orderly room, the cringe rises\n  11 pair: When opposite personality types share the room, more of the laughs come from the mix\n  12 pair: When the gap in rank grows, the plot takes a turn\n  13 pair: Pride before a fall\n  14 pairs: The mix makes it funny"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 5
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}

@@ -1,0 +1,131 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "EMOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 33 to 48\n   1 Strength of the feeling\n   2 How they move\n   3 Feeling in the voice\n   4 Amount of movement\n   5 Amount said\n   6 Posture changes\n   7 Size of the actions\n   8 Mood of the place\n   9 Mood of the light\n  10 Against the last scene\n  11 Feeling gap between characters\n  12 suite: Feels loving\n  13 suite: Feels joyful\n  14 suite: Feels curious\n  15 suite: Feels melancholy\n  16 suite: Feels anxious\nCV-CC 2: MIDI channel 5, CC 49 to 64\n   1 suite: Feels fearful\n   2 suite: Feels angry\n   3 suite: Feels triumphant\n   4 suite: Feels absurd\n   5 suite: Feels dreamlike\n   6 suite: Emotion lens\n   7 suite: Feeling of the scene\n   8 suite: Held-back tears\n   9 suite: Rage boils over\n  10 suite: Quiet joy\n  11 suite: Frozen fear\n  12 suite: Mood whiplash\n  13 suite: Calm in the storm\n  14 suite: The mask slips\n  15 pair: When the mood of the light drops, the strength of the feeling rises\n  16 pair: When the feeling grows stronger, the posture changes more often\nCV-CC 3: MIDI channel 5, CC 65 to 72\n   1 pair: When a scene feels the opposite of the last one, the color shifts too\n   2 pair: When a feeling rises, the face shows it before the words\n   3 pair: When anger rises, the voice gets louder\n   4 pair: When fear rises, movement stops\n   5 pair: When one character's feeling overflows, others catch it\n   6 pair: When joy rises, the light warms\n   7 pairs: The body tells first\n   8 pairs: Feelings spread"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    40,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}

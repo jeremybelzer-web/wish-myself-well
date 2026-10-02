@@ -1,0 +1,99 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "SET DESIGN\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 1 to 16\n   1 Era and style of the place\n   2 Main material\n   3 Soft curves to sharp clean lines\n   4 Art on the walls\n   5 How the art is arranged\n   6 Clutter\n   7 Cramped to open\n   8 Run down to spotless\n   9 Layers behind the people\n  10 Dark to bright colors\n  11 How the room is laid out\n  12 Props\n  13 suite: Set design lens\n  14 suite: Dive bar\n  15 suite: Upscale lounge\n  16 suite: Period piece\nCV-CC 2: MIDI channel 5, CC 17 to 26\n   1 suite: Cold minimalism\n   2 suite: Warm maximalism\n   3 suite: Lived-in home\n   4 pair: When the clutter rises, the room feels more cramped\n   5 pair: When the place runs down, the clothes wear out too\n   6 pair: In a cluttered room, the shots get closer\n   7 pair: In a huge space, the frame goes wide\n   8 pair: A key prop gets its close-up\n   9 pair: A run-down room darkens the mood\n  10 pairs: The set steers the camera"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}
