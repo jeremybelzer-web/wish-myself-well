@@ -845,6 +845,10 @@
   let lastCheck = { ok: true, at: 0 };
   const drift = [];
   const LABELS = {
+    importLinks: "Add links",
+    toggleSuite: "Switch a suite",
+    removeSuite: "Remove a suite",
+    printFrom: "Show other moments on My film",
     setSource: "Change a value",
     clearSource: "Reset a value",
     edit: "Hand edit",

@@ -138,8 +138,32 @@ const ok = (cond, text) => {
   await page.selectOption("[data-form=link] [name=does]", "rise");
   await page.click("[data-act=link-add]");
   ok((await page.evaluate(() => CurioEngine.state().links.some((l) => l.from.curiosity === "cameraCarry" && l.does === "rise"))) === true, "a link added from the form");
-  await page.click("[data-act=seed-catalog]");
+  const n0 = await page.evaluate(() => CurioEngine.state().links.length);
+  await page.click("[data-act=pack-group]");
+  const afterGroup = await page.evaluate(() => ({ links: CurioEngine.state().links.length, suites: CurioEngine.state().suites.length }));
+  ok(afterGroup.links > n0 && afterGroup.suites === 1, "a proximity suite from the database comes in as links (" + (afterGroup.links - n0) + ")");
+  await page.click("[data-act=suite-on]");
+  ok((await page.evaluate(() => CurioEngine.state().suites[0].on)) === false, "and switches off together");
+  await page.click("[data-act=pack-fit]");
   await page.screenshot({ path: path.join(SHOTS, "engine-links.png"), fullPage: false });
+
+  /* Past 8 moments: My film shows a window; the storyboard takes the whole film. */
+  await page.click("[data-tab=timeline]");
+  await page.evaluate(() => { for (let i = 0; i < 10; i++) CurioEngine.send({ type: "addRow" }); });
+  await page.click("[data-act=print]");
+  const panels0 = await page.evaluate(() => CuriosityBoard.count());
+  await page.click("[data-act=win-next]");
+  const win = await page.evaluate(() => ({ from: CurioEngine.state().print.from, applied: CuriosityBoard.applied() }));
+  ok(win.from === panels0 && win.applied && win.applied.label === "Engine", "Later moments moves My film's window and sends it (from " + win.from + ")");
+  ok((await page.evaluate(() => CurioBridge.handle({ type: "timeline" }).panels.length)) === (await page.evaluate(() => CurioEngine.state().rows.length)), "a tool asking the bridge for the timeline gets every moment");
+  const sbBefore = await page.evaluate(() => CuriosityStoryboard.data().scenes.length);
+  await Promise.all([page.waitForNavigation({ timeout: 15000 }), page.click("[data-act=sb-print]")]);
+  await page.waitForFunction(() => window.CuriosityBoard && window.CurioEngineUI && document.querySelector(".en-overlay:not([hidden])"), null, { timeout: 15000 });
+  const sb = await page.evaluate(() => CuriosityStoryboard.data().scenes.filter((s) => s.engine).map((s) => s.panels.length));
+  ok(sb.reduce((a, b) => a + b, 0) === (await page.evaluate(() => CurioEngine.state().rows.length)) && sb.every((n) => n <= 24), "the whole film went to the storyboard as scenes of up to 24 panels (" + sb.join(", ") + "), and the engine opened again");
+  ok((await page.evaluate(() => CuriosityStoryboard.data().scenes.length)) === sbBefore + sb.length, "the storyboard's own scenes are kept");
+  await page.screenshot({ path: path.join(SHOTS, "engine-window.png") });
+  await page.selectOption("[data-field=sb-scene]", "all").catch(() => {});
 
   await page.click("[data-tab=analyze]");
   await page.fill("[data-field=ref-text]", "INT. KITCHEN - NIGHT\n\nShe paces, glances at the clock.\n\nANA\n(whispering)\nWhere is he?\n\nBEN\nI'm HERE!\n\nEXT. ROOF - DAWN\n\nThey sit. She smiles.\n\nANA\nI love this.\n\nINT. CAR - DAY\n\nBEN\nHa!");
@@ -207,7 +231,7 @@ const ok = (cond, text) => {
         continue;
       }
       const scope = document.querySelector(".en-pop") && R() < 0.6 ? document.querySelector(".en-pop") : document.querySelector(".en-overlay");
-      const els = [...scope.querySelectorAll("button, input, select, textarea, canvas")].filter((e) => !e.disabled && e.dataset.act !== "close" && e.dataset.act !== "app-undo" && e.dataset.act !== "app-redo");
+      const els = [...scope.querySelectorAll("button, input, select, textarea, canvas")].filter((e) => !e.disabled && e.dataset.act !== "close" && e.dataset.act !== "app-undo" && e.dataset.act !== "app-redo" && e.dataset.act !== "sb-print" && e.dataset.act !== "sb-unprint");
       if (!els.length) continue;
       const el = pick(els);
       try {
