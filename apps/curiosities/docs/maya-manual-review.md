@@ -2,7 +2,7 @@
 
 Every topic from the Maya User Guide and the Arnold for Maya User Guide that we went through, graded for this app. **Major** topics get working tools in the Studio tab where a browser can do it. **Minor** topics are listed for you to keep or skip. Change the Call column, or use the Manual sub-tab in Studio.
 
-241 topics: 92 major, 149 minor. Pages actually read: 48; every other row is from working knowledge of Maya and is marked "knowledge".
+308 topics: 120 major, 188 minor. Pages actually read: 63; every other row is from working knowledge of Maya and is marked "knowledge".
 
 ## Major topics
 
@@ -329,10 +329,24 @@ Major topics no Studio tool covers yet, most valuable first.
 - https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E43621EC-5810-47FF-90FE-168ADFA63C4E.htm
 - https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E4B5DB7D-7351-4561-BD8B-60AC9D48DDF6.htm
 - https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-F7BE47E6-76D5-47F0-8159-9F39FF0C4215.htm
+- https://help.autodesk.com/cloudhelp/2018/ENU/Maya-CharEffEnvBuild/files/GUID-A00D16BD-9ECC-4C63-BAB5-B0278BF596BB.htm
+- https://help.autodesk.com/cloudhelp/2022/ENU/Bifrost-Common/files/reference/mpm/Bifrost_Common_reference_mpm_source_mpm_snow_html.html
+- https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm
 - https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm
+- https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm
 - https://help.autodesk.com/cloudhelp/2023/ENU/Maya-Animation/files/GUID-2656574F-FBC6-457B-B0C1-5C1249DA89EF.htm
+- https://help.autodesk.com/cloudhelp/2023/ENU/Maya-SimulationEffects/files/GUID-ED54EFF5-A067-41CC-9CD8-B281DEDB37E6.htm
 - https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html
 - https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/arnold_for_maya_shading_am_Using_Barndoor_Filter_html.html
+- https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/fluids/Bifrost_Common_reference_fluids_aero_solver_settings_html.html
+- https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/mpm/Bifrost_Common_reference_mpm_source_mpm_sand_html.html
+- https://help.autodesk.com/cloudhelp/2024/ENU/Maya-Bifrost/files/GUID-3A70125C-191E-4580-9BBA-08FE924947B3.htm
+- https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-22B812FB-D615-4BF9-B98C-5648D481151D.htm
+- https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-496603B0-F929-45CD-B607-1CFCD3283DBE.htm
+- https://help.autodesk.com/cloudhelp/2024/ENU/Maya-SimulationEffects/files/GUID-17B84282-8A65-4359-B997-9D4BC0293FF2.htm
+- https://help.autodesk.com/cloudhelp/2025/ENU/Maya-Bifrost/files/GUID-AF898698-9213-4835-89BA-C357977731DD.htm
+- https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-70A85F9C-9FC0-49FD-A535-76D379D2C9BC.htm
+- https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-809D1ADA-4D78-45E5-9900-9997089DFC3F.htm
 - https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/ac-light-filters/arnold_user_guide_ac_light_filters_ac_light_blocker_html.html
 - https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html
 - https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html
@@ -342,5 +356,6 @@ Major topics no Studio tool covers yet, most valuable first.
 - https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_render_settings_html.html
 - https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/arnold_for_maya_am_Getting_Started_with_Arnold_GPU_html.html
 - https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html
+- https://help.autodesk.com/cloudhelp/ENU/Bifrost-Common/files/simulate-dynamic-effects/Bifrost_Common_simulate_dynamic_effects_create_mpm_simulations_html.html
 - https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html
 - https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html

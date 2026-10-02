@@ -38,10 +38,24 @@ window.MAYA_MANUAL = {
   "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E43621EC-5810-47FF-90FE-168ADFA63C4E.htm",
   "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E4B5DB7D-7351-4561-BD8B-60AC9D48DDF6.htm",
   "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-F7BE47E6-76D5-47F0-8159-9F39FF0C4215.htm",
+  "https://help.autodesk.com/cloudhelp/2018/ENU/Maya-CharEffEnvBuild/files/GUID-A00D16BD-9ECC-4C63-BAB5-B0278BF596BB.htm",
+  "https://help.autodesk.com/cloudhelp/2022/ENU/Bifrost-Common/files/reference/mpm/Bifrost_Common_reference_mpm_source_mpm_snow_html.html",
+  "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
   "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+  "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
   "https://help.autodesk.com/cloudhelp/2023/ENU/Maya-Animation/files/GUID-2656574F-FBC6-457B-B0C1-5C1249DA89EF.htm",
+  "https://help.autodesk.com/cloudhelp/2023/ENU/Maya-SimulationEffects/files/GUID-ED54EFF5-A067-41CC-9CD8-B281DEDB37E6.htm",
   "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html",
   "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/arnold_for_maya_shading_am_Using_Barndoor_Filter_html.html",
+  "https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/fluids/Bifrost_Common_reference_fluids_aero_solver_settings_html.html",
+  "https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/mpm/Bifrost_Common_reference_mpm_source_mpm_sand_html.html",
+  "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-Bifrost/files/GUID-3A70125C-191E-4580-9BBA-08FE924947B3.htm",
+  "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-22B812FB-D615-4BF9-B98C-5648D481151D.htm",
+  "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-496603B0-F929-45CD-B607-1CFCD3283DBE.htm",
+  "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-SimulationEffects/files/GUID-17B84282-8A65-4359-B997-9D4BC0293FF2.htm",
+  "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-Bifrost/files/GUID-AF898698-9213-4835-89BA-C357977731DD.htm",
+  "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-70A85F9C-9FC0-49FD-A535-76D379D2C9BC.htm",
+  "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-809D1ADA-4D78-45E5-9900-9997089DFC3F.htm",
   "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/ac-light-filters/arnold_user_guide_ac_light_filters_ac_light_blocker_html.html",
   "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html",
   "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html",
@@ -51,6 +65,7 @@ window.MAYA_MANUAL = {
   "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_render_settings_html.html",
   "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/arnold_for_maya_am_Getting_Started_with_Arnold_GPU_html.html",
   "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/Bifrost-Common/files/simulate-dynamic-effects/Bifrost_Common_simulate_dynamic_effects_create_mpm_simulations_html.html",
   "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html",
   "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
  ],
@@ -9165,6 +9180,2561 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Already covered by element curiosities.",
    "source": "knowledge"
+  },
+  {
+   "id": "bifrost-aero-smoke",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Aero smoke (density, temperature, buoyancy, style)",
+   "granularity": [
+    "emitter density",
+    "emitter temperature",
+    "ambient temperature",
+    "buoyancy",
+    "style smooth/fluffy/busy/wispy",
+    "simulation speed",
+    "viscosity"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Bifrost",
+   "appDoes": "Smoke rises and spreads by buoyancy and a style word in the Bifrost tool.",
+   "curiosities": [
+    "atmosphere",
+    "element"
+   ],
+   "newCuriosities": [
+    {
+     "id": "smokeStyle",
+     "label": "Smoke style",
+     "values": "smooth, fluffy, busy, wispy",
+     "view": "Smoke silhouette per beat"
+    },
+    {
+     "id": "smokeRise",
+     "label": "Smoke rise",
+     "values": "sinks, hangs, drifts, billows up",
+     "view": "Smoke column height per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Battlefield haze",
+     "set": {
+      "smokeStyle": "busy",
+      "smokeRise": "drifts",
+      "windForce": "3"
+     }
+    }
+   ],
+   "proximities": [
+    "When fire builds, smoke thickens within 1 beat"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Smoke style is a direct, nameable look.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/fluids/Bifrost_Common_reference_fluids_aero_solver_settings_html.html ; https://help.autodesk.com/cloudhelp/2025/ENU/Maya-Bifrost/files/GUID-AF898698-9213-4835-89BA-C357977731DD.htm",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-liquid-emission",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Bifrost liquid emission and colliders",
+   "granularity": [
+    "emitter",
+    "continuous emission",
+    "kill plane",
+    "collider",
+    "master voxel size"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Bifrost",
+   "appDoes": "A pour or a wave entering the frame in the Bifrost tool.",
+   "curiosities": [
+    "splash",
+    "element"
+   ],
+   "newCuriosities": [
+    {
+     "id": "liquidAmount",
+     "label": "Water amount",
+     "values": "drip, pour, flood, wave",
+     "view": "Water level curve per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Flood",
+     "set": {
+      "liquidAmount": "flood",
+      "splash": "4",
+      "weather": "storm"
+     }
+    }
+   ],
+   "proximities": [
+    "When the dam breaks, splash follows within 1 beat"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Water amount is a story scale lever.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-ocean",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Bifrost ocean (BOSS) waves",
+   "granularity": [
+    "wave height",
+    "wind speed",
+    "wind direction",
+    "choppiness",
+    "foam"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Bifrost",
+   "appDoes": "An ocean strip whose wave height and chop follow the wind.",
+   "curiosities": [
+    "weather",
+    "windForce"
+   ],
+   "newCuriosities": [
+    {
+     "id": "waveHeight",
+     "label": "Wave height",
+     "values": "flat, swell, chop, storm",
+     "view": "A wave line under the panel"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Shipwreck",
+     "set": {
+      "waveHeight": "storm",
+      "windForce": "5",
+      "foam": "heavy",
+      "cameraCarry": "handheld"
+     }
+    }
+   ],
+   "proximities": [
+    "When wind rises, waves grow within 2 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Sea state is a mood scale.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-combustion-fire",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Combustion and fire (fuel, burn, flame, soot)",
+   "granularity": [
+    "fuel",
+    "burn rate",
+    "ignition temperature",
+    "heat release",
+    "flame color",
+    "soot",
+    "dissipation"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Bifrost",
+   "appDoes": "Fire size and flame color with smoke as a by-product.",
+   "curiosities": [
+    "fireLight",
+    "element"
+   ],
+   "newCuriosities": [
+    {
+     "id": "fireSize",
+     "label": "Fire size",
+     "values": "none, candle, campfire, house fire, explosion",
+     "view": "Flame height per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Campfire",
+     "set": {
+      "fireSize": "campfire",
+      "fireLight": "3",
+      "colorTemp": "2700",
+      "timeOfDay": "night"
+     }
+    }
+   ],
+   "proximities": [
+    "When the fire grows, warm light on faces rises within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fire drives light and danger beats.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/fluids/Bifrost_Common_reference_fluids_aero_solver_settings_html.html ; knowledge",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-foam",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Foam, spray and bubbles",
+   "granularity": [
+    "foam emission",
+    "spray",
+    "bubbles",
+    "lifespan"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Bifrost",
+   "appDoes": "White foam and spray on splashes.",
+   "curiosities": [
+    "splash"
+   ],
+   "newCuriosities": [
+    {
+     "id": "foam",
+     "label": "White water",
+     "values": "none, light, heavy",
+     "view": "White speckles on the water edge"
+    }
+   ],
+   "suites": [],
+   "proximities": [
+    "When a wave breaks, foam follows within 0 beats"
+   ],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "remixer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Foam makes water feel big.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "mpm-sand",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "MPM sand",
+   "granularity": [
+    "mass density",
+    "friction",
+    "cohesion",
+    "volume preservation",
+    "vibration speed",
+    "initial speed",
+    "inherit velocity"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Bifrost",
+   "appDoes": "Sand pours and piles; cohesion makes it clump like wet sand.",
+   "curiosities": [
+    "element",
+    "scatter"
+   ],
+   "newCuriosities": [
+    {
+     "id": "grainStick",
+     "label": "Grain stickiness",
+     "values": "dry, damp, packed",
+     "view": "Pile shape: flat spread or steep clumps"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Hourglass",
+     "set": {
+      "grainStick": "dry",
+      "speedRamp": "0.5"
+     }
+    }
+   ],
+   "proximities": [
+    "When sand pours, the pile grows within 2 beats"
+   ],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "Sand and dirt read material and time.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/mpm/Bifrost_Common_reference_mpm_source_mpm_sand_html.html ; https://help.autodesk.com/cloudhelp/ENU/Bifrost-Common/files/simulate-dynamic-effects/Bifrost_Common_simulate_dynamic_effects_create_mpm_simulations_html.html",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-scatter",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Scatter points and instances",
+   "granularity": [
+    "scatter points on mesh",
+    "density",
+    "random rotate/scale",
+    "instance geometry"
+   ],
+   "weight": "major",
+   "fit": "partial",
+   "studioTool": "Bifrost",
+   "appDoes": "Scatter leaves, rocks or debris across the ground.",
+   "curiosities": [
+    "scatter",
+    "repeatInFrame"
+   ],
+   "newCuriosities": [
+    {
+     "id": "scatterAmount",
+     "label": "Scattered things",
+     "values": "none, few, many, carpet",
+     "view": "Dots on the floor plan"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Autumn yard",
+     "set": {
+      "scatterAmount": "carpet",
+      "windForce": "2",
+      "palette": "warm"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Set dressing density at a glance.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-aero-detail",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Aero adaptivity, resolution and voxel size",
+   "granularity": [
+    "voxel size",
+    "adaptivity",
+    "refinement",
+    "time step"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "studioTool": null,
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Quality settings.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/fluids/Bifrost_Common_reference_fluids_aero_solver_settings_html.html",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-graph-basics",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Bifrost Graph basics (nodes, compounds, ports)",
+   "granularity": [
+    "graph editor",
+    "compounds",
+    "input/output ports",
+    "terminals",
+    "feedback ports"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Chain",
+   "appDoes": "The Chain tool's cause-and-effect lanes are the same node idea in plain words.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Proximity rules mirror graph wiring.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-meshing",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Bifrost meshing",
+   "granularity": [
+    "droplet reveal",
+    "resolution factor",
+    "smoothing"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "studioTool": null,
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Output step.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-guided-sim",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Guided liquid simulation",
+   "granularity": [
+    "guide mesh",
+    "guide voxel scale",
+    "min simulation depth",
+    "surface layer",
+    "particle reseed"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Bifrost",
+   "appDoes": "Water follows an animated surface so the director controls the wave.",
+   "curiosities": [
+    "splash"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Art-directed water is how shots get made.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-Bifrost/files/GUID-3A70125C-191E-4580-9BBA-08FE924947B3.htm",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-liquid-viscosity",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Liquid viscosity and surface tension",
+   "granularity": [
+    "viscosity",
+    "surface tension",
+    "density"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Uses the viscosity curiosity (water, honey, lava).",
+   "curiosities": [
+    "viscosity"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Honey versus water reads instantly.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "mpm-cloth",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "MPM cloth and shells",
+   "granularity": [
+    "stretch",
+    "bend",
+    "thickness",
+    "friction"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Covered by cloth weight.",
+   "curiosities": [
+    "clothResponse"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "keep",
+   "reason": "Duplicates nCloth for this app.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/Bifrost-Common/files/simulate-dynamic-effects/Bifrost_Common_simulate_dynamic_effects_create_mpm_simulations_html.html",
+   "sharani": true
+  },
+  {
+   "id": "mpm-fibers",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "MPM fibers (experimental) and gel/rubber",
+   "granularity": [
+    "fiber",
+    "gel",
+    "rubber",
+    "stiffness"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Logged as jelly or rubber wobble on objects.",
+   "curiosities": [
+    "squash"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "keep",
+   "reason": "Jiggle material.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/Bifrost-Common/files/simulate-dynamic-effects/Bifrost_Common_simulate_dynamic_effects_create_mpm_simulations_html.html",
+   "sharani": true
+  },
+  {
+   "id": "mpm-snow",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "MPM snow",
+   "granularity": [
+    "initial firmness",
+    "hardening",
+    "cohesion",
+    "friction",
+    "mass density"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Logged as powder or packed snow when snow falls or breaks.",
+   "curiosities": [
+    "weather",
+    "breakage"
+   ],
+   "newCuriosities": [
+    {
+     "id": "snowPack",
+     "label": "Snow",
+     "values": "powder, packed, crust",
+     "view": "Snow breaking into puffs or chunks"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Snow crunching versus puffing.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Bifrost-Common/files/reference/mpm/Bifrost_Common_reference_mpm_source_mpm_snow_html.html",
+   "sharani": true
+  },
+  {
+   "id": "bifrost-volume-render",
+   "manual": "Maya (Sharani areas)",
+   "area": "Bifrost",
+   "topic": "Rendering Bifrost volumes in Arnold",
+   "granularity": [
+    "standard volume",
+    "density channel",
+    "temperature to emission",
+    "blackbody"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Fire glow color by temperature.",
+   "curiosities": [
+    "fireLight",
+    "colorTemp"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fire color matches its heat.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "rigid-active-passive",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Bullet rigid bodies: active, passive, kinematic",
+   "granularity": [
+    "active",
+    "passive",
+    "kinematic",
+    "mass",
+    "bounciness",
+    "friction",
+    "collision shape"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "Boxes in the Dynamics tool fall, bounce and break.",
+   "curiosities": [
+    "impacts",
+    "breakage"
+   ],
+   "newCuriosities": [
+    {
+     "id": "bounciness",
+     "label": "Bounce",
+     "values": "dead, some, rubbery",
+     "view": "Bounce height after each hit"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Stack topple",
+     "set": {
+      "impacts": "3",
+      "bounciness": "some",
+      "settleTime": "long"
+     }
+    }
+   ],
+   "proximities": [
+    "When the box lands, the camera shakes within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Falling and breaking things are frequent.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "ncloth-wind-on-cloth",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Cloth in wind (lift, drag, wind shadow)",
+   "granularity": [
+    "lift",
+    "drag",
+    "wind shadow distance"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "Wind and gusts push the cloth in the Dynamics tool.",
+   "curiosities": [
+    "windForce",
+    "clothResponse"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Flag on a pole",
+     "set": {
+      "windForce": "4",
+      "clothWeight": "cotton",
+      "pinned": "one edge"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Wind on cloth is the most common sim shot.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "emission-rate-lifespan",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Emission rate, lifespan and speed",
+   "granularity": [
+    "rate per second",
+    "lifespan mode",
+    "lifespan random",
+    "speed",
+    "speed random"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The emitter rate and life sliders in the Dynamics tool.",
+   "curiosities": [
+    "density"
+   ],
+   "newCuriosities": [
+    {
+     "id": "emitRate",
+     "label": "Particles per second",
+     "values": "0 to 5",
+     "view": "Particle count curve per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Blizzard",
+     "set": {
+      "emitRate": "5",
+      "windForce": "5",
+      "weather": "snow"
+     }
+    }
+   ],
+   "proximities": [
+    "When the threat arrives, particle rate jumps within 1 beat"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Rain going from drizzle to downpour is a story beat.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "emitter-types",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Emitters (omni, directional, volume, surface, curve)",
+   "granularity": [
+    "omni",
+    "directional",
+    "volume",
+    "emit from surface",
+    "emit from curve",
+    "spread"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The emitter has a rate and lifespan; direction and spread are the next controls.",
+   "curiosities": [
+    "scatter"
+   ],
+   "newCuriosities": [
+    {
+     "id": "emitShape",
+     "label": "Emitter",
+     "values": "point, spray, area, surface",
+     "view": "An icon where the particles come from"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Where particles come from decides the composition.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "field-air",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Air field",
+   "granularity": [
+    "magnitude",
+    "attenuation",
+    "direction",
+    "speed",
+    "inherit velocity",
+    "wind/wake/fan presets"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The wind slider and gusts are the air field.",
+   "curiosities": [
+    "windForce"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
+   "sharani": true
+  },
+  {
+   "id": "field-gravity",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Gravity field",
+   "granularity": [
+    "magnitude",
+    "direction",
+    "attenuation"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The gravity setting floaty, real, heavy.",
+   "curiosities": [
+    "gravityFeel"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
+   "sharani": true
+  },
+  {
+   "id": "field-radial",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Radial field",
+   "granularity": [
+    "magnitude",
+    "attenuation",
+    "radial type"
+   ],
+   "weight": "major",
+   "fit": "partial",
+   "studioTool": "Dynamics",
+   "appDoes": "Could be the push of an explosion at an impact beat.",
+   "curiosities": [
+    "impacts"
+   ],
+   "newCuriosities": [
+    {
+     "id": "blast",
+     "label": "Blast push",
+     "values": "none, push out, pull in",
+     "view": "Particles bursting from a point"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Explosion",
+     "set": {
+      "blast": "push out",
+      "impacts": "1",
+      "fireLight": "5"
+     }
+    }
+   ],
+   "proximities": [
+    "When an impact lands, a blast push follows within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
+   "sharani": true
+  },
+  {
+   "id": "field-turbulence",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Turbulence field",
+   "granularity": [
+    "magnitude",
+    "frequency",
+    "phase",
+    "noise level"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The turbulence slider in the Dynamics tool.",
+   "curiosities": [
+    "turbulence"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
+   "sharani": true
+  },
+  {
+   "id": "field-vortex",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Vortex field",
+   "granularity": [
+    "magnitude",
+    "axis",
+    "attenuation"
+   ],
+   "weight": "major",
+   "fit": "partial",
+   "studioTool": "Dynamics",
+   "appDoes": "Not built; would spin particles into a twister.",
+   "curiosities": [
+    "envMotion"
+   ],
+   "newCuriosities": [
+    {
+     "id": "swirl",
+     "label": "Swirl",
+     "values": "0 to 5",
+     "view": "Particles circling a center"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Twister",
+     "set": {
+      "swirl": "5",
+      "windForce": "5",
+      "weather": "storm"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
+   "sharani": true
+  },
+  {
+   "id": "nucleus-gravity-wind",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Nucleus gravity, air density, wind speed and direction",
+   "granularity": [
+    "gravity",
+    "gravity direction",
+    "air density",
+    "wind speed",
+    "wind direction",
+    "wind noise"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The Dynamics tool's gravity (floaty, real, heavy) and wind sliders are the Nucleus globals.",
+   "curiosities": [
+    "gravityFeel",
+    "windForce"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Moon walk",
+     "set": {
+      "gravityFeel": "floaty",
+      "settleTime": "long"
+     }
+    }
+   ],
+   "proximities": [
+    "When wind rises, cloth flutters within 1 beat"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Shared forces every sim inherits.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "nucleus-time-scale",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Nucleus time scale (slow motion sims)",
+   "granularity": [
+    "time scale",
+    "start frame"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The Dynamics tool's slow-motion suite slows the sim, matching time scale.",
+   "curiosities": [
+    "speedRamp",
+    "settleTime"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Slow-mo impact",
+     "set": {
+      "speedRamp": "0.25",
+      "impacts": "1",
+      "settleTime": "long"
+     }
+    }
+   ],
+   "proximities": [
+    "When an impact lands, time slows within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Slow motion dynamics is a core action look.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "ncloth-tearing",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Tearable surface (tear or shatter)",
+   "granularity": [
+    "glue strength",
+    "bend resistance above 0.2 to shatter",
+    "weld"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "Boxes break in the Dynamics tool; a cloth rip at a glue strength is the next step.",
+   "curiosities": [
+    "breakage"
+   ],
+   "newCuriosities": [
+    {
+     "id": "tearMode",
+     "label": "Breaks how",
+     "values": "holds, tears, shatters",
+     "view": "Crack lines on the object at the beat it fails"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Sail rips",
+     "set": {
+      "tearMode": "tears",
+      "windForce": "5",
+      "weather": "storm"
+     }
+    }
+   ],
+   "proximities": [
+    "When an impact lands, breakage follows within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Ripping and shattering are big story beats.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-22B812FB-D615-4BF9-B98C-5648D481151D.htm",
+   "sharani": true
+  },
+  {
+   "id": "nconstraint-transform",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Transform and point-to-surface constraints",
+   "granularity": [
+    "transform",
+    "point to surface",
+    "slide on surface",
+    "component to component"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The cloth is pinned at the top; pinning points is a transform constraint.",
+   "curiosities": [
+    "clothResponse"
+   ],
+   "newCuriosities": [
+    {
+     "id": "pinned",
+     "label": "Cloth pinned at",
+     "values": "top, corners, one point, none",
+     "view": "Pin dots on the cloth"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Flags, curtains, capes all depend on pins.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-SimulationEffects/files/GUID-17B84282-8A65-4359-B997-9D4BC0293FF2.htm",
+   "sharani": true
+  },
+  {
+   "id": "ncloth-presets-detail",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "nCloth presets one by one",
+   "granularity": [
+    "t-shirt",
+    "heavy denim",
+    "silk",
+    "chain mail",
+    "rubber sheet",
+    "burlap",
+    "thick leather",
+    "waterbed",
+    "solid rubber",
+    "concrete"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The Dynamics tool has heavy denim, t-shirt, silk and chain mail; rubber and leather are easy adds.",
+   "curiosities": [
+    "clothResponse",
+    "settleTime"
+   ],
+   "newCuriosities": [
+    {
+     "id": "clothWeight",
+     "label": "Cloth weight",
+     "values": "silk, cotton, denim, leather, chain",
+     "view": "Cloth sway amplitude per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Cape hero",
+     "set": {
+      "clothWeight": "silk",
+      "windForce": "4",
+      "angleHeight": "low"
+     }
+    }
+   ],
+   "proximities": [
+    "When a character stops, cloth keeps moving for 1 to 2 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Cloth weight reads mass and mood.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "nhair-dynamics",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "nHair stiffness, damping, drag and self collide",
+   "granularity": [
+    "stretch resistance",
+    "bend resistance",
+    "start curve attract",
+    "damp",
+    "drag",
+    "self collide"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Fur & hair",
+   "appDoes": "Hair lags and settles after the head moves.",
+   "curiosities": [
+    "furLag",
+    "settleTime"
+   ],
+   "newCuriosities": [
+    {
+     "id": "hairStiff",
+     "label": "Hair stiffness",
+     "values": "limp, natural, stiff, wired",
+     "view": "Strand sway behind the figure"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Head whip",
+     "set": {
+      "furLag": "long",
+      "hairStiff": "limp",
+      "moveSpeed": "5"
+     }
+    }
+   ],
+   "proximities": [
+    "When the character stops, hair settles within 1 to 2 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Secondary motion sells the head turn.",
+   "source": "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-70A85F9C-9FC0-49FD-A535-76D379D2C9BC.htm ; knowledge",
+   "sharani": true
+  },
+  {
+   "id": "nparticle-types",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "nParticle types (points, balls, cloud, thick cloud, water)",
+   "granularity": [
+    "points",
+    "balls",
+    "cloud",
+    "thick cloud",
+    "water"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The emitter modes rain, dust, sparks and confetti stand in for particle types.",
+   "curiosities": [
+    "element",
+    "density"
+   ],
+   "newCuriosities": [
+    {
+     "id": "particleLook",
+     "label": "Particle look",
+     "values": "rain, dust, sparks, confetti, smoke puffs, water",
+     "view": "Particles drawn in that style on the panel"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Spark shower",
+     "set": {
+      "particleLook": "sparks",
+      "fireLight": "3",
+      "cameraCarry": "handheld"
+     }
+    }
+   ],
+   "proximities": [
+    "When sparks fly, warm light flickers on faces within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Particle style sets the element of a shot.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "bullet-shatter-constraints",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Bullet shatter and rigid constraints",
+   "granularity": [
+    "shatter pieces",
+    "hinge",
+    "spring",
+    "nail",
+    "break threshold"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Dynamics",
+   "appDoes": "Break strength slider exists; hinges and springs are not built.",
+   "curiosities": [
+    "breakage"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Doors and hanging signs.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "dynamic-curves-ropes",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Dynamic curves (ropes, tails, cables)",
+   "granularity": [
+    "make curves dynamic",
+    "point lock",
+    "collisions"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Fur & hair",
+   "appDoes": "A strand pinned at one end can be a rope or tail.",
+   "curiosities": [
+    "overlap"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Tails and cables are common overlap.",
+   "source": "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-70A85F9C-9FC0-49FD-A535-76D379D2C9BC.htm",
+   "sharani": true
+  },
+  {
+   "id": "field-drag",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Drag field",
+   "granularity": [
+    "magnitude",
+    "attenuation",
+    "use direction"
+   ],
+   "weight": "minor",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The drag slider in the Dynamics tool.",
+   "curiosities": [
+    "gravityFeel"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
+   "sharani": true
+  },
+  {
+   "id": "field-newton",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Newton field",
+   "granularity": [
+    "magnitude",
+    "min distance",
+    "attenuation"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Dynamics",
+   "appDoes": "Not built; would bend particles toward an object.",
+   "curiosities": [],
+   "newCuriosities": [
+    {
+     "id": "pullTo",
+     "label": "Pulled toward",
+     "values": "nothing, object, person",
+     "view": "Arrows bending toward a point"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
+   "sharani": true
+  },
+  {
+   "id": "field-uniform",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Uniform field",
+   "granularity": [
+    "magnitude",
+    "direction"
+   ],
+   "weight": "minor",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "Same as a steady wind with no falloff.",
+   "curiosities": [
+    "windForce"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
+   "sharani": true
+  },
+  {
+   "id": "field-volume-axis",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Volume axis field",
+   "granularity": [
+    "volume shape cube/sphere/cylinder/cone/torus",
+    "away from axis",
+    "along axis",
+    "around axis",
+    "directional speed",
+    "turbulence",
+    "volume trapping"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Not built; one field can make updrafts, swirls and pushes inside a shape.",
+   "curiosities": [
+    "envMotion"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm ; https://help.autodesk.com/cloudhelp/2023/ENU/Maya-SimulationEffects/files/GUID-ED54EFF5-A067-41CC-9CD8-B281DEDB37E6.htm",
+   "sharani": true
+  },
+  {
+   "id": "field-volume-curve",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Fields: Volume curve field",
+   "granularity": [
+    "curve path",
+    "radius",
+    "along curve",
+    "around curve"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Not built; would send particles along a drawn path.",
+   "curiosities": [
+    "envMotion"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Fields are the forces a viewer can feel.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
+   "sharani": true
+  },
+  {
+   "id": "nconstraint-force-field",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Force field and attract-to-matching-mesh constraints",
+   "granularity": [
+    "force field",
+    "attract to matching mesh",
+    "dynamic constraint strength"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Logged as cloth pulled back into shape.",
+   "curiosities": [
+    "settleTime"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "keep",
+   "reason": "Art-directing cloth.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-SimulationEffects/files/GUID-17B84282-8A65-4359-B997-9D4BC0293FF2.htm",
+   "sharani": true
+  },
+  {
+   "id": "nucleus-ground-plane",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Nucleus ground plane",
+   "granularity": [
+    "use plane",
+    "plane bounce",
+    "plane friction"
+   ],
+   "weight": "minor",
+   "fit": "build",
+   "studioTool": "Dynamics",
+   "appDoes": "The Dynamics tool's floor line is the ground plane.",
+   "curiosities": [
+    "impacts"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Floor bounce is what makes drops read.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "nucleus-substeps",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Nucleus substeps and collision iterations",
+   "granularity": [
+    "substeps",
+    "max collision iterations",
+    "space scale"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "studioTool": null,
+   "appDoes": "Not modeled; accuracy settings.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Solver accuracy, not a visible choice.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "particle-collisions",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Particle collisions (bounce, friction, stickiness)",
+   "granularity": [
+    "collide",
+    "bounce",
+    "friction",
+    "stickiness",
+    "collide width scale",
+    "self collide"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Dynamics",
+   "appDoes": "Particles stop at the floor; bounce and stickiness could be sliders.",
+   "curiosities": [
+    "impacts",
+    "splash"
+   ],
+   "newCuriosities": [
+    {
+     "id": "particleBounce",
+     "label": "Particle bounce",
+     "values": "stick, slide, bounce",
+     "view": "Particle paths after the floor"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Sticky versus bouncy reads as material.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "particle-color-opacity-ramps",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Particle color and opacity over life",
+   "granularity": [
+    "rgbPP",
+    "opacityPP",
+    "radiusPP",
+    "ramps by age"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Logged as particles fading or cooling over life.",
+   "curiosities": [
+    "glow"
+   ],
+   "newCuriosities": [
+    {
+     "id": "particleFade",
+     "label": "Particles fade",
+     "values": "pop off, fade, cool and darken",
+     "view": "Particle brightness over life"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Embers cooling is a classic detail.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "particle-instancer",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Particle instancer",
+   "granularity": [
+    "instance objects",
+    "rotation",
+    "scale per particle"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Logged as debris or crowd made of copies.",
+   "curiosities": [
+    "repeatInFrame"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Debris and swarms.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "ncloth-rest-shape",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Rest shape, input mesh attract and caching",
+   "granularity": [
+    "rest length scale",
+    "input mesh attract",
+    "create cache",
+    "initial state"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "studioTool": null,
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Workflow setting.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "ncloth-weld-exclude",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "Weld adjacent borders, disable collision, exclude pairs",
+   "granularity": [
+    "weld",
+    "disable collision",
+    "exclude collide pairs"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "studioTool": null,
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Setup plumbing.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-SimulationEffects/files/GUID-17B84282-8A65-4359-B997-9D4BC0293FF2.htm",
+   "sharani": true
+  },
+  {
+   "id": "ncloth-collisions",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "nCloth collisions and thickness",
+   "granularity": [
+    "thickness",
+    "self collide",
+    "friction",
+    "stickiness",
+    "passive collider"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Dynamics",
+   "appDoes": "Cloth drapes on boxes in the Dynamics tool.",
+   "curiosities": [
+    "touch"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Draping over furniture or bodies.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "ncloth-stretch-bend",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "nCloth stretch, bend, compression resistance and mass",
+   "granularity": [
+    "stretch resistance",
+    "compression resistance",
+    "bend resistance",
+    "mass",
+    "lift",
+    "drag",
+    "damp"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Dynamics",
+   "appDoes": "Hidden behind the presets; a stiffness slider could expose it.",
+   "curiosities": [
+    "clothResponse"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Explains why presets differ.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "nhair-follicles-curves",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "nHair follicles, start, rest and current curves",
+   "granularity": [
+    "follicle",
+    "start position",
+    "rest position",
+    "current position",
+    "point lock"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Fur & hair",
+   "appDoes": "Fur & hair strands use a root (follicle) and a rest pose they spring back to.",
+   "curiosities": [
+    "furResponse"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Explains how dynamic hair returns to its groom.",
+   "source": "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-70A85F9C-9FC0-49FD-A535-76D379D2C9BC.htm",
+   "sharani": true
+  },
+  {
+   "id": "particle-liquids",
+   "manual": "Maya (Sharani areas)",
+   "area": "Dynamics",
+   "topic": "nParticle liquid simulation",
+   "granularity": [
+    "liquid simulation",
+    "incompressibility",
+    "viscosity",
+    "surface tension",
+    "output mesh"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Uses viscosity and splash curiosities.",
+   "curiosities": [
+    "splash",
+    "viscosity"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Bifrost covers liquids better.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "ai-hair-melanin",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "Arnold Standard Hair: melanin and dye",
+   "granularity": [
+    "base color",
+    "melanin",
+    "melanin redness",
+    "melanin randomize",
+    "dye color"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Fur & hair",
+   "appDoes": "Hair color picked by melanin and redness instead of RGB, like real hair.",
+   "curiosities": [
+    "hairColor"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Redhead",
+     "set": {
+      "hairColor": "red",
+      "hairShine": "3"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Natural hair color in two plain sliders.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "xgen-mod-clump",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen interactive groom: Clump modifier",
+   "granularity": [
+    "clump",
+    "clump scale",
+    "volumize",
+    "variance",
+    "density",
+    "flatness",
+    "curl",
+    "copy"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Fur & hair",
+   "appDoes": "The clump slider groups strands into locks.",
+   "curiosities": [
+    "clump"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Wet hair",
+     "set": {
+      "clump": "5",
+      "frizz": "0",
+      "hairShine": "4",
+      "wetness": "soaked"
+     }
+    }
+   ],
+   "proximities": [
+    "When rain starts, hair clumps within 2 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Groom shape that reads at a glance.",
+   "source": "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-809D1ADA-4D78-45E5-9900-9997089DFC3F.htm ; https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
+   "sharani": true
+  },
+  {
+   "id": "xgen-mod-length",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen interactive groom: Length (sculpt)",
+   "granularity": [
+    "lengthen",
+    "shorten"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Fur & hair",
+   "appDoes": "The length slider in the Fur & hair tool.",
+   "curiosities": [
+    "furLength"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Groom shape that reads at a glance.",
+   "source": "https://help.autodesk.com/cloudhelp/2018/ENU/Maya-CharEffEnvBuild/files/GUID-A00D16BD-9ECC-4C63-BAB5-B0278BF596BB.htm",
+   "sharani": true
+  },
+  {
+   "id": "xgen-mod-noise",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen interactive groom: Noise modifier",
+   "granularity": [
+    "magnitude",
+    "frequency",
+    "scale along length"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Fur & hair",
+   "appDoes": "The frizz slider adds 3D noise along strands.",
+   "curiosities": [
+    "frizz"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Groom shape that reads at a glance.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
+   "sharani": true
+  },
+  {
+   "id": "xgen-sculpt-brushes",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen sculpt brushes",
+   "granularity": [
+    "density",
+    "place",
+    "length",
+    "cut",
+    "width",
+    "twist",
+    "comb",
+    "grab",
+    "smooth",
+    "noise",
+    "clump",
+    "part",
+    "freeze",
+    "select"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "studioTool": "Fur & hair",
+   "appDoes": "Comb, clump, length and noise brushes are the drag gestures for the Fur & hair tool.",
+   "curiosities": [
+    "furLength",
+    "clump",
+    "frizz"
+   ],
+   "newCuriosities": [
+    {
+     "id": "combDir",
+     "label": "Combed direction",
+     "values": "flat back, forward, up, parted, messy",
+     "view": "Strand direction arrows on the head"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Bed head",
+     "set": {
+      "combDir": "messy",
+      "frizz": "4",
+      "clump": "2"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Brushing is the hands-on grooming action.",
+   "source": "https://help.autodesk.com/cloudhelp/2018/ENU/Maya-CharEffEnvBuild/files/GUID-A00D16BD-9ECC-4C63-BAB5-B0278BF596BB.htm",
+   "sharani": true
+  },
+  {
+   "id": "ai-hair-diffuse-emission",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "Arnold Standard Hair: diffuse and emission",
+   "granularity": [
+    "diffuse",
+    "emission",
+    "opacity",
+    "indirect"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "studioTool": null,
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Niche.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "ai-hair-roughness-shine",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "Arnold Standard Hair: roughness, IOR, shift, specular tints",
+   "granularity": [
+    "roughness",
+    "azimuthal roughness",
+    "IOR",
+    "shift",
+    "specular tint",
+    "2nd specular",
+    "transmission tint"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Uses the hair shine curiosity.",
+   "curiosities": [
+    "hairShine"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Already modeled by hairShine.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "xgen-density-width",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "Groom density and strand width",
+   "granularity": [
+    "density",
+    "mask",
+    "width",
+    "width ramp/taper"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Logged as thin versus thick coat.",
+   "curiosities": [
+    "furLength"
+   ],
+   "newCuriosities": [
+    {
+     "id": "furDensity",
+     "label": "Coat thickness",
+     "values": "sparse, normal, thick",
+     "view": "Strand count drawn on the figure"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Mangy versus plush animal.",
+   "source": "https://help.autodesk.com/cloudhelp/2018/ENU/Maya-CharEffEnvBuild/files/GUID-A00D16BD-9ECC-4C63-BAB5-B0278BF596BB.htm",
+   "sharani": true
+  },
+  {
+   "id": "xgen-sculpt-layers",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "Sculpt layers",
+   "granularity": [
+    "layer stack",
+    "blend weight",
+    "animated layers"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Fur & hair",
+   "appDoes": "Lets a groom change between beats by blending two layers.",
+   "curiosities": [
+    "furResponse"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [
+    "When the character gets soaked, the wet groom layer blends in within 1 beat"
+   ],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Groom that changes over a scene.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
+   "sharani": true
+  },
+  {
+   "id": "xgen-description-types",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen description types",
+   "granularity": [
+    "splines (hair, fur)",
+    "groomable splines",
+    "archives (instanced objects)",
+    "cards",
+    "spheres",
+    "interactive groom vs legacy"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Logged as what covers a surface: hair, fur, grass, scattered objects.",
+   "curiosities": [
+    "furLength"
+   ],
+   "newCuriosities": [
+    {
+     "id": "coverType",
+     "label": "Covering",
+     "values": "bald, fur, long hair, grass, scattered objects",
+     "view": "A texture band on the figure"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Hair versus fur versus grass is the first choice.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-496603B0-F929-45CD-B607-1CFCD3283DBE.htm ; knowledge",
+   "sharani": true
+  },
+  {
+   "id": "xgen-guides",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen guides and guide modifier",
+   "granularity": [
+    "place guides",
+    "guide count",
+    "interpolation",
+    "linear wire"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "studioTool": "Fur & hair",
+   "appDoes": "A few guide strands drive the rest in the Fur & hair tool.",
+   "curiosities": [
+    "furResponse"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Explains how a groom is directed.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm ; https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-496603B0-F929-45CD-B607-1CFCD3283DBE.htm",
+   "sharani": true
+  },
+  {
+   "id": "xgen-mod-coil",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen interactive groom: Coil modifier",
+   "granularity": [
+    "count",
+    "radius",
+    "ramp"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "The curl value spirals strands.",
+   "curiosities": [
+    "curl"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Small variation of an existing curiosity.",
+   "source": "knowledge",
+   "sharani": true
+  },
+  {
+   "id": "xgen-mod-collision",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen interactive groom: Collision modifier",
+   "granularity": [
+    "collision mesh",
+    "offset"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Strands do not pass through the body.",
+   "curiosities": [
+    "touch"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Small variation of an existing curiosity.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
+   "sharani": true
+  },
+  {
+   "id": "xgen-mod-cut",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen interactive groom: Cut modifier",
+   "granularity": [
+    "amount",
+    "random",
+    "preserve shape"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Trims strands to a set length.",
+   "curiosities": [
+    "furLength"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Small variation of an existing curiosity.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
+   "sharani": true
+  },
+  {
+   "id": "xgen-mod-displacement",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen interactive groom: Displacement modifier",
+   "granularity": [
+    "map",
+    "offset"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "studioTool": null,
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "skip",
+   "reason": "Technical.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
+   "sharani": true
+  },
+  {
+   "id": "xgen-mod-scale",
+   "manual": "Maya (Sharani areas)",
+   "area": "Fur",
+   "topic": "XGen interactive groom: Scale modifier",
+   "granularity": [
+    "global length scale",
+    "width"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "studioTool": null,
+   "appDoes": "Scales every strand at once.",
+   "curiosities": [
+    "furLength"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Small variation of an existing curiosity.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
+   "sharani": true
   }
  ]
 };
