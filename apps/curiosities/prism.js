@@ -260,30 +260,70 @@
 
   /* The curiosities band, grouped by lens (lenses.js, CURIOSITY_LENSES): "this moment's comedy",
      "this moment's color". A curiosity sits in the first lens that names it; the rest fall into
-     Camera, People, Story, and Everything else. Every lens shows, with a count of what is recorded. */
+     Camera, People, Story, and Everything else. Every lens shows, with a count of what is recorded.
+     With the curiosity database loaded (data/curiosity-db.js), a lens also holds the database's sliders for it
+     (rows with sliderOf), and the rest are grouped by the database's workspace for them (Music & sound,
+     Editing & structure...) instead of the four plain groups. */
   const CAMERA_G = ["Camera", "Camera move"];
   const PEOPLE_G = ["People", "Body", "Motion"];
+  const allCur = () => window.CURIOSITIES || (typeof CURIOSITIES !== "undefined" ? CURIOSITIES : []);
   function groupOf(id) {
-    const c = (window.CURIOSITIES || (typeof CURIOSITIES !== "undefined" ? CURIOSITIES : [])).find((x) => x.id === id);
+    const c = allCur().find((x) => x.id === id);
     const g = (c && c.group) || "";
     if (CAMERA_G.includes(g)) return "camera";
     if (PEOPLE_G.includes(g)) return "people";
     if (g.startsWith("Story")) return "story";
     return "other";
   }
+  const DB = () => (window.CuriosityDB && typeof window.CuriosityDB.get === "function" ? window.CuriosityDB : null);
+  /* The curiosity a row belongs to: its lens for a slider row ("music.tempo" -> "music"), else itself. */
+  function parentOf(id) {
+    const c = allCur().find((x) => x.id === id);
+    return (c && c.sliderOf) || id;
+  }
+  /* The database's workspace for a curiosity: {id, label}, or null. */
+  function dbWorkspace(id) {
+    const db = DB();
+    if (!db) return null;
+    try {
+      const d = db.get("curiosity", parentOf(id)) || db.get("curiosity", id);
+      if (!d || !d.workspace) return null;
+      const w = ((db.data && db.data.workspaces) || []).find((x) => x.id === d.workspace);
+      return { id: "ws:" + d.workspace, label: (w && w.label) || d.workspace };
+    } catch (e) {
+      return null;
+    }
+  }
   function lensGroups(list, filteredView) {
-    const lenses = (window.CURIOSITY_LENSES || []).map((l) => ({ id: "lens:" + l.id, label: l.label, ids: [l.main].concat(l.subs || []), rows: [] }));
+    const subs = {};
+    allCur().forEach((c) => c.sliderOf && (subs[c.sliderOf] = subs[c.sliderOf] || []).push(c.id));
+    const lenses = (window.CURIOSITY_LENSES || []).map((l) => {
+      const ids = [l.main].concat(l.subs || []);
+      /* The database's sliders for any curiosity in the lens belong to the lens too. */
+      ids.slice().forEach((id) => (subs[id] || []).forEach((k) => ids.includes(k) || ids.push(k)));
+      return { id: "lens:" + l.id, label: l.label, ids, rows: [] };
+    });
     const rest = [
       { id: "camera", label: "Camera", rows: [] },
       { id: "people", label: "People", rows: [] },
       { id: "story", label: "Story", rows: [] },
       { id: "other", label: "Everything else", rows: [] },
     ];
+    const order = ((DB() && DB().data && DB().data.workspaces) || []).map((w) => "ws:" + w.id);
+    const byWs = [];
     list.forEach((c) => {
-      const l = lenses.find((x) => x.ids.includes(c.id));
-      (l || rest.find((x) => x.id === groupOf(c.id))).rows.push(c);
+      const l = lenses.find((x) => x.ids.includes(c.id) || x.ids.includes(parentOf(c.id)));
+      if (l) return l.rows.push(c);
+      const w = dbWorkspace(c.id);
+      if (w) {
+        let g = byWs.find((x) => x.id === w.id);
+        if (!g) byWs.push((g = { id: w.id, label: w.label, rows: [] }));
+        return g.rows.push(c);
+      }
+      rest.find((x) => x.id === groupOf(c.id)).rows.push(c);
     });
-    return lenses.filter((l) => !filteredView || l.rows.length).concat(rest.filter((g) => g.rows.length));
+    byWs.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+    return lenses.filter((l) => !filteredView || l.rows.length).concat(byWs, rest.filter((g) => g.rows.length));
   }
 
   /* The suites band shows the top SUITE_TOP by best share; "Show all N" opens the rest. */

@@ -2,7 +2,9 @@
    beat → which curiosities are on → which suites contain them → which proximities fired.
    Counts and curiosity ids only. A note is a pointer, not a transcript.
    The Shelf keeps one curiosity, or one suite, across a span of beats, so it can be
-   applied to the board panel by panel. That is the music app's Essence Shelf. */
+   applied to the board panel by panel. That is the music app's Essence Shelf.
+   When the curiosity database is loaded, its model scenes (made up for practice, not real films) are offered as
+   read-only curated films after my own studies; CuriosityStudy.studies() lists both, saved() only mine. */
 
 (function () {
   const KEY = "curiosities-studies-v1";
@@ -12,7 +14,24 @@
   const byId = Object.fromEntries(CURIOSITIES.map((c) => [c.id, c]));
   const root = document.getElementById("study");
   const store = load();
-  const view = { tab: "trace", studyId: store.studies[0] ? store.studies[0].id : "", picked: new Set(), editing: "", suite: "", lens: ["cameraCarry", "shotSize"], cross: ["emotion", "angleHeight"], openGroups: new Set(["Camera", "Scene memory"]), looks: new Set(), msg: "" };
+  /* Model scenes from the curiosity database (data/db-model-scenes.js), when it is loaded: made-up scenes for
+     practice, offered as curated films. They are read-only and never copied into the saved studies. */
+  const CURATED = curatedScenes();
+  function curatedScenes() {
+    const DB = window.CuriosityDB;
+    if (!DB || typeof DB.studiesExport !== "function") return [];
+    try {
+      return (DB.studiesExport().studies || []).filter((x) => x && x.id && Array.isArray(x.beats)).map((x) => Object.assign({}, x, { curated: true, moments: [] }));
+    } catch (e) {
+      return [];
+    }
+  }
+  /* My studies, then the model scenes. */
+  function allStudies() {
+    return store.studies.concat(CURATED);
+  }
+  const isCurated = (s) => !!(s && s.curated);
+  const view = { tab: "trace", studyId: allStudies()[0] ? allStudies()[0].id : "", picked: new Set(), editing: "", suite: "", lens: ["cameraCarry", "shotSize"], cross: ["emotion", "angleHeight"], openGroups: new Set(["Camera", "Scene memory"]), looks: new Set(), msg: "" };
 
   /* "Look at this beat through…": every lens (lenses.js, CURIOSITY_LENSES) plus three plain groups,
      each a set of curiosity ids the beat editor opens as sliders. A curiosity may sit in two lenses. */
@@ -26,7 +45,7 @@
     return out.filter((l) => l.ids.length);
   }
   /* The quick columns: the original board groups, without the lens and story ones (those open from the picker). */
-  const quick = (c) => !/^(Lens|Story)/.test(c.group || "");
+  const quick = (c) => !/^(Lens|Story)/.test(c.group || "") && !c.sliderOf;
 
   /* Favorite moments: a beat or a span of beats starred with a short name ("the bar entrance").
      Stored on the study as {id, name, from, to} with beat ids; the Prism can pick one instead of the whole film. */
@@ -100,7 +119,7 @@
   }
 
   function current() {
-    return store.studies.find((s) => s.id === view.studyId) || null;
+    return allStudies().find((s) => s.id === view.studyId) || null;
   }
 
   /* Suites are measured by degree (window.CuriositySuites, app.js): a beat shows a share of a suite's lenses. */
@@ -208,7 +227,7 @@
       <p class="cap">Name a scene, a timecode, or a played minute. Each beat stores which curiosities are on. No scripts, lyrics, level dialogue, or shot lists that recreate the work.</p>
       <div class="study-bar">
         <label class="field">Study
-          <select id="st-pick">${store.studies.map((x) => `<option value="${esc(x.id)}" ${x.id === view.studyId ? "selected" : ""}>${esc(x.title)}</option>`).join("")}</select>
+          <select id="st-pick">${studyOptions()}</select>
         </label>
         <details class="new-study"><summary>New study</summary>
           <label class="field">Title <input id="st-title" maxlength="80" placeholder="A film, an episode, or a game level" /></label>
@@ -219,13 +238,19 @@
         <span class="bar-actions">
           <button type="button" data-act="export">Export</button>
           <label class="file-btn">Import <input type="file" id="st-import" accept="application/json" /></label>
-          ${s ? `<button type="button" data-act="delete-study">Delete study</button>` : ""}
+          ${s && !isCurated(s) ? `<button type="button" data-act="delete-study">Delete study</button>` : ""}
         </span>
       </div>
       ${view.msg ? `<p class="applied">${esc(view.msg)}</p>` : ""}
       <nav class="subtabs">${tabs.map(([k, l]) => `<button type="button" data-sub="${k}" class="${view.tab === k ? "on" : ""}">${esc(l)}</button>`).join("")}</nav>
       <div class="study-body">${body(s)}</div>`;
     view.msg = "";
+  }
+
+  function studyOptions() {
+    const o = (x) => `<option value="${esc(x.id)}" ${x.id === view.studyId ? "selected" : ""}>${esc(x.title)}</option>`;
+    if (!CURATED.length) return store.studies.map(o).join("");
+    return `<optgroup label="My studies">${store.studies.map(o).join("")}</optgroup><optgroup label="Model scenes, made up for practice">${CURATED.map(o).join("")}</optgroup>`;
   }
 
   function body(s) {
@@ -251,8 +276,8 @@
           <td>${chips(beat.values)}${beat.note ? `<p class="cap">${esc(beat.note)}</p>` : ""}</td>
           <td>${suitesCell(beat)}</td>
           <td class="cap">${prox.map(esc).join("<br>") || "—"}</td>
-          <td><button type="button" data-edit="${esc(beat.id)}">${editing ? "Close" : "Edit"}</button></td>
-        </tr>${editing ? `<tr class="editor"><td colspan="7">${editor(beat)}</td></tr>` : ""}`;
+          <td>${isCurated(s) ? "" : `<button type="button" data-edit="${esc(beat.id)}">${editing ? "Close" : "Edit"}</button>`}</td>
+        </tr>${editing && !isCurated(s) ? `<tr class="editor"><td colspan="7">${editor(beat)}</td></tr>` : ""}`;
       })
       .join("");
     const picked = s.beats.filter((b) => view.picked.has(b.id));
@@ -267,20 +292,22 @@
           <button type="button" data-unstar="${esc(m.id)}">Unstar</button></li>`;
       })
       .join("");
+    const ro = isCurated(s);
     return `
+      ${ro ? `<p class="applied">A model scene, made up for practice (not a real film). It is read-only: tick beats to keep a strand to the Shelf, or open it in the Prism to split it.${s.plain ? " " + esc(s.plain) : ""}</p>` : ""}
       <p class="cap">${esc(s.kind)}${s.kind === "game" ? " · camera: " + esc(s.camera === "player" ? "the player’s" : "authored") : ""} · ${s.beats.length} beats</p>
-      <div class="favs">
+      ${ro ? `<p class="row-actions"><button type="button" data-prism-film="${esc(s.id)}">Open in the Prism</button></p>` : `<div class="favs">
         <p class="g">Favorite moments</p>
         ${favs ? `<ul class="fav-list">${favs}</ul>` : `<p class="cap">None yet. Tick one beat or a few beats in a row, then star them below with a short name, like “the bar entrance”. The Prism can then split just that moment.</p>`}
-      </div>
+      </div>`}
       <div class="scroll"><table class="trace">
         <thead><tr><th></th><th>Beat</th><th>At</th><th>Curiosities on</th><th>Suites, by share</th><th>Proximities that held from here</th><th></th></tr></thead>
         <tbody>${rows || `<tr><td colspan="7" class="cap">No beats yet.</td></tr>`}</tbody>
       </table></div>
-      <p class="row-actions">
+      ${ro ? "" : `<p class="row-actions">
         <button type="button" data-act="add-beat">Add a beat</button>
         <button type="button" data-act="add-from-board">Add a beat from the board</button>
-      </p>
+      </p>`}
       <div class="keep">
         <p class="g">Keep to the Shelf</p>
         ${
@@ -293,11 +320,11 @@
             </select>
           </label>
           <button type="button" data-act="keep">Keep</button> <button type="button" data-act="unpick">Clear picks</button>
-          <div class="fav-form">
+          ${ro ? "" : `<div class="fav-form">
             <label class="field">Star as a favorite moment <input id="fav-name" maxlength="${NAME_MAX}" placeholder="A short name, like the bar entrance" /></label>
             <button type="button" data-act="star">★ Star ${picked.length === 1 ? "this beat" : "these beats"}</button>
           </div>
-          <p class="cap">A starred moment runs from the first ticked beat to the last.</p>`
+          <p class="cap">A starred moment runs from the first ticked beat to the last.</p>`}`
             : `<p class="cap">Tick beats in the trace to keep a span.</p>`
         }
       </div>`;
@@ -401,7 +428,7 @@
     const blocks = view.lens
       .map((id) => {
         const c = byId[id];
-        const rows = store.studies
+        const rows = allStudies()
           .map((s) => {
             const cells = s.beats.map((b) => `<td class="${b.values[id] == null ? "off" : ""}">${esc(b.values[id] == null ? "" : b.values[id])}</td>`).join("");
             const counts = {};
@@ -435,7 +462,7 @@
     const counts = {};
     const rowsSeen = [];
     const colsSeen = [];
-    store.studies.forEach((s) =>
+    allStudies().forEach((s) =>
       s.beats.forEach((beat) => {
         const va = beat.values[a];
         const vb = beat.values[b];
@@ -476,7 +503,7 @@
       ["emotion", "Angle by emotion"],
       ["lens", "Lens suites"],
     ];
-    const allBeats = [].concat(...store.studies.map((s) => s.beats));
+    const allBeats = [].concat(...allStudies().map((s) => s.beats));
     const row = (x) => {
         const lens = !CS() || !CS().fixed(x);
         const m = lens ? null : CS().across(x, allBeats.map((b) => b.values));
@@ -500,7 +527,7 @@
       /* A lens suite: each lens's value, beat by beat, side by side. */
       lanes =
         `<p class="g">${esc(sel.label)}, beat by beat</p>` +
-        store.studies
+        allStudies()
           .map((s) => {
             const rows = (sel.lenses || [])
               .map((id) => `<tr><th>${esc((byId[id] || { label: id }).label)}</th>${s.beats.map((b) => `<td class="${b.values[id] == null ? "off" : ""}">${b.values[id] == null ? "—" : esc(b.values[id])}</td>`).join("")}</tr>`)
@@ -512,7 +539,7 @@
     } else if (sel) {
       lanes =
         `<p class="g">${esc(sel.label)}, beat by beat</p>` +
-        store.studies
+        allStudies()
           .map((s) => {
             const cells = s.beats
               .map((b) => {
@@ -532,7 +559,7 @@
   }
 
   function proximityTab() {
-    const studies = store.studies;
+    const studies = allStudies();
     const rows = allProximities()
       .map((p) => {
         let tn = 0;
@@ -651,7 +678,8 @@
       try {
         const data = JSON.parse(r.result);
         if (!Array.isArray(data.studies)) throw new Error("no studies");
-        const have = new Set(store.studies.map((s) => s.id));
+        /* The model scenes are already here (read-only), so importing their file adds nothing twice. */
+        const have = new Set(allStudies().map((s) => s.id));
         data.studies.forEach((s) => {
           if (!have.has(s.id) && Array.isArray(s.beats)) store.studies.push(s);
         });
@@ -670,6 +698,12 @@
   root.addEventListener("click", (e) => {
     const t = e.target;
     const s = current();
+    if (t.dataset.prismFilm) {
+      openPrism(t.dataset.prismFilm);
+      return;
+    }
+    /* A model scene is read-only: no editing, adding, deleting or starring. */
+    if (isCurated(s) && (t.dataset.edit || t.dataset.clear || t.dataset.unstar || ["delete-study", "add-beat", "add-from-board", "delete-beat", "star", "star-beat"].includes(t.dataset.act))) return;
     if (t.dataset.sub) {
       view.tab = t.dataset.sub;
     } else if (t.dataset.pick) {
@@ -729,7 +763,7 @@
       } else if (act === "delete-study" && s) {
         if (!confirm(`Delete “${s.title}”? Its beats go too. Shelf strands stay.`)) return;
         store.studies = store.studies.filter((x) => x !== s);
-        view.studyId = store.studies[0] ? store.studies[0].id : "";
+        view.studyId = allStudies()[0] ? allStudies()[0].id : "";
         save();
       } else if (act === "add-beat" && s) {
         const b = { id: uid("b"), at: "", note: "", values: {} };
@@ -815,6 +849,8 @@
       valueOptions("px-xv", false);
     } else if (t.id === "px-y") {
       valueOptions("px-yv", true);
+    } else if (isCurated(s) && (t.dataset.slide || t.dataset.val || t.hasAttribute("data-at") || t.hasAttribute("data-note"))) {
+      return;
     } else if (t.dataset.slide && s) {
       const beat = s.beats.find((b) => b.id === t.closest("[data-beat]").dataset.beat);
       const c = byId[t.dataset.slide];
@@ -915,8 +951,17 @@
       save();
       return k;
     },
+    /* Every curated film: my studies, then the model scenes (read-only; marked curated: true). */
     studies() {
+      return allStudies();
+    },
+    /* Only the studies saved in this browser. */
+    saved() {
       return store.studies;
+    },
+    /* Only the model scenes from the curiosity database. */
+    curated() {
+      return CURATED.slice();
     },
     /* A study's favorite moments, each with its beats: [{id, name, beats}]. */
     moments(studyId) {

@@ -1030,11 +1030,13 @@ td .suite-share { display: flex; margin: 2px 0; }
     };
   }
 
-  const catView = { tab: "curiosities", q: "", group: "" };
+  /* Slider rows from the curiosity database ("music.tempo", sliderOf: "music") sit under their lens, folded,
+     so the list stays short. A search that matches a slider opens its lens. */
+  const catView = { tab: "curiosities", q: "", group: "", fold: {} };
 
   function drawCatalog() {
     const tabs = [
-      ["curiosities", `Curiosities (${CURIOSITIES.length})`],
+      ["curiosities", `Curiosities (${CURIOSITIES.filter((c) => !c.sliderOf).length})`],
       ["suites", `Suites (${SUITES.length})`],
       ["proximities", `Proximities (${PROXIMITIES.length + LIBRARY.proximities.length})`],
       ["moves", `Development moves (${LIBRARY.moves.length})`],
@@ -1045,6 +1047,15 @@ td .suite-share { display: flex; margin: 2px 0; }
       <div id="cat-body"></div>`;
     drawCatalogBody();
     catalog.onclick = (e) => {
+      const fold = e.target.closest("button[data-cat-fold]");
+      if (fold) {
+        const id = fold.dataset.catFold;
+        catView.fold[id] = fold.getAttribute("aria-expanded") !== "true";
+        drawCatalogRows();
+        const again = catalog.querySelector(`button[data-cat-fold="${CSS.escape(id)}"]`);
+        if (again) again.focus();
+        return;
+      }
       const b = e.target.closest("button[data-cat]");
       if (!b) return;
       catView.tab = b.dataset.cat;
@@ -1126,15 +1137,35 @@ td .suite-share { display: flex; margin: 2px 0; }
     return (CURIOSITIES.find((c) => c.id === id) || { label: id }).label;
   }
 
+  function catalogCss() {
+    if (document.getElementById("cat-fold-style")) return;
+    const st = document.createElement("style");
+    st.id = "cat-fold-style";
+    st.textContent = `
+      .catalog .cat-fold { margin-top: 4px; font-family: var(--mono); font-size: 11px; border: 1px solid var(--ink); background: var(--panel); padding: 3px 8px; cursor: pointer; }
+      .catalog .cat-fold[aria-expanded="true"] { background: var(--ink); color: var(--paper); }
+      .catalog .cat-fold:focus-visible { outline: 3px solid var(--saffron); outline-offset: 2px; }
+      .catalog tr.cat-sub td:first-child { padding-left: 22px; border-left: 3px solid var(--gold); }
+      .catalog tr.cat-sub strong { font-weight: 500; }
+      .catalog .cat-submark { font-family: var(--mono); color: #8a8075; }
+    `;
+    document.head.appendChild(st);
+  }
+
   function drawCatalogRows() {
     const out = document.getElementById("cat-rows");
     if (!out) return;
+    catalogCss();
     const notes = loadNotes();
     const q = catView.q.trim().toLowerCase();
+    const hit = (c) => !q || [c.id, c.label, c.note, c.view, c.group].filter(Boolean).join(" ").toLowerCase().includes(q);
+    const ids = new Set(CURIOSITIES.map((c) => c.id));
+    const isSub = (c) => !!(c.sliderOf && ids.has(c.sliderOf));
+    const subsOf = {};
+    CURIOSITIES.forEach((c) => isSub(c) && (subsOf[c.sliderOf] = subsOf[c.sliderOf] || []).push(c));
+    const subCount = CURIOSITIES.filter(isSub).length;
     const shown = CURIOSITIES.filter(
-      (c) =>
-        (!catView.group || c.group === catView.group) &&
-        (!q || [c.id, c.label, c.note, c.view, c.group].filter(Boolean).join(" ").toLowerCase().includes(q))
+      (c) => !isSub(c) && (!catView.group || c.group === catView.group) && (hit(c) || (q && (subsOf[c.id] || []).some(hit)))
     );
     const groups = [];
     shown.forEach((c) => {
@@ -1143,20 +1174,27 @@ td .suite-share { display: flex; margin: 2px 0; }
     const cell = (v) => `<td class="m ${v === "yes" ? "yes" : v === "swap" ? "part" : "no"}">${esc(v)}</td>`;
     const values = (c) =>
       c.kind === "range" ? `${c.min} to ${c.max}` : c.kind === "select" ? c.options.join(", ") : c.kind === "tag" ? "a word" : "";
+    const oneRow = (c, sub) => {
+      const m = measured(c);
+      const n = notes[c.id] || {};
+      const kids = sub ? [] : subsOf[c.id] || [];
+      const open = kids.length > 0 && (c.id in catView.fold ? catView.fold[c.id] : !!q && kids.some(hit));
+      const fold = kids.length
+        ? `<br><button type="button" class="cat-fold" data-cat-fold="${esc(c.id)}" aria-expanded="${open ? "true" : "false"}">${open ? "▾ Hide" : "▸ Show"} its ${kids.length} slider${kids.length === 1 ? "" : "s"}</button>`
+        : "";
+      const row = `<tr class="${sub ? "cat-sub" : ""}"><td>${sub ? `<span class="cat-submark" aria-hidden="true">└</span> ` : ""}<strong>${esc(c.label)}</strong> <span class="mono cap">${esc(c.id)}</span><br><span class="cap">${esc(c.view || c.note)}</span><br><span class="cap">${esc(values(c))}${c.source ? " · " + esc(c.source) : ""}</span>${fold}</td>
+                ${cell(m.extract)}${cell(m.apply)}${cell(m.expand)}${cell(m.automate)}
+                <td><input class="note" data-note="${c.id}" data-col="game" value="${esc(n.game || "")}" placeholder="game" aria-label="Game for ${esc(c.label)}" /></td>
+                <td><input class="note" data-note="${c.id}" data-col="gizmo" value="${esc(n.gizmo || "")}" placeholder="gizmo" aria-label="Gizmo for ${esc(c.label)}" /></td></tr>`;
+      return row + (open ? kids.filter((k) => !q || hit(k) || catView.fold[c.id]).map((k) => oneRow(k, true)).join("") : "");
+    };
     out.innerHTML =
-      `<p class="cap">${shown.length} of ${CURIOSITIES.length}.</p>` +
+      `<p class="cap">${shown.length} of ${CURIOSITIES.length - subCount}${subCount ? `, plus ${subCount} sliders folded under their lens (tap Show on a row to open them)` : ""}.</p>` +
       groups
         .map((g) => {
           const rows = shown
             .filter((c) => c.group === g)
-            .map((c) => {
-              const m = measured(c);
-              const n = notes[c.id] || {};
-              return `<tr><td><strong>${esc(c.label)}</strong> <span class="mono cap">${esc(c.id)}</span><br><span class="cap">${esc(c.view || c.note)}</span><br><span class="cap">${esc(values(c))}${c.source ? " · " + esc(c.source) : ""}</span></td>
-                ${cell(m.extract)}${cell(m.apply)}${cell(m.expand)}${cell(m.automate)}
-                <td><input class="note" data-note="${c.id}" data-col="game" value="${esc(n.game || "")}" placeholder="game" aria-label="Game for ${esc(c.label)}" /></td>
-                <td><input class="note" data-note="${c.id}" data-col="gizmo" value="${esc(n.gizmo || "")}" placeholder="gizmo" aria-label="Gizmo for ${esc(c.label)}" /></td></tr>`;
-            })
+            .map((c) => oneRow(c, false))
             .join("");
           return `<p class="g">${esc(g)}</p>
             <div class="scroll"><table class="six"><thead><tr><th>Curiosity</th><th>Extract</th><th>Apply</th><th>Expand</th><th>Automate</th><th>Game</th><th>Gizmo</th></tr></thead><tbody>${rows}</tbody></table></div>`;

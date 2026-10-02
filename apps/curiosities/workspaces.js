@@ -14,7 +14,8 @@
    from window.CURIOSITY_LENSES (lenses.js): the lens's question at the top, then the same four parts with the
    lens's main curiosity first and its sliders (sub-parameters) under it. Wardrobe joins two lenses, the main
    character's clothes and the background clothes, as two sections.
-   The bar groups the workspaces into labelled sections: Camera, People, Look, Feeling, Comedy, Story.
+   The bar groups the workspaces into labelled sections: Camera, People, Look, Sound, Feeling, Comedy, Story (Sound, Page & panel
+   and Editing & structure appear only when the curiosity database is loaded; see the database block below).
    "storyboard" is a page of its own (storyboard.js, CuriosityStoryboard.mount).
    Story workspaces also open with a Roadmap: one line chart per curiosity, scenes across, the curiosity's scale up
    the side (in CurioAuto.domain order), one line per character (each can be hidden), each line showing
@@ -75,14 +76,53 @@
     lensWs("comedy-mix", "Comedy from the mix", [["comedyMix"]], { note: "Who is in the room and what putting them together does for the laughs, the plot and the characters." }),
   ].forEach((w) => w && WORKSPACES.push(w));
 
+  /* The curiosity database (data/curiosity-db.js), when index.html loads it. Each workspace then also takes
+     its curiosities, suites, proximities and proximity suites from CuriosityDB.forWorkspace(id), added to the
+     lists above so nothing disappears, and the database's new workspaces (Music & sound, Editing & structure,
+     Page & panel) join the bar. Each item's plain description is its hint. Without the database, nothing changes. */
+  const DB = window.CuriosityDB && typeof window.CuriosityDB.forWorkspace === "function" ? window.CuriosityDB : null;
+  const DB_TOOLS = { music: ["sequencer", "live"], structure: ["sequencer", "remix"], page: ["print"] };
+  if (DB) {
+    try {
+      ((DB.data && DB.data.workspaces) || []).forEach((w) => {
+        if (!w || !w.id || WORKSPACES.some((x) => x.id === w.id)) return;
+        WORKSPACES.push({ id: w.id, scope: w.scope === "story" ? "story" : "scene", label: w.label || w.id, note: w.plain || "", ids: [], tools: DB_TOOLS[w.id] || [], fromDb: true });
+      });
+      WORKSPACES.forEach((ws) => {
+        const f = DB.forWorkspace(ws.id) || {};
+        ws.db = { suites: f.suites || [], proximities: f.proximities || [], proximitySuites: f.proximitySuites || [] };
+        const extra = (f.curiosities || []).map((c) => c.id).filter((id) => !ws.ids.includes(id));
+        if (!extra.length) return;
+        ws.ids = ws.ids.concat(extra);
+        if (ws.sections) ws.sections.push({ lens: "db-more", title: "More in this workspace", question: "Other curiosities that belong here. Each one's sliders are lanes inside its own module.", main: null, extra: true, scope: ws.scope, ids: extra });
+      });
+    } catch (e) {
+      /* A database that cannot be read leaves the workspaces as they are. */
+    }
+  }
+  /* The plain words for an item: the database's description first, then the app's own note. */
+  function hintOf(level, id) {
+    let d = null;
+    try {
+      d = DB ? DB.get(level, id) : null;
+    } catch (e) {}
+    if (d && d.plain) return d.plain;
+    if (level === "curiosity") {
+      const c = CUR[id];
+      return (c && (c.note || c.view)) || "";
+    }
+    return "";
+  }
+
   /* The bar's sections, in order. Comedy is central, so it has its own marked section. */
   const GROUPS = [
     { title: "Camera", ids: ["camera-angle", "camera-motion", "placement"] },
     { title: "People", ids: ["character-motion", "lines", "movement-lines", "background", "wardrobe"] },
-    { title: "Look", ids: ["color", "light", "set", "effects"] },
+    { title: "Look", ids: ["color", "light", "set", "effects", "page"] },
+    { title: "Sound", ids: ["music"] },
     { title: "Feeling", ids: ["emotion", "emo-road"] },
     { title: "Comedy", ids: ["comedy", "comedy-mix"], cls: "is-comedy" },
-    { title: "Story", ids: ["arc", "plot", "mindset", "focus", "archetype", "herd"] },
+    { title: "Story", ids: ["arc", "plot", "mindset", "focus", "archetype", "herd", "structure"] },
   ];
   const byId = Object.fromEntries(WORKSPACES.map((w) => [w.id, w]));
   const CUR = Object.fromEntries(CURIOSITIES.map((c) => [c.id, c]));
@@ -122,7 +162,7 @@
       .map(
         (sec) =>
           (secs.length > 1 ? `<tr class="ws-secrow"><th colspan="${cols + 1}" scope="colgroup">${esc(sec.title)}</th></tr>` : "") +
-          sec.ids.map((id) => rowFn(id, id === sec.main ? "ws-main" : "ws-sub")).join("")
+          sec.ids.map((id) => rowFn(id, sec.extra ? "" : id === sec.main ? "ws-main" : "ws-sub")).join("")
       )
       .join("");
   }
@@ -154,12 +194,12 @@
     const sec = (title, list, cls) =>
       list.length ? `<div class="ws-sec ${cls || ""}" role="group" aria-label="${esc(title)}"><span class="ws-group">${esc(title)}</span>${list.map(btn).join("")}</div>` : "";
     let html = GROUPS.map((g) => {
-      const list = g.ids.map((id) => byId[id]).filter(Boolean);
+      const list = g.ids.map((id) => byId[id]).filter((w) => w && (!w.fromDb || idsOf(w).length));
       list.forEach((w) => listed.add(w.id));
       return sec(g.title, list, g.cls);
     }).join("");
     /* Anything not in a section yet still gets a button. */
-    html += sec("More", WORKSPACES.filter((w) => !listed.has(w.id)));
+    html += sec("More", WORKSPACES.filter((w) => !listed.has(w.id) && (!w.fromDb || idsOf(w).length)));
     bar.innerHTML = html;
   }
   document.getElementById("tabs").addEventListener("click", (e) => {
@@ -302,7 +342,7 @@
           return `<td>${cellControl(id, mine, `data-cell="${id}" data-i="${i}" aria-label="${esc(labelOf(id))}, panel ${i + 1}"`, fallback)}
             <span class="ws-now" data-now="${id}" data-i="${i}">${nowNote(mine, plays)}</span></td>`;
         }).join("");
-        return `<tr class="${cls}"><th scope="row">${esc(labelOf(id))}${mainTag(cls)}${CUR[id] && CUR[id].live ? "" : ` <span class="ws-tag" title="Not one of the board's thirty controls: the strip shows it where it can.">extra</span>`}</th>${cells}</tr>`;
+        return `<tr class="${cls}"><th scope="row" title="${esc(hintOf("curiosity", id))}">${esc(labelOf(id))}${mainTag(cls)}${CUR[id] && CUR[id].live ? "" : ` <span class="ws-tag" title="Not one of the board's thirty controls: the strip shows it where it can.">extra</span>`}</th>${cells}</tr>`;
       });
     el.innerHTML = `<div class="ws-row">
         <label class="field ws-count">Panels in my film
@@ -411,7 +451,7 @@
               <span class="ws-now" data-now="${id}" data-i="${i}">${plays != null && String(plays) !== String(mine) ? `now ${esc(plays)} (automation)` : ""}</span></td>`;
           })
           .join("");
-        return `<tr class="${cls}"><th scope="row">${esc(labelOf(id))}${mainTag(cls)}<br><span class="cap">${esc((CUR[id] && CUR[id].note) || "")}</span></th>${cells}</tr>`;
+        return `<tr class="${cls}"><th scope="row">${esc(labelOf(id))}${mainTag(cls)}<br><span class="cap">${esc(hintOf("curiosity", id))}</span></th>${cells}</tr>`;
       });
     el.innerHTML = `<div class="ws-row">
         <label class="field">Character
@@ -578,7 +618,7 @@
       withFilm(ws) ? " The film's line is dashed: a filled dot is its own row, a hollow dot is the average of the characters shown." : ""
     }</p>
       <div class="ws-road-who-row" role="group" aria-label="Lines on the roadmap">${toggles}</div>
-      <div class="ws-road-grid" id="ws-road-charts">${ids.map((id) => `<figure class="ws-road-fig" data-road="${esc(id)}"><figcaption><b>${esc(labelOf(id))}</b> <span class="cap">${esc((CUR[id] && CUR[id].note) || "")}</span></figcaption><div class="ws-road-plot"></div></figure>`).join("") || `<p class="cap">Nothing here has a scale to draw.</p>`}</div>`;
+      <div class="ws-road-grid" id="ws-road-charts">${ids.map((id) => `<figure class="ws-road-fig" data-road="${esc(id)}"><figcaption><b>${esc(labelOf(id))}</b> <span class="cap">${esc(hintOf("curiosity", id))}</span></figcaption><div class="ws-road-plot"></div></figure>`).join("") || `<p class="cap">Nothing here has a scale to draw.</p>`}</div>`;
     drawRoadCharts(ws);
   }
   function drawRoadCharts(ws) {
@@ -787,6 +827,7 @@
 
   /* ---------- 2. Automate ---------- */
   function mountModule(el, key) {
+    if (String(key).startsWith("ps:") && !(A() && A().param && A().param(key)) && dbProximitySuite(el, key)) return;
     const CA = window.CuriosityAutomate;
     if (CA && typeof CA.mount === "function") {
       try {
@@ -820,7 +861,33 @@
     const prox = proxList.filter((p) => touches(p.x) || touches(p.y));
     const proxIds = new Set(prox.map((p) => p.id));
     const ps = ((A() && A().PROXIMITY_SUITES) || []).filter((s) => (s.members || []).some((m) => proxIds.has(m)));
+    /* The database's own lists for this workspace, added to what the ids above found. */
+    const ws = byId[view.ws];
+    if (ws && ws.db) {
+      const addBy = (list, items) => items.forEach((x) => x && !list.some((y) => y.id === x.id) && list.push(x));
+      const allSuites = window.SUITES || (typeof SUITES !== "undefined" ? SUITES : []);
+      addBy(suites, ws.db.suites.map((d) => allSuites.find((s) => s.id === d.id)));
+      addBy(prox, ws.db.proximities.map((d) => proxList.find((p) => p.id === d.id)));
+      const appPs = (A() && A().PROXIMITY_SUITES) || [];
+      addBy(ps, ws.db.proximitySuites.map((d) => appPs.find((p) => p.id === d.id) || { id: d.id, label: d.label, members: d.members || [], fromDb: true }));
+    }
     return { suites, prox, ps };
+  }
+  /* A proximity suite only the database knows has no module of its own yet: list its proximities, each with a module. */
+  function dbProximitySuite(el, key) {
+    const id = key.slice(3);
+    const ws = byId[view.ws];
+    const d = (ws && ws.db && ws.db.proximitySuites.find((x) => x.id === id)) || (DB && DB.get("proximitySuite", id));
+    if (!d) return false;
+    const proxList = typeof PROXIMITIES !== "undefined" ? PROXIMITIES : [];
+    const members = (d.members || []).map((m) => proxList.find((p) => p.id === m)).filter(Boolean);
+    el.innerHTML = `<div class="ws-psdb"><p><strong>${esc(d.label)}</strong></p>${d.plain ? `<p class="cap">${esc(d.plain)}</p>` : ""}
+      <p class="cap">These proximities act together. Switch on each one you want; each has its own delay and how often.</p>
+      <div class="ws-mods"></div></div>`;
+    const box = el.querySelector(".ws-mods");
+    members.forEach((p) => addModule(box, "p:" + p.id));
+    if (!members.length) box.innerHTML = `<p class="cap">None of its proximities are loaded.</p>`;
+    return true;
   }
 
   function addModule(box, key) {
@@ -839,6 +906,13 @@
         const subs = sec.ids.filter((id) => id !== sec.main);
         const box = document.createElement("div");
         box.className = "ws-lens";
+        if (sec.extra) {
+          /* Curiosities the database adds to this lens workspace: one module each. */
+          box.innerHTML = `<h4>${esc(sec.title)}</h4><p class="cap ws-q">${esc(sec.question)}</p><div class="ws-mods"></div>`;
+          mods.appendChild(box);
+          sec.ids.forEach((id) => addModule(box.querySelector(".ws-mods"), "c:" + id));
+          return;
+        }
         box.innerHTML = `${secs.length > 1 ? `<h4>${esc(sec.title)}</h4><p class="cap ws-q">${esc(sec.question)}</p>` : ""}
           <p class="ws-g">The main curiosity</p><div class="ws-mods" data-lens-main="${esc(sec.lens)}"></div>
           ${subs.length ? `<p class="ws-g">Its sliders (${subs.length})</p><p class="cap">Each slider is one part of the lens you can turn up or down. It has its own module here, and it is also a lane inside the main module.</p><div class="ws-mods ws-sliders" data-lens-subs="${esc(sec.lens)}"></div>` : ""}`;
@@ -888,14 +962,14 @@
       const extra = m
         ? ` <span class="suite-n">${m.on} of ${m.total} ${m.total === 1 ? "lens" : "lenses"}, ${CS.pct(m.mean)}</span>${CS.bar(m.mean)}`
         : ` <span class="suite-n">${CS ? CS.members(s).length : ""} lenses, side by side</span>`;
-      return chip("s:" + s.id, s.label, (s.note || "") + (m ? ` In my film: ${CS.pct(m.mean)} on average, best ${CS.pct(m.peak)}.` : ""), extra);
+      return chip("s:" + s.id, s.label, (hintOf("suite", s.id) || s.note || "") + (m ? ` In my film: ${CS.pct(m.mean)} on average, best ${CS.pct(m.peak)}.` : ""), extra);
     };
     const block = (title, items) => (items.length ? `<p class="ws-g">${esc(title)}</p><div class="ws-chips">${items.join("")}</div>` : "");
     el.innerHTML = `<h4>Suites and proximities that involve these</h4>
       <p class="cap">Tap one to open its automation here.</p>
       ${block("Suites, by how much my film shows of each", r.suites.map(suiteChip))}
-      ${block("Proximities", r.prox.map((p) => chip("p:" + p.id, `When ${p.when}, ${p.then}`)))}
-      ${block("Proximity suites", r.ps.map((p) => chip("ps:" + p.id, p.label)))}
+      ${block("Proximities", r.prox.map((p) => chip("p:" + p.id, `When ${p.when}, ${p.then}`, hintOf("proximity", p.id) || p.note || "")))}
+      ${block("Proximity suites", r.ps.map((p) => chip("ps:" + p.id, p.label, hintOf("proximitySuite", p.id))))}
       <div class="ws-mods" id="ws-related-mods"></div>`;
     const box = document.getElementById("ws-related-mods");
     opened.forEach((key) => {
