@@ -146,7 +146,10 @@
       ];
       (p.sliders || []).forEach((x) => sliders.push(slider(x)));
       sliders.push(AMOUNT());
-      return put("proximity", { id: p.id, level: "proximity", label: p.label, plain: p.plain || "", workspace: p.workspace, also: p.also || [], when: p.when, then: p.then, within, often: p.often == null ? null : p.often, sliders, source: p.source || "database", tags: p.tags || [] });
+      /* whenText and thenText are the two halves in plain words ("the music is cut dead", "a big line lands"), which
+         the app shows as "When ..., ...". A label already written that way is split; others set them (db-proximity-words.js). */
+      const split = /^When (.+?), (.+)$/.exec(p.label || "");
+      return put("proximity", { id: p.id, level: "proximity", label: p.label, plain: p.plain || "", workspace: p.workspace, also: p.also || [], when: p.when, then: p.then, whenText: p.whenText || (split ? split[1] : ""), thenText: p.thenText || (split ? split[2] : ""), within, often: p.often == null ? null : p.often, sliders, source: p.source || "database", tags: p.tags || [] });
     },
 
     /* proximitySuite({ id, label, plain, workspace, members: [proximity ids] }) */
@@ -277,6 +280,7 @@
         })
       );
       db.proximities.forEach((p) => {
+        if (!p.whenText || !p.thenText) out.push(`proximity ${p.id}: needs whenText and thenText (plain words for "When ..., ...")`);
         ref("proximity " + p.id + " cause", p.when);
         ref("proximity " + p.id + " effect", p.then);
       });
@@ -352,7 +356,7 @@
         if (r.change) o.change = r.change;
         return o;
       };
-      return db.proximities.filter((p) => !known.has(p.id)).map((p) => ({ id: p.id, when: p.whenText || p.label, then: p.thenText || "", within: p.within, x: side(p.when), y: side(p.then), note: p.plain }));
+      return db.proximities.filter((p) => !known.has(p.id)).map((p) => ({ id: p.id, label: p.label, when: p.whenText || p.label, then: p.thenText || "", within: p.within, x: side(p.when), y: side(p.then), note: p.plain }));
     },
     /* One call for the app: adds the database's rows to CURIOSITIES, SUITES and PROXIMITIES in place, and its
        sliders to window.CURIOSITY_FACETS (which automation.js turns into lanes).

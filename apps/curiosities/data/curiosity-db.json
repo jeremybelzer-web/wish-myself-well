@@ -39999,6 +39999,8 @@
     "curiosity": "gesture",
     "change": "rises"
    },
+   "whenText": "the camera goes handheld",
+   "thenText": "gesture grows",
    "within": 2,
    "often": null,
    "sliders": [
@@ -40093,6 +40095,8 @@
     "curiosity": "volume",
     "change": "drops"
    },
+   "whenText": "shot size becomes close",
+   "thenText": "volume drops",
    "within": 1,
    "often": null,
    "sliders": [
@@ -40187,6 +40191,8 @@
     "curiosity": "cameraMove",
     "is": "push in"
    },
+   "whenText": "a person approaches",
+   "thenText": "the camera pushes in",
    "within": 2,
    "often": null,
    "sliders": [
@@ -40281,6 +40287,8 @@
     "curiosity": "shotSize",
     "is": "insert"
    },
+   "whenText": "an object enters",
+   "thenText": "the frame becomes an insert",
    "within": 1,
    "often": null,
    "sliders": [
@@ -40375,6 +40383,8 @@
     "curiosity": "angleHeight",
     "change": "changes"
    },
+   "whenText": "the emotion changes",
+   "thenText": "the angle height changes",
    "within": 1,
    "often": null,
    "sliders": [
@@ -40469,6 +40479,8 @@
     "curiosity": "moveTemper",
     "change": "changes"
    },
+   "whenText": "the emotion changes",
+   "thenText": "the move temper changes",
    "within": 1,
    "often": null,
    "sliders": [
@@ -40563,6 +40575,8 @@
     "curiosity": "moveSpeed",
     "change": "rises"
    },
+   "whenText": "volume rises",
+   "thenText": "move speed rises",
    "within": 0,
    "often": null,
    "sliders": [
@@ -40657,6 +40671,8 @@
     "curiosity": "wetness",
     "is": "soaked"
    },
+   "whenText": "it rains",
+   "thenText": "surfaces are soaked",
    "within": 2,
    "often": null,
    "sliders": [
@@ -40751,6 +40767,8 @@
     "curiosity": "cameraShake",
     "change": "rises"
    },
+   "whenText": "impacts rise",
+   "thenText": "the shake rises",
    "within": 0,
    "often": null,
    "sliders": [
@@ -40843,6 +40861,8 @@
     "curiosity": "lineWeight",
     "is": "heavy"
    },
+   "whenText": "the render goes toon",
+   "thenText": "the ink line is heavy",
    "within": 0,
    "often": null,
    "sliders": [
@@ -40937,6 +40957,8 @@
     "curiosity": "silence",
     "is": "long"
    },
+   "whenText": "tension peaks",
+   "thenText": "a long silence",
    "within": 1,
    "often": null,
    "sliders": [
@@ -41031,6 +41053,8 @@
     "curiosity": "shotDuration",
     "is": "long"
    },
+   "whenText": "energy drops",
+   "thenText": "the hold is long",
    "within": 2,
    "often": null,
    "sliders": [
@@ -41121,6 +41145,8 @@
    "then": {
     "suite": "drop"
    },
+   "whenText": "suite Build",
+   "thenText": "suite Drop",
    "within": 4,
    "often": null,
    "sliders": [
@@ -41211,6 +41237,8 @@
    "then": {
     "suite": "quiet-confession"
    },
+   "whenText": "suite Aggressive camera",
+   "thenText": "suite Quiet confession",
    "within": 6,
    "often": null,
    "sliders": [
@@ -41301,6 +41329,8 @@
    "then": {
     "suite": "breathing-room"
    },
+   "whenText": "suite Storm",
+   "thenText": "suite Breathing room",
    "within": 8,
    "often": null,
    "sliders": [
@@ -41393,6 +41423,8 @@
     "curiosity": "comicBeat",
     "is": "payoff lands"
    },
+   "whenText": "a joke's setup is planted",
+   "thenText": "the payoff lands",
    "within": 3,
    "often": null,
    "sliders": [
@@ -41485,6 +41517,8 @@
     "curiosity": "absurdity",
     "change": "rises"
    },
+   "whenText": "the escalation rises",
+   "thenText": "the absurdity rises",
    "within": 1,
    "often": null,
    "sliders": [
@@ -41579,6 +41613,8 @@
     "curiosity": "cringe",
     "change": "rises"
    },
+   "whenText": "a chaos character enters an orderly room",
+   "thenText": "the cringe rises",
    "within": 1,
    "often": null,
    "sliders": [
@@ -41671,6 +41707,8 @@
     "curiosity": "mixLaughs",
     "change": "rises"
    },
+   "whenText": "opposite personality types share the room",
+   "thenText": "more of the laughs come from the mix",
    "within": 2,
    "often": null,
    "sliders": [
@@ -41763,6 +41801,8 @@
     "curiosity": "mixPlot",
     "change": "rises"
    },
+   "whenText": "the gap in rank grows",
+   "thenText": "the plot takes a turn",
    "within": 3,
    "often": null,
    "sliders": [
@@ -41855,6 +41895,8 @@
     "curiosity": "laughsPerMinute",
     "change": "drops"
    },
+   "whenText": "the pause before the punchline grows",
+   "thenText": "laughs per minute drop but each lands harder",
    "within": 0,
    "often": null,
    "sliders": [
@@ -41947,6 +41989,8 @@
     "curiosity": "emotionIntensity",
     "change": "rises"
    },
+   "whenText": "the mood of the light drops",
+   "thenText": "the strength of the feeling rises",
    "within": 1,
    "often": null,
    "sliders": [
@@ -42039,6 +42083,8 @@
     "curiosity": "postureChanges",
     "change": "rises"
    },
+   "whenText": "the feeling grows stronger",
+   "thenText": "the posture changes more often",
    "within": 1,
    "often": null,
    "sliders": [
@@ -42133,6 +42179,8 @@
     "curiosity": "colorDrift",
     "change": "rises"
    },
+   "whenText": "a scene feels the opposite of the last one",
+   "thenText": "the color shifts too",
    "within": 0,
    "often": null,
    "sliders": [
@@ -42225,6 +42273,8 @@
     "curiosity": "emoTurn",
     "is": "flips"
    },
+   "whenText": "a character reaches their lowest point",
+   "thenText": "their feeling turns",
    "within": 2,
    "often": null,
    "sliders": [
@@ -42317,6 +42367,8 @@
     "curiosity": "colorCount",
     "change": "drops"
    },
+   "whenText": "the color filter gets strong",
+   "thenText": "the number of main colors drops",
    "within": 0,
    "often": null,
    "sliders": [
@@ -42409,6 +42461,8 @@
     "curiosity": "layoutOpen",
     "change": "drops"
    },
+   "whenText": "the clutter rises",
+   "thenText": "the room feels more cramped",
    "within": 0,
    "often": null,
    "sliders": [
@@ -42503,6 +42557,8 @@
     "curiosity": "mainWear",
     "change": "rises"
    },
+   "whenText": "the place runs down",
+   "thenText": "the clothes wear out too",
    "within": 2,
    "often": null,
    "sliders": [
@@ -42598,6 +42654,8 @@
     "curiosity": "volume",
     "change": "rises"
    },
+   "whenText": "the music is cut dead",
+   "thenText": "a big line lands",
    "within": 1,
    "often": null,
    "sliders": [
@@ -42693,6 +42751,8 @@
     "curiosity": "reveal",
     "change": "changes"
    },
+   "whenText": "the music drops out",
+   "thenText": "a reveal follows",
    "within": 2,
    "often": null,
    "sliders": [
@@ -42786,6 +42846,8 @@
     "curiosity": "speedRamp",
     "is": "slow"
    },
+   "whenText": "a famous song starts",
+   "thenText": "time slows",
    "within": 2,
    "often": null,
    "sliders": [
@@ -42881,6 +42943,8 @@
     "curiosity": "cutRate",
     "change": "rises"
    },
+   "whenText": "the tempo rises",
+   "thenText": "the cuts speed up",
    "within": 1,
    "often": null,
    "sliders": [
@@ -42976,6 +43040,8 @@
     "curiosity": "faceIntensity",
     "change": "drops"
    },
+   "whenText": "the music turns warm",
+   "thenText": "faces soften",
    "within": 2,
    "often": null,
    "sliders": [
@@ -43069,6 +43135,8 @@
     "curiosity": "impacts",
     "change": "rises"
    },
+   "whenText": "the music fights the scene",
+   "thenText": "the violence gets bigger",
    "within": 3,
    "often": null,
    "sliders": [
@@ -43162,6 +43230,8 @@
     "curiosity": "shotSize",
     "is": "close"
    },
+   "whenText": "there is no music",
+   "thenText": "the frame gets closer",
    "within": 2,
    "often": null,
    "sliders": [
@@ -43255,6 +43325,8 @@
     "curiosity": "gesture",
     "change": "rises"
    },
+   "whenText": "music plays in the room",
+   "thenText": "someone moves to it",
    "within": 4,
    "often": null,
    "sliders": [
@@ -43348,6 +43420,8 @@
     "curiosity": "bodyEnter",
     "is": "enters"
    },
+   "whenText": "a theme returns",
+   "thenText": "the character it belongs to appears",
    "within": 2,
    "often": null,
    "sliders": [
@@ -43442,6 +43516,8 @@
    "then": {
     "suite": "sudden-silence"
    },
+   "whenText": "the music builds to its peak",
+   "thenText": "it cuts out",
    "within": 3,
    "often": null,
    "sliders": [
@@ -43536,6 +43612,8 @@
     "curiosity": "faceIntensity",
     "change": "rises"
    },
+   "whenText": "a feeling rises",
+   "thenText": "the face shows it before the words",
    "within": 1,
    "often": null,
    "sliders": [
@@ -43630,6 +43708,8 @@
     "curiosity": "volume",
     "change": "rises"
    },
+   "whenText": "anger rises",
+   "thenText": "the voice gets louder",
    "within": 1,
    "often": null,
    "sliders": [
@@ -43724,6 +43804,8 @@
     "curiosity": "movementAmount",
     "change": "drops"
    },
+   "whenText": "fear rises",
+   "thenText": "movement stops",
    "within": 1,
    "often": null,
    "sliders": [
@@ -43818,6 +43900,8 @@
     "curiosity": "emoSpread",
     "change": "rises"
    },
+   "whenText": "one character's feeling overflows",
+   "thenText": "others catch it",
    "within": 3,
    "often": null,
    "sliders": [
@@ -43914,6 +43998,8 @@
     "slider": "laughter",
     "change": "rises"
    },
+   "whenText": "the film hits a low scene",
+   "thenText": "a laugh follows",
    "within": 8,
    "often": null,
    "sliders": [
@@ -44008,6 +44094,8 @@
     "curiosity": "emoShown",
     "is": "fully shown"
    },
+   "whenText": "a feeling is kept fully hidden",
+   "thenText": "it bursts out later",
    "within": 12,
    "often": null,
    "sliders": [
@@ -44103,6 +44191,8 @@
     "curiosity": "lightingMood",
     "is": "bright and warm"
    },
+   "whenText": "joy rises",
+   "thenText": "the light warms",
    "within": 2,
    "often": null,
    "sliders": [
@@ -44199,6 +44289,8 @@
     "slider": "relief",
     "change": "rises"
    },
+   "whenText": "the tension peaks",
+   "thenText": "a release follows",
    "within": 4,
    "often": null,
    "sliders": [
@@ -44292,6 +44384,8 @@
     "slider": "count",
     "change": "rises"
    },
+   "whenText": "a joke pays off",
+   "thenText": "the film cuts to a reaction",
    "within": 1,
    "often": null,
    "sliders": [
@@ -44386,6 +44480,8 @@
     "slider": "breakSize",
     "change": "rises"
    },
+   "whenText": "two things set a pattern",
+   "thenText": "the third breaks it",
    "within": 1,
    "often": null,
    "sliders": [
@@ -44480,6 +44576,8 @@
     "slider": "fall",
     "change": "rises"
    },
+   "whenText": "a character pretends to more status",
+   "thenText": "they fall",
    "within": 4,
    "often": null,
    "sliders": [
@@ -44574,6 +44672,8 @@
     "slider": "smashCut",
     "change": "rises"
    },
+   "whenText": "a character insists they never will",
+   "thenText": "a hard cut shows them doing it",
    "within": 1,
    "often": null,
    "sliders": [
@@ -44667,6 +44767,8 @@
     "slider": "silenceBeat",
     "change": "rises"
    },
+   "whenText": "something awkward is said",
+   "thenText": "a pointed silence hangs",
    "within": 1,
    "often": null,
    "sliders": [
@@ -44761,6 +44863,8 @@
     "curiosity": "shotSize",
     "is": "wide"
    },
+   "whenText": "the trouble escalates",
+   "thenText": "the frame widens",
    "within": 2,
    "often": null,
    "sliders": [
@@ -44857,6 +44961,8 @@
     "slider": "variation",
     "change": "rises"
    },
+   "whenText": "a running gag comes back",
+   "thenText": "it is a little different",
    "within": 16,
    "often": null,
    "sliders": [
@@ -44953,6 +45059,8 @@
     "slider": "mood",
     "is": "sweeter"
    },
+   "whenText": "a joke line comes back later",
+   "thenText": "it lands in a tender moment",
    "within": 40,
    "often": null,
    "sliders": [
@@ -45046,6 +45154,8 @@
     "slider": "acceptance",
     "is": "nobody blinks"
    },
+   "whenText": "something absurd happens",
+   "thenText": "nobody reacts",
    "within": 1,
    "often": null,
    "sliders": [
@@ -45141,6 +45251,8 @@
     "curiosity": "cameraMove",
     "is": "pull out"
    },
+   "whenText": "the audience is misled",
+   "thenText": "the camera pulls back to show the truth",
    "within": 2,
    "often": null,
    "sliders": [
@@ -45235,6 +45347,8 @@
     "curiosity": "laughsPerMinute",
     "change": "rises"
    },
+   "whenText": "the tension rises",
+   "thenText": "a laugh breaks it",
    "within": 3,
    "often": null,
    "sliders": [
@@ -45330,6 +45444,8 @@
     "curiosity": "arcStage",
     "change": "rises"
    },
+   "whenText": "a character's look transforms",
+   "thenText": "their arc moves on",
    "within": 8,
    "often": null,
    "sliders": [
@@ -45426,6 +45542,8 @@
     "curiosity": "reveal",
     "change": "changes"
    },
+   "whenText": "a character is in disguise",
+   "thenText": "they are unmasked",
    "within": 24,
    "often": null,
    "sliders": [
@@ -45520,6 +45638,8 @@
     "curiosity": "shotSize",
     "is": "close"
    },
+   "whenText": "the room is cluttered",
+   "thenText": "the shots get closer",
    "within": 2,
    "often": null,
    "sliders": [
@@ -45614,6 +45734,8 @@
     "curiosity": "shotSize",
     "is": "wide"
    },
+   "whenText": "the space is huge",
+   "thenText": "the frame goes wide",
    "within": 1,
    "often": null,
    "sliders": [
@@ -45708,6 +45830,8 @@
     "curiosity": "comicReaction",
     "change": "rises"
    },
+   "whenText": "the clothes clash with the place",
+   "thenText": "someone reacts",
    "within": 2,
    "often": null,
    "sliders": [
@@ -45803,6 +45927,8 @@
     "curiosity": "shotSize",
     "is": "insert"
    },
+   "whenText": "a prop becomes the key to the scene",
+   "thenText": "it gets a close-up",
    "within": 1,
    "often": null,
    "sliders": [
@@ -45897,6 +46023,8 @@
     "curiosity": "settingMood",
     "change": "drops"
    },
+   "whenText": "the room runs down",
+   "thenText": "the mood of the place darkens",
    "within": 2,
    "often": null,
    "sliders": [
@@ -45992,6 +46120,8 @@
     "slider": "faceLight",
     "is": "half lit"
    },
+   "whenText": "a secret comes out",
+   "thenText": "the face goes half lit",
    "within": 1,
    "often": null,
    "sliders": [
@@ -46087,6 +46217,8 @@
     "curiosity": "saturation",
     "change": "drops"
    },
+   "whenText": "a character's feeling drops sharply",
+   "thenText": "the color drains",
    "within": 2,
    "often": null,
    "sliders": [
@@ -46180,6 +46312,8 @@
    "then": {
     "suite": "faded-memory"
    },
+   "whenText": "the film jumps into the past",
+   "thenText": "the picture takes the faded look",
    "within": 1,
    "often": null,
    "sliders": [
@@ -46276,6 +46410,8 @@
     "slider": "shadows",
     "is": "deep"
    },
+   "whenText": "danger rises",
+   "thenText": "the shadows deepen",
    "within": 2,
    "often": null,
    "sliders": [
@@ -46371,6 +46507,8 @@
     "curiosity": "warmCool",
     "is": "warm"
    },
+   "whenText": "two characters come back together",
+   "thenText": "the color warms",
    "within": 2,
    "often": null,
    "sliders": [
@@ -46451,7 +46589,7 @@
   {
    "id": "stress-1",
    "level": "proximity",
-   "label": "When a Reformer falls into stress, they look like a Individualist",
+   "label": "When a Reformer falls into stress, they look like an Individualist",
    "plain": "As a type 1's health worsens, their traits slide toward type 4 (turns moody, self-pitying and withdrawn) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -46465,6 +46603,8 @@
    "then": {
     "suite": "enneagram-4"
    },
+   "whenText": "a Reformer falls into stress",
+   "thenText": "they look like an Individualist",
    "within": 8,
    "often": null,
    "sliders": [
@@ -46559,6 +46699,8 @@
    "then": {
     "suite": "enneagram-7"
    },
+   "whenText": "a Reformer grows",
+   "thenText": "they borrow from the Enthusiast",
    "within": 8,
    "often": null,
    "sliders": [
@@ -46653,6 +46795,8 @@
    "then": {
     "suite": "enneagram-8"
    },
+   "whenText": "a Helper falls into stress",
+   "thenText": "they look like a Challenger",
    "within": 8,
    "often": null,
    "sliders": [
@@ -46747,6 +46891,8 @@
    "then": {
     "suite": "enneagram-4"
    },
+   "whenText": "a Helper grows",
+   "thenText": "they borrow from the Individualist",
    "within": 8,
    "often": null,
    "sliders": [
@@ -46827,7 +46973,7 @@
   {
    "id": "stress-3",
    "level": "proximity",
-   "label": "When a Achiever falls into stress, they look like a Peacemaker",
+   "label": "When an Achiever falls into stress, they look like a Peacemaker",
    "plain": "As a type 3's health worsens, their traits slide toward type 9 (goes numb, disengages and stops trying) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -46841,6 +46987,8 @@
    "then": {
     "suite": "enneagram-9"
    },
+   "whenText": "an Achiever falls into stress",
+   "thenText": "they look like a Peacemaker",
    "within": 8,
    "often": null,
    "sliders": [
@@ -46921,7 +47069,7 @@
   {
    "id": "growth-3",
    "level": "proximity",
-   "label": "When a Achiever grows, they borrow from the Loyalist",
+   "label": "When an Achiever grows, they borrow from the Loyalist",
    "plain": "As a type 3's health improves, they borrow the healthy side of type 6 (commits to people and causes beyond themselves) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -46935,6 +47083,8 @@
    "then": {
     "suite": "enneagram-6"
    },
+   "whenText": "an Achiever grows",
+   "thenText": "they borrow from the Loyalist",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47015,7 +47165,7 @@
   {
    "id": "stress-4",
    "level": "proximity",
-   "label": "When a Individualist falls into stress, they look like a Helper",
+   "label": "When an Individualist falls into stress, they look like a Helper",
    "plain": "As a type 4's health worsens, their traits slide toward type 2 (clings and over-pleases to keep people close) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -47029,6 +47179,8 @@
    "then": {
     "suite": "enneagram-2"
    },
+   "whenText": "an Individualist falls into stress",
+   "thenText": "they look like a Helper",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47109,7 +47261,7 @@
   {
    "id": "growth-4",
    "level": "proximity",
-   "label": "When a Individualist grows, they borrow from the Reformer",
+   "label": "When an Individualist grows, they borrow from the Reformer",
    "plain": "As a type 4's health improves, they borrow the healthy side of type 1 (gets disciplined and acts on principle) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -47123,6 +47275,8 @@
    "then": {
     "suite": "enneagram-1"
    },
+   "whenText": "an Individualist grows",
+   "thenText": "they borrow from the Reformer",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47203,7 +47357,7 @@
   {
    "id": "stress-5",
    "level": "proximity",
-   "label": "When a Investigator falls into stress, they look like a Enthusiast",
+   "label": "When an Investigator falls into stress, they look like an Enthusiast",
    "plain": "As a type 5's health worsens, their traits slide toward type 7 (scatters, grows restless and impulsive) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -47217,6 +47371,8 @@
    "then": {
     "suite": "enneagram-7"
    },
+   "whenText": "an Investigator falls into stress",
+   "thenText": "they look like an Enthusiast",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47297,7 +47453,7 @@
   {
    "id": "growth-5",
    "level": "proximity",
-   "label": "When a Investigator grows, they borrow from the Challenger",
+   "label": "When an Investigator grows, they borrow from the Challenger",
    "plain": "As a type 5's health improves, they borrow the healthy side of type 8 (takes decisive, confident action) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -47311,6 +47467,8 @@
    "then": {
     "suite": "enneagram-8"
    },
+   "whenText": "an Investigator grows",
+   "thenText": "they borrow from the Challenger",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47391,7 +47549,7 @@
   {
    "id": "stress-6",
    "level": "proximity",
-   "label": "When a Loyalist falls into stress, they look like a Achiever",
+   "label": "When a Loyalist falls into stress, they look like an Achiever",
    "plain": "As a type 6's health worsens, their traits slide toward type 3 (puffs up, competes and performs confidence) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -47405,6 +47563,8 @@
    "then": {
     "suite": "enneagram-3"
    },
+   "whenText": "a Loyalist falls into stress",
+   "thenText": "they look like an Achiever",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47499,6 +47659,8 @@
    "then": {
     "suite": "enneagram-9"
    },
+   "whenText": "a Loyalist grows",
+   "thenText": "they borrow from the Peacemaker",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47579,7 +47741,7 @@
   {
    "id": "stress-7",
    "level": "proximity",
-   "label": "When a Enthusiast falls into stress, they look like a Reformer",
+   "label": "When an Enthusiast falls into stress, they look like a Reformer",
    "plain": "As a type 7's health worsens, their traits slide toward type 1 (turns critical, perfectionist and rigid) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -47593,6 +47755,8 @@
    "then": {
     "suite": "enneagram-1"
    },
+   "whenText": "an Enthusiast falls into stress",
+   "thenText": "they look like a Reformer",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47673,7 +47837,7 @@
   {
    "id": "growth-7",
    "level": "proximity",
-   "label": "When a Enthusiast grows, they borrow from the Investigator",
+   "label": "When an Enthusiast grows, they borrow from the Investigator",
    "plain": "As a type 7's health improves, they borrow the healthy side of type 5 (slows down, goes deep and focuses) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -47687,6 +47851,8 @@
    "then": {
     "suite": "enneagram-5"
    },
+   "whenText": "an Enthusiast grows",
+   "thenText": "they borrow from the Investigator",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47767,7 +47933,7 @@
   {
    "id": "stress-8",
    "level": "proximity",
-   "label": "When a Challenger falls into stress, they look like a Investigator",
+   "label": "When a Challenger falls into stress, they look like an Investigator",
    "plain": "As a type 8's health worsens, their traits slide toward type 5 (withdraws, broods and plots in secret) within a scene or two.",
    "workspace": "archetype",
    "also": [
@@ -47781,6 +47947,8 @@
    "then": {
     "suite": "enneagram-5"
    },
+   "whenText": "a Challenger falls into stress",
+   "thenText": "they look like an Investigator",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47875,6 +48043,8 @@
    "then": {
     "suite": "enneagram-2"
    },
+   "whenText": "a Challenger grows",
+   "thenText": "they borrow from the Helper",
    "within": 8,
    "often": null,
    "sliders": [
@@ -47969,6 +48139,8 @@
    "then": {
     "suite": "enneagram-6"
    },
+   "whenText": "a Peacemaker falls into stress",
+   "thenText": "they look like a Loyalist",
    "within": 8,
    "often": null,
    "sliders": [
@@ -48063,6 +48235,8 @@
    "then": {
     "suite": "enneagram-3"
    },
+   "whenText": "a Peacemaker grows",
+   "thenText": "they borrow from the Achiever",
    "within": 8,
    "often": null,
    "sliders": [
