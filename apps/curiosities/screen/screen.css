@@ -207,6 +207,17 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-grid { stroke: rgba(255, 255, 255, 0.06); }
 .sl-play { fill: rgba(34, 211, 238, 0.12); pointer-events: none; }
 .sl-marker { pointer-events: none; }
+.sl-out { fill: rgba(0, 0, 0, 0.45); pointer-events: none; }
+.sl-range { fill: none; stroke: var(--cc-accent); stroke-width: 2; pointer-events: none; }
+/* Ghosts (Maya's ghosting): the moments before and after, faint over my film. */
+.sc-ghost { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; }
+.sc-ghost.before { opacity: 0.28; filter: hue-rotate(180deg); }
+.sc-ghost.after { opacity: 0.16; }
+.sc-page .sc-ghost-b { margin-left: 6px; }
+/* Momentum box under the picked curiosity in Details. */
+.sc-mom { margin-top: 6px; padding: 6px 8px; border-radius: 6px; background: #23232a; border-left: 3px solid var(--cc-warm); font-size: 12px; display: grid; gap: 3px; }
+.sc-mom p { margin: 0; line-height: 1.35; }
+.sc-mom-bar { color: var(--cc-warm); letter-spacing: 1px; }
 .sl-marker line { stroke: var(--cc-warm); stroke-dasharray: 3 3; opacity: 0.7; }
 .sl-marker path { fill: var(--cc-warm); }
 .sl-seg { display: inline-flex; background: var(--cc-raised); border-radius: 6px; padding: 2px; gap: 2px; }

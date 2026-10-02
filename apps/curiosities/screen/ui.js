@@ -63,6 +63,8 @@
     layout: "center",
     playerZoom: 1,
     libTab: "",
+    ghost: false,
+    range: null,
     guides: false,
     rulers: false,
   };
@@ -104,7 +106,10 @@
       ["Q", "Delete left", "Remove the picked lane's nodes before the playhead", (e) => plain(e) && key(e, "q"), lk("deleteLeft")],
       ["W", "Delete right", "Remove the picked lane's nodes after the playhead", (e) => plain(e) && key(e, "w"), lk("deleteRight")],
       ["⇧⌥K", "Add keyframe", "Add a node at the playhead on the picked lane (a node is a keyframe)", (e) => e.altKey && e.shiftKey && !mod(e) && e.code === "KeyK", lk("splitHere")],
-      ["⇧↩", "In", "Nothing on the Screen yet (CapCut marks where a clip starts)"],
+      ["⇧↩ or I", "In", "Start the play range at the playhead, so Play loops over a part (Maya's playback range)", (e) => !mod(e) && ((e.shiftKey && e.key === "Enter") || (plain(e) && !e.shiftKey && key(e, "i"))), () => setRange("in")],
+      ["O", "Out", "End the play range at the playhead (not in CapCut's list; most editors use it)", (e) => plain(e) && !e.shiftKey && key(e, "o"), () => setRange("out")],
+      ["⌥X", "Clear the range", "Play the whole film again", (e) => e.altKey && !mod(e) && e.code === "KeyX", () => setRange(null)],
+      ["G", "Ghosts", "See the moments before and after faintly (Maya's ghosting); not in CapCut", (e) => plain(e) && !e.shiftKey && key(e, "g"), () => ((prefs.ghost = !prefs.ghost), save(), drawViewers())],
       ["⌥K", "Show/hide keyframe panel", "Nothing yet: the timeline's lanes are always the keyframe panel"],
     ]],
     ["Player", [
@@ -247,11 +252,37 @@
     if (lanes) lanes.draw();
     tell();
   }
+  /* The play range (Maya's playback range; CapCut's In point): [from, to] moments, or null for the whole film. */
+  function rangeNow() {
+    const r = prefs.range;
+    if (!r || !Array.isArray(r)) return null;
+    const n = nRows();
+    const a = Math.max(0, Math.min(n - 1, r[0] | 0));
+    const b = Math.max(0, Math.min(n - 1, r[1] | 0));
+    return a < b ? [a, b] : null;
+  }
+  function setRange(end) {
+    const cur = rangeNow() || [0, nRows() - 1];
+    prefs.range = end === "in" ? [row, Math.max(row + 1, cur[1])] : end === "out" ? [Math.min(cur[0], row - 1), row] : null;
+    if (prefs.range && prefs.range[0] < 0) prefs.range[0] = 0;
+    save();
+    drawViewers();
+    if (lanes) lanes.draw();
+    toast(rangeNow() ? `Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}.` : "Play runs over the whole film.");
+  }
   function play(on) {
     if (timer) clearInterval(timer);
     timer = null;
     if (!on) (playDir = 1), (playRate = 1);
-    if (on) timer = setInterval(() => setRow(playDir < 0 ? (row <= 0 ? nRows() - 1 : row - 1) : row + 1 >= nRows() ? 0 : row + 1), Math.round(1100 / ((prefs.speed || 1) * playRate)));
+    if (on) {
+      const rg = rangeNow();
+      if (rg && (row < rg[0] || row > rg[1])) setRow(playDir < 0 ? rg[1] : rg[0]);
+    }
+    if (on)
+      timer = setInterval(() => {
+        const [a, b] = rangeNow() || [0, nRows() - 1];
+        setRow(playDir < 0 ? (row <= a ? b : row - 1) : row >= b ? a : row + 1);
+      }, Math.round(1100 / ((prefs.speed || 1) * playRate)));
     const b = page && page.querySelector('[data-act="play"]');
     if (b) b.textContent = on ? "Pause" : "Play";
   }
@@ -607,7 +638,7 @@
       const att = attentionAt(beats, i);
       return `<article class="sc-viewer mine${prefs.focus === "mine" ? " focus" : ""}" data-viewer="mine">
         <header><button type="button" class="sc-vname" data-focus="mine">My film</button><span class="sc-vsub">${esc(E() ? E().state().name : "")} · moment ${i + 1} of ${beats.length}</span></header>
-        <div class="sc-frame" data-focus="mine">${F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) }))}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
+        <div class="sc-frame" data-focus="mine">${F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) }))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
         ${scrub(beats, i, fires, "mine")}
         <p class="sc-vnote">${fires.length ? `${esc(sel.label)} shows up ${fires.length} time${fires.length === 1 ? "" : "s"} in your film.` : `${esc(sel.label)} does not show up in your film yet.`}</p>
       </article>`;
@@ -656,10 +687,10 @@
       ["off", "Off", "The plain picture"],
     ]
       .map(([id, l, t]) => `<button type="button" data-lens="${id}" class="${prefs.lens === id ? "on" : ""}" title="${t}">${l}</button>`)
-      .join("")}</div>`;
+      .join("")}</div><button type="button" data-act="ghost" class="sc-ghost-b${prefs.ghost ? " on" : ""}" aria-pressed="${!!prefs.ghost}" title="Ghosts: see the moments before and after faintly over your film (Maya's ghosting, an animator's onion skin)">Ghosts</button>`;
     page.querySelector(".sc-viewers").innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine");
     page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
-      <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select></span>
+      <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
       <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span></span>`;
   }
 
@@ -707,6 +738,12 @@
     const t = k === "here" ? "A key (node) is set here; click to take it off" : k === "lane" ? "Automated, no key at this moment; click to set one" : "Not automated yet; click to set a key here and put it on the timeline";
     return `<button type="button" class="sc-key ${k || "none"}" data-key="${esc(id)}" title="${t}" aria-label="${esc(t)}: ${esc(labelOf(id))}">${k === "here" ? "◆" : "◇"}</button>`;
   }
+  /* Momentum, the heart of the app: how the picked curiosity moves the story and the audience's attention. */
+  function momentumBox(m) {
+    const push = Math.max(0, Math.min(5, Number(m.push) || 0));
+    const CUE = { visual: "the eye", audio: "the ear", thought: "the mind", movement: "movement", plot: "the plot" };
+    return `<div class="sc-mom" aria-label="Momentum"><p><strong>Momentum</strong> <span class="sc-mom-bar" title="How hard it pushes the story: ${push} of 5">${"●".repeat(push)}${"○".repeat(5 - push)}</span>${m.cue ? ` <span class="sc-k">pulls ${esc(CUE[m.cue] || m.cue)}</span>` : ""}</p>${m.plot ? `<p><b>Story:</b> ${esc(m.plot)}</p>` : ""}${m.theme ? `<p><b>Theme:</b> ${esc(m.theme)}</p>` : ""}${m.pull ? `<p><b>Attention:</b> ${esc(m.pull)}</p>` : ""}${m.tryThis ? `<p><b>Try:</b> ${esc(m.tryThis)}</p>` : ""}</div>`;
+  }
   function curiosityRow(c, ctx) {
     const key = keyFor(c.id);
     const sel = prefs.sel.level === "curiosity" && (prefs.sel.id === c.id || prefs.sel.id === key);
@@ -723,6 +760,7 @@
       </div>
       ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyBtn(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
       ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
+      ${sel && c.momentum ? momentumBox(c.momentum) : ""}
       ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyBtn(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
     </div>`;
   }
@@ -932,6 +970,7 @@
         header: prefs.view === "arrange" ? laneHeader : null,
         onClip: (j) => setRow(j),
         onHover: (j) => setRow(j),
+        range: rangeNow,
         onSelect: (cur) => {
           if (prefs.sel.level === "curiosity" && prefs.sel.id === cur) return;
           if (prefs.view === "screen" && prefs.sel.level !== "curiosity") return;
@@ -1149,6 +1188,12 @@
     const act = d.act;
     if (act === "close") return close();
     if (act === "shortcuts") return showKeys(!keysOpen);
+    if (act === "ghost") {
+      prefs.ghost = !prefs.ghost;
+      save();
+      return drawViewers();
+    }
+    if (act === "range-clear") return setRange(null);
     if (act === "keys-close") return showKeys(false);
     if (act === "play") return play(!timer);
     if (act === "prev") return setRow(row - 1);

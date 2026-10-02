@@ -25,6 +25,7 @@
        opts.onSelect(cur) told when a lane or node is picked
        opts.header(lane) -> extra HTML for a lane's header (the Arrange view's dropdown)
        opts.ruler        draw moment numbers above the lanes
+       opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
    - trackFor(cur)       the track a curiosity goes on when it is not on one yet
    - group(nodeKey)      the nodes and links joined to a node
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
@@ -313,7 +314,7 @@
         .map(
           (ln, i) => `<div class="sl-head${ln.group ? " sl-in-group" : ""}${sel && sel.endsWith("@" + ln.lk) ? " on" : ""}" style="height:${LANE_H}px" data-i="${i}">
             ${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}
-            <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${st.lanes[ln.lk].mode === "hold" ? "Jumps: holds each node's setting until the next node (Maya's stepped curve). Click to glide." : "Glides: moves in a straight line from node to node (Maya's linear curve). Click to jump."}">${st.lanes[ln.lk].mode === "hold" ? "⌐ Jump" : "⟋ Glide"}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
+            <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(st.lanes[ln.lk])][2])} Click to change.">${MODES[modeOf(st.lanes[ln.lk])][1]}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
           </div>`
         )
         .join("");
@@ -336,6 +337,13 @@
       });
       for (let j = 0; j <= n; j++) svg.push(`<line class="sl-grid" x1="${j * colW}" x2="${j * colW}" y1="0" y2="${svgH}"/>`);
       if (playRow >= 0 && playRow < n) svg.push(`<rect class="sl-play" x="${playRow * colW}" y="0" width="${colW}" height="${svgH}"/>`);
+      const rg = opts.range ? opts.range() : null;
+      if (rg) {
+        /* The play range: moments outside it are dimmed, with a bracket at each end. */
+        if (rg[0] > 0) svg.push(`<rect class="sl-out" x="0" y="0" width="${rg[0] * colW}" height="${svgH}"/>`);
+        if (rg[1] < n - 1) svg.push(`<rect class="sl-out" x="${(rg[1] + 1) * colW}" y="0" width="${(n - rg[1] - 1) * colW}" height="${svgH}"/>`);
+        svg.push(`<path class="sl-range" d="M${rg[0] * colW + 6} 2 H${rg[0] * colW + 1} V${svgH - 2} H${rg[0] * colW + 6} M${(rg[1] + 1) * colW - 6} 2 H${(rg[1] + 1) * colW - 1} V${svgH - 2} H${(rg[1] + 1) * colW - 6}"><title>Play range: moments ${rg[0] + 1} to ${rg[1] + 1}</title></path>`);
+      }
       st.rows.forEach((r, j) => {
         if (!tools.markers.includes(r.id)) return;
         const x = j * colW + colW / 2;
@@ -355,7 +363,12 @@
           .sort((a, b) => a.j - b.j);
         const xy = nodes.map((p) => [p.j * colW + colW / 2, yFor(ln.cur, p.v, i)]);
         if (xy.length > 1) {
-          const d = lane.mode === "hold" ? xy.map((p, k) => (k ? `H${p[0]} V${p[1]}` : `M${p[0]} ${p[1]}`)).join(" ") : "M" + xy.map((p) => p.join(" ")).join(" L");
+          const d =
+            lane.mode === "hold"
+              ? xy.map((p, k) => (k ? `H${p[0]} V${p[1]}` : `M${p[0]} ${p[1]}`)).join(" ")
+              : lane.mode === "smooth"
+                ? xy.map((p, k) => (k ? `C${(xy[k - 1][0] + p[0]) / 2} ${xy[k - 1][1]} ${(xy[k - 1][0] + p[0]) / 2} ${p[1]} ${p[0]} ${p[1]}` : `M${p[0]} ${p[1]}`)).join(" ")
+                : "M" + xy.map((p) => p.join(" ")).join(" L");
           svg.push(`<path class="sl-auto${lane.on ? "" : " off"}" d="${d}"/>`);
         }
         nodes.forEach((p, k) => {
@@ -592,7 +605,15 @@
         const st = E().state();
         const lane = st.lanes[b.dataset.lk];
         const at = b.dataset.lk.indexOf("|");
-        if (lane) send({ type: "laneMode", track: b.dataset.lk.slice(0, at), curiosity: b.dataset.lk.slice(at + 1), mode: lane.mode === "hold" ? "ramp" : "hold", label: lane.mode === "hold" ? "Make a lane glide" : "Make a lane jump" });
+        if (lane) {
+          /* Glide, then Smooth, then Jump. An engine without smooth refuses it, so the switch skips to Jump. */
+          const order = ["ramp", "smooth", "hold"];
+          const base = { type: "laneMode", track: b.dataset.lk.slice(0, at), curiosity: b.dataset.lk.slice(at + 1) };
+          let next = order[(order.indexOf(modeOf(lane)) + 1) % order.length];
+          let r = E().send(Object.assign({}, base, { mode: next, label: MODES[next][3] }));
+          if (!r.ok && next === "smooth") r = E().send(Object.assign({}, base, { mode: (next = "hold"), label: MODES.hold[3] }));
+          if (!r.ok) say(r.error);
+        }
         return draw();
       }
       if (TOOL_ACTS[act]) return command(TOOL_ACTS[act]);
@@ -600,6 +621,13 @@
       if (act === "copy" || act === "paste") say(msg);
     }
     let look = null; /* copied attributes: one node's setting */
+    /* How a lane moves between its nodes, in plain words for Maya's graph editor tangents. */
+    const MODES = {
+      ramp: ["ramp", "⟋ Glide", "Glides: a straight line from node to node (Maya's linear curve).", "Make a lane glide"],
+      smooth: ["smooth", "∿ Smooth", "Smooth: eases out of each node and into the next (Maya's spline curve).", "Make a lane smooth"],
+      hold: ["hold", "⌐ Jump", "Jumps: holds each node's setting until the next node (Maya's stepped curve).", "Make a lane jump"],
+    };
+    const modeOf = (lane) => (MODES[lane.mode] ? lane.mode : "ramp");
     const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit" };
     /* The nodes of a lane in film order, as keys. */
     function laneNodes(st, lk) {

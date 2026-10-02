@@ -107,8 +107,17 @@ const ok = (cond, msg) => {
   await page.click('.sc-inspector .sc-key[data-key="transitionKind"]');
   ok(!!(await page.$('.sc-inspector .sc-key.here[data-key="transitionKind"]')), "clicking again sets the key");
   /* Maya's graph editor curves: glide or jump. */
+  const laneMode = () => page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|transitionKind")); return st.lanes[lk].mode; });
   await page.click('.sl-mode[data-lk$="|transitionKind"]');
-  ok(await page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|transitionKind")); return st.lanes[lk].mode === "hold"; }), "a lane can jump between nodes instead of gliding");
+  const m1 = await laneMode();
+  ok(m1 === "smooth" || m1 === "hold", "Glide switches to Smooth (or to Jump on an engine without smooth): " + m1);
+  if (m1 === "smooth") {
+    await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|transitionKind")); E.send({ type: "setPoint", row: st.rows[4].id, track: lk.split("|")[0], curiosity: "transitionKind", value: "zoom" }); });
+    ok(await page.evaluate(() => [...document.querySelectorAll(".sl-auto")].some((p) => /C/.test(p.getAttribute("d")))), "a smooth lane is drawn as a curve");
+    await page.keyboard.press("Control+z");
+    await page.click('.sl-mode[data-lk$="|transitionKind"]');
+  }
+  ok((await laneMode()) === "hold", "a lane can jump between nodes instead of gliding");
   await page.click('[data-icat="transitions"]');
   await page.click('[data-group="suite"]');
   ok((await page.$$('.sc-card[data-card="suite"]')).length >= 1, "the sidebar opens the category's suites");
@@ -132,6 +141,26 @@ const ok = (cond, msg) => {
   ok(hook.added && hook.text === "docked" && hook.r === 2 && hook.told >= 2, "other threads can dock a panel, read the playhead and hear every move");
   ok(await page.evaluate(() => /^00:00:00:06 /.test(document.querySelector(".sc-tc").textContent) === false && /00:00:00:00/.test(document.querySelector(".sc-tc").textContent)), "the clock starts at zero");
   await page.evaluate(() => { document.querySelector('.sc-dock[data-panel="test-dock"]').remove(); });
+
+  /* Maya's ghosting, the play range, and the momentum box. */
+  await page.evaluate(() => document.activeElement && document.activeElement.blur());
+  await page.evaluate(() => window.CurioScreen.setRow(1));
+  await page.keyboard.press("g");
+  ok((await page.$$(".sc-viewer.mine .sc-ghost")).length === 2, "G shows ghosts of the moments before and after");
+  await page.keyboard.press("g");
+  await page.keyboard.press("i");
+  await page.evaluate(() => window.CurioScreen.setRow(3));
+  await page.keyboard.press("o");
+  ok(JSON.stringify(await page.evaluate(() => window.CurioScreen.state().range)) === "[1,3]" && (await page.$$(".sl-out")).length === 2, "I and O set a play range, drawn on the timeline");
+  await page.evaluate(() => window.CurioScreen.setRow(3));
+  await page.keyboard.press("l");
+  await page.waitForTimeout(1300);
+  await page.keyboard.press("k");
+  ok(await page.evaluate(() => { const r = window.CurioScreen.row(); return r >= 1 && r <= 3; }), "Play loops inside the range");
+  await page.click('[data-act="range-clear"]');
+  ok(!(await page.evaluate(() => window.CurioScreen.state().range)), "the range clears");
+  await page.evaluate(() => window.CurioScreen.setRow(0));
+  ok(await page.evaluate(() => !!document.querySelector(".sc-cur.sel .sc-mom")), "the picked curiosity shows its momentum: how it drives the story");
 
   /* CapCut's keyboard shortcuts and layouts. */
   await page.evaluate(() => document.activeElement && document.activeElement.blur());
