@@ -244,6 +244,8 @@
 .sq-tablewrap { overflow-x: auto; max-width: 100%; }
 .sq-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .studio-body svg.sq-bars { border: 1px solid var(--line); background: white; }
+.sq-pb-view canvas { display: block; width: 100%; max-width: 640px; height: auto; border: 2px solid var(--ink); margin: 0 0 10px; background: #111; }
+.sq-root .sq-pb select { width: auto; }
 .sq-note { font-family: var(--mono); font-size: 11px; color: var(--saffron); }
 `;
     document.head.appendChild(css);
@@ -382,6 +384,14 @@
         <button type="button" id="sq-clearcuts">Clear markers</button>
         <span class="cap">${sound.note ? esc(sound.note) : sound.audio ? "Plays in sync. Press C while playing to cut live." : "No sound loaded. Play runs on the clock; C still drops markers."} ${st.cuts.length} marker${st.cuts.length === 1 ? "" : "s"}.</span>
       </div>
+      <div class="sq-bar sq-pb">
+        <button type="button" id="sq-pb-go">${pb.rec ? "Stop playblast" : "Playblast (.webm)"}</button>
+        <select id="sq-pb-res" aria-label="Playblast resolution">${PB_RES.map((r) => `<option ${r === pbOpt().res ? "selected" : ""}>${r}</option>`).join("")}</select>
+        <label class="cap"><input type="checkbox" id="sq-pb-burn" ${pbOpt().burn ? "checked" : ""}> Burn-in</label>
+        <button type="button" id="sq-pb-sheet">Contact sheet (PNG)</button>
+        <span class="cap" id="sq-pb-note">${esc(pb.note || "Playblast plays the whole edit at the frame rate and records it, with the loaded sound.")}</span>
+      </div>
+      <div class="sq-pb-view" id="sq-pb-view"></div>
       <div class="studio-grid">
         <div id="sq-insp">${inspectorHtml(m.t)}</div>
         <div>
@@ -725,6 +735,17 @@
       commit();
     };
     $("#sq-file").onchange = (e) => loadSound(e.target.files && e.target.files[0]);
+    $("#sq-pb-go").onclick = () => (pb.rec ? stopPlayblast() : playblast());
+    $("#sq-pb-sheet").onclick = contactSheet;
+    $("#sq-pb-res").onchange = (e) => {
+      pbOpt().res = e.target.value;
+      save();
+    };
+    $("#sq-pb-burn").onchange = (e) => {
+      pbOpt().burn = e.target.checked;
+      save();
+    };
+    if (pb.canvas) $("#sq-pb-view").appendChild(pb.canvas);
 
     /* Inspector */
     const insp = $("#sq-insp");
@@ -859,6 +880,315 @@
       if (y >= r.top && y <= r.bottom) hit = Number(l.dataset.track);
     });
     return hit;
+  }
+
+  /* ---------- playblast ---------- */
+
+  const PB_RES = ["640x360", "1280x720"];
+  const pb = { rec: null, canvas: null, note: "" };
+
+  function pbOpt() {
+    if (!st.pb || typeof st.pb !== "object") st.pb = { res: "640x360", burn: true };
+    if (!PB_RES.includes(st.pb.res)) st.pb.res = "640x360";
+    return st.pb;
+  }
+
+  function pbNote(s) {
+    pb.note = s;
+    const n = host && host.querySelector("#sq-pb-note");
+    if (n) n.textContent = s;
+  }
+
+  function wrapLines(g, text, maxW) {
+    const words = String(text || "").split(/\s+/).filter(Boolean);
+    const out = [];
+    let line = "";
+    words.forEach((w) => {
+      const tryLine = line ? line + " " + w : w;
+      if (g.measureText(tryLine).width > maxW && line) {
+        out.push(line);
+        line = w;
+      } else line = tryLine;
+    });
+    if (line) out.push(line);
+    return out.slice(0, 3);
+  }
+
+  /* One playblast frame: a simple stage framed by the shot's size, height, move and carry. */
+  function drawFrame(g, W, H, f, t, burn) {
+    const w = activeAt(Math.min(Math.floor(f), totalFrames(t) - 1), t);
+    const scene = sceneNow();
+    const u = W / 640;
+    g.save();
+    g.fillStyle = "#f7efe2";
+    g.fillRect(0, 0, W, H);
+    if (!w) {
+      g.fillStyle = "#1c1712";
+      g.font = `${16 * u}px monospace`;
+      g.fillText("No shot", 20 * u, H / 2);
+      g.restore();
+      return;
+    }
+    const x = w.shot;
+    const p = Math.max(0, Math.min(1, (f - w.s) / Math.max(1, w.e - w.s)));
+    const zoomOf = { wide: 1, medium: 1.7, close: 3, insert: 4.4 };
+    let zoom = zoomOf[x.shotSize] || 1;
+    let cx = 0.5;
+    let cy = 0.58;
+    if (x.cameraMove === "push in") zoom *= 1 + 0.35 * p;
+    else if (x.cameraMove === "pull out") zoom *= 1.35 - 0.35 * p;
+    else if (x.cameraMove === "zoom") zoom *= 1 + 0.6 * p * p;
+    else if (x.cameraMove === "pan" || x.cameraMove === "track") cx += (p - 0.5) * 0.25;
+    else if (x.cameraMove === "tilt" || x.cameraMove === "crane") cy += (0.5 - p) * 0.2;
+    else if (x.cameraMove === "orbit") cx += Math.sin(p * Math.PI * 2) * 0.08;
+    if (x.cameraCarry === "handheld") {
+      cx += Math.sin(f * 0.9) * 0.006 + Math.sin(f * 2.3) * 0.004;
+      cy += Math.cos(f * 1.1) * 0.006;
+    }
+    const people = Math.max(1, Math.min(8, (window.CuriosityBoard && Number(window.CuriosityBoard.values().peopleCount)) || (scene.people || []).length || 2));
+    const li = (x.lines[0] || 0) % scene.lines.length;
+    const line = scene.lines[li] || { who: "", text: "" };
+    /* the subject: the speaker for a close, the object for an insert */
+    const spot = (k) => 0.5 + (k - (people - 1) / 2) * (0.5 / Math.max(1, people - 1 || 1));
+    const objX = 0.66;
+    const objY = 0.66;
+    if (x.shotSize === "insert") {
+      cx = objX + (cx - 0.5);
+      cy = objY + (cy - 0.58);
+    } else if (x.shotSize === "close") {
+      const who = Math.max(0, (scene.people || []).findIndex((n) => (n.name || n) === line.who));
+      cx = spot(who % people) + (cx - 0.5);
+      cy = 0.5 + (cy - 0.58);
+    }
+    const toX = (wx) => (wx - cx) * zoom * W + W / 2;
+    const toY = (wy) => (wy - cy) * zoom * H + H / 2;
+    if (x.angleHeight === "overhead") {
+      g.strokeStyle = "rgba(28,23,18,0.15)";
+      g.lineWidth = 1 * u;
+      for (let k = 0; k <= 10; k++) {
+        g.beginPath();
+        g.moveTo(toX(k / 10), toY(0));
+        g.lineTo(toX(k / 10), toY(1));
+        g.moveTo(toX(0), toY(k / 10));
+        g.lineTo(toX(1), toY(k / 10));
+        g.stroke();
+      }
+    } else {
+      const hy = { low: 0.78, eye: 0.5, high: 0.24, floor: 0.88 }[x.angleHeight] || 0.5;
+      g.fillStyle = "#e6d8c0";
+      g.fillRect(0, hy * H, W, H - hy * H);
+      g.strokeStyle = "rgba(28,23,18,0.4)";
+      g.setLineDash([6 * u, 6 * u]);
+      g.beginPath();
+      g.moveTo(0, hy * H);
+      g.lineTo(W, hy * H);
+      g.stroke();
+      g.setLineDash([]);
+    }
+    for (let k = 0; k < people; k++) {
+      const px = toX(spot(k));
+      const py = toY(0.58);
+      const r = 0.035 * W * zoom * 0.5;
+      g.fillStyle = "#1c1712";
+      g.beginPath();
+      g.arc(px, py - r * 2.2, r, 0, Math.PI * 2);
+      g.fill();
+      g.fillRect(px - r * 0.9, py - r * 1.1, r * 1.8, r * 3.2);
+    }
+    g.fillStyle = "#b8892d";
+    const os = 0.03 * zoom * W;
+    g.fillRect(toX(objX) - os / 2, toY(objY) - os / 2, os, os * 0.7);
+    if (burn) {
+      g.strokeStyle = "rgba(196,92,38,0.8)";
+      g.lineWidth = 1.5 * u;
+      g.strokeRect(W * 0.05, H * 0.05, W * 0.9, H * 0.9);
+      g.setLineDash([4 * u, 4 * u]);
+      g.strokeRect(W * 0.1, H * 0.1, W * 0.8, H * 0.8);
+      g.setLineDash([]);
+      g.font = `${13 * u}px monospace`;
+      const tag = `${x.name} · ${x.shotSize} · ${x.angleHeight} · ${x.cameraMove} · ${x.cameraCarry}`;
+      const tc = `${timecode(f, st.fps)}  f${Math.floor(f)}`;
+      g.fillStyle = "rgba(28,23,18,0.8)";
+      g.fillRect(0, 0, W, 22 * u);
+      g.fillStyle = "#f7efe2";
+      g.textBaseline = "middle";
+      g.textAlign = "left";
+      g.fillText(tag, 8 * u, 11 * u);
+      g.textAlign = "right";
+      g.fillText(tc, W - 8 * u, 11 * u);
+    }
+    g.textAlign = "center";
+    g.textBaseline = "alphabetic";
+    g.font = `${18 * u}px Georgia, serif`;
+    const sub = line.text && line.text !== "—" ? wrapLines(g, (line.who ? line.who + ": " : "") + line.text, W * 0.78) : [];
+    sub.forEach((l, k) => {
+      const y = H - 18 * u - (sub.length - 1 - k) * 22 * u;
+      const tw = g.measureText(l).width;
+      g.fillStyle = "rgba(0,0,0,0.6)";
+      g.fillRect(W / 2 - tw / 2 - 6 * u, y - 17 * u, tw + 12 * u, 22 * u);
+      g.fillStyle = "white";
+      g.fillText(l, W / 2, y);
+    });
+    g.restore();
+  }
+
+  function download(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  function fileBase() {
+    return "playblast-" + String(sceneNow().id || "scene").replace(/[^a-z0-9-]+/gi, "-");
+  }
+
+  function playblast() {
+    const [W, H] = pbOpt().res.split("x").map(Number);
+    const c = document.createElement("canvas");
+    c.width = W;
+    c.height = H;
+    if (!window.MediaRecorder || !c.captureStream) {
+      pbNote("This browser cannot record video; downloading a contact sheet instead.");
+      return contactSheet();
+    }
+    stopPlay(true);
+    pb.canvas = c;
+    const view = host.querySelector("#sq-pb-view");
+    if (view) {
+      view.innerHTML = "";
+      view.appendChild(c);
+    }
+    const g = c.getContext("2d");
+    const t = timed();
+    const total = totalFrames(t);
+    const burn = pbOpt().burn;
+    drawFrame(g, W, H, 0, t, burn);
+    const stream = c.captureStream(st.fps);
+    let audio = null;
+    let actx = null;
+    if (sound.url && sound.audio) {
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        actx = new AC();
+        audio = new Audio(sound.url);
+        const src = actx.createMediaElementSource(audio);
+        const dest = actx.createMediaStreamDestination();
+        src.connect(dest);
+        src.connect(actx.destination);
+        dest.stream.getAudioTracks().forEach((tr) => stream.addTrack(tr));
+      } catch (e) {
+        audio = null;
+      }
+    }
+    const types = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+    const type = types.find((x) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(x)) || "";
+    let mr;
+    try {
+      mr = type ? new MediaRecorder(stream, { mimeType: type }) : new MediaRecorder(stream);
+    } catch (e) {
+      pbNote("Recording failed to start; downloading a contact sheet instead.");
+      return contactSheet();
+    }
+    const chunks = [];
+    mr.ondataavailable = (e) => e.data && e.data.size && chunks.push(e.data);
+    mr.onstop = () => {
+      if (audio) audio.pause();
+      if (actx && actx.close) actx.close();
+      stream.getTracks().forEach((tr) => tr.stop());
+      const done = pb.rec && pb.rec.done;
+      pb.rec = null;
+      const btn = host && host.querySelector("#sq-pb-go");
+      if (btn) btn.textContent = "Playblast (.webm)";
+      if (!chunks.length) return pbNote("Nothing was recorded (this browser may not record a hidden or headless canvas).");
+      const blob = new Blob(chunks, { type: "video/webm" });
+      download(blob, fileBase() + ".webm");
+      pbNote(`${done ? "Playblast done" : "Playblast stopped"}: ${(blob.size / 1024).toFixed(0)} KB .webm, ${W}×${H} at ${st.fps} fps.`);
+    };
+    pb.rec = { mr, t0: performance.now(), raf: 0, done: false };
+    mr.start(250);
+    if (audio) {
+      const pr = audio.play();
+      if (pr && pr.catch) pr.catch(() => {});
+    }
+    const btn = host.querySelector("#sq-pb-go");
+    if (btn) btn.textContent = "Stop playblast";
+    pbNote(`Recording ${W}×${H} at ${st.fps} fps…`);
+    const step = (now) => {
+      if (!pb.rec) return;
+      const f = audio && !audio.paused && audio.currentTime < (audio.duration || 0) ? audio.currentTime * st.fps : ((now - pb.rec.t0) / 1000) * st.fps;
+      if (f >= total) {
+        drawFrame(g, W, H, total - 1, t, burn);
+        pb.rec.done = true;
+        return stopPlayblast();
+      }
+      drawFrame(g, W, H, f, t, burn);
+      pbNote(`Recording ${timecode(f, st.fps)} of ${timecode(total, st.fps)}…`);
+      pb.rec.raf = requestAnimationFrame(step);
+    };
+    pb.rec.raf = requestAnimationFrame(step);
+  }
+
+  function stopPlayblast() {
+    if (!pb.rec) return;
+    cancelAnimationFrame(pb.rec.raf);
+    try {
+      if (pb.rec.mr.state !== "inactive") pb.rec.mr.stop();
+      else pb.rec = null;
+    } catch (e) {
+      pb.rec = null;
+    }
+  }
+
+  /* Every shot as seen, one frame from its middle, on a sheet. */
+  function contactSheet() {
+    const t = timed();
+    const segs = segments(t).filter((x) => x.shot);
+    if (!segs.length) return pbNote("No shots to draw.");
+    const tw = 320;
+    const th = 180;
+    const cols = Math.min(4, segs.length);
+    const rows = Math.ceil(segs.length / cols);
+    const pad = 12;
+    const cap = 22;
+    const c = document.createElement("canvas");
+    c.width = cols * (tw + pad) + pad;
+    c.height = rows * (th + cap + pad) + pad + 30;
+    const g = c.getContext("2d");
+    g.fillStyle = "#fffaf2";
+    g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = "#1c1712";
+    g.font = "14px monospace";
+    g.fillText(`${sceneNow().title || sceneNow().id} · ${segs.length} shots · ${st.fps} fps · ${timecode(totalFrames(t), st.fps)}`, pad, 22);
+    const off = document.createElement("canvas");
+    off.width = tw;
+    off.height = th;
+    const og = off.getContext("2d");
+    segs.forEach((x, k) => {
+      const ox = pad + (k % cols) * (tw + pad);
+      const oy = 30 + pad + Math.floor(k / cols) * (th + cap + pad);
+      drawFrame(og, tw, th, Math.floor((x.s + x.e) / 2), t, pbOpt().burn);
+      g.drawImage(off, ox, oy);
+      g.strokeStyle = "#1c1712";
+      g.lineWidth = 2;
+      g.strokeRect(ox, oy, tw, th);
+      g.fillStyle = "#1c1712";
+      g.font = "11px monospace";
+      g.fillText(`${k + 1}. ${x.shot.name} · ${x.shot.shotSize} · ${((x.e - x.s) / st.fps).toFixed(2)}s · ${timecode(x.s, st.fps)}`, ox, oy + th + 15);
+    });
+    const name = fileBase() + "-contact-sheet.png";
+    if (c.toBlob) c.toBlob((b) => (b ? download(b, name) : null), "image/png");
+    else {
+      const a = document.createElement("a");
+      a.href = c.toDataURL("image/png");
+      a.download = name;
+      a.click();
+    }
+    pbNote(`Contact sheet: ${segs.length} shots, ${c.width}×${c.height} PNG.`);
   }
 
   /* ---------- sound ---------- */
