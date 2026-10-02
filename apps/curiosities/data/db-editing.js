@@ -1,0 +1,316 @@
+/* data/db-editing.js: editing curiosities taken from the Final Cut Pro User Guide and CapCut (Jeremy,
+   2026-10-02 18:00Z: "I'm leaning towards mainly using CapCut... I think their user interface is great").
+   Everything an editor changes in those two apps (transitions, filters, adjustments, text, speed, the audio
+   mix, overlays, masks, the canvas) is a curiosity here, in the curiosity database's own format.
+
+   Written by the Main layout thread (draft PR #28) as screen/edit-curiosities.js and moved here; loaded after
+   db-momentum.js (data/files.json), so the app, the engine and the Screen's new categories all know these rows.
+   Sources: Final Cut Pro User Guide (transitions p.389, retiming p.558, beat detection p.210, stabilization
+   p.216, masking p.642, color correction p.708) and CapCut Desktop (its Media, Audio, Text, Stickers,
+   Effects, Transitions, Filters and Adjustment tabs, the timeline tools, the 2025 CapCut Desktop Guide).
+   Film knowledge in plain words, not copied text. */
+(function (DB) {
+  /* A second load does nothing (the Screen's own copy, screen/edit-curiosities.js, may still be loaded until
+     PR #28 drops it). */
+  if (!DB || typeof DB.curiosity !== "function" || DB.data.curiosities.some((x) => x.id === "transitionKind")) return;
+  const SRC = "Final Cut Pro and CapCut";
+  const W = [
+    ["transitions", "Transitions", "How one shot hands over to the next: cuts, dissolves, wipes, and clips that animate in and out."],
+    ["grade", "Filters & adjustments", "The look laid over the picture: a filter, exposure, warmth, texture, matching shots."],
+    ["titles", "Text & captions", "Words and stickers on the screen: titles, captions, sound words, emoji."],
+    ["speed", "Speed & timing", "How fast clips play and how the cutting breathes: slow motion, freezes, jump cuts, cutting to the beat."],
+    ["audio-mix", "Audio mix", "How the sound is balanced: music under the voices, fades, voice effects, edited-in sound hits."],
+    ["layers", "Layers, masks & effects", "Pictures over pictures: cutaways, picture in picture, cutouts, masks, tracking, video effects."],
+    ["canvas", "Frame & canvas", "What the editor does to the frame itself: punch-ins, mirroring, steadying, filling the edges."],
+  ];
+  W.forEach(([id, label, plain]) => DB.workspace({ id, label, plain, scope: "scene", proposed: true }));
+
+  /* c(id, label, workspace, plain, sliders, momentum [push, plot, theme, pull, cue, tryThis]) */
+  const SHARED = (push) => [
+    { id: "push", label: "Pushes the story", range: { min: 0, max: 5 }, from: push, to: Math.min(5, push + 2), plain: "How much this curiosity moves the story forward here." },
+    { id: "pointsAhead", label: "Points ahead", scale: ["closes a door", "holds", "hints at what's next", "demands what's next"], from: "holds", to: "demands what's next", plain: "Whether it settles something or leaves a question the next moment must answer." },
+    { id: "themeLink", label: "Tied to a theme", scale: ["not at all", "loosely", "clearly", "it is the theme"], from: "loosely", to: "clearly", plain: "How closely it carries one of the film's themes here." },
+  ];
+  function c(id, label, workspace, plain, sliders, m) {
+    const row = DB.curiosity({ id, label, plain, workspace, group: "Editing (" + SRC + ")", kind: "measure", main: "setting", sliders: sliders.concat(SHARED(m[0])), source: SRC, tags: ["editing", "capcut", "final-cut-pro"] });
+    if (row && !row.momentum) row.momentum = { push: m[0], plot: m[1], theme: m[2], pull: m[3], cue: m[4], tryThis: m[5] };
+  }
+  const S = (label, values, plain, extra) => ["setting", label, values, plain, extra];
+
+  /* ---------- Transitions ---------- */
+  c("transitionKind", "Transition style", "transitions", "The effect between two clips (CapCut's Transitions tab, Final Cut's Transitions browser).", [
+    S("Transition style", ["cut", "fade to black", "fade to white", "cross dissolve", "wipe", "push", "zoom", "spin", "whip pan", "flash", "glitch", "morph"], "Which transition crosses this cut.", { unordered: true }),
+    ["duration", "Length", [0, 3, "seconds", 0.25], "How long the transition takes."],
+    ["direction", "Direction", ["left", "right", "up", "down", "in", "out"], "Which way a wipe, push or zoom travels.", { unordered: true }],
+    ["ease", "Ease", ["steady", "eases in", "eases out", "eases in and out"], "Whether it starts or ends gently."],
+    ["soundOverlap", "Sound overlap", ["hard cut", "sound leads", "sound lags", "crossfade"], "Whether the next scene's sound starts early (sound leads), the last scene's sound carries on (sound lags), or both blend.", { unordered: true }],
+  ], [2, "A transition tells the audience how much time or distance just passed.", "A soft dissolve joins two ideas; a hard cut sets them against each other.", "A showy transition makes the audience look at what comes next.", "visual", "Save the one flashy transition for the moment the story jumps."]);
+  c("clipAnimation", "Clip animation", "transitions", "A clip that animates in or out on its own, used when there is no second clip to transition to (CapCut's Animation panel).", [
+    S("Clip animation", ["none", "in", "out", "in and out", "loop"], "When the clip animates."),
+    ["style", "Style", ["fade", "slide", "zoom", "bounce", "spin", "shake", "swing"], "How it moves.", { unordered: true }],
+    ["duration", "Length", [0, 3, "seconds", 0.25], "How long the animation takes."],
+    ["strength", "Strength", [0, 100, "%"], "How big the movement is."],
+  ], [1, "A clip bouncing in announces something new has arrived.", "Bouncy animation says the film doesn't take itself seriously.", "Movement at the edge of a clip catches the eye before the content does.", "movement", "Bounce in the photo of the person everyone is talking about."]);
+  c("fadeEdge", "Fade in and out", "transitions", "Whether a scene fades up from or down to a color.", [
+    S("Fade", ["none", "fade in", "fade out", "both"], "Which ends of the scene fade."),
+    ["color", "Fade color", ["black", "white", "a color"], "What it fades to.", { unordered: true }],
+    ["length", "Length", [0, 5, "seconds", 0.5], "How long the fade lasts."],
+  ], [2, "A fade to black closes a chapter; the audience knows the story is about to move on.", "Fading to white feels like memory, heaven or a blinding moment.", "The black after a fade holds the audience in suspense for what comes next.", "visual", "End the worst moment on a long fade to black and come back somewhere else entirely."]);
+
+  /* ---------- Filters & adjustments ---------- */
+  c("filterLook", "Filter", "grade", "A ready-made look laid over the clip, with a strength (CapCut's Filters tab, Final Cut's looks and LUTs).", [
+    S("Filter", ["none", "natural", "warm film", "cool film", "black and white", "vintage", "faded", "high contrast", "teal and orange", "pastel", "night", "dreamy"], "Which look is on.", { unordered: true }),
+    ["strength", "Strength", [0, 100, "%"], "How strongly the filter is laid over."],
+    ["scope", "Applies to", ["this clip", "the scene", "the whole film"], "Whether it sits on one clip or on a layer above several (CapCut: effects above affect everything below)."],
+  ], [2, "A change of filter marks a new time, a memory, or a new state of mind.", "The look is the film's mood made visible.", "When the look shifts, the audience knows something has changed before anyone says so.", "visual", "Drain the color out the moment the character gives up, and bring it back when they try again."]);
+  c("exposure", "Exposure", "grade", "How bright the picture is overall, and its highlights and shadows (CapCut's Adjustment tab, Final Cut's color board).", [
+    S("Exposure", ["very dark", "dark", "normal", "bright", "blown out"], "Overall brightness."),
+    ["brightness", "Brightness", [-50, 50, ""], "Lift or lower everything."],
+    ["highlights", "Highlights", [-50, 50, ""], "The brightest parts."],
+    ["shadows", "Shadows", [-50, 50, ""], "The darkest parts."],
+  ], [1, "Darkening scenes can track a story sliding toward its low point.", "Bright and dark carry hope and dread.", "The eye goes to the brightest thing in the frame.", "visual", "Make the room a little darker each time the lie grows."]);
+  c("whiteBalance", "Warmth and tint", "grade", "How warm or cool the picture reads, and its green or magenta tint (Final Cut's white balance, CapCut's temperature and tint).", [
+    S("Warmth", ["very cool", "cool", "neutral", "warm", "very warm"], "Blue against orange."),
+    ["temperature", "Temperature", [2500, 10000, "K", 100], "The color temperature in kelvin."],
+    ["tint", "Tint", ["green", "neutral", "magenta"], "The green to magenta push."],
+  ], [1, "A shift from warm to cool can show a relationship cooling.", "Warm feels safe and close; cool feels lonely or clinical.", "A sudden change of warmth tells the audience the feeling of the place changed.", "visual", "Cool the picture slowly over a dinner that is going badly."]);
+  c("texture", "Film texture", "grade", "How soft, crisp or gritty the picture is: sharpening, clarity, grain and vignette.", [
+    S("Texture", ["soft", "natural", "crisp", "gritty"], "The overall feel of the surface."),
+    ["sharpen", "Sharpen", [0, 100, "%"], "Edge sharpening."],
+    ["grain", "Grain", [0, 100, "%"], "Film grain or noise."],
+    ["vignette", "Vignette", [0, 100, "%"], "Darkened corners that pull the eye in."],
+  ], [1, "Grit coming in can mark a turn toward danger or the past.", "Soft is memory and romance; gritty is truth and struggle.", "A vignette pushes attention to the middle of the frame.", "visual", "Add grain only to the flashbacks."]);
+  c("colorMatch", "Shot matching", "grade", "Whether a shot's color matches the shots around it (Final Cut's Match Color and Balance Color).", [
+    S("Matching", ["mismatched", "close", "matched", "deliberately different"], "How well it matches."),
+    ["reference", "Matched to", ["the shot before", "the scene's key shot", "an inspiration film"], "Which shot it is matched to.", { unordered: true }],
+    ["skin", "Skin tones", ["off", "natural", "flattering", "stylized"], "How faces read after the correction."],
+  ], [1, "Matching keeps a scene feeling like one place and time, so the audience follows the story, not the seams.", "A deliberately mismatched shot says this moment belongs somewhere else.", "A shot that suddenly doesn't match pulls the eye and asks why.", "visual", "Match every shot in the argument, then leave the last close-up deliberately colder."]);
+
+  /* ---------- Text & captions ---------- */
+  c("onScreenText", "On-screen text", "titles", "Words laid over the picture (CapCut's Text tab, Final Cut's titles).", [
+    S("On-screen text", ["none", "caption", "title card", "lower third", "sign or label", "sound word", "credits"], "What kind of text is on screen.", { unordered: true }),
+    ["size", "Size", ["small", "medium", "large", "full screen"], "How big it is."],
+    ["position", "Position", ["top", "middle", "bottom", "follows a person"], "Where it sits.", { unordered: true }],
+    ["animation", "Animation", ["none", "typewriter", "fade", "pop", "slide", "bounce"], "How it arrives.", { unordered: true }],
+    ["duration", "On screen for", [0, 10, "seconds", 0.5], "How long it stays."],
+  ], [2, "A title card can jump time, name a place or set a deadline.", "Words on screen are the film talking straight to the audience.", "Text makes the audience read, so it holds their attention exactly where it sits.", "visual", "Put a deadline on screen and count it down in later scenes."]);
+  c("captions", "Captions", "titles", "Subtitles of what is said, by hand or automatic (CapCut's Auto captions, Final Cut's captions).", [
+    S("Captions", ["off", "key words", "every line", "word by word"], "How much of the speech is captioned."),
+    ["speakerColor", "Speaker colors", ["one color", "a color per speaker"], "Whether each speaker gets a color."],
+    ["wordsPerLine", "Words per line", [1, 10, "words"], "How many words show at once."],
+  ], [1, "Captions keep the plot clear when the sound is off, as it often is on phones.", "Word-by-word captions make speech feel urgent and punchy.", "Moving words keep the eye locked on the screen.", "visual", "Caption only the key words, big, so the joke reads with the sound off."]);
+  c("textStyle", "Text style", "titles", "How the letters look: the font's feel, outline, shadow and box (CapCut's text settings).", [
+    S("Font feel", ["clean", "serif", "handwritten", "bold display", "retro", "comic"], "The kind of lettering.", { unordered: true }),
+    ["stroke", "Outline", [0, 10, "px"], "The border around each letter."],
+    ["shadow", "Shadow", [0, 100, "%"], "A drop shadow behind the letters."],
+    ["box", "Background box", ["none", "soft", "solid"], "A box behind the text."],
+  ], [0, "The lettering rarely moves the plot, but it sets the tone of every word.", "Handwriting feels personal; bold display feels loud and public.", "Heavy outlines make words pop off a busy picture.", "visual", "Give each character's text messages their own lettering."]);
+  c("stickers", "Stickers and emoji", "titles", "Graphics dropped on the picture: emoji, arrows, sparkles, reactions (CapCut's Stickers tab).", [
+    S("Stickers", ["none", "one", "a few", "many"], "How many are on screen."),
+    ["kind", "Kind", ["emoji", "arrow", "sparkle", "speech bubble", "reaction", "shape"], "What they are.", { unordered: true }],
+    ["motion", "Motion", ["still", "bounces", "follows a person"], "How they move."],
+  ], [1, "An arrow pointing at something tells the audience it will matter.", "Stickers make the film wink at its audience.", "A bouncing sticker is the brightest thing on screen, so the eye goes there.", "visual", "Point an arrow at the thing nobody has noticed yet."]);
+
+  /* ---------- Speed & timing ---------- */
+  c("clipSpeed", "Clip speed", "speed", "How fast the clip plays: slow motion to fast motion (Final Cut's Retime menu, CapCut's Speed).", [
+    S("Clip speed", ["frozen", "very slow", "slow", "normal", "fast", "very fast"], "Playback speed."),
+    ["percent", "Speed", [10, 400, "%", 5], "Exact speed (100% is normal)."],
+    ["pitch", "Voice pitch", ["kept", "follows the speed"], "Whether voices go low and high with the speed."],
+  ], [2, "Slowing a moment down tells the audience this is the moment that matters.", "Slow motion is memory and importance; fast motion is chaos or comedy.", "A sudden slowdown makes everyone lean in.", "movement", "Slow down the instant before the mistake, not the mistake itself."]);
+  c("playDirection", "Reverse and replay", "speed", "Whether a clip plays forward, backward, or rewinds and plays again (CapCut's Reverse, Final Cut's rewind and instant replay).", [
+    S("Direction", ["forward", "reversed", "rewind and replay"], "How the clip runs.", { unordered: true }),
+    ["replays", "Replays", [0, 4, "times"], "How many times it repeats."],
+    ["replaySpeed", "Replay speed", ["slower", "same", "faster"], "The speed of the replay."],
+  ], [2, "A rewind lets the film take back a moment and show it again with new meaning.", "Replaying a moment asks what really happened.", "A rewind is a surprise; the audience watches the replay closely for the detail they missed.", "visual", "Rewind the fall and replay it slower, so the audience sees who tripped them."]);
+  c("freezeFrame", "Freeze frame", "speed", "Holding one frame still (Final Cut's Hold, CapCut's Freeze).", [
+    S("Freeze", ["none", "short freeze", "long freeze", "freeze with a title"], "Whether the picture stops."),
+    ["length", "Length", [0, 5, "seconds", 0.5], "How long it holds."],
+    ["zoom", "Zoom while frozen", [0, 100, "%"], "A push in on the frozen frame."],
+  ], [3, "A freeze stops the story to introduce a person or point at a turning point.", "A frozen moment says 'remember this'.", "Nothing moving makes the audience stare at the one thing the film wants them to see.", "visual", "Freeze on the character's face at the worst moment, and put their name on screen."]);
+  c("jumpCut", "Jump cuts", "speed", "Cuts that skip ahead inside the same shot (Final Cut's jump cuts at markers).", [
+    S("Jump cuts", ["none", "a few", "rhythmic", "constant"], "How often the shot jumps."),
+    ["gap", "Time skipped", [2, 48, "frames"], "How much is cut out each time."],
+    ["reframe", "Reframe on each jump", ["no", "slight punch-in", "alternating"], "Whether the frame changes size on each jump."],
+  ], [1, "Jump cuts squeeze time so a long task feels quick.", "Jumpy cutting feels restless, modern and impatient.", "Each jump is a small jolt that keeps the eye awake.", "visual", "Jump cut through the character trying on every outfit, and hold on the last one."]);
+  c("beatSync", "Cutting to the beat", "speed", "Whether cuts land on the music's beats, bars or song parts (Final Cut's Beat Detection, CapCut's beat marks).", [
+    S("Cutting to the beat", ["ignores the beat", "near the beat", "on beats", "on bars", "on song parts"], "How tightly cuts follow the music."),
+    ["every", "Cut every", [1, 8, "beats"], "How many beats between cuts."],
+    ["offset", "Early or late", [-6, 6, "frames"], "Cutting just ahead of or behind the beat."],
+  ], [2, "Cutting on the song's big change makes that moment land as a turn.", "Cutting to the beat makes the film feel like it is dancing; ignoring it feels like real life.", "The audience feels the cut coming with the beat, which keeps them moving with it.", "audio", "Cut on every beat during the montage, then let one shot run across the drop."]);
+  c("pacingCurve", "Pace across the scene", "speed", "How the cutting speeds up or slows down over the scene.", [
+    S("Pace", ["slows down", "steady", "speeds up", "speeds up then stops", "stop and go"], "The shape of the pace.", { unordered: true }),
+    ["pauses", "Breathing room", [0, 5, "pauses"], "How many held moments it allows."],
+    ["shortest", "Shortest shot", [2, 48, "frames"], "The quickest cut in the scene."],
+  ], [3, "Speeding up the cutting drives the scene toward its turn; stopping dead marks it.", "Pace is the scene's heartbeat.", "Faster cutting raises the audience's pulse; a sudden stop makes them hold their breath.", "visual", "Speed up toward the reveal, then hold one long still shot on it."]);
+
+  /* ---------- Audio mix ---------- */
+  c("musicLevel", "Music under speech", "audio-mix", "How loud the music sits against the voices, and how much it ducks when someone talks.", [
+    S("Music level", ["silent", "under", "even", "over", "music only"], "Where the music sits."),
+    ["duck", "Ducks by", [0, 24, "dB"], "How much the music drops when someone speaks."],
+    ["fade", "Duck speed", ["instant", "quick", "slow"], "How fast it ducks."],
+  ], [2, "Music rising over the voices tells the audience the words no longer matter, the feeling does.", "Music over speech says the moment is bigger than what anyone says.", "When the music swells, the audience feels a peak coming.", "audio", "Let the music swallow the last line so the audience has to imagine it."]);
+  c("audioFade", "Audio fades", "audio-mix", "How the sound starts and ends: hard, faded, or crossfaded into the next clip.", [
+    S("Audio fade", ["hard", "fade in", "fade out", "both", "crossfade"], "How the sound starts and stops.", { unordered: true }),
+    ["length", "Length", [0, 5, "seconds", 0.5], "How long the fade lasts."],
+    ["curve", "Curve", ["straight", "smooth", "sudden at the end"], "The shape of the fade."],
+  ], [1, "A hard sound cut can shock; a fade lets a scene drift into the next.", "Hard cuts feel blunt and honest; fades feel gentle.", "Sudden silence from a hard cut grabs attention instantly.", "audio", "Hard cut the party noise to silence when the phone rings."]);
+  c("voiceEffect", "Voice effect", "audio-mix", "Changing how a voice sounds (CapCut's voice effects and changer).", [
+    S("Voice effect", ["natural", "robot", "high", "deep", "echo", "radio", "megaphone", "underwater"], "Which effect is on.", { unordered: true }),
+    ["amount", "Amount", [0, 100, "%"], "How strong it is."],
+    ["who", "On whose voice", ["one character", "the narrator", "everyone"], "Who it is applied to.", { unordered: true }],
+  ], [1, "A voice through a radio or phone tells the audience where the speaker is.", "A changed voice can make someone monstrous, silly or distant.", "An odd voice pulls the ear instantly.", "audio", "Put the villain's voice through a cheap walkie-talkie for the laugh."]);
+  c("sfxHits", "Edited-in sound hits", "audio-mix", "Sound effects added in the edit: whooshes, hits, pops, risers (CapCut's Audio tab).", [
+    S("Sound hits", ["none", "sparse", "some", "busy", "wall to wall"], "How many there are."),
+    ["kind", "Kind", ["whoosh", "hit", "pop", "swish", "riser", "ding", "record scratch"], "What they sound like.", { unordered: true }],
+    ["sync", "Lands on", ["loose", "the action", "the cuts"], "What they are timed to."],
+  ], [1, "A riser tells the audience something is about to happen.", "Cartoon hits say the film is playing; none says it is real.", "A hit on a cut punches the moment into the audience.", "audio", "Put a record scratch on the moment everything stops."]);
+  c("loudness", "Loudness", "audio-mix", "How loud the whole mix is, and how clean (CapCut's audio meters peak at 0 dB).", [
+    S("Loudness", ["quiet", "normal", "loud", "peaking"], "The overall level."),
+    ["peak", "Peak", [-24, 0, "dB"], "The loudest point of the mix."],
+    ["noise", "Noise reduction", [0, 100, "%"], "How much background hiss is removed."],
+  ], [1, "A scene getting louder drives toward a peak.", "Quiet is intimacy; loud is chaos.", "A sudden drop in loudness makes the audience lean in.", "audio", "Drop the whole mix to a whisper right before the shout."]);
+  c("voiceover", "Voice-over", "audio-mix", "A voice speaking over the picture (CapCut's text to speech, Final Cut's voiceover recording).", [
+    S("Voice-over", ["none", "now and then", "running"], "How much there is."),
+    ["voice", "Whose voice", ["a character", "a narrator", "an AI voice"], "Who speaks it.", { unordered: true }],
+    ["truth", "Can we trust it", ["true", "half true", "the picture says otherwise"], "Whether the picture agrees with the voice."],
+  ], [3, "A narrator can skip time, explain, or set a question the film then answers.", "A voice that the picture contradicts is a theme of self-deception.", "When the voice and the picture disagree, the audience watches closely to learn the truth.", "thought", "Have the narrator say 'and it all went perfectly' over the disaster."]);
+
+  /* ---------- Layers, masks & effects ---------- */
+  c("overlay", "Overlay", "layers", "A clip laid over the main clip: a cutaway while the sound carries on, picture in picture, split screen (CapCut's Overlay, Final Cut's connected clips).", [
+    S("Overlay", ["none", "cutaway over the sound", "picture in picture", "split screen", "full overlay"], "What sits on top.", { unordered: true }),
+    ["size", "Size", [10, 100, "%"], "How much of the frame it covers."],
+    ["position", "Position", ["left", "right", "corner", "center"], "Where it sits.", { unordered: true }],
+    ["opacity", "Opacity", [0, 100, "%"], "How see-through it is."],
+  ], [2, "A cutaway while someone talks shows what they mean, or what they are hiding.", "Split screen sets two people, or two truths, side by side.", "Two pictures at once make the audience compare them.", "visual", "Split the screen between two people describing the same date very differently."]);
+  c("blendMode", "Blend mode", "layers", "How an overlay mixes with what's under it (Final Cut and CapCut's blend modes).", [
+    S("Blend mode", ["normal", "screen", "multiply", "overlay", "lighten", "darken", "add"], "The mixing rule.", { unordered: true }),
+    ["opacity", "Opacity", [0, 100, "%"], "How strong the top layer is."],
+    ["layers", "Layers", [1, 6, "layers"], "How many layers are stacked."],
+  ], [0, "Blend modes rarely move the plot; they make double exposures and dreams.", "Two images melted together say two things are one.", "A ghostly double image makes the audience search both.", "visual", "Melt the face of the person they miss into the window."]);
+  c("cutout", "Cutout and green screen", "layers", "Taking the background away from a person: green screen, auto cutout, scene removal (CapCut's Auto cutout, Final Cut's keyer).", [
+    S("Cutout", ["none", "green screen", "auto cutout", "shape mask", "drawn mask"], "How the background is removed.", { unordered: true }),
+    ["edge", "Edge softness", [0, 100, "%"], "How soft the outline is."],
+    ["newBack", "New background", ["none", "solid color", "a new place", "blurred", "an image"], "What replaces it.", { unordered: true }],
+  ], [1, "Putting a person in a new place without them moving can show a daydream or a lie.", "A cut-out person looks pasted on, alone in their own world.", "A fake background is a visual joke the audience spots right away.", "visual", "Put the character in front of an obviously fake beach as they describe their vacation."]);
+  c("maskShape", "Mask", "layers", "A shape that limits where an effect or a layer shows (Final Cut's shape, vignette, gradient and magnetic masks).", [
+    S("Mask", ["none", "vignette", "circle", "rectangle", "gradient", "drawn", "follows a person"], "The shape.", { unordered: true }),
+    ["feather", "Feather", [0, 100, "%"], "How soft its edge is."],
+    ["invert", "Shows", ["inside", "outside"], "Whether the effect shows inside or outside it."],
+  ], [1, "A circle mask closing in ends a scene the old-fashioned way.", "Masking off the world shows what a character can't see.", "A mask points the eye at what is left uncovered.", "visual", "Close an iris on the character's face as they realize the truth."]);
+  c("tracking", "Tracking", "layers", "Text, a sticker, a mask or the frame following something that moves (CapCut's tracking, Final Cut's object tracker).", [
+    S("Tracking", ["none", "text follows", "sticker follows", "mask follows", "frame follows"], "What follows the moving thing.", { unordered: true }),
+    ["smooth", "Smoothness", [0, 100, "%"], "How smoothly it follows."],
+    ["target", "Follows", ["a face", "a body", "an object"], "What it is locked to.", { unordered: true }],
+  ], [1, "A label following someone keeps the audience sure who matters in a crowd.", "Tracking a person picks them out of the world.", "Something stuck to a person pulls the eye with them.", "visual", "Stick a floating label on the one guest who is lying."]);
+  c("videoEffect", "Video effect", "layers", "An effect over the whole picture or a body (CapCut's Effects tab: video effects and body effects).", [
+    S("Video effect", ["none", "glow", "blur", "glitch", "old TV", "shake", "flash", "zoom pulse", "light leak", "mirror", "outline"], "Which effect is on.", { unordered: true }),
+    ["intensity", "Intensity", [0, 100, "%"], "How strong it is."],
+    ["onBeat", "Pulses", ["steady", "on the beat"], "Whether it pulses with the music."],
+    ["body", "On a body", ["no", "outline glow", "trail", "smooth skin"], "A body effect on a person.", { unordered: true }],
+  ], [1, "A glitch can show a mind breaking, or a world that isn't what it seems.", "Effects say the film is a made thing, not a window.", "A flash or shake is a jolt the audience can't ignore.", "visual", "Glitch the picture each time the character lies."]);
+
+  /* ---------- Frame & canvas ---------- */
+  c("reframe", "Punch-in and reframe", "canvas", "Zooming into the picture in the edit: a punch-in, or a slow drift across a still (Final Cut's Ken Burns, CapCut's scale).", [
+    S("Reframe", ["full frame", "slight punch-in", "strong punch-in", "slow drift"], "How the frame is pushed."),
+    ["zoom", "Zoom", [100, 200, "%", 5], "How far in."],
+    ["drift", "Drift toward", ["left", "right", "up", "down", "the face"], "Which way a drift travels.", { unordered: true }],
+  ], [2, "A punch-in on a reaction tells the audience this is the moment to watch.", "Punching in is the editor raising an eyebrow.", "A sudden jump closer is a jolt that lands the joke.", "visual", "Punch in on the face the moment the character realizes, with no sound."]);
+  c("imageTransform", "Mirror and rotate", "canvas", "Flipping, rotating or tilting the picture (CapCut's Mirror, Rotate and Crop).", [
+    S("Transform", ["as shot", "mirrored", "flipped", "rotated", "tilted"], "What is done to the picture.", { unordered: true }),
+    ["angle", "Rotation", [-180, 180, "°", 5], "How far it is turned."],
+    ["crop", "Crop", [0, 50, "%"], "How much is cut off the sides."],
+  ], [0, "Flipping a shot can fix which way a person faces so the scene reads clearly.", "An upside-down picture shows a world turned over.", "A tilted or flipped frame says something is off.", "visual", "Turn the picture upside down when the character's world falls apart."]);
+  c("stabilization", "Steadying", "canvas", "How much camera shake is smoothed out in the edit (Final Cut's stabilization and rolling shutter fix).", [
+    S("Steadying", ["shaky as shot", "a little steadier", "smooth", "locked"], "How steady the result is."),
+    ["amount", "Amount", [0, 100, "%"], "How much smoothing."],
+    ["rollingShutter", "Wobble fix", ["off", "on"], "Fixes the jelly wobble of fast moves."],
+  ], [0, "Steadying keeps the audience on the story, not on the shake.", "Leaving the shake in keeps the moment raw and real.", "Smooth footage lets the eye rest on faces.", "movement", "Steady the calm scenes and leave the shake in when the panic starts."]);
+  c("canvasFill", "Canvas edges", "canvas", "What fills the frame when the clip doesn't fit it: black bars, a blurred copy, a color (CapCut's canvas and Ratio).", [
+    S("Edges", ["black bars", "blurred copy", "a color", "a pattern"], "What fills the empty edges.", { unordered: true }),
+    ["blur", "Blur", [0, 100, "%"], "How blurred the copy is."],
+    ["ratio", "Frame shape", ["wide 16:9", "vertical 9:16", "square 1:1", "cinema 2.39"], "The project's frame shape.", { unordered: true }],
+  ], [0, "Edges rarely move the plot, but the frame shape decides where the film will be watched.", "A vertical frame feels personal, like a phone; a wide one feels like cinema.", "Busy edges steal the eye; black ones give it back to the middle.", "visual", "Switch the scene that is a phone video to vertical."]);
+
+  /* ---------- Suites ---------- */
+  const suite = (id, label, workspace, plain, members) => DB.suite({ id, label, plain, workspace, members, source: SRC });
+  suite("viral-edit", "Viral edit", "speed", "The fast phone-video style CapCut is known for: punch-ins, jump cuts, big captions, sound hits, cuts on the beat.", [
+    { curiosity: "reframe", value: "strong punch-in" },
+    { curiosity: "jumpCut", value: "rhythmic" },
+    { curiosity: "captions", value: "word by word" },
+    { curiosity: "sfxHits", value: "busy" },
+    { curiosity: "beatSync", value: "on beats" },
+  ]);
+  suite("classic-dissolve", "Classic and gentle", "transitions", "Slow dissolves, a warm film look, music level with the voices.", [
+    { curiosity: "transitionKind", value: "cross dissolve" },
+    { curiosity: "transitionKind", slider: "duration", value: 1.5 },
+    { curiosity: "filterLook", value: "warm film" },
+    { curiosity: "musicLevel", value: "even" },
+  ]);
+  suite("music-video-cut", "Music video", "speed", "Cuts on the bars, flashes and pulses with the beat, music over everything.", [
+    { curiosity: "beatSync", value: "on bars" },
+    { curiosity: "videoEffect", value: "flash" },
+    { curiosity: "videoEffect", slider: "onBeat", value: "on the beat" },
+    { curiosity: "transitionKind", value: "flash" },
+    { curiosity: "musicLevel", value: "music only" },
+  ]);
+  suite("documentary-edit", "Documentary", "layers", "Cutaways over the interview, a running voice-over, captions, steady footage, lower thirds.", [
+    { curiosity: "overlay", value: "cutaway over the sound" },
+    { curiosity: "voiceover", value: "running" },
+    { curiosity: "captions", value: "every line" },
+    { curiosity: "stabilization", value: "smooth" },
+    { curiosity: "onScreenText", value: "lower third" },
+  ]);
+  suite("comedy-punch-edit", "Comedy punch", "titles", "The editor's jokes: a punch-in, a sound hit, a short freeze, a sound word, a reaction sticker.", [
+    { curiosity: "reframe", value: "strong punch-in" },
+    { curiosity: "sfxHits", slider: "kind", value: "hit" },
+    { curiosity: "freezeFrame", value: "short freeze" },
+    { curiosity: "onScreenText", value: "sound word" },
+    { curiosity: "stickers", value: "one" },
+  ]);
+  suite("dream-edit", "Dream sequence", "grade", "Dissolves, a dreamy filter, slow motion, soft texture, a vignette.", [
+    { curiosity: "transitionKind", value: "cross dissolve" },
+    { curiosity: "filterLook", value: "dreamy" },
+    { curiosity: "clipSpeed", value: "slow" },
+    { curiosity: "texture", value: "soft" },
+    { curiosity: "maskShape", value: "vignette" },
+  ]);
+  suite("silent-film-edit", "Silent film", "grade", "Black and white, sped up, title cards, grain, fades at both ends.", [
+    { curiosity: "filterLook", value: "black and white" },
+    { curiosity: "clipSpeed", value: "fast" },
+    { curiosity: "onScreenText", value: "title card" },
+    { curiosity: "texture", value: "gritty" },
+    { curiosity: "fadeEdge", value: "both" },
+  ]);
+  suite("trailer-edit", "Trailer", "speed", "Speeding up then stopping, fades to black between beats, risers, title cards.", [
+    { curiosity: "pacingCurve", value: "speeds up then stops" },
+    { curiosity: "transitionKind", value: "fade to black" },
+    { curiosity: "sfxHits", slider: "kind", value: "riser" },
+    { curiosity: "onScreenText", value: "title card" },
+  ]);
+
+  /* ---------- Proximities ---------- */
+  const prox = (id, label, workspace, when, then, within, also) => DB.proximity({ id, label, plain: label + (within ? ` within ${within} beat${within === 1 ? "" : "s"}.` : " at once."), workspace, also: also || [], when, then, within, source: SRC });
+  prox("payoff-punch-in", "When the joke pays off, the editor punches in", "canvas", { curiosity: "comicBeat", is: "payoff lands" }, { curiosity: "reframe", change: "rises" }, 0, ["comedy"]);
+  prox("payoff-sound-hit", "When the joke pays off, a sound hit lands", "audio-mix", { curiosity: "comicBeat", is: "payoff lands" }, { curiosity: "sfxHits", change: "rises" }, 0, ["comedy"]);
+  prox("slowmo-music", "When the clip slows down, the music rises", "audio-mix", { curiosity: "clipSpeed", is: "slow" }, { curiosity: "musicLevel", change: "rises" }, 0, ["speed"]);
+  prox("fast-cuts-plain", "When cutting gets fast, transitions become plain cuts", "transitions", { curiosity: "cutRate", is: "fast" }, { curiosity: "transitionKind", is: "cut" }, 0, ["camera-motion"]);
+  prox("dream-dissolve", "When the feeling turns dreamlike, shots dissolve", "transitions", { curiosity: "emotion", is: "dreamlike" }, { curiosity: "transitionKind", is: "cross dissolve" }, 1, ["lines"]);
+  prox("featured-music-beat", "When the music is featured, the cuts find the beat", "speed", { curiosity: "music", is: "featured" }, { curiosity: "beatSync", change: "rises" }, 0, ["music"]);
+  prox("freeze-title", "When the picture freezes, a title appears", "titles", { curiosity: "freezeFrame", is: "freeze with a title" }, { curiosity: "onScreenText", is: "title card" }, 0, ["speed"]);
+  prox("rewind-sound", "When the clip rewinds, a sound hit plays", "audio-mix", { curiosity: "playDirection", is: "rewind and replay" }, { curiosity: "sfxHits", change: "rises" }, 0, ["speed"]);
+  prox("impact-flash", "When impacts rise, the picture flashes", "layers", { curiosity: "impacts", change: "rises" }, { curiosity: "videoEffect", is: "flash" }, 0, ["effects"]);
+  prox("stop-fade-out", "When the pace speeds up then stops, the scene fades out", "transitions", { curiosity: "pacingCurve", is: "speeds up then stops" }, { curiosity: "fadeEdge", is: "fade out" }, 1, ["speed"]);
+  prox("jumpcut-laugh", "When jump cuts go rhythmic, a joke builds", "speed", { curiosity: "jumpCut", is: "rhythmic" }, { curiosity: "comicBeat", change: "rises" }, 2, ["comedy"]);
+  prox("sign-tracks", "When text labels something, it follows it", "layers", { curiosity: "onScreenText", is: "sign or label" }, { curiosity: "tracking", is: "text follows" }, 0, ["titles"]);
+  prox("cutaway-music-under", "When a cutaway covers the talking, the music sits under", "audio-mix", { curiosity: "overlay", is: "cutaway over the sound" }, { curiosity: "musicLevel", is: "under" }, 0, ["layers"]);
+  prox("handheld-steady-off", "When the camera goes handheld, the shake is left in", "canvas", { curiosity: "cameraCarry", is: "handheld" }, { curiosity: "stabilization", is: "shaky as shot" }, 0, ["camera-motion"]);
+
+  /* ---------- Proximity suites ---------- */
+  const ps = (id, label, workspace, plain, members) => DB.proximitySuite({ id, label, plain, workspace, members, source: SRC });
+  ps("editor-jokes", "The editor tells the joke", "canvas", "When the joke pays off the editor punches in and a sound hits; rhythmic jump cuts build the next joke; a rewind gets its own sound.", ["payoff-punch-in", "payoff-sound-hit", "jumpcut-laugh", "rewind-sound"]);
+  ps("music-leads-the-edit", "Music leads the edit", "speed", "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out.", ["featured-music-beat", "slowmo-music", "stop-fade-out"]);
+  ps("words-on-screen", "Words that point", "titles", "A freeze brings a title, and a label follows what it names.", ["freeze-title", "sign-tracks"]);
+
+  /* Loaded after the app's install(): refresh the links the engine reads, so these proximities can be added. */
+  if (typeof window !== "undefined" && window.CURIOSITY_LINKS && typeof DB.links === "function") window.CURIOSITY_LINKS = DB.links();
+})(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));

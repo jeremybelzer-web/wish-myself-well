@@ -5072,6 +5072,293 @@
    "does": "fall",
    "when": "the status flips",
    "then": "the camera angle flips"
+  },
+  {
+   "id": "p:payoff-punch-in",
+   "proximity": "payoff-punch-in",
+   "label": "When the joke pays off, the editor punches in",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reframe",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the joke pays off",
+   "then": "the editor punches in"
+  },
+  {
+   "id": "p:payoff-sound-hit",
+   "proximity": "payoff-sound-hit",
+   "label": "When the joke pays off, a sound hit lands",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sfxHits",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the joke pays off",
+   "then": "a sound hit lands"
+  },
+  {
+   "id": "p:slowmo-music",
+   "proximity": "slowmo-music",
+   "label": "When the clip slows down, the music rises",
+   "from": {
+    "curiosity": "clipSpeed",
+    "track": "master",
+    "is": "slow",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicLevel",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clip slows down",
+   "then": "the music rises"
+  },
+  {
+   "id": "p:fast-cuts-plain",
+   "proximity": "fast-cuts-plain",
+   "label": "When cutting gets fast, transitions become plain cuts",
+   "from": {
+    "curiosity": "cutRate",
+    "track": "camera",
+    "is": "fast",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "transitionKind",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cut",
+   "when": "cutting gets fast",
+   "then": "transitions become plain cuts"
+  },
+  {
+   "id": "p:dream-dissolve",
+   "proximity": "dream-dissolve",
+   "label": "When the feeling turns dreamlike, shots dissolve",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "dreamlike",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "transitionKind",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cross dissolve",
+   "when": "the feeling turns dreamlike",
+   "then": "shots dissolve"
+  },
+  {
+   "id": "p:featured-music-beat",
+   "proximity": "featured-music-beat",
+   "label": "When the music is featured, the cuts find the beat",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "featured",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "beatSync",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music is featured",
+   "then": "the cuts find the beat"
+  },
+  {
+   "id": "p:freeze-title",
+   "proximity": "freeze-title",
+   "label": "When the picture freezes, a title appears",
+   "from": {
+    "curiosity": "freezeFrame",
+    "track": "master",
+    "is": "freeze with a title",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "onScreenText",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "title card",
+   "when": "the picture freezes",
+   "then": "a title appears"
+  },
+  {
+   "id": "p:rewind-sound",
+   "proximity": "rewind-sound",
+   "label": "When the clip rewinds, a sound hit plays",
+   "from": {
+    "curiosity": "playDirection",
+    "track": "master",
+    "is": "rewind and replay",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sfxHits",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clip rewinds",
+   "then": "a sound hit plays"
+  },
+  {
+   "id": "p:impact-flash",
+   "proximity": "impact-flash",
+   "label": "When impacts rise, the picture flashes",
+   "from": {
+    "curiosity": "impacts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "videoEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "flash",
+   "when": "impacts rise",
+   "then": "the picture flashes"
+  },
+  {
+   "id": "p:stop-fade-out",
+   "proximity": "stop-fade-out",
+   "label": "When the pace speeds up then stops, the scene fades out",
+   "from": {
+    "curiosity": "pacingCurve",
+    "track": "master",
+    "is": "speeds up then stops",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fadeEdge",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fade out",
+   "when": "the pace speeds up then stops",
+   "then": "the scene fades out"
+  },
+  {
+   "id": "p:jumpcut-laugh",
+   "proximity": "jumpcut-laugh",
+   "label": "When jump cuts go rhythmic, a joke builds",
+   "from": {
+    "curiosity": "jumpCut",
+    "track": "master",
+    "is": "rhythmic",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicBeat",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "jump cuts go rhythmic",
+   "then": "a joke builds"
+  },
+  {
+   "id": "p:sign-tracks",
+   "proximity": "sign-tracks",
+   "label": "When text labels something, it follows it",
+   "from": {
+    "curiosity": "onScreenText",
+    "track": "master",
+    "is": "sign or label",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tracking",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "text follows",
+   "when": "text labels something",
+   "then": "it follows it"
+  },
+  {
+   "id": "p:cutaway-music-under",
+   "proximity": "cutaway-music-under",
+   "label": "When a cutaway covers the talking, the music sits under",
+   "from": {
+    "curiosity": "overlay",
+    "track": "master",
+    "is": "cutaway over the sound",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicLevel",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "under",
+   "when": "a cutaway covers the talking",
+   "then": "the music sits under"
+  },
+  {
+   "id": "p:handheld-steady-off",
+   "proximity": "handheld-steady-off",
+   "label": "When the camera goes handheld, the shake is left in",
+   "from": {
+    "curiosity": "cameraCarry",
+    "track": "camera",
+    "is": "handheld",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "stabilization",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shaky as shot",
+   "when": "the camera goes handheld",
+   "then": "the shake is left in"
   }
  ],
  "groups": [
@@ -5855,6 +6142,51 @@
     "p:speed-cuts",
     "p:walk-long-take",
     "p:approach-space"
+   ]
+  },
+  {
+   "id": "ps:editor-jokes",
+   "label": "The editor tells the joke",
+   "plain": "When the joke pays off the editor punches in and a sound hits; rhythmic jump cuts build the next joke; a rewind gets its own sound.",
+   "proximities": [
+    "payoff-punch-in",
+    "payoff-sound-hit",
+    "jumpcut-laugh",
+    "rewind-sound"
+   ],
+   "links": [
+    "p:payoff-punch-in",
+    "p:payoff-sound-hit",
+    "p:jumpcut-laugh",
+    "p:rewind-sound"
+   ]
+  },
+  {
+   "id": "ps:music-leads-the-edit",
+   "label": "Music leads the edit",
+   "plain": "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out.",
+   "proximities": [
+    "featured-music-beat",
+    "slowmo-music",
+    "stop-fade-out"
+   ],
+   "links": [
+    "p:featured-music-beat",
+    "p:slowmo-music",
+    "p:stop-fade-out"
+   ]
+  },
+  {
+   "id": "ps:words-on-screen",
+   "label": "Words that point",
+   "plain": "A freeze brings a title, and a label follows what it names.",
+   "proximities": [
+    "freeze-title",
+    "sign-tracks"
+   ],
+   "links": [
+    "p:freeze-title",
+    "p:sign-tracks"
    ]
   }
  ]
