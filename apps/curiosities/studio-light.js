@@ -53,6 +53,8 @@
         gobo: "none",
         blocker: false,
         flicker: 0,
+        shadowDensity: 1,
+        shadowColor: "#000000",
       },
       o || {}
     );
@@ -65,7 +67,7 @@
       set: { camExp: 0, haze: 0, look: "realistic" },
       lights: [
         light("area", { x: 58, y: 145, elev: 30, exposure: 4.2, kelvin: 4300, size: 1.2 }),
-        light("area", { x: 148, y: 150, elev: 10, exposure: 1.4, kelvin: 4800, size: 2 }),
+        light("area", { x: 148, y: 150, elev: 10, exposure: 1.4, kelvin: 4800, size: 2, shadowDensity: 0.3 }),
         light("spot", { x: 135, y: 52, elev: 35, exposure: 4.6, kelvin: 5600, cone: 30, size: 0.1 }),
       ],
     },
@@ -127,7 +129,7 @@
       note: "A cool, dim, high sun stands in for the moon, with a dark blue sky fill. Exposure pulled down.",
       set: { camExp: -0.5, haze: 0.2, look: "realistic" },
       lights: [
-        light("directional", { x: 165, y: 62, elev: 35, exposure: 1.3, kelvin: 9500, size: 0.1 }),
+        light("directional", { x: 165, y: 62, elev: 35, exposure: 1.3, kelvin: 9500, size: 0.1, shadowColor: "#1c2c5a" }),
         light("skydome", { x: 20, y: 180, exposure: -0.6, sky: "#1a2440", useK: false }),
       ],
     },
@@ -237,6 +239,9 @@
         src: L,
         type: L.type,
         col: [col[0] * power, col[1] * power, col[2] * power],
+        dens: L.shadowDensity == null ? 1 : clamp(L.shadowDensity, 0, 1),
+        shCol: lin(hexRGB(L.shadowColor || "#000000")),
+        shTint: (L.shadowColor || "#000000").toLowerCase() !== "#000000",
         pos,
         dir,
         axis,
@@ -340,12 +345,18 @@
     }
     let m = filters(L, P);
     if (m <= 0) return 0;
+    let occ = 1;
     if (shadows) {
-      if (obj !== 1) m *= occlude(P, ldir, dist, HEAD, L.size);
-      if (obj !== 3 && obj !== 2) m *= occlude(P, ldir, dist, TORSO, L.size);
+      if (obj !== 1) occ *= occlude(P, ldir, dist, HEAD, L.size);
+      if (obj !== 3 && obj !== 2) occ *= occlude(P, ldir, dist, TORSO, L.size);
     }
-    return shade * atten * m;
+    /* Arnold shadow_density and shadow_color: an occluded point keeps (1 - density) of the light,
+       and the shadow itself is filled with light x shadow colour. */
+    const base = shade * atten * m;
+    SH.v = base * (1 - occ) * L.dens;
+    return base * (1 - L.dens * (1 - occ));
   }
+  const SH = { v: 0 };
 
   /* ---------- render ---------- */
 
@@ -450,11 +461,17 @@
           g = 0,
           b = 0;
         for (const L of Ls) {
+          SH.v = 0;
           const a = arrive(L, s.P, s.n, s.obj, true);
           if (a > 0) {
             r += L.col[0] * a;
             g += L.col[1] * a;
             b += L.col[2] * a;
+          }
+          if (SH.v > 0 && L.shTint) {
+            r += L.col[0] * L.shCol[0] * SH.v;
+            g += L.col[1] * L.shCol[1] * SH.v;
+            b += L.col[2] * L.shCol[2] * SH.v;
           }
         }
         const al = ALBEDO[s.obj];
@@ -594,6 +611,61 @@
     return { key, keyLight: key && key.src, lit, shadow, stops, dir, rimRatio };
   }
 
+  /* Shadow tone from the key's Arnold shadow density and colour. */
+  function shadowTone(k) {
+    if (!k) return "neutral";
+    const d = k.shadowDensity == null ? 1 : k.shadowDensity;
+    if (d < 0.55) return "faint";
+    const c = hexRGB(k.shadowColor || "#000000");
+    if (Math.max(c[0], c[1], c[2]) < 0.04) return "neutral";
+    return c[2] > c[0] + 0.05 ? "cool" : c[0] > c[2] + 0.05 ? "warm" : "neutral";
+  }
+
+  /* Physical sky. Azimuth on the plan: 0 is behind the camera, 90 camera right (east), 180 behind
+     the subject, 270 camera left (west). Elevation in degrees above the horizon. */
+  function timeOfDay(elev, az) {
+    const a = ((az % 360) + 360) % 360;
+    const east = a < 180;
+    if (elev < -4) return "night";
+    if (elev < 6) return east ? "dawn" : "dusk";
+    if (elev >= 40) return "noon";
+    return east ? "morning" : "golden hour";
+  }
+  const TOD_CHIP = { night: "night", dawn: "dawn", morning: "day", noon: "day", "golden hour": "dusk", dusk: "dusk" };
+  function mixHex(a, b, f) {
+    const x = hexRGB(a),
+      y = hexRGB(b);
+    return rgbHex(x.map((v, i) => v + (y[i] - v) * clamp(f, 0, 1)));
+  }
+  function sunLook(elev, az) {
+    const r = (az * Math.PI) / 180;
+    const day = smooth(-4, 35, elev);
+    const low = smooth(0, 25, elev);
+    let skyCol = mixHex("#e0875a", "#9fc2e8", low);
+    if (elev < 4) skyCol = mixHex("#0c1428", skyCol, smooth(-6, 4, elev));
+    return {
+      x: Math.round(100 + Math.sin(r) * 70),
+      y: Math.round(100 + Math.cos(r) * 70),
+      elev: Math.max(1, elev),
+      kelvin: Math.round(1900 + 3900 * smooth(0, 40, elev)),
+      exposure: elev < -1 ? -8 : -0.4 + 2.6 * day,
+      sky: skyCol,
+      skyExp: -3 + 2.4 * smooth(-8, 20, elev),
+      tod: timeOfDay(elev, az),
+    };
+  }
+  function applySun(st) {
+    const S = sunLook(st.sun.elev, st.sun.az);
+    let d = st.lights.find((L) => L.type === "directional");
+    if (!d) st.lights.push((d = light("directional", { size: 0.1 })));
+    let k = st.lights.find((L) => L.type === "skydome");
+    if (!k) st.lights.push((k = light("skydome", { x: 20, y: 180, useK: false })));
+    Object.assign(d, { x: S.x, y: S.y, elev: S.elev, kelvin: S.kelvin, useK: true, intensity: 1, exposure: S.exposure });
+    Object.assign(k, { sky: S.sky, intensity: 1, exposure: S.skyExp, useK: false });
+    if (st.sun.elev < 6) d.shadowColor = d.shadowColor === "#000000" ? "#1c2c5a" : d.shadowColor;
+    return S;
+  }
+
   /* The curiosities this setup produces, in the catalog's words. */
   function curiosities(st, m) {
     const working = st.lights.filter((L) => effective(L) > 0.02);
@@ -625,7 +697,19 @@
       lightShape: shape,
       atmosphere,
       lighting,
+      shadowTone: shadowTone(k),
+      ...(() => {
+        const t = todOf(st, k);
+        return t ? { timeOfDay: TOD_CHIP[t] } : {};
+      })(),
     };
+  }
+  /* Time of day from the sun, or from a directional key's height and side. */
+  function todOf(st, k) {
+    if (st.sun && st.sun.on) return timeOfDay(st.sun.elev, st.sun.az);
+    if (k && k.type === "directional" && k.useK && k.kelvin >= 8000) return "night";
+    if (k && k.type === "directional") return timeOfDay(k.exposure < -4 ? -10 : k.elev, (Math.atan2(k.x - 100, k.y - 100) * 180) / Math.PI);
+    return null;
   }
 
   /* Snap to live board rows only. */
@@ -734,7 +818,7 @@
     if (!b) b = Object.assign({}, a, { intensity: 0 });
     const m = (k) => a[k] + (b[k] - a[k]) * f;
     const o = Object.assign({}, f < 0.5 ? a : b);
-    ["x", "y", "elev", "intensity", "exposure", "size", "cone", "penumbra", "barndoor", "flicker"].forEach((k) => (o[k] = m(k) || 0));
+    ["x", "y", "elev", "intensity", "exposure", "size", "cone", "penumbra", "barndoor", "flicker", "shadowDensity"].forEach((k) => (o[k] = m(k) || 0));
     /* Fade through black from a dark light: blend effective intensity, not exposure. */
     const ea = a.intensity * Math.pow(2, a.exposure),
       eb = b.intensity * Math.pow(2, b.exposure);
@@ -913,6 +997,9 @@
     st.beats = (st.beats || []).map((b) => (b ? Object.assign({}, b, { lights: norml(b.lights) }) : null));
     st.beatSel = clamp(Number(st.beatSel) || 0, 0, st.beatCount - 1);
     let playing = null;
+    st.sun = Object.assign({ on: false, elev: 20, az: 250 }, st.sun || {});
+    let snapA = null;
+    let wipe = 0.5;
     if (st.sel >= st.lights.length) st.sel = st.lights.length - 1;
     let preset = "";
     const save = () => db.set(st);
@@ -957,6 +1044,7 @@
           ${check("blocker", "Blocker (cuts the lower beam)", L.blocker)}`
             : ""
         }
+        ${point ? `<div class="lt-row">${rng("shadowDensity", "Shadow density", 0, 1, 0.05, L.shadowDensity)}<label class="field">Shadow color<input type="color" data-k="shadowColor" value="${esc(L.shadowColor)}"></label></div>` : ""}
         ${point ? rng("flicker", "Flicker (plays in time)", 0, 1, 0.05, L.flicker || 0) : ""}
         <button type="button" data-act="remove">Remove light</button>
       </div>`;
@@ -976,6 +1064,17 @@
         <div data-out="bandsBox">${st.look === "toon" ? `<label class="field">Toon bands <output data-out="bands">${st.bands}</output><input type="range" data-g="bands" min="2" max="4" step="1" value="${st.bands}"></label>` : ""}</div>
         <label class="field">Camera exposure (stops) <output data-out="camExp">${st.camExp}</output><input type="range" data-g="camExp" min="-4" max="4" step="0.1" value="${st.camExp}"></label>
         <label class="field">Atmosphere / haze <output data-out="haze">${st.haze}</output><input type="range" data-g="haze" min="0" max="1" step="0.01" value="${st.haze}"></label>
+        <div class="lt-box"><h3>Physical sky</h3>
+          <label class="lt-check"><input type="checkbox" data-sun="on" ${st.sun.on ? "checked" : ""}> Sun drives the directional key and skydome</label>
+          <label class="field">Sun elevation ° <output data-out="sunElev">${st.sun.elev}</output><input type="range" data-sun="elev" min="-12" max="90" step="1" value="${st.sun.elev}"></label>
+          <label class="field">Sun azimuth ° <output data-out="sunAz">${st.sun.az}</output><input type="range" data-sun="az" min="0" max="359" step="1" value="${st.sun.az}"></label>
+          <p class="cap mono" data-out="tod"></p>
+        </div>
+        <div class="lt-box"><h3>Snapshot</h3>
+          <p class="cap" style="margin-bottom:8px">Keep the render as A, then wipe between A and the live look, like RenderView snapshots.</p>
+          <div class="lt-add"><button type="button" data-act="snapA">Snapshot A</button><button type="button" data-act="clearA">Clear A</button></div>
+          <label class="field">Wipe A | live <output data-out="wipe">0.5</output><input type="range" data-w="wipe" min="0" max="1" step="0.01" value="0.5"></label>
+        </div>
         <p class="group-label">Lights</p>
         <div class="lt-list" data-out="list">${listHtml()}</div>
         <div class="lt-add">${Object.keys(TYPES).map((k) => `<button type="button" data-add="${k}">+ ${esc(TYPES[k].label.split(" ")[0])}</button>`).join("")}</div>
@@ -1074,7 +1173,7 @@
       pending = true;
       requestAnimationFrame(() => {
         pending = false;
-        render(st, canvas);
+        paint(st);
         canvas.parentNode.classList.toggle("crisp", st.look !== "realistic");
         const m = measure(st);
         const v = curiosities(st, m);
@@ -1087,6 +1186,8 @@
           ["Contrast", `${m.stops.toFixed(1)} stops`],
           ["Key color", kl ? `${colorKelvin(kl)} K` : "—"],
           ["Camera", `${st.camExp >= 0 ? "+" : ""}${Number(st.camExp).toFixed(1)} EV`],
+          ["Shadow tone", shadowTone(kl)],
+          ["Time of day", todOf(st, kl) || "interior"],
         ]
           .map(([a, b]) => `<div><b>${esc(a)}</b><span>${esc(b)}</span></div>`)
           .join("");
@@ -1095,6 +1196,8 @@
           .map(([k, val]) => `<span class="chip ${bv[k] ? "lit" : ""}" title="${bv[k] ? "Live on the board" : "Recorded in a study"}">${esc(k)}: ${esc(val)}${k === "colorTemp" ? " K" : k === "contrast" ? " stops" : ""}</span>`)
           .join("")}</p>`;
         drawTime();
+        const S = sunLook(st.sun.elev, st.sun.az);
+        out("tod").textContent = `${S.tod} · sun ${S.kelvin} K · sky ${S.sky}${st.sun.on ? "" : " (off: turn on to drive the lights)"}`;
         out("boardNote").textContent = Object.keys(bv).length ? `Sends ${Object.keys(bv).join(", ")} to all four panels.` : "None of these are live on the board yet.";
       });
     }
@@ -1235,6 +1338,68 @@
     svg.addEventListener("pointerup", end);
     svg.addEventListener("pointercancel", end);
 
+    function paint(frame) {
+      render(frame, canvas);
+      if (!snapA || wipe <= 0) return;
+      const ctx = canvas.getContext("2d");
+      const cw = canvas.width,
+        ch = canvas.height;
+      const sx = Math.round(W * wipe);
+      if (sx > 0) ctx.drawImage(snapA, 0, 0, sx, H, 0, 0, (sx / W) * cw, ch);
+      const lx = (sx / W) * cw;
+      ctx.fillStyle = "#c45c26";
+      ctx.fillRect(lx - 1.5, 0, 3, ch);
+      ctx.font = "bold 16px monospace";
+      ctx.fillStyle = "rgba(28,23,18,0.75)";
+      ctx.fillRect(6, 6, 22, 22);
+      ctx.fillRect(cw - 52, 6, 46, 22);
+      ctx.fillStyle = "#fff";
+      ctx.fillText("A", 11, 23);
+      ctx.fillText("live", cw - 48, 23);
+    }
+    function sunInput(inp) {
+      const k = inp.dataset.sun;
+      if (k === "on") {
+        st.sun.on = inp.checked;
+        /* Turning the sky on starts an exterior: the sun is the key, the skydome the fill. */
+        if (st.sun.on) {
+          st.lights = st.lights.filter((L) => L.type === "directional" || L.type === "skydome");
+          st.sel = 0;
+        }
+      }
+      else {
+        st.sun[k] = Number(inp.value);
+        out(k === "elev" ? "sunElev" : "sunAz").textContent = inp.value;
+      }
+      if (st.sun.on) {
+        applySun(st);
+        preset = "Physical sky";
+      }
+      save();
+      update(true);
+    }
+    el.querySelectorAll("[data-sun]").forEach((inp) => inp.addEventListener(inp.type === "checkbox" ? "change" : "input", () => sunInput(inp)));
+    el.querySelector('[data-w="wipe"]').addEventListener("input", (e) => {
+      wipe = Number(e.target.value);
+      out("wipe").textContent = e.target.value;
+      paint(st);
+    });
+    el.addEventListener("click", (e) => {
+      const act = e.target.closest("[data-act]");
+      if (!act) return;
+      if (act.dataset.act === "snapA") {
+        snapA = document.createElement("canvas");
+        snapA.width = W;
+        snapA.height = H;
+        render(st, canvas);
+        snapA.getContext("2d").drawImage(off, 0, 0);
+        paint(st);
+      } else if (act.dataset.act === "clearA") {
+        snapA = null;
+        paint(st);
+      }
+    });
+
     function drawTime(now) {
       const R = resolveBeats(st);
       const B = measureBeats(st);
@@ -1284,7 +1449,7 @@
         if (!el.isConnected) return (playing = null);
         const t = (now - t0) / per;
         if (t >= st.beatCount) return stop();
-        render(frameAt(st, t), canvas);
+        paint(frameAt(st, t));
         const j = Math.floor(t);
         if (j !== last) {
           last = j;
