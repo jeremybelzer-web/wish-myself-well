@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "SPEED & TIMING\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 81 to 95\n   1 Clip speed\n   2 Reverse and replay\n   3 Freeze frame\n   4 Jump cuts\n   5 Cutting to the beat\n   6 Pace across the scene\n   7 Edit template\n   8 Something new every\n   9 suite: Viral edit\n  10 suite: Music video\n  11 suite: Trailer\n  12 pair: When the music is featured, the cuts find the beat\n  13 pair: When jump cuts go rhythmic, a joke builds\n  14 pair: When seconds are left on the clock, the cutting gets fast\n  15 pairs: Music leads the edit"
+    "text": "SPEED & TIMING\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 10, CC 1 to 16\n   1 Clip speed\n   2 Reverse and replay\n   3 Freeze frame\n   4 Jump cuts\n   5 Cutting to the beat\n   6 Pace across the scene\n   7 Edit template\n   8 Something new every\n   9 Slow motion quality\n  10 suite: Viral edit\n  11 suite: Music video\n  12 suite: Trailer\n  13 pair: When the music is featured, the cuts find the beat\n  14 pair: When jump cuts go rhythmic, a joke builds\n  15 pair: When seconds are left on the clock, the cutting gets fast\n  16 pairs: Music leads the edit"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
-     91,
-     92,
-     93,
-     94,
-     95,
-     -1
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
     ],
     "midi": {
-     "channel": 8
+     "channel": 9
     }
    },
    "pos": [
