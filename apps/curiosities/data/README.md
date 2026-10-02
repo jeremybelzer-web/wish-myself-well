@@ -55,7 +55,7 @@ A later file can add sliders to an earlier row by using the same id: new sliders
 
 ## How the app loads it
 
-The app thread ("Bring Maya into the app") owns `index.html` and the app code. To switch the database on:
+The database is switched on in `index.html` (this PR): the block below sits right after `model.js` and before `reference.js`, `app.js` and `automation.js`. If you move it, keep that order:
 
 1. In `index.html`, after `model.js` and before `automation.js`, load the files in the order of `files.json`,
    then hand the database the app's lists (they are top-level consts, so pass them in):

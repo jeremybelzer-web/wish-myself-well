@@ -62,17 +62,17 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 - [x] A JSON copy of the database for other tools (Maya, the desktop app)
 - [x] Give every older catalog curiosity at least three sliders of its own
 - [x] Merge with the app's own lens list (lenses.js) so nothing is listed twice
-- [ ] Switch the database on in the app: one block of script lines in index.html (job for the app thread, lines in PR #7)
-- [ ] Workspaces read their curiosity lists from the database instead of their own lists (job for the app thread)
+- [x] Switch the database on in the app: one block of script lines in index.html (PR #7, tested: all 25 workspaces open with no errors)
+- [x] Workspaces read their curiosity lists from the database (app thread, PR #4)
 - [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop. The review page is ready: https://claude.ai/artifact/MRmTHSusCBtFhkXgkBXoY8 (share it with Sharani from its Share menu)
-- [ ] Decide whether the three new workspaces (Music & sound, Editing & structure, Page & panel) become tabs
+- [x] The three new workspaces (Music & sound, Editing & structure, Page & panel) show as tabs: Music under a new Sound group, Page under Look, Editing under Story (app thread). Jeremy can still say no.
 
 ## 2. Storyboard beta **(beta)**
 
 - [ ] Many panels per scene (dozens), cheap to draw
 - [x] Flip-book playback: flick through panels at a speed you choose (PR #4)
 - [ ] Each panel shows the curiosities that are on, in plain words, under the drawing (like a comic caption)
-- [ ] Draw wardrobe, set and color changes on the panel, simply (not full renders)
+- [x] Draw wardrobe, set and color changes on the panel, simply (not full renders) (PR #4: wardrobe, set, color, emotion and comedy marks)
 - [ ] Music and silence shown on the strip as a band under the panels
 - [ ] Emotion shown as a line across the panels, per character
 - [ ] Comedy beats marked on the strip (setup, payoff, callback)
@@ -82,7 +82,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 
 - [x] Eight made-up model scenes (diner standoff, meet-cute, dinner party, dark hallway, montage, deadpan office, quiet goodbye, kitchen disaster) so the Prism has something to split on first open (PR #7)
 - [ ] Jeremy picks three to five real films or scenes to trace for the Prism (counts only, never scripts)
-- [ ] Show the model scenes as curated films in the app without importing a file (job for the app thread)
+- [x] Show the model scenes as curated films in the app, marked "made up for practice" (app thread)
 - [ ] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, comedy
 - [ ] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours
 - [ ] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film
