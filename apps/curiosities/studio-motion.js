@@ -344,7 +344,9 @@
       const t = (k / (n - 1)) * total;
       let i = 0;
       while (i < cum.length - 1 && cum[i + 1] < t) i++;
-      const p = stroke[Math.min(i + 1, stroke.length - 1)];
+      const a = stroke[i], b = stroke[Math.min(i + 1, stroke.length - 1)];
+      const f = (t - cum[i]) / (cum[Math.min(i + 1, cum.length - 1)] - cum[i] || 1);
+      const p = { x: a.x + (b.x - a.x) * Math.max(0, Math.min(1, f)), y: a.y + (b.y - a.y) * Math.max(0, Math.min(1, f)) };
       out.push([Math.round((p.x / W) * 1000) / 1000, Math.round((p.y / H) * 1000) / 1000]);
     }
     return out;
@@ -465,7 +467,15 @@
         ui.stroke = [q];
       } else if (drawn && s.path.length <= 6) {
         const d = drawnPath(s);
-        const i = d.ctrl.findIndex((p) => (p.x - q.x) ** 2 + (p.y - q.y) ** 2 < 16 * 16);
+        /* the nearest point wins, so points that sit on top of each other can still be picked */
+        let i = -1, bd = 16 * 16;
+        d.ctrl.forEach((p, k) => {
+          const dd = (p.x - q.x) ** 2 + (p.y - q.y) ** 2;
+          if (dd <= bd) {
+            bd = dd;
+            i = k;
+          }
+        });
         if (i < 0) return;
         ui.dragCtrl = i;
       } else return;
