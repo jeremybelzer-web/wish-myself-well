@@ -178,10 +178,10 @@
 .mo-stage-x { position: absolute; top: 12px; right: 16px; background: none; border: 0; color: #fff; font-size: 36px; cursor: pointer; }
 
 /* ---------- The momentum panel beside the Screen's Player (screen-panel.js). Dark, like the Screen. ---------- */
-.sc-player.mo-sp-host { grid-template-columns: minmax(0, 1fr) 204px; }
-.sc-player.mo-sp-host:has(> .mo-sp.folded) { grid-template-columns: minmax(0, 1fr) 34px; }
-.sc-player.mo-sp-host > .sc-ph, .sc-player.mo-sp-host > .sc-viewers, .sc-player.mo-sp-host > .sc-transport { grid-column: 1; }
-.sc-player.mo-sp-host > .mo-sp { grid-column: 2; grid-row: 1 / -1; }
+.sc-player:has(> .mo-sp) { grid-template-columns: minmax(0, 1fr) 204px; }
+.sc-player:has(> .mo-sp.folded) { grid-template-columns: minmax(0, 1fr) 34px; }
+.sc-player:has(> .mo-sp) > .sc-ph, .sc-player:has(> .mo-sp) > .sc-viewers, .sc-player:has(> .mo-sp) > .sc-transport { grid-column: 1; }
+.sc-player:has(> .mo-sp) > .mo-sp { grid-column: 2; grid-row: 1 / -1; }
 .mo-sp { min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; border-left: 1px solid var(--cc-line, #2e2e33); background: var(--cc-panel, #1c1c1e); color: var(--cc-text, #ececee); font-size: 12px; }
 .mo-sp p { margin: 0; }
 .mo-sp button { font: inherit; color: inherit; background: var(--cc-raised, #2a2a2d); border: 1px solid var(--cc-line, #2e2e33); border-radius: 5px; padding: 2px 8px; cursor: pointer; }
@@ -221,11 +221,11 @@
 .mo-sp-vbar span { position: absolute; left: 0; right: 0; bottom: 0; }
 .mo-sp-vt { writing-mode: vertical-rl; transform: rotate(180deg); color: var(--cc-dim, #9b9ba3); font-size: 11px; }
 /* The Player as a tall column on the right: the panel sits under the transport instead. */
-.sc-page[data-layout="right"][data-view="screen"] .sc-player.mo-sp-host { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto; }
-.sc-page[data-layout="right"][data-view="screen"] .sc-player.mo-sp-host > .mo-sp { grid-column: 1; grid-row: 4; max-height: 40vh; border-left: 0; border-top: 1px solid var(--cc-line, #2e2e33); }
+.sc-page[data-layout="right"][data-view="screen"] .sc-player:has(> .mo-sp) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto; }
+.sc-page[data-layout="right"][data-view="screen"] .sc-player:has(> .mo-sp) > .mo-sp { grid-column: 1; grid-row: 4; max-height: 40vh; border-left: 0; border-top: 1px solid var(--cc-line, #2e2e33); }
 @media (max-width: 860px) {
-  .sc-player.mo-sp-host, .sc-player.mo-sp-host:has(> .mo-sp.folded) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto; }
-  .sc-player.mo-sp-host > .mo-sp { grid-column: 1; grid-row: 4; border-left: 0; border-top: 1px solid var(--cc-line, #2e2e33); overflow: visible; }
+  .sc-player:has(> .mo-sp), .sc-player:has(> .mo-sp.folded) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto; }
+  .sc-player:has(> .mo-sp) > .mo-sp { grid-column: 1; grid-row: 4; border-left: 0; border-top: 1px solid var(--cc-line, #2e2e33); overflow: visible; }
   .mo-sp .mo-sp-slim { min-height: 0; flex-direction: row; padding: 8px; }
   .mo-sp-vbar { width: auto; height: 8px; min-height: 0; flex: 1 1 auto; }
   .mo-sp-vbar span { top: 0; right: auto; height: 100% !important; width: var(--w, 0); }

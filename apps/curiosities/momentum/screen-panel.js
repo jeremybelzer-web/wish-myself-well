@@ -6,10 +6,10 @@
    with the inspiration films on screen, and "Make this move here" writes a node at the playhead (one undo step).
    A fold button shrinks the panel to a slim meter.
 
-   It uses the Screen's public window.CurioScreen (open, isOpen, state, setRow) and reads the playhead from the
-   Player's own text until the Screen offers CurioScreen.row(). When the Screen offers
-   CurioScreen.addPanel({ id, place: "player", mount(el) }) the panel is handed over to it; until then it docks
-   itself as the last child of the Player (.sc-player) and its CSS (momentum.css) adds a column there.
+   It docks through the Screen's own hooks: CurioScreen.addPanel({ id, label, place: "player", mount(el) }) (the
+   Screen owns where the panel goes), CurioScreen.row() and setRow() for the playhead, and CurioScreen.on(fn) to
+   redraw after every Screen redraw and playhead move. With an older Screen that has no addPanel it puts itself
+   in the Player (.sc-player) and reads the playhead from the Player's text. momentum.css lays out the column.
    Nothing in screen/ or engine/ is changed.
 
    window.CurioMomentumScreen
@@ -276,13 +276,27 @@
       if (panel) panel.draw();
     });
   };
+  let unScreen = null;
   function attach() {
     if (dock && dock.isConnected) return true;
     const S = SC();
+    /* The Screen's own dock: it decides where the panel goes in each layout and tells us on every redraw and
+       every playhead move. */
     if (S && typeof S.addPanel === "function") {
-      S.addPanel({ id: "momentum", label: "Momentum", place: "player", mount: (el) => (dock = el, panel = mount(el, { row: S.row, setRow: S.setRow }), panel) });
-      return true;
+      if (panel) return true;
+      return S.addPanel({
+        id: "momentum",
+        label: "Momentum",
+        place: "player",
+        mount(el) {
+          dock = el;
+          panel = mount(el, { row: () => S.row(), setRow: (i) => S.setRow(i) });
+          if (typeof S.on === "function") unScreen = S.on(redraw);
+          if (window.CurioEngine && window.CurioEngine.on) unEngine = window.CurioEngine.on(redraw);
+        },
+      }) !== false || !!panel;
     }
+    /* An older Screen with no dock: put the panel in the Player ourselves and watch it redraw. */
     const player = document.querySelector(".sc-page .sc-player");
     if (!player) return false;
     dock = document.createElement("aside");
@@ -290,10 +304,9 @@
     player.appendChild(dock);
     player.classList.add("mo-sp-host");
     panel = mount(dock);
-    /* The Player redraws its viewers and transport when the playhead moves or the film changes. */
     watcher = new MutationObserver(redraw);
-    [".sc-viewers", ".sc-transport"].forEach((s) => {
-      const n = player.querySelector(s);
+    [".sc-viewers", ".sc-transport"].forEach((sel) => {
+      const n = player.querySelector(sel);
       if (n) watcher.observe(n, { childList: true, subtree: true, characterData: true });
     });
     if (window.CurioEngine && window.CurioEngine.on) unEngine = window.CurioEngine.on(redraw);
@@ -302,16 +315,19 @@
   function detach() {
     if (watcher) watcher.disconnect();
     if (typeof unEngine === "function") unEngine();
+    if (typeof unScreen === "function") unScreen();
     if (panel) panel.destroy();
     if (dock && dock.parentNode) {
       dock.parentNode.classList.remove("mo-sp-host");
       dock.remove();
     }
-    dock = panel = watcher = unEngine = null;
+    dock = panel = watcher = unEngine = unScreen = null;
   }
   /* The Screen builds its page (on the body) when it first opens, which can be long after the app starts. */
   function boot() {
     if (attach() || !document.body) return;
+    /* The Screen's files load after this one: once they have, use its dock even before it opens. */
+    window.addEventListener("load", () => !panel && attach());
     const wait = new MutationObserver(() => attach() && wait.disconnect());
     wait.observe(document.body, { childList: true });
   }
