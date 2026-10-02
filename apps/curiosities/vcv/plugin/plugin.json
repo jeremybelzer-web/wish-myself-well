@@ -329,9 +329,27 @@
       ]
     },
     {
-      "slug": "Curio-emo-road",
-      "name": "Emotional road",
+      "slug": "Curio-emo-road-1",
+      "name": "Emotional road 1",
       "description": "16 curiosities, suites and pairs from Emotional road, one jack each, sent to the Curiosities app as MIDI CC on channel 6.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-emo-road-2",
+      "name": "Emotional road 2",
+      "description": "16 curiosities, suites and pairs from Emotional road, one jack each, sent to the Curiosities app as MIDI CC on channel 6.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-emo-road-3",
+      "name": "Emotional road 3",
+      "description": "10 curiosities, suites and pairs from Emotional road, one jack each, sent to the Curiosities app as MIDI CC on channel 6.",
       "tags": [
         "Controller",
         "MIDI"
@@ -376,7 +394,7 @@
     {
       "slug": "Curio-comedy-5",
       "name": "Comedy 5",
-      "description": "16 curiosities, suites and pairs from Comedy, one jack each, sent to the Curiosities app as MIDI CC on channel 6.",
+      "description": "16 curiosities, suites and pairs from Comedy, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
       "tags": [
         "Controller",
         "MIDI"
@@ -385,16 +403,34 @@
     {
       "slug": "Curio-comedy-6",
       "name": "Comedy 6",
-      "description": "5 curiosities, suites and pairs from Comedy, one jack each, sent to the Curiosities app as MIDI CC on channel 6.",
+      "description": "5 curiosities, suites and pairs from Comedy, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
       "tags": [
         "Controller",
         "MIDI"
       ]
     },
     {
-      "slug": "Curio-comedy-mix",
-      "name": "Comedy from the mix",
-      "description": "14 curiosities, suites and pairs from Comedy from the mix, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
+      "slug": "Curio-comedy-mix-1",
+      "name": "Comedy from the mix 1",
+      "description": "16 curiosities, suites and pairs from Comedy from the mix, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-comedy-mix-2",
+      "name": "Comedy from the mix 2",
+      "description": "16 curiosities, suites and pairs from Comedy from the mix, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
+      "tags": [
+        "Controller",
+        "MIDI"
+      ]
+    },
+    {
+      "slug": "Curio-comedy-mix-3",
+      "name": "Comedy from the mix 3",
+      "description": "8 curiosities, suites and pairs from Comedy from the mix, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
       "tags": [
         "Controller",
         "MIDI"
@@ -421,7 +457,7 @@
     {
       "slug": "Curio-structure-1",
       "name": "Editing & structure 1",
-      "description": "16 curiosities, suites and pairs from Editing & structure, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
+      "description": "16 curiosities, suites and pairs from Editing & structure, one jack each, sent to the Curiosities app as MIDI CC on channel 8.",
       "tags": [
         "Controller",
         "MIDI"
@@ -430,7 +466,7 @@
     {
       "slug": "Curio-structure-2",
       "name": "Editing & structure 2",
-      "description": "16 curiosities, suites and pairs from Editing & structure, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
+      "description": "16 curiosities, suites and pairs from Editing & structure, one jack each, sent to the Curiosities app as MIDI CC on channel 8.",
       "tags": [
         "Controller",
         "MIDI"
@@ -439,7 +475,7 @@
     {
       "slug": "Curio-structure-3",
       "name": "Editing & structure 3",
-      "description": "10 curiosities, suites and pairs from Editing & structure, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
+      "description": "10 curiosities, suites and pairs from Editing & structure, one jack each, sent to the Curiosities app as MIDI CC on channel 8.",
       "tags": [
         "Controller",
         "MIDI"
@@ -448,7 +484,7 @@
     {
       "slug": "Curio-page-1",
       "name": "Page & panel 1",
-      "description": "16 curiosities, suites and pairs from Page & panel, one jack each, sent to the Curiosities app as MIDI CC on channel 7.",
+      "description": "16 curiosities, suites and pairs from Page & panel, one jack each, sent to the Curiosities app as MIDI CC on channel 8.",
       "tags": [
         "Controller",
         "MIDI"
