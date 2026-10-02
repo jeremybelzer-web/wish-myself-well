@@ -5359,6 +5359,129 @@
    "value": "shaky as shot",
    "when": "the camera goes handheld",
    "then": "the shake is left in"
+  },
+  {
+   "id": "p:payoff-mood-face",
+   "proximity": "payoff-mood-face",
+   "label": "When the joke pays off, a mood pops onto a face",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the joke pays off",
+   "then": "a mood pops onto a face"
+  },
+  {
+   "id": "p:angry-steam",
+   "proximity": "angry-steam",
+   "label": "When someone gets angry, steam pops onto their face",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "angry",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "angry steam",
+   "when": "someone gets angry",
+   "then": "steam pops onto their face"
+  },
+  {
+   "id": "p:dreamlike-halo",
+   "proximity": "dreamlike-halo",
+   "label": "When the feeling turns dreamlike, light blooms",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "dreamlike",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lightEffect",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "halo",
+   "when": "the feeling turns dreamlike",
+   "then": "light blooms"
+  },
+  {
+   "id": "p:impact-slam-zoom",
+   "proximity": "impact-slam-zoom",
+   "label": "When impacts rise, the editor slam zooms",
+   "from": {
+    "curiosity": "impacts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cameraEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "slam zoom",
+   "when": "impacts rise",
+   "then": "the editor slam zooms"
+  },
+  {
+   "id": "p:featured-music-pulse",
+   "proximity": "featured-music-pulse",
+   "label": "When the music is featured, the effects pulse on the beat",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "featured",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "videoEffectFamily.onBeat",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "on the beat",
+   "when": "the music is featured",
+   "then": "the effects pulse on the beat"
+  },
+  {
+   "id": "p:scene-end-outro",
+   "proximity": "scene-end-outro",
+   "label": "When the pace races then stops, an outro effect closes it",
+   "from": {
+    "curiosity": "pacingCurve",
+    "track": "master",
+    "is": "speeds up then stops",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "introOutro",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the pace races then stops",
+   "then": "an outro effect closes it"
   }
  ],
  "groups": [
@@ -6187,6 +6310,21 @@
    "links": [
     "p:freeze-title",
     "p:sign-tracks"
+   ]
+  },
+  {
+   "id": "ps:phone-comedy-reactions",
+   "label": "Phone comedy reactions",
+   "plain": "The joke pays off and a mood pops onto a face, anger brings steam, and an impact brings a slam zoom.",
+   "proximities": [
+    "payoff-mood-face",
+    "angry-steam",
+    "impact-slam-zoom"
+   ],
+   "links": [
+    "p:payoff-mood-face",
+    "p:angry-steam",
+    "p:impact-slam-zoom"
    ]
   }
  ]
