@@ -211,6 +211,51 @@
     return a;
   }
 
+  /* The part of a video's frame that is picture, not black bars: rows and columns at the edges that are black in
+     this frame are trimmed. Remembered per video, and widened (never narrowed) as more frames are seen, so a
+     dark moment does not shrink it. */
+  function contentBox(v) {
+    const vw = v.videoWidth,
+      vh = v.videoHeight;
+    const S = 96,
+      sh = Math.max(2, Math.round((S * vh) / vw));
+    const c = (contentBox.c = contentBox.c || canvas(S, sh));
+    if (c.width !== S || c.height !== sh) {
+      c.width = S;
+      c.height = sh;
+    }
+    const x = c.getContext("2d", { willReadFrequently: true });
+    x.drawImage(v, 0, 0, S, sh);
+    const d = x.getImageData(0, 0, S, sh).data;
+    const lit = (i) => 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2] > 20;
+    const rowLit = (y) => {
+      for (let i = 0; i < S; i++) if (lit((y * S + i) * 4)) return true;
+      return false;
+    };
+    const colLit = (xx) => {
+      for (let y = 0; y < sh; y++) if (lit((y * S + xx) * 4)) return true;
+      return false;
+    };
+    let t = 0,
+      b = sh - 1,
+      l = 0,
+      r = S - 1;
+    while (t < b && !rowLit(t)) t++;
+    while (b > t && !rowLit(b)) b--;
+    while (l < r && !colLit(l)) l++;
+    while (r > l && !colLit(r)) r--;
+    const k = vw / S;
+    const now = { x: l * k, y: (t * vh) / sh, w: (r - l + 1) * k, h: ((b - t + 1) * vh) / sh };
+    const old = v.__curioBox;
+    const box =
+      old && old.vw === vw
+        ? { vw, x: Math.min(old.x, now.x), y: Math.min(old.y, now.y), w: Math.max(old.x + old.w, now.x + now.w) - Math.min(old.x, now.x), h: Math.max(old.y + old.h, now.y + now.h) - Math.min(old.y, now.y) }
+        : Object.assign({ vw }, now);
+    if (box.w < vw * 0.2 || box.h < vh * 0.2) return { x: 0, y: 0, w: vw, h: vh }; /* a black frame: use it all */
+    v.__curioBox = box;
+    return box;
+  }
+
   /* One output frame: zoom and slide (camera curiosities), then light and color, then the new line as a
      subtitle. */
   function drawApplied(ctx, video, adj, W, H, opts) {
@@ -246,10 +291,12 @@
       const c = (drawApplied.layer = drawApplied.layer && drawApplied.layer.width === W && drawApplied.layer.height === H ? drawApplied.layer : canvas(W, H));
       const lx = c.getContext("2d", { willReadFrequently: true });
       lx.clearRect(0, 0, W, H);
-      const k = Math.min(W / ov.videoWidth, H / ov.videoHeight);
-      const ow = ov.videoWidth * k,
-        oh = ov.videoHeight * k;
-      lx.drawImage(ov, (W - ow) / 2, (H - oh) / 2, ow, oh);
+      /* Black bars around the graphic (a letterboxed export) are not part of it: find its picture and fit that. */
+      const box = contentBox(ov);
+      const k = Math.min(W / box.w, H / box.h);
+      const ow = box.w * k,
+        oh = box.h * k;
+      lx.drawImage(ov, box.x, box.y, box.w, box.h, (W - ow) / 2, (H - oh) / 2, ow, oh);
       const img = lx.getImageData(0, 0, W, H);
       V().keyOut(img.data, adj.overlay.amount);
       lx.putImageData(img, 0, 0);
