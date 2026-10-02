@@ -11,6 +11,7 @@ namespace rack { struct plugin_Plugin; }
 struct json_t {};
 inline json_t* json_object(){return nullptr;} inline int json_object_set_new(json_t*,const char*,json_t*){return 0;}
 inline json_t* json_object_get(json_t*,const char*){return nullptr;} inline void json_decref(json_t*){}
+inline json_t* json_boolean(bool){return nullptr;} inline bool json_boolean_value(json_t*){return false;}
 struct NVGcolor{float r,g,b,a;}; inline NVGcolor nvgRGB(int,int,int){return {};}
 struct NVGcontext{}; enum{NVG_ALIGN_LEFT=1,NVG_ALIGN_TOP=8};
 inline void nvgFontFaceId(NVGcontext*,int){} inline void nvgFontSize(NVGcontext*,float){} inline void nvgFillColor(NVGcontext*,NVGcolor){}
@@ -34,6 +35,7 @@ using widget::Widget;
 namespace ui { struct Menu:Widget{}; struct MenuSeparator:Widget{}; }
 using ui::Menu; using ui::MenuSeparator;
 inline Widget* createMenuLabel(std::string){return new Widget;}
+inline Widget* createBoolPtrMenuItem(std::string,std::string,bool*){return new Widget;}
 namespace app { struct SvgPanel:Widget{}; struct PortWidget:Widget{}; struct ModuleWidget:Widget{ Module* module; void setModule(Module* m){module=m;} void setPanel(Widget*){} void addInput(PortWidget*){} virtual void appendContextMenu(Menu*){} };
  inline void appendMidiMenu(Menu*, midi::Output*){} }
 using app::ModuleWidget; using app::appendMidiMenu;

@@ -9,7 +9,8 @@
 
    Build it with the VCV Rack SDK (https://vcvrack.com/manual/PluginDevelopmentTutorial):
      cd vcv/plugin && make install RACK_DIR=<path to Rack-SDK>
-   The code uses Rack 2's plugin API (Module, configInput, midi::Output, appendMidiMenu, nanovg labels). It has
+   The code uses Rack 2's plugin API (Module, configInput, midi::Output, appendMidiMenu, nanovg labels) and plain UDP
+   sockets for OSC to the desktop app (right-click: Send by OSC). It has
    not been compiled yet: the SDK download (vcvrack.com) is blocked where it was written. */
 const fs = require("fs");
 const path = require("path");
@@ -156,10 +157,80 @@ static const NVGcolor LEVEL_COLORS[4] = {
   nvgRGB(0x5d, 0x4f, 0xa8), // proximity suite
 };
 
+// ---------- OSC over UDP to the desktop app's bridge (127.0.0.1:7000), the second way out besides MIDI ----------
+// Address /curio/set/<level>/<id> with one float 0..1, as in the desktop bridge (apps/curiosities/desktop/README.md).
+#if defined(ARCH_WIN)
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+  typedef SOCKET curio_socket;
+  #define CURIO_BAD_SOCKET INVALID_SOCKET
+#else
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+  #include <unistd.h>
+  typedef int curio_socket;
+  #define CURIO_BAD_SOCKET (-1)
+#endif
+#include <cstring>
+
+struct CurioOsc {
+  curio_socket sock = CURIO_BAD_SOCKET;
+  sockaddr_in addr;
+
+  bool open() {
+    if (sock != CURIO_BAD_SOCKET)
+      return true;
+#if defined(ARCH_WIN)
+    WSADATA wsa;
+    WSAStartup(MAKEWORD(2, 2), &wsa);
+#endif
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock == CURIO_BAD_SOCKET)
+      return false;
+    std::memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(7000);
+    addr.sin_addr.s_addr = htonl(0x7f000001); // 127.0.0.1
+    return true;
+  }
+
+  static void pad(std::string& b) {
+    do b.push_back('\\0'); while (b.size() % 4);
+  }
+
+  // One OSC message: the address, the type tag ",f", one big-endian float.
+  void sendFloat(const std::string& address, float v) {
+    if (!open())
+      return;
+    std::string b = address;
+    pad(b);
+    b += ",f";
+    pad(b);
+    uint32_t u;
+    std::memcpy(&u, &v, 4);
+    u = htonl(u);
+    b.append((const char*) &u, 4);
+    sendto(sock, b.data(), (int) b.size(), 0, (const sockaddr*) &addr, sizeof(addr));
+  }
+};
+static CurioOsc curioOsc;
+
+// "c:music" -> "/curio/set/c/music"
+static std::string oscAddress(const char* key) {
+  std::string k = key;
+  size_t colon = k.find(':');
+  if (colon == std::string::npos)
+    return "";
+  return "/curio/set/" + k.substr(0, colon) + "/" + k.substr(colon + 1);
+}
+
 struct CurioModule : Module {
   const CurioBank* bank;
   midi::Output midiOutput;
   int lastValues[16];
+  float lastOsc[16];
+  bool useOsc = false; // send OSC to the desktop app instead of MIDI
   dsp::ClockDivider sendDivider;
   dsp::ClockDivider rememberDivider;
 
@@ -177,8 +248,10 @@ struct CurioModule : Module {
   }
 
   void onReset() override {
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 16; i++) {
       lastValues[i] = -1;
+      lastOsc[i] = -1.f;
+    }
     midiOutput.reset();
     if (lastMidiJ)
       midiOutput.fromJson(lastMidiJ);
@@ -196,6 +269,19 @@ struct CurioModule : Module {
     }
     if (!sendDivider.process())
       return;
+    if (useOsc && bank->jacks[0].key[0]) {
+      // OSC keeps fine steps: anything that moved by more than about 0.1% goes out.
+      for (int i = 0; i < bank->count; i++) {
+        if (!inputs[i].isConnected())
+          continue;
+        float m = clamp(inputs[i].getVoltage() / 10.f, 0.f, 1.f);
+        if (std::fabs(m - lastOsc[i]) < 0.001f)
+          continue;
+        lastOsc[i] = m;
+        curioOsc.sendFloat(oscAddress(bank->jacks[i].key), m);
+      }
+      return;
+    }
     for (int i = 0; i < bank->count; i++) {
       if (!inputs[i].isConnected())
         continue;
@@ -214,6 +300,7 @@ struct CurioModule : Module {
   json_t* dataToJson() override {
     json_t* rootJ = json_object();
     json_object_set_new(rootJ, "midi", midiOutput.toJson());
+    json_object_set_new(rootJ, "osc", json_boolean(useOsc));
     return rootJ;
   }
 
@@ -221,6 +308,9 @@ struct CurioModule : Module {
     json_t* midiJ = json_object_get(rootJ, "midi");
     if (midiJ)
       midiOutput.fromJson(midiJ);
+    json_t* oscJ = json_object_get(rootJ, "osc");
+    if (oscJ)
+      useOsc = json_boolean_value(oscJ);
     // The channel belongs to the bank, whatever a saved patch says.
     midiOutput.setChannel(bank->channel - 1);
   }
@@ -292,7 +382,9 @@ struct CurioWidget : ModuleWidget {
     if (!module)
       return;
     menu->addChild(new MenuSeparator);
-    menu->addChild(createMenuLabel("MIDI output (to the Curiosities app)"));
+    if (bank->jacks[0].key[0])
+      menu->addChild(createBoolPtrMenuItem("Send by OSC to the desktop app (port 7000)", "", &module->useOsc));
+    menu->addChild(createMenuLabel("MIDI output (to the Curiosities app in a browser)"));
     appendMidiMenu(menu, &module->midiOutput);
   }
 };

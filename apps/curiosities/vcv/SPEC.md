@@ -43,8 +43,11 @@ A VCV Rack plugin is written in C++ against the Rack SDK. Ours would be generate
 - **Both directions:** output jacks that carry each item's current value back from the app. The app plays a
   curated film's curiosities, and Rack turns them into sound or light.
 - **Triggers:** a gate jack per item that turns it on and off, the same as a MIDI note or key in the app today.
-- **Transport:** MIDI first, because it needs nothing new. If 14-bit MIDI is not enough, the plugin opens a
-  local WebSocket and the app connects to it directly, with no virtual cable.
+- **Transport:** MIDI for the web app (Web MIDI), and OSC for the desktop app. The platform thread's bridge listens
+  on UDP 7000 for `/curio/set/<level>/<id> f` and `/curio/trigger/<level>/<id> i`, and sends
+  `/curio/value/<level>/<id> f` back on UDP 7001 (desktop/README.md, PR #11). The generated modules already
+  send `/curio/set` when "Send by OSC" is ticked. Still to come: gate jacks sending `/curio/trigger`, and output
+  jacks reading `/curio/value` back as voltage.
 - **Built with the Rack SDK** for Mac, Windows and Linux, and submitted to the VCV Library (free) once it is
   stable.
 

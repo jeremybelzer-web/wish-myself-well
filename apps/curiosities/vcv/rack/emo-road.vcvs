@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "EMOTIONAL ROAD\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 81 to 92\n   1 Where this character is on their road\n   2 Where the film is on its road\n   3 Does the feeling turn\n   4 Hidden to shown\n   5 How far the feeling spreads\n   6 suite: Emotional road lens\n   7 suite: Rock bottom\n   8 pair: When a character reaches their lowest point, their feeling turns\n   9 pair: After a low scene, a laugh\n  10 pair: A hidden feeling bursts out later\n  11 pair: After tension peaks, release follows\n  12 pairs: Emotional rollercoaster"
+    "text": "EMOTIONAL ROAD\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 1 to 16\n   1 Where this character is on their road\n   2 Where the film is on its road\n   3 Does the feeling turn\n   4 Hidden to shown\n   5 How far the feeling spreads\n   6 Catharsis\n   7 Feeling held in\n   8 suite: Emotional road lens\n   9 suite: Rock bottom\n  10 pair: When a character reaches their lowest point, their feeling turns\n  11 pair: After a low scene, a laugh\n  12 pair: A hidden feeling bursts out later\n  13 pair: After tension peaks, release follows\n  14 pair: When enough feeling is held in, it comes out\n  15 pairs: Emotional rollercoaster\n  16 pairs: The dam breaks"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
-     91,
-     92,
-     -1,
-     -1,
-     -1,
-     -1
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
     ],
     "midi": {
-     "channel": 4
+     "channel": 5
     }
    },
    "pos": [

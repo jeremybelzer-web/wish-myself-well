@@ -1181,7 +1181,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "EMOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 33 to 48\n   1 Strength of the feeling\n   2 How they move\n   3 Feeling in the voice\n   4 Amount of movement\n   5 Amount said\n   6 Posture changes\n   7 Size of the actions\n   8 Mood of the place\n   9 Mood of the light\n  10 Against the last scene\n  11 Feeling gap between characters\n  12 suite: Feels loving\n  13 suite: Feels joyful\n  14 suite: Feels curious\n  15 suite: Feels melancholy\n  16 suite: Feels anxious\nCV-CC 2: MIDI channel 5, CC 49 to 64\n   1 suite: Feels fearful\n   2 suite: Feels angry\n   3 suite: Feels triumphant\n   4 suite: Feels absurd\n   5 suite: Feels dreamlike\n   6 suite: Emotion lens\n   7 suite: Feeling of the scene\n   8 suite: Held-back tears\n   9 suite: Rage boils over\n  10 suite: Quiet joy\n  11 suite: Frozen fear\n  12 suite: Mood whiplash\n  13 suite: Calm in the storm\n  14 suite: The mask slips\n  15 pair: When the mood of the light drops, the strength of the feeling rises\n  16 pair: When the feeling grows stronger, the posture changes more often\nCV-CC 3: MIDI channel 5, CC 65 to 72\n   1 pair: When a scene feels the opposite of the last one, the color shifts too\n   2 pair: When a feeling rises, the face shows it before the words\n   3 pair: When anger rises, the voice gets louder\n   4 pair: When fear rises, movement stops\n   5 pair: When one character's feeling overflows, others catch it\n   6 pair: When joy rises, the light warms\n   7 pairs: The body tells first\n   8 pairs: Feelings spread"
+    "text": "EMOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 33 to 48\n   1 Strength of the feeling\n   2 How they move\n   3 Feeling in the voice\n   4 Amount of movement\n   5 Amount said\n   6 Posture changes\n   7 Size of the actions\n   8 Mood of the place\n   9 Mood of the light\n  10 Against the last scene\n  11 Feeling gap between characters\n  12 Mixed feelings\n  13 Said against meant\n  14 The eyes\n  15 The hands\n  16 Personal space\nCV-CC 2: MIDI channel 5, CC 49 to 64\n   1 Release\n   2 What the audience feels\n   3 suite: Feels loving\n   4 suite: Feels joyful\n   5 suite: Feels curious\n   6 suite: Feels melancholy\n   7 suite: Feels anxious\n   8 suite: Feels fearful\n   9 suite: Feels angry\n  10 suite: Feels triumphant\n  11 suite: Feels absurd\n  12 suite: Feels dreamlike\n  13 suite: Emotion lens\n  14 suite: Feeling of the scene\n  15 suite: Held-back tears\n  16 suite: Rage boils over\nCV-CC 3: MIDI channel 5, CC 65 to 80\n   1 suite: Quiet joy\n   2 suite: Frozen fear\n   3 suite: Mood whiplash\n   4 suite: Calm in the storm\n   5 suite: The mask slips\n   6 suite: Laughing through tears\n   7 suite: Brave face\n   8 suite: Dawning realization\n   9 suite: The breakdown\n  10 suite: Cold fury\n  11 suite: Giddy relief\n  12 suite: Numb shock\n  13 suite: Awkward tenderness\n  14 suite: Dread: we know, they don't\n  15 pair: When the mood of the light drops, the strength of the feeling rises\n  16 pair: When the feeling grows stronger, the posture changes more often\nCV-CC 4: MIDI channel 5, CC 81 to 96\n   1 pair: When a scene feels the opposite of the last one, the color shifts too\n   2 pair: When a feeling rises, the face shows it before the words\n   3 pair: When anger rises, the voice gets louder\n   4 pair: When fear rises, movement stops\n   5 pair: When one character's feeling overflows, others catch it\n   6 pair: When joy rises, the light warms\n   7 pair: When a trigger appears, the feeling turns\n   8 pair: After a release, the character is lighter\n   9 pair: When said and meant pull apart, the pauses grow\n  10 pair: When people move closer, the feeling grows\n  11 pair: When tears well, the shot gets closer\n  12 pair: When we know more than they do, tension rises\n  13 pair: When feelings mix, the face flickers\n  14 pairs: The body tells first\n  15 pairs: Feelings spread\n  16 pairs: What isn't said\nCV-CC 5: MIDI channel 5, CC 97 to 97\n   1 pairs: Closeness and dread"
    },
    "pos": [
     0,
@@ -1266,14 +1266,14 @@
      70,
      71,
      72,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
     ],
     "midi": {
      "channel": 4
@@ -1286,18 +1286,6 @@
   },
   {
    "id": 53,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "EMOTIONAL ROAD\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 81 to 92\n   1 Where this character is on their road\n   2 Where the film is on its road\n   3 Does the feeling turn\n   4 Hidden to shown\n   5 How far the feeling spreads\n   6 suite: Emotional road lens\n   7 suite: Rock bottom\n   8 pair: When a character reaches their lowest point, their feeling turns\n   9 pair: After a low scene, a laugh\n  10 pair: A hidden feeling bursts out later\n  11 pair: After tension peaks, release follows\n  12 pairs: Emotional rollercoaster"
-   },
-   "pos": [
-    0,
-    19
-   ]
-  },
-  {
-   "id": 54,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -1314,6 +1302,38 @@
      90,
      91,
      92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    39,
+    18
+   ]
+  },
+  {
+   "id": 54,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -1324,8 +1344,8 @@
     }
    },
    "pos": [
-    15,
-    19
+    47,
+    18
    ]
   },
   {
@@ -1333,47 +1353,15 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "COMEDY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 97 to 112\n   1 Kind of joke\n   2 What the joke is about\n   3 Pause before the punchline\n   4 Escalation\n   5 Absurdity\n   6 Deadpan to broad\n   7 Cringe\n   8 Setup and payoff\n   9 Scenes from setup to payoff\n  10 Laughs per minute\n  11 Who carries the joke\n  12 Reaction to the joke\n  13 Running gag\n  14 Callback\n  15 Rule of three\n  16 Physical comedy\nCV-CC 2: MIDI channel 6, CC 1 to 16\n   1 Wordplay\n   2 Misdirection\n   3 Irony\n   4 Understatement\n   5 Fish out of water\n   6 Visual gag\n   7 Subversion\n   8 Comic edit\n   9 Comic sound\n  10 suite: Comedy lens\n  11 suite: Where the laugh comes from\n  12 suite: Deadpan\n  13 suite: Slapstick\n  14 suite: Mockumentary\n  15 suite: Screwball\n  16 suite: Cringe comedy\nCV-CC 3: MIDI channel 6, CC 17 to 32\n   1 suite: Absurdist\n   2 suite: Dark comedy\n   3 suite: Rom-com banter\n   4 suite: Snowball disaster\n   5 suite: Pull-back reveal\n   6 suite: Smash cut contradiction\n   7 suite: Background gags\n   8 pair: When a joke's setup is planted, the payoff lands\n   9 pair: When the escalation rises, the absurdity rises\n  10 pair: When the pause before the punchline grows, laughs per minute drop but each lands harder\n  11 pair: After a big joke, cut to a reaction\n  12 pair: Two of a pattern, then the break\n  13 pair: \"I'll never\", then they do\n  14 pair: After a cringe, a pointed silence\n  15 pair: As trouble escalates, the frame widens\n  16 pair: A running gag returns, bigger\nCV-CC 4: MIDI channel 6, CC 33 to 40\n   1 pair: A joke line returns in a tender moment\n   2 pair: Something absurd, nobody reacts\n   3 pair: Misdirection pays off with a pull-back\n   4 pair: After tension, a laugh breaks it\n   5 pairs: Joke machine\n   6 pairs: Long-game comedy\n   7 pairs: Comic reversals\n   8 pairs: The camera sells the joke"
+    "text": "EMOTIONAL ROAD\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 1 to 16\n   1 Where this character is on their road\n   2 Where the film is on its road\n   3 Does the feeling turn\n   4 Hidden to shown\n   5 How far the feeling spreads\n   6 Catharsis\n   7 Feeling held in\n   8 suite: Emotional road lens\n   9 suite: Rock bottom\n  10 pair: When a character reaches their lowest point, their feeling turns\n  11 pair: After a low scene, a laugh\n  12 pair: A hidden feeling bursts out later\n  13 pair: After tension peaks, release follows\n  14 pair: When enough feeling is held in, it comes out\n  15 pairs: Emotional rollercoaster\n  16 pairs: The dam breaks"
    },
    "pos": [
     0,
-    20
+    19
    ]
   },
   {
    "id": 56,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     97,
-     98,
-     99,
-     100,
-     101,
-     102,
-     103,
-     104,
-     105,
-     106,
-     107,
-     108,
-     109,
-     110,
-     111,
-     112
-    ],
-    "midi": {
-     "channel": 4
-    }
-   },
-   "pos": [
-    15,
-    20
-   ]
-  },
-  {
-   "id": 57,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -1400,7 +1388,19 @@
     }
    },
    "pos": [
-    23,
+    15,
+    19
+   ]
+  },
+  {
+   "id": 57,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "COMEDY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 17 to 32\n   1 Kind of joke\n   2 What the joke is about\n   3 Pause before the punchline\n   4 Escalation\n   5 Absurdity\n   6 Deadpan to broad\n   7 Cringe\n   8 Setup and payoff\n   9 Scenes from setup to payoff\n  10 Laughs per minute\n  11 Who carries the joke\n  12 Reaction to the joke\n  13 Running gag\n  14 Callback\n  15 Rule of three\n  16 Physical comedy\nCV-CC 2: MIDI channel 6, CC 33 to 48\n   1 Wordplay\n   2 Misdirection\n   3 Irony\n   4 Understatement\n   5 Fish out of water\n   6 Visual gag\n   7 Subversion\n   8 Comic edit\n   9 Comic sound\n  10 Comic flaw\n  11 Comic premise\n  12 The topper\n  13 Oddly specific\n  14 Talking to the camera\n  15 Exaggeration\n  16 Humiliation\nCV-CC 3: MIDI channel 6, CC 49 to 64\n   1 The lie that grows\n   2 Misunderstanding\n   3 Cutaway gag\n   4 suite: Comedy lens\n   5 suite: Where the laugh comes from\n   6 suite: Deadpan\n   7 suite: Slapstick\n   8 suite: Mockumentary\n   9 suite: Screwball\n  10 suite: Cringe comedy\n  11 suite: Absurdist\n  12 suite: Dark comedy\n  13 suite: Rom-com banter\n  14 suite: Snowball disaster\n  15 suite: Pull-back reveal\n  16 suite: Smash cut contradiction\nCV-CC 4: MIDI channel 6, CC 65 to 80\n   1 suite: Background gags\n   2 suite: Farce\n   3 suite: The topper\n   4 suite: Punching up\n   5 suite: The aside\n   6 suite: Oddly specific world\n   7 suite: Blind to their flaw\n   8 suite: The cutaway that contradicts\n   9 suite: Bigger than life\n  10 pair: When a joke's setup is planted, the payoff lands\n  11 pair: When the escalation rises, the absurdity rises\n  12 pair: When the pause before the punchline grows, laughs per minute drop but each lands harder\n  13 pair: After a big joke, cut to a reaction\n  14 pair: Two of a pattern, then the break\n  15 pair: \"I'll never\", then they do\n  16 pair: After a cringe, a pointed silence\nCV-CC 5: MIDI channel 6, CC 81 to 96\n   1 pair: As trouble escalates, the frame widens\n   2 pair: A running gag returns, bigger\n   3 pair: A joke line returns in a tender moment\n   4 pair: Something absurd, nobody reacts\n   5 pair: Misdirection pays off with a pull-back\n   6 pair: After tension, a laugh breaks it\n   7 pair: When a joke lands, a topper follows\n   8 pair: When a lie wobbles, a bigger lie covers it\n   9 pair: When the lie collapses, someone is humiliated\n  10 pair: When a misunderstanding deepens, the chaos grows\n  11 pair: When someone is humiliated in front of others, the cringe rises\n  12 pair: When a blind flaw grows, the character is set back\n  13 pair: When a character talks to us, the others react a beat late\n  14 pair: An oddly specific detail comes back later\n  15 pairs: Joke machine\n  16 pairs: Long-game comedy\nCV-CC 6: MIDI channel 6, CC 97 to 101\n   1 pairs: Comic reversals\n   2 pairs: The camera sells the joke\n   3 pairs: The farce engine\n   4 pairs: Stacking laughs\n   5 pairs: Comedy of a flaw"
+   },
+   "pos": [
+    0,
     20
    ]
   },
@@ -1432,7 +1432,7 @@
     }
    },
    "pos": [
-    31,
+    15,
     20
    ]
   },
@@ -1450,38 +1450,26 @@
      38,
      39,
      40,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
     ],
     "midi": {
      "channel": 5
     }
    },
    "pos": [
-    39,
+    23,
     20
    ]
   },
   {
    "id": 60,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "COMEDY FROM THE MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 49 to 62\n   1 How different the personalities are\n   2 Chaos in an orderly room\n   3 Gap in rank\n   4 What the mix does to the plot\n   5 What the mix does to the characters\n   6 Laughs from the mix\n   7 suite: Comedy from the mix lens\n   8 suite: Straight one and funny one\n   9 suite: Chaos agent\n  10 pair: When a chaos character enters an orderly room, the cringe rises\n  11 pair: When opposite personality types share the room, more of the laughs come from the mix\n  12 pair: When the gap in rank grows, the plot takes a turn\n  13 pair: Pride before a fall\n  14 pairs: The mix makes it funny"
-   },
-   "pos": [
-    0,
-    21
-   ]
-  },
-  {
-   "id": 61,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -1500,32 +1488,20 @@
      60,
      61,
      62,
-     -1,
-     -1
+     63,
+     64
     ],
     "midi": {
      "channel": 5
     }
    },
    "pos": [
-    15,
-    21
+    31,
+    20
    ]
   },
   {
-   "id": 62,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "MUSIC & SOUND\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 65 to 80\n   1 Score\n   2 Sound density\n   3 Sound against the cut\n   4 Music\n   5 No music\n   6 Sound around the scene\n   7 suite: Needle drop\n   8 suite: Ironic counterpoint\n   9 suite: Radio in the room\n  10 suite: Score swell\n  11 suite: Sudden silence\n  12 suite: Bare scene\n  13 suite: Suspense drone\n  14 suite: Montage song\n  15 suite: Returning theme\n  16 suite: Heightened sound\nCV-CC 2: MIDI channel 6, CC 81 to 92\n   1 pair: When the music is cut dead, a big line lands\n   2 pair: When the music drops out, a reveal follows\n   3 pair: When a famous song starts, time slows\n   4 pair: When the tempo rises, the cuts speed up\n   5 pair: When the music turns warm, faces soften\n   6 pair: When the music fights the scene, the violence gets bigger\n   7 pair: When there is no music, the frame gets closer\n   8 pair: When music plays in the room, someone moves to it\n   9 pair: When a theme returns, the character it belongs to appears\n  10 pair: When the music builds to its peak, it cuts out\n  11 pairs: Music steers the edit\n  12 pairs: Silence as a weapon"
-   },
-   "pos": [
-    0,
-    22
-   ]
-  },
-  {
-   "id": 63,
+   "id": 61,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -1552,12 +1528,12 @@
     }
    },
    "pos": [
-    15,
-    22
+    39,
+    20
    ]
   },
   {
-   "id": 64,
+   "id": 62,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -1574,6 +1550,38 @@
      90,
      91,
      92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 5
+    }
+   },
+   "pos": [
+    47,
+    20
+   ]
+  },
+  {
+   "id": 63,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -1584,16 +1592,136 @@
     }
    },
    "pos": [
-    23,
-    22
+    55,
+    20
+   ]
+  },
+  {
+   "id": 64,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "COMEDY FROM THE MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 1 to 14\n   1 How different the personalities are\n   2 Chaos in an orderly room\n   3 Gap in rank\n   4 What the mix does to the plot\n   5 What the mix does to the characters\n   6 Laughs from the mix\n   7 suite: Comedy from the mix lens\n   8 suite: Straight one and funny one\n   9 suite: Chaos agent\n  10 pair: When a chaos character enters an orderly room, the cringe rises\n  11 pair: When opposite personality types share the room, more of the laughs come from the mix\n  12 pair: When the gap in rank grows, the plot takes a turn\n  13 pair: Pride before a fall\n  14 pairs: The mix makes it funny"
+   },
+   "pos": [
+    0,
+    21
    ]
   },
   {
    "id": 65,
    "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    15,
+    21
+   ]
+  },
+  {
+   "id": 66,
+   "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "EDITING & STRUCTURE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 97 to 112\n   1 Featured mains\n   2 Groups in the hour\n   3 Exit\n   4 How often a main is in the season\n   5 Scene change rate\n   6 Sequence lengths\n   7 How a scene begins\n   8 Transition\n   9 Call and response\n  10 Repetition scheme\n  11 Signature image\n  12 Contrast map\n  13 Tension\n  14 Energy\n  15 Visual density\n  16 Constant\nCV-CC 2: MIDI channel 7, CC 1 to 16\n   1 Psych-out shift\n   2 Cut articulation\n   3 Operator feel\n   4 Motif shape\n   5 Cross-cutting\n   6 Reveal timing\n   7 Story point of view\n   8 Scene length\n   9 suite: Two-person hour\n  10 suite: Build\n  11 suite: Drop\n  12 suite: Signature return\n  13 suite: Crime, Tarantino style\n  14 suite: Horror\n  15 suite: Action\n  16 suite: Western\nCV-CC 3: MIDI channel 7, CC 17 to 26\n   1 suite: Musical\n   2 suite: Documentary\n   3 suite: Surrealist\n   4 suite: Romantic comedy\n   5 pair: When tension peaks, a long silence\n   6 pair: When energy drops, the hold is long\n   7 pair: When suite Build, suite Drop\n   8 pair: When suite Aggressive camera, suite Quiet confession\n   9 pair: When suite Storm, suite Breathing room\n  10 pairs: Long-form shape"
+    "text": "MUSIC & SOUND\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 17 to 32\n   1 Score\n   2 Sound density\n   3 Sound against the cut\n   4 Music\n   5 No music\n   6 Sound around the scene\n   7 suite: Needle drop\n   8 suite: Ironic counterpoint\n   9 suite: Radio in the room\n  10 suite: Score swell\n  11 suite: Sudden silence\n  12 suite: Bare scene\n  13 suite: Suspense drone\n  14 suite: Montage song\n  15 suite: Returning theme\n  16 suite: Heightened sound\nCV-CC 2: MIDI channel 7, CC 33 to 44\n   1 pair: When the music is cut dead, a big line lands\n   2 pair: When the music drops out, a reveal follows\n   3 pair: When a famous song starts, time slows\n   4 pair: When the tempo rises, the cuts speed up\n   5 pair: When the music turns warm, faces soften\n   6 pair: When the music fights the scene, the violence gets bigger\n   7 pair: When there is no music, the frame gets closer\n   8 pair: When music plays in the room, someone moves to it\n   9 pair: When a theme returns, the character it belongs to appears\n  10 pair: When the music builds to its peak, it cuts out\n  11 pairs: Music steers the edit\n  12 pairs: Silence as a weapon"
+   },
+   "pos": [
+    0,
+    22
+   ]
+  },
+  {
+   "id": 67,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    15,
+    22
+   ]
+  },
+  {
+   "id": 68,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    23,
+    22
+   ]
+  },
+  {
+   "id": 69,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "EDITING & STRUCTURE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 49 to 64\n   1 Featured mains\n   2 Groups in the hour\n   3 Exit\n   4 How often a main is in the season\n   5 Scene change rate\n   6 Sequence lengths\n   7 How a scene begins\n   8 Transition\n   9 Call and response\n  10 Repetition scheme\n  11 Signature image\n  12 Contrast map\n  13 Tension\n  14 Energy\n  15 Visual density\n  16 Constant\nCV-CC 2: MIDI channel 7, CC 65 to 80\n   1 Psych-out shift\n   2 Cut articulation\n   3 Operator feel\n   4 Motif shape\n   5 Cross-cutting\n   6 Reveal timing\n   7 Story point of view\n   8 Scene length\n   9 suite: Two-person hour\n  10 suite: Build\n  11 suite: Drop\n  12 suite: Signature return\n  13 suite: Crime, Tarantino style\n  14 suite: Horror\n  15 suite: Action\n  16 suite: Western\nCV-CC 3: MIDI channel 7, CC 81 to 90\n   1 suite: Musical\n   2 suite: Documentary\n   3 suite: Surrealist\n   4 suite: Romantic comedy\n   5 pair: When tension peaks, a long silence\n   6 pair: When energy drops, the hold is long\n   7 pair: When suite Build, suite Drop\n   8 pair: When suite Aggressive camera, suite Quiet confession\n   9 pair: When suite Storm, suite Breathing room\n  10 pairs: Long-form shape"
    },
    "pos": [
     0,
@@ -1601,7 +1729,115 @@
    ]
   },
   {
-   "id": 66,
+   "id": 70,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    15,
+    23
+   ]
+  },
+  {
+   "id": 71,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    23,
+    23
+   ]
+  },
+  {
+   "id": 72,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    31,
+    23
+   ]
+  },
+  {
+   "id": 73,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "PAGE & PANEL\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 97 to 112\n   1 Panels\n   2 Gutter\n   3 Balloon against caption\n   4 Panel size\n   5 Breaking the frame\n   6 Words per panel\n   7 Sound effects\n   8 Page-turn reveal\n   9 suite: Steady six-panel grid\n  10 suite: Splash-page reveal\n  11 suite: Silent page\n  12 suite: Talky page\n  13 suite: Three-panel strip gag\n  14 suite: Action page\n  15 pair: When a page ends on a cliffhanger, the next page opens big\n  16 pair: When the feeling peaks, the panel grows\nCV-CC 2: MIDI channel 8, CC 1 to 3\n   1 pair: When the talk speeds up, panels shrink and multiply\n   2 pair: When a scene ends, the gutter widens\n   3 pairs: The page breathes with the story"
+   },
+   "pos": [
+    0,
+    24
+   ]
+  },
+  {
+   "id": 74,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -1624,16 +1860,16 @@
      112
     ],
     "midi": {
-     "channel": 5
+     "channel": 6
     }
    },
    "pos": [
     15,
-    23
+    24
    ]
   },
   {
-   "id": 67,
+   "id": 75,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -1641,114 +1877,6 @@
      1,
      2,
      3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10,
-     11,
-     12,
-     13,
-     14,
-     15,
-     16
-    ],
-    "midi": {
-     "channel": 6
-    }
-   },
-   "pos": [
-    23,
-    23
-   ]
-  },
-  {
-   "id": 68,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     17,
-     18,
-     19,
-     20,
-     21,
-     22,
-     23,
-     24,
-     25,
-     26,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
-    ],
-    "midi": {
-     "channel": 6
-    }
-   },
-   "pos": [
-    31,
-    23
-   ]
-  },
-  {
-   "id": 69,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "PAGE & PANEL\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 33 to 48\n   1 Panels\n   2 Gutter\n   3 Balloon against caption\n   4 Panel size\n   5 Breaking the frame\n   6 Words per panel\n   7 Sound effects\n   8 Page-turn reveal\n   9 suite: Steady six-panel grid\n  10 suite: Splash-page reveal\n  11 suite: Silent page\n  12 suite: Talky page\n  13 suite: Three-panel strip gag\n  14 suite: Action page\n  15 pair: When a page ends on a cliffhanger, the next page opens big\n  16 pair: When the feeling peaks, the panel grows\nCV-CC 2: MIDI channel 7, CC 49 to 51\n   1 pair: When the talk speeds up, panels shrink and multiply\n   2 pair: When a scene ends, the gutter widens\n   3 pairs: The page breathes with the story"
-   },
-   "pos": [
-    0,
-    24
-   ]
-  },
-  {
-   "id": 70,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
-    ],
-    "midi": {
-     "channel": 6
-    }
-   },
-   "pos": [
-    15,
-    24
-   ]
-  },
-  {
-   "id": 71,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     49,
-     50,
-     51,
      -1,
      -1,
      -1,
@@ -1764,7 +1892,7 @@
      -1
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
