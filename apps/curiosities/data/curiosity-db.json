@@ -16566,6 +16566,20 @@
      "curve": "linear"
     },
     {
+     "id": "withFilm",
+     "label": "Against the film's road",
+     "plain": "Whether this character feels what the film feels, or goes the other way.",
+     "scale": [
+      "opposite",
+      "lagging",
+      "with it",
+      "ahead"
+     ],
+     "from": "opposite",
+     "to": "ahead",
+     "curve": "linear"
+    },
+    {
      "id": "amount",
      "label": "Amount",
      "plain": "Share of panels in the moment where it plays.",
@@ -16678,6 +16692,51 @@
      "from": 0,
      "to": 100,
      "curve": "linear"
+    },
+    {
+     "id": "height",
+     "label": "How high or low",
+     "plain": "From the film's darkest moment to its brightest.",
+     "range": {
+      "min": -5,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": -5,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "steep",
+     "label": "How steep the change",
+     "plain": "How fast the film's feeling is climbing or falling.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "shape",
+     "label": "Shape of the whole road",
+     "plain": "The overall path the film's feeling takes.",
+     "scale": [
+      "rags to riches",
+      "riches to rags",
+      "fall then rise",
+      "rise then fall",
+      "rise, fall, rise",
+      "fall, rise, fall"
+     ],
+     "from": "rags to riches",
+     "to": "fall, rise, fall",
+     "curve": "steps",
+     "unordered": true
     },
     {
      "id": "amount",
@@ -16812,31 +16871,17 @@
      "curve": "linear"
     },
     {
-     "id": "noticeable",
-     "label": "How noticeable",
-     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "id": "cost",
+     "label": "What showing it costs",
+     "plain": "What the character risks by letting the feeling show.",
      "scale": [
-      "invisible",
-      "subtle",
-      "clear",
-      "showy"
+      "nothing",
+      "a little pride",
+      "a lot",
+      "everything"
      ],
-     "from": "invisible",
-     "to": "showy",
-     "curve": "linear"
-    },
-    {
-     "id": "change",
-     "label": "How it changes",
-     "plain": "How hidden to shown moves to a new setting: holds still, drifts, steps, or snaps.",
-     "scale": [
-      "holds",
-      "drifts",
-      "steps",
-      "snaps"
-     ],
-     "from": "holds",
-     "to": "snaps",
+     "from": "nothing",
+     "to": "everything",
      "curve": "linear"
     },
     {
@@ -17993,6 +18038,33 @@
      "curve": "linear"
     },
     {
+     "id": "friction",
+     "label": "How much they rub",
+     "plain": "From getting along to every line a fight.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "need",
+     "label": "Need each other",
+     "plain": "Whether the plot forces the opposites to stay together.",
+     "scale": [
+      "not at all",
+      "a little",
+      "can't do it alone"
+     ],
+     "from": "not at all",
+     "to": "can't do it alone",
+     "curve": "linear"
+    },
+    {
      "id": "amount",
      "label": "Amount",
      "plain": "Share of panels in the moment where it plays.",
@@ -18054,31 +18126,17 @@
      "unordered": true
     },
     {
-     "id": "noticeable",
-     "label": "How noticeable",
-     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "id": "order",
+     "label": "How orderly the room was",
+     "plain": "The more solemn the room, the funnier the chaos (a funeral, a job interview).",
      "scale": [
-      "invisible",
-      "subtle",
-      "clear",
-      "showy"
+      "already a mess",
+      "relaxed",
+      "formal",
+      "solemn"
      ],
-     "from": "invisible",
-     "to": "showy",
-     "curve": "linear"
-    },
-    {
-     "id": "change",
-     "label": "How it changes",
-     "plain": "How chaos in an orderly room moves to a new setting: holds still, drifts, steps, or snaps.",
-     "scale": [
-      "holds",
-      "drifts",
-      "steps",
-      "snaps"
-     ],
-     "from": "holds",
-     "to": "snaps",
+     "from": "already a mess",
+     "to": "solemn",
      "curve": "linear"
     },
     {
@@ -18167,6 +18225,20 @@
      "curve": "linear"
     },
     {
+     "id": "playing",
+     "label": "Playing high or low",
+     "plain": "Whether people act their rank or against it.",
+     "scale": [
+      "both play to rank",
+      "the low one plays high",
+      "the high one plays low",
+      "both play against rank"
+     ],
+     "from": "both play to rank",
+     "to": "both play against rank",
+     "curve": "linear"
+    },
+    {
      "id": "amount",
      "label": "Amount",
      "plain": "Share of panels in the moment where it plays.",
@@ -18226,31 +18298,17 @@
      "curve": "linear"
     },
     {
-     "id": "noticeable",
-     "label": "How noticeable",
-     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "id": "who",
+     "label": "Who causes it",
+     "plain": "Which part of the mix changes the plot.",
      "scale": [
-      "invisible",
-      "subtle",
-      "clear",
-      "showy"
+      "the pair",
+      "the newcomer",
+      "the group",
+      "everyone"
      ],
-     "from": "invisible",
-     "to": "showy",
-     "curve": "linear"
-    },
-    {
-     "id": "change",
-     "label": "How it changes",
-     "plain": "How what the mix does to the plot moves to a new setting: holds still, drifts, steps, or snaps.",
-     "scale": [
-      "holds",
-      "drifts",
-      "steps",
-      "snaps"
-     ],
-     "from": "holds",
-     "to": "snaps",
+     "from": "the pair",
+     "to": "everyone",
      "curve": "linear"
     },
     {
@@ -18312,31 +18370,17 @@
      "curve": "linear"
     },
     {
-     "id": "noticeable",
-     "label": "How noticeable",
-     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "id": "direction",
+     "label": "Better or worse",
+     "plain": "Whether being together brings out their best or worst.",
      "scale": [
-      "invisible",
-      "subtle",
-      "clear",
-      "showy"
+      "worse",
+      "no better",
+      "a little better",
+      "much better"
      ],
-     "from": "invisible",
-     "to": "showy",
-     "curve": "linear"
-    },
-    {
-     "id": "change",
-     "label": "How it changes",
-     "plain": "How what the mix does to the characters moves to a new setting: holds still, drifts, steps, or snaps.",
-     "scale": [
-      "holds",
-      "drifts",
-      "steps",
-      "snaps"
-     ],
-     "from": "holds",
-     "to": "snaps",
+     "from": "worse",
+     "to": "much better",
      "curve": "linear"
     },
     {
@@ -18398,31 +18442,17 @@
      "curve": "linear"
     },
     {
-     "id": "noticeable",
-     "label": "How noticeable",
-     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "id": "balance",
+     "label": "Who gets the laughs",
+     "plain": "How the laughs are spread across the people.",
      "scale": [
-      "invisible",
-      "subtle",
-      "clear",
-      "showy"
+      "one of them",
+      "mostly one",
+      "shared",
+      "the whole room"
      ],
-     "from": "invisible",
-     "to": "showy",
-     "curve": "linear"
-    },
-    {
-     "id": "change",
-     "label": "How it changes",
-     "plain": "How laughs from the mix moves to a new setting: holds still, drifts, steps, or snaps.",
-     "scale": [
-      "holds",
-      "drifts",
-      "steps",
-      "snaps"
-     ],
-     "from": "holds",
-     "to": "snaps",
+     "from": "one of them",
+     "to": "the whole room",
      "curve": "linear"
     },
     {
@@ -23141,6 +23171,22 @@
      "curve": "linear"
     },
     {
+     "id": "through",
+     "label": "Released through",
+     "plain": "What finally lets the feeling out.",
+     "scale": [
+      "tears",
+      "laughter",
+      "a fight",
+      "a confession",
+      "music"
+     ],
+     "from": "tears",
+     "to": "music",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
      "id": "amount",
      "label": "Amount",
      "plain": "Share of panels in the moment where it plays.",
@@ -24030,6 +24076,1281 @@
      ],
      "from": "holds",
      "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "doubleAct",
+   "level": "curiosity",
+   "label": "The double act",
+   "plain": "Two characters who are funnier together than apart. What they are to each other and how they trade lines.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy",
+    "lines"
+   ],
+   "group": "Comedy",
+   "kind": "lens",
+   "per": "panel",
+   "main": "bond",
+   "sliders": [
+    {
+     "id": "bond",
+     "label": "What they are",
+     "plain": "The relationship the comedy comes out of.",
+     "scale": [
+      "strangers",
+      "coworkers",
+      "friends",
+      "rivals",
+      "a couple",
+      "family"
+     ],
+     "from": "strangers",
+     "to": "family",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "volley",
+     "label": "How fast they trade lines",
+     "plain": "From slow, measured replies to rapid back and forth.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "overlap",
+     "label": "Talking over each other",
+     "plain": "Whether lines overlap.",
+     "scale": [
+      "one at a time",
+      "a little",
+      "constantly"
+     ],
+     "from": "one at a time",
+     "to": "constantly",
+     "curve": "linear"
+    },
+    {
+     "id": "lead",
+     "label": "Who leads",
+     "plain": "Who drives the scene.",
+     "scale": [
+      "the clever one",
+      "the fool",
+      "it swaps"
+     ],
+     "from": "the clever one",
+     "to": "it swaps",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "straightMan",
+   "level": "curiosity",
+   "label": "The straight man",
+   "plain": "The one who plays it straight while the madness happens around them. Their calm makes the madness funnier.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy",
+    "lines"
+   ],
+   "group": "Comedy",
+   "kind": "lens",
+   "per": "panel",
+   "main": "calm",
+   "sliders": [
+    {
+     "id": "calm",
+     "label": "How calm they stay",
+     "plain": "From cracking to not reacting at all.",
+     "scale": [
+      "loses it",
+      "rattled",
+      "patient",
+      "unmoved"
+     ],
+     "from": "loses it",
+     "to": "unmoved",
+     "curve": "linear"
+    },
+    {
+     "id": "who",
+     "label": "Who plays it",
+     "plain": "Who is the straight one.",
+     "scale": [
+      "the lead",
+      "the friend",
+      "a stranger",
+      "the whole room"
+     ],
+     "from": "the lead",
+     "to": "the whole room",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "sees",
+     "label": "Sees how strange it is",
+     "plain": "Whether they know they're in a mad scene.",
+     "scale": [
+      "has no idea",
+      "notices",
+      "fully sees"
+     ],
+     "from": "has no idea",
+     "to": "fully sees",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "oddOneOut",
+   "level": "curiosity",
+   "label": "The odd one out",
+   "plain": "One person who doesn't fit the group: the vegan at the barbecue, the adult at the kids' party.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy",
+    "herd",
+    "emotion"
+   ],
+   "group": "Comedy",
+   "kind": "lens",
+   "per": "panel",
+   "main": "gap",
+   "sliders": [
+    {
+     "id": "gap",
+     "label": "How badly they fit",
+     "plain": "From a little out of place to from another world.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "tries",
+     "label": "Tries to fit in",
+     "plain": "How hard they try to blend in. Trying hard is usually the funny part.",
+     "scale": [
+      "doesn't care",
+      "a little",
+      "desperately"
+     ],
+     "from": "doesn't care",
+     "to": "desperately",
+     "curve": "linear"
+    },
+    {
+     "id": "group",
+     "label": "How the group treats them",
+     "plain": "The group's reaction.",
+     "scale": [
+      "ignores them",
+      "teases them",
+      "welcomes them",
+      "follows them"
+     ],
+     "from": "ignores them",
+     "to": "follows them",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "egoClash",
+   "level": "curiosity",
+   "label": "Clash of egos",
+   "plain": "Two people who both need to be in charge, or right, or the center of attention.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy",
+    "plot"
+   ],
+   "group": "Comedy",
+   "kind": "lens",
+   "per": "panel",
+   "main": "size",
+   "sliders": [
+    {
+     "id": "size",
+     "label": "How big",
+     "plain": "From polite one-upping to open war.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "over",
+     "label": "Over what",
+     "plain": "What they're fighting for.",
+     "scale": [
+      "who's in charge",
+      "who's right",
+      "who's loved",
+      "who's best"
+     ],
+     "from": "who's in charge",
+     "to": "who's best",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "petty",
+     "label": "How petty the cause",
+     "plain": "The smaller the thing they fight over, the funnier.",
+     "scale": [
+      "it matters",
+      "a bit silly",
+      "absurdly petty"
+     ],
+     "from": "it matters",
+     "to": "absurdly petty",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "whoKnows",
+   "level": "curiosity",
+   "label": "Who knows what",
+   "plain": "Some people in the room know a secret and some don't. The comedy and tension come from the gap.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy",
+    "plot",
+    "emotion"
+   ],
+   "group": "Comedy",
+   "kind": "lens",
+   "per": "panel",
+   "main": "gap",
+   "sliders": [
+    {
+     "id": "gap",
+     "label": "How many are in on it",
+     "plain": "From nobody knowing to everyone except one poor person.",
+     "scale": [
+      "no one",
+      "one",
+      "half the room",
+      "all but one"
+     ],
+     "from": "no one",
+     "to": "all but one",
+     "curve": "linear"
+    },
+    {
+     "id": "audience",
+     "label": "The audience knows",
+     "plain": "Whether we're in on it too.",
+     "scale": [
+      "no",
+      "partly",
+      "everything"
+     ],
+     "from": "no",
+     "to": "everything",
+     "curve": "linear"
+    },
+    {
+     "id": "hiding",
+     "label": "Effort to hide it",
+     "plain": "How hard the ones who know work to keep it hidden.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "alliances",
+   "level": "curiosity",
+   "label": "Who sides with whom",
+   "plain": "In a group, people take sides, and the sides keep switching.",
+   "workspace": "comedy-mix",
+   "also": [
+    "herd",
+    "plot"
+   ],
+   "group": "Comedy",
+   "kind": "lens",
+   "per": "panel",
+   "main": "shifts",
+   "sliders": [
+    {
+     "id": "shifts",
+     "label": "How often sides switch",
+     "plain": "From fixed teams to everyone betraying everyone.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "sides",
+     "label": "Number of sides",
+     "plain": "How many camps the room splits into.",
+     "range": {
+      "min": 1,
+      "max": 4,
+      "unit": "sides",
+      "step": 1
+     },
+     "from": 1,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "noticeable",
+     "label": "How noticeable",
+     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "scale": [
+      "invisible",
+      "subtle",
+      "clear",
+      "showy"
+     ],
+     "from": "invisible",
+     "to": "showy",
+     "curve": "linear"
+    },
+    {
+     "id": "change",
+     "label": "How it changes",
+     "plain": "How who sides with whom moves to a new setting: holds still, drifts, steps, or snaps.",
+     "scale": [
+      "holds",
+      "drifts",
+      "steps",
+      "snaps"
+     ],
+     "from": "holds",
+     "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "unwantedGuest",
+   "level": "curiosity",
+   "label": "The unwanted guest",
+   "plain": "Someone who shouldn't be here: the ex at the wedding, the boss at the party, the parent on the date.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy",
+    "placement"
+   ],
+   "group": "Comedy",
+   "kind": "lens",
+   "per": "panel",
+   "main": "wrong",
+   "sliders": [
+    {
+     "id": "wrong",
+     "label": "How wrong it is",
+     "plain": "From a little awkward to the worst person possible.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "knows",
+     "label": "Knows they're unwanted",
+     "plain": "Whether they realize it.",
+     "scale": [
+      "no idea",
+      "suspects",
+      "knows and stays"
+     ],
+     "from": "no idea",
+     "to": "knows and stays",
+     "curve": "linear"
+    },
+    {
+     "id": "leaves",
+     "label": "Do they leave",
+     "plain": "How it ends.",
+     "scale": [
+      "stays all scene",
+      "is pushed out",
+      "leaves on their own"
+     ],
+     "from": "stays all scene",
+     "to": "leaves on their own",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "chemistry",
+   "level": "curiosity",
+   "label": "Chemistry",
+   "plain": "The spark between two people, comic or romantic. You can see it in timing, looks and how they mirror each other.",
+   "workspace": "comedy-mix",
+   "also": [
+    "emotion",
+    "comedy"
+   ],
+   "group": "Comedy",
+   "kind": "lens",
+   "per": "panel",
+   "main": "spark",
+   "sliders": [
+    {
+     "id": "spark",
+     "label": "How strong",
+     "plain": "From nothing between them to electric.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "Kind of spark",
+     "plain": "What kind of connection it is.",
+     "scale": [
+      "comic",
+      "romantic",
+      "rivalry",
+      "family"
+     ],
+     "from": "comic",
+     "to": "family",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "mirror",
+     "label": "Mirroring",
+     "plain": "Whether they copy each other's moves and words without noticing.",
+     "scale": [
+      "none",
+      "some",
+      "in sync"
+     ],
+     "from": "none",
+     "to": "in sync",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "hope",
+   "level": "curiosity",
+   "label": "Hope",
+   "plain": "How much the character (or the audience) believes things will work out. Hope taken away is one of the strongest feelings in a story.",
+   "workspace": "emo-road",
+   "also": [
+    "emotion",
+    "arc"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "level",
+   "sliders": [
+    {
+     "id": "level",
+     "label": "How much hope",
+     "plain": "From despair to sure it will work out.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "whose",
+     "label": "Whose hope",
+     "plain": "Who is hoping.",
+     "scale": [
+      "the character's",
+      "the audience's",
+      "both"
+     ],
+     "from": "the character's",
+     "to": "both",
+     "curve": "linear"
+    },
+    {
+     "id": "fragile",
+     "label": "How fragile",
+     "plain": "How easily it could break.",
+     "scale": [
+      "solid",
+      "shaky",
+      "hanging by a thread"
+     ],
+     "from": "solid",
+     "to": "hanging by a thread",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "stakes",
+   "level": "curiosity",
+   "label": "What they stand to lose",
+   "plain": "What happens if they fail. Higher stakes make every feeling bigger, comedy included.",
+   "workspace": "emo-road",
+   "also": [
+    "plot",
+    "emotion"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "size",
+   "sliders": [
+    {
+     "id": "size",
+     "label": "How much",
+     "plain": "From a little pride to a life.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "Kind of loss",
+     "plain": "What is on the line.",
+     "scale": [
+      "pride",
+      "money",
+      "a job",
+      "a person",
+      "a dream",
+      "a life"
+     ],
+     "from": "pride",
+     "to": "a life",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "clear",
+     "label": "How clear to us",
+     "plain": "Whether the audience knows what's at risk.",
+     "scale": [
+      "hidden",
+      "hinted",
+      "spelled out"
+     ],
+     "from": "hidden",
+     "to": "spelled out",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "breather",
+   "level": "curiosity",
+   "label": "Breather",
+   "plain": "A quiet or light scene after a big one, so the audience can rest and feel the next big moment fully.",
+   "workspace": "emo-road",
+   "also": [
+    "structure",
+    "emotion",
+    "comedy"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "rest",
+   "sliders": [
+    {
+     "id": "rest",
+     "label": "How restful",
+     "plain": "From barely a pause to a full calm scene.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "Kind of rest",
+     "plain": "What fills the breather.",
+     "scale": [
+      "quiet",
+      "a joke",
+      "something beautiful",
+      "everyday life"
+     ],
+     "from": "quiet",
+     "to": "everyday life",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "length",
+     "label": "How long",
+     "plain": "Length of the breather.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "minutes",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "falseHigh",
+   "level": "curiosity",
+   "label": "False high, false low",
+   "plain": "A moment that feels like winning (or losing) but isn't. Often in the middle of a film: the hero seems to get what they want, then it turns.",
+   "workspace": "emo-road",
+   "also": [
+    "arc",
+    "plot"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "kind",
+   "sliders": [
+    {
+     "id": "kind",
+     "label": "Which",
+     "plain": "Whether the moment feels like a win or a loss that won't last.",
+     "scale": [
+      "none",
+      "false low",
+      "false high"
+     ],
+     "from": "none",
+     "to": "false high",
+     "curve": "linear"
+    },
+    {
+     "id": "size",
+     "label": "How convincing",
+     "plain": "How much the audience believes it.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "undone",
+     "label": "Undone within",
+     "plain": "How soon the truth arrives.",
+     "range": {
+      "min": 0,
+      "max": 20,
+      "unit": "scenes",
+      "step": 1
+     },
+     "from": 0,
+     "to": 20,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "twoRoads",
+   "level": "curiosity",
+   "label": "Two roads",
+   "plain": "Two characters' feelings over the story against each other: one rising while the other falls, or both falling together.",
+   "workspace": "emo-road",
+   "also": [
+    "emotion",
+    "arc",
+    "comedy-mix"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "relation",
+   "sliders": [
+    {
+     "id": "relation",
+     "label": "How the roads move",
+     "plain": "One up while the other goes down, through to both moving the same way.",
+     "scale": [
+      "opposite",
+      "crossing",
+      "apart",
+      "parallel",
+      "together"
+     ],
+     "from": "opposite",
+     "to": "together",
+     "curve": "linear"
+    },
+    {
+     "id": "gap",
+     "label": "How far apart",
+     "plain": "How different their feelings are right now.",
+     "range": {
+      "min": 0,
+      "max": 10,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 10,
+     "curve": "linear"
+    },
+    {
+     "id": "noticeable",
+     "label": "How noticeable",
+     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "scale": [
+      "invisible",
+      "subtle",
+      "clear",
+      "showy"
+     ],
+     "from": "invisible",
+     "to": "showy",
+     "curve": "linear"
+    },
+    {
+     "id": "change",
+     "label": "How it changes",
+     "plain": "How two roads moves to a new setting: holds still, drifts, steps, or snaps.",
+     "scale": [
+      "holds",
+      "drifts",
+      "steps",
+      "snaps"
+     ],
+     "from": "holds",
+     "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "feelingEcho",
+   "level": "curiosity",
+   "label": "A feeling comes back",
+   "plain": "A feeling from earlier returns, often with the same music, place or image, and means something new now.",
+   "workspace": "emo-road",
+   "also": [
+    "emotion",
+    "structure",
+    "music"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "strength",
+   "sliders": [
+    {
+     "id": "strength",
+     "label": "How strong the echo",
+     "plain": "From a faint reminder to the same moment again.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "through",
+     "label": "Brought back by",
+     "plain": "What carries the old feeling back.",
+     "scale": [
+      "music",
+      "a place",
+      "an object",
+      "a line",
+      "a shot"
+     ],
+     "from": "music",
+     "to": "a shot",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "changed",
+     "label": "What it means now",
+     "plain": "Whether it means more, or the reverse, this time.",
+     "scale": [
+      "the same",
+      "deeper",
+      "the opposite"
+     ],
+     "from": "the same",
+     "to": "the opposite",
+     "curve": "linear"
+    },
+    {
+     "id": "gap",
+     "label": "Scenes since",
+     "plain": "How long since the first time.",
+     "range": {
+      "min": 0,
+      "max": 40,
+      "unit": "scenes",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "warmth",
+   "level": "curiosity",
+   "label": "Warmth between two",
+   "plain": "How warm a relationship is, followed over the story: strangers to friends, friends to enemies.",
+   "workspace": "emo-road",
+   "also": [
+    "emotion",
+    "comedy-mix"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "level",
+   "sliders": [
+    {
+     "id": "level",
+     "label": "How warm",
+     "plain": "From hatred to love.",
+     "range": {
+      "min": -5,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": -5,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "trend",
+     "label": "Going",
+     "plain": "Which way it's heading.",
+     "scale": [
+      "cooling fast",
+      "cooling",
+      "steady",
+      "warming",
+      "warming fast"
+     ],
+     "from": "cooling fast",
+     "to": "warming fast",
+     "curve": "linear"
+    },
+    {
+     "id": "noticeable",
+     "label": "How noticeable",
+     "plain": "Whether the audience should notice this choice or feel it without seeing it.",
+     "scale": [
+      "invisible",
+      "subtle",
+      "clear",
+      "showy"
+     ],
+     "from": "invisible",
+     "to": "showy",
+     "curve": "linear"
+    },
+    {
+     "id": "change",
+     "label": "How it changes",
+     "plain": "How warmth between two moves to a new setting: holds still, drifts, steps, or snaps.",
+     "scale": [
+      "holds",
+      "drifts",
+      "steps",
+      "snaps"
+     ],
+     "from": "holds",
+     "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "dread",
+   "level": "curiosity",
+   "label": "Dread",
+   "plain": "A bad feeling about what's coming, built over scenes. Comedy can use it too: we dread the moment the lie comes out.",
+   "workspace": "emo-road",
+   "also": [
+    "emotion",
+    "music",
+    "light"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "level",
+   "sliders": [
+    {
+     "id": "level",
+     "label": "How much",
+     "plain": "From a slight unease to sure something terrible is coming.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "known",
+     "label": "We know what's coming",
+     "plain": "Knowing exactly is suspense; not knowing is mystery.",
+     "scale": [
+      "no idea",
+      "a guess",
+      "exactly"
+     ],
+     "from": "no idea",
+     "to": "exactly",
+     "curve": "linear"
+    },
+    {
+     "id": "scenes",
+     "label": "Built over",
+     "plain": "How long it has been building.",
+     "range": {
+      "min": 0,
+      "max": 20,
+      "unit": "scenes",
+      "step": 1
+     },
+     "from": 0,
+     "to": 20,
      "curve": "linear"
     },
     {
@@ -46461,6 +47782,1565 @@
    ],
    "source": "database",
    "tags": []
+  },
+  {
+   "id": "odd-couple",
+   "level": "suite",
+   "label": "The odd couple",
+   "plain": "Two opposites stuck together who need each other.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "typeClash",
+     "value": "opposite types"
+    },
+    {
+     "weight": 70,
+     "curiosity": "typeClash",
+     "slider": "need",
+     "value": "can't do it alone"
+    },
+    {
+     "weight": 50,
+     "curiosity": "doubleAct",
+     "slider": "volley",
+     "value": 4
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:typeClash",
+     "label": "Weight of typeClash",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:typeClash.need",
+     "label": "Weight of typeClash need",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:doubleAct.volley",
+     "label": "Weight of doubleAct volley",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "calm-in-the-madness",
+   "level": "suite",
+   "label": "Calm in the madness",
+   "plain": "One person stays calm while everything around them falls apart.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "straightMan",
+     "value": "unmoved"
+    },
+    {
+     "weight": 70,
+     "curiosity": "chaosInRoom",
+     "value": "mostly chaos"
+    },
+    {
+     "weight": 50,
+     "curiosity": "comicReaction",
+     "value": "a slow burn"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:straightMan",
+     "label": "Weight of straightMan",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:chaosInRoom",
+     "label": "Weight of chaosInRoom",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:comicReaction",
+     "label": "Weight of comicReaction",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "fish-in-the-group",
+   "level": "suite",
+   "label": "Doesn't belong here",
+   "plain": "One person desperately trying to fit into a group they clearly don't belong to.",
+   "workspace": "comedy-mix",
+   "also": [
+    "herd",
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "oddOneOut",
+     "value": 4
+    },
+    {
+     "weight": 70,
+     "curiosity": "oddOneOut",
+     "slider": "tries",
+     "value": "desperately"
+    },
+    {
+     "weight": 50,
+     "curiosity": "cringe",
+     "value": 3
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:oddOneOut",
+     "label": "Weight of oddOneOut",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:oddOneOut.tries",
+     "label": "Weight of oddOneOut tries",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:cringe",
+     "label": "Weight of cringe",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "petty-war",
+   "level": "suite",
+   "label": "The petty war",
+   "plain": "Two big egos at war over something tiny.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "egoClash",
+     "value": 4
+    },
+    {
+     "weight": 70,
+     "curiosity": "egoClash",
+     "slider": "petty",
+     "value": "absurdly petty"
+    },
+    {
+     "weight": 50,
+     "curiosity": "comicEscalation",
+     "value": 3
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:egoClash",
+     "label": "Weight of egoClash",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:egoClash.petty",
+     "label": "Weight of egoClash petty",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:comicEscalation",
+     "label": "Weight of comicEscalation",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "everyone-knows-but-one",
+   "level": "suite",
+   "label": "Everyone knows but one",
+   "plain": "The whole room is in on a secret except one person.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy",
+    "plot"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "whoKnows",
+     "value": "all but one"
+    },
+    {
+     "weight": 60,
+     "curiosity": "whoKnows",
+     "slider": "hiding",
+     "value": 4
+    },
+    {
+     "weight": 50,
+     "curiosity": "whoKnows",
+     "slider": "audience",
+     "value": "everything"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:whoKnows",
+     "label": "Weight of whoKnows",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:whoKnows.hiding",
+     "label": "Weight of whoKnows hiding",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:whoKnows.audience",
+     "label": "Weight of whoKnows audience",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "status-swap",
+   "level": "suite",
+   "label": "Status swap",
+   "plain": "The servant ends up in charge and the boss ends up fetching coffee.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy",
+    "plot"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "statusGap",
+     "value": "master and servant"
+    },
+    {
+     "weight": 70,
+     "curiosity": "statusGap",
+     "slider": "flip",
+     "value": "a full reversal"
+    },
+    {
+     "weight": 40,
+     "curiosity": "mixPlot",
+     "value": "a turn"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:statusGap",
+     "label": "Weight of statusGap",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:statusGap.flip",
+     "label": "Weight of statusGap flip",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:mixPlot",
+     "label": "Weight of mixPlot",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "worst-guest",
+   "level": "suite",
+   "label": "The worst possible guest",
+   "plain": "The one person who shouldn't be here, refusing to leave a formal room.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "unwantedGuest",
+     "value": 5
+    },
+    {
+     "weight": 60,
+     "curiosity": "unwantedGuest",
+     "slider": "leaves",
+     "value": "stays all scene"
+    },
+    {
+     "weight": 50,
+     "curiosity": "chaosInRoom",
+     "slider": "order",
+     "value": "solemn"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:unwantedGuest",
+     "label": "Weight of unwantedGuest",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:unwantedGuest.leaves",
+     "label": "Weight of unwantedGuest leaves",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:chaosInRoom.order",
+     "label": "Weight of chaosInRoom order",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "banter",
+   "level": "suite",
+   "label": "Banter",
+   "plain": "Two people with chemistry trading quick lines, talking over each other.",
+   "workspace": "comedy-mix",
+   "also": [
+    "lines",
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "chemistry",
+     "value": 4
+    },
+    {
+     "weight": 70,
+     "curiosity": "doubleAct",
+     "slider": "volley",
+     "value": 5
+    },
+    {
+     "weight": 50,
+     "curiosity": "doubleAct",
+     "slider": "overlap",
+     "value": "constantly"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:chemistry",
+     "label": "Weight of chemistry",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:doubleAct.volley",
+     "label": "Weight of doubleAct volley",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:doubleAct.overlap",
+     "label": "Weight of doubleAct overlap",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "hope-dies",
+   "level": "suite",
+   "label": "Hope dies",
+   "plain": "Hope at its most fragile, then gone, at the lowest point of the road.",
+   "workspace": "emo-road",
+   "also": [
+    "arc",
+    "emotion"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "hope",
+     "value": 0
+    },
+    {
+     "weight": 70,
+     "curiosity": "emoRoadCharacter",
+     "value": "lowest point"
+    },
+    {
+     "weight": 60,
+     "curiosity": "stakes",
+     "value": 5
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:hope",
+     "label": "Weight of hope",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:emoRoadCharacter",
+     "label": "Weight of emoRoadCharacter",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:stakes",
+     "label": "Weight of stakes",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-midpoint-win",
+   "level": "suite",
+   "label": "The midpoint win",
+   "plain": "Halfway through the film, it feels like they won. It won't last.",
+   "workspace": "emo-road",
+   "also": [
+    "arc",
+    "plot"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "falseHigh",
+     "value": "false high"
+    },
+    {
+     "weight": 60,
+     "curiosity": "emoRoadCharacter",
+     "value": "highest point"
+    },
+    {
+     "weight": 40,
+     "curiosity": "dread",
+     "slider": "known",
+     "value": "a guess"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:falseHigh",
+     "label": "Weight of falseHigh",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:emoRoadCharacter",
+     "label": "Weight of emoRoadCharacter",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:dread.known",
+     "label": "Weight of dread known",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "rest-stop",
+   "level": "suite",
+   "label": "A rest stop",
+   "plain": "A gentle, funny or beautiful scene right after a big one.",
+   "workspace": "emo-road",
+   "also": [
+    "structure",
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "breather",
+     "value": 4
+    },
+    {
+     "weight": 60,
+     "curiosity": "emotionIntensity",
+     "value": 1
+    },
+    {
+     "weight": 40,
+     "curiosity": "music",
+     "value": "under the scene"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:breather",
+     "label": "Weight of breather",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:emotionIntensity",
+     "label": "Weight of emotionIntensity",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:music",
+     "label": "Weight of music",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "crossed-roads",
+   "level": "suite",
+   "label": "Crossed roads",
+   "plain": "One character rises as the other falls.",
+   "workspace": "emo-road",
+   "also": [
+    "arc",
+    "comedy-mix"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "twoRoads",
+     "value": "opposite"
+    },
+    {
+     "weight": 60,
+     "curiosity": "twoRoads",
+     "slider": "gap",
+     "value": 8
+    },
+    {
+     "weight": 40,
+     "curiosity": "warmth",
+     "slider": "trend",
+     "value": "cooling"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:twoRoads",
+     "label": "Weight of twoRoads",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:twoRoads.gap",
+     "label": "Weight of twoRoads gap",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:warmth.trend",
+     "label": "Weight of warmth trend",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-old-song",
+   "level": "suite",
+   "label": "The old song",
+   "plain": "The music from an early scene plays again, and now it means something else.",
+   "workspace": "emo-road",
+   "also": [
+    "music"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "feelingEcho",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "feelingEcho",
+     "slider": "through",
+     "value": "music"
+    },
+    {
+     "weight": 60,
+     "curiosity": "feelingEcho",
+     "slider": "changed",
+     "value": "deeper"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:feelingEcho",
+     "label": "Weight of feelingEcho",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:feelingEcho.through",
+     "label": "Weight of feelingEcho through",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:feelingEcho.changed",
+     "label": "Weight of feelingEcho changed",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "slow-dread",
+   "level": "suite",
+   "label": "Slow dread",
+   "plain": "We know exactly what's coming, and it builds over many scenes.",
+   "workspace": "emo-road",
+   "also": [
+    "emotion",
+    "music"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "dread",
+     "value": 4
+    },
+    {
+     "weight": 70,
+     "curiosity": "dread",
+     "slider": "known",
+     "value": "exactly"
+    },
+    {
+     "weight": 40,
+     "curiosity": "dread",
+     "slider": "scenes",
+     "value": 10
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:dread",
+     "label": "Weight of dread",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:dread.known",
+     "label": "Weight of dread known",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 70,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:dread.scenes",
+     "label": "Weight of dread scenes",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "everything-to-lose",
+   "level": "suite",
+   "label": "Everything to lose",
+   "plain": "The stakes are a life or a dream, spelled out, and hope hangs by a thread.",
+   "workspace": "emo-road",
+   "also": [
+    "plot"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "stakes",
+     "value": 5
+    },
+    {
+     "weight": 60,
+     "curiosity": "stakes",
+     "slider": "clear",
+     "value": "spelled out"
+    },
+    {
+     "weight": 60,
+     "curiosity": "hope",
+     "slider": "fragile",
+     "value": "hanging by a thread"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:stakes",
+     "label": "Weight of stakes",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:stakes.clear",
+     "label": "Weight of stakes clear",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:hope.fragile",
+     "label": "Weight of hope fragile",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
   }
  ],
  "proximities": [
@@ -57184,6 +60064,1455 @@
    ],
    "source": "database",
    "tags": []
+  },
+  {
+   "id": "guest-chaos",
+   "level": "proximity",
+   "label": "When the unwanted guest arrives, the room falls into chaos",
+   "plain": "An unwanted guest brings chaos within two beats.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "unwantedGuest",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "chaosInRoom",
+    "change": "rises"
+   },
+   "whenText": "the unwanted guest arrives",
+   "thenText": "the room falls into chaos",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "ego-plot",
+   "level": "proximity",
+   "label": "When the egos clash, the plot takes a detour",
+   "plain": "A clash of egos knocks the plot off course within a few beats.",
+   "workspace": "comedy-mix",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "egoClash",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "mixPlot",
+    "change": "rises"
+   },
+   "whenText": "the egos clash",
+   "thenText": "the plot takes a detour",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "secret-cringe",
+   "level": "proximity",
+   "label": "When the one who doesn't know gets close to the secret, the cringe rises",
+   "plain": "As the outsider gets near the truth, the room squirms within a beat.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "whoKnows",
+    "slider": "hiding",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "cringe",
+    "change": "rises"
+   },
+   "whenText": "the one who doesn't know gets close to the secret",
+   "thenText": "the cringe rises",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "straight-sells-it",
+   "level": "proximity",
+   "label": "When the chaos grows, the straight man's calm sells the laugh",
+   "plain": "More chaos makes the straight man's stillness funnier within a beat.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "chaosInRoom",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "mixLaughs",
+    "change": "rises"
+   },
+   "whenText": "the chaos grows",
+   "thenText": "the straight man's calm sells the laugh",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "oddone-group",
+   "level": "proximity",
+   "label": "When the odd one out tries harder, the group pulls away",
+   "plain": "The harder they try to fit in, the more the group teases them within two beats.",
+   "workspace": "comedy-mix",
+   "also": [
+    "herd"
+   ],
+   "when": {
+    "curiosity": "oddOneOut",
+    "slider": "tries",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "groupPressure",
+    "change": "rises"
+   },
+   "whenText": "the odd one out tries harder",
+   "thenText": "the group pulls away",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "sides-switch",
+   "level": "proximity",
+   "label": "When the sides switch, the status flips",
+   "plain": "A switch in alliances flips who is on top within two beats.",
+   "workspace": "comedy-mix",
+   "also": [
+    "herd",
+    "plot"
+   ],
+   "when": {
+    "curiosity": "alliances",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "statusGap",
+    "slider": "flip",
+    "change": "rises"
+   },
+   "whenText": "the sides switch",
+   "thenText": "the status flips",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "chemistry-arc",
+   "level": "proximity",
+   "label": "When the chemistry grows, the characters change",
+   "plain": "Real chemistry pushes both characters to change within a few scenes.",
+   "workspace": "comedy-mix",
+   "also": [
+    "arc"
+   ],
+   "when": {
+    "curiosity": "chemistry",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "mixArc",
+    "change": "rises"
+   },
+   "whenText": "the chemistry grows",
+   "thenText": "the characters change",
+   "within": 6,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 6,
+     "to": 8,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "false-high-falls",
+   "level": "proximity",
+   "label": "When a false high peaks, the fall follows",
+   "plain": "A win that won't last turns into a loss within a few scenes.",
+   "workspace": "emo-road",
+   "also": [
+    "arc"
+   ],
+   "when": {
+    "curiosity": "falseHigh",
+    "is": "false high"
+   },
+   "then": {
+    "curiosity": "emoRoadCharacter",
+    "change": "drops"
+   },
+   "whenText": "a false high peaks",
+   "thenText": "the fall follows",
+   "within": 8,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 8,
+     "to": 10,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "big-then-breather",
+   "level": "proximity",
+   "label": "When a big feeling peaks, a breather follows",
+   "plain": "After a peak of feeling, a quieter or funnier scene follows within a scene or two.",
+   "workspace": "emo-road",
+   "also": [
+    "structure",
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "emotionIntensity",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "breather",
+    "change": "rises"
+   },
+   "whenText": "a big feeling peaks",
+   "thenText": "a breather follows",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "stakes-hope",
+   "level": "proximity",
+   "label": "When the stakes rise, hope gets fragile",
+   "plain": "Higher stakes make hope shakier within a scene.",
+   "workspace": "emo-road",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "stakes",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "hope",
+    "slider": "fragile",
+    "change": "rises"
+   },
+   "whenText": "the stakes rise",
+   "thenText": "hope gets fragile",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "hope-gone-catharsis",
+   "level": "proximity",
+   "label": "When hope is lost, the release comes later",
+   "plain": "Hope at its lowest is paid back by a release later in the film.",
+   "workspace": "emo-road",
+   "also": [
+    "arc"
+   ],
+   "when": {
+    "curiosity": "hope",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "catharsis",
+    "change": "rises"
+   },
+   "whenText": "hope is lost",
+   "thenText": "the release comes later",
+   "within": 15,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 23,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 15,
+     "to": 17,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "echo-catharsis",
+   "level": "proximity",
+   "label": "When an old feeling comes back changed, the release arrives",
+   "plain": "A feeling that returns with a new meaning brings the release within a scene.",
+   "workspace": "emo-road",
+   "also": [
+    "music"
+   ],
+   "when": {
+    "curiosity": "feelingEcho",
+    "slider": "changed",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "catharsis",
+    "change": "rises"
+   },
+   "whenText": "an old feeling comes back changed",
+   "thenText": "the release arrives",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "dread-silence",
+   "level": "proximity",
+   "label": "When dread builds, the music thins out",
+   "plain": "Growing dread makes the music pull back within two beats.",
+   "workspace": "emo-road",
+   "also": [
+    "music"
+   ],
+   "when": {
+    "curiosity": "dread",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "music",
+    "change": "drops"
+   },
+   "whenText": "dread builds",
+   "thenText": "the music thins out",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "warmth-roads",
+   "level": "proximity",
+   "label": "When the warmth cools, the two roads part",
+   "plain": "As two people grow apart, their feelings over the story start going different ways within a few scenes.",
+   "workspace": "emo-road",
+   "also": [
+    "comedy-mix"
+   ],
+   "when": {
+    "curiosity": "warmth",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "twoRoads",
+    "slider": "gap",
+    "change": "rises"
+   },
+   "whenText": "the warmth cools",
+   "thenText": "the two roads part",
+   "within": 4,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 4,
+     "to": 6,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "relief-laugh",
+   "level": "proximity",
+   "label": "When the dread is lifted, a laugh comes",
+   "plain": "The moment dread is lifted, a laugh follows within a beat. Relief is one of comedy's oldest tools.",
+   "workspace": "emo-road",
+   "also": [
+    "comedy",
+    "comedy-mix"
+   ],
+   "when": {
+    "curiosity": "dread",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "mixLaughs",
+    "change": "rises"
+   },
+   "whenText": "the dread is lifted",
+   "thenText": "a laugh comes",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
   }
  ],
  "proximitySuites": [
@@ -61886,6 +66215,679 @@
     {
      "id": "chance:pride-fall",
      "label": "How often pride-fall",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "house-party",
+   "level": "proximitySuite",
+   "label": "The house party engine",
+   "plain": "An unwanted guest brings chaos, the calm one sells the laugh, and sides switch until someone is on top.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy"
+   ],
+   "members": [
+    "guest-chaos",
+    "straight-sells-it",
+    "sides-switch"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:guest-chaos",
+     "label": "Delay of guest-chaos",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:guest-chaos",
+     "label": "How often guest-chaos",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:straight-sells-it",
+     "label": "Delay of straight-sells-it",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:straight-sells-it",
+     "label": "How often straight-sells-it",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:sides-switch",
+     "label": "Delay of sides-switch",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:sides-switch",
+     "label": "How often sides-switch",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "secret-in-the-room",
+   "level": "proximitySuite",
+   "label": "The secret in the room",
+   "plain": "The outsider nears the truth, the room squirms, and the group closes ranks.",
+   "workspace": "comedy-mix",
+   "also": [
+    "comedy",
+    "herd"
+   ],
+   "members": [
+    "secret-cringe",
+    "oddone-group"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:secret-cringe",
+     "label": "Delay of secret-cringe",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:secret-cringe",
+     "label": "How often secret-cringe",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:oddone-group",
+     "label": "Delay of oddone-group",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:oddone-group",
+     "label": "How often oddone-group",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "pair-grows",
+   "level": "proximitySuite",
+   "label": "The pair that grows",
+   "plain": "Egos clash, the plot detours, and the chemistry changes them both.",
+   "workspace": "comedy-mix",
+   "also": [
+    "arc"
+   ],
+   "members": [
+    "ego-plot",
+    "chemistry-arc"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:ego-plot",
+     "label": "Delay of ego-plot",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:ego-plot",
+     "label": "How often ego-plot",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:chemistry-arc",
+     "label": "Delay of chemistry-arc",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:chemistry-arc",
+     "label": "How often chemistry-arc",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-fall-and-rise",
+   "level": "proximitySuite",
+   "label": "The fall and the rise",
+   "plain": "A false high falls, hope is lost, and the release comes later.",
+   "workspace": "emo-road",
+   "also": [
+    "arc"
+   ],
+   "members": [
+    "false-high-falls",
+    "hope-gone-catharsis",
+    "echo-catharsis"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:false-high-falls",
+     "label": "Delay of false-high-falls",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:false-high-falls",
+     "label": "How often false-high-falls",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:hope-gone-catharsis",
+     "label": "Delay of hope-gone-catharsis",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:hope-gone-catharsis",
+     "label": "How often hope-gone-catharsis",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:echo-catharsis",
+     "label": "Delay of echo-catharsis",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:echo-catharsis",
+     "label": "How often echo-catharsis",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "room-to-breathe",
+   "level": "proximitySuite",
+   "label": "Breathing room",
+   "plain": "A big feeling is followed by rest, and lifted dread by a laugh.",
+   "workspace": "emo-road",
+   "also": [
+    "structure",
+    "comedy"
+   ],
+   "members": [
+    "big-then-breather",
+    "relief-laugh"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:big-then-breather",
+     "label": "Delay of big-then-breather",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:big-then-breather",
+     "label": "How often big-then-breather",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:relief-laugh",
+     "label": "Delay of relief-laugh",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:relief-laugh",
+     "label": "How often relief-laugh",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "pressure-cooker",
+   "level": "proximitySuite",
+   "label": "The pressure cooker",
+   "plain": "Stakes rise, hope gets fragile, dread builds and the music thins out.",
+   "workspace": "emo-road",
+   "also": [
+    "plot",
+    "music"
+   ],
+   "members": [
+    "stakes-hope",
+    "dread-silence"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:stakes-hope",
+     "label": "Delay of stakes-hope",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:stakes-hope",
+     "label": "How often stakes-hope",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:dread-silence",
+     "label": "Delay of dread-silence",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:dread-silence",
+     "label": "How often dread-silence",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,
