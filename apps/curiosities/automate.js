@@ -25,7 +25,7 @@
     { name: "Speed breathes", key: "c:moveSpeed", set: { a: 1, b: 5, mod: "lfo", shape: "sine", rate: 0.5, depth: 1 } },
   ];
 
-  let view = { level: "curiosity", q: "", group: "", sel: "c:cameraCarry" };
+  let view = { level: "curiosity", q: "", group: "", sel: "c:cameraCarry", stars: [], perf: false };
   try {
     view = Object.assign(view, JSON.parse(localStorage.getItem(VIEW) || "{}"));
   } catch (e) {}
@@ -134,7 +134,7 @@
     const outs = A().midi.outputs || [];
     return `<div class="au-module ${pt.running ? "run" : ""}">
       <div class="au-face">
-        <div class="au-title"><span class="au-level">${esc(p.level)}</span><strong>${esc(p.label)}</strong></div>
+        <div class="au-title"><span class="au-level">${esc(p.level)}</span><strong>${esc(p.label)}</strong><button type="button" class="au-star ${starred(p.key) ? "on" : ""}" data-star="${esc(p.key)}" aria-pressed="${starred(p.key)}">${starred(p.key) ? "★ On the performer pads" : "☆ Add to performer pads"}</button></div>
         <p class="au-desc">${esc(describe(p))}</p>
         <div class="au-ab">
           <div><span class="au-jack"></span><span class="au-lab">A (m = 0)</span>${abPicker(p, pt, "a")}</div>
@@ -198,6 +198,58 @@
     </details>`;
   }
 
+  function starred(key) {
+    return (view.stars || []).includes(key);
+  }
+
+  /* Pads for a performer: starred modules, anything bound to a key or MIDI, anything running. */
+  function padKeys() {
+    const keys = (view.stars || []).slice();
+    Object.keys(A().bindings()).forEach((k) => keys.includes(k) || keys.push(k));
+    A().running().forEach((k) => keys.includes(k) || keys.push(k));
+    return keys.filter((k) => A().param(k));
+  }
+
+  function perfHtml() {
+    const keys = padKeys();
+    const pads = keys
+      .map((k) => {
+        const p = A().param(k);
+        const pt = A().patch(k);
+        return `<button type="button" class="au-pad ${pt.running ? "on" : ""}" data-pad="${esc(k)}">
+          <span class="au-pad-l">${esc(p.label)}</span>
+          <span class="au-pad-b">${esc(bindingText(A().bindings()[k]))} · ${esc(pt.mode)}</span>
+          <span class="au-meter"><i data-meter="${esc(k)}"></i></span></button>`;
+      })
+      .join("");
+    return `<div class="g au-g">Performer pads</div>
+      ${keys.length ? `<div class="au-pads">${pads}</div>` : `<p class="cap">No pads yet. Star a module (☆ on its card), bind a key or a MIDI note, or start a patch, and it gets a pad here.</p>`}
+      <p class="cap">Hold a pad for a gate, tap it for a toggle. Bound keys and MIDI notes play the same pads.</p>
+      <div class="g au-g">Board, live</div>
+      <div class="au-panels" id="au-panels"></div>
+      <div id="au-holds" class="au-holds"></div>`;
+  }
+
+  function wirePads() {
+    root.querySelectorAll("[data-pad]").forEach((pad) => {
+      const k = pad.dataset.pad;
+      pad.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        try {
+          pad.setPointerCapture(e.pointerId);
+        } catch (err) {}
+        pad.classList.add("held");
+        A().trigger(k, true);
+      });
+      const up = () => {
+        pad.classList.remove("held");
+        if (A().patch(k).mode === "gate") A().trigger(k, false);
+      };
+      pad.addEventListener("pointerup", up);
+      pad.addEventListener("pointercancel", up);
+    });
+  }
+
   function render() {
     if (!A()) {
       root.innerHTML = `<h2>Automate</h2><p>The automation layer (automation.js) did not load.</p>`;
@@ -206,10 +258,10 @@
     const counts = Object.fromEntries(LEVELS.map(([l]) => [l, A().PARAMS.filter((p) => p.level === l).length]));
     root.innerHTML = `<h2>Automate</h2>
       <p class="cap">Every curiosity, suite, proximity and proximity suite is a parameter with two settings. A modulator moves between them; a trigger (MIDI note, key, the button) starts it. Running modules play on the board.</p>
-      <div class="bar-actions au-presets"><span class="au-lab">Patches</span>${PRESETS.map((p, i) => `<button type="button" data-preset="${i}">${esc(p.name)}</button>`).join("")}</div>
+      <div class="bar-actions au-presets"><button type="button" id="au-perf" class="au-perf-btn ${view.perf ? "on" : ""}">${view.perf ? "Back to the modules" : "Performer view"}</button><span class="au-lab">Patches</span>${PRESETS.map((p, i) => `<button type="button" data-preset="${i}">${esc(p.name)}</button>`).join("")}</div>
       <div class="g au-g">Patch bay</div>
       <div id="au-bay">${bayHtml()}</div>
-      <nav class="subtabs">${LEVELS.map(([l, n]) => `<button type="button" data-level="${esc(l)}" class="${view.level === l ? "on" : ""}">${n} <span class="au-n">${counts[l]}</span></button>`).join("")}</nav>
+      ${view.perf ? perfHtml() : `<nav class="subtabs">${LEVELS.map(([l, n]) => `<button type="button" data-level="${esc(l)}" class="${view.level === l ? "on" : ""}">${n} <span class="au-n">${counts[l]}</span></button>`).join("")}</nav>
       <div class="studio-grid au-grid">
         <div class="au-side" id="au-side">${listHtml()}</div>
         <div class="au-main">
@@ -219,7 +271,7 @@
           <div id="au-holds" class="au-holds"></div>
           ${helpHtml()}
         </div>
-      </div>`;
+      </div>`}`;
     wire();
     lastPanelSig = "";
     drawPanels(null);
@@ -253,6 +305,10 @@
 
   function select(key) {
     view.sel = key;
+    if (view.perf) {
+      saveView();
+      return;
+    }
     const p = A().param(key);
     if (p && p.level !== view.level) {
       view.level = p.level;
@@ -289,8 +345,18 @@
         select(pr.key);
       })
     );
-    wireSide();
-    wireModule();
+    const pb = root.querySelector("#au-perf");
+    if (pb)
+      pb.addEventListener("click", () => {
+        view.perf = !view.perf;
+        saveView();
+        render();
+      });
+    if (view.perf) wirePads();
+    else {
+      wireSide();
+      wireModule();
+    }
     wireBay();
     const midiBtn = root.querySelector("#au-midi");
     if (midiBtn)
@@ -374,15 +440,26 @@
         if (out) out.textContent = r.dataset.k === "depth" ? Math.round(v * 100) + "%" : v.toFixed(2);
       })
     );
+    const star = el.querySelector("[data-star]");
+    if (star)
+      star.addEventListener("click", () => {
+        view.stars = view.stars || [];
+        if (starred(key)) view.stars = view.stars.filter((k) => k !== key);
+        else view.stars.push(key);
+        saveView();
+        refreshModule();
+      });
     const trig = el.querySelector("#au-trig");
     trig.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       try {
         trig.setPointerCapture(e.pointerId);
       } catch (err) {}
+      trig.classList.add("held");
       A().trigger(key, true);
     });
     const up = () => {
+      trig.classList.remove("held");
       if (pt().mode === "gate") A().trigger(key, false);
     };
     trig.addEventListener("pointerup", up);
@@ -550,6 +627,8 @@
         }
       } else if (type === "change") {
         refreshBay();
+        root.querySelectorAll("[data-pad]").forEach((pd) => pd.classList.toggle("on", A().patch(pd.dataset.pad).running));
+        if (view.perf && data && data.key && !root.querySelector(`[data-pad="${data.key}"]`) && A().param(data.key) && padKeys().includes(data.key)) render();
         if (data && data.key === view.sel) {
           const t = root.querySelector("#au-trig");
           const pt = A().patch(view.sel);
@@ -651,14 +730,25 @@
 .au-jack.out { background: radial-gradient(circle, #111 35%, #e0a070 40%, #c45c26 70%); }
 .au-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .au-seg { display: flex; flex-wrap: wrap; gap: 0; }
-.au-seg button { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); background: #f7f2e9; padding: 4px 7px; margin: 0 -1px 0 0; cursor: pointer; }
-.au-seg button.on { background: var(--ink); color: var(--paper); }
+.automate .au-seg button { font-family: var(--mono); font-size: 10px; border: 1px solid var(--ink); background: #f7f2e9; padding: 4px 7px; margin: 0 -1px 0 0; cursor: pointer; }
+.automate .au-seg button.on { background: var(--ink); color: var(--paper); }
 .au-knobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 130px), 1fr)); gap: 8px; }
 .au-knob { display: grid; gap: 2px; font-family: var(--mono); font-size: 10px; text-transform: uppercase; }
 .au-knob input { width: 100%; accent-color: var(--saffron); }
 .au-knob b { font-weight: 500; font-size: 12px; }
-.au-trigger { width: 100%; min-height: 64px; font-family: var(--mono); font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; border: 3px solid var(--ink); border-radius: 6px; background: radial-gradient(circle at 50% 35%, #f3c9a8, #c45c26); color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.7); font-weight: 600; cursor: pointer; touch-action: none; user-select: none; }
-.au-trigger.on { background: radial-gradient(circle at 50% 35%, #ffe2c4, #e0662a); box-shadow: 0 0 14px #e0662a; }
+.automate .au-trigger { width: 100%; min-height: 72px; font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border: 3px solid var(--ink); border-radius: 6px; background: radial-gradient(circle at 50% 35%, #fbe3cf, #e8a77c); color: var(--ink); cursor: pointer; touch-action: none; user-select: none; transition: background 0.05s, box-shadow 0.05s; }
+.automate .au-trigger.on, .automate .au-trigger.held { background: radial-gradient(circle at 50% 35%, #fff4d6, #ff7a2e); box-shadow: 0 0 18px #ff7a2e, inset 0 0 0 3px #fff4d6; }
+.au-trigger.held { transform: translateY(1px); }
+.automate .au-star { justify-self: start; font-family: var(--mono); font-size: 11px; border: 1px solid var(--ink); background: #f7f2e9; padding: 3px 7px; cursor: pointer; margin-top: 4px; }
+.automate .au-star.on { background: var(--gold); color: white; border-color: var(--gold); }
+.automate .au-perf-btn { font-family: var(--mono); font-size: 12px; font-weight: 600; border: 2px solid var(--ink); background: var(--saffron); color: white; padding: 5px 10px; }
+.automate .au-perf-btn.on { background: var(--ink); }
+.au-pads { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); gap: 10px; }
+.automate .au-pad { min-height: 130px; display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 6px; text-align: left; border: 3px solid var(--ink); border-radius: 10px; background: radial-gradient(circle at 50% 30%, #fbe3cf, #e8a77c); color: var(--ink); padding: 10px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+.automate .au-pad.on, .automate .au-pad.held { background: radial-gradient(circle at 50% 30%, #fff4d6, #ff7a2e); box-shadow: 0 0 18px #ff7a2e; }
+.au-pad-l { font-family: var(--serif); font-size: 18px; line-height: 1.15; }
+.au-pad-b { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+.au-pad .au-meter { width: 100%; height: 10px; background: rgba(255,255,255,0.6); }
 .au-run button { font-family: var(--mono); font-size: 11px; }
 .au-scope { width: 100%; height: auto; display: block; border: 1px solid #000; border-radius: 2px; }
 .au-binds button { font-family: var(--mono); font-size: 10px; }
