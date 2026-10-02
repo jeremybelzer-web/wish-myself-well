@@ -54,7 +54,7 @@ const ok = (cond, msg) => {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   page.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
-  await page.goto(base + "index.html");
+  await page.goto(base + "index.html?screen=1");
   await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
   ok(true, "the Screen opens on start");
   ok(await page.evaluate(() => window.CurioEngine.state().rows.length > 0), "my film has moments");

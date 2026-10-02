@@ -937,9 +937,12 @@
       });
     }
     /* The Screen is the default: it opens on start unless you closed it last time (or ?screen=0). */
+    /* Automated test runs (navigator.webdriver) skip it too, so other parts' browser tests that click the
+       app underneath keep working; ?screen=1 opens it anyway (screen/tests/browser.js uses that). */
     let skip = false;
     try {
-      skip = /[?&]screen=0\b/.test(location.search);
+      const q = location.search;
+      skip = /[?&]screen=0\b/.test(q) || (!!navigator.webdriver && !/[?&]screen=1\b/.test(q));
     } catch (e) {}
     if (prefs.open && !skip) setTimeout(open, 0);
   }
