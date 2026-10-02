@@ -137,7 +137,54 @@
   /* analyze(file, { step, onProgress(fraction, text), signal: { cancelled } })
      Seeks through the file, never loading it whole: one small picture per moment (step seconds), and finer
      samples in between to find cuts and motion. Long videos are sampled more coarsely (at most MAX_SAMPLES). */
+  /* Short clips go through the Video window's analyzer (video/, window.CurioClip + CurioVideo) when it is loaded:
+     finer looks, subpixel camera motion, a cut rule that ignores whip pans and flashes, and the sound. It looks up
+     to 15 times a second and decodes the whole soundtrack into memory, so it is kept to clips (CLIP_MAX_S long,
+     CLIP_MAX_BYTES big); longer or bigger videos use the light loop below, which never loads the file whole. */
+  const CLIP_MAX_S = 300;
+  const CLIP_MAX_BYTES = 500e6;
   async function analyze(file, opts) {
+    opts = opts || {};
+    if (window.CurioClip && window.CurioVideo && typeof CurioVideo.toMedia === "function" && file.size <= CLIP_MAX_BYTES) {
+      const clip = await CurioClip.open(file, file.name).catch(() => null);
+      if (clip && clip.duration > 0 && clip.duration <= CLIP_MAX_S) return analyzeClip(file, clip, opts);
+    }
+    return analyzeLight(file, opts);
+  }
+  async function analyzeClip(file, clip, opts) {
+    const step = opts.step || beatSeconds();
+    const progress = opts.onProgress || (() => {});
+    const signal = opts.signal || {};
+    const videoId = idOf(file);
+    const d = await CurioClip.dissect(clip, { onProgress: (p, t) => progress(p * 0.9, t || "Measuring") });
+    if (signal.cancelled) throw Object.assign(new Error("Stopped."), { cancelled: true });
+    const m = CurioVideo.toMedia(d, step);
+    /* The small pictures: one seek per moment. */
+    const vw = clip.width || 16, vh = clip.height || 9;
+    const pw = PROXY_W, ph = Math.max(1, Math.round((PROXY_W * vh) / vw));
+    const thumb = Object.assign(document.createElement("canvas"), { width: pw, height: ph });
+    const tctx = thumb.getContext("2d");
+    const nBeats = Math.max(1, Math.ceil(m.duration / step));
+    for (let i = 0; i < nBeats; i++) {
+      if (signal.cancelled) throw Object.assign(new Error("Stopped."), { cancelled: true });
+      clip.video.currentTime = Math.min(i * step + 0.01, m.duration - 0.05);
+      await once(clip.video, "seeked", "error", 8000);
+      tctx.drawImage(clip.video, 0, 0, pw, ph);
+      const blob = await new Promise((r) => thumb.toBlob(r, "image/jpeg", 0.7));
+      if (blob) await put("thumbs", videoId + ":" + i, blob);
+      progress(0.9 + (0.1 * (i + 1)) / nBeats, "Making the small pictures");
+    }
+    if (clip.url && String(clip.url).startsWith("blob:")) URL.revokeObjectURL(clip.url);
+    return finish(file, { videoId, name: file.name, size: file.size, duration: m.duration, width: vw, height: vh, step, every: m.every, samples: m.samples, analyzer: "video" }, progress);
+  }
+  async function finish(file, result, progress) {
+    result.beats = beatsOf(result);
+    result.highlights = highlightsOf(result);
+    await put("videos", result.videoId, { id: result.videoId, name: file.name, size: file.size, lastModified: file.lastModified, duration: result.duration, width: result.width, height: result.height, step: result.step, every: result.every, analyzer: result.analyzer, beats: result.beats, highlights: result.highlights, at: Date.now() });
+    progress(1, "Done");
+    return result;
+  }
+  async function analyzeLight(file, opts) {
     opts = opts || {};
     const step = opts.step || beatSeconds();
     const signal = opts.signal || {};
@@ -198,12 +245,7 @@
         }
         progress(t / duration, `Measuring ${fmt(t)} of ${fmt(duration)}`);
       }
-      const result = { videoId, name: file.name, size: file.size, duration, width: vw, height: vh, step, every, samples };
-      result.beats = beatsOf(result);
-      result.highlights = highlightsOf(result);
-      await put("videos", videoId, { id: videoId, name: file.name, size: file.size, lastModified: file.lastModified, duration, width: vw, height: vh, step, every, beats: result.beats, highlights: result.highlights, at: Date.now() });
-      progress(1, "Done");
-      return result;
+      return await finish(file, { videoId, name: file.name, size: file.size, duration, width: vw, height: vh, step, every, samples, analyzer: "light" }, progress);
     } finally {
       video.removeAttribute("src");
       video.load();

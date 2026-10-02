@@ -87,6 +87,7 @@ function serve() {
     });
     await page.waitForFunction(() => /Moment by moment|Could not/.test(document.querySelector(".cm-body").innerText), null, { timeout: 120000 });
     const v = await page.evaluate(async () => (await CurioMedia.videos())[0]);
+    console.log(`     (measured by the ${v && v.analyzer} analyzer: "video" when video/ is loaded, else "light")`);
     ok(v && v.beats.length >= 7 && v.beats.length <= 9, `one moment every 2 seconds (${v && v.beats.length})`);
     const cutAt = v.beats.filter((b) => b.stats.cuts).map((b) => b.from);
     ok([4, 8, 12].every((s) => cutAt.some((t) => Math.abs(t - s) <= 2)), `cuts found near 4, 8 and 12 s (${cutAt.join(", ")})`);
