@@ -308,6 +308,7 @@
       localStorage.setItem(LAST_KEY, "storyboard");
     } catch (e) {}
     show(document.querySelector('#tabs button[data-ws="storyboard"]'));
+    stopViewer();
     root.innerHTML = `<div class="ws ws-sb"><h2>Storyboard</h2>
       <p class="cap">Save My film as scenes, make lots of them, and flip through them like a flip book.</p>
       <div id="ws-sb-body"></div></div>`;
@@ -326,11 +327,19 @@
     el.innerHTML = `<p class="cap ws-fallback">The storyboard is not loaded.</p>`;
   }
 
+  /* The workspace viewer plays on a timer; stop it whenever the page is redrawn or replaced. */
+  let viewer = null;
+  function stopViewer() {
+    if (viewer && viewer.stop) viewer.stop();
+    viewer = null;
+  }
   function draw() {
     const ws = byId[view.ws];
     if (!ws) return;
     const ids = idsOf(ws);
+    stopViewer();
     root.innerHTML = `<div class="ws">
+      <div class="ws-viewer" id="ws-viewer"></div>
       <h2>${esc(ws.label)}</h2>
       ${ws.question ? `<p class="ws-question">${esc(ws.question)}</p>` : ""}
       <div class="ws-momentum" id="ws-momentum"></div>
@@ -350,6 +359,15 @@
       <section class="ws-part" id="ws-prism"><h3>Cross-pollinate from a film</h3><div id="ws-prism-body"></div></section>
       ${ws.tools.length ? `<section class="ws-part" id="ws-tools"><h3>Tools</h3><div id="ws-tools-body"></div></section>` : ""}
     </div>`;
+    /* A viewer at the top of every workspace (Screen PR, when loaded). Jeremy 17:20Z: "a view window for every single screen". */
+    if (window.CurioScreen && typeof CurioScreen.mountViewer === "function") {
+      const first = (ws.sections && ws.sections[0] && ws.sections[0].main) || ids[0];
+      try {
+        const opts = { curiosities: ids };
+        if (first && window.CurioLevels) opts.category = CurioLevels.categoryOf(first);
+        viewer = CurioScreen.mountViewer(root.querySelector("#ws-viewer"), opts);
+      } catch (e) {}
+    }
     /* How this workspace's main curiosity drives the film forward (momentum PR, when loaded). */
     if (window.CurioMomentumUI && typeof CurioMomentumUI.mountNote === "function") {
       const main = (ws.sections && ws.sections[0] && ws.sections[0].main) || ids[0];
@@ -1179,6 +1197,7 @@
   function drawToolPage(tool) {
     /* Library > Words: the plain-language glossary (glossary.js). */
     if (tool === "words") {
+      stopViewer();
       root.innerHTML = `<div class="ws" id="ws-words"></div>`;
       const G = window.CuriosityGlossary;
       if (G && typeof G.mountList === "function") G.mountList(document.getElementById("ws-words"));
@@ -1194,6 +1213,7 @@
     }
     if (tool === "manual") {
       const cur = view.tool.__manual || "manual";
+      stopViewer();
       root.innerHTML = `<div class="ws"><h2>Maya manual</h2>
         <p class="cap">Every topic of the Maya and Arnold for Maya manuals, with your keep or skip calls, and where to start.</p>
         <nav class="subtabs ws-subtabs">${[["manual", "Manual"], ["start", "Start here"]].map(([k, l]) => `<button type="button" data-manual-tool="${k}" class="${k === cur ? "on" : ""}">${l}</button>`).join("")}</nav>
@@ -1201,6 +1221,7 @@
       mountTool(document.getElementById("ws-tool-body"), cur);
       return;
     }
+    stopViewer();
     root.innerHTML = `<div class="ws"><h2>${esc(toolLabel(tool))}</h2><div class="ws-tool" id="ws-tool-body"></div></div>`;
     mountTool(document.getElementById("ws-tool-body"), tool);
   }
@@ -1248,7 +1269,7 @@
     if (!b || b.dataset.ws || b.dataset.tool) return;
     page = null;
     setTimeout(() => {
-      if (root.classList.contains("hidden")) root.innerHTML = "";
+      if (root.classList.contains("hidden")) { stopViewer(); root.innerHTML = ""; }
     }, 0);
   });
 
