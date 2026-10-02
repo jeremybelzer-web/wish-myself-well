@@ -38,7 +38,21 @@ window.MAYA_MANUAL = {
   "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E43621EC-5810-47FF-90FE-168ADFA63C4E.htm",
   "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E4B5DB7D-7351-4561-BD8B-60AC9D48DDF6.htm",
   "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-F7BE47E6-76D5-47F0-8159-9F39FF0C4215.htm",
-  "https://help.autodesk.com/cloudhelp/2023/ENU/Maya-Animation/files/GUID-2656574F-FBC6-457B-B0C1-5C1249DA89EF.htm"
+  "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+  "https://help.autodesk.com/cloudhelp/2023/ENU/Maya-Animation/files/GUID-2656574F-FBC6-457B-B0C1-5C1249DA89EF.htm",
+  "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html",
+  "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/arnold_for_maya_shading_am_Using_Barndoor_Filter_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/ac-light-filters/arnold_user_guide_ac_light_filters_ac_light_blocker_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-render-settings/arnold_user_guide_ac_render_settings_ac_sampling_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_render_settings_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/arnold_for_maya_am_Getting_Started_with_Arnold_GPU_html.html",
+  "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html",
+  "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html",
+  "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
  ],
  "topics": [
   {
@@ -5751,6 +5765,2904 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Lines up studies with real cuts.",
    "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-4D653DC9-57AA-4D8B-987A-5B7A9735CAF0.htm"
+  },
+  {
+   "id": "arnold-aov-beauty-components",
+   "manual": "Arnold for Maya",
+   "area": "AOVs",
+   "topic": "Beauty and component AOVs",
+   "granularity": [
+    "RGBA",
+    "direct/indirect",
+    "diffuse",
+    "specular",
+    "coat",
+    "transmission",
+    "emission",
+    "sss",
+    "Z",
+    "N",
+    "P",
+    "motion vector",
+    "shadow matte",
+    "albedo"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "appDoes": "A breakdown view that splits a panel's light into direct, bounce and highlight layers.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Seeing light layers teaches lighting.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html"
+  },
+  {
+   "id": "arnold-cryptomatte",
+   "manual": "Arnold for Maya",
+   "area": "AOVs",
+   "topic": "Cryptomatte",
+   "granularity": [
+    "object, material, asset IDs"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Compositing mask tool.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-depth-aov",
+   "manual": "Arnold for Maya",
+   "area": "AOVs",
+   "topic": "Depth (Z) AOV",
+   "granularity": [
+    "distance from camera"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Feeds the depth fade and focus views.",
+   "curiosities": [
+    "depthOfField"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "keep",
+   "reason": "Supports depth-based looks.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html"
+  },
+  {
+   "id": "arnold-light-groups-lpe",
+   "manual": "Arnold for Maya",
+   "area": "AOVs",
+   "topic": "Light groups and light path expressions",
+   "granularity": [
+    "per-light AOV",
+    "LPE syntax"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "appDoes": "Ties to soloing lights in the preview; LPE syntax is not shown.",
+   "curiosities": [
+    "lightCount"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "keep",
+   "reason": "Relighting in comp is advanced but useful to see.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html"
+  },
+  {
+   "id": "arnold-camera-exposure",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Camera exposure",
+   "granularity": [
+    "exposure in stops"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "A global stops slider on the preview that brightens or darkens every light.",
+   "curiosities": [
+    "valueKey"
+   ],
+   "newCuriosities": [
+    {
+     "id": "exposure",
+     "label": "Camera exposure",
+     "values": "-3 to +3 stops",
+     "view": "A line over the strip"
+    }
+   ],
+   "suites": [],
+   "proximities": [
+    "When the hero walks outside, exposure drops within 1 beat"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Exposure shifts sell bright/dark transitions.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-camera-dof",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Depth of field",
+   "granularity": [
+    "enable DOF",
+    "focus distance",
+    "aperture size"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Blurs dots off the focus plane in the panel; focus distance can be keyed per beat.",
+   "curiosities": [
+    "depthOfField",
+    "rackFocus"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Shallow portrait",
+     "set": {
+      "depthOfField": "1.4",
+      "shotSize": "close",
+      "lensLength": "85"
+     }
+    }
+   ],
+   "proximities": [
+    "When a line passes to the listener, focus pull follows within 1 beat"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Focus is a primary storytelling tool.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-perspective-camera",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Perspective camera",
+   "granularity": [
+    "focal length",
+    "film back",
+    "near/far clip"
+   ],
+   "weight": "major",
+   "fit": "curiosity",
+   "appDoes": "Already modeled by lens length and shot size.",
+   "curiosities": [
+    "lensLength",
+    "shotSize"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Base camera; covered by existing ids.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-shutter-curve",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Shutter angle and shutter curve",
+   "granularity": [
+    "shutter start/end",
+    "shutter type box/triangle/curve"
+   ],
+   "weight": "major",
+   "fit": "partial",
+   "appDoes": "Extends motion blur with streak shape: crisp end, soft tail.",
+   "curiosities": [
+    "motionBlur"
+   ],
+   "newCuriosities": [
+    {
+     "id": "blurTrail",
+     "label": "Blur trail shape",
+     "values": "even, fading tail, staccato",
+     "view": "Streak drawn behind moving dots"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Action staccato",
+     "set": {
+      "motionBlur": "45",
+      "blurTrail": "staccato",
+      "cutRate": "high"
+     }
+    }
+   ],
+   "proximities": [
+    "When the fight starts, shutter narrows within 1 beat"
+   ],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "Narrow shutter equals jittery action; known since Saving Private Ryan.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-aperture-blades",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Aperture blades and bokeh shape",
+   "granularity": [
+    "blade count (0 = circle)",
+    "blade curvature",
+    "rotation",
+    "aspect ratio (anamorphic)"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as bokeh shape on background lights.",
+   "curiosities": [
+    "depthOfField"
+   ],
+   "newCuriosities": [
+    {
+     "id": "bokehShape",
+     "label": "Out-of-focus shape",
+     "values": "round, hexagon, oval",
+     "view": "A small shape icon on background points"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Anamorphic night",
+     "set": {
+      "bokehShape": "oval",
+      "aspect": "2.39",
+      "timeOfDay": "night"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "advanced",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "Oval bokeh is a signature anamorphic tell.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-cylindrical-camera",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Cylindrical camera",
+   "granularity": [
+    "horizontal and vertical FOV",
+    "panoramic"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Folded into projection value panoramic.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Rare in narrative work.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-fisheye-camera",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Fisheye camera",
+   "granularity": [
+    "field of view",
+    "circular or full frame"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Uses the projection curiosity value fisheye.",
+   "curiosities": [
+    "lensLength"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Skate video",
+     "set": {
+      "projection": "fisheye",
+      "cameraCarry": "handheld",
+      "moveSpeed": "5"
+     }
+    }
+   ],
+   "proximities": [
+    "When projection goes fisheye, carry goes handheld within 0 beats"
+   ],
+   "audience": [
+    "intermediate",
+    "remixer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Music videos and skate films.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-orthographic-camera",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Orthographic camera",
+   "granularity": [
+    "no perspective",
+    "flat side view"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as a flat, diagram-like view style common in games and title cards.",
+   "curiosities": [
+    "renderStyle"
+   ],
+   "newCuriosities": [
+    {
+     "id": "projection",
+     "label": "Projection",
+     "values": "perspective, flat, fisheye, 360, panoramic",
+     "view": "A tag under each panel"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Dollhouse cutaway",
+     "set": {
+      "projection": "flat",
+      "angleHeight": "eye",
+      "shotSize": "wide"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "remixer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Wes-Anderson-like flat staging and side-scrollers.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-rolling-shutter",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Rolling shutter",
+   "granularity": [
+    "top/bottom/left/right",
+    "duration 0 to 1"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as wobble/skew on fast pans, a phone-video tell.",
+   "curiosities": [
+    "cameraCarry"
+   ],
+   "newCuriosities": [
+    {
+     "id": "skew",
+     "label": "Jello skew",
+     "values": "none, slight, strong",
+     "view": "Vertical lines lean in the panel"
+    }
+   ],
+   "suites": [],
+   "proximities": [
+    "When a whip pan happens, skew follows within 0 beats"
+   ],
+   "audience": [
+    "advanced",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "Found-footage realism.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-spherical-vr-camera",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "Spherical and VR cameras",
+   "granularity": [
+    "360 equirect",
+    "stereo eye separation"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled beyond projection value 360.",
+   "curiosities": [
+    "aspect"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "VR output is outside the strip-based app.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-uv-remap-filtermap",
+   "manual": "Arnold for Maya",
+   "area": "Cameras",
+   "topic": "UV remap, filtermap and vignetting",
+   "granularity": [
+    "lens distortion map",
+    "filtermap vignette"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as vignette strength and lens warp.",
+   "curiosities": [
+    "composition"
+   ],
+   "newCuriosities": [
+    {
+     "id": "vignette",
+     "label": "Dark corners",
+     "values": "0 to 5",
+     "view": "Darkened panel corners"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "Vignettes steer the eye; cheap to draw.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-barndoor-filter",
+   "manual": "Arnold for Maya",
+   "area": "Light filters",
+   "topic": "Barndoor",
+   "granularity": [
+    "top/bottom/left/right flaps",
+    "edge softness"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Four draggable flaps clip a preview light into a slash or box.",
+   "curiosities": [
+    "lightShape"
+   ],
+   "newCuriosities": [
+    {
+     "id": "lightCut",
+     "label": "Light cut",
+     "values": "open, slash, box, eye strip",
+     "view": "The clipped beam shape on the stage"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Eye light strip",
+     "set": {
+      "lightCut": "eye strip",
+      "valueKey": "low key"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student",
+    "performer"
+   ],
+   "keep": "keep",
+   "reason": "Shaping light into a slash is classic thriller lighting.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/arnold_for_maya_shading_am_Using_Barndoor_Filter_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html"
+  },
+  {
+   "id": "arnold-gobo-filter",
+   "manual": "Arnold for Maya",
+   "area": "Light filters",
+   "topic": "Gobo",
+   "granularity": [
+    "slide map",
+    "density",
+    "filter mode",
+    "scale",
+    "rotate",
+    "offset"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Casts a pattern (blinds, leaves, window) through a preview light; pattern can drift over beats.",
+   "curiosities": [
+    "lightShape",
+    "atmosphere"
+   ],
+   "newCuriosities": [
+    {
+     "id": "patternMotion",
+     "label": "Pattern moves",
+     "values": "still, drifting, flicker",
+     "view": "The pattern in the panel slides or flickers"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Venetian noir",
+     "set": {
+      "lightShape": "blinds",
+      "valueKey": "low key",
+      "contrast": "5"
+     }
+    },
+    {
+     "label": "Forest dapple",
+     "set": {
+      "lightShape": "leaves",
+      "patternMotion": "drifting",
+      "timeOfDay": "day"
+     }
+    }
+   ],
+   "proximities": [
+    "When a character crosses the window, blinds pattern falls across them within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Patterned light is the cheapest strong look and already a curiosity.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html"
+  },
+  {
+   "id": "arnold-light-blocker",
+   "manual": "Arnold for Maya",
+   "area": "Light filters",
+   "topic": "Light blocker",
+   "granularity": [
+    "box",
+    "cylinder",
+    "sphere",
+    "plane",
+    "density -1 to 1",
+    "ramp",
+    "height edge",
+    "width edge",
+    "roundness"
+   ],
+   "weight": "minor",
+   "fit": "build",
+   "appDoes": "A dark card drawn in the preview that cuts or adds light in an area.",
+   "curiosities": [
+    "lightShape",
+    "contrast"
+   ],
+   "newCuriosities": [
+    {
+     "id": "flag",
+     "label": "Flagged off",
+     "values": "none, wall, floor, face",
+     "view": "A gray shape over the area kept dark"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Flagging light off walls is how pros add contrast.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/ac-light-filters/arnold_user_guide_ac_light_filters_ac_light_blocker_html.html"
+  },
+  {
+   "id": "arnold-light-decay",
+   "manual": "Arnold for Maya",
+   "area": "Light filters",
+   "topic": "Light decay",
+   "granularity": [
+    "near start/end",
+    "far start/end",
+    "attenuation"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as how fast light falls off with distance.",
+   "curiosities": [
+    "contrast"
+   ],
+   "newCuriosities": [
+    {
+     "id": "falloff",
+     "label": "Falloff",
+     "values": "none, gentle, steep",
+     "view": "Brightness gradient across the floor plan"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Pool of light",
+     "set": {
+      "falloff": "steep",
+      "valueKey": "low key",
+      "practicalInFrame": "yes"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Steep falloff makes isolated pools of light.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html"
+  },
+  {
+   "id": "arnold-light-animation",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Animated and flickering lights",
+   "granularity": [
+    "keyframed intensity",
+    "color change",
+    "flicker"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Lights can flicker or fade across beats on the preview.",
+   "curiosities": [
+    "lightChange",
+    "fireLight"
+   ],
+   "newCuriosities": [
+    {
+     "id": "flicker",
+     "label": "Flicker",
+     "values": "steady, gentle, strobe, failing",
+     "view": "A jagged brightness line per light"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Horror hallway",
+     "set": {
+      "flicker": "failing",
+      "valueKey": "low key",
+      "practicalInFrame": "yes"
+     }
+    },
+    {
+     "label": "Rave",
+     "set": {
+      "flicker": "strobe",
+      "hazeLevel": "4",
+      "saturation": "5"
+     }
+    }
+   ],
+   "proximities": [
+    "When the threat appears, the light flickers within 1 beat"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Light that changes in time is the most filmic of lighting acts.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html ; knowledge"
+  },
+  {
+   "id": "arnold-area-light",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Area light",
+   "granularity": [
+    "quad",
+    "disk",
+    "cylinder",
+    "spread",
+    "roundness",
+    "soft edge",
+    "normalize"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Draws a soft rectangle or disk source on the 2D lighting preview whose size and spread set how wide and soft the falloff on the subject looks.",
+   "curiosities": [
+    "key",
+    "softness",
+    "contrast",
+    "lightShape"
+   ],
+   "newCuriosities": [
+    {
+     "id": "sourceSize",
+     "label": "Size of the light",
+     "values": "tiny, small, medium, large, huge",
+     "view": "A box beside the key arrow that grows and shrinks per beat"
+    },
+    {
+     "id": "lightSpread",
+     "label": "Beam spread",
+     "values": "0 to 5 (0 tight beam, 5 wide wash)",
+     "view": "A cone drawn from the source, narrow or wide, per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Soft window key",
+     "set": {
+      "key": "side",
+      "softness": "soft",
+      "sourceSize": "large",
+      "lightSpread": "4"
+     }
+    }
+   ],
+   "proximities": [
+    "When the source grows, contrast drops within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "The main film light; size and spread map straight to soft versus hard light.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+  },
+  {
+   "id": "arnold-light-color-temperature",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Color and color temperature",
+   "granularity": [
+    "color",
+    "use temperature",
+    "kelvin"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Sets each preview light's color by kelvin.",
+   "curiosities": [
+    "colorTemp",
+    "palette"
+   ],
+   "newCuriosities": [
+    {
+     "id": "warmCoolSplit",
+     "label": "Warm and cool split",
+     "values": "none, warm key cool fill, cool key warm fill",
+     "view": "Two swatches side by side per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Teal and orange",
+     "set": {
+      "warmCoolSplit": "warm key cool fill",
+      "saturation": "4"
+     }
+    }
+   ],
+   "proximities": [
+    "When a practical turns on, warm-cool split appears within 1 beat"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Color of light is one of the strongest mood levers.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-directional-light",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Directional light (sun)",
+   "granularity": [
+    "angle",
+    "direction",
+    "parallel shadows"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Sets sun direction on the preview and casts long or short parallel shadows by time of day.",
+   "curiosities": [
+    "timeOfDay",
+    "key",
+    "softness"
+   ],
+   "newCuriosities": [
+    {
+     "id": "shadowLength",
+     "label": "Shadow length",
+     "values": "none, short, long, very long",
+     "view": "Shadow streaks on the floor plan per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Golden hour",
+     "set": {
+      "timeOfDay": "dusk",
+      "colorTemp": "3200",
+      "shadowLength": "long",
+      "rim": "strong"
+     }
+    }
+   ],
+   "proximities": [
+    "When the sun drops, shadows lengthen within 2 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Sun angle is the base of every exterior.",
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+  },
+  {
+   "id": "arnold-light-intensity-exposure",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Intensity and exposure",
+   "granularity": [
+    "intensity",
+    "exposure in stops",
+    "color * intensity * 2^exposure"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Each preview light has a stops slider; doubling is +1 stop, the same unit as the contrast curiosity.",
+   "curiosities": [
+    "contrast",
+    "valueKey"
+   ],
+   "newCuriosities": [
+    {
+     "id": "keyStops",
+     "label": "Key level",
+     "values": "-3 to +3 stops",
+     "view": "A line per light showing its level each beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Low-key noir",
+     "set": {
+      "contrast": "5",
+      "valueKey": "low key",
+      "keyStops": "+1"
+     }
+    }
+   ],
+   "proximities": [
+    "When key stops rise by 2, fill follows within 1 beat or contrast jumps"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Stops are how cinematographers talk; the manual uses the same math.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+  },
+  {
+   "id": "arnold-physical-sky",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Physical sky",
+   "granularity": [
+    "sun elevation",
+    "azimuth",
+    "turbidity",
+    "sun size",
+    "sky tint"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "A sun-height slider that sets sky color, sun color and shadow length together on the preview.",
+   "curiosities": [
+    "timeOfDay",
+    "colorTemp"
+   ],
+   "newCuriosities": [
+    {
+     "id": "sunHeight",
+     "label": "Sun height",
+     "values": "0 to 90 degrees",
+     "view": "A sun dot rising and falling over the strip"
+    },
+    {
+     "id": "haziness",
+     "label": "Sky haze",
+     "values": "clear, light, heavy",
+     "view": "Sky band goes from crisp to milky"
+    }
+   ],
+   "suites": [
+    {
+     "label": "High noon",
+     "set": {
+      "sunHeight": "80",
+      "shadowLength": "short",
+      "contrast": "5"
+     }
+    }
+   ],
+   "proximities": [
+    "When the sun height falls under 10, color of the light warms within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "One knob that explains why sunlight changes through a day.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-shadow-density-color",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Shadow density and color",
+   "granularity": [
+    "cast shadows",
+    "shadow density 0 to 1",
+    "shadow color"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Preview shadows can be thinned or tinted.",
+   "curiosities": [
+    "contrast"
+   ],
+   "newCuriosities": [
+    {
+     "id": "shadowTone",
+     "label": "Shadow depth",
+     "values": "0 to 5 (0 none, 5 black)",
+     "view": "Shadow shapes on the stage get darker or lighter"
+    },
+    {
+     "id": "shadowTint",
+     "label": "Shadow color",
+     "values": "neutral, blue, purple, warm",
+     "view": "A swatch inside the shadow per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Moonlit",
+     "set": {
+      "timeOfDay": "night",
+      "colorTemp": "7500",
+      "shadowTint": "blue",
+      "shadowTone": "4"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Shadow depth and tint are easy to read and to remix.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+  },
+  {
+   "id": "arnold-skydome-light",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Skydome light",
+   "granularity": [
+    "color",
+    "HDRI texture",
+    "resolution",
+    "camera visibility",
+    "samples",
+    "cast volumetric shadow"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Draws a sky band behind the stage and tints ambient fill from a chosen sky color or picked HDRI swatch.",
+   "curiosities": [
+    "timeOfDay",
+    "colorTemp",
+    "lighting"
+   ],
+   "newCuriosities": [
+    {
+     "id": "ambientFill",
+     "label": "Sky fill",
+     "values": "0 to 5",
+     "view": "A wash under the strip whose brightness is the fill level"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Overcast day",
+     "set": {
+      "timeOfDay": "day",
+      "softness": "soft",
+      "ambientFill": "4",
+      "contrast": "1"
+     }
+    }
+   ],
+   "proximities": [
+    "When the time of day changes, sky fill changes within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Environment light is how most 3D scenes start; plain fill level is measurable.",
+   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html ; https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+  },
+  {
+   "id": "arnold-spot-light",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Spot light",
+   "granularity": [
+    "cone angle",
+    "penumbra",
+    "lens radius",
+    "aspect ratio",
+    "roundness"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Draws a cone with a soft or hard edge on the 2D stage that can follow a character dot.",
+   "curiosities": [
+    "key",
+    "lightShape",
+    "softness"
+   ],
+   "newCuriosities": [
+    {
+     "id": "spotFollow",
+     "label": "Follow spot",
+     "values": "off, fixed, follows a person",
+     "view": "A circle on the stage that tracks a dot or stays put"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Stage spotlight",
+     "set": {
+      "spotFollow": "follows a person",
+      "valueKey": "low key",
+      "contrast": "5"
+     }
+    }
+   ],
+   "proximities": [
+    "When a performer enters, the follow spot picks them up within 1 beat"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Live performers and theatre-style staging use spots constantly.",
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+  },
+  {
+   "id": "arnold-light-aov-group",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Light AOV group",
+   "granularity": [
+    "per-light output",
+    "light groups"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "appDoes": "Lets a viewer solo each light in the preview, like relighting in comp.",
+   "curiosities": [
+    "lightCount"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "Soloing lights is a strong teaching view.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html"
+  },
+  {
+   "id": "arnold-light-linking",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Light linking and shadow linking",
+   "granularity": [
+    "illuminate by default",
+    "per-object links"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as which person a light belongs to.",
+   "curiosities": [
+    "lightCount"
+   ],
+   "newCuriosities": [
+    {
+     "id": "lightOwner",
+     "label": "Light belongs to",
+     "values": "everyone, hero only, background only",
+     "view": "A colored ring on the lit dot"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Hero glow",
+     "set": {
+      "lightOwner": "hero only",
+      "rim": "strong"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "advanced",
+    "performer"
+   ],
+   "keep": "keep",
+   "reason": "Lighting only the hero is a common cheat.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-light-portal",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Light portal",
+   "granularity": [
+    "window opening",
+    "guides skydome samples"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled; it is a noise-reduction helper for interiors lit through windows.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "A render-efficiency tool with no visible effect of its own.",
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+  },
+  {
+   "id": "arnold-light-samples",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Light samples",
+   "granularity": [
+    "samples",
+    "noise in shadows",
+    "0 disables"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled; a render quality setting.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Render cost, not a visible choice.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+  },
+  {
+   "id": "arnold-light-max-bounces",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Max bounces and per-light diffuse/specular",
+   "granularity": [
+    "diffuse weight",
+    "specular weight",
+    "indirect",
+    "max bounces"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as whether a light makes highlights only, fill only, or both.",
+   "curiosities": [
+    "gloss"
+   ],
+   "newCuriosities": [
+    {
+     "id": "lightJob",
+     "label": "What the light does",
+     "values": "highlight only, fill only, both",
+     "view": "A small tag on each light"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "keep",
+   "reason": "Pros cheat lights to hit only eyes or only fill.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html"
+  },
+  {
+   "id": "arnold-mesh-light",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Mesh light",
+   "granularity": [
+    "any shape glows",
+    "light visible",
+    "intensity",
+    "color"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Counts as a glowing object in frame; no separate preview tool.",
+   "curiosities": [
+    "glow",
+    "practicalInFrame"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Neon sign",
+     "set": {
+      "glow": "object",
+      "practicalInFrame": "yes",
+      "colorTemp": "7500"
+     }
+    }
+   ],
+   "proximities": [
+    "When a sign switches on, the key color shifts within 1 beat"
+   ],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Neon, screens and lamp shades are practicals the board already tracks.",
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+  },
+  {
+   "id": "arnold-light-normalize",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Normalize",
+   "granularity": [
+    "size changes softness not brightness"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "appDoes": "The preview keeps brightness fixed when a light is resized, so only softness changes.",
+   "curiosities": [
+    "softness"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Teaches that size equals softness without confounding brightness.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html"
+  },
+  {
+   "id": "arnold-photometric-light",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Photometric light",
+   "granularity": [
+    "IES profile",
+    "real fixture shape"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as the shape of a practical's throw on the wall (pool, scallop, beam).",
+   "curiosities": [
+    "practicalInFrame",
+    "lightShape"
+   ],
+   "newCuriosities": [
+    {
+     "id": "throwPattern",
+     "label": "Wall throw",
+     "values": "none, pool, scallop, beam",
+     "view": "An icon on the wall in the panel"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Scalloped wall light is a recognizable practical look.",
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html"
+  },
+  {
+   "id": "arnold-point-light",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Point and sphere light",
+   "granularity": [
+    "radius",
+    "decay",
+    "bare bulb"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Reads as a bare bulb practical with hard shadows when small.",
+   "curiosities": [
+    "practicalInFrame",
+    "softness"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Bare bulb",
+     "set": {
+      "practicalInFrame": "yes",
+      "softness": "hard",
+      "valueKey": "low key"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Classic interrogation-room bulb.",
+   "source": "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html"
+  },
+  {
+   "id": "arnold-light-volume-contribution",
+   "manual": "Arnold for Maya",
+   "area": "Lights",
+   "topic": "Volume contribution",
+   "granularity": [
+    "volume",
+    "volume samples",
+    "per-light specular and diffuse"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "appDoes": "Lets each preview light switch on beams when the air curiosity is haze.",
+   "curiosities": [
+    "atmosphere"
+   ],
+   "newCuriosities": [
+    {
+     "id": "beamFromLight",
+     "label": "Which light makes beams",
+     "values": "none, key, back, practical",
+     "view": "A shaft drawn from that light"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Church shafts",
+     "set": {
+      "atmosphere": "beams",
+      "beamFromLight": "key",
+      "valueKey": "low key"
+     }
+    }
+   ],
+   "proximities": [
+    "When haze rises, a light beam appears within 0 beats"
+   ],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Beams through haze are a common cinematic look.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html"
+  },
+  {
+   "id": "arnold-operators",
+   "manual": "Arnold for Maya",
+   "area": "Operators/procedurals",
+   "topic": "Operators (set parameter, merge, override)",
+   "granularity": [
+    "set parameter",
+    "material override",
+    "switch"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "appDoes": "Mirrors the Suite menu: one rule changes many values at once.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced",
+    "performer"
+   ],
+   "keep": "keep",
+   "reason": "Same idea as a suite; useful for performers switching looks live.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-procedurals-standins",
+   "manual": "Arnold for Maya",
+   "area": "Operators/procedurals",
+   "topic": "Stand-ins and procedurals (.ass)",
+   "granularity": [
+    "stand-in",
+    "instances"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Scene management.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-motion-blur-settings",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "Motion blur settings",
+   "granularity": [
+    "enable",
+    "keys",
+    "length",
+    "position start/center/end",
+    "deformation",
+    "camera blur"
+   ],
+   "weight": "major",
+   "fit": "curiosity",
+   "appDoes": "Uses the existing motion blur curiosity in shutter degrees.",
+   "curiosities": [
+    "motionBlur"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Dreamy smear",
+     "set": {
+      "motionBlur": "360",
+      "speedRamp": "0.5"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Already modeled.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_render_settings_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html"
+  },
+  {
+   "id": "arnold-snapshots-ab",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "RenderView snapshots and A/B compare",
+   "granularity": [
+    "store snapshot",
+    "compare"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Lets a user snapshot a panel's light and wipe between two versions.",
+   "curiosities": [
+    "lightChange"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "A/B compare is how people learn what one change does.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-adaptive-sampling",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "Adaptive sampling and noise",
+   "granularity": [
+    "AA max",
+    "adaptive threshold"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Technical.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/arnold_for_maya_am_Getting_Started_with_Arnold_GPU_html.html ; https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_render_settings_html.html"
+  },
+  {
+   "id": "arnold-camera-aa-samples",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "Camera (AA) and ray-type samples",
+   "granularity": [
+    "camera AA (squared)",
+    "diffuse",
+    "specular",
+    "transmission",
+    "SSS",
+    "volume"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled; quality knobs.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Render cost, not storytelling.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-render-settings/arnold_user_guide_ac_render_settings_ac_sampling_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+  },
+  {
+   "id": "arnold-color-management",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "Color management and view transform",
+   "granularity": [
+    "ACES",
+    "sRGB",
+    "raw",
+    "rendering space",
+    "view transform"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as film-look transform per section.",
+   "curiosities": [
+    "saturation"
+   ],
+   "newCuriosities": [
+    {
+     "id": "filmLook",
+     "label": "Film look",
+     "values": "neutral, filmic, punchy, bleach",
+     "view": "A tint strip above the panel"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "A look transform defines a show's color.",
+   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+  },
+  {
+   "id": "arnold-denoisers",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "Denoisers (OptiX, Noice, OIDN)",
+   "granularity": [
+    "OptiX GPU",
+    "Noice",
+    "Intel OIDN",
+    "IPR denoise"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Pipeline tool.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-gpu-rendering",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "GPU rendering",
+   "granularity": [
+    "CPU/GPU switch",
+    "adaptive AA settings"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Hardware choice.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/arnold_for_maya_am_Getting_Started_with_Arnold_GPU_html.html"
+  },
+  {
+   "id": "arnold-ipr-renderview",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "IPR and Arnold RenderView",
+   "granularity": [
+    "interactive render",
+    "region",
+    "crop",
+    "debug shading"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "appDoes": "The board already redraws live; IPR is the analog of the live preview.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Model for instant feedback in the preview.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-pixel-filter",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "Pixel filter",
+   "granularity": [
+    "gaussian",
+    "blackman-harris",
+    "box",
+    "width"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Sharpness tweak.",
+   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+  },
+  {
+   "id": "arnold-ray-depth",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "Ray depth",
+   "granularity": [
+    "total",
+    "diffuse",
+    "specular",
+    "transmission",
+    "volume",
+    "transparency"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged loosely as how much bounced light fills the room.",
+   "curiosities": [
+    "contrast"
+   ],
+   "newCuriosities": [
+    {
+     "id": "bounce",
+     "label": "Bounce light",
+     "values": "none, some, lots",
+     "view": "Fill wash brightness under the stage"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Bounce changes contrast in interiors.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_render_settings_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+  },
+  {
+   "id": "arnold-film-grain-noise",
+   "manual": "Arnold for Maya",
+   "area": "Render settings",
+   "topic": "Visible noise and grain",
+   "granularity": [
+    "noise as style",
+    "grain"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as intentional grain amount per section.",
+   "curiosities": [],
+   "newCuriosities": [
+    {
+     "id": "grain",
+     "label": "Grain",
+     "values": "0 to 5",
+     "view": "Speckle intensity in the panel"
+    }
+   ],
+   "suites": [
+    {
+     "label": "16mm docu",
+     "set": {
+      "grain": "4",
+      "cameraCarry": "handheld",
+      "aspect": "1.33"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "remixer",
+    "intermediate"
+   ],
+   "keep": "keep",
+   "reason": "Grain is a style choice even if render noise is not.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-standard-surface-base",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Standard Surface: base and diffuse",
+   "granularity": [
+    "base color",
+    "weight",
+    "diffuse roughness",
+    "metalness"
+   ],
+   "weight": "major",
+   "fit": "curiosity",
+   "appDoes": "Logged as surface material type for key props.",
+   "curiosities": [
+    "palette"
+   ],
+   "newCuriosities": [
+    {
+     "id": "material",
+     "label": "Material",
+     "values": "cloth, skin, wood, metal, glass, plastic, stone",
+     "view": "A material swatch on the object"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Material reads matter for props.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+  },
+  {
+   "id": "arnold-standard-surface-emission",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Standard Surface: emission",
+   "granularity": [
+    "weight",
+    "color"
+   ],
+   "weight": "major",
+   "fit": "curiosity",
+   "appDoes": "Uses the something-glows curiosity.",
+   "curiosities": [
+    "glow",
+    "practicalInFrame"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Screen glow face",
+     "set": {
+      "glow": "object",
+      "colorTemp": "7500",
+      "valueKey": "low key"
+     }
+    }
+   ],
+   "proximities": [
+    "When a screen lights up, the face gets cool light within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Glowing screens and signs drive night scenes.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+  },
+  {
+   "id": "arnold-standard-surface-specular",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Standard Surface: specular",
+   "granularity": [
+    "weight",
+    "color",
+    "roughness",
+    "IOR",
+    "anisotropy"
+   ],
+   "weight": "major",
+   "fit": "curiosity",
+   "appDoes": "Uses the existing gloss curiosity.",
+   "curiosities": [
+    "gloss"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Rain-slicked street",
+     "set": {
+      "gloss": "mirror",
+      "wetness": "soaked",
+      "timeOfDay": "night"
+     }
+    }
+   ],
+   "proximities": [
+    "When rain starts, gloss rises within 2 beats"
+   ],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Shine reads instantly on screen.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+  },
+  {
+   "id": "arnold-standard-surface-subsurface",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Standard Surface: subsurface",
+   "granularity": [
+    "weight",
+    "radius",
+    "scale",
+    "type"
+   ],
+   "weight": "major",
+   "fit": "curiosity",
+   "appDoes": "Uses the existing light-in-skin curiosity.",
+   "curiosities": [
+    "skinLight"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Backlit ears",
+     "set": {
+      "skinLight": "4",
+      "key": "back",
+      "rim": "strong"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Skin glow is key to flattering faces.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+  },
+  {
+   "id": "arnold-toon-outlines",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Toon outlines and edges",
+   "granularity": [
+    "edge color",
+    "edge width",
+    "silhouette",
+    "angle threshold",
+    "edge tonemap",
+    "enable edges by ID"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "Draws ink outlines on figures with a width slider that can change per beat.",
+   "curiosities": [
+    "lineWeight"
+   ],
+   "newCuriosities": [
+    {
+     "id": "lineVaries",
+     "label": "Line changes",
+     "values": "constant, thick on action, thin on calm",
+     "view": "Line thickness graph per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Comic ink",
+     "set": {
+      "lineWeight": "heavy",
+      "renderStyle": "toon",
+      "toneBands": "2"
+     }
+    }
+   ],
+   "proximities": [
+    "When an impact lands, ink line thickens within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "remixer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Comic and zine panels depend on line weight.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html"
+  },
+  {
+   "id": "arnold-toon-shader",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Toon shader",
+   "granularity": [
+    "base tonemap",
+    "shade bands",
+    "specular tonemap",
+    "rim light",
+    "lights for toon"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "A toon preview mode: two or three flat tone bands and a hard rim on the stage dots.",
+   "curiosities": [
+    "renderStyle",
+    "rim"
+   ],
+   "newCuriosities": [
+    {
+     "id": "toneBands",
+     "label": "Shade bands",
+     "values": "1, 2, 3, 4, smooth",
+     "view": "Stepped bars beside each figure"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Anime cel",
+     "set": {
+      "renderStyle": "toon",
+      "toneBands": "2",
+      "lineWeight": "thin",
+      "rim": "strong"
+     }
+    }
+   ],
+   "proximities": [
+    "When style flips to toon, ink line turns on within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Animation and comic users want cel looks.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html"
+  },
+  {
+   "id": "arnold-ambient-occlusion",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Ambient occlusion",
+   "granularity": [
+    "falloff",
+    "spread",
+    "samples",
+    "near/far"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as contact-shadow strength in corners.",
+   "curiosities": [
+    "contrast"
+   ],
+   "newCuriosities": [
+    {
+     "id": "contactShadow",
+     "label": "Contact shadow",
+     "values": "0 to 5",
+     "view": "Darkened creases on the stage"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "AO grounds objects; useful style knob.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-curvature-shader",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Curvature shader",
+   "granularity": [
+    "convex/concave",
+    "radius"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Texturing helper.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-facing-ratio-toon",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Facing ratio toon setup",
+   "granularity": [
+    "facing ratio",
+    "ramp",
+    "bias",
+    "gain",
+    "color correct"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "appDoes": "A gradient-on-edge look option in the toon preview.",
+   "curiosities": [
+    "renderStyle"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Teaches how edge falloff makes cartoon shading.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html"
+  },
+  {
+   "id": "arnold-layer-shader",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Layer shader and mix",
+   "granularity": [
+    "layer mix",
+    "mask"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Technical node graph.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-matte-shadow-matte",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Matte and shadow matte",
+   "granularity": [
+    "holdout",
+    "catch shadows on plate",
+    "background"
+   ],
+   "weight": "minor",
+   "fit": "partial",
+   "appDoes": "Supports a mixed shot: drawn figures over a photo plate with shadows.",
+   "curiosities": [
+    "renderStyle"
+   ],
+   "newCuriosities": [
+    {
+     "id": "liveMix",
+     "label": "Mixed media",
+     "values": "none, figure on photo, photo on drawing",
+     "view": "A tag per panel"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "Remixers composite drawn things into footage.",
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html ; knowledge"
+  },
+  {
+   "id": "arnold-standard-surface-opacity",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Opacity and cutout",
+   "granularity": [
+    "opacity",
+    "thin walled"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Technical, not a story choice.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+  },
+  {
+   "id": "arnold-hair-shader",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Standard Hair",
+   "granularity": [
+    "melanin",
+    "melanin redness",
+    "roughness",
+    "specular shifts"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Uses existing hair color and shine curiosities.",
+   "curiosities": [
+    "hairColor",
+    "hairShine"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Already modeled.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-standard-surface-coat",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Standard Surface: coat",
+   "granularity": [
+    "weight",
+    "roughness",
+    "color",
+    "IOR"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Folds into gloss (lacquer, car paint).",
+   "curiosities": [
+    "gloss"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "keep",
+   "reason": "Covered by gloss.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+  },
+  {
+   "id": "arnold-standard-surface-sheen",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Standard Surface: sheen",
+   "granularity": [
+    "weight",
+    "color",
+    "roughness"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as velvet or cloth sheen under the material curiosity.",
+   "curiosities": [
+    "clothResponse"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "keep",
+   "reason": "Minor read on costume.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+  },
+  {
+   "id": "arnold-standard-surface-thin-film",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Standard Surface: thin film",
+   "granularity": [
+    "thickness",
+    "IOR",
+    "iridescence"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as an iridescent glow value.",
+   "curiosities": [
+    "glow"
+   ],
+   "newCuriosities": [
+    {
+     "id": "iridescence",
+     "label": "Rainbow sheen",
+     "values": "none, soap bubble, oil, beetle",
+     "view": "A rainbow edge on the object"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "Sci-fi and dream sequences use it.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+  },
+  {
+   "id": "arnold-standard-surface-transmission",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Standard Surface: transmission",
+   "granularity": [
+    "glass",
+    "depth",
+    "scatter",
+    "dispersion",
+    "thin walled"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as see-through surfaces in frame.",
+   "curiosities": [],
+   "newCuriosities": [
+    {
+     "id": "seeThrough",
+     "label": "See-through surfaces",
+     "values": "none, glass, water, ice",
+     "view": "An outline with a sheen on the object"
+    }
+   ],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Shooting through glass is a framing device.",
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+  },
+  {
+   "id": "arnold-utility-shader",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Utility shader",
+   "granularity": [
+    "shade mode flat/lambert/ndoteye",
+    "color mode"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled; a debug view.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Debug tool.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-wireframe-shader",
+   "manual": "Arnold for Maya",
+   "area": "Shaders",
+   "topic": "Wireframe shader",
+   "granularity": [
+    "line width",
+    "edge type"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Feeds the render style value wireframe for tech or hologram looks.",
+   "curiosities": [
+    "renderStyle"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Hologram",
+     "set": {
+      "renderStyle": "wireframe",
+      "glow": "object",
+      "colorTemp": "7500"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "remixer",
+    "intermediate"
+   ],
+   "keep": "keep",
+   "reason": "Hologram/HUD looks.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-texture-pattern-scale",
+   "manual": "Arnold for Maya",
+   "area": "Textures",
+   "topic": "Pattern and texture scale",
+   "granularity": [
+    "triplanar",
+    "noise",
+    "cell",
+    "ramp"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as busy versus plain surfaces.",
+   "curiosities": [
+    "visualDensity"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Busy backgrounds change readability.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-tx-textures",
+   "manual": "Arnold for Maya",
+   "area": "Textures",
+   "topic": "TX texture conversion and tiling",
+   "granularity": [
+    "maketx",
+    "mipmaps",
+    "UDIM",
+    "tiling"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "Pipeline optimization.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-aiimage-texture",
+   "manual": "Arnold for Maya",
+   "area": "Textures",
+   "topic": "aiImage texture",
+   "granularity": [
+    "filename",
+    "color space",
+    "UV",
+    "tokens"
+   ],
+   "weight": "minor",
+   "fit": "skip",
+   "appDoes": "Not modeled.",
+   "curiosities": [],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [],
+   "audience": [
+    "advanced"
+   ],
+   "keep": "skip",
+   "reason": "File plumbing.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-hdri-lighting",
+   "manual": "Arnold for Maya",
+   "area": "Tutorials",
+   "topic": "HDRI lighting",
+   "granularity": [
+    "HDR image on skydome",
+    "rotation",
+    "exposure",
+    "background visibility"
+   ],
+   "weight": "major",
+   "fit": "partial",
+   "appDoes": "Offers a few sky swatches whose rotation turns the sun direction around the subject.",
+   "curiosities": [
+    "key",
+    "timeOfDay",
+    "colorTemp"
+   ],
+   "newCuriosities": [
+    {
+     "id": "envTurn",
+     "label": "Sky turned",
+     "values": "0 to 360 degrees",
+     "view": "A compass under the panel"
+    }
+   ],
+   "suites": [],
+   "proximities": [
+    "When the environment turns, key direction changes within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "student",
+    "advanced"
+   ],
+   "keep": "keep",
+   "reason": "Most beginners light with an HDRI first.",
+   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+  },
+  {
+   "id": "arnold-three-point-lighting",
+   "manual": "Arnold for Maya",
+   "area": "Tutorials",
+   "topic": "Three-point lighting",
+   "granularity": [
+    "key",
+    "fill",
+    "back/rim",
+    "ratios"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "A starter preset that places key, fill and rim on the 2D preview with a ratio slider.",
+   "curiosities": [
+    "key",
+    "contrast",
+    "rim",
+    "lightCount"
+   ],
+   "newCuriosities": [
+    {
+     "id": "fillRatio",
+     "label": "Key to fill ratio",
+     "values": "1:1, 2:1, 4:1, 8:1",
+     "view": "Two bars per beat"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Interview",
+     "set": {
+      "key": "side",
+      "fillRatio": "2:1",
+      "rim": "thin",
+      "softness": "soft"
+     }
+    },
+    {
+     "label": "Thriller",
+     "set": {
+      "key": "side",
+      "fillRatio": "8:1",
+      "rim": "strong",
+      "valueKey": "low key"
+     }
+    }
+   ],
+   "proximities": [
+    "When the fill ratio jumps to 8:1, mood darkens within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "The first lighting lesson for every beginner.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-natural-history-museum",
+   "manual": "Arnold for Maya",
+   "area": "Tutorials",
+   "topic": "Interior lighting tutorial (museum)",
+   "granularity": [
+    "skylight",
+    "portals",
+    "bounce",
+    "practicals"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Logged as daylight interior mix of window and practicals.",
+   "curiosities": [
+    "intExt",
+    "practicalInFrame",
+    "lightCount"
+   ],
+   "newCuriosities": [],
+   "suites": [
+    {
+     "label": "Daylight interior",
+     "set": {
+      "intExt": "int",
+      "timeOfDay": "day",
+      "practicalInFrame": "yes",
+      "ambientFill": "3"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Interior day mix is a frequent setup.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-atmosphere-volume",
+   "manual": "Arnold for Maya",
+   "area": "Volumes",
+   "topic": "Atmosphere volume",
+   "granularity": [
+    "density",
+    "attenuation",
+    "anisotropy",
+    "samples"
+   ],
+   "weight": "major",
+   "fit": "build",
+   "appDoes": "A haze slider on the preview that turns light cones into visible beams.",
+   "curiosities": [
+    "atmosphere"
+   ],
+   "newCuriosities": [
+    {
+     "id": "hazeLevel",
+     "label": "Haze amount",
+     "values": "0 to 5",
+     "view": "A milky wash with beams"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Smoky club",
+     "set": {
+      "hazeLevel": "4",
+      "atmosphere": "beams",
+      "valueKey": "low key",
+      "colorTemp": "3200"
+     }
+    }
+   ],
+   "proximities": [
+    "When haze rises above 3, a light beam appears within 0 beats"
+   ],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "advanced",
+    "remixer",
+    "performer",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Haze is a defining cinematic look.",
+   "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html"
+  },
+  {
+   "id": "arnold-fog",
+   "manual": "Arnold for Maya",
+   "area": "Volumes",
+   "topic": "Fog",
+   "granularity": [
+    "distance",
+    "height",
+    "color"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Uses weather and air curiosities with a depth-fade value.",
+   "curiosities": [
+    "weather",
+    "atmosphere"
+   ],
+   "newCuriosities": [
+    {
+     "id": "depthFade",
+     "label": "Depth fade",
+     "values": "none, light, heavy",
+     "view": "Far layers grow paler"
+    }
+   ],
+   "suites": [
+    {
+     "label": "Foggy morning",
+     "set": {
+      "weather": "fog",
+      "depthFade": "heavy",
+      "timeOfDay": "dawn"
+     }
+    }
+   ],
+   "proximities": [],
+   "audience": [
+    "beginner",
+    "intermediate",
+    "student",
+    "remixer"
+   ],
+   "keep": "keep",
+   "reason": "Depth fade separates planes.",
+   "source": "knowledge"
+  },
+  {
+   "id": "arnold-vdb-volume",
+   "manual": "Arnold for Maya",
+   "area": "Volumes",
+   "topic": "VDB volumes (smoke, fire, clouds)",
+   "granularity": [
+    "density",
+    "scatter",
+    "emission",
+    "temperature"
+   ],
+   "weight": "minor",
+   "fit": "curiosity",
+   "appDoes": "Uses element and fire light curiosities.",
+   "curiosities": [
+    "element",
+    "fireLight"
+   ],
+   "newCuriosities": [],
+   "suites": [],
+   "proximities": [
+    "When fire flares, warm light hits faces within 0 beats"
+   ],
+   "audience": [
+    "intermediate",
+    "advanced",
+    "student"
+   ],
+   "keep": "keep",
+   "reason": "Already covered by element curiosities.",
+   "source": "knowledge"
   }
  ]
 };

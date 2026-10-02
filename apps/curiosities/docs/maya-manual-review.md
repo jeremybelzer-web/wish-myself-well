@@ -2,7 +2,7 @@
 
 Every topic from the Maya User Guide and the Arnold for Maya User Guide that we went through, graded for this app. **Major** topics get working tools in the Studio tab where a browser can do it. **Minor** topics are listed for you to keep or skip. Change the Call column, or use the Manual sub-tab in Studio.
 
-162 topics: 66 major, 96 minor. Pages actually read: 34; every other row is from working knowledge of Maya and is marked "knowledge".
+241 topics: 92 major, 149 minor. Pages actually read: 48; every other row is from working knowledge of Maya and is marked "knowledge".
 
 ## Major topics
 
@@ -76,6 +76,37 @@ Every topic from the Maya User Guide and the Arnold for Maya User Guide that we 
 | Color management: rendering space and view transform (sRGB, ACES, log) | Shading | Partly built | **keep** | Grade is a major remix signature. | saturation, contrast, palette, gradeLook |
 | Frame rate (working units: 24 film, 25 PAL, 29.97, 30, 48, 60) | Time | Working tool | **keep** | Needed to turn beats into time. | stepping, shotDuration, frameRate |
 | Playback speed and looping (real-time, half, every frame) | Time | Working tool | **keep** | Live loops suit performers. | speedRamp |
+
+### Arnold for Maya
+
+| Topic | Area | In the app | Call | Why | Curiosities |
+| --- | --- | --- | --- | --- | --- |
+| Camera exposure | Cameras | Working tool | **keep** | Exposure shifts sell bright/dark transitions. | valueKey, exposure |
+| Depth of field | Cameras | Working tool | **keep** | Focus is a primary storytelling tool. | depthOfField, rackFocus |
+| Perspective camera | Cameras | Curiosity only | **keep** | Base camera; covered by existing ids. | lensLength, shotSize |
+| Shutter angle and shutter curve | Cameras | Partly built | **keep** | Narrow shutter equals jittery action; known since Saving Private Ryan. | motionBlur, blurTrail |
+| Barndoor | Light filters | Working tool | **keep** | Shaping light into a slash is classic thriller lighting. | lightShape, lightCut |
+| Gobo | Light filters | Working tool | **keep** | Patterned light is the cheapest strong look and already a curiosity. | lightShape, atmosphere, patternMotion |
+| Animated and flickering lights | Lights | Working tool | **keep** | Light that changes in time is the most filmic of lighting acts. | lightChange, fireLight, flicker |
+| Area light | Lights | Working tool | **keep** | The main film light; size and spread map straight to soft versus hard light. | key, softness, contrast, lightShape, sourceSize, lightSpread |
+| Color and color temperature | Lights | Working tool | **keep** | Color of light is one of the strongest mood levers. | colorTemp, palette, warmCoolSplit |
+| Directional light (sun) | Lights | Working tool | **keep** | Sun angle is the base of every exterior. | timeOfDay, key, softness, shadowLength |
+| Intensity and exposure | Lights | Working tool | **keep** | Stops are how cinematographers talk; the manual uses the same math. | contrast, valueKey, keyStops |
+| Physical sky | Lights | Working tool | **keep** | One knob that explains why sunlight changes through a day. | timeOfDay, colorTemp, sunHeight, haziness |
+| Shadow density and color | Lights | Working tool | **keep** | Shadow depth and tint are easy to read and to remix. | contrast, shadowTone, shadowTint |
+| Skydome light | Lights | Working tool | **keep** | Environment light is how most 3D scenes start; plain fill level is measurable. | timeOfDay, colorTemp, lighting, ambientFill |
+| Spot light | Lights | Working tool | **keep** | Live performers and theatre-style staging use spots constantly. | key, lightShape, softness, spotFollow |
+| Motion blur settings | Render settings | Curiosity only | **keep** | Already modeled. | motionBlur |
+| RenderView snapshots and A/B compare | Render settings | Working tool | **keep** | A/B compare is how people learn what one change does. | lightChange |
+| Standard Surface: base and diffuse | Shaders | Curiosity only | **keep** | Material reads matter for props. | palette, material |
+| Standard Surface: emission | Shaders | Curiosity only | **keep** | Glowing screens and signs drive night scenes. | glow, practicalInFrame |
+| Standard Surface: specular | Shaders | Curiosity only | **keep** | Shine reads instantly on screen. | gloss |
+| Standard Surface: subsurface | Shaders | Curiosity only | **keep** | Skin glow is key to flattering faces. | skinLight |
+| Toon outlines and edges | Shaders | Working tool | **keep** | Comic and zine panels depend on line weight. | lineWeight, lineVaries |
+| Toon shader | Shaders | Working tool | **keep** | Animation and comic users want cel looks. | renderStyle, rim, toneBands |
+| HDRI lighting | Tutorials | Partly built | **keep** | Most beginners light with an HDRI first. | key, timeOfDay, colorTemp, envTurn |
+| Three-point lighting | Tutorials | Working tool | **keep** | The first lighting lesson for every beginner. | key, contrast, rim, lightCount, fillRatio |
+| Atmosphere volume | Volumes | Working tool | **keep** | Haze is a defining cinematic look. | atmosphere, hazeLevel |
 
 ## Minor topics for review
 
@@ -180,6 +211,64 @@ Every topic from the Maya User Guide and the Arnold for Maya User Guide that we 
 | Time warp (retime animation curve) | Time | Curiosity only | **keep** | Speed ramps are an action signature. | speedRamp |
 | Timecode display and drop frame | Time | Working tool | **keep** | Lines up studies with real cuts. | shotDuration |
 
+### Arnold for Maya
+
+| Topic | Area | In the app | Call | Why | Curiosities |
+| --- | --- | --- | --- | --- | --- |
+| Beauty and component AOVs | AOVs | Partly built | **keep** | Seeing light layers teaches lighting. |  |
+| Cryptomatte | AOVs | Skip | **skip** | Compositing mask tool. |  |
+| Depth (Z) AOV | AOVs | Curiosity only | **keep** | Supports depth-based looks. | depthOfField |
+| Light groups and light path expressions | AOVs | Partly built | **keep** | Relighting in comp is advanced but useful to see. | lightCount |
+| Aperture blades and bokeh shape | Cameras | Curiosity only | **keep** | Oval bokeh is a signature anamorphic tell. | depthOfField, bokehShape |
+| Cylindrical camera | Cameras | Skip | **skip** | Rare in narrative work. |  |
+| Fisheye camera | Cameras | Curiosity only | **keep** | Music videos and skate films. | lensLength |
+| Orthographic camera | Cameras | Curiosity only | **keep** | Wes-Anderson-like flat staging and side-scrollers. | renderStyle, projection |
+| Rolling shutter | Cameras | Curiosity only | **keep** | Found-footage realism. | cameraCarry, skew |
+| Spherical and VR cameras | Cameras | Skip | **skip** | VR output is outside the strip-based app. | aspect |
+| UV remap, filtermap and vignetting | Cameras | Curiosity only | **keep** | Vignettes steer the eye; cheap to draw. | composition, vignette |
+| Light blocker | Light filters | Working tool | **keep** | Flagging light off walls is how pros add contrast. | lightShape, contrast, flag |
+| Light decay | Light filters | Curiosity only | **keep** | Steep falloff makes isolated pools of light. | contrast, falloff |
+| Light AOV group | Lights | Partly built | **keep** | Soloing lights is a strong teaching view. | lightCount |
+| Light linking and shadow linking | Lights | Curiosity only | **keep** | Lighting only the hero is a common cheat. | lightCount, lightOwner |
+| Light portal | Lights | Skip | **skip** | A render-efficiency tool with no visible effect of its own. |  |
+| Light samples | Lights | Skip | **skip** | Render cost, not a visible choice. |  |
+| Max bounces and per-light diffuse/specular | Lights | Curiosity only | **keep** | Pros cheat lights to hit only eyes or only fill. | gloss, lightJob |
+| Mesh light | Lights | Curiosity only | **keep** | Neon, screens and lamp shades are practicals the board already tracks. | glow, practicalInFrame |
+| Normalize | Lights | Partly built | **keep** | Teaches that size equals softness without confounding brightness. | softness |
+| Photometric light | Lights | Curiosity only | **keep** | Scalloped wall light is a recognizable practical look. | practicalInFrame, lightShape, throwPattern |
+| Point and sphere light | Lights | Curiosity only | **keep** | Classic interrogation-room bulb. | practicalInFrame, softness |
+| Volume contribution | Lights | Partly built | **keep** | Beams through haze are a common cinematic look. | atmosphere, beamFromLight |
+| Operators (set parameter, merge, override) | Operators/procedurals | Partly built | **keep** | Same idea as a suite; useful for performers switching looks live. |  |
+| Stand-ins and procedurals (.ass) | Operators/procedurals | Skip | **skip** | Scene management. |  |
+| Adaptive sampling and noise | Render settings | Skip | **skip** | Technical. |  |
+| Camera (AA) and ray-type samples | Render settings | Skip | **skip** | Render cost, not storytelling. |  |
+| Color management and view transform | Render settings | Curiosity only | **keep** | A look transform defines a show's color. | saturation, filmLook |
+| Denoisers (OptiX, Noice, OIDN) | Render settings | Skip | **skip** | Pipeline tool. |  |
+| GPU rendering | Render settings | Skip | **skip** | Hardware choice. |  |
+| IPR and Arnold RenderView | Render settings | Partly built | **keep** | Model for instant feedback in the preview. |  |
+| Pixel filter | Render settings | Skip | **skip** | Sharpness tweak. |  |
+| Ray depth | Render settings | Curiosity only | **keep** | Bounce changes contrast in interiors. | contrast, bounce |
+| Visible noise and grain | Render settings | Curiosity only | **keep** | Grain is a style choice even if render noise is not. | grain |
+| Ambient occlusion | Shaders | Curiosity only | **keep** | AO grounds objects; useful style knob. | contrast, contactShadow |
+| Curvature shader | Shaders | Skip | **skip** | Texturing helper. |  |
+| Facing ratio toon setup | Shaders | Partly built | **keep** | Teaches how edge falloff makes cartoon shading. | renderStyle |
+| Layer shader and mix | Shaders | Skip | **skip** | Technical node graph. |  |
+| Matte and shadow matte | Shaders | Partly built | **keep** | Remixers composite drawn things into footage. | renderStyle, liveMix |
+| Opacity and cutout | Shaders | Skip | **skip** | Technical, not a story choice. |  |
+| Standard Hair | Shaders | Curiosity only | **keep** | Already modeled. | hairColor, hairShine |
+| Standard Surface: coat | Shaders | Curiosity only | **keep** | Covered by gloss. | gloss |
+| Standard Surface: sheen | Shaders | Curiosity only | **keep** | Minor read on costume. | clothResponse |
+| Standard Surface: thin film | Shaders | Curiosity only | **keep** | Sci-fi and dream sequences use it. | glow, iridescence |
+| Standard Surface: transmission | Shaders | Curiosity only | **keep** | Shooting through glass is a framing device. | seeThrough |
+| Utility shader | Shaders | Skip | **skip** | Debug tool. |  |
+| Wireframe shader | Shaders | Curiosity only | **keep** | Hologram/HUD looks. | renderStyle |
+| Pattern and texture scale | Textures | Curiosity only | **keep** | Busy backgrounds change readability. | visualDensity |
+| TX texture conversion and tiling | Textures | Skip | **skip** | Pipeline optimization. |  |
+| aiImage texture | Textures | Skip | **skip** | File plumbing. |  |
+| Interior lighting tutorial (museum) | Tutorials | Curiosity only | **keep** | Interior day mix is a frequent setup. | intExt, practicalInFrame, lightCount |
+| Fog | Volumes | Curiosity only | **keep** | Depth fade separates planes. | weather, atmosphere, depthFade |
+| VDB volumes (smoke, fire, clouds) | Volumes | Curiosity only | **keep** | Already covered by element curiosities. | element, fireLight |
+
 ## Pages read
 
 - https://download.autodesk.com/global/docs/maya2014/en_US/files/GUID-E1BB9406-F1BC-4784-B89C-E289D07A3C31.htm
@@ -215,4 +304,18 @@ Every topic from the Maya User Guide and the Arnold for Maya User Guide that we 
 - https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E43621EC-5810-47FF-90FE-168ADFA63C4E.htm
 - https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-E4B5DB7D-7351-4561-BD8B-60AC9D48DDF6.htm
 - https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-F7BE47E6-76D5-47F0-8159-9F39FF0C4215.htm
+- https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm
 - https://help.autodesk.com/cloudhelp/2023/ENU/Maya-Animation/files/GUID-2656574F-FBC6-457B-B0C1-5C1249DA89EF.htm
+- https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html
+- https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/arnold_for_maya_shading_am_Using_Barndoor_Filter_html.html
+- https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/ac-light-filters/arnold_user_guide_ac_light_filters_ac_light_blocker_html.html
+- https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-lights/arnold_user_guide_ac_lights_ac_light_filters_html.html
+- https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-output-aovs/arnold_user_guide_ac_output_aovs_ac_aovs_html.html
+- https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/ac-render-settings/arnold_user_guide_ac_render_settings_ac_sampling_html.html
+- https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_cameras_html.html
+- https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html
+- https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_render_settings_html.html
+- https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/arnold_for_maya_am_Getting_Started_with_Arnold_GPU_html.html
+- https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html
+- https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html
+- https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html
