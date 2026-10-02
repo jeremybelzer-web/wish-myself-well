@@ -44,8 +44,8 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (draft PR #7). Today: 393 curiosities, 204 suites, 190 proximities,
-51 proximity suites and 5,578 sliders, across 32 workspaces, plus 8 model scenes.
+Lives in `apps/curiosities/data/` (draft PR #7). Today: 392 curiosities, 204 suites, 190 proximities,
+51 proximity suites and 5,571 sliders, across 32 workspaces, plus 8 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -70,6 +70,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 393 curiosities, 204 sui
 - [x] Deeper Character arc and Movement with lines: which way they change, the lie they believe, the old wound, fighting the change, the test, slipping back, how the change shows; walk and talk, business with a prop, move on the line, the listener's body; plus suites and proximities for Camera angle and Character motion (data/db-arc-body.js)
 - [x] Every curiosity carries a momentum note: how it moves the plot and the themes forward, how it pulls the audience's attention onward, its usual cue, how hard it pushes the story (0 to 5) and one thing to try; plus three sliders every curiosity shares (pushes the story, points ahead, tied to a theme) so momentum can be automated (data/db-momentum.js)
 - [x] Editing curiosities from Final Cut Pro and CapCut: transitions, filters and adjustments, text and captions, speed and timing, the audio mix, layers and masks, the frame, CapCut's transition and effect families, and mood stickers that feed the emotion curiosities (Main layout thread, moved into data/db-editing.js)
+- [x] Character tab on the Screen: each character track has its own matrix lanes (18 axes, health, role); the 3D matrix opens over the Screen linked to the film, every edit a timeline node (draft PR #31)
 - [x] Momentum: attention meter, pie, timeline, cues, momentum notes, film rates, the Prism Compass, attention lanes on the engine and a performable meter (PRs #18, #20, #21); the meter beside the Screen's Player (draft PR, Momentum thread)
 - [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop. The review page is ready: https://claude.ai/artifact/MRmTHSusCBtFhkXgkBXoY8 (share it with Sharani from its Share menu)
 - [x] The three new workspaces (Music & sound, Editing & structure, Page & panel) show as tabs: Music under a new Sound group, Page under Look, Editing under Story (app thread). Jeremy can still say no.
