@@ -971,6 +971,14 @@
     drawToolPage(tool);
   }
   function drawToolPage(tool) {
+    /* Library > Words: the plain-language glossary (glossary.js). */
+    if (tool === "words") {
+      root.innerHTML = `<div class="ws" id="ws-words"></div>`;
+      const G = window.CuriosityGlossary;
+      if (G && typeof G.mountList === "function") G.mountList(document.getElementById("ws-words"));
+      else document.getElementById("ws-words").innerHTML = `<p class="cap ws-fallback">The word list is not loaded.</p>`;
+      return;
+    }
     const St = window.CuriosityStudio;
     if (!(St && typeof St.mount === "function")) {
       /* Fall back to the old Studio page, opened on that tool. */
