@@ -1,9 +1,9 @@
 {
   "name": "curiosities-desktop",
-  "productName": "Curiosities",
+  "productName": "Film Curio",
   "version": "0.1.0",
   "private": true,
-  "description": "Curiosities as a desktop app, with MIDI everywhere and a local WebSocket and OSC bridge.",
+  "description": "Film Curio (the Curiosities app) on the desktop, with MIDI everywhere and a local WebSocket and OSC bridge.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -20,10 +20,10 @@
   },
   "build": {
     "appId": "app.curiosities.desktop",
-    "productName": "Curiosities",
+    "productName": "Film Curio",
     "files": ["main.js", "bridge-server.js", "osc.js", "package.json"],
     "extraResources": [
-      { "from": "..", "to": "app", "filter": ["*.html", "*.js", "*.css", "*.svg", "*.webmanifest", "core/**"] }
+      { "from": "..", "to": "app", "filter": ["*.html", "*.js", "*.css", "*.svg", "*.webmanifest", "core/**", "data/**", "vcv/*.js", "engine/*.js", "engine/*.css", "character-matrix/**", "reference/**"] }
     ],
     "mac": { "category": "public.app-category.video", "target": "dmg" },
     "win": { "target": "nsis" },
