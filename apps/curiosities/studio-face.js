@@ -68,6 +68,7 @@
   let anim = null;
   let offAuto = null;
   let liveAnim = null;
+  let stripTimer = null;
   const AUTO_IDS = ["faceIntensity", "gazeShift", "blink", "eyeline", "emotion"];
   /* emotion words from the catalog, each read as a pose */
   const EMOTION_POSE = { loving: "joy", joyful: "joy", curious: "surprise", melancholy: "sorrow", anxious: "fear", fearful: "fear", angry: "anger", triumphant: "joy", absurd: "sly", dreamlike: "deadpan" };
@@ -411,11 +412,34 @@
     offAuto = null;
     if (liveAnim) cancelAnimationFrame(liveAnim);
     liveAnim = null;
+    /* the beat strip follows automation too, redrawn at most about 8 times a second */
+    if (stripTimer) clearTimeout(stripTimer);
+    stripTimer = null;
+    let stripAt = 0;
+    const redrawStrip = () => {
+      stripTimer = null;
+      const old = el.querySelector(".fc-strip");
+      if (!el.isConnected || !view.isConnected || !old) return;
+      stripAt = performance.now();
+      const tmp = document.createElement("div");
+      tmp.innerHTML = stripSvg(s, cur);
+      const fresh = tmp.firstElementChild;
+      /* keep the playhead node, so a running Play still moves it */
+      const ph = old.querySelector("#fc-ph");
+      if (ph) fresh.querySelector("#fc-ph").replaceWith(ph);
+      old.replaceWith(fresh);
+    };
+    const queueStrip = () => {
+      if (stripTimer || !el.isConnected) return;
+      stripTimer = setTimeout(redrawStrip, Math.max(0, 125 - (performance.now() - stripAt)));
+    };
     if (window.CurioAuto)
       offAuto = window.CurioAuto.on((type, d) => {
         if (!el.isConnected || !view.isConnected) {
           if (offAuto) offAuto();
           offAuto = null;
+          if (stripTimer) clearTimeout(stripTimer);
+          stripTimer = null;
           return;
         }
         if (type === "change") return refreshChips(null);
@@ -491,6 +515,7 @@
         const setChanged = now.size !== live.driven.size || [...now].some((x) => !live.driven.has(x));
         live.driven = now;
         if (changed) st.set(s);
+        if (changed) queueStrip();
         if (changed || setChanged) refreshChips(lv);
         if (!liveAnim) liveAnim = requestAnimationFrame(liveLoop);
       });
