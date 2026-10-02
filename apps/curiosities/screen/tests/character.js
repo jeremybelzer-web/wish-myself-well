@@ -75,6 +75,16 @@ CS.adapter.setType(a.id, 7);
 const as7 = CS.adapter.pull().characters[0];
 ok(as7.type === 7 && E.value(rows[1].id, a.id, "cm-risk") === riskBefore, "changing the type keeps what the lanes say");
 
+/* The story curiosity "Enneagram type", when a character has its lane, is their type, both ways. */
+E.send({ type: "addCuriosity", track: b.id, curiosity: "enneagramType" });
+E.send({ type: "setPoint", row: rows[0].id, track: b.id, curiosity: "enneagramType", value: "4 Individualist" });
+ok(CS.adapter.pull().characters[1].type === 4, "a character's Enneagram type lane sets their type in the matrix");
+CS.adapter.setType(b.id, 8);
+ok(E.value(rows[0].id, b.id, "enneagramType") === "8 Challenger" && CS.adapter.pull().characters[1].type === 8, "and setting the type writes that lane");
+E.undo();
+E.undo();
+E.undo();
+
 /* Undo takes the matrix's edit back. */
 E.undo();
 ok(!E.state().tracks.find((x) => x.id === a.id).curiosities.includes("cm-risk"), "undo on the timeline takes the matrix's edit back");

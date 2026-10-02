@@ -112,8 +112,17 @@
   function has(t, id) {
     return t.curiosities.includes(id);
   }
-  /* A character's type: what was set here, else the type the axis lanes look most like, else 9. */
+  /* The story curiosity "Enneagram type" (enneagramType, "1 Reformer"...), when the track has its lane. */
+  function laneType(t, st) {
+    if (!has(t, "enneagramType") || !st.rows.length) return null;
+    const n = parseInt(E().value(st.rows[0].id, t.id, "enneagramType"), 10);
+    return n >= 1 && n <= 9 ? n : null;
+  }
+  /* A character's type: their Enneagram type lane if they have one, else what was set here, else the type the
+     axis lanes look most like, else 9. */
   function typeOf(t, st) {
+    const fromLane = laneType(t, st);
+    if (fromLane) return fromLane;
     if (prefs.types[t.id]) return prefs.types[t.id];
     const axes = DATA().AXES;
     if (st.rows.length && axes.some((a) => has(t, "cm-" + a.id))) {
@@ -250,6 +259,14 @@
     setType(id, n) {
       prefs.types[id] = n;
       save();
+      /* A track with an Enneagram type lane says the type on the timeline too: set it from the first moment. */
+      const st = E().state();
+      const t = st.tracks.find((x) => x.id === id);
+      const opt = DATA() && DATA().TYPES[n - 1] ? n + " " + DATA().TYPES[n - 1].name : null;
+      if (t && opt && has(t, "enneagramType") && laneType(t, st) !== n) {
+        E().send({ type: "batch", label: `${t.label}: Enneagram type ${opt}`, commands: st.rows.map((r) => ({ type: "setPoint", row: r.id, track: id, curiosity: "enneagramType", value: opt })) });
+        return;
+      }
       redraw();
     },
     setColor(id, color) {
