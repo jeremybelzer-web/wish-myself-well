@@ -265,6 +265,7 @@
         <span class="lv-arrow">→</span>
         <select data-f="target" aria-label="Curiosity">${targetOptions(r.target)}</select>
         <button type="button" data-del="${i}" aria-label="Remove row">×</button>
+        <button type="button" data-toauto="${i}" title="Create or update the matching patch in Automate">Make it an automation</button>
       </div>
       <div class="lv-meter"><i id="lv-m-${i}"></i><span id="lv-v-${i}" class="mono"></span></div>
       <div class="lv-opts">
@@ -283,7 +284,8 @@
   }
 
   function render() {
-    root.innerHTML = `<div class="studio-grid lv">
+    root.innerHTML = `<p class="cap lv-auto-note">The <button type="button" class="linkish" data-act="automate"><u>Automate</u></button> tab is the main place for LFOs, MIDI bindings and modular synths (VCV Rack). “Make it an automation” turns a mapping row into a patch there.</p>
+    <div class="studio-grid lv">
       <div class="lv-side">
         <div class="g">Preset</div>
         <label class="field">Mapping<select id="lv-preset">${presetNames()
@@ -346,6 +348,7 @@
         })
       );
     });
+    root.querySelectorAll("[data-toauto]").forEach((b) => b.addEventListener("click", () => toAutomation(S.rows[Number(b.dataset.toauto)])));
     root.querySelectorAll("[data-learn]").forEach((b) =>
       b.addEventListener("click", () => {
         const i = Number(b.dataset.learn);
@@ -441,6 +444,10 @@
       save();
       render();
     } else if (a === "midi") midi();
+    else if (a === "automate") {
+      const b = document.querySelector('.tabs button[data-tab="automate"]');
+      if (b) b.click();
+    }
     else if (a === "tilt") tilt();
     else if (a === "unsuite") {
       overlay = {};
@@ -476,7 +483,73 @@
     if (el) el.textContent = s;
   }
 
+  /* A mapping row becomes a CurioAuto patch: a/b from the row's range, CC rows follow the
+     controller (mod "midi"), note rows trigger it (gate, or toggle for on/off rows). */
+  function toAutomation(r) {
+    const A = window.CurioAuto;
+    if (!A || !r) return;
+    const isSuite = String(r.target).indexOf("suite:") === 0;
+    const key = isSuite ? "s:" + r.target.slice(6) : "c:" + r.target;
+    if (!A.param(key)) return;
+    const changes = {};
+    if (isSuite) {
+      changes.a = "";
+      changes.b = r.target.slice(6);
+    } else {
+      const c = cur(r.target) || (typeof CURIOSITIES !== "undefined" ? CURIOSITIES.find((x) => x.id === r.target) : null);
+      if (c && (c.kind === "range" || c.options)) {
+        let lo = valueOf(c, Math.max(0, Math.min(1, Number(r.inMin) || 0)), r.shape);
+        let hi = valueOf(c, Math.max(0, Math.min(1, r.inMax == null ? 1 : Number(r.inMax))) - 1e-9, r.shape);
+        if (r.invert) [lo, hi] = [hi, lo];
+        changes.a = lo;
+        changes.b = hi;
+      }
+    }
+    const t = r.input.type;
+    if (t === "cc") {
+      Object.assign(changes, { mod: "midi", manual: 0 });
+      A.set(key, changes);
+      A.bind(key, { kind: "cc", num: Number(r.input.num) || 0 });
+    } else if (t === "note") {
+      Object.assign(changes, { mod: "manual", manual: 1, mode: r.mode === "toggle" ? "toggle" : "gate" });
+      A.set(key, changes);
+      A.bind(key, { kind: "note", num: Number(r.input.num) || 0 });
+    } else if (t === "key") {
+      Object.assign(changes, { mod: "manual", manual: 1, mode: "gate" });
+      A.set(key, changes);
+      const k = String(r.input.key || "a");
+      A.bind(key, { kind: "key", code: /^[0-9]$/.test(k) ? "Digit" + k : "Key" + k.toUpperCase() });
+    } else A.set(key, changes);
+    if (window.CuriosityAutomate && window.CuriosityAutomate.open) window.CuriosityAutomate.open(key);
+  }
+
+  /* MIDI goes through the automation layer when it is loaded, so one connection serves both. */
+  let autoHooked = false;
+  function hookAuto() {
+    const A = window.CurioAuto;
+    if (autoHooked || !A || !A.on) return;
+    autoHooked = true;
+    A.on((type, d) => {
+      if (type === "midi" && d) onEvent(d.kind, d.num, d.kind === "cc" ? d.val : d.on ? d.vel || 127 : 0, d.kind === "note" ? !!d.on : false);
+      else if (type === "midi-status" && typeof d === "string") {
+        midiOn = !!(A.midi && A.midi.access && A.midi.access.inputs && A.midi.access.inputs.size);
+        setMidi(d + " (shared with Automate)");
+      }
+    });
+  }
+
   function midi() {
+    const A = window.CurioAuto;
+    if (A && A.connectMidi) {
+      hookAuto();
+      setMidi("Asking for MIDI…");
+      A.connectMidi().then((ok) => {
+        midiOn = !!ok;
+        setMidi((A.midi.status || (ok ? "MIDI on." : "No MIDI.")) + " (shared with Automate)");
+        if (root) render();
+      });
+      return;
+    }
     if (!navigator.requestMIDIAccess) return setMidi("This browser has no Web MIDI. Keys, the pad and tilt still work.");
     setMidi("Asking for MIDI…");
     setTimeout(() => {
@@ -504,11 +577,15 @@
   function onMidi(e) {
     const [st, d1, d2] = e.data;
     const type = st & 0xf0;
-    if (type === 0xb0) {
+    if (type === 0xb0) onEvent("cc", d1, d2, false);
+    else if (type === 0x90 || type === 0x80) onEvent("note", d1, d2, type === 0x90 && d2 > 0);
+  }
+
+  function onEvent(kind, d1, d2, on) {
+    if (kind === "cc") {
       raw["cc:" + d1] = d2 / 127;
       if (learnRow >= 0) learnInput({ type: "cc", num: d1 });
-    } else if (type === 0x90 || type === 0x80) {
-      const on = type === 0x90 && d2 > 0;
+    } else if (kind === "note") {
       const r = S.rows.find((x) => x.input.type === "note" && Number(x.input.num) === d1);
       if (r && r.mode === "toggle") {
         if (on) raw["note:" + d1] = raw["note:" + d1] > 0.5 ? 0 : 1;

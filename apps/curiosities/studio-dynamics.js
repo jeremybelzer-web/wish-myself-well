@@ -1091,6 +1091,16 @@
         autoOff = null;
         return;
       }
+      if (type === "change") {
+        /* A patch stopped or started: badges follow what is running now. */
+        const run = window.CurioAuto.running ? window.CurioAuto.running() : [];
+        Object.entries(AUTO).forEach(([id, m]) => badge(host, m.k, run.includes("c:" + id)));
+        if (!run.includes("c:impacts")) lastImpacts = null;
+        SUITES_HERE.forEach((su) => {
+          if (!run.includes("s:" + su.id)) suiteOn[su.id] = false;
+        });
+        return;
+      }
       if (type !== "tick" || !d || !d.ms || !d.panels || !d.panels[0]) return;
       const v0 = d.panels[0];
       let changed = false;
