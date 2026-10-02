@@ -33,6 +33,7 @@
   /* How strongly each family draws the eye when it changes. Faces, voices and plot turns pull hardest. */
   const FAMILY_PULL = { feeling: 1.25, plot: 1.2, voice: 1.1, comedy: 1.1, movement: 1.0, music: 1.0, mind: 0.9, camera: 0.9, cut: 0.85, place: 0.8, light: 0.7, wardrobe: 0.7, effects: 0.7 };
   const SHIFT_MIN = 0.12;
+  const LIVE_BEATS = 400;
   const DEFAULTS = { secondsPerBeat: 3, limit: 20 };
   const QUIET = /^(none|no |off|silence|silent|still|nothing|empty|stopped|0$)/i;
 
@@ -46,7 +47,7 @@
 
   /* The scale a value sits on, from the database slider or the catalog row. */
   function scaleOf(id) {
-    const parts = String(id).split(".");
+    const parts = String(id).split("@")[0].split(".");
     const c = M().find(parts[0]);
     if (!c) return null;
     if (parts[1] && Array.isArray(c.sliders)) {
@@ -132,7 +133,7 @@
       }
       if (best && (best.pull >= shiftMin || !cur)) {
         if (cur) cur.to = start;
-        cur = { curiosity: M().baseId(best.id), slider: best.id.includes(".") ? best.id : null, label: best.n.label, family: best.n.family, cue: best.n.cue, quiet: best.quiet, push: best.n.push, from: start, to: end, beat: i };
+        cur = { curiosity: M().baseId(best.id), slider: best.id.split("@")[0].includes(".") ? best.id.split("@")[0] : null, label: best.n.label, family: best.n.family, cue: best.n.cue, quiet: best.quiet, push: best.n.push, from: start, to: end, beat: i };
         segments.push(cur);
       }
     });
@@ -182,6 +183,14 @@
     const sum = total > 0 ? total : segments.reduce((a, s) => a + s.dur, 0) || 1;
     const share = (o) => Object.fromEntries(Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, round(v / sum, 3)]));
     const n = segments.length || 1;
+    /* Which family follows which, counted over the family stretches: what the Compass learns from films. */
+    const transitions = {};
+    for (let i = 1; i < runs.length; i++) {
+      const a = runs[i - 1].family;
+      const b = runs[i].family;
+      transitions[a] = transitions[a] || {};
+      transitions[a][b] = (transitions[a][b] || 0) + 1;
+    }
     const warnings = runs
       .filter((r) => r.dur > limit)
       .map((r) => {
@@ -201,6 +210,7 @@
       quietShare: round(quiet / n, 3),
       momentum: round(push / sum, 2),
       familyRuns: runs,
+      transitions,
       currentRun: runs[runs.length - 1] || null,
       warnings,
       limit,
@@ -256,7 +266,8 @@
         const o = Object.assign({}, opts || {}, extra || {});
         /* The last beat lasts until now, so the meter climbs while nothing changes. */
         if (beats.length && o.end == null) o.end = Math.max(0, now() - t0 - beats[beats.length - 1].at);
-        return read(beats, o);
+        /* A long performance reads its last LIVE_BEATS beats, so the meter stays quick. */
+        return read(beats.length > LIVE_BEATS ? beats.slice(-LIVE_BEATS) : beats, o);
       },
       clear() {
         beats.length = 0;

@@ -233,7 +233,8 @@
   function catalog() {
     return typeof CURIOSITIES !== "undefined" ? CURIOSITIES : root.CURIOSITIES || [];
   }
-  const baseId = (id) => String(id || "").split(".")[0];
+  /* "music.source" (a slider) and "emotion@t2" (one engine track's copy) both belong to their curiosity. */
+  const baseId = (id) => String(id || "").split("@")[0].split(".")[0];
   /* The curiosity record: the database row when there is one, else the catalog row. */
   function find(id) {
     const b = baseId(id);

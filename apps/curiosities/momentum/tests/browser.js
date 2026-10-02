@@ -104,6 +104,62 @@ const ok = (cond, text) => {
   ok(notes > 3, `notes filter for clothes: ${notes}`);
   await page.screenshot({ path: path.join(SHOTS, "momentum-notes.png") });
 
+  /* Compass: points somewhere and makes a real move on My film. */
+  await page.click('.mo-dlg [data-tab="compass"]');
+  await page.selectOption('.mo-dlg select[data-m="source"]', "board");
+  await page.waitForSelector(".mo-dlg .mo-compass-svg");
+  ok(await page.evaluate(() => !!document.querySelector(".mo-dlg .mo-needle") && document.querySelectorAll(".mo-dlg .mo-opt").length >= 1), "compass draws a needle and options");
+  const beforeVals = await page.evaluate(() => JSON.stringify(window.CuriosityBoard.values()));
+  await page.click(".mo-dlg [data-compass-move]");
+  const afterVals = await page.evaluate(() => JSON.stringify(window.CuriosityBoard.values()));
+  const flashText = await page.evaluate(() => (document.querySelector(".mo-dlg .mo-flash") || {}).textContent || "");
+  ok(beforeVals !== afterVals || /No control/.test(flashText), "Make this move changes My film (or says why not): " + flashText);
+  await page.screenshot({ path: path.join(SHOTS, "momentum-compass.png") });
+
+  /* On the engine: lanes for every moment and a suggestion the engine takes. */
+  await page.evaluate(() => window.CurioEngine.send({ type: "importFilm", film: window.CurioSeeds.starter() }));
+  await page.fill('.mo-dlg input[data-m="limit"]', "6").catch(() => {});
+  await page.evaluate(() => {
+    const el = document.querySelector('.mo-dlg input[data-m="limit"]');
+    if (el) el.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.click('.mo-dlg [data-tab="engine"]');
+  const cells = await page.$$eval(".mo-dlg .mo-lanes tbody tr:first-child td", (t) => t.length);
+  const rows = await page.evaluate(() => window.CurioEngine.state().rows.length);
+  ok(cells === rows && rows > 0, `attention lane has a cell per moment (${cells} of ${rows})`);
+  const links0 = await page.evaluate(() => window.CurioEngine.state().links.length);
+  if (await page.$(".mo-dlg [data-sugg]")) {
+    await page.click(".mo-dlg [data-sugg]");
+    ok((await page.evaluate(() => window.CurioEngine.state().links.length)) === links0 + 1, "a suggestion adds one engine link");
+  } else ok(false, "a suggestion was offered at a 6 second limit");
+  await page.screenshot({ path: path.join(SHOTS, "momentum-engine.png") });
+  await page.evaluate(() => {
+    const el = document.querySelector('.mo-dlg input[data-m="limit"]');
+    if (el) {
+      el.value = "";
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
+
+  /* Perform: follows My film, sends to the bridge, opens the stage meter. */
+  await page.click('.mo-dlg [data-tab="perform"]');
+  await page.click('.mo-dlg [data-pf="start"]');
+  await page.evaluate(() => {
+    const B = window.CuriosityBoard;
+    const c = CURIOSITIES.find((x) => x.live && Array.isArray(x.options) && x.options.length > 2);
+    B.set(c.id, c.options[1]);
+  });
+  await page.waitForTimeout(600);
+  const bridge = await page.evaluate(() => window.CurioBridge.values().filter((m) => m.key && m.key.startsWith("m:")).map((m) => m.key));
+  ok(bridge.length === 5, "bridge carries the meter: " + bridge.join(", "));
+  await page.click('.mo-dlg [data-pf="stage"]');
+  await page.waitForSelector(".mo-stage[open] .mo-stage-fam");
+  await page.screenshot({ path: path.join(SHOTS, "momentum-stage.png") });
+  await page.click(".mo-stage [data-stage-close]");
+  ok(await page.evaluate(() => !document.querySelector(".mo-stage").open), "stage meter closes");
+  await page.click('.mo-dlg [data-pf="stop"]');
+  await page.screenshot({ path: path.join(SHOTS, "momentum-perform.png") });
+
   /* 2. Live. */
   await page.click('.mo-dlg [data-tab="attention"]');
   await page.selectOption('.mo-dlg select[data-m="source"]', "live");

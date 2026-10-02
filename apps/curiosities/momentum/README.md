@@ -16,9 +16,13 @@ Open it from **Library, Momentum** (once `<script src="momentum/load.js"></scrip
 - **Film rates**: the default curated list (Claude's estimates, marked as estimates) and any traced film you measure.
 - **Momentum notes**: every curiosity's note on how it moves the plot forward, how it builds the themes, how it pulls attention onward, and one thing to try. This covers clothes and landscape too.
 
+- **Compass** (the Prism Compass): where attention should go next. A needle points at the family to move to, chosen from how often your films move from the current family to each other one (once you have measured a traced film), how much more time your films give each family, how long since it last held attention, and how hard it pushes the story. The top three come with reasons, a curiosity to try, and **Make this move on My film**, which steps one live control of that family by one notch.
+- **On the engine**: the engine's timeline (Library, Engine) as the audience would watch it, with an attention lane and a cue lane, one cell per moment. Every stretch past the limit gets a suggested engine link: the curiosity holding attention leads one from another family, so its next change moves attention on. **Add this link to the engine** is an ordinary engine command, one undo step.
+- **Perform**: follow My film live and send the meter out while you perform. MIDI control changes go out (attention CC 20, momentum CC 21, family CC 22, compass CC 23; the channel and numbers can be changed), with a note each time attention moves (60 visual, 61 audio, 62 thought, 63 movement, 64 plot) and note 72 past the limit. The desktop app's bridge sends the same values (OSC `/curio/value/m/attention`, `m/over`, `m/momentum`, `m/family`, `m/compass`, 0 to 1, and the same over WebSocket). A phone buzzes past the limit, and a full-screen **stage meter** can be read from across a room.
+
 ## Films it can read
 
-My film live, My film's panels, any storyboard scene, the whole storyboard, and every curated film (your studies, shared traces, and the made-up practice scenes). Panels have no clock, so **Seconds per panel** sets how long each one lasts (3 by default).
+My film live, My film's panels, the engine's timeline, any storyboard scene, the whole storyboard, and every curated film (your studies, shared traces, and the made-up practice scenes). Panels have no clock, so **Seconds per panel** sets how long each one lasts (3 by default).
 
 ## How attention is worked out
 
@@ -36,6 +40,9 @@ These are guesses about how people watch, kept as plain numbers (`FAMILY_PULL`, 
 | `notes.js` | `window.CurioMomentum`: the 13 attention families, the 5 cues, and a momentum note for every curiosity (84 written one by one, the rest from their workspace's note). `FIELD` is the proposed database field. |
 | `attention.js` | `window.CurioAttention`: reads a film into attention stretches, statistics and warnings; `live()` records a performance. |
 | `rates.js` | `window.CurioRates`: the default curated list (estimates), `measure()` for traced films, `compare()`, `average()`. |
+| `compass.js` | `window.CurioCompass`: `point(reading, profiles)` gives the needle and the options; `move(option, board)` gives one notch on a live control. |
+| `engine-lanes.js` | `window.CurioMomentumEngine`: the engine's film read as attention, `lanes()`, `suggestions()`, `addSuggestion()`, and `band()` in the shape an engine timeline band could draw. |
+| `perform.js` | `window.CurioPerform`: follows My film live and sends the meter to MIDI, the bridge (`CurioBridge.values()`), a phone buzz and the stage meter. Settings: `curiosities-momentum-perform-v1`. |
 | `ui.js`, `momentum.css` | The Momentum window and the Library menu item. `CurioMomentumUI.mountNote(el, id)` puts one curiosity's note anywhere, for example in a workspace. |
 | `load.js` | Adds everything to the app's page with one script line. |
 | `files.json` | The load order: `core` (no page) and `screens`. |
