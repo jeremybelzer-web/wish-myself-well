@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "PERSONAL PLOT\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 49 to 59\n   1 Own plot weight\n   2 Own plot meets the main plot\n   3 What they want, against what they need\n   4 Secret\n   5 Closer to or further from the goal\n   6 suite: Hidden agenda\n   7 suite: Chasing the wrong thing\n   8 suite: We know, they don't\n   9 pair: When a secret starts slipping, cringe rises\n  10 pair: When the character is set back, their emotional road drops\n  11 pairs: Secrets and lies"
+    "text": "PERSONAL PLOT\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 81 to 91\n   1 Own plot weight\n   2 Own plot meets the main plot\n   3 What they want, against what they need\n   4 Secret\n   5 Closer to or further from the goal\n   6 suite: Hidden agenda\n   7 suite: Chasing the wrong thing\n   8 suite: We know, they don't\n   9 pair: When a secret starts slipping, cringe rises\n  10 pair: When the character is set back, their emotional road drops\n  11 pairs: Secrets and lies"
    },
    "pos": [
     0,
@@ -27,17 +27,17 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
      -1,
      -1,
      -1,

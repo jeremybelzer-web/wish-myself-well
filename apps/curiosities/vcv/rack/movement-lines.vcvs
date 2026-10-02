@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "MOVEMENT WITH LINES\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 2, CC 33 to 41\n   1 Size of gesture\n   2 Stillness\n   3 Blink\n   4 Anticipation\n   5 Leads the move\n   6 Facial expression\n   7 Eye darts\n   8 Posture\n   9 Touch"
+    "text": "MOVEMENT WITH LINES\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 2, CC 33 to 48\n   1 Size of gesture\n   2 Stillness\n   3 Blink\n   4 Anticipation\n   5 Leads the move\n   6 Facial expression\n   7 Eye darts\n   8 Posture\n   9 Touch\n  10 Walk and talk\n  11 Business with a prop\n  12 Move on the line\n  13 The listener's body\n  14 suite: The walk and talk\n  15 suite: Busy hands\n  16 suite: The task falls apart\nCV-CC 2: MIDI channel 2, CC 49 to 57\n   1 suite: Freeze on the line\n   2 suite: The real reaction\n   3 pair: When a big line lands, the body freezes\n   4 pair: When the speaker gets closer to the truth, the listener leans in\n   5 pair: When the anger rises, the task gets rougher\n   6 pair: When the task falls apart, a laugh comes\n   7 pair: When they walk and talk, the shots get longer\n   8 pairs: The body tells the line\n   9 pairs: Comic business"
    },
    "pos": [
     0,
@@ -36,6 +36,38 @@
      39,
      40,
      41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 1
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
      -1,
      -1,
      -1,
@@ -49,7 +81,7 @@
     }
    },
    "pos": [
-    24,
+    32,
     0
    ]
   }

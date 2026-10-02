@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "FOCUS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 81 to 90\n   1 Focus width\n   2 Focus shift\n   3 Narrow focus to Wide focus\n   4 Distraction\n   5 Fixation\n   6 suite: Tunnel vision\n   7 suite: Looks away at the wrong moment\n   8 pair: When a fixation tightens, the shots get closer\n   9 pair: When a distraction pulls hard, something is missed\n  10 pairs: Eyes on one thing"
+    "text": "FOCUS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 4, CC 1 to 10\n   1 Focus width\n   2 Focus shift\n   3 Narrow focus to Wide focus\n   4 Distraction\n   5 Fixation\n   6 suite: Tunnel vision\n   7 suite: Looks away at the wrong moment\n   8 pair: When a fixation tightens, the shots get closer\n   9 pair: When a distraction pulls hard, something is missed\n  10 pairs: Eyes on one thing"
    },
    "pos": [
     0,
@@ -27,16 +27,16 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
      -1,
      -1,
      -1,
@@ -45,7 +45,7 @@
      -1
     ],
     "midi": {
-     "channel": 2
+     "channel": 3
     }
    },
    "pos": [
