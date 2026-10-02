@@ -553,6 +553,7 @@ td .suite-share { display: flex; margin: 2px 0; }
       <p class="cap">${esc(s.slug)}. ${esc(s.action)} Mains in the hour: ${esc(state.mains)}. Groups: ${esc(state.groups)}.</p>
       ${appliedNote()}
       <div class="strip">${panels}</div>
+      <p class="to-sb"><button type="button" id="to-storyboard">Save into the storyboard</button> <span class="cap">Keeps these ${lines.length} panels as a new scene in the Storyboard and takes you there, to flip through.</span></p>
       <p class="prox">${fired ? esc(fired) : "No seed proximity is firing. Change the carry, the path, or whether an object enters."}</p>
       ${suitesHere(lines.map((_, i) => panelState(i)))}
       <div class="lineage" id="lineage">${chips}</div>
@@ -566,6 +567,19 @@ td .suite-share { display: flex; margin: 2px 0; }
         drawBoard();
         notify();
       };
+    /* Save into the storyboard: open the Storyboard page and save My film there as a new scene. */
+    document.getElementById("to-storyboard").onclick = () => {
+      const W = window.CuriosityWorkspaces;
+      if (!W || !W.open) return;
+      W.open("storyboard");
+      const save = document.querySelector('#workspace [data-sb="save"]');
+      if (!save) return;
+      const into = document.querySelector('#workspace [data-sb="into"]');
+      if (into) into.value = "new";
+      save.click();
+      const box = document.querySelector('#workspace [data-sb="body"]') || save;
+      if (box.scrollIntoView) box.scrollIntoView({ block: "start" });
+    };
     document.getElementById("lineage").onclick = (e) => {
       const b = e.target.closest("button[data-focus]");
       if (!b) return;

@@ -22,9 +22,9 @@
   const MODES = ["off", "rain", "dust", "sparks", "confetti"];
   const CAMERAS = ["locked", "smooth", "handheld", "handheld on a hit"];
   const SUITES_HERE = [
-    { id: "storm", label: "Storm", note: "windForce 5, turbulence 4, clothResponse flutter", set: { wind: 5, turb: 4, cloth: "silk", gusts: true, mode: "rain" } },
-    { id: "slow", label: "Slow motion", note: "gravityFeel floaty, settleTime long", set: { gravity: "floaty", drag: 0, wind: 0, turb: 0 }, slow: true, drop: 2 },
-    { id: "brawl", label: "Brawl", note: "impacts 6, breakage shatters, cameraCarry handheld", set: { gravity: "heavy", strength: 140, hit: 90, camera: "handheld", mode: "sparks" }, drop: 6 },
+    { id: "storm", model: "storm", label: "Storm", note: "windForce 5, turbulence 4, clothResponse flutter", set: { wind: 5, turb: 4, cloth: "silk", gusts: true, mode: "rain" } },
+    { id: "slow", model: "slow-motion", label: "Slow motion", note: "gravityFeel floaty, settleTime long", set: { gravity: "floaty", drag: 0, wind: 0, turb: 0 }, slow: true, drop: 2 },
+    { id: "brawl", model: "brawl", label: "Brawl", note: "impacts 6, breakage shatters, cameraCarry handheld", set: { gravity: "heavy", strength: 140, hit: 90, camera: "handheld", mode: "sparks" }, drop: 6 },
   ];
 
   let s = null;
@@ -1096,7 +1096,7 @@
         Object.entries(AUTO).forEach(([id, m]) => badge(host, m.k, run.includes("c:" + id)));
         if (!run.includes("c:impacts")) lastImpacts = null;
         SUITES_HERE.forEach((su) => {
-          if (!run.includes("s:" + su.id)) suiteOn[su.id] = false;
+          if (!run.includes("s:" + su.id) && !run.includes("s:" + su.model)) suiteOn[su.id] = false;
         });
         return;
       }
@@ -1123,10 +1123,12 @@
         lastImpacts = n;
       } else lastImpacts = null;
       if (changed) api.store(KEY).set(s);
-      /* Suite presets apply once as they turn on. */
+      /* Suite presets apply once as they turn on. A suite is graded (app.js CuriositySuites): it counts as
+         on when at least its cause share of members (half) show in the panel, not only when all of them do. */
+      const CS = window.CuriositySuites;
       SUITES_HERE.forEach((su) => {
-        const m = d.ms["s:" + su.id];
-        const now = m != null && m >= 0.5;
+        const m = d.ms["s:" + su.model] != null ? d.ms["s:" + su.model] : d.ms["s:" + su.id];
+        const now = m != null && (CS && CS.find(su.model) ? CS.present(su.model, v0) : m >= 0.5);
         if (now && !suiteOn[su.id]) {
           suiteOn[su.id] = true;
           applySuite(su.id, host);

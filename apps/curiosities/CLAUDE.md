@@ -25,24 +25,35 @@ A model of a movie, a TV hour, or a video game is only those three. If a fact ca
 3. `catalog.js` — the curiosity list. `live: true` rows are the board controls.
 4. `library.js` — the filmmaking catalog (`docs/filmmaking-curiosities-catalog.md`) as data, merged into the curiosity list.
 5. `story-curiosities.js` — the story curiosities (arc stage, role in the scene, own plot weight, perspective, mindset, focus, Enneagram type and health, herd mentality and who leads it), plus foreshortening. Options are in scale order.
-6. `model.js` — suites (catalog, genre, and angle-by-emotion), the emotion map, and the proximities a study can count.
-7. `app.js` — My film: draws the strip, the paths, and which proximities are firing; switches the bar's tabs; draws All curiosities and Show structure. `window.CuriosityBoard` is how everything else reads and writes the board.
-8. `workspaces.js` — the workspaces (see below). `story.js` — the story store: values per character per scene.
-9. `automation.js` and `automate.js` — the automation engine and its modules (see Automation).
-10. `prism.js` — the Prism. `study.js` — Curated films and the Shelf.
-11. `studio.js` and `studio-*.js` — working tools taken from the Maya and Arnold for Maya manuals. Each file registers one tool with `CuriosityStudio.register`; workspaces show them as their Tools. `maya-manual.js` is the topic inventory; `docs/maya-manual-review.md` is the keep or skip list.
-12. `index.html` — open this in a browser. No build step.
+6. `lenses.js` — lenses. A curiosity is a filter, one way of looking at a scene (someone walks into a bar: look at its color, at the clothes, at the set, at the feeling, at the comedy). `window.CURIOSITY_LENSES` lists each lens as `{id, label, question, main, subs, scope}`: a main curiosity and its sliders (graded sub-parameters, options in scale order). The sliders are also lanes of the main curiosity in automation (`CURIOSITY_FACETS`). Lenses: color, main character's clothes, background clothes, set design, emotion, emotional road (story scope), comedy, comedy from the mix. Comedy is central and has the most sliders. Also lens suites and lens proximities.
+7. `model.js` — suites (catalog, genre, and angle-by-emotion), the emotion map, and the proximities a study can count.
+8. `app.js` — `window.CuriositySuites` (suites graded by share, see below), then My film: draws the strip, the paths, and which proximities are firing; switches the bar's tabs; draws All curiosities and Show structure. `window.CuriosityBoard` is how everything else reads and writes the board.
+9. `workspaces.js` — the workspaces (see below). `story.js` — the story store: values per character per scene. `storyboard.js` — the Storyboard (`window.CuriosityStoryboard.mount(el)`).
+10. `automation.js` and `automate.js` — the automation engine and its modules (see Automation).
+11. `prism.js` — the Prism. `study.js` — Curated films and the Shelf.
+12. `studio.js` and `studio-*.js` — working tools taken from the Maya and Arnold for Maya manuals. Each file registers one tool with `CuriosityStudio.register`; workspaces show them as their Tools. `maya-manual.js` is the topic inventory; `docs/maya-manual-review.md` is the keep or skip list.
+13. `index.html` — open this in a browser. No build step.
 
 State is `localStorage` key `curiosities-board-v2`.
 
-## The bar: My film, the workspaces, and the Library
+## The bar: My film, Storyboard, the workspaces, and the Library
 
-**My film** is the Board: the controls and the strip, the whole scene. It works as it always has.
+**My film** is the Board: the controls and the strip, the whole scene. It works as it always has. Its **Save into the storyboard** button keeps the panels as a new scene and opens the Storyboard.
 
-**Workspaces** are the general, most pervasive curiosities, each a tab. Automating and cross-pollinating are not tabs of their own: every workspace does both.
+**Storyboard** (`storyboard.js`, `localStorage` key `curiosities-storyboard-v1`) keeps many scenes of My film and flips through them like a flip book; Make many takes snapshots of running automation. It is a page of its own (`CuriosityWorkspaces.open("storyboard")`).
 
-- Scene workspaces (values per panel of My film): Camera angle, Camera motion, Character motion, Placement, Lines & delivery, Movement with lines, Background action, Light & look, Effects.
-- Story workspaces (values per character per scene of the whole story): Character arc, Personal plot, Perspective & mindset, Focus, Archetype, Herd mentality. Archetype keeps a slot for the 3D character matrix (`window.CharacterMatrix.mount(slot)` when it exists).
+**Workspaces** are the general, most pervasive curiosities and the lenses, each a tab. Automating and cross-pollinating are not tabs of their own: every workspace does both. The bar groups them into labelled sections that wrap onto more rows on a phone:
+
+- Camera: Camera angle, Camera motion, Placement.
+- People: Character motion, Lines & delivery, Movement with lines, Background action, Wardrobe.
+- Look: Color, Light & look, Set design, Effects.
+- Feeling: Emotion, Emotional road.
+- Comedy (marked, because comedy is central): Comedy, Comedy from the mix.
+- Story: Character arc, Personal plot, Perspective & mindset, Focus, Archetype, Herd mentality.
+
+Scene workspaces hold values per panel of My film; story workspaces (the Story section and Emotional road) hold values per character per scene of the whole story. Archetype keeps a slot for the 3D character matrix (`window.CharacterMatrix.mount(slot)` when it exists).
+
+**Lens workspaces** (Wardrobe, Color, Set design, Emotion, Emotional road, Comedy, Comedy from the mix) are built from `CURIOSITY_LENSES`. They show the lens's question at the top in plain words, then the same four parts with the lens's main curiosity first and its sliders under it (in the grid, and as one automation module each). Wardrobe joins two lenses as two sections: Main character and Background.
 
 Every workspace page has four parts, in this order:
 
@@ -51,9 +62,13 @@ Every workspace page has four parts, in this order:
 3. **Cross-pollinate from a film** — the Prism filtered to these curiosities (`CuriosityPrism.mount(el, {curiosities, title})`).
 4. **Tools** — the Studio tools for the workspace as small sub-tabs (`CuriosityStudio.mount(el, toolId)`).
 
-If one of those three mount functions is missing, the page shows a plain line in its place. `window.CuriosityWorkspaces` has `open(id)`, `openFor("c:<curiosity>")` and `list()`. The last open tab is `localStorage` key `curiosities-workspace-v1`.
+If one of those three mount functions is missing, the page shows a plain line in its place. `window.CuriosityWorkspaces` has `open(id)`, `openFor("c:<curiosity>")` (a lens's main curiosity opens its lens) and `list()` (with each workspace's bar section, question and lens sections). The last open tab is `localStorage` key `curiosities-workspace-v1`.
 
 **Library** (the menu at the right end of the bar): Curated films (studies and the Shelf), Prism (the whole-film Prism), All curiosities (curiosities, suites, proximities, development moves), Maya manual (every topic, and Start here), Print, Show structure (companies and exits), Automation patch bay (every automation at once).
+
+## Suites are graded
+
+A suite is a group of lenses you look through together, so it is never all-or-nothing. `window.CuriositySuites` (top of `app.js`) measures a beat or panel by the share of a suite's members that match (0 to 100%), `across` averages it over many panels with the best one, and `present` counts a suite as there when at least `CAUSE_SHARE` (half) of it matches: that is what a suite as a proximity's cause uses, in automation, the Prism, Chain and Dynamics alike. A lens suite (no fixed values, `set: {}`) has nothing to match and shows its lenses side by side. The Prism's suites band lists the top 6 by best share, with Show all.
 
 ## Already on the board
 
@@ -73,7 +88,7 @@ Games wait until the curiosity model is fleshed out; they will be the last thing
 
 Every curiosity, suite, proximity and proximity suite is an automatable parameter (`automation.js`, `window.CurioAuto`). Its trigger (MIDI note, key, or button) turns it on and off. Inside, its main lane runs between two settings through the curiosity's scale (angle height: floor, low, eye, high, overhead), and its other lanes grade its other parts (a curiosity's other dimensions, a suite's members, a proximity's cause, delay, how often and effect size, a proximity suite's members). Each lane has a from, a to, a curve and its own modulator (follows the main one, LFO, knob, or MIDI CC). Each patch plays in a moment, a span of panels, and a lane can sweep across it. A performer can wear MIDI straps and make a parameter flick or glide between settings at a rate they set. Running parameters play on the Board as an "Automation" layer over any applied strand and can send their position out as MIDI CC for VCV Rack and other modular synths (and take CCs in). Each workspace shows the modules for its own curiosities; the Library's Automation patch bay shows them all. Patches and bindings are `localStorage` key `curiosities-automation-v1`.
 
-**Prism** (`prism.js`, in the Library and, filtered, in every workspace): a curated film (any study, or My board) is white light; the Prism splits it into four bands, the curiosities it uses with the range each went through, the suites that fully held, the proximities that held with the delays seen, and the proximity suites whose members held. Pick a moment of your own film (a span of board panels) and drop any row onto it: it becomes a CurioAuto patch built from the film's own ranges (a curiosity's lowest to highest, with lanes for the curiosities that moved with it; a proximity's delay and how often it held) and plays there. A Develop card then offers three next moves (push it further, answer it, turn it around). Its view is `localStorage` key `curiosities-prism-view-v1`.
+**Prism** (`prism.js`, in the Library and, filtered, in every workspace): a curated film (any study, or My board) is white light; the Prism splits it into four bands, the curiosities it uses with the range each went through, the suites it shows and how much of each (top 6 by best share, Show all for the rest), the proximities that held with the delays seen, and the proximity suites whose members held. Pick a moment of your own film (a span of board panels) and drop any row onto it: it becomes a CurioAuto patch built from the film's own ranges (a curiosity's lowest to highest, with lanes for the curiosities that moved with it; a proximity's delay and how often it held) and plays there. A Develop card then offers three next moves (push it further, answer it, turn it around). Its view is `localStorage` key `curiosities-prism-view-v1`.
 
 ## Studio tools
 

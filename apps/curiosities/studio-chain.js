@@ -298,12 +298,17 @@
     const liveIds = new Set((typeof CURIOSITIES !== "undefined" ? CURIOSITIES : []).filter((c) => c.live).map((c) => c.id));
     const ruleHolds = RULES.map((r) => ({ r, cfg: ruleCfg(s, r), h: holds(r, res.vals) }));
     const mh = modelHolds(res.vals);
+    const CS = window.CuriositySuites;
+    /* Suites by degree (app.js CuriositySuites): a suite shows here when at least its cause share of
+       members match this beat (half, by default), never all-or-nothing. Lens suites have nothing to match. */
+    const suitesAt = (cur) => (typeof SUITES !== "undefined" ? SUITES : [])
+      .filter((su) => su.set && Object.keys(su.set).length)
+      .map((su) => ({ su, m: CS ? CS.match(su, cur) : null }))
+      .filter((x) => (CS ? CS.present(x.su, cur) : false))
+      .sort((a, b) => b.m.share - a.m.share);
     const holdLine = (label, h, extra) =>
       `<p class="ch-hold"><b class="${!h.triggers ? "idle" : h.ok === h.triggers ? "yes" : "no"}">${!h.triggers ? "not triggered" : h.ok === h.triggers ? "holds" : "doesn't hold"}</b> ${esc(label)} <span class="cap">${h.triggers ? `${h.ok}/${h.triggers}` : ""}${extra ? " · " + esc(extra) : ""}</span></p>`;
-    const firingSuites = SUITES.filter((su) => {
-      const keys = Object.keys(su.set);
-      return keys.every((k) => cur[k] !== undefined && String(cur[k]) === String(su.set[k]));
-    });
+
 
     el.innerHTML = `
       <div class="ch-presets"><span class="cap">Suite presets:</span>${PRESETS.map((p) => `<button type="button" data-preset="${p.id}" class="${s.preset === p.id ? "on" : ""}">${esc(p.label)}</button>`).join("")}<button type="button" data-act="clear">Clear triggers</button></div>
@@ -327,7 +332,7 @@
           <div class="ch-panel" id="ch-panel"></div>
           <p id="ch-chips"></p>
           <p class="cap">Click a chip to automate it, or open Automate.</p>
-          ${firingSuites.length ? `<p>${firingSuites.map((su) => `<span class="chip lit">${esc(su.label)}</span>`).join(" ")}</p>` : ""}
+          <div id="ch-suites"></div>
         </div>
         <div>
           <h3>Proximities</h3>
@@ -358,6 +363,10 @@
           .filter(([id]) => !ROWS.some((r) => r.id === id))
           .map(([id, x]) => `<span class="chip lit" title="Derived for the board">${esc(id)} ${esc(x)}</span>`)
           .join(" ");
+      const firing = suitesAt(v);
+      el.querySelector("#ch-suites").innerHTML = firing.length
+        ? `<p class="cap">Suites this beat shows (at least ${CS ? CS.pct(CS.CAUSE_SHARE) : "half"} of their lenses):</p><p>${firing.map((x) => `<span class="chip lit" title="${esc(x.su.note || "")}">${esc(x.su.label)} · ${esc(CS.text(x.m))}</span>`).join(" ")}</p>`
+        : "";
       const head = el.querySelector("#ch-head");
       if (head) head.setAttribute("x", 96 + s.head * 46);
       const lab = el.querySelector(".mono");

@@ -177,7 +177,7 @@
             return { s, m, at: m.shares.map((x, i) => (x >= CS().CAUSE_SHARE ? i : -1)).filter((i) => i >= 0) };
           })
           .filter((x) => x.m.peak > 0)
-          .sort((a, b) => b.m.mean - a.m.mean || b.m.peak - a.m.peak)
+          .sort((a, b) => b.m.peak - a.m.peak || b.m.mean - a.m.mean)
       : [];
     const lensSuites = CS() ? SUITES.filter((s) => (s.kind || "") === "lens" && !CS().fixed(s) && CS().members(s).some((k) => ids.includes(k))).map((s) => ({ s, lens: true, at: [] })) : [];
     const suites = fixedSuites.concat(lensSuites);
@@ -241,7 +241,10 @@
     return lo === hi ? `after ${w(lo)}` : `after ${lo} to ${hi} beats`;
   }
 
-  function bandHtml(band, sp) {
+  /* The suites band shows the top SUITE_TOP by best share; "Show all N" opens the rest. */
+  const SUITE_TOP = 6;
+  function bandHtml(band, sp, o) {
+    o = o || {};
     const b = BANDS.find((x) => x.id === band);
     const beats = sp.beats;
     let rows = [];
@@ -294,10 +297,17 @@
         return row(x.ps.label, litStrip(beats, lit, b.hue), `<b>${x.held.length} of ${x.members.length} held, ${x.held.reduce((n, m) => n + m.m.h, 0)} times</b><span>${names}</span>`, dropBtn("proximity suite", x.ps.id));
       });
     }
+    const total = rows.length;
+    let more = "";
+    if (band === "suite" && total > SUITE_TOP) {
+      if (!o.allSuites) rows = rows.slice(0, SUITE_TOP);
+      more = `<p class="pr-more"><button type="button" data-pr="suites-all" aria-expanded="${o.allSuites ? "true" : "false"}">${o.allSuites ? `Show the top ${SUITE_TOP} only` : `Show all ${total}`}</button> <span class="cap">${o.allSuites ? `All ${total} suites, the ones this film shows most first.` : `The ${SUITE_TOP} this film shows most, by its best beat.`}</span></p>`;
+    }
     return `<section class="pr-band" style="--hue:${b.hue}">
-      <h3><span class="pr-swatch"></span>${esc(b.label)} <span class="mono">${rows.length}</span></h3>
+      <h3><span class="pr-swatch"></span>${esc(b.label)} <span class="mono">${total}</span></h3>
       <p class="cap">${esc(b.note)}</p>
       ${rows.length ? rows.join("") : `<p class="cap">This film has none in this band.</p>`}
+      ${more}
     </section>`;
   }
   function row(name, cells, info, btn) {
@@ -326,6 +336,7 @@
   let playing = null;
   let lastSig = "";
   let band = mounted ? "all" : view.band;
+  let allSuites = false;
   const titleText = () => opts.title || "Cross-pollinate from a film";
 
   function playingHtml() {
@@ -392,7 +403,7 @@
         <button type="button" data-band="all" class="${band === "all" ? "on" : ""}">All four</button>
         ${BANDS.map((b) => `<button type="button" data-band="${esc(b.id)}" class="${band === b.id ? "on" : ""}" style="--hue:${b.hue}"><span class="pr-swatch"></span>${esc(b.label)}</button>`).join("")}
       </nav>
-      ${sp.beats.length ? bands.map((b) => bandHtml(b, sp)).join("") : `<p class="cap">This film has no beats yet. Trace some in Study.</p>`}
+      ${sp.beats.length ? bands.map((b) => bandHtml(b, sp, { allSuites })).join("") : `<p class="cap">This film has no beats yet. Trace some in Study.</p>`}
     `;
     root.querySelector('[data-pr="film"]').addEventListener("change", (e) => {
       view.film = e.target.value;
@@ -420,6 +431,8 @@
       draw();
     }));
     root.querySelectorAll(".pr-drop").forEach((b) => b.addEventListener("click", () => drop(b.dataset.kind, b.dataset.id, sp)));
+    const sa = root.querySelector('[data-pr="suites-all"]');
+    if (sa) sa.addEventListener("click", () => ((allSuites = !allSuites), draw()));
     const st = root.querySelector('[data-pr="stop"]');
     if (st) st.addEventListener("click", stopAll);
     const op = root.querySelector('[data-pr="open"]');

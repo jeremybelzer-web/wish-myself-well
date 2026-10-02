@@ -10,6 +10,12 @@
    3. Cross-pollinate from a film: the Prism filtered to these curiosities (CuriosityPrism.mount).
    4. Tools: the Studio tools for this workspace (CuriosityStudio.mount), as small sub-tabs.
    Any of those three APIs may be missing; the page then shows a plain line in its place.
+   Lens workspaces (Color, Wardrobe, Set design, Emotion, Emotional road, Comedy, Comedy from the mix) come
+   from window.CURIOSITY_LENSES (lenses.js): the lens's question at the top, then the same four parts with the
+   lens's main curiosity first and its sliders (sub-parameters) under it. Wardrobe joins two lenses, the main
+   character's clothes and the background clothes, as two sections.
+   The bar groups the workspaces into labelled sections: Camera, People, Look, Feeling, Comedy, Story.
+   "storyboard" is a page of its own (storyboard.js, CuriosityStoryboard.mount).
    window.CuriosityWorkspaces = { open(id), openFor(paramKey), list() }. Last open: curiosities-workspace-v1. */
 
 (function () {
@@ -35,6 +41,44 @@
     { id: "archetype", scope: "story", label: "Archetype", note: "The character's Enneagram type and how healthy or unhealthy it plays in each scene.", ids: ["enneagramType", "enneagramHealth"], tools: [], matrix: true },
     { id: "herd", scope: "story", label: "Herd mentality", note: "How much the group thinks as one through the scenes, and who it follows.", ids: ["herdMentality", "herdLeader"], tools: [] },
   ];
+
+  /* Lens workspaces. Each section is one lens: its main curiosity, then its sliders. */
+  const LENS = Object.fromEntries((window.CURIOSITY_LENSES || []).map((l) => [l.id, l]));
+  function lensWs(id, label, parts, o) {
+    const sections = parts
+      .map(([lensId, title]) => {
+        const l = LENS[lensId];
+        if (!l) return null;
+        return { lens: l.id, title: title || l.label, question: l.question, main: l.main, scope: l.scope, ids: [l.main].concat((l.subs || []).filter((x) => x !== l.main)) };
+      })
+      .filter(Boolean);
+    if (!sections.length) return null;
+    const ids = [];
+    sections.forEach((sec) => sec.ids.forEach((x) => ids.includes(x) || ids.push(x)));
+    return Object.assign({ id, label, scope: sections[0].scope === "story" ? "story" : "scene", lens: true, question: sections.length === 1 ? sections[0].question : "", sections, ids, tools: [] }, o);
+  }
+  [
+    lensWs("wardrobe", "Wardrobe", [["wardrobeMain", "Main character"], ["wardrobeBack", "Background"]], {
+      question: "What are the people wearing? Look at the main character and at the people behind them: from when, how expensive, how much skin, and does it do a job?",
+      note: "Clothes, seen two ways: what the main character wears, and what the people in the background wear.",
+    }),
+    lensWs("color", "Color", [["color"]], { note: "The color of the picture: black and white or full color, tinted, warm or cool.", tools: ["light", "passes"] }),
+    lensWs("set", "Set design", [["set"]], { note: "The place itself: its style, materials, the art on the walls, how cramped or open it is.", tools: ["shading"] }),
+    lensWs("emotion", "Emotion", [["emotion"]], { note: "The feeling of the scene and every way it shows: movement, voice, face, posture, words, place and light.", tools: ["face", "live"] }),
+    lensWs("emo-road", "Emotional road", [["emoRoad"]], { note: "Each character's emotional road through the story, and the film's own road." }),
+    lensWs("comedy", "Comedy", [["comedy"]], { note: "How the scene is funny: the kind of joke, what it is about, how big, how timed, who carries it.", tools: ["face", "live"] }),
+    lensWs("comedy-mix", "Comedy from the mix", [["comedyMix"]], { note: "Who is in the room and what putting them together does for the laughs, the plot and the characters." }),
+  ].forEach((w) => w && WORKSPACES.push(w));
+
+  /* The bar's sections, in order. Comedy is central, so it has its own marked section. */
+  const GROUPS = [
+    { title: "Camera", ids: ["camera-angle", "camera-motion", "placement"] },
+    { title: "People", ids: ["character-motion", "lines", "movement-lines", "background", "wardrobe"] },
+    { title: "Look", ids: ["color", "light", "set", "effects"] },
+    { title: "Feeling", ids: ["emotion", "emo-road"] },
+    { title: "Comedy", ids: ["comedy", "comedy-mix"], cls: "is-comedy" },
+    { title: "Story", ids: ["arc", "plot", "mindset", "focus", "archetype", "herd"] },
+  ];
   const byId = Object.fromEntries(WORKSPACES.map((w) => [w.id, w]));
   const CUR = Object.fromEntries(CURIOSITIES.map((c) => [c.id, c]));
   const view = { ws: null, tool: {}, character: null, opened: {} };
@@ -57,9 +101,27 @@
     return p ? p.label : id;
   }
   /* A curiosity the workspace names but nothing defines is left out. */
+  const exists = (id) => !!(CUR[id] || (A() && A().param && A().param("c:" + id)));
   function idsOf(ws) {
-    return ws.ids.filter((id) => CUR[id] || (A() && A().param && A().param("c:" + id)));
+    return ws.ids.filter(exists);
   }
+  /* A lens workspace's sections that have anything to show. */
+  function sectionsOf(ws) {
+    return (ws.sections || []).map((sec) => Object.assign({}, sec, { ids: sec.ids.filter(exists) })).filter((sec) => sec.ids.length);
+  }
+  /* Grid rows: plain, or per lens section (a heading row when there are two, the main row, then its sliders). */
+  function gridRows(ws, cols, rowFn) {
+    if (!ws.sections) return idsOf(ws).map((id) => rowFn(id, "")).join("");
+    const secs = sectionsOf(ws);
+    return secs
+      .map(
+        (sec) =>
+          (secs.length > 1 ? `<tr class="ws-secrow"><th colspan="${cols + 1}" scope="colgroup">${esc(sec.title)}</th></tr>` : "") +
+          sec.ids.map((id) => rowFn(id, id === sec.main ? "ws-main" : "ws-sub")).join("")
+      )
+      .join("");
+  }
+  const mainTag = (cls) => (cls === "ws-main" ? ` <span class="ws-tag" title="The lens's main curiosity; the rows under it are its sliders.">main</span>` : "");
   /* The values a cell can take: words in scale order, a number range, or free text. */
   function domainOf(id) {
     const c = CUR[id];
@@ -82,12 +144,18 @@
 
   /* ---------- the bar ---------- */
   function drawBar() {
-    const group = (scope, title) =>
-      `<span class="ws-group" aria-hidden="true">${title}</span>` +
-      WORKSPACES.filter((w) => w.scope === scope)
-        .map((w) => `<button type="button" data-tab="ws" data-ws="${w.id}" title="${esc(w.note)}">${esc(w.label)}</button>`)
-        .join("");
-    bar.innerHTML = group("scene", "Scene") + group("story", "Story");
+    const listed = new Set();
+    const btn = (w) => `<button type="button" data-tab="ws" data-ws="${w.id}" title="${esc(w.note)}">${esc(w.label)}</button>`;
+    const sec = (title, list, cls) =>
+      list.length ? `<div class="ws-sec ${cls || ""}" role="group" aria-label="${esc(title)}"><span class="ws-group">${esc(title)}</span>${list.map(btn).join("")}</div>` : "";
+    let html = GROUPS.map((g) => {
+      const list = g.ids.map((id) => byId[id]).filter(Boolean);
+      list.forEach((w) => listed.add(w.id));
+      return sec(g.title, list, g.cls);
+    }).join("");
+    /* Anything not in a section yet still gets a button. */
+    html += sec("More", WORKSPACES.filter((w) => !listed.has(w.id)));
+    bar.innerHTML = html;
   }
   document.getElementById("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-ws], button[data-tool]");
@@ -105,6 +173,7 @@
 
   /* ---------- open a workspace ---------- */
   function open(id) {
+    if (id === "storyboard") return openStoryboard();
     const ws = byId[id];
     if (!ws) return;
     view.ws = id;
@@ -112,10 +181,33 @@
     try {
       localStorage.setItem(LAST_KEY, id);
     } catch (e) {}
-    const btn = bar.querySelector(`button[data-ws="${id}"]`);
-    show(btn);
-    if (btn && btn.scrollIntoView) btn.scrollIntoView({ block: "nearest", inline: "nearest" });
+    show(document.querySelector(`#tabs button[data-ws="${id}"]`));
     draw();
+  }
+
+  /* The Storyboard: many scenes of My film, flipped through like a flip book (storyboard.js). */
+  function openStoryboard() {
+    view.ws = "storyboard";
+    page = "sb";
+    try {
+      localStorage.setItem(LAST_KEY, "storyboard");
+    } catch (e) {}
+    show(document.querySelector('#tabs button[data-ws="storyboard"]'));
+    root.innerHTML = `<div class="ws ws-sb"><h2>Storyboard</h2>
+      <p class="cap">Save My film as scenes, make lots of them, and flip through them like a flip book.</p>
+      <div id="ws-sb-body"></div></div>`;
+    const el = document.getElementById("ws-sb-body");
+    const SB = window.CuriosityStoryboard;
+    if (SB && typeof SB.mount === "function") {
+      try {
+        SB.mount(el);
+        return;
+      } catch (e) {
+        el.innerHTML = `<p class="cap ws-fallback">The storyboard could not draw here (${esc(e.message)}).</p>`;
+        return;
+      }
+    }
+    el.innerHTML = `<p class="cap ws-fallback">The storyboard is not loaded.</p>`;
   }
 
   function draw() {
@@ -124,7 +216,10 @@
     const ids = idsOf(ws);
     root.innerHTML = `<div class="ws">
       <h2>${esc(ws.label)}</h2>
-      <p class="cap">${esc(ws.note)} ${ws.scope === "story" ? "A story workspace: one character, scene by scene through the whole story." : "A scene workspace: panel by panel through My film."}</p>
+      ${ws.question ? `<p class="ws-question">${esc(ws.question)}</p>` : ""}
+      <p class="cap">${esc(ws.note)} ${ws.scope === "story" ? "A story workspace: one character, scene by scene through the whole story." : "A scene workspace: panel by panel through My film."}${
+        ws.lens ? " This is a lens, one way of looking at the scene: its main curiosity comes first and its sliders under it. Every slider can be set per " + (ws.scope === "story" ? "scene" : "panel") + " and automated." : ""
+      }</p>
       <nav class="ws-jump" aria-label="Parts of this workspace">
         <a href="#ws-film">In my film</a><a href="#ws-auto">Automate</a><a href="#ws-prism">Cross-pollinate</a>${ws.tools.length ? `<a href="#ws-tools">Tools</a>` : ""}
       </nav>
@@ -132,7 +227,7 @@
         ${ws.matrix ? `<div class="ws-matrix" id="ws-matrix"></div>` : ""}</section>
       <section class="ws-part" id="ws-auto"><h3>Automate</h3>
         <p class="cap">Switch one on and it plays${ws.scope === "story" ? " through the scenes above, for whichever character you pick" : " on the board, in the moment you choose"}. From and to set the range; lanes grade its other parts.</p>
-        <div class="ws-mods" id="ws-mods"></div>
+        <div class="${ws.sections ? "ws-lenses" : "ws-mods"}" id="ws-mods"></div>
         <div id="ws-related"></div></section>
       <section class="ws-part" id="ws-prism"><h3>Cross-pollinate from a film</h3><div id="ws-prism-body"></div></section>
       ${ws.tools.length ? `<section class="ws-part" id="ws-tools"><h3>Tools</h3><div id="ws-tools-body"></div></section>` : ""}
@@ -192,8 +287,7 @@
     const now = playing();
     const base = B().values();
     const head = Array.from({ length: n }, (_, i) => `<th>Panel ${i + 1}</th>`).join("");
-    const rows = ids
-      .map((id) => {
+    const rows = gridRows(ws, n, (id, cls) => {
         const cells = Array.from({ length: n }, (_, i) => {
           const mine = at(set[id], i);
           const plays = now[i] ? now[i][id] : undefined;
@@ -201,9 +295,8 @@
           return `<td>${cellControl(id, mine, `data-cell="${id}" data-i="${i}" aria-label="${esc(labelOf(id))}, panel ${i + 1}"`, fallback)}
             <span class="ws-now" data-now="${id}" data-i="${i}">${nowNote(mine, plays)}</span></td>`;
         }).join("");
-        return `<tr><th scope="row">${esc(labelOf(id))}${CUR[id] && CUR[id].live ? "" : ` <span class="ws-tag" title="Not one of the board's thirty controls: the strip shows it where it can.">extra</span>`}</th>${cells}</tr>`;
-      })
-      .join("");
+        return `<tr class="${cls}"><th scope="row">${esc(labelOf(id))}${mainTag(cls)}${CUR[id] && CUR[id].live ? "" : ` <span class="ws-tag" title="Not one of the board's thirty controls: the strip shows it where it can.">extra</span>`}</th>${cells}</tr>`;
+      });
     el.innerHTML = `<div class="ws-row">
         <label class="field ws-count">Panels in my film
           <span class="ws-step"><button type="button" data-count="-1" aria-label="One panel fewer">−</button><b>${n}</b><button type="button" data-count="1" aria-label="One panel more">+</button></span>
@@ -297,8 +390,7 @@
     const over = storyOverlay(scenes.length);
     const ids = idsOf(ws);
     const head = scenes.map((s) => `<th>${esc(s)}</th>`).join("");
-    const rows = ids
-      .map((id) => {
+    const rows = gridRows(ws, scenes.length, (id, cls) => {
         const cells = scenes
           .map((_, i) => {
             const mine = vals[i] && vals[i][id] != null ? vals[i][id] : "";
@@ -307,9 +399,8 @@
               <span class="ws-now" data-now="${id}" data-i="${i}">${plays != null && String(plays) !== String(mine) ? `now ${esc(plays)} (automation)` : ""}</span></td>`;
           })
           .join("");
-        return `<tr><th scope="row">${esc(labelOf(id))}<br><span class="cap">${esc((CUR[id] && CUR[id].note) || "")}</span></th>${cells}</tr>`;
-      })
-      .join("");
+        return `<tr class="${cls}"><th scope="row">${esc(labelOf(id))}${mainTag(cls)}<br><span class="cap">${esc((CUR[id] && CUR[id].note) || "")}</span></th>${cells}</tr>`;
+      });
     el.innerHTML = `<div class="ws-row">
         <label class="field">Character
           <select id="ws-char">${chars.map((c) => `<option ${c === who ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
@@ -519,8 +610,33 @@
     return { suites, prox, ps };
   }
 
+  function addModule(box, key) {
+    const slot = document.createElement("div");
+    slot.className = "ws-mod";
+    slot.dataset.autoSlot = key;
+    box.appendChild(slot);
+    mountModule(slot, key);
+  }
   function drawAutomate(ws, ids) {
     const mods = document.getElementById("ws-mods");
+    if (ws.sections) {
+      /* A lens: its main curiosity's module, then one module per slider. The sliders are also lanes of the main one. */
+      const secs = sectionsOf(ws);
+      secs.forEach((sec) => {
+        const subs = sec.ids.filter((id) => id !== sec.main);
+        const box = document.createElement("div");
+        box.className = "ws-lens";
+        box.innerHTML = `${secs.length > 1 ? `<h4>${esc(sec.title)}</h4><p class="cap ws-q">${esc(sec.question)}</p>` : ""}
+          <p class="ws-g">The main curiosity</p><div class="ws-mods" data-lens-main="${esc(sec.lens)}"></div>
+          ${subs.length ? `<p class="ws-g">Its sliders (${subs.length})</p><p class="cap">Each slider is one part of the lens you can turn up or down. It has its own module here, and it is also a lane inside the main module.</p><div class="ws-mods ws-sliders" data-lens-subs="${esc(sec.lens)}"></div>` : ""}`;
+        mods.appendChild(box);
+        if (sec.ids.includes(sec.main)) addModule(box.querySelector("[data-lens-main]"), "c:" + sec.main);
+        const sb = box.querySelector("[data-lens-subs]");
+        subs.forEach((id) => addModule(sb, "c:" + id));
+      });
+      drawRelated(ws, ids);
+      return;
+    }
     ids.forEach((id) => {
       const slot = document.createElement("div");
       slot.className = "ws-mod";
@@ -666,7 +782,8 @@
   function openFor(paramKey) {
     const key = String(paramKey || "");
     const id = key.startsWith("c:") ? key.slice(2) : key;
-    const ws = WORKSPACES.find((w) => w.ids.includes(id));
+    /* The lens whose main curiosity it is first, then the first workspace that has it. */
+    const ws = WORKSPACES.find((w) => (w.sections || []).some((sec) => sec.main === id)) || WORKSPACES.find((w) => w.ids.includes(id));
     if (!ws) {
       if (window.CuriosityAutomate && window.CuriosityAutomate.open) window.CuriosityAutomate.open(key);
       return;
@@ -683,8 +800,19 @@
   window.CuriosityWorkspaces = {
     open,
     openFor,
-    list: () => WORKSPACES.map((w) => ({ id: w.id, label: w.label, scope: w.scope, curiosities: w.ids.slice(), tools: w.tools.slice() })),
-    current: () => (page === "ws" ? view.ws : null),
+    list: () =>
+      WORKSPACES.map((w) => ({
+        id: w.id,
+        label: w.label,
+        scope: w.scope,
+        curiosities: w.ids.slice(),
+        tools: w.tools.slice(),
+        lens: !!w.lens,
+        question: w.question || "",
+        sections: (w.sections || []).map((sec) => ({ title: sec.title, main: sec.main, sliders: sec.ids.filter((x) => x !== sec.main) })),
+        group: (GROUPS.find((g) => g.ids.includes(w.id)) || { title: "More" }).title,
+      })),
+    current: () => (page === "ws" || page === "sb" ? view.ws : null),
   };
 
   /* Leaving a workspace detaches its body, so tool animations that check isConnected stop. */
@@ -702,5 +830,5 @@
   try {
     last = localStorage.getItem(LAST_KEY);
   } catch (e) {}
-  if (last && byId[last]) open(last);
+  if (last && (byId[last] || last === "storyboard")) open(last);
 })();
