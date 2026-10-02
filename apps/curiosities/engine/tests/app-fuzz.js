@@ -166,8 +166,20 @@ const SNAP_JS = () => {
   const out = {};
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
-    if (k && k.startsWith("curiosities-") && !/-(view|tab|prefs|ui)-v\d+$|^curiosities-(workspace-v1|glossary-v1|studio-tab-v1|engine-view-v1)$|autosave|history|snapshot/.test(k)) out[k] = localStorage.getItem(k);
+    if (k && k.startsWith("curiosities-") && !/-(view|tab|prefs|ui)-v\d+$|^curiosities-(workspace-v1|glossary-v1|studio-tab-v1|engine-view-v1|screen-v1)$|autosave|history|snapshot/.test(k)) out[k] = localStorage.getItem(k);
   }
+  return out;
+};
+/* Where two saved values first differ, with some text on each side, for the report. */
+const around = (a, b, keys) => {
+  const out = {};
+  keys.forEach((k) => {
+    const x = String(a[k]);
+    const y = String(b[k]);
+    let i = 0;
+    while (i < x.length && i < y.length && x[i] === y[i]) i++;
+    out[k] = { at: i, before: x.slice(Math.max(0, i - 150), i + 250), after: y.slice(Math.max(0, i - 150), i + 250) };
+  });
   return out;
 };
 const diffSnap = (a, b) => {
@@ -192,6 +204,12 @@ const diffSnap = (a, b) => {
   const ready = async () => {
     await page.waitForFunction(() => window.CuriosityBoard && document.readyState === "complete", null, { timeout: 30000 });
     await page.waitForTimeout(300);
+  };
+  /* Running automation keeps rewriting parts (it is saved but never an undo step, and a reload stops it), so
+     the chains stop it before each snapshot and wait past the 1.5 s merge window. */
+  const settle = async () => {
+    await page.evaluate(() => window.CurioAuto && typeof CurioAuto.stopAll === "function" && CurioAuto.stopAll()).catch(() => {});
+    await page.waitForTimeout(1600);
   };
   await page.goto(url);
   await ready();
@@ -252,6 +270,7 @@ const diffSnap = (a, b) => {
       /* A reload empties the store's in-page undo, so it holds only this chain's steps (it keeps at most 300). */
       await page.reload();
       await ready();
+      await settle();
       await page.evaluate(() => window.CurioAppUndo && CurioAppUndo.clear());
       const base = await page.evaluate(SNAP_JS);
       /* The store keeps undo from before this chain (the monkey part): undo only what this chain added. */
@@ -265,11 +284,13 @@ const diffSnap = (a, b) => {
         if (st) last = st.last;
         await page.waitForTimeout(1600); /* past the 1.5 s merge window, so steps stay apart */
       }
+      await settle();
       const changed = await page.evaluate(SNAP_JS);
       const steps = await page.evaluate(() => (window.CurioAppUndo ? CurioAppUndo.steps().length : 0));
       const storeSteps = (await page.evaluate(() => (window.CurioStore ? CurioStore.history().undo.length : 0))) - storeBase;
       const dbg = await page.evaluate(() => ({ big: (JSON.parse(sessionStorage.getItem("curio-app-undo-v2") || "{}").steps || []).map((x) => x.key.slice(12) + ":" + ((x.a || "").length + (x.b || "").length)).filter((x) => +x.split(":")[1] > 5000), session: (sessionStorage.getItem("curio-app-undo-v2") || "").length, sizes: Object.fromEntries(Object.keys(localStorage).filter((k) => k.startsWith("curiosities-")).map((k) => [k, localStorage.getItem(k).length]).filter((x) => x[1] > 20000)) }));
       if (DEBUG) console.log("     debug " + where + ": app steps " + steps + ", store steps " + storeSteps + ", " + JSON.stringify(dbg));
+      if (steps >= 300) note(where + ": the app history is full (300 steps), so the oldest changes cannot be undone; the check below may report them");
       if (!steps && storeSteps <= 0) {
         note(where + ": no saved change on " + used.join(", "));
         continue;
@@ -285,8 +306,9 @@ const diffSnap = (a, b) => {
       const back = await page.evaluate(SNAP_JS);
       /* A store part first saved during the chain stays saved at its starting values after the store's undo. */
       const owned = await page.evaluate((ks) => ks.filter((k) => window.CurioStore && CurioStore.owns(k)), Object.keys(back).filter((k) => !(k in base)));
-      const d1 = diffSnap(base, back).filter((k) => !owned.includes(k));
-      if (d1.length) fail("undo", where, "after undoing " + steps + " app steps (pages " + used.join(", ") + "), these parts did not come back: " + d1.join(", "), { base: Object.fromEntries(d1.map((k) => [k, String(base[k]).slice(0, 300)])), back: Object.fromEntries(d1.map((k) => [k, String(back[k]).slice(0, 300)])) });
+      /* The engine's film has its own undo (tested in run.js), so the app-wide history leaves it alone. */
+      const d1 = diffSnap(base, back).filter((k) => !owned.includes(k) && k !== "curiosities-engine-v1");
+      if (d1.length) fail("undo", where, "after undoing " + steps + " app steps (pages " + used.join(", ") + "), these parts did not come back: " + d1.join(", "), around(base, back, d1));
       else console.log("ok   " + where + ": " + steps + " app steps over " + used.join(", ") + " undone back to the start exactly");
       /* Redo it all. */
       const canRedo = await page.evaluate(() => window.CurioAppUndo && CurioAppUndo.canRedo());
@@ -302,8 +324,8 @@ const diffSnap = (a, b) => {
         }, changed);
         if (storeSteps > 0) { await page.reload(); await ready(); }
         const again = await page.evaluate(SNAP_JS);
-        const d2 = diffSnap(changed, again);
-        if (d2.length) fail("redo", where, "after redo these parts differ from before the undo: " + d2.join(", "));
+        const d2 = diffSnap(changed, again).filter((k) => k !== "curiosities-engine-v1");
+        if (d2.length) fail("redo", where, "after redo these parts differ from before the undo: " + d2.join(", "), around(changed, again, d2));
       }
       /* Reload twice: nothing may change. */
       const before = await page.evaluate(SNAP_JS);
