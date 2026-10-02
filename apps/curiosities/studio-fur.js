@@ -117,9 +117,10 @@
       }
     }
     const nn = N * (S + 1);
-    const px = new Float32Array(nn), py = new Float32Array(nn), ox = new Float32Array(nn), oy = new Float32Array(nn);
+    const keep = sim && sim.N === N && sim.S === S && sim.form === s.form;
+    const px = keep ? sim.px : new Float32Array(nn), py = keep ? sim.py : new Float32Array(nn), ox = keep ? sim.ox : new Float32Array(nn), oy = keep ? sim.oy : new Float32Array(nn);
     sim = { N, S, L, roots, rest, seg, u, stray, restDX, restDY, px, py, ox, oy, form: s.form, key: s.form + s.furLength + N + s.frizz + s.curl + s.comb };
-    pose(true);
+    pose(!keep);
   }
 
   /* Body transform: a turn about the pivot plus an offset. */
@@ -465,7 +466,7 @@
       hairColor: s.melanin < 0.35 ? "light" : s.melanin < 0.7 ? "medium" : "dark",
       hairShine: shineW,
       furResponse: body && wind ? "both" : body ? "the body" : wind ? "wind" : "nothing",
-      furLag: clamp(lagBeats, 0, 4),
+      furLag: clamp(Math.max(lagBeats, wind && meas.trail > 0.1 ? 1 : 0), 0, 4),
       settleTime: meas.settleBeats == null ? null : clamp(meas.settleBeats, 0, 4),
       wetness: s.wetness,
       rim: s.rim,
@@ -481,7 +482,7 @@
       beat: prev ? prev.beat + 1 : 1,
       wet: s.wetness, clump: m.clump, rim: s.rim, glow: m.glow,
       moving: meas.moving, still: !meas.moving && meas.tipSpeed < 14,
-      wind: s.wind, lagging: m.furLag >= 1 || meas.trail > 0.1, m,
+      wind: s.wind, lagging: m.furLag >= 1, m,
     });
     if (log.length > 64) log.shift();
   }
@@ -519,6 +520,7 @@
         .fur-prox b.ok { color: #2f6b3a; } .fur-prox b.no { color: #b23a1e; } .fur-prox b.wait { color: #8a7a60; }
         .fur-table { width: 100%; }
         .fur-table td { word-break: break-word; }
+        .fur-auto { margin-left: 6px; font-size: 10px; padding: 1px 4px; }
       `;
       document.head.appendChild(style);
     }
@@ -562,13 +564,14 @@
         <p class="cap">Suites, one click:</p>
         <div class="bar-actions">${SUITES.map((x) => `<button type="button" data-suite="${x.id}" title="${esc(x.note)}">${esc(x.label)}</button>`).join("")}</div>
         <p id="fur-chips"></p>
+        <p class="cap">Click a chip to automate it, or open Automate.</p>
         <div id="fur-prox"></div>
         <table class="trace fur-table"><thead><tr><th>Measured</th><th>Now</th><th>How</th></tr></thead><tbody id="fur-table"></tbody></table>
         <div class="bar-actions" style="margin-top:8px">
           <button type="button" data-act="keep">Keep on Shelf</button>
           <button type="button" data-act="board">Send to board</button>
         </div>
-        <p class="cap">One beat is 0.25 s. Fur lag is the delay that best lines up the strand tips with the driver (the body when it moved in the last 1.5 s, else the wind gust), found by cross-correlation and rounded to beats. Settle time counts beats from the body stopping until the tips go still. Water soaks long hair slower, so soaked hair can take more than a beat to mat. The fur ids are not board controls; the board gets envMotion, characterPath and characterSpeed.</p>
+        <p class="cap">One beat is 0.25 s. Fur lag is the delay that best lines up the strand tips with the driver (the body when it moved in the last 1.5 s, else the wind gust), found by cross-correlation and rounded to beats; tips pushed downwind by more than 10% of their length also count as at least 1 beat behind. Settle time counts beats from the body stopping until the tips go still. Water soaks long hair slower, so soaked hair can take more than a beat to mat. The fur ids are not board controls; the board gets envMotion, characterPath and characterSpeed.</p>
       </div></div>`;
 
     function syncControls() {
@@ -710,7 +713,93 @@
       timer = requestAnimationFrame(tick);
     }
     panel();
+    listen(el, api, syncControls, changed);
     timer = requestAnimationFrame(tick);
+  }
+
+  /* ---------- automation: performable through CurioAuto (LFOs, MIDI straps) ---------- */
+  const MEL = { light: 0.2, medium: 0.5, dark: 0.85 };
+  const choice = (k) => (v) => (CHOICES[k].includes(v) ? v : null);
+  const num = (lo, hi) => (v) => (v === "" || v == null || isNaN(Number(v)) ? null : clamp(Math.round(Number(v)), lo, hi));
+  const AUTO = {
+    furLength: { k: "furLength", to: choice("furLength") },
+    clump: { k: "clump", to: choice("clump") },
+    frizz: { k: "frizz", to: num(0, 5) },
+    hairColor: { k: "melanin", to: (v) => (v in MEL ? MEL[v] : isNaN(Number(v)) ? null : clamp(Number(v), 0, 1)) },
+    hairShine: { k: "shine", to: choice("shine") },
+    wetness: { k: "wetness", to: choice("wetness") },
+    rim: { k: "rim", to: choice("rim") },
+    windForce: { k: "wind", to: num(0, 5) },
+  };
+  /* Catalog suites that touch fur, plus this tool's own presets if they are ever added to the catalog. */
+  const AUTO_SUITES = {
+    drenched: SUITES[0].set, backlit: SUITES[1].set, windblown: SUITES[2].set,
+    "wet-night": { wetness: "soaked", shine: "glossy" },
+    storm: { wind: 5, frizz: 4, sway: false },
+    "golden-hour": { rim: "strong" },
+  };
+  let autoOff = null, autoEl = null, autoSync = null, autoChanged = null;
+  const suiteOn = {};
+  let lastTrig = {};
+
+  function badge(host, k, on) {
+    const input = host.querySelector(`[data-k="${k}"]`);
+    const label = input && input.closest("label");
+    if (!label) return;
+    let b = label.querySelector(".fur-auto");
+    if (!b && on) {
+      b = document.createElement("span");
+      b.className = "chip lit fur-auto";
+      b.textContent = "automated";
+      label.insertBefore(b, label.firstChild.nextSibling);
+    }
+    if (b) b.hidden = !on;
+  }
+
+  function listen(el, api, sync, changed) {
+    autoEl = el; autoSync = sync; autoChanged = changed;
+    if (autoOff || !window.CurioAuto || !window.CurioAuto.on) return;
+    autoOff = window.CurioAuto.on((type, d) => {
+      const host = autoEl;
+      if (!host || !host.isConnected || !host.querySelector("#fur-canvas")) {
+        if (autoOff) autoOff();
+        autoOff = null;
+        return;
+      }
+      if (type !== "tick" || !d || !d.ms || !d.panels || !d.panels[0]) return;
+      const v0 = d.panels[0];
+      let dirty = false;
+      Object.entries(AUTO).forEach(([id, m]) => {
+        const on = d.ms["c:" + id] != null;
+        badge(host, m.k, on);
+        if (!on) return;
+        const v = m.to(v0[id]);
+        if (v == null || s[m.k] === v) return;
+        s[m.k] = v;
+        dirty = true;
+        const input = host.querySelector(`[data-k="${m.k}"]`);
+        if (input) input.value = v;
+        const lab = host.querySelector(`[data-v="${m.k}"]`);
+        if (lab) lab.textContent = v;
+      });
+      /* A rising gesture or rising impacts shakes / turns the body. */
+      ["gesture", "impacts"].forEach((id) => {
+        if (d.ms["c:" + id] == null) { lastTrig[id] = null; return; }
+        const raw = v0[id];
+        const dom = window.CurioAuto.PARAMS && window.CurioAuto.PARAMS.find((p) => p.key === "c:" + id);
+        const n = isNaN(Number(raw)) ? (dom && dom.domain && dom.domain.options ? dom.domain.options.indexOf(raw) : 0) : Number(raw);
+        if (lastTrig[id] != null && n > lastTrig[id]) clock.shakeT = clock.t;
+        lastTrig[id] = n;
+      });
+      /* Suite presets apply once as they turn on. */
+      Object.entries(AUTO_SUITES).forEach(([sid, set]) => {
+        const m = d.ms["s:" + sid];
+        const now = m != null && m >= 0.5;
+        if (now && !suiteOn[sid]) { Object.assign(s, set); autoSync(); dirty = true; }
+        suiteOn[sid] = now;
+      });
+      if (dirty) autoChanged();
+    });
   }
 
   window.CuriosityStudio.register({ id: "fur", label: "Fur & hair", order: 52, maya: "XGen Interactive Groom (length, clumping, noise/frizz, curl, cut), nHair dynamics, Arnold Standard Hair (melanin, roughness, specular)", draw });
