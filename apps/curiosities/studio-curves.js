@@ -576,6 +576,7 @@
         <p class="cap cv-legend">Thick pale line: what plays (warp, layer and driven key included). Dark line: the keys you edit. Dashed beyond the keys: infinity. Dashed ghost: buffer.</p>
         <div class="g">Dope Sheet</div>
         ${dopeSvg()}
+        ${proxHtml()}
         <div class="bar-actions cv-play">
           <button type="button" data-act="play">${play ? "Stop" : "Play"}</button>
           <label class="field cv-small">BPM<input type="number" id="cv-bpm" min="20" max="300" value="${S.bpm}"></label>
@@ -609,7 +610,7 @@
 
         <div class="g">Send to board</div>
         <p class="cap">${live.length ? `Samples ${esc(live.map((id) => def(id).label).join(", "))} at each board panel.` : "None of these curves is a board control."}${notLive.length ? ` Not on the board: ${esc(notLive.map((id) => def(id).label).join(", "))}.` : ""}</p>
-        <div class="bar-actions"><button type="button" data-act="send"${live.length ? "" : " disabled"}>Send to board</button><span class="mono" id="cv-preview">${esc(preview())}</span></div>
+        <div class="bar-actions"><button type="button" data-act="send"${live.length ? "" : " disabled"}>Send to board</button><button type="button" data-act="shelf"${S.sel.length ? "" : " disabled"}>Keep on Shelf</button><span class="mono" id="cv-preview">${esc(preview())}</span></div>
       </div>
     </div>`;
     bind();
@@ -641,6 +642,61 @@
       out[id] = vals;
     });
     return out;
+  }
+
+  /* Every animated curiosity, one snapped value per beat, for the Shelf and the proximity check. */
+  function beatValues() {
+    const out = {};
+    S.sel.forEach((id) => {
+      const vals = [];
+      for (let b = 1; b <= S.beats; b++) {
+        const v = finalValue(id, b);
+        vals.push(snapValue(id, v == null ? def(id).min : v));
+      }
+      out[id] = vals;
+    });
+    return out;
+  }
+
+  /* Does one side of a proximity happen at beat index i? "is" matches a value; "change" compares with the beat before. */
+  function sideAt(side, vals, i) {
+    const v = vals[i];
+    if (side.is != null) return String(v) === String(side.is);
+    if (i === 0 || !side.change) return false;
+    const d = def(side.curiosity);
+    const num = (x) => (d && d.choice ? d.options.indexOf(x) : Number(x));
+    const a = num(vals[i - 1]);
+    const b = num(v);
+    if (side.change === "rises" || side.change === "grows") return b > a;
+    if (side.change === "drops" || side.change === "falls") return b < a;
+    return b !== a;
+  }
+
+  function proxHtml() {
+    const list = typeof PROXIMITIES !== "undefined" ? PROXIMITIES : [];
+    const mine = list.filter((p) => p.x && p.y && p.x.curiosity && p.y.curiosity && S.sel.includes(p.x.curiosity) && S.sel.includes(p.y.curiosity));
+    if (!mine.length) return `<p class="cap cv-legend">Proximities: animate both sides of one (for example volume and moveSpeed) to see where it holds.</p>`;
+    const vals = beatValues();
+    const rows = mine
+      .map((p) => {
+        const xs = vals[p.x.curiosity];
+        const ys = vals[p.y.curiosity];
+        let fired = 0;
+        let held = 0;
+        const ticks = xs
+          .map((_, i) => {
+            if (!sideAt(p.x, xs, i)) return `<i class="cv-t off" title="beat ${i + 1}">·</i>`;
+            fired++;
+            let ok = false;
+            for (let j = i; j <= Math.min(xs.length - 1, i + (p.within || 0)); j++) if (sideAt(p.y, ys, j)) ok = true;
+            if (ok) held++;
+            return `<i class="cv-t ${ok ? "yes" : "no"}" title="beat ${i + 1}: ${ok ? "held" : "did not follow"}">${ok ? "✓" : "✗"}</i>`;
+          })
+          .join("");
+        return `<div class="cv-prox"><span class="cap">When ${esc(p.when)}, ${esc(p.then)} within ${p.within} beat${p.within === 1 ? "" : "s"}. <span class="mono">${held}/${fired}</span></span><span class="cv-ticks">${ticks}</span></div>`;
+      })
+      .join("");
+    return `<div class="g">Proximities</div>${rows}`;
   }
 
   function preview() {
@@ -846,6 +902,11 @@
     else if (a === "learn") {
       src.learn = !src.learn;
       if (!src.midiOn) midi();
+    } else if (a === "shelf") {
+      stop();
+      const v = beatValues();
+      if (Object.keys(v).length && api.toShelf) api.toShelf(`Curves: ${S.sel.map((id) => def(id).label).join(", ")}`, v);
+      return;
     } else if (a === "send") {
       stop();
       const v = boardValues();
@@ -1164,6 +1225,19 @@
 .cv-rec.on { background: var(--saffron); color: white; border-color: var(--saffron); }
 .cv-legend { font-size: 12px; margin: 4px 0 0; }
 #cv-preview { font-size: 11px; overflow-wrap: anywhere; }
+.cv-prox { display: grid; gap: 2px; margin: 0 0 8px; }
+.cv-ticks { display: flex; flex-wrap: wrap; gap: 2px; }
+.cv-t { font-style: normal; font-family: var(--mono); font-size: 11px; width: 16px; height: 16px; line-height: 16px; text-align: center; border: 1px solid var(--line); background: white; }
+.cv-t.off { color: #b8aea2; }
+.cv-t.yes { background: #2f6b3a; border-color: #2f6b3a; color: white; }
+.cv-t.no { background: rgba(196, 92, 38, 0.15); border-color: var(--saffron); color: var(--saffron); }
+.cv, .cv * { box-sizing: border-box; }
+.cv { max-width: 100%; overflow-wrap: anywhere; }
+.cv select, .cv input:not([type="checkbox"]) { max-width: 100%; min-width: 0; }
+.cv-side label.field select, .cv-side label.field input { width: 100%; }
+.cv .bar-actions > * { max-width: 100%; }
+.cv table.trace { table-layout: fixed; width: 100%; }
+@media (max-width: 480px) { .cv-small { flex: 1 1 40%; min-width: 0; } .cv-graph { border-width: 1px; } }
 `;
     document.head.appendChild(st);
   }
