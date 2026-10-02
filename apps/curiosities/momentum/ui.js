@@ -783,8 +783,20 @@
       open();
     });
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireMenu);
-  else wireMenu();
+  /* When the engine offers bands under its timeline (requested: CurioEngineUI.addBand), show the Attention
+     and Cue lanes there too. */
+  function wireEngineBand() {
+    const U = window.CurioEngineUI;
+    if (!U || typeof U.addBand !== "function" || U.__momentumBand || !ME()) return;
+    U.__momentumBand = true;
+    U.addBand(() => (ME().available() ? ME().band({ secondsPerBeat: prefs.secondsPerPanel, limit: limit() }) : null));
+  }
+  function wireAll() {
+    wireMenu();
+    wireEngineBand();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireAll);
+  else wireAll();
 
   window.CurioMomentumUI = { open, close, mount, noteHtml, mountNote, draw };
 })();
