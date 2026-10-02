@@ -612,6 +612,71 @@
   prox("loop-match", "When the end loops into the start, the cut matches movement", "transitions", { curiosity: "loopEnding", is: "seamless loop" }, { curiosity: "matchCut", is: "movement" }, 0, ["structure"]);
   ps("questions-pull-forward", "Questions pull the audience forward", "plot", "Cliffhangers and opening questions open questions the audience carries forward, and a running clock speeds the cutting.", ["cliffhanger-questions", "grab-question", "seconds-fast-cuts"]);
 
+  /* ---------- Final Cut Pro's own (the Screen's ADVANCED tab) ----------
+     Jeremy, 2026-10-02 20:21Z: "keep the features of Final Cut Pro and hide them under a tab that says ADVANCED
+     and then focus on the features of CapCut". These are Final Cut Pro features CapCut has no match for
+     (multicam p.443, color wheels and curves p.480, roles p.519, connected storylines p.150, compound clips
+     p.425, optical flow p.565, Cinematic mode p.385). Tagged "advanced": the Screen keeps them out of the
+     main category grids and lists them under ADVANCED. */
+  const FCP = "Final Cut Pro";
+  function cA(id, label, workspace, plain, sliders, m) {
+    const row = DB.curiosity({ id, label, plain, workspace, group: "Editing (" + FCP + ")", kind: "measure", main: "setting", sliders: sliders.concat(SHARED(m[0])), source: FCP, tags: ["editing", "final-cut-pro", "advanced"] });
+    if (row && !row.momentum) row.momentum = { push: m[0], plot: m[1], theme: m[2], pull: m[3], cue: m[4], tryThis: m[5] };
+  }
+  const HUES = ["neutral", "cool blue", "teal", "green", "warm orange", "magenta"];
+  cA("multicamSwitch", "Multicam angle switching", "structure", "Several cameras film the same moment at once, and the edit switches between them live (Final Cut's multicam clips).", [
+    S("Switching", ["one angle", "switch on the speaker", "switch on reactions", "switch on the beat", "switch freely"], "What decides when the picture jumps to another camera.", { unordered: true }),
+    ["angles", "Cameras filming at once", [2, 16, "", 1], "How many angles there are to switch between."],
+    ["rate", "Switches per minute", [0, 30, "", 1], "How often the picture changes camera."],
+    ["soundFrom", "Sound from", ["one angle", "the angle shown", "a separate recorder"], "Where the sound comes from while the picture switches.", { unordered: true }],
+  ], [2, "Switching to whoever matters keeps the audience on the person the story is about right now.", "Staying on one angle while the others talk says who the scene really belongs to.", "Every switch is a small jolt that renews attention.", "visual", "Hold on the listener while the speaker says the important line."]);
+  cA("colorWheels", "Color wheels", "grade", "Pushing a color into the shadows, the midtones or the highlights separately (Final Cut's color wheels).", [
+    S("Wheel pushed", ["none", "shadows", "midtones", "highlights", "all three"], "Which part of the picture gets a color push.", { unordered: true }),
+    ["shadowHue", "Shadow color", HUES, "The color laid into the dark parts.", { unordered: true }],
+    ["highlightHue", "Highlight color", HUES, "The color laid into the bright parts.", { unordered: true }],
+    ["strength", "Strength", [0, 100, "%"], "How strong the push is."],
+  ], [1, "A shift in the shadows' color can tell the audience the story has turned before anyone says so.", "Cool shadows and warm faces is the look of a film about people warmer than their world.", "Color the eye didn't expect pulls it to the part of the frame that changed.", "visual", "Turn the shadows cold the moment the secret comes out."]);
+  cA("colorCurves", "Color curves", "grade", "Bending the brightness or one color channel with a curve (Final Cut's color curves and hue/saturation curves).", [
+    S("Curve shape", ["flat", "gentle S", "strong S", "faded blacks", "crushed blacks", "inverted"], "The shape bent into the picture's brightness.", { unordered: true }),
+    ["channel", "Channel", ["all", "red", "green", "blue", "hue vs saturation"], "Which part of the color the curve bends.", { unordered: true }],
+    ["amount", "Amount", [0, 100, "%"], "How far the curve bends."],
+  ], [1, "A strong curve hardens a scene as it gets serious.", "Faded blacks read as memory or nostalgia.", "Contrast pulls the eye to the brightest face.", "visual", "Fade the blacks for the flashback, then crush them when you come back."]);
+  cA("soundRoles", "Sound roles", "audio-mix", "Every sound is tagged as dialogue, music, effects or ambience, and each group is balanced as one (Final Cut's roles).", [
+    S("Leading role", ["dialogue", "music", "effects", "ambience"], "Which group of sounds leads the mix here.", { unordered: true }),
+    ["dialogue", "Dialogue level", [0, 100, "%"], "How loud the voices sit."],
+    ["music", "Music level", [0, 100, "%"], "How loud the music sits."],
+    ["effects", "Effects level", [0, 100, "%"], "How loud the sound effects sit."],
+  ], [2, "Letting music lead over the voices tells the audience the feeling matters more than the words now.", "Ambience leading makes the place a character.", "Whatever leads the mix is what the ear follows.", "audio", "Drop the dialogue under the music for the one line nobody should hear."]);
+  cA("sideStoryline", "Side storyline", "layers", "A run of clips riding above the main story: cutaways, a montage under a speech, a second story told at the same time (Final Cut's connected storylines).", [
+    S("Side storyline", ["none", "a few cutaways", "a running montage", "a second story"], "How much is told above the main story."),
+    ["share", "Share of screen time", [0, 100, "%"], "How much of the time the side storyline holds the screen."],
+    ["tiedTo", "Tied to", ["the words", "the music", "its own timing"], "What the side clips are cut to.", { unordered: true }],
+  ], [3, "A second story under the first lets two plot lines move forward at once.", "Cutting to the side story on a key word makes the two comment on each other.", "Cutaways give the eye something new while the ear keeps the thread.", "plot", "Lay the heist under the toast at the wedding."]);
+  cA("nestedScene", "Nested scene", "structure", "A group of shots packed into one piece that moves, repeats and changes as a unit (Final Cut's compound clips).", [
+    S("Nesting", ["none", "a group of shots", "a whole sequence", "a scene inside a scene"], "How much is packed into one piece."),
+    ["reuse", "Used again", ["once", "twice", "as a motif"], "Whether the packed piece comes back."],
+  ], [2, "A sequence that comes back unchanged tells the audience something has, or hasn't, changed around it.", "A repeated piece becomes a motif the film can lean on.", "A familiar sequence returning makes the audience compare.", "thought", "Repeat the morning routine sequence, then break it at the end."]);
+  cA("retimeQuality", "Slow motion quality", "speed", "How the in-between frames of slow motion are made: repeated, blended, or invented (Final Cut's frame sampling, frame blending and optical flow).", [
+    S("Frames made by", ["repeating frames", "frame blending", "optical flow"], "How smooth slowed-down footage looks."),
+    ["smoothness", "Smoothness", [0, 5, "", 1], "How fluid the slow motion feels."],
+  ], [1, "Smooth slow motion stretches a moment the story wants remembered.", "Stuttering slow motion feels raw and real; silky slow motion feels like a dream.", "Silky motion holds the eye on the moment.", "movement", "Use stuttering slow motion for the fall and silky for the catch."]);
+  cA("editFocus", "Focus changed in the edit", "canvas", "Moving the focus after filming, from one person or thing to another (Final Cut's Cinematic mode editing).", [
+    S("Focus", ["as filmed", "pull to the speaker", "pull to the listener", "pull to an object", "rack back and forth"], "Where the focus goes.", { unordered: true }),
+    ["blur", "Background blur", [0, 100, "%"], "How soft everything out of focus gets."],
+    ["pullSpeed", "Pull speed", ["snap", "quick", "slow"], "How fast the focus moves."],
+  ], [2, "Pulling focus to an object tells the audience it will matter.", "Focus on the listener says the reaction is the story.", "The eye goes wherever the focus lands.", "visual", "Pull focus to the gun on the table, then back to the smile."]);
+  [
+    DB.suite({ id: "final-cut-finish", label: "Final Cut finishing pass", plain: "A pro finishing pass: warm highlights on the wheels, a gentle S curve, dialogue leading the mix, and silky slow motion.", workspace: "grade", source: FCP, tags: ["advanced"], members: [
+      { curiosity: "colorWheels", value: "highlights" },
+      { curiosity: "colorCurves", value: "gentle S" },
+      { curiosity: "soundRoles", value: "dialogue" },
+      { curiosity: "retimeQuality", value: "optical flow" },
+    ] }),
+    DB.proximity({ id: "speaker-angle-dialogue", label: "When the multicam switches on the speaker, dialogue leads the mix", plain: "When the multicam switches on the speaker, dialogue leads the mix at once.", workspace: "audio-mix", also: ["structure"], when: { curiosity: "multicamSwitch", is: "switch on the speaker" }, then: { curiosity: "soundRoles", is: "dialogue" }, within: 0, source: FCP, tags: ["advanced"] }),
+    DB.proximity({ id: "montage-music-leads", label: "When a running montage rides above the story, the music leads", plain: "When a running montage rides above the story, the music leads at once.", workspace: "audio-mix", also: ["layers"], when: { curiosity: "sideStoryline", is: "a running montage" }, then: { curiosity: "soundRoles", is: "music" }, within: 0, source: FCP, tags: ["advanced"] }),
+    DB.proximity({ id: "object-focus-push", label: "When the focus pulls to an object, the shadows turn", plain: "When the focus pulls to an object, the shadow color changes within 1 beat.", workspace: "grade", also: ["canvas"], when: { curiosity: "editFocus", is: "pull to an object" }, then: { curiosity: "colorWheels", change: "changes" }, within: 1, source: FCP, tags: ["advanced"] }),
+  ];
+
   /* Loaded after the app's install(): refresh the links the engine reads, so these proximities can be added. */
   if (typeof window !== "undefined" && window.CURIOSITY_LINKS && typeof DB.links === "function") window.CURIOSITY_LINKS = DB.links();
 })(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));
