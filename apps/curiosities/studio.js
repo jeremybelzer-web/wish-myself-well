@@ -112,5 +112,18 @@
     },
     draw,
     api,
+    /* Open one tool by id, e.g. from the Manual's "Open" buttons. */
+    open(id) {
+      current = id;
+      try {
+        localStorage.setItem(VIEW_KEY, current);
+      } catch (e) {}
+      draw();
+      root.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    label(id) {
+      const m = modules.find((x) => x.id === id);
+      return m ? m.label : "";
+    },
   };
 })();

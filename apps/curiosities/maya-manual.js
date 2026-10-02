@@ -54,6 +54,7 @@ window.MAYA_MANUAL = {
   "https://help.autodesk.com/view/ARNOL/ENU/?guid=arnold_for_maya_am_Lights_html",
   "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
  ],
+ "gaps": [],
  "topics": [
   {
    "id": "camera-animation",

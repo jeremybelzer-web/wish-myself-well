@@ -5,8 +5,8 @@
 
 (function () {
   if (!window.CuriosityStudio) return;
-  const FIT = { build: "Built or to build", partial: "Partly built", curiosity: "Curiosity only", skip: "Skip" };
-  const view = { q: "", manual: "", area: "", weight: "", fit: "", keep: "", open: "" };
+  const FIT = { build: "To build", partial: "Partly built", curiosity: "Curiosity only", skip: "Skip" };
+  const view = { built: "", q: "", manual: "", area: "", weight: "", fit: "", keep: "", open: "" };
 
   function draw(el, api) {
     const esc = api.esc;
@@ -25,6 +25,7 @@
       if (view.weight && t.weight !== view.weight) return false;
       if (view.fit && t.fit !== view.fit) return false;
       if (view.keep && callOf(t) !== view.keep) return false;
+      if (view.built && (t.built || "no") !== view.built) return false;
       if (view.q) {
         const hay = JSON.stringify(t).toLowerCase();
         if (!hay.includes(view.q.toLowerCase())) return false;
@@ -40,14 +41,15 @@
 
     el.innerHTML = `
       <p class="cap">${data.length} topics: ${count((t) => t.weight === "major")} major, ${count((t) => t.weight === "minor")} minor.
-        ${count((t) => t.fit === "build")} get working tools, ${count((t) => t.fit === "partial")} partly, ${count((t) => t.fit === "curiosity")} become curiosities only, ${count((t) => t.fit === "skip")} are skipped.
+        ${count((t) => t.built === "yes")} are built in a Studio tool and ${count((t) => t.built === "partly")} partly; by fit, ${count((t) => t.fit === "build")} call for tools, ${count((t) => t.fit === "partial")} partly, ${count((t) => t.fit === "curiosity")} become curiosities only, ${count((t) => t.fit === "skip")} are skipped.
         Pages read: ${esc((window.MAYA_MANUAL.sources || []).length)}. Change any keep or skip call; it is saved here.</p>
       <div class="study-bar">
         <label class="field">Search<input type="search" data-f="q" value="${esc(view.q)}" placeholder="lens, tangent, toon…" /></label>
         ${sel("manual", "Manual", opts("manual"))}
         ${sel("area", "Area", opts("area"))}
         ${sel("weight", "Weight", ["major", "minor"])}
-        ${sel("fit", "In the app", Object.keys(FIT), FIT)}
+        ${sel("fit", "Fit", Object.keys(FIT), FIT)}
+        <label class="field">Built<select data-f="built"><option value="">All</option><option value="yes" ${view.built === "yes" ? "selected" : ""}>Built</option><option value="partly" ${view.built === "partly" ? "selected" : ""}>Partly</option><option value="no" ${view.built === "no" ? "selected" : ""}>Not yet</option></select></label>
         ${sel("keep", "Call", ["keep", "skip"])}
         <div class="bar-actions"><button type="button" data-act="export">Export my calls</button><button type="button" data-act="reset">Clear my calls</button></div>
       </div>
@@ -60,6 +62,7 @@
           const detail = open
             ? `<tr class="picked"><td colspan="5">
                 <p>${esc(t.appDoes || "")}</p>
+                ${t.toolDoes ? `<p><strong>Built:</strong> ${esc(t.toolDoes)}</p>` : ""}
                 ${t.granularity && t.granularity.length ? `<p class="cap">Parts: ${t.granularity.map(esc).join(" · ")}</p>` : ""}
                 ${(t.curiosities || []).length ? `<p>${t.curiosities.map((id) => `<span class="chip">${esc(id)}</span>`).join(" ")}</p>` : ""}
                 ${(t.newCuriosities || []).length ? `<p class="cap">New curiosities: ${t.newCuriosities.map((n) => `<strong>${esc(n.label)}</strong> (${esc(n.values)})`).join("; ")}</p>` : ""}
@@ -74,7 +77,7 @@
                 <p class="cap">For: ${esc((t.audience || []).join(", "))}. Why ${esc(t.keep)}: ${esc(t.reason || "")}. Source: ${esc(t.source || "")}</p>
               </td></tr>`
             : "";
-          return `<tr><td><button type="button" class="linkish" data-open="${esc(t.id)}">${open ? "▾" : "▸"} ${esc(t.topic)}</button></td><td class="cap">${esc(t.manual === "Maya" ? t.area : "Arnold · " + t.area)}</td><td>${esc(t.weight)}</td><td>${esc(FIT[t.fit] || t.fit)}</td>
+          return `<tr><td><button type="button" class="linkish" data-open="${esc(t.id)}">${open ? "▾" : "▸"} ${esc(t.topic)}</button></td><td class="cap">${esc(t.manual === "Maya" ? t.area : "Arnold · " + t.area)}</td><td>${esc(t.weight)}</td><td>${t.tool && window.CuriosityStudio.label(t.tool) ? `<button type="button" data-tool="${esc(t.tool)}">${t.built === "partly" ? "Partly in" : "In"} ${esc(window.CuriosityStudio.label(t.tool))}</button>` : esc(FIT[t.fit] || t.fit)}</td>
             <td><select data-call="${esc(t.id)}"><option value="keep" ${c === "keep" ? "selected" : ""}>keep</option><option value="skip" ${c === "skip" ? "selected" : ""}>skip</option></select>${mine[t.id] ? " ✎" : ""}</td></tr>${detail}`;
         })
         .join("")}
@@ -86,6 +89,7 @@
         draw(el, api);
       })
     );
+    el.querySelectorAll("[data-tool]").forEach((b) => b.addEventListener("click", () => window.CuriosityStudio.open(b.dataset.tool)));
     el.querySelectorAll("[data-open]").forEach((b) =>
       b.addEventListener("click", () => {
         view.open = view.open === b.dataset.open ? "" : b.dataset.open;

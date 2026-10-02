@@ -87,8 +87,7 @@
 
   function field(x, y, t, resp) {
     const a = (s.windDir * Math.PI) / 180;
-    const gust = 1 + sim.gust * 2.5;
-    const w = s.wind * 40 * gust;
+    const w = (s.wind * (1 + sim.gust * 1.5) + sim.gust * 3) * 40;
     const tu = s.turb * 45;
     return {
       x: (Math.cos(a) * w + tu * noise(x, y, t)) * resp,
@@ -298,7 +297,7 @@
     const cs = clothSpeed();
     sim.energy.push({ t, box: keN, cloth: cs });
     if (sim.energy.length > 600) sim.energy.shift();
-    if (!sim.settled && sim.lastHit >= 0 && sim.boxes.every((b) => Math.hypot(b.vx, b.vy) < 8) && t - sim.lastHit > 0.1) {
+    if (!sim.settled && sim.lastHit >= 0 && sim.boxes.every((b) => Math.hypot(b.vx, b.vy) < 15) && t - sim.lastHit > 0.1) {
       sim.settled = true;
       sim.settles.push({ t, sec: t - sim.lastHit, clothAt: cs });
       if (sim.settles.length > 20) sim.settles.shift();
