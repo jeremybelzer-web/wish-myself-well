@@ -721,7 +721,7 @@
 .lv-meter span { position: absolute; right: 4px; top: 0; font-size: 10px; line-height: 12px; }
 .lv-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 0 8px; align-items: end; }
 .lv-opts label.field { margin: 0 0 6px; min-width: 0; }
-.lv-opts input, .lv-opts select { width: 100%; }
+.lv-opts input:not([type=checkbox]):not([type=radio]), .lv-opts select { width: 100%; }
 .lv-inv { margin: 0 0 8px; }
 .lv-range { font-size: 12px; }
 .lv-prox { font-size: 13px; margin: 0 0 4px; }

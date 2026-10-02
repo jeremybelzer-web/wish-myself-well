@@ -1350,6 +1350,8 @@
       if (!el) return null;
       o = o || {};
       el.classList.add("prism-view", "pr-mounted");
+      /* Forget Prisms whose element left the page (their workspace was drawn again), so the old page can be freed. */
+      instances.forEach((x, k) => k.isConnected || instances.delete(k));
       const inst = Prism(el, { curiosities: o.curiosities, title: o.title, mounted: true });
       instances.set(el, inst);
       inst.draw();

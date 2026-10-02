@@ -17,6 +17,9 @@
     "engine/host.js",
     "engine/fake-host.js",
     "engine/seeds.js",
-    "engine/analyze.js"
+    "engine/analyze.js",
+    "momentum/notes.js",
+    "momentum/attention.js",
+    "momentum/rates.js"
   ]
 }
