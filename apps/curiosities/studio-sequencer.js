@@ -597,6 +597,7 @@
       }
     }
     tick(false);
+    if (!player.on) return;
     player.raf = requestAnimationFrame(loop);
   }
 

@@ -897,7 +897,7 @@
         const step = (t) => {
           if (!playing) return;
           if (!view.isConnected || (studio && studio.classList.contains("hidden"))) return stop(true);
-          const el_ = (t - t0) / BEAT;
+          const el_ = Math.max(0, (t - t0) / BEAT);
           const i = Math.floor(el_);
           if (i >= beats.length) return stop();
           const u = el_ - i;
