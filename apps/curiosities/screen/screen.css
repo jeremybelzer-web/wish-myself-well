@@ -148,3 +148,4 @@ html.sc-open, html.sc-open body { overflow: hidden; }
   .sc-close { margin-left: 0; }
 }
 .sc-page .sc-wins { font-size: 11px; padding: 0 6px; border-width: 1px; margin-left: 4px; }
+@media (max-width: 600px) { .tabs-top .sc-open-btn { display: none; } }

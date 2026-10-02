@@ -925,11 +925,22 @@
     }
     const menu = document.getElementById("lib-menu");
     if (menu && !menu.querySelector("[data-screen]")) {
+      /* On a phone the bar has no room for the Screen button (screen.css hides it), so the Library opens it. */
+      const s = document.createElement("button");
+      s.type = "button";
+      s.dataset.screen = "screen";
+      s.innerHTML = "Screen<small>films side by side, the inspector, the timeline</small>";
+      menu.insertBefore(s, menu.firstChild);
+      s.addEventListener("click", () => {
+        menu.hidden = true;
+        prefs.view = "screen";
+        open();
+      });
       const b = document.createElement("button");
       b.type = "button";
       b.dataset.screen = "arrange";
       b.innerHTML = "Arrange<small>every curiosity as a track, left to right</small>";
-      menu.insertBefore(b, menu.firstChild);
+      menu.insertBefore(b, s.nextSibling);
       b.addEventListener("click", () => {
         menu.hidden = true;
         prefs.view = "arrange";
