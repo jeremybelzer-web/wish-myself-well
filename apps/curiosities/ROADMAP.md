@@ -45,7 +45,7 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
 Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 suites, 87 proximities,
-20 proximity suites and 2,742 sliders, across 25 workspaces, plus 8 model scenes.
+20 proximity suites and 2,696 sliders, across 25 workspaces, plus 8 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -91,7 +91,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 
 - [x] Trigger any item on and off from a key, a button or a MIDI note
 - [x] Move any slider with a knob, an LFO or a MIDI control, and send it out to VCV Rack
-- [ ] Every new database slider shows up as an automation lane
+- [ ] Every database item shows up as an automation lane. Done for all 279 curiosities, 121 suites and 87 proximities (tested). The 15 new proximity suites need one line in automation.js (sent to the app thread)
 - [ ] Wearable MIDI (straps, gloves) presets for performers
 - [ ] Pads and keyboards: a ready layout of the most used curiosities
 

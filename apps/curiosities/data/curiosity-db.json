@@ -40033,7 +40033,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40129,7 +40129,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40225,7 +40225,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40236,20 +40236,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -40321,7 +40307,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40332,20 +40318,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -40417,7 +40389,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40513,7 +40485,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40609,7 +40581,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40705,7 +40677,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40716,20 +40688,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -40801,7 +40759,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40895,7 +40853,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -40906,20 +40864,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -40991,7 +40935,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41002,20 +40946,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -41087,7 +41017,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41098,20 +41028,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -41179,7 +41095,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41190,20 +41106,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -41271,7 +41173,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41282,20 +41184,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -41363,7 +41251,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41374,20 +41262,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -41457,7 +41331,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41468,20 +41342,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -41551,7 +41411,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41647,7 +41507,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41741,7 +41601,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41835,7 +41695,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -41929,7 +41789,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42023,7 +41883,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42117,7 +41977,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42213,7 +42073,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42307,7 +42167,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42318,20 +42178,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -42401,7 +42247,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42495,7 +42341,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42591,7 +42437,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42688,7 +42534,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42785,7 +42631,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42880,7 +42726,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -42891,20 +42737,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -42977,7 +42809,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43074,7 +42906,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43169,7 +43001,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43264,7 +43096,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43275,20 +43107,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -43359,7 +43177,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43454,7 +43272,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43465,20 +43283,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -43550,7 +43354,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43561,20 +43365,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -43646,7 +43436,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43742,7 +43532,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43838,7 +43628,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -43934,7 +43724,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44032,7 +43822,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44128,7 +43918,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44139,20 +43929,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -44225,7 +44001,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44236,20 +44012,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -44323,7 +44085,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44418,7 +44180,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44514,7 +44276,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44610,7 +44372,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44706,7 +44468,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44801,7 +44563,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44897,7 +44659,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -44908,20 +44670,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -44995,7 +44743,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45093,7 +44841,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45104,20 +44852,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -45188,7 +44922,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45199,20 +44933,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -45285,7 +45005,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45296,20 +45016,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -45381,7 +45087,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45478,7 +45184,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45576,7 +45282,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45672,7 +45378,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45683,20 +45389,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -45768,7 +45460,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45779,20 +45471,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -45864,7 +45542,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45961,7 +45639,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -45972,20 +45650,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -46057,7 +45721,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46154,7 +45818,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46165,20 +45829,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -46251,7 +45901,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46346,7 +45996,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46357,20 +46007,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -46444,7 +46080,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46455,20 +46091,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -46541,7 +46163,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46552,20 +46174,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -46637,7 +46245,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46648,20 +46256,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -46733,7 +46327,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46744,20 +46338,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -46829,7 +46409,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46840,20 +46420,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -46925,7 +46491,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -46936,20 +46502,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47021,7 +46573,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47032,20 +46584,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47117,7 +46655,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47128,20 +46666,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47213,7 +46737,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47224,20 +46748,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47309,7 +46819,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47320,20 +46830,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47405,7 +46901,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47416,20 +46912,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47501,7 +46983,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47512,20 +46994,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47597,7 +47065,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47608,20 +47076,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47693,7 +47147,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47704,20 +47158,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47789,7 +47229,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47800,20 +47240,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47885,7 +47311,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47896,20 +47322,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -47981,7 +47393,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -47992,20 +47404,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -48077,7 +47475,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -48088,20 +47486,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -48173,7 +47557,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -48184,20 +47568,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -48269,7 +47639,7 @@
      "curve": "linear"
     },
     {
-     "id": "often",
+     "id": "chance",
      "label": "How often",
      "plain": "How often the effect follows the cause.",
      "range": {
@@ -48280,20 +47650,6 @@
      },
      "from": 70,
      "to": 100,
-     "curve": "linear"
-    },
-    {
-     "id": "effect",
-     "label": "Effect size",
-     "plain": "How big the effect is when it follows.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 2,
-     "to": 5,
      "curve": "linear"
     },
     {
@@ -48361,7 +47717,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:handheld-gesture",
+     "id": "chance:handheld-gesture",
      "label": "How often handheld-gesture",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48389,7 +47745,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:approach-push",
+     "id": "chance:approach-push",
      "label": "How often approach-push",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48417,7 +47773,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:object-insert-prox",
+     "id": "chance:object-insert-prox",
      "label": "How often object-insert-prox",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48492,7 +47848,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:emotion-angle",
+     "id": "chance:emotion-angle",
      "label": "How often emotion-angle",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48520,7 +47876,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:emotion-temper",
+     "id": "chance:emotion-temper",
      "label": "How often emotion-temper",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48595,7 +47951,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:close-quiet",
+     "id": "chance:close-quiet",
      "label": "How often close-quiet",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48623,7 +47979,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:volume-speed",
+     "id": "chance:volume-speed",
      "label": "How often volume-speed",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48699,7 +48055,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:rain-wet",
+     "id": "chance:rain-wet",
      "label": "How often rain-wet",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48727,7 +48083,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:toon-line",
+     "id": "chance:toon-line",
      "label": "How often toon-line",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48755,7 +48111,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:impact-shake",
+     "id": "chance:impact-shake",
      "label": "How often impact-shake",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48833,7 +48189,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:build-drop",
+     "id": "chance:build-drop",
      "label": "How often build-drop",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48861,7 +48217,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:aggressive-quiet",
+     "id": "chance:aggressive-quiet",
      "label": "How often aggressive-quiet",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48889,7 +48245,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:storm-room",
+     "id": "chance:storm-room",
      "label": "How often storm-room",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48917,7 +48273,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:tension-silence",
+     "id": "chance:tension-silence",
      "label": "How often tension-silence",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -48945,7 +48301,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:energy-hold",
+     "id": "chance:energy-hold",
      "label": "How often energy-hold",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49020,7 +48376,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:tempo-cuts",
+     "id": "chance:tempo-cuts",
      "label": "How often tempo-cuts",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49048,7 +48404,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:needle-slowmo",
+     "id": "chance:needle-slowmo",
      "label": "How often needle-slowmo",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49076,7 +48432,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:build-to-silence",
+     "id": "chance:build-to-silence",
      "label": "How often build-to-silence",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49151,7 +48507,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:music-cut-line",
+     "id": "chance:music-cut-line",
      "label": "How often music-cut-line",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49179,7 +48535,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:silence-reveal",
+     "id": "chance:silence-reveal",
      "label": "How often silence-reveal",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49207,7 +48563,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:silence-closeup",
+     "id": "chance:silence-closeup",
      "label": "How often silence-closeup",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49283,7 +48639,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:feeling-shows-face-first",
+     "id": "chance:feeling-shows-face-first",
      "label": "How often feeling-shows-face-first",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49311,7 +48667,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:fear-still",
+     "id": "chance:fear-still",
      "label": "How often fear-still",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49339,7 +48695,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:anger-louder",
+     "id": "chance:anger-louder",
      "label": "How often anger-louder",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49367,7 +48723,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:intensity-moves",
+     "id": "chance:intensity-moves",
      "label": "How often intensity-moves",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49442,7 +48798,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:tension-release",
+     "id": "chance:tension-release",
      "label": "How often tension-release",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49470,7 +48826,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:low-then-laugh",
+     "id": "chance:low-then-laugh",
      "label": "How often low-then-laugh",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49498,7 +48854,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:lowpoint-turn",
+     "id": "chance:lowpoint-turn",
      "label": "How often lowpoint-turn",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49575,7 +48931,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:contagion-spreads",
+     "id": "chance:contagion-spreads",
      "label": "How often contagion-spreads",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49603,7 +48959,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:joy-light-warms",
+     "id": "chance:joy-light-warms",
      "label": "How often joy-light-warms",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49631,7 +48987,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:hidden-then-burst",
+     "id": "chance:hidden-then-burst",
      "label": "How often hidden-then-burst",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49659,7 +49015,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:light-mood-intensity",
+     "id": "chance:light-mood-intensity",
      "label": "How often light-mood-intensity",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49732,7 +49088,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:pause-laughs",
+     "id": "chance:pause-laughs",
      "label": "How often pause-laughs",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49760,7 +49116,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:joke-reaction",
+     "id": "chance:joke-reaction",
      "label": "How often joke-reaction",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49788,7 +49144,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:cringe-silence",
+     "id": "chance:cringe-silence",
      "label": "How often cringe-silence",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49863,7 +49219,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:setup-payoff",
+     "id": "chance:setup-payoff",
      "label": "How often setup-payoff",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49891,7 +49247,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:gag-returns",
+     "id": "chance:gag-returns",
      "label": "How often gag-returns",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49919,7 +49275,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:callback-tender",
+     "id": "chance:callback-tender",
      "label": "How often callback-tender",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -49992,7 +49348,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:pride-fall",
+     "id": "chance:pride-fall",
      "label": "How often pride-fall",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50020,7 +49376,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:insist-then-do",
+     "id": "chance:insist-then-do",
      "label": "How often insist-then-do",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50048,7 +49404,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:misdirect-pullback",
+     "id": "chance:misdirect-pullback",
      "label": "How often misdirect-pullback",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50123,7 +49479,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:escalate-wide",
+     "id": "chance:escalate-wide",
      "label": "How often escalate-wide",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50151,7 +49507,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:joke-reaction",
+     "id": "chance:joke-reaction",
      "label": "How often joke-reaction",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50179,7 +49535,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:misdirect-pullback",
+     "id": "chance:misdirect-pullback",
      "label": "How often misdirect-pullback",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50253,7 +49609,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:opposites-laugh",
+     "id": "chance:opposites-laugh",
      "label": "How often opposites-laugh",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50281,7 +49637,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:chaos-cringe",
+     "id": "chance:chaos-cringe",
      "label": "How often chaos-cringe",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50309,7 +49665,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:status-plot",
+     "id": "chance:status-plot",
      "label": "How often status-plot",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50337,7 +49693,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:pride-fall",
+     "id": "chance:pride-fall",
      "label": "How often pride-fall",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50413,7 +49769,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:change-outfit-change-self",
+     "id": "chance:change-outfit-change-self",
      "label": "How often change-outfit-change-self",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50441,7 +49797,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:disguise-reveal",
+     "id": "chance:disguise-reveal",
      "label": "How often disguise-reveal",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50469,7 +49825,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:clash-noticed",
+     "id": "chance:clash-noticed",
      "label": "How often clash-noticed",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50497,7 +49853,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:upkeep-wear",
+     "id": "chance:upkeep-wear",
      "label": "How often upkeep-wear",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50572,7 +49928,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:clutter-close",
+     "id": "chance:clutter-close",
      "label": "How often clutter-close",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50600,7 +49956,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:big-space-wide",
+     "id": "chance:big-space-wide",
      "label": "How often big-space-wide",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50628,7 +49984,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:prop-key-insert",
+     "id": "chance:prop-key-insert",
      "label": "How often prop-key-insert",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50704,7 +50060,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:drain-on-loss",
+     "id": "chance:drain-on-loss",
      "label": "How often drain-on-loss",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50732,7 +50088,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:danger-shadows",
+     "id": "chance:danger-shadows",
      "label": "How often danger-shadows",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50760,7 +50116,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:warm-reunion",
+     "id": "chance:warm-reunion",
      "label": "How often warm-reunion",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50788,7 +50144,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:joy-light-warms",
+     "id": "chance:joy-light-warms",
      "label": "How often joy-light-warms",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50867,7 +50223,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:stress-1",
+     "id": "chance:stress-1",
      "label": "How often stress-1",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50895,7 +50251,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:stress-2",
+     "id": "chance:stress-2",
      "label": "How often stress-2",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50923,7 +50279,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:stress-3",
+     "id": "chance:stress-3",
      "label": "How often stress-3",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50951,7 +50307,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:stress-4",
+     "id": "chance:stress-4",
      "label": "How often stress-4",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -50979,7 +50335,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:stress-5",
+     "id": "chance:stress-5",
      "label": "How often stress-5",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51007,7 +50363,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:stress-6",
+     "id": "chance:stress-6",
      "label": "How often stress-6",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51035,7 +50391,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:stress-7",
+     "id": "chance:stress-7",
      "label": "How often stress-7",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51063,7 +50419,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:stress-8",
+     "id": "chance:stress-8",
      "label": "How often stress-8",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51091,7 +50447,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:stress-9",
+     "id": "chance:stress-9",
      "label": "How often stress-9",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51170,7 +50526,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:growth-1",
+     "id": "chance:growth-1",
      "label": "How often growth-1",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51198,7 +50554,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:growth-2",
+     "id": "chance:growth-2",
      "label": "How often growth-2",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51226,7 +50582,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:growth-3",
+     "id": "chance:growth-3",
      "label": "How often growth-3",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51254,7 +50610,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:growth-4",
+     "id": "chance:growth-4",
      "label": "How often growth-4",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51282,7 +50638,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:growth-5",
+     "id": "chance:growth-5",
      "label": "How often growth-5",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51310,7 +50666,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:growth-6",
+     "id": "chance:growth-6",
      "label": "How often growth-6",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51338,7 +50694,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:growth-7",
+     "id": "chance:growth-7",
      "label": "How often growth-7",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51366,7 +50722,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:growth-8",
+     "id": "chance:growth-8",
      "label": "How often growth-8",
      "plain": "How often this pair's effect follows.",
      "range": {
@@ -51394,7 +50750,7 @@
      "curve": "linear"
     },
     {
-     "id": "often:growth-9",
+     "id": "chance:growth-9",
      "label": "How often growth-9",
      "plain": "How often this pair's effect follows.",
      "range": {

@@ -141,9 +141,11 @@
       const sliders = [
         slider({ id: "cause", label: "Cause", range: { min: 0, max: 100, unit: "%" }, from: 0, to: 100, plain: "Share of panels where the cause is set." }),
         slider({ id: "delay", label: "Delay", range: { min: 0, max: Math.max(16, within + 8), unit: "beats", step: 1 }, from: within, to: within + 2, plain: "Beats between the cause and the effect." }),
-        slider({ id: "often", label: "How often", range: { min: 0, max: 100, unit: "%" }, from: p.often == null ? 70 : p.often, to: 100, plain: "How often the effect follows the cause." }),
-        slider({ id: "effect", label: "Effect size", range: { min: 0, max: 5 }, from: p.effect == null ? 2 : p.effect, to: 5, plain: "How big the effect is when it follows." }),
+        slider({ id: "chance", label: "How often", range: { min: 0, max: 100, unit: "%" }, from: p.often == null ? 70 : p.often, to: 100, plain: "How often the effect follows the cause." }),
       ];
+      /* Effect size only means something when the effect is a change (rises, drops); an effect that sets a value or
+         plays a suite has no size. Same rule as the app's automation lanes, and the same lane ids (chance, effect). */
+      if (p.then && !p.then.suite && !("is" in p.then)) sliders.push(slider({ id: "effect", label: "Effect size", range: { min: 0, max: 5 }, from: p.effect == null ? 2 : p.effect, to: 5, plain: "How big the effect is when it follows." }));
       (p.sliders || []).forEach((x) => sliders.push(slider(x)));
       sliders.push(AMOUNT());
       /* whenText and thenText are the two halves in plain words ("the music is cut dead", "a big line lands"), which
@@ -157,7 +159,7 @@
       const sliders = [slider({ id: "blend", label: "Blend", range: { min: 0, max: 100, unit: "%" }, from: 0, to: 100, plain: "How many of the pairs are switched on together." })];
       (ps.members || []).forEach((m) => {
         sliders.push(slider({ id: "delay:" + m, label: "Delay of " + m, range: { min: 0, max: 16, unit: "beats", step: 1 }, from: 0, to: 4, plain: "Beats before this pair's effect follows." }));
-        sliders.push(slider({ id: "often:" + m, label: "How often " + m, range: { min: 0, max: 100, unit: "%" }, from: 50, to: 100, plain: "How often this pair's effect follows." }));
+        sliders.push(slider({ id: "chance:" + m, label: "How often " + m, range: { min: 0, max: 100, unit: "%" }, from: 50, to: 100, plain: "How often this pair's effect follows." }));
       });
       sliders.push(AMOUNT());
       return put("proximitySuite", { id: ps.id, level: "proximitySuite", label: ps.label, plain: ps.plain || "", workspace: ps.workspace, also: ps.also || [], members: ps.members || [], sliders, source: ps.source || "database", tags: ps.tags || [] });
@@ -341,7 +343,9 @@
       return db.suites.filter((s) => !known.has(s.id)).map((s) => {
         const set = {};
         s.members.forEach((m) => {
-          const id = m.slider ? m.curiosity + "." + m.slider : m.curiosity;
+          /* A member naming the curiosity's main slider is the curiosity itself (no "<id>.<main>" row exists). */
+          const c = api.get("curiosity", m.curiosity);
+          const id = m.slider && !(c && c.main === m.slider) ? m.curiosity + "." + m.slider : m.curiosity;
           set[id] = m.value != null ? m.value : m.to != null ? m.to : m.from;
         });
         return { id: s.id, label: s.label, note: s.plain, kind: s.kind || "database", set };
@@ -351,12 +355,19 @@
     legacyProximities(have) {
       const known = new Set((have || []).map((p) => p.id));
       const side = (r) => {
-        const o = r.suite ? { suite: r.suite } : { curiosity: r.slider ? r.curiosity + "." + r.slider : r.curiosity };
+        const c = r.suite ? null : api.get("curiosity", r.curiosity);
+        const o = r.suite ? { suite: r.suite } : { curiosity: r.slider && !(c && c.main === r.slider) ? r.curiosity + "." + r.slider : r.curiosity };
         if (r.is != null) o.is = r.is;
         if (r.change) o.change = r.change;
         return o;
       };
       return db.proximities.filter((p) => !known.has(p.id)).map((p) => ({ id: p.id, label: p.label, when: p.whenText || p.label, then: p.thenText || "", within: p.within, x: side(p.when), y: side(p.then), note: p.plain }));
+    },
+    /* Proximity suites in automation.js's shape ({ id, label, members }). */
+    legacyProximitySuites(have) {
+      const out = (have || []).slice();
+      db.proximitySuites.forEach((p) => out.some((q) => q.id === p.id) || out.push({ id: p.id, label: p.label, note: p.plain, members: p.members.slice() }));
+      return out;
     },
     /* One call for the app: adds the database's rows to CURIOSITIES, SUITES and PROXIMITIES in place, and its
        sliders to window.CURIOSITY_FACETS (which automation.js turns into lanes).
@@ -368,6 +379,9 @@
       if (t.CURIOSITIES) api.legacyRows(t.CURIOSITIES).forEach((r) => t.CURIOSITIES.push(r));
       if (t.SUITES) api.legacySuites(t.SUITES).forEach((r) => t.SUITES.push(r));
       if (t.PROXIMITIES) api.legacyProximities(t.PROXIMITIES).forEach((r) => t.PROXIMITIES.push(r));
+      /* Proximity suites live in automation.js (PROXIMITY_SUITES), which loads after this, so they wait on
+         window.CURIOSITY_PROXIMITY_SUITES for it to merge, the same way it merges CURIOSITY_FACETS. */
+      root.CURIOSITY_PROXIMITY_SUITES = api.legacyProximitySuites(root.CURIOSITY_PROXIMITY_SUITES);
       /* automation.js merges window.CURIOSITY_FACETS into its lanes when it loads, so the sliders become lanes. */
       const F = (root.CURIOSITY_FACETS = root.CURIOSITY_FACETS || {});
       const f = api.facets();
