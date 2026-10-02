@@ -974,6 +974,10 @@
   .lt-beats button.now { background: var(--ink); color: var(--paper); }
   .lt-beats i { display: block; height: 8px; margin: 2px 4px 0; border: 1px solid var(--line); }
   .lt-prox { font-size: 13px; margin: 0 0 4px; }
+  .lt-autob { font-family: var(--mono); font-size: 9px; font-weight: 400; text-transform: uppercase; background: var(--saffron); color: white; padding: 0 3px; }
+  .lt-driven::after { content: "automated"; justify-self: start; font-family: var(--mono); font-size: 9px; background: var(--saffron); color: white; padding: 0 4px; order: -1; }
+  .lt-driven input, .lt-driven select { accent-color: var(--saffron); }
+  .lt-time .link, .studio-body .cap .link { border: 0; background: none; padding: 0; text-decoration: underline; cursor: pointer; font: inherit; }
   .lt-prox b { font-family: var(--mono); font-size: 10px; text-transform: uppercase; padding: 1px 4px; border: 1px solid currentColor; margin-right: 6px; }
   .lt-prox.holds b { color: #2f7a3a; } .lt-prox.breaks b { color: var(--saffron); } .lt-prox.idle b { color: #8a7d6f; }
   .studio-body .lt-render.crisp canvas { image-rendering: pixelated; }
@@ -999,6 +1003,7 @@
     let playing = null;
     st.sun = Object.assign({ on: false, elev: 20, az: 250 }, st.sun || {});
     let snapA = null;
+    const driven = new Set();
     let wipe = 0.5;
     if (st.sel >= st.lights.length) st.sel = st.lights.length - 1;
     let preset = "";
@@ -1196,9 +1201,9 @@
           .map(([k, val]) => {
             const fine = k === "timeOfDay" ? todOf(st, m.keyLight) : null;
             const extra = k === "colorTemp" ? " K" : k === "contrast" ? " stops" : fine && fine !== val ? ` (${fine})` : "";
-            return `<span class="chip ${bv[k] ? "lit" : ""}" title="${bv[k] ? "Live on the board" : "Recorded in a study"}">${esc(k)}: ${esc(val)}${esc(extra)}</span>`;
+            return `<span class="chip ${bv[k] ? "lit" : ""}" title="${bv[k] ? "Live on the board" : "Recorded in a study"}">${esc(k)}: ${esc(val)}${esc(extra)}${driven.has(k) ? ` <b class="lt-autob">automated</b>` : ""}</span>`;
           })
-          .join("")}</p>`;
+          .join("")}</p><p class="cap">Click a chip to automate it, or <button type="button" class="link" data-act="openAuto">open Automate</button>.</p>`;
         drawTime();
         const S = sunLook(st.sun.elev, st.sun.az);
         out("tod").textContent = `${S.tod} · sun ${S.kelvin} K · sky ${S.sky}${st.sun.on ? "" : " (off: turn on to drive the lights)"}`;
@@ -1536,6 +1541,153 @@
         update(false);
       })
     );
+
+    /* ---------- automation: CurioAuto drives the rig live ---------- */
+    const DRIVES = ["key", "contrast", "colorTemp", "softness", "rim", "atmosphere", "lightShape", "practicalInFrame", "lighting"];
+    const SUITES = { noir: 2, "golden-hour": 3 };
+    const LIGHTING_PRESET = { dusk: 3, flat: 1, practical: 6, hard: 2, moon: 7 };
+    const last = {};
+    const suiteOn = {};
+    let keyIdx = null;
+    /* Which control a curiosity moves, for the "automated" badge. */
+    const CONTROL = { colorTemp: ["kelvin"], softness: ["size"], lightShape: ["gobo", "barndoor"], atmosphere: ["haze"], key: ["elev"], rim: [], contrast: [], practicalInFrame: [], lighting: [] };
+
+    function keyLight() {
+      if (keyIdx == null || !st.lights[keyIdx] || st.lights[keyIdx].type === "skydome") {
+        const k = measure(st).keyLight;
+        keyIdx = k && k.type !== "skydome" ? st.lights.indexOf(k) : st.lights.findIndex((L) => L.type !== "skydome");
+        if (keyIdx < 0) {
+          st.lights.push(light("area", { x: 58, y: 145, elev: 30, exposure: 4.2, kelvin: 4300, size: 1.2 }));
+          keyIdx = st.lights.length - 1;
+        }
+      }
+      return st.lights[keyIdx];
+    }
+    function applyPreset(i) {
+      const p = PRESETS[i];
+      preset = p.name;
+      st.lights = clone(p.lights);
+      Object.assign(st, p.set);
+      st.sel = 0;
+      keyIdx = null;
+      syncGlobals();
+      el.querySelector('[data-g="look"]').value = st.look;
+      out("pnote").textContent = p.note;
+      return true;
+    }
+    function drive(id, v) {
+      const K = keyLight();
+      if (id === "key") {
+        const pos = { front: [100, 162, 25], side: [30, 100, 20], back: [100, 45, 30], under: [100, 122, -50] }[v];
+        if (pos) [K.x, K.y, K.elev] = pos;
+        if (v === "none") K.exposure = -8;
+        else if (K.exposure < -4) K.exposure = 4;
+      } else if (id === "colorTemp") {
+        K.useK = true;
+        K.kelvin = clamp(Number(v) || 5600, 1500, 12000);
+      } else if (id === "softness") {
+        K.size = v === "soft" ? 2 : 0.05;
+      } else if (id === "lightShape") {
+        K.gobo = v === "blinds" || v === "leaves" ? v : "none";
+        K.barndoor = v === "barndoor" ? 0.6 : 0;
+      } else if (id === "atmosphere") {
+        st.haze = { clear: 0, haze: 0.2, beams: 0.45 }[v] != null ? { clear: 0, haze: 0.2, beams: 0.45 }[v] : st.haze;
+        if (v === "beams" && K.type !== "spot" && K.type !== "directional" && K.gobo === "none") K.gobo = "blinds";
+      } else if (id === "rim") {
+        let R = st.lights.find((L, i) => i !== keyIdx && L.type !== "skydome" && L.y < 85 && L.type !== "mesh");
+        if (!R && v !== "off") st.lights.push((R = light("spot", { x: 138, y: 50, elev: 35, cone: 30, size: 0.05, kelvin: 6000 })));
+        if (R) R.exposure = { off: -8, thin: 3.5, strong: 5.5 }[v] != null ? { off: -8, thin: 3.5, strong: 5.5 }[v] : R.exposure;
+      } else if (id === "practicalInFrame") {
+        let P = st.lights.find((L) => L.type === "mesh");
+        if (!P && v === "yes") st.lights.push((P = light("mesh", { x: 74, y: 86, elev: -8, exposure: 3.4, kelvin: 2700, size: 0.5 })));
+        if (P) {
+          P.exposure = v === "yes" ? Math.max(P.exposure, 3) : -8;
+          if (v === "yes") [P.x, P.y] = [74, 86];
+        }
+      } else if (id === "contrast") {
+        /* Trim the brightest fill (or a skydome fill) until key-to-fill reads the target stops. */
+        const target = Number(v) || 0;
+        let F = st.lights.filter((L, i) => i !== keyIdx && L.type !== "mesh" && !(L.y < 85 && L.type !== "skydome")).sort((a, b) => effective(b) - effective(a))[0];
+        if (!F) st.lights.push((F = light("skydome", { x: 20, y: 180, exposure: -2, sky: "#c8d0dc", useK: false })));
+        for (let n = 0; n < 4; n++) {
+          const m = measure(st);
+          F.exposure = clamp(F.exposure + (m.stops - target) * 0.8, -10, 12);
+        }
+      } else if (id === "lighting") {
+        if (LIGHTING_PRESET[v] != null) return applyPreset(LIGHTING_PRESET[v]);
+      }
+      return false;
+    }
+    /* Put the editor's inputs back in step with the state without rebuilding it. */
+    function syncEditor() {
+      const L = st.lights[st.sel];
+      const ctl = new Set();
+      driven.forEach((id) => (CONTROL[id] || []).forEach((c) => ctl.add(c)));
+      el.querySelectorAll("[data-k]").forEach((inp) => {
+        const k = inp.dataset.k;
+        if (L && k in L && k !== "type") {
+          if (inp.type === "checkbox") inp.checked = !!L[k];
+          else if (String(inp.value) !== String(L[k])) inp.value = L[k];
+          const o = el.querySelector(`[data-out="${k}"]`);
+          if (o && inp.type === "range") o.textContent = Math.round(L[k] * 100) / 100;
+        }
+        const lab = inp.closest("label");
+        if (lab) lab.classList.toggle("lt-driven", ctl.has(k) && st.sel === keyIdx);
+      });
+      const hz = el.querySelector('[data-g="haze"]');
+      if (hz) {
+        hz.closest("label").classList.toggle("lt-driven", ctl.has("haze"));
+        if (String(hz.value) !== String(st.haze)) {
+          hz.value = st.haze;
+          out("haze").textContent = st.haze;
+        }
+      }
+    }
+    if (window.CurioAuto && window.CurioAuto.on) {
+      const off = window.CurioAuto.on((type, d) => {
+        if (!el.isConnected) return off();
+        if (type !== "tick" || !d || !d.ms || !d.panels || !d.panels[0]) return;
+        if (playing) return;
+        let changed = false,
+          full = false;
+        Object.entries(SUITES).forEach(([sid, pi]) => {
+          const m = d.ms["s:" + sid];
+          const on = m != null && m >= 0.5;
+          if (on && !suiteOn[sid]) {
+            applyPreset(pi);
+            changed = full = true;
+          }
+          suiteOn[sid] = on;
+        });
+        const now = new Set();
+        DRIVES.forEach((id) => {
+          if (d.ms["c:" + id] == null) return;
+          now.add(id);
+          const v = d.panels[0][id];
+          if (v == null || String(v) === String(last[id])) return;
+          last[id] = v;
+          if (drive(id, v)) full = true;
+          changed = true;
+        });
+        const badge = now.size !== driven.size || [...now].some((x) => !driven.has(x));
+        if (badge) {
+          driven.clear();
+          now.forEach((x) => driven.add(x));
+          Object.keys(last).forEach((x) => !now.has(x) && delete last[x]);
+          if (!now.size) keyIdx = null;
+        }
+        if (!changed && !badge) return;
+        if (st.sel >= st.lights.length) st.sel = 0;
+        save();
+        update(full);
+        syncEditor();
+      });
+    }
+    el.addEventListener("click", (e) => {
+      if (!e.target.closest('[data-act="openAuto"]')) return;
+      const t = document.querySelector('.tabs button[data-tab="automate"]');
+      if (t) t.click();
+    });
 
     update(false);
   }
