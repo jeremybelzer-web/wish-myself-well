@@ -1,0 +1,5 @@
+{
+  "note": "Momentum, in load order. 'core' never touches the page (browser and Node, after the app's core and the curiosity database); 'screens' draw. load.js adds them all to the app's page and must list the same files.",
+  "core": ["notes.js", "attention.js", "rates.js"],
+  "screens": ["ui.js"]
+}
