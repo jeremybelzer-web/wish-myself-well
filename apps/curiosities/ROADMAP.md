@@ -104,7 +104,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 287 curiosities, 139 sui
 - [ ] Logins and cloud sync, optional (Phase 3)
 - [ ] Desktop app (Phase 4)
 - [ ] Panel inside Maya, with curiosities driving the camera and keys (Phase 5)
-- [ ] VCV Rack module with a jack per curiosity (Phase 6)
+- [ ] VCV Rack module with a jack per curiosity (Phase 6). Stage 1 is built in draft PR #9: a jack for each of the 556 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app. Next: open the files in a real VCV Rack, then a generated plugin (vcv/SPEC.md)
 - [ ] Other tools: Unreal, Blender, Resolve (Phase 7)
 
 ## 6. Checks with people
