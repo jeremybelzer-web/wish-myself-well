@@ -19,6 +19,9 @@
   const M = window.CurioMomentum;
   const A = window.CurioAttention;
   const R = window.CurioRates;
+  const CP = () => window.CurioCompass;
+  const ME = () => window.CurioMomentumEngine;
+  const PF = () => window.CurioPerform;
   if (!M || !A || !R) return;
 
   /* Eight fixed family colors (validated categorical order); the other families share gray as "Other". */
@@ -92,6 +95,7 @@
       out.push({ id: "live", group: "My film", label: "My film, live (follows what you play or perform)" });
       out.push({ id: "board", group: "My film", label: "My film's panels" });
     }
+    if (ME() && ME().available()) out.push({ id: "engine", group: "My film", label: `The engine's timeline (${window.CurioEngine.state().rows.length} moments)` });
     const scenes = storyboardScenes();
     if (scenes.length > 1) out.push({ id: "sb:all", group: "Storyboard", label: `The whole storyboard (${scenes.length} scenes)` });
     scenes.forEach((s, i) => out.push({ id: "sb:" + s.id, group: "Storyboard", label: `${s.name || "Scene " + (i + 1)} (${s.panels.length} panels)` }));
@@ -105,6 +109,7 @@
       const B = window.CuriosityBoard;
       return A.read((B ? B.panels() : []).map((v) => ({ values: v })), per);
     }
+    if (id === "engine") return ME() ? ME().reading(per) : A.read([], per);
     if (id === "sb:all") return A.read(storyboardScenes().reduce((all, s) => all.concat(s.panels.map((p) => ({ values: p.v || {} }))), []), per);
     if (id.startsWith("sb:")) {
       const s = storyboardScenes().find((x) => "sb:" + x.id === id);
@@ -144,7 +149,9 @@
     unhook = B.on(push);
     ticker = setInterval(() => {
       if (!host || !host.isConnected) return stopLive();
-      if (prefs.tab === "attention" && prefs.source === "live") drawAttention(true);
+      if (prefs.source !== "live") return;
+      if (prefs.tab === "attention") drawAttention(true);
+      else if (prefs.tab === "compass") drawCompass();
     }, 1000);
   }
   function stopLive() {
@@ -299,7 +306,7 @@
 
   /* ---------- tabs ---------- */
   let host = null;
-  function attentionHtml() {
+  function attentionHtml(boxClass) {
     const list = sources();
     if (!prefs.source || !list.find((s) => s.id === prefs.source)) prefs.source = list[0] ? list[0].id : "";
     const groups = [...new Set(list.map((s) => s.group))];
@@ -314,11 +321,12 @@
         ${prefs.source === "live" ? `<button type="button" data-m="restart">Start the clock again</button>` : ""}
       </div>
       <details class="mo-compare"><summary>Compare with: ${esc((target() || { title: "nothing" }).title)}</summary><div class="mo-chips">${cmp}</div><p class="mo-small">Films marked est. are Claude's estimates from general film knowledge, not measurements. Measure a traced film in Film rates to get real numbers.</p></details>
-      <div class="mo-attn"></div>`;
+      <div class="${boxClass || "mo-attn"}"></div>`;
   }
   function drawAttention(liveTick) {
     const box = host && host.querySelector(".mo-attn");
     if (!box) return;
+    if (prefs.tab !== "attention") return;
     if (prefs.source === "live") startLive();
     else stopLive();
     const reading = readSource(prefs.source);
@@ -423,10 +431,207 @@
     box.innerHTML = `<p class="mo-small">${list.length} curiosities${list.length > 60 ? ", first 60 shown" : ""}.</p>` + list.slice(0, 60).map((n) => noteHtml(n.id)).join("");
   }
 
+  /* ---------- Compass ---------- */
+  let lastCompass = null;
+  let flash = "";
+  function compassSvg(res) {
+    const fams = M.FAMILIES;
+    const n = fams.length;
+    const cx = 150;
+    const cy = 150;
+    const R0 = 104;
+    const scores = Object.fromEntries(res.options.map((o) => [o.family, o.score]));
+    const max = Math.max(0.001, ...res.options.map((o) => o.score));
+    const best = res.options[0];
+    const ang = (i) => -Math.PI / 2 + (i / n) * Math.PI * 2;
+    const spokes = fams
+      .map((f, i) => {
+        const a = ang(i);
+        const sc = scores[f.id] || 0;
+        const r = 18 + (R0 - 18) * (sc / max);
+        const x = cx + Math.cos(a) * R0;
+        const y = cy + Math.sin(a) * R0;
+        const lx = cx + Math.cos(a) * (R0 + 14);
+        const ly = cy + Math.sin(a) * (R0 + (Math.sin(a) > 0.9 ? 22 : 14));
+        const isNow = res.now && res.now.family === f.id;
+        const anchor = Math.abs(Math.cos(a)) < 0.08 ? "middle" : Math.cos(a) > 0 ? "start" : "end";
+        return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="mo-spoke"></line>
+          ${sc ? `<circle cx="${(cx + Math.cos(a) * r).toFixed(1)}" cy="${(cy + Math.sin(a) * r).toFixed(1)}" r="5" fill="${colorOf(f.id)}" class="mo-dot"><title>${esc(f.label)}: score ${sc}</title></circle>` : ""}
+          <text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" text-anchor="${anchor}" class="mo-spoke-l${isNow ? " mo-now" : ""}${best && best.family === f.id ? " mo-best" : ""}">${esc(f.label)}${isNow ? " (now)" : ""}</text>`;
+      })
+      .join("");
+    let needle = "";
+    if (best) {
+      const i = fams.findIndex((f) => f.id === best.family);
+      const a = ang(i);
+      needle = `<line x1="${cx}" y1="${cy}" x2="${(cx + Math.cos(a) * (R0 - 8)).toFixed(1)}" y2="${(cy + Math.sin(a) * (R0 - 8)).toFixed(1)}" class="mo-needle"></line><circle cx="${cx}" cy="${cy}" r="6" class="mo-hub"></circle>`;
+    }
+    return `<svg viewBox="-60 0 420 310" class="mo-compass-svg" role="img" aria-label="Compass pointing to ${esc(best ? best.label : "nothing")}"><circle cx="${cx}" cy="${cy}" r="${R0}" class="mo-ring"></circle>${spokes}${needle}</svg>`;
+  }
+  function drawCompass() {
+    const box = host && host.querySelector(".mo-compass");
+    if (!box || !CP()) return;
+    if (prefs.source === "live") startLive();
+    else stopLive();
+    const reading = readSource(prefs.source);
+    const list = profiles().filter((p) => prefs.compare.includes(p.id));
+    const res = CP().point(reading, list);
+    lastCompass = res;
+    const now = res.now
+      ? `<p class="mo-compass-now">Attention is on <b>${esc(famLabel(res.now.family))}</b> for ${res.now.seconds} seconds. ${res.now.left > 0 ? `Your films usually move on after about ${res.now.usual} seconds: ${res.now.left} left.` : `That is already longer than the usual ${res.now.usual} seconds in your films: move it now.`}</p>`
+      : `<p class="mo-compass-now">Nothing holds attention yet.</p>`;
+    const opts = res.options
+      .slice(0, 3)
+      .map(
+        (o, i) => `<li class="mo-opt"><div class="mo-opt-h"><span class="mo-fam"><i style="background:${colorOf(o.family)}"></i><b>${i === 0 ? "Next: " : ""}${esc(o.label)}</b></span><small>${esc(cueLabel(o.cue))}</small></div>
+          <ul class="mo-reasons">${o.reasons.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>
+          ${o.note ? `<p class="mo-small"><b>Try:</b> ${esc(o.note.label)}. ${esc(o.note.tryThis)}</p>` : ""}
+          ${window.CuriosityBoard ? `<button type="button" data-compass-move="${i}">Make this move on My film</button>` : ""}</li>`
+      )
+      .join("");
+    box.innerHTML = `${flash ? `<div class="mo-flash" role="status">${esc(flash)}</div>` : ""}
+      <div class="mo-grid"><section>${compassSvg(res)}</section><section>${now}<ol class="mo-opts">${opts || "<li>Pick a film to compare with.</li>"}</ol></section></div>
+      <p class="mo-small">${res.cue ? `Your films lean on ${esc(cueLabel(res.cue).toLowerCase())}s more than yours does. ` : ""}${res.quiet ? "They also use more quiet cues: try a stop, a silence or stillness. " : ""}${res.basis === "measured" ? "The needle uses which family follows which in your measured films, plus how much time each family gets." : "The needle uses how much time each family gets in your films. Measure a traced film (Film rates) and it also learns which family usually follows which."}</p>`;
+    flash = "";
+  }
+
+  /* ---------- On the engine ---------- */
+  function engineHtml() {
+    if (!ME() || !ME().available())
+      return `<p>Attention and cue lanes for the engine's timeline (Library, Engine): one cell per moment. Start a film in the engine first, then come back here.</p>${window.CurioEngineUI ? `<button type="button" data-m="open-engine">Open the engine</button>` : ""}`;
+    const opts = { secondsPerBeat: prefs.secondsPerPanel, limit: limit() };
+    const L = ME().lanes(opts);
+    const sg = ME().suggestions(opts);
+    const head = L.rows.map((r) => `<th>${esc(r.label)}</th>`).join("");
+    const att = L.attention.map((c) => `<td title="${esc(c.title)}" class="${c.over ? "mo-cell-over" : ""}">${c.family ? `<i style="background:${colorOf(c.family)}"></i>${esc(famLabel(c.family))}<br><small>${c.seconds} s${c.over ? " ■" : ""}</small>` : ""}</td>`).join("");
+    const cue = L.cue.map((c) => `<td title="${esc(c.title)}">${esc(c.text)}</td>`).join("");
+    const said = flash;
+    flash = "";
+    return `${said ? `<div class="mo-flash" role="status">${esc(said)}</div>` : ""}<p>The engine's film as the audience would watch it: which family holds attention at each moment, how long it has held it (■ past the ${L.reading.limit} second limit), and the cue that moved it there. Each moment lasts ${prefs.secondsPerPanel} seconds (set it in Attention).</p>
+      <div class="mo-scroll"><table class="mo-lanes"><thead><tr><th></th>${head}</tr></thead><tbody><tr><th>Attention</th>${att}</tr><tr><th>Cue</th>${cue}</tr></tbody></table></div>
+      <h3>Suggestions</h3>${
+        sg.length
+          ? `<ul class="mo-sugg">${sg.map((x, i) => `<li><span>${esc(x.text)}</span><button type="button" data-sugg="${i}">Add this link to the engine</button></li>`).join("")}</ul><p class="mo-small">A link is a proximity: when the leader changes, the follower moves with it. It acts only over the long stretch, and the engine's Undo takes it back.</p>`
+          : `<p class="mo-small"><span class="mo-status mo-good">●</span> No family holds attention past the limit, so there is nothing to suggest.</p>`
+      }
+      ${window.CurioEngineUI ? `<button type="button" data-m="open-engine">Open the engine</button>` : ""}`;
+  }
+
+  /* ---------- Perform ---------- */
+  let pfUnhook = null;
+  function performHtml() {
+    if (!PF()) return "<p>Perform is not loaded.</p>";
+    const st = PF().settings();
+    const outs = PF().midi.outputs();
+    const ccIn = (k, label) => `<label>${label} CC <input type="number" min="0" max="127" value="${st.cc[k]}" data-pfset="cc:${k}" /></label>`;
+    return `<p>Play My film and the meter goes out live, so you can see it or feel it while you perform: MIDI to a synth, lights or VCV Rack, OSC and WebSocket through the desktop app's bridge, and a buzz on a phone when attention has stayed too long.</p>
+      <div class="mo-controls">
+        <button type="button" data-pf="${PF().running() ? "stop" : "start"}">${PF().running() ? "Stop following My film" : "Start following My film"}</button>
+        <button type="button" data-pf="stage">Stage meter (full screen)</button>
+      </div>
+      <div class="mo-pf-live"></div>
+      <h3>MIDI out</h3>
+      <div class="mo-controls">
+        <button type="button" data-pf="midi">Turn on MIDI</button>
+        <label>Output <select data-pfset="output"><option value="">None</option>${outs.map((o) => `<option value="${esc(o.id)}"${o.id === st.output ? " selected" : ""}>${esc(o.name)}</option>`).join("")}</select></label>
+        <label>Channel <input type="number" min="1" max="16" value="${st.channel}" data-pfset="channel" /></label>
+        ${ccIn("attention", "Attention")}${ccIn("momentum", "Momentum")}${ccIn("family", "Family")}${ccIn("compass", "Compass")}
+      </div>
+      <div class="mo-controls">
+        <label class="mo-chip"><input type="checkbox" data-pfset="notes"${st.notes ? " checked" : ""}/> Notes when attention moves (60 visual, 61 audio, 62 thought, 63 movement, 64 plot) and 72 past the limit</label>
+        <label class="mo-chip"><input type="checkbox" data-pfset="buzz"${st.buzz ? " checked" : ""}/> Buzz the phone past the limit</label>
+        <label class="mo-chip"><input type="checkbox" data-pfset="bridge"${st.bridge ? " checked" : ""}/> Send to the bridge (OSC /curio/value/m/attention and friends)</label>
+      </div>
+      <p class="mo-small mo-pf-status">${esc(PF().midi.status())}${PF().midi.output() ? " Sending to " + esc(PF().midi.output()) + "." : ""}</p>
+      <p class="mo-small">Bridge values, 0 to 1: m:attention (the current stretch against the limit), m:over (1 past the limit), m:momentum, m:family and m:compass (which of the 13 families, in order). The limit and the films you compare with come from the Attention tab.</p>`;
+  }
+  function livePanelHtml(s) {
+    const st = statusOf(s.family ? { dur: s.seconds } : null, s.limit || 20);
+    return `<div class="mo-pf-grid"><div><b>${esc(s.family ? famLabel(s.family) : "Not following")}</b> <span class="mo-status mo-${st.cls}">${st.icon} ${st.text}</span><br><small>${s.seconds} of ${s.limit} seconds${s.label ? " · now: " + esc(s.label) : ""}</small></div>
+      <div><small>Attention</small> ${Math.round(s.attention * 127)} · <small>Momentum</small> ${Math.round(s.momentum * 127)} · <small>Next</small> ${esc(s.compass ? famLabel(s.compass) : "–")}</div></div>`;
+  }
+  function drawPerform() {
+    if (!PF() || !host) return;
+    const box = host.querySelector(".mo-pf-live");
+    if (box) box.innerHTML = livePanelHtml(PF().state());
+    if (!pfUnhook)
+      pfUnhook = PF().on((s) => {
+        const b = host && host.querySelector(".mo-pf-live");
+        if (b) b.innerHTML = livePanelHtml(s);
+        drawStage(s);
+      });
+  }
+  function performClick(what) {
+    const P = PF();
+    if (!P) return;
+    if (what === "start") P.start();
+    else if (what === "stop") P.stop();
+    else if (what === "midi") {
+      P.midi.enable().then(() => draw());
+      return;
+    } else if (what === "stage") {
+      if (!P.running()) P.start();
+      openStage();
+    }
+    draw();
+  }
+  function performChange(t) {
+    const P = PF();
+    const k = t.dataset.pfset;
+    if (k === "output") P.midi.setOutput(t.value);
+    else if (k === "channel") P.set({ channel: Number(t.value) });
+    else if (k.startsWith("cc:")) P.set({ cc: { [k.slice(3)]: Number(t.value) } });
+    else P.set({ [k]: !!t.checked });
+    draw();
+  }
+  /* The stage meter: big enough to read from across a room. A dialog of its own, so it sits above the
+     Momentum window; only its inside redraws, so the close button stays put. */
+  let stage = null;
+  function openStage() {
+    if (!stage) {
+      stage = document.createElement("dialog");
+      stage.className = "mo-stage";
+      stage.setAttribute("aria-label", "Stage meter");
+      stage.innerHTML = `<button type="button" class="mo-stage-x" data-stage-close aria-label="Close the stage meter">×</button><div class="mo-stage-body"></div>`;
+      stage.addEventListener("click", (e) => {
+        if (e.target.closest("[data-stage-close]")) closeStage();
+      });
+      stage.addEventListener("close", () => {
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      });
+      document.body.appendChild(stage);
+    }
+    if (!stage.open) {
+      if (stage.showModal) stage.showModal();
+      else stage.setAttribute("open", "");
+    }
+    if (stage.requestFullscreen) stage.requestFullscreen().catch(() => {});
+    if (!pfUnhook && PF()) pfUnhook = PF().on((s) => drawStage(s));
+    drawStage(PF().state());
+  }
+  function closeStage() {
+    if (stage && stage.open) {
+      if (stage.close) stage.close();
+      else stage.removeAttribute("open");
+    }
+  }
+  function drawStage(s) {
+    if (!stage || !stage.open) return;
+    const st = statusOf(s.family ? { dur: s.seconds } : null, s.limit || 20);
+    stage.className = "mo-stage mo-stage-" + st.cls;
+    stage.querySelector(".mo-stage-body").innerHTML = `<div class="mo-stage-fam">${esc(s.family ? famLabel(s.family) : "Waiting for My film")}</div>
+      <div class="mo-stage-bar"><i style="width:${Math.round(Math.min(1, s.attention) * 100)}%"></i></div>
+      <div class="mo-stage-n">${st.icon} ${Math.round(s.seconds)} s <small>of ${s.limit}</small></div>
+      <div class="mo-stage-next">Next: ${esc(s.compass ? famLabel(s.compass) : "–")}</div>`;
+  }
+
   function draw() {
     if (!host) return;
     const tabs = [
       ["attention", "Attention"],
+      ["compass", "Compass"],
+      ["engine", "On the engine"],
+      ["perform", "Perform"],
       ["rates", "Film rates"],
       ["notes", "Momentum notes"],
     ];
@@ -434,10 +639,12 @@
       <div class="mo-head"><h2>Momentum</h2>${dlg ? `<button type="button" class="mo-x" data-m="close" aria-label="Close">×</button>` : ""}</div>
       <p class="mo-lede">The heart of the app: the feeling that the film is going somewhere important. Attention can rest on only one thing at a time; when what holds it keeps changing, the film stays alive.</p>
       <div class="mo-tabs" role="tablist">${tabs.map(([id, l]) => `<button type="button" role="tab" aria-selected="${prefs.tab === id}" data-tab="${id}">${l}</button>`).join("")}</div>
-      <div class="mo-body">${prefs.tab === "rates" ? ratesHtml() : prefs.tab === "notes" ? notesHtml() : attentionHtml()}</div></div>`;
+      <div class="mo-body">${prefs.tab === "rates" ? ratesHtml() : prefs.tab === "notes" ? notesHtml() : prefs.tab === "compass" ? attentionHtml("mo-compass") : prefs.tab === "engine" ? engineHtml() : prefs.tab === "perform" ? performHtml() : attentionHtml()}</div></div>`;
     if (prefs.tab === "attention") drawAttention();
+    else if (prefs.tab === "compass") drawCompass();
     else stopLive();
     if (prefs.tab === "notes") drawNotes();
+    if (prefs.tab === "perform") drawPerform();
   }
 
   function wire(el) {
@@ -460,6 +667,27 @@
         if (!prefs.compare.includes(p.id)) prefs.compare.push(p.id);
         savePrefs();
         draw();
+      } else if (t.dataset.compassMove != null) {
+        const opt = lastCompass && lastCompass.options[Number(t.dataset.compassMove)];
+        const B = window.CuriosityBoard;
+        const mv = CP() && CP().move(opt, B);
+        if (mv && B) {
+          B.set(mv.id, mv.value);
+          flash = `Moved ${mv.label} to ${mv.value} on My film.`;
+        } else flash = "No control on My film belongs to that family yet; use the note's idea instead.";
+        drawCompass();
+      } else if (t.dataset.sugg != null) {
+        const sg = (ME() ? ME().suggestions({ secondsPerBeat: prefs.secondsPerPanel, limit: limit() }) : [])[Number(t.dataset.sugg)];
+        const res = sg ? ME().addSuggestion(sg) : { ok: false, error: "That suggestion is gone." };
+        flash = res && res.ok ? "Added the link to the engine. Undo in the engine takes it back." : "The engine said: " + ((res && res.error) || "no");
+        draw();
+      } else if (t.dataset.m === "open-engine") {
+        if (window.CurioEngineUI && window.CurioEngineUI.open) {
+          close();
+          window.CurioEngineUI.open();
+        }
+      } else if (t.dataset.pf) {
+        performClick(t.dataset.pf);
       } else if (t.dataset.unmeasure) {
         prefs.measured = prefs.measured.filter((x) => x.id !== t.dataset.unmeasure);
         prefs.compare = prefs.compare.filter((x) => x !== t.dataset.unmeasure);
@@ -486,6 +714,8 @@
         prefs.limit = Number(t.value) > 0 ? Number(t.value) : null;
         savePrefs();
         drawAttention();
+      } else if (t.dataset.pfset) {
+        performChange(t);
       } else if (t.dataset.m === "nfam") {
         prefs.noteFamily = t.value;
         savePrefs();
@@ -553,8 +783,20 @@
       open();
     });
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireMenu);
-  else wireMenu();
+  /* When the engine offers bands under its timeline (requested: CurioEngineUI.addBand), show the Attention
+     and Cue lanes there too. */
+  function wireEngineBand() {
+    const U = window.CurioEngineUI;
+    if (!U || typeof U.addBand !== "function" || U.__momentumBand || !ME()) return;
+    U.__momentumBand = true;
+    U.addBand(() => (ME().available() ? ME().band({ secondsPerBeat: prefs.secondsPerPanel, limit: limit() }) : null));
+  }
+  function wireAll() {
+    wireMenu();
+    wireEngineBand();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireAll);
+  else wireAll();
 
   window.CurioMomentumUI = { open, close, mount, noteHtml, mountNote, draw };
 })();

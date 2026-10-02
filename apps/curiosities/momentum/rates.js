@@ -91,6 +91,7 @@
       familyShare: s.familyShare,
       cueShare: s.cueShare,
       momentum: s.momentum,
+      transitions: s.transitions,
     };
   }
   function limitFor(profile) {

@@ -1,5 +1,5 @@
 {
-  "note": "Momentum, in load order. 'core' never touches the page (browser and Node, after the app's core and the curiosity database); 'screens' draw. load.js adds them all to the app's page and must list the same files.",
-  "core": ["notes.js", "attention.js", "rates.js"],
-  "screens": ["ui.js"]
+  "note": "Momentum, in load order. 'core' never touches the page (browser and Node, after the app's core, the curiosity database and the engine core); 'screens' draw or use the browser (Web MIDI, vibration). load.js adds them all to the app's page and must list the same files.",
+  "core": ["notes.js", "attention.js", "rates.js", "compass.js", "engine-lanes.js"],
+  "screens": ["perform.js", "ui.js"]
 }
