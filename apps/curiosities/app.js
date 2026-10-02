@@ -131,7 +131,18 @@ td .suite-share { display: flex; margin: 2px 0; }
 
 (function () {
   const live = CURIOSITIES.filter((c) => c.live);
-  const state = load();
+  /* My film's data is one part of the app's shared state (engine/store.js): it changes only through the
+     commands in boardCommands(), each change is one step on the app-wide undo list (Ctrl+Z, undone in
+     place), and it still saves under curiosities-board-v2. `state` is the part's live view: read it, and
+     change it with change(). Without the store (an older page) the same commands run on a plain copy. */
+  const boardPart = window.CurioStore ? window.CurioStore.part("board", { key: "curiosities-board-v2", initial: () => ({}), normalize: fixBoard, commands: boardCommands() }) : null;
+  const state = boardPart ? boardPart.view() : load();
+  function change(msg, opt) {
+    if (boardPart) return boardPart.send(msg, opt);
+    boardCommands()[msg.type](state, msg);
+    save();
+    return { ok: true };
+  }
   const sceneSelect = { id: state.sceneId || "glass" };
 
   const controls = document.getElementById("controls");
@@ -219,7 +230,12 @@ td .suite-share { display: flex; margin: 2px 0; }
       const raw = localStorage.getItem("curiosities-board-v2");
       if (raw) saved = JSON.parse(raw);
     } catch (e) {}
-    /* Automation never survives a reload (every patch starts stopped), so its layer starts empty. */
+    return fixBoard(saved);
+  }
+  /* What My film keeps, from whatever was saved: the scene, the suite, the live controls and the applied strand.
+     Automation never survives a reload (every patch starts stopped), so its layer starts empty. */
+  function fixBoard(saved) {
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) saved = {};
     const base = { sceneId: saved.sceneId || "glass", suite: saved.suite || "", applied: saved.applied || null, auto: null };
     /* Before workspaces, running automation replaced the applied strand: drop that stale strand. */
     if (base.applied && base.applied.label === "Automation") base.applied = null;
@@ -231,6 +247,39 @@ td .suite-share { display: flex; margin: 2px 0; }
 
   function save() {
     localStorage.setItem("curiosities-board-v2", JSON.stringify(state));
+  }
+  /* Every way My film changes, as a command on a copy of its data (d). */
+  function boardCommands() {
+    const suiteOn = (d, id) => {
+      d.suite = id || "";
+      const suite = SUITES.find((s) => s.id === id);
+      if (suite) {
+        Object.assign(d, suite.set);
+        Object.keys(suite.set).forEach((k) => unapplyIn(d, k));
+      }
+    };
+    return {
+      scene(d, m) {
+        d.sceneId = String(m.id);
+      },
+      suite(d, m) {
+        suiteOn(d, m.id);
+      },
+      set(d, m) {
+        if (!live.find((c) => c.id === m.id)) throw new Error("There is no control " + m.id + ".");
+        d[m.id] = m.value;
+        unapplyIn(d, m.id);
+      },
+      apply(d, m) {
+        const values = m.values && typeof m.values === "object" && Object.keys(m.values).length ? m.values : null;
+        if (m.label === "Automation") d.auto = values;
+        else d.applied = values ? { label: String(m.label || "Strand"), values } : null;
+      },
+      clear(d) {
+        d.applied = null;
+        d.auto = null;
+      },
+    };
   }
 
   function esc(s) {
@@ -297,35 +346,30 @@ td .suite-share { display: flex; margin: 2px 0; }
   function onChange(e) {
     const t = e.target;
     if (t.id === "scene") {
-      state.sceneId = t.value;
+      change({ type: "scene", id: t.value, label: "Change the scene" });
     } else if (t.id === "suite") {
-      state.suite = t.value;
-      const suite = SUITES.find((s) => s.id === t.value);
-      if (suite) {
-        Object.assign(state, suite.set);
-        Object.keys(suite.set).forEach(unapply);
-      }
+      change({ type: "suite", id: t.value, label: "Play a suite" });
       drawControls();
     } else if (t.dataset.id) {
-      state[t.dataset.id] = t.type === "range" ? Number(t.value) : t.value;
-      unapply(t.dataset.id);
+      const c = live.find((x) => x.id === t.dataset.id);
+      /* A slider being dragged is one undo step. */
+      change({ type: "set", id: t.dataset.id, value: t.type === "range" ? Number(t.value) : t.value, label: "Change " + ((c && c.label) || t.dataset.id), merge: "set:" + t.dataset.id });
       const read = document.getElementById("read-" + t.dataset.id);
       if (read) read.textContent = state[t.dataset.id];
     }
-    save();
     drawBoard();
     notify();
   }
 
   /* A control you touch by hand wins over a strand applied from the Shelf. */
-  function unapply(id) {
-    if (state.auto && id in state.auto) {
-      delete state.auto[id];
-      if (!Object.keys(state.auto).length) state.auto = null;
+  function unapplyIn(st, id) {
+    if (st.auto && id in st.auto) {
+      delete st.auto[id];
+      if (!Object.keys(st.auto).length) st.auto = null;
     }
-    if (!state.applied || !(id in state.applied.values)) return;
-    delete state.applied.values[id];
-    if (!Object.keys(state.applied.values).length) state.applied = null;
+    if (!st.applied || !(id in st.applied.values)) return;
+    delete st.applied.values[id];
+    if (!Object.keys(st.applied.values).length) st.applied = null;
   }
 
   function volumeSize(i, st) {
@@ -976,9 +1020,7 @@ td .suite-share { display: flex; margin: 2px 0; }
     const clear = document.getElementById("clear-applied");
     if (clear)
       clear.onclick = () => {
-        state.applied = null;
-        state.auto = null;
-        save();
+        change({ type: "clear", label: "Clear the strands" });
         drawBoard();
         notify();
       };
@@ -1240,9 +1282,8 @@ td .suite-share { display: flex; margin: 2px 0; }
       return out;
     },
     apply(label, values) {
-      if (label === "Automation") state.auto = values && Object.keys(values).length ? values : null;
-      else state.applied = values && Object.keys(values).length ? { label, values } : null;
-      save();
+      /* Running automation rewrites its layer about eight times a second: saved, but not an undo step. */
+      change({ type: "apply", label, values: values && typeof values === "object" ? values : {} }, { record: label !== "Automation" });
       drawBoard();
       notify();
     },
@@ -1261,9 +1302,7 @@ td .suite-share { display: flex; margin: 2px 0; }
     /* Set one control for the whole scene, as if moved by hand. */
     set(id, value) {
       if (!live.find((c) => c.id === id)) return;
-      state[id] = value;
-      unapply(id);
-      save();
+      change({ type: "set", id, value, label: "Change " + (live.find((c) => c.id === id).label || id) });
       drawControls();
       drawBoard();
       notify();
@@ -1275,14 +1314,28 @@ td .suite-share { display: flex; margin: 2px 0; }
     playSuite(id) {
       const suite = SUITES.find((s) => s.id === id);
       if (!suite) return;
-      state.suite = id;
-      Object.assign(state, suite.set);
-      Object.keys(suite.set).forEach(unapply);
-      save();
+      change({ type: "suite", id, label: "Play " + (suite.label || id) });
       drawControls();
       drawBoard();
     },
   };
+
+  /* Undo and redo come back here: redraw from the restored data. Ctrl+Z and Ctrl+Shift+Z undo across the
+     app (the engine's window has its own). */
+  if (boardPart) {
+    boardPart.on((_, label) => {
+      if (!/^(Undo|Redo|Load)/.test(label || "")) return;
+      drawControls();
+      drawBoard();
+      notify();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (!(e.ctrlKey || e.metaKey) || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "") || e.target.isContentEditable) return;
+      if (document.querySelector(".en-overlay:not([hidden])")) return;
+      const k = e.key.toLowerCase();
+      if (k === "z" && !e.shiftKey ? window.CurioStore.undo() : (k === "z" && e.shiftKey) || k === "y" ? window.CurioStore.redo() : false) e.preventDefault();
+    });
+  }
 
   drawControls();
   drawBoard();
