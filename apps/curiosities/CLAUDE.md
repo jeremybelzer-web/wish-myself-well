@@ -115,3 +115,8 @@ Keep the static files and the look of this folder. Do not add a second git repo 
 ## The engine
 
 `engine/` (guide: `docs/engine.md`) is the Curiosity Lane letter built for this app: one shared state for a film (moments down, tracks across, a lane per curiosity), a rewrite in a fixed order (your material, automation lanes, links, pins), links between curiosities as plain data with chain reactions, undo for every change (and an app-wide history), saving checked by fingerprint, the clip-matrix cube, and analysis of scripts and shot lists. It opens from Library, Engine once `<script src="engine/load.js"></script>` is the last script in `index.html`; `engine/index.html` runs it on its own. Saved under `curiosities-engine-v1`. Tests: `node engine/tests/run.js` and `node engine/tests/browser.js`. Jeremy's words, numbered and verbatim: `docs/jeremys-words.md`.
+
+## Your own videos (media/)
+
+Library, Bring in a video (`media/media.js`, `window.CurioMedia`) follows Final Cut Pro's and CapCut's rules for big files: the video is left in place (never uploaded, never copied into storage; the browser seeks through it), editing uses a small copy (one small picture per moment, in IndexedDB `curiomatic-media`), the work runs in the background with progress and Stop, and the original is the only thing used for anything final. Its "AI" is measured on the device: cuts, how long shots hold, brightness, warmth, color, contrast and movement become curiosity values per moment (`RULES`), and the stretches with the most change are offered as highlights. The result is a curated film (`CuriosityStudy.add`, `source: "my video"`), values only. Research and next steps: `docs/big-files-and-ai.md`. Test: `node media/tests/browser.js`.
+
