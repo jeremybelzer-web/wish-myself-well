@@ -273,26 +273,26 @@ Every topic from the Maya User Guide and the Arnold for Maya User Guide that we 
 
 Major topics no Studio tool covers yet, most valuable first.
 
-- {'rank': 1, 'id': 'motion-paths', 'area': 'animation', 'missing': 'Draw your own path on the floor plan for a character, prop or camera, with follow and bank; Motion only offers preset path shapes.', 'status': 'partly covered by motion'}
-- {'rank': 2, 'id': 'motion-trails', 'area': 'animation', 'missing': 'Drag the spacing dots on the trail to retime; the trail is display only today.', 'status': 'partly covered by motion'}
-- {'rank': 3, 'id': 'retime-tool', 'area': 'animation', 'missing': 'Retime markers inside a curve to squeeze or stretch a span; Remix only retimes whole clips.', 'status': 'partly covered by remix'}
-- {'rank': 4, 'id': 'camera-shake', 'area': 'animation', 'missing': 'Keyed camera shake for impacts and handheld; no tool sets cameraShake over time.', 'status': 'not covered'}
-- {'rank': 5, 'id': 'focus-pull', 'area': 'animation', 'missing': 'Keyed focus pull between two subjects on a line or action; Camera has only a one-shot rack button.', 'status': 'partly covered by camera'}
-- {'rank': 6, 'id': 'dope-sheet', 'area': 'animation', 'missing': 'A full Dope Sheet that moves and scales keys for every curiosity at once; Curves has one row only.', 'status': 'partly covered by curves'}
-- {'rank': 7, 'id': 'arnold-shadow-density-color', 'area': 'lighting', 'missing': 'Shadow density and color controls (blue night shadows, faint fill shadows).', 'status': 'partly covered by light'}
-- {'rank': 8, 'id': 'arnold-snapshots-ab', 'area': 'lighting', 'missing': 'Snapshot a look and wipe A/B against the current one in Light & look.', 'status': 'not covered'}
-- {'rank': 9, 'id': 'arnold-physical-sky', 'area': 'lighting', 'missing': 'A sun position (elevation, azimuth) driving sky color and time of day; today only presets.', 'status': 'partly covered by light'}
-- {'rank': 10, 'id': 'toon-profile-lines', 'area': 'shading', 'missing': 'Line weight and color controls for ink outlines in panels; Ink is on or off.', 'status': 'partly covered by light'}
-- {'rank': 11, 'id': 'arnold-toon-outlines', 'area': 'shading', 'missing': 'Same as above for Arnold toon edges: silhouette, crease, line width by depth.', 'status': 'partly covered by light'}
-- {'rank': 12, 'id': '_note-dynamics-fur-bifrost', 'area': 'dynamics/fur/Bifrost', 'missing': 'No major build topic is uncovered in dynamics; fur (XGen, nHair) and Bifrost liquids have no tool yet (studio-fur.js, studio-bifrost.js not in the folder), and their rows are fit curiosity, so they are listed here as the next Sharani areas to build.', 'status': 'not covered'}
-- {'rank': 13, 'id': 'playblast', 'area': 'other', 'missing': 'Export the board or ubershot as a WebM or GIF flipbook with MediaRecorder; no tool exports a movie yet.', 'status': 'not covered'}
-- {'rank': 14, 'id': 'seq-playblast', 'area': 'other', 'missing': 'Same as playblast, from the Shots sequencer.', 'status': 'not covered'}
-- {'rank': 15, 'id': 'mash-audio', 'area': 'other', 'missing': "Drive a crowd or any curiosity from the loaded sound's loudness (WebAudio) for performers.", 'status': 'not covered'}
-- {'rank': 16, 'id': 'seq-hold-transitions', 'area': 'other', 'missing': 'Pre/post hold and dissolve or wipe transitions between shots in Shots.', 'status': 'not covered'}
-- {'rank': 17, 'id': 'type-tool', 'area': 'other', 'missing': 'Title and caption type-on by letter, word or line with delay and reverse order.', 'status': 'partly covered by crowd'}
-- {'rank': 18, 'id': 'time-slider', 'area': 'other', 'missing': 'Named bookmark spans over the beat strip.', 'status': 'partly covered by sequencer'}
-- {'rank': 19, 'id': 'image-plane', 'area': 'other', 'missing': 'Drop a reference still or storyboard image behind a panel.', 'status': 'not covered'}
-- {'rank': 20, 'id': 'arnold-camera-exposure', 'area': 'other', 'missing': 'Exposure in stops on the camera, tied to Light & look.', 'status': 'partly covered by camera'}
+- **motion-paths** (animation): Draw your own path on the floor plan for a character, prop or camera, with follow and bank; Motion only offers preset path shapes. _partly covered by motion_
+- **motion-trails** (animation): Drag the spacing dots on the trail to retime; the trail is display only today. _partly covered by motion_
+- **retime-tool** (animation): Retime markers inside a curve to squeeze or stretch a span; Remix only retimes whole clips. _partly covered by remix_
+- **camera-shake** (animation): Keyed camera shake for impacts and handheld; no tool sets cameraShake over time. _not covered_
+- **focus-pull** (animation): Keyed focus pull between two subjects on a line or action; Camera has only a one-shot rack button. _partly covered by camera_
+- **dope-sheet** (animation): A full Dope Sheet that moves and scales keys for every curiosity at once; Curves has one row only. _partly covered by curves_
+- **arnold-shadow-density-color** (lighting): Shadow density and color controls (blue night shadows, faint fill shadows). _partly covered by light_
+- **arnold-snapshots-ab** (lighting): Snapshot a look and wipe A/B against the current one in Light & look. _not covered_
+- **arnold-physical-sky** (lighting): A sun position (elevation, azimuth) driving sky color and time of day; today only presets. _partly covered by light_
+- **toon-profile-lines** (shading): Line weight and color controls for ink outlines in panels; Ink is on or off. _partly covered by light_
+- **arnold-toon-outlines** (shading): Same as above for Arnold toon edges: silhouette, crease, line width by depth. _partly covered by light_
+- **_note-dynamics-fur-bifrost** (dynamics/fur/Bifrost): No major build topic is uncovered in dynamics; fur (XGen, nHair) and Bifrost liquids have no tool yet (studio-fur.js, studio-bifrost.js not in the folder), and their rows are fit curiosity, so they are listed here as the next Sharani areas to build. _not covered_
+- **playblast** (other): Export the board or ubershot as a WebM or GIF flipbook with MediaRecorder; no tool exports a movie yet. _not covered_
+- **seq-playblast** (other): Same as playblast, from the Shots sequencer. _not covered_
+- **mash-audio** (other): Drive a crowd or any curiosity from the loaded sound's loudness (WebAudio) for performers. _not covered_
+- **seq-hold-transitions** (other): Pre/post hold and dissolve or wipe transitions between shots in Shots. _not covered_
+- **type-tool** (other): Title and caption type-on by letter, word or line with delay and reverse order. _partly covered by crowd_
+- **time-slider** (other): Named bookmark spans over the beat strip. _partly covered by sequencer_
+- **image-plane** (other): Drop a reference still or storyboard image behind a panel. _not covered_
+- **arnold-camera-exposure** (other): Exposure in stops on the camera, tied to Light & look. _partly covered by camera_
 
 ## Pages read
 
