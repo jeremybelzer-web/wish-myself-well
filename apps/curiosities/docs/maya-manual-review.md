@@ -69,7 +69,7 @@ Every topic from the Maya User Guide and the Arnold for Maya User Guide that we 
 | Type tool and animated text | Motion graphics | Working tool | crowd (partly) | **keep** | Titles, captions, comic SFX lettering. | textDensity, soundLettering, typeOn |
 | Image size, resolution presets, pixel aspect | Rendering | Partly built |  | **keep** | Needed for any export. | aspect |
 | Render Setup layers, collections, overrides | Rendering | Partly built | passes | **keep** | Teaches the suite idea through a known tool. | renderStyle |
-| Toon outlines: profile lines | Rendering | Working tool | light (partly) | **keep** | Outline weight is a comic signature. | lineWeight |
+| Toon outlines: profile lines | Rendering | Working tool | shading | **keep** | Outline weight is a comic signature. | lineWeight |
 | Toon shading: fill (solid, light angle, shaded brightness) | Rendering | Working tool | light | **keep** | Comic and animation users want cel look. | renderStyle, valueKey, toneSteps |
 | Blend shapes and Shape Editor | Rigging | Curiosity only | face | **keep** | Facial weights are a core acting value; pad performers can drive weights live. | faceIntensity, lipSync |
 | Set Driven Key | Rigging | Working tool | curves | **keep** | Driver to driven is exactly how a live performer's controller maps to curiosities. | shotSize, cameraShake |
@@ -93,18 +93,18 @@ Every topic from the Maya User Guide and the Arnold for Maya User Guide that we 
 | Directional light (sun) | Lights | Working tool | light | **keep** | Sun angle is the base of every exterior. | timeOfDay, key, softness, shadowLength |
 | Intensity and exposure | Lights | Working tool | light | **keep** | Stops are how cinematographers talk; the manual uses the same math. | contrast, valueKey, keyStops |
 | Physical sky | Lights | Working tool | light (partly) | **keep** | One knob that explains why sunlight changes through a day. | timeOfDay, colorTemp, sunHeight, haziness |
-| Shadow density and color | Lights | Working tool | light (partly) | **keep** | Shadow depth and tint are easy to read and to remix. | contrast, shadowTone, shadowTint |
+| Shadow density and color | Lights | Working tool | light | **keep** | Shadow depth and tint are easy to read and to remix. | contrast, shadowTone, shadowTint |
 | Skydome light | Lights | Working tool | light | **keep** | Environment light is how most 3D scenes start; plain fill level is measurable. | timeOfDay, colorTemp, lighting, ambientFill |
 | Spot light | Lights | Working tool | light | **keep** | Live performers and theatre-style staging use spots constantly. | key, lightShape, softness, spotFollow |
 | Motion blur settings | Render settings | Curiosity only |  | **keep** | Already modeled. | motionBlur |
 | RenderView snapshots and A/B compare | Render settings | Working tool |  | **keep** | A/B compare is how people learn what one change does. | lightChange |
-| Standard Surface: base and diffuse | Shaders | Curiosity only |  | **keep** | Material reads matter for props. | palette, material |
-| Standard Surface: emission | Shaders | Curiosity only |  | **keep** | Glowing screens and signs drive night scenes. | glow, practicalInFrame |
-| Standard Surface: specular | Shaders | Curiosity only |  | **keep** | Shine reads instantly on screen. | gloss |
-| Standard Surface: subsurface | Shaders | Curiosity only |  | **keep** | Skin glow is key to flattering faces. | skinLight |
-| Toon outlines and edges | Shaders | Working tool | light (partly) | **keep** | Comic and zine panels depend on line weight. | lineWeight, lineVaries |
+| Standard Surface: base and diffuse | Shaders | Curiosity only | shading | **keep** | Material reads matter for props. | palette, material |
+| Standard Surface: emission | Shaders | Curiosity only | shading | **keep** | Glowing screens and signs drive night scenes. | glow, practicalInFrame |
+| Standard Surface: specular | Shaders | Curiosity only | shading | **keep** | Shine reads instantly on screen. | gloss |
+| Standard Surface: subsurface | Shaders | Curiosity only | shading | **keep** | Skin glow is key to flattering faces. | skinLight |
+| Toon outlines and edges | Shaders | Working tool | shading | **keep** | Comic and zine panels depend on line weight. | lineWeight, lineVaries |
 | Toon shader | Shaders | Working tool | light | **keep** | Animation and comic users want cel looks. | renderStyle, rim, toneBands |
-| HDRI lighting | Tutorials | Partly built |  | **keep** | Most beginners light with an HDRI first. | key, timeOfDay, colorTemp, envTurn |
+| HDRI lighting | Tutorials | Partly built | light (partly) | **keep** | Most beginners light with an HDRI first. | key, timeOfDay, colorTemp, envTurn |
 | Three-point lighting | Tutorials | Working tool | light | **keep** | The first lighting lesson for every beginner. | key, contrast, rim, lightCount, fillRatio |
 | Atmosphere volume | Volumes | Working tool | light | **keep** | Haze is a defining cinematic look. | atmosphere, hazeLevel |
 
@@ -237,12 +237,12 @@ Every topic from the Maya User Guide and the Arnold for Maya User Guide that we 
 | Normalize | Lights | Partly built | light | **keep** | Teaches that size equals softness without confounding brightness. | softness |
 | Photometric light | Lights | Curiosity only |  | **keep** | Scalloped wall light is a recognizable practical look. | practicalInFrame, lightShape, throwPattern |
 | Point and sphere light | Lights | Curiosity only | light | **keep** | Classic interrogation-room bulb. | practicalInFrame, softness |
-| Volume contribution | Lights | Partly built |  | **keep** | Beams through haze are a common cinematic look. | atmosphere, beamFromLight |
+| Volume contribution | Lights | Partly built | light (partly) | **keep** | Beams through haze are a common cinematic look. | atmosphere, beamFromLight |
 | Operators (set parameter, merge, override) | Operators/procedurals | Partly built |  | **keep** | Same idea as a suite; useful for performers switching looks live. |  |
 | Stand-ins and procedurals (.ass) | Operators/procedurals | Skip |  | **skip** | Scene management. |  |
 | Adaptive sampling and noise | Render settings | Skip |  | **skip** | Technical. |  |
 | Camera (AA) and ray-type samples | Render settings | Skip |  | **skip** | Render cost, not storytelling. |  |
-| Color management and view transform | Render settings | Curiosity only |  | **keep** | A look transform defines a show's color. | saturation, filmLook |
+| Color management and view transform | Render settings | Curiosity only | shading | **keep** | A look transform defines a show's color. | saturation, filmLook |
 | Denoisers (OptiX, Noice, OIDN) | Render settings | Skip |  | **skip** | Pipeline tool. |  |
 | GPU rendering | Render settings | Skip |  | **skip** | Hardware choice. |  |
 | IPR and Arnold RenderView | Render settings | Partly built |  | **keep** | Model for instant feedback in the preview. |  |
@@ -251,40 +251,45 @@ Every topic from the Maya User Guide and the Arnold for Maya User Guide that we 
 | Visible noise and grain | Render settings | Curiosity only |  | **keep** | Grain is a style choice even if render noise is not. | grain |
 | Ambient occlusion | Shaders | Curiosity only |  | **keep** | AO grounds objects; useful style knob. | contrast, contactShadow |
 | Curvature shader | Shaders | Skip |  | **skip** | Texturing helper. |  |
-| Facing ratio toon setup | Shaders | Partly built |  | **keep** | Teaches how edge falloff makes cartoon shading. | renderStyle |
+| Facing ratio toon setup | Shaders | Partly built | shading (partly) | **keep** | Teaches how edge falloff makes cartoon shading. | renderStyle |
 | Layer shader and mix | Shaders | Skip |  | **skip** | Technical node graph. |  |
 | Matte and shadow matte | Shaders | Partly built |  | **keep** | Remixers composite drawn things into footage. | renderStyle, liveMix |
 | Opacity and cutout | Shaders | Skip |  | **skip** | Technical, not a story choice. |  |
-| Standard Hair | Shaders | Curiosity only |  | **keep** | Already modeled. | hairColor, hairShine |
-| Standard Surface: coat | Shaders | Curiosity only |  | **keep** | Covered by gloss. | gloss |
-| Standard Surface: sheen | Shaders | Curiosity only |  | **keep** | Minor read on costume. | clothResponse |
-| Standard Surface: thin film | Shaders | Curiosity only |  | **keep** | Sci-fi and dream sequences use it. | glow, iridescence |
-| Standard Surface: transmission | Shaders | Curiosity only |  | **keep** | Shooting through glass is a framing device. | seeThrough |
+| Standard Hair | Shaders | Curiosity only | fur | **keep** | Already modeled. | hairColor, hairShine |
+| Standard Surface: coat | Shaders | Curiosity only | shading | **keep** | Covered by gloss. | gloss |
+| Standard Surface: sheen | Shaders | Curiosity only | shading | **keep** | Minor read on costume. | clothResponse |
+| Standard Surface: thin film | Shaders | Curiosity only | shading | **keep** | Sci-fi and dream sequences use it. | glow, iridescence |
+| Standard Surface: transmission | Shaders | Curiosity only | shading | **keep** | Shooting through glass is a framing device. | seeThrough |
 | Utility shader | Shaders | Skip |  | **skip** | Debug tool. |  |
 | Wireframe shader | Shaders | Curiosity only |  | **keep** | Hologram/HUD looks. | renderStyle |
-| Pattern and texture scale | Textures | Curiosity only |  | **keep** | Busy backgrounds change readability. | visualDensity |
+| Pattern and texture scale | Textures | Curiosity only | shading (partly) | **keep** | Busy backgrounds change readability. | visualDensity |
 | TX texture conversion and tiling | Textures | Skip |  | **skip** | Pipeline optimization. |  |
 | aiImage texture | Textures | Skip |  | **skip** | File plumbing. |  |
 | Interior lighting tutorial (museum) | Tutorials | Curiosity only |  | **keep** | Interior day mix is a frequent setup. | intExt, practicalInFrame, lightCount |
 | Fog | Volumes | Curiosity only | light | **keep** | Depth fade separates planes. | weather, atmosphere, depthFade |
-| VDB volumes (smoke, fire, clouds) | Volumes | Curiosity only |  | **keep** | Already covered by element curiosities. | element, fireLight |
+| VDB volumes (smoke, fire, clouds) | Volumes | Curiosity only | bifrost (partly) | **keep** | Already covered by element curiosities. | element, fireLight |
 
 ## Next to build
 
 Major topics no Studio tool covers yet, most valuable first.
 
+- **field-vortex-radial-newton** (dynamics): Vortex, radial and newton fields in Dynamics: twister swirl, explosion push, pull toward an object. _partly covered by bifrost_
+- **bifrost-foam-ocean** (Bifrost): Foam and spray on splashes, and an ocean with wave height that follows the wind. _not covered_
+- **bifrost-liquid-viscosity** (Bifrost): Viscosity control so water can become honey or lava. _not covered_
+- **xgen-sculpt-brushes** (fur): Paint-on groom brushes (comb, clump, part, grab) instead of global sliders. _partly covered by fur_
+- **ncloth-presets-pins** (dynamics): More cloth presets (rubber, leather, burlap) and movable pins (corners, one edge). _partly covered by dynamics_
+- **particle-collisions** (dynamics): Particle bounce and stickiness at the floor, and spray/omni emitter shapes. _partly covered by dynamics_
+- **rigid-bounce-constraints** (dynamics): Bounciness and mass per box, plus hinge and spring constraints (doors, hanging signs). _partly covered by dynamics_
+- **bifrost-guided-sim** (Bifrost): Guided water that follows an animated surface. _not covered_
+- **mpm-sand-cohesion** (Bifrost): Friction and cohesion for dry versus wet sand and packed snow. _partly covered by bifrost_
 - **motion-paths** (animation): Draw your own path on the floor plan for a character, prop or camera, with follow and bank; Motion only offers preset path shapes. _partly covered by motion_
 - **motion-trails** (animation): Drag the spacing dots on the trail to retime; the trail is display only today. _partly covered by motion_
 - **retime-tool** (animation): Retime markers inside a curve to squeeze or stretch a span; Remix only retimes whole clips. _partly covered by remix_
 - **camera-shake** (animation): Keyed camera shake for impacts and handheld; no tool sets cameraShake over time. _not covered_
 - **focus-pull** (animation): Keyed focus pull between two subjects on a line or action; Camera has only a one-shot rack button. _partly covered by camera_
 - **dope-sheet** (animation): A full Dope Sheet that moves and scales keys for every curiosity at once; Curves has one row only. _partly covered by curves_
-- **arnold-shadow-density-color** (lighting): Shadow density and color controls (blue night shadows, faint fill shadows). _partly covered by light_
 - **arnold-snapshots-ab** (lighting): Snapshot a look and wipe A/B against the current one in Light & look. _not covered_
 - **arnold-physical-sky** (lighting): A sun position (elevation, azimuth) driving sky color and time of day; today only presets. _partly covered by light_
-- **toon-profile-lines** (shading): Line weight and color controls for ink outlines in panels; Ink is on or off. _partly covered by light_
-- **arnold-toon-outlines** (shading): Same as above for Arnold toon edges: silhouette, crease, line width by depth. _partly covered by light_
-- **_note-dynamics-fur-bifrost** (dynamics/fur/Bifrost): No major build topic is uncovered in dynamics; fur (XGen, nHair) and Bifrost liquids have no tool yet (studio-fur.js, studio-bifrost.js not in the folder), and their rows are fit curiosity, so they are listed here as the next Sharani areas to build. _not covered_
 - **playblast** (other): Export the board or ubershot as a WebM or GIF flipbook with MediaRecorder; no tool exports a movie yet. _not covered_
 - **seq-playblast** (other): Same as playblast, from the Shots sequencer. _not covered_
 - **mash-audio** (other): Drive a crowd or any curiosity from the loaded sound's loudness (WebAudio) for performers. _not covered_

@@ -72,139 +72,174 @@ window.MAYA_MANUAL = {
  "gaps": [
   {
    "rank": 1,
+   "id": "field-vortex-radial-newton",
+   "area": "dynamics",
+   "missing": "Vortex, radial and newton fields in Dynamics: twister swirl, explosion push, pull toward an object.",
+   "status": "partly covered by bifrost"
+  },
+  {
+   "rank": 2,
+   "id": "bifrost-foam-ocean",
+   "area": "Bifrost",
+   "missing": "Foam and spray on splashes, and an ocean with wave height that follows the wind.",
+   "status": "not covered"
+  },
+  {
+   "rank": 3,
+   "id": "bifrost-liquid-viscosity",
+   "area": "Bifrost",
+   "missing": "Viscosity control so water can become honey or lava.",
+   "status": "not covered"
+  },
+  {
+   "rank": 4,
+   "id": "xgen-sculpt-brushes",
+   "area": "fur",
+   "missing": "Paint-on groom brushes (comb, clump, part, grab) instead of global sliders.",
+   "status": "partly covered by fur"
+  },
+  {
+   "rank": 5,
+   "id": "ncloth-presets-pins",
+   "area": "dynamics",
+   "missing": "More cloth presets (rubber, leather, burlap) and movable pins (corners, one edge).",
+   "status": "partly covered by dynamics"
+  },
+  {
+   "rank": 6,
+   "id": "particle-collisions",
+   "area": "dynamics",
+   "missing": "Particle bounce and stickiness at the floor, and spray/omni emitter shapes.",
+   "status": "partly covered by dynamics"
+  },
+  {
+   "rank": 7,
+   "id": "rigid-bounce-constraints",
+   "area": "dynamics",
+   "missing": "Bounciness and mass per box, plus hinge and spring constraints (doors, hanging signs).",
+   "status": "partly covered by dynamics"
+  },
+  {
+   "rank": 8,
+   "id": "bifrost-guided-sim",
+   "area": "Bifrost",
+   "missing": "Guided water that follows an animated surface.",
+   "status": "not covered"
+  },
+  {
+   "rank": 9,
+   "id": "mpm-sand-cohesion",
+   "area": "Bifrost",
+   "missing": "Friction and cohesion for dry versus wet sand and packed snow.",
+   "status": "partly covered by bifrost"
+  },
+  {
+   "rank": 10,
    "id": "motion-paths",
    "area": "animation",
    "missing": "Draw your own path on the floor plan for a character, prop or camera, with follow and bank; Motion only offers preset path shapes.",
    "status": "partly covered by motion"
   },
   {
-   "rank": 2,
+   "rank": 11,
    "id": "motion-trails",
    "area": "animation",
    "missing": "Drag the spacing dots on the trail to retime; the trail is display only today.",
    "status": "partly covered by motion"
   },
   {
-   "rank": 3,
+   "rank": 12,
    "id": "retime-tool",
    "area": "animation",
    "missing": "Retime markers inside a curve to squeeze or stretch a span; Remix only retimes whole clips.",
    "status": "partly covered by remix"
   },
   {
-   "rank": 4,
+   "rank": 13,
    "id": "camera-shake",
    "area": "animation",
    "missing": "Keyed camera shake for impacts and handheld; no tool sets cameraShake over time.",
    "status": "not covered"
   },
   {
-   "rank": 5,
+   "rank": 14,
    "id": "focus-pull",
    "area": "animation",
    "missing": "Keyed focus pull between two subjects on a line or action; Camera has only a one-shot rack button.",
    "status": "partly covered by camera"
   },
   {
-   "rank": 6,
+   "rank": 15,
    "id": "dope-sheet",
    "area": "animation",
    "missing": "A full Dope Sheet that moves and scales keys for every curiosity at once; Curves has one row only.",
    "status": "partly covered by curves"
   },
   {
-   "rank": 7,
-   "id": "arnold-shadow-density-color",
-   "area": "lighting",
-   "missing": "Shadow density and color controls (blue night shadows, faint fill shadows).",
-   "status": "partly covered by light"
-  },
-  {
-   "rank": 8,
+   "rank": 16,
    "id": "arnold-snapshots-ab",
    "area": "lighting",
    "missing": "Snapshot a look and wipe A/B against the current one in Light & look.",
    "status": "not covered"
   },
   {
-   "rank": 9,
+   "rank": 17,
    "id": "arnold-physical-sky",
    "area": "lighting",
    "missing": "A sun position (elevation, azimuth) driving sky color and time of day; today only presets.",
    "status": "partly covered by light"
   },
   {
-   "rank": 10,
-   "id": "toon-profile-lines",
-   "area": "shading",
-   "missing": "Line weight and color controls for ink outlines in panels; Ink is on or off.",
-   "status": "partly covered by light"
-  },
-  {
-   "rank": 11,
-   "id": "arnold-toon-outlines",
-   "area": "shading",
-   "missing": "Same as above for Arnold toon edges: silhouette, crease, line width by depth.",
-   "status": "partly covered by light"
-  },
-  {
-   "rank": 12,
-   "id": "_note-dynamics-fur-bifrost",
-   "area": "dynamics/fur/Bifrost",
-   "missing": "No major build topic is uncovered in dynamics; fur (XGen, nHair) and Bifrost liquids have no tool yet (studio-fur.js, studio-bifrost.js not in the folder), and their rows are fit curiosity, so they are listed here as the next Sharani areas to build.",
-   "status": "not covered"
-  },
-  {
-   "rank": 13,
+   "rank": 18,
    "id": "playblast",
    "area": "other",
    "missing": "Export the board or ubershot as a WebM or GIF flipbook with MediaRecorder; no tool exports a movie yet.",
    "status": "not covered"
   },
   {
-   "rank": 14,
+   "rank": 19,
    "id": "seq-playblast",
    "area": "other",
    "missing": "Same as playblast, from the Shots sequencer.",
    "status": "not covered"
   },
   {
-   "rank": 15,
+   "rank": 20,
    "id": "mash-audio",
    "area": "other",
    "missing": "Drive a crowd or any curiosity from the loaded sound's loudness (WebAudio) for performers.",
    "status": "not covered"
   },
   {
-   "rank": 16,
+   "rank": 21,
    "id": "seq-hold-transitions",
    "area": "other",
    "missing": "Pre/post hold and dissolve or wipe transitions between shots in Shots.",
    "status": "not covered"
   },
   {
-   "rank": 17,
+   "rank": 22,
    "id": "type-tool",
    "area": "other",
    "missing": "Title and caption type-on by letter, word or line with delay and reverse order.",
    "status": "partly covered by crowd"
   },
   {
-   "rank": 18,
+   "rank": 23,
    "id": "time-slider",
    "area": "other",
    "missing": "Named bookmark spans over the beat strip.",
    "status": "partly covered by sequencer"
   },
   {
-   "rank": 19,
+   "rank": 24,
    "id": "image-plane",
    "area": "other",
    "missing": "Drop a reference still or storyboard image behind a panel.",
    "status": "not covered"
   },
   {
-   "rank": 20,
+   "rank": 25,
    "id": "arnold-camera-exposure",
    "area": "other",
    "missing": "Exposure in stops on the camera, tied to Light & look.",
@@ -3636,7 +3671,7 @@ window.MAYA_MANUAL = {
    "source": "https://help.autodesk.com/cloudhelp/2017/ENU/Maya/files/GUID-F7BE47E6-76D5-47F0-8159-9F39FF0C4215.htm",
    "tool": "dynamics",
    "built": "partly",
-   "toolDoes": "Has gravity with drag, wind with gusts, and turbulence; there is no vortex, radial or newton field."
+   "toolDoes": "Gravity, drag, air with direction and gusts, and turbulence; no vortex, radial, newton or volume axis field (Bifrost has a curl swirl for smoke)."
   },
   {
    "id": "nucleus",
@@ -5156,9 +5191,9 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Outline weight is a comic signature.",
    "source": "https://download.autodesk.com/us/maya/2009help/files/Toon_shading_Types_of_toon_lines.htm",
-   "tool": "light",
-   "built": "partly",
-   "toolDoes": "An Ink look draws outlines for comic panels."
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Ink line select none, thin, heavy; Comic ink suite sets toon, heavy line, 2 bands."
   },
   {
    "id": "toon-fill",
@@ -7329,8 +7364,8 @@ window.MAYA_MANUAL = {
    "reason": "Shadow depth and tint are easy to read and to remix.",
    "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html",
    "tool": "light",
-   "built": "partly",
-   "toolDoes": "Shadow softness comes from light size and shadows render on the wall; there is little shadow color control."
+   "built": "yes",
+   "toolDoes": "Each light has a Shadow density slider (0 to 1) and a Shadow color picker."
   },
   {
    "id": "arnold-skydome-light",
@@ -7791,7 +7826,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Beams through haze are a common cinematic look.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Core/files/arnold_user_guide_ac_lights_html.html ; https://help.autodesk.com/cloudhelp/2024/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/getting-started/am-Hyperspace_Madness_Production/arnold_for_maya_getting_started_am_Hyperspace_Effect_using_a_Gobo_and_Atmosphere_Volume_html.html",
+   "tool": "light",
+   "built": "partly",
+   "toolDoes": "Haze slider turns spot, directional and gobo light into beams; no per-light volume weight."
   },
   {
    "id": "arnold-operators",
@@ -7994,7 +8032,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "A look transform defines a show's color.",
-   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html",
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "View transform select sRGB or filmic."
   },
   {
    "id": "arnold-denoisers",
@@ -8207,7 +8248,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Material reads matter for props.",
-   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Base weight, base color, Diffuse roughness and Metalness sliders on the shader ball."
   },
   {
    "id": "arnold-standard-surface-emission",
@@ -8249,7 +8293,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Glowing screens and signs drive night scenes.",
-   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Emission weight and color; lantern preset; glow select none, object, person, room."
   },
   {
    "id": "arnold-standard-surface-specular",
@@ -8290,7 +8337,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Shine reads instantly on screen.",
-   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Specular weight and roughness (GGX) sliders; Wet night suite."
   },
   {
    "id": "arnold-standard-surface-subsurface",
@@ -8328,7 +8378,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Skin glow is key to flattering faces.",
-   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Subsurface weight and color; skin preset; glow scales with shot size."
   },
   {
    "id": "arnold-toon-outlines",
@@ -8379,9 +8432,9 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Comic and zine panels depend on line weight.",
    "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html",
-   "tool": "light",
-   "built": "partly",
-   "toolDoes": "An Ink look draws outlines for comic panels."
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Ink line select none, thin, heavy draws outlines on the toon shader ball; Light has a Toon look with bands and outline and an Ink look."
   },
   {
    "id": "arnold-toon-shader",
@@ -8526,7 +8579,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Teaches how edge falloff makes cartoon shading.",
-   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html"
+   "source": "https://help.autodesk.com/cloudhelp/ENU/AR-Maya/files/am-Arnold_for_Maya_User_Guide/tutorials/am-Shading/am-Toon_Tutorials/arnold_for_maya_toon_am_Toon_Shading_with_the_Facing_Ratio_shader_html.html",
+   "tool": "shading",
+   "built": "partly",
+   "toolDoes": "Toon look with bands and ink line; no facing-ratio ramp."
   },
   {
    "id": "arnold-layer-shader",
@@ -8637,7 +8693,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Already modeled.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "fur",
+   "built": "yes",
+   "toolDoes": "Melanin, redness and shine on the strands follow Standard Hair."
   },
   {
    "id": "arnold-standard-surface-coat",
@@ -8664,7 +8723,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Covered by gloss.",
-   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Coat weight and roughness; wet asphalt and ceramic presets."
   },
   {
    "id": "arnold-standard-surface-sheen",
@@ -8690,7 +8752,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Minor read on costume.",
-   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Sheen slider; velvet preset."
   },
   {
    "id": "arnold-standard-surface-thin-film",
@@ -8724,7 +8789,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Sci-fi and dream sequences use it.",
-   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Thin film slider; soap bubble preset."
   },
   {
    "id": "arnold-standard-surface-transmission",
@@ -8759,7 +8827,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Shooting through glass is a framing device.",
-   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm"
+   "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-LightingShading/files/GUID-0944E219-0FAB-499F-B5E3-6E53C2B27826.htm",
+   "tool": "shading",
+   "built": "yes",
+   "toolDoes": "Transmission slider; glass and soap bubble presets."
   },
   {
    "id": "arnold-utility-shader",
@@ -8846,7 +8917,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Busy backgrounds change readability.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "shading",
+   "built": "partly",
+   "toolDoes": "Procedural bump for scratches and wear (new, used, ruined); no pattern scale."
   },
   {
    "id": "arnold-tx-textures",
@@ -8937,7 +9011,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Most beginners light with an HDRI first.",
-   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html"
+   "source": "https://users.dma.ucla.edu/~cariesta/MayaCourseNotes/html/arnold_maya_raw.html",
+   "tool": "light",
+   "built": "partly",
+   "toolDoes": "Skydome gives one-color sky fill; no HDRI images."
   },
   {
    "id": "arnold-three-point-lighting",
@@ -9179,7 +9256,10 @@ window.MAYA_MANUAL = {
    ],
    "keep": "keep",
    "reason": "Already covered by element curiosities.",
-   "source": "knowledge"
+   "source": "knowledge",
+   "tool": "bifrost",
+   "built": "partly",
+   "toolDoes": "Smoke and fire are simulated in a 2D grid; no VDB files."
   },
   {
    "id": "bifrost-aero-smoke",
@@ -9241,7 +9321,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Smoke style is a direct, nameable look.",
    "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/fluids/Bifrost_Common_reference_fluids_aero_solver_settings_html.html ; https://help.autodesk.com/cloudhelp/2025/ENU/Maya-Bifrost/files/GUID-AF898698-9213-4835-89BA-C357977731DD.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "yes",
+   "toolDoes": "Smoke on a stable-fluids grid with density, temperature, buoyancy and Curl (vorticity); Thickness wisp, plume, wall; Drift suite."
   },
   {
    "id": "bifrost-liquid-emission",
@@ -9295,7 +9378,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Water amount is a story scale lever.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "yes",
+   "toolDoes": "Water element: particle fluid from a movable emitter with rate, size and a draggable collider."
   },
   {
    "id": "bifrost-ocean",
@@ -9407,7 +9493,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Fire drives light and danger beats.",
    "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/fluids/Bifrost_Common_reference_fluids_aero_solver_settings_html.html ; knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "yes",
+   "toolDoes": "Fire element with rate, size and growth ramp; fire brightness sets fireLight, warms the key Kelvin and raises contrast. Hearth suite."
   },
   {
    "id": "bifrost-foam",
@@ -9448,7 +9537,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Foam makes water feel big.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "partly",
+   "toolDoes": "Drop into water (pebble, stone, boulder) logs splash; no foam or spray particles."
   },
   {
    "id": "mpm-sand",
@@ -9501,7 +9593,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Sand and dirt read material and time.",
    "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Bifrost-Common/files/reference/mpm/Bifrost_Common_reference_mpm_source_mpm_sand_html.html ; https://help.autodesk.com/cloudhelp/ENU/Bifrost-Common/files/simulate-dynamic-effects/Bifrost_Common_simulate_dynamic_effects_create_mpm_simulations_html.html",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "yes",
+   "toolDoes": "Sand grains pile at an angle of repose and can avalanche; no friction or cohesion sliders."
   },
   {
    "id": "bifrost-scatter",
@@ -9552,7 +9647,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Set dressing density at a glance.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "yes",
+   "toolDoes": "Scatter select leaves, debris, rocks with a density slider."
   },
   {
    "id": "bifrost-aero-detail",
@@ -9608,7 +9706,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Proximity rules mirror graph wiring.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "chain",
+   "built": "partly",
+   "toolDoes": "Chain wires triggers to downstream lanes with delays in beats, the same idea as graph nodes; no node editor."
   },
   {
    "id": "bifrost-meshing",
@@ -9696,7 +9797,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Honey versus water reads instantly.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "partly",
+   "toolDoes": "Water only; no viscosity or surface tension control."
   },
   {
    "id": "mpm-cloth",
@@ -9794,7 +9898,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Snow crunching versus puffing.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Bifrost-Common/files/reference/mpm/Bifrost_Common_reference_mpm_source_mpm_snow_html.html",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "yes",
+   "toolDoes": "Snow grains fall, pile and avalanche (Avalanche suite logs impacts)."
   },
   {
    "id": "bifrost-volume-render",
@@ -9826,7 +9933,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Fire color matches its heat.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "partly",
+   "toolDoes": "Fire color follows a Kelvin table and lights the scene; no volume shader controls."
   },
   {
    "id": "rigid-active-passive",
@@ -9882,7 +9992,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Falling and breaking things are frequent.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Boxes fall, collide, bounce and break with impact threshold and break strength; no mass or bounciness controls, no passive/kinematic choice."
   },
   {
    "id": "ncloth-wind-on-cloth",
@@ -9925,7 +10038,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Wind on cloth is the most common sim shot.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Wind with direction and gusts pushes the pinned cloth; the Storm suite sets silk in high wind."
   },
   {
    "id": "emission-rate-lifespan",
@@ -9978,7 +10094,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Rain going from drizzle to downpour is a story beat.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Rate per second, Lifespan (s) and Size sliders on the emitter."
   },
   {
    "id": "emitter-types",
@@ -10018,7 +10137,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Where particles come from decides the composition.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "One emitter with rate, lifespan and size; no omni/directional/surface choice or spread control."
   },
   {
    "id": "field-air",
@@ -10054,7 +10176,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Fields are the forces a viewer can feel.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Air / wind slider with direction and gusts."
   },
   {
    "id": "field-gravity",
@@ -10087,7 +10212,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Fields are the forces a viewer can feel.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Gravity select: floaty, real, heavy."
   },
   {
    "id": "field-radial",
@@ -10138,7 +10266,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Fields are the forces a viewer can feel.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "partly",
+   "toolDoes": "Not in Dynamics; Drop into water pushes liquid outward like a radial burst."
   },
   {
    "id": "field-turbulence",
@@ -10172,7 +10303,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Fields are the forces a viewer can feel.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Turbulence slider."
   },
   {
    "id": "field-vortex",
@@ -10221,7 +10355,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Fields are the forces a viewer can feel.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "bifrost",
+   "built": "partly",
+   "toolDoes": "Not in Dynamics; Bifrost has Curl (vorticity) for smoke and fire swirl."
   },
   {
    "id": "nucleus-gravity-wind",
@@ -10268,7 +10405,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Shared forces every sim inherits.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Gravity select (floaty, real, heavy), Air / wind slider, wind direction in degrees and gusts drive cloth, particles and boxes."
   },
   {
    "id": "nucleus-time-scale",
@@ -10312,7 +10452,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Slow motion dynamics is a core action look.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "The Slow motion suite slows the solver so the drop settles long."
   },
   {
    "id": "ncloth-tearing",
@@ -10363,7 +10506,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Ripping and shattering are big story beats.",
    "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-22B812FB-D615-4BF9-B98C-5648D481151D.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Cloth tears above a stretch ratio slider (1.6 = never); boxes break above an impact speed."
   },
   {
    "id": "nconstraint-transform",
@@ -10401,7 +10547,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Flags, curtains, capes all depend on pins.",
    "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-SimulationEffects/files/GUID-17B84282-8A65-4359-B997-9D4BC0293FF2.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Cloth is pinned at every third point on the top row; pins cannot be moved."
   },
   {
    "id": "ncloth-presets-detail",
@@ -10460,7 +10609,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Cloth weight reads mass and mood.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Four presets: heavy denim, t-shirt, silk, chain mail; no rubber, leather or burlap."
   },
   {
    "id": "nhair-dynamics",
@@ -10515,7 +10667,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Secondary motion sells the head turn.",
    "source": "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-70A85F9C-9FC0-49FD-A535-76D379D2C9BC.htm ; knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "yes",
+   "toolDoes": "Stiffness, gravity and wind sliders, Shake / turn and body sway; measures fur lag and settle time per beat."
   },
   {
    "id": "nparticle-types",
@@ -10569,7 +10724,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Particle style sets the element of a shot.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Emitter modes rain, dust, sparks and confetti stand in for particle types; no ball, cloud or water types."
   },
   {
    "id": "bullet-shatter-constraints",
@@ -10601,7 +10759,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Doors and hanging signs.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Boxes break above a set impact speed; no hinge, spring or nail constraints."
   },
   {
    "id": "dynamic-curves-ropes",
@@ -10631,7 +10792,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Tails and cables are common overlap.",
    "source": "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-70A85F9C-9FC0-49FD-A535-76D379D2C9BC.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "partly",
+   "toolDoes": "Strands are dynamic chains on a head, animal back or mane; no free ropes or tails."
   },
   {
    "id": "field-drag",
@@ -10661,7 +10825,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Fields are the forces a viewer can feel.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Drag slider."
   },
   {
    "id": "field-newton",
@@ -10725,7 +10892,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Fields are the forces a viewer can feel.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-SimulationEffects/files/GUID-0448351B-F456-4741-A5E7-E61A70AF1EB4.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Steady wind with gusts off acts as a uniform push."
   },
   {
    "id": "field-volume-axis",
@@ -10848,7 +11018,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Floor bounce is what makes drops read.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "A floor line stops particles and boxes; boxes bounce and settle on it."
   },
   {
    "id": "nucleus-substeps",
@@ -10915,7 +11088,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Sticky versus bouncy reads as material.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Particles die at the floor; no bounce, friction or stickiness controls."
   },
   {
    "id": "particle-color-opacity-ramps",
@@ -11068,7 +11244,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Draping over furniture or bodies.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "yes",
+   "toolDoes": "Person under the cloth toggle makes a collider the cloth drapes over."
   },
   {
    "id": "ncloth-stretch-bend",
@@ -11102,7 +11281,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Explains why presets differ.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "dynamics",
+   "built": "partly",
+   "toolDoes": "Each preset sets mass, iterations, bend and damping internally; no separate sliders."
   },
   {
    "id": "nhair-follicles-curves",
@@ -11134,7 +11316,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Explains how dynamic hair returns to its groom.",
    "source": "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-70A85F9C-9FC0-49FD-A535-76D379D2C9BC.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "partly",
+   "toolDoes": "Each strand is a Verlet chain rooted on a scalp curve; Comb out (rest) returns it to its groom."
   },
   {
    "id": "particle-liquids",
@@ -11210,7 +11395,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Natural hair color in two plain sliders.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "yes",
+   "toolDoes": "Melanin and Redness (pheomelanin) sliders color the strands."
   },
   {
    "id": "xgen-mod-clump",
@@ -11260,7 +11448,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Groom shape that reads at a glance.",
    "source": "https://help.autodesk.com/cloudhelp/2025/ENU/Maya-CharEffEnvBuild/files/GUID-809D1ADA-4D78-45E5-9900-9997089DFC3F.htm ; https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "yes",
+   "toolDoes": "Clumping select fine, tufted, matted; wet hair clumps more. Drenched suite."
   },
   {
    "id": "xgen-mod-length",
@@ -11292,7 +11483,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Groom shape that reads at a glance.",
    "source": "https://help.autodesk.com/cloudhelp/2018/ENU/Maya-CharEffEnvBuild/files/GUID-A00D16BD-9ECC-4C63-BAB5-B0278BF596BB.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "yes",
+   "toolDoes": "Length select short, medium, long."
   },
   {
    "id": "xgen-mod-noise",
@@ -11325,7 +11519,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Groom shape that reads at a glance.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "yes",
+   "toolDoes": "Frizz / noise slider."
   },
   {
    "id": "xgen-sculpt-brushes",
@@ -11387,7 +11584,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Brushing is the hands-on grooming action.",
    "source": "https://help.autodesk.com/cloudhelp/2018/ENU/Maya-CharEffEnvBuild/files/GUID-A00D16BD-9ECC-4C63-BAB5-B0278BF596BB.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "partly",
+   "toolDoes": "Comb direction, density, length, clump, frizz and cut exist as sliders, not paint brushes."
   },
   {
    "id": "ai-hair-diffuse-emission",
@@ -11448,7 +11648,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Already modeled by hairShine.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "yes",
+   "toolDoes": "Roughness / shine select dull, sheen, glossy and a back light rim select."
   },
   {
    "id": "xgen-density-width",
@@ -11486,7 +11689,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Mangy versus plush animal.",
    "source": "https://help.autodesk.com/cloudhelp/2018/ENU/Maya-CharEffEnvBuild/files/GUID-A00D16BD-9ECC-4C63-BAB5-B0278BF596BB.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "partly",
+   "toolDoes": "Density (strands) slider; no width or taper."
   },
   {
    "id": "xgen-sculpt-layers",
@@ -11558,7 +11764,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Hair versus fur versus grass is the first choice.",
    "source": "https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-496603B0-F929-45CD-B607-1CFCD3283DBE.htm ; knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "partly",
+   "toolDoes": "Head, animal back and mane forms; no grass or scattered-object descriptions."
   },
   {
    "id": "xgen-guides",
@@ -11589,7 +11798,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Explains how a groom is directed.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm ; https://help.autodesk.com/cloudhelp/2024/ENU/Maya-CharEffEnvBuild/files/GUID-496603B0-F929-45CD-B607-1CFCD3283DBE.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "partly",
+   "toolDoes": "Groom forms (head, animal back, mane) set strand roots; no editable guides."
   },
   {
    "id": "xgen-mod-coil",
@@ -11619,7 +11831,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Small variation of an existing curiosity.",
    "source": "knowledge",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "yes",
+   "toolDoes": "Curl slider spirals strands."
   },
   {
    "id": "xgen-mod-collision",
@@ -11678,7 +11893,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Small variation of an existing curiosity.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "yes",
+   "toolDoes": "Cut line slider trims strands (0 = off)."
   },
   {
    "id": "xgen-mod-displacement",
@@ -11734,7 +11952,10 @@ window.MAYA_MANUAL = {
    "keep": "keep",
    "reason": "Small variation of an existing curiosity.",
    "source": "https://help.autodesk.com/cloudhelp/2022/ENU/Maya-CharEffEnvBuild/files/GUID-47E4B5C8-57AE-461F-881F-54F713E8C99D.htm",
-   "sharani": true
+   "sharani": true,
+   "tool": "fur",
+   "built": "partly",
+   "toolDoes": "Length select scales all strands; no separate scale."
   }
  ]
 };
