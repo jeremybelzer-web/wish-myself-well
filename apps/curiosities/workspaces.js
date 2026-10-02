@@ -200,7 +200,76 @@
     }).join("");
     /* Anything not in a section yet still gets a button. */
     html += sec("More", WORKSPACES.filter((w) => !listed.has(w.id) && (!w.fromDb || idsOf(w).length)));
-    bar.innerHTML = html;
+    /* On a phone the sections open as a sheet from the "Workspaces" button; this heading shows only there. */
+    bar.innerHTML = `<div class="ws-sheet-head"><strong id="ws-sheet-title">Pick a workspace</strong><button type="button" class="ws-sheet-close" data-sheet-close="1" aria-label="Close the list">Close</button></div>` + html;
+  }
+
+  /* ---------- the phone bar: one row, the workspaces in a sheet ---------- */
+  const tabsEl = document.getElementById("tabs");
+  const picker = document.createElement("button");
+  picker.type = "button";
+  picker.id = "ws-pick";
+  picker.className = "ws-pick";
+  picker.setAttribute("aria-haspopup", "true");
+  picker.setAttribute("aria-expanded", "false");
+  picker.setAttribute("aria-controls", "ws-buttons");
+  const backdrop = document.createElement("div");
+  backdrop.className = "ws-sheet-back";
+  backdrop.hidden = true;
+  (function placePicker() {
+    const top = tabsEl.querySelector(".tabs-top");
+    const sb = top && top.querySelector('button[data-ws="storyboard"]');
+    if (top) top.insertBefore(picker, sb ? sb.nextSibling : top.firstChild);
+    document.body.appendChild(backdrop);
+    bar.setAttribute("aria-labelledby", "ws-sheet-title");
+  })();
+  function paintPicker() {
+    const ws = page === "ws" ? byId[view.ws] : null;
+    picker.innerHTML = `<span class="ws-pick-name">${esc(ws ? ws.label : "Workspaces")}</span> ▾`;
+    picker.setAttribute("aria-label", ws ? `Workspaces: ${ws.label} is open. Pick another.` : "Workspaces: pick one");
+    picker.classList.toggle("on", !!ws);
+  }
+  const sheetOpen = () => tabsEl.classList.contains("ws-sheet-open");
+  function setSheet(on, focusBack) {
+    tabsEl.classList.toggle("ws-sheet-open", on);
+    picker.setAttribute("aria-expanded", on ? "true" : "false");
+    backdrop.hidden = !on;
+    if (on) {
+      const cur = bar.querySelector("button.on[data-ws]") || bar.querySelector("button[data-ws]");
+      if (cur) cur.focus();
+    } else if (focusBack) picker.focus();
+  }
+  picker.addEventListener("click", () => setSheet(!sheetOpen()));
+  backdrop.addEventListener("click", () => setSheet(false));
+  bar.addEventListener("click", (e) => {
+    if (e.target.closest("[data-sheet-close]")) setSheet(false, true);
+  });
+  document.addEventListener("click", (e) => {
+    if (sheetOpen() && !e.target.closest("#ws-buttons") && !e.target.closest("#ws-pick")) setSheet(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && sheetOpen()) {
+      e.preventDefault();
+      setSheet(false, true);
+    }
+  });
+  /* Tabbing out of the sheet closes it. */
+  bar.addEventListener("focusout", (e) => {
+    if (sheetOpen() && e.relatedTarget && !bar.contains(e.relatedTarget) && e.relatedTarget !== picker) setSheet(false);
+  });
+  /* Any tab in the bar repaints the picker (it shows the open workspace, or "Workspaces"). */
+  tabsEl.addEventListener("click", (e) => {
+    if (!e.target.closest("button[data-tab]")) return;
+    if (sheetOpen()) setSheet(false);
+    setTimeout(paintPicker, 0);
+  });
+  /* After a workspace opens, its page top comes into view (on a phone the bar would otherwise hide the change). */
+  let firstOpen = true;
+  function bringTop() {
+    paintPicker();
+    if (firstOpen) return;
+    const r = root.getBoundingClientRect();
+    if (r.top < 0 || r.top > window.innerHeight * 0.6) root.scrollIntoView({ block: "start" });
   }
   document.getElementById("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-ws], button[data-tool]");
@@ -228,6 +297,7 @@
     } catch (e) {}
     show(document.querySelector(`#tabs button[data-ws="${id}"]`));
     draw();
+    bringTop();
   }
 
   /* The Storyboard: many scenes of My film, flipped through like a flip book (storyboard.js). */
@@ -242,6 +312,7 @@
       <p class="cap">Save My film as scenes, make lots of them, and flip through them like a flip book.</p>
       <div id="ws-sb-body"></div></div>`;
     const el = document.getElementById("ws-sb-body");
+    bringTop();
     const SB = window.CuriosityStoryboard;
     if (SB && typeof SB.mount === "function") {
       try {
@@ -670,16 +741,68 @@
   }
   injectRoadStyle();
 
+  /* The 3D character matrix (character-matrix/) loads only when Archetype opens: its stylesheet, then three.js,
+     data.js and matrix.js in order, once. If its own files are not in this folder, the placeholder line stays.
+     Without three.js the matrix still mounts and says the 3D view needs it. */
+  const MATRIX_NOTE = "The 3D character matrix is being built in its own thread and will appear here.";
+  const MATRIX_FILES = ["https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", "character-matrix/data.js", "character-matrix/matrix.js"];
+  let matrixLoad = null;
+  function loadMatrix() {
+    if (matrixLoad) return matrixLoad;
+    const add = (el) =>
+      new Promise((ok, fail) => {
+        el.onload = () => ok(true);
+        el.onerror = () => fail(new Error("not found"));
+        document.head.appendChild(el);
+      });
+    const css = () => {
+      const l = document.createElement("link");
+      l.rel = "stylesheet";
+      l.href = "character-matrix/matrix.css";
+      l.id = "ws-matrix-css";
+      return add(l);
+    };
+    const js = (src, optional) => {
+      const sc = document.createElement("script");
+      sc.src = src;
+      sc.async = false;
+      return add(sc).catch((e) => {
+        if (!optional) throw e;
+      });
+    };
+    matrixLoad = css()
+      .then(() => (window.THREE ? null : js(MATRIX_FILES[0], true)))
+      .then(() => js(MATRIX_FILES[1]))
+      .then(() => js(MATRIX_FILES[2]))
+      .then(() => !!(window.CharacterMatrix && typeof window.CharacterMatrix.mount === "function"))
+      .catch(() => {
+        const l = document.getElementById("ws-matrix-css");
+        if (l) l.remove();
+        return false;
+      });
+    return matrixLoad;
+  }
+  function mountMatrix(slot) {
+    try {
+      /* The matrix mounts once and hands back its element after that: put that element back in the new slot. */
+      const el = window.CharacterMatrix.mount(slot);
+      if (el && el.nodeType === 1 && el !== slot && !el.isConnected) slot.replaceWith(el);
+      return true;
+    } catch (e) {
+      slot.innerHTML = `<p class="cap ws-fallback">${MATRIX_NOTE}</p>`;
+      return false;
+    }
+  }
   function drawMatrix() {
     const slot = document.getElementById("ws-matrix");
     if (!slot) return;
-    if (window.CharacterMatrix && typeof window.CharacterMatrix.mount === "function") {
-      try {
-        window.CharacterMatrix.mount(slot);
-        return;
-      } catch (e) {}
-    }
-    slot.innerHTML = `<p class="cap ws-fallback">The 3D character matrix is being built in its own thread and will appear here.</p>`;
+    if (window.CharacterMatrix && typeof window.CharacterMatrix.mount === "function") return void mountMatrix(slot);
+    slot.innerHTML = `<p class="cap ws-fallback">${MATRIX_NOTE}</p>`;
+    loadMatrix().then((ok) => {
+      /* Mount into the slot that is on the page now (the workspace may have been redrawn or left meanwhile). */
+      const now = document.getElementById("ws-matrix");
+      if (ok && now && page === "ws" && byId[view.ws] && byId[view.ws].matrix) mountMatrix(now);
+    });
   }
 
   /* Only the "now" notes change while automation runs; the controls stay put so a choice isn't lost. */
@@ -1043,6 +1166,7 @@
     if (window.CuriosityTabs) window.CuriosityTabs.show("tool", button);
     else show(null);
     drawToolPage(tool);
+    bringTop();
   }
   function drawToolPage(tool) {
     /* Library > Words: the plain-language glossary (glossary.js). */
@@ -1170,4 +1294,6 @@
     last = localStorage.getItem(LAST_KEY);
   } catch (e) {}
   if (last && (byId[last] || last === "storyboard")) open(last);
+  paintPicker();
+  firstOpen = false;
 })();

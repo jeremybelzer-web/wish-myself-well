@@ -27,7 +27,9 @@
    at first, as in the curiosity database. Blend is how strongly the suite's values replace what is there: a
    number moves that share of the way from the panel's value to the suite's, and a word is taken when the
    panel's dice roll is under the blend (one roll per panel, so blend 0.5 changes about half the panels).
-   A member's weight works the same way for that member alone, on top of the blend. */
+   A member's weight works the same way for that member alone, on top of the blend.
+   Proximity suites have a Blend lane too ("blend", 0 to 1, off at first): the share of each member's effects
+   that land, rolled per panel and member like amount, so blend 0.5 lets about half of them play. */
 
 (function () {
   const KEY = "curiosities-automation-v1";
@@ -191,8 +193,13 @@
         out.push(lane("delay:" + id, "delay:" + id, `Delay: when ${x.when}`, x.within, x.within + 2));
         out.push(lane("chance:" + id, "chance:" + id, `How often: ${x.then}`, 1, 0.5));
       });
+      out.push(psBlendLane());
     }
     return out;
+  }
+  /* A proximity suite's Blend: the share of each member's effects that land (one dice roll per panel and member). */
+  function psBlendLane() {
+    return lane("blend", "blend", "Blend: how much of this group's cause and effect plays", 0, 1);
   }
   /* A suite's Blend and a Weight per member (off at first). A suite may carry weights: {member: 0..1}. */
   function blendLanes(id) {
@@ -254,6 +261,8 @@
     if (p && !p.lanes) Object.assign(p, { lanes: lanesFor(key), curve: p.curve || "linear", across: p.across || 0, where: p.where || { from: 0, to: null } });
     /* Suite patches saved before Blend and Weight existed get those lanes, switched off. */
     if (p && p.lanes && paramOf(key) && paramOf(key).level === "suite" && !p.lanes.some((l) => l.id === "blend")) blendLanes(paramOf(key).id).forEach((l) => p.lanes.some((x) => x.id === l.id) || p.lanes.push(l));
+    /* Proximity suite patches saved before Blend existed get it now, switched off. */
+    if (p && p.lanes && paramOf(key) && paramOf(key).level === "proximity suite" && !p.lanes.some((l) => l.id === "blend")) p.lanes.push(psBlendLane());
     return p;
   }
   function laneOf(key) {
@@ -461,11 +470,14 @@
       }
       const ps = PROXIMITY_SUITES.find((x) => x.id === paramOf(p.key).id);
       if (!ps) return;
+      /* Blend: on each panel, each member's effect lands only when its dice roll is under the blend. */
+      const bl = find("blend");
+      const blended = (id, i) => !bl || dice(p.key, i, "blend:" + id) < share(bl, i);
       ps.members.forEach((id) => {
         const prox = PROXIMITIES.find((x) => x.id === id);
         if (!prox) return;
         const chance = per("chance:" + id, null);
-        applyProximity(prox, panels, { key: p.key + id, from, to, within: per("delay:" + id, () => Math.max(0, prox.within + (Number(s.within) || 0))), chance: (i) => (inPlay(i) ? (chance ? chance(i) : 1) : 0) });
+        applyProximity(prox, panels, { key: p.key + id, from, to, within: per("delay:" + id, () => Math.max(0, prox.within + (Number(s.within) || 0))), chance: (i) => (inPlay(i) && blended(id, i) ? (chance ? chance(i) : 1) : 0) });
       });
     });
     return { panels, ms };
