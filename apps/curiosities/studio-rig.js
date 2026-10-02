@@ -317,6 +317,8 @@
       .rig-tool .rig-perf .act { color: var(--saffron); font-weight: 600; }
       .rig-tool .rig-perf input { width: 100%; }
       .rig-tool .views { display: grid; gap: 10px; min-width: 0; }
+      .rig-autobadge { display: inline-block; margin-left: 6px; padding: 0 4px; font-size: 9px; background: var(--saffron); color: white; letter-spacing: 0.06em; }
+      .rig-autobadge[hidden] { display: none; }
     `;
     document.head.appendChild(st);
   }
@@ -350,7 +352,7 @@
         <p class="cap" id="rig-help"></p>
         <label class="field" style="margin-top:8px">Overlapping action
           <select id="rig-overlap"><option value="none">none: everything arrives together</option><option value="hands">hands: forearms and hands lag the hips</option><option value="all">all: head and arms lag the hips</option></select></label>
-        <p class="group-label" style="margin-top:12px">Pose presets</p>
+        <p class="group-label" style="margin-top:12px">Pose presets <span class="rig-autobadge" id="rig-autobadge" hidden>automated</span></p>
         <div class="rig-row">${Object.keys(PRESETS).map((p) => `<button type="button" data-preset="${p}">${p}</button>`).join("")}</div>
         <p class="group-label">Aim constraint (head looks at)</p>
         <div class="rig-row">
@@ -392,6 +394,7 @@
         <table class="trace"><tbody id="rig-read"></tbody></table>
         <p class="group-label">Curiosities this pose produces</p>
         <div id="rig-chips"></div>
+        <p class="cap">Click a chip to automate it, or open Automate.</p>
         <div class="rig-row">
           <button type="button" class="primary" id="rig-send">Send to board</button>
           <button type="button" id="rig-shelf">Keep on Shelf</button>
@@ -817,7 +820,7 @@
       };
       const step = (t) => {
         if (!el.isConnected) return;
-        const uAll = (t - t0) / per;
+        const uAll = Math.max(0, (t - t0) / per); /* a frame's timestamp can precede t0 */
         const u = Math.min(uAll, keyed.length - 1);
         const seg = Math.min(keyed.length - 2, Math.floor(u));
         const local = clamp(u - seg, 0, 1);
@@ -1029,6 +1032,88 @@
       });
       api.toBoard("Rig", { whoMoves, characterSpeed, characterToLens });
     });
+
+    /* ---- automation: posture, gesture, stillness and leadPart pick pose presets live ---- */
+    const AUTO_POSE = {
+      posture: (v) => ({ open: "triumphant", neutral: "neutral", closed: "slump" })[v],
+      gesture: (v) => {
+        const n = Number(v);
+        return n <= 0 ? "neutral" : n === 1 ? "shrug" : n <= 3 ? "point" : "reach";
+      },
+      stillness: (v) => ["recoil", "reach", "shrug", "point", "slump", "neutral"][clamp(Math.round(Number(v)), 0, 5)],
+      leadPart: (v) => v, /* applied as a modifier on the current pose */
+    };
+    const lastAuto = {};
+    function applyLead(v) {
+      if (v === "eyes") {
+        s.aim.on = true;
+        s.aim.kind = "point";
+        s.aim.x = 360;
+        s.aim.y = 110;
+      } else if (v === "head") s.pose.rel.neck = wrap((s.pose.rel.neck || 0) + 18);
+      else if (v === "hips") s.pose.root.x = clamp(s.pose.root.x + 14, 60, 340);
+      else if (v === "hands") s.pose = presetPose("point");
+    }
+    function applyAuto(id, v) {
+      if (v == null || String(lastAuto[id]) === String(v)) return false;
+      lastAuto[id] = v;
+      if (playing || cycle) stop();
+      if (id === "leadPart") {
+        applyLead(v);
+        return true;
+      }
+      const name = AUTO_POSE[id](v);
+      if (!name || !PRESETS[name]) return false;
+      const root = s.pose.root;
+      s.pose = presetPose(name);
+      s.pose.root = Object.assign({}, s.pose.root, { x: root.x });
+      return true;
+    }
+    const suiteOn = {};
+    if (window.CurioAuto && window.CurioAuto.on) {
+      const off = window.CurioAuto.on((type, d) => {
+        if (!el.isConnected || !svg.isConnected) return off();
+        const badge = $("#rig-autobadge");
+        if (type === "change") {
+          const run = window.CurioAuto.running().filter((k) => k.startsWith("c:") && AUTO_POSE[k.slice(2)]);
+          if (badge) {
+            badge.hidden = !run.length;
+            badge.textContent = run.length ? "automated: " + run.map((k) => k.slice(2)).join(", ") : "automated";
+          }
+          Object.keys(lastAuto).forEach((id) => !run.includes("c:" + id) && delete lastAuto[id]);
+          return;
+        }
+        if (type !== "tick" || !d || !d.ms) return;
+        const panel = (d.panels && d.panels[0]) || {};
+        let dirty = false;
+        const run = [];
+        Object.keys(AUTO_POSE).forEach((id) => {
+          if (d.ms["c:" + id] == null) return;
+          run.push(id);
+          if (applyAuto(id, panel[id])) dirty = true;
+        });
+        Object.keys(d.ms).forEach((key) => {
+          if (!key.startsWith("s:")) return;
+          const on = d.ms[key] >= 0.5;
+          if (on && !suiteOn[key]) {
+            const suite = (typeof SUITES !== "undefined" ? SUITES : []).find((x) => x.id === key.slice(2));
+            if (suite && suite.set)
+              Object.keys(AUTO_POSE).forEach((id) => {
+                if (suite.set[id] != null && !run.includes(id)) {
+                  delete lastAuto[id];
+                  if (applyAuto(id, suite.set[id])) dirty = true;
+                }
+              });
+          }
+          suiteOn[key] = on;
+        });
+        if (badge) {
+          badge.hidden = !run.length;
+          if (run.length) badge.textContent = "automated: " + run.join(", ");
+        }
+        if (dirty) render();
+      });
+    }
 
     drawChrome();
     render();

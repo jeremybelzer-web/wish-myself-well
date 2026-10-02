@@ -523,6 +523,7 @@
         <p class="cap">Material AOVs: each layer's contribution on its own, like Arnold's AOVs.</p>
         <div class="shd-aov" id="shd-aov">${AOVS.map((a) => `<figure><canvas width="56" height="56" data-aov="${a}"></canvas><figcaption>${a}</figcaption></figure>`).join("")}</div>
         <p id="shd-chips"></p>
+        <p class="cap">Click a chip to automate it, or open Automate.</p>
         <p class="cap">Suites</p>
         <p>${Object.keys(SUITES).map((k) => `<button type="button" class="chip suite" data-suite="${esc(k)}">${esc(k)}</button>`).join(" ")}</p>
         <h3>Through the scene</h3>
@@ -745,7 +746,7 @@
       const step = (now) => {
         const studio = document.getElementById("studio");
         if (!canvas.isConnected || (studio && studio.classList.contains("hidden"))) { anim = null; return; }
-        const i = Math.floor((now - t0) / per);
+        const i = Math.max(0, Math.floor((now - t0) / per)); /* a frame's timestamp can precede t0 */
         if (i >= s.beats.length) {
           playing = -1;
           anim = null;
@@ -789,6 +790,138 @@
     chips();
     beatsUI();
     prox();
+    autoCur = { el, s, api, save, repaint, rebuild: () => draw(el, api) };
+    listen();
+  }
+
+  /* ---------- automation: performable through CurioAuto (LFOs, MIDI) ----------
+     Each curiosity this tool produces is driven back into the control that makes it. */
+  const GLOSS_ROUGH = { matte: 0.7, satin: 0.3, mirror: 0.05 };
+  const WET_COAT = { dry: [0, 0.1], damp: [0.6, 0.15], soaked: [1, 0.03] };
+  const WEAR_BUMP = { new: 0, used: 0.4, ruined: 0.85 };
+  const num05 = (v) => clamp(Math.round(Number(v) || 0), 0, 5);
+  /* id -> [controls it moves as [attr, key]], apply(s, value) returns true when state changed */
+  const AUTO = {
+    renderStyle: { ctl: [["data-g", "look"]], apply: (s, v) => OPT.look.includes(v) && s.look !== v && ((s.look = v), true) },
+    lineWeight: { ctl: [["data-g", "line"]], apply: (s, v) => OPT.line.includes(v) && s.line !== v && ((s.line = v), true) },
+    gloss: {
+      ctl: [["data-m", "specRough"], ["data-m", "specW"]],
+      apply: (s, v) => {
+        if (!(v in GLOSS_ROUGH)) return false;
+        const r = GLOSS_ROUGH[v], w = Math.max(s.mat.specW, 0.5);
+        if (s.mat.specRough === r && s.mat.specW === w) return false;
+        s.mat.specRough = r;
+        s.mat.specW = w;
+        return true;
+      },
+    },
+    wetness: {
+      ctl: [["data-m", "coatW"], ["data-m", "coatRough"]],
+      apply: (s, v) => {
+        const c = WET_COAT[v];
+        if (!c || (s.mat.coatW === c[0] && s.mat.coatRough === c[1])) return false;
+        s.mat.coatW = c[0];
+        s.mat.coatRough = c[1];
+        return true;
+      },
+    },
+    skinLight: {
+      ctl: [["data-m", "sss"]],
+      apply: (s, v) => {
+        const x = Math.round(clamp(num05(v) / 5 / (SSS_SHOT[s.shot] || 0.75), 0, 1) * 100) / 100;
+        return s.mat.sss !== x && ((s.mat.sss = x), true);
+      },
+    },
+    glow: {
+      ctl: [["data-m", "emit"], ["data-g", "glowScope"]],
+      apply: (s, v) => {
+        if (!OPT.glow.includes(v)) return false;
+        const emit = v === "none" ? 0 : Math.max(s.mat.emit, 0.7);
+        const scope = v === "none" ? s.glowScope : v;
+        if (s.mat.emit === emit && s.glowScope === scope) return false;
+        s.mat.emit = emit;
+        s.glowScope = scope;
+        return true;
+      },
+    },
+    wear: { ctl: [["data-m", "bump"]], apply: (s, v) => v in WEAR_BUMP && s.mat.bump !== WEAR_BUMP[v] && ((s.mat.bump = WEAR_BUMP[v]), true) },
+    saturation: { ctl: [["data-n", "sat"]], apply: (s, v) => s.sat !== num05(v) && ((s.sat = num05(v)), true) },
+  };
+  const AUTO_SUITES = { "comic-ink": "Comic ink", "wet-night": "Wet night" };
+  let autoCur = null;
+  let autoOff = null;
+  const suiteOn = {};
+
+  function syncControl(el, s, attr, k) {
+    const x = el.querySelector(`[${attr}="${k}"]`);
+    if (!x) return;
+    const v = attr === "data-m" ? s.mat[k] : s[k];
+    x.value = v;
+    const b = x.type === "range" && x.parentElement.querySelector("b");
+    if (b) b.textContent = Number(x.step) >= 1 ? v : Number(v).toFixed(2);
+  }
+  function badge(el, attr, k, on) {
+    const x = el.querySelector(`[${attr}="${k}"]`);
+    const label = x && x.closest("label");
+    if (!label) return;
+    let b = label.querySelector(".shd-auto");
+    if (!b && on) {
+      b = document.createElement("span");
+      b.className = "chip lit shd-auto";
+      b.textContent = "automated";
+      b.style.marginLeft = "4px";
+      label.insertBefore(b, x);
+    }
+    if (b) b.hidden = !on;
+  }
+
+  function listen() {
+    if (autoOff || !window.CurioAuto || !window.CurioAuto.on) return;
+    autoOff = window.CurioAuto.on((type, d) => {
+      const c = autoCur;
+      if (!c || !c.el.isConnected || !c.el.querySelector(".shd-view")) {
+        if (autoOff) autoOff();
+        autoOff = null;
+        return;
+      }
+      if (type === "change") {
+        /* A parameter stopped or started: no tick follows when nothing runs, so clear badges here. */
+        const run = new Set(window.CurioAuto.running ? window.CurioAuto.running() : []);
+        Object.entries(AUTO).forEach(([id, a]) => a.ctl.forEach(([attr, k]) => badge(c.el, attr, k, run.has("c:" + id))));
+        return;
+      }
+      if (type !== "tick" || !d || !d.ms || !d.panels || !d.panels[0]) return;
+      /* Suite presets apply once as they turn on (this rebuilds the tool, so do it first). */
+      for (const [sid, name] of Object.entries(AUTO_SUITES)) {
+        const m = d.ms["s:" + sid];
+        const now = m != null && m >= 0.5;
+        if (now && !suiteOn[sid]) {
+          suiteOn[sid] = true;
+          const su = SUITES[name];
+          Object.keys(su).forEach((k) => (k === "mat" ? Object.assign(c.s.mat, su.mat) : (c.s[k] = su[k])));
+          c.s.preset = "";
+          c.save();
+          c.rebuild();
+          return;
+        } else if (!now) suiteOn[sid] = false;
+      }
+      const v0 = d.panels[0];
+      let changed = false;
+      Object.entries(AUTO).forEach(([id, a]) => {
+        const on = d.ms["c:" + id] != null;
+        a.ctl.forEach(([attr, k]) => badge(c.el, attr, k, on));
+        if (!on || v0[id] == null) return;
+        if (a.apply(c.s, String(v0[id]))) {
+          changed = true;
+          a.ctl.forEach(([attr, k]) => syncControl(c.el, c.s, attr, k));
+        }
+      });
+      if (changed) {
+        c.s.preset = "";
+        c.save();
+        c.repaint();
+      }
+    });
   }
 
   window.CuriosityStudio.register({

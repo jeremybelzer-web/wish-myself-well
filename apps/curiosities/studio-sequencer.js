@@ -314,6 +314,7 @@
       })
       .join("");
     return `<h3>Measured from the edit</h3>
+      <p class="cap">Click a chip to automate it, or open Automate.</p>
       <div class="sq-stats">
         <div><b>${m.perMin.toFixed(1)}</b><span>cutRate · cuts/min · ${m.rateWord}</span></div>
         <div><b>${m.asl.toFixed(2)}s</b><span>average shot length</span></div>
@@ -338,6 +339,68 @@
       player.frame = Number(st.frame) || 0;
     }
     render();
+    listenAuto();
+  }
+
+  /* ---------- automation: shot camera and live cuts from CurioAuto (LFOs, MIDI notes) ---------- */
+  let autoOff = null;
+  let autoDirty = false;
+  let lastCut = null;
+  const AUTO_IDS = { shotSize: SIZES, cameraMove: MOVES, cameraCarry: CARRIES };
+
+  function listenAuto() {
+    if (autoOff || !window.CurioAuto || !window.CurioAuto.on) return;
+    autoOff = window.CurioAuto.on((type, d) => {
+      if (!host || !host.isConnected || !host.querySelector("#sq-inner")) {
+        if (autoOff) autoOff();
+        autoOff = null;
+        return;
+      }
+      if (type !== "tick" || !d || !d.ms) return;
+      const v0 = (d.panels && d.panels[0]) || {};
+      const driven = Object.keys(AUTO_IDS).filter((id) => d.ms["c:" + id] != null);
+      if (d.ms["c:cutRate"] != null) driven.push("cutRate");
+      const badge = host.querySelector("#sq-auto");
+      if (badge) {
+        badge.hidden = !driven.length;
+        badge.textContent = "automated: " + driven.join(", ");
+      }
+      /* A rising cutRate (a MIDI note or an LFO step) cuts at the playhead. */
+      if (d.ms["c:cutRate"] != null) {
+        const opts = window.CurioAuto.domain("cutRate").options || [];
+        const i = opts.indexOf(v0.cutRate);
+        if (lastCut != null && i > lastCut && player.on) {
+          const t = timed();
+          const f = Math.round(player.frame);
+          const w = activeAt(f, t);
+          if (w && splitShot(w.shot, f, t)) {
+            st.cuts.push(f);
+            autoDirty = true;
+            save();
+            layoutClips(totalFrames());
+            drawSoundLane(totalFrames());
+          }
+        }
+        lastCut = i;
+      } else lastCut = null;
+      if (!player.on) return;
+      const w = activeAt(Math.floor(player.frame));
+      if (!w) return;
+      let changed = false;
+      Object.entries(AUTO_IDS).forEach(([id, opts]) => {
+        if (d.ms["c:" + id] == null) return;
+        const v = v0[id];
+        if (opts.includes(v) && w.shot[id] !== v) {
+          w.shot[id] = v;
+          changed = true;
+        }
+      });
+      if (changed) {
+        autoDirty = true;
+        layoutClips(totalFrames());
+        tick(true);
+      }
+    });
   }
 
   function render() {
@@ -356,6 +419,7 @@
         <button type="button" id="sq-stop">Stop</button>
         <button type="button" id="sq-loop" class="${st.loop ? "on" : ""}">Loop</button>
         <span class="sq-tc" id="sq-tc">${timecode(player.frame, st.fps)}<small id="sq-secs">${(player.frame / st.fps).toFixed(2)}s</small></span>
+        <span class="chip lit" id="sq-auto" hidden></span>
         <select id="sq-fps" aria-label="Frame rate">${RATES.map(([r, l]) => `<option value="${r}" ${r === st.fps ? "selected" : ""}>${l}</option>`).join("")}</select>
       </div>
       <div class="sq-bar">
@@ -568,6 +632,11 @@
     const b = host && host.querySelector("#sq-play");
     if (b) b.textContent = "Play";
     if (saveIt && st) save();
+    if (autoDirty && host && host.isConnected) {
+      autoDirty = false;
+      if (st) save();
+      setTimeout(render, 0);
+    }
   }
 
   function addCut() {

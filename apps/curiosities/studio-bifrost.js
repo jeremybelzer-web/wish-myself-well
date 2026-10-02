@@ -8,6 +8,27 @@
 (function () {
   if (!window.CuriosityStudio) return;
   const KEY = "curiosities-studio-bifrost-v1";
+  /* Register the Bifrost curiosities the automation layer does not know yet, so each can be automated. */
+  if (window.CurioAuto && window.CurioAuto.addCuriosity) {
+    const G = "Dynamics, fur and Bifrost";
+    [
+      { id: "element", label: "Element", values: "water, smoke, fire, sand, snow" },
+      { id: "density", label: "Thickness", values: "wisp, plume, wall" },
+      { id: "growth", label: "Growth", values: "shrinking, steady, building" },
+      { id: "curl", label: "Curl", values: "0 to 5" },
+      { id: "splash", label: "Splash", values: "none, drip, burst" },
+      { id: "scatter", label: "Scattered things", values: "0 to 5" },
+      { id: "fireLight", label: "Fire lights the scene", values: "no, flicker, floods" },
+      { id: "viscosity", label: "Viscosity (water to honey to lava)", values: "0 to 5" },
+      { id: "foam", label: "Foam", values: "none, froth, surf" },
+      { id: "waveHeight", label: "Wave height", values: "0 to 5" },
+      { id: "cohesion", label: "Sand cohesion", values: "dry, wet" },
+    ].forEach((c) => {
+      try {
+        if (!window.CurioAuto.param("c:" + c.id)) window.CurioAuto.addCuriosity(Object.assign({ group: G }, c));
+      } catch (e) {}
+    });
+  }
   const W = 320, H = 240, GROUND = 212;
   const BEAT = 1.5, SHOT = 8, BNORM = 128; /* seconds per beat, beats per shot (the growth ramp) */
   const DEFAULTS = {
@@ -1313,6 +1334,17 @@
       const x = el.querySelector(`[data-k="${k}"]`);
       if (!x) return;
       if (x.type === "range") {
+        /* word values (water/oil/honey/lava, flat/swell/chop/storm, thin/syrupy/thick) map onto the 0-5 slider */
+        if (Number.isNaN(Number(v))) {
+          const WORDS = { water: 0, thin: 0, oil: 1, syrupy: 2, honey: 3, thick: 4, lava: 5, flat: 0, calm: 0, swell: 2, chop: 3, choppy: 3, storm: 5 };
+          if (String(v) in WORDS) v = WORDS[String(v)];
+          else {
+            const d = window.CurioAuto.domain ? window.CurioAuto.domain(k) : null;
+            const i = d && d.options ? d.options.indexOf(String(v)) : -1;
+            if (i < 0) return;
+            v = (i / Math.max(1, d.options.length - 1)) * Number(x.max);
+          }
+        }
         const n = clamp(Math.round(Number(v)), Number(x.min), Number(x.max));
         if (Number.isNaN(n) || n === s[k]) return;
         x.value = n;
@@ -1336,9 +1368,15 @@
             const badge = el.querySelector(`.bif-auto[data-auto4="${k}"]`);
             if (badge && badge.hidden === on) badge.hidden = !on;
             if (!on) return;
-            if (k === "waveHeight" && s.element === "water" && s.liquidMode !== "ocean" && Number(v0[k]) > 0) drive("liquidMode", "ocean");
+            if (k === "waveHeight" && s.element === "water" && s.liquidMode !== "ocean" && !["0", "flat", "calm"].includes(String(v0[k]))) drive("liquidMode", "ocean");
             drive(k, v0[k]);
           });
+          const co = d.ms["c:cohesion"] != null;
+          const wetBox = el.querySelector('[data-k="wet"]');
+          if (co && v0.cohesion && (v0.cohesion === "wet") !== !!s.wet) {
+            wetBox.checked = v0.cohesion === "wet";
+            wetBox.dispatchEvent(new Event("change"));
+          }
           const sp = d.ms["c:splash"] != null;
           splashBadge.hidden = !sp;
           if (sp) {

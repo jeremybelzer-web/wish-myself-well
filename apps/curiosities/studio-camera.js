@@ -164,6 +164,8 @@
       .cam-shot .shot-beat select, .cam-shot .shot-beat input { width: 100%; }
       .cam-shot .shot-beat .chip { font-size: 10px; }
       .cam-tool .cam-controls { min-width: 0; }
+      .cam-autobadge { display: inline-block; margin-left: 6px; padding: 0 4px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; background: var(--saffron); color: white; }
+      .cam-autobadge[hidden] { display: none; }
       .cam-tool.studio-grid { grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); }
       @media (max-width: 760px) {
         .cam-tool.studio-grid { grid-template-columns: minmax(0, 1fr); }
@@ -179,11 +181,13 @@
     const box = api.store(KEY);
     const s = Object.assign({}, DEFAULTS, box.get({}) || {});
     let anim = null;
+    let autoShake = 0; /* set only by automation (cameraShake) */
     let lastNote = "Pick a preset, or move a control. The viewfinder and the plan redraw with real optics.";
 
-    const range = (key, label, min, max, step, unit) => `<label class="field">${esc(label)} <span class="cam-val" data-val="${key}"></span>
+    const badge = (key) => `<span class="cam-autobadge" data-autobadge="${key}" hidden>automated</span>`;
+    const range = (key, label, min, max, step, unit) => `<label class="field">${esc(label)} <span class="cam-val" data-val="${key}"></span>${badge(key)}
         <input type="range" data-k="${key}" min="${min}" max="${max}" step="${step}" value="${esc(s[key])}" aria-label="${esc(label)}${unit ? " in " + unit : ""}"></label>`;
-    const select = (key, label, opts) => `<label class="field">${esc(label)}
+    const select = (key, label, opts) => `<label class="field">${esc(label)} ${badge(key)}
         <select data-k="${key}">${opts.map(([v, t]) => `<option value="${esc(v)}"${String(s[key]) === String(v) ? " selected" : ""}>${esc(t)}</option>`).join("")}</select></label>`;
     const check = (key, label) => `<label><input type="checkbox" data-k="${key}"${s[key] ? " checked" : ""}> ${esc(label)}</label>`;
 
@@ -219,6 +223,7 @@
         <table class="trace"><tbody id="cam-read"></tbody></table>
         <p class="group-label">Curiosities this setup produces</p>
         <div id="cam-chips"></div>
+        <p class="cap">Click a chip to automate it, or open Automate. <span class="cam-autobadge" data-autobadge="shake" hidden>shake automated</span> <span class="cam-autobadge" data-autobadge="rack" hidden>rack focus automated</span></p>
         <div class="cam-row">
           <button type="button" class="primary" id="cam-send">Send to board</button>
           <button type="button" id="cam-keep">Keep on Shelf</button>
@@ -333,6 +338,11 @@
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate((s.dutch * Math.PI) / 180);
+      if (autoShake > 0) {
+        /* automated camera shake: a fresh jitter every frame the automation ticks */
+        ctx.translate((Math.random() - 0.5) * autoShake * 8, (Math.random() - 0.5) * autoShake * 6);
+        ctx.rotate((Math.random() - 0.5) * autoShake * 0.008);
+      }
       ctx.translate(-cx, -cy);
       /* Sky and floor split at the horizon (a point at infinity sits at -f tan(pitch)). */
       const horizon = cy + o.f * Math.tan(pitch) * k;
@@ -638,6 +648,117 @@
       curiosities(s, optics(s)).forEach((c) => (values[c.id] = [c.value]));
       api.toShelf("Camera setup", values);
     });
+
+    /* ---- automation: running curiosities and suites drive the controls live ---- */
+    const AUTO = {
+      lensLength: { key: "focal", map: { wide: 18, normal: 40, long: 100 } },
+      depthOfField: { key: "fstop", map: { shallow: 1.8, medium: 5.6, deep: 16 } },
+      motionBlur: { key: "shutter", map: { none: 45, light: 180, heavy: 330 } },
+      dutch: { key: "dutch", fn: (v) => (v === "tilted" ? (Math.abs(s.dutch) >= 1 ? s.dutch : 12) : 0) },
+      angleHeight: { key: "height", fn: (v) => (HEIGHTS[v] != null ? v : s.height) },
+      cameraShake: { key: "shake" },
+      rackFocus: { key: "rack" },
+    };
+    const lastAuto = {};
+    let lastRack = "none";
+    function rackAuto(kind) {
+      const o = optics(s);
+      const bgZ = s.distance * 2.5 + 3;
+      const from = s.focus;
+      const to = Math.abs(s.focus - s.distance) < 0.05 ? bgZ : s.distance;
+      const dur = kind === "on the action" ? 900 : 400;
+      const t0 = performance.now();
+      s.focusFollows = false;
+      cancelAnimationFrame(anim);
+      const step = (t) => {
+        const u = clamp((t - t0) / dur, 0, 1);
+        s.focus = Math.round((from + ((to - from) * (1 - Math.cos(u * Math.PI))) / 2) * 100) / 100;
+        syncInputs();
+        render();
+        if (u < 1 && view.isConnected) anim = requestAnimationFrame(step);
+        else save();
+      };
+      anim = requestAnimationFrame(step);
+      return o;
+    }
+    function applyAuto(id, v) {
+      const a = AUTO[id];
+      if (!a || v == null) return false;
+      if (String(lastAuto[id]) === String(v)) return id === "cameraShake" && autoShake > 0; /* shake keeps jittering */
+      lastAuto[id] = v;
+      if (id === "cameraShake") {
+        autoShake = clamp(Number(v) || 0, 0, 5);
+        return true;
+      }
+      if (id === "rackFocus") {
+        if (v !== "none" && v !== lastRack) rackAuto(v);
+        lastRack = v;
+        return false;
+      }
+      const nv = a.map ? a.map[v] : a.fn(v);
+      if (nv == null || String(s[a.key]) === String(nv)) return false;
+      s[a.key] = nv;
+      const inp = el.querySelector(`[data-k="${a.key}"]`);
+      if (inp && String(inp.value) !== String(nv)) inp.value = nv;
+      return true;
+    }
+    function badges(runningIds) {
+      el.querySelectorAll("[data-autobadge]").forEach((b) => {
+        const k = b.dataset.autobadge;
+        b.hidden = !Object.keys(AUTO).some((id) => AUTO[id].key === k && runningIds.has(id));
+      });
+    }
+    function runningCurios() {
+      const set = new Set();
+      if (window.CurioAuto) window.CurioAuto.running().forEach((key) => key.startsWith("c:") && set.add(key.slice(2)));
+      return set;
+    }
+    const suiteOn = {};
+    if (window.CurioAuto && window.CurioAuto.on) {
+      const off = window.CurioAuto.on((type, d) => {
+        if (!el.isConnected || !view.isConnected) return off();
+        if (type === "change") {
+          const run = runningCurios();
+          badges(run);
+          if (!run.has("cameraShake") && autoShake) {
+            autoShake = 0;
+            render();
+          }
+          Object.keys(lastAuto).forEach((id) => !run.has(id) && delete lastAuto[id]);
+          return;
+        }
+        if (type !== "tick" || !d || !d.ms) return;
+        const panel = (d.panels && d.panels[0]) || {};
+        let dirty = false;
+        const run = new Set();
+        Object.keys(AUTO).forEach((id) => {
+          if (d.ms["c:" + id] == null) return;
+          run.add(id);
+          if (applyAuto(id, panel[id])) dirty = true;
+        });
+        /* suites as presets: when a running suite crosses to B, apply its camera values once */
+        Object.keys(d.ms).forEach((key) => {
+          if (!key.startsWith("s:")) return;
+          const on = d.ms[key] >= 0.5;
+          if (on && !suiteOn[key]) {
+            const suite = (typeof SUITES !== "undefined" ? SUITES : []).find((x) => x.id === key.slice(2));
+            if (suite && suite.set)
+              Object.keys(AUTO).forEach((id) => {
+                if (suite.set[id] != null && !run.has(id) && applyAuto(id, suite.set[id])) dirty = true;
+              });
+            if (suite) lastNote = `Suite ${suite.label}: its camera values were applied.`;
+          }
+          suiteOn[key] = on;
+        });
+        Object.keys(suiteOn).forEach((key) => d.ms[key] == null && delete suiteOn[key]);
+        badges(run);
+        if (dirty) {
+          if (s.focusFollows) s.focus = s.distance;
+          render();
+        }
+      });
+      badges(runningCurios());
+    }
 
     if (s.focusFollows) s.focus = s.distance;
     el.querySelector("#cam-send-note").textContent = "Sends shot size, angle height and dutch (the lit chips) to every panel.";

@@ -944,6 +944,27 @@
     ];
   }
 
+  /* Register the ids this tool measures that the automation layer does not know yet. */
+  if (window.CurioAuto && window.CurioAuto.addCuriosity) {
+    [
+      { id: "shadowTone", label: "Shadow tone", values: "neutral, cool, warm, faint" },
+      { id: "timeOfDay", label: "Time of day", values: "dawn, day, dusk, night" },
+      { id: "lightChange", label: "When the light changes", values: "never, on the cut, on the action, during the hold" },
+      { id: "key", label: "Key direction", values: "side, front, back, under, none" },
+      { id: "contrast", label: "Contrast", values: "0 to 6" },
+      { id: "colorTemp", label: "Color of the light", values: "2700 to 7500" },
+      { id: "softness", label: "Softness", values: "hard, soft" },
+      { id: "rim", label: "Rim light", values: "off, thin, strong" },
+      { id: "atmosphere", label: "Air", values: "clear, haze, beams" },
+      { id: "lightShape", label: "Shaped light", values: "open, blinds, leaves, barndoor" },
+      { id: "practicalInFrame", label: "Source in frame", values: "yes, no" },
+    ].forEach((c) => {
+      try {
+        if (!window.CurioAuto.param("c:" + c.id)) window.CurioAuto.addCuriosity(Object.assign({ group: "Light & look" }, c));
+      } catch (e) {}
+    });
+  }
+
   /* ---------- UI ---------- */
 
   const CSS = `
@@ -1543,14 +1564,14 @@
     );
 
     /* ---------- automation: CurioAuto drives the rig live ---------- */
-    const DRIVES = ["key", "contrast", "colorTemp", "softness", "rim", "atmosphere", "lightShape", "practicalInFrame", "lighting"];
+    const DRIVES = ["lighting", "timeOfDay", "key", "contrast", "colorTemp", "softness", "rim", "atmosphere", "lightShape", "practicalInFrame", "shadowTone"];
     const SUITES = { noir: 2, "golden-hour": 3 };
     const LIGHTING_PRESET = { dusk: 3, flat: 1, practical: 6, hard: 2, moon: 7 };
     const last = {};
     const suiteOn = {};
     let keyIdx = null;
     /* Which control a curiosity moves, for the "automated" badge. */
-    const CONTROL = { colorTemp: ["kelvin"], softness: ["size"], lightShape: ["gobo", "barndoor"], atmosphere: ["haze"], key: ["elev"], rim: [], contrast: [], practicalInFrame: [], lighting: [] };
+    const CONTROL = { shadowTone: ["shadowDensity", "shadowColor"], timeOfDay: [], colorTemp: ["kelvin"], softness: ["size"], lightShape: ["gobo", "barndoor"], atmosphere: ["haze"], key: ["elev"], rim: [], contrast: [], practicalInFrame: [], lighting: [] };
 
     function keyLight() {
       if (keyIdx == null || !st.lights[keyIdx] || st.lights[keyIdx].type === "skydome") {
@@ -1612,6 +1633,26 @@
         for (let n = 0; n < 4; n++) {
           const m = measure(st);
           F.exposure = clamp(F.exposure + (m.stops - target) * 0.8, -10, 12);
+        }
+      } else if (id === "shadowTone") {
+        K.shadowDensity = v === "faint" ? 0.3 : 1;
+        K.shadowColor = { cool: "#1c2c5a", warm: "#5a3a1c" }[v] || "#000000";
+      } else if (id === "timeOfDay") {
+        const S = { dawn: [3, 90], day: [55, 150], dusk: [3, 270], night: [-10, 270] }[v];
+        if (S) {
+          [st.sun.elev, st.sun.az] = S;
+          const cb = el.querySelector('[data-sun="on"]');
+          if (!st.sun.on && cb) {
+            cb.checked = true;
+            sunInput(cb);
+          } else applySun(st);
+          keyIdx = null;
+          ["elev", "az"].forEach((k) => {
+            const i = el.querySelector(`[data-sun="${k}"]`);
+            if (i) i.value = st.sun[k];
+            out(k === "elev" ? "sunElev" : "sunAz").textContent = st.sun[k];
+          });
+          return true;
         }
       } else if (id === "lighting") {
         if (LIGHTING_PRESET[v] != null) return applyPreset(LIGHTING_PRESET[v]);
@@ -1676,6 +1717,11 @@
           Object.keys(last).forEach((x) => !now.has(x) && delete last[x]);
           if (!now.size) keyIdx = null;
         }
+        /* A preset or the sky swapped the rig: put every other driven value back on top of it. */
+        if (full)
+          Object.keys(last).forEach((id) => {
+            if (id !== "lighting" && id !== "timeOfDay" && now.has(id)) drive(id, last[id]);
+          });
         if (!changed && !badge) return;
         if (st.sel >= st.lights.length) st.sel = 0;
         save();

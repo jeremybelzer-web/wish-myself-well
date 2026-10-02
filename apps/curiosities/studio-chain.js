@@ -89,6 +89,10 @@
 
   const DEFAULTS = { beats: 12, events: [[1, "rain"], [3, "wind"], [5, "impact"], [7, "fire"], [9, "stop"]], rules: {}, palette: "rain", head: 0, preset: "" };
   let timer = null;
+  let autoOff = null;
+  let resume = false;
+  /* Catalog proximities (model.js) that match a Chain rule, for automation. */
+  const PROX_RULE = { "rain-wet": "rain-wet", "toon-line": "toon-flat", "impact-shake": "impact-bounce" };
 
   function ruleCfg(s, r) {
     const c = s.rules[r.id] || {};
@@ -322,12 +326,13 @@
         <div>
           <div class="ch-panel" id="ch-panel"></div>
           <p id="ch-chips"></p>
+          <p class="cap">Click a chip to automate it, or open Automate.</p>
           ${firingSuites.length ? `<p>${firingSuites.map((su) => `<span class="chip lit">${esc(su.label)}</span>`).join(" ")}</p>` : ""}
         </div>
         <div>
           <h3>Proximities</h3>
           <table class="trace ch-rules"><thead><tr><th>On</th><th>When … then …</th><th>Delay</th></tr></thead><tbody>
-            ${ruleHolds.map(({ r, cfg }) => `<tr><td><input type="checkbox" data-rule="${r.id}" ${cfg.on ? "checked" : ""}></td><td>When ${esc(r.when)} <span class="cap">(${esc(r.from)})</span>, ${esc(r.then)} <span class="cap">(${esc(r.to)})</span>, within ${r.within}</td><td><input type="number" min="0" max="6" data-delay="${r.id}" value="${cfg.delay}"></td></tr>`).join("")}
+            ${ruleHolds.map(({ r, cfg }) => `<tr><td><input type="checkbox" data-rule="${r.id}" ${cfg.on ? "checked" : ""}> <span class="chip lit" data-autorule="${r.id}" hidden>automated</span></td><td>When ${esc(r.when)} <span class="cap">(${esc(r.from)})</span>, ${esc(r.then)} <span class="cap">(${esc(r.to)})</span>, within ${r.within}</td><td><input type="number" min="0" max="6" data-delay="${r.id}" value="${cfg.delay}"></td></tr>`).join("")}
           </tbody></table>
           <h3>Holds over the timeline</h3>
           ${ruleHolds.map(({ r, cfg, h }) => holdLine(`When ${r.when}, ${r.then} within ${r.within}`, h, cfg.on ? `delay ${cfg.delay}` : "rule off")).join("")}
@@ -359,6 +364,91 @@
       if (lab) lab.textContent = `beat ${s.head + 1}/${s.beats}`;
     }
     showBeat();
+
+    /* Automation: running proximities switch rules and set delays; running curiosities drop
+       triggers at the playhead, so a performer can drop rain or an impact with a MIDI note. */
+    if (autoOff) autoOff();
+    autoOff = null;
+    const A = window.CurioAuto;
+    const prevVal = {};
+    if (A && A.on) {
+      autoOff = A.on((type, d) => {
+        if (!el.isConnected || !el.querySelector("#ch-panel")) {
+          if (autoOff) autoOff();
+          autoOff = null;
+          return;
+        }
+        if (type !== "tick" || !d || !d.ms) return;
+        const want = {};
+        Object.entries(PROX_RULE).forEach(([pid, rid]) => {
+          const m = d.ms["p:" + pid];
+          if (m == null) return;
+          const p = A.patch("p:" + pid);
+          const x = (m < 0.5 ? p.a : p.b) || {};
+          const r = RULES.find((y) => y.id === rid);
+          want[rid] = { on: !!x.on, delay: Math.max(0, Math.min(6, Number(x.within != null ? x.within : r.within) || 0)) };
+        });
+        (A.PROXIMITY_SUITES || []).forEach((ps) => {
+          const m = d.ms["ps:" + ps.id];
+          if (m == null) return;
+          const p = A.patch("ps:" + ps.id);
+          const x = (m < 0.5 ? p.a : p.b) || {};
+          ps.members.forEach((pid) => {
+            const rid = PROX_RULE[pid];
+            if (!rid || want[rid]) return;
+            const r = RULES.find((y) => y.id === rid);
+            want[rid] = { on: !!x.on, delay: Math.max(0, Math.min(6, r.within + (Number(x.within) || 0))) };
+          });
+        });
+        el.querySelectorAll("[data-autorule]").forEach((b) => (b.hidden = !want[b.dataset.autorule]));
+        let changed = false;
+        Object.entries(want).forEach(([rid, w]) => {
+          const r = RULES.find((y) => y.id === rid);
+          const cur = ruleCfg(s, r);
+          if (cur.on !== w.on || cur.delay !== w.delay) {
+            s.rules[rid] = Object.assign({}, s.rules[rid], w);
+            changed = true;
+          }
+        });
+        /* Curiosities drop triggers at the playhead beat when they change. */
+        const v0 = (d.panels && d.panels[0]) || {};
+        const drops = [];
+        const watch = (id, fn) => {
+          if (d.ms["c:" + id] == null) {
+            delete prevVal[id];
+            return;
+          }
+          const v = v0[id];
+          if (id in prevVal && String(prevVal[id]) !== String(v)) {
+            const ev = fn(v, prevVal[id]);
+            if (ev) drops.push(ev);
+          }
+          prevVal[id] = v;
+        };
+        watch("weather", (v) => (v === "rain" ? "rain" : v === "clear" ? "clear" : null));
+        watch("impacts", (v, p) => (num(v) > num(p) ? "impact" : null));
+        watch("windForce", (v, p) => (num(v) > num(p) ? "wind" : num(v) === 0 ? "calm" : null));
+        watch("renderStyle", (v) => (v === "toon" ? "toon" : null));
+        watch("element", (v) => (v === "fire" ? "fire" : v === "smoke" ? "smoke" : null));
+        watch("stillness", (v, p) => (num(v) >= 4 && num(p) < 4 ? "stop" : num(v) < 4 && num(p) >= 4 ? "move" : null));
+        watch("glow", (v) => (v && v !== "none" ? "glow" : null));
+        drops.forEach((t) => {
+          if (!s.events.some(([b, x]) => b === s.head && x === t)) {
+            s.events.push([s.head, t]);
+            changed = true;
+          }
+        });
+        if (changed) {
+          s.preset = "";
+          if (autoOff) autoOff();
+          autoOff = null;
+          resume = !!timer;
+          if (timer) clearTimeout(timer);
+          timer = null;
+          redraw();
+        }
+      });
+    }
 
     el.querySelectorAll(".ch-ev").forEach((r) =>
       r.addEventListener("click", () => {
@@ -450,6 +540,12 @@
       playBtn.textContent = "Pause";
       requestAnimationFrame(step);
     });
+    /* Keep playing through a redraw caused by automation. */
+    if (resume) {
+      resume = false;
+      playBtn.textContent = "Pause";
+      timer = setTimeout(() => requestAnimationFrame(step), 700);
+    }
     act("shelf", () => {
       const out = {};
       ROWS.forEach((r) => (out[r.id] = res.vals.map((v) => v[r.id])));

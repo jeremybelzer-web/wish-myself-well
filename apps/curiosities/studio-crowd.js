@@ -15,7 +15,7 @@
     offX: 0, offY: 0, offRot: 0, offScale: 1,
     signal: "none", amp: 6, freq: 1,
     flight: false, sep: 3, ali: 2, coh: 2,
-    colorById: true, playing: true,
+    colorById: true, playing: true, split: false,
   };
   const CHOICES = {
     mode: ["line", "grid", "radial", "scatter", "path"],
@@ -117,7 +117,9 @@
     for (let i = 0; i < n; i++) {
       const p = distribute(s, i, n);
       const r = rng(s.seed * 31 + i * 977 + 1);
-      let x = p.x + (r() * 2 - 1) * s.jPos;
+      /* Split: squeeze each half toward its own side so a clear gap opens in the middle. */
+      const bx = s.split ? (p.x < W / 2 ? p.x * 0.7 : W - (W - p.x) * 0.7) : p.x;
+      let x = bx + (r() * 2 - 1) * s.jPos;
       let y = p.y + (r() * 2 - 1) * s.jPos;
       let scale = Math.max(0.2, 1 + (r() * 2 - 1) * s.jScale) * s.offScale;
       let rot = ((r() * 2 - 1) * s.jRot + s.offRot) * (Math.PI / 180);
@@ -336,6 +338,7 @@
           ${rng_("ali", "Alignment", 0, 5, 0.5)}
           ${rng_("coh", "Cohesion", 0, 5, 0.5)}
         </fieldset>
+        ${chk("split", "Split into two groups")}
         ${chk("colorById", "Color by id")}
       </div>
       <div>
@@ -346,6 +349,7 @@
           <button type="button" id="crowd-send">Send to board</button>
         </div>
         <p id="crowd-chips"></p>
+        <p class="cap">Click a chip to automate it, or open Automate.</p>
         <table class="trace"><thead><tr><th>Curiosity</th><th>Measured</th><th>To the board</th></tr></thead><tbody id="crowd-table"></tbody></table>
         <p class="cap">Groups come from linking copies closer than about twice their mean spacing. Density counts copies per area of the crowd's box; uniformity falls as spacing and scale vary. A signal of sine reads as wind, noise or a flock reads as a crowd. Formation is a new curiosity and stays in the studio; only ids live in the catalog go to the board.</p>
       </div></div>`;
@@ -410,6 +414,81 @@
     }
     frame(true);
     timer = requestAnimationFrame(tick);
+    autoCur = { el, s, st, frame };
+    listen();
+  }
+
+  /* ---------- automation: performable through CurioAuto (LFOs, MIDI) ----------
+     peopleCount sets the copy count, groups splits the crowd in two, envMotion picks the signal. */
+  const ENV_SIGNAL = { still: "none", wind: "sine", crowd: "noise" };
+  const AUTO = {
+    peopleCount: { keys: ["count"], apply: (s, v) => { const n = Math.max(1, Math.min(200, Math.round(Number(v) || 1))); return s.count !== n && ((s.count = n), true); } },
+    groups: { keys: ["split"], apply: (s, v) => { const on = String(v) === "2"; return s.split !== on && ((s.split = on), true); } },
+    envMotion: {
+      keys: ["signal", "flight"],
+      apply: (s, v) => {
+        const sig = ENV_SIGNAL[v];
+        if (!sig || (s.signal === sig && !s.flight)) return false;
+        s.signal = sig;
+        s.flight = false;
+        return true;
+      },
+    },
+  };
+  let autoCur = null;
+  let autoOff = null;
+
+  function badge(el, k, on) {
+    const x = el.querySelector(`[data-k="${k}"]`);
+    const label = x && x.closest("label");
+    if (!label) return;
+    let b = label.querySelector(".crowd-auto");
+    if (!b && on) {
+      b = document.createElement("span");
+      b.className = "chip lit crowd-auto";
+      b.textContent = "automated";
+      b.style.margin = "0 4px";
+      label.insertBefore(b, label.firstChild);
+    }
+    if (b) b.hidden = !on;
+  }
+
+  function listen() {
+    if (autoOff || !window.CurioAuto || !window.CurioAuto.on) return;
+    autoOff = window.CurioAuto.on((type, d) => {
+      const c = autoCur;
+      if (!c || !c.el.isConnected || !c.el.querySelector("#crowd-canvas")) {
+        if (autoOff) autoOff();
+        autoOff = null;
+        return;
+      }
+      if (type === "change") {
+        /* A parameter stopped or started: no tick follows when nothing runs, so clear badges here. */
+        const run = new Set(window.CurioAuto.running ? window.CurioAuto.running() : []);
+        Object.entries(AUTO).forEach(([id, a]) => badge(c.el, a.keys[0], run.has("c:" + id)));
+        return;
+      }
+      if (type !== "tick" || !d || !d.ms || !d.panels || !d.panels[0]) return;
+      let changed = false;
+      Object.entries(AUTO).forEach(([id, a]) => {
+        const on = d.ms["c:" + id] != null;
+        badge(c.el, a.keys[0], on);
+        if (!on || d.panels[0][id] == null || !a.apply(c.s, d.panels[0][id])) return;
+        changed = true;
+        a.keys.forEach((k) => {
+          const x = c.el.querySelector(`[data-k="${k}"]`);
+          if (!x) return;
+          if (x.type === "checkbox") x.checked = !!c.s[k];
+          else x.value = c.s[k];
+          const v = c.el.querySelector(`[data-v="${k}"]`);
+          if (v) v.textContent = c.s[k];
+        });
+      });
+      if (changed) {
+        c.st.set(c.s);
+        c.frame(true);
+      }
+    });
   }
 
   window.CuriosityStudio.register({ id: "crowd", label: "Crowd", order: 45, maya: "MASH networks (Distribute, Random, Offset, Signal, Flight, Replicator), Type tool", draw });

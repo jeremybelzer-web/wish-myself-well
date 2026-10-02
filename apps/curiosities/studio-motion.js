@@ -25,12 +25,16 @@
   };
   const W = 600, H = 300;
   let timer = null;
+  let offAuto = null;
+  const AUTO_IDS = ["spacing", "stepping", "anticipation", "overshoot", "squash", "arcs"];
+  const MOTION_SUITES = ["snappy-cartoon", "grounded-realism"];
+  const suiteSet = (id) => ((typeof SUITES !== "undefined" ? SUITES : []).find((x) => x.id === id) || { set: {} }).set;
 
   function css() {
     if (document.getElementById("studio-motion")) return;
     const st = document.createElement("style");
     st.id = "studio-motion";
-    st.textContent = `#motion-canvas{touch-action:none}#motion-canvas.edit{cursor:crosshair}.mo-row{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}.mo-row label{font-size:13px}`;
+    st.textContent = `#motion-canvas{touch-action:none}#motion-canvas.edit{cursor:crosshair}.mo-row{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}.mo-row label{font-size:13px}.auto-badge{font-family:var(--mono);font-size:10px;background:var(--ink);color:var(--paper);padding:0 4px;margin-left:6px;text-transform:none}.chip[data-auto]{cursor:pointer}.chip.auto-on{background:var(--ink);color:var(--paper)}`;
     document.head.appendChild(st);
   }
 
@@ -352,6 +356,15 @@
     return out;
   }
 
+  function chipsHtml(s, arcs, maxBank, edits) {
+    const on = (id) => (window.CurioAuto && window.CurioAuto.running().includes("c:" + id) ? " auto-on" : "");
+    const chip = (id, v) => `<span class="chip${on(id)}" data-auto="c:${id}" title="Click to automate ${id}">${id} ${String(v).replace(/</g, "&lt;")}${on(id) ? " · automated" : ""}</span>`;
+    const drawn = s.move === "drawn path";
+    return ["spacing", "stepping", "anticipation", "overshoot"].map((k) => chip(k, s[k])).join(" ") + " " + chip("arcs", arcs) + " " + chip("squash", s.squash) +
+      (drawn ? ` <span class="chip">follow ${s.follow ? "on" : "off"}</span> <span class="chip">bank ${s.bank ? Math.round((maxBank * 180) / Math.PI) + "°" : "off"}</span>` : "") +
+      (edits ? ` <span class="chip">retimed frames ${edits}</span>` : "");
+  }
+
   function draw(el, api) {
     css();
     const esc = api.esc;
@@ -392,11 +405,99 @@
         <canvas width="${W}" height="${H}" id="motion-canvas" class="${drawn || s.editTrail ? "edit" : ""}"></canvas>
         <p class="cap">Spacing chart: one tick per drawing. Ticks bunched together are slow; spread out is fast. Orange ticks go past the keys (anticipation and overshoot); blue ticks are frames you moved on the trail.</p>
         ${spacingChart(s)}
-        <p id="motion-chips">${["spacing", "stepping", "anticipation", "overshoot"].map((k) => `<span class="chip">${k} ${esc(s[k])}</span>`).join(" ")} <span class="chip">arcs ${esc(arcs)}</span> <span class="chip">squash ${s.squash}</span>${drawn ? ` <span class="chip">follow ${s.follow ? "on" : "off"}</span> <span class="chip">bank ${s.bank ? Math.round((maxBank * 180) / Math.PI) + "°" : "off"}</span>` : ""}${edits ? ` <span class="chip">retimed frames ${edits}</span>` : ""}</p>
+        <p id="motion-chips">${chipsHtml(s, arcs, maxBank, edits)}</p>
+        <p class="cap">Click a chip to automate it, or open Automate. Suites: ${MOTION_SUITES.map((id) => `<button type="button" data-suite="${id}">${esc(id.replace(/-/g, " "))}</button>`).join(" ")}</p>
         <div class="bar-actions"><button type="button" data-act="keep">Keep on Shelf</button> <button type="button" data-act="reset" ${edits ? "" : "disabled"}>Reset spacing</button> <span class="cap">None of these are board controls, so they go to the Shelf only.</span></div>
         <p class="cap">Takes ${(s.frames / s.fps).toFixed(2)} s. In Maya this is two keys on the Graph Editor, the tangent type, stepped keys for twos, Ghosting, an Editable Motion Trail${drawn ? ", and Attach to Motion Path with Follow and Bank" : ""}.</p>
       </div></div>`;
     const save = () => st.set(s);
+    /* ---------- automation: CurioAuto drives the controls live ---------- */
+    const refreshChips = () => {
+      const c = el.querySelector("#motion-chips");
+      if (c) c.innerHTML = chipsHtml(s, s.move === "drawn path" ? measureArcs(s) : s.arcs, maxBank, s.override.filter((v) => v != null).length);
+      wireChips();
+    };
+    const badge = (id, onOff) => {
+      const ctl = el.querySelector(`[data-k="${id}"]`);
+      const lab = ctl && ctl.closest("label");
+      if (!lab) return;
+      let b = lab.querySelector(".auto-badge");
+      if (onOff && !b) {
+        b = document.createElement("span");
+        b.className = "auto-badge";
+        b.textContent = "automated";
+        lab.insertBefore(b, ctl);
+      } else if (!onOff && b) b.remove();
+    };
+    const setValue = (k, v) => {
+      if (k === "squash") v = Math.max(0, Math.min(5, Math.round(Number(v)) || 0));
+      else if (!CHOICES[k] || !CHOICES[k].includes(v)) return false;
+      if (k === "arcs" && s.move === "drawn path") return false;
+      if (s[k] === v) return false;
+      s[k] = v;
+      const ctl = el.querySelector(`[data-k="${k}"]`);
+      if (ctl) {
+        ctl.value = v;
+        if (k === "squash" && ctl.parentElement.firstChild.nodeType === 3) ctl.parentElement.firstChild.textContent = `Squash and stretch: ${v}`;
+      }
+      return true;
+    };
+    const wireChips = () =>
+      el.querySelectorAll("#motion-chips [data-auto]").forEach((c) =>
+        c.addEventListener("click", () => {
+          const A = window.CurioAuto;
+          if (!A) return;
+          if (A.running().includes(c.dataset.auto)) A.stop(c.dataset.auto);
+          else A.start(c.dataset.auto);
+          refreshChips();
+        })
+      );
+    if (offAuto) offAuto();
+    offAuto = null;
+    const suiteOn = {};
+    let driven = new Set();
+    if (window.CurioAuto)
+      offAuto = window.CurioAuto.on((type, d) => {
+        if (!el.isConnected || !el.querySelector("#motion-canvas")) {
+          if (offAuto) offAuto();
+          offAuto = null;
+          return;
+        }
+        if (type === "change") return refreshChips();
+        if (type !== "tick" || !d || !d.panels || !d.panels[0]) return;
+        let changed = false;
+        const now = new Set();
+        AUTO_IDS.forEach((id) => {
+          if (d.ms["c:" + id] == null) return;
+          now.add(id);
+          if (setValue(id, d.panels[0][id])) changed = true;
+        });
+        MOTION_SUITES.forEach((id) => {
+          const m = d.ms["s:" + id];
+          if (m != null && m >= 0.5) {
+            if (!suiteOn[id]) {
+              suiteOn[id] = true;
+              Object.entries(suiteSet(id)).forEach(([k, v]) => AUTO_IDS.includes(k) && setValue(k, v) && (changed = true));
+            }
+          } else suiteOn[id] = false;
+        });
+        AUTO_IDS.forEach((id) => now.has(id) !== driven.has(id) && badge(id, now.has(id)));
+        const chipsChanged = now.size !== driven.size || [...now].some((x) => !driven.has(x));
+        driven = now;
+        if (changed) {
+          save();
+          const ch = el.querySelector("#motion-chart");
+          if (ch) ch.outerHTML = spacingChart(s);
+        }
+        if (changed || chipsChanged) refreshChips();
+      });
+    wireChips();
+    el.querySelectorAll("[data-suite]").forEach((b) =>
+      b.addEventListener("click", () => {
+        Object.entries(suiteSet(b.dataset.suite)).forEach(([k, v]) => AUTO_IDS.includes(k) && (s[k] = k === "squash" ? Number(v) : v));
+        redraw();
+      })
+    );
     const redraw = () => {
       save();
       draw(el, api);
