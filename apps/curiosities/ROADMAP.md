@@ -91,7 +91,7 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 
 - [x] Trigger any item on and off from a key, a button or a MIDI note
 - [x] Move any slider with a knob, an LFO or a MIDI control, and send it out to VCV Rack
-- [ ] Every database item shows up as an automation lane. Done for all 279 curiosities, 121 suites and 87 proximities (tested). The 15 new proximity suites need one line in automation.js (sent to the app thread)
+- [x] Every database item shows up as automation lanes: all 279 curiosities, 121 suites, 87 proximities and 20 proximity suites (tested). Suite Blend and member Weight lanes come later (app thread)
 - [ ] Wearable MIDI (straps, gloves) presets for performers
 - [ ] Pads and keyboards: a ready layout of the most used curiosities
 
