@@ -1,5 +1,10 @@
 /* Automation: every curiosity, suite, proximity and proximity suite is one automatable parameter.
-   A parameter has two settings, A and B, and a modulator that moves between them (m = 0 is A, m = 1 is B):
+   Its trigger switches it on and off. Inside, it has lanes: graded controls, each with its own two settings
+   (from and to), a curve, and its own modulator (or it follows the parameter's). A curiosity's main lane runs
+   through its scale (low, eye, high), and lanes add its other dimensions (how close to how far). A suite has a
+   lane per member, a proximity has cause, delay, how often and effect size, and a proximity suite a delay and
+   how often per member. Each patch plays in a moment: a span of panels, and a lane can sweep across it.
+   The main lane has two settings, A and B, and a modulator that moves between them (m = 0 is A, m = 1 is B):
    manual (a knob), LFO (sine, triangle, square, saw, random at a rate in Hz), or a MIDI control.
    A trigger (a MIDI note, a key, a click) starts and stops it, so a performer wearing MIDI straps can
    set a curiosity flicking between two settings at the rate they chose. The result is sent to the
@@ -30,10 +35,31 @@
     { id: "long-form", label: "Long-form shape", members: ["build-drop", "aggressive-quiet", "storm-room", "tension-silence", "energy-hold"] },
   ];
 
+  /* Word curiosities whose catalog order is not a scale get one, so "how low to how high" passes through the middle. */
+  const ORDER = {
+    angleHeight: ["floor", "low", "eye", "high", "overhead"],
+    shotSize: ["insert", "close", "medium", "wide"],
+  };
+  /* A curiosity's own extra dimensions, offered as lanes: the angle on a face also asks how close to how far. */
+  const FACETS = {
+    angleHeight: ["shotSize", "dutch"],
+    shotSize: ["angleHeight", "moveSpeed"],
+    cameraCarry: ["moveSpeed", "cameraMove"],
+    cameraMove: ["moveSpeed", "cameraCarry"],
+    moveSpeed: ["cameraMove"],
+    emotion: ["angleHeight", "moveTemper", "volume"],
+    volume: ["gesture", "shotSize"],
+    gesture: ["volume", "characterSpeed"],
+    characterSpeed: ["characterPath", "moveSpeed"],
+    moveTemper: ["moveSpeed", "cutRate"],
+    weather: ["wetness", "envMotion"],
+  };
+
   /* The values a curiosity can take: a list of words, or a number range. */
   function domain(id) {
     const c = byId[id];
     if (!c) return { kind: "choice", options: [] };
+    if (c.options && ORDER[id]) return { kind: "choice", options: ORDER[id].concat(c.options.filter((o) => !ORDER[id].includes(o))) };
     if (c.options) return { kind: "choice", options: c.options.slice() };
     if (c.kind === "range") return { kind: "range", min: c.min, max: c.max, step: c.step || 1 };
     const v = String(c.values || "");
@@ -75,7 +101,53 @@
       a = { on: false, within };
       b = { on: true, within };
     }
-    return { key, a, b, mod: "lfo", shape: "square", rate: 1, depth: 1, manual: 0, running: false, mode: "gate", outCC: null };
+    return { key, a, b, mod: "lfo", shape: "square", rate: 1, depth: 1, manual: 0, curve: "linear", across: 0, where: { from: 0, to: null }, running: false, mode: "gate", outCC: null, lanes: lanesFor(key) };
+  }
+
+  /* Each parameter's own graded controls. They start switched off; switching one on makes it act. */
+  function lane(id, target, label, from, to, extra) {
+    return Object.assign({ id, target, label, from, to, on: false, curve: "linear", mod: "follow", shape: "sine", rate: 0.5, depth: 1, manual: 1, across: 0, outCC: null }, extra || {});
+  }
+  function curiosityLane(id, from, to) {
+    const d = domain(id);
+    const lo = d.kind === "range" ? d.min : d.options[0];
+    const hi = d.kind === "range" ? d.max : d.options[d.options.length - 1];
+    return lane("c:" + id, "c:" + id, (byId[id] || {}).label || id, from == null ? lo : from, to == null ? hi : to);
+  }
+  function lanesFor(key) {
+    const p = PARAM[key];
+    if (!p) return [];
+    const out = [lane("amount", "amount", "Amount: share of panels it plays in", 1, 1)];
+    if (p.level === "curiosity") (FACETS[p.id] || []).filter((f) => byId[f]).forEach((f) => out.push(curiosityLane(f)));
+    if (p.level === "suite") Object.entries(suiteSet(p.id)).forEach(([k, v]) => byId[k] && out.push(curiosityLane(k, null, v)));
+    if (p.level === "proximity") {
+      const x = PROXIMITIES.find((q) => q.id === p.id) || {};
+      out.push(lane("cause", "cause", "Cause: share of panels where the cause is set", 0, 1));
+      out.push(lane("delay", "delay", "Delay: beats before the effect", x.within || 0, (x.within || 0) + 2));
+      out.push(lane("chance", "chance", "How often the effect follows", 1, 0.5));
+      if (x.y && !x.y.suite && !("is" in x.y)) out.push(lane("effect", "effect", "Effect size: steps the effect moves", 1, 3));
+    }
+    if (p.level === "proximity suite") {
+      const ps = PROXIMITY_SUITES.find((q) => q.id === p.id) || { members: [] };
+      ps.members.forEach((id) => {
+        const x = PROXIMITIES.find((q) => q.id === id);
+        if (!x) return;
+        out.push(lane("delay:" + id, "delay:" + id, `Delay: when ${x.when}`, x.within, x.within + 2));
+        out.push(lane("chance:" + id, "chance:" + id, `How often: ${x.then}`, 1, 0.5));
+      });
+    }
+    return out;
+  }
+  /* Any curiosity can be added as a lane on any parameter. */
+  function addLane(key, target) {
+    const p = patch(key);
+    if (!target || p.lanes.some((l) => l.target === target)) return null;
+    const l = target.startsWith("c:") ? curiosityLane(target.slice(2)) : lane(target, target, target, 0, 1);
+    l.on = true;
+    p.lanes.push(l);
+    save();
+    emit("change", { key });
+    return l;
   }
 
   let store = { patches: {}, bindings: {} };
@@ -103,7 +175,15 @@
 
   function patch(key) {
     if (!store.patches[key]) store.patches[key] = defaults(key);
-    return store.patches[key];
+    const p = store.patches[key];
+    /* Patches saved before lanes existed get them now. */
+    if (p && !p.lanes) Object.assign(p, { lanes: lanesFor(key), curve: p.curve || "linear", across: p.across || 0, where: p.where || { from: 0, to: null } });
+    return p;
+  }
+  function laneOf(key) {
+    const [pk, lid] = String(key).split("#");
+    const p = store.patches[pk];
+    return p && lid ? (p.lanes || []).find((l) => l.id === lid) : null;
   }
 
   /* ---------- modulators ---------- */
@@ -129,14 +209,31 @@
   }
 
   /* ---------- turning m into values ---------- */
-  function curiosityValue(p, m) {
-    const d = PARAM[p.key].domain;
+  /* A curve bends m (0 to 1) before it becomes a value: straight, eased, slow start, slow end, or stepped. */
+  const CURVES = { linear: "Straight", ease: "Eased", in: "Slow start", out: "Slow end", steps: "Steps" };
+  function curve(name, m) {
+    m = Math.max(0, Math.min(1, Number(m) || 0));
+    if (name === "ease") return m * m * (3 - 2 * m);
+    if (name === "in") return m * m;
+    if (name === "out") return 1 - (1 - m) * (1 - m);
+    if (name === "steps") return Math.round(m * 4) / 4;
+    return m;
+  }
+  /* A value between two settings of a curiosity. Word curiosities are graded too: low to high passes through eye. */
+  function between(id, from, to, c) {
+    const d = domain(id);
     if (d.kind === "range") {
-      const v = Number(p.a) + (Number(p.b) - Number(p.a)) * m;
+      const lo = from === "" || from == null ? d.min : Number(from);
+      const hi = to === "" || to == null ? d.max : Number(to);
       const step = d.step || 1;
-      return Math.round(v / step) * step;
+      return Math.round((lo + (hi - lo) * c) / step) * step;
     }
-    return m < 0.5 ? p.a : p.b;
+    const i = Math.max(0, d.options.indexOf(from));
+    const j = d.options.indexOf(to) < 0 ? d.options.length - 1 : d.options.indexOf(to);
+    return d.options[Math.round(i + (j - i) * c)];
+  }
+  function curiosityValue(p, m) {
+    return between(PARAM[p.key].id, p.a, p.b, curve(p.curve, m));
   }
   function stepChoice(id, v, dir) {
     const d = domain(id);
@@ -149,6 +246,14 @@
     const s = SUITES.find((x) => x.id === id);
     return s ? s.set : {};
   }
+  /* The same panel always gets the same dice, so "amount" and "how often" are steady, not flickering. */
+  function dice(key, i, salt) {
+    let h = 7;
+    const s = key + "|" + (salt || "");
+    for (let k = 0; k < s.length; k++) h = (h * 31 + s.charCodeAt(k)) % 100003;
+    const x = Math.sin((i + 1) * 12.9898 + h * 0.37) * 43758.5453;
+    return x - Math.floor(x);
+  }
   function holds(x, panels, i) {
     if (x.suite) return Object.entries(suiteSet(x.suite)).every(([k, v]) => String(panels[i][k]) === String(v));
     const v = panels[i][x.curiosity];
@@ -160,47 +265,103 @@
     if (x.change === "drops") return Number(v) < Number(before) || domain(x.curiosity).options?.indexOf(v) < domain(x.curiosity).options?.indexOf(before);
     return false;
   }
-  function applyProximity(prox, within, panels) {
-    for (let i = 0; i < panels.length; i++) {
+  function force(x, panels, i) {
+    if (x.suite) return Object.assign(panels[i], suiteSet(x.suite));
+    if ("is" in x) return (panels[i][x.curiosity] = x.is);
+    const prev = panels[Math.max(0, i - 1)][x.curiosity];
+    panels[i][x.curiosity] = stepChoice(x.curiosity, prev, x.change === "drops" ? -1 : 1);
+  }
+  /* o: {from, to, within(i), chance(i), effect(i), cause(i), key}. Every lane is per panel. */
+  function applyProximity(prox, panels, o) {
+    o = o || {};
+    const from = o.from || 0;
+    const to = o.to == null ? panels.length - 1 : o.to;
+    for (let i = from; i <= to; i++) {
+      if (o.cause && dice(o.key, i, "cause") < o.cause(i)) force(prox.x, panels, i);
       if (!holds(prox.x, panels, i)) continue;
-      const j = Math.min(panels.length - 1, i + within);
+      if (o.chance && dice(o.key, i, "chance") >= o.chance(i)) continue;
+      const j = Math.min(panels.length - 1, i + Math.max(0, Math.round(o.within ? o.within(i) : prox.within || 0)));
       const y = prox.y;
+      const steps = Math.max(1, Math.round(o.effect ? o.effect(i) : 1));
       if (y.suite) Object.assign(panels[j], suiteSet(y.suite));
       else if ("is" in y) panels[j][y.curiosity] = y.is;
-      else if (y.change === "rises") panels[j][y.curiosity] = stepChoice(y.curiosity, panels[Math.max(0, j - 1)][y.curiosity], 1);
-      else if (y.change === "drops") panels[j][y.curiosity] = stepChoice(y.curiosity, panels[Math.max(0, j - 1)][y.curiosity], -1);
-      else panels[j][y.curiosity] = stepChoice(y.curiosity, panels[j][y.curiosity], 1);
+      else {
+        const dir = y.change === "drops" ? -1 : 1;
+        let v = y.change === "changes" ? panels[j][y.curiosity] : panels[Math.max(0, j - 1)][y.curiosity];
+        for (let s = 0; s < steps; s++) v = stepChoice(y.curiosity, v, dir);
+        panels[j][y.curiosity] = v;
+      }
     }
   }
 
-  /* Values per panel: the board's own values, then curiosities, suites, proximities, proximity suites. */
+  /* m for one panel. rel is where the panel sits in the moment (0 first, 1 last); "across" sweeps through it. */
+  function modAt(o, key, now, rel, master) {
+    const across = Number(o.across) || 0;
+    if (o.mod === "follow") return master * (1 - across + across * rel);
+    if (o.mod === "manual" || o.mod === "midi") return Math.max(0, Math.min(1, Number(o.manual) || 0)) * (1 - across + across * rel);
+    const phase = ((now - (t0[key] || now)) / 1000) * (Number(o.rate) || 1) + across * rel;
+    return shapeAt(o.shape || "sine", phase, key + ":" + Math.round(across * rel * 8)) * (o.depth == null ? 1 : Number(o.depth));
+  }
+  /* What a lane is worth: a curiosity value, a number of beats, a share of panels, or a size of step. */
+  function laneValue(lane, m) {
+    const c = curve(lane.curve, m);
+    if (lane.target.startsWith("c:")) return between(lane.target.slice(2), lane.from, lane.to, c);
+    return Number(lane.from) + (Number(lane.to) - Number(lane.from)) * c;
+  }
+
+  /* Values per panel: the board's own values, then curiosities, suites, proximities, proximity suites.
+     Each patch is on or off (its trigger), plays only in its moment (a span of panels), and each of its lanes
+     grades one thing between two settings. */
   function resolve(count, now) {
     now = now || performance.now();
     const base = window.CuriosityBoard ? window.CuriosityBoard.values() : {};
     const panels = Array.from({ length: count }, () => Object.assign({}, base));
     const active = Object.values(store.patches).filter((p) => p.running);
     const ms = {};
-    active.forEach((p) => (ms[p.key] = mOf(p, now)));
-    active.filter((p) => p.key.startsWith("s:")).forEach((p) => {
-      const id = ms[p.key] < 0.5 ? p.a : p.b;
-      if (id) panels.forEach((v) => Object.assign(v, suiteSet(id)));
-    });
-    active.filter((p) => p.key.startsWith("c:")).forEach((p) => {
-      const v = curiosityValue(p, ms[p.key]);
-      panels.forEach((x) => (x[PARAM[p.key].id] = v));
-    });
-    active.filter((p) => p.key.startsWith("p:")).forEach((p) => {
-      const s = ms[p.key] < 0.5 ? p.a : p.b;
-      const prox = PROXIMITIES.find((x) => x.id === PARAM[p.key].id);
-      if (s && s.on && prox) applyProximity(prox, Number(s.within) || 0, panels);
-    });
-    active.filter((p) => p.key.startsWith("ps:")).forEach((p) => {
-      const s = ms[p.key] < 0.5 ? p.a : p.b;
+    const order = ["s:", "c:", "p:", "ps:"];
+    active.sort((a, b) => order.indexOf(a.key.split(":")[0] + ":") - order.indexOf(b.key.split(":")[0] + ":"));
+    active.forEach((p) => {
+      const w = p.where || {};
+      const from = Math.max(0, Math.min(count - 1, Number(w.from) || 0));
+      const to = Math.max(from, Math.min(count - 1, w.to == null || w.to === "" ? count - 1 : Number(w.to)));
+      const rel = (i) => (to > from ? (i - from) / (to - from) : 0);
+      const master = (i) => modAt(p, p.key, now, rel(i), 0);
+      ms[p.key] = master(from);
+      const lanes = (p.lanes || []).filter((l) => l.on);
+      const lane = (l, i) => laneValue(l, modAt(l, p.key + "#" + l.id, now, rel(i), master(i)));
+      lanes.forEach((l) => (ms[p.key + "#" + l.id] = modAt(l, p.key + "#" + l.id, now, 0, master(from))));
+      const find = (t) => lanes.find((l) => l.target === t);
+      const amount = find("amount");
+      const inPlay = (i) => !amount || dice(p.key, i, "amount") < lane(amount, i);
+      const level = p.key.split(":")[0];
+      if (level === "s" || level === "c") {
+        for (let i = from; i <= to; i++) {
+          if (!inPlay(i)) continue;
+          if (level === "s") {
+            const id = master(i) < 0.5 ? p.a : p.b;
+            if (id) Object.assign(panels[i], suiteSet(id));
+          } else panels[i][PARAM[p.key].id] = curiosityValue(p, master(i));
+          lanes.filter((l) => l.target.startsWith("c:")).forEach((l) => (panels[i][l.target.slice(2)] = lane(l, i)));
+        }
+        return;
+      }
+      const s = master(from) < 0.5 ? p.a : p.b;
+      if (!s || !s.on) return;
+      const per = (t, fallback) => (find(t) ? (i) => lane(find(t), i) : fallback);
+      if (level === "p") {
+        const prox = PROXIMITIES.find((x) => x.id === PARAM[p.key].id);
+        if (!prox) return;
+        const chance = per("chance", null);
+        applyProximity(prox, panels, { key: p.key, from, to, within: per("delay", () => Number(s.within) || 0), effect: per("effect", null), cause: per("cause", null), chance: (i) => (inPlay(i) ? (chance ? chance(i) : 1) : 0) });
+        return;
+      }
       const ps = PROXIMITY_SUITES.find((x) => x.id === PARAM[p.key].id);
-      if (!s || !s.on || !ps) return;
+      if (!ps) return;
       ps.members.forEach((id) => {
         const prox = PROXIMITIES.find((x) => x.id === id);
-        if (prox) applyProximity(prox, Math.max(0, prox.within + (Number(s.within) || 0)), panels);
+        if (!prox) return;
+        const chance = per("chance:" + id, null);
+        applyProximity(prox, panels, { key: p.key + id, from, to, within: per("delay:" + id, () => Math.max(0, prox.within + (Number(s.within) || 0))), chance: (i) => (inPlay(i) ? (chance ? chance(i) : 1) : 0) });
       });
     });
     return { panels, ms };
@@ -242,6 +403,7 @@
     const p = patch(key);
     p.running = true;
     t0[key] = performance.now();
+    (p.lanes || []).forEach((l) => (t0[key + "#" + l.id] = t0[key]));
     emit("change", { key });
   }
   function stop(key) {
@@ -262,7 +424,7 @@
   const midi = { access: null, outputs: [], out: null, learning: null, status: "off" };
   const lastOut = {};
   function sendOut(key, m) {
-    const p = store.patches[key];
+    const p = key.includes("#") ? laneOf(key) : store.patches[key];
     if (!midi.out || !p || p.outCC == null || m == null) return;
     const v = Math.round(m * 127);
     if (lastOut[key] === v) return;
@@ -286,6 +448,15 @@
     }
     Object.entries(store.bindings).forEach(([key, b]) => {
       if (b.kind !== ev.kind || b.num !== ev.num) return;
+      /* A control bound to one lane moves only that lane. */
+      if (key.includes("#")) {
+        const l = laneOf(key);
+        if (!l) return;
+        if (ev.kind === "note") return trigger(key.split("#")[0], ev.on);
+        l.manual = ev.val / 127;
+        l.mod = "midi";
+        return emit("change", { key: key.split("#")[0] });
+      }
       const p = patch(key);
       if (ev.kind === "note") trigger(key, ev.on);
       else if (p.mod === "lfo" && b.target === "rate") p.rate = 0.1 + (ev.val / 127) * 9.9;
@@ -351,6 +522,26 @@
       PARAM[p.key] = p;
     },
     patch,
+    CURVES,
+    FACETS,
+    lanes: (key) => patch(key).lanes,
+    addLane,
+    setLane(key, id, changes) {
+      const l = patch(key).lanes.find((x) => x.id === id);
+      if (!l) return;
+      Object.assign(l, changes);
+      if ("rate" in changes || "shape" in changes) t0[key + "#" + id] = t0[key + "#" + id] || performance.now();
+      save();
+      emit("change", { key });
+    },
+    removeLane(key, id) {
+      const p = patch(key);
+      p.lanes = p.lanes.filter((x) => x.id !== id);
+      save();
+      emit("change", { key });
+    },
+    /* Values a curiosity lane can pass through, in order (a scale for words, a range for numbers). */
+    between,
     set(key, changes) {
       Object.assign(patch(key), changes);
       if ("rate" in changes || "shape" in changes) t0[key] = t0[key] || performance.now();
