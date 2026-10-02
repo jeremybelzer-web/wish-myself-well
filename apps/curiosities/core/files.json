@@ -1,0 +1,15 @@
+{
+  "note": "The shared core, in load order. These files never touch the page, so every version (web, desktop, a Maya panel) loads the same ones. index.html loads them before the screens; core/headless.js loads them with no page at all.",
+  "files": [
+    "catalog.js",
+    "library.js",
+    "story-curiosities.js",
+    "lenses.js",
+    "model.js",
+    "reference.js",
+    "suites.js",
+    "maya-manual.js",
+    "automation.js",
+    "bridge.js"
+  ]
+}
