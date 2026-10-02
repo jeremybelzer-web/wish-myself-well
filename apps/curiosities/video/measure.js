@@ -654,6 +654,7 @@
     { id: "speed", label: "Movement speed", curiosities: ["movementAmount"], check: "local", plain: "Speeds the clip up where the inspiration moves more and slows it down where it moves less." },
     { id: "loud", label: "Loudness", curiosities: ["volume", "emoVoice"], check: "db", plain: "Turns the sound up and down so it gets louder and quieter with the inspiration." },
     { id: "dialogue", label: "Dialogue tempo", curiosities: ["wordsAmount", "pace"], check: "speech", plain: "Writes new lines about the clip's title and times them to the inspiration's sentences: same lengths, same pauses, same syllables per second." },
+    { id: "overlay", label: "Lay its graphics over", curiosities: ["colorRange"], check: "sat", off: true, plain: "Lays the inspiration's own picture over your clip with its plain light background taken out, so only its graphics (shapes, logos, colored text) show on top. For motion graphics like a title sequence. Off unless you turn it on." },
   ];
   /* Interpolate a per-sample series at time t. */
   function sampleAt(d, arr, t) {
@@ -670,7 +671,7 @@
     const mode = opts.mode === "stretch" ? "stretch" : "same";
     const on = {};
     GROUPS.forEach((g) => {
-      const v = opts.on ? opts.on[g.id] : 1;
+      const v = opts.on ? opts.on[g.id] : g.off ? 0 : 1; /* given a list, what it leaves out is off */
       on[g.id] = v === true ? 1 : clamp(Number(v) || 0, 0, 1);
     });
     const p = { mode, on, insp, target, fps: 30 };
@@ -742,6 +743,25 @@
     p.move = { x: mvX, y: mvY, z: zp, kX: Math.min(1, 0.08 / big(mvX)), kY: Math.min(1, 0.08 / big(mvY)), kZ: Math.min(1, 0.15 / big(zp)) };
     /* One zoom for all the slides: enough for nearly all of them (the biggest 3% are held at the edge). */
     p.slideZoom = 1;
+    /* Graphics laid over: start where the inspiration is most colorful for as long as your clip lasts (a title
+       sequence often opens on a plain card), unless told where to start. */
+    if (on.overlay) {
+      const span = Math.min(insp.duration, p.duration);
+      let from = 0;
+      if (opts.overlayFrom != null) from = clamp(Number(opts.overlayFrom) || 0, 0, Math.max(0, insp.duration - 0.1));
+      else if (insp.duration > span + 0.5) {
+        let best = -1;
+        for (let a = 0; a + span <= insp.duration + 1e-6; a += 0.5) {
+          const part = insp.times.map((t, i) => (t >= a && t < a + span ? insp.raw.sat[i] : null)).filter((x) => x != null);
+          const m = mean(part);
+          if (m > best) {
+            best = m;
+            from = a;
+          }
+        }
+      }
+      p.overlayFrom = r3(from);
+    }
     if (on.shake || on.move) {
       const need = [];
       for (let k = 0; k < p.src.length; k += 3) {
@@ -830,6 +850,10 @@
       const [a, b] = g("db");
       adj.gainDb = clamp(a - b, -24, 18) * on.loud;
     }
+    if (on.overlay) {
+      const room = Math.max(0.1, A.duration - (p.overlayFrom || 0));
+      adj.overlay = { t: r3((p.overlayFrom || 0) + (p.mode === "stretch" ? ((t / Math.max(0.001, p.duration)) * room) : t % room)), amount: on.overlay };
+    }
     if (on.dialogue && p.lines.length) {
       adj.line = lineAt(p, t);
       adj.duck = on.dialogue; /* the clip's own voices step back under the new lines */
@@ -896,6 +920,26 @@
     if (a.color) out.sat = mix(clamp(w.sat / Math.max(0.02, have.sat), 0, 3), a.color);
     if (a.warmth) out.warm = clamp(w.warm - have.warm, -0.4, 0.4) * a.warmth;
     return out;
+  }
+
+  /* Take out a graphic's plain background: light, nearly colorless pixels (white, pale grey, a pale tint, a
+     grey checkerboard) become see-through, with a soft edge; color, dark text and shapes stay. amount 0..1 is
+     how strongly what stays covers the picture underneath. RGBA in place. */
+  function keyOut(data, amount) {
+    const a = amount == null ? 1 : clamp(amount, 0, 1);
+    for (let p = 0; p < data.length; p += 4) {
+      const r = data[p],
+        g = data[p + 1],
+        b = data[p + 2];
+      const mx = Math.max(r, g, b),
+        mn = Math.min(r, g, b);
+      const sat = mx > 0 ? (mx - mn) / mx : 0;
+      const y = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      /* How much it looks like background: pale (bright) and plain (colorless). */
+      const pale = clamp((y - 0.45) / 0.15, 0, 1),
+        plain = clamp((0.2 - sat) / 0.1, 0, 1);
+      data[p + 3] = Math.round(255 * a * (1 - pale * plain));
+    }
   }
 
   /* ---------- dialogue ---------- */
@@ -994,5 +1038,5 @@
     return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
   }
 
-  root.CurioVideo = { quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
+  root.CurioVideo = { keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
 })();

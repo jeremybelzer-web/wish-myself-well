@@ -208,6 +208,18 @@ check("onto My film: one lane per curiosity, a node only where it changes, accep
   const ref = E.send({ type: "addRef", ref: V.toRef(insp) });
   assert(ref.ok, ref.error);
 });
+check("graphics laid over: off unless asked, keyed so a pale background drops out and color stays", () => {
+  assert(!V.at(V.plan(insp, target, {}), 1).overlay, "off by default");
+  const p = V.plan(insp, target, { on: { overlay: 1 } });
+  const o = V.at(p, 1).overlay;
+  assert(o && o.t >= 0 && o.t <= insp.duration, JSON.stringify(o));
+  const px = new Uint8ClampedArray([240, 240, 250, 255, 30, 90, 200, 255, 20, 20, 40, 255, 180, 180, 180, 255]);
+  V.keyOut(px, 1);
+  assert(px[3] < 30, "pale lavender drops out " + px[3]);
+  assert(px[7] > 240, "blue stays " + px[7]);
+  assert(px[11] > 240, "dark text stays " + px[11]);
+  assert(px[15] < 30, "light grey checkerboard drops out " + px[15]);
+});
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });

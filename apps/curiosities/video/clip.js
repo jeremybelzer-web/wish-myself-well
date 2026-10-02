@@ -240,6 +240,21 @@
       V().paint(d, W, H, a, have.luma);
       ctx.putImageData(img, 0, 0);
     }
+    /* The inspiration's graphics on top, background taken out, fitted inside the frame. */
+    if (adj.overlay && opts.overlay && opts.overlay.videoWidth) {
+      const ov = opts.overlay;
+      const c = (drawApplied.layer = drawApplied.layer && drawApplied.layer.width === W && drawApplied.layer.height === H ? drawApplied.layer : canvas(W, H));
+      const lx = c.getContext("2d", { willReadFrequently: true });
+      lx.clearRect(0, 0, W, H);
+      const k = Math.min(W / ov.videoWidth, H / ov.videoHeight);
+      const ow = ov.videoWidth * k,
+        oh = ov.videoHeight * k;
+      lx.drawImage(ov, (W - ow) / 2, (H - oh) / 2, ow, oh);
+      const img = lx.getImageData(0, 0, W, H);
+      V().keyOut(img.data, adj.overlay.amount);
+      lx.putImageData(img, 0, 0);
+      ctx.drawImage(c, 0, 0);
+    }
     if (adj.line && opts.captions !== false) {
       const fs = Math.max(12, Math.round(H / 16));
       ctx.font = `600 ${fs}px system-ui, sans-serif`;
@@ -278,6 +293,7 @@
   /* Render the applied clip frame by frame (no recording), measure it, score it. */
   async function check(plan, clip, opts) {
     opts = opts || {};
+    const over = plan.on.overlay && opts.overlay ? opts.overlay.video : null;
     const W = 320,
       H = Math.max(2, Math.round((W * clip.height) / clip.width));
     const big = canvas(W, H);
@@ -291,7 +307,8 @@
         let a = V().at(plan, t);
         await seek(clip.video, a.src);
         a = steadyAdj(a, st, clip.video);
-        drawApplied(bx, clip.video, a, W, H, { captions: false });
+        if (over && a.overlay) await seek(over, a.overlay.t);
+        drawApplied(bx, clip.video, a, W, H, { captions: false, overlay: over });
         ctx.drawImage(big, 0, 0, w, h);
       },
       (p) => opts.onProgress && opts.onProgress(p * 0.9, "Measuring the changed clip")
@@ -322,6 +339,20 @@
       video.addEventListener("loadeddata", r, { once: true });
       video.load();
     });
+    let over = null;
+    if (plan.on.overlay && opts.overlay) {
+      over = document.createElement("video");
+      over.src = opts.overlay.url;
+      over.muted = true;
+      over.playsInline = true;
+      over.preload = "auto";
+      await new Promise((r) => {
+        if (over.readyState >= 2) return r();
+        over.addEventListener("loadeddata", r, { once: true });
+        over.load();
+      });
+      over.currentTime = plan.overlayFrom || 0;
+    }
     let ac = null,
       gain = null,
       dest = null;
@@ -352,6 +383,7 @@
       running = false;
     };
     await video.play().catch(() => {});
+    if (over) await over.play().catch(() => {});
     if (ac && ac.state === "suspended") await ac.resume().catch(() => {});
     if (rec) rec.start(250);
     const t0 = performance.now();
@@ -373,7 +405,8 @@
           if (a.line) g *= Math.pow(10, (-14 * a.duck) / 20);
           gain.gain.setTargetAtTime(g, ac.currentTime, 0.03);
         }
-        drawApplied(ctx, video, steadyAdj(a, st, video), W, H);
+        if (over && a.overlay && Math.abs(over.currentTime - a.overlay.t) > 0.3) over.currentTime = a.overlay.t;
+        drawApplied(ctx, video, steadyAdj(a, st, video), W, H, { overlay: over });
         if (synth && a.line) {
           const i = plan.lines.indexOf(a.line);
           if (i !== spoken) {
@@ -392,6 +425,7 @@
       requestAnimationFrame(tick);
     });
     video.pause();
+    if (over) over.pause();
     if (synth) window.speechSynthesis.cancel();
     let blob = null;
     if (rec) {

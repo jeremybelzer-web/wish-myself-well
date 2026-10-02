@@ -28,7 +28,7 @@
       p = JSON.parse(localStorage.getItem(KEY) || "{}") || {};
     } catch (e) {}
     const on = {};
-    (V() ? V().GROUPS : []).forEach((g) => (on[g.id] = p.on && typeof p.on[g.id] === "number" ? Math.max(0, Math.min(1, p.on[g.id])) : 1));
+    (V() ? V().GROUPS : []).forEach((g) => (on[g.id] = p.on && typeof p.on[g.id] === "number" ? Math.max(0, Math.min(1, p.on[g.id])) : g.off ? 0 : 1));
     return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "" };
   }
   function keep() {
@@ -253,6 +253,7 @@
     try {
       blob = await C().render(p, slot.b.clip, {
         canvas: cv,
+        overlay: slot.a.clip,
         record,
         speak: true,
         onFrame: (t, a) => {
@@ -284,6 +285,7 @@
     draw();
     try {
       const { after } = await C().check(p, slot.b.clip, {
+        overlay: slot.a.clip,
         onProgress: (x) => {
           const n = page.querySelector(".vd-note");
           if (n) n.textContent = `Checking: ${Math.round(x * 100)}%`;
@@ -336,7 +338,7 @@
         return draw();
       }
       if (t.dataset.all != null) {
-        V().GROUPS.forEach((g) => (prefs.on[g.id] = t.dataset.all === "1" ? 1 : 0));
+        V().GROUPS.forEach((g) => (prefs.on[g.id] = t.dataset.all === "1" ? (g.off ? prefs.on[g.id] : 1) : 0));
         keep();
         checks = null;
         return draw();
