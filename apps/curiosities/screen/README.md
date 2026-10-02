@@ -39,6 +39,15 @@ Two lines in `index.html`: `screen/load.js` after `engine/load.js`, and the edit
 
 It opens on start; `?screen=0` skips it (so do automated browser tests, unless the address has `?screen=1`), and Back to the app closes it (it then stays closed until you open it again).
 
+## ADVANCED: Final Cut Pro's features
+
+Jeremy, 2026-10-02 20:21Z: "keep the features of Final Cut Pro and hide them under a tab that says ADVANCED and then focus on the features of CapCut". The library's icon row ends with an **ADVANCED** tab, pinned at the right. It holds:
+
+- **Final Cut Pro's own**: 8 curiosities CapCut has no match for (Multicam angle switching, Color wheels, Color curves, Sound roles, Side storyline, Nested scene, Slow motion quality, Focus changed in the edit), plus a suite and 3 proximities. They are rows in `data/db-editing.js` tagged `advanced`, and the category grids, Details and Arrange's "Show all potential curiosities" leave them out.
+- **Final Cut Pro, here**: every other Final Cut Pro feature, and where it already lives on the Screen in CapCut's way (Inspector is Details, Skimming is Preview axis, Retime is Clip speed...). A card that maps to a curiosity opens it.
+
+While ADVANCED is open, Details shows the advanced curiosities' controls.
+
 ## Hooks for other threads
 
 `CurioScreen.row()` is the playhead's moment; `CurioScreen.setRow(i)` moves it. `CurioScreen.on(fn)` is told `{ row, rows }` after every redraw and playhead move, and returns a function that stops it. `CurioScreen.addPanel({ id, label, place: "player" | "details" | "timeline", mount(el) })` docks a side panel (the momentum meter): the Screen makes a `.sc-dock` element in that place, mounts it once and keeps it across redraws. The clock uses the Momentum window's seconds per moment (`secondsPerPanel` in `curiosities-momentum-v1`, 3 by default).

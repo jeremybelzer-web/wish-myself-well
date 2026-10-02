@@ -286,3 +286,7 @@ html.sc-open, html.sc-open body { overflow: hidden; }
   .tabs .tabs-top .ws-pick { flex: 1 1 0; }
   .tabs .tabs-top > button, .tabs .tabs-top .lib > button { padding: 6px 5px; letter-spacing: 0.02em; }
 }
+
+/* ADVANCED: Final Cut Pro's features, kept out of the way (Jeremy, 2026-10-02 20:21Z). */
+.sc-page .sc-icons button.sc-adv { position: sticky; right: 0; background: var(--cc-panel); margin-left: auto; border-left: 1px solid var(--cc-line); border-radius: 0; padding-left: 8px; letter-spacing: 0.06em; font-weight: 600; }
+.sc-page .sc-card.sc-fcp em { color: var(--cc-dim); }

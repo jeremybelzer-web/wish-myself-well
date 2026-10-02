@@ -96,6 +96,19 @@ const ok = (cond, msg) => {
   ok((await allNodes()) >= n0 + 2, "a template's + drops each member as a node on its own lane");
   await page.keyboard.press("Control+z");
   ok((await allNodes()) === n0, "and one undo takes the whole template back");
+  /* ADVANCED: Final Cut Pro's features, out of the main grids. */
+  await page.click('[data-libtab="advanced"]');
+  const advCards = await page.evaluate(() => [...document.querySelectorAll(".sc-grid .sc-card strong")].map((x) => x.textContent));
+  ok(advCards.includes("Multicam angle switching") && advCards.includes("Color wheels"), "the ADVANCED tab lists Final Cut Pro's own curiosities");
+  ok(await page.evaluate(() => /ADVANCED/.test(document.querySelector(".sc-inspector .sc-cat-h").textContent)), "Details shows the advanced curiosities while ADVANCED is open");
+  await page.click('.sc-side .sc-pill:last-child');
+  ok((await page.$$('.sc-card[data-card="fcp"]')).length >= 20, "ADVANCED maps every other Final Cut Pro feature to where it lives here");
+  await page.click('.sc-card[data-card="fcp"] [data-pick-card="curiosity|clipSpeed"]');
+  ok(await page.evaluate(() => window.CurioScreen.state().sel.id === "clipSpeed"), "a mapped feature opens its curiosity");
+  await page.click('[data-icat="grade"]');
+  ok(await page.evaluate(() => { const all = [...document.querySelectorAll(".sc-side .sc-pill")]; return !document.body.textContent.includes("Color wheels") || ![...document.querySelectorAll(".sc-grid .sc-card strong, .sc-inspector strong")].some((x) => x.textContent === "Color wheels"); }), "the Filters category keeps Final Cut Pro's own curiosities out of its grid and Details");
+  await page.click('[data-icat="transitions"]');
+  await page.click('[data-pick-card="curiosity|transitionKind"]');
   /* My film: an outliner of every automated curiosity. */
   await page.click('[data-libtab="mine"]');
   ok(await page.evaluate(() => [...document.querySelectorAll('.sc-card[data-card="curiosity"] strong')].some((x) => x.textContent === "Transition style")), "the My film tab lists what is automated (Maya's Outliner)");

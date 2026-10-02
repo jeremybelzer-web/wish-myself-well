@@ -48,6 +48,9 @@ const edit = DB.data.curiosities.filter((c) => c.source === "Final Cut Pro and C
 ok(edit.length >= 30 && edit.every((c) => c.momentum && c.sliders.length >= 4), "the editing curiosities load, each with a momentum note and its sliders (" + edit.length + ")");
 ok(["transitions", "grade", "text", "speed"].every((id) => L.curiosities(id).length >= 3), "the new CapCut categories (Transitions, Filters, Text, Speed) have curiosities");
 ok(DB.check().length === 0, "the database check finds no problems with them" + (DB.check().length ? ": " + DB.check().slice(0, 6).join("; ") : ""));
+const adv = DB.data.curiosities.filter((c) => (c.tags || []).includes("advanced"));
+ok(adv.length >= 8 && adv.every((c) => c.source === "Final Cut Pro" && c.momentum), "Final Cut Pro's own curiosities load, tagged advanced (" + adv.length + ")");
+ok(["suites", "proximities"].every((k) => DB.data[k].some((x) => (x.tags || []).includes("advanced"))), "an advanced suite and advanced proximities load");
 const ed = w.CurioFrame.svg({ transitionKind: "wipe", filterLook: "night", onScreenText: "title card", clipSpeed: "fast" }, { highlight: ["transitions"] });
 ok(["transitions", "grade", "text", "speed"].every((c) => ed.includes(`data-cat="${c}"`)) && /data-cat="grade" opacity="0.18"/.test(ed), "the frame draws transitions, filters, text and speed, and dims them by category");
 

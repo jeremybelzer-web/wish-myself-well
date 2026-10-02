@@ -506,13 +506,56 @@
     return L().CATEGORIES.find((c) => c.id === prefs.cat) || L().CATEGORIES[0];
   }
   /* The sidebar's groups for a category: its workspaces, then its suites, proximities and proximity suites. */
+  /* ADVANCED (Jeremy, 2026-10-02 20:21Z): "keep the features of Final Cut Pro and hide them under a tab that
+     says ADVANCED and then focus on the features of CapCut". Rows tagged "advanced" (Final Cut Pro features
+     CapCut has no match for, data/db-editing.js) stay out of the category grids and Details, and live under
+     the ADVANCED tab with a map of every Final Cut Pro feature the Screen already does in CapCut's way. */
+  const isAdv = (it) => !!(it && Array.isArray(it.tags) && it.tags.includes("advanced"));
+  const mainOnly = (list) => list.filter((it) => !isAdv(it));
+  const ADV = { id: "advanced", label: "ADVANCED", icon: "gauge", windows: 2, plain: "Final Cut Pro's features: the ones CapCut has no match for, as curiosities, and where every other one lives on this screen." };
+  /* [Final Cut Pro feature, where it is here, the curiosity it opens (or none)] */
+  const FCP_MAP = [
+    ["Browser and Viewer", "The library and the Player", ""],
+    ["Inspector", "Details, on the right", ""],
+    ["Video tracks", "The film clip tracks at the top of the timeline", ""],
+    ["Magnetic timeline", "Magnet in the timeline toolbar (P)", ""],
+    ["Skimming", "Preview axis in the timeline toolbar (S)", ""],
+    ["Range selection", "Play range: I and O", ""],
+    ["Markers", "Marker in the timeline toolbar (M)", ""],
+    ["Keyframes and the Video Animation editor", "Nodes on a lane, with Glide, Smooth or Jump", ""],
+    ["Connected clips", "Overlay", "overlay"],
+    ["Transitions browser", "Transition style", "transitionKind"],
+    ["Retime menu", "Clip speed", "clipSpeed"],
+    ["Hold frame", "Freeze frame", "freezeFrame"],
+    ["Beat Detection", "Cutting to the beat", "beatSync"],
+    ["Color board", "Exposure, and Warmth and tint", "exposure"],
+    ["Match Color and Balance Color", "Shot matching", "colorMatch"],
+    ["Custom LUT", "LUT", "lut"],
+    ["Titles", "On-screen text", "onScreenText"],
+    ["Captions", "Captions", "captions"],
+    ["Keyer", "Cutout and green screen", "cutout"],
+    ["Shape and color masks", "Mask", "maskShape"],
+    ["Object tracker", "Tracking", "tracking"],
+    ["Stabilization and rolling shutter", "Steadying", "stabilization"],
+    ["Ken Burns", "Punch-in and reframe", "reframe"],
+    ["Voiceover tool", "Voice-over", "voiceover"],
+  ];
+  function advancedGroups() {
+    const out = [{ id: "adv:fcp", label: "Final Cut Pro's own", level: "curiosity", items: L().items("curiosity").filter(isAdv) }];
+    [["suite", "Advanced suites"], ["proximity", "Advanced proximities"], ["proximitySuite", "Advanced proximity suites"]].forEach(([lv, label]) => {
+      const items = L().items(lv).filter(isAdv);
+      if (items.length) out.push({ id: "adv:" + lv, label, level: lv, items });
+    });
+    out.push({ id: "adv:map", label: "Final Cut Pro, here", level: "fcp", items: FCP_MAP.map(([id, plain, cur]) => ({ id, label: id, plain: "Here: " + plain, cur: cur && S() && S().known(cur) ? cur : "" })) });
+    return out;
+  }
   function groupsOf(cat) {
     const ws = (window.CuriosityDB && window.CuriosityDB.data.workspaces) || [];
     const out = cat.workspaces
-      .map((w) => ({ id: "ws:" + w, label: (ws.find((x) => x.id === w) || {}).label || w, level: "curiosity", items: L().curiosities(cat.id).filter((c) => c.workspace === w) }))
+      .map((w) => ({ id: "ws:" + w, label: (ws.find((x) => x.id === w) || {}).label || w, level: "curiosity", items: mainOnly(L().curiosities(cat.id)).filter((c) => c.workspace === w) }))
       .filter((g) => g.items.length);
     [["suite", "Suites"], ["proximity", "Proximities"], ["proximitySuite", "Proximity suites"]].forEach(([lv, label]) => {
-      const items = L().items(lv, cat.id);
+      const items = mainOnly(L().items(lv, cat.id));
       if (items.length) out.push({ id: lv, label, level: lv, items });
     });
     return out;
@@ -542,11 +585,12 @@
     return out;
   }
   function cardHtml(level, it) {
+    if (level === "fcp") return it.cur ? `<div class="sc-card sc-fcp" data-card="fcp"><button type="button" class="sc-card-b" data-pick-card="curiosity|${esc(it.cur)}"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></button></div>` : `<div class="sc-card sc-fcp" data-card="fcp"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></div></div>`;
     if (level === "link") return `<div class="sc-card" data-card="link"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Proximity</em></div></div>`;
     const on = prefs.sel.level === level && prefs.sel.id === it.id;
     let sub = it.plain || "";
     if (level === "suite") sub = (it.members || []).length + " curiosities: " + [...new Set((it.members || []).map((m) => labelOf(keyFor(m.curiosity))))].slice(0, 4).join(", ");
-    const tag = level === "curiosity" ? (it.source === "Final Cut Pro and CapCut" ? "New from editing" : "") : L().LEVELS.find((l) => l.id === level).label;
+    const tag = level === "curiosity" ? (isAdv(it) ? "Advanced: Final Cut Pro" : it.source === "Final Cut Pro and CapCut" ? "New from editing" : "") : L().LEVELS.find((l) => l.id === level).label;
     const add = level === "proximity" || level === "proximitySuite" ? "Add it to my film" : level === "suite" ? "Put its curiosities on the timeline" : "Put it on the timeline";
     const k = level === "curiosity" ? keyFor(it.id) : "";
     const tiles = on && k && prefs.view !== "arrange" ? tilesOf(k) : [];
@@ -563,14 +607,15 @@
     box.hidden = prefs.view === "arrange";
     if (box.hidden) return;
     const cat = category();
-    const tab = ["mine", "templates"].includes(prefs.libTab) ? prefs.libTab : "";
+    const tab = ["mine", "templates", "advanced"].includes(prefs.libTab) ? prefs.libTab : "";
     const extra = [["mine", "My film", "film", "Everything automated in my film so far (like Maya's Outliner, or CapCut's Yours)"], ["templates", "Templates", "grid", "Ready-made recipes: every suite, dropped at the playhead as a set of nodes (CapCut's Templates)"]];
     page.querySelector(".sc-icons").innerHTML =
       extra.map(([id, label, ic, t]) => `<button type="button" data-libtab="${id}" class="${tab === id ? "on" : ""}" aria-pressed="${tab === id}" title="${esc(t)}">${icon(ic)}<span>${esc(label)}</span></button>`).join("") +
       L()
         .CATEGORIES.map((c) => `<button type="button" data-icat="${c.id}" class="${!tab && c.id === cat.id ? "on" : ""}" aria-pressed="${!tab && c.id === cat.id}" title="${esc(c.plain)}">${icon(c.icon)}<span>${esc(c.label)}</span></button>`)
-        .join("");
-    const groups = tab === "mine" ? mineGroups() : tab === "templates" ? templateGroups() : groupsOf(cat);
+        .join("") +
+      `<button type="button" data-libtab="advanced" class="sc-adv${tab === "advanced" ? " on" : ""}" aria-pressed="${tab === "advanced"}" title="${esc(ADV.plain)}">${icon(ADV.icon)}<span>${ADV.label}</span></button>`;
+    const groups = tab === "mine" ? mineGroups() : tab === "templates" ? templateGroups() : tab === "advanced" ? advancedGroups() : groupsOf(cat);
     const gkey = tab || cat.id;
     const gid = groups.some((g) => g.id === prefs.groups[gkey]) ? prefs.groups[gkey] : (groups[0] || {}).id;
     page.querySelector(".sc-side").innerHTML = groups.map((g) => `<button type="button" class="sc-pill${g.id === gid && !prefs.search ? " on" : ""}" data-group="${esc(g.id)}"><span>${esc(g.label)}</span><small>${g.items.length}</small></button>`).join("");
@@ -794,8 +839,9 @@
     const sel = selection();
     /* Details shows the category picked in the library's icon row, like CapCut's Details panel follows what
        is selected. An inspiration film shows the curiosities it actually uses first. */
-    const cat = category();
-    let list = L().curiosities(cat.id);
+    const adv = prefs.libTab === "advanced";
+    const cat = adv ? ADV : category();
+    let list = adv ? L().items("curiosity").filter(isAdv) : mainOnly(L().curiosities(cat.id));
     if (insp) list = list.filter((c) => ctx.value(keyFor(c.id)) != null).concat(list.filter((c) => ctx.value(keyFor(c.id)) == null));
     const all = !!prefs.showFine[cat.id];
     /* The main ones, plus whatever you are looking through, so it is always in reach. */
@@ -917,7 +963,7 @@
           });
       });
     }
-    if (prefs.showAll) L().CATEGORIES.forEach((cat) => prefs.openCats[cat.id] && L().curiosities(cat.id).forEach((c) => add(c.id, { group: cat.label })));
+    if (prefs.showAll) L().CATEGORIES.forEach((cat) => prefs.openCats[cat.id] && mainOnly(L().curiosities(cat.id)).forEach((c) => add(c.id, { group: cat.label })));
     return out;
   }
   function laneHeader(ln, i) {
@@ -955,7 +1001,7 @@
           <select data-add-lane aria-label="Add a curiosity track"><option value="">+ Add a curiosity track</option>${L()
             .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(keyFor(x.id))}">${esc(x.label)}</option>`).join("")}</optgroup>`)
             .join("")}</select>
-          ${prefs.showAll ? `<div class="sc-chips">${L().CATEGORIES.map((c) => `<button type="button" data-open-cat="${c.id}" class="${prefs.openCats[c.id] ? "on" : ""}">${esc(c.label)} <small>${L().curiosities(c.id).length}</small></button>`).join("")}</div>` : ""}
+          ${prefs.showAll ? `<div class="sc-chips">${L().CATEGORIES.map((c) => `<button type="button" data-open-cat="${c.id}" class="${prefs.openCats[c.id] ? "on" : ""}">${esc(c.label)} <small>${mainOnly(L().curiosities(c.id)).length}</small></button>`).join("")}</div>` : ""}
           ${prefs.showSuites ? `<div class="sc-chips">${L().CATEGORIES.map((c) => { const list = L().items("suite", c.id); return list.length ? `<details${list.some((s) => prefs.openSuites[s.id]) ? " open" : ""}><summary>${esc(c.label)} <small>${list.length} suites</small></summary>${list.map((s) => `<button type="button" data-open-suite="${esc(s.id)}" class="${prefs.openSuites[s.id] ? "on" : ""}" title="${esc(s.plain || "")}">${esc(s.label)}</button>`).join("")}</details>` : ""; }).join("")}</div>` : ""}
         </div>`
         : `<p class="sc-tl-h"><strong>Timeline</strong> ${esc(sel.label)}${sel.pairs.length ? ` · ${sel.pairs.length} proximit${sel.pairs.length === 1 ? "y" : "ies"}: <button type="button" data-act="add-prox">Add ${sel.level === "proximitySuite" ? "this proximity suite" : "this proximity"} to my film</button>` : ""}${prefs.lanes.length ? ` · ${prefs.lanes.length} track${prefs.lanes.length === 1 ? "" : "s"} you added <button type="button" data-act="clear-lanes" title="Take the tracks you added off the timeline (their nodes stay in your film)">Clear</button>` : ""}</p>`;
@@ -1107,7 +1153,8 @@
       prefs.libTab = prefs.libTab === d.libtab ? "" : d.libtab;
       prefs.search = "";
       save();
-      return drawLibrary();
+      drawLibrary();
+      return drawInspector();
     }
     if ("drop" in d && d.drop) {
       showLane(d.drop);
