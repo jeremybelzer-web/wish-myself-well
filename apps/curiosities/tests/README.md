@@ -34,6 +34,7 @@ Blender). The exit code is 1 when anything failed. GitHub runs the quick and bro
 | desktop bridge | `desktop/check.js` | OSC and WebSocket messages for the desktop app |
 | maya, resolve, unreal, blender | `*/tests/test_*.py` | the camera mapping and each add-on (Blender needs Blender) |
 | screen / engine / momentum in a browser | `*/tests/browser.js` | each piece inside the real app, as a person uses it |
+| save and open | `tests/save-open.js` | Save project to a file, New project, Open the file: everything comes back; a broken file is refused; History restores |
 | every control | `tests/every-control.js` | every button, dropdown and checkbox on every page, on a laptop and a phone |
 | whole-app stress run | `engine/tests/app-fuzz.js` | thousands of random clicks, undo chains, broken saved data |
 
