@@ -371,6 +371,76 @@
       };
       return db.proximities.filter((p) => !known.has(p.id)).map((p) => ({ id: p.id, label: p.label, when: p.whenText || p.label, then: p.thenText || "", within: p.within, x: side(p.when), y: side(p.then), note: p.plain }));
     },
+    /* Every proximity and proximity suite as engine links (engine/state.js: { label, from, to, does, value,
+       amount, within }), without tracks: the engine puts each end on the track that has its curiosity, and
+       `track` on each end says which kind of track it belongs on when none has it yet.
+       - from { curiosity, is?, change }: "x is v" is the leader's condition; rises / drops / changes is change.
+       - does: "y rises" rise, "y drops" fall, "y changes" moveWith, "y is v" set with value v.
+       - A suite as the effect becomes one link per member (a suite is a group of lenses), all sharing
+         `proximity`, each setting its member to the suite's value (its six heaviest members at most); amount is the base amount (0.25) times the
+         member's weight. A suite as the cause is led by its heaviest member (the first, on a tie) reaching its
+         value, so a suite-to-suite proximity is as many links as the effect suite has members, not the product.
+       - groups: each proximity suite, as the link ids of its members, so the engine can add them in one step.
+       Curiosity ids are the app's (CURIOSITIES after install), slider rows included ("music.tempo"). */
+    links() {
+      const BASE = 0.25;
+      const CHARACTER = ["character-motion", "placement", "lines", "movement-lines", "wardrobe", "arc", "plot", "mindset", "focus", "archetype"];
+      const CAMERA = ["camera-angle", "camera-motion"];
+      const trackOf = (cid) => {
+        const c = api.get("curiosity", cid.split(".")[0]);
+        if (!c) return "master";
+        if (cid === "emoRoadCharacter") return "character";
+        return CAMERA.includes(c.workspace) ? "camera" : CHARACTER.includes(c.workspace) ? "character" : "master";
+      };
+      const keyOf = (r) => {
+        const c = api.get("curiosity", r.curiosity);
+        return r.slider && !(c && c.main === r.slider) ? r.curiosity + "." + r.slider : r.curiosity;
+      };
+      const val = (m) => (m.value != null ? m.value : m.to != null ? m.to : m.from);
+      /* One end as a list of { curiosity, value?, change?, weight }: a suite gives its members. */
+      const ends = (r) => {
+        if (!r.suite) return [{ curiosity: keyOf(r), value: r.is, change: r.change, weight: 1 }];
+        const s = api.get("suite", r.suite);
+        return (s ? s.members : []).filter((m) => m.curiosity).map((m) => ({ curiosity: keyOf(m), value: val(m), weight: (m.weight == null ? 100 : m.weight) / 100 }));
+      };
+      const CHANGE = { rises: "rises", drops: "drops", changes: "any" };
+      const DOES = { rises: "rise", drops: "fall", changes: "moveWith" };
+      const links = [];
+      const byProx = {};
+      db.proximities.forEach((p) => {
+        const froms = ends(p.when)
+          .slice()
+          .sort((a, b) => b.weight - a.weight)
+          .slice(0, 1)
+          .map((f) => Object.assign({}, f, { weight: 1 }));
+        /* An effect suite gives its six heaviest members (the Enneagram suites have 18), to keep the list usable. */
+        const tos = ends(p.then)
+          .map((t, i) => Object.assign({ i }, t))
+          .sort((a, b) => b.weight - a.weight || a.i - b.i)
+          .slice(0, 6)
+          .sort((a, b) => a.i - b.i);
+        const ids = (byProx[p.id] = []);
+        froms.forEach((f) =>
+          tos.forEach((t) => {
+            const l = { id: "p:" + p.id + (froms.length * tos.length > 1 ? "#" + (ids.length + 1) : ""), proximity: p.id, label: p.label, from: { curiosity: f.curiosity, track: trackOf(f.curiosity) }, to: { curiosity: t.curiosity, track: trackOf(t.curiosity) }, within: Math.max(0, Math.min(16, p.within || 0)), amount: Math.round(BASE * f.weight * t.weight * 1000) / 1000 };
+            if (f.value != null) l.from.is = f.value;
+            l.from.change = f.value != null ? "any" : CHANGE[f.change] || "any";
+            if (t.value != null) {
+              l.does = "set";
+              l.value = t.value;
+            } else l.does = DOES[t.change] || "moveWith";
+            /* "x is A, then x is B" (a setup then its payoff) stays in one lane; the engine needs a same-lane rule. */
+            if (f.curiosity === t.curiosity) l.sameLane = true;
+            if (p.whenText) l.when = p.whenText;
+            if (p.thenText) l.then = p.thenText;
+            ids.push(l.id);
+            links.push(l);
+          })
+        );
+      });
+      const groups = db.proximitySuites.map((ps) => ({ id: "ps:" + ps.id, label: ps.label, plain: ps.plain, proximities: ps.members.slice(), links: [].concat(...ps.members.map((m) => byProx[m] || [])) }));
+      return { format: "curiosities-links", version: 1, links, groups };
+    },
     /* Proximity suites in automation.js's shape ({ id, label, members }). */
     legacyProximitySuites(have) {
       const out = (have || []).slice();
@@ -395,6 +465,8 @@
       /* Proximity suites live in automation.js (PROXIMITY_SUITES), which loads after this, so they wait on
          window.CURIOSITY_PROXIMITY_SUITES for it to merge, the same way it merges CURIOSITY_FACETS. */
       root.CURIOSITY_PROXIMITY_SUITES = api.legacyProximitySuites(root.CURIOSITY_PROXIMITY_SUITES);
+      /* The engine (engine/seeds.js) reads every proximity and proximity suite as links from here. */
+      root.CURIOSITY_LINKS = api.links();
       /* automation.js merges window.CURIOSITY_FACETS into its lanes when it loads, so the sliders become lanes. */
       const F = (root.CURIOSITY_FACETS = root.CURIOSITY_FACETS || {});
       const f = api.facets();

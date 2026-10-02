@@ -182,7 +182,16 @@
       .vcv-dot{width:8px;height:8px;border-radius:50%;background:#999}.vcv-dot.on{background:#2a9d5c}
       .vcv-panel{margin-bottom:6px;padding:10px;border:1px solid #8884;border-radius:8px;background:Canvas;color:CanvasText;box-shadow:0 4px 16px #0002}
       .vcv-panel p{margin:0 0 6px}.vcv-panel input{width:100%;box-sizing:border-box;padding:4px 6px;font:inherit}
-      .vcv-panel small{opacity:.75}`;
+      .vcv-panel small{opacity:.75}
+      .vcv-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+      @media (max-width:600px){
+        .vcv-badge{left:0}
+        .vcv-badge>button{border-radius:0 999px 999px 0;border-left:0;padding:8px 4px 8px 2px}
+        .vcv-badge.open>button{padding:6px 10px 6px 6px}
+        .vcv-badge:not(.open) .vcv-label{display:none}
+        .vcv-panel{margin-left:8px}
+      }
+      .vcv-badge.none{display:none}`;
     document.head.appendChild(s);
   }
   function draw() {
@@ -209,6 +218,9 @@
       });
     }
     const live = state.status === "listening";
+    /* Phones and browsers without Web MIDI (Safari on iPhone) can't use the bridge: show nothing there. On narrow
+       screens the badge is a small tab on the left edge that opens on tap, so it covers no text. */
+    el.className = "vcv-badge" + (open ? " open" : "") + (!navigator.requestMIDIAccess && !open && !state.count ? " none" : "");
     const last = state.last ? `${esc(state.last.what)} ${state.last.value}%` : "";
     const f = state.focus ? (byKey[state.focus] ? byKey[state.focus].label : state.focus) : "";
     el.innerHTML =
@@ -223,7 +235,7 @@
             ${state.focus ? `<p><small>Jack 1 moves it; jacks 2 to 16 move its sliders in order.</small> <button data-vcv-clear>Clear</button></p>` : ""}
           </div>`
         : "") +
-      `<button data-vcv-toggle title="VCV Rack bridge"><span class="vcv-dot ${live ? "on" : ""}"></span>VCV${last ? ": " + last : ""}</button>`;
+      `<button data-vcv-toggle title="VCV Rack bridge"><span class="vcv-dot ${live ? "on" : ""}"></span><span class="vcv-label">VCV${last ? ": " + last : ""}</span></button>`;
   }
 
   window.CurioVCV = {

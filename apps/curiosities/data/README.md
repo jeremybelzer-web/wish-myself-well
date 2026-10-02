@@ -124,3 +124,18 @@ something that does not exist. When it passes it rewrites `curiosity-db.json`.
   script or shot list.
 - The nine Enneagram patterns and the comedy and music settings are first drafts written for this app; Jeremy
   and Sharani can rename or drop any row.
+
+## Links for the engine
+
+`CuriosityDB.links()` gives every proximity and proximity suite in the engine's link format
+(`engine/state.js`). `install()` also sets it as `window.CURIOSITY_LINKS`, and `check-db.js` writes it to
+`curiosity-links.json`. Each link has `{ id, proximity, label, when, then, from: { curiosity, track, is?, change },
+to: { curiosity, track }, does, value?, amount, within }`.
+
+- `track` is a hint (`master`, `camera` or `character`) for which kind of track each end belongs on, used when no track has that curiosity yet.
+- When a suite is the effect, the proximity becomes one link per member, using its six heaviest members at most. All of those links share `proximity`.
+- When a suite is the cause, it is led by its heaviest member.
+- `sameLane: true` marks "x is A, then x is B" proximities. The engine does not take those yet.
+- `groups` lists each proximity suite as the link ids of its members.
+
+Today that is 255 links from 150 proximities, and 44 groups. Loaded one by one into the engine on a starter film, 252 were accepted; the three refused were the same-lane links.
