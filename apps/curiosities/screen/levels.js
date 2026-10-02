@@ -25,7 +25,7 @@
   const root = typeof window !== "undefined" ? window : globalThis;
   const DB = () => root.CuriosityDB || null;
 
-  /* Sixteen categories: the families that matter to filmmaking, not every fine distinction. They are the
+  /* Seventeen categories: the families that matter to filmmaking, not every fine distinction. They are the
      Screen's top icon row, the way CapCut's tabs are (Jeremy, 2026-10-02 18:00Z: CapCut is now the main
      model). Each groups workspaces from data/db-workspaces.js (and data/db-editing.js, the editing
      curiosities from Final Cut Pro and CapCut). windows: the layout the category opens with. icon: its
@@ -45,7 +45,8 @@
     { id: "editing", label: "Editing", icon: "scissors", workspaces: ["structure", "canvas"], windows: 2, plain: "How scenes are cut and ordered, and what the editor does to the frame: punch-ins, steadying, edges." },
     { id: "feeling", label: "Feeling", icon: "heart", workspaces: ["emotion", "emo-road"], windows: 2, plain: "The feeling of the scene and each character's emotional road." },
     { id: "comedy", label: "Comedy", icon: "smile", workspaces: ["comedy", "comedy-mix"], windows: 3, plain: "How it is funny, and what the mix of people does for the laughs." },
-    { id: "story", label: "Story", icon: "book", workspaces: ["arc", "plot", "mindset", "focus", "archetype", "herd"], windows: 1, plain: "Arcs, personal plots, mindset, focus, personality, the group." },
+    { id: "character", label: "Character", icon: "people", workspaces: ["archetype"], windows: 1, plain: "Who each character is: the character matrix's axes, their Enneagram type and health, and their role, on each character's own lanes. Open the 3D matrix to see the cast move." },
+    { id: "story", label: "Story", icon: "book", workspaces: ["arc", "plot", "mindset", "focus", "herd"], windows: 1, plain: "Arcs, personal plots, mindset, focus, the group." },
     { id: "page", label: "Page", icon: "page", workspaces: ["page"], windows: 1, plain: "How a storyboard, comic or zine page is laid out." },
   ];
   const CAT_OF_WS = {};

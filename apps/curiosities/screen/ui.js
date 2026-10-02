@@ -348,6 +348,8 @@
           }
     });
     if (E()) E().on(() => !page.hidden && drawAll(true));
+    /* Something outside the Screen changed what it shows (the Character tab's picked character). */
+    window.addEventListener("curio-screen-redraw", () => !page.hidden && drawAll());
     window.addEventListener("resize", () => !page.hidden && lanes && lanes.draw());
   }
   function drawAll(fromEngine) {
@@ -469,6 +471,7 @@
     page: '<rect x="4" y="2" width="12" height="16"/><path d="M4 9h12M10 9v9"/>',
     film: '<rect x="2" y="4" width="16" height="12" rx="1"/><path d="M5 4v12M15 4v12M2 8h3M2 12h3M15 8h3M15 12h3"/>',
     grid: '<rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/>',
+    people: '<circle cx="7" cy="6" r="2.5"/><circle cx="14" cy="7" r="2"/><path d="M2 17c0-3.5 2.2-5.5 5-5.5s5 2 5 5.5M12.5 12c2.8-.4 5 1.4 5 4.5"/>',
   };
   const icon = (name) => `<svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true">${ICONS[name] || ICONS.star}</svg>`;
   function category() {
@@ -746,7 +749,7 @@
         edit: !!r,
         value: (id) => {
           if (!st || !r) return undefined;
-          const t = st.tracks.find((x) => x.curiosities.includes(id));
+          const t = trackHas(id, st);
           return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
         },
         title: "My film",
@@ -766,6 +769,7 @@
     const body = `<section class="sc-cat open${sel.categories.includes(cat.id) ? " lit" : ""}" data-cat-id="${cat.id}">
       <h3 class="sc-cat-h">${icon(cat.icon)}<span>${esc(cat.label)}</span><small>${list.length}</small></h3>
       <p class="sc-cat-plain">${esc(cat.plain)} <button type="button" class="sc-wins" data-wins="${cat.windows}" title="The window layout suggested for ${esc(cat.label)}">Use ${cat.windows} window${cat.windows === 1 ? "" : "s"}</button></p>
+      ${cat.id === "character" && !insp && window.CharacterScreen ? window.CharacterScreen.barHtml() : ""}
       ${shown.map((c) => curiosityRow(c, ctx)).join("")}
       ${list.length > MAIN_SHOWN ? `<button type="button" class="sc-more" data-more="${cat.id}">${all ? "Show only the main ones" : `Show all ${list.length} in ${esc(cat.label)}`}</button>` : ""}
       ${others.length ? `<p class="sc-also">What you are looking through is also in ${others.map((c) => `<button type="button" data-icat="${c.id}">${esc(c.label)}</button>`).join(" ")}</p>` : ""}
@@ -958,6 +962,12 @@
     clearTimeout(toast.t);
     toast.t = setTimeout(() => (t.textContent = ""), 5000);
   }
+  /* The track a curiosity is read from and written to: the first one with it, except the character matrix's
+     curiosities, which every character has on their own track (the one picked in the Character tab). */
+  function trackHas(id, st) {
+    if (window.CharacterScreen && window.CharacterScreen.claims(id)) return window.CharacterScreen.trackHas(id, st);
+    return st.tracks.find((t) => t.curiosities.includes(id));
+  }
   function setValue(id, v) {
     return setValues([[id, v]]);
   }
@@ -971,7 +981,7 @@
     const placed = {};
     let full = false;
     list.forEach(([id, v]) => {
-      let track = placed[id] || (st.tracks.find((t) => t.curiosities.includes(id)) || {}).id;
+      let track = placed[id] || (trackHas(id, st) || {}).id;
       if (!track) {
         track = window.CurioLanes.trackFor(id, st);
         if (!track) return (full = true);

@@ -80,6 +80,8 @@
 
   function trackFor(cur, st) {
     st = st || E().state();
+    /* The character matrix's curiosities go on the picked character's own track (screen/character.js). */
+    if (root.CharacterScreen && root.CharacterScreen.claims(cur)) return root.CharacterScreen.trackFor(cur, st);
     const have = st.tracks.find((t) => t.curiosities.includes(cur));
     if (have) return have.id;
     const cat = L() ? L().categoryOf(cur) : "";
