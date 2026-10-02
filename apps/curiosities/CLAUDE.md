@@ -10,7 +10,7 @@ Clone that repo. Work only in `apps/curiosities/`. The rest of the repository is
 
 ## What this product is
 
-Working title: **Film Curio** (Jeremy, 2026-10-02). Use it in visible text; code ids, globals and folder names keep "curiosities".
+Working title: **Curiomatic** (Jeremy, 2026-10-02). Use it in visible text; code ids, globals and folder names keep "curiosities".
 
 A live-action, animation, zine, comic-strip, and storyboard app. Every scene is made of three kinds of thing:
 
