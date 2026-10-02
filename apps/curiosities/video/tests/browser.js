@@ -102,6 +102,20 @@ const ok = (cond, text) => {
       },
       (t) => (lit(t) ? 0.5 : 0.03)
     );
+    /* A letterboxed clip: bright grey picture between black bars. */
+    window.__lb = await make(
+      "Letterboxed.webm",
+      2.2,
+      (x) => {
+        x.fillStyle = "#000";
+        x.fillRect(0, 0, 320, 180);
+        x.fillStyle = "#c8c8c8";
+        x.fillRect(0, 40, 320, 100);
+        x.fillStyle = "#555";
+        x.fillRect(100, 70, 40, 40);
+      },
+      () => 0.1
+    );
     window.__b = await make(
       "My test clip.webm",
       4.2,
@@ -117,6 +131,13 @@ const ok = (cond, text) => {
     );
   });
   ok(true, "two clips recorded in the page");
+
+  const lb = await page.evaluate(async () => {
+    const c = await window.CurioClip.open(window.__lb, "Letterboxed.webm");
+    const d = await window.CurioClip.dissect(c);
+    return { luma: d.raw.luma[3], aspect: d.aspect };
+  });
+  ok(lb.luma > 0.6 && lb.aspect < 0.4, "black bars are left out of the measures: " + JSON.stringify(lb));
 
   await page.evaluate(() => window.CurioVideoUI.open());
   ok(await page.isVisible(".vd-page"), "the window opens");
