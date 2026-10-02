@@ -42,6 +42,8 @@
     { id: "weather-and-surface", label: "Weather and surface", members: ["rain-wet", "toon-line", "impact-shake"] },
     { id: "long-form", label: "Long-form shape", members: ["build-drop", "aggressive-quiet", "storm-room", "tension-silence", "energy-hold"] },
   ];
+  /* Proximity suites from the curiosity database (CuriosityDB.install hands them over like CURIOSITY_FACETS). */
+  (window.CURIOSITY_PROXIMITY_SUITES || []).forEach((p) => PROXIMITY_SUITES.some((q) => q.id === p.id) || PROXIMITY_SUITES.push(p));
 
   /* Word curiosities whose catalog order is not a scale get one, so "how low to how high" passes through the middle. */
   const ORDER = {
