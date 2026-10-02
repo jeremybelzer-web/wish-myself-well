@@ -1120,6 +1120,50 @@
     }, 0);
   });
 
+  /* ---------- saving: Library entries and the small save indicator (project.js) ---------- */
+  (function wireProject() {
+    const P = window.CuriosityProject;
+    const menu = document.getElementById("lib-menu");
+    const top = document.querySelector("#tabs .tabs-top");
+    if (!P || !menu || !top) return;
+    const closeMenu = () => {
+      menu.hidden = true;
+      const lb = document.getElementById("lib-btn");
+      if (lb) lb.setAttribute("aria-expanded", "false");
+    };
+    const items = [
+      ["save", "Save project", "keep your work in a .curio file"],
+      ["file", "Open or new project", "open a .curio file, or start fresh"],
+      ["history", "History", "the last 20 autosaves; restore any"],
+    ];
+    menu.insertAdjacentHTML(
+      "afterbegin",
+      items.map(([k, t, s]) => `<button type="button" data-project="${k}">${esc(t)}<small>${esc(s)}</small></button>`).join("")
+    );
+    menu.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-project]");
+      if (!b) return;
+      closeMenu();
+      if (b.dataset.project === "save") P.save();
+      else P.openPanel(b.dataset.project);
+    });
+    const ind = document.createElement("button");
+    ind.type = "button";
+    ind.className = "proj-ind";
+    ind.addEventListener("click", () => P.openPanel("file"));
+    const lib = top.querySelector(".lib");
+    top.insertBefore(ind, lib || null);
+    const paint = (s) => {
+      const l = P.label(s);
+      ind.textContent = l.text;
+      ind.className = "proj-ind " + l.tone;
+      ind.title = P.note + (s && s.fileName ? " Project file: " + s.fileName + "." : "");
+    };
+    paint(P.status());
+    P.on(paint);
+    setInterval(() => paint(P.status()), 60000);
+  })();
+
   drawBar();
   let last = null;
   try {

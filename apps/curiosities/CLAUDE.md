@@ -95,3 +95,7 @@ Every curiosity, suite, proximity and proximity suite is an automatable paramete
 There is no Studio tab: each tool opens as a Tool in its workspaces (Camera in Camera angle and Placement, Light in Light & look, and so on), and the Maya manual and Print are in the Library. The tools: Camera (lens, film back, depth of field, motion blur), Shots (Camera Sequencer, frame rate, playblast, sound), Curves (Graph Editor, Set Driven Key, Time Warp, live MIDI record), Motion (spacing, stepping, anticipation, overshoot, ghosting), Face (blend shapes, pose library, lip sync), Rig & pose (FK, IK, constraints, live puppeteering), Light & look (Arnold lights, exposure, filters, toon), Crowd (MASH), Passes (render layers and AOVs as curiosity passes), Shading, Dynamics, Fur & hair, Bifrost, Chain (Sharani's six areas linked by proximities), Live, Remix, Print, Start here and Manual (every topic, filterable, with your keep or skip calls). Every tool sets curiosities and can send them to the Board. Each tool keeps its own `localStorage` key, `curiosities-studio-<tool>-v1`.
 
 Keep the static files and the look of this folder. Do not add a second git repo inside `apps/`.
+
+## Saving
+
+`project.js` (`window.CuriosityProject`) bundles every `curiosities-*` localStorage key into one `.curio` file (JSON, format `curiosities-project`, version 1): Save, Save as, Open and New project from the Library menu, with a save indicator in the bar. Autosave history keeps the last 20 snapshots in IndexedDB; any snapshot can be restored and the restore undone.
