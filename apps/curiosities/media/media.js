@@ -137,17 +137,16 @@
   /* analyze(file, { step, onProgress(fraction, text), signal: { cancelled } })
      Seeks through the file, never loading it whole: one small picture per moment (step seconds), and finer
      samples in between to find cuts and motion. Long videos are sampled more coarsely (at most MAX_SAMPLES). */
-  /* Short clips go through the Video window's analyzer (video/, window.CurioClip + CurioVideo) when it is loaded:
-     finer looks, subpixel camera motion, a cut rule that ignores whip pans and flashes, and the sound. It looks up
-     to 15 times a second and decodes the whole soundtrack into memory, so it is kept to clips (CLIP_MAX_S long,
-     CLIP_MAX_BYTES big); longer or bigger videos use the light loop below, which never loads the file whole. */
-  const CLIP_MAX_S = 300;
-  const CLIP_MAX_BYTES = 500e6;
+  /* When the Video window's analyzer is loaded (video/, window.CurioClip + CurioVideo), it measures every video:
+     finer looks, subpixel camera motion, a cut rule that ignores whip pans and flashes, and the sound. Its coarse
+     mode keeps it within the big-file rules: at most MAX_SAMPLES seeks in all, and the sound skipped for files
+     over SOUND_MAX_BYTES (it checks the size before reading anything). Without video/, the light loop below. */
+  const SOUND_MAX_BYTES = 300e6;
   async function analyze(file, opts) {
     opts = opts || {};
-    if (window.CurioClip && window.CurioVideo && typeof CurioVideo.toMedia === "function" && file.size <= CLIP_MAX_BYTES) {
+    if (window.CurioClip && window.CurioVideo && typeof CurioVideo.toMedia === "function") {
       const clip = await CurioClip.open(file, file.name).catch(() => null);
-      if (clip && clip.duration > 0 && clip.duration <= CLIP_MAX_S) return analyzeClip(file, clip, opts);
+      if (clip && clip.duration > 0 && isFinite(clip.duration)) return analyzeClip(file, clip, opts);
     }
     return analyzeLight(file, opts);
   }
@@ -156,7 +155,7 @@
     const progress = opts.onProgress || (() => {});
     const signal = opts.signal || {};
     const videoId = idOf(file);
-    const d = await CurioClip.dissect(clip, { onProgress: (p, t) => progress(p * 0.9, t || "Measuring") });
+    const d = await CurioClip.dissect(clip, { maxLooks: Math.min(MAX_SAMPLES, Math.max(900, Math.ceil((clip.duration / step) * 4))), maxSoundBytes: SOUND_MAX_BYTES, onProgress: (p, t) => progress(p * 0.9, t || "Measuring") });
     if (signal.cancelled) throw Object.assign(new Error("Stopped."), { cancelled: true });
     const m = CurioVideo.toMedia(d, step);
     /* The small pictures: one seek per moment. */
