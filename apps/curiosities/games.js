@@ -497,15 +497,28 @@
         A().set("p:" + id, { a: { on: false, within }, b: { on: true, within }, mod: "manual", manual: 1, mode: "toggle" });
         A().start("p:" + id);
       });
-      const r = A().resolve(4);
+      let r = A().resolve(4);
       const base = window.CuriosityBoard ? window.CuriosityBoard.values() : {};
+      const suiteSet = (id) => (SUITES.find((x) => x.id === id) || {}).set || {};
+      /* If the board shows no cause yet, set the first chain link's cause so the chain visibly fires. */
+      const links = s.chain.map((id) => PROXIMITIES.find((p) => p.id === id)).filter(Boolean);
+      const caused = links.some((p) => r.panels.some((v) => (p.x.suite ? Object.entries(suiteSet(p.x.suite)).every(([k, x]) => String(v[k]) === String(x)) : "is" in p.x && String(v[p.x.curiosity]) === String(p.x.is))));
+      const seed = !caused && links.find((p) => p.x.suite || "is" in p.x);
+      if (seed) {
+        const key = seed.x.suite ? "s:" + seed.x.suite : "c:" + seed.x.curiosity;
+        A().set(key, seed.x.suite ? { a: "", b: seed.x.suite, mod: "manual", manual: 1, mode: "toggle" } : { a: base[seed.x.curiosity], b: seed.x.is, mod: "manual", manual: 1, mode: "toggle" });
+        A().start(key);
+        s.causeKey = key;
+        toast(el, `Set the cause on the board: ${seed.when}.`);
+        r = A().resolve(4);
+      }
       const changed = {};
       r.panels.forEach((p, i) => Object.keys(p).forEach((k) => { if (!same(p[k], base[k])) (changed[k] = changed[k] || Array(4).fill(""))[i] = p[k]; }));
       el.querySelector("#g4-out").innerHTML = `<p class="cap">The chain is running on your board. What it changed, panel by panel:</p>${Object.keys(changed).length ? `<div class="scroll"><table class="trace"><tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th></tr>${Object.entries(changed).map(([k, v]) => `<tr><td>${esc(label(k))}</td>${v.map((x) => `<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</table></div>` : "<p class='cap'>Nothing yet: the board has no cause for these proximities. Set a cause on the board (for example handheld, or an object entering) and the chain follows.</p>"}${boardPanels(Object.fromEntries(Object.keys(changed).map((k) => [k, r.panels.map((p) => p[k])])), 4)}`;
     };
     el.querySelector('[data-act="fire"]').addEventListener("click", fire);
     el.querySelector('[data-use="chain"]').addEventListener("click", fire);
-    el.querySelector('[data-act="stop"]').addEventListener("click", () => { if (A()) s.chain.forEach((id) => A().stop("p:" + id)); toast(el, "Chain stopped."); });
+    el.querySelector('[data-act="stop"]').addEventListener("click", () => { if (A()) { s.chain.forEach((id) => A().stop("p:" + id)); if (s.causeKey) A().stop(s.causeKey); } toast(el, "Chain stopped."); });
   }
 
   /* ---------- shell ---------- */
