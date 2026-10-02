@@ -361,6 +361,7 @@
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
     page.addEventListener("pointerdown", onKnobDown);
+    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e));
     document.addEventListener("keydown", (e) => {
       if (page.hidden) return;
       const tag = (e.target && e.target.tagName) || "";
@@ -800,7 +801,7 @@
     return `<div class="sc-cur${sel ? " sel" : ""}">
       <div class="sc-cur-top">
         <button type="button" class="sc-cur-name" data-select-cur="${esc(c.id)}" title="${esc(c.plain || "")}">${esc(c.label)}</button>
-        ${spark(key, ctx.beats)}
+        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win" data-open-win="${esc(c.id)}" title="Open ${esc(c.label)}'s own window: every knob and slider it has" aria-label="Open ${esc(c.label)}'s window">⧉</button>
         ${fine.length ? `<button type="button" class="sc-fold" data-fold="${esc(c.id)}" aria-expanded="${open}" title="The fine controls inside it">${open ? "▾" : "▸"} ${fine.length}</button>` : ""}
       </div>
       ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyBtn(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
@@ -808,6 +809,221 @@
       ${sel && c.momentum ? momentumBox(c.momentum) : ""}
       ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyBtn(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
     </div>`;
+  }
+  /* ---------- a window for every curiosity (Jeremy, 2026-10-02 20:26Z: "a separate pop-up window for every
+     single curiosity which has specific knobs and sliders and features that apply just to that curiosity") ----------
+     Built from the curiosity's own sliders in the database: each one gets the control that fits it (toggle,
+     list, stepped slider, knob or slider), its key diamond, a "+ lane" button and a small chart of how it moves
+     through my film. Emotion, Shot size and Comedy have hand-made parts on top. Windows float over the Screen,
+     several at once; drag one by its title bar. Opened from ⧉ on a lane or in Details. */
+  const wins = [];
+  function openWin(id) {
+    if (!L() || !id) return;
+    const base = L().get("curiosity", id) ? id : L().base(id);
+    if (!L().get("curiosity", base)) return toast("That curiosity has no window yet.");
+    const had = wins.findIndex((w) => w.id === base);
+    if (had >= 0) wins.push(wins.splice(had, 1)[0]);
+    else wins.push({ id: base, x: 120 + (wins.length % 5) * 28, y: 90 + (wins.length % 5) * 28, focus: id === base ? "" : id });
+    drawWins();
+  }
+  function mineCtx() {
+    const beats = mineBeats();
+    const st = E() ? E().state() : null;
+    const r = st && st.rows[row];
+    return {
+      insp: null,
+      beats,
+      edit: !!r,
+      value: (id) => {
+        if (!st || !r) return undefined;
+        const t = st.tracks.find((x) => x.curiosities.includes(id));
+        return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
+      },
+    };
+  }
+  /* Nodes at given moments (not just the playhead), as one undo step: [[curiosity key, moment index, value]]. */
+  function setAt(items, label) {
+    const st = E() && E().state();
+    if (!st) return { ok: false };
+    const cmds = [];
+    const placed = {};
+    items.forEach(([id, j, v]) => {
+      const r = st.rows[j];
+      if (!r || !S().known(id)) return;
+      let track = placed[id] || (st.tracks.find((t) => t.curiosities.includes(id)) || {}).id;
+      if (!track) {
+        track = window.CurioLanes.trackFor(id, st);
+        if (!track) return;
+        cmds.push({ type: "addCuriosity", track, curiosity: id });
+      }
+      placed[id] = track;
+      const val = S().fix(id, v);
+      if (val != null) cmds.push({ type: "setPoint", row: r.id, track, curiosity: id, value: val });
+      showLane(id);
+    });
+    if (!cmds.length) return { ok: false };
+    save();
+    const res = E().send({ type: "batch", label, commands: cmds });
+    if (!res.ok) toast(res.error);
+    return res;
+  }
+  const FEEL_COLOR = { dreamlike: "#9b8cff", melancholy: "#5b7bd5", loving: "#ff7eb6", curious: "#33d1c6", absurd: "#c7e04a", joyful: "#ffd34d", anxious: "#ff9f43", fearful: "#a46cff", triumphant: "#ffb000", angry: "#ff5656" };
+  /* Hand-made parts for the most important curiosities. */
+  function winSpecial(c, ctx) {
+    const key = keyFor(c.id);
+    const n = ctx.beats.length;
+    const strip = (k, fmt) => `<div class="sc-wstrip" role="group" aria-label="Through my film">${ctx.beats.map((b, j) => { const v = L().beatValue(ctx.beats, j, k); return `<button type="button" data-win-row="${j}" class="${j === row ? "on" : ""}" title="Moment ${j + 1}: ${esc(v == null ? "not set" : v)}" style="${fmt ? fmt(v) : ""}"><b>${j + 1}</b><span>${esc(v == null ? "–" : String(v).slice(0, 10))}</span></button>`; }).join("")}</div>`;
+    if (c.id === "emotion") {
+      /* The feeling pad: unpleasant to pleasant across, calm to charged up (the valence and arousal sliders), with
+         each feeling placed where it sits, and the film's emotional road under it. */
+      const SPOT = { dreamlike: [0.62, 0.15], melancholy: [0.18, 0.22], loving: [0.82, 0.35], curious: [0.6, 0.55], absurd: [0.5, 0.68], joyful: [0.88, 0.7], anxious: [0.25, 0.78], fearful: [0.12, 0.88], triumphant: [0.85, 0.92], angry: [0.32, 0.95] };
+      const cur = ctx.value(key);
+      const vk = c.id + ".valence";
+      const ak = c.id + ".arousal";
+      const vp = S().known(vk) ? S().pos(vk, ctx.value(vk)) : null;
+      const ap = S().known(ak) ? S().pos(ak, ctx.value(ak)) : null;
+      return `<div class="sc-wpart"><h4>Feeling pad</h4><p class="sc-k">Click a feeling to set it here. Click the pad itself to set how pleasant (across) and how charged (up) it is.</p>
+        <div class="sc-pad" data-pad="${esc(c.id)}"><span class="sc-pad-x">unpleasant · pleasant</span><span class="sc-pad-y">calm · charged</span>${vp != null && ap != null ? `<i class="sc-pad-dot" style="left:${vp * 100}%;top:${(1 - ap) * 100}%"></i>` : ""}${(S().domain(key).options || []).map((o) => { const p = SPOT[o] || [0.5, 0.5]; return `<button type="button" data-set="${esc(key)}" data-v="${esc(o)}" class="${String(cur) === o ? "on" : ""}" style="left:${p[0] * 100}%;top:${(1 - p[1]) * 100}%;--feel:${FEEL_COLOR[o] || "#888"}">${esc(o)}</button>`; }).join("")}</div>
+        <h4>Emotional road</h4>${strip(key, (v) => `--feel:${FEEL_COLOR[v] || "#555"}`)}</div>`;
+    }
+    if (c.id === "shotSize") {
+      /* Frame sizes drawn around a person: click the frame you want. */
+      const cur = ctx.value(key);
+      const F = { wide: [4, 4, 92, 92], medium: [26, 14, 48, 56], close: [36, 12, 28, 30], insert: [62, 52, 16, 16] };
+      return `<div class="sc-wpart"><h4>Frame sizes</h4><p class="sc-k">Click a frame to set the shot size here.</p>
+        <div class="sc-frames"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="24" r="8"/><path d="M50 32v30M50 40l-14 14M50 40l14 12M50 62l-10 30M50 62l10 30"/><rect x="62" y="54" width="10" height="7" rx="1"/></svg>${["wide", "medium", "close", "insert"].map((o) => { const r = F[o]; return `<button type="button" data-set="${esc(key)}" data-v="${o}" class="${String(cur) === o ? "on" : ""}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2]}%;height:${r[3]}%" title="${o}"><span>${o}</span></button>`; }).join("")}</div>
+        <h4>Through my film</h4>${strip(key)}</div>`;
+    }
+    if (c.id === "comedyDevice") {
+      /* Joke timing: where setups and payoffs land, and quick ways to build a joke from the playhead. */
+      const bk = keyFor("comicBeat");
+      const last = n - 1;
+      const room = (k) => row + k <= last;
+      return `<div class="sc-wpart"><h4>Joke timing</h4><p class="sc-k">The comic beat at each moment: plant a setup, let it build, land the payoff.</p>
+        ${S().known(bk) ? strip(bk, (v) => (v === "payoff lands" ? "--feel:#ffd34d" : v === "setup planted" ? "--feel:#33d1c6" : v === "building" ? "--feel:#ff9f43" : "")) : ""}
+        <div class="sc-wbtns">
+          <button type="button" data-joke="setup">Plant a setup here</button>
+          <button type="button" data-joke="payoff">Land the payoff here</button>
+          <button type="button" data-joke="three"${room(2) ? "" : " disabled"} title="Setup, build, payoff on three moments in a row from the playhead">Rule of three from here</button>
+          <button type="button" data-joke="callback"${room(3) ? "" : " disabled"} title="A setup here, paid off as a callback three moments later">Callback later</button>
+        </div></div>`;
+    }
+    return "";
+  }
+  function winHtml(w, z) {
+    const c = L().get("curiosity", w.id);
+    const ctx = mineCtx();
+    const key = keyFor(c.id);
+    const cat = L().CATEGORIES.find((x) => x.id === L().categoryOf(c.id)) || { label: "", icon: "star" };
+    const sliders = (c.sliders || []).slice().sort((a, b) => (a.id === c.main || a.id === "setting" ? -1 : b.id === c.main || b.id === "setting" ? 1 : 0));
+    const block = (sl) => {
+      const id = sliderId(c, sl);
+      if (!S().known(id)) return "";
+      const main = id === key;
+      return `<div class="sc-wctl${main ? " main" : ""}${w.focus === id ? " focus" : ""}">
+        <div class="sc-wctl-h"><span>${keyBtn(id, ctx)}<b>${esc(main ? labelOf(id) : sl.label)}</b></span>${spark(id, ctx.beats)}<button type="button" data-win-lane="${esc(id)}" title="Put ${esc(sl.label)} on the timeline as its own lane">+ lane</button></div>
+        ${sl.plain ? `<p class="sc-k">${esc(sl.plain)}</p>` : ""}
+        <div class="sc-ctl">${controlHtml(id, sl, ctx.value(id), !ctx.edit)}</div>
+      </div>`;
+    };
+    return `<section class="sc-win" data-win="${esc(c.id)}" role="dialog" aria-label="${esc(c.label)} window" style="left:${w.x}px;top:${w.y}px;z-index:${60 + z}">
+      <header class="sc-win-h" data-win-drag="${esc(c.id)}">${icon(cat.icon)}<b>${esc(c.label)}</b><small>${esc(cat.label)}${isAdv(c) ? " · ADVANCED" : ""}</small><button type="button" data-win-close="${esc(c.id)}" aria-label="Close the ${esc(c.label)} window">×</button></header>
+      <div class="sc-win-b">
+        ${c.plain ? `<p class="sc-win-plain">${esc(c.plain)}</p>` : ""}
+        <p class="sc-k">My film, moment ${row + 1}: every change here becomes a node.</p>
+        ${winSpecial(c, ctx)}
+        <div class="sc-wpart"><h4>Every knob and slider</h4>${sliders.map(block).join("")}</div>
+        ${c.momentum ? momentumBox(c.momentum) : ""}
+        <div class="sc-wbtns"><button type="button" data-select-cur="${esc(c.id)}">Look through it</button><button type="button" data-win-curve="${esc(key)}">Shape its curve</button></div>
+      </div>
+    </section>`;
+  }
+  function drawWins() {
+    if (!page) return;
+    let box = page.querySelector(".sc-wins-layer");
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "sc-wins-layer";
+      page.appendChild(box);
+    }
+    const scroll = {};
+    box.querySelectorAll(".sc-win").forEach((x) => (scroll[x.dataset.win] = (x.querySelector(".sc-win-b") || {}).scrollTop || 0));
+    box.innerHTML = wins.filter((w) => L().get("curiosity", w.id)).map((w, i) => winHtml(w, i)).join("");
+    box.querySelectorAll(".sc-win").forEach((x) => scroll[x.dataset.win] && (x.querySelector(".sc-win-b").scrollTop = scroll[x.dataset.win]));
+  }
+  function winClick(d, t) {
+    if (d.winClose) {
+      wins.splice(wins.findIndex((w) => w.id === d.winClose) >>> 0, 1);
+      return drawWins(), true;
+    }
+    if (d.winLane) {
+      showLane(d.winLane);
+      save();
+      drawTimeline();
+      toast(`${labelOf(d.winLane)} is on the timeline.`);
+      return true;
+    }
+    if (d.winRow != null && d.winRow !== "") return setRow(Number(d.winRow)), true;
+    if (d.winCurve) {
+      showLane(d.winCurve);
+      save();
+      drawTimeline();
+      const r = lanes && lanes.command ? lanes.curves() : null;
+      if (!r || !r.ok) toast("Give this lane two nodes first; a curve shapes the line between them.");
+      return true;
+    }
+    if (d.joke) {
+      const dev = keyFor("comedyDevice");
+      const bk = keyFor("comicBeat");
+      const now = mineCtx().value(dev);
+      const R = {
+        setup: [[bk, row, "setup planted"]],
+        payoff: [[bk, row, "payoff lands"]],
+        three: [[bk, row, "setup planted"], [bk, row + 1, "building"], [bk, row + 2, "payoff lands"], [dev, row, "rule of three"]],
+        callback: [[bk, row, "setup planted"], [bk, row + 3, "payoff lands"], [dev, row + 3, "callback"]],
+      }[d.joke];
+      if (R) setAt(R, { setup: "Plant a setup", payoff: "Land a payoff", three: "Rule of three", callback: "A callback" }[d.joke]);
+      if (now == null && d.joke !== "three" && d.joke !== "callback") setAt([[dev, row, S().start(dev)]], "Set the comedy device");
+      return true;
+    }
+    return false;
+  }
+  function onPad(e) {
+    const pad = e.target.closest && e.target.closest("[data-pad]");
+    if (!pad || e.target.closest("button")) return false;
+    const r = pad.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    const y = Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / r.height));
+    const id = pad.dataset.pad;
+    const list = [[id + ".valence", S().at(id + ".valence", x)], [id + ".arousal", S().at(id + ".arousal", y)]].filter(([k]) => S().known(k));
+    list.forEach(([k]) => showLane(k));
+    if (list.length) setValues(list, "Set how the feeling feels");
+    return true;
+  }
+  function onWinDrag(e) {
+    const h = e.target.closest && e.target.closest("[data-win-drag]");
+    if (!h || e.target.closest("button")) return false;
+    const w = wins.find((x) => x.id === h.dataset.winDrag);
+    if (!w) return false;
+    const win = h.closest(".sc-win");
+    const x0 = e.clientX - w.x;
+    const y0 = e.clientY - w.y;
+    wins.push(wins.splice(wins.indexOf(w), 1)[0]);
+    win.style.zIndex = 60 + wins.length;
+    const move = (ev) => {
+      w.x = Math.max(0, Math.min(window.innerWidth - 80, ev.clientX - x0));
+      w.y = Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - y0));
+      win.style.left = w.x + "px";
+      win.style.top = w.y + "px";
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+    return true;
   }
   function drawInspector() {
     if (!page || !L()) return;
@@ -856,6 +1072,7 @@
     </section>`;
     const blend = insp ? blendHtml() : "";
     box.innerHTML = `<header class="sc-insp-h"><strong class="sc-details">Details</strong><span><b>${esc(ctx.title)}</b> · ${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
+    drawWins();
   }
 
   /* ---------- blending inspiration films onto my film ---------- */
@@ -1016,6 +1233,8 @@
         header: prefs.view === "arrange" ? laneHeader : null,
         onClip: (j) => setRow(j),
         onHover: (j) => setRow(j),
+        onOpen: openWin,
+        secondsPerMoment,
         range: rangeNow,
         onSelect: (cur) => {
           if (prefs.sel.level === "curiosity" && prefs.sel.id === cur) return;
@@ -1103,6 +1322,8 @@
     const t = e.target.closest("button, [data-scrub], .sc-frame");
     if (!t || !page.contains(t)) return;
     const d = t.dataset;
+    if (d.openWin && !t.closest(".sl")) return openWin(d.openWin);
+    if (winClick(d, t)) return;
     if (t.matches("[data-scrub]")) {
       const r = t.getBoundingClientRect();
       const fr = Math.max(0, Math.min(0.999, (e.clientX - r.left) / r.width));
@@ -1520,5 +1741,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, setRow, row: () => row, addPanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, setRow, row: () => row, addPanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();

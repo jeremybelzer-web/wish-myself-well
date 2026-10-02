@@ -39,6 +39,19 @@ Two lines in `index.html`: `screen/load.js` after `engine/load.js`, and the edit
 
 It opens on start; `?screen=0` skips it (so do automated browser tests, unless the address has `?screen=1`), and Back to the app closes it (it then stays closed until you open it again).
 
+## Zoom, scroll, copy and paste, curves, and curiosity windows
+
+Jeremy, 2026-10-02 20:26Z (his words #25). In `lanes.js`:
+
+- **Ruler** (the top bar, with the clip tracks): drag down to zoom in, up to zoom out, sideways to scroll; the moment you grabbed stays under the pointer. A click moves the playhead. Zoom goes from 0.25 to 32 times.
+- **Lane names** (the left side): drag right for taller lanes, left for shorter (`tools.laneH`, 28 to 320px); drag up and down to scroll. A click on the empty part selects the whole lane; Shift-click adds lanes.
+- The ruler and lane names are sticky; the grid scrolls both ways in `.sl-scroll` (two-finger trackpad scrolling is the browser's own). Pinch or ⌘/Ctrl + wheel zooms, Alt + wheel changes lane height, two fingers pan on touch screens.
+- **Fine lines**: seconds inside each moment (seconds per moment from `opts.secondsPerMoment`), then halves, quarters... as you zoom; value lines per step of each lane's scale, thinned to 7px apart; a lane taller than 76px writes its scale beside its name.
+- **Areas**: drag across empty space to select lanes by moments. Copy selection, then Paste into another selection (repeats to fill it; one lane fills several) or at the playhead. Onto a different curiosity, values keep their place on the scale. ⌘C/⌘X/⌘V/Delete/Esc work on it. `copyArea` and `pasteAreaCommands` are exported.
+- **Curves**: click a line between two nodes to pick it; double-click it or press Curves. Seven shapes and a bend, previewed on a fine grid; Apply writes the curve into the moments between as small curve points (kept in `localStorage` "curiosities-screen-curves-v1" for drawing and reopening). `mount(...).curves(segKey?)` opens it.
+
+In `ui.js`, **curiosity windows**: ⧉ on every lane and Details row (or `CurioScreen.openWin(id)`) opens a floating window built from the curiosity's sliders, each with its control, key diamond, "+ lane" and a chart. Hand-made parts: Emotion's feeling pad and emotional road, Shot size's frames around a person, Comedy's joke timing (setup, payoff, Rule of three, Callback).
+
 ## ADVANCED: Final Cut Pro's features
 
 Jeremy, 2026-10-02 20:21Z: "keep the features of Final Cut Pro and hide them under a tab that says ADVANCED and then focus on the features of CapCut". The library's icon row ends with an **ADVANCED** tab, pinned at the right. It holds:
