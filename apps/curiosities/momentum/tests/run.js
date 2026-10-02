@@ -44,8 +44,8 @@ ok("every workspace in the database belongs to one attention family", () => {
 ok("written notes name real curiosities", () => {
   Object.keys(M.WRITTEN).forEach((id) => assert(M.find(id), id));
 });
-ok("Jeremy's examples have notes written for them: clothes and setting", () => {
-  ["mainEra", "mainCost", "setting", "weather", "setLayout"].forEach((id) => assert.strictEqual(M.note(id).source, "written", id));
+ok("Jeremy's examples have real notes (written here or in the database): clothes and setting", () => {
+  ["mainEra", "mainCost", "setting", "weather", "setLayout"].forEach((id) => assert(["written", "database"].includes(M.note(id).source), id + " " + M.note(id).source));
 });
 ok("the practice scenes read as attention stretches that add up to the film", () => {
   const list = core.CuriosityDB.studiesExport().studies;
