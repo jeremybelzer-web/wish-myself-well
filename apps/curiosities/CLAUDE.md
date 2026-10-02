@@ -83,6 +83,8 @@ Tick a span of beats and keep one curiosity or one suite on the Shelf. Apply a s
 
 Share a film (Library menu, `trace.js`, `window.CuriosityTrace`) saves any curated film as a counts-only trace file (`.curiotrace.json`: known curiosity ids and values on their scales, no notes) and loads other people's into Curated films and the Prism. The cloud library is a plan: `docs/shared-library-plan.md`.
 
+DaVinci Resolve (`resolve/`, Workspace > Scripts > Curiosities): storyboard panels as timeline markers, an edit read back onto the board, and any edit traced into a shared-film file. See `resolve/README.md`.
+
 ## Games are paused
 
 Games wait until the curiosity model is fleshed out; they will be the last thing built. `play.js` (the Flip Book) and `games.js` (the Cross-pollinate games) stay in the folder but are not loaded or shown.
