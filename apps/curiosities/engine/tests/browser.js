@@ -59,9 +59,8 @@ const ok = (cond, text) => {
   if (three) await page.route(/three\.min\.js$/, (r) => r.fulfill({ contentType: "text/javascript", body: fs.readFileSync(three, "utf8") }));
   await page.goto(url);
   await page.waitForFunction(() => window.CuriosityBoard && window.CurioAuto);
-  await page.addScriptTag({ url: "engine/load.js" });
   await page.waitForFunction(() => window.CurioEngineUI && window.CurioCube && window.CurioSelfCheck);
-  ok(true, "the engine loads into the app with one script tag");
+  ok(true, "the engine loads from its script tag in index.html");
 
   /* 1. Measure the host. */
   const measured = await page.evaluate(() => {
@@ -262,7 +261,6 @@ const ok = (cond, text) => {
   });
   await page.reload();
   await page.waitForFunction(() => window.CuriosityBoard);
-  await page.addScriptTag({ url: "engine/load.js" });
   await page.waitForFunction(() => window.CurioEngineUI);
   const back = await page.evaluate(() => ({ fp: CurioEngine.fingerprint(), check: CurioEngine.lastCheck() }));
   ok(back.fp === fp && back.check.ok, "after a page reload the film comes back with the same fingerprint");

@@ -2,7 +2,7 @@
 
 The Curiosity Lane letter (Jeremy passed it on from the Claude that builds his music app, 2026-10-02) explains how a curiosity app is built: one shared state, a rewrite in a fixed order, the user's own edits kept apart, undo for everything, saving that is checked, links between curiosities kept as plain data, a fake host for testing, randomized tests, the clip matrix and its cube, and pulling curiosities out of reference works. This folder, `engine/`, is all of that for Curiosities.
 
-Open it from **Library, Engine** in the app (once `engine/load.js` is on the page), or open `engine/index.html` on its own, where a stand-in plays the part of My film.
+Open it from **Library, Engine** in the app, or open `engine/index.html` on its own, where a stand-in plays the part of My film.
 
 ## In plain words
 

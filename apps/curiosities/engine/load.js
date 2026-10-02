@@ -5,6 +5,8 @@
    It loads engine.css and the engine's files in order (the same list as engine/files.json), then the
    Library menu gets an "Engine" item. Nothing else on the page changes. */
 (function () {
+  if (window.__curioEngineLoad) return; /* loaded twice: keep the first */
+  window.__curioEngineLoad = true;
   const FILES = ["catalog.js", "state.js", "host.js", "fake-host.js", "seeds.js", "analyze.js", "app-undo.js", "selfcheck.js", "ui.js", "cube.js"];
   const me = document.currentScript && document.currentScript.src;
   const base = me ? me.replace(/load\.js(\?.*)?$/, "") : "engine/";
