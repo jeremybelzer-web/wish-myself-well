@@ -177,8 +177,24 @@ const ok = (cond, text) => {
   await page.click("[data-act=pack-fit]");
   await page.screenshot({ path: path.join(SHOTS, "engine-links.png"), fullPage: false });
 
-  /* Past 8 moments: My film shows a window; the storyboard takes the whole film. */
+  /* Read-only bands from other parts (momentum): drawn under the timeline, a broken one skipped. */
   await page.click("[data-tab=timeline]");
+  const band = await page.evaluate(() => {
+    const rows = CurioEngine.state().rows;
+    const stop = CurioEngineUI.addBand(() => ({ id: "t", label: "Test band", lanes: [{ id: "a", label: "Attention", cells: [{ row: rows[0].id, text: "<b>face</b> 4 s", title: "x", family: "face", warn: true }] }] }));
+    CurioEngineUI.addBand(() => {
+      throw new Error("broken provider");
+    });
+    CurioEngineUI.draw();
+    const cell = document.querySelector(".en-band ~ tr .en-bandcell.en-warn");
+    const out = { text: cell && cell.textContent, fam: cell && cell.dataset.family, html: !!document.querySelector(".en-tl b") };
+    stop();
+    out.gone = !document.querySelector(".en-bandcell");
+    return out;
+  });
+  ok(band.text === "<b>face</b> 4 s" && band.fam === "face" && !band.html && band.gone, "a band from another part draws read-only under the timeline, escaped, and a broken one is skipped");
+
+  /* Past 8 moments: My film shows a window; the storyboard takes the whole film. */
   await page.evaluate(() => { for (let i = 0; i < 10; i++) CurioEngine.send({ type: "addRow" }); });
   await page.click("[data-act=print]");
   const panels0 = await page.evaluate(() => CuriosityBoard.count());
@@ -209,6 +225,7 @@ const ok = (cond, text) => {
   await page.screenshot({ path: path.join(SHOTS, "engine-analyze.png") });
 
   await page.click("[data-tab=cube]");
+  await page.waitForFunction(() => document.querySelector(".en-cube"), null, { timeout: 20000 }).catch(() => {});
   await page.waitForTimeout(600);
   const canvas = await page.$(".en-cube canvas");
   ok(!!canvas, "the cube draws (WebGL)");

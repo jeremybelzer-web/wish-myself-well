@@ -8,7 +8,8 @@
    undone in place (no reload), and every view of the part is told.
 
    window.CurioStore
-   - part(name, { key, initial(), normalize(raw), commands: { type(draft, msg) } }) -> a part:
+   - part(name, { key, initial(), normalize(raw), load(raw)?, commands: { type(draft, msg) } }) -> a part:
+       (normalize checks every change; load, when given, reads the saved key instead of normalize)
        view()          the part's data as one live object: always the same object, updated in place, so code
                        that kept a reference to it (app.js's `state`) keeps working. Read it; never write it.
        send(msg, opt)  run a command on a copy, normalize it, and keep it when it changed. -> { ok, error? }
@@ -45,6 +46,9 @@
     if (typeof name !== "string" || !name || parts[name]) throw new Error("CurioStore: a part needs a new name");
     spec = spec || {};
     const normalize = typeof spec.normalize === "function" ? spec.normalize : (x) => (isObj(x) ? x : {});
+    /* Reading the saved key can differ from checking a change (My film drops its automation layer on a
+       reload, but keeps it while automation runs): spec.load, when given, is used for reading. */
+    const fromSave = typeof spec.load === "function" ? spec.load : normalize;
     const initial = typeof spec.initial === "function" ? spec.initial : () => ({});
     const commands = isObj(spec.commands) ? spec.commands : {};
     const listeners = [];
@@ -63,7 +67,7 @@
       } catch (e) {
         parsed = null;
       }
-      return normalize(parsed == null ? initial() : parsed);
+      return fromSave(parsed == null ? initial() : parsed);
     }
     function show(next) {
       data = next;
