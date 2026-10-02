@@ -118,6 +118,21 @@ const ok = (cond, msg) => {
   await page.click('[data-act="clear-lanes"]');
   await page.screenshot({ path: path.join(SHOTS, "screen-1b-transitions.png") });
 
+  /* Hooks for panels from other threads (the momentum meter): row(), on(fn), addPanel(spec). */
+  const hook = await page.evaluate(() => {
+    let told = 0;
+    window.CurioScreen.on(() => told++);
+    const added = window.CurioScreen.addPanel({ id: "test-dock", label: "Test dock", place: "player", mount: (el) => (el.textContent = "docked") });
+    window.CurioScreen.setRow(2);
+    const r = window.CurioScreen.row();
+    window.CurioScreen.setRow(0);
+    const el = document.querySelector('.sc-player > .sc-dock[data-panel="test-dock"]');
+    return { added, r, told, text: el && el.textContent };
+  });
+  ok(hook.added && hook.text === "docked" && hook.r === 2 && hook.told >= 2, "other threads can dock a panel, read the playhead and hear every move");
+  ok(await page.evaluate(() => /^00:00:00:06 /.test(document.querySelector(".sc-tc").textContent) === false && /00:00:00:00/.test(document.querySelector(".sc-tc").textContent)), "the clock starts at zero");
+  await page.evaluate(() => { document.querySelector('.sc-dock[data-panel="test-dock"]').remove(); });
+
   /* CapCut's keyboard shortcuts and layouts. */
   await page.evaluate(() => document.activeElement && document.activeElement.blur());
   await page.click('[data-act="shortcuts"]');

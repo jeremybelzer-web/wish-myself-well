@@ -39,6 +39,10 @@ Two lines in `index.html`: `screen/load.js` after `engine/load.js`, and the edit
 
 It opens on start; `?screen=0` skips it (so do automated browser tests, unless the address has `?screen=1`), and Back to the app closes it (it then stays closed until you open it again).
 
+## Hooks for other threads
+
+`CurioScreen.row()` is the playhead's moment; `CurioScreen.setRow(i)` moves it. `CurioScreen.on(fn)` is told `{ row, rows }` after every redraw and playhead move, and returns a function that stops it. `CurioScreen.addPanel({ id, label, place: "player" | "details" | "timeline", mount(el) })` docks a side panel (the momentum meter): the Screen makes a `.sc-dock` element in that place, mounts it once and keeps it across redraws. The clock uses the Momentum window's seconds per moment (`secondsPerPanel` in `curiosities-momentum-v1`, 3 by default).
+
 ## Tests
 
 - `node apps/curiosities/screen/tests/run.js`: the core in Node (levels, categories, the editing curiosities, frame, joins, move, copy and paste, undo).

@@ -27,7 +27,8 @@
    - Arrange: the timeline on its own (viewers hidden unless you want them), every automated curiosity as
      a lane, a curiosity dropdown on each lane, Show all potential curiosities, Show all potential suites.
 
-   window.CurioScreen = { open(), close(), isOpen(), mountViewer(el, opts), state() }
+   window.CurioScreen = { open(), close(), isOpen(), mountViewer(el, opts), state(), setRow(i), row(),
+     addPanel({ id, label, place, mount(el) }), on(fn) -> off() }
    mountViewer lets any other screen of the app put a viewer at its top (Jeremy 17:20Z: "a view window for
    every single screen of the app"). Saved view: localStorage "curiosities-screen-v1". */
 (function () {
@@ -244,6 +245,7 @@
     drawViewers();
     drawInspector();
     if (lanes) lanes.draw();
+    tell();
   }
   function play(on) {
     if (timer) clearInterval(timer);
@@ -362,6 +364,54 @@
     drawViewers();
     drawInspector();
     drawTimeline(fromEngine);
+    placePanels();
+    tell();
+  }
+  /* Side panels other threads dock into the Screen (the momentum meter beside the Player):
+     addPanel({ id, label, place: "player" | "details" | "timeline", mount(el) }). The Screen owns where they go;
+     each is mounted once into its own element and kept across redraws. on(fn) is told after every redraw and
+     every playhead move. */
+  const panels = [];
+  const listeners = [];
+  const PLACE = { player: ".sc-player", details: ".sc-inspector", timeline: ".sc-timeline" };
+  function placePanels() {
+    if (!page) return;
+    panels.forEach((p) => {
+      const host = page.querySelector(PLACE[p.place] || PLACE.player);
+      if (!host) return;
+      if (!p.el) {
+        p.el = document.createElement("div");
+        p.el.className = "sc-dock";
+        p.el.dataset.panel = p.id;
+        p.el.setAttribute("aria-label", p.label || p.id);
+      }
+      if (p.el.parentNode !== host) {
+        host.appendChild(p.el);
+        host.classList.add("sc-has-dock");
+      }
+      if (!p.mounted) {
+        p.mounted = true;
+        try {
+          p.mount(p.el);
+        } catch (e) {
+          p.el.textContent = (p.label || p.id) + " could not load.";
+        }
+      }
+    });
+  }
+  function addPanel(spec) {
+    if (!spec || !spec.id || typeof spec.mount !== "function") return false;
+    if (panels.some((p) => p.id === spec.id)) return false;
+    panels.push(Object.assign({ place: "player" }, spec));
+    placePanels();
+    return true;
+  }
+  function tell() {
+    listeners.forEach((fn) => {
+      try {
+        fn({ row, rows: nRows() });
+      } catch (e) {}
+    });
   }
 
   function selectOptions() {
@@ -579,7 +629,19 @@
     </article>`;
   }
   /* CapCut-style timecode: one moment of my film counts as one second. */
-  const tc = (n) => "00:00:" + String(Math.floor(n / 60)).padStart(2, "0") + ":" + String(n % 60).padStart(2, "0");
+  /* Seconds per moment: the Momentum window's own setting (localStorage "curiosities-momentum-v1",
+     secondsPerPanel, 3 by default), so the Screen's clock and the momentum meter agree. */
+  function secondsPerMoment() {
+    try {
+      const p = JSON.parse(localStorage.getItem("curiosities-momentum-v1"));
+      if (p && Number(p.secondsPerPanel) > 0) return Number(p.secondsPerPanel);
+    } catch (e) {}
+    return 3;
+  }
+  const tc = (n) => {
+    const t = Math.round(n * secondsPerMoment());
+    return "00:" + String(Math.floor(t / 3600)).padStart(2, "0") + ":" + String(Math.floor((t % 3600) / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0");
+  };
   function drawViewers() {
     if (!page || !L() || !F()) return;
     const box = page.querySelector(".sc-player");
@@ -596,9 +658,9 @@
       .map(([id, l, t]) => `<button type="button" data-lens="${id}" class="${prefs.lens === id ? "on" : ""}" title="${t}">${l}</button>`)
       .join("")}</div>`;
     page.querySelector(".sc-viewers").innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine");
-    page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is one second">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
+    page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select></span>
-      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}">Side by side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}">Stacked</button></span></span>`;
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span></span>`;
   }
 
   /* ---------- the inspector ---------- */
@@ -1366,5 +1428,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, setRow };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, setRow, row: () => row, addPanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();
