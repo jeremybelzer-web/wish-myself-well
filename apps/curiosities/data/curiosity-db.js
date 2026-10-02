@@ -298,6 +298,7 @@
             const [cid, sid] = k.split(".");
             const c = index.curiosity[cid];
             if (!c) return out.push(`scene ${sc.id} beat ${b.at}: unknown curiosity ${cid}`);
+            if (sid && sid === c.main) return out.push(`scene ${sc.id} beat ${b.at}: ${k} is ${cid}'s main slider, write it as ${cid}`);
             const sl = c.sliders.find((x) => x.id === (sid || c.main));
             if (!sl) return out.push(`scene ${sc.id} beat ${b.at}: ${cid} has no slider ${sid}`);
             if (sl.scale && !sl.scale.includes(v)) out.push(`scene ${sc.id} beat ${b.at}: "${v}" is not on ${k}'s scale`);
