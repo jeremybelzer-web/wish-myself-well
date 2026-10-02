@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "AUDIO MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 81 to 92\n   1 Music under speech\n   2 Audio fades\n   3 Voice effect\n   4 Edited-in sound hits\n   5 Loudness\n   6 Voice-over\n   7 Translated voice\n   8 Voice cleanup\n   9 pair: When the joke pays off, a sound hit lands\n  10 pair: When the clip slows down, the music rises\n  11 pair: When the clip rewinds, a sound hit plays\n  12 pair: When a cutaway covers the talking, the music sits under"
+    "text": "AUDIO MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 97 to 111\n   1 Music under speech\n   2 Audio fades\n   3 Voice effect\n   4 Edited-in sound hits\n   5 Loudness\n   6 Voice-over\n   7 Translated voice\n   8 Voice cleanup\n   9 Music sting\n  10 pair: When the joke pays off, a sound hit lands\n  11 pair: When the clip slows down, the music rises\n  12 pair: When the clip rewinds, a sound hit plays\n  13 pair: When a cutaway covers the talking, the music sits under\n  14 pair: When a scene ends on a button joke, a sting hits\n  15 pair: When the joke pays off, a music sting lands"
    },
    "pos": [
     0,
@@ -27,21 +27,21 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
-     91,
-     92,
-     -1,
-     -1,
-     -1,
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
      -1
     ],
     "midi": {

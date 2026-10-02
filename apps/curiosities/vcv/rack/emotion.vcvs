@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "EMOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 65 to 80\n   1 Strength of the feeling\n   2 How they move\n   3 Feeling in the voice\n   4 Amount of movement\n   5 Amount said\n   6 Posture changes\n   7 Size of the actions\n   8 Mood of the place\n   9 Mood of the light\n  10 Against the last scene\n  11 Feeling gap between characters\n  12 Mixed feelings\n  13 Said against meant\n  14 The eyes\n  15 The hands\n  16 Personal space\nCV-CC 2: MIDI channel 5, CC 81 to 96\n   1 Release\n   2 What the audience feels\n   3 suite: Feels loving\n   4 suite: Feels joyful\n   5 suite: Feels curious\n   6 suite: Feels melancholy\n   7 suite: Feels anxious\n   8 suite: Feels fearful\n   9 suite: Feels angry\n  10 suite: Feels triumphant\n  11 suite: Feels absurd\n  12 suite: Feels dreamlike\n  13 suite: Emotion lens\n  14 suite: Feeling of the scene\n  15 suite: Held-back tears\n  16 suite: Rage boils over\nCV-CC 3: MIDI channel 5, CC 97 to 112\n   1 suite: Quiet joy\n   2 suite: Frozen fear\n   3 suite: Mood whiplash\n   4 suite: Calm in the storm\n   5 suite: The mask slips\n   6 suite: Laughing through tears\n   7 suite: Brave face\n   8 suite: Dawning realization\n   9 suite: The breakdown\n  10 suite: Cold fury\n  11 suite: Giddy relief\n  12 suite: Numb shock\n  13 suite: Awkward tenderness\n  14 suite: Dread: we know, they don't\n  15 suite: Cartoon feelings\n  16 pair: When the mood of the light drops, the strength of the feeling rises\nCV-CC 4: MIDI channel 6, CC 1 to 16\n   1 pair: When the feeling grows stronger, the posture changes more often\n   2 pair: When a scene feels the opposite of the last one, the color shifts too\n   3 pair: When a feeling rises, the face shows it before the words\n   4 pair: When anger rises, the voice gets louder\n   5 pair: When fear rises, movement stops\n   6 pair: When one character's feeling overflows, others catch it\n   7 pair: When joy rises, the light warms\n   8 pair: When a trigger appears, the feeling turns\n   9 pair: After a release, the character is lighter\n  10 pair: When said and meant pull apart, the pauses grow\n  11 pair: When people move closer, the feeling grows\n  12 pair: When tears well, the shot gets closer\n  13 pair: When we know more than they do, tension rises\n  14 pair: When feelings mix, the face flickers\n  15 pair: When someone feels loving, hearts pop onto their face\n  16 pair: When someone is joyful, a sun pops onto their face\nCV-CC 5: MIDI channel 6, CC 17 to 32\n   1 pair: When someone turns sad, tears are drawn on\n   2 pair: When someone is anxious, they blush\n   3 pair: When someone is scared, their soul leaves their body\n   4 pair: When someone gets curious, a light bulb pops on\n   5 pair: When someone triumphs, shades pop on\n   6 pair: When things turn absurd, question marks pop on\n   7 pair: When tears are drawn on, the feeling drops\n   8 pair: When a sun pops onto a face, the feeling lifts\n   9 pair: When steam pops on, the feeling winds up\n  10 pair: When a face crackles, the feeling winds up\n  11 pair: When someone laughs till they cry, the audience laughs more\n  12 pair: When the mallet bonks, the feeling turns absurd\n  13 pairs: The body tells first\n  14 pairs: Feelings spread\n  15 pairs: What isn't said\n  16 pairs: Closeness and dread\nCV-CC 6: MIDI channel 6, CC 33 to 34\n   1 pairs: The face tells the feeling\n   2 pairs: The mood moves the feeling"
+    "text": "EMOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 81 to 96\n   1 Strength of the feeling\n   2 How they move\n   3 Feeling in the voice\n   4 Amount of movement\n   5 Amount said\n   6 Posture changes\n   7 Size of the actions\n   8 Mood of the place\n   9 Mood of the light\n  10 Against the last scene\n  11 Feeling gap between characters\n  12 Mixed feelings\n  13 Said against meant\n  14 The eyes\n  15 The hands\n  16 Personal space\nCV-CC 2: MIDI channel 5, CC 97 to 112\n   1 Release\n   2 What the audience feels\n   3 suite: Feels loving\n   4 suite: Feels joyful\n   5 suite: Feels curious\n   6 suite: Feels melancholy\n   7 suite: Feels anxious\n   8 suite: Feels fearful\n   9 suite: Feels angry\n  10 suite: Feels triumphant\n  11 suite: Feels absurd\n  12 suite: Feels dreamlike\n  13 suite: Emotion lens\n  14 suite: Feeling of the scene\n  15 suite: Held-back tears\n  16 suite: Rage boils over\nCV-CC 3: MIDI channel 6, CC 1 to 16\n   1 suite: Quiet joy\n   2 suite: Frozen fear\n   3 suite: Mood whiplash\n   4 suite: Calm in the storm\n   5 suite: The mask slips\n   6 suite: Laughing through tears\n   7 suite: Brave face\n   8 suite: Dawning realization\n   9 suite: The breakdown\n  10 suite: Cold fury\n  11 suite: Giddy relief\n  12 suite: Numb shock\n  13 suite: Awkward tenderness\n  14 suite: Dread: we know, they don't\n  15 suite: Cartoon feelings\n  16 pair: When the mood of the light drops, the strength of the feeling rises\nCV-CC 4: MIDI channel 6, CC 17 to 32\n   1 pair: When the feeling grows stronger, the posture changes more often\n   2 pair: When a scene feels the opposite of the last one, the color shifts too\n   3 pair: When a feeling rises, the face shows it before the words\n   4 pair: When anger rises, the voice gets louder\n   5 pair: When fear rises, movement stops\n   6 pair: When one character's feeling overflows, others catch it\n   7 pair: When joy rises, the light warms\n   8 pair: When a trigger appears, the feeling turns\n   9 pair: After a release, the character is lighter\n  10 pair: When said and meant pull apart, the pauses grow\n  11 pair: When people move closer, the feeling grows\n  12 pair: When tears well, the shot gets closer\n  13 pair: When we know more than they do, tension rises\n  14 pair: When feelings mix, the face flickers\n  15 pair: When someone feels loving, hearts pop onto their face\n  16 pair: When someone is joyful, a sun pops onto their face\nCV-CC 5: MIDI channel 6, CC 33 to 48\n   1 pair: When someone turns sad, tears are drawn on\n   2 pair: When someone is anxious, they blush\n   3 pair: When someone is scared, their soul leaves their body\n   4 pair: When someone gets curious, a light bulb pops on\n   5 pair: When someone triumphs, shades pop on\n   6 pair: When things turn absurd, question marks pop on\n   7 pair: When tears are drawn on, the feeling drops\n   8 pair: When a sun pops onto a face, the feeling lifts\n   9 pair: When steam pops on, the feeling winds up\n  10 pair: When a face crackles, the feeling winds up\n  11 pair: When someone laughs till they cry, the audience laughs more\n  12 pair: When the mallet bonks, the feeling turns absurd\n  13 pairs: The body tells first\n  14 pairs: Feelings spread\n  15 pairs: What isn't said\n  16 pairs: Closeness and dread\nCV-CC 6: MIDI channel 6, CC 49 to 50\n   1 pairs: The face tells the feeling\n   2 pairs: The mood moves the feeling"
    },
    "pos": [
     0,
@@ -23,38 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
-    ],
-    "midi": {
-     "channel": 4
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -81,12 +49,12 @@
     }
    },
    "pos": [
-    32,
+    24,
     0
    ]
   },
   {
-   "id": 6,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -113,12 +81,12 @@
     }
    },
    "pos": [
-    40,
+    32,
     0
    ]
   },
   {
-   "id": 7,
+   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -145,12 +113,12 @@
     }
    },
    "pos": [
-    48,
+    40,
     0
    ]
   },
   {
-   "id": 8,
+   "id": 7,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -177,6 +145,38 @@
     }
    },
    "pos": [
+    48,
+    0
+   ]
+  },
+  {
+   "id": 8,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 5
+    }
+   },
+   "pos": [
     56,
     0
    ]
@@ -187,8 +187,8 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     33,
-     34,
+     49,
+     50,
      -1,
      -1,
      -1,

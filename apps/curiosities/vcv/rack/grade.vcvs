@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "FILTERS & ADJUSTMENTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 33 to 45\n   1 Filter\n   2 Exposure\n   3 Warmth and tint\n   4 Film texture\n   5 Shot matching\n   6 Texture effect\n   7 Retro look\n   8 Filter family\n   9 LUT (a color recipe)\n  10 suite: Dream sequence\n  11 suite: Silent film\n  12 suite: Zine scrapbook\n  13 suite: Old home video"
+    "text": "FILTERS & ADJUSTMENTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 49 to 61\n   1 Filter\n   2 Exposure\n   3 Warmth and tint\n   4 Film texture\n   5 Shot matching\n   6 Texture effect\n   7 Retro look\n   8 Filter family\n   9 LUT (a color recipe)\n  10 suite: Dream sequence\n  11 suite: Silent film\n  12 suite: Zine scrapbook\n  13 suite: Old home video"
    },
    "pos": [
     0,
@@ -27,19 +27,19 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
      -1,
      -1,
      -1

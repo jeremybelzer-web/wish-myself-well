@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 49 to 62\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 suite: Comedy punch\n   8 suite: Reaction comedy\n   9 pair: When the picture freezes, a title appears\n  10 pair: When the joke pays off, a mood pops onto a face\n  11 pair: When someone gets angry, steam pops onto their face\n  12 pair: When an outro effect closes the film, an end card follows\n  13 pairs: Words that point\n  14 pairs: Phone comedy reactions"
+    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 65 to 79\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 suite: Comedy punch\n   9 suite: Reaction comedy\n  10 pair: When the picture freezes, a title appears\n  11 pair: When the joke pays off, a mood pops onto a face\n  12 pair: When someone gets angry, steam pops onto their face\n  13 pair: When an outro effect closes the film, an end card follows\n  14 pairs: Words that point\n  15 pairs: Phone comedy reactions"
    },
    "pos": [
     0,
@@ -27,21 +27,21 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     -1,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
      -1
     ],
     "midi": {
