@@ -5072,6 +5072,261 @@
    "does": "fall",
    "when": "the status flips",
    "then": "the camera angle flips"
+  },
+  {
+   "id": "p:crash-shake",
+   "proximity": "crash-shake",
+   "label": "When something crashes, the camera shakes",
+   "from": {
+    "curiosity": "crashLens.mess",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cameraLensLens.shake",
+    "track": "camera"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "something crashes",
+   "then": "the camera shakes"
+  },
+  {
+   "id": "p:landing-settle",
+   "proximity": "landing-settle",
+   "label": "When something heavy lands, hair and cloth settle a beat later",
+   "from": {
+    "curiosity": "crashLens.bounce",
+    "track": "master",
+    "is": "dead thud",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "clothLens.wrinkles",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "something heavy lands",
+   "then": "hair and cloth settle a beat later"
+  },
+  {
+   "id": "p:wind-cloth",
+   "proximity": "wind-cloth",
+   "label": "When the wind picks up, cloth flies out",
+   "from": {
+    "curiosity": "forcesLens.gusts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "clothLens.cling",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "floats away",
+   "when": "the wind picks up",
+   "then": "cloth flies out"
+  },
+  {
+   "id": "p:wind-hair",
+   "proximity": "wind-hair",
+   "label": "When the wind picks up, hair streams one way",
+   "from": {
+    "curiosity": "forcesLens.gusts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "furLens.groom",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "swept one way",
+   "when": "the wind picks up",
+   "then": "hair streams one way"
+  },
+  {
+   "id": "p:rain-hair",
+   "proximity": "rain-hair",
+   "label": "When it rains, hair goes stringy",
+   "from": {
+    "curiosity": "bitsLens",
+    "track": "master",
+    "is": "rain",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "furLens.wet",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "it rains",
+   "then": "hair goes stringy"
+  },
+  {
+   "id": "p:windup-hit",
+   "proximity": "windup-hit",
+   "label": "When the wind-up grows, the move lands bigger",
+   "from": {
+    "curiosity": "animFeelLens.anticipation",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "animFeelLens.exaggeration",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the wind-up grows",
+   "then": "the move lands bigger"
+  },
+  {
+   "id": "p:fire-flush",
+   "proximity": "fire-flush",
+   "label": "When the fire grows, faces go warm and red",
+   "from": {
+    "curiosity": "smokeFireLens",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "skinLens.flush",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the fire grows",
+   "then": "faces go warm and red"
+  },
+  {
+   "id": "p:churn-foam",
+   "proximity": "churn-foam",
+   "label": "When the water churns, foam builds",
+   "from": {
+    "curiosity": "liquidLens.surface",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "liquidLens.foam",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the water churns",
+   "then": "foam builds"
+  },
+  {
+   "id": "p:leader-ripple",
+   "proximity": "leader-ripple",
+   "label": "When the leader moves, the crowd follows in a ripple",
+   "from": {
+    "curiosity": "crowdLens.follow",
+    "track": "master",
+    "is": "all follow",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "crowdLens.sync",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the leader moves",
+   "then": "the crowd follows in a ripple"
+  },
+  {
+   "id": "p:face-body",
+   "proximity": "face-body",
+   "label": "When the face goes big, the body follows",
+   "from": {
+    "curiosity": "faceLens",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "poseRigLens",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the face goes big",
+   "then": "the body follows"
+  },
+  {
+   "id": "p:eyes-lead",
+   "proximity": "eyes-lead",
+   "label": "When the eyes dart, the expression changes next",
+   "from": {
+    "curiosity": "faceLens.darts",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "faceLens",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the eyes dart",
+   "then": "the expression changes next"
+  },
+  {
+   "id": "p:slowmo-linger",
+   "proximity": "slowmo-linger",
+   "label": "When time slows, the bits in the air hang",
+   "from": {
+    "curiosity": "timeLens",
+    "track": "master",
+    "is": "slow motion",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "bitsLens.life",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "linger",
+   "when": "time slows",
+   "then": "the bits in the air hang"
+  },
+  {
+   "id": "p:break-mess",
+   "proximity": "break-mess",
+   "label": "When things break, the mess spreads",
+   "from": {
+    "curiosity": "crashLens.chain",
+    "track": "master",
+    "is": "domino chain",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "crashLens.mess",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "things break",
+   "then": "the mess spreads"
   }
  ],
  "groups": [
@@ -5855,6 +6110,62 @@
     "p:speed-cuts",
     "p:walk-long-take",
     "p:approach-space"
+   ]
+  },
+  {
+   "id": "ps:weather-hits-everyone",
+   "label": "Weather hits everyone",
+   "plain": "Wind and rain reach everything loose: cloth flies out, hair streams, then goes stringy.",
+   "proximities": [
+    "wind-cloth",
+    "wind-hair",
+    "rain-hair"
+   ],
+   "links": [
+    "p:wind-cloth",
+    "p:wind-hair",
+    "p:rain-hair"
+   ]
+  },
+  {
+   "id": "ps:impact-chain",
+   "label": "The impact chain",
+   "plain": "A crash shakes the camera, loose parts settle a beat later, and the mess spreads.",
+   "proximities": [
+    "crash-shake",
+    "landing-settle",
+    "break-mess"
+   ],
+   "links": [
+    "p:crash-shake",
+    "p:landing-settle",
+    "p:break-mess"
+   ]
+  },
+  {
+   "id": "ps:acting-from-the-inside",
+   "label": "Acting from the inside out",
+   "plain": "The eyes move first, then the face, then the whole body.",
+   "proximities": [
+    "eyes-lead",
+    "face-body"
+   ],
+   "links": [
+    "p:eyes-lead",
+    "p:face-body"
+   ]
+  },
+  {
+   "id": "ps:elements-build",
+   "label": "The elements build",
+   "plain": "Fire warms faces and churning water foams: the world reacts to its elements.",
+   "proximities": [
+    "fire-flush",
+    "churn-foam"
+   ],
+   "links": [
+    "p:fire-flush",
+    "p:churn-foam"
    ]
   }
  ]
