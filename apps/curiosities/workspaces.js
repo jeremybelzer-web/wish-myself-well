@@ -686,7 +686,7 @@
   let pendingLive = false;
   let lastStoryLive = 0;
   function updateLive() {
-    if (pendingLive) return;
+    if (pendingLive || page !== "ws" || root.classList.contains("hidden")) return; // nothing to update while the page is away
     pendingLive = true;
     requestAnimationFrame(() => {
       pendingLive = false;

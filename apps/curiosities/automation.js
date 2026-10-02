@@ -498,10 +498,17 @@
           window.CuriosityBoard.apply("Automation", values);
         }
       }
-    }
+      requestAnimationFrame(tick);
+    } else ticking = false;
+  }
+  /* The clock sleeps while nothing runs, so an idle page draws no frames; start() wakes it. */
+  let ticking = false;
+  function wake() {
+    if (ticking) return;
+    ticking = true;
     requestAnimationFrame(tick);
   }
-  requestAnimationFrame(tick);
+  wake();
 
   function start(key) {
     const p = patch(key);
@@ -509,11 +516,14 @@
     t0[key] = performance.now();
     (p.lanes || []).forEach((l) => (t0[key + "#" + l.id] = t0[key]));
     emit("change", { key });
+    wake();
   }
   function stop(key) {
     const p = patch(key);
     p.running = false;
     lastSent = "";
+    /* Once nothing runs, hand the panels back: clear the board's Automation layer. */
+    if (!Object.values(store.patches).some((x) => x.running) && window.CuriosityBoard) window.CuriosityBoard.apply("Automation", {});
     emit("change", { key });
   }
   function trigger(key, on) {

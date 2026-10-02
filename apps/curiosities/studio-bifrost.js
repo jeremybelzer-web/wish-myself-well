@@ -6,6 +6,7 @@
    on the ground, and fire that lights the scene. Every readout is a curiosity. */
 
 (function () {
+  let prevAutoOff = null;
   if (!window.CuriosityStudio) return;
   const KEY = "curiosities-studio-bifrost-v1";
   /* Register the Bifrost curiosities the automation layer does not know yet, so each can be automated. */
@@ -1355,6 +1356,9 @@
         x.dispatchEvent(new Event("change"));
       }
     }
+    /* One automation listener per tool: a fresh draw lets go of the last one (and the old page it holds). */
+    if (prevAutoOff) prevAutoOff();
+    prevAutoOff = () => offAuto && offAuto();
     const offAuto = window.CurioAuto
       ? window.CurioAuto.on((type, d) => {
           if (!el.isConnected || !canvas.isConnected) {

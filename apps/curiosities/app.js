@@ -219,12 +219,10 @@ td .suite-share { display: flex; margin: 2px 0; }
       const raw = localStorage.getItem("curiosities-board-v2");
       if (raw) saved = JSON.parse(raw);
     } catch (e) {}
-    const base = { sceneId: saved.sceneId || "glass", suite: saved.suite || "", applied: saved.applied || null, auto: saved.auto || null };
-    /* Before workspaces, running automation replaced the applied strand. It now has its own layer. */
-    if (base.applied && base.applied.label === "Automation" && !base.auto) {
-      base.auto = base.applied.values;
-      base.applied = null;
-    }
+    /* Automation never survives a reload (every patch starts stopped), so its layer starts empty. */
+    const base = { sceneId: saved.sceneId || "glass", suite: saved.suite || "", applied: saved.applied || null, auto: null };
+    /* Before workspaces, running automation replaced the applied strand: drop that stale strand. */
+    if (base.applied && base.applied.label === "Automation") base.applied = null;
     live.forEach((c) => {
       base[c.id] = saved[c.id] != null ? saved[c.id] : c.value;
     });

@@ -4,6 +4,7 @@
    composition, angleHeight, dutch). The ones the board draws go to the board as a strand. */
 
 (function () {
+  let prevAutoOff = null;
   if (!window.CuriosityStudio) return;
 
   const KEY = "curiosities-studio-camera-v1";
@@ -715,6 +716,9 @@
     }
     const suiteOn = {};
     if (window.CurioAuto && window.CurioAuto.on) {
+      /* One listener per tool: a fresh draw lets go of the last one (and the old page it holds). */
+      if (prevAutoOff) prevAutoOff();
+      prevAutoOff = () => off();
       const off = window.CurioAuto.on((type, d) => {
         if (!el.isConnected || !view.isConnected) return off();
         if (type === "change") {
