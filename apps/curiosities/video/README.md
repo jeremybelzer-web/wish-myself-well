@@ -30,6 +30,7 @@ Timing: **Same speed as the inspiration** (its curves play in real seconds, repe
 - `measure.js` (`window.CurioVideo`, no page): frame and sound measures, the dissection, nodes, engine commands, the apply plan, pixel changes, keying, dialogue fitting, scores.
 - `clip.js` (`window.CurioClip`): reads frames by seeking and sound by decoding, draws applied frames, the frame-exact steadier, check, real-time render and recording.
 - `ui.js` (`window.CurioVideoUI`), `video.css`, `load.js` (one line in `index.html`), `files.json`.
+- `CurioVideo.toMedia(dissection, step)` hands a dissection to the media window (`media/media.js`, `CurioMedia`) in its own sample shape, so the app has one analyzer: its beats, highlights and studies can come from these measures.
 - Settings: `localStorage` `curiosities-video-v1`.
 
 ## Tests

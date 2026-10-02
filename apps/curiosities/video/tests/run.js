@@ -220,6 +220,13 @@ check("graphics laid over: off unless asked, keyed so a pale background drops ou
   assert(px[11] > 240, "dark text stays " + px[11]);
   assert(px[15] < 30, "light grey checkerboard drops out " + px[15]);
 });
+check("toMedia gives the media window's sample shape", () => {
+  const m = V.toMedia(insp, 2);
+  assert(m.samples.length === insp.times.length && m.step === 2 && m.duration === insp.duration, "lengths");
+  const s = m.samples[3];
+  ["t", "luma", "contrast", "sat", "warm", "motion"].forEach((k) => assert(typeof s[k] === "number" && isFinite(s[k]), k));
+  assert(m.samples.filter((x) => x.cut).length === insp.cuts.length, "one cut sample per cut");
+});
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });

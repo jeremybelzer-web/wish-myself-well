@@ -1038,5 +1038,22 @@
     return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
   }
 
-  root.CurioVideo = { keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
+  /* One analyzer for the app: a dissection in the sample shape the media window (media/media.js, CurioMedia) reads,
+     { duration, step, every, samples: [{ t, luma, contrast, sat, warm, cut, motion }] }, so its beats, highlights
+     and studies come from these measures (subpixel motion, the steadier cut rule) instead of a second pass. */
+  function toMedia(d, step) {
+    const cuts = d.cuts || [];
+    const samples = d.times.map((t, i) => ({
+      t,
+      luma: d.raw.luma[i],
+      contrast: d.raw.std[i],
+      sat: d.raw.sat[i],
+      warm: d.raw.warm[i],
+      cut: cuts.some((c) => Math.abs(c - t) < d.dt / 2),
+      motion: r3(clamp((d.raw.local ? d.raw.local[i] : 0) / 0.04, 0, 1)),
+    }));
+    return { name: d.name, duration: d.duration, step: step || 2.5, every: d.dt, samples };
+  }
+
+  root.CurioVideo = { toMedia, keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
 })();
