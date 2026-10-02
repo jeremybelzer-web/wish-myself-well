@@ -45,7 +45,7 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
 Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 suites, 87 proximities,
-20 proximity suites and 2,742 sliders, across 25 workspaces.
+20 proximity suites and 2,742 sliders, across 25 workspaces, plus 8 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -80,7 +80,9 @@ Lives in `apps/curiosities/data/` (draft PR #7). Today: 279 curiosities, 121 sui
 
 ## 3. Prism and cross-pollinating **(beta)**
 
-- [ ] Trace three to five curated scenes so the Prism has real films to split (counts only, never scripts)
+- [x] Eight made-up model scenes (diner standoff, meet-cute, dinner party, dark hallway, montage, deadpan office, quiet goodbye, kitchen disaster) so the Prism has something to split on first open (PR #7)
+- [ ] Jeremy picks three to five real films or scenes to trace for the Prism (counts only, never scripts)
+- [ ] Show the model scenes as curated films in the app without importing a file (job for the app thread)
 - [ ] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, comedy
 - [ ] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours
 - [ ] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film
