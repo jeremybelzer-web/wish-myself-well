@@ -48,8 +48,8 @@ node vcv/tools/make-vcv.js
 ```
 
 This rewrites `curiosity-jacks.js` (read by the app), `curiosity-jacks.json` and `rack/*.vcvs`. Each workspace
-starts on a fresh CV-CC module, so its jacks stay together. Today there are 556 jacks on 46 CV-CC modules, using
-MIDI channels 1 to 7 and CC numbers 1 to 112. Channel 16 is kept for Focus.
+starts on a fresh CV-CC module, so its jacks stay together. Today there are 614 jacks on 50 CV-CC modules, using
+MIDI channels 1 to 8 and CC numbers 1 to 112. Channel 16 is kept for Focus.
 
 ## Tested
 
