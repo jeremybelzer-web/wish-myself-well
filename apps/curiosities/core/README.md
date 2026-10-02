@@ -29,6 +29,10 @@ core.CurioBridge.handle({ type: "set", key: "c:angleHeight", m: 0.5 });
 core.tick();                                              // one automation frame
 ```
 
+When the curiosity database is present (`data/`, #7), `load()` installs it right after `model.js`, as
+`index.html` does, so every database curiosity, suite, proximity and proximity suite (and every slider row,
+such as `c:music.tempo`) is a bridge key. `load({ database: false })` leaves it out.
+
 `load({ storage })` takes any object with `getItem` and `setItem`, so a desktop app can keep the same
 keys in a file; the default keeps them in memory. Check that the core still loads without a page:
 
