@@ -583,8 +583,18 @@
       </div></div>
       <div class="en-panel" style="margin-top:12px"><h3 style="margin:0 0 6px">Everything else in the app</h3>
         <p class="en-note">Changes made anywhere else (My film, workspaces, the storyboard, curated films, automations, tools), newest first. Undoing one puts back what was there before it and reloads the page, because those parts each keep their own copy while open.</p>
+        ${storeHtml()}
         ${app ? (appSteps.length ? `<ol>${appSteps.map((s, i) => `<li>${esc(s.label)} <span class="en-note">${esc(s.when)}</span> <button class="en-small" data-act="app-undo" data-i="${i}">Undo back to before this</button></li>`).join("")}</ol>` : `<p class="en-note">No changes recorded since this page opened.</p>`) + (app.canRedo() ? `<p><button data-act="app-redo">Redo the last app undo</button></p>` : "") : `<p class="en-note">Not available on this page.</p>`}
       </div>`;
+  }
+
+  /* Parts of the app already on the shared store (engine/store.js) undo in place, no reload. */
+  function storeHtml() {
+    const C = window.CurioStore;
+    if (!C || !C.parts().length) return "";
+    const h = C.history();
+    return `<p class="en-note">On the shared state now: ${esc(C.parts().join(", "))}. Their changes undo in place (Ctrl+Z outside this window).</p>
+      <p><button data-act="store-undo" ${C.canUndo() ? "" : "disabled"}>Undo ${esc(h.undo[h.undo.length - 1] || "")}</button> <button data-act="store-redo" ${C.canRedo() ? "" : "disabled"}>Redo ${esc(h.redo[0] || "")}</button></p>`;
   }
 
   /* ---------- events ---------- */
@@ -725,6 +735,12 @@
         return draw();
       case "app-undo":
         return window.CurioAppUndo && window.CurioAppUndo.undoTo(Number(b.dataset.i));
+      case "store-undo":
+        window.CurioStore && window.CurioStore.undo();
+        return draw();
+      case "store-redo":
+        window.CurioStore && window.CurioStore.redo();
+        return draw();
       case "app-redo":
         return window.CurioAppUndo && window.CurioAppUndo.redo();
     }

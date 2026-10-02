@@ -697,8 +697,11 @@ check("bridge: a tool can ask for the whole film as a timeline", () => {
   E.send({ type: "importFilm", film: Seeds.starter(["Ana", "Ben"]) });
   for (let i = 0; i < 8; i++) E.send({ type: "addRow" });
   const B = A.window.CurioBridge;
-  assert.ok(Host.extendBridge());
-  assert.ok(!Host.extendBridge(), "only once");
+  /* bridge.js answers "timeline" itself once it carries the engine's patch; until then the engine teaches it. */
+  if (!B.TIMELINE) {
+    assert.ok(Host.extendBridge());
+    assert.ok(!Host.extendBridge(), "only once");
+  } else assert.ok(!Host.extendBridge(), "bridge.js answers it itself");
   const t = B.handle({ type: "timeline" });
   assert.strictEqual(t.type, "timeline");
   assert.strictEqual(t.panels.length, 16);
@@ -706,6 +709,55 @@ check("bridge: a tool can ask for the whole film as a timeline", () => {
   assert.strictEqual(t.panels[5].emotion, E.result().dest[E.state().rows[5].id + "|master|emotion"]);
   assert.strictEqual(B.handle(JSON.stringify({ type: "timeline" })).rows.length, 16);
   assert.strictEqual(B.handle({ type: "list" }).type, "params", "everything else still reaches bridge.js");
+});
+
+/* ---------- the shared store (engine/store.js): one undo list for the app's parts ---------- */
+check("store: parts change by commands, undo in place across parts, and keep their own saved keys", () => {
+  const C = A.window.CurioStore;
+  const mem = memory();
+  C.useStorage(mem);
+  mem.setItem("curiosities-test-a-v1", JSON.stringify({ n: 3 }));
+  const fixA = (x) => ({ n: Math.max(0, Math.min(9, Number(x && x.n) || 0)) });
+  const a = C.part("test-a", { key: "curiosities-test-a-v1", initial: () => ({ n: 0 }), normalize: fixA, commands: { add: (d, m) => (d.n += m.by), boom: () => { throw new Error("no"); } } });
+  const b = C.part("test-b", { key: "curiosities-test-b-v1", initial: () => ({ s: "" }), normalize: (x) => ({ s: String((x && x.s) || "").slice(0, 5) }), commands: { set: (d, m) => (d.s = m.s) } });
+  const view = a.view();
+  assert.strictEqual(view.n, 3, "a part starts from its saved key");
+  let told = 0;
+  a.on(() => told++);
+  assert.ok(a.send({ type: "add", by: 2 }).ok);
+  assert.strictEqual(view.n, 5, "the view is the same object, updated in place");
+  assert.strictEqual(JSON.parse(mem.getItem("curiosities-test-a-v1")).n, 5);
+  assert.ok(a.send({ type: "add", by: 100 }).ok);
+  assert.strictEqual(view.n, 9, "normalized");
+  assert.ok(b.send({ type: "set", s: "hello world" }).ok);
+  assert.strictEqual(b.view().s, "hello");
+  assert.strictEqual(a.send({ type: "boom" }).ok, false);
+  assert.strictEqual(a.send({ type: "nope" }).ok, false);
+  assert.strictEqual(view.n, 9, "a refused command changes nothing");
+  assert.ok(a.send({ type: "add", by: 0 }).unchanged, "no change, no step");
+  same(C.history().undo.slice(-3), ["add", "add", "set"]);
+  C.undo();
+  assert.strictEqual(b.view().s, "", "undo reaches the part that changed last");
+  C.undo();
+  assert.strictEqual(view.n, 5);
+  assert.strictEqual(JSON.parse(mem.getItem("curiosities-test-a-v1")).n, 5, "undo saves");
+  C.redo();
+  assert.strictEqual(view.n, 9);
+  assert.ok(told >= 4, "views are told");
+  /* A dragged slider: sends with the same merge text inside MERGE_MS are one step. */
+  const steps = C.history().undo.length;
+  a.send({ type: "add", by: -1, merge: "drag" });
+  a.send({ type: "add", by: -1, merge: "drag" });
+  a.send({ type: "add", by: -1, merge: "drag" });
+  assert.strictEqual(C.history().undo.length, steps + 1);
+  C.undo();
+  assert.strictEqual(view.n, 9);
+  /* Running automation: saved, never a step. */
+  a.send({ type: "add", by: -4 }, { record: false });
+  assert.strictEqual(C.history().undo.length, steps);
+  assert.ok(C.owns("curiosities-test-a-v1") && !C.owns("curiosities-other-v1"));
+  assert.throws(() => C.part("test-a", {}), /new name/);
+  C.useStorage(null);
 });
 
 check("speed: a full rewrite of the biggest film is quick", () => {

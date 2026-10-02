@@ -7,7 +7,7 @@
 (function () {
   if (window.__curioEngineLoad) return; /* loaded twice: keep the first */
   window.__curioEngineLoad = true;
-  const FILES = ["catalog.js", "state.js", "host.js", "fake-host.js", "seeds.js", "analyze.js", "app-undo.js", "selfcheck.js", "ui.js", "cube.js"];
+  const FILES = ["store.js", "catalog.js", "state.js", "host.js", "fake-host.js", "seeds.js", "analyze.js", "app-undo.js", "selfcheck.js", "ui.js", "cube.js"];
   const me = document.currentScript && document.currentScript.src;
   const base = me ? me.replace(/load\.js(\?.*)?$/, "") : "engine/";
   const css = document.createElement("link");
