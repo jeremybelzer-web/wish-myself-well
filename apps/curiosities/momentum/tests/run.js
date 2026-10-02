@@ -121,6 +121,38 @@ ok("the compass points away from the family holding attention, with reasons and 
   assert.strictEqual(res2.basis, "measured");
   assert(res2.options.some((o) => o.parts.follow > 0), "measured films teach which family follows which");
 });
+ok("every move between families is counted with its cue, measured films keep the counts, and the compass uses their cue", () => {
+  const C = ctx.CurioCompass;
+  const studies = core.CuriosityDB.studiesExport().studies;
+  studies.forEach((s) => {
+    const r = A.fromStudy(s);
+    const segs = r.segments;
+    let changes = 0;
+    for (let i = 1; i < segs.length; i++) if (segs[i].family !== segs[i - 1].family) changes++;
+    assert.strictEqual(r.stats.moves.length, changes, s.id + ": one move per change of family");
+    let counted = 0;
+    Object.values(r.stats.moveCues).forEach((row) => Object.values(row).forEach((c) => {
+      counted += c.n;
+      assert.strictEqual(Object.values(c.cues).reduce((a, b) => a + b, 0), c.n, "cues add up");
+      assert(c.quiet <= c.n);
+    }));
+    assert.strictEqual(counted, changes);
+  });
+  const measured = studies.map((s) => R.measure(s));
+  assert(measured.every((p) => p.moveCues), "measure keeps the counts");
+  const all = R.moveCues(measured);
+  const [a, row] = Object.entries(all).find(([, r]) => Object.keys(r).length);
+  const b = Object.keys(row)[0];
+  const how = R.howItMoves(measured, a, b);
+  assert(how && how.n === row[b].n && how.share > 0 && how.share <= 1);
+  assert.strictEqual(R.howItMoves(R.DEFAULT_FILMS, a, b), null, "estimates have no counts");
+  /* Hold attention on family a, then point with the measured films: the option for b carries their cue. */
+  const r = A.read([{ at: 0, values: {} }], {});
+  const fake = { stats: Object.assign({}, r.stats, { currentRun: { family: a, from: 0, to: 4, dur: 4 }, familyRuns: [{ family: a, from: 0, to: 4, dur: 4 }], familyShare: {}, cueShare: {} }), limit: 20 };
+  const opt = C.point(fake, measured).options.find((o) => o.family === b);
+  assert(opt && opt.how && opt.cue === opt.how.cue, "the option's cue is the measured one");
+  assert(opt.reasons.some((t) => /make this move most often/.test(t)));
+});
 ok("the compass makes a real move on a board", () => {
   const C = ctx.CurioCompass;
   const live = core.CURIOSITIES.filter((c) => c.live && Array.isArray(c.options));
