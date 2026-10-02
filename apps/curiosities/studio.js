@@ -52,7 +52,28 @@
       const b = document.querySelector('.tabs button[data-tab="board"]');
       if (b) b.click();
     },
+    /* Keep values on the Study tab's Shelf as a strand: {curiosityId: [one value per beat]}. */
+    toShelf(label, values) {
+      const k = window.CuriosityStudy && window.CuriosityStudy.keep ? window.CuriosityStudy.keep(label, values) : null;
+      toast(k ? `Kept “${label}” on the Shelf: ${Object.keys(k.values).join(", ")} across ${k.beats} beat${k.beats === 1 ? "" : "s"}.` : "Nothing kept: the Shelf is not loaded or there were no values.");
+      return k;
+    },
   };
+
+  function toast(msg) {
+    let t = document.getElementById("studio-toast");
+    if (!t) {
+      t = document.createElement("p");
+      t.id = "studio-toast";
+      t.setAttribute("role", "status");
+      t.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;max-width:520px;margin:0 auto;z-index:50;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;padding:8px 12px;";
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => (t.hidden = true), 3200);
+  }
 
   function draw() {
     if (!modules.length) {

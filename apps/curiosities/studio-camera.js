@@ -201,6 +201,7 @@
         <div id="cam-chips"></div>
         <div class="cam-row">
           <button type="button" class="primary" id="cam-send">Send to board</button>
+          <button type="button" id="cam-keep">Keep on Shelf</button>
           <span class="cap" id="cam-send-note"></span>
         </div>
       </div>
@@ -606,6 +607,13 @@
         return;
       }
       api.toBoard("Camera", values);
+    });
+
+    /* The Shelf keeps the whole setup, one beat: every curiosity it produces. */
+    el.querySelector("#cam-keep").addEventListener("click", () => {
+      const values = {};
+      curiosities(s, optics(s)).forEach((c) => (values[c.id] = [c.value]));
+      api.toShelf("Camera setup", values);
     });
 
     if (s.focusFollows) s.focus = s.distance;

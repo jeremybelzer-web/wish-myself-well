@@ -363,6 +363,7 @@
         <button type="button" id="sq-del">Delete</button>
         <button type="button" id="sq-reset">Rebuild from scene</button>
         <button type="button" id="sq-board">Send to board</button>
+        <button type="button" id="sq-keep">Keep on Shelf</button>
       </div>
       ${stale ? `<p class="sq-note">This edit was built for another scene. Lines are matched by number. Rebuild to start from “${esc(scene.title || scene.id)}”.</p>` : ""}
       <div class="sq-scroll" id="sq-scroll">
@@ -693,6 +694,21 @@
         cameraMove: pick.map((x) => x.cameraMove),
         cameraCarry: pick.map((x) => x.cameraCarry),
         angleChange: [measure().change],
+      });
+    };
+    /* The Shelf keeps the whole edit, one beat per shot as seen, with its measured holds. */
+    $("#sq-keep").onclick = () => {
+      const segs = segments().filter((x) => x.shot);
+      if (!segs.length || !api.toShelf) return;
+      const m = measure();
+      api.toShelf("Shots", {
+        shotSize: segs.map((x) => x.shot.shotSize),
+        angleHeight: segs.map((x) => x.shot.angleHeight),
+        cameraMove: segs.map((x) => x.shot.cameraMove),
+        cameraCarry: segs.map((x) => x.shot.cameraCarry),
+        shotDuration: segs.map((x) => holdWord((x.e - x.s) / st.fps)),
+        angleChange: segs.map(() => m.change),
+        cutRate: segs.map(() => m.rateWord),
       });
     };
     $("#sq-cut").onclick = addCut;

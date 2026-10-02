@@ -165,6 +165,7 @@
         <p class="cap">Spacing chart: one tick per drawing. Ticks bunched together are slow; spread out is fast. Orange ticks go past the keys (anticipation and overshoot).</p>
         ${spacingChart(s)}
         <p>${["spacing", "stepping", "anticipation", "overshoot", "arcs"].map((k) => `<span class="chip">${k} ${esc(s[k])}</span>`).join(" ")} <span class="chip">squash ${s.squash}</span></p>
+        <div class="bar-actions"><button type="button" data-act="keep">Keep on Shelf</button> <span class="cap">None of these are board controls, so they go to the Shelf only.</span></div>
         <p class="cap">Takes ${(s.frames / s.fps).toFixed(2)} s. In Maya this is two keys on the Graph Editor, the tangent type, stepped keys for twos, and Ghosting plus Motion Trail turned on.</p>
       </div></div>`;
     el.querySelectorAll("[data-k]").forEach((x) =>
@@ -175,6 +176,17 @@
         draw(el, api);
       })
     );
+    el.querySelector('[data-act="keep"]').addEventListener("click", () => {
+      if (!api.toShelf) return;
+      api.toShelf("Motion · " + s.move, {
+        spacing: [s.spacing],
+        stepping: [s.stepping],
+        anticipation: [s.anticipation],
+        overshoot: [s.overshoot],
+        arcs: [s.arcs],
+        squash: [Number(s.squash)],
+      });
+    });
     const canvas = el.querySelector("#motion-canvas");
     let start = null;
     const total = s.frames + Math.round(s.fps / 2);

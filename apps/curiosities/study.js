@@ -674,6 +674,21 @@
 
   window.CuriosityStudy = {
     draw,
+    /* A Studio tool keeps what it made: values are {curiosityId: [one value per beat]}. */
+    keep(name, values, beats) {
+      const clean = {};
+      Object.entries(values || {}).forEach(([id, vals]) => {
+        const list = (Array.isArray(vals) ? vals : [vals]).map((v) => (v == null || v === "" ? null : v));
+        if (list.some((v) => v != null)) clean[id] = list;
+      });
+      const ids = Object.keys(clean);
+      if (!ids.length) return null;
+      const n = Number(beats) || Math.max(...ids.map((id) => clean[id].length));
+      const k = { id: uid("k"), kind: ids.length === 1 ? "curiosity" : "suite", ref: ids.length === 1 ? ids[0] : "studio", name: String(name || "Studio") + " · Studio", from: "Studio", beats: n, values: clean };
+      store.shelf.push(k);
+      save();
+      return k;
+    },
     studies() {
       return store.studies;
     },

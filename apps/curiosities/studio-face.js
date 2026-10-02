@@ -128,7 +128,7 @@
         <div class="bar-actions"><button type="button" data-act="speak">Speak it</button></div>
         <h3>Expression per beat</h3>
         <p class="cap">One held pose per beat, the poseRate and faceIntensity curiosities. Play steps through them with a blink between.</p>
-        <p>${s.beats.map((p, i) => `<select data-beat="${i}">${poseOpts(p)}</select>`).join(" ")} <button type="button" data-act="addbeat">+ beat</button> <button type="button" data-act="playbeats">Play</button></p>
+        <p>${s.beats.map((p, i) => `<select data-beat="${i}">${poseOpts(p)}</select>`).join(" ")} <button type="button" data-act="addbeat">+ beat</button> <button type="button" data-act="playbeats">Play</button> <button type="button" data-act="keepbeats">Keep on Shelf</button></p>
         <p>${s.beats.map((p) => `<span class="chip">${esc(p)} ${intensityOf(POSES[p])}</span>`).join(" ")}</p>
       </div></div>`;
     const view = el.querySelector("#face-view");
@@ -186,6 +186,9 @@
         anim = requestAnimationFrame(step);
       };
       anim = requestAnimationFrame(step);
+    });
+    el.querySelector('[data-act="keepbeats"]').addEventListener("click", () => {
+      if (api.toShelf) api.toShelf("Face per beat", { faceIntensity: s.beats.map((p) => intensityOf(POSES[p] || {})) });
     });
     el.querySelector('[data-act="playbeats"]').addEventListener("click", () => {
       const t0 = performance.now();
