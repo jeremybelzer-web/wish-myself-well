@@ -241,6 +241,7 @@
 .sq-lines { display: flex; flex-wrap: wrap; gap: 4px; }
 .sq-lines button { font-family: var(--mono); font-size: 10px; }
 .sq-lines button.on { background: var(--ink); color: var(--paper); }
+.sq-tablewrap { overflow-x: auto; max-width: 100%; }
 .sq-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .studio-body svg.sq-bars { border: 1px solid var(--line); background: white; }
 .sq-note { font-family: var(--mono); font-size: 11px; color: var(--saffron); }
@@ -322,7 +323,7 @@
       <p class="sq-legend">${SIZES.map((s) => `<span class="chip"><i style="background:${SIZE_COLOR[s] || "#777"}"></i>${esc(s)}</span>`).join("")}</p>
       <p class="cap">Hold lengths (shotDuration bars)</p>
       ${barsSvg(m)}
-      <div class="scroll"><table class="trace"><thead><tr><th>#</th><th>Shot</th><th>Size</th><th>Height</th><th>Move</th><th>Hold</th><th>Curiosity</th><th>Lines</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      <div class="scroll sq-tablewrap"><table class="trace"><thead><tr><th>#</th><th>Shot</th><th>Size</th><th>Height</th><th>Move</th><th>Hold</th><th>Curiosity</th><th>Lines</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
   function draw(el, a) {
@@ -464,8 +465,9 @@
   let lastPreview = "";
 
   function tick(force) {
-    if (!host || !host.isConnected) {
-      stopPlay(false);
+    const sec = document.getElementById("studio");
+    if (!host || !host.isConnected || (sec && sec.classList.contains("hidden"))) {
+      stopPlay(true);
       return;
     }
     const t = timed();
