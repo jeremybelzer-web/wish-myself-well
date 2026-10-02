@@ -1,0 +1,99 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "PAGE & PANEL\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 8, CC 81 to 96\n   1 Panels\n   2 Gutter\n   3 Balloon against caption\n   4 Panel size\n   5 Breaking the frame\n   6 Words per panel\n   7 Sound effects\n   8 Page-turn reveal\n   9 suite: Steady six-panel grid\n  10 suite: Splash-page reveal\n  11 suite: Silent page\n  12 suite: Talky page\n  13 suite: Three-panel strip gag\n  14 suite: Action page\n  15 pair: When a page ends on a cliffhanger, the next page opens big\n  16 pair: When the feeling peaks, the panel grows\nCV-CC 2: MIDI channel 8, CC 97 to 99\n   1 pair: When the talk speeds up, panels shrink and multiply\n   2 pair: When a scene ends, the gutter widens\n   3 pairs: The page breathes with the story"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 7
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 7
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}

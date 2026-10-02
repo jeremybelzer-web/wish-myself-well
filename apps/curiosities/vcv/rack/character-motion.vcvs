@@ -1,0 +1,99 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "CHARACTER MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 65 to 80\n   1 Character path\n   2 Character speed\n   3 Toward the lens\n   4 Who moves\n   5 Body in frame\n   6 Move temper\n   7 Spacing\n   8 Drawn on\n   9 Overshoot\n  10 Overlap\n  11 Path shape\n  12 Squash and stretch\n  13 Key poses per line\n  14 Mouth shapes\n  15 suite: Crossing\n  16 suite: Snappy cartoon\nCV-CC 2: MIDI channel 1, CC 81 to 87\n   1 suite: Grounded realism\n   2 suite: The chase\n   3 suite: Bursting in\n   4 pair: When a person approaches, the camera pushes in\n   5 pair: When a character approaches, personal space shrinks\n   6 pair: When characters speed up, the cutting speeds up\n   7 pairs: Movement drives the cutting"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
+    ],
+    "midi": {
+     "channel": 0
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 0
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}
