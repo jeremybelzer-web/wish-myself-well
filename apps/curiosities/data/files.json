@@ -15,5 +15,6 @@
   "db-arc-body.js",
   "db-proximity-words.js",
   "db-model-scenes.js",
-  "db-finish.js"
+  "db-finish.js",
+  "db-momentum.js"
 ]
