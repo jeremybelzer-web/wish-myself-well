@@ -1,6 +1,6 @@
 # Handoff — Curiosities storyboard app
 
-Status: the review list is marked keep for the motion set. `model.js` holds the eight suites and four seed proximities. The board draws character dots, an object, and a camera path that is locked, smooth, or handheld. A suite menu writes those values into the controls. Next work is a study view that loads a trace from a film, an episode, or a game and stores only curiosities, suites, and proximities.
+Status: the review list is marked keep for the motion set. `model.js` holds the eight suites and four seed proximities. The board draws character dots, an object, and a camera path that is locked, smooth, or handheld. A suite menu writes those values into the controls. The Study tab traces a film, an episode, or a game as curiosities only, counts the proximities, and keeps strands on a Shelf that the board can play panel by panel.
 
 Read this file first. Work only in `apps/curiosities/`. Leave `web/`, `bible/`, and `memos/` alone unless Jeremy points at a show rule you must match.
 
@@ -38,6 +38,9 @@ Vanilla HTML, CSS, and JS. No build. Open `index.html`. State is `localStorage` 
 | `catalog.js` | `CURIOSITIES` array. `live: true` items are the controls |
 | `model.js` | `SUITES` and `PROXIMITIES` |
 | `app.js` | Draws the strip, the paths, and the proximities that are firing |
+| `study.js` | Study tab: traces, the Shelf, Curiosity / Suite / Proximity views. State is `localStorage` key `curiosities-studies-v1` |
+| `STUDY-PLAN.md` | What the study view borrows from the music app, and what comes later |
+| `reference/` | Decoded notes from Jeremy's music app, where curiosities are called essences |
 | `reference.js` | Hour-shape notes. Structural counts only. Not episode recaps |
 | `styles.css` | Paper and ink, same family as the show site |
 | `CURIOSITIES-REVIEW.md` | Marked keep for the motion set. Change a row to drop to remove it. |
@@ -68,7 +71,7 @@ Games use the same three objects. Mark whether the camera is the player’s or a
 1. Done. The review list is marked keep for the motion set. Honor a later drop.
 2. Done. Suites and proximities live in `model.js`.
 3. Done. The board draws character paths, object paths, and camera moves that are locked, smooth, or handheld.
-4. Next. Add a study view: load a trace, show the suites, show the proximities. A control that plays one suite should light the curiosities inside it.
+4. Done. The Study tab: traces, the Shelf, and Curiosity / Suite / Proximity views. See `STUDY-PLAN.md`.
 5. Keep it static files. Keep the look of this folder.
 
 ## Out of scope
