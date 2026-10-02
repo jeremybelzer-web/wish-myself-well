@@ -37,6 +37,8 @@ function createWindow() {
   win.on("closed", () => (win = null));
 }
 
+const ports = Object.assign({}, bridge.DEFAULTS, bridge.fromEnv(process.env));
+
 function menu() {
   const mac = process.platform === "darwin";
   const project = (fn) => () => call("CuriosityProject", fn);
@@ -66,7 +68,7 @@ function menu() {
               title: "Bridge",
               message: server ? "VCV Rack, OSC controllers and tool scripts can move curiosities." : "The bridge is off.",
               detail: server
-                ? `WebSocket: ws://127.0.0.1:${bridge.DEFAULTS.wsPort}\nOSC in: 127.0.0.1:${bridge.DEFAULTS.oscIn}  (/curio/set/c/angleHeight 0.42)\nOSC out: 127.0.0.1:${bridge.DEFAULTS.oscOut}  (/curio/value/...)\nOnly this computer can connect.`
+                ? `WebSocket: ws://127.0.0.1:${ports.wsPort}\nOSC in: 127.0.0.1:${ports.oscIn}  (/curio/set/c/angleHeight 0.42)\nOSC out: ${bridge.outTargets(ports.oscOut, "127.0.0.1").map((t) => t.host + ":" + t.port).join(", ")}  (/curio/value/...)\nOnly this computer can connect.`
                 : "Start the app without CURIO_NO_BRIDGE to turn it on.",
             }),
         },
@@ -88,6 +90,7 @@ app.whenReady().then(() => {
   if (!process.env.CURIO_NO_BRIDGE)
     try {
       server = bridge.start({
+        ...bridge.fromEnv(process.env),
         appDir: APP_DIR,
         handle: (msg) => call("CurioBridge", "handle", msg),
         values: () => call("CurioBridge", "values").then((v) => v || []),

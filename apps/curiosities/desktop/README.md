@@ -31,7 +31,12 @@ developer account (about $99 a year) and a Windows certificate; see the plan.
 | OSC in | UDP `127.0.0.1:7000` | `/curio/set/c/angleHeight 0.42`, `/curio/trigger/s/noir 1`, `/curio/stopAll` |
 | OSC out | UDP `127.0.0.1:7001` | `/curio/value/c/angleHeight 0.42` for each running parameter |
 
-Only this computer can connect. **Bridge > Connections** in the menu shows the addresses. Set
+Only this computer can connect.
+
+Each UDP port delivers a packet to one listener, so if two programs both want the values (VCV Rack's Curio
+Return module on 7001 and something else), send them to several ports: `CURIO_OSC_OUT=7001,7002 npm start`.
+`CURIO_OSC_OUT` also takes `host:port` items, and `CURIO_WS_PORT` and `CURIO_OSC_IN` change the other two
+ports. The Maya panel and the Blender add-on use the WebSocket, not 7001, so they never compete with VCV Rack. **Bridge > Connections** in the menu shows the addresses. Set
 `CURIO_NO_BRIDGE=1` to start without it.
 
 `npm run bridge` runs the same bridge on the core with no window (`../core/headless.js`), for trying an OSC

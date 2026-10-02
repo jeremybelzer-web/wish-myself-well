@@ -23,10 +23,17 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   outSock.on("message", (b) => received.push(...osc.decode(b)));
   await new Promise((r) => outSock.bind(0, "127.0.0.1", r));
 
+  /* Values go to every OSC target: two listeners each get them. */
+  const outSock2 = dgram.createSocket("udp4");
+  const received2 = [];
+  outSock2.on("message", (b) => received2.push(...osc.decode(b)));
+  await new Promise((r) => outSock2.bind(0, "127.0.0.1", r));
+  assert.deepStrictEqual(bridge.outTargets("7001, 10.0.0.2:9000", "127.0.0.1"), [{ host: "127.0.0.1", port: 7001 }, { host: "10.0.0.2", port: 9000 }]);
+
   const server = bridge.start({
     wsPort: 0,
     oscIn: 0,
-    oscOut: outSock.address().port,
+    oscOut: `${outSock.address().port},127.0.0.1:${outSock2.address().port}`,
     handle: async (m) => B.handle(m),
     values: async () => B.values(),
   });
@@ -47,6 +54,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   assert.strictEqual(core.CurioAuto.m("c:angleHeight"), 0.25, "set over WebSocket steers the parameter");
   assert(msgs.some((m) => m.type === "value" && m.key === "c:angleHeight" && m.m === 0.25), "values stream to WebSocket clients");
   assert(received.some((m) => m.address === "/curio/value/c/angleHeight"), "values go out over OSC");
+  assert(received2.some((m) => m.address === "/curio/value/c/angleHeight"), "values go to the second OSC target too");
 
   /* OSC in */
   const sender = dgram.createSocket("udp4");
@@ -60,6 +68,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   ws.close();
   sender.close();
   outSock.close();
+  outSock2.close();
   clearInterval(ticker);
   await server.close();
   console.log("desktop bridge ok: OSC codec, WebSocket list/set/values, OSC set/trigger/values");

@@ -26,6 +26,24 @@ function addresses(appDir) {
 }
 
 const DEFAULTS = { host: "127.0.0.1", wsPort: 7577, oscIn: 7000, oscOutHost: "127.0.0.1", oscOut: 7001, rate: 30 };
+/* The ports can be changed with environment variables: CURIO_WS_PORT, CURIO_OSC_IN, CURIO_OSC_OUT (a list). */
+function fromEnv(env) {
+  const o = {};
+  if (env.CURIO_WS_PORT) o.wsPort = Number(env.CURIO_WS_PORT);
+  if (env.CURIO_OSC_IN) o.oscIn = Number(env.CURIO_OSC_IN);
+  if (env.CURIO_OSC_OUT) o.oscOut = env.CURIO_OSC_OUT;
+  return o;
+}
+
+function outTargets(spec, host) {
+  if (spec === false || spec == null || spec === "") return [];
+  const parts = Array.isArray(spec) ? spec : String(spec).split(",");
+  return parts
+    .map((p) => String(p).trim())
+    .filter(Boolean)
+    .map((p) => (p.includes(":") ? { host: p.slice(0, p.lastIndexOf(":")), port: Number(p.slice(p.lastIndexOf(":") + 1)) } : { host, port: Number(p) }))
+    .filter((t) => t.port > 0);
+}
 
 function start(options) {
   const o = Object.assign({}, DEFAULTS, options);
@@ -73,10 +91,15 @@ function start(options) {
       }
     });
     udp.on("error", (e) => log("bridge: OSC " + e.message));
-    if (o.oscIn !== false) udp.bind(o.oscIn, o.host, () => log(`bridge: OSC in on ${o.host}:${udp.address().port}, out to ${o.oscOutHost}:${o.oscOut}`));
+    if (o.oscIn !== false) udp.bind(o.oscIn, o.host, () => log(`bridge: OSC in on ${o.host}:${udp.address().port}`));
     else udp.bind(0, o.host);
     closers.push(() => new Promise((r) => udp.close(r)));
   }
+
+  /* Values out. UDP goes to one listener per port, so values can go to several: oscOut is a port, a list of
+     ports, or "host:port" text, comma-separated ("7001,7002", "127.0.0.1:7001,192.168.1.20:9000"). */
+  const targets = outTargets(o.oscOut, o.oscOutHost);
+  if (targets.length) log(`bridge: OSC values out to ${targets.map((t) => t.host + ":" + t.port).join(", ")}`);
 
   /* Values out */
   let last = "";
@@ -91,10 +114,11 @@ function start(options) {
     if (text === last) return;
     last = text;
     if (wss) list.forEach((v) => wss.clients.forEach((c) => c.readyState === 1 && c.send(JSON.stringify(v))));
-    if (udp && o.oscOut !== false)
+    if (udp && targets.length)
       for (const v of list) {
         const { address, args } = toOsc(v);
-        udp.send(osc.encode(address, args), o.oscOut, o.oscOutHost);
+        const packet = osc.encode(address, args);
+        targets.forEach((t) => udp.send(packet, t.port, t.host));
       }
   }, Math.round(1000 / o.rate));
   closers.push(() => clearInterval(timer));
@@ -106,13 +130,13 @@ function start(options) {
   };
 }
 
-module.exports = { start, addresses, DEFAULTS };
+module.exports = { start, addresses, outTargets, fromEnv, DEFAULTS };
 
 /* node bridge-server.js : the bridge on the core with no window. */
 if (require.main === module) {
   const core = require("../core/headless.js").load();
   setInterval(() => core.tick(), 1000 / 60);
   const B = core.CurioBridge;
-  start({ handle: async (m) => B.handle(m), values: async () => B.values(), log: console.log });
+  start(Object.assign(fromEnv(process.env), { handle: async (m) => B.handle(m), values: async () => B.values(), log: console.log }));
   console.log(`bridge: ${B.handle({ type: "list" }).params.length} parameters (headless core, no window)`);
 }
