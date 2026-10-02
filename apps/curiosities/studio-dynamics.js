@@ -11,7 +11,7 @@
   const W = 320;
   const H = 200;
   const FLOOR = 190;
-  const DEFAULTS = { cloth: "t-shirt", gravity: "real", drag: 1, wind: 1, windDir: 0, gusts: false, turb: 1, mode: "dust", rate: 20, life: 3, size: 2, hit: 120, strength: 260, camera: "locked" };
+  const DEFAULTS = { cloth: "t-shirt", gravity: "real", drag: 1, wind: 1, windDir: 0, gusts: false, turb: 1, mode: "dust", rate: 20, life: 3, size: 2, hit: 120, strength: 260, camera: "locked", figure: true, tear: 1.6 };
   const CLOTHS = {
     "heavy denim": { mass: 2.2, iter: 8, bend: 0.5, resp: 0.5, damp: 0.985, word: "stiff" },
     "t-shirt": { mass: 1, iter: 5, bend: 0.15, resp: 1, damp: 0.99, word: "loose" },
@@ -39,7 +39,7 @@
 
   function newSim() {
     const cols = 12;
-    const rows = 10;
+    const rows = 14;
     const sp = 8;
     const x0 = 210;
     const y0 = 14;
@@ -81,6 +81,42 @@
     };
   }
 
+  /* A standing person as collision circles: head, chest, belly, hips, two legs. */
+  const FIGURE = [
+    [254, 92, 10],
+    [254, 117, 15],
+    [254, 140, 13],
+    [254, 158, 11],
+    [247, 177, 7],
+    [261, 177, 7],
+  ];
+
+  function collideFigure(o, r, bounce) {
+    if (!s.figure) return false;
+    let hit = false;
+    FIGURE.forEach(([cx, cy, cr]) => {
+      const dx = o.x - cx;
+      const dy = o.y - cy;
+      const d = Math.hypot(dx, dy);
+      const min = cr + r;
+      if (d < min && d > 0.0001) {
+        const nx = dx / d;
+        const ny = dy / d;
+        o.x = cx + nx * min;
+        o.y = cy + ny * min;
+        if (bounce && o.vx != null) {
+          const vn = o.vx * nx + o.vy * ny;
+          if (vn < 0) {
+            o.vx -= (1 + bounce) * vn * nx;
+            o.vy -= (1 + bounce) * vn * ny;
+          }
+        }
+        hit = true;
+      }
+    });
+    return hit;
+  }
+
   function noise(x, y, t) {
     return (Math.sin(x * 0.05 + t * 1.7) + Math.sin(y * 0.07 - t * 2.3) + Math.sin((x + y) * 0.03 + t * 0.9)) / 3;
   }
@@ -89,8 +125,14 @@
     const a = (s.windDir * Math.PI) / 180;
     const w = (s.wind * (1 + sim.gust * 1.5) + sim.gust * 3) * 40;
     const tu = s.turb * 45;
+    let door = 0;
+    if (sim.door) {
+      const age = t - sim.door.t;
+      const front = age * 700;
+      if (age < 1.2 && x < front) door = 3000 * Math.exp(-age * 1.8) * Math.max(0, 1 - (front - x) / 320);
+    }
     return {
-      x: (Math.cos(a) * w + tu * noise(x, y, t)) * resp,
+      x: (Math.cos(a) * w + tu * noise(x, y, t) + door) * resp,
       y: (Math.sin(a) * w + tu * noise(y + 40, x - 20, t * 1.3)) * resp,
     };
   }
@@ -106,6 +148,13 @@
     sim.gust = 1;
     sim.gusts.push({ t: sim.t, base: clothSpeed(), peak: 0 });
     if (sim.gusts.length > 20) sim.gusts.shift();
+  }
+
+  function doorSlam() {
+    sim.door = { t: sim.t };
+    sim.gusts.push({ t: sim.t, base: clothSpeed(), peak: 0, kind: "door" });
+    if (sim.gusts.length > 20) sim.gusts.shift();
+    registerHit(s.hit + 1, 4, 120);
   }
 
   function clothSpeed() {
@@ -168,11 +217,29 @@
       q.y += vy + (g + f.y) * dt * dt;
       if (q.y > FLOOR) q.y = FLOOR;
     });
+    /* nCloth tearing, measured on the strain before the solver pulls links back: a link stretched past the ratio breaks. 1.6 means it never tears; the first half second lets the cloth settle onto the figure. */
+    if (s.tear < 1.6 && t > 0.5) {
+      const before = sim.cloth.links.length;
+      sim.cloth.links = sim.cloth.links.filter((l) => Math.hypot(pts[l[0]].x - pts[l[1]].x, pts[l[0]].y - pts[l[1]].y) <= l[2] * s.tear);
+      const torn = before - sim.cloth.links.length;
+      if (torn) {
+        const gone = new Set();
+        sim.cloth.links.forEach((l) => (gone.add(l[0]), gone.add(l[1])));
+        sim.cloth.bends = sim.cloth.bends.filter((b) => gone.has(b[0]) && gone.has(b[1]) && Math.hypot(pts[b[0]].x - pts[b[1]].x, pts[b[0]].y - pts[b[1]].y) <= b[2] * s.tear);
+        sim.torn = (sim.torn || 0) + torn;
+        const recent = sim.breaks.filter((b) => b.cloth && t - b.t < 1).reduce((a, b) => a + b.n, 0) + torn;
+        sim.breaks.push({ t, word: recent >= 12 ? "shatters" : "cracks", cloth: true, n: torn });
+        if (sim.breaks.length > 200) sim.breaks.shift();
+      }
+    }
+
     for (let k = 0; k < cp.iter; k++) {
       sim.cloth.links.forEach((l) => solve(pts[l[0]], pts[l[1]], l[2], 1));
       if (cp.bend > 0) sim.cloth.bends.forEach((l) => solve(pts[l[0]], pts[l[1]], l[2], cp.bend));
+      pts.forEach((q) => {
+        if (!q.pin) collideFigure(q, 1.5, 0);
+      });
     }
-
     /* Rigid boxes. */
     const boxes = sim.boxes;
     const born = [];
@@ -211,6 +278,18 @@
         b.vx = -Math.abs(b.vx) * 0.5;
       }
     });
+    if (s.figure)
+      boxes.forEach((b) => {
+        const c = { x: b.x + b.w / 2, y: b.y + b.h / 2, vx: b.vx, vy: b.vy };
+        const v0 = Math.hypot(b.vx, b.vy);
+        if (collideFigure(c, Math.min(b.w, b.h) / 2, 0.3)) {
+          b.x = c.x - b.w / 2;
+          b.y = c.y - b.h / 2;
+          b.vx = c.vx;
+          b.vy = c.vy;
+          registerHit(v0 - Math.hypot(c.vx, c.vy) + v0 * 0.3, c.x, c.y);
+        }
+      });
     for (let i = 0; i < boxes.length; i++)
       for (let j = i + 1; j < boxes.length; j++) {
         const a = boxes[i];
@@ -280,6 +359,7 @@
       p.vy *= 1 - Math.min(0.5, (m[2] + drag) * dt * 4);
       p.x += p.vx * dt;
       p.y += p.vy * dt;
+      collideFigure(p, p.size / 2, p.mode === "rain" ? 0.1 : 0.5);
       if (p.y > FLOOR) {
         if (p.mode === "dust" || p.mode === "confetti") {
           p.y = FLOOR;
@@ -388,12 +468,13 @@
     const hitBeats = sim.beats.filter((b) => b.impacts > 0);
     if (!hitBeats.length && !m.impacts) out.push(["When an impact, the camera goes handheld (0 beats)", null, "no impact yet: drop an object"]);
     else out.push(["When an impact, the camera goes handheld (0 beats)", cameraFor(1) === "handheld", `camera is ${cameraFor(1)} on a hit`]);
-    /* 2. When a gust hits, cloth reacts (within 1 beat). */
+    /* 2. When a door opens fast or a gust hits, cloth (and hair) react (within 1 beat). */
     const gu = sim.gusts.filter((g) => sim.t - g.t >= 1).pop();
-    if (!gu) out.push(["When a gust hits, cloth reacts (1 beat)", null, "no gust yet: press Gust"]);
+    const P2 = "When a door opens fast or a gust hits, cloth and hair react (1 beat)";
+    if (!gu) out.push([P2, null, "no gust or door yet: press Gust or Door slams"]);
     else {
       const ok = gu.peak > gu.base * 1.4 + 6;
-      out.push(["When a gust hits, cloth reacts (1 beat)", ok, `cloth speed ${gu.base.toFixed(0)} → ${gu.peak.toFixed(0)} px/s`]);
+      out.push([P2, ok, `${gu.kind === "door" ? "door" : "gust"}: cloth speed ${gu.base.toFixed(0)} → ${gu.peak.toFixed(0)} px/s`]);
     }
     /* 3. When breakage shatters, silence follows (within 2 beats). */
     const sh = sim.breaks.filter((b) => b.word === "shatters" && sim.t - b.t >= 2).pop();
@@ -423,7 +504,7 @@
 .dyn-root { min-width: 0; max-width: 100%; }
 .dyn-root .studio-grid > * { min-width: 0; }
 .dyn-root canvas { width: 100%; height: auto; display: block; border: 2px solid var(--ink); background: #fff; }
-.dyn-root canvas.dyn-energy { border-width: 1px; margin-top: 6px; }
+.dyn-root canvas.dyn-energy { border-width: 1px; margin-top: 6px; height: 60px; box-sizing: border-box; }
 .dyn-root .bar-actions { margin: 8px 0; }
 .dyn-root .bar-actions button.on { background: var(--ink); color: var(--paper); }
 .dyn-prox { list-style: none; padding: 0; margin: 6px 0; font-size: 13px; }
@@ -450,6 +531,29 @@
       ctx.moveTo(14, 14);
       ctx.lineTo(14 + Math.cos(a) * len, 14 + Math.sin(a) * len);
       ctx.stroke();
+    }
+    if (s.figure) {
+      ctx.fillStyle = "rgba(28,23,18,0.18)";
+      FIGURE.forEach(([cx, cy, cr]) => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+    const doorAge = sim.door ? sim.t - sim.door.t : 9;
+    const swing = doorAge < 0.5 ? Math.sin((doorAge / 0.5) * Math.PI) : 0;
+    ctx.fillStyle = "#8a6a3a";
+    ctx.fillRect(0, FLOOR - 70, 4 + swing * 22, 70);
+    if (doorAge < 0.8) {
+      ctx.strokeStyle = `rgba(63,110,140,${0.8 - doorAge})`;
+      ctx.lineWidth = 1;
+      for (let k = 0; k < 4; k++) {
+        const x = doorAge * 700 - k * 18;
+        ctx.beginPath();
+        ctx.moveTo(x, FLOOR - 80 + k * 14);
+        ctx.lineTo(x - 30, FLOOR - 80 + k * 14);
+        ctx.stroke();
+      }
     }
     /* cloth */
     const c = sim.cloth;
@@ -501,6 +605,15 @@
   }
 
   function paintEnergy(ctx, w, h) {
+    const cv = ctx.canvas;
+    const dpr = window.devicePixelRatio || 1;
+    w = Math.max(100, Math.round(cv.clientWidth || w));
+    h = Math.max(20, Math.round(cv.clientHeight || h));
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr);
+      cv.height = Math.round(h * dpr);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, w, h);
     const e = sim.energy;
@@ -526,9 +639,7 @@
     sim.hits.forEach((x) => {
       if (x.t >= t0) ctx.fillRect(((x.t - t0) / span) * w, 0, 1, 6);
     });
-    ctx.fillStyle = "#1c1712";
-    ctx.font = "9px monospace";
-    ctx.fillText("energy: bodies (orange), cloth (blue), ticks = impacts", 4, h - 3);
+
   }
 
   function chipsHtml(m) {
@@ -573,6 +684,8 @@
         ${rng("size", "Size", 1, 5)}
         ${rng("hit", "Impact threshold (px/s)", 40, 300, 10)}
         ${rng("strength", "Breaks above (px/s)", 80, 600, 10)}
+        ${rng("tear", "Cloth tears above (stretch ×, 1.6 = never)", 1.05, 1.6, 0.05)}
+        <label class="field"><span><input type="checkbox" data-k="figure" ${s.figure ? "checked" : ""}> Person under the cloth (collider)</span></label>
         ${sel("camera", "Camera", CAMERAS)}
       </div>
       <div>
@@ -580,11 +693,13 @@
         <div class="bar-actions">
           <button type="button" data-act="drop">Drop object</button>
           <button type="button" data-act="gust">Gust</button>
+          <button type="button" data-act="door">Door slams</button>
           <button type="button" data-act="play">${paused ? "Play" : "Pause"}</button>
           <button type="button" data-act="slow" class="${slow ? "on" : ""}">Slow motion 0.25x</button>
           <button type="button" data-act="reset">Reset</button>
         </div>
         <canvas width="${W}" height="60" class="dyn-energy" id="dyn-energy" aria-label="Energy over time"></canvas>
+        <p class="cap">Energy: bodies in orange, cloth in blue; ticks along the top are impacts.</p>
         <p class="cap" id="dyn-meter"></p>
         <p class="group-label">Curiosities this sim produces</p>
         <p id="dyn-chips"></p>
@@ -622,6 +737,7 @@
     const act = (name, fn) => el.querySelector(`[data-act="${name}"]`).addEventListener("click", fn);
     act("drop", () => dropBox());
     act("gust", gust);
+    act("door", doorSlam);
     act("play", (e) => {
       paused = !paused;
       e.target.textContent = paused ? "Play" : "Pause";
@@ -676,7 +792,7 @@
         paintEnergy(ectx, W, 60);
         el.querySelector("#dyn-chips").innerHTML = chipsHtml(m);
         el.querySelector("#dyn-prox").innerHTML = proxHtml(m);
-        el.querySelector("#dyn-meter").textContent = `Impacts in the last beats: ${sim.beats.slice(-4).map((b) => b.impacts).join(" · ") || "—"} · settle ${m.settleSec.toFixed(2)} s · ${sim.boxes.length} bodies · ${sim.parts.length} particles`;
+        el.querySelector("#dyn-meter").textContent = `Impacts in the last beats: ${sim.beats.slice(-4).map((b) => b.impacts).join(" · ") || "—"} · settle ${m.settleSec.toFixed(2)} s · ${sim.boxes.length} bodies · ${sim.torn || 0} cloth links torn · ${sim.parts.length} particles`;
       }
       raf = requestAnimationFrame(tick);
     }
