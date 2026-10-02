@@ -198,6 +198,12 @@ const ok = (cond, msg) => {
   await page.click('[data-act="close"]');
   const reach = await page.evaluate(() => [...document.querySelectorAll(".tabs-top > *")].filter((el) => el.offsetParent !== null).map((el) => { const r = el.getBoundingClientRect(); return { id: el.id || el.className || el.textContent.trim().slice(0, 12), right: r.right }; }));
   ok(reach.every((x) => x.right <= 390), "on a phone every button in the bar's top row fits, Library included (" + reach.map((x) => x.id + ":" + Math.round(x.right)).join(", ") + ")");
+  for (const w of [360, 320]) {
+    await page.setViewportSize({ width: w, height: 900 });
+    const over = await page.evaluate(() => { const t = document.querySelector(".tabs-top"); return Math.max(t.scrollWidth - t.clientWidth, ...[...t.children].filter((e) => e.offsetParent).map((e) => e.getBoundingClientRect().right - t.getBoundingClientRect().right)); });
+    ok(over <= 0.5, `at ${w}px the bar's top row fits (${Math.round(over)}px over)`);
+  }
+  await page.setViewportSize({ width: 390, height: 900 });
   await page.click("#lib-btn");
   await page.click('#lib-menu [data-screen="screen"]');
   ok(await page.evaluate(() => window.CurioScreen.isOpen()), "on a phone the Library opens the Screen");

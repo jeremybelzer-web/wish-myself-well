@@ -149,3 +149,10 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 }
 .sc-page .sc-wins { font-size: 11px; padding: 0 6px; border-width: 1px; margin-left: 4px; }
 @media (max-width: 600px) { .tabs-top .sc-open-btn { display: none; } }
+/* Narrow phones (360px and below): the bar's top row must fit with Library on screen. The workspace picker
+   gives up its width first (its name ends in "…"), and the buttons pad a little less. */
+@media (max-width: 400px) {
+  .tabs .tabs-top { gap: 4px; }
+  .tabs .tabs-top .ws-pick { flex: 1 1 0; }
+  .tabs .tabs-top > button, .tabs .tabs-top .lib > button { padding: 6px 5px; letter-spacing: 0.02em; }
+}
