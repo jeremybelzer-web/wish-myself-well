@@ -2097,7 +2097,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "TRANSITIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 1 to 7\n   1 Transition style\n   2 Clip animation\n   3 Fade in and out\n   4 suite: Classic and gentle\n   5 pair: When cutting gets fast, transitions become plain cuts\n   6 pair: When the feeling turns dreamlike, shots dissolve\n   7 pair: When the pace speeds up then stops, the scene fades out"
+    "text": "TRANSITIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 1 to 10\n   1 Transition style\n   2 Clip animation\n   3 Fade in and out\n   4 Transition family\n   5 Intro and outro effect\n   6 suite: Classic and gentle\n   7 pair: When cutting gets fast, transitions become plain cuts\n   8 pair: When the feeling turns dreamlike, shots dissolve\n   9 pair: When the pace speeds up then stops, the scene fades out\n  10 pair: When the pace races then stops, an outro effect closes it"
    },
    "pos": [
     0,
@@ -2117,9 +2117,9 @@
      5,
      6,
      7,
-     -1,
-     -1,
-     -1,
+     8,
+     9,
+     10,
      -1,
      -1,
      -1,
@@ -2141,7 +2141,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "FILTERS & ADJUSTMENTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 17 to 23\n   1 Filter\n   2 Exposure\n   3 Warmth and tint\n   4 Film texture\n   5 Shot matching\n   6 suite: Dream sequence\n   7 suite: Silent film"
+    "text": "FILTERS & ADJUSTMENTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 17 to 25\n   1 Filter\n   2 Exposure\n   3 Warmth and tint\n   4 Film texture\n   5 Shot matching\n   6 Texture effect\n   7 suite: Dream sequence\n   8 suite: Silent film\n   9 suite: Zine scrapbook"
    },
    "pos": [
     0,
@@ -2161,8 +2161,8 @@
      21,
      22,
      23,
-     -1,
-     -1,
+     24,
+     25,
      -1,
      -1,
      -1,
@@ -2185,7 +2185,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 33 to 39\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 suite: Comedy punch\n   6 pair: When the picture freezes, a title appears\n   7 pairs: Words that point"
+    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 33 to 44\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 suite: Comedy punch\n   7 suite: Reaction comedy\n   8 pair: When the picture freezes, a title appears\n   9 pair: When the joke pays off, a mood pops onto a face\n  10 pair: When someone gets angry, steam pops onto their face\n  11 pairs: Words that point\n  12 pairs: Phone comedy reactions"
    },
    "pos": [
     0,
@@ -2205,11 +2205,11 @@
      37,
      38,
      39,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
+     40,
+     41,
+     42,
+     43,
+     44,
      -1,
      -1,
      -1,
@@ -2317,7 +2317,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "LAYERS, MASKS & EFFECTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 81 to 89\n   1 Overlay\n   2 Blend mode\n   3 Cutout and green screen\n   4 Mask\n   5 Tracking\n   6 Video effect\n   7 suite: Documentary\n   8 pair: When impacts rise, the picture flashes\n   9 pair: When text labels something, it follows it"
+    "text": "LAYERS, MASKS & EFFECTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 81 to 96\n   1 Overlay\n   2 Blend mode\n   3 Cutout and green screen\n   4 Mask\n   5 Tracking\n   6 Video effect\n   7 Effect family\n   8 Copies of the picture\n   9 Light effect\n  10 Body effect\n  11 suite: Documentary\n  12 suite: Heavenly light\n  13 suite: Party edit\n  14 pair: When impacts rise, the picture flashes\n  15 pair: When text labels something, it follows it\n  16 pair: When the feeling turns dreamlike, light blooms\nCV-CC 2: MIDI channel 9, CC 97 to 97\n   1 pair: When the music is featured, the effects pulse on the beat"
    },
    "pos": [
     0,
@@ -2339,13 +2339,13 @@
      87,
      88,
      89,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
     ],
     "midi": {
      "channel": 8
@@ -2359,28 +2359,16 @@
   {
    "id": 94,
    "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "FRAME & CANVAS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 97 to 103\n   1 Punch-in and reframe\n   2 Mirror and rotate\n   3 Steadying\n   4 Canvas edges\n   5 pair: When the joke pays off, the editor punches in\n   6 pair: When the camera goes handheld, the shake is left in\n   7 pairs: The editor tells the joke"
-   },
-   "pos": [
-    0,
-    31
-   ]
-  },
-  {
-   "id": 95,
-   "plugin": "Core",
    "model": "CV-CC",
    "data": {
     "ccs": [
      97,
-     98,
-     99,
-     100,
-     101,
-     102,
-     103,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -2393,6 +2381,50 @@
     ],
     "midi": {
      "channel": 8
+    }
+   },
+   "pos": [
+    23,
+    30
+   ]
+  },
+  {
+   "id": 95,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "FRAME & CANVAS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 10, CC 1 to 9\n   1 Punch-in and reframe\n   2 Mirror and rotate\n   3 Steadying\n   4 Canvas edges\n   5 Fake camera move\n   6 pair: When the joke pays off, the editor punches in\n   7 pair: When the camera goes handheld, the shake is left in\n   8 pair: When impacts rise, the editor slam zooms\n   9 pairs: The editor tells the joke"
+   },
+   "pos": [
+    0,
+    31
+   ]
+  },
+  {
+   "id": 96,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 9
     }
    },
    "pos": [

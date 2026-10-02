@@ -2,12 +2,12 @@
  "made": "vcv/tools/make-vcv.js from the curiosity database",
  "counts": {
   "workspaces": 32,
-  "curiosities": 367,
-  "suites": 195,
-  "proximities": 164,
-  "proximitySuites": 47,
+  "curiosities": 376,
+  "suites": 199,
+  "proximities": 170,
+  "proximitySuites": 48,
   "scenes": 8,
-  "sliders": 5183
+  "sliders": 5306
  },
  "focus": {
   "channel": 16,
@@ -7202,44 +7202,74 @@
    "jack": 3
   },
   {
-   "key": "s:classic-dissolve",
+   "key": "c:transitionFamily",
    "channel": 9,
    "cc": 4,
-   "label": "Classic and gentle",
-   "level": "suite",
+   "label": "Transition family",
+   "level": "curiosity",
    "workspace": "transitions",
    "module": 57,
    "jack": 4
   },
   {
-   "key": "p:fast-cuts-plain",
+   "key": "c:introOutro",
    "channel": 9,
    "cc": 5,
-   "label": "When cutting gets fast, transitions become plain cuts",
-   "level": "proximity",
+   "label": "Intro and outro effect",
+   "level": "curiosity",
    "workspace": "transitions",
    "module": 57,
    "jack": 5
   },
   {
-   "key": "p:dream-dissolve",
+   "key": "s:classic-dissolve",
    "channel": 9,
    "cc": 6,
-   "label": "When the feeling turns dreamlike, shots dissolve",
-   "level": "proximity",
+   "label": "Classic and gentle",
+   "level": "suite",
    "workspace": "transitions",
    "module": 57,
    "jack": 6
   },
   {
-   "key": "p:stop-fade-out",
+   "key": "p:fast-cuts-plain",
    "channel": 9,
    "cc": 7,
-   "label": "When the pace speeds up then stops, the scene fades out",
+   "label": "When cutting gets fast, transitions become plain cuts",
    "level": "proximity",
    "workspace": "transitions",
    "module": 57,
    "jack": 7
+  },
+  {
+   "key": "p:dream-dissolve",
+   "channel": 9,
+   "cc": 8,
+   "label": "When the feeling turns dreamlike, shots dissolve",
+   "level": "proximity",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 8
+  },
+  {
+   "key": "p:stop-fade-out",
+   "channel": 9,
+   "cc": 9,
+   "label": "When the pace speeds up then stops, the scene fades out",
+   "level": "proximity",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 9
+  },
+  {
+   "key": "p:scene-end-outro",
+   "channel": 9,
+   "cc": 10,
+   "label": "When the pace races then stops, an outro effect closes it",
+   "level": "proximity",
+   "workspace": "transitions",
+   "module": 57,
+   "jack": 10
   },
   {
    "key": "c:filterLook",
@@ -7292,24 +7322,44 @@
    "jack": 5
   },
   {
-   "key": "s:dream-edit",
+   "key": "c:textureEffect",
    "channel": 9,
    "cc": 22,
-   "label": "Dream sequence",
-   "level": "suite",
+   "label": "Texture effect",
+   "level": "curiosity",
    "workspace": "grade",
    "module": 58,
    "jack": 6
   },
   {
-   "key": "s:silent-film-edit",
+   "key": "s:dream-edit",
    "channel": 9,
    "cc": 23,
-   "label": "Silent film",
+   "label": "Dream sequence",
    "level": "suite",
    "workspace": "grade",
    "module": 58,
    "jack": 7
+  },
+  {
+   "key": "s:silent-film-edit",
+   "channel": 9,
+   "cc": 24,
+   "label": "Silent film",
+   "level": "suite",
+   "workspace": "grade",
+   "module": 58,
+   "jack": 8
+  },
+  {
+   "key": "s:zine-scrapbook",
+   "channel": 9,
+   "cc": 25,
+   "label": "Zine scrapbook",
+   "level": "suite",
+   "workspace": "grade",
+   "module": 58,
+   "jack": 9
   },
   {
    "key": "c:onScreenText",
@@ -7352,34 +7402,84 @@
    "jack": 4
   },
   {
-   "key": "s:comedy-punch-edit",
+   "key": "c:moodEffect",
    "channel": 9,
    "cc": 37,
-   "label": "Comedy punch",
-   "level": "suite",
+   "label": "Mood sticker on a face",
+   "level": "curiosity",
    "workspace": "titles",
    "module": 59,
    "jack": 5
   },
   {
-   "key": "p:freeze-title",
+   "key": "s:comedy-punch-edit",
    "channel": 9,
    "cc": 38,
-   "label": "When the picture freezes, a title appears",
-   "level": "proximity",
+   "label": "Comedy punch",
+   "level": "suite",
    "workspace": "titles",
    "module": 59,
    "jack": 6
   },
   {
-   "key": "ps:words-on-screen",
+   "key": "s:reaction-comedy-edit",
    "channel": 9,
    "cc": 39,
+   "label": "Reaction comedy",
+   "level": "suite",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 7
+  },
+  {
+   "key": "p:freeze-title",
+   "channel": 9,
+   "cc": 40,
+   "label": "When the picture freezes, a title appears",
+   "level": "proximity",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 8
+  },
+  {
+   "key": "p:payoff-mood-face",
+   "channel": 9,
+   "cc": 41,
+   "label": "When the joke pays off, a mood pops onto a face",
+   "level": "proximity",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 9
+  },
+  {
+   "key": "p:angry-steam",
+   "channel": 9,
+   "cc": 42,
+   "label": "When someone gets angry, steam pops onto their face",
+   "level": "proximity",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 10
+  },
+  {
+   "key": "ps:words-on-screen",
+   "channel": 9,
+   "cc": 43,
    "label": "Words that point",
    "level": "proximitySuite",
    "workspace": "titles",
    "module": 59,
-   "jack": 7
+   "jack": 11
+  },
+  {
+   "key": "ps:phone-comedy-reactions",
+   "channel": 9,
+   "cc": 44,
+   "label": "Phone comedy reactions",
+   "level": "proximitySuite",
+   "workspace": "titles",
+   "module": 59,
+   "jack": 12
   },
   {
    "key": "c:clipSpeed",
@@ -7662,104 +7762,204 @@
    "jack": 6
   },
   {
-   "key": "s:documentary-edit",
+   "key": "c:videoEffectFamily",
    "channel": 9,
    "cc": 87,
-   "label": "Documentary",
-   "level": "suite",
+   "label": "Effect family",
+   "level": "curiosity",
    "workspace": "layers",
    "module": 62,
    "jack": 7
   },
   {
-   "key": "p:impact-flash",
+   "key": "c:multiplyEffect",
    "channel": 9,
    "cc": 88,
-   "label": "When impacts rise, the picture flashes",
-   "level": "proximity",
+   "label": "Copies of the picture",
+   "level": "curiosity",
    "workspace": "layers",
    "module": 62,
    "jack": 8
   },
   {
-   "key": "p:sign-tracks",
+   "key": "c:lightEffect",
    "channel": 9,
    "cc": 89,
-   "label": "When text labels something, it follows it",
-   "level": "proximity",
+   "label": "Light effect",
+   "level": "curiosity",
    "workspace": "layers",
    "module": 62,
    "jack": 9
   },
   {
-   "key": "c:reframe",
+   "key": "c:bodyEffect",
+   "channel": 9,
+   "cc": 90,
+   "label": "Body effect",
+   "level": "curiosity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 10
+  },
+  {
+   "key": "s:documentary-edit",
+   "channel": 9,
+   "cc": 91,
+   "label": "Documentary",
+   "level": "suite",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 11
+  },
+  {
+   "key": "s:heavenly-light",
+   "channel": 9,
+   "cc": 92,
+   "label": "Heavenly light",
+   "level": "suite",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 12
+  },
+  {
+   "key": "s:party-edit",
+   "channel": 9,
+   "cc": 93,
+   "label": "Party edit",
+   "level": "suite",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 13
+  },
+  {
+   "key": "p:impact-flash",
+   "channel": 9,
+   "cc": 94,
+   "label": "When impacts rise, the picture flashes",
+   "level": "proximity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 14
+  },
+  {
+   "key": "p:sign-tracks",
+   "channel": 9,
+   "cc": 95,
+   "label": "When text labels something, it follows it",
+   "level": "proximity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 15
+  },
+  {
+   "key": "p:dreamlike-halo",
+   "channel": 9,
+   "cc": 96,
+   "label": "When the feeling turns dreamlike, light blooms",
+   "level": "proximity",
+   "workspace": "layers",
+   "module": 62,
+   "jack": 16
+  },
+  {
+   "key": "p:featured-music-pulse",
    "channel": 9,
    "cc": 97,
-   "label": "Punch-in and reframe",
-   "level": "curiosity",
-   "workspace": "canvas",
+   "label": "When the music is featured, the effects pulse on the beat",
+   "level": "proximity",
+   "workspace": "layers",
    "module": 63,
    "jack": 1
   },
   {
+   "key": "c:reframe",
+   "channel": 10,
+   "cc": 1,
+   "label": "Punch-in and reframe",
+   "level": "curiosity",
+   "workspace": "canvas",
+   "module": 64,
+   "jack": 1
+  },
+  {
    "key": "c:imageTransform",
-   "channel": 9,
-   "cc": 98,
+   "channel": 10,
+   "cc": 2,
    "label": "Mirror and rotate",
    "level": "curiosity",
    "workspace": "canvas",
-   "module": 63,
+   "module": 64,
    "jack": 2
   },
   {
    "key": "c:stabilization",
-   "channel": 9,
-   "cc": 99,
+   "channel": 10,
+   "cc": 3,
    "label": "Steadying",
    "level": "curiosity",
    "workspace": "canvas",
-   "module": 63,
+   "module": 64,
    "jack": 3
   },
   {
    "key": "c:canvasFill",
-   "channel": 9,
-   "cc": 100,
+   "channel": 10,
+   "cc": 4,
    "label": "Canvas edges",
    "level": "curiosity",
    "workspace": "canvas",
-   "module": 63,
+   "module": 64,
    "jack": 4
   },
   {
-   "key": "p:payoff-punch-in",
-   "channel": 9,
-   "cc": 101,
-   "label": "When the joke pays off, the editor punches in",
-   "level": "proximity",
+   "key": "c:cameraEffect",
+   "channel": 10,
+   "cc": 5,
+   "label": "Fake camera move",
+   "level": "curiosity",
    "workspace": "canvas",
-   "module": 63,
+   "module": 64,
    "jack": 5
   },
   {
-   "key": "p:handheld-steady-off",
-   "channel": 9,
-   "cc": 102,
-   "label": "When the camera goes handheld, the shake is left in",
+   "key": "p:payoff-punch-in",
+   "channel": 10,
+   "cc": 6,
+   "label": "When the joke pays off, the editor punches in",
    "level": "proximity",
    "workspace": "canvas",
-   "module": 63,
+   "module": 64,
    "jack": 6
   },
   {
+   "key": "p:handheld-steady-off",
+   "channel": 10,
+   "cc": 7,
+   "label": "When the camera goes handheld, the shake is left in",
+   "level": "proximity",
+   "workspace": "canvas",
+   "module": 64,
+   "jack": 7
+  },
+  {
+   "key": "p:impact-slam-zoom",
+   "channel": 10,
+   "cc": 8,
+   "label": "When impacts rise, the editor slam zooms",
+   "level": "proximity",
+   "workspace": "canvas",
+   "module": 64,
+   "jack": 8
+  },
+  {
    "key": "ps:editor-jokes",
-   "channel": 9,
-   "cc": 103,
+   "channel": 10,
+   "cc": 9,
    "label": "The editor tells the joke",
    "level": "proximitySuite",
    "workspace": "canvas",
-   "module": 63,
-   "jack": 7
+   "module": 64,
+   "jack": 9
   }
  ]
 }

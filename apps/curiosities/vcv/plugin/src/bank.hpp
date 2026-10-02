@@ -16,7 +16,7 @@ struct CurioBank {
   CurioJack jacks[16];
 };
 
-static const int CURIO_BANK_COUNT = 63;
+static const int CURIO_BANK_COUNT = 64;
 static const int CURIO_FOCUS_CHANNEL = 16;
 
 static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
@@ -846,32 +846,42 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 98, 2, "When a scene ends, the gutter widens", "p:quiet-wide-gutter" },
     { 99, 3, "The page breathes with the story", "ps:page-breathes" },
   } },
-  { "Curio-transitions", "Transitions", 9, 7, {
+  { "Curio-transitions", "Transitions", 9, 10, {
     { 1, 0, "Transition style", "c:transitionKind" },
     { 2, 0, "Clip animation", "c:clipAnimation" },
     { 3, 0, "Fade in and out", "c:fadeEdge" },
-    { 4, 1, "Classic and gentle", "s:classic-dissolve" },
-    { 5, 2, "When cutting gets fast, transitions become plain cuts", "p:fast-cuts-plain" },
-    { 6, 2, "When the feeling turns dreamlike, shots dissolve", "p:dream-dissolve" },
-    { 7, 2, "When the pace speeds up then stops, the scene fades out", "p:stop-fade-out" },
+    { 4, 0, "Transition family", "c:transitionFamily" },
+    { 5, 0, "Intro and outro effect", "c:introOutro" },
+    { 6, 1, "Classic and gentle", "s:classic-dissolve" },
+    { 7, 2, "When cutting gets fast, transitions become plain cuts", "p:fast-cuts-plain" },
+    { 8, 2, "When the feeling turns dreamlike, shots dissolve", "p:dream-dissolve" },
+    { 9, 2, "When the pace speeds up then stops, the scene fades out", "p:stop-fade-out" },
+    { 10, 2, "When the pace races then stops, an outro effect closes it", "p:scene-end-outro" },
   } },
-  { "Curio-grade", "Filters & adjustments", 9, 7, {
+  { "Curio-grade", "Filters & adjustments", 9, 9, {
     { 17, 0, "Filter", "c:filterLook" },
     { 18, 0, "Exposure", "c:exposure" },
     { 19, 0, "Warmth and tint", "c:whiteBalance" },
     { 20, 0, "Film texture", "c:texture" },
     { 21, 0, "Shot matching", "c:colorMatch" },
-    { 22, 1, "Dream sequence", "s:dream-edit" },
-    { 23, 1, "Silent film", "s:silent-film-edit" },
+    { 22, 0, "Texture effect", "c:textureEffect" },
+    { 23, 1, "Dream sequence", "s:dream-edit" },
+    { 24, 1, "Silent film", "s:silent-film-edit" },
+    { 25, 1, "Zine scrapbook", "s:zine-scrapbook" },
   } },
-  { "Curio-titles", "Text & captions", 9, 7, {
+  { "Curio-titles", "Text & captions", 9, 12, {
     { 33, 0, "On-screen text", "c:onScreenText" },
     { 34, 0, "Captions", "c:captions" },
     { 35, 0, "Text style", "c:textStyle" },
     { 36, 0, "Stickers and emoji", "c:stickers" },
-    { 37, 1, "Comedy punch", "s:comedy-punch-edit" },
-    { 38, 2, "When the picture freezes, a title appears", "p:freeze-title" },
-    { 39, 3, "Words that point", "ps:words-on-screen" },
+    { 37, 0, "Mood sticker on a face", "c:moodEffect" },
+    { 38, 1, "Comedy punch", "s:comedy-punch-edit" },
+    { 39, 1, "Reaction comedy", "s:reaction-comedy-edit" },
+    { 40, 2, "When the picture freezes, a title appears", "p:freeze-title" },
+    { 41, 2, "When the joke pays off, a mood pops onto a face", "p:payoff-mood-face" },
+    { 42, 2, "When someone gets angry, steam pops onto their face", "p:angry-steam" },
+    { 43, 3, "Words that point", "ps:words-on-screen" },
+    { 44, 3, "Phone comedy reactions", "ps:phone-comedy-reactions" },
   } },
   { "Curio-speed", "Speed & timing", 9, 12, {
     { 49, 0, "Clip speed", "c:clipSpeed" },
@@ -899,24 +909,36 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 73, 2, "When the clip rewinds, a sound hit plays", "p:rewind-sound" },
     { 74, 2, "When a cutaway covers the talking, the music sits under", "p:cutaway-music-under" },
   } },
-  { "Curio-layers", "Layers, masks & effects", 9, 9, {
+  { "Curio-layers-1", "Layers, masks & effects 1", 9, 16, {
     { 81, 0, "Overlay", "c:overlay" },
     { 82, 0, "Blend mode", "c:blendMode" },
     { 83, 0, "Cutout and green screen", "c:cutout" },
     { 84, 0, "Mask", "c:maskShape" },
     { 85, 0, "Tracking", "c:tracking" },
     { 86, 0, "Video effect", "c:videoEffect" },
-    { 87, 1, "Documentary", "s:documentary-edit" },
-    { 88, 2, "When impacts rise, the picture flashes", "p:impact-flash" },
-    { 89, 2, "When text labels something, it follows it", "p:sign-tracks" },
+    { 87, 0, "Effect family", "c:videoEffectFamily" },
+    { 88, 0, "Copies of the picture", "c:multiplyEffect" },
+    { 89, 0, "Light effect", "c:lightEffect" },
+    { 90, 0, "Body effect", "c:bodyEffect" },
+    { 91, 1, "Documentary", "s:documentary-edit" },
+    { 92, 1, "Heavenly light", "s:heavenly-light" },
+    { 93, 1, "Party edit", "s:party-edit" },
+    { 94, 2, "When impacts rise, the picture flashes", "p:impact-flash" },
+    { 95, 2, "When text labels something, it follows it", "p:sign-tracks" },
+    { 96, 2, "When the feeling turns dreamlike, light blooms", "p:dreamlike-halo" },
   } },
-  { "Curio-canvas", "Frame & canvas", 9, 7, {
-    { 97, 0, "Punch-in and reframe", "c:reframe" },
-    { 98, 0, "Mirror and rotate", "c:imageTransform" },
-    { 99, 0, "Steadying", "c:stabilization" },
-    { 100, 0, "Canvas edges", "c:canvasFill" },
-    { 101, 2, "When the joke pays off, the editor punches in", "p:payoff-punch-in" },
-    { 102, 2, "When the camera goes handheld, the shake is left in", "p:handheld-steady-off" },
-    { 103, 3, "The editor tells the joke", "ps:editor-jokes" },
+  { "Curio-layers-2", "Layers, masks & effects 2", 9, 1, {
+    { 97, 2, "When the music is featured, the effects pulse on the beat", "p:featured-music-pulse" },
+  } },
+  { "Curio-canvas", "Frame & canvas", 10, 9, {
+    { 1, 0, "Punch-in and reframe", "c:reframe" },
+    { 2, 0, "Mirror and rotate", "c:imageTransform" },
+    { 3, 0, "Steadying", "c:stabilization" },
+    { 4, 0, "Canvas edges", "c:canvasFill" },
+    { 5, 0, "Fake camera move", "c:cameraEffect" },
+    { 6, 2, "When the joke pays off, the editor punches in", "p:payoff-punch-in" },
+    { 7, 2, "When the camera goes handheld, the shake is left in", "p:handheld-steady-off" },
+    { 8, 2, "When impacts rise, the editor slam zooms", "p:impact-slam-zoom" },
+    { 9, 3, "The editor tells the joke", "ps:editor-jokes" },
   } },
 };

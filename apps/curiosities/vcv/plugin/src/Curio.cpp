@@ -346,8 +346,9 @@ Model* curioModels[] = {
   createModel<BankModule<58>, BankWidget<58>>("Curio-titles"),
   createModel<BankModule<59>, BankWidget<59>>("Curio-speed"),
   createModel<BankModule<60>, BankWidget<60>>("Curio-audio-mix"),
-  createModel<BankModule<61>, BankWidget<61>>("Curio-layers"),
-  createModel<BankModule<62>, BankWidget<62>>("Curio-canvas"),
+  createModel<BankModule<61>, BankWidget<61>>("Curio-layers-1"),
+  createModel<BankModule<62>, BankWidget<62>>("Curio-layers-2"),
+  createModel<BankModule<63>, BankWidget<63>>("Curio-canvas"),
 };
 
 // ---------- Focus: one item's sliders, chosen in the app ----------
