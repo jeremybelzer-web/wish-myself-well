@@ -183,7 +183,7 @@ function randomCommand(R, st) {
     const t = tr();
     return { track: t.id, curiosity: t.curiosities.length ? pick(t.curiosities) : "volume" };
   };
-  const kind = pick(["setSource", "setSource", "setSource", "clearSource", "edit", "edit", "editOff", "clearEdit", "addRow", "removeRow", "renameRow", "moveRow", "addTrack", "removeTrack", "renameTrack", "addCuriosity", "removeCuriosity", "setPoint", "setPoint", "removePoint", "laneMode", "clearLane", "addLink", "addLink", "updateLink", "removeLink", "toggleLink", "addRef", "carry", "removeRef", "rename", "printAuto", "batch"]);
+  const kind = pick(["setSource", "setSource", "setSource", "clearSource", "edit", "edit", "editOff", "clearEdit", "addRow", "removeRow", "renameRow", "moveRow", "addTrack", "removeTrack", "renameTrack", "addCuriosity", "removeCuriosity", "setPoint", "setPoint", "removePoint", "laneMode", "clearLane", "addLink", "addLink", "updateLink", "removeLink", "toggleLink", "addRef", "carry", "removeRef", "rename", "printAuto", "batch", "importLinks", "importLinks", "toggleSuite", "removeSuite", "printFrom"]);
   switch (kind) {
     case "editOff":
       return Object.assign({ type: "edit", off: true }, cellish());
@@ -235,6 +235,28 @@ function randomCommand(R, st) {
       return { type: kind, name: "Film " + Math.floor(R() * 999) };
     case "printAuto":
       return { type: kind, on: R() < 0.5 };
+    case "printFrom":
+      return { type: kind, from: Math.floor(R() * Math.max(1, st.rows.length)) };
+    case "importLinks": {
+      /* A small pack in the database's shape: track hints, a group, a chance, sometimes a lens slider. */
+      const n = 1 + Math.floor(R() * 4);
+      const links = Array.from({ length: n }, (_, i) => {
+        const from = { curiosity: pick(CURS.concat(["shotSize.headroom"])), track: pick(["master", "camera", "character", "nowhere"]) };
+        const to = { curiosity: pick(CURS), track: pick(["master", "camera", "character"]) };
+        const l = { id: "p:r" + Math.floor(R() * 30) + (R() < 0.3 ? "#" + i : ""), label: "Random " + i, from, to, does: pick(["rise", "fall", "moveWith", "set", "follow"]), amount: Math.round(R() * 100) / 100, within: Math.floor(R() * 4) };
+        if (l.does === "set") l.value = valueFor(to.curiosity);
+        if (R() < 0.3) l.from.is = valueFor(from.curiosity);
+        if (R() < 0.3) l.chance = Math.round(R() * 100) / 100;
+        return l;
+      });
+      const pack = { format: "curiosities-links", version: 1, links, groups: [{ id: "ps:g" + Math.floor(R() * 4), label: "Group", links: links.filter(() => R() < 0.6).map((l) => l.id) }] };
+      const m = { type: kind, pack, addLanes: R() < 0.5 };
+      if (R() < 0.3) m.only = [pick(links).id];
+      return m;
+    }
+    case "toggleSuite":
+    case "removeSuite":
+      return { type: kind, suite: st.suites.length ? pick(st.suites).id : "s1", on: R() < 0.5, links: R() < 0.5 };
     case "batch":
       return { type: "batch", commands: [Object.assign({ type: "setSource" }, cellish()), Object.assign({ type: "setPoint" }, cellish())] };
     default:
@@ -505,6 +527,187 @@ check("analysis: the app's reference scenes", () => {
 });
 
 /* ---------- speed ---------- */
+/* ---------- link packs: the curiosity database's export ---------- */
+const DB_LINKS = (() => {
+  try {
+    return require("../../data/curiosity-links.json");
+  } catch (e) {
+    return null;
+  }
+})();
+check("links: a pack places each end on the track that has its curiosity, or the hinted one", () => {
+  E.reset();
+  E.send({ type: "importFilm", film: tiny() });
+  const pack = {
+    format: "curiosities-links",
+    version: 1,
+    links: [
+      { id: "p:a", label: "Feeling leads volume", from: { curiosity: "emotion", track: "master", change: "any" }, to: { curiosity: "volume", track: "character" }, does: "moveWith", amount: 0.5, within: 1 },
+      { id: "p:b#1", label: "Angles lead shot size", from: { curiosity: "angleCount", track: "master" }, to: { curiosity: "shotSize", track: "camera" }, does: "rise", amount: 0.25, within: 0 },
+      { id: "p:c", label: "Gesture leads cut rate", from: { curiosity: "gesture", track: "character" }, to: { curiosity: "cutRate", track: "master" }, does: "rise", amount: 0.25, within: 0 },
+    ],
+    groups: [{ id: "ps:x", label: "Body and edit", links: ["p:a", "p:c"] }],
+  };
+  let r = E.send({ type: "importLinks", pack });
+  assert.ok(r.ok, r.error);
+  assert.strictEqual(r.added, 2);
+  assert.strictEqual(r.waiting, 1, "shot size is on no track, so its link waits");
+  assert.strictEqual(E.state().suites.length, 1);
+  assert.ok(E.state().links.every((l) => l.suite === E.state().suites[0].id));
+  /* Asking for one link with addLanes puts the missing curiosity on a track (no camera track: Master). */
+  r = E.send({ type: "importLinks", pack, only: ["p:b#1"], addLanes: true });
+  assert.ok(r.ok, r.error);
+  assert.strictEqual(r.added, 1);
+  assert.ok(E.state().tracks[0].curiosities.includes("shotSize"));
+  /* Again: nothing new, links updated in place, and a link switched off stays off. */
+  E.send({ type: "toggleLink", link: E.state().links[0].id, on: false });
+  r = E.send({ type: "importLinks", pack });
+  assert.strictEqual(r.added || 0, 0);
+  assert.strictEqual(E.state().links[0].on, false);
+  /* Switching the suite off stops its links firing; removing it keeps the links unless asked. */
+  const before = E.result().events.length;
+  E.send({ type: "setSource", row: "r3", track: "m", curiosity: "emotion", value: "angry" });
+  E.send({ type: "toggleLink", link: E.state().links[0].id, on: true });
+  const on = E.result().events.filter((e) => e.link === E.state().links[0].id).length;
+  E.send({ type: "toggleSuite", suite: E.state().suites[0].id, on: false });
+  assert.ok(on > 0 && E.result().events.filter((e) => e.link === E.state().links[0].id).length === 0, "a suite switched off silences its links");
+  assert.ok(before >= 0);
+  E.send({ type: "removeSuite", suite: E.state().suites[0].id });
+  assert.strictEqual(E.state().links.length, 3);
+  assert.ok(E.state().links.every((l) => !l.suite));
+  same(E.drift(), []);
+});
+check("links: chance fires the same way every time; a lane can set up its own payoff", () => {
+  E.reset();
+  E.send({ type: "importFilm", film: tiny() });
+  ["r1", "r2", "r3", "r4", "r5"].forEach((r, i) => E.send({ type: "setSource", row: r, track: "m", curiosity: "emotion", value: ["curious", "angry", "curious", "angry", "curious"][i] }));
+  E.send({ type: "addLink", from: { track: "m", curiosity: "emotion" }, to: { track: "m", curiosity: "cutRate" }, does: "rise", amount: 0.5, chance: 0.5 });
+  const a = JSON.stringify(E.result().dest);
+  E.send({ type: "rename", name: "again" });
+  assert.strictEqual(JSON.stringify(E.result().dest), a);
+  assert.strictEqual(E.state().links[0].chance, 0.5);
+  /* "within 2 rows of the feeling being angry, it becomes joyful" */
+  const r = E.send({ type: "addLink", from: { track: "m", curiosity: "emotion", is: "angry" }, to: { track: "m", curiosity: "emotion" }, does: "set", value: "joyful", within: 2 });
+  assert.ok(r.ok, r.error);
+  assert.strictEqual(E.result().dest["r4|m|emotion"], "joyful");
+  assert.strictEqual(E.send({ type: "addLink", from: { track: "m", curiosity: "emotion", is: "angry" }, to: { track: "m", curiosity: "emotion" }, does: "set", value: "joyful", within: 0 }).ok, false, "a same-lane link must look ahead");
+});
+check("links: the curiosity database's own export loads, a group at a time", () => {
+  if (!DB_LINKS) return; /* the export arrives with the database's branch */
+  E.reset();
+  E.send({ type: "importFilm", film: Seeds.starter(["Ana", "Ben"]) });
+  let total = 0;
+  DB_LINKS.groups.forEach((g) => {
+    const r = E.send({ type: "importLinks", pack: DB_LINKS, only: [g.id], addLanes: true });
+    if (r.ok) total += r.added || 0;
+  });
+  assert.ok(total > 50, "groups added " + total + " links");
+  assert.ok(E.state().links.length <= E.LIMIT.links);
+  same(E.drift(), []);
+  assert.ok(E.check().ok);
+});
+check("links: the app's own proximities become a pack (the database's export, or converted)", () => {
+  const pack = Seeds.dbPack();
+  assert.ok(pack.links.length >= 100, pack.links.length + " links");
+  assert.ok((pack.groups || pack.suites).length >= 20);
+  E.reset();
+  E.send({ type: "importFilm", film: Seeds.starter() });
+  const r = E.send({ type: "importLinks", pack });
+  assert.ok(r.ok && r.added > 0, r.error);
+});
+check("scale: a lens slider from the database works as a curiosity", () => {
+  if (!S.known("shotSize.headroom")) return;
+  assert.strictEqual(S.domain("shotSize.headroom").kind, "range");
+  assert.strictEqual(S.fix("shotSize.headroom", 9), 5);
+  assert.ok(/Shot size/.test(S.label("shotSize.headroom")));
+});
+check("saving: a film saved by the first version loads without a false alarm", () => {
+  E.reset();
+  E.send({ type: "importFilm", film: tiny() });
+  const st = JSON.parse(JSON.stringify(E.state()));
+  st.v = 1;
+  delete st.suites;
+  st.print = { auto: false };
+  const store = {};
+  const mem = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = String(v)), removeItem: (k) => delete store[k] };
+  store["curiosities-engine-v1"] = JSON.stringify({ format: "curiosities-engine", v: 1, fp: E.fingerprint(st), state: st });
+  E.useStorage(mem);
+  assert.ok(E.load());
+  assert.ok(E.lastCheck().ok, E.lastCheck().note);
+  E.useStorage(null);
+});
+
+/* ---------- printing past 8 moments ---------- */
+check("host: My film shows a window of the film; print.from moves it", () => {
+  const fake = Fake.board({ values: { angleCount: 4 } });
+  const h = Host.board(fake);
+  E.reset();
+  E.send({ type: "importFilm", film: Seeds.starter() });
+  for (let i = 0; i < 6; i++) E.send({ type: "addRow" });
+  assert.strictEqual(E.state().rows.length, 14);
+  let p = h.print(E.state(), E.result());
+  same([p.from, p.count, p.of], [0, 4, 14]);
+  const cur = p.printed[0];
+  const tr = E.state().tracks.find((t) => t.curiosities.includes(cur)).id;
+  same(fake.applied().values[cur], E.state().rows.slice(0, 4).map((r) => E.result().dest[r.id + "|" + tr + "|" + cur]));
+  E.send({ type: "printFrom", from: 12 });
+  p = h.print(E.state(), E.result());
+  same([p.from, p.count], [12, 2]);
+  same(fake.applied().values[cur], E.state().rows.slice(12).map((r) => E.result().dest[r.id + "|" + tr + "|" + cur]));
+  E.send({ type: "removeRow", row: E.state().rows[13].id });
+  E.send({ type: "removeRow", row: E.state().rows[12].id });
+  assert.strictEqual(E.state().print.from, 11, "the window follows the film when rows go");
+  same(E.drift(), []);
+});
+check("host: the storyboard reads and takes the whole film, with or without its own door", () => {
+  const scenes = [{ id: "a", name: "Kitchen", panels: Array.from({ length: 20 }, (_, i) => ({ v: { emotion: i % 2 ? "angry" : "loving", volume: 1 + (i % 5) }, line: { who: i % 2 ? "Ana" : "Ben", text: "x" } })) }];
+  const store = { "curiosities-storyboard-v1": JSON.stringify({ scenes }) };
+  const mem = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = String(v)) };
+  const plain = { KEY: "curiosities-storyboard-v1", data: () => JSON.parse(store["curiosities-storyboard-v1"]) };
+  const sb = Host.storyboard(plain, { storage: mem });
+  const film = sb.read([0]);
+  assert.strictEqual(film.rows.length, 20);
+  same(film.tracks.filter((t) => t.kind === "character").map((t) => t.label), ["Ben", "Ana"]);
+  E.reset();
+  E.send({ type: "importFilm", film });
+  for (let i = 0; i < 10; i++) E.send({ type: "addRow" });
+  assert.strictEqual(E.state().rows.length, 30);
+  let out = sb.print(E.state(), E.result());
+  assert.ok(out.reload, "without putScenes the page must reload");
+  let saved = JSON.parse(store["curiosities-storyboard-v1"]).scenes;
+  same(saved.map((s) => [s.engine === true, s.panels.length]), [[false, 20], [true, 24], [true, 6]]);
+  assert.strictEqual(saved[1].panels[3].v.emotion, E.result().dest[E.state().rows[3].id + "|master|emotion"]);
+  /* Printing again replaces the engine's scenes and keeps yours. */
+  E.send({ type: "removeRow", row: E.state().rows[29].id });
+  sb.print(E.state(), E.result());
+  saved = JSON.parse(store["curiosities-storyboard-v1"]).scenes;
+  same(saved.map((s) => s.panels.length), [20, 24, 5]);
+  assert.ok(sb.unprint());
+  same(JSON.parse(store["curiosities-storyboard-v1"]).scenes.map((s) => s.name), ["Kitchen"]);
+  /* With its own door, no reload. */
+  let put = null;
+  const door = Object.assign({}, plain, { putScenes: (tag, list) => (put = [tag, list]) });
+  out = Host.storyboard(door, { storage: mem }).print(E.state(), E.result());
+  assert.strictEqual(out.reload, false);
+  assert.strictEqual(put[0], "engine");
+  same(put[1].map((s) => s.panels.length), [24, 5]);
+});
+check("bridge: a tool can ask for the whole film as a timeline", () => {
+  E.reset();
+  E.send({ type: "importFilm", film: Seeds.starter(["Ana", "Ben"]) });
+  for (let i = 0; i < 8; i++) E.send({ type: "addRow" });
+  const B = A.window.CurioBridge;
+  assert.ok(Host.extendBridge());
+  assert.ok(!Host.extendBridge(), "only once");
+  const t = B.handle({ type: "timeline" });
+  assert.strictEqual(t.type, "timeline");
+  assert.strictEqual(t.panels.length, 16);
+  assert.strictEqual(t.byTrack.char2.length, 16);
+  assert.strictEqual(t.panels[5].emotion, E.result().dest[E.state().rows[5].id + "|master|emotion"]);
+  assert.strictEqual(B.handle(JSON.stringify({ type: "timeline" })).rows.length, 16);
+  assert.strictEqual(B.handle({ type: "list" }).type, "params", "everything else still reaches bridge.js");
+});
+
 check("speed: a full rewrite of the biggest film is quick", () => {
   E.reset();
   const rows = Array.from({ length: E.LIMIT.rows }, (_, i) => ({ id: "r" + i, label: "R" + i }));
