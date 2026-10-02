@@ -22,7 +22,7 @@
   const CHANGES = ["rises", "drops", "changes"];
   const LEVELS = ["curiosity", "suite", "proximity", "proximitySuite"];
 
-  const db = { workspaces: [], curiosities: [], suites: [], proximities: [], proximitySuites: [] };
+  const db = { workspaces: [], curiosities: [], suites: [], proximities: [], proximitySuites: [], scenes: [] };
   const clashes = [];
   const index = { workspace: {}, curiosity: {}, suite: {}, proximity: {}, proximitySuite: {} };
 
@@ -160,6 +160,17 @@
       return put("proximitySuite", { id: ps.id, level: "proximitySuite", label: ps.label, plain: ps.plain || "", workspace: ps.workspace, also: ps.also || [], members: ps.members || [], sliders, source: ps.source || "database", tags: ps.tags || [] });
     },
 
+    /* modelScene({ id, title, genre, plain, beats: [{ at, values: { curiosityId | "curiosity.slider": value } }] })
+       A made-up scene written as a trace (not a real film), so the Prism and the Study views have something to
+       split. Same shape as a study in study.js; values are checked against the database. */
+    modelScene(sc) {
+      const scene = { id: sc.id, title: sc.title, kind: "model scene", genre: sc.genre || "", plain: sc.plain || "", camera: "authored", workspace: sc.workspace || "structure", beats: sc.beats.map((b, i) => ({ id: sc.id + "-" + (i + 1), at: b.at || String(i + 1), note: b.note || "", values: b.values })) };
+      db.scenes.push(scene);
+      return scene;
+    },
+    /* The model scenes as a file the Study tab's Import button reads. */
+    studiesExport: () => ({ format: "curiosities-studies-v1", studies: JSON.parse(JSON.stringify(db.scenes)), shelf: [], proximities: [] }),
+
     /* ---------- reading ---------- */
 
     get: (level, id) => (index[level] || {})[id] || null,
@@ -183,6 +194,7 @@
       suites: db.suites.length,
       proximities: db.proximities.length,
       proximitySuites: db.proximitySuites.length,
+      scenes: db.scenes.length,
       sliders: LEVELS.reduce((n, l) => n + db[l === "curiosity" ? "curiosities" : l === "suite" ? "suites" : l === "proximity" ? "proximities" : "proximitySuites"].reduce((a, x) => a + x.sliders.length, 0), 0),
     }),
 
@@ -269,6 +281,19 @@
         ref("proximity " + p.id + " effect", p.then);
       });
       db.proximitySuites.forEach((ps) => ps.members.forEach((m) => index.proximity[m] || out.push(`proximity suite ${ps.id}: unknown member ${m}`)));
+      db.scenes.forEach((sc) =>
+        sc.beats.forEach((b) =>
+          Object.entries(b.values).forEach(([k, v]) => {
+            const [cid, sid] = k.split(".");
+            const c = index.curiosity[cid];
+            if (!c) return out.push(`scene ${sc.id} beat ${b.at}: unknown curiosity ${cid}`);
+            const sl = c.sliders.find((x) => x.id === (sid || c.main));
+            if (!sl) return out.push(`scene ${sc.id} beat ${b.at}: ${cid} has no slider ${sid}`);
+            if (sl.scale && !sl.scale.includes(v)) out.push(`scene ${sc.id} beat ${b.at}: "${v}" is not on ${k}'s scale`);
+            if (sl.range && (typeof v !== "number" || v < sl.range.min || v > sl.range.max)) out.push(`scene ${sc.id} beat ${b.at}: ${v} is outside ${k}'s range`);
+          })
+        )
+      );
       return out;
     },
 
