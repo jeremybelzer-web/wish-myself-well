@@ -95,7 +95,7 @@
   ]);
 
   scene("night-hallway", "Someone walks down a dark hallway", "horror", "Silence instead of music, one sound pushed forward, empty frame, then a burst.", [
-    ["0:00", { shotSize: "wide", emptySpace: "most", timeOfDay: "night", valueKey: "low key", lightingMood: "dark and harsh", "lightingLens.shadows": "deep", colorRange: "muted color", warmCool: "cool", music: "none", "noMusic.length": 40, "noMusic.fill": "natural sounds", "noMusic.purpose": "suspense", emotion: "fearful", setUpkeep: "shabby", characterPath: "approach", characterSpeed: 1 }],
+    ["0:00", { shotSize: "wide", emptySpace: "most", timeOfDay: "night", valueKey: "low key", lightingMood: "dark and harsh", "lightingLens.shadows": "deep", colorRange: "muted color", warmCool: "cool", music: "none", noMusic: 40, "noMusic.fill": "natural sounds", "noMusic.purpose": "suspense", emotion: "fearful", setUpkeep: "shabby", characterPath: "approach", characterSpeed: 1 }],
     ["0:15", { cameraCarry: "smooth", cameraMove: "track", moveFollows: "character", moveSpeed: 1, "soundDesign.focusSound": "clearly", tensionCurve: 2, shotDuration: "long" }, "a drip, louder than it should be"],
     ["0:35", { shotSize: "close", emoMove: "held back", gazeShift: 5, tensionCurve: 3, "lightingLens.faceLight": "half lit" }],
     ["0:50", { shotSize: "wide", emptySpace: "most", composition: "left third", tensionCurve: 4, silence: "long" }, "the empty doorway"],
@@ -118,12 +118,12 @@
     ["0:15", { jokeCarrier: "the funny one", statusGap: "big gap", "statusGap.pretense": 4, comedyTopic: "work", laughsPerMinute: 4 }, "the manager tells a joke"],
     ["0:22", { cameraMove: "zoom", shotSize: "close", comicReaction: "a look", "comicReaction.toCamera": "a glance", "comicReaction.hold": 2, silence: "short" }, "someone looks at the lens"],
     ["0:35", { cringe: 3, comicTiming: 2, "comicSound.silenceBeat": 2, "statusGap.fall": 2 }],
-    ["0:50", { comedyDevice: "rule of three", "ruleOfThree.pattern": 2, "ruleOfThree.breakSize": 4, laughsPerMinute: 6 }],
+    ["0:50", { comedyDevice: "rule of three", ruleOfThree: 2, "ruleOfThree.breakSize": 4, laughsPerMinute: 6 }],
     ["1:05", { "comicReaction.toCamera": "a long look", "comicReaction.hold": 3, "comicTiming.holdAfter": 3, comicBeat: "payoff lands" }],
   ]);
 
   scene("quiet-goodbye", "A quiet goodbye at a doorway", "drama", "No music at all, a held-back feeling, a long hold on a face, a hand that almost reaches.", [
-    ["0:00", { shotSize: "wide", music: "none", "noMusic.length": 60, "noMusic.fill": "room tone", "noMusic.purpose": "truth", setStyle: "1950s", setUpkeep: "lived in", "setStyle.personal": "full of the owner", lightingMood: "soft", warmCool: "neutral", timeOfDay: "dusk", emotion: "melancholy", emotionIntensity: 2, emoShown: "mostly hidden", cutRate: "slow", shotDuration: "long", cameraCarry: "locked" }],
+    ["0:00", { shotSize: "wide", music: "none", noMusic: 60, "noMusic.fill": "room tone", "noMusic.purpose": "truth", setStyle: "1950s", setUpkeep: "lived in", "setStyle.personal": "full of the owner", lightingMood: "soft", warmCool: "neutral", timeOfDay: "dusk", emotion: "melancholy", emotionIntensity: 2, emoShown: "mostly hidden", cutRate: "slow", shotDuration: "long", cameraCarry: "locked" }],
     ["0:25", { shotSize: "medium", wordsAmount: 1, volume: 1, breath: "breath then speak", pace: "slow" }],
     ["0:50", { shotSize: "close", emotionIntensity: 4, emoShown: "leaks out", emoVoice: "a hint", faceIntensity: 2, stillness: 4, "lightingLens.faceLight": "half lit" }, "the feeling leaks out"],
     ["1:20", { shotSize: "insert", touch: "brief", "touch.pressure": 1, objectKind: "door", emoActions: "small" }, "a hand almost reaches"],
@@ -133,10 +133,10 @@
 
   scene("kitchen-disaster", "One small mistake wrecks a kitchen", "slapstick", "A dropped spoon starts a chain of bigger and bigger accidents, shown wide, with heightened sound and no real hurt.", [
     ["0:00", { shotSize: "wide", setStyle: "1950s", setMaterial: "metal", clutter: 3, setUpkeep: "kept", "colorRange.paletteHue": "yellow", colorRange: "vivid color", lightingMood: "bright and warm", music: "under the scene", "music.tempo": 140, "music.mood": "happy", comedyDevice: "slapstick", comicRegister: "big", emotion: "joyful", laughsPerMinute: 2 }],
-    ["0:10", { shotSize: "insert", objectPath: "drop", objectKind: "prop", "physicalComedy.size": "a small fumble", comicBeat: "setup planted", comicEscalation: 1 }, "the spoon"],
-    ["0:15", { shotSize: "wide", "physicalComedy.size": "a stumble", "comicEscalation.steps": 3, comicEscalation: 2, "soundDesign.realism": "stylized", "comicSound.effects": 3, impacts: 2 }],
-    ["0:25", { "physicalComedy.size": "a fall", "physicalComedy.pain": 1, comicEscalation: 4, impacts: 5, breakage: "shatters", "comicEscalation.speed": "snowball", laughsPerMinute: 8, cutRate: "fast", "music.energy": 5 }],
-    ["0:35", { "physicalComedy.size": "destruction", comicEscalation: 5, "comicEscalation.ceiling": "disaster", setUpkeep: "ruined", clutter: 5, comicReaction: "a double take" }],
-    ["0:40", { music: "none", "music.exit": "cut dead mid-phrase", "noMusic.purpose": "shock", silence: "short", comicBeat: "payoff lands", comedyDevice: "understatement", "understatement.direction": "huge treated as tiny", volume: 1, cutRate: "slow", shotSize: "medium" }, "a calm line amid the wreck"],
+    ["0:10", { shotSize: "insert", objectPath: "drop", objectKind: "prop", physicalComedy: "a small fumble", comicBeat: "setup planted", comicEscalation: 1 }, "the spoon"],
+    ["0:15", { shotSize: "wide", physicalComedy: "a stumble", "comicEscalation.steps": 3, comicEscalation: 2, "soundDesign.realism": "stylized", comicSound: 3, impacts: 2 }],
+    ["0:25", { physicalComedy: "a fall", "physicalComedy.pain": 1, comicEscalation: 4, impacts: 5, breakage: "shatters", "comicEscalation.speed": "snowball", laughsPerMinute: 8, cutRate: "fast", "music.energy": 5 }],
+    ["0:35", { physicalComedy: "destruction", comicEscalation: 5, "comicEscalation.ceiling": "disaster", setUpkeep: "ruined", clutter: 5, comicReaction: "a double take" }],
+    ["0:40", { music: "none", "music.exit": "cut dead mid-phrase", "noMusic.purpose": "shock", silence: "short", comicBeat: "payoff lands", comedyDevice: "understatement", understatement: "huge treated as tiny", volume: 1, cutRate: "slow", shotSize: "medium" }, "a calm line amid the wreck"],
   ]);
 })(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));
