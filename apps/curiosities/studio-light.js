@@ -1596,18 +1596,27 @@
       out("pnote").textContent = p.note;
       return true;
     }
+    /* The key plus any twin of it (same type, within a stop, not a rim), so a look applies to the whole key side. */
+    function keyGroup() {
+      const K = keyLight();
+      const e = effective(K);
+      return st.lights.filter((L) => L === K || (L.type === K.type && L.y >= 85 && effective(L) > e / 2 && effective(L) < e * 2));
+    }
     function drive(id, v) {
       const K = keyLight();
+      const G = keyGroup();
       if (id === "key") {
         const pos = { front: [100, 162, 25], side: [30, 100, 20], back: [100, 45, 30], under: [100, 122, -50] }[v];
         if (pos) [K.x, K.y, K.elev] = pos;
         if (v === "none") K.exposure = -8;
         else if (K.exposure < -4) K.exposure = 4;
       } else if (id === "colorTemp") {
-        K.useK = true;
-        K.kelvin = clamp(Number(v) || 5600, 1500, 12000);
+        G.forEach((L) => {
+          L.useK = true;
+          L.kelvin = clamp(Number(v) || 5600, 1500, 12000);
+        });
       } else if (id === "softness") {
-        K.size = v === "soft" ? 2 : 0.05;
+        G.forEach((L) => (L.size = v === "soft" ? 2 : 0.05));
       } else if (id === "lightShape") {
         K.gobo = v === "blinds" || v === "leaves" ? v : "none";
         K.barndoor = v === "barndoor" ? 0.6 : 0;
@@ -1635,8 +1644,10 @@
           F.exposure = clamp(F.exposure + (m.stops - target) * 0.8, -10, 12);
         }
       } else if (id === "shadowTone") {
-        K.shadowDensity = v === "faint" ? 0.3 : 1;
-        K.shadowColor = { cool: "#1c2c5a", warm: "#5a3a1c" }[v] || "#000000";
+        G.forEach((L) => {
+          L.shadowDensity = v === "faint" ? 0.3 : 1;
+          L.shadowColor = { cool: "#1c2c5a", warm: "#5a3a1c" }[v] || "#000000";
+        });
       } else if (id === "timeOfDay") {
         const S = { dawn: [3, 90], day: [55, 150], dusk: [3, 270], night: [-10, 270] }[v];
         if (S) {
