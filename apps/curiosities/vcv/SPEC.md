@@ -46,8 +46,9 @@ A VCV Rack plugin is written in C++ against the Rack SDK. Ours would be generate
 - **Transport:** MIDI for the web app (Web MIDI), and OSC for the desktop app. The platform thread's bridge listens
   on UDP 7000 for `/curio/set/<level>/<id> f` and `/curio/trigger/<level>/<id> i`, and sends
   `/curio/value/<level>/<id> f` back on UDP 7001 (desktop/README.md, PR #11). The generated modules already
-  send `/curio/set` when "Send by OSC" is ticked. Still to come: gate jacks sending `/curio/trigger`, and output
-  jacks reading `/curio/value` back as voltage.
+  send `/curio/set` when "Send by OSC" is ticked. Each item also has a gate jack beside it
+  that sends `/curio/trigger` (on above 1 V, off below). Still to come: output jacks reading `/curio/value` back
+  as voltage (a small Return module, so the panels stay readable).
 - **Built with the Rack SDK** for Mac, Windows and Linux, and submitted to the VCV Library (free) once it is
   stable.
 

@@ -21,7 +21,7 @@ namespace math { struct Vec{float x=0,y=0;Vec(){}Vec(float a,float b):x(a),y(b){
 using math::Vec; using math::clamp;
 namespace string { inline std::string f(const char* fmt,...){char b[256];va_list a;va_start(a,fmt);vsnprintf(b,256,fmt,a);va_end(a);return b;} }
 namespace asset { inline std::string system(std::string s){return s;} inline std::string plugin(rack::plugin_Plugin*,std::string s){return s;} }
-namespace dsp { struct ClockDivider{void setDivision(int){} bool process(){return true;}}; }
+namespace dsp { struct ClockDivider{void setDivision(int){} bool process(){return true;}}; struct SchmittTrigger{bool process(float){return false;}}; }
 namespace midi { struct Message{void setStatus(int){} void setNote(int){} void setValue(int){}};
  struct Output{void reset(){} void setChannel(int){} int getDeviceId(){return 0;} json_t* toJson(){return nullptr;} void fromJson(json_t*){} void sendMessage(const Message&){}}; }
 namespace window { struct Font{int handle=0;}; }

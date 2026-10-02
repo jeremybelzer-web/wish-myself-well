@@ -55,6 +55,19 @@ struct CurioOsc {
     do b.push_back('\0'); while (b.size() % 4);
   }
 
+  // One OSC message with one big-endian int32 (",i").
+  void sendInt(const std::string& address, int32_t v) {
+    if (!open())
+      return;
+    std::string b = address;
+    pad(b);
+    b += ",i";
+    pad(b);
+    uint32_t u = htonl((uint32_t) v);
+    b.append((const char*) &u, 4);
+    sendto(sock, b.data(), (int) b.size(), 0, (const sockaddr*) &addr, sizeof(addr));
+  }
+
   // One OSC message: the address, the type tag ",f", one big-endian float.
   void sendFloat(const std::string& address, float v) {
     if (!open())
@@ -72,13 +85,13 @@ struct CurioOsc {
 };
 static CurioOsc curioOsc;
 
-// "c:music" -> "/curio/set/c/music"
-static std::string oscAddress(const char* key) {
+// "c:music" -> "/curio/set/c/music" (or "/curio/trigger/c/music")
+static std::string oscAddress(const char* key, const char* verb = "set") {
   std::string k = key;
   size_t colon = k.find(':');
   if (colon == std::string::npos)
     return "";
-  return "/curio/set/" + k.substr(0, colon) + "/" + k.substr(colon + 1);
+  return std::string("/curio/") + verb + "/" + k.substr(0, colon) + "/" + k.substr(colon + 1);
 }
 
 struct CurioModule : Module {
@@ -87,16 +100,21 @@ struct CurioModule : Module {
   int lastValues[16];
   float lastOsc[16];
   bool useOsc = false; // send OSC to the desktop app instead of MIDI
+  bool gateOn[16] = {};
   dsp::ClockDivider sendDivider;
   dsp::ClockDivider rememberDivider;
 
   CurioModule(const CurioBank* b) : bank(b) {
-    config(0, 16, 0, 0);
+    config(0, 32, 0, 0);
     for (int i = 0; i < 16; i++) {
-      if (i < bank->count)
+      if (i < bank->count) {
         configInput(i, bank->jacks[i].label);
-      else
+        configInput(16 + i, std::string(bank->jacks[i].label) + ": on/off gate (OSC)");
+      }
+      else {
         configInput(i, "Unused");
+        configInput(16 + i, "Unused");
+      }
     }
     sendDivider.setDivision(64);
     rememberDivider.setDivision(48000);
@@ -126,6 +144,16 @@ struct CurioModule : Module {
     if (!sendDivider.process())
       return;
     if (useOsc && bank->jacks[0].key[0]) {
+      // Gates switch the item on and off: /curio/trigger/<level>/<id> 1 on the rise, 0 on the fall.
+      for (int i = 0; i < bank->count; i++) {
+        if (!inputs[16 + i].isConnected())
+          continue;
+        bool high = inputs[16 + i].getVoltage() >= 1.f;
+        if (high == gateOn[i])
+          continue;
+        gateOn[i] = high;
+        curioOsc.sendInt(oscAddress(bank->jacks[i].key, "trigger"), high ? 1 : 0);
+      }
       // OSC keeps fine steps: anything that moved by more than about 0.1% goes out.
       for (int i = 0; i < bank->count; i++) {
         if (!inputs[i].isConnected())
@@ -209,8 +237,9 @@ static void addJacks(ModuleWidget* w, Module* module, const CurioBank* bank, int
     float x = 6.f + col * 40.f;
     float y = 30.f + row * 12.f;
     w->addInput(createInputCentered<PJ301MPort>(mm2px(Vec(x, y)), module, i));
+    w->addInput(createInputCentered<PJ301MPort>(mm2px(Vec(x + 8.5f, y)), module, 16 + i));
     if (i < count)
-      w->addChild(makeLabel(mm2px(Vec(x + 5.f, y - 4.2f)), mm2px(Vec(30.f, 9.f)), names[i], LEVEL_COLORS[levels[i]], 8.5f));
+      w->addChild(makeLabel(mm2px(Vec(x + 13.f, y - 4.2f)), mm2px(Vec(23.f, 9.f)), names[i], LEVEL_COLORS[levels[i]], 8.f));
   }
 }
 
@@ -222,7 +251,7 @@ struct CurioWidget : ModuleWidget {
     setPanel(createPanel(asset::plugin(pluginInstance, "res/Curio.svg")));
     addChild(makeLabel(mm2px(Vec(4.f, 6.f)), mm2px(Vec(73.28f, 8.f)), bank->title, nvgRGB(0x21, 0x1d, 0x1a), 14.f));
     addChild(makeLabel(mm2px(Vec(4.f, 14.f)), mm2px(Vec(73.28f, 8.f)),
-      string::f("MIDI channel %d, CC %d to %d. 0 V = From, 10 V = To.", bank->channel, bank->jacks[0].cc, bank->jacks[bank->count - 1].cc),
+      string::f("MIDI ch %d, CC %d-%d. Left jack: 0 V From, 10 V To. Right jack: on/off gate (OSC).", bank->channel, bank->jacks[0].cc, bank->jacks[bank->count - 1].cc),
       nvgRGB(0x6d, 0x65, 0x5d), 8.f));
     const char* names[16];
     int levels[16];

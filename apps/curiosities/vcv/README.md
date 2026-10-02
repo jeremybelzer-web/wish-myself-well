@@ -75,7 +75,8 @@ numbers as stage 1, so the app's VCV badge works with either. Each module's righ
 device (a new module copies the device last chosen), or **Send by OSC to the desktop app**: with the desktop
 app (or `node apps/curiosities/desktop/bridge-server.js`) running, values go straight to it over the network on
 your own computer (UDP port 7000, `/curio/set/<level>/<id>` with a value from 0 to 1), with fine steps and no
-virtual MIDI cable. The OSC message format was tested by sending to a local port and reading it back.
+virtual MIDI cable. In OSC mode, the second jack beside each item is a gate: above 1 V switches the item on,
+below switches it off (`/curio/trigger`). The OSC message format was tested by sending to a local port and reading it back.
 
 **Not built yet.** The VCV Rack SDK download is blocked where this was written. `sh vcv/tools/check-plugin.sh`
 checks the generated C++ against a small stand-in for Rack's API, which catches typos only. To build it for real
