@@ -613,6 +613,7 @@
 .dyn-root canvas.dyn-energy { border-width: 1px; margin-top: 6px; height: 60px; box-sizing: border-box; }
 .dyn-root .bar-actions { margin: 8px 0; }
 .dyn-root .bar-actions button.on { background: var(--ink); color: var(--paper); }
+.dyn-root .dyn-auto { margin: 0 0 0 6px; font-size: 9px; padding: 1px 4px; vertical-align: middle; }
 .dyn-prox { list-style: none; padding: 0; margin: 6px 0; font-size: 13px; }
 .dyn-prox li { margin: 0 0 4px; }
 .dyn-prox .chip { min-width: 70px; text-align: center; }
@@ -870,6 +871,7 @@
         <p class="cap" id="dyn-meter"></p>
         <p class="group-label">Curiosities this sim produces</p>
         <p id="dyn-chips"></p>
+        <p class="cap">Click a chip to automate it, or open Automate.</p>
         <p class="group-label">Proximities, measured as it runs (one beat is one second)</p>
         <ul class="dyn-prox" id="dyn-prox"></ul>
         <div class="bar-actions">
@@ -889,18 +891,8 @@
         store.set(s);
       })
     );
-    el.querySelectorAll("[data-suite]").forEach((b) =>
-      b.addEventListener("click", () => {
-        const su = SUITES_HERE.find((x) => x.id === b.dataset.suite);
-        Object.assign(s, su.set);
-        slow = !!su.slow;
-        store.set(s);
-        sim = newSim();
-        for (let i = 0; i < (su.drop || 0); i++) dropBox(10 + i * 26);
-        if (su.id === "storm") gust();
-        draw(el, api);
-      })
-    );
+    el.querySelectorAll("[data-suite]").forEach((b) => b.addEventListener("click", () => applySuite(b.dataset.suite, el)));
+    listen(el);
     const act = (name, fn) => el.querySelector(`[data-act="${name}"]`).addEventListener("click", fn);
     act("drop", () => dropBox());
     act("gust", gust);
@@ -1048,6 +1040,90 @@
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
+  }
+
+  function applySuite(id, el) {
+    const su = SUITES_HERE.find((x) => x.id === id);
+    if (!su) return;
+    Object.assign(s, su.set);
+    slow = !!su.slow;
+    api.store(KEY).set(s);
+    sim = newSim();
+    for (let i = 0; i < (su.drop || 0); i++) dropBox(10 + i * 26);
+    if (su.id === "storm") gust();
+    draw(el, api);
+  }
+
+  /* ---------- automation: performable through CurioAuto (LFOs, MIDI) ---------- */
+  const CLOTH_FOR = { stiff: "heavy denim", loose: "t-shirt", flutter: "silk" };
+  const AUTO = {
+    windForce: { k: "wind", to: (v) => Math.max(0, Math.min(5, Number(v) || 0)) },
+    turbulence: { k: "turb", to: (v) => Math.max(0, Math.min(5, Number(v) || 0)) },
+    gravityFeel: { k: "gravity", to: (v) => (GRAV[v] ? v : null) },
+    clothResponse: { k: "cloth", to: (v) => CLOTH_FOR[v] || null },
+  };
+  let autoOff = null;
+  let autoEl = null;
+  const suiteOn = {};
+  let lastImpacts = null;
+
+  function badge(el, k, on) {
+    const input = el.querySelector(`[data-k="${k}"]`);
+    const label = input && input.closest("label");
+    if (!label) return;
+    let b = label.querySelector(".dyn-auto");
+    if (!b && on) {
+      b = document.createElement("span");
+      b.className = "chip lit dyn-auto";
+      b.textContent = "automated";
+      label.insertBefore(b, label.firstChild.nextSibling);
+    }
+    if (b) b.hidden = !on;
+  }
+
+  function listen(el) {
+    autoEl = el;
+    if (autoOff || !window.CurioAuto || !window.CurioAuto.on) return;
+    autoOff = window.CurioAuto.on((type, d) => {
+      const host = autoEl;
+      if (!host || !host.isConnected || !host.querySelector("#dyn-canvas")) {
+        if (autoOff) autoOff();
+        autoOff = null;
+        return;
+      }
+      if (type !== "tick" || !d || !d.ms || !d.panels || !d.panels[0]) return;
+      const v0 = d.panels[0];
+      let changed = false;
+      Object.entries(AUTO).forEach(([id, m]) => {
+        const on = d.ms["c:" + id] != null;
+        badge(host, m.k, on);
+        if (!on) return;
+        const v = m.to(v0[id]);
+        if (v == null || s[m.k] === v) return;
+        s[m.k] = v;
+        changed = true;
+        const input = host.querySelector(`[data-k="${m.k}"]`);
+        if (input) input.value = v;
+        const lab = host.querySelector(`[data-v="${m.k}"]`);
+        if (lab) lab.textContent = v;
+      });
+      /* impacts rising drops objects into the sim. */
+      if (d.ms["c:impacts"] != null) {
+        const n = Number(v0.impacts) || 0;
+        if (lastImpacts != null && n > lastImpacts) for (let i = 0; i < Math.min(3, n - lastImpacts); i++) dropBox();
+        lastImpacts = n;
+      } else lastImpacts = null;
+      if (changed) api.store(KEY).set(s);
+      /* Suite presets apply once as they turn on. */
+      SUITES_HERE.forEach((su) => {
+        const m = d.ms["s:" + su.id];
+        const now = m != null && m >= 0.5;
+        if (now && !suiteOn[su.id]) {
+          suiteOn[su.id] = true;
+          applySuite(su.id, host);
+        } else if (!now) suiteOn[su.id] = false;
+      });
+    });
   }
 
   /* The last four completed beats, padded at the front with quiet beats. */
