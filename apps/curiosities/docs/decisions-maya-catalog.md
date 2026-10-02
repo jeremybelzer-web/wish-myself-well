@@ -39,3 +39,14 @@ One line each, with the reason. Change any of these in the morning.
 29. Did not create the repository myself. Reason: this session can't create GitHub repositories, and your account isn't linked yet. Once you create an empty repo and add it to the project, I'll push the catalog, the Maya map and the framework there as markdown and open a draft PR.
 30. Treat the TV show in wish-myself-well as read-only sample material for the app, not something to move. Reason: Jeremy's call; the app is built to sort through works like it.
 31. Back to one repo: docs go to wish-myself-well under apps/curiosities/docs/, via a draft PR, no new repo. Reason: Jeremy's call, since the show is the app's sample material.
+32. Pushed the four docs to apps/curiosities/docs/ on branch curiosities-docs and opened draft PR #2; also copied this log there. Reason: you asked to keep everything on GitHub. Not merged.
+
+## Games
+
+33. Wrote the games as a design doc only (Curiosity Games for Film) and added it to draft PR #2; no app code. Reason: the concept thread is building the app, so this keeps the two from colliding.
+34. Gave every game one of three jobs: teach, collect or perform. Reason: collecting games grow the shared library, which you named as the moat.
+35. Kept all five music games and gave them film versions: Fork in the Road, Emotion Planets, Film Galaxy, Flip Scene, Director's Road. Reason: you already designed them, and Sharani was asked to head the 3D side.
+36. Turned Film Galaxy's copyright sensor into a check on how many curiosities match one film at once. Reason: borrowing one slice is referencing; matching many at once is copying.
+37. Added five new games: Name That Film, Daily Scene, Proximity Detective, Genre Swap, Tarantino Mixtape. Reason: they cover teaching and data collection, which the music games mostly don't.
+38. Made progression per curiosity, with suites unlocking when all their curiosities are mastered. Reason: it mirrors how the app models a film.
+39. Ordered the build cheapest and most data-rich first: Daily Scene and Name That Film, then Flip Scene, then the scored games, then the 3D games, then Director's Road. Reason: early games fill the library the later ones score against.
