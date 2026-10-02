@@ -11,7 +11,15 @@
    board as an applied strand, panel by panel, and every parameter's m can go out as a MIDI CC so a
    modular synth (VCV Rack through a virtual MIDI port) can follow it, or come in from one to drive it.
 
-   Keys: "c:<curiosity id>", "s:<suite id>", "p:<proximity id>", "ps:<proximity suite id>". */
+   Keys: "c:<curiosity id>", "s:<suite id>", "p:<proximity id>", "ps:<proximity suite id>".
+
+   Story workspaces hold values per character, so a patch can say who it plays on. patch.who = [names]
+   (empty or missing = every character) limits a shared patch to some characters. A key with a character
+   suffix, "c:arcStage@Nessa", is the same parameter with a patch of its own for that one character, so
+   Nessa's arc can rise while Riven's falls. A suffixed patch starts as a copy of the shared one, plays after
+   it (so it wins where both set a value), never plays on the board's panels, and has its own bindings
+   ("c:arcStage@Nessa" or "c:arcStage@Nessa#<lane>"). resolve(count, now, base, character) plays the patches
+   for one character; without a character it plays every unsuffixed patch, as before. */
 
 (function () {
   const KEY = "curiosities-automation-v1";
@@ -84,8 +92,37 @@
   const PARAMS = params();
   const PARAM = Object.fromEntries(PARAMS.map((p) => [p.key, p]));
 
+  /* "c:arcStage@Nessa#lane" -> patch key "c:arcStage@Nessa", lane "lane"; "c:arcStage@Nessa" -> base "c:arcStage", who "Nessa". */
+  function splitLane(key) {
+    const s = String(key);
+    const i = s.lastIndexOf("#");
+    return i < 0 ? [s, ""] : [s.slice(0, i), s.slice(i + 1)];
+  }
+  function splitWho(key) {
+    const s = String(key);
+    const i = s.indexOf("@");
+    return i < 0 ? { base: s, who: null } : { base: s.slice(0, i), who: s.slice(i + 1) };
+  }
+  /* A suffixed key is its base parameter, labelled with the character. */
+  const OWN = {};
+  function paramOf(key) {
+    if (PARAM[key]) return PARAM[key];
+    const { base, who } = splitWho(key);
+    if (!who || !PARAM[base]) return undefined;
+    if (!OWN[key] || OWN[key].baseParam !== PARAM[base]) OWN[key] = Object.assign({}, PARAM[base], { key, base, who, baseParam: PARAM[base], label: PARAM[base].label + " · " + who });
+    return OWN[key];
+  }
+  /* Does this patch play on this character? No character (the board): every unsuffixed patch, as before. */
+  function playsOn(p, character) {
+    const who = splitWho(p.key).who;
+    if (character == null) return !who;
+    if (who) return who === character;
+    const list = Array.isArray(p.who) ? p.who : [];
+    return !list.length || list.includes(character);
+  }
+
   function defaults(key) {
-    const p = PARAM[key];
+    const p = paramOf(key);
     if (!p) return null;
     let a, b;
     if (p.level === "curiosity") {
@@ -119,7 +156,7 @@
     return lane("c:" + id, "c:" + id, (byId[id] || {}).label || id, from == null ? lo : from, to == null ? hi : to);
   }
   function lanesFor(key) {
-    const p = PARAM[key];
+    const p = paramOf(key);
     if (!p) return [];
     const out = [lane("amount", "amount", "Amount: share of panels it plays in", 1, 1)];
     if (p.level === "curiosity") (FACETS[p.id] || []).filter((f) => byId[f]).forEach((f) => out.push(curiosityLane(f)));
@@ -182,6 +219,13 @@
   }
 
   function patch(key) {
+    /* A character's own patch starts as a copy of the shared one (switched off, for that character only). */
+    if (!store.patches[key] && splitWho(key).who && store.patches[splitWho(key).base]) {
+      const copy = JSON.parse(JSON.stringify(store.patches[splitWho(key).base]));
+      delete copy.who;
+      store.patches[key] = Object.assign(copy, { key, running: false });
+      save();
+    }
     if (!store.patches[key]) store.patches[key] = defaults(key);
     const p = store.patches[key];
     /* Patches saved before lanes existed get them now. */
@@ -189,7 +233,7 @@
     return p;
   }
   function laneOf(key) {
-    const [pk, lid] = String(key).split("#");
+    const [pk, lid] = splitLane(key);
     const p = store.patches[pk];
     return p && lid ? (p.lanes || []).find((l) => l.id === lid) : null;
   }
@@ -241,7 +285,7 @@
     return d.options[Math.round(i + (j - i) * c)];
   }
   function curiosityValue(p, m) {
-    return between(PARAM[p.key].id, p.a, p.b, curve(p.curve, m));
+    return between(paramOf(p.key).id, p.a, p.b, curve(p.curve, m));
   }
   function stepChoice(id, v, dir) {
     const d = domain(id);
@@ -326,15 +370,17 @@
   /* Values per panel: the board's own values, then curiosities, suites, proximities, proximity suites.
      Each patch is on or off (its trigger), plays only in its moment (a span of panels), and each of its lanes
      grades one thing between two settings. */
-  function resolve(count, now, baseValues) {
+  function resolve(count, now, baseValues, character) {
     now = now || performance.now();
     /* A story workspace passes its own base (one character through the scenes); otherwise the board's. */
     const base = baseValues || (window.CuriosityBoard ? window.CuriosityBoard.values() : {});
     const panels = Array.from({ length: count }, () => Object.assign({}, base));
-    const active = Object.values(store.patches).filter((p) => p.running);
+    const active = Object.values(store.patches).filter((p) => p.running && paramOf(p.key));
     const ms = {};
     const order = ["s:", "c:", "p:", "ps:"];
-    active.sort((a, b) => order.indexOf(a.key.split(":")[0] + ":") - order.indexOf(b.key.split(":")[0] + ":"));
+    /* By level, and a character's own patch after the shared one, so it wins where both set a value. */
+    const rank = (p) => order.indexOf(p.key.split(":")[0] + ":") * 2 + (splitWho(p.key).who ? 1 : 0);
+    active.sort((a, b) => rank(a) - rank(b));
     active.forEach((p) => {
       const w = p.where || {};
       const from = Math.max(0, Math.min(count - 1, Number(w.from) || 0));
@@ -345,6 +391,8 @@
       const lanes = (p.lanes || []).filter((l) => l.on);
       const lane = (l, i) => laneValue(l, modAt(l, p.key + "#" + l.id, now, rel(i), master(i)));
       lanes.forEach((l) => (ms[p.key + "#" + l.id] = modAt(l, p.key + "#" + l.id, now, 0, master(from))));
+      /* Its meters move either way; its values land only on the characters it is for. */
+      if (!playsOn(p, character)) return;
       const find = (t) => lanes.find((l) => l.target === t);
       const amount = find("amount");
       const inPlay = (i) => !amount || dice(p.key, i, "amount") < lane(amount, i);
@@ -355,7 +403,7 @@
           if (level === "s") {
             const id = master(i) < 0.5 ? p.a : p.b;
             if (id) Object.assign(panels[i], suiteSet(id));
-          } else panels[i][PARAM[p.key].id] = curiosityValue(p, master(i));
+          } else panels[i][paramOf(p.key).id] = curiosityValue(p, master(i));
           lanes.filter((l) => l.target.startsWith("c:")).forEach((l) => (panels[i][l.target.slice(2)] = lane(l, i)));
         }
         return;
@@ -364,13 +412,13 @@
       if (!s || !s.on) return;
       const per = (t, fallback) => (find(t) ? (i) => lane(find(t), i) : fallback);
       if (level === "p") {
-        const prox = PROXIMITIES.find((x) => x.id === PARAM[p.key].id);
+        const prox = PROXIMITIES.find((x) => x.id === paramOf(p.key).id);
         if (!prox) return;
         const chance = per("chance", null);
         applyProximity(prox, panels, { key: p.key, from, to, within: per("delay", () => Number(s.within) || 0), effect: per("effect", null), cause: per("cause", null), chance: (i) => (inPlay(i) ? (chance ? chance(i) : 1) : 0) });
         return;
       }
-      const ps = PROXIMITY_SUITES.find((x) => x.id === PARAM[p.key].id);
+      const ps = PROXIMITY_SUITES.find((x) => x.id === paramOf(p.key).id);
       if (!ps) return;
       ps.members.forEach((id) => {
         const prox = PROXIMITIES.find((x) => x.id === id);
@@ -467,11 +515,13 @@
       if (key.includes("#")) {
         const l = laneOf(key);
         if (!l) return;
-        if (ev.kind === "note") return trigger(key.split("#")[0], ev.on);
+        const pk = splitLane(key)[0];
+        if (ev.kind === "note") return trigger(pk, ev.on);
         l.manual = ev.val / 127;
         l.mod = "midi";
-        return emit("change", { key: key.split("#")[0] });
+        return emit("change", { key: pk });
       }
+      if (!paramOf(key)) return;
       const p = patch(key);
       if (ev.kind === "note") trigger(key, ev.on);
       else if (p.mod === "lfo" && b.target === "rate") p.rate = 0.1 + (ev.val / 127) * 9.9;
@@ -514,19 +564,48 @@
     if (e.repeat || /input|select|textarea/i.test(e.target.tagName)) return;
     if (midi.learning && midi.learning.startsWith("key-learn:")) return;
     Object.entries(store.bindings).forEach(([key, b]) => {
-      if (b.kind === "key" && b.code === e.code) trigger(key, true);
+      if (b.kind === "key" && b.code === e.code && paramOf(key)) trigger(key, true);
     });
   });
   window.addEventListener("keyup", (e) => {
     Object.entries(store.bindings).forEach(([key, b]) => {
-      if (b.kind === "key" && b.code === e.code && patch(key).mode !== "toggle") trigger(key, false);
+      if (b.kind === "key" && b.code === e.code && paramOf(key) && patch(key).mode !== "toggle") trigger(key, false);
     });
   });
 
   window.CurioAuto = {
     PARAMS,
     PROXIMITY_SUITES,
-    param: (key) => PARAM[key],
+    param: paramOf,
+    /* Per character (story workspaces): "c:arcStage" + "Nessa" -> "c:arcStage@Nessa", that character's own patch. */
+    forCharacter: (key, name) => splitWho(key).base + "@" + name,
+    baseKey: (key) => splitWho(splitLane(key)[0]).base,
+    whoOf: (key) => splitWho(splitLane(key)[0]).who,
+    /* The characters that have a patch of their own on this parameter. */
+    copies: (key) =>
+      Object.keys(store.patches)
+        .filter((k) => splitWho(k).who && splitWho(k).base === splitWho(key).base)
+        .map((k) => splitWho(k).who),
+    /* Forget a character's own patch (and its bindings); the shared one plays on them again. */
+    dropCopy(key, name) {
+      const k = splitWho(key).base + "@" + name;
+      if (!store.patches[k]) return;
+      delete store.patches[k];
+      Object.keys(store.bindings).forEach((b) => (b === k || b.startsWith(k + "#")) && delete store.bindings[b]);
+      save();
+      emit("change", { key: k });
+    },
+    playsOn: (key, character) => playsOn(patch(key), character),
+    /* A character left the story: drop their own patches and take them off every patch's list. */
+    forgetCharacter(name) {
+      Object.keys(store.patches).forEach((k) => {
+        if (splitWho(k).who === name) delete store.patches[k];
+        else if (Array.isArray(store.patches[k].who)) store.patches[k].who = store.patches[k].who.filter((n) => n !== name);
+      });
+      Object.keys(store.bindings).forEach((b) => splitWho(splitLane(b)[0]).who === name && delete store.bindings[b]);
+      save();
+      emit("change", {});
+    },
     domain,
     /* A tool can register a curiosity it measures so it can be automated: addCuriosity({id, label, values, group}). */
     addCuriosity(c) {

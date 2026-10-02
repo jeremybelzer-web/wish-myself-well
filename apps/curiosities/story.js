@@ -3,7 +3,8 @@
    Shape: { scenes: <count>, characters: [names], values: { name: [ {curiosityId: value} per scene ] } }.
    localStorage key curiosities-story-v1. Characters start as the speakers of the board's scene.
    "The film" (FILM) is a row of its own for the whole film's road: kept in values like a character but never
-   listed by characters(); withFilm() lists it last. */
+   listed by characters(); withFilm() lists it last.
+   Automation can play per character: a patch's "who" list, or a character's own patch "c:<id>@<name>" (automation.js). */
 
 (function () {
   const KEY = "curiosities-story-v1";
@@ -80,6 +81,8 @@
       if (name === FILM) return;
       store.characters = store.characters.filter((c) => c !== name);
       delete store.values[name];
+      /* Their own automation patches go with them (automation.js keys "c:<id>@<name>"). */
+      if (window.CurioAuto && window.CurioAuto.forgetCharacter) window.CurioAuto.forgetCharacter(name);
       if (!store.characters.length) store.characters = defaultCharacters();
       save();
     },

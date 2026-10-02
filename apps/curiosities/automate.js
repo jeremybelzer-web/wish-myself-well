@@ -271,6 +271,40 @@
   let hubRaf = 0;
   let keyLearner = null; // the card waiting for "Bind a key"
 
+  /* Story workspaces (unit "scene"): who a patch plays on. Every character, some of them (patch.who),
+     or one character with a patch of its own ("c:arcStage@Nessa"), so two characters can move apart. */
+  function forNames(c) {
+    const st = window.CuriosityStory;
+    if (c.unit !== "scene" || !st || !st.characters || !A().forCharacter) return null;
+    return (c.chars || st.characters()).slice();
+  }
+  function forHtml(c) {
+    const names = forNames(c);
+    if (!names) return "";
+    const base = A().baseKey(c.key);
+    const mine = A().whoOf(c.key);
+    const shared = A().patch(base);
+    const who = Array.isArray(shared.who) ? shared.who.filter((n) => names.includes(n)) : [];
+    const copies = A().copies(base).filter((n) => names.includes(n));
+    const on = A().running();
+    const mode = mine ? "own:" + mine : who.length ? "some" : "all";
+    const opt = (v, t) => `<option value="${esc(v)}"${v === mode ? " selected" : ""}>${esc(t)}</option>`;
+    const ownTag = (n) => (on.includes(A().forCharacter(base, n)) ? " (its own, on)" : copies.includes(n) ? " (its own)" : "");
+    const sel = `<select data-for aria-label="Which characters this plays on">${opt("all", "every character")}${opt("some", "some characters (tick them)")}<optgroup label="One character, with a patch of its own">${names
+      .map((n) => opt("own:" + n, "only " + n + ownTag(n)))
+      .join("")}</optgroup></select>`;
+    let more = "";
+    if (mode === "some")
+      more = `<div class="au-for-who" role="group" aria-label="Characters it plays on">${names
+        .map((n) => `<label class="au-for-chip"><input type="checkbox" data-for-who="${esc(n)}"${who.includes(n) ? " checked" : ""}> ${esc(n)}</label>`)
+        .join("")}</div><p class="cap">Untick everyone and it plays on every character again.</p>`;
+    if (mine)
+      more = `<p class="cap">This patch is ${esc(mine)}'s own: it plays only on ${esc(mine)}, and wins over the shared one there. Its switch, key and MIDI bindings are its own too.
+        <button type="button" class="link" data-for-drop>Forget ${esc(mine)}'s own patch</button></p>`;
+    else if (copies.length) more += `<p class="cap">${esc(copies.join(", "))} ${copies.length > 1 ? "have patches" : "has a patch"} of their own, which win${copies.length > 1 ? "" : "s"} over this one for them.</p>`;
+    return `<div class="au-row au-for"><span class="au-lab" title="Story workspaces keep values per character.">For</span>${sel}</div>${more}`;
+  }
+
   function cardHtml(c) {
     const p = A().param(c.key);
     if (!p) return `<p class="cap">There is no automation for “${esc(c.key)}”.</p>`;
@@ -315,6 +349,7 @@
           <div class="au-seg">${[["gate", "on while held"], ["toggle", "tap on, tap off"]].map(([m, n]) => `<button type="button" data-mode="${m}" class="${pt.mode === m ? "on" : ""}">${n}</button>`).join("")}</div>
           <span class="au-run"><button type="button" data-r="run">${runText(pt)}</button></span>
         </div>
+        ${forHtml(c)}
         ${momentHtml(pt, c.unit)}`;
     const body = c.compact
       ? `${top}
@@ -349,7 +384,9 @@
     const bs = A().bindings();
     const lanes = (pt.lanes || []).map((l) => Object.assign({}, l, { manual: undefined }));
     const lb = Object.keys(bs).filter((k) => k === c.key || k.startsWith(c.key + "#")).map((k) => [k, bs[k]]);
-    return JSON.stringify([Object.assign({}, pt, { running: undefined, manual: undefined, rate: undefined, lanes }), lb, c.bay && starred(c.key), (A().midi.outputs || []).length]);
+    /* A story card also shows who the shared patch is for and which characters have their own. */
+    const forSig = forNames(c) ? [A().patch(A().baseKey(c.key)).who || [], A().copies(c.key), A().running().filter((k) => A().baseKey(k) === A().baseKey(c.key))] : null;
+    return JSON.stringify([Object.assign({}, pt, { running: undefined, manual: undefined, rate: undefined, lanes }), lb, c.bay && starred(c.key), (A().midi.outputs || []).length, forSig]);
   }
 
   function renderCard(c) {
@@ -485,7 +522,9 @@
       });
     } else if (type === "change") {
       cards.forEach((c) => {
-        if (data && data.key && data.key !== c.key) return;
+        /* A story card listens to its whole family: the shared patch and every character's own. */
+        const fam = forNames(c) && data && data.key && A().baseKey(data.key) === A().baseKey(c.key);
+        if (data && data.key && data.key !== c.key && !fam) return;
         if (!A().param(c.key)) return;
         const sig = cardSig(c);
         if (sig !== c.sig) {
@@ -504,7 +543,9 @@
           done = true;
           const b = data.binding;
           if (lf.what === "lane") {
-            const [pk, lid] = data.key.split("#");
+            const cut = data.key.lastIndexOf("#");
+            const pk = data.key.slice(0, cut);
+            const lid = data.key.slice(cut + 1);
             if (b.kind === "cc") A().setLane(pk, lid, { mod: "midi" });
           } else {
             if (b.kind === "cc" && lf.what === "cc-rate") A().bind(data.key, Object.assign({}, b, { target: "rate" }));
@@ -534,7 +575,7 @@
     opts = opts || {};
     if (host.__auCard) dropCard(host.__auCard);
     const wrap = document.createElement("div");
-    const c = { host, wrap, key, compact: !!opts.compact, bay: !!opts.bay, unit: opts.unit === "scene" ? "scene" : "panel", more: false, lanesOpen: null, learnFor: null, self: 0, sig: "", stale: false, scope: [], born: performance.now(), seen: false };
+    const c = { host, wrap, key, chars: Array.isArray(opts.characters) ? opts.characters : null, compact: !!opts.compact, bay: !!opts.bay, unit: opts.unit === "scene" ? "scene" : "panel", more: false, lanesOpen: null, learnFor: null, self: 0, sig: "", stale: false, scope: [], born: performance.now(), seen: false };
     host.innerHTML = "";
     host.appendChild(wrap);
     host.__auCard = c;
@@ -728,6 +769,44 @@
         redraw();
       })
     );
+    /* For: every character, some, or one character's own patch (the card then shows that patch). */
+    const forSel = el.querySelector("[data-for]");
+    if (forSel)
+      forSel.addEventListener("change", () => {
+        const base = A().baseKey(key);
+        const v = forSel.value;
+        const names = forNames(c) || [];
+        if (keyLearner === c) keyLearner = null;
+        c.learnFor = null;
+        if (v.startsWith("own:")) {
+          c.key = A().forCharacter(base, v.slice(4));
+          A().patch(c.key); /* starts as a copy of the shared patch, switched off */
+        } else {
+          c.key = base;
+          own0(() => A().set(base, { who: v === "some" ? names.slice() : [] }), c);
+        }
+        renderCard(c);
+      });
+    el.querySelectorAll("[data-for-who]").forEach((box) =>
+      box.addEventListener("change", () => {
+        const base = A().baseKey(key);
+        const names = forNames(c) || [];
+        const cur = (A().patch(base).who || []).filter((n) => names.includes(n));
+        const next = box.checked ? cur.concat(cur.includes(box.dataset.forWho) ? [] : [box.dataset.forWho]) : cur.filter((n) => n !== box.dataset.forWho);
+        own(() => A().set(base, { who: next }));
+        if (!next.length) redraw();
+      })
+    );
+    const drop = el.querySelector("[data-for-drop]");
+    if (drop)
+      drop.addEventListener("click", () => {
+        const base = A().baseKey(key);
+        const who = A().whoOf(key);
+        c.key = base;
+        c.learnFor = null;
+        A().dropCopy(base, who);
+        renderCard(c);
+      });
     const oc = r("outcc");
     oc.addEventListener("change", () => set({ outCC: oc.value === "" ? null : Math.max(0, Math.min(127, Number(oc.value) || 0)) }));
   }
@@ -1148,10 +1227,13 @@
         return null;
       }
       /* unit "scene": the moment reads from scene / to scene (story workspaces). */
-      const c = mountCard(el, key, { compact: !!(opts && opts.compact), unit: opts && opts.unit });
+      /* characters: who the "For" control offers on a story card (default: the story's characters). */
+      const c = mountCard(el, key, { compact: !!(opts && opts.compact), unit: opts && opts.unit, characters: opts && opts.characters });
       return {
         el: c.wrap,
-        key,
+        get key() {
+          return c.key;
+        },
         refresh: () => renderCard(c),
         destroy: () => {
           dropCard(c);
@@ -1246,6 +1328,9 @@
 .au-mainlane { display: grid; gap: 8px; border: 1px solid #b9ad9c; background: #f3ede2; padding: 8px; }
 .au-mainname { font-size: 12px; color: var(--ink); text-transform: none; letter-spacing: 0.02em; }
 .au-moment select, .au-lane select { max-width: 100%; }
+.au-for select { max-width: 100%; min-width: 0; flex: 1 1 180px; }
+.au-for-who { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 2px 0 4px; }
+.au-for-chip { font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
 .au-sweep { text-transform: none; }
 .au-lanes { border: 1px solid #b9ad9c; background: #f7f2e9; padding: 6px 8px; }
 .au-lanes summary { cursor: pointer; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }

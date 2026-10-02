@@ -17,8 +17,9 @@
    The bar groups the workspaces into labelled sections: Camera, People, Look, Feeling, Comedy, Story.
    "storyboard" is a page of its own (storyboard.js, CuriosityStoryboard.mount).
    Story workspaces also open with a Roadmap: one line chart per curiosity, scenes across, the curiosity's scale up
-   the side (in CurioAuto.domain order), one line per character (each can be hidden), the chosen character's
-   line showing running automation live. Emotional road adds "The film" (story.js FILM): its own row where set,
+   the side (in CurioAuto.domain order), one line per character (each can be hidden), each line showing
+   the automation running for that character live. A story module's "For" control picks who a patch plays on:
+   every character, some (patch.who), or one character's own patch (key "c:<id>@<name>", automation.js). Emotional road adds "The film" (story.js FILM): its own row where set,
    otherwise the average of the characters shown. Each story scene column links to its storyboard scenes.
    window.CuriosityWorkspaces = { open(id), openFor(paramKey), list() }. Last open: curiosities-workspace-v1. */
 
@@ -231,7 +232,7 @@
       <section class="ws-part" id="ws-film"><h3>In my film</h3><div id="ws-grid"></div>
         ${ws.matrix ? `<div class="ws-matrix" id="ws-matrix"></div>` : ""}</section>
       <section class="ws-part" id="ws-auto"><h3>Automate</h3>
-        <p class="cap">Switch one on and it plays${ws.scope === "story" ? " through the scenes above, for whichever character you pick" : " on the board, in the moment you choose"}. From and to set the range; lanes grade its other parts.</p>
+        <p class="cap">Switch one on and it plays${ws.scope === "story" ? " through the scenes above, on the characters its For setting names (every character, some, or one with a patch of its own, so two characters can move in opposite directions)" : " on the board, in the moment you choose"}. From and to set the range; lanes grade its other parts.</p>
         <div class="${ws.sections ? "ws-lenses" : "ws-mods"}" id="ws-mods"></div>
         <div id="ws-related"></div></section>
       <section class="ws-part" id="ws-prism"><h3>Cross-pollinate from a film</h3><div id="ws-prism-body"></div></section>
@@ -370,11 +371,13 @@
     b.apply(label, cur.values);
   }
 
-  /* Story scope: one character's values through the scenes, with running automation laid over them. */
-  function storyOverlay(n) {
+  /* Story scope: one character's values through the scenes, with running automation laid over them.
+     Only the patches for that character play: shared ones for every character or naming them (patch.who),
+     and the character's own ("c:arcStage@Nessa"). */
+  function storyOverlay(n, who) {
     if (!A() || !A().resolve || !A().running || !A().running().length) return null;
     try {
-      return A().resolve(n, undefined, {}).panels;
+      return A().resolve(n, undefined, {}, who == null ? view.character : who).panels;
     } catch (e) {
       return null;
     }
@@ -394,7 +397,7 @@
     const who = view.character;
     const scenes = st.scenes();
     const vals = st.values(who);
-    const over = storyOverlay(scenes.length);
+    const over = storyOverlay(scenes.length, who);
     const ids = idsOf(ws);
     const head = scenes
       .map((s, i) => `<th>${esc(s)}<a href="#" class="ws-sblink" data-sb-scene="${i}" title="Open the Storyboard at the scenes tied to ${esc(s)}">See this scene's storyboard</a></th>`)
@@ -466,16 +469,16 @@
     }
     return null;
   }
-  /* One line's points for one curiosity: the kept values, with running automation laid over the chosen character. */
+  /* One line's points for one curiosity: the kept values, with the automation running for that character laid over them. */
   function roadSeries(ws, id, sc, n) {
     const st = S();
     const chars = st.characters();
-    const over = storyOverlay(n);
     const names = withFilm(ws) ? st.withFilm() : chars;
     const out = names.map((name) => {
       const vals = st.values(name);
+      const over = storyOverlay(n, name);
       const pts = Array.from({ length: n }, (_, i) => {
-        const auto = name === view.character && over && over[i] && over[i][id] != null ? over[i][id] : null;
+        const auto = over && over[i] && over[i][id] != null ? over[i][id] : null;
         const raw = auto != null ? auto : vals[i] ? vals[i][id] : null;
         const y = sc.pos(raw);
         return y == null ? null : { y, raw, live: auto != null };
@@ -571,7 +574,7 @@
         return `<button type="button" class="ws-road-who ${on ? "on" : ""}" data-road-who="${esc(name)}" aria-pressed="${on}" title="${on ? "Hide" : "Show"} ${esc(name)}'s line"><span class="ws-road-key${film ? " film" : ""}" style="--c:${roadColor(name, chars)}"></span>${esc(name)}${name === view.character ? " ·&nbsp;chosen" : ""}</button>`;
       })
       .join("");
-    el.innerHTML = `<p class="cap">${withFilm(ws) ? "Each character's road, and the film's own, " : "Each character "}through the ${st.scenes().length} scenes. Low on the scale is at the bottom, high at the top. Tap a name to hide or show its line. A ring marks a value that running automation is playing now (it plays on the chosen character, ${esc(view.character || "")}).${
+    el.innerHTML = `<p class="cap">${withFilm(ws) ? "Each character's road, and the film's own, " : "Each character "}through the ${st.scenes().length} scenes. Low on the scale is at the bottom, high at the top. Tap a name to hide or show its line. A ring marks a value that running automation is playing now, on the characters each automation is for (its For setting: every character, some, or one character's own patch).${
       withFilm(ws) ? " The film's line is dashed: a filled dot is its own row, a hollow dot is the average of the characters shown." : ""
     }</p>
       <div class="ws-road-who-row" role="group" aria-label="Lines on the roadmap">${toggles}</div>
@@ -663,7 +666,7 @@
         const st = S();
         if (!st) return;
         const vals = st.values(view.character);
-        const over = storyOverlay(st.scenes().length);
+        const over = storyOverlay(st.scenes().length, view.character);
         root.querySelectorAll("#ws-grid [data-now]").forEach((s) => {
           const i = Number(s.dataset.i);
           const mine = vals[i] && vals[i][s.dataset.now] != null ? vals[i][s.dataset.now] : "";
@@ -788,7 +791,9 @@
     if (CA && typeof CA.mount === "function") {
       try {
         const ws = byId[view.ws];
-        CA.mount(el, key, { compact: true, unit: ws && ws.scope === "story" ? "scene" : "panel" });
+        const story = ws && ws.scope === "story";
+        /* A story module has a "For" control: every character, some, or one character's own patch. */
+        CA.mount(el, key, { compact: true, unit: story ? "scene" : "panel", characters: story && S() ? (withFilm(ws) ? S().withFilm() : S().characters()) : undefined });
         return;
       } catch (e) {
         el.innerHTML = `<p class="cap ws-fallback">This automation could not draw here (${esc(e.message)}).</p>`;
