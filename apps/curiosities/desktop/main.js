@@ -7,6 +7,12 @@ const { app, BrowserWindow, Menu, dialog, session, shell } = require("electron")
 const path = require("path");
 const bridge = require("./bridge-server.js");
 
+/* The app's name lives in one place, package.json "productName" (and build.productName for the installer). */
+const APP_NAME = require("./package.json").productName;
+app.setName(APP_NAME);
+/* Work is stored under a fixed folder, so renaming the app never strands anyone's saved work. */
+app.setPath("userData", path.join(app.getPath("appData"), "Curiosities"));
+
 const APP_DIR = app.isPackaged ? path.join(process.resourcesPath, "app") : path.join(__dirname, "..");
 let win = null;
 let server = null;
@@ -23,12 +29,14 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1440,
     height: 920,
-    title: "Curiosities",
+    title: APP_NAME,
     backgroundColor: "#f7efe2",
     icon: path.join(APP_DIR, "icon.svg"),
     webPreferences: { contextIsolation: true, sandbox: true },
   });
   win.loadFile(path.join(APP_DIR, "index.html"));
+  /* Keep the app's name in the title bar, not the page's own <title>. */
+  win.on("page-title-updated", (e) => e.preventDefault());
   /* Links to the web open in the normal browser, never inside the app. */
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/.test(url)) shell.openExternal(url);
