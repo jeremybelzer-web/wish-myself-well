@@ -2,12 +2,12 @@
  "made": "vcv/tools/make-vcv.js from the curiosity database",
  "counts": {
   "workspaces": 32,
-  "curiosities": 393,
+  "curiosities": 392,
   "suites": 204,
   "proximities": 190,
   "proximitySuites": 51,
   "scenes": 8,
-  "sliders": 5578
+  "sliders": 5571
  },
  "focus": {
   "channel": 16,
@@ -2662,474 +2662,464 @@
    "jack": 1
   },
   {
-   "key": "c:enneagramHealth",
-   "channel": 4,
-   "cc": 18,
-   "label": "Health of the type",
-   "level": "curiosity",
-   "workspace": "archetype",
-   "module": 23,
-   "jack": 2
-  },
-  {
    "key": "c:cm-stability",
    "channel": 4,
-   "cc": 19,
+   "cc": 18,
    "label": "Stabilizer to Catalyst",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 3
+   "jack": 2
   },
   {
    "key": "c:cm-agency",
    "channel": 4,
-   "cc": 20,
+   "cc": 19,
    "label": "Reactive to Proactive",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 4
+   "jack": 3
   },
   {
    "key": "c:cm-freedom",
    "channel": 4,
-   "cc": 21,
+   "cc": 20,
    "label": "Conformist to Individualist",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 5
+   "jack": 4
   },
   {
    "key": "c:cm-morality",
    "channel": 4,
-   "cc": 22,
+   "cc": 21,
    "label": "Altruistic to Self-serving",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 6
+   "jack": 5
   },
   {
    "key": "c:cm-risk",
    "channel": 4,
-   "cc": 23,
+   "cc": 22,
    "label": "Cautious to Reckless",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 7
+   "jack": 6
   },
   {
    "key": "c:cm-control",
    "channel": 4,
-   "cc": 24,
+   "cc": 23,
    "label": "Surrender to Controlling",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 8
+   "jack": 7
   },
   {
    "key": "c:cm-worldview",
    "channel": 4,
-   "cc": 25,
+   "cc": 24,
    "label": "Idealist to Cynic",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 9
+   "jack": 8
   },
   {
    "key": "c:cm-openness",
    "channel": 4,
-   "cc": 26,
+   "cc": 25,
    "label": "Open to Secretive",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 10
+   "jack": 9
   },
   {
    "key": "c:cm-emotion",
    "channel": 4,
-   "cc": 27,
+   "cc": 26,
    "label": "Emotional to Rational",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 11
+   "jack": 10
   },
   {
    "key": "c:cm-adaptability",
    "channel": 4,
-   "cc": 28,
+   "cc": 27,
    "label": "Flexible to Rigid",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 12
+   "jack": 11
   },
   {
    "key": "c:cm-conflict",
    "channel": 4,
-   "cc": 29,
+   "cc": 28,
    "label": "Conflict-avoidant to Confrontational",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 13
+   "jack": 12
   },
   {
    "key": "c:cm-temperament",
    "channel": 4,
-   "cc": 30,
+   "cc": 29,
    "label": "Orderly to Chaotic",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 14
+   "jack": 13
   },
   {
    "key": "c:cm-truth",
    "channel": 4,
-   "cc": 31,
+   "cc": 30,
    "label": "Honest to Deceptive",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
-   "jack": 15
+   "jack": 14
   },
   {
    "key": "c:cm-competence",
    "channel": 4,
-   "cc": 32,
+   "cc": 31,
    "label": "Ineffective to Highly capable",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 15
+  },
+  {
+   "key": "c:cm-need",
+   "channel": 4,
+   "cc": 32,
+   "label": "Security to Freedom",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 23,
    "jack": 16
   },
   {
-   "key": "c:cm-need",
-   "channel": 4,
-   "cc": 33,
-   "label": "Security to Freedom",
-   "level": "curiosity",
-   "workspace": "archetype",
-   "module": 24,
-   "jack": 1
-  },
-  {
    "key": "c:cm-motivation",
    "channel": 4,
-   "cc": 34,
+   "cc": 33,
    "label": "External to Internal",
    "level": "curiosity",
    "workspace": "archetype",
    "module": 24,
-   "jack": 2
+   "jack": 1
   },
   {
    "key": "c:cm-health",
    "channel": 4,
-   "cc": 35,
+   "cc": 34,
    "label": "Enneagram health",
    "level": "curiosity",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 2
+  },
+  {
+   "key": "s:enneagram-1",
+   "channel": 4,
+   "cc": 35,
+   "label": "Type 1: Reformer",
+   "level": "suite",
    "workspace": "archetype",
    "module": 24,
    "jack": 3
   },
   {
-   "key": "s:enneagram-1",
+   "key": "s:enneagram-2",
    "channel": 4,
    "cc": 36,
-   "label": "Type 1: Reformer",
+   "label": "Type 2: Helper",
    "level": "suite",
    "workspace": "archetype",
    "module": 24,
    "jack": 4
   },
   {
-   "key": "s:enneagram-2",
+   "key": "s:enneagram-3",
    "channel": 4,
    "cc": 37,
-   "label": "Type 2: Helper",
+   "label": "Type 3: Achiever",
    "level": "suite",
    "workspace": "archetype",
    "module": 24,
    "jack": 5
   },
   {
-   "key": "s:enneagram-3",
+   "key": "s:enneagram-4",
    "channel": 4,
    "cc": 38,
-   "label": "Type 3: Achiever",
+   "label": "Type 4: Individualist",
    "level": "suite",
    "workspace": "archetype",
    "module": 24,
    "jack": 6
   },
   {
-   "key": "s:enneagram-4",
+   "key": "s:enneagram-5",
    "channel": 4,
    "cc": 39,
-   "label": "Type 4: Individualist",
+   "label": "Type 5: Investigator",
    "level": "suite",
    "workspace": "archetype",
    "module": 24,
    "jack": 7
   },
   {
-   "key": "s:enneagram-5",
+   "key": "s:enneagram-6",
    "channel": 4,
    "cc": 40,
-   "label": "Type 5: Investigator",
+   "label": "Type 6: Loyalist",
    "level": "suite",
    "workspace": "archetype",
    "module": 24,
    "jack": 8
   },
   {
-   "key": "s:enneagram-6",
+   "key": "s:enneagram-7",
    "channel": 4,
    "cc": 41,
-   "label": "Type 6: Loyalist",
+   "label": "Type 7: Enthusiast",
    "level": "suite",
    "workspace": "archetype",
    "module": 24,
    "jack": 9
   },
   {
-   "key": "s:enneagram-7",
+   "key": "s:enneagram-8",
    "channel": 4,
    "cc": 42,
-   "label": "Type 7: Enthusiast",
+   "label": "Type 8: Challenger",
    "level": "suite",
    "workspace": "archetype",
    "module": 24,
    "jack": 10
   },
   {
-   "key": "s:enneagram-8",
+   "key": "s:enneagram-9",
    "channel": 4,
    "cc": 43,
-   "label": "Type 8: Challenger",
+   "label": "Type 9: Peacemaker",
    "level": "suite",
    "workspace": "archetype",
    "module": 24,
    "jack": 11
   },
   {
-   "key": "s:enneagram-9",
+   "key": "p:stress-1",
    "channel": 4,
    "cc": 44,
-   "label": "Type 9: Peacemaker",
-   "level": "suite",
+   "label": "When a Reformer falls into stress, they look like an Individualist",
+   "level": "proximity",
    "workspace": "archetype",
    "module": 24,
    "jack": 12
   },
   {
-   "key": "p:stress-1",
+   "key": "p:growth-1",
    "channel": 4,
    "cc": 45,
-   "label": "When a Reformer falls into stress, they look like an Individualist",
+   "label": "When a Reformer grows, they borrow from the Enthusiast",
    "level": "proximity",
    "workspace": "archetype",
    "module": 24,
    "jack": 13
   },
   {
-   "key": "p:growth-1",
+   "key": "p:stress-2",
    "channel": 4,
    "cc": 46,
-   "label": "When a Reformer grows, they borrow from the Enthusiast",
+   "label": "When a Helper falls into stress, they look like a Challenger",
    "level": "proximity",
    "workspace": "archetype",
    "module": 24,
    "jack": 14
   },
   {
-   "key": "p:stress-2",
+   "key": "p:growth-2",
    "channel": 4,
    "cc": 47,
-   "label": "When a Helper falls into stress, they look like a Challenger",
+   "label": "When a Helper grows, they borrow from the Individualist",
    "level": "proximity",
    "workspace": "archetype",
    "module": 24,
    "jack": 15
   },
   {
-   "key": "p:growth-2",
+   "key": "p:stress-3",
    "channel": 4,
    "cc": 48,
-   "label": "When a Helper grows, they borrow from the Individualist",
+   "label": "When an Achiever falls into stress, they look like a Peacemaker",
    "level": "proximity",
    "workspace": "archetype",
    "module": 24,
    "jack": 16
   },
   {
-   "key": "p:stress-3",
+   "key": "p:growth-3",
    "channel": 4,
    "cc": 49,
-   "label": "When an Achiever falls into stress, they look like a Peacemaker",
+   "label": "When an Achiever grows, they borrow from the Loyalist",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 1
   },
   {
-   "key": "p:growth-3",
+   "key": "p:stress-4",
    "channel": 4,
    "cc": 50,
-   "label": "When an Achiever grows, they borrow from the Loyalist",
+   "label": "When an Individualist falls into stress, they look like a Helper",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 2
   },
   {
-   "key": "p:stress-4",
+   "key": "p:growth-4",
    "channel": 4,
    "cc": 51,
-   "label": "When an Individualist falls into stress, they look like a Helper",
+   "label": "When an Individualist grows, they borrow from the Reformer",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 3
   },
   {
-   "key": "p:growth-4",
+   "key": "p:stress-5",
    "channel": 4,
    "cc": 52,
-   "label": "When an Individualist grows, they borrow from the Reformer",
+   "label": "When an Investigator falls into stress, they look like an Enthusiast",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 4
   },
   {
-   "key": "p:stress-5",
+   "key": "p:growth-5",
    "channel": 4,
    "cc": 53,
-   "label": "When an Investigator falls into stress, they look like an Enthusiast",
+   "label": "When an Investigator grows, they borrow from the Challenger",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 5
   },
   {
-   "key": "p:growth-5",
+   "key": "p:stress-6",
    "channel": 4,
    "cc": 54,
-   "label": "When an Investigator grows, they borrow from the Challenger",
+   "label": "When a Loyalist falls into stress, they look like an Achiever",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 6
   },
   {
-   "key": "p:stress-6",
+   "key": "p:growth-6",
    "channel": 4,
    "cc": 55,
-   "label": "When a Loyalist falls into stress, they look like an Achiever",
+   "label": "When a Loyalist grows, they borrow from the Peacemaker",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 7
   },
   {
-   "key": "p:growth-6",
+   "key": "p:stress-7",
    "channel": 4,
    "cc": 56,
-   "label": "When a Loyalist grows, they borrow from the Peacemaker",
+   "label": "When an Enthusiast falls into stress, they look like a Reformer",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 8
   },
   {
-   "key": "p:stress-7",
+   "key": "p:growth-7",
    "channel": 4,
    "cc": 57,
-   "label": "When an Enthusiast falls into stress, they look like a Reformer",
+   "label": "When an Enthusiast grows, they borrow from the Investigator",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 9
   },
   {
-   "key": "p:growth-7",
+   "key": "p:stress-8",
    "channel": 4,
    "cc": 58,
-   "label": "When an Enthusiast grows, they borrow from the Investigator",
+   "label": "When a Challenger falls into stress, they look like an Investigator",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 10
   },
   {
-   "key": "p:stress-8",
+   "key": "p:growth-8",
    "channel": 4,
    "cc": 59,
-   "label": "When a Challenger falls into stress, they look like an Investigator",
+   "label": "When a Challenger grows, they borrow from the Helper",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 11
   },
   {
-   "key": "p:growth-8",
+   "key": "p:stress-9",
    "channel": 4,
    "cc": 60,
-   "label": "When a Challenger grows, they borrow from the Helper",
+   "label": "When a Peacemaker falls into stress, they look like a Loyalist",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 12
   },
   {
-   "key": "p:stress-9",
+   "key": "p:growth-9",
    "channel": 4,
    "cc": 61,
-   "label": "When a Peacemaker falls into stress, they look like a Loyalist",
+   "label": "When a Peacemaker grows, they borrow from the Achiever",
    "level": "proximity",
    "workspace": "archetype",
    "module": 25,
    "jack": 13
   },
   {
-   "key": "p:growth-9",
+   "key": "ps:enneagram-stress-arrows",
    "channel": 4,
    "cc": 62,
-   "label": "When a Peacemaker grows, they borrow from the Achiever",
-   "level": "proximity",
+   "label": "Stress arrows",
+   "level": "proximitySuite",
    "workspace": "archetype",
    "module": 25,
    "jack": 14
   },
   {
-   "key": "ps:enneagram-stress-arrows",
-   "channel": 4,
-   "cc": 63,
-   "label": "Stress arrows",
-   "level": "proximitySuite",
-   "workspace": "archetype",
-   "module": 25,
-   "jack": 15
-  },
-  {
    "key": "ps:enneagram-growth-arrows",
    "channel": 4,
-   "cc": 64,
+   "cc": 63,
    "label": "Growth arrows",
    "level": "proximitySuite",
    "workspace": "archetype",
    "module": 25,
-   "jack": 16
+   "jack": 15
   },
   {
    "key": "c:herdMentality",

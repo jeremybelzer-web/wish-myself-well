@@ -232,7 +232,7 @@
     {
       "slug": "Curio-archetype-3",
       "name": "Archetype 3",
-      "description": "16 curiosities, suites and pairs from Archetype, one jack each, sent to the Curiosities app as MIDI CC on channel 4.",
+      "description": "15 curiosities, suites and pairs from Archetype, one jack each, sent to the Curiosities app as MIDI CC on channel 4.",
       "tags": [
         "Controller",
         "MIDI"
