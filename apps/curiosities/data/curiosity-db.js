@@ -342,13 +342,15 @@
       const known = new Set((have || []).map((s) => s.id));
       return db.suites.filter((s) => !known.has(s.id)).map((s) => {
         const set = {};
+        const weights = {};
         s.members.forEach((m) => {
           /* A member naming the curiosity's main slider is the curiosity itself (no "<id>.<main>" row exists). */
           const c = api.get("curiosity", m.curiosity);
           const id = m.slider && !(c && c.main === m.slider) ? m.curiosity + "." + m.slider : m.curiosity;
           set[id] = m.value != null ? m.value : m.to != null ? m.to : m.from;
+          weights[id] = (m.weight == null ? 100 : m.weight) / 100;
         });
-        return { id: s.id, label: s.label, note: s.plain, kind: s.kind || "database", set };
+        return { id: s.id, label: s.label, note: s.plain, kind: s.kind || "database", set, weights };
       });
     },
     /* Proximities in model.js's shape ({ id, when, then, within, x, y }). */
@@ -377,7 +379,12 @@
       api.resolve();
       t = t || {};
       if (t.CURIOSITIES) api.legacyRows(t.CURIOSITIES).forEach((r) => t.CURIOSITIES.push(r));
-      if (t.SUITES) api.legacySuites(t.SUITES).forEach((r) => t.SUITES.push(r));
+      if (t.SUITES) {
+        /* Suites the app already has keep their own values; they only gain the database's member weights (0..1). */
+        const have = Object.fromEntries(api.legacySuites([]).map((r) => [r.id, r]));
+        t.SUITES.forEach((x) => have[x.id] && !x.weights && (x.weights = have[x.id].weights));
+        api.legacySuites(t.SUITES).forEach((r) => t.SUITES.push(r));
+      }
       if (t.PROXIMITIES) api.legacyProximities(t.PROXIMITIES).forEach((r) => t.PROXIMITIES.push(r));
       /* Proximity suites live in automation.js (PROXIMITY_SUITES), which loads after this, so they wait on
          window.CURIOSITY_PROXIMITY_SUITES for it to merge, the same way it merges CURIOSITY_FACETS. */
