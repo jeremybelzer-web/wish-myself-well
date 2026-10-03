@@ -148,12 +148,38 @@ const ok = (cond, msg) => {
     window.CurioScreen.setRow(2);
     const r = window.CurioScreen.row();
     window.CurioScreen.setRow(0);
-    const el = document.querySelector('.sc-player > .sc-dock[data-panel="test-dock"]');
+    const el = document.querySelector('.sc-player .sc-dock[data-panel="test-dock"]');
     return { added, r, told, text: el && el.textContent };
   });
   ok(hook.added && hook.text === "docked" && hook.r === 2 && hook.told >= 2, "other threads can dock a panel, read the playhead and hear every move");
   ok(await page.evaluate(() => /^00:00:00:06 /.test(document.querySelector(".sc-tc").textContent) === false && /00:00:00:00/.test(document.querySelector(".sc-tc").textContent)), "the clock starts at zero");
-  await page.evaluate(() => { document.querySelector('.sc-dock[data-panel="test-dock"]').remove(); });
+  /* Two docked panels stack in the Screen's own column beside the Player instead of sitting on top of each other. */
+  const stack = await page.evaluate(() => {
+    window.CurioScreen.addPanel({ id: "test-dock-2", label: "Second dock", place: "player", mount: (el) => (el.innerHTML = '<div style="height:24px">second</div>') });
+    const r = (s) => document.querySelector(s).getBoundingClientRect();
+    const a = r('.sc-dock[data-panel="test-dock"]'), b = r('.sc-dock[data-panel="test-dock-2"]'), v = r(".sc-player > .sc-viewers");
+    return { below: b.top >= a.bottom - 1, sameCol: Math.abs(a.left - b.left) < 1, beside: a.left >= v.right - 1, col: !!document.querySelector('.sc-player > .sc-docks > .sc-dock[data-panel="test-dock-2"]') };
+  });
+  ok(stack.col && stack.below && stack.sameCol && stack.beside, "two docked panels stack in one column beside the viewers, never on top of each other");
+  /* Keys typed in a tool window over the Screen belong to that tool, not the film behind it. */
+  const keyGuard = await page.evaluate(() => {
+    window.CurioScreen.setRow(1);
+    const d = document.createElement("dialog");
+    d.innerHTML = '<button type="button">in the tool</button>';
+    document.body.appendChild(d);
+    d.showModal();
+    d.querySelector("button").focus();
+    const send = (key, o) => d.querySelector("button").dispatchEvent(new KeyboardEvent("keydown", Object.assign({ key, bubbles: true, cancelable: true }, o || {})));
+    const undo0 = window.CurioEngine.history().undo.length;
+    send("ArrowRight");
+    send(" ");
+    const out = { row: window.CurioScreen.row(), undo: window.CurioEngine.history().undo.length === undo0 };
+    d.close();
+    d.remove();
+    return out;
+  });
+  ok(keyGuard.row === 1 && keyGuard.undo, "arrows and Space inside a tool window leave the film behind it alone");
+  await page.evaluate(() => { document.querySelectorAll('.sc-dock[data-panel^="test-dock"]').forEach((el) => el.remove()); });
 
   /* Maya's ghosting, the play range, and the momentum box. */
   await page.evaluate(() => document.activeElement && document.activeElement.blur());

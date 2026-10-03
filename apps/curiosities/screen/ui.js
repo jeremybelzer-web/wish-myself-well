@@ -367,7 +367,7 @@
     /* Undo and redo go to the app-wide undo list when the page has one (engine/store.js), so one ⌘Z undoes one
        step of anything. Caught first, on the window, so the app's own ⌘Z handler does not undo a second step. */
     window.addEventListener("keydown", (e) => {
-      if (page.hidden || !mod(e) || e.altKey) return;
+      if (page.hidden || !mod(e) || e.altKey || inToolWindow(e)) return;
       const tag = (e.target && e.target.tagName) || "";
       if (/INPUT|SELECT|TEXTAREA/.test(tag) || (e.target && e.target.isContentEditable)) return;
       const k = e.key.toLowerCase();
@@ -378,7 +378,7 @@
       undoAll(dir);
     }, true);
     document.addEventListener("keydown", (e) => {
-      if (page.hidden) return;
+      if (page.hidden || inToolWindow(e)) return;
       const tag = (e.target && e.target.tagName) || "";
       if (/INPUT|SELECT|TEXTAREA/.test(tag) || (e.target && e.target.isContentEditable)) return;
       if (e.key === "Escape" && keysOpen) return showKeys(false);
@@ -422,10 +422,23 @@
   const panels = [];
   const listeners = [];
   const PLACE = { player: ".sc-player", details: ".sc-inspector", timeline: ".sc-timeline" };
+  /* Panels docked beside the Player stack top to bottom in one column the Screen owns (.sc-docks), in the order
+     they were added, so two panels never fight over the Player's grid or sit on top of each other. */
+  function dockHost(place) {
+    const host = page.querySelector(PLACE[place] || PLACE.player);
+    if (!host || (PLACE[place] || PLACE.player) !== PLACE.player) return host;
+    let col = host.querySelector(":scope > .sc-docks");
+    if (!col) {
+      col = document.createElement("div");
+      col.className = "sc-docks";
+      host.appendChild(col);
+    }
+    return col;
+  }
   function placePanels() {
     if (!page) return;
     panels.forEach((p) => {
-      const host = page.querySelector(PLACE[p.place] || PLACE.player);
+      const host = dockHost(p.place);
       if (!host) return;
       if (!p.el) {
         p.el = document.createElement("div");
@@ -435,7 +448,7 @@
       }
       if (p.el.parentNode !== host) {
         host.appendChild(p.el);
-        host.classList.add("sc-has-dock");
+        (host.classList.contains("sc-docks") ? host.parentNode : host).classList.add("sc-has-dock");
       }
       if (!p.mounted) {
         p.mounted = true;
@@ -1310,6 +1323,18 @@ document.addEventListener("click", function (e) {
         return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
       },
     };
+  }
+  /* Keys typed in a tool window over the Screen (a Maya tool such as 3D characters, or any open dialog) belong to
+     that tool: the Screen's shortcuts and its ⌘Z leave them alone, so they never change the film behind it. */
+  function inToolWindow(e) {
+    const t = e && e.target;
+    if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg")) return true;
+    /* A tool opened as a modal window takes the keys even when nothing inside it has focus. */
+    try {
+      return !!document.querySelector("dialog:modal");
+    } catch (err) {
+      return false;
+    }
   }
   function undoAll(dir) {
     const St = window.CurioStore;
