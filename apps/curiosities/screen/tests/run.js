@@ -410,5 +410,57 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(CL.attentionTrack(null, { attention: att }).moments.length === 0, "a film with no moments draws nothing");
 }
 
+/* Export (CapCut's Export button): the storyboard sheet and the settings list, built from plain data with no
+   page. ui.js is loaded with a stand-in document that does nothing, so only its pure parts are used. */
+{
+  const saved = { document: w.document, setTimeout: w.setTimeout };
+  w.document = { readyState: "complete", querySelector: () => null, getElementById: () => null, addEventListener: () => {} };
+  w.setTimeout = () => 0;
+  try {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "ui.js"), "utf8"), core.context || vm.createContext(w), { filename: "ui.js" });
+  } catch (e) {
+    ok(false, "ui.js loads with no page: " + e.message);
+  }
+  w.document = saved.document;
+  w.setTimeout = saved.setTimeout;
+  const X = w.CurioScreenExport;
+  ok(!!X && typeof X.csv === "function" && typeof X.sheetHtml === "function", "the Export builders are exposed for tests (CurioScreenExport)");
+  if (X) {
+    const labels = { shotSize: "Shot size", emotion: "Feeling, inside", line: 'Says "hi"', empty: "Never set" };
+    const moments = [
+      { n: 1, clock: "00:00:00:00", note: 'the joke lands, "big"', values: { shotSize: "wide", emotion: "joyful", line: "a, b", empty: null } },
+      { n: 2, clock: "00:00:00:03", note: "", values: { shotSize: "close-up", emotion: "joyful", line: "plain", empty: "" } },
+      { n: 3, clock: "00:00:00:06", note: "<b>bold</b> & more", values: { shotSize: "close-up", emotion: "anxious", line: 'say "no"\nthen go' } },
+    ];
+    const text = (k, v) => (k === "shotSize" ? String(v).toUpperCase() : String(v));
+    const out = X.csv(moments, { keys: ["emotion"], label: (k) => labels[k], text });
+    const lines = out.replace(/^﻿/, "").split("\r\n");
+    ok(out.charCodeAt(0) === 0xfeff && out.endsWith("\r\n") && lines.length === 5, "the CSV starts with a byte-order mark, has a header and one row per moment, CRLF line ends");
+    ok(lines[0] === 'Moment,Time,Marker note,"Feeling, inside",Shot size,"Says ""hi"""', "the header row has plain labels, the given order first, commas and quotes quoted (" + lines[0] + ")");
+    ok(!out.includes("Never set"), "a curiosity with no value anywhere gets no column");
+    ok(lines[1] === '1,00:00:00:00,"the joke lands, ""big""",joyful,WIDE,"a, b"', "a row has the moment, its time, the marker note and plain value labels, quoted where needed (" + lines[1] + ")");
+    ok(lines[3] === '3,00:00:00:06,<b>bold</b> & more,anxious,CLOSE-UP,"say ""no""\nthen go"', "a value with a line break stays in one quoted cell; the CSV is not HTML, so notes are kept as written");
+    ok(X.csvCell(" x") === '" x"' && X.csvCell(3) === "3" && X.csvCell(null) === "", "cells: edge spaces quoted, numbers plain, empty for nothing");
+
+    ok(X.changes(moments[0].values, moments[1].values, { keys: ["shotSize", "emotion", "line"], label: (k) => labels[k], text }) === 'Shot size: WIDE → CLOSE-UP · Says "hi": a, b → plain', "what changed since the moment before, in plain labels");
+    ok(X.changes(moments[1].values, moments[1].values, { keys: ["shotSize"], label: (k) => k }) === "", "nothing changed: an empty line");
+    ok(/and 1 more$/.test(X.changes({ a: 1, b: 1, c: 1, d: 1 }, { a: 2, b: 2, c: 2, d: 2 }, { keys: ["a", "b", "c", "d"], label: (k) => k })), "more than three changes: the rest are counted");
+
+    const frame = w.CurioFrame.svg({ shotSize: "wide" }, { title: "t" });
+    const vert = X.frameSvg(frame, "vertical", 1280);
+    ok(vert.startsWith('<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280"') && vert.includes('viewBox="109.38 0 101.25 180"'), "a vertical frame crops the wide picture to 9:16, centered, long side 1280px");
+    ok(X.frameSvg(frame, "wide").includes('viewBox="0 0 320 180"') && X.frameSvg(frame, "square").includes('viewBox="70 0 180 180"') && /viewBox="0 23\.\d+ 320 133\.\d+"/.test(X.frameSvg(frame, "cinema")), "wide, square and cinema frames keep the right part of the picture");
+
+    const sm = moments.map((m, i) => Object.assign({}, m, { svg: X.frameSvg(frame, "square"), color: i === 2 ? "purple" : "red", changes: i === 2 ? "Feeling: joyful → anxious" : "", label: "" }));
+    const sheet = X.sheetHtml({ title: "Curiomatic storyboard: <Mine>", moments: sm, shape: "square", perRow: 4, seconds: 3 });
+    ok(/^<!doctype html>/.test(sheet) && (sheet.match(/<figure class="f">/g) || []).length === 3 && (sheet.match(/<svg /g) || []).length === 3, "the sheet is a page of its own with one frame per moment");
+    ok(sheet.includes("Moment 3") && sheet.includes("00:00:00:06") && sheet.includes("Feeling: joyful → anxious") && sheet.includes("Where the film starts."), "each frame has its number, clock time and what changed");
+    ok(sheet.includes("&lt;b&gt;bold&lt;/b&gt; &amp; more") && !sheet.includes("<b>bold</b>") && sheet.includes("the joke lands, &quot;big&quot;") && sheet.includes("&lt;Mine&gt;"), "marker notes and the title are escaped");
+    ok(sheet.includes("background:#b197fc") && sheet.includes("--per:4") && /data-per="4" class="on"/.test(sheet) && sheet.includes("data-print") && sheet.includes("aspect-ratio: 180 / 180"), "the marker's color, 4 frames per row picked, a Print button, the square shape");
+    ok(X.sheetHtml({ moments: sm, perRow: 7 }).includes("--per:3"), "frames per row is 2, 3 or 4 (3 otherwise)");
+    ok(X.fileName("My Film: Take #2", "moment 3", "png") === "curiomatic-my-film-take-2-moment-3.png" && X.fileName("", "settings", "csv") === "curiomatic-settings.csv", "file names start with curiomatic- and use plain letters and dashes");
+  }
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

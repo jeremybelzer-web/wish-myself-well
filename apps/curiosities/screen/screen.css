@@ -41,6 +41,22 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-page .sc-layout ~ .sc-close { margin-left: 0; }
 .sc-page .sc-close { margin-left: auto; background: var(--cc-accent); color: var(--cc-accent-ink); font-weight: 600; }
 .sc-page .sc-close:hover { background: #67e8f9; }
+/* Export ▾ (CapCut's Export button at the top right): a storyboard sheet, this frame as a picture, the settings list. */
+.sc-export { position: relative; display: inline-flex; }
+.sc-page .sc-export-b { background: var(--cc-accent); color: var(--cc-accent-ink); font-weight: 600; }
+.sc-page .sc-export-b:hover:not(:disabled), .sc-page .sc-export-b[aria-expanded="true"] { background: #67e8f9; }
+.sc-export-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 80; width: 300px; max-width: calc(100vw - 32px); display: grid; gap: 4px; padding: 6px; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 8px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+.sc-page .sc-export-menu button { display: grid; gap: 1px; text-align: left; padding: 6px 10px; background: transparent; }
+.sc-page .sc-export-menu button:hover { background: var(--cc-hover); }
+.sc-export-menu small { color: var(--cc-dim); font-size: 11px; }
+.sc-export-menu .sc-k { margin: 4px 10px 0; }
+.sc-export-two { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.sc-export-foot { margin: 2px 10px 2px; font-size: 11px; color: var(--cc-dim); border-top: 1px solid var(--cc-line); padding-top: 6px; }
+/* On a phone the menu spans the screen under its button instead of hanging off one edge. */
+@media (max-width: 720px) {
+  .sc-export { position: static; }
+  .sc-export-menu { left: 16px; right: 16px; top: auto; width: auto; max-width: none; margin-top: 34px; }
+}
 .sc-what { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--cc-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* The four panels. */
