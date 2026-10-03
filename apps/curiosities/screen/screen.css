@@ -508,7 +508,7 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 
 /* ---------- Auto markers (Mark the turns, the film's "Beats"): the buttons and the "auto" tag in the Markers list ---------- */
 .sl-marklist:has(.sl-mkauto) { width: 340px; }
-.sl-mkturns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--cc-line); }
+.sl-mkturns { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 6px; padding-bottom: 6px; border-bottom: 1px solid var(--cc-line); }
 .sc-page .sl-mkturns [data-l="mark-turns"] { color: var(--cc-accent); }
 .sl-mkgo:has(.sl-mkauto) .sl-mktext { white-space: normal; line-height: 1.25; }
 .sl-mkauto { flex: none; margin-left: auto; padding: 0 5px; border: 1px solid var(--cc-line); border-radius: 6px; font-size: 10px; line-height: 15px; color: var(--cc-dim); }
