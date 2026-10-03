@@ -11,15 +11,31 @@ const w = core.window;
 const ctx = core.context || vm.createContext(w);
 const run = (f) => vm.runInContext(fs.readFileSync(f, "utf8"), ctx, { filename: f });
 run(path.join(A, "data", "db-editing.js"));
-require("./files.json").forEach((f) => fs.existsSync(path.join(__dirname, f)) && run(path.join(__dirname, f)));
+const only = process.argv.slice(2).find((a) => !a.startsWith("--"));
+const broken = [];
+require("./files.json").forEach((f) => {
+  if (!fs.existsSync(path.join(__dirname, f))) return;
+  try {
+    run(path.join(__dirname, f));
+  } catch (e) {
+    /* While a category is being written, another category's half-done file only warns. */
+    if (!only || f === "windows.js" || f === `win-${only}.js`) throw e;
+    broken.push(`${f}: ${e.message}`);
+  }
+});
+if (broken.length) console.log("warning, not loaded: " + broken.join("; "));
 run(path.join(A, "screen", "levels.js"));
 const DB = w.CuriosityDB;
 const W = w.CuriosityWindows;
 const L = w.CurioLevels;
-const only = process.argv.slice(2).find((a) => !a.startsWith("--"));
 const strict = process.argv.includes("--strict");
 const SHARED = ["push", "pointsAhead", "themeLink", "amount", "noticeable", "change"];
-const problems = DB.check().concat(W.check());
+let problems = DB.check().concat(W.check());
+if (only) {
+  /* Only this category's rows, so other categories still being written don't fail it. */
+  const mine = new Set(L.curiosities(only).filter((x) => L.categoryOf(x.id) === only).map((x) => x.id));
+  problems = problems.filter((p) => mine.has(p.replace(/^curiosity /, "").split(":")[0]));
+}
 const gaps = [];
 L.CATEGORIES.filter((c) => !only || c.id === only).forEach((cat) => {
   const rows = L.curiosities(cat.id).filter((x) => L.categoryOf(x.id) === cat.id);
