@@ -78,6 +78,8 @@ const suites = [
   { name: "3D camera", browser: true, ...node("rig/tests/camera.js", threeArgs) },
   { name: "3D on the Screen", browser: true, ...node("rig/tests/screen.js", threeArgs) },
   { name: "3D to storyboard", browser: true, ...node("rig/tests/snapshot.js", threeArgs) },
+  { name: "3D characters from words", browser: true, ...node("rig/tests/maker.js", threeArgs) },
+  { name: "3D faces and feelings", browser: true, ...node("rig/tests/faces.js", threeArgs) },
   /* --browser uses the first 60 kinds of control on each page (about 15 minutes); --full uses them all. */
   { name: "every control in a browser", browser: true, ...node("tests/every-control.js", [...threeArgs, "--max", FULL ? "250" : "60"]) },
   { name: "every control on a phone", browser: true, ...node("tests/every-control.js", [...threeArgs, "--width", "390", "--max", FULL ? "250" : "30"]) },

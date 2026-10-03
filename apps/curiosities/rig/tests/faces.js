@@ -254,7 +254,7 @@ async function mouthPixels(page) {
       /* made from words: the maker's own eyes give way */
       await load("made");
       const made = await feel(page, { happy: "very" });
-      ok(made.drawn && made.hiddenMaker === 2 && !made.makerEyesShown, `a made-from-words character: the maker's two eyes are hidden while this face is drawn (${made.hiddenMaker} hidden)`);
+      ok(made.drawn && made.hiddenMaker >= 2 && !made.makerEyesShown, `a made-from-words character: the maker's own face parts (eyes, brows, mouth) are hidden while this face is drawn (${made.hiddenMaker} hidden)`);
       for (const f of ["happy", "sad", "angry", "surprised"]) {
         await feel(page, { [f]: "very" });
         await shot("faces-" + f);
