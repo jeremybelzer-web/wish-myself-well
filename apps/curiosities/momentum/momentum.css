@@ -236,3 +236,29 @@
 /* How attention moves (ui.js movesHtml). */
 .mo-moves td small { color: var(--mo-muted, #6b6459); }
 .mo-key { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: baseline; }
+
+/* Who we watch (characters.js). */
+.mo-w-none { display: grid; gap: 8px; justify-items: start; }
+.mo-w-none button, .mo-ext button[data-watch] { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); }
+.mo-w-warn { list-style: none; margin: 0; padding: 8px 10px; border: 2px solid var(--mo-crit); background: var(--mo-surface); display: grid; gap: 4px; font-size: 14px; }
+.mo-w-bars, .mo-w-fams { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mo-w-row { display: grid; grid-template-columns: minmax(90px, 160px) minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; font-size: 14px; }
+.mo-w-name { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.mo-w-name i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.mo-w-bar { height: 14px; background: var(--mo-grid); border-radius: 7px; overflow: hidden; }
+.mo-w-bar span { display: block; height: 100%; border-radius: 7px; }
+.mo-w-n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mo-w-gap { grid-column: 2 / -1; font-size: 13px; color: var(--mo-ink-2); }
+.mo-w-strip { display: flex; gap: 2px; height: 28px; }
+.mo-w-strip button { flex: 1 1 0; min-width: 0; padding: 0; border: 1px solid var(--mo-grid); border-radius: 3px; font: inherit; font-size: 11px; font-weight: 700; color: #fff; cursor: pointer; overflow: hidden; text-shadow: 0 0 2px rgba(0, 0, 0, 0.6); }
+.mo-w-strip button.on { outline: 2px solid var(--ink); outline-offset: 1px; }
+.mo-w-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 0; padding: 0; font-size: 13px; }
+.mo-w-fams li { font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.mo-w-fams .mo-fam { display: inline-flex; }
+@media (max-width: 560px) {
+  .mo-w-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .mo-w-bar { grid-column: 1 / -1; grid-row: 2; }
+  .mo-w-gap { grid-column: 1 / -1; }
+}
+.mo-w { display: grid; gap: 14px; }
+.mo-w > p { max-width: 75ch; }
