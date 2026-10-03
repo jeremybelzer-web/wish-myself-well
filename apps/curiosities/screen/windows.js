@@ -327,6 +327,22 @@
       said.push(why);
     };
     let t = String(text || "").toLowerCase();
+    /* A preset's full name first, so a phrase inside it ("from below" in "Hero from below") does not split it. */
+    const named = new Set();
+    (sp.presets || [])
+      .slice()
+      .sort((a, b) => b.label.length - a.label.length)
+      .forEach((p) => {
+        const nm = p.label.toLowerCase();
+        if (!t.includes(nm)) return;
+        Object.entries(p.set || {}).forEach(([sid, v]) => {
+          const s = sl(c, sid);
+          if (s) put(s, v, "");
+        });
+        said.push(`the preset "${p.label}"`);
+        named.add(p);
+        t = t.replace(nm, " ");
+      });
     /* Plain-words phrases written for this curiosity (data/windows/say-<category>.js), longest first; a matched
        phrase is taken out of the request so its words are not read twice. */
     const PH = (window.CuriosityWindows && window.CuriosityWindows.phrases[c.id]) || {};
@@ -344,6 +360,7 @@
       });
     /* A preset named in the request sets all of it first; the rest of the request can adjust it. */
     (sp.presets || []).forEach((p) => {
+      if (named.has(p)) return;
       if (t.includes(p.label.toLowerCase()) || (words(p.label).length >= 2 && overlap(p.label, t) >= Math.min(3, words(p.label).length))) {
         Object.entries(p.set || {}).forEach(([sid, v]) => {
           const s = sl(c, sid);

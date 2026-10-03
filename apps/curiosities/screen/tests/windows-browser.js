@@ -283,8 +283,10 @@ const ok = (cond, msg) => {
       const h = { sliderId: (cc, s) => (s.id === cc.main || s.id === "setting" ? (window.CurioScale.known(cc.id) ? cc.id : cc.id + "." + s.id) : cc.id + "." + s.id), ctx: { value: (k) => (vals || {})[k] } };
       return window.CurioWindowFaces.interpret(c, text, h).set.map(([k, v]) => k + "=" + v);
     };
-    return { notSo: I("shotSize", "not so close"), roll: I("cameraPlace", "10 degrees roll"), twice: I("clipSpeed", "2x"), half: I("clipSpeed", "50%"), more: I("emotion", "more", { emotion: "curious", "emotion.arousal": 2 }) };
+    return { hero: I("cameraPlace", "hero from below"), notSo: I("shotSize", "not so close"), roll: I("cameraPlace", "10 degrees roll"), twice: I("clipSpeed", "2x"), half: I("clipSpeed", "50%"), more: I("emotion", "more", { emotion: "curious", "emotion.arousal": 2 }) };
   });
+  ok(words2.hero.includes("cameraPlace.height=-30") && words2.hero.includes("cameraPlace.distance=1.5"), "a preset's full name still applies the whole preset when a phrase is inside it: " + words2.hero);
+  ok(await page.evaluate(() => ["featureRate", "contrastMap"].every((id) => window.CurioScale.domain(id).kind === "range")), "number main settings (featureRate, contrastMap) are numbers on the timeline, not on/off");
   ok(words2.notSo.includes("shotSize=medium"), "\"not so close\" steps back to medium: " + words2.notSo);
   ok(words2.roll.includes("cameraPlace.roll=10"), "\"10 degrees roll\" sets the roll: " + words2.roll);
   ok(words2.twice.includes("clipSpeed.percent=200") && words2.half.includes("clipSpeed.percent=50"), "\"2x\" and \"50%\" set the clip speed: " + words2.twice + " / " + words2.half);

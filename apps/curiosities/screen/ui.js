@@ -935,7 +935,10 @@
       const vh = window.innerHeight || 768;
       const ww = Math.min(360, vw - 32);
       const n = wins.length;
-      wins.push({ id: base, x: Math.max(8, Math.min(120 + (n % 7) * 28, vw - ww - 8)), y: Math.max(8, Math.min(90 + (n % 7) * 28, vh - 160)), focus: id === base ? "" : id });
+      const wh = Math.min(vh * 0.78, 720);
+      /* Each lap of seven moves a little right, so the eighth does not land exactly on the first. */
+      const lap = Math.floor(n / 7) * 14;
+      wins.push({ id: base, x: Math.max(8, Math.min(120 + (n % 7) * 28 + lap, vw - ww - 8)), y: Math.max(8, Math.min(90 + (n % 7) * 28, vh - wh - 8)), focus: id === base ? "" : id });
     }
     drawWins();
   }
