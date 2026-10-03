@@ -1167,7 +1167,19 @@
      drawn, in order }. o.catOf(cur), o.labelOf(cat), o.hasNodes(lane) and o.folds can be stubbed for tests. With
      fewer than GROUP_MIN lanes there are no groups (a header over one lane only takes room). */
   const GROUP_MIN = 2;
-  const GROUP_H = 22;
+  /* A group's header row is 22px with a mouse and 32px on a phone or any touch screen, so a finger can hit it.
+     groupH() is the one place that decides: each draw reads it once into geo.gh, and the header, its band in the
+     picture and every hit test use that, so the rows and the canvas always agree. */
+  const GROUP_H_FINE = 22;
+  const GROUP_H_TOUCH = 32;
+  const GROUP_TOUCH_MEDIA = "(pointer: coarse), (max-width: 600px)";
+  function groupH() {
+    try {
+      return root.matchMedia && root.matchMedia(GROUP_TOUCH_MEDIA).matches ? GROUP_H_TOUCH : GROUP_H_FINE;
+    } catch (e) {
+      return GROUP_H_FINE;
+    }
+  }
   if (!tools.folds || typeof tools.folds !== "object") tools.folds = {};
   function laneGroups(lanes, o) {
     o = o || {};
@@ -1404,6 +1416,7 @@
       const att = attentionBand(st, colW, svgW, clipRows.length * CLIP_H); /* the Attention track, under My film's clips */
       const top = clipRows.length * CLIP_H + att.h + (opts.ruler ? RULER + 8 : 0);
       /* Rows top to bottom: each group's header (a thin row), then its lanes unless it is folded. */
+      const gh = groupH();
       yTops = [];
       let svgH = 0;
       if (!groups.length) lanes.forEach((ln, i) => (yTops[i] = i * lh)), (svgH = lanes.length * lh);
@@ -1411,13 +1424,13 @@
         let k = 0;
         groups.forEach((g) => {
           g.y = svgH;
-          svgH += GROUP_H;
+          svgH += gh;
           if (!g.folded) g.lanes.forEach(() => ((yTops[k++] = svgH), (svgH += lh)));
         });
       }
       laneTop = 0;
       const playRow = opts.row ? opts.row() : -1;
-      geo = { colW, lanes, top: 0, n, st, svgW, svgH, lh, yTops: yTops.slice(), groups };
+      geo = { colW, lanes, top: 0, n, st, svgW, svgH, lh, yTops: yTops.slice(), groups, gh };
       /* A selection keeps to the lanes still drawn (folding or removing lanes can leave it pointing past the end). */
       if (area && !lanes.length) area = null;
       if (area) {
@@ -1460,7 +1473,7 @@
           .map((g) => {
             const words = groupText(g);
             const tip = g.folded ? `Open ${g.label}: show its ${g.count} lane${g.count === 1 ? "" : "s"} again` : `Fold ${g.label} to one thin row; dots still show where its lanes have nodes`;
-            const head = `<div class="sl-ghead${g.folded ? " is-folded" : ""}" style="height:${GROUP_H}px" data-group="${esc(g.id)}" title="${esc(words.full)}"><button type="button" class="sl-fold" data-act="fold" data-group="${esc(g.id)}" aria-expanded="${!g.folded}" aria-label="${esc(words.full)}. ${esc(tip)}" title="${esc(words.full)}. ${esc(tip)}"><span class="sl-fold-arrow" aria-hidden="true">${g.folded ? "▸" : "▾"}</span> ${esc(g.label)}</button><span class="sl-gcount" title="${esc(words.full)}" aria-hidden="true">· ${esc(words.short)}</span></div>`;
+            const head = `<div class="sl-ghead${g.folded ? " is-folded" : ""}" style="height:${gh}px" data-group="${esc(g.id)}" title="${esc(words.full)}"><button type="button" class="sl-fold" data-act="fold" data-group="${esc(g.id)}" aria-expanded="${!g.folded}" aria-label="${esc(words.full)}. ${esc(tip)}" title="${esc(words.full)}. ${esc(tip)}"><span class="sl-fold-arrow" aria-hidden="true">${g.folded ? "▸" : "▾"}</span> ${esc(g.label)}</button><span class="sl-gcount" title="${esc(words.full)}" aria-hidden="true">· ${esc(words.short)}</span></div>`;
             const body = g.folded ? "" : g.lanes.map(() => laneHeads[k++]).join("");
             return head + body;
           })
@@ -1504,9 +1517,9 @@
       }
       /* Each group's header row: a thin band, and when folded a dot at every moment where any of its lanes has a node. */
       groups.forEach((g) => {
-        svg.push(`<rect class="sl-gbg${g.folded ? " folded" : ""}" x="0" y="${g.y}" width="${svgW}" height="${GROUP_H}" data-group="${esc(g.id)}"/>`);
+        svg.push(`<rect class="sl-gbg${g.folded ? " folded" : ""}" x="0" y="${g.y}" width="${svgW}" height="${gh}" data-group="${esc(g.id)}"/>`);
         if (!g.folded) return;
-        const cy = g.y + GROUP_H / 2;
+        const cy = g.y + gh / 2;
         foldDots(st, g.lanes).forEach((d) =>
           dots.push(`<circle class="sl-gdot" cx="${d.j * colW + colW / 2}" cy="${cy}" r="${d.count > 1 ? 4 : 3}" data-gdot="${d.j}" data-group="${esc(g.id)}"><title>${esc(g.label)} (folded): ${d.count} lane${d.count === 1 ? " has a node" : "s have nodes"} at moment ${d.j + 1}. Click to move the playhead here.</title></circle>`)
         );
@@ -2333,7 +2346,7 @@
       if (i >= 0 && sc) {
         /* The ruler stays on top while the lanes scroll, so a lane hidden under it counts as out of view. */
         const y = topH() + geo.yTops[i];
-        if (y < sc.scrollTop + topH()) sc.scrollTop = Math.max(0, y - topH() - GROUP_H);
+        if (y < sc.scrollTop + topH()) sc.scrollTop = Math.max(0, y - topH() - (geo.gh || groupH()));
         else if (y + geo.lh > sc.scrollTop + sc.clientHeight) sc.scrollTop = y + geo.lh - sc.clientHeight + 4;
       }
       return { ok: i >= 0, opened: opened ? g.id : null };
@@ -3333,5 +3346,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
 })();
