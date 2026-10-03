@@ -545,7 +545,9 @@
       return seen;
     };
     function csvCell(v) {
-      const s = String(v == null ? "" : v);
+      /* A cell starting with = + - or @ would run as a formula in a spreadsheet app: a leading ' keeps it plain text. */
+      const raw = String(v == null ? "" : v);
+      const s = /^-?\d+(\.\d+)?$/.test(raw) ? raw : raw.replace(/^[=+\-@\t\r]/, (c) => "'" + c);
       return /[",\r\n]/.test(s) || /^\s|\s$/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     }
     /* One row per moment, one column per curiosity that has a value anywhere, plain labels and plain values.

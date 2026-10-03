@@ -441,6 +441,7 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
     ok(lines[1] === '1,00:00:00:00,"the joke lands, ""big""",joyful,WIDE,"a, b"', "a row has the moment, its time, the marker note and plain value labels, quoted where needed (" + lines[1] + ")");
     ok(lines[3] === '3,00:00:00:06,<b>bold</b> & more,anxious,CLOSE-UP,"say ""no""\nthen go"', "a value with a line break stays in one quoted cell; the CSV is not HTML, so notes are kept as written");
     ok(X.csvCell(" x") === '" x"' && X.csvCell(3) === "3" && X.csvCell(null) === "", "cells: edge spaces quoted, numbers plain, empty for nothing");
+    ok(X.csvCell("=SUM(A1)") === "'=SUM(A1)" && X.csvCell("@x") === "'@x" && X.csvCell("-2") === "-2" && X.csvCell("+cue") === "'+cue", "cells that would run as a spreadsheet formula start with ' (plain numbers stay as they are)");
 
     ok(X.changes(moments[0].values, moments[1].values, { keys: ["shotSize", "emotion", "line"], label: (k) => labels[k], text }) === 'Shot size: WIDE → CLOSE-UP · Says "hi": a, b → plain', "what changed since the moment before, in plain labels");
     ok(X.changes(moments[1].values, moments[1].values, { keys: ["shotSize"], label: (k) => k }) === "", "nothing changed: an empty line");
