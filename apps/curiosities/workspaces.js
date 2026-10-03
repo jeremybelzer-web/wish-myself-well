@@ -44,7 +44,7 @@
     { id: "plot", scope: "story", label: "Personal plot", note: "How much each scene serves a character's own plot, and how that plot meets the main one.", ids: ["plotWeight", "plotTouch"], tools: [] },
     { id: "mindset", scope: "story", label: "Perspective & mindset", note: "How wide a circle the character weighs, and how ready they are to change their mind.", ids: ["perspectiveWidth", "mindset"], tools: [] },
     { id: "focus", scope: "story", label: "Focus", note: "What the character pays attention to, and whether it is narrowing or widening.", ids: ["focusWidth", "focusShift"], tools: [] },
-    { id: "archetype", scope: "story", label: "Archetype", note: "The character's Enneagram type and how healthy or unhealthy it plays in each scene.", ids: ["enneagramType", "enneagramHealth"], tools: [], matrix: true },
+    { id: "archetype", scope: "story", label: "Archetype", note: "The character's Enneagram type and how healthy or unhealthy it plays in each scene.", ids: ["enneagramType", "cm-health"], tools: [], matrix: true },
     { id: "herd", scope: "story", label: "Herd mentality", note: "How much the group thinks as one through the scenes, and who it follows.", ids: ["herdMentality", "herdLeader"], tools: [] },
   ];
 

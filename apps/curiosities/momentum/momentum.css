@@ -979,3 +979,39 @@
   .mo-baro-bar { width: 28px; }
   .mo-baro-open { gap: 6px; }
 }
+
+/* ---------- from-script.js: From your script ---------- */
+.msc { display: grid; gap: 10px; min-width: 0; }
+.msc-label { font-weight: 600; font-size: 14px; }
+.msc-text { width: 100%; box-sizing: border-box; min-height: 180px; font: 13px/1.45 ui-monospace, Menlo, Consolas, monospace; border: 2px solid var(--ink); background: #fff; color: var(--mo-ink); padding: 8px; resize: vertical; }
+.msc-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.msc button { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 5px 12px; cursor: pointer; color: var(--mo-ink); }
+.msc button.msc-primary { background: var(--ink); color: var(--paper, #fff); font-weight: 600; }
+.msc-sec { border-top: 1px solid var(--mo-grid); padding-top: 10px; display: grid; gap: 8px; min-width: 0; }
+.msc-strip { display: flex; height: 34px; border: 1px solid var(--mo-ink); min-width: 0; }
+.msc-cell { display: grid; grid-template-rows: 1fr 12px; min-width: 2px; border-right: 1px solid rgba(255, 255, 255, 0.6); }
+.msc-cell:last-child { border-right: 0; }
+.msc-cell i { font-style: normal; font-size: 10px; font-weight: 700; line-height: 22px; text-align: center; overflow: hidden; }
+.msc-cell b { font-size: 9px; line-height: 12px; text-align: center; background: var(--mo-surface); overflow: hidden; }
+.msc-key { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--mo-ink-2); }
+.msc-fam { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.msc-letter { display: inline-block; min-width: 22px; padding: 1px 3px; text-align: center; font-size: 11px; font-weight: 700; border-radius: 2px; }
+.msc-status { font-weight: 600; white-space: nowrap; }
+.msc-good { color: var(--mo-ink); }
+.msc-warn { color: #8a5a00; }
+.msc-crit { color: var(--mo-crit); }
+p.msc-good { font-weight: 600; }
+.msc-sum { font-size: 14px; }
+.msc-weak { margin: 0; padding-left: 20px; display: grid; gap: 12px; }
+.msc-wh { line-height: 1.6; }
+.msc-sec h3 { margin: 0; }
+.msc-quotes { list-style: none; margin: 6px 0; padding: 6px 10px; background: var(--mo-surface); border-left: 3px solid var(--mo-grid); font-size: 13px; display: grid; gap: 3px; }
+.msc-quotes li { overflow-wrap: anywhere; }
+.msc-ln { font-size: 12px; font-weight: 600; color: var(--mo-ink-2); white-space: nowrap; margin-right: 4px; }
+.msc-more { color: var(--mo-ink-2); }
+.msc-try { font-size: 14px; }
+.msc-all summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.msc-all ol { margin: 8px 0 0; padding-left: 22px; display: grid; gap: 4px; font-size: 13px; }
+.msc-all li { overflow-wrap: anywhere; }
+.msc-cur { color: var(--mo-ink-2); font-size: 12px; }
+.msc-ex { display: block; color: var(--mo-ink-2); }

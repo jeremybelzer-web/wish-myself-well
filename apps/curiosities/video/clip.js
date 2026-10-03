@@ -135,12 +135,22 @@
     /* Never more than maxLooks seeks in all (900 unless asked for fewer), so a long film is looked at more sparsely. */
     const times = evenTimes(clip.duration, fps, opts.maxLooks);
     const prog = (p) => opts.onProgress && opts.onProgress(p * 0.85, "Looking at the picture");
+    /* Black bars around the picture (a letterboxed export or film) are not part of it: find the picture at a few
+       moments first and measure only that, or the bars would count as dark and flat. */
+    let box = { x: 0, y: 0, w: clip.width, h: clip.height };
+    if (clip.width && clip.height && opts.bars !== false) {
+      for (let i = 0; i < 6; i++) {
+        await seek(clip.video, Math.min(clip.duration - 0.05, ((i + 0.5) * clip.duration) / 6));
+        box = contentBox(clip.video);
+      }
+      if (box.w > clip.width * 0.97 && box.h > clip.height * 0.97) box = { x: 0, y: 0, w: clip.width, h: clip.height };
+    }
     const fr = await frames(
-      clip,
+      { width: box.w, height: box.h },
       times,
       async (ctx, w, h, t) => {
         await seek(clip.video, t);
-        ctx.drawImage(clip.video, 0, 0, w, h);
+        ctx.drawImage(clip.video, box.x, box.y, box.w, box.h, 0, 0, w, h);
       },
       prog
     );
@@ -150,7 +160,7 @@
     const big = clip.file && clip.file.size > (opts.maxSoundBytes || 300e6);
     const p = opts.sound === false || big ? null : await pcm(clip);
     const sound = p ? V().envelope(p.data, p.rate) : null;
-    const d = V().analyze({ name: clip.name, duration: clip.duration, aspect: clip.height / clip.width, samples: fr.samples, gw: fr.gw, sound });
+    const d = V().analyze({ name: clip.name, duration: clip.duration, aspect: box.h / box.w, samples: fr.samples, gw: fr.gw, sound });
     if (opts.onProgress) opts.onProgress(1, "Done");
     return d;
   }

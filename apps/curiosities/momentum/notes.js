@@ -53,12 +53,12 @@
     { id: "comedy", label: "Comedy", cue: "thought", workspaces: ["comedy", "comedy-mix"] },
     { id: "wardrobe", label: "Wardrobe", cue: "visual", workspaces: ["wardrobe"] },
     { id: "place", label: "Set & landscape", cue: "visual", workspaces: ["set", "background"] },
-    { id: "light", label: "Light & color", cue: "visual", workspaces: ["light", "color"] },
-    { id: "music", label: "Music & sound", cue: "audio", workspaces: ["music"] },
+    { id: "light", label: "Light & color", cue: "visual", workspaces: ["light", "color", "grade"] },
+    { id: "music", label: "Music & sound", cue: "audio", workspaces: ["music", "audio-mix"] },
     { id: "plot", label: "Plot & character", cue: "plot", workspaces: ["arc", "plot", "archetype", "herd"] },
     { id: "mind", label: "Thought & focus", cue: "thought", workspaces: ["mindset", "focus"] },
     { id: "effects", label: "Effects", cue: "visual", workspaces: ["effects"] },
-    { id: "cut", label: "Cut & structure", cue: "visual", workspaces: ["structure", "page"] },
+    { id: "cut", label: "Cut & structure", cue: "visual", workspaces: ["structure", "page", "transitions", "titles", "speed", "layers", "canvas"] },
   ];
   const FAMILY_OF_WS = {};
   FAMILIES.forEach((f) => f.workspaces.forEach((w) => (FAMILY_OF_WS[w] = f.id)));
