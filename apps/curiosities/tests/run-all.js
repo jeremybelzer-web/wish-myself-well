@@ -53,6 +53,7 @@ const suites = [
   { name: "screen", ...node("screen/tests/run.js") },
   { name: "character matrix on the screen", ...node("screen/tests/character.js") },
   { name: "momentum", ...node("momentum/tests/run.js") },
+  { name: "episodes", ...node("episodes/tests/run.js") },
   { name: "video", ...node("video/tests/run.js") },
   { name: "cloud saving (off)", ...node("sync/tests/run.js") },
   { name: "site files committed", ...node("core/site-check.js") },
@@ -69,6 +70,7 @@ const suites = [
   { name: "momentum in a browser", browser: true, ...node("momentum/tests/browser.js", threeArgs) },
   { name: "video in a browser", browser: true, ...node("video/tests/browser.js") },
   { name: "storyboard flip book", browser: true, ...node("tests/flipbook.js") },
+  { name: "episodes in a browser", browser: true, ...node("episodes/tests/browser.js") },
   { name: "save, new, open a project", browser: true, ...node("tests/save-open.js") },
   { name: "bring in a video", browser: true, ...node("media/tests/browser.js") },
   /* --browser uses the first 60 kinds of control on each page (about 15 minutes); --full uses them all. */
