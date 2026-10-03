@@ -242,16 +242,19 @@
     /* Which way they face: the face's turn, and which way they move (a tenth of the frame a second counts fully). */
     const N = s.times.length,
       dt = s.dt || 0.25,
-      w = Math.max(1, Math.round(0.5 / dt));
+      w = Math.max(1, Math.round(1 / dt));
     const facing = [];
     for (let i = 0; i < N; i++) {
       const a = Math.max(0, i - w),
         b = Math.min(N - 1, i + w);
       const vel = b > a && s.has[a] && s.has[b] ? (s.x[b] - s.x[a]) / ((b - a) * dt) : 0;
       const turn = mean(s.turn.slice(a, b + 1).filter((x) => x != null));
-      facing.push(r3(clamp(turn * 0.8 + clamp(vel / 0.1, -1, 1) * 0.7, -1, 1)));
+      facing.push(r3(clamp(turn * 0.8 + clamp(vel / 0.15, -1, 1) * 0.5, -1, 1)));
     }
-    const m = Object.assign({}, s, { facing });
+    /* A patch far smaller than the clip's usual person (a hand in a whip pan, a speck the AI saw) is nobody. */
+    const usual = median(s.area.filter((a) => a > 0));
+    const has = s.has.map((h, i) => (h && s.area[i] >= usual * 0.25 ? 1 : 0));
+    const m = Object.assign({}, s, { facing, has });
     try {
       Object.defineProperty(el, key, { value: m, enumerable: false, configurable: true });
     } catch (e) {}
@@ -392,7 +395,7 @@
       const a = cuts[s],
         b = cuts[s + 1];
       const seg = vals.slice(a, b);
-      const mw = Math.max(0, Math.round(0.25 / dt));
+      const mw = Math.max(0, Math.round(0.4 / dt));
       const med = seg.map((_, i) => median(seg.slice(Math.max(0, i - mw), Math.min(seg.length, i + mw + 1))));
       const held = [];
       let hold = med[0];
@@ -433,7 +436,6 @@
     const rows = [],
       breaks = [];
     let lastWant = null,
-      lastHave = null,
       lastS = null;
     const cutsB = B.cuts || [];
     for (let i = 0; i < n; i++) {
@@ -445,9 +447,9 @@
       const a = shot(A, ta),
         b = shot(B, s);
       if (a) lastWant = a;
-      if (b) lastHave = b;
+      /* nobody in your clip (a whip pan, an empty room): the camera eases back to the whole frame */
       const want = a || lastWant,
-        have = b || lastHave;
+        have = b;
       let deg = 0;
       if (tilt) {
         const ra = rollAt(A, ta),

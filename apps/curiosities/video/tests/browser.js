@@ -179,6 +179,14 @@ const ok = (cond, text) => {
     });
     ok(el && el.n >= 2 && el.parts.includes("clothes"), "each clip's elements are found automatically: " + JSON.stringify(el));
     ok((await page.locator("text=Elements (AI cut-outs)").count()) === 1, "element lanes show");
+    const fr = await page.evaluate(() => {
+      const s = window.CurioVideoUI.state();
+      const m = s.a.elements && s.a.elements.main;
+      const p = window.CurioVideo.plan(s.a, s.b, { on: { framing: 1 }, framing: { tilt: true } });
+      const a = window.CurioVideo.at(p, 0.5);
+      return { main: !!(m && m.times.length === s.a.elements.times.length), roll: !!(s.a.raw.roll && s.a.raw.roll[0]), frame: a.frame, row: !!document.querySelector('[data-on="framing"]') };
+    });
+    ok(fr.main && fr.roll && fr.row && (!fr.frame || fr.frame.z >= 1), "shot framing: the main person and the roll are measured, and the group is there: " + JSON.stringify(fr));
     await page.click('[data-act="ai-preview"]');
     ok(/Blue: clothes/.test(await page.textContent(".vd-note")), "Show what it found tints the cut-out");
     /* Make a puppet: only with Maya's rig (CurioRig.fromCutout); a stand-in records what it is handed. */
