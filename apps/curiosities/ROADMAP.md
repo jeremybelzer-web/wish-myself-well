@@ -114,7 +114,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 481
 - [ ] Logins and cloud sync, optional (Phase 3)
 - [ ] Desktop app (Phase 4)
 - [ ] Panel inside Maya, with curiosities driving the camera and keys (Phase 5)
-- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 1,430 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). Next: someone with VCV Rack opens the files and builds the plugin
+- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 1,430 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). Past 1,680 items the extra jacks go on a second MIDI cable, so the database can keep growing. Next: someone with VCV Rack opens the files and builds the plugin
 - [ ] Other tools: Unreal, Blender, Resolve (Phase 7)
 
 ## 6. Checks with people

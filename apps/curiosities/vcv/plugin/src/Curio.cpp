@@ -251,7 +251,7 @@ struct CurioWidget : ModuleWidget {
     setPanel(createPanel(asset::plugin(pluginInstance, "res/Curio.svg")));
     addChild(makeLabel(mm2px(Vec(4.f, 6.f)), mm2px(Vec(73.28f, 8.f)), bank->title, nvgRGB(0x21, 0x1d, 0x1a), 14.f));
     addChild(makeLabel(mm2px(Vec(4.f, 14.f)), mm2px(Vec(73.28f, 8.f)),
-      string::f("MIDI ch %d, CC %d-%d. Left jack: 0 V From, 10 V To. Right jack: on/off gate (OSC).", bank->channel, bank->jacks[0].cc, bank->jacks[bank->count - 1].cc),
+      string::f("%sMIDI ch %d, CC %d-%d. Left jack: 0 V From, 10 V To. Right jack: on/off gate (OSC).", bank->port > 1 ? string::f("Port %d, ", bank->port).c_str() : "", bank->channel, bank->jacks[0].cc, bank->jacks[bank->count - 1].cc),
       nvgRGB(0x6d, 0x65, 0x5d), 8.f));
     const char* names[16];
     int levels[16];
@@ -393,7 +393,7 @@ Model* curioModels[] = {
 
 // ---------- Focus: one item's sliders, chosen in the app ----------
 static const CurioBank FOCUS_BANK = {
-  "Curio-Focus", "Focus", CURIO_FOCUS_CHANNEL, 16, {
+  "Curio-Focus", "Focus", 1, CURIO_FOCUS_CHANNEL, 16, {
     { 1, 0, "The item itself", "" }, { 2, 0, "Slider 2", "" }, { 3, 0, "Slider 3", "" }, { 4, 0, "Slider 4", "" },
     { 5, 0, "Slider 5", "" }, { 6, 0, "Slider 6", "" }, { 7, 0, "Slider 7", "" }, { 8, 0, "Slider 8", "" },
     { 9, 0, "Slider 9", "" }, { 10, 0, "Slider 10", "" }, { 11, 0, "Slider 11", "" }, { 12, 0, "Slider 12", "" },

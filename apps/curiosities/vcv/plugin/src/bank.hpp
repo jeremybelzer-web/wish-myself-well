@@ -11,6 +11,7 @@ struct CurioJack {
 struct CurioBank {
   const char* slug;
   const char* title;
+  int port;          // which virtual MIDI cable: 1, or 2 and up once port 1's 1,680 CCs are full
   int channel;       // MIDI channel, 1 to 16
   int count;         // jacks in use, up to 16
   CurioJack jacks[16];
@@ -20,7 +21,7 @@ static const int CURIO_BANK_COUNT = 104;
 static const int CURIO_FOCUS_CHANNEL = 16;
 
 static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
-  { "Curio-camera-angle-1", "Camera angle 1", 1, 16, {
+  { "Curio-camera-angle-1", "Camera angle 1", 1, 1, 16, {
     { 1, 0, "Shot size", "c:shotSize" },
     { 2, 0, "Angle height", "c:angleHeight" },
     { 3, 0, "Lens length", "c:lensLength" },
@@ -38,7 +39,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 0, "Where the subject sits", "c:composition" },
     { 16, 0, "The camera lens", "c:cameraLensLens" },
   } },
-  { "Curio-camera-angle-2", "Camera angle 2", 1, 16, {
+  { "Curio-camera-angle-2", "Camera angle 2", 1, 1, 16, {
     { 17, 1, "Coverage", "s:coverage" },
     { 18, 1, "Oner", "s:oner" },
     { 19, 1, "Looking up at power", "s:power-low" },
@@ -56,7 +57,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 2, "When the status flips, the camera angle flips", "p:status-angle" },
     { 32, 2, "When we see through someone's eyes, the picture starts to shake", "p:seen-through-eyes-shake" },
   } },
-  { "Curio-camera-angle-3", "Camera angle 3", 1, 15, {
+  { "Curio-camera-angle-3", "Camera angle 3", 1, 1, 15, {
     { 33, 2, "When the point of view is lying, the voice-over and the picture disagree", "p:lying-eyes-lying-voice" },
     { 34, 2, "When a scene has more angles, the cutting speeds up", "p:more-angles-faster-cuts" },
     { 35, 2, "When each angle is picked for a line, the cuts land on the lines", "p:angle-for-line-cuts-on-line" },
@@ -73,7 +74,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 46, 3, "Choosing the angle", "ps:choosing-the-angle" },
     { 47, 3, "Where the eye goes", "ps:where-the-eye-goes" },
   } },
-  { "Curio-camera-motion-1", "Camera motion 1", 1, 16, {
+  { "Curio-camera-motion-1", "Camera motion 1", 1, 1, 16, {
     { 49, 0, "Frequency of angle changes", "c:cutRate" },
     { 50, 0, "Hold", "c:shotDuration" },
     { 51, 0, "Camera carry", "c:cameraCarry" },
@@ -91,7 +92,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 1, "Loving camera", "s:loving-camera" },
     { 64, 1, "Aggressive camera", "s:aggressive-camera" },
   } },
-  { "Curio-camera-motion-2", "Camera motion 2", 1, 10, {
+  { "Curio-camera-motion-2", "Camera motion 2", 1, 1, 10, {
     { 65, 1, "Follows the voice", "s:follows-voice" },
     { 66, 1, "Video game camera", "s:video-game-camera" },
     { 67, 2, "When the camera goes handheld, gesture grows", "p:handheld-gesture" },
@@ -103,7 +104,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 73, 3, "The camera answers the body", "ps:camera-answers-body" },
     { 74, 3, "Camera moves with a reason", "ps:camera-moves-with-a-reason" },
   } },
-  { "Curio-character-motion-1", "Character motion 1", 1, 16, {
+  { "Curio-character-motion-1", "Character motion 1", 1, 1, 16, {
     { 81, 0, "Character path", "c:characterPath" },
     { 82, 0, "Character speed", "c:characterSpeed" },
     { 83, 0, "Toward the lens", "c:characterToLens" },
@@ -121,7 +122,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 0, "Animation feel", "c:animFeelLens" },
     { 96, 0, "Poses and body control", "c:poseRigLens" },
   } },
-  { "Curio-character-motion-2", "Character motion 2", 1, 16, {
+  { "Curio-character-motion-2", "Character motion 2", 1, 1, 16, {
     { 97, 0, "Face acting", "c:faceLens" },
     { 98, 1, "Crossing", "s:crossing" },
     { 99, 1, "Snappy cartoon", "s:snappy-cartoon" },
@@ -139,7 +140,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 2, "When the wind-up grows, the move lands bigger", "p:windup-hit" },
     { 112, 2, "When the face goes big, the body follows", "p:big-face-big-body" },
   } },
-  { "Curio-character-motion-3", "Character motion 3", 2, 14, {
+  { "Curio-character-motion-3", "Character motion 3", 1, 2, 14, {
     { 1, 2, "When the eyes dart, the expression changes next", "p:eyes-lead" },
     { 2, 2, "When a character walks toward the lens, the shot becomes a close-up", "p:toward-lens-close-up" },
     { 3, 2, "When a hand reaches toward the lens, it looms huge", "p:toward-lens-looms" },
@@ -155,7 +156,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 13, 3, "Cartoon physics", "ps:cartoon-physics" },
     { 14, 3, "Smooth or stiff", "ps:smooth-or-stiff" },
   } },
-  { "Curio-placement-1", "Placement 1", 2, 16, {
+  { "Curio-placement-1", "Placement 1", 1, 2, 16, {
     { 17, 0, "Object", "c:objectKind" },
     { 18, 0, "Object path", "c:objectPath" },
     { 19, 0, "Object speed", "c:objectSpeed" },
@@ -173,7 +174,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 1, "Glamour close-up", "s:glamour-close-up" },
     { 32, 1, "Hushed two-hander", "s:hushed-two-hander" },
   } },
-  { "Curio-placement-2", "Placement 2", 2, 15, {
+  { "Curio-placement-2", "Placement 2", 1, 2, 15, {
     { 33, 1, "Car chase", "s:car-chase" },
     { 34, 2, "When an object enters, the frame becomes an insert", "p:object-insert-prox" },
     { 35, 2, "When people get closer, they hold each other's look", "p:approach-eyeline" },
@@ -190,7 +191,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 46, 3, "Dinner gets messy", "ps:dinner-gets-messy" },
     { 47, 3, "Speed and impact", "ps:speed-and-impact" },
   } },
-  { "Curio-lines-1", "Lines & delivery 1", 2, 16, {
+  { "Curio-lines-1", "Lines & delivery 1", 1, 2, 16, {
     { 49, 0, "Volume of the lines", "c:volume" },
     { 50, 0, "Dynamic range of the lines", "c:dynamicRange" },
     { 51, 0, "How often the range changes", "c:rangeChanges" },
@@ -208,7 +209,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 1, "Breathing room", "s:breathing-room" },
     { 64, 1, "Rapid-fire banter", "s:rapid-fire-banter" },
   } },
-  { "Curio-lines-2", "Lines & delivery 2", 2, 16, {
+  { "Curio-lines-2", "Lines & delivery 2", 1, 2, 16, {
     { 65, 1, "Quiet last scene", "s:quiet-last-scene" },
     { 66, 2, "When the emotion changes, the angle height changes", "p:emotion-angle" },
     { 67, 2, "When the emotion changes, the move temper changes", "p:emotion-temper" },
@@ -226,7 +227,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 2, "When a voice breaks, the beat turns sad", "p:breaking-voice-sad" },
     { 80, 2, "When every line swings to a new level, the character feels unstable", "p:swinging-range-unsettled" },
   } },
-  { "Curio-lines-3", "Lines & delivery 3", 2, 6, {
+  { "Curio-lines-3", "Lines & delivery 3", 1, 2, 6, {
     { 81, 2, "When the talk gets fast, the cutting speeds up to match", "p:fast-talk-fast-cuts" },
     { 82, 2, "When people talk over each other, the scene turns to comedy", "p:talking-over-each-other-comedy" },
     { 83, 3, "Emotion steers the lens", "ps:emotion-steers-lens" },
@@ -234,7 +235,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 85, 3, "The volume curve", "ps:the-volume-curve" },
     { 86, 3, "Talking fast", "ps:talking-fast" },
   } },
-  { "Curio-movement-lines-1", "Movement with lines 1", 2, 16, {
+  { "Curio-movement-lines-1", "Movement with lines 1", 1, 2, 16, {
     { 97, 0, "Size of gesture", "c:gesture" },
     { 98, 0, "Stillness", "c:stillness" },
     { 99, 0, "Blink", "c:blink" },
@@ -252,7 +253,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 1, "Busy hands", "s:busy-hands" },
     { 112, 1, "The task falls apart", "s:task-disaster" },
   } },
-  { "Curio-movement-lines-2", "Movement with lines 2", 3, 16, {
+  { "Curio-movement-lines-2", "Movement with lines 2", 1, 3, 16, {
     { 1, 1, "Freeze on the line", "s:freeze-on-the-line" },
     { 2, 1, "The real reaction", "s:the-real-reaction" },
     { 3, 1, "Thinking face", "s:thinking-face" },
@@ -270,10 +271,10 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 3, "The body tells the line", "ps:body-tells-the-line" },
     { 16, 3, "Comic business", "ps:comic-business" },
   } },
-  { "Curio-movement-lines-3", "Movement with lines 3", 3, 1, {
+  { "Curio-movement-lines-3", "Movement with lines 3", 1, 3, 1, {
     { 17, 3, "The eyes give it away", "ps:the-eyes-give-it-away" },
   } },
-  { "Curio-background-1", "Background action 1", 3, 16, {
+  { "Curio-background-1", "Background action 1", 1, 3, 16, {
     { 33, 0, "Setting", "c:setting" },
     { 34, 0, "Interior or exterior", "c:intExt" },
     { 35, 0, "Motion of the environment", "c:envMotion" },
@@ -291,7 +292,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 47, 2, "When tension rises, the background goes still", "p:tension-crowd-still" },
     { 48, 2, "When the leader moves, the crowd follows in a ripple", "p:leader-ripple" },
   } },
-  { "Curio-background-2", "Background action 2", 3, 7, {
+  { "Curio-background-2", "Background action 2", 1, 3, 7, {
     { 49, 2, "When the scene jumps to a new place, its sound arrives first", "p:new-place-sound-first" },
     { 50, 2, "When the scene moves outside, we hear more of the world off screen", "p:outside-hear-the-world" },
     { 51, 2, "When it is hot, people talk slower", "p:heat-slows-talk" },
@@ -300,7 +301,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 54, 3, "Sound of the place", "ps:sound-of-the-place" },
     { 55, 3, "Deadpan storybook", "ps:deadpan-storybook" },
   } },
-  { "Curio-light-1", "Light & look 1", 3, 16, {
+  { "Curio-light-1", "Light & look 1", 1, 3, 16, {
     { 65, 0, "Key direction", "c:key" },
     { 66, 0, "Contrast", "c:contrast" },
     { 67, 0, "Color of the light", "c:colorTemp" },
@@ -318,7 +319,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 0, "Ink line", "c:lineWeight" },
     { 80, 0, "Gloss", "c:gloss" },
   } },
-  { "Curio-light-2", "Light & look 2", 3, 16, {
+  { "Curio-light-2", "Light & look 2", 1, 3, 16, {
     { 81, 0, "Wetness", "c:wetness" },
     { 82, 0, "Light in skin", "c:skinLight" },
     { 83, 0, "Something glows", "c:glow" },
@@ -336,7 +337,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 1, "Comic ink", "s:comic-ink" },
     { 96, 1, "Wet night", "s:wet-night" },
   } },
-  { "Curio-light-3", "Light & look 3", 3, 16, {
+  { "Curio-light-3", "Light & look 3", 1, 3, 16, {
     { 97, 1, "Clean product", "s:clean-product" },
     { 98, 1, "Neon night", "s:neon-night" },
     { 99, 1, "Candlelit", "s:candlelit" },
@@ -354,7 +355,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 2, "A reunion warms the color", "p:warm-reunion" },
     { 112, 2, "When the fire grows, faces go warm and red", "p:fire-flush" },
   } },
-  { "Curio-light-4", "Light & look 4", 4, 16, {
+  { "Curio-light-4", "Light & look 4", 1, 4, 16, {
     { 1, 2, "When night falls, the light turns to moonlight", "p:night-brings-moonlight" },
     { 2, 2, "When moonlight takes over, the light turns blue", "p:moonlight-goes-blue" },
     { 3, 2, "When the light goes cold, the characters drift apart", "p:cold-light-pulls-apart" },
@@ -372,7 +373,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 2, "When blind stripes fall across a face, the tension rises", "p:blind-stripes-trap" },
     { 16, 2, "When the main light goes behind the actor, a strong edge of light appears", "p:backlight-brings-rim" },
   } },
-  { "Curio-light-5", "Light & look 5", 4, 16, {
+  { "Curio-light-5", "Light & look 5", 1, 4, 16, {
     { 17, 2, "When a strong edge light outlines the actor, they pop off the background", "p:rim-separates-layers" },
     { 18, 2, "When the hair is pale, a thin edge light is enough", "p:pale-hair-thin-rim" },
     { 19, 2, "When the street is soaked, every surface turns to a mirror", "p:soaked-street-mirror" },
@@ -390,12 +391,12 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 3, "Lamplit closeness", "ps:lamplit-closeness" },
     { 32, 3, "Noir squeeze", "ps:noir-squeeze" },
   } },
-  { "Curio-light-6", "Light & look 6", 4, 3, {
+  { "Curio-light-6", "Light & look 6", 1, 4, 3, {
     { 33, 3, "Smoky blinds", "ps:smoky-blinds" },
     { 34, 3, "Halo from behind", "ps:halo-from-behind" },
     { 35, 3, "Wet neon street", "ps:wet-neon-street" },
   } },
-  { "Curio-effects-1", "Effects 1", 4, 16, {
+  { "Curio-effects-1", "Effects 1", 1, 4, 16, {
     { 49, 0, "Wind", "c:windForce" },
     { 50, 0, "Chaos", "c:turbulence" },
     { 51, 0, "Cloth reacts", "c:clothResponse" },
@@ -413,7 +414,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 0, "Element", "c:element" },
     { 64, 0, "Thickness", "c:density" },
   } },
-  { "Curio-effects-2", "Effects 2", 4, 16, {
+  { "Curio-effects-2", "Effects 2", 1, 4, 16, {
     { 65, 0, "Growth", "c:growth" },
     { 66, 0, "Curl", "c:curl" },
     { 67, 0, "Splash", "c:splash" },
@@ -431,7 +432,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 1, "Brawl", "s:brawl" },
     { 80, 1, "Slow motion", "s:slow-motion" },
   } },
-  { "Curio-effects-3", "Effects 3", 4, 16, {
+  { "Curio-effects-3", "Effects 3", 1, 4, 16, {
     { 81, 1, "Drenched", "s:drenched" },
     { 82, 1, "Backlit fluff", "s:backlit-fluff" },
     { 83, 1, "Windblown", "s:windblown" },
@@ -449,7 +450,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 2, "When the water churns, foam builds", "p:churn-foam" },
     { 96, 2, "When things break, the mess spreads", "p:break-mess" },
   } },
-  { "Curio-effects-4", "Effects 4", 4, 16, {
+  { "Curio-effects-4", "Effects 4", 1, 4, 16, {
     { 97, 2, "When a strong edge light hits from behind, the hair shines", "p:rim-lights-hair" },
     { 98, 2, "When something shatters, pieces scatter across the floor", "p:shatter-scatters" },
     { 99, 2, "When things feel heavy, they land and stop fast", "p:heavy-settles-fast" },
@@ -467,7 +468,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 2, "When a splash bursts, the edit drops into slow motion", "p:splash-to-slowmo" },
     { 112, 3, "Weather hits everyone", "ps:weather-hits-everyone" },
   } },
-  { "Curio-effects-5", "Effects 5", 5, 7, {
+  { "Curio-effects-5", "Effects 5", 1, 5, 7, {
     { 1, 3, "The impact chain", "ps:impact-chain" },
     { 2, 3, "The elements build", "ps:elements-build" },
     { 3, 3, "Bath time disaster", "ps:bath-time-disaster" },
@@ -476,7 +477,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 6, 3, "Fire takes the room", "ps:fire-takes-the-room" },
     { 7, 3, "Splash hang time", "ps:splash-hang-time" },
   } },
-  { "Curio-arc-1", "Character arc 1", 5, 16, {
+  { "Curio-arc-1", "Character arc 1", 1, 5, 16, {
     { 17, 0, "Arc stage", "c:arcStage" },
     { 18, 0, "Role in the scene", "c:dramaticRole" },
     { 19, 0, "Dramatic role", "c:cm-role" },
@@ -494,7 +495,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 1, "The mirror ending", "s:mirror-ending" },
     { 32, 1, "Mentor at their best", "s:mentor-at-their-best" },
   } },
-  { "Curio-arc-2", "Character arc 2", 5, 11, {
+  { "Curio-arc-2", "Character arc 2", 1, 5, 11, {
     { 33, 2, "When the lie is exposed, the crisis comes", "p:lie-crisis" },
     { 34, 2, "When the old wound is touched, they fight the change harder", "p:wound-resist" },
     { 35, 2, "When the test is passed, the change shows", "p:test-change" },
@@ -507,7 +508,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 42, 2, "When a character is falling, they slip back into old habits", "p:falling-slips-back" },
     { 43, 3, "The arc engine", "ps:arc-engine" },
   } },
-  { "Curio-plot-1", "Personal plot 1", 5, 16, {
+  { "Curio-plot-1", "Personal plot 1", 1, 5, 16, {
     { 49, 0, "Own plot weight", "c:plotWeight" },
     { 50, 0, "Own plot meets the main plot", "c:plotTouch" },
     { 51, 0, "What they want, against what they need", "c:plotWant" },
@@ -525,7 +526,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 2, "When a secret starts slipping, cringe rises", "p:secret-slips-cringe" },
     { 64, 2, "When the character is set back, their emotional road drops", "p:setback-feeling-drops" },
   } },
-  { "Curio-plot-2", "Personal plot 2", 5, 12, {
+  { "Curio-plot-2", "Personal plot 2", 1, 5, 12, {
     { 65, 2, "When a scene ends on a cliffhanger, the audience's questions rise", "p:cliffhanger-questions" },
     { 66, 2, "When the opening grabs with a question, a question opens", "p:grab-question" },
     { 67, 2, "When the clock gets tight, the scenes speed up", "p:clock-speeds-scenes" },
@@ -539,7 +540,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 75, 3, "Knowing too much", "ps:knowing-too-much" },
     { 76, 3, "The side story takes over", "ps:side-story-takes-over" },
   } },
-  { "Curio-mindset", "Perspective & mindset", 5, 10, {
+  { "Curio-mindset", "Perspective & mindset", 1, 5, 10, {
     { 81, 0, "Whose good they see", "c:perspectiveWidth" },
     { 82, 0, "Mindset", "c:mindset" },
     { 83, 0, "Closed mindset to Widening mindset", "c:cm-perspective" },
@@ -551,7 +552,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 89, 2, "When a belief turns into a big choice, the character changes", "p:big-choice-brings-change" },
     { 90, 3, "Growing up", "ps:growing-up" },
   } },
-  { "Curio-focus", "Focus", 5, 13, {
+  { "Curio-focus", "Focus", 1, 5, 13, {
     { 97, 0, "Focus width", "c:focusWidth" },
     { 98, 0, "Focus shift", "c:focusShift" },
     { 99, 0, "Narrow focus to Wide focus", "c:cm-focus" },
@@ -566,7 +567,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 108, 2, "When a character's attention shrinks to one thing, they miss the warning", "p:tight-focus-misses-warning" },
     { 109, 3, "Eyes on one thing", "ps:eyes-on-one-thing" },
   } },
-  { "Curio-archetype-1", "Archetype 1", 6, 16, {
+  { "Curio-archetype-1", "Archetype 1", 1, 6, 16, {
     { 1, 0, "Enneagram type", "c:enneagramType" },
     { 2, 0, "Stabilizer to Catalyst", "c:cm-stability" },
     { 3, 0, "Reactive to Proactive", "c:cm-agency" },
@@ -584,7 +585,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 0, "Ineffective to Highly capable", "c:cm-competence" },
     { 16, 0, "Security to Freedom", "c:cm-need" },
   } },
-  { "Curio-archetype-2", "Archetype 2", 6, 16, {
+  { "Curio-archetype-2", "Archetype 2", 1, 6, 16, {
     { 17, 0, "External to Internal", "c:cm-motivation" },
     { 18, 0, "Enneagram health", "c:cm-health" },
     { 19, 1, "Type 1: Reformer", "s:enneagram-1" },
@@ -602,7 +603,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 2, "When a Helper falls into stress, they look like a Challenger", "p:stress-2" },
     { 32, 2, "When a Helper grows, they borrow from the Individualist", "p:growth-2" },
   } },
-  { "Curio-archetype-3", "Archetype 3", 6, 16, {
+  { "Curio-archetype-3", "Archetype 3", 1, 6, 16, {
     { 33, 2, "When an Achiever falls into stress, they look like a Peacemaker", "p:stress-3" },
     { 34, 2, "When an Achiever grows, they borrow from the Loyalist", "p:growth-3" },
     { 35, 2, "When an Individualist falls into stress, they look like a Helper", "p:stress-4" },
@@ -620,10 +621,10 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 47, 2, "When a Challenger personality is in the room, fights over who's in charge flare up", "p:challenger-sparks-ego-clash" },
     { 48, 3, "Stress arrows", "ps:enneagram-stress-arrows" },
   } },
-  { "Curio-archetype-4", "Archetype 4", 6, 1, {
+  { "Curio-archetype-4", "Archetype 4", 1, 6, 1, {
     { 49, 3, "Growth arrows", "ps:enneagram-growth-arrows" },
   } },
-  { "Curio-herd", "Herd mentality", 6, 10, {
+  { "Curio-herd", "Herd mentality", 1, 6, 10, {
     { 65, 0, "Herd mentality", "c:herdMentality" },
     { 66, 0, "Who leads the herd", "c:herdLeader" },
     { 67, 0, "Dissenter", "c:dissenter" },
@@ -635,7 +636,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 73, 2, "When one loud voice leads the group, the pressure to agree builds", "p:one-voice-more-pressure" },
     { 74, 3, "The group closes ranks", "ps:group-closes-ranks" },
   } },
-  { "Curio-wardrobe-1", "Wardrobe 1", 6, 16, {
+  { "Curio-wardrobe-1", "Wardrobe 1", 1, 6, 16, {
     { 81, 0, "Era of the clothes", "c:mainEra" },
     { 82, 0, "Cheap to expensive", "c:mainCost" },
     { 83, 0, "How much skin is covered", "c:mainCoverage" },
@@ -653,7 +654,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 0, "Wear and tear", "c:backWear" },
     { 96, 0, "All different to all alike", "c:backSameness" },
   } },
-  { "Curio-wardrobe-2", "Wardrobe 2", 6, 16, {
+  { "Curio-wardrobe-2", "Wardrobe 2", 1, 6, 16, {
     { 97, 0, "True to the time", "c:backPeriodTruth" },
     { 98, 0, "Background against the main character", "c:backVsMain" },
     { 99, 1, "Main character's clothes lens", "s:lens-wardrobeMain" },
@@ -671,7 +672,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 2, "When the hero is the only one dressed that way, the eye finds them in the crowd", "p:lone-outfit-finds-hero" },
     { 112, 2, "When the hero dresses unlike everyone else, they feel out of place", "p:lone-outfit-fish-out" },
   } },
-  { "Curio-wardrobe-3", "Wardrobe 3", 7, 16, {
+  { "Curio-wardrobe-3", "Wardrobe 3", 1, 7, 16, {
     { 1, 2, "When the hero's clothes are luxury, they stand out from the room", "p:luxury-stands-out" },
     { 2, 2, "When the clothes are very formal, people move stiffly", "p:ceremony-stiffens" },
     { 3, 2, "When the clothes are baggy, a trip or a snag is waiting", "p:baggy-clothes-stumble" },
@@ -689,7 +690,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 3, "The standout hero", "ps:standout-hero" },
     { 16, 3, "Dressed wrong for it", "ps:dressed-wrong-for-it" },
   } },
-  { "Curio-color-1", "Color 1", 7, 16, {
+  { "Curio-color-1", "Color 1", 1, 7, 16, {
     { 17, 0, "Black and white to full color", "c:colorRange" },
     { 18, 0, "Color filter", "c:colorFilter" },
     { 19, 0, "Filter color", "c:filterHue" },
@@ -707,7 +708,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 2, "When the color filter gets strong, the number of main colors drops", "p:filter-bw" },
     { 32, 2, "When anger rises, the color runs warm", "p:anger-warm-red" },
   } },
-  { "Curio-color-2", "Color 2", 7, 6, {
+  { "Curio-color-2", "Color 2", 1, 7, 6, {
     { 33, 2, "When fear rises, the color drains", "p:fear-color-drains" },
     { 34, 2, "When one color pops, the audience's eye locks on it", "p:pop-color-grips-eye" },
     { 35, 2, "When the filter turns red, the danger feels close", "p:red-filter-danger" },
@@ -715,7 +716,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 37, 3, "Color follows the feeling", "ps:color-follows-feeling" },
     { 38, 3, "One red thing", "ps:one-red-thing" },
   } },
-  { "Curio-set-1", "Set design 1", 7, 16, {
+  { "Curio-set-1", "Set design 1", 1, 7, 16, {
     { 49, 0, "Era and style of the place", "c:setStyle" },
     { 50, 0, "Main material", "c:setMaterial" },
     { 51, 0, "Soft curves to sharp clean lines", "c:setLines" },
@@ -733,7 +734,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 1, "Dive bar", "s:dive-bar" },
     { 64, 1, "Upscale lounge", "s:upscale-lounge" },
   } },
-  { "Curio-set-2", "Set design 2", 7, 16, {
+  { "Curio-set-2", "Set design 2", 1, 7, 16, {
     { 65, 1, "Period piece", "s:period-piece" },
     { 66, 1, "Cold minimalism", "s:minimalist-cold" },
     { 67, 1, "Warm maximalism", "s:maximalist-warm" },
@@ -751,7 +752,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 2, "When the walls are covered in art, the eye wanders off the actors", "p:art-wall-distracts" },
     { 80, 2, "When the art hangs perfectly even, the owner reads as rigid", "p:even-art-rigid-owner" },
   } },
-  { "Curio-set-3", "Set design 3", 7, 6, {
+  { "Curio-set-3", "Set design 3", 1, 7, 6, {
     { 81, 2, "When the set has deep layers, there's room for a joke in the background", "p:deep-set-background-gag" },
     { 82, 2, "When the set is painted dark, the picture goes low key", "p:dark-set-low-key" },
     { 83, 2, "When the room is laid out in booths, people sit close and talk low", "p:booths-bring-close" },
@@ -759,7 +760,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 85, 3, "The rigid room gag", "ps:rigid-room-gag" },
     { 86, 3, "Dark room secrets", "ps:dark-room-secrets" },
   } },
-  { "Curio-emotion-1", "Emotion 1", 7, 16, {
+  { "Curio-emotion-1", "Emotion 1", 1, 7, 16, {
     { 97, 0, "Strength of the feeling", "c:emotionIntensity" },
     { 98, 0, "How they move", "c:emoMove" },
     { 99, 0, "Feeling in the voice", "c:emoVoice" },
@@ -777,7 +778,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 0, "The hands", "c:emoHands" },
     { 112, 0, "Personal space", "c:personalSpace" },
   } },
-  { "Curio-emotion-2", "Emotion 2", 8, 16, {
+  { "Curio-emotion-2", "Emotion 2", 1, 8, 16, {
     { 1, 0, "Release", "c:emoRelease" },
     { 2, 0, "What the audience feels", "c:audienceFeeling" },
     { 3, 0, "Feeling with them", "c:empathy" },
@@ -795,7 +796,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 1, "Feels joyful", "s:emotion-joyful" },
     { 16, 1, "Feels curious", "s:emotion-curious" },
   } },
-  { "Curio-emotion-3", "Emotion 3", 8, 16, {
+  { "Curio-emotion-3", "Emotion 3", 1, 8, 16, {
     { 17, 1, "Feels melancholy", "s:emotion-melancholy" },
     { 18, 1, "Feels anxious", "s:emotion-anxious" },
     { 19, 1, "Feels fearful", "s:emotion-fearful" },
@@ -813,7 +814,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 1, "Calm in the storm", "s:calm-in-the-storm" },
     { 32, 1, "The mask slips", "s:mask-slips" },
   } },
-  { "Curio-emotion-4", "Emotion 4", 8, 16, {
+  { "Curio-emotion-4", "Emotion 4", 1, 8, 16, {
     { 33, 1, "Laughing through tears", "s:laughing-through-tears" },
     { 34, 1, "Brave face", "s:brave-face" },
     { 35, 1, "Dawning realization", "s:dawning-realization" },
@@ -831,7 +832,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 47, 1, "Green with envy", "s:green-with-envy" },
     { 48, 1, "Proud moment", "s:proud-moment" },
   } },
-  { "Curio-emotion-5", "Emotion 5", 8, 16, {
+  { "Curio-emotion-5", "Emotion 5", 1, 8, 16, {
     { 49, 1, "Right there with them", "s:right-there-with-them" },
     { 50, 1, "A scene that lingers", "s:a-scene-that-lingers" },
     { 51, 1, "Gentle care", "s:gentle-care" },
@@ -849,7 +850,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 2, "After a release, the character is lighter", "p:release-lighter" },
     { 64, 2, "When said and meant pull apart, the pauses grow", "p:subtext-pause" },
   } },
-  { "Curio-emotion-6", "Emotion 6", 8, 16, {
+  { "Curio-emotion-6", "Emotion 6", 1, 8, 16, {
     { 65, 2, "When people move closer, the feeling grows", "p:space-closes-intensity" },
     { 66, 2, "When tears well, the shot gets closer", "p:tears-close-up" },
     { 67, 2, "When we know more than they do, tension rises", "p:we-know-tension" },
@@ -867,7 +868,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 2, "When steam pops on, the feeling winds up", "p:steam-winds-up" },
     { 80, 2, "When a face crackles, the feeling winds up", "p:crackle-winds-up" },
   } },
-  { "Curio-emotion-7", "Emotion 7", 8, 16, {
+  { "Curio-emotion-7", "Emotion 7", 1, 8, 16, {
     { 81, 2, "When someone laughs till they cry, the audience laughs more", "p:laugh-tears-laughter" },
     { 82, 2, "When the mallet bonks, the feeling turns absurd", "p:mallet-absurd" },
     { 83, 2, "When the room feels cozy, people sit closer", "p:cozy-pulls-close" },
@@ -885,7 +886,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 2, "When shame rises, the room squirms", "p:shame-room-squirms" },
     { 96, 2, "When they make it right, relief follows", "p:amends-bring-relief" },
   } },
-  { "Curio-emotion-8", "Emotion 8", 8, 16, {
+  { "Curio-emotion-8", "Emotion 8", 1, 8, 16, {
     { 97, 2, "When pride swells, a setback follows", "p:pride-swells-setback" },
     { 98, 2, "When jealousy flares, the two drift apart", "p:jealousy-opens-gap" },
     { 99, 2, "When the dread lifts, relief floods in", "p:dread-lifts-relief" },
@@ -903,7 +904,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 3, "Feelings spread", "ps:feelings-spread" },
     { 112, 3, "What isn't said", "ps:what-isnt-said" },
   } },
-  { "Curio-emotion-9", "Emotion 9", 9, 7, {
+  { "Curio-emotion-9", "Emotion 9", 1, 9, 7, {
     { 1, 3, "Closeness and dread", "ps:closeness-and-dread" },
     { 2, 3, "The face tells the feeling", "ps:face-tells-the-feeling" },
     { 3, 3, "The mood moves the feeling", "ps:mood-moves-the-feeling" },
@@ -912,7 +913,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 6, 3, "Too much sugar backfires", "ps:sugar-backfires" },
     { 7, 3, "Envy turns sour", "ps:envy-turns-sour" },
   } },
-  { "Curio-emo-road-1", "Emotional road 1", 9, 16, {
+  { "Curio-emo-road-1", "Emotional road 1", 1, 9, 16, {
     { 17, 0, "Where this character is on their road", "c:emoRoadCharacter" },
     { 18, 0, "Where the film is on its road", "c:emoRoadFilm" },
     { 19, 0, "Does the feeling turn", "c:emoTurn" },
@@ -930,7 +931,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 0, "Dread", "c:dread" },
     { 32, 0, "On their side, or against them", "c:sideTaking" },
   } },
-  { "Curio-emo-road-2", "Emotional road 2", 9, 16, {
+  { "Curio-emo-road-2", "Emotional road 2", 1, 9, 16, {
     { 33, 0, "Nostalgia", "c:nostalgia" },
     { 34, 0, "Longing", "c:longing" },
     { 35, 0, "Guilt", "c:guilt" },
@@ -948,7 +949,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 47, 1, "The midpoint win", "s:the-midpoint-win" },
     { 48, 1, "A rest stop", "s:rest-stop" },
   } },
-  { "Curio-emo-road-3", "Emotional road 3", 9, 16, {
+  { "Curio-emo-road-3", "Emotional road 3", 1, 9, 16, {
     { 49, 1, "Crossed roads", "s:crossed-roads" },
     { 50, 1, "The old song", "s:the-old-song" },
     { 51, 1, "Slow dread", "s:slow-dread" },
@@ -966,7 +967,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 1, "Rooting for the wrong one", "s:on-the-wrong-side" },
     { 64, 2, "When a character reaches their lowest point, their feeling turns", "p:lowpoint-turn" },
   } },
-  { "Curio-emo-road-4", "Emotional road 4", 9, 16, {
+  { "Curio-emo-road-4", "Emotional road 4", 1, 9, 16, {
     { 65, 2, "After a low scene, a laugh", "p:low-then-laugh" },
     { 66, 2, "A hidden feeling bursts out later", "p:hidden-then-burst" },
     { 67, 2, "After tension peaks, release follows", "p:tension-release" },
@@ -984,7 +985,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 2, "When we turn against them, we stop feeling with them", "p:turning-against-them" },
     { 80, 2, "When they show gentle care, we take their side", "p:kindness-wins-us-over" },
   } },
-  { "Curio-emo-road-5", "Emotional road 5", 9, 16, {
+  { "Curio-emo-road-5", "Emotional road 5", 1, 9, 16, {
     { 81, 2, "When an old tune returns, nostalgia comes with it", "p:old-theme-nostalgia" },
     { 82, 2, "When nostalgia rises, the color warms", "p:nostalgia-warms-color" },
     { 83, 2, "When the past calls, longing grows", "p:nostalgia-to-longing" },
@@ -1002,7 +1003,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 2, "When hope is lost, grief sets in", "p:loss-brings-grief" },
     { 96, 2, "When grief is heavy, a laugh slips in", "p:grief-lets-a-laugh-in" },
   } },
-  { "Curio-emo-road-6", "Emotional road 6", 9, 15, {
+  { "Curio-emo-road-6", "Emotional road 6", 1, 9, 15, {
     { 97, 2, "When they are betrayed, the warmth goes cold", "p:betrayal-chills" },
     { 98, 2, "When they are betrayed, a grudge takes root", "p:betrayal-breeds-grudge" },
     { 99, 2, "When the grudge nears boiling, anger breaks out", "p:grudge-boils-over" },
@@ -1019,7 +1020,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 110, 3, "The ache of missing", "ps:the-ache-of-missing" },
     { 111, 3, "Earning the tears", "ps:earning-the-tears" },
   } },
-  { "Curio-comedy-1", "Comedy 1", 10, 16, {
+  { "Curio-comedy-1", "Comedy 1", 1, 10, 16, {
     { 1, 0, "Kind of joke", "c:comedyDevice" },
     { 2, 0, "What the joke is about", "c:comedyTopic" },
     { 3, 0, "Pause before the punchline", "c:comicTiming" },
@@ -1037,7 +1038,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 0, "Rule of three", "c:ruleOfThree" },
     { 16, 0, "Physical comedy", "c:physicalComedy" },
   } },
-  { "Curio-comedy-2", "Comedy 2", 10, 16, {
+  { "Curio-comedy-2", "Comedy 2", 1, 10, 16, {
     { 17, 0, "Wordplay", "c:wordplay" },
     { 18, 0, "Misdirection", "c:misdirection" },
     { 19, 0, "Irony", "c:irony" },
@@ -1055,7 +1056,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 0, "Exaggeration", "c:exaggeration" },
     { 32, 0, "Humiliation", "c:humiliation" },
   } },
-  { "Curio-comedy-3", "Comedy 3", 10, 16, {
+  { "Curio-comedy-3", "Comedy 3", 1, 10, 16, {
     { 33, 0, "The lie that grows", "c:escalatingLie" },
     { 34, 0, "Misunderstanding", "c:misunderstanding" },
     { 35, 0, "Cutaway gag", "c:cutawayGag" },
@@ -1073,7 +1074,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 47, 0, "Cartoon rules", "c:cartoonLogic" },
     { 48, 0, "Funny to sad switch", "c:laughsToTears" },
   } },
-  { "Curio-comedy-4", "Comedy 4", 10, 16, {
+  { "Curio-comedy-4", "Comedy 4", 1, 10, 16, {
     { 49, 0, "Making fun of yourself", "c:selfMockery" },
     { 50, 0, "The bad disguise", "c:badDisguise" },
     { 51, 0, "The tag scene", "c:tagScene" },
@@ -1091,7 +1092,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 1, "Dark comedy", "s:dark-comedy" },
     { 64, 1, "Rom-com banter", "s:rom-com-banter" },
   } },
-  { "Curio-comedy-5", "Comedy 5", 10, 16, {
+  { "Curio-comedy-5", "Comedy 5", 1, 10, 16, {
     { 65, 1, "Snowball disaster", "s:snowball-disaster" },
     { 66, 1, "Pull-back reveal", "s:pull-back-reveal" },
     { 67, 1, "Smash cut contradiction", "s:smash-cut-contradiction" },
@@ -1109,7 +1110,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 1, "Twisting the familiar", "s:twisting-the-familiar" },
     { 80, 1, "Spoof movie", "s:spoof-movie" },
   } },
-  { "Curio-comedy-6", "Comedy 6", 10, 16, {
+  { "Curio-comedy-6", "Comedy 6", 1, 10, 16, {
     { 81, 1, "Roast battle", "s:roast-battle" },
     { 82, 1, "The flop", "s:the-flop" },
     { 83, 1, "Loose and improvised", "s:loose-and-improvised" },
@@ -1127,7 +1128,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 2, "As trouble escalates, the frame widens", "p:escalate-wide" },
     { 96, 2, "A running gag returns, bigger", "p:gag-returns" },
   } },
-  { "Curio-comedy-7", "Comedy 7", 10, 16, {
+  { "Curio-comedy-7", "Comedy 7", 1, 10, 16, {
     { 97, 2, "A joke line returns in a tender moment", "p:callback-tender" },
     { 98, 2, "Something absurd, nobody reacts", "p:absurd-no-reaction" },
     { 99, 2, "Misdirection pays off with a pull-back", "p:misdirect-pullback" },
@@ -1145,7 +1146,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 2, "When the joke aims at the powerful, the audience laughs harder", "p:punching-up-bigger-laughs" },
     { 112, 2, "When the comedy goes cartoon-big, the falls get bigger", "p:cartoon-bigger-falls" },
   } },
-  { "Curio-comedy-8", "Comedy 8", 11, 16, {
+  { "Curio-comedy-8", "Comedy 8", 1, 11, 16, {
     { 1, 2, "When the payoff comes long after its setup, the laugh is bigger", "p:far-payoff-big-laugh" },
     { 2, 2, "When the joke rests on the straight one, they stay perfectly calm", "p:straight-one-stays-calm" },
     { 3, 2, "When someone lands a sharp comeback, the pecking order wobbles", "p:comeback-wobbles-rank" },
@@ -1163,7 +1164,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 2, "When the catchphrase comes back with a new meaning, the callback turns sweet", "p:catchphrase-sweet-callback" },
     { 16, 2, "When the topper lands, a button closes the scene", "p:topper-then-button" },
   } },
-  { "Curio-comedy-9", "Comedy 9", 11, 16, {
+  { "Curio-comedy-9", "Comedy 9", 1, 11, 16, {
     { 17, 2, "When the button lands, the scene ends on it", "p:button-then-cut" },
     { 18, 2, "When a tiny want meets a huge effort, the trouble escalates", "p:tiny-want-escalates" },
     { 19, 2, "When the tiny want is won and ruined, someone is humiliated", "p:tiny-want-ruined" },
@@ -1181,7 +1182,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 2, "When the scene feels improvised, someone cracks up", "p:loose-crack-up" },
     { 32, 2, "When cartoon rules take over, the falls stop hurting", "p:cartoon-no-pain" },
   } },
-  { "Curio-comedy-10", "Comedy 10", 11, 16, {
+  { "Curio-comedy-10", "Comedy 10", 1, 11, 16, {
     { 33, 2, "When a joke turns sad on one line, the music drops away", "p:sad-turn-music-drops" },
     { 34, 2, "When tears turn into a laugh, the release comes through laughing", "p:tears-to-laugh-release" },
     { 35, 2, "When self-mockery hides hurt, mixed feelings show", "p:self-mock-hurt" },
@@ -1199,7 +1200,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 47, 3, "Comedy of a flaw", "ps:flaw-comedy" },
     { 48, 3, "Smash and scatter", "ps:smash-and-scatter" },
   } },
-  { "Curio-comedy-11", "Comedy 11", 11, 7, {
+  { "Curio-comedy-11", "Comedy 11", 1, 11, 7, {
     { 49, 3, "The cartoon spiral", "ps:cartoon-spiral" },
     { 50, 3, "The calm one cracks", "ps:the-calm-one-cracks" },
     { 51, 3, "The flop spiral", "ps:flop-spiral" },
@@ -1208,7 +1209,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 54, 3, "Laugh, then cry", "ps:laugh-then-cry" },
     { 55, 3, "Sitcom scene shape", "ps:sitcom-scene-shape" },
   } },
-  { "Curio-comedy-mix-1", "Comedy from the mix 1", 11, 16, {
+  { "Curio-comedy-mix-1", "Comedy from the mix 1", 1, 11, 16, {
     { 65, 0, "How different the personalities are", "c:typeClash" },
     { 66, 0, "Chaos in an orderly room", "c:chaosInRoom" },
     { 67, 0, "Gap in rank", "c:statusGap" },
@@ -1226,7 +1227,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 0, "Everything stops", "c:roomStops" },
     { 80, 0, "Comic montage", "c:comicMontage" },
   } },
-  { "Curio-comedy-mix-2", "Comedy from the mix 2", 11, 16, {
+  { "Curio-comedy-mix-2", "Comedy from the mix 2", 1, 11, 16, {
     { 81, 0, "The punching bag", "c:punchingBag" },
     { 82, 0, "Making something tiny epic", "c:mockEpic" },
     { 83, 0, "Chase played for laughs", "c:comicChase" },
@@ -1244,7 +1245,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 1, "Everyone knows but one", "s:everyone-knows-but-one" },
     { 96, 1, "Status swap", "s:status-swap" },
   } },
-  { "Curio-comedy-mix-3", "Comedy from the mix 3", 11, 16, {
+  { "Curio-comedy-mix-3", "Comedy from the mix 3", 1, 11, 16, {
     { 97, 1, "The worst possible guest", "s:worst-guest" },
     { 98, 1, "Banter", "s:banter" },
     { 99, 1, "Trickster stirs the pot", "s:trickster-stirs-the-pot" },
@@ -1262,7 +1263,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 2, "When the one who doesn't know gets close to the secret, the cringe rises", "p:secret-cringe" },
     { 112, 2, "When the chaos grows, the straight man's calm sells the laugh", "p:straight-sells-it" },
   } },
-  { "Curio-comedy-mix-4", "Comedy from the mix 4", 12, 16, {
+  { "Curio-comedy-mix-4", "Comedy from the mix 4", 1, 12, 16, {
     { 1, 2, "When the odd one out tries harder, the group pulls away", "p:oddone-group" },
     { 2, 2, "When the sides switch, the status flips", "p:sides-switch" },
     { 3, 2, "When the chemistry grows, the characters change", "p:chemistry-arc" },
@@ -1280,7 +1281,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 2, "When the near misses pile up, the room falls into chaos", "p:near-misses-chaos" },
     { 16, 2, "When two people miss each other by a second, the tension jumps", "p:near-miss-tension" },
   } },
-  { "Curio-comedy-mix-5", "Comedy from the mix 5", 12, 12, {
+  { "Curio-comedy-mix-5", "Comedy from the mix 5", 1, 12, 12, {
     { 17, 2, "When the funny music stops dead, the silence gets the laugh", "p:music-stops-silence-laugh" },
     { 18, 2, "When the music copies every step, the physical comedy gets bigger", "p:music-every-step-bigger" },
     { 19, 2, "When the narrator jumps in with an intro, the frame freezes", "p:narrator-freeze" },
@@ -1294,7 +1295,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 27, 3, "Chase to crash", "ps:chase-to-crash" },
     { 28, 3, "Farce at the doors", "ps:farce-at-the-doors" },
   } },
-  { "Curio-music-1", "Music & sound 1", 12, 16, {
+  { "Curio-music-1", "Music & sound 1", 1, 12, 16, {
     { 33, 0, "Score", "c:musicCue" },
     { 34, 0, "Sound density", "c:soundDensity" },
     { 35, 0, "Sound against the cut", "c:soundToCut" },
@@ -1312,7 +1313,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 47, 1, "Returning theme", "s:returning-theme" },
     { 48, 1, "Heightened sound", "s:heightened-sound" },
   } },
-  { "Curio-music-2", "Music & sound 2", 12, 12, {
+  { "Curio-music-2", "Music & sound 2", 1, 12, 12, {
     { 49, 2, "When the music is cut dead, a big line lands", "p:music-cut-line" },
     { 50, 2, "When the music drops out, a reveal follows", "p:silence-reveal" },
     { 51, 2, "When a famous song starts, time slows", "p:needle-slowmo" },
@@ -1326,7 +1327,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 59, 3, "Music steers the edit", "ps:music-steers-edit" },
     { 60, 3, "Silence as a weapon", "ps:silence-as-weapon" },
   } },
-  { "Curio-structure-1", "Editing & structure 1", 12, 16, {
+  { "Curio-structure-1", "Editing & structure 1", 1, 12, 16, {
     { 65, 0, "Featured mains", "c:mains" },
     { 66, 0, "Groups in the hour", "c:groups" },
     { 67, 0, "Exit", "c:exit" },
@@ -1344,7 +1345,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 0, "Visual density", "c:visualDensity" },
     { 80, 0, "Constant", "c:pedal" },
   } },
-  { "Curio-structure-2", "Editing & structure 2", 12, 16, {
+  { "Curio-structure-2", "Editing & structure 2", 1, 12, 16, {
     { 81, 0, "Psych-out shift", "c:psychOut" },
     { 82, 0, "Cut articulation", "c:cutArticulation" },
     { 83, 0, "Operator feel", "c:operatorFeel" },
@@ -1362,7 +1363,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 0, "Shots in order", "c:shotOrderLens" },
     { 96, 1, "Two-person hour", "s:two-person" },
   } },
-  { "Curio-structure-3", "Editing & structure 3", 12, 16, {
+  { "Curio-structure-3", "Editing & structure 3", 1, 12, 16, {
     { 97, 1, "Build", "s:build" },
     { 98, 1, "Drop", "s:drop" },
     { 99, 1, "Signature return", "s:signature-return" },
@@ -1380,7 +1381,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 1, "The big moment", "s:the-big-moment" },
     { 112, 1, "Breakneck pace", "s:breakneck-pace" },
   } },
-  { "Curio-structure-4", "Editing & structure 4", 13, 16, {
+  { "Curio-structure-4", "Editing & structure 4", 1, 13, 16, {
     { 1, 1, "Slow and patient", "s:slow-and-patient" },
     { 2, 1, "Cut like music", "s:cut-like-music" },
     { 3, 1, "Ensemble patchwork", "s:ensemble-patchwork" },
@@ -1398,7 +1399,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 2, "When the hour splits into two groups, the film cuts back and forth between them", "p:two-groups-cross-cut" },
     { 16, 2, "When the film cuts between two places faster and faster, the clock feels tighter", "p:cross-cutting-tightens-clock" },
   } },
-  { "Curio-structure-5", "Editing & structure 5", 13, 16, {
+  { "Curio-structure-5", "Editing & structure 5", 1, 13, 16, {
     { 17, 2, "When a scene starts in the middle of the action, the audience starts asking questions", "p:in-action-raises-questions" },
     { 18, 2, "When every shot answers the one before, laughs come faster", "p:answering-shots-faster-laughs" },
     { 19, 2, "When shots come in threes, the third one becomes the punchline", "p:threes-land-the-joke" },
@@ -1416,12 +1417,12 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 2, "When a main character dies, the tears come soon after", "p:death-brings-tears" },
     { 32, 2, "When a scene plays out inside another scene, the audience starts doubting what's real", "p:inner-scene-raises-doubt" },
   } },
-  { "Curio-structure-6", "Editing & structure 6", 13, 3, {
+  { "Curio-structure-6", "Editing & structure 6", 1, 13, 3, {
     { 33, 2, "When the shots get short, the energy climbs", "p:short-shots-more-energy" },
     { 34, 3, "Long-form shape", "ps:long-form" },
     { 35, 3, "The squeeze", "ps:the-squeeze" },
   } },
-  { "Curio-page-1", "Page & panel 1", 13, 16, {
+  { "Curio-page-1", "Page & panel 1", 1, 13, 16, {
     { 49, 0, "Panels", "c:panelCount" },
     { 50, 0, "Gutter", "c:gutter" },
     { 51, 0, "Balloon against caption", "c:balloon" },
@@ -1439,7 +1440,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 1, "Ink comic", "s:ink-comic" },
     { 64, 2, "When a page ends on a cliffhanger, the next page opens big", "p:cliffhanger-turn" },
   } },
-  { "Curio-page-2", "Page & panel 2", 13, 10, {
+  { "Curio-page-2", "Page & panel 2", 1, 13, 10, {
     { 65, 2, "When the feeling peaks, the panel grows", "p:peak-big-panel" },
     { 66, 2, "When the talk speeds up, panels shrink and multiply", "p:fast-talk-small-panels" },
     { 67, 2, "When a scene ends, the gutter widens", "p:quiet-wide-gutter" },
@@ -1451,7 +1452,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 73, 3, "The page breathes with the story", "ps:page-breathes" },
     { 74, 3, "The loud page", "ps:loud-page" },
   } },
-  { "Curio-transitions-1", "Transitions 1", 13, 16, {
+  { "Curio-transitions-1", "Transitions 1", 1, 13, 16, {
     { 81, 0, "Transition style", "c:transitionKind" },
     { 82, 0, "Clip animation", "c:clipAnimation" },
     { 83, 0, "Fade in and out", "c:fadeEdge" },
@@ -1469,10 +1470,10 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 95, 2, "When clips bounce in, the video turns playful", "p:bounce-in-playful" },
     { 96, 2, "When transitions get explosive, something new arrives every second or two", "p:punchy-transitions-fast-reset" },
   } },
-  { "Curio-transitions-2", "Transitions 2", 13, 1, {
+  { "Curio-transitions-2", "Transitions 2", 1, 13, 1, {
     { 97, 3, "The hyper edit", "ps:hyper-edit" },
   } },
-  { "Curio-grade-1", "Filters & adjustments 1", 14, 16, {
+  { "Curio-grade-1", "Filters & adjustments 1", 1, 14, 16, {
     { 1, 0, "Filter", "c:filterLook" },
     { 2, 0, "Exposure", "c:exposure" },
     { 3, 0, "Warmth and tint", "c:whiteBalance" },
@@ -1490,7 +1491,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 15, 1, "Old home video", "s:home-video" },
     { 16, 1, "Final Cut finishing pass", "s:final-cut-finish" },
   } },
-  { "Curio-grade-2", "Filters & adjustments 2", 14, 15, {
+  { "Curio-grade-2", "Filters & adjustments 2", 1, 14, 15, {
     { 17, 1, "True to life grade", "s:true-to-life-grade" },
     { 18, 1, "Summer blockbuster grade", "s:summer-blockbuster-grade" },
     { 19, 2, "When the focus pulls to an object, the shadows turn", "p:object-focus-push" },
@@ -1507,7 +1508,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 30, 3, "Memory box", "ps:memory-box" },
     { 31, 3, "Hard-edge grade", "ps:hard-edge-grade" },
   } },
-  { "Curio-titles-1", "Text & captions 1", 14, 16, {
+  { "Curio-titles-1", "Text & captions 1", 1, 14, 16, {
     { 33, 0, "On-screen text", "c:onScreenText" },
     { 34, 0, "Captions", "c:captions" },
     { 35, 0, "Text style", "c:textStyle" },
@@ -1525,12 +1526,12 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 47, 2, "When the text is in comic-book style, the comedy goes cartoon", "p:comic-text-cartoon" },
     { 48, 2, "When stickers and emoji pile up, the laughs speed up", "p:many-stickers-laughs" },
   } },
-  { "Curio-titles-2", "Text & captions 2", 14, 3, {
+  { "Curio-titles-2", "Text & captions 2", 1, 14, 3, {
     { 49, 2, "When a chapter card appears, the story stops and restarts", "p:chapter-card-pause" },
     { 50, 3, "Words that point", "ps:words-on-screen" },
     { 51, 3, "Phone comedy reactions", "ps:phone-comedy-reactions" },
   } },
-  { "Curio-speed-1", "Speed & timing 1", 14, 16, {
+  { "Curio-speed-1", "Speed & timing 1", 1, 14, 16, {
     { 65, 0, "Clip speed", "c:clipSpeed" },
     { 66, 0, "Reverse and replay", "c:playDirection" },
     { 67, 0, "Freeze frame", "c:freezeFrame" },
@@ -1548,14 +1549,14 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 79, 2, "When the music is featured, the cuts find the beat", "p:featured-music-beat" },
     { 80, 2, "When jump cuts go rhythmic, a joke builds", "p:jumpcut-laugh" },
   } },
-  { "Curio-speed-2", "Speed & timing 2", 14, 5, {
+  { "Curio-speed-2", "Speed & timing 2", 1, 14, 5, {
     { 81, 2, "When seconds are left on the clock, the cutting gets fast", "p:seconds-fast-cuts" },
     { 82, 2, "When a clip slows way down, it needs smooth in-between frames", "p:slowmo-needs-smooth" },
     { 83, 2, "When something new arrives every second or two, the jokes come faster", "p:fast-reset-more-laughs" },
     { 84, 2, "When the edit template is meme, the smash cuts pile up", "p:meme-template-smash" },
     { 85, 3, "Music leads the edit", "ps:music-leads-the-edit" },
   } },
-  { "Curio-audio-mix-1", "Audio mix 1", 14, 16, {
+  { "Curio-audio-mix-1", "Audio mix 1", 1, 14, 16, {
     { 97, 0, "Music under speech", "c:musicLevel" },
     { 98, 0, "Audio fades", "c:audioFade" },
     { 99, 0, "Voice effect", "c:voiceEffect" },
@@ -1573,7 +1574,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 111, 2, "When the clip slows down, the music rises", "p:slowmo-music" },
     { 112, 2, "When the clip rewinds, a sound hit plays", "p:rewind-sound" },
   } },
-  { "Curio-audio-mix-2", "Audio mix 2", 15, 8, {
+  { "Curio-audio-mix-2", "Audio mix 2", 1, 15, 8, {
     { 1, 2, "When a cutaway covers the talking, the music sits under", "p:cutaway-music-under" },
     { 2, 2, "When a scene ends on a button joke, a sting hits", "p:button-sting" },
     { 3, 2, "When the joke pays off, a music sting lands", "p:payoff-sting" },
@@ -1583,7 +1584,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 7, 2, "When a voice echoes, the moment feels like a dream or a memory", "p:echo-voice-dreamy" },
     { 8, 2, "When a voice is translated, the mouths stop matching the words", "p:dub-breaks-lip-match" },
   } },
-  { "Curio-layers-1", "Layers, masks & effects 1", 15, 16, {
+  { "Curio-layers-1", "Layers, masks & effects 1", 1, 15, 16, {
     { 17, 0, "Overlay", "c:overlay" },
     { 18, 0, "Blend mode", "c:blendMode" },
     { 19, 0, "Cutout and green screen", "c:cutout" },
@@ -1601,7 +1602,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 31, 0, "Glitch", "c:glitchEffect" },
     { 32, 0, "Distortion", "c:distortionEffect" },
   } },
-  { "Curio-layers-2", "Layers, masks & effects 2", 15, 16, {
+  { "Curio-layers-2", "Layers, masks & effects 2", 1, 15, 16, {
     { 33, 0, "Party flash", "c:partyEffect" },
     { 34, 0, "Stock clip", "c:stockClip" },
     { 35, 0, "Generated shot", "c:generatedShot" },
@@ -1619,7 +1620,7 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 47, 2, "When impacts rise, the picture flashes", "p:impact-flash" },
     { 48, 2, "When text labels something, it follows it", "p:sign-tracks" },
   } },
-  { "Curio-layers-3", "Layers, masks & effects 3", 15, 16, {
+  { "Curio-layers-3", "Layers, masks & effects 3", 1, 15, 16, {
     { 49, 2, "When the feeling turns dreamlike, light blooms", "p:dreamlike-halo" },
     { 50, 2, "When the music is featured, the effects pulse on the beat", "p:featured-music-pulse" },
     { 51, 2, "When someone triumphs, their eyes light up", "p:triumph-eyes" },
@@ -1637,12 +1638,12 @@ static const CurioBank CURIO_BANKS[CURIO_BANK_COUNT] = {
     { 63, 2, "When a person gets a glowing aura, the eye locks on them", "p:aura-locks-eye" },
     { 64, 2, "When the picture ripples, we drop into a different feeling", "p:ripple-jumps-feeling" },
   } },
-  { "Curio-layers-4", "Layers, masks & effects 4", 15, 3, {
+  { "Curio-layers-4", "Layers, masks & effects 4", 1, 15, 3, {
     { 65, 3, "Effects show the inside", "ps:effects-show-the-inside" },
     { 66, 3, "Put me somewhere else", "ps:put-me-somewhere-else" },
     { 67, 3, "The power-up moment", "ps:power-up-moment" },
   } },
-  { "Curio-canvas", "Frame & canvas", 15, 14, {
+  { "Curio-canvas", "Frame & canvas", 1, 15, 14, {
     { 81, 0, "Punch-in and reframe", "c:reframe" },
     { 82, 0, "Mirror and rotate", "c:imageTransform" },
     { 83, 0, "Steadying", "c:stabilization" },
