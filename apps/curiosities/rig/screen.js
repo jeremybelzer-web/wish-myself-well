@@ -17,8 +17,11 @@
      3D window. "Key this on the timeline" puts what the 3D character does now as nodes at the playhead, on the
      shown character's track, as one undo step.
 
+   - Everyone together: with more than one character track, the other tracks join the 3D view as more actors,
+     staged together (rig/staging.js); kept per device in curiosities-rig3d-screen-view-v1 ({ together }).
+
    window.CurioRigScreen = { cast(trackId?) -> characterId, setCast(trackId, characterId), shown() -> trackId,
-     open(on), controller(), keyThis() } */
+     open(on), controller(), together(), setTogether(on), keyThis() } */
 (function () {
   if (typeof window === "undefined") return;
   const CAST_KEY = "curiosities-rig3d-cast-v1";
@@ -82,6 +85,8 @@
   let lastAsk = [];
   let selSig = "";
   const isOpen = () => !!read(VIEW_KEY, {}).open;
+  /* the other character tracks join the 3D view as more actors (rig/staging.js), unless turned off */
+  const together = () => read(VIEW_KEY, {}).together !== false;
   const $ = (s) => host && host.querySelector(`[data-r3s="${s}"]`);
 
   function css() {
@@ -102,7 +107,7 @@
 .r3s-side{display:grid;grid-template-columns:1fr 1fr;gap:.3rem .4rem;align-content:start}
 .r3s-side label{display:grid;gap:.1rem}
 .r3s-side select,.r3s-side input{font:inherit;min-width:0}
-.r3s-ask,.r3s-said,.r3s-side [data-r3s="key"],.r3s-side small{grid-column:1/-1}
+.r3s-ask,.r3s-said,.r3s-side [data-r3s="key"],.r3s-side small,.r3s-side .r3s-together{grid-column:1/-1}
 .r3s-ask{display:flex;gap:.3rem}.r3s-ask input{flex:1}
 .r3s-said{margin:0;opacity:.85}
 .r3s-said:empty{display:none}
@@ -144,6 +149,7 @@
           <label>Played by <select data-r3s="actor" title="Which 3D body or object plays them"></select></label>
           <form class="r3s-ask" data-r3s="ask-form"><input type="text" data-r3s="ask" placeholder="Tell it what to do, e.g. sleepy" aria-label="Tell the 3D character what to do"><button type="submit">Do it</button></form>
           <p class="r3s-said" data-r3s="said" role="status"></p>
+          <label class="r3s-together" title="With more than one character on the timeline, the others join the 3D view as more actors (rig/staging.js)"><span><input type="checkbox" data-r3s="together"> Everyone together</span></label>
           <button type="button" data-r3s="key" title="Put what the 3D character is doing now on the timeline, at the playhead, as one step you can undo">Key this on the timeline</button>
           <small data-r3s="moment"></small>
         </div>
@@ -204,6 +210,12 @@
         : "I did not find anything to change in that. Try a feeling (sleepy, scared), a move (walk, look up) or an acting move (shrug, double take).";
     });
     $("key").addEventListener("click", keyThis);
+    $("together").checked = together();
+    $("together").addEventListener("change", (e) => {
+      const v = read(VIEW_KEY, {});
+      v.together = e.target.checked;
+      write(VIEW_KEY, v);
+    });
     if (typeof IntersectionObserver === "function") {
       new IntersectionObserver((list) => {
         visible = list.some((x) => x.isIntersecting);
@@ -348,6 +360,13 @@
       refresh();
     },
     controller: () => ctl,
+    together,
+    setTogether(on) {
+      const v = read(VIEW_KEY, {});
+      v.together = on !== false;
+      write(VIEW_KEY, v);
+      if ($("together")) $("together").checked = v.together;
+    },
     keyThis,
   };
 })();
