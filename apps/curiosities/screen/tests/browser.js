@@ -1085,8 +1085,10 @@ const ok = (cond, msg) => {
   ok((await page.$$(".sc-win")).length === 0, "windows close");
 
   /* Keyframe jumps (CapCut's ◀ ◆ ▶ in Details) and the Player's Ratio menu (frame shape). */
-  await page.click('[data-view="screen"]');
-  await page.click('.sc-viewer.mine .sc-vname');
+  /* Clicked on the elements themselves, not by position: as the page redraws, a click by position can land on the
+     Player's Play button instead, and playback then keeps moving the playhead under the checks below. */
+  await page.$eval('[data-view="screen"]', (b) => b.click());
+  await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
   const kid = await page.evaluate(() => (document.querySelector(".sc-inspector .sc-cur .sc-key[data-key]") || {}).dataset?.key);
   ok(!!kid, "Details has a key diamond to work with (" + kid + ")");
   /* Clear its lane, then set keys at moments 2 and 5 with the diamond. */
@@ -1195,6 +1197,121 @@ const ok = (cond, msg) => {
     msg = await said();
     ok(/locked/.test(msg) && (await lanesNow()) === before, "a locked lane is refused with a plain message and left as it is (" + msg + ")");
     await page.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], l0.lk);
+  }
+  /* Look ▾ (CapCut's Copy attributes and Paste attributes, for a whole moment): copy moment 3's look, paste it on
+     moment 6 (one undo step), paste it over a stretch, skip a locked lane, and the ⌥⌘C and ⌥⌘V shortcuts. */
+  {
+    const said = () => page.$eval(".sc-toast", (t) => t.textContent);
+    const lanesNow = () => page.evaluate(() => { const l = window.CurioEngine.state().lanes; return JSON.stringify(Object.keys(l).sort().map((k) => [k, l[k].on, l[k].mode, Object.keys(l[k].points).sort().map((r) => [r, l[k].points[r]])])); });
+    const lookItems = () => page.$$eval(".sc-mlook-menu [data-look]", (b) => b.map((x) => x.dataset.look + (x.disabled ? "-off" : "")).join());
+    /* Every curiosity on a track, as Details reads it: the track it is on, and what it plays at moment j. */
+    const plays = (j) => page.evaluate((j) => { const E = window.CurioEngine, S = window.CurioScale, st = E.state(), out = {}; st.tracks.forEach((t) => t.curiosities.forEach((c) => { if (c in out || !S.known(c)) return; const tr = st.tracks.find((x) => x.curiosities.includes(c)); out[c] = String(S.fix(c, E.value(st.rows[j].id, tr.id, c))); })); return out; }, j);
+    const nodeAt = (j) => page.evaluate((j) => { const st = window.CurioEngine.state(), out = {}; Object.keys(st.lanes).forEach((lk) => { const v = st.lanes[lk].points[st.rows[j].id]; if (v != null) out[lk.split("|")[1]] = String(v); }); return out; }, j);
+    await page.evaluate(() => { document.querySelector(".sl").focus(); });
+    await page.keyboard.press("Escape");
+    /* Make moment 3 differ from moments 6 to 8 on three lanes no link changes, so the paste has something to change:
+       a node at moment 3, and nodes keeping what moments 6, 7 and 8 play now (one node alone would hold everywhere). */
+    const made = await page.evaluate(() => {
+      const E = window.CurioEngine, S = window.CurioScale, st = E.state(), cmds = [], curs = [];
+      const linked = new Set(st.links.map((l) => l.to && l.to.curiosity));
+      st.tracks.forEach((t) => t.curiosities.forEach((c) => {
+        if (curs.length >= 3 || curs.includes(c) || linked.has(c) || !S.known(c) || S.domain(c).kind !== "choice" || st.tracks.find((x) => x.curiosities.includes(c)) !== t) return;
+        const opts = S.domain(c).options, here = [5, 6, 7].map((j) => E.value(st.rows[j].id, t.id, c));
+        const v = opts.find((o) => !here.map(String).includes(String(o)) && String(o) !== String(E.value(st.rows[2].id, t.id, c)));
+        if (v == null || here.some((x) => x == null)) return;
+        curs.push(c);
+        cmds.push({ type: "setPoint", row: st.rows[2].id, track: t.id, curiosity: c, value: v });
+        [5, 6, 7].forEach((j, i) => cmds.push({ type: "setPoint", row: st.rows[j].id, track: t.id, curiosity: c, value: S.fix(c, here[i]) }));
+      }));
+      E.send({ type: "batch", label: "Test: moment 3's look", commands: cmds });
+      return curs;
+    });
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    const look = ".sc-inspector [data-look-menu]";
+    ok(!!(await page.$(look)) && /Moment 3/.test(await page.$eval(".sc-insp-h", (h) => h.textContent)), "Details' header for My film has a Look ▾ menu");
+    await page.click(look);
+    ok((await lookItems()) === "copy,paste-off" && (await page.evaluate(() => document.activeElement.dataset.look)) === "copy", "with nothing copied yet it offers Copy this moment's look, and Paste is greyed (" + (await lookItems()) + ")");
+    await page.keyboard.press("Escape");
+    ok(!(await page.$(".sc-mlook-menu")) && (await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute("data-look-menu"))), "Esc closes it and gives focus back to Look ▾");
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    const at3 = await plays(2);
+    await page.click(look);
+    await page.click('.sc-mlook-menu [data-look="copy"]');
+    let msg = await said();
+    const kept = await page.evaluate(() => JSON.parse(sessionStorage.getItem("curiosities-screen-look-v1") || "null"));
+    const n3 = Object.keys(at3).length;
+    ok(new RegExp("^Copied moment 3's look: " + n3 + " settings\\.$").test(msg), "Copy says how many settings it took (" + msg + ")");
+    ok(kept && kept.from === 2 && Object.keys(kept.values).length === n3 && Object.keys(at3).every((c) => String(kept.values[c]) === at3[c]), "the copied look is every setting moment 3 plays, kept for this tab in sessionStorage");
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0 && !(await page.evaluate(() => /look/i.test(localStorage.getItem("curiosities-engine-v1") || ""))), "copying changes nothing in the film and is not saved with it");
+
+    /* Paste at moment 6. */
+    await page.evaluate(() => window.CurioScreen.setRow(5));
+    const before = await lanesNow();
+    const at6 = await plays(5);
+    const differ = Object.keys(at3).filter((c) => at3[c] !== at6[c]);
+    await page.click(look);
+    ok((await lookItems()) === "copy,paste" && /Moment 3's look .* onto moment 6/.test(await page.$eval('[data-look="paste"]', (b) => b.textContent)), "after a copy, Paste the look here names both moments");
+    await page.click('.sc-mlook-menu [data-look="paste"]');
+    msg = await said();
+    const after6 = await plays(5);
+    const nodes6 = await nodeAt(5);
+    ok(new RegExp("^Pasted moment 3's look onto moment 6: " + differ.length + " settings? changed, " + (n3 - differ.length) + " already matched\\.").test(msg) && /Undo takes it back\.$/.test(msg), "Paste says how many settings changed and how many already matched (" + msg + ")");
+    ok(differ.length >= made.length && differ.every((c) => nodes6[c] === at3[c]), "every setting that differed gets a node at moment 6 with moment 3's setting (" + differ.length + ")");
+    const still = Object.keys(at3).filter((c) => after6[c] !== at3[c]);
+    ok(made.every((c) => after6[c] === at3[c]) && (still.length === 0 || /a link or a pin/.test(msg)), "moment 6 now plays moment 3's look" + (still.length ? " (a link or a pin still changes " + still.join(", ") + ", and the message says so)" : ""));
+    ok(await page.keyboard.press("Control+z").then(lanesNow).then((f) => f === before), "one undo takes the whole paste back");
+
+    /* Paste into a selected stretch: moments 6 to 8. */
+    const bx = await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; const bg = document.querySelector(".sl-bg"); if (!bg) return null; sc.scrollTop = Math.max(0, bg.getBBox().y); const r = bg.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; });
+    ok(!!bx && bx.n >= 8, "a lane is on the timeline to select a stretch on");
+    if (bx) {
+      const cw = bx.w / bx.n;
+      await page.mouse.move(bx.x + cw * 5.1, bx.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(bx.x + cw * 7.9, bx.y + bx.h - 2, { steps: 8 });
+      await page.mouse.up();
+      ok(!!(await page.$(".sl-area")), "a stretch is selected on the timeline");
+      await page.click(look);
+      ok((await lookItems()) === "copy,paste,stretch" && /from moment 6 to moment 8/.test(await page.$eval('[data-look="stretch"]', (b) => b.textContent)), "with a stretch selected Look ▾ offers Paste into the selected stretch (" + (await lookItems()) + ")");
+      await page.click('.sc-mlook-menu [data-look="stretch"]');
+      msg = await said();
+      const ends = [await nodeAt(5), await nodeAt(7)];
+      const mid = [await plays(5), await plays(6), await plays(7)];
+      ok(/^Pasted moment 3's look onto moments 6 to 8: \d+ settings? changed, held from start to end, \d+ already matched\./.test(msg) && /Undo takes it back\.$/.test(msg), "it says what it did (" + msg + ")");
+      ok(made.every((c) => ends[0][c] === at3[c] && ends[1][c] === at3[c] && mid.every((m) => m[c] === at3[c])), "every lane that changed has a node at the start and the end of the stretch, and plays the look all through it");
+      ok(await page.keyboard.press("Control+z").then(lanesNow).then((f) => f === before), "one undo takes the stretch back");
+      await page.focus(".sl");
+      await page.keyboard.press("Escape");
+    }
+
+    /* A locked lane is skipped, and ⌥⌘V pastes at the playhead (no stretch selected now). */
+    const lockLk = await page.evaluate((c) => { const st = window.CurioEngine.state(); return st.tracks.find((t) => t.curiosities.includes(c)).id + "|" + c; }, made[0]);
+    await page.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), lockLk);
+    await page.evaluate(() => window.CurioScreen.setRow(7));
+    const at8 = await nodeAt(7);
+    const clip0 = await page.evaluate(() => localStorage.getItem("curiosities-screen-clip-v1"));
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+Alt+KeyV");
+    msg = await said();
+    const after8 = await nodeAt(7);
+    ok(/^Pasted moment 3's look onto moment 8/.test(msg) && /1 locked lane was skipped/.test(msg) && after8[made[0]] === at8[made[0]] && made.slice(1).every((c) => after8[c] === at3[c]), "⌥⌘V pastes at the playhead, and a locked lane is skipped and named (" + msg + ")");
+    ok(await page.keyboard.press("Control+z").then(lanesNow).then((f) => f === before), "one undo takes that paste back");
+    await page.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], lockLk);
+
+    /* ⌥⌘C copies the playhead's moment; it is not ⌘C (the node clipboard stays as it was). */
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+Alt+KeyC");
+    msg = await said();
+    ok(/^Copied moment 1's look: \d+ settings\.$/.test(msg) && (await page.evaluate(() => JSON.parse(sessionStorage.getItem("curiosities-screen-look-v1")).from)) === 0, "⌥⌘C copies the playhead's moment (" + msg + ")");
+    ok((await page.evaluate(() => localStorage.getItem("curiosities-screen-clip-v1"))) === clip0 && (await lanesNow()) === before, "⌥⌘C and ⌥⌘V do not set off ⌘C, ⌘V or anything else");
+    await page.keyboard.press("?");
+    const listed = await page.$$eval(".sc-keys-in p", (ps) => ps.map((p) => p.textContent));
+    ok(listed.some((t) => /^⌥⌘CCopy this moment's look/.test(t)) && listed.some((t) => /^⌥⌘VPaste the look here/.test(t)), "the Shortcuts window lists ⌥⌘C and ⌥⌘V");
+    await page.keyboard.press("Escape");
+    /* Take back the test's own three nodes at moment 3. */
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+z");
   }
   /* Ratio. */
   ok(!!(await page.$(".sc-transport select[data-ratio]")), "the Player's transport bar has a Ratio menu");

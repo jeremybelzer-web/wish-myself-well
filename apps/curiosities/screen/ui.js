@@ -133,6 +133,9 @@
       ["⌘V", "Paste", "Paste it at the playhead's moment", (e) => mod(e) && !e.shiftKey && !e.altKey && key(e, "v"), lk("paste")],
       ["⇧⌘C", "Copy attributes", "Copy the picked node's setting", (e) => mod(e) && e.shiftKey && key(e, "c"), lk("copyLook")],
       ["⇧⌘V", "Paste attributes", "Give that setting to another node of the same curiosity", (e) => mod(e) && e.shiftKey && key(e, "v"), lk("pasteLook")],
+      /* e.code, because Option changes e.key on a Mac (⌥C types ç). */
+      ["⌥⌘C", "Copy this moment's look", "Copy every setting My film plays at the playhead's moment (Copy attributes for a whole moment)", (e) => mod(e) && e.altKey && !e.shiftKey && e.code === "KeyC", () => lookCopy()],
+      ["⌥⌘V", "Paste the look here", "Give the playhead's moment the copied look, or the whole stretch selected on the timeline", (e) => mod(e) && e.altKey && !e.shiftKey && e.code === "KeyV", () => lookPaste(curArea() ? "stretch" : "here")],
       ["⌫", "Delete", "Remove the picked node", (e) => plain(e) && (e.key === "Backspace" || e.key === "Delete"), lk("delete")],
       ["⌘Z", "Undo", "Undo the last change to your film", (e) => mod(e) && !e.shiftKey && key(e, "z"), () => undoAll("undo")],
       ["⇧⌘Z", "Reset (redo)", "Redo what you undid", (e) => mod(e) && e.shiftKey && key(e, "z"), () => undoAll("redo")],
@@ -716,6 +719,99 @@ document.addEventListener("click", function (e) {
     return { allFilm, stretch, reset, clear };
   })();
   window.CurioScreenApply = APPLY;
+
+  /* ---------- a moment's look (CapCut's Copy attributes and Paste attributes, for a whole moment) ----------
+     Copy takes every setting My film plays at one moment, after the engine's rewrite (the same values Details
+     shows), for every curiosity on a track in the film. Paste writes those settings as nodes at another moment,
+     or over a selected stretch, as one undo step. Pure: h holds what needs the engine or the page, so the tests
+     can check it with no page:
+       value(rowId, trackId, cur)  what plays there      trackOf(cur)  the track it is on now, or null
+       trackFor(cur)  the track it would go on            locked(laneKey)  true when the lane is locked
+       fix(cur, v)  v snapped to the curiosity's scale     start(cur)  where its scale starts
+       known(cur)  true when the engine knows it           limit  how many curiosities a track holds */
+  const LOOK = (() => {
+    const same = (h, cur, a, b) => a != null && b != null && String(h.fix(cur, a)) === String(h.fix(cur, b));
+    /* -> { from, row, values: { cur: setting } } or { error } */
+    function copy(st, j, h) {
+      const r = st.rows[j];
+      if (!r) return { error: "Your film has no moment there to copy." };
+      const values = {};
+      st.tracks.forEach((t) =>
+        t.curiosities.forEach((cur) => {
+          if (cur in values || !h.known(cur)) return;
+          const track = h.trackOf(cur);
+          if (!track) return;
+          const v = h.fix(cur, h.value(r.id, track, cur));
+          if (v != null) values[cur] = v;
+        })
+      );
+      const n = Object.keys(values).length;
+      if (!n) return { error: `Moment ${j + 1} has no settings to copy yet.` };
+      return { from: j, row: r.id, values, count: n };
+    }
+    /* The look onto moments a to b (a === b: one moment). One moment gets a node per setting that differs. A stretch
+       gets, per lane that does not already play the setting all the way through, a node at its first and its last
+       moment with the nodes between them taken off, so it holds there whatever the lane's mode (two equal nodes
+       play flat in Glide, Smooth and Jump alike). A setting that already plays there is left alone.
+       -> { cmds, changed: [cur], matched: [cur], locked: [cur], full: [cur], added: [cur], from, to } or { error } */
+    function paste(st, look, a, b, h) {
+      if (!look || !look.values || !Object.keys(look.values).length) return { error: "Copy a moment's look first." };
+      const from = Math.max(0, Math.min(a, b));
+      const to = Math.min(st.rows.length - 1, Math.max(a, b));
+      if (!st.rows[from] || to < from) return { error: "Your film has no moment there to paste onto." };
+      const out = { cmds: [], changed: [], matched: [], locked: [], full: [], added: [], from, to };
+      const adds = {};
+      const roomOn = (track) => {
+        const t = st.tracks.find((x) => x.id === track);
+        return !!t && t.curiosities.length + (adds[track] || 0) < (h.limit || Infinity);
+      };
+      const sets = [];
+      const removes = [];
+      Object.keys(look.values).forEach((cur) => {
+        if (!h.known(cur)) return;
+        const v = h.fix(cur, look.values[cur]);
+        if (v == null) return;
+        let track = h.trackOf(cur);
+        const on = !!track;
+        const plays = (j) => (on ? h.value(st.rows[j].id, track, cur) : h.start(cur));
+        let all = true;
+        for (let j = from; j <= to && all; j++) all = same(h, cur, plays(j), v);
+        if (all) return out.matched.push(cur);
+        if (!on) {
+          track = h.trackFor(cur);
+          if (!track || !roomOn(track)) return out.full.push(cur);
+        }
+        if (h.locked(track + "|" + cur)) return out.locked.push(cur);
+        if (!on) {
+          adds[track] = (adds[track] || 0) + 1;
+          out.cmds.push({ type: "addCuriosity", track, curiosity: cur });
+          out.added.push(cur);
+        }
+        sets.push({ type: "setPoint", row: st.rows[from].id, track, curiosity: cur, value: v });
+        if (to > from) sets.push({ type: "setPoint", row: st.rows[to].id, track, curiosity: cur, value: v });
+        const lane = on ? st.lanes[track + "|" + cur] : null;
+        if (lane) for (let j = from + 1; j < to; j++) if (lane.points[st.rows[j].id] != null) removes.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: cur });
+        out.changed.push(cur);
+      });
+      /* Sets before removes, so a lane never empties on the way. */
+      out.cmds = out.cmds.concat(sets, removes);
+      return out;
+    }
+    /* What is kept in sessionStorage, checked on the way back in. */
+    function clean(x) {
+      if (!x || typeof x !== "object" || !x.values || typeof x.values !== "object" || Array.isArray(x.values)) return null;
+      const values = {};
+      Object.keys(x.values).forEach((k) => {
+        const v = x.values[k];
+        if (typeof v === "string" || (typeof v === "number" && isFinite(v)) || typeof v === "boolean") values[k] = v;
+      });
+      const n = Object.keys(values).length;
+      if (!n) return null;
+      return { from: Math.max(0, Math.floor(Number(x.from)) || 0), row: typeof x.row === "string" ? x.row : "", values, count: n };
+    }
+    return { copy, paste, clean };
+  })();
+  window.CurioScreenLook = LOOK;
 
   let exportOpen = false;
   function exportMenuHtml() {
@@ -1847,6 +1943,150 @@ document.addEventListener("click", function (e) {
     if (!out.ok) return toast(out.error || "That did not work, so nothing was changed.");
     toast(said());
   }
+  /* ---------- Look ▾ in Details' header for My film: copy a whole moment's look, paste it elsewhere ----------
+     The copied look lives in memory and in sessionStorage (this tab only), never in the film and never in undo.
+     LOOK builds the commands; these read the engine, write one batch and say what happened. */
+  const LOOK_KEY = "curiosities-screen-look-v1";
+  let look; /* undefined until first read from sessionStorage */
+  let lookOpen = false;
+  function lookNow() {
+    if (look === undefined) {
+      look = null;
+      try {
+        look = LOOK.clean(JSON.parse(sessionStorage.getItem(LOOK_KEY)));
+      } catch (e) {}
+    }
+    return look;
+  }
+  function lookHelpers(st) {
+    const CL = window.CurioLanes;
+    return {
+      value: (rid, track, cur) => E().value(rid, track, cur),
+      trackOf: (cur) => (trackHas(cur, st) || {}).id || null,
+      trackFor: (cur) => (CL && CL.trackFor ? CL.trackFor(cur, st) : null),
+      locked: (lk) => !!(CL && CL.isLocked && CL.isLocked(lk)),
+      fix: (cur, v) => S().fix(cur, v),
+      start: (cur) => S().start(cur),
+      known: (cur) => S().known(cur),
+      limit: E().LIMIT && E().LIMIT.perTrack,
+    };
+  }
+  const nSettings = (k) => `${k} ${k === 1 ? "setting" : "settings"}`;
+  function lookCopy() {
+    closeLook();
+    const st = E() && S() && E().state();
+    if (!st) return toast("Your film is not loaded yet.");
+    const res = LOOK.copy(st, row, lookHelpers(st));
+    if (res.error) return toast(res.error);
+    look = res;
+    try {
+      sessionStorage.setItem(LOOK_KEY, JSON.stringify(res));
+    } catch (e) {}
+    drawInspector();
+    toast(`Copied moment ${row + 1}'s look: ${nSettings(res.count)}.`);
+  }
+  /* where: "here" (the playhead's moment) or "stretch" (the stretch selected on the timeline). */
+  function lookPaste(where) {
+    closeLook();
+    const lk = lookNow();
+    if (!lk) return toast("Copy a moment's look first: Look ▾ in Details, Copy this moment's look (or ⌥⌘C).");
+    const st = E() && S() && E().state();
+    if (!st) return toast("Your film is not loaded yet.");
+    let a = row;
+    let b = row;
+    if (where === "stretch") {
+      const ar = curArea();
+      if (!ar) return toast("Select a stretch of moments on the timeline first (drag across empty space in the lanes).");
+      a = ar.j0;
+      b = ar.j1;
+    }
+    const h = lookHelpers(st);
+    const res = LOOK.paste(st, lk, a, b, h);
+    if (res.error) return toast(res.error);
+    const names = (list) => list.slice(0, 3).map(labelOf).join(", ") + (list.length > 3 ? ` and ${list.length - 3} more` : "");
+    const onto = res.from === res.to ? `moment ${res.from + 1}` : `moments ${res.from + 1} to ${res.to + 1}`;
+    const src = `moment ${lk.from + 1}'s look`;
+    const extra =
+      (res.locked.length ? ` ${res.locked.length} locked ${res.locked.length === 1 ? "lane was" : "lanes were"} skipped (${names(res.locked)}).` : "") +
+      (res.full.length ? ` ${res.full.length} could not go on a track because every track is full (${names(res.full)}).` : "");
+    if (!res.changed.length) return toast(`Nothing changed: ${onto} already ${res.from === res.to ? "has" : "plays"} ${src} (${nSettings(res.matched.length)} already matched).${extra}`);
+    const out = E().send({ type: "batch", label: `Paste ${src} onto ${onto}`, commands: res.cmds });
+    if (!out.ok) return toast(out.error || "That did not work, so nothing was changed.");
+    /* A link or a pin can still change what plays (the engine lays them on after the nodes); say so plainly. */
+    const st2 = E().state();
+    const off = res.changed.filter((cur) => {
+      const t = h.trackOf(cur) || (trackHas(cur, st2) || {}).id;
+      if (!t) return false;
+      for (let j = res.from; j <= res.to; j++) if (String(S().fix(cur, E().value(st2.rows[j].id, t, cur))) !== String(S().fix(cur, lk.values[cur]))) return true;
+      return false;
+    });
+    const how = res.from === res.to ? "" : ", held from start to end";
+    toast(
+      `Pasted ${src} onto ${onto}: ${nSettings(res.changed.length)} changed${how}, ${res.matched.length} already matched.` +
+        extra +
+        (off.length ? ` ${off.length} still ${off.length === 1 ? "plays" : "play"} differently because a link or a pin changes ${off.length === 1 ? "it" : "them"} (${names(off)}).` : "") +
+        " Undo takes it back."
+    );
+  }
+  function lookMenuHtml() {
+    const lk = lookNow();
+    const ar = curArea();
+    const item = (id, l, tip, off) => `<button type="button" role="menuitem" data-look="${id}"${off ? " disabled" : ""}><b>${esc(l)}</b><small>${esc(tip)}</small></button>`;
+    return `<span class="sc-mlook"><button type="button" class="sc-mlook-b" data-look-menu aria-haspopup="menu" aria-expanded="${lookOpen}" title="Copy every setting this moment plays, then paste that look onto another moment (CapCut's Copy and Paste attributes)">Look ▾</button>${
+      lookOpen
+        ? `<div class="sc-mlook-menu" role="menu" aria-label="This moment's look">${item("copy", "Copy this moment's look", `Every setting My film plays at moment ${row + 1}`)}${item(
+            "paste",
+            "Paste the look here",
+            lk ? `Moment ${lk.from + 1}'s look (${nSettings(lk.count)}) onto moment ${row + 1}` : "Copy a moment's look first"
+          , !lk)}${ar ? item("stretch", "Paste into the selected stretch", lk ? `Moment ${lk.from + 1}'s look held from moment ${ar.j0 + 1} to moment ${ar.j1 + 1}` : "Copy a moment's look first", !lk) : ""}<p class="sc-mlook-foot">⌥⌘C copies, ⌥⌘V pastes. One undo takes a paste back.</p></div>`
+        : ""
+    }</span>`;
+  }
+  function closeLook(focusBack) {
+    if (!lookOpen) return false;
+    lookOpen = false;
+    const box = page && page.querySelector(".sc-mlook");
+    if (box) {
+      const m = box.querySelector(".sc-mlook-menu");
+      if (m) m.remove();
+      const b = box.querySelector(".sc-mlook-b");
+      b.setAttribute("aria-expanded", "false");
+      if (focusBack) b.focus();
+    }
+    return true;
+  }
+  function toggleLook() {
+    if (closeLook()) return;
+    lookOpen = true;
+    const box = page.querySelector(".sc-mlook");
+    if (!box) return;
+    box.outerHTML = lookMenuHtml();
+    const first = page.querySelector(".sc-mlook-menu [data-look]:not([disabled])");
+    if (first) first.focus();
+    if (!toggleLook.wired) {
+      /* Esc closes it (focus back to Look ▾); the arrow keys, Home and End move through it. */
+      toggleLook.wired = true;
+      document.addEventListener("keydown", (e) => {
+        if (!lookOpen || !page || page.hidden) return;
+        const inMenu = e.target && e.target.closest && e.target.closest(".sc-mlook");
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          return closeLook(!!inMenu);
+        }
+        if (!inMenu) return;
+        if (e.key === "Tab") return closeLook();
+        const list = [...page.querySelectorAll(".sc-mlook-menu [data-look]:not([disabled])")];
+        if (!list.length) return;
+        const i = list.indexOf(document.activeElement);
+        const to = e.key === "ArrowDown" ? (i + 1) % list.length : e.key === "ArrowUp" ? (i <= 0 ? list.length - 1 : i - 1) : e.key === "Home" ? 0 : e.key === "End" ? list.length - 1 : -1;
+        if (to < 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        list[to].focus();
+      }, true);
+    }
+  }
   /* ---------- a window for every curiosity (Jeremy, 2026-10-02 20:26Z: "a separate pop-up window for every
      single curiosity which has specific knobs and sliders and features that apply just to that curiosity") ----------
      Built from the curiosity's own sliders in the database: each one gets the control that fits it (toggle,
@@ -2206,7 +2446,7 @@ document.addEventListener("click", function (e) {
       ${others.length ? `<p class="sc-also">What you are looking through is also in ${others.map((c) => `<button type="button" data-icat="${c.id}">${esc(c.label)}</button>`).join(" ")}</p>` : ""}
     </section>`;
     const blend = insp ? blendHtml() : "";
-    box.innerHTML = `<header class="sc-insp-h"><strong class="sc-details">Details</strong><span><b>${esc(ctx.title)}</b> · ${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
+    box.innerHTML = `<header class="sc-insp-h"><strong class="sc-details">Details</strong><span><b>${esc(ctx.title)}</b> · ${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ctx.edit ? lookMenuHtml() : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
     drawWins();
   }
 
@@ -2478,6 +2718,7 @@ document.addEventListener("click", function (e) {
       if (b) b.setAttribute("aria-expanded", "false");
     }
     if (curMenu && !e.target.closest(".sc-cur-menu, [data-cur-menu]")) closeCurMenu();
+    if (lookOpen && !e.target.closest(".sc-mlook")) closeLook();
     if (e.target.closest("[data-cmp-line]")) return;
     const t = e.target.closest("button, [data-scrub], .sc-frame");
     if (!t || !page.contains(t)) return;
@@ -2489,6 +2730,10 @@ document.addEventListener("click", function (e) {
     }
     if (d.curMenu) return openCurMenu(t);
     if (d.curApply) return closeCurMenu(), applyCur(d.curApply, d.cur);
+    if (d.lookMenu != null) return toggleLook();
+    if (d.look === "copy") return lookCopy();
+    if (d.look === "paste") return lookPaste("here");
+    if (d.look === "stretch") return lookPaste("stretch");
     if (d.openWin && !t.closest(".sl")) return openWin(d.openWin);
     if (winClick(d, t)) return;
     if (d.ov != null && !e.detail) return jumpTo(Number(d.ov));
