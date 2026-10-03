@@ -22,9 +22,30 @@
 .mo-root p { margin: 0; }
 .mo-root h3 { margin: 0 0 8px; font-size: 15px; }
 .mo-root section { min-width: 0; }
-.mo-tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 2px solid var(--ink); }
-.mo-tabs button { border: 2px solid var(--ink); border-bottom: 0; background: transparent; padding: 6px 12px; font: inherit; cursor: pointer; color: inherit; }
+/* Tabs in five named groups, all showing. Wide: the group's name over its tabs. Phone: the name beside them. */
+.mo-nav { display: grid; gap: 8px; border-bottom: 2px solid var(--ink); padding-bottom: 10px; min-width: 0; }
+.mo-tabs { display: flex; flex-wrap: wrap; gap: 8px 22px; min-width: 0; }
+.mo-tabgroup { display: grid; gap: 3px; min-width: 0; align-content: start; }
+.mo-tabgroup-name { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mo-ink-2); }
+.mo-tabgroup.on .mo-tabgroup-name { color: var(--mo-ink); }
+.mo-tabgroup.on .mo-tabgroup-name::before { content: "▸ "; }
+.mo-tabrow { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.mo-tabs button { border: 2px solid var(--ink); background: transparent; padding: 4px 9px; font: inherit; font-size: 14px; cursor: pointer; color: inherit; }
 .mo-tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper, #fff); }
+.mo-tabs button:focus-visible, .mo-start button:focus-visible { outline: 3px solid var(--mo-bar); outline-offset: 2px; }
+.mo-group-hint { font-size: 13px; color: var(--mo-ink-2); }
+.mo-start { font-size: 14px; background: #fff3d6; border: 2px solid var(--ink); padding: 6px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.mo-start button { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 2px 8px; cursor: pointer; color: var(--mo-ink); }
+.mo-start button[data-m="start"] { background: var(--ink); color: var(--paper, #fff); font-weight: 600; }
+.mo-start .mo-start-x { margin-left: auto; border-color: transparent; background: transparent; text-decoration: underline; }
+@media (max-width: 640px) {
+  .mo-tabs { display: grid; gap: 8px; }
+  .mo-tabgroup { grid-template-columns: 62px minmax(0, 1fr); gap: 6px; align-items: start; }
+  .mo-tabgroup-name { padding-top: 7px; line-height: 1.2; }
+  .mo-tabgroup.on .mo-tabgroup-name::before { content: none; }
+  .mo-tabgroup.on .mo-tabgroup-name { text-decoration: underline; text-underline-offset: 3px; }
+  .mo-tabs button { padding: 5px 8px; font-size: 13px; }
+}
 .mo-body { display: grid; gap: 14px; }
 .mo-controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; font-size: 14px; }
 .mo-controls label { display: grid; gap: 3px; }
