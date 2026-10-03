@@ -1015,3 +1015,57 @@ p.msc-good { font-weight: 600; }
 .msc-all li { overflow-wrap: anywhere; }
 .msc-cur { color: var(--mo-ink-2); font-size: 12px; }
 .msc-ex { display: block; color: var(--mo-ink-2); }
+
+/* ---------- versions.js: Versions ---------- */
+.vs-root { display: grid; gap: 12px; min-width: 0; }
+.vs-root section { display: grid; gap: 8px; min-width: 0; }
+.vs-root h3 { margin: 0; }
+.vs-controls input[type="text"] { width: 220px; }
+.vs-controls .vs-keep { background: var(--ink); color: var(--paper, #fff); font-weight: 600; }
+.vs-controls .vs-keep:disabled { opacity: 0.5; cursor: default; }
+.vs-now { display: grid; gap: 4px; font-size: 14px; min-width: 0; }
+.vs-mini, .vs-strip { display: flex; min-width: 0; border: 1px solid var(--mo-ink); }
+.vs-mini { height: 16px; }
+.vs-strip { height: 26px; }
+.vs-cell { flex: 1 1 0; min-width: 1px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-right: 1px solid rgba(255, 255, 255, 0.55); }
+.vs-cell:last-child { border-right: 0; }
+.vs-cell.vs-none { background: var(--mo-surface); }
+.vs-cell i { font-style: normal; font-size: 10px; font-weight: 700; line-height: 1; }
+.vs-mini .vs-cell i { display: none; }
+.vs-brief { font-size: 12px; color: var(--mo-ink-2); }
+.vs-verdict { display: flex; gap: 10px; align-items: flex-start; border: 2px solid var(--ink); padding: 8px 10px; font-size: 14px; background: var(--mo-surface); }
+.vs-vicon { flex: none; width: 26px; height: 26px; border: 2px solid var(--ink); display: grid; place-items: center; font-weight: 700; font-size: 18px; line-height: 1; }
+.vs-better .vs-vicon { background: #dff3df; }
+.vs-worse .vs-vicon { background: #f8dede; }
+.vs-says { margin: 0; padding-left: 20px; display: grid; gap: 3px; font-size: 14px; }
+.vs-pair { display: grid; gap: 3px; min-width: 0; }
+.vs-lab { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.vs-lab small { font-weight: 400; }
+.vs-diffs { display: flex; min-width: 0; height: 12px; }
+.vs-diff { flex: 1 1 0; min-width: 1px; text-align: center; font-size: 11px; line-height: 12px; overflow: hidden; }
+.vs-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--mo-ink-2); }
+.vs-key { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.vs-letter { display: inline-block; min-width: 20px; padding: 1px 3px; text-align: center; font-size: 11px; font-weight: 700; border-radius: 2px; }
+.vs-nums { border-collapse: collapse; font-size: 14px; width: 100%; }
+.vs-nums th, .vs-nums td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--mo-grid); vertical-align: top; }
+.vs-nums thead th { overflow-wrap: anywhere; }
+.vs-ch b { font-size: 15px; }
+.vs-ch.vs-up { color: #006300; }
+.vs-ch.vs-down { color: var(--mo-crit); }
+.vs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.vs-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: start; border: 1px solid var(--mo-grid); padding: 6px 8px; }
+.vs-item.on { border: 2px solid var(--ink); padding: 5px 7px; }
+.vs-tick { font-size: 13px; white-space: nowrap; display: inline-flex; gap: 4px; align-items: center; }
+.vs-what { display: grid; gap: 3px; min-width: 0; }
+.vs-what .vs-name { overflow-wrap: anywhere; }
+.vs-what > small { color: var(--mo-ink-2); }
+.vs-item button, .vs-confirm button { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 3px 9px; cursor: pointer; color: var(--mo-ink); }
+.vs-confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; border: 2px solid var(--mo-crit); padding: 8px 10px; font-size: 14px; }
+.vs-confirm button[data-vs="clear-yes"] { background: var(--mo-crit); color: #fff; border-color: var(--mo-crit); }
+@media (max-width: 560px) {
+  .vs-item { grid-template-columns: minmax(0, 1fr) auto; }
+  .vs-tick { grid-column: 1 / -1; }
+  .vs-controls input[type="text"] { width: 100%; box-sizing: border-box; }
+  .vs-nums { font-size: 13px; }
+  .vs-nums th, .vs-nums td { padding: 4px 4px; }
+}
