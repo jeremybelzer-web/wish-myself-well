@@ -33,16 +33,35 @@
   }
 
   /* ---------- the store ---------- */
-  function load() {
-    const saved = readJson(KEY);
-    const st = saved && typeof saved === "object" ? saved : {};
+  function fix(saved) {
+    const st = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
     if (!Array.isArray(st.scenes)) st.scenes = [];
     st.scenes = st.scenes.filter((s) => s && Array.isArray(s.panels));
     return st;
   }
-  const store = load();
+  function load() {
+    return fix(readJson(KEY));
+  }
+  /* With the engine's shared state on the page (engine/store.js), the storyboard is one of its parts: same
+     saved key, and every change one step on the app's undo list (Ctrl+Z, History), undone in place without
+     a reload. Without it, the storyboard keeps its own copy as before. */
+  const part = (() => {
+    const St = window.CurioStore;
+    if (!St || typeof St.part !== "function") return null;
+    try {
+      return St.part("storyboard", { key: KEY, initial: () => ({ scenes: [] }), normalize: fix, commands: { put: (d, m) => (d.scenes = m.scenes) } });
+    } catch (e) {
+      return null;
+    }
+  })();
+  const store = part ? part.view() : load();
   let saveError = "";
-  function save() {
+  function save(label) {
+    if (part) {
+      part.send({ type: "put", scenes: JSON.parse(JSON.stringify(store.scenes)), label: "Storyboard" + (label ? ": " + String(label).replace(/\.$/, "") : "") });
+      saveError = part.saveError() ? "The browser is out of room, so the last change was not kept. Download the storyboard, then delete some scenes." : "";
+      return;
+    }
     try {
       localStorage.setItem(KEY, JSON.stringify(store));
       saveError = "";
@@ -713,7 +732,7 @@
       if (n) n.textContent = s;
     }
     function persist(msg) {
-      save();
+      save(msg);
       setStatus(saveError || msg || "");
     }
 
@@ -1246,10 +1265,12 @@
         .slice(0, 40)
         .map((s) => Object.assign({}, s, { id: newId(), name: String(s.name || "Scene"), [tag]: true, panels: s.panels.slice(0, MAX_PER) }));
       store.scenes = store.scenes.filter((s) => s[tag] !== true).concat(made);
-      save();
+      save("scenes from the " + tag);
       if (active && active.isLive()) active.redraw();
       return !saveError;
     },
     MAX_PER,
   };
+  /* An undo, redo or reload of the shared state redraws the open storyboard. */
+  if (part) part.on((d, label) => /^(Undo|Redo|Load)/.test(String(label)) && active && active.isLive() && active.redraw());
 })();
