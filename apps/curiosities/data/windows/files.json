@@ -60,5 +60,7 @@
   "look-editing.js",
   "look-page.js",
   "look-light.js",
-  "look-grade.js"
+  "look-grade.js",
+  "look-feeling.js",
+  "look-character.js"
 ]

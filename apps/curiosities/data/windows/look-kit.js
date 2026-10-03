@@ -35,7 +35,13 @@
 
   const hsl = (h, s, l, a) => (a == null ? `hsl(${r1(h)} ${r1(s)}% ${r1(l)}%)` : `hsl(${r1(h)} ${r1(s)}% ${r1(l)}% / ${r1(a * 100) / 100})`);
   function mix(a, b, p) {
-    const x = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+    /* #rgb or #rrggbb; anything else counts as mid gray rather than drawing NaN. */
+    const x = (c) => {
+      let h = String(c || "").replace("#", "");
+      if (h.length === 3) h = h.split("").map((d) => d + d).join("");
+      const v = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+      return v.every((n) => isFinite(n)) ? v : [128, 128, 128];
+    };
     const A = x(a);
     const B = x(b);
     return "#" + A.map((v, i) => Math.round(lerp(v, B[i], clamp(p, 0, 1))).toString(16).padStart(2, "0")).join("");
