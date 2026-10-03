@@ -14,6 +14,7 @@
   const prefs = load();
   const slot = { a: { clip: null, d: null, busy: null }, b: { clip: null, d: null, busy: null } };
   let page = null,
+    paidOpen = false,
     show = "a",
     result = null,
     lines = null,
@@ -91,7 +92,7 @@
     if (!AI || !M) return "";
     const list = AI.providers("cutout");
     const pick = AI.chosen("cutout") || "mediapipe";
-    const st = !prefs.ai ? "off" : M.ready() ? "ready" : M.failed() ? "couldn't load: " + M.failed() : "loads when you bring in a clip";
+    const st = !prefs.ai ? "off" : M.ready() ? "ready" : M.failed() ? "the free AI couldn't download, maybe you're offline; everything else still works" : "loads when you bring in a clip";
     const fal = list.find((x) => x.company === "fal");
     const hasKey = !!AI.key("fal");
     return `<section class="vd-ai">
@@ -104,7 +105,7 @@
       </div>
       ${
         fal
-          ? `<details class="vd-ai-paid"${hasKey ? " open" : ""}><summary>Paid tier (opt in): stronger AI for final versions</summary>
+          ? `<details class="vd-ai-paid"${hasKey || paidOpen ? " open" : ""}><summary>Paid tier (opt in): stronger AI for final versions</summary>
         <p class="vd-k">Everything above is free and needs no key. Turn this on only if you want a stronger paid AI. You pay fal.ai directly with your own key.</p>
         <div class="vd-ai-row"><label>fal.ai key <input type="password" data-ai-key="fal" autocomplete="off" placeholder="${hasKey ? "saved in this browser" : "paste your own key"}"></label>
         <button type="button" data-act="ai-key-save">Keep it in this browser</button>${hasKey ? `<button type="button" data-act="ai-key-clear">Remove it</button>` : ""}
@@ -131,7 +132,7 @@
       const v = P.vr ? "v" : "";
       return E.times.map((t, i) => (P.area[i] < 0.003 ? "" : `<rect x="${x(i)}" y="2" width="${Math.max(1, W / n + 1)}" height="18" style="fill:${hex(P[v + "r"][i], P[v + "g"][i], P[v + "b"][i])}"/>`)).join("");
     };
-    const row = (name, small, svg) => `<div class="vd-lane"><button type="button" class="vd-lname" data-seekto="${which}">${esc(name)}<small>AI cut-out</small></button><svg class="vd-strip" viewBox="0 0 ${W} 22" preserveAspectRatio="none" data-strip="${which}">${svg}<line class="vd-head" x1="0" x2="0" y1="0" y2="22"/></svg></div>`;
+    const row = (name, small, svg) => `<div class="vd-lane"><button type="button" class="vd-lname" data-seekto="${which}" data-at="0">${esc(name)}<small>AI cut-out</small></button><svg class="vd-strip" viewBox="0 0 ${W} 22" preserveAspectRatio="none" data-strip="${which}">${svg}<line class="vd-head" x1="0" x2="0" y1="0" y2="22"/></svg></div>`;
     return `<div class="vd-group"><h4>Elements (AI cut-outs)</h4>
       ${row("People: how much of the frame", "", `<path d="${line(E.parts.person.area, 1.6)}" class="vd-line"/>`)}
       ${row("People: left to right", "", `<path d="${line(E.parts.person.cx, 1)}" class="vd-line"/>`)}
@@ -166,7 +167,7 @@
           return `<g><title>${esc(label(c.id))}: ${esc(n.value)} from ${fmt(n.t)}</title><rect x="${x}" y="2" width="${w}" height="18" style="fill:${fill}"/>${txt}${i ? `<path class="vd-node" d="M${x} 1 l4 5 l-4 5 l-4 -5z"/>` : ""}</g>`;
         })
         .join("");
-      return `<div class="vd-lane"><button type="button" class="vd-lname" data-seekto="${which}" title="${esc(d.how[c.id].from)}">${esc(label(c.id))}<small class="${est ? "est" : ""}">${est ? "a guess" : "measured"} · ${nodes.length - 1} change${nodes.length === 2 ? "" : "s"}</small></button><svg class="vd-strip" viewBox="0 0 ${W} 22" preserveAspectRatio="none" data-strip="${which}">${blocks}<line class="vd-head" x1="0" x2="0" y1="0" y2="22"/></svg></div>`;
+      return `<div class="vd-lane"><button type="button" class="vd-lname" data-seekto="${which}" data-at="${nodes.length > 1 ? nodes[1].t : 0}" title="${esc(d.how[c.id].from)}">${esc(label(c.id))}<small class="${est ? "est" : ""}">${est ? "a guess" : "measured"} · ${nodes.length - 1} change${nodes.length === 2 ? "" : "s"}</small></button><svg class="vd-strip" viewBox="0 0 ${W} 22" preserveAspectRatio="none" data-strip="${which}">${blocks}<line class="vd-head" x1="0" x2="0" y1="0" y2="22"/></svg></div>`;
     };
     return `<section class="vd-lanes">
       <header><div class="vd-seg" role="group" aria-label="Which clip">${slot.a.d ? `<button type="button" data-show="a" class="${which === "a" ? "on" : ""}">Inspiration</button>` : ""}${slot.b.d ? `<button type="button" data-show="b" class="${which === "b" ? "on" : ""}">Your clip</button>` : ""}</div>
@@ -285,11 +286,14 @@
     }
     const cmds = pre.concat(V().engineCommands(d, st));
     if (!cmds.length) return say("My film has no moments yet. Add some first.");
-    const r = E.send({ type: "batch", label: `Lanes from "${d.title}"`, commands: cmds });
-    if (!r.ok) return say(r.error);
+    let ref = null;
     try {
-      E.send({ type: "addRef", ref: V().toRef(d) });
+      ref = { type: "addRef", ref: V().toRef(d) };
     } catch (e) {}
+    /* The reference rides in the same batch, so one undo takes it all back. */
+    let r = E.send({ type: "batch", label: `Lanes from "${d.title}"`, commands: ref ? cmds.concat(ref) : cmds });
+    if (!r.ok && ref) r = E.send({ type: "batch", label: `Lanes from "${d.title}"`, commands: cmds });
+    if (!r.ok) return say(r.error);
     const n = cmds.filter((c) => c.type === "setPoint").length;
     const lanesN = new Set(cmds.filter((c) => c.type === "setPoint").map((c) => c.curiosity)).size;
     say(`Put ${lanesN} lanes on My film with ${n} nodes, stretched over its ${E.state().rows.length} moments (one undo step). Open the Screen or Library, Engine to see them.`);
@@ -374,9 +378,18 @@
 
   /* ---------- events ---------- */
   function wire(el) {
+    /* The paid-tier box stays open across redraws once opened. */
+    el.addEventListener(
+      "toggle",
+      (e) => {
+        if (e.target.classList && e.target.classList.contains("vd-ai-paid")) paidOpen = e.target.open;
+      },
+      true
+    );
     el.addEventListener("click", (e) => {
       const t = e.target.closest("button,[data-seekto]");
       if (!t) return;
+      if (t.dataset.seekto) return seekPlay(t.dataset.seekto, +t.dataset.at || 0);
       const act = t.dataset.act;
       if (act === "close") return close();
       if (act === "swap") {
@@ -427,13 +440,12 @@
       if (t.dataset.aiOn != null) {
         prefs.ai = t.checked;
         keep();
-        if (prefs.ai) window.CurioMask.load().then(draw);
+        if (prefs.ai) window.CurioMask.load().then(() => scanMissing().then(draw));
         return draw();
       }
       if (t.dataset.aiPick != null) {
         window.CurioAI.choose("cutout", t.value);
-        const pk = window.CurioAI.use("cutout");
-        return say(pk && pk.id === t.value ? "" : "That AI needs its key first; the free browser AI is used until then.");
+        return say(t.value === "mediapipe" ? "" : "That AI isn't wired into playback yet, so the free browser AI is still used for now.");
       }
       if (t.dataset.on) {
         prefs.on[t.dataset.on] = t.checked ? 1 : 0;
@@ -502,8 +514,16 @@
       const v = el.querySelector(`.vd-clips video[data-slot="${k}"]`);
       if (!d || !v) return;
       const r = s.getBoundingClientRect();
-      v.currentTime = ((e.clientX - r.left) / r.width) * d.duration;
+      seekPlay(k, ((e.clientX - r.left) / r.width) * d.duration);
     });
+  }
+  /* Click a lane: the clip plays from there (a lane's name plays from its first change). */
+  function seekPlay(k, at) {
+    const v = page && page.querySelector(`.vd-clips video[data-slot="${k}"]`);
+    if (!v) return;
+    v.currentTime = Math.max(0, Math.min(at, (v.duration || at) - 0.05));
+    const p = v.play();
+    if (p && p.catch) p.catch(() => {});
   }
   /* Tint what the AI found on the frame showing in your clip's box, in the output canvas. */
   function aiPreview() {
@@ -521,15 +541,34 @@
     result = true;
   }
   /* The people in the frame showing now, cut out, opened as a rigged flat puppet (Maya's rig, CurioRig). */
-  function aiPuppet() {
+  async function aiPuppet() {
     const v = page && page.querySelector('.vd-clips video[data-slot="b"]');
     if (!v || !v.videoWidth || !window.CurioMask.ready() || !(window.CurioRig && window.CurioRig.fromCutout)) return;
     const W = Math.min(640, v.videoWidth),
       H = Math.round((W * v.videoHeight) / v.videoWidth);
     const c = window.CurioMask.cutoutCanvas(v, W, H);
     if (!c) return say("The AI found no people in this frame.");
-    window.CurioRig.fromCutout(c, (slot.b.clip && slot.b.clip.name) || "Cut-out");
-    say("Opened the people in this frame as a puppet.");
+    try {
+      await window.CurioRig.fromCutout(c, (slot.b.clip && slot.b.clip.name) || "Cut-out");
+      say("Opened the people in this frame as a puppet.");
+    } catch (e) {
+      say("Couldn't make the puppet: " + ((e && e.message) || "the rig didn't open") + ".");
+    }
+  }
+  /* Clips brought in while the AI was off get their cut-outs now. */
+  async function scanMissing() {
+    for (const k of ["a", "b"]) {
+      const s = slot[k];
+      if (!s.clip || !s.d || s.d.elements || s.busy) continue;
+      s.busy = { p: 0, what: "Finding the people and their clothes (AI)" };
+      draw();
+      try {
+        const el = await window.CurioMask.scan(s.clip, { onProgress: (p) => (s.busy = { p, what: "Finding the people and their clothes (AI)" }) });
+        if (el) s.d.elements = el;
+      } catch (e) {}
+      s.busy = null;
+      checks = null;
+    }
   }
   function open() {
     if (!page) {
@@ -553,7 +592,7 @@
     document.documentElement.classList.remove("vd-open");
   }
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && page && !page.hidden) close();
+    if (e.key === "Escape" && page && !page.hidden && !e.defaultPrevented && !document.querySelector("dialog[open]")) close();
   });
 
   /* Library item, and a button on the Screen's bar whenever the Screen draws it. */

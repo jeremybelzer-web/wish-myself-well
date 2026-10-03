@@ -190,6 +190,12 @@ const ok = (cond, text) => {
     const pup = await page.evaluate(() => window.__puppet || null);
     const said = await page.textContent(".vd-note");
     ok((pup && pup.w > 0 && pup.h > 0) || /no people/.test(said), "Make a puppet hands the cut-out to the rig: " + JSON.stringify(pup) + " " + said);
+    /* Escape with the puppet's dialog open leaves the Video window open; then the dialog is closed for the rest. */
+    if (await page.evaluate(() => !!document.querySelector("dialog[open]"))) {
+      await page.evaluate(() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })));
+      ok(await page.evaluate(() => !document.querySelector(".vd-page").hidden), "Escape on the puppet's dialog keeps the Video window open");
+      await page.evaluate(() => document.querySelectorAll("dialog[open]").forEach((d) => d.close()));
+    }
   }
   ok((await page.locator(".vd-node").count()) >= 3, "nodes drawn where values change");
   await page.screenshot({ path: path.join(SHOTS, "video-lanes.png"), fullPage: false });
