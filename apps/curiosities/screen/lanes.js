@@ -28,6 +28,9 @@
        opts.ruler        draw moment numbers above the lanes
        opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
        opts.thumbs()     -> one storyboard frame <svg> string per moment, drawn on My film's clip track when zoomed in
+       opts.beats()      -> [{ values }] My film's values per moment, read by Mark the turns (else read from the engine)
+   - turnMarkers(beats, rows, { attention, lanes }) -> the auto markers where the film turns (see below);
+     mergeTurnMarkers(markers, turns) and clearAutoMarkers(markers) put them in and take them off
    - trackFor(cur)       the track a curiosity goes on when it is not on one yet
    - group(nodeKey)      the nodes and links joined to a node
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
@@ -87,10 +90,89 @@
       const o = typeof m === "string" || typeof m === "number" ? { row: String(m) } : m && typeof m === "object" && m.row != null ? m : null;
       if (!o || seen.has(String(o.row))) return;
       seen.add(String(o.row));
-      out.push({ row: String(o.row), color: markColor(o.color)[0], note: String(o.note == null ? "" : o.note).trim().slice(0, NOTE_MAX) });
+      const k = { row: String(o.row), color: markColor(o.color)[0], note: String(o.note == null ? "" : o.note).trim().slice(0, NOTE_MAX) };
+      if (o.auto) k.auto = true;
+      out.push(k);
     });
     return out;
   }
+  /* Auto markers, the film's "Beats" (CapCut puts markers on a song's beats; here they go on the moments where
+     the film turns). turnMarkers(beats, rows, opts) -> [{ row, color, note, auto: true }], one per moment at most:
+     - purple where what holds the audience's attention moves to another family (opts.attention, the
+       CurioAttention ui.js uses: a new stretch of attention whose family differs from the one before);
+     - red where the feeling of the moment (the "emotion" curiosity) changes;
+     - yellow where a lane's value jumps by more than half its scale (opts.lanes: the curiosities to check).
+     beats: [{ values }] one per moment; rows: the moments' row ids (or rows with an id), in the same order.
+     opts.pos(cur, value) -> 0..1, opts.label(cur) and opts.familyLabel(family) can be stubbed for tests. */
+  const TURN_COLORS = { attention: "purple", feeling: "red", jump: "yellow" };
+  const TURN_FEELING = "emotion";
+  function turnMarkers(beats, rows, o) {
+    o = o || {};
+    beats = Array.isArray(beats) ? beats : [];
+    const ids = (Array.isArray(rows) ? rows : []).map((r) => (r == null ? null : String(typeof r === "object" ? r.id : r)));
+    const famName = (f) => {
+      if (o.familyLabel) return String(o.familyLabel(f));
+      const M = root.CurioMomentum;
+      const fam = M && M.family ? M.family(f) : null;
+      return String(fam ? fam.label : f).toLowerCase();
+    };
+    const labelOf = o.label || ((c) => (S() ? S().label(c) : c));
+    const posOf = o.pos || ((c, v) => (S() ? S().pos(c, v) : null));
+    const found = {};
+    const add = (i, kind, note) => {
+      if (!(i >= 1 && i < beats.length) || ids[i] == null) return;
+      (found[i] = found[i] || []).push({ kind, note });
+    };
+    if (o.attention && o.attention.read && beats.length > 1) {
+      let reading = null;
+      try {
+        reading = o.attention.read(beats.map((b) => ({ at: b && b.at, values: (b && b.values) || {} })));
+      } catch (e) {}
+      const segs = (reading && reading.segments) || [];
+      segs.forEach((s, k) => {
+        const p = segs[k - 1];
+        if (p && s.family && p.family && s.family !== p.family) add(s.beat, "attention", `attention moves from ${famName(p.family)} to ${famName(s.family)}`);
+      });
+    }
+    const val = (i, c) => (beats[i] && beats[i].values ? beats[i].values[c] : null);
+    const has = (v) => v != null && v !== "";
+    for (let i = 1; i < beats.length; i++) {
+      const a = val(i - 1, TURN_FEELING);
+      const b = val(i, TURN_FEELING);
+      if (has(a) && has(b) && String(a) !== String(b)) add(i, "feeling", `feeling turns from ${a} to ${b}`);
+      (o.lanes || []).forEach((c) => {
+        if (c === TURN_FEELING) return;
+        const x = val(i - 1, c);
+        const y = val(i, c);
+        if (!has(x) || !has(y) || String(x) === String(y)) return;
+        const px = posOf(c, x);
+        const py = posOf(c, y);
+        if (px == null || py == null || Math.abs(py - px) <= 0.5) return;
+        add(i, "jump", `${String(labelOf(c)).toLowerCase()} jumps from ${x} to ${y}`);
+      });
+    }
+    return Object.keys(found)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map((i) => {
+        const list = found[i];
+        /* The first kind found sets the color; the notes are joined while they fit (a note is never cut off
+           mid-sentence), and one big jump per moment is enough to say. */
+        let jumped = false;
+        const note = list
+          .filter((t) => (t.kind !== "jump" ? true : jumped ? false : (jumped = true)))
+          .reduce((s, t) => (!s ? t.note.slice(0, NOTE_MAX) : s.length + 2 + t.note.length <= NOTE_MAX ? s + "; " + t.note : s), "");
+        return { row: ids[i], color: TURN_COLORS[list[0].kind], note, auto: true };
+      });
+  }
+  /* Put auto markers into a marker list: the old auto ones go, the new ones are added, and a moment that already
+     has a marker of your own keeps yours just as it is. */
+  function mergeTurnMarkers(list, turns) {
+    const mine = migrateMarkers(list).filter((m) => !m.auto);
+    const taken = new Set(mine.map((m) => m.row));
+    return migrateMarkers(mine.concat((turns || []).filter((t) => t && !taken.has(String(t.row)))));
+  }
+  const clearAutoMarkers = (list) => migrateMarkers(list).filter((m) => !m.auto);
   tools.markers = migrateMarkers(tools.markers);
   const markerOf = (rowId) => tools.markers.find((m) => m.row === rowId) || null;
   if (!tools.linkKinds || typeof tools.linkKinds !== "object") tools.linkKinds = {};
@@ -1971,6 +2053,8 @@
       pop.addEventListener("input", (ev) => {
         if (!ev.target.matches("[data-mk-note]")) return;
         m.note = ev.target.value.slice(0, NOTE_MAX);
+        /* An auto marker you write on becomes your own: Clear auto markers leaves it. */
+        delete m.auto;
         saveTools();
       });
       pop.addEventListener("keydown", (ev) => {
@@ -1987,6 +2071,7 @@
         if (!b) return;
         if (b.dataset.mkColor) {
           m.color = markColor(b.dataset.mkColor)[0];
+          delete m.auto;
           saveTools();
           pop.querySelectorAll("[data-mk-color]").forEach((x) => {
             x.classList.toggle("on", x === b);
@@ -2015,13 +2100,49 @@
       const sc = scroller();
       if (sc && geo) sc.scrollLeft = Math.max(0, j * geo.colW + geo.colW / 2 - (sc.clientWidth - headW()) / 2);
     }
+    /* Auto markers (Mark the turns): the film's values per moment come from opts.beats() (the Screen's own
+       reading, the same one its Player and attention use), else straight from the engine's tracks. */
+    function beatsNow(st) {
+      if (opts.beats) return opts.beats() || [];
+      return st.rows.map((r) => {
+        const values = {};
+        st.tracks.forEach((t) => t.curiosities.forEach((c) => values[c] == null && (values[c] = E().value(r.id, t.id, c))));
+        return { values, row: r.id };
+      });
+    }
+    function markTurns() {
+      const st = E().state();
+      const lanes = [...new Set(lanesNow(st).map((ln) => ln.cur))];
+      const turns = turnMarkers(beatsNow(st), st.rows, { attention: root.CurioAttention, lanes });
+      const before = tools.markers.filter((m) => !m.auto).length;
+      tools.markers = mergeTurnMarkers(tools.markers, turns);
+      const added = tools.markers.filter((m) => m.auto).length;
+      saveTools();
+      draw();
+      const kept = turns.length - added;
+      return {
+        ok: true,
+        added,
+        message: turns.length
+          ? `Marked ${added} turn${added === 1 ? "" : "s"} in your film${kept ? ` (${kept} moment${kept === 1 ? "" : "s"} already had a marker of yours, kept as it is)` : ""}.`
+          : `No turns found: the attention and the feeling stay the same all through the film${before ? "; your markers are untouched" : ""}.`,
+      };
+    }
+    function clearAuto() {
+      const n = tools.markers.filter((m) => m.auto).length;
+      tools.markers = clearAutoMarkers(tools.markers);
+      saveTools();
+      draw();
+      return { ok: true, removed: n, message: n ? `Took off ${n} auto marker${n === 1 ? "" : "s"}; your own markers stay.` : "There are no auto markers to take off." };
+    }
     function markerList(btn) {
       const st = E().state();
       const b = (btn || el.querySelector('[data-act="marker-list"]') || el).getBoundingClientRect();
       const pop = popAt("sl-marklist", "Markers", b.left + 40, b.bottom - 4);
       const list = st.rows.map((r, j) => [j, markerOf(r.id)]).filter((x) => x[1]);
       pop.innerHTML = `<p><strong>Markers</strong> · ${list.length ? `${list.length} in your film. Click one to move the playhead there.` : "none yet"}</p>
-        ${list.length ? `<ul>${list.map(([j, m]) => { const c = markColor(m.color); const tc = clockOf(j); return `<li><button type="button" class="sl-mkgo" data-mk-go="${j}" title="Move the playhead to moment ${j + 1}"><i class="sl-mkdot" style="--mk:${c[2]}" aria-label="${c[1]}"></i><span class="sl-mkat">Moment ${j + 1}${tc ? ` <small>${tc}</small>` : ""}</span><span class="sl-mktext${m.note ? "" : " empty"}">${esc(m.note || "no note")}</span></button><button type="button" class="sl-mkedit" data-mk-edit="${j}" title="Write a note, change the color or delete this marker" aria-label="Edit the marker at moment ${j + 1}">✎</button></li>`; }).join("")}</ul>` : `<p class="sl-note">Press Marker (or M) to put a flag on the playhead's moment. Double-click a flag on the ruler to write what happens there and pick a color.</p>`}
+        ${list.length ? `<ul>${list.map(([j, m]) => { const c = markColor(m.color); const tc = clockOf(j); return `<li><button type="button" class="sl-mkgo" data-mk-go="${j}" title="Move the playhead to moment ${j + 1}"><i class="sl-mkdot" style="--mk:${c[2]}" aria-label="${c[1]}"></i><span class="sl-mkat">Moment ${j + 1}${tc ? ` <small>${tc}</small>` : ""}</span><span class="sl-mktext${m.note ? "" : " empty"}">${esc(m.note || "no note")}</span>${m.auto ? `<span class="sl-mkauto" title="Put here by Mark the turns">auto</span>` : ""}</button><button type="button" class="sl-mkedit" data-mk-edit="${j}" title="Write a note, change the color or delete this marker" aria-label="Edit the marker at moment ${j + 1}">✎</button></li>`; }).join("")}</ul>` : `<p class="sl-note">Press Marker (or M) to put a flag on the playhead's moment. Double-click a flag on the ruler to write what happens there and pick a color.</p>`}
+        <div class="sl-mkturns"><button type="button" data-l="mark-turns" title="Put a marker on every moment where the film turns: purple where the audience's attention moves to something else, red where the feeling changes, yellow where a track jumps by more than half its range. Your own markers stay as they are.">Mark the turns</button>${list.some(([, m]) => m.auto) ? `<button type="button" data-l="clear-auto" title="Take off only the markers Mark the turns put on; your own markers stay">Clear auto markers</button>` : ""}</div>
         <div class="sl-pop-btns"><button type="button" data-l="close">Close</button></div>`;
       pop.addEventListener("keydown", (ev) => {
         if (ev.key !== "Escape") return;
@@ -2033,6 +2154,13 @@
         ev.stopPropagation();
         const t = ev.target.closest("button");
         if (!t) return;
+        if (t.dataset.l === "mark-turns" || t.dataset.l === "clear-auto") {
+          const r = t.dataset.l === "mark-turns" ? markTurns() : clearAuto();
+          pop.remove();
+          markerList();
+          say(r.message);
+          return;
+        }
         if (t.dataset.mkEdit != null) {
           const r = t.getBoundingClientRect();
           return openMarker(Number(t.dataset.mkEdit), r.left, r.bottom);
@@ -2112,6 +2240,8 @@
       linkSettings,
       marker: (j) => openMarker(j, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
       markers: () => markerList(),
+      markTurns,
+      clearAuto,
       command,
       laneOff: (lk) => laneButton("lane-off", lk),
       solo: (lk) => laneButton("lane-solo", lk),
@@ -2123,5 +2253,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, moveAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, moveAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers };
 })();

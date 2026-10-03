@@ -859,6 +859,39 @@ const ok = (cond, msg) => {
     await page.evaluate(() => { const t = window.CurioLanes.tools(); t.markers = []; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
   }
 
+  /* Auto markers (Mark the turns, the film's "Beats"): markers where attention moves, the feeling changes or a
+     track jumps, each with a plain note; Clear auto markers takes only those off and a marker of your own stays. */
+  {
+    const MK = () => page.evaluate(() => window.CurioLanes.tools().markers);
+    const r1 = await page.evaluate(() => window.CurioEngine.state().rows[1].id);
+    await page.evaluate((id) => { const t = window.CurioLanes.tools(); t.markers = [{ row: id, color: "blue", note: "my own note" }]; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); }, r1);
+    /* The feeling: joyful for the first half of the film, anxious for the rest (one undo step, taken back below). */
+    await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks.find((x) => x.curiosities.includes("emotion")); const half = Math.floor(st.rows.length / 2); E.send({ type: "batch", label: "test feeling", commands: st.rows.map((r, j) => ({ type: "setPoint", row: r.id, track: t.id, curiosity: "emotion", value: j < half ? "joyful" : "anxious" })) }); window.CurioScreen.setRow(0); });
+    const rHalf = await page.evaluate(() => window.CurioEngine.state().rows[Math.floor(window.CurioEngine.state().rows.length / 2)].id);
+    await page.click('[data-act="marker-list"]');
+    ok(!!(await page.$('.sl-marklist [data-l="mark-turns"]')) && !(await page.$('.sl-marklist [data-l="clear-auto"]')), "Markers ▾ offers Mark the turns (and no Clear auto markers before there are any)");
+    await page.click('.sl-marklist [data-l="mark-turns"]');
+    const after = await MK();
+    const auto = after.filter((m) => m.auto);
+    console.log("     auto markers: " + auto.map((m) => m.color + " " + m.note).join(" | "));
+    ok(auto.length >= 2 && auto.every((m) => m.note && ["purple", "red", "yellow"].includes(m.color)), "Mark the turns puts markers on the sample film, each with a color by kind and a note (" + auto.length + ")");
+    const half = after.find((m) => m.row === rHalf);
+    ok(half && half.auto && /feeling turns from joyful to anxious/.test(half.note), "where the feeling changes, the note says so in plain words (" + (half && half.note) + ")");
+    ok(auto.some((m) => m.color === "purple" && /^attention moves from \S+.* to \S/.test(m.note)), "where attention moves to something else, a purple marker says from what to what");
+    const own = after.find((m) => m.row === r1);
+    ok(own && !own.auto && own.note === "my own note" && own.color === "blue" && after.filter((m) => m.row === r1).length === 1, "a marker of your own on a turn is kept as it is, not doubled");
+    ok((await page.$$(".sl-topsvg .sl-marker")).length === after.length, "every auto marker is drawn as a flag on the ruler");
+    ok(!!(await page.$(".sl-marklist .sl-mkauto")) && !!(await page.$('.sl-marklist [data-l="clear-auto"]')), "the list tags the auto markers and now offers Clear auto markers");
+    await page.screenshot({ path: path.join(SHOTS, "screen-9c-auto-markers.png") });
+    await page.click('.sl-marklist [data-l="mark-turns"]');
+    ok((await MK()).length === after.length, "pressing Mark the turns again does not add duplicates");
+    await page.click('.sl-marklist [data-l="clear-auto"]');
+    const left = await MK();
+    ok(left.length === 1 && left[0].row === r1 && left[0].note === "my own note", "Clear auto markers takes off only the auto ones; your marker survives");
+    await page.keyboard.press("Escape");
+    await page.evaluate(() => { window.CurioEngine.undo(); const t = window.CurioLanes.tools(); t.markers = []; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
+  }
+
   /* Phone width. */
   await page.setViewportSize({ width: 390, height: 900 });
   await page.click('[data-act="close"]');
