@@ -25,7 +25,7 @@
   X("rackFocus", R("speed", "Pull speed", 0, 5, "How fast the focus moves."), R("count", "Pulls per scene", 0, 8, "How many times the focus moves."));
   X("motionBlur", R("shutter", "Shutter angle", 45, 360, "Low is crisp and choppy, high is smeary.", "degrees"), NOTICE);
   X("aspect", L("letterbox", "Bars", ["none", "thin", "thick"], "Black bars above and below or at the sides."), CHANGE("the frame shape"));
-  X("composition", R("balance", "Balance", -5, 5, "Weight to the left (negative) or right (positive) of the frame."), L("leading", "Lines lead the eye", ["none", "some", "strong"], "Whether lines in the set point at the subject."), L("frameInFrame", "Frame within the frame", ["none", "partial", "full"], "A door or window that frames the subject again."));
+  X("composition", R("balance", "Balance", -5, 5, "Weight to the left (negative) or right (positive) of the frame."), L("leading", "Lines lead the eye", ["none", "some", "strong"], "Whether lines in the set point at the subject."), L("frameInFrame", "Frame within the frame", ["none", "partial", "full"], "A door or window that frames the subject again."), L("facing", "Which way they face", ["left", "toward the camera", "right"], "Which way the person in the frame faces or walks, so the room in front of them reads."));
   X("emptySpace", R("percent", "Share empty", 0, 100, "Exact share of the frame with nothing in it.", "%"), L("where", "Where the emptiness is", ["above", "beside", "behind", "all around"], "Which part of the frame is empty."));
 
   /* Camera motion */

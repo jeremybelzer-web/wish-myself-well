@@ -23,6 +23,23 @@ And three looks of the picture itself (`looks.js`), measured about one and a hal
 - **Grain and softness**: how much grain is in the flat parts, and how crisp the strongest edges are.
 - **Frame shape**: black bars and the picture's shape (wide, tall or square), and how much darker the edges are than the middle (vignette).
 
+## The newer measures are lanes too
+
+The looks, the shot framing and the rhythm are lanes like the rest: in the clip's lane list with a node wherever they change ("measured" or "a guess"), on My film with **Put these on my film's automation lanes** (one undo step), and in the film's reference, so any of them can be carried onto another film. Each uses a curiosity the app already has (`lanes.js`):
+
+| Lane | Curiosity | How |
+| --- | --- | --- |
+| Palette: how strong its tint, which color it leans to | colorFilter, filterHue | measured: how far its darks, mids and lights lean from grey |
+| Grain | colorRange.filmStock | measured |
+| Crisp or soft | texture (where the app loads the editing curiosities) | measured from its strongest edges |
+| Picture shape, black bars, dark edges | aspect, aspect.letterbox, cameraLensLens.vignette | measured |
+| Where the eyes sit, room above the head, how close (head size) | composition, shotSize.headroom, shotSize | measured from the AI cut-out (the head's size takes the place of the skin guess) |
+| Which way they face, room in front of them | composition.facing, shotSize.breathing | a guess from the face, the hair and which way the person moves |
+| Horizon tilt | dutch | measured from straight lines |
+| Camera height | angleHeight | a guess from hair against faces |
+| Tempo, cuts on the beat | music.tempo, music.cutSync | measured from the beat in its sound (only when it has one) |
+| How driving the beat is | music.energy | a guess from beats and hard hits a second |
+
 ## What it applies (one switch and amount each)
 
 Light and dark, contrast, color strength, warm and cool, camera shake (adds the inspiration's wobble and steadies your own), camera moves, how close the shot is (zooms in only), cuts (jump cuts), movement speed (a speed ramp), loudness, dialogue tempo (new lines on your clip's title, timed to the inspiration's sentences), and, off unless turned on, **Lay its graphics over** (the inspiration's picture on top with its pale background taken out).
@@ -64,6 +81,7 @@ When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, t
 - `clip.js` (`window.CurioClip`): reads frames by seeking and sound by decoding, draws applied frames, the frame-exact steadier, check, real-time render and recording.
 - `looks.js` (`window.CurioLooks`, no page except `scan` and `draw`): the palette, grain and softness, and frame shape: measured, applied, checked.
 - `rhythm.js` (`window.CurioRhythm`, no page except `draw`): the beat, tempo and accents of a clip's sound (kept as `dissection.rhythm`), and the jump cuts, punch-ins, flashes, holds and music that put it on another clip.
+- `lanes.js` (`window.CurioVideoLanes`, no page): the looks, shot framing, camera height and rhythm as lanes with nodes (`CurioVideo.lanesOf(dissection)` gives every lane of a clip), for the lane list, My film and the reference.
 - `ai.js` (`window.CurioAI`): one plug-in slot per curiosity family; your own keys, kept in this browser.
 - `mask.js` (`window.CurioMask`): the AI cut-outs (MediaPipe in the browser), each clip's elements over time, and drawing one element's change.
 - `framing.js` (`window.CurioFraming`, no page): shot framing. The main person in each cut-out (one joined patch, followed from look to look), their eyes, head size and which way they face; the horizon's roll from straight lines; the virtual camera's crop and its smoothed path.

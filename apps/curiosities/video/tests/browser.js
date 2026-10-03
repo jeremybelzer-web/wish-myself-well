@@ -208,11 +208,21 @@ const ok = (cond, text) => {
   }
   ok((await page.locator(".vd-node").count()) >= 3, "nodes drawn where values change");
   await page.screenshot({ path: path.join(SHOTS, "video-lanes.png"), fullPage: false });
+  /* The newer measures are lanes too (video/lanes.js): the look of the picture at least (every clip has one). */
+  const newer = await page.evaluate(() => [...document.querySelectorAll(".vd-lanes [data-lane]")].map((b) => b.dataset.lane));
+  ok(["colorRange.filmStock", "texture", "aspect", "aspect.letterbox", "cameraLensLens.vignette", "colorFilter"].every((id) => newer.includes(id)), "palette, grain and softness and frame shape show as lanes: " + newer.join(" "));
+  ok((await page.locator(".vd-group h4", { hasText: "Look of the picture" }).count()) === 1, "under their own heading");
+  const looksGroup = page.locator(".vd-group", { has: page.locator("h4", { hasText: "Look of the picture" }) });
+  await looksGroup.scrollIntoViewIfNeeded();
+  await looksGroup.screenshot({ path: path.join(SHOTS, "video-lanes-look.png") });
 
   /* Onto My film. */
   await page.click('[data-act="to-film"]');
   const lanes = await page.evaluate(() => Object.keys(window.CurioEngine.state().lanes).filter((k) => /valueKey|volume/.test(k)));
   ok(lanes.length >= 2, "lanes put on My film: " + lanes.join(", "));
+  const looksOnFilm = await page.evaluate(() => Object.keys(window.CurioEngine.state().lanes).filter((k) => /\|(colorRange\.filmStock|texture|aspect)$/.test(k)));
+  ok(looksOnFilm.length >= 3, "the look of the picture goes on My film too: " + looksOnFilm.join(", "));
+  ok(await page.evaluate(() => { const r = window.CurioEngine.state().refs; return !!(r.length && r[r.length - 1].lanes.texture); }), "and into the reference, to carry onto another film");
   const said = await page.textContent(".vd-note");
   ok(/Put \d+ lanes on My film/.test(said), "says what it did: " + said);
 
