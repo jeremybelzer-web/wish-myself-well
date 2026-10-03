@@ -25,6 +25,7 @@
        opts.onSelect(cur) told when a lane or node is picked
        opts.header(lane) -> extra HTML for a lane's header (the Arrange view's dropdown)
        opts.ruler        draw moment numbers above the lanes
+       opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
    - trackFor(cur)       the track a curiosity goes on when it is not on one yet
    - group(nodeKey)      the nodes and links joined to a node
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
@@ -230,8 +231,22 @@
     } catch (e) {}
     return { ok: true, nodes: clip.nodes.length, links: clip.links.length };
   }
+  function setClip(c) {
+    clip = c;
+    try {
+      localStorage.setItem(CLIP_KEY, JSON.stringify(clip));
+    } catch (e) {}
+  }
   function paste(atRow) {
-    if (!clip || !clip.nodes.length) return { ok: false, error: "Copy a proximity first (pick a node, then Copy)." };
+    if (clip && clip.kind === "area") {
+      const st = E().state();
+      const r = pasteAreaCommands(st, clip, clip.lanes.map((l) => l && { cur: l.cur, track: l.track }), Math.max(0, Math.min(Number(atRow) || 0, st.rows.length - 1 - clip.span)));
+      if (r.error) return { ok: false, error: r.error };
+      if (!r.cmds.length) return { ok: false, error: "Nothing in the clipboard fits this film's tracks." };
+      const out = E().send({ type: "batch", label: "Paste automation", commands: r.cmds });
+      return out.ok ? { ok: true, nodes: r.cmds.filter((x) => x.type === "setPoint").length, links: clip.links.length } : out;
+    }
+    if (!clip || !clip.nodes || !clip.nodes.length) return { ok: false, error: "Copy a proximity first (pick a node, then Copy)." };
     let st = E().state();
     const span = Math.max(...clip.nodes.map((n) => n.at));
     const start = Math.max(0, Math.min(Number(atRow) || 0, st.rows.length - 1 - span));
@@ -270,10 +285,170 @@
     return out.ok ? { ok: true, nodes: clip.nodes.length, links: clip.links.length } : out;
   }
 
+  /* ---------- curves (Jeremy, 2026-10-02 20:26Z: "a curves pop-up menu that allow you to adjust precisely the
+     curve of any automated line") ----------
+     The engine plays a lane at whole moments, glide, smooth or jump between its nodes. A curve between two nodes
+     is written into the moments between them as small curve points, so what plays follows the curve exactly at
+     every moment. The curve's shape and bend are kept here (localStorage "curiosities-screen-curves-v1") only so
+     it can be drawn and reopened; if the points between no longer match it (moved, undone), it is dropped. */
+  const CURVES_KEY = "curiosities-screen-curves-v1";
+  let curves = {};
+  try {
+    curves = JSON.parse(localStorage.getItem(CURVES_KEY)) || {};
+  } catch (e) {
+    curves = {};
+  }
+  const saveCurves = () => {
+    try {
+      localStorage.setItem(CURVES_KEY, JSON.stringify(curves));
+    } catch (e) {}
+  };
+  /* [name, what it does, uses the bend] */
+  const SHAPES = {
+    straight: ["Straight", "An even line from node to node.", false],
+    smooth: ["Smooth", "Eases out of the first node and into the next; more bend, a stronger S.", true],
+    slowStart: ["Slow start", "Starts gently and speeds up into the next node.", true],
+    fastStart: ["Fast start", "Leaps away from the first node, then settles into the next.", true],
+    overshoot: ["Overshoot", "Goes past the next node's setting, then settles back (an animator's overshoot).", true],
+    jumpEarly: ["Jump early", "Jumps to the next node's setting right away and holds it.", false],
+    jumpLate: ["Jump late", "Holds the first node's setting, then jumps at the last moment.", false],
+  };
+  function shapeAt(shape, bend, t) {
+    const k = 1 + 4 * Math.max(0, Math.min(1, (Number(bend) || 0) / 100));
+    if (shape === "smooth") return t < 0.5 ? 0.5 * Math.pow(2 * t, k) : 1 - 0.5 * Math.pow(2 - 2 * t, k);
+    if (shape === "slowStart") return Math.pow(t, k);
+    if (shape === "fastStart") return 1 - Math.pow(1 - t, k);
+    if (shape === "overshoot") return 1 - Math.pow(1 - t, 2) + ((k - 1) / 4) * 0.35 * Math.sin(Math.PI * t);
+    if (shape === "jumpEarly") return t > 0 ? 1 : 0;
+    if (shape === "jumpLate") return t < 1 ? 0 : 1;
+    return t;
+  }
+  const segKey = (lk, ra, rb) => lk + "|" + ra + "|" + rb;
+  /* The values a curve gives the moments strictly between its two nodes. a, b: { r, j, v }. */
+  function bake(cur, a, b, rec, rows) {
+    const pa = S().pos(cur, a.v);
+    const pb = S().pos(cur, b.v);
+    const out = [];
+    if (pa == null || pb == null) return out;
+    for (let j = a.j + 1; j < b.j; j++) {
+      const t = (j - a.j) / (b.j - a.j);
+      out.push({ row: rows[j].id, j, value: S().at(cur, Math.max(0, Math.min(1, pa + (pb - pa) * shapeAt(rec.shape, rec.bend, t)))) });
+    }
+    return out;
+  }
+  function curveOk(st, lk, a, b, rec) {
+    const lane = st.lanes[lk];
+    if (!lane || b.j - a.j < 2) return false;
+    const cur = lk.slice(lk.indexOf("|") + 1);
+    return bake(cur, a, b, rec, st.rows).every((p) => lane.points[p.row] != null && String(lane.points[p.row]) === String(p.value));
+  }
+  /* Which of a lane's points are curve points (rows), given all its points in film order. */
+  function curvePoints(st, lk, all) {
+    const out = new Set();
+    Object.keys(curves).forEach((sk) => {
+      if (!sk.startsWith(lk + "|")) return;
+      const rest = sk.slice(lk.length + 1).split("|");
+      const a = all.find((p) => p.r === rest[0]);
+      const b = all.find((p) => p.r === rest[1]);
+      if (!a || !b || !curveOk(st, lk, a, b, curves[sk])) return;
+      all.forEach((p) => p.j > a.j && p.j < b.j && out.add(p.r));
+    });
+    return out;
+  }
+  function segPath(p, q, mode) {
+    if (mode === "hold") return `H${q[0]} V${q[1]}`;
+    if (mode === "smooth") return `C${(p[0] + q[0]) / 2} ${p[1]} ${(p[0] + q[0]) / 2} ${q[1]} ${q[0]} ${q[1]}`;
+    return `L${q[0]} ${q[1]}`;
+  }
+
+  /* ---------- area copy and paste (Jeremy, 20:26Z: "select any selection that you want and copy it to any other
+     selection", "select multiple tracks, automations at the same time and paste wherever you want", "paste one
+     track's automation onto another track's automation") ----------
+     An area is some lanes by some moments. Copying keeps each lane's nodes inside it, plus its value at both
+     edges so the shape survives, and the joins whose two ends are both inside. Pasting replaces what the target
+     lanes had over that stretch. Onto a different curiosity, each value keeps its place on the new scale (low
+     stays low), as when an Arrange track changes curiosity. */
+  function copyArea(st, lanes, ar) {
+    const ix = {};
+    st.rows.forEach((r, i) => (ix[r.id] = i));
+    const out = { kind: "area", span: ar.j1 - ar.j0, lanes: [], links: [] };
+    const inside = new Set();
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      if (!ln || !ln.track) {
+        out.lanes.push(null);
+        continue;
+      }
+      const lane = st.lanes[ln.lk];
+      const pts = [];
+      for (let j = ar.j0; j <= ar.j1; j++) {
+        const r = st.rows[j];
+        const has = lane && lane.points[r.id] != null;
+        if (has || j === ar.j0 || j === ar.j1) pts.push({ at: j - ar.j0, value: has ? lane.points[r.id] : E().value(r.id, ln.track, ln.cur) });
+        if (has) inside.add(nodeKey(r.id, ln.lk));
+      }
+      out.lanes.push({ cur: ln.cur, track: ln.track, row: i - ar.i0, mode: lane ? lane.mode : "ramp", points: pts });
+    }
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends || !ends.every((k) => inside.has(k))) return;
+      const li = (t, c) => out.lanes.findIndex((x) => x && x.track === t && x.cur === c);
+      out.links.push({ from: { lane: li(l.from.track, l.from.curiosity), at: ix[l.scope.from] - ar.j0, is: l.from.is }, to: { lane: li(l.to.track, l.to.curiosity), at: ix[l.scope.to] - ar.j0 }, does: l.does, value: l.value, amount: l.amount, within: l.within, label: l.label });
+    });
+    return out;
+  }
+  const convert = (fromCur, toCur, v) => (fromCur === toCur ? v : S().at(toCur, S().pos(fromCur, v) == null ? 0.5 : S().pos(fromCur, v)));
+  /* targets: one { cur, track } per copied lane (null to skip); start: the first moment; width: moments to fill
+     (the copy repeats across a wider selection). Returns the commands, or { error }. */
+  function pasteAreaCommands(st, c, targets, start, width) {
+    const n = st.rows.length;
+    const span = c.span + 1;
+    const fill = Math.max(span, width || span);
+    if (start + Math.min(span, fill) > n) return { error: "That doesn't fit before the end of the film." };
+    const cmds = [];
+    const adds = [];
+    const placed = {};
+    targets.forEach((t, k) => {
+      const src = c.lanes[k];
+      if (!t || !src) return;
+      let track = placed[t.cur] || t.track || (st.tracks.find((x) => x.curiosities.includes(t.cur)) || {}).id;
+      if (!track) {
+        track = trackFor(t.cur, st);
+        if (!track) return;
+        adds.push({ type: "addCuriosity", track, curiosity: t.cur });
+      }
+      placed[t.cur] = track;
+      const lane = st.lanes[track + "|" + t.cur];
+      for (let j = start; j < Math.min(n, start + fill); j++) if (lane && lane.points[st.rows[j].id] != null) cmds.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: t.cur });
+      for (let rep = 0; rep * span < fill; rep++)
+        src.points.forEach((p) => {
+          const j = start + rep * span + p.at;
+          if (j >= n || j >= start + fill) return;
+          const v = S().fix(t.cur, convert(src.cur, t.cur, p.value));
+          if (v != null) cmds.push({ type: "setPoint", row: st.rows[j].id, track, curiosity: t.cur, value: v });
+        });
+      t.track = track;
+    });
+    c.links.forEach((l) => {
+      const a = targets[l.from.lane];
+      const b = targets[l.to.lane];
+      if (!a || !b || !a.track || !b.track || start + Math.max(l.from.at, l.to.at) >= n) return;
+      const srcA = c.lanes[l.from.lane];
+      const srcB = c.lanes[l.to.lane];
+      const link = { type: "addLink", label: l.label, from: { track: a.track, curiosity: a.cur }, to: { track: b.track, curiosity: b.cur }, does: l.does, amount: l.amount, within: l.within, scope: { from: st.rows[start + l.from.at].id, to: st.rows[start + l.to.at].id } };
+      if (l.from.is != null) link.from.is = S().fix(a.cur, convert(srcA.cur, a.cur, l.from.is));
+      if (l.value != null) link.value = l.does === "set" ? S().fix(b.cur, convert(srcB.cur, b.cur, l.value)) : l.value;
+      cmds.push(link);
+    });
+    return { cmds: adds.concat(cmds) };
+  }
+
   /* ---------- the view ---------- */
   function mount(el, opts) {
     opts = opts || {};
     let sel = null; /* selected node key */
+    let area = null; /* a selected area: lanes i0 to i1, moments j0 to j1 */
+    let seg = null; /* a picked line between two nodes: "track|curiosity|rowA|rowB" */
     let drag = null;
     let msg = "";
     let geo = null;
@@ -287,9 +462,28 @@
     }
     function yFor(cur, v, i) {
       const p = S().pos(cur, v);
-      const top = laneTop + i * LANE_H;
-      return top + PAD + (1 - (p == null ? 0.5 : p)) * (LANE_H - PAD * 2);
+      const top = laneTop + i * lh;
+      return top + PAD + (1 - (p == null ? 0.5 : p)) * (lh - PAD * 2);
     }
+    /* Curves between two nodes, drawn from the curve's own shape (what plays is its value at each moment). */
+    function curvePath(cur, i, a, b, rec, colW) {
+      const pa = S().pos(cur, a.v);
+      const pb = S().pos(cur, b.v);
+      const x0 = a.j * colW + colW / 2;
+      const x1 = b.j * colW + colW / 2;
+      const top = laneTop + i * lh;
+      const out = [];
+      for (let k = 1; k <= 32; k++) {
+        const t = k / 32;
+        const p = Math.max(0, Math.min(1, pa + (pb - pa) * shapeAt(rec.shape, rec.bend, t)));
+        out.push(`L${(x0 + (x1 - x0) * t).toFixed(1)} ${(top + PAD + (1 - p) * (lh - PAD * 2)).toFixed(1)}`);
+      }
+      return out.join(" ");
+    }
+    /* How tall a lane is (dragging right on the lane names makes lanes taller), and how wide a moment is. */
+    const laneH = () => Math.max(28, Math.min(320, Number(tools.laneH) || LANE_H));
+    const zoomOf = () => Math.max(0.25, Math.min(32, Number(tools.zoom) || 1));
+    let lh = LANE_H;
     function draw() {
       const Eng = E();
       if (!Eng || !S()) {
@@ -301,48 +495,84 @@
       const n = st.rows.length;
       const width = el.clientWidth || 800;
       const fit = Math.floor((width - 200) / Math.max(1, n));
-      const zoom = Math.max(0.25, Math.min(8, Number(tools.zoom) || 1));
+      const zoom = zoomOf();
       const colW = Math.max(zoom < 1 ? 14 : 46, Math.floor(fit * zoom));
       const svgW = colW * n;
+      lh = laneH();
       const clipRows = opts.clips ? opts.clips() : [];
       const CLIP_H = 28;
-      const top = clipRows.length * CLIP_H + (opts.ruler ? RULER : 0);
-      const svgH = top + lanes.length * LANE_H;
-      laneTop = top;
+      const top = clipRows.length * CLIP_H + (opts.ruler ? RULER + 8 : 0);
+      const svgH = lanes.length * lh;
+      laneTop = 0;
       const playRow = opts.row ? opts.row() : -1;
-      geo = { colW, lanes, top, n, st };
+      geo = { colW, lanes, top: 0, n, st, svgW, svgH, lh };
+      /* Fine time lines: seconds inside each moment, then halves, quarters... as you zoom in (Jeremy, 20:26Z:
+         "as you zoom in, you should see more and more fine grid lines"). A level shows once its lines are 10px apart. */
+      const spm = Math.max(1, Math.round(Number(opts.secondsPerMoment ? opts.secondsPerMoment() : 3) || 3));
+      const levels = [];
+      for (let d = spm, lv = 1; colW / d >= 10 && n * d <= 8000 && lv <= 7; d *= 2, lv++) levels.push(d);
+      const fineX = [];
+      levels.forEach((d, li) =>
+        st.rows.forEach((r, j) => {
+          for (let k = 1; k < d; k++) if (li === 0 || k % 2) fineX.push([j * colW + (k * colW) / d, Math.min(3, li + 1)]);
+        })
+      );
+      const inArea = (i, j) => area && i >= area.i0 && i <= area.i1 && j >= area.j0 && j <= area.j1;
       const heads = lanes
-        .map(
-          (ln, i) => `<div class="sl-head${ln.group ? " sl-in-group" : ""}${sel && sel.endsWith("@" + ln.lk) ? " on" : ""}" style="height:${LANE_H}px" data-i="${i}">
-            ${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}
-            <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${st.lanes[ln.lk].mode === "hold" ? "Jumps: holds each node's setting until the next node (Maya's stepped curve). Click to glide." : "Glides: moves in a straight line from node to node (Maya's linear curve). Click to jump."}">${st.lanes[ln.lk].mode === "hold" ? "⌐ Jump" : "⟋ Glide"}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
-          </div>`
-        )
+        .map((ln, i) => {
+          const picked = (sel && sel.endsWith("@" + ln.lk)) || (area && i >= area.i0 && i <= area.i1);
+          const ticks = scaleTicks(ln.cur);
+          return `<div class="sl-head${ln.group ? " sl-in-group" : ""}${picked ? " on" : ""}${ticks ? " has-ticks" : ""}" style="height:${lh}px" data-i="${i}">
+            <div class="sl-head-top">${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}<button type="button" class="sl-win" data-open-win="${esc(ln.cur)}" title="Open ${esc(S().label(ln.cur))}'s own window: every knob and slider it has" aria-label="Open ${esc(S().label(ln.cur))}'s window">⧉</button></div>
+            <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(st.lanes[ln.lk])][2])} Click to change.">${MODES[modeOf(st.lanes[ln.lk])][1]}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
+            ${ticks}
+          </div>`;
+        })
         .join("");
+      const tsvg = []; /* the top bar: clip tracks and the ruler */
       const svg = [];
       const dots = []; /* nodes go on top of the lines */
-      /* Film clip tracks first, like the video tracks at the top of Final Cut Pro's timeline. */
+      /* Film clip tracks first: one per inspiration film, then my film's moments. */
       clipRows.forEach((cr, k) => {
         const y = k * CLIP_H;
         (cr.clips || []).forEach((c) => {
           const x = c.from * svgW;
           const w = Math.max(3, (c.to - c.from) * svgW - 2);
-          svg.push(`<g class="sl-clip ${esc(c.cls || "")}" data-clip="${Math.floor(c.from * n + 1e-6)}"><rect x="${x + 1}" y="${y + 2}" width="${w}" height="${CLIP_H - 4}" rx="4"/><text x="${x + 6}" y="${y + 18}">${esc(String(c.text || "").slice(0, Math.max(0, Math.floor(w / 6))))}</text><title>${esc(c.title || c.text || "")}</title></g>`);
+          tsvg.push(`<g class="sl-clip ${esc(c.cls || "")}" data-clip="${Math.floor(c.from * n + 1e-6)}"><rect x="${x + 1}" y="${y + 2}" width="${w}" height="${CLIP_H - 4}" rx="4"/><text x="${x + 6}" y="${y + 18}">${esc(String(c.text || "").slice(0, Math.max(0, Math.floor(w / 6))))}</text><title>${esc(c.title || c.text || "")}</title></g>`);
         });
       });
       const rulerY = clipRows.length * CLIP_H;
-      if (opts.ruler) st.rows.forEach((r, j) => svg.push(`<text x="${j * colW + 4}" y="${rulerY + 12}" class="sl-ruler">${j + 1}</text>`));
+      if (opts.ruler) {
+        tsvg.push(`<rect class="sl-rulerbg" x="0" y="${rulerY}" width="${svgW}" height="${RULER + 8}"><title>Drag down to zoom in, up to zoom out, sideways to scroll</title></rect>`);
+        st.rows.forEach((r, j) => tsvg.push(`<line class="sl-tick0" x1="${j * colW}" x2="${j * colW}" y1="${rulerY}" y2="${top}"/><text x="${j * colW + 4}" y="${rulerY + 12}" class="sl-ruler">${j + 1}</text>`));
+        fineX.forEach(([x, lv]) => tsvg.push(`<line class="sl-tick${lv}" x1="${x}" x2="${x}" y1="${top - (lv === 1 ? 7 : lv === 2 ? 5 : 3)}" y2="${top}"/>`));
+        /* Seconds under the moment numbers once there is room for them. */
+        if (colW / spm >= 34) st.rows.forEach((r, j) => { for (let k = 1; k < spm; k++) { const t = j * spm + k; tsvg.push(`<text x="${j * colW + (k * colW) / spm + 2}" y="${rulerY + 12}" class="sl-ruler2">${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}</text>`); } });
+      }
       lanes.forEach((ln, i) => {
-        const y0 = top + i * LANE_H;
-        svg.push(`<rect class="sl-bg${i % 2 ? " odd" : ""}" x="0" y="${y0}" width="${svgW}" height="${LANE_H}" data-lane="${i}"/>`);
+        const y0 = i * lh;
+        svg.push(`<rect class="sl-bg${i % 2 ? " odd" : ""}" x="0" y="${y0}" width="${svgW}" height="${lh}" data-lane="${i}"/>`);
+        if (ln.track || S().known(ln.cur)) svg.push(valueLines(ln.cur, y0, svgW));
       });
+      fineX.forEach(([x, lv]) => svg.push(`<line class="sl-fine sl-fine${lv}" x1="${x}" x2="${x}" y1="0" y2="${svgH}"/>`));
       for (let j = 0; j <= n; j++) svg.push(`<line class="sl-grid" x1="${j * colW}" x2="${j * colW}" y1="0" y2="${svgH}"/>`);
-      if (playRow >= 0 && playRow < n) svg.push(`<rect class="sl-play" x="${playRow * colW}" y="0" width="${colW}" height="${svgH}"/>`);
+      const both = (h) => [tsvg, svg].forEach((list, k) => list.push(h(k ? svgH : top)));
+      if (playRow >= 0 && playRow < n) both((h) => `<rect class="sl-play" x="${playRow * colW}" y="0" width="${colW}" height="${h}"/>`);
+      const rg = opts.range ? opts.range() : null;
+      if (rg) {
+        /* The play range: moments outside it are dimmed, with a bracket at each end. */
+        both((h) => (rg[0] > 0 ? `<rect class="sl-out" x="0" y="0" width="${rg[0] * colW}" height="${h}"/>` : ""));
+        both((h) => (rg[1] < n - 1 ? `<rect class="sl-out" x="${(rg[1] + 1) * colW}" y="0" width="${(n - rg[1] - 1) * colW}" height="${h}"/>` : ""));
+        svg.push(`<path class="sl-range" d="M${rg[0] * colW + 6} 2 H${rg[0] * colW + 1} V${svgH - 2} H${rg[0] * colW + 6} M${(rg[1] + 1) * colW - 6} 2 H${(rg[1] + 1) * colW - 1} V${svgH - 2} H${(rg[1] + 1) * colW - 6}"><title>Play range: moments ${rg[0] + 1} to ${rg[1] + 1}</title></path>`);
+      }
       st.rows.forEach((r, j) => {
         if (!tools.markers.includes(r.id)) return;
         const x = j * colW + colW / 2;
-        svg.push(`<g class="sl-marker" data-marker="${j}"><line x1="${x}" x2="${x}" y1="0" y2="${svgH}"/><path d="M${x - 5} 0h10v7l-5 4-5-4z"/><title>Marker at moment ${j + 1}</title></g>`);
+        tsvg.push(`<g class="sl-marker" data-marker="${j}"><line x1="${x}" x2="${x}" y1="0" y2="${top}"/><path d="M${x - 5} ${Math.max(0, top - 11)}h10v7l-5 4-5-4z"/><title>Marker at moment ${j + 1}</title></g>`);
+        svg.push(`<g class="sl-marker" data-marker="${j}"><line x1="${x}" x2="${x}" y1="0" y2="${svgH}"/><title>Marker at moment ${j + 1}</title></g>`);
       });
+      if (area) svg.push(`<rect class="sl-area" x="${area.j0 * colW}" y="${area.i0 * lh}" width="${(area.j1 - area.j0 + 1) * colW}" height="${(area.i1 - area.i0 + 1) * lh}"><title>Selected: moments ${area.j0 + 1} to ${area.j1 + 1}, ${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""}. Copy, then pick where it goes and Paste.</title></rect>`);
+      const ix = st.rows.map((r) => r.id);
       lanes.forEach((ln, i) => {
         if (!ln.track) return;
         /* The result line (what plays), then the automation: nodes joined by lines. */
@@ -350,19 +580,31 @@
         svg.push(`<polyline class="sl-result" points="${pts.map((p) => p.join(",")).join(" ")}"/>`);
         const lane = st.lanes[ln.lk];
         if (!lane) return;
-        const ix = st.rows.map((r) => r.id);
-        const nodes = Object.keys(lane.points)
+        const all = Object.keys(lane.points)
           .filter((r) => ix.includes(r))
           .map((r) => ({ r, j: ix.indexOf(r), v: lane.points[r] }))
           .sort((a, b) => a.j - b.j);
-        const xy = nodes.map((p) => [p.j * colW + colW / 2, yFor(ln.cur, p.v, i)]);
+        const cpts = curvePoints(st, ln.lk, all);
+        const nodes = all.filter((p) => !cpts.has(p.r));
+        const xyOf = (p) => [p.j * colW + colW / 2, yFor(ln.cur, p.v, i)];
+        const xy = nodes.map(xyOf);
         if (xy.length > 1) {
-          const d = lane.mode === "hold" ? xy.map((p, k) => (k ? `H${p[0]} V${p[1]}` : `M${p[0]} ${p[1]}`)).join(" ") : "M" + xy.map((p) => p.join(" ")).join(" L");
+          let d = `M${xy[0][0]} ${xy[0][1]}`;
+          for (let k = 1; k < xy.length; k++) {
+            const sk = segKey(ln.lk, nodes[k - 1].r, nodes[k].r);
+            const rec = curves[sk] && curveOk(st, ln.lk, nodes[k - 1], nodes[k], curves[sk]) ? curves[sk] : null;
+            const part = rec ? curvePath(ln.cur, i, nodes[k - 1], nodes[k], rec, colW) : segPath(xy[k - 1], xy[k], lane.mode);
+            d += " " + part;
+            const hit = `M${xy[k - 1][0]} ${xy[k - 1][1]} ` + part;
+            svg.push(`<path class="sl-seghit${seg === sk ? " on" : ""}" d="${hit}" data-seg="${esc(sk)}"><title>A line from moment ${nodes[k - 1].j + 1} to ${nodes[k].j + 1}${rec ? ` (curve: ${esc(SHAPES[rec.shape] ? SHAPES[rec.shape][0] : rec.shape)})` : ""}. Click to pick it, double-click to shape its curve.</title></path>`);
+          }
           svg.push(`<path class="sl-auto${lane.on ? "" : " off"}" d="${d}"/>`);
         }
-        nodes.forEach((p, k) => {
+        all.forEach((p) => {
           const key = nodeKey(p.r, ln.lk);
-          dots.push(`<circle class="sl-node${sel === key ? " on" : ""}" cx="${xy[k][0]}" cy="${xy[k][1]}" r="6" data-node="${esc(key)}" data-lane="${i}"><title>${esc(S().label(ln.cur))}: ${esc(p.v)} at moment ${p.j + 1}</title></circle>`);
+          const c = xyOf(p);
+          const small = cpts.has(p.r);
+          dots.push(`<circle class="sl-node${small ? " sl-cpt" : ""}${sel === key ? " on" : ""}${inArea(i, p.j) ? " in" : ""}" cx="${c[0]}" cy="${c[1]}" r="${small ? 3.5 : 6}" data-node="${esc(key)}" data-lane="${i}"><title>${esc(S().label(ln.cur))}: ${esc(p.v)} at moment ${p.j + 1}${small ? " (on a curve)" : ""}</title></circle>`);
         });
       });
       /* Proximities: a line from node to node. */
@@ -384,22 +626,71 @@
       });
       const others = st.links.filter((l) => !l.scope && laneIx[l.from.track + "|" + l.from.curiosity] != null && laneIx[l.to.track + "|" + l.to.curiosity] != null).length;
       const tb = (act, label, title, on) => `<button type="button" data-act="${act}" class="sl-tb${on ? " on" : ""}" title="${esc(title)}"${on == null ? "" : ` aria-pressed="${!!on}"`}>${label}</button>`;
+      const canCopy = !!(sel || area);
+      const pasteLabel = clip && clip.kind === "area" && area ? "Paste into the selection" : `Paste at moment ${playRow + 1}`;
+      const old = el.querySelector(".sl-scroll");
+      const keep = old ? [old.scrollLeft, old.scrollTop] : scrollKeep;
       el.innerHTML = `<div class="sl-tools">
-          <span class="sl-seg" role="group" aria-label="Tool">${tb("tool-select", "Select", "Select (A): click a node to pick it, click an empty spot to add a node there", tools.tool === "select")}${tb("tool-split", "Split", "Split (B): click a lane to cut its line with a node, keeping what plays", tools.tool === "split")}</span>
+          <span class="sl-seg" role="group" aria-label="Tool">${tb("tool-select", "Select", "Select (A): click a node to pick it, click an empty spot to add a node there, drag across empty space to select an area", tools.tool === "select")}${tb("tool-split", "Split", "Split (B): click a lane to cut its line with a node, keeping what plays", tools.tool === "split")}</span>
           <button type="button" data-act="undo" ${Eng.canUndo() ? "" : "disabled"}>Undo</button><button type="button" data-act="redo" ${Eng.canRedo() ? "" : "disabled"}>Redo</button>
-          <button type="button" data-act="copy" ${sel ? "" : "disabled"} title="Copy the picked node with every node joined to it">Copy proximity</button>
-          <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="Paste at the playhead's moment">Paste at moment ${playRow + 1}</button>
-          <button type="button" data-act="del" ${sel ? "" : "disabled"} title="Delete (⌫)">Remove node</button>
+          <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
+          <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
+          <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
+          ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
           ${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off")}
           ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
           ${tb("snap", "Snapping", "Auto snapping (N): a node dropped next to a marker lands on it", tools.snap)}
           <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
           ${tb("skim", "Preview axis", "Preview axis (S): hover over the timeline to see that moment in the player", tools.skim)}
-          <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−)")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+)")}</span>
-          <span class="sl-msg" role="status">${esc(msg || (others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag a node onto another lane's node to join them."))}</span>
+          <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−), or drag up on the ruler")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+), or drag down on the ruler")}</span>
+          <span class="sl-msg" role="status">${esc(msg || (others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
         </div>
-        <div class="sl-body"><div class="sl-heads">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${opts.ruler ? `<div style="height:${RULER}px"></div>` : ""}${heads}</div>
-        <div class="sl-scroll"><svg class="sl-svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">${svg.join("")}${dots.join("")}${drag && drag.ghost ? drag.ghost : ""}</svg></div></div>`;
+        <div class="sl-scroll"><div class="sl-body" style="grid-template-columns: var(--sl-head-w, 190px) ${svgW}px">
+          <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
+          <div class="sl-top" style="height:${top}px"><svg class="sl-topsvg" width="${svgW}" height="${top}" viewBox="0 0 ${svgW} ${Math.max(1, top)}">${tsvg.join("")}</svg></div>
+          <div class="sl-heads" title="Drag right for taller lanes, left for shorter; drag up and down to scroll. Click a lane's name area to select the whole lane (Shift adds more lanes).">${heads}</div>
+          <div class="sl-lanes"><svg class="sl-svg" width="${svgW}" height="${Math.max(1, svgH)}" viewBox="0 0 ${svgW} ${Math.max(1, svgH)}">${svg.join("")}${dots.join("")}${drag && drag.ghost ? drag.ghost : ""}</svg></div>
+        </div></div>`;
+      const sc = el.querySelector(".sl-scroll");
+      const box = el.closest(".sc-timeline");
+      if (box) {
+        const room = box.getBoundingClientRect().bottom - sc.getBoundingClientRect().top - 14;
+        sc.style.maxHeight = Math.max(160, Math.round(room)) + "px";
+      }
+      if (keep) {
+        sc.scrollLeft = keep[0];
+        sc.scrollTop = keep[1];
+      }
+    }
+    let scrollKeep = null;
+    /* The value lines inside a lane: one per step of its scale, thinned out until they are at least 7px apart, so a
+       taller lane shows finer gradations (a 0 to 100 range: tens, then fives, then every step). */
+    function valueLines(cur, y0, w) {
+      const steps = S().steps(cur);
+      const inner = lh - PAD * 2;
+      const sp = inner / Math.max(1, steps);
+      const stride = [1, 2, 4, 5, 10, 20, 25, 50, 100, 200, 500, 1000].find((s) => sp * s >= 7) || steps;
+      const out = [];
+      for (let k = 0; k <= steps; k += stride) {
+        const y = y0 + PAD + inner - k * sp;
+        const cls = k === 0 || k === steps ? "sl-vedge" : (k / stride) % 5 === 0 || k * 2 === steps ? "sl-vmajor" : "sl-vfine";
+        out.push(`<line class="${cls}" x1="0" x2="${w}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/>`);
+      }
+      return out.join("");
+    }
+    /* A tall lane writes its scale beside its name: the words of a list, or the numbers of a range. */
+    function scaleTicks(cur) {
+      if (!S() || !S().known(cur) || lh < 76) return "";
+      const d = S().domain(cur);
+      const inner = lh - PAD * 2;
+      let marks = [];
+      if (d.kind === "range") marks = [0, 0.5, 1].map((p) => [p, S().at(cur, p) + (d.unit || "")]);
+      else {
+        const o = d.options || [];
+        const every = Math.ceil((o.length * 12) / inner);
+        marks = o.map((v, k) => [o.length > 1 ? k / (o.length - 1) : 0.5, v]).filter((m, k) => k % every === 0 || k === o.length - 1);
+      }
+      return `<div class="sl-ticks" aria-hidden="true">${marks.map(([p, v]) => `<span style="top:${(PAD + (1 - p) * inner).toFixed(1)}px">${esc(String(v).slice(0, 14))}</span>`).join("")}</div>`;
     }
 
     function at(e) {
@@ -408,10 +699,10 @@
       const x = e.clientX - r.left;
       const y = e.clientY - r.top;
       const j = Math.max(0, Math.min(geo.n - 1, Math.floor(x / geo.colW)));
-      const i = Math.floor((y - geo.top) / LANE_H);
+      const i = Math.floor((y - geo.top) / geo.lh);
       const ln = geo.lanes[i];
       let p = null;
-      if (ln) p = 1 - (y - geo.top - i * LANE_H - PAD) / (LANE_H - PAD * 2);
+      if (ln) p = 1 - (y - geo.top - i * geo.lh - PAD) / (geo.lh - PAD * 2);
       return { x, y, j, i, ln, p: p == null ? null : Math.max(0, Math.min(1, p)) };
     }
     function say(m) {
@@ -424,12 +715,78 @@
       if (!r.ok) say(r.error);
       return r;
     }
+    /* ---------- moving around: zoom and scroll (Jeremy, 20:26Z) ----------
+       Ruler (the top bar): drag down to zoom in, up to zoom out, sideways to scroll, all at once, keeping the
+       moment under the pointer in place. Lane names (the left side): drag right for taller lanes, left for
+       shorter, up and down to scroll. In the grid: two fingers scroll both ways (the browser's own scrolling);
+       pinch or ⌘/Ctrl + scroll zooms; Alt + scroll changes lane height. On a touch screen, two fingers pan. */
+    const scroller = () => el.querySelector(".sl-scroll");
+    const headW = () => (el.querySelector(".sl-heads") || {}).offsetWidth || 190;
+    const topH = () => (el.querySelector(".sl-top") || {}).offsetHeight || 0;
+    function zoomAt(z, vx) {
+      const sc = scroller();
+      if (!sc || !geo) return;
+      const frac = (sc.scrollLeft + vx - headW()) / Math.max(1, geo.svgW);
+      tools.zoom = Math.max(0.25, Math.min(32, z));
+      draw();
+      const sc2 = scroller();
+      sc2.scrollLeft = Math.max(0, frac * geo.svgW + headW() - vx);
+    }
+    function laneAt(h, vy) {
+      const sc = scroller();
+      if (!sc || !geo) return;
+      const frac = (sc.scrollTop + vy - topH()) / Math.max(1, geo.svgH);
+      tools.laneH = Math.round(Math.max(28, Math.min(320, h)));
+      draw();
+      const sc2 = scroller();
+      sc2.scrollTop = Math.max(0, frac * geo.svgH + topH() - vy);
+    }
+    let pending = null;
+    const later = (fn) => {
+      pending = fn;
+      requestAnimationFrame(() => {
+        const f = pending;
+        pending = null;
+        if (f) f();
+      });
+    };
+    const touches = new Map();
+    let pan = null;
+    let topDrag = null;
+    let leftDrag = null;
+    const center = () => {
+      const v = [...touches.values()];
+      return [v.reduce((a, p) => a + p.x, 0) / v.length, v.reduce((a, p) => a + p.y, 0) / v.length];
+    };
     function onDown(e) {
+      if (e.button > 0) return;
+      const sc = scroller();
+      if (e.pointerType === "touch" && sc && sc.contains(e.target)) {
+        touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (touches.size === 2) {
+          drag = topDrag = leftDrag = null;
+          const c = center();
+          pan = { c, sl: sc.scrollLeft, st: sc.scrollTop };
+          return;
+        }
+      }
       const node = e.target.closest && e.target.closest("[data-node]");
       const link = e.target.closest && e.target.closest("[data-link]");
+      const segEl = e.target.closest && e.target.closest("[data-seg]");
       const clipEl = e.target.closest && e.target.closest("[data-clip]");
-      if (clipEl && opts.onClip) {
-        opts.onClip(Number(clipEl.dataset.clip) || 0);
+      const r = sc ? sc.getBoundingClientRect() : { left: 0, top: 0 };
+      if (e.target.closest && e.target.closest(".sl-top, .sl-rulerhead")) {
+        let j = null;
+        if (clipEl) j = Number(clipEl.dataset.clip) || 0;
+        else if (geo && e.target.closest(".sl-top")) j = Math.max(0, Math.min(geo.n - 1, Math.floor((sc.scrollLeft + e.clientX - r.left - headW()) / geo.colW)));
+        topDrag = { x0: e.clientX, y0: e.clientY, z0: zoomOf(), frac: geo ? (sc.scrollLeft + e.clientX - r.left - headW()) / Math.max(1, geo.svgW) : 0, clip: !!clipEl, j, moved: false };
+        e.preventDefault();
+        return;
+      }
+      if (e.target.closest && e.target.closest(".sl-heads") && !e.target.closest("button, select, input, a, label, option")) {
+        const h = e.target.closest(".sl-head[data-i]");
+        leftDrag = { x0: e.clientX, y0: e.clientY, h0: lh, st0: sc.scrollTop, i: h ? Number(h.dataset.i) : null, shift: e.shiftKey, moved: false };
+        e.preventDefault();
         return;
       }
       if (link) {
@@ -440,9 +797,18 @@
       const a = at(e);
       if (node) {
         sel = node.dataset.node;
+        seg = null;
         drag = { key: sel, start: a, copy: e.altKey || e.shiftKey, moved: false };
         if (opts.onSelect) opts.onSelect(split(sel).cur);
         e.preventDefault();
+        return;
+      }
+      if (segEl) {
+        /* Pick the line (no redraw, so a double-click still lands on it and opens its curve). */
+        seg = segEl.dataset.seg;
+        el.querySelectorAll(".sl-seghit.on").forEach((x) => x.classList.remove("on"));
+        segEl.classList.add("on");
+        say("Line picked: double-click it, or press Curves, to shape its curve.");
         return;
       }
       if (!a.ln) return;
@@ -450,16 +816,73 @@
     }
     let hoverJ = -1;
     function onMove(e) {
+      if (touches.has(e.pointerId)) {
+        touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pan && touches.size >= 2) {
+          const c = center();
+          const sc = scroller();
+          if (sc) {
+            sc.scrollLeft = pan.sl - (c[0] - pan.c[0]);
+            sc.scrollTop = pan.st - (c[1] - pan.c[1]);
+          }
+          return;
+        }
+      }
+      if (topDrag) {
+        const dx = e.clientX - topDrag.x0;
+        const dy = e.clientY - topDrag.y0;
+        if (!topDrag.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+        topDrag.moved = true;
+        const r = scroller().getBoundingClientRect();
+        const z = topDrag.z0 * Math.exp(dy * 0.012);
+        const vx = e.clientX - r.left;
+        const frac = topDrag.frac;
+        /* Keep the moment grabbed under the pointer: zooming stretches around it, moving sideways scrolls. */
+        later(() => {
+          tools.zoom = Math.max(0.25, Math.min(32, z));
+          draw();
+          scroller().scrollLeft = Math.max(0, frac * geo.svgW + headW() - vx);
+        });
+        return;
+      }
+      if (leftDrag) {
+        const dx = e.clientX - leftDrag.x0;
+        const dy = e.clientY - leftDrag.y0;
+        if (!leftDrag.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+        leftDrag.moved = true;
+        const sc = scroller();
+        const r = sc.getBoundingClientRect();
+        if (Math.abs(dx) > Math.abs(dy) * 0.6) {
+          const h = leftDrag.h0 * Math.exp(dx * 0.012);
+          const vy = e.clientY - r.top;
+          later(() => laneAt(h, vy));
+        } else sc.scrollTop = Math.max(0, leftDrag.st0 - dy);
+        return;
+      }
       if (!drag && tools.skim && opts.onHover && geo && e.target.closest && e.target.closest(".sl-svg") && el.contains(e.target)) {
         const a = at(e);
         if (a.j !== hoverJ) opts.onHover((hoverJ = a.j));
         return;
       }
-      if (!drag || drag.add) return;
+      if (!drag) return;
       const a = at(e);
       if (Math.abs(a.x - drag.start.x) + Math.abs(a.y - drag.start.y) > 4) drag.moved = true;
       if (!drag.moved) return;
       const svg = el.querySelector(".sl-svg");
+      if (drag.add) {
+        /* Dragging across empty space draws a selection box. */
+        let b = svg.querySelector(".sl-boxing");
+        if (!b) {
+          b = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          b.setAttribute("class", "sl-boxing");
+          svg.appendChild(b);
+        }
+        b.setAttribute("x", Math.min(a.x, drag.start.x));
+        b.setAttribute("y", Math.min(a.y, drag.start.y));
+        b.setAttribute("width", Math.abs(a.x - drag.start.x));
+        b.setAttribute("height", Math.abs(a.y - drag.start.y));
+        return;
+      }
       let g = svg.querySelector(".sl-ghost");
       if (!g) {
         g = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -471,13 +894,60 @@
       g.setAttribute("cy", a.y);
     }
     function onUp(e) {
+      if (touches.has(e.pointerId)) {
+        touches.delete(e.pointerId);
+        if (pan) {
+          if (touches.size < 2) pan = null;
+          return;
+        }
+      }
+      if (topDrag) {
+        const d = topDrag;
+        topDrag = null;
+        if (d.moved) {
+          saveTools();
+          say(`Zoom ${Math.round(zoomOf() * 100)}%. Finer lines show as you zoom in.`);
+        } else if (d.j != null && opts.onClip) opts.onClip(d.j);
+        return;
+      }
+      if (leftDrag) {
+        const d = leftDrag;
+        leftDrag = null;
+        if (d.moved) return saveTools();
+        if (d.i == null || !geo) return;
+        /* A click on a lane's name area selects the whole lane; Shift adds lanes up to it. */
+        const last = geo.n - 1;
+        area = d.shift && area ? { i0: Math.min(area.i0, d.i), i1: Math.max(area.i1, d.i), j0: 0, j1: last } : { i0: d.i, i1: d.i, j0: 0, j1: last };
+        sel = null;
+        seg = null;
+        say(`${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""} selected. Copy, then pick another lane or area and Paste.`);
+        return draw();
+      }
       if (!drag) return;
       const d = drag;
       drag = null;
       const a = at(e);
       const st = E().state();
+      if (d.add && d.moved) {
+        const j0 = Math.max(0, Math.min(geo.n - 1, Math.floor(Math.min(a.x, d.start.x) / geo.colW)));
+        const j1 = Math.max(0, Math.min(geo.n - 1, Math.floor(Math.max(a.x, d.start.x) / geo.colW)));
+        const i0 = Math.max(0, Math.min(geo.lanes.length - 1, Math.floor(Math.min(a.y, d.start.y) / geo.lh)));
+        const i1 = Math.max(0, Math.min(geo.lanes.length - 1, Math.floor(Math.max(a.y, d.start.y) / geo.lh)));
+        area = { i0, i1, j0, j1 };
+        sel = null;
+        seg = null;
+        say(`Selected moments ${j0 + 1} to ${j1 + 1} on ${i1 - i0 + 1} lane${i1 > i0 ? "s" : ""}. Copy, then select where it goes and Paste.`);
+        return draw();
+      }
       if (d.add) {
-        if (Math.abs(a.x - d.start.x) + Math.abs(a.y - d.start.y) > 4 || !a.ln || a.ln !== d.start.ln) return draw();
+        if (area || seg) {
+          /* A click on empty space first lets go of a selection. */
+          area = null;
+          seg = null;
+          say("");
+          return draw();
+        }
+        if (!a.ln || a.ln !== d.start.ln) return draw();
         let track = a.ln.track;
         if (!track) track = ensure(a.ln.cur);
         if (!track) return say("Every track is full; remove a lane first.");
@@ -572,6 +1042,8 @@
       el.appendChild(pop);
     }
     function onClick(e) {
+      const w = e.target.closest("[data-open-win]");
+      if (w) return opts.onOpen ? opts.onOpen(w.dataset.openWin) : null;
       const b = e.target.closest("button[data-act]");
       const pick = e.target.closest("[data-pick]");
       if (pick && opts.onSelect) opts.onSelect(pick.dataset.pick);
@@ -579,29 +1051,38 @@
       const act = b.dataset.act;
       if (act === "undo") E().undo();
       if (act === "redo") E().redo();
-      if (act === "copy" && sel) {
-        const r = copyGroup(sel, { solo: !tools.linkage, allow: kindOk });
-        say(r.ok ? `Copied ${r.nodes} node${r.nodes === 1 ? "" : "s"} and ${r.links} line${r.links === 1 ? "" : "s"}. Move the playhead and press Paste.` : r.error);
-      }
-      if (act === "paste") {
-        const r = paste(opts.row ? opts.row() : 0);
-        say(r.ok ? `Pasted ${r.nodes} nodes and ${r.links} lines.` : r.error);
-      }
-      if (act === "del" && sel) return removeNode(sel);
+      if (act === "copy") return command("copy");
+      if (act === "paste") return command("paste");
+      if (act === "del") return command("delete");
+      if (act === "curves") return command("curves");
       if (act === "link-settings") return linkSettings();
       if (act === "mode" && b.dataset.lk) {
         /* Maya's graph editor tangents in plain words: glide (linear) or jump (stepped). */
         const st = E().state();
         const lane = st.lanes[b.dataset.lk];
         const at = b.dataset.lk.indexOf("|");
-        if (lane) send({ type: "laneMode", track: b.dataset.lk.slice(0, at), curiosity: b.dataset.lk.slice(at + 1), mode: lane.mode === "hold" ? "ramp" : "hold", label: lane.mode === "hold" ? "Make a lane glide" : "Make a lane jump" });
+        if (lane) {
+          /* Glide, then Smooth, then Jump. An engine without smooth refuses it, so the switch skips to Jump. */
+          const order = ["ramp", "smooth", "hold"];
+          const base = { type: "laneMode", track: b.dataset.lk.slice(0, at), curiosity: b.dataset.lk.slice(at + 1) };
+          let next = order[(order.indexOf(modeOf(lane)) + 1) % order.length];
+          let r = E().send(Object.assign({}, base, { mode: next, label: MODES[next][3] }));
+          if (!r.ok && next === "smooth") r = E().send(Object.assign({}, base, { mode: (next = "hold"), label: MODES.hold[3] }));
+          if (!r.ok) say(r.error);
+        }
         return draw();
       }
       if (TOOL_ACTS[act]) return command(TOOL_ACTS[act]);
       draw();
-      if (act === "copy" || act === "paste") say(msg);
     }
     let look = null; /* copied attributes: one node's setting */
+    /* How a lane moves between its nodes, in plain words for Maya's graph editor tangents. */
+    const MODES = {
+      ramp: ["ramp", "⟋ Glide", "Glides: a straight line from node to node (Maya's linear curve).", "Make a lane glide"],
+      smooth: ["smooth", "∿ Smooth", "Smooth: eases out of each node and into the next (Maya's spline curve).", "Make a lane smooth"],
+      hold: ["hold", "⌐ Jump", "Jumps: holds each node's setting until the next node (Maya's stepped curve).", "Make a lane jump"],
+    };
+    const modeOf = (lane) => (MODES[lane.mode] ? lane.mode : "ramp");
     const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit" };
     /* The nodes of a lane in film order, as keys. */
     function laneNodes(st, lk) {
@@ -667,6 +1148,25 @@
         out = send({ type: "batch", label: name === "deleteLeft" ? "Delete left" : "Delete right", commands: cmds });
         if (sel && doomed.includes(sel)) sel = null;
         say(out.ok ? `Removed ${doomed.length} node${doomed.length === 1 ? "" : "s"} ${name === "deleteLeft" ? "before" : "after"} the playhead.` : out.error);
+      } else if (name === "curves") {
+        return openCurves();
+      } else if (area && (name === "copy" || name === "cut" || name === "delete")) {
+        if (name !== "delete") {
+          setClip(copyArea(st, geo.lanes, area));
+          const lanesN = clip.lanes.filter(Boolean).length;
+          say(`Copied ${lanesN} lane${lanesN === 1 ? "" : "s"} over ${clip.span + 1} moment${clip.span ? "s" : ""}. Select where it goes (another lane works too) and Paste.`);
+        }
+        if (name !== "copy") out = removeArea();
+        const keep = msg;
+        draw();
+        say(keep);
+        return out;
+      } else if (name === "paste" && clip && clip.kind === "area") {
+        out = pasteHere();
+        const keep = msg;
+        draw();
+        say(keep);
+        return out;
       } else if (name === "cut") {
         if (!sel) return { ok: false, error: "Pick a node first." };
         out = copyGroup(sel, { solo: !tools.linkage, allow: kindOk });
@@ -698,7 +1198,7 @@
         say(had ? `Marker taken off moment ${playRow + 1}.` : `Marker added at moment ${playRow + 1}.`);
       } else if (name === "zoomIn" || name === "zoomOut" || name === "zoomFit") {
         const z = Number(tools.zoom) || 1;
-        tools.zoom = name === "zoomFit" ? 1 : Math.max(0.25, Math.min(8, name === "zoomIn" ? z * 1.5 : z / 1.5));
+        tools.zoom = name === "zoomFit" ? 1 : Math.max(0.25, Math.min(32, name === "zoomIn" ? z * 1.5 : z / 1.5));
       } else if (name === "left" || name === "right") {
         out = step(name === "left" ? -1 : 1);
         if (!out.ok) say(out.error);
@@ -719,6 +1219,172 @@
       draw();
       say(keep);
       return out;
+    }
+    /* Every node inside the selected area, and the joins touching them, removed as one undo step. */
+    function removeArea() {
+      const st = E().state();
+      const doomed = [];
+      for (let i = area.i0; i <= area.i1; i++) {
+        const ln = geo.lanes[i];
+        const lane = ln && ln.lk && st.lanes[ln.lk];
+        if (!lane) continue;
+        for (let j = area.j0; j <= area.j1; j++) if (lane.points[st.rows[j].id] != null) doomed.push(nodeKey(st.rows[j].id, ln.lk));
+      }
+      if (!doomed.length) return say("No nodes in the selection."), { ok: false };
+      const cmds = [];
+      st.links.forEach((l) => {
+        const ends = linkEnds(l);
+        if (ends && ends.some((k) => doomed.includes(k))) cmds.push({ type: "removeLink", link: l.id });
+      });
+      doomed.forEach((k) => {
+        const n = split(k);
+        cmds.push({ type: "removePoint", row: n.row, track: n.track, curiosity: n.cur });
+      });
+      const out = send({ type: "batch", label: "Remove the selected nodes", commands: cmds });
+      if (out.ok) say(`Removed ${doomed.length} node${doomed.length === 1 ? "" : "s"}.`);
+      return out;
+    }
+    /* Paste the copied area: into the selected area (repeating across a wider one; one copied lane fills every
+       selected lane), else at the playhead, starting on the picked node's lane or the lane it came from. */
+    function pasteHere() {
+      const st = E().state();
+      const lanes = geo.lanes;
+      let c = clip;
+      let i0;
+      let start;
+      let width = 0;
+      if (area) {
+        i0 = area.i0;
+        start = area.j0;
+        width = area.j1 - area.j0 + 1;
+        const rows = area.i1 - area.i0 + 1;
+        if (c.lanes.length === 1 && rows > 1) c = Object.assign({}, c, { lanes: Array.from({ length: rows }, () => c.lanes[0]), links: [] });
+      } else {
+        start = opts.row ? opts.row() : 0;
+        const first = c.lanes.find(Boolean);
+        i0 = sel ? lanes.findIndex((ln) => ln.lk === split(sel).lk) : first ? lanes.findIndex((ln) => ln.cur === first.cur) : 0;
+        if (i0 < 0) i0 = 0;
+      }
+      const targets = c.lanes.map((src, k) => {
+        const ln = lanes[i0 + k];
+        return src && ln ? { cur: ln.cur, track: ln.track } : null;
+      });
+      if (!targets.some(Boolean)) return say("There is no lane there to paste onto."), { ok: false };
+      const r = pasteAreaCommands(st, c, targets, start, width);
+      if (r.error) return say(r.error), { ok: false };
+      const out = send({ type: "batch", label: "Paste automation", commands: r.cmds });
+      if (out.ok) {
+        const across = targets.filter(Boolean).filter((t, k) => c.lanes[k] && t.cur !== c.lanes[k].cur).length;
+        const span = Math.max(c.span + 1, width);
+        area = { i0, i1: Math.min(lanes.length - 1, i0 + c.lanes.length - 1), j0: start, j1: Math.min(st.rows.length - 1, start + span - 1) };
+        say(`Pasted onto ${targets.filter(Boolean).length} lane${targets.filter(Boolean).length === 1 ? "" : "s"}${across ? `, ${across} of them a different curiosity (values keep their place on its scale)` : ""}.`);
+      }
+      return out;
+    }
+    /* The curves pop-up for one line: a shape, a bend, a preview with fine grid lines, and the whole lane's mode. */
+    function openCurves(sk) {
+      const st = E().state();
+      sk = sk || seg;
+      if (!sk) {
+        /* The line under the playhead in the picked lane (or the first lane with two nodes). */
+        const playRow = opts.row ? opts.row() : 0;
+        const lks = (sel ? [split(sel).lk] : []).concat(geo.lanes.map((ln) => ln.lk).filter(Boolean));
+        for (const lk of lks) {
+          const list = laneNodes(st, lk).map(split).map((n) => ({ r: n.row, j: st.rows.findIndex((x) => x.id === n.row) }));
+          const all = list.map((p) => Object.assign(p, { v: st.lanes[lk].points[p.r] }));
+          const cp = curvePoints(st, lk, all);
+          const nodes = all.filter((p) => !cp.has(p.r));
+          if (nodes.length < 2) continue;
+          let k = nodes.findIndex((p, q) => q > 0 && nodes[q - 1].j <= playRow && p.j > playRow);
+          if (k < 1) k = 1;
+          sk = segKey(lk, nodes[k - 1].r, nodes[k].r);
+          break;
+        }
+      }
+      if (!sk) return say("Make a lane with two nodes first; a curve shapes the line between them."), { ok: false };
+      const parts = sk.split("|");
+      const lk = parts[0] + "|" + parts[1];
+      const cur = parts[1];
+      const lane = st.lanes[lk];
+      const ja = st.rows.findIndex((r) => r.id === parts[2]);
+      const jb = st.rows.findIndex((r) => r.id === parts[3]);
+      if (!lane || ja < 0 || jb < 0) return say("That line is gone."), { ok: false };
+      const a = { r: parts[2], j: ja, v: lane.points[parts[2]] };
+      const b = { r: parts[3], j: jb, v: lane.points[parts[3]] };
+      const had = curves[sk] && curveOk(st, lk, a, b, curves[sk]) ? curves[sk] : null;
+      const pick = { shape: had ? had.shape : lane.mode === "hold" ? "jumpLate" : lane.mode === "smooth" ? "smooth" : "straight", bend: had ? had.bend : 40 };
+      const room = jb - ja >= 2;
+      const old = el.querySelector(".sl-pop");
+      if (old) old.remove();
+      const pop = document.createElement("div");
+      pop.className = "sl-pop sl-curves";
+      pop.setAttribute("role", "dialog");
+      pop.setAttribute("aria-label", "Curves");
+      const W = 260;
+      const H = 140;
+      function preview() {
+        const pa = S().pos(cur, a.v);
+        const pb = S().pos(cur, b.v);
+        const g = [];
+        for (let k = 0; k <= 20; k++) g.push(`<line class="${k % 5 ? "cv-fine" : "cv-major"}" x1="${(k * W) / 20}" x2="${(k * W) / 20}" y1="0" y2="${H}"/>`);
+        for (let k = 0; k <= 10; k++) g.push(`<line class="${k % 5 ? "cv-fine" : "cv-major"}" x1="0" x2="${W}" y1="${(k * H) / 10}" y2="${(k * H) / 10}"/>`);
+        for (let j = ja + 1; j < jb; j++) g.push(`<line class="cv-moment" x1="${((j - ja) / (jb - ja)) * W}" x2="${((j - ja) / (jb - ja)) * W}" y1="0" y2="${H}"/>`);
+        const y = (p) => 8 + (1 - Math.max(0, Math.min(1, p))) * (H - 16);
+        const line = [];
+        for (let k = 0; k <= 64; k++) line.push(`${((k / 64) * W).toFixed(1)},${y(pa + (pb - pa) * shapeAt(pick.shape, pick.bend, k / 64)).toFixed(1)}`);
+        const dotsP = bake(cur, a, b, pick, st.rows).map((p) => `<circle class="cv-dot" cx="${((p.j - ja) / (jb - ja)) * W}" cy="${y(S().pos(cur, p.value))}" r="3.5"><title>Moment ${p.j + 1}: ${esc(p.value)}</title></circle>`);
+        return `<svg class="cv-svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g.join("")}<polyline class="cv-line" points="${line.join(" ")}"/>${dotsP.join("")}<circle class="cv-end" cx="0" cy="${y(pa)}" r="5"/><circle class="cv-end" cx="${W}" cy="${y(pb)}" r="5"/></svg>`;
+      }
+      function paint() {
+        const sh = SHAPES[pick.shape];
+        pop.innerHTML = `<p><strong>Curve</strong> · ${esc(S().label(cur))}, moment ${ja + 1} (${esc(a.v)}) to moment ${jb + 1} (${esc(b.v)})</p>
+          ${preview()}
+          <div class="sl-shapes" role="group" aria-label="Shape">${Object.keys(SHAPES).map((k) => `<button type="button" data-shape="${k}" class="${k === pick.shape ? "on" : ""}" title="${esc(SHAPES[k][1])}">${esc(SHAPES[k][0])}</button>`).join("")}</div>
+          <label class="sl-bend">Bend <input type="range" min="0" max="100" step="1" value="${pick.bend}" data-bend${sh[2] ? "" : " disabled"}><output>${pick.bend}</output></label>
+          <p class="sl-note">${esc(sh[1])} ${room ? `The dots are what plays at moments ${ja + 2} to ${jb}.` : "These two nodes are on neighbouring moments, so nothing plays between them; move one further away to give the curve room."}</p>
+          <p class="sl-note">Whole lane: <span class="sl-seg">${["ramp", "smooth", "hold"].map((m) => `<button type="button" data-lmode="${m}" class="${modeOf(lane) === m ? "on" : ""}">${MODES[m][1]}</button>`).join("")}</span></p>
+          <div class="sl-pop-btns"><button type="button" data-l="cancel">Cancel</button><button type="button" data-l="apply" class="on"${room ? "" : " disabled"}>Apply</button></div>`;
+      }
+      paint();
+      pop.addEventListener("input", (ev) => {
+        if (!ev.target.matches("[data-bend]")) return;
+        pick.bend = Number(ev.target.value);
+        pop.querySelector(".cv-svg").outerHTML = preview();
+        pop.querySelector(".sl-bend output").textContent = pick.bend;
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const t = ev.target.closest("button");
+        if (!t) return;
+        if (t.dataset.shape) {
+          pick.shape = t.dataset.shape;
+          return paint();
+        }
+        if (t.dataset.lmode) {
+          const r = E().send({ type: "laneMode", track: parts[0], curiosity: cur, mode: t.dataset.lmode, label: MODES[t.dataset.lmode][3] });
+          if (!r.ok) say(t.dataset.lmode === "smooth" ? "This engine can't make a whole lane smooth yet; shape this line with Smooth instead." : r.error);
+          pop.remove();
+          return draw();
+        }
+        if (t.dataset.l === "apply") {
+          const now = E().state();
+          const ln = now.lanes[lk];
+          const cmds = [];
+          /* Clear the moments between (old curve points), then write the curve. A straight line needs no points. */
+          for (let j = ja + 1; j < jb; j++) if (ln && ln.points[now.rows[j].id] != null) cmds.push({ type: "removePoint", row: now.rows[j].id, track: parts[0], curiosity: cur });
+          if (pick.shape !== "straight") bake(cur, a, b, pick, now.rows).forEach((p) => cmds.push({ type: "setPoint", row: p.row, track: parts[0], curiosity: cur, value: p.value }));
+          if (pick.shape === "straight") delete curves[sk];
+          else curves[sk] = { shape: pick.shape, bend: pick.bend };
+          saveCurves();
+          const r = cmds.length ? send({ type: "batch", label: "Shape a curve: " + SHAPES[pick.shape][0], commands: cmds }) : { ok: true };
+          if (r.ok) say(`${SHAPES[pick.shape][0]} curve from moment ${ja + 1} to ${jb + 1}.`);
+          seg = sk;
+        }
+        pop.remove();
+        draw();
+      };
+      el.appendChild(pop);
+      return { ok: true, pop };
     }
     /* CapCut's Linkage settings box: a tick per kind of node, Select all, Cancel and Done. */
     function linkSettings() {
@@ -758,9 +1424,30 @@
     }
     function onDbl(e) {
       const node = e.target.closest && e.target.closest("[data-node]");
-      if (node) removeNode(node.dataset.node);
+      if (node) return removeNode(node.dataset.node);
+      const s2 = e.target.closest && e.target.closest("[data-seg]");
+      if (s2) openCurves(s2.dataset.seg);
+    }
+    function onWheel(e) {
+      if (!e.target.closest || !e.target.closest(".sl-scroll")) return;
+      const r = scroller().getBoundingClientRect();
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        zoomAt(zoomOf() * Math.exp(-e.deltaY * 0.01), e.clientX - r.left);
+        saveTools();
+      } else if (e.altKey) {
+        e.preventDefault();
+        laneAt(lh * Math.exp(-e.deltaY * 0.01), e.clientY - r.top);
+        saveTools();
+      }
     }
     function onKey(e) {
+      if (e.key === "Escape" && (area || seg)) {
+        area = null;
+        seg = null;
+        return draw();
+      }
+      if (area && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return command("delete");
       if (!sel || !el.contains(document.activeElement || el)) return;
       if ((e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) removeNode(sel);
     }
@@ -772,11 +1459,15 @@
     el.addEventListener("click", onClick);
     el.addEventListener("dblclick", onDbl);
     el.addEventListener("keydown", onKey);
+    el.addEventListener("wheel", onWheel, { passive: false });
     draw();
     return {
       draw,
       select: (key) => ((sel = key), draw()),
       selected: () => sel,
+      area: () => area,
+      selectArea: (a) => ((area = a), (sel = null), draw()),
+      curves: (sk) => openCurves(sk),
       linkSettings,
       command,
       destroy() {
@@ -786,5 +1477,5 @@
     };
   }
 
-  root.CurioLanes = { tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
+  root.CurioLanes = { SHAPES, shapeAt, copyArea, pasteAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
 })();
