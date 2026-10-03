@@ -43511,6 +43511,195 @@
    }
   },
   {
+   "id": "rigRulesLens",
+   "level": "curiosity",
+   "label": "Movement rules",
+   "plain": "The rules a 3D character's body follows: which move it plays, how fast, how it holds its spine, where it looks, how loose its parts are and how far its joints may bend.",
+   "workspace": "character-motion",
+   "also": [
+    "movement-lines",
+    "emotion"
+   ],
+   "group": "Maya: Movement rules",
+   "kind": "lens",
+   "per": "panel",
+   "main": "motion",
+   "sliders": [
+    {
+     "id": "motion",
+     "label": "What the body is doing",
+     "plain": "The move the character plays. Bought and free characters come with moves like these already made (clips).",
+     "scale": [
+      "standing still",
+      "looking around",
+      "walking",
+      "running"
+     ],
+     "from": "standing still",
+     "to": "running",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "pace",
+     "label": "Pace",
+     "plain": "How fast the move plays. The same walk slowed down reads tired; sped up reads late or scared.",
+     "scale": [
+      "dragging",
+      "slow",
+      "normal",
+      "brisk",
+      "frantic"
+     ],
+     "from": "dragging",
+     "to": "frantic",
+     "curve": "linear"
+    },
+    {
+     "id": "slump",
+     "label": "Spine",
+     "plain": "One control that bends the whole spine, the neck and the head together. Maya calls a control like this a driven key.",
+     "scale": [
+      "proud and upright",
+      "relaxed",
+      "slumped",
+      "collapsed"
+     ],
+     "from": "proud and upright",
+     "to": "collapsed",
+     "curve": "linear"
+    },
+    {
+     "id": "lookAt",
+     "label": "Where the eyes go",
+     "plain": "The head turns to look at something by itself, within what a neck can do (an aim constraint in Maya).",
+     "scale": [
+      "straight ahead",
+      "at the camera",
+      "at the ground",
+      "up",
+      "all around"
+     ],
+     "from": "straight ahead",
+     "to": "all around",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "floppy",
+     "label": "Loose parts",
+     "plain": "Whether arms, head and tail lag behind and keep moving after the body stops (follow-through).",
+     "scale": [
+      "stiff",
+      "a little give",
+      "loose",
+      "floppy"
+     ],
+     "from": "stiff",
+     "to": "floppy",
+     "curve": "linear"
+    },
+    {
+     "id": "breath",
+     "label": "Breathing",
+     "plain": "How much the chest rises and falls. Heavy breathing after a run, held breath before a scare.",
+     "scale": [
+      "held",
+      "calm",
+      "heavy",
+      "heaving"
+     ],
+     "from": "held",
+     "to": "heaving",
+     "curve": "linear"
+    },
+    {
+     "id": "limits",
+     "label": "How far joints bend",
+     "plain": "The rule that stops a knee bending backwards. Rubber lets cartoon bodies break it; stiff keeps every joint close to straight.",
+     "scale": [
+      "like rubber",
+      "natural",
+      "stiff"
+     ],
+     "from": "like rubber",
+     "to": "stiff",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:rig3d"
+   ],
+   "maya": "Skeletons and joint limits, aim constraints, Set Driven Key, dynamic joint chains, Time Editor clips",
+   "tool": "rig3d",
+   "momentum": {
+    "push": 2,
+    "plot": "A body that follows its own rules (a tired slump, eyes that keep going to the door) tells the audience what the character wants before a word is said.",
+    "theme": "How a body is allowed to move is how free a character is: stiff joints for someone boxed in, loose limbs for someone let go.",
+    "pull": "The eye follows where a character looks, so the head's aim steers the audience's attention.",
+    "cue": "movement",
+    "tryThis": "Change one rule at the turn of the scene: the spine lifts, or the eyes finally go to the camera."
+   }
+  },
+  {
    "id": "faceLens",
    "level": "curiosity",
    "label": "Face acting",
