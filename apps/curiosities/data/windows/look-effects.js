@@ -35,6 +35,8 @@
         x = x0;
         y += 14;
       }
+      /* A lone chip too long for the space slides left to stay in the frame. */
+      if (x + w > maxX && x === x0) x = Math.max(2, maxX - w);
       out += `<rect x="${r1(x)}" y="${y}" width="${r1(w)}" height="12" rx="6" fill="rgba(0,0,0,0.6)" stroke="#55555f"/>` + k.label({ x: x + w / 2, y: y + 9, text: t, size: 8, color: "#e4e4e4" });
       x += w + 4;
     });
@@ -955,8 +957,8 @@
     const onset = v.p("onset");
     const end = v.p("ending");
     out += envelope(k, { x: 214, y: 30, w: 96, h: 56, rise: v.n("onsetSecs") / 2 + (1 - onset) * 0.5, hold: v.n("length"), fall: 0.05 + (v.n("endSecs") / 2) * (end === 0 ? 0.3 : 1), linger: end > 0.9 ? 1 : 0, snap: onset, wobble: sway, peak: 0.3 + inten * 0.6, color: col, label: "takes hold, wears off" });
-    out += k.label({ x: 214, y: 104, text: `${v("onset")}, ${v("ending")}`, size: 8, color: "#ccc", anchor: "start" });
-    out += k.label({ x: 214, y: 116, text: `${v("sway")}, ${cyc}/s`, size: 8, color: "#ccc", anchor: "start" });
+    out += k.label({ x: 214, y: 124, text: `${v("onset")}, ${v("ending")}`, size: 8, color: "#ccc", anchor: "start" });
+    out += k.label({ x: 214, y: 136, text: `${v("sway")}, ${cyc}/s`, size: 8, color: "#ccc", anchor: "start" });
     return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v.n("intensity")}%, ${v("pov")}, ${v.n("length")} s`);
   });
 
@@ -1799,7 +1801,7 @@
     }
     out += beatStrip(k, { x: 10, y: 146, w: 300, beats: 16, gridColor: beat ? "#9fd3ff" : "#333", events: ev, label: `${v("every")}, ${v.n("flashFrames")} frames each, ${v.n("offsetFrames")} off` });
     if (saved > 0) out += `<line x1="${r1(10 + from * 300)}" y1="140" x2="${r1(10 + from * 300)}" y2="166" stroke="#ff6b6b" stroke-width="2"/>` + k.label({ x: 12 + from * 300, y: 134, text: saved < 1 ? "the drop" : "final chorus", size: 8, color: "#ff6b6b", anchor: "start" });
-    out += k.label({ x: 222, y: 30, text: `${kind}`, size: 10, color: c0, anchor: "start", weight: 700 });
+    out += k.label({ x: 222, y: 30, text: `${kind}`, size: r1(k.clamp(92 / (String(kind).length * 0.6), 7, 10)), color: c0, anchor: "start", weight: 700 });
     return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v("flashColor")}, ${v.n("strength")}%, ${beat ? "on the beat" : "free"}`);
   });
 

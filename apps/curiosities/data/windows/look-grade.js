@@ -226,38 +226,45 @@
     const word = idx(v, "setting"); // mismatched close matched deliberately different
     const close = v.p("closeness");
     const base = [0.15, 0.6, 1, 0][word];
-    const match = cl(base * 0.7 + close * 0.3 + (word === 3 ? 0 : 0), 0, 1);
+    const match = cl(base * 0.7 + close * 0.3, 0, 1);
     const what = idx(v, "matchWhat"); // brightness color contrast everything
     const dims = [what === 0 || what === 3, what === 1 || what === 3, what === 2 || what === 3];
     const diff = (on) => (on ? 1 - match : 0.55) * (word === 3 ? 1.6 : 1);
-    const d = [0, 0.9, -0.7, 0.5];
     const skinI = idx(v, "skin");
     const skinCol = ["#9fb89a", "#e8b894", "#f0b890", "#f08a5a"][skinI];
     const brk = v("breakOn");
-    const brkAt = { never: -1, "a time jump": 2, "a dream": 3, "a big turn": 1 }[brk];
-    const shots = d.map((di, i) => {
-      const off = i === brkAt ? 1.4 : di;
-      const g = { curve: LLx().curve({ bright: off * diff(dims[0]) * 0.25, contrast: off * diff(dims[2]) * 0.6 }), tone: () => LL.warmRGB(off * diff(dims[1]) * 0.8) };
-      const x = 6 + i * 78;
-      return `<g transform="translate(${x} 24) scale(0.235)">${LL.scene({ room: { lamp: { on: 0.85 } }, bust: { key: { dark: 0.45 }, skin: skinCol }, grade: g }, k, `${id}-${i}`)}</g><rect x="${x}" y="24" width="75.2" height="42.3" fill="none" stroke="${i === 0 ? "#ffd166" : i === brkAt ? "#e85d75" : "#000"}" stroke-width="1.5"/>${i === brkAt ? k.label({ x: x + 37, y: 76, text: "break: " + brk, size: 7, color: "#e85d75" }) : ""}`;
-    }).join("");
+    const brkAt = { never: -1, "a time jump": 3, "a dream": 4, "a big turn": 2 }[brk];
+    /* How far each shot of the scene drifts from the reference look (the first shot is the reference). */
+    const D = [0, 0.9, -0.7, 0.5, -0.4, 0.8];
+    const gradeOf = (off) => ({ curve: LL.curve({ bright: off * diff(dims[0]) * 0.25, contrast: off * diff(dims[2]) * 0.6 }), tone: () => LL.warmRGB(off * diff(dims[1]) * 0.8) });
+    const shotAt = (x, y, sc, off, sid, extra) => `<g transform="translate(${x} ${y}) scale(${sc})">${LL.scene(Object.assign({ room: { lamp: { on: 0.85 } }, bust: { key: { dark: 0.45 }, skin: skinCol }, grade: gradeOf(off) }, extra || {}), k, sid)}</g>`;
+    /* Big: the reference shot and the next shot side by side, the way a colorist checks a cut. */
+    const refName = { "the shot before": "the shot before", "the scene's key shot": "the key shot", "an inspiration film": "the inspiration" }[v("reference")] || v("reference");
+    const refExtra = /inspiration/.test(v("reference")) ? { room: { lamp: { on: 0.85 }, wall: "#7d8fa8" } } : null;
+    let out = k.bg("#141418");
+    out += shotAt(8, 20, 0.4563, 0, `${id}-ref`, refExtra) + `<rect x="8" y="20" width="146" height="82" fill="none" stroke="#ffd166" stroke-width="2"/>` + k.label({ x: 81, y: 14, text: `reference: ${refName}`, size: 8, color: "#ffd166" });
+    out += shotAt(166, 20, 0.4563, D[1], `${id}-next`) + `<rect x="166" y="20" width="146" height="82" fill="none" stroke="#ccc" stroke-width="1.5"/>` + k.label({ x: 239, y: 14, text: "next shot", size: 8, color: "#ddd" });
+    out += k.text({ x: 160, y: 66, text: match > 0.75 && word !== 3 ? "=" : "≠", size: 14, color: match > 0.75 && word !== 3 ? "#9fe0a0" : "#e85d75", weight: 700, outline: "#000" });
+    /* Small: the scene's shots in order. Matching shots get a green tick; a break is ringed in red; smoothing
+       blends each jump into the next shot over a short ramp. */
+    const span = Math.round(v.n("matchSpan"));
+    const ticks = Math.max(1, Math.round((span / 50) * 6));
     const smooth = idx(v, "smoothJumps");
     const st = v.n("smoothTime") / 5;
-    const vals = d.map((di, i) => 0.5 + (i === brkAt ? 1.4 : di) * (1 - match) * 0.3);
-    let line = "";
-    vals.forEach((val, i) => {
-      const x0 = 14 + i * 78;
-      const y = r1(140 - val * 40);
-      if (i === 0) line += `M${x0} ${y} `;
-      else {
-        const ramp = smooth === 0 ? 0 : (smooth === 1 ? 12 : 26) * (0.4 + st * 0.6);
-        const prevY = r1(140 - vals[i - 1] * 40);
-        line += `L${r1(x0 - ramp)} ${prevY} L${x0} ${y} `;
+    D.forEach((di, i) => {
+      const off = i === brkAt ? 1.5 : di;
+      const x = 8 + i * 51;
+      out += shotAt(x, 116, 0.1563, off, `${id}-s${i}`) + `<rect x="${x}" y="116" width="50" height="28" fill="none" stroke="${i === brkAt ? "#e85d75" : i === 0 ? "#ffd166" : "#000"}" stroke-width="1.5"/>`;
+      if (i > 0 && smooth > 0) {
+        const bw = (smooth === 1 ? 8 : 16) * (0.4 + st * 0.6);
+        out += `<defs><linearGradient id="${id}-g${i}" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity="0.45"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient></defs><rect x="${x}" y="116" width="${r1(bw)}" height="28" fill="url(#${id}-g${i})"/>`;
       }
-      line += `L${x0 + 70} ${y} `;
+      if (i < ticks && i !== brkAt) out += k.label({ x: x + 44, y: 126, text: "✓", size: 9, color: "#9fe0a0", weight: 700 });
     });
-    const span = Math.round(v.n("matchSpan"));
-    return `${k.bg("#141418")}${k.label({ x: 6, y: 16, text: `matched to ${v("reference")}`, size: 9, anchor: "start", color: "#ddd" })}${shots}${LL.box(6, 92, 308, 58)}${k.label({ x: 12, y: 104, text: "brightness, shot to shot", size: 8, anchor: "start", color: "#ccc" })}<path d="${line}" fill="none" stroke="#ffd166" stroke-width="2"/>${LL.ticks(k, 236, 103, 72, Math.min(25, Math.ceil(span / 2)), "#9fe0a0", "")}${k.label({ x: 230, y: 106, text: `${span} shots match`, size: 8, anchor: "end", color: "#9fe0a0" })}${k.label({ x: 308, y: 146, text: `smoothing ${v("smoothJumps")}, ${v.n("smoothTime")} s`, size: 7, anchor: "end", color: "#ccc" })}${LLx().caption(k, `${v("setting")} on ${v("matchWhat")}, ${v.n("closeness")}% close, skin ${v("skin")}`)}`;
+    out += k.label({ x: 8, y: 112, text: `the scene, shot by shot · ${span} shot${span === 1 ? "" : "s"} match${span === 1 ? "es" : ""}`, size: 8, anchor: "start", color: "#aaa" });
+    out += k.label({ x: 312, y: 112, text: brkAt >= 0 ? `break for ${brk}` : `smoothing ${v("smoothJumps")}, ${v.n("smoothTime")} s`, size: 8, anchor: "end", color: brkAt >= 0 ? "#e85d75" : "#aaa" });
+    if (brkAt >= 0) out += k.label({ x: 160, y: 156, text: `smoothing ${v("smoothJumps")}, ${v.n("smoothTime")} s`, size: 8, color: "#aaa" });
+    return out + LLx().caption(k, `${v("setting")} on ${v("matchWhat")}, ${v.n("closeness")}% close, skin ${v("skin")}`);
   });
 
   /* A texture laid over the picture: paper, grain, dots, two tones, a photo frame or old film, with edges,

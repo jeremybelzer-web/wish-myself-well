@@ -47,6 +47,36 @@
   const ear = (k, x, y, s) => `<path d="M${x} ${y - 12 * s} q${10 * s} 0 ${10 * s} ${10 * s} q0 ${8 * s} ${-6 * s} ${12 * s} q${-4 * s} ${2 * s} ${-4 * s} ${6 * s}" fill="none" stroke="#f0c8a0" stroke-width="${3 * s}" stroke-linecap="round"/>`;
   const robot = (k, x, y, r) => `<rect x="${x - r}" y="${y - r}" width="${2 * r}" height="${2 * r}" rx="${r * 0.2}" fill="#9fb7c8" stroke="${k.INK}" stroke-width="1.5"/><rect x="${x - r * 0.55}" y="${y - r * 0.35}" width="${r * 0.35}" height="${r * 0.3}" fill="#5ff5ff"/><rect x="${x + r * 0.2}" y="${y - r * 0.35}" width="${r * 0.35}" height="${r * 0.3}" fill="#5ff5ff"/><line x1="${x}" y1="${y - r}" x2="${x}" y2="${y - r * 1.4}" stroke="${k.INK}" stroke-width="1.5"/><rect x="${x - r * 0.5}" y="${y + r * 0.35}" width="${r}" height="${r * 0.2}" fill="${k.INK}"/>`;
 
+  /* Sound rings coming off a point: n rings, opening to the right (dir 1) or left (-1). */
+  const arcs = (k, x, y, n, color, dir, sw, al) => Array.from({ length: Math.max(0, Math.round(n)) }, (_, i) => {
+    const r = 6 + i * 6;
+    const d = dir || 1;
+    return `<path d="M${r1(x + d * r * 0.3)} ${r1(y - r * 0.8)} A${r} ${r} 0 0 ${d > 0 ? 1 : 0} ${r1(x + d * r * 0.3)} ${r1(y + r * 0.8)}" fill="none" stroke="${color}" stroke-width="${sw || 1.8}" opacity="${r1((al == null ? 1 : al) * (1 - i * 0.12))}"/>`;
+  }).join("");
+  /* A tiny place, for shots in a strip: "sea" (sky and waves), "street" (bricks and a car), "kitchen" (two
+     people at a table). Drawn inside x, y, w, h with its own clip. */
+  let placeN = 0;
+  const place = (k, x, y, w, h, kind) => {
+    const cid = `cw-pl${++placeN}`;
+    let g;
+    if (kind === "sea") g = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#8cc0ea"/><rect x="${x}" y="${r1(y + h * 0.55)}" width="${w}" height="${r1(h * 0.45)}" fill="#2f6fa5"/>` + [0.62, 0.78].map((f) => `<path d="M${x} ${r1(y + h * f)} ${Array.from({ length: 8 }, (_, i) => `q${r1(w / 16)} -3 ${r1(w / 8)} 0`).join(" ")}" fill="none" stroke="#dff" stroke-width="1"/>`).join("") + `<circle cx="${r1(x + w * 0.8)}" cy="${r1(y + h * 0.2)}" r="${r1(h * 0.1)}" fill="#fff1b8"/>`;
+    else if (kind === "street") g = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#9a4a3a"/>` + Array.from({ length: 4 }, (_, i) => `<line x1="${x}" y1="${r1(y + (i + 1) * h * 0.15)}" x2="${x + w}" y2="${r1(y + (i + 1) * h * 0.15)}" stroke="#7a3a2a"/>`).join("") + `<rect x="${x}" y="${r1(y + h * 0.72)}" width="${w}" height="${r1(h * 0.28)}" fill="#444"/><rect x="${r1(x + w * 0.3)}" y="${r1(y + h * 0.56)}" width="${r1(w * 0.4)}" height="${r1(h * 0.2)}" rx="3" fill="#f2c94c" stroke="${k.INK}"/><circle cx="${r1(x + w * 0.38)}" cy="${r1(y + h * 0.77)}" r="${r1(h * 0.06)}" fill="#111"/><circle cx="${r1(x + w * 0.62)}" cy="${r1(y + h * 0.77)}" r="${r1(h * 0.06)}" fill="#111"/>`;
+    else g = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#b9a58c"/><rect x="${x}" y="${r1(y + h * 0.75)}" width="${w}" height="${r1(h * 0.25)}" fill="#6d5a48"/>` + [0.33, 0.67].map((f, i) => `<circle cx="${r1(x + w * f)}" cy="${r1(y + h * 0.45)}" r="${r1(Math.min(w, h) * 0.12)}" fill="#f0c8a0" stroke="${k.INK}"/><rect x="${r1(x + w * f - h * 0.1)}" y="${r1(y + h * 0.57)}" width="${r1(h * 0.2)}" height="${r1(h * 0.2)}" fill="${i ? "#c0392b" : "#4a6fa5"}"/>`).join("");
+    return `<defs><clipPath id="${cid}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath></defs><g clip-path="url(#${cid})">${g}</g><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#000" stroke-width="1.2"/>`;
+  };
+  /* The kind of sound something makes, drawn as marks: "waves" (sea hush), "honk" (traffic zigzags), "notes",
+     "words" (a speech bubble), "bang", "hum" (room tone). a is 0..1 how loud. */
+  const soundMark = (k, kind, x, y, a, color) => {
+    if (a < 0.03) return "";
+    const al = r1(0.3 + a * 0.7);
+    if (kind === "waves") return `<g opacity="${al}">${Array.from({ length: 1 + Math.round(a * 2) }, (_, i) => `<path d="M${r1(x - 10)} ${r1(y + i * 5)} q5 -4 10 0 t10 0" fill="none" stroke="${color || "#7fb7ff"}" stroke-width="2"/>`).join("")}</g>`;
+    if (kind === "honk") return `<g opacity="${al}">${Array.from({ length: 1 + Math.round(a * 2) }, (_, i) => `<path d="M${r1(x - 9)} ${r1(y + i * 5)} l4 -4 l4 4 l4 -4 l4 4" fill="none" stroke="${color || "#ff9a8a"}" stroke-width="2"/>`).join("")}</g>`;
+    if (kind === "notes") return `<g opacity="${al}">${notes(k, x - 8, y + 6, 1 + Math.round(a * 2), color || "#ffd166", 0.7)}</g>`;
+    if (kind === "words") return `<g opacity="${al}">${k.bubble({ x, y, text: "…and so", w: 44, h: 14, size: 7, tail: -8 })}</g>`;
+    if (kind === "bang") return `<g opacity="${al}">${k.text({ x, y: y + 4, text: "BANG", size: 7 + a * 5, color: color || "#ff9a8a", weight: 700, outline: "#000" })}</g>`;
+    return `<g opacity="${al}">${k.text({ x, y: y + 4, text: "mmm", size: 8, color: color || "#c8c8d0", italic: true })}</g>`;
+  };
+
   /* ---------- voice-over ---------- */
   W.look("voiceover", (v, k) => {
     const amount = idx(v, "setting");
@@ -148,21 +178,28 @@
     const ov = v.n("overlap");
     const carrier = idx(v, "carrier");
     const jolt = idx(v, "jolt");
-    const cut = 0.5;
-    /* J-cut: the next shot's sound starts before the cut. L-cut: this shot's sound runs on after it. */
-    const shift = (kind === 0 ? -1 : kind === 1 ? 1 : 0) * (0.06 + ov * 0.05) + lead * 0.03;
+    /* Shot A in a kitchen, shot B on a street. A J-cut lets B's sound in before the cut (it creeps into A's
+       picture); an L-cut lets A's sound run on into B. What carries over is drawn as its mark; the overlap
+       band is as wide as the seconds of overlap and moves with the lead. A jolt is a hard spike at the cut. */
+    const markKind = ["hum", "notes", "words", "bang"][carrier];
+    const span = 10 + ov * 16 + Math.abs(lead) * 4;
     let s = k.bg("#16161c");
-    s += lane(k, 40, "picture", 40) + `<rect x="50" y="20" width="131" height="40" fill="#4a6fa5"/><rect x="181" y="20" width="131" height="40" fill="#a5524a"/>` + k.label({ x: 115, y: 44, text: "shot A", size: 10 }) + k.label({ x: 246, y: 44, text: "shot B", size: 10 });
-    s += lane(k, 100, "sound", 40);
-    const split = k.clamp(cut + shift, 0.05, 0.95);
-    const xf = jolt === 0 ? 0.08 : jolt === 1 ? 0.03 : 0.002;
-    s += env(k, { y: 100, h: 34, wiggle: true, freq: 1.3, color: "#7fb7ff", f: (t) => (t < split - xf ? 0.8 : t < split + xf ? 0.8 * (1 - (t - (split - xf)) / (2 * xf)) : 0) });
-    s += env(k, { y: 100, h: 34, wiggle: true, freq: 2.1, color: "#ff9a8a", alpha: 0.85, f: (t) => (t > split + xf ? (jolt === 2 ? 1 : 0.8) : t > split - xf ? 0.8 * ((t - (split - xf)) / (2 * xf)) : 0) });
-    if (jolt === 2) s += `<path d="M${50 + split * 262} 76 l-6 10 l8 4 l-6 10" stroke="#ffd166" stroke-width="2.5" fill="none"/>`;
-    s += vline(k, cut, 16, 126, "#fff") + k.label({ x: 50 + cut * 262, y: 136, text: "cut", size: 8, color: "#fff" });
-    if (Math.abs(split - cut) > 0.01) s += k.arrow({ x1: 50 + cut * 262, y1: 128, x2: 50 + split * 262, y2: 128, color: "#ffd166", w: 1.5 });
-    const icons = ["room tone", "music", "a voice", "a sound effect"];
-    s += chip(k, 50, 158, `carries ${icons[carrier]}`, "#ffd166") + chip(k, 312, 158, `${lead > 0 ? "+" : ""}${lead} beats · ${ov} s overlap`, "#ccc", "end");
+    s += place(k, 10, 22, 148, 96, "kitchen") + place(k, 162, 22, 148, 96, "street");
+    s += k.label({ x: 84, y: 16, text: "shot A: kitchen", size: 8, color: "#ccc" }) + k.label({ x: 236, y: 16, text: "shot B: street", size: 8, color: "#ccc" });
+    s += `<line x1="160" y1="18" x2="160" y2="124" stroke="#fff" stroke-width="2.5"/>`;
+    if (kind === 0) {
+      /* J-cut: B's sound arrives early, over A. */
+      const x0 = Math.max(12, 158 - span * 2.4);
+      s += `<rect x="${r1(x0)}" y="24" width="${r1(158 - x0)}" height="92" fill="#ff9a8a" opacity="0.18"/>` + soundMark(k, markKind, (x0 + 158) / 2, 50, 0.9, "#ff9a8a") + soundMark(k, "honk", (x0 + 158) / 2, 80, 0.6) + k.arrow({ x1: 196, y1: 104, x2: Math.max(30, x0 + 6), y2: 104, color: "#ffd166", w: 2 });
+    } else if (kind === 1) {
+      /* L-cut: A's sound runs on, over B. */
+      const x1 = Math.min(308, 162 + span * 2.4);
+      s += `<rect x="162" y="24" width="${r1(x1 - 162)}" height="92" fill="#7fb7ff" opacity="0.18"/>` + soundMark(k, markKind, (162 + x1) / 2, 50, 0.9, "#9fd3ff") + k.arrow({ x1: 124, y1: 104, x2: Math.min(300, x1 - 6), y2: 104, color: "#ffd166", w: 2 });
+    } else s += soundMark(k, markKind, 84, 50, 0.8, "#9fd3ff") + soundMark(k, "honk", 236, 80, 0.8);
+    if (jolt === 2) s += `<path d="M160 30 l-10 16 l14 6 l-10 18" stroke="#ffd166" stroke-width="3" fill="none"/>`;
+    else if (jolt === 1) s += `<path d="M160 40 l-6 10 l8 4" stroke="#ffd166" stroke-width="2" fill="none"/>`;
+    s += k.label({ x: 160, y: 136, text: ["J-cut: the next sound comes early", "L-cut: this sound runs on", "hard cut: both change at once"][kind], size: 9, color: "#ffd166" });
+    s += chip(k, 10, 155, `carries ${["room tone", "music", "a voice", "a sound effect"][carrier]}`, "#ffd166") + chip(k, 310, 155, `${lead > 0 ? "+" : ""}${lead} beats · ${ov} s overlap`, "#ccc", "end");
     return s + cap(k, `${v("setting")} · ${v("jolt")} · ${v("carrier")}`);
   });
 
@@ -291,7 +328,7 @@
     let s = k.bg("#16161c");
     /* The screen in front, the listener in the middle; sounds around them, wider as the mix surrounds you.
        At most 10 marks are drawn so a busy mix still reads; the caption says how dense it really is. */
-    s += `<rect x="100" y="10" width="120" height="54" fill="#2e3440" stroke="#888" stroke-width="2"/>` + k.label({ x: 104, y: 20, text: "screen", size: 7, color: "#888", anchor: "start" });
+    s += `<rect x="100" y="10" width="120" height="54" fill="#2e3440" stroke="#888" stroke-width="2"/>` + `<rect x="150" y="64" width="20" height="6" fill="#555"/>`;
     s += k.face({ x: 160, y: 112, r: 14, eyes: 0.9 }) + ear(k, 174, 112, 0.6);
     const shown = Math.min(dens, real >= 2 ? 6 : 10);
     const spread = real >= 2 ? [1.3, 2.5, 2 * Math.PI][sur] : [0.9, 1.8, 2 * Math.PI][sur];
@@ -329,40 +366,34 @@
     const forI = idx(v, "duckFor");
     const fills = idx(v, "fillsGaps");
     const under = db(v.n("musicDb"), -40);
-    const att = v.n("duckAttack") / 2;
-    const rel = v.n("duckRelease") / 5;
     const base = [0, 0.3, 0.55, 0.8, 1][lv];
+    /* Four moments of one scene, left to right: a pause, the main line, someone else talking, a door slam.
+       In each the radio plays the music as loud as it is at that moment: it dips under whatever it ducks for,
+       swells in the pauses, and stays full when it is "music only". */
+    const events = [["pause", -1], ["main line", 1], ["other voice", 0], ["door slam", 2]];
+    const ducksFor = (kind) => (kind === 1 ? forI >= 1 : kind === 0 ? forI >= 2 : kind === 2 ? forI === 3 : false);
+    const low = Math.min(base, under * base + (1 - duck) * base * 0.5);
     let s = k.bg("#16161c");
-    s += lane(k, 40, "voices", 34) + lane(k, 110, "music", 70);
-    /* Voices: main lines (green) and other voices (blue), and a door slam (any sound). */
-    const V = [[0.08, 0.2, 1], [0.3, 0.38, 0], [0.48, 0.62, 1], [0.74, 0.8, 2]];
-    V.forEach(([a, b, kind]) => (s += block(k, a, b, 40, 18, kind === 1 ? "#7fd1ae" : kind === 0 ? "#7fb7ff" : "#ff9a8a")));
-    s += k.label({ x: 50 + 0.77 * 262, y: 30, text: "slam", size: 7, color: "#ff9a8a" });
-    const ducks = V.filter(([, , kind]) => (forI === 1 ? kind === 1 : forI === 2 ? kind <= 1 : forI === 3));
-    const slope = [0.004, 0.02, 0.05][fade];
-    const lvlAt = (t) => {
-      if (lv === 4) return 1;
-      let m = base;
-      let inGap = true;
-      ducks.forEach(([a, b]) => {
-        const ra = Math.max(0.002, slope + att * 0.06);
-        const rr = Math.max(0.002, slope + rel * 0.08);
-        let d = 0;
-        if (t >= a && t <= b) d = Math.min(1, (t - a + ra) / ra);
-        else if (t < a && t > a - ra) d = 1 - (a - t) / ra;
-        else if (t > b && t < b + rr) d = 1 - (t - b) / rr;
-        if (d > 0) {
-          inGap = false;
-          const low = Math.min(base, under * base + (1 - duck) * base * 0.5);
-          m = Math.min(m, base - (base - low) * d * Math.max(0.15, duck));
-        }
-      });
-      if (inGap && fills) m = Math.min(1, m + fills * 0.18);
-      return m;
-    };
-    s += env(k, { y: 110, h: 66, wiggle: true, color: "#ffd166", n: 160, f: lvlAt });
-    s += chip(k, 50, 157, `ducks ${v("duck")} dB for ${v("duckFor")}`, "#ffd166") + chip(k, 312, 14, `dips in ${v("duckAttack")} s · back in ${v("duckRelease")} s`, "#ccc", "end");
-    return s + cap(k, `${v("setting")} · ${v("musicDb")} dB under speech · ${v("fade")} · fills gaps: ${v("fillsGaps")}`);
+    events.forEach(([name, kind], i) => {
+      const x = 6 + i * 78;
+      const dips = kind >= 0 && ducksFor(kind) && lv < 4;
+      const lvl = lv === 4 ? 1 : dips ? base - (base - low) * Math.max(0.15, duck) : Math.min(1, base + (kind < 0 ? fills * 0.18 : 0));
+      s += `<rect x="${x}" y="18" width="74" height="104" fill="#2a2530" stroke="#555"/><rect x="${x}" y="98" width="74" height="24" fill="#3a3028"/>`;
+      s += k.label({ x: x + 37, y: 13, text: name, size: 8, color: dips ? "#ffd166" : "#bbb" });
+      /* People: who talks. */
+      s += `<circle cx="${x + 22}" cy="76" r="8" fill="#f0c8a0" stroke="${k.INK}"/><rect x="${x + 15}" y="85" width="14" height="14" fill="#4a6fa5"/><circle cx="${x + 46}" cy="76" r="8" fill="#f0c8a0" stroke="${k.INK}"/><rect x="${x + 39}" y="85" width="14" height="14" fill="#c0392b"/>`;
+      if (kind === 1) s += k.bubble({ x: x + 26, y: 56, text: "I'm leaving", w: 50, h: 14, size: 7, tail: -6 });
+      if (kind === 0) s += k.bubble({ x: x + 48, y: 56, text: "wait!", w: 34, h: 14, size: 7, tail: 0 });
+      if (kind === 2) s += `<rect x="${x + 58}" y="40" width="14" height="58" fill="#6a4a30" stroke="${k.INK}"/>` + k.text({ x: x + 50, y: 36, text: "SLAM", size: 8, color: "#ff9a8a", weight: 700, outline: "#000" });
+      /* The radio and its music. */
+      s += `<rect x="${x + 4}" y="30" width="18" height="11" rx="2" fill="#8a5a3a" stroke="${k.INK}"/>`;
+      s += lvl > 0.02 ? Array.from({ length: Math.round(1 + lvl * 3) }, (_, j) => { const r = 5 + j * 4; return `<path d="M${r1(x + 23 + r * 0.3)} ${r1(36 - r * 0.8)} A${r} ${r} 0 0 1 ${r1(x + 23 + r * 0.3)} ${r1(36 + r * 0.8)}" fill="none" stroke="#ffd166" stroke-width="${r1(1.2 + lvl * 1.5)}" opacity="${r1(0.5 + lvl * 0.5 - j * 0.08)}"/>`; }).join("") : k.label({ x: x + 26, y: 39, text: "off", size: 7, color: "#888", anchor: "start" });
+      s += `<rect x="${x + 4}" y="${r1(116 - lvl * 14)}" width="5" height="${r1(Math.max(1, lvl * 14))}" fill="#ffd166"/>`;
+    });
+    /* How fast it dips and comes back, as arrows between the moments. */
+    const slope = ["instant", "quick", "slow"][fade];
+    s += chip(k, 6, 140, `−${v("duck")} dB for ${v("duckFor")} · ${slope}`, "#ffd166") + chip(k, 314, 140, `in ${v("duckAttack")}s · back ${v("duckRelease")}s`, "#ccc", "end");
+    return s + cap(k, `${v("setting")} · ${v("musicDb")} dB under speech · fills gaps: ${v("fillsGaps")}`);
   });
 
   /* ---------- music sting ---------- */
@@ -467,22 +498,28 @@
     const rumble = v.p("rumble");
     const clear = v.p("clarity");
     const gap = v.n("gapLength") / 10;
-    let s = k.bg("#16161c");
-    /* Each layer is a strip of sound; air and gaps cut holes in it; clarity keeps the layers apart. */
-    const n = layers;
-    const top = 14;
-    const H = 116;
-    const step = H / n;
-    for (let i = 0; i < n; i++) {
-      const y = top + step * (i + 0.5) * k.lerp(0.35, 1, clear) + (1 - clear) * 38;
-      const col = clear > 0.3 ? k.hsl(i * 33, 55, 60) : "#9a9a9a";
-      const holeEvery = 0.12 + (1 - d) * 0.15;
-      const hole = 0.005 + air * 0.05 + gap * 0.06;
-      s += env(k, { x: 20, w: 290, y, h: Math.max(6, step * 1.1 * (0.6 + d * 0.6)), wiggle: true, freq: 1 + i * 0.37, color: col, alpha: k.lerp(0.35, 0.85, clear), f: (t) => (((t + i * 0.037) % holeEvery) < hole ? 0 : 0.5 + d * 0.5) });
-    }
-    /* The low rumble underneath. */
-    s += env(k, { x: 20, w: 290, y: 150, h: 24, wiggle: true, freq: 0.25, color: "#8a5aff", alpha: 0.85, f: () => 0.08 + rumble * 0.92 }) + k.label({ x: 316, y: 154, text: "rumble", size: 7.5, color: "#c8a0ff", anchor: "end" });
-    return s + cap(k, `density ${v("setting")} · ${layers} layers · ${v("air")} air · ${v("clarity")} · gaps ${v("gapLength")} s`);
+    /* A street at dusk with up to 12 things making sound (each a layer): a bird, a car, a dog, a bell, people…
+       Busy density gives each more rings; air and long gaps leave some of them quiet; low clarity smears them
+       into one grey blur; the rumble shakes the ground. */
+    let s = k.bg("#1d2233") + `<rect x="0" y="122" width="320" height="58" fill="#2a2a2e"/>`;
+    s += [[10, 60, 40], [60, 40, 44], [116, 70, 30], [210, 50, 46], [266, 66, 44]].map(([x, h, w]) => `<rect x="${x}" y="${122 - h}" width="${w}" height="${h}" fill="#2c3247"/>`).join("");
+    const SRC = [[40, 40, "bird"], [150, 112, "car"], [250, 112, "dog"], [90, 52, "bell"], [200, 104, "people"], [290, 40, "bird"], [30, 112, "people"], [120, 30, "plane"], [240, 44, "window"], [180, 64, "radio"], [100, 108, "steps"], [300, 100, "car"]];
+    const glyph = (x, y, kind) => kind === "bird" ? `<path d="M${x - 6} ${y} q3 -4 6 0 q3 -4 6 0" fill="none" stroke="#ddd" stroke-width="1.5"/>` : kind === "car" ? `<rect x="${x - 12}" y="${y - 8}" width="24" height="10" rx="3" fill="#f2c94c"/><circle cx="${x - 6}" cy="${y + 2}" r="3" fill="#111"/><circle cx="${x + 6}" cy="${y + 2}" r="3" fill="#111"/>` : kind === "dog" ? `<ellipse cx="${x}" cy="${y - 4}" rx="9" ry="5" fill="#a0784a"/><circle cx="${x + 9}" cy="${y - 9}" r="4" fill="#a0784a"/>` : kind === "people" ? `<circle cx="${x}" cy="${y - 16}" r="4" fill="#f0c8a0"/><rect x="${x - 4}" y="${y - 12}" width="8" height="12" fill="#6a8ab5"/>` : kind === "bell" ? `<path d="M${x - 6} ${y + 4} q0 -12 6 -12 q6 0 6 12 Z" fill="#e0b040"/>` : kind === "plane" ? `<path d="M${x - 10} ${y} l20 0 m-8 0 l-4 -5 m4 5 l-4 5" stroke="#ccc" stroke-width="2"/>` : kind === "window" ? `<rect x="${x - 6}" y="${y - 6}" width="12" height="12" fill="#ffd98a"/>` : kind === "radio" ? `<rect x="${x - 7}" y="${y - 5}" width="14" height="9" rx="2" fill="#8a5a3a"/>` : `<path d="M${x - 6} ${y} l3 -3 m3 3 l3 -3" stroke="#ccc" stroke-width="1.5"/>`;
+    const quiet = Math.round(layers * (air * 0.5 + gap * 0.3));
+    const blur = clear < 0.3 ? `<filter id="cw-sdb" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="${r1(2.5 - clear * 6)}"/></filter>` : "";
+    let rings = "";
+    SRC.slice(0, layers).forEach(([x, y, kind], i) => {
+      s += glyph(x, y, kind);
+      const on = i >= quiet;
+      const col = clear > 0.3 ? k.hsl(i * 33, 60, 65) : "#aaa";
+      if (on) rings += arcs(k, x + 8, y - 6, 1 + d * 3, col, i % 2 ? -1 : 1, 1.2 + d, 0.5 + clear * 0.4);
+      else s += k.text({ x: x + 10, y: y - 12, text: "…", size: 9, color: "#888" });
+    });
+    s += blur ? `<defs>${blur}</defs><g filter="url(#cw-sdb)">${rings}</g>` : rings;
+    /* Rumble: the ground shaking. */
+    s += Array.from({ length: Math.round(rumble * 8) }, (_, i) => `<path d="M${10 + i * 40} 134 q5 -${r1(1 + rumble * 4)} 10 0 t10 0" fill="none" stroke="#8a5aff" stroke-width="2"/>`).join("");
+    s += chip(k, 314, 154, `${layers - quiet} of ${layers} sounding · gaps ${v("gapLength")} s`, "#ccc", "end");
+    return s + cap(k, `density ${v("setting")} · ${layers} layers · ${v("air")} air · ${v("clarity")} · rumble ${v("rumble")}`);
   });
 
   /* ---------- audio fade at a cut ---------- */
@@ -495,9 +532,6 @@
     const cut = 0.5 + off * 0.12;
     const w = 0.004 + len * 0.22;
     const shape = (u) => (curve === 0 ? u : curve === 1 ? u * u * (3 - 2 * u) : Math.pow(u, 4));
-    let s = k.bg("#16161c");
-    s += lane(k, 40, "picture", 30) + `<rect x="50" y="25" width="131" height="30" fill="#4a6fa5"/><rect x="181" y="25" width="131" height="30" fill="#a5524a"/>`;
-    s += lane(k, 110, "sound", 80);
     const floor = depth;
     const outA = (t) => {
       if (kind === 2 || kind === 3 || kind === 4) {
@@ -516,11 +550,27 @@
       }
       return t >= cut ? 1 : 0;
     };
-    s += env(k, { y: 110, h: 74, wiggle: true, freq: 1.3, color: "#7fb7ff", n: 160, f: (t) => (t <= cut + (kind === 4 ? 0 : 0) || kind === 2 || kind === 3 ? outA(t) * (t <= cut || kind === 2 || kind === 3 ? 1 : 0) : 0) });
-    s += env(k, { y: 110, h: 74, wiggle: true, freq: 2.1, color: "#ff9a8a", alpha: 0.75, n: 160, f: (t) => (t >= cut || kind === 4 ? inB(t) : 0) });
-    s += vline(k, 0.5, 20, 154, "#fff") + k.label({ x: 50 + 0.5 * 262, y: 164, text: "cut", size: 8, color: "#fff" });
-    if (off) s += k.arrow({ x1: 50 + 0.5 * 262, y1: 152, x2: 50 + cut * 262, y2: 152, color: "#ffd166", w: 1.5 });
-    s += `<line x1="50" y1="${(110 - floor * 37).toFixed(1)}" x2="312" y2="${(110 - floor * 37).toFixed(1)}" stroke="#ffd166" stroke-dasharray="2 3" opacity="0.6"/>` + k.label({ x: 46, y: 80, text: `${v("fadeDepth")} dB`, size: 7.5, color: "#ffd166", anchor: "end" });
+    /* Six moments across a cut from the beach to a street. Each frame shows what you hear then: the hush of
+       the waves (blue) and the traffic (red), as loud as they are at that moment. */
+    let s = k.bg("#16161c");
+    const N = 6;
+    for (let i = 0; i < N; i++) {
+      const t = (i + 0.5) / N;
+      const x = 10 + i * 50;
+      s += place(k, x, 22, 48, 66, i < N / 2 ? "sea" : "street");
+      const a = i < N / 2 || kind === 2 || kind === 3 || kind === 4 ? outA(t) : 0;
+      const b = i >= N / 2 || kind === 1 || kind === 3 || kind === 4 ? inB(t) : 0;
+      s += `<rect x="${x + 2}" y="62" width="44" height="24" fill="#000" opacity="0.45"/>` + soundMark(k, "waves", x + 14, 70, a, "#9fd3ff") + soundMark(k, "honk", x + 36, 70, b, "#ff9a8a");
+      s += `<rect x="${x + 4}" y="${r1(98 - a * 8)}" width="18" height="${r1(Math.max(0.5, a * 8))}" fill="#7fb7ff"/><rect x="${x + 26}" y="${r1(98 - b * 8)}" width="18" height="${r1(Math.max(0.5, b * 8))}" fill="#ff9a8a"/>`;
+    }
+    s += k.label({ x: 85, y: 16, text: "beach: waves", size: 8, color: "#9fd3ff" }) + k.label({ x: 235, y: 16, text: "street: traffic", size: 8, color: "#ff9a8a" });
+    s += `<line x1="160" y1="18" x2="160" y2="104" stroke="#fff" stroke-width="2"/>` + k.label({ x: 160, y: 114, text: "cut", size: 8, color: "#fff" });
+    const cx = 10 + cut * 300;
+    if (off) s += k.arrow({ x1: 160, y1: 108, x2: cx, y2: 108, color: "#ffd166", w: 1.5 });
+    /* The fade's shape, drawn small: straight, smooth or sudden at the end. */
+    const pts = Array.from({ length: 11 }, (_, i) => `${r1(126 + i * 6.8)},${r1(150 - (1 - shape(i / 10)) * 18)}`).join(" ");
+    s += `<polyline points="${pts}" fill="none" stroke="#ffd166" stroke-width="1.5"/>` + k.label({ x: 122, y: 146, text: v("curve"), size: 7.5, color: "#ffd166", anchor: "end" });
+    s += chip(k, 314, 152, `over ${v("length")} s · down to ${v("fadeDepth")} dB`, "#ccc", "end");
     return s + cap(k, `${v("setting")} · ${v("length")} s · ${v("curve")} · ${v("offset")} s from the cut`);
   });
 
@@ -686,23 +736,26 @@
     const echoLeft = (c === 1 || c === 3 ? 0.4 : 1) * echo * [0, 0.5, 1][room];
     const enhance = c >= 2 ? 1 : 0;
     const col = k.mix("#9fd3ff", "#ffb070", warm);
-    let s = k.bg("#16161c");
-    s += lane(k, 80, "voice", 110);
-    /* Spoken words with breaths between them; echo trails after each; hiss along the whole lane. */
-    const words = [[0.04, 0.2], [0.3, 0.5], [0.6, 0.78], [0.86, 0.97]];
-    const amp = (t) => {
-      let a = 0;
-      words.forEach(([x, y]) => {
-        if (t >= x && t <= y) a = Math.max(a, 0.5 + enhance * 0.3 + warm * 0.15);
-        else if (t > y && t < y + 0.08 && echoLeft) a = Math.max(a, (1 - (t - y) / 0.08) * 0.5 * echoLeft);
-      });
-      return a;
-    };
-    s += env(k, { y: 80, h: 104, n: 220, wiggle: true, freq: k.lerp(2.4, 0.9, warm), color: col, f: amp });
-    if (br > 0) words.slice(0, 3).forEach(([, y]) => (s += env(k, { x: 50 + (y + 0.02) * 262, w: 14, y: 80, h: 104, n: 10, color: "#c8a0ff", alpha: 0.8, f: (t) => Math.sin(t * Math.PI) * (br === 1 ? 0.18 : 0.32) * (1 - bcut * 0.85) })));
-    s += env(k, { y: 80, h: 104, n: 220, wiggle: true, freq: 5.3, color: "#dddddd", alpha: 0.35, f: () => 0.02 + hiss * 0.18 });
-    s += `<rect x="50" y="150" width="262" height="8" rx="4" fill="#2e2e36"/><rect x="50" y="150" width="${(echoLeft * 262).toFixed(1)}" height="8" rx="4" fill="#9fb7ff"/>` + k.label({ x: 46, y: 157, text: "echo left", size: 8, color: "#aaa", anchor: "end" });
-    s += k.label({ x: 312, y: 22, text: `breaths −${v("breathCut")} dB · ${v("warmth")}`, size: 8.5, color: "#c8a0ff", anchor: "end" });
+    /* Someone speaking into a mic in a tiled room. What you hear is drawn around them: the line itself (bolder
+       when enhanced, warmer in colour), its echo bouncing off the tiles (fading copies), hiss (specks) and
+       breaths between words (little puffs). Cleanup takes each of these away. */
+    let s = k.bg("#22252c");
+    const tileA = 0.15 + [0, 0.5, 1][room] * 0.5;
+    for (let y = 0; y < 130; y += 18) for (let x = 0; x < 320; x += 18) s += `<rect x="${x + 1}" y="${y + 1}" width="16" height="16" fill="#cfd8dc" opacity="${r1(tileA * 0.35)}"/>`;
+    s += `<rect x="0" y="130" width="320" height="50" fill="#3a3a40"/>`;
+    s += k.person({ x: 70, y: 150, s: 1.2, color: "#4a6fa5", mood: 0.3, look: 1 }) + k.mic({ x: 98, y: 76, s: 0.8 });
+    /* The line, and its sound waves going out. */
+    s += k.bubble({ x: 170, y: 40, text: "Hello there.", w: 92, h: 22, size: 11 + enhance * 2, tail: -40 });
+    s += arcs(k, 106, 74, 3 + enhance * 2, col, 1, 2 + enhance + warm * 1.5, 0.9);
+    /* Echo: the end of the line again and again, fainter and further away. */
+    const nE = Math.round(echoLeft * 4);
+    for (let i = 0; i < nE; i++) s += k.text({ x: 216 + i * 22, y: 70 + i * 14, text: "there…", size: 10 - i, color: "#9fb7ff", italic: true, alpha: r1(0.8 - i * 0.18) });
+    /* Hiss: specks over everything. */
+    s += Array.from({ length: Math.round(hiss * 60) }, (_, i) => k.dot({ x: k.rnd(i + 5) * 320, y: k.rnd(i + 55) * 128, r: 0.8, color: "#eee" })).join("");
+    if (hiss > 0.3) s += k.text({ x: 290, y: 120, text: "ssss", size: 9, color: "#ddd", italic: true, alpha: r1(hiss) });
+    /* Breaths between words. */
+    if (br > 0) s += [0, 1].map((i) => k.text({ x: 140 + i * 36, y: 96, text: "hhh", size: 9, color: "#c8a0ff", italic: true, alpha: r1((br === 1 ? 0.45 : 0.9) * (1 - bcut * 0.8)) })).join("");
+    s += chip(k, 314, 148, `${v("warmth")} voice · breaths −${v("breathCut")} dB`, col, "end");
     return s + cap(k, `${v("setting")} · room ${v("room")} · hiss −${v("hiss")}% · echo −${v("echoCut")}% · ${v("breaths")}`);
   });
 
