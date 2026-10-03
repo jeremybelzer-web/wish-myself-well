@@ -65,7 +65,7 @@
     F("whiplash", "Whiplash", 2014, 17, 2.8, 5, 0.1,
       { music: 0.22, feeling: 0.18, voice: 0.14, camera: 0.12, plot: 0.1, movement: 0.1, cut: 0.08, mind: 0.04, light: 0.02 },
       { audio: 0.34, visual: 0.3, movement: 0.16, plot: 0.1, thought: 0.1 },
-      "Cut to the beat: music decides when attention moves, and a stopped band is the loudest moment."),
+      "Cut to the music: the music decides when attention moves, and a stopped band is the loudest moment."),
     F("before-sunrise", "Before Sunrise", 1995, 4, 12, 20, 0.1,
       { voice: 0.4, feeling: 0.2, mind: 0.1, place: 0.1, movement: 0.06, camera: 0.04, plot: 0.04, comedy: 0.03, music: 0.02, light: 0.01 },
       { audio: 0.46, thought: 0.2, visual: 0.2, movement: 0.08, plot: 0.06 },

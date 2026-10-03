@@ -357,7 +357,13 @@
     const list = scenes();
     const scene = pickScene(list, ctx);
     if (!scene) {
-      el.innerHTML = `<div class="mpt-root"><p>Panel timing suggests how long each panel of a storyboard scene could stay on screen. There is no storyboard scene yet. Open the Storyboard and save My film as a scene, or press Make many, then come back here.</p></div>`;
+      el.innerHTML = `<div class="mpt-root"><p>Panel timing suggests how long each panel of a storyboard scene could stay on screen. There is no storyboard scene yet. Open the Storyboard and save My film as a scene, or press Make many, then come back here.</p>${root.CuriosityWorkspaces ? `<div class="mo-controls"><button type="button" data-mpt-open="storyboard">Open the Storyboard</button></div>` : ""}</div>`;
+      const open = el.querySelector("[data-mpt-open]");
+      if (open)
+        open.addEventListener("click", () => {
+          if (root.CurioMomentumUI) root.CurioMomentumUI.close();
+          root.CuriosityWorkspaces.open("storyboard");
+        });
       return;
     }
     const base = Number(ctx.secondsPerBeat()) > 0 ? Number(ctx.secondsPerBeat()) : 3;
