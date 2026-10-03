@@ -369,3 +369,21 @@
 }
 .mo-w { display: grid; gap: 14px; }
 .mo-w > p { max-width: 75ch; }
+/* report.js: the Report tab. The sheet's own look is REPORT_CSS in report.js (the same in the tab, in print and
+   in the downloaded file); here are the tab around it and the print rules. */
+.mrp { display: grid; gap: 12px; min-width: 0; }
+.mrp-lede { max-width: 75ch; font-size: 14px; }
+.mrp-bar button { font-weight: 600; }
+.mrp-said[hidden] { display: none; }
+.mrp-paper { border: 2px solid var(--ink); background: #f4f1ea; padding: 14px 10px; min-width: 0; overflow: hidden; }
+.mrp-paper .mrp-sheet { box-shadow: 2px 2px 0 rgba(28, 23, 18, 0.15); }
+.mrp-copybox { width: 100%; font: inherit; font-size: 13px; border: 1px solid var(--ink); padding: 6px; }
+@media (max-width: 520px) { .mrp-paper { padding: 8px 0; border-width: 1px; } }
+/* Print only the report. Scoped: these rules act only while <html> has the class mrp-printing, which the
+   "Print or save as PDF" button sets until the print window closes. Every other kind of printing is untouched. */
+.mrp-print-copy { display: none; }
+@media print {
+  html.mrp-printing, html.mrp-printing body { background: #fff !important; margin: 0 !important; padding: 0 !important; height: auto !important; overflow: visible !important; }
+  html.mrp-printing body > *:not(.mrp-print-copy) { display: none !important; }
+  html.mrp-printing .mrp-print-copy { display: block !important; }
+}
