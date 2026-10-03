@@ -506,6 +506,9 @@ const ok = (cond, msg) => {
     /* Moments 1 to 4 of this lane (selected again before each tool: Stretch and Squeeze resize the area). */
     const select = async () => {
       await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; });
+      /* Let go of the last area first: a press inside a selected area drags it sideways instead of starting a box. */
+      await page.focus(".sl");
+      await page.keyboard.press("Escape");
       await page.mouse.move(box2.x + cw * 0.1, box2.y + 2);
       await page.mouse.down();
       await page.mouse.move(box2.x + cw * 3.9, box2.y + box2.h - 2, { steps: 8 });
@@ -542,6 +545,80 @@ const ok = (cond, msg) => {
     await page.focus(".sl");
     await page.keyboard.press("Escape");
     ok((await page.$$('.sl [data-act^="area-"]')).length === 0 && JSON.stringify(await pts()) === JSON.stringify(orig), "Esc lets go of the area and its tools hide");
+  }
+  /* Moving an area: drag the selected block sideways (CapCut: a group of clips) and every node in it moves by whole
+     moments, one undo step; Alt when letting go copies. Strength of the feeling has 1, 4, 0, 5 at moments 1, 3, 6, 8. */
+  {
+    const film = () => page.evaluate(() => { const st = window.CurioEngine.state(); return JSON.stringify([Object.keys(st.lanes).sort().map((k) => [k, st.lanes[k]]), st.links]); });
+    const pts = () => page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); return st.rows.slice(0, 8).map((r) => (st.lanes[lk].points[r.id] == null ? null : st.lanes[lk].points[r.id])); });
+    let bx = await page.evaluate((a) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[a].getBBox().y); const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a);
+    const cw = bx.w / bx.n;
+    /* Where the lane is now (the toolbar's message can wrap onto a second line and push the lanes down). */
+    const measure = async () => (bx = await page.evaluate((a) => { const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a));
+    const select = async () => {
+      /* Let go of any area first, so the press starts a new box instead of dragging the old one. */
+      await page.focus(".sl");
+      await page.keyboard.press("Escape");
+      await measure();
+      await page.mouse.move(bx.x + cw * 0.1, bx.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(bx.x + cw * 2.9, bx.y + bx.h - 2, { steps: 8 });
+      await page.mouse.up();
+      await measure();
+    };
+    const orig = await pts();
+    const before = await film();
+    await select();
+    ok(await page.evaluate(() => /sideways to move/.test(document.querySelector(".sl-msg").textContent)), "with an area selected, the toolbar says it can be dragged sideways (Alt copies)");
+    /* Press inside the area (on empty space) and drag right by two moments. */
+    await page.mouse.move(bx.x + cw * 1.5, bx.y + 3);
+    await page.mouse.down();
+    await page.mouse.move(bx.x + cw * 2.6, bx.y + 3, { steps: 4 });
+    await page.mouse.move(bx.x + cw * 3.5, bx.y + 3, { steps: 4 });
+    ok(await page.evaluate(() => !!document.querySelector(".sl-svg .sl-areaghost") && document.querySelector(".sl-svg").classList.contains("sl-areamoving")), "while dragging, a preview of the block slides along");
+    const tl = await page.$(".sc-timeline");
+    if (tl) await tl.screenshot({ path: path.join(SHOTS, "screen-6c-area-drag.png") });
+    await page.mouse.up();
+    const mv = await pts();
+    ok(mv[0] == null && mv[2] === orig[0] && mv[4] === orig[2] && mv[5] === orig[5] && mv[7] === orig[7], "dragging the area right by two moments moves its nodes two moments later (" + mv.join(",") + ")");
+    ok(await page.evaluate(() => { const a = document.querySelector(".sl-area"); return a && /Moved 2 nodes 2 moments later/.test(document.querySelector(".sl-msg").textContent); }), "the area follows the block and a plain message says what moved");
+    await page.keyboard.press("Control+z");
+    ok((await film()) === before, "one ⌘Z brings back the exact film");
+    /* Alt while letting go: a copy three moments later, over the node at moment 6. */
+    await select();
+    await page.mouse.move(bx.x + cw * 1.5, bx.y + 3);
+    await page.mouse.down();
+    await page.mouse.move(bx.x + cw * 4.5, bx.y + 3, { steps: 8 });
+    await page.keyboard.down("Alt");
+    await page.mouse.move(bx.x + cw * 4.55, bx.y + 3);
+    ok(await page.evaluate(() => !!document.querySelector(".sl-svg .sl-areaghost.copy")), "holding Alt shows the preview as a copy");
+    await page.mouse.up();
+    await page.keyboard.up("Alt");
+    const cp = await pts();
+    ok(cp[0] === orig[0] && cp[2] === orig[2] && cp[3] === orig[0] && cp[5] === orig[2] && cp[7] === orig[7], "Alt-dragging copies the area's nodes and the originals stay (" + cp.join(",") + ")");
+    await page.keyboard.press("Control+z");
+    ok((await film()) === before, "one ⌘Z takes the copy back");
+    /* The old gestures still work with an area selected: a node outside it drags alone; a click outside lets go. */
+    await select();
+    const n8 = await page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); const c = document.querySelector(`.sl-node[data-node="${st.rows[7].id}@${lk}"]`); const r = c.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, in: c.classList.contains("in") }; });
+    await page.mouse.move(n8.x, n8.y);
+    await page.mouse.down();
+    await page.mouse.move(n8.x - cw, n8.y, { steps: 6 });
+    await page.mouse.up();
+    const one = await pts();
+    ok(!n8.in && one[6] === orig[7] && one[7] == null && one[0] === orig[0] && one[2] === orig[2], "a node outside the area still drags on its own (" + one.join(",") + ")");
+    await page.keyboard.press("Control+z");
+    await select();
+    await page.mouse.click(bx.x + cw * 6.5, bx.y + 3);
+    ok(!(await page.$(".sl-area")) && (await film()) === before, "a click on empty space outside the area still lets go of it");
+    await measure();
+    await page.mouse.move(bx.x + cw * 4.1, bx.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(bx.x + cw * 5.9, bx.y + bx.h - 2, { steps: 8 });
+    await page.mouse.up();
+    ok(await page.evaluate(() => { const a = document.querySelector(".sl-area"); return !!a && Math.abs(Number(a.getAttribute("x")) - 4 * (Number(a.getAttribute("width")) / 2)) < 2; }), "dragging across empty space outside a selection still draws a new one");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
   }
   /* Curves: a line between two nodes, shaped and written into the moments between. */
   await page.evaluate(() => document.querySelector(".sl-svg") && window.CurioScreen.setRow(1));

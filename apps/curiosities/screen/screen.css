@@ -450,3 +450,13 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-frame[data-shape="cinema"] { aspect-ratio: 2.39 / 1; width: 100%; }
 .sc-frame:is([data-shape="vertical"], [data-shape="square"], [data-shape="cinema"]) > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sc-frame[data-shape="vertical"] .sc-att { font-size: 9px; top: 2px; right: 2px; left: 2px; text-align: center; }
+
+/* ---------- Dragging the selected area sideways (move its nodes in time; Alt copies) ---------- */
+.sl-svg.sl-overarea { cursor: grab; }
+.sl-svg.sl-areamoving, .sl-svg:has(.sl-areaghost) { cursor: grabbing; }
+.sl-svg.sl-areamoving .sl-node.in[data-node] { opacity: 0.3; }
+.sl-areaghost { pointer-events: none; }
+.sl-areaghost .sl-area { fill: rgba(34, 211, 238, 0.18); stroke-dasharray: none; }
+.sl-areaghost .sl-node { fill: var(--cc-accent); }
+.sl-areaghost.copy .sl-area { fill: rgba(255, 159, 67, 0.16); stroke: var(--cc-warm); }
+.sl-areaghost.copy .sl-node { fill: var(--cc-warm); }
