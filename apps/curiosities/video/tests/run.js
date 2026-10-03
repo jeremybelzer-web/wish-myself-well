@@ -253,6 +253,22 @@ check("element cut-outs: stats, series and what to change", () => {
   assert(a.parts.person && a.parts.person.scale > 1, "smaller people are made bigger: " + JSON.stringify(a.parts.person));
   assert(a.parts.background && a.parts.background.amount === 1, "the set comes from the inspiration");
   assert(!V.at(V.plan(insp, insp, { on: { wardrobe: 1 } }), 1).parts, "no cut-outs, no element changes");
+  /* camera angle: lots of hair over a low face reads as seen from above; a big face and little hair, from below */
+  const head = (hairRows, faceRows, y0) => {
+    const l = new Uint8Array(w * h);
+    for (let i = 0; i < w * h; i++) {
+      const y = (i / w) | 0;
+      if (y >= y0 && y < y0 + hairRows) l[i] = 1;
+      else if (y >= y0 + hairRows && y < y0 + hairRows + faceRows) l[i] = 3;
+    }
+    return V.partStats(l, rgba, w, h);
+  };
+  const above = V.elementSeries([{ t: 0, stats: head(3, 2, 5) }, { t: 2, stats: head(3, 2, 5) }]);
+  const below = V.elementSeries([{ t: 0, stats: head(1, 4, 1) }, { t: 2, stats: head(1, 4, 1) }]);
+  assert(V.angleCue(above, 1) > 0.3 && V.angleCue(below, 1) < -0.3, "angle guesses " + V.angleCue(above, 1) + " " + V.angleCue(below, 1));
+  const pa = V.plan(Object.assign({}, insp, { elements: above }), Object.assign({}, insp, { elements: below }), { on: { angle: 1 } });
+  assert(V.at(pa, 1).parts.angle.tilt > 0.5, "a clip seen from below is tipped to look from higher: " + JSON.stringify(V.at(pa, 1).parts));
+  assert(V.angleCue(E, 1) === null || typeof V.angleCue(E, 1) === "number", "no faces or hair: no guess");
 });
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });

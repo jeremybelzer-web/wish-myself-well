@@ -348,8 +348,66 @@
         d[i * 4 + 2] = d[i * 4 + 2] * keep + sb * (1 - keep);
       }
     }
+    if (parts.angle && Math.abs(parts.angle.tilt) > 0.02) {
+      ctx.putImageData(img, 0, 0);
+      tiltView(ctx, W, H, k, personA || softMask(k, [1, 2, 3, 4, 5], W, H), parts.angle.tilt);
+      return true;
+    }
     ctx.putImageData(img, 0, 0);
     return true;
+  }
+  /* A new camera height, in 2.5D: the people are one flat layer, the set another flat layer behind them. From
+     higher up (tilt > 0) the people slide further down the frame than the set does (parallax), look a little
+     shorter, and the set leans back (its top narrows); from lower down, the opposite. The gap the people leave
+     is filled from around it. Small tilts only: there is no real 3D here. */
+  function tiltView(ctx, W, H, k, personA, tilt) {
+    const T = Math.max(-1, Math.min(1, tilt));
+    /* this frame's colors (after any recolor or new set) for the fill */
+    small.x.drawImage(ctx.canvas, 0, 0, k.w, k.h);
+    const fill = fillFrom({ w: k.w, h: k.h, labels: k.labels, rgba: small.x.getImageData(0, 0, k.w, k.h).data }, [1, 2, 3, 4, 5], W, H);
+    const img = ctx.getImageData(0, 0, W, H);
+    const d = img.data,
+      src = new Uint8ClampedArray(d);
+    const st = V().partStats(k.labels, null, k.w, k.h).person;
+    const top = (st.area > 0.003 ? st.top : 0.2) * H;
+    const z = 1.06 + 0.04 * Math.abs(T),
+      lean = 0.14 * T,
+      setDown = 0.03 * T * H,
+      peopleDown = 0.08 * T * H,
+      squash = 1 - 0.1 * T;
+    const cx = W / 2,
+      cy = H / 2;
+    for (let Y = 0; Y < H; Y++) {
+      const Yz = cy + (Y - cy) / z;
+      const f = 1 + lean * (1 - (2 * Y) / H);
+      const sy = Math.max(0, Math.min(H - 1, Math.round(Yz - setDown)));
+      const uy = Math.round(top + (Yz - peopleDown - top) / squash);
+      for (let X = 0; X < W; X++) {
+        const Xz = cx + (X - cx) / z;
+        const sx = Math.max(0, Math.min(W - 1, Math.round(cx + (Xz - cx) * f)));
+        const j = sy * W + sx,
+          pa = personA[j];
+        /* the set: that spot, with any person there filled in */
+        let r = src[j * 4] * (1 - pa) + fill[0][j] * pa,
+          g = src[j * 4 + 1] * (1 - pa) + fill[1][j] * pa,
+          b = src[j * 4 + 2] * (1 - pa) + fill[2][j] * pa;
+        const ux = Math.round(Xz);
+        if (uy >= 0 && uy < H && ux >= 0 && ux < W) {
+          const u = uy * W + ux,
+            a = personA[u];
+          if (a > 0.001) {
+            r = r * (1 - a) + src[u * 4] * a;
+            g = g * (1 - a) + src[u * 4 + 1] * a;
+            b = b * (1 - a) + src[u * 4 + 2] * a;
+          }
+        }
+        const i = (Y * W + X) * 4;
+        d[i] = r;
+        d[i + 1] = g;
+        d[i + 2] = b;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
   }
   const TINT = [null, [255, 60, 60], [60, 220, 90], [250, 220, 50], [60, 110, 255], [230, 80, 230]];
   function preview(ctx, W, H) {

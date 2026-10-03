@@ -32,6 +32,7 @@ When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, t
 - **Clothes color** and **Hair color**: only the clothes or hair are recolored to the inspiration's (its most vivid color, so a teal stripe counts more than the average brown), keeping their folds and shadows.
 - **Person size and place**: the people are cut out and made as big, and as far left or right, as the inspiration's people. The gap is filled from the background around it (rough; a server AI does this properly).
 - **The set (background)**: your people stay, and the background becomes the inspiration's, moving as it moves.
+- **Camera angle (high or low)**: a guess at how high the inspiration's camera is (more hair against faces, and people lower in the frame, means seen from above), then a 2.5D tilt of your clip: the people and the set are two flat layers, so from higher up the people sink further than the set, look a little shorter, and the set leans back. Small changes only; a real angle change needs a 3D rebuild (see the project's `video-import/roadmap-to-full-transfer.md`, section 9). Off unless you turn it on.
 
 "Show what it found" tints the AI's cut-out on your clip's frame. The AI loads the first time it is needed (about 16 MB from the web), and you can turn it off. Nothing is uploaded.
 

@@ -658,6 +658,7 @@
     { id: "wardrobe", label: "Clothes color", curiosities: ["colorRange"], check: "el:clothes", needs: "elements", plain: "Finds the people's clothes in every frame (AI cut-out) and recolors only the clothes to the inspiration's clothes colors, changing when theirs change." },
     { id: "hair", label: "Hair color", curiosities: ["colorRange"], check: "el:hair", needs: "elements", plain: "Finds hair in every frame and recolors only the hair to the inspiration's hair color." },
     { id: "figure", label: "Person size and place", curiosities: ["shotSize"], check: "el:person", needs: "elements", plain: "Cuts the people out and makes them as big in the frame, and as far left or right, as the inspiration's people, moment by moment. The gap they leave is filled from the background around it." },
+    { id: "angle", label: "Camera angle (high or low)", curiosities: ["shotSize"], check: "el:angle", needs: "elements", off: true, plain: "Guesses how high the inspiration's camera is (from how much hair shows against faces, and how low people sit in the frame), then cuts your people out and tips the camera a little higher or lower to match: the set leans and slides less than the people, as if seen from a new height. Small changes only: a big angle change needs a full 3D rebuild. Off unless you turn it on." },
     { id: "set", label: "The set (background)", curiosities: ["background"], check: "el:background", needs: "elements", off: true, plain: "Keeps your clip's people and puts them in the inspiration's place: its background, moving as it moves, with its own people still there behind yours. Off unless you turn it on." },
     { id: "overlay", label: "Lay its graphics over", curiosities: ["colorRange"], check: "sat", off: true, plain: "Lays the inspiration's own picture over your clip with its plain light background taken out, so only its graphics (shapes, logos, colored text) show on top. For motion graphics like a title sequence. Off unless you turn it on." },
   ];
@@ -875,7 +876,7 @@
       const room = Math.max(0.1, A.duration - (p.overlayFrom || 0));
       adj.overlay = { t: r3((p.overlayFrom || 0) + (p.mode === "stretch" ? ((t / Math.max(0.001, p.duration)) * room) : t % room)), amount: on.overlay };
     }
-    if (on.wardrobe || on.hair || on.figure || on.set) adj.parts = partsAt(p, ta, s);
+    if (on.wardrobe || on.hair || on.figure || on.set || on.angle) adj.parts = partsAt(p, ta, s);
     if (on.dialogue && p.lines.length) {
       adj.line = lineAt(p, t);
       adj.duck = on.dialogue; /* the clip's own voices step back under the new lines */
@@ -960,6 +961,16 @@
     if (!arr || !arr.length) return 0;
     return sampleAt({ times: el.times, dt: el.dt }, arr, t);
   }
+  /* How high the camera seems (-1 below the people, 0 eye level, +1 above them), a guess: from above you see
+     more hair against the face, and people sit lower in the frame. null when no faces or hair show. */
+  function angleCue(el, t) {
+    const hair = elAt(el, "hair", "area", t),
+      face = elAt(el, "face", "area", t);
+    if (hair + face < 0.004) return null;
+    const ratio = hair / (hair + face),
+      cy = elAt(el, "person", "cy", t);
+    return r3(clamp((ratio - 0.45) / 0.25, -1, 1) * 0.6 + clamp((cy - 0.55) / 0.25, -1, 1) * 0.4);
+  }
   /* What to do to each element at one output moment (for clip.js / mask.js to draw). */
   function partsAt(p, ta, s) {
     const A = p.insp.elements,
@@ -988,6 +999,11 @@
         const dx = (elAt(A, "person", "cx", ta) - elAt(B, "person", "cx", s)) * on.figure;
         out.person = { scale: r3(scale), dx: r3(dx) };
       }
+    }
+    if (on.angle) {
+      const a = angleCue(A, ta),
+        b = angleCue(B, s);
+      if (a != null && b != null) out.angle = { tilt: r3(clamp(a - b, -1, 1) * on.angle) };
     }
     if (on.set) out.background = { t: r3(p.setFrom ? (p.setFrom + ta) % Math.max(0.1, p.insp.duration) : ta), amount: on.set };
     return Object.keys(out).length ? out : null;
@@ -1210,6 +1226,14 @@
         EA = A.elements,
         EB = before.elements;
       if (!E || !EA || !EB) return { feature: feat, note: "needs AI cut-outs of both clips" };
+      if (part === "angle") {
+        const cue = (el, t) => angleCue(el, t) || 0;
+        const want = E.times.map((t) => cue(EA, p.tA(t, p.duration)));
+        const bt = E.times.map((t) => cue(EB, p.src[clamp(Math.round(t * p.fps), 0, p.src.length - 1)]));
+        const af = E.times.map((t) => cue(E, t));
+        const gap = (x) => r3(mean(x.map((v, i) => Math.abs(v - want[i]))));
+        return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
+      }
       const want = E.times.map((t) => elAt(EA, part, key, p.tA(t, p.duration)));
       const bt = E.times.map((t) => elAt(EB, part, key, p.src[clamp(Math.round(t * p.fps), 0, p.src.length - 1)]));
       const af = E.parts[part][key];
@@ -1250,5 +1274,5 @@
     return { name: d.name, duration: d.duration, step: step || 2.5, every: d.dt, samples };
   }
 
-  root.CurioVideo = { PARTS, partStats, elementSeries, elAt, partsAt, toMedia, keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
+  root.CurioVideo = { PARTS, partStats, elementSeries, elAt, partsAt, angleCue, toMedia, keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
 })();
