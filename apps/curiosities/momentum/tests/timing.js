@@ -120,6 +120,13 @@ function nodeChecks() {
       assert(r.panels.every((p) => p.hold >= 0.5 && p.hold <= 8), s.title);
     });
   });
+  ok("the lists for the storyboard: each panel at its suggested time, or cleared", () => {
+    const r = T.forScene(varied, { base: 3, limit: 20 });
+    const list = T.timingList(r, 4);
+    same(list.map((x) => [x.si, x.pi]), r.panels.map((p, i) => [4, i]));
+    same(list.map((x) => x.seconds), r.panels.map((p) => p.hold));
+    same(T.clearList(3, 1), [{ si: 1, pi: 0, seconds: null }, { si: 1, pi: 1, seconds: null }, { si: 1, pi: 2, seconds: null }]);
+  });
   console.log(`${n} panel timing checks passed`);
 }
 
@@ -209,13 +216,64 @@ async function browserChecks() {
       return { scene: sel.options[sel.selectedIndex].textContent, cols: document.querySelectorAll(".mo-dlg .mpt-col").length, rows: document.querySelectorAll(".mo-dlg .mpt-rows li").length, tiles: [...document.querySelectorAll(".mo-dlg .mpt-root .mo-tile-v")].map((x) => x.textContent) };
     });
     ok(held.cols === held.rows && held.cols > 0, `one bar and one reason per panel (${held.cols})`);
-    ok(held.tiles.length === 3, "scene length today, with this timing, shortest to longest: " + held.tiles.join(" | "));
+    ok(held.tiles.length === 4, "scene length today, with this timing, shortest to longest, and the storyboard now: " + held.tiles.join(" | "));
     await page.screenshot({ path: path.join(SHOTS, "timing.png") });
 
     const want = await page.$eval(".mo-dlg [data-mpt-scene]", (s) => [...s.options].find((o) => /Always moving/.test(o.textContent)).value);
     await page.selectOption(".mo-dlg [data-mpt-scene]", want);
     await page.waitForFunction(() => document.querySelectorAll(".mo-dlg .mpt-col").length === 6);
     ok(await page.evaluate(() => !!document.querySelector(".mo-dlg .mpt-pay")), "the comedy payoff is marked P");
+
+    /* Use this timing in the storyboard (CuriosityStoryboard.setTiming), one undo step; Clear the timing. */
+    const sbNow = () =>
+      page.evaluate(() => {
+        const SB = window.CuriosityStoryboard;
+        const si = SB.data().scenes.findIndex((s) => s.name === "Always moving");
+        const sugg = window.CurioPanelTiming.forScene(SB.data().scenes[si], { base: 0.5, limit: 20 });
+        const tile = document.querySelector(".mo-dlg [data-mpt-now]");
+        const use = document.querySelector(".mo-dlg [data-mpt-use]");
+        const clear = document.querySelector(".mo-dlg [data-mpt-clear]");
+        return {
+          si,
+          timing: SB.timing()[si],
+          want: sugg.panels.map((p) => p.hold),
+          tile: tile ? tile.textContent.replace(/\s+/g, " ").trim() : null,
+          cur: [...document.querySelectorAll(".mo-dlg .mpt-cur")].map((x) => x.textContent),
+          use: use ? !use.disabled : null,
+          clear: clear ? !clear.disabled : null,
+          said: (document.querySelector(".mo-dlg .mpt-said") || {}).textContent || "",
+          undo: window.CurioStore ? window.CurioStore.history().undo.slice(-1)[0] : null,
+        };
+      });
+    let sb = await sbNow();
+    ok(sb.timing.every((x) => x === null) && /Speed slider/.test(sb.tile) && sb.cur.every((x) => x === "Speed") && sb.use && sb.clear === false, "before: the storyboard follows its Speed slider, shown beside the suggestion: " + sb.tile);
+    await page.click(".mo-dlg [data-mpt-use]");
+    sb = await sbNow();
+    ok(JSON.stringify(sb.timing) === JSON.stringify(sb.want), `Use this timing puts each panel's time into the storyboard (${sb.timing.join(", ")})`);
+    ok(/This timing/.test(sb.tile) && sb.cur.join() === sb.want.join() && sb.use === false && sb.clear, "the tab then shows the storyboard uses this timing: " + sb.tile);
+    ok(/now holds each panel/.test(sb.said) && /Undo/.test(sb.said), "it says what changed: " + sb.said);
+    ok(/Momentum: panel timing/.test(sb.undo || ""), "one undo step named for it: " + sb.undo);
+    await page.screenshot({ path: path.join(SHOTS, "timing-used.png") });
+    await page.evaluate(() => window.CurioStore.undo());
+    await page.evaluate(() => window.CurioMomentumUI.open("timing"));
+    sb = await sbNow();
+    ok(sb.timing.every((x) => x === null) && /Speed slider/.test(sb.tile), "one Undo takes it back: " + JSON.stringify(sb.timing));
+    await page.evaluate(() => window.CurioStore.redo && window.CurioStore.redo());
+    await page.evaluate(() => window.CurioMomentumUI.open("timing"));
+    sb = await sbNow();
+    if (sb.timing.every((x) => x === null)) {
+      await page.click(".mo-dlg [data-mpt-use]");
+      sb = await sbNow();
+    }
+    ok(sb.timing.every((x) => x > 0), "the timing is back in (redo or use again)");
+    await page.click(".mo-dlg [data-mpt-clear]");
+    sb = await sbNow();
+    ok(sb.timing.every((x) => x === null) && /Speed slider/.test(sb.said + sb.tile), "Clear the timing gives the panels back to the Speed slider: " + sb.said);
+    await page.evaluate(() => window.CurioStore.undo());
+    ok((await page.evaluate((si) => window.CuriosityStoryboard.timing()[si], sb.si)).every((x) => x > 0), "and one Undo brings the timing back");
+    await page.evaluate((si) => window.CuriosityStoryboard.setTiming(window.CurioPanelTiming.clearList(6, si)), sb.si);
+    await page.evaluate(() => window.CurioMomentumUI.open("timing"));
+    await page.waitForSelector(".mo-dlg [data-mpt-play]");
 
     /* Play: the preview flips through the panels and stops at the end. */
     await page.click(".mo-dlg [data-mpt-play]");

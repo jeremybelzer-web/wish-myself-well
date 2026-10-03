@@ -788,3 +788,8 @@
   .mo-au-cards, .mo-au-sliders { grid-template-columns: minmax(0, 1fr); }
   .mo-au-own input[type=text] { width: 100%; }
 }
+
+/* timing.js: the storyboard's own time for each panel, beside the suggestion */
+.mpt-cur { font-size: 11px; color: var(--mo-ink-2); font-variant-numeric: tabular-nums; }
+.mpt-row-now { font-style: italic; }
+.mpt-actions button[disabled] { opacity: 0.55; cursor: default; }
