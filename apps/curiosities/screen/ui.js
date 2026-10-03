@@ -732,7 +732,10 @@ document.addEventListener("click", function (e) {
     exportOpen = on == null ? !exportOpen : !!on;
     const box = page && page.querySelector(".sc-export");
     if (!box) return;
-    box.querySelector(".sc-export-menu").hidden = !exportOpen;
+    const menu = box.querySelector(".sc-export-menu");
+    menu.hidden = !exportOpen;
+    /* When the button has wrapped to the left of the bar, open the menu rightwards so it stays on screen. */
+    menu.classList.toggle("sc-flip", exportOpen && box.getBoundingClientRect().right < menu.offsetWidth + 16);
     box.querySelector(".sc-export-b").setAttribute("aria-expanded", String(exportOpen));
     if (exportOpen && !toggleExport.wired) {
       /* Close on a click anywhere else, or Esc. */

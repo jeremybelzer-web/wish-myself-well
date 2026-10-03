@@ -2869,6 +2869,11 @@
       const r = el.getBoundingClientRect();
       pop.style.left = Math.max(0, Math.min((el.clientWidth || 800) - 280, cx - r.left - 40)) + "px";
       pop.style.top = Math.max(0, cy - r.top + 10) + "px";
+      /* Once it is drawn, pull a pop-up wider than 280px back in so its right edge stays inside the timeline. */
+      requestAnimationFrame(() => {
+        const over = pop.isConnected ? pop.offsetLeft + pop.offsetWidth - el.clientWidth : 0;
+        if (over > 0) pop.style.left = Math.max(0, pop.offsetLeft - over) + "px";
+      });
       return pop;
     }
     function openMarker(j, cx, cy) {

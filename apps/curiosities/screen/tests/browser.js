@@ -1767,6 +1767,20 @@ const ok = (cond, msg) => {
   ok(overflow <= 1, "no sideways scroll on a phone (" + overflow + ")");
   const phoneHeads = await page.evaluate(() => [...document.querySelectorAll(".sl-heads .sl-ghead")].map((h) => { const c = h.querySelector(".sl-gcount"); const b = h.querySelector(".sl-fold"); return { text: h.textContent.replace(/\s+/g, " ").trim(), w: Math.round(h.getBoundingClientRect().width), fits: c.getBoundingClientRect().right <= h.getBoundingClientRect().right + 0.5 && c.scrollWidth <= c.clientWidth + 1, name: b.getBoundingClientRect().width, size: parseFloat(getComputedStyle(c).fontSize) }; }));
   ok(phoneHeads.length >= 1 && phoneHeads.every((h) => h.fits && h.name >= 24 && h.size >= 10), "on a phone the group headers still fit their narrower name column, counts in full and the name readable (" + phoneHeads.map((h) => h.text + " @" + h.w + "px").join(" | ") + ")");
+  /* Pop-ups on a phone stay on screen: Guides ▾ and Suite clips ▾ never make the page scroll sideways. */
+  {
+    const sideways = () => page.evaluate(() => document.querySelector(".sc-page").scrollWidth - window.innerWidth);
+    await page.click('[data-act="guides-menu"]');
+    const gm = await page.evaluate(() => { const r = document.querySelector(".sc-guides-menu").getBoundingClientRect(); return { l: r.left, r: r.right }; });
+    ok(gm.l >= 0 && gm.r <= 390 && (await sideways()) <= 1, "on a phone Guides ▾ opens on screen (" + Math.round(gm.l) + "–" + Math.round(gm.r) + "px)");
+    await page.click('[data-act="guides-menu"]');
+    await page.click('.sl [data-act="suite-list"]');
+    await page.waitForTimeout(100);
+    const sl = await page.evaluate(() => { const p = document.querySelector(".sl-suitelist").getBoundingClientRect(), s = document.querySelector(".sl").getBoundingClientRect(); return { r: p.right, edge: s.right }; });
+    ok(sl.r <= sl.edge + 1 && (await sideways()) <= 1, "on a phone Suite clips ▾ stays inside the timeline (" + Math.round(sl.r) + " ≤ " + Math.round(sl.edge) + "px)");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+  }
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   /* Reload: the Screen comes back, the film is the same. */
