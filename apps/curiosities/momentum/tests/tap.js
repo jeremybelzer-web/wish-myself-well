@@ -295,7 +295,7 @@ if (args.includes("--browser")) {
     await page.click('.mo-dlg [data-tp-pad="plot"]');
     await page.waitForTimeout(1200);
     const later = await ribbon(page);
-    check(/3 taps/.test(later.tally) && /beats of 1 second,/.test(later.tally), "the tally follows: " + later.tally);
+    check(/3 taps/.test(later.tally) && /moments of 1 second,/.test(later.tally), "the tally follows: " + later.tally);
     await page.screenshot({ path: path.join(SHOTS, "tap-tapping.png") });
     await page.click(".mo-dlg [data-tp=start]");
     check((await page.textContent(".mo-dlg [data-tp=start]")) === "Go on", "Pause stops the clock");

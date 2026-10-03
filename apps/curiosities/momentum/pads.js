@@ -212,7 +212,7 @@
   const take = { on: false, steps: [], fp: null, startedWith: 0 };
   const fingerprint = () => (E() && E().fingerprint ? E().fingerprint() : null);
   function press(family, rowId) {
-    if (!ME() || !ME().available()) return { ok: false, text: "Start a film in the engine first (Library, Engine)." };
+    if (!ME() || !ME().available()) return { ok: false, text: "My film has no moments yet. Start the example film on the Pads tab, or start your own in the engine (Library, Engine)." };
     const rows = rowsNow();
     const row = rows.find((r) => r.id === rowId) || rows[0];
     const before = readFilm();
@@ -445,7 +445,7 @@
     ui.el = el;
     ui.ctx = ctx;
     if (!ME() || !ME().available()) {
-      el.innerHTML = `<p>Momentum pads move attention around My film (the engine's film, the one the Screen plays) while you perform. Start a film in the engine first (Library, Engine), then come back here.</p>`;
+      el.innerHTML = `<p>Momentum pads move attention around My film (the engine's film, the one the Screen plays) while you perform.</p><p class="mo-empty">My film has no moments yet. Press Start the example film to get one, or open the engine (Library, Engine) to start your own.</p><div class="mo-controls">${root.CurioMomentumUI && root.CurioMomentumUI.startFilmButton ? root.CurioMomentumUI.startFilmButton() : ""}</div>`;
       wireOnce(el);
       return;
     }

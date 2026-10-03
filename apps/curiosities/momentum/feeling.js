@@ -425,7 +425,7 @@
     const ME = root.CurioMomentumEngine;
     const haveEngine = ME && ME.available && ME.available();
     if (!haveEngine) {
-      el.innerHTML = `<div class="mo-fr"><p class="mo-empty">My film (the engine's film, the one the Screen plays) has no moments yet, so there is no attention to lay the feelings over. Start a film in the engine, then come back here.</p>${root.CurioEngineUI ? `<button type="button" class="mo-fr-btn" data-fr="open-engine">Open the engine</button>` : ""}</div>`;
+      el.innerHTML = `<div class="mo-fr"><p class="mo-empty">My film (the engine's film, the one the Screen plays) has no moments yet, so there is no attention to lay the feelings over. Press Start the example film to get one, or open the engine to start your own.</p><div class="mo-controls">${root.CurioMomentumUI && root.CurioMomentumUI.startFilmButton ? root.CurioMomentumUI.startFilmButton() : ""}${root.CurioEngineUI ? `<button type="button" class="mo-fr-btn" data-fr="open-engine">Open the engine</button>` : ""}</div></div>`;
       return;
     }
     const reading = ME.reading({ secondsPerBeat: ctx.secondsPerBeat(), limit: ctx.limit() });

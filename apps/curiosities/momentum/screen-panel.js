@@ -156,13 +156,13 @@
     const lastMove = mv[mv.length - 1] || null;
     const fams = (x && x.families) || [];
     const at = kind === "mine" ? x && x.reading.beats - 1 : x && x.beat;
-    const cells = fams.map((f, j) => `<i style="background:${f ? colorOf(f) : "transparent"}"${j === at ? ' class="on"' : ""} title="${esc((kind === "mine" ? "Moment " : "Beat ") + (j + 1) + (f ? ": " + famLabel(f) : ""))}"></i>`).join("");
+    const cells = fams.map((f, j) => `<i style="background:${f ? colorOf(f) : "transparent"}"${j === at ? ' class="on"' : ""} title="${esc("Moment " + (j + 1) + (f ? ": " + famLabel(f) : ""))}"></i>`).join("");
     return `<div class="mo-sp-film" data-kind="${kind}"${key ? ` data-key="${esc(key)}"` : ""}>
-      <p class="mo-sp-name"><b>${esc(name)}</b><small>${esc(sub)}</small></p>
+      <p class="mo-sp-name"><b title="${esc(name)}">${esc(name)}</b><small>${esc(sub)}</small></p>
       ${run ? `<p class="mo-sp-fam"><i style="background:${colorOf(run.family)}"></i><b>${esc(famLabel(run.family))}</b>${seg ? `<small>${esc(seg.label)}</small>` : ""}</p>` : `<p class="mo-sp-fam"><small>Nothing holds attention yet.</small></p>`}
       <div class="mo-sp-bar ${st.cls}" role="meter" aria-label="${esc(name)}: how long attention has stayed" aria-valuemin="0" aria-valuemax="${lim}" aria-valuenow="${held}"><span style="width:${pct.toFixed(1)}%"></span></div>
       <p class="mo-sp-held"><span>${held} s of ${lim} s</span><span class="mo-sp-st ${st.cls}">${st.icon} ${esc(st.text)}</span></p>
-      ${lastMove ? `<p class="mo-sp-move" title="The last time attention moved between families, and the cue that moved it">Came from ${esc(famLabel(lastMove.from))} on ${lastMove.quiet ? "a stop (" + esc(cueLabel(lastMove.cue).toLowerCase()) + ")" : "a " + esc(cueLabel(lastMove.cue).toLowerCase())}</p>` : ""}
+      ${lastMove ? `<p class="mo-sp-move" title="The last time attention moved from one kind of curiosity to another, and the cue (what made it move) that did it">Came from ${esc(famLabel(lastMove.from))} on ${lastMove.quiet ? "a stop (" + esc(cueLabel(lastMove.cue).toLowerCase()) + ")" : "a " + esc(cueLabel(lastMove.cue).toLowerCase())}</p>` : ""}
       ${cells ? `<div class="mo-sp-rib" data-rib="${kind}" data-n="${fams.length}" title="${kind === "mine" ? "Your film, colored by what holds attention. Click to move the playhead." : "This film, colored by what holds attention. Click to move the playhead."}">${cells}</div>` : ""}
     </div>`;
   }
@@ -177,7 +177,7 @@
       ${reason ? `<p class="mo-sp-why">${esc(reason)}</p>` : ""}
       ${n ? `<p class="mo-sp-why">Try: <b>${esc(n.label)}</b>. ${esc(n.tryThis || "")}</p>` : ""}
       <p class="mo-sp-why"><small>Compared with ${esc(about)}.</small></p>
-      <button type="button" data-mo-sp="move" title="Write a node at the playhead that moves attention to ${esc(o.label)} (one undo step)">Make this move here</button>
+      <button type="button" data-mo-sp="move" title="Change one ${esc(o.label)} curiosity one step at the playhead, so attention moves to it. Undo takes it back.">Make this move here</button>
     </div>`;
   }
 
@@ -213,7 +213,7 @@
           ${flash ? `<p class="mo-sp-flash" role="status">${esc(flash)}</p>` : ""}
           <div class="mo-sp-body">
             ${meterHtml("My film", `moment ${data.row + 1} of ${data.n}`, data.mine, data.limit, "mine")}
-            ${data.films.map((f) => meterHtml(f.title, `beat ${f.beat + 1} of ${f.n}`, f, data.limit, "film", f.key)).join("")}
+            ${data.films.map((f) => meterHtml(f.title, `moment ${f.beat + 1} of ${f.n}`, f, data.limit, "film", f.key)).join("")}
             ${compassHtml(data.compass, data.against)}
             <p class="mo-sp-foot">A moment lasts ${data.spb} s; the limit is ${data.limit} s. <label><input type="checkbox" data-mo-sp="against"${own.against === "screen" ? " checked" : ""}> Compare with the films on screen</label></p>
           </div>`;

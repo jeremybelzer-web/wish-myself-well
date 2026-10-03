@@ -48,6 +48,33 @@ Open it from **Library, Momentum** (once `<script src="momentum/load.js"></scrip
 - **Feeling road**: each character's emotional road, and the film's, laid under one attention ribbon of My film (the engine's film, the one the Screen plays). Each road is a small line, one point per scene, on the feeling scale from calm to charged (dreamlike, melancholy, loving, curious, absurd, joyful, anxious, fearful, triumphant, angry: the engine's own order, `CurioScale`), and each scene sits over its share of My film's moments. It lists, in plain sentences: **flat feelings**, where a feeling stays the same for 3 scenes or more (2 to 5 to choose) while attention also stalls (it never moves to a new family inside the stretch), each with a suggestion to turn the feeling in the middle of the stretch one step up or down the scale, toward the feeling the road reaches next, and why; **feeling turns that attention misses**, where a feeling jumps 3 steps or more (2 to 5) in a scene where attention never rests on Feeling, so the audience may not notice; and how many feeling turns come in a scene where attention also moves. The roads come from the story store (the **Emotional road** workspace: Feeling, then Emotional road, one feeling per character per scene, and one for the film). While no feeling is set there, it says how to fill it and reads the engine's feeling lanes instead: Emotion on the Master track is the film's road, Emotion on a character's track is that character's, one point per moment. **Turn ...** writes a suggestion back where its road came from: a story road through the story store's own `applyRoad`, undone by its `undoRoad`; an engine road through `CurioEngine.send` as one batch (a plain value, or a hand edit on that one cell when the column has automation points), one engine undo step. The Screen today reads only the engine (the story store feeds the Storyboard, the Prism and the workspaces, not the Screen), so only a change to an engine road shows on the Screen. **Undo** in the tab takes the last one back. Its own setting: `curiosities-momentum-feeling-v1`.
 - **Audiences** (See it): different audiences tire of different things at different speeds. The film stays the same; each audience stretches or shrinks the film's limit (a limit multiplier) and has its own patience for each family (a multiplier per family). Six starting guesses, clearly labeled as guesses to adjust: Young kids (short limit, more patience for Comedy and Movement, less for Lines & voice), Film students (longer limit, more patience for Camera and Light & color), Festival crowd, Family audience, Phone scrollers (very short limit) and Theater crowd (more patience for Lines & voice). Pick a film and up to three audiences: each gets the attention ribbon with ■ marks where it gets tired (the part of a family stretch past its own limit), the share of the film it spends past its limit, and a plain sentence ("Phone scrollers lose interest 5 times, first at 0:12 on Camera"). **Who is this film for?** ranks every audience by the fewest tired stretches. A slider per family changes an audience (Put back the starting guess undoes it), and **Make my own audience** copies one under your own name. Kept in `localStorage` key `curiosities-momentum-audience-v1`.
 
+## Plain words
+
+Every tab uses the same words. A short line under the tabs explains family, cue and moment on every tab, and **More words** opens this list (`WORDS` in `ui.js`):
+
+- **Curiosity**: one thing in a film you can change, like the shot size, a feeling or the music.
+- **Family**: a kind of curiosity, such as Camera, Feeling or Comedy. Each has its own color and short letter.
+- **Attention**: the one thing the audience is watching at a moment. It can rest on only one thing at a time.
+- **Moment**: one step of a film: a row of the engine, a panel of a storyboard, or a few seconds of a curated film.
+- **Panel**: one picture of a storyboard scene. A panel has no clock, so Seconds per panel says how long it lasts.
+- **Cue**: what moves attention to something new: something to see, a sound, a thought, a movement or a plot turn.
+- **Quiet cue**: a cue that is a stop instead of a start: the music cuts out, a silence falls, someone goes still.
+- **Limit**: how many seconds one family can hold attention before the audience tires: ● Fresh, ▲ Getting long, ■ Too long.
+- **Momentum**: how hard what holds attention pushes the story, from 0 (stalled) to 5 (surging).
+- **My film**: the film you are making, the one the Screen plays and the engine keeps.
+- **Curated film**: a film to learn from. Estimate means Claude's guess; measured means counted from its moments.
+
+What the plain words pass changed (checked by `tests/fresh.js` on an empty browser at 1440 and 375 pixels wide):
+
+- A fresh browser opens on the first curated film instead of an empty "My film, live", so every tab has something to show. My film, live is one pick away, and when nothing has moved yet it says to press Play or change a control.
+- On the engine, Who we watch, Pace it, Pads and Feeling road no longer stop at "Start a film in the engine first": they offer **Start the example film** (the same film the Screen starts, one undo step).
+- "Beat" is gone from what shows: the Screen's panel says "moment 1 of 8" for every film, Film rates counts moments, Watch and tap says "One moment lasts", Comedy timing says "Pause before the punchline", and the notes say moment instead of beat.
+- "Usual rest" and "Longest rest" are now "Usual hold" and "Longest hold", as in Three films, Learn it and Report.
+- Perform explains MIDI, CC and the bridge in plain sentences, and says what to press when MIDI is off.
+- Details explains "family" the first time it says it.
+- On a phone, the wide tables (Film rates, Cue lab, Comedy timing, How attention moves, Pace it) turn into small cards with each column's name, so nothing is wider than the screen; the list in Learn it no longer spills sideways.
+- A share above 100% ("holds 101% of the time") is capped at 100%.
+
 ## Colors and letters
 
 Every tab draws a family the same way: one color and one short letter, so a family never relies on color alone. Eight families have their own color; the other five share gray. The letter is dark or white, whichever is easier to read on its color.
@@ -117,6 +144,7 @@ These are guesses about how people watch, kept as plain numbers (`FAMILY_PULL`, 
 | `files.json` | The load order: `core` (no page) and `screens`. |
 | `tests/run.js` | `node momentum/tests/run.js`: checks with no page. |
 | `tests/speed.js`, `PERFORMANCE.md` | `node momentum/tests/speed.js [--browser]`: Momentum stays quick. Opening the window and every tab once stays under a generous time budget, reopening tabs adds no listeners, a tab stops listening to the engine when it is left (an added tab may give `addTab({ ..., unmount })` for that), and the Screen's panel reads only My film on a change and nothing while the Screen is closed. `PERFORMANCE.md` has the numbers before and after. |
+| `tests/fresh.js` | `NODE_PATH=/opt/node22/lib/node_modules node momentum/tests/fresh.js --three <three.min.js>`: an empty browser at 1440 and 375 pixels wide opens every tab, the Screen's panel, lane and Details section, and the Storyboard: no page errors, nothing wider than a phone, no em-dash, every tab shows text, and Start the example film works. |
 | `tests/marks.js` | `node momentum/tests/marks.js`: every family has its own letter and a readable color, the Fresh, Getting long and Too long marks follow the limit, and no momentum file keeps its own copy of them. |
 | `tests/browser.js` | `NODE_PATH=/opt/node22/lib/node_modules node momentum/tests/browser.js --three <three.min.js>`: the window in a real browser, the tab groups at 1440 and 375 pixels wide, live mode, phone width, and the panel beside the Screen's Player. |
 | `tests/comedy-timing.js` | `node momentum/tests/comedy-timing.js`: the comedy rhythm with no page; add `--browser` (with `NODE_PATH` and `--three` as above) for the tab in a real browser. |

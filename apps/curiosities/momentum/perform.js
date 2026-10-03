@@ -176,7 +176,7 @@
   }
 
   /* ---------- MIDI ---------- */
-  const midi = { access: null, out: null, status: "off" };
+  const midi = { access: null, out: null, status: "MIDI is off. Press Turn on MIDI to find your devices." };
   function enable() {
     if (midi.access) return Promise.resolve(midi.status);
     if (!root.navigator || typeof root.navigator.requestMIDIAccess !== "function") {
@@ -187,7 +187,7 @@
       (access) => {
         midi.access = access;
         pickOutput(settings.output);
-        midi.status = `MIDI on: ${access.outputs.size} out.`;
+        midi.status = `MIDI is on: ${access.outputs.size} device${access.outputs.size === 1 ? "" : "s"} to send to.`;
         return midi.status;
       },
       () => {
