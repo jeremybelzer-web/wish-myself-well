@@ -379,7 +379,8 @@
   const WRAP = 0.3; /* light wraps a little past the edge: soft falloff, no hard terminator */
   const lam = (d) => Math.max(0, (d + WRAP) / (1 + WRAP));
   /* Shading for one light: fill + (1 - fill) x Lambert, divided by its average over a round face (so the lit
-     side gets brighter and the shadow side darker, and the face as a whole stays about as bright). */
+     side gets brighter and the shadow side darker, and the face as a whole stays about as bright). Facing the
+     light straight on gives 1 before that. */
   function shader(l) {
     const L = dir3(l),
       fill = fillFor(l.ratio);
@@ -392,7 +393,9 @@
         s += fill + (1 - fill) * lam(x * L[0] + y * L[1] + Math.sqrt(1 - r2) * L[2]);
         c++;
       }
-    const avg = s / c;
+    /* the side facing the light gets at most 1.5 times brighter (no blown-out cheeks): with a hard light the
+       face as a whole gets darker, the way a hard key with little fill looks */
+    const avg = Math.max(s / c, 1 / 1.5);
     return (nx, ny, nz) => (fill + (1 - fill) * lam(nx * L[0] + ny * L[1] + nz * L[2])) / avg;
   }
   /* Bilinear stretch of a cut-out-sized plane to W x H. */
@@ -456,7 +459,7 @@
           nz = sh.nz[i];
         let g = newS(nx, ny, nz);
         if (oldS) g /= Math.pow(oldS(nx, ny, nz), UNDO);
-        gain[i] = Math.pow(clamp(g, 0.2, 2.6), a);
+        gain[i] = Math.pow(clamp(g, 0.25, 1.8), a);
         /* tint: half of the key's color on the lit side and of the fill's in the shadow, less on skin */
         const t = lam(nx * L[0] + ny * L[1] + nz * L[2]),
           k = a * 0.5 * (1 - 0.6 * sh.skin[i]);
