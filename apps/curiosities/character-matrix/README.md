@@ -23,6 +23,10 @@ The **Space** view plots the cast in any three axes, with a trail through every 
 
 Every axis, `cm-health` and `cm-role` is registered with `CurioAuto.addCuriosity` under the group "Character matrix", so the one automation system drives them (A to B, LFO, knob, MIDI note or CC, CC out to VCV Rack). They also show in the Automate tab. A running patch moves the selected character live; **Write into scene** keeps what it shows.
 
+## On the Screen
+
+The Screen's **Character** tab (`screen/character.js`) puts these curiosities on each character's own track, and **Open the 3D matrix** opens the matrix over the Screen linked to the film (`CharacterMatrix.link(adapter)`): the cast is the character tracks, the scenes are the moments, and every edit is a node on the timeline. An axis without a lane follows the type at that health; nudging it in the matrix gives the character a lane for it. Health and role always get lanes. A type change keeps what the lanes say and moves only the axes without lanes. `CharacterMatrix.unlink()` goes back to the matrix's own cast.
+
 ## Adding it as a workspace in the main app
 
 ```html
