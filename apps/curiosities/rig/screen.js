@@ -116,6 +116,15 @@
 .sc-player:has(> .sc-dock .r3s-on) > .sc-viewers{grid-column:1;grid-row:2}
 .sc-player > .sc-dock:has(.r3s-on){grid-column:2;grid-row:2;min-height:0;overflow:auto}
 .sc-dock .r3s-on{border-top:0;border-left:1px solid #8884;min-height:100%;box-sizing:border-box}
+/* With the Momentum column also in the Player (momentum.css): viewers, then 3D, then Momentum, side by side. */
+.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on){grid-template-columns:minmax(0,1fr) minmax(15rem,30%) 204px}
+.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp.folded):has(> .sc-dock .r3s-on){grid-template-columns:minmax(0,1fr) minmax(15rem,30%) 34px}
+.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > *{grid-column:1/3}
+.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > .sc-viewers{grid-column:1;grid-row:2}
+.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > .sc-dock:has(.r3s-on){grid-column:2;grid-row:2}
+.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > .mo-sp{grid-column:3;grid-row:1/-1}
+/* The Player as a tall column on the right: Momentum sits under everything, full width. */
+.sc-page[data-layout="right"] .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > .mo-sp{grid-column:1/-1}
 }`;
     document.head.appendChild(st);
   }
@@ -157,7 +166,7 @@
       const text = $("ask").value.trim();
       if (!ctl || !text) return;
       const res = ctl.ask(text);
-      lastAsk = Object.keys(R().readRequest(text).values || {});
+      Object.keys(R().readRequest(text).values || {}).forEach((id) => !lastAsk.includes(id) && lastAsk.push(id));
       $("said").textContent = res.changes.length
         ? "Changed: " + res.changes.join("; ") + ". Where the timeline already says something here, it still wins: press Key this on the timeline to change it there."
         : "I did not find anything to change in that. Try a feeling (sleepy, scared) or a move (walk, look up).";
@@ -237,7 +246,8 @@
       const n = s.scale.length - 1;
       const word = s.scale[Math.round((own[s.id] || 0) * n)];
       const here = tl[s.id] != null ? s.scale[Math.round(tl[s.id] * n)] : s.scale[s.start];
-      if (word === here && !lastAsk.includes(s.id)) return;
+      /* only what this actor was told here: the 3D window's other settings are shared and may be left over */
+      if (!lastAsk.includes(s.id) || word === here) return;
       const val = S ? S.fix(s.id, word) : word;
       if (val == null) return;
       let track = null;
@@ -258,7 +268,9 @@
       words.push(`${s.label}: ${word}`);
     });
     if (!cmds.length) {
-      $("said").textContent = full ? "That character's track is full; remove a lane in Arrange first." : "Nothing new to put on the timeline: the 3D character already does what the timeline says here.";
+      $("said").textContent = full ? "That character's track is full; remove a lane in Arrange first." : !lastAsk.length
+        ? "Tell it what to do first (for example sleepy), then press Key this on the timeline."
+        : "Nothing new to put on the timeline: the 3D character already does what the timeline says here.";
       return null;
     }
     const res = Eng.send({ type: "batch", label: `3D: ${words.length} node${words.length === 1 ? "" : "s"} at moment ${scr.row() + 1}`, commands: cmds });

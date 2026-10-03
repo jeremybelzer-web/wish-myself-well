@@ -499,8 +499,14 @@
   }
 
   /* ---------- the viewer and the rules ---------- */
-  function mount(el, opts) {
+  function mount(host, opts) {
     opts = opts || {};
+    /* A fresh element each time: listeners from an earlier mount into the same host (closing and reopening the
+       window) go away with the old one instead of piling up. */
+    host.innerHTML = "";
+    const el = document.createElement("div");
+    el.className = "rig-root";
+    host.appendChild(el);
     const prefs = loadPrefs();
     if (opts.character) prefs.character = opts.character;
     let THREE = null;
@@ -1019,9 +1025,22 @@
       if (/could not load rig/.test(msg)) return "The free character did not download. Check the connection and try again.";
       return "The file may be damaged or not a 3D model. Try exporting it again as .glb.";
     }
+    /* Give a removed model's graphics memory back (geometry, materials, pictures). */
+    function disposeTree(o) {
+      if (!o) return;
+      o.traverse((n) => {
+        if (n.geometry) n.geometry.dispose();
+        [].concat(n.material || []).forEach((m) => {
+          Object.keys(m).forEach((k) => m[k] && m[k].isTexture && m[k].dispose());
+          m.dispose();
+        });
+      });
+    }
     function clearModel() {
       if (holder) scene.remove(holder);
       if (helper) scene.remove(helper);
+      disposeTree(holder);
+      disposeTree(helper);
       holder = null;
       helper = null;
       model = null;
@@ -1035,6 +1054,8 @@
     function build(gltf) {
       if (holder) scene.remove(holder);
       if (helper) scene.remove(helper);
+      disposeTree(holder);
+      disposeTree(helper);
       holder = new THREE.Group();
       model = gltf.scene;
       holder.add(model);

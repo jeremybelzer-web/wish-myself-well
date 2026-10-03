@@ -367,6 +367,37 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         await CurioRig.current().ready;
         return { canvases: document.querySelectorAll("canvas").length, err: CurioRig.current().error() };
       });
+      /* after reopening, one slider move is one save (no listeners left over from earlier opens) */
+      const saves = await page.evaluate(() => {
+        let n = 0;
+        const real = Storage.prototype.setItem;
+        Storage.prototype.setItem = function (k, v) {
+          if (k === "curiosities-rig3d-v1") n++;
+          return real.call(this, k, v);
+        };
+        const inp = document.querySelector('.rig-dlg [data-slider="rigRulesLens.breath"]');
+        inp.value = "2";
+        inp.dispatchEvent(new Event("input", { bubbles: true }));
+        Storage.prototype.setItem = real;
+        return n;
+      });
+      ok(saves === 1, `after closing and reopening, a slider move saves once (${saves})`);
+      const mem = await page.evaluate(async () => {
+        const c = CurioRig.current();
+        const sel = document.querySelector('.rig-dlg [data-rig="character"]');
+        const go = async (id) => {
+          sel.value = id;
+          sel.dispatchEvent(new Event("change", { bubbles: true }));
+          await c.ready;
+          await new Promise((r) => setTimeout(r, 150));
+        };
+        await go("fox");
+        await go("rigged-figure");
+        const before = c.ctx.renderer.info.memory.geometries;
+        for (let i = 0; i < 6; i++) await go(i % 2 ? "rigged-figure" : "fox");
+        return { before, after: c.ctx.renderer.info.memory.geometries };
+      });
+      ok(mem.after <= mem.before + 2, `switching characters gives graphics memory back (${mem.before} to ${mem.after} pieces)`);
       ok(!leak.err && !warnings.some((w) => /Too many active WebGL/.test(w)), `opening and closing 18 times does not run out of 3D views (${leak.canvases} canvases)`);
       await page.evaluate(() => document.querySelector(".rig-dlg").close());
     }

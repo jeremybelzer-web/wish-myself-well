@@ -1209,6 +1209,11 @@
       if (document.querySelector(".en-overlay:not([hidden])")) return;
       /* the 3D window and the Maya tool window sit over the film: Ctrl+Z there must not undo the film behind */
       if (document.querySelector(".rig-dlg[open], .sc-maya-dlg[open]")) return;
+      try {
+        if (document.querySelector("dialog:modal")) return; /* any other window over the app */
+      } catch (err) {
+        /* older browsers without :modal */
+      }
       const k = e.key.toLowerCase();
       if (k === "z" && !e.shiftKey ? window.CurioStore.undo() : (k === "z" && e.shiftKey) || k === "y" ? window.CurioStore.redo() : false) e.preventDefault();
     });

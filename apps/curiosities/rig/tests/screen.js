@@ -130,6 +130,13 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
 
       /* Plain words, then Key this on the timeline. */
       await page.evaluate(() => window.CurioScreen.setRow(1));
+      /* a leftover setting (as if changed in the Library's 3D window) that "scared" does not touch */
+      const leftover = await page.evaluate(() => {
+        const told = CurioRig.readRequest("scared").values;
+        const s = CurioRig.SLIDERS.find((x) => x.id.startsWith("rigRulesLens.") && !(x.id in told) && x.scale.length > 2);
+        CurioRigScreen.controller().set(s.id, s.scale[s.scale.length - 1 === s.start ? 0 : s.scale.length - 1]);
+        return s.id;
+      });
       await page.fill('[data-panel="rig3d"] [data-r3s="ask"]', "scared");
       await page.click('[data-panel="rig3d"] .r3s-ask button');
       const said = await page.textContent('[data-panel="rig3d"] [data-r3s="said"]');
@@ -144,6 +151,13 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         const lane = t && st.lanes[t.id + "|rigRulesLens.pace"];
         return { pace: lane && lane.points[r], undo: E.history().undo.length, said: document.querySelector('[data-panel="rig3d"] [data-r3s="said"]').textContent };
       });
+      const extra = await page.evaluate((id) => {
+        const st = window.CurioEngine.state();
+        const t = st.tracks.find((x) => x.curiosities.includes(id));
+        const lane = t && st.lanes[t.id + "|" + id];
+        return lane ? lane.points[st.rows[1].id] : undefined;
+      }, leftover);
+      ok(extra === undefined, `Key this keys only what the actor was told, not leftover settings (${leftover}: ${extra})`);
       ok(keyed.pace === "frantic" && keyed.undo === undo0 + 1, `Key this on the timeline puts the nodes at the playhead as one step (Pace: ${keyed.pace}; ${keyed.said.slice(0, 60)}...)`);
       await page.waitForTimeout(300);
       ok((await page.evaluate(() => window.CurioRigScreen.controller().timeline()["rigRulesLens.pace"])) === 1, "the 3D view follows the new node");
