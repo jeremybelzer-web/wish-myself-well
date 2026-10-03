@@ -882,7 +882,7 @@
         return o;
       }
       if (/moving|fast/.test(pair)) return set(k, "#3a3a48") + (B ? [0, 1, 2].map((j) => line(30, 70 + j * 25, 100 + str * 30, 70 + j * 25, "#ddd", 4)).join("") : "") + k.person({ x: 170, y: 168, s: 1.6, color: "#7fb7ff", walk: B ? 1 : 0, lean: B ? 10 + str * 10 : 0, arms: B ? 0.6 : 0 });
-      return set(k, B ? k.mix("#3a3a48", "#6a2a30", str) : "#2e3444") + k.person({ x: 160, y: 168, s: 1.6, color: "#7fb7ff", mood: B ? -0.6 : 0.2 }) + (B ? k.text({ x: 230, y: 70, text: "!".repeat(1 + Math.round(d * 2)), size: 40 + d * 30, color: "#ffd166", weight: 800 }) : k.text({ x: 225, y: 60, text: "…", size: 30, color: "#9fd3ff" }));
+      return set(k, B ? k.mix("#3a3a48", "#6a2a30", str) : "#2e3444") + k.person({ x: 160, y: 168, s: 1.6, color: "#7fb7ff", mood: B ? -0.6 : 0.2 }) + (B ? k.text({ x: 230, y: 70, text: "!".repeat(1 + Math.round(d * 2)), size: 40 + d * 30, color: "#ffd166", weight: 800 }) : [0, 1, 2].map((j) => k.dot({ x: 212 + j * 14, y: 56, r: 4, color: "#9fd3ff" })).join(""));
     };
     const sideA = side(false);
     const sideB = side(true);

@@ -17,6 +17,20 @@
     const s = w / 320;
     return `<g transform="translate(${R(x)} ${R(y)}) scale(${R(s, 4)})"><clipPath id="${id}"><rect x="0" y="0" width="320" height="180"/></clipPath><g clip-path="url(#${id})">${inner}</g><rect x="0" y="0" width="320" height="180" fill="none" stroke="${stroke || "#888"}" stroke-width="${R(1.5 / s)}"/></g>`;
   }
+  /* A film frame w by h at (x, y) holding a 320x180 drawing; a frame wider than 16:9 shows the middle band. */
+  const cell = (id, x, y, w, h, inner, stroke) => {
+    const s = Math.max(h / 180, w / 320);
+    const ty = Math.min(y, Math.max(y + h - 180 * s, y + h / 2 - 110 * s));
+    return `<clipPath id="${id}"><rect x="${R(x)}" y="${R(y)}" width="${R(Math.max(0.5, w))}" height="${R(h)}"/></clipPath><g clip-path="url(#${id})"><g transform="translate(${R(x + w / 2 - 160 * s)} ${R(ty)}) scale(${R(s, 3)})">${inner}</g></g>` + box(x, y, w, h, "none", stroke || "#0b0b0d");
+  };
+  /* The dark band and sprocket holes behind a strip of film frames. */
+  const sprockets = (x, y, w, h) => {
+    let o = box(x - 2, y - 6, w + 4, h + 12, "#0b0b0d");
+    for (let hx = x + 2; hx < x + w - 2; hx += 7) o += box(hx, y - 4, 3, 2.5, "#4a4a52") + box(hx, y + h + 1.5, 3, 2.5, "#4a4a52");
+    return o;
+  };
+  /* A plain backdrop with a floor, for people inside a frame. */
+  const set = (k, c) => box(0, 0, 320, 180, c) + box(0, 128, 320, 52, k.mix(c, "#000000", 0.45));
   const idx = (v, id) => {
     const s = v.slider(id);
     return s && Array.isArray(s.scale) ? Math.max(0, s.scale.indexOf(v(id))) : 0;
@@ -123,7 +137,7 @@
       const w = Math.max(1, Math.round(pl / 2));
       for (let j = c - w; j <= c + w; j++) if (rate[j] != null) rate[j] = 0;
     }
-    const pts = rate.map((r, i) => [10 + (i / N) * 300, 92 - (Math.min(maxC, r) / maxC) * 70]);
+    const pts = rate.map((r, i) => [10 + (i / N) * 300, 130 - (Math.min(maxC, r) / maxC) * 46]);
     /* shots from the rate, clamped between the shortest (frames) and longest (seconds) */
     const minS = v.n("shortest") / 24;
     const maxS = v.n("longest");
@@ -135,17 +149,27 @@
       L.push(len);
       t += len;
     }
+    /* The film: one frame per shot, as wide as the shot is long; each cut jumps to a new angle on the person. */
+    let strip = sprockets(10, 22, 300, 42);
+    const totL = L.reduce((a, b) => a + b, 0) || 1;
+    let sx = 10;
+    L.forEach((l, i) => {
+      const w = (l / totL) * 300;
+      if (w < 8) strip += box(sx, 22, Math.max(0.6, w - (w > 2.5 ? 1 : 0.3)), 42, i % 2 ? "#6c8fb8" : "#8fb2d8");
+      else strip += cell(`cw-pc-f${i}`, sx, 22, w - 1, 42, set(k, ["#3a3a48", "#34404a", "#44384a"][i % 3]) + fig(k, 160 + ((i * 37) % 3 - 1) * 40, 172 + (i % 3) * 30, 110 + (i % 3) * 50, { color: "#4a6fa5", walk: i % 2, look: i % 2 ? 1 : -1 }));
+      sx += w;
+    });
     return (
       k.bg(SKY) +
-      sm(k, 10, 14, "Cuts per minute across the scene", { size: 8 }) +
-      box(10, 20, 300, 74, "#1d1d22", "#3a3a44", 3) +
-      ln(10 + at * 300, 20, 10 + at * 300, 94, "#ff6b6b", 1, "3 3") +
-      poly(pts, "#ffd166", 2.5) +
-      sm(k, 14, k.clamp(92 - (Math.min(maxC, s0) / maxC) * 70 - 3, 30, 90), `${s0}`, { size: 7, color: "#9fd3ff" }) +
-      sm(k, k.clamp(14 + at * 300, 30, 294), k.clamp(92 - (Math.min(maxC, pk) / maxC) * 70 - 4, 30, 90), `${pk}`, { size: 7, color: "#ff8a8a" }) +
-      sm(k, 10, 108, `The shots (${L.length}), each ${v("shortest")} frames to ${maxS} s`, { size: 7.5 }) +
-      shots(L, 10, 114, 300, 22) +
-      sm(k, 10, 152, `${pauses} pauses of ${pl} s · after the peak: ${v("afterPeak")}`, { size: 7.5, color: "#ddd" }) +
+      sm(k, 10, 12, `The scene as it plays: ${L.length} shots, ${v("shortest")} frames to ${maxS} s`, { size: 7.5 }) +
+      strip +
+      box(10, 78, 300, 56, "#1d1d22", "#3a3a44", 3) +
+      sm(k, 310, 76, "cuts per minute", { size: 6.5, color: "#999", anchor: "end" }) +
+      ln(10 + at * 300, 78, 10 + at * 300, 134, "#ff6b6b", 1, "3 3") +
+      poly(pts, "#ffd166", 1.5) +
+      sm(k, 14, k.clamp(130 - (Math.min(maxC, s0) / maxC) * 46 - 3, 98, 130), `${s0}`, { size: 7, color: "#9fd3ff" }) +
+      sm(k, k.clamp(14 + at * 300, 80, 294), k.clamp(130 - (Math.min(maxC, pk) / maxC) * 46 - 4, 98, 130), `${pk}`, { size: 7, color: "#ff8a8a" }) +
+      sm(k, 10, 150, `${pauses} pauses of ${pl} s · after the peak: ${v("afterPeak")}`, { size: 7.5, color: "#ddd" }) +
       k.caption(`Pace ${shape}`)
     );
   });
@@ -171,6 +195,7 @@
       return `<path d="M${R(x - 8 * s)} ${R(y + 6 * s)} L${R(x - 8 * s)} ${R(y - 2 * s)} L${R(x)} ${R(y - 9 * s)} L${R(x + 8 * s)} ${R(y - 2 * s)} L${R(x + 8 * s)} ${R(y + 6 * s)} Z" fill="${c}"/>`;
     };
     const ev = [];
+    const evs = [];
     let t = first;
     let i = 0;
     let gap = every;
@@ -179,7 +204,8 @@
     while (t <= 60 && i < 60) {
       const kind = vr === 0 ? k0 : vr === 1 ? [k0, (k0 + 1) % 5, (k0 + 2) % 5][i % 3] : Math.floor(k.rnd(i + 3) * 5);
       const s = 0.7 + jolt * 0.8 + sur * 0.2 * k.rnd(i);
-      ev.push(icon(kind, 14 + (t / 60) * 292, 70, s));
+      ev.push(icon(kind, 14 + (t / 60) * 292, 95, Math.min(1.1, s)));
+      evs.push({ t, kind, s });
       biggest = Math.max(biggest, t - last);
       last = t;
       t += gap;
@@ -187,13 +213,39 @@
       i++;
     }
     const over = biggest > gapMax;
+    /* The film: ten frames of the minute. A frame with something new shows it (a new angle, a sound, a joke, a new
+       face, a new place); between them the same shot sits there and the viewer's attention fades (it darkens). */
+    const NF = 10;
+    const fw = 300 / NF;
+    let strip = sprockets(10, 24, 300, 40);
+    let lastT = 0;
+    for (let f = 0; f < NF; f++) {
+      const a = f * 6;
+      const hit = evs.find((e) => e.t >= a && e.t < a + 6);
+      let inner;
+      if (hit) {
+        lastT = hit.t;
+        const big = 0.8 + jolt * 0.6;
+        inner =
+          hit.kind === 4 ? set(k, "#2f4a3a") + `<path d="M60 128 L160 40 L260 128 Z" fill="#81b29a"/>` + fig(k, 230, 172, 90, { color: "#4a6fa5" })
+          : hit.kind === 3 ? set(k, "#3a3a48") + fig(k, 120, 172, 120, { color: "#4a6fa5" }) + fig(k, 220, 172, 130 * big, { color: "#e07a5f", mood: 0.5 })
+          : hit.kind === 2 ? set(k, "#3a3a48") + k.face({ x: 160, y: 95, r: 55 * big, mood: 1, mouth: 0.8 }) + k.text({ x: 260, y: 50, text: "ha", size: 40, color: "#ff8ad8", weight: 800 })
+          : hit.kind === 1 ? set(k, "#3a3a48") + fig(k, 120, 172, 120, { color: "#4a6fa5", look: 1 }) + k.speaker({ x: 230, y: 70, s: 2.4 * big, level: 1, color: "#9fd3ff" })
+          : f % 2 ? set(k, "#44384a") + k.face({ x: 160, y: 100, r: 60 * big, mood: 0.2 }) : set(k, "#34404a") + fig(k, 160, 200, 200 * big, { color: "#4a6fa5", look: -1 });
+      } else {
+        const bored = k.clamp((a + 6 - lastT) / Math.max(1, gapMax), 0, 1);
+        inner = set(k, "#3a3a48") + fig(k, 160, 172, 120, { color: "#4a6fa5" }) + box(0, 0, 320, 180, "#000", null, 0, bored * 0.75);
+      }
+      strip += cell(`cw-ar-f${f}`, 10 + f * fw + 1, 24, fw - 2, 40, inner, hit ? (sur === 2 ? "#ff6b6b" : "#ffd166") : "#0b0b0d");
+    }
     return (
       k.bg(SKY) +
-      sm(k, 10, 18, "One minute: each mark is something new", { size: 8, color: "#ddd" }) +
-      box(10, 30, 300, 80, "#1d1d22", "#3a3a44", 4) +
-      box(14, 34, Math.min(292, (band / 60) * 292), 72, "#81b29a", null, 2, 0.14) +
-      sm(k, 16, 104, `target: ${v("setting")}`, { size: 7, color: "#81b29a" }) +
-      ln(14 + (first / 60) * 292, 34, 14 + (first / 60) * 292, 106, "#ff6b6b", 1, "2 2") +
+      sm(k, 10, 13, "One minute of film (gold = something new)", { size: 8, color: "#ddd" }) +
+      strip +
+      box(10, 76, 300, 36, "#1d1d22", "#3a3a44", 4) +
+      box(14, 78, Math.min(292, (band / 60) * 292), 32, "#81b29a", null, 2, 0.14) +
+      sm(k, 16, 108, `target: ${v("setting")}`, { size: 6.5, color: "#81b29a" }) +
+      ln(14 + (first / 60) * 292, 78, 14 + (first / 60) * 292, 110, "#ff6b6b", 1, "2 2") +
       ev.join("") +
       sm(k, 10, 126, `About every ${every} s, ${v("drift")} · first hook at ${first} s`, { size: 7.5, color: "#ddd" }) +
       sm(k, 10, 140, `Longest gap allowed ${gapMax} s${over ? " (broken!)" : ""}`, { size: 7.5, color: over ? "#ff8a8a" : "#bbb" }) +
@@ -318,6 +370,7 @@
       beats.push(ln(x0 + i * beatW, 60, x0 + i * beatW, 60 - (isDrop ? 22 : strong ? 14 : 8), isDrop ? "#ff6b6b" : strong ? "#9fd3ff" : "#557", isDrop ? 3 : 2));
     }
     const cuts = [];
+    const cutX = [];
     const stepBase = mode === 3 ? Math.max(every, 4) : mode === 4 ? 16 : every;
     let b = 0;
     let i = 0;
@@ -330,18 +383,35 @@
       if (k.rnd(i + 17) > share) x += beatW * 0.45;
       x += (k.rnd(i + 31) - 0.5) * (jit / 6) * beatW * 0.8 + (loose ? (k.rnd(i + 9) - 0.5) * loose * 2 : 0);
       const big = (acc === 0 && true) || (acc === 1 && b % 4 === 0) || (acc === 2 && b === drop);
-      cuts.push(ln(x, 70, x, 70 + (big && (acc > 0) ? 34 : 22), big && acc > 0 ? "#ffd166" : "#ddd", big && acc > 0 ? 3 : 1.6));
+      cutX.push([x, big && acc > 0]);
+      cuts.push(ln(x, 70, x, 106, big && acc > 0 ? "#ffd166" : "#ffffff", big && acc > 0 ? 2 : 1));
       b += Math.max(0.5, stepBase / speed);
       i++;
     }
+    /* The film under the music: a dancer, one frame per shot; a big moment is a close-up. */
+    const strip = () => {
+      const xs = cutX.map((c) => c).filter(([x]) => x > 10 && x < 310).sort((a, b) => a[0] - b[0]);
+      const edges = [[10, false], ...xs, [310, false]];
+      let o = sprockets(10, 72, 300, 32);
+      for (let j = 0; j < edges.length - 1; j++) {
+        const x1 = edges[j][0];
+        const w = edges[j + 1][0] - x1;
+        if (w < 1) continue;
+        const big = edges[j][1];
+        const inner = big ? set(k, "#5a3a2a") + k.face({ x: 160, y: 95, r: 70, mood: 1, mouth: 0.7 }) : set(k, ["#3a3a48", "#34404a", "#44384a"][j % 3]) + fig(k, 160 + ((j % 3) - 1) * 50, 172, 120, { color: "#4a6fa5", arms: j % 2 ? 1 : -0.3, walk: (j + 1) % 2, lean: ((j % 3) - 1) * 8 });
+        o += w < 6 ? box(x1, 72, w, 32, big ? "#ffd166" : j % 2 ? "#6c8fb8" : "#8fb2d8") : cell(`cw-bs-f${j}`, x1, 72, w, 32, inner, big ? "#ffd166" : "#0b0b0d");
+      }
+      return o;
+    };
     return (
       k.bg(SKY) +
       sm(k, 10, 18, "Beats (bars marked tall, the drop red)", { size: 8 }) +
       box(8, 30, 304, 34, "#1d1d22", "#3a3a44", 3) +
       beats.join("") +
       k.label({ x: x0 + drop * beatW, y: 28, text: "drop", size: 7.5, color: "#ff8a8a" }) +
-      sm(k, 10, 116, "Cuts", { size: 8 }) +
+      strip() +
       cuts.join("") +
+      sm(k, 10, 119, "The film, cut where the lines are (gold = a big moment)", { size: 7 }) +
       sm(k, 10, 132, `Every ${every} beats · ${off > 0 ? "+" : ""}${off} frames · ${v("onBeatShare")}% on the beat`, { size: 7.5, color: "#ddd" }) +
       sm(k, 10, 146, `${v("looseness")}, ${jit} frames loose · big moments on ${v("accents")}`, { size: 7.5 }) +
       sm(k, 10, 158, `Before the drop: ${v("buildToDrop")}, ${v("dropSpeedup")}%`, { size: 7.5 }) +

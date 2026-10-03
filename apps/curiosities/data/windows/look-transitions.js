@@ -18,6 +18,20 @@
     const s = w / 320;
     return `<g transform="translate(${R(x)} ${R(y)}) scale(${R(s, 4)})"><clipPath id="${id}"><rect x="0" y="0" width="320" height="180"/></clipPath><g clip-path="url(#${id})">${inner}</g><rect x="0" y="0" width="320" height="180" fill="none" stroke="${stroke || "#888"}" stroke-width="${R(1.5 / s)}"/></g>`;
   }
+  /* A film frame w by h at (x, y) holding a 320x180 drawing; a frame wider than 16:9 shows the middle band. */
+  const cell = (id, x, y, w, h, inner, stroke) => {
+    const s = Math.max(h / 180, w / 320);
+    const ty = Math.min(y, Math.max(y + h - 180 * s, y + h / 2 - 110 * s));
+    return `<clipPath id="${id}"><rect x="${R(x)}" y="${R(y)}" width="${R(Math.max(0.5, w))}" height="${R(h)}"/></clipPath><g clip-path="url(#${id})"><g transform="translate(${R(x + w / 2 - 160 * s)} ${R(ty)}) scale(${R(s, 3)})">${inner}</g></g>` + box(x, y, w, h, "none", stroke || "#0b0b0d");
+  };
+  /* The dark band and sprocket holes behind a strip of film frames. */
+  const sprockets = (x, y, w, h) => {
+    let o = box(x - 2, y - 6, w + 4, h + 12, "#0b0b0d");
+    for (let hx = x + 2; hx < x + w - 2; hx += 7) o += box(hx, y - 4, 3, 2.5, "#4a4a52") + box(hx, y + h + 1.5, 3, 2.5, "#4a4a52");
+    return o;
+  };
+  /* A plain backdrop with a floor, for people inside a frame. */
+  const set = (k, c) => box(0, 0, 320, 180, c) + box(0, 128, 320, 52, k.mix(c, "#000000", 0.45));
   const idx = (v, id) => {
     const s = v.slider(id);
     return s && Array.isArray(s.scale) ? Math.max(0, s.scale.indexOf(v(id))) : 0;
@@ -51,7 +65,7 @@
     const ob = idx(v, "obvious");
     const glowB = ob === 0 ? "" : ob === 1 ? `<circle cx="${R(bx)}" cy="${R(by)}" r="56" fill="#fff" opacity="0.18"/>` : [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ln(bx + Math.cos(i * 0.785) * 44, by + Math.sin(i * 0.785) * 44, bx + Math.cos(i * 0.785) * 80, by + Math.sin(i * 0.785) * 80, "#fff", 5)).join("");
     const A = box(0, 0, 320, 180, "#25344f") + box(0, 130, 320, 50, "#1b2335") + mark(mx, my, "#f4f1ea");
-    const B = box(0, 0, 320, 180, "#f2b880") + box(0, 140, 320, 40, "#c8673a") + glowB + (close === 2 ? `<g opacity="0.35">${mark(mx, my, "#ffffff")}</g>` : "") + mark(bx, by, "#e8e0d0", close === 0 ? 24 : 34);
+    const B = box(0, 0, 320, 180, "#f2b880") + box(0, 140, 320, 40, "#c8673a") + glowB + (close === 2 ? (kind === "word" ? box(mx - 60, my - 20, 120, 40, "none", "#ffffff", 12, 0.5) : `<g opacity="0.35">${mark(mx, my, "#ffffff")}</g>`) : "") + mark(bx, by, "#e8e0d0", close === 0 ? 24 : 34);
     const leap = idx(v, "leap");
     const fq = v.n("frequency");
     return (
@@ -182,8 +196,8 @@
     const outOn = mode === 2 || mode === 3 || mode === 0;
     const pts = [];
     const lo = 1 - depth;
-    const top = 58;
-    const hgt = 42;
+    const top = 72;
+    const hgt = 32;
     const y = (b) => top + hgt - b * hgt;
     const hx = hold * px * 0.5;
     pts.push([x0, y(inOn ? lo : 1)]);
@@ -202,16 +216,29 @@
     const sx = sf === "sound fades first" ? -20 : sf === "sound fades last" ? 20 : 0;
     const spts = sf === "sound stays" ? [[x0, 122], [x1, 122]] : [[x0, 136], [x0 + hx + len * px + sx + lead, 122], [x1 - hx - len * px - sx + lead, 122], [x1, 136]];
     const fin = idx(v, "finality");
-    const thumb = sceneA(k) + box(0, 0, 320, 180, col, null, 0, ghost ? 0.15 : depth * 0.6);
+    /* The film: ten frames through the clip, each as dark (or light, or colored) as the fade makes it there.
+       With no fade the frames show it faintly: what a fade would do. */
+    const NF = 10;
+    const fw = (x1 - x0) / NF;
+    let strip = sprockets(x0, 22, x1 - x0, 40);
+    for (let f = 0; f < NF; f++) {
+      const cx = x0 + (f + 0.5) * fw;
+      let near = pts[0];
+      pts.forEach((p) => {
+        if (Math.abs(p[0] - cx) < Math.abs(near[0] - cx)) near = p;
+      });
+      const b = k.clamp((top + hgt - near[1]) / hgt, 0, 1);
+      strip += cell(`cw-fe-f${f}`, x0 + f * fw + 1, 22, fw - 2, 40, box(0, 0, 320, 180, "#25344f") + `<circle cx="196" cy="48" r="20" fill="#f4f1ea"/>` + box(0, 130, 320, 50, "#1b2335") + k.person({ x: 145, y: 168, s: 1.4, color: "#4a6fa5" }) + box(0, 0, 320, 180, col, null, 0, (1 - b) * (ghost ? 0.3 : 1)));
+    }
     return (
       k.bg(SKY) +
-      sm(k, 10, 14, "Picture brightness through the clip", { size: 8 }) +
+      sm(k, 10, 13, "The clip, start to end (line: its brightness)", { size: 8 }) +
       box(x0, top, x1 - x0, hgt, "#25344f", null, 2, 0.5) +
       (inOn ? box(x0, top, hx + 0.5, hgt, col, "#555") : "") +
       (outOn ? box(x1 - hx, top, hx + 0.5, hgt, col, "#555") : "") +
-      poly(pts, ghost ? "#666" : "#ffd166", 2.5, null, ghost ? "4 4" : null) +
-      shot(k, "cw-fe-t", 224, 4, 86, thumb) +
-      sm(k, 10, 112, `Sound: ${sf} (${v("soundLead")} s)`, { size: 7.5 }) +
+      poly(pts, ghost ? "#666" : "#ffd166", 1.5, null, ghost ? "4 4" : null) +
+      strip +
+      sm(k, 10, 116, `Sound: ${sf} (${v("soundLead")} s)`, { size: 7.5 }) +
       poly(spts, "#9fd3ff", 2) +
       sm(k, 10, 160 - 2, `${len} s fade · ${hold} s on ${v("color")} · ${v("fadeDepth")}% deep · ${v("curve")}`, { size: 7.5, color: "#ddd" }) +
       sm(k, 10, 147, `Feels like ${v("finality")}`, { size: 7.5 }) +
