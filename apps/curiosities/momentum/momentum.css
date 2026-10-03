@@ -236,3 +236,27 @@
 /* How attention moves (ui.js movesHtml). */
 .mo-moves td small { color: var(--mo-muted, #6b6459); }
 .mo-key { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: baseline; }
+
+/* Pace it (pacer.js). */
+.pc-root { display: grid; gap: 14px; min-width: 0; }
+.pc-root > p { max-width: 70ch; font-size: 14px; }
+.pc-strength { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; min-width: 0; }
+.pc-strength legend { padding: 0; margin-bottom: 3px; }
+.pc-strength label { display: inline-flex; gap: 5px; align-items: center; }
+.pc-nums { border-collapse: collapse; font-size: 14px; width: 100%; }
+.pc-nums th, .pc-nums td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--mo-grid); vertical-align: top; }
+.pc-nums thead th { font-size: 13px; color: var(--mo-ink-2); font-weight: 600; }
+.pc-nums tbody th { font-weight: 600; }
+.pc-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
+.pc-change label { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; border-bottom: 1px solid var(--mo-grid); padding-bottom: 8px; cursor: pointer; }
+.pc-change input { margin-top: 3px; width: 18px; height: 18px; }
+.pc-what { display: grid; gap: 4px; min-width: 0; font-size: 14px; }
+.pc-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.pc-head .mo-fam { display: inline-flex; gap: 5px; align-items: center; }
+.pc-tag { font-size: 12px; font-weight: 600; border: 1px solid var(--mo-ink); padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
+.pc-rest { background: var(--mo-surface); border-style: dashed; }
+.pc-move { background: var(--mo-ink); color: var(--paper, #fff); }
+.pc-why { font-size: 13px; color: var(--mo-ink-2); overflow-wrap: anywhere; }
+.pc-text { overflow-wrap: anywhere; }
+.pc-root button { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); justify-self: start; }
+.pc-root button[disabled] { opacity: 0.5; cursor: default; }
