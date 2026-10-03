@@ -379,6 +379,7 @@
     const times = clip.samples.map((x) => r3(x.t));
     const get = (k) => clip.samples.map((x) => x.s[k]);
     const raw = { luma: get("luma"), std: get("std"), sat: get("sat"), warm: get("warm"), skin: get("skin"), skinX: get("skinX"), skinY: get("skinY"), colors: get("colors") };
+    if (clip.samples.some((x) => x.s.roll)) raw.roll = get("roll"); /* { deg, conf } per sample (framing.js), kept as it is */
     /* Cuts: a big jump in the colors that stands well above the frames on either side and that sliding the
        picture does not explain. */
     const hd = clip.samples.map((x, i) => (i ? histDistance(clip.samples[i - 1].s.hist, x.s.hist) : 0));
@@ -537,7 +538,7 @@
     const minHold = Math.max(0.4, Math.min(1.5, F.dur / 40));
     const sm = {};
     const w = Math.max(0, Math.round(minHold / 2 / F.dt));
-    Object.keys(F.raw).forEach((k) => (sm[k] = /^(wobX|wobY|steadyX|steadyY|zoomPos)$/.test(k) ? F.raw[k] : smooth(F.raw[k], w)));
+    Object.keys(F.raw).forEach((k) => (sm[k] = /^(wobX|wobY|steadyX|steadyY|zoomPos|roll)$/.test(k) ? F.raw[k] : smooth(F.raw[k], w)));
     const fs = F.times.map((_, i) => {
       const f = {};
       Object.keys(sm).forEach((k) => (f[k] = sm[k][i]));
@@ -661,6 +662,7 @@
     { id: "hair", label: "Hair color", curiosities: ["colorRange"], check: "el:hair", needs: "elements", plain: "Finds hair in every frame and recolors only the hair to the inspiration's hair color." },
     { id: "figure", label: "Person size and place", curiosities: ["shotSize"], check: "el:person", needs: "elements", plain: "Cuts the people out and makes them as big in the frame, and as far left or right, as the inspiration's people, moment by moment. The gap they leave is filled from the background around it." },
     { id: "angle", label: "Camera angle (high or low)", curiosities: ["shotSize"], check: "el:angle", needs: "elements", off: true, plain: "Guesses how high the inspiration's camera is (from how much hair shows against faces, and how low people sit in the frame), then cuts your people out and tips the camera a little higher or lower to match: the set leans and slides less than the people, as if seen from a new height. Small changes only: a big angle change needs a full 3D rebuild. Off unless you turn it on." },
+    { id: "framing", label: "Shot framing", curiosities: ["shotSize"], check: "el:framing", needs: "elements", off: true, plain: "Finds where the inspiration's main person sits in the frame (their eyes on a third or in the middle, the room above their head, how much of the frame they fill, the room in front of them) and moves a virtual camera over your clip to frame your person the same way: it zooms in and pans to follow them, smoothly, like a camera operator. It can only zoom in, so the edges never go black. Dutch tilt (optional): the inspiration's horizon roll too. Off unless you turn it on." },
     { id: "set", label: "The set (background)", curiosities: ["background"], check: "el:background", needs: "elements", off: true, plain: "Keeps your clip's people and puts them in the inspiration's place: its background, moving as it moves, with its own people still there behind yours. Off unless you turn it on." },
     /* Look groups: they need both clips' looks (video/looks.js, measured when a clip comes in). */
     { id: "palette", label: "Borrowed palette", curiosities: ["colorRange", "colorTemp"], check: "lk:palette", needs: "looks", plain: "Carries the inspiration's color grade over: your clip's darks, mids and lights in each color are moved to where the inspiration's are, moment by moment. Skin keeps most of its own color." },
@@ -721,8 +723,8 @@
       }
       t += step;
     }
-    p.src = src;
-    p.duration = r3(src.length * step);
+    p.src = root.CurioRhythm ? root.CurioRhythm.retime(p, src) : src; /* video/rhythm.js: jumps and holds on the beat */
+    p.duration = r3(p.src.length * step);
     /* Dialogue: new lines on the title's topic, one per phrase of the inspiration's speech, at its times. */
     p.lines = [];
     if (on.dialogue > 0 && insp.speech && insp.speech.phrases.length) {
@@ -790,6 +792,8 @@
         }
       p.setFrom = r3(from);
     }
+    /* Shot framing: the virtual camera's whole move, worked out once (video/framing.js). */
+    if (on.framing && root.CurioFraming) p.framing = root.CurioFraming.path(p, opts.framing);
     if (on.shake || on.move) {
       const need = [];
       for (let k = 0; k < p.src.length; k += 3) {
@@ -874,6 +878,7 @@
       zoom = z;
     } else zoom *= push;
     adj.zoom = r3(Math.max(1, zoom));
+    if (p.rhythm && root.CurioRhythm) root.CurioRhythm.at(p, t, adj); /* video/rhythm.js: punch-ins and flashes */
     if (on.loud && A.raw.db && B.raw.db) {
       const [a, b] = g("db");
       adj.gainDb = clamp(a - b, -24, 18) * on.loud;
@@ -882,6 +887,7 @@
       const room = Math.max(0.1, A.duration - (p.overlayFrom || 0));
       adj.overlay = { t: r3((p.overlayFrom || 0) + (p.mode === "stretch" ? ((t / Math.max(0.001, p.duration)) * room) : t % room)), amount: on.overlay };
     }
+    if (p.framing) adj.frame = root.CurioFraming.at(p, t);
     if (on.wardrobe || on.hair || on.figure || on.set || on.angle) adj.parts = partsAt(p, ta, s);
     if ((on.palette || on.grain || on.shape) && root.CurioLooks) adj.looks = root.CurioLooks.at(p, ta, s); /* video/looks.js */
     if (on.dialogue && p.lines.length) {
@@ -1233,6 +1239,7 @@
         EA = A.elements,
         EB = before.elements;
       if (!E || !EA || !EB) return { feature: feat, note: "needs AI cut-outs of both clips" };
+      if (part === "framing" && root.CurioFraming) return root.CurioFraming.score(p, before, after);
       if (part === "angle") {
         const cue = (el, t) => angleCue(el, t) || 0;
         const want = E.times.map((t) => cue(EA, p.tA(t, p.duration)));
@@ -1247,6 +1254,7 @@
       const gap = (x) => r3(mean(x.map((v, i) => Math.abs(v - want[i]))));
       return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
     }
+    if (feat === "rhythm") return root.CurioRhythm ? root.CurioRhythm.score(p, before, after) : { feature: feat, note: "needs video/rhythm.js" };
     if (/^lk:/.test(feat)) return root.CurioLooks ? root.CurioLooks.score(p, feat, before, after) : { feature: feat, note: "needs video/looks.js" };
     if (feat === "cuts") return { feature: "cuts", inspiration: A.cuts.length, before: before.cuts.length, after: after.cuts.length };
     if (feat === "speech") {

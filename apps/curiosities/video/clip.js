@@ -117,6 +117,7 @@
       const s = V().frameStats(ax.getImageData(0, 0, STAT_W, h).data, STAT_W, h);
       const g = V().toGray(bx.getImageData(0, 0, GRAY_W, gh).data, GRAY_W, gh);
       const gf = V().toGray(fx.getImageData(0, 0, FW, fh).data, FW, fh);
+      if (window.CurioFraming) s.roll = window.CurioFraming.roll(gf, FW, fh); /* the horizon's roll, for a dutch tilt */
       samples.push({ t: times[i], s, m: prev ? V().motion(prev, g, GRAY_W, gh, 5, { prev: prevFine, cur: gf, w: FW, h: fh }) : null });
       prev = g;
       prevFine = gf;
@@ -162,6 +163,8 @@
     const p = opts.sound === false || big ? null : await pcm(clip);
     const sound = p ? V().envelope(p.data, p.rate) : null;
     const d = V().analyze({ name: clip.name, duration: clip.duration, aspect: box.h / box.w, samples: fr.samples, gw: fr.gw, sound });
+    /* Its beat and accents (video/rhythm.js), or its cuts when it has no clear beat. */
+    if (window.CurioRhythm) d.rhythm = window.CurioRhythm.find(p && p.data, p && p.rate, { cuts: d.cuts, duration: d.duration });
     /* Its looks: palette, grain and sharpness, picture shape (video/looks.js), unless turned off. */
     if (opts.looks !== false && window.CurioLooks) {
       if (opts.onProgress) opts.onProgress(0.9, "Looking at its colors, grain and frame");
@@ -287,8 +290,10 @@
      subtitle. */
   function drawApplied(ctx, video, adj, W, H, opts) {
     opts = opts || {};
-    const vw = video.videoWidth,
-      vh = video.videoHeight;
+    /* Shot framing (framing.js): a virtual camera's crop of the frame; the other camera changes work inside it. */
+    const F = adj.frame && window.CurioFraming ? window.CurioFraming.rect(adj.frame, video.videoWidth, video.videoHeight) : null;
+    const vw = F ? F.w : video.videoWidth,
+      vh = F ? F.h : video.videoHeight;
     const z = Math.max(1, adj.zoom || 1);
     const sw = vw / z,
       sh = vh / z;
@@ -302,7 +307,15 @@
     cy += (adj.dy || 0) * vw;
     const sx = Math.max(0, Math.min(vw - sw, cx - sw / 2)),
       sy = Math.max(0, Math.min(vh - sh, cy - sh / 2));
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, H);
+    if (F && F.roll) {
+      /* a dutch tilt: the whole frame turned about the crop's middle (the crop sits far enough in to fill) */
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(F.roll);
+      ctx.scale(W / sw, H / sh);
+      ctx.drawImage(video, -(F.x + sx + sw / 2), -(F.y + sy + sh / 2));
+      ctx.restore();
+    } else ctx.drawImage(video, (F ? F.x : 0) + sx, (F ? F.y : 0) + sy, sw, sh, 0, 0, W, H);
     /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI. */
     const M = adj.parts && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
     const k = M ? M.cut(ctx.canvas, { track: "applied", t: video.currentTime }) : null;
@@ -344,6 +357,7 @@
       ctx.drawImage(c, 0, 0);
     }
     if (LK) LK.draw(ctx, W, H, adj.looks, "finish", adj.t);
+    if (adj.rhythm && window.CurioRhythm) window.CurioRhythm.draw(ctx, W, H, adj.rhythm); /* a flash on the accents */
     if (adj.line && opts.captions !== false) {
       const fs = Math.max(12, Math.round(H / 16));
       ctx.font = `600 ${fs}px system-ui, sans-serif`;
@@ -359,21 +373,26 @@
 
   /* The applied clip's sound, worked out offline: the clip's sound taken in the time map's order, turned up and
      down by the plan, the clip's own voices stepped back under the new lines. (The new voice itself is spoken
-     live by the browser and is not in this.) */
-  function appliedPcm(plan, src) {
+     live by the browser and is not in this.) With a rhythm (rhythm.js) the sound never steps back: it runs on while the picture holds still.
+     music: the inspiration's sound, mixed under at the inspiration's time when "Its music under yours" is on. */
+  function appliedPcm(plan, src, music) {
     const rate = src.rate,
       n = Math.round(plan.duration * rate);
     const out = new Float32Array(n);
     const per = Math.round(rate / plan.fps);
+    const mu = music && plan.on.music ? plan.on.music : 0;
+    let from = 0;
     for (let k = 0; k * per < n; k++) {
       const t = k / plan.fps;
       const a = V().at(plan, t);
-      const from = Math.round(a.src * rate);
-      let g = Math.pow(10, a.gainDb / 20);
+      from = plan.rhythm && k ? Math.max(from + per, Math.round(a.src * rate)) : Math.round(a.src * rate);
+      let g = Math.pow(10, a.gainDb / 20) * (1 - 0.7 * mu);
       if (a.line) g *= Math.pow(10, (-14 * a.duck) / 20);
+      const m0 = mu ? Math.round(a.ta * music.rate) : 0;
       for (let j = 0; j < per && k * per + j < n; j++) {
         const x = src.data[from + j];
-        out[k * per + j] = x == null ? 0 : Math.max(-1, Math.min(1, x * g));
+        const y = mu ? music.data[m0 + Math.round((j * music.rate) / rate)] || 0 : 0;
+        out[k * per + j] = Math.max(-1, Math.min(1, (x == null ? 0 : x * g) + y * mu));
       }
     }
     return { data: out, rate };
@@ -385,7 +404,7 @@
     const over = plan.on.overlay && opts.overlay ? opts.overlay.video : null;
     const setV = plan.on.set && opts.overlay ? (await open(opts.overlay.url)).video : null;
     const M = window.CurioMask;
-    const wantEl = M && M.ready() && (plan.on.wardrobe || plan.on.hair || plan.on.figure || plan.on.set);
+    const wantEl = M && M.ready() && (plan.on.wardrobe || plan.on.hair || plan.on.figure || plan.on.set || plan.on.framing);
     const looks = [],
       lk = [];
     const LK = (plan.on.palette || plan.on.grain || plan.on.shape) && window.CurioLooks;
@@ -409,15 +428,17 @@
         if (LK && t - (lk.length ? lk[lk.length - 1].t : -1) >= 0.5) lk.push({ t, m: LK.measure(bx.getImageData(0, 0, W, H).data, W, H) });
         if (wantEl && looks.length < 240 && (looks.length === 0 || t - looks[looks.length - 1].t >= 0.25)) {
           const k = M.cut(big);
-          looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h) });
+          looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h), blobs: window.CurioFraming ? window.CurioFraming.blobs(k.labels, k.w, k.h) : null });
         }
       },
       (p) => opts.onProgress && opts.onProgress(p * 0.9, "Measuring the changed clip")
     );
     const src = await pcm(clip);
-    const sound = src ? V().envelope(appliedPcm(plan, src).data, src.rate) : null;
+    const music = plan.on.music && opts.overlay ? await pcm(opts.overlay) : null;
+    const sound = src ? V().envelope(appliedPcm(plan, src, music).data, src.rate) : null;
     const after = V().analyze({ name: clip.name + " (applied)", duration: plan.duration, aspect: clip.height / clip.width, samples: fr.samples, gw: fr.gw, sound });
     if (looks.length > 1) after.elements = V().elementSeries(looks);
+    if (after.elements && window.CurioFraming) after.elements.main = window.CurioFraming.series(looks, H / W);
     if (lk.length) after.looks = LK.series(lk);
     if (opts.onProgress) opts.onProgress(1, "Done");
     return { after };
@@ -458,7 +479,8 @@
     }
     let ac = null,
       gain = null,
-      dest = null;
+      dest = null,
+      mus = null;
     try {
       ac = new (window.AudioContext || window.webkitAudioContext)();
       const node = ac.createMediaElementSource(video);
@@ -467,6 +489,18 @@
       dest = ac.createMediaStreamDestination();
       gain.connect(dest);
       if (opts.listen !== false) gain.connect(ac.destination);
+      /* "Its music under yours": the inspiration's own sound, kept at the inspiration's time */
+      if (plan.on.music && opts.overlay) {
+        mus = document.createElement("video");
+        mus.src = opts.overlay.url;
+        mus.crossOrigin = "anonymous";
+        mus.preload = "auto";
+        const mg = ac.createGain();
+        mg.gain.value = plan.on.music;
+        ac.createMediaElementSource(mus).connect(mg);
+        mg.connect(dest);
+        if (opts.listen !== false) mg.connect(ac.destination);
+      }
     } catch (e) {
       video.muted = opts.listen === false;
     }
@@ -492,6 +526,7 @@
       await setV.play().catch(() => {});
     }
     if (over) await over.play().catch(() => {});
+    if (mus) await mus.play().catch(() => {});
     if (ac && ac.state === "suspended") await ac.resume().catch(() => {});
     if (rec) rec.start(250);
     const t0 = performance.now();
@@ -507,9 +542,14 @@
         const next = plan.src[Math.min(plan.src.length - 1, k + 1)];
         const rate = Math.max(0.5, Math.min(2, (next - plan.src[k]) * plan.fps || 1));
         if (Math.abs(video.playbackRate - rate) > 0.02) video.playbackRate = rate;
-        if (Math.abs(video.currentTime - a.src) > 0.25) video.currentTime = a.src;
+        /* holding still on a beat (rhythm.js): pause; its jump cuts are smaller, so follow the map closer */
+        const held = plan.rhythm && next - plan.src[k] < 1e-4;
+        if (held && !video.paused) video.pause();
+        else if (!held && video.paused && !video.ended) video.play().catch(() => {});
+        if (Math.abs(video.currentTime - a.src) > (plan.rhythm ? 0.12 : 0.25)) video.currentTime = a.src;
+        if (mus && Math.abs(mus.currentTime - a.ta) > 0.3) mus.currentTime = a.ta;
         if (gain) {
-          let g = Math.pow(10, a.gainDb / 20);
+          let g = Math.pow(10, a.gainDb / 20) * (mus ? 1 - 0.7 * plan.on.music : 1);
           if (a.line) g *= Math.pow(10, (-14 * a.duck) / 20);
           gain.gain.setTargetAtTime(g, ac.currentTime, 0.03);
         }
@@ -535,6 +575,7 @@
     });
     video.pause();
     if (over) over.pause();
+    if (mus) mus.pause();
     if (setV) setV.pause();
     if (synth) window.speechSynthesis.cancel();
     let blob = null;

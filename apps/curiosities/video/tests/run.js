@@ -270,6 +270,119 @@ check("element cut-outs: stats, series and what to change", () => {
   assert(V.at(pa, 1).parts.angle.tilt > 0.5, "a clip seen from below is tipped to look from higher: " + JSON.stringify(V.at(pa, 1).parts));
   assert(V.angleCue(E, 1) === null || typeof V.angleCue(E, 1) === "number", "no faces or hair: no guess");
 });
+/* Shot framing (framing.js) on made-up cut-outs: a person drawn as hair over a face over clothes. */
+function person(w, h, cx, top, headRows, opts) {
+  opts = opts || {};
+  const l = new Uint8Array(w * h);
+  const hw = Math.max(2, Math.round(headRows * 0.8));
+  for (let y = top; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const dx = x - cx;
+      if (y < top + headRows * 0.35 && Math.abs(dx) <= hw / 2) l[y * w + x] = 1;
+      else if (y < top + headRows && Math.abs(dx) <= hw / 2) l[y * w + x] = Math.abs(dx - (opts.turn || 0)) <= hw / 3 ? 3 : 1;
+      else if (y >= top + headRows && Math.abs(dx) <= hw * 1.2) l[y * w + x] = 4;
+    }
+  return l;
+}
+function framingClip(name, frames, aspect) {
+  const looks = frames.map((f, i) => ({ t: i * 0.25, blobs: w.CurioFraming.blobs(f, 64, 36) }));
+  const el = { times: looks.map((l) => l.t), dt: 0.25, parts: null, main: w.CurioFraming.series(looks, aspect || 36 / 64) };
+  return Object.assign({}, insp, { name, aspect: aspect || 36 / 64, cuts: [], elements: el });
+}
+check("shot framing: a person on the left third is moved to the right third (framing.js)", () => {
+  const F = w.CurioFraming;
+  assert(F && V.GROUPS.find((g) => g.id === "framing" && g.off), "framing is its own group, off unless turned on");
+  const n = Math.ceil(insp.duration / 0.25) + 1;
+  const right = framingClip("right", Array.from({ length: n }, () => person(64, 36, 43, 6, 10)));
+  const left = framingClip("left", Array.from({ length: n }, () => person(64, 36, 21, 6, 10)));
+  const bs = F.blobs(person(64, 36, 21, 6, 10), 64, 36);
+  assert(bs.length === 1 && bs[0].face && Math.abs(bs[0].face.cx - 21.5 / 64) < 0.02, "one person, face found: " + JSON.stringify(bs[0]));
+  assert(Math.abs(F.shot(left, 1).x - 0.336) < 0.02 && Math.abs(F.shot(right, 1).x - 0.68) < 0.02, "eyes on the thirds: " + JSON.stringify([F.shot(left, 1), F.shot(right, 1)]));
+  const p = V.plan(right, left, { on: { framing: 1 } });
+  assert(p.framing && p.framing.z.length > 5, "a camera path");
+  const a = V.at(p, 1).frame;
+  /* where the left person's eyes land in the output: (source x - crop left) x zoom */
+  const out = (F.shot(left, 1).x - (a.x - 0.5 / a.z)) * a.z;
+  assert(Math.abs(out - F.shot(right, 1).x) < 0.03, "the person now sits on the right third: " + out.toFixed(3) + " " + JSON.stringify(a));
+  assert(a.z >= 2 && a.z <= 2.5, "zoomed in enough to move them: " + a.z);
+  /* the same framing already: nothing to do */
+  const same = V.at(V.plan(left, left, { on: { framing: 1 } }), 1).frame;
+  assert(Math.abs(same.z - 1) < 0.02 && Math.abs(same.x - 0.5) < 0.02, "same framing, no move: " + JSON.stringify(same));
+  /* a closer inspiration (bigger head) zooms in by about the head's ratio */
+  const close = framingClip("close", Array.from({ length: n }, () => person(64, 36, 21, 4, 16)));
+  const zc = V.at(V.plan(close, left, { on: { framing: 1 } }), 1).frame;
+  assert(zc.z > 1.4, "closer: zoomed in " + JSON.stringify(zc));
+  /* half the amount: half way */
+  const half = V.at(V.plan(right, left, { on: { framing: 0.5 } }), 1).frame;
+  const outH = (F.shot(left, 1).x - (half.x - 0.5 / half.z)) * half.z;
+  assert(outH > 0.4 && outH < 0.6 && half.z <= 1.75 + 1e-9, "half the amount, half way: " + outH.toFixed(3) + " " + JSON.stringify(half));
+});
+check("shot framing: never zooms out, never shows an edge, even with a dutch tilt", () => {
+  const F = w.CurioFraming;
+  for (let i = 0; i < 400; i++) {
+    const rnd = (a, b) => a + ((Math.sin(i * 12.9898 + a * 78.233 + b) * 43758.5453) % 1 + 1) % 1 * (b - a);
+    const want = { x: rnd(0, 1), y: rnd(0, 1), size: rnd(0.02, 0.6) },
+      have = { x: rnd(0, 1), y: rnd(0, 1), size: rnd(0.02, 0.6) },
+      roll = rnd(-12, 12),
+      aspect = i % 2 ? 9 / 16 : 16 / 9;
+    const f = F.solve(want, have, { amount: rnd(0, 1), zmax: 2.5, aspect, roll });
+    assert(f.z >= 1, "zoom never below 1: " + JSON.stringify(f));
+    /* the crop's four corners, turned by the roll, stay inside the picture (in pixels of a 1000-wide frame) */
+    const W = 1000,
+      H = W * aspect,
+      r = F.rect(Object.assign({ roll }, f), W, H),
+      cx = r.x + r.w / 2,
+      cy = r.y + r.h / 2,
+      c = Math.cos(r.roll),
+      s = Math.sin(r.roll);
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([u, v]) => {
+      const x = cx + (u * r.w) / 2 * c - (v * r.h) / 2 * s,
+        y = cy + (u * r.w) / 2 * s + (v * r.h) / 2 * c;
+      assert(x > -0.5 && x < W + 0.5 && y > -0.5 && y < H + 0.5, "a corner off the picture: " + JSON.stringify({ f, roll, x, y }));
+    });
+  }
+  /* a level picture of stripes, and the same turned 6 degrees: the roll is measured */
+  const G = (deg) => {
+    const g = new Float32Array(128 * 72),
+      a = (deg * Math.PI) / 180;
+    for (let y = 0; y < 72; y++) for (let x = 0; x < 128; x++) g[y * 128 + x] = Math.floor((-(x - 64) * Math.sin(a) + (y - 36) * Math.cos(a)) / 9) % 2 ? 0.8 : 0.2;
+    return g;
+  };
+  const r0 = F.roll(G(0), 128, 72),
+    r6 = F.roll(G(6), 128, 72);
+  assert(Math.abs(r0.deg) < 0.5 && r0.conf > 0.5, "level: " + JSON.stringify(r0));
+  assert(Math.abs(r6.deg - 6) < 1.5 && r6.conf > 0.35, "rolled 6 degrees: " + JSON.stringify(r6));
+});
+check("shot framing: the camera moves like an operator (no jitter, eases, follows the person)", () => {
+  const F = w.CurioFraming;
+  /* a wanted framing that wobbles a little and then jumps once: the camera ignores the wobble and eases over */
+  const dt = 0.1,
+    want = [];
+  for (let i = 0; i < 100; i++) want.push((i < 50 ? 0.4 : 0.6) + 0.012 * Math.sin(i * 2.7) + (i === 20 ? 0.2 : 0));
+  const got = F.follow(want, dt, { tol: 0.03, sigma: 0.5 });
+  const steps = got.slice(1).map((v, i) => v - got[i]);
+  assert(Math.max(...got.slice(0, 40).map((v) => Math.abs(v - got[0]))) < 0.005, "holds still through the wobble and a one-look blink: " + got.slice(0, 40).map((v) => v.toFixed(3)).join(" "));
+  assert(Math.max(...steps.map(Math.abs)) < 0.05, "no jump bigger than 5% of the frame in a tenth of a second");
+  assert(Math.abs(got[99] - 0.6) < 0.02 && Math.abs(got[0] - 0.4) < 0.02, "gets there");
+  /* ease in and out: slow at the start and end of the move, fastest in the middle */
+  const mv = steps.slice(35, 65).map(Math.abs);
+  const peak = mv.indexOf(Math.max(...mv));
+  assert(peak > 8 && peak < 22 && mv[0] < mv[peak] / 4 && mv[mv.length - 1] < mv[peak] / 4, "eases in and out: " + mv.map((v) => v.toFixed(3)).join(" "));
+  /* a cut is a jump, not a glide */
+  const cut = F.follow(want.map((v, i) => (i < 50 ? 0.3 : 0.7)), dt, { breaks: [50] });
+  assert(Math.abs(cut[49] - 0.3) < 0.01 && Math.abs(cut[50] - 0.7) < 0.01, "a cut jumps");
+  /* your person walks from the left to the middle: the camera follows them, smoothly */
+  const n = Math.ceil(insp.duration / 0.25) + 1;
+  const target = framingClip("walk", Array.from({ length: n }, (_, i) => person(64, 36, Math.round(14 + (18 * i) / (n - 1)) + (i % 2), 6, 10)));
+  const right = framingClip("right", Array.from({ length: n }, () => person(64, 36, 43, 6, 10)));
+  const p = V.plan(right, target, { on: { framing: 1 } });
+  const xs = [];
+  for (let t = 0; t <= p.duration - 0.05; t += 1 / 30) xs.push(V.at(p, t).frame.x);
+  const d = xs.slice(1).map((v, i) => v - xs[i]);
+  assert(xs[xs.length - 1] > xs[0] + 0.1, "the crop follows the person to the right: " + xs[0] + " -> " + xs[xs.length - 1]);
+  assert(Math.max(...d.map(Math.abs)) < 0.01, "no jitter from frame to frame: " + Math.max(...d.map(Math.abs)));
+  assert(d.filter((v) => v < -0.002).length === 0, "never swings back the wrong way");
+});
 /* ---------- looks (video/looks.js): palette, grain and softness, frame shape ---------- */
 const LK = w.CurioLooks;
 function pic(W, H, f) {
@@ -575,6 +688,97 @@ check("camera angle by depth: made-up depth and the warp (depth.js)", () => {
   const lower = D.warp(px, W, H, near, W, H, -1, { ref: 0.9, lift: 0.1, pitch: 0, zoom: 0, fit: false });
   assert(row(px, 5) - row(lower, 5) < 0, "from lower down the set slides down instead");
 });
+/* ---------- rhythm (video/rhythm.js): beat, accents, and putting them on another clip ---------- */
+const RH = w.CurioRhythm;
+/* A made-up click track: a click every 60/bpm s from 0.2 s (every 4th one louder), a quiet tick on the off-beats,
+   a faint hiss, and silence (no hiss either) from gap[0] to gap[1] if given. 16 kHz. */
+function clicks(dur, bpm, gap) {
+  const rate = 16000,
+    pcm = new Float32Array(Math.round(dur * rate)),
+    P = 60 / bpm,
+    on = [];
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296) * 2 - 1;
+  const silent = (t) => gap && t >= gap[0] && t < gap[1];
+  for (let i = 0; i < pcm.length; i++) pcm[i] = silent(i / rate) ? 0 : 0.003 * rnd();
+  for (let k = 0, t = 0.2; t < dur - 0.05; k++, t = 0.2 + (k * P) / 2) {
+    if (silent(t)) continue;
+    const beat = k % 2 === 0,
+      amp = beat ? (k % 8 === 0 ? 0.9 : 0.5) : 0.12;
+    if (beat) on.push(t);
+    for (let j = 0; j < 0.03 * rate; j++) {
+      const i = Math.round(t * rate) + j;
+      if (i < pcm.length) pcm[i] += amp * Math.exp(-j / (0.006 * rate)) * (0.6 * rnd() + 0.4 * Math.sin((2 * Math.PI * 1500 * j) / rate));
+    }
+  }
+  return { pcm, rate, on };
+}
+check("rhythm: a click track's tempo is found within 3%, and every beat lands on a click", () => {
+  [128, 96, 150].forEach((bpm) => {
+    const c = clicks(12, bpm);
+    const r = RH.find(c.pcm, c.rate, { duration: 12 });
+    assert.strictEqual(r.from, "sound", bpm + ": " + r.from + " clarity " + r.clarity);
+    assert(Math.abs(r.bpm - bpm) / bpm < 0.03, "tempo " + r.bpm + " for " + bpm);
+    const off = r.beats.map((b) => Math.min(...c.on.map((t) => Math.abs(t - b))));
+    assert(Math.max(...off) < 0.03, bpm + ": a beat 30 ms or more from any click: " + Math.max(...off).toFixed(3));
+    assert(r.beats.length >= c.on.length - 2, bpm + ": beats " + r.beats.length + " of " + c.on.length + " clicks");
+    /* the louder clicks are the accents */
+    const loud = c.on.filter((_, i) => i % 4 === 0);
+    assert(r.accents.length >= loud.length - 1 && r.accents.every((a) => c.on.some((t) => Math.abs(t - a) < 0.04)), "accents on clicks: " + r.accents.join(" "));
+  });
+});
+check("rhythm: no beats come from silence, and a silent clip falls back to its cuts", () => {
+  const c = clicks(14, 120, [5, 9.5]);
+  const r = RH.find(c.pcm, c.rate, { duration: 14 });
+  assert.strictEqual(r.from, "sound");
+  const inGap = r.beats.filter((b) => b > 5.05 && b < 9.45);
+  assert(!inGap.length, "beats in the silence: " + inGap.join(" "));
+  assert(r.beats.some((b) => b > 10) && r.beats.some((b) => b < 4.5), "beats on both sides of the silence");
+  const quiet = new Float32Array(16000 * 6);
+  const none = RH.find(quiet, 16000, { duration: 6 });
+  assert(none.from === "none" && !none.beats.length && !none.accents.length, JSON.stringify(none));
+  const cuts = RH.find(quiet, 16000, { duration: 6, cuts: [1, 2.5, 4] });
+  assert(cuts.from === "cuts" && cuts.beats.join() === "1,2.5,4" && cuts.period === 1.5, JSON.stringify(cuts));
+  assert(RH.of({ cuts: [2], duration: 6 }).beats.join() === "2", "an old dissection uses its cuts");
+});
+check("rhythm on another clip: jump cuts and punch-ins on the beats, a flash on accents; off changes nothing", () => {
+  const c = clicks(6, 120);
+  const A = Object.assign({}, insp, { rhythm: RH.find(c.pcm, c.rate, { duration: 6 }) });
+  assert(V.GROUPS.some((g) => g.id === "rhythm" && g.off) && V.GROUPS.some((g) => g.id === "music" && g.off), "groups added, off");
+  const plain = V.plan(A, target, { on: { light: 1 } });
+  assert(!plain.rhythm && V.at(plain, 1).zoom === 1 && !V.at(plain, 1).rhythm, "off by default");
+  const p = V.plan(A, target, { on: { rhythm: 1 } });
+  const beats = p.rhythm.beats.map((b) => b.t);
+  assert(beats.length >= 15, "beats repeat over the longer clip: " + beats.length);
+  /* a jump cut: at a beat's frame your clip skips ahead more than one frame */
+  const f = Math.ceil(beats[1] * 30 - 1e-6);
+  assert(p.src[f] - p.src[f - 1] > 0.15, "jump at the beat: " + (p.src[f] - p.src[f - 1]));
+  assert(Math.abs(p.src[f + 3] - p.src[f + 2] - 1 / 30) < 0.002, "plays on normally between beats");
+  /* punch-in: close on one beat, wide on the next, with a bump just after each */
+  const z = (t) => V.at(p, t).zoom;
+  assert(z(beats[0] + 0.2) > 1.2 && z(beats[1] + 0.2) < 1.05, "close then wide: " + z(beats[0] + 0.2) + " " + z(beats[1] + 0.2));
+  assert(z(beats[1] + 0.01) > z(beats[1] + 0.3), "a bump that settles");
+  const acc = p.rhythm.accents[0];
+  assert(V.at(p, acc + 0.02).rhythm.flash > 0.5 && V.at(p, acc + 0.35).rhythm.flash < 0.1, "a quick flash on an accent");
+  /* hold and burst: still just after a beat, then faster to catch up */
+  const h = V.plan(A, target, { on: { burst: 1 } });
+  const g = Math.ceil(h.rhythm.beats[2].t * 30 - 1e-6);
+  assert(h.src[g + 2] === h.src[g + 1], "holds after the beat");
+  assert(h.src[g + 12] - h.src[g + 11] > 1.2 / 30, "then runs faster: " + (h.src[g + 12] - h.src[g + 11]) * 30);
+  assert(Math.abs(h.src[g + 15] - plain.src[g + 15]) < 0.06, "and catches up by the next beat");
+  /* the check: after, the picture changes on the beat */
+  const after = { times: [], dt: 0.1, raw: { luma: [], std: [], local: [] } };
+  for (let t = 0; t < p.duration; t += 0.1) {
+    after.times.push(t);
+    const a = V.at(p, t);
+    after.raw.luma.push(0.4 + (a.rhythm ? a.rhythm.flash * 0.3 : 0) + (a.zoom - 1) * 0.2);
+    after.raw.std.push(0.2);
+    after.raw.local.push(0);
+  }
+  const sc = V.score(p, "rhythm", target, after);
+  assert(sc.corrAfter > 0.3 && sc.corrAfter > sc.corrBefore + 0.2, JSON.stringify(sc));
+});
+
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });
