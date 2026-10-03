@@ -1067,7 +1067,7 @@
     if (a.contrast) out.contrast = mix(clamp(w.std / Math.max(0.02, have.std), 0.4, 2.5), a.contrast);
     if (a.light) out.luma = mix(clamp(w.luma / Math.max(0.03, have.luma), 0.25, 3), a.light);
     if (a.color) out.sat = mix(clamp(w.sat / Math.max(0.02, have.sat), 0, 3), a.color);
-    if (a.warmth) out.warm = clamp(w.warm - have.warm, -0.4, 0.4) * a.warmth;
+    if (a.warmth) out.warm = clamp(w.warm - have.warm, -0.25, 0.25) * a.warmth;
     return out;
   }
 

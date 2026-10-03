@@ -370,11 +370,11 @@
       src = new Uint8ClampedArray(d);
     const st = V().partStats(k.labels, null, k.w, k.h).person;
     const top = (st.area > 0.003 ? st.top : 0.2) * H;
-    const z = 1.06 + 0.04 * Math.abs(T),
-      lean = 0.14 * T,
-      setDown = 0.03 * T * H,
-      peopleDown = 0.08 * T * H,
-      squash = 1 - 0.1 * T;
+    const z = 1.08 + 0.05 * Math.abs(T),
+      lean = 0.2 * T,
+      setDown = 0.04 * T * H,
+      peopleDown = 0.12 * T * H,
+      squash = 1 - 0.14 * T;
     const cx = W / 2,
       cy = H / 2;
     for (let Y = 0; Y < H; Y++) {
