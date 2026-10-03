@@ -108,7 +108,9 @@ function measure() {
     await page.mouse.down();
     await page.mouse.move(bb.x + bb.width / 2 + 70, bb.y + bb.height / 2, { steps: 5 });
     await page.mouse.up();
-    for (let i = 0; i < 3; i++) await page.mouse.wheel(0, -100);
+    /* the zoom carries over between shots: all the way out, then a set number of steps in */
+    for (let i = 0; i < 25; i++) await page.mouse.wheel(0, 100);
+    for (let i = 0; i < 13; i++) await page.mouse.wheel(0, -100);
     await frames(6);
     await page.locator(".rig-dlg .rig-view").screenshot({ path: path.join(SHOTS, name + ".png") });
   };
