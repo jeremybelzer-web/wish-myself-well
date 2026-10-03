@@ -23,6 +23,23 @@ And three looks of the picture itself (`looks.js`), measured about one and a hal
 - **Grain and softness**: how much grain is in the flat parts, and how crisp the strongest edges are.
 - **Frame shape**: black bars and the picture's shape (wide, tall or square), and how much darker the edges are than the middle (vignette).
 
+## The newer measures are lanes too
+
+The looks, the shot framing and the rhythm are lanes like the rest: in the clip's lane list with a node wherever they change ("measured" or "a guess"), on My film with **Put these on my film's automation lanes** (one undo step), and in the film's reference, so any of them can be carried onto another film. Each uses a curiosity the app already has (`lanes.js`):
+
+| Lane | Curiosity | How |
+| --- | --- | --- |
+| Palette: how strong its tint, which color it leans to | colorFilter, filterHue | measured: how far its darks, mids and lights lean from grey |
+| Grain | colorRange.filmStock | measured |
+| Crisp or soft | texture (where the app loads the editing curiosities) | measured from its strongest edges |
+| Picture shape, black bars, dark edges | aspect, aspect.letterbox, cameraLensLens.vignette | measured |
+| Where the eyes sit, room above the head, how close (head size) | composition, shotSize.headroom, shotSize | measured from the AI cut-out (the head's size takes the place of the skin guess) |
+| Which way they face, room in front of them | composition.facing, shotSize.breathing | a guess from the face, the hair and which way the person moves |
+| Horizon tilt | dutch | measured from straight lines |
+| Camera height | angleHeight | a guess from hair against faces |
+| Tempo, cuts on the beat | music.tempo, music.cutSync | measured from the beat in its sound (only when it has one) |
+| How driving the beat is | music.energy | a guess from beats and hard hits a second |
+
 ## What it applies (one switch and amount each)
 
 Light and dark, contrast, color strength, warm and cool, camera shake (adds the inspiration's wobble and steadies your own), camera moves, how close the shot is (zooms in only), cuts (jump cuts), movement speed (a speed ramp), loudness, dialogue tempo (new lines on your clip's title, timed to the inspiration's sentences), and, off unless turned on, **Lay its graphics over** (the inspiration's picture on top with its pale background taken out).
@@ -58,6 +75,8 @@ When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, t
 
 - **Shot framing**: where the inspiration's main person sits in the frame, moment by moment: their eyes on the left or right third or in the middle, the room above their head, how much of the frame their head fills (closer or wider), and the room left in front of them in the way they face or walk. Then a virtual camera reframes your clip the same way: it zooms in and pans across your picture to follow your own person and put their eyes where the inspiration's are. If your person faces the other way, the framing is mirrored so they still have room in front. It moves like a camera operator: it waits through small wobbles, then eases into each new framing (no jitter, no lag), and jumps only at a cut. It can only zoom in (up to 2.5 times at full amount), so the edges never go black; a person on the left third needs about a 2x zoom to reach the right third. **Dutch tilt too** (a tick under it) also rolls the frame like the inspiration's horizon, measured from its strong straight lines (walls, doors, horizons); when its lines don't agree, no roll is added. Off unless you turn it on.
 
+- **Key light** (`relight.js`): where the inspiration's main light comes from. On the people's skin (faces count most) it finds which side is brighter (left, right, from above), how much darker the shadow side is (key to fill: 1.2 is flat, 3 is a hard side light), the light's color, and a bright rim on the shadow side's edge when there is one. Then your people are lit again the same way: each spot of them gets a direction it faces (a soft cushion shape blown up from the cut-out, rounder for faces), brightness follows how much it faces the light, the lit side gets brighter and the shadow side darker by the measured contrast, with a little of the light's color (skin keeps its own), a soft rim on the far edges when the inspiration has one, and a gentle matching slope on the set. Your clip's own light is partly taken off first, so a face lit from the left can turn to the right. The change fades in just inside the people's edge, so the set around them never glows. The depth AI is too coarse for faces, so the shape comes from the cut-out. Off unless you turn it on; the check says where the light comes from, before and after.
+
 "Show what it found" tints the AI's cut-out on your clip's frame. "Make a puppet" (shown when Maya's rig, `CurioRig.fromCutout`, is in the app) cuts the people out of the frame showing now and opens them as a rigged flat puppet. The AI loads the first time it is needed (about 16 MB from the web), and you can turn it off. Nothing is uploaded.
 
 **Stronger AI, your own key.** `ai.js` (`window.CurioAI`) gives every curiosity family (cut-outs, picture, depth, motion, face, voice, dialogue, music, generate) one plug-in slot, so any company's AI can do that family's job. The browser AI is the default. SAM 2 on fal.ai is wired in for cut-outs that follow a clicked person or object through a whole clip: paste your own fal.ai key in the window. It is kept in your browser under `curiomatic-ai-keys` (never in a `.curio` project file) and sent only to fal.ai. For a paid app, `CurioAI.setProxy("fal", url)` points at your own server, which holds the key. The fal.ai path has not been run end to end yet (it needs a key). Licenses and costs: the project's `video-import/ai-licenses.md`.
@@ -68,6 +87,8 @@ When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, t
 - `clip.js` (`window.CurioClip`): reads frames by seeking and sound by decoding, draws applied frames, the frame-exact steadier, check, real-time render and recording.
 - `looks.js` (`window.CurioLooks`, no page except `scan` and `draw`): the palette, grain and softness, and frame shape: measured, applied, checked.
 - `rhythm.js` (`window.CurioRhythm`, no page except `draw`): the beat, tempo and accents of a clip's sound (kept as `dissection.rhythm`), and the jump cuts, punch-ins, flashes, holds and music that put it on another clip.
+- `relight.js` (`window.CurioRelight`, no page except `scan` and `draw`): the key light: measured on the people's skin (kept as `dissection.light`), and your people shaded again from the inspiration's side.
+- `lanes.js` (`window.CurioVideoLanes`, no page): the looks, shot framing, camera height and rhythm as lanes with nodes (`CurioVideo.lanesOf(dissection)` gives every lane of a clip), for the lane list, My film and the reference.
 - `shutter.js` (`window.CurioShutter`, no page except `scan` and the drawing hooks): motion feel. Block-by-block movement between frames, the picture rate and the smear (kept as `dissection.shutter`), the smear along movement, held pictures, light trails, and its check.
 - `ai.js` (`window.CurioAI`): one plug-in slot per curiosity family; your own keys, kept in this browser.
 - `mask.js` (`window.CurioMask`): the AI cut-outs (MediaPipe in the browser), each clip's elements over time, and drawing one element's change.

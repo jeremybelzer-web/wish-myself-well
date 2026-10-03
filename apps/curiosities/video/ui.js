@@ -80,7 +80,7 @@
     const inner = s.clip
       ? `<video data-slot="${k}" controls playsinline muted preload="auto"></video>
          <p class="vd-name">${esc(s.clip.name)} <span class="vd-k">${fmt(s.clip.duration)} · ${s.clip.width}×${s.clip.height}</span></p>
-         ${s.busy ? `<div class="vd-prog"><i style="width:${Math.round(s.busy.p * 100)}%"></i></div><p class="vd-k">${esc(s.busy.what)}…</p>` : s.d ? `<p class="vd-k">Taken apart: ${Object.keys(s.d.nodes).length} curiosities, ${Object.values(s.d.nodes).reduce((n, x) => n + x.length, 0)} nodes.</p>` : ""}
+         ${s.busy ? `<div class="vd-prog"><i style="width:${Math.round(s.busy.p * 100)}%"></i></div><p class="vd-k">${esc(s.busy.what)}…</p>` : s.d ? `<p class="vd-k">Taken apart: ${V().lanesOf(s.d).length} curiosities, ${V().lanesOf(s.d).reduce((n, c) => n + c.nodes.length, 0)} nodes.</p>` : ""}
          <label class="vd-file">Use another clip<input type="file" accept="video/*" data-file="${k}"></label>`
       : `<label class="vd-drop" data-drop="${k}"><strong>Drop a video here</strong><span>or click to choose one (.mp4, .mov, .webm)</span><input type="file" accept="video/*" data-file="${k}"></label>`;
     return `<article class="vd-card" data-drop="${k}"><header><strong>${esc(title)}</strong><span class="vd-k">${esc(sub)}</span></header>${inner}</article>`;
@@ -146,11 +146,15 @@
     const d = (show === "b" ? slot.b.d : slot.a.d) || slot.a.d || slot.b.d;
     const which = d === slot.b.d ? "b" : "a";
     const groups = {};
-    V().LIST.forEach((c) => d.nodes[c.id] && (groups[c.group] = groups[c.group] || []).push(c));
+    V()
+      .lanesOf(d)
+      .forEach((c) => (groups[c.group] = groups[c.group] || []).push(c));
     const W = 1000;
     const lane = (c) => {
-      const nodes = d.nodes[c.id];
-      const est = d.how[c.id].how === "estimated";
+      const nodes = c.nodes;
+      const est = c.how === "estimated";
+      const name = c.name || label(c.id);
+      const shown = (v) => (c.unit ? v + " " + c.unit : String(v));
       const opts = (window.CurioScale && window.CurioScale.domain(c.id)) || { kind: "range" };
       const pos = (v) => {
         const p = window.CurioScale ? window.CurioScale.pos(c.id, v) : 0.5;
@@ -163,11 +167,11 @@
             w = Math.max(1, ((end - n.t) / d.duration) * W);
           const p = pos(n.value);
           const fill = `hsl(${Math.round(220 - p * 200)} 55% ${est ? 74 : 62}%)`;
-          const txt = w > 46 ? `<text x="${x + 4}" y="15">${esc(String(n.value).slice(0, Math.floor(w / 7)))}</text>` : "";
-          return `<g><title>${esc(label(c.id))}: ${esc(n.value)} from ${fmt(n.t)}</title><rect x="${x}" y="2" width="${w}" height="18" style="fill:${fill}"/>${txt}${i ? `<path class="vd-node" d="M${x} 1 l4 5 l-4 5 l-4 -5z"/>` : ""}</g>`;
+          const txt = w > 46 ? `<text x="${x + 4}" y="15">${esc(shown(n.value).slice(0, Math.floor(w / 7)))}</text>` : "";
+          return `<g><title>${esc(name)}: ${esc(shown(n.value))} from ${fmt(n.t)}</title><rect x="${x}" y="2" width="${w}" height="18" style="fill:${fill}"/>${txt}${i ? `<path class="vd-node" d="M${x} 1 l4 5 l-4 5 l-4 -5z"/>` : ""}</g>`;
         })
         .join("");
-      return `<div class="vd-lane"><button type="button" class="vd-lname" data-seekto="${which}" data-at="${nodes.length > 1 ? nodes[1].t : 0}" title="${esc(d.how[c.id].from)}">${esc(label(c.id))}<small class="${est ? "est" : ""}">${est ? "a guess" : "measured"} · ${nodes.length - 1} change${nodes.length === 2 ? "" : "s"}</small></button><svg class="vd-strip" viewBox="0 0 ${W} 22" preserveAspectRatio="none" data-strip="${which}">${blocks}<line class="vd-head" x1="0" x2="0" y1="0" y2="22"/></svg></div>`;
+      return `<div class="vd-lane"><button type="button" class="vd-lname" data-seekto="${which}" data-at="${nodes.length > 1 ? nodes[1].t : 0}" data-lane="${esc(c.id)}" title="${esc(c.from)}">${esc(name)}<small class="${est ? "est" : ""}">${est ? "a guess" : "measured"} · ${nodes.length - 1} change${nodes.length === 2 ? "" : "s"}</small></button><svg class="vd-strip" viewBox="0 0 ${W} 22" preserveAspectRatio="none" data-strip="${which}">${blocks}<line class="vd-head" x1="0" x2="0" y1="0" y2="22"/></svg></div>`;
     };
     return `<section class="vd-lanes">
       <header><div class="vd-seg" role="group" aria-label="Which clip">${slot.a.d ? `<button type="button" data-show="a" class="${which === "a" ? "on" : ""}">Inspiration</button>` : ""}${slot.b.d ? `<button type="button" data-show="b" class="${which === "b" ? "on" : ""}">Your clip</button>` : ""}</div>

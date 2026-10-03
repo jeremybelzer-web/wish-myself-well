@@ -8166,6 +8166,19 @@
      "curve": "linear"
     },
     {
+     "id": "facing",
+     "label": "Which way they face",
+     "plain": "Which way the person in the frame faces or walks, so the room in front of them reads.",
+     "scale": [
+      "left",
+      "toward the camera",
+      "right"
+     ],
+     "from": "left",
+     "to": "right",
+     "curve": "linear"
+    },
+    {
      "id": "push",
      "label": "Pushes the story",
      "plain": "How much this curiosity moves the story forward here.",

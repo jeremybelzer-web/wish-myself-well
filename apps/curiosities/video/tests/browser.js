@@ -188,6 +188,13 @@ const ok = (cond, text) => {
       return { main: !!(m && m.times.length === s.a.elements.times.length), roll: !!(s.a.raw.roll && s.a.raw.roll[0]), frame: a.frame, row: !!document.querySelector('[data-on="framing"]') };
     });
     ok(fr.main && fr.roll && fr.row && (!fr.frame || fr.frame.z >= 1), "shot framing: the main person and the roll are measured, and the group is there: " + JSON.stringify(fr));
+    const kl = await page.evaluate(() => {
+      const s = window.CurioVideoUI.state();
+      const p = window.CurioVideo.plan(s.a, s.b, { on: { relight: 1 } });
+      window.CurioVideo.at(p, 0.5);
+      return { a: !!(s.a.light && s.a.light.times.length >= 2), b: !!(s.b.light && s.b.light.times.length >= 2), off: !!document.querySelector('[data-on="relight"]:not(:checked)') };
+    });
+    ok(kl.a && kl.b && kl.off, "key light: each clip's light is measured, and the group is there, off: " + JSON.stringify(kl));
     await page.click('[data-act="ai-preview"]');
     ok(/Blue: clothes/.test(await page.textContent(".vd-note")), "Show what it found tints the cut-out");
     /* Make a puppet: only with Maya's rig (CurioRig.fromCutout); a stand-in records what it is handed. */
@@ -208,11 +215,21 @@ const ok = (cond, text) => {
   }
   ok((await page.locator(".vd-node").count()) >= 3, "nodes drawn where values change");
   await page.screenshot({ path: path.join(SHOTS, "video-lanes.png"), fullPage: false });
+  /* The newer measures are lanes too (video/lanes.js): the look of the picture at least (every clip has one). */
+  const newer = await page.evaluate(() => [...document.querySelectorAll(".vd-lanes [data-lane]")].map((b) => b.dataset.lane));
+  ok(["colorRange.filmStock", "texture", "aspect", "aspect.letterbox", "cameraLensLens.vignette", "colorFilter"].every((id) => newer.includes(id)), "palette, grain and softness and frame shape show as lanes: " + newer.join(" "));
+  ok((await page.locator(".vd-group h4", { hasText: "Look of the picture" }).count()) === 1, "under their own heading");
+  const looksGroup = page.locator(".vd-group", { has: page.locator("h4", { hasText: "Look of the picture" }) });
+  await looksGroup.scrollIntoViewIfNeeded();
+  await looksGroup.screenshot({ path: path.join(SHOTS, "video-lanes-look.png") });
 
   /* Onto My film. */
   await page.click('[data-act="to-film"]');
   const lanes = await page.evaluate(() => Object.keys(window.CurioEngine.state().lanes).filter((k) => /valueKey|volume/.test(k)));
   ok(lanes.length >= 2, "lanes put on My film: " + lanes.join(", "));
+  const looksOnFilm = await page.evaluate(() => Object.keys(window.CurioEngine.state().lanes).filter((k) => /\|(colorRange\.filmStock|texture|aspect)$/.test(k)));
+  ok(looksOnFilm.length >= 3, "the look of the picture goes on My film too: " + looksOnFilm.join(", "));
+  ok(await page.evaluate(() => { const r = window.CurioEngine.state().refs; return !!(r.length && r[r.length - 1].lanes.texture); }), "and into the reference, to carry onto another film");
   const said = await page.textContent(".vd-note");
   ok(/Put \d+ lanes on My film/.test(said), "says what it did: " + said);
 

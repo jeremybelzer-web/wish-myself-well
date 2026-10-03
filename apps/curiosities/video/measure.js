@@ -27,6 +27,8 @@
        per sample] }, nodes: { curiosity: [{ t, value }] }, moments: [{ start, end, label }], lanes: { curiosity:
        [value per moment] }, how: { curiosity: { how: "measured" | "estimated", from } }, summary: [sentences] }
    - LIST: every curiosity a clip is measured for, with its group, its engine track and how it is measured.
+   - lanesOf(dissection) -> every lane of the clip [{ id, group, track, how, from, nodes }], the newer measures
+     (video/lanes.js: palette, grain, frame shape, shot framing, camera height, rhythm) included
    - engineCommands(dissection, engineState, opts) -> commands for CurioEngine.send({ type: "batch" }): one
      automation lane per curiosity on My film, with a node only where the value changes.
    APPLYING (one clip's curiosities onto another)
@@ -607,8 +609,17 @@
   }
 
   /* ---------- onto My film's automation lanes ---------- */
+  /* Every lane of a clip: the curiosities above, then the newer measures (video/lanes.js: palette, grain and
+     softness, frame shape, shot framing, camera height, rhythm) when it is loaded. [{ id, name?, group, track,
+     how, from, nodes }] */
+  function lanesOf(d) {
+    if (!d) return [];
+    if (root.CurioVideoLanes) return root.CurioVideoLanes.of(d);
+    return LIST.filter((c) => d.nodes && d.nodes[c.id]).map((c) => Object.assign({}, c, { nodes: d.nodes[c.id] }));
+  }
   /* One lane per curiosity, stretched over the film's moments, with a node only where the value changes. The
-     lane holds between nodes (a change is a step, as in the clip). */
+     lane holds between nodes (a change is a step, as in the clip). A lane whose curiosity this app doesn't know
+     is left out, so the batch never fails. */
   function engineCommands(d, st, opts) {
     opts = opts || {};
     const only = opts.only ? new Set(opts.only) : null;
@@ -617,8 +628,9 @@
     const kindTrack = (kind) => (st.tracks || []).find((t) => t.kind === kind) || (st.tracks || [])[0];
     const cmds = [];
     const added = {};
-    LIST.forEach((c) => {
-      if (!d.nodes[c.id] || (only && !only.has(c.id))) return;
+    lanesOf(d).forEach((c) => {
+      if (!c.nodes || !c.nodes.length || (only && !only.has(c.id))) return;
+      if (S() && c.nodes.some((n) => S().fix(c.id, n.value) == null)) return;
       const t = kindTrack(c.track);
       if (!t) return;
       const has = (t.curiosities || []).includes(c.id) || (added[t.id] || []).includes(c.id);
@@ -630,7 +642,7 @@
       let last = null;
       rows.forEach((r, i) => {
         const tm = ((i + 0.5) * d.duration) / rows.length;
-        const v = valueAt(d.nodes[c.id], tm);
+        const v = valueAt(c.nodes, tm);
         if (v == null || v === last) return;
         cmds.push({ type: "setPoint", row: r.id, track: t.id, curiosity: c.id, value: v });
         last = v;
@@ -639,9 +651,12 @@
     });
     return cmds;
   }
-  /* The dissection as an engine reference (values per moment only), for the engine's Analyze list. */
+  /* The dissection as an engine reference (values per moment only), for the engine's Analyze list: every lane,
+     so any of them can be carried onto a film (cross-pollinate). */
   function toRef(d) {
-    return { name: d.title.slice(0, 60), kind: "video", rows: d.moments.map((m) => m.label), lanes: d.lanes };
+    const lanes = {};
+    lanesOf(d).forEach((c) => (lanes[c.id] = d.moments.map((m) => valueAt(c.nodes, (m.start + m.end) / 2))));
+    return { name: d.title.slice(0, 60), kind: "video", rows: d.moments.map((m) => m.label), lanes };
   }
 
   /* ---------- applying one clip's curiosities to another ---------- */
@@ -888,6 +903,7 @@
       adj.overlay = { t: r3((p.overlayFrom || 0) + (p.mode === "stretch" ? ((t / Math.max(0.001, p.duration)) * room) : t % room)), amount: on.overlay };
     }
     if (p.framing) adj.frame = root.CurioFraming.at(p, t);
+    if (on.relight && root.CurioRelight) adj.relight = root.CurioRelight.at(p, ta, s); /* video/relight.js: the key light */
     if (on.shutter && root.CurioShutter) adj.shutter = root.CurioShutter.at(p, t); /* video/shutter.js: motion feel */
     if (on.wardrobe || on.hair || on.figure || on.set || on.angle) adj.parts = partsAt(p, ta, s);
     if ((on.palette || on.grain || on.shape) && root.CurioLooks) adj.looks = root.CurioLooks.at(p, ta, s); /* video/looks.js */
@@ -1255,6 +1271,7 @@
       const gap = (x) => r3(mean(x.map((v, i) => Math.abs(v - want[i]))));
       return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
     }
+    if (feat === "relight") return root.CurioRelight ? root.CurioRelight.score(p, before, after) : { feature: feat, note: "needs video/relight.js" };
     if (feat === "shutter") return root.CurioShutter ? root.CurioShutter.score(p, before, after) : { feature: feat, note: "needs video/shutter.js" };
     if (feat === "rhythm") return root.CurioRhythm ? root.CurioRhythm.score(p, before, after) : { feature: feat, note: "needs video/rhythm.js" };
     if (/^lk:/.test(feat)) return root.CurioLooks ? root.CurioLooks.score(p, feat, before, after) : { feature: feat, note: "needs video/looks.js" };
@@ -1292,5 +1309,5 @@
     return { name: d.name, duration: d.duration, step: step || 2.5, every: d.dt, samples };
   }
 
-  root.CurioVideo = { PARTS, partStats, elementSeries, elAt, partsAt, angleCue, toMedia, keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
+  root.CurioVideo = { PARTS, partStats, elementSeries, elAt, partsAt, angleCue, toMedia, keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, lanesOf, nodesOf, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
 })();

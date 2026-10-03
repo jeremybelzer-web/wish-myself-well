@@ -391,9 +391,9 @@
      "Light and dark" switch does the rest). Skin keeps 80% of its own hue.
      In the darks (fading out by mid brightness) three separate steep curves blow up the little color a shadow
      has (and the video's blocky color noise) and can tip it green or magenta. So there the color is matched
-     in brightness and color instead: the pixel keeps its own color, grown at most as much as its brightness
-     (to 1.5 times, skin to 2), plus the cast the curves give a grey of its brightness; and its green-magenta side may
-     only grow a little past what it had. Moves toward blue, yellow, red or cyan are left whole. */
+     in brightness and color instead: the pixel keeps its own hue, grown or shrunk as much as the curves would
+     (but never more than its brightness grew, at most 1.5 times; skin keeps its own), plus the cast the curves
+     give a grey of its brightness; and its green-magenta side may only grow a little past what it had. Moves toward blue, yellow, red or cyan are left whole. */
   const TONE = 0.5;
   const GM_DARK = 4; /* how much green or magenta a dark may gain (0..255) */
   const GM_A = 0.587 / 0.413; /* red and blue against green so the brightness holds */
@@ -423,12 +423,21 @@
         oB = y + (B - y1) * (1 - sk) + (b - y0) * sk;
       const dk = 1 - clamp((y0 - 60) / 60, 0, 1);
       if (dk > 0) {
-        const kc = clamp(y / Math.max(1, y0), 1, 1.5 + 0.6 * sk),
-          v = Math.round(clamp(y0, 0, 255)),
+        const v = Math.round(clamp(y0, 0, 255)),
+          kc = clamp(y / Math.max(1, y0), 1, 1.5),
+          eR = r - y0,
+          eG = g - y0,
+          eB = b - y0,
+          aR = R - y1 - cast[0][v],
+          aG = G - y1 - cast[1][v],
+          aB = B - y1 - cast[2][v];
+        /* how much the curves grow (or shrink) this pixel's own color, held to its brightness's growth */
+        const gain = Math.min(kc, Math.sqrt((aR * aR + aG * aG + aB * aB) / Math.max(9, eR * eR + eG * eG + eB * eB))),
+          k = sk * kc + (1 - sk) * gain,
           q = 1 - sk;
-        oR += (y + (r - y0) * kc + cast[0][v] * q - oR) * dk;
-        oG += (y + (g - y0) * kc + cast[1][v] * q - oG) * dk;
-        oB += (y + (b - y0) * kc + cast[2][v] * q - oB) * dk;
+        oR += (y + eR * k + cast[0][v] * q - oR) * dk;
+        oG += (y + eG * k + cast[1][v] * q - oG) * dk;
+        oB += (y + eB * k + cast[2][v] * q - oB) * dk;
         const gm = oG - (oR + oB) / 2,
           over = (Math.abs(gm) - Math.abs(g - (r + b) / 2) * kc - GM_DARK) * dk;
         if (over > 0) {
