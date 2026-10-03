@@ -14,7 +14,7 @@ goes in each one:
 - **Faces.** One to three visual controls at the top of the window, picked to fit the curiosity: tiles with
   pictures, a big dial, a pad you drag across (two settings at once), color swatches, a person in the frame, a
   direction compass, a mixer of upright faders, a ladder of rungs for something that builds, a see-saw between
-  two ends.
+  two ends, and three hand-made ones (below): a color wheel, a curve over the film and a floor plan from above.
 - **Groups.** Its settings under two to four headings, like Final Cut Pro's and CapCut's inspectors.
 - **Presets.** Two to four one-click looks, named after a kind of film moment ("Hitchcock suspense hold").
   A preset sets several settings at the playhead as one undo step.
@@ -34,6 +34,30 @@ Every window also has, from `screen/windows.js`:
 - **Fine-tune** (Jeremy, 15:02Z: "All these parameters can be hidden under the word fine-tune"): in Details, each curiosity shows its main control and a Fine-tune button that opens this window; the inline fold is off.
 
 Counts after both passes: 434 curiosities, 2,590 new settings (1,794 of them measured in units), 1,303 presets.
+
+- **Hand-made faces** (wheel, curve, stage): where a knob or pad fit the subject poorly, three controls made for it.
+  - **Wheel** (`{ face: "wheel", hue, strength, colors? }`): a color wheel with one dot. Around the wheel is the color
+    (a word on the setting's list, placed by its `colors`, or degrees); out from the middle is how strong. The middle
+    is no color (a "neutral", "white" or "none" word when the list has one). Used by Filter color, One color that
+    pops, Dominant color, Black and white to full color, Light in skin, Color wheels and Superpower effect.
+  - **Curve** (`{ face: "curve", slider, points? }`): 3 to 5 points over my film (or the play range). Drag them up or
+    down; letting go writes a node on every moment, one undo step (the same writer as Shape over my film). Faint dots
+    show the lane as it is; a dashed line marks the playhead. Used by Tension, Energy, Stakes, Strength of the
+    feeling, both emotional roads (character and film), Arc stage and Escalation.
+  - **Stage** (`{ face: "stage", walk?, tokens }`): the floor from above with one or two people and the camera. A
+    token with `about` (an earlier token's index) is dragged around it: `around` in degrees (0 = in front, toward
+    the bottom; 90 = its right) or an ordered scale, and `distance` nearer or farther. Used by Where they stand,
+    Personal space, Who moves, Walk and talk, Touch and Move follows.
+  - Each works with the mouse, a finger (pointer events) and the arrow keys (wheel: left/right turn the color,
+    up/down the strength; curve: left/right pick a point, up/down move it; stage: left/right around, up/down
+    farther or nearer), each is a labeled `role="slider"`, redraws the live picture while it moves, and shows the
+    ◇ key and 🎹 MIDI learn buttons for every setting it moves.
+  - **Fallback**: a hand-made face may name a `fallback` face (the swatches, dial, ladder or orbit it replaced).
+    When a setting it needs is missing, or my film has only one moment (curve), the fallback is drawn instead, or
+    else a plain control for its first setting.
+  - A later add's pad, orbit or dial whose settings a wheel or stage already moves is left out and becomes that
+    face's fallback, so the look files' generic pads (filterHue, walkAndTalk) and the measure files' orbits (Who
+    moves, Walk and talk, Touch, Move follows) do not repeat it. `W.check` checks every new face and fallback.
 
 The hand-made parts some windows already had (Emotion's feeling pad, Shot size's frames, Angle height, Camera
 move, Color, Comedy's joke timing) stay, above the faces.

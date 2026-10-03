@@ -12,6 +12,7 @@
     window: {
       faces: [
         { face: "dial", slider: "size" },
+        { face: "curve", slider: "size", points: 4, title: "Stakes across my film" },
         { face: "tiles", slider: "kind", icons: { pride: "😳", money: "💰", "a job": "💼", "a person": "❤️", "a dream": "🌠", "a life": "⚰️" } },
         { face: "ladder", slider: "clock" },
       ],
@@ -37,7 +38,7 @@
       faces: [
         { face: "tiles", slider: "setting", icons: { "lowest point": "🕳️", falling: "📉", steady: "➖", rising: "📈", "highest point": "⛰️" } },
         { face: "pad", x: "lowPoint", y: "highPoint", xLabel: "Lowest point", yLabel: "Highest point" },
-        { face: "dial", slider: "height" },
+        { face: "curve", slider: "height", points: 5, title: "Their road across my film", fallback: { face: "dial", slider: "height" } },
       ],
       groups: [
         { label: "Right now", sliders: ["setting", "height", "roadPace"] },
@@ -61,6 +62,7 @@
       faces: [
         { face: "mixer", sliders: ["tension", "laughter", "relief"] },
         { face: "tiles", slider: "shape", icons: { "rags to riches": "📈", "riches to rags": "📉", "fall then rise": "↘️", "rise then fall": "↗️", "rise, fall, rise": "〰️", "fall, rise, fall": "🌊" } },
+        { face: "curve", slider: "height", points: 5, title: "The film's road, high or low" },
         { face: "dial", slider: "peakPlace" },
       ],
       groups: [
@@ -284,6 +286,7 @@
     window: {
       faces: [
         { face: "dial", slider: "setting" },
+        { face: "curve", slider: "setting", points: 4 },
         { face: "pad", x: "peakAt", y: "peakHold", xLabel: "When it peaks", yLabel: "How long it holds" },
         { face: "ladder", slider: "build" },
       ],
@@ -607,7 +610,7 @@
     ],
     window: {
       faces: [
-        { face: "ladder", slider: "distance" },
+        { face: "stage", title: "How close, from above", tokens: [{ who: "person" }, { who: "person", about: 0, distance: "setting" }, { who: "camera" }], fallback: { face: "ladder", slider: "distance" } },
         { face: "balance", slider: "comfort", left: "Uncomfortable", right: "Wants closer" },
         { face: "tiles", slider: "barrier", icons: { nothing: "⬜", "a small thing": "☕", "a table": "🪑", "a wall or door": "🚪" } },
       ],

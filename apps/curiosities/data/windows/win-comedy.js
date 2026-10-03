@@ -171,6 +171,7 @@
       faces: [
         { face: "ladder", slider: "ceiling" },
         { face: "dial", slider: "setting" },
+        { face: "curve", slider: "setting", points: 4, title: "How it climbs across the scene" },
         { face: "tiles", slider: "speed", icons: { "slow burn": "🕯️", steady: "🚶", snowball: "⛄", instant: "💣" } },
       ],
       groups: [
