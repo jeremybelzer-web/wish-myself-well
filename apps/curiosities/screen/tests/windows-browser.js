@@ -187,7 +187,9 @@ const ok = (cond, msg) => {
   await page.evaluate(() => window.CurioScreen.openWin("cameraPlace"));
   const orb = '.sc-win[data-win="cameraPlace"]';
   const drag = async (sel, fx, fy) => {
-    const b = await (await page.$(sel)).boundingBox();
+    const el = await page.$(sel);
+    await el.scrollIntoViewIfNeeded();
+    const b = await el.boundingBox();
     await page.mouse.move(b.x + b.width * 0.5, b.y + b.height * 0.8);
     await page.mouse.down();
     await page.mouse.move(b.x + b.width * fx, b.y + b.height * fy, { steps: 4 });
@@ -205,6 +207,28 @@ const ok = (cond, msg) => {
   const height = await orbVal("cameraPlace.height");
   ok(height > 30, `from the side, dragging up puts the camera above them (${height}°)`);
   await page.screenshot({ path: path.join(SHOTS, "windows-3-orbit.png") });
+
+  /* Say what you want (Jeremy, 15:02Z): plain words set the settings. */
+  const say = async (text) => {
+    await page.fill(`${orb} [data-cw-say-text="cameraPlace"]`, text);
+    await page.press(`${orb} [data-cw-say-text="cameraPlace"]`, "Enter");
+  };
+  await say("45 degrees to the right, 3 meters away");
+  ok((await orbVal("cameraPlace")) === 45 && (await orbVal("cameraPlace.distance")) === 3, "\"45 degrees to the right, 3 meters away\" sets around 45° and 3 m");
+  await say("a bit closer");
+  const closer = await orbVal("cameraPlace.distance");
+  ok(closer < 3 && closer >= 2, `"a bit closer" brings the camera a little nearer (${closer} m)`);
+  await say("20 degrees below");
+  ok((await orbVal("cameraPlace.height")) === -20, "\"20 degrees below\" puts the camera under their eyes");
+  await say("god's eye");
+  ok((await orbVal("cameraPlace.height")) === 90, "naming a preset (God's eye) uses it");
+  const tiny = await page.evaluate(() => {
+    const c = window.CurioLevels.get("curiosity", "shotSize");
+    const h = { sliderId: (cc, s) => (s.id === cc.main || s.id === "setting" ? (window.CurioScale.known(cc.id) ? cc.id : cc.id + "." + s.id) : cc.id + "." + s.id), ctx: { value: () => undefined } };
+    return window.CurioWindowFaces.interpret(c, "close", h).set;
+  });
+  ok(tiny.some(([k, v]) => k === "shotSize" && v === "close"), "a word from a list (\"close\") picks it: " + JSON.stringify(tiny));
+  ok(await page.$('.sc-inspector .sc-finetune'), "Details rows open the window with Fine-tune");
 
   ok(!errors.length, "no errors on the page" + (errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""));
   await browser.close();

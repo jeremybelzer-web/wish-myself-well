@@ -362,6 +362,7 @@
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
     page.addEventListener("pointerdown", onKnobDown);
+    page.addEventListener("keydown", (e) => faces() && faces().keydown && faces().keydown(e, faceHelpers(mineCtx()), faceApi()));
     page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e));
     page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
     /* Undo and redo go to the app-wide undo list when the page has one (engine/store.js), so one ⌘Z undoes one
@@ -891,15 +892,16 @@
     const key = keyFor(c.id);
     const sel = prefs.sel.level === "curiosity" && (prefs.sel.id === c.id || prefs.sel.id === key);
     const mainVal = ctx.value(key);
-    const open = !!prefs.folds[c.id];
+    /* The fine controls live behind Fine-tune now (Jeremy, 2026-10-03 15:02Z: "All these parameters can be hidden
+       under the word fine-tune"); the inline fold stays off. */
+    const open = false;
     const fine = (c.sliders || []).filter((s) => s.id !== c.main && s.id !== "setting");
     const mainS = (c.sliders || []).find((s) => s.id === c.main || s.id === "setting") || (c.sliders || [])[0];
     const take = ctx.insp ? Number((ctx.insp.takes || {})[key]) || 0 : 0;
     return `<div class="sc-cur${sel ? " sel" : ""}">
       <div class="sc-cur-top">
         <button type="button" class="sc-cur-name" data-select-cur="${esc(c.id)}" title="${esc(c.plain || "")}">${esc(c.label)}</button>
-        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win" data-open-win="${esc(c.id)}" title="Open ${esc(c.label)}'s own window: every knob and slider it has" aria-label="Open ${esc(c.label)}'s window">⧉</button>
-        ${fine.length ? `<button type="button" class="sc-fold" data-fold="${esc(c.id)}" aria-expanded="${open}" title="The fine controls inside it">${open ? "▾" : "▸"} ${fine.length}</button>` : ""}
+        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win sc-finetune" data-open-win="${esc(c.id)}" title="Fine-tune ${esc(c.label)}: every setting inside it (${fine.length + 1}), each its own lane, or say what you want" aria-label="Fine-tune ${esc(c.label)}">Fine-tune</button>
       </div>
       ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyBtn(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
       ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
@@ -1078,10 +1080,11 @@
       </div>`;
     };
     return `<section class="sc-win" data-win="${esc(c.id)}" role="dialog" aria-label="${esc(c.label)} window" style="left:${w.x}px;top:${w.y}px;z-index:${60 + z}">
-      <header class="sc-win-h" data-win-drag="${esc(c.id)}">${icon(cat.icon)}<b>${esc(c.label)}</b><small>${esc(cat.label)}${isAdv(c) ? " · ADVANCED" : ""}</small><button type="button" data-win-close="${esc(c.id)}" aria-label="Close the ${esc(c.label)} window">×</button></header>
+      <header class="sc-win-h" data-win-drag="${esc(c.id)}">${icon(cat.icon)}<b>${F ? "Fine-tune: " : ""}${esc(c.label)}</b><small>${esc(cat.label)}${isAdv(c) ? " · ADVANCED" : ""}</small><button type="button" data-win-close="${esc(c.id)}" aria-label="Close the ${esc(c.label)} window">×</button></header>
       <div class="sc-win-b">
         ${c.plain ? `<p class="sc-win-plain">${esc(c.plain)}</p>` : ""}
         <p class="sc-k">My film, moment ${row + 1}: every change here becomes a node.</p>
+        ${F && F.sayHtml ? F.sayHtml(c, faceHelpers(ctx)) : ""}
         ${winSpecial(c, ctx)}
         ${F ? F.html(c, faceHelpers(ctx, w.focus)) : ""}
         ${(F && F.grouped(c, block)) || `<div class="sc-wpart"><h4>Every knob and slider</h4>${sliders.map(block).join("")}</div>`}

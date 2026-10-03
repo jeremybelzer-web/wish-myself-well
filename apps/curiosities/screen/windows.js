@@ -278,6 +278,117 @@
   }
   const escText = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
+  /* ---------- say it (Jeremy, 2026-10-03 15:02Z: "we can also allow the user to simply speak their request if
+     they don't want to get into tweaking these parameters") ----------
+     Plain words in, settings out, worked out on the device: each part of the request (split at commas, "and",
+     "then") is matched against the curiosity's presets, the words on its scales, numbers with a unit (30
+     degrees, 2 meters, 40%, 3 seconds), and more or less of a setting it names (closer, higher, faster, more
+     X, less X). Returns [[key, value, label]] and what it understood. */
+  const UNIT = [
+    [/^(°|deg|degs|degree|degrees)$/, "°"],
+    [/^(m|meter|meters|metre|metres)$/, "m"],
+    [/^(%|percent|per cent)$/, "%"],
+    [/^(s|sec|secs|second|seconds)$/, "s"],
+    [/^(mm|millimeter|millimeters)$/, "mm"],
+  ];
+  const UP = /\b(more|higher|up|raise|bigger|larger|louder|faster|stronger|longer|further|farther|brighter|warmer|wider|above|increase)\b/;
+  const DOWN = /\b(less|lower|down|smaller|quieter|softer|slower|weaker|shorter|closer|nearer|darker|cooler|tighter|below|decrease|reduce)\b/;
+  /* Words that point at a kind of setting even when its label is not said. */
+  const HINT = { closer: "distance", nearer: "distance", farther: "distance", further: "distance", above: "height", below: "height", higher: "height", lower: "height", faster: "speed", slower: "speed", louder: "loud", quieter: "loud", brighter: "bright", darker: "bright", longer: "long", shorter: "long" };
+  const words = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9%°.\s-]/g, " ").split(/\s+/).filter((w) => w.length > 2 && !/^(the|and|but|with|from|into|this|that|them|their|how|its|it's|very|much|make|more|less|set|for|of|to|is|are|was|be|a|an)$/.test(w));
+  function overlap(a, b) {
+    const B = new Set(words(b));
+    return words(a).filter((w) => B.has(w) || [...B].some((x) => x.length > 4 && w.length > 4 && (x.startsWith(w.slice(0, 5)) || w.startsWith(x.slice(0, 5))))).length;
+  }
+  function interpret(c, text, h) {
+    const sp = spec(c) || {};
+    const own = (c.sliders || []).filter((s) => !["themeLink", "pointsAhead"].includes(s.id));
+    const out = new Map();
+    const said = [];
+    const put = (s, v, why) => {
+      const k = h.sliderId(c, s);
+      if (!S().known(k)) return;
+      const f = S().fix(k, v);
+      if (f == null) return;
+      out.set(k, [k, f, s.id === c.main ? c.label : s.label]);
+      said.push(why);
+    };
+    const t = String(text || "").toLowerCase();
+    /* A preset named in the request sets all of it first; the rest of the request can adjust it. */
+    (sp.presets || []).forEach((p) => {
+      if (t.includes(p.label.toLowerCase()) || (words(p.label).length >= 2 && overlap(p.label, t) >= Math.min(3, words(p.label).length))) {
+        Object.entries(p.set || {}).forEach(([sid, v]) => {
+          const s = sl(c, sid);
+          if (s) put(s, v, "");
+        });
+        said.push(`the preset "${p.label}"`);
+      }
+    });
+    const best = (clause, list) => {
+      let top = null;
+      let score = 0;
+      list.forEach((s) => {
+        let n = overlap(s.id === c.main ? s.label + " " + c.label : s.label, clause) * 2 + overlap(s.plain, clause) * 0.5;
+        Object.entries(HINT).forEach(([w, part]) => new RegExp("\\b" + w + "\\b").test(clause) && (s.id.toLowerCase().includes(part) || s.label.toLowerCase().includes(part)) && (n += 3));
+        if (s.id === c.main) n += 0.25;
+        if (n > score) (score = n), (top = s);
+      });
+      return top;
+    };
+    t.split(/,|;|\band\b|\bthen\b|\.\s/).map((x) => x.trim()).filter(Boolean).forEach((clause) => {
+      /* 1. A word or phrase on a scale (the longest match wins). */
+      let hit = null;
+      own.forEach((s) => (s.scale || []).forEach((o) => {
+        const w = String(o).toLowerCase();
+        if (w.length > 1 && new RegExp("(^|[^a-z])" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z]|$)").test(clause)) {
+          const sc = w.length + overlap(s.label, clause) * 3 + (s.id === c.main ? 1 : 0);
+          if (!hit || sc > hit.sc) hit = { s, o, sc };
+        }
+      }));
+      if (hit) return put(hit.s, hit.o, `${hit.s.id === c.main ? c.label : hit.s.label}: ${hit.o}`);
+      /* 2. A number, with a unit if one is said. */
+      const m = clause.match(/(-?\d+(?:\.\d+)?)\s*(°|%|[a-z]+)?/);
+      if (m) {
+        let n = Number(m[1]);
+        const unit = (UNIT.find(([re]) => re.test(m[2] || "")) || [])[1];
+        if (/\b(left|below|under|down)\b/.test(clause) && n > 0 && unit === "°") n = -n;
+        const nums = own.filter((s) => s.range && (!unit || (s.range.unit || "") === unit));
+        const s = best(clause, nums) || (nums.length === 1 ? nums[0] : null);
+        if (s) return put(s, n, `${s.id === c.main ? c.label : s.label}: ${n}${s.range.unit || ""}`);
+      }
+      /* 3. More or less of something. */
+      const up = UP.test(clause);
+      const down = DOWN.test(clause);
+      if (up !== down) {
+        const ord = own.filter((s) => s.range || (s.scale && !s.unordered));
+        const s = best(clause, ord);
+        if (!s) return;
+        const k = h.sliderId(c, s);
+        const cur = h.ctx.value(k);
+        const p = posOf(k, cur);
+        const lot = /\b(lot|much|way|very|far)\b/.test(clause) ? 2 : 1;
+        let v;
+        if (s.scale) v = S().at(k, Math.max(0, Math.min(1, (p == null ? 0.5 : p) + ((up ? 1 : -1) * lot) / Math.max(1, s.scale.length - 1))));
+        else {
+          /* Numbers move by a sensible amount from where they are: 15° a step, otherwise a quarter of the value. */
+          const r = s.range;
+          const n = Number(cur);
+          const d = r.unit === "°" ? 15 * lot : isFinite(n) && n !== 0 && cur != null ? Math.abs(n) * 0.25 * lot : (r.max - r.min) * 0.1 * lot;
+          const base = isFinite(n) && cur != null ? n : S().at(k, 0.5);
+          v = S().fix(k, Math.max(r.min, Math.min(r.max, base + (up ? d : -d))));
+        }
+        put(s, v, `${s.id === c.main ? c.label : s.label}: ${up ? "up" : "down"} to ${v}${s.range ? s.range.unit || "" : ""}`);
+      }
+    });
+    return { set: [...out.values()], said: said.filter(Boolean) };
+  }
+  function sayHtml(c, h) {
+    const mic = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
+    const sp = spec(c) || {};
+    const eg = (sp.presets || [])[0];
+    return `<div class="sc-wpart cw-say"><h4>Say what you want</h4><div class="cw-say-row"><input type="text" data-cw-say-text="${h.esc(c.id)}" placeholder="${h.esc(eg ? `e.g. "${eg.label}", or "a bit more", or a number`  : 'e.g. "a bit more", or a number')}" aria-label="Say what you want ${h.esc(c.label)} to do"${h.ctx.edit ? "" : " disabled"}>${mic ? `<button type="button" data-cw-mic="${h.esc(c.id)}" title="Speak it" aria-label="Speak it"${h.ctx.edit ? "" : " disabled"}>🎤</button>` : ""}<button type="button" data-cw-say="${h.esc(c.id)}"${h.ctx.edit ? "" : " disabled"}>Do it</button></div><p class="sc-k" data-cw-heard="${h.esc(c.id)}">Plain words set the settings below at the playhead, as one undo step. Or open them up and fine-tune.</p></div>`;
+  }
+
   /* ---------- actions ---------- */
   function click(d, t, h, api) {
     const L = window.CurioLevels;
@@ -309,6 +420,32 @@
       api.setAt(items, `${label}: ${s.id === c.main ? c.label : s.label}`);
       return true;
     }
+    if (d.cwSay) {
+      const c = get(d.cwSay);
+      const win = t.closest(".sc-win");
+      const box = win && win.querySelector(`[data-cw-say-text="${d.cwSay}"]`);
+      return say(c, box ? box.value : "", h, api, win), true;
+    }
+    if (d.cwMic) {
+      const c = get(d.cwMic);
+      const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const win = t.closest(".sc-win");
+      if (!R || !c) return true;
+      const rec = new R();
+      rec.lang = navigator.language || "en-US";
+      rec.interimResults = false;
+      t.classList.add("on");
+      rec.onresult = (ev) => {
+        const heard = ev.results[0][0].transcript;
+        const box = win && win.querySelector(`[data-cw-say-text="${d.cwMic}"]`);
+        if (box) box.value = heard;
+        say(c, heard, h, api, win);
+      };
+      rec.onend = () => t.classList.remove("on");
+      rec.onerror = () => api.toast("The microphone didn't catch that. Type it instead.");
+      rec.start();
+      return true;
+    }
     if (d.cwSurprise) {
       const c = get(d.cwSurprise);
       if (!c) return true;
@@ -320,6 +457,19 @@
       return true;
     }
     return false;
+  }
+  function say(c, text, h, api, win) {
+    if (!c || !String(text).trim()) return;
+    const r = interpret(c, text, h);
+    const note = win && win.querySelector(`[data-cw-heard="${c.id}"]`);
+    if (!r.set.length) {
+      const msg = `I couldn't match that to ${c.label}'s settings. Try a word from one of its lists, a number, or "more" or "less" of a setting.`;
+      if (note) note.textContent = msg;
+      return api.toast(msg);
+    }
+    r.set.forEach(([k]) => api.showLane(k));
+    api.setValues(r.set.map(([k, v]) => [k, v]), `${c.label}: "${String(text).slice(0, 40)}"`);
+    api.toast(`${c.label}: ${r.said.join("; ")}`);
   }
   /* Pad and frame: click or drag to set two settings at once (one undo step when let go). */
   function pointer(e, api) {
@@ -359,6 +509,18 @@
     return true;
   }
 
+  /* Enter in the "say what you want" box does it. */
+  function keydown(e, h, api) {
+    const box = e.target && e.target.closest && e.target.closest("[data-cw-say-text]");
+    if (!box) return false;
+    e.stopPropagation();
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const c = window.CurioLevels && window.CurioLevels.get("curiosity", box.dataset.cwSayText);
+      say(c, box.value, h, api, box.closest(".sc-win"));
+    }
+    return true;
+  }
   /* Orbit: from above, the pointer's angle around the subject and its distance; from the side, its height. */
   function orbitPointer(e, api) {
     const el = e.target.closest && e.target.closest("[data-orbit-top], [data-orbit-side]");
@@ -402,7 +564,7 @@
     return true;
   }
 
-  window.CurioWindowFaces = { FACES: Object.keys(FACE), SHAPES: SHAPES.map((s) => s[0]), html, grouped, click, pointer, shapeItems, spec };
+  window.CurioWindowFaces = { FACES: Object.keys(FACE), SHAPES: SHAPES.map((s) => s[0]), html, sayHtml, interpret, grouped, click, pointer, shapeItems, spec, keydown };
   function CSS() {
     return `
 .cw-faces { gap: 10px; }
@@ -469,6 +631,13 @@
 .cw-orbit .cw-t { fill: #6b6b73; font-size: 5px; }
 .cw-orbit-read { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 10px; color: var(--cc-dim); }
 .cw-orbit-read b { color: var(--cc-text); }
+.sc-page .sc-cur-win.sc-finetune { font-size: 10px; padding: 1px 7px; border: 1px solid var(--cc-line); border-radius: 10px; color: var(--cc-accent); }
+.cw-say-row { display: flex; gap: 4px; }
+.cw-say-row input { flex: 1 1 auto; min-width: 0; border: 1px solid var(--cc-line); background: #121214; color: var(--cc-text); border-radius: 6px; padding: 5px 8px; font: inherit; }
+.cw-say-row input:focus { border-color: var(--cc-accent); outline: none; }
+.sc-page .cw-say-row button[data-cw-say] { background: var(--cc-accent); color: var(--cc-accent-ink); font-weight: 700; }
+.sc-page .cw-say-row button.on { box-shadow: 0 0 0 2px #ff5656; }
+.cw-say p { margin: 0; }
 .cw-preset-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 4px; }
 .sc-page .cw-preset-row button { display: grid; gap: 2px; text-align: left; padding: 6px 8px; border-left: 3px solid var(--cc-warm); }
 .cw-preset-row b { font-size: 11px; }

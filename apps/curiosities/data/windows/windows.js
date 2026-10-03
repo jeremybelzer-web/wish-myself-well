@@ -33,10 +33,26 @@
     const before = new Set(DB.find(id).sliders.map((s) => s.id));
     if (def.sliders && def.sliders.length) DB.curiosity({ id, sliders: def.sliders });
     const row = DB.find(id);
-    W.added[id] = row.sliders.filter((s) => !before.has(s.id)).map((s) => s.id);
+    W.added[id] = (W.added[id] || []).concat(row.sliders.filter((s) => !before.has(s.id)).map((s) => s.id));
     if (def.window) {
-      W.specs[id] = def.window;
-      row.window = def.window;
+      /* A second add on the same curiosity (measure-<category>.js) adds to its window: faces and presets are
+         appended, and a group with the same label gains the new sliders. */
+      const old = W.specs[id];
+      const spec = old
+        ? {
+            faces: (old.faces || []).concat(def.window.faces || []),
+            groups: (old.groups || []).map((g) => Object.assign({}, g, { sliders: (g.sliders || []).slice() })),
+            presets: (old.presets || []).concat(def.window.presets || []),
+          }
+        : def.window;
+      if (old)
+        (def.window.groups || []).forEach((g) => {
+          const same = spec.groups.find((x) => x.label === g.label);
+          if (same) (g.sliders || []).forEach((sid) => same.sliders.includes(sid) || same.sliders.push(sid));
+          else spec.groups.push(g);
+        });
+      W.specs[id] = spec;
+      row.window = spec;
     }
     return row;
   };

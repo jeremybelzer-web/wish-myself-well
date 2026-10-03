@@ -23,6 +23,19 @@ require("./files.json").forEach((f) => {
     broken.push(`${f}: ${e.message}`);
   }
 });
+/* --measure: also the measure-<category>.js files not yet in files.json (while they are being written). */
+if (process.argv.includes("--measure"))
+  fs.readdirSync(__dirname)
+    .filter((f) => /^measure-.*\.js$/.test(f) && !require("./files.json").includes(f))
+    .sort()
+    .forEach((f) => {
+      try {
+        run(path.join(__dirname, f));
+      } catch (e) {
+        if (!only || f === `measure-${only}.js`) throw e;
+        broken.push(`${f}: ${e.message}`);
+      }
+    });
 if (broken.length) console.log("warning, not loaded: " + broken.join("; "));
 run(path.join(A, "screen", "levels.js"));
 const DB = w.CuriosityDB;
