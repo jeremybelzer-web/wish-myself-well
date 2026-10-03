@@ -89,6 +89,47 @@ function serve() {
   await page.waitForTimeout(900);
   ok((await at()) === q0, "Pause stops it");
 
+  /* Panel timing: a panel with its own seconds holds that long; the rest follow Speed. One undo step. */
+  await page.click('[data-go="0"]');
+  const timed = await page.evaluate(() => {
+    const seen = [];
+    const off = CuriosityStoryboard.on((ev) => seen.push(ev.type));
+    const n = CuriosityStoryboard.setTiming([{ si: 0, pi: 0, seconds: 2.5 }]);
+    return new Promise((r) => setTimeout(() => (off(), r({ n, first: CuriosityStoryboard.timing()[0][0], seen })), 50));
+  });
+  ok(timed.n === 1 && timed.first === 2.5, `setTiming gives a panel its own seconds (${timed.first})`);
+  ok(timed.seen.includes("draw"), `listeners hear the redraw (${timed.seen.join(", ")})`);
+  await page.click('[data-go="0"]');
+  await page.click('[data-sb="play"]');
+  await page.waitForTimeout(1500);
+  const held = await at();
+  await page.waitForTimeout(1600);
+  const after = await at();
+  await page.click('[data-sb="play"]');
+  ok(held === 1 && after !== 1, `a panel set to 2.5 seconds holds that long, then moves on (${held} at 1.5 s, ${after} at 3.1 s)`);
+  const undone = await page.evaluate(() => (CurioStore.undo(), CuriosityStoryboard.timing()[0][0]));
+  ok(undone === null, "one undo gives the panel back to the Speed slider");
+
+  /* Outside modulation sources (CurioAuto.addSource), the way Momentum feeds attention to the automation. */
+  const src = await page.evaluate(() => {
+    const A = CurioAuto;
+    let level = 0.25;
+    const added = A.addSource({ id: "test:level", label: "Test level", read: () => level });
+    const key = A.PARAMS[0].key;
+    A.set(key, { mod: "source:test:level", depth: 1 });
+    A.start(key);
+    const m1 = A.m(key);
+    level = 7; /* clamped to 1 */
+    const m2 = A.m(key);
+    A.set(key, { depth: 0.5 });
+    const m3 = A.m(key);
+    A.stop(key);
+    A.set(key, { mod: "lfo", depth: 1 });
+    return { added, listed: A.sources().some((x) => x.mod === "source:test:level"), m1, m2, m3, bad: A.addSource({ id: "x" }) };
+  });
+  ok(src.added && src.listed && !src.bad, "a modulation source can be added and is listed next to LFO, knob and MIDI");
+  ok(src.m1 === 0.25 && src.m2 === 1 && src.m3 === 0.5, `a patch moved by a source follows it, clamped and scaled by depth (${src.m1}, ${src.m2}, ${src.m3})`);
+
   await page.focus('[data-sb="viewer"]');
   const k0 = await at();
   await page.keyboard.press("ArrowRight");
