@@ -73,6 +73,12 @@ const suites = [
   { name: "storyboard flip book", browser: true, ...node("tests/flipbook.js") },
   { name: "save, new, open a project", browser: true, ...node("tests/save-open.js") },
   { name: "bring in a video", browser: true, ...node("media/tests/browser.js") },
+  { name: "3D characters", browser: true, ...node("rig/tests/browser.js", threeArgs) },
+  { name: "3D feet and hands (IK)", browser: true, ...node("rig/tests/ik.js", threeArgs) },
+  { name: "3D lights", browser: true, ...node("rig/tests/lights.js", threeArgs) },
+  { name: "3D forces", browser: true, ...node("rig/tests/dynamics.js", threeArgs) },
+  { name: "3D camera", browser: true, ...node("rig/tests/camera.js", threeArgs) },
+  { name: "3D on the Screen", browser: true, ...node("rig/tests/screen.js", threeArgs) },
   /* --browser uses the first 60 kinds of control on each page (about 15 minutes); --full uses them all. */
   { name: "every control in a browser", browser: true, ...node("tests/every-control.js", [...threeArgs, "--max", FULL ? "250" : "60"]) },
   { name: "every control on a phone", browser: true, ...node("tests/every-control.js", [...threeArgs, "--width", "390", "--max", FULL ? "250" : "30"]) },

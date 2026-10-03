@@ -83,6 +83,24 @@
     [2, "A strong pose shows what a character is about to do, so the audience is a step ahead of the plot.", "How someone holds their body says how they feel about their place in the world.", "The eye reads a clear outline before a word is said, so a strong pose grabs attention first.", "movement", "Hold the strongest pose of the scene for the line that turns it."]
   );
 
+  /* A 3D character that moves by rules (Jeremy, 2026-10-03 14:30Z: "Create 3D models that move and behave in a
+     specific way... lots and lots of rules about the movement"). rig/rig.js draws it; each slider is a rule. */
+  c("rigRulesLens", "Movement rules", "character-motion", ["movement-lines", "emotion"], "rig3d",
+    "Skeletons and joint limits, aim constraints, Set Driven Key, dynamic joint chains, Time Editor clips",
+    "The rules a 3D character's body follows: which move it plays, how fast, how it holds its spine, where it looks, how loose its parts are and how far its joints may bend.",
+    "motion",
+    [
+      ["motion", "What the body is doing", ["standing still", "looking around", "walking", "running"], "The move the character plays. Bought and free characters come with moves like these already made (clips).", { unordered: true }],
+      ["pace", "Pace", ["dragging", "slow", "normal", "brisk", "frantic"], "How fast the move plays. The same walk slowed down reads tired; sped up reads late or scared."],
+      ["slump", "Spine", ["proud and upright", "relaxed", "slumped", "collapsed"], "One control that bends the whole spine, the neck and the head together. Maya calls a control like this a driven key."],
+      ["lookAt", "Where the eyes go", ["straight ahead", "at the camera", "at the ground", "up", "all around"], "The head turns to look at something by itself, within what a neck can do (an aim constraint in Maya).", { unordered: true }],
+      ["floppy", "Loose parts", ["stiff", "a little give", "loose", "floppy"], "Whether arms, head and tail lag behind and keep moving after the body stops (follow-through)."],
+      ["breath", "Breathing", ["held", "calm", "heavy", "heaving"], "How much the chest rises and falls. Heavy breathing after a run, held breath before a scare."],
+      ["limits", "How far joints bend", ["like rubber", "natural", "stiff"], "The rule that stops a knee bending backwards. Rubber lets cartoon bodies break it; stiff keeps every joint close to straight."],
+    ],
+    [2, "A body that follows its own rules (a tired slump, eyes that keep going to the door) tells the audience what the character wants before a word is said.", "How a body is allowed to move is how free a character is: stiff joints for someone boxed in, loose limbs for someone let go.", "The eye follows where a character looks, so the head's aim steers the audience's attention.", "movement", "Change one rule at the turn of the scene: the spine lifts, or the eyes finally go to the camera."]
+  );
+
   c("faceLens", "Face acting", "character-motion", ["emotion", "lines"], "face",
     "Blend Shapes and the Shape Editor, Pose Library, eye darts and blinks, lip sync",
     "What the face does: how big the expression is, brows, eyes, mouth, blinks, which side moves, and how fast it changes.",
