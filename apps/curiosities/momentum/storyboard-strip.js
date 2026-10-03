@@ -32,9 +32,8 @@
   const R = () => root.CurioRates;
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   /* The same family colors as the Momentum window (ui.js). */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const colorOf = (f) => COLORS[f] || OTHER;
+  /* Family colors and the status marks come from notes.js (CurioMomentum.mark, CurioMomentum.status). */
+  const colorOf = (f) => M().mark(f).color;
   const famLabel = (f) => (M() && M().family(f) ? M().family(f).label : f || "");
   const cueLabel = (c) => {
     const x = M() && M().CUES.find((k) => k.id === c);
@@ -44,13 +43,7 @@
   const r1 = (x) => Math.round(x * 10) / 10;
 
   /* ---------- the reading (pure) ---------- */
-  function status(held, limit) {
-    if (held == null) return { cls: "good", icon: "●", text: "Nothing yet" };
-    const r = held / limit;
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
+  const status = (held, limit) => M().status(held, limit);
   /* The Momentum window's seconds per panel and limit, from its saved choices. */
   function settings(p, Rates) {
     p = p && typeof p === "object" ? p : {};
@@ -96,7 +89,7 @@
     return { cells, limit, spb, reading };
   }
 
-  const api = { model, settings, status, COLORS, colorOf };
+  const api = { model, settings, status, colorOf };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CurioMomentumStoryboard = api;
   if (typeof document === "undefined") return;

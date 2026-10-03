@@ -15,6 +15,9 @@
                   workspace's note with the curiosity's own name in it. note.source says which.
    - familyOf(id) the family id a curiosity's attention belongs to.
    - all()        every curiosity the app knows, each with its note (for the Momentum window and checks).
+   - mark(family) the one look of a family on every tab: { family, letter, color, ink, label } (COLORS, LETTERS, OTHER).
+   - status(seconds, limit)  { key: "fresh", "long" or "over" ("none" for no hold), cls, icon, words }: ● Fresh,
+                  ▲ Getting long, ■ Too long against the limit. Every momentum tab uses these two; none keeps a copy.
 
    A momentum note:
      {
@@ -294,7 +297,57 @@
     return out;
   }
 
+  /* How a family looks, the same on every tab: one color and one short letter mark (never color alone).
+     Eight families have their own validated color; the other five share gray. The letters are unique; two
+     letters where family names start the same (Camera, Comedy, Cut; Movement, Music; Light). */
+  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
+  const OTHER = "#a8a39a";
+  const LETTERS = { camera: "Ca", movement: "Mo", voice: "V", feeling: "F", comedy: "Co", wardrobe: "W", place: "S", light: "Li", music: "Mu", plot: "P", mind: "T", effects: "E", cut: "Cu" };
+  const DARK_INK = "#1c1712";
+  const LIGHT_INK = "#ffffff";
+  /* Relative luminance and contrast (WCAG), to pick the letter's ink on its swatch. */
+  function lum(hex) {
+    const n = parseInt(String(hex).slice(1), 16);
+    const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+  }
+  const contrast = (a, b) => {
+    const x = lum(a);
+    const y = lum(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  };
+  const inkOn = (color) => (contrast(color, LIGHT_INK) >= contrast(color, DARK_INK) ? LIGHT_INK : DARK_INK);
+  const colorOf = (id) => COLORS[id] || OTHER;
+  /* mark(family) -> { family, letter, color, ink, label }: the swatch and letter for a family, on every tab. */
+  function mark(id) {
+    const f = family(id);
+    const color = colorOf(id);
+    return { family: id || null, letter: LETTERS[id] || (id ? "?" : ""), color, ink: inkOn(color), label: f ? f.label : id ? String(id) : "" };
+  }
+  /* status(seconds, limit) -> { key, cls, icon, words, text }: how long one family has held attention against
+     the limit, in icon plus words (never color alone). Under three quarters of the limit is Fresh, up to the
+     limit is Getting long, past it is Too long. No hold at all (null) is "Nothing yet". cls is the CSS name
+     (good, warn, crit) the tabs already use; text repeats words for the tabs that read it. */
+  const STATUS = {
+    none: { key: "none", cls: "good", icon: "●", words: "Nothing yet" },
+    fresh: { key: "fresh", cls: "good", icon: "●", words: "Fresh" },
+    long: { key: "long", cls: "warn", icon: "▲", words: "Getting long" },
+    over: { key: "over", cls: "crit", icon: "■", words: "Too long" },
+  };
+  function status(seconds, limit) {
+    let s;
+    if (seconds == null || !Number.isFinite(Number(seconds))) s = STATUS.none;
+    else {
+      const r = Number(seconds) / (limit || 20);
+      s = r < 0.75 ? STATUS.fresh : r <= 1 ? STATUS.long : STATUS.over;
+    }
+    return Object.assign({ text: s.words }, s);
+  }
+
   const api = root.CurioMomentum || (root.CurioMomentum = {});
-  Object.assign(api, { CUES, FAMILIES, FIELD, WORKSPACE_NOTES: W, WRITTEN: C, note, familyOf, family, find, all, baseId });
+  Object.assign(api, { CUES, FAMILIES, FIELD, WORKSPACE_NOTES: W, WRITTEN: C, note, familyOf, family, find, all, baseId, COLORS, OTHER, LETTERS, mark, colorOf, inkOn, contrast, status, STATUS });
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();

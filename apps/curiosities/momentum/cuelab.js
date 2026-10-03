@@ -225,8 +225,8 @@
   }
 
   /* ---------- the tab ---------- */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const famColor = (f) => COLORS[f] || "#a8a39a";
+  /* Family colors come from notes.js (CurioMomentum.mark), the same on every tab. */
+  const famColor = (f) => M().mark(f).color;
   const esc = (s) =>
     String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
