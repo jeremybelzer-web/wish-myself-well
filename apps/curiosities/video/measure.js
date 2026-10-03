@@ -36,6 +36,8 @@
    - at(plan, t) -> { src, luma, contrast, sat, warm, dx, dy, zoom, cx, cy, gainDb, duck, line }   what to do to
      the frame shown at output time t
    - paint(data, w, h, adj, mean) -> changes RGBA pixels in place (light, contrast, color, warmth)
+   - palette, grain and softness, frame shape: measured and drawn by video/looks.js (CurioLooks); at() gives
+     their changes as adj.looks
    - fitDialogue(title, phrases, opts) -> [{ start, end, text, syll }]   new lines on the title's topic, one per
      phrase of the inspiration's speech, each as long (in syllables and seconds) as the phrase it replaces
    - syllables(text), corr(a, b), series(dissection, feature), score(plan, before, after): checks
@@ -660,6 +662,10 @@
     { id: "figure", label: "Person size and place", curiosities: ["shotSize"], check: "el:person", needs: "elements", plain: "Cuts the people out and makes them as big in the frame, and as far left or right, as the inspiration's people, moment by moment. The gap they leave is filled from the background around it." },
     { id: "angle", label: "Camera angle (high or low)", curiosities: ["shotSize"], check: "el:angle", needs: "elements", off: true, plain: "Guesses how high the inspiration's camera is (from how much hair shows against faces, and how low people sit in the frame), then cuts your people out and tips the camera a little higher or lower to match: the set leans and slides less than the people, as if seen from a new height. Small changes only: a big angle change needs a full 3D rebuild. Off unless you turn it on." },
     { id: "set", label: "The set (background)", curiosities: ["background"], check: "el:background", needs: "elements", off: true, plain: "Keeps your clip's people and puts them in the inspiration's place: its background, moving as it moves, with its own people still there behind yours. Off unless you turn it on." },
+    /* Look groups: they need both clips' looks (video/looks.js, measured when a clip comes in). */
+    { id: "palette", label: "Borrowed palette", curiosities: ["colorRange", "colorTemp"], check: "lk:palette", needs: "looks", plain: "Carries the inspiration's color grade over: your clip's darks, mids and lights in each color are moved to where the inspiration's are, moment by moment. Skin keeps most of its own color." },
+    { id: "grain", label: "Grain and softness", curiosities: ["lightingLens"], check: "lk:grain", needs: "looks", plain: "Measures how grainy and how sharp or soft the inspiration's picture is, then softens or sharpens your clip to match and adds the same film grain." },
+    { id: "shape", label: "Frame shape", curiosities: ["shotSize"], check: "lk:shape", needs: "looks", off: true, plain: "Gives your clip the inspiration's picture shape (black bars for a wide film look, or a tall or square frame) and darkens its edges as much as the inspiration's (vignette). Off unless you turn it on." },
     { id: "overlay", label: "Lay its graphics over", curiosities: ["colorRange"], check: "sat", off: true, plain: "Lays the inspiration's own picture over your clip with its plain light background taken out, so only its graphics (shapes, logos, colored text) show on top. For motion graphics like a title sequence. Off unless you turn it on." },
   ];
   /* Interpolate a per-sample series at time t. */
@@ -877,6 +883,7 @@
       adj.overlay = { t: r3((p.overlayFrom || 0) + (p.mode === "stretch" ? ((t / Math.max(0.001, p.duration)) * room) : t % room)), amount: on.overlay };
     }
     if (on.wardrobe || on.hair || on.figure || on.set || on.angle) adj.parts = partsAt(p, ta, s);
+    if ((on.palette || on.grain || on.shape) && root.CurioLooks) adj.looks = root.CurioLooks.at(p, ta, s); /* video/looks.js */
     if (on.dialogue && p.lines.length) {
       adj.line = lineAt(p, t);
       adj.duck = on.dialogue; /* the clip's own voices step back under the new lines */
@@ -1240,6 +1247,7 @@
       const gap = (x) => r3(mean(x.map((v, i) => Math.abs(v - want[i]))));
       return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
     }
+    if (/^lk:/.test(feat)) return root.CurioLooks ? root.CurioLooks.score(p, feat, before, after) : { feature: feat, note: "needs video/looks.js" };
     if (feat === "cuts") return { feature: "cuts", inspiration: A.cuts.length, before: before.cuts.length, after: after.cuts.length };
     if (feat === "speech") {
       const sum = (d) => {

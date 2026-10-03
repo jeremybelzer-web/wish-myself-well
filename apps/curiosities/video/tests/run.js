@@ -270,6 +270,122 @@ check("element cut-outs: stats, series and what to change", () => {
   assert(V.at(pa, 1).parts.angle.tilt > 0.5, "a clip seen from below is tipped to look from higher: " + JSON.stringify(V.at(pa, 1).parts));
   assert(V.angleCue(E, 1) === null || typeof V.angleCue(E, 1) === "number", "no faces or hair: no guess");
 });
+/* ---------- looks (video/looks.js): palette, grain and softness, frame shape ---------- */
+const LK = w.CurioLooks;
+function pic(W, H, f) {
+  const d = new Uint8ClampedArray(W * H * 4);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const c = f(x, y),
+        p = (y * W + x) * 4;
+      d[p] = c[0];
+      d[p + 1] = c[1];
+      d[p + 2] = c[2];
+      d[p + 3] = 255;
+    }
+  return d;
+}
+const chan = (d, c) => {
+  let s = 0;
+  for (let i = c; i < d.length; i += 4) s += d[i];
+  return s / (d.length / 4);
+};
+let seed = 11;
+const noise = () => {
+  let u = 0;
+  for (let i = 0; i < 12; i++) u += (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  return u - 6;
+};
+/* a checkered scene, softened by blur (0..1) and with grain (0..1 brightness) */
+function scenePic(W, H, blur, grain, tint) {
+  const d = pic(W, H, (x, y) => {
+    const v = 70 + 110 * ((Math.floor(x / 20) + Math.floor(y / 20)) % 2) + 20 * Math.sin(x / 9);
+    return tint ? [v * tint[0], v * tint[1], v * tint[2]] : [v, v, v];
+  });
+  if (blur) LK.texture(d, W, H, -blur, W / LK.LOOK_W);
+  if (grain) for (let i = 0; i < W * H; i++) for (let c = 0, e = noise() * grain * 255; c < 3; c++) d[i * 4 + c] += e;
+  return d;
+}
+const looksOf = (make, dur, W, H) => LK.series([0, 1, 2, 3].map((k) => ({ t: (k * dur) / 3, m: LK.measure(make(k), W || 320, H || 180) })));
+check("frame shape: letterbox bars and the picture's shape are found, and drawn on another clip", () => {
+  const barred = pic(320, 240, (x, y) => (y < 40 || y >= 200 ? [4, 3, 5] : [90 + (x % 50), 120, 80 + (y % 30)]));
+  const b = LK.barsOf(barred, 320, 240);
+  assert(Math.abs(b.top - 1 / 6) < 0.01 && Math.abs(b.bottom - 1 / 6) < 0.01 && b.left === 0 && b.right === 0, JSON.stringify(b));
+  assert(LK.barsOf(pic(64, 36, () => [0, 0, 0]), 64, 36) === null, "an all-black frame is not bars");
+  assert(LK.barsOf(pic(64, 36, () => [120, 90, 60]), 64, 36).top === 0, "no bars");
+  const A = LK.series([{ t: 0, m: LK.measure(barred, 320, 240) }]);
+  assert(Math.abs(A.aspect - 2) < 0.02, "a 4:3 frame with bars holds a 2:1 picture: " + A.aspect);
+  const flat = pic(320, 180, () => [150, 150, 150]);
+  const p = V.plan(Object.assign({}, insp, { looks: A }), Object.assign({}, target, { looks: looksOf(() => flat, 9) }), { on: { shape: 1 } });
+  const a = V.at(p, 1);
+  assert(a.looks && a.looks.shape && !a.looks.palette && !a.looks.texture, "only the frame shape: " + JSON.stringify(a.looks));
+  const d = new Uint8ClampedArray(flat);
+  LK.shape(d, 320, 180, a.looks.shape);
+  const got = LK.barsOf(d, 320, 180);
+  assert(Math.abs(320 / (180 * (1 - got.top - got.bottom)) - 2) < 0.05, "16:9 becomes a 2:1 picture: " + JSON.stringify(got));
+  /* a tall inspiration gives side bars; half the amount, half the bars */
+  const half = new Uint8ClampedArray(flat);
+  LK.shape(half, 320, 180, { aspect: 9 / 16, vignette: 0, amount: 0.5 });
+  const side = LK.barsOf(half, 320, 180);
+  assert(side.left > 0.15 && side.left < 0.2 && side.top === 0, JSON.stringify(side));
+  /* the tall window follows the people: someone on the left stays in the picture, moved to the middle */
+  const left = pic(320, 180, (x) => (x < 80 ? [200, 40, 40] : [40, 40, 200]));
+  LK.shape(left, 320, 180, { aspect: 9 / 16, vignette: 0, amount: 1, cx: 0.12, cy: 0.5 });
+  assert(left[(90 * 320 + 160) * 4] > 150 && left[(90 * 320 + 10) * 4] === 0, "the red person is in the middle, bars at the sides");
+  /* vignette: the edges made as much darker as asked */
+  const v = new Uint8ClampedArray(flat);
+  LK.shape(v, 320, 180, { aspect: null, vignette: LK.vigAmount(0.4, 0), amount: 1 });
+  const Y = new Float32Array(320 * 180).map((_, i) => v[i * 4] / 255);
+  assert(Math.abs(LK.vigOf(Y, 320, 180) - 0.4) < 0.03, "vignette " + LK.vigOf(Y, 320, 180));
+});
+check("borrowed palette: each color's mean moves to the inspiration's, skin keeps its hue, and the check sees it", () => {
+  const blue = pic(160, 90, (x, y) => [30 + y, 60 + y, 120 + y]),
+    green = pic(160, 90, (x) => [40 + x / 2, 60 + x, 50 + x * 0.6]);
+  const d = new Uint8ClampedArray(green);
+  LK.palette(d, 160, 90, LK.quantiles(blue, 160, 90), 1);
+  /* the colors land on the inspiration's (each color against the brightness), the brightness moves half way */
+  const tint = (x, c) => chan(x, c) - (0.299 * chan(x, 0) + 0.587 * chan(x, 1) + 0.114 * chan(x, 2));
+  const Y = (x) => 0.299 * chan(x, 0) + 0.587 * chan(x, 1) + 0.114 * chan(x, 2);
+  [0, 1, 2].forEach((c) => assert(Math.abs(tint(d, c) - tint(blue, c)) < 5, "color " + c + ": " + tint(d, c) + " vs " + tint(blue, c)));
+  assert(Math.abs(Y(d) - (Y(green) + Y(blue)) / 2) < 4, "brightness half way: " + [Y(green), Y(d), Y(blue)]);
+  const halfway = new Uint8ClampedArray(green);
+  LK.palette(halfway, 160, 90, LK.quantiles(blue, 160, 90), 0.5);
+  assert(Math.abs(tint(halfway, 2) - (tint(green, 2) + tint(blue, 2)) / 2) < 5, "half the amount, half way");
+  /* skin: a face-colored patch keeps most of its warmth while the green scene turns blue */
+  const face = pic(160, 90, (x) => (x < 40 ? [205, 150, 120] : [40 + x / 2, 60 + x, 50 + x * 0.6]));
+  LK.palette(face, 160, 90, LK.quantiles(blue, 160, 90), 1);
+  const p0 = (20 * 160 + 20) * 4;
+  assert(face[p0] > face[p0 + 2] + 40, "skin stays warm: " + Array.from(face.slice(p0, p0 + 3)));
+  /* over time, through the plan: the gap to the inspiration's palette shrinks */
+  const A = looksOf(() => blue, 6, 160, 90),
+    B = looksOf(() => green, 9, 160, 90);
+  const p = V.plan(Object.assign({}, insp, { looks: A }), Object.assign({}, target, { looks: B }), { on: { palette: 1 } });
+  const a = V.at(p, 2);
+  assert(a.looks.palette.amount === 1 && a.looks.palette.q.b[4] > 0.5, JSON.stringify(a.looks.palette.q.b));
+  const after = { times: [0.5, 2, 4], looks: LK.series([0.5, 2, 4].map((t) => ({ t, m: LK.measure(d, 160, 90) }))) };
+  const sc = V.score(p, "palette", Object.assign({}, target, { looks: B }), after);
+  assert(sc.gapAfter < sc.gapBefore / 2, JSON.stringify(sc));
+});
+check("grain and softness: grain is measured, a soft grainy inspiration softens a crisp clip and adds its grain", () => {
+  const crisp = scenePic(320, 180, 0, 0),
+    soft = scenePic(320, 180, 0.6, 0.03);
+  const mc = LK.measure(crisp, 320, 180),
+    ms = LK.measure(soft, 320, 180);
+  assert(Math.abs(LK.measure(scenePic(320, 180, 0, 0.04), 320, 180).grain - 0.04) < 0.005, "grain of 0.04 measured");
+  assert(mc.grain < 0.002 && ms.grain > 0.02 && ms.sharp < mc.sharp * 0.7, JSON.stringify([mc.grain, mc.sharp, ms.grain, ms.sharp]));
+  const p = V.plan(Object.assign({}, insp, { looks: looksOf(() => scenePic(320, 180, 0.6, 0.03), 6) }), Object.assign({}, target, { looks: looksOf(() => crisp, 9) }), { on: { grain: 1 } });
+  const t = V.at(p, 1).looks.texture;
+  assert(t.k < -0.2 && t.grain > 0.02, JSON.stringify(t));
+  const d = new Uint8ClampedArray(crisp);
+  LK.texture(d, 320, 180, t.k, 1);
+  LK.grain(d, 320, 180, t.grain, 5, 1);
+  const m = LK.measure(d, 320, 180);
+  assert(Math.abs(m.grain - ms.grain) < 0.01 && Math.abs(m.sharp - ms.sharp) < Math.abs(mc.sharp - ms.sharp) / 2, "now as grainy and soft: " + JSON.stringify([m.grain, m.sharp]));
+  const half = V.at(V.plan(p.insp, p.target, { on: { grain: 0.5 } }), 1).looks.texture;
+  assert(half.k > t.k && half.grain < t.grain, "half the amount, less change");
+  assert(!V.at(V.plan(p.insp, p.target, { on: { light: 1 } }), 1).looks, "off: no looks change");
+  assert(V.GROUPS.find((g) => g.id === "shape").off && !V.GROUPS.find((g) => g.id === "palette").off, "frame shape is off unless turned on");
+});
 check("paid AI: a price first, and caps that stop it", () => {
   const store = {};
   const ctx = { localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = String(v)) } };

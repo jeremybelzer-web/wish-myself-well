@@ -147,9 +147,10 @@ const ok = (cond, text) => {
   const lb = await page.evaluate(async () => {
     const c = await window.CurioClip.open(window.__lb, "Letterboxed.webm");
     const d = await window.CurioClip.dissect(c);
-    return { luma: d.raw.luma[3], aspect: d.aspect };
+    return { luma: d.raw.luma[3], aspect: d.aspect, picture: d.looks && d.looks.aspect };
   });
   ok(lb.luma > 0.6 && lb.aspect < 0.4, "black bars are left out of the measures: " + JSON.stringify(lb));
+  ok(lb.picture > 2.8 && lb.picture < 3.6, "its picture shape is found from the bars (a 3.2:1 picture): " + lb.picture);
 
   if (MP) {
     const b = "http://127.0.0.1:" + server.address().port + "/__mp/";
@@ -215,6 +216,14 @@ const ok = (cond, text) => {
   const light = await page.evaluate(() => window.CurioVideoUI.state().checks.light);
   ok(light.corrAfter > 0.7 && light.corrAfter > light.corrBefore + 0.3, "your clip now goes light and dark with the inspiration: " + JSON.stringify(light));
   ok((await page.locator(".vd-check .good").count()) === 1, "the check shows on the light row");
+
+  /* The inspiration's warm palette only, then check. */
+  await page.uncheck('[data-on="light"]');
+  await page.check('[data-on="palette"]');
+  await page.click('[data-act="check"]');
+  await page.waitForFunction(() => window.CurioVideoUI.state().checks && window.CurioVideoUI.state().checks.palette, null, { timeout: 120000 });
+  const pal = await page.evaluate(() => window.CurioVideoUI.state().checks.palette);
+  ok(pal.gapAfter < pal.gapBefore * 0.7, "your clip now has the inspiration's palette: " + JSON.stringify(pal));
 
   /* Everything, played and saved. */
   await page.click('[data-all="1"]');
