@@ -54,6 +54,12 @@ Jeremy, 2026-10-02 20:26Z (his words #25). In `lanes.js`:
 
 In `ui.js`, **curiosity windows**: ⧉ on every lane and Details row (or `CurioScreen.openWin(id)`) opens a floating window built from the curiosity's sliders, each with its control, key diamond, "+ lane" and a chart. Hand-made parts: Emotion's feeling pad and emotional road, Shot size's frames around a person, Comedy's joke timing (setup, payoff, Rule of three, Callback), Angle height's cameras around a person seen from the side, Camera move's pictures of each move, and color chips and main-color swatches for Black and white to full color.
 
+## Keyframe jumps and the frame shape
+
+Like CapCut's ◀ ◆ ▶: in Details, once a curiosity has nodes, small ◀ and ▶ sit either side of its key diamond. ◀ moves the playhead to the moment of its previous node, ▶ to its next; greyed when there is none that way. The diamond works as before. The windows keep the bare diamond (`keyNavBtns` in `ui.js` wraps `keyBtn` for Details rows only).
+
+**Ratio** in the Player's transport bar is CapCut's Ratio menu: wide 16:9, vertical 9:16, square 1:1 or cinema 2.39. It is Canvas edges' "Frame shape" slider (`canvasFill.ratio` in `data/db-editing.js`), so picking one puts a node at the playhead, and it can change during the film. My film's frame in the Player takes that shape, no taller than the wide frame, with the picture letterboxed in the middle; inspiration films keep their own shape.
+
 ## Whole film strip
 
 Jeremy, 2026-10-02 20:27Z. The viewers show one moment at a time, so the Player has a **Whole film** strip under them (`ui.js` `overviewHtml`): every moment of My film as a small storyboard frame, always squeezed to fit the width, like the thumbnails on CapCut's main track and Final Cut Pro's filmstrips. Click or drag along it to jump anywhere; the timeline scrolls to follow. The current moment is outlined, moments outside the play range are dimmed, a dot marks where the picked curiosity shows up, and a white box shows the stretch the zoomed-in timeline is showing. "▾ Whole film" folds it away (`prefs.overview`).
