@@ -660,3 +660,57 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-page .sc-cur-menu button { display: grid; gap: 1px; text-align: left; padding: 5px 8px; background: transparent; }
 .sc-page .sc-cur-menu button:hover, .sc-page .sc-cur-menu button:focus-visible { background: var(--cc-hover); }
 .sc-cur-menu small { color: var(--cc-dim); font-size: 11px; }
+
+/* ---------- Visual QA (1440×1000, 1280×800, 390×844) ---------- */
+/* With a panel docked beside the viewers (the Momentum column) the Player's transport bar wraps as a row of
+   groups instead of a three-column grid, so it never runs under the docked column; laptops also get a tighter
+   Player header so the lens buttons and Ghosts stay on one row and the viewers keep their room. */
+.sc-ph { flex-wrap: wrap; row-gap: 4px; }
+.sc-ph .sc-seg button, .sc-transport button { white-space: nowrap; }
+@media (min-width: 861px) {
+  .sc-player.sc-has-dock .sc-transport { display: flex; flex-wrap: wrap; justify-content: flex-start; padding: 5px 8px; gap: 5px 8px; }
+  .sc-player.sc-has-dock .sc-tc { white-space: nowrap; }
+  .sc-player.sc-has-dock .sc-wins-set { justify-content: flex-start; min-width: 0; }
+}
+@media (min-width: 861px) and (max-width: 1400px) {
+  .sc-player.sc-has-dock .sc-ph { gap: 4px; padding: 6px 8px; }
+  .sc-page .sc-player.sc-has-dock .sc-ph .sc-seg { gap: 1px; }
+  .sc-page .sc-player.sc-has-dock .sc-ph .sc-seg button { padding: 3px 4px; }
+  .sc-page .sc-player.sc-has-dock .sc-ph .sc-ghost-b { padding: 4px 6px; margin-left: 0; }
+  .sc-page .sc-player.sc-has-dock .sc-transport select { max-width: 150px; }
+  .sc-player.sc-has-dock .sc-cmp-set { flex-wrap: wrap; }
+}
+/* Export ▾ wrapped onto the bar's second row (left side): the menu opens rightwards so it stays on screen. */
+@media (min-width: 721px) { .sc-export-menu.sc-flip { left: 0; right: auto; } }
+/* The library's sticky ADVANCED tab covers the strip's right padding too, so no sliver of the next tab shows. */
+.sc-page .sc-icons button.sc-adv { box-shadow: 6px 0 0 var(--cc-panel); }
+/* A selected area's tools wrap as a group instead of squeezing their labels onto two lines. */
+.sl-areatools { flex-wrap: wrap; }
+.sc-page .sl-tools button { white-space: nowrap; }
+/* Phones: Guides ▾ opens across the transport bar instead of hanging off the right edge. */
+@media (max-width: 560px) {
+  .sc-transport { position: relative; }
+  .sc-guides { position: static; }
+  .sc-guides-menu { left: 10px; right: 10px; min-width: 0; }
+  .sc-guides-menu p { max-width: none; }
+}
+/* Phones: every control is at least about 24px to tap. Timeline group headers (22px rows drawn to match the
+   lanes) and the frames in a viewer or the whole-film strip keep their sizes. */
+@media (max-width: 480px) {
+  .sc-page button:not(.sc-ov-f):not(.sl-fold):not(.sl-hb):not(.sl-heads button), .sc-page select { min-height: 26px; }
+  .sc-page .sc-frames button { min-height: 0; }
+  .sc-page .sc-plus, .sc-page .sc-star { width: 26px; height: 26px; line-height: 26px; }
+  .sc-page .sc-knav-b, .sc-page .sc-key, .sc-page .sc-cur-more, .sc-page .sl-mkedit { min-width: 26px; }
+  .sc-page .sc-knav-b { font-size: 11px; }
+  /* A lane head (124px wide on a phone) puts its name and ⧉ on the first row and its Off, Solo and Lock buttons
+     beside the track name on the second, so the buttons can be tap-sized without squeezing the name away. */
+  .sl-head:has(> .sl-head-top > .sl-hbtns) { grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 2px; align-items: center; padding-left: 6px; padding-right: 2px; }
+  .sl-head:has(> .sl-head-top > .sl-hbtns) > .sl-head-top { display: contents; }
+  .sl-head-top > :first-child { grid-area: 1 / 1 / 2 / 3; }
+  .sl-head-top > .sl-win { grid-area: 1 / 3; justify-self: end; }
+  .sl-head:has(> .sl-head-top > .sl-hbtns) > .sl-sub { grid-area: 2 / 1; }
+  .sl-head-top > .sl-hbtns { grid-area: 2 / 2 / 3 / 4; justify-self: end; }
+  .sc-page .sl-heads .sl-name, .sc-page .sl-heads .sl-win { min-height: 20px; }
+  .sc-page .sl-win { min-width: 24px; }
+  .sc-page .sl-hb, .sl-hb { min-width: 24px; height: 24px; line-height: 24px; font-size: 12px; }
+}
