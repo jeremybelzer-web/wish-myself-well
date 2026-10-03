@@ -366,6 +366,37 @@ check("borrowed palette: each color's mean moves to the inspiration's, skin keep
   const sc = V.score(p, "palette", Object.assign({}, target, { looks: B }), after);
   assert(sc.gapAfter < sc.gapBefore / 2, JSON.stringify(sc));
 });
+check("borrowed palette: a cool palette on a warm room keeps shadowed skin warm and dark greys from going green or magenta", () => {
+  /* a warm room (darks to lights, each color its own spread) and a pale, cool, lavender title card */
+  const room = pic(160, 90, (x, y) => {
+    const v = 10 + ((x + y * 160) % 230);
+    return [v * 0.98 + 4, v * 0.96, v * 0.7];
+  });
+  const card = pic(160, 90, (x, y) => (x < 4 ? [90, 98, 105] : [205 + (y % 40) * 0.6, 200 + (y % 40) * 0.5, 228 + (y % 25) * 0.6]));
+  const want = LK.quantiles(card, 160, 90);
+  assert(want.b[4] > want.g[4] && want.r[4] > want.g[4], "the card is cool with a little magenta in its mids: " + JSON.stringify(want));
+  const have = LK.quantiles(room, 160, 90);
+  /* the pixels under test, laid on the room's first row (the room's quantiles stay as measured) */
+  const probes = { shadowSkin: [70, 50, 42], deepSkin: [45, 32, 27], darkGrey: [30, 30, 30], midGrey: [55, 55, 55] };
+  const d = new Uint8ClampedArray(room);
+  Object.values(probes).forEach((c, i) => d.set(c, i * 4));
+  LK.palette(d, 160, 90, want, 1, have);
+  const hue = (c) => (Math.atan2(Math.sqrt(3) * (c[1] - c[2]), 2 * c[0] - c[1] - c[2]) * 180) / Math.PI;
+  const gm = (c) => c[1] - (c[0] + c[2]) / 2;
+  Object.keys(probes).forEach((k, i) => {
+    const a = probes[k],
+      o = Array.from(d.slice(i * 4, i * 4 + 3));
+    assert(o[0] + o[1] + o[2] > a[0] + a[1] + a[2], k + " is lifted toward the pale card: " + o);
+    if (/Skin/.test(k)) assert(Math.abs(hue(o) - hue(a)) < 15 && o[0] > o[2] + 8, k + " keeps its hue: " + a + " -> " + o + " (" + hue(a).toFixed(0) + " -> " + hue(o).toFixed(0) + ")");
+    else assert(Math.abs(gm(o)) <= 4.5, k + " goes neither green nor magenta: " + o);
+  });
+  /* away from the darks and skin the palette is as strong as before: the bright parts take the card's cool color */
+  let cool = 0,
+    n = 0;
+  for (let p = 16; p < d.length; p += 4)
+    if (0.299 * room[p] + 0.587 * room[p + 1] + 0.114 * room[p + 2] > 150 && LK.skinness(room[p], room[p + 1], room[p + 2]) < 0.05) (cool += d[p + 2] - (d[p] + d[p + 1]) / 2), n++;
+  assert(n > 500 && cool / n > 6, "the bright parts that are not skin turn cool: blue over the rest by " + (cool / n).toFixed(1) + " on " + n);
+});
 check("grain and softness: grain is measured, a soft grainy inspiration softens a crisp clip and adds its grain", () => {
   const crisp = scenePic(320, 180, 0, 0),
     soft = scenePic(320, 180, 0.6, 0.03);

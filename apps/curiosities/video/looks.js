@@ -2,7 +2,8 @@
    and applied to another clip, each its own switch with an amount:
    - Borrowed palette: the inspiration's color grade. Each color (red, green, blue) of your frame is remapped so
      its darks, mids and lights land where the inspiration's are (quantile matching), moment by moment; the
-     brightness moves half way. Skin keeps most of its own hue, so faces don't turn blue or green.
+     brightness moves half way. Skin (shadowed skin too) keeps most of its own hue, so faces don't turn blue or green,
+     and the darks don't tip green or magenta.
    - Grain and softness: how grainy (noise in the flat parts) and how sharp (the edges' fine detail) the
      inspiration is; your clip is softened or sharpened to match, then grain is added.
    - Frame shape: the inspiration's picture shape (bars, or a tall or wide frame) and how dark its edges are
@@ -373,22 +374,39 @@
     }
     return lut;
   }
-  /* How skin-like a color is (0..1): the YCbCr skin box of CurioVideo.frameStats, with soft sides. */
+  /* How skin-like a color is (0..1): the YCbCr skin box of CurioVideo.frameStats, with soft sides. A face in
+     shadow has the same hue with less color in it, so below mid brightness the color is scaled up (to at most
+     2.5 times) before the box test, and the brightness floor fades in from 15 instead of starting at 45. */
   function skinness(r, g, b) {
+    if (!(r > b)) return 0;
     const Y = luma(r, g, b),
-      cb = 128 - 0.1482 * r - 0.291 * g + 0.4392 * b,
-      cr = 128 + 0.4392 * r - 0.3678 * g - 0.0714 * b;
+      f = clamp(110 / Math.max(1, Y), 1, 2.5),
+      cb = 128 + (-0.1482 * r - 0.291 * g + 0.4392 * b) * f,
+      cr = 128 + (0.4392 * r - 0.3678 * g - 0.0714 * b) * f;
     const ramp = (x, a, z) => clamp((x - a) / z, 0, 1);
-    return r > b ? ramp(Y, 45, 15) * ramp(cb, 77, 6) * ramp(127, cb, 6) * ramp(cr, 135, 6) * ramp(175, cr, 6) : 0;
+    return ramp(Y, 15, 20) * ramp(cb, 77, 6) * ramp(127, cb, 6) * ramp(cr, 135, 6) * ramp(175, cr, 6);
   }
   /* The borrowed palette, in place. The colors take the inspiration's curves fully; the brightness moves only
      half way (TONE), so a dark room under a white title card turns pale and blue without washing out (the
-     "Light and dark" switch does the rest). Skin keeps 80% of its own hue. */
+     "Light and dark" switch does the rest). Skin keeps 80% of its own hue.
+     In the darks (fading out by mid brightness) three separate steep curves blow up the little color a shadow
+     has (and the video's blocky color noise) and can tip it green or magenta. So there the color is matched
+     in brightness and color instead: the pixel keeps its own color, grown at most as much as its brightness
+     (to 1.5 times, skin to 2), plus the cast the curves give a grey of its brightness; and its green-magenta side may
+     only grow a little past what it had. Moves toward blue, yellow, red or cyan are left whole. */
   const TONE = 0.5;
+  const GM_DARK = 4; /* how much green or magenta a dark may gain (0..255) */
+  const GM_A = 0.587 / 0.413; /* red and blue against green so the brightness holds */
   function palette(d, w, h, want, amount, have) {
     if (!want || !(amount > 0)) return;
     have = have || quantiles(d, w, h, 3);
     const L = ["r", "g", "b"].map((c) => curve(have[c], want[c], amount));
+    /* the cast the curves give a grey of each brightness */
+    const cast = [0, 1, 2].map(() => new Float32Array(256));
+    for (let v = 0; v < 256; v++) {
+      const yv = luma(L[0][v], L[1][v], L[2][v]);
+      for (let c = 0; c < 3; c++) cast[c][v] = L[c][v] - yv;
+    }
     for (let p = 0; p < w * h * 4; p += 4) {
       const r = d[p],
         g = d[p + 1],
@@ -400,9 +418,30 @@
         y1 = luma(R, G, B),
         y = y0 + (y1 - y0) * TONE,
         sk = skinness(r, g, b) * 0.8;
-      d[p] = y + (R - y1) * (1 - sk) + (r - y0) * sk;
-      d[p + 1] = y + (G - y1) * (1 - sk) + (g - y0) * sk;
-      d[p + 2] = y + (B - y1) * (1 - sk) + (b - y0) * sk;
+      let oR = y + (R - y1) * (1 - sk) + (r - y0) * sk,
+        oG = y + (G - y1) * (1 - sk) + (g - y0) * sk,
+        oB = y + (B - y1) * (1 - sk) + (b - y0) * sk;
+      const dk = 1 - clamp((y0 - 60) / 60, 0, 1);
+      if (dk > 0) {
+        const kc = clamp(y / Math.max(1, y0), 1, 1.5 + 0.6 * sk),
+          v = Math.round(clamp(y0, 0, 255)),
+          q = 1 - sk;
+        oR += (y + (r - y0) * kc + cast[0][v] * q - oR) * dk;
+        oG += (y + (g - y0) * kc + cast[1][v] * q - oG) * dk;
+        oB += (y + (b - y0) * kc + cast[2][v] * q - oB) * dk;
+        const gm = oG - (oR + oB) / 2,
+          over = (Math.abs(gm) - Math.abs(g - (r + b) / 2) * kc - GM_DARK) * dk;
+        if (over > 0) {
+          /* along (-GM_A, 1, -GM_A): no change in brightness, green-magenta only */
+          const m = (Math.sign(gm) * over) / (1 + GM_A);
+          oR += m * GM_A;
+          oG -= m;
+          oB += m * GM_A;
+        }
+      }
+      d[p] = oR;
+      d[p + 1] = oG;
+      d[p + 2] = oB;
     }
   }
   /* Soften or sharpen every color, in place. */
