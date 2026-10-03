@@ -12,6 +12,16 @@
   const cl = (x, a, b) => Math.max(a, Math.min(b, x));
   const ink = "#1c1712";
   const BG = "#15151b";
+  /* Ten cells that fill in step with p (0..1); the cell at the edge fills part-way, so every step shows. */
+  const fillCells = (x, y, w, h, gap, p, on, off, rx) => {
+    let o = "";
+    for (let i = 0; i < 10; i++) {
+      const f = cl(p * 10 - i, 0, 1);
+      o += `<rect x="${r1(x + i * (w + gap))}" y="${y}" width="${w}" height="${h}"${rx ? ` rx="${rx}"` : ""} fill="${off}"/>`;
+      if (f > 0) o += `<rect x="${r1(x + i * (w + gap))}" y="${y}" width="${r1(w * f)}" height="${h}"${rx ? ` rx="${rx}"` : ""} fill="${on}"/>`;
+    }
+    return o;
+  };
   const S = (k, x, y, t, c, a, sz) => k.label({ x, y, text: t, size: sz || 8, color: c || "#bbb", anchor: a || "middle" });
   const I = (v, id) => {
     const s = v.slider(id);
@@ -33,6 +43,7 @@
       const f = cl(p - from / 100, 0, 1);
       s += `<circle cx="${X(f)}" cy="${y}" r="4" fill="none" stroke="#9be36b" stroke-width="1.5"/>`;
       if (Math.abs(X(p) - X(f)) > 8) s += k.arrow({ x1: X(f), y1: y + 9, x2: X(p), y2: y + 9, color: "#9be36b", w: 1.2 });
+      s += S(k, x0, y + 18, `${from > 0 ? "+" : ""}${from} since the start`, "#9be36b", "start", 7);
     }
     s += `<circle cx="${X(p)}" cy="${y}" r="6" fill="#ffd166" stroke="${ink}"/>`;
     s += S(k, x0, y - 10, L, "#ccc", "start", 8) + S(k, x1, y - 10, R, "#ccc", "end", 8);
@@ -103,14 +114,12 @@
     let ls = "";
     for (let i = 0; i < 5; i++) ls += k.person({ x: 214 + i * 20, y: y - 2, s: 0.6, look: -1, color: i < tr ? "#6cc070" : "#555", mood: i < tr ? 0.4 : 0 });
     const ec = v.n("eyeContact") / 100;
-    const ab = Math.round(v.n("aboutSelf") / 10);
-    let cells = "";
-    for (let i = 0; i < 10; i++) cells += `<rect x="${20 + i * 9}" y="40" width="7" height="7" fill="${i < ab ? "#ffd166" : "#555"}"/>`;
+    const cells = fillCells(20, 40, 7, 7, 2, v.n("aboutSelf") / 100, "#ffd166", "#555");
     return (
       k.bg(BG) +
       spectrum(k, v, "Open", "Secretive") +
       cells +
-      S(k, 20, 58, "lines about themselves", "#aaa", "start", 7) +
+      S(k, 20, 58, `lines about themselves: ${v.n("aboutSelf")}%`, "#aaa", "start", 7) +
       `<line x1="${x + 6}" y1="${y - 68}" x2="214" y2="${y - 38}" stroke="#ffd166" stroke-dasharray="3 3" opacity="${r1((0.08 + ec * 0.9) * 100) / 100}"/>` +
       `<rect x="${cx - 22}" y="${cy}" width="44" height="28" fill="#8a6038" stroke="${ink}" stroke-width="2"/>` +
       `<rect x="${cx - 22}" y="${cy - 8}" width="44" height="8" fill="#a0703f" stroke="${ink}" stroke-width="2" transform="rotate(${r1(lid)} ${cx - 22} ${cy})"/>` +
@@ -264,6 +273,7 @@
     s += S(k, x + 56, top + 3, "healthy", "#6cc070", "start", 7) + S(k, x + 56, Y(9) + 3, "unhealthy", "#ef5350", "start", 7);
     const start = cl(lvl - v.n("levelsMoved"), 1, 9);
     s += `<circle cx="${x}" cy="${r1(Y(start))}" r="4" fill="none" stroke="#9be36b" stroke-width="1.5"/>`;
+    s += S(k, x + 56, Y(5) + 3, `moved ${v.n("levelsMoved")} ${Math.abs(v.n("levelsMoved")) === 1 ? "level" : "levels"}`, "#9be36b", "start", 7);
     s += `<circle cx="${x}" cy="${r1(Y(lvl))}" r="6" fill="#fff" stroke="${ink}"/>`;
     const pl = I(v, "pull");
     const dr = v.n("drift");
@@ -343,9 +353,10 @@
   /* ---------------- cm-freedom: the group, and how far they stand from it ---------------- */
   W.look("cm-freedom", (v, k) => {
     const p = v.n("position") / 100;
-    const n = Math.max(1, Math.round((v.n("groupSize") / 100) * 15));
+    /* The group: one figure per share of 15; the last one fades in part-way. */
+    const nG = Math.max(1, (v.n("groupSize") / 100) * 15);
     let grp = "";
-    for (let i = 0; i < n; i++) grp += k.person({ x: 20 + (i % 5) * 16, y: 112 + Math.floor(i / 5) * 18, s: 0.4, color: "#6b6f78", look: 1 });
+    for (let i = 0; i < Math.ceil(nG); i++) grp += k.person({ x: 20 + (i % 5) * 16, y: 112 + Math.floor(i / 5) * 18, s: 0.4, color: "#6b6f78", look: 1, alpha: cl(nG - i, 0.15, 1) });
     const fx = 120 + (v.n("fromGroup") / 20) * 150;
     const y = 140;
     const so = v.p("standsOut");
@@ -357,10 +368,10 @@
       k.bg(BG) +
       spectrum(k, v, "Conformist", "Individualist") +
       grp +
-      S(k, 60, 58, v("whichGroup"), "#aaa") +
+      S(k, 60, 58, `${v("whichGroup")} · ${v.n("groupSize")}%`, "#aaa") +
       arrows +
       lit(k, v, fx, y, k.person({ x: fx, y, s: 1, look: p > 0.5 ? 1 : -1, lean: (p - 0.5) * 16, mood: p - 0.4, color: k.mix("#6b6f78", "#ff7a59", so) })) +
-      `<rect x="200" y="46" width="100" height="6" fill="#333"/><rect x="200" y="46" width="${r1(Math.max(1, ga * 100))}" height="6" fill="#888"/>` +
+      `<rect x="200" y="46" width="100" height="6" fill="#333"/><rect x="200" y="46" width="${r1(ga * 100)}" height="6" fill="#888"/>` +
       `<path d="M${r1(200 + (v.n("breakAt") / 100) * 100)} 45 l-4 -6 h8 z" fill="#ff7a59"/>` +
       S(k, 196, 52, "goes along, breaks at ▼", "#aaa", "end", 7) +
       cap(k, `${v("standsOut")} · ${v.n("fromGroup")} m from the group · pressure ${pr}`)
@@ -375,12 +386,12 @@
     const ci = I(v, "circle");
     let rings = "";
     ["themselves", "family", "friends", "strangers"].forEach((nm, i) => (rings += k.ring({ x: cx, y: cy, r: 18 + i * 14, color: i <= ci ? "#6cc070" : "#3a3a40", w: i === ci ? 3 : 1.5 })));
-    const hp = Math.round((v.n("helped") / 100) * 30);
+    const hp = (v.n("helped") / 100) * 30;
     let ppl = "";
-    for (let i = 0; i < hp; i++) {
+    for (let i = 0; i < Math.ceil(hp); i++) {
       const a = (i / 30) * Math.PI * 2;
       const r = 18 + (i % 4) * 14;
-      ppl += k.dot({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r, r: 2.5, color: "#ffd166" });
+      ppl += k.dot({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r, r: 2.5 * cl(hp - i, 0.25, 1), color: "#ffd166" });
     }
     const given = v.n("givenAway") / 100;
     const coins = 10;
@@ -399,7 +410,8 @@
       lit(k, v, cx, cy + 22, k.person({ x: cx, y: cy + 22, s: 0.7, arms: (1 - p) * 0.9 - 0.3, mood: 0.5 - p * 0.5, color: "#4a6fa5" })) +
       pile +
       S(k, 210, 156, "keeps", "#aaa", "middle", 7) +
-      S(k, 268, 156, "gives", "#aaa", "middle", 7) +
+      S(k, 268, 156, `gives ${v.n("givenAway")}%`, "#aaa", "middle", 7) +
+      S(k, 20, 152, `helped ${v.n("helped")}%`, "#ffd166", "start", 7) +
       fork +
       S(k, 260, 46, v("tested"), "#ccc", "start", 7) +
       cap(k, `Would give up ${v("sacrifice")} · cares for ${v("circle")}`)
@@ -541,7 +553,7 @@
       lit(k, v, 80, 150, k.person({ x: 80, y: 150, s: 1, arms: 0.3, mood: p - 0.4, look: 1, color: "#4a6fa5" })) +
       S(k, 80, 40, "how big they feel", "#ffd166", "middle", 7) +
       s +
-      S(k, tx, 152, `${hits} of ${tries} work`, "#ccc", "middle", 8).replace(/y="152"/, 'y="144"') +
+      S(k, tx, 152, `${hits} of ${tries} work (${v.n("successRate")}%)`, "#ccc", "middle", 8).replace(/y="152"/, 'y="144"') +
       k.arrow({ x1: 280, y1: 60, x2: 304, y2: 60 + dy, color: li >= 2 ? "#6cc070" : "#ef5350", w: 2 }) +
       S(k, 316, 80, v("learning"), "#aaa", "end", 7) +
       cap(k, `Measured against ${v("comparedWith")} · ${mis} mistakes`)
@@ -588,7 +600,7 @@
     const who = [S(k, 250, 100, "(nobody)", "#666", "middle", 7), `<rect x="236" y="70" width="22" height="34" rx="3" fill="#9fd3ff" opacity="0.4" stroke="#ccc"/>` + S(k, 247, 114, "a mirror", "#aaa", "middle", 7), k.person({ x: 250, y: 112, s: 0.6, look: -1, color: "#8a8a8a" }), k.beam({ x: 250, y: 30, dir: 120, len: 140, spread: 30, color: "#fff3c4", alpha: 0.15 }), k.ring({ x: 250, y: 90, r: 26, color: "#5aa0ff", w: 2 }) + S(k, 250, 94, "the world", "#9fd3ff", "middle", 7)][ai];
     const ch = v.n("checksWatchers");
     let glances = "";
-    for (let i = 0; i < Math.min(ch, 10); i++) glances += `<line x1="${x + 6}" y1="${y - 72}" x2="${200 + i * 10}" y2="118" stroke="#ffd166" stroke-dasharray="2 3" opacity="0.4"/>`;
+    for (let i = 0; i < Math.min(ch, 20); i++) glances += `<line x1="${x + 6}" y1="${y - 72}" x2="${200 + i * 5}" y2="118" stroke="#ffd166" stroke-dasharray="2 3" opacity="0.4"/>`;
     const aw = I(v, "aware");
     return (
       k.bg(BG) +
@@ -641,9 +653,7 @@
     const si = I(v, "showsIn");
     const spot = [[cx, cy, 30], [cx, cy + 22, 9], [cx, cy + 70, 34], [cx + 46, cy + 56, 12]][si];
     const dd = I(v, "decideSpeed") * 34 + (v.n("decideSeconds") / 120) * 70;
-    const bf = Math.round(v.n("byFeeling") / 10);
-    let cells = "";
-    for (let i = 0; i < 10; i++) cells += `<rect x="${200 + i * 10}" y="70" width="8" height="8" fill="${i < bf ? "#ef5370" : "#5aa0ff"}"/>`;
+    const cells = fillCells(200, 70, 8, 8, 2, v.n("byFeeling") / 100, "#ef5370", "#5aa0ff");
     const hr = 5 + (1 - p) * 9;
     const hx = cx - 14;
     const hy = cy + 56;
@@ -659,7 +669,7 @@
       `</g>` +
       sp +
       k.ring({ x: spot[0], y: spot[1], r: spot[2], color: "#ffd166", w: 1.5, dash: "3 3" }) +
-      S(k, 200, 60, "choices: feeling vs head", "#aaa", "start", 7) +
+      S(k, 200, 60, `choices by feeling: ${v.n("byFeeling")}%`, "#aaa", "start", 7) +
       cells +
       `<path d="M200 118 l4 -8 h-3 l4 -8" stroke="#ffd166" stroke-width="2" fill="none"/>` +
       `<line x1="210" y1="114" x2="${r1(210 + dd * 0.5)}" y2="114" stroke="#888" stroke-dasharray="2 2"/>` +

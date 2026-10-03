@@ -150,6 +150,7 @@
     if (on > 0) s += notes(k, 160, 80, 1 + tells * 2, "#ffd166", 0.9);
     s += k.label({ x: 232, y: 32, text: ["holds back", "hints", "guides", "insists"][tells], size: 11, color: "#ffd166" });
     s += k.label({ x: 232, y: 50, text: ["no score", "under the scene", "featured"][on], size: 9, color: "#ccc" });
+    s += k.label({ x: 232, y: 66, text: `swells ${v.n("swellTime")} s · fades ${v.n("fadeOutTime")} s`, size: 7.5, color: "#aaa" });
     /* The cue on its lane: how it builds, swells and fades. */
     s += lane(k, 128, "score", 50);
     s += env(k, {
@@ -248,7 +249,7 @@
     s += k.label({ x: 270, y: 94, text: `${tempo} bpm`, size: 8.5, color: "#ccc" });
     /* The music lane: level and energy as height, how it enters and leaves, fades, beats, cuts, theme marks. */
     s += lane(k, 136, "music", 50);
-    const a = k.clamp(0.12 + eo, 0, 0.5);
+    const a = k.clamp(0.18 + eo, 0, 0.5);
     const b = 0.85;
     const inLen = [0, 0.12, 0.05 + fi * 0.3, 0.005, 0.002][entry] + (entry === 2 ? 0 : 0);
     const outLen = [0, 0.05 + fo * 0.3, 0.06, 0.002, 0.001][exit];
@@ -595,7 +596,7 @@
     if (fx === 1) s += robot(k, 50, 38, 14);
     if (fx === 6) s += `<path d="M66 32 L94 20 L94 56 L66 44 Z" fill="#e6c35a" stroke="${k.INK}"/>`;
     if (fx === 7) s += [0, 1, 2].map((i) => k.ring({ x: 74 + i * 6, y: 20 - i * 8, r: 3 + i, color: "#9fd3ff", w: 1.5 })).join("");
-    s += k.label({ x: 270, y: 34, text: v("setting"), size: 12, color: "#ffd166", weight: 700 }) + k.label({ x: 270, y: 50, text: `${pitch > 0 ? "+" : ""}${pitch} semitones`, size: 8.5, color: "#ccc" });
+    s += k.label({ x: 270, y: 34, text: v("setting"), size: 12, color: "#ffd166", weight: 700 }) + k.label({ x: 270, y: 50, text: `${pitch > 0 ? "+" : ""}${pitch} semitones · ${v.n("effectSeconds")} s`, size: 8.5, color: "#ccc" });
     /* The voice as a wave: its pitch is how tight the wave is; the effect bends it. */
     const base = 6 * Math.pow(2, pitch / 12) * ([1, 1, 1.8, 0.55, 1, 1, 1, 0.7][fx] * str + (1 - str));
     s += lane(k, 110, "voice", 56);
@@ -682,7 +683,7 @@
     /* The peak line: a ceiling the rings are not allowed past. */
     const px = 106 + ceil * 140;
     s += `<line x1="${r1(px)}" y1="24" x2="${r1(px)}" y2="130" stroke="#ff5252" stroke-dasharray="4 3"/>` + k.label({ x: px, y: 20, text: `peak ${v("peak")} dB`, size: 8, color: "#ff8a80" });
-    if (punch > 0) s += k.text({ x: 140, y: 34, text: "BOOM", size: 8 + punch * 10, color: "#ffd166", weight: 700, outline: "#000" });
+    if (punch > 0) s += k.text({ x: px > 160 ? 90 : 230, y: 40, text: "BOOM", size: 8 + punch * 10, color: "#ffd166", weight: 700, outline: "#000" });
     /* Hiss: specks around the speaker, fewer as noise reduction rises. */
     s += Array.from({ length: Math.round((1 - noise) * 30) }, (_, i) => k.dot({ x: 92 + k.rnd(i + 3) * 60, y: 60 + k.rnd(i + 17) * 60, r: 0.9, color: "#ddd" })).join("");
     /* The viewer: leaning in for quiet, at ease for normal, ears covered when it is loud. */

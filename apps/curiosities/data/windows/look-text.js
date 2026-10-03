@@ -180,7 +180,9 @@
     const h = v.n("holdFor");
     const X = (t) => 90 + (t / 15) * 140;
     s += `<line x1="90" y1="140" x2="230" y2="140" stroke="#555"/>` + `<path d="M${X(0)} 140 L${X(f)} 130 L${X(f + h)} 130 L${X(f + h)} 140 Z" fill="#ffd166" opacity="0.8"/>` + k.label({ x: 236, y: 140, text: `fade ${f} s, hold ${h} s`, size: 7, color: "#aaa", anchor: "start" });
-    return s + fitCap(k, !ghost ? `${kind}, ${style}` : "no chapter cards (how they would look, shown faint)");
+    /* A card with no title on it still says how its title would tease, so that setting shows. */
+    const hidesTitle = !ghost && !/title|none/.test(kind);
+    return s + fitCap(k, !ghost ? `${kind}, ${style}${hidesTitle ? ` · title tease: ${v("tease")}` : ""}` : "no chapter cards (how they would look, shown faint)");
   });
 
   /* ---------- Captions ---------- */

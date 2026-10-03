@@ -204,7 +204,7 @@
     const t = track(k, { x: 10, y: 156, w: 196, t0: -6, t1: 5, line: [0, 2] });
     const at = [-1, 0.2, 1, 3][idx(v, "entryTiming", 4)];
     s += t.s + `<rect x="${r1(t.X(at - v.n("holdBefore")))}" y="152" width="${r1(t.X(at) - t.X(at - v.n("holdBefore")))}" height="8" fill="#555"/>` + mark(k, t.X(at), 151, YEL, "");
-    s += side(k, [{ label: "When they arrive", text: v("entryTiming") }, { label: `Empty frame first: ${v.n("holdBefore")} s`, p: v.p("holdBefore"), color: "#999" }, { label: `Seconds to come in: ${v.n("crossSeconds")}`, p: v.p("crossSeconds"), color: "#9fd3ff" }, { label: "Heard first", text: v("announce") }, { label: "Comes in through", text: thr }, { label: "Distance from camera", text: `${d} m` }, { label: "How big a moment", p: reveal }]);
+    s += side(k, [{ label: "When they arrive", text: v("entryTiming") }, { label: `Empty frame first: ${v.n("holdBefore")} s`, p: v.p("holdBefore"), color: "#999" }, { label: `Seconds to come in: ${v.n("crossSeconds")}`, p: v.p("crossSeconds"), color: "#9fd3ff" }, { label: "Heard first", text: v("announce") }, { label: "Comes in through", text: thr }, { label: "Distance, height", text: `${d} m, ${v.n("entryHeight")}% tall` }, { label: "How big a moment", p: reveal }]);
     return s + cap(k, `${mode}${mode === "already" ? " in the frame" : ` from the ${side_}`}, ${v("speed")}`);
   });
 
@@ -238,7 +238,7 @@
     let a0 = 1;
     const blocks = pl === "mid-line" ? [[a0, a0 + 2, ORANGE], [a0 + 2 + gapX, a0 + 4 + gapX, ORANGE], [a0 + 4.5 + gapX, a0 + 7 + gapX, "#5a9fd0"]] : pl === "after the punchline" ? [[a0, a0 + 3, ORANGE], [a0 + 3.3, a0 + 5, "#5a9fd0"], [a0 + 5 + gapX, a0 + 7 + gapX, ORANGE]] : [[a0, a0 + 3, ORANGE], [a0 + 3 + gapX, a0 + 6 + gapX, "#5a9fd0"]];
     s += t.s + blocks.map((b) => `<rect x="${r1(t.X(b[0]))}" y="150" width="${r1(Math.max(1, t.X(b[1]) - t.X(b[0])))}" height="8" rx="2" fill="${b[2]}"/>`).join("");
-    s += side(k, [{ label: "Silence", text: `${v("setting")}, ${sec} s` }, { label: "Feels", text: v("tension") }, { label: "Filled with", text: fill }, { label: "Broken by", text: `${br}: ${v("breakWith")}` }, { label: "Silences a minute", n: v.n("silenceRate"), color: "#9fd3ff" }, { label: `Share in silence: ${v.n("silenceShare")}%`, p: v.p("silenceShare"), color: "#999" }]);
+    s += side(k, [{ label: "Silence", text: `${v("setting")}, ${sec} s` }, { label: "Feels", text: v("tension") }, { label: "Filled with", text: fill }, { label: "Broken by", text: `${br}: ${v("breakWith")}` }, { label: `Silences a minute: ${v.n("silenceRate")}`, n: v.n("silenceRate"), color: "#9fd3ff" }, { label: `Share in silence: ${v.n("silenceShare")}%`, p: v.p("silenceShare"), color: "#999" }]);
     return s + cap(k, `${v("setting")} silence, ${v("tension")}`);
   });
 
@@ -408,7 +408,7 @@
     });
     /* The second voice, smaller or bigger by the gap between voices. */
     const gap = v.p("spread");
-    s += k.text({ x: 120, y: 66, text: "— so?", size: k.clamp(fsz * (1 - gap * 0.7), 6, 30), color: "#9fd3ff", anchor: "start", weight: 600 });
+    s += k.text({ x: 120, y: 66, text: "— so?", size: k.clamp(fsz * (1 - gap * 0.55), 3, 30), color: "#9fd3ff", anchor: "start", weight: 600 });
     /* The level over time: building or falling, with sudden jumps; and the voice above the room. */
     const jumps = idx(v, "sudden", 3);
     const pts = Array.from({ length: 24 }, (_, i) => { const f = i / 23; let y = 0.3 + vol * 0.4 + (trend === 0 ? 0.25 - f * 0.4 : trend === 2 ? -0.2 + f * 0.4 : 0); if (jumps && i % (jumps === 1 ? 11 : 4) === 3) y += 0.35; return k.clamp(y, 0.03, 0.97); });
@@ -490,7 +490,7 @@
     const show = felt.map((p) => Math.max(0.02, p * [1, 0.7, 0.4][hid]));
     s += `<rect x="${G.x - 4}" y="${G.y - 6}" width="${G.w + 8}" height="${G.h + 22}" rx="5" fill="#1d1d22" stroke="#444"/>`;
     const scene = k.clamp(I / Math.max(0.1, v.n("vsScene") / 100), 0, 1);
-    s += `<line x1="${G.x}" y1="${r1(G.y + G.h - scene * G.h)}" x2="${G.x + G.w}" y2="${r1(G.y + G.h - scene * G.h)}" stroke="#777" stroke-dasharray="4 3"/>` + k.label({ x: G.x + G.w - 2, y: G.y + G.h - scene * G.h + (scene > 0.75 ? 9 : -3), text: "rest of the scene", size: 7, color: "#999", anchor: "end" });
+    s += `<line x1="${G.x}" y1="${r1(G.y + G.h - scene * G.h)}" x2="${G.x + G.w}" y2="${r1(G.y + G.h - scene * G.h)}" stroke="#777" stroke-dasharray="4 3"/>` + k.label({ x: G.x + G.w - 2, y: G.y + G.h - scene * G.h + (scene > 0.75 ? 9 : -3), text: `rest of the scene (${v.n("vsScene")}%)`, size: 7, color: "#999", anchor: "end" });
     if (hid) s += k.graph({ x: G.x, y: G.y, w: G.w, h: G.h, points: felt, color: "#ff9a8a", w2: 1.2 }).replace("<polyline", '<polyline stroke-dasharray="3 2"');
     s += ghost(I0 > 0, k.graph({ x: G.x, y: G.y, w: G.w, h: G.h, points: show, color: YEL }));
     if (!I0) s += k.label({ x: G.x + G.w / 2 + 10, y: G.y + 46, text: "no expression yet: shape shown faint", size: 7, color: "#aaa" });
@@ -947,7 +947,7 @@
     }
     s += k.label({ x: G.x, y: 148, text: `lines; a jump on ${every === 1 ? "every line" : every === 2 ? "every other line" : "the odd line"}${cue === "any word" ? "" : `, on ${cue}`}`, size: 7, color: "#aaa", anchor: "start" });
     s += k.label({ x: G.x, y: 20, text: "loudness over one minute", size: 8, color: "#999", anchor: "start" });
-    s += side(k, [{ label: "Jumps a minute", n }, { label: `Jump size ${v.n("jumpDb")} dB`, p: v.n("jumpDb") / 40, color: "#ff9a5a" }, { label: `Jump takes ${ramp} s`, p: ramp / 5, color: "#9fd3ff" }, { label: `Settles back in ${settle} s`, p: settle / 10, color: "#999" }, { label: "Mostly goes", text: dir }, { label: "Pattern", text: v("pattern") }]);
+    s += side(k, [{ label: `Jumps a minute: ${v.n("jumpsPerMin")}`, n }, { label: `Jump size ${v.n("jumpDb")} dB`, p: v.n("jumpDb") / 40, color: "#ff9a5a" }, { label: `Jump takes ${ramp} s`, p: ramp / 5, color: "#9fd3ff" }, { label: `Settles back in ${settle} s`, p: settle / 10, color: "#999" }, { label: "Mostly goes", text: dir }, { label: "Pattern", text: v("pattern") }]);
     return s + cap(k, `${v("setting")}, size ${v("size")} of 5`);
   });
 

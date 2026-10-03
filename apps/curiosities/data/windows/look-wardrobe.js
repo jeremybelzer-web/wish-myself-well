@@ -17,7 +17,7 @@
     const x0 = anchor === "end" ? x - w : anchor === "middle" ? x - w / 2 : x;
     return `<rect x="${x0.toFixed(1)}" y="${y - 10}" width="${w.toFixed(1)}" height="14" rx="7" fill="rgba(0,0,0,0.6)" stroke="${color || "#666666"}"/>` + k.label({ x: x0 + w / 2, y: y + 0.5, text, size: 8.5, color: color || "#dddddd" });
   };
-  const tl = (k, x, y, w, p, color, label) => `<rect x="${x}" y="${y}" width="${w}" height="6" rx="3" fill="#2e2e36"/><rect x="${x}" y="${y}" width="${Math.max(1.5, k.clamp(p, 0, 1) * w).toFixed(1)}" height="6" rx="3" fill="${color || "#ffd166"}"/>` + (label ? k.label({ x: x - 4, y: y + 6, text: label, size: 7.5, color: "#cccccc", anchor: "end" }) : "");
+  const tl = (k, x, y, w, p, color, label) => `<rect x="${x}" y="${y}" width="${w}" height="6" rx="3" fill="#2e2e36"/><rect x="${x}" y="${y}" width="${(1 + k.clamp(p, 0, 1) * w).toFixed(1)}" height="6" rx="3" fill="${color || "#ffd166"}"/>` + (label ? k.label({ x: x - 4, y: y + 6, text: label, size: 7.5, color: "#cccccc", anchor: "end" }) : "");
   const arc = (k, x, y, dir, label) => `<rect x="${x}" y="${y}" width="74" height="34" rx="4" fill="rgba(0,0,0,0.5)"/>` + k.arrow({ x1: x + 10, y1: y + 14 + dir * 7, x2: x + 64, y2: y + 14 - dir * 7, color: dir > 0 ? "#7fd1ae" : dir < 0 ? "#ff8a80" : "#cccccc", w: 2 }) + k.label({ x: x + 37, y: y + 31, text: label, size: 7, color: "#dddddd" });
 
   /* Era looks: a hat, colours, a long coat or not, flared legs or not. */
@@ -419,7 +419,8 @@
     /* Cloth moving: flutter lines that keep going while it settles. */
     const flutter = [0, 1, 3, 5][moves];
     for (let i = 0; i < flutter; i++) s += `<path d="M${172 + i * 6} ${100 + i * 8} q6 -4 12 0" fill="none" stroke="#cccccc" stroke-width="1.5"/>`;
-    s += Array.from({ length: Math.round(settle * 4) }, (_, i) => `<path d="M${100 - i * 5} ${110 + i * 3} q-4 3 0 6" fill="none" stroke="#9fd3ff" stroke-width="1.2" opacity="${(1 - i / 13).toFixed(2)}"/>`).join("");
+    /* One flutter line per quarter second of settling; the last one fades in part-way. */
+    s += Array.from({ length: Math.ceil(settle * 4) }, (_, i) => `<path d="M${100 - i * 5} ${110 + i * 3} q-4 3 0 6" fill="none" stroke="#9fd3ff" stroke-width="1.2" opacity="${((1 - i / 13) * Math.min(1, settle * 4 - i)).toFixed(2)}"/>`).join("");
     if (made === 3) s += chip(k, 8, 16, "someone else's", "#ff8a80");
     else s += chip(k, 8, 16, v("madeFor"), "#cccccc");
     if (comfort === 0) s += `<path d="M118 70 l-6 -6 M162 70 l6 -6" stroke="#ffd166" stroke-width="2"/>`;
@@ -447,7 +448,7 @@
     if (pull === 0) s += k.tint({ color: "#000000", alpha: 0.12 });
     if (pull >= 2) s += k.vignette(pull === 3 ? 0.8 : 0.45) + (pull === 3 ? [-1, 1].map((sd) => k.arrow({ x1: 160 + sd * 120, y1: 40, x2: 160 + sd * 50, y2: 80 })).join("") : "");
     s += arc(k, 8, 8, [-1, 0, 1][arcI], arcI === 2 ? "fits in more" : arcI === 0 ? "stands out more" : "holds");
-    s += chip(k, 316, 16, `${stops >= 0 ? "+" : ""}${stops} stops`, "#ffd166", "end");
+    s += chip(k, 316, 16, `${stops >= 0 ? "+" : ""}${stops} stops · ${v.n("clothesInFrame")}% of frame`, "#ffd166", "end");
     return s + cap(k, `${v("setting")} · ${v("colorGap")}% colour gap · ${v("catchLight")} · ${v("pullsEye")}`);
   });
 
@@ -517,7 +518,7 @@
     if (cold === true) for (let i = 0; i < 30; i++) s += k.dot({ x: k.rnd(i) * 320, y: k.rnd(i + 9) * 120, r: 1.6, color: "#ffffff" });
     if (cold === false) s += `<circle cx="290" cy="30" r="18" fill="#fff06a"/>`;
     s += crowd(k, 10, (i) => ({ cover: k.clamp(cover + (k.rnd(i + 2) - 0.5) * range * 1.2, 0, 1), top: k.hsl(200 + i * 13, 35, 50), bottom: "#4a4a5a", layers: Math.max(1, Math.round(cover * 3)) }));
-    s += fig(k, { x: 160, y: 176, s: 0.8, cover: heroCover, top: "#e57373", bottom: "#3a3a4a" }) + k.label({ x: 160, y: 44, text: "hero", size: 8, color: "#ffd166", weight: 700 });
+    s += fig(k, { x: 160, y: 176, s: 0.8, cover: heroCover, top: "#e57373", bottom: "#3a3a4a" }) + k.label({ x: 160, y: 44, text: `hero (${v.n("vsHeroSkin") > 0 ? "+" : ""}${v.n("vsHeroSkin")}% covered)`, size: 8, color: "#ffd166", weight: 700 });
     /* Customs of the place: a sign with as many rules as the customs are strict. */
     s += `<rect x="8" y="8" width="70" height="40" fill="#f4f1ea" stroke="${k.INK}"/>` + Array.from({ length: 4 - norms }, (_, i) => `<rect x="14" y="${14 + i * 8}" width="58" height="4" fill="#555555"/>`).join("") + k.label({ x: 43, y: 58, text: v("norms"), size: 8, color: "#222222" });
     return s + cap(k, `${v("setting")} covered · ${v("crowdSkin")}% skin · ${v("rightForWeather")} · ${v("coverageRange")}`);

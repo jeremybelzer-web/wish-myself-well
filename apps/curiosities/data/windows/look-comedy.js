@@ -495,7 +495,7 @@
     const twist = idx(v, "twist");
     const lp = v.p("payoffSize");
     let out = k.bg(S.bg);
-    const n = 2 + Math.min(builds, 3);
+    const n = 2 + Math.min(builds, 5);
     const gp = idx(v, "plantedWhen") * 8; /* planted earlier: more time (a wider gap) after the plant */
     const pw = (300 - gp) / n;
     if (gp) out += k.label({ x: 10 + pw - 3 + gp / 2, y: 62, text: "⋯", size: 10, color: "#aaa" });
@@ -1054,7 +1054,7 @@
     const lg = idx(v, "ownLogic");
     if (lg) out += chip(k, 270, 18, lg === 2 ? "strict rules" : "loose rules", "#2f3a4a", "middle");
     /* real feeling: a heart */
-    if (v.n("realFeeling") > 0) out += k.text({ x: 101, y: 70, text: "♥", size: Math.min(18, 6 + v.n("realFeeling") * 3), color: S.pink });
+    if (v.n("realFeeling") > 0) out += k.text({ x: 101, y: 70, text: "♥", size: 6 + v.n("realFeeling") * 3, color: S.pink });
     /* the beat line: normal time first, then the turn, then the strangeness */
     out += beats(k, [{ at: 0, s: v.n("normalFirst"), kind: "hold", color: "#8a8a96" }, { kind: "face", mood: -0.6 }, { s: 40, kind: "line", color: S.purple }], { max: 360 });
     out += strip(k, [g.steps("arrives", "Arrives"), g.steps("spills", "Spills over"), g.num("normalFirst", "Normal first", " s"), g.num("frameShare", "Frame that's absurd", "%"), g.num("detail", "Played with care", ""), g.steps("ownLogic", "Own logic")]);
@@ -1767,7 +1767,7 @@
     if (pt === 1) out += k.arrow({ x1: 160, y1: 20, x2: k.clamp(gx, 30, 290), y2: 20, color: "#9fd3ff", w: 1.5 });
     if (pt === 3) out += chip(k, 314, 14, "✂ cut to it", "#1d2a38", "end");
     if (pt === 2) out += chip(k, 314, 14, "push in", "#1d2a38", "end");
-    out += chip(k, 6, 14, ["background", "edge of frame", "center"][plc], "#26252d", "start");
+    out += chip(k, 6, 14, `${["background", "edge of frame", "center"][plc]} · ${v.n("across")}% across, ${v.n("up")}% up`, "#26252d", "start");
     /* the beat line: how long the gag is on screen */
     out += beats(k, [{ at: 0, s: 10, kind: "hold", color: "#8a8a96" }, { kind: "tick", color: S.gold }, { s: 1 + v.n("onScreen") * 9, kind: "line", color: S.gold }, { kind: "tick", color: S.gold }], { max: 110 });
     out += strip(k, [g.steps("subtlety", "Easy to spot"), g.num("count", "Gags", ""), g.num("onScreen", "On screen", " s"), g.steps("inFocus", "Focus"), g.word("kind", "Kind"), g.num("gagSize", "Size", "%")]);

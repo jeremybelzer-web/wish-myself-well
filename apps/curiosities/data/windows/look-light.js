@@ -333,7 +333,7 @@
     const drawsEye = LL.idx(v, "drawsEye") / 3;
     const sw = { "stays on": "", "turns on": "off → on", "turns off": "on → off", "on and off": "on ↔ off" }[v("switchMoment")];
     const rate = v.n("flickerRate");
-    return `${LL.scene({ room: { win: false, lamp: null }, roomDim: 0.45 - br * 0.2, under: lamps, bust: { x: 150, key: { ang: px < 150 ? 180 : 0, dark: 0.85 - works * 0.6, color: col, colorA: works * 0.35 }, dim: (0.1 + drawsEye * 0.25) } }, k, id)}${drawsEye > 0.5 && n ? k.ring({ x: px, y: py, r: 18 * sz, color: "#ffd166", dash: "3 2" }) : ""}${sw ? LL.chip(k, 8, 20, sw) : ""}${LL.ticks(k, 220, 150, 90, Math.min(20, rate), col, "flicker " + rate + "/s")}${LL.caption(k, shown ? `${n0} ${kind}${n0 === 1 ? "" : "s"} in frame, ${v("flicker")}, ${v.n("fromFaces")} m from faces` : "No light source in the frame")}`;
+    return `${LL.scene({ room: { win: false, lamp: null }, roomDim: 0.45 - br * 0.2, under: lamps, bust: { x: 150, key: { ang: px < 150 ? 180 : 0, dark: 0.85 - works * 0.6, color: col, colorA: works * 0.35 }, dim: (0.1 + drawsEye * 0.25) } }, k, id)}${drawsEye > 0.5 && n ? k.ring({ x: px, y: py, r: 18 * sz, color: "#ffd166", dash: "3 2" }) : ""}${sw ? LL.chip(k, 8, 20, sw) : ""}${LL.ticks(k, 220, 150, 90, Math.min(20, rate), col, "flicker " + rate + "/s")}${LL.caption(k, shown ? `${n0} ${kind}${n0 === 1 ? "" : "s"} in frame, ${v("flicker")}, ${v.n("fromFaces")} m from faces` : `No light source in the frame (set to show: ${Math.max(0, Math.round(v.n("count")))} ${kind}${Math.round(v.n("count")) === 1 ? "" : "s"})`)}`;
   });
 
   /* Wet surfaces: rain, puddles that mirror, drips, and drying. */

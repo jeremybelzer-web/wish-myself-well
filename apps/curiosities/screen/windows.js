@@ -136,7 +136,7 @@
       const py = posOf(iy, h.ctx.value(iy));
       const xl = f.xLabel || `${sx.label}: ${sx.scale ? sx.scale[0] : sx.range.min} · ${sx.scale ? sx.scale[sx.scale.length - 1] : sx.range.max}`;
       const yl = f.yLabel || `${sy.label}: ${sy.scale ? sy.scale[0] : sy.range.min} · ${sy.scale ? sy.scale[sy.scale.length - 1] : sy.range.max}`;
-      return `<div class="cw-pad${h.ctx.edit ? "" : " dis"}" data-xy="${h.esc(ix)}|${h.esc(iy)}" role="application" aria-label="${h.esc(sx.label)} across, ${h.esc(sy.label)} up"><span class="cw-pad-x">${h.esc(xl)}</span><span class="cw-pad-y">${h.esc(yl)}</span><i class="cw-grid" aria-hidden="true"></i>${px != null && py != null ? `<i class="cw-dot" style="left:${px * 100}%;top:${(1 - py) * 100}%"></i>` : ""}</div><p class="sc-k">Click or drag on the pad to set both at once.</p>`;
+      return `<div class="cw-pad${h.ctx.edit ? "" : " dis"}" data-xy="${h.esc(ix)}|${h.esc(iy)}" role="application" aria-label="${h.esc(sx.label)} across, ${h.esc(sy.label)} up"><span class="cw-pad-x">${h.esc(xl)}</span><span class="cw-pad-y">${h.esc(yl)}</span><i class="cw-grid" aria-hidden="true"></i>${px != null && py != null ? `<i class="cw-dot" style="--x:${px};--y:${1 - py}"></i>` : ""}</div><p class="sc-k">Click or drag on the pad to set both at once.</p>`;
     },
     frame(c, f, h) {
       const ix = f.x ? keyOf(c, h, f.x) : null;
@@ -454,6 +454,7 @@
       return h.ctx.value(k);
     };
   }
+  const bigLook = new Set();
   function lookHtml(c, h) {
     const W = window.CuriosityWindows;
     if (!W || !W.looks || !W.looks[c.id]) return "";
@@ -464,7 +465,10 @@
       pic = "";
     }
     if (!pic) return "";
-    return `<div class="sc-wpart cw-look"><div class="cw-look-pic" data-cw-look="${h.esc(c.id)}">${pic}</div><p class="sc-k">At this moment. Move anything below and watch it change; the picture stays in view.</p></div>`;
+    /* Bigger (sweep 2026-10-03: at phone width the picture's small words were 7 to 8 px): twice as wide, panned
+       sideways, and no longer pinned, so it does not cover the controls. Remembered per window. */
+    const big = bigLook.has(c.id);
+    return `<div class="sc-wpart cw-look${big ? " cw-look-big" : ""}"><div class="cw-look-pic" data-cw-look="${h.esc(c.id)}">${pic}</div><p class="sc-k">At this moment. Move anything below and watch it change${big ? "" : "; the picture stays in view"}. <button type="button" class="cw-look-zoom" data-cw-look-big="${h.esc(c.id)}" aria-pressed="${big}" title="${big ? "Back to the picture that stays in view" : "See the picture twice as big, to read its small words"}">${big ? "Smaller" : "⤢ Bigger"}</button></p></div>`;
   }
   /* Redraw the picture in the window around el with some values not set yet (a pad or orbit mid-drag). */
   function lookLive(el, list, api) {
@@ -622,8 +626,9 @@
         d.className = "cw-dot";
         el.appendChild(d);
       }
-      d.style.left = last[0] * 100 + "%";
-      d.style.top = (1 - last[1]) * 100 + "%";
+      /* Kept inside the pad by its own radius, so a setting at its end is a whole dot, not half of one. */
+      d.style.setProperty("--x", last[0]);
+      d.style.setProperty("--y", 1 - last[1]);
     };
     dot();
     const pending = () => [[ix, last[0]], [iy, last[1]]].filter(([k]) => k && S().known(k)).map(([k, p]) => [k, S().at(k, p)]);
@@ -765,8 +770,106 @@
     return true;
   }
   /* The Screen hands over its node writer once; stored bindings start listening without a click. */
+  /* A setting a switched-on link drives ignores a node set by hand where the link fires, so a control
+     moved there seemed to do nothing (sweep 2026-10-03: cutRate, shotSize, angleCount, gesture). Say so on the
+     setting, with the link's own words and an Unlink button; redone after every redraw of the windows. */
+  function linkOf(key) {
+    const E = window.CurioEngine;
+    const Sc = window.CurioScreen;
+    if (!E || !Sc || !Sc.row) return null;
+    const st = E.state();
+    const r = st.rows[Sc.row()];
+    const t = r && st.tracks.find((x) => x.curiosities.includes(key));
+    const why = t ? E.why(r.id, t.id, key) : null;
+    /* The link that set this moment, else any switched-on link that drives this setting (it overrules a node set
+       here as soon as one is: the engine says "source" until then). */
+    const l = (why && /^link:/.test(why) && (st.links || []).find((x) => "link:" + x.id === why)) || (st.links || []).find((x) => x.on && x.to && x.to.curiosity === key && (!t || !x.to.track || x.to.track === t.id));
+    return l ? { id: l.id, label: l.label || "another setting" } : null;
+  }
+  function markLinks(layer) {
+    if (!layer) return;
+    const memo = {};
+    layer.querySelectorAll(".sc-win").forEach((win) => {
+      if (win.classList.contains("dis")) return;
+      win.querySelectorAll("[data-set], [data-step-set], [data-knob]").forEach((el) => {
+        if (el.closest(".cw-look")) return;
+        const key = el.dataset.set || el.dataset.stepSet || el.dataset.knob;
+        if (!(key in memo)) memo[key] = linkOf(key);
+        const l = memo[key];
+        if (!l) return;
+        const tip = `Set by a link: ${l.label}. Where the link fires it overrules a value set here; Unlink switches it off.`;
+        if (!el.classList.contains("cw-linked")) {
+          el.classList.add("cw-linked");
+          el.title = tip;
+        }
+        const box = el.closest(".sc-wctl, .cw-face") || el.parentElement;
+        if (!box || [...box.children].some((x) => x.classList.contains("cw-link-note") && x.dataset.cwLinkKey === key)) return;
+        const p = document.createElement("p");
+        p.className = "cw-link-note";
+        p.dataset.cwLinkKey = key;
+        p.setAttribute("role", "note");
+        const b = document.createElement("b");
+        b.textContent = "Set by a link: ";
+        const s = document.createElement("span");
+        s.textContent = l.label;
+        const u = document.createElement("button");
+        u.type = "button";
+        u.dataset.cwUnlink = l.id;
+        u.title = "Switch this link off, so your own setting here counts (one undo step)";
+        u.textContent = "Unlink";
+        p.append(b, s, " · ", u);
+        box.appendChild(p);
+      });
+    });
+  }
+  function watchLinks() {
+    if (watchLinks.on) return;
+    const layer = document.querySelector(".sc-wins-layer");
+    if (!layer) return;
+    watchLinks.on = true;
+    let queued = false;
+    const run = () => {
+      queued = false;
+      obs.disconnect();
+      try {
+        markLinks(layer);
+      } catch (e) {
+        console.warn("link notes:", e);
+      }
+      obs.observe(layer, { childList: true });
+    };
+    const obs = new MutationObserver(() => queued || ((queued = true), Promise.resolve().then(run)));
+    run();
+    layer.addEventListener("click", (e) => {
+      const z = e.target.closest && e.target.closest("[data-cw-look-big]");
+      if (z) {
+        const id = z.dataset.cwLookBig;
+        const part = z.closest(".cw-look");
+        const big = !bigLook.has(id);
+        big ? bigLook.add(id) : bigLook.delete(id);
+        if (part) {
+          part.classList.toggle("cw-look-big", big);
+          z.setAttribute("aria-pressed", String(big));
+          z.textContent = big ? "Smaller" : "⤢ Bigger";
+          z.title = big ? "Back to the picture that stays in view" : "See the picture twice as big, to read its small words";
+          const say = z.parentNode && z.parentNode.firstChild;
+          if (say && say.nodeType === 3) say.textContent = `At this moment. Move anything below and watch it change${big ? "" : "; the picture stays in view"}. `;
+        }
+        return e.stopPropagation();
+      }
+      const b = e.target.closest && e.target.closest("[data-cw-unlink]");
+      if (!b || !window.CurioEngine) return;
+      e.stopPropagation();
+      const r = window.CurioEngine.send({ type: "toggleLink", link: b.dataset.cwUnlink, on: false });
+      if (r && !r.ok && midi.api) midi.api.toast(r.error);
+      else if (midi.api) midi.api.toast("Link switched off: your own setting counts here now. Undo turns it back on.");
+    });
+  }
   function attach(api) {
     midi.api = api;
+    /* The windows layer is made on the first window; watch for it. */
+    const tryWatch = () => watchLinks() || watchLinks.on || setTimeout(tryWatch, 300);
+    tryWatch();
     if (Object.keys(midi.map).length && midiHook() && window.CurioAuto.connectMidi) window.CurioAuto.connectMidi();
   }
   function midiClick(id, api) {
@@ -840,7 +943,7 @@
 .cw-pad-x, .cw-pad-y { position: absolute; font-size: 9px; color: var(--cc-dim); pointer-events: none; z-index: 1; }
 .cw-pad-x { bottom: 3px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
 .cw-pad-y { left: 3px; top: 50%; transform: rotate(-90deg) translateX(-50%); transform-origin: left top; white-space: nowrap; }
-.cw-dot { position: absolute; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); background: #fff; box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.4); pointer-events: none; z-index: 2; }
+.cw-dot { --x: 0.5; --y: 0.5; --r: 9px; left: calc(var(--r) + (100% - 2 * var(--r)) * var(--x)); top: calc(var(--r) + (100% - 2 * var(--r)) * var(--y)); position: absolute; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); background: #fff; box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.4); pointer-events: none; z-index: 2; }
 .cw-frame { height: 150px; background: #121214; }
 .cw-frame svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .cw-frame .cw-thirds { fill: none; stroke: #2e2e33; stroke-width: 0.6; }
@@ -867,6 +970,16 @@
 .sc-page .cw-say-row button[data-cw-say] { background: var(--cc-accent); color: var(--cc-accent-ink); font-weight: 700; }
 .sc-page .cw-say-row button.on { box-shadow: 0 0 0 2px #ff5656; }
 .cw-say p { margin: 0; }
+.cw-link-note { margin: 2px 0 0; font-size: 11px; line-height: 1.35; color: var(--cc-warm, #f5b041); }
+.cw-link-note b { font-weight: 700; }
+.sc-page .cw-link-note button[data-cw-unlink] { padding: 0 6px; font-size: 11px; margin-left: 2px; }
+.sc-win .cw-linked { opacity: 0.6; }
+.sc-page .cw-look-zoom { padding: 0 6px; font-size: 11px; margin-left: 2px; }
+.sc-page .sc-win .cw-look.cw-look-big { position: static; }
+.cw-look-big .cw-look-pic { overflow-x: auto; overscroll-behavior-x: contain; }
+.cw-look-big .cw-look-pic svg { width: 200%; max-width: none; }
+/* On a phone the window takes the whole width, so the picture is as big as it can be. */
+@media (max-width: 480px) { .sc-page .sc-win { left: 6px !important; width: calc(100vw - 12px); } }
 .cw-preset-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 4px; }
 .sc-page .cw-preset-row button { display: grid; gap: 2px; text-align: left; padding: 6px 8px; border-left: 3px solid var(--cc-warm); }
 .cw-preset-row b { font-size: 11px; }

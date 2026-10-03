@@ -494,7 +494,7 @@
       out += fan > 0.9 ? star(rx, 130, 7, "#c77dff", 6) + star(rx - 7, 134, 3.5, "#c77dff", 5) : k.ring({ x: rx, y: 130, r: 4, color: "#c77dff" });
     }
     if (rest > 0) out += line(12 + restStart * cw, 140, 12 + Math.min(H, restStart + rest) * cw - 2, 140, "#ffd166", 2) + tag(k, 12 + (restStart + rest / 2) * cw, 152, `away ${rest} h`, "#ffd166", "middle", 8);
-    return out + cap(k, `${H}-hour season · every ${every} h · ${r1(v.n("screenShare"))}% screen time · return ${v("returnFanfare")}`);
+    return out + cap(k, `${H}-hour season · every ${every} h · ${r1(v.n("screenShare"))}% screen time · spotlight ${v("spotlightHour")} · return ${v("returnFanfare")}`);
   });
 
   /* Scenes through the hour: how many, a fast run then a breather, and the pace speeding up or slowing. */
@@ -898,7 +898,8 @@
     }
     for (let p = 0; p < pairs; p++) out += rect(12, 104 + p * 8, 296, 5, p === 0 ? "#ffd166" : "#444", { op: 0.7, rx: 2 });
     out += tag(k, 12, 152, `${pairs} contrast pair${pairs === 1 ? "" : "s"} in play`, "#999", "start");
-    return out + cap(k, `${flips} flips an hour · ${r1(v.n("sideShare"))}% on "${pr[0]}" · ${v("edgeSharp")} switch`);
+    /* The real number in words (the strip draws at least one flip, so 0 and 1 drew the same before). */
+    return out + cap(k, `${v.n("flipsPerHour")} flip${v.n("flipsPerHour") === 1 ? "" : "s"} an hour · ${r1(v.n("sideShare"))}% on "${pr[0]}" · ${v("edgeSharp")} switch`);
   });
 
   /* A single cut seen up close: the seam, sound overlapping it, a breath of black, and action clipped short. */

@@ -70,9 +70,9 @@
     const { x, y, w, h } = o;
     const cut = x + w * 0.25 + (o.lead || 0) * w * 0.12;
     const a = cut;
-    const b = a + Math.max(1, (o.fin || 0) * w * 0.3);
+    const b = a + 1 + (o.fin || 0) * w * 0.3;
     const d = x + w * 0.95;
-    const c = d - Math.max(1, (o.fout || 0) * w * 0.3);
+    const c = d - 1 - (o.fout || 0) * w * 0.3;
     const top = y + 2;
     const bot = y + h;
     const wob = o.wobble || 0;
@@ -107,7 +107,7 @@
     const era = idx(v, "era"); // 1920s .. 2000s
     const eraLook = [{ sat: 0, sepia: 0.6, contrast: 0.2 }, { sat: 0.6, lift: 0.08 }, { warm: 0.4, sat: 0.8, lift: 0.1 }, { split: [300, 28, 0.25], sat: 1.15 }, { warm: -0.15, sat: 1.1, lift: 0.05 }, { sat: 1.05 }][era];
     const fade = idx(v, "colorFade") / 3;
-    const wear = v.p("wear");
+    const wear = v.p("wear"); /* one speck of dust per percent, so every step of the slider shows */
     const jit = idx(v, "jitter");
     const flick = v.p("flicker");
     const chop = idx(v, "choppy");
@@ -117,7 +117,7 @@
     const g = fxOf(merged, none ? 0.45 : 1, { bright: -flick * 0.12, lift: fade * 0.18 });
     const base = scene(k, id, g);
     const ghost = shake > 0.2 ? `<g opacity="0.35" transform="translate(${r1(-shake)} ${r1(shake * 0.5)})">${scene(k, id + "-gh", g)}</g>` : "";
-    const scratches = Array.from({ length: Math.round(wear * 14) }, (_, i) => `<line x1="${r1(k.rnd(i + 3) * 320)}" y1="0" x2="${r1(k.rnd(i + 3) * 320 + 2)}" y2="162" stroke="#f4f0e6" stroke-width="0.8" opacity="0.6"/>`).join("") + Array.from({ length: Math.round(wear * 40) }, (_, i) => `<circle cx="${r1(k.rnd(i + 50) * 320)}" cy="${r1(k.rnd(i + 90) * 160)}" r="${r1(0.6 + k.rnd(i) * 1.4)}" fill="${i % 3 ? "#111" : "#eee"}" opacity="0.6"/>`).join("");
+    const scratches = Array.from({ length: Math.round(wear * 14) }, (_, i) => `<line x1="${r1(k.rnd(i + 3) * 320)}" y1="0" x2="${r1(k.rnd(i + 3) * 320 + 2)}" y2="162" stroke="#f4f0e6" stroke-width="0.8" opacity="0.6"/>`).join("") + Array.from({ length: Math.round(wear * 100) }, (_, i) => `<circle cx="${r1(k.rnd(i + 50) * 320)}" cy="${r1(k.rnd(i + 90) * 160)}" r="${r1(0.6 + k.rnd(i) * 1.2)}" fill="${i % 3 ? "#111" : "#eee"}" opacity="0.6"/>`).join("");
     const flickS = flick ? `<rect x="0" y="0" width="320" height="180" fill="#fff" opacity="${r1(flick * 0.22 * 100) / 100}"/>` : "";
     const extra = {
       "VHS tape": `${Array.from({ length: 40 }, (_, i) => `<rect x="0" y="${i * 4.5}" width="320" height="1.2" fill="#000" opacity="0.22"/>`).join("")}<rect x="0" y="120" width="320" height="5" fill="#fff" opacity="0.25"/>${k.text({ x: 14, y: 30, text: "PLAY ▶", size: 11, anchor: "start", color: "#fff", font: "monospace" })}`,
@@ -137,7 +137,7 @@
     const fr = v.n("flashRate");
     const fl = v.n("flashLength");
     const flashes = Array.from({ length: Math.min(30, Math.round(fr)) }, (_, i) => `<rect x="${r1(240 + (i / Math.max(1, fr)) * 68)}" y="140" width="${r1(Math.max(1, (fl / 10) * 16))}" height="8" fill="#fff" opacity="0.8"/>`).join("");
-    return `${k.bg("#000")}${ghost}<g transform="translate(${r1(shake * 0.6)} 0)">${base}</g>${extra}${scratches}${flickS}${strip}${LL.box(232, 106, 82, 46)}${LL.ticks(k, 240, 124, 68, v.n("flickerRate"), "#fff", `flicker ${v.n("flickerRate")}/s`)}${k.label({ x: 240, y: 137, text: "flashes", size: 7, anchor: "start", color: "#ccc" })}<rect x="${r1(306 - Math.max(1, (fl / 10) * 16))}" y="130" width="${r1(Math.max(1, (fl / 10) * 16))}" height="4" fill="#fff" opacity="0.5"/><line x1="240" y1="144" x2="308" y2="144" stroke="#555"/>${flashes}${LL.chip(k, 6 + (chop ? 12 : 0), 160 - 14, v("showsUp"))}${LLx().caption(k, `${none ? "No retro look" : kind}, ${v("era")}, ${v("jitter")}`)}`;
+    return `${k.bg("#000")}${ghost}<g transform="translate(${r1(shake * 0.6)} 0)">${base}</g>${extra}${scratches}${flickS}${strip}${LL.box(232, 106, 82, 46)}${LL.ticks(k, 240, 124, 68, v.n("flickerRate"), "#fff", `flicker ${v.n("flickerRate")}/s`)}${k.label({ x: 240, y: 137, text: "flashes", size: 7, anchor: "start", color: "#ccc" })}<rect x="${r1(306 - (0.5 + (fl / 10) * 16))}" y="130" width="${r1(0.5 + (fl / 10) * 16)}" height="4" fill="#fff" opacity="0.5"/><line x1="240" y1="144" x2="308" y2="144" stroke="#555"/>${flashes}${LL.chip(k, 6 + (chop ? 12 : 0), 160 - 14, v("showsUp"))}${LLx().caption(k, `${none ? "No retro look" : kind}, ${v("era")}, ${v("jitter")}`)}`;
   });
 
   /* Exposure: brighter or darker, highlights, shadows, blown-out whites and crushed blacks, and how the eye
@@ -166,7 +166,7 @@
       const span = Math.max(0.02, (adj === 0 ? 0.03 : [0, 0.2, 0.5, 0.9][adj]) * (0.3 + at * 0.7));
       return `${r1(240 + t * 68)},${r1(150 - 22 * (1 - Math.exp(-t / span * 2.5)) - 2)}`;
     }).join(" ");
-    return `${scene(k, id, { curve, tone: () => [0, 0, 0] })}${keepFace(k, id, read * 0.85)}${white}${black}${LL.box(232, 112, 82, 46)}${k.label({ x: 238, y: 124, text: "eyes adjust", size: 8, anchor: "start", color: "#ccc" })}<polyline points="${pts}" fill="none" stroke="#ffd166" stroke-width="2"/>${read ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${LLx().caption(k, `${v("setting")}, ${v.n("stops") > 0 ? "+" : ""}${v.n("stops")} stops, highlights ${v.n("highlights")}, shadows ${v.n("shadows")}`)}`;
+    return `${scene(k, id, { curve, tone: () => [0, 0, 0] })}${keepFace(k, id, read * 0.85)}${white}${black}${LL.box(232, 112, 82, 46)}${k.label({ x: 238, y: 124, text: `eyes adjust ${v.n("adjustTime")} s`, size: 8, anchor: "start", color: "#ccc" })}<polyline points="${pts}" fill="none" stroke="#ffd166" stroke-width="2"/>${read ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${LLx().caption(k, `${v("setting")}, ${v.n("stops") > 0 ? "+" : ""}${v.n("stops")} stops, highlights ${v.n("highlights")}, shadows ${v.n("shadows")}`)}`;
   });
 
   /* White balance: warmer or cooler, green or magenta, warm light with cool shadows, faces kept natural. */

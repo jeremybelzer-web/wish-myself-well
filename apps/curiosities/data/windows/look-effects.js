@@ -278,7 +278,8 @@
   const r2 = (n) => Math.round(n * 100) / 100;
   /* An effect that is off still shows faintly, so its other settings can be seen before it is turned on. */
   const ghost = (on, svg) => (on ? svg : `<g opacity="0.3">${svg}</g>`);
-  const offNote = (k, off, kind) => (off ? k.tint({ color: "#000", alpha: 0.45 }) + `<rect x="60" y="84" width="200" height="22" rx="11" fill="#000" opacity="0.85" stroke="#888"/>` + k.label({ x: 160, y: 99, text: `off · preview of ${kind}`, size: 11, color: "#fff", weight: 700 }) : "");
+  /* The "off" pill; y moves it (cloneEffect puts it in the top band, clear of the person it previews). */
+  const offNote = (k, off, kind, y) => (off ? k.tint({ color: "#000", alpha: 0.45 }) + `<rect x="60" y="${y == null ? 84 : y}" width="200" height="22" rx="11" fill="#000" opacity="0.85" stroke="#888"/>` + k.label({ x: 160, y: (y == null ? 84 : y) + 15, text: `off · preview of ${kind}`, size: 11, color: "#fff", weight: 700 }) : "");
   const dist = (k, m, near, far) => k.clamp(1.5 - Math.log10(Math.max(0.05, m)) * 0.55, near == null ? 0.4 : near, far == null ? 2.2 : far);
   const POWER = { blue: "#5fb4ff", white: "#f5f5f5", gold: "#ffc94a", red: "#ff4d4d", purple: "#b77bff", green: "#5fe08a", neon: "#39ffb0", rainbow: "#ff7ae0", "the character's color": "#4a6fa5" };
   const ELEMENT = { water: "#4aa3df", smoke: "#9a9aa3", fire: "#ff7a2a", sand: "#d8b26a", snow: "#eef4ff", "the fire": "#ff7a2a", "the smoke": "#9a9aa3", "the water": "#4aa3df", "the sand": "#d8b26a", "the snow": "#eef4ff" };
@@ -341,6 +342,8 @@
       out += bits(k, { n: 1, seed: i * 31, x: px, y: py, w: 0, h: 0, r: 3 * s, color: col, shape: "shard", alpha: st === 0 ? 0.3 : 1 });
     }
     out += k.label({ x: 300, y: 172 - 18, text: `speed ${v.n("speed")}/5`, size: 8, color: "#bbb", anchor: "end" });
+    /* The count itself: a few shards stand for many, so one more piece would not show otherwise. */
+    out += k.label({ x: 300, y: 172 - 28, text: `${v.n("pieces")} pieces`, size: 8, color: "#bbb", anchor: "end" });
     out += timeline(k, { x: 8, y: 20, w: 90, max: 10, label: "warning", segs: [{ from: 0, to: v.n("warnSecs"), color: "#e8d7b0" }], marks: [{ at: v.n("warnSecs"), color: "#ff6b6b" }] });
     return out + fitCaption(k, `${v("material")} ${v("setting")} · ${v("slowMo")} · ${v.n("distM")} m away`);
   });
@@ -653,6 +656,8 @@
     if (hides > 0.2 && hides < 0.4) out += `<rect x="0" y="40" width="320" height="100" fill="#d9e1e8" opacity="${r1(alpha * 0.8)}"/>`;
     if (hides > 0.6 && hides < 0.8) out += `<ellipse cx="170" cy="100" rx="22" ry="16" fill="#d9e1e8" opacity="${r1(Math.min(1, alpha + 0.3))}"/>`;
     if (hides > 0.9) out += k.tint({ color: "#d9e1e8", alpha: Math.min(0.85, alpha + 0.2) });
+    /* The number too: one percent more is too faint a change to see in the fog itself. */
+    out += k.label({ x: 8, y: 16, text: `opacity ${v.n("opacity")}%`, size: 8, color: "#d9e1e8", anchor: "start" });
     out += timeline(k, { x: 214, y: 18, w: 96, max: 120, label: `clears: ${v("clears")}`, segs: [{ from: 0, to: v.n("clearSecs"), color: "#d9e1e8" }] });
     return out + fitCaption(k, `${v("setting")} at ${v.n("layerM")} m, see ${v.n("visibleM")} m, hides ${v("hides")}`);
   });
@@ -1710,7 +1715,7 @@
     out += k.person({ x: 160, y: 150, s: 1.2, color: "#4a6fa5", arms: 0.6 });
     out += k.label({ x: 300, y: 20, text: `${v("delay")}, ${v.n("delayFrames")} frames`, size: 9, color: "#ccc", anchor: "end" });
     out += chips(k, [`appear ${v("when")}`], { x: 6, y: 5 });
-    return out + offNote(k, off, kind) + fitCaption(k, `${kind}: ${n} copies, ${v("apart")}, ${v("ghostly")}, fade ${v.n("fadePct")}%`);
+    return out + offNote(k, off, kind, 26) + fitCaption(k, `${kind}: ${n} copies, ${v("apart")}, ${v("ghostly")}, fade ${v.n("fadePct")}%`);
   });
 
   /* Outline: a line around the person: style, thickness, color, glow spread, pulse, drawing on. */

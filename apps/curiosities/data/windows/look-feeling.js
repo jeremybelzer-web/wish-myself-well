@@ -8,6 +8,16 @@
   const r1 = (n) => Math.round(n * 10) / 10;
   const cl = (x, a, b) => Math.max(a, Math.min(b, x));
   /* Small grey words. */
+  /* Ten cells that fill in step with p (0..1); the cell at the edge fills part-way, so every step shows. */
+  const fillCells = (x, y, w, h, gap, p, on, off) => {
+    let o = "";
+    for (let i = 0; i < 10; i++) {
+      const f = cl(p * 10 - i, 0, 1);
+      o += `<rect x="${r1(x + i * (w + gap))}" y="${y}" width="${w}" height="${h}" fill="${off}"/>`;
+      if (f > 0) o += `<rect x="${r1(x + i * (w + gap))}" y="${y}" width="${r1(w * f)}" height="${h}" fill="${on}"/>`;
+    }
+    return o;
+  };
   const S = (k, x, y, t, c, a, sz) => k.label({ x, y, text: t, size: sz || 8, color: c || "#bbb", anchor: a || "middle" });
   /* Index of a word setting on its scale (0, 1, 2 ...). */
   const I = (v, id) => {
@@ -233,7 +243,7 @@
       S(k, 260, 88, "after", "#aaa") +
       k.arrow({ x1: 98, y1: 48, x2: 222, y2: 48, color: "#ffd166", w: 2 }) +
       S(k, 160, 40, `turned by ${v("trigger")}`, "#ffd166", "middle", 9) +
-      S(k, 160, 62, `from ${v("turnedBy")}`, "#ccc") +
+      S(k, 160, 62, `from ${v("turnedBy")} · turns ${v.n("turnSize")}%`, "#ccc") +
       box(k, b) +
       line(k, b, f, { color: tint }) +
       vline(k, b, when, "#fff") +
@@ -286,7 +296,7 @@
       piece(k, 20, by, 280, t0, t0 + lasts, col) +
       piece(k, 20, by, 280, t0 + lasts, t0 + lasts + calm, "rgba(108,192,112,0.5)") +
       S(k, cl(20 + (t0 - held / 2) * 280, 30, 262), by - 3, "held", "#aaa", "middle", 7) +
-      S(k, cl(Math.max(20 + (t0 + lasts + calm / 2) * 280, cl(20 + (t0 - held / 2) * 280, 30, 262) + 30), 30, 300), by - 3, "calm", "#6cc070", "middle", 7) +
+      S(k, cl(Math.max(20 + (t0 + lasts + calm / 2) * 280, cl(20 + (t0 - held / 2) * 280, 30, 262) + 30), 30, 300), by - 3, `calm ${v.n("backToCalm")} s`, "#6cc070", "middle", 7) +
       fitCap(k, `${how} · ${v("fightsIt")} · seen by ${v("witnessed")}`)
     );
   });
@@ -311,7 +321,7 @@
       `<rect x="196" y="120" width="60" height="30" rx="5" fill="#5a2f35"/>` +
       `<g transform="rotate(${-lean} 226 120)">${k.face({ x: 226, y: 80, r: 12 + Math.min(st, 5) * 3, mood: usMood, brows: m === 3 ? -0.7 : undefined, look: m === 3 ? 1 : -0.6 })}</g>` +
       S(k, 226, 160, v("lean"), "#ccc") +
-      k.meter({ x: 186, y: 112, w: 80, p: cl(0.5 * (1 + vs), 0, 1), color: "#ffd166", label: "us" }) +
+      k.meter({ x: 186, y: 112, w: 80, p: cl(0.5 * (1 + vs), 0, 1), color: "#ffd166", label: `us ${vs > 0 ? "+" : ""}${v.n("vsCharacter")}%` }) +
       bulbs +
       (know ? S(k, 205, 30, "we know", "#ffd166", "start", 7) : "") +
       S(k, 306, 46, v("why"), "#ddd", "end", 8) +
@@ -354,7 +364,7 @@
     return (
       k.bg(BG) +
       box(k, b) +
-      S(k, b.x + 4, b.y - 4, "tension held, then let go", "#888", "start", 7) +
+      S(k, b.x + 4, b.y - 4, `tension held ${v.n("wait")}% of the film, then let go`, "#888", "start", 7) +
       line(k, b, f, { color: col, w: 1.5 + earned * 2.5, dash: earned < 0.3 ? "4 3" : "" }) +
       vline(k, b, pl, "#fff") +
       riders(k, b, f, { at: [Math.max(0.02, pl - wait - 0.08), Math.min(0.98, pl + lasts + 0.04)], flip: true, mid: 0.2, gain: 2.4, r: 9, gap: 0.1 }) +
@@ -395,7 +405,7 @@
       wind +
       char +
       aud +
-      box(k, g) + S(k, g.x, g.y - 4, "hope over the next scenes", "#888", "start", 7) +
+      box(k, g) + S(k, g.x, g.y - 4, `hope ahead · falls in ${v.n("dropSeconds")} s`, "#888", "start", 7) +
       line(k, g, f, { color: "#ffb347", w: 2 }) +
       S(k, g.x + g.w, g.y + g.h + 10, `back after ${v.n("returns")} scenes`, "#aaa", "end", 7) +
       k.pie({ x: 290, y: 130, r: 13, p: v.n("odds") / 100, color: "#6cc070" }) +
@@ -446,7 +456,7 @@
       riders(k, b, f, { at: [cl(pl - 0.12, 0.02, 0.98), cl(pl + und / 2, 0.02, 0.98)], skip: [cl(pl + und + fs, 0, 1)], r: 10, gap: 0.1 }) +
       flags +
       star +
-      S(k, cx, cy + (sign > 0 ? 24 : -18), v("turnBy"), "#ef5350") +
+      S(k, cl(cx, 40, 280), cy + (sign > 0 ? 24 : -18), v("turnBy"), "#ef5350") +
       k.face({ x: 40, y: 146, r: 11, mood: bi === 3 ? -0.2 : 0.7, eyes: bi === 1 ? 0.2 : 0.9 }) +
       `<ellipse cx="74" cy="146" rx="10" ry="6" fill="${bi === 1 || bi === 2 ? "#fff" : "#444"}"/><circle cx="74" cy="146" r="3.5" fill="${ink}"/>` +
       S(k, 92, 149, `believed by ${v("believedBy")}`, "#ccc", "start") +
@@ -554,7 +564,7 @@
       `<line x1="${b.x}" y1="${r1(py(b, sc))}" x2="${b.x + b.w}" y2="${r1(py(b, sc))}" stroke="#666" stroke-dasharray="2 3"/>` +
       S(k, b.x + b.w - 2, py(b, sc) - 2, "rest of scene", "#777", "end", 7) +
       `<line x1="${b.x + 4}" y1="${r1(py(b, last))}" x2="${b.x + 40}" y2="${r1(py(b, last))}" stroke="#9be36b" stroke-width="2"/>` +
-      S(k, b.x + 44, py(b, last) + 3, "last scene", "#9be36b", "start", 7) +
+      S(k, b.x + 44, py(b, last) + 3, `last scene (${v.n("sinceLast") > 0 ? "+" : ""}${v.n("sinceLast")})`, "#9be36b", "start", 7) +
       line(k, b, f, { color: "#ef5350", dash: "3 3", w: 1.5, alpha: 0.6 }) +
       line(k, b, shown, { color: "#ef5350" }) +
       riders(k, b, shown, { at: [cl(at - rise / 2, 0.02, 0.98), cl(at + hold / 2, 0.02, 0.98)], intense: true, r: 10, gap: 0.12 }) +
@@ -688,7 +698,7 @@
       S(k, nx, 146, `${v.n("nearest")} m away`, "#aaa") +
       coins +
       S(k, 312, 56, `costs ${v("cost")}`, "#ccc", "end", 7) +
-      bar(k, 20, 154, 280, "mask off") +
+      bar(k, 20, 154, 280, `mask off ${v.n("maskOff")} s`) +
       piece(k, 20, 154, 280, da, da + mo, "#7fd4ff") +
       fitCap(k, `${v("setting")} · instead: ${v("mask")} · to ${v("toWhom")}`)
     );
@@ -741,9 +751,7 @@
     }
     const ci = I(v, "caught");
     const catcher = (ci === 2 || ci === 3 ? k.person({ x: 250, y, s: 0.9, look: -1, mood: -0.2, color: "#8a8a8a" }) + S(k, 250, y - 86, "!", "#ffd166", "middle", 16) : k.person({ x: 250, y, s: 0.9, look: -1, mood: 0.3, color: "#8a8a8a" })) + (ci === 1 || ci === 3 ? `<ellipse cx="290" cy="28" rx="12" ry="7" fill="#fff"/><circle cx="290" cy="28" r="4" fill="${ink}"/>` : "");
-    const hs = Math.round(v.n("hiddenShare") / 10);
-    let lines = "";
-    for (let i = 0; i < 10; i++) lines += `<rect x="${150 + i * 9}" y="150" width="7" height="5" fill="${i < hs ? "#c9a0ff" : "#555"}"/>`;
+    const lines = fillCells(150, 150, 7, 5, 2, v.n("hiddenShare") / 100, "#c9a0ff", "#555");
     const tOut = I(v, "truthOut");
     return (
       k.bg(BG) +
@@ -755,7 +763,8 @@
       sp +
       catcher +
       lines +
-      S(k, 150, 146, "lines with a hidden meaning", "#aaa", "start", 7) +
+      S(k, 150, 146, `lines with a hidden meaning: ${v.n("hiddenShare")}%`, "#aaa", "start", 7) +
+      S(k, 168, 70, `pause ${pause} s first`, "#aaa", "middle", 7) +
       S(k, 20, 158, `truth out: ${v("truthOut")}`, tOut === 0 ? "#777" : "#ffd166", "start", 7) +
       fitCap(k, `${v("gap")} · leaks in ${v("leak")} · caught by ${v("caught")}`)
     );
@@ -776,7 +785,7 @@
     for (let i = 0; i < [0, 1, 3, 6][brk]; i++) cracks += `<polyline points="${jx + 6 + i * 12},${jy + 10 + (i % 2) * 30} ${jx + 12 + i * 12},${jy + 22 + (i % 2) * 30} ${jx + 8 + i * 12},${jy + 34 + (i % 2) * 30}" fill="none" stroke="#fff" stroke-width="1.5"/>`;
     const leaks = v.n("leaks");
     let drops = "";
-    for (let i = 0; i < Math.min(leaks, 4); i++) drops += `<path d="M${jx + jw + 6} ${jy + 70 + i * 10} q-3 6 0 8 q3 -2 0 -8" fill="${col}"/>`;
+    for (let i = 0; i < Math.min(leaks, 5); i++) drops += `<path d="M${jx + jw + 6} ${jy + 70 + i * 10} q-3 6 0 8 q3 -2 0 -8" fill="${col}"/>`;
     const add = v.n("addedHere");
     const pour = add ? `<rect x="${jx + jw / 2 - add}" y="6" width="${add * 2}" height="${jy + jh * (1 - lvl) - 6}" fill="${col}" opacity="0.8"/>` : "";
     const sc = v.n("scenes");
@@ -861,7 +870,7 @@
       k.bg(BG) +
       k.tint({ color: lv >= 0 ? "#ff9a3c" : "#3c8cff", alpha: 0.05 + Math.abs(lv) * 0.25 }) +
       `<rect x="${r1(ax)}" y="${y}" width="${r1(bx - ax)}" height="${r1(2 + trust * 6)}" fill="#c9b79a"${trust < 0.4 ? ' stroke-dasharray="4 4" stroke="#c9b79a"' : ""}/>` +
-      `<line x1="${r1(ax)}" y1="${y - 68}" x2="${r1(bx)}" y2="${y - 68}" stroke="#ffd166" stroke-width="1.5" stroke-dasharray="3 3" opacity="${r1(0.1 + look * 0.9)}"/>` +
+      `<line x1="${r1(ax)}" y1="${y - 68}" x2="${r1(bx)}" y2="${y - 68}" stroke="#ffd166" stroke-width="1.5" stroke-dasharray="3 3" opacity="${Math.round((0.1 + look * 0.9) * 100) / 100}"/>` + S(k, 160, y - 72, `look at each other ${v.n("lookShare")}%`, "#ffd166", "middle", 7) +
       k.person({ x: ax, y, s: 1, mood: lv * 0.8, look: 1, arms: ti >= 2 ? 0.4 : -0.3, lean: ti === 1 ? 6 : 0, color: "#4a6fa5" }) +
       k.person({ x: bx, y, s: 1, mood: lv * 0.8, look: -1, arms: ti >= 2 ? 0.4 : -0.3, lean: ti === 1 ? -6 : 0, color: "#a55a4a" }) +
       (ti === 2 ? k.dot({ x: 160, y: y - 40, r: 4, color: "#f0c8a0" }) : "") +
@@ -870,6 +879,7 @@
       S(k, 20, 42, `${tc} touches`, "#aaa", "start", 7) +
       `<rect x="296" y="50" width="10" height="80" rx="5" fill="#333"/><rect x="296" y="${r1(130 - thermo * 80)}" width="10" height="${r1(thermo * 80)}" rx="5" fill="${lv >= 0 ? "#ff9a3c" : "#5aa0ff"}"/><line x1="290" y1="${r1(130 - ghost * 80)}" x2="312" y2="${r1(130 - ghost * 80)}" stroke="#9be36b" stroke-width="2"/>` +
       ([2, 1, 0, -1, -2][tr] ? k.arrow({ x1: 284, y1: 90, x2: 284, y2: 90 + [2, 1, 0, -1, -2][tr] * 10, color: tr > 2 ? "#ff9a3c" : "#5aa0ff", w: 2 }) : "") +
+      S(k, 312, 144, `last scene ${v.n("sinceLast") > 0 ? "+" : ""}${v.n("sinceLast")}`, "#9be36b", "end", 7) +
       bar(k, 20, 160, 120, "") +
       pin(k, 20, 160, 120, v.n("turnAt") / 100, "#ffd166", "turn") +
       fitCap(k, `${v("trend")} · touch: ${v("touch")} · trust ${v.n("trust")} of 5`)
@@ -882,7 +892,7 @@
     const col = k.mix("#9fd3ff", "#ef5350", st);
     const vol = v.p("volume");
     const louder = v.n("louder") / 100;
-    const amp = cl(0.25 + vol * 0.55 + louder * 0.2, 0.08, 1);
+    const amp = cl(0.25 + vol * 0.55 + louder * 0.2, 0.02, 1);
     const pitch = I(v, "pitch");
     const cyc = 2 + v.n("pace") * 0.6 + (v.n("wordsPerMinute") - 60) / 180 * 2 + pitch * 0.4;
     const cr = I(v, "crack");
@@ -912,7 +922,7 @@
       `<line x1="20" y1="80" x2="300" y2="80" stroke="#333"/>` +
       s +
       puffs +
-      S(k, 20, 166 - 4, `breath: ${v("breath")}`, "#aaa", "start", 7) +
+      S(k, 20, 166 - 4, `breath: ${v("breath")} · ${louder > 0 ? "+" : ""}${v.n("louder")}% louder`, "#aaa", "start", 7) +
       fitCap(k, `${v("setting")} · ${v("volume")} · ${v("crack")}`)
     );
   });
@@ -1118,7 +1128,7 @@
       S(k, px(b, 0.15), b.y - 3, "big moment", "#ffd166") +
       S(k, px(b, s0 + len / 2), py(b, low) + 12, v("kind"), "#6cc070") +
       k.face({ x: 290, y: 150, r: 12, eyes: 0.2 + grip * 0.8, mood: 0.2, look: -1 }) +
-      S(k, 274, 154, grip > 0.5 ? "still held" : "drifting", "#aaa", "end") +
+      S(k, 274, 154, `${grip > 0.5 ? "still held" : "drifting"} ${v.n("grip")}/5`, "#aaa", "end") +
       S(k, 20, 152, `${v.n("length")} min rest · ${Math.round(v.n("quieter"))}% quieter · ${v.n("untilNext")} min to next`, "#aaa", "start", 7) +
       fitCap(k, `${v("kind")} · ${v("soonAfter")} · ${v("calmBefore")}`)
     );
@@ -1193,13 +1203,14 @@
     for (let i = 0; i < 20; i++) {
       const t = i / 19;
       const h = cl([8 - t * 6, 5, 2 + t * 6, 2 + t * t * 9][tr], 1, 10);
-      tl += `<rect x="${20 + i * 14}" y="${r1(156 - h)}" width="10" height="${r1(h)}" fill="${t < share ? "#9fd3ff" : "#444"}"/>`;
+      const f = cl(share * 20 - i, 0, 1);
+      tl += `<rect x="${20 + i * 14}" y="${r1(156 - h)}" width="10" height="${r1(h)}" fill="#444"/>` + (f > 0 ? `<rect x="${20 + i * 14}" y="${r1(156 - h)}" width="${r1(10 * f)}" height="${r1(h)}" fill="#9fd3ff"/>` : "");
     }
     const fz = [0, 1, 3][I(v, "freeze")];
     const lf = 4 + (v.n("longestFreeze") / 30) * 50;
     for (let i = 0; i < fz; i++) tl += `<rect x="${r1(60 + i * 80)}" y="144" width="${r1(i === 0 ? lf : 5)}" height="12" fill="#e8f4ff" opacity="0.8"/>`;
     if (!fz) tl += `<rect x="60" y="158" width="${r1(lf)}" height="2" fill="#e8f4ff" opacity="0.4"/>`;
-    return k.bg(BG) + crowd + S(k, 20, 18, `${v.n("peopleMoving")} people moving`, "#aaa", "start", 7) + out + tl + fitCap(k, `${v("purpose")} · ${v("who")} · freezes: ${v("freeze")}`);
+    return k.bg(BG) + crowd + S(k, 20, 18, `${v.n("peopleMoving")} people moving · ${v.n("movingShare")}% of the scene`, "#aaa", "start", 7) + out + tl + fitCap(k, `${v("purpose")} · ${v("who")} · freezes: ${v("freeze")}`);
   });
 
   /* ---------------- postureChanges: one person shifting while the other reacts ---------------- */
@@ -1223,10 +1234,11 @@
       k.bg(BG) +
       k.floor(y, "#26221e") +
       ghosts +
-      `<g transform="translate(${ax} 0) scale(${r1(Math.max(0.35, Math.cos((turned * Math.PI) / 360)))} 1) translate(${-ax} 0)">${k.person({ x: ax, y, s: 1, lean, arms: -0.9 + dir * 1.6, look: turned > 90 ? -1 : 1, mood: dir - 0.5, color: "#4a6fa5" })}</g>` +
+      `<g transform="translate(${ax} 0) scale(${Math.round(Math.max(0.35, Math.cos((turned * Math.PI) / 360)) * 1000) / 1000} 1) translate(${-ax} 0)">${k.person({ x: ax, y, s: 1, lean, arms: -0.9 + dir * 1.6, look: turned > 90 ? -1 : 1, mood: dir - 0.5, color: "#4a6fa5" })}</g>` +
       k.person({ x: bx, y, s: 1, lean: bLean, look: -1, color: "#a55a4a" }) +
       bubbles +
       S(k, 290, 60, "biggest:", "#888", "end", 7) +
+      S(k, 20, 52, `turned away ${turned}°`, "#aaa", "start", 7) +
       S(k, 290, 72, bg, "#ffd166", "end", 9) +
       `<line x1="40" y1="152" x2="${r1(40 + rs)}" y2="152" stroke="#ffd166" stroke-width="2"/>` +
       S(k, 46 + rs, 155, `shifts ${v.n("reactSeconds")} s after the line`, "#aaa", "start", 7) +
@@ -1249,9 +1261,9 @@
     const crowdN = [0, 3, 7, 12][I(v, "crowd")];
     let crowd = "";
     for (let i = 0; i < crowdN; i++) crowd += k.person({ x: 20 + ((i * 53) % 290), y: 128 - (i % 3) * 4, s: 0.42, color: "#555a66", alpha: 0.8 });
-    const pplN = Math.round((v.n("people") / 500) * 40);
+    const pplN = (v.n("people") / 500) * 40;
     let far = "";
-    for (let i = 0; i < pplN; i++) far += k.dot({ x: 10 + ((i * 29) % 300), y: 102 + (i % 4) * 3, r: 1.6, color: "#222" });
+    for (let i = 0; i < Math.ceil(pplN); i++) far += k.dot({ x: 10 + ((i * 29) % 300), y: 102 + (i % 4) * 3, r: 1.6 * cl(pplN - i, 0.35, 1), color: "#222" });
     const intr = v.n("intrude") / 5;
     let props = "";
     for (let i = 0; i < 3; i++) props += `<rect x="${30 + i * 100}" y="${70 - i * 6}" width="${r1(14 + intr * 16)}" height="${r1(20 + intr * 16)}" fill="${k.mix("#555555", "#ff7a59", intr)}" opacity="${r1(0.4 + intr * 0.6)}"/>`;
@@ -1315,8 +1327,9 @@
     const off = v.n("offAngle") / 90;
     const ud = v.n("upDown") / 45;
     const base = { down: [0, 0.8], away: [-0.9, 0], "at the other": [0.8, 0], "through the other": [0.6, -0.1], "at the camera": [0, 0] }[lk] || [0, 0];
-    const dx = cl(base[0] + off * 0.6, -1, 1) * 14;
-    const dy = cl(base[1] - ud * 0.8, -1, 1) * (eh * 0.6);
+    /* Half from where they look, half from the exact angles, so no step is clipped away. */
+    const dx = (base[0] * 0.5 + off * 0.5) * 14;
+    const dy = (base[1] * 0.5 - ud * 0.5) * (eh * 0.6);
     const wet = I(v, "wet");
     const dart = v.n("dart");
     const ag = I(v, "agree");
@@ -1341,6 +1354,7 @@
       k.bubble({ x: 160, y: 126, w: 96, h: 20, text: "I'm happy.", tail: 0, size: 9 }) +
       `<rect x="20" y="146" width="${r1(Math.max(1, hold))}" height="4" fill="#4a6fa5"/>` +
       S(k, 20, 158, `holds a look ${v.n("holdGaze")} s`, ink, "start", 7) +
+      S(k, 304, 16, `${v.n("offAngle")}° to the side · ${v.n("upDown")}° up`, ink, "end", 7) +
       ticks(k, 200, 158, rate, { gap: 3.5, h: () => 6, color: ink, w: 1.2 }) +
       S(k, 300, 146, `${v.n("blinkRate")} blinks/min`, ink, "end", 7) +
       fitCap(k, `Looking ${lk} · ${v("wet")} · eyes ${v("agree")} the words`)

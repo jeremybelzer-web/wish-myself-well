@@ -485,7 +485,7 @@
     const spd = v.n("speed") / 5;
     let lines = "";
     for (let i = 0; i < Math.round(spd * 4); i++) lines += `<line x1="${14}" y1="${70 + i * 12}" x2="${r1(14 + 10 + spd * 14)}" y2="${70 + i * 12}" stroke="#aaa" stroke-width="1.5"/>`;
-    return `${k.bg(BG)}${k.title(`Herd heads ${v("direction")}`)}${k.floor(134, "#22201c")}${k.arrow({ x1: 220, y1: 30, x2: 300, y2: 30, color: dirCol, w: 3 })}${lines}${s}${k.label({ x: 310, y: 50, text: `${holdouts ? v.n("holdouts") + " hold out" : "no holdouts"} · ${sp} m apart`, size: 7, anchor: "end", color: "#aaa" })}${k.label({ x: 310, y: 62, text: `${v("inFrame")} · spreads ${v.n("speed")}/5`, size: 7, anchor: "end", color: "#aaa" })}${fitCap(k, `Herd ${v.n("setting")}/5 · pressure ${v.n("pressure")}/5 · ${v("size")}`)}`;
+    return `${k.bg(BG)}${k.title(`Herd heads ${v("direction")}`)}${k.floor(134, "#22201c")}${k.arrow({ x1: 220, y1: 30, x2: 300, y2: 30, color: dirCol, w: 3 })}${lines}${s}${k.label({ x: 310, y: 50, text: `${v.n("holdouts") ? v.n("holdouts") + " hold out" : "no holdouts"} · ${sp} m apart`, size: 7, anchor: "end", color: "#aaa" })}${k.label({ x: 310, y: 62, text: `${v("inFrame")} · spreads ${v.n("speed")}/5`, size: 7, anchor: "end", color: "#aaa" })}${fitCap(k, `Herd ${v.n("setting")}/5 · pressure ${v.n("pressure")}/5 · ${v("size")}`)}`;
   });
 
   /* Herd leader: the leader placed in the frame, above and ahead of the followers, with lines of pull. */
