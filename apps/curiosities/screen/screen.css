@@ -436,3 +436,17 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-page .sl-areatools button { color: var(--cc-accent); }
 .sl-thumb { pointer-events: none; }
 .sl-clip.has-thumb rect { fill: #174e55; }
+/* Keyframe jumps (CapCut's ◀ ◆ ▶): in Details, jump to the key before or after the playhead. */
+.sc-knav { display: inline-flex; align-items: center; margin-right: 3px; vertical-align: middle; }
+.sc-page .sc-knav .sc-key { padding: 0 1px; }
+.sc-page .sc-knav-b { background: none; box-shadow: none; padding: 0 2px; font-size: 9px; line-height: 1; color: var(--cc-dim); border-radius: 3px; }
+.sc-page .sc-knav-b:hover:not(:disabled) { background: var(--cc-hover); color: var(--cc-accent); }
+.sc-page .sc-knav-b:disabled { opacity: 0.25; cursor: default; }
+/* Frame shape (CapCut's Ratio): my film's frame takes the shape, no taller than the wide frame, the picture cropped to fill it in the middle. */
+.sc-ratio { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--cc-dim); }
+.sc-frame:is([data-shape="vertical"], [data-shape="square"], [data-shape="cinema"]) { background: #000; container-type: size; margin-inline: auto; }
+.sc-frame[data-shape="vertical"] { aspect-ratio: 9 / 16; width: 31.64%; }
+.sc-frame[data-shape="square"] { aspect-ratio: 1 / 1; width: 56.25%; }
+.sc-frame[data-shape="cinema"] { aspect-ratio: 2.39 / 1; width: 100%; }
+.sc-frame:is([data-shape="vertical"], [data-shape="square"], [data-shape="cinema"]) > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sc-frame[data-shape="vertical"] .sc-att { font-size: 9px; top: 2px; right: 2px; left: 2px; text-align: center; }

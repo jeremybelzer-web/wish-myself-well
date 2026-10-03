@@ -596,6 +596,52 @@ const ok = (cond, msg) => {
   while (await page.$(".sc-win [data-win-close]")) await page.click(".sc-win [data-win-close]");
   ok((await page.$$(".sc-win")).length === 0, "windows close");
 
+  /* Keyframe jumps (CapCut's ◀ ◆ ▶ in Details) and the Player's Ratio menu (frame shape). */
+  await page.click('[data-view="screen"]');
+  await page.click('.sc-viewer.mine .sc-vname');
+  const kid = await page.evaluate(() => (document.querySelector(".sc-inspector .sc-cur .sc-key[data-key]") || {}).dataset?.key);
+  ok(!!kid, "Details has a key diamond to work with (" + kid + ")");
+  /* Clear its lane, then set keys at moments 2 and 5 with the diamond. */
+  await page.evaluate((id) => {
+    const E = window.CurioEngine, st = E.state(), t = st.tracks.find((x) => x.curiosities.includes(id)), lane = t && st.lanes[t.id + "|" + id];
+    if (lane) E.send({ type: "batch", label: "clear", commands: Object.keys(lane.points).map((r) => ({ type: "removePoint", row: r, track: t.id, curiosity: id })) });
+  }, kid);
+  const knav = (dir) => page.evaluate(([id, dir]) => { const k = [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id); const n = k && k.closest(".sc-knav"); const b = n && n.querySelector(`[data-dir="${dir}"]`); return b ? { dis: b.disabled, to: b.dataset.keyJump } : null; }, [kid, dir]);
+  const clickKey = async () => page.evaluate((id) => [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id).click(), kid);
+  await page.evaluate(() => window.CurioScreen.setRow(1));
+  ok((await knav("prev")) === null, "no arrows while the curiosity has no nodes");
+  await clickKey();
+  await page.evaluate(() => window.CurioScreen.setRow(4));
+  await clickKey();
+  await page.evaluate(() => window.CurioScreen.setRow(2));
+  const p2 = await knav("prev"), n2 = await knav("next");
+  ok(p2 && !p2.dis && p2.to === "1" && n2 && !n2.dis && n2.to === "4", "between keys, ◀ and ▶ point at moments 2 and 5");
+  await page.evaluate((id) => [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id).closest(".sc-knav").querySelector('[data-dir="next"]').click(), kid);
+  ok((await page.evaluate(() => window.CurioScreen.row())) === 4, "▶ jumps the playhead to the next key");
+  ok((await knav("next")).dis && !(await knav("prev")).dis, "on the last key ▶ is greyed and ◀ is not");
+  await page.evaluate((id) => [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id).closest(".sc-knav").querySelector('[data-dir="prev"]').click(), kid);
+  ok((await page.evaluate(() => window.CurioScreen.row())) === 1, "◀ jumps the playhead to the previous key");
+  ok((await knav("prev")).dis && !(await knav("next")).dis, "on the first key ◀ is greyed and ▶ is not");
+  ok(await page.evaluate((id) => [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id).classList.contains("here"), kid), "the diamond still shows the key here");
+  /* Ratio. */
+  ok(!!(await page.$(".sc-transport select[data-ratio]")), "the Player's transport bar has a Ratio menu");
+  const shape = () => page.evaluate(() => { const f = document.querySelector(".sc-viewer.mine .sc-frame"), r = f.getBoundingClientRect(), s = f.querySelector("svg").getBoundingClientRect(), i = document.querySelector(".sc-viewer.insp .sc-frame"), ir = i && i.getBoundingClientRect(); return { shape: f.dataset.shape, w: r.width, h: r.height, sw: s.width, sh: s.height, cx: s.left + s.width / 2 - (r.left + r.width / 2), insp: ir ? ir.width / ir.height : null }; });
+  const wide0 = await shape();
+  const setRatio = (v) => page.evaluate((v) => { const s = document.querySelector(".sc-transport select[data-ratio]"); s.value = v; s.dispatchEvent(new Event("change", { bubbles: true })); }, v);
+  await setRatio("vertical 9:16");
+  ok(await page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|canvasFill.ratio")); return lk && st.lanes[lk].points[st.rows[window.CurioScreen.row()].id] === "vertical 9:16"; }), "Ratio writes a Frame shape node at the playhead");
+  const tall = await shape();
+  ok(tall.shape === "vertical" && tall.h > tall.w * 1.5 && wide0.w > wide0.h, `my film's frame turns vertical (${Math.round(tall.w)}×${Math.round(tall.h)}, was ${Math.round(wide0.w)}×${Math.round(wide0.h)})`);
+  ok(Math.abs(tall.sw - tall.w) < 2 && Math.abs(tall.sh - tall.h) < 2 && Math.abs(tall.cx) < 2 && (await page.evaluate(() => document.querySelector(".sc-viewer.mine .sc-frame > svg").getAttribute("preserveAspectRatio"))) === "xMidYMid slice", "the picture is cropped to fill the vertical frame, centered");
+  ok(tall.insp == null || tall.insp > 1.5, "inspiration films keep their own shape");
+  ok(await page.evaluate(() => document.querySelector(".sc-transport select[data-ratio]").value === "vertical 9:16"), "the menu shows the shape at the playhead");
+  await page.screenshot({ path: path.join(SHOTS, "screen-8-ratio-keyjumps.png") });
+  await setRatio("cinema 2.39");
+  const cin = await shape();
+  ok(cin.shape === "cinema" && Math.abs(cin.w / cin.h - 2.39) < 0.05, "cinema makes the frame extra wide (" + (cin.w / cin.h).toFixed(2) + ")");
+  await setRatio("wide 16:9");
+  ok((await shape()).shape === "wide", "back to wide");
+
   /* Phone width. */
   await page.setViewportSize({ width: 390, height: 900 });
   await page.click('[data-act="close"]');

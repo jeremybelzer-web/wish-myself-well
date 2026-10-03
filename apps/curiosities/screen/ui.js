@@ -692,6 +692,14 @@
     const marks = (fires || []).map((f) => `<i class="sc-fire" style="left:${((f.beat + 0.5) / n) * 100}%;opacity:${0.35 + 0.65 * (f.strength || 1)}" title="Happens at beat ${f.beat + 1}"></i>`).join("");
     return `<div class="sc-scrub" data-scrub="${kind}" data-id="${esc(id || "")}" title="Click to move the playhead">${beats.map((b, i) => `<b class="${i === current ? "on" : ""}" style="width:${100 / n}%"></b>`).join("")}${marks}</div>`;
   }
+  /* CapCut's Ratio menu: my film's frame shape is Canvas edges' "Frame shape" slider, a node at the playhead.
+     The Player's frame of my film takes that shape (the picture cropped to fill it); inspiration films keep their own. */
+  const RATIO = "canvasFill.ratio";
+  const ratioOpts = () => (S() && S().known(RATIO) ? S().domain(RATIO).options || [] : []);
+  function ratioShape() {
+    const v = ratioOpts().length ? String(valueHere(RATIO) || "") : "";
+    return /9:16/.test(v) ? "vertical" : /1:1/.test(v) ? "square" : /2\.39/.test(v) ? "cinema" : "wide";
+  }
   function viewerHtml(kind, v) {
     const sel = selection();
     if (kind === "mine") {
@@ -700,9 +708,12 @@
       const vals = beats[i] ? beats[i].values : {};
       const fires = L().fires(prefs.sel.level, prefs.sel.id, beats);
       const att = attentionAt(beats, i);
+      /* A frame shape other than wide crops the storyboard picture to fill it, as reframing a shot would. */
+      const shape = ratioShape();
+      const fill = (svg) => (shape === "wide" ? svg : svg.replace("<svg ", '<svg preserveAspectRatio="xMidYMid slice" '));
       return `<article class="sc-viewer mine${prefs.focus === "mine" ? " focus" : ""}" data-viewer="mine">
         <header><button type="button" class="sc-vname" data-focus="mine">My film</button><span class="sc-vsub">${esc(E() ? E().state().name : "")} · moment ${i + 1} of ${beats.length}</span></header>
-        <div class="sc-frame" data-focus="mine">${F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) }))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
+        <div class="sc-frame" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
         ${scrub(beats, i, fires, "mine")}
         <p class="sc-vnote">${fires.length ? `${esc(sel.label)} shows up ${fires.length} time${fires.length === 1 ? "" : "s"} in your film.` : `${esc(sel.label)} does not show up in your film yet.`}</p>
       </article>`;
@@ -834,7 +845,7 @@
     showTimelineWindow();
     page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
-      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span></span>`;
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}</span>`;
   }
 
   /* ---------- the inspector ---------- */
@@ -881,6 +892,27 @@
     const t = k === "here" ? "A key (node) is set here; click to take it off" : k === "lane" ? "Automated, no key at this moment; click to set one" : "Not automated yet; click to set a key here and put it on the timeline";
     return `<button type="button" class="sc-key ${k || "none"}" data-key="${esc(id)}" title="${t}" aria-label="${esc(t)}: ${esc(labelOf(id))}">${k === "here" ? "◆" : "◇"}</button>`;
   }
+  /* CapCut's ◀ ◆ ▶ beside a keyframed setting: jump to the key before or after the playhead (Details rows only;
+     the windows keep the bare diamond). Shown once the lane has a node; an arrow with no key that way is greyed. */
+  function keyNav(id) {
+    const st = E() && E().state();
+    const t = st && st.tracks.find((x) => x.curiosities.includes(id));
+    const lane = t && st.lanes[t.id + "|" + id];
+    if (!lane) return null;
+    const at = st.rows.map((r, j) => (lane.points[r.id] != null ? j : -1)).filter((j) => j >= 0);
+    if (!at.length) return null;
+    return { prev: at.filter((j) => j < row).pop() ?? -1, next: at.find((j) => j > row) ?? -1 };
+  }
+  function keyNavBtns(id, ctx) {
+    const k = keyBtn(id, ctx);
+    const n = k && keyNav(id);
+    if (!n) return k;
+    const b = (dir, j) => {
+      const t = j < 0 ? `No key ${dir === "prev" ? "before" : "after"} this moment` : `Jump to the ${dir === "prev" ? "previous" : "next"} key (node), at moment ${j + 1}`;
+      return `<button type="button" class="sc-knav-b" data-key-jump="${j < 0 ? "" : j}" data-dir="${dir}"${j < 0 ? " disabled" : ""} title="${t}" aria-label="${esc(t)}: ${esc(labelOf(id))}">${dir === "prev" ? "◀" : "▶"}</button>`;
+    };
+    return `<span class="sc-knav">${b("prev", n.prev)}${k}${b("next", n.next)}</span>`;
+  }
   /* Momentum, the heart of the app: how the picked curiosity moves the story and the audience's attention. */
   function momentumBox(m) {
     const push = Math.max(0, Math.min(5, Number(m.push) || 0));
@@ -901,10 +933,10 @@
         ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win" data-open-win="${esc(c.id)}" title="Open ${esc(c.label)}'s own window: every knob and slider it has" aria-label="Open ${esc(c.label)}'s window">⧉</button>
         ${fine.length ? `<button type="button" class="sc-fold" data-fold="${esc(c.id)}" aria-expanded="${open}" title="The fine controls inside it">${open ? "▾" : "▸"} ${fine.length}</button>` : ""}
       </div>
-      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyBtn(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
+      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyNavBtns(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
       ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
       ${sel && c.momentum ? momentumBox(c.momentum) : ""}
-      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyBtn(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
+      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyNavBtns(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
     </div>`;
   }
   /* ---------- a window for every curiosity (Jeremy, 2026-10-02 20:26Z: "a separate pop-up window for every
@@ -1540,6 +1572,7 @@
       if (res && res.ok) toast(`${labelOf(d.drop)}: ${S().fix(d.drop, d.v)} at moment ${row + 1}.`);
       return drawTimeline(), drawLibrary();
     }
+    if (d.keyJump) return setRow(Number(d.keyJump));
     if ("key" in d && d.key) {
       /* Maya's Set Key: keep the setting at this moment as a node; on a key already here, take it off. */
       const st = E() && E().state();
@@ -1684,6 +1717,13 @@
       drawViewers();
       drawInspector();
       return lanes && lanes.draw();
+    }
+    if ("ratio" in d) {
+      showLane(RATIO);
+      save();
+      const res = setValue(RATIO, t.value);
+      if (res && res.ok) toast(`Frame shape: ${t.value} at moment ${row + 1}.`);
+      return drawTimeline();
     }
     if ("speed" in d) {
       prefs.speed = Number(t.value) || 1;
