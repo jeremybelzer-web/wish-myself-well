@@ -25,6 +25,11 @@ Every window also has, from `screen/windows.js`:
   play range): Rise, Fall, Swell, Pulse, Back and forth, Surprise. One undo step. It is an LFO drawn onto the lane.
 - **Surprise me**: every setting of its own picks something at random at the playhead.
 
+- **Say what you want** (Jeremy, 15:02Z): type or speak a request ("45 degrees to the right, 3 meters away", "a bit closer", a preset's name, a word from a list). It is matched on the device against the settings, presets, numbers with units and "more" or "less" of a setting, and lands as nodes at the playhead, one undo step.
+- **Fine-tune** (Jeremy, 15:02Z: "All these parameters can be hidden under the word fine-tune"): in Details, each curiosity shows its main control and a Fine-tune button that opens this window; the inline fold is off.
+
+Counts after both passes: 434 curiosities, 2,590 new settings (1,794 of them measured in units), 1,303 presets.
+
 The hand-made parts some windows already had (Emotion's feeling pad, Shot size's frames, Angle height, Camera
 move, Color, Comedy's joke timing) stay, above the faces.
 
@@ -34,6 +39,8 @@ move, Color, Comedy's joke timing) stay, above the faces.
 | --- | --- |
 | `windows.js` | `CuriosityWindows.add(id, { sliders, window })` and `check()`. The format is in its top comment |
 | `win-<category>.js` | One per Screen category (camera, performance, light, grade, world, wardrobe, sound, text, effects, transitions, speed, editing, feeling, comedy, character, story, page): every curiosity whose home is that category |
+| `win-space.js` | Camera angle, Main light and Where a sound comes from, in 3D around the subject (meters and degrees), with the orbit face. Jeremy, 15:01Z: a camera angle "has a three-dimensional relationship to that scene or subject" |
+| `measure-<category>.js` | The second pass (Jeremy, 15:01Z): each curiosity broken into its measurable parts: meters, degrees, % of frame, seconds, counts, and what it is measured against. Added with a second `CuriosityWindows.add`, which merges into the window (faces and presets appended, groups joined by label) |
 | `files.json` | Load order. `index.html` loads them right after `data/db-maya.js`, before `CuriosityDB.install` |
 | `check-windows.js` | `node apps/curiosities/data/windows/check-windows.js [category] [--gaps] [--strict]` checks every slider, face, group and preset, and lists curiosities with no window or fewer than four settings of their own |
 

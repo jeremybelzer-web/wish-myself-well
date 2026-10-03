@@ -17,5 +17,22 @@
   "win-comedy.js",
   "win-character.js",
   "win-story.js",
-  "win-page.js"
+  "win-page.js",
+  "measure-camera.js",
+  "measure-performance.js",
+  "measure-light.js",
+  "measure-grade.js",
+  "measure-world.js",
+  "measure-wardrobe.js",
+  "measure-sound.js",
+  "measure-text.js",
+  "measure-effects.js",
+  "measure-transitions.js",
+  "measure-speed.js",
+  "measure-editing.js",
+  "measure-feeling.js",
+  "measure-comedy.js",
+  "measure-character.js",
+  "measure-story.js",
+  "measure-page.js"
 ]
