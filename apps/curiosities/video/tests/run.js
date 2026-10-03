@@ -1023,6 +1023,107 @@ check("newer lanes go onto My film and into the reference, as one undo step", ()
   assert(!E.state().refs.some((x) => x.name === "lanes"), "and the reference");
 });
 
+
+/* ---------- detail.js: sharper zooms ---------- */
+const DT = w.CurioDetail;
+/* A source row with a hard edge (dark 40 to light 200) blown up `z` times with linear smoothing, as a browser does. */
+function blownUp(z, W, H) {
+  const src = (u) => (u < 8 ? 40 : 200);
+  const d = new Uint8ClampedArray(W * H * 4);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const u = (x + 0.5) / z - 0.5,
+        u0 = Math.floor(u),
+        f = u - u0;
+      const v = src(u0) * (1 - f) + src(u0 + 1) * f;
+      const p = (y * W + x) * 4;
+      d[p] = d[p + 1] = d[p + 2] = v;
+      d[p + 3] = 255;
+    }
+  return d;
+}
+/* the steepest step between two neighbours along row y */
+function steepest(d, W, y) {
+  let m = 0;
+  for (let x = 1; x < W; x++) m = Math.max(m, Math.abs(d[(y * W + x) * 4 + 1] - d[(y * W + x - 1) * 4 + 1]));
+  return m;
+}
+
+check("detail: a blown-up edge gets sharper, never past its own darkest and lightest", () => {
+  const z = 2.5,
+    W = 40,
+    H = 12;
+  const d = blownUp(z, W, H);
+  const before = steepest(d, W, 6);
+  DT.sharpen(d, W, H, z);
+  const after = steepest(d, W, 6);
+  assert(after > before * 1.1, `steepest step ${before} -> ${after}`);
+  for (let i = 0; i < W * H; i++) assert(d[i * 4] >= 40 && d[i * 4] <= 200, "overshoot to " + d[i * 4]);
+  /* gray stays gray: brightness is sharpened, not color */
+  for (let i = 0; i < W * H; i++) assert(d[i * 4] === d[i * 4 + 2]);
+  /* the app's way: sharpened at the source's own size before it is blown up (a soft source edge) */
+  const sw = 16,
+    s0 = new Uint8ClampedArray(sw * H * 4);
+  for (let i = 0; i < sw * H; i++) {
+    const x = i % sw;
+    s0[i * 4] = s0[i * 4 + 1] = s0[i * 4 + 2] = [40, 40, 40, 40, 40, 40, 55, 85, 155, 185, 200, 200, 200, 200, 200, 200][x];
+    s0[i * 4 + 3] = 255;
+  }
+  const s1 = new Uint8ClampedArray(s0);
+  DT.sharpen(s1, sw, H, z, { before: true });
+  assert(steepest(s1, sw, 6) > steepest(s0, sw, 6), "not steeper at the source's size");
+  for (let i = 0; i < sw * H; i++) assert(s1[i * 4] >= 40 && s1[i * 4] <= 200, "overshoot to " + s1[i * 4]);
+});
+
+check("detail: zoom 1 changes nothing; flat areas and faint grain stay as they are", () => {
+  const d = blownUp(2.5, 40, 12),
+    keep = new Uint8ClampedArray(d);
+  DT.sharpen(d, 40, 12, 1);
+  assert(d.every((v, i) => v === keep[i]), "zoom 1 changed pixels");
+  assert.strictEqual(DT.amountAt(1), 0);
+  /* a flat gray with +-2 of grain, at 2.5x */
+  const W = 48,
+    H = 32,
+    f = new Uint8ClampedArray(W * H * 4);
+  for (let i = 0; i < W * H; i++) {
+    const v = 120 + ((i * 7919) % 5) - 2;
+    f[i * 4] = f[i * 4 + 1] = f[i * 4 + 2] = v;
+    f[i * 4 + 3] = 255;
+  }
+  const g = new Uint8ClampedArray(f);
+  DT.sharpen(g, W, H, 2.5);
+  let most = 0;
+  for (let i = 0; i < g.length; i++) most = Math.max(most, Math.abs(g[i] - f[i]));
+  assert(most <= 1, "grain boosted by " + most);
+});
+
+check("detail: small 8x8 block steps are softened, real edges are kept", () => {
+  const W = 32,
+    H = 16,
+    d = new Uint8ClampedArray(W * H * 4);
+  /* blocks 100 / 106 / 100 / 220 across */
+  const lvl = [100, 106, 100, 220];
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const p = (y * W + x) * 4;
+      d[p] = d[p + 1] = d[p + 2] = lvl[x >> 3];
+      d[p + 3] = 255;
+    }
+  DT.deblock(d, W, H, 0, 0, 1);
+  const at = (x) => d[(4 * W + x) * 4];
+  assert(Math.abs(at(8) - at(7)) < 6 && Math.abs(at(16) - at(15)) < 6, `block steps ${at(7)}|${at(8)} ${at(15)}|${at(16)}`);
+  assert(at(23) === 100 && at(24) === 220, "the real edge moved");
+  /* with the frame shifted by 3 pixels the grid moves too: x = 5, 13, 21 */
+  const e = new Uint8ClampedArray(W * H * 4);
+  for (let i = 0; i < W * H; i++) {
+    const x = i % W;
+    e[i * 4] = e[i * 4 + 1] = e[i * 4 + 2] = x < 5 ? 100 : 106;
+    e[i * 4 + 3] = 255;
+  }
+  DT.deblock(e, W, H, 3, 0, 1);
+  assert(e[(4 * W + 4) * 4] > 100 && e[(4 * W + 5) * 4] < 106);
+});
+
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });
