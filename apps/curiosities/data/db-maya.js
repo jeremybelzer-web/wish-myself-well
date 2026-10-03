@@ -101,6 +101,27 @@
     [2, "A body that follows its own rules (a tired slump, eyes that keep going to the door) tells the audience what the character wants before a word is said.", "How a body is allowed to move is how free a character is: stiff joints for someone boxed in, loose limbs for someone let go.", "The eye follows where a character looks, so the head's aim steers the audience's attention.", "movement", "Change one rule at the turn of the scene: the spine lifts, or the eyes finally go to the camera."]
   );
 
+  /* Acting moves for the 3D characters (rig/gestures.js): short timed moves played on top of the walk and the
+     pose rules. Comedy lives on timing, so each move has the classic timing parts as sliders: the wind-up, the
+     hold, the settle, and a pause before the payoff. A node on the "Acting move" lane plays that move when the
+     playhead reaches it; "Play it" turning to go plays it again. */
+  c("actingLens", "Acting moves", "character-motion", ["comedy", "emotion"], "rig3d",
+    "Pose-to-pose animation, Trax and Time Editor clips, animation layers (a move layered on top of a walk)",
+    "Short acting moves a 3D character plays on top of whatever else it is doing: a double take, a shrug, a pratfall, a wave, a bow. How big, how fast, and the timing that makes them funny.",
+    "move",
+    [
+      ["move", "Acting move", ["none", "double take", "shrug", "facepalm", "spit take", "pratfall", "slow burn", "freeze in shock", "wobbly knees", "victory dance", "wave", "point", "nod yes", "shake no", "hands on hips", "cross arms", "sigh", "look around", "jump for joy", "bow"], "Which move the character plays. Put one on the timeline and it plays when the playhead gets there.", { unordered: true }],
+      ["size", "How big", ["tiny", "small", "normal", "big", "huge"], "How far the body goes. Small reads as real life; huge reads as a cartoon."],
+      ["speed", "How fast", ["very slow", "slow", "normal", "quick", "snappy"], "How fast the move plays from start to end."],
+      ["windup", "Wind-up first", ["none", "a little", "clear", "big"], "A small move the other way before the big one, so the eye knows something is coming (animators call it anticipation)."],
+      ["hold", "Hold the pose", ["no hold", "short", "clear", "long"], "How long the strongest pose stays still so the audience can read it."],
+      ["settle", "Settle at the end", ["stops dead", "eases back", "overshoots and wobbles"], "How the body comes back to rest: all at once, gently, or going a little past and wobbling (overshoot and settle)."],
+      ["pause", "Comedy timing", ["no pause", "a beat", "a long beat", "painfully long"], "A pause just before the payoff. The longer the wait, the bigger the laugh, until it gets awkward (which is funny too)."],
+      ["cue", "Play it", ["wait", "go"], "Each time this turns to go, the move plays again. Use it to repeat the same move later in the film."],
+    ],
+    [2, "A clear acting beat tells the audience exactly how a character takes the news, so the story can move on.", "The same move played twice (a second double take, a bigger pratfall) turns a gag into a running theme.", "A sudden move after stillness pulls every eye in the frame.", "movement", "Hold still one beat longer than feels right, then do the double take."]
+  );
+
   c("faceLens", "Face acting", "character-motion", ["emotion", "lines"], "face",
     "Blend Shapes and the Shape Editor, Pose Library, eye darts and blinks, lip sync",
     "What the face does: how big the expression is, brows, eyes, mouth, blinks, which side moves, and how fast it changes.",
