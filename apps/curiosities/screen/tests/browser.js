@@ -229,6 +229,29 @@ const ok = (cond, msg) => {
     return { below: b.top >= a.bottom - 1, sameCol: Math.abs(a.left - b.left) < 1, beside: a.left >= v.right - 1, col: !!document.querySelector('.sc-player > .sc-docks > .sc-dock[data-panel="test-dock-2"]') };
   });
   ok(stack.col && stack.below && stack.sameCol && stack.beside, "two docked panels stack in one column beside the viewers, never on top of each other");
+  /* Every docked panel keeps part of the column in view; a slim bar can sit in a strip under the Player; the column
+     shrinks to a strip only when every panel in it is folded. */
+  const docks2 = await page.evaluate(() => {
+    const S = window.CurioScreen;
+    S.addPanel({ id: "test-dock-tall", label: "Tall", place: "player", mount: (el) => (el.innerHTML = '<div style="height:2000px">tall</div>') });
+    S.addPanel({ id: "test-dock-bar", label: "Bar", place: "under", mount: (el) => (el.textContent = "a slim bar") });
+    const col = document.querySelector(".sc-player > .sc-docks").getBoundingClientRect();
+    const last = document.querySelector('.sc-dock[data-panel="test-dock-tall"]').previousElementSibling ? document.querySelector('.sc-docks > .sc-dock:last-child').getBoundingClientRect() : null;
+    const two = document.querySelector('.sc-dock[data-panel="test-dock-2"]').getBoundingClientRect();
+    const bar = document.querySelector('.sc-player > .sc-under > .sc-dock[data-panel="test-dock-bar"]');
+    const w0 = col.width;
+    document.querySelectorAll(".sc-docks > .sc-dock").forEach((d) => d.classList.add("folded"));
+    const w1 = document.querySelector(".sc-player > .sc-docks").getBoundingClientRect().width;
+    document.querySelectorAll(".sc-docks > .sc-dock").forEach((d, i) => i && d.classList.remove("folded"));
+    const w2 = document.querySelector(".sc-player > .sc-docks").getBoundingClientRect().width;
+    document.querySelectorAll(".sc-docks > .sc-dock").forEach((d) => d.classList.remove("folded"));
+    S.removePanel("test-dock-tall");
+    S.removePanel("test-dock-bar");
+    return { inView: two.bottom <= col.bottom + 1 && two.height > 10 && (!last || last.top < col.bottom), bar: !!bar, w0, w1, w2 };
+  });
+  ok(docks2.inView, "a tall docked panel scrolls inside itself, so the panels after it stay in view");
+  ok(docks2.bar, 'place "under" puts a slim bar in a strip under the Player');
+  ok(docks2.w1 < 50 && docks2.w2 > 150 && docks2.w0 > 150, `the column shrinks to a strip only when every panel in it is folded (${Math.round(docks2.w0)} → ${Math.round(docks2.w1)} → ${Math.round(docks2.w2)}px)`);
   /* Keys typed in a tool window over the Screen belong to that tool, not the film behind it. */
   const keyGuard = await page.evaluate(() => {
     window.CurioScreen.setRow(1);

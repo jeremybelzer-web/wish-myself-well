@@ -635,24 +635,31 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-suiteacts button { padding: 2px 6px; }
 .sc-page .sl-suiteacts .sl-warn, .sl-suiteacts .sl-warn { color: var(--cc-warm); border-color: var(--cc-warm); }
 
-/* Panels other parts of the app dock beside the Player (CurioScreen.addPanel, place "player": the Momentum meter,
-   the 3D actors) stack top to bottom in one column the Screen owns, so they never sit on top of each other. */
+/* Panels other parts of the app dock beside the Player (CurioScreen.addPanel, place "player": the Momentum meter)
+   stack top to bottom in one column the Screen owns, so they never sit on top of each other. Each panel keeps a
+   share of the column's height and scrolls inside itself, so every panel stays in view (a panel that watches
+   whether it is on screen, like the 3D actors, is never pushed out of sight). Place "under" is a full-width
+   strip under the Player for slim bars that open a floating window (the 3D actors). */
 .sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr) var(--sc-dock-w, 204px); }
 .sc-player.sc-has-dock > :not(.sc-docks) { grid-column: 1; }
-.sc-player > .sc-docks { grid-column: 2; grid-row: 1 / -1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; border-left: 1px solid var(--cc-line); }
-.sc-docks > .sc-dock { flex: none; min-width: 0; border-left: 0; }
+.sc-player > .sc-docks { grid-column: 2; grid-row: 1 / -1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border-left: 1px solid var(--cc-line); }
+.sc-docks > .sc-dock { flex: 0 1 auto; min-width: 0; min-height: 2.5rem; overflow-y: auto; overflow-x: hidden; border-left: 0; }
 .sc-docks > .sc-dock + .sc-dock { border-top: 1px solid var(--cc-line); }
-/* A panel that is open wide (the 3D actors) widens the column; a lone folded panel shrinks it to a strip. */
-.sc-player:has(> .sc-docks .r3s-on) { --sc-dock-w: minmax(15rem, 34%); }
-.sc-player:has(> .sc-docks > .sc-dock:only-child.folded) { --sc-dock-w: 34px; }
+/* When every panel in the column is folded, the column shrinks to a strip. */
+.sc-player:has(> .sc-docks > .sc-dock):not(:has(> .sc-docks > .sc-dock:not(.folded))) { --sc-dock-w: 34px; }
 .sc-player:not(:has(> .sc-docks > .sc-dock)) > .sc-docks { display: none; }
 .sc-player:not(:has(> .sc-docks > .sc-dock)) { grid-template-columns: minmax(0, 1fr); }
+.sc-player > .sc-under { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0; min-width: 0; border-top: 1px solid var(--cc-line); }
+.sc-player > .sc-under:empty { display: none; }
+.sc-under > .sc-dock { flex: 1 1 100%; min-width: 0; }
 .sc-page[data-layout="right"][data-view="screen"] .sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr); }
 .sc-page[data-layout="right"][data-view="screen"] .sc-player > .sc-docks { grid-column: 1; grid-row: auto; max-height: 40vh; border-left: 0; border-top: 1px solid var(--cc-line); }
 @media (max-width: 860px) {
   .sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr); }
   .sc-player > .sc-docks { grid-column: auto; grid-row: auto; border-left: 0; border-top: 1px solid var(--cc-line); overflow: visible; }
+  .sc-docks > .sc-dock { overflow: visible; }
 }
+
 /* A Details row's ⋯ menu: Use this all through the film, in the selected stretch, Reset, Clear. */
 .sc-page .sc-cur-more { flex: none; background: none; padding: 0 6px; font-size: 14px; line-height: 1; color: var(--cc-dim); }
 .sc-page .sc-cur-more:hover, .sc-page .sc-cur-more[aria-expanded="true"] { color: var(--cc-accent); background: var(--cc-hover); }

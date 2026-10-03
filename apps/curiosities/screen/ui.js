@@ -423,21 +423,23 @@
     tell();
   }
   /* Side panels other threads dock into the Screen (the momentum meter beside the Player):
-     addPanel({ id, label, place: "player" | "details" | "timeline", mount(el) }). The Screen owns where they go;
+     addPanel({ id, label, place: "player" | "under" | "details" | "timeline", mount(el) }). The Screen owns where they go;
      each is mounted once into its own element and kept across redraws. on(fn) is told after every redraw and
      every playhead move. */
   const panels = [];
   const listeners = [];
-  const PLACE = { player: ".sc-player", details: ".sc-inspector", timeline: ".sc-timeline" };
+  const PLACE = { player: ".sc-player", under: ".sc-player", details: ".sc-inspector", timeline: ".sc-timeline" };
   /* Panels docked beside the Player stack top to bottom in one column the Screen owns (.sc-docks), in the order
      they were added, so two panels never fight over the Player's grid or sit on top of each other. */
   function dockHost(place) {
     const host = page.querySelector(PLACE[place] || PLACE.player);
     if (!host || (PLACE[place] || PLACE.player) !== PLACE.player) return host;
-    let col = host.querySelector(":scope > .sc-docks");
+    /* "under": a full-width strip under the Player, for a slim bar whose panel floats (the 3D actors). */
+    const cls = place === "under" ? "sc-under" : "sc-docks";
+    let col = host.querySelector(":scope > ." + cls);
     if (!col) {
       col = document.createElement("div");
-      col.className = "sc-docks";
+      col.className = cls;
       host.appendChild(col);
     }
     return col;
@@ -455,7 +457,8 @@
       }
       if (p.el.parentNode !== host) {
         host.appendChild(p.el);
-        (host.classList.contains("sc-docks") ? host.parentNode : host).classList.add("sc-has-dock");
+        if (host.classList.contains("sc-docks")) host.parentNode.classList.add("sc-has-dock");
+        else if (!host.classList.contains("sc-under")) host.classList.add("sc-has-dock");
       }
       if (!p.mounted) {
         p.mounted = true;
