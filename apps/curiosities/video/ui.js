@@ -29,7 +29,7 @@
     } catch (e) {}
     const on = {};
     (V() ? V().GROUPS : []).forEach((g) => (on[g.id] = p.on && typeof p.on[g.id] === "number" ? Math.max(0, Math.min(1, p.on[g.id])) : g.off ? 0 : 1));
-    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false };
+    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false, pool: Array.isArray(p.pool) ? p.pool.slice(0, 200).map((x) => String(x).slice(0, 160)) : [] };
   }
   function keep() {
     try {
@@ -195,6 +195,7 @@
     const p = currentPlan();
     const dlg = prefs.on.dialogue
       ? `<div class="vd-dialogue"><label>Topic of the new lines (the clip's title) <input type="text" data-title value="${esc(title)}" maxlength="120"></label>
+         <label>Or write your own lines, one per line (they are fitted to the inspiration's sentences instead) <textarea data-pool rows="3">${esc((prefs.pool || []).join("\n"))}</textarea></label>
          ${p.lines.length ? `<ol>${p.lines.slice(0, 40).map((l) => `<li><span class="vd-k">${fmt(l.start)}–${fmt(l.end)} · ${l.syll} syllables (inspiration: ${l.want})</span> ${esc(l.text)}</li>`).join("")}</ol>${p.lines.length > 40 ? `<p class="vd-k">and ${p.lines.length - 40} more</p>` : ""}` : `<p class="vd-k">Nobody talks in the inspiration, so there are no lines to fit.</p>`}
          <p class="vd-k">Each line is as long as one sentence of the inspiration: the same number of syllables in the same seconds, with the same pauses between. Play it speaks them in your browser's voice and shows them as subtitles; a saved video keeps the subtitles (browsers can't record their own voice yet).</p></div>`
       : "";
@@ -229,7 +230,7 @@
     return { w, h: clip ? Math.round((w * clip.height) / clip.width / 2) * 2 : 360 };
   }
   function currentPlan() {
-    return V().plan(slot.a.d, slot.b.d, { mode: prefs.mode, on: prefs.on, title: prefs.title || slot.b.d.title, lines });
+    return V().plan(slot.a.d, slot.b.d, { mode: prefs.mode, on: prefs.on, title: prefs.title || slot.b.d.title, lines, pool: prefs.pool });
   }
 
   /* ---------- actions ---------- */
@@ -431,6 +432,9 @@
       } else if (t.dataset.mode != null) {
         prefs.mode = t.value === "stretch" ? "stretch" : "same";
         checks = null;
+      } else if (t.dataset.pool != null) {
+        prefs.pool = t.value.split("\n").map((x) => x.trim()).filter(Boolean).slice(0, 200);
+        lines = null;
       } else if (t.dataset.title != null) {
         prefs.title = t.value.slice(0, 120);
         lines = null;

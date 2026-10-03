@@ -730,7 +730,7 @@
             if (a < p.duration - 0.2) pattern.push({ start: a, end: Math.min(p.duration, rep * insp.duration + ph.end), syll: ph.syll });
           });
       }
-      p.lines = opts.lines && opts.lines.length ? opts.lines : fitDialogue(opts.title || target.title, pattern, { seed: opts.seed });
+      p.lines = opts.lines && opts.lines.length ? opts.lines : fitDialogue(opts.title || target.title, pattern, { seed: opts.seed, pool: opts.pool });
     }
     /* The inspiration's camera moves, made to fit inside the frame's spare edge: its pans and tilts (the steady
        path with its slow drift over two seconds taken out, so a long pan does not run off the frame) and its
@@ -1082,15 +1082,56 @@
     show: ["welcome back to the show", "here's what's coming up", "stay with us", "we've got a lot to talk about", "let's get into it", "this is where it all comes together", "you won't want to miss this", "more after this"],
     any: ["here we go", "this is the moment", "let's take a look", "you can feel it", "something is about to change", "keep watching", "that's the whole idea", "and that's how it goes"],
   };
+  const MONTHS = "January February March April May June July August September October November December".split(" ");
+  const ORD = ["", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth", "thirteenth", "fourteenth", "fifteenth", "sixteenth", "seventeenth", "eighteenth", "nineteenth", "twentieth", "twenty-first", "twenty-second", "twenty-third", "twenty-fourth", "twenty-fifth", "twenty-sixth", "twenty-seventh", "twenty-eighth", "twenty-ninth", "thirtieth", "thirty-first"];
+  /* A title that is a date (a phone names clips "2014-08-17 17.24.22"): lines about that day. */
+  function dayLines(t) {
+    const m = String(t || "").match(/(19|20)(\d\d)[-_. ](\d\d)[-_. ](\d\d)(?:[ T_]+(\d\d)[.:h](\d\d))?/);
+    if (!m) return null;
+    const year = Number(m[1] + m[2]),
+      mon = Number(m[3]),
+      day = Number(m[4]);
+    if (mon < 1 || mon > 12 || day < 1 || day > 31) return null;
+    const month = MONTHS[mon - 1],
+      wd = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][new Date(Date.UTC(year, mon - 1, day)).getUTCDay()];
+    const hr = m[5] != null ? Number(m[5]) : null;
+    const part = hr == null ? "day" : hr < 12 ? "morning" : hr < 17 ? "afternoon" : hr < 21 ? "evening" : "night";
+    const season = [12, 1, 2].includes(mon) ? "winter" : mon <= 5 ? "spring" : mon <= 8 ? "summer" : "fall";
+    const yr = year >= 2010 && year < 2100 ? "twenty " + ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"][year - 2010] || String(year) : String(year);
+    return [
+      `${month} ${ORD[day]}, ${yr}`,
+      `a ${wd} ${part} in ${month}`,
+      `that ${season} ${part}`,
+      `the ${ORD[day]} of ${month}`,
+      `${wd}, ${month} ${ORD[day]}`,
+      `remember ${month} ${yr}`,
+      `everybody was there that ${wd}`,
+      `it was the ${season} of ${yr}`,
+      `one ${wd} ${part}, years ago`,
+      `back in ${month}, ${yr}`,
+      `that ${part} we will not forget`,
+      `the light that ${season} ${part}`,
+    ];
+  }
+  /* Lines built from the title's own words, for any title. */
+  function wordLines(words) {
+    if (!words.length) return [];
+    const w = words.join(" "),
+      a = words[0],
+      z = words[words.length - 1];
+    const out = [`this is ${w}`, `here is ${w}`, `all about ${w}`, `${w}, again`, `${w} is back`, `it's ${w} time`, `nothing but ${w}`];
+    if (words.length > 1) out.push(`${a} first, then ${z}`, `the ${a} and the ${z}`, `here comes the ${a}`, `listen to the ${z}`);
+    return out;
+  }
   function topicOf(title) {
     const t = String(title || "").toLowerCase();
-    const kind = /get well|feel better|recover|heal/.test(t) ? "getwell" : /birthday/.test(t) ? "birthday" : /thank/.test(t) ? "thanks" : /theme|show|cube|intro|episode|news/.test(t) ? "show" : "any";
+    const kind = dayLines(title) ? "day" : /get well|feel better|recover|heal/.test(t) ? "getwell" : /birthday/.test(t) ? "birthday" : /thank/.test(t) ? "thanks" : /theme|show|cube|intro|episode|news/.test(t) ? "show" : "any";
     const words = String(title || "")
       .replace(/\.[a-z0-9]{2,4}$/i, "")
       .split(/[^A-Za-z']+/)
       .filter((w) => w && !COMMON.has(w.toLowerCase()) && !/^\d/.test(w));
-    const name = words.find((w) => /^[A-Z]/.test(w)) || words[0] || "";
-    return { kind, name, words };
+    const name = kind === "day" ? "" : words.find((w) => /^[A-Z]/.test(w)) || words[0] || "";
+    return { kind, name, words: kind === "day" ? [] : words, day: dayLines(title) };
   }
   function seeded(seed) {
     let x = (seed >>> 0) || 1;
@@ -1100,33 +1141,40 @@
     opts = opts || {};
     const top = topicOf(title);
     const rnd = seeded(opts.seed || 7);
-    const bank = BANKS[top.kind].concat(top.kind === "any" ? [] : BANKS.any.slice(0, 3));
-    const withName = (s) => (top.name ? [s, s + ", " + top.name, top.name + ", " + s] : [s]);
+    /* Your own lines first (opts.pool); else lines on the title: its day, its kind and its own words. No stock
+       filler: "any" lines are used only when the title gives nothing at all. */
+    const own = (opts.pool || []).map((x) => String(x).trim()).filter(Boolean);
+    const titleBank = top.kind === "day" ? top.day : top.kind === "any" ? [] : BANKS[top.kind];
+    let bank = own.length ? own : titleBank.concat(top.kind === "any" || top.kind === "show" ? wordLines(top.words) : []);
+    if (!bank.length) bank = BANKS.any;
+    const withName = (s) => (top.name && !own.length && top.kind !== "show" && !s.toLowerCase().includes(top.name.toLowerCase()) ? [s, s + ", " + top.name, top.name + ", " + s] : [s]);
     const cands = [];
-    bank.forEach((s) => withName(s).forEach((x) => cands.push({ text: x[0].toUpperCase() + x.slice(1), syll: syllables(x) })));
-    if (top.name) cands.push({ text: top.name + "!", syll: syllables(top.name) });
-    if (top.words.length > 1) {
+    bank.forEach((s) => withName(s).forEach((x) => cands.push({ text: x[0].toUpperCase() + x.slice(1), syll: syllables(x), base: s })));
+    if (top.name && !own.length) cands.push({ text: top.name + "!", syll: syllables(top.name), base: top.name });
+    if (top.words.length > 1 && !own.length) {
       const w = top.words.join(" ");
-      cands.push({ text: "This one is all about " + w, syll: syllables("this one is all about " + w) });
+      cands.push({ text: "This one is all about " + w, syll: syllables("this one is all about " + w), base: "all about" });
     }
     const used = new Map();
     return pattern.map((ph) => {
       const want = ph.syll;
       /* Fill the phrase with one or two lines whose syllables add up closest to the phrase's. */
       let best = null;
-      const score = (s, txt) => Math.abs(s - want) + (used.get(txt) || 0) * 1.5 + rnd() * 0.3;
+      /* a line already said costs a lot, so lines repeat only once all of them have been used */
+      const u = (c) => used.get(c.base) || 0;
+      const score = (s, c) => Math.abs(s - want) + u(c) * 6 + rnd() * 0.3;
       cands.forEach((a) => {
-        const sc = score(a.syll, a.text);
-        if (!best || sc < best.sc) best = { sc, text: a.text, syll: a.syll };
+        const sc = score(a.syll, a);
+        if (!best || sc < best.sc) best = { sc, text: a.text, syll: a.syll, bases: [a.base] };
         if (a.syll < want)
           cands.forEach((b) => {
-            if (b === a) return;
-            const txt = a.text + ". " + b.text;
-            const sc2 = score(a.syll + b.syll, txt) + 0.5 + (used.get(b.text) || 0);
-            if (sc2 < best.sc) best = { sc: sc2, text: txt, syll: a.syll + b.syll };
+            if (b === a || b.base === a.base) return;
+            const txt = a.text + (/[.!?]$/.test(a.text) ? " " : ". ") + b.text;
+            const sc2 = score(a.syll + b.syll, a) + 0.5 + u(b) * 6;
+            if (sc2 < best.sc) best = { sc: sc2, text: txt, syll: a.syll + b.syll, bases: [a.base, b.base] };
           });
       });
-      used.set(best.text, (used.get(best.text) || 0) + 1);
+      best.bases.forEach((b) => used.set(b, (used.get(b) || 0) + 1));
       return { start: r3(ph.start), end: r3(ph.end), text: best.text + (/[.!?]$/.test(best.text) ? "" : "."), syll: best.syll, want };
     });
   }
