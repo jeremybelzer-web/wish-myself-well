@@ -299,7 +299,7 @@
     ctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, H);
     /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI. */
     const M = adj.parts && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
-    const k = M ? M.cut(ctx.canvas) : null;
+    const k = M ? M.cut(ctx.canvas, { track: "applied", t: video.currentTime }) : null;
     if (adj.want || adj.luma !== 1 || adj.contrast !== 1 || adj.sat !== 1 || adj.warm) {
       const img = ctx.getImageData(0, 0, W, H);
       const d = img.data;

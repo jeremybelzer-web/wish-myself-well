@@ -58,5 +58,5 @@ When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, t
 - Browsers can't record their own speaking voice: Play speaks the new lines, a saved video keeps them as subtitles.
 - Steadying a phone clip full of moving faces only partly works (the faces move with the camera).
 - A clip can be zoomed in, never made wider. Face replacement is not done: it needs a server AI and the consent of everyone shown.
-- Cut-outs are per frame, about 4 looks a second when a clip is taken apart; 320 pixels wide, so edges are soft. People who are far away or blurred by motion are sometimes missed.
+- Cut-outs are 320 pixels wide, so edges are soft. People who are far away or blurred by motion are sometimes missed. While a clip plays, each frame's cut-out is steadied against the one before (a cut or a jump starts fresh), specks are dropped and small holes in people are filled, so a new set or color flickers less; `CurioMask.configure({ steady: false })` turns this off.
 - Very long or very large files take a while: up to 900 looks at the picture, and the sound is decoded whole.

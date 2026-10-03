@@ -289,6 +289,96 @@ check("paid AI: a price first, and caps that stop it", () => {
   assert(/day cap/.test(A.check(0.5)) && A.caps().job === 1, "the day cap stops it too");
   assert(!JSON.stringify(store).includes("curiosities-ai-spent"), "spending is not saved in project files");
 });
+/* The steadier cut-out (mask.js), on made-up masks: no page or AI needed for these parts. */
+const MK = (() => {
+  const ctx = {};
+  ctx.window = ctx;
+  require("vm").runInNewContext(fs.readFileSync(path.join(__dirname, "..", "mask.js"), "utf8"), ctx);
+  return ctx.CurioMask.tidy;
+})();
+/* a 40 x 30 mask: a person (clothes) in a box, with a hole and a speck */
+function madeUp() {
+  const w = 40,
+    h = 30,
+    L = new Uint8Array(w * h);
+  for (let y = 5; y < 28; y++) for (let x = 10; x < 25; x++) L[y * w + x] = y < 9 ? 3 : 4;
+  for (let y = 15; y < 17; y++) for (let x = 15; x < 18; x++) L[y * w + x] = 0; /* a 6-pixel hole in the clothes */
+  L[3 * w + 33] = 4; /* a 1-pixel speck */
+  for (let y = 18; y < 24; y++) for (let x = 0; x < 6; x++) L[y * w + x] = 0; /* set touching the edge stays set */
+  return { w, h, L };
+}
+check("cut-out clean-up: specks dropped, small holes filled with the element around them", () => {
+  const { w, h, L } = madeUp();
+  const fix = MK.cleanLabels(L, w, h, { island: 0.01, hole: 0.02 });
+  assert(L[3 * w + 33] === 0 && fix[3 * w + 33] === 1, "the speck is gone");
+  assert(L[15 * w + 16] === 4 && fix[15 * w + 16] === 2, "the hole is filled with clothes");
+  assert(L[0] === 0 && L[20 * w + 2] === 0 && L[12 * w + 30] === 0, "the set stays set");
+  assert(L[6 * w + 12] === 3, "the face stays face");
+});
+check("cut-out clean-up: a big gap stays open, a far-away person alone is kept", () => {
+  const w = 40,
+    h = 30,
+    L = new Uint8Array(w * h);
+  for (let y = 2; y < 28; y++) for (let x = 5; x < 35; x++) L[y * w + x] = 4;
+  for (let y = 8; y < 22; y++) for (let x = 12; x < 28; x++) L[y * w + x] = 0; /* 224 px, more than 2% of 1200 */
+  MK.cleanLabels(L, w, h, { island: 0.01, hole: 0.02 });
+  assert(L[15 * w + 20] === 0, "a gap bigger than a hole stays open");
+  /* a gap the AI is sure of stays open even when small; one it half saw (motion blur) is filled */
+  const { L: L2 } = madeUp(),
+    sure = new Float32Array(w * h),
+    half = new Float32Array(w * h).fill(0.4);
+  MK.cleanLabels(L2, w, h, { island: 0.001, hole: 0.02 }, sure);
+  assert(L2[15 * w + 16] === 0, "a sure gap stays open");
+  const { L: L3 } = madeUp();
+  MK.cleanLabels(L3, w, h, { island: 0.001, hole: 0.02 }, half);
+  assert(L3[15 * w + 16] === 4, "a half-seen hole is filled");
+  const L4 = new Uint8Array(w * h);
+  L4[10 * w + 10] = L4[10 * w + 11] = 2;
+  MK.cleanLabels(L4, w, h, { island: 0.01, hole: 0.02 });
+  assert(L4[10 * w + 10] === 2, "the only person in the frame stays, however small");
+});
+check("cut-out steadying: flicker is damped, a cut or a jump in time starts fresh", () => {
+  const n = 100,
+    gray = new Uint8Array(n).fill(100);
+  const conf = (p) => [new Float32Array(n).fill(1 - p), new Float32Array(n).fill(p)];
+  const prev = { gray, conf: conf(1), t: 1 };
+  /* a still picture: the AI flickers to 0.2 for one frame; blended, the person stays above half */
+  const c = conf(0.2);
+  assert(MK.blend(c, gray, prev, 1.04, 0.45) && c[1][0] > 0.5, "one bad frame doesn't drop the person: " + c[1][0]);
+  assert(MK.argmax(c, n)[0] === 1, "still labeled a person");
+  /* where the picture moved a lot, the new frame counts more */
+  const moved = new Uint8Array(n).fill(170),
+    c2 = conf(0.2),
+    prev2 = { gray: new Uint8Array(n).fill(150), conf: conf(1), t: 1 };
+  MK.blend(c2, moved, prev2, 1.04, 0.45);
+  assert(c2[1][0] < c[1][0], "moving pixels follow the new frame faster");
+  const c3 = conf(0.2);
+  assert(!MK.blend(c3, new Uint8Array(n).fill(220), prev, 1.04, 0.45) && Math.abs(c3[1][0] - 0.2) < 1e-6, "a cut is not blended");
+  assert(!MK.blend(conf(0.2), gray, prev, 3, 0.45) && !MK.blend(conf(0.2), gray, prev, 0.5, 0.45), "a jump in time is not blended");
+  assert(!MK.blend(conf(0.2), gray, null, 1, 0.45), "the first frame stands alone");
+});
+
+check("cut-out clean-up: a narrow bite out of a person's edge is closed, grow and shrink are exact", () => {
+  const w = 30,
+    h = 30,
+    L = new Uint8Array(w * h);
+  for (let y = 5; y < 25; y++) for (let x = 5; x < 25; x++) L[y * w + x] = 4;
+  for (let y = 12; y < 14; y++) for (let x = 20; x < 25; x++) L[y * w + x] = 0; /* a 2-pixel slit from the edge */
+  MK.cleanLabels(L, w, h, { island: 0.001, hole: 0.02, close: 2 });
+  assert(L[12 * w + 22] === 4 && L[13 * w + 24] === 4, "the slit is closed");
+  assert(L[12 * w + 27] === 0 && L[2 * w + 2] === 0, "outside stays set");
+  const m = new Uint8Array(w * h);
+  m[15 * w + 15] = 1;
+  const g = MK.boxAny(m, w, h, 2);
+  assert(g[13 * w + 17] === 1 && g[12 * w + 15] === 0 && g.reduce((a, b) => a + b) === 25, "grow by 2 is a 5 x 5 square");
+  assert(MK.boxAll(g, w, h, 2).reduce((a, b) => a + b) === 1, "and shrinking it back leaves the one pixel");
+});
+check("cut-out: a blurred arm, half clothes and half skin, is still person", () => {
+  const c = [[0.4], [0], [0.3], [0.3], [0], [0]].map((a) => Float32Array.from(a));
+  assert(MK.argmax(c, 1)[0] === 2, "person (skin) wins over the set at 0.4");
+  c[0][0] = 0.6;
+  assert(MK.argmax(c, 1)[0] === 0, "and the set wins at 0.6");
+});
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });
