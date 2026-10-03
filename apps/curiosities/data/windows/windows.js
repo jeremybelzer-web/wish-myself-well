@@ -33,6 +33,22 @@
     const before = new Set(DB.find(id).sliders.map((s) => s.id));
     if (def.sliders && def.sliders.length) DB.curiosity({ id, sliders: def.sliders });
     const row = DB.find(id);
+    /* A number setting whose step does not divide its range can never reach its top (14 to 200 mm in steps of 5
+       stops at 199): use the nearest smaller step that does, with at most two decimals. */
+    row.sliders.forEach((s) => {
+      const r = s.range;
+      if (!r || !(r.max > r.min) || !(r.step > 0)) return;
+      const span = r.max - r.min;
+      const even = (st) => Math.abs(Math.round(span / st) * st - span) < 1e-6;
+      if (even(r.step)) return;
+      if (Number.isInteger(r.step) && Number.isInteger(span)) {
+        for (let st = r.step - 1; st >= 1; st--) if (even(st)) return void (r.step = st);
+      }
+      for (let k = Math.ceil(span / r.step); k < Math.ceil(span / r.step) * 8; k++) {
+        const st = Math.round((span / k) * 100) / 100;
+        if (st > 0 && even(st)) return void (r.step = st);
+      }
+    });
     W.added[id] = (W.added[id] || []).concat(row.sliders.filter((s) => !before.has(s.id)).map((s) => s.id));
     if (def.window) {
       /* A second add on the same curiosity (measure-<category>.js) adds to its window: faces and presets are

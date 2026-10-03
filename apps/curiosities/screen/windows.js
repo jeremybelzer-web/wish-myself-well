@@ -224,6 +224,8 @@
     }
     return out;
   }
+  /* The setting, repeats and depth picked under Shape over my film, kept per window across redraws. */
+  const shapeMem = {};
   const TIMES = [1, 2, 3, 4, 6, 8];
   const DEPTHS = [[1, "All the way"], [0.75, "A lot"], [0.5, "Halfway"], [0.25, "A little"]];
 
@@ -253,12 +255,13 @@
     /* Automation tools: draw a shape over the whole film, or surprise me. */
     const shapeable = own.filter((s) => (s.scale && !s.unordered) || s.range);
     if (shapeable.length && h.ctx.beats.length > 1) {
-      const pick = (h.focus && shapeable.find((s) => h.sliderId(c, s) === h.focus)) || shapeable.find((s) => s.id === c.main) || shapeable[0];
+      const mem = shapeMem[c.id] || {};
+      const pick = shapeable.find((s) => s.id === mem.pick) || (h.focus && shapeable.find((s) => h.sliderId(c, s) === h.focus)) || shapeable.find((s) => s.id === c.main) || shapeable[0];
       parts.push(`<div class="sc-wpart cw-shape"><h4>Shape over my film</h4><p class="sc-k">Draw a whole movement for one setting across every moment of my film. One undo step.</p>
         <div class="cw-shape-row"><select data-cw-shape-pick="${esc(c.id)}" aria-label="Which setting to shape">${shapeable.map((s) => `<option value="${esc(s.id)}"${s === pick ? " selected" : ""}>${esc(s.id === c.main ? c.label : s.label)}</option>`).join("")}</select>
         ${SHAPES.map(([k, label]) => `<button type="button" data-cw-shape="${esc(c.id)}|${k}" title="${esc(label)} across the film">${shapeIcon(k)}<span>${esc(label)}</span></button>`).join("")}</div>
-        <div class="cw-shape-row"><label>How many times <select data-cw-shape-times="${esc(c.id)}" aria-label="How many times the shape plays">${TIMES.map((n) => `<option value="${n}">${n === 1 ? "Once" : `${n} times`}</option>`).join("")}</select></label>
-        <label>How much <select data-cw-shape-depth="${esc(c.id)}" aria-label="How far the shape swings">${DEPTHS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></label></div>
+        <div class="cw-shape-row"><label>How many times <select data-cw-shape-times="${esc(c.id)}" aria-label="How many times the shape plays">${TIMES.map((n) => `<option value="${n}"${String(n) === String(mem.times) ? " selected" : ""}>${n === 1 ? "Once" : `${n} times`}</option>`).join("")}</select></label>
+        <label>How much <select data-cw-shape-depth="${esc(c.id)}" aria-label="How far the shape swings">${DEPTHS.map(([v, l]) => `<option value="${v}"${String(v) === String(mem.depth) ? " selected" : ""}>${l}</option>`).join("")}</select></label></div>
         <div class="cw-shape-row"><button type="button" data-cw-surprise="${esc(c.id)}"${h.ctx.edit ? "" : " disabled"} title="Every setting of its own picks something at random, here">🎲 Surprise me here</button></div></div>`);
     }
     return parts.join("");
@@ -353,7 +356,8 @@
       let top = null;
       let score = 0;
       list.forEach((s) => {
-        let n = overlap(s.id === c.main ? s.label + " " + c.label : s.label, clause) * 2 + overlap(s.plain, clause) * 0.5;
+        const idWords = s.id.replace(/([A-Z])/g, " $1").toLowerCase();
+        let n = overlap(s.id === c.main ? s.label + " " + c.label : s.label, clause) * 2 + overlap(s.plain, clause) * 0.5 + (s.id !== "setting" && s.id !== c.main ? overlap(idWords, clause) * 2 : 0);
         Object.entries(HINT).forEach(([w, part]) => new RegExp("\\b" + w + "\\b").test(clause) && (s.id.toLowerCase().includes(part) || s.label.toLowerCase().includes(part)) && (n += 3));
         if (s.id === c.main) n += 0.25;
         if (n > score) (score = n), (top = s);
@@ -370,23 +374,39 @@
           if (!hit || sc > hit.sc) hit = { s, o, sc };
         }
       }));
-      if (hit) return put(hit.s, hit.o, `${hit.s.id === c.main ? c.label : hit.s.label}: ${hit.o}`);
+      if (hit) {
+        /* "not so close", "less wide", "too dark": one step from that word toward the middle of its scale. */
+        const w = String(hit.o).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        if (hit.s.scale.length > 2 && new RegExp("\\b(not|less|too|isn't|not that)\\s+(so\\s+|too\\s+|that\\s+|very\\s+)?" + w + "([^a-z]|$)").test(clause)) {
+          const i = hit.s.scale.indexOf(hit.o);
+          const j = i < (hit.s.scale.length - 1) / 2 ? i + 1 : i - 1;
+          return put(hit.s, hit.s.scale[j], `${hit.s.id === c.main ? c.label : hit.s.label}: ${hit.s.scale[j]} (not so ${hit.o})`);
+        }
+        return put(hit.s, hit.o, `${hit.s.id === c.main ? c.label : hit.s.label}: ${hit.o}`);
+      }
       /* 2. A number, with a unit if one is said. */
       const m = clause.match(/(-?\d+(?:\.\d+)?)\s*(°|%|[a-z]+)?/);
       if (m) {
         let n = Number(m[1]);
-        const unit = (UNIT.find(([re]) => re.test(m[2] || "")) || [])[1];
+        let unit = (UNIT.find(([re]) => re.test(m[2] || "")) || [])[1];
+        /* "2x" or "half speed" on a setting measured in %: 2x is 200%. */
+        if (/^(x|times)$/.test(m[2] || "") && own.some((s) => s.range && s.range.unit === "%" && !SHARED.includes(s.id))) (n *= 100), (unit = "%");
         if (/\b(left|below|under|down)\b/.test(clause) && n > 0 && unit === "°") n = -n;
-        const nums = own.filter((s) => s.range && (!unit || (s.range.unit || "") === unit));
-        const s = best(clause, nums) || (nums.length === 1 ? nums[0] : null);
+        const all = own.filter((s) => s.range && (!unit || (s.range.unit || "") === unit));
+        /* The shared settings (amount, push) only when they are named. */
+        const nums = all.filter((s) => !SHARED.includes(s.id) || overlap(s.label, clause) > 0);
+        const s = best(clause, nums) || (nums.length ? nums.find((x) => x.id === c.main) || nums[0] : null);
         if (s) return put(s, n, `${s.id === c.main ? c.label : s.label}: ${n}${s.range.unit || ""}`);
       }
       /* 3. More or less of something. */
       const up = UP.test(clause);
       const down = DOWN.test(clause);
       if (up !== down) {
-        const ord = own.filter((s) => s.range || (s.scale && !s.unordered));
-        const s = best(clause, ord);
+        const ord = own.filter((s) => (s.range || (s.scale && !s.unordered)) && !SHARED.includes(s.id));
+        /* A bare "more" or "less" means more of it: its strength, if it has one, rather than the next word on a list. */
+        const bare = !words(clause.replace(UP, " ").replace(DOWN, " ").replace(/\b(a|bit|lot|little|much|way|very|far|please|it)\b/g, " ")).length;
+        const strong = bare ? ord.find((x) => /intens|strength|arous|wound up|energy|level|how much|how strong/.test((x.id + " " + x.label).toLowerCase())) : null;
+        const s = strong || best(clause, ord);
         if (!s) return;
         const k = h.sliderId(c, s);
         const cur = h.ctx.value(k);
@@ -447,6 +467,12 @@
     const d = t && t.dataset;
     const win = t && t.closest && t.closest(".sc-win");
     if (!d || !win) return false;
+    if (d.cwShapePick || d.cwShapeTimes || d.cwShapeDepth) {
+      const id = d.cwShapePick || d.cwShapeTimes || d.cwShapeDepth;
+      const m = (shapeMem[id] = shapeMem[id] || {});
+      m[d.cwShapePick ? "pick" : d.cwShapeTimes ? "times" : "depth"] = t.value;
+      return false;
+    }
     const box = win.querySelector("[data-cw-look]");
     const c = box && window.CurioLevels && window.CurioLevels.get("curiosity", box.dataset.cwLook);
     if (!c) return false;
@@ -496,6 +522,9 @@
       const sel = win && win.querySelector(`[data-cw-shape-pick="${cid}"]`);
       const s = sl(c, sel ? sel.value : c.main);
       const id = s && h.sliderId(c, s);
+      const times0 = win && win.querySelector(`[data-cw-shape-times="${cid}"]`);
+      const depth0 = win && win.querySelector(`[data-cw-shape-depth="${cid}"]`);
+      shapeMem[cid] = { pick: s && s.id, times: times0 && times0.value, depth: depth0 && depth0.value };
       const n = h.ctx.beats.length;
       const range = api.range ? api.range() : null;
       const times = win && win.querySelector(`[data-cw-shape-times="${cid}"]`);
@@ -833,6 +862,7 @@
 .sc-page button.cw-midi.learning { opacity: 1; outline: 1px solid var(--cc-accent); animation: cw-blink 0.8s steps(2) infinite; }
 @keyframes cw-blink { 50% { outline-color: transparent; } }
 .sc-page .sc-win .cw-look { position: sticky; top: -8px; z-index: 3; background: var(--cc-panel, #1b1b1f); padding-top: 4px; padding-bottom: 4px; }
+.sc-page .sc-win .sc-frames button span { cursor: pointer; padding: 1px 5px; background: rgba(255, 255, 255, 0.85); border-radius: 3px; }
 .cw-look-pic { border-radius: 6px; overflow: hidden; background: #111; line-height: 0; }
 .cw-look-pic svg { width: 100%; height: auto; display: block; }
 .sc-page .sc-win .sc-chips { display: flex; flex-wrap: wrap; gap: 3px; }

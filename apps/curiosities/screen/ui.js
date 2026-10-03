@@ -926,8 +926,17 @@
     const base = L().get("curiosity", id) ? id : L().base(id);
     if (!L().get("curiosity", base)) return toast("That curiosity has no window yet.");
     const had = wins.findIndex((w) => w.id === base);
-    if (had >= 0) wins.push(wins.splice(had, 1)[0]);
-    else wins.push({ id: base, x: 120 + (wins.length % 5) * 28, y: 90 + (wins.length % 5) * 28, focus: id === base ? "" : id });
+    if (had >= 0) {
+      wins.push(wins.splice(had, 1)[0]);
+      if (id !== base) wins[wins.length - 1].focus = id;
+    } else {
+      /* Kept inside the screen, so the × can always be tapped (phone width too); every new one steps down. */
+      const vw = window.innerWidth || 1024;
+      const vh = window.innerHeight || 768;
+      const ww = Math.min(360, vw - 32);
+      const n = wins.length;
+      wins.push({ id: base, x: Math.max(8, Math.min(120 + (n % 7) * 28, vw - ww - 8)), y: Math.max(8, Math.min(90 + (n % 7) * 28, vh - 160)), focus: id === base ? "" : id });
+    }
     drawWins();
   }
   function mineCtx() {
@@ -1109,8 +1118,19 @@
     }
     const scroll = {};
     box.querySelectorAll(".sc-win").forEach((x) => (scroll[x.dataset.win] = (x.querySelector(".sc-win-b") || {}).scrollTop || 0));
+    /* Keep keyboard focus on the same control across the redraw, so arrow keys keep stepping. */
+    const a = document.activeElement;
+    const aw = a && box.contains(a) && a.closest(".sc-win");
+    const attr = aw && ["data-set", "data-step-set", "data-knob", "data-cw-say-text", "data-cw-shape-pick"].find((n) => a.hasAttribute(n));
+    const keep = attr ? `.sc-win[data-win="${aw.dataset.win}"] [${attr}="${a.getAttribute(attr)}"]${a.dataset.v != null ? `[data-v="${a.dataset.v}"]` : ""}` : null;
     box.innerHTML = wins.filter((w) => L().get("curiosity", w.id)).map((w, i) => winHtml(w, i)).join("");
     box.querySelectorAll(".sc-win").forEach((x) => scroll[x.dataset.win] && (x.querySelector(".sc-win-b").scrollTop = scroll[x.dataset.win]));
+    if (keep) {
+      try {
+        const el = box.querySelector(keep);
+        if (el) el.focus({ preventScroll: true });
+      } catch (e) {}
+    }
   }
   function winClick(d, t) {
     if (faces() && (d.cwPreset || d.cwShape || d.cwSurprise || d.cwSay || d.cwMic || d.cwMidi)) return faces().click(d, t, faceHelpers(mineCtx()), faceApi());
@@ -1801,7 +1821,7 @@
     const min = Number(k.dataset.min);
     const max = Number(k.dataset.max);
     const step = Number(k.dataset.step) || 1;
-    const start = Number(k.dataset.val) || min;
+    const start = k.dataset.val !== "" && isFinite(Number(k.dataset.val)) ? Number(k.dataset.val) : min;
     const y0 = e.clientY;
     let val = start;
     const move = (ev) => {
@@ -1828,7 +1848,7 @@
     e.stopPropagation();
     const step = Number(k.dataset.step) || 1;
     const dir = /Up|Right/.test(e.key) ? 1 : -1;
-    const v = Math.max(Number(k.dataset.min), Math.min(Number(k.dataset.max), (Number(k.dataset.val) || 0) + dir * step));
+    const v = Math.max(Number(k.dataset.min), Math.min(Number(k.dataset.max), (k.dataset.val !== "" && isFinite(Number(k.dataset.val)) ? Number(k.dataset.val) : Number(k.dataset.min)) + dir * step));
     setValue(k.dataset.knob, v);
   }, true);
 

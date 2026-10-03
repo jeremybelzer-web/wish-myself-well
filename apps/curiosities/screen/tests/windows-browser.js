@@ -274,6 +274,30 @@ const ok = (cond, msg) => {
   ok(redraw === true, "dragging a slider redraws the live picture before the node is set");
   ok(await page.$(`${orb} .sc-chips button[data-set="cameraPlace.subject"]`), "a list with no order is chips to tap, not a menu");
 
+  /* Fixes from the testing thread's bug list. */
+  const words2 = await page.evaluate(() => {
+    const I = (id, text, vals) => {
+      const c = window.CurioLevels.get("curiosity", id);
+      const h = { sliderId: (cc, s) => (s.id === cc.main || s.id === "setting" ? (window.CurioScale.known(cc.id) ? cc.id : cc.id + "." + s.id) : cc.id + "." + s.id), ctx: { value: (k) => (vals || {})[k] } };
+      return window.CurioWindowFaces.interpret(c, text, h).set.map(([k, v]) => k + "=" + v);
+    };
+    return { notSo: I("shotSize", "not so close"), roll: I("cameraPlace", "10 degrees roll"), twice: I("clipSpeed", "2x"), half: I("clipSpeed", "50%"), more: I("emotion", "more", { emotion: "curious", "emotion.arousal": 2 }) };
+  });
+  ok(words2.notSo.includes("shotSize=medium"), "\"not so close\" steps back to medium: " + words2.notSo);
+  ok(words2.roll.includes("cameraPlace.roll=10"), "\"10 degrees roll\" sets the roll: " + words2.roll);
+  ok(words2.twice.includes("clipSpeed.percent=200") && words2.half.includes("clipSpeed.percent=50"), "\"2x\" and \"50%\" set the clip speed: " + words2.twice + " / " + words2.half);
+  ok(words2.more.some((x) => /^emotion\.arousal=3$/.test(x)), "a bare \"more\" on Emotion turns it up rather than changing the feeling: " + words2.more);
+  const pickKept = await page.evaluate(async (orb) => {
+    const sel = document.querySelector(`${orb} [data-cw-shape-pick="cameraPlace"]`);
+    sel.value = "height";
+    sel.dispatchEvent(new Event("input", { bubbles: true }));
+    document.querySelector(`${orb} [data-cw-shape="cameraPlace|rise"]`).click();
+    await new Promise((r) => setTimeout(r, 200));
+    return document.querySelector(`${orb} [data-cw-shape-pick="cameraPlace"]`).value;
+  }, orb);
+  ok(pickKept === "height", `the shape's setting stays picked after a shape is drawn (${pickKept})`);
+  ok(await page.evaluate(() => { const d = window.CurioScale.domain("lensLength.mm"); return Math.abs(((d.max - d.min) / d.step) % 1) < 1e-9; }), "number settings can reach their top value (lens length in mm)");
+
   /* MIDI learn: click 🎹, move a knob, and that knob writes the setting at the playhead. */
   await page.evaluate(() => (window.CurioAuto.connectMidi = () => Promise.resolve(true)));
   await page.click(`${orb} [data-cw-midi="cameraPlace.distance"]`);
@@ -288,6 +312,15 @@ const ok = (cond, msg) => {
   ok(await page.evaluate(() => window.CurioWindowFaces.midi.bindings()["cc:21"] === "cameraPlace.distance"), "the knob is remembered for that setting");
   ok(await page.$(`${orb} [data-cw-midi="cameraPlace.distance"].on`), "the 🎹 button shows which knob moves it");
 
+  /* At phone width a new window stays on the screen, so its × can be tapped. */
+  await page.setViewportSize({ width: 390, height: 844 });
+  const phone = await page.evaluate(() => {
+    window.CurioScreen.openWin("lensLength");
+    const w = document.querySelector('.sc-win[data-win="lensLength"]');
+    const r = w && w.getBoundingClientRect();
+    return r ? [r.left, r.right] : null;
+  });
+  ok(phone && phone[0] >= 0 && phone[1] <= 390, "at phone width a new window opens inside the screen: " + JSON.stringify(phone));
   ok(!errors.length, "no errors on the page" + (errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""));
   await browser.close();
   server.close();
