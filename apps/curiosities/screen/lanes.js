@@ -29,10 +29,12 @@
        opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
        opts.thumbs()     -> one storyboard frame <svg> string per moment, drawn on My film's clip track when zoomed in
        opts.beats()      -> [{ values }] My film's values per moment, read by Mark the turns (else read from the engine)
+       opts.attention    the momentum reading the Attention track uses (else the page's CurioAttention)
    - laneGroups(lanes, o) and foldDots(st, lanes): the lane groups (a folding header per category) and where a folded
      group's lanes have nodes; the mounted lanes have fold(category, folded?), foldAll(folded?) and groups()
    - turnMarkers(beats, rows, { attention, lanes }) -> the auto markers where the film turns (see below);
      mergeTurnMarkers(markers, turns) and clearAutoMarkers(markers) put them in and take them off
+   - attentionTrack(beats, { attention, secondsPerBeat }) -> what the Attention track draws (see below)
    - trackFor(cur)       the track a curiosity goes on when it is not on one yet
    - group(nodeKey)      the nodes and links joined to a node
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
@@ -957,6 +959,75 @@
   }
   const groupSay = (g) => `${g.count} lane${g.count === 1 ? "" : "s"}, ${g.withNodes} with nodes`;
 
+  /* ---------- the Attention track ----------
+     CapCut draws a song's waveform under the clips so you can see the sound's shape while you edit. Curiomatic's
+     equivalent is the Attention track: a thin band right under My film's clip track that shows, for each moment,
+     what holds the audience's attention (one color per attention family) and how strongly the film pulls forward
+     (a filled line). attentionTrack(beats, opts) is the pure part:
+       beats: [{ at, values }] one per moment (the Screen's own reading, as Mark the turns uses);
+       opts.attention: the momentum reading (CurioAttention: read(beats) -> { segments, limit });
+       opts.secondsPerBeat: seconds per moment (the reading's clock); opts.familyLabel(f) can be stubbed for tests.
+     -> { ok, note?, source: "momentum" | "change", moments: [{ family, label, curiosity, strength 0..1 }],
+          families: [{ id, label, color }] in the order they first hold attention }.
+     Strength per moment: the reading has no per-moment number, but each stretch of attention carries the push of
+     the curiosity holding it (0 to 5, how hard it moves the story), and its overall momentum wears that push down
+     once one family has held attention past the limit. The track uses the same rule moment by moment. If the
+     reading gives no push at all, the strength is derived instead from how much the curiosities change between
+     one moment and the next (the share of values that differ), since a film that changes is a film that moves. */
+  const ATT_H = 32;
+  const ATT_COLORS = { camera: "#4dabf7", movement: "#ff922b", voice: "#20c997", feeling: "#f06595", comedy: "#fcc419", wardrobe: "#cc5de8", place: "#94d82d", light: "#ffa8a8", music: "#1c7ed6", plot: "#ff6b6b", mind: "#9775fa", effects: "#66d9e8", cut: "#ced4da" };
+  const ATT_OTHER = "#868e96";
+  const ATT_NONE = "The Attention track needs the momentum code, which isn't loaded, so there is nothing to show.";
+  const attColor = (f) => ATT_COLORS[f] || ATT_OTHER;
+  function attentionTrack(beats, o) {
+    o = o || {};
+    beats = Array.isArray(beats) ? beats : [];
+    const A = o.attention;
+    if (!A || typeof A.read !== "function") return { ok: false, note: ATT_NONE, source: null, moments: [], families: [] };
+    const famName = (f) => {
+      if (o.familyLabel) return String(o.familyLabel(f));
+      const M = root.CurioMomentum;
+      const fam = M && M.family ? M.family(f) : null;
+      return String(fam ? fam.label : f);
+    };
+    const spb = Number(o.secondsPerBeat) > 0 ? Number(o.secondsPerBeat) : 3;
+    let reading = null;
+    try {
+      reading = A.read(beats.map((b) => ({ at: b && b.at, values: (b && b.values) || {} })), { secondsPerBeat: spb });
+    } catch (e) {}
+    const segs = ((reading && reading.segments) || []).filter((s) => s && s.beat >= 0).sort((a, b) => a.beat - b.beat);
+    const limit = reading && Number(reading.limit) > 0 ? Number(reading.limit) : 20;
+    const hasPush = segs.some((s) => typeof s.push === "number" && isFinite(s.push));
+    const moments = [];
+    const families = [];
+    let k = -1;
+    let runFam = null;
+    let runStart = 0;
+    for (let i = 0; i < beats.length; i++) {
+      while (k + 1 < segs.length && segs[k + 1].beat <= i) k++;
+      const s = k >= 0 ? segs[k] : null;
+      if (s && s.family !== runFam) {
+        runFam = s.family;
+        runStart = i;
+      }
+      let strength = 0;
+      if (s && hasPush) {
+        const into = (i - runStart + 1) * spb;
+        const fresh = into <= limit ? 1 : Math.max(0.2, limit / into);
+        strength = ((Number(s.push) || 0) * fresh) / 5;
+      } else if (!hasPush && i > 0) {
+        const a = (beats[i - 1] && beats[i - 1].values) || {};
+        const b = (beats[i] && beats[i].values) || {};
+        const keys = [...new Set(Object.keys(a).concat(Object.keys(b)))];
+        strength = keys.length ? keys.filter((c) => String(a[c] == null ? "" : a[c]) !== String(b[c] == null ? "" : b[c])).length / keys.length : 0;
+      }
+      const fam = s && s.family ? s.family : null;
+      if (fam && !families.some((f) => f.id === fam)) families.push({ id: fam, label: famName(fam), color: attColor(fam) });
+      moments.push({ family: fam, label: fam ? famName(fam) : "", curiosity: s ? s.label || s.curiosity || "" : "", strength: Math.max(0, Math.min(1, strength)) });
+    }
+    return { ok: true, source: hasPush ? "momentum" : "change", moments, families };
+  }
+
   /* ---------- the view ---------- */
   /* Storyboard frames for My film's clip track, as data pictures (each frame stays self-contained, so its arrow
      ids never clash with the page's). Cached by the frame's own text so redraws stay fast. */
@@ -1051,7 +1122,8 @@
       lh = laneH();
       const clipRows = opts.clips ? opts.clips() : [];
       const CLIP_H = 28;
-      const top = clipRows.length * CLIP_H + (opts.ruler ? RULER + 8 : 0);
+      const att = attentionBand(st, colW, svgW, clipRows.length * CLIP_H); /* the Attention track, under My film's clips */
+      const top = clipRows.length * CLIP_H + att.h + (opts.ruler ? RULER + 8 : 0);
       /* Rows top to bottom: each group's header (a thin row), then its lanes unless it is folded. */
       yTops = [];
       let svgH = 0;
@@ -1142,7 +1214,8 @@
           tsvg.push(`<g class="sl-clip ${esc(c.cls || "")}${pic ? " has-thumb" : ""}" data-clip="${j}"><rect x="${x + 1}" y="${y + 2}" width="${w}" height="${CLIP_H - 4}" rx="4"/>${pic}<text x="${tx}" y="${y + 18}">${esc(String(c.text || "").slice(0, Math.max(0, Math.floor((x + w - tx) / 6))))}</text><title>${esc(c.title || c.text || "")}</title></g>`);
         });
       });
-      const rulerY = clipRows.length * CLIP_H;
+      tsvg.push(att.svg);
+      const rulerY = clipRows.length * CLIP_H + att.h;
       if (opts.ruler) {
         tsvg.push(`<rect class="sl-rulerbg" x="0" y="${rulerY}" width="${svgW}" height="${RULER + 8}"><title>Drag down to zoom in, up to zoom out, sideways to scroll</title></rect>`);
         st.rows.forEach((r, j) => tsvg.push(`<line class="sl-tick0" x1="${j * colW}" x2="${j * colW}" y1="${rulerY}" y2="${top}"/><text x="${j * colW + 4}" y="${rulerY + 12}" class="sl-ruler">${j + 1}</text>`));
@@ -1263,11 +1336,12 @@
           <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
           ${tb("skim", "Preview axis", "Preview axis (S): hover over the timeline to see that moment in the player", tools.skim)}
           ${groups.length ? tb(groups.some((g) => !g.folded) ? "fold-all" : "open-all", groups.some((g) => !g.folded) ? "Fold all" : "Open all", groups.some((g) => !g.folded) ? "Fold every group of lanes to one thin row each; dots still show where their lanes have nodes" : "Open every folded group of lanes") : ""}
+          ${tb("attention-track", "Attention", "Attention track: show or hide the thin band under My film that shows what holds the audience's attention at each moment, and how strongly the film pulls forward", tools.attention !== false)}
           <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−), or drag up on the ruler")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+), or drag down on the ruler")}</span>
           <span class="sl-msg" role="status">${esc(msg || (area ? "Drag the selection sideways to move it; hold Alt (Option) to copy it instead." : others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
         </div>
         <div class="sl-scroll"><div class="sl-body" style="grid-template-columns: var(--sl-head-w, 190px) ${svgW}px">
-          <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
+          <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${att.head}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
           <div class="sl-top" style="height:${top}px"><svg class="sl-topsvg" width="${svgW}" height="${top}" viewBox="0 0 ${svgW} ${Math.max(1, top)}">${tsvg.join("")}</svg></div>
           <div class="sl-heads" title="Drag right for taller lanes, left for shorter; drag up and down to scroll. Click a lane's name area to select the whole lane (Shift adds more lanes).">${heads}</div>
           <div class="sl-lanes"><svg class="sl-svg" width="${svgW}" height="${Math.max(1, svgH)}" viewBox="0 0 ${svgW} ${Math.max(1, svgH)}"><defs><pattern id="${hatchId}" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="sl-hatch" x1="0" y1="0" x2="0" y2="9"/></pattern></defs>${svg.join("")}${dots.join("")}${drag && drag.ghost ? drag.ghost : ""}</svg></div>
@@ -1284,6 +1358,59 @@
       }
     }
     let scrollKeep = null;
+    /* The Attention track (see attentionTrack): one block per moment colored by what holds attention, a filled
+       line for how strongly the film pulls forward, and the families as a small key in its name. It lives in the
+       top bar, so it follows zoom and scroll, and a click on it moves the playhead like a click on the ruler.
+       The reading comes from opts.attention (else the page's CurioAttention) and opts.beats (as Mark the turns). */
+    let attCache = null;
+    function attentionData(st) {
+      const beats = beatsNow(st);
+      const A = opts.attention || root.CurioAttention;
+      const spm = Number(opts.secondsPerMoment ? opts.secondsPerMoment() : 3) || 3;
+      let key = null;
+      try {
+        key = JSON.stringify([!!A, spm, beats.map((b) => b && b.values)]);
+      } catch (e) {}
+      if (key && attCache && attCache.key === key) return attCache.data;
+      const data = attentionTrack(beats, { attention: A, secondsPerBeat: spm });
+      attCache = { key, data };
+      return data;
+    }
+    function attentionBand(st, colW, svgW, y) {
+      if (tools.attention === false) return { h: 0, svg: "", head: "" };
+      const d = attentionData(st);
+      const h = ATT_H;
+      const out = [`<g class="sl-att" data-att-track="${d.ok ? "on" : "none"}"><rect class="sl-attbg" x="0" y="${y}" width="${svgW}" height="${h}"/>`];
+      let key = "";
+      if (!d.ok) out.push(`<text class="sl-attnote" x="8" y="${y + h / 2 + 4}">${esc(d.note)}</text>`);
+      else {
+        const base = y + h - 2;
+        const yOf = (v) => (base - v * (h - 6)).toFixed(1);
+        d.moments.forEach((m, j) => {
+          if (!m.family) return;
+          out.push(`<rect class="sl-attblock" data-att="${j}" data-family="${esc(m.family)}" x="${j * colW + 0.5}" y="${y + 1}" width="${Math.max(1, colW - 1)}" height="${h - 2}" fill="${attColor(m.family)}"><title>Moment ${j + 1}: the audience's attention is on ${esc(m.label.toLowerCase())}${m.curiosity ? ` (${esc(m.curiosity)})` : ""}. How strongly the film pulls forward: ${Math.round(m.strength * 100)}%. Click to go to this moment.</title></rect>`);
+        });
+        if (d.moments.length) {
+          const pts = d.moments.map((m, j) => `${j * colW + colW / 2} ${yOf(m.strength)}`);
+          const first = yOf(d.moments[0].strength);
+          const last = yOf(d.moments[d.moments.length - 1].strength);
+          out.push(`<path class="sl-attarea" d="M0 ${base} L0 ${first} L${pts.join(" L")} L${svgW} ${last} L${svgW} ${base} Z"/><path class="sl-attline" d="M0 ${first} L${pts.join(" L")} L${svgW} ${last}"/>`);
+        }
+        key = d.families.map((f) => `<span class="sl-attkey" title="${esc(f.label)}"><i style="background:${f.color}"></i>${esc(f.label)}</span>`).join("");
+      }
+      out.push("</g>");
+      const tip = d.ok
+        ? `Attention: what holds the audience's attention at each moment (one color each${d.families.length ? ": " + d.families.map((f) => f.label).join(", ") : ""}), and a line for how strongly the film pulls forward${d.source === "change" ? " (here, how much changes from one moment to the next)" : ""}. Click the band to go to a moment.`
+        : d.note;
+      return { h, svg: out.join(""), head: `<div class="sl-head sl-cliphead sl-atthead" style="height:${h}px" title="${esc(tip)}"><b>Attention</b><span class="sl-attkeys">${d.ok ? key || "nothing holds it yet" : "not available"}</span></div>` };
+    }
+    function toggleAttention() {
+      tools.attention = tools.attention === false;
+      msg = tools.attention ? "Attention track on: the band under My film shows what holds the audience's attention at each moment." : "Attention track hidden.";
+      saveTools();
+      draw();
+      return { ok: true, on: tools.attention };
+    }
     /* The value lines inside a lane: one per step of its scale, thinned out until they are at least 7px apart, so a
        taller lane shows finer gradations (a 0 to 100 range: tens, then fives, then every step). */
     function valueLines(cur, y0, w) {
@@ -1909,6 +2036,7 @@
       if (act === "link-settings") return linkSettings();
       if (act === "marker-list") return markerList(b);
       if (act === "area-shape") return shapeMenu(b);
+      if (act === "attention-track") return toggleAttention();
       if (act === "lane-off" || act === "lane-solo" || act === "lane-lock") return laneButton(act, b.dataset.lk);
       if (act === "fold") return foldButton(b.dataset.group);
       if (act === "fold-all" || act === "open-all") return foldAll(act === "fold-all");
@@ -2578,6 +2706,7 @@
       shape: (preset) => command("shape", preset),
       markTurns,
       clearAuto,
+      attention: toggleAttention,
       command,
       laneOff: (lk) => laneButton("lane-off", lk),
       solo: (lk) => laneButton("lane-solo", lk),
@@ -2598,5 +2727,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack };
 })();

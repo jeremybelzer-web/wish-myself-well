@@ -529,3 +529,17 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-gbg.folded { fill: #19191c; }
 .sl-gdot { fill: var(--cc-accent); opacity: 0.85; cursor: pointer; }
 .sl-gdot:hover { opacity: 1; stroke: #fff; stroke-width: 1; }
+
+/* The Attention track (lanes.js attentionBand): CapCut's waveform under the clips, for attention. A block per
+   moment in its family's color, a filled line for how strongly the film pulls forward, and the families as a key. */
+.sl-attbg { fill: #121214; }
+.sl-attblock { fill-opacity: 0.38; cursor: pointer; }
+.sl-attblock:hover { fill-opacity: 0.6; }
+.sl-attarea { fill: rgba(255, 255, 255, 0.22); pointer-events: none; }
+.sl-attline { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-width: 1.5; stroke-linejoin: round; pointer-events: none; }
+.sl-attnote { font-size: 10px; fill: #9a9aa3; font-family: system-ui, sans-serif; pointer-events: none; }
+.sl-atthead { display: flex; align-items: center; gap: 6px; padding: 0 8px; }
+.sl-atthead b { flex: none; font-weight: 600; }
+.sl-attkeys { display: flex; flex-wrap: wrap; column-gap: 6px; max-height: 24px; overflow: hidden; font-size: 9px; line-height: 12px; font-weight: 400; }
+.sl-attkey { display: inline-flex; align-items: center; gap: 3px; flex: none; }
+.sl-attkey i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
