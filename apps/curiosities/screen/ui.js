@@ -493,8 +493,260 @@
       ${prefs.view === "arrange" ? `<label class="sc-chk"><input type="checkbox" data-act="viewers-in-arrange" ${prefs.viewersInArrange ? "checked" : ""}> Show the player</label>` : ""}
       <label class="sc-layout" title="Layout, like CapCut's layout menu"><span class="sc-k">Layout</span><select data-pick-layout aria-label="Layout">${LAYOUTS.map(([id, l, t]) => `<option value="${id}" title="${esc(t)}"${prefs.layout === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
       <button type="button" data-act="shortcuts" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="5" width="17" height="10" rx="1.5"/><path d="M5 8h1M8 8h1M11 8h1M14 8h1M5 11.5h10"/></svg> Shortcuts</button>
+      ${exportMenuHtml()}
       <button type="button" data-act="close" class="sc-close">Back to the app</button>
       <p class="sc-what">${esc(sel.label)}${sel.plain ? ": " + esc(sel.plain) : ""}</p>`;
+  }
+
+  /* ---------- Export (CapCut's big Export button at the top right) ----------
+     The beta exports storyboards only: a printable storyboard sheet (every moment of My film as a frame, with
+     its number, clock time, marker note and what changed), this frame as a picture (PNG or SVG), and the
+     settings list as a spreadsheet (CSV). Everything is made in the browser and saved with <a download>;
+     nothing is uploaded. The pure parts (EXPORT, below) take plain data so tests can check them with no page. */
+  const EXPORT = (() => {
+    const W = 320;
+    const H = 180;
+    const SHAPES = {
+      wide: { label: "wide 16:9", w: W, h: H },
+      vertical: { label: "vertical 9:16", w: (H * 9) / 16, h: H },
+      square: { label: "square 1:1", w: H, h: H },
+      cinema: { label: "cinema 2.39", w: W, h: W / 2.39 },
+    };
+    const MARK_HEX = { red: "#ff5a5f", orange: "#ff9f43", yellow: "#ffd43b", green: "#51cf66", blue: "#4dabf7", purple: "#b197fc" };
+    const html = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+    const r2 = (n) => Math.round(n * 100) / 100;
+    /* A storyboard frame (CurioFrame.svg) as a file of its own in a frame shape: the wide picture cropped to
+       the shape, centered, as the Player does; no shaking; xmlns so it opens anywhere. px sets the long side. */
+    function frameSvg(svg, shape, px) {
+      const s = SHAPES[shape] || SHAPES.wide;
+      const x = r2((W - s.w) / 2);
+      const y = r2((H - s.h) / 2);
+      const scale = px ? px / Math.max(s.w, s.h) : 1;
+      return String(svg)
+        .replace(/\bcf-shake\b/g, "")
+        .replace(/^<svg /, `<svg xmlns="http://www.w3.org/2000/svg" width="${r2(s.w * scale)}" height="${r2(s.h * scale)}" `)
+        .replace(/viewBox="0 0 320 180"/, `viewBox="${x} ${y} ${r2(s.w)} ${r2(s.h)}"`);
+    }
+    /* "Shot size: wide → close-up · Feeling: joyful → anxious and 2 more", or "" when nothing changed. */
+    function changes(prev, cur, o) {
+      if (!prev || !cur) return "";
+      const max = o.max || 3;
+      const text = o.text || ((k, v) => String(v));
+      const moved = o.keys.filter((k) => prev[k] != null && cur[k] != null && String(prev[k]) !== String(cur[k]));
+      const parts = moved.slice(0, max).map((k) => `${o.label(k)}: ${text(k, prev[k])} → ${text(k, cur[k])}`);
+      return parts.length ? parts.join(" · ") + (moved.length > max ? ` and ${moved.length - max} more` : "") : "";
+    }
+    /* The keys worth a column: a value somewhere in the film. */
+    const keysWithValues = (moments, order) => {
+      const seen = [];
+      (order || []).concat(...moments.map((m) => Object.keys(m.values || {}))).forEach((k) => {
+        if (!seen.includes(k) && moments.some((m) => m.values && m.values[k] != null && m.values[k] !== "")) seen.push(k);
+      });
+      return seen;
+    };
+    function csvCell(v) {
+      const s = String(v == null ? "" : v);
+      return /[",\r\n]/.test(s) || /^\s|\s$/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    }
+    /* One row per moment, one column per curiosity that has a value anywhere, plain labels and plain values.
+       moments: [{ n, clock, note, values }]; o: { keys, label(k), text(k, v) }. Starts with a byte-order mark so
+       spreadsheet apps read it as UTF-8; lines end in CRLF (the CSV standard). */
+    function csv(moments, o) {
+      const keys = keysWithValues(moments, o.keys);
+      const text = o.text || ((k, v) => String(v));
+      const head = ["Moment", "Time", "Marker note"].concat(keys.map((k) => o.label(k)));
+      const rows = moments.map((m) => [m.n, m.clock || "", m.note || ""].concat(keys.map((k) => (m.values && m.values[k] != null && m.values[k] !== "" ? text(k, m.values[k]) : ""))));
+      return "﻿" + [head].concat(rows).map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    }
+    /* The printable storyboard sheet: a whole page of its own (opened in a new tab), 2, 3 or 4 frames per row,
+       a Print button. moments: [{ n, clock, svg, note, color, changes, label }] where svg is already shaped. */
+    function sheetHtml(d) {
+      const per = [2, 3, 4].includes(Number(d.perRow)) ? Number(d.perRow) : 3;
+      const n = d.moments.length;
+      const shape = SHAPES[d.shape] || SHAPES.wide;
+      const card = (m) => `<figure class="f">
+  <div class="pic">${m.svg}</div>
+  <figcaption><b>Moment ${html(m.n)}</b> <span class="t">${html(m.clock)}</span>${m.label ? ` <span class="l">${html(m.label)}</span>` : ""}
+  ${m.note ? `<p class="mk"><i style="background:${MARK_HEX[m.color] || MARK_HEX.orange}"></i>${html(m.note)}</p>` : ""}
+  <p class="ch">${m.changes ? html(m.changes) : m.n === 1 ? "Where the film starts." : "Nothing changes from the moment before."}</p></figcaption>
+</figure>`;
+      return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${html(d.title || "Curiomatic storyboard")}</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 16px; background: #fff; color: #1c1712; font: 13px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; margin-bottom: 12px; }
+  h1 { font-size: 18px; margin: 0; }
+  .sub { color: #6b625a; }
+  .tools { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+  .tools button { font: inherit; border: 1px solid #c9c1b8; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  .tools button.on { background: #1c1712; color: #fff; border-color: #1c1712; }
+  .tools .print { background: #0e7490; color: #fff; border-color: #0e7490; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(var(--per, 3), minmax(0, 1fr)); gap: 14px; }
+  .f { margin: 0; break-inside: avoid; page-break-inside: avoid; }
+  .pic { border: 1px solid #1c1712; aspect-ratio: ${r2(shape.w)} / ${r2(shape.h)}; max-height: 60vh; margin: 0 auto; overflow: hidden; background: #fffaf2; }
+  .pic svg { display: block; width: 100%; height: 100%; }
+  figcaption { padding-top: 4px; }
+  .t { color: #6b625a; font-variant-numeric: tabular-nums; }
+  .l { color: #6b625a; }
+  .mk { margin: 3px 0 0; font-weight: 600; }
+  .mk i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
+  .ch { margin: 3px 0 0; color: #4a423b; font-size: 12px; }
+  @media (max-width: 600px) { .grid { grid-template-columns: repeat(min(var(--per, 3), 2), minmax(0, 1fr)); } }
+  @media print { body { padding: 0; } .tools { display: none; } .grid { gap: 10px; } }
+</style></head>
+<body style="--per:${per}">
+<header><h1>${html(d.title || "Curiomatic storyboard")}</h1>
+<span class="sub">${n} moment${n === 1 ? "" : "s"}${d.seconds ? ` · ${html(d.seconds)} seconds each` : ""} · ${html(shape.label)}${d.date ? ` · ${html(d.date)}` : ""}</span>
+<span class="tools" role="group" aria-label="Frames per row">Frames per row ${[2, 3, 4].map((k) => `<button type="button" data-per="${k}"${k === per ? ' class="on"' : ""}>${k}</button>`).join("")}<button type="button" class="print" data-print>Print</button></span></header>
+<main class="grid">
+${d.moments.map(card).join("\n")}
+</main>
+<script>
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("button");
+  if (!b) return;
+  if (b.hasAttribute("data-print")) return window.print();
+  if (b.dataset.per) {
+    document.body.style.setProperty("--per", b.dataset.per);
+    document.querySelectorAll("[data-per]").forEach(function (x) { x.classList.toggle("on", x === b); });
+  }
+});
+</script>
+</body></html>`;
+    }
+    /* "curiomatic-my-first-film-moment-3.png": plain letters and dashes. */
+    function fileName(film, what, ext) {
+      const slug = (s) => String(s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+      return ["curiomatic", slug(film), slug(what)].filter(Boolean).join("-") + "." + ext;
+    }
+    return { SHAPES, frameSvg, changes, csv, csvCell, sheetHtml, fileName, keysWithValues };
+  })();
+  window.CurioScreenExport = EXPORT;
+
+  let exportOpen = false;
+  function exportMenuHtml() {
+    return `<span class="sc-export"><button type="button" data-act="export" class="sc-export-b" aria-haspopup="true" aria-expanded="${exportOpen}" title="Save your film as a storyboard sheet, a picture or a spreadsheet. Nothing is uploaded.">Export ▾</button>
+      <div class="sc-export-menu" role="menu" aria-label="Export"${exportOpen ? "" : " hidden"}>
+        <button type="button" role="menuitem" data-export="sheet"><b>Storyboard sheet</b><small>Every moment as a frame, with notes and what changes, ready to print</small></button>
+        <p class="sc-k">This frame as a picture (moment ${row + 1})</p>
+        <div class="sc-export-two"><button type="button" role="menuitem" data-export="png"><b>PNG</b><small>A picture file</small></button><button type="button" role="menuitem" data-export="svg"><b>SVG</b><small>Sharp at any size</small></button></div>
+        <button type="button" role="menuitem" data-export="csv"><b>Settings list (spreadsheet)</b><small>One row per moment, one column per curiosity, as a CSV file</small></button>
+        <p class="sc-export-foot">Made on this device. Nothing is uploaded.</p>
+      </div></span>`;
+  }
+  function toggleExport(on) {
+    exportOpen = on == null ? !exportOpen : !!on;
+    const box = page && page.querySelector(".sc-export");
+    if (!box) return;
+    box.querySelector(".sc-export-menu").hidden = !exportOpen;
+    box.querySelector(".sc-export-b").setAttribute("aria-expanded", String(exportOpen));
+    if (exportOpen && !toggleExport.wired) {
+      /* Close on a click anywhere else, or Esc. */
+      toggleExport.wired = true;
+      document.addEventListener("pointerdown", (e) => exportOpen && !(e.target.closest && e.target.closest(".sc-export")) && toggleExport(false), true);
+      document.addEventListener("keydown", (e) => exportOpen && e.key === "Escape" && toggleExport(false));
+    }
+  }
+  /* Markers from the timeline's tools (localStorage "curiosities-screen-tools-v1", markers [{ row, color, note }]). */
+  function exportMarkers() {
+    let list = null;
+    try {
+      if (window.CurioLanes && window.CurioLanes.tools) list = window.CurioLanes.tools().markers;
+    } catch (e) {}
+    if (!Array.isArray(list))
+      try {
+        list = (JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")) || {}).markers;
+      } catch (e) {}
+    if (window.CurioLanes && window.CurioLanes.migrateMarkers) list = window.CurioLanes.migrateMarkers(list);
+    const out = {};
+    (Array.isArray(list) ? list : []).forEach((m) => m && typeof m === "object" && m.row != null && (out[String(m.row)] = m));
+    return out;
+  }
+  const valueText = (k, v) => {
+    const d = S() && S().known(k) ? S().domain(k) : null;
+    return String(v) + (typeof v === "number" && d && d.unit ? d.unit : "");
+  };
+  /* My film as plain data for the builders: each moment's number, clock, marker, values. "x.setting" keys that
+     repeat their curiosity's own value are left out, so each curiosity is one column. */
+  function exportData() {
+    const beats = mineBeats();
+    const marks = exportMarkers();
+    const moments = beats.map((b, i) => {
+      const values = {};
+      Object.keys(b.values).forEach((k) => (/\.setting$/.test(k) && b.values[L().base(k)] != null ? null : (values[k] = b.values[k])));
+      const mk = marks[String(b.row)];
+      return { n: i + 1, clock: tc(i), values, raw: b.values, note: mk ? mk.note || "" : "", color: mk ? mk.color : "", label: b.note && !/^moment \d+$/i.test(b.note) ? b.note : "" };
+    });
+    const film = E() ? E().state().name : "";
+    return { moments, film, keys: EXPORT.keysWithValues(moments, prefs.lanes), shape: ratioShape() };
+  }
+  function downloadBlob(name, blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.hidden = true;
+    page.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+  function runExport(what) {
+    toggleExport(false);
+    if (!E() || !F()) return toast("Your film is not loaded yet.");
+    const d = exportData();
+    if (!d.moments.length) return toast("Your film has no moments to export yet.");
+    const opts = { cast: castOf() };
+    if (what === "sheet") {
+      const moments = d.moments.map((m, i) =>
+        Object.assign({}, m, {
+          svg: EXPORT.frameSvg(F().svg(m.raw, Object.assign({ title: "Moment " + m.n }, opts)), d.shape),
+          changes: i ? EXPORT.changes(d.moments[i - 1].values, m.values, { keys: d.keys, label: labelOf, text: valueText }) : "",
+        })
+      );
+      const page2 = EXPORT.sheetHtml({ title: "Curiomatic storyboard" + (d.film ? ": " + d.film : ""), moments, shape: d.shape, perRow: 3, seconds: secondsPerMoment(), date: new Date().toLocaleDateString() });
+      const blob = new Blob([page2], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      if (w) return toast(`Storyboard sheet opened in a new tab: ${moments.length} frames. Use its Print button.`);
+      downloadBlob(EXPORT.fileName(d.film, "storyboard", "html"), blob);
+      return toast("Your browser kept the new tab closed, so the storyboard sheet was saved as a file instead. Open it to print.");
+    }
+    if (what === "svg" || what === "png") {
+      const i = Math.min(row, d.moments.length - 1);
+      const m = d.moments[i];
+      const base = EXPORT.fileName(d.film, "moment " + m.n, what);
+      const svg = EXPORT.frameSvg(F().svg(m.raw, Object.assign({ title: "My film, moment " + m.n }, opts)), d.shape, what === "png" ? 1280 : 0);
+      if (what === "svg") {
+        downloadBlob(base, new Blob([svg], { type: "image/svg+xml" }));
+        return toast(`Saved ${base}.`);
+      }
+      /* PNG: draw the SVG onto a canvas on a white ground, then save the canvas. */
+      const img = new Image();
+      const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width) || 1280;
+        c.height = Math.round(img.height) || 720;
+        const g = c.getContext("2d");
+        g.fillStyle = "#fffaf2";
+        g.fillRect(0, 0, c.width, c.height);
+        g.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob((b) => (b ? (downloadBlob(base, b), toast(`Saved ${base}.`)) : toast("The picture could not be made in this browser.")), "image/png");
+      };
+      img.onerror = () => (URL.revokeObjectURL(url), toast("The picture could not be made in this browser."));
+      img.src = url;
+      return;
+    }
+    if (what === "csv") {
+      const name = EXPORT.fileName(d.film, "settings", "csv");
+      downloadBlob(name, new Blob([EXPORT.csv(d.moments, { keys: d.keys, label: labelOf, text: valueText })], { type: "text/csv;charset=utf-8" }));
+      return toast(`Saved ${name}: ${d.moments.length} moments, ${d.keys.length} curiosities.`);
+    }
   }
 
   /* ---------- the library (CapCut's top-left panel) ---------- */
@@ -1646,6 +1898,8 @@
     const act = d.act;
     if (act === "close") return close();
     if (act === "shortcuts") return showKeys(!keysOpen);
+    if (act === "export") return toggleExport();
+    if (d.export) return runExport(d.export);
     if (act === "overview") {
       prefs.overview = !prefs.overview;
       save();

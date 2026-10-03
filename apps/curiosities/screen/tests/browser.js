@@ -1025,6 +1025,54 @@ const ok = (cond, msg) => {
     await page.evaluate(() => { window.CurioAttention = window.__att; delete window.__att; window.CurioScreen.setRow(0); });
   }
 
+  /* Export ▾ (CapCut's Export button): the storyboard sheet in a new tab, this frame as PNG and SVG, the
+     settings list as CSV. The anchor's click is stubbed so each download is recorded with its name and content. */
+  {
+    await page.evaluate(() => {
+      window.__dl = [];
+      const real = HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click = function () {
+        if (!this.download) return real.call(this);
+        const rec = { name: this.download, href: this.href, size: 0, text: "" };
+        window.__dl.push(rec);
+        rec.done = fetch(this.href).then((r) => r.blob()).then(async (b) => { rec.size = b.size; rec.type = b.type; if (!/png/.test(b.type)) rec.text = await b.text(); });
+      };
+    });
+    const r1 = await page.evaluate(() => window.CurioEngine.state().rows[1].id);
+    await page.evaluate((id) => { const t = window.CurioLanes.tools(); t.markers = [{ row: id, color: "green", note: 'cut, then <b>"pause"</b>' }]; window.CurioScreen.setRow(1); }, r1);
+    ok(!!(await page.$('.sc-bar [data-act="export"]')) && (await page.$eval('.sc-bar [data-act="export"]', (b) => b.textContent.trim())) === "Export ▾", "the top bar has an Export ▾ button");
+    await page.click('.sc-bar [data-act="export"]');
+    ok(await page.$eval(".sc-export-menu", (m) => !m.hidden && ["sheet", "png", "svg", "csv"].every((k) => m.querySelector(`[data-export="${k}"]`))), "Export ▾ opens a menu: Storyboard sheet, PNG, SVG, Settings list");
+    await page.screenshot({ path: path.join(SHOTS, "screen-10-export-menu.png") });
+    const n = await page.evaluate(() => window.CurioEngine.state().rows.length);
+    const [sheet] = await Promise.all([page.waitForEvent("popup", { timeout: 10000 }), page.click('[data-export="sheet"]')]);
+    await sheet.waitForLoadState();
+    const info = await sheet.evaluate(() => ({ figs: document.querySelectorAll("figure.f").length, svgs: document.querySelectorAll("figure.f svg").length, notes: [...document.querySelectorAll(".mk")].map((p) => p.textContent), bold: document.querySelectorAll(".mk b").length, print: !!document.querySelector("[data-print]"), m2: (document.querySelectorAll("figure.f")[1] || {}).textContent || "" }));
+    ok(info.figs === n && info.svgs === n, `the storyboard sheet opens in a new tab with one frame per moment (${info.figs} of ${n})`);
+    ok(info.notes.length === 1 && info.notes[0] === 'cut, then <b>"pause"</b>' && info.bold === 0 && /Moment 2/.test(info.m2), "the marker's note shows on its moment, as plain text");
+    await sheet.click('[data-per="2"]');
+    ok(info.print && (await sheet.evaluate(() => getComputedStyle(document.querySelector(".grid")).gridTemplateColumns.split(" ").length)) === 2, "the sheet has a Print button and 2, 3 or 4 frames per row");
+    await sheet.screenshot({ path: path.join(SHOTS, "screen-10b-storyboard-sheet.png") });
+    await sheet.close();
+    ok(await page.$eval(".sc-export-menu", (m) => m.hidden), "the menu closes after a pick");
+    for (const k of ["svg", "png", "csv"]) {
+      await page.click('.sc-bar [data-act="export"]');
+      await page.click(`[data-export="${k}"]`);
+    }
+    await page.waitForFunction(() => window.__dl.length >= 3, null, { timeout: 10000 });
+    await page.evaluate(() => Promise.all(window.__dl.map((d) => d.done)));
+    const dl = await page.evaluate(() => window.__dl.map(({ name, href, size, type, text }) => ({ name, href, size, type, text })));
+    console.log("     downloads: " + dl.map((d) => d.name + " (" + d.size + " bytes)").join(", "));
+    const by = (ext) => dl.find((d) => d.name.endsWith("." + ext));
+    ok(dl.every((d) => /^curiomatic-[a-z0-9-]+\.(svg|png|csv)$/.test(d.name) && d.href.startsWith("blob:")), "each download is a blob saved under a name starting with curiomatic-");
+    ok(by("svg") && /moment-2\.svg$/.test(by("svg").name) && /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/.test(by("svg").text), "This frame as SVG saves the current moment's frame");
+    ok(by("png") && /moment-2\.png$/.test(by("png").name) && by("png").type === "image/png" && by("png").size > 2000, "This frame as PNG saves a picture of it");
+    const rows = by("csv") ? by("csv").text.replace(/^﻿/, "").trim().split("\r\n") : [];
+    ok(rows.length === n + 1 && /^Moment,Time,Marker note,/.test(rows[0]) && rows[2].includes('"cut, then <b>""pause""</b>"'), "the settings list has a header and one row per moment, with the marker note quoted (" + (rows[0] || "").slice(0, 80) + "…)");
+    ok(rows[0].includes("Shot size") && !rows[0].includes("shotSize"), "the header uses plain labels, not code names");
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); t.markers = []; window.CurioScreen.setRow(0); });
+  }
+
   /* Phone width. */
   await page.setViewportSize({ width: 390, height: 900 });
   await page.click('[data-act="close"]');
