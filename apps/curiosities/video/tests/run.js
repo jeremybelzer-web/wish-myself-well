@@ -270,6 +270,25 @@ check("element cut-outs: stats, series and what to change", () => {
   assert(V.at(pa, 1).parts.angle.tilt > 0.5, "a clip seen from below is tipped to look from higher: " + JSON.stringify(V.at(pa, 1).parts));
   assert(V.angleCue(E, 1) === null || typeof V.angleCue(E, 1) === "number", "no faces or hair: no guess");
 });
+check("paid AI: a price first, and caps that stop it", () => {
+  const store = {};
+  const ctx = { localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = String(v)) } };
+  ctx.window = ctx;
+  require("vm").runInNewContext(fs.readFileSync(path.join(__dirname, "..", "ai.js"), "utf8"), ctx);
+  const A = ctx.CurioAI;
+  assert(A.caps().job === 1 && A.caps().day === 5, "default caps $1 a job, $5 a day");
+  assert(A.check(0.5) === null && /job cap/.test(A.check(2)), "a $2 job is stopped by the $1 cap");
+  const sam = A.providers("cutout").find((p) => p.id === "fal-sam2");
+  assert(A.price(sam, { seconds: 5 }) > 0 && A.price(sam, { seconds: 5 }) < 1, "a 5-second cut-out is priced under a dollar");
+  /* falRun refuses past a cap before sending anything (no fetch exists here, so reaching it would fail differently) */
+  A.falRun("fal-ai/x", {}, { estimate: 3 }).then(
+    () => ((process.exitCode = 1), console.log("FAIL falRun ran past the cap")),
+    (e) => /cap/.test(e.message) || ((process.exitCode = 1), console.log("FAIL falRun past the cap: " + e.message))
+  );
+  A.setCaps({ day: 0.3 });
+  assert(/day cap/.test(A.check(0.5)) && A.caps().job === 1, "the day cap stops it too");
+  assert(!JSON.stringify(store).includes("curiosities-ai-spent"), "spending is not saved in project files");
+});
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });

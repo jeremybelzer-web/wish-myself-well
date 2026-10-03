@@ -107,7 +107,10 @@
         <p class="vd-k">Everything above is free and needs no key. Turn this on only if you want a stronger paid AI. You pay fal.ai directly with your own key.</p>
         <div class="vd-ai-row"><label>fal.ai key <input type="password" data-ai-key="fal" autocomplete="off" placeholder="${hasKey ? "saved in this browser" : "paste your own key"}"></label>
         <button type="button" data-act="ai-key-save">Keep it in this browser</button>${hasKey ? `<button type="button" data-act="ai-key-clear">Remove it</button>` : ""}
-        <span class="vd-k">Your key stays in this browser and is sent only to fal.ai. It is never saved in a project file. Cost: ${esc(fal.cost({ seconds: slot.b.clip ? slot.b.clip.duration : 30 }))}.</span></div></details>`
+        <span class="vd-k">Your key stays in this browser and is sent only to fal.ai. It is never saved in a project file. Cost: ${esc(fal.cost({ seconds: Math.min(5, slot.b.clip ? slot.b.clip.duration : 5) }))}.</span></div>
+        <div class="vd-ai-row"><label>Stop any job over $<input type="number" min="0.05" max="100" step="0.05" data-ai-cap="job" value="${AI.caps().job}"></label>
+        <label>Stop for the day after $<input type="number" min="0.1" max="100" step="0.5" data-ai-cap="day" value="${AI.caps().day}"></label>
+        <span class="vd-k">Spent today in this browser: $${AI.spent().dollars.toFixed(2)}. Every paid job shows its price first and keeps to short clips (5 seconds or less).</span></div></details>`
           : ""
       }
     </section>`;
@@ -414,6 +417,11 @@
     el.addEventListener("change", (e) => {
       const t = e.target;
       if (t.dataset.file) return bring(t.dataset.file, t.files && t.files[0]);
+      if (t.dataset.aiCap) {
+        window.CurioAI.setCaps({ [t.dataset.aiCap]: t.value });
+        const c = window.CurioAI.caps();
+        return say(`Paid AI stops at $${c.job.toFixed(2)} a job and $${c.day.toFixed(2)} a day.`);
+      }
       if (t.dataset.aiOn != null) {
         prefs.ai = t.checked;
         keep();

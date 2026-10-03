@@ -12,11 +12,19 @@
    - proxy(company), setProxy(company, url)    a server of yours that holds the key (for a paid app: the key never
                                                reaches the browser)
 
+   - price(providerOrCost, job) -> dollars        a rough price, shown before anything runs
+   - caps(), setCaps({ job, day })               spending caps (defaults $1 a job, $5 a day)
+   - spent() -> { date, dollars, log }           today's spending in this browser
+   - check(dollars) -> null | reason             why a job of that price would be stopped
+   - falRun(app, input, { estimate, label })     refuses to start past a cap, and records the price when done
+
    Keys are stored under "curiomatic-ai-keys", not a "curiosities-" key, so they never go into a saved .curio project
    file. They are only ever sent to their own company (or your proxy). */
 (function () {
   const KEY = "curiomatic-ai-keys",
-    PICKS = "curiosities-ai-picks-v1";
+    PICKS = "curiosities-ai-picks-v1",
+    CAPS = "curiosities-ai-caps-v1",
+    SPENT = "curiomatic-ai-spent";
   const FAMILIES = [
     { id: "cutout", label: "Cut-outs (people, clothes, hair, objects)" },
     { id: "picture", label: "Picture: color, light, look" },
@@ -81,9 +89,48 @@
     return list.find((p) => p.where === "browser") || list.find(canRun) || null;
   }
 
-  /* fal.ai's queue: send a job, wait for it, return its result. With a proxy, the proxy adds the key. */
+  /* Money: every paid job has a price shown before it runs, and caps that stop it. Prices are rough (the
+     company's own price list is what you pay). */
+  const today = () => new Date().toISOString().slice(0, 10);
+  function caps() {
+    const c = read(CAPS);
+    return { job: c.job > 0 ? c.job : 1, day: c.day > 0 ? c.day : 5 };
+  }
+  function setCaps(c) {
+    const now = caps();
+    const n = (v, d) => (Number(v) > 0 ? Math.min(100, Number(v)) : d);
+    write(CAPS, { job: n(c && c.job, now.job), day: n(c && c.day, now.day) });
+  }
+  function spent() {
+    const x = read(SPENT);
+    return x.date === today() ? { date: x.date, dollars: x.dollars || 0, log: x.log || [] } : { date: today(), dollars: 0, log: [] };
+  }
+  function record(dollars, label) {
+    const x = spent();
+    x.dollars = Math.round((x.dollars + dollars) * 1000) / 1000;
+    x.log = x.log.concat([{ at: new Date().toISOString(), dollars, label: String(label || "").slice(0, 80) }]).slice(-50);
+    write(SPENT, x);
+  }
+  function price(p, job) {
+    const f = typeof p === "function" ? p : p && p.price;
+    return f ? Math.max(0, Number(f(job || {})) || 0) : 0;
+  }
+  const money = (d) => "$" + (d < 1 ? d.toFixed(2) : d.toFixed(2));
+  function check(dollars) {
+    const c = caps(),
+      s = spent();
+    if (!(dollars >= 0)) return "No price for this job, so it was not started.";
+    if (dollars > c.job) return `About ${money(dollars)}: more than your ${money(c.job)} a job cap. Make it shorter or smaller, or raise the cap.`;
+    if (s.dollars + dollars > c.day) return `About ${money(dollars)}, and ${money(s.dollars)} already spent today: past your ${money(c.day)} a day cap.`;
+    return null;
+  }
+
+  /* fal.ai's queue: send a job, wait for it, return its result. With a proxy, the proxy adds the key. It never
+     starts without a price that fits the caps. */
   async function falRun(app, input, opts) {
     opts = opts || {};
+    const stop = check(opts.estimate);
+    if (stop) throw new Error(stop);
     const base = proxy("fal") || "https://queue.fal.run";
     const headers = { "Content-Type": "application/json" };
     if (!proxy("fal")) {
@@ -103,7 +150,9 @@
       if (st.status === "COMPLETED") break;
       if (st.status === "FAILED" || st.status === "ERROR") throw new Error("fal.ai job failed.");
     }
-    return (await fetch(resultUrl, { headers })).json();
+    const out = await (await fetch(resultUrl, { headers })).json();
+    record(opts.estimate, opts.label || app);
+    return out;
   }
   async function asDataUrl(file) {
     return new Promise((ok, bad) => {
@@ -121,17 +170,39 @@
     label: "Paid, opt in: SAM 2 on fal.ai (your own key)",
     where: "server",
     company: "fal",
-    cost: (job) => `about a few cents to under a dollar for a ${Math.round((job && job.seconds) || 30)}-second clip (fal.ai's price applies)`,
+    /* rough: about 2 cents to start plus 1 cent a second of video; fal.ai's price list is what you pay */
+    price: (job) => 0.02 + 0.01 * Math.max(1, (job && job.seconds) || 5),
+    cost(job) {
+      return `about ${money(this.price(job))} for ${Math.round((job && job.seconds) || 5)} seconds (rough; fal.ai's price applies)`;
+    },
     async trackVideo(file, points, opts) {
       const video_url = typeof file === "string" ? file : await asDataUrl(file);
       const res = await falRun(
         "fal-ai/sam2/video",
         { video_url, prompts: (points || []).map((p) => ({ x: Math.round(p.x), y: Math.round(p.y), label: 1, frame_index: p.frame || 0 })), apply_mask: false },
-        opts
+        Object.assign({ estimate: this.price({ seconds: opts && opts.seconds }), label: "SAM 2 cut-out" }, opts)
       );
       return { maskVideoUrl: res.video && res.video.url, raw: res };
     },
   });
 
-  window.CurioAI = { FAMILIES, register, providers, use, choose, chosen, key, setKey, proxy, setProxy, falRun };
+  /* The paid "turn it into something else" step, on still frames only (keyframes: the cheap way). One image
+     edit model on fal.ai: you describe the change ("make the shirt a red costume"). */
+  register("generate", "fal-edit-frame", {
+    label: "Paid, opt in: change a still frame by description, on fal.ai (your own key)",
+    where: "server",
+    company: "fal",
+    app: "fal-ai/flux-pro/kontext",
+    /* rough: about 4 cents an image */
+    price: (job) => 0.04 * Math.max(1, (job && job.frames) || 1),
+    cost(job) {
+      return `about ${money(this.price(job))} for ${(job && job.frames) || 1} frame(s) (rough; fal.ai's price applies)`;
+    },
+    async editFrame(imageUrl, prompt, opts) {
+      const res = await falRun(this.app, { image_url: imageUrl, prompt: String(prompt || "").slice(0, 500) }, Object.assign({ estimate: this.price({ frames: 1 }), label: "Frame edit" }, opts));
+      return { imageUrl: res.images && res.images[0] && res.images[0].url, raw: res };
+    },
+  });
+
+  window.CurioAI = { FAMILIES, register, providers, use, choose, chosen, key, setKey, proxy, setProxy, price, caps, setCaps, spent, check, falRun };
 })();
