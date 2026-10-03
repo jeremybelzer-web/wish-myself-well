@@ -1182,24 +1182,37 @@
       return t < ep / 2 || t > 1 - ep / 2 || kd === "even" ? shaped : k.lerp(t, shaped, 0.5);
     };
     let s = k.bg(BG);
-    const rows = [0, 1, 2];
-    rows.forEach((r) => {
-      let kd = kind;
-      if (vary === 1 && r === 2) kd = kinds[(kinds.indexOf(kind) + 1) % 5];
-      if (vary === 2) kd = kinds[(kinds.indexOf(kind) + r * 2) % 5];
+    /* Each move's positions, one per frame (with resting frames held at each end). */
+    const rowKind = (r) => (vary === 1 && r === 2 ? kinds[(kinds.indexOf(kind) + 1) % 5] : vary === 2 ? kinds[(kinds.indexOf(kind) + r * 2) % 5] : kind);
+    const rowXs = (r) => {
       const str = st * (drift === 0 ? 1 - r * 0.3 : drift === 2 ? 1 + r * 0.4 : 1);
-      const y = 36 + r * 42;
-      const n = 12;
-      s += `<line x1="16" y1="${y}" x2="196" y2="${y}" stroke="#333"/>`;
       const xs = [];
       for (let i = 0; i < rest; i++) xs.push(0);
-      for (let i = 0; i <= n; i++) xs.push(curve(kd, i / n, str));
+      for (let i = 0; i <= 12; i++) xs.push(curve(rowKind(r), i / 12, str));
       for (let i = 0; i < rest; i++) xs.push(1);
-      xs.forEach((p, i) => (s += `<circle cx="${r1(20 + p * 172)}" cy="${y + (i < rest || i >= xs.length - rest ? (i % 2 ? -5 : 5) : 0)}" r="${r1(3 + wt * 0.9)}" fill="${k.mix("#bfe3ff", "#3b4b6b", wt / 4)}" stroke="#1c1712" stroke-width="0.6"/>`));
-      s += k.label({ x: 20, y: y - 10, text: `${r === 0 ? "move 1" : r === 1 ? "later" : "much later"}: ${kd}`, size: 7, color: "#999", anchor: "start" });
+      return xs;
+    };
+    /* The first move as a scene: someone rolls a ball across the floor, the ball drawn once per frame
+       (faint early frames, solid last one). Bunched balls are slow, spread-out balls are fast. */
+    const fl = 96;
+    const br = 5 + wt * 1.6;
+    const ballCol = k.mix("#ff9a5a", "#6a4a3a", wt / 4);
+    s += `<rect x="0" y="${fl}" width="210" height="6" fill="#2a2620"/>` + k.person({ x: 16, y: fl, s: 0.55, color: BLUE, arms: 0.2, lean: 6 });
+    const xs0 = rowXs(0);
+    xs0.forEach((p, i) => {
+      const held = i < rest || i >= xs0.length - rest;
+      const last = i === xs0.length - 1;
+      s += `<circle cx="${r1(34 + p * 162)}" cy="${r1(fl - br - (held ? (i % 2 ? 2 : 0) : 0))}" r="${r1(br)}" fill="${ballCol}" opacity="${last ? 1 : r1(0.18 + (0.45 * i) / xs0.length)}" stroke="#1c1712" stroke-width="${last ? 1.5 : 0.6}"/>`;
+    });
+    s += k.label({ x: 8, y: 22, text: `move 1: ${rowKind(0)} — one ball per frame`, size: 8, color: "#ccc", anchor: "start" });
+    /* Later moves, small, so a drift over the film shows. */
+    [1, 2].forEach((r) => {
+      const y = 112 + (r - 1) * 26;
+      s += k.label({ x: 8, y, text: `${r === 1 ? "later" : "much later"}: ${rowKind(r)}`, size: 7, color: "#999", anchor: "start" }) + `<line x1="34" y1="${y + 10}" x2="196" y2="${y + 10}" stroke="#333"/>`;
+      rowXs(r).forEach((p) => (s += `<circle cx="${r1(34 + p * 162)}" cy="${y + 10}" r="2.6" fill="${ballCol}"/>`));
     });
     s += side(k, [{ label: "Spacing", text: kind }, { label: `Strength ${v("strength")}/5`, p: v.n("strength") / 5 }, { label: `Rest at each end ${v.n("restEnds")} fr`, p: v.n("restEnds") / 12, color: "#999" }, { label: `Easing ${v.n("easePct")}% of the move`, p: ep, color: "#9fd3ff" }, { label: "Weight", text: v("weight") }, { label: "Over the film", text: `${v("drift")}, ${v("varies")}` }]);
-    return s + cap(k, "one dot per frame: close dots are slow, far apart is fast");
+    return s + cap(k, "one ball per frame: bunched up is slow, spread out is fast");
   });
 
   /* ---------- Drawn on ones, twos or threes: frames in a row, a new drawing at each color change ---------- */
@@ -1209,9 +1222,25 @@
     const rows = [["this shot", n("setting")], ["fast action", n("actionRate")], ["quiet moments", n("holdRate")]];
     let s = k.bg(BG);
     const sw = [0, 1, 3][idx(v, "switchFor", 3)];
+    const boil = (v.n("boilPx") + idx(v, "boil", 3) * 1.5) * 0.8;
+    /* The scene: one walk across the frame, half a second (12 frames). A new drawing every frame on ones,
+       every other frame on twos: fewer drawings, a choppier walk. Each drawing wobbles by the boil. */
+    const step0 = rows[0][1];
+    const draws = Math.ceil(12 / step0);
+    s += `<rect x="0" y="92" width="210" height="5" fill="#2a2620"/>`;
+    for (let d = 0; d < draws; d++) {
+      const f = draws === 1 ? 1 : d / (draws - 1);
+      const x = 22 + f * 170;
+      const jx = (k.rnd(d + 3) - 0.5) * boil;
+      const jr = (k.rnd(d + 11) - 0.5) * boil * 2.5;
+      const last = d === draws - 1;
+      s += `<g opacity="${last ? 1 : r1(0.22 + 0.4 * f)}" transform="rotate(${r1(jr)} ${r1(x)} 92)">${k.person({ x: x + jx, y: 92, s: 0.42, color: last ? "#e0a050" : "#a7c4e4", walk: d % 2 ? 0.9 : 0.2, lean: 6 })}</g>`;
+    }
+    s += k.label({ x: 8, y: 20, text: `${draws} drawing${draws === 1 ? "" : "s"} for half a second of walking`, size: 8, color: "#ccc", anchor: "start" });
+    /* The frame strips: each color block is one drawing, held for as many frames as it is wide. */
     rows.forEach(([name, step], r) => {
-      const y = 22 + r * 32;
-      s += k.label({ x: 8, y: y - 3, text: `${name}: on ${["ones", "twos", "threes", "fours"][step - 1]}`, size: 7, color: "#aaa", anchor: "start" });
+      const y = 106 + r * 17;
+      s += k.label({ x: 8, y: y + 7, text: `${name}: ${["ones", "twos", "threes", "fours"][step - 1]}`, size: 6.5, color: "#aaa", anchor: "start" });
       let draw = 0;
       let left = 0;
       for (let f = 0; f < 24; f++) {
@@ -1221,19 +1250,12 @@
         if (r === 0 && sw && [6, 14, 20].slice(0, sw).some((x) => f >= x && f < x + 3)) st = 1;
         if (left <= 0) (draw++, (left = st));
         left--;
-        s += `<rect x="${r1(8 + f * 8.4)}" y="${y}" width="7.6" height="14" fill="${draw % 2 ? "#6c8fb8" : "#a7c4e4"}"/>`;
+        s += `<rect x="${r1(96 + f * 4.6)}" y="${y}" width="4" height="9" fill="${draw % 2 ? "#6c8fb8" : "#a7c4e4"}"/>`;
       }
-      if (r === 0 && sw) [6, 14, 20].slice(0, sw).forEach((x) => (s += k.label({ x: 8 + x * 8.4 + 12, y: y + 22, text: "★", size: 7, color: YEL })));
+      if (r === 0 && sw) [6, 14, 20].slice(0, sw).forEach((x) => (s += k.label({ x: 96 + x * 4.6 + 6, y: y - 1, text: "★", size: 6, color: YEL })));
     });
-    /* The drawn wobble ("boil"): a little figure drawn three times. */
-    const boil = (v.n("boilPx") + idx(v, "boil", 3) * 1.5) * 0.8;
-    s += k.label({ x: 60, y: 122, text: "hand-drawn wobble", size: 7, color: "#aaa" });
-    for (let c = 0; c < 3; c++) {
-      const pts = Array.from({ length: 13 }, (_, i) => { const a = (i / 12) * Math.PI * 2; const rr = 14 + (k.rnd(i + c * 20) - 0.5) * boil * 2; return `${r1(30 + c * 30 + Math.cos(a) * rr)},${r1(144 + Math.sin(a) * rr * 0.8)}`; });
-      s += `<polygon points="${pts.join(" ")}" fill="none" stroke="${["#ff9a8a", "#9fd3ff", "#ffd166"][c]}" stroke-width="1.5" opacity="0.8"/>`;
-    }
     s += side(k, [{ label: "Drawn on", text: v("setting") }, { label: "Mixed", text: v("mix") }, { label: "Big moments", text: v("switchFor") }, { label: `Wobble ${v.n("boilPx")} px`, p: v.n("boilPx") / 6, color: "#ff9a8a" }, { label: "Boil", text: v("boil") }]);
-    return s + cap(k, "24 frames = 1 second; each color block is one drawing");
+    return s + cap(k, `drawn on ${v("setting")}: 24 frames = 1 second, each color block is one drawing`);
   });
 
   /* ---------- Anticipation: a wind-up before the move, as ghosts of the pose ---------- */
@@ -1275,7 +1297,6 @@
     const amt = (0.15 + (v.n("howMuch") / 5) * 0.85) * (0.1 + v.n("pastPct") / 40);
     const wob = Math.round(v.n("wobbles")) + (mode === 2 ? 1 : 0);
     const settle = 4 + v.n("settleFrames");
-    const G = { x: 14, y: 30, w: 192, h: 90 };
     const T = 40;
     const pts = Array.from({ length: 81 }, (_, i) => {
       const t = (i / 80) * T;
@@ -1286,17 +1307,34 @@
       const osc = Math.sin(u * Math.PI * (wob + 1)) * (1 - u);
       return k.clamp(0.7 + osc * amt * 0.5 * (mode === 0 ? 0 : 1), 0.02, 0.98);
     });
-    let s = k.bg(BG) + `<rect x="${G.x}" y="${G.y}" width="${G.w}" height="${G.h}" fill="#1d1d22"/><line x1="${G.x}" y1="${r1(G.y + G.h * 0.3)}" x2="${G.x + G.w}" y2="${r1(G.y + G.h * 0.3)}" stroke="#7fd18b" stroke-dasharray="4 3"/>` + k.label({ x: G.x + G.w - 2, y: G.y + G.h * 0.3 - 4, text: "the mark", size: 7, color: "#7fd18b", anchor: "end" });
-    s += ghost(mode > 0, k.graph({ x: G.x, y: G.y, w: G.w, h: G.h, points: pts, color: YEL }));
-    if (!mode) s += k.label({ x: 110, y: 46, text: "no overshoot: it stops dead (shown faint)", size: 7, color: "#aaa" });
+    /* The scene: an arm swings up to point at a mark, drawn once every two frames (faint early, solid at
+       rest). With overshoot the arm swings past the dashed mark and wobbles back before it settles. */
+    const sx = 70;
+    const sy = 85;
+    const L = 58;
+    const ang = (val) => k.lerp(80, -25, (val - 0.1) / 0.6);
+    const tip = (deg, len) => [sx + Math.cos(k.rad(deg)) * len, sy + Math.sin(k.rad(deg)) * len];
+    let s = k.bg(BG) + `<rect x="0" y="140" width="210" height="5" fill="#2a2620"/>`;
+    const mk = tip(-25, L + 22);
+    s += `<line x1="${sx}" y1="${sy}" x2="${r1(mk[0])}" y2="${r1(mk[1])}" stroke="#7fd18b" stroke-dasharray="4 3"/>` + k.label({ x: mk[0] + 4, y: mk[1] - 2, text: "the mark", size: 7, color: "#7fd18b", anchor: "start" });
+    let arms = "";
+    for (let i = 0; i <= 80; i += 2) {
+      const e = tip(ang(pts[i]), L);
+      const last = i === 80;
+      arms += `<line x1="${sx}" y1="${sy}" x2="${r1(e[0])}" y2="${r1(e[1])}" stroke="${last ? "#f0c8a0" : YEL}" stroke-width="${last ? 5 : 1.4}" stroke-linecap="round" opacity="${last ? 1 : r1(0.12 + (0.5 * i) / 80)}"/>`;
+    }
+    s += k.person({ x: sx, y: 140, s: 1.05, color: BLUE, arms: -0.6, look: 1 }) + ghost(mode > 0, arms);
+    const e = tip(ang(pts[80]), L);
+    s += `<circle cx="${r1(e[0])}" cy="${r1(e[1])}" r="5" fill="#f0c8a0" stroke="#1c1712"/>`;
+    if (!mode) s += k.label({ x: 140, y: 120, text: "no overshoot: it stops dead", size: 7, color: "#aaa" });
     const what = String(v("whatOvershoots"));
-    s += k.label({ x: 14, y: 20, text: `what goes past: ${what}`, size: 8, color: "#ccc", anchor: "start" });
+    s += k.label({ x: 8, y: 18, text: `what goes past: ${what}`, size: 8, color: "#ccc", anchor: "start" });
     /* Which stops get it. */
     const em = idx(v, "emphasis", 3);
-    s += k.label({ x: 14, y: 136, text: "stops in the scene:", size: 7, color: "#999", anchor: "start" });
+    s += k.label({ x: 172, y: 134, text: "stops in the scene:", size: 7, color: "#999" });
     [0.3, 0.6, 1].forEach((h, i) => {
       const on = em === 0 || (em === 1 && i > 0) || (em === 2 && i === 2);
-      s += `<rect x="${90 + i * 36}" y="${150 - h * 14}" width="26" height="${h * 14}" fill="${on ? YEL : "#444"}"/>` + (on ? `<path d="M${90 + i * 36} ${146 - h * 14} q6 -6 13 0 q6 6 13 0" fill="none" stroke="${YEL}"/>` : "");
+      s += `<rect x="${150 + i * 20}" y="${158 - h * 12}" width="14" height="${h * 12}" fill="${on ? YEL : "#444"}"/>`;
     });
     s += side(k, [{ label: "Overshoot", text: v("setting") }, { label: `How much ${v("howMuch")}/5, past by ${v.n("pastPct")}%`, p: amt / 1.1 }, { label: "Wobbles", n: v.n("wobbles") }, { label: `Settles in ${v.n("settleFrames")} frames`, p: v.n("settleFrames") / 12, color: "#9fd3ff" }, { label: "Used on", text: v("emphasis") }]);
     return s + cap(k, `${v("setting")}, ${wob} wobble${wob === 1 ? "" : "s"} before rest`);
@@ -1355,13 +1393,14 @@
     let s = k.bg(BG);
     const pts = Array.from({ length: 41 }, (_, i) => P(i / 40));
     s += `<polyline points="${pts.map((p) => p.map(r1).join(",")).join(" ")}" fill="none" stroke="#555" stroke-dasharray="3 3"/>`;
-    const col = { "the head": "#f0c8a0", "the hands": "#ffd166", "the whole body": "#6fa8ff" }[part];
-    const rr = part === "the whole body" ? 11 : part === "the head" ? 8 : 5;
+    /* The moving part itself, drawn every couple of frames along the path: a head, a hand, or the whole
+       person, faint for the trail and solid where it is now. */
+    const drawPart = (x, y, a) => (part === "the head" ? `<g opacity="${a}">${k.face({ x, y, r: 9, eyes: 1, mood: 0.3, color: "#f0c8a0" })}</g>` : part === "the hands" ? `<g opacity="${a}">${k.hand({ x, y: y + 6, s: 0.38, open: 0.8 })}</g>` : k.person({ x, y: y + 22, s: 0.32, color: "#6fa8ff", alpha: a, lean: 10 }));
     const ghosts = Math.max(1, tf);
-    const tr = Array.from({ length: ghosts }, (_, i) => { const p = P(0.9 - (i + 1) * 0.05); return `<circle cx="${r1(p[0])}" cy="${r1(p[1])}" r="${rr}" fill="${col}" opacity="${r1((trail === 2 ? 0.5 : 0.22) * (1 - i / ghosts))}"/>`; }).join("");
+    const tr = Array.from({ length: ghosts }, (_, i) => { const p = P(0.9 - (i + 1) * (0.7 / ghosts)); return drawPart(r1(p[0]), r1(p[1]), r1((trail === 2 ? 0.55 : 0.28) * (1 - i / (ghosts + 1)))); }).reverse().join("");
     s += ghost(trail > 0, tr);
     const E = P(0.9);
-    s += `<circle cx="${r1(E[0])}" cy="${r1(E[1])}" r="${rr}" fill="${col}" stroke="#1c1712" stroke-width="1.5"/>` + k.label({ x: E[0], y: E[1] - rr - 5, text: part, size: 8, color: "#ddd" });
+    s += drawPart(r1(E[0]), r1(E[1]), 1) + k.label({ x: E[0], y: E[1] - 16, text: part, size: 8, color: "#ddd" });
     /* What keeps straight lines: a machine or a shock. */
     const sf = String(v("straightFor"));
     if (sf === "machines") s += `<rect x="16" y="128" width="20" height="18" fill="#888" stroke="#1c1712"/><line x1="40" y1="137" x2="90" y2="137" stroke="#bbb" stroke-width="2"/>` + k.label({ x: 60, y: 154, text: "machines: straight", size: 7, color: "#aaa" });
@@ -1417,7 +1456,10 @@
       if (part !== "props") g += `<g opacity="${a}">${k.face({ x, y: y - h, r: Math.min(w, h) * (part === "the face" ? 0.9 : 0.6), mood: 0.4 })}</g>`;
       return g;
     };
-    const P = (t) => [20 + t * 170, 140 - Math.abs(Math.sin(t * Math.PI * 2)) * 90];
+    const P = (t) => [20 + t * 170, 140 - Math.abs(Math.sin(t * Math.PI * 2)) * 66];
+    /* the bounce path, dashed, so the drawings read as one ball (or body) bouncing along */
+    s += `<polyline points="${Array.from({ length: 61 }, (_, i) => P(i / 60).map(r1).join(",")).join(" ")}" fill="none" stroke="#555" stroke-dasharray="3 3"/>`;
+    s += k.label({ x: 8, y: 18, text: part === "props" ? "a prop bouncing, drawn every few frames" : "bouncing along, drawn every few frames", size: 8, color: "#ccc", anchor: "start" });
     for (let i = 0; i <= 8; i++) {
       const t = i / 8;
       const [x, y] = P(t);

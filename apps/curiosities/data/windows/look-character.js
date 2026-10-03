@@ -226,8 +226,13 @@
     for (let n = 1; n <= 9; n++) {
       const [x, y] = ennPt(n, cx, cy, R);
       const on = n === t;
-      s += `<circle cx="${r1(x)}" cy="${r1(y)}" r="${on ? 11 : 8}" fill="${on ? k.mix("#8a7a50", "#ffd166", pur) : "#2c2c34"}" stroke="${on ? "#fff" : "#555"}"/>` + S(k, x, y + 3, String(n), on ? ink : "#aaa", "middle", 9);
+      /* each type as a little face with its usual look: stern, warm, confident, wistful, thinking,
+         worried, beaming, fierce, calm */
+      const F = [null, [-0.1, -0.7], [0.7, 0.3], [0.5, 0.2], [-0.5, 0.4], [0, -0.3], [-0.4, 0.8], [1, 0.4], [0.2, -1], [0.4, 0]][n];
+      if (on) s += `<circle cx="${r1(x)}" cy="${r1(y)}" r="14" fill="${k.mix("#8a7a50", "#ffd166", pur)}"/>`;
+      s += k.face({ x: r1(x), y: r1(y), r: on ? 11 : 8, mood: F[0], brows: F[1], eyes: 1, color: on ? "#f0c8a0" : "#9a9088" }) + S(k, r1(x + (on ? 15 : 11) * (x < cx ? -1 : 1)), y + 3, String(n), on ? "#ffd166" : "#888", "middle", 7);
     }
+    s += S(k, cx, cy + 4, String(v("setting")).replace(/^\d+\s*/, ""), "#ffd166", "middle", 10);
     const fear = v.n("fearShown") / 5;
     const desire = v.n("desireShown") / 5;
     const fm = v.n("fearMoments");

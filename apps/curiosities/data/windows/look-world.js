@@ -349,10 +349,13 @@
     const fx = k.clamp(origin[0] + Math.cos(fa) * fd, R.x + 12, R.x + R.w - 12);
     const fy = k.clamp(origin[1] + Math.sin(fa) * fd, R.y + 12, R.y + R.h - 22);
     s += `<clipPath id="cw-setLayout-clip"><rect x="${R.x}" y="${R.y}" width="${R.w}" height="${R.h + 14}"/></clipPath><g clip-path="url(#cw-setLayout-clip)">` + k.ring({ x: origin[0], y: origin[1], r: fd, color: "#888", dash: "3 3", w: 1 }) + `</g>`;
-    s += from === 1 ? k.cam({ x: origin[0], y: origin[1], dir: -90, s: 0.5 }) : k.dot({ x: origin[0], y: origin[1], r: 5, color: from === 0 ? "#4a6fa5" : "#ccc" });
+    /* People in the room, seen from above (a face on a shirt), so the plan reads as a real place. */
+    const topP = (x, y, c, lk) => `<ellipse cx="${x.toFixed(1)}" cy="${(y + 4).toFixed(1)}" rx="8" ry="5" fill="${c}" stroke="${k.INK}"/>` + k.face({ x, y: y - 1, r: 5.5, look: lk, eyes: 1, color: "#f0c8a0" });
+    [[R.x + 62, R.y + 104, "#8a6a9a", 1], [R.x + 112, R.y + 66, "#6a8a6a", -1], [R.x + 168, R.y + 108, "#9a7a4a", -1]].forEach(([x, y, c, lk]) => (s += topP(x, y, c, lk)));
+    s += from === 1 ? k.cam({ x: origin[0], y: origin[1], dir: -90, s: 0.5 }) : from === 0 ? topP(origin[0], origin[1], "#4a6fa5", 1) : k.dot({ x: origin[0], y: origin[1], r: 5, color: "#ccc" });
     if (focal > 0) s += `<path d="M${fx} ${fy - 8} l2.4 5.6 l6 0.6 l-4.6 4 l1.4 6 l-5.2 -3.2 l-5.2 3.2 l1.4 -6 l-4.6 -4 l6 -0.6 Z" fill="#ffd166" stroke="${k.INK}"/>` + k.label({ x: fx, y: fy + 18, text: ["", "counter", "center", "stage"][focal], size: 8, color: "#ffd166" });
     else s += k.ring({ x: fx, y: fy, r: 5, color: "#888", dash: "2 2", w: 1 });
-    s += k.label({ x: 120, y: 16, text: `focal point at ${v("focalAround")}°, ${v("focalDistance")} m`, size: 8, color: "#ccc" });
+    s += k.fitText({ x: 120, y: 16, text: `the room from above · focal point at ${v("focalAround")}°, ${v("focalDistance")} m`, size: 8, min: 6.5, w: 210, color: "#ccc" });
     /* Side view: how far the levels drop. */
     const drop = v.p("levelDrop") * 70;
     s += `<rect x="232" y="22" width="82" height="130" rx="4" fill="#1d1d22" stroke="#444"/><path d="M236 ${60} L270 60 L270 ${60 + drop + 4} L310 ${60 + drop + 4}" fill="none" stroke="#d9cbb5" stroke-width="3"/>` + k.person({ x: 252, y: 60, s: 0.35 }) + k.label({ x: 273, y: 146, text: `${v("levelDrop")} m drop`, size: 8, color: "#ccc" });
