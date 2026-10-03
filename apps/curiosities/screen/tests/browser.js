@@ -497,6 +497,52 @@ const ok = (cond, msg) => {
   ok(afterRedo === beforeUndo, "⌘Z then ⇧⌘Z gives back exactly the same film (one undo is one step, also with the app-wide undo list)");
   await page.keyboard.press("Control+z");
   ok(await page.evaluate(() => Object.keys(window.CurioEngine.state().lanes).some((k) => k.endsWith("|emotionIntensity"))), "one ⌘Z undoes only the paste, not the steps before it");
+  /* Area tools: Reverse, Flip, Stretch ×2 and Squeeze ½ on a selected area, each one undo step; then My film's
+     clip track shows a storyboard frame per moment when zoomed in. Strength of the feeling has 1, 4, 0, 5 at
+     moments 1, 3, 6, 8. */
+  {
+    const box2 = await page.evaluate((a) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[a].getBBox().y); const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a);
+    const cw = box2.w / box2.n;
+    /* Moments 1 to 4 of this lane (selected again before each tool: Stretch and Squeeze resize the area). */
+    const select = async () => {
+      await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; });
+      await page.mouse.move(box2.x + cw * 0.1, box2.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(box2.x + cw * 3.9, box2.y + box2.h - 2, { steps: 8 });
+      await page.mouse.up();
+    };
+    await select();
+    ok((await page.$$('.sl [data-act^="area-"]')).length === 4, "a selected area shows Reverse, Flip, Stretch ×2 and Squeeze ½");
+    const pts = () => page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); return st.rows.slice(0, 8).map((r) => (st.lanes[lk].points[r.id] == null ? null : st.lanes[lk].points[r.id])); });
+    const orig = await pts();
+    const tool = async (act) => { await select(); await page.click(`.sl [data-act="${act}"]`); const p = await pts(); await page.keyboard.press("Control+z"); return p; };
+    const rv = await tool("area-reverse");
+    ok(rv[3] === orig[0] && rv[1] === orig[2] && rv[0] == null && rv[2] == null && rv[5] === orig[5], "Reverse mirrors the area's nodes in time (" + rv.join(",") + ")");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes Reverse back");
+    const fp = await tool("area-flip");
+    const flipped = await page.evaluate((o) => [o[0], o[2]].map((v) => window.CurioScale.fix("emotionIntensity", window.CurioScale.at("emotionIntensity", 1 -window.CurioScale.pos("emotionIntensity", v)))), orig);
+    ok(String(fp[0]) === String(flipped[0]) && String(fp[2]) === String(flipped[1]) && fp[5] === orig[5], "Flip turns each node's setting upside down on its scale (" + fp.join(",") + " for " + flipped.join(",") + ")");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes Flip back");
+    const sp = await tool("area-stretch");
+    ok(sp[0] === orig[0] && sp[4] === orig[2] && sp[2] == null && sp[5] == null && sp[7] === orig[7], "Stretch ×2 spreads the nodes out to twice as long (" + sp.join(",") + ")");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes Stretch back");
+    const sq = await tool("area-squeeze");
+    ok(sq[0] === orig[0] && sq[1] === orig[2] && sq[2] == null && sq[5] === orig[5], "Squeeze ½ pulls the nodes together (" + sq.join(",") + ")");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes Squeeze back");
+    const thumbs = () => page.$$eval(".sl-topsvg .sl-clip.mine image.sl-thumb", (x) => x.map((i) => i.getAttribute("href").slice(0, 19)));
+    await page.evaluate(() => { window.CurioLanes.tools().zoom = 0.25; window.CurioScreen.setRow(0); });
+    const few = await thumbs();
+    await page.evaluate(() => { window.CurioLanes.tools().zoom = 3; window.CurioScreen.setRow(0); document.querySelector(".sl-scroll").scrollLeft = 0; document.querySelector(".sl-scroll").scrollTop = 0; });
+    const many = await thumbs();
+    ok(few.length === 0 && many.length === box2.n && many.every((h) => h === "data:image/svg+xml;"), "zoomed in, My film's clip track shows a storyboard frame for each moment (" + few.length + " zoomed out, " + many.length + " zoomed in)");
+    await page.waitForTimeout(150);
+    const tl = await page.$(".sc-timeline");
+    if (tl) await tl.screenshot({ path: path.join(SHOTS, "screen-6b-area-tools-thumbs.png") });
+    await page.evaluate(() => { window.CurioLanes.tools().zoom = 1; window.CurioLanes.tools().laneH = 60; window.CurioScreen.setRow(0); });
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    ok((await page.$$('.sl [data-act^="area-"]')).length === 0 && JSON.stringify(await pts()) === JSON.stringify(orig), "Esc lets go of the area and its tools hide");
+  }
   /* Curves: a line between two nodes, shaped and written into the moments between. */
   await page.evaluate(() => document.querySelector(".sl-svg") && window.CurioScreen.setRow(1));
   const segA = await page.evaluate(() => { const s = [...document.querySelectorAll(".sl-seghit")].find((x) => /emotionIntensity\|r1\|r3|emotionIntensity\|/.test(x.dataset.seg)); return s ? s.dataset.seg : null; });

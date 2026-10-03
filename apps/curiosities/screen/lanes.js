@@ -26,6 +26,7 @@
        opts.header(lane) -> extra HTML for a lane's header (the Arrange view's dropdown)
        opts.ruler        draw moment numbers above the lanes
        opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
+       opts.thumbs()     -> one storyboard frame <svg> string per moment, drawn on My film's clip track when zoomed in
    - trackFor(cur)       the track a curiosity goes on when it is not on one yet
    - group(nodeKey)      the nodes and links joined to a node
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
@@ -443,7 +444,111 @@
     return { cmds: adds.concat(cmds) };
   }
 
+  /* ---------- area tools: Reverse, Flip, Stretch and Squeeze (CapCut's Reverse and speed, for nodes) ----------
+     Each works on the selected area's nodes, lane by lane, as one batch (one undo step). lanes: [{ track, cur, lk }].
+     remapArea moves every node in the area from moment j to mapJ(j). When two nodes land on one moment the later
+     one wins. The area, and the moments a stretch now spreads over (until), are cleared first, so what was there
+     is replaced. Joins follow their nodes; a join whose node was dropped is removed. */
+  function remapArea(st, lanes, ar, mapJ, until) {
+    const n = st.rows.length;
+    const ix = {};
+    st.rows.forEach((r, i) => (ix[r.id] = i));
+    const cmds = [];
+    const moved = {}; /* old node key -> new row id, for nodes that survive */
+    const dropped = new Set();
+    let count = 0;
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      const to = {}; /* new j -> [old j, value]; later old j wins */
+      for (let j = ar.j0; j <= ar.j1; j++) {
+        const v = lane.points[st.rows[j].id];
+        if (v == null) continue;
+        const k = Math.max(0, Math.min(n - 1, mapJ(j)));
+        if (!to[k] || to[k][0] < j) to[k] = [j, v];
+      }
+      const news = Object.keys(to).map(Number);
+      if (!news.length) continue;
+      const a = Math.min(ar.j0, ...news);
+      const b = Math.max(ar.j1, until || 0, ...news);
+      for (let j = a; j <= b; j++) {
+        const r = st.rows[j].id;
+        if (lane.points[r] == null) continue;
+        cmds.push({ type: "removePoint", row: r, track: ln.track, curiosity: ln.cur });
+        dropped.add(nodeKey(r, ln.lk));
+      }
+      news.forEach((k) => {
+        const old = nodeKey(st.rows[to[k][0]].id, ln.lk);
+        cmds.push({ type: "setPoint", row: st.rows[k].id, track: ln.track, curiosity: ln.cur, value: to[k][1] });
+        moved[old] = st.rows[k].id;
+        dropped.delete(old);
+        count++;
+      });
+    }
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends || !ends.some((k) => moved[k] || dropped.has(k))) return;
+      if (ends.some((k) => dropped.has(k))) return cmds.push({ type: "removeLink", link: l.id });
+      const scope = { from: moved[ends[0]] || l.scope.from, to: moved[ends[1]] || l.scope.to };
+      if (scope.from !== l.scope.from || scope.to !== l.scope.to) cmds.push({ type: "updateLink", link: l.id, changes: { scope, within: Math.max(0, Math.min(16, Math.abs(ix[scope.to] - ix[scope.from]))) } });
+    });
+    return { cmds, nodes: count };
+  }
+  /* Reverse: the area's nodes play backwards (a node at moment j0 + k moves to j1 - k). */
+  function reverseAreaCommands(st, lanes, ar) {
+    return remapArea(st, lanes, ar, (j) => ar.j0 + ar.j1 - j);
+  }
+  /* Stretch (f = 2) or squeeze (f = 0.5): timing scaled from the area's first moment, clamped to the film's end. */
+  function stretchAreaCommands(st, lanes, ar, f) {
+    const last = Math.min(st.rows.length - 1, ar.j0 + Math.round((ar.j1 - ar.j0) * f));
+    const out = remapArea(st, lanes, ar, (j) => ar.j0 + Math.round((j - ar.j0) * f), last);
+    out.area = { i0: ar.i0, i1: ar.i1, j0: ar.j0, j1: Math.max(ar.j0, last) };
+    return out;
+  }
+  /* Flip: each node's setting mirrored on its lane's scale (low becomes high), joins kept in step. */
+  function flipAreaCommands(st, lanes, ar) {
+    const cmds = [];
+    const flipped = {};
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      for (let j = ar.j0; j <= ar.j1; j++) {
+        const r = st.rows[j].id;
+        const p = lane.points[r] == null ? null : S().pos(ln.cur, lane.points[r]);
+        if (p == null) continue;
+        const v = S().fix(ln.cur, S().at(ln.cur, 1 - p));
+        if (v == null) continue;
+        cmds.push({ type: "setPoint", row: r, track: ln.track, curiosity: ln.cur, value: v });
+        flipped[nodeKey(r, ln.lk)] = v;
+      }
+    }
+    const nodes = cmds.length;
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends) return;
+      if (flipped[ends[0]] != null && l.from.is != null) cmds.push({ type: "updateLink", link: l.id, changes: { from: { is: flipped[ends[0]] } } });
+      if (flipped[ends[1]] != null && l.does === "set") cmds.push({ type: "updateLink", link: l.id, changes: { value: flipped[ends[1]] } });
+    });
+    return { cmds, nodes };
+  }
+
   /* ---------- the view ---------- */
+  /* Storyboard frames for My film's clip track, as data pictures (each frame stays self-contained, so its arrow
+     ids never clash with the page's). Cached by the frame's own text so redraws stay fast. */
+  const THUMB_MIN = 40;
+  const FRAME_AR = 16 / 9;
+  const uris = new Map();
+  function frameUri(svg) {
+    let u = uris.get(svg);
+    if (!u) {
+      if (uris.size > 600) uris.clear();
+      u = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(/xmlns=/.test(svg) ? svg : svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"'));
+      uris.set(svg, u);
+    }
+    return u;
+  }
   function mount(el, opts) {
     opts = opts || {};
     let sel = null; /* selected node key */
@@ -533,12 +638,27 @@
       const svg = [];
       const dots = []; /* nodes go on top of the lines */
       /* Film clip tracks first: one per inspiration film, then my film's moments. */
+      /* My film's clip track shows a small storyboard frame per moment once a moment is wide enough, like the
+         thumbnails on CapCut's main track (opts.thumbs() -> one frame <svg> string per moment). */
+      let frames = null;
       clipRows.forEach((cr, k) => {
         const y = k * CLIP_H;
+        const film = cr.thumbs || (cr.clips || []).some((c) => /\bmine\b/.test(c.cls || ""));
+        if (film && !frames && opts.thumbs && colW >= THUMB_MIN) frames = opts.thumbs() || [];
         (cr.clips || []).forEach((c) => {
           const x = c.from * svgW;
           const w = Math.max(3, (c.to - c.from) * svgW - 2);
-          tsvg.push(`<g class="sl-clip ${esc(c.cls || "")}" data-clip="${Math.floor(c.from * n + 1e-6)}"><rect x="${x + 1}" y="${y + 2}" width="${w}" height="${CLIP_H - 4}" rx="4"/><text x="${x + 6}" y="${y + 18}">${esc(String(c.text || "").slice(0, Math.max(0, Math.floor(w / 6))))}</text><title>${esc(c.title || c.text || "")}</title></g>`);
+          const j = Math.floor(c.from * n + 1e-6);
+          let tx = x + 6;
+          let pic = "";
+          const f = film && frames && frames[j];
+          if (f) {
+            const th = CLIP_H - 8;
+            const tw = Math.min(w - 4, Math.round(th * FRAME_AR));
+            pic = `<image class="sl-thumb" x="${x + 3}" y="${y + 4}" width="${tw}" height="${th}" preserveAspectRatio="xMidYMid slice" href="${frameUri(f)}"/>`;
+            tx = x + tw + 8;
+          }
+          tsvg.push(`<g class="sl-clip ${esc(c.cls || "")}${pic ? " has-thumb" : ""}" data-clip="${j}"><rect x="${x + 1}" y="${y + 2}" width="${w}" height="${CLIP_H - 4}" rx="4"/>${pic}<text x="${tx}" y="${y + 18}">${esc(String(c.text || "").slice(0, Math.max(0, Math.floor((x + w - tx) / 6))))}</text><title>${esc(c.title || c.text || "")}</title></g>`);
         });
       });
       const rulerY = clipRows.length * CLIP_H;
@@ -636,6 +756,7 @@
           <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
+          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}</span>` : ""}
           ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
           ${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off")}
           ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
@@ -1083,7 +1204,7 @@
       hold: ["hold", "⌐ Jump", "Jumps: holds each node's setting until the next node (Maya's stepped curve).", "Make a lane jump"],
     };
     const modeOf = (lane) => (MODES[lane.mode] ? lane.mode : "ramp");
-    const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit" };
+    const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit", "area-reverse": "reverse", "area-flip": "flip", "area-stretch": "stretch", "area-squeeze": "squeeze" };
     /* The nodes of a lane in film order, as keys. */
     function laneNodes(st, lk) {
       const lane = st.lanes[lk];
@@ -1161,6 +1282,21 @@
         draw();
         say(keep);
         return out;
+      } else if (name === "reverse" || name === "flip" || name === "stretch" || name === "squeeze") {
+        /* The area tools: one batch each, so one ⌘Z takes it back. */
+        if (!area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+        const r = name === "reverse" ? reverseAreaCommands(st, geo.lanes, area) : name === "flip" ? flipAreaCommands(st, geo.lanes, area) : stretchAreaCommands(st, geo.lanes, area, name === "stretch" ? 2 : 0.5);
+        const what = { reverse: ["Reverse the selection", "Reversed"], flip: ["Flip the selection", "Flipped"], stretch: ["Stretch the selection", "Stretched"], squeeze: ["Squeeze the selection", "Squeezed"] }[name];
+        if (!r.nodes) {
+          say("No nodes in the selection.");
+          out = { ok: false };
+        } else {
+          out = send({ type: "batch", label: what[0], commands: r.cmds });
+          if (out.ok) {
+            if (r.area) area = r.area;
+            say(`${what[1]} ${r.nodes} node${r.nodes === 1 ? "" : "s"}${r.area ? `; the selection is now moments ${area.j0 + 1} to ${area.j1 + 1}` : ""}. Undo takes it back.`);
+          }
+        }
       } else if (name === "paste" && clip && clip.kind === "area") {
         out = pasteHere();
         const keep = msg;
@@ -1477,5 +1613,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, shapeAt, copyArea, pasteAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
+  root.CurioLanes = { SHAPES, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
 })();

@@ -109,5 +109,48 @@ const cpk = w.CurioLanes.copyGroup(k3, { allow: noFeel });
 ok(cpk.ok && cpk.nodes === 1 && cpk.links === 0, "copy leaves unticked kinds behind too");
 ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === true, "linkage starts on, as in CapCut");
 
+/* The area tools: Reverse, Flip, Stretch and Squeeze, each one batch. */
+{
+  const CL = w.CurioLanes;
+  const Sc = w.CurioScale;
+  E.reset(w.CurioSeeds.starter());
+  const rr = E.state().rows;
+  const opts = Sc.domain("shotSize").options;
+  const lanesA = [{ track: "camera", cur: "shotSize", lk: "camera|shotSize" }, { track: "master", cur: "emotion", lk: "master|emotion" }];
+  const pt = (j, v, t, c) => ({ type: "setPoint", row: rr[j].id, track: t || "camera", curiosity: c || "shotSize", value: v });
+  E.send({ type: "batch", commands: [pt(1, opts[0]), pt(2, opts[1]), pt(4, opts[2]), pt(6, opts[opts.length - 1])] });
+  const P = () => E.state().lanes["camera|shotSize"].points;
+  const ar = { i0: 0, i1: 1, j0: 1, j1: 4 };
+  const rev = CL.reverseAreaCommands(E.state(), lanesA, ar);
+  ok(rev.nodes === 3 && E.send({ type: "batch", label: "Reverse", commands: rev.cmds }).ok, "Reverse makes one batch for the area's nodes");
+  ok(P()[rr[4].id] === opts[0] && P()[rr[3].id] === opts[1] && P()[rr[1].id] === opts[2] && P()[rr[2].id] == null && P()[rr[6].id] === opts[opts.length - 1], "Reverse mirrors the nodes in time inside the area and leaves the rest alone");
+  E.undo();
+  ok(P()[rr[1].id] === opts[0] && P()[rr[4].id] === opts[2], "one undo takes Reverse back");
+  const fl = CL.flipAreaCommands(E.state(), lanesA, ar);
+  ok(E.send({ type: "batch", commands: fl.cmds }).ok && P()[rr[1].id] === opts[opts.length - 1] && P()[rr[2].id] === opts[opts.length - 2] && P()[rr[6].id] === opts[opts.length - 1], "Flip mirrors each node's setting on its own scale (low becomes high)");
+  ok(Math.abs(Sc.pos("shotSize", P()[rr[4].id]) - (1 - Sc.pos("shotSize", opts[2]))) < 1e-9, "Flip turns position p into 1 - p");
+  E.undo();
+  const stt = CL.stretchAreaCommands(E.state(), lanesA, ar, 2);
+  ok(E.send({ type: "batch", commands: stt.cmds }).ok && P()[rr[1].id] === opts[0] && P()[rr[3].id] === opts[1] && P()[rr[7].id] === opts[2] && P()[rr[6].id] == null && P()[rr[2].id] == null, "Stretch ×2 spreads the nodes from the area's first moment, replacing what was in the way");
+  ok(stt.area.j0 === 1 && stt.area.j1 === 7, "Stretch gives back the stretched area");
+  E.undo();
+  const sq = CL.stretchAreaCommands(E.state(), lanesA, ar, 0.5);
+  /* (2-1)*.5 rounds to 1 -> moment 2 and (4-1)*.5 rounds to 2 -> moment 3; moment 1 stays. */
+  ok(E.send({ type: "batch", commands: sq.cmds }).ok && P()[rr[1].id] === opts[0] && P()[rr[2].id] === opts[1] && P()[rr[3].id] === opts[2] && P()[rr[4].id] == null && sq.area.j1 === 3, "Squeeze ½ pulls the nodes together");
+  E.undo();
+  const last = rr.length - 1;
+  E.send({ type: "batch", commands: [pt(last - 1, opts[1]), pt(last, opts[2])] });
+  const end = CL.stretchAreaCommands(E.state(), lanesA, { i0: 0, i1: 0, j0: last - 2, j1: last }, 2);
+  ok(E.send({ type: "batch", commands: end.cmds }).ok && P()[rr[last].id] === opts[2] && end.nodes === 1, "Stretch clamps at the film's end and keeps the later node when two land together");
+  E.undo();
+  /* A join follows its nodes when they are reversed. */
+  E.send(pt(3, "angry", "master", "emotion"));
+  E.send(CL.linkCommand(E.state(), { row: rr[2].id, track: "camera", cur: "shotSize" }, { row: rr[3].id, track: "master", cur: "emotion" }));
+  const lid = E.state().links[E.state().links.length - 1].id;
+  ok(E.send({ type: "batch", commands: CL.reverseAreaCommands(E.state(), lanesA, ar).cmds }).ok, "Reverse with a join is one step");
+  const lj = E.state().links.find((l) => l.id === lid);
+  ok(lj && lj.scope.from === rr[3].id && lj.scope.to === rr[2].id && E.state().lanes["master|emotion"].points[rr[2].id] === "angry", "the join moves with its reversed nodes");
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);
