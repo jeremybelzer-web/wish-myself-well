@@ -559,5 +559,43 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(none.family === null && none.y >= 0 && none.y <= F.H && /eye goes first/.test(none.what), "with no attention reading it glows where the eye goes first, inside the frame");
 }
 
+/* Film lines and Take from the film: the inspiration film picked in the Player, read per moment of My film. */
+{
+  const CL = w.CurioLanes;
+  ok(typeof CL.filmLine === "function" && typeof CL.filmBeat === "function" && typeof CL.takeFromFilmCommands === "function", "the film line builders are on CurioLanes");
+  ok([0, 1, 2, 3, 4, 5, 6, 7].every((j) => CL.filmBeat(j, 8, 8) === j), "films of the same length line up moment for moment");
+  ok(CL.filmBeat(0, 8, 4) === 0 && CL.filmBeat(7, 8, 4) === 3 && CL.filmBeat(3, 8, 4) === 1 && CL.filmBeat(4, 8, 4) === 2, "a shorter film is stretched to My film's length, first and last moments meeting");
+  ok(CL.filmBeat(0, 1, 5) === 0, "a one-moment film reads the first beat");
+  /* Four beats: shot size set from beat 1 (in capitals, snapped onto the scale), intensity 2.4 (snapped to 2). */
+  const insp = [{ values: { emotion: "joyful" } }, { values: { shotSize: "Close", emotionIntensity: 2.4 } }, { values: {} }, { values: { shotSize: "wide" } }];
+  const sl = CL.filmLine(insp, 8, "shotSize");
+  ok(sl.length === 8 && sl[0] === null && sl[1] === null && sl[2] === "close" && sl[3] === "close" && sl[5] === "close" && sl[6] === "wide" && sl[7] === "wide", "the line carries a setting forward, snapped to the scale, and is empty before the film sets it (" + sl.join(",") + ")");
+  ok(CL.filmLine(insp, 8, "emotionIntensity")[7] === 2, "a number is snapped to the curiosity's steps");
+  ok(CL.filmLine(insp, 8, "cameraMove").every((v) => v === null), "a curiosity the film never sets has no line");
+  ok(CL.filmLine([], 8, "shotSize").every((v) => v === null) && CL.filmLine(null, 3, "shotSize").length === 3, "no film, no line");
+
+  E.reset(w.CurioSeeds.starter());
+  const rr = E.state().rows;
+  E.send({ type: "batch", commands: [{ type: "setPoint", row: rr[0].id, track: "camera", curiosity: "shotSize", value: "insert" }, { type: "setPoint", row: rr[4].id, track: "camera", curiosity: "shotSize", value: "medium" }, { type: "setPoint", row: rr[3].id, track: "master", curiosity: "emotion", value: "angry" }] });
+  const film = () => JSON.stringify([E.state().lanes, E.state().links]);
+  const before = film();
+  const lanesT = [{ track: "camera", cur: "shotSize", lk: "camera|shotSize" }, { track: "master", cur: "emotion", lk: null }, { track: "camera", cur: "cameraMove", lk: "camera|cameraMove" }, { track: "master", cur: "emotionIntensity", lk: "master|emotionIntensity" }];
+  const ar = { i0: 0, i1: 3, j0: 1, j1: 5 };
+  const tk = CL.takeFromFilmCommands(E.state(), lanesT, ar, insp);
+  ok(tk.lanes === 2 && tk.empty === 1, "Take from the film writes the lanes the film sets, skips a locked lane and one it never sets (" + tk.lanes + " lanes, " + tk.empty + " empty)");
+  ok(E.send({ type: "batch", label: "Take from the film", commands: tk.cmds }).ok, "Take from the film is one batch");
+  const P = E.state().lanes["camera|shotSize"].points;
+  ok(P[rr[1].id] == null && P[rr[2].id] === "close" && P[rr[5].id] === "close" && P[rr[4].id] === "close" && P[rr[0].id] === "insert" && P[rr[6].id] == null, "it writes the film's settings as nodes inside the selection only, keeping a moment the film has nothing for");
+  ok(E.state().lanes["master|emotion"].points[rr[3].id] === "angry" && !E.state().lanes["master|emotion"].points[rr[1].id], "the locked lane is left alone");
+  ok(E.state().lanes["master|emotionIntensity"].points[rr[2].id] === 2, "values land snapped to each curiosity's scale");
+  E.undo();
+  ok(film() === before, "one undo takes Take from the film back");
+  const comp = [{ values: { composition: "center" } }];
+  const off = CL.takeFromFilmCommands(E.state(), [{ track: null, cur: "composition", lk: null }], { i0: 0, i1: 0, j0: 2, j1: 3 }, comp);
+  ok(off.cmds[0] && off.cmds[0].type === "addCuriosity" && off.cmds.length === 3 && E.send({ type: "batch", commands: off.cmds }).ok && E.value(rr[3].id, off.cmds[0].track, "composition") === "center", "a lane not on a track yet is put on one first");
+  E.undo();
+  ok(film() === before, "and one undo takes that back too");
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

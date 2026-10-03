@@ -31,6 +31,9 @@
        opts.beats()      -> [{ values }] My film's values per moment, read by Mark the turns (else read from the engine)
        opts.showLanes(curs) adds lanes to the timeline for curiosities a dropped suite clip put into the film
        opts.attention    the momentum reading the Attention track uses (else the page's CurioAttention)
+       opts.inspiration() -> { name, beats: [{ values }] } or null: the inspiration film picked in the Player, drawn
+                         as Film lines in each lane and used by Take from the film (filmBeat, filmLine and
+                         takeFromFilmCommands are exported; the film is stretched to My film's length)
    - laneGroups(lanes, o) and foldDots(st, lanes): the lane groups (a folding header per category) and where a folded
      group's lanes have nodes; the mounted lanes have fold(category, folded?), foldAll(folded?) and groups()
    - turnMarkers(beats, rows, { attention, lanes }) -> the auto markers where the film turns (see below);
@@ -958,6 +961,76 @@
     }
     return { cmds: rewriteArea(st, ar, edits), nodes, lanes: edits.length, flat };
   }
+  /* Film lines (the Prism in the lanes): the inspiration film picked in the Player, read for one curiosity at
+     each of My film's moments, so a lane can show where your film follows or departs from it.
+     How the two films line up: the inspiration film is STRETCHED to My film's length, the same way Blend reads
+     it. My film's moment j reads the film's beat round(j / (n - 1) * (beats - 1)), so the first and last
+     moments always meet. When both films have the same number of moments it is moment for moment (beat j for
+     moment j). A value carries forward from the last beat that set it; a moment before the film first sets it,
+     or a curiosity the film never sets, is null (no line there). Values are snapped to the curiosity's scale.
+     filmBeat(j, n, count) -> the beat index; filmLine(beats, n, cur) -> n values or null. */
+  function filmBeat(j, n, count) {
+    if (count === n) return j;
+    return n > 1 ? Math.round((j / (n - 1)) * (count - 1)) : 0;
+  }
+  function filmValue(beats, b, cur) {
+    const alt = L() && L().base ? L().base(cur) : cur;
+    for (let k = Math.min(b, beats.length - 1); k >= 0; k--) {
+      const vals = beats[k] && beats[k].values;
+      if (!vals) continue;
+      const v = vals[cur] != null ? vals[cur] : vals[alt];
+      if (v != null) return v;
+    }
+    return null;
+  }
+  function filmLine(beats, n, cur) {
+    beats = Array.isArray(beats) ? beats : [];
+    const out = [];
+    for (let j = 0; j < n; j++) {
+      const v = beats.length ? filmValue(beats, filmBeat(j, n, beats.length), cur) : null;
+      const f = v == null ? null : S() && S().known(cur) ? S().fix(cur, v) : v;
+      out.push(f == null ? null : f);
+    }
+    return out;
+  }
+  /* Take from the film (the Prism's "Copy it", for a stretch): the inspiration film's settings for the selected
+     lanes and moments become nodes. Where the film has no setting, your node (or no node) stays. A lane that is
+     not on a track yet is put on one; a locked lane (lk null but on a track, see openLanes) is skipped.
+     Returns { cmds, nodes, lanes, empty } (empty: lanes where the film has nothing in the selection). */
+  function takeFromFilmCommands(st, lanes, ar, beats) {
+    const n = st.rows.length;
+    const edits = [];
+    const add = [];
+    let nodes = 0;
+    let empty = 0;
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      if (!ln || (ln.track && !ln.lk)) continue;
+      const line = filmLine(beats, n, ln.cur);
+      let k = 0;
+      for (let j = ar.j0; j <= ar.j1; j++) if (line[j] != null) k++;
+      if (!k) {
+        empty++;
+        continue;
+      }
+      let track = ln.track;
+      if (!track) {
+        track = trackFor(ln.cur, st);
+        if (!track) continue;
+        add.push({ type: "addCuriosity", track, curiosity: ln.cur });
+      }
+      const lk = track + "|" + ln.cur;
+      const lane = st.lanes[lk] || { points: {} };
+      const put = {};
+      for (let j = ar.j0; j <= ar.j1; j++) {
+        const had = lane.points[st.rows[j].id];
+        put[j] = line[j] != null ? line[j] : had;
+        if (line[j] != null) nodes++;
+      }
+      edits.push({ ln: Object.assign({}, ln, { track, lk }), lane, put });
+    }
+    return { cmds: add.concat(rewriteArea(st, ar, edits)), nodes, lanes: edits.length, empty };
+  }
   /* Move the selected area's nodes d moments later (d < 0: earlier), like dragging a group of clips sideways in
      CapCut. copy: the originals stay and a copy lands d moments away (Alt while dropping). The block is the whole
      area: whatever its lanes had over the moments it lands on is replaced, so one undo brings that back too. Sets
@@ -1437,6 +1510,26 @@
       });
       if (area) svg.push(`<rect class="sl-area" x="${area.j0 * colW}" y="${yTops[area.i0]}" width="${(area.j1 - area.j0 + 1) * colW}" height="${yTops[area.i1] + lh - yTops[area.i0]}"><title>Selected: moments ${area.j0 + 1} to ${area.j1 + 1}, ${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""}. Drag it sideways to move it (hold Alt to copy), or Copy, then pick where it goes and Paste.</title></rect>`);
       const ix = st.rows.map((r) => r.id);
+      /* Film lines: the picked inspiration film's own settings, stretched to My film's length (see filmLine), as
+         a faint dashed line behind each lane's nodes. Broken where the film has no setting; none at all when the
+         film never sets that curiosity. */
+      filmSeen = filmKey();
+      const film = filmLinesOn() && filmSeen ? inspirationNow() : null;
+      lanes.forEach((ln, i) => {
+        if (!film) return;
+        const line = filmLine(film.beats, n, ln.cur);
+        const runs = [];
+        let cur = null;
+        line.forEach((v, j) => {
+          if (v == null) return (cur = null);
+          if (!cur) runs.push((cur = []));
+          cur.push([j * colW + colW / 2, yFor(ln.cur, v, i), j, v]);
+        });
+        if (!runs.length) return;
+        const d = runs.map((r) => (r.length === 1 ? `M${r[0][0] - colW * 0.3} ${r[0][1]} H${r[0][0] + colW * 0.3}` : "M" + r.map((p) => p[0] + " " + p[1]).join(" L"))).join(" ");
+        const at = line[Math.min(playRow, n - 1)];
+        svg.push(`<path class="sl-film" data-film-line="${esc(ln.cur)}" d="${d}"><title>${esc(film.name)}: its ${esc(S().label(ln.cur).toLowerCase())}${at != null ? ` is ${esc(at)} at moment ${playRow + 1}` : ""} (the dashed line, stretched to your film's length)</title></path>`);
+      });
       lanes.forEach((ln, i) => {
         if (!ln.track) return;
         /* The result line (what plays), then the automation: nodes joined by lines. */
@@ -1500,7 +1593,7 @@
           <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
-          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}</span>` : ""}
+          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("area-take", "Take from the film", filmTip("take"))}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}</span>` : ""}
           ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
           <span class="sl-seg" role="group" aria-label="Markers">${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off. Double-click a marker's flag on the ruler to write a note or change its color.")}${tb("marker-list", `Markers${marked.length ? " " + marked.length : ""} ▾`, "Every marker in your film, with its note: click one to move the playhead there")}</span>
           ${tb("suite-list", `Suite clips${suiteList.length ? " " + suiteList.length : ""} ▾`, "Your saved suite clips: drop one in at the playhead (as it is, or as an analogy), rename it or delete it")}
@@ -1509,6 +1602,7 @@
           <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
           ${tb("skim", "Preview axis", "Preview axis (S): hover over the timeline to see that moment in the player", tools.skim)}
           ${groups.length ? tb(groups.some((g) => !g.folded) ? "fold-all" : "open-all", groups.some((g) => !g.folded) ? "Fold all" : "Open all", groups.some((g) => !g.folded) ? "Fold every group of lanes to one thin row each; dots still show where their lanes have nodes" : "Open every folded group of lanes") : ""}
+          ${tb("film-lines", "Film lines", filmTip("lines"), filmLinesOn())}
           ${tb("attention-track", "Attention", "Attention track: show or hide the thin band under My film that shows what holds the audience's attention at each moment, and how strongly the film pulls forward", tools.attention !== false)}
           <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−), or drag up on the ruler")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+), or drag down on the ruler")}</span>
           <span class="sl-msg" role="status">${esc(msg || (area ? "Drag the selection sideways to move it; hold Alt (Option) to copy it instead." : others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
@@ -1576,6 +1670,50 @@
         ? `Attention: what holds the audience's attention at each moment (one color each${d.families.length ? ": " + d.families.map((f) => f.label).join(", ") : ""}), and a line for how strongly the film pulls forward${d.source === "change" ? " (here, how much changes from one moment to the next)" : ""}. Click the band to go to a moment.`
         : d.note;
       return { h, svg: out.join(""), head: `<div class="sl-head sl-cliphead sl-atthead" style="height:${h}px" title="${esc(tip)}"><b>Attention</b><span class="sl-attkeys">${d.ok ? key || "nothing holds it yet" : "not available"}</span></div>` };
+    }
+    /* Film lines and Take from the film: the inspiration film picked in the Player comes from opts.inspiration()
+       -> { name, beats: [{ values }] } or null. */
+    function inspirationNow() {
+      let f = null;
+      try {
+        f = opts.inspiration ? opts.inspiration() : null;
+      } catch (e) {
+        f = null;
+      }
+      return f && Array.isArray(f.beats) && f.beats.length ? { name: String(f.name || "the inspiration film"), beats: f.beats } : null;
+    }
+    const filmLinesOn = () => tools.filmLines !== false;
+    function filmTip(what) {
+      const f = inspirationNow();
+      if (!f) return what === "take" ? "Take from the film: pick an inspiration film in the Player first." : "Film lines: pick an inspiration film in the Player to see its settings as a dashed line in each lane.";
+      return what === "take"
+        ? `Take from the film: put ${f.name}'s settings for the selected lanes and moments into your film as nodes, like the Prism's Copy it. One undo takes it back.`
+        : `Film lines: show or hide a faint dashed line in each lane for ${f.name}'s own settings, stretched to your film's length, so you can see where your film follows it and where it goes its own way.`;
+    }
+    function toggleFilmLines() {
+      tools.filmLines = !filmLinesOn();
+      const f = inspirationNow();
+      msg = tools.filmLines ? (f ? `Film lines on: the dashed line in each lane is ${f.name}.` : "Film lines on, but there is no inspiration film to draw. Add one in the Player.") : "Film lines hidden.";
+      saveTools();
+      draw();
+      return { ok: true, on: tools.filmLines };
+    }
+    /* The Player's picked film can change without the timeline being told (clicking a viewer's Inspect), so after
+       any click or change on the page, look again and redraw if it is a different film. */
+    let filmSeen = null;
+    const filmKey = () => {
+      const f = inspirationNow();
+      return f ? [f.name, f.beats] : null;
+    };
+    function filmCheck() {
+      setTimeout(() => {
+        if (!el.isConnected) return;
+        const k = filmKey();
+        const same = (k && filmSeen && k[0] === filmSeen[0] && k[1] === filmSeen[1]) || (!k && !filmSeen);
+        if (same) return;
+        filmSeen = k;
+        if (filmLinesOn()) draw();
+      }, 0);
     }
     function toggleAttention() {
       tools.attention = tools.attention === false;
@@ -2215,6 +2353,7 @@
       }
       if (act === "suite-list") return suiteMenu(b);
       if (act === "attention-track") return toggleAttention();
+      if (act === "film-lines") return toggleFilmLines();
       if (act === "lane-off" || act === "lane-solo" || act === "lane-lock") return laneButton(act, b.dataset.lk);
       if (act === "fold") return foldButton(b.dataset.group);
       if (act === "fold-all" || act === "open-all") return foldAll(act === "fold-all");
@@ -2245,7 +2384,7 @@
       hold: ["hold", "⌐ Jump", "Jumps: holds each node's setting until the next node (Maya's stepped curve).", "Make a lane jump"],
     };
     const modeOf = (lane) => (MODES[lane.mode] ? lane.mode : "ramp");
-    const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit", "area-reverse": "reverse", "area-flip": "flip", "area-stretch": "stretch", "area-squeeze": "squeeze", "area-freeze": "freeze" };
+    const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit", "area-reverse": "reverse", "area-flip": "flip", "area-stretch": "stretch", "area-squeeze": "squeeze", "area-freeze": "freeze", "area-take": "take" };
     /* The nodes of a lane in film order, as keys. */
     function laneNodes(st, lk) {
       const lane = st.lanes[lk];
@@ -2338,6 +2477,23 @@
             if (r.area) area = r.area;
             say(`${what[1]} ${r.nodes} node${r.nodes === 1 ? "" : "s"}${r.area ? `; the selection is now moments ${area.j0 + 1} to ${area.j1 + 1}` : ""}. Undo takes it back.${skipNote(open.skipped)}`);
           }
+        }
+      } else if (name === "take") {
+        /* Take from the film: the picked inspiration film's settings as nodes, one batch, so one ⌘Z takes it back. */
+        if (!area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+        const f = inspirationNow();
+        if (!f) return say("There is no inspiration film to take from. Add one in the Player."), { ok: false };
+        const open = openLanes();
+        const r = takeFromFilmCommands(st, open.lanes, area, f.beats);
+        const emptyNote = r.empty ? ` ${f.name} has no setting there for ${r.empty} lane${r.empty === 1 ? "" : "s"}, so ${r.empty === 1 ? "it was" : "they were"} left alone.` : "";
+        if (!r.lanes) {
+          say(open.skipped && !r.empty ? "Every selected lane is locked, so nothing changed." + skipNote(open.skipped) : `${f.name} has no settings for the selected lanes in moments ${area.j0 + 1} to ${area.j1 + 1}.` + skipNote(open.skipped));
+          out = { ok: false };
+        } else if (!r.cmds.length) {
+          say(`Your film already matches ${f.name} there.` + skipNote(open.skipped) + emptyNote);
+        } else {
+          out = send({ type: "batch", label: "Take from " + f.name, commands: r.cmds });
+          if (out.ok) say(`Took ${f.name}'s settings into ${r.lanes} lane${r.lanes === 1 ? "" : "s"} from moment ${area.j0 + 1} to ${area.j1 + 1}. Undo takes it back.` + skipNote(open.skipped) + emptyNote);
         }
       } else if (name === "freeze" || name === "shape") {
         /* Freeze and Shape: one batch each, and the selection stays where it is. */
@@ -3037,6 +3193,8 @@
     el.addEventListener("contextmenu", onMenu);
     el.addEventListener("keydown", onKey);
     el.addEventListener("wheel", onWheel, { passive: false });
+    document.addEventListener("click", filmCheck, true);
+    document.addEventListener("change", filmCheck, true);
     draw();
     return {
       draw,
@@ -3074,6 +3232,8 @@
       markTurns,
       clearAuto,
       attention: toggleAttention,
+      filmLines: toggleFilmLines,
+      take: () => command("take"),
       command,
       laneOff: (lk) => laneButton("lane-off", lk),
       solo: (lk) => laneButton("lane-solo", lk),
@@ -3088,11 +3248,13 @@
       foldAll: (want) => foldAll(want !== false),
       groups: () => ((geo && geo.groups) || []).map((g) => ({ id: g.id, label: g.label, count: g.count, withNodes: g.withNodes, folded: g.folded })),
       destroy() {
+        document.removeEventListener("click", filmCheck, true);
+        document.removeEventListener("change", filmCheck, true);
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", onUp);
       },
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips() };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
 })();

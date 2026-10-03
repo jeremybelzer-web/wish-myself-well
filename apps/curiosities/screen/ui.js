@@ -1752,6 +1752,8 @@ document.addEventListener("click", function (e) {
         clips: clipRows,
         thumbs: () => mineBeats().map((b) => thumb(b.values)),
         beats: () => mineBeats(),
+        /* Film lines: the inspiration viewer picked in the Player (else the first one). */
+        inspiration: () => { const v = prefs.insp.find((x) => x.id === prefs.focus) || prefs.insp[0], f = v && film(v.film); return f ? { name: filmTitle(f), beats: f.beats } : null; },
         showLanes: (curs) => (curs.forEach(showLane), save()),
         header: prefs.view === "arrange" ? laneHeader : null,
         onClip: (j) => setRow(j),

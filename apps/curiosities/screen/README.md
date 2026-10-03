@@ -89,6 +89,18 @@ Like CapCut's track groups. With many lanes the timeline gets long, so `lanes.js
 
 Pure helpers: `laneGroups(lanes, { catOf, labelOf, hasNodes, folds })` and `foldDots(st, lanes)`. The mounted lanes also have `fold(category, folded?)`, `foldAll(folded?)` and `groups()`.
 
+## Film lines: the inspiration film in each lane
+
+The Prism idea, on the timeline: the film you are learning from is white light, and each lane is one of its colors. In every curiosity lane, `lanes.js` draws the inspiration film's own settings for that curiosity as a faint dashed purple line (the purple of its clip track) behind your nodes, so you can see at a glance where your film follows it and where it goes its own way.
+
+- **Which film**: the inspiration viewer picked in the Player (click its Inspect). When your own film is picked, it is the first inspiration viewer. Pick another viewer, or another film in a viewer's list, and the lines redraw from that film. `ui.js` hands it in through the `inspiration` mount option as `{ name, beats: [{ values }] }`.
+- **How the two films line up**: the inspiration film is stretched to your film's length, the same way Blend reads it. Your film's first and last moments meet the film's first and last beats, and the beats in between are spread evenly. When both films have the same number of moments, it is moment for moment. A setting carries on until the film changes it.
+- **No setting, no line**: a lane whose curiosity the film never sets has no line, and the line starts only once the film first sets it.
+- **Film lines** in the timeline toolbar shows or hides them. It starts on; the tooltip names the film. The choice is kept in `curiosities-screen-tools-v1` as `filmLines: false`.
+- **Take from the film** (in the selected-area toolbar) is the Prism's "Copy it" for a stretch: the film's settings for the selected lanes and moments become nodes, snapped to each curiosity's scale. Where the film has no setting, your film is left as it is. Locked lanes are skipped (the message says how many); a lane not on a track yet is put on one. It is one undo step, and the selection stays.
+
+Pure helpers on `CurioLanes`: `filmBeat(j, n, count)` (which beat moment j reads), `filmLine(beats, n, cur)` (the line's setting at each moment, or null) and `takeFromFilmCommands(st, lanes, area, beats)`. The mounted lanes also have `filmLines()` (the toggle) and `take()`.
+
 ## Keyframe jumps and the frame shape
 
 Like CapCut's ◀ ◆ ▶: in Details, once a curiosity has nodes, small ◀ and ▶ sit either side of its key diamond. ◀ moves the playhead to the moment of its previous node, ▶ to its next; greyed when there is none that way. The diamond works as before. The windows keep the bare diamond (`keyNavBtns` in `ui.js` wraps `keyBtn` for Details rows only).
