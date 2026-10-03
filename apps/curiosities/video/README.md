@@ -33,6 +33,12 @@ Three looks, each its own switch and amount:
 - **Grain and softness**: your clip is softened or sharpened until it is as crisp as the inspiration, then gets the same amount of film grain (none in pure black).
 - **Frame shape** (off unless turned on): your clip gets the inspiration's picture shape (black bars for a wide film look, or side bars for a tall phone frame), with the picture kept on your people, and its edges darkened as much as the inspiration's.
 
+Rhythm, three switches, all off unless turned on (`rhythm.js`):
+
+- **Rhythm (beat and accents)**: finds the beat in the inspiration's sound (where the sound suddenly gets louder in any pitch, how far apart those moments repeat, then the beats themselves) and its accents (the hardest hits). Then your clip is cut to it: on every beat a jump cut (a little ahead) and a punch-in (close, then wide, then close, with a small bump), and a quick white flash on the strongest hits. Very fast beats are taken every other one. When the inspiration has no clear beat (talking, a crowd), its cuts are the beat; with no cuts either, its loudest sounds (claps, shouts) are.
+- **Hold and burst on the beat**: your clip freezes on each beat, then rushes forward to catch up before the next one.
+- **Its music under yours**: the inspiration's sound plays under your clip (yours turned down), in time with its beat, in Play and in a saved video.
+
 Timing: **Same speed as the inspiration** (its curves play in real seconds, repeating) or **Stretch over the whole clip**.
 
 **Check that it worked** draws the changed clip frame by frame, measures it again and shows, per curiosity, how in step your clip is with the inspiration before and after (1.00 = rises and falls together).
@@ -57,6 +63,7 @@ When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, t
 - `measure.js` (`window.CurioVideo`, no page): frame and sound measures, the dissection, nodes, engine commands, the apply plan, pixel changes, keying, dialogue fitting, scores.
 - `clip.js` (`window.CurioClip`): reads frames by seeking and sound by decoding, draws applied frames, the frame-exact steadier, check, real-time render and recording.
 - `looks.js` (`window.CurioLooks`, no page except `scan` and `draw`): the palette, grain and softness, and frame shape: measured, applied, checked.
+- `rhythm.js` (`window.CurioRhythm`, no page except `draw`): the beat, tempo and accents of a clip's sound (kept as `dissection.rhythm`), and the jump cuts, punch-ins, flashes, holds and music that put it on another clip.
 - `ai.js` (`window.CurioAI`): one plug-in slot per curiosity family; your own keys, kept in this browser.
 - `mask.js` (`window.CurioMask`): the AI cut-outs (MediaPipe in the browser), each clip's elements over time, and drawing one element's change.
 - `framing.js` (`window.CurioFraming`, no page): shot framing. The main person in each cut-out (one joined patch, followed from look to look), their eyes, head size and which way they face; the horizon's roll from straight lines; the virtual camera's crop and its smoothed path.

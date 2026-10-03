@@ -233,6 +233,41 @@ const ok = (cond, text) => {
   const pal = await page.evaluate(() => window.CurioVideoUI.state().checks.palette);
   ok(pal.gapAfter < pal.gapBefore * 0.7, "your clip now has the inspiration's palette: " + JSON.stringify(pal));
 
+  /* Rhythm: the inspiration's beat (or its cuts or loudest sounds) is found when it comes in; turned on with its
+     music under yours, the check sees the picture change on the beat, and the saved sound carries its music. */
+  const rh = await page.evaluate(() => window.CurioVideoUI.state().a.rhythm);
+  ok(rh && /^(sound|cuts|accents|none)$/.test(rh.from), "the inspiration's rhythm is found: " + JSON.stringify(rh && { from: rh.from, bpm: rh.bpm, beats: rh.beats }));
+  ok((await page.locator('[data-on="rhythm"]:not(:checked)').count()) === 1 && (await page.locator('[data-on="music"]:not(:checked)').count()) === 1, "Rhythm and Its music under yours are there, off");
+  const mix = await page.evaluate(async () => {
+    const A = window.CurioVideoUI.state().a,
+      B = window.CurioVideoUI.state().b;
+    const a = await window.CurioClip.open(window.__a),
+      b = await window.CurioClip.open(window.__b);
+    const [sa, sb] = [await window.CurioClip.pcm(a), await window.CurioClip.pcm(b)];
+    const rms = (d, t0, t1) => {
+      let s = 0;
+      for (let i = Math.round(t0 * sb.rate); i < Math.round(t1 * sb.rate); i++) s += d[i] * d[i];
+      return Math.sqrt(s / ((t1 - t0) * sb.rate));
+    };
+    const p = window.CurioVideo.plan(A, B, { on: { music: 1 } });
+    const own = window.CurioClip.appliedPcm(p, sb).data,
+      withM = window.CurioClip.appliedPcm(p, sb, sa).data;
+    /* the inspiration is loud from 1 to 2 s and quiet from 2 to 3 s */
+    return { loud: rms(withM, 1.2, 1.8) - rms(own, 1.2, 1.8), quiet: rms(withM, 2.2, 2.8) - rms(own, 2.2, 2.8) };
+  });
+  ok(mix.loud > 0.05 && mix.loud > mix.quiet + 0.05, "its music is mixed under your sound, loud where it is loud: " + JSON.stringify(mix));
+  /* the made-up inspiration has only two loud starts (no beat, no cuts): give it four beats so the check runs */
+  if (!rh || rh.beats.length < 4) await page.evaluate(() => (window.CurioVideoUI.state().a.rhythm = window.CurioRhythm.fromCuts([0.5, 1.5, 2.5, 3.5], 4.2)));
+  {
+    await page.uncheck('[data-on="palette"]');
+    await page.check('[data-on="rhythm"]');
+    await page.check('[data-on="music"]');
+    await page.click('[data-act="check"]');
+    await page.waitForFunction(() => window.CurioVideoUI.state().checks && window.CurioVideoUI.state().checks.rhythm, null, { timeout: 120000 });
+    const rc = await page.evaluate(() => window.CurioVideoUI.state().checks.rhythm);
+    ok(rc.corrAfter > rc.corrBefore, "your clip now changes on the inspiration's beat: " + JSON.stringify(rc));
+  }
+
   /* Everything, played and saved. */
   await page.click('[data-all="1"]');
   ok((await page.locator(".vd-dialogue li").count()) >= 1, "new lines fitted to the inspiration's talking");
