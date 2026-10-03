@@ -71,6 +71,17 @@ const ok = (cond, text) => {
   }
   await page.waitForFunction(() => window.CurioMomentumUI, null, { timeout: 10000 });
   ok(await page.evaluate(() => !!document.querySelector("#lib-menu [data-momentum]")), "Library menu has Momentum");
+  const extTab = await page.evaluate(() => {
+    window.CurioMomentumUI.addTab({ id: "test-ext", label: "Test tab", after: "end", mount: (el, ctx) => (el.textContent = "ext " + ctx.sources().length + " " + typeof ctx.readSource) });
+    window.CurioMomentumUI.open("test-ext");
+    const t = document.querySelector('.mo-dlg [data-tab="test-ext"]');
+    const body = document.querySelector(".mo-dlg .mo-ext");
+    const out = [!!t, body && body.textContent];
+    window.CurioMomentumUI.open("attention");
+    window.CurioMomentumUI.close();
+    return out;
+  });
+  ok(extTab[0] && /^ext \d+ function$/.test(extTab[1] || ""), "another momentum file can add a tab: " + extTab[1]);
   await page.evaluate(() => {
     document.getElementById("lib-btn").click();
   });
