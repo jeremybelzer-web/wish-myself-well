@@ -167,6 +167,12 @@
     if (bl === 1 || bl === 3) out += chip(k, bx > 160 ? bx - 12 : bx + 12, 96, "blamed", S.red, bx > 160 ? "end" : "start");
     if (bl >= 2) out += chip(k, cx, 66, "blamed", S.red, "middle");
     out += chip(k, 6, 18, "the plot", "#26252d", "start");
+    /* later scenes it changes: red marks along the road after the trouble */
+    const nsc = Math.min(20, Math.round(v.n("scenesChanged")));
+    for (let i = 0; i < nsc; i++) out += `<rect x="${r1(Math.min(300, tx + 18 + i * ((300 - tx - 18) / 20)))}" y="${y0 - 9}" width="3" height="6" fill="${S.red}"/>`;
+    /* how hard to fix: a wrench, strained, or a no-entry sign */
+    const fixI = idx(v, "fixable");
+    out += k.text({ x: Math.min(300, tx + 30), y: y0 + 22, text: fixI === 3 ? "⛔" : "🔧", size: 12 + fixI * 2, alpha: fixI === 2 ? 0.45 : 1 });
     out += strip(k, [g.steps("seenComing", "We see it coming"), g.steps("fixable", "How hard to fix", S.red), g.num("scenesChanged", "Later scenes changed", " scenes"), g.num("peopleCaught", "People pulled in", "", S.red)]);
     return out + fitCap(k, `The plot: ${v("setting")} · caused by ${v("who")}`);
   });
@@ -181,8 +187,12 @@
     out += guy(k, 90, { s: 1, color: S.orange, mood: k.lerp(-0.5, 0.8, like), lean: v.p("trigger") * 10, arms: v.p("trigger") * 0.8, eyes: k.lerp(0.9, 0.1, blind) });
     /* the flaw: a cloud that grows */
     const fr = 10 + size * 22;
-    out += `<ellipse cx="150" cy="${r1(40 - size * 6)}" rx="${r1(fr * 1.3)}" ry="${r1(fr)}" fill="#fff" stroke="${S.ink}" stroke-width="2"/>` + k.text({ x: 150, y: 40 - size * 6 + fr * 0.35, text: FLAW[v("flaw")] || "?", size: 8 + size * 24 });
+    out += `<ellipse cx="150" cy="${r1(40 - size * 6)}" rx="${r1(fr * 1.3)}" ry="${r1(fr)}" fill="#fff" stroke="${S.ink}" stroke-width="2"/>` + k.text({ x: 150, y: 40 - size * 6 + fr * 0.35, text: FLAW[v("flaw")] || "?", size: 14 + size * 20 });
     out += k.dot({ x: 112, y: 52, r: 2.5, color: "#fff" }) + k.dot({ x: 120, y: 48, r: 3.5, color: "#fff" });
+    /* by the end: the flaw's cloud again, bigger if it got worse, cracked or gone if they beat it */
+    const end = idx(v, "byTheEnd");
+    const er = [16, 11, 8, 7][end];
+    out += k.arrow({ x1: 150 + fr * 1.3 + 2, y1: 30, x2: 196, y2: 26, color: "#888", w: 1.2 }) + `<ellipse cx="${210}" cy="24" rx="${r1(er * 1.3)}" ry="${er}" fill="${end === 3 ? "none" : "#fff"}" stroke="${end === 3 ? S.green : S.ink}" stroke-width="1.5"${end >= 2 ? ' stroke-dasharray="3 2"' : ""}/>` + (end < 3 ? k.text({ x: 210, y: 24 + er * 0.35, text: FLAW[v("flaw")] || "?", size: er * 1.1, alpha: end === 2 ? 0.5 : 1 }) : k.label({ x: 210, y: 27, text: "✓", size: 10, color: S.green })) + k.label({ x: 210, y: 24 + er + 9, text: "by the end", size: 7, color: "#999" });
     if (blind > 0.6) out += k.label({ x: 90, y: 12, text: "can't see it", size: 9, color: "#bbb" });
     else if (blind > 0.2) out += k.label({ x: 90, y: 12, text: "half sees it", size: 9, color: "#bbb" });
     else out += k.label({ x: 90, y: 12, text: "sees it", size: 9, color: "#bbb" });
@@ -205,10 +215,17 @@
     const clr = v.p("clarity");
     const world = idx(v, "grounded");
     const bgc = ["#2a1f3a", "#1f2533", "#1a1d22"][world];
+    const cardW = 104 + v.p("screenShare") * 70; /* how much of the scene the premise takes */
     let out = stage(k, { bg: bgc });
     /* the premise card: blurry when unclear */
     out += `<defs><filter id="cw-comicPremise-blur${Math.round(clr * 100)}"><feGaussianBlur stdDeviation="${r1((1 - clr) * 2.5)}"/></filter></defs>`;
-    out += `<g filter="url(#cw-comicPremise-blur${Math.round(clr * 100)})"><rect x="70" y="8" width="180" height="30" rx="6" fill="${S.paper}" stroke="${S.ink}" stroke-width="2"/>${k.text({ x: 160, y: 28, text: "WHAT IF…?", size: 14, color: S.ink, weight: 900 })}</g>`;
+    out += `<g filter="url(#cw-comicPremise-blur${Math.round(clr * 100)})"><rect x="${r1(160 - cardW / 2)}" y="8" width="${r1(cardW)}" height="30" rx="6" fill="${S.paper}" stroke="${S.ink}" stroke-width="2"/>${k.text({ x: 160, y: 28, text: "WHAT IF…?", size: 14, color: S.ink, weight: 900 })}</g>`;
+    /* premise jokes: little laughs popping off the card */
+    const pj = Math.round(v.n("premiseJokes"));
+    for (let i = 0; i < pj; i++) out += k.label({ x: [100, 118, 136, 184, 202, 220][i], y: 52, text: "ha", size: 8, color: S.gold, weight: 700 });
+    /* what's riding on it: an object at the person's feet, bigger the more it matters */
+    const stk = idx(v, "stakes");
+    if (stk) out += k.text({ x: 198, y: 108, text: ["", "🏅", "💼", "💞", "💀"][stk], size: 10 + stk * 4 });
     /* hook: fishing line from the sign down */
     const hook = v.p("hook");
     out += `<path d="M160 38 V${r1(48 + hook * 24)} q0 8 -6 6" fill="none" stroke="${S.gold}" stroke-width="${r1(1 + hook * 3)}"/>`;
@@ -249,6 +266,8 @@
     }
     tower += k.label({ x: 200, y: FY - 4, text: "the lie", size: 8, color: S.ink });
     out += near === 3 ? `<g transform="rotate(40 220 ${FY})">${tower}</g>` + burst(k, 260, 96, 12, S.red) : `<g transform="rotate(${tilt} 200 ${FY})">${tower}</g>`;
+    /* how it will come out: a sign over the tower, clearer the nearer the collapse */
+    out += k.text({ x: 236, y: 30, text: ["🫢", "🫵", "🙇", "💥"][idx(v, "collapseHow")], size: 16, alpha: 0.35 + near * 0.22 });
     /* the liar: calm when skilled */
     const skill = v.p("liarSkill");
     out += guy(k, 70, { s: 0.9, color: S.orange, mood: k.lerp(-0.5, 0.7, skill), look: 1 });
@@ -280,6 +299,9 @@
     out += `<ellipse cx="${r1(ax)}" cy="20" rx="24" ry="15" fill="#fff" stroke="${S.ink}" stroke-width="2"/>${k.text({ x: ax, y: 27, text: pair[0], size: 18 })}`;
     out += `<ellipse cx="${r1(bx)}" cy="20" rx="24" ry="15" fill="#fff" stroke="${S.ink}" stroke-width="2"/>${k.text({ x: bx, y: 27, text: pair[1], size: 18 })}`;
     out += k.label({ x: 160, y: 24, text: "≠", size: 20, color: S.red, weight: 900 });
+    /* between whom: a sign between them; how it clears: a sign beside the second one */
+    out += k.text({ x: 160, y: 84, text: { "two friends": "🤝", "a couple": "💑", "boss and worker": "💼", strangers: "❔", "a whole room": "🏠" }[v("between")] || "", size: 12 });
+    out += k.text({ x: Math.min(bx + 30, 304), y: 58, text: ["🔒", "🤫", "💡", "📢"][idx(v, "clearsUp")], size: 14 });
     /* lines that work both ways: double arrows between them */
     for (let i = 0; i < Math.round(v.n("doubleLines")); i++) out += k.label({ x: 151 + (i % 2) * 18 - (i === 4 ? 9 : 0), y: 48 + Math.floor(i / 2) * 12, text: "⇄", size: 11, color: S.gold });
     /* near misses */
@@ -300,7 +322,7 @@
     const inOn = Math.min(room - 1, Math.round(v.n("inOn")));
     const gapI = idx(v, "gap");
     const frac = [0, 0.2, 0.5, 0.95][gapI];
-    const knowers = Math.max(gapI === 0 ? 0 : 1, Math.round(Math.max(inOn, frac * room)) * (gapI === 0 ? 0 : 1));
+    const knowers = gapI === 0 ? 0 : Math.min(room - 1, Math.max(1, Math.round(Math.max(inOn, frac * room))));
     let out = stage(k);
     const per = Math.min(room, 15);
     const pos = (i) => [20 + (i % per) * (220 / per), 64 + Math.floor(i / per) * 22];
@@ -309,6 +331,10 @@
       const ins = i < knowers;
       out += k.face({ x: x + 6, y, r: Math.min(8, 110 / per - 0.6), mood: ins ? 0.6 : 0, look: ins ? 1 : 0, color: ins ? "#f3d27a" : "#c9c4bb", eyes: 0.8 });
     }
+    /* effort to hide it: insiders with a finger to their lips */
+    for (let i = 0; i < Math.min(knowers, Math.round(v.n("hiding"))); i++) { const [x, y] = pos(i); out += k.label({ x: x + 6, y: y + 15, text: "🤫", size: 8 }); }
+    /* close calls: near-slips around the secret box */
+    for (let i = 0; i < Math.min(10, Math.round(v.n("closeCalls"))); i++) out += k.label({ x: 226 - (i % 5) * 8, y: 116 - Math.floor(i / 5) * 9, text: "!", size: 9, color: S.red, weight: 900 });
     /* secret looks: arcs between insiders */
     const looks = Math.round(v.n("secretLooks"));
     for (let i = 0; i < Math.min(looks, Math.max(0, knowers - 1) || looks); i++) {
@@ -344,11 +370,12 @@
     const calmW = calm ? 16 + v.p("calmLength") * 30 : 0;
     const x0 = 14 + calmW;
     const avail = 210 - calmW;
-    const sw = Math.min(42, avail / steps);
+    const nb = steps + 1; /* where it starts, then each step */
+    const sw = Math.min(42, avail / nb);
     /* heights: grow by stepJump each step; shaped by speed */
     const hs = [];
     let h = 1;
-    for (let i = 0; i < steps; i++) {
+    for (let i = 0; i < nb; i++) {
       hs.push(h);
       h *= 1 + jump;
     }
@@ -357,10 +384,13 @@
     hs.forEach((hh, i) => {
       let f = hh / mx;
       if (shape === 0) f = Math.pow(f, 1.6);
-      if (shape === 3) f = i === steps - 1 ? 1 : 0.15;
+      if (shape === 2) f = Math.pow(f, 3);
+      if (shape === 3) f = i === nb - 1 ? 1 : 0.15;
       const hgt = 6 + f * (FY - top - 6);
       out += `<rect x="${r1(x0 + i * sw + gapS * sw * 0.3)}" y="${r1(FY - hgt)}" width="${r1(Math.max(2, sw * (1 - gapS * 0.3) - 2))}" height="${r1(hgt)}" fill="${k.mix("#5fae78", "#e4572e", f)}" stroke="${S.ink}"/>`;
     });
+    /* how fast: speed lines beside the last step */
+    for (let i = 0; i < shape; i++) out += `<line x1="${r1(x0 + nb * sw + 2)}" y1="${r1(top + 10 + i * 7)}" x2="${r1(x0 + nb * sw + 10 + shape * 4)}" y2="${r1(top + 6 + i * 7)}" stroke="#fff" stroke-width="1.5" opacity="0.7"/>`;
     if (calm) out += `<rect x="14" y="${FY - 6}" width="${r1(calmW - 4)}" height="6" fill="#7fb7ff"/>` + k.label({ x: 14 + calmW / 2, y: FY - 10, text: calm === 2 ? "calm" : "beat", size: 8, color: "#7fb7ff" });
     /* point of no return */
     const nr = x0 + avail * v.p("noReturn");
@@ -384,9 +414,11 @@
     const lp = v.p("payoffSize");
     let out = k.bg(S.bg);
     const n = 2 + Math.min(builds, 3);
-    const pw = 300 / n;
+    const gp = idx(v, "plantedWhen") * 8; /* planted earlier: more time (a wider gap) after the plant */
+    const pw = (300 - gp) / n;
+    if (gp) out += k.label({ x: 10 + pw - 3 + gp / 2, y: 62, text: "⋯", size: 10, color: "#aaa" });
     for (let i = 0; i < n; i++) {
-      const x = 10 + i * pw;
+      const x = 10 + i * pw + (i > 0 ? gp : 0);
       const lit = (i === 0 && st >= 1) || (i > 0 && i < n - 1 && st >= 2) || (i === n - 1 && st >= 3);
       out += k.panel({ x, y: 8, w: pw - 6, h: 104, fill: lit ? S.paper : "#4a4852" });
       const cx = x + (pw - 6) / 2;
@@ -402,7 +434,7 @@
       } else {
         /* the payoff: someone slips — or, twisted, the peel slips on them */
         out += twist === 2 ? `<path d="M${r1(cx - 14)} 70 q8 -18 16 0 q-8 -8 -16 0" fill="${S.gold}" stroke="${S.ink}" transform="rotate(-30 ${r1(cx)} 70)"/>` + guy(k, cx + 8, { y: 108, s: 0.55, color: S.orange, mood: 0.8 }) : `<g transform="rotate(${twist ? -50 : -80} ${r1(cx)} 104)">${guy(k, cx, { y: 104, s: 0.55, color: S.orange, mood: -0.6, arms: 1 })}</g>`;
-        if (st >= 3) out += ha(k, cx, 64, Math.min(lp, (pw - 26) / 36), -8);
+        out += st >= 3 ? ha(k, cx, 64, Math.min(lp, (pw - 26) / 36), -8) : `<g opacity="0.25">${ha(k, cx, 64, Math.min(lp, (pw - 26) / 36), -8)}</g>`;
         out += k.label({ x: cx, y: 22, text: "payoff", size: 9, color: S.ink, weight: 700 });
       }
     }
@@ -426,6 +458,8 @@
     out += k.text({ x: x0, y: 34, text: PLANT[v("plantedIn")] || "•", size: 18 }) + k.label({ x: x0, y: 16, text: "setup", size: 9, color: "#ddd" });
     const lands = idx(v, "landsAt");
     out += burst(k, x1, 30, 10 + lands * 4, S.gold, "HA", 8 + lands) + k.label({ x: x1, y: 104, text: v("landsAt"), size: 8, color: "#ddd" });
+    const rec = idx(v, "recognize");
+    out += rec === 2 ? k.label({ x: Math.min(x1 + 2, 300), y: 14, text: "💡", size: 10 }) : k.label({ x: x1 - 16 - lands * 4, y: 22, text: rec === 0 ? "…?" : "…", size: 10, color: "#ddd", anchor: "end" });
     const rem = ["👁", "💬", "🎁", "📣"][idx(v, "reminderLook")];
     const nR = Math.min(nRem, Math.max(1, sc)); /* only as many reminders as there are scenes to put them in */
     for (let i = 0; i < nR; i++) out += k.text({ x: x0 + ((x1 - x0) * (i + 1)) / (nR + 1), y: 40, text: rem, size: 11 });
@@ -446,7 +480,13 @@
     const swap = idx(v, "roleSwap");
     const cA = S.blue;
     const cB = k.mix("#4a6fa5", "#e8913a", diff);
-    out += guy(k, ax, { s: 0.9, color: cA, mood: k.lerp(0.3, -0.2, v.p("straightness")) * 1, lean: -fr * 8, look: 1 });
+    const stt = v.p("straightness");
+    out += guy(k, ax, { s: 0.9, color: cA, mood: k.lerp(0.6, -0.3, stt), arms: k.lerp(0.6, -0.8, stt), lean: -fr * 8, look: 1, eyes: k.lerp(1, 0.45, stt) });
+    /* what sets them off, and how many clashes a scene */
+    const fp = idx(v, "flashpoint");
+    if (fp) out += k.text({ x: 160, y: 104, text: ["", "🧦", "🏠", "💥"][fp], size: 10 + fp * 3 });
+    const ncl = Math.min(10, Math.round(v.n("clashesPerScene")));
+    for (let i = 0; i < ncl; i++) out += k.label({ x: 160 + (i - (ncl - 1) / 2) * 8, y: 50, text: "!", size: 11, color: S.red, weight: 900 });
     out += `<g transform="translate(${r1(bx)} ${FY}) scale(${r1(1 + diff * 0.25)} ${r1(1 - diff * 0.2)}) translate(${r1(-bx)} -${FY})">${guy(k, bx, { s: 0.9, color: cB, mood: 0.6, arms: diff, lean: fr * 8, look: -1 })}</g>`;
     if (sizeI >= 1) out += guy(k, 160, { s: 0.6, color: S.green, mood: 0.2 });
     if (sizeI >= 2) out += guy(k, 22, { s: 0.55, color: S.purple }) + guy(k, 298, { s: 0.55, color: S.pink });
@@ -523,6 +563,7 @@
     const root = idx(v, "rootFor");
     const rootX = root === 0 ? hx + 24 : root === 2 ? lowx + 24 : 160;
     out += k.text({ x: rootX, y: 14, text: root === 1 ? "♥ ♥" : "♥", size: 13, color: S.pink });
+    out += k.text({ x: 300, y: 104, text: ["💼", "🏠", "🛋️", "🏛️"][idx(v, "rankAgainst")], size: 16, alpha: 0.85 });
     out += strip(k, [g.steps("flip", "Status flip", S.red), g.steps("shiftWhen", "Shifts"), g.num("heightGap", "Higher in frame", "%"), g.num("lookUp", "Looks up", "°"), g.word("rankAgainst", "Rank against"), g.word("playing", "Playing")]);
     return out + fitCap(k, `Gap in rank: ${v("setting")}`);
   });
@@ -532,18 +573,25 @@
     const ch = v.p("setting");
     const dir = v.p("direction");
     const learns = idx(v, "learns");
-    let out = stage(k) + `<line x1="160" y1="12" x2="160" y2="${FY}" stroke="#444" stroke-dasharray="4 4"/>`;
+    let out = stage(k) + `<rect x="160" y="0" width="160" height="${FY}" fill="${dir >= 0.5 ? S.green : S.red}" opacity="${r1(Math.abs(dir - 0.5) * 0.36 * 100) / 100}"/><line x1="160" y1="12" x2="160" y2="${FY}" stroke="#444" stroke-dasharray="4 4"/>`;
     out += k.label({ x: 80, y: 14, text: "before", size: 9, color: "#aaa" }) + k.label({ x: 240, y: 14, text: "after", size: 9, color: "#aaa" });
     out += guy(k, 55, { s: 0.75, color: S.blue, mood: 0 }) + guy(k, 105, { s: 0.75, color: S.orange, mood: 0 });
-    const m = (on) => (on ? k.lerp(-0.8, 0.9, dir) * ch : 0);
+    /* everyone is touched by the mix a little; whoever learns changes fully */
+    const m = (on) => k.lerp(-0.8, 0.9, dir) * ch * (on ? 1 : 0.45);
     const changed = (who) => learns === 3 || learns === who;
     const sticks = idx(v, "sticks");
-    out += guy(k, 215, { s: 0.75 + (changed(2) ? ch * 0.2 : 0), color: S.blue, mood: m(changed(2)), arms: changed(2) ? ch * dir : 0, alpha: sticks === 0 ? 0.6 : 1 });
-    out += guy(k, 265, { s: 0.75 + (changed(1) ? ch * 0.2 : 0), color: S.orange, mood: m(changed(1)), arms: changed(1) ? ch * dir : 0, alpha: sticks === 0 ? 0.6 : 1 });
+    out += guy(k, 215, { s: 0.75 + ch * (changed(2) ? 0.25 : 0.08), color: S.blue, mood: m(changed(2)), arms: (changed(2) ? 1 : 0.4) * ch * (dir * 2 - 1), lean: (changed(2) ? 1 : 0.4) * ch * (dir - 0.5) * -24, alpha: sticks === 0 ? 0.6 : 1 });
+    out += guy(k, 265, { s: 0.75 + ch * (changed(1) ? 0.25 : 0.08), color: S.orange, mood: m(changed(1)), arms: (changed(1) ? 1 : 0.4) * ch * (dir * 2 - 1), lean: (changed(1) ? 1 : 0.4) * ch * (dir - 0.5) * -24, alpha: sticks === 0 ? 0.6 : 1 });
+    if (learns === 2 || learns === 3) out += k.label({ x: 215, y: 50, text: "💡", size: 12 });
+    if (learns === 1 || learns === 3) out += k.label({ x: 265, y: 50, text: "💡", size: 12 });
+    /* scenes they share: a row of little frames under the ramp */
+    const nsc = Math.min(12, Math.round(v.n("scenesTogether") / 4));
+    for (let i = 0; i < nsc; i++) out += `<rect x="${r1(124 + i * 6)}" y="104" width="4.5" height="6" fill="#55545f"/>`;
     /* the pace: a smooth ramp, steps or a jump */
     const pace = idx(v, "pace");
     const path = ["M130 60 L190 30", "M130 60 h15 v-10 h15 v-10 h15 v-10 h15", "M130 60 h30 v-30 h30"][pace];
-    out += `<path d="${path}" fill="none" stroke="${S.gold}" stroke-width="2.5"/>`;
+    /* the change shows earlier or later: the ramp slides along */
+    out += `<path transform="translate(${r1((v.p("changeAt") - 0.5) * 40)} 0)" d="${path}" fill="none" stroke="${S.gold}" stroke-width="2.5"/>`;
     /* resisting: a brake */
     out += Array.from({ length: Math.round(v.n("resists")) }, (_, i) => k.label({ x: 134 + i * 12, y: 80, text: "✋", size: 10 })).join("");
     out += chip(k, 240, 30, `shown: ${v("shownBy")}`, "#33323d", "middle");
@@ -589,9 +637,9 @@
     let out = stage(k);
     /* the arrow that leads us */
     out += k.arrow({ x1: 40, y1: 30, x2: 110, y2: 30, color: S.gold, w: 1 + str * 5 }) + k.text({ x: 70, y: 22, text: "look here", size: 9, color: S.gold });
-    out += `<rect x="114" y="8" width="70" height="56" rx="8" fill="#2c2b36" stroke="#666"/>` + k.text({ x: 149, y: 46, text: EXPECT[v("expect")] || "?", size: 14 + str * 10 });
+    out += `<rect x="114" y="8" width="70" height="56" rx="8" fill="#2c2b36" stroke="#666"/>` + k.text({ x: 149, y: 46, text: EXPECT[v("expect")] || "?", size: 20 + str * 6 });
     /* the truth: half hidden behind a curtain */
-    out += `<rect x="200" y="8" width="110" height="${FY - 8}" fill="#262530"/>` + k.text({ x: 255, y: 70, text: "🐈", size: 30 }) + `<rect x="200" y="8" width="${r1(110 * hid)}" height="${FY - 8}" fill="#7a2230" stroke="${S.ink}"/>` + k.label({ x: 255, y: 20, text: "the truth", size: 8, color: "#ddd" });
+    out += `<rect x="200" y="8" width="110" height="${FY - 8}" fill="#262530"/>` + k.text({ x: 255, y: 70, text: "🐈", size: 30 }) + `<rect x="200" y="8" width="${r1(110 * hid)}" height="${FY - 8}" fill="#7a2230" stroke="${S.ink}"/>` + k.label({ x: 255, y: 20, text: "the truth", size: 8, color: "#ddd" }) + k.text({ x: 296, y: 112, text: ["🐢", "✂️", "🔭", "💬"][idx(v, "reveal")], size: 13 });
     /* fair clues: little dots on the stage that point to the truth */
     for (let i = 0; i < Math.round(v.n("clues")); i++) out += k.label({ x: 30 + i * 30, y: 96, text: "🔍", size: 10 });
     /* who's fooled with us */
@@ -623,10 +671,12 @@
     const fo = idx(v, "findsOut");
     out += k.label({ x: 239, y: 22, text: ["never finds out", "finds out too late", "just in time!"][fo], size: 8, color: S.ink });
     const pt = idx(v, "pointedOut");
-    if (pt === 1) out += k.label({ x: 290, y: 80, text: "👀", size: 12 });
+    if (pt === 1) out += k.label({ x: 290, y: 84, text: "👀", size: 16 });
     if (pt === 2) out += k.frame({ x: 242, y: 30, w: 54, h: 38, color: S.red });
-    if (pt === 3) out += k.label({ x: 290, y: 80, text: "♪!", size: 14, color: S.red, weight: 900 });
+    if (pt === 3) out += k.label({ x: 290, y: 84, text: "♪!", size: 18, color: S.red, weight: 900 });
     out += k.label({ x: 160, y: 66, text: "→", size: 14, color: S.gold });
+    const dl = Math.min(6, Math.ceil(v.n("delay") / 3.4));
+    for (let i = 0; i < dl; i++) out += `<rect x="157" y="${r1(74 + i * 6)}" width="6" height="4" fill="#bbb"/>`;
     out += strip(k, [g.num("delay", "Delay before it bites", " scenes"), g.steps("bite", "Bites", S.red), g.num("feltBeat", "Beat before felt", " s"), g.num("holdOnIt", "Hold on the image", " s"), g.num("obviousness", "How obvious", ""), g.steps("tone", "Funny or sad")]);
     return out + fitCap(k, `Irony: ${v("kind")}`);
   });
@@ -641,7 +691,13 @@
     let out = stage(k, { bg: "#1a2230" });
     out += k.text({ x: 296, y: 26, text: WORLD[v("world")] || "?", size: 18 });
     /* the locals: all alike */
-    for (let i = 0; i < 6; i++) out += guy(k, 30 + i * 26, { s: 0.6, color: "#5a7a8a", mood: 0.1, look: 1 - vis * 0, eyes: 0.6 });
+    const cmp = idx(v, "comparedTo");
+    for (let i = 0; i < 6; i++) out += guy(k, 30 + i * 26, { s: 0.6 + (cmp === 1 && i === 5 ? 0.15 : 0), color: cmp === 2 && i === 5 ? S.pink : "#5a7a8a", mood: 0.1, look: 1 - vis * 0, eyes: 0.6 });
+    if (cmp === 1) out += k.label({ x: 160, y: 94, text: "👔", size: 9 });
+    if (cmp === 3) out += k.text({ x: 20, y: 30, text: "🌍", size: 14 });
+    /* learns to fit: a trail toward the locals */
+    const ad = idx(v, "adapts");
+    if (ad) out += k.arrow({ x1: 190 + (v.n("fromOthers") / 10) * 100 - 14, y1: 100, x2: 190 + (v.n("fromOthers") / 10) * 100 - 14 - ad * 18, y2: 100, color: S.green, w: 2 });
     /* everyone can tell: eyes turned */
     for (let i = 0; i < Math.round(v.n("visibility")); i++) out += k.label({ x: 30 + i * 26, y: 50, text: "👀", size: 9 });
     const x = 190 + (from / 10) * 100;
@@ -700,7 +756,10 @@
     const s = 0.75 + size * 0.25;
     out += guy(k, ax, { s, color: S.blue, mood: win === 0 ? 0.8 : -0.5, lean: 6 + tac * 3, arms: tac / 3, look: 1 });
     out += guy(k, bx, { s, color: S.orange, mood: win === 3 ? 0.8 : -0.5, lean: -6 - tac * 3, arms: tac / 3, look: -1 });
-    out += k.text({ x: 160, y: 22, text: OVER[v("over")] || "?", size: 12 + size * 10 * (1 - v.p("petty") * 0.6) });
+    /* the prize drifts to whoever wins; it fades when both lose */
+    const prizeX = win === 0 ? k.lerp(160, ax, 0.7) : win === 3 ? k.lerp(160, bx, 0.7) : 160;
+    out += k.text({ x: prizeX, y: 22, text: OVER[v("over")] || "?", size: 12 + size * 10 * (1 - v.p("petty") * 0.6), alpha: win === 2 ? 0.3 : 1 });
+    if (win === 2) out += k.label({ x: prizeX + (12 + size * 10 * (1 - v.p("petty") * 0.6)) * 0.6 + 8, y: 20, text: "✗", size: 12, color: S.red, weight: 900 });
     if (v.p("petty") > 0.6) out += k.label({ x: 160, y: 36, text: "(over a parking space)", size: 8, color: "#bbb" });
     /* rounds of one-upping: louder bubbles */
     const rounds = Math.round(v.n("rounds"));
@@ -764,17 +823,19 @@
     const hide = v.p("hostHides");
     out += guy(k, 70, { s: 0.8, color: S.blue, mood: -wrong * 0.9, arms: hide, lean: hide * 10, look: 1 });
     out += sweat(k, 80, 40, v.n("hostHides") * 0.7);
-    const gx = 110 + (d / 20) * 190;
+    const gx = Math.min(290, 140 + (d / 20) * 160);
     const knows = idx(v, "knows");
     const arr = v("arrives");
-    out += guy(k, gx, { s: 0.8, color: S.red, mood: [0.8, 0.2, 0.6][knows], look: -1, lean: arr === "bursts in" ? -14 : arr === "sneaks in" ? 14 : 0, alpha: idx(v, "leaves") === 2 ? 0.55 : 1 });
+    /* how wrong: the guest glows redder and bigger the worse it is; how much of the scene they're in: how solid */
+    out += k.ring({ x: gx, y: FY - 34, r: 12 + wrong * 14, color: S.red, w: 2 + wrong * 4, dash: wrong < 0.3 ? "3 3" : "" }).replace("<circle", `<circle opacity="${r1(0.25 + wrong * 0.5)}"`);
+    out += guy(k, gx, { s: 0.8, color: k.mix("#8a8a96", S.red, 0.25 + wrong * 0.75), mood: [0.8, 0.2, 0.6][knows], look: -1, lean: arr === "bursts in" ? -14 : arr === "sneaks in" ? 14 : 0, alpha: (idx(v, "leaves") === 2 ? 0.55 : 1) * (0.35 + v.p("stays") * 0.65) });
     out += k.text({ x: gx, y: 18, text: TOHOST[v("toHost")] || "", size: 14 });
     if (arr === "bursts in") out += motion(k, gx + 30, 60, 3, 20, -1);
     if (arr === "sneaks in") out += k.label({ x: gx, y: 104, text: "tiptoe", size: 8, color: "#bbb" });
     if (knows === 2) out += k.label({ x: Math.min(gx, 270), y: 34, text: "😏 knows, stays", size: 8, color: "#ddd" });
     /* damage: tipped glasses */
     const dmg = idx(v, "damage");
-    for (let i = 0; i < dmg; i++) out += k.text({ x: 150 + i * 18, y: 104, text: "💥", size: 9 + i * 3 });
+    for (let i = 0; i < dmg; i++) out += k.text({ x: 62 + i * 16, y: 108, text: "💥", size: 9 + i * 2 });
     out += strip(k, [g.steps("leaves", "Leaves"), g.num("stays", "In the scene", "%"), g.when("arrivesAt", "Shows up", S.red), g.num("fromHost", "From the host", " m"), g.word("toHost", "Who they are"), g.steps("damage", "Damage", S.red)]);
     return out + fitCap(k, `Wrong: ${Math.round(v.n("wrong"))} of 5 · ${v("toHost")}, ${v("arrives")}`);
   });
@@ -789,6 +850,11 @@
     let out = k.bg(k.mix("#2a2f45", "#07070a", dark)) + `<rect x="0" y="${FY}" width="320" height="10" fill="${S.floor}"/>`;
     const stacked = Math.round(v.n("stacked"));
     for (let i = stacked - 1; i >= 0; i--) out += `<rect x="${92 + i * 8}" y="${10 + i * 5}" width="130" height="80" rx="10" fill="${i ? "#3a3946" : S.paper}" stroke="${S.ink}" stroke-width="2"/>`;
+    /* kinds of joke in the scene: a row of little signs under the card */
+    const kinds = [[DEV[v("setting")] || "?"], [DEV[v("setting")] || "?", "💬"], [DEV[v("setting")] || "?", "💬", "🍌", "🙃"]][idx(v, "variety")];
+    kinds.forEach((e, i) => (out += k.text({ x: 157 + (i - (kinds.length - 1) / 2) * 20, y: 112, text: e, size: 11 })));
+    /* joke or story first: the story scroll grows beside the card */
+    out += k.text({ x: 92, y: 114, text: "📜", size: 9 + idx(v, "storyRoom") * 6 });
     out += k.text({ x: 157, y: 52, text: DEV[v("setting")] || "?", size: 24 }) + k.label({ x: 157, y: 78, text: v("setting").replace("the straight one and the funny one", "straight & funny"), size: 10, color: S.ink, weight: 700 });
     /* surprise: a jack-in-the-box spring */
     out += `<path d="M260 ${FY} ${Array.from({ length: 4 }, (_, i) => `l${i % 2 ? -8 : 8} -${r1(4 + sur * 9)}`).join(" ")}" fill="none" stroke="#bbb" stroke-width="2"/>` + k.text({ x: 260, y: FY - 20 - sur * 40, text: sur > 0.5 ? "😲" : "🙂", size: 14 });
@@ -811,7 +877,11 @@
     const sz = 14 + share * 62 * (0.4 + a * 0.6);
     const thing = ["🪑", "🐟", "🦒", "🐙", "🐋", "🪐"][Math.round(v.n("setting"))];
     const care = v.p("detail");
+    const arrI = idx(v, "arrives");
+    for (let i = 1; i <= arrI * 2 && arrI; i++) out += k.text({ x: 210 - i * 14, y: FY - 12, text: thing, size: sz * (1 - i * 0.18), alpha: 0.12 + 0.08 * (arrI * 2 - i) });
     out += k.text({ x: 210, y: FY - 12, text: thing, size: sz });
+    const spl = idx(v, "spills");
+    for (let i = 0; i < spl * 2; i++) out += k.text({ x: 282 + (i % 2) * 18, y: 104 - Math.floor(i / 2) * 26, text: thing, size: 10, alpha: 0.7 });
     if (care > 0) out += k.ring({ x: 210, y: FY - 12 - sz * 0.35, r: sz * 0.6, color: S.gold, w: 0.5 + care * 1.5, dash: care > 0.6 ? "" : "3 3" });
     out += guy(k, 80, { s: 0.75, color: S.blue, mood: acc === 0 ? -0.8 : acc === 1 ? -0.2 : 0.3, eyes: acc === 0 ? 1 : 0.6, arms: acc === 0 ? 1 : 0, look: 1 });
     out += guy(k, 122, { s: 0.75, color: S.green, mood: acc === 2 ? 0.3 : -0.8, eyes: acc === 2 ? 0.5 : 1, arms: acc === 2 ? 0 : 0.9, look: 1 });
@@ -874,6 +944,8 @@
       out += guy(k, xx, { s: ss, color: p.c, mood: carry ? 0.9 : 0, arms: carry ? 0.7 : 0, alpha: carry || who === 0 ? 1 : 0.55 });
       if (carry) out += ha(k, xx, Math.min(46, FY - ss * 76 - 4), 0.3 + v.p("lineShare") * 0.6);
     });
+    /* no one carries it yet: an empty, dashed spot where the joke would sit, sized and placed by the settings */
+    if (who === 0) { const rr = 10 + fs * 22; out += k.ring({ x: ax, y: FY - rr, r: rr, color: S.gold, w: 1.5, dash: "4 3" }) + `<g opacity="0.35">${ha(k, k.clamp(ax, 40, 280), Math.max(34, FY - rr * 2 - 6), 0.2 + v.p("lineShare") * 0.6)}</g>`; }
     /* passing: arrows */
     const ps = idx(v, "passing");
     if (ps) out += k.arrow({ x1: 80, y1: 62, x2: 230, y2: 62, color: S.gold, w: 1.5 }) + (ps === 2 ? k.arrow({ x1: 230, y1: 70, x2: 80, y2: 70, color: S.gold, w: 1.5 }) : "");
@@ -1104,8 +1176,8 @@
   const BOND = { strangers: "❔", coworkers: "💼", friends: "🤝", rivals: "⚔️", "a couple": "💞", family: "🏠" };
   look("doubleAct", (v, k, g) => {
     const d = v.n("apart");
-    const gap = 96 + (d / 5) * 150;
     const st = v("staging");
+    const gap = Math.min(264, 96 + (d / 5) * 130 + (st === "far apart" ? 40 : st === "side by side" ? -30 : 0));
     const ax = 160 - gap / 2;
     const bx = 160 + gap / 2;
     const lead = idx(v, "lead");
@@ -1114,14 +1186,17 @@
     const behind = st === "one behind";
     out += guy(k, ax, { s: lead === 0 ? 0.9 : 0.8, color: S.blue, mood: 0.2, look: facing ? 1 : 0.3 });
     out += guy(k, behind ? ax + 26 : bx, { y: behind ? FY - 6 : FY, s: lead === 1 ? 0.9 : 0.8, color: S.orange, mood: 0.7, look: facing ? -1 : -0.3, alpha: behind ? 0.85 : 1 });
+    /* time in one shot together: a camera frame around both, more solid the more they share it */
+    const ts = v.p("twoShot");
+    out += `<rect x="${r1(Math.max(4, ax - 22))}" y="28" width="${r1(Math.min(316, (behind ? ax + 26 : bx) + 22) - Math.max(4, ax - 22))}" height="${FY - 24}" fill="none" stroke="#9fd3ff" stroke-width="1.5" stroke-dasharray="6 4" opacity="${r1(0.15 + ts * 0.85)}"/>`;
     out += k.text({ x: 160, y: 18, text: BOND[v("bond")] || "", size: 14 });
-    if (lead === 2) out += k.label({ x: 160, y: 30, text: "lead swaps ⇄", size: 8, color: "#bbb" });
+    if (lead === 2) out += k.label({ x: 262, y: 16, text: "lead swaps ⇄", size: 8, color: "#bbb" });
     /* volley: bubbles going back and forth */
     const vol = Math.round(v.n("volley")) + 1;
     const ov = idx(v, "overlap");
     for (let i = 0; i < vol; i++) {
       const side = i % 2 ? 1 : -1;
-      out += `<rect x="${r1(160 + side * 22 - 14 + (ov === 2 ? -side * 10 : 0))}" y="${r1(38 + i * (ov === 0 ? 11 : ov === 1 ? 8 : 5))}" width="28" height="10" rx="5" fill="${side < 0 ? "#cfe0ff" : "#ffe0c0"}" stroke="${S.ink}"/>`;
+      out += `<rect x="${r1(160 + side * 22 - 14 + (ov === 2 ? -side * 10 : 0))}" y="${r1(38 + i * ((ov === 0 ? 11 : ov === 1 ? 8 : 5) + Math.max(0, v.n("lineGap")) * 1.5))}" width="28" height="10" rx="5" fill="${side < 0 ? "#cfe0ff" : "#ffe0c0"}" stroke="${S.ink}"/>`;
     }
     const fin = idx(v, "finish");
     if (fin) out += k.label({ x: 160, y: 104, text: fin === 2 ? "…finish each other's lines" : "…sometimes finish lines", size: 8, color: S.gold });
@@ -1153,6 +1228,9 @@
     out += k.text({ x: ox, y: 20, text: SPOT[v("spotted")] || "", size: 12 + gp * 8 });
     if (iso === 2) out += k.frame({ x: ox - 30, y: 8, w: 60, h: 106, color: S.gold, dash: "4 3" });
     if (grp === 3) out += k.arrow({ x1: 220, y1: 40, x2: ox - 20, y2: 40, color: S.green, w: 1.5 });
+    /* the group comes around: an arm reaching out to them */
+    const ca = idx(v, "comesAround");
+    if (ca) out += `<path d="M${16 + span - 10} 64 Q${r1((16 + span + ox) / 2)} ${48 - ca * 6} ${r1(ox - 14)} 62" fill="none" stroke="${S.green}" stroke-width="${ca * 1.5}"${ca === 1 ? ' stroke-dasharray="4 3"' : ""}/>`;
     out += strip(k, [g.steps("tries", "Tries to fit"), g.steps("group", "Group"), g.steps("comesAround", "Comes around", S.green), g.when("turnsAt", "Tide turns"), g.num("fromGroup", "From the group", " m"), g.num("groupSize", "Group size", "")]);
     return out + fitCap(k, `Fits badly: ${Math.round(v.n("gap"))} of 5 · spotted by ${v("spotted")}`);
   });
@@ -1174,6 +1252,7 @@
     out += guy(k, bx, { s: 0.85, color: S.orange, mood: 0.3 + sp * 0.6, look: lk === 0 ? 1 : -1, arms: mir === 0 ? -0.4 : arms, lean: mir ? -4 : 10 });
     /* sparks */
     const nsp = Math.round(v.n("spark") * 1.4);
+    if (!nsp) out += k.text({ x: 150, y: 30, text: SPARK[v("kind")] || "⚡", size: 10, alpha: 0.3 });
     /* sparks in a loose row above them, never piled on top of each other */
     for (let i = 0; i < nsp; i++) out += k.text({ x: 150 + (i - (nsp - 1) / 2) * 16, y: 27 + (i % 2) * 8, text: SPARK[v("kind")] || "⚡", size: 9 + sp * 6 });
     if (lk >= 2) out += `<line x1="${ax + 6}" y1="40" x2="${bx - 6}" y2="40" stroke="${S.pink}" stroke-width="${r1(1 + v.p("lookHold") * 3)}" stroke-dasharray="${lk === 3 ? "" : "3 3"}"/>`;
@@ -1191,7 +1270,7 @@
     const rel = v.p("relatable");
     const depth = idx(v, "depth");
     let out = stage(k);
-    out += k.text({ x: 70, y: 70, text: TOPIC[v("setting")] || "?", size: 40 + depth * 6 }) + k.label({ x: 70, y: 98, text: v("setting"), size: 10, color: "#ddd", weight: 700 });
+    out += k.text({ x: 70, y: 70, text: TOPIC[v("setting")] || "?", size: 28 + v.p("sceneShare") * 20 + depth * 5 }) + k.label({ x: 70, y: 98, text: v("setting"), size: 10, color: "#ddd", weight: 700 });
     if (depth >= 1) out += `<path d="M30 104 h80" stroke="${S.gold}" stroke-width="${depth * 2}"/>`;
     /* the punch */
     const pu = idx(v, "punch");
@@ -1203,6 +1282,8 @@
     out += k.label({ x: 180, y: 106, text: `touches ${v("touches")}`, size: 8, color: "#bbb", anchor: "start" });
     out += k.label({ x: 10, y: 16, text: rel > 0.6 ? "😂 “that's so me”" : rel > 0.2 ? "🙂 sort of relatable" : "🤔 not relatable", size: 9, color: "#ddd", anchor: "start" });
     out += k.label({ x: 310, y: 16, text: `${v("angle")} · back ${Math.round(v.n("returns"))}×`, size: 9, color: "#ddd", anchor: "end" });
+    /* it comes back: little copies of the topic later in the film */
+    for (let i = 0; i < Math.min(8, Math.round(v.n("returns"))); i++) out += k.text({ x: 130 + i * 14, y: 116, text: TOPIC[v("setting")] || "?", size: 9, alpha: 0.8 });
     out += strip(k, [g.num("relatable", "Relatable", ""), g.steps("depth", "Depth"), g.word("angle", "Seen as"), g.num("returns", "Comes back", "×"), g.num("sceneShare", "Share of scene", "%")]);
     return out + fitCap(k, `About ${v("setting")} · punches ${v("punch")}`);
   });
@@ -1260,14 +1341,16 @@
     const reach = v.n("gestureReach");
     let out = stage(k, { spot: 110 });
     out += guy(k, 110, { s: 0.95, color: S.orange, mood: fm * 0.9, arms: k.clamp(reach / 2, 0, 1) * (body ? 1 : 0.2), lean: body * 5, walk: body === 3 ? 1 : 0 });
-    out += k.face({ x: 110, y: 26, r: 1, alpha: 0 });
+    /* how much the face moves: a close-up of it */
+    out += `<rect x="18" y="28" width="40" height="40" rx="6" fill="#26252d" stroke="#555"/>` + k.face({ x: 38, y: 48, r: 15, mood: fm * 0.9, brows: fm * 1.6 - 0.6, mouth: fm > 0.5 ? (fm - 0.4) * 1.2 : 0, eyes: 0.5 + fm * 0.5 });
     out += `<line x1="${r1(110 - 16 - reach * 30)}" y1="56" x2="${r1(110 + 16 + reach * 30)}" y2="56" stroke="${S.gold}" stroke-dasharray="2 3" opacity="0.6"/>`;
     const vw = ["hm.", "oh.", "oh!", "OH!", "OHHH!!"][Math.min(4, Math.round(reg * 2 + vo * 0.7))];
     out += k.text({ x: 230, y: 46, text: vw, size: Math.min(8 + vo * 7 + reg * 6, 140 / (vw.length * 0.72)), color: "#fff", weight: vo >= 2 ? 900 : 400 });
     out += k.speaker({ x: 196, y: 78, level: vo / 3 });
     /* the others: match or opposite */
     const ct = idx(v, "contrast");
-    out += guy(k, 280, { s: 0.7, color: S.blue, mood: ct === 2 ? (reg > 0.5 ? 0 : 0.9) : reg * 0.8, arms: ct === 2 ? (reg > 0.5 ? 0 : 1) : reg });
+    out += guy(k, 280, { s: 0.7, color: S.blue, mood: ct === 2 ? (reg > 0.5 ? 0 : 0.9) : ct === 1 ? k.clamp(reg * 0.8 + (reg > 0.5 ? -0.5 : 0.5), -1, 1) : reg * 0.8, arms: ct === 2 ? (reg > 0.5 ? 0 : 1) : ct === 1 ? k.clamp(reg + (reg > 0.5 ? -0.5 : 0.5), 0, 1) : reg });
+    out += k.label({ x: 252, y: 74, text: ["=", "≈", "≠"][ct], size: 14, color: ct === 2 ? S.red : "#bbb", weight: 900 });
     const cons = idx(v, "consistency");
     out += k.label({ x: 10, y: 16, text: ["breaks it often", "breaks now and then", "never breaks"][cons], size: 9, color: "#ddd", anchor: "start" });
     out += strip(k, [g.num("faceMoves", "Face moves", ""), g.steps("voice", "Voice"), g.steps("body", "Body"), g.num("gestureReach", "Gesture reach", " m"), g.steps("contrast", "Against others"), g.steps("consistency", "Holds it")]);
@@ -1287,22 +1370,26 @@
     const y0 = 104;
     out += `<line x1="10" y1="${y0}" x2="310" y2="${y0}" stroke="#555"/>`;
     const pos = [];
-    for (let i = 0; i < n; i++) {
-      let t = n > 1 ? i / (n - 1) : 0.5;
+    const nn = n || 4; /* with no laughs, the other settings still show on faint would-be laughs */
+    for (let i = 0; i < nn; i++) {
+      let t = nn > 1 ? i / (nn - 1) : 0.5;
       if (shape === "front loaded") t = Math.sqrt(t) * 0.9;
       if (shape === "builds to the end") t = t * t;
-      if (cl) t = Math.floor(i / (cl + 1)) / Math.max(1, Math.ceil(n / (cl + 1))) + (i % (cl + 1)) * 0.03;
+      if (cl) t = Math.floor(i / (cl + 1)) / Math.max(1, Math.ceil(nn / (cl + 1))) + (i % (cl + 1)) * 0.03;
       pos.push(k.clamp(first * 0.3 + t * (1 - first * 0.3), 0, 1));
     }
     pos.forEach((t, i) => {
-      const h = 14 + sz * 40 * (shape === "builds to the end" ? 0.5 + (i / Math.max(1, n)) * 0.5 : 1);
-      out += `<rect x="${r1(10 + t * 290)}" y="${r1(y0 - h)}" width="8" height="${r1(h)}" rx="2" fill="${S.gold}"/>`;
+      const h = 14 + sz * 40 * (shape === "builds to the end" ? 0.5 + (i / Math.max(1, nn)) * 0.5 : 1);
+      out += `<rect x="${r1(10 + t * 290)}" y="${r1(y0 - h)}" width="8" height="${r1(h)}" rx="2" fill="${S.gold}"${n ? "" : ' opacity="0.25"'}/>`;
     });
     /* the big one */
     const bx = 10 + big * 290;
     out += `<rect x="${r1(bx)}" y="${y0 - 76}" width="10" height="76" rx="2" fill="${S.red}"/>` + ha(k, k.clamp(bx + 4, 24, 290), 22, 0.6, -8, "BIG");
     const q = v.n("quietAfter");
     if (q > 0) out += `<rect x="${r1(bx + 12)}" y="${y0 - 6}" width="${r1(q * 6)}" height="6" fill="#7fb7ff" opacity="0.6"/>`;
+    /* the longest stretch without a laugh: a bracket on the line */
+    const lg = (v.n("longestGap") / 300) * 150;
+    if (lg > 1) out += `<path d="M${r1(10 + first * 87)} ${y0 + 4} v4 h${r1(lg)} v-4" fill="none" stroke="#aaa" stroke-width="1.2"/>`;
     /* breathers */
     for (let i = 0; i < Math.round(v.n("breather")); i++) out += k.label({ x: 130 + i * 36, y: 117, text: "~ breathe", size: 7, color: "#7fb7ff", anchor: "start" });
     out += strip(k, [g.steps("size", "Size"), g.num("breather", "Breathers", ""), g.steps("clusters", "Clusters"), g.num("quietAfter", "Quiet after big", " s"), g.num("firstLaughAt", "First laugh after", " s"), g.num("longestGap", "Longest gap", " s")]);
@@ -1325,8 +1412,9 @@
       xs.push(x);
       out += guy(k, x, { s: 0.5, color: "#666", mood: who === 3 ? 0.7 : 0 });
     }
-    const p = [0, 0.3, 0.6, 1][lv];
-    if (lv) {
+    const p = [0.3, 0.3, 0.6, 1][lv];
+    if (!lv) out += `<g opacity="0.25">`;
+    {
       if (who === 0 || who === 2) out += ha(k, 110, 34, p * (bal === 0 && who === 2 ? 0.4 : 1));
       if (who === 1 || who === 2) out += ha(k, 200, 34, p);
       if (who === 3) {
@@ -1334,6 +1422,7 @@
         xs.forEach((x, i) => (out += ha(k, x, 64, 0.05, i % 2 ? 8 : -8, "ha")));
       }
     }
+    if (!lv) out += `</g>`;
     out += k.text({ x: 155, y: 70, text: SRCM[v("source")] || "", size: 16 });
     const b = idx(v, "builds");
     out += k.graph({ x: 250, y: 10, w: 60, h: 20, points: [0.3, 0.3 + b * 0.15, 0.3 + b * 0.35], color: S.gold });
@@ -1404,9 +1493,10 @@
     const sub = idx(v, "subtlety");
     const pt = idx(v, "pointsOut");
     const zoom = pt === 2 ? 1.25 : pt === 3 ? 1.6 : 1;
-    const gm = (8 + sz * 40 * (plc === 2 ? 1.2 : plc === 1 ? 1 : 0.8)) / Math.sqrt(zoom); /* the main gag's size */
-    const gx = k.clamp(20 + ax * 280, gm * 0.6 + 4, 316 - gm * 0.6);
-    const gy = k.clamp(FY - up * 100, 28 + gm * 0.9, FY);
+    const gm = Math.min(8 + sz * 40 * (plc === 2 ? 1.2 : plc === 1 ? 1 : 0.8), 64 / zoom); /* the main gag's size */
+    const zm = gm * zoom; /* how big it ends up once pushed in */
+    const gx = k.clamp(20 + ax * 280, zm * 0.62 + 4, 316 - zm * 0.62);
+    const gy = k.clamp(FY - up * 100, 28 + zm * 0.95, Math.min(FY, 118 - zm * 0.25));
     let inner = k.wall({ y: FY, color: "#3a3646", floor: S.floor }) + k.window_({ x: 40, y: 20, w: 40, h: 34, light: 0.4 });
     inner += guy(k, 160, { s: 0.85 + (plc === 2 ? -0.2 : 0), color: S.blue, mood: 0.2, alpha: plc === 2 ? 0.7 : 1 });
     inner += `<defs><filter id="cw-visualGag-blur"><feGaussianBlur stdDeviation="${[2.5, 1, 0][foc]}"/></filter></defs>`;
@@ -1414,7 +1504,12 @@
     for (let i = 0; i < n; i++) {
       const xx = i === 0 ? gx : 30 + k.rnd(i + 3) * 260;
       const yy = i === 0 ? gy : 30 + k.rnd(i + 7) * 70;
-      inner += `<g filter="url(#cw-visualGag-blur)" opacity="${v.n("count") === 0 ? 0.15 : [0.5, 0.8, 1][sub]}">${k.text({ x: xx, y: yy, text: VGAG[v("kind")] || "?", size: gm * (i === 0 ? 1 : 0.5) })}</g>`;
+      /* the extra gags must still sit inside the picture once the camera pushes in */
+      const zs = gm * (i === 0 ? 1 : 0.5) * zoom;
+      const zx = gx + (xx - gx) * zoom;
+      const zy = gy + (yy - gy) * zoom;
+      if (i > 0 && (zx - zs * 0.6 < 4 || zx + zs * 0.6 > 316 || zy - zs < 26 || zy > 118)) continue;
+      inner += `<g filter="url(#cw-visualGag-blur)" opacity="${v.n("count") === 0 ? [0.15, 0.25, 0.35][sub] : [0.5, 0.8, 1][sub]}">${k.text({ x: xx, y: yy, text: VGAG[v("kind")] || "?", size: gm * (i === 0 ? 1 : 0.5) })}</g>`;
     }
     let out = k.bg(S.bg) + `<clipPath id="cw-visualGag-clip"><rect x="0" y="0" width="320" height="122"/></clipPath><g clip-path="url(#cw-visualGag-clip)"><g transform="translate(${r1(gx)} ${r1(gy)}) scale(${zoom}) translate(${r1(-gx)} ${r1(-gy)})">${inner}</g></g>`;
     if (pt === 1) out += k.arrow({ x1: 160, y1: 20, x2: k.clamp(gx, 30, 290), y2: 20, color: "#9fd3ff", w: 1.5 });
@@ -1452,6 +1547,7 @@
       if (y <= 80) break;
       fsz *= 0.86;
     }
+    if (!fx) out += k.text({ x: 96, y: 40, text: words[0], size: 12 + style * 3, color: style === 2 ? S.gold : "#eee", weight: style ? 900 : 400, outline: style === 2 ? S.ink : "", anchor: "start", alpha: 0.3 });
     place.forEach(([x, y], i) => (out += k.text({ x, y: y + (k.rnd(i) - 0.5) * 4, text: words[i], size: fsz, color: style === 2 ? S.gold : "#eee", weight: style ? 900 : 400, outline: style === 2 ? S.ink : "", anchor: "start" })));
     /* a little time line: hit, sound, silence */
     const len = v.n("soundLength");
@@ -1483,12 +1579,15 @@
     let x = 30;
     let s = 0.55;
     out += ha(k, x, 66, s, -8, "joke") + k.label({ x, y: 100, text: "the joke", size: 8, color: "#bbb" });
-    for (let i = 0; i < n; i++) {
-      x += step;
+    const nt = n || 2; /* no toppers: two faint would-be ones still show size, surprise and spacing */
+    if (!n) out += `<g opacity="0.22">`;
+    for (let i = 0; i < nt; i++) {
+      x += n ? step : Math.min(64 + gp * 4, 125);
       s = s * [0.75, 1, 1.35][big];
       out += `<rect x="${r1(x - 14)}" y="80" width="28" height="10" rx="3" fill="${TOPFROM[v("from")] || S.gold}"/>`;
       out += ha(k, x, Math.max(44, 66 - i * (4 + sur * 8)), s, (k.rnd(i) - 0.5) * 30 * (0.3 + sur), "HA!");
     }
+    if (!n) out += `</g>`;
     out += `<rect x="96" y="104" width="10" height="10" rx="2" fill="${TOPFROM[v("from")] || S.gold}"/>` + k.label({ x: 110, y: 113, text: `toppers come from ${v("from")}`, size: 8, color: "#bbb", anchor: "start" });
     const ends = idx(v, "endsScene");
     if (ends) out += k.label({ x: 310, y: 16, text: ends === 2 ? "◼ always ends the scene" : "◼ sometimes ends it", size: 8, color: "#ddd", anchor: "end" });
@@ -1584,6 +1683,9 @@
     out += guy(k, 230, { s: 0.75, color: S.orange, mood: 1, arms: 1, lean: -15, walk: 1 }) + motion(k, 270, 50, 3, 20, -1) + k.text({ x: 270, y: 30, text: "🎺", size: 14 });
     const s = k.clamp(0.4 + fs * 0.3, 0.4, 1);
     out += guy(k, 100, { s, color: S.blue, mood: [-0.9, -0.4, 0, 0][calm], arms: calm === 0 ? 1 : 0, lean: calm === 0 ? 8 : 0, eyes: sees === 0 ? 0.4 : 1, look: sees ? 1 : 0 });
+    /* how much they see it: a sight line to the funny one, dashed when half-seen */
+    if (sees) out += `<line x1="${r1(110)}" y1="${r1(FY - 66 * s)}" x2="214" y2="${FY - 56}" stroke="${S.gold}" stroke-width="${sees * 1.2}"${sees === 1 ? ' stroke-dasharray="3 3"' : ""} opacity="0.8"/>`;
+    else out += k.label({ x: 100 + 16, y: FY - 80 * s - 2, text: "?", size: 11, color: "#bbb" });
     if (re === 1) out += k.label({ x: 100, y: FY - 80 * s - 6, text: "👀", size: 10 });
     if (re === 2) out += k.label({ x: 100 + 20, y: FY - 80 * s - 4, text: "sigh…", size: 9, color: "#bbb" });
     if (re === 3) out += k.bubble({ x: 210, y: 38, text: "Are we doing this?", w: 104, h: 20, size: 8, tail: -50 });

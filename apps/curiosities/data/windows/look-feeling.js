@@ -37,6 +37,34 @@
     }
     return `<polyline points="${pts.join(" ")}" fill="none" stroke="${o.color || "#ffd166"}" stroke-width="${o.w || 2.5}" stroke-linejoin="round" stroke-linecap="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ""}${o.alpha != null ? ` opacity="${o.alpha}"` : ""}/>`;
   }
+  /* Faces riding along a feeling line: one at the start, the end and each clear peak or dip, smiling high up
+     and frowning low down, so the line reads as a person's feeling and not a chart. o.at adds fixed times. */
+  function riders(k, b, f, o) {
+    o = o || {};
+    const n = 160;
+    const ys = [];
+    for (let i = 0; i <= n; i++) ys.push(f(i / n));
+    let ts = [0.02, 0.98].concat(o.at || []);
+    for (let i = 2; i < n - 1; i++) {
+      const isPk = ys[i] >= ys[i - 2] && ys[i] > ys[i + 2] && ys[i] >= ys[i - 1] && ys[i] > ys[i + 1];
+      const isDp = ys[i] <= ys[i - 2] && ys[i] < ys[i + 2] && ys[i] <= ys[i - 1] && ys[i] < ys[i + 1];
+      if (isPk || isDp) ts.push(i / n);
+    }
+    const gap = o.gap || 0.13;
+    const keep = [];
+    const skip = o.skip || [];
+    ts.sort((a, c) => a - c).forEach((t) => { if ((!keep.length || t - keep[keep.length - 1] >= gap) && skip.every((u) => Math.abs(t - u) >= gap)) keep.push(t); });
+    const r = o.r || 10;
+    return keep.slice(0, o.max || 7).map((t) => {
+      const y = f(t);
+      const mood = cl(((y - (o.mid == null ? 0.5 : o.mid)) * (o.gain || 4)) * (o.flip ? -1 : 1), -1, 1);
+      const hot = o.intense ? cl(y, 0, 1) : 0; /* intensity: the face opens up instead of smiling */
+      const fx = px(b, t);
+      const fy = cl(py(b, y) - (o.lift == null ? r * 0.2 : o.lift), b.y + r + 1, b.y + b.h - r - 1);
+      const ring = o.color ? `<circle cx="${r1(fx)}" cy="${r1(fy)}" r="${r + 2}" fill="${o.color}"/>` : "";
+      return ring + k.face({ x: fx, y: fy, r, mood: o.intense ? 0 : mood, mouth: hot > 0.45 ? hot : 0, brows: o.intense ? 0.9 - hot * 1.8 : mood < -0.4 ? -0.6 : mood * 0.3, eyes: o.intense ? 0.6 + hot * 0.4 : 0.85 });
+    }).join("");
+  }
   const vline = (k, b, t, color, text) => {
     const x = r1(px(b, t));
     return `<line x1="${x}" y1="${b.y}" x2="${x}" y2="${b.y + b.h}" stroke="${color}" stroke-width="1.2" stroke-dasharray="3 2"/>` + (text ? S(k, cl(x, b.x + 30, b.x + b.w - 30), b.y - 2, text, color) : "");
@@ -132,7 +160,7 @@
     const bracket = `<line x1="${r1(px(b, sinceT))}" y1="${b.y + b.h - 6}" x2="${r1(nx)}" y2="${b.y + b.h - 6}" stroke="#c9a0ff" stroke-width="2"/>` + S(k, px(b, sinceT), b.y + b.h - 9, `${v.n("scenesSinceTurn")} scenes since a turn`, "#c9a0ff", "start", 7);
     let tp = "";
     for (let i = 1; i <= turns; i++) tp += `<circle cx="${r1(b.x + (i / (turns + 1)) * b.w)}" cy="${b.y + b.h + 6}" r="2.5" fill="#c9a0ff"/>`;
-    return k.bg(BG) + tp + box(k, b) + S(k, b.x + 4, b.y - 4, "up = better for them", "#888", "start", 7) + S(k, b.x + b.w, b.y - 4, `film's road: ${v("withFilm")}`, "#888", "end", 7) + line(k, b, film, { color: "#777", dash: "4 3", w: 1.5 }) + line(k, b, ch, { color: "#ffd166" }) + vline(k, b, lo, "#5aa0ff") + vline(k, b, hi, "#ffb347") + bracket + speed + pull + `<circle cx="${r1(nx)}" cy="${r1(ny)}" r="5" fill="#fff"/>` + nowMark + ghost + fitCap(k, `Now: ${v("setting")} · ends ${v("endsAbove")} · ${v("roadPace")}`);
+    return k.bg(BG) + tp + box(k, b) + S(k, b.x + 4, b.y - 4, "up = better for them", "#888", "start", 7) + S(k, b.x + b.w, b.y - 4, `film's road: ${v("withFilm")}`, "#888", "end", 7) + line(k, b, film, { color: "#777", dash: "4 3", w: 1.5 }) + line(k, b, ch, { color: "#ffd166" }) + vline(k, b, lo, "#5aa0ff") + vline(k, b, hi, "#ffb347") + bracket + riders(k, b, (t) => cl(ch(t), 0.04, 0.96), { skip: [now], r: 9 }) + speed + pull + nowMark + k.face({ x: nx, y: ny, r: 10, mood: cl((ch(now) - 0.5) * 3, -1, 1), eyes: 1 }) + ghost + fitCap(k, `Now: ${v("setting")} · ends ${v("endsAbove")} · ${v("roadPace")}`);
   });
 
   /* ---------------- emoRoadFilm: the shape of the whole film's feeling ---------------- */
@@ -169,11 +197,12 @@
       S(k, b.x + 4, b.y - 12, "the film's feeling, start to end", "#888", "start", 7) +
       line(k, b, f, { color: "#ffd166" }) +
       vline(k, b, pk, "#ffb347", "peak") +
+      riders(k, b, (t) => cl(f(t), 0.04, 0.96), { skip: [now], r: 9, gap: 0.12 }) +
       `<line x1="${r1(px(b, sincePk))}" y1="${b.y + b.h - 6}" x2="${r1(nx)}" y2="${b.y + b.h - 6}" stroke="#c9a0ff" stroke-width="2"/>` +
       S(k, px(b, sincePk), b.y + b.h - 9, `${v.n("sinceLastPeak")} min since a peak`, "#c9a0ff", "start", 7) +
-      `<circle cx="${r1(nx)}" cy="${r1(ny)}" r="5" fill="#fff"/>` +
-      (st === 0 || st === 4 ? k.ring({ x: nx, y: ny, r: 9, color: st ? "#ffd166" : "#5aa0ff" }) : "") +
-      S(k, nx, ny - 10, ["lowest", "falling", "steady", "rising", "highest"][st], "#fff") +
+      (st === 0 || st === 4 ? k.ring({ x: nx, y: ny, r: 13, color: st ? "#ffd166" : "#5aa0ff" }) : "") +
+      k.face({ x: nx, y: ny, r: 10, mood: cl((f(now) - 0.5) * 3, -1, 1), eyes: 1 }) +
+      S(k, nx, ny - 15, ["lowest", "falling", "steady", "rising", "highest"][st], "#fff") +
       (ch ? k.arrow({ x1: nx + 12, y1: ny, x2: nx + 12, y2: ny - ch * 5, color: ch > 0 ? "#6cc070" : "#ef5350", w: 2 }) : "") +
       faces +
       k.person({ x: 40, y: 168, s: 0.4, lean: -10 + grip * 30, color: "#888", eyes: 0.3 + grip * 0.7 }) +
@@ -328,6 +357,7 @@
       S(k, b.x + 4, b.y - 4, "tension held, then let go", "#888", "start", 7) +
       line(k, b, f, { color: col, w: 1.5 + earned * 2.5, dash: earned < 0.3 ? "4 3" : "" }) +
       vline(k, b, pl, "#fff") +
+      riders(k, b, f, { at: [Math.max(0.02, pl - wait - 0.08), Math.min(0.98, pl + lasts + 0.04)], flip: true, mid: 0.2, gain: 2.4, r: 9, gap: 0.1 }) +
       (sur === 2 ? k.text({ x: px(b, pl) + 8, y: b.y + 18, text: "!", size: 16, color: "#ffd166", weight: 700 }) : "") +
       fore +
       `<rect x="${r1(px(b, pl + lasts))}" y="${b.y + b.h - 8}" width="${r1(Math.max(1, settle * b.w))}" height="6" fill="#4fb3a5" opacity="0.7"/>` +
@@ -413,6 +443,7 @@
       box(k, b) +
       S(k, b.x + 4, b.y - 4, ki === 1 ? "a false low before a rise" : "it looks won... then it isn't", "#888", "start", 7) +
       line(k, b, f, { color: "#ffd166" }) +
+      riders(k, b, f, { at: [cl(pl - 0.12, 0.02, 0.98), cl(pl + und / 2, 0.02, 0.98)], skip: [cl(pl + und + fs, 0, 1)], r: 10, gap: 0.1 }) +
       flags +
       star +
       S(k, cx, cy + (sign > 0 ? 24 : -18), v("turnBy"), "#ef5350") +
@@ -452,6 +483,8 @@
       vline(k, b, ca, "#c9a0ff", "planned crossing") +
       line(k, b, A, { color: "#5aa0ff" }) +
       line(k, b, B, { color: "#ffb347" }) +
+      riders(k, b, A, { at: [0.25, 0.5, 0.75], max: 5, gap: 0.2, r: 8, color: "#5aa0ff", lift: A(0.5) >= B(0.5) ? 9 : -9 }) +
+      riders(k, b, B, { at: [0.25, 0.5, 0.75], max: 5, gap: 0.2, r: 8, color: "#ffb347", lift: A(0.5) >= B(0.5) ? -9 : 9 }) +
       links +
       gapArrows +
       S(k, 24, 142, who[0], "#5aa0ff", "start", 9) +
@@ -524,6 +557,7 @@
       S(k, b.x + 44, py(b, last) + 3, "last scene", "#9be36b", "start", 7) +
       line(k, b, f, { color: "#ef5350", dash: "3 3", w: 1.5, alpha: 0.6 }) +
       line(k, b, shown, { color: "#ef5350" }) +
+      riders(k, b, shown, { at: [cl(at - rise / 2, 0.02, 0.98), cl(at + hold / 2, 0.02, 0.98)], intense: true, r: 10, gap: 0.12 }) +
       (lid < 1 ? `<line x1="${b.x}" y1="${r1(py(b, lid))}" x2="${b.x + b.w}" y2="${r1(py(b, lid))}" stroke="#ccc" stroke-width="2"/>` + S(k, b.x + b.w / 2, py(b, lid) - 3, "held in", "#ccc", "middle", 7) : "") +
       k.face({ x: 282, y: 70, r: 26, mood: -0.2 - pk * 0.6, brows: -pk, mouth: lid > 1 ? pk * 0.8 : 0, eyes: 0.6 + pk * 0.4 }) +
       S(k, 282, 110, `${v("contain")}`, "#ccc") +
@@ -1079,8 +1113,9 @@
       k.bg(BG) +
       box(k, b) +
       line(k, b, f, { color: "#ffd166" }) +
+      riders(k, b, f, { at: [s0 + len / 2], flip: true, mid: 0.6, gain: 2.5, r: 10, gap: 0.08 }) +
       cloud +
-      S(k, px(b, 0.15), b.y + 10, "big moment", "#ffd166") +
+      S(k, px(b, 0.15), b.y - 3, "big moment", "#ffd166") +
       S(k, px(b, s0 + len / 2), py(b, low) + 12, v("kind"), "#6cc070") +
       k.face({ x: 290, y: 150, r: 12, eyes: 0.2 + grip * 0.8, mood: 0.2, look: -1 }) +
       S(k, 274, 154, grip > 0.5 ? "still held" : "drifting", "#aaa", "end") +
