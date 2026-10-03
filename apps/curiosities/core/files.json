@@ -23,6 +23,7 @@
     "momentum/attention.js",
     "momentum/rates.js",
     "momentum/compass.js",
-    "momentum/engine-lanes.js"
+    "momentum/engine-lanes.js",
+    "sync/sync.js"
   ]
 }

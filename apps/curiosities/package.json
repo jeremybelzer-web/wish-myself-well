@@ -1,0 +1,15 @@
+{
+  "name": "curiomatic",
+  "private": true,
+  "description": "Curiomatic (apps/curiosities). No build step: open index.html. This file only holds the test commands.",
+  "scripts": {
+    "test": "node tests/run-all.js",
+    "test:browser": "node tests/run-all.js --browser",
+    "test:all": "node tests/run-all.js --full",
+    "test:controls": "node tests/every-control.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0",
+    "three": "0.128.0"
+  }
+}

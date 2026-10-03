@@ -42917,6 +42917,3724 @@
     "cue": "visual",
     "tryThis": "Keep the listener in the edge of the frame, slowly leaning away as the speaker keeps talking."
    }
+  },
+  {
+   "id": "animFeelLens",
+   "level": "curiosity",
+   "label": "Animation feel",
+   "plain": "How the movement itself feels: stiff or rubbery, snappy or smooth, real or cartoon. The twelve old rules of animation, as sliders.",
+   "workspace": "character-motion",
+   "also": [
+    "movement-lines",
+    "comedy"
+   ],
+   "group": "Maya: Animation feel",
+   "kind": "lens",
+   "per": "panel",
+   "main": "style",
+   "sliders": [
+    {
+     "id": "style",
+     "label": "Kind of movement",
+     "plain": "From movement that looks like a machine, through real life, to cartoon bodies that bend like rubber hoses.",
+     "scale": [
+      "stiff and robotic",
+      "realistic",
+      "lively",
+      "cartoony",
+      "rubber-hose wild"
+     ],
+     "from": "stiff and robotic",
+     "to": "rubber-hose wild",
+     "curve": "linear"
+    },
+    {
+     "id": "spacing",
+     "label": "Slow into and out of poses",
+     "plain": "Whether moves start and stop gently (ease in and out) or at full speed. In Maya this is the shape of the curve between keys.",
+     "ref": "spacing",
+     "curve": "linear",
+     "scale": [
+      "even",
+      "ease in",
+      "ease out",
+      "ease both",
+      "snap"
+     ],
+     "from": "even",
+     "to": "snap"
+    },
+    {
+     "id": "anticipation",
+     "label": "Wind-up before a move",
+     "plain": "The small move the other way before the big one: crouch before a jump, pull back before a punch.",
+     "ref": "anticipation",
+     "curve": "linear",
+     "scale": [
+      "none",
+      "small",
+      "big"
+     ],
+     "from": "none",
+     "to": "big"
+    },
+    {
+     "id": "overshoot",
+     "label": "Overshoot and settle",
+     "plain": "Going a little past the end pose and settling back, like a hand that stops and wobbles.",
+     "ref": "overshoot",
+     "curve": "linear",
+     "scale": [
+      "none",
+      "settle",
+      "bounce"
+     ],
+     "from": "none",
+     "to": "bounce"
+    },
+    {
+     "id": "overlap",
+     "label": "Parts that keep moving",
+     "plain": "Hair, ears, coats and bellies that keep going after the body stops (follow-through and overlapping action).",
+     "ref": "overlap",
+     "curve": "linear",
+     "scale": [
+      "none",
+      "hair",
+      "cloth",
+      "hands",
+      "all"
+     ],
+     "from": "none",
+     "to": "all"
+    },
+    {
+     "id": "arcs",
+     "label": "Curved paths",
+     "plain": "Whether hands and heads travel in curves (alive) or straight lines (mechanical).",
+     "ref": "arcs",
+     "curve": "linear",
+     "scale": [
+      "straight",
+      "arc",
+      "figure eight"
+     ],
+     "from": "straight",
+     "to": "figure eight"
+    },
+    {
+     "id": "squash",
+     "label": "Squash and stretch",
+     "plain": "How much bodies squash on impact and stretch in speed. Zero is solid; five is a bouncing ball.",
+     "ref": "squash",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5
+    },
+    {
+     "id": "exaggeration",
+     "label": "Exaggeration",
+     "plain": "How far poses and timing are pushed past real life to make a point read.",
+     "scale": [
+      "true to life",
+      "a little more",
+      "clearly pushed",
+      "huge"
+     ],
+     "from": "true to life",
+     "to": "huge",
+     "curve": "linear"
+    },
+    {
+     "id": "holds",
+     "label": "Stillness",
+     "plain": "How long a character stays in a pose before the next move. Long freezes are a comedy tool.",
+     "scale": [
+      "never still",
+      "short holds",
+      "clear holds",
+      "long freezes"
+     ],
+     "from": "never still",
+     "to": "long freezes",
+     "curve": "linear"
+    },
+    {
+     "id": "secondary",
+     "label": "Little extra actions",
+     "plain": "Small actions on top of the main one: tapping a foot while waiting, fiddling with a pen while talking.",
+     "scale": [
+      "none",
+      "a little",
+      "busy"
+     ],
+     "from": "none",
+     "to": "busy",
+     "curve": "linear"
+    },
+    {
+     "id": "poseRate",
+     "label": "Poses per beat",
+     "plain": "How many clear poses a move goes through. More poses read as busier, fewer as bolder.",
+     "ref": "poseRate",
+     "curve": "linear",
+     "range": {
+      "min": 1,
+      "max": 8,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 8
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:motion"
+   ],
+   "maya": "Graph Editor, Dope Sheet, tangents, the twelve principles of animation",
+   "tool": "motion",
+   "momentum": {
+    "push": 2,
+    "plot": "How a character moves tells the audience what they want before they say it: a rushed, stiff walk is heading somewhere it dreads.",
+    "theme": "Stiff against loose movement is a theme of control against freedom.",
+    "pull": "A change in how someone moves (the stiff one suddenly loose) is a change the eye catches at once.",
+    "cue": "movement",
+    "tryThis": "Animate the uptight character stiffly, then give them one cartoony move the moment they let go."
+   }
+  },
+  {
+   "id": "timeLens",
+   "level": "curiosity",
+   "label": "Time and speed",
+   "plain": "How time runs in the shot: real time, slow motion, sped up, frozen, played backwards, smooth or choppy like stop-motion.",
+   "workspace": "structure",
+   "also": [
+    "character-motion",
+    "camera-motion"
+   ],
+   "group": "Maya: Time and speed",
+   "kind": "lens",
+   "per": "panel",
+   "main": "warp",
+   "sliders": [
+    {
+     "id": "warp",
+     "label": "Speed of time",
+     "plain": "How fast time runs in this moment, from stopped to racing.",
+     "scale": [
+      "freeze frame",
+      "very slow motion",
+      "slow motion",
+      "real time",
+      "sped up",
+      "fast forward"
+     ],
+     "from": "freeze frame",
+     "to": "fast forward",
+     "curve": "linear"
+    },
+    {
+     "id": "ramp",
+     "label": "Speed change",
+     "plain": "Whether the speed changes inside the shot, like an action shot that slows down for the hit and speeds up again.",
+     "ref": "speedRamp",
+     "curve": "linear",
+     "scale": [
+      "slow",
+      "normal",
+      "fast",
+      "ramp"
+     ],
+     "from": "slow",
+     "to": "ramp"
+    },
+    {
+     "id": "drawnOn",
+     "label": "Smooth or choppy",
+     "plain": "Drawn on ones is smooth; twos is snappy (classic hand-drawn); threes is choppy, like stop-motion.",
+     "ref": "stepping",
+     "curve": "linear",
+     "scale": [
+      "ones",
+      "twos",
+      "threes"
+     ],
+     "from": "ones",
+     "to": "threes"
+    },
+    {
+     "id": "direction",
+     "label": "Forward or back",
+     "plain": "Whether time plays forward, stops, or runs backwards for a moment.",
+     "scale": [
+      "forward",
+      "pauses",
+      "rewinds"
+     ],
+     "from": "forward",
+     "to": "rewinds",
+     "curve": "linear"
+    },
+    {
+     "id": "repeat",
+     "label": "Repeats",
+     "plain": "Whether a bit of action plays again: a replay for a joke, or a loop that traps a character.",
+     "scale": [
+      "plays once",
+      "repeats once",
+      "loops"
+     ],
+     "from": "plays once",
+     "to": "loops",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:remix"
+   ],
+   "maya": "Time Editor, Retime tool, Time Warp, frame rate on the Time Slider, stepped keys",
+   "tool": "remix",
+   "momentum": {
+    "push": 2,
+    "plot": "Slowing or freezing time tells the audience: this moment decides everything that follows.",
+    "theme": "Stretched time shows a moment someone will remember forever; sped-up time shows a stretch that does not matter.",
+    "pull": "When time slows, the audience leans in and waits for the thing that is about to happen.",
+    "cue": "visual",
+    "tryThis": "Freeze the frame on the worst possible moment, then hold it one beat longer than is comfortable."
+   }
+  },
+  {
+   "id": "poseRigLens",
+   "level": "curiosity",
+   "label": "Poses and body control",
+   "plain": "How strong and clear a pose is: the line through the body, the outline, balance, where the feet are planted, what the hands hold.",
+   "workspace": "character-motion",
+   "also": [
+    "placement",
+    "movement-lines"
+   ],
+   "group": "Maya: Poses and body control",
+   "kind": "lens",
+   "per": "panel",
+   "main": "lineOfAction",
+   "sliders": [
+    {
+     "id": "lineOfAction",
+     "label": "Line through the body",
+     "plain": "Imagine one line from head to foot. A strong curve reads as energy and intent; straight reads as stiff or formal.",
+     "scale": [
+      "straight and stiff",
+      "slight curve",
+      "strong curve",
+      "S curve"
+     ],
+     "from": "straight and stiff",
+     "to": "S curve",
+     "curve": "linear"
+    },
+    {
+     "id": "silhouette",
+     "label": "Clear outline",
+     "plain": "Whether you could tell what the character is doing from a black shadow of them alone.",
+     "scale": [
+      "muddy",
+      "readable",
+      "crystal clear"
+     ],
+     "from": "muddy",
+     "to": "crystal clear",
+     "curve": "linear"
+    },
+    {
+     "id": "balance",
+     "label": "Balance",
+     "plain": "Where the weight sits: tipping over, moving from foot to foot, or rooted to the spot.",
+     "scale": [
+      "falling",
+      "off balance",
+      "shifting",
+      "settled",
+      "planted"
+     ],
+     "from": "falling",
+     "to": "planted",
+     "curve": "linear"
+    },
+    {
+     "id": "feet",
+     "label": "Feet on the ground",
+     "plain": "Whether the feet stay fixed where they land (what IK is for in Maya) or leave the ground.",
+     "scale": [
+      "sliding",
+      "planted",
+      "lifted",
+      "in the air"
+     ],
+     "from": "sliding",
+     "to": "in the air",
+     "curve": "linear"
+    },
+    {
+     "id": "twist",
+     "label": "Twist in the body",
+     "plain": "How much the shoulders turn against the hips. Twist makes a pose look alive.",
+     "scale": [
+      "square to the camera",
+      "slight twist",
+      "strong twist"
+     ],
+     "from": "square to the camera",
+     "to": "strong twist",
+     "curve": "linear"
+    },
+    {
+     "id": "hands",
+     "label": "What the hands hold",
+     "plain": "Whether the hands are free or locked to something (a constraint in Maya).",
+     "scale": [
+      "empty",
+      "a prop",
+      "a surface",
+      "another person"
+     ],
+     "from": "empty",
+     "to": "another person",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "symmetry",
+     "label": "Even or uneven",
+     "plain": "Both sides of the body doing the same thing looks stiff; uneven poses look natural.",
+     "scale": [
+      "mirror twins",
+      "slightly uneven",
+      "clearly uneven"
+     ],
+     "from": "mirror twins",
+     "to": "clearly uneven",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:rig"
+   ],
+   "maya": "Skeletons and joints, IK and FK, constraints, HumanIK",
+   "tool": "rig",
+   "momentum": {
+    "push": 2,
+    "plot": "A strong pose shows what a character is about to do, so the audience is a step ahead of the plot.",
+    "theme": "How someone holds their body says how they feel about their place in the world.",
+    "pull": "The eye reads a clear outline before a word is said, so a strong pose grabs attention first.",
+    "cue": "movement",
+    "tryThis": "Hold the strongest pose of the scene for the line that turns it."
+   }
+  },
+  {
+   "id": "faceLens",
+   "level": "curiosity",
+   "label": "Face acting",
+   "plain": "What the face does: how big the expression is, brows, eyes, mouth, blinks, which side moves, and how fast it changes.",
+   "workspace": "character-motion",
+   "also": [
+    "emotion",
+    "lines"
+   ],
+   "group": "Maya: Face acting",
+   "kind": "lens",
+   "per": "panel",
+   "main": "expression",
+   "sliders": [
+    {
+     "id": "expression",
+     "label": "Size of the expression",
+     "plain": "How much the face shows, from a poker face to a cartoon take.",
+     "scale": [
+      "blank",
+      "subtle",
+      "clear",
+      "big",
+      "extreme"
+     ],
+     "from": "blank",
+     "to": "extreme",
+     "curve": "linear"
+    },
+    {
+     "id": "brows",
+     "label": "Eyebrows",
+     "plain": "Brows down read as anger or focus; up reads as surprise, worry or hope.",
+     "scale": [
+      "down hard",
+      "down",
+      "neutral",
+      "up",
+      "way up"
+     ],
+     "from": "down hard",
+     "to": "way up",
+     "curve": "linear"
+    },
+    {
+     "id": "eyes",
+     "label": "Eyes",
+     "plain": "How open the eyes are.",
+     "scale": [
+      "closed",
+      "narrowed",
+      "normal",
+      "wide",
+      "popping"
+     ],
+     "from": "closed",
+     "to": "popping",
+     "curve": "linear"
+    },
+    {
+     "id": "mouth",
+     "label": "Mouth",
+     "plain": "The shape of the mouth, from holding it in to letting it all out.",
+     "scale": [
+      "pressed tight",
+      "neutral",
+      "smile",
+      "open",
+      "wide open"
+     ],
+     "from": "pressed tight",
+     "to": "wide open",
+     "curve": "linear"
+    },
+    {
+     "id": "darts",
+     "label": "Eyes darting",
+     "plain": "Quick small eye movements: a thinking, nervous or lying face darts; a calm or certain face holds still.",
+     "scale": [
+      "still",
+      "a few",
+      "many"
+     ],
+     "from": "still",
+     "to": "many",
+     "curve": "linear"
+    },
+    {
+     "id": "blinks",
+     "label": "Blinks",
+     "plain": "Blinks per beat. A blink often marks a new thought.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "sided",
+     "label": "One side or both",
+     "plain": "Whether both sides of the face move the same. A one-sided smile is a smirk or a sneer.",
+     "scale": [
+      "even",
+      "slightly lopsided",
+      "one-sided"
+     ],
+     "from": "even",
+     "to": "one-sided",
+     "curve": "linear"
+    },
+    {
+     "id": "lipSync",
+     "label": "Lip sync",
+     "plain": "How closely the mouth matches the words.",
+     "ref": "lipSync",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 12,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 12
+    },
+    {
+     "id": "changeSpeed",
+     "label": "How fast it changes",
+     "plain": "Whether a feeling spreads across the face slowly or snaps on.",
+     "scale": [
+      "melts slowly",
+      "shifts",
+      "snaps"
+     ],
+     "from": "melts slowly",
+     "to": "snaps",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:face"
+   ],
+   "maya": "Blend Shapes and the Shape Editor, Pose Library, eye darts and blinks, lip sync",
+   "tool": "face",
+   "momentum": {
+    "push": 3,
+    "plot": "A face changing tells the audience a decision has been made before the character acts on it.",
+    "theme": "What the face hides against what it shows is where the theme of honesty lives.",
+    "pull": "Close on a face, the audience watches for the smallest change and reads it as the next turn.",
+    "cue": "visual",
+    "tryThis": "Let the face change a beat before the line, so the audience knows what is coming and dreads it."
+   }
+  },
+  {
+   "id": "crowdLens",
+   "level": "curiosity",
+   "label": "Crowds and repeats",
+   "plain": "Many copies of people or things: how many, how different from each other, how in step, how they are spread, and whether they follow a leader.",
+   "workspace": "background",
+   "also": [
+    "herd",
+    "placement"
+   ],
+   "group": "Maya: Crowds and repeats",
+   "kind": "lens",
+   "per": "panel",
+   "main": "count",
+   "sliders": [
+    {
+     "id": "count",
+     "label": "How many",
+     "plain": "How many people or things fill the space.",
+     "scale": [
+      "none",
+      "a few",
+      "a group",
+      "a crowd",
+      "a sea"
+     ],
+     "from": "none",
+     "to": "a sea",
+     "curve": "linear"
+    },
+    {
+     "id": "variety",
+     "label": "How alike",
+     "plain": "Whether they look like copies (funny or creepy) or each one is their own person.",
+     "scale": [
+      "clones",
+      "slight differences",
+      "everyone different"
+     ],
+     "from": "clones",
+     "to": "everyone different",
+     "curve": "linear"
+    },
+    {
+     "id": "sync",
+     "label": "In step",
+     "plain": "Whether they move separately or as one, like a marching band.",
+     "scale": [
+      "each on their own",
+      "loosely together",
+      "in step",
+      "perfect unison"
+     ],
+     "from": "each on their own",
+     "to": "perfect unison",
+     "curve": "linear"
+    },
+    {
+     "id": "spread",
+     "label": "How they are spread",
+     "plain": "How the crowd is laid out in the space.",
+     "scale": [
+      "clustered",
+      "scattered",
+      "in rows",
+      "in a ring"
+     ],
+     "from": "clustered",
+     "to": "in a ring",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "follow",
+     "label": "Follow the leader",
+     "plain": "Whether the crowd copies one person.",
+     "scale": [
+      "ignore them",
+      "some follow",
+      "all follow"
+     ],
+     "from": "ignore them",
+     "to": "all follow",
+     "curve": "linear"
+    },
+    {
+     "id": "ripple",
+     "label": "Ripple delay",
+     "plain": "How long it takes a move to pass through the crowd, like a stadium wave.",
+     "range": {
+      "min": 0,
+      "max": 8,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 8,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:crowd"
+   ],
+   "maya": "MASH networks (Distribute, Random, Offset, Signal, Replicator), crowd tools",
+   "tool": "crowd",
+   "momentum": {
+    "push": 2,
+    "plot": "A crowd turning from scattered to in step shows a group becoming a force the hero must face.",
+    "theme": "A crowd moving as one is the theme of the herd against the person.",
+    "pull": "One figure out of step in a perfect crowd is where the eye goes.",
+    "cue": "visual",
+    "tryThis": "Put one person out of step in a perfect crowd, and make that person matter later."
+   }
+  },
+  {
+   "id": "lightRigLens",
+   "level": "curiosity",
+   "label": "Light setup",
+   "plain": "What kind of lights light the scene and how they work together: the sun, the sky, a window, a spotlight, a bare bulb; how bright the dark side is; light bouncing off walls.",
+   "workspace": "light",
+   "also": [
+    "set",
+    "emotion"
+   ],
+   "group": "Maya: Light setup",
+   "kind": "lens",
+   "per": "panel",
+   "main": "lightType",
+   "sliders": [
+    {
+     "id": "lightType",
+     "label": "Main light",
+     "plain": "The kind of light doing most of the work.",
+     "scale": [
+      "sun",
+      "open sky",
+      "window",
+      "spotlight",
+      "bare bulb",
+      "glowing object"
+     ],
+     "from": "sun",
+     "to": "glowing object",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "ratio",
+     "label": "Bright side to dark side",
+     "plain": "How much darker the shadow side of a face is than the lit side.",
+     "scale": [
+      "flat and even",
+      "gentle",
+      "dramatic",
+      "one side black"
+     ],
+     "from": "flat and even",
+     "to": "one side black",
+     "curve": "linear"
+    },
+    {
+     "id": "bounce",
+     "label": "Light bouncing around",
+     "plain": "Light bouncing off walls and floors and filling the room with soft color (global illumination).",
+     "scale": [
+      "none",
+      "a little",
+      "rich bounce"
+     ],
+     "from": "none",
+     "to": "rich bounce",
+     "curve": "linear"
+    },
+    {
+     "id": "falloff",
+     "label": "How far the light reaches",
+     "plain": "Whether the light fills the whole space or falls into darkness a few steps away.",
+     "scale": [
+      "reaches far",
+      "fades across the room",
+      "drops off fast"
+     ],
+     "from": "reaches far",
+     "to": "drops off fast",
+     "curve": "linear"
+    },
+    {
+     "id": "linking",
+     "label": "Who the light touches",
+     "plain": "Lights that touch only some things, a trick for making one person glow.",
+     "scale": [
+      "everyone",
+      "only the hero",
+      "only the background"
+     ],
+     "from": "everyone",
+     "to": "only the background",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "softness",
+     "label": "Hard or soft",
+     "plain": "Hard light makes sharp shadows; soft light wraps around faces.",
+     "ref": "softness",
+     "curve": "linear",
+     "scale": [
+      "hard",
+      "soft"
+     ],
+     "from": "hard",
+     "to": "soft"
+    },
+    {
+     "id": "rim",
+     "label": "Rim light",
+     "plain": "A light from behind that draws a bright edge around a person.",
+     "ref": "rim",
+     "curve": "linear",
+     "scale": [
+      "off",
+      "thin",
+      "strong"
+     ],
+     "from": "off",
+     "to": "strong"
+    },
+    {
+     "id": "haze",
+     "label": "Haze and beams",
+     "plain": "Haze in the air that makes beams of light visible.",
+     "ref": "atmosphere",
+     "curve": "linear",
+     "scale": [
+      "clear",
+      "haze",
+      "beams"
+     ],
+     "from": "clear",
+     "to": "beams"
+    },
+    {
+     "id": "shape",
+     "label": "Shaped light",
+     "plain": "Light cut into shapes: blinds, leaves, a window frame.",
+     "ref": "lightShape",
+     "curve": "linear",
+     "scale": [
+      "open",
+      "blinds",
+      "leaves",
+      "barndoor"
+     ],
+     "from": "open",
+     "to": "barndoor"
+    },
+    {
+     "id": "practical",
+     "label": "Lamps in the shot",
+     "plain": "Whether the lights themselves (lamps, candles, screens) are visible in the picture.",
+     "ref": "practicalInFrame",
+     "curve": "linear",
+     "scale": [
+      "yes",
+      "no"
+     ],
+     "from": "yes",
+     "to": "no"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:light"
+   ],
+   "maya": "Arnold lights (area, spot, directional, skydome, mesh), exposure, decay, light linking",
+   "tool": "light",
+   "momentum": {
+    "push": 2,
+    "plot": "A change in the lights (a door opening, a lamp going out) marks a turn without a word.",
+    "theme": "Light against dark is the oldest picture of hope against fear.",
+    "pull": "The eye goes to the brightest thing in the frame, so light steers attention.",
+    "cue": "visual",
+    "tryThis": "Light only the person who is lying, and let everyone else fall into shadow."
+   }
+  },
+  {
+   "id": "surfaceLens",
+   "level": "curiosity",
+   "label": "Surfaces and materials",
+   "plain": "What things are made of, as the light shows it: matte or shiny, metal or glass, smooth or bumpy, worn or new.",
+   "workspace": "light",
+   "also": [
+    "set",
+    "wardrobe"
+   ],
+   "group": "Maya: Surfaces and materials",
+   "kind": "lens",
+   "per": "panel",
+   "main": "material",
+   "sliders": [
+    {
+     "id": "material",
+     "label": "Kind of surface",
+     "plain": "What the surface looks like it is made of, by how it takes the light.",
+     "scale": [
+      "matte",
+      "satin",
+      "glossy",
+      "mirror",
+      "metal",
+      "glass"
+     ],
+     "from": "matte",
+     "to": "glass",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "shine",
+     "label": "Shine",
+     "plain": "How much the surface reflects, from chalk to a polished car.",
+     "ref": "gloss",
+     "curve": "linear",
+     "scale": [
+      "matte",
+      "satin",
+      "mirror"
+     ],
+     "from": "matte",
+     "to": "mirror"
+    },
+    {
+     "id": "seeThrough",
+     "label": "See-through",
+     "plain": "Whether light passes through: a wall, frosted glass, a clean window.",
+     "scale": [
+      "solid",
+      "cloudy",
+      "clear"
+     ],
+     "from": "solid",
+     "to": "clear",
+     "curve": "linear"
+    },
+    {
+     "id": "bumps",
+     "label": "Texture",
+     "plain": "How bumpy the surface looks up close.",
+     "scale": [
+      "smooth",
+      "fine grain",
+      "textured",
+      "rough and bumpy"
+     ],
+     "from": "smooth",
+     "to": "rough and bumpy",
+     "curve": "linear"
+    },
+    {
+     "id": "coat",
+     "label": "Clear coat",
+     "plain": "A shiny layer on top, like varnish on wood or the paint on a car.",
+     "scale": [
+      "none",
+      "thin varnish",
+      "thick lacquer"
+     ],
+     "from": "none",
+     "to": "thick lacquer",
+     "curve": "linear"
+    },
+    {
+     "id": "sheen",
+     "label": "Soft fuzz",
+     "plain": "The soft glow at the edges of fabrics like velvet and peach skin.",
+     "scale": [
+      "none",
+      "soft fuzz",
+      "velvet"
+     ],
+     "from": "none",
+     "to": "velvet",
+     "curve": "linear"
+    },
+    {
+     "id": "rainbow",
+     "label": "Rainbow film",
+     "plain": "Rainbow colors on a surface, like oil on a puddle.",
+     "scale": [
+      "none",
+      "oil slick",
+      "soap bubble"
+     ],
+     "from": "none",
+     "to": "soap bubble",
+     "curve": "linear"
+    },
+    {
+     "id": "wet",
+     "label": "Wet",
+     "plain": "How wet surfaces look, from dry to dripping.",
+     "ref": "wetness",
+     "curve": "linear",
+     "scale": [
+      "dry",
+      "damp",
+      "soaked"
+     ],
+     "from": "dry",
+     "to": "soaked"
+    },
+    {
+     "id": "glow",
+     "label": "Glows",
+     "plain": "Whether the surface gives off its own light.",
+     "ref": "glow",
+     "curve": "linear",
+     "scale": [
+      "none",
+      "object",
+      "person",
+      "room"
+     ],
+     "from": "none",
+     "to": "room"
+    },
+    {
+     "id": "wear",
+     "label": "Wear",
+     "plain": "Scratches, dust and rust: how much life the surface has seen.",
+     "ref": "wear",
+     "curve": "linear",
+     "scale": [
+      "new",
+      "used",
+      "ruined"
+     ],
+     "from": "new",
+     "to": "ruined"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:shading"
+   ],
+   "maya": "Arnold Standard Surface (base, specular, roughness, metalness, transmission, coat, sheen, thin film), bump maps",
+   "tool": "shading",
+   "momentum": {
+    "push": 1,
+    "plot": "Materials getting worse (gold to rust, glossy to dusty) show a place or person falling.",
+    "theme": "What things are made of says what a world values: marble and gold, or plywood and tape.",
+    "pull": "A shiny thing in a matte room catches the eye and becomes important.",
+    "cue": "visual",
+    "tryThis": "Make the one object that matters the only shiny thing in the room."
+   }
+  },
+  {
+   "id": "skinLens",
+   "level": "curiosity",
+   "label": "Skin",
+   "plain": "How skin looks in the light: plastic or alive, dry or sweaty, pale or flushed, airbrushed or every pore.",
+   "workspace": "light",
+   "also": [
+    "character-motion",
+    "wardrobe"
+   ],
+   "group": "Maya: Skin",
+   "kind": "lens",
+   "per": "panel",
+   "main": "glowThrough",
+   "sliders": [
+    {
+     "id": "glowThrough",
+     "label": "Light through the skin",
+     "plain": "Real skin lets light in and glows a little, like ears lit from behind (subsurface scattering).",
+     "scale": [
+      "plastic",
+      "waxy",
+      "soft glow",
+      "ears glow red"
+     ],
+     "from": "plastic",
+     "to": "ears glow red",
+     "curve": "linear"
+    },
+    {
+     "id": "skinLight",
+     "label": "Skin in the light",
+     "plain": "How the light sits on the skin.",
+     "ref": "skinLight",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5
+    },
+    {
+     "id": "oil",
+     "label": "Dry to sweaty",
+     "plain": "How much shine sweat and oil put on the face. Sweat is a tension tool.",
+     "scale": [
+      "dry",
+      "natural",
+      "dewy",
+      "sweaty"
+     ],
+     "from": "dry",
+     "to": "sweaty",
+     "curve": "linear"
+    },
+    {
+     "id": "flush",
+     "label": "Color in the face",
+     "plain": "Blood in the face: fear drains it; anger, shame and love bring it.",
+     "scale": [
+      "pale",
+      "natural",
+      "flushed",
+      "bright red"
+     ],
+     "from": "pale",
+     "to": "bright red",
+     "curve": "linear"
+    },
+    {
+     "id": "detail",
+     "label": "Detail",
+     "plain": "How smooth or real the skin looks up close.",
+     "scale": [
+      "airbrushed",
+      "natural",
+      "every pore"
+     ],
+     "from": "airbrushed",
+     "to": "every pore",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:shading"
+   ],
+   "maya": "Arnold Standard Surface subsurface scattering, skin shading",
+   "tool": "shading",
+   "momentum": {
+    "push": 2,
+    "plot": "A face going pale or red shows a feeling the character is trying to hide, before they act on it.",
+    "theme": "Airbrushed against real skin is a theme of the polished image against the true person.",
+    "pull": "Sweat on a forehead makes the audience feel the pressure and wait for the crack.",
+    "cue": "visual",
+    "tryThis": "Add a bead of sweat in the close-up just before the lie."
+   }
+  },
+  {
+   "id": "renderLookLens",
+   "level": "curiosity",
+   "label": "Drawn or real look",
+   "plain": "Whether the picture looks like a photo, a painting, a cartoon or a comic: outlines, flat color bands, hatching and paper.",
+   "workspace": "light",
+   "also": [
+    "color",
+    "page"
+   ],
+   "group": "Maya: Drawn or real look",
+   "kind": "lens",
+   "per": "panel",
+   "main": "look",
+   "sliders": [
+    {
+     "id": "look",
+     "label": "Look",
+     "plain": "Photo-real, painted, cartoon or flat graphic.",
+     "ref": "renderStyle",
+     "curve": "linear",
+     "scale": [
+      "photoreal",
+      "painterly",
+      "toon",
+      "flat"
+     ],
+     "from": "photoreal",
+     "to": "flat"
+    },
+    {
+     "id": "outline",
+     "label": "Outline weight",
+     "plain": "How thick the drawn lines around things are.",
+     "ref": "lineWeight",
+     "curve": "linear",
+     "scale": [
+      "none",
+      "thin",
+      "heavy"
+     ],
+     "from": "none",
+     "to": "heavy"
+    },
+    {
+     "id": "bands",
+     "label": "Shading",
+     "plain": "Smooth shading looks rounded and real; two flat bands look like a cartoon (cel shading).",
+     "scale": [
+      "smooth",
+      "three bands",
+      "two bands",
+      "flat color"
+     ],
+     "from": "smooth",
+     "to": "flat color",
+     "curve": "linear"
+    },
+    {
+     "id": "hatching",
+     "label": "Hatching",
+     "plain": "Shadows drawn with lines, like an ink comic or an old engraving.",
+     "scale": [
+      "none",
+      "light hatching",
+      "heavy crosshatch"
+     ],
+     "from": "none",
+     "to": "heavy crosshatch",
+     "curve": "linear"
+    },
+    {
+     "id": "wobble",
+     "label": "Line wobble",
+     "plain": "Lines that shake a little from drawing to drawing look hand-made and alive.",
+     "scale": [
+      "steady",
+      "slight wobble",
+      "sketchy"
+     ],
+     "from": "steady",
+     "to": "sketchy",
+     "curve": "linear"
+    },
+    {
+     "id": "paper",
+     "label": "Paper",
+     "plain": "The texture of paper under the picture.",
+     "scale": [
+      "none",
+      "subtle",
+      "paper grain",
+      "watercolor"
+     ],
+     "from": "none",
+     "to": "watercolor",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:print"
+   ],
+   "maya": "Toon shader, outlines, render layers, render settings",
+   "tool": "print",
+   "momentum": {
+    "push": 1,
+    "plot": "Switching the look (photo to cartoon) can mark a dream, a memory or a story inside the story.",
+    "theme": "A drawn look says the film is a told story; a real look says it is happening.",
+    "pull": "A sudden change of look makes the audience ask why, and watch for the answer.",
+    "cue": "visual",
+    "tryThis": "Switch to a sketchy, hand-drawn look when the character starts to imagine."
+   }
+  },
+  {
+   "id": "layersLens",
+   "level": "curiosity",
+   "label": "Layers of the picture",
+   "plain": "The picture as layers you can turn up and down: foreground against background, contact shadows, fog with depth, one light group louder than another.",
+   "workspace": "light",
+   "also": [
+    "structure",
+    "background"
+   ],
+   "group": "Maya: Layers of the picture",
+   "kind": "lens",
+   "per": "panel",
+   "main": "separation",
+   "sliders": [
+    {
+     "id": "separation",
+     "label": "Foreground against background",
+     "plain": "How clearly the picture splits into near, middle and far.",
+     "scale": [
+      "one flat layer",
+      "two layers",
+      "three layers",
+      "deep stack"
+     ],
+     "from": "one flat layer",
+     "to": "deep stack",
+     "curve": "linear"
+    },
+    {
+     "id": "depthFog",
+     "label": "Fog with distance",
+     "plain": "Things far away fade into haze, which makes space feel deep.",
+     "scale": [
+      "none",
+      "light",
+      "thick"
+     ],
+     "from": "none",
+     "to": "thick",
+     "curve": "linear"
+    },
+    {
+     "id": "contact",
+     "label": "Contact shadows",
+     "plain": "The dark where things touch (a cup on a table, feet on a floor) that makes them sit in the world (ambient occlusion).",
+     "scale": [
+      "none",
+      "soft",
+      "strong"
+     ],
+     "from": "none",
+     "to": "strong",
+     "curve": "linear"
+    },
+    {
+     "id": "lightMix",
+     "label": "Light mix",
+     "plain": "Which group of lights is turned up when the layers are mixed.",
+     "scale": [
+      "the main light",
+      "even",
+      "the background lights"
+     ],
+     "from": "the main light",
+     "to": "the background lights",
+     "curve": "linear"
+    },
+    {
+     "id": "isolate",
+     "label": "One thing on its own",
+     "plain": "Pulling one object out on its own layer, to brighten, blur or color it alone.",
+     "scale": [
+      "nothing",
+      "a little",
+      "only that thing"
+     ],
+     "from": "nothing",
+     "to": "only that thing",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:passes"
+   ],
+   "maya": "Render Setup layers, AOVs (beauty, diffuse, specular, light groups), ambient occlusion, depth, cryptomatte",
+   "tool": "passes",
+   "momentum": {
+    "push": 1,
+    "plot": "Pulling one thing forward from the background tells the audience it will matter.",
+    "theme": "Deep layered space feels like a full world; one flat layer feels like a stage or a memory.",
+    "pull": "The layer that is brightest and sharpest is the one the eye goes to.",
+    "cue": "visual",
+    "tryThis": "Fade the background into fog as the character shuts the world out."
+   }
+  },
+  {
+   "id": "cameraLensLens",
+   "level": "curiosity",
+   "label": "The camera lens",
+   "plain": "The glass in front of the camera: wide or long, how much is in focus, focus moving from one thing to another, motion blur, shake, bending at the edges, flares.",
+   "workspace": "camera-angle",
+   "also": [
+    "camera-motion",
+    "placement"
+   ],
+   "group": "Maya: The camera lens",
+   "kind": "lens",
+   "per": "panel",
+   "main": "length",
+   "sliders": [
+    {
+     "id": "length",
+     "label": "Wide or long",
+     "plain": "A wide lens shows a lot and stretches space; a long lens shows a little and squashes it flat.",
+     "ref": "lensLength",
+     "curve": "linear",
+     "scale": [
+      "wide",
+      "normal",
+      "long"
+     ],
+     "from": "wide",
+     "to": "long"
+    },
+    {
+     "id": "focusDepth",
+     "label": "How much is sharp",
+     "plain": "Everything sharp, or just one thing sharp with the rest soft.",
+     "ref": "depthOfField",
+     "curve": "linear",
+     "scale": [
+      "shallow",
+      "medium",
+      "deep"
+     ],
+     "from": "shallow",
+     "to": "deep"
+    },
+    {
+     "id": "focusPull",
+     "label": "Focus moves",
+     "plain": "Focus moving from one thing to another during the shot.",
+     "ref": "rackFocus",
+     "curve": "linear",
+     "scale": [
+      "none",
+      "on the line",
+      "on the action"
+     ],
+     "from": "none",
+     "to": "on the action"
+    },
+    {
+     "id": "blur",
+     "label": "Motion blur",
+     "plain": "How much fast things smear.",
+     "ref": "motionBlur",
+     "curve": "linear",
+     "scale": [
+      "none",
+      "light",
+      "heavy"
+     ],
+     "from": "none",
+     "to": "heavy"
+    },
+    {
+     "id": "shake",
+     "label": "Shake",
+     "plain": "How much the camera shakes.",
+     "ref": "cameraShake",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5
+    },
+    {
+     "id": "bend",
+     "label": "Bending at the edges",
+     "plain": "How much the lens bends straight lines at the edges of the picture.",
+     "scale": [
+      "none",
+      "slight",
+      "fisheye"
+     ],
+     "from": "none",
+     "to": "fisheye",
+     "curve": "linear"
+    },
+    {
+     "id": "flare",
+     "label": "Flares",
+     "plain": "Light catching in the lens: a glint or long streaks.",
+     "scale": [
+      "none",
+      "a glint",
+      "streaks"
+     ],
+     "from": "none",
+     "to": "streaks",
+     "curve": "linear"
+    },
+    {
+     "id": "vignette",
+     "label": "Dark corners",
+     "plain": "Darkening at the corners that pulls the eye to the middle.",
+     "scale": [
+      "none",
+      "subtle",
+      "heavy"
+     ],
+     "from": "none",
+     "to": "heavy",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:camera"
+   ],
+   "maya": "Camera Attribute Editor: focal length, film back, depth of field, motion blur, camera shake",
+   "tool": "camera",
+   "momentum": {
+    "push": 2,
+    "plot": "Moving the focus from one face to another passes the scene to the second person.",
+    "theme": "Wide lenses make people small in a big world; long lenses press them together.",
+    "pull": "Whatever is sharp is what the audience looks at.",
+    "cue": "visual",
+    "tryThis": "Keep the hero soft in the background and pull focus onto them at the moment they matter."
+   }
+  },
+  {
+   "id": "shotOrderLens",
+   "level": "curiosity",
+   "label": "Shots in order",
+   "plain": "How shots follow each other: how long they last, how cuts are hidden or felt, and whether sound or picture leads.",
+   "workspace": "structure",
+   "also": [
+    "camera-motion"
+   ],
+   "group": "Maya: Shots in order",
+   "kind": "lens",
+   "per": "panel",
+   "main": "length",
+   "sliders": [
+    {
+     "id": "length",
+     "label": "Shot length",
+     "plain": "How long each shot lasts before the cut.",
+     "ref": "shotDuration",
+     "curve": "linear",
+     "scale": [
+      "short",
+      "medium",
+      "long"
+     ],
+     "from": "short",
+     "to": "long"
+    },
+    {
+     "id": "rate",
+     "label": "Cut rate",
+     "plain": "How often the picture cuts.",
+     "ref": "cutRate",
+     "curve": "linear",
+     "scale": [
+      "slow",
+      "medium",
+      "fast"
+     ],
+     "from": "slow",
+     "to": "fast"
+    },
+    {
+     "id": "joins",
+     "label": "How shots join",
+     "plain": "Whether you feel the cut, or a movement or shape carries you across it.",
+     "scale": [
+      "hard cuts",
+      "cut on action",
+      "match cuts",
+      "overlapping"
+     ],
+     "from": "hard cuts",
+     "to": "overlapping",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "leads",
+     "label": "Sound or picture first",
+     "plain": "Whether the next shot's sound starts before its picture (pulling you forward) or after.",
+     "scale": [
+      "picture leads",
+      "together",
+      "sound leads"
+     ],
+     "from": "picture leads",
+     "to": "sound leads",
+     "curve": "linear"
+    },
+    {
+     "id": "coverage",
+     "label": "Shots of the same moment",
+     "plain": "How many camera positions cover one moment.",
+     "scale": [
+      "one shot",
+      "two angles",
+      "many angles"
+     ],
+     "from": "one shot",
+     "to": "many angles",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:sequencer"
+   ],
+   "maya": "Camera Sequencer (shots, sequence time), Time Slider, Playblast, sound on the timeline",
+   "tool": "sequencer",
+   "momentum": {
+    "push": 3,
+    "plot": "Cutting faster pushes a scene to its peak; holding long makes the audience wait for the turn.",
+    "theme": "Long unbroken shots feel honest; quick cuts feel like a racing mind.",
+    "pull": "Sound arriving before its picture pulls the audience into the next shot.",
+    "cue": "audio",
+    "tryThis": "Bring in the next scene's sound a beat early to pull the audience out of a scene that is done."
+   }
+  },
+  {
+   "id": "forcesLens",
+   "level": "curiosity",
+   "label": "Forces in the air",
+   "plain": "The invisible forces that move everything loose: wind, gusts, chaos, weight and how thick the air feels.",
+   "workspace": "effects",
+   "also": [
+    "set",
+    "emotion"
+   ],
+   "group": "Maya: Forces in the air",
+   "kind": "lens",
+   "per": "panel",
+   "main": "wind",
+   "sliders": [
+    {
+     "id": "wind",
+     "label": "Wind",
+     "plain": "How strong the wind is, from still air to a gale.",
+     "ref": "windForce",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5
+    },
+    {
+     "id": "gusts",
+     "label": "Gusts",
+     "plain": "Whether the wind is even or comes in bursts.",
+     "scale": [
+      "steady",
+      "gusty",
+      "sudden blasts"
+     ],
+     "from": "steady",
+     "to": "sudden blasts",
+     "curve": "linear"
+    },
+    {
+     "id": "direction",
+     "label": "Wind direction",
+     "plain": "Where the wind comes from.",
+     "scale": [
+      "from the left",
+      "from the right",
+      "toward the camera",
+      "from behind",
+      "swirling"
+     ],
+     "from": "from the left",
+     "to": "swirling",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "chaos",
+     "label": "Chaos",
+     "plain": "Calm drift against wild swirls.",
+     "ref": "turbulence",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5
+    },
+    {
+     "id": "weight",
+     "label": "Weight",
+     "plain": "How heavy the world feels: floaty like the moon, real, or heavy.",
+     "ref": "gravityFeel",
+     "curve": "linear",
+     "scale": [
+      "floaty",
+      "real",
+      "heavy"
+     ],
+     "from": "floaty",
+     "to": "heavy"
+    },
+    {
+     "id": "drag",
+     "label": "Thickness of the air",
+     "plain": "How much the air slows things down. Underwater, everything drifts.",
+     "scale": [
+      "thin air",
+      "normal",
+      "like water"
+     ],
+     "from": "thin air",
+     "to": "like water",
+     "curve": "linear"
+    },
+    {
+     "id": "whirl",
+     "label": "Whirlwind",
+     "plain": "Air spinning in a circle, from leaves turning in a corner to a tornado.",
+     "scale": [
+      "none",
+      "eddies",
+      "a whirlwind"
+     ],
+     "from": "none",
+     "to": "a whirlwind",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:dynamics"
+   ],
+   "maya": "Nucleus solver and fields: gravity, air (wind), turbulence, drag, vortex",
+   "tool": "dynamics",
+   "momentum": {
+    "push": 2,
+    "plot": "Wind building is a storm coming, out in the world or inside a character.",
+    "theme": "Forces bigger than the people show them up against what they cannot control.",
+    "pull": "Things moving in the wind keep the frame alive, and a sudden still feels like a held breath.",
+    "cue": "movement",
+    "tryThis": "Kill the wind completely at the moment of the confession."
+   }
+  },
+  {
+   "id": "clothLens",
+   "level": "curiosity",
+   "label": "Cloth",
+   "plain": "How clothes, flags and curtains move: heavy or light, stretchy, wrinkly, clinging or flowing, holding or tearing.",
+   "workspace": "effects",
+   "also": [
+    "wardrobe"
+   ],
+   "group": "Maya: Cloth",
+   "kind": "lens",
+   "per": "panel",
+   "main": "fabric",
+   "sliders": [
+    {
+     "id": "fabric",
+     "label": "Weight of the fabric",
+     "plain": "From light cloth that floats to heavy cloth that swings and thuds.",
+     "scale": [
+      "silk",
+      "cotton",
+      "denim",
+      "leather",
+      "chain mail"
+     ],
+     "from": "silk",
+     "to": "chain mail",
+     "curve": "linear"
+    },
+    {
+     "id": "reacts",
+     "label": "How it moves",
+     "plain": "Stiff, loose or fluttering.",
+     "ref": "clothResponse",
+     "curve": "linear",
+     "scale": [
+      "stiff",
+      "loose",
+      "flutter"
+     ],
+     "from": "stiff",
+     "to": "flutter"
+    },
+    {
+     "id": "stretch",
+     "label": "Stretch",
+     "plain": "How much the cloth stretches when pulled.",
+     "scale": [
+      "none",
+      "a little",
+      "rubbery"
+     ],
+     "from": "none",
+     "to": "rubbery",
+     "curve": "linear"
+    },
+    {
+     "id": "wrinkles",
+     "label": "Wrinkles",
+     "plain": "How much it folds and creases.",
+     "scale": [
+      "smooth",
+      "soft folds",
+      "crumpled"
+     ],
+     "from": "smooth",
+     "to": "crumpled",
+     "curve": "linear"
+    },
+    {
+     "id": "cling",
+     "label": "Clings or flows",
+     "plain": "Whether it flies out behind, hangs, or sticks to the body (like when soaked).",
+     "scale": [
+      "floats away",
+      "drapes",
+      "clings"
+     ],
+     "from": "floats away",
+     "to": "clings",
+     "curve": "linear"
+    },
+    {
+     "id": "tears",
+     "label": "Tears",
+     "plain": "Whether the cloth holds together or tears.",
+     "scale": [
+      "holds",
+      "snags",
+      "rips"
+     ],
+     "from": "holds",
+     "to": "rips",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:dynamics"
+   ],
+   "maya": "nCloth: stretch, bend, weight, friction, tearable surfaces",
+   "tool": "dynamics",
+   "momentum": {
+    "push": 1,
+    "plot": "A cape flaring or a dress ripping marks the moment a character changes.",
+    "theme": "Clothes clinging or flowing show a person held in or set free.",
+    "pull": "Moving cloth draws the eye, so a flowing cape keeps attention on the hero.",
+    "cue": "movement",
+    "tryThis": "Let the hero's coat snag and rip at the worst possible moment."
+   }
+  },
+  {
+   "id": "crashLens",
+   "level": "curiosity",
+   "label": "Things that crash and break",
+   "plain": "Solid things hitting, bouncing and breaking: how bouncy, how slippery, whether one thing knocks over the next, and the mess left behind.",
+   "workspace": "effects",
+   "also": [
+    "comedy",
+    "set"
+   ],
+   "group": "Maya: Things that crash and break",
+   "kind": "lens",
+   "per": "panel",
+   "main": "hits",
+   "sliders": [
+    {
+     "id": "hits",
+     "label": "Hits per beat",
+     "plain": "How many crashes and collisions the audience notices.",
+     "ref": "impacts",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 8,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 8
+    },
+    {
+     "id": "breaks",
+     "label": "Breaks",
+     "plain": "Whether things hold, crack or shatter.",
+     "ref": "breakage",
+     "curve": "linear",
+     "scale": [
+      "holds",
+      "cracks",
+      "shatters"
+     ],
+     "from": "holds",
+     "to": "shatters"
+    },
+    {
+     "id": "bounce",
+     "label": "Bounce",
+     "plain": "How much things bounce when they land.",
+     "scale": [
+      "dead thud",
+      "small bounce",
+      "bouncy",
+      "super ball"
+     ],
+     "from": "dead thud",
+     "to": "super ball",
+     "curve": "linear"
+    },
+    {
+     "id": "slide",
+     "label": "Slippery",
+     "plain": "Whether things stop where they land or slide away.",
+     "scale": [
+      "grippy",
+      "smooth",
+      "ice"
+     ],
+     "from": "grippy",
+     "to": "ice",
+     "curve": "linear"
+    },
+    {
+     "id": "chain",
+     "label": "Knock-on",
+     "plain": "Whether one crash sets off another. Chains are a comedy staple.",
+     "scale": [
+      "one thing",
+      "a few knock on",
+      "domino chain"
+     ],
+     "from": "one thing",
+     "to": "domino chain",
+     "curve": "linear"
+    },
+    {
+     "id": "mess",
+     "label": "Mess left behind",
+     "plain": "How much broken stuff and dust is left.",
+     "scale": [
+      "clean",
+      "some bits",
+      "pieces everywhere"
+     ],
+     "from": "clean",
+     "to": "pieces everywhere",
+     "curve": "linear"
+    },
+    {
+     "id": "settle",
+     "label": "Settle time",
+     "plain": "Beats until everything is still after a hit.",
+     "ref": "settleTime",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 4,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:dynamics"
+   ],
+   "maya": "Rigid bodies (Bullet), collisions, shatter",
+   "tool": "dynamics",
+   "momentum": {
+    "push": 2,
+    "plot": "Something breaking is a point of no return: what is smashed cannot go back.",
+    "theme": "Fragile against tough things shows what in this world can last.",
+    "pull": "A chain of crashes keeps the audience waiting for the last thing to fall.",
+    "cue": "movement",
+    "tryThis": "Let the chain of falling things stop one short, hold, then knock over the last one."
+   }
+  },
+  {
+   "id": "bitsLens",
+   "level": "curiosity",
+   "label": "Bits in the air",
+   "plain": "Small things floating or falling through the frame: dust, sparks, snow, rain, leaves, confetti, bubbles.",
+   "workspace": "effects",
+   "also": [
+    "set",
+    "emotion"
+   ],
+   "group": "Maya: Bits in the air",
+   "kind": "lens",
+   "per": "panel",
+   "main": "kind",
+   "sliders": [
+    {
+     "id": "kind",
+     "label": "What is in the air",
+     "plain": "The kind of small things filling the air.",
+     "scale": [
+      "dust",
+      "sparks",
+      "snow",
+      "rain",
+      "leaves",
+      "ash",
+      "confetti",
+      "bubbles"
+     ],
+     "from": "dust",
+     "to": "bubbles",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "How much",
+     "plain": "How many there are.",
+     "scale": [
+      "none",
+      "a few",
+      "plenty",
+      "a storm"
+     ],
+     "from": "none",
+     "to": "a storm",
+     "curve": "linear"
+    },
+    {
+     "id": "size",
+     "label": "Size",
+     "plain": "How big each bit is.",
+     "scale": [
+      "specks",
+      "flakes",
+      "chunks"
+     ],
+     "from": "specks",
+     "to": "chunks",
+     "curve": "linear"
+    },
+    {
+     "id": "life",
+     "label": "How long they last",
+     "plain": "Whether bits vanish quickly (sparks) or hang in the air (dust in a sunbeam).",
+     "scale": [
+      "a blink",
+      "drift a while",
+      "linger"
+     ],
+     "from": "a blink",
+     "to": "linger",
+     "curve": "linear"
+    },
+    {
+     "id": "shine",
+     "label": "Catch the light",
+     "plain": "Whether the bits sparkle or glow.",
+     "scale": [
+      "none",
+      "catch the light",
+      "glow"
+     ],
+     "from": "none",
+     "to": "glow",
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:dynamics"
+   ],
+   "maya": "nParticles, emitters, particle lifespan and color",
+   "tool": "dynamics",
+   "momentum": {
+    "push": 1,
+    "plot": "Snow starting or ash falling tells the audience the world has changed without a word.",
+    "theme": "Dust in a sunbeam feels like memory; ash feels like loss; confetti like a celebration that may be hollow.",
+    "pull": "Bits drifting across the frame give the eye something to follow toward the subject.",
+    "cue": "visual",
+    "tryThis": "Let confetti keep falling on a character after the good news turns bad."
+   }
+  },
+  {
+   "id": "furLens",
+   "level": "curiosity",
+   "label": "Hair and fur",
+   "plain": "How hair and fur look and move: long or short, thick, clumped, frizzy, curly, wet, neat or wild, and how it trails the body and the wind.",
+   "workspace": "effects",
+   "also": [
+    "wardrobe",
+    "character-motion"
+   ],
+   "group": "Maya: Hair and fur",
+   "kind": "lens",
+   "per": "panel",
+   "main": "length",
+   "sliders": [
+    {
+     "id": "length",
+     "label": "Length",
+     "plain": "Short, medium or long.",
+     "ref": "furLength",
+     "curve": "linear",
+     "scale": [
+      "short",
+      "medium",
+      "long"
+     ],
+     "from": "short",
+     "to": "long"
+    },
+    {
+     "id": "thick",
+     "label": "Thickness",
+     "plain": "How dense the hair or fur is.",
+     "scale": [
+      "sparse",
+      "normal",
+      "thick"
+     ],
+     "from": "sparse",
+     "to": "thick",
+     "curve": "linear"
+    },
+    {
+     "id": "clumps",
+     "label": "Clumps",
+     "plain": "Fine and fluffy, tufted, or matted together.",
+     "ref": "clump",
+     "curve": "linear",
+     "scale": [
+      "fine",
+      "tufted",
+      "matted"
+     ],
+     "from": "fine",
+     "to": "matted"
+    },
+    {
+     "id": "frizz",
+     "label": "Frizz",
+     "plain": "Stray hairs sticking out.",
+     "ref": "frizz",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5
+    },
+    {
+     "id": "curls",
+     "label": "Curls",
+     "plain": "The shape of each hair.",
+     "scale": [
+      "straight",
+      "wavy",
+      "curly",
+      "coiled"
+     ],
+     "from": "straight",
+     "to": "coiled",
+     "curve": "linear"
+    },
+    {
+     "id": "color",
+     "label": "Color",
+     "plain": "Light to dark.",
+     "ref": "hairColor",
+     "curve": "linear",
+     "scale": [
+      "light",
+      "medium",
+      "dark"
+     ],
+     "from": "light",
+     "to": "dark"
+    },
+    {
+     "id": "shine",
+     "label": "Shine",
+     "plain": "Dull, sheen or glossy.",
+     "ref": "hairShine",
+     "curve": "linear",
+     "scale": [
+      "dull",
+      "sheen",
+      "glossy"
+     ],
+     "from": "dull",
+     "to": "glossy"
+    },
+    {
+     "id": "wet",
+     "label": "Wet",
+     "plain": "Wet hair clumps into strings and goes darker.",
+     "scale": [
+      "dry",
+      "damp",
+      "soaked and stringy"
+     ],
+     "from": "dry",
+     "to": "soaked and stringy",
+     "curve": "linear"
+    },
+    {
+     "id": "groom",
+     "label": "Neat or wild",
+     "plain": "How tidy it is.",
+     "scale": [
+      "neat",
+      "swept one way",
+      "messy",
+      "standing on end"
+     ],
+     "from": "neat",
+     "to": "standing on end",
+     "curve": "linear"
+    },
+    {
+     "id": "reacts",
+     "label": "What moves it",
+     "plain": "Nothing, the wind, the body, or both.",
+     "ref": "furResponse",
+     "curve": "linear",
+     "scale": [
+      "nothing",
+      "wind",
+      "the body",
+      "both"
+     ],
+     "from": "nothing",
+     "to": "both"
+    },
+    {
+     "id": "lag",
+     "label": "Trails behind",
+     "plain": "Beats the hair trails behind the body when it moves.",
+     "ref": "furLag",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 4,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:fur"
+   ],
+   "maya": "XGen interactive grooming: length, density, clumping, noise (frizz), curl, melanin, shine, hair dynamics",
+   "tool": "fur",
+   "momentum": {
+    "push": 1,
+    "plot": "Hair going from neat to wild tracks a character coming apart over the story.",
+    "theme": "How someone keeps their hair shows how much control they want over how they look.",
+    "pull": "Hair standing on end or streaming in the wind is a quick, funny or scary picture the eye catches.",
+    "cue": "visual",
+    "tryThis": "Make the hair stand on end a beat after the fright, as its own little joke."
+   }
+  },
+  {
+   "id": "liquidLens",
+   "level": "curiosity",
+   "label": "Water and liquids",
+   "plain": "Water and other liquids: how much, how thick, calm or churning, splashes, foam and drips.",
+   "workspace": "effects",
+   "also": [
+    "set"
+   ],
+   "group": "Maya: Water and liquids",
+   "kind": "lens",
+   "per": "panel",
+   "main": "amount",
+   "sliders": [
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "How much",
+     "plain": "How much liquid is in the scene.",
+     "scale": [
+      "a drip",
+      "a puddle",
+      "a pool",
+      "a flood",
+      "an ocean"
+     ],
+     "from": "a drip",
+     "to": "an ocean",
+     "curve": "linear"
+    },
+    {
+     "id": "thickness",
+     "label": "Thickness",
+     "plain": "How thick the liquid is. Thick liquids move slowly and fold over themselves.",
+     "scale": [
+      "water",
+      "milk",
+      "syrup",
+      "honey",
+      "mud"
+     ],
+     "from": "water",
+     "to": "mud",
+     "curve": "linear"
+    },
+    {
+     "id": "surface",
+     "label": "Surface",
+     "plain": "How still the surface is.",
+     "scale": [
+      "glass calm",
+      "ripples",
+      "choppy",
+      "churning"
+     ],
+     "from": "glass calm",
+     "to": "churning",
+     "curve": "linear"
+    },
+    {
+     "id": "splash",
+     "label": "Splash",
+     "plain": "What happens when something hits it: nothing, a drip, a burst.",
+     "ref": "splash",
+     "curve": "linear",
+     "scale": [
+      "none",
+      "drip",
+      "burst"
+     ],
+     "from": "none",
+     "to": "burst"
+    },
+    {
+     "id": "foam",
+     "label": "Foam",
+     "plain": "Bubbles and foam on top.",
+     "scale": [
+      "none",
+      "some bubbles",
+      "white water"
+     ],
+     "from": "none",
+     "to": "white water",
+     "curve": "linear"
+    },
+    {
+     "id": "drips",
+     "label": "Drips",
+     "plain": "Liquid dripping off things and people.",
+     "scale": [
+      "none",
+      "a few",
+      "streaming"
+     ],
+     "from": "none",
+     "to": "streaming",
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:bifrost"
+   ],
+   "maya": "Bifrost liquids: emitters, viscosity, foam, meshing",
+   "tool": "bifrost",
+   "momentum": {
+    "push": 2,
+    "plot": "Water rising is a clock running out.",
+    "theme": "Calm water feels like peace or a held secret; churning water feels like chaos and danger.",
+    "pull": "A splash or a drip on a quiet soundtrack pulls every eye and ear.",
+    "cue": "audio",
+    "tryThis": "Keep a slow drip going through a tense silence."
+   }
+  },
+  {
+   "id": "smokeFireLens",
+   "level": "curiosity",
+   "label": "Smoke and fire",
+   "plain": "Smoke, steam and fire: how hot, how thick, how fast it rises, how it swirls and how long it hangs.",
+   "workspace": "effects",
+   "also": [
+    "light",
+    "set"
+   ],
+   "group": "Maya: Smoke and fire",
+   "kind": "lens",
+   "per": "panel",
+   "main": "heat",
+   "sliders": [
+    {
+     "id": "heat",
+     "label": "Heat",
+     "plain": "From no fire to a smoulder, flames or a blaze.",
+     "scale": [
+      "none",
+      "smoulder",
+      "flames",
+      "inferno"
+     ],
+     "from": "none",
+     "to": "inferno",
+     "curve": "linear"
+    },
+    {
+     "id": "thick",
+     "label": "Thickness",
+     "plain": "A wisp, a plume or a wall.",
+     "ref": "density",
+     "curve": "linear",
+     "scale": [
+      "wisp",
+      "plume",
+      "wall"
+     ],
+     "from": "wisp",
+     "to": "wall"
+    },
+    {
+     "id": "grows",
+     "label": "Growing",
+     "plain": "Shrinking, steady or building.",
+     "ref": "growth",
+     "curve": "linear",
+     "scale": [
+      "shrinking",
+      "steady",
+      "building"
+     ],
+     "from": "shrinking",
+     "to": "building"
+    },
+    {
+     "id": "swirl",
+     "label": "Swirl",
+     "plain": "How much the smoke curls and swirls.",
+     "ref": "curl",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5
+    },
+    {
+     "id": "rise",
+     "label": "Rise",
+     "plain": "How fast it climbs.",
+     "scale": [
+      "hangs",
+      "drifts up",
+      "shoots up"
+     ],
+     "from": "hangs",
+     "to": "shoots up",
+     "curve": "linear"
+    },
+    {
+     "id": "fade",
+     "label": "Fade",
+     "plain": "How long it stays in the air.",
+     "scale": [
+      "lingers",
+      "thins out",
+      "vanishes fast"
+     ],
+     "from": "lingers",
+     "to": "vanishes fast",
+     "curve": "linear"
+    },
+    {
+     "id": "smokeColor",
+     "label": "Color of the smoke",
+     "plain": "Steam is white; burning things make black smoke.",
+     "scale": [
+      "white steam",
+      "gray",
+      "black",
+      "colored"
+     ],
+     "from": "white steam",
+     "to": "colored",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "fireGlow",
+     "label": "Fire lights the scene",
+     "plain": "How much the fire's light falls on everything around it.",
+     "ref": "fireLight",
+     "curve": "linear",
+     "scale": [
+      "no",
+      "flicker",
+      "floods"
+     ],
+     "from": "no",
+     "to": "floods"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:bifrost"
+   ],
+   "maya": "Bifrost Aero (smoke, fire, explosions), volumes",
+   "tool": "bifrost",
+   "momentum": {
+    "push": 3,
+    "plot": "Smoke rising before the fire is seen tells the audience danger is coming.",
+    "theme": "Fire destroys and warms at once: the same flames can be a hearth or a disaster.",
+    "pull": "Flickering firelight makes the frame breathe and holds the eye.",
+    "cue": "visual",
+    "tryThis": "Show the smoke first, far off, and keep the characters too busy to see it."
+   }
+  },
+  {
+   "id": "scatterLens",
+   "level": "curiosity",
+   "label": "Scattered things",
+   "plain": "Many small things spread over the ground or a set: grass, rocks, leaves, trash, flowers, trees.",
+   "workspace": "set",
+   "also": [
+    "background",
+    "effects"
+   ],
+   "group": "Maya: Scattered things",
+   "kind": "lens",
+   "per": "panel",
+   "main": "how",
+   "sliders": [
+    {
+     "id": "how",
+     "label": "How much is scattered",
+     "plain": "How many small things cover the ground.",
+     "ref": "scatter",
+     "curve": "linear",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5
+    },
+    {
+     "id": "what",
+     "label": "What is scattered",
+     "plain": "The kind of things spread around.",
+     "scale": [
+      "grass",
+      "rocks",
+      "leaves",
+      "trash",
+      "flowers",
+      "trees"
+     ],
+     "from": "grass",
+     "to": "trees",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "spread",
+     "label": "How it is spread",
+     "plain": "In clumps, the way nature does it, or in a tidy even pattern.",
+     "scale": [
+      "clumped",
+      "natural",
+      "even"
+     ],
+     "from": "clumped",
+     "to": "even",
+     "curve": "linear"
+    },
+    {
+     "id": "sizes",
+     "label": "Sizes",
+     "plain": "How much the pieces differ in size.",
+     "scale": [
+      "all alike",
+      "some variety",
+      "wildly different"
+     ],
+     "from": "all alike",
+     "to": "wildly different",
+     "curve": "linear"
+    },
+    {
+     "id": "moves",
+     "label": "Moves",
+     "plain": "Whether the scattered things move in the wind.",
+     "scale": [
+      "still",
+      "sways",
+      "tumbles"
+     ],
+     "from": "still",
+     "to": "tumbles",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:bifrost"
+   ],
+   "maya": "Bifrost scatter and instancing, MASH Distribute",
+   "tool": "bifrost",
+   "momentum": {
+    "push": 1,
+    "plot": "The ground filling with trash or flowers shows a place going downhill or coming to life.",
+    "theme": "Wild clumps feel like nature; even rows feel controlled and made by people.",
+    "pull": "A clear path through scattered things leads the eye to where it goes.",
+    "cue": "visual",
+    "tryThis": "Clear a path through the leaves exactly where the character will walk."
+   }
   }
  ],
  "suites": [
@@ -45080,6 +48798,90 @@
     {
      "id": "weight:furResponse",
      "label": "Weight of furResponse",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:forcesLens.gusts",
+     "label": "Weight of forcesLens gusts",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:bitsLens",
+     "label": "Weight of bitsLens kind",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:bitsLens.amount",
+     "label": "Weight of bitsLens amount",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:clothLens.cling",
+     "label": "Weight of clothLens cling",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:furLens.wet",
+     "label": "Weight of furLens wet",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:liquidLens.surface",
+     "label": "Weight of liquidLens surface",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
       "min": 0,
@@ -68537,6 +72339,1461 @@
    ],
    "source": "database",
    "tags": []
+  },
+  {
+   "id": "cartoon-bounce",
+   "level": "suite",
+   "label": "Cartoon bounce",
+   "plain": "Rubbery cartoon bodies: pushed poses, squash and stretch, big wind-ups, things that bounce like super balls.",
+   "workspace": "character-motion",
+   "also": [
+    "comedy"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "animFeelLens",
+     "slider": "style",
+     "value": "cartoony"
+    },
+    {
+     "weight": 100,
+     "curiosity": "animFeelLens",
+     "slider": "exaggeration",
+     "value": "huge"
+    },
+    {
+     "weight": 100,
+     "curiosity": "crashLens",
+     "slider": "bounce",
+     "value": "super ball"
+    },
+    {
+     "weight": 100,
+     "curiosity": "faceLens",
+     "slider": "expression",
+     "value": "extreme"
+    },
+    {
+     "weight": 60,
+     "curiosity": "renderLookLens",
+     "slider": "bands",
+     "value": "two bands"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:animFeelLens",
+     "label": "Weight of animFeelLens style",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:animFeelLens.exaggeration",
+     "label": "Weight of animFeelLens exaggeration",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:crashLens.bounce",
+     "label": "Weight of crashLens bounce",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:faceLens",
+     "label": "Weight of faceLens expression",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:renderLookLens.bands",
+     "label": "Weight of renderLookLens bands",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "heavy-and-real",
+   "level": "suite",
+   "label": "Heavy and real",
+   "plain": "Real weight: realistic movement, things land with a thud, heavy fabric, nothing floats.",
+   "workspace": "character-motion",
+   "also": [
+    "effects"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "animFeelLens",
+     "slider": "style",
+     "value": "realistic"
+    },
+    {
+     "weight": 100,
+     "curiosity": "crashLens",
+     "slider": "bounce",
+     "value": "dead thud"
+    },
+    {
+     "weight": 100,
+     "curiosity": "clothLens",
+     "slider": "fabric",
+     "value": "denim"
+    },
+    {
+     "weight": 100,
+     "curiosity": "poseRigLens",
+     "slider": "balance",
+     "value": "planted"
+    },
+    {
+     "weight": 100,
+     "curiosity": "forcesLens",
+     "slider": "drag",
+     "value": "normal"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:animFeelLens",
+     "label": "Weight of animFeelLens style",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:crashLens.bounce",
+     "label": "Weight of crashLens bounce",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:clothLens",
+     "label": "Weight of clothLens fabric",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:poseRigLens.balance",
+     "label": "Weight of poseRigLens balance",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:forcesLens.drag",
+     "label": "Weight of forcesLens drag",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "stop-motion-feel",
+   "level": "suite",
+   "label": "Stop-motion feel",
+   "plain": "The handmade look of puppets shot a frame at a time: choppy timing, clear holds, matte surfaces you could touch.",
+   "workspace": "structure",
+   "also": [
+    "character-motion",
+    "light"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 40,
+     "curiosity": "timeLens",
+     "slider": "warp",
+     "value": "real time"
+    },
+    {
+     "weight": 100,
+     "curiosity": "animFeelLens",
+     "slider": "holds",
+     "value": "clear holds"
+    },
+    {
+     "weight": 100,
+     "curiosity": "surfaceLens",
+     "slider": "material",
+     "value": "matte"
+    },
+    {
+     "weight": 100,
+     "curiosity": "surfaceLens",
+     "slider": "bumps",
+     "value": "textured"
+    },
+    {
+     "weight": 100,
+     "curiosity": "layersLens",
+     "slider": "contact",
+     "value": "strong"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:timeLens",
+     "label": "Weight of timeLens warp",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:animFeelLens.holds",
+     "label": "Weight of animFeelLens holds",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:surfaceLens",
+     "label": "Weight of surfaceLens material",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:surfaceLens.bumps",
+     "label": "Weight of surfaceLens bumps",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:layersLens.contact",
+     "label": "Weight of layersLens contact",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "campfire-night",
+   "level": "suite",
+   "label": "Campfire night",
+   "plain": "A fire in the dark: flames lighting faces, sparks rising, flushed skin, one side of every face black.",
+   "workspace": "light",
+   "also": [
+    "effects",
+    "emotion"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "lightRigLens",
+     "slider": "lightType",
+     "value": "glowing object"
+    },
+    {
+     "weight": 100,
+     "curiosity": "smokeFireLens",
+     "slider": "heat",
+     "value": "flames"
+    },
+    {
+     "weight": 100,
+     "curiosity": "bitsLens",
+     "slider": "kind",
+     "value": "sparks"
+    },
+    {
+     "weight": 100,
+     "curiosity": "skinLens",
+     "slider": "flush",
+     "value": "flushed"
+    },
+    {
+     "weight": 100,
+     "curiosity": "lightRigLens",
+     "slider": "ratio",
+     "value": "one side black"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lightRigLens",
+     "label": "Weight of lightRigLens lightType",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:smokeFireLens",
+     "label": "Weight of smokeFireLens heat",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:bitsLens",
+     "label": "Weight of bitsLens kind",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:skinLens.flush",
+     "label": "Weight of skinLens flush",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lightRigLens.ratio",
+     "label": "Weight of lightRigLens ratio",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "warm-animated-feature",
+   "level": "suite",
+   "label": "Warm animated feature",
+   "plain": "The soft, glowing look of a big animated film: skin that glows, light bouncing everywhere, smooth satin surfaces.",
+   "workspace": "light",
+   "also": [
+    "color"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "skinLens",
+     "slider": "glowThrough",
+     "value": "soft glow"
+    },
+    {
+     "weight": 100,
+     "curiosity": "lightRigLens",
+     "slider": "bounce",
+     "value": "rich bounce"
+    },
+    {
+     "weight": 100,
+     "curiosity": "surfaceLens",
+     "slider": "material",
+     "value": "satin"
+    },
+    {
+     "weight": 100,
+     "curiosity": "renderLookLens",
+     "slider": "bands",
+     "value": "smooth"
+    },
+    {
+     "weight": 100,
+     "curiosity": "animFeelLens",
+     "slider": "style",
+     "value": "lively"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:skinLens",
+     "label": "Weight of skinLens glowThrough",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lightRigLens.bounce",
+     "label": "Weight of lightRigLens bounce",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:surfaceLens",
+     "label": "Weight of surfaceLens material",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:renderLookLens.bands",
+     "label": "Weight of renderLookLens bands",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:animFeelLens",
+     "label": "Weight of animFeelLens style",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "ink-comic",
+   "level": "suite",
+   "label": "Ink comic",
+   "plain": "A printed comic look: flat color in two bands, heavy crosshatched shadows, paper grain.",
+   "workspace": "page",
+   "also": [
+    "light",
+    "color"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "renderLookLens",
+     "slider": "bands",
+     "value": "two bands"
+    },
+    {
+     "weight": 100,
+     "curiosity": "renderLookLens",
+     "slider": "hatching",
+     "value": "heavy crosshatch"
+    },
+    {
+     "weight": 100,
+     "curiosity": "renderLookLens",
+     "slider": "paper",
+     "value": "paper grain"
+    },
+    {
+     "weight": 100,
+     "curiosity": "renderLookLens",
+     "slider": "wobble",
+     "value": "slight wobble"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:renderLookLens.bands",
+     "label": "Weight of renderLookLens bands",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:renderLookLens.hatching",
+     "label": "Weight of renderLookLens hatching",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:renderLookLens.paper",
+     "label": "Weight of renderLookLens paper",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:renderLookLens.wobble",
+     "label": "Weight of renderLookLens wobble",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "underwater",
+   "level": "suite",
+   "label": "Underwater",
+   "plain": "Everything drifts: thick water for air, bubbles rising, hair and cloth floating up, light falling off fast.",
+   "workspace": "effects",
+   "also": [
+    "light"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "forcesLens",
+     "slider": "drag",
+     "value": "like water"
+    },
+    {
+     "weight": 100,
+     "curiosity": "bitsLens",
+     "slider": "kind",
+     "value": "bubbles"
+    },
+    {
+     "weight": 100,
+     "curiosity": "clothLens",
+     "slider": "cling",
+     "value": "floats away"
+    },
+    {
+     "weight": 50,
+     "curiosity": "furLens",
+     "slider": "groom",
+     "value": "standing on end"
+    },
+    {
+     "weight": 100,
+     "curiosity": "lightRigLens",
+     "slider": "falloff",
+     "value": "drops off fast"
+    },
+    {
+     "weight": 100,
+     "curiosity": "layersLens",
+     "slider": "depthFog",
+     "value": "thick"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:forcesLens.drag",
+     "label": "Weight of forcesLens drag",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:bitsLens",
+     "label": "Weight of bitsLens kind",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:clothLens.cling",
+     "label": "Weight of clothLens cling",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:furLens.groom",
+     "label": "Weight of furLens groom",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:lightRigLens.falloff",
+     "label": "Weight of lightRigLens falloff",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:layersLens.depthFog",
+     "label": "Weight of layersLens depthFog",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "sea-of-people",
+   "level": "suite",
+   "label": "Sea of people",
+   "plain": "A huge crowd that moves like one animal: all slightly different, in step, a wave rolling through.",
+   "workspace": "background",
+   "also": [
+    "herd"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "crowdLens",
+     "slider": "count",
+     "value": "a sea"
+    },
+    {
+     "weight": 100,
+     "curiosity": "crowdLens",
+     "slider": "variety",
+     "value": "slight differences"
+    },
+    {
+     "weight": 100,
+     "curiosity": "crowdLens",
+     "slider": "sync",
+     "value": "in step"
+    },
+    {
+     "weight": 100,
+     "curiosity": "crowdLens",
+     "slider": "follow",
+     "value": "all follow"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:crowdLens",
+     "label": "Weight of crowdLens count",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:crowdLens.variety",
+     "label": "Weight of crowdLens variety",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:crowdLens.sync",
+     "label": "Weight of crowdLens sync",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:crowdLens.follow",
+     "label": "Weight of crowdLens follow",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "the-big-moment",
+   "level": "suite",
+   "label": "The big moment",
+   "plain": "Time stretches for the moment that matters: slow motion, everything soft but one face, bits hanging in the air.",
+   "workspace": "structure",
+   "also": [
+    "camera-angle",
+    "emotion"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "timeLens",
+     "slider": "warp",
+     "value": "slow motion"
+    },
+    {
+     "weight": 40,
+     "curiosity": "cameraLensLens",
+     "slider": "flare",
+     "value": "a glint"
+    },
+    {
+     "weight": 100,
+     "curiosity": "bitsLens",
+     "slider": "life",
+     "value": "linger"
+    },
+    {
+     "weight": 100,
+     "curiosity": "faceLens",
+     "slider": "changeSpeed",
+     "value": "melts slowly"
+    },
+    {
+     "weight": 50,
+     "curiosity": "shotOrderLens",
+     "slider": "leads",
+     "value": "sound leads"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:timeLens",
+     "label": "Weight of timeLens warp",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:cameraLensLens.flare",
+     "label": "Weight of cameraLensLens flare",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:bitsLens.life",
+     "label": "Weight of bitsLens life",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:faceLens.changeSpeed",
+     "label": "Weight of faceLens changeSpeed",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:shotOrderLens.leads",
+     "label": "Weight of shotOrderLens leads",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 50,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "poker-face",
+   "level": "suite",
+   "label": "Poker face",
+   "plain": "Giving nothing away: a still, even face, eyes that do not dart, a settled body. Deadpan comedy lives here.",
+   "workspace": "character-motion",
+   "also": [
+    "comedy",
+    "emotion"
+   ],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "faceLens",
+     "slider": "expression",
+     "value": "blank"
+    },
+    {
+     "weight": 100,
+     "curiosity": "faceLens",
+     "slider": "darts",
+     "value": "still"
+    },
+    {
+     "weight": 100,
+     "curiosity": "faceLens",
+     "slider": "sided",
+     "value": "even"
+    },
+    {
+     "weight": 100,
+     "curiosity": "poseRigLens",
+     "slider": "balance",
+     "value": "settled"
+    },
+    {
+     "weight": 100,
+     "curiosity": "animFeelLens",
+     "slider": "holds",
+     "value": "long freezes"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:faceLens",
+     "label": "Weight of faceLens expression",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:faceLens.darts",
+     "label": "Weight of faceLens darts",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:faceLens.sided",
+     "label": "Weight of faceLens sided",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:poseRigLens.balance",
+     "label": "Weight of poseRigLens balance",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:animFeelLens.holds",
+     "label": "Weight of animFeelLens holds",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
   }
  ],
  "proximities": [
@@ -82210,6 +87467,1265 @@
    ],
    "source": "database",
    "tags": []
+  },
+  {
+   "id": "crash-shake",
+   "level": "proximity",
+   "label": "When something crashes, the camera shakes",
+   "plain": "A crash makes the camera jolt, as if it felt the hit too.",
+   "workspace": "effects",
+   "also": [
+    "camera-motion"
+   ],
+   "when": {
+    "curiosity": "crashLens",
+    "slider": "mess",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "cameraLensLens",
+    "slider": "shake",
+    "change": "rises"
+   },
+   "whenText": "something crashes",
+   "thenText": "the camera shakes",
+   "within": 0,
+   "often": 60,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 60,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "landing-settle",
+   "level": "proximity",
+   "label": "When something heavy lands, hair and cloth settle a beat later",
+   "plain": "Follow-through: the body stops, the loose parts keep going and settle after.",
+   "workspace": "effects",
+   "also": [
+    "character-motion"
+   ],
+   "when": {
+    "curiosity": "crashLens",
+    "slider": "bounce",
+    "is": "dead thud"
+   },
+   "then": {
+    "curiosity": "clothLens",
+    "slider": "wrinkles",
+    "change": "rises"
+   },
+   "whenText": "something heavy lands",
+   "thenText": "hair and cloth settle a beat later",
+   "within": 1,
+   "often": 80,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 80,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "wind-cloth",
+   "level": "proximity",
+   "label": "When the wind picks up, cloth flies out",
+   "plain": "Gusts lift capes, skirts, flags and curtains.",
+   "workspace": "effects",
+   "also": [
+    "wardrobe"
+   ],
+   "when": {
+    "curiosity": "forcesLens",
+    "slider": "gusts",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "clothLens",
+    "slider": "cling",
+    "is": "floats away"
+   },
+   "whenText": "the wind picks up",
+   "thenText": "cloth flies out",
+   "within": 1,
+   "often": 85,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 85,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "wind-hair",
+   "level": "proximity",
+   "label": "When the wind picks up, hair streams one way",
+   "plain": "Hair follows the wind a moment after it arrives.",
+   "workspace": "effects",
+   "also": [
+    "character-motion"
+   ],
+   "when": {
+    "curiosity": "forcesLens",
+    "slider": "gusts",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "furLens",
+    "slider": "groom",
+    "is": "swept one way"
+   },
+   "whenText": "the wind picks up",
+   "thenText": "hair streams one way",
+   "within": 1,
+   "often": 85,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 85,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "rain-hair",
+   "level": "proximity",
+   "label": "When it rains, hair goes stringy",
+   "plain": "A few beats of rain and hair goes dark and clumps into strings.",
+   "workspace": "effects",
+   "also": [
+    "wardrobe"
+   ],
+   "when": {
+    "curiosity": "bitsLens",
+    "slider": "kind",
+    "is": "rain"
+   },
+   "then": {
+    "curiosity": "furLens",
+    "slider": "wet",
+    "change": "rises"
+   },
+   "whenText": "it rains",
+   "thenText": "hair goes stringy",
+   "within": 3,
+   "often": 75,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 75,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "windup-hit",
+   "level": "proximity",
+   "label": "When the wind-up grows, the move lands bigger",
+   "plain": "The bigger the anticipation, the bigger the action it promises (or the funnier when it fizzles).",
+   "workspace": "character-motion",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "animFeelLens",
+    "slider": "anticipation",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "animFeelLens",
+    "slider": "exaggeration",
+    "change": "rises"
+   },
+   "whenText": "the wind-up grows",
+   "thenText": "the move lands bigger",
+   "within": 1,
+   "often": 70,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "fire-flush",
+   "level": "proximity",
+   "label": "When the fire grows, faces go warm and red",
+   "plain": "Firelight and heat bring color into faces.",
+   "workspace": "light",
+   "also": [
+    "effects",
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "smokeFireLens",
+    "slider": "heat",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "skinLens",
+    "slider": "flush",
+    "change": "rises"
+   },
+   "whenText": "the fire grows",
+   "thenText": "faces go warm and red",
+   "within": 1,
+   "often": 70,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "churn-foam",
+   "level": "proximity",
+   "label": "When the water churns, foam builds",
+   "plain": "Rough water whips up white water.",
+   "workspace": "effects",
+   "also": [],
+   "when": {
+    "curiosity": "liquidLens",
+    "slider": "surface",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "liquidLens",
+    "slider": "foam",
+    "change": "rises"
+   },
+   "whenText": "the water churns",
+   "thenText": "foam builds",
+   "within": 1,
+   "often": 90,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 90,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "leader-ripple",
+   "level": "proximity",
+   "label": "When the leader moves, the crowd follows in a ripple",
+   "plain": "One person moves and the move passes through the crowd like a wave.",
+   "workspace": "background",
+   "also": [
+    "herd"
+   ],
+   "when": {
+    "curiosity": "crowdLens",
+    "slider": "follow",
+    "is": "all follow"
+   },
+   "then": {
+    "curiosity": "crowdLens",
+    "slider": "sync",
+    "change": "rises"
+   },
+   "whenText": "the leader moves",
+   "thenText": "the crowd follows in a ripple",
+   "within": 2,
+   "often": 65,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 65,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "big-face-big-body",
+   "level": "proximity",
+   "label": "When the face goes big, the body follows",
+   "plain": "A big feeling starts in the face and spreads into a stronger pose.",
+   "workspace": "character-motion",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "faceLens",
+    "slider": "expression",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "poseRigLens",
+    "slider": "lineOfAction",
+    "change": "rises"
+   },
+   "whenText": "the face goes big",
+   "thenText": "the body follows",
+   "within": 1,
+   "often": 70,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "eyes-lead",
+   "level": "proximity",
+   "label": "When the eyes dart, the expression changes next",
+   "plain": "The eyes move first, then the face: the thought comes before the feeling shows.",
+   "workspace": "character-motion",
+   "also": [
+    "emotion",
+    "lines"
+   ],
+   "when": {
+    "curiosity": "faceLens",
+    "slider": "darts",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "faceLens",
+    "slider": "expression",
+    "change": "changes"
+   },
+   "whenText": "the eyes dart",
+   "thenText": "the expression changes next",
+   "within": 1,
+   "often": 75,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 75,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "slowmo-linger",
+   "level": "proximity",
+   "label": "When time slows, the bits in the air hang",
+   "plain": "In slow motion, sparks, dust and drops hang in the air.",
+   "workspace": "structure",
+   "also": [
+    "effects"
+   ],
+   "when": {
+    "curiosity": "timeLens",
+    "slider": "warp",
+    "is": "slow motion"
+   },
+   "then": {
+    "curiosity": "bitsLens",
+    "slider": "life",
+    "is": "linger"
+   },
+   "whenText": "time slows",
+   "thenText": "the bits in the air hang",
+   "within": 0,
+   "often": 80,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 80,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "break-mess",
+   "level": "proximity",
+   "label": "When things break, the mess spreads",
+   "plain": "Breakage leaves pieces everywhere, and the pieces become part of the set.",
+   "workspace": "effects",
+   "also": [
+    "set",
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "crashLens",
+    "slider": "chain",
+    "is": "domino chain"
+   },
+   "then": {
+    "curiosity": "crashLens",
+    "slider": "mess",
+    "change": "rises"
+   },
+   "whenText": "things break",
+   "thenText": "the mess spreads",
+   "within": 2,
+   "often": 80,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 80,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
   }
  ],
  "proximitySuites": [
@@ -88268,6 +94784,480 @@
    ],
    "source": "database",
    "tags": []
+  },
+  {
+   "id": "weather-hits-everyone",
+   "level": "proximitySuite",
+   "label": "Weather hits everyone",
+   "plain": "Wind and rain reach everything loose: cloth flies out, hair streams, then goes stringy.",
+   "workspace": "effects",
+   "also": [
+    "set"
+   ],
+   "members": [
+    "wind-cloth",
+    "wind-hair",
+    "rain-hair"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:wind-cloth",
+     "label": "Delay of wind-cloth",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:wind-cloth",
+     "label": "How often wind-cloth",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:wind-hair",
+     "label": "Delay of wind-hair",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:wind-hair",
+     "label": "How often wind-hair",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:rain-hair",
+     "label": "Delay of rain-hair",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:rain-hair",
+     "label": "How often rain-hair",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "impact-chain",
+   "level": "proximitySuite",
+   "label": "The impact chain",
+   "plain": "A crash shakes the camera, loose parts settle a beat later, and the mess spreads.",
+   "workspace": "effects",
+   "also": [
+    "comedy"
+   ],
+   "members": [
+    "crash-shake",
+    "landing-settle",
+    "break-mess"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:crash-shake",
+     "label": "Delay of crash-shake",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:crash-shake",
+     "label": "How often crash-shake",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:landing-settle",
+     "label": "Delay of landing-settle",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:landing-settle",
+     "label": "How often landing-settle",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:break-mess",
+     "label": "Delay of break-mess",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:break-mess",
+     "label": "How often break-mess",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "acting-from-the-inside",
+   "level": "proximitySuite",
+   "label": "Acting from the inside out",
+   "plain": "The eyes move first, then the face, then the whole body.",
+   "workspace": "character-motion",
+   "also": [
+    "emotion"
+   ],
+   "members": [
+    "eyes-lead",
+    "big-face-big-body"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:eyes-lead",
+     "label": "Delay of eyes-lead",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:eyes-lead",
+     "label": "How often eyes-lead",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:big-face-big-body",
+     "label": "Delay of big-face-big-body",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:big-face-big-body",
+     "label": "How often big-face-big-body",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
+  },
+  {
+   "id": "elements-build",
+   "level": "proximitySuite",
+   "label": "The elements build",
+   "plain": "Fire warms faces and churning water foams: the world reacts to its elements.",
+   "workspace": "effects",
+   "also": [
+    "light"
+   ],
+   "members": [
+    "fire-flush",
+    "churn-foam"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:fire-flush",
+     "label": "Delay of fire-flush",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:fire-flush",
+     "label": "How often fire-flush",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:churn-foam",
+     "label": "Delay of churn-foam",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:churn-foam",
+     "label": "How often churn-foam",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya"
+   ]
   }
  ],
  "scenes": [
