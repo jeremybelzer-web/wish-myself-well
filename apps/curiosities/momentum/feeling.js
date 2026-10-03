@@ -343,9 +343,10 @@
 
   /* ---------- the tab ---------- */
   if (typeof document === "undefined") return;
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"];
+  /* Family colors and letters come from notes.js (CurioMomentum.mark), the same on every tab.
+     Each feeling road takes the same validated colors in order. */
+  const mark = (f) => M().mark(f);
+  const PALETTE = Object.values(M().COLORS);
   const FILM_INK = "#1c1712";
   const esc = (s) =>
     String(s == null ? "" : s)
@@ -353,7 +354,6 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
-  const letterOf = (f) => (famLabel(f) || "?").charAt(0).toUpperCase();
 
   let unhook = null;
   let mounted = null;
@@ -456,9 +456,9 @@
     const S = res.scenes || 1;
     const ribbon = res.ribbon
       .map((r) => {
-        const c = r.family ? COLORS[r.family] || OTHER : "transparent";
+        const mk = r.family ? mark(r.family) : null;
         const t = r.family ? `Moment ${r.beat + 1}: attention on ${famLabel(r.family)}${r.label ? " (" + r.label + ")" : ""}${r.move ? ", it just moved here" : ""}` : `Moment ${r.beat + 1}: nothing holds attention yet`;
-        return `<span class="mo-fr-cell${r.move ? " mo-fr-move" : ""}" style="background:${c}" title="${esc(t)}" aria-label="${esc(t)}">${r.family && (r.move || r.start) ? esc(letterOf(r.family)) : ""}</span>`;
+        return `<span class="mo-fr-cell${r.move ? " mo-fr-move" : ""}" style="background:${mk ? mk.color : "transparent"}${mk ? ";color:" + mk.ink : ""}" title="${esc(t)}" aria-label="${esc(t)}">${mk && (r.move || r.start) ? esc(mk.letter) : ""}</span>`;
       })
       .join("");
     const ticks = Array.from({ length: S }, (_, i) => `<span>${i + 1}</span>`).join("");
@@ -489,7 +489,7 @@
       })
       .join("");
     const usedFams = [...new Set(res.ribbon.map((r) => r.family).filter(Boolean))];
-    const legend = usedFams.map((f) => `<li><i style="background:${COLORS[f] || OTHER}"></i>${esc(letterOf(f))} ${esc(famLabel(f))}</li>`).join("");
+    const legend = usedFams.map((f) => `<li><i style="background:${mark(f).color}"></i>${esc(mark(f).letter)} ${esc(famLabel(f))}</li>`).join("");
 
     const flatList = res.flat.length
       ? `<ol class="mo-fr-list">${res.flat

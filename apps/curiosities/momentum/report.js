@@ -31,9 +31,8 @@
   const CV = () => root.CurioCurve;
 
   /* The same family colors as ui.js: eight have their own, the others share gray as "Other". */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const colorOf = (f) => COLORS[f] || OTHER;
+  /* Family colors and the status marks come from notes.js (CurioMomentum.mark, CurioMomentum.status). */
+  const colorOf = (f) => M().mark(f).color;
   const round = (n, d) => Math.round(n * Math.pow(10, d || 0)) / Math.pow(10, d || 0);
   const esc = (s) =>
     String(s == null ? "" : s)
@@ -53,13 +52,7 @@
   const aOrAn = (w) => (/^[aeiou]/i.test(String(w)) ? "an " : "a ") + w;
 
   /* Status of a stretch against the limit, as the meter says it: icon plus words, never color alone. */
-  function statusOf(dur, lim) {
-    if (dur == null) return { cls: "good", icon: "●", text: "Nothing yet" };
-    const r = dur / (lim || 20);
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
+  const statusOf = (dur, lim) => M().status(dur, lim);
 
   /* The momentum curve: CurioCurve's own pure function when it is loaded and the beats are given; otherwise a
      simple line from the reading (the push of what holds attention, worn down past the limit). */
@@ -142,11 +135,11 @@
     const longest = runs.reduce((b, r) => (!b || r.dur > b.dur ? r : b), null);
     const now = s.currentRun || null;
     const shares = Object.entries(s.familyShare || {}).filter(([, v]) => v > 0);
-    const named = shares.filter(([f]) => COLORS[f]);
-    const other = shares.filter(([f]) => !COLORS[f]);
+    const named = shares.filter(([f]) => M().COLORS[f]);
+    const other = shares.filter(([f]) => !M().COLORS[f]);
     const otherShare = round(other.reduce((a, [, v]) => a + v, 0), 3);
     const slices = named.map(([f, v]) => ({ family: f, label: famLabel(f), share: v, color: colorOf(f) }));
-    if (otherShare > 0) slices.push({ family: "other", label: "Other", share: otherShare, color: OTHER, families: other.map(([f, v]) => ({ family: f, label: famLabel(f), share: v })) });
+    if (otherShare > 0) slices.push({ family: "other", label: "Other", share: otherShare, color: M().OTHER, families: other.map(([f, v]) => ({ family: f, label: famLabel(f), share: v })) });
     const top = shares.length ? { family: shares[0][0], label: famLabel(shares[0][0]), share: shares[0][1] } : null;
     const warnings = (rd.warnings || [])
       .slice()

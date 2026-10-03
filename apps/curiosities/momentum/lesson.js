@@ -23,7 +23,7 @@
                before, title, sentences [2 or 3], tryThis, quiz | null }
        quiz: { kind: "cue" | "family" | "status", question, choices [{ id, text }], answer, explain }
    - check(quiz, choiceId) -> { right, text }   the kind words for an answer
-   - LETTERS, CUE_WORDS, addTab()
+   - CUE_WORDS, addTab() (the family letters are CurioMomentum.LETTERS, in notes.js)
    Saves the source, the skip choice and the last moment per film under localStorage key
    curiosities-momentum-lesson-v1. The score lasts for the session (until the page reloads). */
 (function () {
@@ -32,14 +32,9 @@
   const M = () => root.CurioMomentum;
   const A = () => root.CurioAttention;
 
-  /* One short mark per family, so the chip never relies on color alone. Unique; two letters where names share one. */
-  const LETTERS = { camera: "Ca", movement: "Mo", voice: "V", feeling: "F", comedy: "Co", wardrobe: "W", place: "S", light: "Li", music: "Mu", plot: "P", mind: "T", effects: "E", cut: "Cu" };
-  /* The same family colors as the Momentum window (ui.js): eight colored, the rest gray. */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const LIGHT = { comedy: 1, movement: 1 };
-  const colorOf = (f) => COLORS[f] || OTHER;
-  const inkOn = (f) => (LIGHT[f] || !COLORS[f] ? "#1c1712" : "#ffffff");
+  /* Family colors and letters, and the Fresh / Getting long / Too long marks, come from notes.js
+     (CurioMomentum.mark and CurioMomentum.status), the same on every tab. */
+  const mark = (f) => M().mark(f);
 
   /* Each cue in everyday words: "short" answers the quick check, "long" goes in a sentence. */
   const CUE_WORDS = {
@@ -49,15 +44,8 @@
     movement: { short: "a movement", long: "something moving", label: "a movement cue" },
     plot: { short: "a turn in the story", long: "a turn in the story", label: "a plot cue" },
   };
-  const STATUS = [
-    { cls: "good", icon: "●", text: "Fresh" },
-    { cls: "warn", icon: "▲", text: "Getting long" },
-    { cls: "crit", icon: "■", text: "Too long" },
-  ];
-  function statusOf(held, limit) {
-    const r = held / (limit || 20);
-    return r < 0.75 ? STATUS[0] : r <= 1 ? STATUS[1] : STATUS[2];
-  }
+  const STATUS = () => ["fresh", "long", "over"].map((k) => M().STATUS[k]);
+  const statusOf = (held, limit) => M().status(held || 0, limit);
   const STATUS_SAYS = {
     Fresh: "That is still fresh.",
     "Getting long": "That is getting long: the audience will soon want something new.",
@@ -166,14 +154,14 @@
       explain = `${q_(st.label)} came in with ${cuePhrase(st.cue, st.quiet)}.`;
     } else if (kind === "family") {
       const inFilm = ctx.families.filter((f) => f !== st.family);
-      const rest = Object.keys(LETTERS).filter((f) => f !== st.family && !inFilm.includes(f));
+      const rest = M().FAMILIES.map((f) => f.id).filter((f) => f !== st.family && !inFilm.includes(f));
       const others = shuffle(inFilm, rnd).concat(shuffle(rest, rnd)).slice(0, 2);
       choices = shuffle([st.family].concat(others), rnd).map((f) => ({ id: f, text: famLabel(f) }));
       answer = st.family;
       question = "What kind of curiosity holds attention now?";
       explain = `${q_(st.label)} belongs to ${st.familyLabel}.`;
     } else {
-      choices = STATUS.map((s) => ({ id: s.text, text: s.icon + " " + s.text }));
+      choices = STATUS().map((s) => ({ id: s.words, text: s.icon + " " + s.words }));
       answer = st.status.text;
       question = "Has this held attention too long yet?";
       explain = `${st.familyLabel} has held attention for ${secs(st.held)} of the ${st.limit} second limit, which counts as ${st.status.text.toLowerCase()}. Under three quarters of the limit is fresh; past the limit is too long.`;
@@ -205,7 +193,7 @@
       const endOfBeat = j + 1 < n ? times[j + 1] : end;
       const st = { index: j, beat: j, at, clock: clock(at), limit, quiz: null };
       if (k < 0) {
-        Object.assign(st, { kind: "empty", moved: false, family: null, familyLabel: "", letter: "", curiosity: null, label: "", cue: null, cueLabel: "", quiet: false, held: 0, status: { cls: "good", icon: "●", text: "Nothing yet" }, before: null, tryThis: "" });
+        Object.assign(st, { kind: "empty", moved: false, family: null, familyLabel: "", letter: "", curiosity: null, label: "", cue: null, cueLabel: "", quiet: false, held: 0, status: M().status(null), before: null, tryThis: "" });
         st.title = "Nothing holds attention yet";
         st.sentences = [`At ${st.clock}, nothing on screen has changed enough to take the audience's attention yet.`, "Attention needs something new: a face, a sound, a movement, a thought or a turn in the story."];
         steps.push(st);
@@ -223,7 +211,7 @@
         moved: kind !== "hold",
         family: s.family,
         familyLabel: famLabel(s.family),
-        letter: LETTERS[s.family] || String(s.family || "?")[0].toUpperCase(),
+        letter: mark(s.family).letter,
         curiosity: s.curiosity,
         label: s.label,
         cue: s.cue,
@@ -336,8 +324,8 @@
   }
 
   function chipHtml(st, big) {
-    if (!st.family) return `<span class="mls-chip"><span class="mls-letter" style="background:${OTHER};color:#1c1712">?</span>Nothing yet</span>`;
-    return `<span class="mls-chip${big ? " big" : ""}"><span class="mls-letter" style="background:${colorOf(st.family)};color:${inkOn(st.family)}" aria-hidden="true">${esc(st.letter)}</span>${esc(st.familyLabel)}</span>`;
+    if (!st.family) return `<span class="mls-chip"><span class="mls-letter" style="background:${mark(null).color};color:${mark(null).ink}">?</span>Nothing yet</span>`;
+    return `<span class="mls-chip${big ? " big" : ""}"><span class="mls-letter" style="background:${mark(st.family).color};color:${mark(st.family).ink}" aria-hidden="true">${esc(st.letter)}</span>${esc(st.familyLabel)}</span>`;
   }
   function baroHtml(st) {
     if (!st.family) return "";
@@ -410,7 +398,7 @@
       const plan = watchPlan(src, st.beat, steps.length);
       const watch = plan && plan.missing ? `<p class="mo-small">To watch this moment, choose this film in one of the Screen's inspiration viewers.</p>` : plan ? `<button type="button" data-ls="watch" title="Close this window and move the Screen's playhead to this moment">Watch this moment</button>` : "";
       const list = visible()
-        .map((s) => `<li><button type="button" data-ls-go="${s.index}"${s.index === cur ? ' aria-current="step"' : ""} class="${s.moved ? "moved" : "hold"}"><span class="mls-time">${s.clock}</span>${s.family ? `<span class="mls-letter" style="background:${colorOf(s.family)};color:${inkOn(s.family)}" aria-hidden="true">${esc(s.letter)}</span>` : ""}<span class="mls-li-t">${esc(s.title)}</span>${s.status.cls !== "good" ? `<span class="mo-status mo-${s.status.cls}" title="${esc(s.status.text)}">${s.status.icon}</span>` : ""}${s.quiz ? '<span class="mls-q" title="Quick check">?</span>' : ""}</button></li>`)
+        .map((s) => `<li><button type="button" data-ls-go="${s.index}"${s.index === cur ? ' aria-current="step"' : ""} class="${s.moved ? "moved" : "hold"}"><span class="mls-time">${s.clock}</span>${s.family ? `<span class="mls-letter" style="background:${mark(s.family).color};color:${mark(s.family).ink}" aria-hidden="true">${esc(s.letter)}</span>` : ""}<span class="mls-li-t">${esc(s.title)}</span>${s.status.cls !== "good" ? `<span class="mo-status mo-${s.status.cls}" title="${esc(s.status.text)}">${s.status.icon}</span>` : ""}${s.quiz ? '<span class="mls-q" title="Quick check">?</span>' : ""}</button></li>`)
         .join("");
       el.innerHTML = `<div class="mls">
         <p class="mls-lede">${lede()}</p>
@@ -512,7 +500,7 @@
     return U.addTab({ id: "lesson", label: "Learn it", mount: mountTab });
   }
 
-  const api = { lessonSteps, check, statusOf, LETTERS, CUE_WORDS, KEY, addTab, watchPlan };
+  const api = { lessonSteps, check, statusOf, CUE_WORDS, KEY, addTab, watchPlan };
   root.CurioLesson = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof document !== "undefined" && root.CurioMomentumUI) addTab();

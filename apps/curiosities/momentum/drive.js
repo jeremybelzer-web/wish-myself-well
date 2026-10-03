@@ -320,8 +320,8 @@
   }
 
   /* ---------------------------------------------------------------- the tab (browser only) */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const famColor = (f) => COLORS[f] || "#a8a39a";
+  /* Family colors and the status marks come from notes.js (CurioMomentum.mark, CurioMomentum.status). */
+  const famColor = (f) => M().mark(f).color;
   const KEY = "curiosities-momentum-drive-v1";
   const esc = (s) =>
     String(s == null ? "" : s)
@@ -411,10 +411,11 @@
     const runItems = runs
       .map((r, i) => {
         const s = sugg[i];
-        const st = r.dur > ctx.limit() ? ["crit", "■", "Too long"] : r.dur > ctx.limit() / 2 ? ["warn", "▲", "Getting long"] : ["good", "●", "Short"];
+        /* A stretch with no story move is long sooner than a hold: half the limit. The marks are the shared ones. */
+        const st = M().STATUS[r.dur > ctx.limit() ? "over" : r.dur > ctx.limit() / 2 ? "long" : "fresh"];
         const tryNote = s.note ? ` Try ${esc(s.note.label)}: ${esc(String(s.note.tryThis || "").replace(/\s+$/, ""))}` : "";
         const btn = isEngine && r.row != null ? `<button type="button" data-dr-move="${i}">Make this move here</button>` : "";
-        return `<li class="mdr-run"><div><b>${clock(r.from)} to ${clock(r.to)}</b> <small>(${Math.round(r.dur)} seconds, ${r.moves} move${r.moves === 1 ? "" : "s"} of decoration only)</small> <span class="mo-status mo-${st[0]}">${st[1]} ${st[2]}</span></div>
+        return `<li class="mdr-run"><div><b>${clock(r.from)} to ${clock(r.to)}</b> <small>(${Math.round(r.dur)} seconds, ${r.moves} move${r.moves === 1 ? "" : "s"} of decoration only)</small> <span class="mo-status mo-${st.cls}">${st.icon} ${st.words}</span></div>
           <div>What took attention: ${esc(r.labels.slice(0, 4).join(", "))}${r.labels.length > 4 ? ", and more" : ""}.</div>
           <div class="mdr-try"><b>Bring in:</b> <span class="mo-fam"><i style="background:${famColor(s.family)}"></i>${esc(s.label)}</span>, so the story moves when attention does.${tryNote}</div>${btn}</li>`;
       })

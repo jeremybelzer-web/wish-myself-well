@@ -41,6 +41,28 @@ Open it from **Library, Momentum** (once `<script src="momentum/load.js"></scrip
 
 - **Feeling road**: each character's emotional road, and the film's, laid under one attention ribbon of My film (the engine's film, the one the Screen plays). Each road is a small line, one point per scene, on the feeling scale from calm to charged (dreamlike, melancholy, loving, curious, absurd, joyful, anxious, fearful, triumphant, angry: the engine's own order, `CurioScale`), and each scene sits over its share of My film's moments. It lists, in plain sentences: **flat feelings**, where a feeling stays the same for 3 scenes or more (2 to 5 to choose) while attention also stalls (it never moves to a new family inside the stretch), each with a suggestion to turn the feeling in the middle of the stretch one step up or down the scale, toward the feeling the road reaches next, and why; **feeling turns that attention misses**, where a feeling jumps 3 steps or more (2 to 5) in a scene where attention never rests on Feeling, so the audience may not notice; and how many feeling turns come in a scene where attention also moves. The roads come from the story store (the **Emotional road** workspace: Feeling, then Emotional road, one feeling per character per scene, and one for the film). While no feeling is set there, it says how to fill it and reads the engine's feeling lanes instead: Emotion on the Master track is the film's road, Emotion on a character's track is that character's, one point per moment. **Turn ...** writes a suggestion back where its road came from: a story road through the story store's own `applyRoad`, undone by its `undoRoad`; an engine road through `CurioEngine.send` as one batch (a plain value, or a hand edit on that one cell when the column has automation points), one engine undo step. The Screen today reads only the engine (the story store feeds the Storyboard, the Prism and the workspaces, not the Screen), so only a change to an engine road shows on the Screen. **Undo** in the tab takes the last one back. Its own setting: `curiosities-momentum-feeling-v1`.
 
+## Colors and letters
+
+Every tab draws a family the same way: one color and one short letter, so a family never relies on color alone. Eight families have their own color; the other five share gray. The letter is dark or white, whichever is easier to read on its color.
+
+| Family | Letter | Color |
+| --- | --- | --- |
+| Camera | Ca | violet `#4a3aa7` |
+| Movement | Mo | pink `#e87ba4` |
+| Lines & voice | V | green `#1baf7a` |
+| Feeling | F | blue `#2a78d6` |
+| Comedy | Co | yellow `#eda100` |
+| Wardrobe | W | gray `#a8a39a` |
+| Set & landscape | S | red `#e34948` |
+| Light & color | Li | gray `#a8a39a` |
+| Music & sound | Mu | dark green `#008300` |
+| Plot & character | P | orange `#eb6834` |
+| Thought & focus | T | gray `#a8a39a` |
+| Effects | E | gray `#a8a39a` |
+| Cut & structure | Cu | gray `#a8a39a` |
+
+How long one family has held attention is always an icon plus words: **● Fresh** under three quarters of the limit, **▲ Getting long** up to the limit, **■ Too long** past it. Both come from `notes.js`: `CurioMomentum.mark(family)` gives `{ letter, color, ink, label }` and `CurioMomentum.status(seconds, limit)` gives `{ key: "fresh", "long" or "over", icon, words }`. No other file keeps its own copy; `node momentum/tests/marks.js` checks that.
+
 ## Films it can read
 
 My film live, My film's panels, the engine's timeline, any storyboard scene, the whole storyboard, and every curated film (your studies, shared traces, and the made-up practice scenes). Panels have no clock, so **Seconds per panel** sets how long each one lasts (3 by default).
@@ -58,7 +80,7 @@ These are guesses about how people watch, kept as plain numbers (`FAMILY_PULL`, 
 
 | File | What it does |
 | --- | --- |
-| `notes.js` | `window.CurioMomentum`: the 13 attention families, the 5 cues, and a momentum note for every curiosity (84 written one by one, the rest from their workspace's note). `FIELD` is the proposed database field. |
+| `notes.js` | `window.CurioMomentum`: the 13 attention families, how each one looks on every tab (`mark`, `status`, see Colors and letters), the 5 cues, and a momentum note for every curiosity (84 written one by one, the rest from their workspace's note). `FIELD` is the proposed database field. |
 | `attention.js` | `window.CurioAttention`: reads a film into attention stretches, statistics and warnings; `live()` records a performance. |
 | `rates.js` | `window.CurioRates`: the default curated list (estimates), `measure()` for traced films, `compare()`, `average()`. |
 | `compass.js` | `window.CurioCompass`: `point(reading, profiles)` gives the needle and the options; `move(option, board)` gives one notch on a live control. |
@@ -82,6 +104,7 @@ These are guesses about how people watch, kept as plain numbers (`FAMILY_PULL`, 
 | `load.js` | Adds everything to the app's page with one script line. |
 | `files.json` | The load order: `core` (no page) and `screens`. |
 | `tests/run.js` | `node momentum/tests/run.js`: checks with no page. |
+| `tests/marks.js` | `node momentum/tests/marks.js`: every family has its own letter and a readable color, the Fresh, Getting long and Too long marks follow the limit, and no momentum file keeps its own copy of them. |
 | `tests/browser.js` | `NODE_PATH=/opt/node22/lib/node_modules node momentum/tests/browser.js --three <three.min.js>`: the window in a real browser, the tab groups at 1440 and 375 pixels wide, live mode, phone width, and the panel beside the Screen's Player. |
 | `tests/comedy-timing.js` | `node momentum/tests/comedy-timing.js`: the comedy rhythm with no page; add `--browser` (with `NODE_PATH` and `--three` as above) for the tab in a real browser. |
 

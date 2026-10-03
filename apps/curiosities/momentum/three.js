@@ -61,13 +61,8 @@
     return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
   }
 
-  function status(seconds, limit) {
-    if (!seconds) return { cls: "good", icon: "●", text: "Fresh" };
-    const r = seconds / (limit || 20);
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
+  /* The marks come from notes.js (CurioMomentum.status), the same on every tab. */
+  const status = (seconds, limit) => M().status(seconds || 0, limit);
 
   const lenOf = (r) => (r && r.seconds) || (r && r.segments && r.segments.length ? r.segments[r.segments.length - 1].to : 0);
   const runsOf = (r) => (r && r.stats && r.stats.familyRuns) || (A() && r && r.segments ? A().familyRuns(r.segments) : []);
@@ -262,9 +257,7 @@
 
   /* ---------- the tab ---------- */
   const KEY = "curiosities-momentum-three-v1";
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const colorOf = (f) => COLORS[f] || OTHER;
+  const colorOf = (f) => M().mark(f).color;
   const esc = (s) =>
     String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
