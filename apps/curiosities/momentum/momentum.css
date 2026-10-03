@@ -419,3 +419,68 @@
   .mdr-table td { border: 0; padding: 2px 0; }
   .mdr-table .mo-why { min-width: 0; }
 }
+/* lesson.js: the "Learn it" tab, a guided walk-through of momentum. */
+.mls { display: grid; gap: 12px; min-width: 0; }
+.mls-host:focus { outline: none; }
+.mls-host:focus-visible { outline: 2px dashed var(--ink); outline-offset: 4px; }
+.mls-lede { font-size: 14px; max-width: 75ch; }
+.mls-skip span { display: flex; align-items: center; gap: 6px; }
+.mls-score { font-size: 14px; align-self: end; }
+.mls-card { border: 2px solid var(--ink); border-left-width: 8px; background: var(--mo-surface); padding: 12px 14px; display: grid; gap: 10px; min-width: 0; }
+.mls-card.mo-good { border-left-color: var(--mo-good); }
+.mls-card.mo-warn { border-left-color: var(--mo-warn); }
+.mls-card.mo-crit { border-left-color: var(--mo-crit); }
+.mls-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; font-size: 13px; color: var(--mo-ink-2); }
+.mls-title { margin: 0 !important; font-size: 18px !important; font-family: var(--serif, serif); }
+.mls-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--mo-ink); }
+.mls-chip.big { font-size: 15px; }
+.mls-letter { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 4px; font-size: 12px; font-weight: 700; line-height: 1; flex: none; box-sizing: border-box; }
+.mls-chip.big .mls-letter { min-width: 28px; height: 28px; font-size: 14px; }
+.mls-baro { display: grid; gap: 4px; max-width: 420px; }
+.mls-baro-t { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.mls-text { display: grid; gap: 6px; font-size: 15px; line-height: 1.45; max-width: 70ch; }
+.mls-try { border-left: 3px solid var(--ink); padding-left: 10px; }
+.mls-quiz { border: 2px dashed var(--ink); padding: 8px 12px 10px; margin: 0; display: grid; gap: 8px; min-width: 0; }
+.mls-quiz legend { font-weight: 600; font-size: 14px; padding: 0 4px; }
+.mls-choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.mls-choice, .mls-nav button { font: inherit; font-size: 14px; border: 2px solid var(--ink); background: #fff; padding: 6px 12px; cursor: pointer; color: var(--mo-ink); }
+.mls-choice.right { background: #e3f4e3; border-color: #006300; }
+.mls-choice.wrong { background: #f8e3e3; border-color: var(--mo-crit); }
+.mls-choice[aria-disabled="true"] { cursor: default; }
+.mls-said { font-size: 14px; }
+.mls-said.right { color: #006300; }
+.mls-nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.mls-nav .mls-next { background: var(--ink); color: var(--paper, #fff); }
+.mls-nav button:disabled { opacity: 0.4; cursor: default; }
+.mls-list summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+.mls-list ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 2px; max-height: 320px; overflow-y: auto; }
+.mls-list li button { width: 100%; display: flex; align-items: center; gap: 8px; text-align: left; font: inherit; font-size: 13px; border: 1px solid transparent; background: transparent; padding: 4px 6px; cursor: pointer; color: var(--mo-ink); min-width: 0; }
+.mls-list li button:hover { border-color: var(--mo-grid); }
+.mls-list li button[aria-current="step"] { border-color: var(--ink); background: var(--mo-surface); font-weight: 600; }
+.mls-list li button.hold { color: var(--mo-ink-2); }
+.mls-time { font-variant-numeric: tabular-nums; min-width: 36px; flex: none; }
+.mls-li-t { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mls-q { flex: none; font-weight: 700; border: 1px solid var(--ink); border-radius: 50%; width: 18px; height: 18px; display: inline-grid; place-items: center; font-size: 11px; }
+@media (max-width: 560px) {
+  .mls-card { padding: 10px; border-left-width: 6px; }
+  .mls-text { font-size: 14px; }
+  .mls-nav button { flex: 1 1 auto; }
+}
+/* report.js: the Report tab. The sheet's own look is REPORT_CSS in report.js (the same in the tab, in print and
+   in the downloaded file); here are the tab around it and the print rules. */
+.mrp { display: grid; gap: 12px; min-width: 0; }
+.mrp-lede { max-width: 75ch; font-size: 14px; }
+.mrp-bar button { font-weight: 600; }
+.mrp-said[hidden] { display: none; }
+.mrp-paper { border: 2px solid var(--ink); background: #f4f1ea; padding: 14px 10px; min-width: 0; overflow: hidden; }
+.mrp-paper .mrp-sheet { box-shadow: 2px 2px 0 rgba(28, 23, 18, 0.15); }
+.mrp-copybox { width: 100%; font: inherit; font-size: 13px; border: 1px solid var(--ink); padding: 6px; }
+@media (max-width: 520px) { .mrp-paper { padding: 8px 0; border-width: 1px; } }
+/* Print only the report. Scoped: these rules act only while <html> has the class mrp-printing, which the
+   "Print or save as PDF" button sets until the print window closes. Every other kind of printing is untouched. */
+.mrp-print-copy { display: none; }
+@media print {
+  html.mrp-printing, html.mrp-printing body { background: #fff !important; margin: 0 !important; padding: 0 !important; height: auto !important; overflow: visible !important; }
+  html.mrp-printing body > *:not(.mrp-print-copy) { display: none !important; }
+  html.mrp-printing .mrp-print-copy { display: block !important; }
+}
