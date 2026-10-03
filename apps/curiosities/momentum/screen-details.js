@@ -370,7 +370,7 @@
     if (value == null || String(value) === String(base)) value = S.step(key, base, -1);
     if (value == null || String(value) === String(base)) return mv;
     const commands = (has ? [] : [{ type: "addCuriosity", track, curiosity: key }]).concat([{ type: "setPoint", row: r.id, track, curiosity: key, value }]);
-    return { track, curiosity: key, label: S.label(key), value, from: was, row: r.id, family: d.family, commands };
+    return { track, curiosity: key, label: M().plain(S.label(key)), value, from: was, row: r.id, family: d.family, commands };
   }
   /* The button's check, kept until the selection, the playhead or the film changes. */
   let previewMemo = null;

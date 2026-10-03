@@ -294,7 +294,7 @@
               track: tid,
               trackLabel: trackLabel(tid),
               curiosity: cid,
-              label: S().label ? S().label(cid) : M().note(cid).label,
+              label: M().plain(S().label ? S().label(cid) : M().note(cid).label),
               value: now[i - 1],
               from: now[i],
               family: c.prev.family,

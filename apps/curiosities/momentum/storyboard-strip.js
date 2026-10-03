@@ -13,18 +13,20 @@
    Each scene is read with CurioAttention.fromScene; a panel lasts the Momentum window's "Seconds per panel"
    (localStorage curiosities-momentum-v1, 3 by default) and the limit is that window's too.
 
-   Docking: the storyboard exposes no redraw or panel-change event, so one MutationObserver on the page notices
-   its elements (.sb, .sb-reel, the flip book's [data-sb=count] that it rewrites on every panel) and, once per
-   animation frame at most, adds a strip to any reel that has none and moves the meter to the panel shown
-   (.sb-thumb.on, else the "n / total" in the count line). The storyboard redraws its reels on every change, so
-   new reels get new strips.
+   Docking: the storyboard tells its listeners (CuriosityStoryboard.on(fn), which gives back an unsubscribe) after
+   every redraw ({ type: "draw" }) and every panel change in the flip book ({ type: "page", at, si, pi }). On
+   either one, once per animation frame at most, the strip is added to any reel that has none and the meter
+   moves to the panel shown (.sb-thumb.on, else the "n / total" in the count line). The storyboard redraws its
+   reels on every change, so new reels get new strips. With an older storyboard that has no on(), one
+   MutationObserver on the page notices its elements instead (.sb, .sb-reel, the flip book's [data-sb=count]
+   that it rewrites on every panel).
 
    window.CurioMomentumStoryboard
    - model(scene, { secondsPerPanel, limit }) -> { cells: [{ panel, family, label, cue, quiet, held, status,
        moved: { from, cue, quiet } | null }], limit, spb, reading }   (pure; works in Node)
    - settings(prefs, CurioRates) -> { spb, limit }                       (pure)
    - status(held, limit) -> { cls, icon, text }
-   - attach() / detach() / attached() / scan() */
+   - attach() / detach() / attached() / scan() / mode() -> "events" (the storyboard's on()), "observer" or "" */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
   const A = () => root.CurioAttention;
@@ -151,7 +153,8 @@
   }
 
   /* ---------- docking on the storyboard ---------- */
-  let watcher = null;
+  let watcher = null; /* the MutationObserver, with an older storyboard */
+  let unhear = null; /* the storyboard's unsubscribe, with on() */
   let queued = false;
   let lastPrefs = null;
   let cache = null; /* { sig, scenes: [model] } */
@@ -263,7 +266,15 @@
     }
   }
   function attach() {
-    if (watcher || !document.body) return !!watcher;
+    if (watcher || unhear) return true;
+    const SB = root.CuriosityStoryboard;
+    if (SB && typeof SB.on === "function") {
+      const off = SB.on((ev) => ev && (ev.type === "draw" || ev.type === "page") && schedule());
+      unhear = typeof off === "function" ? off : () => {};
+      schedule();
+      return true;
+    }
+    if (!document.body) return false;
     watcher = new MutationObserver(onMutate);
     watcher.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
     schedule();
@@ -271,7 +282,9 @@
   }
   function detach() {
     if (watcher) watcher.disconnect();
+    if (unhear) unhear();
     watcher = null;
+    unhear = null;
     cache = null;
     document.querySelectorAll(".mo-sbs, .mo-sbm").forEach((n) => n.remove());
   }
@@ -283,5 +296,5 @@
   /* The Momentum window's settings live in localStorage; another tab changing them redraws too. */
   root.addEventListener("storage", (e) => e.key === PREFS && schedule());
 
-  Object.assign(api, { attach, detach, attached: () => !!watcher, scan, refresh: () => ((lastPrefs = null), schedule()) });
+  Object.assign(api, { attach, detach, attached: () => !!(watcher || unhear), mode: () => (unhear ? "events" : watcher ? "observer" : ""), scan, refresh: () => ((lastPrefs = null), schedule()) });
 })();

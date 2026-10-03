@@ -200,7 +200,7 @@
     if (value == null || String(value) === String(base)) value = S.step(pick.curiosity, base, -1);
     if (value == null || (was != null && String(value) === String(was))) return null;
     commands.push({ type: "setPoint", row: row.id, track: pick.track, curiosity: pick.curiosity, value });
-    const label = S.label(pick.curiosity);
+    const label = M().plain ? M().plain(S.label(pick.curiosity)) : S.label(pick.curiosity);
     return { track: pick.track, curiosity: pick.curiosity, label, value, from: was, row: row.id, family: fam, commands };
   }
   function applyMove(move) {
