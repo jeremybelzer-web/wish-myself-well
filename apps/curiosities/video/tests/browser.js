@@ -188,6 +188,13 @@ const ok = (cond, text) => {
       return { main: !!(m && m.times.length === s.a.elements.times.length), roll: !!(s.a.raw.roll && s.a.raw.roll[0]), frame: a.frame, row: !!document.querySelector('[data-on="framing"]') };
     });
     ok(fr.main && fr.roll && fr.row && (!fr.frame || fr.frame.z >= 1), "shot framing: the main person and the roll are measured, and the group is there: " + JSON.stringify(fr));
+    const kl = await page.evaluate(() => {
+      const s = window.CurioVideoUI.state();
+      const p = window.CurioVideo.plan(s.a, s.b, { on: { relight: 1 } });
+      window.CurioVideo.at(p, 0.5);
+      return { a: !!(s.a.light && s.a.light.times.length >= 2), b: !!(s.b.light && s.b.light.times.length >= 2), off: !!document.querySelector('[data-on="relight"]:not(:checked)') };
+    });
+    ok(kl.a && kl.b && kl.off, "key light: each clip's light is measured, and the group is there, off: " + JSON.stringify(kl));
     await page.click('[data-act="ai-preview"]');
     ok(/Blue: clothes/.test(await page.textContent(".vd-note")), "Show what it found tints the cut-out");
     /* Make a puppet: only with Maya's rig (CurioRig.fromCutout); a stand-in records what it is handed. */
