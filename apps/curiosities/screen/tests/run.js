@@ -637,5 +637,59 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(film() === before, "and one undo takes that back too");
 }
 
+/* A Details row's ⋯ menu (CurioScreenApply): all through the film, the selected stretch, reset, clear. */
+{
+  const A = w.CurioScreenApply;
+  const E = w.CurioEngine;
+  ok(!!A && ["allFilm", "stretch", "reset", "clear"].every((k) => typeof A[k] === "function"), "the ⋯ menu's command builders are exposed for tests (CurioScreenApply)");
+  if (A) {
+    E.reset(w.CurioSeeds.starter());
+    const rr = E.state().rows;
+    const n = rr.length;
+    const lk = "camera|shotSize";
+    E.send({ type: "batch", commands: [{ type: "setPoint", row: rr[1].id, track: "camera", curiosity: "shotSize", value: "wide" }, { type: "setPoint", row: rr[3].id, track: "camera", curiosity: "shotSize", value: "close" }, { type: "setPoint", row: rr[5].id, track: "camera", curiosity: "shotSize", value: "insert" }] });
+    const film = () => JSON.stringify(E.state().lanes);
+    const before = film();
+    const pts = () => Object.keys(E.state().lanes[lk] ? E.state().lanes[lk].points : {}).map((id) => rr.findIndex((r) => r.id === id)).sort((a, b) => a - b);
+
+    const all = A.allFilm(E.state(), "camera", "shotSize", "medium");
+    ok(all.removed === 3 && E.send({ type: "batch", commands: all.cmds }).ok, "Use this all through the film is one batch that takes the other nodes off (" + all.removed + ")");
+    const ln = E.state().lanes[lk];
+    ok(pts().join() === "0" && ln.points[rr[0].id] === "medium" && ln.mode === "hold", "it leaves one node at the first moment and the lane jumps (holds)");
+    ok(rr.every((r) => E.value(r.id, "camera", "shotSize") === "medium"), "so the setting is the same at every moment");
+    E.undo();
+    ok(film() === before, "one undo takes it back");
+
+    const add = A.allFilm(E.state(), "camera", "composition", "center", true);
+    ok(add.cmds[0].type === "addCuriosity" && E.send({ type: "batch", commands: add.cmds }).ok && E.value(rr[n - 1].id, "camera", "composition") === "center", "a curiosity not on a track yet is put on one first");
+    E.undo();
+    ok(film() === before, "and one undo takes that back too");
+
+    const sk = A.stretch(E.state(), "camera", "shotSize", "medium", 4, 2);
+    ok(sk.from === 2 && sk.to === 4 && sk.removed === 1 && E.send({ type: "batch", commands: sk.cmds }).ok, "Use this in the selected stretch is one batch (either end first)");
+    ok(pts().join() === "1,2,4,5" && [2, 3, 4].every((j) => E.value(rr[j].id, "camera", "shotSize") === "medium"), "it holds the setting from the start to the end of the stretch, inner nodes off, the rest kept (" + pts().join() + ")");
+    E.undo();
+    ok(film() === before, "one undo takes the stretch back");
+    const one = A.stretch(E.state(), "camera", "shotSize", "close", 2, 2);
+    ok(one.cmds.length === 1 && one.cmds[0].type === "setPoint", "a stretch of one moment is one node");
+    ok(!!A.stretch(E.state(), "camera", "shotSize", null, 1, 3).error, "no setting to use is refused in plain words");
+
+    const rs = A.reset(E.state(), "camera", "shotSize", "wide");
+    ok(rs.removed === 3 && rs.cmds[0].type === "setPoint" && rs.cmds[0].row === rr[0].id && rs.cmds[0].value === "wide", "Reset keeps the start as it plays now (a node at moment 1 when it had none) and takes the later nodes off");
+    ok(E.send({ type: "batch", commands: rs.cmds }).ok && pts().join() === "0" && rr.every((r) => E.value(r.id, "camera", "shotSize") === "wide"), "after Reset the lane stays as the scene starts");
+    E.undo();
+    ok(film() === before, "one undo takes Reset back");
+    E.send({ type: "batch", commands: [{ type: "clearLane", track: "camera", curiosity: "shotSize" }, { type: "setPoint", row: rr[0].id, track: "camera", curiosity: "shotSize", value: "close" }] });
+    ok(/nothing to reset/.test(A.reset(E.state(), "camera", "shotSize", "close").error || ""), "Reset with nothing after the first moment says there is nothing to reset");
+    E.undo();
+
+    const cl = A.clear(E.state(), "camera", "shotSize");
+    ok(cl.removed === 3 && cl.cmds.length === 1 && cl.cmds[0].type === "clearLane" && E.send({ type: "batch", commands: cl.cmds }).ok && !E.state().lanes[lk], "Clear this lane takes every node off with clearLane");
+    E.undo();
+    ok(film() === before, "one undo brings the lane back");
+    ok(/nothing to clear/.test(A.clear(E.state(), "camera", "cameraMove").error || ""), "clearing a lane with no nodes says there is nothing to clear");
+  }
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

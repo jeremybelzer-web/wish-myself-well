@@ -1088,6 +1088,89 @@ const ok = (cond, msg) => {
   ok((await page.evaluate(() => window.CurioScreen.row())) === 1, "◀ jumps the playhead to the previous key");
   ok((await knav("prev")).dis && !(await knav("next")).dis, "on the first key ◀ is greyed and ▶ is not");
   ok(await page.evaluate((id) => [...document.querySelectorAll(".sc-inspector .sc-key[data-key]")].find((b) => b.dataset.key === id).classList.contains("here"), kid), "the diamond still shows the key here");
+  /* A Details row's ⋯ menu (CapCut's Apply to all and Reset): each item is one undo step, says what it did in the
+     status line, and a locked lane is refused. kid has keys at moments 2 and 5. */
+  {
+    const laneOf = () => page.evaluate((id) => { const E = window.CurioEngine, st = E.state(), t = st.tracks.find((x) => x.curiosities.includes(id)), lane = t && st.lanes[t.id + "|" + id]; return { lk: t && t.id + "|" + id, mode: lane && lane.mode, at: lane ? st.rows.map((r, j) => (lane.points[r.id] != null ? j : -1)).filter((j) => j >= 0) : [], vals: st.rows.map((r) => String(t ? E.value(r.id, t.id, id) : "")) }; }, kid);
+    /* The film's lanes in a fixed order (an undo can bring a lane back in another place in the list). */
+    const lanesNow = () => page.evaluate(() => { const l = window.CurioEngine.state().lanes; return JSON.stringify(Object.keys(l).sort().map((k) => [k, l[k].on, l[k].mode, Object.keys(l[k].points).sort().map((r) => [r, l[k].points[r]])])); });
+    const more = `.sc-inspector [data-cur-menu="${kid}"]`;
+    const said = () => page.$eval(".sc-toast", (t) => t.textContent);
+    const items = () => page.$$eval(".sc-cur-menu [data-cur-apply]", (b) => b.map((x) => x.dataset.curApply).join());
+    const pick = async (act) => { await page.click(more); await page.click(`.sc-cur-menu [data-cur-apply="${act}"]`); };
+    const undoes = (before) => page.keyboard.press("Control+z").then(lanesNow).then((f) => f === before);
+    ok(!!(await page.$(more)), "each Details row has a ⋯ menu");
+    await page.evaluate(() => { document.querySelector(".sl").focus(); });
+    await page.keyboard.press("Escape");
+    await page.click(more);
+    ok((await items()) === "all,reset,clear" && (await page.$eval(more, (b) => b.getAttribute("aria-expanded"))) === "true", "with no stretch selected the menu offers all through the film, reset and clear (" + (await items()) + ")");
+    ok((await page.evaluate(() => document.activeElement.dataset.curApply)) === "all", "the menu takes keyboard focus on its first item");
+    await page.keyboard.press("ArrowDown");
+    ok((await page.evaluate(() => document.activeElement.dataset.curApply)) === "reset", "the arrow keys move through it");
+    await page.keyboard.press("Escape");
+    ok(!(await page.$(".sc-cur-menu")) && (await page.evaluate((k) => document.activeElement && document.activeElement.dataset.curMenu === k, kid)), "Esc closes it and gives focus back to ⋯");
+    await page.click(more);
+    await page.click(".sc-details");
+    ok(!(await page.$(".sc-cur-menu")), "a click anywhere else closes it");
+    await page.focus(more);
+    await page.keyboard.press("Enter");
+    ok(!!(await page.$(".sc-cur-menu")), "⋯ opens from the keyboard too");
+    await page.keyboard.press("Escape");
+
+    const before = await lanesNow();
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    const l0 = await laneOf();
+    const here = l0.vals[4];
+    await pick("all");
+    let l = await laneOf();
+    let msg = await said();
+    ok(l.at.join() === "0" && l.mode === "hold" && l.vals.every((v) => v === here), "Use this all through the film leaves one node at moment 1 with the playhead's setting, and the lane jumps so it stays flat (" + l.at.join() + ", " + l.mode + ")");
+    ok(/all through the film/.test(msg) && /Undo takes it back\.$/.test(msg), "it says so in the status line (" + msg + ")");
+    ok(await undoes(before), "one undo takes it back");
+
+    await pick("reset");
+    l = await laneOf();
+    msg = await said();
+    ok(l.at.join() === "0" && l.vals.every((v) => v === l0.vals[0]) && /how the scene starts/.test(msg) && /Undo takes it back\.$/.test(msg), "Reset to how the scene starts takes off the nodes after moment 1 and keeps the start (" + msg + ")");
+    ok(await undoes(before), "one undo takes Reset back");
+
+    await pick("clear");
+    l = await laneOf();
+    msg = await said();
+    ok(l.at.length === 0 && /lane is clear/.test(msg) && /Undo takes it back\.$/.test(msg), "Clear this lane takes every node off (" + msg + ")");
+    await pick("reset");
+    ok(/nothing to reset/.test(await said()), "Reset on a lane with nothing to reset says so plainly (" + (await said()) + ")");
+    ok(await undoes(before), "one undo brings the cleared lane back");
+
+    /* The selected stretch: drag across moments 1 to 3 on this lane, then use the playhead's setting there. */
+    const bx = await page.evaluate((lk) => { const heads = [...document.querySelectorAll(".sl-heads .sl-head")]; const i = heads.findIndex((h) => h.querySelector(`[data-lk="${lk}"]`)); if (i < 0) return null; const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[i].getBBox().y); const r = document.querySelectorAll(".sl-bg")[i].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, l0.lk);
+    ok(!!bx, "the curiosity's lane is on the timeline");
+    if (bx) {
+      const cw = bx.w / bx.n;
+      await page.mouse.move(bx.x + cw * 0.1, bx.y + 2);
+      await page.mouse.down();
+      await page.mouse.move(bx.x + cw * 2.9, bx.y + bx.h - 2, { steps: 8 });
+      await page.mouse.up();
+      ok(!!(await page.$(".sl-area")), "a stretch is selected on the timeline");
+      await page.click(more);
+      ok((await items()) === "all,stretch,reset,clear" && /moment 1 to moment 3/.test(await page.$eval('[data-cur-apply="stretch"]', (b) => b.textContent)), "with a stretch selected the menu offers Use this in the selected stretch (" + (await items()) + ")");
+      await page.click('.sc-cur-menu [data-cur-apply="stretch"]');
+      l = await laneOf();
+      msg = await said();
+      ok(l.at.join() === "0,2,4" && [0, 1, 2].every((j) => l.vals[j] === here) && l.vals[4] === l0.vals[4], "it holds the playhead's setting from moment 1 to moment 3, the node inside taken off, the rest kept (" + l.at.join() + ")");
+      ok(/from moment 1 to moment 3/.test(msg) && /Undo takes it back\.$/.test(msg), "and says so (" + msg + ")");
+      ok(await undoes(before), "one undo takes the stretch back");
+      await page.focus(".sl");
+      await page.keyboard.press("Escape");
+    }
+
+    /* A locked lane is refused, and nothing changes. */
+    await page.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), l0.lk);
+    await pick("clear");
+    msg = await said();
+    ok(/locked/.test(msg) && (await lanesNow()) === before, "a locked lane is refused with a plain message and left as it is (" + msg + ")");
+    await page.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], l0.lk);
+  }
   /* Ratio. */
   ok(!!(await page.$(".sc-transport select[data-ratio]")), "the Player's transport bar has a Ratio menu");
   const shape = () => page.evaluate(() => { const f = document.querySelector(".sc-viewer.mine .sc-frame"), r = f.getBoundingClientRect(), s = f.querySelector("svg").getBoundingClientRect(), i = document.querySelector(".sc-viewer.insp .sc-frame"), ir = i && i.getBoundingClientRect(); return { shape: f.dataset.shape, w: r.width, h: r.height, sw: s.width, sh: s.height, cx: s.left + s.width / 2 - (r.left + r.width / 2), insp: ir ? ir.width / ir.height : null }; });
