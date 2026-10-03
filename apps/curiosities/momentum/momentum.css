@@ -513,3 +513,60 @@
   .pd-root .pd-pad { min-height: 104px; padding: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .pd-root .pd-pad { transition: none; } }
+/* cuesheet.js: the Cue sheet tab. One row per moment like an animator's exposure sheet; on a phone each row
+   becomes a small card with the column name before each part. */
+.mcs { display: grid; gap: 12px; min-width: 0; }
+.mcs-lede, .mcs-help { max-width: 75ch; font-size: 14px; margin: 0; }
+.mcs-help { color: var(--mo-ink-2); font-size: 13px; }
+.mcs-sum { font-size: 14px; font-weight: 600; margin: 0; max-width: 75ch; }
+.mcs-bar button { font-weight: 600; }
+.mcs-check { display: flex !important; align-items: center; gap: 6px; }
+.mcs-said[hidden] { display: none; }
+.mcs-copybox { width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; border: 1px solid var(--ink); padding: 6px; }
+.mcs-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--mo-grid); min-width: 0; }
+.mcs-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.mcs-table th { position: sticky; top: 0; background: var(--mo-surface); z-index: 1; }
+.mcs-table th, .mcs-table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--mo-grid); vertical-align: top; font-variant-numeric: tabular-nums; }
+.mcs-table td:nth-child(1), .mcs-table td:nth-child(2), .mcs-table td:nth-child(5) { white-space: nowrap; }
+.mcs-table td:nth-child(2) small { color: var(--mo-ink-2); }
+.mcs-table .mo-fam { display: inline-flex; }
+.mcs-letter { font-size: 11px; border: 1px solid var(--mo-grid); padding: 0 3px; }
+.mcs-label { display: block; }
+.mcs-none { color: var(--mo-ink-2); }
+.mcs-table tr.mcs-moved td { border-top: 2px solid var(--ink); }
+.mcs-table tr.mcs-hold td:nth-child(3) { color: var(--mo-ink-2); }
+.mcs-note { min-width: 200px; }
+@media (max-width: 600px) {
+  .mcs-wrap { max-height: none; border: 0; }
+  .mcs-table thead { display: none; }
+  .mcs-table, .mcs-table tbody, .mcs-table tr, .mcs-table td { display: block; }
+  .mcs-table tr { padding: 6px 0; border-bottom: 1px solid var(--mo-grid); }
+  .mcs-table tr.mcs-moved { border-top: 2px solid var(--ink); }
+  .mcs-table tr.mcs-moved td { border-top: 0; }
+  .mcs-table td { border: 0; padding: 1px 0; white-space: normal !important; }
+  .mcs-table td::before { content: attr(data-h) ": "; font-weight: 600; color: var(--mo-ink-2); }
+  .mcs-table td:nth-child(3)::before { content: none; }
+  .mcs-note { min-width: 0; }
+}
+/* cuelab.js: the Cue lab tab. */
+.mcl { display: grid; gap: 14px; min-width: 0; }
+.mcl section { min-width: 0; }
+.mcl-table th[scope=row] { font-weight: 600; min-width: 140px; }
+.mcl-table td { white-space: nowrap; }
+.mcl-table tr.mcl-me th, .mcl-table tr.mcl-me td { background: var(--mo-surface); border-top: 2px solid var(--mo-ink); border-bottom: 2px solid var(--mo-ink); }
+.mcl-none { max-width: 75ch; }
+.mcl-vs, .mcl-steal { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; font-size: 14px; }
+.mcl-vs li { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 4px 8px; align-items: baseline; }
+.mcl-mark { font-size: 13px; font-weight: 600; white-space: nowrap; }
+@media (max-width: 520px) { .mcl-vs li { grid-template-columns: minmax(0, 1fr); } }
+.mcl-less { color: var(--mo-crit); }
+.mcl-same { color: var(--mo-ink-2); }
+.mcl-more { color: #0b5cad; }
+.mcl-steal li { border: 1px solid var(--line, rgba(0,0,0,.14)); background: var(--mo-surface); padding: 8px 10px; display: grid; gap: 4px; min-width: 0; }
+.mcl-steal-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-weight: 600; }
+.mcl-steal-head .mo-fam { display: inline-flex; }
+.mcl-steal button { justify-self: start; font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); }
+.mcl-chart { width: 100%; max-width: 640px; height: auto; display: block; }
+.mcl-chart text { font-size: 12px; fill: var(--mo-ink); font-family: inherit; }
+.mcl-chart .mcl-bar-me { font-weight: 700; }
+.mcl-chart .mcl-bar-v { fill: var(--mo-ink-2); font-variant-numeric: tabular-nums; }
