@@ -236,3 +236,32 @@
 /* How attention moves (ui.js movesHtml). */
 .mo-moves td small { color: var(--mo-muted, #6b6459); }
 .mo-key { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: baseline; }
+
+/* comedy-timing.js: the Comedy timing tab. */
+.ct-root { display: grid; gap: 14px; min-width: 0; }
+.ct-sent { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; max-width: 75ch; }
+.ct-strip-box { border: 1px solid var(--line, rgba(0,0,0,.14)); background: var(--mo-surface); min-width: 0; overflow: hidden; }
+.ct-strip { display: block; max-width: 100%; }
+.ct-axis { stroke: var(--mo-ink-2); stroke-width: 1.5; }
+.ct-tick { font-size: 11px; fill: var(--mo-ink-2); font-variant-numeric: tabular-nums; }
+.ct-band { fill: #eda100; opacity: 0.35; }
+.ct-arc { fill: none; stroke: var(--mo-ink); stroke-width: 1.6; }
+.ct-arc-cb { stroke-dasharray: 5 4; stroke: #4a3aa7; }
+.ct-arc-open { stroke-dasharray: 2 4; stroke: var(--mo-crit); }
+.ct-q { font-size: 14px; font-weight: 700; fill: var(--mo-crit); }
+.ct-m { stroke: var(--mo-ink); stroke-width: 2; }
+.ct-s { fill: var(--mo-surface); }
+.ct-p { fill: #eda100; }
+.ct-j { fill: var(--mo-ink-2); }
+.ct-c { fill: #4a3aa7; }
+.ct-letter { font-size: 11px; font-weight: 700; fill: var(--mo-ink); }
+.ct-mark:hover .ct-m { stroke-width: 3; }
+.ct-key { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--mo-ink-2); }
+.ct-key li { display: flex; align-items: center; gap: 5px; }
+.ct-key svg { flex: none; }
+.ct-jokes { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; }
+.ct-table td:nth-child(3), .ct-table td:nth-child(4), .ct-table td:nth-child(6) { white-space: nowrap; }
+@media (max-width: 520px) {
+  .ct-root .mo-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ct-root .mo-tile-v { font-size: 19px; }
+}
