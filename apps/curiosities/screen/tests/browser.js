@@ -1139,8 +1139,14 @@ const ok = (cond, msg) => {
   }
 
   /* The Attention track (CapCut's waveform under the clips, for attention): a band right under My film's clip
-     track with a colored block per moment, a filled line, a key; a click jumps there; the toolbar toggle hides it. */
+     track with a colored block per moment, a filled line, a key; a click jumps there; the toolbar toggle hides it.
+     Momentum's own Attention lane takes its place when it is docked, so it is taken off for these checks. */
   {
+    const momLane = await page.evaluate(() => !!(window.CurioMomentumLane && window.CurioMomentumLane.attached && window.CurioMomentumLane.attached()));
+    if (momLane) {
+      ok(await page.evaluate(() => !document.querySelector(".sl-topsvg .sl-att") && !document.querySelector('[data-act="attention-track"]')), "with Momentum's Attention lane docked, the band and its toggle step aside (attention shows once)");
+      await page.evaluate(() => { window.CurioMomentumLane.detach(); window.dispatchEvent(new Event("resize")); });
+    }
     const band = () => page.evaluate(() => {
       const g = document.querySelector(".sl-topsvg .sl-att");
       if (!g) return null;
@@ -1185,6 +1191,7 @@ const ok = (cond, msg) => {
     const bn = await band();
     ok(bn && bn.state === "none" && bn.blocks === 0 && !bn.line && /isn't loaded/.test(bn.note), "without the momentum code it draws nothing and says so in one line");
     await page.evaluate(() => { window.CurioAttention = window.__att; delete window.__att; window.CurioScreen.setRow(0); });
+    if (momLane) await page.evaluate(() => { window.CurioMomentumLane.attach(); window.dispatchEvent(new Event("resize")); });
   }
 
   /* Film lines: the inspiration film picked in the Player drawn as a faint dashed line in each lane (stretched

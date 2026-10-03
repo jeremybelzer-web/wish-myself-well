@@ -456,7 +456,7 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(t.ok && t.source === "momentum" && t.moments.length === 5 && asked.n === 5 && asked.o.secondsPerBeat === 3, "attentionTrack reads the film through the momentum reading, one entry per moment");
   ok(t.moments.map((m) => m.family).join() === "camera,camera,feeling,feeling,feeling" && t.moments[3].label === "Feeling" && t.moments[0].curiosity === "Shot size", "each moment carries the family holding attention, its name and the curiosity");
   ok(t.moments[0].strength === 1 && Math.abs(t.moments[2].strength - 0.4) < 1e-9, "the strength is the push of what holds attention, out of 5 (" + t.moments.map((m) => m.strength.toFixed(2)).join(" ") + ")");
-  ok(t.families.length === 2 && t.families[0].id === "camera" && t.families[0].color === CL.ATT_COLORS.camera && t.families[1].label === "Feeling", "the key lists each family once, in order, with its color");
+  ok(t.families.length === 2 && t.families[0].id === "camera" && t.families[0].color === (w.CurioMomentum && w.CurioMomentum.mark ? w.CurioMomentum.mark("camera").color : CL.ATT_COLORS.camera) && t.families[1].label === "Feeling", "the key lists each family once, in order, in Momentum's own color for it");
   /* A family holding attention past the limit wears its pull down, as the momentum reading does. */
   const long = CL.attentionTrack(beats, { attention: { read: () => ({ limit: 6, segments: [{ beat: 0, family: "camera", push: 5 }] }) }, secondsPerBeat: 3 });
   ok(long.moments[1].strength === 1 && long.moments[4].strength < long.moments[2].strength && long.moments[4].strength >= 0.2, "a family held past the limit pulls less and less (" + long.moments.map((m) => m.strength.toFixed(2)).join(" ") + ")");

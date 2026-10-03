@@ -1223,7 +1223,25 @@
   const ATT_COLORS = { camera: "#4dabf7", movement: "#ff922b", voice: "#20c997", feeling: "#f06595", comedy: "#fcc419", wardrobe: "#cc5de8", place: "#94d82d", light: "#ffa8a8", music: "#1c7ed6", plot: "#ff6b6b", mind: "#9775fa", effects: "#66d9e8", cut: "#ced4da" };
   const ATT_OTHER = "#868e96";
   const ATT_NONE = "The Attention track needs the momentum code, which isn't loaded, so there is nothing to show.";
-  const attColor = (f) => ATT_COLORS[f] || ATT_OTHER;
+  /* Momentum's own color per family when it is loaded, so a family looks the same here as on every Momentum tab. */
+  const attColor = (f) => {
+    const M = root.CurioMomentum;
+    try {
+      const mk = f && M && typeof M.mark === "function" ? M.mark(f) : null;
+      if (mk && mk.color) return mk.color;
+    } catch (e) {}
+    return ATT_COLORS[f] || ATT_OTHER;
+  };
+  /* Momentum docks its own Attention lane under the timeline (momentum/screen-lane.js) with the Compass's fixes in
+     it. When it is there, this band steps aside so the timeline never shows attention twice. */
+  const momentumLane = () => {
+    const ML = root.CurioMomentumLane;
+    try {
+      return !!(ML && typeof ML.attached === "function" && ML.attached());
+    } catch (e) {
+      return false;
+    }
+  };
   function attentionTrack(beats, o) {
     o = o || {};
     beats = Array.isArray(beats) ? beats : [];
@@ -1603,7 +1621,7 @@
           ${tb("skim", "Preview axis", "Preview axis (S): hover over the timeline to see that moment in the player", tools.skim)}
           ${groups.length ? tb(groups.some((g) => !g.folded) ? "fold-all" : "open-all", groups.some((g) => !g.folded) ? "Fold all" : "Open all", groups.some((g) => !g.folded) ? "Fold every group of lanes to one thin row each; dots still show where their lanes have nodes" : "Open every folded group of lanes") : ""}
           ${tb("film-lines", "Film lines", filmTip("lines"), filmLinesOn())}
-          ${tb("attention-track", "Attention", "Attention track: show or hide the thin band under My film that shows what holds the audience's attention at each moment, and how strongly the film pulls forward", tools.attention !== false)}
+          ${momentumLane() ? "" : tb("attention-track", "Attention", "Attention track: show or hide the thin band under My film that shows what holds the audience's attention at each moment, and how strongly the film pulls forward", tools.attention !== false)}
           <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−), or drag up on the ruler")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+), or drag down on the ruler")}</span>
           <span class="sl-msg" role="status">${esc(msg || (area ? "Drag the selection sideways to move it; hold Alt (Option) to copy it instead." : others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
         </div>
@@ -1644,7 +1662,7 @@
       return data;
     }
     function attentionBand(st, colW, svgW, y) {
-      if (tools.attention === false) return { h: 0, svg: "", head: "" };
+      if (tools.attention === false || momentumLane()) return { h: 0, svg: "", head: "" };
       const d = attentionData(st);
       const h = ATT_H;
       const out = [`<g class="sl-att" data-att-track="${d.ok ? "on" : "none"}"><rect class="sl-attbg" x="0" y="${y}" width="${svgW}" height="${h}"/>`];
