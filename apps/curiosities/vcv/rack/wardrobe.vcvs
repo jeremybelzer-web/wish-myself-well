@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "WARDROBE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 4, CC 81 to 96\n   1 Era of the clothes\n   2 Cheap to expensive\n   3 How much skin is covered\n   4 Looks or function\n   5 The job the clothes do\n   6 Wear and tear\n   7 Fit\n   8 Casual to formal\n   9 Clothes against the set\n  10 Era of the clothes\n  11 Cheap to expensive\n  12 How much skin is covered\n  13 Looks or function\n  14 The job the clothes do\n  15 Wear and tear\n  16 All different to all alike\nCV-CC 2: MIDI channel 4, CC 97 to 110\n   1 True to the time\n   2 Background against the main character\n   3 suite: Main character's clothes lens\n   4 suite: Background clothes lens\n   5 suite: Period truth\n   6 suite: Deliberate anachronism\n   7 suite: Working uniform\n   8 suite: Dressed to impress\n   9 suite: Falling apart\n  10 suite: Frontier\n  11 pair: A new outfit marks a change in the character\n  12 pair: A disguise is followed by its unmasking\n  13 pair: Clashing clothes get noticed\n  14 pairs: Clothes tell the story"
+    "text": "WARDROBE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 33 to 48\n   1 Era of the clothes\n   2 Cheap to expensive\n   3 How much skin is covered\n   4 Looks or function\n   5 The job the clothes do\n   6 Wear and tear\n   7 Fit\n   8 Casual to formal\n   9 Clothes against the set\n  10 Era of the clothes\n  11 Cheap to expensive\n  12 How much skin is covered\n  13 Looks or function\n  14 The job the clothes do\n  15 Wear and tear\n  16 All different to all alike\nCV-CC 2: MIDI channel 5, CC 49 to 62\n   1 True to the time\n   2 Background against the main character\n   3 suite: Main character's clothes lens\n   4 suite: Background clothes lens\n   5 suite: Period truth\n   6 suite: Deliberate anachronism\n   7 suite: Working uniform\n   8 suite: Dressed to impress\n   9 suite: Falling apart\n  10 suite: Frontier\n  11 pair: A new outfit marks a change in the character\n  12 pair: A disguise is followed by its unmasking\n  13 pair: Clashing clothes get noticed\n  14 pairs: Clothes tell the story"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
-     91,
-     92,
-     93,
-     94,
-     95,
-     96
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
     ],
     "midi": {
-     "channel": 3
+     "channel": 4
     }
    },
    "pos": [
@@ -59,25 +59,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     97,
-     98,
-     99,
-     100,
-     101,
-     102,
-     103,
-     104,
-     105,
-     106,
-     107,
-     108,
-     109,
-     110,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
      -1,
      -1
     ],
     "midi": {
-     "channel": 3
+     "channel": 4
     }
    },
    "pos": [

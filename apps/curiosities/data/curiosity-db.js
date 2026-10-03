@@ -453,6 +453,31 @@
       const groups = db.proximitySuites.map((ps) => ({ id: "ps:" + ps.id, label: ps.label, plain: ps.plain, proximities: ps.members.slice(), links: [].concat(...ps.members.map((m) => byProx[m] || [])) }));
       return { format: "curiosities-links", version: 1, links, groups };
     },
+    /* Saved work that names a curiosity merged into another one. Runs in install(), before story.js reads its store.
+       enneagramHealth ("Health of the type": unhealthy, average, healthy) became cm-health (1 at their best, 9 at
+       their worst) on 2026-10-02. */
+    migrate() {
+      const MERGED = { enneagramHealth: { to: "cm-health", map: { unhealthy: 8, average: 5, healthy: 2 } } };
+      try {
+        const ls = root.localStorage;
+        const raw = ls && ls.getItem("curiosities-story-v1");
+        const st = raw && JSON.parse(raw);
+        if (!st || !st.values) return;
+        let changed = false;
+        Object.values(st.values).forEach((scenes) =>
+          (Array.isArray(scenes) ? scenes : []).forEach((row) =>
+            Object.keys(MERGED).forEach((old) => {
+              if (!row || !(old in row)) return;
+              const m = MERGED[old];
+              if (row[m.to] == null && m.map[row[old]] != null) row[m.to] = m.map[row[old]];
+              delete row[old];
+              changed = true;
+            })
+          )
+        );
+        if (changed) ls.setItem("curiosities-story-v1", JSON.stringify(st));
+      } catch (e) {}
+    },
     /* Proximity suites in automation.js's shape ({ id, label, members }). */
     legacyProximitySuites(have) {
       const out = (have || []).slice();
@@ -477,6 +502,7 @@
       /* Proximity suites live in automation.js (PROXIMITY_SUITES), which loads after this, so they wait on
          window.CURIOSITY_PROXIMITY_SUITES for it to merge, the same way it merges CURIOSITY_FACETS. */
       root.CURIOSITY_PROXIMITY_SUITES = api.legacyProximitySuites(root.CURIOSITY_PROXIMITY_SUITES);
+      api.migrate();
       /* The engine (engine/seeds.js) reads every proximity and proximity suite as links from here. */
       root.CURIOSITY_LINKS = api.links();
       /* automation.js merges window.CURIOSITY_FACETS into its lanes when it loads, so the sliders become lanes. */

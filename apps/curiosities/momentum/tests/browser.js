@@ -6,6 +6,10 @@
       measures a curated film; Momentum notes filters.
    2. Live: change My film while the meter follows it; the meter climbs while nothing changes.
    3. The standalone page, momentum/index.html, at phone width with no sideways scroll.
+   4. The Screen (screen/, CapCut layout, with its Player): the momentum panel docks beside the Player, follows
+      the playhead, its ribbon moves the playhead, "Make this move here" is one undo step, it folds to a slim
+      meter, sits under the Player in the "Player on the right" layout, and fits a phone. Skipped when the
+      Screen has no Player panel yet.
    The page must report no errors. Screenshots go to --shots (default: the system temp folder). */
 const http = require("http");
 const fs = require("fs");
@@ -67,6 +71,37 @@ const ok = (cond, text) => {
   }
   await page.waitForFunction(() => window.CurioMomentumUI, null, { timeout: 10000 });
   ok(await page.evaluate(() => !!document.querySelector("#lib-menu [data-momentum]")), "Library menu has Momentum");
+  const extTab = await page.evaluate(() => {
+    window.CurioMomentumUI.addTab({ id: "test-ext", label: "Test tab", after: "end", mount: (el, ctx) => (el.textContent = "ext " + ctx.sources().length + " " + typeof ctx.readSource) });
+    window.CurioMomentumUI.open("test-ext");
+    const t = document.querySelector('.mo-dlg [data-tab="test-ext"]');
+    const body = document.querySelector(".mo-dlg .mo-ext");
+    const out = [!!t, body && body.textContent];
+    window.CurioMomentumUI.open("attention");
+    window.CurioMomentumUI.close();
+    return out;
+  });
+  ok(extTab[0] && /^ext \d+ function$/.test(extTab[1] || ""), "another momentum file can add a tab: " + extTab[1]);
+
+  /* Tab groups: five named groups; a tab without a group goes where its id says, an unknown id to See it. */
+  const groups = await page.evaluate(() => {
+    window.CurioMomentumUI.addTab({ id: "test-share", label: "Test share", group: "share", mount: (el) => (el.textContent = "share") });
+    window.CurioMomentumUI.open("attention");
+    const names = [...document.querySelectorAll(".mo-dlg .mo-tabgroup-name")].map((n) => n.textContent);
+    const where = {};
+    document.querySelectorAll(".mo-dlg .mo-tabgroup").forEach((g) => g.querySelectorAll("[role=tab]").forEach((t) => (where[t.dataset.tab] = g.dataset.tabgroup)));
+    const shown = [...document.querySelectorAll(".mo-dlg [role=tab]")].filter((t) => t.offsetParent).length;
+    window.CurioMomentumUI.close();
+    return { names, where, shown, all: Object.keys(where).length, lists: document.querySelectorAll(".mo-dlg [role=tablist]").length };
+  });
+  ok(groups.names.join("|") === "See it|Fix it|Learn it|Play it live|Share it", "five tab groups: " + groups.names.join(", "));
+  const want = { attention: "see", compass: "fix", engine: "fix", perform: "live", rates: "learn", notes: "learn", "test-ext": "see", "test-share": "share" };
+  const wrong = Object.keys(want).filter((id) => groups.where[id] !== want[id]);
+  ok(!wrong.length, "each tab sits in its group" + (wrong.length ? ": wrong " + wrong.join(", ") : ""));
+  const known = { lesson: "learn", pads: "live", report: "share", cuesheet: "share", cuelab: "fix", pace: "fix", curve: "see", drive: "see", watch: "see", comedy: "see" };
+  const wrongKnown = Object.keys(known).filter((id) => groups.where[id] && groups.where[id] !== known[id]);
+  ok(!wrongKnown.length, "tabs added by other files land in their groups without saying so" + (wrongKnown.length ? ": wrong " + wrongKnown.join(", ") : ""));
+  ok(groups.shown === groups.all && groups.lists === 5, `on a wide screen every tab shows, in 5 named lists (${groups.shown} of ${groups.all})`);
   await page.evaluate(() => {
     document.getElementById("lib-btn").click();
   });
@@ -83,6 +118,7 @@ const ok = (cond, text) => {
   const study = sources.find((s) => s.startsWith("study:"));
   await page.selectOption('.mo-dlg select[data-m="source"]', study);
   const box = await page.$(".mo-dlg .mo-tl-band");
+  await box.scrollIntoViewIfNeeded();
   const bb = await box.boundingBox();
   await page.mouse.move(bb.x + bb.width * 0.4, bb.y + 10);
   ok(await page.evaluate(() => !document.querySelector(".mo-dlg .mo-tip").hidden), "timeline hover shows a tooltip");
@@ -97,6 +133,18 @@ const ok = (cond, text) => {
   ok(after === before + 1, `measuring adds a row (${before} to ${after})`);
   ok(await page.evaluate(() => [...document.querySelectorAll(".mo-dlg .mo-badge")].some((b) => b.textContent === "measured")), "measured row is marked measured");
   await page.screenshot({ path: path.join(SHOTS, "momentum-rates.png") });
+  /* How attention moves, compared with the film just measured. */
+  await page.click('.mo-dlg [data-tab="attention"]');
+  await page.selectOption('.mo-dlg select[data-m="source"]', study);
+  const mid = await page.evaluate(() => [...document.querySelectorAll(".mo-dlg [data-cmp]")].map((b) => b.dataset.cmp).find((id) => id.startsWith("measured-")));
+  if (mid && !(await page.evaluate((id) => document.querySelector(`.mo-dlg [data-cmp="${id}"]`).checked, mid))) await page.click(`.mo-dlg [data-cmp="${mid}"]`);
+  const moves = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll(".mo-dlg .mo-moves tbody tr")];
+    return { rows: rows.length, theirs: rows.filter((r) => !/measure a film|never/.test(r.lastElementChild.textContent)).length };
+  });
+  ok(moves.rows > 0 && moves.theirs > 0, `how attention moves: ${moves.rows} moves, ${moves.theirs} with the measured film's cue`);
+  await page.evaluate(() => document.querySelector(".mo-dlg .mo-moves").scrollIntoView());
+  await page.screenshot({ path: path.join(SHOTS, "momentum-moves.png") });
 
   await page.click('.mo-dlg [data-tab="notes"]');
   await page.fill('.mo-dlg input[data-m="nfind"]', "clothes");
@@ -180,6 +228,138 @@ const ok = (cond, text) => {
   const wide = await phone.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   ok(wide <= 0, `no sideways scroll at phone width (${wide}px over)`);
   await phone.screenshot({ path: path.join(SHOTS, "momentum-phone.png"), fullPage: true });
+
+  /* Tab groups at 1440 and at phone width, in the app (where every momentum file adds its tab). */
+  for (const vp of [{ width: 1440, height: 900 }, { width: 375, height: 800 }]) {
+    const gp = await newPage(vp);
+    await gp.goto(base + "index.html");
+    await gp.evaluate(() => {
+      try {
+        localStorage.removeItem("curiosities-momentum-start-v1");
+        localStorage.removeItem("curiosities-momentum-v1");
+      } catch (e) {}
+    });
+    await gp.reload();
+    if (!(await gp.evaluate(() => document.querySelector('script[src="momentum/load.js"]')))) {
+      await gp.evaluate(() => {
+        const s = document.createElement("script");
+        s.src = "momentum/load.js";
+        document.body.appendChild(s);
+      });
+    }
+    await gp.waitForFunction(() => window.CurioMomentumUI && window.CurioLesson, null, { timeout: 10000 });
+    await gp.evaluate(() => window.CurioMomentumUI.open());
+    await gp.waitForSelector(".mo-dlg[open] .mo-start");
+    const phoneSize = vp.width < 600;
+    const seen = await gp.evaluate(() => ({
+      start: document.querySelector(".mo-dlg .mo-start").textContent,
+      marked: [...document.querySelectorAll(".mo-dlg .mo-tabgroup.on")].map((g) => g.dataset.tabgroup).join(),
+      shown: [...document.querySelectorAll(".mo-dlg [role=tab]")].filter((t) => t.offsetParent).map((t) => t.dataset.tab),
+      over: document.documentElement.scrollWidth - window.innerWidth,
+      dlgOver: document.querySelector(".mo-dlg").scrollWidth - document.querySelector(".mo-dlg").clientWidth,
+    }));
+    ok(/Start here/.test(seen.start) && /Learn it/.test(seen.start), `${vp.width}px: the first time, a "Start here" line points at Learn it`);
+    ok(seen.over <= 0 && seen.dlgOver <= 0, `${vp.width}px: no sideways scroll (${seen.over}px, window ${seen.dlgOver}px)`);
+    ok(seen.shown.length >= 16 && seen.marked === "see", `${vp.width}px: every tab shows under its group's name (${seen.shown.length}), See it marked`);
+    if (phoneSize) {
+      await gp.screenshot({ path: path.join(SHOTS, "momentum-groups-375.png"), fullPage: true });
+      await gp.evaluate(() => window.CurioMomentumUI.open("pads"));
+      ok(await gp.evaluate(() => document.querySelector(".mo-dlg .mo-tabgroup.on").dataset.tabgroup === "live"), "phone: opening a tab by its id marks its group");
+      await gp.click('.mo-dlg [data-tab="report"]');
+      ok(await gp.evaluate(() => document.querySelector(".mo-dlg .mo-tabgroup.on").dataset.tabgroup === "share" && !!document.querySelector(".mo-dlg .mrp-sheet")), "phone: tapping Report opens it and marks Share it");
+      await gp.click('.mo-dlg [data-m="start"]');
+      await gp.waitForSelector(".mo-dlg .mls-card");
+      const after = await gp.evaluate(() => ({ start: !!document.querySelector(".mo-dlg .mo-start"), tab: JSON.parse(localStorage.getItem("curiosities-momentum-v1")).tab }));
+      ok(!after.start && after.tab === "lesson", "Open Learn it opens the lesson, hides the line and is remembered as the last tab");
+      const over2 = await gp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      ok(over2 <= 0, `phone: no sideways scroll in Learn it (${over2}px)`);
+      await gp.screenshot({ path: path.join(SHOTS, "momentum-groups-375-learn.png") });
+    } else {
+      await gp.screenshot({ path: path.join(SHOTS, "momentum-groups-1440.png") });
+      await gp.click('.mo-dlg [data-m="start-hide"]');
+      ok(await gp.evaluate(() => !document.querySelector(".mo-dlg .mo-start")), "Hide this hides the Start here line");
+      await gp.evaluate(() => window.CurioMomentumUI.close());
+      await gp.evaluate(() => window.CurioMomentumUI.open());
+      ok(await gp.evaluate(() => !document.querySelector(".mo-dlg .mo-start")), "and it stays hidden next time");
+    }
+    await gp.close();
+  }
+
+  /* 4. Beside the Screen's Player. */
+  const sp = await newPage({ width: 1440, height: 900 });
+  await sp.goto(base + "index.html?screen=1");
+  if (!(await sp.evaluate(() => document.querySelector('script[src="momentum/load.js"]')))) {
+    await sp.evaluate(() => {
+      const s = document.createElement("script");
+      s.src = "momentum/load.js";
+      document.body.appendChild(s);
+    });
+  }
+  await sp.waitForFunction(() => window.CurioMomentumScreen && window.CurioScreen, null, { timeout: 10000 }).catch(() => {});
+  await sp.evaluate(() => window.CurioScreen && !window.CurioScreen.isOpen() && window.CurioScreen.open());
+  const hasPlayer = await sp.waitForSelector(".sc-page .sc-player", { timeout: 5000 }).then(() => true, () => false);
+  if (!hasPlayer) console.log("skip the Screen has no Player panel here (it arrives with the CapCut layout)");
+  else {
+    await sp.waitForSelector(".sc-player > .mo-sp .mo-sp-film", { timeout: 8000 });
+    const side = await sp.evaluate(() => {
+      const p = document.querySelector(".sc-player").getBoundingClientRect();
+      const m = document.querySelector(".sc-player > .mo-sp").getBoundingClientRect();
+      const v = document.querySelector(".sc-player > .sc-viewers").getBoundingClientRect();
+      return { inside: m.right <= p.right + 1 && m.left >= p.left - 1, beside: m.left >= v.right - 1, w: Math.round(m.width) };
+    });
+    ok(side.inside && side.beside, `momentum panel sits beside the Player's viewers (${side.w}px wide)`);
+    const films = await sp.evaluate(() => [document.querySelectorAll(".mo-sp .mo-sp-film").length, document.querySelectorAll(".sc-viewer").length]);
+    ok(films[0] === films[1], `one meter per viewer (${films[0]} meters, ${films[1]} viewers)`);
+    const subOf = () => sp.evaluate(() => document.querySelector('.mo-sp .mo-sp-film[data-kind="mine"] .mo-sp-name small').textContent);
+    const before = await subOf();
+    await sp.click('.sc-transport [data-act="next"]');
+    await sp.waitForTimeout(150);
+    const after = await subOf();
+    ok(before !== after && /moment 2 of/.test(after), `panel follows the playhead (${before} → ${after})`);
+    const rib = await sp.$('.mo-sp-rib[data-rib="mine"]');
+    const box = await rib.boundingBox();
+    await sp.mouse.click(box.x + box.width * 0.9, box.y + box.height / 2);
+    await sp.waitForTimeout(150);
+    const jumped = await sp.evaluate(() => [/moment (\d+) of (\d+)/.exec(document.querySelector(".sc-viewer.mine .sc-vsub").textContent), document.querySelector('.mo-sp .mo-sp-film[data-kind="mine"] .mo-sp-name small').textContent]);
+    ok(jumped[0] && Number(jumped[0][1]) > 2 && jumped[1].includes("moment " + jumped[0][1] + " of"), `ribbon moves the playhead (to ${jumped[0] && jumped[0][1]})`);
+    const n0 = await sp.evaluate(() => window.CurioEngine.history().undo.length);
+    const hasMove = await sp.$(".mo-sp [data-mo-sp=move]");
+    if (hasMove) {
+      await hasMove.click();
+      await sp.waitForTimeout(150);
+      const moved = await sp.evaluate(() => [window.CurioEngine.history().undo.length, window.CurioEngine.history().undo.slice(-1)[0] || "", document.querySelector(".mo-sp-flash") && document.querySelector(".mo-sp-flash").textContent]);
+      ok(moved[0] === n0 + 1 && /Momentum: move attention/.test(String(moved[1])), `"Make this move here" is one undo step (${moved[1]})`);
+      await sp.screenshot({ path: path.join(SHOTS, "momentum-screen.png") });
+      await sp.evaluate(() => window.CurioEngine.undo());
+      ok((await sp.evaluate(() => window.CurioEngine.history().undo.length)) === n0, "undo takes the move back");
+    } else ok(false, "the Compass offers a move");
+    await sp.click(".mo-sp [data-mo-sp=fold]");
+    const slim = await sp.evaluate(() => [document.querySelector(".mo-sp").classList.contains("folded"), Math.round(document.querySelector(".mo-sp").getBoundingClientRect().width)]);
+    ok(slim[0] && slim[1] <= 40, `folds to a slim meter (${slim[1]}px)`);
+    await sp.click(".mo-sp [data-mo-sp=fold]");
+    if (await sp.$("select[data-pick-layout]")) {
+      await sp.selectOption("select[data-pick-layout]", "right");
+      await sp.waitForTimeout(150);
+      const under = await sp.evaluate(() => {
+        const m = document.querySelector(".sc-player > .mo-sp").getBoundingClientRect();
+        const t = document.querySelector(".sc-player > .sc-transport").getBoundingClientRect();
+        return m.top >= t.bottom - 1;
+      });
+      ok(under, "in the Player-on-the-right layout the panel sits under the Player");
+      await sp.screenshot({ path: path.join(SHOTS, "momentum-screen-right.png") });
+      await sp.selectOption("select[data-pick-layout]", "center");
+    }
+    await sp.setViewportSize({ width: 390, height: 844 });
+    await sp.waitForTimeout(200);
+    const over = await sp.evaluate(() => {
+      const pg = document.querySelector(".sc-page");
+      const m = document.querySelector(".mo-sp").getBoundingClientRect();
+      return [pg.scrollWidth - pg.clientWidth, Math.round(m.width)];
+    });
+    ok(over[0] <= 0 && over[1] > 200, `fits a phone under the Player (${over[0]}px over, ${over[1]}px wide)`);
+    await sp.evaluate(() => document.querySelector(".mo-sp").scrollIntoView());
+    await sp.screenshot({ path: path.join(SHOTS, "momentum-screen-phone.png") });
+  }
 
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
