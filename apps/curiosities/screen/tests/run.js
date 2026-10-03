@@ -410,5 +410,40 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(CL.attentionTrack(null, { attention: att }).moments.length === 0, "a film with no moments draws nothing");
 }
 
+/* The Player's guides (CapCut's guides over the picture): ui.js loaded with no page, only a stub document and
+   a saved view, to check the guide list, the saved setting and where "Where attention is" glows. */
+{
+  const mk = (saved) => {
+    const store = { "curiosities-screen-v1": saved == null ? null : JSON.stringify(saved) };
+    const g = { CurioFrame: w.CurioFrame, document: { readyState: "loading", addEventListener() {} }, localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = v) } };
+    g.window = g;
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "ui.js"), "utf8"), vm.createContext(g), { filename: "ui.js" });
+    return g.CurioScreen.guides;
+  };
+  const G = mk({ guides: ["golden", "thirds", "nonsense"] });
+  const list = G.list();
+  ok(list.map((x) => x.id).join() === "thirds,center,safe,golden,attention", "the Guides menu offers thirds, center cross, safe areas, golden ratio and where attention is");
+  ok(list.every((x) => x.tip && x.tip.startsWith(x.label + ":") && x.tip.length < 140 && !/\n/.test(x.tip)), "each guide has a one-line plain tooltip starting with its name");
+  ok(G.on().join() === "thirds,golden", "saved guides load in menu order, unknown ones dropped");
+  ok(mk({ guides: true }).on().join() === "thirds" && mk({ guides: false }).on().length === 0 && mk(null).on().length === 0, "an older save's single guides switch (⌘;) loads as the thirds guide");
+  const F = w.CurioFrame;
+  /* The head frame.js actually draws: the first person's head circle. */
+  const head = (vals, cast) => { const m = F.svg(vals, { cast }).match(/<circle data-cat="performance" cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"/); return m && { x: +m[1], y: +m[2], r: +m[3] }; };
+  const near = (s, h) => h && Math.abs(s.x - h.x) < 0.2 && Math.abs(s.y - h.y) < 0.2;
+  const face = G.spot({ shotSize: "medium" }, "feeling", 1);
+  ok(near(face, head({ shotSize: "medium" }, 1)) && face.family === "feeling", "attention on a feeling glows on the main character's face, exactly where frame.js draws it (" + face.x + "," + face.y + ")");
+  ok(near(G.spot({ shotSize: "wide", angleHeight: "high" }, "plot", 3), head({ shotSize: "wide", angleHeight: "high" }, 3)), "it follows the shot size, the camera height and the cast");
+  const left = G.spot({ shotSize: "medium", composition: "left third" }, "feeling", 1);
+  ok(Math.abs(left.x - F.W * 0.36) < 0.2, "a single person framed left moves the glow left with them");
+  const two = G.spot({ shotSize: "wide" }, "movement", 3);
+  ok(two.x === F.W / 2 - 100 && two.y < F.H && two.ry > 20, "with several people the glow sits on the first in line, the main character");
+  ok(G.spot({ shotSize: "insert", objectKind: "cup" }, "feeling", 2).what === "the object in the shot", "an insert shot glows on the object");
+  const talk = G.spot({ shotSize: "medium", volume: 3, wordsAmount: 2 }, "voice", 2);
+  ok(Math.abs(talk.x - F.W * 0.3) < 0.2 && talk.y === 28, "attention on what is said glows on the speech balloon");
+  ok(G.spot({}, "music", 2).x < 60 && G.spot({ angleHeight: "eye" }, "light", 2).x > F.W / 2, "music glows on the notes, light on the window");
+  const none = G.spot({ shotSize: "close" }, null, 1);
+  ok(none.family === null && none.y >= 0 && none.y <= F.H && /eye goes first/.test(none.what), "with no attention reading it glows where the eye goes first, inside the frame");
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

@@ -66,7 +66,7 @@
     ghost: false,
     overview: true,
     range: null,
-    guides: false,
+    guides: [],
     rulers: false,
   };
   /* CapCut's layout menu (the layout icon at the top right of its window). Jeremy's screenshots show four
@@ -121,7 +121,7 @@
       ["⌥⇧−", "Zoom out player", "Smaller frames in the Player", (e) => e.altKey && e.shiftKey && (e.code === "Minus" || e.code === "NumpadSubtract"), () => zoomPlayer(0.8)],
       ["⌥⇧Z", "Zoom to fit player", "Frames fit the Player again", (e) => e.altKey && e.shiftKey && e.code === "KeyZ", () => zoomPlayer(0)],
       ["⌘⌥R", "Show/hide rulers", "Rulers along the frames' edges", (e) => mod(e) && e.altKey && e.code === "KeyR", () => toggleView("rulers")],
-      ["⌘;", "Show/hide guides", "Thirds guides over the frames", (e) => mod(e) && !e.altKey && e.key === ";", () => toggleView("guides")],
+      ["⌘;", "Show/hide guides", "The thirds guide over your film (Guides ▾ in the Player has more)", (e) => mod(e) && !e.altKey && e.key === ";", () => (setGuide("thirds", !guidesOn().includes("thirds")), drawViewers())],
       ["Long press ⌘", "Cancel player alignment", "Nothing yet (CapCut lets you place a clip freely while ⌘ is held)"],
     ]],
     ["Basic", [
@@ -405,7 +405,6 @@
     page.dataset.view = prefs.view;
     page.dataset.arrange = prefs.arrange;
     page.dataset.layout = LAYOUTS.some((l) => l[0] === prefs.layout) ? prefs.layout : "center";
-    page.dataset.guides = prefs.guides ? "1" : "";
     page.dataset.rulers = prefs.rulers ? "1" : "";
     page.style.setProperty("--sc-pz", String(Number(prefs.playerZoom) || 1));
     drawBar();
@@ -700,6 +699,94 @@
     const v = ratioOpts().length ? String(valueHere(RATIO) || "") : "";
     return /9:16/.test(v) ? "vertical" : /1:1/.test(v) ? "square" : /2\.39/.test(v) ? "cinema" : "wide";
   }
+  /* ---------- Guides (CapCut's Player guides) ----------
+     Lines over My film's picture to help place things, any combination, following the Ratio frame shape. They
+     are a view setting (prefs.guides, a list of ids), not part of the film and not undo steps. "Where attention
+     is" glows on the part of the picture the moment's attention sits on: CurioFrame doesn't hand out where it
+     drew things, so guideSpot works it out from the same values and the same placement rules frame.js uses. */
+  const GUIDES = [
+    ["thirds", "Thirds", "Thirds: put the important thing where the lines cross; pictures feel more alive than when it's dead center."],
+    ["center", "Center cross", "Center cross: marks the exact middle, for things you want perfectly balanced or straight on."],
+    ["safe", "Safe areas", "Safe areas: keep words inside the inner box and action inside the outer one, so no screen cuts them off at the edges."],
+    ["golden", "Golden ratio", "Golden ratio: like thirds but a little nearer the middle; an old painters' rule for a calm, pleasing balance."],
+    ["attention", "Where attention is", "Where attention is: a soft glow on the part of the picture the audience is looking at in this moment."],
+  ];
+  let guidesOpen = false;
+  function guidesOn() {
+    const g = prefs.guides;
+    if (g === true) return ["thirds"]; /* an older save kept one switch: the thirds grid (⌘;) */
+    return Array.isArray(g) ? GUIDES.map((x) => x[0]).filter((id) => g.includes(id)) : [];
+  }
+  function setGuide(id, on) {
+    const cur = guidesOn();
+    prefs.guides = GUIDES.map((x) => x[0]).filter((k) => (k === id ? !!on : cur.includes(k)));
+    save();
+  }
+  /* Where the moment's attention sits in the frame's own 320×180 drawing: { x, y, rx, ry, family, what }.
+     Mirrors frame.js: the horizon from the angle, the size from the shot, the main character first in line
+     (or left of center when the composition says so), the speech balloon, the music notes, the window. */
+  function guideSpot(values, family, cast) {
+    const v = values || {};
+    const W = (F() && F().W) || 320;
+    const H = (F() && F().H) || 180;
+    const num = (x, d) => (x == null || x === "" || !isFinite(Number(x)) ? d : Number(x));
+    const shot = String(v.shotSize || "medium");
+    const angle = String(v.angleHeight || "eye");
+    const horizon = angle === "low" ? 140 : angle === "high" ? 70 : /overhead/.test(angle) ? 30 : /floor/.test(angle) ? 160 : 112;
+    const s = shot === "wide" ? 0.75 : shot === "close" ? 2.6 : shot === "insert" ? 1 : 1.35;
+    const n = shot === "close" ? 1 : Math.max(1, Math.min(6, num(cast, num(v.peopleCount, 2))));
+    const floorY = shot === "close" ? H + 120 : Math.min(H - 6, horizon + 40 + (shot === "wide" ? 0 : 20));
+    const span = shot === "wide" ? 200 : 170;
+    const x = n === 1 ? (/left/.test(String(v.composition || "")) ? W * 0.36 : W / 2) : W / 2 - span / 2;
+    const top = floorY - 74 * s;
+    const foot = Math.min(floorY, H);
+    const insert = shot === "insert";
+    const face = { x, y: floorY - 65 * s, rx: Math.max(18, 20 * s), ry: Math.max(16, 18 * s), what: "the main character's face" };
+    const body = { x, y: (top + foot) / 2, rx: Math.max(20, 22 * s), ry: (foot - top) / 2 + 6, what: "the main character" };
+    const person = (p) => (insert ? { x: W / 2, y: H / 2, rx: 56, ry: 42, what: "the object in the shot" } : p);
+    const vol = num(v.volume, 0);
+    const words = num(v.wordsAmount, vol ? 2 : 0);
+    const f = String(family || "");
+    let spot;
+    if (/^(feeling|mind|plot)$/.test(f)) spot = person(face);
+    else if (f === "voice") spot = words > 0 && !insert ? { x: W * 0.3, y: 28, rx: 28 + vol * 5, ry: 18 + vol * 1.5, what: "what is being said" } : person(face);
+    else if (/^(movement|wardrobe|camera)$/.test(f)) spot = person(body);
+    else if (f === "comedy") spot = v.physicalComedy && !insert ? { x: W / 2 + 48, y: floorY - 52, rx: 26, ry: 24, what: "the gag" } : num(v.laughsPerMinute, 0) > 0 ? { x: W - 48, y: H - 22, rx: 42, ry: 22, what: "the laughs" } : person(face);
+    else if (f === "music") spot = { x: 34, y: H - 16, rx: 40, ry: 22, what: "the music" };
+    else if (/^(place|light)$/.test(f)) spot = { x: W - 56, y: Math.max(8, horizon - 70) + 22, rx: 46, ry: 36, what: f === "light" ? "the light from the window" : "the set" };
+    else if (f) spot = { x: W / 2, y: H / 2, rx: W * 0.32, ry: H * 0.38, what: "the whole picture" };
+    else spot = Object.assign({}, person(face), { what: insert ? "the object in the shot" : "the main character's face, where the eye goes first" });
+    const r = (k) => Math.round(k * 10) / 10;
+    return { x: r(spot.x), y: r(Math.max(0, Math.min(H, spot.y))), rx: r(spot.rx), ry: r(spot.ry), family: f || null, what: spot.what };
+  }
+  function guidesHtml(vals, att, shape) {
+    const on = guidesOn();
+    if (!on.length) return "";
+    const line = (k, p) => `<i class="sc-gd-${k}" style="${k === "v" ? "left" : "top"}:${p}%"></i>`;
+    const lines = (ps) => ps.map((p) => line("v", p) + line("h", p)).join("");
+    const W = F().W;
+    const H = F().H;
+    const part = {
+      thirds: () => lines([33.333, 66.667]),
+      golden: () => lines([38.197, 61.803]),
+      center: () => `<i class="sc-gd-cross"></i>`,
+      safe: () => `<div class="sc-gd-box action"><span>keep action inside</span></div><div class="sc-gd-box title"><span>keep words inside</span></div>`,
+      attention: () => {
+        const s = guideSpot(vals, att && att.family, castOf());
+        const el = `cx="${s.x}" cy="${s.y}" rx="${s.rx}" ry="${s.ry}"`;
+        return `<svg class="sc-gd-att" viewBox="0 0 ${W} ${H}"${shape === "wide" ? "" : ' preserveAspectRatio="xMidYMid slice"'} data-family="${esc(s.family || "")}"><defs><radialGradient id="sc-gd-hole"><stop offset="0.55" stop-color="#000"/><stop offset="1" stop-color="#fff"/></radialGradient><mask id="sc-gd-mask"><rect width="${W}" height="${H}" fill="#fff"/><ellipse ${el} fill="url(#sc-gd-hole)"/></mask></defs><rect width="${W}" height="${H}" fill="rgba(0,0,0,0.38)" mask="url(#sc-gd-mask)"/><ellipse class="sc-gd-spot" ${el} fill="none" stroke="#ffd34d" stroke-width="1.5" stroke-dasharray="4 3"/></svg><span class="sc-gd-cap">Eyes on: ${esc(s.what)}</span>`;
+      },
+    };
+    return `<div class="sc-gd" aria-hidden="true">${on.map((id) => `<div class="sc-gd-g" data-gd="${id}">${part[id]()}</div>`).join("")}</div>`;
+  }
+  function guidesMenuHtml() {
+    const on = guidesOn();
+    return `<span class="sc-guides"><button type="button" data-act="guides-menu" class="${on.length ? "on" : ""}" aria-haspopup="true" aria-expanded="${guidesOpen}" title="Guides: lines over your film's picture to help you place things. They don't change your film.">Guides${on.length ? " · " + on.length : ""} ▾</button>${
+      guidesOpen
+        ? `<div class="sc-guides-menu" role="group" aria-label="Guides over my film">${GUIDES.map(([id, l, t]) => `<label title="${esc(t)}"><input type="checkbox" data-guide="${id}"${on.includes(id) ? " checked" : ""}> ${esc(l)}</label>`).join("")}<p>Only over your film, in its frame shape. Hover over one to see what it is for.</p></div>`
+        : ""
+    }</span>`;
+  }
   function viewerHtml(kind, v) {
     const sel = selection();
     if (kind === "mine") {
@@ -713,7 +800,7 @@
       const fill = (svg) => (shape === "wide" ? svg : svg.replace("<svg ", '<svg preserveAspectRatio="xMidYMid slice" '));
       return `<article class="sc-viewer mine${prefs.focus === "mine" ? " focus" : ""}" data-viewer="mine">
         <header><button type="button" class="sc-vname" data-focus="mine">My film</button><span class="sc-vsub">${esc(E() ? E().state().name : "")} · moment ${i + 1} of ${beats.length}</span></header>
-        <div class="sc-frame" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
+        <div class="sc-frame" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${guidesHtml(vals, att, shape)}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
         ${scrub(beats, i, fires, "mine")}
         <p class="sc-vnote">${fires.length ? `${esc(sel.label)} shows up ${fires.length} time${fires.length === 1 ? "" : "s"} in your film.` : `${esc(sel.label)} does not show up in your film yet.`}</p>
       </article>`;
@@ -845,7 +932,7 @@
     showTimelineWindow();
     page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
-      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}</span>`;
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}</span>`;
   }
 
   /* ---------- the inspector ---------- */
@@ -1506,6 +1593,13 @@
     return (d.options || []).slice(0, 18);
   }
   function onClick(e) {
+    if (guidesOpen && !e.target.closest(".sc-guides")) {
+      guidesOpen = false;
+      const m = page.querySelector(".sc-guides-menu");
+      if (m) m.remove();
+      const b = page.querySelector('[data-act="guides-menu"]');
+      if (b) b.setAttribute("aria-expanded", "false");
+    }
     const t = e.target.closest("button, [data-scrub], .sc-frame");
     if (!t || !page.contains(t)) return;
     const d = t.dataset;
@@ -1656,6 +1750,12 @@
       save();
       return drawViewers();
     }
+    if (act === "guides-menu") {
+      guidesOpen = !guidesOpen;
+      drawViewers();
+      const b = page.querySelector('[data-act="guides-menu"]');
+      return b && b.focus();
+    }
     if (act === "range-clear") return setRange(null);
     if (act === "keys-close") return showKeys(false);
     if (act === "play") return play(!timer);
@@ -1718,6 +1818,12 @@
       drawViewers();
       drawInspector();
       return lanes && lanes.draw();
+    }
+    if ("guide" in d) {
+      setGuide(d.guide, t.checked);
+      drawViewers();
+      const box = page.querySelector(`.sc-guides-menu [data-guide="${d.guide}"]`);
+      return box && box.focus();
     }
     if ("ratio" in d) {
       showLane(RATIO);
@@ -1943,5 +2049,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, setRow, row: () => row, addPanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, setRow, row: () => row, addPanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();
