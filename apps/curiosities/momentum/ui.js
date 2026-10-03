@@ -34,9 +34,9 @@
   if (!M || !A || !R) return;
 
   /* Eight fixed family colors (validated categorical order); the other families share gray as "Other". */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const colorOf = (f) => COLORS[f] || OTHER;
+  /* Family colors and the status marks come from notes.js (CurioMomentum.mark, CurioMomentum.status). */
+  const OTHER = M.OTHER;
+  const colorOf = (f) => M.mark(f).color;
   const famLabel = (f) => (M.family(f) || { label: f }).label;
   const cueLabel = (c) => (M.CUES.find((x) => x.id === c) || { label: c }).label;
 
@@ -240,13 +240,7 @@
   }
 
   /* ---------- pieces ---------- */
-  function statusOf(run, lim) {
-    if (!run) return { cls: "good", icon: "●", text: "Nothing yet" };
-    const r = run.dur / lim;
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
+  const statusOf = (run, lim) => M.status(run ? run.dur : null, lim);
   function meterHtml(reading, at) {
     const s = reading.stats;
     const run = at ? at.run : s.currentRun;
@@ -278,8 +272,8 @@
   function pieHtml(stats) {
     const entries = Object.entries(stats.familyShare || {}).filter(([, v]) => v > 0);
     if (!entries.length) return `<p class="mo-empty">No attention yet.</p>`;
-    const named = entries.filter(([f]) => COLORS[f]);
-    const other = entries.filter(([f]) => !COLORS[f]);
+    const named = entries.filter(([f]) => M.COLORS[f]);
+    const other = entries.filter(([f]) => !M.COLORS[f]);
     const otherShare = other.reduce((a, [, v]) => a + v, 0);
     const slices = named.concat(otherShare > 0 ? [["other", otherShare]] : []);
     const total = slices.reduce((a, [, v]) => a + v, 0) || 1;

@@ -29,11 +29,9 @@
 
   const FPS = [24, 25, 30];
   const KEY = "curiosities-momentum-cuesheet-v1";
-  /* The same family colors as ui.js: eight have their own, the others share gray. */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const LETTERS = { camera: "Ca", movement: "Mo", voice: "V", feeling: "F", comedy: "Co", wardrobe: "W", place: "S", light: "Li", music: "Mu", plot: "P", mind: "T", effects: "E", cut: "Cu" };
-  const colorOf = (f) => COLORS[f] || OTHER;
+  /* Family colors and letters, and the Fresh / Getting long / Too long marks, come from notes.js
+     (CurioMomentum.mark and CurioMomentum.status), the same on every tab. */
+  const mark = (f) => M().mark(f);
   const round = (n, d) => Math.round(n * Math.pow(10, d || 0)) / Math.pow(10, d || 0);
   const esc = (s) =>
     String(s == null ? "" : s)
@@ -53,12 +51,7 @@
   const secs = (n) => `${round(n, 1)} second${round(n, 1) === 1 ? "" : "s"}`;
 
   /* The status of a hold against the limit, as the meter says it: icon plus words, never color alone. */
-  function statusOf(held, lim) {
-    const r = held / (lim || 20);
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
+  const statusOf = (held, lim) => M().status(held || 0, lim);
   function parseAt(at) {
     if (typeof at === "number" && isFinite(at)) return at;
     if (typeof at !== "string") return null;
@@ -118,7 +111,7 @@
       const endFrame = Math.max(startFrame, frameAt(to) - 1);
       const row = { index: j + 1, at: round(at, 2), clock: clock(at), startFrame, endFrame, frames: endFrame - startFrame + 1, fps };
       if (k < 0) {
-        Object.assign(row, { family: "", familyLabel: "", letter: "", color: "", curiosity: "", label: "", change: "", cue: "", cueLabel: "", quiet: false, held: 0, status: { cls: "good", icon: "●", text: "Nothing yet" }, limitFrame: null });
+        Object.assign(row, { family: "", familyLabel: "", letter: "", color: "", curiosity: "", label: "", change: "", cue: "", cueLabel: "", quiet: false, held: 0, status: M().status(null), limitFrame: null });
         row.note = "Nothing holds attention yet. Give the audience something new to look at or listen to.";
         rows.push(row);
         continue;
@@ -131,8 +124,8 @@
       Object.assign(row, {
         family: s.family,
         familyLabel: famLabel(s.family),
-        letter: LETTERS[s.family] || String(s.family || "?")[0].toUpperCase(),
-        color: colorOf(s.family),
+        letter: mark(s.family).letter,
+        color: mark(s.family).color,
         curiosity: s.curiosity,
         label: s.label,
         change,
@@ -235,7 +228,7 @@
     return out + '"';
   }
   const rgb = (hex) => {
-    const h = String(hex || OTHER).replace("#", "");
+    const h = String(hex || M().OTHER).replace("#", "");
     return [0, 2, 4].map((i) => round(parseInt(h.slice(i, i + 2), 16) / 255, 3));
   };
   /* The Maya script. Read-only toward what is already in the scene: it adds bookmarks or locators, nothing else. */

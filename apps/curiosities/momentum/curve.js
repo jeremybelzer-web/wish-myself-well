@@ -352,9 +352,9 @@
     wireChart(el, mine, theirPts, theirName);
     wire(el, ctx, own, mine, isEngine);
   }
+  /* Family colors come from notes.js (CurioMomentum.mark), the same on every tab. */
   function famColor(f) {
-    const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-    return COLORS[f] || "#a8a39a";
+    return M().mark(f).color;
   }
   function wireChart(el, mine, theirs, theirName) {
     const svg = el.querySelector(".mcv-svg");

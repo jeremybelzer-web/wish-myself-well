@@ -28,9 +28,8 @@
   const SC = () => window.CurioScreen;
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   /* The same family colors as the Momentum window (ui.js). */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const colorOf = (f) => COLORS[f] || OTHER;
+  /* Family colors and the status marks come from notes.js (CurioMomentum.mark, CurioMomentum.status). */
+  const colorOf = (f) => M().mark(f).color;
   const famLabel = (f) => (M() && M().family(f) ? M().family(f).label : f || "");
   const cueLabel = (c) => {
     const x = M() && M().CUES.find((k) => k.id === c);
@@ -132,13 +131,7 @@
   }
 
   /* ---------- drawing ---------- */
-  function status(run, lim) {
-    if (!run) return { cls: "good", icon: "●", text: "Nothing yet" };
-    const r = run.dur / lim;
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
+  const status = (run, lim) => M().status(run ? run.dur : null, lim);
   function meterHtml(name, sub, x, lim, kind, key) {
     const run = x && x.run;
     const st = status(run, lim);
@@ -197,7 +190,7 @@
         const st = status(run, data.limit);
         const pct = run ? Math.min(100, (run.dur / data.limit) * 100) : 0;
         html = `<button type="button" data-mo-sp="fold" class="mo-sp-slim" aria-expanded="false" title="Momentum: ${esc(run ? famLabel(run.family) + " has held attention " + Math.round(run.dur) + " of " + data.limit + " seconds (" + st.text + ")" : "nothing yet")}. Click to open the panel.">
-          <span class="mo-sp-vbar ${st.cls}"><span style="height:${pct.toFixed(1)}%;--w:${pct.toFixed(1)}%;background:${run ? colorOf(run.family) : OTHER}"></span></span><span class="mo-sp-st ${st.cls}">${st.icon}</span><span class="mo-sp-vt">Momentum</span></button>`;
+          <span class="mo-sp-vbar ${st.cls}"><span style="height:${pct.toFixed(1)}%;--w:${pct.toFixed(1)}%;background:${run ? colorOf(run.family) : M().OTHER}"></span></span><span class="mo-sp-st ${st.cls}">${st.icon}</span><span class="mo-sp-vt">Momentum</span></button>`;
       } else {
         html = `<header class="mo-sp-h"><strong>Momentum</strong><button type="button" data-mo-sp="open" title="Open the whole Momentum window">Open</button><button type="button" data-mo-sp="fold" aria-expanded="true" title="Fold it to a slim meter">›</button></header>
           ${flash ? `<p class="mo-sp-flash" role="status">${esc(flash)}</p>` : ""}
