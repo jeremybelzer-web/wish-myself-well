@@ -276,7 +276,7 @@
       con > 0.5 ? vignette((con - 0.5) * 1.6) : con < 0.5 ? tint({ color: "#9a9a9a", alpha: (0.5 - con) * 0.6 }) : "",
     ].join("");
   }
-  const vignette = (p) => `<defs><radialGradient id="cwvig"><stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="${r1(clamp(p, 0, 1) * 100) / 100}"/></radialGradient></defs><rect x="0" y="0" width="${W}" height="${H}" fill="url(#cwvig)"/>`;
+  const vignette = (p) => `<defs><radialGradient id="cwvig${Math.round(clamp(p, 0, 1) * 100)}"><stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="${r1(clamp(p, 0, 1) * 100) / 100}"/></radialGradient></defs><rect x="0" y="0" width="${W}" height="${H}" fill="url(#cwvig${Math.round(clamp(p, 0, 1) * 100)})"/>`;
 
   /* ---------- text ---------- */
   function text(o) {

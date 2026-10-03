@@ -54,5 +54,6 @@
   "say-story.js",
   "say-page.js",
   "look-camera.js",
-  "look-story.js"
+  "look-story.js",
+  "look-comedy.js"
 ]
