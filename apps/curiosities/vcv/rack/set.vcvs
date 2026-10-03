@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "SET DESIGN\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 33 to 48\n   1 Era and style of the place\n   2 Main material\n   3 Soft curves to sharp clean lines\n   4 Art on the walls\n   5 How the art is arranged\n   6 Clutter\n   7 Cramped to open\n   8 Run down to spotless\n   9 Layers behind the people\n  10 Dark to bright colors\n  11 How the room is laid out\n  12 Props\n  13 suite: Set design lens\n  14 suite: Dive bar\n  15 suite: Upscale lounge\n  16 suite: Period piece\nCV-CC 2: MIDI channel 5, CC 49 to 58\n   1 suite: Cold minimalism\n   2 suite: Warm maximalism\n   3 suite: Lived-in home\n   4 pair: When the clutter rises, the room feels more cramped\n   5 pair: When the place runs down, the clothes wear out too\n   6 pair: In a cluttered room, the shots get closer\n   7 pair: In a huge space, the frame goes wide\n   8 pair: A key prop gets its close-up\n   9 pair: A run-down room darkens the mood\n  10 pairs: The set steers the camera"
+    "text": "SET DESIGN\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 49 to 64\n   1 Era and style of the place\n   2 Main material\n   3 Soft curves to sharp clean lines\n   4 Art on the walls\n   5 How the art is arranged\n   6 Clutter\n   7 Cramped to open\n   8 Run down to spotless\n   9 Layers behind the people\n  10 Dark to bright colors\n  11 How the room is laid out\n  12 Props\n  13 suite: Set design lens\n  14 suite: Dive bar\n  15 suite: Upscale lounge\n  16 suite: Period piece\nCV-CC 2: MIDI channel 5, CC 65 to 74\n   1 suite: Cold minimalism\n   2 suite: Warm maximalism\n   3 suite: Lived-in home\n   4 pair: When the clutter rises, the room feels more cramped\n   5 pair: When the place runs down, the clothes wear out too\n   6 pair: In a cluttered room, the shots get closer\n   7 pair: In a huge space, the frame goes wide\n   8 pair: A key prop gets its close-up\n   9 pair: A run-down room darkens the mood\n  10 pairs: The set steers the camera"
    },
    "pos": [
     0,
@@ -27,22 +27,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
     ],
     "midi": {
      "channel": 4
@@ -59,16 +59,16 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
      -1,
      -1,
      -1,

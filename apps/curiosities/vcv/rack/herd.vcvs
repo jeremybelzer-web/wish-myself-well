@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "HERD MENTALITY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 4, CC 65 to 73\n   1 Herd mentality\n   2 Who leads the herd\n   3 Dissenter\n   4 Group pressure\n   5 suite: A mob forms\n   6 suite: The lone voice\n   7 pair: When someone defies the group, the pressure rises\n   8 pair: When the herd grows, doubts go quiet\n   9 pairs: The group closes ranks"
+    "text": "HERD MENTALITY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 4, CC 81 to 89\n   1 Herd mentality\n   2 Who leads the herd\n   3 Dissenter\n   4 Group pressure\n   5 suite: A mob forms\n   6 suite: The lone voice\n   7 pair: When someone defies the group, the pressure rises\n   8 pair: When the herd grows, doubts go quiet\n   9 pairs: The group closes ranks"
    },
    "pos": [
     0,
@@ -27,15 +27,15 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
      -1,
      -1,
      -1,

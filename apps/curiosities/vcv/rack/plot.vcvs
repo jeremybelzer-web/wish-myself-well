@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "PERSONAL PLOT\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 81 to 91\n   1 Own plot weight\n   2 Own plot meets the main plot\n   3 What they want, against what they need\n   4 Secret\n   5 Closer to or further from the goal\n   6 suite: Hidden agenda\n   7 suite: Chasing the wrong thing\n   8 suite: We know, they don't\n   9 pair: When a secret starts slipping, cringe rises\n  10 pair: When the character is set back, their emotional road drops\n  11 pairs: Secrets and lies"
+    "text": "PERSONAL PLOT\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 81 to 96\n   1 Own plot weight\n   2 Own plot meets the main plot\n   3 What they want, against what they need\n   4 Secret\n   5 Closer to or further from the goal\n   6 Questions the audience is holding\n   7 A clock running out\n   8 Who knows first\n   9 suite: Hidden agenda\n  10 suite: Chasing the wrong thing\n  11 suite: We know, they don't\n  12 suite: Bomb under the table\n  13 pair: When a secret starts slipping, cringe rises\n  14 pair: When the character is set back, their emotional road drops\n  15 pair: When a scene ends on a cliffhanger, the audience's questions rise\n  16 pair: When the opening grabs with a question, a question opens\nCV-CC 2: MIDI channel 3, CC 97 to 98\n   1 pairs: Secrets and lies\n   2 pairs: Questions pull the audience forward"
    },
    "pos": [
     0,
@@ -38,6 +38,38 @@
      89,
      90,
      91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 2
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -49,7 +81,7 @@
     }
    },
    "pos": [
-    24,
+    32,
     0
    ]
   }

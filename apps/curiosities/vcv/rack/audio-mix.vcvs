@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "COLOR\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 17 to 32\n   1 Black and white to full color\n   2 Color filter\n   3 Filter color\n   4 Number of main colors\n   5 One color that pops\n   6 Warm to cool\n   7 Color change in the scene\n   8 How true skin looks\n   9 suite: Color lens\n  10 suite: The whole look\n  11 suite: Teal and orange\n  12 suite: Faded memory\n  13 suite: Black and white with one color\n  14 suite: Bleak gray\n  15 pair: When the color filter gets strong, the number of main colors drops\n  16 pair: When anger rises, the color runs warm\nCV-CC 2: MIDI channel 5, CC 33 to 34\n   1 pair: When fear rises, the color drains\n   2 pairs: Color follows the feeling"
+    "text": "AUDIO MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 10, CC 17 to 32\n   1 Music under speech\n   2 Audio fades\n   3 Voice effect\n   4 Edited-in sound hits\n   5 Loudness\n   6 Voice-over\n   7 Translated voice\n   8 Voice cleanup\n   9 Music sting\n  10 Sound roles\n  11 pair: When the joke pays off, a sound hit lands\n  12 pair: When the clip slows down, the music rises\n  13 pair: When the clip rewinds, a sound hit plays\n  14 pair: When a cutaway covers the talking, the music sits under\n  15 pair: When a scene ends on a button joke, a sting hits\n  16 pair: When the joke pays off, a music sting lands\nCV-CC 2: MIDI channel 10, CC 33 to 34\n   1 pair: When the multicam switches on the speaker, dialogue leads the mix\n   2 pair: When a running montage rides above the story, the music leads"
    },
    "pos": [
     0,
@@ -45,7 +45,7 @@
      32
     ],
     "midi": {
-     "channel": 4
+     "channel": 9
     }
    },
    "pos": [
@@ -77,7 +77,7 @@
      -1
     ],
     "midi": {
-     "channel": 4
+     "channel": 9
     }
    },
    "pos": [
