@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "PERSPECTIVE & MINDSET\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 4, CC 49 to 55\n   1 Whose good they see\n   2 Mindset\n   3 Closed mindset to Widening mindset\n   4 How the belief shows\n   5 suite: Closed mind\n   6 suite: The circle widens\n   7 pair: When a belief is challenged hard, the mindset opens"
+    "text": "PERSPECTIVE & MINDSET\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 81 to 90\n   1 Whose good they see\n   2 Mindset\n   3 Closed mindset to Widening mindset\n   4 How the belief shows\n   5 suite: Closed mind\n   6 suite: The circle widens\n   7 pair: When a belief is challenged hard, the mindset opens\n   8 pair: When a character starts caring about the whole world, what they want lines up with what they need\n   9 pair: When a belief turns into a big choice, the character changes\n  10 pairs: Growing up"
    },
    "pos": [
     0,
@@ -27,16 +27,16 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     -1,
-     -1,
-     -1,
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
      -1,
      -1,
      -1,
@@ -45,7 +45,7 @@
      -1
     ],
     "midi": {
-     "channel": 3
+     "channel": 4
     }
    },
    "pos": [

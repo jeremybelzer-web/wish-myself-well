@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "AUDIO MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 10, CC 65 to 80\n   1 Music under speech\n   2 Audio fades\n   3 Voice effect\n   4 Edited-in sound hits\n   5 Loudness\n   6 Voice-over\n   7 Translated voice\n   8 Voice cleanup\n   9 Music sting\n  10 Sound roles\n  11 pair: When the joke pays off, a sound hit lands\n  12 pair: When the clip slows down, the music rises\n  13 pair: When the clip rewinds, a sound hit plays\n  14 pair: When a cutaway covers the talking, the music sits under\n  15 pair: When a scene ends on a button joke, a sting hits\n  16 pair: When the joke pays off, a music sting lands\nCV-CC 2: MIDI channel 10, CC 81 to 82\n   1 pair: When the multicam switches on the speaker, dialogue leads the mix\n   2 pair: When a running montage rides above the story, the music leads"
+    "text": "AUDIO MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 13, CC 17 to 32\n   1 Music under speech\n   2 Audio fades\n   3 Voice effect\n   4 Edited-in sound hits\n   5 Loudness\n   6 Voice-over\n   7 Translated voice\n   8 Voice cleanup\n   9 Music sting\n  10 Sound roles\n  11 suite: Hazy memory\n  12 suite: Dubbed foreign film\n  13 suite: Clean interview sound\n  14 pair: When the joke pays off, a sound hit lands\n  15 pair: When the clip slows down, the music rises\n  16 pair: When the clip rewinds, a sound hit plays\nCV-CC 2: MIDI channel 13, CC 33 to 40\n   1 pair: When a cutaway covers the talking, the music sits under\n   2 pair: When a scene ends on a button joke, a sting hits\n   3 pair: When the joke pays off, a music sting lands\n   4 pair: When the multicam switches on the speaker, dialogue leads the mix\n   5 pair: When a running montage rides above the story, the music leads\n   6 pair: When the voice-over is caught out by the picture, the scene turns funny\n   7 pair: When a voice echoes, the moment feels like a dream or a memory\n   8 pair: When a voice is translated, the mouths stop matching the words"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32
     ],
     "midi": {
-     "channel": 9
+     "channel": 12
     }
    },
    "pos": [
@@ -59,14 +59,14 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
      -1,
      -1,
      -1,
@@ -77,7 +77,7 @@
      -1
     ],
     "midi": {
-     "channel": 9
+     "channel": 12
     }
    },
    "pos": [

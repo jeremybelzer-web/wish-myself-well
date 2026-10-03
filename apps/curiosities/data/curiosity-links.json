@@ -6334,6 +6334,4571 @@
    "does": "rise",
    "when": "things break",
    "then": "the mess spreads"
+  },
+  {
+   "id": "p:player-takes-camera-view",
+   "proximity": "player-takes-camera-view",
+   "label": "When the player takes the camera, the view becomes theirs",
+   "from": {
+    "curiosity": "cameraOwner",
+    "track": "camera",
+    "is": "player",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pov",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a person",
+   "when": "the player takes the camera",
+   "then": "the view becomes theirs"
+  },
+  {
+   "id": "p:seen-through-eyes-shake",
+   "proximity": "seen-through-eyes-shake",
+   "label": "When we see through someone's eyes, the picture starts to shake",
+   "from": {
+    "curiosity": "pov",
+    "track": "camera",
+    "is": "a person",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cameraShake",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we see through someone's eyes",
+   "then": "the picture starts to shake"
+  },
+  {
+   "id": "p:lying-eyes-lying-voice",
+   "proximity": "lying-eyes-lying-voice",
+   "label": "When the point of view is lying, the voice-over and the picture disagree",
+   "from": {
+    "curiosity": "pov.honesty",
+    "track": "camera",
+    "is": "lying",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "voiceover.truth",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "the picture says otherwise",
+   "when": "the point of view is lying",
+   "then": "the voice-over and the picture disagree"
+  },
+  {
+   "id": "p:voiceover-caught-laugh",
+   "proximity": "voiceover-caught-laugh",
+   "label": "When the voice-over is caught out by the picture, the scene turns funny",
+   "from": {
+    "curiosity": "voiceover.truth",
+    "track": "master",
+    "is": "the picture says otherwise",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "absurd",
+   "when": "the voice-over is caught out by the picture",
+   "then": "the scene turns funny"
+  },
+  {
+   "id": "p:more-angles-faster-cuts",
+   "proximity": "more-angles-faster-cuts",
+   "label": "When a scene has more angles, the cutting speeds up",
+   "from": {
+    "curiosity": "angleCount",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a scene has more angles",
+   "then": "the cutting speeds up"
+  },
+  {
+   "id": "p:angle-for-line-cuts-on-line",
+   "proximity": "angle-for-line-cuts-on-line",
+   "label": "When each angle is picked for a line, the cuts land on the lines",
+   "from": {
+    "curiosity": "angleToLine",
+    "track": "camera",
+    "is": "matches the line",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "angleChange",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "on the line",
+   "when": "each angle is picked for a line",
+   "then": "the cuts land on the lines"
+  },
+  {
+   "id": "p:angle-against-line-laugh",
+   "proximity": "angle-against-line-laugh",
+   "label": "When the angle plays against the line, the joke lands",
+   "from": {
+    "curiosity": "angleToLine",
+    "track": "camera",
+    "is": "plays against the line",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "absurd",
+   "when": "the angle plays against the line",
+   "then": "the joke lands"
+  },
+  {
+   "id": "p:angle-for-action-cuts-on-action",
+   "proximity": "angle-for-action-cuts-on-action",
+   "label": "When each angle is picked for the action, the cuts land on the moves",
+   "from": {
+    "curiosity": "angleToAction",
+    "track": "camera",
+    "is": "matches the action",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "angleChange",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "on the action",
+   "when": "each angle is picked for the action",
+   "then": "the cuts land on the moves"
+  },
+  {
+   "id": "p:angle-against-action-unease",
+   "proximity": "angle-against-action-unease",
+   "label": "When the angle fights the action, the audience feels uneasy",
+   "from": {
+    "curiosity": "angleToAction",
+    "track": "camera",
+    "is": "plays against the action",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "anxious",
+   "when": "the angle fights the action",
+   "then": "the audience feels uneasy"
+  },
+  {
+   "id": "p:cross-starts-the-move",
+   "proximity": "cross-starts-the-move",
+   "label": "When a character crosses the room, the camera move starts with them",
+   "from": {
+    "curiosity": "characterPath",
+    "track": "character",
+    "is": "cross",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moveOn",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "action",
+   "when": "a character crosses the room",
+   "then": "the camera move starts with them"
+  },
+  {
+   "id": "p:follow-character-track",
+   "proximity": "follow-character-track",
+   "label": "When the camera follows a character, it tracks alongside them",
+   "from": {
+    "curiosity": "moveFollows",
+    "track": "camera",
+    "is": "character",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cameraMove",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "track",
+   "when": "the camera follows a character",
+   "then": "it tracks alongside them"
+  },
+  {
+   "id": "p:move-on-breath-pause",
+   "proximity": "move-on-breath-pause",
+   "label": "When the camera moves on a breath, a small pause opens up",
+   "from": {
+    "curiosity": "moveOn",
+    "track": "camera",
+    "is": "breath",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "short",
+   "when": "the camera moves on a breath",
+   "then": "a small pause opens up"
+  },
+  {
+   "id": "p:loud-jolts-camera",
+   "proximity": "loud-jolts-camera",
+   "label": "When the camera jumps on loud moments, the shot gets shakier",
+   "from": {
+    "curiosity": "moveToVolume",
+    "track": "camera",
+    "is": "moves on loud",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cameraShake",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera jumps on loud moments",
+   "then": "the shot gets shakier"
+  },
+  {
+   "id": "p:toward-lens-close-up",
+   "proximity": "toward-lens-close-up",
+   "label": "When a character walks toward the lens, the shot becomes a close-up",
+   "from": {
+    "curiosity": "characterToLens",
+    "track": "character",
+    "is": "toward",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close",
+   "when": "a character walks toward the lens",
+   "then": "the shot becomes a close-up"
+  },
+  {
+   "id": "p:toward-lens-looms",
+   "proximity": "toward-lens-looms",
+   "label": "When a hand reaches toward the lens, it looms huge",
+   "from": {
+    "curiosity": "characterToLens",
+    "track": "character",
+    "is": "toward",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "foreshortening",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "strong",
+   "when": "a hand reaches toward the lens",
+   "then": "it looms huge"
+  },
+  {
+   "id": "p:looming-makes-flinch",
+   "proximity": "looming-makes-flinch",
+   "label": "When something looms at the lens, the audience flinches",
+   "from": {
+    "curiosity": "foreshortening",
+    "track": "character",
+    "is": "strong",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fearful",
+   "when": "something looms at the lens",
+   "then": "the audience flinches"
+  },
+  {
+   "id": "p:listener-moves-gets-screen-time",
+   "proximity": "listener-moves-gets-screen-time",
+   "label": "When the listener moves and the speaker stays still, the edit turns to the listener",
+   "from": {
+    "curiosity": "whoMoves",
+    "track": "character",
+    "is": "listener",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "timePerCharacter",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "uneven",
+   "when": "the listener moves and the speaker stays still",
+   "then": "the edit turns to the listener"
+  },
+  {
+   "id": "p:big-windup-big-stretch",
+   "proximity": "big-windup-big-stretch",
+   "label": "When the wind-up is big, the body stretches far on the release",
+   "from": {
+    "curiosity": "anticipation",
+    "track": "character",
+    "is": "big",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "squash",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the wind-up is big",
+   "then": "the body stretches far on the release"
+  },
+  {
+   "id": "p:snap-move-bounces",
+   "proximity": "snap-move-bounces",
+   "label": "When a move snaps into place, it bounces past its mark",
+   "from": {
+    "curiosity": "spacing",
+    "track": "character",
+    "is": "snap",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "overshoot",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "bounce",
+   "when": "a move snaps into place",
+   "then": "it bounces past its mark"
+  },
+  {
+   "id": "p:bounce-feels-playful",
+   "proximity": "bounce-feels-playful",
+   "label": "When moves bounce past their mark, the scene feels playful",
+   "from": {
+    "curiosity": "overshoot",
+    "track": "character",
+    "is": "bounce",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "joyful",
+   "when": "moves bounce past their mark",
+   "then": "the scene feels playful"
+  },
+  {
+   "id": "p:sudden-stop-hair-keeps-going",
+   "proximity": "sudden-stop-hair-keeps-going",
+   "label": "When a character stops suddenly, the hair and clothes keep going",
+   "from": {
+    "curiosity": "characterSpeed",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "overlap",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "all",
+   "when": "a character stops suddenly",
+   "then": "the hair and clothes keep going"
+  },
+  {
+   "id": "p:fast-move-every-frame",
+   "proximity": "fast-move-every-frame",
+   "label": "When a character moves fast, every frame gets its own drawing",
+   "from": {
+    "curiosity": "characterSpeed",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "stepping",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "ones",
+   "when": "a character moves fast",
+   "then": "every frame gets its own drawing"
+  },
+  {
+   "id": "p:straight-paths-robotic",
+   "proximity": "straight-paths-robotic",
+   "label": "When moves travel in straight lines, the character looks robotic",
+   "from": {
+    "curiosity": "arcs",
+    "track": "character",
+    "is": "straight",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "animFeelLens",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "stiff and robotic",
+   "when": "moves travel in straight lines",
+   "then": "the character looks robotic"
+  },
+  {
+   "id": "p:fast-talk-fewer-poses",
+   "proximity": "fast-talk-fewer-poses",
+   "label": "When the talk gets fast, each line gets fewer big poses",
+   "from": {
+    "curiosity": "pace",
+    "track": "character",
+    "is": "fast",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "poseRate",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the talk gets fast",
+   "then": "each line gets fewer big poses"
+  },
+  {
+   "id": "p:darting-eyes-nervous",
+   "proximity": "darting-eyes-nervous",
+   "label": "When the eyes keep darting, the character reads as nervous",
+   "from": {
+    "curiosity": "gazeShift",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "anxious",
+   "when": "the eyes keep darting",
+   "then": "the character reads as nervous"
+  },
+  {
+   "id": "p:nervous-blinks-more",
+   "proximity": "nervous-blinks-more",
+   "label": "When a character gets nervous, they blink more",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "anxious",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "blink.rate",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character gets nervous",
+   "then": "they blink more"
+  },
+  {
+   "id": "p:eyes-find-object-lead-turn",
+   "proximity": "eyes-find-object-lead-turn",
+   "label": "When the eyes snap to something, the eyes lead the turn",
+   "from": {
+    "curiosity": "gazeShift.target",
+    "track": "character",
+    "is": "to an object",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "leadPart",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "eyes",
+   "when": "the eyes snap to something",
+   "then": "the eyes lead the turn"
+  },
+  {
+   "id": "p:no-blink-unsettling",
+   "proximity": "no-blink-unsettling",
+   "label": "When a character stops blinking, they become unsettling",
+   "from": {
+    "curiosity": "blink",
+    "track": "character",
+    "is": "no",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fearful",
+   "when": "a character stops blinking",
+   "then": "they become unsettling"
+  },
+  {
+   "id": "p:held-touch-tender",
+   "proximity": "held-touch-tender",
+   "label": "When a touch is held, the beat turns tender",
+   "from": {
+    "curiosity": "touch",
+    "track": "character",
+    "is": "held",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "loving",
+   "when": "a touch is held",
+   "then": "the beat turns tender"
+  },
+  {
+   "id": "p:door-in-shot-someone-enters",
+   "proximity": "door-in-shot-someone-enters",
+   "label": "When a door is in the shot, someone comes through it",
+   "from": {
+    "curiosity": "objectKind",
+    "track": "character",
+    "is": "door",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "bodyEnter",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "enters",
+   "when": "a door is in the shot",
+   "then": "someone comes through it"
+  },
+  {
+   "id": "p:focus-on-door-entrance",
+   "proximity": "focus-on-door-entrance",
+   "label": "When the focus moves to a door, someone is about to come in",
+   "from": {
+    "curiosity": "focus",
+    "track": "character",
+    "is": "door",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "bodyEnter",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "enters",
+   "when": "the focus moves to a door",
+   "then": "someone is about to come in"
+  },
+  {
+   "id": "p:food-means-talking-while-eating",
+   "proximity": "food-means-talking-while-eating",
+   "label": "When food is on the table, people talk with their mouths full",
+   "from": {
+    "curiosity": "objectKind",
+    "track": "character",
+    "is": "food",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "eating",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "speak while eating",
+   "when": "food is on the table",
+   "then": "people talk with their mouths full"
+  },
+  {
+   "id": "p:mouth-full-needs-cleanup",
+   "proximity": "mouth-full-needs-cleanup",
+   "label": "When someone talks with their mouth full, the voice needs cleaning up",
+   "from": {
+    "curiosity": "eating",
+    "track": "character",
+    "is": "speak while eating",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "voiceCleanup",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "voice enhanced",
+   "when": "someone talks with their mouth full",
+   "then": "the voice needs cleaning up"
+  },
+  {
+   "id": "p:chew-before-reply",
+   "proximity": "chew-before-reply",
+   "label": "When a character eats before answering, the chew becomes a pause",
+   "from": {
+    "curiosity": "eating",
+    "track": "character",
+    "is": "eat then speak",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "short",
+   "when": "a character eats before answering",
+   "then": "the chew becomes a pause"
+  },
+  {
+   "id": "p:fast-object-blurs",
+   "proximity": "fast-object-blurs",
+   "label": "When an object moves fast, it smears into a blur",
+   "from": {
+    "curiosity": "objectSpeed",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "motionBlur",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "heavy",
+   "when": "an object moves fast",
+   "then": "it smears into a blur"
+  },
+  {
+   "id": "p:no-blur-jittery-fear",
+   "proximity": "no-blur-jittery-fear",
+   "label": "When motion blur is taken away, action feels jittery and frightening",
+   "from": {
+    "curiosity": "motionBlur",
+    "track": "camera",
+    "is": "none",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "anxious",
+   "when": "motion blur is taken away",
+   "then": "action feels jittery and frightening"
+  },
+  {
+   "id": "p:drop-gets-sound-hit",
+   "proximity": "drop-gets-sound-hit",
+   "label": "When an object drops, a sound hit lands with it",
+   "from": {
+    "curiosity": "objectPath",
+    "track": "character",
+    "is": "drop",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sfxHits",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "an object drops",
+   "then": "a sound hit lands with it"
+  },
+  {
+   "id": "p:fast-action-cuts-more-hits",
+   "proximity": "fast-action-cuts-more-hits",
+   "label": "When action cuts come faster, more sound hits glue them together",
+   "from": {
+    "curiosity": "actionCutRate",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sfxHits",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "action cuts come faster",
+   "then": "more sound hits glue them together"
+  },
+  {
+   "id": "p:shallow-focus-on-face",
+   "proximity": "shallow-focus-on-face",
+   "label": "When the background goes soft, all eyes go to the face",
+   "from": {
+    "curiosity": "depthOfField",
+    "track": "camera",
+    "is": "shallow",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "focus",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "face",
+   "when": "the background goes soft",
+   "then": "all eyes go to the face"
+  },
+  {
+   "id": "p:focus-pull-on-line",
+   "proximity": "focus-pull-on-line",
+   "label": "When the focus shifts on a line, the speaker's face goes sharp",
+   "from": {
+    "curiosity": "rackFocus",
+    "track": "camera",
+    "is": "on the line",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "focus",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "face",
+   "when": "the focus shifts on a line",
+   "then": "the speaker's face goes sharp"
+  },
+  {
+   "id": "p:striking-look-long-hold",
+   "proximity": "striking-look-long-hold",
+   "label": "When an actor's look is striking, the camera holds on them longer",
+   "from": {
+    "curiosity": "look",
+    "track": "character",
+    "is": "striking",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shotDuration",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "long",
+   "when": "an actor's look is striking",
+   "then": "the camera holds on them longer"
+  },
+  {
+   "id": "p:new-place-sound-first",
+   "proximity": "new-place-sound-first",
+   "label": "When the scene jumps to a new place, its sound arrives first",
+   "from": {
+    "curiosity": "setting.change",
+    "track": "master",
+    "is": "snaps",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundToCut",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "J-cut",
+   "when": "the scene jumps to a new place",
+   "then": "its sound arrives first"
+  },
+  {
+   "id": "p:outside-hear-the-world",
+   "proximity": "outside-hear-the-world",
+   "label": "When the scene moves outside, we hear more of the world off screen",
+   "from": {
+    "curiosity": "intExt",
+    "track": "master",
+    "is": "exterior",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundDesign.offscreen",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the scene moves outside",
+   "then": "we hear more of the world off screen"
+  },
+  {
+   "id": "p:more-people-busier-sound",
+   "proximity": "more-people-busier-sound",
+   "label": "When more people fill the scene, the sound gets busy",
+   "from": {
+    "curiosity": "peopleCount",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "soundDesign",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "busy",
+   "when": "more people fill the scene",
+   "then": "the sound gets busy"
+  },
+  {
+   "id": "p:more-people-more-angles",
+   "proximity": "more-people-more-angles",
+   "label": "When more people are in the scene, it needs more angles",
+   "from": {
+    "curiosity": "peopleCount",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "angleCount",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more people are in the scene",
+   "then": "it needs more angles"
+  },
+  {
+   "id": "p:heat-slows-talk",
+   "proximity": "heat-slows-talk",
+   "label": "When it is hot, people talk slower",
+   "from": {
+    "curiosity": "temperature",
+    "track": "master",
+    "is": "hot",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pace",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "slow",
+   "when": "it is hot",
+   "then": "people talk slower"
+  },
+  {
+   "id": "p:pattern-centers-subject",
+   "proximity": "pattern-centers-subject",
+   "label": "When a pattern fills the frame, the subject goes dead center",
+   "from": {
+    "curiosity": "repeatInFrame",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "composition",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "center",
+   "when": "a pattern fills the frame",
+   "then": "the subject goes dead center"
+  },
+  {
+   "id": "p:dead-center-deadpan",
+   "proximity": "dead-center-deadpan",
+   "label": "When a character sits dead center, the scene plays as deadpan comedy",
+   "from": {
+    "curiosity": "composition",
+    "track": "camera",
+    "is": "center",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "absurd",
+   "when": "a character sits dead center",
+   "then": "the scene plays as deadpan comedy"
+  },
+  {
+   "id": "p:busy-shapes-restless",
+   "proximity": "busy-shapes-restless",
+   "label": "When the frame is crowded with shapes, the audience feels restless",
+   "from": {
+    "curiosity": "sceneShapes",
+    "track": "character",
+    "is": "busy",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "anxious",
+   "when": "the frame is crowded with shapes",
+   "then": "the audience feels restless"
+  },
+  {
+   "id": "p:frame-opens-triumph",
+   "proximity": "frame-opens-triumph",
+   "label": "When the frame suddenly widens, the moment feels like a victory",
+   "from": {
+    "curiosity": "aspect.change",
+    "track": "camera",
+    "is": "snaps",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "triumphant",
+   "when": "the frame suddenly widens",
+   "then": "the moment feels like a victory"
+  },
+  {
+   "id": "p:climax-gets-loud",
+   "proximity": "climax-gets-loud",
+   "label": "When the story reaches its climax, the sound gets loud",
+   "from": {
+    "curiosity": "toneArc",
+    "track": "character",
+    "is": "climax",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loudness",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "loud",
+   "when": "the story reaches its climax",
+   "then": "the sound gets loud"
+  },
+  {
+   "id": "p:wide-range-peaks",
+   "proximity": "wide-range-peaks",
+   "label": "When a line swings from whisper to shout, the shout pushes the mix to its limit",
+   "from": {
+    "curiosity": "dynamicRange",
+    "track": "character",
+    "is": "wide",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loudness",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "peaking",
+   "when": "a line swings from whisper to shout",
+   "then": "the shout pushes the mix to its limit"
+  },
+  {
+   "id": "p:ending-fades-out",
+   "proximity": "ending-fades-out",
+   "label": "When the story reaches its ending, the sound fades out",
+   "from": {
+    "curiosity": "toneArc",
+    "track": "character",
+    "is": "ending",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "audioFade",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fade out",
+   "when": "the story reaches its ending",
+   "then": "the sound fades out"
+  },
+  {
+   "id": "p:whisper-quiets-the-room",
+   "proximity": "whisper-quiets-the-room",
+   "label": "When a line is whispered, the other sounds fall away",
+   "from": {
+    "curiosity": "vocalTone",
+    "track": "character",
+    "is": "whispered",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundDensity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a line is whispered",
+   "then": "the other sounds fall away"
+  },
+  {
+   "id": "p:breaking-voice-sad",
+   "proximity": "breaking-voice-sad",
+   "label": "When a voice breaks, the beat turns sad",
+   "from": {
+    "curiosity": "vocalTone",
+    "track": "character",
+    "is": "breaking",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "melancholy",
+   "when": "a voice breaks",
+   "then": "the beat turns sad"
+  },
+  {
+   "id": "p:swinging-range-unsettled",
+   "proximity": "swinging-range-unsettled",
+   "label": "When every line swings to a new level, the character feels unstable",
+   "from": {
+    "curiosity": "rangeChanges",
+    "track": "character",
+    "is": "every line",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "anxious",
+   "when": "every line swings to a new level",
+   "then": "the character feels unstable"
+  },
+  {
+   "id": "p:fast-talk-fast-cuts",
+   "proximity": "fast-talk-fast-cuts",
+   "label": "When the talk gets fast, the cutting speeds up to match",
+   "from": {
+    "curiosity": "pace",
+    "track": "character",
+    "is": "fast",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fast",
+   "when": "the talk gets fast",
+   "then": "the cutting speeds up to match"
+  },
+  {
+   "id": "p:talking-over-each-other-comedy",
+   "proximity": "talking-over-each-other-comedy",
+   "label": "When people talk over each other, the scene turns to comedy",
+   "from": {
+    "curiosity": "pace.overlap",
+    "track": "character",
+    "is": "talking over each other",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "absurd",
+   "when": "people talk over each other",
+   "then": "the scene turns to comedy"
+  },
+  {
+   "id": "p:echo-voice-dreamy",
+   "proximity": "echo-voice-dreamy",
+   "label": "When a voice echoes, the moment feels like a dream or a memory",
+   "from": {
+    "curiosity": "voiceEffect",
+    "track": "master",
+    "is": "echo",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "dreamlike",
+   "when": "a voice echoes",
+   "then": "the moment feels like a dream or a memory"
+  },
+  {
+   "id": "p:dub-breaks-lip-match",
+   "proximity": "dub-breaks-lip-match",
+   "label": "When a voice is translated, the mouths stop matching the words",
+   "from": {
+    "curiosity": "translatedVoice",
+    "track": "master",
+    "is": "translated",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lipSync.accuracy",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a voice is translated",
+   "then": "the mouths stop matching the words"
+  },
+  {
+   "id": "p:night-brings-moonlight",
+   "proximity": "night-brings-moonlight",
+   "label": "When night falls, the light turns to moonlight",
+   "from": {
+    "curiosity": "timeOfDay",
+    "track": "master",
+    "is": "night",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lighting",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "moon",
+   "when": "night falls",
+   "then": "the light turns to moonlight"
+  },
+  {
+   "id": "p:moonlight-goes-blue",
+   "proximity": "moonlight-goes-blue",
+   "label": "When moonlight takes over, the light turns blue",
+   "from": {
+    "curiosity": "lighting",
+    "track": "master",
+    "is": "moon",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorTemp.kelvin",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": 7500,
+   "when": "moonlight takes over",
+   "then": "the light turns blue"
+  },
+  {
+   "id": "p:cold-light-pulls-apart",
+   "proximity": "cold-light-pulls-apart",
+   "label": "When the light goes cold, the characters drift apart",
+   "from": {
+    "curiosity": "colorTemp",
+    "track": "master",
+    "is": "cold day",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotionGap",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the light goes cold",
+   "then": "the characters drift apart"
+  },
+  {
+   "id": "p:dusk-brings-dusk-light",
+   "proximity": "dusk-brings-dusk-light",
+   "label": "When the day reaches dusk, the light goes low and golden",
+   "from": {
+    "curiosity": "timeOfDay",
+    "track": "master",
+    "is": "dusk",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lighting",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "dusk",
+   "when": "the day reaches dusk",
+   "then": "the light goes low and golden"
+  },
+  {
+   "id": "p:dusk-light-shifts-in-hold",
+   "proximity": "dusk-light-shifts-in-hold",
+   "label": "When dusk light is used, the light changes while the shot holds",
+   "from": {
+    "curiosity": "lighting",
+    "track": "master",
+    "is": "dusk",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lightChange",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "during the hold",
+   "when": "dusk light is used",
+   "then": "the light changes while the shot holds"
+  },
+  {
+   "id": "p:light-shift-moves-feeling",
+   "proximity": "light-shift-moves-feeling",
+   "label": "When the light shifts during a held shot, the feeling inside grows",
+   "from": {
+    "curiosity": "lightChange",
+    "track": "master",
+    "is": "during the hold",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the light shifts during a held shot",
+   "then": "the feeling inside grows"
+  },
+  {
+   "id": "p:warm-skin-glow-feeling",
+   "proximity": "warm-skin-glow-feeling",
+   "label": "When light glows warm through the skin, the feeling gets stronger",
+   "from": {
+    "curiosity": "skinLight",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "light glows warm through the skin",
+   "then": "the feeling gets stronger"
+  },
+  {
+   "id": "p:lamp-in-shot-motivates",
+   "proximity": "lamp-in-shot-motivates",
+   "label": "When a lamp is in the shot, the light seems to come from it",
+   "from": {
+    "curiosity": "practicalInFrame",
+    "track": "master",
+    "is": "yes",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lightCount.motivated",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": 90,
+   "when": "a lamp is in the shot",
+   "then": "the light seems to come from it"
+  },
+  {
+   "id": "p:motivated-light-warm",
+   "proximity": "motivated-light-warm",
+   "label": "When the light comes from lamps, it turns warm",
+   "from": {
+    "curiosity": "lightCount.motivated",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "colorTemp",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "warm practical",
+   "when": "the light comes from lamps",
+   "then": "it turns warm"
+  },
+  {
+   "id": "p:warm-lamps-cozy",
+   "proximity": "warm-lamps-cozy",
+   "label": "When the light is warm lamplight, the room feels cozy",
+   "from": {
+    "curiosity": "colorTemp",
+    "track": "master",
+    "is": "warm practical",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "settingMood",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cozy",
+   "when": "the light is warm lamplight",
+   "then": "the room feels cozy"
+  },
+  {
+   "id": "p:cozy-pulls-close",
+   "proximity": "cozy-pulls-close",
+   "label": "When the room feels cozy, people sit closer",
+   "from": {
+    "curiosity": "settingMood",
+    "track": "master",
+    "is": "cozy",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "personalSpace",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close",
+   "when": "the room feels cozy",
+   "then": "people sit closer"
+  },
+  {
+   "id": "p:side-key-raises-contrast",
+   "proximity": "side-key-raises-contrast",
+   "label": "When the main light moves to the side, half the face falls into shadow",
+   "from": {
+    "curiosity": "key",
+    "track": "master",
+    "is": "side",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "contrast",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the main light moves to the side",
+   "then": "half the face falls into shadow"
+  },
+  {
+   "id": "p:contrast-goes-low-key",
+   "proximity": "contrast-goes-low-key",
+   "label": "When the contrast climbs, the whole picture goes dark",
+   "from": {
+    "curiosity": "contrast",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "valueKey",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "low key",
+   "when": "the contrast climbs",
+   "then": "the whole picture goes dark"
+  },
+  {
+   "id": "p:low-key-hides-meaning",
+   "proximity": "low-key-hides-meaning",
+   "label": "When the picture goes dark, people hide more than they say",
+   "from": {
+    "curiosity": "valueKey",
+    "track": "master",
+    "is": "low key",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "far apart",
+   "when": "the picture goes dark",
+   "then": "people hide more than they say"
+  },
+  {
+   "id": "p:haze-reveals-beams",
+   "proximity": "haze-reveals-beams",
+   "label": "When haze fills the air, the shaped light shows up as beams",
+   "from": {
+    "curiosity": "atmosphere",
+    "track": "master",
+    "is": "haze",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lightShape.strength",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "haze fills the air",
+   "then": "the shaped light shows up as beams"
+  },
+  {
+   "id": "p:blind-stripes-trap",
+   "proximity": "blind-stripes-trap",
+   "label": "When blind stripes fall across a face, the tension rises",
+   "from": {
+    "curiosity": "lightShape",
+    "track": "master",
+    "is": "blinds",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "blind stripes fall across a face",
+   "then": "the tension rises"
+  },
+  {
+   "id": "p:backlight-brings-rim",
+   "proximity": "backlight-brings-rim",
+   "label": "When the main light goes behind the actor, a strong edge of light appears",
+   "from": {
+    "curiosity": "key",
+    "track": "master",
+    "is": "back",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "rim",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "strong",
+   "when": "the main light goes behind the actor",
+   "then": "a strong edge of light appears"
+  },
+  {
+   "id": "p:rim-separates-layers",
+   "proximity": "rim-separates-layers",
+   "label": "When a strong edge light outlines the actor, they pop off the background",
+   "from": {
+    "curiosity": "rim",
+    "track": "master",
+    "is": "strong",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "layersLens",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "three layers",
+   "when": "a strong edge light outlines the actor",
+   "then": "they pop off the background"
+  },
+  {
+   "id": "p:rim-lights-hair",
+   "proximity": "rim-lights-hair",
+   "label": "When a strong edge light hits from behind, the hair shines",
+   "from": {
+    "curiosity": "rim",
+    "track": "master",
+    "is": "strong",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "hairShine.howMuch",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a strong edge light hits from behind",
+   "then": "the hair shines"
+  },
+  {
+   "id": "p:pale-hair-thin-rim",
+   "proximity": "pale-hair-thin-rim",
+   "label": "When the hair is pale, a thin edge light is enough",
+   "from": {
+    "curiosity": "hairColor",
+    "track": "master",
+    "is": "light",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "rim",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "thin",
+   "when": "the hair is pale",
+   "then": "a thin edge light is enough"
+  },
+  {
+   "id": "p:soaked-street-mirror",
+   "proximity": "soaked-street-mirror",
+   "label": "When the street is soaked, every surface turns to a mirror",
+   "from": {
+    "curiosity": "surfaceLens.wet",
+    "track": "master",
+    "is": "soaked",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "gloss",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "mirror",
+   "when": "the street is soaked",
+   "then": "every surface turns to a mirror"
+  },
+  {
+   "id": "p:mirror-doubles-lamps",
+   "proximity": "mirror-doubles-lamps",
+   "label": "When surfaces are mirror-shiny, every lamp appears twice",
+   "from": {
+    "curiosity": "gloss",
+    "track": "master",
+    "is": "mirror",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "practicalInFrame.count",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "surfaces are mirror-shiny",
+   "then": "every lamp appears twice"
+  },
+  {
+   "id": "p:ruined-surfaces-gloom",
+   "proximity": "ruined-surfaces-gloom",
+   "label": "When everything looks worn and ruined, the place feels gloomy",
+   "from": {
+    "curiosity": "wear",
+    "track": "master",
+    "is": "ruined",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "settingMood",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "gloomy",
+   "when": "everything looks worn and ruined",
+   "then": "the place feels gloomy"
+  },
+  {
+   "id": "p:narrow-palette-one-pop",
+   "proximity": "narrow-palette-one-pop",
+   "label": "When the colors narrow to one, any other color jumps out",
+   "from": {
+    "curiosity": "palette",
+    "track": "master",
+    "is": "one color",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorAccent",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "one thing in a strong color",
+   "when": "the colors narrow to one",
+   "then": "any other color jumps out"
+  },
+  {
+   "id": "p:pop-color-grips-eye",
+   "proximity": "pop-color-grips-eye",
+   "label": "When one color pops, the audience's eye locks on it",
+   "from": {
+    "curiosity": "colorAccent",
+    "track": "master",
+    "is": "one thing in a strong color",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fixation",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one color pops",
+   "then": "the audience's eye locks on it"
+  },
+  {
+   "id": "p:glow-pulls-eye",
+   "proximity": "glow-pulls-eye",
+   "label": "When an object glows, the eye goes straight to it",
+   "from": {
+    "curiosity": "glow",
+    "track": "master",
+    "is": "object",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fixation",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "an object glows",
+   "then": "the eye goes straight to it"
+  },
+  {
+   "id": "p:window-soft-light",
+   "proximity": "window-soft-light",
+   "label": "When the light comes from a window, it falls soft across faces",
+   "from": {
+    "curiosity": "lightRigLens",
+    "track": "master",
+    "is": "window",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "softness",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "soft",
+   "when": "the light comes from a window",
+   "then": "it falls soft across faces"
+  },
+  {
+   "id": "p:drawn-look-cartoon-comedy",
+   "proximity": "drawn-look-cartoon-comedy",
+   "label": "When the picture looks drawn, the comedy can go cartoon-big",
+   "from": {
+    "curiosity": "renderLookLens",
+    "track": "master",
+    "is": "toon",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicRegister",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cartoon",
+   "when": "the picture looks drawn",
+   "then": "the comedy can go cartoon-big"
+  },
+  {
+   "id": "p:bright-even-plays-bigger",
+   "proximity": "bright-even-plays-bigger",
+   "label": "When the picture goes bright and even, the comedy gets playful",
+   "from": {
+    "curiosity": "valueKey",
+    "track": "master",
+    "is": "high key",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicRegister",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "playful",
+   "when": "the picture goes bright and even",
+   "then": "the comedy gets playful"
+  },
+  {
+   "id": "p:destruction-shatters",
+   "proximity": "destruction-shatters",
+   "label": "When the physical comedy turns destructive, things shatter",
+   "from": {
+    "curiosity": "physicalComedy",
+    "track": "master",
+    "is": "destruction",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "breakage",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shatters",
+   "when": "the physical comedy turns destructive",
+   "then": "things shatter"
+  },
+  {
+   "id": "p:shatter-scatters",
+   "proximity": "shatter-scatters",
+   "label": "When something shatters, pieces scatter across the floor",
+   "from": {
+    "curiosity": "breakage",
+    "track": "master",
+    "is": "shatters",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "scatter",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "something shatters",
+   "then": "pieces scatter across the floor"
+  },
+  {
+   "id": "p:heavy-settles-fast",
+   "proximity": "heavy-settles-fast",
+   "label": "When things feel heavy, they land and stop fast",
+   "from": {
+    "curiosity": "gravityFeel",
+    "track": "master",
+    "is": "heavy",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "settleTime",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": 0,
+   "when": "things feel heavy",
+   "then": "they land and stop fast"
+  },
+  {
+   "id": "p:springy-goes-cartoon",
+   "proximity": "springy-goes-cartoon",
+   "label": "When things bounce like rubber, the comedy turns cartoon",
+   "from": {
+    "curiosity": "settleTime.bounce",
+    "track": "master",
+    "is": "springy",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicRegister",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cartoon",
+   "when": "things bounce like rubber",
+   "then": "the comedy turns cartoon"
+  },
+  {
+   "id": "p:long-fur-lags",
+   "proximity": "long-fur-lags",
+   "label": "When the fur is long, it trails behind the move",
+   "from": {
+    "curiosity": "furLength",
+    "track": "master",
+    "is": "long",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "furLag",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the fur is long",
+   "then": "it trails behind the move"
+  },
+  {
+   "id": "p:fur-lag-slow-settle",
+   "proximity": "fur-lag-slow-settle",
+   "label": "When fur lags behind the body, the move takes longer to settle",
+   "from": {
+    "curiosity": "furLag",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "settleTime",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "fur lags behind the body",
+   "then": "the move takes longer to settle"
+  },
+  {
+   "id": "p:soaked-fur-mats",
+   "proximity": "soaked-fur-mats",
+   "label": "When fur gets soaked, it clumps flat",
+   "from": {
+    "curiosity": "wetness",
+    "track": "master",
+    "is": "soaked",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "clump",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "matted",
+   "when": "fur gets soaked",
+   "then": "it clumps flat"
+  },
+  {
+   "id": "p:matted-fur-humiliation",
+   "proximity": "matted-fur-humiliation",
+   "label": "When a pet's fur is soaked flat, it looks pitiful and funny",
+   "from": {
+    "curiosity": "clump",
+    "track": "master",
+    "is": "matted",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "humiliation",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a pet's fur is soaked flat",
+   "then": "it looks pitiful and funny"
+  },
+  {
+   "id": "p:wind-frizzes-hair",
+   "proximity": "wind-frizzes-hair",
+   "label": "When the wind picks up, the hair frizzes",
+   "from": {
+    "curiosity": "windForce",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "frizz",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the wind picks up",
+   "then": "the hair frizzes"
+  },
+  {
+   "id": "p:fire-flickers-faces",
+   "proximity": "fire-flickers-faces",
+   "label": "When fire is in the scene, it flickers light across faces",
+   "from": {
+    "curiosity": "element",
+    "track": "master",
+    "is": "fire",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fireLight",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "flicker",
+   "when": "fire is in the scene",
+   "then": "it flickers light across faces"
+  },
+  {
+   "id": "p:firelight-warms",
+   "proximity": "firelight-warms",
+   "label": "When firelight floods the scene, the light turns warm",
+   "from": {
+    "curiosity": "fireLight",
+    "track": "master",
+    "is": "floods",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorTemp",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "warm practical",
+   "when": "firelight floods the scene",
+   "then": "the light turns warm"
+  },
+  {
+   "id": "p:smoke-builds-wall",
+   "proximity": "smoke-builds-wall",
+   "label": "When the smoke keeps building, it becomes a wall",
+   "from": {
+    "curiosity": "growth",
+    "track": "master",
+    "is": "building",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "density",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "wall",
+   "when": "the smoke keeps building",
+   "then": "it becomes a wall"
+  },
+  {
+   "id": "p:smoke-wall-narrows-world",
+   "proximity": "smoke-wall-narrows-world",
+   "label": "When smoke becomes a wall, the world shrinks to one person",
+   "from": {
+    "curiosity": "density",
+    "track": "master",
+    "is": "wall",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "focusWidth",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "one person",
+   "when": "smoke becomes a wall",
+   "then": "the world shrinks to one person"
+  },
+  {
+   "id": "p:chaos-curls-smoke",
+   "proximity": "chaos-curls-smoke",
+   "label": "When the air turns chaotic, smoke breaks into curls",
+   "from": {
+    "curiosity": "turbulence",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "curl",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the air turns chaotic",
+   "then": "smoke breaks into curls"
+  },
+  {
+   "id": "p:splash-to-slowmo",
+   "proximity": "splash-to-slowmo",
+   "label": "When a splash bursts, the edit drops into slow motion",
+   "from": {
+    "curiosity": "splash",
+    "track": "master",
+    "is": "burst",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "clipSpeed",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "very slow",
+   "when": "a splash bursts",
+   "then": "the edit drops into slow motion"
+  },
+  {
+   "id": "p:slowmo-needs-smooth",
+   "proximity": "slowmo-needs-smooth",
+   "label": "When a clip slows way down, it needs smooth in-between frames",
+   "from": {
+    "curiosity": "clipSpeed",
+    "track": "master",
+    "is": "very slow",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "retimeQuality",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "optical flow",
+   "when": "a clip slows way down",
+   "then": "it needs smooth in-between frames"
+  },
+  {
+   "id": "p:wind-tumbles-leaves",
+   "proximity": "wind-tumbles-leaves",
+   "label": "When the wind picks up, scattered leaves start to tumble",
+   "from": {
+    "curiosity": "windForce",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "scatterLens.moves",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "tumbles",
+   "when": "the wind picks up",
+   "then": "scattered leaves start to tumble"
+  },
+  {
+   "id": "p:red-filter-danger",
+   "proximity": "red-filter-danger",
+   "label": "When the filter turns red, the danger feels close",
+   "from": {
+    "curiosity": "filterHue",
+    "track": "master",
+    "is": "red",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the filter turns red",
+   "then": "the danger feels close"
+  },
+  {
+   "id": "p:off-skin-uneasy",
+   "proximity": "off-skin-uneasy",
+   "label": "When skin color looks far from real, the audience feels something is wrong",
+   "from": {
+    "curiosity": "skinColorTruth",
+    "track": "master",
+    "is": "far off",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "audienceFeeling",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "different",
+   "when": "skin color looks far from real",
+   "then": "the audience feels something is wrong"
+  },
+  {
+   "id": "p:crowd-rags-hero-alone",
+   "proximity": "crowd-rags-hero-alone",
+   "label": "When the crowd is in rags, the hero's clean clothes make them the only one",
+   "from": {
+    "curiosity": "backCost",
+    "track": "character",
+    "is": "rags",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "backVsMain",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "main is the only one dressed that way",
+   "when": "the crowd is in rags",
+   "then": "the hero's clean clothes make them the only one"
+  },
+  {
+   "id": "p:lone-outfit-finds-hero",
+   "proximity": "lone-outfit-finds-hero",
+   "label": "When the hero is the only one dressed that way, the eye finds them in the crowd",
+   "from": {
+    "curiosity": "backVsMain",
+    "track": "character",
+    "is": "main is the only one dressed that way",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "focusWidth",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "one person",
+   "when": "the hero is the only one dressed that way",
+   "then": "the eye finds them in the crowd"
+  },
+  {
+   "id": "p:lone-outfit-fish-out",
+   "proximity": "lone-outfit-fish-out",
+   "label": "When the hero dresses unlike everyone else, they feel out of place",
+   "from": {
+    "curiosity": "backVsMain",
+    "track": "character",
+    "is": "clearly apart",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fishOutOfWater",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hero dresses unlike everyone else",
+   "then": "they feel out of place"
+  },
+  {
+   "id": "p:luxury-stands-out",
+   "proximity": "luxury-stands-out",
+   "label": "When the hero's clothes are luxury, they stand out from the room",
+   "from": {
+    "curiosity": "mainCost",
+    "track": "character",
+    "is": "luxury",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mainSetMatch",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "stands out",
+   "when": "the hero's clothes are luxury",
+   "then": "they stand out from the room"
+  },
+  {
+   "id": "p:ceremony-stiffens",
+   "proximity": "ceremony-stiffens",
+   "label": "When the clothes are very formal, people move stiffly",
+   "from": {
+    "curiosity": "mainFormality",
+    "track": "character",
+    "is": "ceremony",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoMove",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "held back",
+   "when": "the clothes are very formal",
+   "then": "people move stiffly"
+  },
+  {
+   "id": "p:baggy-clothes-stumble",
+   "proximity": "baggy-clothes-stumble",
+   "label": "When the clothes are baggy, a trip or a snag is waiting",
+   "from": {
+    "curiosity": "mainFit",
+    "track": "character",
+    "is": "baggy",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "physicalComedy",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a stumble",
+   "when": "the clothes are baggy",
+   "then": "a trip or a snag is waiting"
+  },
+  {
+   "id": "p:layer-off-closer",
+   "proximity": "layer-off-closer",
+   "label": "When a layer of clothing comes off, the characters get closer",
+   "from": {
+    "curiosity": "mainCoverage",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "personalSpace",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close",
+   "when": "a layer of clothing comes off",
+   "then": "the characters get closer"
+  },
+  {
+   "id": "p:armor-up-action",
+   "proximity": "armor-up-action",
+   "label": "When the hero suits up in armor, big action follows",
+   "from": {
+    "curiosity": "mainFunction",
+    "track": "character",
+    "is": "armor",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoActions",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": "big",
+   "when": "the hero suits up in armor",
+   "then": "big action follows"
+  },
+  {
+   "id": "p:show-clothes-wrong-job",
+   "proximity": "show-clothes-wrong-job",
+   "label": "When the outfit is only for show, the hero is wrong for the job",
+   "from": {
+    "curiosity": "mainUtility",
+    "track": "character",
+    "is": "only for looks",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fishOutOfWater",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the outfit is only for show",
+   "then": "the hero is wrong for the job"
+  },
+  {
+   "id": "p:crowd-era-sets-room",
+   "proximity": "crowd-era-sets-room",
+   "label": "When the crowd dresses in 1920s clothes, the room follows",
+   "from": {
+    "curiosity": "backEra",
+    "track": "character",
+    "is": "1920s",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "setStyle",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "1920s glamour",
+   "when": "the crowd dresses in 1920s clothes",
+   "then": "the room follows"
+  },
+  {
+   "id": "p:wrong-period-absurd",
+   "proximity": "wrong-period-absurd",
+   "label": "When the background clothes are clearly wrong for the time, the scene turns into a joke",
+   "from": {
+    "curiosity": "backPeriodTruth",
+    "track": "character",
+    "is": "clearly wrong",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "absurdity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the background clothes are clearly wrong for the time",
+   "then": "the scene turns into a joke"
+  },
+  {
+   "id": "p:uniforms-oppress",
+   "proximity": "uniforms-oppress",
+   "label": "When everyone wears the same uniform, the place feels oppressive",
+   "from": {
+    "curiosity": "backSameness",
+    "track": "character",
+    "is": "uniforms",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "settingMood",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "oppressive",
+   "when": "everyone wears the same uniform",
+   "then": "the place feels oppressive"
+  },
+  {
+   "id": "p:torn-crowd-shabby",
+   "proximity": "torn-crowd-shabby",
+   "label": "When the crowd's clothes are torn and dirty, the place reads as run down",
+   "from": {
+    "curiosity": "backWear",
+    "track": "character",
+    "is": "torn and dirty",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "setUpkeep",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shabby",
+   "when": "the crowd's clothes are torn and dirty",
+   "then": "the place reads as run down"
+  },
+  {
+   "id": "p:bundled-crowd-cool-grade",
+   "proximity": "bundled-crowd-cool-grade",
+   "label": "When the crowd is bundled up, the picture turns cool",
+   "from": {
+    "curiosity": "backCoverage",
+    "track": "character",
+    "is": "fully covered",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmCool",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cool",
+   "when": "the crowd is bundled up",
+   "then": "the picture turns cool"
+  },
+  {
+   "id": "p:workwear-industrial",
+   "proximity": "workwear-industrial",
+   "label": "When the crowd wears work clothes, the place reads as a working site",
+   "from": {
+    "curiosity": "backFunction",
+    "track": "character",
+    "is": "work wear",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "setStyle",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "industrial",
+   "when": "the crowd wears work clothes",
+   "then": "the place reads as a working site"
+  },
+  {
+   "id": "p:show-crowd-rich-room",
+   "proximity": "show-crowd-rich-room",
+   "label": "When the crowd dresses only for show, the room is rich",
+   "from": {
+    "curiosity": "backUtility",
+    "track": "character",
+    "is": "only for looks",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "setStyle.wealth",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "rich",
+   "when": "the crowd dresses only for show",
+   "then": "the room is rich"
+  },
+  {
+   "id": "p:glass-set-mirror",
+   "proximity": "glass-set-mirror",
+   "label": "When the set is made of glass, surfaces turn mirror-shiny",
+   "from": {
+    "curiosity": "setMaterial",
+    "track": "master",
+    "is": "glass",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "gloss",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "mirror",
+   "when": "the set is made of glass",
+   "then": "surfaces turn mirror-shiny"
+  },
+  {
+   "id": "p:sharp-lines-oppress",
+   "proximity": "sharp-lines-oppress",
+   "label": "When the room is all sharp straight lines, people feel boxed in",
+   "from": {
+    "curiosity": "setLines",
+    "track": "master",
+    "is": "sharp and clean",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "settingMood",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "oppressive",
+   "when": "the room is all sharp straight lines",
+   "then": "people feel boxed in"
+  },
+  {
+   "id": "p:art-wall-distracts",
+   "proximity": "art-wall-distracts",
+   "label": "When the walls are covered in art, the eye wanders off the actors",
+   "from": {
+    "curiosity": "wallArt",
+    "track": "master",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "distraction",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the walls are covered in art",
+   "then": "the eye wanders off the actors"
+  },
+  {
+   "id": "p:even-art-rigid-owner",
+   "proximity": "even-art-rigid-owner",
+   "label": "When the art hangs perfectly even, the owner reads as rigid",
+   "from": {
+    "curiosity": "artArrangement",
+    "track": "master",
+    "is": "perfectly even",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicFlaw",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "rigidity",
+   "when": "the art hangs perfectly even",
+   "then": "the owner reads as rigid"
+  },
+  {
+   "id": "p:deep-set-background-gag",
+   "proximity": "deep-set-background-gag",
+   "label": "When the set has deep layers, there's room for a joke in the background",
+   "from": {
+    "curiosity": "setDepth",
+    "track": "master",
+    "is": "deep",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "visualGag",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "background",
+   "when": "the set has deep layers",
+   "then": "there's room for a joke in the background"
+  },
+  {
+   "id": "p:dark-set-low-key",
+   "proximity": "dark-set-low-key",
+   "label": "When the set is painted dark, the picture goes low key",
+   "from": {
+    "curiosity": "setBrightness",
+    "track": "master",
+    "is": "dark",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "valueKey",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "low key",
+   "when": "the set is painted dark",
+   "then": "the picture goes low key"
+  },
+  {
+   "id": "p:booths-bring-close",
+   "proximity": "booths-bring-close",
+   "label": "When the room is laid out in booths, people sit close and talk low",
+   "from": {
+    "curiosity": "setLayout",
+    "track": "master",
+    "is": "booths along the walls",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "personalSpace",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close",
+   "when": "the room is laid out in booths",
+   "then": "people sit close and talk low"
+  },
+  {
+   "id": "p:night-filter-night",
+   "proximity": "night-filter-night",
+   "label": "When the night filter goes on, the scene plays as night",
+   "from": {
+    "curiosity": "filterLook",
+    "track": "master",
+    "is": "night",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "timeOfDay",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "night",
+   "when": "the night filter goes on",
+   "then": "the scene plays as night"
+  },
+  {
+   "id": "p:blown-exposure-glow",
+   "proximity": "blown-exposure-glow",
+   "label": "When the picture is blown out, the whole room seems to glow",
+   "from": {
+    "curiosity": "exposure",
+    "track": "master",
+    "is": "blown out",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "glow",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "room",
+   "when": "the picture is blown out",
+   "then": "the whole room seems to glow"
+  },
+  {
+   "id": "p:very-warm-cozy",
+   "proximity": "very-warm-cozy",
+   "label": "When the color is pushed very warm, the place feels cozy",
+   "from": {
+    "curiosity": "whiteBalance",
+    "track": "master",
+    "is": "very warm",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "settingMood",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cozy",
+   "when": "the color is pushed very warm",
+   "then": "the place feels cozy"
+  },
+  {
+   "id": "p:gritty-oppressive",
+   "proximity": "gritty-oppressive",
+   "label": "When the image turns gritty, the world feels harsh",
+   "from": {
+    "curiosity": "texture",
+    "track": "master",
+    "is": "gritty",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "settingMood",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "oppressive",
+   "when": "the image turns gritty",
+   "then": "the world feels harsh"
+  },
+  {
+   "id": "p:mismatch-jolts-feeling",
+   "proximity": "mismatch-jolts-feeling",
+   "label": "When a shot is graded to clash on purpose, the feeling jumps",
+   "from": {
+    "curiosity": "colorMatch",
+    "track": "master",
+    "is": "deliberately different",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoContrastPrev",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "very different",
+   "when": "a shot is graded to clash on purpose",
+   "then": "the feeling jumps"
+  },
+  {
+   "id": "p:crushed-blacks-contrast",
+   "proximity": "crushed-blacks-contrast",
+   "label": "When the blacks are crushed, the contrast jumps",
+   "from": {
+    "curiosity": "colorCurves",
+    "track": "master",
+    "is": "crushed blacks",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "contrast",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the blacks are crushed",
+   "then": "the contrast jumps"
+  },
+  {
+   "id": "p:teal-orange-skin",
+   "proximity": "teal-orange-skin",
+   "label": "When the teal and orange recipe goes on, skin stays warm while the rest turns teal",
+   "from": {
+    "curiosity": "lut",
+    "track": "master",
+    "is": "teal and orange",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "skinColorTruth",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "slightly tinted",
+   "when": "the teal and orange recipe goes on",
+   "then": "skin stays warm while the rest turns teal"
+  },
+  {
+   "id": "p:movie-filter-bars",
+   "proximity": "movie-filter-bars",
+   "label": "When a movie filter goes on, black bars come with it",
+   "from": {
+    "curiosity": "filterFamily",
+    "track": "master",
+    "is": "movies",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "canvasFill",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "black bars",
+   "when": "a movie filter goes on",
+   "then": "black bars come with it"
+  },
+  {
+   "id": "p:polaroid-stacks",
+   "proximity": "polaroid-stacks",
+   "label": "When the picture gets a polaroid look, copies stack like photos on a table",
+   "from": {
+    "curiosity": "textureEffect",
+    "track": "master",
+    "is": "polaroid",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "multiplyEffect",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "polaroid stack",
+   "when": "the picture gets a polaroid look",
+   "then": "copies stack like photos on a table"
+  },
+  {
+   "id": "p:home-video-bittersweet",
+   "proximity": "home-video-bittersweet",
+   "label": "When it looks like old home video, the feeling turns bittersweet",
+   "from": {
+    "curiosity": "retroEffect",
+    "track": "master",
+    "is": "home video",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mixedFeelings",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "even",
+   "when": "it looks like old home video",
+   "then": "the feeling turns bittersweet"
+  },
+  {
+   "id": "p:bounce-in-playful",
+   "proximity": "bounce-in-playful",
+   "label": "When clips bounce in, the video turns playful",
+   "from": {
+    "curiosity": "clipAnimation.style",
+    "track": "master",
+    "is": "bounce",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicRegister",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "playful",
+   "when": "clips bounce in",
+   "then": "the video turns playful"
+  },
+  {
+   "id": "p:punchy-transitions-fast-reset",
+   "proximity": "punchy-transitions-fast-reset",
+   "label": "When transitions get explosive, something new arrives every second or two",
+   "from": {
+    "curiosity": "transitionFamily.energy",
+    "track": "master",
+    "is": "explosive",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "attentionReset",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "every 1 to 2 seconds",
+   "when": "transitions get explosive",
+   "then": "something new arrives every second or two"
+  },
+  {
+   "id": "p:fast-reset-more-laughs",
+   "proximity": "fast-reset-more-laughs",
+   "label": "When something new arrives every second or two, the jokes come faster",
+   "from": {
+    "curiosity": "attentionReset",
+    "track": "master",
+    "is": "every 1 to 2 seconds",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "something new arrives every second or two",
+   "then": "the jokes come faster"
+  },
+  {
+   "id": "p:cube-spin-jolt",
+   "proximity": "cube-spin-jolt",
+   "label": "When the frame spins like a cube, the pace jumps",
+   "from": {
+    "curiosity": "frameMove3D",
+    "track": "master",
+    "is": "cube spin",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "attentionReset",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "every 1 to 2 seconds",
+   "when": "the frame spins like a cube",
+   "then": "the pace jumps"
+  },
+  {
+   "id": "p:word-captions-grip",
+   "proximity": "word-captions-grip",
+   "label": "When captions appear word by word, eyes stay glued to the screen",
+   "from": {
+    "curiosity": "captions",
+    "track": "master",
+    "is": "word by word",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fixation",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "captions appear word by word",
+   "then": "eyes stay glued to the screen"
+  },
+  {
+   "id": "p:comic-text-cartoon",
+   "proximity": "comic-text-cartoon",
+   "label": "When the text is in comic-book style, the comedy goes cartoon",
+   "from": {
+    "curiosity": "textStyle",
+    "track": "master",
+    "is": "comic",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicRegister",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cartoon",
+   "when": "the text is in comic-book style",
+   "then": "the comedy goes cartoon"
+  },
+  {
+   "id": "p:many-stickers-laughs",
+   "proximity": "many-stickers-laughs",
+   "label": "When stickers and emoji pile up, the laughs speed up",
+   "from": {
+    "curiosity": "stickers",
+    "track": "master",
+    "is": "many",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "stickers and emoji pile up",
+   "then": "the laughs speed up"
+  },
+  {
+   "id": "p:chapter-card-pause",
+   "proximity": "chapter-card-pause",
+   "label": "When a chapter card appears, the story stops and restarts",
+   "from": {
+    "curiosity": "chapterCard",
+    "track": "master",
+    "is": "number and title",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pacingCurve",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "stop and go",
+   "when": "a chapter card appears",
+   "then": "the story stops and restarts"
+  },
+  {
+   "id": "p:meme-template-smash",
+   "proximity": "meme-template-smash",
+   "label": "When the edit template is meme, the smash cuts pile up",
+   "from": {
+    "curiosity": "editTemplate",
+    "track": "master",
+    "is": "meme",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicEdit",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the edit template is meme",
+   "then": "the smash cuts pile up"
+  },
+  {
+   "id": "p:screen-blend-glow",
+   "proximity": "screen-blend-glow",
+   "label": "When a light layer is blended in screen mode, the room glows",
+   "from": {
+    "curiosity": "blendMode",
+    "track": "master",
+    "is": "screen",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "glow",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "room",
+   "when": "a light layer is blended in screen mode",
+   "then": "the room glows"
+  },
+  {
+   "id": "p:cutout-new-place",
+   "proximity": "cutout-new-place",
+   "label": "When the person is cut out, they get dropped into a new place",
+   "from": {
+    "curiosity": "cutout",
+    "track": "master",
+    "is": "auto cutout",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "stockClip",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "background",
+   "when": "the person is cut out",
+   "then": "they get dropped into a new place"
+  },
+  {
+   "id": "p:generated-needs-match",
+   "proximity": "generated-needs-match",
+   "label": "When a generated shot drops into the edit, it has to be color matched",
+   "from": {
+    "curiosity": "generatedShot",
+    "track": "master",
+    "is": "video",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorMatch",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "matched",
+   "when": "a generated shot drops into the edit",
+   "then": "it has to be color matched"
+  },
+  {
+   "id": "p:stock-scenery-depth",
+   "proximity": "stock-scenery-depth",
+   "label": "When a stock scenery clip fills the back, the frame gains depth",
+   "from": {
+    "curiosity": "stockClip",
+    "track": "master",
+    "is": "scenery",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "layersLens",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "three layers",
+   "when": "a stock scenery clip fills the back",
+   "then": "the frame gains depth"
+  },
+  {
+   "id": "p:person-mask-narrows",
+   "proximity": "person-mask-narrows",
+   "label": "When a mask follows a person, the world shrinks to them",
+   "from": {
+    "curiosity": "maskShape",
+    "track": "master",
+    "is": "follows a person",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "focusWidth",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "one person",
+   "when": "a mask follows a person",
+   "then": "the world shrinks to them"
+  },
+  {
+   "id": "p:power-body-stakes",
+   "proximity": "power-body-stakes",
+   "label": "When the hero's body lights up with power, the stakes rise",
+   "from": {
+    "curiosity": "bodyEffect",
+    "track": "master",
+    "is": "superpower",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hero's body lights up with power",
+   "then": "the stakes rise"
+  },
+  {
+   "id": "p:clone-burst-absurd",
+   "proximity": "clone-burst-absurd",
+   "label": "When a person bursts into copies, the scene tips into absurd fun",
+   "from": {
+    "curiosity": "cloneEffect",
+    "track": "master",
+    "is": "clone burst",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "absurdity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a person bursts into copies",
+   "then": "the scene tips into absurd fun"
+  },
+  {
+   "id": "p:aura-locks-eye",
+   "proximity": "aura-locks-eye",
+   "label": "When a person gets a glowing aura, the eye locks on them",
+   "from": {
+    "curiosity": "outlineEffect",
+    "track": "master",
+    "is": "aura",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fixation",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a person gets a glowing aura",
+   "then": "the eye locks on them"
+  },
+  {
+   "id": "p:ripple-jumps-feeling",
+   "proximity": "ripple-jumps-feeling",
+   "label": "When the picture ripples, we drop into a different feeling",
+   "from": {
+    "curiosity": "distortionEffect",
+    "track": "master",
+    "is": "ripple warp",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoContrastPrev",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "very different",
+   "when": "the picture ripples",
+   "then": "we drop into a different feeling"
+  },
+  {
+   "id": "p:tilted-frame-unease",
+   "proximity": "tilted-frame-unease",
+   "label": "When the picture is tilted, the tension rises",
+   "from": {
+    "curiosity": "imageTransform",
+    "track": "master",
+    "is": "tilted",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the picture is tilted",
+   "then": "the tension rises"
+  },
+  {
+   "id": "p:faster-scenes-more-tension",
+   "proximity": "faster-scenes-more-tension",
+   "label": "When scenes start changing faster, the tension climbs",
+   "from": {
+    "curiosity": "sceneRate",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "scenes start changing faster",
+   "then": "the tension climbs"
+  },
+  {
+   "id": "p:tension-shortens-scenes",
+   "proximity": "tension-shortens-scenes",
+   "label": "When tension climbs, scenes get shorter",
+   "from": {
+    "curiosity": "tensionCurve",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sceneLength",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "tension climbs",
+   "then": "scenes get shorter"
+  },
+  {
+   "id": "p:clock-speeds-scenes",
+   "proximity": "clock-speeds-scenes",
+   "label": "When the clock gets tight, the scenes speed up",
+   "from": {
+    "curiosity": "tickingClock",
+    "track": "character",
+    "is": "tight",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sceneRate",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clock gets tight",
+   "then": "the scenes speed up"
+  },
+  {
+   "id": "p:two-groups-cross-cut",
+   "proximity": "two-groups-cross-cut",
+   "label": "When the hour splits into two groups, the film cuts back and forth between them",
+   "from": {
+    "curiosity": "groups",
+    "track": "master",
+    "is": "2",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "intercut",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hour splits into two groups",
+   "then": "the film cuts back and forth between them"
+  },
+  {
+   "id": "p:cross-cutting-tightens-clock",
+   "proximity": "cross-cutting-tightens-clock",
+   "label": "When the film cuts between two places faster and faster, the clock feels tighter",
+   "from": {
+    "curiosity": "intercut",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tickingClock",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "tight",
+   "when": "the film cuts between two places faster and faster",
+   "then": "the clock feels tighter"
+  },
+  {
+   "id": "p:in-action-raises-questions",
+   "proximity": "in-action-raises-questions",
+   "label": "When a scene starts in the middle of the action, the audience starts asking questions",
+   "from": {
+    "curiosity": "sceneEntry",
+    "track": "master",
+    "is": "in action",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a scene starts in the middle of the action",
+   "then": "the audience starts asking questions"
+  },
+  {
+   "id": "p:answering-shots-faster-laughs",
+   "proximity": "answering-shots-faster-laughs",
+   "label": "When every shot answers the one before, laughs come faster",
+   "from": {
+    "curiosity": "callResponse",
+    "track": "master",
+    "is": "every cut",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "every shot answers the one before",
+   "then": "laughs come faster"
+  },
+  {
+   "id": "p:threes-land-the-joke",
+   "proximity": "threes-land-the-joke",
+   "label": "When shots come in threes, the third one becomes the punchline",
+   "from": {
+    "curiosity": "phraseScheme",
+    "track": "master",
+    "is": "threes",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicBeat",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "payoff lands",
+   "when": "shots come in threes",
+   "then": "the third one becomes the punchline"
+  },
+  {
+   "id": "p:repeat-becomes-gag",
+   "proximity": "repeat-becomes-gag",
+   "label": "When the same moment keeps repeating, it turns into a running gag",
+   "from": {
+    "curiosity": "repetition",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "runningGag",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the same moment keeps repeating",
+   "then": "it turns into a running gag"
+  },
+  {
+   "id": "p:signature-image-brings-feeling",
+   "proximity": "signature-image-brings-feeling",
+   "label": "When the film's signature image comes back, the old feeling comes back with it",
+   "from": {
+    "curiosity": "hook",
+    "track": "master",
+    "is": "yes",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "feelingEcho",
+    "track": "master"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the film's signature image comes back",
+   "then": "the old feeling comes back with it"
+  },
+  {
+   "id": "p:clash-flips-feeling",
+   "proximity": "clash-flips-feeling",
+   "label": "When scenes are built to clash, the feeling flips at the cut",
+   "from": {
+    "curiosity": "contrastMap",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoContrastPrev",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "the opposite",
+   "when": "scenes are built to clash",
+   "then": "the feeling flips at the cut"
+  },
+  {
+   "id": "p:held-thing-builds-dread",
+   "proximity": "held-thing-builds-dread",
+   "label": "When one sound or image is held under everything, dread builds",
+   "from": {
+    "curiosity": "pedal",
+    "track": "master",
+    "is": "one thing held",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one sound or image is held under everything",
+   "then": "dread builds"
+  },
+  {
+   "id": "p:fake-scare-relief-laugh",
+   "proximity": "fake-scare-relief-laugh",
+   "label": "When a scare turns out to be fake, the audience laughs with relief",
+   "from": {
+    "curiosity": "psychOut",
+    "track": "master",
+    "is": "psych-out",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRoadFilm.relief",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a scare turns out to be fake",
+   "then": "the audience laughs with relief"
+  },
+  {
+   "id": "p:sharp-cuts-jump-energy",
+   "proximity": "sharp-cuts-jump-energy",
+   "label": "When the cuts get louder and sharper, the energy jumps",
+   "from": {
+    "curiosity": "cutArticulation",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "energyArc",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the cuts get louder and sharper",
+   "then": "the energy jumps"
+  },
+  {
+   "id": "p:nosy-camera-more-cringe",
+   "proximity": "nosy-camera-more-cringe",
+   "label": "When the camera feels like a nosy person in the room, awkward moments get more awkward",
+   "from": {
+    "curiosity": "operatorFeel",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera feels like a nosy person in the room",
+   "then": "awkward moments get more awkward"
+  },
+  {
+   "id": "p:rising-motif-lifts-hope",
+   "proximity": "rising-motif-lifts-hope",
+   "label": "When a repeating tune or image keeps climbing, hope climbs with it",
+   "from": {
+    "curiosity": "motifShape",
+    "track": "master",
+    "is": "rises",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "hope",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a repeating tune or image keeps climbing",
+   "then": "hope climbs with it"
+  },
+  {
+   "id": "p:hopping-pov-audience-first",
+   "proximity": "hopping-pov-audience-first",
+   "label": "When the story hops between characters, the audience learns things before they do",
+   "from": {
+    "curiosity": "povSwitch",
+    "track": "master",
+    "is": "switches every scene",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "knowledgeGap",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "audience first",
+   "when": "the story hops between characters",
+   "then": "the audience learns things before they do"
+  },
+  {
+   "id": "p:knowing-first-brings-dread",
+   "proximity": "knowing-first-brings-dread",
+   "label": "When the audience knows first, every calm moment fills with dread",
+   "from": {
+    "curiosity": "knowledgeGap",
+    "track": "character",
+    "is": "audience first",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the audience knows first",
+   "then": "every calm moment fills with dread"
+  },
+  {
+   "id": "p:dread-narrows-focus",
+   "proximity": "dread-narrows-focus",
+   "label": "When dread builds, a character's attention starts narrowing",
+   "from": {
+    "curiosity": "dread",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "focusShift",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "narrowing",
+   "when": "dread builds",
+   "then": "a character's attention starts narrowing"
+  },
+  {
+   "id": "p:narrowing-to-fixation",
+   "proximity": "narrowing-to-fixation",
+   "label": "When attention starts narrowing, it hardens into a fixation",
+   "from": {
+    "curiosity": "focusShift",
+    "track": "character",
+    "is": "narrowing",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fixation",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "attention starts narrowing",
+   "then": "it hardens into a fixation"
+  },
+  {
+   "id": "p:more-screen-time-heavier-plot",
+   "proximity": "more-screen-time-heavier-plot",
+   "label": "When a main character shows up more often, their own story gets heavier",
+   "from": {
+    "curiosity": "featureRate",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotWeight",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a main character shows up more often",
+   "then": "their own story gets heavier"
+  },
+  {
+   "id": "p:heavy-side-story-joins-main",
+   "proximity": "heavy-side-story-joins-main",
+   "label": "When a side story grows heavy enough, it gets pulled into the main plot",
+   "from": {
+    "curiosity": "plotWeight",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotTouch",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": "joined",
+   "when": "a side story grows heavy enough",
+   "then": "it gets pulled into the main plot"
+  },
+  {
+   "id": "p:joined-plots-raise-stakes",
+   "proximity": "joined-plots-raise-stakes",
+   "label": "When a side story merges into the main plot, the stakes jump",
+   "from": {
+    "curiosity": "plotTouch",
+    "track": "character",
+    "is": "joined",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "stakes",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a side story merges into the main plot",
+   "then": "the stakes jump"
+  },
+  {
+   "id": "p:more-mains-stories-cross",
+   "proximity": "more-mains-stories-cross",
+   "label": "When more main characters share the spotlight, their stories start crossing",
+   "from": {
+    "curiosity": "mains",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotTouch",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "crossing",
+   "when": "more main characters share the spotlight",
+   "then": "their stories start crossing"
+  },
+  {
+   "id": "p:death-brings-tears",
+   "proximity": "death-brings-tears",
+   "label": "When a main character dies, the tears come soon after",
+   "from": {
+    "curiosity": "exit",
+    "track": "master",
+    "is": "die",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRelease",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "tears",
+   "when": "a main character dies",
+   "then": "the tears come soon after"
+  },
+  {
+   "id": "p:inner-scene-raises-doubt",
+   "proximity": "inner-scene-raises-doubt",
+   "label": "When a scene plays out inside another scene, the audience starts doubting what's real",
+   "from": {
+    "curiosity": "nestedScene",
+    "track": "master",
+    "is": "a scene inside a scene",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a scene plays out inside another scene",
+   "then": "the audience starts doubting what's real"
+  },
+  {
+   "id": "p:short-shots-more-energy",
+   "proximity": "short-shots-more-energy",
+   "label": "When the shots get short, the energy climbs",
+   "from": {
+    "curiosity": "shotOrderLens",
+    "track": "master",
+    "is": "short",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "energyArc",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the shots get short",
+   "then": "the energy climbs"
+  },
+  {
+   "id": "p:captions-show-inner-voice",
+   "proximity": "captions-show-inner-voice",
+   "label": "When words move from speech balloons into captions, we hear what the character is really thinking",
+   "from": {
+    "curiosity": "balloon",
+    "track": "master",
+    "is": "caption",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "knowledgeGap",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "audience first",
+   "when": "words move from speech balloons into captions",
+   "then": "we hear what the character is really thinking"
+  },
+  {
+   "id": "p:broken-frame-energy",
+   "proximity": "broken-frame-energy",
+   "label": "When a picture breaks out of its panel, the page bursts with energy",
+   "from": {
+    "curiosity": "panelBreak",
+    "track": "master",
+    "is": "splash",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "energyArc",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a picture breaks out of its panel",
+   "then": "the page bursts with energy"
+  },
+  {
+   "id": "p:fewer-words-bigger-pictures",
+   "proximity": "fewer-words-bigger-pictures",
+   "label": "When the words thin out, the pictures get bigger",
+   "from": {
+    "curiosity": "textDensity",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "panelSize",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the words thin out",
+   "then": "the pictures get bigger"
+  },
+  {
+   "id": "p:splash-big-sound",
+   "proximity": "splash-big-sound",
+   "label": "When a picture fills the whole page, the sound effects grow as big as the page",
+   "from": {
+    "curiosity": "panelSize",
+    "track": "master",
+    "is": "splash",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundLettering",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "page-sized",
+   "when": "a picture fills the whole page",
+   "then": "the sound effects grow as big as the page"
+  },
+  {
+   "id": "p:big-sound-breaks-frame",
+   "proximity": "big-sound-breaks-frame",
+   "label": "When a sound effect fills the page, the picture bursts out of its frame",
+   "from": {
+    "curiosity": "soundLettering",
+    "track": "master",
+    "is": "page-sized",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "panelBreak",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "edge",
+   "when": "a sound effect fills the page",
+   "then": "the picture bursts out of its frame"
+  },
+  {
+   "id": "p:spark-turns-plot",
+   "proximity": "spark-turns-plot",
+   "label": "When a character becomes the spark in a scene, the plot takes a turn",
+   "from": {
+    "curiosity": "dramaticRole",
+    "track": "character",
+    "is": "catalyst",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mixPlot",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a turn",
+   "when": "a character becomes the spark in a scene",
+   "then": "the plot takes a turn"
+  },
+  {
+   "id": "p:foil-shows-flaw",
+   "proximity": "foil-shows-flaw",
+   "label": "When someone is set up as the lead's opposite, the lead's flaw becomes obvious",
+   "from": {
+    "curiosity": "cm-role",
+    "track": "character",
+    "is": "foil",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicFlaw.size",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone is set up as the lead's opposite",
+   "then": "the lead's flaw becomes obvious"
+  },
+  {
+   "id": "p:wider-care-want-meets-need",
+   "proximity": "wider-care-want-meets-need",
+   "label": "When a character starts caring about the whole world, what they want lines up with what they need",
+   "from": {
+    "curiosity": "perspectiveWidth",
+    "track": "character",
+    "is": "world",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "plotWant",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close",
+   "when": "a character starts caring about the whole world",
+   "then": "what they want lines up with what they need"
+  },
+  {
+   "id": "p:want-against-need-resists",
+   "proximity": "want-against-need-resists",
+   "label": "When what they want is the opposite of what they need, they fight the change",
+   "from": {
+    "curiosity": "plotWant",
+    "track": "character",
+    "is": "opposite",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "resistance",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "what they want is the opposite of what they need",
+   "then": "they fight the change"
+  },
+  {
+   "id": "p:aligned-want-big-choice",
+   "proximity": "aligned-want-big-choice",
+   "label": "When what they want finally lines up with what they need, they act on what they believe",
+   "from": {
+    "curiosity": "plotWant",
+    "track": "character",
+    "is": "close",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "beliefShown",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a big choice",
+   "when": "what they want finally lines up with what they need",
+   "then": "they act on what they believe"
+  },
+  {
+   "id": "p:big-choice-brings-change",
+   "proximity": "big-choice-brings-change",
+   "label": "When a belief turns into a big choice, the character changes",
+   "from": {
+    "curiosity": "beliefShown",
+    "track": "character",
+    "is": "a big choice",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "arcStage",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "change",
+   "when": "a belief turns into a big choice",
+   "then": "the character changes"
+  },
+  {
+   "id": "p:growing-change-shows",
+   "proximity": "growing-change-shows",
+   "label": "When a character is growing, the change starts to show on the outside",
+   "from": {
+    "curiosity": "arcDirection",
+    "track": "character",
+    "is": "grows",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "changeShows",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character is growing",
+   "then": "the change starts to show on the outside"
+  },
+  {
+   "id": "p:falling-slips-back",
+   "proximity": "falling-slips-back",
+   "label": "When a character is falling, they slip back into old habits",
+   "from": {
+    "curiosity": "arcDirection",
+    "track": "character",
+    "is": "falls",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "relapse",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character is falling",
+   "then": "they slip back into old habits"
+  },
+  {
+   "id": "p:challenger-sparks-ego-clash",
+   "proximity": "challenger-sparks-ego-clash",
+   "label": "When a Challenger personality is in the room, fights over who's in charge flare up",
+   "from": {
+    "curiosity": "enneagramType",
+    "track": "character",
+    "is": "8 Challenger",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "egoClash",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a Challenger personality is in the room",
+   "then": "fights over who's in charge flare up"
+  },
+  {
+   "id": "p:one-voice-more-pressure",
+   "proximity": "one-voice-more-pressure",
+   "label": "When one loud voice leads the group, the pressure to agree builds",
+   "from": {
+    "curiosity": "herdLeader",
+    "track": "master",
+    "is": "one voice",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "groupPressure",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one loud voice leads the group",
+   "then": "the pressure to agree builds"
+  },
+  {
+   "id": "p:tight-focus-misses-warning",
+   "proximity": "tight-focus-misses-warning",
+   "label": "When a character's attention shrinks to one thing, they miss the warning",
+   "from": {
+    "curiosity": "focusWidth",
+    "track": "character",
+    "is": "one thing",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "distraction.missed",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a warning",
+   "when": "a character's attention shrinks to one thing",
+   "then": "they miss the warning"
+  },
+  {
+   "id": "p:breaking-voice-tears",
+   "proximity": "breaking-voice-tears",
+   "label": "When the voice breaks, the tears come",
+   "from": {
+    "curiosity": "emoVoice.crack",
+    "track": "master",
+    "is": "breaks",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRelease",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "tears",
+   "when": "the voice breaks",
+   "then": "the tears come"
+  },
+  {
+   "id": "p:clenched-hands-bigger-action",
+   "proximity": "clenched-hands-bigger-action",
+   "label": "When the hands clench, a bigger action follows",
+   "from": {
+    "curiosity": "emoHands",
+    "track": "master",
+    "is": "clench",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoActions",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hands clench",
+   "then": "a bigger action follows"
+  },
+  {
+   "id": "p:big-actions-voice-gives",
+   "proximity": "big-actions-voice-gives",
+   "label": "When the actions get bigger, the voice gives way",
+   "from": {
+    "curiosity": "emoActions",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoVoice.crack",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "breaks",
+   "when": "the actions get bigger",
+   "then": "the voice gives way"
+  },
+  {
+   "id": "p:freeze-slow-burn",
+   "proximity": "freeze-slow-burn",
+   "label": "When someone freezes, a slow-burn reaction follows",
+   "from": {
+    "curiosity": "emoMove",
+    "track": "master",
+    "is": "frozen",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicReaction",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a slow burn",
+   "when": "someone freezes",
+   "then": "a slow-burn reaction follows"
+  },
+  {
+   "id": "p:misunderstanding-deepens",
+   "proximity": "misunderstanding-deepens",
+   "label": "When the joke is built on a misunderstanding, the confusion keeps getting deeper",
+   "from": {
+    "curiosity": "comedyDevice",
+    "track": "master",
+    "is": "misunderstanding",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "misunderstanding",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the joke is built on a misunderstanding",
+   "then": "the confusion keeps getting deeper"
+  },
+  {
+   "id": "p:punching-up-bigger-laughs",
+   "proximity": "punching-up-bigger-laughs",
+   "label": "When the joke aims at the powerful, the audience laughs harder",
+   "from": {
+    "curiosity": "comedyTopic.punch",
+    "track": "master",
+    "is": "the powerful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the joke aims at the powerful",
+   "then": "the audience laughs harder"
+  },
+  {
+   "id": "p:cartoon-bigger-falls",
+   "proximity": "cartoon-bigger-falls",
+   "label": "When the comedy goes cartoon-big, the falls get bigger",
+   "from": {
+    "curiosity": "comicRegister",
+    "track": "master",
+    "is": "cartoon",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "physicalComedy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the comedy goes cartoon-big",
+   "then": "the falls get bigger"
+  },
+  {
+   "id": "p:far-payoff-big-laugh",
+   "proximity": "far-payoff-big-laugh",
+   "label": "When the payoff comes long after its setup, the laugh is bigger",
+   "from": {
+    "curiosity": "payoffDistance",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute.size",
+    "track": "master"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "set",
+   "value": "big laughs",
+   "when": "the payoff comes long after its setup",
+   "then": "the laugh is bigger"
+  },
+  {
+   "id": "p:straight-one-stays-calm",
+   "proximity": "straight-one-stays-calm",
+   "label": "When the joke rests on the straight one, they stay perfectly calm",
+   "from": {
+    "curiosity": "jokeCarrier",
+    "track": "master",
+    "is": "the straight one",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "straightMan",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "unmoved",
+   "when": "the joke rests on the straight one",
+   "then": "they stay perfectly calm"
+  },
+  {
+   "id": "p:calm-one-cracks-big-laugh",
+   "proximity": "calm-one-cracks-big-laugh",
+   "label": "When the calm one finally loses it, the biggest laugh lands",
+   "from": {
+    "curiosity": "straightMan",
+    "track": "master",
+    "is": "loses it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute.size",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "big laughs",
+   "when": "the calm one finally loses it",
+   "then": "the biggest laugh lands"
+  },
+  {
+   "id": "p:comeback-wobbles-rank",
+   "proximity": "comeback-wobbles-rank",
+   "label": "When someone lands a sharp comeback, the pecking order wobbles",
+   "from": {
+    "curiosity": "wordplay",
+    "track": "master",
+    "is": "comeback",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "statusGap.flip",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a wobble",
+   "when": "someone lands a sharp comeback",
+   "then": "the pecking order wobbles"
+  },
+  {
+   "id": "p:shrugged-disaster-pause",
+   "proximity": "shrugged-disaster-pause",
+   "label": "When a disaster is treated as no big deal, the laugh comes in the pause",
+   "from": {
+    "curiosity": "understatement",
+    "track": "master",
+    "is": "huge treated as tiny",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicTiming",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a disaster is treated as no big deal",
+   "then": "the laugh comes in the pause"
+  },
+  {
+   "id": "p:out-of-place-more-cringe",
+   "proximity": "out-of-place-more-cringe",
+   "label": "When someone is badly out of place, the awkward moments pile up",
+   "from": {
+    "curiosity": "fishOutOfWater",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone is badly out of place",
+   "then": "the awkward moments pile up"
+  },
+  {
+   "id": "p:more-sight-gags-faster-laughs",
+   "proximity": "more-sight-gags-faster-laughs",
+   "label": "When more sight gags fill the frame, the laughs come faster",
+   "from": {
+    "curiosity": "visualGag.count",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more sight gags fill the frame",
+   "then": "the laughs come faster"
+  },
+  {
+   "id": "p:familiar-setup-flipped",
+   "proximity": "familiar-setup-flipped",
+   "label": "When the setup feels very familiar, the payoff gets turned upside down",
+   "from": {
+    "curiosity": "subversion",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicBeat.twist",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "turned upside down",
+   "when": "the setup feels very familiar",
+   "then": "the payoff gets turned upside down"
+  },
+  {
+   "id": "p:clear-premise-escalates",
+   "proximity": "clear-premise-escalates",
+   "label": "When the comic idea is crystal clear, the scene can push it further and further",
+   "from": {
+    "curiosity": "comicPremise",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicEscalation",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the comic idea is crystal clear",
+   "then": "the scene can push it further and further"
+  },
+  {
+   "id": "p:escalation-exaggerates",
+   "proximity": "escalation-exaggerates",
+   "label": "When the situation keeps escalating, everything gets exaggerated",
+   "from": {
+    "curiosity": "comicEscalation",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "exaggeration",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the situation keeps escalating",
+   "then": "everything gets exaggerated"
+  },
+  {
+   "id": "p:exaggeration-to-absurd",
+   "proximity": "exaggeration-to-absurd",
+   "label": "When things get exaggerated far enough, they tip into the absurd",
+   "from": {
+    "curiosity": "exaggeration",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "absurdity",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "things get exaggerated far enough",
+   "then": "they tip into the absurd"
+  },
+  {
+   "id": "p:cutaway-contradicts-on-cut",
+   "proximity": "cutaway-contradicts-on-cut",
+   "label": "When a cutaway shows the opposite of what was just said, the laugh lands on the cut",
+   "from": {
+    "curiosity": "cutawayGag.kind",
+    "track": "master",
+    "is": "a contradiction",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicTiming.onCut",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "on the cut",
+   "when": "a cutaway shows the opposite of what was just said",
+   "then": "the laugh lands on the cut"
+  },
+  {
+   "id": "p:faster-volley-more-spark",
+   "proximity": "faster-volley-more-spark",
+   "label": "When a comic pair trades lines faster, the spark between them grows",
+   "from": {
+    "curiosity": "doubleAct.volley",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "chemistry",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a comic pair trades lines faster",
+   "then": "the spark between them grows"
   }
  ],
  "groups": [
@@ -7311,6 +11876,671 @@
    "links": [
     "p:fire-flush",
     "p:churn-foam"
+   ]
+  },
+  {
+   "id": "ps:whose-eyes-are-these",
+   "label": "Whose eyes are these?",
+   "plain": "Handing over the camera makes the view personal, the view starts to shake, a lying narrator splits words from picture, and that split gets a laugh.",
+   "proximities": [
+    "player-takes-camera-view",
+    "seen-through-eyes-shake",
+    "lying-eyes-lying-voice",
+    "voiceover-caught-laugh"
+   ],
+   "links": [
+    "p:player-takes-camera-view",
+    "p:seen-through-eyes-shake",
+    "p:lying-eyes-lying-voice",
+    "p:voiceover-caught-laugh"
+   ]
+  },
+  {
+   "id": "ps:choosing-the-angle",
+   "label": "Choosing the angle",
+   "plain": "More angles mean more cuts; angles picked for lines or moves decide where cuts fall; angles that fight the scene make it funny or tense.",
+   "proximities": [
+    "more-angles-faster-cuts",
+    "angle-for-line-cuts-on-line",
+    "angle-against-line-laugh",
+    "angle-for-action-cuts-on-action",
+    "angle-against-action-unease"
+   ],
+   "links": [
+    "p:more-angles-faster-cuts",
+    "p:angle-for-line-cuts-on-line",
+    "p:angle-against-line-laugh",
+    "p:angle-for-action-cuts-on-action",
+    "p:angle-against-action-unease"
+   ]
+  },
+  {
+   "id": "ps:camera-moves-with-a-reason",
+   "label": "Camera moves with a reason",
+   "plain": "The camera moves because something gave it a reason: a walk, a person to follow, a breath, or a loud bang.",
+   "proximities": [
+    "cross-starts-the-move",
+    "follow-character-track",
+    "move-on-breath-pause",
+    "loud-jolts-camera"
+   ],
+   "links": [
+    "p:cross-starts-the-move",
+    "p:follow-character-track",
+    "p:move-on-breath-pause",
+    "p:loud-jolts-camera"
+   ]
+  },
+  {
+   "id": "ps:coming-at-the-lens",
+   "label": "Coming at the lens",
+   "plain": "A character walks up to the camera, their reaching hand grows huge, and the audience flinches.",
+   "proximities": [
+    "toward-lens-close-up",
+    "toward-lens-looms",
+    "looming-makes-flinch"
+   ],
+   "links": [
+    "p:toward-lens-close-up",
+    "p:toward-lens-looms",
+    "p:looming-makes-flinch"
+   ]
+  },
+  {
+   "id": "ps:cartoon-physics",
+   "label": "Cartoon physics",
+   "plain": "A big wind-up, a snapping move, a bounce past the mark and hair that keeps swinging: the chain that makes cartoons feel alive and fun.",
+   "proximities": [
+    "big-windup-big-stretch",
+    "snap-move-bounces",
+    "bounce-feels-playful",
+    "sudden-stop-hair-keeps-going"
+   ],
+   "links": [
+    "p:big-windup-big-stretch",
+    "p:snap-move-bounces",
+    "p:bounce-feels-playful",
+    "p:sudden-stop-hair-keeps-going"
+   ]
+  },
+  {
+   "id": "ps:smooth-or-stiff",
+   "label": "Smooth or stiff",
+   "plain": "How fast a character moves and talks decides how often they are drawn and posed, and straight paths make them robotic.",
+   "proximities": [
+    "fast-move-every-frame",
+    "straight-paths-robotic",
+    "fast-talk-fewer-poses"
+   ],
+   "links": [
+    "p:fast-move-every-frame",
+    "p:straight-paths-robotic",
+    "p:fast-talk-fewer-poses"
+   ]
+  },
+  {
+   "id": "ps:the-eyes-give-it-away",
+   "label": "The eyes give it away",
+   "plain": "Darting eyes read as nerves, nerves bring fast blinking, and a glance at something pulls the whole body round.",
+   "proximities": [
+    "darting-eyes-nervous",
+    "nervous-blinks-more",
+    "eyes-find-object-lead-turn"
+   ],
+   "links": [
+    "p:darting-eyes-nervous",
+    "p:nervous-blinks-more",
+    "p:eyes-find-object-lead-turn"
+   ]
+  },
+  {
+   "id": "ps:dinner-gets-messy",
+   "label": "Dinner gets messy",
+   "plain": "Food on the table means talking with a full mouth, muddy words to clean up, and chewing pauses that time the jokes.",
+   "proximities": [
+    "food-means-talking-while-eating",
+    "mouth-full-needs-cleanup",
+    "chew-before-reply"
+   ],
+   "links": [
+    "p:food-means-talking-while-eating",
+    "p:mouth-full-needs-cleanup",
+    "p:chew-before-reply"
+   ]
+  },
+  {
+   "id": "ps:speed-and-impact",
+   "label": "Speed and impact",
+   "plain": "Fast things blur, crisp frames feel harsh, and every drop and quick cut gets a sound hit.",
+   "proximities": [
+    "fast-object-blurs",
+    "no-blur-jittery-fear",
+    "drop-gets-sound-hit",
+    "fast-action-cuts-more-hits"
+   ],
+   "links": [
+    "p:fast-object-blurs",
+    "p:no-blur-jittery-fear",
+    "p:drop-gets-sound-hit",
+    "p:fast-action-cuts-more-hits"
+   ]
+  },
+  {
+   "id": "ps:where-the-eye-goes",
+   "label": "Where the eye goes",
+   "plain": "Soft backgrounds and focus shifts steer the audience to a face, and a sharp door promises an entrance.",
+   "proximities": [
+    "shallow-focus-on-face",
+    "focus-pull-on-line",
+    "focus-on-door-entrance"
+   ],
+   "links": [
+    "p:shallow-focus-on-face",
+    "p:focus-pull-on-line",
+    "p:focus-on-door-entrance"
+   ]
+  },
+  {
+   "id": "ps:sound-of-the-place",
+   "label": "Sound of the place",
+   "plain": "The next place is heard before it is seen, outside brings the off-screen world in, and more people make it busier.",
+   "proximities": [
+    "new-place-sound-first",
+    "outside-hear-the-world",
+    "more-people-busier-sound"
+   ],
+   "links": [
+    "p:new-place-sound-first",
+    "p:outside-hear-the-world",
+    "p:more-people-busier-sound"
+   ]
+  },
+  {
+   "id": "ps:deadpan-storybook",
+   "label": "Deadpan storybook",
+   "plain": "Patterns push the subject to dead center, and dead center makes oddness funny.",
+   "proximities": [
+    "pattern-centers-subject",
+    "dead-center-deadpan"
+   ],
+   "links": [
+    "p:pattern-centers-subject",
+    "p:dead-center-deadpan"
+   ]
+  },
+  {
+   "id": "ps:the-volume-curve",
+   "label": "The volume curve",
+   "plain": "Whispers empty the room, big swings hit the top of the mix, the climax is loudest, and the ending fades away.",
+   "proximities": [
+    "whisper-quiets-the-room",
+    "wide-range-peaks",
+    "climax-gets-loud",
+    "ending-fades-out"
+   ],
+   "links": [
+    "p:whisper-quiets-the-room",
+    "p:wide-range-peaks",
+    "p:climax-gets-loud",
+    "p:ending-fades-out"
+   ]
+  },
+  {
+   "id": "ps:talking-fast",
+   "label": "Talking fast",
+   "plain": "Quick talk brings quick cuts and simpler poses, and once people talk over each other it becomes comedy.",
+   "proximities": [
+    "fast-talk-fast-cuts",
+    "fast-talk-fewer-poses",
+    "talking-over-each-other-comedy"
+   ],
+   "links": [
+    "p:fast-talk-fast-cuts",
+    "p:fast-talk-fewer-poses",
+    "p:talking-over-each-other-comedy"
+   ]
+  },
+  {
+   "id": "ps:night-comes-down",
+   "label": "Night comes down",
+   "plain": "Night falls, the light turns to blue moonlight, and the people in it start to feel far apart.",
+   "proximities": [
+    "night-brings-moonlight",
+    "moonlight-goes-blue",
+    "cold-light-pulls-apart"
+   ],
+   "links": [
+    "p:night-brings-moonlight",
+    "p:moonlight-goes-blue",
+    "p:cold-light-pulls-apart"
+   ]
+  },
+  {
+   "id": "ps:golden-hour-turn",
+   "label": "The golden hour turn",
+   "plain": "Dusk light arrives, changes while the camera holds, and the feeling in the face swells with it.",
+   "proximities": [
+    "dusk-brings-dusk-light",
+    "dusk-light-shifts-in-hold",
+    "light-shift-moves-feeling"
+   ],
+   "links": [
+    "p:dusk-brings-dusk-light",
+    "p:dusk-light-shifts-in-hold",
+    "p:light-shift-moves-feeling"
+   ]
+  },
+  {
+   "id": "ps:lamplit-closeness",
+   "label": "Lamplit closeness",
+   "plain": "A lamp in the shot, warm light from it, a cozy room, and people drawing close.",
+   "proximities": [
+    "lamp-in-shot-motivates",
+    "motivated-light-warm",
+    "warm-lamps-cozy",
+    "cozy-pulls-close"
+   ],
+   "links": [
+    "p:lamp-in-shot-motivates",
+    "p:motivated-light-warm",
+    "p:warm-lamps-cozy",
+    "p:cozy-pulls-close"
+   ]
+  },
+  {
+   "id": "ps:noir-squeeze",
+   "label": "Noir squeeze",
+   "plain": "Side light, rising contrast, a dark picture, and characters hiding what they mean: the classic crime-film tightening.",
+   "proximities": [
+    "side-key-raises-contrast",
+    "contrast-goes-low-key",
+    "low-key-hides-meaning"
+   ],
+   "links": [
+    "p:side-key-raises-contrast",
+    "p:contrast-goes-low-key",
+    "p:low-key-hides-meaning"
+   ]
+  },
+  {
+   "id": "ps:smoky-blinds",
+   "label": "Smoky blinds",
+   "plain": "Haze turns blind light into visible bars, and the bars make the person feel caged.",
+   "proximities": [
+    "haze-reveals-beams",
+    "blind-stripes-trap"
+   ],
+   "links": [
+    "p:haze-reveals-beams",
+    "p:blind-stripes-trap"
+   ]
+  },
+  {
+   "id": "ps:halo-from-behind",
+   "label": "Halo from behind",
+   "plain": "Light moves behind the actor, an edge of light appears, the hair shines and the person lifts off the background.",
+   "proximities": [
+    "backlight-brings-rim",
+    "rim-lights-hair",
+    "rim-separates-layers"
+   ],
+   "links": [
+    "p:backlight-brings-rim",
+    "p:rim-lights-hair",
+    "p:rim-separates-layers"
+   ]
+  },
+  {
+   "id": "ps:one-red-thing",
+   "label": "One red thing",
+   "plain": "The colors narrow, one thing pops, and the audience can't stop watching it.",
+   "proximities": [
+    "narrow-palette-one-pop",
+    "pop-color-grips-eye"
+   ],
+   "links": [
+    "p:narrow-palette-one-pop",
+    "p:pop-color-grips-eye"
+   ]
+  },
+  {
+   "id": "ps:wet-neon-street",
+   "label": "Wet neon street",
+   "plain": "A soaked street turns to a mirror and every sign and lamp shows up twice.",
+   "proximities": [
+    "soaked-street-mirror",
+    "mirror-doubles-lamps"
+   ],
+   "links": [
+    "p:soaked-street-mirror",
+    "p:mirror-doubles-lamps"
+   ]
+  },
+  {
+   "id": "ps:smash-and-scatter",
+   "label": "Smash and scatter",
+   "plain": "A gag goes too far, something shatters, and the pieces fly everywhere.",
+   "proximities": [
+    "destruction-shatters",
+    "shatter-scatters"
+   ],
+   "links": [
+    "p:destruction-shatters",
+    "p:shatter-scatters"
+   ]
+  },
+  {
+   "id": "ps:bath-time-disaster",
+   "label": "Bath time disaster",
+   "plain": "The fur gets soaked, mats into clumps, and the proud animal looks ridiculous.",
+   "proximities": [
+    "soaked-fur-mats",
+    "matted-fur-humiliation"
+   ],
+   "links": [
+    "p:soaked-fur-mats",
+    "p:matted-fur-humiliation"
+   ]
+  },
+  {
+   "id": "ps:long-coat-in-motion",
+   "label": "Long coat in motion",
+   "plain": "Long fur trails behind each move and keeps swinging after the body stops.",
+   "proximities": [
+    "long-fur-lags",
+    "fur-lag-slow-settle"
+   ],
+   "links": [
+    "p:long-fur-lags",
+    "p:fur-lag-slow-settle"
+   ]
+  },
+  {
+   "id": "ps:lost-in-the-smoke",
+   "label": "Lost in the smoke",
+   "plain": "Smoke builds into a wall and the hero's world closes in to the one person they can still see.",
+   "proximities": [
+    "smoke-builds-wall",
+    "smoke-wall-narrows-world"
+   ],
+   "links": [
+    "p:smoke-builds-wall",
+    "p:smoke-wall-narrows-world"
+   ]
+  },
+  {
+   "id": "ps:fire-takes-the-room",
+   "label": "Fire takes the room",
+   "plain": "Fire appears, flickers across faces, then floods the scene with orange light.",
+   "proximities": [
+    "fire-flickers-faces",
+    "firelight-warms"
+   ],
+   "links": [
+    "p:fire-flickers-faces",
+    "p:firelight-warms"
+   ]
+  },
+  {
+   "id": "ps:splash-hang-time",
+   "label": "Splash hang time",
+   "plain": "A splash bursts, the edit slows right down, and smooth in-between frames keep every drop clean.",
+   "proximities": [
+    "splash-to-slowmo",
+    "slowmo-needs-smooth"
+   ],
+   "links": [
+    "p:splash-to-slowmo",
+    "p:slowmo-needs-smooth"
+   ]
+  },
+  {
+   "id": "ps:standout-hero",
+   "label": "The standout hero",
+   "plain": "Dress the crowd down, the hero becomes the only one dressed that way, and the eye finds them every time.",
+   "proximities": [
+    "crowd-rags-hero-alone",
+    "lone-outfit-finds-hero"
+   ],
+   "links": [
+    "p:crowd-rags-hero-alone",
+    "p:lone-outfit-finds-hero"
+   ]
+  },
+  {
+   "id": "ps:dressed-wrong-for-it",
+   "label": "Dressed wrong for it",
+   "plain": "Pretty clothes for a practical job, then baggy clothes that snag: the outfit sets up the comedy.",
+   "proximities": [
+    "show-clothes-wrong-job",
+    "baggy-clothes-stumble"
+   ],
+   "links": [
+    "p:show-clothes-wrong-job",
+    "p:baggy-clothes-stumble"
+   ]
+  },
+  {
+   "id": "ps:rigid-room-gag",
+   "label": "The rigid room gag",
+   "plain": "A perfectly arranged room tells us the owner is rigid, and a deep set gives the joke a place to land behind them.",
+   "proximities": [
+    "even-art-rigid-owner",
+    "deep-set-background-gag"
+   ],
+   "links": [
+    "p:even-art-rigid-owner",
+    "p:deep-set-background-gag"
+   ]
+  },
+  {
+   "id": "ps:dark-room-secrets",
+   "label": "Dark room secrets",
+   "plain": "Dark walls push the picture into low key, and in the dark people stop saying what they mean.",
+   "proximities": [
+    "dark-set-low-key",
+    "low-key-hides-meaning"
+   ],
+   "links": [
+    "p:dark-set-low-key",
+    "p:low-key-hides-meaning"
+   ]
+  },
+  {
+   "id": "ps:memory-box",
+   "label": "Memory box",
+   "plain": "An old photo look, copies stacked like snapshots, and home video that feels happy and sad at once.",
+   "proximities": [
+    "polaroid-stacks",
+    "home-video-bittersweet"
+   ],
+   "links": [
+    "p:polaroid-stacks",
+    "p:home-video-bittersweet"
+   ]
+  },
+  {
+   "id": "ps:hard-edge-grade",
+   "label": "Hard-edge grade",
+   "plain": "Crushed blacks push the contrast up, the picture goes dark, and the characters start hiding things.",
+   "proximities": [
+    "crushed-blacks-contrast",
+    "contrast-goes-low-key",
+    "low-key-hides-meaning"
+   ],
+   "links": [
+    "p:crushed-blacks-contrast",
+    "p:contrast-goes-low-key",
+    "p:low-key-hides-meaning"
+   ]
+  },
+  {
+   "id": "ps:hyper-edit",
+   "label": "The hyper edit",
+   "plain": "Explosive transitions, something new every second or two, and jokes forced to land faster.",
+   "proximities": [
+    "punchy-transitions-fast-reset",
+    "fast-reset-more-laughs"
+   ],
+   "links": [
+    "p:punchy-transitions-fast-reset",
+    "p:fast-reset-more-laughs"
+   ]
+  },
+  {
+   "id": "ps:put-me-somewhere-else",
+   "label": "Put me somewhere else",
+   "plain": "Cut the person out, drop a scenery clip behind them, and the flat shot gains real depth.",
+   "proximities": [
+    "cutout-new-place",
+    "stock-scenery-depth"
+   ],
+   "links": [
+    "p:cutout-new-place",
+    "p:stock-scenery-depth"
+   ]
+  },
+  {
+   "id": "ps:power-up-moment",
+   "label": "The power-up moment",
+   "plain": "The body lights up with power, an aura locks the eye on the hero, and the stakes climb.",
+   "proximities": [
+    "power-body-stakes",
+    "aura-locks-eye"
+   ],
+   "links": [
+    "p:power-body-stakes",
+    "p:aura-locks-eye"
+   ]
+  },
+  {
+   "id": "ps:the-squeeze",
+   "label": "The squeeze",
+   "plain": "Two groups, faster cross-cutting, a tighter clock, quicker scenes, rising tension and shorter scenes again. The classic way a finale speeds up.",
+   "proximities": [
+    "two-groups-cross-cut",
+    "cross-cutting-tightens-clock",
+    "clock-speeds-scenes",
+    "faster-scenes-more-tension",
+    "tension-shortens-scenes"
+   ],
+   "links": [
+    "p:two-groups-cross-cut",
+    "p:cross-cutting-tightens-clock",
+    "p:clock-speeds-scenes",
+    "p:faster-scenes-more-tension",
+    "p:tension-shortens-scenes"
+   ]
+  },
+  {
+   "id": "ps:loud-page",
+   "label": "The loud page",
+   "plain": "Fewer words make room for bigger pictures, a full-page picture gets a giant sound effect, and the sound bursts the frame.",
+   "proximities": [
+    "fewer-words-bigger-pictures",
+    "splash-big-sound",
+    "big-sound-breaks-frame",
+    "broken-frame-energy"
+   ],
+   "links": [
+    "p:fewer-words-bigger-pictures",
+    "p:splash-big-sound",
+    "p:big-sound-breaks-frame",
+    "p:broken-frame-energy"
+   ]
+  },
+  {
+   "id": "ps:knowing-too-much",
+   "label": "Knowing too much",
+   "plain": "Hopping between characters lets us know first, knowing first fills calm moments with dread, and dread narrows a character's attention into a fixation.",
+   "proximities": [
+    "hopping-pov-audience-first",
+    "knowing-first-brings-dread",
+    "dread-narrows-focus",
+    "narrowing-to-fixation"
+   ],
+   "links": [
+    "p:hopping-pov-audience-first",
+    "p:knowing-first-brings-dread",
+    "p:dread-narrows-focus",
+    "p:narrowing-to-fixation"
+   ]
+  },
+  {
+   "id": "ps:cartoon-spiral",
+   "label": "The cartoon spiral",
+   "plain": "A clear comic idea gets pushed further, everything gets exaggerated, and it tips into the absurd.",
+   "proximities": [
+    "clear-premise-escalates",
+    "escalation-exaggerates",
+    "exaggeration-to-absurd"
+   ],
+   "links": [
+    "p:clear-premise-escalates",
+    "p:escalation-exaggerates",
+    "p:exaggeration-to-absurd"
+   ]
+  },
+  {
+   "id": "ps:the-calm-one-cracks",
+   "label": "The calm one cracks",
+   "plain": "The straight one stays calm while disasters get shrugged off, until they finally lose it for the biggest laugh.",
+   "proximities": [
+    "straight-one-stays-calm",
+    "shrugged-disaster-pause",
+    "calm-one-cracks-big-laugh"
+   ],
+   "links": [
+    "p:straight-one-stays-calm",
+    "p:shrugged-disaster-pause",
+    "p:calm-one-cracks-big-laugh"
+   ]
+  },
+  {
+   "id": "ps:growing-up",
+   "label": "Growing up",
+   "plain": "Caring wider lines up want and need, they act on their belief, the choice changes them, and the change shows.",
+   "proximities": [
+    "wider-care-want-meets-need",
+    "aligned-want-big-choice",
+    "big-choice-brings-change",
+    "growing-change-shows"
+   ],
+   "links": [
+    "p:wider-care-want-meets-need",
+    "p:aligned-want-big-choice",
+    "p:big-choice-brings-change",
+    "p:growing-change-shows"
+   ]
+  },
+  {
+   "id": "ps:holding-it-in-until",
+   "label": "Holding it in, until",
+   "plain": "Clenched hands lead to bigger actions, the actions make the voice crack, and the crack brings the tears.",
+   "proximities": [
+    "clenched-hands-bigger-action",
+    "big-actions-voice-gives",
+    "breaking-voice-tears"
+   ],
+   "links": [
+    "p:clenched-hands-bigger-action",
+    "p:big-actions-voice-gives",
+    "p:breaking-voice-tears"
+   ]
+  },
+  {
+   "id": "ps:side-story-takes-over",
+   "label": "The side story takes over",
+   "plain": "More screen time makes a character's own story heavier, it gets pulled into the main plot, and the stakes jump.",
+   "proximities": [
+    "more-screen-time-heavier-plot",
+    "heavy-side-story-joins-main",
+    "joined-plots-raise-stakes"
+   ],
+   "links": [
+    "p:more-screen-time-heavier-plot",
+    "p:heavy-side-story-joins-main",
+    "p:joined-plots-raise-stakes"
    ]
   }
  ]
