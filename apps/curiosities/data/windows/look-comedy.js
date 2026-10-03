@@ -11,12 +11,7 @@
    orange = the funny one. */
 (function (W) {
   /* The bottom caption, its words shrunk (and at worst cut) so a long one never runs off the picture. */
-  const fitCap = (k, text) => {
-    let t = String(text);
-    if (t.length > 74) t = t.slice(0, 73) + "…";
-    const sz = Math.round(Math.max(7.5, Math.min(10, 570 / Math.max(1, t.length))) * 10) / 10;
-    return k.caption(t).replace('font-size="10"', `font-size="${sz}"`);
-  };
+  const fitCap = (k, text) => `<rect x="0" y="162" width="320" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: 160, y: 175, text, size: 10, min: 7, w: 308, color: "#f4f4f4" });
   const S = { bg: "#17161d", floor: "#2b2533", gold: "#ffd166", red: "#e4572e", blue: "#4a6fa5", orange: "#e8913a", green: "#5fae78", purple: "#9b6bb5", grey: "#8a8a96", pink: "#d9789b", paper: "#f4f1ea", ink: "#1c1712" };
   const r1 = (n) => Math.round(n * 10) / 10;
   const fmt = (n) => String(Math.abs(n) >= 10 ? Math.round(n) : Math.round(n * 100) / 100);

@@ -4,12 +4,7 @@
    hides another one. */
 (function (W) {
   /* The bottom caption, its words shrunk (and at worst cut) so a long one never runs off the picture. */
-  const fitCap = (k, text) => {
-    let t = String(text);
-    if (t.length > 74) t = t.slice(0, 73) + "…";
-    const sz = Math.round(Math.max(7.5, Math.min(10, 570 / Math.max(1, t.length))) * 10) / 10;
-    return k.caption(t).replace('font-size="10"', `font-size="${sz}"`);
-  };
+  const fitCap = (k, text) => `<rect x="0" y="162" width="320" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: 160, y: 175, text, size: 10, min: 7, w: 308, color: "#f4f4f4" });
   const r1 = (n) => Math.round(n * 10) / 10;
   const cl = (x, a, b) => Math.max(a, Math.min(b, x));
   /* Small grey words. */
