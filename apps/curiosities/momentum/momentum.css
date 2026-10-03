@@ -601,3 +601,53 @@
 .mo-fr-list li { display: grid; gap: 4px; }
 .mo-fr-big { font-size: 22px; }
 .mo-fr-per { margin: 6px 0 0; padding-left: 18px; }
+/* three.js: the Three films tab. */
+.m3 { display: grid; gap: 12px; min-width: 0; }
+.m3 section { min-width: 0; }
+.m3-controls select { width: 250px; max-width: 100%; }
+.m3-mode { display: inline-flex; }
+.m3-mode button { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); }
+.m3-mode button + button { border-left: 0; }
+.m3-mode button[aria-pressed="true"] { background: var(--ink); color: var(--paper, #fff); }
+.m3-stack { display: grid; gap: 10px; min-width: 0; position: relative; }
+.m3-film { display: grid; gap: 5px; min-width: 0; }
+.m3-film-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: 14px; min-width: 0; }
+.m3-name { font-weight: 600; overflow-wrap: anywhere; }
+.m3-badge { display: inline-block; min-width: 26px; text-align: center; font-size: 11px; font-weight: 700; padding: 1px 5px; border-radius: 8px; background: var(--mo-ink); color: var(--paper, #fff); flex: none; }
+.m3-mine .m3-badge { background: #0b5cad; }
+.m3-rib { position: relative; height: 30px; background: repeating-linear-gradient(135deg, var(--mo-grid) 0 6px, transparent 6px 12px); border: 1px solid var(--mo-ink); cursor: crosshair; touch-action: pan-y; overflow: hidden; }
+.m3-rib:focus-visible { outline: 3px solid #0b5cad; outline-offset: 2px; }
+.m3-seg { position: absolute; top: 0; bottom: 0; border-right: 2px solid var(--mo-surface); box-sizing: border-box; }
+.m3-ended { position: absolute; top: 0; bottom: 0; border-left: 2px dashed var(--mo-ink); }
+.m3-cur { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; background: #111; box-shadow: 0 0 0 1px #fff, 0 0 0 2px #111; pointer-events: none; z-index: 2; }
+.m3-cross { position: absolute; width: 0; margin-left: -1px; border-left: 2px dashed #111; pointer-events: none; z-index: 1; }
+.m3-cross[hidden] { display: none; }
+.m3-cur[hidden] { display: none; }
+.m3-nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.m3-num { border: 1px solid var(--line, rgba(0,0,0,.14)); background: var(--mo-surface); padding: 4px 8px; display: grid; gap: 1px; min-width: 0; }
+.m3-num b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.m3-num b .mo-status { font-size: 12px; white-space: normal; }
+.m3-num > span { font-size: 12px; color: var(--mo-ink-2); }
+.m3-ticks { position: relative; height: 16px; font-size: 11px; color: var(--mo-muted); font-variant-numeric: tabular-nums; }
+.m3-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.m3-ticks span:first-child { transform: none; }
+.m3-ticks span:last-child { transform: translateX(-100%); }
+.m3-legend { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.m3-read { border: 2px solid var(--ink); background: var(--mo-surface); padding: 8px 10px; min-height: 40px; }
+.m3-read .mo-small { margin: 0 !important; }
+.m3-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+.m3-lines li { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.m3-lines li > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.m3-lines .mo-key { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
+.m3-blend { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; }
+.m3-sugg { border: 1px solid var(--line, rgba(0,0,0,.14)); background: var(--mo-surface); padding: 8px 10px; display: grid; gap: 4px; min-width: 0; font-size: 14px; }
+.m3-sugg p { margin: 0; max-width: 75ch; }
+.m3-sugg-h { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.m3-sugg-h .mo-fam { display: inline-flex; }
+.m3-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.m3-btns button { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); }
+@media (max-width: 520px) {
+  .m3-nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .m3-controls label, .m3-controls select { width: 100%; max-width: 100%; }
+  .m3-rib { height: 36px; }
+}
