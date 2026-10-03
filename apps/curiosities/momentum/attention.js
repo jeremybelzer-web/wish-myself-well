@@ -24,7 +24,9 @@
    - fromStudy(study, opts), fromScene(storyboardScene, opts), fromReference(engineReference, opts)
    - live(opts) -> a recorder for a performance: push(values, seconds?) adds a beat now; reading() reads it.
    - stats: { switchesPerMinute, medianDwell, longestDwell, familyShare {family: 0..1}, curiosityShare,
-       cueShare {cue: 0..1}, quietShare, momentum 0..5, familyRuns, currentRun }
+       cueShare {cue: 0..1}, quietShare, momentum 0..5, familyRuns, currentRun, transitions,
+       moves: [{ from, to, cue, quiet, at, curiosity, label, after }] every move between families,
+       moveCues: { from: { to: { n, quiet, cues: { cue: n } } } } the same counted }
    - warnings: [{ family, from, to, dur, text }]: a family that held attention longer than the limit. */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
@@ -191,6 +193,21 @@
       transitions[a] = transitions[a] || {};
       transitions[a][b] = (transitions[a][b] || 0) + 1;
     }
+    /* Every move of attention from one family to another, with the cue that made it and the curiosity it went
+       to: Jeremy's question of which action or non-action (a quiet cue) shifts attention, and to where. */
+    const moves = [];
+    const moveCues = {};
+    for (let i = 1; i < segments.length; i++) {
+      const a = segments[i - 1];
+      const b = segments[i];
+      if (a.family === b.family) continue;
+      moves.push({ from: a.family, to: b.family, cue: b.cue, quiet: !!b.quiet, at: b.from, curiosity: b.curiosity, label: b.label, after: round(a.dur, 1) });
+      const row = (moveCues[a.family] = moveCues[a.family] || {});
+      const cell = (row[b.family] = row[b.family] || { n: 0, quiet: 0, cues: {} });
+      cell.n++;
+      if (b.quiet) cell.quiet++;
+      cell.cues[b.cue] = (cell.cues[b.cue] || 0) + 1;
+    }
     const warnings = runs
       .filter((r) => r.dur > limit)
       .map((r) => {
@@ -211,6 +228,8 @@
       momentum: round(push / sum, 2),
       familyRuns: runs,
       transitions,
+      moves,
+      moveCues,
       currentRun: runs[runs.length - 1] || null,
       warnings,
       limit,
