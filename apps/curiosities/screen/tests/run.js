@@ -442,6 +442,19 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   const dots = CL.foldDots(st, [{ lk: "t|a" }, { lk: "t|c" }, { lk: null }]);
   ok(JSON.stringify(dots) === JSON.stringify([{ j: 1, count: 2 }, { j: 2, count: 1 }, { j: 3, count: 1 }]), "a folded group shows a dot at every moment where any of its lanes has a node");
   ok(CL.tools().folds && typeof CL.tools().folds === "object" && CL.GROUP_H > 0, "folds are kept in the timeline's tools (a view setting)");
+  const gt = CL.groupText({ label: "Camera", count: 5, withNodes: 4 });
+  ok(gt.short === "5 · 4●" && gt.full === "Camera: 5 lanes, 4 with nodes" && CL.groupText({ label: "Comedy", count: 1, withNodes: 0 }).full === "Comedy: 1 lane, 0 with nodes", "a group header's count is short (" + gt.short + ") and its tooltip has the full wording (" + gt.full + ")");
+}
+
+/* Next and previous marker (⇧] and ⇧[): the nearest marker after or before the playhead's moment. */
+{
+  const CL = w.CurioLanes;
+  const rows = ["r0", "r1", "r2", "r3", "r4", "r5"].map((id) => ({ id }));
+  const mk = [{ row: "r4", color: "red", note: "" }, { row: "r1", color: "orange", note: "" }, { row: "gone", color: "blue", note: "" }];
+  ok(CL.markerStep(mk, rows, 0, 1) === 1 && CL.markerStep(mk, rows, 1, 1) === 4 && CL.markerStep(mk, rows, 2, 1) === 4, "next marker finds the nearest marker after the playhead, in film order");
+  ok(CL.markerStep(mk, rows, 5, -1) === 4 && CL.markerStep(mk, rows, 4, -1) === 1 && CL.markerStep(mk, rows, 3, -1) === 1, "previous marker finds the nearest marker before the playhead");
+  ok(CL.markerStep(mk, rows, 4, 1) === -1 && CL.markerStep(mk, rows, 1, -1) === -1 && CL.markerStep([], rows, 2, 1) === -1, "there is no marker that way past the last or before the first, or when there are none");
+  ok(CL.markerStep([{ row: "gone" }], rows, 0, 1) === -1, "a marker on a moment no longer in the film is skipped");
 }
 
 /* The Attention track (CapCut's waveform, for attention): what holds attention at each moment and how strongly

@@ -35,7 +35,10 @@
                          as Film lines in each lane and used by Take from the film (filmBeat, filmLine and
                          takeFromFilmCommands are exported; the film is stretched to My film's length)
    - laneGroups(lanes, o) and foldDots(st, lanes): the lane groups (a folding header per category) and where a folded
-     group's lanes have nodes; the mounted lanes have fold(category, folded?), foldAll(folded?) and groups()
+     group's lanes have nodes; the mounted lanes have fold(category, folded?), foldAll(folded?), groups() and
+     reveal(cur) (open a picked curiosity's folded group and scroll to its lane); groupText(g) is the header's words
+   - markerStep(markers, rows, j, dir) -> the moment of the next (1) or previous (-1) marker from moment j, or -1;
+     command("nextMarker") and command("prevMarker") move the playhead there (⇧] and ⇧[)
    - turnMarkers(beats, rows, { attention, lanes }) -> the auto markers where the film turns (see below);
      mergeTurnMarkers(markers, turns) and clearAutoMarkers(markers) put them in and take them off
    - attentionTrack(beats, { attention, secondsPerBeat }) -> what the Attention track draws (see below)
@@ -1203,6 +1206,19 @@
     return out;
   }
   const groupSay = (g) => `${g.count} lane${g.count === 1 ? "" : "s"}, ${g.withNodes} with nodes`;
+  /* The header's words. The name column is 190px wide (124px on phones), so the header shows a short count,
+     "Camera · 5 · 4●" (5 lanes, 4 of them with nodes), and the full wording goes in its tooltip and aria-label. */
+  function groupText(g) {
+    return { short: `${g.count} · ${g.withNodes}●`, full: `${g.label}: ${groupSay(g)}` };
+  }
+  /* Next or previous marker (⇧] and ⇧[): the moment of the nearest marker after (dir 1) or before (dir -1) moment j,
+     or -1 when there is none that way. Markers on moments no longer in the film are skipped. */
+  function markerStep(markers, rows, j, dir) {
+    const at = (markers || []).map((m) => (rows || []).findIndex((r) => r.id === m.row)).filter((k) => k >= 0);
+    const hits = at.filter((k) => (dir < 0 ? k < j : k > j));
+    if (!hits.length) return -1;
+    return dir < 0 ? Math.max(...hits) : Math.min(...hits);
+  }
 
   /* ---------- the Attention track ----------
      CapCut draws a song's waveform under the clips so you can see the sound's shape while you edit. Curiomatic's
@@ -1442,9 +1458,9 @@
         let k = 0;
         heads = groups
           .map((g) => {
-            const said = groupSay(g);
+            const words = groupText(g);
             const tip = g.folded ? `Open ${g.label}: show its ${g.count} lane${g.count === 1 ? "" : "s"} again` : `Fold ${g.label} to one thin row; dots still show where its lanes have nodes`;
-            const head = `<div class="sl-ghead${g.folded ? " is-folded" : ""}" style="height:${GROUP_H}px" data-group="${esc(g.id)}"><button type="button" class="sl-fold" data-act="fold" data-group="${esc(g.id)}" aria-expanded="${!g.folded}" title="${esc(tip)}"><span class="sl-fold-arrow" aria-hidden="true">${g.folded ? "▸" : "▾"}</span> ${esc(g.label)}</button><span class="sl-gcount" title="${esc(g.label)}: ${esc(said)}">${g.count} lane${g.count === 1 ? "" : "s"} · ${g.withNodes} with nodes</span></div>`;
+            const head = `<div class="sl-ghead${g.folded ? " is-folded" : ""}" style="height:${GROUP_H}px" data-group="${esc(g.id)}" title="${esc(words.full)}"><button type="button" class="sl-fold" data-act="fold" data-group="${esc(g.id)}" aria-expanded="${!g.folded}" aria-label="${esc(words.full)}. ${esc(tip)}" title="${esc(words.full)}. ${esc(tip)}"><span class="sl-fold-arrow" aria-hidden="true">${g.folded ? "▸" : "▾"}</span> ${esc(g.label)}</button><span class="sl-gcount" title="${esc(words.full)}" aria-hidden="true">· ${esc(words.short)}</span></div>`;
             const body = g.folded ? "" : g.lanes.map(() => laneHeads[k++]).join("");
             return head + body;
           })
@@ -2298,6 +2314,30 @@
       say(folded ? `${g.label} folded: its ${g.count} lane${g.count === 1 ? " is" : "s are"} tucked into one row. The dots show where ${g.count === 1 ? "it has" : "they have"} nodes; ▸ opens it again.` : `${g.label} is open again.`);
       return { ok: true, folded };
     }
+    /* Picking a curiosity (in the library, Details, a window or a lane's name) opens its group if it is folded, so
+       its lane shows, and scrolls the timeline up or down to it. Other groups keep their folds. */
+    function reveal(cur) {
+      const st = E() && E().state();
+      if (!st || !cur) return { ok: false };
+      const g = laneGroups(lanesNow(st)).groups.find((x) => x.lanes.some((ln) => ln.cur === cur));
+      const opened = !!(g && tools.folds[g.id]);
+      if (opened) {
+        delete tools.folds[g.id];
+        area = null;
+        saveTools();
+        draw();
+        say(`${g.label} is open again, so ${(g.lanes.find((ln) => ln.cur === cur) || {}).label || (S() ? S().label(cur) : cur)} shows.`);
+      }
+      const i = geo ? geo.lanes.findIndex((ln) => ln.cur === cur) : -1;
+      const sc = scroller();
+      if (i >= 0 && sc) {
+        /* The ruler stays on top while the lanes scroll, so a lane hidden under it counts as out of view. */
+        const y = topH() + geo.yTops[i];
+        if (y < sc.scrollTop + topH()) sc.scrollTop = Math.max(0, y - topH() - GROUP_H);
+        else if (y + geo.lh > sc.scrollTop + sc.clientHeight) sc.scrollTop = y + geo.lh - sc.clientHeight + 4;
+      }
+      return { ok: i >= 0, opened: opened ? g.id : null };
+    }
     function foldButton(id) {
       const out = foldGroup(id);
       const keep = msg;
@@ -2569,6 +2609,19 @@
         const had = markerOf(r.id);
         tools.markers = had ? tools.markers.filter((m) => m.row !== r.id) : tools.markers.concat({ row: r.id, color: MARK_DEFAULT, note: "" });
         say(had ? `Marker taken off moment ${playRow + 1}.` : `Marker added at moment ${playRow + 1}. Double-click its flag on the ruler to write a note or pick a color.`);
+      } else if (name === "prevMarker" || name === "nextMarker") {
+        /* CapCut's previous and next marker (⇧[ and ⇧]): the playhead jumps to the nearest marker that way. */
+        const dir = name === "nextMarker" ? 1 : -1;
+        const j = markerStep(tools.markers, st.rows, playRow, dir);
+        if (j < 0) {
+          const any = markerStep(tools.markers, st.rows, -1, 1) >= 0;
+          const why = any ? `No marker ${dir < 0 ? "before" : "after"} moment ${playRow + 1}.` : "There are no markers yet. Press M to put one at the playhead.";
+          return say(why), { ok: false, error: why };
+        }
+        const m = markerOf(st.rows[j].id);
+        goTo(j);
+        say(`Playhead on the ${dir < 0 ? "previous" : "next"} marker, at moment ${j + 1}${m && m.note ? ": " + m.note : ""}.`);
+        return { ok: true, row: j };
       } else if (name === "zoomIn" || name === "zoomOut" || name === "zoomFit") {
         const z = Number(tools.zoom) || 1;
         tools.zoom = name === "zoomFit" ? 1 : Math.max(0.25, Math.min(32, name === "zoomIn" ? z * 1.5 : z / 1.5));
@@ -3264,6 +3317,7 @@
         return out;
       },
       foldAll: (want) => foldAll(want !== false),
+      reveal,
       groups: () => ((geo && geo.groups) || []).map((g) => ({ id: g.id, label: g.label, count: g.count, withNodes: g.withNodes, folded: g.folded })),
       destroy() {
         document.removeEventListener("click", filmCheck, true);
@@ -3274,5 +3328,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
 })();
