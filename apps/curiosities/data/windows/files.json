@@ -25,6 +25,7 @@
   "win-depth-cut.js",
   "win-depth-sound.js",
   "win-depth-acting.js",
+  "win-depth-world.js",
   "measure-camera.js",
   "measure-performance.js",
   "measure-light.js",
@@ -65,6 +66,7 @@
   "say-depth-cut.js",
   "say-depth-sound.js",
   "say-depth-acting.js",
+  "say-depth-world.js",
   "look-camera.js",
   "look-story.js",
   "look-comedy.js",
@@ -87,5 +89,6 @@
   "look-depth-story.js",
   "look-depth-cut.js",
   "look-depth-sound.js",
-  "look-depth-acting.js"
+  "look-depth-acting.js",
+  "look-depth-world.js"
 ]

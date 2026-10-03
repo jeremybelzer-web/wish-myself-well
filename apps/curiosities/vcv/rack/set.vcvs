@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "SET DESIGN\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 8, CC 49 to 64\n   1 Era and style of the place\n   2 Main material\n   3 Soft curves to sharp clean lines\n   4 Art on the walls\n   5 How the art is arranged\n   6 Clutter\n   7 Cramped to open\n   8 Run down to spotless\n   9 Layers behind the people\n  10 Dark to bright colors\n  11 How the room is laid out\n  12 Props\n  13 Scattered things\n  14 suite: Set design lens\n  15 suite: Dive bar\n  16 suite: Upscale lounge\nCV-CC 2: MIDI channel 8, CC 65 to 80\n   1 suite: Period piece\n   2 suite: Cold minimalism\n   3 suite: Warm maximalism\n   4 suite: Lived-in home\n   5 suite: Autumn yard\n   6 pair: When the clutter rises, the room feels more cramped\n   7 pair: When the place runs down, the clothes wear out too\n   8 pair: In a cluttered room, the shots get closer\n   9 pair: In a huge space, the frame goes wide\n  10 pair: A key prop gets its close-up\n  11 pair: A run-down room darkens the mood\n  12 pair: When the wind picks up, scattered leaves start to tumble\n  13 pair: When the set is made of glass, surfaces turn mirror-shiny\n  14 pair: When the room is all sharp straight lines, people feel boxed in\n  15 pair: When the walls are covered in art, the eye wanders off the actors\n  16 pair: When the art hangs perfectly even, the owner reads as rigid\nCV-CC 3: MIDI channel 8, CC 81 to 86\n   1 pair: When the set has deep layers, there's room for a joke in the background\n   2 pair: When the set is painted dark, the picture goes low key\n   3 pair: When the room is laid out in booths, people sit close and talk low\n   4 pairs: The set steers the camera\n   5 pairs: The rigid room gag\n   6 pairs: Dark room secrets"
+    "text": "SET DESIGN\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 33 to 48\n   1 Era and style of the place\n   2 Main material\n   3 Soft curves to sharp clean lines\n   4 Art on the walls\n   5 How the art is arranged\n   6 Clutter\n   7 Cramped to open\n   8 Run down to spotless\n   9 Layers behind the people\n  10 Dark to bright colors\n  11 How the room is laid out\n  12 Props\n  13 Scattered things\n  14 The place changes as they change\n  15 Crossing the doorway\n  16 Ways out of the room\nCV-CC 2: MIDI channel 9, CC 49 to 64\n   1 A mirror in the room\n   2 The place they keep coming back to\n   3 The whole story in one place\n   4 suite: Set design lens\n   5 suite: Dive bar\n   6 suite: Upscale lounge\n   7 suite: Period piece\n   8 suite: Cold minimalism\n   9 suite: Warm maximalism\n  10 suite: Lived-in home\n  11 suite: Autumn yard\n  12 suite: A year in one house\n  13 suite: Locked in\n  14 suite: Leaving home\n  15 suite: Look in the mirror\n  16 pair: When the clutter rises, the room feels more cramped\nCV-CC 3: MIDI channel 9, CC 65 to 80\n   1 pair: When the place runs down, the clothes wear out too\n   2 pair: In a cluttered room, the shots get closer\n   3 pair: In a huge space, the frame goes wide\n   4 pair: A key prop gets its close-up\n   5 pair: A run-down room darkens the mood\n   6 pair: When the wind picks up, scattered leaves start to tumble\n   7 pair: When the set is made of glass, surfaces turn mirror-shiny\n   8 pair: When the room is all sharp straight lines, people feel boxed in\n   9 pair: When the walls are covered in art, the eye wanders off the actors\n  10 pair: When the art hangs perfectly even, the owner reads as rigid\n  11 pair: When the set has deep layers, there's room for a joke in the background\n  12 pair: When the set is painted dark, the picture goes low key\n  13 pair: When the room is laid out in booths, people sit close and talk low\n  14 pair: When the place follows the character closely, their change shows\n  15 pair: When the place comes back to life with them, hope rises\n  16 pair: When the place falls apart with them, it gets run down\nCV-CC 4: MIDI channel 9, CC 81 to 96\n   1 pair: When they step through the doorway, there is no going back\n   2 pair: When they stop longer at the door, tension builds\n   3 pair: When the doorway matters more, it frames them\n   4 pair: When the room feels more trapped, dread rises\n   5 pair: When there are more places to hide, danger can wait behind them\n   6 pair: When the mirror shows someone behind them, we see the danger first\n   7 pair: When they avoid their own reflection, shame shows\n   8 pair: When the reflections multiply, we start to doubt what we see\n   9 pair: When the home place matters more, warmth grows\n  10 pair: When the home place is lost, grief follows\n  11 pair: When more of the film stays in one place, it feels more trapped\n  12 pair: When the place squeezes them harder, tension rises\n  13 pairs: The set steers the camera\n  14 pairs: The rigid room gag\n  15 pairs: Dark room secrets\n  16 pairs: Nowhere to run\nCV-CC 5: MIDI channel 9, CC 97 to 97\n   1 pairs: A life in a room"
    },
    "pos": [
     0,
@@ -23,6 +23,38 @@
   },
   {
    "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 8
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -45,16 +77,16 @@
      64
     ],
     "midi": {
-     "channel": 7
+     "channel": 8
     }
    },
    "pos": [
-    24,
+    32,
     0
    ]
   },
   {
-   "id": 5,
+   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -77,16 +109,16 @@
      80
     ],
     "midi": {
-     "channel": 7
+     "channel": 8
     }
    },
    "pos": [
-    32,
+    40,
     0
    ]
   },
   {
-   "id": 6,
+   "id": 7,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -97,6 +129,38 @@
      84,
      85,
      86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 8
+    }
+   },
+   "pos": [
+    48,
+    0
+   ]
+  },
+  {
+   "id": 8,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -109,11 +173,11 @@
      -1
     ],
     "midi": {
-     "channel": 7
+     "channel": 8
     }
    },
    "pos": [
-    40,
+    56,
     0
    ]
   }
