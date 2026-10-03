@@ -66,6 +66,56 @@
     W.phrases[id] = Object.assign(W.phrases[id] || {}, map || {});
     return W.phrases[id];
   };
+  /* The live picture at the top of every window (Jeremy, 17:44Z: "every logical parameter ... So that we can
+     transform elements of the overall curiosity. And see the results on the screen"). look-<category>.js files
+     call CuriosityWindows.look(id, (v, k) => svgInside) where v(sliderId) is the setting's value now ("setting"
+     or the main id is the main setting), v.p(sliderId) its place on its scale from 0 to 1, v.is(sliderId, /re/)
+     a test on its words, and k the drawing kit (data/windows/look-kit.js, window.CurioLookKit). It returns the
+     inside of a 320 by 180 picture. Every own setting should change the picture; check-windows.js --look tests
+     that by drawing each setting at its lowest and its highest. */
+  W.looks = {};
+  W.look = function (id, fn) {
+    if (!DB || !DB.find(id) || DB.find(id).level !== "curiosity") return W.skipped.push(id), null;
+    W.looks[id] = fn;
+    return fn;
+  };
+  const SHARED_IDS = ["push", "pointsAhead", "themeLink", "amount", "noticeable", "change"];
+  W.sharedIds = SHARED_IDS;
+  /* Where a value sits on a slider, 0 to 1. */
+  W.place = function (s, v) {
+    if (!s || v == null) return 0;
+    if (Array.isArray(s.scale)) {
+      const i = s.scale.findIndex((o) => String(o) === String(v));
+      return s.scale.length > 1 && i >= 0 ? i / (s.scale.length - 1) : 0;
+    }
+    const r = s.range || {};
+    return r.max > r.min ? Math.max(0, Math.min(1, (Number(v) - r.min) / (r.max - r.min))) : 0;
+  };
+  W.startOf = function (s) {
+    if (!s) return null;
+    if (Array.isArray(s.scale)) return s.from != null && s.scale.includes(s.from) ? s.from : s.scale[Math.floor((s.scale.length - 1) / 2)];
+    const r = s.range || {};
+    return s.from != null ? Number(s.from) : r.min != null && r.max != null ? Math.round(((r.min + r.max) / 2) / (r.step || 1)) * (r.step || 1) : 0;
+  };
+  /* Draw a curiosity's picture. get(slider) gives a slider's value now (undefined uses its starting value). */
+  W.drawLook = function (c, get) {
+    const fn = c && W.looks[c.id];
+    const K = root.CurioLookKit || (typeof require !== "undefined" ? require("./look-kit.js") : null);
+    if (!fn || !K) return "";
+    const slOf = (sid) => (c.sliders || []).find((s) => s.id === sid || (sid === "setting" && s.id === c.main)) || null;
+    const val = (sid) => {
+      const s = slOf(sid);
+      if (!s) return undefined;
+      const v = get ? get(s) : undefined;
+      return v == null || v === "" ? W.startOf(s) : v;
+    };
+    const v = (sid) => val(sid);
+    v.p = (sid) => W.place(slOf(sid), val(sid));
+    v.is = (sid, re) => re.test(String(val(sid)));
+    v.n = (sid) => Number(val(sid)) || 0;
+    v.slider = slOf;
+    return `<svg viewBox="0 0 ${K.W} ${K.H}" class="cw-look-svg" role="img" aria-label="${K.esc(c.label)}, as it looks now">${fn(v, K)}</svg>`;
+  };
   /* Every problem with the windows, as plain lines (used by check-windows.js and the Screen's tests). */
   W.check = function () {
     const out = [];

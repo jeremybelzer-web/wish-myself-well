@@ -260,6 +260,20 @@ const ok = (cond, msg) => {
   const twice = await page.evaluate(() => window.CurioWindowFaces.shapeItems("cameraPlace", "rise", 9, 0, 8, 2, 0.5).map(([k, j, v]) => window.CurioScale.pos(k, v)));
   ok(twice.length === 9 && twice[3] > twice[0] && twice[5] < twice[3] && twice.every((p) => p >= 0.24 && p <= 0.76), "a shape can play twice and swing only halfway: " + JSON.stringify(twice.map((p) => Math.round(p * 100) / 100)));
 
+  /* The live picture (Jeremy, 17:44Z: "see the results on the screen"): it redraws while a slider is dragged. */
+  ok(await page.$(`${orb} [data-cw-look] svg`), "the window opens with a live picture");
+  const redraw = await page.evaluate((orb) => {
+    const box = document.querySelector(`${orb} [data-cw-look]`);
+    const r = document.querySelector(`${orb} input[type=range][data-set="cameraPlace.distance"]`);
+    if (!box || !r) return null;
+    const before = box.innerHTML;
+    r.value = r.max;
+    r.dispatchEvent(new Event("input", { bubbles: true }));
+    return before !== box.innerHTML;
+  }, orb);
+  ok(redraw === true, "dragging a slider redraws the live picture before the node is set");
+  ok(await page.$(`${orb} .sc-chips button[data-set="cameraPlace.subject"]`), "a list with no order is chips to tap, not a menu");
+
   /* MIDI learn: click 🎹, move a knob, and that knob writes the setting at the playhead. */
   await page.evaluate(() => (window.CurioAuto.connectMidi = () => Promise.resolve(true)));
   await page.click(`${orb} [data-cw-midi="cameraPlace.distance"]`);

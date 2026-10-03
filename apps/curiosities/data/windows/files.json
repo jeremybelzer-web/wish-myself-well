@@ -1,5 +1,6 @@
 [
   "windows.js",
+  "look-kit.js",
   "win-space.js",
   "win-camera.js",
   "win-performance.js",
@@ -51,5 +52,6 @@
   "say-comedy.js",
   "say-character.js",
   "say-story.js",
-  "say-page.js"
+  "say-page.js",
+  "look-camera.js"
 ]

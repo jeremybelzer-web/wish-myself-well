@@ -407,6 +407,64 @@
     });
     return { set: [...out.values()], said: said.filter(Boolean) };
   }
+  /* ---------- the live picture (Jeremy, 17:44Z: "see the results on the screen") ----------
+     Every window opens with a picture of what its settings do (data/windows/look-<category>.js). It shows the
+     values at the playhead and redraws while a slider is being dragged, before the node is set. */
+  function lookGet(c, h, over) {
+    return (s) => {
+      const k = h.sliderId(c, s);
+      if (over && over[k] != null) return over[k];
+      return h.ctx.value(k);
+    };
+  }
+  function lookHtml(c, h) {
+    const W = window.CuriosityWindows;
+    if (!W || !W.looks || !W.looks[c.id]) return "";
+    let pic = "";
+    try {
+      pic = W.drawLook(c, lookGet(c, h));
+    } catch (e) {
+      pic = "";
+    }
+    if (!pic) return "";
+    return `<div class="sc-wpart cw-look"><div class="cw-look-pic" data-cw-look="${h.esc(c.id)}">${pic}</div><p class="sc-k">At this moment. Move anything below and watch it change; the picture stays in view.</p></div>`;
+  }
+  /* Redraw the picture in the window around el with some values not set yet (a pad or orbit mid-drag). */
+  function lookLive(el, list, api) {
+    const win = el && el.closest && el.closest(".sc-win");
+    const box = win && win.querySelector("[data-cw-look]");
+    const c = box && window.CurioLevels && window.CurioLevels.get("curiosity", box.dataset.cwLook);
+    if (!c || !api || !api.helpers) return;
+    const over = {};
+    list.forEach(([k, v]) => (over[k] = v));
+    try {
+      box.innerHTML = window.CuriosityWindows.drawLook(c, lookGet(c, api.helpers(), over));
+    } catch (err) {}
+  }
+  /* While a slider moves, redraw that window's picture with the value under the finger. */
+  function input(e, h) {
+    const t = e.target;
+    const d = t && t.dataset;
+    const win = t && t.closest && t.closest(".sc-win");
+    if (!d || !win) return false;
+    const box = win.querySelector("[data-cw-look]");
+    const c = box && window.CurioLevels && window.CurioLevels.get("curiosity", box.dataset.cwLook);
+    if (!c) return false;
+    let k = null;
+    let v = null;
+    if (d.stepSet) {
+      k = d.stepSet;
+      v = JSON.parse(d.scale)[Number(t.value)];
+    } else if (d.set && t.type === "range") {
+      k = d.set;
+      v = Number(t.value);
+    }
+    if (!k) return false;
+    try {
+      box.innerHTML = window.CuriosityWindows.drawLook(c, lookGet(c, h, { [k]: v }));
+    } catch (err) {}
+    return false;
+  }
   function sayHtml(c, h) {
     const mic = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
     const sp = spec(c) || {};
@@ -522,7 +580,8 @@
       d.style.top = (1 - last[1]) * 100 + "%";
     };
     dot();
-    const move = (ev) => ((last = at(ev)), dot());
+    const pending = () => [[ix, last[0]], [iy, last[1]]].filter(([k]) => k && S().known(k)).map(([k, p]) => [k, S().at(k, p)]);
+    const move = (ev) => ((last = at(ev)), dot(), lookLive(el, pending(), api));
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
@@ -579,6 +638,7 @@
       }
       const tip = el.querySelector("small");
       if (tip) tip.textContent = list.map(([k, v]) => v).join(" · ");
+      lookLive(el, list, api);
     };
     at(e);
     const up = () => {
@@ -687,7 +747,7 @@
     return true;
   }
 
-  window.CurioWindowFaces = { FACES: Object.keys(FACE), SHAPES: SHAPES.map((s) => s[0]), html, sayHtml, interpret, grouped, click, pointer, shapeItems, spec, keydown, midiBtn, attach, midi: { bindings: () => Object.assign({}, midi.map), feed: onMidi } };
+  window.CurioWindowFaces = { FACES: Object.keys(FACE), SHAPES: SHAPES.map((s) => s[0]), html, sayHtml, lookHtml, input, live: lookLive, interpret, grouped, click, pointer, shapeItems, spec, keydown, midiBtn, attach, midi: { bindings: () => Object.assign({}, midi.map), feed: onMidi } };
   function CSS() {
     return `
 .cw-faces { gap: 10px; }
@@ -772,6 +832,12 @@
 .sc-page button.cw-midi small { margin-left: 2px; font-size: 9px; }
 .sc-page button.cw-midi.learning { opacity: 1; outline: 1px solid var(--cc-accent); animation: cw-blink 0.8s steps(2) infinite; }
 @keyframes cw-blink { 50% { outline-color: transparent; } }
+.sc-page .sc-win .cw-look { position: sticky; top: -8px; z-index: 3; background: var(--cc-panel, #1b1b1f); padding-top: 4px; padding-bottom: 4px; }
+.cw-look-pic { border-radius: 6px; overflow: hidden; background: #111; line-height: 0; }
+.cw-look-pic svg { width: 100%; height: auto; display: block; }
+.sc-page .sc-win .sc-chips { display: flex; flex-wrap: wrap; gap: 3px; }
+.sc-page .sc-win .sc-chips button { padding: 3px 7px; font-size: 10px; border-radius: 10px; }
+.sc-page .sc-win .sc-chips button.on { background: var(--cc-accent); color: var(--cc-accent-ink); }
 .cw-shape-row label { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--cc-dim); }
 .cw-shape-row svg { width: 22px; height: 14px; fill: none; stroke: var(--cc-accent); stroke-width: 1.6; stroke-linejoin: round; }
 `;

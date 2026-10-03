@@ -361,6 +361,7 @@
     page.addEventListener("click", onClick);
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
+    page.addEventListener("input", (e) => faces() && faces().input && faces().input(e, faceHelpers(mineCtx())));
     page.addEventListener("pointerdown", onKnobDown);
     if (faces() && faces().attach) faces().attach(faceApi());
     page.addEventListener("keydown", (e) => faces() && faces().keydown && faces().keydown(e, faceHelpers(mineCtx()), faceApi()));
@@ -852,9 +853,12 @@
     const a = -135 + 270 * (isFinite(p) ? Math.max(0, Math.min(1, p)) : 0);
     return `<span class="sc-knob${disabled ? " dis" : ""}" role="slider" tabindex="${disabled ? -1 : 0}" aria-label="${esc(s.label)}" aria-valuemin="${r.min}" aria-valuemax="${r.max}" aria-valuenow="${esc(val)}" data-knob="${esc(id)}" data-min="${r.min}" data-max="${r.max}" data-step="${r.step || 1}" data-val="${esc(val)}"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13"/><line x1="16" y1="16" x2="16" y2="5" transform="rotate(${a} 16 16)"/></svg><b>${esc(val == null ? "–" : val)}</b></span>`;
   }
-  function controlHtml(id, s, val, disabled) {
+  function controlHtml(id, s, val, disabled, big) {
     const kind = L().control(s);
     const dis = disabled ? " disabled" : "";
+    /* In a curiosity's own window a list with no order is a grid of chips to tap, not a menu (decision in
+       decisions/curiosity-windows-thread.md). */
+    if (kind === "choice" && big) return `<span class="sc-chips" role="group" aria-label="${esc(s.label)}">${s.scale.map((o) => `<button type="button" data-set="${esc(id)}" data-v="${esc(o)}" class="${String(val) === String(o) ? "on" : ""}"${dis}>${esc(o)}</button>`).join("")}</span>`;
     if (kind === "toggle") return `<span class="sc-toggle" role="group">${s.scale.map((o) => `<button type="button" data-set="${esc(id)}" data-v="${esc(o)}" class="${String(val) === String(o) ? "on" : ""}"${dis}>${esc(o)}</button>`).join("")}</span>`;
     if (kind === "choice") return `<select data-set="${esc(id)}"${dis}><option value="">not set</option>${s.scale.map((o) => `<option${String(val) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
     if (kind === "steps") {
@@ -1062,7 +1066,7 @@
   /* The faces, groups, presets and shapes from data/windows (screen/windows.js, window.CurioWindowFaces). */
   const faces = () => window.CurioWindowFaces || null;
   const faceHelpers = (ctx, focus) => ({ esc, keyFor, sliderId, controlHtml, keyBtn, spark, row, ctx, focus });
-  const faceApi = () => ({ setValues, setAt, showLane, toast, range: rangeNow, value: valueHere });
+  const faceApi = () => ({ setValues, setAt, showLane, toast, range: rangeNow, value: valueHere, helpers: () => faceHelpers(mineCtx()) });
   function winHtml(w, z) {
     const F = faces();
     const c = L().get("curiosity", w.id);
@@ -1077,7 +1081,7 @@
       return `<div class="sc-wctl${main ? " main" : ""}${w.focus === id ? " focus" : ""}">
         <div class="sc-wctl-h"><span>${keyBtn(id, ctx)}<b>${esc(main ? labelOf(id) : sl.label)}</b></span>${spark(id, ctx.beats)}${F && F.midiBtn ? F.midiBtn(id) : ""}<button type="button" data-win-lane="${esc(id)}" title="Put ${esc(sl.label)} on the timeline as its own lane">+ lane</button></div>
         ${sl.plain ? `<p class="sc-k">${esc(sl.plain)}</p>` : ""}
-        <div class="sc-ctl">${controlHtml(id, sl, ctx.value(id), !ctx.edit)}</div>
+        <div class="sc-ctl">${controlHtml(id, sl, ctx.value(id), !ctx.edit, true)}</div>
       </div>`;
     };
     return `<section class="sc-win" data-win="${esc(c.id)}" role="dialog" aria-label="${esc(c.label)} window" style="left:${w.x}px;top:${w.y}px;z-index:${60 + z}">
@@ -1085,6 +1089,7 @@
       <div class="sc-win-b">
         ${c.plain ? `<p class="sc-win-plain">${esc(c.plain)}</p>` : ""}
         <p class="sc-k">My film, moment ${row + 1}: every change here becomes a node.</p>
+        ${F && F.lookHtml ? F.lookHtml(c, faceHelpers(ctx)) : ""}
         ${winSpecial(c, ctx)}
         ${F && F.sayHtml ? F.sayHtml(c, faceHelpers(ctx)) : ""}
         ${F ? F.html(c, faceHelpers(ctx, w.focus)) : ""}
@@ -1806,6 +1811,7 @@
       if (b) b.textContent = val;
       const ln = k.querySelector("line");
       if (ln) ln.setAttribute("transform", `rotate(${-135 + (270 * (val - min)) / (max - min || 1)} 16 16)`);
+      if (faces() && faces().live) faces().live(k, [[k.dataset.knob, val]], faceApi());
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
