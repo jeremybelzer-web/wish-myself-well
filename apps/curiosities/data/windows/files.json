@@ -56,5 +56,7 @@
   "look-camera.js",
   "look-story.js",
   "look-comedy.js",
-  "look-effects.js"
+  "look-effects.js",
+  "look-editing.js",
+  "look-page.js"
 ]
