@@ -101,7 +101,11 @@
     path += `<polyline points="${pts.join(" ")}" fill="none" stroke="#8fb2d8" stroke-width="2.5"/>`;
     const pr = v.p("progress");
     const tip = v.p("tipPoint");
-    const px = xs[st] + pr * ws[st];
+    const px = k.clamp(xs[st] + pr * ws[st], xs[st] + 8, xs[st] + ws[st] - 8);
+    /* a face along the line in every other stage, showing how that stage feels */
+    const moods = [0.5, -0.2, -0.8, 0.1, 0.8];
+    let faces = "";
+    names.forEach((_, i) => { if (i !== st) faces += k.face({ x: r1(xs[i] + ws[i] / 2), y: r1(Math.max(50, yAt(i, 0.5) - 12)), r: 6, mood: moods[i], eyes: 1, color: "#d8b48c" }); });
     const tx = xs[st] + tip * ws[st];
     path += `<line x1="${r1(tx)}" y1="44" x2="${r1(tx)}" y2="134" stroke="${RED}" stroke-dasharray="3 3"/>${k.label({ x: tx, y: 132, text: "tips", size: 7, color: RED })}`;
     /* Moments that show the stage: dots along its stretch. */
@@ -112,8 +116,9 @@
     const fig = /couple/.test(who) ? k.person({ x: px - 5, y: yAt(st, pr) - 2, s: 0.34, color: col }) + k.person({ x: px + 5, y: yAt(st, pr) - 2, s: 0.34, color: "#a56a8a" }) : /group/.test(who) ? crowd(k, 3, px - 9, yAt(st, pr) - 2, { gap: 9, s: 0.3, color: col }) : k.person({ x: px, y: yAt(st, pr) - 2, s: 0.4, color: col, mood: st === 2 ? -0.7 : st === 4 ? 0.7 : 0 });
     /* Seen coming: an eye ahead of them, further ahead the more the audience knows. */
     const seen = v.p("seenComing");
-    const eye = `${k.arrow({ x1: px + 4, y1: yAt(st, pr) - 34, x2: px + 8 + seen * 40, y2: yAt(st, pr) - 34, color: "#9fd3ff", w: 1.2 })}`;
-    return `${k.bg(BG)}${k.title(`Arc of ${who}`)}${path}${eye}${fig}${hearts(k, v.n("rootingFor"), 262, 14, "rooting")}${watch(k, 236, 152, v.n("turnSeconds"), 120, `turn ${secs(v.n("turnSeconds"))}`)}${k.label({ x: 10, y: 150, text: `stage lasts ${v("stageLength")}`, size: 8, anchor: "start", color: "#aaa" })}${k.label({ x: 10, y: 160, text: `\u{1F441} ${v("seenComing")}`, size: 8, anchor: "start", color: "#9fd3ff" })}${fitCap(k, `${v("setting")}: ${Math.round(pr * 100)}% through, tips at ${Math.round(tip * 100)}%`)}`;
+    const ey = Math.max(46, yAt(st, pr) - 34);
+    const eye = `${k.arrow({ x1: px + 4, y1: ey, x2: px + 8 + seen * 40, y2: ey, color: "#9fd3ff", w: 1.2 })}`;
+    return `${k.bg(BG)}${k.title(`Arc of ${who}`)}${path}${faces}${eye}${fig}${hearts(k, v.n("rootingFor"), 262, 14, "rooting")}${watch(k, 236, 152, v.n("turnSeconds"), 120, `turn ${secs(v.n("turnSeconds"))}`)}${k.label({ x: 10, y: 150, text: `stage lasts ${v("stageLength")}`, size: 8, anchor: "start", color: "#aaa" })}${k.label({ x: 10, y: 160, text: `\u{1F441} ${v("seenComing")}`, size: 8, anchor: "start", color: "#9fd3ff" })}${fitCap(k, `${v("setting")}: ${Math.round(pr * 100)}% through, tips at ${Math.round(tip * 100)}%`)}`;
   });
 
   /* Arc direction: a line from who they were to who they become, rising (grows) or falling (falls); its shape
@@ -151,8 +156,8 @@
     const gapP = v.p("gap");
     const wx = 262;
     const wy = 62;
-    const needX = r1(k.lerp(252, 150, gapP));
-    const ny = r1(k.lerp(96, 122, gapP));
+    const needX = r1(k.lerp(226, 176, gapP));
+    const ny = r1(k.lerp(108, 116, gapP));
     const chase = v.n("chase") / 5;
     const px = 50 + chase * 40;
     const py = 132;
@@ -222,7 +227,7 @@
     let sparks = "";
     for (let i = 0; i < v.n("signs"); i++) sparks += k.text({ x: ax - 24 - (i % 2) * 11, y: 62 + Math.floor(i / 2) * 13, text: "✧", size: 9, color: GOLD });
     const noticed = [0, 0, 1, 4][idx(v, "noticedBy")];
-    return `${k.bg(BG)}${k.title(`Change shown through ${thr}`)}${divider}${k.label({ x: bx, y: 30, text: "before", size: 8, color: "#888" })}${k.label({ x: ax, y: 30, text: "after", size: 8, color: GOLD })}${extra}${before}${k.person({ x: bx, y: 130, s: 0.7, color: "#4a6fa5", lean: /posture/.test(thr) ? 14 : 0, mood: -0.3, arms: /posture/.test(thr) ? -0.6 : 0 })}${k.person(Object.assign({ x: ax, y: 130, s: 0.7, color: after }, postureA, { lean }))}${sparks}${watchers(k, noticed, 110, 60, 0.4)}${k.label({ x: 130, y: 78, text: noticed ? `noticed by ${v("noticedBy")}` : v("noticedBy") === "no one" ? "no one notices" : "only we notice", size: 7, color: "#aaa" })}${watch(k, 168, 152, v.n("showSeconds"), 60, `on screen ${v.n("showSeconds")} s`)}${when(k, v.p("landsAt"), "shows at")}${fitCap(k, `Visible ${v.n("visible")}/5 · ${v("contrast")} · ${mins(v.n("sinceOldWay"))} since the old way`)}`;
+    return `${k.bg(BG)}${k.title(`Change shown through ${thr}`)}${divider}${k.label({ x: bx, y: 30, text: "before", size: 8, color: "#888" })}${k.label({ x: ax, y: 30, text: "after", size: 8, color: GOLD })}${extra}${before}${k.person({ x: bx, y: 130, s: 0.7, color: "#4a6fa5", lean: /posture/.test(thr) ? 14 : 0, mood: -0.3, arms: /posture/.test(thr) ? -0.6 : 0 })}${k.person(Object.assign({ x: ax, y: 130, s: 0.7, color: after }, postureA, { lean }))}${sparks}${watchers(k, noticed, 108, 112, 0.4)}${k.label({ x: 130, y: 130, text: noticed ? `noticed by ${v("noticedBy")}` : v("noticedBy") === "no one" ? "no one notices" : "only we notice", size: 7, color: "#aaa" })}${watch(k, 168, 152, v.n("showSeconds"), 60, `on screen ${v.n("showSeconds")} s`)}${when(k, v.p("landsAt"), "shows at")}${fitCap(k, `Visible ${v.n("visible")}/5 · ${v("contrast")} · ${mins(v.n("sinceOldWay"))} since the old way`)}`;
   });
 
   /* ---------- plot ---------- */
@@ -347,17 +352,20 @@
     const left = v.p("timeLeft");
     const shown = idx(v, "shown");
     const r = 26 + shown * 10;
+    const cx = 106;
     const col = k.mix("#9fd3ff", "#ff4b4b", tight / 3);
     const acc = idx(v, "acceleration");
     let lines = "";
-    for (let i = 0; i < acc * 2; i++) lines += `<path d="M${r1(90 - r - 6 - i * 5)} ${80 - 10 + i * 5} q-6 10 0 20" stroke="${col}" fill="none" stroke-width="1.5"/>`;
+    for (let i = 0; i < acc * 2; i++) lines += `<path d="M${r1(cx + r + 6 + i * 5)} ${80 - 10 + i * 5} q6 10 0 20" stroke="${col}" fill="none" stroke-width="1.5"/>`;
     const rem = idx(v, "reminders");
     let ticks = "";
     const nt = [1, 3, 6, 12][rem];
     for (let i = 0; i < nt; i++) ticks += `<line x1="${r1(176 + (i / Math.max(1, nt - 1)) * 124)}" y1="124" x2="${r1(176 + (i / Math.max(1, nt - 1)) * 124)}" y2="132" stroke="${GOLD}" stroke-width="2"/>`;
     const speed = v.n("clockSpeed");
+    /* the person racing the clock: running harder, and more worried, the tighter it is */
+    const runner = k.person({ x: 28, y: 132, s: 0.5, color: HERO, lean: tight * 6, walk: tight / 3, arms: tight ? 0.3 : 0, mood: -tight * 0.25, look: 1 });
     const hand = k.rad(-90 + ((speed - 10) / 490) * 300);
-    return `${k.bg(BG)}${k.title(`Clock: ${v("setting")}`)}${tight ? "" : k.tint({ color: "#000", alpha: 0.3 })}<g opacity="${r1((0.45 + shown * 0.27) * 100) / 100}">${k.pie({ x: 90, y: 80, r, p: 1 - left, color: col })}<circle cx="90" cy="80" r="${r}" fill="none" stroke="#eee" stroke-width="2"/><line x1="90" y1="80" x2="${r1(90 + Math.cos(hand) * r * 0.9)}" y2="${r1(80 + Math.sin(hand) * r * 0.9)}" stroke="#fff" stroke-width="2"/></g>${lines}${k.label({ x: 90, y: 80 + r + 12, text: `${v.n("timeLeft")} min left · ${v("shown")}`, size: 8, color: "#ccc" })}${tag(k, 240, 46, `if it runs out: ${v("consequence")}`, "#3a2020")}${tag(k, 240, 70, `whose: ${v("clockOf")}`)}${k.label({ x: 240, y: 96, text: `runs at ${speed}% of real time`, size: 8, color: "#aaa" })}${k.label({ x: 240, y: 110, text: `${v("acceleration")}`, size: 8, color: "#aaa" })}${ticks}${k.label({ x: 176, y: 146, text: `reminders: ${v("reminders")}`, size: 8, anchor: "start", color: "#aaa" })}${fitCap(k, `${v("setting")} · ${v.n("timeLeft")} min left · ${v("acceleration")}`)}`;
+    return `${k.bg(BG)}${k.title(`Clock: ${v("setting")}`)}${tight ? "" : k.tint({ color: "#000", alpha: 0.3 })}<g opacity="${r1((0.45 + shown * 0.27) * 100) / 100}">${k.pie({ x: cx, y: 80, r, p: 1 - left, color: col })}<circle cx="${cx}" cy="80" r="${r}" fill="none" stroke="#eee" stroke-width="2"/><line x1="${cx}" y1="80" x2="${r1(cx + Math.cos(hand) * r * 0.9)}" y2="${r1(80 + Math.sin(hand) * r * 0.9)}" stroke="#fff" stroke-width="2"/></g>${lines}${runner}${k.label({ x: cx, y: 80 + r + 12, text: `${v.n("timeLeft")} min left · ${v("shown")}`, size: 8, color: "#ccc" })}${tag(k, 240, 46, `if it runs out: ${v("consequence")}`, "#3a2020")}${tag(k, 240, 70, `whose: ${v("clockOf")}`)}${k.label({ x: 240, y: 96, text: `runs at ${speed}% of real time`, size: 8, color: "#aaa" })}${k.label({ x: 240, y: 110, text: `${v("acceleration")}`, size: 8, color: "#aaa" })}${ticks}${k.label({ x: 176, y: 146, text: `reminders: ${v("reminders")}`, size: 8, anchor: "start", color: "#aaa" })}${fitCap(k, `${v("setting")} · ${v.n("timeLeft")} min left · ${v("acceleration")}`)}`;
   });
 
   /* Knowledge gap: the audience (a face in the seats) and the character on a race to the truth; who is ahead. */
@@ -389,7 +397,7 @@
     const spot = o.eye > 0 ? k.beam({ x: rx, y: 0, dir: 90, len: 130, spread: 10 + o.eye * 30, color: "#fff3c4", alpha: 0.05 + o.eye * 0.3 }) : "";
     const targets = target === 0 ? "" : target === 3 ? crowd(k, 4, 214, ry, { gap: 16, s: 0.34, color: "#7a8a5a" }) : k.person({ x: tx, y: ry, s: target === 2 ? 0.48 : 0.36, color: target === 2 ? HERO : "#7a8a5a" });
     const link = target === 0 ? "" : k.arrow({ x1: rx + 12, y1: ry - 30, x2: tx - 14, y2: ry - 30, color: GOLD, w: 1 + o.strength * 3 });
-    return `${spot}${glow}${targets}${link}${k.person({ x: rx, y: ry, s: 0.48, color: "#c07a3a", alpha, mood: o.mood || 0, eyes: o.eyes })}${k.text({ x: rx, y: ry - 66, text: roleIcon[o.role] || "★", size: 16 })}${k.label({ x: rx, y: ry + 10, text: `${o.dist} m`, size: 7, color: "#888" })}`;
+    return `${spot}${glow}${targets}${link}${k.person({ x: rx, y: ry, s: 0.48, color: "#c07a3a", alpha, mood: o.mood || 0, eyes: o.eyes })}${k.text({ x: rx, y: ry - 54, text: roleIcon[o.role] || "★", size: 14 })}${k.label({ x: rx, y: ry + 10, text: `${o.dist} m`, size: 7, color: "#888" })}`;
   };
 
   /* Dramatic role: the role-player (orange) and who they work on; glow is how strongly, the spotlight is how
@@ -689,18 +697,26 @@
     return `${k.bg(BG)}${k.title(`Whose good: ${v("setting")}`)}${rings}${folk}${k.face({ x: cx, y: cy + 2, r: 7, mood: 0.3, eyes: 1, color: "#f0c8a0" })}${shArr}${pips(k, people, 200, 34, "#9fd3ff", 12)}${k.label({ x: 200, y: 28, text: `weighs ${v.n("peopleWeighed")} people`, size: 7, anchor: "start", color: "#aaa" })}${tested ? k.text({ x: 230, y: 92, text: "⚖", size: 10 + tested * 8 }) : ""}${k.label({ x: 250, y: 108, text: `${v("tested")}`, size: 7, color: "#aaa" })}${tag(k, 250, 124, `moved by ${v("triggeredBy")}`)}${k.label({ x: 250, y: 140, text: `shown by ${v("shownTo")}`, size: 7, color: "#aaa" })}${watch(k, 168, 152, v.n("shiftSeconds"), 600, `takes ${secs(v.n("shiftSeconds"))}`)}${when(k, v.p("shiftAt"), "circle moves", { w: 120 })}${fitCap(k, `How firmly ${v.n("strength")}/5 · circle ${v("shift")}`)}`;
   });
 
-  /* Closed to widening mindset: an iris that opens with the position; a wall for how hard they resist. */
+  /* Closed to widening mindset: a person behind a wall with a door that slides up as they open; through it, other
+     people in the light. The dashed marks are how far it swings between scenes; resisting, they lean away. */
   W.look("cm-perspective", (v, k) => {
     const pos = v.p("position");
     const swing = v.n("swing") / 100;
     const sh = idx(v, "shown");
     const res = v.n("resists") / 5;
-    const cx = 100;
-    const cy = 84;
-    const open = 6 + pos * 40;
-    const lo = 6 + Math.max(0, pos - swing) * 40;
-    const hi = 6 + Math.min(1, pos + swing) * 40;
-    return `${k.bg(BG)}${k.title(`Opened or closed by ${v("trigger")}`)}<circle cx="${cx}" cy="${cy}" r="52" fill="#2a2a34" stroke="#666" stroke-width="3"/>${k.ring({ x: cx, y: cy, r: hi, color: "#9fd3ff", w: 1, dash: "2 3" })}${k.ring({ x: cx, y: cy, r: lo, color: "#9fd3ff", w: 1, dash: "2 3" })}<circle cx="${cx}" cy="${cy}" r="${r1(open)}" fill="${k.mix("#3c3c48", "#fff3c4", pos)}" opacity="${[0.4, 0.7, 1][sh]}"/>${res > 0 ? `<rect x="${cx + 60}" y="${r1(130 - res * 90)}" width="10" height="${r1(res * 90)}" fill="#8a6a4a" stroke="#1c1712"/>` : ""}${k.label({ x: cx + 65, y: 142, text: `resists ${v.n("resists")}/5`, size: 7, color: "#aaa" })}${k.label({ x: 250, y: 60, text: `compared with`, size: 7, color: "#888" })}${k.label({ x: 250, y: 72, text: v("comparedWith"), size: 8, color: "#ccc" })}${k.label({ x: 250, y: 92, text: `${v("shown")} · swings ±${v.n("swing")}`, size: 8, color: "#ccc" })}${watch(k, 168, 152, v.n("shiftSeconds"), 600, `shift ${secs(v.n("shiftSeconds"))}`)}${when(k, v.p("shiftAt"), "shifts at")}${fitCap(k, `${pos < 0.35 ? "Closed" : pos > 0.65 ? "Widening" : "In between"} (${v.n("position")})`)}`;
+    const wx = 124;
+    const fy = 130;
+    const gapH = (p) => 6 + p * 84;
+    const oh = gapH(pos);
+    const lo = gapH(Math.max(0, pos - swing));
+    const hi = gapH(Math.min(1, pos + swing));
+    const lit = k.mix("#2a2a34", "#5a5236", pos);
+    let others = "";
+    for (let i = 0; i < 3; i++) others += k.person({ x: 152 + i * 22, y: fy, s: 0.36, color: k.mix("#555", ["#7a8a5a", "#a56a8a", "#c07a3a"][i], 0.3 + pos * 0.7), mood: pos * 0.6, look: -1 });
+    const light = `<path d="M${wx} ${r1(fy - oh)} L${wx} ${fy} L${r1(wx - 20 - pos * 70)} ${fy} Z" fill="#fff3c4" opacity="${r1((0.05 + pos * 0.25) * [0.5, 0.8, 1][sh] * 100) / 100}"/>`;
+    const marks = [lo, hi].map((h) => `<line x1="${wx - 4}" y1="${r1(fy - h)}" x2="${wx + 14}" y2="${r1(fy - h)}" stroke="#9fd3ff" stroke-dasharray="2 2"/>`).join("");
+    const wall = `<rect x="${wx}" y="28" width="10" height="${r1(fy - oh - 28)}" fill="#6a6a78" stroke="#1c1712"/>`;
+    return `${k.bg(BG)}<rect x="${wx + 10}" y="28" width="90" height="${fy - 28}" fill="${lit}"/>${k.floor(fy, "#22201c")}${k.title(`Opened or closed by ${v("trigger")}`)}${others}${light}${wall}${marks}${k.person({ x: 70, y: fy, s: 0.55, color: HERO, look: 1, lean: -res * 12, arms: res > 0.5 ? -0.6 : 0, mood: pos * 0.6 - 0.2 })}${k.label({ x: 270, y: 50, text: "compared with", size: 7, color: "#888" })}${k.fitText({ x: 270, y: 62, text: v("comparedWith"), size: 8, min: 6.5, w: 92, color: "#ccc" })}${k.fitText({ x: 270, y: 82, text: `${v("shown")} · swings ±${v.n("swing")}`, size: 8, min: 6.5, w: 92, color: "#ccc" })}${k.label({ x: 270, y: 100, text: `resists ${v.n("resists")}/5`, size: 8, color: "#ccc" })}${watch(k, 168, 152, v.n("shiftSeconds"), 600, `shift ${secs(v.n("shiftSeconds"))}`)}${when(k, v.p("shiftAt"), "shifts at")}${fitCap(k, `${pos < 0.35 ? "Closed" : pos > 0.65 ? "Widening" : "In between"} (${v.n("position")})`)}`;
   });
 
   /* Distraction: a person at their task (a desk in front of them) turns toward the distraction; 0° is straight
