@@ -1148,8 +1148,11 @@
     scene() {
       return scene();
     },
-    panel(line, i, count, values) {
-      return panelHtml(line, i, count, Object.assign({}, state, values), scene().people.slice(0, Number(state.peopleCount) || 1));
+    panel(line, i, count, values, people) {
+      /* people: the names in this panel, when the caller has its own cast (a storyboard scene from a story file). */
+      const cast = Array.isArray(people) && people.length ? people : scene().people;
+      const st = Object.assign({}, state, values);
+      return panelHtml(line, i, count, st, cast.slice(0, Number(st.peopleCount) || 1));
     },
     values() {
       const out = {};

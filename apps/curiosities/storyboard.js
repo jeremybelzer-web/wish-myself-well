@@ -191,7 +191,10 @@
     const B = window.CuriosityBoard;
     if (!B || !B.panel) return `<figure class="panel"><p class="cap">The board is not loaded.</p></figure>`;
     try {
-      return B.panel(p.line || { who: "", text: "—" }, i, scene.panels.length, p.v || {});
+      const cast = scene.episodeId && scene.board && Array.isArray(scene.board.people) ? scene.board.people : null;
+      const html = B.panel(p.line || { who: "", text: "—" }, i, scene.panels.length, p.v || {}, cast);
+      /* A panel from a story file (episodes/) says in words what we see. */
+      return p.what ? html.replace(/<\/figure>\s*$/, `<p class="cap sb-what">${esc(p.what)}</p></figure>`) : html;
     } catch (e) {
       return `<figure class="panel"><p class="cap">This panel could not be drawn.</p></figure>`;
     }
@@ -667,6 +670,7 @@
       .sb-scene .balloon { font-size: 12px !important; }
       .sb-scene .stage { height: 64px; }
       .sb-small { font-family: var(--mono); font-size: 11px; color: #7a6f63; }
+      .panel .sb-what { font-style: italic; border-top: 1px dashed currentColor; padding-top: 3px; }
       .sb-story { font-size: 13px; text-align: center; margin: 6px auto 0; max-width: 620px; color: #3a3229; }
       .sb-story .sb-who { font-weight: 600; }
       .sb-tie { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; }
@@ -785,6 +789,8 @@
           </div>
           <p class="sb-small" data-sb="pernote">${perNote()}</p>
         </div>
+
+        ${episodesBox()}
 
         <div class="sb-box">
           <h4>Make many</h4>
@@ -1075,9 +1081,39 @@
       raf = requestAnimationFrame(loop);
     }
 
+    /* Show episodes written as story files (episodes/build.js puts them in window.CURIO_EPISODES): one
+       panel a second. Opening one again replaces its own scenes and keeps everything else. */
+    function episodesBox() {
+      const eps = Array.isArray(window.CURIO_EPISODES) ? window.CURIO_EPISODES.filter((x) => x && Array.isArray(x.scenes)) : [];
+      if (!eps.length) return "";
+      const len = (n) => `${Math.floor(n / 60)} min ${n % 60} s`;
+      return `<div class="sb-box">
+          <h4>Show episodes</h4>
+          <p class="sb-note">Episodes written as story files, one panel for every second of film.</p>
+          <div class="sb-row">${eps
+            .map((x) => `<button type="button" data-sb="episode" data-ep="${esc(x.id)}">Open ${esc(x.title || x.id)}</button> <span class="sb-small">${x.scenes.length} scenes · ${len(Number(x.seconds) || 0)}</span>`)
+            .join("<br />")}</div>
+        </div>`;
+    }
+    function openEpisode(id) {
+      const ep = (window.CURIO_EPISODES || []).find((x) => x && x.id === id);
+      if (!ep) return;
+      const first = store.scenes.findIndex((s) => s.episodeId === id);
+      const made = ep.scenes.map((s) => Object.assign(JSON.parse(JSON.stringify(s)), { id: newId(), episodeId: id, name: String(s.name || "Scene") }));
+      store.scenes = store.scenes.filter((s) => s.episodeId !== id);
+      const at0 = first >= 0 ? Math.min(first, store.scenes.length) : store.scenes.length;
+      store.scenes.splice(at0, 0, ...made);
+      persist(`Opened ${ep.title || id}: ${made.length} scenes.`);
+      at = Math.max(0, pages().findIndex((pg) => pg.si === at0));
+      view.view = "flip";
+      savePrefs(view);
+      draw();
+    }
+
     el.addEventListener("click", (e) => {
       const b = e.target.closest("[data-sb],[data-go],[data-act],[data-open]");
       if (!b || !el.contains(b)) return;
+      if (b.dataset.sb === "episode") return openEpisode(b.dataset.ep);
       if (b.dataset.go != null) {
         at = Number(b.dataset.go);
         return showPage();
