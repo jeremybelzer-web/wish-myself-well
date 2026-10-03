@@ -127,6 +127,7 @@
         { face: "tiles", slider: "setting", icons: { line: "➖", triangle: "🔺", depth: "🧍", "one seated": "🪑" } },
         { face: "balance", slider: "gapClosing", left: "apart", right: "closing in" },
         { face: "dial", slider: "distance" },
+        { face: "stage", tokens: [{ who: "person" }, { who: "person", about: 0, distance: "gapMeters" }, { who: "camera" }] },
       ],
       groups: [
         { label: "The shape", sliders: ["setting", "distance", "levels"] },
@@ -316,6 +317,7 @@
         { face: "tiles", slider: "setting", icons: { character: "🚶", object: "⚽", neither: "🌫️" } },
         { face: "pad", x: "lead", y: "tightness", xLabel: "Leads or lags", yLabel: "How tightly" },
         { face: "tiles", slider: "side", icons: { behind: "🔙", beside: "↔️", "in front": "🔜" } },
+        { face: "stage", title: "Following them, from above", walk: true, tokens: [{ who: "person", label: "Them" }, { who: "camera", about: 0, around: "sideAngle", distance: "gap" }] },
       ],
       groups: [
         { label: "What it follows", sliders: ["setting", "side"] },

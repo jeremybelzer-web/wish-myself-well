@@ -192,6 +192,7 @@
         { face: "tiles", slider: "setting", icons: { speaker: "🗣️", listener: "👂", both: "👥", neither: "🧍" } },
         { face: "dial", slider: "share" },
         { face: "balance", slider: "power", left: "weaker", right: "in control" },
+        { face: "stage", title: "Where the mover ends up", tokens: [{ who: "person", label: "Still one" }, { who: "person", label: "Mover", about: 0, around: "circleAround", distance: "endGap" }, { who: "camera" }] },
       ],
       groups: [
         { label: "Who and how much", sliders: ["setting", "share", "moveWhen"] },
@@ -292,6 +293,7 @@
         { face: "tiles", slider: "where", icons: { hand: "🤝", arm: "💪", shoulder: "🫲", face: "🫳", embrace: "🫂" } },
         { face: "dial", slider: "pressure" },
         { face: "ladder", slider: "welcome" },
+        { face: "stage", title: "Where the touch comes from", tokens: [{ who: "person" }, { who: "person", about: 0, around: "fromAngle", distance: "gapBefore" }, { who: "camera" }] },
       ],
       groups: [
         { label: "The touch", sliders: ["setting", "where", "pressure"] },
@@ -420,6 +422,7 @@
         { face: "dial", slider: "share" },
         { face: "tiles", slider: "pace", icons: { strolling: "🚶", walking: "🚶‍♂️", hurrying: "🏃", running: "💨" } },
         { face: "ladder", slider: "stopForLine" },
+        { face: "stage", title: "Walkers and camera, from above", walk: true, tokens: [{ who: "person" }, { who: "person", about: 0, distance: "sideGap" }, { who: "camera", about: 0, around: "camAround", distance: "camDistance" }] },
       ],
       groups: [
         { label: "The walk", sliders: ["share", "pace", "routeLength"] },

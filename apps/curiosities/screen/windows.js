@@ -197,6 +197,502 @@
     },
   };
 
+  /* ---------- hand-made faces: wheel, curve, stage ----------
+     Three controls drawn for what their curiosities are about, rather than a generic knob or pad:
+       wheel  a color wheel with one dot: its angle is the color (a word on the setting's list, or degrees), its
+              distance from the middle how strong. The middle is no color (a "neutral" or "none" word if the list
+              has one).
+       curve  3 to 5 points over my film (or the play range): drag them up or down to draw how a setting rises
+              and falls. Letting go writes a node on every moment, one undo step, like Shape over my film.
+       stage  the scene from above: drag the camera and one or two people around, nearer or farther. Each one
+              moves the settings it is tied to (degrees around, distance).
+     Each one works with the mouse, touch (pointer events) and the keyboard (arrow keys on the focused control),
+     redraws the live picture while it moves, shows the 🎹 MIDI learn and key buttons for its settings, and draws
+     its fallback face (or a plain one) when a setting it needs is missing. */
+  const HUE_WORDS = [["red", 0], ["orange", 30], ["amber", 40], ["gold", 45], ["yellow", 55], ["lime", 90], ["green", 120], ["teal", 175], ["cyan", 185], ["blue", 220], ["violet", 270], ["purple", 280], ["magenta", 310], ["pink", 330]];
+  const clamp01 = (p) => Math.max(0, Math.min(1, Number(p) || 0));
+  const valOf = (h, k, over) => (over && over[k] != null ? over[k] : h.ctx.value(k));
+  const fmtV = (s, v) => (v == null || v === "" ? "–" : s && s.range ? `${Math.round(Number(v) * 100) / 100}${s.range.unit && !/^[a-z]/i.test(s.range.unit) ? s.range.unit : s.range.unit ? " " + s.range.unit : ""}` : String(v));
+  const ordered = (s) => !!(s && (s.range || (s.scale && !s.unordered && s.scale.length > 1)));
+  const known = (k) => !!(k && S() && S().known(k));
+  const faceIndex = (c, f) => ((spec(c) || {}).faces || []).indexOf(f);
+  /* The hue and how colorful a hex color is: [degrees, 0 to 1]. */
+  function hexHue(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || "").trim());
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    const r = ((n >> 16) & 255) / 255;
+    const g = ((n >> 8) & 255) / 255;
+    const b = (n & 255) / 255;
+    const mx = Math.max(r, g, b);
+    const mn = Math.min(r, g, b);
+    const d = mx - mn;
+    if (d < 0.08) return [0, 0];
+    let hh = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    hh = (hh * 60 + 360) % 360;
+    return [hh, d / (1 - Math.abs(mx + mn - 1) || 1)];
+  }
+  /* A row under a hand-made face: the key and 🎹 buttons of each setting it moves, with its value now. */
+  function readRow(h, list, over) {
+    const F = window.CurioWindowFaces;
+    return `<div class="cw-hand-read">${list
+      .map(([s, k, name]) => `<span>${h.keyBtn(k, h.ctx)}${F && F.midiBtn ? F.midiBtn(k) : ""}${h.esc(name || s.label)} <b>${h.esc(fmtV(s, valOf(h, k, over)))}</b></span>`)
+      .join("")}</div>`;
+  }
+
+  /* Wheel: { face: "wheel", hue, strength, colors?: { word: "#hex" } } */
+  function wheelModel(c, f, h, over) {
+    const hs = sl(c, f.hue);
+    const ss = sl(c, f.strength);
+    const hk = keyOf(c, h, f.hue);
+    const sk = keyOf(c, h, f.strength);
+    if (!hs || !ss || !known(hk) || !known(sk) || !(hs.scale || hs.range) || !ordered(ss)) return null;
+    let opts = null;
+    if (hs.scale) {
+      opts = hs.scale.map((o) => {
+        const hx = f.colors && f.colors[o] ? hexHue(f.colors[o]) : null;
+        const w = HUE_WORDS.find(([word]) => new RegExp("\\b" + word + "\\b").test(String(o).toLowerCase()));
+        const neutral = /^(none|neutral|no color|white|gray|grey|black|matches the key)$/i.test(String(o)) || (hx ? hx[1] < 0.18 : !w);
+        return { o, deg: hx && !neutral ? hx[0] : w ? w[1] : 0, neutral, hex: (f.colors && f.colors[o]) || null };
+      });
+      if (!opts.some((x) => !x.neutral)) return null;
+    }
+    const full = hs.range && /°/.test(hs.range.unit || "") && hs.range.max - hs.range.min >= 300;
+    const hv = valOf(h, hk, over);
+    const sv = valOf(h, sk, over);
+    let deg = 0;
+    let neutralNow = false;
+    if (opts) {
+      const o = opts.find((x) => on(hv, x.o));
+      deg = o ? o.deg : 0;
+      neutralNow = !!(o && o.neutral);
+    } else {
+      const n = Number(hv);
+      deg = full ? (((isFinite(n) ? n : 0) % 360) + 360) % 360 : 360 * (posOf(hk, hv) || 0);
+    }
+    const sp = posOf(sk, sv);
+    return { kind: "wheel", c, f, hs, ss, hk, sk, opts, full, deg, r: neutralNow ? 0 : sp == null ? 0.5 : sp, hv, sv };
+  }
+  /* The hue setting's value at an angle (and the strength's at a distance from the middle, 0 to 1). */
+  function wheelAt(m, deg, r) {
+    deg = ((deg % 360) + 360) % 360;
+    const list = [];
+    if (m.opts) {
+      const neutral = m.opts.find((x) => x.neutral);
+      if (r < 0.12 && neutral) {
+        list.push([m.hk, neutral.o], [m.sk, S().at(m.sk, 0)]);
+        return list;
+      }
+      const dist = (a) => Math.min(Math.abs(a - deg), 360 - Math.abs(a - deg));
+      const best = m.opts.filter((x) => !x.neutral).sort((a, b) => dist(a.deg) - dist(b.deg))[0];
+      list.push([m.hk, best.o]);
+    } else if (m.full) {
+      const R = m.hs.range;
+      let v = deg;
+      if (v > R.max) v -= 360;
+      if (v < R.min) v += 360;
+      list.push([m.hk, S().fix(m.hk, Math.max(R.min, Math.min(R.max, Math.round(v))))]);
+    } else list.push([m.hk, S().at(m.hk, deg / 360)]);
+    list.push([m.sk, S().at(m.sk, clamp01(r))]);
+    return list;
+  }
+  function wheelInner(m, h, over) {
+    const dis = !h.ctx.edit;
+    const rad = (m.deg * Math.PI) / 180;
+    const R = 50 * m.r;
+    const labels = m.opts
+      ? m.opts.filter((x) => !x.neutral).map((x) => [x.o, x.deg, x.hex])
+      : [0, 90, 180, 270].map((d) => [m.full ? `${d}°` : String(S().at(m.hk, d / 360)) + (m.hs.range.unit === "°" ? "°" : ""), d, null]);
+    const neutral = m.opts && m.opts.find((x) => x.neutral);
+    const hueTxt = fmtV(m.hs, m.hv);
+    return `<div class="cw-wheel-ring">${labels
+      .map(([t, d, hex]) => `<span class="cw-wheel-l" style="left:${(50 + 47 * Math.sin((d * Math.PI) / 180)).toFixed(1)}%;top:${(50 - 47 * Math.cos((d * Math.PI) / 180)).toFixed(1)}%"${hex ? ` data-hex="${h.esc(hex)}"` : ""}>${h.esc(t)}</span>`)
+      .join("")}<div class="cw-wheel-disc${dis ? " dis" : ""}" data-hand-focus="wheel" role="slider" tabindex="${dis ? -1 : 0}" aria-label="Color wheel: ${h.esc(m.hs.label)} around, ${h.esc(m.ss.label)} out from the middle. Left and right arrows turn the color; up and down make it stronger or weaker." aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(m.r * 100)}" aria-valuetext="${h.esc(hueTxt)}, ${h.esc(fmtV(m.ss, m.sv))}"><i class="cw-wheel-mid" aria-hidden="true">${neutral ? h.esc(neutral.o) : ""}</i><i class="cw-dot" style="left:${(50 + R * Math.sin(rad)).toFixed(2)}%;top:${(50 - R * Math.cos(rad)).toFixed(2)}%"></i></div></div>${readRow(h, [[m.hs, m.hk], [m.ss, m.sk]], over)}<p class="sc-k">Place the dot: around the wheel picks the color, farther out makes it stronger${neutral ? `, the middle is ${h.esc(neutral.o)}` : ""}.</p>`;
+  }
+  function wheelKey(m, key) {
+    const list = [];
+    if (/Left|Right/.test(key)) {
+      const dir = key === "ArrowRight" ? 1 : -1;
+      if (m.opts) {
+        const ring = m.opts.filter((x) => !x.neutral).sort((a, b) => a.deg - b.deg);
+        const i = ring.findIndex((x) => on(m.hv, x.o));
+        const next = i < 0 ? ring[0] : ring[(i + dir + ring.length) % ring.length];
+        list.push([m.hk, next.o]);
+        if (m.r < 0.12) list.push([m.sk, S().at(m.sk, 0.5)]);
+      } else list.push(wheelAt(m, m.deg + dir * (m.full ? 15 : 360 / Math.max(4, Math.min(24, S().steps(m.hk)))), m.r)[0]);
+    } else {
+      const dir = key === "ArrowUp" ? 1 : -1;
+      const p = posOf(m.sk, m.sv);
+      const st = 1 / Math.max(1, Math.min(20, S().steps(m.sk)));
+      list.push([m.sk, S().at(m.sk, clamp01((p == null ? 0.5 : p) + dir * st))]);
+      if (m.opts && dir > 0 && m.r < 0.12 && m.opts.find((x) => on(m.hv, x.o) && x.neutral)) list.push([m.hk, m.opts.find((x) => !x.neutral).o]);
+    }
+    return list;
+  }
+
+  /* Curve: { face: "curve", slider, points?: 3 to 5 } over my film (or the play range). */
+  function spanNow(n, api) {
+    let r = null;
+    try {
+      r = api && api.range ? api.range() : window.CurioScreen && window.CurioScreen.state ? window.CurioScreen.state().range : null;
+    } catch (e) {
+      r = null;
+    }
+    if (!Array.isArray(r)) return [0, n - 1];
+    const a = Math.max(0, Math.min(n - 1, r[0] | 0));
+    const b = Math.max(0, Math.min(n - 1, r[1] | 0));
+    return a < b ? [a, b] : [0, n - 1];
+  }
+  function curveModel(c, f, h, over, api) {
+    const s = sl(c, f.slider);
+    const k = keyOf(c, h, f.slider);
+    const beats = h.ctx.beats || [];
+    if (!s || !known(k) || !ordered(s) || beats.length < 2) return null;
+    const [a, b] = spanNow(beats.length, api);
+    const n = Math.max(2, Math.min(Math.max(3, Math.min(5, f.points || 4)), b - a + 1));
+    const xs = [];
+    for (let i = 0; i < n; i++) xs.push(Math.round(a + ((b - a) * i) / (n - 1)));
+    const lane = (j) => {
+      const vals = beats[j] && beats[j].values;
+      const v = vals && vals[k] != null ? vals[k] : S().start(k);
+      const p = posOf(k, v);
+      return p == null ? 0.5 : p;
+    };
+    const ps = over && over.points ? over.points.slice() : xs.map(lane);
+    const row = window.CurioScreen && window.CurioScreen.row ? window.CurioScreen.row() : 0;
+    const m = { kind: "curve", c, f, s, k, a, b, n, xs, ps, lane, row, beats: beats.length, sel: Math.max(0, Math.min(n - 1, curveSel[k] == null ? 0 : curveSel[k])) };
+    return m;
+  }
+  const curveSel = {};
+  /* Its place (0 to 1) at moment j: an eased line from point to point, so it never overshoots. */
+  function curveP(m, j) {
+    if (j <= m.xs[0]) return m.ps[0];
+    for (let i = 0; i < m.n - 1; i++) {
+      const x0 = m.xs[i];
+      const x1 = m.xs[i + 1];
+      if (j <= x1) {
+        const t = x1 > x0 ? (j - x0) / (x1 - x0) : 1;
+        return m.ps[i] + (m.ps[i + 1] - m.ps[i]) * ((1 - Math.cos(Math.PI * t)) / 2);
+      }
+    }
+    return m.ps[m.n - 1];
+  }
+  function curveItems(m) {
+    const out = [];
+    for (let j = m.a; j <= m.b; j++) out.push([m.k, j, S().at(m.k, clamp01(curveP(m, j)))]);
+    return out;
+  }
+  const CW = 200;
+  const CH = 90;
+  const cx = (m, j) => 8 + ((CW - 16) * (j - m.a)) / Math.max(1, m.b - m.a);
+  const cy = (p) => 6 + (CH - 12) * (1 - p);
+  function curveInner(m, h, over) {
+    const dis = !h.ctx.edit;
+    const pts = [];
+    const span = m.b - m.a;
+    const steps = Math.max(24, span * 4);
+    for (let i = 0; i <= steps; i++) {
+      const j = m.a + (span * i) / steps;
+      pts.push(`${cx(m, j).toFixed(1)} ${cy(curveP(m, j)).toFixed(1)}`);
+    }
+    const lo = m.s.scale ? m.s.scale[0] : fmtV(m.s, m.s.range.min);
+    const hi = m.s.scale ? m.s.scale[m.s.scale.length - 1] : fmtV(m.s, m.s.range.max);
+    const grid = m.s.scale ? m.s.scale.map((_, i) => cy(i / (m.s.scale.length - 1))) : [0, 0.25, 0.5, 0.75, 1].map(cy);
+    const lane = [];
+    for (let j = m.a; j <= m.b; j++) lane.push(`<circle class="cw-curve-lane" cx="${cx(m, j).toFixed(1)}" cy="${cy(m.lane(j)).toFixed(1)}" r="1.4"/>`);
+    const here = m.row >= m.a && m.row <= m.b ? `<line class="cw-curve-now" x1="${cx(m, m.row).toFixed(1)}" x2="${cx(m, m.row).toFixed(1)}" y1="2" y2="${CH - 2}"/>` : "";
+    const selV = S().at(m.k, clamp01(m.ps[m.sel]));
+    return `<div class="cw-curve-box${dis ? " dis" : ""}" data-hand-focus="curve" role="slider" tabindex="${dis ? -1 : 0}" aria-label="${h.esc(m.s.label)} across my film: ${m.n} points. Left and right arrows pick a point, up and down move it." aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(m.ps[m.sel] * 100)}" aria-valuetext="Point ${m.sel + 1} of ${m.n}, moment ${m.xs[m.sel] + 1}: ${h.esc(fmtV(m.s, selV))}"><span class="cw-curve-hi">${h.esc(hi)}</span><span class="cw-curve-lo">${h.esc(lo)}</span><svg viewBox="0 0 ${CW} ${CH}" preserveAspectRatio="none" aria-hidden="true">${grid.map((y) => `<line class="cw-curve-grid" x1="0" x2="${CW}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/>`).join("")}${here}${lane.join("")}<path class="cw-curve-line" d="M${pts.join("L")}"/>${m.xs
+      .map((x, i) => `<circle class="cw-curve-pt${i === m.sel ? " sel" : ""}" cx="${cx(m, x).toFixed(1)}" cy="${cy(m.ps[i]).toFixed(1)}" r="${i === m.sel ? 5 : 4}"/>`)
+      .join("")}</svg></div>${readRow(h, [[m.s, m.k, `${m.s.id === m.c.main ? m.c.label : m.s.label}, here`]], over)}<p class="sc-k">Drag the points to draw it across ${m.a === 0 && m.b === m.beats - 1 ? "my film" : "the play range"} (moments ${m.a + 1} to ${m.b + 1}); letting go writes every moment as one undo step. Faint dots are the lane now.</p>`;
+  }
+
+  /* Stage: { face: "stage", walk?, tokens: [{ who: "person" | "camera", label?, about?: index, around?, distance?, angle? }] }
+     A token with "about" sits around an earlier one: around 0° is in front of it (toward the bottom of the plan),
+     90° to its right; its distance grows from the middle out. A token without "about" stands still. */
+  function stageModel(c, f, h, over) {
+    let people = 0;
+    const toks = (f.tokens || []).slice(0, 3).map((t, i) => {
+      const who = t.who === "camera" ? "camera" : "person";
+      const sa = t.around ? sl(c, t.around) : null;
+      const sd = t.distance ? sl(c, t.distance) : null;
+      const ka = sa ? keyOf(c, h, t.around) : null;
+      const kd = sd ? keyOf(c, h, t.distance) : null;
+      const label = t.label || (who === "camera" ? "Camera" : String.fromCharCode(65 + people));
+      if (who === "person") people++;
+      return { t, i, who, label, sa: known(ka) && ordered(sa) ? sa : null, ka: known(ka) && ordered(sa) ? ka : null, sd: known(kd) && ordered(sd) ? sd : null, kd: known(kd) && ordered(sd) ? kd : null };
+    });
+    const free = toks.filter((x) => x.t.about != null && x.t.about < x.i && (x.ka || x.kd));
+    if (!free.length) return null;
+    toks.forEach((x) => {
+      const anc = x.t.about != null && x.t.about < x.i ? toks[x.t.about] : null;
+      x.anchor = anc;
+      x.drag = !!(anc && (x.ka || x.kd));
+      if (!anc) {
+        x.pos = Array.isArray(x.t.at) ? x.t.at : x.who === "camera" ? [50, 92] : [50, 50];
+        return;
+      }
+      let deg = x.t.angle != null ? x.t.angle : x.who === "camera" ? 0 : 90;
+      if (x.ka) {
+        const v = valOf(h, x.ka, over);
+        deg = x.sa.scale ? 180 * (posOf(x.ka, v) || 0) : Number(v) || 0;
+      }
+      let R = 22;
+      if (x.kd) {
+        const p = posOf(x.kd, valOf(h, x.kd, over));
+        R = 6 + 38 * Math.sqrt(p == null ? 0.3 : clamp01(p));
+      }
+      const rad = (deg * Math.PI) / 180;
+      x.deg = deg;
+      x.R = R;
+      x.pos = [Math.max(3, Math.min(97, anc.pos[0] + R * Math.sin(rad))), Math.max(3, Math.min(97, anc.pos[1] + R * Math.cos(rad)))];
+    });
+    return { kind: "stage", c, f, toks };
+  }
+  /* The settings a stage token takes from a place on the plan (x, y from 0 to 100). */
+  function stageAt(m, tok, x, y) {
+    const a = tok.anchor.pos;
+    const dx = x - a[0];
+    const dy = y - a[1];
+    const list = [];
+    if (tok.ka) {
+      const deg = (Math.atan2(dx, dy) * 180) / Math.PI;
+      if (tok.sa.scale) list.push([tok.ka, S().at(tok.ka, Math.abs(deg) / 180)]);
+      else {
+        const R = tok.sa.range;
+        let v = R.min >= 0 && R.max <= 180 ? Math.abs(deg) : R.max > 180 ? (deg + 360) % 360 : deg;
+        list.push([tok.ka, S().fix(tok.ka, Math.max(R.min, Math.min(R.max, v)))]);
+      }
+    }
+    if (tok.kd) {
+      const p = clamp01((Math.hypot(dx, dy) - 6) / 38);
+      list.push([tok.kd, S().at(tok.kd, p * p)]);
+    }
+    return list;
+  }
+  function stageKey(m, tok, key) {
+    const list = [];
+    const around = /Left|Right/.test(key) && tok.ka;
+    if (around) {
+      const dir = key === "ArrowRight" ? 1 : -1;
+      const v = valOf(m.h, tok.ka);
+      if (tok.sa.scale) list.push([tok.ka, S().at(tok.ka, clamp01((posOf(tok.ka, v) || 0) + dir / (tok.sa.scale.length - 1)))]);
+      else {
+        const R = tok.sa.range;
+        const st = Math.max(R.step || 1, Math.round(15 / (R.step || 1)) * (R.step || 1));
+        let n = (Number(v) || 0) + dir * st;
+        if (R.min < 0 && R.max >= 180) n = n > 180 ? n - 360 : n < -180 ? n + 360 : n;
+        list.push([tok.ka, S().fix(tok.ka, Math.max(R.min, Math.min(R.max, n)))]);
+      }
+    } else if (tok.kd) {
+      const dir = key === "ArrowUp" || key === "ArrowRight" ? 1 : -1;
+      const p = posOf(tok.kd, valOf(m.h, tok.kd));
+      list.push([tok.kd, S().at(tok.kd, clamp01((p == null ? 0.3 : p) + dir / Math.max(1, Math.min(20, S().steps(tok.kd)))))]);
+    }
+    return list;
+  }
+  function stageInner(m, h, over) {
+    const dis = !h.ctx.edit;
+    const look = (x) => {
+      if (m.f.walk && x.who === "person") return [0, 1];
+      const to = x.anchor || m.toks.find((y) => y.anchor === x && y.who === "person") || m.toks.find((y) => y !== x && y.who === "camera");
+      if (!to) return [0, 1];
+      const dx = to.pos[0] - x.pos[0];
+      const dy = to.pos[1] - x.pos[1];
+      const d = Math.hypot(dx, dy) || 1;
+      return [dx / d, dy / d];
+    };
+    const draw = (x) => {
+      const [ux, uy] = look(x);
+      const ang = (Math.atan2(uy, ux) * 180) / Math.PI;
+      const [px, py] = x.pos.map((v) => v.toFixed(1));
+      if (x.who === "camera")
+        return `<g class="cw-stage-cam" transform="translate(${px} ${py}) rotate(${ang.toFixed(1)})"><path class="cw-stage-cone" d="M4 0L40 -15M4 0L40 15"/><rect x="-5" y="-3.5" width="8" height="7" rx="1.2"/><path d="M3 -2l4 -2v8l-4 -2z"/></g>`;
+      return `<g class="cw-stage-person" transform="translate(${px} ${py})"><ellipse rx="5.5" ry="3.2" transform="rotate(${(ang + 90).toFixed(1)})"/><circle r="3"/><path d="M${(ux * 3).toFixed(2)} ${(uy * 3).toFixed(2)}L${(ux * 6.5).toFixed(2)} ${(uy * 6.5).toFixed(2)}"/><text y="1.4" text-anchor="middle">${h.esc(x.label.slice(0, 1))}</text></g>`;
+    };
+    const links = m.toks
+      .filter((x) => x.anchor)
+      .map((x) => {
+        const [ax, ay] = x.anchor.pos;
+        const [bx, by] = x.pos;
+        const tip = x.kd ? fmtV(x.sd, valOf(h, x.kd, over)) : "";
+        return `<line class="cw-stage-link" x1="${ax.toFixed(1)}" y1="${ay.toFixed(1)}" x2="${bx.toFixed(1)}" y2="${by.toFixed(1)}"/>${tip ? `<text class="cw-stage-t" x="${((ax + bx) / 2 + 1.5).toFixed(1)}" y="${((ay + by) / 2 - 1.5).toFixed(1)}">${h.esc(tip)}</text>` : ""}`;
+      })
+      .join("");
+    const walk = m.f.walk ? m.toks.filter((x) => x.who === "person").map((x) => `<path class="cw-stage-walk" d="M${x.pos[0].toFixed(1)} ${(x.pos[1] + 8).toFixed(1)}v10m-3 -3l3 3l3 -3"/>`).join("") : "";
+    const handles = m.toks
+      .filter((x) => x.drag)
+      .map((x) => {
+        const parts = [x.ka ? `${x.sa.label} ${fmtV(x.sa, valOf(h, x.ka, over))}` : "", x.kd ? `${x.sd.label} ${fmtV(x.sd, valOf(h, x.kd, over))}` : ""].filter(Boolean).join(", ");
+        const keys = x.ka && x.kd ? "Left and right arrows move it around, up and down farther or nearer." : "Arrow keys move it farther or nearer.";
+        return `<span class="cw-tok${x.who === "camera" ? " cam" : ""}" data-tok="${x.i}" data-hand-focus="tok${x.i}" role="slider" tabindex="${dis ? -1 : 0}" style="left:${x.pos[0].toFixed(2)}%;top:${x.pos[1].toFixed(2)}%" aria-label="${h.esc(x.label)} on the floor plan. ${keys}" aria-valuetext="${h.esc(parts)}"></span>`;
+      })
+      .join("");
+    const read = [];
+    m.toks.forEach((x) => {
+      if (x.ka) read.push([x.sa, x.ka]);
+      if (x.kd) read.push([x.sd, x.kd]);
+    });
+    const names = m.toks.filter((x) => x.drag).map((x) => (x.who === "camera" ? "the camera" : x.label)).join(" or ");
+    return `<div class="cw-stage-floor${dis ? " dis" : ""}"><svg viewBox="0 0 100 100" aria-hidden="true"><rect class="cw-stage-bg" x="0" y="0" width="100" height="100"/><path class="cw-stage-grid" d="M25 0v100M50 0v100M75 0v100M0 25h100M0 50h100M0 75h100"/><text class="cw-stage-t" x="50" y="98.5" text-anchor="middle">front</text><text class="cw-stage-t" x="50" y="4" text-anchor="middle">behind</text>${links}${walk}${m.toks.map(draw).join("")}</svg>${handles}</div>${readRow(h, read, over)}<p class="sc-k">From above. Drag ${h.esc(names)} around the floor; each place is its own lane.</p>`;
+  }
+
+  const HAND = {
+    wheel: { model: wheelModel, inner: wheelInner },
+    curve: { model: curveModel, inner: curveInner },
+    stage: { model: stageModel, inner: stageInner },
+  };
+  /* The face a hand-made face falls back to when it cannot be drawn: its own "fallback", or a plain control for
+     the first of its settings that exists. */
+  function fallbackOf(c, f) {
+    if (f.fallback && f.fallback.face && !HAND[f.fallback.face]) return f.fallback;
+    const ids = f.face === "wheel" ? [f.hue, f.strength] : f.face === "curve" ? [f.slider] : (f.tokens || []).flatMap((t) => [t.around, t.distance]);
+    const s = ids.filter(Boolean).map((sid) => sl(c, sid)).find(Boolean);
+    if (!s) return null;
+    const sid = s.id === c.main ? "setting" : s.id;
+    if (f.face === "wheel" && s.scale && f.colors && sid === f.hue) return { face: "swatches", slider: sid, colors: f.colors };
+    return s.range ? { face: "dial", slider: sid } : s.scale && !s.unordered ? { face: "ladder", slider: sid } : { face: "tiles", slider: sid };
+  }
+  function handFace(kind) {
+    return (c, f, h) => {
+      const m = HAND[kind].model(c, f, h, null);
+      if (!m) return "";
+      return `<div class="cw-hand cw-${kind}" data-cw-hand="${h.esc(c.id)}|${faceIndex(c, f)}">${HAND[kind].inner(m, h, null)}</div>`;
+    };
+  }
+  FACE.wheel = handFace("wheel");
+  FACE.curve = handFace("curve");
+  FACE.stage = handFace("stage");
+  /* The hand-made face under el: its curiosity, its spec and the model built from values now (or over). */
+  function handOf(el, api, over) {
+    const [cid, i] = String(el.dataset.cwHand || "").split("|");
+    const c = window.CurioLevels && window.CurioLevels.get("curiosity", cid);
+    const f = c && ((spec(c) || {}).faces || [])[Number(i)];
+    if (!f || !HAND[f.face] || !api || !api.helpers) return null;
+    const h = api.helpers();
+    const m = HAND[f.face].model(c, f, h, over, api);
+    if (m) m.h = h;
+    return m ? { c, f, h, m, id: el.dataset.cwHand } : null;
+  }
+  function handRedraw(el, hd, over) {
+    const m = HAND[hd.f.face].model(hd.c, hd.f, hd.h, over);
+    if (m) el.innerHTML = HAND[hd.f.face].inner(m, hd.h, over);
+    return m;
+  }
+  /* After a write the window is drawn again: put the keyboard back on the same control. */
+  function handRefocus(id, which) {
+    const go = () => {
+      const el = document.querySelector(`[data-cw-hand="${id}"] [data-hand-focus="${which}"]`);
+      if (el && document.activeElement !== el) el.focus({ preventScroll: true });
+    };
+    go();
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(go);
+  }
+  function handWrite(list, label, api) {
+    list = list.filter(([k, v]) => known(k) && v != null);
+    if (!list.length) return;
+    list.forEach(([k]) => api.showLane(k));
+    api.setValues(list, label);
+  }
+  function handPointer(e, el, api) {
+    if (e.target.closest("button") || !e.target.closest(".cw-wheel-ring, .cw-curve-box, .cw-stage-floor") || el.querySelector(".dis")) return false;
+    const hd = handOf(el, api);
+    if (!hd) return false;
+    e.preventDefault();
+    const { m, f } = hd;
+    const kind = f.face;
+    const box = el.querySelector(kind === "wheel" ? ".cw-wheel-disc" : kind === "curve" ? ".cw-curve-box svg" : ".cw-stage-floor");
+    if (!box) return false;
+    let tok = null;
+    let list = [];
+    let over = null;
+    const rect = () => (el.querySelector(kind === "wheel" ? ".cw-wheel-disc" : kind === "curve" ? ".cw-curve-box svg" : ".cw-stage-floor") || box).getBoundingClientRect();
+    const r0 = rect();
+    if (kind === "stage") {
+      const hit = e.target.closest && e.target.closest("[data-tok]");
+      const x = ((e.clientX - r0.left) / r0.width) * 100;
+      const y = ((e.clientY - r0.top) / r0.height) * 100;
+      tok = hit ? m.toks[Number(hit.dataset.tok)] : m.toks.filter((t) => t.drag).sort((a, b) => Math.hypot(a.pos[0] - x, a.pos[1] - y) - Math.hypot(b.pos[0] - x, b.pos[1] - y))[0];
+      if (!tok) return false;
+    }
+    if (kind === "curve") {
+      const x = ((e.clientX - r0.left) / r0.width) * CW;
+      let best = 0;
+      m.xs.forEach((j, i) => Math.abs(cx(m, j) - x) < Math.abs(cx(m, m.xs[best]) - x) && (best = i));
+      curveSel[m.k] = best;
+      m.sel = best;
+    }
+    const at = (ev) => {
+      const r = rect();
+      if (kind === "wheel") {
+        const dx = ev.clientX - (r.left + r.width / 2);
+        const dy = ev.clientY - (r.top + r.height / 2);
+        const deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+        list = wheelAt(m, deg, clamp01(Math.hypot(dx, dy) / (r.width / 2)));
+        over = Object.fromEntries(list);
+      } else if (kind === "curve") {
+        const p = clamp01((CH - 6 - ((ev.clientY - r.top) / r.height) * CH) / (CH - 12));
+        m.ps[m.sel] = p;
+        over = { points: m.ps.slice() };
+        list = [[m.k, S().at(m.k, clamp01(curveP(m, m.row)))]];
+      } else {
+        list = stageAt(m, tok, ((ev.clientX - r.left) / r.width) * 100, ((ev.clientY - r.top) / r.height) * 100);
+        over = Object.fromEntries(list);
+      }
+      handRedraw(el, hd, over);
+      lookLive(el, list, api);
+    };
+    at(e);
+    const up = () => {
+      window.removeEventListener("pointermove", at);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      const label = hd.c.label;
+      if (kind === "curve") {
+        const items = curveItems(m);
+        if (items.length) {
+          api.showLane(m.k);
+          api.setAt(items, `Curve over my film: ${m.s.id === hd.c.main ? label : m.s.label}`);
+        }
+        return handRefocus(hd.id, "curve");
+      }
+      handWrite(list, kind === "wheel" ? `${label}: color wheel` : `${label}: placed on the floor plan`, api);
+      handRefocus(hd.id, kind === "wheel" ? "wheel" : `tok${tok.i}`);
+    };
+    window.addEventListener("pointermove", at);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+    return true;
+  }
+  /* Arrow keys on a focused wheel, curve or stage token. */
+  function handKeydown(e, api) {
+    const el = e.target && e.target.closest && e.target.closest("[data-cw-hand]");
+    if (!el || !/^Arrow(Up|Down|Left|Right)$/.test(e.key) || !e.target.closest("[data-hand-focus]") || e.target.closest(".dis")) return false;
+    const hd = handOf(el, api);
+    if (!hd) return false;
+    e.preventDefault();
+    e.stopPropagation();
+    const { m } = hd;
+    const which = e.target.closest("[data-hand-focus]").dataset.handFocus;
+    if (hd.f.face === "wheel") handWrite(wheelKey(m, e.key), `${hd.c.label}: color wheel`, api);
+    else if (hd.f.face === "curve") {
+      if (/Left|Right/.test(e.key)) {
+        curveSel[m.k] = Math.max(0, Math.min(m.n - 1, m.sel + (e.key === "ArrowRight" ? 1 : -1)));
+        handRedraw(el, hd, null);
+      } else {
+        const st = m.s.scale ? 1 / (m.s.scale.length - 1) : 1 / Math.max(1, Math.min(20, S().steps(m.k)));
+        m.ps[m.sel] = clamp01(posOf(m.k, S().at(m.k, clamp01(m.ps[m.sel]))) + (e.key === "ArrowUp" ? st : -st));
+        api.showLane(m.k);
+        api.setAt(curveItems(m), `Curve over my film: ${m.s.id === hd.c.main ? hd.c.label : m.s.label}`);
+      }
+    } else {
+      const tok = m.toks[Number(which.slice(3))];
+      if (tok) handWrite(stageKey(m, tok, e.key), `${hd.c.label}: placed on the floor plan`, api);
+    }
+    handRefocus(hd.id, which);
+    return true;
+  }
+
   /* ---------- shapes over my film (a drawn LFO) ---------- */
   const SHAPES = [
     ["rise", "Rise", (t) => t],
@@ -239,10 +735,17 @@
       parts.push(`<div class="sc-wpart cw-faces">${sp.faces
         .map((f) => {
           const draw = FACE[f.face];
-          const body = draw ? draw(c, f, h) : "";
+          let body = draw ? draw(c, f, h) : "";
+          /* A hand-made face that cannot be drawn (a setting is missing, or my film has one moment) shows its
+             fallback face instead. */
+          if (!body && HAND[f.face]) {
+            const fb = fallbackOf(c, f);
+            body = fb && FACE[fb.face] ? FACE[fb.face](c, fb, h) : "";
+            if (body) f = Object.assign({}, fb, { title: f.title && fb.face === f.face ? f.title : fb.title });
+          }
           if (!body) return "";
-          const s = sl(c, f.slider || f.x || f.size || (f.sliders || [])[0]);
-          const title = f.title || (f.face === "mixer" ? "Mixer" : f.face === "pad" ? `${(sl(c, f.x) || {}).label} and ${(sl(c, f.y) || {}).label}` : f.face === "frame" ? "In the picture" : s ? s.label : "");
+          const s = sl(c, f.slider || f.x || f.size || f.hue || (f.sliders || [])[0]);
+          const title = f.title || (f.face === "mixer" ? "Mixer" : f.face === "pad" ? `${(sl(c, f.x) || {}).label} and ${(sl(c, f.y) || {}).label}` : f.face === "frame" ? "In the picture" : f.face === "wheel" ? `${(sl(c, f.hue) || {}).label} and ${String((sl(c, f.strength) || {}).label || "").toLowerCase()}` : f.face === "curve" ? `${s ? (s.id === c.main ? c.label : s.label) : ""} across my film` : f.face === "stage" ? "On the floor, from above" : s ? s.label : "");
           return `<div class="cw-face cw-${esc(f.face)}-face"><h4>${esc(title)}</h4>${body}</div>`;
         })
         .join("")}</div>`);
@@ -605,6 +1108,8 @@
   }
   /* Pad and frame: click or drag to set two settings at once (one undo step when let go). */
   function pointer(e, api) {
+    const hand = e.target.closest && e.target.closest("[data-cw-hand]");
+    if (hand) return handPointer(e, hand, api);
     if (orbitPointer(e, api)) return true;
     const el = e.target.closest && e.target.closest("[data-xy]");
     if (!el || el.classList.contains("dis")) return false;
@@ -644,6 +1149,7 @@
 
   /* Enter in the "say what you want" box does it. */
   function keydown(e, h, api) {
+    if (handKeydown(e, api)) return true;
     const box = e.target && e.target.closest && e.target.closest("[data-cw-say-text]");
     if (!box) return false;
     e.stopPropagation();
@@ -793,7 +1299,7 @@
     return true;
   }
 
-  window.CurioWindowFaces = { FACES: Object.keys(FACE), SHAPES: SHAPES.map((s) => s[0]), html, sayHtml, lookHtml, input, live: lookLive, interpret, grouped, click, pointer, shapeItems, spec, keydown, midiBtn, attach, midi: { bindings: () => Object.assign({}, midi.map), feed: onMidi } };
+  window.CurioWindowFaces = { FACES: Object.keys(FACE), SHAPES: SHAPES.map((s) => s[0]), html, sayHtml, lookHtml, input, live: lookLive, interpret, grouped, click, pointer, shapeItems, spec, keydown, hand: { wheelAt: (m, deg, r) => wheelAt(m, deg, r), curveItems: (m) => curveItems(m), stageAt: (m, tok, x, y) => stageAt(m, tok, x, y), fallbackOf }, midiBtn, attach, midi: { bindings: () => Object.assign({}, midi.map), feed: onMidi } };
   function CSS() {
     return `
 .cw-faces { gap: 10px; }
@@ -886,6 +1392,41 @@
 .sc-page .sc-win .sc-chips button { padding: 3px 7px; font-size: 10px; border-radius: 10px; }
 .sc-page .sc-win .sc-chips button.on { background: var(--cc-accent); color: var(--cc-accent-ink); }
 .cw-shape-row label { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--cc-dim); }
+.cw-hand-read { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 10px; color: var(--cc-dim); align-items: center; }
+.cw-hand-read b { color: var(--cc-text); }
+.cw-wheel-ring { position: relative; width: 200px; height: 200px; justify-self: center; touch-action: none; }
+.cw-wheel-l { position: absolute; transform: translate(-50%, -50%); font-size: 9px; color: var(--cc-dim); white-space: nowrap; pointer-events: none; }
+.cw-wheel-disc { position: absolute; inset: 22px; border-radius: 50%; cursor: crosshair; touch-action: none; background: radial-gradient(circle closest-side, #8a8a90 0%, rgba(138, 138, 144, 0.6) 22%, rgba(138, 138, 144, 0) 100%), conic-gradient(from 0deg, hsl(0 85% 55%), hsl(60 85% 55%), hsl(120 85% 45%), hsl(180 85% 45%), hsl(240 85% 60%), hsl(300 85% 55%), hsl(360 85% 55%)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+.cw-wheel-disc:focus-visible, .cw-curve-box:focus-visible, .cw-tok:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: 2px; }
+.cw-wheel-disc.dis, .cw-curve-box.dis, .cw-stage-floor.dis { cursor: default; opacity: 0.7; }
+.cw-wheel-mid { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 8px; font-style: normal; color: #1b1b1f; pointer-events: none; }
+.cw-wheel-disc .cw-dot { box-shadow: 0 0 0 2px #111, 0 0 0 5px rgba(255, 255, 255, 0.55); }
+.cw-curve-box { position: relative; height: 120px; border: 1px solid var(--cc-line); border-radius: 8px; background: #121214; cursor: ns-resize; touch-action: none; }
+.cw-curve-box svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cw-curve-grid { stroke: #2a2a2f; stroke-width: 0.5; vector-effect: non-scaling-stroke; }
+.cw-curve-now { stroke: var(--cc-warm, #ffb000); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.cw-curve-line { fill: none; stroke: var(--cc-accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.cw-curve-lane { fill: #6b6b73; }
+.cw-curve-pt { fill: #fff; stroke: var(--cc-accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.cw-curve-pt.sel { fill: var(--cc-accent); stroke: #fff; }
+.cw-curve-hi, .cw-curve-lo { position: absolute; right: 5px; font-size: 9px; color: var(--cc-dim); pointer-events: none; z-index: 1; }
+.cw-curve-hi { top: 3px; }
+.cw-curve-lo { bottom: 3px; }
+.cw-stage-floor { position: relative; width: 100%; max-width: 260px; aspect-ratio: 1 / 1; justify-self: center; border: 1px solid var(--cc-line); border-radius: 8px; overflow: hidden; cursor: grab; touch-action: none; }
+.cw-stage-floor svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cw-stage-bg { fill: #141417; }
+.cw-stage-grid { stroke: #26262b; stroke-width: 0.4; fill: none; }
+.cw-stage-t { fill: #7a7a82; font-size: 3.6px; }
+.cw-stage-link { stroke: #55555c; stroke-width: 0.5; stroke-dasharray: 1.5 1.5; }
+.cw-stage-walk { fill: none; stroke: #7a7a82; stroke-width: 0.8; stroke-linecap: round; stroke-linejoin: round; }
+.cw-stage-person ellipse { fill: #3a3a42; }
+.cw-stage-person circle { fill: #d6d6dc; }
+.cw-stage-person path { stroke: #d6d6dc; stroke-width: 1.2; stroke-linecap: round; }
+.cw-stage-person text { font-size: 3.6px; fill: #1b1b1f; font-weight: 700; }
+.cw-stage-cam rect, .cw-stage-cam > path:not(.cw-stage-cone) { fill: var(--cc-accent); }
+.cw-stage-cone { fill: none; stroke: var(--cc-accent); stroke-width: 0.4; stroke-dasharray: 1.5 1.5; opacity: 0.8; }
+.cw-tok { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 1px dashed rgba(255, 255, 255, 0.35); cursor: grab; touch-action: none; }
+.cw-tok.cam { border-color: var(--cc-accent); }
 .cw-shape-row svg { width: 22px; height: 14px; fill: none; stroke: var(--cc-accent); stroke-width: 1.6; stroke-linejoin: round; }
 `;
   }
