@@ -70,6 +70,44 @@
   /* A stopwatch row: a bar of seconds with the number. */
   const stopwatch = (k, x, y, w, sec, max, color, lab) => `<rect x="${x}" y="${y}" width="${w}" height="7" rx="3.5" fill="#33323d"/><rect x="${x}" y="${y}" width="${r1(Math.max(2, (w * k.clamp(sec, 0, max)) / max))}" height="7" rx="3.5" fill="${color || S.gold}"/>` + k.label({ x: x + w + 4, y: y + 7, text: lab || `${fmt(sec)} s`, size: 8, color: "#ddd", anchor: "start" });
 
+  /* The beat line: one thin timeline along the stage floor, the same in every picture, showing the joke's
+     moments in order (setup, pause, payoff, hold...) placed by its timing settings, so a change of seconds or
+     "when" visibly moves something on the stage. parts run left to right: { s: seconds long, kind } follows the
+     part before it, { at: seconds from the start, kind } sits at a fixed place. kinds: "setup" (blue bar),
+     "line" (orange bar), "wait" (a dotted pause), "hold" (a faint gold bar), "ha" (a tiny HA), "face" (a tiny
+     face with mood), "dot", "tick". o.max is the seconds the whole line stands for (1 for "how far into the
+     film"); o.ghost draws it faint, for timing that another setting has switched off. */
+  function beats(k, parts, o) {
+    o = o || {};
+    const x0 = o.x == null ? 18 : o.x;
+    const w = o.w || 294;
+    const max = o.max || 10;
+    const y = FY + 4;
+    const X = (t) => r1(x0 + (w * k.clamp(t, 0, max)) / max);
+    let out = (o.x == null ? k.text({ x: 9, y: y + 3, text: "⏱", size: 8 }) : "") + `<line x1="${x0}" y1="${y}" x2="${x0 + w}" y2="${y}" stroke="#5d5672" stroke-width="1"/><line x1="${x0}" y1="${y - 3}" x2="${x0}" y2="${y + 3}" stroke="#5d5672"/>`;
+    let t = 0;
+    parts.forEach((p) => {
+      if (!p) return;
+      const a = p.at != null ? p.at : t;
+      const b = a + Math.max(0, p.s || 0);
+      const xa = X(a);
+      const xb = X(b);
+      const c = p.color;
+      const kd = p.kind;
+      let el = "";
+      if (kd === "setup" || kd === "line") el = `<rect x="${xa}" y="${y - 2.5}" width="${r1(Math.max(2, xb - xa))}" height="5" rx="1.5" fill="${c || (kd === "setup" ? "#7fa6dd" : S.orange)}"/>`;
+      else if (kd === "wait") el = xb - xa > 1 ? `<line x1="${xa}" y1="${y}" x2="${xb}" y2="${y}" stroke="${c || "#ecebf4"}" stroke-width="2" stroke-dasharray="2 2"/>` : "";
+      else if (kd === "hold") el = `<rect x="${xa}" y="${y - 2}" width="${r1(Math.max(1.5, xb - xa))}" height="4" fill="${c || S.gold}" opacity="0.5"/>`;
+      else if (kd === "ha") el = k.text({ x: k.clamp(xa, x0 + 7, x0 + w - 7), y: y + 3, text: p.text || "HA", size: 7.5, color: c || S.gold, weight: 900 });
+      else if (kd === "face") el = k.face({ x: k.clamp(xa, x0 + 4, x0 + w - 4), y, r: 4, mood: p.mood == null ? 0.8 : p.mood, eyes: 1, look: p.look || 0, color: c });
+      else if (kd === "dot") el = k.dot({ x: xa, y, r: p.r || 2.4, color: c || S.gold });
+      else if (kd === "tick") el = `<line x1="${xa}" y1="${y - 4}" x2="${xa}" y2="${y + 4}" stroke="${c || "#ddd"}" stroke-width="1.6"/>`;
+      out += p.alpha != null && p.alpha < 1 ? `<g opacity="${p.alpha}">${el}</g>` : el;
+      t = b;
+    });
+    return o.ghost ? `<g opacity="0.4">${out}</g>` : out;
+  }
+
   /* ---------- the strip of small gauges ---------- */
   /* items: { label, kind: "bar" | "steps" | "when" | "word", p, text, n (steps), i (filled step) } */
   function strip(k, items) {
@@ -206,6 +244,9 @@
     out += chip(k, px, 58, `pays: ${pays}`, "#3a2a2a", "middle") + chip(k, px, 76, `loses ${v("cost")}`, S.red, "middle");
     /* how often it shows: tick marks */
     out += Array.from({ length: Math.round(v.n("showsPerScene")) }, (_, i) => `<rect x="${136 + i * 9}" y="96" width="6" height="12" rx="1.5" fill="${S.orange}"/>`).join("") + k.label({ x: 136, y: 92, text: `shows ${fmt(v.n("showsPerScene"))}× a scene`, size: 8, color: "#bbb", anchor: "start" });
+    /* the beat line: hidden until first seen, then the flaw kicks in after its seconds */
+    const fs0 = [0.78, 0.42, 0.1, 0.01][idx(v, "firstShown")];
+    out += beats(k, [{ at: 0, s: fs0, kind: "setup" }, { kind: "tick", color: S.orange }, { s: (v.n("kickIn") / 10) * 0.25, kind: "wait" }, { kind: "face", mood: -0.8 }, { s: 0.06, kind: "line" }], { max: 1 });
     out += strip(k, [g.steps("trigger", "Set off by"), g.num("kickIn", "Kicks in after", " s"), g.steps("firstShown", "First seen"), g.steps("byTheEnd", "By the end", S.green)]);
     return out + fitCap(k, `Flaw: ${v("flaw")} · ${Math.round(v.n("size"))} of 5 · ${v("blind")}`);
   });
@@ -246,6 +287,9 @@
     const rl = idx(v, "rules");
     out += `<path d="M10 104 ${rl === 2 ? "H70" : rl === 1 ? "H30 l6 -5 H70" : "H24 m8 -8 l10 6 m6 2 H70"}" stroke="#bbb" stroke-width="2" fill="none"/>` + k.label({ x: 10, y: 96, text: `rules: ${v("rules")}`, size: 8, color: "#bbb", anchor: "start" });
     out += chip(k, 40, 20, ["cartoon world", "heightened", "real world"][world], "#33323d", "middle");
+    /* the beat line: the film until the premise is clear, then a happy face */
+    const cb = [0.5, 0.2, 0.07, 0.01][idx(v, "clearBy")];
+    out += beats(k, [{ at: 0, s: cb, kind: "wait" }, { kind: "face", mood: 0.9 }, { s: 1, kind: "hold" }], { max: 1 });
     out += strip(k, [g.steps("clearBy", "Clear by"), g.steps("stakes", "What's riding on it", S.red), g.num("screenShare", "Share of the scene", "%"), g.num("premiseJokes", "Premise jokes", "/min")]);
     return out + fitCap(k, `Premise clarity ${Math.round(v.n("clarity"))} of 5 · fresh angles ${ang}`);
   });
@@ -280,6 +324,16 @@
     out += k.label({ x: 288, y: 12, text: `to ${v("toldTo")}`, size: 8, color: "#bbb" });
     /* the audience in on it */
     if (v.p("audienceIn") > 0) out += k.label({ x: 20, y: 18, text: v.p("audienceIn") > 0.7 ? "👀 we know" : "👀 we suspect", size: 9, color: "#ddd", anchor: "start" });
+    /* the beat line: a new lie every so often (each after its cover pause) until the collapse */
+    {
+      const ca = Math.max(0.05, v.p("collapseAt"));
+      const stp = 0.035 + v.p("newLieGap") * 0.22;
+      const cp = (v.n("coverPause") / 10) * 0.03;
+      const parts = [];
+      for (let t = 0.01, i = 0; t < ca - 0.03 && i < 30; t += stp, i++) parts.push({ at: t, s: cp, kind: "wait" }, { s: 0.012, kind: "line" });
+      parts.push({ at: ca, kind: "face", mood: -1 });
+      out += beats(k, parts, { max: 1 });
+    }
     out += strip(k, [g.when("collapseAt", "When it collapses", S.red), g.word("collapseHow", "How it collapses"), g.num("newLieGap", "New lie every", " s"), g.num("coverPause", "Pause before cover", " s"), g.steps("near", "Collapse", S.red), g.word("liarSkill", "Liar")]);
     return out + fitCap(k, `Lie size ${Math.round(v.n("size"))} of 5 · ${layers} lies on lies · ${v("near")}`);
   });
@@ -312,6 +366,15 @@
     /* who sees it: eye */
     const who = v("who");
     out += chip(k, 160, 98 - Math.round(v.n("nearMisses")) * 0 - 0, `sees it: ${who}`, "#2c3346", "middle").replace(/y="88/g, 'y="88');
+    /* the beat line in scenes: the mix-up lasts, we catch on, near misses, then silence and it clears */
+    {
+      const ls = 1 + v.n("lasts");
+      const parts = [{ at: 0, s: ls, kind: "line" }];
+      for (let i = 0; i < Math.round(v.n("nearMisses")); i++) parts.push({ at: (ls * (i + 1)) / (Math.round(v.n("nearMisses")) + 1), kind: "tick", color: S.red });
+      parts.push({ at: ls * [1, 0.5, 0][idx(v, "audienceAhead")], kind: "face", mood: 0.9, color: "#f3d27a" });
+      parts.push({ at: ls, s: (v.n("dawnSilence") / 10) * 3, kind: "wait" }, { kind: "face", mood: 0.3 });
+      out += beats(k, parts, { max: 14 });
+    }
     out += strip(k, [g.num("lasts", "How long", " scenes"), g.steps("clearsUp", "Clears up"), g.steps("audienceAhead", "We get it"), g.word("between", "Between"), g.num("peopleIn", "People in it", ""), g.num("dawnSilence", "Silence when clear", " s")]);
     return out + fitCap(k, `Misunderstanding from ${v("source")} · depth ${Math.round(v.n("depth"))} of 5`);
   });
@@ -334,7 +397,7 @@
     /* effort to hide it: insiders with a finger to their lips */
     for (let i = 0; i < Math.min(knowers, Math.round(v.n("hiding"))); i++) { const [x, y] = pos(i); out += k.label({ x: x + 6, y: y + 15, text: "🤫", size: 8 }); }
     /* close calls: near-slips around the secret box */
-    for (let i = 0; i < Math.min(10, Math.round(v.n("closeCalls"))); i++) out += k.label({ x: 226 - (i % 5) * 8, y: 116 - Math.floor(i / 5) * 9, text: "!", size: 9, color: S.red, weight: 900 });
+    for (let i = 0; i < Math.min(10, Math.round(v.n("closeCalls"))); i++) out += k.label({ x: 226 - (i % 5) * 8, y: 108 - Math.floor(i / 5) * 9, text: "!", size: 9, color: S.red, weight: 900 });
     /* secret looks: arcs between insiders */
     const looks = Math.round(v.n("secretLooks"));
     for (let i = 0; i < Math.min(looks, Math.max(0, knowers - 1) || looks); i++) {
@@ -354,6 +417,18 @@
     out += k.label({ x: 8, y: 16, text: `we know: ${v("audience")}`, size: 9, color: "#ddd", anchor: "start" });
     /* hiding effort: sweat on the first insider */
     if (knowers) out += sweat(k, 30, 46, v.n("hiding"));
+    /* the beat line: the secret held (insider looks and hiding as marks) until it comes out */
+    {
+      const ra = [1, 0.92, 0.5, 0.15][idx(v, "revealAt")];
+      const parts = [{ at: 0, s: ra, kind: "setup", color: S.gold }];
+      const hide = Math.round(v.n("hiding"));
+      for (let i = 0; i < hide; i++) parts.push({ at: (ra * (i + 0.5)) / Math.max(1, hide), kind: "tick", color: "#9fd3ff" });
+      const ll = v.n("lookLength");
+      if (ll > 0) for (let i = 0; i < 3; i++) parts.push({ at: ra * (0.2 + i * 0.3), s: ll * 0.012, kind: "hold", color: "#fff" });
+      parts.push({ at: Math.min(0.995, ra), kind: ra >= 1 ? "tick" : "face", mood: -0.5 });
+      out += beats(k, parts, { max: 1 });
+      for (let i = 0; i < Math.min(20, Math.round(v.n("inOn"))); i++) out += k.dot({ x: 12 + i * 6, y: 28, r: 2.2, color: S.gold });
+    }
     out += strip(k, [g.num("hiding", "Effort to hide", ""), g.steps("revealAt", "Comes out"), g.num("closeCalls", "Close calls", "/scene", S.red), g.num("lookLength", "Insider looks", " s"), g.num("inOn", "People in on it", "", S.gold)]);
     return out + fitCap(k, `In on it: ${v("gap")} · ${knowers} of ${room} people`);
   });
@@ -399,6 +474,13 @@
     const ceil = v("ceiling");
     out += `<rect x="232" y="10" width="84" height="44" rx="6" fill="#22212a" stroke="#555"/>` + k.text({ x: 274, y: 32, text: ["😬", "😳", "🌀", "🔥", "☄️"][idx(v, "ceiling")], size: 18 }) + k.label({ x: 274, y: 48, text: ceil, size: 9, color: "#ddd" });
     out += heads(k, v.n("peopleAtEnd"), 234, 66, 80, { r: 3, color: S.red, max: 30 });
+    /* the beat line: the false calm (dim when there is none), then the steps, each breathing room apart */
+    {
+      const parts = [{ at: 0, s: 2 + v.n("calmLength"), kind: "hold", color: calm ? "#7fb7ff" : "#4a5a70" }];
+      for (let i = 0; i < Math.min(steps, 10); i++) parts.push({ s: v.n("stepGap") * 0.6, kind: "wait" }, { s: 1.2, kind: "line", color: k.mix("#5fae78", "#e4572e", i / Math.max(1, steps - 1)) });
+      parts.push({ kind: "face", mood: -0.6 });
+      out += beats(k, parts, { max: 60 });
+    }
     out += strip(k, [g.num("stepGap", "Breathing room", " s"), g.num("stepJump", "Each step bigger", "%"), g.num("calmLength", "Length of calm", " s", "#7fb7ff"), g.num("peopleAtEnd", "People caught", "", S.red)]);
     return out + fitCap(k, `Escalation ${Math.round(v.n("setting"))} of 5 · ${steps} steps · ${v("speed")}`);
   });
@@ -438,6 +520,8 @@
         out += k.label({ x: cx, y: 22, text: "payoff", size: 9, color: S.ink, weight: 700 });
       }
     }
+    /* the beat line: setup on screen, the long wait (minutes) to the payoff, its beat, the laugh */
+    out += beats(k, [{ at: 0, s: 2 + v.n("setupSeen"), kind: "setup" }, { s: 4 + v.n("plantToPayoff") * 2.2, kind: "wait" }, { s: v.n("payoffPause") * 6, kind: "hold", color: "#fff" }, { kind: "ha" }], { max: 260 });
     out += strip(k, [g.steps("plantedWhen", "Planted"), g.num("plantToPayoff", "Setup → payoff", " min"), g.num("setupSeen", "Setup on screen", " s"), g.num("payoffPause", "Beat before payoff", " s"), g.steps("payoffSize", "Laugh"), g.word("disguise", "Hidden by")]);
     return out + fitCap(k, `${v("setting")} · setup ${v("visibility")} · ${v("twist")}`);
   });
@@ -463,6 +547,16 @@
     const rem = ["👁", "💬", "🎁", "📣"][idx(v, "reminderLook")];
     const nR = Math.min(nRem, Math.max(1, sc)); /* only as many reminders as there are scenes to put them in */
     for (let i = 0; i < nR; i++) out += k.text({ x: x0 + ((x1 - x0) * (i + 1)) / (nR + 1), y: 40, text: rem, size: 11 });
+    /* the beat line: setup, the minutes until the payoff with reminders on the way (faint when there are none), then how long until it clicks */
+    {
+      const rl = idx(v, "reminderLook");
+      const mins = v.n("minutes");
+      const parts = [{ at: 0, s: 3, kind: "setup" }, { s: 4 + mins, kind: "wait" }];
+      const nb = nRem || 3;
+      for (let i = 0; i < nb; i++) parts.push({ at: 3 + ((4 + mins) * (i + 1)) / (nb + 1), kind: "dot", r: 1.8 + rl * 0.9, color: ["#bbb", "#fff", S.gold, S.red][rl], alpha: nRem ? 1 : 0.3 });
+      parts.push({ at: 7 + mins, s: [16, 7, 0][idx(v, "recognize")], kind: "hold", color: "#fff" }, { kind: "ha" });
+      out += beats(k, parts, { max: 150 });
+    }
     out += strip(k, [g.steps("reminder", "Reminders"), g.word("reminderLook", "Reminder looks like"), g.steps("recognize", "We recognize it"), g.num("minutes", "Setup → payoff", " min")]);
     return out + fitCap(k, `${sc} scenes from setup to payoff · ${v("plantedIn")}`);
   });
@@ -496,6 +590,18 @@
     /* need each other: a rope between their hands */
     const need = idx(v, "need");
     if (need) out += `<path d="M${r1(ax + 14)} 72 Q160 ${80 + need * 8} ${r1(bx - 14)} 72" fill="none" stroke="#c9a77a" stroke-width="${need * 1.5}"/>`;
+    /* the beat line: calm until the clash shows, then a clash mark each time it flares */
+    {
+      const sw = idx(v, "showsWhen");
+      const st0 = [0.78, 0.55, 0.22, 0.02][sw];
+      const nm = Math.max(1, ncl) * 2;
+      const parts = [{ at: 0, s: st0, kind: "hold", color: "#7fa6dd" }, { kind: "face", mood: -0.6 }];
+      for (let i = 0; i < nm; i++) {
+        const f = (i + 1) / (nm + 1);
+        parts.push({ at: Math.min(0.99, st0 + 0.03 + (0.97 - st0) * (sw === 2 ? f * f : f)), kind: "tick", color: S.red, alpha: ncl ? 1 : 0.3 });
+      }
+      out += beats(k, parts, { max: 1 });
+    }
     out += strip(k, [g.num("straightness", "Plays it straight", ""), g.steps("flashpoint", "Set off by", S.red), g.steps("showsWhen", "Clash shows"), g.num("clashesPerScene", "Clashes", "/scene", S.red), g.num("apart", "Space between", " m"), g.steps("need", "Need each other")]);
     return out + fitCap(k, `${v("setting")} · ${v("size") === "two" ? "a pair" : v("size")}`);
   });
@@ -530,6 +636,12 @@
     out += guy(k, 30, { s: 0.7, color: "#333a4a", arms: v.p("keepOrder"), mood: -v.p("keepOrder") * 0.6 });
     out += sweat(k, 38, 42, v.n("keepOrder") * 0.6);
     out += chip(k, 160, 14, `broken: ${v("damage")}`, idx(v, "damage") ? S.red : "#33323d", "middle");
+    /* the beat line: the calm room until chaos arrives, building to its peak */
+    {
+      const a = v.p("arrivesAt");
+      const pk = Math.max(a + 0.02, v.p("peakAt"));
+      out += beats(k, [{ at: 0, s: a, kind: "hold", color: "#8a8a96" }, { kind: "tick", color: S.red }, { s: pk - a, kind: "line", color: S.red }, { kind: "face", mood: -1 }, { s: 1, kind: "hold", color: S.red }], { max: 1 });
+    }
     out += strip(k, [g.when("arrivesAt", "Chaos arrives"), g.when("peakAt", "Peaks", S.red), g.steps("order", "Room was"), g.steps("entrance", "Arrives"), g.steps("spread", "Spreads", S.red), g.num("roomPeople", "People", "")]);
     return out + fitCap(k, `${v("setting")} · from ${v("source")}`);
   });
@@ -564,6 +676,11 @@
     const rootX = root === 0 ? hx + 24 : root === 2 ? lowx + 24 : 160;
     out += k.text({ x: rootX, y: 14, text: root === 1 ? "♥ ♥" : "♥", size: 13, color: S.pink });
     out += k.text({ x: 300, y: 104, text: ["💼", "🏠", "🛋️", "🏛️"][idx(v, "rankAgainst")], size: 16, alpha: 0.85 });
+    /* the beat line: who is on top until the shift (faint when there is no flip) */
+    {
+      const sh = [0.95, 0.75, 0.5, 0.2][idx(v, "shiftWhen")];
+      out += beats(k, [{ at: 0, s: sh, kind: "line", color: S.purple }, { kind: "face", mood: -0.5 }, { s: 1, kind: "line", color: "#a08a6a" }], { max: 1, ghost: !flip });
+    }
     out += strip(k, [g.steps("flip", "Status flip", S.red), g.steps("shiftWhen", "Shifts"), g.num("heightGap", "Higher in frame", "%"), g.num("lookUp", "Looks up", "°"), g.word("rankAgainst", "Rank against"), g.word("playing", "Playing")]);
     return out + fitCap(k, `Gap in rank: ${v("setting")}`);
   });
@@ -624,6 +741,11 @@
     out += `<path d="M${x0 + 20} 50 Q${r1((x0 + x1) / 2)} ${r1(60 + dist * 20)} ${r1(x1 - 20)} 50" fill="none" stroke="${S.gold}" stroke-dasharray="4 3"/>` + k.label({ x: (x0 + x1) / 2, y: 74 + dist * 8, text: `${Math.round(v.n("distance"))} scenes back`, size: 8, color: "#ddd" });
     const lead = idx(v, "leadIn");
     if (lead) out += k.label({ x: x1 - 26, y: 50, text: lead === 2 ? "wait for it…" : "hint", size: 8, color: "#bbb" });
+    /* the beat line: the original, the minutes until it comes back, the pause, the laugh, and where it lands */
+    {
+      const lo = idx(v, "landsOn");
+      out += beats(k, [{ at: 0, s: 3, kind: "setup" }, { s: 2 + v.n("minutesBack"), kind: "wait" }, { s: v.n("callPause") * 5, kind: "hold", color: "#fff" }, { kind: "ha" }, { s: [16, 4, 0][lo] + 3, kind: "hold" }, { kind: "tick", color: lo === 2 ? S.red : "#ddd" }], { max: 150 });
+    }
     out += strip(k, [g.steps("landsOn", "Lands on"), g.num("minutesBack", "Since original", " min"), g.num("callPause", "Pause before", " s"), g.steps("leadIn", "Lead-in"), g.num("times", "Times called back", "×"), g.steps("mood", "Mood shift")]);
     return out + fitCap(k, `Callback: ${v("form")} · ${v("echoes")}`);
   });
@@ -647,6 +769,8 @@
     if (fw >= 1) out += guy(k, 160, { s: 0.45, color: S.blue, mood: -0.4 });
     if (fw === 2) out += guy(k, 180, { s: 0.45, color: S.orange, mood: -0.4 }) + guy(k, 140, { s: 0.45, color: S.green, mood: -0.4 });
     out += chip(k, 60, 66, v("fairness"), idx(v, "fairness") === 2 ? S.red : "#2f4a37", "middle");
+    /* the beat line: how long we are fooled, the beat before the reveal, the reveal itself, the surprise */
+    out += beats(k, [{ at: 0, s: [5, 14, 40, 90][idx(v, "fooledFor")], kind: "line", color: S.gold }, { s: v.n("revealBeat") * 4, kind: "wait" }, { s: 1 + v.n("revealTakes") * 4, kind: "setup", color: "#c0392b" }, { kind: "face", mood: 0.2, color: "#f3d27a" }], { max: 160 });
     out += strip(k, [g.word("reveal", "Truth arrives"), g.steps("fooledFor", "Fooled for"), g.num("revealBeat", "Beat before reveal", " s"), g.num("revealTakes", "Reveal takes", " s"), g.num("hiddenShare", "Truth hidden", "%"), g.steps("fairness", "Fair or cheat", S.red)]);
     return out + fitCap(k, `Led to expect ${v("expect")} · strength ${Math.round(v.n("strength"))} of 5`);
   });
@@ -677,6 +801,8 @@
     out += k.label({ x: 160, y: 66, text: "→", size: 14, color: S.gold });
     const dl = Math.min(6, Math.ceil(v.n("delay") / 3.4));
     for (let i = 0; i < dl; i++) out += `<rect x="157" y="${r1(74 + i * 6)}" width="6" height="4" fill="#bbb"/>`;
+    /* the beat line: the ironic line, the scenes until it bites, the beat before we feel it, the hold on the image */
+    out += beats(k, [{ at: 0, s: 4, kind: "line" }, { s: v.n("delay") * 4, kind: "wait" }, { kind: "tick", color: S.red }, { s: v.n("feltBeat") * 4, kind: "wait", color: "#9fd3ff" }, { kind: "face", mood: [0.8, 0, -0.9][idx(v, "tone")] }, { s: 1 + v.n("holdOnIt") * 5, kind: "hold" }], { max: 160 });
     out += strip(k, [g.num("delay", "Delay before it bites", " scenes"), g.steps("bite", "Bites", S.red), g.num("feltBeat", "Beat before felt", " s"), g.num("holdOnIt", "Hold on the image", " s"), g.num("obviousness", "How obvious", ""), g.steps("tone", "Funny or sad")]);
     return out + fitCap(k, `Irony: ${v("kind")}`);
   });
@@ -709,6 +835,16 @@
     for (let i = 0; i < ncl; i++) out += k.label({ x: x - (ncl - 1) * 4.5 + i * 9, y: 46, text: "!", size: 11, color: S.red, weight: 900 });
     const use = idx(v, "useful");
     if (use) out += k.label({ x: Math.min(x, 248), y: 10, text: use === 2 ? "⭐ saves the day" : "⭐ useful once", size: 8, color: S.gold });
+    /* the beat line: out of place (clashes marked) until they finally fit; faint when they never learn */
+    {
+      const ad = idx(v, "adapts");
+      const fa = Math.max(0.03, v.p("fitAt"));
+      const nc = Math.round(v.n("clashes")) * 3;
+      const parts = [{ at: 0, s: fa, kind: "line" }];
+      for (let i = 0; i < nc; i++) parts.push({ at: (fa * (i + 0.5)) / nc, kind: "tick", color: S.red });
+      parts.push({ at: fa, s: 1, kind: "hold", color: S.green, alpha: ad ? 1 : 0.3 }, { at: fa, kind: "face", mood: ad ? 0.9 : -0.6, alpha: ad ? 1 : 0.35 });
+      out += beats(k, parts, { max: 1 });
+    }
     out += strip(k, [g.steps("adapts", "Learns to fit", S.green), g.steps("confidence", "Acts like"), g.when("fitAt", "Finally fits", S.green), g.num("fromOthers", "Space from others", " m"), g.word("comparedTo", "Next to"), g.num("clashes", "Clashes", "/scene", S.red)]);
     return out + fitCap(k, `Out of place: ${Math.round(v.n("mismatch"))} of 5 · ${v("world")}`);
   });
@@ -737,6 +873,8 @@
     if (laughs === 1) out += k.label({ x: 250, y: 22, text: "only we laugh", size: 8, color: S.gold });
     if (laughs >= 2) out += ha(k, 250, 30, 0.4 + laughs * 0.2);
     out += k.label({ x: 8, y: 44, text: ["surprise!", "⚠ a moment ahead", "⚠⚠ long before"][idx(v, "seenComing")], size: 8, color: "#ddd", anchor: "start" });
+    /* the beat line: the warning (if seen coming), the blow, how long it drags on, the time to recover */
+    out += beats(k, [{ at: 0, s: [0, 4, 10][idx(v, "seenComing")], kind: "hold", color: "#9fd3ff" }, { kind: "face", mood: -0.9 }, { s: 1 + v.n("dragsOn"), kind: "line", color: S.red }, { s: v.n("recoverSec"), kind: "wait" }, { kind: "face", mood: [-0.8, 0.2, 0.7, 1][idx(v, "recovery")] }], { max: 75 });
     out += strip(k, [g.steps("recovery", "Recovers", S.green), g.num("dragsOn", "Lasts", " s", S.red), g.num("recoverSec", "To recover", " s"), g.num("frameSize", "Size in frame", "%"), g.steps("earned", "Earned it"), g.steps("seenComing", "Seen coming")]);
     return out + fitCap(k, `How bad: ${Math.round(v.n("size"))} of 5 · witnesses: ${v("witnesses")}`);
   });
@@ -776,6 +914,14 @@
     if (caught === 2) out += heads(k, 8, 120, 104, 80, { r: 3.5, color: S.green });
     if (win === 2) out += k.label({ x: 10, y: 16, text: "both lose", size: 9, color: S.red, anchor: "start" });
     if (win === 1) out += k.label({ x: 10, y: 16, text: "no winner", size: 9, color: "#bbb", anchor: "start" });
+    /* the beat line: each comeback a dot, gaps between them, each louder than the last (faint past the last round) */
+    {
+      const rd = Math.round(v.n("rounds"));
+      const lb = v.n("louderBy") / 100;
+      const parts = [];
+      for (let i = 0; i < Math.max(rd, 4); i++) parts.push({ at: i * (3 + v.n("comebackGap") * 3), kind: "dot", r: Math.min(5, 1.8 * Math.pow(1 + lb, i)), color: i % 2 ? S.orange : S.blue, alpha: i < rd ? 1 : 0.3 });
+      out += beats(k, parts, { max: 130 });
+    }
     out += strip(k, [g.steps("tactics", "How they fight", S.red), g.steps("petty", "How petty"), g.num("rounds", "Rounds", ""), g.num("comebackGap", "Comeback gap", " s"), g.num("standOff", "Distance", " m"), g.num("louderBy", "Louder each round", "%")]);
     return out + fitCap(k, `Clash over ${v("over")} · ${v("winner")} wins`.replace("neither wins", "no one wins").replace("both lose wins", "both lose"));
   });
@@ -808,6 +954,20 @@
     const talk = idx(v, "sideTalk");
     out += k.label({ x: 10, y: 16, text: ["", "👀 glances", "🤫 whispers", "🗣 huddles"][talk], size: 9, color: "#ddd", anchor: "start" });
     if (left === 1) out += k.label({ x: 300, y: 16, text: "now and then alone", size: 8, color: "#bbb", anchor: "end" });
+    /* the beat line: switches along the film up to the last one, drawn by how they switch (faint when no one switches) */
+    {
+      const sh = Math.round(v.n("shifts"));
+      const ls = Math.max(0.05, v.p("lastSwitch"));
+      const hw = idx(v, "switchHow");
+      const n = Math.max(1, sh);
+      const parts = [{ at: 0, s: ls, kind: "hold", color: "#8a8a96" }];
+      for (let i = 0; i < n; i++) {
+        const t = (ls * (i + 1)) / n;
+        parts.push(hw === 0 ? { at: Math.max(0, t - 0.07), s: 0.07, kind: "line", color: S.purple } : { at: t, kind: "tick", color: hw === 2 ? S.red : "#fff" });
+      }
+      parts.push({ at: ls, kind: "face", mood: hw === 2 ? -0.8 : 0.2 });
+      out += beats(k, parts, { max: 1, ghost: !sh });
+    }
     out += strip(k, [g.num("sides", "Sides", ""), g.steps("switchHow", "Switch by"), g.when("lastSwitch", "Last switch"), g.num("groupSize", "People", ""), g.num("sideGap", "Space between", " m"), g.steps("leftAlone", "Left alone")]);
     return out + fitCap(k, `${sides} side${sides > 1 ? "s" : ""} · switch ${Math.round(v.n("shifts"))} of 5`);
   });
@@ -836,6 +996,8 @@
     /* damage: tipped glasses */
     const dmg = idx(v, "damage");
     for (let i = 0; i < dmg; i++) out += k.text({ x: 62 + i * 16, y: 108, text: "💥", size: 9 + i * 2 });
+    /* the beat line: the scene before they show up, then the share of it they stay */
+    out += beats(k, [{ at: 0, s: v.p("arrivesAt"), kind: "hold", color: "#8a8a96" }, { kind: "face", mood: -0.3, color: "#f08a7a" }, { s: Math.max(0.02, v.p("stays") * (1 - v.p("arrivesAt"))), kind: "line", color: S.red }, { kind: "tick", color: "#ddd" }], { max: 1 });
     out += strip(k, [g.steps("leaves", "Leaves"), g.num("stays", "In the scene", "%"), g.when("arrivesAt", "Shows up", S.red), g.num("fromHost", "From the host", " m"), g.word("toHost", "Who they are"), g.steps("damage", "Damage", S.red)]);
     return out + fitCap(k, `Wrong: ${Math.round(v.n("wrong"))} of 5 · ${v("toHost")}, ${v("arrives")}`);
   });
@@ -852,15 +1014,17 @@
     for (let i = stacked - 1; i >= 0; i--) out += `<rect x="${92 + i * 8}" y="${10 + i * 5}" width="130" height="80" rx="10" fill="${i ? "#3a3946" : S.paper}" stroke="${S.ink}" stroke-width="2"/>`;
     /* kinds of joke in the scene: a row of little signs under the card */
     const kinds = [[DEV[v("setting")] || "?"], [DEV[v("setting")] || "?", "💬"], [DEV[v("setting")] || "?", "💬", "🍌", "🙃"]][idx(v, "variety")];
-    kinds.forEach((e, i) => (out += k.text({ x: 157 + (i - (kinds.length - 1) / 2) * 20, y: 112, text: e, size: 11 })));
+    kinds.forEach((e, i) => (out += k.text({ x: 157 + (i - (kinds.length - 1) / 2) * 20, y: 106, text: e, size: 11 })));
     /* joke or story first: the story scroll grows beside the card */
-    out += k.text({ x: 92, y: 114, text: "📜", size: 9 + idx(v, "storyRoom") * 6 });
+    out += k.text({ x: 92, y: 108, text: "📜", size: 9 + idx(v, "storyRoom") * 6 });
     out += k.text({ x: 157, y: 52, text: DEV[v("setting")] || "?", size: 24 }) + k.label({ x: 157, y: 78, text: v("setting").replace("the straight one and the funny one", "straight & funny"), size: 10, color: S.ink, weight: 700 });
     /* surprise: a jack-in-the-box spring */
     out += `<path d="M260 ${FY} ${Array.from({ length: 4 }, (_, i) => `l${i % 2 ? -8 : 8} -${r1(4 + sur * 9)}`).join(" ")}" fill="none" stroke="#bbb" stroke-width="2"/>` + k.text({ x: 260, y: FY - 20 - sur * 40, text: sur > 0.5 ? "😲" : "🙂", size: 14 });
     /* mean or kind: a face on the left */
     out += k.face({ x: 46, y: 60, r: 22, mood: k.lerp(-0.9, 1, warm), brows: k.lerp(-1, 0.6, warm), color: k.mix("#e2a090", "#f0c8a0", warm) });
     out += k.label({ x: 46, y: 98, text: v("warmth"), size: 9, color: "#ddd" });
+    /* the beat line: the joke runs its length, then the laugh */
+    out += beats(k, [{ at: 0, s: v.n("jokeLength"), kind: "setup" }, { s: 2, kind: "wait" }, { kind: "ha" }], { max: 132 });
     out += strip(k, [g.steps("darkness", "Light to dark", S.purple), g.steps("variety", "Kinds in scene"), g.steps("storyRoom", "Joke or story"), g.num("jokeLength", "Length", " s"), g.num("stacked", "Jokes stacked", "")]);
     return out + fitCap(k, `${v("setting")} · ${v("darkness")} · surprise ${Math.round(v.n("surprise"))} of 5`);
   });
@@ -891,6 +1055,8 @@
     if (lg) out += chip(k, 270, 18, lg === 2 ? "strict rules" : "loose rules", "#2f3a4a", "middle");
     /* real feeling: a heart */
     if (v.n("realFeeling") > 0) out += k.text({ x: 101, y: 70, text: "♥", size: Math.min(18, 6 + v.n("realFeeling") * 3), color: S.pink });
+    /* the beat line: normal time first, then the turn, then the strangeness */
+    out += beats(k, [{ at: 0, s: v.n("normalFirst"), kind: "hold", color: "#8a8a96" }, { kind: "face", mood: -0.6 }, { s: 40, kind: "line", color: S.purple }], { max: 360 });
     out += strip(k, [g.steps("arrives", "Arrives"), g.steps("spills", "Spills over"), g.num("normalFirst", "Normal first", " s"), g.num("frameShare", "Frame that's absurd", "%"), g.num("detail", "Played with care", ""), g.steps("ownLogic", "Own logic")]);
     return out + fitCap(k, `Absurdity ${Math.round(v.n("setting"))} of 5 · ${v("acceptance")}`);
   });
@@ -919,6 +1085,13 @@
     if (hold > 0) out += k.frame({ x: 80 - r - 8, y: 68 - r - 8, w: 2 * r + 16, h: 2 * r + 16, color: S.red, dash: `${r1(4 + hold * 20)} 4` });
     const rescue = idx(v, "rescue");
     if (rescue) out += guy(k, 300, { s: 0.5, color: S.green, mood: 0.6, arms: 0.8, alpha: rescue === 1 ? 0.5 : 1 });
+    /* the beat line: each blunder, then the silence after, then rescue (or not) */
+    {
+      const parts = [];
+      for (let i = 0; i < Math.round(v.n("blunders")); i++) parts.push({ at: i * 3, kind: "tick", color: S.red });
+      parts.push({ at: Math.round(v.n("blunders")) * 3, s: 1 + v.n("silence") * 5, kind: "wait" }, { kind: "face", mood: [-0.9, -0.3, 0.6][idx(v, "rescue")] });
+      out += beats(k, parts, { max: 80 });
+    }
     out += strip(k, [g.num("silence", "Silence after", " s"), g.num("hold", "Camera stays", ""), g.steps("rescue", "Saved", S.green), g.num("witnesses", "Who sees it", " people"), g.num("faceSize", "Face size", "%"), g.steps("digsDeeper", "Digs deeper", S.red)]);
     return out + fitCap(k, `Cringe ${Math.round(v.n("setting"))} of 5 · in front of ${v("inFrontOf")}`);
   });
@@ -982,6 +1155,8 @@
     /* count: more reaction shots */
     for (let i = 0; i < Math.round(v.n("count")); i++) out += `<rect x="${226 + (i % 3) * 30}" y="${18 + Math.floor(i / 3) * 24}" width="26" height="20" rx="2" fill="#2e2d36" stroke="#666"/>` + k.face({ x: 239 + (i % 3) * 30, y: 28 + Math.floor(i / 3) * 24, r: 6, mood: -0.2, eyes: 1 });
     out += k.text({ x: 270, y: 96, text: REACTS[v("reactsTo")] || "", size: 16 }) + k.label({ x: 312, y: 110, text: `to ${v("reactsTo")}`, size: 8, color: "#bbb", anchor: "end" });
+    /* the beat line: the joke, the delay, the reaction building, then the hold on the face (faint with no reaction) */
+    out += beats(k, [{ at: 0, kind: "ha" }, { at: 4, s: v.n("delay") * 8, kind: "wait" }, { s: 1 + v.n("buildTime") * 8, kind: "line" }, { kind: "face", mood: -0.5 }, { s: 1 + v.n("hold") * 9, kind: "hold" }], { max: 110, ghost: idx(v, "setting") === 0 });
     out += strip(k, [g.num("delay", "Delay before", " s"), g.num("hold", "On the face", " s"), g.num("buildTime", "Builds over", " s"), g.num("faceSize", "Face size", "%"), g.steps("toCamera", "Looks at camera"), g.num("count", "Reactions", "")]);
     return out + fitCap(k, `Reaction: ${v("setting")} · ${whose}`);
   });
@@ -1015,6 +1190,18 @@
     const noticed = idx(v, "noticed");
     out += k.label({ x: 10, y: 16, text: ["", "🙄 one notices", "😩 everyone groans"][noticed], size: 9, color: "#ddd", anchor: "start" });
     out += k.label({ x: 310, y: 16, text: ["", "bigger finale", "reversed finale", "finally pays off"][fin], size: 9, color: S.gold, anchor: "end" });
+    /* the beat line: each return of the gag, spaced by minutes and scenes, the gaps growing or shrinking */
+    {
+      const rt = idx(v, "returns");
+      const n = Math.min(12, Math.round(v.n("count")));
+      const parts = [];
+      let t = 0;
+      for (let i = 0; i < Math.max(n, 6); i++) {
+        parts.push({ at: t, kind: i === n - 1 ? "ha" : "dot", color: i ? S.gold : "#7fa6dd", alpha: i < n ? 1 : 0.3 });
+        t += (v.n("minutesApart") + v.n("spacing") * 1.5) * (rt === 0 ? 1 + i * 0.35 : rt === 2 ? Math.max(0.3, 1 - i * 0.1) : 1) * 0.5;
+      }
+      out += beats(k, parts, { max: 330 });
+    }
     out += strip(k, [g.num("spacing", "Space between", " scenes"), g.num("minutesApart", "Minutes apart", " min"), g.steps("returns", "Gaps"), g.when("firstAt", "First time"), g.when("lastAt", "Last time"), g.num("eachLength", "Each time", " s")]);
     return out + fitCap(k, `Running gag × ${n} · change each time ${Math.round(v.n("variation"))} of 5`);
   });
@@ -1047,6 +1234,15 @@
     });
     if (pause > 0) out += k.label({ x: x - ws[n - 1] * sc - pause * sc / 2 - gapX * sc, y: 100, text: "…", size: 14, color: "#bbb" });
     out += k.label({ x: 160, y: 108, text: `break by ${v("breakBy")} · hold ${fmt(v.n("holdAfterBreak"))} s after`, size: 8, color: "#bbb" });
+    /* the beat line: the items, the pause, the break, the hold after it */
+    {
+      const n = Math.round(v.n("pattern"));
+      const il = 1 + v.n("itemLength") * 0.6;
+      const parts = [];
+      for (let i = 0; i < n; i++) parts.push({ s: i === n - 1 ? il * (1 + v.n("thirdLonger") / 100) : il, kind: "setup" }, { s: 1, kind: "wait" });
+      parts.push({ s: v.n("breakPause") * 4, kind: "wait" }, { kind: "tick", color: S.red }, { s: 1 + v.n("holdAfterBreak") * 5, kind: "hold" }, { kind: "ha" });
+      out += beats(k, parts, { max: 110 });
+    }
     out += strip(k, [g.steps("speed", "Pace"), g.num("breakPause", "Pause before break", " s"), g.steps("matched", "Same rhythm"), g.num("itemLength", "Per item", " s"), g.num("thirdLonger", "Last one longer", "%"), g.num("holdAfterBreak", "Hold after", " s")]);
     return out + fitCap(k, `${n} items, then the break · break ${Math.round(v.n("breakSize"))} of 5`);
   });
@@ -1081,6 +1277,8 @@
     const prec = idx(v, "precision");
     out += chip(k, 6, 16, ["〰 loose and messy", "· clean", "⚙ clockwork"][prec], "#26252d", "start");
     out += k.label({ x: 310, y: 16, text: ["close", "medium", "wide"][framing] + " shot", size: 9, color: "#ddd", anchor: "end" });
+    /* the beat line: the warning, the fall, the time down, then up again */
+    out += beats(k, [{ at: 0, s: v.n("warning") * 3, kind: "hold", color: "#9fd3ff" }, { kind: "tick", color: S.red }, { s: 1 + v.n("downFor") * 3, kind: "line", color: S.red }, { kind: "face", mood: 0.4 }], { max: 96 });
     out += strip(k, [g.num("pain", "Real hurt", "", S.red), g.num("fallHeight", "Fall height", " m"), g.num("warning", "Warning", " s"), g.num("downFor", "Down for", " s"), g.word("getsUp", "Gets up"), g.num("chain", "Chain reaction", "")]);
     return out + fitCap(k, `${v("size")} · ${v("framing")} shot · ${v("precision")}`);
   });
@@ -1107,6 +1305,8 @@
     const sa = Math.round(v.n("selfAware"));
     for (let i = 0; i < sa; i++) out += `<rect x="${170 + i * 10}" y="88" width="8" height="10" fill="none" stroke="${S.ink}"/>`;
     out += k.label({ x: 160, y: 64, text: "→", size: 16, color: S.gold });
+    /* the beat line: the cliche plays, the beat before the break, the break, the hold after */
+    out += beats(k, [{ at: 0, s: 2 + v.n("clichePlays") * 2, kind: "setup" }, { s: v.n("breakBeat") * 8, kind: "wait" }, { kind: "tick", color: S.red }, { s: 1 + v.n("afterHold") * 5, kind: "hold" }, { kind: "face", mood: 0.8 }], { max: 140 });
     out += strip(k, [g.word("cliche", "Cliche"), g.num("clichePlays", "Cliche plays", " s"), g.num("breakBeat", "Beat before break", " s"), g.num("afterHold", "Hold after", " s"), g.num("selfAware", "Knows it's a movie", ""), g.num("earnest", "Played straight", "")]);
     return out + fitCap(k, `Subverting ${v("cliche")} · ${v("break")}`);
   });
@@ -1141,6 +1341,8 @@
     const hp = v.n("holdPast");
     if (hp > 0) out += `<rect x="${r1(310 - hp * 14)}" y="26" width="${r1(hp * 14)}" height="38" fill="${S.gold}" opacity="0.25"/>` + k.label({ x: 310, y: 20, text: "awkward hold", size: 8, color: S.gold, anchor: "end" });
     out += k.label({ x: 10, y: 112, text: "▬ smash cut   ↗ cutaway   ✗ cut that proves them wrong   ˅ jump cut", size: 7.5, color: "#999", anchor: "start" });
+    /* the beat line: a line is said, the gap, the smash cut into the next shot */
+    out += beats(k, [{ at: 0, s: 8, kind: "line" }, { s: v.n("smashGap") * 30, kind: "wait" }, { kind: "tick", color: "#fff" }, { s: 12, kind: "setup", color: S.purple }], { max: 90 });
     out += strip(k, [g.steps("tempo", "Tempo"), g.word("tempoShape", "Across the scene"), g.num("shotLength", "Average shot", " s"), g.num("smashGap", "Line to smash", " s"), g.num("holdPast", "Hold past comfort", " s"), g.num("smashCut", "Smash cuts", "", S.red)]);
     return out + fitCap(k, `${v("tempo")} cutting · ${count} shots`);
   });
@@ -1159,8 +1361,9 @@
     const r = 14 + Math.min(fs, 2) * 15;
     const lookTo = br === 0 ? 1 : k.clamp(off / 45, 0, 1);
     out += k.face({ x: 118, y: 54, r, mood: br >= 2 ? 0.5 : 0.2, look: lookTo, eyes: 1 });
-    out += k.text({ x: 118 + r + 10, y: 40, text: br ? ATT[v("attitude")] : "", size: 14 });
-    if (br) out += `<line x1="118" y1="54" x2="${r1(160 + off * 1.5)}" y2="96" stroke="${S.gold}" stroke-dasharray="3 3" stroke-width="${r1(1 + v.p("lookLength") * 3)}"/>`;
+    /* attitude and the look to us; faint previews while they never break */
+    out += k.text({ x: 118 + r + 10, y: 40, text: ATT[v("attitude")] || "", size: 14, alpha: br ? 1 : 0.3 });
+    out += `<line x1="118" y1="54" x2="${r1(160 + off * 1.5)}" y2="96" stroke="${S.gold}" stroke-dasharray="3 3" stroke-width="${r1(1 + v.p("lookLength") * 3)}" opacity="${br ? 1 : 0.3}"/>`;
     if (br === 3) out += k.bubble({ x: 240, y: 50, text: "You see what I deal with?", w: 136, h: 26, size: 8, tail: -40 });
     if (br === 2) out += k.label({ x: 230, y: 32, text: "(psst…)", size: 10, color: "#ddd" });
     /* the others: keep going, slow, freeze */
@@ -1168,6 +1371,11 @@
     out += guy(k, 270, { s: 0.6, color: S.blue, mood: 0, look: oth ? 0 : -1, eyes: oth ? 1 : 0.7, alpha: wp === 2 ? 0.5 : 1 }) + (wp === 0 ? motion(k, 296, 70, 2, 10) : wp === 1 ? k.label({ x: 270, y: 30, text: "slow-mo", size: 8, color: "#bbb" }) : k.label({ x: 270, y: 30, text: "❄ frozen", size: 8, color: "#9fd3ff" }));
     if (oth) out += k.label({ x: 270, y: 18, text: oth === 2 ? "everyone notices" : "one notices", size: 8, color: S.gold });
     out += k.label({ x: 10, y: 16, text: `${Math.round(v.n("howOften"))}× a scene`, size: 9, color: "#ddd", anchor: "start" });
+    /* the beat line: the scene, the look to us (attitude on the face, eyes off by the angle), the aside (faint when they never break) */
+    {
+      const at = idx(v, "attitude");
+      out += beats(k, [{ at: 0, s: 6, kind: "hold", color: "#8a8a96" }, { kind: "face", mood: [0.6, 0.9, -0.2, -0.8][at], color: ["#f3d27a", "#f0c8a0", "#bcd7ff", "#f08a7a"][at], look: v.p("offLens") }, { s: 1 + v.n("lookLength") * 6, kind: "line", color: "#9fd3ff" }, { s: 1 + v.n("asideLength") * 2, kind: "line" }], { max: 160, ghost: idx(v, "break") === 0 });
+    }
     out += strip(k, [g.word("attitude", "Attitude"), g.num("lookLength", "Look lasts", " s"), g.num("offLens", "Eyes off the lens", "°"), g.num("faceSize", "Face size", "%"), g.num("asideLength", "Aside lasts", " s"), g.num("howOften", "Times per scene", "")]);
     return out + fitCap(k, `Breaking the fourth wall: ${v("break")}`);
   });
@@ -1202,6 +1410,12 @@
     if (fin) out += k.label({ x: 160, y: 104, text: fin === 2 ? "…finish each other's lines" : "…sometimes finish lines", size: 8, color: S.gold });
     const bic = idx(v, "bicker");
     out += k.label({ x: 10, y: 16, text: ["⚡ bicker", "⚡🤝 both", "🤝 back each other"][bic], size: 9, color: "#ddd", anchor: "start" });
+    /* the beat line: their lines in turn, the gap between them (or overlapping when below zero) */
+    {
+      const parts = [];
+      for (let i = 0; i < 6; i++) parts.push({ at: 1 + i * (3 + v.n("lineGap") * 2.5), s: 3, kind: "line", color: i % 2 ? S.orange : "#7fa6dd" });
+      out += beats(k, parts, { max: 66 });
+    }
     out += strip(k, [g.word("staging", "Stand"), g.steps("overlap", "Talk over"), g.num("lineGap", "Gap between lines", " s"), g.num("apart", "Distance", " m"), g.num("twoShot", "In one shot", "%"), g.steps("finish", "Finish lines")]);
     return out + fitCap(k, `${v("bond")} · trade lines ${Math.round(v.n("volley"))} of 5 · ${v("lead")} leads`);
   });
@@ -1231,6 +1445,8 @@
     /* the group comes around: an arm reaching out to them */
     const ca = idx(v, "comesAround");
     if (ca) out += `<path d="M${16 + span - 10} 64 Q${r1((16 + span + ox) / 2)} ${48 - ca * 6} ${r1(ox - 14)} 62" fill="none" stroke="${S.green}" stroke-width="${ca * 1.5}"${ca === 1 ? ' stroke-dasharray="4 3"' : ""}/>`;
+    /* the beat line: alone until the tide turns, then with the group (faint when the group never comes around) */
+    out += beats(k, [{ at: 0, s: Math.max(0.02, v.p("turnsAt")), kind: "line", color: "#8a8a96" }, { kind: "face", mood: 0.8 }, { s: 1, kind: "hold", color: S.green }], { max: 1, ghost: idx(v, "comesAround") === 0 });
     out += strip(k, [g.steps("tries", "Tries to fit"), g.steps("group", "Group"), g.steps("comesAround", "Comes around", S.green), g.when("turnsAt", "Tide turns"), g.num("fromGroup", "From the group", " m"), g.num("groupSize", "Group size", "")]);
     return out + fitCap(k, `Fits badly: ${Math.round(v.n("gap"))} of 5 · spotted by ${v("spotted")}`);
   });
@@ -1260,6 +1476,15 @@
     out += k.label({ x: 10, y: 16, text: ["far apart", "arm's length", "close", "touching"][cl], size: 9, color: "#ddd", anchor: "start" });
     const tm = idx(v, "timing");
     out += Array.from({ length: 6 }, (_, i) => `<rect x="${222 + i * 14}" y="${i % 2 ? 12 : 12 + (2 - tm) * 4 * (k.rnd(i) - 0.3)}" width="8" height="8" rx="2" fill="${i % 2 ? S.orange : S.blue}"/>`).join("") + k.label({ x: 260, y: 32, text: `timing: ${v("timing")}`, size: 8, color: "#bbb" });
+    /* the beat line: their lines with the gap between, the spark growing its way, then a look held */
+    {
+      const gr = idx(v, "grows");
+      const kc = [S.gold, S.pink, S.red, S.green][idx(v, "kind")];
+      const parts = [];
+      for (let i = 0; i < 6; i++) parts.push({ at: i * (2.5 + v.n("answerGap") * 3), s: 2.5, kind: "line", color: i % 2 ? S.orange : "#7fa6dd" }, { at: i * (2.5 + v.n("answerGap") * 3) + 1.25, kind: "dot", r: gr === 0 ? 3.5 : gr === 1 ? 1.2 + i * 0.5 : i % 2 ? 3.5 : 1, color: kc });
+      parts.push({ at: 6 * (2.5 + v.n("answerGap") * 3) + 2, s: 1 + v.n("lookHold") * 5, kind: "hold", color: kc });
+      out += beats(k, parts, { max: 100 });
+    }
     out += strip(k, [g.steps("closeness", "Closeness", S.pink), g.word("grows", "How it grows"), g.num("lookHold", "Looks last", " s"), g.num("meters", "Between them", " m"), g.num("answerGap", "Gap between lines", " s"), g.steps("mirror", "Mirroring")]);
     return out + fitCap(k, `${v("kind")} spark · ${Math.round(v.n("spark"))} of 5`);
   });
@@ -1328,6 +1553,13 @@
     for (let i = 0; i < tick; i++) out += `<line x1="${r1(186 + i * (80 / tick) + (rb === 2 ? (k.rnd(i) - 0.5) * 6 : 0))}" y1="4" x2="${r1(186 + i * (80 / tick))}" y2="${rb === 1 && i === 3 ? 4 : 12}" stroke="${rb === 1 && i === 3 ? S.red : "#888"}" stroke-width="2"/>`;
     out += k.label({ x: 270, y: 12, text: "beat", size: 7, color: "#888", anchor: "start" });
     out += k.label({ x: 268, y: 26, text: `${v("pace")} · ${v("rush")}`, size: 8, color: "#ddd", anchor: "end" });
+    /* the beat line: half a minute of lines at this many a minute, each waiting one beat */
+    {
+      const gp = 60 / v.n("linesPerMin");
+      const parts = [];
+      for (let t = 0; t < 29.5; t += gp) parts.push({ at: t, s: Math.min(v.n("beatLength"), gp * 0.7), kind: "wait" }, { s: 0.35, kind: "line" });
+      out += beats(k, parts, { max: 30 });
+    }
     out += strip(k, [g.num("holdAfter", "Hold after laugh", " s"), g.steps("onCut", "Lands"), g.steps("stepOn", "Steps on laugh", S.red), g.steps("rhythmBreak", "Rhythm"), g.num("beatLength", "One beat", " s"), g.num("linesPerMin", "Lines", "/min")].concat([]).slice(0, 6));
     return out + fitCap(k, `Pause before the punchline: ${pause} beat${pause === 1 ? "" : "s"} · setup ${fmt(setup)} s`);
   });
@@ -1428,6 +1660,16 @@
     out += k.graph({ x: 250, y: 10, w: 60, h: 20, points: [0.3, 0.3 + b * 0.15, 0.3 + b * 0.35], color: S.gold });
     const sh = idx(v, "shakeUp");
     if (sh) out += k.text({ x: 300, y: 100, text: sh === 2 ? "🌪️" : "💨", size: 14 });
+    /* the beat line: who each laugh goes to, with room after each for reactions (faint when the mix gets none) */
+    {
+      const bl = idx(v, "balance");
+      const parts = [];
+      for (let i = 0; i < 8; i++) {
+        const c = bl === 0 ? S.orange : bl === 1 ? (i % 4 === 3 ? "#7fa6dd" : S.orange) : bl === 2 ? (i % 2 ? "#7fa6dd" : S.orange) : [S.orange, "#7fa6dd", "#c9b49a", S.green][i % 4];
+        parts.push({ at: i * (3 + v.n("reactRoom") * 2.2), kind: "dot", r: 3, color: c }, { s: 0.4 + v.n("reactRoom") * 2.2, kind: "hold", color: "#ddd" });
+      }
+      out += beats(k, parts, { max: 120, ghost: idx(v, "setting") === 0 });
+    }
     out += strip(k, [g.steps("balance", "Shared"), g.steps("builds", "Builds"), g.steps("shakeUp", "Shake-up"), g.num("reactRoom", "Room to react", ""), g.num("inFrame", "In frame", " people"), g.word("source", "From")]);
     return out + fitCap(k, `Laughs from the mix: ${v("setting")} · ${v("who")}`);
   });
@@ -1452,6 +1694,14 @@
     out += guy(k, 250, { s: 0.7, color: S.blue, mood: [0, -0.6, 0.9, 0.7][c], arms: c === 3 ? 0.9 : 0, look: -1 });
     out += k.label({ x: 264, y: 66, text: ["", "groan…", "HA!", "tops it!"][c], size: 9, color: c === 1 ? "#bbb" : S.gold, weight: 700, anchor: "start" });
     out += k.label({ x: 10, y: 104, text: ["🙄 groaner", "😄 silly", "😏 sharp", "🤯 brilliant"][cl], size: 9, color: "#ddd", anchor: "start" });
+    /* the beat line: the line (longer with more words, slower or quicker), the pause to land, the laugh, the topper; dots for how often */
+    {
+      const parts = [];
+      const dn = Math.round(v.n("density"));
+      for (let i = 0; i < dn; i++) parts.push({ at: 10 + ((i + 0.5) * 50) / dn, kind: "dot", r: 2.2, color: S.gold });
+      parts.push({ at: 0, s: 0.5 + v.n("lineWords") * 0.3 * [1.5, 1, 0.6][idx(v, "speed")], kind: "line" }, { s: v.n("landPause") * 3, kind: "wait" }, { kind: "ha" }, { s: 6 + v.n("topsWithin") * 3, kind: "wait", color: "#9fd3ff" }, { kind: "ha", color: S.orange, text: "HA!" });
+      out += beats(k, parts, { max: 60 });
+    }
     out += strip(k, [g.steps("speed", "Speed"), g.num("density", "Per minute", ""), g.num("landPause", "Pause to land", " s"), g.num("topsWithin", "Topped within", " s"), g.steps("chain", "Chain"), g.num("lineWords", "Words in line", "")]);
     return out + fitCap(k, `Wordplay: ${v("kind")} · ${v("cleverness")}`);
   });
@@ -1477,6 +1727,8 @@
     out += `<line x1="140" y1="${r1(100 + gap * 10 * (dir === 2 ? -1 : 1))}" x2="210" y2="${r1(100 - gap * 10 * (dir === 2 ? -1 : 1))}" stroke="${S.gold}" stroke-width="3"/><path d="M175 100 l-5 10 h10 Z" fill="${S.gold}"/>`;
     const ans = idx(v, "answered");
     if (ans) out += guy(k, 290, { s: 0.5, color: S.blue, mood: 0 }) + k.label({ x: 312, y: 117, text: ans === 2 ? "everyone: “mm.”" : "“mm.”", size: 8, color: "#ddd", anchor: "end" });
+    /* the beat line: the chaos, the beat before the line, the calm line, the hold after */
+    out += beats(k, [{ at: 0, s: 6, kind: "hold", color: S.red }, { s: v.n("beatBefore") * 5, kind: "wait" }, { s: 4, kind: "line", color: "#7fa6dd" }, { s: 1 + v.n("holdAfter") * 5, kind: "hold" }, { kind: "face", mood: 0 }], { max: 50, x: 150, w: 88 });
     out += strip(k, [g.steps("delivery", "Delivery"), g.num("beatBefore", "Beat before", " s"), g.steps("straightFace", "Straight face"), g.steps("answered", "Answered"), g.num("faceSize", "Face size", "%"), g.num("holdAfter", "Hold after", " s")]);
     return out + fitCap(k, `${v("direction")} · mismatch ${Math.round(v.n("gap"))} of 5`);
   });
@@ -1516,6 +1768,8 @@
     if (pt === 3) out += chip(k, 314, 14, "✂ cut to it", "#1d2a38", "end");
     if (pt === 2) out += chip(k, 314, 14, "push in", "#1d2a38", "end");
     out += chip(k, 6, 14, ["background", "edge of frame", "center"][plc], "#26252d", "start");
+    /* the beat line: how long the gag is on screen */
+    out += beats(k, [{ at: 0, s: 10, kind: "hold", color: "#8a8a96" }, { kind: "tick", color: S.gold }, { s: 1 + v.n("onScreen") * 9, kind: "line", color: S.gold }, { kind: "tick", color: S.gold }], { max: 110 });
     out += strip(k, [g.steps("subtlety", "Easy to spot"), g.num("count", "Gags", ""), g.num("onScreen", "On screen", " s"), g.steps("inFocus", "Focus"), g.word("kind", "Kind"), g.num("gagSize", "Size", "%")]);
     return out + fitCap(k, `${v("kind")} in the ${v("place")} · ${v("subtlety")}`);
   });
@@ -1588,10 +1842,22 @@
       out += ha(k, x, Math.max(44, 66 - i * (4 + sur * 8)), s, (k.rnd(i) - 0.5) * 30 * (0.3 + sur), "HA!");
     }
     if (!n) out += `</g>`;
-    out += `<rect x="96" y="104" width="10" height="10" rx="2" fill="${TOPFROM[v("from")] || S.gold}"/>` + k.label({ x: 110, y: 113, text: `toppers come from ${v("from")}`, size: 8, color: "#bbb", anchor: "start" });
+    out += `<rect x="96" y="96" width="10" height="10" rx="2" fill="${TOPFROM[v("from")] || S.gold}"/>` + k.label({ x: 110, y: 105, text: `toppers come from ${v("from")}`, size: 8, color: "#bbb", anchor: "start" });
     const ends = idx(v, "endsScene");
     if (ends) out += k.label({ x: 310, y: 16, text: ends === 2 ? "◼ always ends the scene" : "◼ sometimes ends it", size: 8, color: "#ddd", anchor: "end" });
     out += k.label({ x: 10, y: 16, text: `last laugh: ${v("lastLaugh")}`, size: 9, color: S.gold, anchor: "start" });
+    /* the beat line: the joke, the beat, then each topper a gap apart, then the hold (faint toppers when there are none) */
+    {
+      const n = Math.round(v.n("count"));
+      const parts = [{ at: 0, kind: "ha", color: "#bbb", text: "ha" }];
+      let t = 9 + v.n("beatBefore") * 3;
+      for (let i = 0; i < Math.max(n, 2); i++) {
+        parts.push({ at: t, kind: "ha", alpha: i < n ? 1 : 0.3 });
+        t += 7 + v.n("gapBetween") * 2.5;
+      }
+      parts.push({ at: t - 7 - v.n("gapBetween") * 2.5 + 4, s: 1 + v.n("holdAfter") * 5, kind: "hold" });
+      out += beats(k, parts, { max: 130 });
+    }
     out += strip(k, [g.steps("bigger", "Each one"), g.num("beatBefore", "Beat before", " s"), g.num("surprise", "Surprise", ""), g.num("gapBetween", "Gap between", " s"), g.num("holdAfter", "Hold after", " s"), g.steps("endsScene", "Ends scene")]);
     return out + fitCap(k, `${n} topper${n === 1 ? "" : "s"} · each one ${v("bigger")}`);
   });
@@ -1613,6 +1879,8 @@
     out += Array.from({ length: Math.round(v.n("numbers")) }, (_, i) => k.text({ x: 100 + i * 22, y: 100, text: ["4", "2", "7", "1", "9"][i], size: 14, color: S.gold, weight: 900 })).join("");
     out += k.label({ x: 310, y: 16, text: ["said: “notice this!”", "said casually", "said dead serious"][idx(v, "saidLike")], size: 9, color: "#ddd", anchor: "end" });
     out += k.label({ x: 310, y: 104, text: ["", "↩ comes back once", "🔁 a running gag"][idx(v, "comesBack")], size: 9, color: S.gold, anchor: "end" });
+    /* the beat line: the detail (longer with more words), the pause after, the laugh */
+    out += beats(k, [{ at: 0, s: 4, kind: "setup" }, { s: 0.5 + v.n("detailWords") * 0.8, kind: "line" }, { s: v.n("afterPause") * 6, kind: "wait" }, { kind: "ha" }], { max: 60 });
     out += strip(k, [g.steps("level", "How specific"), g.word("where", "Where"), g.num("piled", "Details piled", ""), g.num("detailWords", "Words", ""), g.num("numbers", "Exact numbers", ""), g.num("afterPause", "Pause after", " s")]);
     return out + fitCap(k, `${v("level")}: “${SPEC[lv].slice(0, 36)}${SPEC[lv].length > 36 ? "…" : ""}”`);
   });
@@ -1638,6 +1906,12 @@
     out += k.label({ x: 290, y: 24, text: ["😱 shocked", "🤨 half notice", "😐 normal"][oth], size: 8, color: "#ddd" });
     const df = idx(v, "deflate");
     if (df) out += k.label({ x: 190, y: 28, text: df === 2 ? "…then POP!" : "…then shrinks back", size: 8, color: S.gold });
+    /* the beat line: normal, then growing for its seconds to the peak, then how it snaps back */
+    {
+      const pk = Math.max(0.03, v.p("peakAt"));
+      const gs = (v.n("growSec") / 30) * 0.4;
+      out += beats(k, [{ at: 0, s: Math.max(0, pk - gs), kind: "hold", color: "#8a8a96" }, { at: Math.max(0, pk - gs), s: Math.min(pk, gs), kind: "line", color: S.red }, { at: pk, kind: "face", mood: -1 }, { at: pk, s: [1, 0.25, 0.02][idx(v, "deflate")], kind: "hold", color: S.red }], { max: 1 });
+    }
     out += strip(k, [g.word("grows", "Grows"), g.steps("deflate", "Snaps back"), g.when("peakAt", "Peaks"), g.num("timesReal", "Times real", "×"), g.num("growSec", "Grows over", " s"), g.steps("othersReact", "Others")]);
     return out + fitCap(k, `Blowing up ${v("what")} · ${Math.round(v.n("size"))} of 5`);
   });
@@ -1692,6 +1966,12 @@
     const sp = idx(v, "speaksForUs");
     if (sp) out += k.label({ x: 10, y: 104, text: sp === 2 ? "🗣 says what we think" : "🗣 now and then", size: 8, color: S.gold, anchor: "start" });
     out += k.label({ x: 10, y: 16, text: `played by ${v("who")}`, size: 9, color: "#ddd", anchor: "start" });
+    /* the beat line: calm (white where they stand still) until the pause before they finally crack */
+    {
+      const ca = Math.max(0.03, v.p("cracksAt"));
+      const rb = (v.n("reactBeat") / 5) * 0.25;
+      out += beats(k, [{ at: 0, s: ca, kind: "line", color: "#7fa6dd" }, { at: 0, s: ca * v.p("stillShare"), kind: "hold", color: "#fff" }, { at: Math.max(0, ca - rb), s: Math.min(ca, rb), kind: "wait", color: S.gold }, { at: ca, kind: "face", mood: -0.8 }], { max: 1 });
+    }
     out += strip(k, [g.steps("sees", "Sees it"), g.steps("reacts", "Reaction"), g.when("cracksAt", "Finally cracks", S.red), g.num("reactBeat", "Pause before", " s"), g.num("frameSize", "Size in frame", "%"), g.num("stillShare", "Time still", "%")]);
     return out + fitCap(k, `The straight one: ${v("calm")}`);
   });
