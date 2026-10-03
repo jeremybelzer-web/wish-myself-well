@@ -296,7 +296,7 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
 
       /* Make a character from words (rig/maker.js). */
       const made = await page.evaluate(async () => {
-        localStorage.setItem("curiosities-rig3d-made-v1", JSON.stringify({ text: "spiky blue hair swept back, a farmer in overalls with a beard" }));
+        localStorage.setItem("curiosities-rig3d-made-v1", JSON.stringify({ text: "spiky blue hair swept back, a farmer in overalls with a beard, round glasses and a yellow scarf" }));
         const sel = document.querySelector('.rig-dlg [data-rig="character"]');
         sel.value = "made";
         sel.dispatchEvent(new Event("change", { bubbles: true }));
@@ -304,7 +304,7 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         await c.ready;
         let parts = 0;
         c.ctx.model.traverse((o) => o.userData.made && parts++);
-        const plan = CurioRig.maker.read("spiky blue hair swept back, a farmer in overalls with a beard");
+        const plan = CurioRig.maker.read("spiky blue hair swept back, a farmer in overalls with a beard, round glasses and a yellow scarf");
         const head = c.rig().head;
         const before = c.where(head)[1];
         c.set("rigRulesLens.slump", "collapsed");
@@ -313,10 +313,10 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         head.traverse((o) => o.userData.made && !headPart && (headPart = o));
         const after = c.where(head)[1];
         c.set("rigRulesLens.slump", "relaxed");
-        return { err: c.error(), joints: c.bones().length, parts, plan: { hair: plan.hair, bottom: plan.bottom, beard: plan.beard, hat: plan.hat }, onHead: !!headPart, before, after };
+        return { err: c.error(), joints: c.bones().length, parts, plan: { hair: plan.hair, bottom: plan.bottom, beard: plan.beard, hat: plan.hat, glasses: !!plan.wear.glasses, scarf: plan.wear.scarf && plan.wear.scarf.word }, onHead: !!headPart, before, after };
       });
       ok(!made.err && made.joints === 19 && made.parts > 25, `a character made from words is built on the 19-joint skeleton (${made.parts} pieces)`);
-      ok(made.plan.hair === "spiky" && made.plan.bottom === "overalls" && made.plan.beard && made.plan.hat === "straw", `the words are read: ${JSON.stringify(made.plan)}`);
+      ok(made.plan.hair === "spiky" && made.plan.bottom === "overalls" && made.plan.beard && made.plan.hat === "straw" && made.plan.glasses && made.plan.scarf === "yellow", `the words are read: ${JSON.stringify(made.plan)}`);
       ok(made.onHead && made.after < made.before - 0.03, `its pieces ride on the joints, so the rules move it (head ${made.before.toFixed(2)} to ${made.after.toFixed(2)})`);
       await shot(page, "9-made-from-words");
 
