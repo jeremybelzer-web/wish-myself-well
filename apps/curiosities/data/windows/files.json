@@ -58,5 +58,7 @@
   "look-comedy.js",
   "look-effects.js",
   "look-editing.js",
-  "look-page.js"
+  "look-page.js",
+  "look-light.js",
+  "look-grade.js"
 ]
