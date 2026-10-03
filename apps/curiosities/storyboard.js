@@ -11,7 +11,7 @@
    Under the strip, bands line up with the panels: a feeling line per character (the panel's emotion where
    they speak, else the story's value), comedy beats (setup, payoff, callback, escalation) and, when music
    curiosities exist, music on or off and how loud. Print (studio-print.js) prints the storyboard.
-   localStorage key curiosities-storyboard-v1. Exposes window.CuriosityStoryboard = { mount(el), focusStory(i), data(), caption(panel, prev, max), putScenes(tag, scenes) }. */
+   localStorage key curiosities-storyboard-v1. Exposes window.CuriosityStoryboard = { mount(el), focusStory(i), data(), caption(panel, prev, max), putScenes(tag, scenes), on(fn), setTiming(list), timing() }. */
 
 (function () {
   const KEY = "curiosities-storyboard-v1";
@@ -201,6 +201,17 @@
     return m ? m[0] : "";
   }
   /* Every panel of every scene in order: the flip book's pages. */
+  /* Listeners for other parts (Momentum's strip): { type: "draw" } after each redraw, { type: "page", at, si, pi }. */
+  const listeners = [];
+  function tell(ev) {
+    listeners.forEach((fn) => {
+      try {
+        fn(ev);
+      } catch (e) {
+        console.warn("Storyboard listener: " + e.message);
+      }
+    });
+  }
   function pages() {
     const out = [];
     store.scenes.forEach((s, si) => s.panels.forEach((p, pi) => out.push({ si, pi })));
@@ -754,6 +765,7 @@
     }
 
     function draw() {
+      queueMicrotask(() => tell({ type: "draw" })); /* after this redraw has finished */
       const running = window.CurioAuto && window.CurioAuto.running ? window.CurioAuto.running().length : 0;
       el.innerHTML = `<div class="sb ${view.caps ? "" : "no-caps"} ${view.bands ? "" : "no-bands"}">
         <h3>Storyboard</h3>
@@ -920,6 +932,7 @@
       at = ((at % all.length) + all.length) % all.length;
       const pg = all[at];
       const s = store.scenes[pg.si];
+      queueMicrotask(() => tell({ type: "page", at, si: pg.si, pi: pg.pi }));
       const big = el.querySelector("[data-sb=big]");
       const count = el.querySelector("[data-sb=count]");
       if (big) big.innerHTML = panelHtml(s, s.panels[pg.pi], pg.pi);
@@ -1050,7 +1063,11 @@
     }
     function loop(now) {
       if (!el.isConnected || !playing) return (playing = false);
-      const gap = 1000 / Math.max(0.5, Number(view.speed) || 4);
+      /* A panel with its own timing (panels[i].seconds, e.g. from Momentum's Panel timing) holds that long;
+         the rest follow the Speed slider. */
+      const pg = pages()[at];
+      const own = pg && store.scenes[pg.si] && store.scenes[pg.si].panels[pg.pi] && Number(store.scenes[pg.si].panels[pg.pi].seconds);
+      const gap = own > 0 ? Math.min(60, Math.max(0.04, own)) * 1000 : 1000 / Math.max(0.5, Number(view.speed) || 4);
       if (now - last >= gap) {
         last = now - ((now - last) % gap);
         if (el.offsetParent !== null) move(1);
@@ -1270,6 +1287,30 @@
       return !saveError;
     },
     MAX_PER,
+    on(fn) {
+      if (typeof fn === "function") listeners.push(fn);
+      return () => listeners.splice(listeners.indexOf(fn) >>> 0, 1);
+    },
+    /* How long panels stay up in the flip book: setTiming([{ si, pi, seconds }]) in one save and one undo step.
+       seconds null (or 0) gives the panel back to the Speed slider. Returns how many panels changed. */
+    setTiming(list, label) {
+      if (!Array.isArray(list)) return 0;
+      let n = 0;
+      list.forEach((t) => {
+        const p = t && store.scenes[Number(t.si)] && store.scenes[Number(t.si)].panels[Number(t.pi)];
+        if (!p) return;
+        const sec = Number(t.seconds);
+        if (sec > 0 && isFinite(sec)) p.seconds = Math.round(Math.min(60, Math.max(0.04, sec)) * 100) / 100;
+        else delete p.seconds;
+        n++;
+      });
+      if (n) {
+        save(label || "panel timing");
+        if (active && active.isLive()) active.redraw();
+      }
+      return n;
+    },
+    timing: () => store.scenes.map((s) => s.panels.map((p) => (Number(p.seconds) > 0 ? Number(p.seconds) : null))),
   };
   /* An undo, redo or reload of the shared state redraws the open storyboard. */
   if (part) part.on((d, label) => /^(Undo|Redo|Load)/.test(String(label)) && active && active.isLive() && active.redraw());

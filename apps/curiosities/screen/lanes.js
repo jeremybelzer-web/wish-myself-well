@@ -523,7 +523,7 @@
           const picked = (sel && sel.endsWith("@" + ln.lk)) || (area && i >= area.i0 && i <= area.i1);
           const ticks = scaleTicks(ln.cur);
           return `<div class="sl-head${ln.group ? " sl-in-group" : ""}${picked ? " on" : ""}${ticks ? " has-ticks" : ""}" style="height:${lh}px" data-i="${i}">
-            <div class="sl-head-top">${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}<button type="button" class="sl-win" data-open-win="${esc(ln.cur)}" title="Open ${esc(S().label(ln.cur))}'s own window: every knob and slider it has" aria-label="Open ${esc(S().label(ln.cur))}'s window">⧉</button></div>
+            <div class="sl-head-top">${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}<button type="button" class="sl-win" data-open-win="${esc(ln.cur)}" title="Fine-tune ${esc(S().label(ln.cur))}: every setting inside it, or say what you want" aria-label="Fine-tune ${esc(S().label(ln.cur))}">⧉</button></div>
             <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(st.lanes[ln.lk])][2])} Click to change.">${MODES[modeOf(st.lanes[ln.lk])][1]}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
             ${ticks}
           </div>`;

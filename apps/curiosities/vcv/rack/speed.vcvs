@@ -1,0 +1,67 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "SPEED & TIMING\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 10, CC 49 to 64\n   1 Clip speed\n   2 Reverse and replay\n   3 Freeze frame\n   4 Jump cuts\n   5 Cutting to the beat\n   6 Pace across the scene\n   7 Edit template\n   8 Something new every\n   9 Slow motion quality\n  10 suite: Viral edit\n  11 suite: Music video\n  12 suite: Trailer\n  13 pair: When the music is featured, the cuts find the beat\n  14 pair: When jump cuts go rhythmic, a joke builds\n  15 pair: When seconds are left on the clock, the cutting gets fast\n  16 pairs: Music leads the edit"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}

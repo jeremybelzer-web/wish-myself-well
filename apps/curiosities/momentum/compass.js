@@ -9,7 +9,9 @@
    - point(reading, profiles, opts) -> {
        now:      { family, seconds, limit, left }   who holds attention, for how long, and seconds left
                                                     before the usual stretch in your films runs out
-       options:  [{ family, score, reasons: [text], cue, curiosity, note }]  best first (the needle)
+       options:  [{ family, score, reasons: [text], cue, how, curiosity, note }]  best first (the needle);
+                 how: { n, cue, share, quiet } is how measured films make this exact move (rates.howItMoves),
+                 and when present its cue is the option's cue
        cue:      the kind of cue your films use that yours uses least
        quiet:    true when your films use more quiet cues (a stop, a silence) than yours
        basis:    "measured" when any profile has family-to-family counts from a traced film, else "shares"
@@ -91,7 +93,13 @@
         if (lastSeen[f.id] == null) reasons.push("It has not held attention yet.");
         else if (rested > 0.5) reasons.push(`It last held attention ${Math.round(endT - lastSeen[f.id])} seconds ago.`);
         const top = curs[0];
-        return { family: f.id, label: f.label, score: round(score, 3), reasons, cue: top ? top.cue : f.cue, curiosity: top ? top.id : null, note: top || null, parts: { follow: round(follow, 2), missing: round(missing, 2), rested: round(rested, 2), push: round(push, 2) } };
+        /* The cue measured films use for this very move, when they have one. */
+        const how = run && R().howItMoves ? R().howItMoves(list, run.family, f.id) : null;
+        if (how) {
+          const cl = (M().CUES.find((c) => c.id === how.cue) || { label: how.cue }).label.toLowerCase();
+          reasons.push(`Your films make this move most often on a ${cl} (${Math.round(how.share * 100)}% of ${how.n} time${how.n === 1 ? "" : "s"})${how.quiet >= 0.3 ? ", often when something stops" : ""}.`);
+        }
+        return { family: f.id, label: f.label, score: round(score, 3), reasons, how, cue: how ? how.cue : top ? top.cue : f.cue, curiosity: top ? top.id : null, note: top || null, parts: { follow: round(follow, 2), missing: round(missing, 2), rested: round(rested, 2), push: round(push, 2) } };
       })
       .filter(Boolean)
       .sort((a, b) => b.score - a.score);
