@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "MUSIC & SOUND\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 8, CC 33 to 48\n   1 Score\n   2 Sound density\n   3 Sound against the cut\n   4 Music\n   5 No music\n   6 Sound around the scene\n   7 suite: Needle drop\n   8 suite: Ironic counterpoint\n   9 suite: Radio in the room\n  10 suite: Score swell\n  11 suite: Sudden silence\n  12 suite: Bare scene\n  13 suite: Suspense drone\n  14 suite: Montage song\n  15 suite: Returning theme\n  16 suite: Heightened sound\nCV-CC 2: MIDI channel 8, CC 49 to 60\n   1 pair: When the music is cut dead, a big line lands\n   2 pair: When the music drops out, a reveal follows\n   3 pair: When a famous song starts, time slows\n   4 pair: When the tempo rises, the cuts speed up\n   5 pair: When the music turns warm, faces soften\n   6 pair: When the music fights the scene, the violence gets bigger\n   7 pair: When there is no music, the frame gets closer\n   8 pair: When music plays in the room, someone moves to it\n   9 pair: When a theme returns, the character it belongs to appears\n  10 pair: When the music builds to its peak, it cuts out\n  11 pairs: Music steers the edit\n  12 pairs: Silence as a weapon"
+    "text": "MUSIC & SOUND\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 8, CC 81 to 96\n   1 Score\n   2 Sound density\n   3 Sound against the cut\n   4 Music\n   5 No music\n   6 Sound around the scene\n   7 suite: Needle drop\n   8 suite: Ironic counterpoint\n   9 suite: Radio in the room\n  10 suite: Score swell\n  11 suite: Sudden silence\n  12 suite: Bare scene\n  13 suite: Suspense drone\n  14 suite: Montage song\n  15 suite: Returning theme\n  16 suite: Heightened sound\nCV-CC 2: MIDI channel 8, CC 97 to 108\n   1 pair: When the music is cut dead, a big line lands\n   2 pair: When the music drops out, a reveal follows\n   3 pair: When a famous song starts, time slows\n   4 pair: When the tempo rises, the cuts speed up\n   5 pair: When the music turns warm, faces soften\n   6 pair: When the music fights the scene, the violence gets bigger\n   7 pair: When there is no music, the frame gets closer\n   8 pair: When music plays in the room, someone moves to it\n   9 pair: When a theme returns, the character it belongs to appears\n  10 pair: When the music builds to its peak, it cuts out\n  11 pairs: Music steers the edit\n  12 pairs: Silence as a weapon"
    },
    "pos": [
     0,
@@ -27,22 +27,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
     ],
     "midi": {
      "channel": 7
@@ -59,18 +59,18 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
      -1,
      -1,
      -1,

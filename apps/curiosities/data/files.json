@@ -17,5 +17,6 @@
   "db-model-scenes.js",
   "db-finish.js",
   "db-momentum.js",
-  "db-editing.js"
+  "db-editing.js",
+  "db-maya.js"
 ]

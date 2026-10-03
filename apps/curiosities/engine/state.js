@@ -21,7 +21,7 @@
 
    THE REWRITE, in a fixed order (rewrite(state)):
      1. source: each cell starts as your value (or the curiosity's starting value);
-     2. lanes: automation lanes replace the cells they cover (holding or ramping between points);
+     2. lanes: automation lanes replace the cells they cover (ramping, smoothing or holding between points);
      3. links: every change down a column fires the links it leads; a follower that changes fires the links
         it leads in turn (a chain reaction), up to HOPS links deep, never the same link twice into one row;
      4. edits: your hand edits are laid on last, so a rule can never undo them.
@@ -41,6 +41,10 @@
   const CHANGE = ["any", "rises", "drops"];
   const KINDS = ["master", "camera", "character", "look", "sound", "other"];
 
+  /* How a lane moves between its points: ramp (a straight line), smooth (eases out of one point and into the
+     next, like a spline curve in Maya's Graph Editor), or hold (stays on a point until the next). */
+  const MODES = ["ramp", "smooth", "hold"];
+  const ease = (t) => t * t * (3 - 2 * t);
   /* ---------- small helpers ---------- */
   const isObj = (x) => x != null && typeof x === "object" && !Array.isArray(x);
   const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
@@ -157,7 +161,7 @@
             if (v != null) points[r] = v;
           });
         if (!Object.keys(points).length) return;
-        st.lanes[k] = { on: l.on !== false, mode: l.mode === "hold" ? "hold" : "ramp", points };
+        st.lanes[k] = { on: l.on !== false, mode: MODES.includes(l.mode) ? l.mode : "ramp", points };
       });
     (Array.isArray(raw.suites) ? raw.suites : []).slice(0, LIMIT.suites).forEach((x) => {
       if (!isObj(x) || !idOk(x.id) || st.suites.some((y) => y.id === x.id)) return;
@@ -269,7 +273,8 @@
       else {
         const pa = S.pos(cur, a.v);
         const pb = S.pos(cur, b.v);
-        out[i] = pa == null || pb == null ? a.v : S.at(cur, pa + ((pb - pa) * (i - a.i)) / (b.i - a.i));
+        const t = (i - a.i) / (b.i - a.i);
+        out[i] = pa == null || pb == null ? a.v : S.at(cur, pa + (pb - pa) * (lane.mode === "smooth" ? ease(t) : t));
       }
     }
     return out;
@@ -653,7 +658,7 @@
       need(t.curiosities.includes(m.curiosity), "That track does not have it.");
       dropCuriosity(st, t, m.curiosity);
     },
-    /* Automation lanes: a point is the value at one row; between points the lane ramps (or holds). */
+    /* Automation lanes: a point is the value at one row; between points the lane ramps, smooths or holds. */
     setPoint(st, m) {
       const k = cell(st, m);
       const [r, t, c] = k.split("|");
@@ -674,7 +679,7 @@
       const lane = st.lanes[laneKey(t.id, m.curiosity)];
       need(lane, "That lane has no points yet.");
       if (m.mode != null) {
-        need(m.mode === "ramp" || m.mode === "hold", "A lane ramps or holds.");
+        need(MODES.includes(m.mode), "A lane ramps, smooths or holds.");
         lane.mode = m.mode;
       }
       if (m.on != null) lane.on = m.on === true;
@@ -890,14 +895,30 @@
       }
     });
   }
+  /* Every undo step has an id. When the shared store is on the page, each step is also put on the app-wide
+     undo list (Ctrl+Z on the page, History), which undoes it here only while it is still this film's newest
+     step: one undo for everything (Jeremy's words #12), and the engine's own Undo stays in step with it. */
+  let stepId = 0;
+  const peek = (list) => (list.length ? list[list.length - 1].id : null);
+  function share(id, label) {
+    const St = root.CurioStore;
+    if (!St || typeof St.external !== "function") return;
+    St.external("engine", {
+      label: "Engine: " + label,
+      undo: () => peek(undoList) === id && undo(),
+      redo: () => peek(redoList) === id && redo(),
+    });
+  }
   function commit(next, label) {
-    undoList.push({ label, text: canon(state) });
+    const id = ++stepId;
+    undoList.push({ id, label, text: canon(state) });
     if (undoList.length > LIMIT.undo) undoList.shift();
     redoList = [];
     state = next;
     result = rewrite(state);
     save();
     emit(label);
+    share(id, label);
   }
   function send(m) {
     let next;
@@ -926,7 +947,7 @@
   function undo() {
     const step = undoList.pop();
     if (!step) return false;
-    redoList.push({ label: step.label, text: canon(state) });
+    redoList.push({ id: step.id, label: step.label, text: canon(state) });
     state = normalize(JSON.parse(step.text));
     result = rewrite(state);
     save();
@@ -936,7 +957,7 @@
   function redo() {
     const step = redoList.pop();
     if (!step) return false;
-    undoList.push({ label: step.label, text: canon(state) });
+    undoList.push({ id: step.id, label: step.label, text: canon(state) });
     state = normalize(JSON.parse(step.text));
     result = rewrite(state);
     save();

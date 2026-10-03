@@ -12,7 +12,7 @@ becomes a way to direct a scene.
 
 It works with VCV Rack's own free modules and needs no plugin:
 
-- **One jack per item:** 869 jacks (410 curiosities, 208 suites, 199 proximities, 52 proximity suites). Each
+- **One jack per item:** 916 jacks (430 curiosities, 218 suites, 212 proximities, 56 proximity suites). Each
   one is a MIDI channel and a CC number, taken from the database by `vcv/tools/make-vcv.js`.
 - **Ready-made Rack files:** `vcv/rack/<workspace>.vcvs`. Each has CV-CC modules already set, a Notes module that
   names every jack, and an LFO already patched in.
