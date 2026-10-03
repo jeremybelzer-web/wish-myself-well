@@ -672,3 +672,49 @@
   .m3-controls label, .m3-controls select { width: 100%; max-width: 100%; }
   .m3-rib { height: 36px; }
 }
+
+/* tap.js: the "Watch and tap" tab. Pads like the Pads tab, a cue row, a stopwatch and a live ribbon. */
+.mtp { display: grid; gap: 14px; min-width: 0; }
+.mtp-sec { display: grid; gap: 8px; min-width: 0; }
+.mtp-sec h3 { margin: 4px 0 0; font-size: 16px; }
+.mtp button { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); }
+.mtp button[disabled] { opacity: 0.55; cursor: default; }
+.mtp button:focus-visible { outline: 3px solid var(--mo-bar); outline-offset: 2px; }
+.mtp-clockrow { align-items: center; }
+.mtp-clock { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 4.5ch; }
+.mtp-file input { max-width: 220px; font-size: 13px; }
+.mtp-check > span { display: block; max-width: 46ch; }
+.mtp-check input { vertical-align: middle; margin: 0 4px 0 0; }
+.mo-controls .mtp-avg[hidden] { display: none; }
+.mtp-video { width: 100%; max-width: 640px; max-height: 50vh; background: #000; }
+.mtp-cuerow { display: flex; flex-wrap: wrap; gap: 6px; }
+.mtp .mtp-cue { border-width: 1px; border-radius: 14px; padding: 3px 10px; }
+.mtp .mtp-cue small { color: var(--mo-ink-2); margin-left: 2px; }
+.mtp .mtp-cue[aria-pressed="true"] { background: var(--mo-ink); color: var(--paper, #fff); font-weight: 700; }
+.mtp .mtp-cue[aria-pressed="true"] small { color: inherit; }
+.mtp .mtp-stop[aria-pressed="true"] { background: var(--mo-crit); border-color: var(--mo-crit); }
+.mtp-pads { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
+.mtp .mtp-pad { display: grid; gap: 3px; justify-items: start; align-content: start; text-align: left; min-height: 84px; padding: 8px; border: 3px solid var(--ink); border-left: 10px solid var(--mtp-c, #a8a39a); background: var(--mo-surface); touch-action: manipulation; transition: transform 0.06s; min-width: 0; }
+.mtp .mtp-pad:hover { background: #fff; }
+.mtp .mtp-pad:active, .mtp .mtp-pad.mtp-hit { transform: scale(0.97); background: var(--mo-grid); }
+.mtp-letter { display: inline-grid; place-items: center; min-width: 30px; height: 30px; padding: 0 5px; border-radius: 6px; font-size: 16px; font-weight: 800; border: 1px solid rgba(28, 23, 18, 0.3); }
+.mtp-name { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.mtp-key { font-size: 12px; color: var(--mo-ink-2); }
+.mtp-now { margin: 0; font-size: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.mtp-chip { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.mtp-chip .mtp-letter { min-width: 24px; height: 22px; font-size: 12px; }
+.mtp-rib { position: relative; height: 40px; border: 2px solid var(--ink); background: var(--mo-grid); overflow: hidden; }
+.mtp-rib-empty { display: grid; place-items: center; font-size: 13px; color: var(--mo-ink-2); padding: 0 8px; text-align: center; }
+.mtp-cell { position: absolute; top: 0; bottom: 0; display: grid; place-items: center; font-size: 12px; font-weight: 800; border-right: 1px solid var(--mo-surface); overflow: hidden; }
+.mtp-cell.mtp-none { background: transparent; }
+.mtp-head { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--mo-ink); }
+.mtp-ticks { display: flex; justify-content: space-between; font-size: 11px; color: var(--mo-muted); font-variant-numeric: tabular-nums; }
+.mtp-taps { margin: 0; padding-left: 1.4em; font-size: 13px; display: grid; gap: 3px; }
+.mtp-taps li { display: list-item; }
+.mtp-time { font-variant-numeric: tabular-nums; color: var(--mo-ink-2); }
+@media (max-width: 520px) {
+  .mtp-pads { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .mtp .mtp-pad { min-height: 72px; }
+  .mtp-file input { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .mtp .mtp-pad { transition: none; } }
