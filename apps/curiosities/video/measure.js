@@ -888,6 +888,7 @@
       adj.overlay = { t: r3((p.overlayFrom || 0) + (p.mode === "stretch" ? ((t / Math.max(0.001, p.duration)) * room) : t % room)), amount: on.overlay };
     }
     if (p.framing) adj.frame = root.CurioFraming.at(p, t);
+    if (on.shutter && root.CurioShutter) adj.shutter = root.CurioShutter.at(p, t); /* video/shutter.js: motion feel */
     if (on.wardrobe || on.hair || on.figure || on.set || on.angle) adj.parts = partsAt(p, ta, s);
     if ((on.palette || on.grain || on.shape) && root.CurioLooks) adj.looks = root.CurioLooks.at(p, ta, s); /* video/looks.js */
     if (on.dialogue && p.lines.length) {
@@ -1254,6 +1255,7 @@
       const gap = (x) => r3(mean(x.map((v, i) => Math.abs(v - want[i]))));
       return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
     }
+    if (feat === "shutter") return root.CurioShutter ? root.CurioShutter.score(p, before, after) : { feature: feat, note: "needs video/shutter.js" };
     if (feat === "rhythm") return root.CurioRhythm ? root.CurioRhythm.score(p, before, after) : { feature: feat, note: "needs video/rhythm.js" };
     if (/^lk:/.test(feat)) return root.CurioLooks ? root.CurioLooks.score(p, feat, before, after) : { feature: feat, note: "needs video/looks.js" };
     if (feat === "cuts") return { feature: "cuts", inspiration: A.cuts.length, before: before.cuts.length, after: after.cuts.length };

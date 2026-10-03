@@ -192,7 +192,7 @@
         const ck = checks && checks[g.id];
         const missing = g.needs && !(A[g.needs] && B[g.needs]);
         return `<div class="vd-apply-row${amt && !missing ? "" : " off"}">
-          <label><input type="checkbox" data-on="${g.id}" ${amt ? "checked" : ""} ${missing ? "disabled" : ""}> <strong>${esc(g.label)}</strong>${missing ? ` <small class="vd-k">${g.needs === "looks" ? "bring both clips in again to measure this" : "needs AI cut-outs of both clips"}</small>` : ""}</label>
+          <label><input type="checkbox" data-on="${g.id}" ${amt ? "checked" : ""} ${missing ? "disabled" : ""}> <strong>${esc(g.label)}</strong>${missing ? ` <small class="vd-k">${g.needs === "looks" || g.needs === "shutter" ? "bring both clips in again to measure this" : "needs AI cut-outs of both clips"}</small>` : ""}</label>
           <input type="range" min="0" max="100" step="5" value="${Math.round(amt * 100)}" data-amt="${g.id}" aria-label="How much of ${esc(g.label)}" ${amt ? "" : "disabled"}><output>${Math.round(amt * 100)}%</output>
           <span class="vd-k">${esc(g.plain)}</span>${g.id === "framing" && amt && !missing ? `<label class="vd-k"><input type="checkbox" data-tilt ${prefs.tilt ? "checked" : ""}> Dutch tilt too (roll the frame like the inspiration's horizon, when it has straight lines to measure)</label>` : ""}
           <span class="vd-check">${ck ? checkText(ck) : ""}</span>
@@ -230,6 +230,7 @@
     if (ck.feature === "cuts") return `cuts: inspiration ${ck.inspiration}, yours ${ck.before} → ${ck.after}`;
     if (ck.feature === "speech") return `talk ${Math.round(ck.after.talkShare * 100)}% of the time (inspiration ${Math.round(ck.inspiration.talkShare * 100)}%) · lines at ${ck.planned.sylPerSec.toFixed(1)} syllables a second (inspiration ${ck.inspiration.sylPerSec.toFixed(1)})`;
     if (ck.note) return esc(ck.note);
+    if (ck.feature === "shutter") return `<b class="${ck.gapAfter < ck.gapBefore * 0.7 ? "good" : "flat"}">${esc(ck.text)}</b>`;
     /* looks: how far from the inspiration's look, before and after (0 = the same) */
     if (/^lk:/.test(ck.feature)) return `<b class="${ck.gapAfter < ck.gapBefore * 0.7 ? "good" : "flat"}">off by ${ck.gapBefore.toFixed(3)} → ${ck.gapAfter.toFixed(3)}</b>`;
     const good = ck.corrAfter > ck.corrBefore + 0.1;

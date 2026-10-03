@@ -267,6 +267,20 @@ const ok = (cond, text) => {
     const rc = await page.evaluate(() => window.CurioVideoUI.state().checks.rhythm);
     ok(rc.corrAfter > rc.corrBefore, "your clip now changes on the inspiration's beat: " + JSON.stringify(rc));
   }
+  /* Motion feel: measured when a clip comes in (smear and picture rate), off until turned on; its check runs. */
+  {
+    const sh = await page.evaluate(() => [window.CurioVideoUI.state().a.shutter, window.CurioVideoUI.state().b.shutter].map((s) => s && { rate: s.rate, shutter: s.shutter, n: s.moments.length }));
+    ok(sh[0] && sh[1] && sh[0].n >= 1, "both clips' motion feel is measured: " + JSON.stringify(sh));
+    ok((await page.locator('[data-on="shutter"]:not(:checked)').count()) === 1, "Motion feel is there, off");
+    await page.uncheck('[data-on="rhythm"]');
+    await page.uncheck('[data-on="music"]');
+    await page.check('[data-on="shutter"]');
+    await page.click('[data-act="check"]');
+    await page.waitForFunction(() => window.CurioVideoUI.state().checks && window.CurioVideoUI.state().checks.shutter, null, { timeout: 120000 });
+    const sc = await page.evaluate(() => window.CurioVideoUI.state().checks.shutter);
+    ok(sc.feature === "shutter" && (sc.text || sc.note), "the motion feel check reports: " + JSON.stringify(sc));
+    await page.uncheck('[data-on="shutter"]');
+  }
 
   /* Everything, played and saved. */
   await page.click('[data-all="1"]');

@@ -170,6 +170,11 @@
       if (opts.onProgress) opts.onProgress(0.9, "Looking at its colors, grain and frame");
       d.looks = await window.CurioLooks.scan(clip, { onProgress: (p) => opts.onProgress && opts.onProgress(0.9 + p * 0.02, "Looking at its colors, grain and frame") });
     }
+    /* How movement looks: smear and picture rate (video/shutter.js), unless turned off. */
+    if (opts.shutter !== false && window.CurioShutter) {
+      if (opts.onProgress) opts.onProgress(0.915, "Looking at how it moves");
+      d.shutter = await window.CurioShutter.scan(clip);
+    }
     /* The elements (AI cut-outs of the people, their hair, faces and clothes, and the set), unless turned off. */
     if (opts.elements !== false && window.CurioMask) {
       if (opts.onProgress) opts.onProgress(0.92, "Finding the people and their clothes (AI)");
@@ -290,6 +295,8 @@
      subtitle. */
   function drawApplied(ctx, video, adj, W, H, opts) {
     opts = opts || {};
+    const SH = adj.shutter && window.CurioShutter; /* motion feel (video/shutter.js): a held picture is drawn again */
+    if (SH && SH.held(ctx, adj.shutter, W, H)) return;
     /* Shot framing (framing.js): a virtual camera's crop of the frame; the other camera changes work inside it. */
     const F = adj.frame && window.CurioFraming ? window.CurioFraming.rect(adj.frame, video.videoWidth, video.videoHeight) : null;
     const vw = F ? F.w : video.videoWidth,
@@ -357,6 +364,7 @@
       ctx.drawImage(c, 0, 0);
     }
     if (LK) LK.draw(ctx, W, H, adj.looks, "finish", adj.t);
+    if (SH) SH.draw(ctx, W, H, adj.shutter); /* smeared along the movement */
     if (adj.rhythm && window.CurioRhythm) window.CurioRhythm.draw(ctx, W, H, adj.rhythm); /* a flash on the accents */
     if (adj.line && opts.captions !== false) {
       const fs = Math.max(12, Math.round(H / 16));
@@ -369,6 +377,7 @@
       ctx.strokeText(adj.line.text, W / 2, H - fs * 0.6, W * 0.94);
       ctx.fillText(adj.line.text, W / 2, H - fs * 0.6, W * 0.94);
     }
+    if (SH) SH.keep(ctx, adj.shutter, W, H);
   }
 
   /* The applied clip's sound, worked out offline: the clip's sound taken in the time map's order, turned up and
@@ -440,6 +449,7 @@
     if (looks.length > 1) after.elements = V().elementSeries(looks);
     if (after.elements && window.CurioFraming) after.elements.main = window.CurioFraming.series(looks, H / W);
     if (lk.length) after.looks = LK.series(lk);
+    if (plan.on.shutter && window.CurioShutter) after.shutter = await window.CurioShutter.scan(clip, { plan }); /* motion feel, as drawn */
     if (opts.onProgress) opts.onProgress(1, "Done");
     return { after };
   }

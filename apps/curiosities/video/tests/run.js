@@ -779,6 +779,93 @@ check("rhythm on another clip: jump cuts and punch-ins on the beats, a flash on 
   assert(sc.corrAfter > 0.3 && sc.corrAfter > sc.corrBefore + 0.2, JSON.stringify(sc));
 });
 
+/* ---------- motion feel (video/shutter.js): smear, picture rate, and putting them on another clip ---------- */
+const SH = w.CurioShutter;
+/* A checkered square on a dark background at x (pixels), 128 x 72 gray, smeared along x by L pixels. */
+function square(x, L) {
+  const W = 128,
+    H = 72,
+    g = new Float32Array(W * H);
+  const n = Math.max(1, Math.ceil(L * 4));
+  for (let y = 0; y < H; y++)
+    for (let xx = 0; xx < W; xx++) {
+      let s = 0;
+      for (let k = 0; k < n; k++) {
+        const u = xx - x + (n > 1 ? (k / (n - 1) - 0.5) * L : 0),
+          v = y - 20;
+        const inside = u >= 0 && u < 32 && v >= 0 && v < 32;
+        s += inside ? ((Math.floor(u / 4) + Math.floor(v / 4)) % 2 ? 0.9 : 0.55) : 0.1;
+      }
+      g[y * W + xx] = s / n;
+    }
+  return g;
+}
+/* Frames 1/60 s apart of the square moving `per` pixels a picture at `rate` pictures a second, smeared L. */
+function squareBurst(per, rate, L) {
+  const fr = [];
+  for (let i = 0; i < 48; i++) fr.push({ t: i / 60, g: square(20 + Math.floor((i / 60) * rate) * per, L) });
+  return fr;
+}
+const toRGBA = (g) => {
+  const d = new Uint8ClampedArray(g.length * 4);
+  for (let i = 0; i < g.length; i++) d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = Math.round(g[i] * 255), (d[i * 4 + 3] = 255);
+  return d;
+};
+const fromRGBA = (d) => Float32Array.from({ length: d.length / 4 }, (_, i) => d[i * 4] / 255);
+check("motion feel: a smeared moving square measures as smeary, a crisp one as crisp", () => {
+  const crisp = SH.burst(squareBurst(6, 30, 0), 128, 72),
+    half = SH.burst(squareBurst(6, 30, 3), 128, 72),
+    full = SH.burst(squareBurst(6, 30, 6), 128, 72);
+  assert(crisp.shutter != null && crisp.shutter < 60, "crisp: " + JSON.stringify(crisp));
+  assert(full.shutter > 180 && full.shutter > half.shutter && half.shutter > crisp.shutter + 40, "smear grows: " + [crisp.shutter, half.shutter, full.shutter]);
+  assert(Math.abs(crisp.v * 128 - 6) < 1.5, "it moves 6 pixels a picture: " + crisp.v * 128);
+  assert(Math.abs(crisp.rate - 30) < 2, "30 pictures a second: " + crisp.rate);
+});
+check("motion feel: a stepped sequence measures as choppy at its own rate", () => {
+  [12, 8].forEach((rate) => {
+    const m = SH.burst(squareBurst(4, rate, 0), 128, 72);
+    assert(Math.abs(m.rate - rate) < 1.5, rate + " pictures a second measured as " + m.rate);
+  });
+  const sum = SH.summary([SH.burst(squareBurst(4, 12, 0), 128, 72), SH.burst(squareBurst(4, 12, 0), 128, 72), null]);
+  assert(sum.choppy > 0.6 && Math.abs(sum.rate - 12) < 1.5, JSON.stringify(sum));
+  const still = SH.burst(squareBurst(0, 30, 0), 128, 72);
+  assert(still.rate == null && still.shutter == null, "nothing moves, nothing measured: " + JSON.stringify(still));
+});
+check("motion feel applied: smearing a crisp moving square makes it measure smeary", () => {
+  const fr = squareBurst(6, 30, 0);
+  /* smear each new picture along its movement since the last (360 degrees: k = 1) */
+  const out = fr.map((f, i) => {
+    const prev = fr[Math.max(0, i - 2 - (i % 2))].g;
+    const F = SH.flow(prev, f.g, 128, 72);
+    const d = toRGBA(f.g);
+    if (i >= 2) SH.smear(d, 128, 72, F, 1);
+    return { t: f.t, g: fromRGBA(d) };
+  });
+  const before = SH.burst(fr, 128, 72),
+    after = SH.burst(out.slice(2), 128, 72);
+  assert(after.shutter > before.shutter + 120, "smearier: " + before.shutter + " -> " + after.shutter);
+  /* amount 0 (k = 0) changes nothing */
+  const d = toRGBA(fr[10].g),
+    copy = new Uint8ClampedArray(d);
+  SH.smear(d, 128, 72, SH.flow(fr[8].g, fr[10].g, 128, 72), 0);
+  assert(d.every((v, i) => v === copy[i]), "k = 0 leaves the picture alone");
+});
+check("motion feel in the plan: off by default, amount 0 changes nothing, choppy holds to the inspiration's rate", () => {
+  assert(V.GROUPS.some((g) => g.id === "shutter" && g.off && g.needs === "shutter"), "the group is there, off");
+  const A = Object.assign({}, insp, { shutter: { shutter: 300, rate: 8, choppy: 1 } }),
+    B = Object.assign({}, target, { shutter: { shutter: 20, rate: 30, choppy: 0 } });
+  assert(!V.at(V.plan(A, B, {}), 1).shutter, "off by default");
+  assert(!V.at(V.plan(A, B, { on: { shutter: 0 } }), 1).shutter, "amount 0: nothing");
+  const s = V.at(V.plan(A, B, { on: { shutter: 1 } }), 1).shutter;
+  assert(s.rate === 8 && s.angle === 280 && s.trails > 0, JSON.stringify(s));
+  const h = V.at(V.plan(A, B, { on: { shutter: 0.5 } }), 1).shutter;
+  assert(h.rate > 8 && h.rate < 24 && h.angle === 140, "half way: " + JSON.stringify(h));
+  /* the check: closer to the inspiration after */
+  const p = V.plan(A, B, { on: { shutter: 1 } });
+  const sc = V.score(p, "shutter", B, { times: [], shutter: { shutter: 260, rate: 8.2 } });
+  assert(sc.gapAfter < sc.gapBefore * 0.3 && /8 pictures/.test(sc.text), JSON.stringify(sc));
+});
+
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });
