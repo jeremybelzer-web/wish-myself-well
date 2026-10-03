@@ -44,8 +44,8 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 430 curiosities, 273 suites,
-435 proximities, 101 proximity suites and 7,833 sliders, across 32 workspaces, plus 8 model scenes.
+Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 481 curiosities, 306 suites,
+526 proximities, 117 proximity suites and 9,118 sliders, across 32 workspaces, plus 8 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -72,6 +72,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 430
 - [x] Editing curiosities from Final Cut Pro and CapCut: transitions, filters and adjustments, text and captions, speed and timing, the audio mix, layers and masks, the frame, CapCut's transition and effect families, and mood stickers that feed the emotion curiosities (Main layout thread, moved into data/db-editing.js)
 - [x] Character tab on the Screen: each character track has its own matrix lanes (18 axes, health, role); the 3D matrix opens over the Screen linked to the film, every edit a timeline node (draft PR #31)
 - [x] Every curiosity tied into the four levels: each is the cause or effect of at least one proximity and in at least one suite (data/db-ties.js: 223 proximities, 55 suites, 45 proximity suites)
+- [x] Comedy and emotion, deeper: 28 comedy curiosities (the button, the joke that falls flat, cartoon rules, cracking up, the record scratch ...) and 23 emotion curiosities (empathy, awe, shame, guilt, pride, jealousy, grief, betrayal, forgiveness, the feeling left when the film ends ...), each with its own window, phrases and live picture (data/db-heart.js)
 - [x] Momentum: attention meter, pie, timeline, cues, momentum notes, film rates, the Prism Compass, attention lanes on the engine and a performable meter (PRs #18, #20, #21); the meter beside the Screen's Player (draft PR, Momentum thread)
 - [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop. The review page is ready: https://claude.ai/artifact/MRmTHSusCBtFhkXgkBXoY8 (share it with Sharani from its Share menu)
 - [x] The three new workspaces (Music & sound, Editing & structure, Page & panel) show as tabs: Music under a new Sound group, Page under Look, Editing under Story (app thread). Jeremy can still say no.
@@ -112,7 +113,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 430
 - [ ] Logins and cloud sync, optional (Phase 3)
 - [ ] Desktop app (Phase 4)
 - [ ] Panel inside Maya, with curiosities driving the camera and keys (Phase 5)
-- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 1,239 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). Next: someone with VCV Rack opens the files and builds the plugin
+- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 1,430 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). Next: someone with VCV Rack opens the files and builds the plugin
 - [ ] Other tools: Unreal, Blender, Resolve (Phase 7)
 
 ## 6. Checks with people
