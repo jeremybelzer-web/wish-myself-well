@@ -180,6 +180,15 @@ const ok = (cond, text) => {
     ok((await page.locator("text=Elements (AI cut-outs)").count()) === 1, "element lanes show");
     await page.click('[data-act="ai-preview"]');
     ok(/Blue: clothes/.test(await page.textContent(".vd-note")), "Show what it found tints the cut-out");
+    /* Make a puppet: only with Maya's rig (CurioRig.fromCutout); a stand-in records what it is handed. */
+    const real = await page.evaluate(() => !!(window.CurioRig && window.CurioRig.fromCutout));
+    if (!real) await page.evaluate(() => (window.CurioRig = { fromCutout: (c, name) => (window.__puppet = { w: c.width, h: c.height, name }) }));
+    else await page.evaluate(() => { const f = window.CurioRig.fromCutout; window.CurioRig.fromCutout = (c, name) => ((window.__puppet = { w: c.width, h: c.height, name }), f(c, name)); });
+    await page.click('[data-act="ai-preview"]');
+    await page.click('[data-act="ai-puppet"]');
+    const pup = await page.evaluate(() => window.__puppet || null);
+    const said = await page.textContent(".vd-note");
+    ok((pup && pup.w > 0 && pup.h > 0) || /no people/.test(said), "Make a puppet hands the cut-out to the rig: " + JSON.stringify(pup) + " " + said);
   }
   ok((await page.locator(".vd-node").count()) >= 3, "nodes drawn where values change");
   await page.screenshot({ path: path.join(SHOTS, "video-lanes.png"), fullPage: false });

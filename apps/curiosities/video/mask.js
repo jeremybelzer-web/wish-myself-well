@@ -15,6 +15,7 @@
    - scan(clip, { box?, looks?, onProgress? }) -> Promise<elements>   the clip's elements over time (CurioVideo.
                                                  elementSeries), about 4 looks a second, 240 at most
    - applyParts(ctx, W, H, parts, { setVideo?, setBox?, cut? })  draws one frame's element changes on the canvas, in place
+   - cutoutCanvas(image, W, H) -> canvas         just the people, on a see-through background
    - preview(ctx, W, H)                          tints each element on the canvas (to see what the AI found) */
 (function () {
   const V = () => window.CurioVideo;
@@ -440,6 +441,19 @@
     }
     ctx.putImageData(img, 0, 0);
   }
+  /* Just the people of a frame, on a see-through background (for a puppet, a sticker, another scene). */
+  function cutoutCanvas(image, W, H) {
+    const c = mk(W, H),
+      x = c.getContext("2d", { willReadFrequently: true });
+    x.drawImage(image, 0, 0, W, H);
+    const k = cut(c);
+    if (!k) return null;
+    const a = softMask(k, [1, 2, 3, 4, 5], W, H);
+    const img = x.getImageData(0, 0, W, H);
+    for (let i = 0; i < a.length; i++) img.data[i * 4 + 3] = Math.round(255 * a[i]);
+    x.putImageData(img, 0, 0);
+    return c;
+  }
   const TINT = [null, [255, 60, 60], [60, 220, 90], [250, 220, 50], [60, 110, 255], [230, 80, 230]];
   function preview(ctx, W, H) {
     const k = cut(ctx.canvas);
@@ -472,5 +486,5 @@
       scan,
     });
 
-  window.CurioMask = { configure, load, ready, cut, scan, applyParts, keepSkin, preview, failed: () => failed, TINT };
+  window.CurioMask = { configure, load, ready, cut, scan, applyParts, keepSkin, cutoutCanvas, preview, failed: () => failed, TINT };
 })();

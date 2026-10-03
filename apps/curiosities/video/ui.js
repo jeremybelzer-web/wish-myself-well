@@ -100,6 +100,7 @@
         <label><input type="checkbox" data-ai-on ${prefs.ai ? "checked" : ""}> Do it automatically when a clip comes in</label>
         <label>Which AI <select data-ai-pick>${list.map((x) => `<option value="${esc(x.id)}" ${x.id === pick ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select></label>
         ${slot.b.clip && M.ready() ? `<button type="button" data-act="ai-preview" title="Tints what the AI found on the frame showing in your clip's box">Show what it found</button>` : ""}
+        ${slot.b.clip && M.ready() && window.CurioRig && window.CurioRig.fromCutout ? `<button type="button" data-act="ai-puppet" title="Cuts the people out of the frame showing in your clip's box and opens them as a rigged flat puppet">Make a puppet</button>` : ""}
       </div>
       ${
         fal
@@ -403,6 +404,7 @@
         return say("Removed your fal.ai key from this browser.");
       }
       if (act === "ai-preview") return aiPreview();
+      if (act === "ai-puppet") return aiPuppet();
       if (t.dataset.show) {
         show = t.dataset.show;
         return draw();
@@ -517,6 +519,17 @@
     window.CurioMask.preview(x, cv2.width, cv2.height);
     saved = { frame: x.getImageData(0, 0, cv2.width, cv2.height) };
     result = true;
+  }
+  /* The people in the frame showing now, cut out, opened as a rigged flat puppet (Maya's rig, CurioRig). */
+  function aiPuppet() {
+    const v = page && page.querySelector('.vd-clips video[data-slot="b"]');
+    if (!v || !v.videoWidth || !window.CurioMask.ready() || !(window.CurioRig && window.CurioRig.fromCutout)) return;
+    const W = Math.min(640, v.videoWidth),
+      H = Math.round((W * v.videoHeight) / v.videoWidth);
+    const c = window.CurioMask.cutoutCanvas(v, W, H);
+    if (!c) return say("The AI found no people in this frame.");
+    window.CurioRig.fromCutout(c, (slot.b.clip && slot.b.clip.name) || "Cut-out");
+    say("Opened the people in this frame as a puppet.");
   }
   function open() {
     if (!page) {
