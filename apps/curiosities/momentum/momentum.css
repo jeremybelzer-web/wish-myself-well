@@ -894,3 +894,34 @@
 @media (max-width: 600px) {
   .mo-ticks span:nth-child(even) { display: none; }
 }
+
+/* autopilot.js: the Autopilot tab (proposed automation patches, the before and after strips). */
+.ap-root { display: grid; gap: 14px; min-width: 0; }
+.ap-root > p { max-width: 70ch; font-size: 14px; }
+.ap-root section { display: grid; gap: 8px; min-width: 0; }
+.ap-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ap-card { border: 2px solid var(--ink); background: var(--mo-surface); padding: 10px 12px; display: grid; gap: 6px; min-width: 0; font-size: 14px; }
+.ap-card.ap-on { border-style: dashed; }
+.ap-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; }
+.ap-move { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ap-move .mo-fam { display: inline-flex; gap: 5px; align-items: center; }
+.ap-letter { font-size: 12px; }
+.ap-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.ap-tag { font-size: 12px; font-weight: 600; border: 1px solid var(--mo-ink); padding: 1px 6px; border-radius: 8px; white-space: nowrap; color: #006300; }
+.ap-text, .ap-why { margin: 0; overflow-wrap: anywhere; }
+.ap-why { font-size: 13px; color: var(--mo-ink-2); }
+.ap-card .mo-controls select { max-width: min(300px, 70vw); }
+.ap-root button[disabled] { opacity: 0.55; cursor: default; }
+.ap-preview { border-top: 1px solid var(--mo-grid); padding-top: 8px; }
+.ap-strip-row { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 8px; align-items: center; min-width: 0; }
+.ap-strip-name { font-size: 13px; font-weight: 600; }
+.ap-strip { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; min-width: 0; }
+.ap-cell { height: 30px; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; line-height: 1.05; overflow: hidden; border-radius: 2px; }
+.ap-cell b { font-size: 10px; }
+.ap-none { background: var(--mo-grid); }
+.ap-made { margin: 0; padding-left: 18px; font-size: 14px; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .ap-strip-row { grid-template-columns: minmax(0, 1fr); gap: 3px; }
+  .ap-cell { height: 26px; font-size: 10px; }
+}
+.ap-root .mo-status { display: inline; padding-left: 0; margin: 0; }
