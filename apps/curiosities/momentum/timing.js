@@ -16,9 +16,11 @@
       second more, so the laugh lands.
    6. Every hold stays between 0.5 and 8 seconds, rounded to a tenth of a second.
 
-   Nothing in storyboard.js is changed. The storyboard has a save and undo path, but its panels keep no time of
-   their own, so the timing cannot be used in the storyboard yet: it can be downloaded (JSON or CSV), and the
-   README asks the storyboard's owner for a per-panel duration field.
+   Nothing in storyboard.js is changed. "Use this timing in the storyboard" writes each panel's time into the
+   storyboard (panels[i].seconds) through its own CuriosityStoryboard.setTiming(list, label), one save and one
+   undo step, and the flip book then holds each panel that long; "Clear the timing" gives the scene's panels back
+   to the flip book's Speed slider. The storyboard's current times (CuriosityStoryboard.timing()) show beside the
+   suggestion. With an older storyboard that has no setTiming, the timing can still be downloaded (JSON or CSV).
 
    window.CurioPanelTiming (the core works in Node with no page)
    - panelTiming(reading, { base, limit, panels, payoffs: [panel index], min, max }) -> { panels: [{ panel,
@@ -29,6 +31,7 @@
        CurioComedyTiming when it is loaded
    - payoffsOf(beats, base) -> the panel indexes of comedy payoffs
    - toJson(result, { scene }) and toCsv(result): the downloads
+   - timingList(result, si) -> [{ si, pi, seconds }] for CuriosityStoryboard.setTiming; clearList(n, si) clears
    - RULES */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
@@ -175,7 +178,11 @@
     return [head.join(",")].concat(res.panels.map((p) => [p.panel + 1, p.hold, famLabel(p.family), p.label, p.kind, p.payoff ? "yes" : "", p.why].map(q).join(","))).join("\n") + "\n";
   }
 
-  const api = { panelTiming, forScene, payoffsOf, toJson, toCsv, RULES };
+  /* The lists CuriosityStoryboard.setTiming takes: every panel of scene si at its suggested time, or cleared. */
+  const timingList = (res, si) => res.panels.map((p) => ({ si, pi: p.panel, seconds: p.hold }));
+  const clearList = (n, si) => Array.from({ length: n }, (_, pi) => ({ si, pi, seconds: null }));
+
+  const api = { panelTiming, forScene, payoffsOf, toJson, toCsv, timingList, clearList, RULES };
   root.CurioPanelTiming = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof document === "undefined") return;
@@ -234,6 +241,34 @@
     }
     return `<div class="mpt-pic-n">${i + 1}</div>`;
   }
+
+  /* The storyboard's own timing hooks (storyboard.js): setTiming(list, label) and timing(). */
+  const SBT = () => {
+    const SB = root.CuriosityStoryboard;
+    return SB && typeof SB.setTiming === "function" && typeof SB.timing === "function" ? SB : null;
+  };
+  /* The scene's place in the storyboard (setTiming and timing() count every scene, empty ones too). */
+  function sceneIndex(scene) {
+    const SB = root.CuriosityStoryboard;
+    try {
+      const all = (SB && typeof SB.data === "function" && SB.data().scenes) || [];
+      const i = all.findIndex((s) => s && (s === scene || (scene.id && s.id === scene.id)));
+      return i;
+    } catch (e) {
+      return -1;
+    }
+  }
+  function nowTiming(si, n) {
+    const T = SBT();
+    if (!T || si < 0) return null;
+    try {
+      const row = T.timing()[si] || [];
+      return Array.from({ length: n }, (_, i) => (Number(row[i]) > 0 ? Number(row[i]) : null));
+    } catch (e) {
+      return null;
+    }
+  }
+  let flash = ""; /* a line to show after the tab redraws (after Use or Clear) */
 
   /* One player at a time; it stops itself when the tab is no longer on screen. */
   let player = null;
@@ -328,20 +363,33 @@
     const base = Number(ctx.secondsPerBeat()) > 0 ? Number(ctx.secondsPerBeat()) : 3;
     const res = forScene(scene, { base, limit: ctx.limit() });
     const diff = r1(res.after - res.before);
+    const si = sceneIndex(scene);
+    const can = !!SBT() && si >= 0;
+    const now = nowTiming(si, res.panels.length);
+    const own = now ? now.filter((x) => x != null).length : 0;
+    const same = now && own === res.panels.length && res.panels.every((p, i) => Math.abs(now[i] - p.hold) < 0.01);
+    const nowWords = !now
+      ? ""
+      : same
+        ? "uses this timing"
+        : own === 0
+          ? "every panel follows the Speed slider"
+          : `${own} of ${res.panels.length} panels have their own time`;
     const top = Math.max(base, ...res.panels.map((p) => p.hold)) * 1.25;
     const cols = res.panels
       .map(
         (p) => `<li class="mpt-col" data-i="${p.panel}" title="Panel ${p.panel + 1}: ${esc(secs(p.hold))}. ${esc(p.why)}">
           <span class="mpt-num">${p.panel + 1}</span>
           <span class="mpt-bar"><i style="height:${Math.round((p.hold / top) * 100)}%"></i><b style="bottom:${Math.round((base / top) * 100)}%"></b></span>
-          <span class="mpt-sec">${p.hold}</span>${chip(p.family)}${p.payoff ? `<span class="mpt-pay" title="A comedy payoff">P</span>` : ""}
+          <span class="mpt-sec">${p.hold}</span>${now ? `<span class="mpt-cur" title="In the storyboard now: ${now[p.panel] != null ? esc(secs(now[p.panel])) : "the Speed slider"}">${now[p.panel] != null ? now[p.panel] : "Speed"}</span>` : ""}${chip(p.family)}${p.payoff ? `<span class="mpt-pay" title="A comedy payoff">P</span>` : ""}
         </li>`
       )
       .join("");
     const rows = res.panels
       .map((p) => {
         const mark = p.held != null ? `<span class="mo-status mo-${p.status.cls}">${p.status.icon} ${esc(p.status.words)}</span>` : "";
-        return `<li><span class="mpt-row-h"><b>Panel ${p.panel + 1}</b>${chip(p.family)}<span>${esc(p.label || "nothing yet")}</span><span class="mpt-row-s">${esc(secs(p.hold))}</span>${mark}</span><span class="mpt-why">${esc(p.why)}</span></li>`;
+        const cur = now ? `<span class="mpt-why mpt-row-now">In the storyboard now: ${now[p.panel] != null ? esc(secs(now[p.panel])) : "the flip book's Speed slider"}.</span>` : "";
+        return `<li><span class="mpt-row-h"><b>Panel ${p.panel + 1}</b>${chip(p.family)}<span>${esc(p.label || "nothing yet")}</span><span class="mpt-row-s">${esc(secs(p.hold))}</span>${mark}</span><span class="mpt-why">${esc(p.why)}</span>${cur}</li>`;
       })
       .join("");
     const tile = (v, l, s) => `<div class="mo-tile"><div class="mo-tile-v">${v}</div><div class="mo-tile-l">${l}</div>${s ? `<div class="mo-tile-s">${s}</div>` : ""}</div>`;
@@ -352,25 +400,32 @@
         ${tile(`${res.before} s`, "The scene today", `every panel ${base} seconds (Seconds per panel in Attention)`)}
         ${tile(`${res.after} s`, "With this timing", diff === 0 ? "the same length" : `${Math.abs(diff)} seconds ${diff < 0 ? "shorter" : "longer"}`)}
         ${tile(`${Math.min(...res.panels.map((p) => p.hold))} to ${Math.max(...res.panels.map((p) => p.hold))} s`, "Shortest to longest panel", "never under 0.5 or over 8 seconds")}
+        ${now ? `<div class="mo-tile mpt-tile-now" data-mpt-now><div class="mo-tile-v">${same ? "This timing" : own ? `${own} of ${res.panels.length}` : "Speed slider"}</div><div class="mo-tile-l">In the storyboard now</div><div class="mo-tile-s">${esc(nowWords)}</div></div>` : ""}
       </div>
       <section><h3>Each panel's time</h3>
         <ol class="mpt-cols" aria-label="Suggested seconds for each panel">${cols}</ol>
-        <p class="mo-small">Each bar is a panel's suggested time; the line across it is the usual ${base} seconds. The letter is the family holding attention, and P marks a comedy payoff.</p>
+        <p class="mo-small">Each bar is a panel's suggested time; the line across it is the usual ${base} seconds. The letter is the family holding attention, and P marks a comedy payoff.${now ? " The gray number under it is the panel's time in the storyboard now (Speed means it follows the flip book's Speed slider)." : ""}</p>
       </section>
       <div class="mo-controls mpt-actions">
+        ${can ? `<button type="button" data-mpt-use${same ? " disabled" : ""}>Use this timing in the storyboard</button><button type="button" data-mpt-clear${own ? "" : " disabled"}>Clear the timing</button>` : ""}
         <button type="button" data-mpt-play aria-pressed="false">Play with this timing</button>
         <button type="button" data-mpt-json>Download the timing (JSON)</button>
         <button type="button" data-mpt-csv>Download the timing (CSV)</button>
       </div>
-      <p class="mpt-said mo-small" role="status"></p>
+      <p class="mpt-said mo-small" role="status">${esc(flash)}</p>
       <div class="mpt-preview" hidden>
         <div class="mpt-pic"></div>
         <div class="mpt-progress" aria-hidden="true"><i></i></div>
         <p class="mpt-now" aria-live="polite"></p>
       </div>
       <section><h3>Why each panel gets its time</h3><ol class="mpt-rows">${rows}</ol></section>
-      <p class="mo-small">The Storyboard's flip book shows every panel for the same time (its Speed slider) and keeps no time for each panel yet, so this timing cannot be put into it. Download it instead to plan the cut, or to hand to an animator.</p>
+      <p class="mo-small">${
+        can
+          ? "Use this timing in the storyboard gives each panel of this scene its suggested time, and the Storyboard's flip book then holds each panel that long. One Undo takes it back. Clear the timing gives the panels back to the flip book's Speed slider. The downloads help plan the cut, or go to an animator."
+          : "This Storyboard keeps no time for each panel, so its flip book shows every panel for the same time (its Speed slider). Download the timing instead to plan the cut, or to hand to an animator."
+      }</p>
     </div>`;
+    flash = "";
     el.onchange = (e) => {
       if (e.target.matches("[data-mpt-scene]")) {
         prefs.scene = e.target.value;
@@ -383,6 +438,21 @@
       const t = e.target.closest("button");
       if (!t) return;
       const said = el.querySelector(".mpt-said");
+      if (t.matches("[data-mpt-use]") || t.matches("[data-mpt-clear]")) {
+        const T = SBT();
+        if (!T || si < 0) return;
+        const use = t.matches("[data-mpt-use]");
+        stop();
+        const name = scene.name || "Scene " + (si + 1);
+        const n = T.setTiming(use ? timingList(res, si) : clearList(res.panels.length, si), "Momentum: panel timing");
+        flash = !n
+          ? "The storyboard did not change. Its scene may have moved; pick the scene again."
+          : use
+            ? `The storyboard now holds each panel of ${name} for its suggested time (${res.after} seconds in all). One Undo takes it back.`
+            : `The panels of ${name} follow the flip book's Speed slider again. One Undo takes it back.`;
+        ctx.refresh();
+        return;
+      }
       if (t.matches("[data-mpt-play]")) {
         if (player) stop();
         else play(el, scene, res);

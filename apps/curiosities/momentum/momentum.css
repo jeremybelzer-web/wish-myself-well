@@ -802,6 +802,10 @@
   .mo-au-own input[type=text] { width: 100%; }
 }
 
+/* timing.js: the storyboard's own time for each panel, beside the suggestion */
+.mpt-cur { font-size: 11px; color: var(--mo-ink-2); font-variant-numeric: tabular-nums; }
+.mpt-row-now { font-style: italic; }
+.mpt-actions button[disabled] { opacity: 0.55; cursor: default; }
 /* screen-details.js: the Momentum section in the Screen's Details inspector (dark, like the Screen). */
 .mo-sd { border-bottom: 1px solid var(--cc-line, #2e2e33); background: var(--cc-panel, #1c1c1e); color: var(--cc-text, #ececee); font-size: 12px; min-width: 0; overflow-wrap: anywhere; }
 .mo-sd p { margin: 0; line-height: 1.4; }
