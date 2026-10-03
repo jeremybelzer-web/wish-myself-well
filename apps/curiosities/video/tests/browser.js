@@ -158,6 +158,7 @@ const ok = (cond, text) => {
   }
   await page.evaluate(() => window.CurioVideoUI.open());
   ok(await page.isVisible(".vd-page"), "the window opens");
+  ok(await page.evaluate(() => !!(window.CurioDepth && window.CurioDepth.tilt && !window.CurioDepth.ready())), "the depth warp is loaded (its AI waits until a camera angle change is drawn)");
   ok((await page.locator(".vd-drop").count()) === 2, "two drop boxes to start");
   await page.evaluate(() => window.CurioVideoUI.bring("a", window.__a));
   await page.evaluate(() => window.CurioVideoUI.bring("b", window.__b));

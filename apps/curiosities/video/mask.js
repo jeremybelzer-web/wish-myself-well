@@ -382,7 +382,9 @@
     }
     if (parts.angle && Math.abs(parts.angle.tilt) > 0.02) {
       ctx.putImageData(img, 0, 0);
-      tiltView(ctx, W, H, k, personA || softMask(k, [1, 2, 3, 4, 5], W, H), parts.angle.tilt);
+      /* by depth (depth.js) when it can; else two flat layers */
+      if (!(window.CurioDepth && window.CurioDepth.tilt(ctx, W, H, k, parts.angle.tilt)))
+        tiltView(ctx, W, H, k, personA || softMask(k, [1, 2, 3, 4, 5], W, H), parts.angle.tilt);
       return true;
     }
     ctx.putImageData(img, 0, 0);

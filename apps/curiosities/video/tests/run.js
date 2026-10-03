@@ -289,6 +289,55 @@ check("paid AI: a price first, and caps that stop it", () => {
   assert(/day cap/.test(A.check(0.5)) && A.caps().job === 1, "the day cap stops it too");
   assert(!JSON.stringify(store).includes("curiosities-ai-spent"), "spending is not saved in project files");
 });
+check("camera angle by depth: made-up depth and the warp (depth.js)", () => {
+  const ctx = { Math, Float32Array, Uint8Array, Uint8ClampedArray, Int32Array };
+  ctx.window = ctx;
+  require("vm").runInNewContext(fs.readFileSync(path.join(__dirname, "..", "depth.js"), "utf8"), ctx);
+  const D = ctx.CurioDepth;
+  /* made-up depth: a person standing in the lower middle of a 40 x 30 cut-out */
+  const w = 40,
+    h = 30,
+    labels = new Uint8Array(w * h);
+  for (let y = 8; y < 26; y++) for (let x = 16; x < 24; x++) labels[y * w + x] = y < 11 ? 1 : y < 14 ? 3 : 4;
+  const g = D.guess(labels, w, h);
+  assert(g[29 * w] > g[20 * w] && g[20 * w] > g[2 * w] - 1e-6, "the floor gets nearer toward the bottom");
+  assert(Math.abs(g[20 * w + 20] - g[9 * w + 20]) < 0.05, "one person is one depth, feet to hair");
+  assert(g[9 * w + 20] > g[9 * w + 5] + 0.3, "the person is in front of the wall behind them");
+  /* the warp: far stripes behind a near square */
+  const W = 60,
+    H = 40,
+    px = new Uint8ClampedArray(W * H * 4),
+    near = new Float32Array(W * H);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const i = y * W + x,
+        sq = x >= 24 && x < 36 && y >= 14 && y < 26;
+      const v = sq ? 250 : y % 8 < 4 ? 40 : 120;
+      px.set([v, sq ? 0 : v, sq ? 0 : v, 255], i * 4);
+      near[i] = sq ? 0.9 : 0.1;
+    }
+  const same = D.warp(px, W, H, near, W, H, 0, { ref: 0.9 });
+  let diff = 0;
+  for (let i = 0; i < px.length; i++) diff += Math.abs(same[i] - px[i]);
+  assert(diff / px.length < 0.5, "no tilt, no change: " + diff / px.length);
+  const up = D.warp(px, W, H, near, W, H, 1, { ref: 0.9, refY: 0.5, lift: 0.1, pitch: 0, zoom: 0, fit: false });
+  const at = (d, x, y) => d[(y * W + x) * 4 + 1];
+  assert(at(up, 30, 15) === 0 && at(up, 30, 24) === 0, "the near square (the people) stays where it was");
+  /* from higher up the far stripes slide up by 0.1 x 40 x 0.8 = 3.2 rows */
+  const row = (d, x) => {
+    for (let y = 1; y < H; y++) if (at(d, x, y) > 80 && at(d, x, y - 1) <= 80) return y;
+  };
+  const moved = row(px, 5) - row(up, 5);
+  assert(moved >= 3 && moved <= 4, "the set behind slides up: " + moved + " rows");
+  /* what the square uncovered (just above it, the set that was behind it) is filled from the stripes, not from the square, and nothing is left empty */
+  assert(at(up, 30, 12) > 20 && at(up, 30, 12) < 140, "the uncovered strip is filled from the set: " + at(up, 30, 12));
+  for (let i = 3; i < up.length; i += 4) assert(up[i] === 255, "every pixel drawn");
+  /* pitch: the people's row still stays put while the picture turns */
+  const turned = D.warp(px, W, H, near, W, H, 1, { ref: 0.9, refY: 0.5 });
+  assert(at(turned, 30, 20) === 0, "turning the camera keeps the people in place");
+  const lower = D.warp(px, W, H, near, W, H, -1, { ref: 0.9, lift: 0.1, pitch: 0, zoom: 0, fit: false });
+  assert(row(px, 5) - row(lower, 5) < 0, "from lower down the set slides down instead");
+});
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });
