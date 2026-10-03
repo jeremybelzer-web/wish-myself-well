@@ -1,0 +1,20 @@
+[
+  "windows.js",
+  "win-camera.js",
+  "win-performance.js",
+  "win-light.js",
+  "win-grade.js",
+  "win-world.js",
+  "win-wardrobe.js",
+  "win-sound.js",
+  "win-text.js",
+  "win-effects.js",
+  "win-transitions.js",
+  "win-speed.js",
+  "win-editing.js",
+  "win-feeling.js",
+  "win-comedy.js",
+  "win-character.js",
+  "win-story.js",
+  "win-page.js"
+]
