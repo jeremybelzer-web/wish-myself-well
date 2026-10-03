@@ -13,7 +13,7 @@
   /* The bottom line, shrunk to fit the frame when the words are long. */
   const cap = (k, t) => {
     t = String(t).replace(/(\d+\.\d{2})\d+/g, "$1").replace(/ · ( ·)+/g, " ·").replace(/:\s*$/, "");
-    return `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: k.W / 2, y: k.H - 5, text: t, size: 10, min: 7.5, w: 312, color: "#f4f4f4" });
+    return `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: k.W / 2, y: k.H - 5, text: t, size: Math.max(7.5, Math.min(10, (312 / (Math.max(1, t.length) * 0.55)) * 0.995)), min: 7.5, w: 312, color: "#f4f4f4" });
   };
   const chip = (k, x, y, text, color, anchor) => {
     const w = String(text).length * 5.2 + 10;
@@ -153,7 +153,7 @@
     const plants = [[], [0.5], [0.15], [0.15, 0.4, 0.65]][idx(v, "setupPayoff")];
     const ahead = v.n("plantedAhead") / 90;
     s += `<rect x="0" y="0" width="320" height="34" fill="rgba(0,0,0,0.55)"/>` + tl(k, { x: 60, w: 250, y: 6, label: "set up", marks: plants.map((a) => ({ at: a * (1 - ahead * 0.6), color: "#7fd1ae" })).concat([{ at: 0.95, color: "#ffd166" }]), segs: [{ a: 0.95 - ahead * 0.9, b: 0.95, color: "#3d5a4a" }] }) + tl(k, { x: 60, w: 250, y: 22, label: "in hand", segs: [{ a: 0, b: v.n("heldFor") / 120, color: "#9fd3ff" }] });
-    return s + cap(k, `${n} props · ${era} · ${v("condition")} · ${v("importance")} · ${v("propOwner")}'s`);
+    return s + cap(k, `${n} prop${n === 1 ? "" : "s"} · ${era} · ${v("condition")} · ${v("importance").replace(/^the /, "")} · ${v("propOwner").replace(/^the /, "")}'s`);
   });
 
   /* ---------- interior or exterior ---------- */

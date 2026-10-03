@@ -300,7 +300,7 @@
     const w = o.w || W;
     const cw = o.weight && Number(o.weight) >= 600 ? 0.6 : 0.55;
     const sz = Math.max(min, Math.min(size, w / Math.max(1, t.length * cw)));
-    const max = Math.max(1, Math.floor(w / (sz * cw)));
+    const max = Math.max(1, Math.floor(w / (sz * cw) + 1e-6)); /* + 1e-6: an exact fit must not lose a letter to rounding */
     if (t.length > max) t = t.slice(0, Math.max(0, max - 1)) + "…";
     return text(Object.assign({}, o, { text: t, size: r1(sz) }));
   }

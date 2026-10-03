@@ -14,7 +14,9 @@
   const line = (x1, y1, x2, y2, c, w, dash) => `<line x1="${r1(x1)}" y1="${r1(y1)}" x2="${r1(x2)}" y2="${r1(y2)}" stroke="${c || INK}" stroke-width="${w || 1.5}"${dash ? ` stroke-dasharray="${dash}"` : ""} stroke-linecap="round"/>`;
   const path = (pts, c, w, fill, dash) => `<path d="${pts.map((p, i) => (i ? "L" : "M") + r1(p[0]) + " " + r1(p[1])).join(" ")}${fill ? " Z" : ""}" fill="${fill || "none"}" stroke="${c || INK}" stroke-width="${w || 1.5}" stroke-linejoin="round"${dash ? ` stroke-dasharray="${dash}"` : ""}/>`;
   const tag = (k, x, y, text, color, anchor, size) => k.label({ x, y, text, size: size || 8, color: color || "#aaa", anchor: anchor || "middle" });
-  const cap = (k, text) => `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: k.W / 2, y: k.H - 5, text, size: 10, min: 7, w: 312, color: "#f4f4f4" });
+  /* the size is worked out here, a hair under the exact fit, so a caption that fits is never cut by one letter */
+  const capSize = (t, max, min) => Math.max(min, Math.min(max, (312 / (Math.max(1, String(t).length) * 0.55)) * 0.995));
+  const cap = (k, text) => `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: k.W / 2, y: k.H - 5, text, size: capSize(text, 10, 7), min: 7, w: 312, color: "#f4f4f4" });
   const box = (x, y, w, h, o) => rect(x, y, w, h, (o && o.fill) || "#fff", { stroke: INK, sw: (o && o.sw) || 1.5, op: o && o.op });
   const star = (x, y, r, c, n, inner) => {
     n = n || 8;
@@ -95,11 +97,12 @@
     out += tag(k, 290, 16, "next page", "#999", "middle", 7);
     /* big turns, page by page */
     const every = Math.max(1, v.n("turnsBetween"));
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 14; i++) {
       const big = i % every === every - 1;
       out += rect(18 + i * 14, 148, 10, 10, big ? "#ffd166" : "#3a3a40", { stroke: "#555" });
     }
-    return out + cap(k, `${mode} · hook on the ${v("hookSide")} · ${v("lastPanel")} · ${v("turnUrge")} · big turn every ${every} page${every === 1 ? "" : "s"}`);
+    out += k.label({ x: 312, y: 156, text: `big turn every ${every} page${every === 1 ? "" : "s"}`, size: 7, color: "#ffd166", anchor: "end" });
+    return out + cap(k, `${mode} · hook on the ${v("hookSide")} · ${v("lastPanel")} · ${v("turnUrge")}`);
   });
 
   /* Panels per page: rows, how strict the grid is, the reading order, and how the count swings page to page. */
@@ -188,7 +191,7 @@
     const dots = Math.round(cl * 6);
     for (let i = 0; i < dots; i++) out += `<circle cx="${r1(mx - 10 + i * 4)}" cy="${r1(10 - (i % 2) * 2)}" r="${r1(1.5 + cl * 1.5)}" fill="#ffd166"/>`;
     if (cl > 0) out += `<ellipse cx="${mx}" cy="10" rx="${r1(8 + cl * 18)}" ry="${r1(4 + cl * 4)}" fill="none" stroke="#ffd166" stroke-width="1"/>`;
-    return out + cap(k, `${mode} gutter · width ${v.n("width")} · ${v("gutterColor")} · ${v.n("gutterSlant")}° · skips ${skip} · reader fills ${v("closure")}`);
+    return out + cap(k, `${mode} · width ${v.n("width")} · ${v("gutterColor")} · ${v.n("gutterSlant")}° · skips ${skip} · reader fills ${v("closure")}`);
   });
 
   /* Balloons and captions in a panel: shape, size, where it sits, its tail, and how much the caption knows. */
@@ -226,7 +229,7 @@
     /* inner thoughts */
     if (iv === "thought bubble") out += `<ellipse cx="262" cy="34" rx="34" ry="16" fill="#fff" stroke="${INK}" stroke-width="1.5"/><circle cx="234" cy="56" r="4" fill="#fff" stroke="${INK}"/><circle cx="226" cy="64" r="2.5" fill="#fff" stroke="${INK}"/>` + k.text({ x: 262, y: 38, text: "hmm…", size: 10, color: INK, italic: true });
     if (iv === "caption box") out += rect(226, 120, 72, 24, "#d8ecff", { stroke: INK, sw: 1.5 }) + k.text({ x: 262, y: 136, text: "I knew it.", size: 9, color: INK, italic: true });
-    return out + cap(k, `${mode} · ${shape} · size ${v.n("size")} · ${v("placement")} · tail to ${tail} · caption knows ${knows}`);
+    return out + cap(k, `${mode} · ${shape} · size ${v.n("size")} · ${v("placement")} · ${tail === "no tail" ? "no tail" : `tail to ${tail.replace(/^the /, "")}`} · knows ${knows}`);
   });
 
   /* Panel sizes on a page: the biggest panel and what it holds, the smallest, and how often a splash comes. */

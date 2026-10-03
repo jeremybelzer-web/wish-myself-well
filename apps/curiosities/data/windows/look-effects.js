@@ -1498,7 +1498,9 @@
     out += T;
     if (!/none/.test(kind)) {
       const [lx, ly] = path(k.clamp(t + lead * 0.12, 0, 1));
-      const off = /above/.test(side) ? [0, -gap - 26] : /below/.test(side) ? [0, gap + 26] : /left/.test(side) ? [-gap - 34, 0] : /right/.test(side) ? [gap + 34, 0] : [0, 0];
+      /* the gap eases off as it nears the frame's edge, so a big gap still keeps the tag in view */
+      const soft = (m, room) => room * (1 - Math.exp(-m / Math.max(1, room)));
+      const off = /above/.test(side) ? [0, -soft(gap + 26, ly - 14)] : /below/.test(side) ? [0, soft(gap + 26, 148 - ly)] : /left/.test(side) ? [-soft(gap + 34, lx - 30), 0] : /right/.test(side) ? [soft(gap + 34, 290 - lx), 0] : [0, 0];
       const jit = (1 - smooth) * 6;
       const ox = lx + off[0] + (k.rnd(3) - 0.5) * jit;
       const oy = ly + off[1] + (k.rnd(5) - 0.5) * jit;
@@ -1773,7 +1775,7 @@
     const settles = v.p("settles") > 0.5;
     out += envelope(k, { x: 222, y: 24, w: 88, h: 50, rise: (v.n("bendSecs") / 3) * (1.2 - bs), snap: bs, hold: 0.8, fall: settles ? 0.05 + v.n("settleSecs") / 3 : 6 + v.n("settleSecs"), pre: 0.4 + v.n("offsetFrames") / 24, peak: 0.2 + st * 0.7, label: `${v("bendSpeed")}, then ${v("settles")}` });
     out += chips(k, [`set off by ${v("cause")}`], { x: 222, y: 94 });
-    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v.n("strength")}%, ${v("area")}, ${v.n("offsetFrames")} frames, settles ${v.n("settleSecs")} s`);
+    return out + offNote(k, off, kind, 122) + fitCaption(k, `${kind}, ${v.n("strength")}%, ${v("area")}, ${v.n("offsetFrames")} frames, settles ${v.n("settleSecs")} s`);
   });
 
   /* Party flash: flashes on the beat, their color and length, saved for the drop. */
