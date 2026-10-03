@@ -43,25 +43,9 @@
   const M = () => root.CurioMomentum;
   const A = () => root.CurioAttention;
 
-  /* Family colors and letters: CurioMomentum.mark(family) when it is there, else the same ones ui.js and
-     lesson.js use (8 families colored, the others gray). */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const LIGHT = { comedy: 1, movement: 1 };
-  const LETTERS = { camera: "Ca", movement: "Mo", voice: "V", feeling: "F", comedy: "Co", wardrobe: "W", place: "S", light: "Li", music: "Mu", plot: "P", mind: "T", effects: "E", cut: "Cu" };
-  function mark(f) {
-    let m = null;
-    try {
-      m = M() && typeof M().mark === "function" ? M().mark(f) : null;
-    } catch (e) {
-      m = null;
-    }
-    const color = (m && m.color) || COLORS[f] || OTHER;
-    const letter = (m && m.letter) || LETTERS[f] || String(f || "?").charAt(0).toUpperCase();
-    const ink = (m && m.ink) || (LIGHT[f] || !COLORS[f] ? "#1c1712" : "#ffffff");
-    return { color, letter, ink };
-  }
-  const famLabel = (f) => (M() && M().family(f) ? M().family(f).label : f || "");
+  /* Family colors, letters and labels: the same on every tab (notes.js always loads first). */
+  const mark = (f) => M().mark(f);
+  const famLabel = (f) => mark(f).label;
   const CUE_IDS = ["visual", "audio", "thought", "movement", "plot"];
   /* Keys by position (event.code), so Shift with a number still names the family. */
   const FAMILY_CODES = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "Minus", "Equal", "BracketLeft"];
@@ -81,8 +65,8 @@
   }
   /* The families in pad order: the 8 colored ones first (as on the Pads tab), then the rest. */
   function families() {
-    const all = M() ? M().FAMILIES.map((f) => f.id) : Object.keys(LETTERS);
-    const main = Object.keys(COLORS).filter((f) => all.includes(f));
+    const all = M().FAMILIES.map((f) => f.id);
+    const main = Object.keys(M().COLORS).filter((f) => all.includes(f));
     return main.concat(all.filter((f) => !main.includes(f)));
   }
 
@@ -379,12 +363,6 @@
   }
   const norm = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, " ");
   const earlier = (title) => studies().filter((s) => s && s.source === SOURCE && norm(s.title) === norm(title) && norm(title));
-  function statusOf(held, limit) {
-    const r = held / (limit || 20);
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
 
   function tap(family, opts) {
     if (!families().includes(family)) return;
@@ -450,7 +428,7 @@
     while (s > 0 && cur[s - 1].family === last.family) s--;
     const held = round(t - cur[s].t, 1);
     const limit = state.ctx ? state.ctx.limit() : 20;
-    const st = statusOf(held, limit);
+    const st = M().status(held, limit);
     const mk = mark(last.family);
     return `<p class="mtp-now"><span class="mtp-chip"><span class="mtp-letter" style="background:${mk.color};color:${mk.ink}" aria-hidden="true">${esc(mk.letter)}</span>${esc(famLabel(last.family))}</span> has held your attention for ${held} seconds <span class="mo-status mo-${st.cls}">${st.icon} ${st.text}</span> <small>(limit ${limit} s)</small></p>`;
   }
@@ -541,7 +519,7 @@
     }
     const r = A().read(st.beats, { secondsPerBeat: beat });
     state.savedId = st.id;
-    state.flash = `Saved "${title}" as a curated film${prior ? `, the average of ${tappings.length} tappings` : ""}. Attention moves ${r.stats.switchesPerMinute} times a minute and usually rests ${r.stats.medianDwell} seconds. It now shows in Film rates (press Measure there), Cue lab and Three films. Your taps were cleared for the next tapping.`;
+    state.flash = `Saved "${title}" as a curated film${prior ? `, the average of ${tappings.length} tappings` : ""}. Attention moves ${r.stats.switchesPerMinute} times a minute and usually rests ${r.stats.medianDwell} second${r.stats.medianDwell === 1 ? "" : "s"}. It now shows in Film rates (press Measure there), Cue lab and Three films. Your taps were cleared for the next tapping.`;
     state.taps = [];
     state.order = [];
     state.base = 0;
@@ -550,6 +528,8 @@
     saveState();
     if (state.ctx) state.ctx.setSource("study:" + st.id);
     mountTab(state.el, state.ctx);
+    const note = state.el && state.el.querySelector(".mtp-flash");
+    if (note && note.scrollIntoView) note.scrollIntoView({ block: "nearest" });
   }
 
   function padsHtml() {

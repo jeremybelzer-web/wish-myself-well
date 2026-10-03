@@ -338,6 +338,9 @@ if (args.includes("--browser")) {
     await page.click(".mo-dlg [data-tp=start]");
     await page.fill(".mo-dlg [data-tp=title]", "test film");
     check(await page.isVisible(".mo-dlg .mtp-avg"), "it offers to average with the earlier tapping");
+    await page.fill(".mo-dlg [data-tp=title]", "Another film");
+    check(!(await page.isVisible(".mo-dlg .mtp-avg")), "no offer to average for a title never tapped");
+    await page.fill(".mo-dlg [data-tp=title]", "test film");
     await page.click(".mo-dlg [data-tp=save]");
     const avg = await page.evaluate(() => window.CuriosityStudy.studies().filter((x) => x.source === "watched and tapped").map((s) => ({ id: s.id, tappings: s.tappings.length })));
     check(avg.length === 1 && avg[0].tappings === 2, "averaged into the same film: " + JSON.stringify(avg));

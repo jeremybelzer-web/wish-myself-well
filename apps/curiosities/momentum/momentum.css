@@ -683,7 +683,9 @@
 .mtp-clockrow { align-items: center; }
 .mtp-clock { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 4.5ch; }
 .mtp-file input { max-width: 220px; font-size: 13px; }
-.mtp-check span { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.mtp-check > span { display: block; max-width: 46ch; }
+.mtp-check input { vertical-align: middle; margin: 0 4px 0 0; }
+.mo-controls .mtp-avg[hidden] { display: none; }
 .mtp-video { width: 100%; max-width: 640px; max-height: 50vh; background: #000; }
 .mtp-cuerow { display: flex; flex-wrap: wrap; gap: 6px; }
 .mtp .mtp-cue { border-width: 1px; border-radius: 14px; padding: 3px 10px; }
