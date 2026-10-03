@@ -28,7 +28,7 @@
      a lane, a curiosity dropdown on each lane, Show all potential curiosities, Show all potential suites.
 
    window.CurioScreen = { open(), close(), isOpen(), mountViewer(el, opts), state(), setRow(i), row(),
-     addPanel({ id, label, place, mount(el) }), on(fn) -> off() }
+     addPanel({ id, label, place, mount(el) }), removePanel(id), on(fn) -> off() }
    mountViewer lets any other screen of the app put a viewer at its top (Jeremy 17:20Z: "a view window for
    every single screen of the app"). Saved view: localStorage "curiosities-screen-v1". */
 (function () {
@@ -66,8 +66,10 @@
     ghost: false,
     overview: true,
     range: null,
-    guides: false,
+    guides: [],
     rulers: false,
+    compare: { on: false, split: 50, with: "insp" },
+    captions: { on: false, mode: "notes" },
   };
   /* CapCut's layout menu (the layout icon at the top right of its window). Jeremy's screenshots show four
      arrangements: the default, the media panel full height on the left, Details full height on the right, and
@@ -91,13 +93,15 @@
       ["⇧⌘B", "Split all", "Cut every lane on the timeline at the playhead", (e) => mod(e) && e.shiftKey && key(e, "b"), lk("splitAll")],
       ["A", "Select mode", "Click a node to pick it, click an empty spot to add one", (e) => plain(e) && !e.shiftKey && key(e, "a"), lk("select")],
       ["B", "Split mode", "Click a lane to cut its line with a node", (e) => plain(e) && !e.shiftKey && key(e, "b"), lk("split")],
-      ["[", "Select leftward", "Pick the node to the left (CapCut picks every clip to the left)", (e) => plain(e) && e.key === "[", lk("left")],
-      ["]", "Select rightward", "Pick the node to the right", (e) => plain(e) && e.key === "]", lk("right")],
+      ["[", "Select leftward", "Pick the node to the left (CapCut picks every clip to the left)", (e) => plain(e) && !e.shiftKey && e.key === "[", lk("left")],
+      ["]", "Select rightward", "Pick the node to the right", (e) => plain(e) && !e.shiftKey && e.key === "]", lk("right")],
       ["P", "Main track magnet", "Moving a node moves every later node in its lane too", (e) => plain(e) && key(e, "p"), lk("magnet")],
       ["N", "Auto snapping", "A node dropped next to a marker lands on it", (e) => plain(e) && key(e, "n"), lk("snap")],
       ["~", "Linkage switch", "Joined nodes move and copy together (on) or alone (off)", (e) => plain(e) && (e.key === "~" || e.key === "`"), lk("linkage")],
       ["S", "Preview axis switch", "Hover over the timeline to see that moment in the player", (e) => plain(e) && !e.shiftKey && key(e, "s"), lk("skim")],
       ["M", "Add marker", "Put a marker on the playhead's moment (again to take it off)", (e) => plain(e) && key(e, "m"), lk("marker")],
+      ["⇧[", "Previous marker", "Move the playhead back to the marker before it", (e) => plain(e) && e.shiftKey && (e.key === "{" || e.code === "BracketLeft"), lk("prevMarker")],
+      ["⇧]", "Next marker", "Move the playhead on to the next marker", (e) => plain(e) && e.shiftKey && (e.key === "}" || e.code === "BracketRight"), lk("nextMarker")],
       ["⌘+", "Zoom in", "Wider moments on the timeline", (e) => mod(e) && !e.altKey && (e.key === "=" || e.key === "+"), lk("zoomIn")],
       ["⌘−", "Zoom out", "Narrower moments on the timeline", (e) => mod(e) && !e.altKey && (e.key === "-" || e.key === "_"), lk("zoomOut")],
       ["⇧Z", "Zoom to fit timeline", "The whole film fits the timeline", (e) => plain(e) && e.shiftKey && key(e, "z"), lk("zoomFit")],
@@ -121,7 +125,7 @@
       ["⌥⇧−", "Zoom out player", "Smaller frames in the Player", (e) => e.altKey && e.shiftKey && (e.code === "Minus" || e.code === "NumpadSubtract"), () => zoomPlayer(0.8)],
       ["⌥⇧Z", "Zoom to fit player", "Frames fit the Player again", (e) => e.altKey && e.shiftKey && e.code === "KeyZ", () => zoomPlayer(0)],
       ["⌘⌥R", "Show/hide rulers", "Rulers along the frames' edges", (e) => mod(e) && e.altKey && e.code === "KeyR", () => toggleView("rulers")],
-      ["⌘;", "Show/hide guides", "Thirds guides over the frames", (e) => mod(e) && !e.altKey && e.key === ";", () => toggleView("guides")],
+      ["⌘;", "Show/hide guides", "The thirds guide over your film (Guides ▾ in the Player has more)", (e) => mod(e) && !e.altKey && e.key === ";", () => (setGuide("thirds", !guidesOn().includes("thirds")), drawViewers())],
       ["Long press ⌘", "Cancel player alignment", "Nothing yet (CapCut lets you place a clip freely while ⌘ is held)"],
     ]],
     ["Basic", [
@@ -130,6 +134,9 @@
       ["⌘V", "Paste", "Paste it at the playhead's moment", (e) => mod(e) && !e.shiftKey && !e.altKey && key(e, "v"), lk("paste")],
       ["⇧⌘C", "Copy attributes", "Copy the picked node's setting", (e) => mod(e) && e.shiftKey && key(e, "c"), lk("copyLook")],
       ["⇧⌘V", "Paste attributes", "Give that setting to another node of the same curiosity", (e) => mod(e) && e.shiftKey && key(e, "v"), lk("pasteLook")],
+      /* e.code, because Option changes e.key on a Mac (⌥C types ç). */
+      ["⌥⌘C", "Copy this moment's look", "Copy every setting My film plays at the playhead's moment (Copy attributes for a whole moment)", (e) => mod(e) && e.altKey && !e.shiftKey && e.code === "KeyC", () => lookCopy()],
+      ["⌥⌘V", "Paste the look here", "Give the playhead's moment the copied look, or the whole stretch selected on the timeline", (e) => mod(e) && e.altKey && !e.shiftKey && e.code === "KeyV", () => lookPaste(curArea() ? "stretch" : "here")],
       ["⌫", "Delete", "Remove the picked node", (e) => plain(e) && (e.key === "Backspace" || e.key === "Delete"), lk("delete")],
       ["⌘Z", "Undo", "Undo the last change to your film", (e) => mod(e) && !e.shiftKey && key(e, "z"), () => undoAll("undo")],
       ["⇧⌘Z", "Reset (redo)", "Redo what you undid", (e) => mod(e) && e.shiftKey && key(e, "z"), () => undoAll("redo")],
@@ -338,6 +345,7 @@
     document.documentElement.classList.add("sc-open");
     prefs.open = true;
     save();
+    takeOpenSnap();
     ensureFilm();
     drawAll();
   }
@@ -365,12 +373,13 @@
     page.addEventListener("pointerdown", onKnobDown);
     if (faces() && faces().attach) faces().attach(faceApi());
     page.addEventListener("keydown", (e) => faces() && faces().keydown && faces().keydown(e, faceHelpers(mineCtx()), faceApi()));
-    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e));
+    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e) || onCompareDrag(e));
+    ["click", "change", "input", "keyup"].forEach((t) => page.addEventListener(t, capSoon));
     page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
     /* Undo and redo go to the app-wide undo list when the page has one (engine/store.js), so one ⌘Z undoes one
        step of anything. Caught first, on the window, so the app's own ⌘Z handler does not undo a second step. */
     window.addEventListener("keydown", (e) => {
-      if (page.hidden || !mod(e) || e.altKey) return;
+      if (page.hidden || !mod(e) || e.altKey || inToolWindow(e)) return;
       const tag = (e.target && e.target.tagName) || "";
       if (/INPUT|SELECT|TEXTAREA/.test(tag) || (e.target && e.target.isContentEditable)) return;
       const k = e.key.toLowerCase();
@@ -381,7 +390,7 @@
       undoAll(dir);
     }, true);
     document.addEventListener("keydown", (e) => {
-      if (page.hidden) return;
+      if (page.hidden || inToolWindow(e)) return;
       const tag = (e.target && e.target.tagName) || "";
       if (/INPUT|SELECT|TEXTAREA/.test(tag) || (e.target && e.target.isContentEditable)) return;
       if (e.key === "Escape" && keysOpen) return showKeys(false);
@@ -408,7 +417,6 @@
     page.dataset.view = prefs.view;
     page.dataset.arrange = prefs.arrange;
     page.dataset.layout = LAYOUTS.some((l) => l[0] === prefs.layout) ? prefs.layout : "center";
-    page.dataset.guides = prefs.guides ? "1" : "";
     page.dataset.rulers = prefs.rulers ? "1" : "";
     page.style.setProperty("--sc-pz", String(Number(prefs.playerZoom) || 1));
     drawBar();
@@ -420,16 +428,31 @@
     tell();
   }
   /* Side panels other threads dock into the Screen (the momentum meter beside the Player):
-     addPanel({ id, label, place: "player" | "details" | "timeline", mount(el) }). The Screen owns where they go;
+     addPanel({ id, label, place: "player" | "under" | "details" | "timeline", mount(el) }). The Screen owns where they go;
      each is mounted once into its own element and kept across redraws. on(fn) is told after every redraw and
      every playhead move. */
   const panels = [];
   const listeners = [];
-  const PLACE = { player: ".sc-player", details: ".sc-inspector", timeline: ".sc-timeline" };
+  const PLACE = { player: ".sc-player", under: ".sc-player", details: ".sc-inspector", timeline: ".sc-timeline" };
+  /* Panels docked beside the Player stack top to bottom in one column the Screen owns (.sc-docks), in the order
+     they were added, so two panels never fight over the Player's grid or sit on top of each other. */
+  function dockHost(place) {
+    const host = page.querySelector(PLACE[place] || PLACE.player);
+    if (!host || (PLACE[place] || PLACE.player) !== PLACE.player) return host;
+    /* "under": a full-width strip under the Player, for a slim bar whose panel floats (the 3D actors). */
+    const cls = place === "under" ? "sc-under" : "sc-docks";
+    let col = host.querySelector(":scope > ." + cls);
+    if (!col) {
+      col = document.createElement("div");
+      col.className = cls;
+      host.appendChild(col);
+    }
+    return col;
+  }
   function placePanels() {
     if (!page) return;
     panels.forEach((p) => {
-      const host = page.querySelector(PLACE[p.place] || PLACE.player);
+      const host = dockHost(p.place);
       if (!host) return;
       if (!p.el) {
         p.el = document.createElement("div");
@@ -439,7 +462,8 @@
       }
       if (p.el.parentNode !== host) {
         host.appendChild(p.el);
-        host.classList.add("sc-has-dock");
+        if (host.classList.contains("sc-docks")) host.parentNode.classList.add("sc-has-dock");
+        else if (!host.classList.contains("sc-under")) host.classList.add("sc-has-dock");
       }
       if (!p.mounted) {
         p.mounted = true;
@@ -456,6 +480,13 @@
     if (panels.some((p) => p.id === spec.id)) return false;
     panels.push(Object.assign({ place: "player" }, spec));
     placePanels();
+    return true;
+  }
+  function removePanel(id) {
+    const i = panels.findIndex((p) => p.id === id);
+    if (i < 0) return false;
+    const [p] = panels.splice(i, 1);
+    if (p.el) p.el.remove();
     return true;
   }
   function tell() {
@@ -480,6 +511,7 @@
       return;
     }
     const sel = selection();
+    const histFocus = historyFocusKey();
     bar.innerHTML = `
       <strong class="sc-title">Curiomatic</strong>
       <div class="sc-seg" role="group" aria-label="View">
@@ -496,8 +528,559 @@
       ${prefs.view === "arrange" ? `<label class="sc-chk"><input type="checkbox" data-act="viewers-in-arrange" ${prefs.viewersInArrange ? "checked" : ""}> Show the player</label>` : ""}
       <label class="sc-layout" title="Layout, like CapCut's layout menu"><span class="sc-k">Layout</span><select data-pick-layout aria-label="Layout">${LAYOUTS.map(([id, l, t]) => `<option value="${id}" title="${esc(t)}"${prefs.layout === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
       <button type="button" data-act="shortcuts" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="5" width="17" height="10" rx="1.5"/><path d="M5 8h1M8 8h1M11 8h1M14 8h1M5 11.5h10"/></svg> Shortcuts</button>
+      ${exportMenuHtml()}
+      ${historyMenuHtml()}
       <button type="button" data-act="close" class="sc-close">Back to the app</button>
       <p class="sc-what">${esc(sel.label)}${sel.plain ? ": " + esc(sel.plain) : ""}</p>`;
+    if (histFocus) historyRefocus(histFocus);
+    /* An engine undo redraws before the app-wide list has moved its step, so look again once it has. */
+    if (historyOpen) setTimeout(() => drawHistory(), 0);
+  }
+
+  /* ---------- Export (CapCut's big Export button at the top right) ----------
+     The beta exports storyboards only: a printable storyboard sheet (every moment of My film as a frame, with
+     its number, clock time, marker note and what changed), this frame as a picture (PNG or SVG), and the
+     settings list as a spreadsheet (CSV). Everything is made in the browser and saved with <a download>;
+     nothing is uploaded. The pure parts (EXPORT, below) take plain data so tests can check them with no page. */
+  const EXPORT = (() => {
+    const W = 320;
+    const H = 180;
+    const SHAPES = {
+      wide: { label: "wide 16:9", w: W, h: H },
+      vertical: { label: "vertical 9:16", w: (H * 9) / 16, h: H },
+      square: { label: "square 1:1", w: H, h: H },
+      cinema: { label: "cinema 2.39", w: W, h: W / 2.39 },
+    };
+    const MARK_HEX = { red: "#ff5a5f", orange: "#ff9f43", yellow: "#ffd43b", green: "#51cf66", blue: "#4dabf7", purple: "#b197fc" };
+    const html = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+    const r2 = (n) => Math.round(n * 100) / 100;
+    /* A storyboard frame (CurioFrame.svg) as a file of its own in a frame shape: the wide picture cropped to
+       the shape, centered, as the Player does; no shaking; xmlns so it opens anywhere. px sets the long side. */
+    function frameSvg(svg, shape, px) {
+      const s = SHAPES[shape] || SHAPES.wide;
+      const x = r2((W - s.w) / 2);
+      const y = r2((H - s.h) / 2);
+      const scale = px ? px / Math.max(s.w, s.h) : 1;
+      return String(svg)
+        .replace(/\bcf-shake\b/g, "")
+        .replace(/^<svg /, `<svg xmlns="http://www.w3.org/2000/svg" width="${r2(s.w * scale)}" height="${r2(s.h * scale)}" `)
+        .replace(/viewBox="0 0 320 180"/, `viewBox="${x} ${y} ${r2(s.w)} ${r2(s.h)}"`);
+    }
+    /* "Shot size: wide → close-up · Feeling: joyful → anxious and 2 more", or "" when nothing changed. */
+    function changes(prev, cur, o) {
+      if (!prev || !cur) return "";
+      const max = o.max || 3;
+      const text = o.text || ((k, v) => String(v));
+      const moved = o.keys.filter((k) => prev[k] != null && cur[k] != null && String(prev[k]) !== String(cur[k]));
+      const parts = moved.slice(0, max).map((k) => `${o.label(k)}: ${text(k, prev[k])} → ${text(k, cur[k])}`);
+      return parts.length ? parts.join(" · ") + (moved.length > max ? ` and ${moved.length - max} more` : "") : "";
+    }
+    /* The keys worth a column: a value somewhere in the film. */
+    const keysWithValues = (moments, order) => {
+      const seen = [];
+      (order || []).concat(...moments.map((m) => Object.keys(m.values || {}))).forEach((k) => {
+        if (!seen.includes(k) && moments.some((m) => m.values && m.values[k] != null && m.values[k] !== "")) seen.push(k);
+      });
+      return seen;
+    };
+    function csvCell(v) {
+      /* A cell starting with = + - or @ would run as a formula in a spreadsheet app: a leading ' keeps it plain text. */
+      const raw = String(v == null ? "" : v);
+      const s = /^-?\d+(\.\d+)?$/.test(raw) ? raw : raw.replace(/^[=+\-@\t\r]/, (c) => "'" + c);
+      return /[",\r\n]/.test(s) || /^\s|\s$/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    }
+    /* One row per moment, one column per curiosity that has a value anywhere, plain labels and plain values.
+       moments: [{ n, clock, note, values }]; o: { keys, label(k), text(k, v) }. Starts with a byte-order mark so
+       spreadsheet apps read it as UTF-8; lines end in CRLF (the CSV standard). */
+    function csv(moments, o) {
+      const keys = keysWithValues(moments, o.keys);
+      const text = o.text || ((k, v) => String(v));
+      const head = ["Moment", "Time", "Marker note"].concat(keys.map((k) => o.label(k)));
+      const rows = moments.map((m) => [m.n, m.clock || "", m.note || ""].concat(keys.map((k) => (m.values && m.values[k] != null && m.values[k] !== "" ? text(k, m.values[k]) : ""))));
+      return "﻿" + [head].concat(rows).map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    }
+    /* The printable storyboard sheet: a whole page of its own (opened in a new tab), 2, 3 or 4 frames per row,
+       a Print button. moments: [{ n, clock, svg, note, color, changes, label }] where svg is already shaped. */
+    function sheetHtml(d) {
+      const per = [2, 3, 4].includes(Number(d.perRow)) ? Number(d.perRow) : 3;
+      const n = d.moments.length;
+      const shape = SHAPES[d.shape] || SHAPES.wide;
+      const card = (m) => `<figure class="f">
+  <div class="pic">${m.svg}</div>
+  <figcaption><b>Moment ${html(m.n)}</b> <span class="t">${html(m.clock)}</span>${m.label ? ` <span class="l">${html(m.label)}</span>` : ""}
+  ${m.note ? `<p class="mk"><i style="background:${MARK_HEX[m.color] || MARK_HEX.orange}"></i>${html(m.note)}</p>` : ""}
+  <p class="ch">${m.changes ? html(m.changes) : m.n === 1 ? "Where the film starts." : "Nothing changes from the moment before."}</p></figcaption>
+</figure>`;
+      return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${html(d.title || "Curiomatic storyboard")}</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 16px; background: #fff; color: #1c1712; font: 13px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; margin-bottom: 12px; }
+  h1 { font-size: 18px; margin: 0; }
+  .sub { color: #6b625a; }
+  .tools { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+  .tools button { font: inherit; border: 1px solid #c9c1b8; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  .tools button.on { background: #1c1712; color: #fff; border-color: #1c1712; }
+  .tools .print { background: #0e7490; color: #fff; border-color: #0e7490; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(var(--per, 3), minmax(0, 1fr)); gap: 14px; }
+  .f { margin: 0; break-inside: avoid; page-break-inside: avoid; }
+  .pic { border: 1px solid #1c1712; aspect-ratio: ${r2(shape.w)} / ${r2(shape.h)}; max-height: 60vh; margin: 0 auto; overflow: hidden; background: #fffaf2; }
+  .pic svg { display: block; width: 100%; height: 100%; }
+  figcaption { padding-top: 4px; }
+  .t { color: #6b625a; font-variant-numeric: tabular-nums; }
+  .l { color: #6b625a; }
+  .mk { margin: 3px 0 0; font-weight: 600; }
+  .mk i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
+  .ch { margin: 3px 0 0; color: #4a423b; font-size: 12px; }
+  @media (max-width: 600px) { .grid { grid-template-columns: repeat(min(var(--per, 3), 2), minmax(0, 1fr)); } }
+  @media print { body { padding: 0; } .tools { display: none; } .grid { gap: 10px; } }
+</style></head>
+<body style="--per:${per}">
+<header><h1>${html(d.title || "Curiomatic storyboard")}</h1>
+<span class="sub">${n} moment${n === 1 ? "" : "s"}${d.seconds ? ` · ${html(d.seconds)} seconds each` : ""} · ${html(shape.label)}${d.date ? ` · ${html(d.date)}` : ""}</span>
+<span class="tools" role="group" aria-label="Frames per row">Frames per row ${[2, 3, 4].map((k) => `<button type="button" data-per="${k}"${k === per ? ' class="on"' : ""}>${k}</button>`).join("")}<button type="button" class="print" data-print>Print</button></span></header>
+<main class="grid">
+${d.moments.map(card).join("\n")}
+</main>
+<script>
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("button");
+  if (!b) return;
+  if (b.hasAttribute("data-print")) return window.print();
+  if (b.dataset.per) {
+    document.body.style.setProperty("--per", b.dataset.per);
+    document.querySelectorAll("[data-per]").forEach(function (x) { x.classList.toggle("on", x === b); });
+  }
+});
+</script>
+</body></html>`;
+    }
+    /* "curiomatic-my-first-film-moment-3.png": plain letters and dashes. */
+    function fileName(film, what, ext) {
+      const slug = (s) => String(s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+      return ["curiomatic", slug(film), slug(what)].filter(Boolean).join("-") + "." + ext;
+    }
+    return { SHAPES, frameSvg, changes, csv, csvCell, sheetHtml, fileName, keysWithValues };
+  })();
+  window.CurioScreenExport = EXPORT;
+
+  /* ---------- a curiosity row's ⋯ menu (CapCut's "Apply to all" and Reset in Details) ----------
+     Pure command builders, one undo step each, so the tests can check them with no page. st is the engine state,
+     track and cur name the lane, v is the setting to keep. add: the curiosity is not on the track yet, so it is
+     put there first. Each returns { cmds, ... } or { error } in plain words. */
+  const APPLY = (() => {
+    const laneOf = (st, track, cur) => (track && st.lanes[track + "|" + cur]) || null;
+    const pointRows = (st, lane) => (lane ? st.rows.map((r, j) => (lane.points[r.id] != null ? j : -1)).filter((j) => j >= 0) : []);
+    const say = (cur) => (window.CurioScale && window.CurioScale.label ? window.CurioScale.label(cur) : cur);
+    /* One node at the first moment with setting v, every other node off, and the lane set to Jump so it stays flat. */
+    function allFilm(st, track, cur, v, add) {
+      if (!st.rows.length) return { error: "Your film has no moments yet." };
+      if (v == null) return { error: `${say(cur)} has no setting at the playhead to use.` };
+      const lane = laneOf(st, track, cur);
+      const cmds = add ? [{ type: "addCuriosity", track, curiosity: cur }] : [];
+      cmds.push({ type: "setPoint", row: st.rows[0].id, track, curiosity: cur, value: v });
+      const gone = pointRows(st, lane).filter((j) => j > 0);
+      gone.forEach((j) => cmds.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: cur }));
+      cmds.push({ type: "laneMode", track, curiosity: cur, mode: "hold" });
+      return { cmds, removed: gone.length };
+    }
+    /* Setting v held from moment j0 to moment j1: nodes at both ends, the nodes between them off. */
+    function stretch(st, track, cur, v, j0, j1, add) {
+      const a = Math.max(0, Math.min(j0, j1));
+      const b = Math.min(st.rows.length - 1, Math.max(j0, j1));
+      if (!(b >= a) || !st.rows[a]) return { error: "Select a stretch of moments on the timeline first." };
+      if (v == null) return { error: `${say(cur)} has no setting at the playhead to use.` };
+      const lane = laneOf(st, track, cur);
+      const cmds = add ? [{ type: "addCuriosity", track, curiosity: cur }] : [];
+      cmds.push({ type: "setPoint", row: st.rows[a].id, track, curiosity: cur, value: v });
+      if (b > a) cmds.push({ type: "setPoint", row: st.rows[b].id, track, curiosity: cur, value: v });
+      const gone = pointRows(st, lane).filter((j) => j > a && j < b);
+      gone.forEach((j) => cmds.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: cur }));
+      return { cmds, removed: gone.length, from: a, to: b };
+    }
+    /* Back to how the scene starts: the nodes after the first moment off. When the first moment has no node of its
+       own, one is put there with the setting it plays now (start), so the start looks the same afterwards. */
+    function reset(st, track, cur, start) {
+      const lane = laneOf(st, track, cur);
+      const at = pointRows(st, lane);
+      const gone = at.filter((j) => j > 0);
+      if (!gone.length) return { error: `${say(cur)} already stays as it starts, so there is nothing to reset.` };
+      const cmds = [];
+      if (!at.includes(0) && start != null) cmds.push({ type: "setPoint", row: st.rows[0].id, track, curiosity: cur, value: start });
+      gone.forEach((j) => cmds.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: cur }));
+      return { cmds, removed: gone.length };
+    }
+    /* Every node off the lane. */
+    function clear(st, track, cur) {
+      const lane = laneOf(st, track, cur);
+      if (!lane) return { error: `${say(cur)} has no nodes, so there is nothing to clear.` };
+      return { cmds: [{ type: "clearLane", track, curiosity: cur }], removed: pointRows(st, lane).length };
+    }
+    return { allFilm, stretch, reset, clear };
+  })();
+  window.CurioScreenApply = APPLY;
+
+  /* ---------- a moment's look (CapCut's Copy attributes and Paste attributes, for a whole moment) ----------
+     Copy takes every setting My film plays at one moment, after the engine's rewrite (the same values Details
+     shows), for every curiosity on a track in the film. Paste writes those settings as nodes at another moment,
+     or over a selected stretch, as one undo step. Pure: h holds what needs the engine or the page, so the tests
+     can check it with no page:
+       value(rowId, trackId, cur)  what plays there      trackOf(cur)  the track it is on now, or null
+       trackFor(cur)  the track it would go on            locked(laneKey)  true when the lane is locked
+       fix(cur, v)  v snapped to the curiosity's scale     start(cur)  where its scale starts
+       known(cur)  true when the engine knows it           limit  how many curiosities a track holds */
+  const LOOK = (() => {
+    const same = (h, cur, a, b) => a != null && b != null && String(h.fix(cur, a)) === String(h.fix(cur, b));
+    /* -> { from, row, values: { cur: setting } } or { error } */
+    function copy(st, j, h) {
+      const r = st.rows[j];
+      if (!r) return { error: "Your film has no moment there to copy." };
+      const values = {};
+      st.tracks.forEach((t) =>
+        t.curiosities.forEach((cur) => {
+          if (cur in values || !h.known(cur)) return;
+          const track = h.trackOf(cur);
+          if (!track) return;
+          const v = h.fix(cur, h.value(r.id, track, cur));
+          if (v != null) values[cur] = v;
+        })
+      );
+      const n = Object.keys(values).length;
+      if (!n) return { error: `Moment ${j + 1} has no settings to copy yet.` };
+      return { from: j, row: r.id, values, count: n };
+    }
+    /* The look onto moments a to b (a === b: one moment). One moment gets a node per setting that differs. A stretch
+       gets, per lane that does not already play the setting all the way through, a node at its first and its last
+       moment with the nodes between them taken off, so it holds there whatever the lane's mode (two equal nodes
+       play flat in Glide, Smooth and Jump alike). A setting that already plays there is left alone.
+       -> { cmds, changed: [cur], matched: [cur], locked: [cur], full: [cur], added: [cur], from, to } or { error } */
+    function paste(st, look, a, b, h) {
+      if (!look || !look.values || !Object.keys(look.values).length) return { error: "Copy a moment's look first." };
+      const from = Math.max(0, Math.min(a, b));
+      const to = Math.min(st.rows.length - 1, Math.max(a, b));
+      if (!st.rows[from] || to < from) return { error: "Your film has no moment there to paste onto." };
+      const out = { cmds: [], changed: [], matched: [], locked: [], full: [], added: [], from, to };
+      const adds = {};
+      const roomOn = (track) => {
+        const t = st.tracks.find((x) => x.id === track);
+        return !!t && t.curiosities.length + (adds[track] || 0) < (h.limit || Infinity);
+      };
+      const sets = [];
+      const removes = [];
+      Object.keys(look.values).forEach((cur) => {
+        if (!h.known(cur)) return;
+        const v = h.fix(cur, look.values[cur]);
+        if (v == null) return;
+        let track = h.trackOf(cur);
+        const on = !!track;
+        const plays = (j) => (on ? h.value(st.rows[j].id, track, cur) : h.start(cur));
+        let all = true;
+        for (let j = from; j <= to && all; j++) all = same(h, cur, plays(j), v);
+        if (all) return out.matched.push(cur);
+        if (!on) {
+          track = h.trackFor(cur);
+          if (!track || !roomOn(track)) return out.full.push(cur);
+        }
+        if (h.locked(track + "|" + cur)) return out.locked.push(cur);
+        if (!on) {
+          adds[track] = (adds[track] || 0) + 1;
+          out.cmds.push({ type: "addCuriosity", track, curiosity: cur });
+          out.added.push(cur);
+        }
+        sets.push({ type: "setPoint", row: st.rows[from].id, track, curiosity: cur, value: v });
+        if (to > from) sets.push({ type: "setPoint", row: st.rows[to].id, track, curiosity: cur, value: v });
+        const lane = on ? st.lanes[track + "|" + cur] : null;
+        if (lane) for (let j = from + 1; j < to; j++) if (lane.points[st.rows[j].id] != null) removes.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: cur });
+        out.changed.push(cur);
+      });
+      /* Sets before removes, so a lane never empties on the way. */
+      out.cmds = out.cmds.concat(sets, removes);
+      return out;
+    }
+    /* What is kept in sessionStorage, checked on the way back in. */
+    function clean(x) {
+      if (!x || typeof x !== "object" || !x.values || typeof x.values !== "object" || Array.isArray(x.values)) return null;
+      const values = {};
+      Object.keys(x.values).forEach((k) => {
+        const v = x.values[k];
+        if (typeof v === "string" || (typeof v === "number" && isFinite(v)) || typeof v === "boolean") values[k] = v;
+      });
+      const n = Object.keys(values).length;
+      if (!n) return null;
+      return { from: Math.max(0, Math.floor(Number(x.from)) || 0), row: typeof x.row === "string" ? x.row : "", values, count: n };
+    }
+    return { copy, paste, clean };
+  })();
+  window.CurioScreenLook = LOOK;
+
+  let exportOpen = false;
+  function exportMenuHtml() {
+    return `<span class="sc-export"><button type="button" data-act="export" class="sc-export-b" aria-haspopup="true" aria-expanded="${exportOpen}" title="Save your film as a storyboard sheet, a picture or a spreadsheet. Nothing is uploaded.">Export ▾</button>
+      <div class="sc-export-menu" role="menu" aria-label="Export"${exportOpen ? "" : " hidden"}>
+        <button type="button" role="menuitem" data-export="sheet"><b>Storyboard sheet</b><small>Every moment as a frame, with notes and what changes, ready to print</small></button>
+        <p class="sc-k">This frame as a picture (moment ${row + 1})</p>
+        <div class="sc-export-two"><button type="button" role="menuitem" data-export="png"><b>PNG</b><small>A picture file</small></button><button type="button" role="menuitem" data-export="svg"><b>SVG</b><small>Sharp at any size</small></button></div>
+        <button type="button" role="menuitem" data-export="csv"><b>Settings list (spreadsheet)</b><small>One row per moment, one column per curiosity, as a CSV file</small></button>
+        <p class="sc-export-foot">Made on this device. Nothing is uploaded.</p>
+      </div></span>`;
+  }
+  function toggleExport(on) {
+    exportOpen = on == null ? !exportOpen : !!on;
+    const box = page && page.querySelector(".sc-export");
+    if (!box) return;
+    const menu = box.querySelector(".sc-export-menu");
+    menu.hidden = !exportOpen;
+    /* When the button has wrapped to the left of the bar, open the menu rightwards so it stays on screen. */
+    menu.classList.toggle("sc-flip", exportOpen && box.getBoundingClientRect().right < menu.offsetWidth + 16);
+    box.querySelector(".sc-export-b").setAttribute("aria-expanded", String(exportOpen));
+    if (exportOpen && !toggleExport.wired) {
+      /* Close on a click anywhere else, or Esc. */
+      toggleExport.wired = true;
+      document.addEventListener("pointerdown", (e) => exportOpen && !(e.target.closest && e.target.closest(".sc-export")) && toggleExport(false), true);
+      document.addEventListener("keydown", (e) => exportOpen && e.key === "Escape" && toggleExport(false));
+    }
+  }
+  /* ---------- History ▾ (the History panel of editing apps) ----------
+     Lists the steps you can undo (newest first, under "Now") and the steps you can redo (over "Now"), by their
+     plain names. It reads the app-wide undo list when the page has one (engine/store.js), else the engine's own.
+     Clicking a step goes back or forward to just after it by pressing undo or redo that many times through
+     undoAll, the same path as ⌘Z. The pure part (HISTORY) takes plain lists so tests can check it with no page. */
+  const HISTORY_MAX = 30;
+  const HISTORY = {
+    /* A step's plain name: the engine's steps join the app-wide list as "Engine: <name>". */
+    plain: (label) => String(label == null ? "" : label).replace(/^Engine:\s*/, "").trim() || "Change",
+    /* h = { undo: [names, oldest first], redo: [names, next one first] } (both lists' own shape) -> what to draw:
+       undo: newest first, each with how many undos go back to just after it (0 for the newest: you are there);
+       redo: the furthest first, each with how many redos go forward to just after it (1 for the next one);
+       earlier and later: steps past the last `max` that are not shown; all: every undo step. */
+    rows(h, max) {
+      const n = max > 0 ? Math.floor(max) : HISTORY_MAX;
+      const u = (h && Array.isArray(h.undo) ? h.undo : []).slice().reverse();
+      const r = h && Array.isArray(h.redo) ? h.redo : [];
+      return {
+        undo: u.slice(0, n).map((l, i) => ({ label: HISTORY.plain(l), steps: i })),
+        redo: r.slice(0, n).map((l, i) => ({ label: HISTORY.plain(l), steps: i + 1 })).reverse(),
+        earlier: Math.max(0, u.length - n),
+        later: Math.max(0, r.length - n),
+        all: u.length,
+      };
+    },
+  };
+  window.CurioScreenHistory = HISTORY;
+  function historyNow() {
+    const St = window.CurioStore;
+    if (St && typeof St.external === "function" && typeof St.history === "function") return St.history();
+    return E() && typeof E().history === "function" ? E().history() : { undo: [], redo: [] };
+  }
+  let historyOpen = false;
+  let historyLeft = false; /* the menu opens rightward when its button sits in the left half of the bar */
+  let historyTimer = 0;
+  let historySig = "";
+  const nSteps = (k) => `${k} ${k === 1 ? "step" : "steps"}`;
+  function historyBody() {
+    const h = HISTORY.rows(historyNow());
+    historySig = JSON.stringify(h);
+    if (!h.undo.length && !h.redo.length) return `<p class="sc-hist-empty">Nothing to undo yet.</p>`;
+    const item = (dir, x) => `<button type="button" role="menuitem" data-hist="${dir}:${x.steps}" title="${dir === "undo" ? "Go back" : "Go forward"} ${nSteps(x.steps)}, to just after this">${esc(x.label)}</button>`;
+    let out = "";
+    if (h.redo.length) {
+      out += `<p class="sc-k sc-hist-h">Can redo</p>`;
+      if (h.later) out += `<p class="sc-hist-more">and ${h.later} later</p>`;
+      out += h.redo.map((x) => item("redo", x)).join("");
+    }
+    out += `<p class="sc-hist-now" role="separator">Now</p>`;
+    if (!h.undo.length) return out + `<p class="sc-hist-empty">Nothing left to undo.</p>`;
+    out += `<p class="sc-k sc-hist-h">Can undo</p>`;
+    out += h.undo.map((x) => (x.steps ? item("undo", x) : `<p class="sc-hist-cur" aria-current="step" title="Your film is just after this step">${esc(x.label)}</p>`)).join("");
+    if (h.earlier) out += `<p class="sc-hist-more">and ${h.earlier} earlier</p>`;
+    else out += `<button type="button" role="menuitem" data-hist="undo:${h.all}" class="sc-hist-start" title="Go back ${nSteps(h.all)}, to before every change listed">Before all of these</button>`;
+    return out;
+  }
+  function historyMenuHtml() {
+    return `<span class="sc-hist"><button type="button" data-act="history" class="sc-hist-b" aria-haspopup="true" aria-expanded="${historyOpen}" title="Every change you can undo or redo. Click one to go back or forward to just after it.">History ▾</button>
+      <div class="sc-hist-menu${historyLeft ? " sc-hist-left" : ""}" role="menu" aria-label="History"${historyOpen ? "" : " hidden"}>${historyOpen ? historyBody() : ""}</div></span>`;
+  }
+  /* The menu's own list, redrawn only when the history changed (so focus and scrolling stay put otherwise). */
+  function drawHistory(force) {
+    const m = page && page.querySelector(".sc-hist-menu");
+    if (!m || !historyOpen) return;
+    const sig = JSON.stringify(HISTORY.rows(historyNow()));
+    if (!force && sig === historySig && m.childElementCount) return;
+    const key = historyFocusKey();
+    m.innerHTML = historyBody();
+    if (key) historyRefocus(key);
+  }
+  /* Which menu item has focus, so a redraw can give it back ("menu" when the item is gone). */
+  function historyFocusKey() {
+    const a = document.activeElement;
+    if (!historyOpen || !a || !a.closest || !a.closest(".sc-hist")) return "";
+    return a.dataset && a.dataset.hist ? a.dataset.hist : a.dataset && a.dataset.act === "history" ? "button" : "menu";
+  }
+  function historyRefocus(key) {
+    const box = page && page.querySelector(".sc-hist");
+    if (!box) return;
+    const el = key === "button" ? box.querySelector(".sc-hist-b") : box.querySelector(`[data-hist="${key}"]`) || box.querySelector("[data-hist]") || box.querySelector(".sc-hist-b");
+    if (el) el.focus();
+  }
+  function toggleHistory(on, keyboard) {
+    historyOpen = on == null ? !historyOpen : !!on;
+    const box = page && page.querySelector(".sc-hist");
+    clearInterval(historyTimer);
+    historyTimer = 0;
+    if (!box) return;
+    const m = box.querySelector(".sc-hist-menu");
+    m.hidden = !historyOpen;
+    box.querySelector(".sc-hist-b").setAttribute("aria-expanded", String(historyOpen));
+    if (!historyOpen) return;
+    if (exportOpen) toggleExport(false);
+    const r = box.getBoundingClientRect();
+    historyLeft = r.left + r.width / 2 < window.innerWidth / 2;
+    m.classList.toggle("sc-hist-left", historyLeft);
+    drawHistory(true);
+    /* Steps from parts of the app that do not redraw the Screen (the app-wide list) show up while it is open. */
+    historyTimer = setInterval(() => (!historyOpen || !page || page.hidden ? toggleHistory(false) : drawHistory()), 400);
+    if (keyboard) historyRefocus("menu");
+    if (!toggleHistory.wired) {
+      /* Close on a click anywhere else, or Esc (focus goes back to the button); arrows move through the steps. */
+      toggleHistory.wired = true;
+      document.addEventListener("pointerdown", (e) => historyOpen && !(e.target.closest && e.target.closest(".sc-hist")) && toggleHistory(false), true);
+      document.addEventListener("keydown", (e) => {
+        if (!historyOpen || !page || page.hidden) return;
+        const inMenu = e.target && e.target.closest && e.target.closest(".sc-hist");
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleHistory(false);
+          if (inMenu) page.querySelector(".sc-hist-b").focus();
+          return;
+        }
+        if (!inMenu) return;
+        const list = [...page.querySelectorAll(".sc-hist-menu [data-hist]")];
+        if (!list.length) return;
+        const i = list.indexOf(document.activeElement);
+        const to = e.key === "ArrowDown" ? (i + 1) % list.length : e.key === "ArrowUp" ? (i <= 0 ? list.length - 1 : i - 1) : e.key === "Home" ? 0 : e.key === "End" ? list.length - 1 : -1;
+        if (to < 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        list[to].focus();
+      }, true);
+    }
+  }
+  /* "undo:3" or "redo:2": press undo or redo that many times, exactly like ⌘Z, and say what happened. */
+  function historyPick(spec) {
+    const [dir, k] = String(spec).split(":");
+    const want = Math.max(0, Math.floor(Number(k)) || 0);
+    if (dir !== "undo" && dir !== "redo") return;
+    const before = HISTORY.rows(historyNow());
+    const target = dir === "undo" ? before.undo.find((x) => x.steps === want) : before.redo.find((x) => x.steps === want);
+    let done = 0;
+    while (done < want && undoAll(dir)) done++;
+    drawHistory(true);
+    historyRefocus("menu");
+    const way = dir === "undo" ? "back" : "forward";
+    if (!done) return toast(dir === "undo" ? "There was nothing to undo." : "There was nothing to redo.");
+    toast(done < want ? `Went ${way} ${done} of ${nSteps(want)}; the rest could not be ${dir === "undo" ? "undone" : "redone"}.` : `Went ${way} ${nSteps(done)}${target ? `, to just after "${target.label}"` : ", to before every change listed"}.`);
+  }
+  /* Markers from the timeline's tools (localStorage "curiosities-screen-tools-v1", markers [{ row, color, note }]). */
+  function exportMarkers() {
+    let list = null;
+    try {
+      if (window.CurioLanes && window.CurioLanes.tools) list = window.CurioLanes.tools().markers;
+    } catch (e) {}
+    if (!Array.isArray(list))
+      try {
+        list = (JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")) || {}).markers;
+      } catch (e) {}
+    if (window.CurioLanes && window.CurioLanes.migrateMarkers) list = window.CurioLanes.migrateMarkers(list);
+    const out = {};
+    (Array.isArray(list) ? list : []).forEach((m) => m && typeof m === "object" && m.row != null && (out[String(m.row)] = m));
+    return out;
+  }
+  const valueText = (k, v) => {
+    const d = S() && S().known(k) ? S().domain(k) : null;
+    return String(v) + (typeof v === "number" && d && d.unit ? d.unit : "");
+  };
+  /* My film as plain data for the builders: each moment's number, clock, marker, values. "x.setting" keys that
+     repeat their curiosity's own value are left out, so each curiosity is one column. */
+  function exportData() {
+    const beats = mineBeats();
+    const marks = exportMarkers();
+    const moments = beats.map((b, i) => {
+      const values = {};
+      Object.keys(b.values).forEach((k) => (/\.setting$/.test(k) && b.values[L().base(k)] != null ? null : (values[k] = b.values[k])));
+      const mk = marks[String(b.row)];
+      return { n: i + 1, clock: tc(i), values, raw: b.values, note: mk ? mk.note || "" : "", color: mk ? mk.color : "", label: b.note && !/^moment \d+$/i.test(b.note) ? b.note : "" };
+    });
+    const film = E() ? E().state().name : "";
+    return { moments, film, keys: EXPORT.keysWithValues(moments, prefs.lanes), shape: ratioShape() };
+  }
+  function downloadBlob(name, blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.hidden = true;
+    page.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+  function runExport(what) {
+    toggleExport(false);
+    if (!E() || !F()) return toast("Your film is not loaded yet.");
+    const d = exportData();
+    if (!d.moments.length) return toast("Your film has no moments to export yet.");
+    const opts = { cast: castOf() };
+    if (what === "sheet") {
+      const moments = d.moments.map((m, i) =>
+        Object.assign({}, m, {
+          svg: EXPORT.frameSvg(F().svg(m.raw, Object.assign({ title: "Moment " + m.n }, opts)), d.shape),
+          changes: i ? EXPORT.changes(d.moments[i - 1].values, m.values, { keys: d.keys, label: labelOf, text: valueText }) : "",
+        })
+      );
+      const page2 = EXPORT.sheetHtml({ title: "Curiomatic storyboard" + (d.film ? ": " + d.film : ""), moments, shape: d.shape, perRow: 3, seconds: secondsPerMoment(), date: new Date().toLocaleDateString() });
+      const blob = new Blob([page2], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      if (w) return toast(`Storyboard sheet opened in a new tab: ${moments.length} frames. Use its Print button.`);
+      downloadBlob(EXPORT.fileName(d.film, "storyboard", "html"), blob);
+      return toast("Your browser kept the new tab closed, so the storyboard sheet was saved as a file instead. Open it to print.");
+    }
+    if (what === "svg" || what === "png") {
+      const i = Math.min(row, d.moments.length - 1);
+      const m = d.moments[i];
+      const base = EXPORT.fileName(d.film, "moment " + m.n, what);
+      const svg = EXPORT.frameSvg(F().svg(m.raw, Object.assign({ title: "My film, moment " + m.n }, opts)), d.shape, what === "png" ? 1280 : 0);
+      if (what === "svg") {
+        downloadBlob(base, new Blob([svg], { type: "image/svg+xml" }));
+        return toast(`Saved ${base}.`);
+      }
+      /* PNG: draw the SVG onto a canvas on a white ground, then save the canvas. */
+      const img = new Image();
+      const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width) || 1280;
+        c.height = Math.round(img.height) || 720;
+        const g = c.getContext("2d");
+        g.fillStyle = "#fffaf2";
+        g.fillRect(0, 0, c.width, c.height);
+        g.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob((b) => (b ? (downloadBlob(base, b), toast(`Saved ${base}.`)) : toast("The picture could not be made in this browser.")), "image/png");
+      };
+      img.onerror = () => (URL.revokeObjectURL(url), toast("The picture could not be made in this browser."));
+      img.src = url;
+      return;
+    }
+    if (what === "csv") {
+      const name = EXPORT.fileName(d.film, "settings", "csv");
+      downloadBlob(name, new Blob([EXPORT.csv(d.moments, { keys: d.keys, label: labelOf, text: valueText })], { type: "text/csv;charset=utf-8" }));
+      return toast(`Saved ${name}: ${d.moments.length} moments, ${d.keys.length} curiosities.`);
+    }
   }
 
   /* ---------- the library (CapCut's top-left panel) ---------- */
@@ -606,6 +1189,85 @@
     if (ps.length) out.push({ id: "tpl:linked", label: "Linked recipes", level: "proximitySuite", items: ps });
     return out;
   }
+  /* Favorites and Recently used (CapCut's star on any effect, and its Recently used list). Kept in localStorage
+     "curiosities-screen-faves-v1" as { faves: ["level|id"], recent: ["level|id"] }: a view setting, not part of
+     the film and never an undo step. faves are in the order starred; recent is newest first, at most 12, no
+     repeats. Ids the database no longer has are skipped quietly. */
+  const FAVE_KEY = "curiosities-screen-faves-v1";
+  const FAVE_LEVELS = ["curiosity", "suite", "proximity", "proximitySuite"];
+  const RECENT_MAX = 12;
+  const faveRef = (level, id) => level + "|" + id;
+  function faveClean(list, max) {
+    const out = [];
+    (Array.isArray(list) ? list : []).forEach((x) => {
+      if (typeof x !== "string" || out.includes(x)) return;
+      if (x.indexOf("|") > 0 && FAVE_LEVELS.includes(x.slice(0, x.indexOf("|")))) out.push(x);
+    });
+    return max ? out.slice(0, max) : out;
+  }
+  function faveLoad() {
+    let p = null;
+    try {
+      p = JSON.parse(localStorage.getItem(FAVE_KEY));
+    } catch (e) {}
+    p = p && typeof p === "object" ? p : {};
+    return { faves: faveClean(p.faves), recent: faveClean(p.recent, RECENT_MAX) };
+  }
+  let faves = faveLoad();
+  function faveSave() {
+    try {
+      localStorage.setItem(FAVE_KEY, JSON.stringify(faves));
+    } catch (e) {}
+  }
+  /* Pure steps on a { faves, recent } object, so tests can check them with no page. */
+  function faveToggle(state, ref) {
+    const has = state.faves.includes(ref);
+    return { faves: has ? state.faves.filter((x) => x !== ref) : state.faves.concat(ref), recent: state.recent.slice() };
+  }
+  function faveUsed(state, ref) {
+    return { faves: state.faves.slice(), recent: [ref].concat(state.recent.filter((x) => x !== ref)).slice(0, RECENT_MAX) };
+  }
+  /* The item a saved ref names, or null when the database no longer has it. A curiosity named by its lane key
+     ("shotSize.setting", as in the My film tab) is found by its curiosity. */
+  function faveItem(ref) {
+    const at = String(ref).indexOf("|");
+    const level = ref.slice(0, at);
+    const id = ref.slice(at + 1);
+    if (at < 1 || !L() || !FAVE_LEVELS.includes(level)) return null;
+    let it = L().get(level, id);
+    if (!it && level === "curiosity" && L().base) it = L().get("curiosity", L().base(id));
+    return it ? { level, it } : null;
+  }
+  /* A card's own ref: curiosities are kept by their curiosity id, so a lane key and its curiosity share one star. */
+  function cardRef(level, it) {
+    const f = faveItem(faveRef(level, it.id));
+    return f ? faveRef(level, f.it.id) : "";
+  }
+  const faveItems = (list) => list.map(faveItem).filter(Boolean);
+  function faveStar(ref) {
+    const f = faveItem(ref);
+    if (!f) return;
+    const r = faveRef(f.level, f.it.id);
+    faves = faveToggle(faves, r);
+    faveSave();
+    toast(faves.faves.includes(r) ? `${f.it.label} is in Favorites.` : `${f.it.label} is out of Favorites.`);
+    drawLibrary();
+    const b = page && [...page.querySelectorAll("[data-fave]")].find((x) => x.dataset.fave === r);
+    if (b) b.focus();
+  }
+  function faveUse(level, id) {
+    const f = faveItem(faveRef(level, id));
+    if (!f) return;
+    faves = faveUsed(faves, faveRef(level, f.it.id));
+    faveSave();
+  }
+  function faveGroups() {
+    const recent = faveItems(faves.recent);
+    const out = [];
+    if (recent.length) out.push({ id: "fav:recent", label: "Recently used", items: recent });
+    out.push({ id: "fav:stars", label: "Starred", items: faveItems(faves.faves), empty: "Star anything in the library to keep it here." });
+    return out;
+  }
   function cardHtml(level, it) {
     if (level === "fcp") return it.cur ? `<div class="sc-card sc-fcp" data-card="fcp"><button type="button" class="sc-card-b" data-pick-card="curiosity|${esc(it.cur)}"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></button></div>` : `<div class="sc-card sc-fcp" data-card="fcp"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></div></div>`;
     if (level === "link") return `<div class="sc-card" data-card="link"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Proximity</em></div></div>`;
@@ -620,30 +1282,40 @@
     return `<div class="sc-card${on ? " on" : ""}${tiles.length ? " wide" : ""}" data-card="${esc(level)}" data-id="${esc(it.id)}" title="${esc(it.plain || it.label)}">
       <button type="button" class="sc-card-b" data-pick-card="${esc(level)}|${esc(it.id)}"><strong>${esc(it.label)}</strong><small>${esc(sub)}</small>${tag ? `<em>${esc(tag)}</em>` : ""}</button>
       <button type="button" class="sc-plus" data-add-card="${esc(level)}|${esc(it.id)}" aria-label="${esc(add)}: ${esc(it.label)}" title="${esc(add)}">+</button>
+      ${starHtml(level, it)}
       ${tiles.length ? `<div class="sc-tiles" role="group" aria-label="Settings of ${esc(it.label)}"><span class="sc-k">Drop a setting at moment ${row + 1}:</span>${tiles.map((v) => `<button type="button" data-drop="${esc(k)}" data-v="${esc(v)}" class="${String(v) === here ? "on" : ""}">${esc(v)}${S().domain(k).unit && typeof v === "number" ? esc(S().domain(k).unit) : ""}</button>`).join("")}</div>` : ""}
     </div>`;
   }
+  /* The small star on every card: a real button, so it works from the keyboard. */
+  function starHtml(level, it) {
+    const ref = cardRef(level, it);
+    if (!ref) return "";
+    const on = faves.faves.includes(ref);
+    return `<button type="button" class="sc-star${on ? " on" : ""}" data-fave="${esc(ref)}" aria-pressed="${on}" aria-label="Favorite: ${esc(it.label)}" title="${on ? "In Favorites: click to take it out" : "Add to Favorites"}">${on ? "★" : "☆"}</button>`;
+  }
+  const cardList = (items) => items.map((x) => cardHtml(x.level, x.it)).join("");
   function drawLibrary() {
     if (!page || !L()) return;
     const box = page.querySelector(".sc-lib");
     box.hidden = prefs.view === "arrange";
     if (box.hidden) return;
     const cat = category();
-    const tab = ["mine", "templates", "advanced"].includes(prefs.libTab) ? prefs.libTab : "";
-    const extra = [["mine", "My film", "film", "Everything automated in my film so far (like Maya's Outliner, or CapCut's Yours)"], ["templates", "Templates", "grid", "Ready-made recipes: every suite, dropped at the playhead as a set of nodes (CapCut's Templates)"]];
+    const tab = ["faves", "mine", "templates", "advanced"].includes(prefs.libTab) ? prefs.libTab : "";
+    const extra = [["faves", "★ Favorites", "star", "Everything you starred, and the last 12 things you picked or put in your film"], ["mine", "My film", "film", "Everything automated in my film so far (like Maya's Outliner, or CapCut's Yours)"], ["templates", "Templates", "grid", "Ready-made recipes: every suite, dropped at the playhead as a set of nodes (CapCut's Templates)"]];
     page.querySelector(".sc-icons").innerHTML =
       extra.map(([id, label, ic, t]) => `<button type="button" data-libtab="${id}" class="${tab === id ? "on" : ""}" aria-pressed="${tab === id}" title="${esc(t)}">${icon(ic)}<span>${esc(label)}</span></button>`).join("") +
       L()
         .CATEGORIES.map((c) => `<button type="button" data-icat="${c.id}" class="${!tab && c.id === cat.id ? "on" : ""}" aria-pressed="${!tab && c.id === cat.id}" title="${esc(c.plain)}">${icon(c.icon)}<span>${esc(c.label)}</span></button>`)
         .join("") +
       `<button type="button" data-libtab="advanced" class="sc-adv${tab === "advanced" ? " on" : ""}" aria-pressed="${tab === "advanced"}" title="${esc(ADV.plain)}">${icon(ADV.icon)}<span>${ADV.label}</span></button>`;
-    const groups = tab === "mine" ? mineGroups() : tab === "templates" ? templateGroups() : tab === "advanced" ? advancedGroups() : groupsOf(cat);
+    const groups = tab === "faves" ? faveGroups() : tab === "mine" ? mineGroups() : tab === "templates" ? templateGroups() : tab === "advanced" ? advancedGroups() : groupsOf(cat);
     const gkey = tab || cat.id;
     const gid = groups.some((g) => g.id === prefs.groups[gkey]) ? prefs.groups[gkey] : (groups[0] || {}).id;
     page.querySelector(".sc-side").innerHTML = groups.map((g) => `<button type="button" class="sc-pill${g.id === gid && !prefs.search ? " on" : ""}" data-group="${esc(g.id)}"><span>${esc(g.label)}</span><small>${g.items.length}</small></button>`).join("");
     let cards;
     let head;
     const q = String(prefs.search || "").trim().toLowerCase();
+    let faveHtml = "";
     if (q) {
       const hits = L()
         .items("curiosity")
@@ -651,6 +1323,22 @@
         .slice(0, 60);
       head = `${hits.length} curiosit${hits.length === 1 ? "y" : "ies"} match`;
       cards = hits.map((c) => cardHtml("curiosity", c)).join("");
+      /* Search covers Favorites and Recently used too, suites and proximities included. In the Favorites tab
+         they are all it shows; elsewhere they come after the matching curiosities. */
+      const seen = new Set();
+      const fh = faveItems(faves.faves.concat(faves.recent)).filter((x) => {
+        const r = faveRef(x.level, x.it.id);
+        if (seen.has(r)) return false;
+        seen.add(r);
+        return (x.it.label + " " + (x.it.plain || "")).toLowerCase().includes(q);
+      });
+      if (tab === "faves") {
+        head = `${fh.length} favorite${fh.length === 1 ? "" : "s"} match`;
+        cards = cardList(fh);
+      } else if (fh.length) faveHtml = `<p class="sc-grid-h sc-fave-h">In Favorites and Recently used</p><div class="sc-cards">${cardList(fh)}</div>`;
+    } else if (tab === "faves") {
+      /* Both sections at once: Recently used on top, then everything starred. */
+      faveHtml = groups.map((g) => `<p class="sc-grid-h sc-fave-h" id="sc-${g.id.replace(":", "-")}">${esc(g.label)}</p>${g.items.length ? `<div class="sc-cards">${cardList(g.items)}</div>` : `<p class="sc-k sc-fave-empty">${esc(g.empty)}</p>`}`).join("");
     } else {
       const g = groups.find((x) => x.id === gid);
       head = g ? g.label : "Nothing here yet";
@@ -659,7 +1347,8 @@
     const grid = page.querySelector(".sc-grid");
     const had = grid.querySelector("[data-lib-search]");
     const focused = had && document.activeElement === had;
-    grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}"><p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>`;
+    const body = tab === "faves" && !q ? faveHtml : `<p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>${faveHtml}`;
+    grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}">${body}`;
     if (focused) {
       const inp = grid.querySelector("[data-lib-search]");
       inp.focus();
@@ -695,6 +1384,309 @@
     const marks = (fires || []).map((f) => `<i class="sc-fire" style="left:${((f.beat + 0.5) / n) * 100}%;opacity:${0.35 + 0.65 * (f.strength || 1)}" title="Happens at beat ${f.beat + 1}"></i>`).join("");
     return `<div class="sc-scrub" data-scrub="${kind}" data-id="${esc(id || "")}" title="Click to move the playhead">${beats.map((b, i) => `<b class="${i === current ? "on" : ""}" style="width:${100 / n}%"></b>`).join("")}${marks}</div>`;
   }
+  /* CapCut's Ratio menu: my film's frame shape is Canvas edges' "Frame shape" slider, a node at the playhead.
+     The Player's frame of my film takes that shape (the picture cropped to fill it); inspiration films keep their own. */
+  const RATIO = "canvasFill.ratio";
+  const ratioOpts = () => (S() && S().known(RATIO) ? S().domain(RATIO).options || [] : []);
+  function ratioShape() {
+    const v = ratioOpts().length ? String(valueHere(RATIO) || "") : "";
+    return /9:16/.test(v) ? "vertical" : /1:1/.test(v) ? "square" : /2\.39/.test(v) ? "cinema" : "wide";
+  }
+  /* ---------- Guides (CapCut's Player guides) ----------
+     Lines over My film's picture to help place things, any combination, following the Ratio frame shape. They
+     are a view setting (prefs.guides, a list of ids), not part of the film and not undo steps. "Where attention
+     is" glows on the part of the picture the moment's attention sits on: CurioFrame doesn't hand out where it
+     drew things, so guideSpot works it out from the same values and the same placement rules frame.js uses. */
+  const GUIDES = [
+    ["thirds", "Thirds", "Thirds: put the important thing where the lines cross; pictures feel more alive than when it's dead center."],
+    ["center", "Center cross", "Center cross: marks the exact middle, for things you want perfectly balanced or straight on."],
+    ["safe", "Safe areas", "Safe areas: keep words inside the inner box and action inside the outer one, so no screen cuts them off at the edges."],
+    ["golden", "Golden ratio", "Golden ratio: like thirds but a little nearer the middle; an old painters' rule for a calm, pleasing balance."],
+    ["attention", "Where attention is", "Where attention is: a soft glow on the part of the picture the audience is looking at in this moment."],
+  ];
+  let guidesOpen = false;
+  function guidesOn() {
+    const g = prefs.guides;
+    if (g === true) return ["thirds"]; /* an older save kept one switch: the thirds grid (⌘;) */
+    return Array.isArray(g) ? GUIDES.map((x) => x[0]).filter((id) => g.includes(id)) : [];
+  }
+  function setGuide(id, on) {
+    const cur = guidesOn();
+    prefs.guides = GUIDES.map((x) => x[0]).filter((k) => (k === id ? !!on : cur.includes(k)));
+    save();
+  }
+  /* Where the moment's attention sits in the frame's own 320×180 drawing: { x, y, rx, ry, family, what }.
+     Mirrors frame.js: the horizon from the angle, the size from the shot, the main character first in line
+     (or left of center when the composition says so), the speech balloon, the music notes, the window. */
+  function guideSpot(values, family, cast) {
+    const v = values || {};
+    const W = (F() && F().W) || 320;
+    const H = (F() && F().H) || 180;
+    const num = (x, d) => (x == null || x === "" || !isFinite(Number(x)) ? d : Number(x));
+    const shot = String(v.shotSize || "medium");
+    const angle = String(v.angleHeight || "eye");
+    const horizon = angle === "low" ? 140 : angle === "high" ? 70 : /overhead/.test(angle) ? 30 : /floor/.test(angle) ? 160 : 112;
+    const s = shot === "wide" ? 0.75 : shot === "close" ? 2.6 : shot === "insert" ? 1 : 1.35;
+    const n = shot === "close" ? 1 : Math.max(1, Math.min(6, num(cast, num(v.peopleCount, 2))));
+    const floorY = shot === "close" ? H + 120 : Math.min(H - 6, horizon + 40 + (shot === "wide" ? 0 : 20));
+    const span = shot === "wide" ? 200 : 170;
+    const x = n === 1 ? (/left/.test(String(v.composition || "")) ? W * 0.36 : W / 2) : W / 2 - span / 2;
+    const top = floorY - 74 * s;
+    const foot = Math.min(floorY, H);
+    const insert = shot === "insert";
+    const face = { x, y: floorY - 65 * s, rx: Math.max(18, 20 * s), ry: Math.max(16, 18 * s), what: "the main character's face" };
+    const body = { x, y: (top + foot) / 2, rx: Math.max(20, 22 * s), ry: (foot - top) / 2 + 6, what: "the main character" };
+    const person = (p) => (insert ? { x: W / 2, y: H / 2, rx: 56, ry: 42, what: "the object in the shot" } : p);
+    const vol = num(v.volume, 0);
+    const words = num(v.wordsAmount, vol ? 2 : 0);
+    const f = String(family || "");
+    let spot;
+    if (/^(feeling|mind|plot)$/.test(f)) spot = person(face);
+    else if (f === "voice") spot = words > 0 && !insert ? { x: W * 0.3, y: 28, rx: 28 + vol * 5, ry: 18 + vol * 1.5, what: "what is being said" } : person(face);
+    else if (/^(movement|wardrobe|camera)$/.test(f)) spot = person(body);
+    else if (f === "comedy") spot = v.physicalComedy && !insert ? { x: W / 2 + 48, y: floorY - 52, rx: 26, ry: 24, what: "the gag" } : num(v.laughsPerMinute, 0) > 0 ? { x: W - 48, y: H - 22, rx: 42, ry: 22, what: "the laughs" } : person(face);
+    else if (f === "music") spot = { x: 34, y: H - 16, rx: 40, ry: 22, what: "the music" };
+    else if (/^(place|light)$/.test(f)) spot = { x: W - 56, y: Math.max(8, horizon - 70) + 22, rx: 46, ry: 36, what: f === "light" ? "the light from the window" : "the set" };
+    else if (f) spot = { x: W / 2, y: H / 2, rx: W * 0.32, ry: H * 0.38, what: "the whole picture" };
+    else spot = Object.assign({}, person(face), { what: insert ? "the object in the shot" : "the main character's face, where the eye goes first" });
+    const r = (k) => Math.round(k * 10) / 10;
+    return { x: r(spot.x), y: r(Math.max(0, Math.min(H, spot.y))), rx: r(spot.rx), ry: r(spot.ry), family: f || null, what: spot.what };
+  }
+  function guidesHtml(vals, att, shape) {
+    const on = guidesOn();
+    if (!on.length) return "";
+    const line = (k, p) => `<i class="sc-gd-${k}" style="${k === "v" ? "left" : "top"}:${p}%"></i>`;
+    const lines = (ps) => ps.map((p) => line("v", p) + line("h", p)).join("");
+    const W = F().W;
+    const H = F().H;
+    const part = {
+      thirds: () => lines([33.333, 66.667]),
+      golden: () => lines([38.197, 61.803]),
+      center: () => `<i class="sc-gd-cross"></i>`,
+      safe: () => `<div class="sc-gd-box action"><span>keep action inside</span></div><div class="sc-gd-box title"><span>keep words inside</span></div>`,
+      attention: () => {
+        const s = guideSpot(vals, att && att.family, castOf());
+        const el = `cx="${s.x}" cy="${s.y}" rx="${s.rx}" ry="${s.ry}"`;
+        return `<svg class="sc-gd-att" viewBox="0 0 ${W} ${H}"${shape === "wide" ? "" : ' preserveAspectRatio="xMidYMid slice"'} data-family="${esc(s.family || "")}"><defs><radialGradient id="sc-gd-hole"><stop offset="0.55" stop-color="#000"/><stop offset="1" stop-color="#fff"/></radialGradient><mask id="sc-gd-mask"><rect width="${W}" height="${H}" fill="#fff"/><ellipse ${el} fill="url(#sc-gd-hole)"/></mask></defs><rect width="${W}" height="${H}" fill="rgba(0,0,0,0.38)" mask="url(#sc-gd-mask)"/><ellipse class="sc-gd-spot" ${el} fill="none" stroke="#ffd34d" stroke-width="1.5" stroke-dasharray="4 3"/></svg><span class="sc-gd-cap">Eyes on: ${esc(s.what)}</span>`;
+      },
+    };
+    return `<div class="sc-gd" aria-hidden="true">${on.map((id) => `<div class="sc-gd-g" data-gd="${id}">${part[id]()}</div>`).join("")}</div>`;
+  }
+  function guidesMenuHtml() {
+    const on = guidesOn();
+    return `<span class="sc-guides"><button type="button" data-act="guides-menu" class="${on.length ? "on" : ""}" aria-haspopup="true" aria-expanded="${guidesOpen}" title="Guides: lines over your film's picture to help you place things. They don't change your film.">Guides${on.length ? " · " + on.length : ""} ▾</button>${
+      guidesOpen
+        ? `<div class="sc-guides-menu" role="group" aria-label="Guides over my film">${GUIDES.map(([id, l, t]) => `<label title="${esc(t)}"><input type="checkbox" data-guide="${id}"${on.includes(id) ? " checked" : ""}> ${esc(l)}</label>`).join("")}<p>Only over your film, in its frame shape. Hover over one to see what it is for.</p></div>`
+        : ""
+    }</span>`;
+  }
+  /* ---------- Compare ◐ (CapCut's before/after compare slider) ----------
+     Splits My film's frame: left of a line you can drag is another picture, right is My film at the playhead.
+     The other picture is the film you're learning from at the matching moment (the picked inspiration viewer,
+     else the first, its beats stretched over your film the way Blend and the film lines read it), or your film
+     when you opened the Screen. The engine's history keeps only the names of its undo steps, not the film
+     before them, so "before my last change" can't be shown; a copy taken when the Screen opens stands in.
+     A view setting (prefs.compare: { on, split, with }), never an undo step. */
+  const COMPARE_WITH = [
+    ["insp", "The film I'm learning from"],
+    ["open", "When I opened the Screen"],
+  ];
+  let openSnap = null;
+  function takeOpenSnap() {
+    if (!E()) return;
+    const st = E().state();
+    let res = null;
+    try {
+      res = E().rewrite(st);
+    } catch (err) {}
+    openSnap = res ? { st, res } : null;
+  }
+  function compareNow() {
+    const c = prefs.compare && typeof prefs.compare === "object" ? prefs.compare : {};
+    const split = Number(c.split);
+    return { on: !!c.on, split: c.split != null && isFinite(split) ? Math.max(0, Math.min(100, split)) : 50, with: COMPARE_WITH.some((x) => x[0] === c.with) ? c.with : "insp" };
+  }
+  function setCompare(change) {
+    prefs.compare = Object.assign(compareNow(), change);
+    save();
+  }
+  /* My film's values at moment i as it was when the Screen opened (same moment by its id, else by its place). */
+  function openValues(i) {
+    if (!openSnap) takeOpenSnap();
+    if (!openSnap) return null;
+    const { st, res } = openSnap;
+    const now = E().state().rows[i];
+    const r = (now && st.rows.find((x) => x.id === now.id)) || st.rows[Math.min(i, st.rows.length - 1)];
+    if (!r) return null;
+    const values = {};
+    st.tracks
+      .slice()
+      .sort((a, b) => rank(a) - rank(b))
+      .forEach((t) => t.curiosities.forEach((c) => values[c] == null && (values[c] = res.dest[E().cellKey(r.id, t.id, c)])));
+    Object.keys(values).forEach((k) => /\.setting$/.test(k) && values[L().base(k)] == null && (values[L().base(k)] = values[k]));
+    return values;
+  }
+  /* The picture on the left: { values, label, title, cast } or { none: "why" }. */
+  function compareSide(c, i) {
+    if (c.with === "open") {
+      const values = openValues(i);
+      return values ? { values, label: "When I opened the Screen", title: "Your film at this moment when you opened the Screen", cast: castOf() } : { none: "Nothing kept from when you opened the Screen." };
+    }
+    const v = prefs.insp.find((x) => x.id === prefs.focus) || prefs.insp[0];
+    const f = v && film(v.film);
+    if (!f || !f.beats.length) return { none: "Add an inspiration film to compare with." };
+    const b = beatFor(f);
+    const values = f.beats[b].values || {};
+    return { values, label: "Learning from: " + filmTitle(f), title: filmTitle(f) + ", beat " + (b + 1) + ", the moment that matches yours", cast: Number(values.peopleCount) || 2 };
+  }
+  function compareHtml(i, shape, sel) {
+    const c = compareNow();
+    if (!c.on || !F()) return "";
+    const side = compareSide(c, i);
+    if (side.none) return `<div class="sc-cmp" data-cmp="${c.with}"><span class="sc-cmp-lab l">${esc(side.none)}</span></div>`;
+    let svg = F().svg(side.values, Object.assign(frameOpts(sel, side.values), { title: "", cast: side.cast }));
+    svg = svg.replace("<svg ", `<svg preserveAspectRatio="xMidYMid ${shape === "wide" ? "meet" : "slice"}" `);
+    const pct = Math.round(c.split);
+    return `<div class="sc-cmp" data-cmp="${c.with}" style="--cmp:${pct}%"><div class="sc-cmp-pic" aria-hidden="true">${svg}</div><span class="sc-cmp-lab l" title="${esc(side.title)}">${esc(side.label)}</span><span class="sc-cmp-lab r">My film now</span><div class="sc-cmp-line" data-cmp-line tabindex="0" role="slider" aria-label="Where the split is: drag, or use the left and right arrow keys" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" title="Drag to move the split, or press ← →"></div></div>`;
+  }
+  function compareMenuHtml() {
+    const c = compareNow();
+    return `<span class="sc-cmp-set"><button type="button" data-act="compare" class="${c.on ? "on" : ""}" aria-pressed="${c.on}" title="Compare: split your film's picture with a line you can drag. Left of the line is another picture, right is your film now. It doesn't change your film.">Compare ◐</button><select data-compare-with aria-label="Compare my film with" title="What to show left of the line">${COMPARE_WITH.map(([id, l]) => `<option value="${id}"${c.with === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></span>`;
+  }
+  /* Move the split without redrawing, so the line keeps focus and the drag stays smooth. */
+  function moveSplit(pct, keep) {
+    const v = Math.round(Math.max(0, Math.min(100, pct)) * 10) / 10;
+    prefs.compare = Object.assign(compareNow(), { split: v });
+    const box = page && page.querySelector(".sc-cmp");
+    if (box) {
+      box.style.setProperty("--cmp", v + "%");
+      const line = box.querySelector("[data-cmp-line]");
+      if (line) line.setAttribute("aria-valuenow", String(Math.round(v)));
+    }
+    if (!keep) save();
+  }
+  function onCompareDrag(e) {
+    const line = e.target.closest && e.target.closest("[data-cmp-line]");
+    if (!line || e.button > 0) return false;
+    const frame = line.closest(".sc-frame");
+    const at = (ev) => {
+      const r = frame.getBoundingClientRect();
+      return r.width ? ((ev.clientX - r.left) / r.width) * 100 : compareNow().split;
+    };
+    line.focus();
+    const move = (ev) => moveSplit(at(ev), true);
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      save();
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+    return true;
+  }
+  document.addEventListener("keydown", (e) => {
+    const line = e.target && e.target.closest && e.target.closest("[data-cmp-line]");
+    if (!line || !/^(ArrowLeft|ArrowRight|Home|End)$/.test(e.key)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const step = e.shiftKey ? 10 : 2;
+    const cur = compareNow().split;
+    moveSplit(e.key === "Home" ? 0 : e.key === "End" ? 100 : cur + (e.key === "ArrowRight" ? step : -step));
+  }, true);
+  /* ---------- Captions (CapCut's captions, made from your markers) ----------
+     A subtitle at the bottom of My film's frame for the moment at the playhead: the marker's note if the
+     moment has one (an auto marker from Mark the turns says "(auto)" faintly), otherwise, if you ask for it,
+     a dimmer "What's happening" line of the moment's biggest changes since the moment before, written by the
+     Export sheet's own "what changed" helper. A view setting (prefs.captions: { on, mode }), never an undo step. */
+  const CAPTION_MODES = [
+    ["notes", "My notes only"],
+    ["changes", "My notes and what changes"],
+  ];
+  function captionsNow() {
+    const c = prefs.captions && typeof prefs.captions === "object" ? prefs.captions : {};
+    return { on: !!c.on, mode: CAPTION_MODES.some((x) => x[0] === c.mode) ? c.mode : "notes" };
+  }
+  function setCaptions(change) {
+    prefs.captions = Object.assign(captionsNow(), change);
+    save();
+  }
+  /* The caption as plain data: { kind: "note" | "auto" | "hint" | "", text, color }. Pure, so tests can call it.
+     o: { marker, prev, cur, mode, keys, label(k), text(k, v), size(k, a, b) }; size says how big a change is
+     (0 to 1) so the biggest come first; without it the keys keep their order. */
+  function captionFor(o) {
+    const m = o && o.marker;
+    const note = m && typeof m.note === "string" ? m.note.trim() : "";
+    if (note) return { kind: m.auto ? "auto" : "note", text: note, color: m.color || "" };
+    if (!o || o.mode !== "changes" || !o.prev || !o.cur) return { kind: "", text: "", color: "" };
+    const prev = o.prev;
+    const cur = o.cur;
+    const keys = (o.keys || Object.keys(cur)).filter((k) => prev[k] != null && cur[k] != null && String(prev[k]) !== String(cur[k]));
+    const big = (k) => {
+      const n = o.size ? o.size(k, prev[k], cur[k]) : null;
+      return n != null && isFinite(Number(n)) ? Number(n) : 0.5;
+    };
+    const order = o.size ? keys.map((k, i) => [k, big(k), i]).sort((a, b) => b[1] - a[1] || a[2] - b[2]).map((x) => x[0]) : keys;
+    const text = EXPORT.changes(prev, cur, { keys: order, label: o.label || String, text: o.text, max: 2 });
+    return { kind: text ? "hint" : "", text, color: "" };
+  }
+  /* My film's values with "x.setting" left out when it repeats its curiosity's own value, as the Export does. */
+  const capValues = (vals) => {
+    const out = {};
+    Object.keys(vals || {}).forEach((k) => (/\.setting$/.test(k) && vals[L().base(k)] != null ? null : (out[k] = vals[k])));
+    return out;
+  };
+  function captionAt(beats, i) {
+    const c = captionsNow();
+    if (!c.on || !beats[i]) return null;
+    const cur = capValues(beats[i].values);
+    const prev = i > 0 && beats[i - 1] ? capValues(beats[i - 1].values) : null;
+    const lanesFirst = (prefs.lanes || []).filter((k) => k in cur);
+    const keys = lanesFirst.concat(Object.keys(cur).filter((k) => !lanesFirst.includes(k)));
+    const size = (k, a, b) => {
+      try {
+        if (!S() || !S().known(k)) return null;
+        const pa = S().pos(k, a);
+        const pb = S().pos(k, b);
+        return pa == null || pb == null ? null : Math.abs(pa - pb);
+      } catch (e) {
+        return null;
+      }
+    };
+    return captionFor({ marker: exportMarkers()[String(beats[i].row)], prev, cur, mode: c.mode, keys, label: labelOf, text: valueText, size });
+  }
+  function captionHtml(beats, i) {
+    const cap = captionAt(beats, i);
+    if (!cap || !cap.kind) return "";
+    const said = cap.kind === "hint" ? `<span class="sc-cap-k">What's happening</span> ${esc(cap.text)}` : esc(cap.text) + (cap.kind === "auto" ? ` <span class="sc-cap-auto">(auto)</span>` : "");
+    const tip = cap.kind === "hint" ? "What changed since the moment before (a hint, not your words)" : cap.kind === "auto" ? "The note Mark the turns put on this moment" : "Your marker's note on this moment";
+    return `<div class="sc-cap" data-cap="${cap.kind}" title="${esc(tip)}"><p>${said}</p></div>`;
+  }
+  /* A marker's note can change in the timeline without the film changing: update the caption right after a
+     click, a key or typing, without redrawing the Player. */
+  function refreshCaption() {
+    if (!page || page.hidden || !captionsNow().on) return;
+    const frame = page.querySelector(".sc-viewer.mine .sc-frame");
+    if (!frame) return;
+    const beats = mineBeats();
+    const html = captionHtml(beats, Math.min(row, beats.length - 1));
+    const old = frame.querySelector(".sc-cap");
+    if ((old ? old.outerHTML : "") === html) return;
+    if (old) old.remove();
+    if (html) frame.insertAdjacentHTML("beforeend", html);
+    frame.classList.toggle("sc-cap-on", !!html);
+  }
+  let capTimer = null;
+  const capSoon = () => {
+    if (capTimer || !captionsNow().on) return;
+    capTimer = setTimeout(() => ((capTimer = null), refreshCaption()), 0);
+  };
+  /* The select shows only while Captions is on, so the transport bar keeps its room when they're off. */
+  function captionsMenuHtml() {
+    const c = captionsNow();
+    const pick = `<select data-captions-mode aria-label="What the captions show" title="What the captions show">${CAPTION_MODES.map(([id, l]) => `<option value="${id}"${c.mode === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+    return `<span class="sc-cap-set"><button type="button" data-act="captions" class="${c.on ? "on" : ""}" aria-pressed="${c.on}" title="Captions: your marker's note on this moment at the bottom of your film's picture, like subtitles. They don't change your film.">Captions</button>${c.on ? pick : ""}</span>`;
+  }
   function viewerHtml(kind, v) {
     const sel = selection();
     if (kind === "mine") {
@@ -703,9 +1695,13 @@
       const vals = beats[i] ? beats[i].values : {};
       const fires = L().fires(prefs.sel.level, prefs.sel.id, beats);
       const att = attentionAt(beats, i);
+      /* A frame shape other than wide crops the storyboard picture to fill it, as reframing a shot would. */
+      const shape = ratioShape();
+      const fill = (svg) => (shape === "wide" ? svg : svg.replace("<svg ", '<svg preserveAspectRatio="xMidYMid slice" '));
+      const cap = captionHtml(beats, i);
       return `<article class="sc-viewer mine${prefs.focus === "mine" ? " focus" : ""}" data-viewer="mine">
         <header><button type="button" class="sc-vname" data-focus="mine">My film</button><span class="sc-vsub">${esc(E() ? E().state().name : "")} · moment ${i + 1} of ${beats.length}</span></header>
-        <div class="sc-frame" data-focus="mine">${F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) }))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
+        <div class="sc-frame${compareNow().on ? " sc-cmp-on" : ""}${cap ? " sc-cap-on" : ""}" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${compareHtml(i, shape, sel)}${guidesHtml(vals, att, shape)}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}${cap}</div>
         ${scrub(beats, i, fires, "mine")}
         <p class="sc-vnote">${fires.length ? `${esc(sel.label)} shows up ${fires.length} time${fires.length === 1 ? "" : "s"} in your film.` : `${esc(sel.label)} does not show up in your film yet.`}</p>
       </article>`;
@@ -837,7 +1833,7 @@
     showTimelineWindow();
     page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
-      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span></span>`;
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}${compareMenuHtml()}${captionsMenuHtml()}</span>`;
   }
 
   /* ---------- the inspector ---------- */
@@ -890,6 +1886,27 @@
     const t = k === "here" ? "A key (node) is set here; click to take it off" : k === "lane" ? "Automated, no key at this moment; click to set one" : "Not automated yet; click to set a key here and put it on the timeline";
     return `<button type="button" class="sc-key ${k || "none"}" data-key="${esc(id)}" title="${t}" aria-label="${esc(t)}: ${esc(labelOf(id))}">${k === "here" ? "◆" : "◇"}</button>`;
   }
+  /* CapCut's ◀ ◆ ▶ beside a keyframed setting: jump to the key before or after the playhead (Details rows only;
+     the windows keep the bare diamond). Shown once the lane has a node; an arrow with no key that way is greyed. */
+  function keyNav(id) {
+    const st = E() && E().state();
+    const t = st && st.tracks.find((x) => x.curiosities.includes(id));
+    const lane = t && st.lanes[t.id + "|" + id];
+    if (!lane) return null;
+    const at = st.rows.map((r, j) => (lane.points[r.id] != null ? j : -1)).filter((j) => j >= 0);
+    if (!at.length) return null;
+    return { prev: at.filter((j) => j < row).pop() ?? -1, next: at.find((j) => j > row) ?? -1 };
+  }
+  function keyNavBtns(id, ctx) {
+    const k = keyBtn(id, ctx);
+    const n = k && keyNav(id);
+    if (!n) return k;
+    const b = (dir, j) => {
+      const t = j < 0 ? `No key ${dir === "prev" ? "before" : "after"} this moment` : `Jump to the ${dir === "prev" ? "previous" : "next"} key (node), at moment ${j + 1}`;
+      return `<button type="button" class="sc-knav-b" data-key-jump="${j < 0 ? "" : j}" data-dir="${dir}"${j < 0 ? " disabled" : ""} title="${t}" aria-label="${esc(t)}: ${esc(labelOf(id))}">${dir === "prev" ? "◀" : "▶"}</button>`;
+    };
+    return `<span class="sc-knav">${b("prev", n.prev)}${k}${b("next", n.next)}</span>`;
+  }
   /* Momentum, the heart of the app: how the picked curiosity moves the story and the audience's attention. */
   function momentumBox(m) {
     const push = Math.max(0, Math.min(5, Number(m.push) || 0));
@@ -909,13 +1926,262 @@
     return `<div class="sc-cur${sel ? " sel" : ""}">
       <div class="sc-cur-top">
         <button type="button" class="sc-cur-name" data-select-cur="${esc(c.id)}" title="${esc(c.plain || "")}">${esc(c.label)}</button>
-        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win sc-finetune" data-open-win="${esc(c.id)}" title="Fine-tune ${esc(c.label)}: every setting inside it (${fine.length + 1}), each its own lane, or say what you want" aria-label="Fine-tune ${esc(c.label)}">Fine-tune</button>
+        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win sc-finetune" data-open-win="${esc(c.id)}" title="Fine-tune ${esc(c.label)}: every setting inside it (${fine.length + 1}), each its own lane, or say what you want" aria-label="Fine-tune ${esc(c.label)}">Fine-tune</button>${ctx.edit && S() && S().known(key) ? `<button type="button" class="sc-cur-more" data-cur-menu="${esc(key)}" aria-haspopup="menu" aria-expanded="false" title="More for ${esc(c.label)}: use this setting all through the film or in the selected stretch, reset it, or clear its lane" aria-label="More for ${esc(c.label)}">⋯</button>` : ""}
       </div>
-      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyBtn(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
+      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyNavBtns(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
       ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
       ${sel && c.momentum ? momentumBox(c.momentum) : ""}
-      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyBtn(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
+      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyNavBtns(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
     </div>`;
+  }
+  /* The ⋯ menu on a Details row (CapCut's "Apply to all" and Reset): four ways to spread or take back one lane's
+     setting, each one undo step (APPLY builds the commands). It opens under the row's name, is reached with Tab,
+     moves with the arrow keys and closes on Esc or a click anywhere else. */
+  let curMenu = null; /* { key, btn } while a row's menu is open */
+  function curArea() {
+    const a = lanes && lanes.area && lanes.area();
+    return a && Number.isFinite(a.j0) && Number.isFinite(a.j1) ? { j0: Math.min(a.j0, a.j1), j1: Math.max(a.j0, a.j1) } : null;
+  }
+  function closeCurMenu(focusBack) {
+    const m = page && page.querySelector(".sc-cur-menu");
+    const had = curMenu;
+    curMenu = null;
+    if (m) m.remove();
+    if (had && had.btn && had.btn.isConnected) {
+      had.btn.setAttribute("aria-expanded", "false");
+      if (focusBack) had.btn.focus();
+    }
+    return !!m;
+  }
+  function openCurMenu(btn) {
+    const key = btn.dataset.curMenu;
+    const was = curMenu && curMenu.key === key && page.querySelector(".sc-cur-menu");
+    closeCurMenu();
+    if (was) return;
+    const ar = curArea();
+    const items = [
+      ["all", "Use this all through the film", "The setting at the playhead from the first moment to the last, flat"],
+      ar && ["stretch", "Use this in the selected stretch", `The setting at the playhead held from moment ${ar.j0 + 1} to moment ${ar.j1 + 1}`],
+      ["reset", "Reset to how the scene starts", "Take off this lane's nodes after the first moment"],
+      ["clear", "Clear this lane", "Take every node off this lane"],
+    ].filter(Boolean);
+    const m = document.createElement("div");
+    m.className = "sc-cur-menu";
+    m.setAttribute("role", "menu");
+    m.setAttribute("aria-label", "More for " + labelOf(key));
+    m.innerHTML = items.map(([id, l, tip]) => `<button type="button" role="menuitem" data-cur-apply="${id}" data-cur="${esc(key)}"><b>${esc(l)}</b><small>${esc(tip)}</small></button>`).join("");
+    m.addEventListener("keydown", onCurMenuKey);
+    btn.closest(".sc-cur-top").after(m);
+    btn.setAttribute("aria-expanded", "true");
+    curMenu = { key, btn };
+    m.querySelector("button").focus();
+  }
+  function onCurMenuKey(e) {
+    const list = [...e.currentTarget.querySelectorAll("[data-cur-apply]")];
+    const i = list.indexOf(document.activeElement);
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      return closeCurMenu(true);
+    }
+    if (e.key === "Tab") return closeCurMenu();
+    const to = e.key === "ArrowDown" ? (i + 1) % list.length : e.key === "ArrowUp" ? (i - 1 + list.length) % list.length : e.key === "Home" ? 0 : e.key === "End" ? list.length - 1 : -1;
+    if (to < 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    list[to].focus();
+  }
+  /* Carry out a menu item on curiosity key's lane, and say what happened in the status line. */
+  function applyCur(kind, key) {
+    const st = E() && E().state();
+    if (!st || !S()) return;
+    const name = labelOf(key);
+    const n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
+    let track = (trackHas(key, st) || {}).id;
+    let add = false;
+    if (!track && (kind === "reset" || kind === "clear")) return toast(`${name} has no nodes, so there is nothing to ${kind === "reset" ? "reset" : "clear"}.`);
+    if (!track) {
+      track = window.CurioLanes && window.CurioLanes.trackFor(key, st);
+      if (!track) return toast("Every track is full; remove a lane in Arrange first.");
+      add = true;
+    }
+    if (window.CurioLanes && window.CurioLanes.isLocked && window.CurioLanes.isLocked(track + "|" + key)) return toast(`${name} is locked (the 🔒 by its name on the timeline), so nothing was changed. Click the 🔒 to unlock it first.`);
+    const r = st.rows[row];
+    const here = r ? S().fix(key, add ? S().start(key) : E().value(r.id, track, key)) : null;
+    let res;
+    let label;
+    let said;
+    if (kind === "all") {
+      res = APPLY.allFilm(st, track, key, here, add);
+      label = `${name}: ${here} all through the film`;
+      said = () => `${name} is now ${here} all through the film: one node at moment 1${res.removed ? `, ${n(res.removed, "other node", "other nodes")} taken off` : ""}, and the lane jumps so it stays flat. Undo takes it back.`;
+    } else if (kind === "stretch") {
+      const ar = curArea();
+      if (!ar) return toast("Select a stretch of moments on the timeline first (drag across empty space in the lanes).");
+      res = APPLY.stretch(st, track, key, here, ar.j0, ar.j1, add);
+      label = `${name}: ${here} from moment ${ar.j0 + 1} to ${ar.j1 + 1}`;
+      said = () => `${name} holds at ${here} from moment ${res.from + 1} to moment ${res.to + 1}${res.removed ? `; ${n(res.removed, "node", "nodes")} in between taken off` : ""}. Undo takes it back.`;
+    } else if (kind === "reset") {
+      res = APPLY.reset(st, track, key, st.rows[0] ? S().fix(key, E().value(st.rows[0].id, track, key)) : null);
+      label = `Reset ${name} to how the scene starts`;
+      said = () => `${name} is back to how the scene starts: ${n(res.removed, "node", "nodes")} after the first moment taken off. Undo takes it back.`;
+    } else if (kind === "clear") {
+      res = APPLY.clear(st, track, key);
+      label = `Clear the ${name} lane`;
+      said = () => `${name}'s lane is clear: ${n(res.removed, "node", "nodes")} taken off. Undo takes it back.`;
+    } else return;
+    if (res.error) return toast(res.error);
+    if (kind === "all" || kind === "stretch") {
+      showLane(key);
+      save();
+    }
+    const out = E().send({ type: "batch", label, commands: res.cmds });
+    if (!out.ok) return toast(out.error || "That did not work, so nothing was changed.");
+    toast(said());
+  }
+  /* ---------- Look ▾ in Details' header for My film: copy a whole moment's look, paste it elsewhere ----------
+     The copied look lives in memory and in sessionStorage (this tab only), never in the film and never in undo.
+     LOOK builds the commands; these read the engine, write one batch and say what happened. */
+  const LOOK_KEY = "curiosities-screen-look-v1";
+  let look; /* undefined until first read from sessionStorage */
+  let lookOpen = false;
+  function lookNow() {
+    if (look === undefined) {
+      look = null;
+      try {
+        look = LOOK.clean(JSON.parse(sessionStorage.getItem(LOOK_KEY)));
+      } catch (e) {}
+    }
+    return look;
+  }
+  function lookHelpers(st) {
+    const CL = window.CurioLanes;
+    return {
+      value: (rid, track, cur) => E().value(rid, track, cur),
+      trackOf: (cur) => (trackHas(cur, st) || {}).id || null,
+      trackFor: (cur) => (CL && CL.trackFor ? CL.trackFor(cur, st) : null),
+      locked: (lk) => !!(CL && CL.isLocked && CL.isLocked(lk)),
+      fix: (cur, v) => S().fix(cur, v),
+      start: (cur) => S().start(cur),
+      known: (cur) => S().known(cur),
+      limit: E().LIMIT && E().LIMIT.perTrack,
+    };
+  }
+  const nSettings = (k) => `${k} ${k === 1 ? "setting" : "settings"}`;
+  function lookCopy() {
+    closeLook();
+    const st = E() && S() && E().state();
+    if (!st) return toast("Your film is not loaded yet.");
+    const res = LOOK.copy(st, row, lookHelpers(st));
+    if (res.error) return toast(res.error);
+    look = res;
+    try {
+      sessionStorage.setItem(LOOK_KEY, JSON.stringify(res));
+    } catch (e) {}
+    drawInspector();
+    toast(`Copied moment ${row + 1}'s look: ${nSettings(res.count)}.`);
+  }
+  /* where: "here" (the playhead's moment) or "stretch" (the stretch selected on the timeline). */
+  function lookPaste(where) {
+    closeLook();
+    const lk = lookNow();
+    if (!lk) return toast("Copy a moment's look first: Look ▾ in Details, Copy this moment's look (or ⌥⌘C).");
+    const st = E() && S() && E().state();
+    if (!st) return toast("Your film is not loaded yet.");
+    let a = row;
+    let b = row;
+    if (where === "stretch") {
+      const ar = curArea();
+      if (!ar) return toast("Select a stretch of moments on the timeline first (drag across empty space in the lanes).");
+      a = ar.j0;
+      b = ar.j1;
+    }
+    const h = lookHelpers(st);
+    const res = LOOK.paste(st, lk, a, b, h);
+    if (res.error) return toast(res.error);
+    const names = (list) => list.slice(0, 3).map(labelOf).join(", ") + (list.length > 3 ? ` and ${list.length - 3} more` : "");
+    const onto = res.from === res.to ? `moment ${res.from + 1}` : `moments ${res.from + 1} to ${res.to + 1}`;
+    const src = `moment ${lk.from + 1}'s look`;
+    const extra =
+      (res.locked.length ? ` ${res.locked.length} locked ${res.locked.length === 1 ? "lane was" : "lanes were"} skipped (${names(res.locked)}).` : "") +
+      (res.full.length ? ` ${res.full.length} could not go on a track because every track is full (${names(res.full)}).` : "");
+    if (!res.changed.length) return toast(`Nothing changed: ${onto} already ${res.from === res.to ? "has" : "plays"} ${src} (${nSettings(res.matched.length)} already matched).${extra}`);
+    const out = E().send({ type: "batch", label: `Paste ${src} onto ${onto}`, commands: res.cmds });
+    if (!out.ok) return toast(out.error || "That did not work, so nothing was changed.");
+    /* A link or a pin can still change what plays (the engine lays them on after the nodes); say so plainly. */
+    const st2 = E().state();
+    const off = res.changed.filter((cur) => {
+      const t = h.trackOf(cur) || (trackHas(cur, st2) || {}).id;
+      if (!t) return false;
+      for (let j = res.from; j <= res.to; j++) if (String(S().fix(cur, E().value(st2.rows[j].id, t, cur))) !== String(S().fix(cur, lk.values[cur]))) return true;
+      return false;
+    });
+    const how = res.from === res.to ? "" : ", held from start to end";
+    toast(
+      `Pasted ${src} onto ${onto}: ${nSettings(res.changed.length)} changed${how}, ${res.matched.length} already matched.` +
+        extra +
+        (off.length ? ` ${off.length} still ${off.length === 1 ? "plays" : "play"} differently because a link or a pin changes ${off.length === 1 ? "it" : "them"} (${names(off)}).` : "") +
+        " Undo takes it back."
+    );
+  }
+  function lookMenuHtml() {
+    const lk = lookNow();
+    const ar = curArea();
+    const item = (id, l, tip, off) => `<button type="button" role="menuitem" data-look="${id}"${off ? " disabled" : ""}><b>${esc(l)}</b><small>${esc(tip)}</small></button>`;
+    return `<span class="sc-mlook"><button type="button" class="sc-mlook-b" data-look-menu aria-haspopup="menu" aria-expanded="${lookOpen}" title="Copy every setting this moment plays, then paste that look onto another moment (CapCut's Copy and Paste attributes)">Look ▾</button>${
+      lookOpen
+        ? `<div class="sc-mlook-menu" role="menu" aria-label="This moment's look">${item("copy", "Copy this moment's look", `Every setting My film plays at moment ${row + 1}`)}${item(
+            "paste",
+            "Paste the look here",
+            lk ? `Moment ${lk.from + 1}'s look (${nSettings(lk.count)}) onto moment ${row + 1}` : "Copy a moment's look first"
+          , !lk)}${ar ? item("stretch", "Paste into the selected stretch", lk ? `Moment ${lk.from + 1}'s look held from moment ${ar.j0 + 1} to moment ${ar.j1 + 1}` : "Copy a moment's look first", !lk) : ""}<p class="sc-mlook-foot">⌥⌘C copies, ⌥⌘V pastes. One undo takes a paste back.</p></div>`
+        : ""
+    }</span>`;
+  }
+  function closeLook(focusBack) {
+    if (!lookOpen) return false;
+    lookOpen = false;
+    const box = page && page.querySelector(".sc-mlook");
+    if (box) {
+      const m = box.querySelector(".sc-mlook-menu");
+      if (m) m.remove();
+      const b = box.querySelector(".sc-mlook-b");
+      b.setAttribute("aria-expanded", "false");
+      if (focusBack) b.focus();
+    }
+    return true;
+  }
+  function toggleLook() {
+    if (closeLook()) return;
+    lookOpen = true;
+    const box = page.querySelector(".sc-mlook");
+    if (!box) return;
+    box.outerHTML = lookMenuHtml();
+    const first = page.querySelector(".sc-mlook-menu [data-look]:not([disabled])");
+    if (first) first.focus();
+    if (!toggleLook.wired) {
+      /* Esc closes it (focus back to Look ▾); the arrow keys, Home and End move through it. */
+      toggleLook.wired = true;
+      document.addEventListener("keydown", (e) => {
+        if (!lookOpen || !page || page.hidden) return;
+        const inMenu = e.target && e.target.closest && e.target.closest(".sc-mlook");
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          return closeLook(!!inMenu);
+        }
+        if (!inMenu) return;
+        if (e.key === "Tab") return closeLook();
+        const list = [...page.querySelectorAll(".sc-mlook-menu [data-look]:not([disabled])")];
+        if (!list.length) return;
+        const i = list.indexOf(document.activeElement);
+        const to = e.key === "ArrowDown" ? (i + 1) % list.length : e.key === "ArrowUp" ? (i <= 0 ? list.length - 1 : i - 1) : e.key === "Home" ? 0 : e.key === "End" ? list.length - 1 : -1;
+        if (to < 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        list[to].focus();
+      }, true);
+    }
   }
   /* ---------- a window for every curiosity (Jeremy, 2026-10-02 20:26Z: "a separate pop-up window for every
      single curiosity which has specific knobs and sliders and features that apply just to that curiosity") ----------
@@ -963,6 +2229,18 @@
         return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
       },
     };
+  }
+  /* Keys typed in a tool window over the Screen (a Maya tool such as 3D characters, or any open dialog) belong to
+     that tool: the Screen's shortcuts and its ⌘Z leave them alone, so they never change the film behind it. */
+  function inToolWindow(e) {
+    const t = e && e.target;
+    if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg")) return true;
+    /* A tool opened as a modal window takes the keys even when nothing inside it has focus. */
+    try {
+      return !!document.querySelector("dialog:modal");
+    } catch (err) {
+      return false;
+    }
   }
   function undoAll(dir) {
     const St = window.CurioStore;
@@ -1264,7 +2542,7 @@
       ${others.length ? `<p class="sc-also">What you are looking through is also in ${others.map((c) => `<button type="button" data-icat="${c.id}">${esc(c.label)}</button>`).join(" ")}</p>` : ""}
     </section>`;
     const blend = insp ? blendHtml() : "";
-    box.innerHTML = `<header class="sc-insp-h"><strong class="sc-details">Details</strong><span><b>${esc(ctx.title)}</b> · ${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
+    box.innerHTML = `<header class="sc-insp-h"><strong class="sc-details">Details</strong><span><b>${esc(ctx.title)}</b> · ${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ctx.edit ? lookMenuHtml() : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
     drawWins();
   }
 
@@ -1396,6 +2674,9 @@
     if (st) rows.push({ label: "My film", title: "Your film's moments", clips: st.rows.map((r, i) => ({ from: i / st.rows.length, to: (i + 1) / st.rows.length, text: r.label, cls: "mine" })) });
     return rows;
   }
+  /* Picking a curiosity opens its lane's group on the timeline if it is folded (lanes.js reveal). Every pick sets a
+     new prefs.sel, so a new one means a pick; a redraw because the film changed leaves the folds alone. */
+  let revealed = prefs.sel;
   function drawTimeline(fromEngine) {
     const box = page.querySelector(".sc-timeline");
     if (!E() || !window.CurioLanes) {
@@ -1423,6 +2704,11 @@
         row: () => row,
         ruler: true,
         clips: clipRows,
+        thumbs: () => mineBeats().map((b) => thumb(b.values)),
+        beats: () => mineBeats(),
+        /* Film lines: the inspiration viewer picked in the Player (else the first one). */
+        inspiration: () => { const v = prefs.insp.find((x) => x.id === prefs.focus) || prefs.insp[0], f = v && film(v.film); return f ? { name: filmTitle(f), beats: f.beats } : null; },
+        showLanes: (curs) => (curs.forEach(showLane), save()),
         header: prefs.view === "arrange" ? laneHeader : null,
         onClip: (j) => setRow(j),
         onHover: (j) => setRow(j),
@@ -1440,6 +2726,8 @@
         },
       });
     } else lanes.draw();
+    if (!fromEngine && prefs.sel !== revealed && prefs.sel && prefs.sel.level === "curiosity" && lanes.reveal) lanes.reveal(keyFor(prefs.sel.id));
+    revealed = prefs.sel;
   }
 
   /* ---------- events ---------- */
@@ -1518,9 +2806,30 @@
     return (d.options || []).slice(0, 18);
   }
   function onClick(e) {
+    if (guidesOpen && !e.target.closest(".sc-guides")) {
+      guidesOpen = false;
+      const m = page.querySelector(".sc-guides-menu");
+      if (m) m.remove();
+      const b = page.querySelector('[data-act="guides-menu"]');
+      if (b) b.setAttribute("aria-expanded", "false");
+    }
+    if (curMenu && !e.target.closest(".sc-cur-menu, [data-cur-menu]")) closeCurMenu();
+    if (lookOpen && !e.target.closest(".sc-mlook")) closeLook();
+    if (e.target.closest("[data-cmp-line]")) return;
     const t = e.target.closest("button, [data-scrub], .sc-frame");
     if (!t || !page.contains(t)) return;
     const d = t.dataset;
+    if (d.fave) {
+      /* The star only toggles the favorite: the click goes no further, so the card is not picked. */
+      e.stopPropagation();
+      return faveStar(d.fave);
+    }
+    if (d.curMenu) return openCurMenu(t);
+    if (d.curApply) return closeCurMenu(), applyCur(d.curApply, d.cur);
+    if (d.lookMenu != null) return toggleLook();
+    if (d.look === "copy") return lookCopy();
+    if (d.look === "paste") return lookPaste("here");
+    if (d.look === "stretch") return lookPaste("stretch");
     if (d.openWin && !t.closest(".sl")) return openWin(d.openWin);
     if (winClick(d, t)) return;
     if (d.ov != null && !e.detail) return jumpTo(Number(d.ov));
@@ -1585,6 +2894,7 @@
       if (res && res.ok) toast(`${labelOf(d.drop)}: ${S().fix(d.drop, d.v)} at moment ${row + 1}.`);
       return drawTimeline(), drawLibrary();
     }
+    if (d.keyJump) return setRow(Number(d.keyJump));
     if ("key" in d && d.key) {
       /* Maya's Set Key: keep the setting at this moment as a node; on a key already here, take it off. */
       const st = E() && E().state();
@@ -1612,16 +2922,22 @@
       prefs.groups[prefs.libTab || prefs.cat || category().id] = d.group;
       prefs.search = "";
       save();
-      return drawLibrary();
+      drawLibrary();
+      /* Favorites shows both its sections at once, so a pill scrolls to its section. */
+      const sec = prefs.libTab === "faves" && page.querySelector("#sc-" + d.group.replace(":", "-"));
+      if (sec && sec.scrollIntoView) sec.scrollIntoView({ block: "start" });
+      return;
     }
     if (d.pickCard) {
       const [level, id] = d.pickCard.split("|");
       prefs.sel = { level, id };
+      faveUse(level, id);
       save();
       return drawAll();
     }
     if (d.addCard) {
       const [level, id] = d.addCard.split("|");
+      faveUse(level, id);
       return addCard(level, id);
     }
     if (d.more) {
@@ -1657,6 +2973,10 @@
     const act = d.act;
     if (act === "close") return close();
     if (act === "shortcuts") return showKeys(!keysOpen);
+    if (act === "export") return toggleExport();
+    if (act === "history") return toggleHistory(null, !e.detail);
+    if (d.hist) return historyPick(d.hist);
+    if (d.export) return runExport(d.export);
     if (act === "overview") {
       prefs.overview = !prefs.overview;
       save();
@@ -1666,6 +2986,24 @@
       prefs.ghost = !prefs.ghost;
       save();
       return drawViewers();
+    }
+    if (act === "compare") {
+      setCompare({ on: !compareNow().on });
+      drawViewers();
+      const b = page.querySelector('[data-act="compare"]');
+      return b && b.focus();
+    }
+    if (act === "captions") {
+      setCaptions({ on: !captionsNow().on });
+      drawViewers();
+      const b = page.querySelector('[data-act="captions"]');
+      return b && b.focus();
+    }
+    if (act === "guides-menu") {
+      guidesOpen = !guidesOpen;
+      drawViewers();
+      const b = page.querySelector('[data-act="guides-menu"]');
+      return b && b.focus();
     }
     if (act === "range-clear") return setRange(null);
     if (act === "keys-close") return showKeys(false);
@@ -1729,6 +3067,31 @@
       drawViewers();
       drawInspector();
       return lanes && lanes.draw();
+    }
+    if ("guide" in d) {
+      setGuide(d.guide, t.checked);
+      drawViewers();
+      const box = page.querySelector(`.sc-guides-menu [data-guide="${d.guide}"]`);
+      return box && box.focus();
+    }
+    if ("captionsMode" in d) {
+      setCaptions({ mode: t.value, on: true });
+      drawViewers();
+      const box = page.querySelector("[data-captions-mode]");
+      return box && box.focus();
+    }
+    if ("compareWith" in d) {
+      setCompare({ with: t.value, on: true });
+      drawViewers();
+      const box = page.querySelector("[data-compare-with]");
+      return box && box.focus();
+    }
+    if ("ratio" in d) {
+      showLane(RATIO);
+      save();
+      const res = setValue(RATIO, t.value);
+      if (res && res.ok) toast(`Frame shape: ${t.value} at moment ${row + 1}.`);
+      return drawTimeline();
     }
     if ("speed" in d) {
       prefs.speed = Number(t.value) || 1;
@@ -1948,5 +3311,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, setRow, row: () => row, addPanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();

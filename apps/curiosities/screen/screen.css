@@ -41,6 +41,22 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-page .sc-layout ~ .sc-close { margin-left: 0; }
 .sc-page .sc-close { margin-left: auto; background: var(--cc-accent); color: var(--cc-accent-ink); font-weight: 600; }
 .sc-page .sc-close:hover { background: #67e8f9; }
+/* Export ▾ (CapCut's Export button at the top right): a storyboard sheet, this frame as a picture, the settings list. */
+.sc-export { position: relative; display: inline-flex; }
+.sc-page .sc-export-b { background: var(--cc-accent); color: var(--cc-accent-ink); font-weight: 600; }
+.sc-page .sc-export-b:hover:not(:disabled), .sc-page .sc-export-b[aria-expanded="true"] { background: #67e8f9; }
+.sc-export-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 80; width: 300px; max-width: calc(100vw - 32px); display: grid; gap: 4px; padding: 6px; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 8px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+.sc-page .sc-export-menu button { display: grid; gap: 1px; text-align: left; padding: 6px 10px; background: transparent; }
+.sc-page .sc-export-menu button:hover { background: var(--cc-hover); }
+.sc-export-menu small { color: var(--cc-dim); font-size: 11px; }
+.sc-export-menu .sc-k { margin: 4px 10px 0; }
+.sc-export-two { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.sc-export-foot { margin: 2px 10px 2px; font-size: 11px; color: var(--cc-dim); border-top: 1px solid var(--cc-line); padding-top: 6px; }
+/* On a phone the menu spans the screen under its button instead of hanging off one edge. */
+@media (max-width: 720px) {
+  .sc-export { position: static; }
+  .sc-export-menu { left: 16px; right: 16px; top: auto; width: auto; max-width: none; margin-top: 34px; }
+}
 .sc-what { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--cc-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* The four panels. */
@@ -48,10 +64,9 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-page[data-layout="right"][data-view="screen"] .sc-main { grid-template-columns: minmax(280px, 1.1fr) minmax(260px, 0.8fr) minmax(0, 1.2fr); grid-template-rows: minmax(0, 50fr) minmax(0, 50fr); grid-template-areas: "lib insp player" "tl tl player"; }
 .sc-page[data-layout="media"][data-view="screen"] .sc-main { grid-template-columns: minmax(280px, 0.95fr) minmax(0, 1.35fr) minmax(280px, 0.8fr); grid-template-areas: "lib player insp" "lib tl tl"; }
 .sc-page[data-layout="details"][data-view="screen"] .sc-main { grid-template-areas: "lib player insp" "tl tl insp"; }
-/* Full-screen Player (⇧⌘F), Player zoom (⌥⇧+ and ⌥⇧−), thirds guides (⌘;) and rulers (⌘⌥R). */
+/* Full-screen Player (⇧⌘F), Player zoom (⌥⇧+ and ⌥⇧−) and rulers (⌘⌥R). The guides (⌘; and Guides ▾) are further down. */
 .sc-page[data-fullplayer="1"] .sc-player { position: fixed; inset: 0; z-index: 3; border-radius: 0; }
 .sc-frame svg { transform: scale(var(--sc-pz, 1)); transform-origin: center; }
-.sc-page[data-guides="1"] .sc-frame::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, transparent calc(33.33% - 0.5px), rgba(34, 211, 238, 0.7) calc(33.33% - 0.5px), rgba(34, 211, 238, 0.7) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px), transparent calc(66.66% - 0.5px), rgba(34, 211, 238, 0.7) calc(66.66% - 0.5px), rgba(34, 211, 238, 0.7) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px)), linear-gradient(180deg, transparent calc(33.33% - 0.5px), rgba(34, 211, 238, 0.7) calc(33.33% - 0.5px), rgba(34, 211, 238, 0.7) calc(33.33% + 0.5px), transparent calc(33.33% + 0.5px), transparent calc(66.66% - 0.5px), rgba(34, 211, 238, 0.7) calc(66.66% - 0.5px), rgba(34, 211, 238, 0.7) calc(66.66% + 0.5px), transparent calc(66.66% + 0.5px)); }
 .sc-page[data-rulers="1"] .sc-frame::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 1px, transparent 1px 10%) top / 100% 7px no-repeat, repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0 1px, transparent 1px 10%) left / 7px 100% no-repeat; }
 .sc-keys-in p.sc-key-none { opacity: 0.55; }
 .sc-page[data-layout="right"][data-view="screen"] .sc-viewers { flex-direction: column; align-items: stretch; overflow-y: auto; }
@@ -102,6 +117,14 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-card-b em { font-style: normal; font-size: 10px; color: var(--cc-warm); }
 .sc-page .sc-plus { position: absolute; right: 5px; bottom: 5px; width: 20px; height: 20px; padding: 0; border-radius: 50%; background: var(--cc-accent); color: var(--cc-accent-ink); font-weight: 700; line-height: 20px; }
 .sc-page .sc-plus:hover { background: #67e8f9; }
+/* Favorites: the small star on every card (CapCut's star on any effect), and the Favorites tab's sections. */
+.sc-page .sc-star { position: absolute; right: 4px; top: 4px; width: 20px; height: 20px; padding: 0; border-radius: 50%; background: transparent; color: var(--cc-dim); font-size: 14px; line-height: 20px; box-shadow: none; }
+.sc-page .sc-star:hover { color: var(--cc-text); background: #333338; }
+.sc-page .sc-star.on { color: #ffd43b; }
+.sc-page .sc-star:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: 1px; }
+.sc-page .sc-card.wide .sc-plus { right: 28px; }
+.sc-fave-h { font-size: 11px; color: var(--cc-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 12px; }
+.sc-fave-empty { margin: 4px 0 8px; }
 
 /* Player. */
 .sc-ph { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--cc-line); }
@@ -297,6 +320,8 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-keys-in p span { color: var(--cc-dim); }
 .sl-ruler { font-size: 10px; fill: var(--cc-dim); font-family: ui-monospace, Menlo, monospace; }
 .sl-result { fill: none; stroke: rgba(255, 255, 255, 0.22); stroke-width: 1.5; stroke-dasharray: 3 3; pointer-events: none; }
+/* Film lines: the picked inspiration film's own settings, faint and dashed, in the purple of its clip track. */
+.sl-film { fill: none; stroke: #b197fc; stroke-opacity: 0.6; stroke-width: 1.6; stroke-dasharray: 6 4; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
 .sl-auto { fill: none; stroke: var(--cc-accent); stroke-width: 2.2; pointer-events: none; }
 .sl-auto.off { opacity: 0.35; }
 .sl-node { fill: var(--cc-accent); stroke: #0f0f10; stroke-width: 2; cursor: grab; }
@@ -430,3 +455,322 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-ticks { position: absolute; top: 0; right: 0; bottom: 0; width: 62px; border-left: 1px solid var(--cc-line); }
 .sl-ticks span { font-size: 8px; max-width: 58px; overflow: hidden; text-overflow: ellipsis; }
 .sc-colors button > span:last-child { flex: 1; text-align: left; }
+
+/* ---------- Area tools (Reverse, Flip, Stretch, Squeeze, Freeze, Shape) and storyboard frames on My film's clip track ---------- */
+.sl-areatools { margin-left: 2px; }
+.sc-page .sl-areatools button { color: var(--cc-accent); }
+/* Shape ▾: the ready-made shapes for a selected area, two to a row. */
+.sl-shapemenu { width: 260px; max-width: calc(100vw - 32px); }
+.sl-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 4px 0 2px; }
+.sl-presets button { text-align: left; }
+.sl-thumb { pointer-events: none; }
+.sl-clip.has-thumb rect { fill: #174e55; }
+/* Keyframe jumps (CapCut's ◀ ◆ ▶): in Details, jump to the key before or after the playhead. */
+.sc-knav { display: inline-flex; align-items: center; margin-right: 3px; vertical-align: middle; }
+.sc-page .sc-knav .sc-key { padding: 0 1px; }
+.sc-page .sc-knav-b { background: none; box-shadow: none; padding: 0 2px; font-size: 9px; line-height: 1; color: var(--cc-dim); border-radius: 3px; }
+.sc-page .sc-knav-b:hover:not(:disabled) { background: var(--cc-hover); color: var(--cc-accent); }
+.sc-page .sc-knav-b:disabled { opacity: 0.25; cursor: default; }
+/* Frame shape (CapCut's Ratio): my film's frame takes the shape, no taller than the wide frame, the picture cropped to fill it in the middle. */
+.sc-ratio { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--cc-dim); }
+.sc-frame:is([data-shape="vertical"], [data-shape="square"], [data-shape="cinema"]) { container-type: size; margin-inline: auto; }
+.sc-frame[data-shape="vertical"] { aspect-ratio: 9 / 16; width: 31.64%; }
+.sc-frame[data-shape="square"] { aspect-ratio: 1 / 1; width: 56.25%; }
+.sc-frame[data-shape="cinema"] { aspect-ratio: 2.39 / 1; width: 100%; }
+.sc-frame:is([data-shape="vertical"], [data-shape="square"], [data-shape="cinema"]) > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sc-frame[data-shape="vertical"] .sc-att { font-size: 9px; top: 2px; right: 2px; left: 2px; text-align: center; }
+/* Guides (CapCut's Player guides, Guides ▾ in the transport bar): drawn over my film's frame only, in its frame shape, never in the way of a click. */
+.sc-guides { position: relative; display: inline-flex; }
+.sc-guides-menu { position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 30; display: grid; gap: 1px; min-width: 220px; padding: 6px; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 8px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); }
+.sc-guides-menu label { display: flex; gap: 6px; align-items: center; padding: 4px 6px; border-radius: 5px; cursor: pointer; font-size: 12px; white-space: nowrap; }
+.sc-guides-menu label:hover { background: var(--cc-hover); }
+.sc-guides-menu p { margin: 4px 6px 0; font-size: 11px; line-height: 1.3; color: var(--cc-dim); max-width: 220px; }
+.sc-gd, .sc-gd * { pointer-events: none; }
+.sc-gd { position: absolute; inset: 0; line-height: 1.2; }
+.sc-gd-g { position: absolute; inset: 0; }
+.sc-gd-v, .sc-gd-h { position: absolute; background: rgba(34, 211, 238, 0.8); box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.3); }
+.sc-gd-v { top: 0; bottom: 0; width: 1px; margin-left: -0.5px; }
+.sc-gd-h { left: 0; right: 0; height: 1px; margin-top: -0.5px; }
+.sc-gd-g[data-gd="golden"] :is(.sc-gd-v, .sc-gd-h) { background: rgba(255, 196, 64, 0.9); }
+.sc-gd-cross { position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); }
+.sc-gd-cross::before, .sc-gd-cross::after { content: ""; position: absolute; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45); }
+.sc-gd-cross::before { left: 0; right: 0; top: 50%; height: 1px; }
+.sc-gd-cross::after { top: 0; bottom: 0; left: 50%; width: 1px; }
+.sc-gd-box { position: absolute; border: 1px dashed rgba(255, 255, 255, 0.85); }
+.sc-gd-box.action { inset: 5%; }
+.sc-gd-box.title { inset: 10%; border-color: rgba(255, 159, 67, 0.95); }
+.sc-gd-box span { position: absolute; left: 3px; top: 2px; font-size: 9px; color: #fff; background: rgba(0, 0, 0, 0.55); padding: 0 3px; border-radius: 2px; white-space: nowrap; }
+.sc-gd-box.title span { top: auto; bottom: 2px; color: #ffd2a6; }
+.sc-frame .sc-gd-att { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sc-gd-cap { position: absolute; left: 6px; bottom: 6px; max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; background: rgba(0, 0, 0, 0.72); color: #ffd34d; padding: 1px 5px; border-radius: 3px; }
+@media (max-width: 860px) { .sc-guides-menu { right: auto; left: 0; } }
+/* Compare ◐ (CapCut's before/after compare slider): left of the line is another picture, right is My film.
+   Only the line takes the pointer; the guides are drawn over it. */
+.sc-cmp-set { display: inline-flex; align-items: center; gap: 4px; }
+.sc-cmp-set button { white-space: nowrap; }
+.sc-cmp-set select { max-width: 150px; font-size: 12px; }
+.sc-cmp { position: absolute; inset: 0; pointer-events: none; line-height: 1.2; }
+.sc-cmp-pic { position: absolute; inset: 0; overflow: hidden; clip-path: inset(0 calc(100% - var(--cmp, 50%)) 0 0); background: #f7efe2; }
+.sc-frame .sc-cmp-pic svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sc-cmp-lab { position: absolute; top: 6px; max-width: calc(50% - 10px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; background: rgba(0, 0, 0, 0.72); color: #fff; padding: 1px 5px; border-radius: 3px; }
+.sc-cmp-lab.l { left: 6px; color: #d9c8ff; }
+.sc-cmp-lab.r { right: 6px; color: #a8f0fa; }
+.sc-frame.sc-cmp-on .sc-att { top: 26px; }
+.sc-cmp-line { position: absolute; top: 0; bottom: 0; left: var(--cmp, 50%); width: 18px; margin-left: -9px; z-index: 2; pointer-events: auto; cursor: ew-resize; touch-action: none; outline: none; }
+.sc-cmp-line::before { content: ""; position: absolute; top: 0; bottom: 0; left: 8px; width: 2px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45); }
+.sc-cmp-line::after { content: "◂▸"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 10px; line-height: 1; padding: 4px 3px; color: #111; background: #fff; border-radius: 9px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); white-space: nowrap; }
+.sc-cmp-line:focus-visible::after, .sc-cmp-line:hover::after { background: #22d3ee; }
+.sc-frame[data-shape="vertical"] .sc-cmp-lab { font-size: 8px; top: 2px; max-width: calc(50% - 4px); }
+.sc-frame[data-shape="vertical"] .sc-cmp-lab.l { left: 2px; }
+.sc-frame[data-shape="vertical"] .sc-cmp-lab.r { right: 2px; }
+.sc-frame[data-shape="vertical"].sc-cmp-on .sc-att { top: 18px; }
+/* Captions (CapCut's captions, from your marker notes): a subtitle at the bottom of My film's frame, over the
+   guides, under the Compare line, never in the way of a click, two lines at most. */
+.sc-cap-set { display: inline-flex; align-items: center; gap: 4px; }
+.sc-cap-set button { white-space: nowrap; }
+.sc-cap-set select { max-width: 170px; font-size: 12px; }
+.sc-cap, .sc-cap * { pointer-events: none; }
+.sc-cap { position: absolute; left: 5%; right: 5%; bottom: 7%; z-index: 1; display: flex; justify-content: center; line-height: 1.3; }
+.sc-cap p { margin: 0; max-width: 100%; padding: 2px 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.72); color: #fff; font-size: 14px; font-weight: 600; text-align: center; text-shadow: 0 1px 2px #000; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; }
+.sc-cap-auto { font-weight: 400; font-size: 0.8em; opacity: 0.6; }
+.sc-cap[data-cap="hint"] p { background: rgba(0, 0, 0, 0.5); color: rgba(255, 255, 255, 0.72); font-weight: 400; font-style: italic; font-size: 12px; }
+.sc-cap-k { font-style: normal; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.75; margin-right: 4px; }
+.sc-frame[data-shape="vertical"] .sc-cap { left: 3%; right: 3%; bottom: 10%; }
+.sc-frame[data-shape="vertical"] .sc-cap p { font-size: 11px; padding: 2px 5px; }
+.sc-frame[data-shape="vertical"] .sc-cap[data-cap="hint"] p { font-size: 10px; }
+.sc-frame[data-shape="cinema"] .sc-cap { bottom: 5%; }
+/* The "Eyes on" line of the attention guide moves to the top while a caption sits at the bottom. */
+.sc-frame.sc-cap-on .sc-gd-cap { bottom: auto; top: 6px; max-width: calc(55% - 6px); }
+.sc-frame.sc-cap-on.sc-cmp-on .sc-gd-cap { top: 26px; }
+.sc-page[data-fullplayer="1"] .sc-cap p { font-size: 22px; padding: 4px 12px; }
+.sc-page[data-fullplayer="1"] .sc-cap[data-cap="hint"] p { font-size: 17px; }
+@media (max-width: 720px) {
+  .sc-cap p { font-size: 13px; }
+  .sc-cap[data-cap="hint"] p { font-size: 11px; }
+}
+
+/* ---------- Markers with a color and a note (CapCut's markers): the flag on the ruler, its pop-up, the Markers list ---------- */
+.sl-marker line { stroke: var(--mk, var(--cc-warm)); }
+.sl-marker path { fill: var(--mk, var(--cc-warm)); }
+.sl-topsvg .sl-marker path, .sl-topsvg .sl-mkhit, .sl-topsvg .sl-mklabel { pointer-events: auto; cursor: pointer; }
+.sl-mkhit { fill: transparent; }
+.sl-mklabel { font-size: 9px; fill: var(--mk, var(--cc-warm)); font-family: system-ui, sans-serif; paint-order: stroke; stroke: #0f0f10; stroke-width: 3px; stroke-linejoin: round; }
+.sl-mkpop { width: 260px; }
+.sl-mknote { display: grid; gap: 2px; color: var(--cc-dim); }
+.sl-mknote input { border: 1px solid var(--cc-line); background: var(--cc-panel); color: var(--cc-text); border-radius: 6px; padding: 4px 6px; font: inherit; }
+.sl-mkcolors { display: flex; gap: 6px; margin: 2px 0; }
+.sc-page .sl-mkcolors button, .sl-mkcolors button { width: 22px; height: 22px; padding: 0; border-radius: 50%; background: var(--mk); box-shadow: none; border: 2px solid transparent; }
+.sc-page .sl-mkcolors button:hover:not(:disabled) { background: var(--mk); filter: brightness(1.15); }
+.sc-page .sl-mkcolors button.on, .sl-mkcolors button.on { border-color: var(--cc-text); box-shadow: inset 0 0 0 1px #0f0f10; }
+.sl-marklist { width: 300px; max-width: calc(100vw - 32px); }
+.sl-marklist .sl-note { color: var(--cc-dim); }
+.sl-marklist ul { list-style: none; margin: 2px 0; padding: 0; display: grid; gap: 2px; max-height: 240px; overflow: auto; }
+.sl-marklist li { display: flex; gap: 2px; }
+.sc-page .sl-mkgo, .sl-mkgo { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: center; text-align: left; background: transparent; padding: 3px 6px; }
+.sc-page .sl-mkedit { background: transparent; padding: 3px 6px; color: var(--cc-dim); }
+.sl-mkdot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--mk); }
+.sl-mkat { flex: none; white-space: nowrap; }
+.sl-mkat small { color: var(--cc-dim); }
+.sl-mktext { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sl-mktext.empty { color: var(--cc-dim); font-style: italic; }
+/* ---------- Dragging the selected area sideways (move its nodes in time; Alt copies) ---------- */
+.sl-svg.sl-overarea { cursor: grab; }
+.sl-svg.sl-areamoving, .sl-svg:has(.sl-areaghost) { cursor: grabbing; }
+.sl-svg.sl-areamoving .sl-node.in[data-node] { opacity: 0.3; }
+.sl-areaghost { pointer-events: none; }
+.sl-areaghost .sl-area { fill: rgba(34, 211, 238, 0.18); stroke-dasharray: none; }
+.sl-areaghost .sl-node { fill: var(--cc-accent); }
+.sl-areaghost.copy .sl-area { fill: rgba(255, 159, 67, 0.16); stroke: var(--cc-warm); }
+.sl-areaghost.copy .sl-node { fill: var(--cc-warm); }
+/* ---------- Lane heads: Off (👁), Solo (S) and Lock (🔒), like CapCut's track buttons ---------- */
+.sl-hbtns { flex: none; display: inline-flex; gap: 1px; align-items: center; }
+.sc-page .sl-hb, .sl-hb { flex: none; background: none; box-shadow: none; border-radius: 3px; padding: 0 2px; min-width: 15px; height: 16px; font-size: 10px; line-height: 16px; font-weight: 700; color: var(--cc-dim); text-align: center; overflow: hidden; }
+.sc-page .sl-hb:hover:not(:disabled) { background: var(--cc-hover); color: var(--cc-text); }
+.sl-hb:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: -1px; }
+/* Unused buttons fold away until the lane head is hovered or a button in it has keyboard focus; on touch screens
+   they always show. A button in use (lane off, soloed or locked) always shows. */
+@media (hover: hover) {
+  .sl-head:not(:hover):not(:focus-within) .sl-hb:not(.on) { min-width: 0; width: 0; padding: 0; opacity: 0; }
+}
+.sc-page .sl-hb-off.on { color: var(--cc-warm); background: linear-gradient(to top right, transparent 44%, var(--cc-warm) 46%, var(--cc-warm) 54%, transparent 56%); }
+.sc-page .sl-hb-solo.on { color: #0f0f10; background: #ffd43b; }
+.sc-page .sl-hb-lock.on { color: var(--cc-text); background: #3a3a42; }
+.sl-head.is-off .sl-name, .sl-head.is-off .sl-sub { opacity: 0.5; }
+.sl-head.is-off .sl-name { text-decoration: line-through; text-decoration-color: rgba(255, 255, 255, 0.35); }
+.sl-head.is-solo { box-shadow: inset 3px 0 0 #ffd43b; }
+.sl-head.is-locked { background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255, 255, 255, 0.035) 6px 9px); }
+.sl-auto.off { stroke-dasharray: 5 4; opacity: 0.3; }
+.sl-node.off { opacity: 0.4; }
+.sl-lockbg { pointer-events: none; }
+.sl-hatch { stroke: rgba(255, 255, 255, 0.06); stroke-width: 3; }
+
+/* ---------- Auto markers (Mark the turns, the film's "Beats"): the buttons and the "auto" tag in the Markers list ---------- */
+.sl-marklist:has(.sl-mkauto) { width: 340px; }
+.sl-mkturns { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 6px; padding-bottom: 6px; border-bottom: 1px solid var(--cc-line); }
+.sc-page .sl-mkturns [data-l="mark-turns"] { color: var(--cc-accent); }
+.sl-mkgo:has(.sl-mkauto) .sl-mktext { white-space: normal; line-height: 1.25; }
+.sl-mkauto { flex: none; margin-left: auto; padding: 0 5px; border: 1px solid var(--cc-line); border-radius: 6px; font-size: 10px; line-height: 15px; color: var(--cc-dim); }
+
+/* ---------- Lane groups (CapCut's folding track groups): a header per category, ▸/▾ to fold it ---------- */
+.sl-ghead { box-sizing: border-box; display: flex; align-items: center; gap: 4px; padding: 0 6px 0 4px; border-bottom: 1px solid var(--cc-line); background: #1d1d21; overflow: hidden; white-space: nowrap; }
+.sc-page .sl-fold, .sl-fold { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; background: none; box-shadow: none; padding: 0 2px; border-radius: 3px; font-size: 11px; font-weight: 700; line-height: 18px; color: var(--cc-text); text-align: left; }
+.sc-page .sl-fold:hover { background: var(--cc-hover); }
+.sl-fold:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: -1px; }
+.sl-fold-arrow { display: inline-block; width: 10px; color: var(--cc-accent); }
+.sl-gcount { flex: none; font-size: 10px; color: var(--cc-dim); font-variant-numeric: tabular-nums; }
+/* The header's count is short ("· 5 · 4●": lanes, then lanes with nodes) so it always shows in the 190px name
+   column; the category's name gives way first (it ends in "…"), and the full wording is in the tooltip. Phones
+   (124px column) tighten the spacing. */
+@media (max-width: 860px) {
+  .sl-ghead { gap: 3px; padding: 0 4px 0 2px; }
+  .sc-page .sl-fold, .sl-fold { padding: 0 1px; }
+  .sl-fold-arrow { width: 9px; }
+}
+.sl-ghead.is-folded { background: #19191c; }
+.sl-gbg { fill: #1d1d21; }
+.sl-gbg.folded { fill: #19191c; }
+.sl-gdot { fill: var(--cc-accent); opacity: 0.85; cursor: pointer; }
+.sl-gdot:hover { opacity: 1; stroke: #fff; stroke-width: 1; }
+
+/* The Attention track (lanes.js attentionBand): CapCut's waveform under the clips, for attention. A block per
+   moment in its family's color, a filled line for how strongly the film pulls forward, and the families as a key. */
+.sl-attbg { fill: #121214; }
+.sl-attblock { fill-opacity: 0.38; cursor: pointer; }
+.sl-attblock:hover { fill-opacity: 0.6; }
+.sl-attarea { fill: rgba(255, 255, 255, 0.22); pointer-events: none; }
+.sl-attline { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-width: 1.5; stroke-linejoin: round; pointer-events: none; }
+.sl-attnote { font-size: 10px; fill: #9a9aa3; font-family: system-ui, sans-serif; pointer-events: none; }
+.sl-atthead { display: flex; align-items: center; gap: 6px; padding: 0 8px; }
+.sl-atthead b { flex: none; font-weight: 600; }
+.sl-attkeys { display: flex; flex-wrap: wrap; column-gap: 6px; max-height: 24px; overflow: hidden; font-size: 9px; line-height: 12px; font-weight: 400; }
+.sl-attkey { display: inline-flex; align-items: center; gap: 3px; flex: none; }
+.sl-attkey i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+
+/* Suite clips: Save as suite clip (a name pop-up) and the Suite clips ▾ list (screen/lanes.js). */
+.sl-suitepop { width: 260px; max-width: calc(100vw - 32px); }
+.sl-suitepop .sl-note, .sl-suitelist .sl-note { color: var(--cc-dim); }
+.sl-suitelist { width: 320px; max-width: min(320px, calc(100vw - 32px)); }
+.sl-suitelist ul { list-style: none; margin: 2px 0; padding: 0; display: grid; gap: 6px; max-height: 280px; overflow: auto; }
+.sl-suitelist li { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--cc-line); border-radius: 6px; }
+.sl-suitehead { display: grid; gap: 1px; min-width: 0; }
+.sl-suitename { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sl-suitewhat { color: var(--cc-dim); line-height: 1.3; }
+.sl-suiteacts { display: flex; flex-wrap: wrap; gap: 4px; }
+.sl-suiteacts button { padding: 2px 6px; }
+.sc-page .sl-suiteacts .sl-warn, .sl-suiteacts .sl-warn { color: var(--cc-warm); border-color: var(--cc-warm); }
+
+/* Panels other parts of the app dock beside the Player (CurioScreen.addPanel, place "player": the Momentum meter)
+   stack top to bottom in one column the Screen owns, so they never sit on top of each other. Each panel keeps a
+   share of the column's height and scrolls inside itself, so every panel stays in view (a panel that watches
+   whether it is on screen, like the 3D actors, is never pushed out of sight). Place "under" is a full-width
+   strip under the Player for slim bars that open a floating window (the 3D actors). */
+.sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr) var(--sc-dock-w, 204px); }
+.sc-player.sc-has-dock > :not(.sc-docks) { grid-column: 1; }
+.sc-player > .sc-docks { grid-column: 2; grid-row: 1 / -1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; border-left: 1px solid var(--cc-line); }
+.sc-docks > .sc-dock { flex: 0 1 auto; min-width: 0; min-height: 2.5rem; overflow-y: auto; overflow-x: hidden; border-left: 0; }
+.sc-docks > .sc-dock + .sc-dock { border-top: 1px solid var(--cc-line); }
+/* When every panel in the column is folded, the column shrinks to a strip. */
+.sc-player:has(> .sc-docks > .sc-dock):not(:has(> .sc-docks > .sc-dock:not(.folded))) { --sc-dock-w: 34px; }
+.sc-player:not(:has(> .sc-docks > .sc-dock)) > .sc-docks { display: none; }
+.sc-player:not(:has(> .sc-docks > .sc-dock)) { grid-template-columns: minmax(0, 1fr); }
+.sc-player > .sc-under { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0; min-width: 0; border-top: 1px solid var(--cc-line); }
+.sc-player > .sc-under:empty { display: none; }
+.sc-under > .sc-dock { flex: 1 1 100%; min-width: 0; }
+.sc-page[data-layout="right"][data-view="screen"] .sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr); }
+.sc-page[data-layout="right"][data-view="screen"] .sc-player > .sc-docks { grid-column: 1; grid-row: auto; max-height: 40vh; border-left: 0; border-top: 1px solid var(--cc-line); }
+@media (max-width: 860px) {
+  .sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr); }
+  .sc-player > .sc-docks { grid-column: auto; grid-row: auto; border-left: 0; border-top: 1px solid var(--cc-line); overflow: visible; }
+  .sc-docks > .sc-dock { overflow: visible; }
+}
+
+/* A Details row's ⋯ menu: Use this all through the film, in the selected stretch, Reset, Clear. */
+.sc-page .sc-cur-more { flex: none; background: none; padding: 0 6px; font-size: 14px; line-height: 1; color: var(--cc-dim); }
+.sc-page .sc-cur-more:hover, .sc-page .sc-cur-more[aria-expanded="true"] { color: var(--cc-accent); background: var(--cc-hover); }
+.sc-cur-menu { display: grid; gap: 2px; margin: 6px 0 2px; padding: 4px; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 6px; }
+.sc-page .sc-cur-menu button { display: grid; gap: 1px; text-align: left; padding: 5px 8px; background: transparent; }
+.sc-page .sc-cur-menu button:hover, .sc-page .sc-cur-menu button:focus-visible { background: var(--cc-hover); }
+.sc-cur-menu small { color: var(--cc-dim); font-size: 11px; }
+/* Look ▾ in Details' header for My film: copy a moment's look, paste it at the playhead or over a stretch. */
+.sc-mlook { position: relative; justify-self: start; }
+.sc-page .sc-mlook-b { margin-top: 4px; }
+.sc-page .sc-mlook-b[aria-expanded="true"] { color: var(--cc-accent); background: var(--cc-hover); }
+.sc-mlook-menu { position: absolute; top: 100%; left: 0; z-index: 6; width: min(280px, calc(100vw - 32px)); display: grid; gap: 2px; margin-top: 4px; padding: 4px; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
+.sc-page .sc-mlook-menu button { display: grid; gap: 1px; text-align: left; padding: 5px 8px; margin: 0; background: transparent; justify-self: stretch; }
+.sc-page .sc-mlook-menu button:hover:not([disabled]), .sc-page .sc-mlook-menu button:focus-visible { background: var(--cc-hover); }
+.sc-page .sc-mlook-menu button[disabled] { opacity: 0.5; cursor: default; }
+.sc-mlook-menu small { color: var(--cc-dim); font-size: 11px; }
+.sc-mlook-foot { margin: 2px 8px 2px; color: var(--cc-dim); font-size: 11px; }
+/* History ▾: the steps you can undo (newest first, under Now) and redo (over Now); click one to go back or forward to it. */
+.sc-hist { position: relative; display: inline-flex; }
+.sc-page .sc-hist-b[aria-expanded="true"] { background: var(--cc-hover); color: var(--cc-accent); }
+.sc-hist-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 80; width: 280px; max-width: calc(100vw - 32px); max-height: min(70vh, 520px); overflow-y: auto; display: grid; gap: 1px; padding: 6px; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 8px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+.sc-hist-menu.sc-hist-left { left: 0; right: auto; }
+.sc-hist-menu[hidden] { display: none; }
+.sc-page .sc-hist-menu button { text-align: left; padding: 5px 10px; background: transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-page .sc-hist-menu button:hover, .sc-page .sc-hist-menu button:focus-visible { background: var(--cc-hover); }
+.sc-page .sc-hist-menu button[data-hist^="redo"] { color: var(--cc-dim); }
+.sc-hist-menu p { margin: 0; }
+.sc-hist-menu .sc-hist-h { margin: 4px 10px 2px; }
+.sc-hist-now { margin: 4px 0; padding: 3px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--cc-accent); border-top: 1px solid var(--cc-accent); }
+.sc-hist-cur { padding: 5px 10px; border-radius: 6px; background: var(--cc-raised); color: var(--cc-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-hist-more, .sc-hist-empty { padding: 4px 10px; font-size: 12px; color: var(--cc-dim); }
+.sc-page .sc-hist-menu .sc-hist-start { margin-top: 4px; border-top: 1px solid var(--cc-line); border-radius: 0 0 6px 6px; color: var(--cc-dim); }
+@media (max-width: 720px) {
+  .sc-hist { position: static; }
+  .sc-hist-menu, .sc-hist-menu.sc-hist-left { left: 16px; right: 16px; top: auto; width: auto; max-width: none; margin-top: 34px; }
+}
+
+/* ---------- Visual QA (1440×1000, 1280×800, 390×844) ---------- */
+/* With a panel docked beside the viewers (the Momentum column) the Player's transport bar wraps as a row of
+   groups instead of a three-column grid, so it never runs under the docked column; laptops also get a tighter
+   Player header so the lens buttons and Ghosts stay on one row and the viewers keep their room. */
+.sc-ph { flex-wrap: wrap; row-gap: 4px; }
+.sc-ph .sc-seg button, .sc-transport button { white-space: nowrap; }
+@media (min-width: 861px) {
+  .sc-player.sc-has-dock .sc-transport { display: flex; flex-wrap: wrap; justify-content: flex-start; padding: 5px 8px; gap: 5px 8px; }
+  .sc-player.sc-has-dock .sc-tc { white-space: nowrap; }
+  .sc-player.sc-has-dock .sc-wins-set { justify-content: flex-start; min-width: 0; }
+}
+@media (min-width: 861px) and (max-width: 1400px) {
+  .sc-player.sc-has-dock .sc-ph { gap: 4px; padding: 6px 8px; }
+  .sc-page .sc-player.sc-has-dock .sc-ph .sc-seg { gap: 1px; }
+  .sc-page .sc-player.sc-has-dock .sc-ph .sc-seg button { padding: 3px 4px; }
+  .sc-page .sc-player.sc-has-dock .sc-ph .sc-ghost-b { padding: 4px 6px; margin-left: 0; }
+  .sc-page .sc-player.sc-has-dock .sc-transport select { max-width: 150px; }
+  .sc-player.sc-has-dock .sc-cmp-set { flex-wrap: wrap; }
+}
+/* Export ▾ wrapped onto the bar's second row (left side): the menu opens rightwards so it stays on screen. */
+@media (min-width: 721px) { .sc-export-menu.sc-flip { left: 0; right: auto; } }
+/* The library's sticky ADVANCED tab covers the strip's right padding too, so no sliver of the next tab shows. */
+.sc-page .sc-icons button.sc-adv { box-shadow: 6px 0 0 var(--cc-panel); }
+/* A selected area's tools wrap as a group instead of squeezing their labels onto two lines. */
+.sl-areatools { flex-wrap: wrap; }
+.sc-page .sl-tools button { white-space: nowrap; }
+/* Phones: Guides ▾ opens across the transport bar instead of hanging off the right edge. */
+@media (max-width: 560px) {
+  .sc-transport { position: relative; }
+  .sc-guides { position: static; }
+  .sc-guides-menu { left: 10px; right: 10px; min-width: 0; }
+  .sc-guides-menu p { max-width: none; }
+}
+/* Phones: every control is at least about 24px to tap. Timeline group headers (22px rows drawn to match the
+   lanes) and the frames in a viewer or the whole-film strip keep their sizes. */
+@media (max-width: 480px) {
+  .sc-page button:not(.sc-ov-f):not(.sl-fold):not(.sl-hb):not(.sl-heads button), .sc-page select { min-height: 26px; }
+  .sc-page .sc-frames button { min-height: 0; }
+  .sc-page .sc-plus, .sc-page .sc-star { width: 26px; height: 26px; line-height: 26px; }
+  .sc-page .sc-knav-b, .sc-page .sc-key, .sc-page .sc-cur-more, .sc-page .sl-mkedit { min-width: 26px; }
+  .sc-page .sc-knav-b { font-size: 11px; }
+  /* A lane head (124px wide on a phone) puts its name and ⧉ on the first row and its Off, Solo and Lock buttons
+     beside the track name on the second, so the buttons can be tap-sized without squeezing the name away. */
+  .sl-head:has(> .sl-head-top > .sl-hbtns) { grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 2px; align-items: center; padding-left: 6px; padding-right: 2px; }
+  .sl-head:has(> .sl-head-top > .sl-hbtns) > .sl-head-top { display: contents; }
+  .sl-head-top > :first-child { grid-area: 1 / 1 / 2 / 3; }
+  .sl-head-top > .sl-win { grid-area: 1 / 3; justify-self: end; }
+  .sl-head:has(> .sl-head-top > .sl-hbtns) > .sl-sub { grid-area: 2 / 1; }
+  .sl-head-top > .sl-hbtns { grid-area: 2 / 2 / 3 / 4; justify-self: end; }
+  .sc-page .sl-heads .sl-name, .sc-page .sl-heads .sl-win { min-height: 20px; }
+  .sc-page .sl-win { min-width: 24px; }
+  .sc-page .sl-hb, .sl-hb { min-width: 24px; height: 24px; line-height: 24px; font-size: 12px; }
+}
