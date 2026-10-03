@@ -50,7 +50,7 @@ When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, t
 ## Tests
 
 - `node apps/curiosities/video/tests/run.js`: made-up frames and sound, so every answer is known (Node, about a minute).
-- `NODE_PATH=/opt/node22/lib/node_modules node apps/curiosities/video/tests/browser.js`: the real app in Chromium; the page records its own two clips, then brings them in, puts lanes on My film, checks light follows, saves a video, swaps, and opens from the Screen.
+- `NODE_PATH=/opt/node22/lib/node_modules node apps/curiosities/video/tests/browser.js [--mediapipe DIR]`: the real app in Chromium (with `--mediapipe`, a local copy of `@mediapipe/tasks-vision` plus the selfie multiclass model, the AI cut-out checks run too); the page records its own two clips, then brings them in, puts lanes on My film, checks light follows, saves a video, swaps, and opens from the Screen.
 
 ## Limits
 

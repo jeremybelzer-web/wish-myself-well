@@ -15,13 +15,25 @@ const { chromium } = require("playwright");
 const args = process.argv.slice(2);
 const arg = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const SHOTS = arg("--shots", os.tmpdir());
+/* --mediapipe DIR: a local copy of @mediapipe/tasks-vision (its package folder) with the selfie multiclass model
+   beside it, for the AI cut-out checks (the sandbox can't reach the CDN). */
+const MP = arg("--mediapipe", "");
 const ROOT = path.join(__dirname, "..", "..");
-const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
+const TYPES = { ".html": "text/html", ".mjs": "text/javascript", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
 
 function serve() {
   return new Promise((resolve) => {
     const server = http.createServer((req, res) => {
-      const p = path.join(ROOT, decodeURIComponent(req.url.split("?")[0]).replace(/^\/+/, ""));
+      const u = decodeURIComponent(req.url.split("?")[0]);
+      const p = MP && u.startsWith("/__mp/") ? path.join(MP, u.slice(6)) : path.join(ROOT, u.replace(/^\/+/, ""));
+      if (MP && u.startsWith("/__mp/")) {
+        if (!fs.existsSync(p)) {
+          res.writeHead(404);
+          return res.end();
+        }
+        res.writeHead(200, { "content-type": /\.m?js$/.test(p) ? "text/javascript" : /\.wasm$/.test(p) ? "application/wasm" : "application/octet-stream" });
+        return fs.createReadStream(p).pipe(res);
+      }
       if (!p.startsWith(ROOT) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {
         res.writeHead(404);
         return res.end();
@@ -45,7 +57,7 @@ const ok = (cond, text) => {
   const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e && e.message)));
-  page.on("console", (m) => m.type() === "error" && !/Failed to load resource|favicon|fonts\.g|cdnjs/.test(m.text()) && errors.push(m.text()));
+  page.on("console", (m) => m.type() === "error" && !/Failed to load resource|favicon|fonts\.g|cdnjs|^INFO: /.test(m.text()) && errors.push(m.text()));
   await page.goto(url);
   await page.waitForFunction(() => window.CurioVideoUI && window.CurioEngine && window.CurioClip, null, { timeout: 30000 });
   ok(true, "the Video window loads with the app");
@@ -139,6 +151,11 @@ const ok = (cond, text) => {
   });
   ok(lb.luma > 0.6 && lb.aspect < 0.4, "black bars are left out of the measures: " + JSON.stringify(lb));
 
+  if (MP) {
+    const b = "http://127.0.0.1:" + server.address().port + "/__mp/";
+    await page.evaluate((b) => window.CurioMask.configure({ lib: b + "package/vision_bundle.mjs", wasm: b + "package/wasm", models: { parts: b + "selfie_multiclass_256x256.tflite" } }), b);
+    ok(await page.evaluate(() => window.CurioMask.load()), "the AI cut-out loads (MediaPipe in the browser)");
+  }
   await page.evaluate(() => window.CurioVideoUI.open());
   ok(await page.isVisible(".vd-page"), "the window opens");
   ok((await page.locator(".vd-drop").count()) === 2, "two drop boxes to start");
@@ -153,6 +170,17 @@ const ok = (cond, text) => {
   const key = st.a && st.a.nodes.valueKey;
   ok(key && key.length >= 3, "the light lane changes as the clip goes dark and bright: " + JSON.stringify(key));
   ok((await page.locator(".vd-lane").count()) >= 15, "a lane per curiosity: " + (await page.locator(".vd-lane").count()));
+  ok((await page.locator(".vd-ai").count()) === 1, "the AI cut-outs box shows");
+  if (MP) {
+    const el = await page.evaluate(() => {
+      const s = window.CurioVideoUI.state();
+      return s.a.elements && { n: s.a.elements.times.length, parts: Object.keys(s.a.elements.parts) };
+    });
+    ok(el && el.n >= 2 && el.parts.includes("clothes"), "each clip's elements are found automatically: " + JSON.stringify(el));
+    ok((await page.locator("text=Elements (AI cut-outs)").count()) === 1, "element lanes show");
+    await page.click('[data-act="ai-preview"]');
+    ok(/Blue: clothes/.test(await page.textContent(".vd-note")), "Show what it found tints the cut-out");
+  }
   ok((await page.locator(".vd-node").count()) >= 3, "nodes drawn where values change");
   await page.screenshot({ path: path.join(SHOTS, "video-lanes.png"), fullPage: false });
 
