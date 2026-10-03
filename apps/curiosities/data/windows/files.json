@@ -62,5 +62,8 @@
   "look-light.js",
   "look-grade.js",
   "look-feeling.js",
-  "look-character.js"
+  "look-character.js",
+  "look-world.js",
+  "look-wardrobe.js",
+  "look-sound.js"
 ]
