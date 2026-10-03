@@ -21,6 +21,7 @@
   "win-page.js",
   "win-heart-comedy.js",
   "win-heart-emotion.js",
+  "win-depth-sound.js",
   "measure-camera.js",
   "measure-performance.js",
   "measure-light.js",
@@ -57,6 +58,7 @@
   "say-page.js",
   "say-heart-comedy.js",
   "say-heart-emotion.js",
+  "say-depth-sound.js",
   "look-camera.js",
   "look-story.js",
   "look-comedy.js",
@@ -75,5 +77,6 @@
   "look-performance.js",
   "look-text.js",
   "look-heart-comedy.js",
-  "look-heart-emotion.js"
+  "look-heart-emotion.js",
+  "look-depth-sound.js"
 ]
