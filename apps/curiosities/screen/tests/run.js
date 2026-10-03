@@ -577,6 +577,28 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(none.family === null && none.y >= 0 && none.y <= F.H && /eye goes first/.test(none.what), "with no attention reading it glows where the eye goes first, inside the frame");
 }
 
+/* Favorites and Recently used (CapCut's star and its Recently used list): ui.js with no page and a saved list. */
+{
+  const store = { "curiosities-screen-faves-v1": JSON.stringify({ faves: ["suite|nope", "curiosity|shotSize", "curiosity|shotSize", 7, "bogus", "wrong|x"], recent: Array.from({ length: 20 }, (_, i) => "curiosity|c" + i) }) };
+  const g = { CurioFrame: w.CurioFrame, CurioLevels: w.CurioLevels, document: { readyState: "loading", addEventListener() {} }, localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = v) } };
+  g.window = g;
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "ui.js"), "utf8"), vm.createContext(g), { filename: "ui.js" });
+  const FV = g.CurioScreen.faves;
+  ok(FV && FV.key === "curiosities-screen-faves-v1" && FV.max === 12, "Favorites are kept under curiosities-screen-faves-v1, with 12 recently used");
+  const now = FV.now();
+  ok(now.faves.join() === "suite|nope,curiosity|shotSize" && now.recent.length === 12 && now.recent[0] === "curiosity|c0", "a saved list loads with repeats, junk and unknown kinds dropped, and recently used cut to 12");
+  ok(FV.items("faves").join() === "curiosity|shotSize", "an id the database no longer has is skipped quietly");
+  let st = { faves: [], recent: [] };
+  st = FV.toggle(st, "curiosity|shotSize");
+  st = FV.toggle(st, "suite|a");
+  ok(st.faves.join() === "curiosity|shotSize,suite|a", "starring keeps the order things were starred in");
+  ok(FV.toggle(st, "curiosity|shotSize").faves.join() === "suite|a", "starring again takes it out");
+  let r = { faves: [], recent: [] };
+  for (let i = 0; i < 15; i++) r = FV.used(r, "curiosity|c" + i);
+  r = FV.used(r, "curiosity|c5");
+  ok(r.recent.length === 12 && r.recent[0] === "curiosity|c5" && r.recent[1] === "curiosity|c14" && new Set(r.recent).size === 12, "recently used is newest first, at most 12, with no repeats");
+}
+
 /* Film lines and Take from the film: the inspiration film picked in the Player, read per moment of My film. */
 {
   const CL = w.CurioLanes;

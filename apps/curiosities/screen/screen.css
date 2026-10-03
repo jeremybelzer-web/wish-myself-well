@@ -117,6 +117,14 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-card-b em { font-style: normal; font-size: 10px; color: var(--cc-warm); }
 .sc-page .sc-plus { position: absolute; right: 5px; bottom: 5px; width: 20px; height: 20px; padding: 0; border-radius: 50%; background: var(--cc-accent); color: var(--cc-accent-ink); font-weight: 700; line-height: 20px; }
 .sc-page .sc-plus:hover { background: #67e8f9; }
+/* Favorites: the small star on every card (CapCut's star on any effect), and the Favorites tab's sections. */
+.sc-page .sc-star { position: absolute; right: 4px; top: 4px; width: 20px; height: 20px; padding: 0; border-radius: 50%; background: transparent; color: var(--cc-dim); font-size: 14px; line-height: 20px; box-shadow: none; }
+.sc-page .sc-star:hover { color: var(--cc-text); background: #333338; }
+.sc-page .sc-star.on { color: #ffd43b; }
+.sc-page .sc-star:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: 1px; }
+.sc-page .sc-card.wide .sc-plus { right: 28px; }
+.sc-fave-h { font-size: 11px; color: var(--cc-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 12px; }
+.sc-fave-empty { margin: 4px 0 8px; }
 
 /* Player. */
 .sc-ph { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--cc-line); }
