@@ -7,7 +7,13 @@
     return s && Array.isArray(s.scale) ? Math.max(0, s.scale.indexOf(v(id))) : 0;
   };
   const logp = (x, a, b) => Math.max(0, Math.min(1, (Math.log(Math.max(a, x)) - Math.log(a)) / (Math.log(b) - Math.log(a))));
-  const cap = (k, t) => k.caption(String(t).replace(/(\d+\.\d{2})\d+/g, "$1").replace(/ · ( ·)+/g, " ·").slice(0, 56));
+  /* The bottom line, shrunk to fit the frame when the words are long. */
+  const cap = (k, t) => {
+    t = String(t).replace(/(\d+\.\d{2})\d+/g, "$1").replace(/ · ( ·)+/g, " ·").replace(/:\s*$/, "");
+    const sz = Math.max(7.5, Math.min(10, 310 / (t.length * 0.54)));
+    if (t.length * sz * 0.54 > 312) t = t.slice(0, Math.floor(312 / (sz * 0.54)) - 1) + "…";
+    return `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.label({ x: k.W / 2, y: k.H - 5, text: t, size: Math.round(sz * 10) / 10, color: "#f4f4f4" });
+  };
   const chip = (k, x, y, text, color, anchor) => {
     const w = String(text).length * 5.2 + 10;
     const x0 = anchor === "end" ? x - w : anchor === "middle" ? x - w / 2 : x;
@@ -52,8 +58,9 @@
   function fig(k, o) {
     const I = k.INK;
     const x = o.x == null ? 160 : o.x;
-    const y = o.y == null ? 170 : o.y;
-    const s = o.s || 1;
+    /* Feet stay above the caption bar (y 162) and the head stays inside the top of the frame. */
+    const y = Math.min(160, o.y == null ? 160 : o.y);
+    const s = Math.min(o.s || 1, (y - 6) / 126);
     const fit = k.clamp(o.fit == null ? 0 : o.fit, -1, 1.5);
     const cover = k.clamp(o.cover == null ? 0.8 : o.cover, 0, 1);
     const skin = o.skin || "#f0c8a0";
@@ -298,7 +305,7 @@
     s += fig(k, Object.assign({ x: 160, y: 172, s: 1.05, undone, lean: [10, 3, 0, 0][stance], arms: [-0.5, -0.1, -0.25, -0.4][stance], mood: stance === 3 ? -0.2 : 0.3 }, formalLook(k, f)));
     if (stance === 3) s += `<line x1="160" y1="40" x2="160" y2="175" stroke="#9fd3ff" stroke-dasharray="2 3" opacity="0.6"/>`;
     s += chip(k, 8, 16, `dressed for ${v("dressedFor")}`, "#ffd166");
-    s += tl(k, 240, 10, 74, v.n("loosensAt") / 180, "#ff8a80", "undone at");
+    s += `<rect x="190" y="5" width="128" height="16" rx="5" fill="rgba(0,0,0,0.55)"/>` + tl(k, 240, 10, 74, v.n("loosensAt") / 180, "#ff8a80", "undone at");
     return s + cap(k, `${v("setting")} · ${v("rightForRoom")} · ${v("undone")} · ${v("stance")}`);
   });
 
@@ -353,7 +360,7 @@
     const hides = idx(v, "hides");
     let s = k.bg("#24242c") + k.floor(150, "#3b332b");
     /* Clothes taken off, in a pile on the floor. */
-    for (let i = 0; i < off; i++) s += `<path d="M${210 + i * 4} ${168 - i * 5} q20 -6 40 0 l-4 5 q-16 -4 -32 0 Z" fill="${k.hsl(i * 60 + 200, 35, 45)}" stroke="${k.INK}"/>`;
+    for (let i = 0; i < off; i++) s += `<path d="M${210 + i * 4} ${156 - i * 5} q20 -6 40 0 l-4 5 q-16 -4 -32 0 Z" fill="${k.hsl(i * 60 + 200, 35, 45)}" stroke="${k.INK}"/>`;
     s += fig(k, { x: 140, y: 172, s: 1.05, cover, layers: Math.max(1, Math.round(cover * 3)), top: "#5a7aa5", bottom: "#3a3a4a", arms: [-0.9, -0.6, -0.2, 0.25][ease], mood: [-0.6, -0.2, 0.3, 0.8][ease], lean: ease === 0 ? 6 : ease === 3 ? -3 : 0, hat: cover > 0.95 ? "hood" : null });
     if (ease === 0) s += `<path d="M118 82 L162 98 M162 82 L118 98" stroke="${k.INK}" stroke-width="5"/>`;
     /* What they hide under the clothes. */
@@ -471,7 +478,7 @@
     }, { s: k.lerp(0.34, 0.5, pull) });
     if (pull === 1) s += `<rect x="0" y="0" width="320" height="162" fill="#ffffff" opacity="0.06"/>`;
     /* The hero in front, years apart from the crowd. */
-    s += fig(k, eraFig(k, k.clamp(e - heroOff, 0, 10), { x: 160, y: 176, s: 0.8, alpha: k.lerp(1, 0.75, pull) })) + k.label({ x: 160, y: 66, text: "hero", size: 8, color: "#ffd166" });
+    s += fig(k, eraFig(k, k.clamp(e - heroOff, 0, 10), { x: 160, y: 176, s: 0.8, alpha: k.lerp(1, 0.75, pull) })) + k.label({ x: 160, y: 44, text: "hero", size: 8, color: "#ffd166", weight: 700 });
     s += chip(k, 316, 14, `${v("eraSpread")} yrs spread · hero ${v("vsHeroYears")} yrs`, "#cccccc", "end");
     return s + cap(k, `${v("setting")} · ${v("formality")} · ${v("colorCode")} colour code · ${v("crowdPull")}`);
   });
@@ -493,7 +500,7 @@
       return o;
     });
     const heroP = k.clamp(p - (vsHero - 0.5) * 1.2, 0, 1);
-    s += fig(k, Object.assign({ x: 160, y: 176, s: 0.8 }, costLook(k, heroP))) + k.label({ x: 160, y: 66, text: "hero", size: 8, color: "#ffd166" });
+    s += fig(k, Object.assign({ x: 160, y: 176, s: 0.8 }, costLook(k, heroP))) + k.label({ x: 160, y: 44, text: "hero", size: 8, color: "#ffd166", weight: 700 });
     s += chip(k, 8, 16, `typical outfit $${price.toLocaleString("en-US")}`, "#ffd166") + chip(k, 316, 16, `${v("richShare")}% dressed rich`, "#e6c35a", "end");
     return s + cap(k, `${v("setting")} · ${v("richPoorMix")} · ${v("vsHero")} than the hero`);
   });
@@ -512,7 +519,7 @@
     if (cold === true) for (let i = 0; i < 30; i++) s += k.dot({ x: k.rnd(i) * 320, y: k.rnd(i + 9) * 120, r: 1.6, color: "#ffffff" });
     if (cold === false) s += `<circle cx="290" cy="30" r="18" fill="#fff06a"/>`;
     s += crowd(k, 10, (i) => ({ cover: k.clamp(cover + (k.rnd(i + 2) - 0.5) * range * 1.2, 0, 1), top: k.hsl(200 + i * 13, 35, 50), bottom: "#4a4a5a", layers: Math.max(1, Math.round(cover * 3)) }));
-    s += fig(k, { x: 160, y: 176, s: 0.8, cover: heroCover, top: "#e57373", bottom: "#3a3a4a" }) + k.label({ x: 160, y: 66, text: "hero", size: 8, color: "#ffd166" });
+    s += fig(k, { x: 160, y: 176, s: 0.8, cover: heroCover, top: "#e57373", bottom: "#3a3a4a" }) + k.label({ x: 160, y: 44, text: "hero", size: 8, color: "#ffd166", weight: 700 });
     /* Customs of the place: a sign with as many rules as the customs are strict. */
     s += `<rect x="8" y="8" width="70" height="40" fill="#f4f1ea" stroke="${k.INK}"/>` + Array.from({ length: 4 - norms }, (_, i) => `<rect x="14" y="${14 + i * 8}" width="58" height="4" fill="#555555"/>`).join("") + k.label({ x: 43, y: 58, text: v("norms"), size: 8, color: "#222222" });
     return s + cap(k, `${v("setting")} covered · ${v("crowdSkin")}% skin · ${v("rightForWeather")} · ${v("coverageRange")}`);
@@ -566,7 +573,7 @@
       g.mood = danger >= 2 ? -0.5 : 0.2;
       return g;
     });
-    s += chip(k, 8, 170 - 6, `${kinds} kinds of job · ${v("geared")}% geared`, "#ffd166");
+    s += chip(k, 8, 154, `${kinds} kinds of job · ${v("geared")}% geared`, "#ffd166");
     return s + cap(k, `${v("setting")} · gear ${gear} · ${v("danger")} · ${v("sharedJob")}`);
   });
 
@@ -585,7 +592,7 @@
       return { top: k.mix(k.mix(k.mix("#3a6ad0", "#c05a3a", k.rnd(i + 1)), "#8a8070", age), "#5a5040", ww * 0.6), bottom: k.mix("#3a3a4a", "#5a5040", ww), stains: worn ? Math.round(ww * 4) : 0, tears: worn ? tears : 0, mood: [0.5, 0, -0.4, -0.9][hard], lean: hard * 3 };
     });
     const hw = k.clamp(w - (vsHero - 0.5) * 1.4, 0, 1);
-    s += fig(k, { x: 160, y: 176, s: 0.8, top: k.mix("#e57373", "#7a6050", hw * 0.7), bottom: "#3a3a4a", stains: Math.round(hw * 5), tears: Math.round(hw * 4) }) + k.label({ x: 160, y: 66, text: "hero", size: 8, color: "#ffd166" });
+    s += fig(k, { x: 160, y: 176, s: 0.8, top: k.mix("#e57373", "#7a6050", hw * 0.7), bottom: "#3a3a4a", stains: Math.round(hw * 5), tears: Math.round(hw * 4) }) + k.label({ x: 160, y: 44, text: "hero", size: 8, color: "#ffd166", weight: 700 });
     s += chip(k, 8, 16, `clothes ${v("crowdClothesAge")} yrs old`, "#c8a070") + chip(k, 316, 16, `${tears} tears each`, "#cccccc", "end");
     return s + cap(k, `${v("setting")} · ${v("grimeShare")} worn · ${v("hardTimes")} · hero ${v("vsHeroWear")}`);
   });
@@ -665,7 +672,7 @@
       s += fig(k, { x, y, s: 0.5, top: own === 3 ? "#888888" : k.hsl(crowdHue + (k.rnd(i) - 0.5) * 30 * (1 - own / 3), own >= 2 ? 15 : 35, 45), bottom: "#3a3a44", look: frames === 2 ? -side : 0 });
     }
     s += fig(k, { x: 160, y: 174, s: 0.85, top: k.hsl(heroHue, 30 + own * 18, 50), bottom: k.hsl(heroHue, 25, 32), hat: apart === 1 ? "fedora" : null, long: apart > 0.6 ? 0.8 : 0 });
-    s += k.arrow({ x1: 160, y1: 176, x2: 160 + half - 6, y2: 176, color: "#ffd166", w: 1.5 }) + k.label({ x: 160 + half / 2, y: 172, text: `${v("heroGap")} m`, size: 8, color: "#ffd166" });
+    s += `<rect x="${(160 + half / 2 - 24).toFixed(1)}" y="8" width="48" height="13" rx="6" fill="rgba(0,0,0,0.55)"/><line x1="160" y1="22" x2="160" y2="30" stroke="#ffd166" stroke-width="1.5"/>` + k.arrow({ x1: 160, y1: 26, x2: 160 + half - 2, y2: 26, color: "#ffd166", w: 1.5 }) + k.label({ x: 160 + half / 2, y: 18, text: `gap ${v("heroGap")} m`, size: 8, color: "#ffd166" });
     s += arc(k, 8, 8, [1, 0, -1][arcI], v("apartArc"));
     return s + cap(k, `${v("setting")} · ${v("ownColor")} · frames hero: ${v("framesHero")}`);
   });

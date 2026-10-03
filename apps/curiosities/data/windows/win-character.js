@@ -130,32 +130,6 @@
     },
   });
 
-  W.add("enneagramHealth", {
-    sliders: [
-      ["pull", "Stress or growth pull", ["toward growth", "neither", "toward stress"], "Which way their health is heading, along the matrix's arrows."],
-      ["trigger", "What tips them", TRIGGERS, "What pushes their health up or down in this scene.", { unordered: true }],
-      ["drift", "Drift per scene", [0, 3, ""], "How many levels the health can move in one scene."],
-      ["seenBy", "Who notices the change", SEEN, "Who in the story can see them slipping or growing."],
-    ],
-    window: {
-      faces: [
-        { face: "ladder", slider: "setting" },
-        { face: "dial", slider: "level" },
-        { face: "balance", slider: "pull", left: "Growth", right: "Stress" },
-      ],
-      groups: [
-        { label: "How healthy", sliders: ["setting", "level"] },
-        { label: "Which way", sliders: ["pull", "trigger", "drift", "change"] },
-        { label: "Who sees it", sliders: ["seenBy"] },
-      ],
-      presets: [
-        { label: "Breaking Bad slide", plain: "Unhealthy and heading further into stress.", set: { setting: "unhealthy", level: 8, pull: "toward stress", trigger: "pressure", seenBy: "the audience" } },
-        { label: "Redemption arc", plain: "Climbing toward their best, sparked by love.", set: { setting: "average", level: 5, pull: "toward growth", trigger: "love", drift: 1 } },
-        { label: "At their best", plain: "Healthy and steady.", set: { setting: "healthy", level: 2, pull: "neither", drift: 0 } },
-      ],
-    },
-  });
-
   W.add("cm-stability", {
     sliders: [
       ["ripple", "How far their changes reach", ["themselves", "one person", "the group", "the whole world"], "How much of the story shifts because of them."],
