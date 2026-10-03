@@ -254,11 +254,16 @@ function measure() {
       const c = CurioRig.current();
       const r = c.rig();
       c.set("rigRulesLens.motion", "walking");
+      /* sample the knee several times: one gap can land on the same point of the stride */
       const a = c.where(r.legs.L[1]);
-      await new Promise((res) => setTimeout(res, 500));
-      const b = c.where(r.legs.L[1]);
+      let most = 0;
+      for (let i = 0; i < 8; i++) {
+        await new Promise((res) => setTimeout(res, 110));
+        const b = c.where(r.legs.L[1]);
+        most = Math.max(most, Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]));
+      }
       c.set("rigRulesLens.motion", "standing still");
-      return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+      return most;
     });
     ok(walk > 0.01, `a made character walks (the knee moved ${walk.toFixed(3)})`);
     await page.evaluate(() => document.querySelector(".rig-dlg").close());
