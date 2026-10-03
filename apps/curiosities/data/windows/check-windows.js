@@ -182,6 +182,8 @@ async function fitCheck() {
         for (let j = i + 1; j < T.length; j++) {
           const a = T[i];
           const c = T[j];
+          /* the same words on top of themselves are a deliberate copy (a shadow, a ghost, a repeated sticker) */
+          if (a.txt === c.txt) continue;
           if (Math.min(a.x1, c.x1) - Math.max(a.x0, c.x0) > 1.5 && Math.min(a.y1, c.y1) - Math.max(a.y0, c.y0) > 2.5) p.push(`"${a.txt}" overlaps "${c.txt}"`);
         }
       if (p.length) out.push({ cat: it.cat, id: it.id, tag: it.tag, p });
