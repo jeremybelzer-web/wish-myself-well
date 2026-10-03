@@ -270,6 +270,9 @@
     const ct = v.n("changeTime");
     const w = 4 + ct * 10 + smooth * 14;
     const frozen = lvl === 0;
+    /* The speed the viewer actually sees: the level times the exact percent; the dial, number and caption all show this one. */
+    const eff = frozen ? 0 : Math.round(sp * 100);
+    const name = frozen ? "frozen" : eff < 40 ? "very slow" : eff < 85 ? "slow" : eff <= 115 ? "normal speed" : eff <= 200 ? "fast" : "very fast";
     return (
       k.bg(SKY) +
       box(4, 4, 206, 104, "#3a3640") +
@@ -277,16 +280,16 @@
       (frozen ? `<g opacity="0.25">${runner(k, 120, 100, 60, sp, "#4a6fa5")}</g>` + fig(k, 120, 100, 60, { walk: 1, lean: 8, color: "#4a6fa5" }) + k.label({ x: 160, y: 30, text: "❚❚ frozen", size: 12, color: "#9fd3ff" }) : runner(k, 140, 100, 60, sp)) +
       box(4, 4, 206, 104, tintC, null, 0, 0.12) +
       box(214, 4, 102, 104, "#1d1d22", "#3a3a44", 6) +
-      k.dial({ x: 265, y: 42, r: 24, p: Math.min(1, pct / 400), color: tintC }) +
-      sm(k, 265, 82, `${pct}%`, { size: 10, color: "#fff", anchor: "middle", weight: 700 }) +
-      sm(k, 265, 98, `feels ${v("feel")}`, { size: 7.5, anchor: "middle" }) +
+      k.dial({ x: 265, y: 42, r: 24, p: eff <= 0 ? 0 : k.clamp(Math.log(eff / 2) / Math.log(400), 0, 1), color: tintC }) +
+      sm(k, 265, 82, `${eff}%`, { size: 10, color: "#fff", anchor: "middle", weight: 700 }) +
+      sm(k, 265, 98, frozen ? `held still (set ${pct}%)` : `feels ${v("feel")}`, { size: 7.5, anchor: "middle" }) +
       sm(k, 8, 122, `Voice: ${v("pitch")}, ${shift > 0 ? "+" : ""}${shift} semitones`, { size: 7.5 }) +
       k.wave({ x: 10, y: 136, w: 140, h: 16, amp: 0.8, cycles, color: "#9fd3ff" }) +
       sm(k, 8, 156, `Sound: ${v("soundBend")}`, { size: 7.5 }) +
       (sb === 2 ? k.label({ x: 140, y: 157, text: "♪♪", size: 10, color: "#ffd166" }) : "") +
       sm(k, 170, 122, `Change: ${v("smoothChange")}, ${ct} s`, { size: 7.5 }) +
       poly([[170, 148], [230 - w / 2, 148], [230 + w / 2, 134], [310, 134]], "#ffd166", 2) +
-      k.caption(`${v("setting")} (${pct}%)`)
+      k.caption(frozen ? "Frozen: the clip stands still" : `Plays ${name}: ${eff}% of real speed`)
     );
   });
 

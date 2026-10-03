@@ -163,7 +163,7 @@
       sm(k, 6, 70, "A", { size: 8 }) +
       sm(k, 112, 70, cut ? "the cut" : "halfway", { size: 8, color: "#ffd166" }) +
       sm(k, 218, 70, "B", { size: 8 }) +
-      (grab > 0 ? [0, 1, 2, 3, 4, 5].slice(0, 1 + Math.round(grab * 5)).map((i) => k.text({ x: 122 + i * 15, y: 24, text: "!", size: 10 + grab * 6, color: "#ffd166", weight: 700, outline: "#000" })).join("") : "") +
+      (grab > 0 ? [0, 1, 2, 3, 4, 5].slice(0, 1 + Math.round(grab * 5)).map((i) => k.text({ x: 122 + i * 15, y: 24, text: "!", size: 10 + grab * 12, color: "#ffd166", weight: 700, outline: "#000" })).join("") : "") +
       k.arrow({ x1: 160 - Math.cos(k.rad(dirDeg)) * 14, y1: 62 - Math.sin(k.rad(dirDeg)) * 6, x2: 160 + Math.cos(k.rad(dirDeg)) * 14, y2: 62 + Math.sin(k.rad(dirDeg)) * 6, w: 2, color: "#fff" }) +
       beats.join("") +
       box(10, tl + 2, cutX + half - 10, 12, "#4a6fa5", "#1c1712", 2) +
@@ -346,7 +346,7 @@
       sm(k, 214, 108, `first hook at ${ht} s`, { size: 7.5 }) +
       sm(k, 6, 128, "The film", { size: 7.5 }) +
       box(10, 134, 300, 8, "#34343c", null, 4) +
-      box(wx - 3, 130, Math.max(4, len * 6), 16, pal[1], null, 3, 0.85) +
+      box(wx - 3, 130, 3 + len * 6, 16, pal[1], null, 3, 0.85) +
       k.label({ x: wx + 2, y: 156, text: v("where"), size: 7.5, color: "#ddd", anchor: where === 3 ? "end" : "start" }) +
       k.dot({ x: Math.min(306, wx + (ht / 30) * 80), y: 138, r: 3, color: "#ffd166" }) +
       k.caption(style === 0 ? "No intro or outro effect" : `${v("setting")} at the ${v("where")}, ${len} s`)

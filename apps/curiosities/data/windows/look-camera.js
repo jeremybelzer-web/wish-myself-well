@@ -22,7 +22,7 @@
     const a = k.rad(around - 90);
     const cx = mx + Math.cos(a) * R;
     const cy = my - Math.sin(a) * R;
-    const map = `<rect x="215" y="10" width="100" height="120" rx="6" fill="#1d1d22" stroke="#444"/>${k.ring({ x: mx, y: my, r: R, color: "#555", dash: "3 3", w: 1 })}${k.dot({ x: mx, y: my, r: 6, color: "#4a6fa5" })}${k.label({ x: mx, y: my - 9, text: "them", size: 8, color: "#aaa" })}${k.cam({ x: cx, y: cy, dir: (Math.atan2(my - cy, mx - cx) * 180) / Math.PI + off, s: 0.6 })}${k.label({ x: mx, y: 124, text: `${Math.round(around)}° · ${Math.round(dist * 10) / 10} m · ${height > 0 ? "above" : height < 0 ? "below" : "eye level"}`, size: 8, color: "#ccc" })}`;
+    const map = `<rect x="215" y="10" width="100" height="120" rx="6" fill="#1d1d22" stroke="#444"/>${k.ring({ x: mx, y: my, r: R, color: "#555", dash: "3 3", w: 1 })}${k.dot({ x: mx, y: my, r: 6, color: "#4a6fa5" })}${k.label({ x: mx, y: my - 9, text: "them", size: 8, color: "#aaa" })}${k.cam({ x: cx, y: cy, dir: (Math.atan2(my - cy, mx - cx) * 180) / Math.PI + off, s: 0.6 })}${k.label({ x: mx, y: 124, text: `${Math.round(around)}° · ${Math.round(dist * 10) / 10} m · ${height > 0 ? height + "° above" : height < 0 ? -height + "° below" : "eye level"}`, size: 8, color: "#ccc" })}`;
     return `<clipPath id="cw-cp-view"><rect x="0" y="0" width="210" height="180"/></clipPath>${k.bg("#141418")}<g clip-path="url(#cw-cp-view)">${view}</g>${map}${k.caption(`Measured from ${v("subject")}`)}`;
   });
 
@@ -54,7 +54,7 @@
   /* A timeline track with a label. */
   const track = (k, x, y, w, label) => (label ? sm(k, x, y - 3, label, { size: 7.5, color: "#999" }) : "") + box(x, y, w, 5, "#34343c", null, 2.5);
   /* A darkening of the edges, own id. */
-  const vig = (id, p) => `<defs><radialGradient id="${id}"><stop offset="50%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="${R(Math.max(0, Math.min(1, p)), 2)}"/></radialGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#${id})"/>`;
+  const vig = (id, p) => `<defs><radialGradient id="${id}"><stop offset="50%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="${R(Math.max(0, Math.min(1, p)), 3)}"/></radialGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#${id})"/>`;
   const blurDef = (id, sd) => `<defs><filter id="${id}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="${R(Math.max(0, sd), 2)}"/></filter></defs>`;
   const idx = (v, id) => {
     const s = v.slider(id);
@@ -178,9 +178,10 @@
       const big = which === 0 || (which === 1 && i % 3 === 0) || (which === 2 && i === 5);
       return box(10 + i * 24, 140, 18, 6, big ? "#ffd166" : "#555", null, 2);
     });
-    const share = Math.round(v.p("share") * 10);
+    /* Ten dots fill in step with the share; the dot at the edge fills part-way, so every step shows. */
+    const share = v.p("share") * 10;
     const dots = [];
-    for (let i = 0; i < 10; i++) dots.push(k.dot({ x: 226 + i * 9, y: 140, r: 3, color: i < share ? "#7fe07f" : "#444" }));
+    for (let i = 0; i < 10; i++) dots.push(k.dot({ x: 226 + i * 9, y: 140, r: 3, color: "#444" }) + (share > i ? k.dot({ x: 226 + i * 9, y: 140, r: 3 * Math.min(1, share - i), color: "#7fe07f" }) : ""));
     return (
       k.bg(SKY) +
       shot(k, "cw-atl-a", 6, 18, 120, before) +
@@ -193,7 +194,7 @@
       ln(10 + 4 * 24 + 9 + t * 10, 128, 10 + 4 * 24 + 9 + t * 10, 152, "#ff6b6b", 2) +
       lines.join("") +
       sm(k, 10, 160 - 2, v("whichLines"), { size: 7 }) +
-      sm(k, 226, 128, "Lines matched", { size: 7.5 }) +
+      sm(k, 226, 128, `Lines matched ${v("share")}%`, { size: 7.5 }) +
       dots.join("") +
       k.caption(`The angle ${v("setting")}`)
     );
@@ -225,7 +226,7 @@
     for (let i = 0; i < Math.min(10, Math.ceil(lpa)); i++) bub.push(box(14 + i * 18, 132, 14, 9, "#f4f1ea", "#1c1712", 4));
     return (
       k.bg(SKY) +
-      sm(k, 10, 12, `One minute of film: ${n} ${n === 1 ? "shot" : "shots"}, each a new angle`, { color: "#ddd", size: 9 }) +
+      sm(k, 10, 12, `One minute: ${n} ${n === 1 ? "shot" : "shots"} (${v("perMinute")} a minute, ${v("setting")})`, { color: "#ddd", size: 9 }) +
       talkStrip(k, "cw-cr", L, 10, 22, 300, 46) +
       ln(10 + peak * 300, 14, 10 + peak * 300, 76, "#ff6b6b", 1.5, "3 2") +
       sm(k, 10 + peak * 300 + (peak > 0.7 ? -4 : 4), 84, "fastest", { color: "#ff6b6b", size: 7, anchor: peak > 0.7 ? "end" : "start" }) +
@@ -589,7 +590,7 @@
     const lead = v.n("actionLead");
     const ant = v.p("anticipate") * 2 - 1;
     const cx = 110 + (lead + ant * 1.5) * 20;
-    const ins = Math.round(v.p("insertShare") * 8);
+    const ins = v.p("insertShare") * 8;
     const big = idx(v, "bigActions");
     const acts = [0.3, 0.6, 1, 0.4, 0.8, 0.35];
     const maxA = Math.max(...acts);
@@ -601,8 +602,8 @@
       acts.map((a, i) => k.dot({ x: 228 + i * 15, y: 34, r: 2 + a * 4, color: big === 0 || (big === 1 && a >= 0.6) || (big === 2 && a === maxA) ? "#ffd166" : "#555" })).join("") +
       sm(k, 222, 56, `Matched ${v("share")}%`, { size: 7.5 }) +
       k.pie({ x: 296, y: 53, r: 8, p: v.p("share") }) +
-      sm(k, 222, 76, "Close-ups of hands", { size: 7.5 }) +
-      [0, 1, 2, 3, 4, 5, 6, 7].map((i) => box(222 + i * 10.5, 82, 9, 12, i < ins ? "#e07a5f" : "#3d3d48", null, 2)).join("") +
+      sm(k, 222, 76, `Close-ups of hands ${v("insertShare")}%`, { size: 7.5 }) +
+      [0, 1, 2, 3, 4, 5, 6, 7].map((i) => box(222 + i * 10.5, 82, 9, 12, "#3d3d48", null, 2) + (ins > i ? box(222 + i * 10.5, 82, 9 * Math.min(1, ins - i), 12, "#e07a5f", null, 2) : "")).join("") +
       sm(k, 222, 112, `Strength ${v("strength")}`, { size: 7.5 }) +
       k.meter({ x: 222, y: 116, w: 84, p: str }) +
       sm(k, 222, 146, `${as}% of frame`, { size: 7.5 }) +
@@ -635,7 +636,7 @@
     for (let i = 0; i < Math.ceil(pl); i++) holdCells += cell(`cw-sd-h${i}`, 56 + i * 16, 92, Math.min(16, (pl - i) * 16), 26, talk(k, 1), "#81b29a");
     return (
       k.bg(SKY) +
-      sm(k, 10, 12, `A minute of film: ${n} ${n === 1 ? "shot" : "shots"} of about ${R(sec)} s`, { color: "#ddd", size: 9 }) +
+      sm(k, 10, 12, `A minute of film: ${n} ${n === 1 ? "shot" : "shots"} of about ${R(sec, 2)} s`, { color: "#ddd", size: 9 }) +
       talkStrip(k, "cw-sd", L, 10, 22, 300, 40) +
       sm(k, 10, 84, "One shot: the last line, then the hold", { size: 8 }) +
       cell("cw-sd-line", 10, 92, 44, 26, talk(k, 1, true), "#ffd166") +
