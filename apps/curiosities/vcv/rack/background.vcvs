@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "BACKGROUND ACTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 2, CC 81 to 95\n   1 Setting\n   2 Interior or exterior\n   3 Motion of the environment\n   4 Temperature\n   5 Weather\n   6 Scale of the place\n   7 Repetition in frame\n   8 Crowds and repeats\n   9 suite: The weather feels it too\n  10 suite: Sea of people\n  11 pair: When it rains, surfaces are soaked\n  12 pair: When sadness rises, the rain starts\n  13 pair: When tension rises, the background goes still\n  14 pair: When the leader moves, the crowd follows in a ripple\n  15 pairs: The world mirrors the feeling"
+    "text": "BACKGROUND ACTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 33 to 48\n   1 Setting\n   2 Interior or exterior\n   3 Motion of the environment\n   4 Temperature\n   5 Weather\n   6 Scale of the place\n   7 Repetition in frame\n   8 Crowds and repeats\n   9 suite: The weather feels it too\n  10 suite: Sea of people\n  11 suite: Symmetrical storybook\n  12 suite: Busy city street\n  13 pair: When it rains, surfaces are soaked\n  14 pair: When sadness rises, the rain starts\n  15 pair: When tension rises, the background goes still\n  16 pair: When the leader moves, the crowd follows in a ripple\nCV-CC 2: MIDI channel 3, CC 49 to 55\n   1 pair: When the scene jumps to a new place, its sound arrives first\n   2 pair: When the scene moves outside, we hear more of the world off screen\n   3 pair: When it is hot, people talk slower\n   4 pair: When a pattern fills the frame, the subject goes dead center\n   5 pairs: The world mirrors the feeling\n   6 pairs: Sound of the place\n   7 pairs: Deadpan storybook"
    },
    "pos": [
     0,
@@ -27,29 +27,61 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
-     91,
-     92,
-     93,
-     94,
-     95,
-     -1
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
     ],
     "midi": {
-     "channel": 1
+     "channel": 2
     }
    },
    "pos": [
     24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 2
+    }
+   },
+   "pos": [
+    32,
     0
    ]
   }
