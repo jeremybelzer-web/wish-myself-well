@@ -45,7 +45,7 @@ ok("lesson.js loads with no page and exports a pure lessonSteps", () => {
   assert.strictEqual(empty.steps.length, 0);
 });
 ok("every family has its own letter, and every cue has plain words", () => {
-  const letters = M.FAMILIES.map((f) => L.LETTERS[f.id]);
+  const letters = M.FAMILIES.map((f) => M.mark(f.id).letter);
   letters.forEach((x, i) => assert(x, M.FAMILIES[i].id + " has no letter"));
   assert.strictEqual(new Set(letters).size, letters.length, "letters repeat");
   M.CUES.forEach((c) => assert(L.CUE_WORDS[c.id] && L.CUE_WORDS[c.id].short, c.id + " has no words"));

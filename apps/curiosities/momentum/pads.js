@@ -34,26 +34,16 @@
   const ME = () => root.CurioMomentumEngine;
   const SC = () => root.CurioScreen;
 
-  /* The same family colors as the Momentum window (ui.js), and the lesson's letters (lesson.js). */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const LIGHT = { comedy: 1, movement: 1 };
-  const LETTERS = { camera: "Ca", movement: "Mo", voice: "V", feeling: "F", comedy: "Co", wardrobe: "W", place: "S", light: "Li", music: "Mu", plot: "P", mind: "T", effects: "E", cut: "Cu" };
-  const colorOf = (f) => COLORS[f] || OTHER;
-  const inkOn = (f) => (LIGHT[f] || !COLORS[f] ? "#1c1712" : "#ffffff");
+  /* Family colors and letters, and the Fresh / Getting long / Too long marks, come from notes.js
+     (CurioMomentum.mark and CurioMomentum.status), the same on every tab. */
+  const mark = (f) => M().mark(f);
   const famLabel = (f) => (M() && M().family(f) ? M().family(f).label : f || "");
   const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="];
   /* Notes 36 and up: where most pad controllers and drum maps start (C1, the bass drum in General MIDI). */
   const FIRST_NOTE = 36;
-  const MAIN = Object.keys(COLORS);
+  const MAIN = () => Object.keys(M().COLORS);
 
-  function statusOf(held, limit) {
-    if (held == null) return { cls: "good", icon: "●", text: "Nothing yet" };
-    const r = held / (limit || 20);
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
+  const statusOf = (held, limit) => M().status(held, limit);
   const clock = (s) => {
     const t = Math.max(0, Math.round(s || 0));
     return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
@@ -84,11 +74,12 @@
   /* The pads in order: the 8 families with their own color first, then the others. */
   function pads(set) {
     const all = M().FAMILIES.map((f) => f.id);
-    const order = MAIN.filter((f) => all.includes(f)).concat(all.filter((f) => !MAIN.includes(f)));
-    const list = (set || settings.set) === "main" ? order.filter((f) => MAIN.includes(f)) : order;
+    const main = MAIN();
+    const order = main.filter((f) => all.includes(f)).concat(all.filter((f) => !main.includes(f)));
+    const list = (set || settings.set) === "main" ? order.filter((f) => main.includes(f)) : order;
     return list.map((f, i) => {
       const learned = settings.notes[f];
-      return { family: f, label: famLabel(f), letter: LETTERS[f] || f[0].toUpperCase(), color: colorOf(f), ink: inkOn(f), key: KEYS[i] || null, note: learned != null ? learned : FIRST_NOTE + i, learned: learned != null };
+      return { family: f, label: famLabel(f), letter: mark(f).letter, color: mark(f).color, ink: mark(f).ink, key: KEYS[i] || null, note: learned != null ? learned : FIRST_NOTE + i, learned: learned != null };
     });
   }
 
@@ -109,7 +100,7 @@
       const runs = (r.stats && r.stats.familyRuns) || [];
       const run = runs.find((g) => seg.from >= g.from - 1e-9 && seg.from < g.to + 1e-9) || { from: seg.from };
       const held = Math.max(0, Math.round((index + 1) * step - run.from));
-      now = { family: seg.family, label: famLabel(seg.family), letter: LETTERS[seg.family] || "?", curiosity: seg.label, held, limit, status: statusOf(held, limit) };
+      now = { family: seg.family, label: famLabel(seg.family), letter: mark(seg.family).letter, curiosity: seg.label, held, limit, status: statusOf(held, limit) };
     }
     const same = !!(now && now.family === family);
     const name = famLabel(family);
@@ -119,7 +110,7 @@
       : same
         ? `${name} already holds attention at ${at}, for ${now.held} seconds. Pressing it again keeps attention there, so the stretch grows longer.`
         : `At ${at}, attention is on ${now.label} for ${now.held} seconds. Pressing ${name} moves it to ${name}.`;
-    return { family, label: name, letter: LETTERS[family] || String(family || "?")[0].toUpperCase(), color: colorOf(family), ink: inkOn(family), index, seconds: index * step, now, same, text };
+    return { family, label: name, letter: mark(family).letter, color: mark(family).color, ink: mark(family).ink, index, seconds: index * step, now, same, text };
   }
 
   /* ---------- the engine ---------- */
@@ -395,7 +386,6 @@
       },
     },
     KEYS,
-    LETTERS,
     FIRST_NOTE,
     KEY,
   };

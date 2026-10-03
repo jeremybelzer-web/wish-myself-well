@@ -127,7 +127,7 @@
         .sort((a, b) => b[1] - a[1])
         .map(([family, s]) => ({ family, label: famLabel(family), seconds: round(s, 1) }));
       const r = longest.dur / gapLimit;
-      const status = seconds === 0 || r > 1 ? "crit" : r < 0.75 ? "good" : "warn";
+      const status = seconds === 0 ? "crit" : M().status(longest.dur, gapLimit).cls;
       return { id: t.id, label: t.label || t.id, seconds: round(seconds, 1), share: total ? round(seconds / total, 3) : 0, longestGap: round(longest.dur, 1), gapFrom: longest.from, gapTo: longest.to, never: seconds === 0, status, families };
     });
     characters.sort((a, b) => b.seconds - a.seconds || a.label.localeCompare(b.label));
@@ -161,11 +161,11 @@
 
   /* ---------- the tab ---------- */
   if (typeof document === "undefined") return;
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
+  /* Family colors and the status marks come from notes.js (CurioMomentum.mark, CurioMomentum.status). */
+  const OTHER = M().OTHER;
   /* Characters take the same validated colors in order; the film itself is gray. */
-  const PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"];
-  const STATUS = { good: ["●", "Fresh"], warn: ["▲", "Getting long"], crit: ["■", "Too long"] };
+  const PALETTE = Object.values(M().COLORS);
+  const STATUS_KEY = { good: "fresh", warn: "long", crit: "over" };
   const esc = (s) =>
     String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
@@ -257,12 +257,12 @@
     const max = Math.max(res.film.seconds, ...res.characters.map((c) => c.seconds), 1);
 
     const bar = (c, isFilm) => {
-      const st = STATUS[c.status] || STATUS.good;
+      const st = M().STATUS[STATUS_KEY[c.status] || "fresh"];
       return `<li class="mo-w-row">
         <span class="mo-w-name"><i style="background:${isFilm ? OTHER : color[c.id]}"></i>${esc(isFilm ? "The film itself" : c.label)}</span>
         <span class="mo-w-bar"><span style="width:${((c.seconds / max) * 100).toFixed(1)}%;background:${isFilm ? OTHER : color[c.id]}"></span></span>
         <span class="mo-w-n">${Math.round(c.seconds)} s <small>(${pct(c.share)})</small></span>
-        ${isFilm ? `<span class="mo-w-gap mo-small">Master and Camera</span>` : `<span class="mo-w-gap">${c.never ? `<span class="mo-status mo-crit">■ Never watched</span>` : `Longest unwatched: ${Math.round(c.longestGap)} s <span class="mo-status mo-${c.status}">${st[0]} ${st[1]}</span>`}</span>`}
+        ${isFilm ? `<span class="mo-w-gap mo-small">Master and Camera</span>` : `<span class="mo-w-gap">${c.never ? `<span class="mo-status mo-crit">■ Never watched</span>` : `Longest unwatched: ${Math.round(c.longestGap)} s <span class="mo-status mo-${c.status}">${st.icon} ${st.words}</span>`}</span>`}
       </li>`;
     };
     const bars = res.characters.map((c) => bar(c, false)).join("") + (res.film.seconds ? bar(res.film, true) : "");
@@ -283,7 +283,7 @@
       .map(
         (c) => `<li><b>${esc(c.label)}:</b> ${
           c.families.length
-            ? c.families.map((f) => `<span class="mo-fam"><i style="background:${COLORS[f.family] || OTHER}"></i>${esc(f.label)} <small>${Math.round(f.seconds)} s</small></span>`).join(" ")
+            ? c.families.map((f) => `<span class="mo-fam"><i style="background:${M().mark(f.family).color}"></i>${esc(f.label)} <small>${Math.round(f.seconds)} s</small></span>`).join(" ")
             : `<small>nothing yet</small>`
         }</li>`
       )

@@ -1,5 +1,5 @@
 /* momentum/ui.js: the Momentum window. Opens from the Library menu ("Momentum"), or on its own page
-   (momentum/index.html). Three tabs:
+   (momentum/index.html). Its own tabs (the rest come from other momentum files through addTab):
 
    - Attention: pick a film (My film live while you play or perform it, My film's panels, a storyboard scene,
      the whole storyboard, or any curated film) and see
@@ -12,8 +12,13 @@
    - Momentum notes: every curiosity's note: how it moves the plot and themes forward and pulls attention on.
 
    window.CurioMomentumUI = { open(tab), close(), mount(el), noteHtml(id), mountNote(el, id), addTab(spec), context() }
-   addTab({ id, label, after?: "end", mount(el, ctx) }) adds a tab from another momentum file (before Perform, or
-   after Momentum notes with after: "end"). mount is called each time the tab is drawn, with ctx: prefs(),
+   addTab({ id, label, after?: "end", group?: "see"|"fix"|"learn"|"live"|"share", mount(el, ctx) }) adds a tab
+   from another momentum file. The tabs sit in five groups (See it, Fix it, Learn it, Play it live, Share it):
+   without a group a known id goes to its own group (TAB_GROUP) and an unknown one to See it. Within a group the
+   order is the built-in tabs, then added tabs, then those with after: "end". Every group shows with its name
+   (over its tabs on a wide screen, beside them on a phone), so every tab is one click away; the group of the
+   open tab is marked, and open(id) marks the right group.
+   mount is called each time the tab is drawn, with ctx: prefs(),
    sources(), source(), setSource(id), sourcePicker(attr), readSource(id), beatsOf(id), profiles() (the films
    picked to compare with), allProfiles(), target(), limit(), secondsPerBeat(), refresh().
    Saves its choices under localStorage key curiosities-momentum-v1 (source, compare-with list, limit,
@@ -29,9 +34,9 @@
   if (!M || !A || !R) return;
 
   /* Eight fixed family colors (validated categorical order); the other families share gray as "Other". */
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const colorOf = (f) => COLORS[f] || OTHER;
+  /* Family colors and the status marks come from notes.js (CurioMomentum.mark, CurioMomentum.status). */
+  const OTHER = M.OTHER;
+  const colorOf = (f) => M.mark(f).color;
   const famLabel = (f) => (M.family(f) || { label: f }).label;
   const cueLabel = (c) => (M.CUES.find((x) => x.id === c) || { label: c }).label;
 
@@ -145,9 +150,26 @@
 
   /* ---------- tabs other momentum files add (addTab) ---------- */
   const extraTabs = [];
+  /* The five groups the tabs sit in, so a beginner can tell where to start. A tab added without a group goes
+     where its id says (TAB_GROUP), and an unknown id goes to "See it". */
+  const GROUPS = [
+    { id: "see", label: "See it", hint: "See it: look at how attention moves through a film." },
+    { id: "fix", label: "Fix it", hint: "Fix it: get ideas and changes for your own film." },
+    { id: "learn", label: "Learn it", hint: "Learn it: learn the idea, and the films it is measured against." },
+    { id: "live", label: "Play it live", hint: "Play it live: move attention yourself while a film plays." },
+    { id: "share", label: "Share it", hint: "Share it: make a page or a sheet to show other people." },
+  ];
+  const TAB_GROUP = {
+    attention: "see", watch: "see", curve: "see", drive: "see", comedy: "see",
+    compass: "fix", engine: "fix", pace: "fix", cuelab: "fix",
+    lesson: "learn", rates: "learn", notes: "learn",
+    pads: "live", perform: "live",
+    report: "share", cuesheet: "share",
+  };
+  const groupOf = (id, given) => (GROUPS.some((g) => g.id === given) ? given : TAB_GROUP[id] || "see");
   function addTab(spec) {
     if (!spec || !spec.id || typeof spec.mount !== "function" || extraTabs.some((t) => t.id === spec.id)) return false;
-    extraTabs.push(Object.assign({ label: spec.id }, spec));
+    extraTabs.push(Object.assign({ label: spec.id }, spec, { group: groupOf(spec.id, spec.group) }));
     if (host) draw();
     return true;
   }
@@ -218,13 +240,7 @@
   }
 
   /* ---------- pieces ---------- */
-  function statusOf(run, lim) {
-    if (!run) return { cls: "good", icon: "●", text: "Nothing yet" };
-    const r = run.dur / lim;
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
+  const statusOf = (run, lim) => M.status(run ? run.dur : null, lim);
   function meterHtml(reading, at) {
     const s = reading.stats;
     const run = at ? at.run : s.currentRun;
@@ -256,8 +272,8 @@
   function pieHtml(stats) {
     const entries = Object.entries(stats.familyShare || {}).filter(([, v]) => v > 0);
     if (!entries.length) return `<p class="mo-empty">No attention yet.</p>`;
-    const named = entries.filter(([f]) => COLORS[f]);
-    const other = entries.filter(([f]) => !COLORS[f]);
+    const named = entries.filter(([f]) => M.COLORS[f]);
+    const other = entries.filter(([f]) => !M.COLORS[f]);
     const otherShare = other.reduce((a, [, v]) => a + v, 0);
     const slices = named.concat(otherShare > 0 ? [["other", otherShare]] : []);
     const total = slices.reduce((a, [, v]) => a + v, 0) || 1;
@@ -709,23 +725,55 @@
       <div class="mo-stage-next">Next: ${esc(s.compass ? famLabel(s.compass) : "–")}</div>`;
   }
 
-  function draw() {
-    if (!host) return;
-    const tabs = [
+  /* Every tab in its group, in the old order within each group (built-in tabs, added tabs, then after: "end"). */
+  function tabList() {
+    const flat = [
       ["attention", "Attention"],
       ["compass", "Compass"],
       ["engine", "On the engine"],
-      ...extraTabs.filter((t) => !t.after).map((t) => [t.id, t.label]),
+      ...extraTabs.filter((t) => t.after !== "end").map((t) => [t.id, t.label, t.group]),
       ["perform", "Perform"],
       ["rates", "Film rates"],
       ["notes", "Momentum notes"],
-      ...extraTabs.filter((t) => t.after === "end").map((t) => [t.id, t.label]),
-    ];
+      ...extraTabs.filter((t) => t.after === "end").map((t) => [t.id, t.label, t.group]),
+    ].map(([id, label, g]) => ({ id, label, group: groupOf(id, g) }));
+    return GROUPS.map((g) => Object.assign({}, g, { tabs: flat.filter((t) => t.group === g.id) })).filter((g) => g.tabs.length);
+  }
+  /* "Start here": a one-line hint shown until the person opens Learn it or hides the hint. */
+  const START_KEY = "curiosities-momentum-start-v1";
+  function startSeen() {
+    try {
+      return localStorage.getItem(START_KEY) === "1";
+    } catch (e) {
+      return false;
+    }
+  }
+  function markStartSeen() {
+    try {
+      localStorage.setItem(START_KEY, "1");
+    } catch (e) {}
+  }
+
+  function draw() {
+    if (!host) return;
+    const groups = tabList();
+    const all = groups.reduce((a, g) => a.concat(g.tabs), []);
+    const cur = all.find((t) => t.id === prefs.tab) || all[0];
+    const hasLesson = all.some((t) => t.id === "lesson");
+    if (prefs.tab === "lesson") markStartSeen();
+    const showStart = hasLesson && !startSeen();
     const ext = extraTabs.find((t) => t.id === prefs.tab);
+    const tabBtn = (t) => `<button type="button" role="tab" aria-selected="${prefs.tab === t.id}" data-tab="${esc(t.id)}">${esc(t.label)}</button>`;
     host.innerHTML = `<div class="mo-in">
       <div class="mo-head"><h2>Momentum</h2>${dlg ? `<button type="button" class="mo-x" data-m="close" aria-label="Close">×</button>` : ""}</div>
       <p class="mo-lede">The heart of the app: the feeling that the film is going somewhere important. Attention can rest on only one thing at a time; when what holds it keeps changing, the film stays alive.</p>
-      <div class="mo-tabs" role="tablist">${tabs.map(([id, l]) => `<button type="button" role="tab" aria-selected="${prefs.tab === id}" data-tab="${id}">${l}</button>`).join("")}</div>
+      ${showStart ? `<p class="mo-start"><b>Start here:</b> <button type="button" data-m="start">Open Learn it</button> <span>a short walk through a film, one moment at a time.</span> <button type="button" class="mo-start-x" data-m="start-hide" aria-label="Hide this hint">Hide</button></p>` : ""}
+      <div class="mo-nav">
+        <div class="mo-tabs">${groups
+          .map((g) => `<div class="mo-tabgroup${cur.group === g.id ? " on" : ""}" data-tabgroup="${g.id}"><span class="mo-tabgroup-name" id="mo-g-${g.id}">${g.label}</span><div class="mo-tabrow" role="tablist" aria-labelledby="mo-g-${g.id}">${g.tabs.map(tabBtn).join("")}</div></div>`)
+          .join("")}</div>
+        <p class="mo-group-hint">${esc((groups.find((g) => g.id === cur.group) || {}).hint || "")}</p>
+      </div>
       <div class="mo-body">${ext ? `<div class="mo-ext" data-ext="${esc(ext.id)}"></div>` : prefs.tab === "rates" ? ratesHtml() : prefs.tab === "notes" ? notesHtml() : prefs.tab === "compass" ? attentionHtml("mo-compass") : prefs.tab === "engine" ? engineHtml() : prefs.tab === "perform" ? performHtml() : attentionHtml()}</div></div>`;
     if (prefs.tab === "attention") drawAttention();
     else if (prefs.tab === "compass") drawCompass();
@@ -748,6 +796,14 @@
       if (t.dataset.tab) {
         prefs.tab = t.dataset.tab;
         savePrefs();
+        draw();
+      } else if (t.dataset.m === "start") {
+        markStartSeen();
+        prefs.tab = "lesson";
+        savePrefs();
+        draw();
+      } else if (t.dataset.m === "start-hide") {
+        markStartSeen();
         draw();
       } else if (t.dataset.m === "close") close();
       else if (t.dataset.m === "restart") {

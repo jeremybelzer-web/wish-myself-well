@@ -351,18 +351,12 @@
 
   /* ---------- the tab "Pace it" in the Momentum window ---------- */
   if (typeof document === "undefined") return;
-  const COLORS = { feeling: "#2a78d6", plot: "#eb6834", voice: "#1baf7a", comedy: "#eda100", movement: "#e87ba4", music: "#008300", camera: "#4a3aa7", place: "#e34948" };
-  const OTHER = "#a8a39a";
-  const colorOf = (f) => COLORS[f] || OTHER;
+  /* Family colors and the status marks come from notes.js (CurioMomentum.mark, CurioMomentum.status). */
+  const colorOf = (f) => M().mark(f).color;
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const ui = { like: null, strength: "medium", off: new Set(), flash: "" };
   const keyOf = (c) => [c.kind, c.row, c.track, c.curiosity].join("|");
-  function statusOf(sec, lim) {
-    const r = sec / (lim || 20);
-    if (r < 0.75) return { cls: "good", icon: "●", text: "Fresh" };
-    if (r <= 1) return { cls: "warn", icon: "▲", text: "Getting long" };
-    return { cls: "crit", icon: "■", text: "Too long" };
-  }
+  const statusOf = (sec, lim) => M().status(sec || 0, lim);
   function choices(ctx) {
     const picked = ctx.profiles();
     const out = [];

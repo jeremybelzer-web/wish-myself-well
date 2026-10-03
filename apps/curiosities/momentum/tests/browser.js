@@ -82,6 +82,26 @@ const ok = (cond, text) => {
     return out;
   });
   ok(extTab[0] && /^ext \d+ function$/.test(extTab[1] || ""), "another momentum file can add a tab: " + extTab[1]);
+
+  /* Tab groups: five named groups; a tab without a group goes where its id says, an unknown id to See it. */
+  const groups = await page.evaluate(() => {
+    window.CurioMomentumUI.addTab({ id: "test-share", label: "Test share", group: "share", mount: (el) => (el.textContent = "share") });
+    window.CurioMomentumUI.open("attention");
+    const names = [...document.querySelectorAll(".mo-dlg .mo-tabgroup-name")].map((n) => n.textContent);
+    const where = {};
+    document.querySelectorAll(".mo-dlg .mo-tabgroup").forEach((g) => g.querySelectorAll("[role=tab]").forEach((t) => (where[t.dataset.tab] = g.dataset.tabgroup)));
+    const shown = [...document.querySelectorAll(".mo-dlg [role=tab]")].filter((t) => t.offsetParent).length;
+    window.CurioMomentumUI.close();
+    return { names, where, shown, all: Object.keys(where).length, lists: document.querySelectorAll(".mo-dlg [role=tablist]").length };
+  });
+  ok(groups.names.join("|") === "See it|Fix it|Learn it|Play it live|Share it", "five tab groups: " + groups.names.join(", "));
+  const want = { attention: "see", compass: "fix", engine: "fix", perform: "live", rates: "learn", notes: "learn", "test-ext": "see", "test-share": "share" };
+  const wrong = Object.keys(want).filter((id) => groups.where[id] !== want[id]);
+  ok(!wrong.length, "each tab sits in its group" + (wrong.length ? ": wrong " + wrong.join(", ") : ""));
+  const known = { lesson: "learn", pads: "live", report: "share", cuesheet: "share", cuelab: "fix", pace: "fix", curve: "see", drive: "see", watch: "see", comedy: "see" };
+  const wrongKnown = Object.keys(known).filter((id) => groups.where[id] && groups.where[id] !== known[id]);
+  ok(!wrongKnown.length, "tabs added by other files land in their groups without saying so" + (wrongKnown.length ? ": wrong " + wrongKnown.join(", ") : ""));
+  ok(groups.shown === groups.all && groups.lists === 5, `on a wide screen every tab shows, in 5 named lists (${groups.shown} of ${groups.all})`);
   await page.evaluate(() => {
     document.getElementById("lib-btn").click();
   });
@@ -208,6 +228,62 @@ const ok = (cond, text) => {
   const wide = await phone.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   ok(wide <= 0, `no sideways scroll at phone width (${wide}px over)`);
   await phone.screenshot({ path: path.join(SHOTS, "momentum-phone.png"), fullPage: true });
+
+  /* Tab groups at 1440 and at phone width, in the app (where every momentum file adds its tab). */
+  for (const vp of [{ width: 1440, height: 900 }, { width: 375, height: 800 }]) {
+    const gp = await newPage(vp);
+    await gp.goto(base + "index.html");
+    await gp.evaluate(() => {
+      try {
+        localStorage.removeItem("curiosities-momentum-start-v1");
+        localStorage.removeItem("curiosities-momentum-v1");
+      } catch (e) {}
+    });
+    await gp.reload();
+    if (!(await gp.evaluate(() => document.querySelector('script[src="momentum/load.js"]')))) {
+      await gp.evaluate(() => {
+        const s = document.createElement("script");
+        s.src = "momentum/load.js";
+        document.body.appendChild(s);
+      });
+    }
+    await gp.waitForFunction(() => window.CurioMomentumUI && window.CurioLesson, null, { timeout: 10000 });
+    await gp.evaluate(() => window.CurioMomentumUI.open());
+    await gp.waitForSelector(".mo-dlg[open] .mo-start");
+    const phoneSize = vp.width < 600;
+    const seen = await gp.evaluate(() => ({
+      start: document.querySelector(".mo-dlg .mo-start").textContent,
+      marked: [...document.querySelectorAll(".mo-dlg .mo-tabgroup.on")].map((g) => g.dataset.tabgroup).join(),
+      shown: [...document.querySelectorAll(".mo-dlg [role=tab]")].filter((t) => t.offsetParent).map((t) => t.dataset.tab),
+      over: document.documentElement.scrollWidth - window.innerWidth,
+      dlgOver: document.querySelector(".mo-dlg").scrollWidth - document.querySelector(".mo-dlg").clientWidth,
+    }));
+    ok(/Start here/.test(seen.start) && /Learn it/.test(seen.start), `${vp.width}px: the first time, a "Start here" line points at Learn it`);
+    ok(seen.over <= 0 && seen.dlgOver <= 0, `${vp.width}px: no sideways scroll (${seen.over}px, window ${seen.dlgOver}px)`);
+    ok(seen.shown.length >= 16 && seen.marked === "see", `${vp.width}px: every tab shows under its group's name (${seen.shown.length}), See it marked`);
+    if (phoneSize) {
+      await gp.screenshot({ path: path.join(SHOTS, "momentum-groups-375.png"), fullPage: true });
+      await gp.evaluate(() => window.CurioMomentumUI.open("pads"));
+      ok(await gp.evaluate(() => document.querySelector(".mo-dlg .mo-tabgroup.on").dataset.tabgroup === "live"), "phone: opening a tab by its id marks its group");
+      await gp.click('.mo-dlg [data-tab="report"]');
+      ok(await gp.evaluate(() => document.querySelector(".mo-dlg .mo-tabgroup.on").dataset.tabgroup === "share" && !!document.querySelector(".mo-dlg .mrp-sheet")), "phone: tapping Report opens it and marks Share it");
+      await gp.click('.mo-dlg [data-m="start"]');
+      await gp.waitForSelector(".mo-dlg .mls-card");
+      const after = await gp.evaluate(() => ({ start: !!document.querySelector(".mo-dlg .mo-start"), tab: JSON.parse(localStorage.getItem("curiosities-momentum-v1")).tab }));
+      ok(!after.start && after.tab === "lesson", "Open Learn it opens the lesson, hides the line and is remembered as the last tab");
+      const over2 = await gp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      ok(over2 <= 0, `phone: no sideways scroll in Learn it (${over2}px)`);
+      await gp.screenshot({ path: path.join(SHOTS, "momentum-groups-375-learn.png") });
+    } else {
+      await gp.screenshot({ path: path.join(SHOTS, "momentum-groups-1440.png") });
+      await gp.click('.mo-dlg [data-m="start-hide"]');
+      ok(await gp.evaluate(() => !document.querySelector(".mo-dlg .mo-start")), "Hide this hides the Start here line");
+      await gp.evaluate(() => window.CurioMomentumUI.close());
+      await gp.evaluate(() => window.CurioMomentumUI.open());
+      ok(await gp.evaluate(() => !document.querySelector(".mo-dlg .mo-start")), "and it stays hidden next time");
+    }
+    await gp.close();
+  }
 
   /* 4. Beside the Screen's Player. */
   const sp = await newPage({ width: 1440, height: 900 });
