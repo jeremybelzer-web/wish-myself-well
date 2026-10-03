@@ -29,7 +29,7 @@
     } catch (e) {}
     const on = {};
     (V() ? V().GROUPS : []).forEach((g) => (on[g.id] = p.on && typeof p.on[g.id] === "number" ? Math.max(0, Math.min(1, p.on[g.id])) : g.off ? 0 : 1));
-    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false, pool: Array.isArray(p.pool) ? p.pool.slice(0, 200).map((x) => String(x).slice(0, 160)) : [] };
+    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false, tilt: p.tilt === true, pool: Array.isArray(p.pool) ? p.pool.slice(0, 200).map((x) => String(x).slice(0, 160)) : [] };
   }
   function keep() {
     try {
@@ -193,7 +193,7 @@
         return `<div class="vd-apply-row${amt && !missing ? "" : " off"}">
           <label><input type="checkbox" data-on="${g.id}" ${amt ? "checked" : ""} ${missing ? "disabled" : ""}> <strong>${esc(g.label)}</strong>${missing ? ` <small class="vd-k">needs AI cut-outs of both clips</small>` : ""}</label>
           <input type="range" min="0" max="100" step="5" value="${Math.round(amt * 100)}" data-amt="${g.id}" aria-label="How much of ${esc(g.label)}" ${amt ? "" : "disabled"}><output>${Math.round(amt * 100)}%</output>
-          <span class="vd-k">${esc(g.plain)}</span>
+          <span class="vd-k">${esc(g.plain)}</span>${g.id === "framing" && amt && !missing ? `<label class="vd-k"><input type="checkbox" data-tilt ${prefs.tilt ? "checked" : ""}> Dutch tilt too (roll the frame like the inspiration's horizon, when it has straight lines to measure)</label>` : ""}
           <span class="vd-check">${ck ? checkText(ck) : ""}</span>
         </div>`;
       })
@@ -236,7 +236,7 @@
     return { w, h: clip ? Math.round((w * clip.height) / clip.width / 2) * 2 : 360 };
   }
   function currentPlan() {
-    return V().plan(slot.a.d, slot.b.d, { mode: prefs.mode, on: prefs.on, title: prefs.title || slot.b.d.title, lines, pool: prefs.pool });
+    return V().plan(slot.a.d, slot.b.d, { mode: prefs.mode, on: prefs.on, title: prefs.title || slot.b.d.title, lines, pool: prefs.pool, framing: { tilt: prefs.tilt } });
   }
 
   /* ---------- actions ---------- */
@@ -440,6 +440,9 @@
         checks = null;
       } else if (t.dataset.amt) {
         prefs.on[t.dataset.amt] = Number(t.value) / 100;
+        checks = null;
+      } else if (t.dataset.tilt != null) {
+        prefs.tilt = t.checked;
         checks = null;
       } else if (t.dataset.mode != null) {
         prefs.mode = t.value === "stretch" ? "stretch" : "same";

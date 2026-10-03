@@ -270,6 +270,119 @@ check("element cut-outs: stats, series and what to change", () => {
   assert(V.at(pa, 1).parts.angle.tilt > 0.5, "a clip seen from below is tipped to look from higher: " + JSON.stringify(V.at(pa, 1).parts));
   assert(V.angleCue(E, 1) === null || typeof V.angleCue(E, 1) === "number", "no faces or hair: no guess");
 });
+/* Shot framing (framing.js) on made-up cut-outs: a person drawn as hair over a face over clothes. */
+function person(w, h, cx, top, headRows, opts) {
+  opts = opts || {};
+  const l = new Uint8Array(w * h);
+  const hw = Math.max(2, Math.round(headRows * 0.8));
+  for (let y = top; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const dx = x - cx;
+      if (y < top + headRows * 0.35 && Math.abs(dx) <= hw / 2) l[y * w + x] = 1;
+      else if (y < top + headRows && Math.abs(dx) <= hw / 2) l[y * w + x] = Math.abs(dx - (opts.turn || 0)) <= hw / 3 ? 3 : 1;
+      else if (y >= top + headRows && Math.abs(dx) <= hw * 1.2) l[y * w + x] = 4;
+    }
+  return l;
+}
+function framingClip(name, frames, aspect) {
+  const looks = frames.map((f, i) => ({ t: i * 0.25, blobs: w.CurioFraming.blobs(f, 64, 36) }));
+  const el = { times: looks.map((l) => l.t), dt: 0.25, parts: null, main: w.CurioFraming.series(looks, aspect || 36 / 64) };
+  return Object.assign({}, insp, { name, aspect: aspect || 36 / 64, cuts: [], elements: el });
+}
+check("shot framing: a person on the left third is moved to the right third (framing.js)", () => {
+  const F = w.CurioFraming;
+  assert(F && V.GROUPS.find((g) => g.id === "framing" && g.off), "framing is its own group, off unless turned on");
+  const n = Math.ceil(insp.duration / 0.25) + 1;
+  const right = framingClip("right", Array.from({ length: n }, () => person(64, 36, 43, 6, 10)));
+  const left = framingClip("left", Array.from({ length: n }, () => person(64, 36, 21, 6, 10)));
+  const bs = F.blobs(person(64, 36, 21, 6, 10), 64, 36);
+  assert(bs.length === 1 && bs[0].face && Math.abs(bs[0].face.cx - 21.5 / 64) < 0.02, "one person, face found: " + JSON.stringify(bs[0]));
+  assert(Math.abs(F.shot(left, 1).x - 0.336) < 0.02 && Math.abs(F.shot(right, 1).x - 0.68) < 0.02, "eyes on the thirds: " + JSON.stringify([F.shot(left, 1), F.shot(right, 1)]));
+  const p = V.plan(right, left, { on: { framing: 1 } });
+  assert(p.framing && p.framing.z.length > 5, "a camera path");
+  const a = V.at(p, 1).frame;
+  /* where the left person's eyes land in the output: (source x - crop left) x zoom */
+  const out = (F.shot(left, 1).x - (a.x - 0.5 / a.z)) * a.z;
+  assert(Math.abs(out - F.shot(right, 1).x) < 0.03, "the person now sits on the right third: " + out.toFixed(3) + " " + JSON.stringify(a));
+  assert(a.z >= 2 && a.z <= 2.5, "zoomed in enough to move them: " + a.z);
+  /* the same framing already: nothing to do */
+  const same = V.at(V.plan(left, left, { on: { framing: 1 } }), 1).frame;
+  assert(Math.abs(same.z - 1) < 0.02 && Math.abs(same.x - 0.5) < 0.02, "same framing, no move: " + JSON.stringify(same));
+  /* a closer inspiration (bigger head) zooms in by about the head's ratio */
+  const close = framingClip("close", Array.from({ length: n }, () => person(64, 36, 21, 4, 16)));
+  const zc = V.at(V.plan(close, left, { on: { framing: 1 } }), 1).frame;
+  assert(zc.z > 1.4, "closer: zoomed in " + JSON.stringify(zc));
+  /* half the amount: half way */
+  const half = V.at(V.plan(right, left, { on: { framing: 0.5 } }), 1).frame;
+  const outH = (F.shot(left, 1).x - (half.x - 0.5 / half.z)) * half.z;
+  assert(outH > 0.4 && outH < 0.6 && half.z <= 1.75 + 1e-9, "half the amount, half way: " + outH.toFixed(3) + " " + JSON.stringify(half));
+});
+check("shot framing: never zooms out, never shows an edge, even with a dutch tilt", () => {
+  const F = w.CurioFraming;
+  for (let i = 0; i < 400; i++) {
+    const rnd = (a, b) => a + ((Math.sin(i * 12.9898 + a * 78.233 + b) * 43758.5453) % 1 + 1) % 1 * (b - a);
+    const want = { x: rnd(0, 1), y: rnd(0, 1), size: rnd(0.02, 0.6) },
+      have = { x: rnd(0, 1), y: rnd(0, 1), size: rnd(0.02, 0.6) },
+      roll = rnd(-12, 12),
+      aspect = i % 2 ? 9 / 16 : 16 / 9;
+    const f = F.solve(want, have, { amount: rnd(0, 1), zmax: 2.5, aspect, roll });
+    assert(f.z >= 1, "zoom never below 1: " + JSON.stringify(f));
+    /* the crop's four corners, turned by the roll, stay inside the picture (in pixels of a 1000-wide frame) */
+    const W = 1000,
+      H = W * aspect,
+      r = F.rect(Object.assign({ roll }, f), W, H),
+      cx = r.x + r.w / 2,
+      cy = r.y + r.h / 2,
+      c = Math.cos(r.roll),
+      s = Math.sin(r.roll);
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([u, v]) => {
+      const x = cx + (u * r.w) / 2 * c - (v * r.h) / 2 * s,
+        y = cy + (u * r.w) / 2 * s + (v * r.h) / 2 * c;
+      assert(x > -0.5 && x < W + 0.5 && y > -0.5 && y < H + 0.5, "a corner off the picture: " + JSON.stringify({ f, roll, x, y }));
+    });
+  }
+  /* a level picture of stripes, and the same turned 6 degrees: the roll is measured */
+  const G = (deg) => {
+    const g = new Float32Array(128 * 72),
+      a = (deg * Math.PI) / 180;
+    for (let y = 0; y < 72; y++) for (let x = 0; x < 128; x++) g[y * 128 + x] = Math.floor((-(x - 64) * Math.sin(a) + (y - 36) * Math.cos(a)) / 9) % 2 ? 0.8 : 0.2;
+    return g;
+  };
+  const r0 = F.roll(G(0), 128, 72),
+    r6 = F.roll(G(6), 128, 72);
+  assert(Math.abs(r0.deg) < 0.5 && r0.conf > 0.5, "level: " + JSON.stringify(r0));
+  assert(Math.abs(r6.deg - 6) < 1.5 && r6.conf > 0.35, "rolled 6 degrees: " + JSON.stringify(r6));
+});
+check("shot framing: the camera moves like an operator (no jitter, eases, follows the person)", () => {
+  const F = w.CurioFraming;
+  /* a wanted framing that wobbles a little and then jumps once: the camera ignores the wobble and eases over */
+  const dt = 0.1,
+    want = [];
+  for (let i = 0; i < 100; i++) want.push((i < 50 ? 0.4 : 0.6) + 0.012 * Math.sin(i * 2.7) + (i === 20 ? 0.2 : 0));
+  const got = F.follow(want, dt, { tol: 0.03, sigma: 0.5 });
+  const steps = got.slice(1).map((v, i) => v - got[i]);
+  assert(Math.max(...got.slice(0, 40).map((v) => Math.abs(v - got[0]))) < 0.005, "holds still through the wobble and a one-look blink: " + got.slice(0, 40).map((v) => v.toFixed(3)).join(" "));
+  assert(Math.max(...steps.map(Math.abs)) < 0.05, "no jump bigger than 5% of the frame in a tenth of a second");
+  assert(Math.abs(got[99] - 0.6) < 0.02 && Math.abs(got[0] - 0.4) < 0.02, "gets there");
+  /* ease in and out: slow at the start and end of the move, fastest in the middle */
+  const mv = steps.slice(35, 65).map(Math.abs);
+  const peak = mv.indexOf(Math.max(...mv));
+  assert(peak > 8 && peak < 22 && mv[0] < mv[peak] / 4 && mv[mv.length - 1] < mv[peak] / 4, "eases in and out: " + mv.map((v) => v.toFixed(3)).join(" "));
+  /* a cut is a jump, not a glide */
+  const cut = F.follow(want.map((v, i) => (i < 50 ? 0.3 : 0.7)), dt, { breaks: [50] });
+  assert(Math.abs(cut[49] - 0.3) < 0.01 && Math.abs(cut[50] - 0.7) < 0.01, "a cut jumps");
+  /* your person walks from the left to the middle: the camera follows them, smoothly */
+  const n = Math.ceil(insp.duration / 0.25) + 1;
+  const target = framingClip("walk", Array.from({ length: n }, (_, i) => person(64, 36, Math.round(14 + (18 * i) / (n - 1)) + (i % 2), 6, 10)));
+  const right = framingClip("right", Array.from({ length: n }, () => person(64, 36, 43, 6, 10)));
+  const p = V.plan(right, target, { on: { framing: 1 } });
+  const xs = [];
+  for (let t = 0; t <= p.duration - 0.05; t += 1 / 30) xs.push(V.at(p, t).frame.x);
+  const d = xs.slice(1).map((v, i) => v - xs[i]);
+  assert(xs[xs.length - 1] > xs[0] + 0.1, "the crop follows the person to the right: " + xs[0] + " -> " + xs[xs.length - 1]);
+  assert(Math.max(...d.map(Math.abs)) < 0.01, "no jitter from frame to frame: " + Math.max(...d.map(Math.abs)));
+  assert(d.filter((v) => v < -0.002).length === 0, "never swings back the wrong way");
+});
 check("paid AI: a price first, and caps that stop it", () => {
   const store = {};
   const ctx = { localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = String(v)) } };

@@ -116,6 +116,7 @@
       const s = V().frameStats(ax.getImageData(0, 0, STAT_W, h).data, STAT_W, h);
       const g = V().toGray(bx.getImageData(0, 0, GRAY_W, gh).data, GRAY_W, gh);
       const gf = V().toGray(fx.getImageData(0, 0, FW, fh).data, FW, fh);
+      if (window.CurioFraming) s.roll = window.CurioFraming.roll(gf, FW, fh); /* the horizon's roll, for a dutch tilt */
       samples.push({ t: times[i], s, m: prev ? V().motion(prev, g, GRAY_W, gh, 5, { prev: prevFine, cur: gf, w: FW, h: fh }) : null });
       prev = g;
       prevFine = gf;
@@ -281,8 +282,10 @@
      subtitle. */
   function drawApplied(ctx, video, adj, W, H, opts) {
     opts = opts || {};
-    const vw = video.videoWidth,
-      vh = video.videoHeight;
+    /* Shot framing (framing.js): a virtual camera's crop of the frame; the other camera changes work inside it. */
+    const F = adj.frame && window.CurioFraming ? window.CurioFraming.rect(adj.frame, video.videoWidth, video.videoHeight) : null;
+    const vw = F ? F.w : video.videoWidth,
+      vh = F ? F.h : video.videoHeight;
     const z = Math.max(1, adj.zoom || 1);
     const sw = vw / z,
       sh = vh / z;
@@ -296,7 +299,15 @@
     cy += (adj.dy || 0) * vw;
     const sx = Math.max(0, Math.min(vw - sw, cx - sw / 2)),
       sy = Math.max(0, Math.min(vh - sh, cy - sh / 2));
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, H);
+    if (F && F.roll) {
+      /* a dutch tilt: the whole frame turned about the crop's middle (the crop sits far enough in to fill) */
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(F.roll);
+      ctx.scale(W / sw, H / sh);
+      ctx.drawImage(video, -(F.x + sx + sw / 2), -(F.y + sy + sh / 2));
+      ctx.restore();
+    } else ctx.drawImage(video, (F ? F.x : 0) + sx, (F ? F.y : 0) + sy, sw, sh, 0, 0, W, H);
     /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI. */
     const M = adj.parts && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
     const k = M ? M.cut(ctx.canvas, { track: "applied", t: video.currentTime }) : null;
@@ -375,7 +386,7 @@
     const over = plan.on.overlay && opts.overlay ? opts.overlay.video : null;
     const setV = plan.on.set && opts.overlay ? (await open(opts.overlay.url)).video : null;
     const M = window.CurioMask;
-    const wantEl = M && M.ready() && (plan.on.wardrobe || plan.on.hair || plan.on.figure || plan.on.set);
+    const wantEl = M && M.ready() && (plan.on.wardrobe || plan.on.hair || plan.on.figure || plan.on.set || plan.on.framing);
     const looks = [];
     const W = 320,
       H = Math.max(2, Math.round((W * clip.height) / clip.width));
@@ -396,7 +407,7 @@
         ctx.drawImage(big, 0, 0, w, h);
         if (wantEl && looks.length < 240 && (looks.length === 0 || t - looks[looks.length - 1].t >= 0.25)) {
           const k = M.cut(big);
-          looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h) });
+          looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h), blobs: window.CurioFraming ? window.CurioFraming.blobs(k.labels, k.w, k.h) : null });
         }
       },
       (p) => opts.onProgress && opts.onProgress(p * 0.9, "Measuring the changed clip")
@@ -405,6 +416,7 @@
     const sound = src ? V().envelope(appliedPcm(plan, src).data, src.rate) : null;
     const after = V().analyze({ name: clip.name + " (applied)", duration: plan.duration, aspect: clip.height / clip.width, samples: fr.samples, gw: fr.gw, sound });
     if (looks.length > 1) after.elements = V().elementSeries(looks);
+    if (after.elements && window.CurioFraming) after.elements.main = window.CurioFraming.series(looks, H / W);
     if (opts.onProgress) opts.onProgress(1, "Done");
     return { after };
   }

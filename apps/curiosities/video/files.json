@@ -1,5 +1,5 @@
 {
   "note": "The Video window, in load order. 'core' never touches the page (Node tests load it after the app's core and the engine); 'screens' draw. load.js must list the same files.",
-  "core": ["measure.js"],
+  "core": ["measure.js", "framing.js"],
   "screens": ["clip.js", "ai.js", "depth.js", "mask.js", "ui.js"]
 }

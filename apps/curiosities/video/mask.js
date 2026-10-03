@@ -278,10 +278,12 @@
       await window.CurioClip.seek(clip.video, t);
       x.drawImage(clip.video, box.x, box.y, box.w, box.h, 0, 0, c.width, c.height);
       const k = cut(c);
-      looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h) });
+      looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h), blobs: window.CurioFraming ? window.CurioFraming.blobs(k.labels, k.w, k.h) : null });
       if (opts.onProgress && i % 4 === 0) opts.onProgress(i / n);
     }
-    return V().elementSeries(looks);
+    const el = V().elementSeries(looks);
+    if (window.CurioFraming) el.main = window.CurioFraming.series(looks, c.height / c.width); /* the main person, for shot framing */
+    return el;
   }
 
   /* ---------- drawing the changes ---------- */
