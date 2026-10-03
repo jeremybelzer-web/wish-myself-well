@@ -7,7 +7,7 @@
 (function () {
   if (window.__curioMomentumLoad) return;
   window.__curioMomentumLoad = true;
-  const FILES = ["notes.js", "attention.js", "rates.js", "compass.js", "engine-lanes.js", "perform.js", "ui.js", "screen-panel.js"];
+  const FILES = ["notes.js", "attention.js", "rates.js", "compass.js", "engine-lanes.js", "perform.js", "ui.js", "screen-panel.js", "curve.js"];
   const me = document.currentScript && document.currentScript.src;
   const base = me ? me.replace(/load\.js(\?.*)?$/, "") : "momentum/";
   const css = document.createElement("link");

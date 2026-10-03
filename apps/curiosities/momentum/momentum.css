@@ -236,3 +236,32 @@
 /* How attention moves (ui.js movesHtml). */
 .mo-moves td small { color: var(--mo-muted, #6b6459); }
 .mo-key { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: baseline; }
+
+/* curve.js: the Momentum curve tab */
+.mcv { display: grid; gap: 12px; }
+.mcv-lede { max-width: 75ch; font-size: 14px; }
+.mcv-chart { position: relative; border: 2px solid var(--ink); background: var(--mo-surface); padding: 6px 4px 2px; min-width: 0; }
+.mcv-plot { width: 100%; overflow: hidden; }
+.mcv-svg { display: block; max-width: 100%; height: auto; touch-action: pan-y; }
+.mcv-svg:focus { outline: 2px solid var(--mo-bar); outline-offset: 2px; }
+.mcv-grid { stroke: var(--mo-grid); stroke-width: 1; }
+.mcv-low { stroke: var(--mo-crit); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.6; }
+.mcv-axis { font-size: 11px; fill: var(--mo-muted); font-variant-numeric: tabular-nums; }
+.mcv-sag { fill: var(--mo-crit); opacity: 0.08; }
+.mcv-sag-n { font-size: 11px; fill: var(--mo-crit); font-weight: 600; }
+.mcv-third { stroke: var(--mo-ink-2); stroke-width: 1; stroke-dasharray: 4 3; opacity: 0.5; }
+.mcv-third-l { font-size: 12px; fill: var(--mo-ink-2); font-weight: 600; }
+.mcv-line-me { fill: none; stroke: #2a78d6; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.mcv-line-them { fill: none; stroke: #8a8780; stroke-width: 2; stroke-dasharray: 6 4; stroke-linejoin: round; }
+.mcv-peak { fill: #2a78d6; }
+.mcv-end { font-size: 12px; font-weight: 600; }
+.mcv-end-me { fill: #2a78d6; }
+.mcv-end-them { fill: #6b6862; }
+.mcv-guide { stroke: var(--mo-ink); stroke-width: 1; opacity: 0.5; }
+.mcv-dot { fill: #2a78d6; stroke: #fff; stroke-width: 2; }
+.mcv-tip { width: 190px; }
+.mcv-sags { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 10px; }
+.mcv-sag-item { border-left: 4px solid var(--mo-crit); padding: 6px 10px; background: var(--mo-surface); display: grid; gap: 4px; font-size: 14px; }
+.mcv-sag-item .mo-fam { display: inline-flex; }
+.mcv-sag-item button { justify-self: start; font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); }
+.mcv-try { color: var(--mo-ink-2); }
