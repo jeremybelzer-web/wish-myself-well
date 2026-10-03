@@ -21,5 +21,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: npm install --no-audit --no-fund
+      - name: Desktop bridge packages (the Electron binary is not needed for the tests)
+        run: npm install --no-audit --no-fund --ignore-scripts
+        working-directory: apps/curiosities/desktop
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       - run: npx playwright install --with-deps chromium
       - run: node tests/run-all.js --browser
