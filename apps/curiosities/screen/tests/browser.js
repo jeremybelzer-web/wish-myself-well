@@ -1056,6 +1056,107 @@ const ok = (cond, msg) => {
     ok((await gd()).on.length === 0, "and off again");
   }
 
+  /* Compare ◐ (CapCut's before/after compare slider): a toggle and a select in the transport bar split my film's
+     frame; left of a draggable line is the film I'm learning from or my film when I opened the Screen. A view
+     setting kept in curiosities-screen-v1 (compare), never an undo step, never in the way of a click. */
+  {
+    const cmp = () => page.evaluate(() => {
+      const f = document.querySelector(".sc-viewer.mine .sc-frame");
+      const r = f.getBoundingClientRect();
+      const c = f.querySelector(".sc-cmp");
+      const rel = (el) => { const b = el.getBoundingClientRect(); return { l: (b.left - r.left) / r.width, t: (b.top - r.top) / r.height, w: b.width / r.width, h: b.height / r.height }; };
+      const line = c && c.querySelector("[data-cmp-line]");
+      const pic = c && c.querySelector(".sc-cmp-pic svg");
+      const lb = line && line.getBoundingClientRect();
+      return {
+        on: !!c, with: c && c.dataset.cmp, box: c && rel(c),
+        lineX: lb ? (lb.left + lb.width / 2 - r.left) / r.width : null, lineY: lb ? lb.top + lb.height / 2 : null, lineCX: lb ? lb.left + lb.width / 2 : null,
+        pic: pic ? pic.innerHTML : null, par: pic && pic.getAttribute("preserveAspectRatio"),
+        main: f.querySelector(":scope > svg").innerHTML,
+        insp: (document.querySelector(".sc-viewer.insp .sc-frame > svg") || {}).innerHTML,
+        labels: c ? [...c.querySelectorAll(".sc-cmp-lab")].map((l) => ({ text: l.textContent, ...rel(l) })) : [],
+        clip: c && c.querySelector(".sc-cmp-pic") ? getComputedStyle(c.querySelector(".sc-cmp-pic")).clipPath : null,
+        pe: c ? getComputedStyle(c).pointerEvents : null,
+        saved: (JSON.parse(localStorage.getItem("curiosities-screen-v1")) || {}).compare,
+        sel: (document.querySelector(".sc-transport [data-compare-with]") || {}).value,
+        shape: f.dataset.shape, w: r.width, h: r.height, left: r.left, top: r.top,
+      };
+    });
+    const near = (a, b, e) => Math.abs(a - b) < (e || 0.02);
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    const undo0 = await page.evaluate(() => window.CurioEngine.history().undo.length);
+    ok(!!(await page.$('.sc-transport [data-act="compare"]')) && !!(await page.$(".sc-transport select[data-compare-with]")) && !(await cmp()).on, "the transport bar has Compare ◐ and a select of what to compare with, off to start");
+    ok((await page.evaluate(() => [...document.querySelectorAll(".sc-transport [data-compare-with] option")].map((o) => o.textContent).join("|"))) === "The film I'm learning from|When I opened the Screen", "the select offers the film I'm learning from and when I opened the Screen");
+    /* Toggle on: the film I'm learning from at the matching moment, left of a line in the middle. */
+    await page.click('.sc-transport [data-act="compare"]');
+    let c = await cmp();
+    ok(c.on && c.with === "insp" && near(c.box.l, 0) && near(c.box.w, 1) && near(c.box.h, 1) && near(c.lineX, 0.5), "Compare ◐ splits my film's frame with a line in the middle");
+    ok(c.pic && c.pic === c.insp && c.pic !== c.main, "left of the line is the inspiration film's frame at the matching moment");
+    ok(c.labels.length === 2 && /^Learning from: /.test(c.labels[0].text) && c.labels[0].l < 0.1 && c.labels[0].t < 0.15 && c.labels[1].text === "My film now" && c.labels[1].l + c.labels[1].w > 0.9 && c.labels[1].t < 0.15, "small labels at the top corners name each side (" + c.labels.map((l) => l.text).join(" / ") + ")");
+    ok(c.pe === "none", "the split lets clicks through except on the line");
+    const hit = await page.evaluate(() => { const r = document.querySelector(".sc-viewer.mine .sc-frame").getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width * 0.25, r.top + r.height * 0.6); return { inCmp: !!el.closest(".sc-cmp"), inFrame: !!el.closest(".sc-viewer.mine .sc-frame") }; });
+    ok(!hit.inCmp && hit.inFrame, "a click on the left picture still reaches my film's frame");
+    /* Drag the line. */
+    await page.mouse.move(c.lineCX, c.lineY);
+    await page.mouse.down();
+    await page.mouse.move(c.left + c.w * 0.4, c.lineY, { steps: 3 });
+    await page.mouse.move(c.left + c.w * 0.25, c.lineY, { steps: 3 });
+    await page.mouse.up();
+    c = await cmp();
+    ok(near(c.lineX, 0.25) && near(c.saved.split, 25, 1.5) && /inset\(0(px)? 7[45]/.test(c.clip || ""), "dragging the line moves the split (" + (c.saved && c.saved.split) + "%, " + c.clip + ")");
+    ok((await page.evaluate(() => window.CurioScreen.row())) === 1, "dragging the line doesn't move the playhead");
+    /* Keyboard: focus the line and use ← →. */
+    await page.focus(".sc-cmp [data-cmp-line]");
+    const s0 = (await cmp()).saved.split;
+    for (let k = 0; k < 3; k++) await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowLeft");
+    c = await cmp();
+    ok(near(c.saved.split, s0 + 4, 0.01) && near(c.lineX, (s0 + 4) / 100) && (await page.evaluate(() => window.CurioScreen.row())) === 1 && (await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute("data-cmp-line"))), "← → on the focused line move the split, not the playhead (" + c.saved.split + "%)");
+    /* When I opened the Screen: the film as it was on open; a change since shows on the right only. */
+    await page.evaluate(() => { const s = document.querySelector(".sc-transport [data-compare-with]"); s.value = "open"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+    c = await cmp();
+    ok(c.with === "open" && c.sel === "open" && c.labels[0].text === "When I opened the Screen" && c.pic === c.main, "\"When I opened the Screen\" shows my film as it was then (no change yet, so the same picture)");
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0 && (await page.evaluate(() => window.CurioEngine.history().undo.length)) === undo0, "Compare changes nothing in the film and adds no undo steps");
+    const before = c.pic;
+    const changed = await page.evaluate(() => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      if (!t) return false;
+      const row = st.rows[window.CurioScreen.row()].id;
+      const now = E.value(row, t.id, "shotSize");
+      return E.send({ type: "setPoint", row, track: t.id, curiosity: "shotSize", value: now === "insert" ? "wide" : "insert" }).ok;
+    });
+    c = await cmp();
+    ok(changed && c.pic === before && c.main !== before, "after a change, the left still shows the film as it was and the right shows it now");
+    await page.evaluate(() => window.CurioEngine.undo());
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0, "the film is back as it was");
+    /* Guides sit over the split. */
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+;");
+    ok(await page.evaluate(() => { const c = document.querySelector(".sc-viewer.mine .sc-cmp"), g = document.querySelector(".sc-viewer.mine .sc-gd"); return !!(c && g && c.compareDocumentPosition(g) & Node.DOCUMENT_POSITION_FOLLOWING); }), "the guides are drawn over the split");
+    await page.keyboard.press("Control+;");
+    await page.screenshot({ path: path.join(SHOTS, "screen-8d-compare.png") });
+    /* Saved across a reload. */
+    const kept = (await cmp()).saved;
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    c = await cmp();
+    ok(c.on && c.with === "open" && c.sel === "open" && near(c.lineX, kept.split / 100) && JSON.stringify(c.saved) === JSON.stringify(kept), "Compare, its choice and the split survive a reload (" + JSON.stringify(kept) + ")");
+    /* The vertical frame: the split takes its shape and the left picture is cropped the same way. */
+    await page.evaluate(() => { const s = document.querySelector(".sc-transport [data-compare-with]"); s.value = "insp"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+    await setRatio("vertical 9:16");
+    c = await cmp();
+    ok(c.shape === "vertical" && c.h > c.w * 1.5 && near(c.box.l, 0) && near(c.box.w, 1) && near(c.box.h, 1) && c.par === "xMidYMid slice" && near(c.lineX, kept.split / 100) && c.labels.every((l) => l.l >= -0.01 && l.l + l.w <= 1.01), `in the vertical frame the split takes its shape (${Math.round(c.w)}×${Math.round(c.h)})`);
+    await page.screenshot({ path: path.join(SHOTS, "screen-8e-compare-vertical.png") });
+    await setRatio("wide 16:9");
+    /* Off again. */
+    await page.click('.sc-transport [data-act="compare"]');
+    ok(!(await cmp()).on && (await cmp()).saved.on === false, "Compare ◐ again turns it off");
+  }
+
   /* Markers with a color and a note (CapCut's markers): add one, double-click its flag to write a note and pick
      a color, find it in the Markers list, jump to it, delete it; an old save (plain row ids) still loads. */
   {
