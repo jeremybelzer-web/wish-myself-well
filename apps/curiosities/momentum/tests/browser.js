@@ -98,6 +98,7 @@ const ok = (cond, text) => {
   const study = sources.find((s) => s.startsWith("study:"));
   await page.selectOption('.mo-dlg select[data-m="source"]', study);
   const box = await page.$(".mo-dlg .mo-tl-band");
+  await box.scrollIntoViewIfNeeded();
   const bb = await box.boundingBox();
   await page.mouse.move(bb.x + bb.width * 0.4, bb.y + 10);
   ok(await page.evaluate(() => !document.querySelector(".mo-dlg .mo-tip").hidden), "timeline hover shows a tooltip");
