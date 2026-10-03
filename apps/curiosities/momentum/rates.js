@@ -13,7 +13,9 @@
    - measure(study, opts) a measured profile from a traced film (estimate: false)
    - limitFor(profile)    the "held too long" limit that profile suggests (2.5 times its usual family run)
    - compare(stats, profile) -> plain sentences comparing a reading of your film with the profile
-   - average(profiles)    one profile from several (your curated list as one target) */
+   - average(profiles)    one profile from several (your curated list as one target)
+   - moveCues(profiles)   how measured films move attention between families: { from: { to: { n, quiet, cues } } }
+   - howItMoves(profiles, from, to) -> { n, cue, share, quiet } | null: the cue measured films use most for that move */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
   const A = () => root.CurioAttention;
@@ -92,7 +94,30 @@
       cueShare: s.cueShare,
       momentum: s.momentum,
       transitions: s.transitions,
+      moveCues: s.moveCues,
     };
+  }
+  /* How attention moves between families in measured films, all films summed: { from: { to: { n, quiet, cues } } }. */
+  function moveCues(profiles) {
+    const out = {};
+    (profiles || []).forEach((p) =>
+      Object.entries((p && p.moveCues) || {}).forEach(([a, row]) =>
+        Object.entries(row).forEach(([b, c]) => {
+          const cell = ((out[a] = out[a] || {})[b] = out[a][b] || { n: 0, quiet: 0, cues: {} });
+          cell.n += c.n || 0;
+          cell.quiet += c.quiet || 0;
+          Object.entries(c.cues || {}).forEach(([k, v]) => (cell.cues[k] = (cell.cues[k] || 0) + v));
+        })
+      )
+    );
+    return out;
+  }
+  /* The cue that most often moves attention from one family to another in measured films, or null. */
+  function howItMoves(profiles, from, to) {
+    const cell = (moveCues(profiles)[from] || {})[to];
+    if (!cell || !cell.n) return null;
+    const [cue, count] = Object.entries(cell.cues).sort((a, b) => b[1] - a[1])[0];
+    return { n: cell.n, cue, share: round(count / cell.n, 2), quiet: round(cell.quiet / cell.n, 2) };
   }
   function limitFor(profile) {
     return Math.max(4, Math.round((profile && profile.medianFamilyRun ? profile.medianFamilyRun : 8) * 2.5));
@@ -148,7 +173,7 @@
     return [out[0]].concat(out.slice(1).sort((a, b) => b.weight - a.weight)).map((o) => o.text);
   }
 
-  const api = { DEFAULT_FILMS, measure, limitFor, compare, average };
+  const api = { DEFAULT_FILMS, measure, limitFor, compare, average, moveCues, howItMoves };
   root.CurioRates = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();

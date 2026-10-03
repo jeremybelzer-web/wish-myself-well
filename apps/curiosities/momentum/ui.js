@@ -11,7 +11,11 @@
    - Film rates: the default curated list (Claude's estimates, marked) and any film you measure from a trace.
    - Momentum notes: every curiosity's note: how it moves the plot and themes forward and pulls attention on.
 
-   window.CurioMomentumUI = { open(tab), close(), mount(el), noteHtml(id), mountNote(el, id) }
+   window.CurioMomentumUI = { open(tab), close(), mount(el), noteHtml(id), mountNote(el, id), addTab(spec), context() }
+   addTab({ id, label, after?: "end", mount(el, ctx) }) adds a tab from another momentum file (before Perform, or
+   after Momentum notes with after: "end"). mount is called each time the tab is drawn, with ctx: prefs(),
+   sources(), source(), setSource(id), sourcePicker(attr), readSource(id), beatsOf(id), profiles() (the films
+   picked to compare with), allProfiles(), target(), limit(), secondsPerBeat(), refresh().
    Saves its choices under localStorage key curiosities-momentum-v1 (source, compare-with list, limit,
    seconds per panel, measured films). */
 (function () {
@@ -120,6 +124,57 @@
       return A.fromStudy(s, per);
     }
     return A.read([], per);
+  }
+
+  /* The beats a source reads (live: what the recorder has so far), for tabs that need the film itself. */
+  function beatsOf(id) {
+    if (id === "live") return recorder ? recorder.beats() : [];
+    if (id === "board") return ((window.CuriosityBoard && window.CuriosityBoard.panels()) || []).map((v) => ({ values: v }));
+    if (id === "engine") return ME() ? ME().beats() : [];
+    if (id === "sb:all") return storyboardScenes().reduce((all, s) => all.concat(s.panels.map((p) => ({ values: p.v || {} }))), []);
+    if (id && id.startsWith("sb:")) {
+      const s = storyboardScenes().find((x) => "sb:" + x.id === id);
+      return s ? s.panels.map((p) => ({ values: (p && p.v) || {} })) : [];
+    }
+    if (id && id.startsWith("study:")) {
+      const s = studies().find((x) => "study:" + x.id === id);
+      return (s && s.beats) || [];
+    }
+    return [];
+  }
+
+  /* ---------- tabs other momentum files add (addTab) ---------- */
+  const extraTabs = [];
+  function addTab(spec) {
+    if (!spec || !spec.id || typeof spec.mount !== "function" || extraTabs.some((t) => t.id === spec.id)) return false;
+    extraTabs.push(Object.assign({ label: spec.id }, spec));
+    if (host) draw();
+    return true;
+  }
+  /* What an added tab can use: the window's own settings and readings, read-only. */
+  function context() {
+    return {
+      prefs: () => JSON.parse(JSON.stringify(prefs)),
+      sources,
+      source: () => prefs.source,
+      readSource,
+      beatsOf,
+      profiles: () => profiles().filter((p) => prefs.compare.includes(p.id)),
+      allProfiles: profiles,
+      target,
+      limit,
+      secondsPerBeat: () => prefs.secondsPerPanel,
+      refresh: () => draw(),
+      sourcePicker: (attr) => {
+        const list = sources();
+        const groups = [...new Set(list.map((x) => x.group))];
+        return `<select ${attr || "data-ext-source"} aria-label="Film">${groups.map((g) => `<optgroup label="${esc(g)}">${list.filter((x) => x.group === g).map((x) => `<option value="${esc(x.id)}"${x.id === prefs.source ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</optgroup>`).join("")}</select>`;
+      },
+      setSource: (id) => {
+        prefs.source = id;
+        savePrefs();
+      },
+    };
   }
 
   /* ---------- compare-with ---------- */
@@ -298,6 +353,34 @@
       .join("")}<li><span class="mo-bar-l">Quiet cues</span><span class="mo-bar"><i style="width:${Math.round((stats.quietShare || 0) * 100)}%"></i></span><span class="mo-bar-v">${pct(stats.quietShare)}</span></li></ul>
       <p class="mo-small">Quiet cues are a stop rather than a start: the music cuts out, a silence, someone goes still. They count inside the five kinds too.</p>`;
   }
+  /* Every move between families, counted: from where, to where, how often, on which cue, by which curiosity,
+     and the cue the films you compare with use for the same move (measured films only). */
+  function movesHtml(stats, picked) {
+    const rows = [];
+    Object.entries(stats.moveCues || {}).forEach(([a, row]) =>
+      Object.entries(row).forEach(([b, c]) => {
+        const by = {};
+        (stats.moves || []).filter((m) => m.from === a && m.to === b).forEach((m) => (by[m.label] = (by[m.label] || 0) + 1));
+        rows.push({ a, b, c, by: Object.entries(by).sort((x, y) => y[1] - x[1]).slice(0, 2).map((x) => x[0]) });
+      })
+    );
+    if (!rows.length) return `<p class="mo-small">Attention has not moved between families yet.</p>`;
+    rows.sort((x, y) => y.c.n - x.c.n);
+    const measured = (picked || []).filter((p) => p.moveCues);
+    const theirs = (r) => {
+      const h = measured.length ? R.howItMoves(measured, r.a, r.b) : null;
+      return h ? `${esc(cueLabel(h.cue))} <small>${pct(h.share)}</small>` : `<small>${measured.length ? "never" : "measure a film"}</small>`;
+    };
+    const main = (c) => {
+      const [cue, k] = Object.entries(c.cues).sort((x, y) => y[1] - x[1])[0];
+      return `${esc(cueLabel(cue))} <small>${pct(k / c.n)}</small>`;
+    };
+    return `<div class="mo-scroll"><table class="mo-moves"><thead><tr><th>From</th><th>To</th><th>Times</th><th>Main cue</th><th>Something stopped</th><th>What took it</th><th>Your films' cue</th></tr></thead><tbody>${rows
+      .slice(0, 12)
+      .map((r) => `<tr><td><i class="mo-key" style="background:${colorOf(r.a)}"></i>${esc(famLabel(r.a))}</td><td><i class="mo-key" style="background:${colorOf(r.b)}"></i>${esc(famLabel(r.b))}</td><td>${r.c.n}</td><td>${main(r.c)}</td><td>${pct(r.c.quiet / r.c.n)}</td><td>${esc(r.by.join(", "))}</td><td>${theirs(r)}</td></tr>`)
+      .join("")}</tbody></table></div>
+      <p class="mo-small">${rows.length > 12 ? `The 12 most common of ${rows.length} moves. ` : ""}"Something stopped" counts quiet cues: the move came from a stop (music cutting out, a silence, stillness), not a start. "Your films' cue" needs a measured film in Compare with (Film rates, Measure a traced film); estimated films have no counts.</p>`;
+  }
   function tableHtml(reading) {
     return `<details class="mo-table"><summary>Every stretch as a table (${reading.segments.length})</summary><table><thead><tr><th>From</th><th>Curiosity</th><th>Family</th><th>Cue that brought it</th><th>Seconds</th></tr></thead><tbody>${reading.segments
       .map((s, i) => `<tr><td>${A.clock(s.from)}</td><td>${esc(s.label)}</td><td>${esc(famLabel(s.family))}</td><td>${i === 0 ? "start" : esc(cueLabel(s.cue)) + (s.quiet ? " (quiet)" : "")}</td><td>${s.dur}</td></tr>`)
@@ -339,6 +422,7 @@
         <section><h3>What moved it on</h3>${cueHtml(reading.stats)}</section>
       </div>
       <section><h3>Over time</h3>${timelineHtml(reading)}</section>
+      <section><h3>How attention moves</h3>${movesHtml(reading.stats, profiles().filter((p) => prefs.compare.includes(p.id)))}</section>
       <div class="mo-grid">
         <section><h3>Held too long</h3>${reading.warnings.length ? `<ul class="mo-warn">${reading.warnings.map((w) => `<li><span class="mo-status mo-crit">■</span> ${esc(w.text)}</li>`).join("")}</ul>` : `<p class="mo-small"><span class="mo-status mo-good">●</span> No family held attention past the ${reading.limit} second limit.</p>`}</section>
         <section><h3>Against ${esc(tgt ? tgt.title : "nothing picked")}</h3>${sentences.length ? `<ul class="mo-sent">${sentences.slice(0, 5).map((s) => `<li>${esc(s)}</li>`).join("")}</ul>` : `<p class="mo-small">Pick a film to compare with.</p>`}</section>
@@ -631,20 +715,30 @@
       ["attention", "Attention"],
       ["compass", "Compass"],
       ["engine", "On the engine"],
+      ...extraTabs.filter((t) => !t.after).map((t) => [t.id, t.label]),
       ["perform", "Perform"],
       ["rates", "Film rates"],
       ["notes", "Momentum notes"],
+      ...extraTabs.filter((t) => t.after === "end").map((t) => [t.id, t.label]),
     ];
+    const ext = extraTabs.find((t) => t.id === prefs.tab);
     host.innerHTML = `<div class="mo-in">
       <div class="mo-head"><h2>Momentum</h2>${dlg ? `<button type="button" class="mo-x" data-m="close" aria-label="Close">×</button>` : ""}</div>
       <p class="mo-lede">The heart of the app: the feeling that the film is going somewhere important. Attention can rest on only one thing at a time; when what holds it keeps changing, the film stays alive.</p>
       <div class="mo-tabs" role="tablist">${tabs.map(([id, l]) => `<button type="button" role="tab" aria-selected="${prefs.tab === id}" data-tab="${id}">${l}</button>`).join("")}</div>
-      <div class="mo-body">${prefs.tab === "rates" ? ratesHtml() : prefs.tab === "notes" ? notesHtml() : prefs.tab === "compass" ? attentionHtml("mo-compass") : prefs.tab === "engine" ? engineHtml() : prefs.tab === "perform" ? performHtml() : attentionHtml()}</div></div>`;
+      <div class="mo-body">${ext ? `<div class="mo-ext" data-ext="${esc(ext.id)}"></div>` : prefs.tab === "rates" ? ratesHtml() : prefs.tab === "notes" ? notesHtml() : prefs.tab === "compass" ? attentionHtml("mo-compass") : prefs.tab === "engine" ? engineHtml() : prefs.tab === "perform" ? performHtml() : attentionHtml()}</div></div>`;
     if (prefs.tab === "attention") drawAttention();
     else if (prefs.tab === "compass") drawCompass();
     else stopLive();
     if (prefs.tab === "notes") drawNotes();
     if (prefs.tab === "perform") drawPerform();
+    if (ext) {
+      try {
+        ext.mount(host.querySelector(".mo-ext"), context());
+      } catch (e) {
+        host.querySelector(".mo-ext").textContent = ext.label + " could not open: " + e.message;
+      }
+    }
   }
 
   function wire(el) {
@@ -798,5 +892,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireAll);
   else wireAll();
 
-  window.CurioMomentumUI = { open, close, mount, noteHtml, mountNote, draw };
+  window.CurioMomentumUI = { open, close, mount, noteHtml, mountNote, draw, addTab, context };
 })();
