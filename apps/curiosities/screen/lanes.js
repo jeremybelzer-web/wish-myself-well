@@ -40,6 +40,9 @@
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
    - ensure(cur)         make sure a lane's curiosity is on a track (one undo step), returns the track id
    - tools()             the timeline toolbar settings, kept in localStorage "curiosities-screen-tools-v1"
+   - suite clips: Save as suite clip (the area toolbar) keeps a selection under a name in localStorage
+     "curiosities-suite-clips-v1"; Suite clips ▾ drops one at the playhead (one undo step), as an analogy too.
+     suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips()
    - soloCommands(st, laneKey, prev), soloActive(st, solo), isLocked(laneKey)   the lane heads' Solo and Lock
 
    The toolbar copies CapCut's timeline toolbar (Jeremy's screenshots, 2026-10-02): the Select (A) and Split (B)
@@ -567,6 +570,174 @@
     });
     return { cmds: adds.concat(cmds) };
   }
+
+  /* ---------- suite clips (CapCut's compound clip, and saving things to use again) ----------
+     A suite clip is a selected area kept under a name: its lanes' nodes and the joins inside it, as copyArea
+     gives them (values keep their place on each curiosity's scale). They are kept in localStorage
+     "curiosities-suite-clips-v1", a list of { id, name, made, span, lanes, links, curiosities }, so they last
+     across films and reloads; saving, renaming and deleting one is not a film change, so it is not in undo.
+     Dropping one is: it lands at the playhead as one undo step (pasteAreaCommands), each lane on the timeline's
+     lane for the same curiosity. A curiosity the timeline doesn't show goes into the film all the same (on its
+     usual track, as paste does); a locked lane is skipped. "Drop as an analogy" (the Prism's "Make it an
+     analogy") shifts each lane so the clip starts from the setting that lane has at the playhead and makes the
+     same moves, step for step on its scale, stopping at the ends of the scale. */
+  const SUITE_KEY = "curiosities-suite-clips-v1";
+  const SUITE_NAME_MAX = 60;
+  /* A suite clip from copyArea's result: lanes with no curiosity on a track are left out, joins re-pointed. */
+  function suiteClip(c, name, o) {
+    o = o || {};
+    if (!c || !Array.isArray(c.lanes)) return null;
+    const keep = [];
+    const map = {};
+    c.lanes.forEach((l, k) => {
+      if (!l || !l.cur || !Array.isArray(l.points) || !l.points.length) return;
+      map[k] = keep.length;
+      keep.push({ cur: l.cur, track: l.track || null, mode: l.mode || "ramp", points: l.points.map((p) => ({ at: Number(p.at) || 0, value: p.value })) });
+    });
+    if (!keep.length) return null;
+    const links = (c.links || [])
+      .filter((l) => l && l.from && l.to && map[l.from.lane] != null && map[l.to.lane] != null)
+      .map((l) => Object.assign(JSON.parse(JSON.stringify(l)), { from: Object.assign({}, l.from, { lane: map[l.from.lane] }), to: Object.assign({}, l.to, { lane: map[l.to.lane] }) }));
+    return {
+      id: o.id || "sc-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: String(name == null ? "" : name).trim().slice(0, SUITE_NAME_MAX) || "Suite clip",
+      made: o.made || new Date().toISOString(),
+      kind: "area",
+      span: Math.max(0, Number(c.span) || 0),
+      lanes: keep,
+      links,
+      curiosities: [...new Set(keep.map((l) => l.cur))],
+    };
+  }
+  /* What was saved, cleaned: broken entries dropped, names trimmed, each clip rebuilt the same way. */
+  function migrateSuiteClips(list) {
+    if (!Array.isArray(list)) return [];
+    const seen = new Set();
+    const out = [];
+    list.forEach((x) => {
+      if (!x || typeof x !== "object" || !x.id || seen.has(x.id)) return;
+      const c = suiteClip(x, x.name, { id: String(x.id), made: x.made });
+      if (!c) return;
+      seen.add(c.id);
+      out.push(c);
+    });
+    return out;
+  }
+  /* "4 moments · Shot size, Strength of the feeling", for the Suite clips list. */
+  function suiteClipSummary(c) {
+    const n = (c.span || 0) + 1;
+    const lab = (cur) => (S() && S().label ? S().label(cur) : cur);
+    return `${n} moment${n === 1 ? "" : "s"} long · ${(c.curiosities || []).map(lab).join(", ")}`;
+  }
+  /* Where each of a suite clip's lanes lands: the timeline's lane for the same curiosity (shown: [{ cur, track }]),
+     else the track this film already has it on, else nowhere yet (pasteAreaCommands puts it on its usual track).
+     Locked lanes are skipped. Returns { targets, hidden (curiosities not shown here), locked }. */
+  function suiteClipTargets(st, c, shown) {
+    const hidden = [];
+    const locked = [];
+    const targets = c.lanes.map((l) => {
+      if (!l) return null;
+      const ln = (shown || []).find((x) => x && x.cur === l.cur);
+      const holds = (id) => id && st.tracks.some((t) => t.id === id && t.curiosities.includes(l.cur));
+      const track = ln && holds(ln.track) ? ln.track : holds(l.track) ? l.track : (st.tracks.find((t) => t.curiosities.includes(l.cur)) || {}).id || null;
+      if (track && isLocked(track + "|" + l.cur)) {
+        locked.push(l.cur);
+        return null;
+      }
+      if (!ln) hidden.push(l.cur);
+      return { cur: l.cur, track };
+    });
+    return { targets, hidden, locked };
+  }
+  /* An analogy of a suite clip: starts[k] is the setting lane k has where the clip lands (null: none, so that lane
+     keeps the clip's own values). Each lane moves by whole steps of its scale so its first moment is that
+     setting; every later node keeps the same steps up or down from there, held at the top or bottom of the
+     scale. Joins move with their nodes. Returns { clip, moves: [{ cur, from, to, steps, clamped, kept }] }. */
+  function analogyClip(c, starts) {
+    const out = JSON.parse(JSON.stringify(c));
+    const by = [];
+    const moves = [];
+    const move = (cur, d, v) => {
+      const n = S().steps(cur);
+      const p = S().pos(cur, v);
+      if (p == null) return { v, clamped: false };
+      const raw = Math.round(p * n) + d;
+      return { v: S().at(cur, Math.max(0, Math.min(n, raw)) / n), clamped: raw < 0 || raw > n };
+    };
+    out.lanes.forEach((l, k) => {
+      if (!l || !l.points.length) return;
+      const first = l.points.reduce((a, p) => (p.at < a.at ? p : a), l.points[0]);
+      const s = starts ? starts[k] : null;
+      const n = S().steps(l.cur);
+      const p0 = S().pos(l.cur, first.value);
+      const ps = s == null ? null : S().pos(l.cur, s);
+      if (p0 == null || ps == null) {
+        by[k] = 0;
+        moves.push({ cur: l.cur, from: first.value, to: first.value, steps: 0, clamped: false, kept: true });
+        return;
+      }
+      const d = Math.round(ps * n) - Math.round(p0 * n);
+      by[k] = d;
+      let clamped = false;
+      l.points.forEach((p) => {
+        const m = move(l.cur, d, p.value);
+        if (m.clamped) clamped = true;
+        p.value = m.v;
+      });
+      moves.push({ cur: l.cur, from: first.value, to: move(l.cur, d, first.value).v, steps: d, clamped, kept: false });
+    });
+    out.links.forEach((l) => {
+      const a = out.lanes[l.from.lane];
+      const b = out.lanes[l.to.lane];
+      if (a && l.from.is != null && by[l.from.lane]) l.from.is = move(a.cur, by[l.from.lane], l.from.is).v;
+      if (b && l.does === "set" && l.value != null && by[l.to.lane]) l.value = move(b.cur, by[l.to.lane], l.value).v;
+    });
+    return { clip: out, moves };
+  }
+  /* The commands that drop a suite clip at moment `start` (moved earlier if it would run off the end).
+     o.shown: the timeline's lanes; o.analogy: start each lane from its setting there. Returns { cmds, start,
+     moved, lanes (curiosities that got nodes), hidden, locked, moves } or { error }. */
+  function dropSuiteClipCommands(st, c, start, o) {
+    o = o || {};
+    const n = st.rows.length;
+    if (!c || !c.lanes || !c.lanes.length) return { error: "That suite clip is empty." };
+    if (c.span + 1 > n) return { error: `"${c.name}" is ${c.span + 1} moments long, and your film has only ${n}.` };
+    const want = Math.max(0, Number(start) || 0);
+    const at = Math.min(want, n - 1 - c.span);
+    const { targets, hidden, locked } = suiteClipTargets(st, c, o.shown);
+    if (!targets.some(Boolean)) return { error: `Every lane in "${c.name}" is locked here (🔒), so nothing was dropped.`, locked };
+    let use = c;
+    let moves = [];
+    if (o.analogy) {
+      const row = st.rows[at].id;
+      const starts = targets.map((t) => (t && t.track ? E().value(row, t.track, t.cur) : null));
+      const an = analogyClip(c, starts);
+      use = an.clip;
+      moves = an.moves;
+    }
+    const r = pasteAreaCommands(st, use, targets, at);
+    if (r.error) return { error: r.error };
+    const lanes = targets.filter(Boolean).map((t) => t.cur);
+    return { cmds: r.cmds, start: at, moved: at !== want, lanes, hidden: hidden.filter((cur) => lanes.includes(cur)), locked, moves };
+  }
+  let suiteList = [];
+  function loadSuiteClips() {
+    try {
+      suiteList = migrateSuiteClips(JSON.parse(localStorage.getItem(SUITE_KEY)));
+    } catch (e) {
+      suiteList = suiteList || [];
+    }
+    return suiteList;
+  }
+  function saveSuiteClips() {
+    try {
+      localStorage.setItem(SUITE_KEY, JSON.stringify(suiteList));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  loadSuiteClips();
 
   /* ---------- area tools: Reverse, Flip, Stretch and Squeeze (CapCut's Reverse and speed, for nodes) ----------
      Each works on the selected area's nodes, lane by lane, as one batch (one undo step). lanes: [{ track, cur, lk }].
@@ -1328,9 +1499,10 @@
           <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
-          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}</span>` : ""}
+          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}</span>` : ""}
           ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
           <span class="sl-seg" role="group" aria-label="Markers">${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off. Double-click a marker's flag on the ruler to write a note or change its color.")}${tb("marker-list", `Markers${marked.length ? " " + marked.length : ""} ▾`, "Every marker in your film, with its note: click one to move the playhead there")}</span>
+          ${tb("suite-list", `Suite clips${suiteList.length ? " " + suiteList.length : ""} ▾`, "Your saved suite clips: drop one in at the playhead (as it is, or as an analogy), rename it or delete it")}
           ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
           ${tb("snap", "Snapping", "Auto snapping (N): a node dropped next to a marker lands on it", tools.snap)}
           <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
@@ -2036,6 +2208,11 @@
       if (act === "link-settings") return linkSettings();
       if (act === "marker-list") return markerList(b);
       if (act === "area-shape") return shapeMenu(b);
+      if (act === "suite-save") {
+        const r = b.getBoundingClientRect();
+        return suiteNamePop(null, r.left, r.bottom);
+      }
+      if (act === "suite-list") return suiteMenu(b);
       if (act === "attention-track") return toggleAttention();
       if (act === "lane-off" || act === "lane-solo" || act === "lane-lock") return laneButton(act, b.dataset.lk);
       if (act === "fold") return foldButton(b.dataset.group);
@@ -2640,6 +2817,171 @@
       if (first) first.focus();
       return pop;
     }
+    /* ---------- suite clips: Save as suite clip (the selected area's tools) and the Suite clips ▾ list ---------- */
+    const labOf = (cur) => (S() && S().label ? S().label(cur) : cur);
+    const listWords = (curs) => {
+      const l = [...new Set(curs)].map(labOf);
+      return l.length > 1 ? l.slice(0, -1).join(", ") + " and " + l[l.length - 1] : l[0] || "";
+    };
+    /* Keep the selected area as a named suite clip. Returns { ok, clip } or { ok: false, error }. */
+    function saveSuite(name) {
+      if (!area) return { ok: false, error: "Select an area first: drag across empty space on the lanes." };
+      if (!String(name || "").trim()) return { ok: false, error: "Give the suite clip a name first." };
+      const st = E().state();
+      const c = suiteClip(copyArea(st, geo.lanes, area), name);
+      if (!c) return { ok: false, error: "There are no curiosity lanes in the selection to save. Select some lanes that are in your film." };
+      loadSuiteClips();
+      suiteList.push(c);
+      const kept = saveSuiteClips();
+      const n = c.curiosities.length;
+      const message = `Saved "${c.name}" as a suite clip: ${n} curiosit${n === 1 ? "y" : "ies"} over ${c.span + 1} moment${c.span ? "s" : ""}. Suite clips ▾ drops it in anywhere, in this film or another.${kept ? "" : " This browser isn't keeping saved data for this page, so it will be gone after a reload."}`;
+      return { ok: true, clip: c, message };
+    }
+    /* The small name pop-up: for saving the selected area (clip null) or renaming a saved clip. */
+    function suiteNamePop(c, cx, cy) {
+      if (!c && !area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+      const pop = popAt("sl-suitepop", c ? "Rename suite clip" : "Save as suite clip", cx, cy);
+      const lanesN = c ? c.curiosities.length : new Set(geo.lanes.slice(area.i0, area.i1 + 1).filter((ln) => ln && ln.track).map((ln) => ln.cur)).size;
+      const span = c ? c.span + 1 : area.j1 - area.j0 + 1;
+      const start = c ? c.name : `Suite clip ${loadSuiteClips().length + 1}`;
+      pop.innerHTML = `<p><strong>${c ? "Rename suite clip" : "Save as suite clip"}</strong> · ${lanesN} lane${lanesN === 1 ? "" : "s"}, ${span} moment${span === 1 ? "" : "s"}</p>
+        <label class="sl-mknote">Name <input type="text" data-suite-name maxlength="${SUITE_NAME_MAX}" placeholder="e.g. the slow reveal" value="${esc(start)}"></label>
+        <p class="sl-note">${c ? "Only the name changes." : "Keeps the nodes and joins in the selection. Drop it in again from Suite clips ▾."}</p>
+        <div class="sl-pop-btns"><button type="button" data-l="cancel">Cancel</button><button type="button" data-l="ok" class="on">${c ? "Rename" : "Save"}</button></div>`;
+      const close = (m) => {
+        pop.remove();
+        draw();
+        say(m == null ? msg : m);
+        el.focus();
+      };
+      const done = () => {
+        const name = pop.querySelector("[data-suite-name]").value.trim().slice(0, SUITE_NAME_MAX);
+        if (!name) {
+          say("Give the suite clip a name first.");
+          return pop.querySelector("[data-suite-name]").focus();
+        }
+        if (c) {
+          const r = renameSuite(c.id, name);
+          return close(r.message || r.error);
+        }
+        const r = saveSuite(name);
+        close(r.ok ? r.message : r.error);
+      };
+      pop.addEventListener("keydown", (ev) => {
+        ev.stopPropagation();
+        if (ev.key === "Escape") return ev.preventDefault(), close(c ? "" : "Not saved.");
+        if (ev.key === "Enter" && ev.target.matches("[data-suite-name]")) ev.preventDefault(), done();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("button");
+        if (!b) return;
+        if (b.dataset.l === "ok") return done();
+        close(c ? "" : "Not saved.");
+      };
+      el.appendChild(pop);
+      const inp = pop.querySelector("[data-suite-name]");
+      inp.focus();
+      inp.select();
+      return { ok: true, pop };
+    }
+    function renameSuite(id, name) {
+      loadSuiteClips();
+      const c = suiteList.find((x) => x.id === id);
+      name = String(name || "").trim().slice(0, SUITE_NAME_MAX);
+      if (!c) return { ok: false, error: "That suite clip is gone." };
+      if (!name) return { ok: false, error: "Give the suite clip a name first." };
+      const was = c.name;
+      c.name = name;
+      saveSuiteClips();
+      return { ok: true, message: was === name ? `"${name}" keeps its name.` : `Renamed "${was}" to "${name}".` };
+    }
+    function deleteSuite(id) {
+      loadSuiteClips();
+      const c = suiteList.find((x) => x.id === id);
+      if (!c) return { ok: false, error: "That suite clip is gone." };
+      suiteList = suiteList.filter((x) => x !== c);
+      saveSuiteClips();
+      return { ok: true, message: `Deleted the suite clip "${c.name}". Your film is not changed.` };
+    }
+    /* Drop a saved suite clip at the playhead, as one undo step. */
+    function dropSuite(id, analogy) {
+      loadSuiteClips();
+      const c = suiteList.find((x) => x.id === id);
+      if (!c) return say("That suite clip is gone."), { ok: false };
+      const st = E().state();
+      const playRow = opts.row ? opts.row() : 0;
+      const r = dropSuiteClipCommands(st, c, playRow, { shown: lanesNow(st), analogy });
+      if (r.error) return say(r.error), { ok: false, error: r.error };
+      const out = send({ type: "batch", label: (analogy ? "Drop a suite clip as an analogy: " : "Drop a suite clip: ") + c.name, commands: r.cmds });
+      if (!out.ok) return out;
+      const parts = [`Dropped "${c.name}" ${analogy ? "as an analogy " : ""}at moment ${r.start + 1} onto ${r.lanes.length} lane${r.lanes.length === 1 ? "" : "s"}: ${listWords(r.lanes)}.`];
+      if (r.moved) parts.push(`It starts at moment ${r.start + 1} so it fits before the end of the film.`);
+      if (analogy) {
+        const moved = r.moves.filter((m) => !m.kept && m.steps);
+        const kept = r.moves.filter((m) => m.kept);
+        parts.push(moved.length ? `Each lane starts from its own setting there and makes the clip's moves: ${moved.map((m) => `${labOf(m.cur)} starts at ${m.to} instead of ${m.from}`).join("; ")}.` : "Every lane already had the clip's starting setting there, so the values are the clip's own.");
+        if (kept.length) parts.push(`${listWords(kept.map((m) => m.cur))} had no setting there yet, so ${kept.length === 1 ? "it keeps" : "they keep"} the clip's own values.`);
+        const top = r.moves.filter((m) => m.clamped);
+        if (top.length) parts.push(`${listWords(top.map((m) => m.cur))} reached the end of ${top.length === 1 ? "its" : "their"} scale, so some moves are smaller.`);
+      }
+      if (r.hidden.length) parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "is" : "are"} in your film now but not shown on this timeline (Arrange shows every lane).`);
+      if (r.locked.length) parts.push(`Skipped ${listWords(r.locked)}: locked (🔒).`);
+      parts.push("Undo takes it back.");
+      const m = parts.join(" ");
+      draw();
+      say(m);
+      return { ok: true, start: r.start, lanes: r.lanes, hidden: r.hidden, locked: r.locked, moves: r.moves, message: m };
+    }
+    /* Suite clips ▾: each saved clip with its length and curiosities, and Drop, Drop as an analogy, Rename, Delete. */
+    function suiteMenu(btn) {
+      const list = loadSuiteClips();
+      const b = (btn || el.querySelector('[data-act="suite-list"]') || el).getBoundingClientRect();
+      const pop = popAt("sl-suitelist", "Suite clips", b.left + 40, b.bottom - 4);
+      const playRow = opts.row ? opts.row() : 0;
+      pop.innerHTML = `<p><strong>Suite clips</strong> · ${list.length ? `${list.length} saved. Drop one in at the playhead (moment ${playRow + 1}).` : "none yet"}</p>
+        ${list.length ? `<ul>${list.map((c) => `<li data-suite="${esc(c.id)}"><div class="sl-suitehead"><span class="sl-suitename">${esc(c.name)}</span><small class="sl-suitewhat">${esc(suiteClipSummary(c))}</small></div><div class="sl-suiteacts"><button type="button" data-suite-drop="${esc(c.id)}" class="on" title="Drop this clip in starting at the playhead. It replaces what those lanes had over those moments; one undo takes it back.">Drop at the playhead</button><button type="button" data-suite-analogy="${esc(c.id)}" title="Drop it as an analogy: each lane starts from the setting it has at the playhead and makes the same moves up and down its scale">Drop as an analogy</button><button type="button" data-suite-rename="${esc(c.id)}" title="Change this suite clip's name">Rename</button><button type="button" data-suite-delete="${esc(c.id)}" title="Delete this suite clip (your film is not changed)">Delete</button></div></li>`).join("")}</ul>` : `<p class="sl-note">Select an area on the lanes, then press Save as suite clip to keep its nodes and joins under a name.</p>`}
+        <div class="sl-pop-btns"><button type="button" data-l="close">Close</button></div>`;
+      pop.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Escape") return;
+        ev.stopPropagation();
+        pop.remove();
+        el.focus();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const t = ev.target.closest("button");
+        if (!t) return;
+        const d = t.dataset;
+        if (d.suiteDelete) {
+          /* Two clicks: deleting a saved clip can't be undone. */
+          if (t.dataset.sure !== "1") {
+            t.dataset.sure = "1";
+            t.textContent = "Delete for good?";
+            t.classList.add("sl-warn");
+            return say("Press Delete for good? to delete it. Your film is not changed.");
+          }
+          const r = deleteSuite(d.suiteDelete);
+          draw();
+          suiteMenu();
+          say(r.message || r.error);
+          return;
+        }
+        if (d.suiteRename) {
+          const c = suiteList.find((x) => x.id === d.suiteRename);
+          const r = t.getBoundingClientRect();
+          if (c) return suiteNamePop(c, r.left, r.bottom);
+          return;
+        }
+        pop.remove();
+        if (d.suiteDrop || d.suiteAnalogy) return dropSuite(d.suiteDrop || d.suiteAnalogy, !!d.suiteAnalogy);
+        el.focus();
+      };
+      el.appendChild(pop);
+      const first = pop.querySelector("button");
+      if (first) first.focus();
+      return pop;
+    }
     function onMenu(e) {
       const mk = e.target.closest && e.target.closest(".sl-top [data-marker]");
       if (!mk) return;
@@ -2704,6 +3046,27 @@
       markers: () => markerList(),
       shapeMenu: () => shapeMenu(),
       shape: (preset) => command("shape", preset),
+      saveSuite: (name) => {
+        const r = saveSuite(name);
+        draw();
+        say(r.ok ? r.message : r.error);
+        return r;
+      },
+      suiteName: () => suiteNamePop(null, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
+      suiteClips: () => suiteMenu(),
+      dropSuite,
+      renameSuite: (id, name) => {
+        const r = renameSuite(id, name);
+        draw();
+        say(r.message || r.error);
+        return r;
+      },
+      deleteSuite: (id) => {
+        const r = deleteSuite(id);
+        draw();
+        say(r.message || r.error);
+        return r;
+      },
       markTurns,
       clearAuto,
       attention: toggleAttention,
@@ -2727,5 +3090,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips() };
 })();

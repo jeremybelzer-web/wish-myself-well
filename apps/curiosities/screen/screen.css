@@ -583,3 +583,16 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-attkeys { display: flex; flex-wrap: wrap; column-gap: 6px; max-height: 24px; overflow: hidden; font-size: 9px; line-height: 12px; font-weight: 400; }
 .sl-attkey { display: inline-flex; align-items: center; gap: 3px; flex: none; }
 .sl-attkey i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+
+/* Suite clips: Save as suite clip (a name pop-up) and the Suite clips ▾ list (screen/lanes.js). */
+.sl-suitepop { width: 260px; max-width: calc(100vw - 32px); }
+.sl-suitepop .sl-note, .sl-suitelist .sl-note { color: var(--cc-dim); }
+.sl-suitelist { width: 320px; max-width: min(320px, calc(100vw - 32px)); }
+.sl-suitelist ul { list-style: none; margin: 2px 0; padding: 0; display: grid; gap: 6px; max-height: 280px; overflow: auto; }
+.sl-suitelist li { display: grid; gap: 4px; padding: 6px; border: 1px solid var(--cc-line); border-radius: 6px; }
+.sl-suitehead { display: grid; gap: 1px; min-width: 0; }
+.sl-suitename { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sl-suitewhat { color: var(--cc-dim); line-height: 1.3; }
+.sl-suiteacts { display: flex; flex-wrap: wrap; gap: 4px; }
+.sl-suiteacts button { padding: 2px 6px; }
+.sc-page .sl-suiteacts .sl-warn, .sl-suiteacts .sl-warn { color: var(--cc-warm); border-color: var(--cc-warm); }
