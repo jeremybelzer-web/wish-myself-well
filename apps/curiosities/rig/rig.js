@@ -480,6 +480,22 @@
   }
   const isPicture = (name) => /\.(png|webp|jpe?g|gif)$/i.test(name || "");
 
+  /* ---------- add-ons: other files add rules to the 3D view ----------
+     CurioRig.extend({ id, label, sliders?: [{id, lens, label, scale, start}], panel?(ctx) -> html, wire?(ctx, box),
+       setup?(ctx), built?(ctx), afterBase?(ctx, dt), afterRules?(ctx, dt), beforeRender?(ctx, dt) })
+     setup runs once the scene exists, built after each character or object loads, afterBase after the clip and
+     before the driven poses, afterRules after follow-through (IK, constraints, dynamics), beforeRender last.
+     ctx: THREE, scene, camera, renderer, holder, model, bones, rig, info, prefs, clock, el, val(id) and pick(id)
+     (a slider's value 0..1 and its word, from the timeline when the Screen drives it), rotateWorld(bone, quat),
+     limitOf(bone), save(), status(text), and data: a place for the add-on's own state (reset on each load). */
+  const EXT = [];
+  function extend(x) {
+    if (!x || !x.id || EXT.some((e) => e.id === x.id)) return false;
+    EXT.push(x);
+    (x.sliders || []).forEach((sl) => !SLIDERS.some((y) => y.id === sl.id) && SLIDERS.push(Object.assign({ group: x.label }, sl)));
+    return true;
+  }
+
   /* ---------- the viewer and the rules ---------- */
   function mount(el, opts) {
     opts = opts || {};
@@ -533,6 +549,7 @@
           <div data-rig="sliders"></div>
           <h4>Rules on or off</h4>
           <div data-rig="rules"></div>
+          <div data-rig="ext"></div>
           <h4>Pose one joint</h4>
           <p class="cap">Click a joint on the character, or pick it here.</p>
           <div data-rig="joint"></div>
@@ -544,11 +561,14 @@
 
     /* --- panel: sliders --- */
     function sliderHtml() {
+      let group = "";
       return SLIDERS.map((s) => {
+        const head = s.group && s.group !== group ? `<h5 class="rig-group">${esc(s.group)}</h5>` : "";
+        group = s.group || group;
         const n = s.scale.length - 1;
         const v = prefs.values[s.id];
         const word = s.scale[Math.round(v * n)];
-        return `<div class="rig-row" data-row="${esc(s.id)}"><label><span>${esc(s.label)}</span> <b data-word>${esc(word)}</b><small data-auto-note hidden>from the timeline</small>
+        return `${head}<div class="rig-row" data-row="${esc(s.id)}"><label><span>${esc(s.label)}</span> <b data-word>${esc(word)}</b><small data-auto-note hidden>from the timeline</small>
           <input type="range" min="0" max="${n}" step="0.01" value="${(v * n).toFixed(2)}" data-slider="${esc(s.id)}"></label>
           <button type="button" class="chip" data-auto="${esc(s.lens)}" title="Automate ${esc(s.label)}">automate</button></div>`;
       }).join("");
@@ -778,6 +798,79 @@
     }
 
     /* --- loading a character --- */
+    const extData = {};
+    const ctx = {
+      get THREE() {
+        return THREE;
+      },
+      get scene() {
+        return scene;
+      },
+      get camera() {
+        return camera;
+      },
+      get renderer() {
+        return renderer;
+      },
+      get holder() {
+        return holder;
+      },
+      get model() {
+        return model;
+      },
+      get bones() {
+        return bones;
+      },
+      get rig() {
+        return rig;
+      },
+      get info() {
+        return info;
+      },
+      get clock() {
+        return clock;
+      },
+      get prefs() {
+        return prefs;
+      },
+      el,
+      val: (id) => val(id),
+      pick: (id) => pick(id),
+      rotateWorld: (b, q) => rotateWorld(b, q),
+      limitOf: (b) => limitOf(b),
+      save: () => savePrefs(prefs),
+      status: (t) => status(t),
+      data: (id) => (extData[id] = extData[id] || {}),
+    };
+    const warned = new Set();
+    function hook(name, dt) {
+      EXT.forEach((x) => {
+        if (typeof x[name] !== "function") return;
+        try {
+          x[name](ctx, dt);
+        } catch (e) {
+          if (!warned.has(x.id + name)) console.warn("3D add-on " + x.id + " (" + name + "): " + e.message);
+          warned.add(x.id + name);
+        }
+      });
+    }
+    function drawExt() {
+      const box = $("ext");
+      box.innerHTML = "";
+      EXT.forEach((x) => {
+        if (typeof x.panel !== "function") return;
+        const sec = document.createElement("section");
+        sec.className = "rig-ext";
+        sec.dataset.ext = x.id;
+        try {
+          sec.innerHTML = x.panel(ctx) || "";
+          box.appendChild(sec);
+          if (typeof x.wire === "function") x.wire(ctx, sec);
+        } catch (e) {
+          console.warn("3D add-on " + x.id + " (panel): " + e.message);
+        }
+      });
+    }
     function setupScene() {
       renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
       renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
@@ -930,6 +1023,8 @@
       scene.add(helper);
       picked = null;
       drawJoint();
+      Object.keys(extData).forEach((k) => delete extData[k]);
+      hook("built", 0);
     }
     /* Each joint's own directions, measured once in the rest pose: along the bone (twist), toward the front
        (bend) and out to the side. Stored in the joint's own frame, so they ride along with any clip. */
@@ -1252,6 +1347,7 @@
         bones.forEach((b) => b.quaternion.copy(info.get(b).rest));
         holder.position.y = 0;
         const pace = playClip(dt);
+        hook("afterBase", dt);
         const add = drivenOffsets(clock, pace);
         madeMove(clock, pace, add);
         bones.forEach((b) => {
@@ -1264,6 +1360,8 @@
         aim(clock);
         follow(dt);
         model.updateMatrixWorld(true);
+        hook("afterRules", dt);
+        model.updateMatrixWorld(true);
         if (picked) {
           marker.visible = true;
           picked.getWorldPosition(marker.position);
@@ -1272,6 +1370,7 @@
       const cy = Math.cos(orbit.pitch);
       camera.position.set(Math.sin(orbit.yaw) * cy * orbit.dist, orbit.y + Math.sin(orbit.pitch) * orbit.dist, Math.cos(orbit.yaw) * cy * orbit.dist);
       camera.lookAt(0, orbit.y, 0);
+      hook("beforeRender", dt);
       renderer.render(scene, camera);
       raf = requestAnimationFrame(frame);
     }
@@ -1351,6 +1450,7 @@
       },
       bringIn,
       ask,
+      ctx,
       parts: () => Object.assign({}, prefs.parts),
     };
     current = ctl;
@@ -1360,6 +1460,8 @@
         if (stopped) return;
         THREE = T;
         setupScene();
+        hook("setup", 0);
+        drawExt();
         return fillCharacters().then(load);
       })
       .then(() => {
@@ -1419,6 +1521,8 @@
 .rig-row small{font-size:.72rem;opacity:.75}
 .rig-row input{width:100%}
 .rig-rule{display:block;margin:.3rem 0}
+.rig-group{margin:.6rem 0 .1rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;opacity:.75}
+.rig-ext{border-top:1px solid #8884;margin-top:.6rem;padding-top:.2rem}
 .rig-ask{display:flex;gap:.4rem}.rig-ask input{flex:1;min-width:0}
 .rig-said{font-size:.82rem}.rig-said ul{margin:.2rem 0 .4rem;padding-left:1.1rem}
 .rig-rule small{display:block;opacity:.75;margin-left:1.4rem}
@@ -1471,5 +1575,5 @@
     return open({ character: "own:" + file });
   }
 
-  window.CurioRig = { CHARACTERS, LIMITS, SLIDERS, RULES, readRequest, classify, autoRig, chainRig, makeObject, mount, open, fromCutout, current: () => current };
+  window.CurioRig = { CHARACTERS, LIMITS, SLIDERS, RULES, extend, extensions: () => EXT.slice(), readRequest, classify, autoRig, chainRig, makeObject, mount, open, fromCutout, current: () => current };
 })();
