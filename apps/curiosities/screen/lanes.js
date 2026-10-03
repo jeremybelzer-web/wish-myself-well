@@ -29,6 +29,8 @@
        opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
        opts.thumbs()     -> one storyboard frame <svg> string per moment, drawn on My film's clip track when zoomed in
        opts.beats()      -> [{ values }] My film's values per moment, read by Mark the turns (else read from the engine)
+   - laneGroups(lanes, o) and foldDots(st, lanes): the lane groups (a folding header per category) and where a folded
+     group's lanes have nodes; the mounted lanes have fold(category, folded?), foldAll(folded?) and groups()
    - turnMarkers(beats, rows, { attention, lanes }) -> the auto markers where the film turns (see below);
      mergeTurnMarkers(markers, turns) and clearAutoMarkers(markers) put them in and take them off
    - trackFor(cur)       the track a curiosity goes on when it is not on one yet
@@ -777,6 +779,55 @@
   }
   const lockSay = (lk) => `${S() ? S().label(lk.slice(lk.indexOf("|") + 1)) : lk} is locked (🔒 by its name), so its nodes stay as they are. Click the 🔒 to unlock it.`;
 
+  /* ---------- lane groups (CapCut folds its tracks into groups) ----------
+     The lanes are grouped under a header per filmmaking category, the same categories Details is built from
+     (CurioLevels.categoryOf). Groups come in the order their first lane does, so what you are looking through stays
+     on top, and lanes keep their order inside a group. A folded group shows one thin row with a dot at every moment
+     where any of its lanes has a node. Folds are a view setting: tools.folds = { category: true }, not film data.
+     laneGroups(lanes, o) -> { groups: [{ id, label, lanes, count, withNodes, folded }], visible: the lanes still
+     drawn, in order }. o.catOf(cur), o.labelOf(cat), o.hasNodes(lane) and o.folds can be stubbed for tests. With
+     fewer than GROUP_MIN lanes there are no groups (a header over one lane only takes room). */
+  const GROUP_MIN = 2;
+  const GROUP_H = 22;
+  if (!tools.folds || typeof tools.folds !== "object") tools.folds = {};
+  function laneGroups(lanes, o) {
+    o = o || {};
+    lanes = Array.isArray(lanes) ? lanes : [];
+    if (lanes.length < GROUP_MIN) return { groups: [], visible: lanes.slice() };
+    const catOf = o.catOf || ((c) => (L() && L().categoryOf ? L().categoryOf(c) : "") || "other");
+    const labelOf =
+      o.labelOf ||
+      ((id) => {
+        const c = L() && L().CATEGORIES ? L().CATEGORIES.find((x) => x.id === id) : null;
+        return c ? c.label : "Other";
+      });
+    const folds = o.folds || tools.folds;
+    const has = o.hasNodes || (() => false);
+    const byId = {};
+    const groups = [];
+    lanes.forEach((ln) => {
+      const id = String(catOf(ln.cur) || "other");
+      if (!byId[id]) groups.push((byId[id] = { id, label: labelOf(id), lanes: [] }));
+      byId[id].lanes.push(ln);
+    });
+    groups.forEach((g) => {
+      g.count = g.lanes.length;
+      g.withNodes = g.lanes.filter((ln) => has(ln)).length;
+      g.folded = !!folds[g.id];
+    });
+    return { groups, visible: [].concat(...groups.filter((g) => !g.folded).map((g) => g.lanes)) };
+  }
+  /* Where a folded group's lanes have nodes: [{ j, count }] for every moment where at least one of them has one. */
+  function foldDots(st, lanes) {
+    const out = [];
+    st.rows.forEach((r, j) => {
+      const count = (lanes || []).filter((ln) => ln.lk && st.lanes[ln.lk] && st.lanes[ln.lk].points[r.id] != null).length;
+      if (count) out.push({ j, count });
+    });
+    return out;
+  }
+  const groupSay = (g) => `${g.count} lane${g.count === 1 ? "" : "s"}, ${g.withNodes} with nodes`;
+
   /* ---------- the view ---------- */
   /* Storyboard frames for My film's clip track, as data pictures (each frame stays self-contained, so its arrow
      ids never clash with the page's). Cached by the frame's own text so redraws stay fast. */
@@ -809,9 +860,12 @@
         return Object.assign({}, ln, { track, lk: track ? track + "|" + ln.cur : null });
       });
     }
+    /* Where lane i starts, top to bottom: group headers sit between the groups, so lanes are not simply i * lh. */
+    let yTops = [];
+    const rowTop = (i) => laneTop + (yTops[i] != null ? yTops[i] : i * lh);
     function yFor(cur, v, i) {
       const p = S().pos(cur, v);
-      const top = laneTop + i * lh;
+      const top = rowTop(i);
       return top + PAD + (1 - (p == null ? 0.5 : p)) * (lh - PAD * 2);
     }
     /* Curves between two nodes, drawn from the curve's own shape (what plays is its value at each moment). */
@@ -820,7 +874,7 @@
       const pb = S().pos(cur, b.v);
       const x0 = a.j * colW + colW / 2;
       const x1 = b.j * colW + colW / 2;
-      const top = laneTop + i * lh;
+      const top = rowTop(i);
       const out = [];
       for (let k = 1; k <= 32; k++) {
         const t = k / 32;
@@ -855,7 +909,10 @@
         return;
       }
       const st = Eng.state();
-      const lanes = lanesNow(st);
+      /* Lane groups: folded groups' lanes are left out of the drawn lanes (so an area never takes them in). */
+      const grouping = laneGroups(lanesNow(st), { hasNodes: (ln) => !!(ln.lk && st.lanes[ln.lk] && Object.keys(st.lanes[ln.lk].points).length) });
+      const groups = grouping.groups;
+      const lanes = grouping.visible;
       const n = st.rows.length;
       const width = el.clientWidth || 800;
       const fit = Math.floor((width - 200) / Math.max(1, n));
@@ -866,10 +923,27 @@
       const clipRows = opts.clips ? opts.clips() : [];
       const CLIP_H = 28;
       const top = clipRows.length * CLIP_H + (opts.ruler ? RULER + 8 : 0);
-      const svgH = lanes.length * lh;
+      /* Rows top to bottom: each group's header (a thin row), then its lanes unless it is folded. */
+      yTops = [];
+      let svgH = 0;
+      if (!groups.length) lanes.forEach((ln, i) => (yTops[i] = i * lh)), (svgH = lanes.length * lh);
+      else {
+        let k = 0;
+        groups.forEach((g) => {
+          g.y = svgH;
+          svgH += GROUP_H;
+          if (!g.folded) g.lanes.forEach(() => ((yTops[k++] = svgH), (svgH += lh)));
+        });
+      }
       laneTop = 0;
       const playRow = opts.row ? opts.row() : -1;
-      geo = { colW, lanes, top: 0, n, st, svgW, svgH, lh };
+      geo = { colW, lanes, top: 0, n, st, svgW, svgH, lh, yTops: yTops.slice(), groups };
+      /* A selection keeps to the lanes still drawn (folding or removing lanes can leave it pointing past the end). */
+      if (area && !lanes.length) area = null;
+      if (area) {
+        area.i1 = Math.min(area.i1, lanes.length - 1);
+        area.i0 = Math.min(area.i0, area.i1);
+      }
       /* Fine time lines: seconds inside each moment, then halves, quarters... as you zoom in (Jeremy, 20:26Z:
          "as you zoom in, you should see more and more fine grid lines"). A level shows once its lines are 10px apart. */
       const spm = Math.max(1, Math.round(Number(opts.secondsPerMoment ? opts.secondsPerMoment() : 3) || 3));
@@ -883,7 +957,7 @@
       );
       const inArea = (i, j) => area && i >= area.i0 && i <= area.i1 && j >= area.j0 && j <= area.j1;
       const soloNow = soloActive(st, tools.solo) ? tools.solo.lk : null;
-      const heads = lanes
+      const laneHeads = lanes
         .map((ln, i) => {
           const picked = (sel && sel.endsWith("@" + ln.lk)) || (area && i >= area.i0 && i <= area.i1);
           const ticks = scaleTicks(ln.cur);
@@ -896,8 +970,22 @@
             <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(st.lanes[ln.lk])][2])} Click to change.">${MODES[modeOf(st.lanes[ln.lk])][1]}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
             ${ticks}
           </div>`;
-        })
-        .join("");
+        });
+      /* Group headers go between the lane heads: the category, how many lanes it holds and how many have nodes, and
+         ▸/▾ to fold it. The whole name is the fold button, so it is easy to hit. */
+      let heads = laneHeads.join("");
+      if (groups.length) {
+        let k = 0;
+        heads = groups
+          .map((g) => {
+            const said = groupSay(g);
+            const tip = g.folded ? `Open ${g.label}: show its ${g.count} lane${g.count === 1 ? "" : "s"} again` : `Fold ${g.label} to one thin row; dots still show where its lanes have nodes`;
+            const head = `<div class="sl-ghead${g.folded ? " is-folded" : ""}" style="height:${GROUP_H}px" data-group="${esc(g.id)}"><button type="button" class="sl-fold" data-act="fold" data-group="${esc(g.id)}" aria-expanded="${!g.folded}" title="${esc(tip)}"><span class="sl-fold-arrow" aria-hidden="true">${g.folded ? "▸" : "▾"}</span> ${esc(g.label)}</button><span class="sl-gcount" title="${esc(g.label)}: ${esc(said)}">${g.count} lane${g.count === 1 ? "" : "s"} · ${g.withNodes} with nodes</span></div>`;
+            const body = g.folded ? "" : g.lanes.map(() => laneHeads[k++]).join("");
+            return head + body;
+          })
+          .join("");
+      }
       const tsvg = []; /* the top bar: clip tracks and the ruler */
       const svg = [];
       const dots = []; /* nodes go on top of the lines */
@@ -933,8 +1021,17 @@
         /* Seconds under the moment numbers once there is room for them. */
         if (colW / spm >= 34) st.rows.forEach((r, j) => { for (let k = 1; k < spm; k++) { const t = j * spm + k; tsvg.push(`<text x="${j * colW + (k * colW) / spm + 2}" y="${rulerY + 12}" class="sl-ruler2">${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}</text>`); } });
       }
+      /* Each group's header row: a thin band, and when folded a dot at every moment where any of its lanes has a node. */
+      groups.forEach((g) => {
+        svg.push(`<rect class="sl-gbg${g.folded ? " folded" : ""}" x="0" y="${g.y}" width="${svgW}" height="${GROUP_H}" data-group="${esc(g.id)}"/>`);
+        if (!g.folded) return;
+        const cy = g.y + GROUP_H / 2;
+        foldDots(st, g.lanes).forEach((d) =>
+          dots.push(`<circle class="sl-gdot" cx="${d.j * colW + colW / 2}" cy="${cy}" r="${d.count > 1 ? 4 : 3}" data-gdot="${d.j}" data-group="${esc(g.id)}"><title>${esc(g.label)} (folded): ${d.count} lane${d.count === 1 ? " has a node" : "s have nodes"} at moment ${d.j + 1}. Click to move the playhead here.</title></circle>`)
+        );
+      });
       lanes.forEach((ln, i) => {
-        const y0 = i * lh;
+        const y0 = yTops[i];
         svg.push(`<rect class="sl-bg${i % 2 ? " odd" : ""}" x="0" y="${y0}" width="${svgW}" height="${lh}" data-lane="${i}"/>`);
         if (isLocked(ln.lk)) svg.push(`<rect class="sl-lockbg" x="0" y="${y0}" width="${svgW}" height="${lh}" fill="url(#${hatchId})"/>`);
         if (ln.track || S().known(ln.cur)) svg.push(valueLines(ln.cur, y0, svgW));
@@ -964,7 +1061,7 @@
         tsvg.push(`<g class="sl-marker" data-marker="${j}" style="--mk:${c[2]}"><line x1="${x}" x2="${x}" y1="0" y2="${top}"/><rect class="sl-mkhit" x="${x - 7}" y="${Math.max(0, top - 16)}" width="14" height="16"/><path d="M${x - 5} ${fy}h10v7l-5 4-5-4z"/>${label ? `<text class="sl-mklabel" x="${x + 7}" y="${fy + 7}">${esc(label)}</text>` : ""}<title>${esc(tip)}. Double-click to write a note, change its color or delete it.</title></g>`);
         svg.push(`<g class="sl-marker" data-marker="${j}" style="--mk:${c[2]}"><line x1="${x}" x2="${x}" y1="0" y2="${svgH}"/><title>${esc(tip)}</title></g>`);
       });
-      if (area) svg.push(`<rect class="sl-area" x="${area.j0 * colW}" y="${area.i0 * lh}" width="${(area.j1 - area.j0 + 1) * colW}" height="${(area.i1 - area.i0 + 1) * lh}"><title>Selected: moments ${area.j0 + 1} to ${area.j1 + 1}, ${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""}. Drag it sideways to move it (hold Alt to copy), or Copy, then pick where it goes and Paste.</title></rect>`);
+      if (area) svg.push(`<rect class="sl-area" x="${area.j0 * colW}" y="${yTops[area.i0]}" width="${(area.j1 - area.j0 + 1) * colW}" height="${yTops[area.i1] + lh - yTops[area.i0]}"><title>Selected: moments ${area.j0 + 1} to ${area.j1 + 1}, ${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""}. Drag it sideways to move it (hold Alt to copy), or Copy, then pick where it goes and Paste.</title></rect>`);
       const ix = st.rows.map((r) => r.id);
       lanes.forEach((ln, i) => {
         if (!ln.track) return;
@@ -1036,6 +1133,7 @@
           ${tb("snap", "Snapping", "Auto snapping (N): a node dropped next to a marker lands on it", tools.snap)}
           <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
           ${tb("skim", "Preview axis", "Preview axis (S): hover over the timeline to see that moment in the player", tools.skim)}
+          ${groups.length ? tb(groups.some((g) => !g.folded) ? "fold-all" : "open-all", groups.some((g) => !g.folded) ? "Fold all" : "Open all", groups.some((g) => !g.folded) ? "Fold every group of lanes to one thin row each; dots still show where their lanes have nodes" : "Open every folded group of lanes") : ""}
           <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−), or drag up on the ruler")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+), or drag down on the ruler")}</span>
           <span class="sl-msg" role="status">${esc(msg || (area ? "Drag the selection sideways to move it; hold Alt (Option) to copy it instead." : others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
         </div>
@@ -1093,11 +1191,26 @@
       const x = e.clientX - r.left;
       const y = e.clientY - r.top;
       const j = Math.max(0, Math.min(geo.n - 1, Math.floor(x / geo.colW)));
-      const i = Math.floor((y - geo.top) / geo.lh);
+      const i = laneAtY(y - geo.top);
       const ln = geo.lanes[i];
       let p = null;
-      if (ln) p = 1 - (y - geo.top - i * geo.lh - PAD) / (geo.lh - PAD * 2);
+      if (ln) p = 1 - (y - geo.top - geo.yTops[i] - PAD) / (geo.lh - PAD * 2);
       return { x, y, j, i, ln, p: p == null ? null : Math.max(0, Math.min(1, p)) };
+    }
+    /* The lane at height y in the lanes' picture, or -1 on a group's header row (or below the last lane). */
+    function laneAtY(y) {
+      return geo ? geo.yTops.findIndex((t) => y >= t && y < t + geo.lh) : -1;
+    }
+    /* The lanes a selection box from y0 to y1 covers: the first lane reaching below y0 to the last starting above
+       y1. A box drawn only over a header row takes the lane under it. */
+    function lanesBetween(y0, y1) {
+      const last = geo.lanes.length - 1;
+      let i0 = geo.yTops.findIndex((t) => t + geo.lh > y0);
+      if (i0 < 0) i0 = last;
+      let i1 = -1;
+      geo.yTops.forEach((t, i) => t <= y1 && (i1 = i));
+      if (i1 < i0) i1 = i0;
+      return [Math.max(0, i0), Math.max(0, Math.min(last, i1))];
     }
     function say(m) {
       msg = m || "";
@@ -1197,6 +1310,13 @@
         return;
       }
       if (!e.target.closest || !e.target.closest(".sl-svg")) return;
+      const gdot = e.target.closest("[data-gdot]");
+      if (gdot) {
+        /* A folded group's dot: move the playhead to that moment. */
+        e.preventDefault();
+        if (opts.onClip) opts.onClip(Number(gdot.dataset.gdot) || 0);
+        return;
+      }
       const a = at(e);
       /* A press inside the selected area may become a sideways drag of the whole block (decided in onMove). */
       const inArea = !!area && (node ? node.classList.contains("in") : inBlock(a));
@@ -1457,8 +1577,8 @@
       if (d.add && d.moved) {
         const j0 = Math.max(0, Math.min(geo.n - 1, Math.floor(Math.min(a.x, d.start.x) / geo.colW)));
         const j1 = Math.max(0, Math.min(geo.n - 1, Math.floor(Math.max(a.x, d.start.x) / geo.colW)));
-        const i0 = Math.max(0, Math.min(geo.lanes.length - 1, Math.floor(Math.min(a.y, d.start.y) / geo.lh)));
-        const i1 = Math.max(0, Math.min(geo.lanes.length - 1, Math.floor(Math.max(a.y, d.start.y) / geo.lh)));
+        if (!geo.lanes.length) return say("Every group of lanes is folded; open one (▸ by its name) to select its lanes."), draw();
+        const [i0, i1] = lanesBetween(Math.min(a.y, d.start.y), Math.max(a.y, d.start.y));
         area = { i0, i1, j0, j1 };
         sel = null;
         seg = null;
@@ -1580,6 +1700,40 @@
       if (again) again.focus();
       return out;
     }
+    /* Lane groups: fold or open one group, or all of them. A fold is a view setting kept in the tools; the selected
+       area is let go, because the lanes under it change. */
+    function foldGroup(id, want) {
+      const g = geo && (geo.groups || []).find((x) => x.id === id);
+      if (!g) return { ok: false, error: "There is no such group of lanes here." };
+      const folded = want == null ? !tools.folds[id] : !!want;
+      if (folded) tools.folds[id] = true;
+      else delete tools.folds[id];
+      area = null;
+      saveTools();
+      say(folded ? `${g.label} folded: its ${g.count} lane${g.count === 1 ? " is" : "s are"} tucked into one row. The dots show where ${g.count === 1 ? "it has" : "they have"} nodes; ▸ opens it again.` : `${g.label} is open again.`);
+      return { ok: true, folded };
+    }
+    function foldButton(id) {
+      const out = foldGroup(id);
+      const keep = msg;
+      draw();
+      say(keep);
+      const again = el.querySelector(`.sl-heads [data-act="fold"][data-group="${CSS.escape(id)}"]`);
+      if (again) again.focus();
+      return out;
+    }
+    function foldAll(want) {
+      const groups = (geo && geo.groups) || [];
+      if (!groups.length) return say("There are no groups of lanes to fold yet."), { ok: false };
+      groups.forEach((g) => (want ? (tools.folds[g.id] = true) : delete tools.folds[g.id]));
+      area = null;
+      saveTools();
+      draw();
+      say(want ? `Folded all ${groups.length} group${groups.length === 1 ? "" : "s"}. Each is one thin row with dots where its lanes have nodes.` : `Opened all ${groups.length} group${groups.length === 1 ? "" : "s"}.`);
+      const again = el.querySelector(`.sl-tools [data-act="${want ? "open-all" : "fold-all"}"]`);
+      if (again) again.focus();
+      return { ok: true };
+    }
     function laneOff(lk) {
       const st = E().state();
       const lane = st.lanes[lk];
@@ -1626,6 +1780,8 @@
       if (act === "link-settings") return linkSettings();
       if (act === "marker-list") return markerList(b);
       if (act === "lane-off" || act === "lane-solo" || act === "lane-lock") return laneButton(act, b.dataset.lk);
+      if (act === "fold") return foldButton(b.dataset.group);
+      if (act === "fold-all" || act === "open-all") return foldAll(act === "fold-all");
       if (act === "mode" && b.dataset.lk) {
         /* Maya's graph editor tangents in plain words: glide (linear) or jump (stepped). */
         const st = E().state();
@@ -2246,6 +2402,15 @@
       laneOff: (lk) => laneButton("lane-off", lk),
       solo: (lk) => laneButton("lane-solo", lk),
       lock: (lk) => laneButton("lane-lock", lk),
+      fold: (id, want) => {
+        const out = foldGroup(id, want);
+        const keep = msg;
+        draw();
+        say(keep);
+        return out;
+      },
+      foldAll: (want) => foldAll(want !== false),
+      groups: () => ((geo && geo.groups) || []).map((g) => ({ id: g.id, label: g.label, count: g.count, withNodes: g.withNodes, folded: g.folded })),
       destroy() {
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", onUp);
@@ -2253,5 +2418,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, moveAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, moveAreaCommands, laneGroups, foldDots, GROUP_H, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers };
 })();
