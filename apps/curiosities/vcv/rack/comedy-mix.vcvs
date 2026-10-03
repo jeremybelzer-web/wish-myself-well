@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "COMEDY FROM THE MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 97 to 112\n   1 How different the personalities are\n   2 Chaos in an orderly room\n   3 Gap in rank\n   4 What the mix does to the plot\n   5 What the mix does to the characters\n   6 Laughs from the mix\n   7 The double act\n   8 The straight man\n   9 The odd one out\n  10 Clash of egos\n  11 Who knows what\n  12 Who sides with whom\n  13 The unwanted guest\n  14 Chemistry\n  15 suite: Comedy from the mix lens\n  16 suite: Straight one and funny one\nCV-CC 2: MIDI channel 8, CC 1 to 16\n   1 suite: Chaos agent\n   2 suite: The odd couple\n   3 suite: Calm in the madness\n   4 suite: Doesn't belong here\n   5 suite: The petty war\n   6 suite: Everyone knows but one\n   7 suite: Status swap\n   8 suite: The worst possible guest\n   9 suite: Banter\n  10 pair: When a chaos character enters an orderly room, the cringe rises\n  11 pair: When opposite personality types share the room, more of the laughs come from the mix\n  12 pair: When the gap in rank grows, the plot takes a turn\n  13 pair: Pride before a fall\n  14 pair: When the unwanted guest arrives, the room falls into chaos\n  15 pair: When the egos clash, the plot takes a detour\n  16 pair: When the one who doesn't know gets close to the secret, the cringe rises\nCV-CC 3: MIDI channel 8, CC 17 to 24\n   1 pair: When the chaos grows, the straight man's calm sells the laugh\n   2 pair: When the odd one out tries harder, the group pulls away\n   3 pair: When the sides switch, the status flips\n   4 pair: When the chemistry grows, the characters change\n   5 pairs: The mix makes it funny\n   6 pairs: The house party engine\n   7 pairs: The secret in the room\n   8 pairs: The pair that grows"
+    "text": "COMEDY FROM THE MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 8, CC 33 to 48\n   1 How different the personalities are\n   2 Chaos in an orderly room\n   3 Gap in rank\n   4 What the mix does to the plot\n   5 What the mix does to the characters\n   6 Laughs from the mix\n   7 The double act\n   8 The straight man\n   9 The odd one out\n  10 Clash of egos\n  11 Who knows what\n  12 Who sides with whom\n  13 The unwanted guest\n  14 Chemistry\n  15 suite: Comedy from the mix lens\n  16 suite: Straight one and funny one\nCV-CC 2: MIDI channel 8, CC 49 to 64\n   1 suite: Chaos agent\n   2 suite: The odd couple\n   3 suite: Calm in the madness\n   4 suite: Doesn't belong here\n   5 suite: The petty war\n   6 suite: Everyone knows but one\n   7 suite: Status swap\n   8 suite: The worst possible guest\n   9 suite: Banter\n  10 pair: When a chaos character enters an orderly room, the cringe rises\n  11 pair: When opposite personality types share the room, more of the laughs come from the mix\n  12 pair: When the gap in rank grows, the plot takes a turn\n  13 pair: Pride before a fall\n  14 pair: When the unwanted guest arrives, the room falls into chaos\n  15 pair: When the egos clash, the plot takes a detour\n  16 pair: When the one who doesn't know gets close to the secret, the cringe rises\nCV-CC 3: MIDI channel 8, CC 65 to 72\n   1 pair: When the chaos grows, the straight man's calm sells the laugh\n   2 pair: When the odd one out tries harder, the group pulls away\n   3 pair: When the sides switch, the status flips\n   4 pair: When the chemistry grows, the characters change\n   5 pairs: The mix makes it funny\n   6 pairs: The house party engine\n   7 pairs: The secret in the room\n   8 pairs: The pair that grows"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     97,
-     98,
-     99,
-     100,
-     101,
-     102,
-     103,
-     104,
-     105,
-     106,
-     107,
-     108,
-     109,
-     110,
-     111,
-     112
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
@@ -59,22 +59,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     1,
-     2,
-     3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10,
-     11,
-     12,
-     13,
-     14,
-     15,
-     16
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
     ],
     "midi": {
      "channel": 7
@@ -91,14 +91,14 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     17,
-     18,
-     19,
-     20,
-     21,
-     22,
-     23,
-     24,
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
      -1,
      -1,
      -1,

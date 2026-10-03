@@ -18,7 +18,13 @@
    - addSuggestion(s) -> the engine's reply
    - band(opts): the two lanes in the shape an engine timeline band could draw:
        { id: "momentum", label, lanes: [{ id, label, cells: [{ row, text, title, color, warn }] }] }
-     (requested from the engine thread as CurioEngineUI.addBand; see momentum/README.md). */
+     (requested from the engine thread as CurioEngineUI.addBand; see momentum/README.md).
+   - flatBeats() -> one beat per row with one value per curiosity (Master first, then Camera, then the
+       characters), the way the Screen's Player reads My film, so a meter beside the Player agrees with it.
+   - moveAt(option, rowId) -> { track, curiosity, label, value, from, commands } | null: the Compass's move
+       (an option from compass.js) as engine commands: one curiosity of that family stepped one notch at that
+       moment (a node at the playhead). Adds the curiosity to a track first when no track has one.
+   - applyMove(move) -> the engine's reply (one undo step). */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
   const E = () => root.CurioEngine;
@@ -142,7 +148,68 @@
     };
   }
 
-  const api = { available, beats, reading, lanes, suggestions, addSuggestion, band };
+  /* The Screen's view of My film: each curiosity's first value going Master, Camera, then characters. */
+  const RANK = { master: 0, camera: 1, character: 2 };
+  const ordered = (st) => st.tracks.slice().sort((a, b) => (RANK[a.kind] ?? 3) - (RANK[b.kind] ?? 3));
+  function flatBeats() {
+    if (!available()) return [];
+    const st = E().state();
+    const order = ordered(st);
+    return st.rows.map((r) => {
+      const values = {};
+      order.forEach((t) =>
+        t.curiosities.forEach((c) => {
+          if (values[c] != null) return;
+          const v = E().value(r.id, t.id, c);
+          if (v != null && v !== "") values[c] = v;
+        })
+      );
+      return { values, row: r.id, label: r.label };
+    });
+  }
+
+  /* Which kind of track a family's curiosities usually live on. */
+  const TRACK_FOR = { camera: "camera", movement: "character", voice: "character", feeling: "character", wardrobe: "character", comedy: "character", mind: "character" };
+  function moveAt(option, rowId) {
+    const S = root.CurioScale;
+    if (!available() || !option || !option.family || !S) return null;
+    const st = E().state();
+    const row = st.rows.find((r) => r.id === rowId) || st.rows[0];
+    const fam = option.family;
+    /* A curiosity of that family already on a track: the Compass's own pick first, then the one that pushes
+       the story hardest (written notes before workspace ones). */
+    const rank = (c) => M().note(c).push + (M().note(c).source === "workspace" ? 0 : 0.5);
+    const on = [];
+    ordered(st).forEach((t) => t.curiosities.forEach((c) => S.known(c) && M().familyOf(c) === fam && on.push({ track: t.id, curiosity: c })));
+    let pick = on.find((x) => M().baseId(x.curiosity) === option.curiosity) || on.slice().sort((a, b) => rank(b.curiosity) - rank(a.curiosity))[0];
+    const commands = [];
+    if (!pick) {
+      const cur = [option.curiosity]
+        .concat((M().all ? M().all() : []).filter((n) => n.family === fam).sort((a, b) => b.push - a.push).map((n) => n.id))
+        .find((c) => c && S.known(c));
+      if (!cur) return null;
+      const kind = TRACK_FOR[fam] || "master";
+      const track = st.tracks.find((t) => t.kind === kind) || st.tracks[0];
+      if (!track) return null;
+      pick = { track: track.id, curiosity: cur };
+      commands.push({ type: "addCuriosity", track: track.id, curiosity: cur });
+    }
+    const was = commands.length ? null : E().value(row.id, pick.track, pick.curiosity);
+    const base = was != null && was !== "" ? was : S.start(pick.curiosity);
+    let value = S.step(pick.curiosity, base, 1);
+    if (value == null || String(value) === String(base)) value = S.step(pick.curiosity, base, -1);
+    if (value == null || (was != null && String(value) === String(was))) return null;
+    commands.push({ type: "setPoint", row: row.id, track: pick.track, curiosity: pick.curiosity, value });
+    const label = M().plain ? M().plain(S.label(pick.curiosity)) : S.label(pick.curiosity);
+    return { track: pick.track, curiosity: pick.curiosity, label, value, from: was, row: row.id, family: fam, commands };
+  }
+  function applyMove(move) {
+    if (!move || !E()) return { ok: false, error: "No engine here." };
+    const fam = M().family(move.family);
+    return E().send({ type: "batch", label: `Momentum: move attention to ${fam ? fam.label : move.family} (${move.label})`, commands: move.commands });
+  }
+
+  const api = { available, beats, flatBeats, reading, lanes, suggestions, addSuggestion, band, moveAt, applyMove };
   root.CurioMomentumEngine = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();

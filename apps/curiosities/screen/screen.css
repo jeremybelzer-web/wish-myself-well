@@ -350,6 +350,20 @@ html.sc-open, html.sc-open body { overflow: hidden; }
   .tabs .tabs-top > button, .tabs .tabs-top .lib > button { padding: 6px 5px; letter-spacing: 0.02em; }
 }
 
+/* The Character tab's character bar (screen/character.js) and the 3D matrix opened over the Screen. */
+.cs-bar { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin: 6px 0 4px; padding: 8px; border-radius: 8px; background: var(--cc-raised); }
+.cs-bar label { display: inline-flex; gap: 6px; align-items: center; }
+.cs-bar button { background: var(--cc-hover); }
+.cs-bar button[data-cs="matrix"] { background: var(--cc-accent); color: var(--cc-accent-ink); }
+.cs-k { margin: 0 0 8px; }
+.cs-msg { color: var(--cc-warm); }
+.cs-overlay { position: fixed; inset: 0; z-index: 80; display: grid; grid-template-rows: auto minmax(0, 1fr); background: #0f0f10; color: #ececee; font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 13px; }
+.cs-overlay[hidden] { display: none; }
+.cs-overlay-h { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 8px 14px; border-bottom: 1px solid #2e2e33; }
+.cs-overlay-h span { color: #9b9ba3; flex: 1 1 200px; }
+.cs-overlay-h button { font: inherit; border: 0; border-radius: 6px; padding: 5px 12px; background: #22d3ee; color: #062a31; cursor: pointer; }
+.cs-overlay-b { overflow: auto; padding: 12px 16px 24px; background: #efe4d2; color: #1c1712; }
+
 /* ADVANCED: Final Cut Pro's features, kept out of the way (Jeremy, 2026-10-02 20:21Z). */
 .sc-page .sc-icons button.sc-adv { position: sticky; right: 0; background: var(--cc-panel); margin-left: auto; border-left: 1px solid var(--cc-line); border-radius: 0; padding-left: 8px; letter-spacing: 0.06em; font-weight: 600; }
 .sc-page .sc-card.sc-fcp em { color: var(--cc-dim); }

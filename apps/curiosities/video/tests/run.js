@@ -219,6 +219,9 @@ check("graphics laid over: off unless asked, keyed so a pale background drops ou
   assert(px[7] > 240, "blue stays " + px[7]);
   assert(px[11] > 240, "dark text stays " + px[11]);
   assert(px[15] < 30, "light grey checkerboard drops out " + px[15]);
+  const empty = new Uint8ClampedArray([0, 0, 0, 0]);
+  V.keyOut(empty, 1);
+  assert(empty[3] === 0, "an empty (see-through) pixel stays see-through, not black " + empty[3]);
 });
 check("toMedia gives the media window's sample shape", () => {
   const m = V.toMedia(insp, 2);

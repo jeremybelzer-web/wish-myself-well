@@ -72,3 +72,5 @@
   .cm-grid > aside { max-height: none; }
   .cm-view { height: 60vh; min-height: 320px; }
 }
+.cm-linked { border-left: 3px solid var(--cm-accent); padding-left: 8px; font-size: 13px; max-width: 80ch; }
+.cm-link-note { color: var(--cm-accent); }

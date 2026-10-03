@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "CHARACTER MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 65 to 80\n   1 Character path\n   2 Character speed\n   3 Toward the lens\n   4 Who moves\n   5 Body in frame\n   6 Move temper\n   7 Spacing\n   8 Drawn on\n   9 Overshoot\n  10 Overlap\n  11 Path shape\n  12 Squash and stretch\n  13 Key poses per line\n  14 Mouth shapes\n  15 suite: Crossing\n  16 suite: Snappy cartoon\nCV-CC 2: MIDI channel 1, CC 81 to 87\n   1 suite: Grounded realism\n   2 suite: The chase\n   3 suite: Bursting in\n   4 pair: When a person approaches, the camera pushes in\n   5 pair: When a character approaches, personal space shrinks\n   6 pair: When characters speed up, the cutting speeds up\n   7 pairs: Movement drives the cutting"
+    "text": "CHARACTER MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 65 to 80\n   1 Character path\n   2 Character speed\n   3 Toward the lens\n   4 Who moves\n   5 Body in frame\n   6 Move temper\n   7 Spacing\n   8 Drawn on\n   9 Overshoot\n  10 Overlap\n  11 Path shape\n  12 Squash and stretch\n  13 Key poses per line\n  14 Mouth shapes\n  15 Animation feel\n  16 Poses and body control\nCV-CC 2: MIDI channel 1, CC 81 to 96\n   1 Face acting\n   2 suite: Crossing\n   3 suite: Snappy cartoon\n   4 suite: Grounded realism\n   5 suite: The chase\n   6 suite: Bursting in\n   7 suite: Cartoon bounce\n   8 suite: Heavy and real\n   9 suite: Poker face\n  10 pair: When a person approaches, the camera pushes in\n  11 pair: When a character approaches, personal space shrinks\n  12 pair: When characters speed up, the cutting speeds up\n  13 pair: When the wind-up grows, the move lands bigger\n  14 pair: When the face goes big, the body follows\n  15 pair: When the eyes dart, the expression changes next\n  16 pairs: Movement drives the cutting\nCV-CC 3: MIDI channel 1, CC 97 to 97\n   1 pairs: Acting from the inside out"
    },
    "pos": [
     0,
@@ -66,6 +66,38 @@
      85,
      86,
      87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 0
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -81,7 +113,7 @@
     }
    },
    "pos": [
-    32,
+    40,
     0
    ]
   }
