@@ -489,7 +489,14 @@ const ok = (cond, msg) => {
   const pasted = await page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|shotSize")); const pts = st.lanes[lk].points; return [0, 2].map((j) => pts[st.rows[j].id]); });
   const expect = await page.evaluate(() => [1, 4].map((v) => window.CurioScale.at("shotSize", window.CurioScale.pos("emotionIntensity", v))));
   ok(pasted[0] === expect[0] && pasted[1] === expect[1] && pasted[0] !== pasted[1], "pasting Strength of the feeling onto Shot size keeps each value's place on the new scale (" + pasted.join(", ") + ")");
+  const lanesNow = () => page.evaluate(() => { const l = window.CurioEngine.state().lanes; return JSON.stringify(Object.keys(l).sort().map((k) => [k, l[k]])); });
+  const beforeUndo = await lanesNow();
   await page.keyboard.press("Control+z");
+  await page.keyboard.press("Control+Shift+z");
+  const afterRedo = await lanesNow();
+  ok(afterRedo === beforeUndo, "⌘Z then ⇧⌘Z gives back exactly the same film (one undo is one step, also with the app-wide undo list)");
+  await page.keyboard.press("Control+z");
+  ok(await page.evaluate(() => Object.keys(window.CurioEngine.state().lanes).some((k) => k.endsWith("|emotionIntensity"))), "one ⌘Z undoes only the paste, not the steps before it");
   /* Curves: a line between two nodes, shaped and written into the moments between. */
   await page.evaluate(() => document.querySelector(".sl-svg") && window.CurioScreen.setRow(1));
   const segA = await page.evaluate(() => { const s = [...document.querySelectorAll(".sl-seghit")].find((x) => /emotionIntensity\|r1\|r3|emotionIntensity\|/.test(x.dataset.seg)); return s ? s.dataset.seg : null; });
