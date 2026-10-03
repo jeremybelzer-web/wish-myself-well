@@ -48,6 +48,8 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
   const page = await browser.newPage({ viewport: { width: 1400, height: 950 }, serviceWorkers: "block" });
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
+  const warnings = [];
+  page.on("console", (m) => warnings.push(m.text()));
   page.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g|WebGL|GPU stall/.test(m.text()) && errors.push(m.text()));
   if (THREE_FILE) await page.route("**/cdnjs.cloudflare.com/**", (r) => r.fulfill({ path: THREE_FILE, contentType: "text/javascript" }));
   await page.route("**/fonts.g*/**", (r) => r.abort());
@@ -276,6 +278,81 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
       await page.click('.rig-dlg [data-rig="forget"]');
       await page.waitForFunction(() => !/^own:/.test(document.querySelector('.rig-dlg [data-rig="character"]').value));
       ok(!(await page.evaluate(() => [...document.querySelectorAll('.rig-dlg [data-rig="character"] option')].some((o) => /^own:/.test(o.value)))), "Forget removes it");
+
+      /* Bugs the testing thread found (2026-10-03). */
+      const toe = await page.evaluate(() => {
+        const c = CurioRig.current();
+        const L = c.rig().legs.L;
+        return L.length > 3 ? c.roleOf(L[3]) : "toe";
+      });
+      ok(toe === "toe", `the figure's 4th leg joint is the toes, not a second ankle (${toe})`);
+
+      const fast = await page.evaluate(async () => {
+        const sel = document.querySelector('.rig-dlg [data-rig="character"]');
+        for (const id of ["cesium-man", "fox", "tree", "rigged-figure", "desk-lamp"]) {
+          sel.value = id;
+          sel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        await CurioRig.current().ready;
+        await new Promise((r) => setTimeout(r, 1500));
+        const c = CurioRig.current();
+        return { obj: !!c.rig().object, joints: c.bones().length, credit: document.querySelector('.rig-dlg [data-rig="credit"]').textContent };
+      });
+      ok(fast.obj && fast.joints === 5 && /lamp/i.test(fast.credit), `picking characters quickly ends on the last one picked (lamp: ${fast.obj}, ${fast.joints} joints, credit "${fast.credit.slice(0, 40)}")`);
+
+      await page.setInputFiles('.rig-dlg [data-rig="file"]', { name: "broken.glb", mimeType: "model/gltf-binary", buffer: Buffer.from("not a 3D model at all") });
+      await page.waitForFunction(() => /not kept/.test(document.querySelector('.rig-dlg [data-rig="status"]').textContent), null, { timeout: 5000 }).catch(() => {});
+      const broken = await page.evaluate(() => ({
+        status: document.querySelector('.rig-dlg [data-rig="status"]').textContent,
+        kept: [...document.querySelectorAll('.rig-dlg [data-rig="character"] option')].some((o) => o.value === "own:broken.glb"),
+      }));
+      ok(!broken.kept && /not kept/.test(broken.status) && !/[{}]/.test(broken.status), `a broken .glb is refused in plain words and not kept ("${broken.status}")`);
+
+      const undoKey = await page.evaluate(async () => {
+        let n = 0;
+        const real = CurioStore.undo;
+        CurioStore.undo = () => (n++, false);
+        document.querySelector('.rig-dlg [data-rig="front"]').focus();
+        document.querySelector('.rig-dlg [data-rig="front"]').dispatchEvent(new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true }));
+        CurioStore.undo = real;
+        return n;
+      });
+      ok(undoKey === 0, "Ctrl+Z inside the 3D window does not undo the film behind it");
+
+      const between = await page.evaluate(async () => {
+        const inp = document.querySelector('.rig-dlg [data-slider="rigRulesLens.pace"]');
+        inp.value = "1.4";
+        inp.dispatchEvent(new Event("input", { bubbles: true }));
+        const f = document.querySelector('.rig-dlg [data-rig="ask"]');
+        f.value = "frantic";
+        f.form.requestSubmit();
+        document.querySelector('.rig-dlg [data-rig="undo-ask"]').click();
+        return document.querySelector('.rig-dlg [data-slider="rigRulesLens.pace"]').value;
+      });
+      ok(Math.abs(Number(between) - 1.4) < 0.02, `"Undo these" puts a slider left between marks back exactly (${between})`);
+
+      const chip = await page.evaluate(() => {
+        let got = "";
+        const W = window.CuriosityWorkspaces;
+        const real = W && W.openFor;
+        if (W) W.openFor = (k) => (got = k);
+        document.querySelector(".rig-dlg .chip[data-auto]").click();
+        if (W) W.openFor = real;
+        return { got, open: document.querySelector(".rig-dlg").open };
+      });
+      ok(/^c:/.test(chip.got) && !chip.open, `"automate" in the Library window opens that curiosity's automation (${chip.got})`);
+
+      const leak = await page.evaluate(async () => {
+        for (let i = 0; i < 18; i++) {
+          CurioRig.open();
+          await CurioRig.current().ready;
+          document.querySelector(".rig-dlg").close();
+        }
+        CurioRig.open();
+        await CurioRig.current().ready;
+        return { canvases: document.querySelectorAll("canvas").length, err: CurioRig.current().error() };
+      });
+      ok(!leak.err && !warnings.some((w) => /Too many active WebGL/.test(w)), `opening and closing 18 times does not run out of 3D views (${leak.canvases} canvases)`);
       await page.evaluate(() => document.querySelector(".rig-dlg").close());
     }
 

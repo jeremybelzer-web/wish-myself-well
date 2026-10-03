@@ -68,6 +68,8 @@
     hip: { bend: [-30, 120], side: [-20, 60], twist: [-40, 40], say: "Hip joint" },
     knee: { bend: [-150, 0], side: [0, 0], twist: [-10, 10], say: "Knee (bends one way)" },
     ankle: { bend: [-40, 40], side: [-20, 20], twist: [-15, 15], say: "Ankle" },
+    toe: { bend: [-30, 40], side: [-5, 5], twist: [-5, 5], say: "Toes" },
+    hand: { bend: [-30, 60], side: [-10, 10], twist: [-10, 10], say: "Hand" },
     frontHip: { bend: [-90, 90], side: [-20, 40], twist: [-30, 30], say: "Front leg, top" },
     frontKnee: { bend: [-90, 90], side: [0, 0], twist: [-10, 10], say: "Front leg, middle" },
     tail: { bend: [-60, 60], side: [-60, 60], twist: [-30, 30], say: "Tail" },
@@ -345,8 +347,8 @@
     out.neck.forEach((b, i) => set1(b, "neck", "", i));
     set1(out.head, "head");
     ["L", "R"].forEach((s) => {
-      out.arms[s].forEach((b, i) => set1(b, out.quadruped ? ["frontHip", "frontKnee", "ankle"][Math.min(i, 2)] : ["shoulder", "elbow", "wrist"][Math.min(i, 2)], s, i));
-      out.legs[s].forEach((b, i) => set1(b, ["hip", "knee", "ankle"][Math.min(i, 2)], s, i));
+      out.arms[s].forEach((b, i) => set1(b, out.quadruped ? ["frontHip", "frontKnee", "ankle", "toe"][Math.min(i, 3)] : ["shoulder", "elbow", "wrist", "hand"][Math.min(i, 3)], s, i));
+      out.legs[s].forEach((b, i) => set1(b, ["hip", "knee", "ankle", "toe"][Math.min(i, 3)], s, i));
     });
     out.tail.forEach((b, i) => set1(b, "tail", "", i));
     bones.forEach((b) => !out.roles.has(b) && set1(b, "other"));
@@ -577,6 +579,15 @@
     $("rules").innerHTML = RULES.map((r) => `<label class="rig-rule" title="In Maya: ${esc(r.maya)}"><input type="checkbox" data-rule="${r.id}"${prefs.rules[r.id] ? " checked" : ""}> <b>${esc(r.label)}</b> <small>${esc(r.plain)}</small></label>`).join("");
     $("bones").checked = prefs.showBones;
 
+    /* Put a stored value (0..1, may sit between marks) back on its knob exactly, unless the timeline drives it. */
+    function showValue(s, v) {
+      if (fromTimeline[s.id] != null || typeof v !== "number") return;
+      const inp = el.querySelector(`[data-slider="${s.id}"]`);
+      if (!inp) return;
+      const n = s.scale.length - 1;
+      inp.value = (v * n).toFixed(2);
+      inp.closest(".rig-row").querySelector("[data-word]").textContent = s.scale[Math.round(v * n)];
+    }
     el.addEventListener("input", (e) => {
       const t = e.target;
       if (t.dataset.slider) {
@@ -625,9 +636,12 @@
       const req = readRequest(text);
       const changes = [];
       before = { values: Object.assign({}, prefs.values), parts: Object.assign({}, prefs.parts) };
+      const held = [];
       Object.keys(req.values).forEach((id) => {
         const s = SLIDERS.find((x) => x.id === id);
-        if (s && ctl.set(id, req.values[id])) changes.push(`${s.label}: ${req.values[id]}`);
+        if (!s) return;
+        if (fromTimeline[id] != null) held.push(s.label); /* the timeline drives this one; leave it alone */
+        else if (ctl.set(id, req.values[id])) changes.push(`${s.label}: ${req.values[id]}`);
       });
       const PART_SAY = { top: "the top", base: "the base", middle: "the middle", arms: "the arms", legs: "the legs", tail: "the tail" };
       Object.keys(req.parts).forEach((part) => {
@@ -640,8 +654,11 @@
       const box = $("said");
       box.innerHTML = changes.length
         ? `<p>${req.said.length ? "Read as <b>" + esc(req.said.join(", ")) + "</b>. " : ""}Changed:</p><ul>${changes.map((c) => `<li>${esc(c)}</li>`).join("")}</ul><button type="button" data-rig="undo-ask">Undo these</button>`
+        : held.length
+        ? ""
         : `<p>No words it knows yet. Try a feeling (sleepy, scared, proud), a move (walk, run, hop, look around), a speed, where to look, or which part is stiff or loose.</p>`;
-      return { changes, said: req.said, parts: req.parts };
+      if (held.length) box.insertAdjacentHTML("beforeend", `<p>Left alone because the timeline sets ${held.length === 1 ? "it" : "them"}: ${esc(held.join(", "))}. Change ${held.length === 1 ? "it" : "them"} on the timeline.</p>`);
+      return { changes, said: req.said, parts: req.parts, held };
     }
     el.addEventListener("submit", (e) => {
       if (!e.target.matches('[data-rig="ask-form"]')) return;
@@ -651,8 +668,8 @@
     el.addEventListener("click", (e) => {
       if (e.target.closest('[data-rig="undo-ask"]') && before) {
         prefs.parts = before.parts;
-        SLIDERS.forEach((s) => ctl.set(s.id, s.scale[Math.round(before.values[s.id] * (s.scale.length - 1))]));
         prefs.values = before.values;
+        SLIDERS.forEach((s) => showValue(s, prefs.values[s.id]));
         savePrefs(prefs);
         before = null;
         $("said").innerHTML = "<p>Undone.</p>";
@@ -697,6 +714,14 @@
         return;
       }
       const buf = await file.arrayBuffer();
+      if (!isPicture(file.name)) {
+        try {
+          await parseGlb(buf);
+        } catch (e) {
+          status(`Could not open ${file.name}. It may be damaged or not a 3D model, so it was not kept. Try exporting it again as .glb.`);
+          return;
+        }
+      }
       await keepFile(file.name, buf);
       prefs.character = "own:" + file.name;
       savePrefs(prefs);
@@ -738,8 +763,8 @@
       if (r.role === "base" || r.role === "hips") return "base";
       if (r.role === "tip" || r.role === "head" || r.role === "neck") return "top";
       if (r.role === "tail") return "tail";
-      if (/shoulder|elbow|wrist/.test(r.role)) return "arms";
-      if (/hip|knee|ankle|front/i.test(r.role)) return "legs";
+      if (/shoulder|elbow|wrist|hand/.test(r.role)) return "arms";
+      if (/hip|knee|ankle|toe|front/i.test(r.role)) return "legs";
       return "middle";
     }
     function partScale(b) {
@@ -954,25 +979,58 @@
       return { buf: await res.arrayBuffer(), credit: c.plain + " " + c.credit };
     }
     let pending = true;
+    /* Each load gets a number. Picking characters quickly starts several loads at once; only the newest one
+       may build, so the view, the credit and saved poses always belong to the character in the menu. */
+    let loadSeq = 0;
     async function load() {
       if (!pending) ready = new Promise((r) => (readyResolve = r));
       pending = true;
+      const my = ++loadSeq;
+      const stale = () => {
+        if (stopped) readyResolve(); /* a closed window never finishes loading; nobody should wait on it */
+        return stopped || my !== loadSeq;
+      };
       loadError = "";
       status("Loading…");
       $("forget").hidden = !/^own:/.test(prefs.character);
       try {
         const src = await source();
+        if (stale()) return;
+        const gltf = src.buf ? await parseGlb(src.buf) : { scene: src.scene || pictureCard(src.picture), animations: [] };
+        if (stale()) return;
         $("credit").textContent = src.credit;
-        const gltf = src.buf ? await new Promise((resolve, reject) => new THREE.GLTFLoader().parse(src.buf, "", resolve, reject)) : { scene: src.scene || pictureCard(src.picture), animations: [] };
-        if (stopped) return;
         build(gltf);
         status(rig.object ? `No skeleton of its own, so it got a chain of ${bones.length} joints` : `${bones.length} joints, ${clips.length} move${clips.length === 1 ? "" : "s"}`);
       } catch (e) {
+        if (stale()) return;
         loadError = String((e && e.message) || e);
-        status("Could not load this character: " + loadError);
+        clearModel();
+        $("credit").textContent = "";
+        status("Could not open this character. " + plainError(loadError));
       }
       pending = false;
       readyResolve();
+    }
+    function parseGlb(buf) {
+      return new Promise((resolve, reject) => new THREE.GLTFLoader().parse(buf, "", resolve, reject));
+    }
+    function plainError(msg) {
+      if (/no longer on this device/.test(msg)) return "That file is no longer on this device.";
+      if (/could not load rig/.test(msg)) return "The free character did not download. Check the connection and try again.";
+      return "The file may be damaged or not a 3D model. Try exporting it again as .glb.";
+    }
+    function clearModel() {
+      if (holder) scene.remove(holder);
+      if (helper) scene.remove(helper);
+      holder = null;
+      helper = null;
+      model = null;
+      bones = [];
+      clips = [];
+      mixer = null;
+      action = null;
+      picked = null;
+      drawJoint();
     }
     function build(gltf) {
       if (holder) scene.remove(holder);
@@ -1082,7 +1140,9 @@
         const i = s.scale.indexOf(v);
         return i < 0 ? null : i / n;
       }
-      if (typeof v === "number" && isFinite(v)) return v <= 1 ? clamp(v, 0, 1) : clamp(v, 0, n) / n;
+      /* Numbers from the timeline are the curiosity's own steps (Wind 0 to 5), so a whole number is a step:
+         1 on a 0..5 slider is "a little", not the top. Only a fraction below 1 is read as a position. */
+      if (typeof v === "number" && isFinite(v)) return Number.isInteger(v) || v > 1 ? clamp(v, 0, n) / n : clamp(v, 0, 1);
       return null;
     }
     function readTimeline() {
@@ -1099,7 +1159,9 @@
       const r = st && st.rows && st.rows[S.row()];
       if (!r) return;
       SLIDERS.forEach((s) => {
-        const t = (st.tracks || []).find((x) => (x.curiosities || []).includes(s.id));
+        /* the Screen's 3D panel says which character track it shows; else the first track with this rule */
+        const want = opts && (typeof opts.track === "function" ? opts.track() : opts.track);
+        const t = (want && (st.tracks || []).find((x) => x.id === want && (x.curiosities || []).includes(s.id))) || (st.tracks || []).find((x) => (x.curiosities || []).includes(s.id));
         if (!t) return;
         const lane = st.lanes && st.lanes[t.id + "|" + s.id];
         if (!lane || lane.on === false) return;
@@ -1390,7 +1452,11 @@
       stopped = true;
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
-      if (renderer) renderer.dispose();
+      if (renderer) {
+        renderer.dispose();
+        renderer.forceContextLoss(); /* browsers allow only ~16 live 3D views; give this one back now */
+      }
+      if (canvas.parentNode) canvas.remove();
       if (current === ctl) current = null;
     }
 
@@ -1487,11 +1553,22 @@
       dlg.innerHTML = `<header><strong>3D characters</strong><button type="button" data-rig-close>Close</button></header><div class="rig-dlg-body"></div>`;
       document.body.appendChild(dlg);
       dlg.addEventListener("close", () => {
+        if (dlg.open) return; /* the close event arrives late; it was already opened again */
         if (open3) open3.stop();
         open3 = null;
       });
       dlg.addEventListener("click", (e) => {
-        if (e.target.closest("[data-rig-close]")) dlg.close();
+        if (e.target.closest("[data-rig-close]")) return dlg.close();
+        /* "automate" opens that curiosity's automation, the same as the chips in the Studio */
+        const chip = e.target.closest(".chip[data-auto]");
+        if (!chip) return;
+        const key = "c:" + chip.dataset.auto;
+        const W = window.CuriosityWorkspaces;
+        const A = window.CuriosityAutomate;
+        if (!(W && W.openFor) && !(A && A.open)) return;
+        dlg.close();
+        if (W && W.openFor) W.openFor(key);
+        else A.open(key);
       });
     }
     if (typeof dlg.showModal === "function") {
@@ -1509,11 +1586,11 @@
 .rig-top select{max-width:16rem}
 .rig-credit{font-size:.75rem;opacity:.75;margin:.3rem 0 .5rem}
 .rig-main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(16rem,1fr);gap:.8rem}
-@media (max-width:760px){.rig-main{grid-template-columns:1fr}}
 .rig-view canvas{display:block;width:100%;height:min(62vh,520px);border-radius:.4rem;touch-action:none;cursor:grab;background:#24262b}
 .rig-viewbar{display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:center;margin-top:.35rem;font-size:.85rem}
 .rig-status{opacity:.75}
 .rig-panel{max-height:min(70vh,640px);overflow:auto;font-size:.88rem}
+@media (max-width:760px){.rig-main{grid-template-columns:1fr}.rig-view canvas{height:min(42vh,320px)}.rig-panel{max-height:none;overflow:visible}}
 .rig-panel h4{margin:.7rem 0 .2rem}
 .rig-row{display:flex;gap:.4rem;align-items:flex-end;margin:.25rem 0}
 .rig-row label{flex:1;display:grid}
