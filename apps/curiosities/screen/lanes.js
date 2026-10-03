@@ -29,6 +29,7 @@
        opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
        opts.thumbs()     -> one storyboard frame <svg> string per moment, drawn on My film's clip track when zoomed in
        opts.beats()      -> [{ values }] My film's values per moment, read by Mark the turns (else read from the engine)
+       opts.showLanes(curs) adds lanes to the timeline for curiosities a dropped suite clip put into the film
        opts.attention    the momentum reading the Attention track uses (else the page's CurioAttention)
    - laneGroups(lanes, o) and foldDots(st, lanes): the lane groups (a folding header per category) and where a folded
      group's lanes have nodes; the mounted lanes have fold(category, folded?), foldAll(folded?) and groups()
@@ -2925,7 +2926,10 @@
         const top = r.moves.filter((m) => m.clamped);
         if (top.length) parts.push(`${listWords(top.map((m) => m.cur))} reached the end of ${top.length === 1 ? "its" : "their"} scale, so some moves are smaller.`);
       }
-      if (r.hidden.length) parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "is" : "are"} in your film now but not shown on this timeline (Arrange shows every lane).`);
+      if (r.hidden.length && opts.showLanes) {
+        opts.showLanes(r.hidden);
+        parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "was" : "were"} not on this timeline, so ${r.hidden.length === 1 ? "it has" : "they have"} a lane now.`);
+      } else if (r.hidden.length) parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "is" : "are"} in your film now but not shown on this timeline (Arrange shows every lane).`);
       if (r.locked.length) parts.push(`Skipped ${listWords(r.locked)}: locked (🔒).`);
       parts.push("Undo takes it back.");
       const m = parts.join(" ");

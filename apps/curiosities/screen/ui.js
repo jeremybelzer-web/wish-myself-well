@@ -1752,6 +1752,7 @@ document.addEventListener("click", function (e) {
         clips: clipRows,
         thumbs: () => mineBeats().map((b) => thumb(b.values)),
         beats: () => mineBeats(),
+        showLanes: (curs) => (curs.forEach(showLane), save()),
         header: prefs.view === "arrange" ? laneHeader : null,
         onClip: (j) => setRow(j),
         onHover: (j) => setRow(j),
