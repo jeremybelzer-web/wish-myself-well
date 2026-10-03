@@ -152,6 +152,82 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(lj && lj.scope.from === rr[3].id && lj.scope.to === rr[2].id && E.state().lanes["master|emotion"].points[rr[2].id] === "angry", "the join moves with its reversed nodes");
 }
 
+/* Freeze and Shape on a selected area: each one batch, one undo step; a locked lane comes in with lk: null. */
+{
+  const CL = w.CurioLanes;
+  const Sc = w.CurioScale;
+  E.reset(w.CurioSeeds.starter());
+  const rr = E.state().rows;
+  const o = Sc.domain("shotSize").options;
+  const top = o.length - 1;
+  const lanesA = [{ track: "camera", cur: "shotSize", lk: "camera|shotSize" }, { track: "master", cur: "emotion", lk: "master|emotion" }];
+  const pt = (j, v, t, c) => ({ type: "setPoint", row: rr[j].id, track: t || "camera", curiosity: c || "shotSize", value: v });
+  E.send({ type: "batch", commands: [pt(0, o[0]), pt(2, o[3]), pt(4, o[1]), pt(7, o[top])] });
+  E.send({ type: "laneMode", track: "camera", curiosity: "shotSize", mode: "ramp" });
+  const P = () => E.state().lanes["camera|shotSize"].points;
+  const film = () => JSON.stringify([E.state().lanes, E.state().links]);
+  const before = film();
+  /* Freeze moments 2 to 6: moment 2 glides halfway from o[0] to o[3]. */
+  const held = Sc.at("shotSize", (Sc.pos("shotSize", o[0]) + Sc.pos("shotSize", o[3])) / 2);
+  const fz = CL.freezeAreaCommands(E.state(), lanesA, { i0: 0, i1: 1, j0: 1, j1: 5 });
+  ok(fz.lanes === 1 && fz.nodes === 2 && E.send({ type: "batch", label: "Freeze", commands: fz.cmds }).ok, "Freeze makes one batch for the lanes with nodes (a lane with none is left alone)");
+  ok(P()[rr[1].id] === held && P()[rr[5].id] === held && P()[rr[2].id] == null && P()[rr[4].id] == null && P()[rr[0].id] === o[0] && P()[rr[7].id] === o[top], "Freeze holds the first moment's setting at both ends and clears the nodes between (" + held + ")");
+  ok([1, 2, 3, 4, 5].every((j) => E.value(rr[j].id, "camera", "shotSize") === held), "nothing drifts inside a frozen stretch");
+  E.undo();
+  ok(film() === before, "one undo takes Freeze back");
+  ok(CL.freezeAreaCommands(E.state(), [{ track: "camera", cur: "shotSize", lk: null }], { i0: 0, i1: 0, j0: 1, j1: 5 }).nodes === 0, "Freeze leaves a locked lane alone");
+  /* A join to a node Freeze clears is removed with it. */
+  E.send(pt(3, "angry", "master", "emotion"));
+  E.send(CL.linkCommand(E.state(), { row: rr[2].id, track: "camera", cur: "shotSize" }, { row: rr[3].id, track: "master", cur: "emotion" }));
+  const nLinks = E.state().links.length;
+  ok(E.send({ type: "batch", commands: CL.freezeAreaCommands(E.state(), lanesA.slice(0, 1), { i0: 0, i1: 0, j0: 1, j1: 5 }).cmds }).ok && E.state().links.length === nLinks - 1, "Freeze removes a join whose node it clears");
+  E.undo();
+  E.undo();
+  E.undo();
+  ok(film() === before, "back to the start");
+  /* Shape: every preset over moments 1 to 7 (o[0] at moment 1 is the lowest; the lane glides up toward o[top] at moment 8, outside). */
+  const ar = { i0: 0, i1: 1, j0: 0, j1: 6 };
+  /* What plays at each moment, as a place on the scale (0 lowest, 1 highest). */
+  const series = () => [0, 1, 2, 3, 4, 5, 6].map((j) => Sc.pos("shotSize", E.value(rr[j].id, "camera", "shotSize")));
+  const nodesIn = () => [0, 1, 2, 3, 4, 5, 6].filter((j) => P()[rr[j].id] != null).length;
+  let jumpNodes = 0;
+  const lo = 0;
+  const hiV = Math.max(...[0, 1, 2, 3, 4, 5, 6].map((j) => Sc.pos("shotSize", E.value(rr[j].id, "camera", "shotSize"))));
+  ok(Object.keys(CL.PRESETS).join() === "easeIn,easeOut,riseFall,pulse,holdJump,build", "six shapes: Ease in, Ease out, Rise and fall, Pulse, Hold then jump, Build");
+  const got = {};
+  Object.keys(CL.PRESETS).forEach((k) => {
+    const r = CL.shapeAreaCommands(E.state(), lanesA, ar, k);
+    const sent = E.send({ type: "batch", label: "Shape", commands: r.cmds });
+    got[k] = series();
+    if (k === "holdJump") jumpNodes = nodesIn();
+    ok(sent.ok && r.lanes === 1 && P()[rr[7].id] === o[top], CL.PRESETS[k][0] + " is one batch and leaves the nodes outside the selection alone");
+    E.undo();
+    ok(film() === before, "one undo takes " + CL.PRESETS[k][0] + " back");
+  });
+  const near = (a, b) => a != null && Math.abs(a - b) < 0.2;
+  const ei = got.easeIn;
+  ok(near(ei[0], lo) && near(ei[6], hiV) && ei.every((x, i) => !i || x >= ei[i - 1] - 1e-9) && ei[1] - ei[0] <= ei[6] - ei[5] + 1e-9, "Ease in rises from the lane's lowest to its highest, slowly first (" + ei.map((x) => x.toFixed(2)).join(" ") + ")");
+  ok(near(got.easeOut[0], lo) && near(got.easeOut[6], hiV) && got.easeOut[1] - got.easeOut[0] > 0.1, "Ease out rises fast first");
+  ok(near(got.riseFall[0], lo) && near(got.riseFall[6], lo) && near(got.riseFall[3], hiV), "Rise and fall peaks in the middle and comes back down (" + got.riseFall.map((x) => x.toFixed(2)).join(" ") + ", top " + hiV.toFixed(2) + ")");
+  ok(near(got.pulse[0], lo) && near(got.pulse[6], lo) && near(got.pulse[3], hiV) && near(got.pulse[2], lo) && near(got.pulse[4], lo), "Pulse flashes high in the middle moment only");
+  ok(jumpNodes === 3 && got.holdJump[5] === got.holdJump[0] && near(got.holdJump[6], hiV), "Hold then jump: flat, then the change on the last moment (nodes only where it bends)");
+  ok(new Set(got.build.map((x) => x.toFixed(3))).size >= 3 && got.build.every((x, i, a) => !i || x >= a[i - 1] - 1e-9), "Build climbs in steps");
+  /* A lane that falls over the selection eases downward instead. */
+  E.send({ type: "batch", commands: [pt(0, o[top]), pt(2, o[top]), pt(4, o[1]), pt(6, o[0])] });
+  const down = CL.shapeAreaCommands(E.state(), lanesA, ar, "easeIn");
+  E.send({ type: "batch", commands: down.cmds });
+  ok(P()[rr[0].id] === o[top] && P()[rr[6].id] === o[0], "Ease in on a falling lane goes from its highest down to its lowest");
+  E.undo();
+  E.undo();
+  /* A lane that stays at one setting has nothing to shape; one moment is too short; a locked lane is skipped. */
+  E.send({ type: "batch", commands: [pt(2, "angry", "master", "emotion"), pt(3, "angry", "master", "emotion")] });
+  const flat = CL.shapeAreaCommands(E.state(), lanesA, ar, "pulse");
+  ok(flat.lanes === 1 && flat.flat === 1, "a lane held at one setting is counted as flat and left alone");
+  ok(!!CL.shapeAreaCommands(E.state(), lanesA, { i0: 0, i1: 1, j0: 3, j1: 3 }, "easeIn").error && !!CL.shapeAreaCommands(E.state(), lanesA, ar, "wobble").error, "one moment, or an unknown shape, gives a plain error");
+  ok(CL.shapeAreaCommands(E.state(), [{ track: "camera", cur: "shotSize", lk: null }, null], ar, "easeIn").lanes === 0, "Shape leaves a locked lane alone");
+  ok(CL.shapeAreaCommands(E.state(), lanesA, ar, "riseFall").cmds.filter((c) => c.type === "setPoint").every((c) => rr.some((r, j) => r.id === c.row && j >= 0 && j <= 6)), "Shape writes nodes on whole moments inside the selection only");
+}
+
 /* Markers: an old save (a plain list of row ids) becomes markers with a color and a note. */
 {
   const mm = w.CurioLanes.migrateMarkers;

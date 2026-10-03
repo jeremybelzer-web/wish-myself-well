@@ -515,7 +515,7 @@ const ok = (cond, msg) => {
       await page.mouse.up();
     };
     await select();
-    ok((await page.$$('.sl [data-act^="area-"]')).length === 4, "a selected area shows Reverse, Flip, Stretch ×2 and Squeeze ½");
+    ok((await page.$$('.sl [data-act^="area-"]')).length === 6, "a selected area shows Reverse, Flip, Stretch ×2, Squeeze ½, Freeze and Shape ▾");
     const pts = () => page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); return st.rows.slice(0, 8).map((r) => (st.lanes[lk].points[r.id] == null ? null : st.lanes[lk].points[r.id])); });
     const orig = await pts();
     const tool = async (act) => { await select(); await page.click(`.sl [data-act="${act}"]`); const p = await pts(); await page.keyboard.press("Control+z"); return p; };
@@ -532,6 +532,27 @@ const ok = (cond, msg) => {
     const sq = await tool("area-squeeze");
     ok(sq[0] === orig[0] && sq[1] === orig[2] && sq[2] == null && sq[5] === orig[5], "Squeeze ½ pulls the nodes together (" + sq.join(",") + ")");
     ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes Squeeze back");
+    /* Freeze: moment 1's setting held at moments 1 and 4, the node at moment 3 gone, everything between still. */
+    const plays = () => page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); const at = lk.indexOf("|"); return st.rows.slice(0, 8).map((r) => String(window.CurioEngine.value(r.id, lk.slice(0, at), lk.slice(at + 1)))); });
+    await select();
+    await page.click('.sl [data-act="area-freeze"]');
+    const fzPlays = await plays();
+    const fz = await pts();
+    const fzArea = await page.evaluate(() => !!document.querySelector(".sl-area") && !!document.querySelector('.sl [data-act="area-freeze"]'));
+    await page.keyboard.press("Control+z");
+    ok(String(fz[0]) === String(orig[0]) && String(fz[3]) === String(orig[0]) && fz[2] == null && fz[5] === orig[5] && fzPlays.slice(0, 4).every((v) => v === String(orig[0])), "Freeze holds moment 1's setting still over the selection (" + fz.join(",") + ")");
+    ok(fzArea && JSON.stringify(await pts()) === JSON.stringify(orig), "the selection stays after Freeze, and one ⌘Z takes it back");
+    /* Shape ▾ > Rise and fall: low at both ends of the selection, up to its highest in the middle. */
+    await select();
+    await page.click('.sl [data-act="area-shape"]');
+    ok((await page.$$(".sl-shapemenu [data-preset]")).length === 6, "Shape ▾ opens a menu of six shapes");
+    await page.click('.sl-shapemenu [data-preset="riseFall"]');
+    const rf = await plays();
+    const rfKeep = await page.evaluate(() => !document.querySelector(".sl-shapemenu") && !!document.querySelector(".sl-area") && /Rise and fall/.test(document.querySelector(".sl-msg").textContent));
+    await page.keyboard.press("Control+z");
+    const lowest = String(Math.min(orig[0], orig[2]));
+    ok(rf[0] === lowest && rf[3] === lowest && [rf[1], rf[2]].includes(String(orig[2])) && rf[5] === String(orig[5]), "Rise and fall goes up from the lane's lowest to its highest and back down inside the selection (" + rf.slice(0, 6).join(",") + ")");
+    ok(rfKeep && JSON.stringify(await pts()) === JSON.stringify(orig), "the menu closes, the selection stays, and one ⌘Z takes the shape back");
     const thumbs = () => page.$$eval(".sl-topsvg .sl-clip.mine image.sl-thumb", (x) => x.map((i) => i.getAttribute("href").slice(0, 19)));
     await page.evaluate(() => { window.CurioLanes.tools().zoom = 0.25; window.CurioScreen.setRow(0); });
     const few = await thumbs();
