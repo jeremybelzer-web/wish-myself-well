@@ -31,7 +31,7 @@ function serve() {
           res.writeHead(404);
           return res.end();
         }
-        res.writeHead(200, { "content-type": /\.m?js$/.test(p) ? "text/javascript" : /\.wasm$/.test(p) ? "application/wasm" : "application/octet-stream" });
+        res.writeHead(200, { "content-type": /\.[mc]?js$/.test(p) ? "text/javascript" : /\.wasm$/.test(p) ? "application/wasm" : "application/octet-stream" });
         return fs.createReadStream(p).pipe(res);
       }
       if (!p.startsWith(ROOT) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) {

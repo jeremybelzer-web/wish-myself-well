@@ -26,22 +26,30 @@
     lib: "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs",
     wasm: "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm",
     models: { parts: "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite" },
+    worker: true /* Play's cut-outs beside the drawing (cutAsync); false: always in the page */,
   };
   let seg = null,
     loading = null,
     failed = "";
   const CUT_W = 320;
+  const NOSP = { now: () => 0, mark() {} };
+  const SP = () => window.CurioSpeed || NOSP; /* timing per stage (speed.js), when its flag is on */
   const mk = (w, h) => Object.assign(document.createElement("canvas"), { width: w, height: h });
 
   function configure(o) {
     o = o || {};
     if (o.lib) cfg.lib = o.lib;
+    if (o.workerLib) cfg.workerLib = o.workerLib;
     if (o.wasm) cfg.wasm = o.wasm;
     if (o.models) Object.assign(cfg.models, o.models);
+    if (o.worker != null) cfg.worker = !!o.worker;
     if (o.steady === false) steady.temporal = steady.clean = false;
     else if (o.steady === true) steady.temporal = steady.clean = true;
     else if (o.steady) Object.assign(steady, o.steady);
-    if (o.steady != null) tracks.clear();
+    if (o.steady != null) {
+      tracks.clear();
+      if (wk.w) wk.w.postMessage({ steady: Object.assign({}, steady) });
+    }
   }
   function load() {
     if (seg) return Promise.resolve(true);
@@ -80,8 +88,11 @@
       small.c = mk(w, h);
       small.x = small.c.getContext("2d", { willReadFrequently: true });
     }
+    let t0 = SP().now();
     small.x.drawImage(image, 0, 0, w, h);
     const res = seg.segment(small.c);
+    SP().mark("cut.segment", t0);
+    t0 = SP().now();
     let labels = res.categoryMask.getAsUint8Array().slice(),
       conf = null;
     /* the AI's confidence per element (0 set ... 5 other), when it gives them at the cut-out size */
@@ -89,8 +100,119 @@
     if (cm && cm.length === 6 && cm[0].width === w && cm[0].height === h) conf = cm.map((m) => m.getAsFloat32Array().slice());
     res.close();
     const k = { w, h, labels, rgba: small.x.getImageData(0, 0, w, h).data };
+    SP().mark("cut.read", t0);
+    t0 = SP().now();
     tidy(k, conf, opts && opts.track ? opts : null);
+    SP().mark("cut.tidy", t0);
     return k;
+  }
+
+  /* ---------- the AI beside the drawing ---------- */
+  /* The same AI in a worker (its own thread), for Play: cutAsync(image, { t }) -> Promise<{ w, h, labels, rgba }>,
+     or null when there is no worker (yet): the caller cuts in the page then. MediaPipe's worker build is the
+     CommonJS bundle beside the module one (vision_bundle.cjs), loaded with importScripts. */
+  const wk = { w: null, ready: false, failed: false, seq: 0, wait: new Map(), c: null, x: null };
+  function workerMain() {
+    let seg = null;
+    self.onmessage = async (e) => {
+      const m = e.data;
+      if (m.steady) {
+        Object.assign(steady, m.steady);
+        tracks.clear();
+        return;
+      }
+      if (m.load) {
+        try {
+          self.exports = {};
+          self.module = { exports: self.exports };
+          importScripts(m.lib);
+          const MP = self.module.exports.ImageSegmenter ? self.module.exports : self.exports;
+          const files = await MP.FilesetResolver.forVisionTasks(m.wasm);
+          seg = await MP.ImageSegmenter.createFromOptions(files, {
+            baseOptions: { modelAssetPath: m.model, delegate: "CPU" },
+            runningMode: "IMAGE",
+            outputCategoryMask: true,
+            outputConfidenceMasks: true,
+          });
+          self.postMessage({ loaded: true });
+        } catch (err) {
+          self.postMessage({ loaded: false, error: String((err && err.message) || err) });
+        }
+        return;
+      }
+      try {
+        const res = seg.segment(m.img);
+        const labels = res.categoryMask.getAsUint8Array().slice(),
+          cm = res.confidenceMasks;
+        const conf = cm && cm.length === 6 && cm[0].width === m.img.width && cm[0].height === m.img.height ? cm.map((c) => c.getAsFloat32Array().slice()) : null;
+        res.close();
+        /* steadied here too (tidy and its helpers are copied into the worker) */
+        const k = { w: m.img.width, h: m.img.height, labels, rgba: m.img.data };
+        tidy(k, conf, m.track ? { track: m.track, t: m.t } : null);
+        self.postMessage({ id: m.id, labels: k.labels }, [k.labels.buffer]);
+      } catch (err) {
+        self.postMessage({ id: m.id, error: String((err && err.message) || err) });
+      }
+    };
+  }
+  function startWorker() {
+    try {
+      const abs = (u) => new URL(u, location.href).href;
+      /* the steadier's code goes along, so the worker hands back finished cut-outs */
+      const src = ["const steady = " + JSON.stringify(steady) + ", tracks = new Map();", blend, argmax, cleanLabels, boxCount, tidy, "const boxAny = (m, w, h, r) => boxCount(m, w, h, r, false), boxAll = (m, w, h, r) => boxCount(m, w, h, r, true);", "(" + workerMain + ")()"].join("\n");
+      wk.w = new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
+      wk.w.onmessage = (e) => {
+        const m = e.data;
+        if (m.loaded != null) {
+          wk.ready = !!m.loaded;
+          wk.failed = !m.loaded;
+          wk.error = m.error || "";
+          return;
+        }
+        const job = wk.wait.get(m.id);
+        if (!job) return;
+        wk.wait.delete(m.id);
+        if (m.error || !m.labels) return job.resolve(null);
+        job.resolve({ w: job.w, h: job.h, labels: m.labels, rgba: job.rgba });
+      };
+      wk.w.onerror = () => {
+        wk.failed = true;
+        wk.wait.forEach((j) => j.resolve(null));
+        wk.wait.clear();
+      };
+      wk.w.postMessage({ load: true, lib: abs(cfg.workerLib || cfg.lib.replace(/\.mjs(\?.*)?$/, ".cjs$1")), wasm: abs(cfg.wasm), model: abs(cfg.models.parts) });
+    } catch (e) {
+      wk.failed = true;
+    }
+  }
+  /* start the worker ahead of a Play (it takes a moment to load); resolves when it is ready or failed, or after ms */
+  function warm(ms) {
+    if (cfg.worker && seg && !wk.w && !wk.failed && typeof Worker !== "undefined") startWorker();
+    const t0 = Date.now();
+    return new Promise((resolve) => {
+      const wait = () => (!wk.w || wk.ready || wk.failed || Date.now() - t0 > (ms || 0) ? resolve(wk.ready) : setTimeout(wait, 50));
+      wait();
+    });
+  }
+  function cutAsync(image, opts) {
+    if (!cfg.worker || wk.failed || !seg) return null;
+    warm();
+    if (!wk.ready) return null;
+    const iw = image.width || image.videoWidth,
+      ih = image.height || image.videoHeight;
+    const w = Math.min(CUT_W, iw),
+      h = Math.max(2, Math.round((w * ih) / iw));
+    if (!wk.c || wk.c.width !== w || wk.c.height !== h) {
+      wk.c = mk(w, h);
+      wk.x = wk.c.getContext("2d", { willReadFrequently: true });
+    }
+    wk.x.drawImage(image, 0, 0, w, h);
+    const img = wk.x.getImageData(0, 0, w, h);
+    const id = ++wk.seq;
+    return new Promise((resolve) => {
+      wk.wait.set(id, { resolve, w, h, rgba: img.data.slice() });
+      wk.w.postMessage({ id, img, track: steady.temporal ? (opts && opts.track) || "worker" : null, t: opts && opts.t });
+    });
   }
 
   /* ---------- steadier cut-outs ---------- */
@@ -486,23 +608,36 @@
       }
     }
   }
-  const frameC = { c: null, x: null };
+  const frameC = { c: null, x: null },
+    colC = { c: null, x: null };
+  /* A picture's colors at cut-out size. */
+  function rgbaAt(image, w, h) {
+    if (!colC.c || colC.c.width !== w || colC.c.height !== h) {
+      colC.c = mk(w, h);
+      colC.x = colC.c.getContext("2d", { willReadFrequently: true });
+    }
+    colC.x.drawImage(image, 0, 0, w, h);
+    return colC.x.getImageData(0, 0, w, h).data;
+  }
   function applyParts(ctx, W, H, parts, opts) {
     if (!parts || !seg) return false;
     opts = opts || {};
     const k = opts.cut || cut(ctx.canvas);
     if (!k) return false;
-    if (opts.cut && small.x && small.c.width === k.w && small.c.height === k.h) {
-      /* A cut made before the light changed: take this frame's colors for filling gaps. */
-      small.x.drawImage(ctx.canvas, 0, 0, k.w, k.h);
-      k.rgba = small.x.getImageData(0, 0, k.w, k.h).data;
-    }
+    let t0 = SP().now();
+    const lap = (name) => {
+      SP().mark(name, t0);
+      t0 = SP().now();
+    };
+    /* A cut made before the light changed: take this frame's colors for filling gaps. */
+    if (opts.cut) k.rgba = rgbaAt(ctx.canvas, k.w, k.h);
     const img = ctx.getImageData(0, 0, W, H);
     const d = img.data;
-    if (parts.clothes) recolor(d, softMask(k, [4], W, H), parts.clothes.color, parts.clothes.amount);
-    if (parts.hair) recolor(d, softMask(k, [1], W, H), parts.hair.color, parts.hair.amount, true);
+    lap("parts.read");
+    if (parts.clothes) recolor(d, softMask(k, [4], W, H), parts.clothes.color, parts.clothes.amount), lap("parts.clothes");
+    if (parts.hair) recolor(d, softMask(k, [1], W, H), parts.hair.color, parts.hair.amount, true), lap("parts.hair");
     let personA = null;
-    if (parts.person || parts.background) personA = softMask(k, [1, 2, 3, 4, 5], W, H);
+    if (parts.person || parts.background) personA = softMask(k, [1, 2, 3, 4, 5], W, H), lap("parts.mask");
     if (parts.person && (Math.abs(parts.person.scale - 1) > 0.01 || Math.abs(parts.person.dx) > 0.005)) {
       /* The people, cut out, scaled about their feet (bottom middle) and slid; the gap filled from around it. */
       const fill = fillFrom(k, [1, 2, 3, 4, 5], W, H);
@@ -538,6 +673,7 @@
           d[i * 4 + 2] = b;
         }
       personA = newA;
+      lap("parts.person");
     }
     if (parts.background && opts.setVideo && opts.setVideo.videoWidth) {
       /* Another clip's set: its frame, cover-fitted; your people on top. */
@@ -568,15 +704,18 @@
         d[i * 4 + 1] = d[i * 4 + 1] * keep + sg * (1 - keep);
         d[i * 4 + 2] = d[i * 4 + 2] * keep + sb * (1 - keep);
       }
+      lap("parts.set");
     }
     if (parts.angle && Math.abs(parts.angle.tilt) > 0.02) {
       ctx.putImageData(img, 0, 0);
       /* by depth (depth.js) when it can; else two flat layers */
       if (!(window.CurioDepth && window.CurioDepth.tilt(ctx, W, H, k, parts.angle.tilt)))
         tiltView(ctx, W, H, k, personA || softMask(k, [1, 2, 3, 4, 5], W, H), parts.angle.tilt);
+      lap("parts.angle");
       return true;
     }
     ctx.putImageData(img, 0, 0);
+    lap("parts.write");
     return true;
   }
   /* A new camera height, in 2.5D: the people are one flat layer, the set another flat layer behind them. From
@@ -586,8 +725,7 @@
   function tiltView(ctx, W, H, k, personA, tilt) {
     const T = Math.max(-1, Math.min(1, tilt));
     /* this frame's colors (after any recolor or new set) for the fill */
-    small.x.drawImage(ctx.canvas, 0, 0, k.w, k.h);
-    const fill = fillFrom({ w: k.w, h: k.h, labels: k.labels, rgba: small.x.getImageData(0, 0, k.w, k.h).data }, [1, 2, 3, 4, 5], W, H);
+    const fill = fillFrom({ w: k.w, h: k.h, labels: k.labels, rgba: rgbaAt(ctx.canvas, k.w, k.h) }, [1, 2, 3, 4, 5], W, H);
     const img = ctx.getImageData(0, 0, W, H);
     const d = img.data,
       src = new Uint8ClampedArray(d);
@@ -680,5 +818,5 @@
       scan,
     });
 
-  window.CurioMask = { configure, load, ready, cut, scan, applyParts, keepSkin, cutoutCanvas, preview, failed: () => failed, TINT, tidy: { cleanLabels, blend, argmax, boxAny, boxAll } };
+  window.CurioMask = { configure, load, ready, cut, cutAsync, warm, worker: () => ({ ready: wk.ready, failed: wk.failed, error: wk.error || "" }), scan, applyParts, keepSkin, cutoutCanvas, preview, failed: () => failed, TINT, tidy: { cleanLabels, blend, argmax, boxAny, boxAll } };
 })();

@@ -21,7 +21,8 @@
   const STAT_W = 96,
     GRAY_W = 64,
     MAX_LOOKS = 900; /* a camera's wobble is fast: up to 15 looks a second, 900 in all */
-  let stopper = null;
+  let stopper = null,
+    lastPlay = null;
 
   function open(src, name) {
     return new Promise((resolve, reject) => {
@@ -299,6 +300,13 @@
      subtitle. */
   function drawApplied(ctx, video, adj, W, H, opts) {
     opts = opts || {};
+    const SP = window.CurioSpeed || { now: () => 0, mark() {} }; /* timing per stage, when its flag is on */
+    const tf = SP.now();
+    let t0 = tf;
+    const lap = (name) => {
+      SP.mark(name, t0);
+      t0 = SP.now();
+    };
     const SH = adj.shutter && window.CurioShutter; /* motion feel (video/shutter.js): a held picture is drawn again */
     if (SH && SH.held(ctx, adj.shutter, W, H)) return;
     /* Shot framing (framing.js): a virtual camera's crop of the frame; the other camera changes work inside it. */
@@ -340,9 +348,12 @@
       ctx.restore();
     } else ctx.drawImage(pic, ax - ox, ay - oy, sw, sh, 0, 0, W, H);
     if (S) DT.finish(ctx, W, H, S.scale);
-    /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI. */
+    lap("draw");
+    /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI.
+       In Play (opts.cutter, speed.js) the AI looks at every few frames and the cut-out is moved between. */
     const M = (adj.parts || adj.relight) && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
-    const k = M ? M.cut(ctx.canvas, { track: "applied", t: video.currentTime }) : null;
+    const k = M ? (opts.cutter ? opts.cutter.get(ctx.canvas, { t: video.currentTime, key: cropKey(adj, W, H, DT) }) : M.cut(ctx.canvas, { track: "applied", t: video.currentTime })) : null;
+    if (M) lap("cut");
     if (adj.want || adj.luma !== 1 || adj.contrast !== 1 || adj.sat !== 1 || adj.warm) {
       const img = ctx.getImageData(0, 0, W, H);
       const d = img.data;
@@ -353,17 +364,19 @@
       V().paint(d, W, H, a, have.luma);
       if (before) M.keepSkin(d, before, k, W, H);
       ctx.putImageData(img, 0, 0);
+      lap("light");
     }
     /* The inspiration's palette (video/looks.js); its grain, softness and frame shape go on last. */
     const LK = adj.looks && window.CurioLooks;
-    if (LK) LK.draw(ctx, W, H, adj.looks, "color", adj.t);
+    if (LK) LK.draw(ctx, W, H, adj.looks, "color", adj.t), lap("looks");
     /* The inspiration's key light on your people (video/relight.js), before they are moved or recolored. */
-    if (k && adj.relight && window.CurioRelight) window.CurioRelight.draw(ctx, W, H, adj.relight, k);
+    if (k && adj.relight && window.CurioRelight) window.CurioRelight.draw(ctx, W, H, adj.relight, k), lap("relight");
     /* Element changes (AI cut-outs): recolor clothes or hair, resize or move the people, another clip's set. */
-    if (M && adj.parts) {
+    if (M && adj.parts && (k || !opts.cutter)) {
       /* another clip's set: only its picture, not its black bars */
       const sv = adj.parts.background && opts.setVideo && opts.setVideo.videoWidth ? opts.setVideo : null;
       M.applyParts(ctx, W, H, adj.parts, { setVideo: opts.setVideo, setBox: sv ? contentBox(sv) : null, cut: k });
+      lap("parts");
     }
     /* The inspiration's graphics on top, background taken out, fitted inside the frame. */
     if (adj.overlay && opts.overlay && opts.overlay.videoWidth) {
@@ -381,22 +394,33 @@
       V().keyOut(img.data, adj.overlay.amount);
       lx.putImageData(img, 0, 0);
       ctx.drawImage(c, 0, 0);
+      lap("overlay");
     }
-    if (LK) LK.draw(ctx, W, H, adj.looks, "finish", adj.t);
-    if (SH) SH.draw(ctx, W, H, adj.shutter); /* smeared along the movement */
+    if (LK) LK.draw(ctx, W, H, adj.looks, "finish", adj.t), lap("looks");
+    if (SH) SH.draw(ctx, W, H, adj.shutter), lap("shutter"); /* smeared along the movement */
     if (adj.rhythm && window.CurioRhythm) window.CurioRhythm.draw(ctx, W, H, adj.rhythm); /* a flash on the accents */
-    if (adj.line && opts.captions !== false) {
-      const fs = Math.max(12, Math.round(H / 16));
-      ctx.font = `600 ${fs}px system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
-      ctx.lineWidth = Math.max(3, fs / 5);
-      ctx.strokeStyle = "rgba(0,0,0,0.85)";
-      ctx.fillStyle = "#fff";
-      ctx.strokeText(adj.line.text, W / 2, H - fs * 0.6, W * 0.94);
-      ctx.fillText(adj.line.text, W / 2, H - fs * 0.6, W * 0.94);
-    }
+    if (adj.line && opts.captions !== false) caption(ctx, adj.line.text, W, H);
     if (SH) SH.keep(ctx, adj.shutter, W, H);
+    SP.mark("frame", tf);
+  }
+  /* A new line as a subtitle. */
+  function caption(ctx, text, W, H) {
+    const fs = Math.max(12, Math.round(H / 16));
+    ctx.font = `600 ${fs}px system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.lineWidth = Math.max(3, fs / 5);
+    ctx.strokeStyle = "rgba(0,0,0,0.85)";
+    ctx.fillStyle = "#fff";
+    ctx.strokeText(text, W / 2, H - fs * 0.6, W * 0.94);
+    ctx.fillText(text, W / 2, H - fs * 0.6, W * 0.94);
+  }
+  /* What the cut-out of a drawn frame depends on besides the clip's moment: the crop (zoom, slide, virtual camera),
+     the size and the sharper zoom. */
+  function cropKey(adj, W, H, DT) {
+    const f = adj.frame,
+      r = (x) => (x == null ? "" : Math.round(x * 500));
+    return [W, H, r(adj.zoom), r(adj.cx), r(adj.cy), r(adj.dx), r(adj.dy), f ? [r(f.x), r(f.y), r(f.z), r(f.roll)].join(":") : "", DT ? 1 : 0].join(",");
   }
 
   /* The applied clip's sound, worked out offline: the clip's sound taken in the time map's order, turned up and
@@ -567,6 +591,28 @@
     if (rec) rec.start(250);
     const t0 = performance.now();
     const st = plan.on.shake ? steadier() : null;
+    let drawn = 0;
+    /* Smooth Play (speed.js), unless saving (or opts.preview says otherwise): the AI cut-out every few frames,
+       moved with the picture between, kept per moment for the next Play; and drawn at most about half size inside
+       (the cut-out is only 320 wide anyway), then stretched onto the canvas, with the subtitles sharp on top. */
+    const SP = window.CurioSpeed,
+      M = window.CurioMask;
+    const fast = !!SP && (opts.preview != null ? !!opts.preview : !opts.record && SP.configure().preview);
+    const aiOn = M && M.ready() && (plan.on.wardrobe || plan.on.hair || plan.on.figure || plan.on.set || plan.on.angle || plan.on.relight);
+    const cutter = fast && aiOn ? SP.cutter({ cut: M.cut, cutAsync: M.cutAsync, gray: SP.grayOf, cache: SP.storeFor(clip), every: SP.configure().every, cutW: SP.configure().cutW, fps: plan.fps, }) : null;
+    if (cutter && M.warm) await M.warm(4000); /* the AI's worker, loaded before the clock starts */
+    let dx = ctx,
+      dW = W,
+      dH = H;
+    if (fast && aiOn) {
+      const pw = Math.min(W, Math.max(SP.configure().previewW, Math.round(W / 2)));
+      if (pw < W) {
+        dW = pw;
+        dH = Math.max(2, Math.round((pw * H) / W));
+        dx = canvas(dW, dH).getContext("2d", { willReadFrequently: true });
+      }
+    }
+    if (SP) SP.playing = fast ? "preview" : "full";
     await new Promise((resolve) => {
       const tick = () => {
         if (!running) return resolve();
@@ -591,7 +637,14 @@
         }
         if (over && a.overlay && Math.abs(over.currentTime - a.overlay.t) > 0.3) over.currentTime = a.overlay.t;
         if (setV && a.parts && a.parts.background && Math.abs(setV.currentTime - a.parts.background.t) > 0.3) setV.currentTime = a.parts.background.t;
-        drawApplied(ctx, video, steadyAdj(a, st, video), W, H, { overlay: over, setVideo: setV });
+        drawApplied(dx, video, steadyAdj(a, st, video), dW, dH, { overlay: over, setVideo: setV, cutter, captions: dx === ctx });
+        if (dx !== ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(dx.canvas, 0, 0, W, H);
+          if (a.line) caption(ctx, a.line.text, W, H);
+        }
+        drawn++;
         if (synth && a.line) {
           const i = plan.lines.indexOf(a.line);
           if (i !== spoken) {
@@ -609,6 +662,15 @@
       };
       requestAnimationFrame(tick);
     });
+    const secs = (performance.now() - t0) / 1000;
+    /* how smooth it was: frames drawn a second (and, with the timing flag, the time per stage) */
+    lastPlay = { frames: drawn, secs: Math.round(secs * 100) / 100, fps: Math.round((drawn / Math.max(0.01, secs)) * 10) / 10, preview: fast, size: [dW, dH] };
+    if (cutter) lastPlay.cuts = Object.assign({ stored: cutter.cache.size() }, cutter.stats);
+    if (SP) SP.playing = null;
+    if (window.CurioSpeed && window.CurioSpeed.configure().timing) {
+      lastPlay.timing = window.CurioSpeed.report();
+      if (window.console) console.log("Play", lastPlay);
+    }
     video.pause();
     if (over) over.pause();
     if (mus) mus.pause();
@@ -631,5 +693,5 @@
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   }
 
-  window.CurioClip = { steadier, steadyAdj, open, dissect, pcm, drawApplied, appliedPcm, check, render, stop, seek, evenTimes };
+  window.CurioClip = { steadier, steadyAdj, open, dissect, pcm, drawApplied, appliedPcm, check, render, stop, seek, evenTimes, lastPlay: () => lastPlay };
 })();

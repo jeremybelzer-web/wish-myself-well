@@ -31,12 +31,14 @@
     wasm: ORT,
     model: { url: "https://cdn.jsdelivr.net/npm/com.bonjour-lab.monoculardepth@1.0.8-preview/ONNX/fastdepth_7.onnx", kind: "fastdepth", size: 224 },
     guess: true,
+    proxy: true /* the AI in onnxruntime's own worker, beside the drawing (falls back to the page) */,
   };
   let ort = null,
     session = null,
     loading = null,
     failed = "",
     busy = false,
+    asked = -1e9,
     last = null;
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
@@ -46,6 +48,7 @@
     if (o.wasm) cfg.wasm = o.wasm;
     if (o.model) cfg.model = Object.assign({}, cfg.model, o.model);
     if (o.guess != null) cfg.guess = !!o.guess;
+    if (o.proxy != null) cfg.proxy = !!o.proxy;
     if (o.ort || o.model) {
       session = null;
       loading = null;
@@ -62,7 +65,15 @@
           ort = await import(cfg.ort);
           ort.env.wasm.wasmPaths = cfg.wasm;
           ort.env.wasm.numThreads = 1;
-          session = await ort.InferenceSession.create(cfg.model.url, { executionProviders: ["wasm"], logSeverityLevel: 3 });
+          const make = () => ort.InferenceSession.create(cfg.model.url, { executionProviders: ["wasm"], logSeverityLevel: 3 });
+          ort.env.wasm.proxy = !!cfg.proxy;
+          try {
+            session = await make();
+          } catch (e) {
+            if (!cfg.proxy) throw e;
+            ort.env.wasm.proxy = false;
+            session = await make();
+          }
           return true;
         } catch (e) {
           failed = (e && e.message) || String(e);
@@ -396,11 +407,19 @@
     if (!cut || !cut.labels) return false;
     if (!session && !loading && cfg.model.url && !failed) load();
     if (!session && !cfg.guess) return false;
-    if (session && !busy) {
+    /* in a smooth Play (speed.js) the depth is asked about once a second at most */
+    const gap = window.CurioSpeed && window.CurioSpeed.playing === "preview" ? 1000 : 0;
+    if (session && !busy && performance.now() - asked >= gap) {
       busy = true;
+      asked = performance.now();
+      const S = window.CurioSpeed,
+        t0 = S ? S.now() : 0;
       estimate(ctx.canvas)
         .catch(() => null)
-        .then(() => (busy = false));
+        .then(() => {
+          busy = false;
+          if (S) S.mark("depth.estimate", t0); /* the depth AI, on its own (it runs beside the drawing) */
+        });
     }
     const { w, h, labels } = cut;
     const g = guess(labels, w, h);
