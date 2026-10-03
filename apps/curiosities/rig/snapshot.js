@@ -16,6 +16,9 @@
      right after the selected one; each panel's seconds is the gap, so the flip book plays them at the speed
      they happened. One undo step.
 
+   Anything else in the scene whose root has userData.sketch (a set from rig/sets.js) is drawn in the look too; its
+   parts belong to that add-on, so loading another character leaves them alone.
+
    Other add-ons may swap materials too (lights.js for shading bands): each frame this add-on wraps whatever
    material a part has now, and gives that one back when the look goes off.
 
@@ -288,12 +291,17 @@
   }
   const disposeMat = (m) => [].concat(m || []).forEach((x) => x && x.dispose && x.dispose());
 
-  /* Wrap every part of the model in the look; parts that went away (a new hat from the maker) are let go. */
+  /* Wrap every part of the model in the look, and of anything else in the scene marked userData.sketch (a set
+     from rig/sets.js); parts that went away (a new hat from the maker, a cleared set) are let go. */
+  const sketchRoots = (ctx) => [ctx.model].concat(ctx.scene ? ctx.scene.children.filter((o) => o.userData && o.userData.sketch && o.visible) : []).filter(Boolean);
+  const inSketchRoot = (o) => {
+    for (let p = o; p; p = p.parent) if (p.userData && p.userData.sketch) return true;
+    return false;
+  };
   function sync(ctx, S, look) {
-    const model = ctx.model;
     const seen = new Set();
-    if (model)
-      model.traverse((o) => {
+    sketchRoots(ctx).forEach((root) =>
+      root.traverse((o) => {
         if (!o.isMesh || o.userData.sketchHull) return;
         seen.add(o);
         let e = S.per.get(o);
@@ -309,7 +317,8 @@
         const g = o.geometry;
         if (g && g.attributes && g.attributes.position && !g.attributes.normal) g.setAttribute("normal", smoothNormals(ctx.THREE, g)); /* the fox has none; the outline needs them */
         if (!e.hull && wantsHull(o, e.under)) e.hull = makeHull(ctx, S, o);
-      });
+      })
+    );
     S.per.forEach((e, o) => {
       if (seen.has(o)) return;
       if (o.material === e.mine) o.material = e.under;
@@ -556,7 +565,9 @@
     built(ctx) {
       /* the old model is gone (the view disposed it); let go of what was wrapped around it */
       const S = st(ctx);
-      S.per.forEach((e) => {
+      S.per.forEach((e, o) => {
+        if (inSketchRoot(o)) return; /* a set's parts are its own to give back; they are let go when they leave */
+        S.per.delete(o);
         disposeMat(e.mine);
         [].concat(e.under || []).forEach((m) => {
           if (!m) return;
@@ -564,7 +575,6 @@
           m.dispose();
         });
       });
-      S.per.clear();
     },
     beforeRender: (ctx) => apply(ctx),
     panel(ctx) {
