@@ -226,12 +226,12 @@
     const engineHere = root.CurioMomentumEngine && root.CurioMomentumEngine.available();
     if (ctx.source() !== "engine") {
       el.innerHTML = `<div class="mo-w">${picker}<div class="mo-w-none"><p>This film has no characters to follow. Only the engine's film keeps a track for each character, so only it can show who the audience watches.</p>
-        ${engineHere ? `<button type="button" data-watch="engine">Read the engine's film</button>` : `<p class="mo-small">The engine has no film yet. Start one in the engine, then come back here.</p>${root.CurioEngineUI ? `<button type="button" data-watch="open-engine">Open the engine</button>` : ""}`}</div></div>`;
+        ${engineHere ? `<button type="button" data-watch="engine">Read the engine's film</button>` : `<p class="mo-small">My film has no moments yet. Press Start the example film to get one with characters, or open the engine to start your own.</p><div class="mo-controls">${root.CurioMomentumUI && root.CurioMomentumUI.startFilmButton ? root.CurioMomentumUI.startFilmButton() : ""}${root.CurioEngineUI ? `<button type="button" data-watch="open-engine">Open the engine</button>` : ""}</div>`}</div></div>`;
       return;
     }
     const res = fromEngine({ secondsPerBeat: ctx.secondsPerBeat(), limit: ctx.limit() });
     if (!res) {
-      el.innerHTML = `${picker}<p class="mo-empty">The engine has no film yet. Start one in the engine, then come back here.</p>${root.CurioEngineUI ? `<button type="button" data-watch="open-engine">Open the engine</button>` : ""}`;
+      el.innerHTML = `${picker}<p class="mo-empty">My film has no moments yet. Press Start the example film to get one with characters, or open the engine to start your own.</p><div class="mo-controls">${root.CurioMomentumUI && root.CurioMomentumUI.startFilmButton ? root.CurioMomentumUI.startFilmButton() : ""}${root.CurioEngineUI ? `<button type="button" data-watch="open-engine">Open the engine</button>` : ""}</div>`;
       return;
     }
     if (!res.characters.length) {

@@ -117,7 +117,7 @@
     const kind = driveKind(n, o.drive === undefined ? root.CurioDrive : o.drive);
     const famLabel = fam ? fam.label : n.family;
     const sentences = [];
-    sentences.push(`${n.label} belongs to the ${famLabel} family. When it takes the audience's attention, it is usually with a ${lower(cue.label)}${cue.plain ? ": " + lower(cue.plain).replace(/\.$/, "") : ""}.`);
+    sentences.push(`${n.label} belongs to the ${famLabel} family (a family is a kind of curiosity). When it takes the audience's attention, it is usually with a ${lower(cue.label)}${cue.plain ? ": " + lower(cue.plain).replace(/\.$/, "") : ""}.`);
     const pushText = `Its push is ${push} out of 5: ${PUSH[push]}.`;
     sentences.push(pushText);
     const drives = { kind, label: DRIVES[kind].label, sentence: kind === "none" ? `It is decoration: ${DRIVES.none.plain}.` : `It drives the story: ${DRIVES[kind].plain}.` };

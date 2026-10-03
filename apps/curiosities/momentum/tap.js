@@ -436,7 +436,7 @@
     const moves = beats.filter((b) => b.move).length;
     const secs = beats.length * beatOf();
     const per = secs ? round((Math.max(0, moves - 1) / secs) * 60, 1) : 0;
-    return `${state.taps.length} tap${state.taps.length === 1 ? "" : "s"}, ${beats.length} beat${beats.length === 1 ? "" : "s"} of ${beatOf()} second${beatOf() === 1 ? "" : "s"}, attention moved ${Math.max(0, moves - 1)} time${moves - 1 === 1 ? "" : "s"} (${per} a minute).`;
+    return `${state.taps.length} tap${state.taps.length === 1 ? "" : "s"}, ${beats.length} moment${beats.length === 1 ? "" : "s"} of ${beatOf()} second${beatOf() === 1 ? "" : "s"}, attention moved ${Math.max(0, moves - 1)} time${moves - 1 === 1 ? "" : "s"} (${per} a minute).`;
   }
   function listHtml() {
     const recent = state.order.slice(-6).reverse();
@@ -566,7 +566,7 @@
           <span class="mtp-clock" aria-live="off">${clock(now(), true)}</span>
           <button type="button" data-tp="start">${playing() ? "Pause" : now() > 0 ? "Go on" : "Start"}</button>
           <button type="button" data-tp="reset">Back to 0:00</button>
-          <label>One beat lasts <select data-tp="beat">${beats.map((b) => `<option value="${b}"${b === beat ? " selected" : ""}>${b} second${b === 1 ? "" : "s"}</option>`).join("")}</select></label>
+          <label>One moment lasts <select data-tp="beat">${beats.map((b) => `<option value="${b}"${b === beat ? " selected" : ""}>${b} second${b === 1 ? "" : "s"}</option>`).join("")}</select></label>
           <label class="mtp-file">Play a video file here <input type="file" accept="video/*" data-tp="file"></label>
         </div>
         ${state.videoUrl ? `<video class="mtp-video" src="${esc(state.videoUrl)}" controls playsinline></video><p class="mo-small">Playing ${esc(state.videoName)}. The clock follows the video, so pausing or skipping back keeps your taps in step.</p>` : ""}
@@ -588,7 +588,7 @@
           <label class="mtp-avg mtp-check"><span><input type="checkbox" data-tp="average"${state.average ? " checked" : ""}> Average with an earlier tapping of the same title <span class="mtp-avg-n"></span></span></label>
           <button type="button" data-tp="save">Save as a curated film</button>
         </div>
-        <p class="mo-small">It is saved with only the kinds, the cues and the times, no notes. Several people can tap the same film: with the same title and the box ticked, each beat takes the kind most of the tappings chose.</p>
+        <p class="mo-small">It is saved with only the kinds, the cues and the times, no notes. Several people can tap the same film: with the same title and the box ticked, each moment takes the kind most of the tappings chose.</p>
       </section>
     </div>`;
     const on = (sel, ev, fn) => el.querySelectorAll(sel).forEach((n) => n.addEventListener(ev, fn));

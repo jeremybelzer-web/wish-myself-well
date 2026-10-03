@@ -150,6 +150,43 @@
     return [];
   }
 
+  /* ---------- plain words ---------- */
+  /* The words every tab uses, explained once, in the same words as the README's "Plain words". The short line
+     sits under the tabs on every tab; "More words" opens the rest. */
+  const WORDS = [
+    ["Curiosity", "one thing in a film you can change, like the shot size, a feeling or the music."],
+    ["Family", "a kind of curiosity, such as Camera, Feeling or Comedy. Each has its own color and short letter."],
+    ["Attention", "the one thing the audience is watching at a moment. It can rest on only one thing at a time."],
+    ["Moment", "one step of a film: a row of the engine, a panel of a storyboard, or a few seconds of a curated film."],
+    ["Panel", "one picture of a storyboard scene. A panel has no clock, so Seconds per panel says how long it lasts."],
+    ["Cue", "what moves attention to something new: something to see, a sound, a thought, a movement or a plot turn."],
+    ["Quiet cue", "a cue that is a stop instead of a start: the music cuts out, a silence falls, someone goes still."],
+    ["Limit", "how many seconds one family can hold attention before the audience tires: ● Fresh, ▲ Getting long, ■ Too long."],
+    ["Momentum", "how hard what holds attention pushes the story, from 0 (stalled) to 5 (surging)."],
+    ["My film", "the film you are making, the one the Screen plays and the engine keeps."],
+    ["Curated film", "a film to learn from. Estimate means Claude's guess; measured means counted from its moments."],
+  ];
+  const wordsHtml = () =>
+    `<details class="mo-words"><summary><span>Words: a <b>family</b> is a kind of curiosity, a <b>cue</b> is what moves attention to it, and a <b>moment</b> is one step of the film.</span> <span class="mo-words-more">More words</span></summary><dl>${WORDS.map(([w, d]) => `<dt>${esc(w)}</dt><dd>${esc(d)}</dd>`).join("")}</dl></details>`;
+
+  /* My film lives in the engine, which is empty on a fresh browser until the Screen opens. Tabs that need it
+     offer this button, which starts the same example film the Screen starts (one engine step). */
+  function canStartFilm() {
+    return !!(window.CurioEngine && window.CurioSeeds && typeof window.CurioSeeds.starter === "function");
+  }
+  function startFilm() {
+    const Eng = window.CurioEngine;
+    if (!canStartFilm()) return false;
+    if (Eng.state().rows.length) return true;
+    const r = Eng.send({ type: "batch", label: "Start a new film", commands: [{ type: "importFilm", film: window.CurioSeeds.starter() }] });
+    if (r && r.ok && typeof window.CurioSeeds.letterLinks === "function") {
+      const links = window.CurioSeeds.letterLinks(Eng.state());
+      if (links.length && !Eng.state().links.length) Eng.send({ type: "batch", label: "Add the letter's links", commands: links });
+    }
+    return Eng.state().rows.length > 0;
+  }
+  const startFilmButton = () => (canStartFilm() ? `<button type="button" class="mo-start-film" data-m="start-film">Start the example film</button>` : "");
+
   /* ---------- tabs other momentum files add (addTab) ---------- */
   const extraTabs = [];
   /* The five groups the tabs sit in, so a beginner can tell where to start. A tab added without a group goes
@@ -180,7 +217,7 @@
     return {
       prefs: () => JSON.parse(JSON.stringify(prefs)),
       sources,
-      source: () => prefs.source,
+      source: () => ensureSource(),
       readSource,
       beatsOf,
       profiles: () => profiles().filter((p) => prefs.compare.includes(p.id)),
@@ -191,6 +228,7 @@
       refresh: () => draw(),
       sourcePicker: (attr) => {
         const list = sources();
+        ensureSource(list);
         const groups = [...new Set(list.map((x) => x.group))];
         return `<select ${attr || "data-ext-source"} aria-label="Film">${groups.map((g) => `<optgroup label="${esc(g)}">${list.filter((x) => x.group === g).map((x) => `<option value="${esc(x.id)}"${x.id === prefs.source ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</optgroup>`).join("")}</select>`;
       },
@@ -199,6 +237,16 @@
         savePrefs();
       },
     };
+  }
+
+  /* The film the tabs read. On a fresh browser (or when the saved one is gone) it is the first curated film, so
+     every tab has something to show; My film, live stays one pick away. */
+  function ensureSource(list) {
+    list = list || sources();
+    if (prefs.source && list.some((s) => s.id === prefs.source)) return prefs.source;
+    const first = list.find((s) => s.id.startsWith("study:")) || list[0];
+    prefs.source = first ? first.id : "";
+    return prefs.source;
   }
 
   /* ---------- compare-with ---------- */
@@ -266,8 +314,8 @@
     return `<div class="mo-tiles">
       ${t("Momentum reading", s.momentum.toFixed(1) + " <small>of 5</small>", "How hard what holds attention pushes the story, worn down when it stays too long")}
       ${t("Moves a minute", s.switchesPerMinute, tgt ? `${esc(tgt.title)}: about ${tgt.switchesPerMinute}` : "")}
-      ${t("Usual rest", s.medianDwell + " s", tgt ? `${esc(tgt.title)}: about ${tgt.medianDwell} s` : "")}
-      ${t("Longest rest", s.longestDwell + " s", "")}
+      ${t("Usual hold", s.medianDwell + " s", tgt ? `${esc(tgt.title)}: about ${tgt.medianDwell} s` : "")}
+      ${t("Longest hold", s.longestDwell + " s", "")}
     </div>`;
   }
   /* Pie (as a ring): share of time per family. Fixed colors per family; others are gray. */
@@ -409,7 +457,7 @@
   let host = null;
   function attentionHtml(boxClass) {
     const list = sources();
-    if (!prefs.source || !list.find((s) => s.id === prefs.source)) prefs.source = list[0] ? list[0].id : "";
+    ensureSource(list);
     const groups = [...new Set(list.map((s) => s.group))];
     const options = groups.map((g) => `<optgroup label="${esc(g)}">${list.filter((s) => s.group === g).map((s) => `<option value="${esc(s.id)}"${s.id === prefs.source ? " selected" : ""}>${esc(s.label)}</option>`).join("")}</optgroup>`).join("");
     const cmp = profiles()
@@ -434,7 +482,8 @@
     const tgt = target();
     const sentences = R.compare(reading.stats, tgt);
     const open = box.querySelector(".mo-table") && box.querySelector(".mo-table").open;
-    box.innerHTML = `${meterHtml(reading)}${tilesHtml(reading, tgt)}
+    const liveHint = prefs.source === "live" && reading.segments.length <= 1 ? `<p class="mo-empty">My film, live follows what you play: press Play or change a control on My film, and the meter follows it.</p>` : "";
+    box.innerHTML = `${liveHint}${meterHtml(reading)}${tilesHtml(reading, tgt)}
       <div class="mo-grid">
         <section><h3>Where attention went</h3>${pieHtml(reading.stats)}</section>
         <section><h3>What moved it on</h3>${cueHtml(reading.stats)}</section>
@@ -498,12 +547,12 @@
         <td class="mo-why">${esc(p.why || p.source || "")}${p.estimate ? "" : ` <button type="button" data-unmeasure="${esc(p.id)}">Remove</button>`}</td></tr>`;
     };
     return `<p>How fast attention moves in films people love. The default list is <b>Claude's estimates from general film knowledge, not measurements</b>. Measure any traced film below and it joins the list with real numbers. Tick films to compare your own film with them (several ticked are averaged).</p>
-      <div class="mo-scroll"><table class="mo-rates"><thead><tr><th>Film</th><th></th><th>Moves a minute</th><th>Usual rest</th><th>Usual family stretch</th><th>Top families</th><th>Why</th></tr></thead><tbody>${profiles().map(row).join("")}</tbody></table></div>
+      <div class="mo-scroll"><table class="mo-rates"><thead><tr><th>Film</th><th></th><th>Moves a minute</th><th>Usual hold on one curiosity</th><th>Usual hold on one family</th><th>Top families</th><th>Why</th></tr></thead><tbody>${profiles().map(row).join("")}</tbody></table></div>
       <h3>Measure a traced film</h3>
       <p class="mo-small">A traced film is any Curated film (Library, Curated films) or a shared trace file (Library, Share a film). Only counts are read.</p>
       <ul class="mo-measure">${
         curated.length
-          ? curated.map((s) => `<li><span>${esc(s.title || s.id)} <small>${(s.beats || []).length} beats${s.curated ? ", made-up practice scene" : ""}</small></span><button type="button" data-measure="${esc(s.id)}">Measure</button></li>`).join("")
+          ? curated.map((s) => `<li><span>${esc(s.title || s.id)} <small>${(s.beats || []).length} moments${s.curated ? ", made-up practice scene" : ""}</small></span><button type="button" data-measure="${esc(s.id)}">Measure</button></li>`).join("")
           : "<li>No curated films yet.</li>"
       }</ul>`;
   }
@@ -600,7 +649,7 @@
   /* ---------- On the engine ---------- */
   function engineHtml() {
     if (!ME() || !ME().available())
-      return `<p>Attention and cue lanes for the engine's timeline (Library, Engine): one cell per moment. Start a film in the engine first, then come back here.</p>${window.CurioEngineUI ? `<button type="button" data-m="open-engine">Open the engine</button>` : ""}`;
+      return `<p>This tab shows My film moment by moment: what holds attention and the cue that moved it there.</p><p class="mo-empty">My film has no moments yet. Press Start the example film to get one you can change, or open the engine to start your own.</p><div class="mo-controls">${startFilmButton()}${window.CurioEngineUI ? `<button type="button" data-m="open-engine">Open the engine</button>` : ""}</div>`;
     const opts = { secondsPerBeat: prefs.secondsPerPanel, limit: limit() };
     const L = ME().lanes(opts);
     const sg = ME().suggestions(opts);
@@ -625,14 +674,15 @@
     if (!PF()) return "<p>Perform is not loaded.</p>";
     const st = PF().settings();
     const outs = PF().midi.outputs();
-    const ccIn = (k, label) => `<label>${label} CC <input type="number" min="0" max="127" value="${st.cc[k]}" data-pfset="cc:${k}" /></label>`;
-    return `<p>Play My film and the meter goes out live, so you can see it or feel it while you perform: MIDI to a synth, lights or VCV Rack, OSC and WebSocket through the desktop app's bridge, and a buzz on a phone when attention has stayed too long.</p>
+    const ccIn = (k, label) => `<label title="The control change number (CC) a knob or light on your gear listens to, 0 to 127.">${label} CC <input type="number" min="0" max="127" value="${st.cc[k]}" data-pfset="cc:${k}" /></label>`;
+    return `<p>Perform follows My film while it plays and sends the meter out live, so you can see it or feel it on stage. It can send MIDI (the signal music keyboards, synths, stage lights and VCV Rack understand), send the same numbers to other programs through the desktop app's bridge, and buzz a phone when attention has stayed too long.</p>
       <div class="mo-controls">
         <button type="button" data-pf="${PF().running() ? "stop" : "start"}">${PF().running() ? "Stop following My film" : "Start following My film"}</button>
         <button type="button" data-pf="stage">Stage meter (full screen)</button>
       </div>
       <div class="mo-pf-live"></div>
       <h3>MIDI out</h3>
+      <p class="mo-small">Each number goes out on its own control change (CC), the number a knob or a light on your gear listens to. Change them to match your gear.</p>
       <div class="mo-controls">
         <button type="button" data-pf="midi">Turn on MIDI</button>
         <label>Output <select data-pfset="output"><option value="">None</option>${outs.map((o) => `<option value="${esc(o.id)}"${o.id === st.output ? " selected" : ""}>${esc(o.name)}</option>`).join("")}</select></label>
@@ -642,14 +692,14 @@
       <div class="mo-controls">
         <label class="mo-chip"><input type="checkbox" data-pfset="notes"${st.notes ? " checked" : ""}/> Notes when attention moves (60 visual, 61 audio, 62 thought, 63 movement, 64 plot) and 72 past the limit</label>
         <label class="mo-chip"><input type="checkbox" data-pfset="buzz"${st.buzz ? " checked" : ""}/> Buzz the phone past the limit</label>
-        <label class="mo-chip"><input type="checkbox" data-pfset="bridge"${st.bridge ? " checked" : ""}/> Send to the bridge (OSC /curio/value/m/attention and friends)</label>
+        <label class="mo-chip" title="OSC and WebSocket are two ways programs pass numbers to each other. The addresses start with /curio/value/m/."><input type="checkbox" data-pfset="bridge"${st.bridge ? " checked" : ""}/> Send to other programs through the desktop app's bridge</label>
       </div>
       <p class="mo-small mo-pf-status">${esc(PF().midi.status())}${PF().midi.output() ? " Sending to " + esc(PF().midi.output()) + "." : ""}</p>
-      <p class="mo-small">Bridge values, 0 to 1: m:attention (the current stretch against the limit), m:over (1 past the limit), m:momentum, m:family and m:compass (which of the 13 families, in order). The limit and the films you compare with come from the Attention tab.</p>`;
+      <p class="mo-small">The bridge sends five numbers from 0 to 1: m:attention (how long attention has stayed, against the limit), m:over (1 once it is past the limit), m:momentum, m:family (which kind of curiosity holds attention) and m:compass (which kind to move to next). The limit and the films you compare with come from the Attention tab.</p>`;
   }
   function livePanelHtml(s) {
     const st = statusOf(s.family ? { dur: s.seconds } : null, s.limit || 20);
-    return `<div class="mo-pf-grid"><div><b>${esc(s.family ? famLabel(s.family) : "Not following")}</b> <span class="mo-status mo-${st.cls}">${st.icon} ${st.text}</span><br><small>${s.seconds} of ${s.limit} seconds${s.label ? " · now: " + esc(s.label) : ""}</small></div>
+    return `<div class="mo-pf-grid"><div><b>${esc(s.family ? famLabel(s.family) : "Not following yet: press Start following My film.")}</b> <span class="mo-status mo-${st.cls}">${st.icon} ${st.text}</span><br><small>${s.seconds} of ${s.limit} seconds${s.label ? " · now: " + esc(s.label) : ""}</small></div>
       <div><small>Attention</small> ${Math.round(s.attention * 127)} · <small>Momentum</small> ${Math.round(s.momentum * 127)} · <small>Next</small> ${esc(s.compass ? famLabel(s.compass) : "–")}</div></div>`;
   }
   function drawPerform() {
@@ -786,6 +836,7 @@
           .map((g) => `<div class="mo-tabgroup${cur.group === g.id ? " on" : ""}" data-tabgroup="${g.id}"><span class="mo-tabgroup-name" id="mo-g-${g.id}">${g.label}</span><div class="mo-tabrow" role="tablist" aria-labelledby="mo-g-${g.id}">${g.tabs.map(tabBtn).join("")}</div></div>`)
           .join("")}</div>
         <p class="mo-group-hint">${esc((groups.find((g) => g.id === cur.group) || {}).hint || "")}</p>
+        ${wordsHtml()}
       </div>
       <div class="mo-body">${ext ? `<div class="mo-ext" data-ext="${esc(ext.id)}"></div>` : prefs.tab === "rates" ? ratesHtml() : prefs.tab === "notes" ? notesHtml() : prefs.tab === "compass" ? attentionHtml("mo-compass") : prefs.tab === "engine" ? engineHtml() : prefs.tab === "perform" ? performHtml() : attentionHtml()}</div></div>`;
     if (prefs.tab === "attention") drawAttention();
@@ -801,9 +852,34 @@
         host.querySelector(".mo-ext").textContent = ext.label + " could not open: " + e.message;
       }
     }
+    stackTables(host);
   }
 
+  /* On a phone the wide tables (one film or one move per row) turn into small cards: each cell gets its column's
+     name (data-l), which momentum.css shows before it under 600 pixels. Tables that are timelines (On the
+     engine) keep scrolling sideways instead. */
+  const STACK = "table.mo-rates, table.mo-moves, table.pc-nums, details.mo-table table";
+  function stackTables(el) {
+    if (!el || !el.querySelectorAll) return;
+    el.querySelectorAll(STACK).forEach((tb) => {
+      if (tb.dataset.stacked) return;
+      tb.dataset.stacked = "1";
+      tb.classList.add("mo-stack");
+      const names = [...tb.querySelectorAll("thead th")].map((th) => th.textContent.trim());
+      tb.querySelectorAll("tbody tr").forEach((tr) => [...tr.children].forEach((td, i) => names[i] && !td.dataset.l && (td.dataset.l = names[i])));
+    });
+  }
+  let stackQueued = false;
+  function stackSoon() {
+    if (stackQueued) return;
+    stackQueued = true;
+    setTimeout(() => {
+      stackQueued = false;
+      stackTables(host);
+    }, 0);
+  }
   function wire(el) {
+    ["click", "change", "input"].forEach((type) => el.addEventListener(type, stackSoon));
     el.addEventListener("click", (e) => {
       const t = e.target.closest("button");
       if (!t || !el.contains(t)) return;
@@ -844,6 +920,12 @@
         const sg = (ME() ? ME().suggestions({ secondsPerBeat: prefs.secondsPerPanel, limit: limit() }) : [])[Number(t.dataset.sugg)];
         const res = sg ? ME().addSuggestion(sg) : { ok: false, error: "That suggestion is gone." };
         flash = res && res.ok ? "Added the link to the engine. Undo in the engine takes it back." : "The engine said: " + ((res && res.error) || "no");
+        draw();
+      } else if (t.dataset.m === "start-film") {
+        if (startFilm()) {
+          prefs.source = "engine";
+          savePrefs();
+        }
         draw();
       } else if (t.dataset.m === "open-engine") {
         if (window.CurioEngineUI && window.CurioEngineUI.open) {
@@ -966,5 +1048,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireAll);
   else wireAll();
 
-  window.CurioMomentumUI = { open, close, mount, noteHtml, mountNote, draw, addTab, context };
+  window.CurioMomentumUI = { open, close, mount, noteHtml, mountNote, draw, addTab, context, WORDS, startFilm, startFilmButton, stackTables };
 })();
