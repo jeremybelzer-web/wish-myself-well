@@ -879,6 +879,63 @@ check("key light: relighting from the right makes the right half brighter, softl
   const sc = V.score(V.plan(A, B, { on: { relight: 1 } }), "relight", B, { times: [0, 0.5, 1], light: mk(personFrame(160, 90, [0.85, -0.1, 0.5])) });
   assert(sc.gapAfter < 0.2 && sc.gapBefore > 1.5 && /right/.test(sc.note), JSON.stringify(sc));
 });
+/* ---------- the newer measures as lanes (video/lanes.js) ---------- */
+/* An inspiration with every newer measure: a palette that turns teal and a picture that turns soft and grainy
+   half way, black bars (a 2.4:1 picture), its main person on the left third then the right third, and a beat. */
+function lanesClip() {
+  const barred = (d) => {
+    for (let y = 0; y < 180; y++) if (y < 30 || y >= 150) for (let x = 0; x < 320; x++) d.set([4, 3, 5], (y * 320 + x) * 4);
+    return d;
+  };
+  const looks = LK.series([0, 1, 2, 3, 4, 5, 6].map((t) => ({ t, m: LK.measure(barred(t < 3 ? scenePic(320, 180, 0, 0) : scenePic(320, 180, 0.6, 0.02, [0.55, 0.95, 1])), 320, 180) })));
+  const n = 25;
+  const fc = framingClip("moves", Array.from({ length: n }, (_, i) => person(64, 36, i < 12 ? 21 : 43, 4, 14, { turn: 2 })));
+  const c = clicks(6, 120);
+  return Object.assign({}, insp, { name: "lanes", title: "lanes", looks, elements: fc.elements, rhythm: RH.find(c.pcm, c.rate, { duration: 6 }), cuts: [1.2, 2.2, 3.2, 4.2] });
+}
+check("newer measures are lanes: palette, grain, frame shape, shot framing and rhythm, each with nodes where it changes", () => {
+  const d = lanesClip();
+  const lanes = V.lanesOf(d);
+  if (process.env.SHOW_LANES) lanes.forEach((c) => console.log("     " + c.id + " (" + c.how + "): " + c.nodes.map((x) => x.t + "=" + x.value).join(", ")));
+  const by = {};
+  lanes.forEach((c) => (by[c.id] = c));
+  ["colorFilter", "filterHue", "colorRange.filmStock", "aspect", "aspect.letterbox", "cameraLensLens.vignette", "composition", "shotSize.headroom", "shotSize", "composition.facing", "music.tempo", "music.energy", "music.cutSync"].forEach((id) => assert(by[id] && by[id].nodes.length, "no lane " + id + ": " + lanes.map((c) => c.id).join(" ")));
+  lanes.forEach((c) => assert(c.how === "measured" || c.how === "estimated", c.id + " says how it was found"));
+  lanes.forEach((c) => assert(/^[A-Z]/.test(c.name || w.CurioScale.label(c.id)), c.id + " has a plain name"));
+  /* the palette and the grain change half way, and say so with a node */
+  const v = (id) => by[id].nodes.map((x) => x.value);
+  assert(v("colorFilter")[0] === "none" && v("colorFilter").length === 2 && v("colorFilter")[1] !== "none" && Math.abs(by.colorFilter.nodes[1].t - 3) <= 1, "the tint comes in half way: " + JSON.stringify(by.colorFilter.nodes));
+  assert(v("filterHue").join() === "teal" || v("filterHue").join() === "blue", "a teal grade leans teal: " + v("filterHue"));
+  assert(v("colorRange.filmStock")[0] === "clean digital" && v("colorRange.filmStock").length === 2, "grain comes in: " + JSON.stringify(by["colorRange.filmStock"].nodes));
+  assert(v("aspect").join() === "2.39" && v("aspect.letterbox").join() === "thick", "a 2.4:1 picture in bars: " + v("aspect") + " " + v("aspect.letterbox"));
+  /* the eyes move from the left third to the right third: one node; the skin guess at shot size gives way to the head's size */
+  assert(v("composition").join() === "left third,right third" && Math.abs(by.composition.nodes[1].t - 3) < 0.6, "eyes: " + JSON.stringify(by.composition.nodes));
+  assert(lanes.filter((c) => c.id === "shotSize").length === 1 && /head/.test(by.shotSize.from), "one shot size lane, from the head");
+  assert(v("music.tempo").join() === "120", "tempo " + v("music.tempo"));
+  assert(v("music.cutSync").join() === "cuts on the beat", "cuts on the beat: " + v("music.cutSync"));
+  /* without the newer measures, the older lanes only */
+  assert.deepStrictEqual(V.lanesOf(insp).map((c) => c.id), V.LIST.filter((c) => insp.nodes[c.id]).map((c) => c.id));
+});
+check("newer lanes go onto My film and into the reference, as one undo step", () => {
+  const d = lanesClip();
+  E.send({ type: "importFilm", film: { rows: [1, 2, 3, 4, 5, 6].map((i) => ({ id: "r" + i, label: "Moment " + i })), tracks: w.CurioTracks.forCast(["Rupa"]) } });
+  const before = JSON.stringify(E.state().lanes);
+  const cmds = V.engineCommands(d, E.state());
+  const ids = new Set(cmds.filter((c) => c.type === "setPoint").map((c) => c.curiosity));
+  ["colorFilter", "filterHue", "colorRange.filmStock", "aspect", "aspect.letterbox", "composition", "shotSize.headroom", "composition.facing", "music.tempo", "music.energy", "music.cutSync", "valueKey"].forEach((id) => assert(ids.has(id), "no engine lane for " + id));
+  const ref = V.toRef(d);
+  const r = E.send({ type: "batch", label: "Lanes from lanes", commands: cmds.concat({ type: "addRef", ref }) });
+  assert(r.ok, r.error);
+  const lane = (id) => E.state().lanes[Object.keys(E.state().lanes).find((k) => k.endsWith("|" + id))];
+  assert(lane("composition") && lane("composition").mode === "hold" && Object.keys(lane("composition").points).length === 2, "eyes lane: " + JSON.stringify(lane("composition")));
+  assert(lane("music.tempo") && Object.values(lane("music.tempo").points).join() === "120", "tempo lane");
+  assert(Object.keys(E.state().lanes).find((k) => k.endsWith("|composition")).startsWith(E.state().tracks.find((t) => t.kind === "camera").id + "|"), "framing goes on the camera track");
+  const kept = E.state().refs[E.state().refs.length - 1];
+  ["colorFilter", "composition", "music.tempo", "aspect"].forEach((id) => assert(kept.lanes[id] && kept.lanes[id].some((x) => x != null), "the reference carries " + id));
+  E.undo();
+  assert.strictEqual(JSON.stringify(E.state().lanes), before, "one undo takes it all back");
+  assert(!E.state().refs.some((x) => x.name === "lanes"), "and the reference");
+});
 
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
