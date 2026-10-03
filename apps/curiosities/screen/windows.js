@@ -206,18 +206,26 @@
     ["wave", "Back and forth", (t) => 0.5 + 0.45 * Math.sin(t * Math.PI * 4)],
     ["surprise", "Surprise", () => Math.random()],
   ];
-  function shapeItems(id, shape, n, from, to) {
+  /* times: how many times the shape plays across the span; depth: how far it swings from the middle (1 = all the way). */
+  function shapeItems(id, shape, n, from, to, times, depth) {
     const f = (SHAPES.find((s) => s[0] === shape) || [])[2];
     if (!f || !S() || !S().known(id)) return [];
     const a = Math.max(0, from || 0);
     const b = Math.min(n - 1, to == null ? n - 1 : to);
+    const k = Math.max(1, Math.round(times || 1));
+    const d = depth == null ? 1 : Math.max(0, Math.min(1, depth));
     const out = [];
     for (let j = a; j <= b; j++) {
       const t = b > a ? (j - a) / (b - a) : 0;
-      out.push([id, j, S().at(id, Math.max(0, Math.min(1, f(t, j - a))))]);
+      /* Each repeat runs the whole shape; the last moment ends it rather than starting it again. */
+      const u = k === 1 || t >= 1 ? t : (t * k) % 1;
+      const v = 0.5 + (f(u, j - a) - 0.5) * d;
+      out.push([id, j, S().at(id, Math.max(0, Math.min(1, v)))]);
     }
     return out;
   }
+  const TIMES = [1, 2, 3, 4, 6, 8];
+  const DEPTHS = [[1, "All the way"], [0.75, "A lot"], [0.5, "Halfway"], [0.25, "A little"]];
 
   /* ---------- the window body ---------- */
   function html(c, h) {
@@ -249,6 +257,8 @@
       parts.push(`<div class="sc-wpart cw-shape"><h4>Shape over my film</h4><p class="sc-k">Draw a whole movement for one setting across every moment of my film. One undo step.</p>
         <div class="cw-shape-row"><select data-cw-shape-pick="${esc(c.id)}" aria-label="Which setting to shape">${shapeable.map((s) => `<option value="${esc(s.id)}"${s === pick ? " selected" : ""}>${esc(s.id === c.main ? c.label : s.label)}</option>`).join("")}</select>
         ${SHAPES.map(([k, label]) => `<button type="button" data-cw-shape="${esc(c.id)}|${k}" title="${esc(label)} across the film">${shapeIcon(k)}<span>${esc(label)}</span></button>`).join("")}</div>
+        <div class="cw-shape-row"><label>How many times <select data-cw-shape-times="${esc(c.id)}" aria-label="How many times the shape plays">${TIMES.map((n) => `<option value="${n}">${n === 1 ? "Once" : `${n} times`}</option>`).join("")}</select></label>
+        <label>How much <select data-cw-shape-depth="${esc(c.id)}" aria-label="How far the shape swings">${DEPTHS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></label></div>
         <div class="cw-shape-row"><button type="button" data-cw-surprise="${esc(c.id)}"${h.ctx.edit ? "" : " disabled"} title="Every setting of its own picks something at random, here">🎲 Surprise me here</button></div></div>`);
     }
     return parts.join("");
@@ -313,7 +323,22 @@
       out.set(k, [k, f, s.id === c.main ? c.label : s.label]);
       said.push(why);
     };
-    const t = String(text || "").toLowerCase();
+    let t = String(text || "").toLowerCase();
+    /* Plain-words phrases written for this curiosity (data/windows/say-<category>.js), longest first; a matched
+       phrase is taken out of the request so its words are not read twice. */
+    const PH = (window.CuriosityWindows && window.CuriosityWindows.phrases[c.id]) || {};
+    Object.keys(PH)
+      .sort((a, b) => b.length - a.length)
+      .forEach((ph) => {
+        const re = new RegExp("(^|[^a-z])" + ph.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z]|$)");
+        if (!re.test(t)) return;
+        Object.entries(PH[ph]).forEach(([sid, v]) => {
+          const s = sl(c, sid);
+          if (s) put(s, v, "");
+        });
+        said.push(`"${ph}"`);
+        t = t.replace(re, "$1 $2");
+      });
     /* A preset named in the request sets all of it first; the rest of the request can adjust it. */
     (sp.presets || []).forEach((p) => {
       if (t.includes(p.label.toLowerCase()) || (words(p.label).length >= 2 && overlap(p.label, t) >= Math.min(3, words(p.label).length))) {
@@ -392,6 +417,7 @@
   /* ---------- actions ---------- */
   function click(d, t, h, api) {
     const L = window.CurioLevels;
+    if (d.cwMidi) return midiClick(d.cwMidi, api);
     const get = (id) => L && L.get("curiosity", id);
     if (d.cwPreset) {
       const [cid, i] = d.cwPreset.split("|");
@@ -414,7 +440,9 @@
       const id = s && h.sliderId(c, s);
       const n = h.ctx.beats.length;
       const range = api.range ? api.range() : null;
-      const items = id ? shapeItems(id, shape, n, range ? range[0] : 0, range ? range[1] : n - 1) : [];
+      const times = win && win.querySelector(`[data-cw-shape-times="${cid}"]`);
+      const depth = win && win.querySelector(`[data-cw-shape-depth="${cid}"]`);
+      const items = id ? shapeItems(id, shape, n, range ? range[0] : 0, range ? range[1] : n - 1, times ? Number(times.value) : 1, depth ? Number(depth.value) : 1) : [];
       if (!items.length) return api.toast("My film needs moments before a shape can be drawn."), true;
       const label = (SHAPES.find((x) => x[0] === shape) || [])[1];
       api.setAt(items, `${label}: ${s.id === c.main ? c.label : s.label}`);
@@ -564,7 +592,102 @@
     return true;
   }
 
-  window.CurioWindowFaces = { FACES: Object.keys(FACE), SHAPES: SHAPES.map((s) => s[0]), html, sayHtml, interpret, grouped, click, pointer, shapeItems, spec, keydown };
+  /* ---------- MIDI learn: one knob, fader or pad on any MIDI controller moves one setting ----------
+     Bindings are this window's own (curiosities-window-midi-v1), not CurioAuto's patches: a knob writes nodes
+     at the playhead once it settles, as one undo step; a pad steps the setting to its next value. */
+  const MIDI_KEY = "curiosities-window-midi-v1";
+  const midi = { map: {}, learning: null, hooked: false, api: null, pending: {}, timer: null };
+  try {
+    midi.map = JSON.parse(localStorage.getItem(MIDI_KEY) || "{}") || {};
+  } catch (e) {}
+  const midiSave = () => {
+    try {
+      localStorage.setItem(MIDI_KEY, JSON.stringify(midi.map));
+    } catch (e) {}
+  };
+  const ctlName = (b) => (b ? (b.startsWith("cc:") ? `knob ${b.slice(3)}` : `pad ${b.slice(5)}`) : "");
+  const boundTo = (id) => Object.keys(midi.map).find((b) => midi.map[b] === id) || "";
+  function midiBtn(id) {
+    const b = boundTo(id);
+    const learning = midi.learning === id;
+    const tip = learning ? "Listening: move a knob or hit a pad. Click again to forget it." : b ? `Your ${ctlName(b)} moves this. Click to pick another, twice to forget it.` : "Learn: click, then move a knob or hit a pad on your MIDI controller";
+    return `<button type="button" class="cw-midi${b ? " on" : ""}${learning ? " learning" : ""}" data-cw-midi="${String(id).replace(/"/g, "&quot;")}" title="${tip}" aria-label="${tip}">🎹${b ? `<small>${ctlName(b)}</small>` : ""}</button>`;
+  }
+  function midiRefresh(id) {
+    document.querySelectorAll(`[data-cw-midi="${id}"]`).forEach((el) => (el.outerHTML = midiBtn(id)));
+  }
+  function midiFlush() {
+    midi.timer = null;
+    const list = Object.entries(midi.pending);
+    midi.pending = {};
+    if (!list.length || !midi.api) return;
+    list.forEach(([k]) => midi.api.showLane(k));
+    midi.api.setValues(list, "From your MIDI controller");
+  }
+  function onMidi(type, ev) {
+    if (type !== "midi" || !ev || (ev.kind === "note" && !ev.on)) return;
+    const b = `${ev.kind === "cc" ? "cc" : "note"}:${ev.num}`;
+    if (midi.learning) {
+      const id = midi.learning;
+      midi.learning = null;
+      Object.keys(midi.map).forEach((x) => (x === b || midi.map[x] === id) && delete midi.map[x]);
+      midi.map[b] = id;
+      midiSave();
+      midiRefresh(id);
+      if (midi.api) midi.api.toast(`Your ${ctlName(b)} now moves this setting.`);
+      return;
+    }
+    const id = midi.map[b];
+    if (!id || !S() || !S().known(id)) return;
+    if (ev.kind === "cc") midi.pending[id] = S().at(id, ev.val / 127);
+    else {
+      /* A pad steps to the next value on the setting's scale and wraps round at the end. */
+      const now = midi.pending[id] != null ? midi.pending[id] : midi.api && midi.api.value ? midi.api.value(id) : null;
+      const p = now == null ? 0 : S().pos(id, now);
+      const dom = S().domain(id);
+      const step = dom && dom.kind === "choice" ? 1 / Math.max(1, dom.options.length - 1) : 0.25;
+      midi.pending[id] = S().at(id, p == null || p >= 1 - step / 2 ? 0 : p + step);
+    }
+    clearTimeout(midi.timer);
+    midi.timer = setTimeout(midiFlush, ev.kind === "cc" ? 250 : 0);
+  }
+  function midiHook() {
+    const A = window.CurioAuto;
+    if (midi.hooked || !A || !A.on) return !!midi.hooked;
+    A.on(onMidi);
+    midi.hooked = true;
+    return true;
+  }
+  /* The Screen hands over its node writer once; stored bindings start listening without a click. */
+  function attach(api) {
+    midi.api = api;
+    if (Object.keys(midi.map).length && midiHook() && window.CurioAuto.connectMidi) window.CurioAuto.connectMidi();
+  }
+  function midiClick(id, api) {
+    midi.api = api || midi.api;
+    if (midi.learning === id) {
+      midi.learning = null;
+      Object.keys(midi.map).forEach((x) => midi.map[x] === id && delete midi.map[x]);
+      midiSave();
+      midiRefresh(id);
+      return true;
+    }
+    const was = midi.learning;
+    if (!midiHook()) return api.toast("MIDI isn't loaded on this page."), true;
+    midi.learning = id;
+    if (was) midiRefresh(was);
+    midiRefresh(id);
+    window.CurioAuto.connectMidi().then((ok) => {
+      if (!ok) {
+        midi.learning = null;
+        midiRefresh(id);
+        api.toast("This browser can't reach MIDI. Chrome and Edge can, with your controller plugged in.");
+      } else api.toast("Move a knob or hit a pad on your controller.");
+    });
+    return true;
+  }
+
+  window.CurioWindowFaces = { FACES: Object.keys(FACE), SHAPES: SHAPES.map((s) => s[0]), html, sayHtml, interpret, grouped, click, pointer, shapeItems, spec, keydown, midiBtn, attach, midi: { bindings: () => Object.assign({}, midi.map), feed: onMidi } };
   function CSS() {
     return `
 .cw-faces { gap: 10px; }
@@ -644,6 +767,12 @@
 .cw-preset-row small { font-size: 9.5px; color: var(--cc-dim); line-height: 1.3; }
 .cw-shape-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .sc-page .cw-shape-row button { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; font-size: 10px; }
+.sc-page button.cw-midi { padding: 1px 4px; font-size: 11px; line-height: 1.2; opacity: 0.55; background: none; }
+.sc-page button.cw-midi.on { opacity: 1; color: var(--cc-accent); }
+.sc-page button.cw-midi small { margin-left: 2px; font-size: 9px; }
+.sc-page button.cw-midi.learning { opacity: 1; outline: 1px solid var(--cc-accent); animation: cw-blink 0.8s steps(2) infinite; }
+@keyframes cw-blink { 50% { outline-color: transparent; } }
+.cw-shape-row label { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--cc-dim); }
 .cw-shape-row svg { width: 22px; height: 14px; fill: none; stroke: var(--cc-accent); stroke-width: 1.6; stroke-linejoin: round; }
 `;
   }

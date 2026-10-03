@@ -1088,4 +1088,35 @@
       ],
     },
   });
+
+  /* Movement rules (rigRulesLens, the 3D character's rules). It arrives with the 3D characters work; until then
+     W.add skips it. */
+  W.add("rigRulesLens", {
+    sliders: [
+      ["walkSpeed", "Walking speed", [0, 6, "m/s", 0.1], "How many meters the body covers each second when it walks or runs. About 1.4 is an ordinary walk, 5 a sprint.", { from: 1, to: 2 }],
+      ["headTurn", "How far the head may turn", [0, 90, "°", 5], "The most the head turns left or right to look at something before the body has to turn too.", { from: 45, to: 80 }],
+      ["lag", "How long loose parts lag", [0, 1, "s", 0.05], "Seconds an arm, head or tail keeps moving after the body stops.", { from: 0.1, to: 0.4 }],
+      ["breathRate", "Breaths a minute", [4, 60, "", 1], "Calm is about 12; after a run it is 40 or more.", { from: 10, to: 20 }],
+    ],
+    window: {
+      faces: [
+        { face: "tiles", slider: "setting", icons: { "standing still": "🧍", "looking around": "👀", walking: "🚶", running: "🏃" } },
+        { face: "ladder", slider: "slump" },
+        { face: "mixer", sliders: ["pace", "floppy", "breath", "limits"] },
+      ],
+      groups: [
+        { label: "The move", sliders: ["setting", "pace", "walkSpeed"] },
+        { label: "The body", sliders: ["slump", "breath", "breathRate", "limits"] },
+        { label: "Where it looks", sliders: ["lookAt", "headTurn"] },
+        { label: "Loose parts", sliders: ["floppy", "lag"] },
+      ],
+      presets: [
+        { label: "Tired trudge", plain: "A slow, slumped walk, eyes on the ground.", set: { setting: "walking", pace: "dragging", slump: "slumped", lookAt: "at the ground", breath: "heavy", walkSpeed: 0.8 } },
+        { label: "Late and running", plain: "A frantic run, breathing hard, arms loose.", set: { setting: "running", pace: "frantic", floppy: "loose", breath: "heaving", walkSpeed: 5 } },
+        { label: "Proud entrance", plain: "Upright and brisk, looking straight at us.", set: { setting: "walking", pace: "brisk", slump: "proud and upright", lookAt: "at the camera" } },
+        { label: "Nervous lookout", plain: "Still, holding breath, the head checking everywhere.", set: { setting: "looking around", breath: "held", lookAt: "all around", headTurn: 85 } },
+        { label: "Cartoon rubber", plain: "Joints bend any way and everything flops.", set: { limits: "like rubber", floppy: "floppy", lag: 0.6 } },
+      ],
+    },
+  });
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));

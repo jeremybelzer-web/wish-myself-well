@@ -230,6 +230,50 @@ const ok = (cond, msg) => {
   ok(tiny.some(([k, v]) => k === "shotSize" && v === "close"), "a word from a list (\"close\") picks it: " + JSON.stringify(tiny));
   ok(await page.$('.sc-inspector .sc-finetune'), "Details rows open the window with Fine-tune");
 
+  /* The "Do it" button does the same as Enter. */
+  await page.fill(`${orb} [data-cw-say-text="cameraPlace"]`, "30 degrees to the left");
+  await page.click(`${orb} [data-cw-say="cameraPlace"]`);
+  ok((await orbVal("cameraPlace")) === -30, "the Do it button reads the box (\"30 degrees to the left\")");
+
+  /* Plain-words phrases written for each curiosity (data/windows/say-*.js) set their settings. */
+  const phr = await page.evaluate(() => {
+    const W = window.CuriosityWindows;
+    const ids = Object.keys(W.phrases || {});
+    const h = (cc) => ({ sliderId: (c2, s) => (s.id === c2.main || s.id === "setting" ? (window.CurioScale.known(c2.id) ? c2.id : c2.id + "." + s.id) : c2.id + "." + s.id), ctx: { value: () => undefined } });
+    let tried = 0, hit = 0;
+    const miss = [];
+    ids.forEach((id) => {
+      const c = window.CurioLevels.get("curiosity", id);
+      if (!c) return;
+      Object.keys(W.phrases[id]).forEach((ph) => {
+        tried++;
+        const r = window.CurioWindowFaces.interpret(c, ph, h(c));
+        if (r.set.length) hit++;
+        else if (miss.length < 5) miss.push(id + ": " + ph);
+      });
+    });
+    return { ids: ids.length, tried, hit, miss };
+  });
+  ok(phr.ids > 300 && phr.hit === phr.tried, `every written phrase sets something (${phr.hit} of ${phr.tried} phrases, ${phr.ids} curiosities)` + (phr.miss.length ? ": " + phr.miss.join("; ") : ""));
+
+  /* How many times and how much: Rise twice at half depth climbs, drops back, climbs again, inside the middle half. */
+  const twice = await page.evaluate(() => window.CurioWindowFaces.shapeItems("cameraPlace", "rise", 9, 0, 8, 2, 0.5).map(([k, j, v]) => window.CurioScale.pos(k, v)));
+  ok(twice.length === 9 && twice[3] > twice[0] && twice[5] < twice[3] && twice.every((p) => p >= 0.24 && p <= 0.76), "a shape can play twice and swing only halfway: " + JSON.stringify(twice.map((p) => Math.round(p * 100) / 100)));
+
+  /* MIDI learn: click 🎹, move a knob, and that knob writes the setting at the playhead. */
+  await page.evaluate(() => (window.CurioAuto.connectMidi = () => Promise.resolve(true)));
+  await page.click(`${orb} [data-cw-midi="cameraPlace.distance"]`);
+  ok(await page.$(`${orb} [data-cw-midi="cameraPlace.distance"].learning`), "the 🎹 button listens after a click");
+  await page.evaluate(() => {
+    const feed = window.CurioWindowFaces.midi.feed;
+    feed("midi", { kind: "cc", num: 21, val: 64 });
+    feed("midi", { kind: "cc", num: 21, val: 127 });
+  });
+  await page.waitForTimeout(500);
+  ok((await orbVal("cameraPlace.distance")) === (await page.evaluate(() => window.CurioScale.at("cameraPlace.distance", 1))), "a learned knob turned all the way sets the distance to its top");
+  ok(await page.evaluate(() => window.CurioWindowFaces.midi.bindings()["cc:21"] === "cameraPlace.distance"), "the knob is remembered for that setting");
+  ok(await page.$(`${orb} [data-cw-midi="cameraPlace.distance"].on`), "the 🎹 button shows which knob moves it");
+
   ok(!errors.length, "no errors on the page" + (errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""));
   await browser.close();
   server.close();

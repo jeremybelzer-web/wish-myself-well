@@ -26,6 +26,9 @@ Every window also has, from `screen/windows.js`:
 - **Surprise me**: every setting of its own picks something at random at the playhead.
 
 - **Say what you want** (Jeremy, 15:02Z): type or speak a request ("45 degrees to the right, 3 meters away", "a bit closer", a preset's name, a word from a list). It is matched on the device against the settings, presets, numbers with units and "more" or "less" of a setting, and lands as nodes at the playhead, one undo step.
+- **Plain-words phrases** (`say-<category>.js`, `W.say(id, {"phrase": {sliderId: value}})`): 3,778 phrases a person might actually say about each curiosity (set talk like "punch in", beginner words like "make it scarier", feeling words like "make them look powerful"). One phrase can set several settings; phrases are matched first, longest first. `check-windows.js --say` checks them and lists curiosities with fewer than 3.
+- **🎹 MIDI learn** on every setting: click it, then move a knob or hit a pad. A knob writes a node at the playhead when it settles; a pad steps to the next value. Saved as `curiosities-window-midi-v1`.
+- **Shape over my film** takes "How many times" and "How much" (how far it swings from the middle).
 - **Fine-tune** (Jeremy, 15:02Z: "All these parameters can be hidden under the word fine-tune"): in Details, each curiosity shows its main control and a Fine-tune button that opens this window; the inline fold is off.
 
 Counts after both passes: 434 curiosities, 2,590 new settings (1,794 of them measured in units), 1,303 presets.

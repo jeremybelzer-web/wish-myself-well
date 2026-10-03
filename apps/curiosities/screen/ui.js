@@ -362,6 +362,7 @@
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
     page.addEventListener("pointerdown", onKnobDown);
+    if (faces() && faces().attach) faces().attach(faceApi());
     page.addEventListener("keydown", (e) => faces() && faces().keydown && faces().keydown(e, faceHelpers(mineCtx()), faceApi()));
     page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e));
     page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
@@ -1061,7 +1062,7 @@
   /* The faces, groups, presets and shapes from data/windows (screen/windows.js, window.CurioWindowFaces). */
   const faces = () => window.CurioWindowFaces || null;
   const faceHelpers = (ctx, focus) => ({ esc, keyFor, sliderId, controlHtml, keyBtn, spark, row, ctx, focus });
-  const faceApi = () => ({ setValues, setAt, showLane, toast, range: rangeNow });
+  const faceApi = () => ({ setValues, setAt, showLane, toast, range: rangeNow, value: valueHere });
   function winHtml(w, z) {
     const F = faces();
     const c = L().get("curiosity", w.id);
@@ -1074,7 +1075,7 @@
       if (!S().known(id)) return "";
       const main = id === key;
       return `<div class="sc-wctl${main ? " main" : ""}${w.focus === id ? " focus" : ""}">
-        <div class="sc-wctl-h"><span>${keyBtn(id, ctx)}<b>${esc(main ? labelOf(id) : sl.label)}</b></span>${spark(id, ctx.beats)}<button type="button" data-win-lane="${esc(id)}" title="Put ${esc(sl.label)} on the timeline as its own lane">+ lane</button></div>
+        <div class="sc-wctl-h"><span>${keyBtn(id, ctx)}<b>${esc(main ? labelOf(id) : sl.label)}</b></span>${spark(id, ctx.beats)}${F && F.midiBtn ? F.midiBtn(id) : ""}<button type="button" data-win-lane="${esc(id)}" title="Put ${esc(sl.label)} on the timeline as its own lane">+ lane</button></div>
         ${sl.plain ? `<p class="sc-k">${esc(sl.plain)}</p>` : ""}
         <div class="sc-ctl">${controlHtml(id, sl, ctx.value(id), !ctx.edit)}</div>
       </div>`;
@@ -1107,7 +1108,7 @@
     box.querySelectorAll(".sc-win").forEach((x) => scroll[x.dataset.win] && (x.querySelector(".sc-win-b").scrollTop = scroll[x.dataset.win]));
   }
   function winClick(d, t) {
-    if (faces() && (d.cwPreset || d.cwShape || d.cwSurprise)) return faces().click(d, t, faceHelpers(mineCtx()), faceApi());
+    if (faces() && (d.cwPreset || d.cwShape || d.cwSurprise || d.cwSay || d.cwMic || d.cwMidi)) return faces().click(d, t, faceHelpers(mineCtx()), faceApi());
     if (d.winClose) {
       wins.splice(wins.findIndex((w) => w.id === d.winClose) >>> 0, 1);
       return drawWins(), true;

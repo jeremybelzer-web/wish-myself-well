@@ -23,16 +23,16 @@ require("./files.json").forEach((f) => {
     broken.push(`${f}: ${e.message}`);
   }
 });
-/* --measure: also the measure-<category>.js files not yet in files.json (while they are being written). */
+/* --measure: also the measure-<category>.js and say-<category>.js files not yet in files.json (while they are being written). */
 if (process.argv.includes("--measure"))
   fs.readdirSync(__dirname)
-    .filter((f) => /^measure-.*\.js$/.test(f) && !require("./files.json").includes(f))
+    .filter((f) => /^(measure|say)-.*\.js$/.test(f) && !require("./files.json").includes(f))
     .sort()
     .forEach((f) => {
       try {
         run(path.join(__dirname, f));
       } catch (e) {
-        if (!only || f === `measure-${only}.js`) throw e;
+        if (!only || f === `measure-${only}.js` || f === `say-${only}.js`) throw e;
         broken.push(`${f}: ${e.message}`);
       }
     });
@@ -56,6 +56,7 @@ L.CATEGORIES.filter((c) => !only || c.id === only).forEach((cat) => {
   const thin = rows.filter((c) => c.sliders.filter((s) => !SHARED.includes(s.id)).length < 4);
   console.log(`${cat.id.padEnd(12)} ${String(rows.length).padStart(3)} curiosities, ${rows.length - noWin.length} with a window, ${thin.length} with fewer than 4 own settings`);
   noWin.forEach((c) => gaps.push(`${cat.id}: ${c.id} has no window faces`));
+  if (process.argv.includes("--say")) rows.filter((c) => Object.keys(W.phrases[c.id] || {}).length < 3).forEach((c) => gaps.push(`${cat.id}: ${c.id} has fewer than 3 plain-words phrases`));
   thin.forEach((c) => gaps.push(`${cat.id}: ${c.id} has only ${c.sliders.filter((s) => !SHARED.includes(s.id)).length} settings of its own`));
 });
 if (W.skipped.length) console.log("skipped (row not loaded here): " + W.skipped.join(", "));

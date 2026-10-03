@@ -34,5 +34,22 @@
   "measure-comedy.js",
   "measure-character.js",
   "measure-story.js",
-  "measure-page.js"
+  "measure-page.js",
+  "say-camera.js",
+  "say-performance.js",
+  "say-light.js",
+  "say-grade.js",
+  "say-world.js",
+  "say-wardrobe.js",
+  "say-sound.js",
+  "say-text.js",
+  "say-effects.js",
+  "say-transitions.js",
+  "say-speed.js",
+  "say-editing.js",
+  "say-feeling.js",
+  "say-comedy.js",
+  "say-character.js",
+  "say-story.js",
+  "say-page.js"
 ]

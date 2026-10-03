@@ -57,6 +57,15 @@
     return row;
   };
   W.get = (id) => W.specs[id] || null;
+  /* Plain-words phrases for "Say what you want" (say-<category>.js): CuriosityWindows.say(id, { "tight on the
+     face": { setting: "close" }, "creeping in": { changeSpeed: "slow push" } }). Each phrase sets one or more of
+     the curiosity's sliders; several files may add phrases to the same curiosity. */
+  W.phrases = {};
+  W.say = function (id, map) {
+    if (!DB || !DB.find(id) || DB.find(id).level !== "curiosity") return W.skipped.push(id), null;
+    W.phrases[id] = Object.assign(W.phrases[id] || {}, map || {});
+    return W.phrases[id];
+  };
   /* Every problem with the windows, as plain lines (used by check-windows.js and the Screen's tests). */
   W.check = function () {
     const out = [];
@@ -97,6 +106,22 @@
           const v = p.set[k];
           if (s && s.scale && !s.scale.includes(v)) out.push(`${id}: preset "${p.label}" sets ${k} to "${v}", not on its scale`);
           if (s && s.range && !(typeof v === "number" && v >= s.range.min && v <= s.range.max)) out.push(`${id}: preset "${p.label}" sets ${k} to ${v}, outside ${s.range.min} to ${s.range.max}`);
+        });
+      });
+    });
+    Object.keys(W.phrases).forEach((id) => {
+      const c = DB.find(id);
+      const sl = (sid) => c.sliders.find((s) => s.id === sid || (sid === "setting" && s.id === c.main));
+      Object.entries(W.phrases[id]).forEach(([phrase, set]) => {
+        if (!phrase || phrase !== phrase.toLowerCase().trim()) out.push(`${id}: phrase "${phrase}" must be lower case with no spaces around it`);
+        const keys = Object.keys(set || {});
+        if (!keys.length) out.push(`${id}: phrase "${phrase}" sets nothing`);
+        keys.forEach((k) => {
+          const s = sl(k);
+          const v = set[k];
+          if (!s) return out.push(`${id}: phrase "${phrase}" names unknown slider "${k}"`);
+          if (s.scale && !s.scale.includes(v)) out.push(`${id}: phrase "${phrase}" sets ${k} to "${v}", not on its scale`);
+          if (s.range && !(typeof v === "number" && v >= s.range.min && v <= s.range.max)) out.push(`${id}: phrase "${phrase}" sets ${k} to ${v}, outside ${s.range.min} to ${s.range.max}`);
         });
       });
     });
