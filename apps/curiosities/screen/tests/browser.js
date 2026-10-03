@@ -179,7 +179,7 @@ const ok = (cond, msg) => {
     return out;
   });
   ok(keyGuard.row === 1 && keyGuard.undo, "arrows and Space inside a tool window leave the film behind it alone");
-  await page.evaluate(() => { document.querySelectorAll('.sc-dock[data-panel^="test-dock"]').forEach((el) => el.remove()); });
+  ok(await page.evaluate(() => window.CurioScreen.removePanel("test-dock") && window.CurioScreen.removePanel("test-dock-2") && !document.querySelector('.sc-dock[data-panel^="test-dock"]')), "a docked panel can be taken off again");
 
   /* Maya's ghosting, the play range, and the momentum box. */
   await page.evaluate(() => document.activeElement && document.activeElement.blur());

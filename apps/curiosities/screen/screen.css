@@ -601,7 +601,7 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 
 /* Panels other parts of the app dock beside the Player (CurioScreen.addPanel, place "player": the Momentum meter,
    the 3D actors) stack top to bottom in one column the Screen owns, so they never sit on top of each other. */
-.sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr) var(--sc-dock-w, 220px); }
+.sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr) var(--sc-dock-w, 204px); }
 .sc-player.sc-has-dock > :not(.sc-docks) { grid-column: 1; }
 .sc-player > .sc-docks { grid-column: 2; grid-row: 1 / -1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; border-left: 1px solid var(--cc-line); }
 .sc-docks > .sc-dock { flex: none; min-width: 0; border-left: 0; }

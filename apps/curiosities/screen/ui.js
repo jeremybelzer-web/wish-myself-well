@@ -28,7 +28,7 @@
      a lane, a curiosity dropdown on each lane, Show all potential curiosities, Show all potential suites.
 
    window.CurioScreen = { open(), close(), isOpen(), mountViewer(el, opts), state(), setRow(i), row(),
-     addPanel({ id, label, place, mount(el) }), on(fn) -> off() }
+     addPanel({ id, label, place, mount(el) }), removePanel(id), on(fn) -> off() }
    mountViewer lets any other screen of the app put a viewer at its top (Jeremy 17:20Z: "a view window for
    every single screen of the app"). Saved view: localStorage "curiosities-screen-v1". */
 (function () {
@@ -465,6 +465,13 @@
     if (panels.some((p) => p.id === spec.id)) return false;
     panels.push(Object.assign({ place: "player" }, spec));
     placePanels();
+    return true;
+  }
+  function removePanel(id) {
+    const i = panels.findIndex((p) => p.id === id);
+    if (i < 0) return false;
+    const [p] = panels.splice(i, 1);
+    if (p.el) p.el.remove();
     return true;
   }
   function tell() {
@@ -2333,5 +2340,5 @@ document.addEventListener("click", function (e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, setRow, row: () => row, addPanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();

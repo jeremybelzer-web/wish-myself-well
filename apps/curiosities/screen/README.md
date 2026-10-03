@@ -134,7 +134,7 @@ While ADVANCED is open, Details shows the advanced curiosities' controls.
 
 ## Hooks for other threads
 
-`CurioScreen.row()` is the playhead's moment; `CurioScreen.setRow(i)` moves it. `CurioScreen.on(fn)` is told `{ row, rows }` after every redraw and playhead move, and returns a function that stops it. `CurioScreen.addPanel({ id, label, place: "player" | "details" | "timeline", mount(el) })` docks a side panel (the momentum meter): the Screen makes a `.sc-dock` element in that place, mounts it once and keeps it across redraws. The clock uses the Momentum window's seconds per moment (`secondsPerPanel` in `curiosities-momentum-v1`, 3 by default).
+`CurioScreen.row()` is the playhead's moment; `CurioScreen.setRow(i)` moves it. `CurioScreen.on(fn)` is told `{ row, rows }` after every redraw and playhead move, and returns a function that stops it. `CurioScreen.addPanel({ id, label, place: "player" | "details" | "timeline", mount(el) })` docks a side panel (the momentum meter, the 3D actors): the Screen makes a `.sc-dock` element in that place, mounts it once and keeps it across redraws; `CurioScreen.removePanel(id)` takes it off. Panels beside the Player stack top to bottom in one column the Screen owns (`.sc-player > .sc-docks`), in the order they were added, so two panels never cover each other; it goes under the Player in the Player-on-the-right layout and on phones. Keys typed inside a tool window (a dialog, `.sc-maya-dlg`, `.rig-dlg`) or while a modal window is open are left to that tool: the Screen's shortcuts and ⌘Z ignore them. The clock uses the Momentum window's seconds per moment (`secondsPerPanel` in `curiosities-momentum-v1`, 3 by default).
 
 ## Tests
 
