@@ -1,0 +1,99 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "CHARACTER ARC\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 49 to 64\n   1 Arc stage\n   2 Role in the scene\n   3 Dramatic role\n   4 Which way they change\n   5 The lie they believe\n   6 The old wound\n   7 Fighting the change\n   8 The test\n   9 Slipping back\n  10 How the change shows\n  11 suite: Growing up\n  12 suite: The fall\n  13 suite: The steady one\n  14 suite: Refuses to change\n  15 suite: The mirror ending\n  16 pair: When the lie is exposed, the crisis comes\nCV-CC 2: MIDI channel 3, CC 65 to 70\n   1 pair: When the old wound is touched, they fight the change harder\n   2 pair: When the test is passed, the change shows\n   3 pair: When they slip back, their road drops\n   4 pair: When they fight the change with jokes, the laughs rise\n   5 pair: When the change comes, the posture opens\n   6 pairs: The arc engine"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 2
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 2
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}
