@@ -297,6 +297,9 @@
     const sx = Math.max(0, Math.min(vw - sw, cx - sw / 2)),
       sy = Math.max(0, Math.min(vh - sh, cy - sh / 2));
     ctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, H);
+    /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI. */
+    const M = adj.parts && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
+    const k = M ? M.cut(ctx.canvas) : null;
     if (adj.want || adj.luma !== 1 || adj.contrast !== 1 || adj.sat !== 1 || adj.warm) {
       const img = ctx.getImageData(0, 0, W, H);
       const d = img.data;
@@ -307,7 +310,7 @@
       ctx.putImageData(img, 0, 0);
     }
     /* Element changes (AI cut-outs): recolor clothes or hair, resize or move the people, another clip's set. */
-    if (adj.parts && window.CurioMask && window.CurioMask.ready()) window.CurioMask.applyParts(ctx, W, H, adj.parts, { setVideo: opts.setVideo });
+    if (M) M.applyParts(ctx, W, H, adj.parts, { setVideo: opts.setVideo, cut: k });
     /* The inspiration's graphics on top, background taken out, fitted inside the frame. */
     if (adj.overlay && opts.overlay && opts.overlay.videoWidth) {
       const ov = opts.overlay;

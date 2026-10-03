@@ -14,7 +14,7 @@
                                                  4 clothes, 5 other (glasses, hats)
    - scan(clip, { box?, looks?, onProgress? }) -> Promise<elements>   the clip's elements over time (CurioVideo.
                                                  elementSeries), about 4 looks a second, 240 at most
-   - applyParts(ctx, W, H, parts, { setVideo? })  draws one frame's element changes on the canvas, in place
+   - applyParts(ctx, W, H, parts, { setVideo?, cut? })  draws one frame's element changes on the canvas, in place
    - preview(ctx, W, H)                          tints each element on the canvas (to see what the AI found) */
 (function () {
   const V = () => window.CurioVideo;
@@ -270,8 +270,13 @@
   function applyParts(ctx, W, H, parts, opts) {
     if (!parts || !seg) return false;
     opts = opts || {};
-    const k = cut(ctx.canvas);
+    const k = opts.cut || cut(ctx.canvas);
     if (!k) return false;
+    if (opts.cut && small.x && small.c.width === k.w && small.c.height === k.h) {
+      /* A cut made before the light changed: take this frame's colors for filling gaps. */
+      small.x.drawImage(ctx.canvas, 0, 0, k.w, k.h);
+      k.rgba = small.x.getImageData(0, 0, k.w, k.h).data;
+    }
     const img = ctx.getImageData(0, 0, W, H);
     const d = img.data;
     if (parts.clothes) recolor(d, softMask(k, [4], W, H), parts.clothes.color, parts.clothes.amount);
