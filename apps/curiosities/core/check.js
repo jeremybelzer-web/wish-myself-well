@@ -41,6 +41,7 @@ assert.strictEqual(B.toOsc({ type: "value", key: "m:attention", m: 1 }).address,
 drop();
 dropBad();
 assert(!B.values().some((v) => v.key.startsWith("m:")), "a removed source stops sending");
+assert(core.window.CurioSync && typeof core.window.CurioSync.merge === "function", "cloud-saving groundwork loads with the core (sync/sync.js)");
 assert(core.localStorage.getItem("curiosities-automation-v1"), "patches save to the storage given");
 
 /* With the curiosity database (data/, #7) every one of its items is a parameter the bridge can move. */

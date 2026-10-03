@@ -1,5 +1,15 @@
-/* screen/ui.js: the Screen, Curiomatic's main layout, modeled on Final Cut Pro (Jeremy, 2026-10-02 17:18Z to
-   17:24Z; his words are in /mnt/project-files/decisions/jeremys-words.md, the choices in layout-thread.md).
+/* screen/ui.js: the Screen, Curiomatic's main layout. First modeled on Final Cut Pro (Jeremy, 2026-10-02 17:18Z
+   to 17:24Z), now laid out and dark like CapCut (18:00Z: "I'm leaning towards mainly using CapCut... I think their
+   user interface is great"). His words are in /mnt/project-files/decisions/jeremys-words.md, the choices in
+   layout-thread.md.
+
+   CapCut's four panels, with curiosities in them:
+   - Top left, the library: the categories as a row of icon tabs (CapCut's Media, Audio, Text, Effects,
+     Transitions, Filters...), a sidebar of groups (the category's workspaces, then its suites, proximities and
+     proximity suites), and a grid of cards. Click a card to look through it; its + puts it on the timeline.
+   - Center, the Player: the viewers, timecode and play controls, the window layout.
+   - Right, Details: the inspector for the selected category and viewer.
+   - Bottom, full width, the timeline.
 
    - Viewers on top: one or more inspiration films (curated films, as cheap animated storyboards) and one
      viewer for your own film. Add as many inspiration viewers as you like; it starts with one. Side by side
@@ -17,7 +27,8 @@
    - Arrange: the timeline on its own (viewers hidden unless you want them), every automated curiosity as
      a lane, a curiosity dropdown on each lane, Show all potential curiosities, Show all potential suites.
 
-   window.CurioScreen = { open(), close(), isOpen(), mountViewer(el, opts), state() }
+   window.CurioScreen = { open(), close(), isOpen(), mountViewer(el, opts), state(), setRow(i), row(),
+     addPanel({ id, label, place, mount(el) }), on(fn) -> off() }
    mountViewer lets any other screen of the app put a viewer at its top (Jeremy 17:20Z: "a view window for
    every single screen of the app"). Saved view: localStorage "curiosities-screen-v1". */
 (function () {
@@ -47,7 +58,128 @@
     showSuites: false,
     openSuites: {},
     openCats: {},
+    groups: {},
+    search: "",
+    layout: "center",
+    playerZoom: 1,
+    libTab: "",
+    ghost: false,
+    overview: true,
+    range: null,
+    guides: false,
+    rulers: false,
   };
+  /* CapCut's layout menu (the layout icon at the top right of its window). Jeremy's screenshots show four
+     arrangements: the default, the media panel full height on the left, Details full height on the right, and
+     the Player full height on the right. */
+  const LAYOUTS = [
+    ["center", "Player in the middle", "Library, Player and Details across the top, the timeline under them (CapCut's default)"],
+    ["media", "Library full height", "The library runs down the whole left side; Player and Details on the right, the timeline under them"],
+    ["details", "Details full height", "Details runs down the whole right side; library and Player on the left, the timeline under them"],
+    ["right", "Player on the right", "Library and Details side by side over the timeline, the Player as a tall column on the right"],
+  ];
+  /* CapCut's keyboard shortcuts (its Shortcut window: Timeline, Player, Basic and Other tabs, plus the toolbar's
+     tooltips), each mapped to the nearest thing on the Screen. [keys, CapCut's name, what it does here, test(e), run(e)].
+     A row without test/run is a CapCut key with nothing to do on the Screen yet, listed so nothing is hidden. */
+  const mod = (e) => e.ctrlKey || e.metaKey;
+  const plain = (e) => !mod(e) && !e.altKey;
+  const key = (e, k) => e.key.toLowerCase() === k;
+  const lk = (name) => () => lanes && lanes.command(name);
+  const SHORTCUTS = [
+    ["Timeline", [
+      ["⌘B", "Split", "Cut the picked lane's line at the playhead with a node, keeping what plays", (e) => mod(e) && !e.shiftKey && key(e, "b"), lk("splitHere")],
+      ["⇧⌘B", "Split all", "Cut every lane on the timeline at the playhead", (e) => mod(e) && e.shiftKey && key(e, "b"), lk("splitAll")],
+      ["A", "Select mode", "Click a node to pick it, click an empty spot to add one", (e) => plain(e) && !e.shiftKey && key(e, "a"), lk("select")],
+      ["B", "Split mode", "Click a lane to cut its line with a node", (e) => plain(e) && !e.shiftKey && key(e, "b"), lk("split")],
+      ["[", "Select leftward", "Pick the node to the left (CapCut picks every clip to the left)", (e) => plain(e) && e.key === "[", lk("left")],
+      ["]", "Select rightward", "Pick the node to the right", (e) => plain(e) && e.key === "]", lk("right")],
+      ["P", "Main track magnet", "Moving a node moves every later node in its lane too", (e) => plain(e) && key(e, "p"), lk("magnet")],
+      ["N", "Auto snapping", "A node dropped next to a marker lands on it", (e) => plain(e) && key(e, "n"), lk("snap")],
+      ["~", "Linkage switch", "Joined nodes move and copy together (on) or alone (off)", (e) => plain(e) && (e.key === "~" || e.key === "`"), lk("linkage")],
+      ["S", "Preview axis switch", "Hover over the timeline to see that moment in the player", (e) => plain(e) && !e.shiftKey && key(e, "s"), lk("skim")],
+      ["M", "Add marker", "Put a marker on the playhead's moment (again to take it off)", (e) => plain(e) && key(e, "m"), lk("marker")],
+      ["⌘+", "Zoom in", "Wider moments on the timeline", (e) => mod(e) && !e.altKey && (e.key === "=" || e.key === "+"), lk("zoomIn")],
+      ["⌘−", "Zoom out", "Narrower moments on the timeline", (e) => mod(e) && !e.altKey && (e.key === "-" || e.key === "_"), lk("zoomOut")],
+      ["⇧Z", "Zoom to fit timeline", "The whole film fits the timeline", (e) => plain(e) && e.shiftKey && key(e, "z"), lk("zoomFit")],
+      ["J", "Shuttle left", "Play backward; press again to go faster", (e) => plain(e) && key(e, "j"), () => shuttle(-1)],
+      ["K", "Shuttle stop", "Stop playing", (e) => plain(e) && key(e, "k"), () => play(false)],
+      ["L", "Shuttle right", "Play forward; press again to go faster", (e) => plain(e) && key(e, "l"), () => shuttle(1)],
+      ["Q", "Delete left", "Remove the picked lane's nodes before the playhead", (e) => plain(e) && key(e, "q"), lk("deleteLeft")],
+      ["W", "Delete right", "Remove the picked lane's nodes after the playhead", (e) => plain(e) && key(e, "w"), lk("deleteRight")],
+      ["⇧⌥K", "Add keyframe", "Add a node at the playhead on the picked lane (a node is a keyframe)", (e) => e.altKey && e.shiftKey && !mod(e) && e.code === "KeyK", lk("splitHere")],
+      ["⇧↩ or I", "In", "Start the play range at the playhead, so Play loops over a part (Maya's playback range)", (e) => !mod(e) && ((e.shiftKey && e.key === "Enter") || (plain(e) && !e.shiftKey && key(e, "i"))), () => setRange("in")],
+      ["O", "Out", "End the play range at the playhead (not in CapCut's list; most editors use it)", (e) => plain(e) && !e.shiftKey && key(e, "o"), () => setRange("out")],
+      ["⌥X", "Clear the range", "Play the whole film again", (e) => e.altKey && !mod(e) && e.code === "KeyX", () => setRange(null)],
+      ["G", "Ghosts", "See the moments before and after faintly (Maya's ghosting); not in CapCut", (e) => plain(e) && !e.shiftKey && key(e, "g"), () => ((prefs.ghost = !prefs.ghost), save(), drawViewers())],
+      ["⌥K", "Show/hide keyframe panel", "Nothing yet: the timeline's lanes are always the keyframe panel"],
+    ]],
+    ["Player", [
+      ["Space", "Play/Pause", "Play the film from the playhead", (e) => plain(e) && e.key === " ", () => play(!timer)],
+      ["← →", "Back or forward", "One moment back or forward", (e) => plain(e) && (e.key === "ArrowLeft" || e.key === "ArrowRight"), (e) => setRow(row + (e.key === "ArrowRight" ? 1 : -1))],
+      ["⇧⌘F", "Enter/Exit full screen", "The Player fills the window (Esc to leave)", (e) => mod(e) && e.shiftKey && key(e, "f"), () => fullPlayer(!page.dataset.fullplayer)],
+      ["⌥⇧+", "Zoom in player", "Bigger frames in the Player", (e) => e.altKey && e.shiftKey && (e.code === "Equal" || e.code === "NumpadAdd"), () => zoomPlayer(1.25)],
+      ["⌥⇧−", "Zoom out player", "Smaller frames in the Player", (e) => e.altKey && e.shiftKey && (e.code === "Minus" || e.code === "NumpadSubtract"), () => zoomPlayer(0.8)],
+      ["⌥⇧Z", "Zoom to fit player", "Frames fit the Player again", (e) => e.altKey && e.shiftKey && e.code === "KeyZ", () => zoomPlayer(0)],
+      ["⌘⌥R", "Show/hide rulers", "Rulers along the frames' edges", (e) => mod(e) && e.altKey && e.code === "KeyR", () => toggleView("rulers")],
+      ["⌘;", "Show/hide guides", "Thirds guides over the frames", (e) => mod(e) && !e.altKey && e.key === ";", () => toggleView("guides")],
+      ["Long press ⌘", "Cancel player alignment", "Nothing yet (CapCut lets you place a clip freely while ⌘ is held)"],
+    ]],
+    ["Basic", [
+      ["⌘C", "Copy", "Copy the picked node with every node joined to it", (e) => mod(e) && !e.shiftKey && !e.altKey && key(e, "c"), lk("copy")],
+      ["⌘X", "Cut", "Copy it, then take it out", (e) => mod(e) && !e.shiftKey && !e.altKey && key(e, "x"), lk("cut")],
+      ["⌘V", "Paste", "Paste it at the playhead's moment", (e) => mod(e) && !e.shiftKey && !e.altKey && key(e, "v"), lk("paste")],
+      ["⇧⌘C", "Copy attributes", "Copy the picked node's setting", (e) => mod(e) && e.shiftKey && key(e, "c"), lk("copyLook")],
+      ["⇧⌘V", "Paste attributes", "Give that setting to another node of the same curiosity", (e) => mod(e) && e.shiftKey && key(e, "v"), lk("pasteLook")],
+      ["⌫", "Delete", "Remove the picked node", (e) => plain(e) && (e.key === "Backspace" || e.key === "Delete"), lk("delete")],
+      ["⌘Z", "Undo", "Undo the last change to your film", (e) => mod(e) && !e.shiftKey && key(e, "z"), () => E() && E().undo()],
+      ["⇧⌘Z", "Reset (redo)", "Redo what you undid", (e) => mod(e) && e.shiftKey && key(e, "z"), () => E() && E().redo()],
+      ["?", "Shortcuts", "Show or hide this list", (e) => !mod(e) && e.key === "?", () => showKeys(!keysOpen)],
+      ["esc", "Exit full screen", "Leave the full-screen Player, or close this list", null, null],
+      ["⌘I, ⌘E, ⌘N", "Import, Export, New project", "In the app's Library menu (Open, Print, New project); the browser keeps these keys"],
+      ["⇥", "Switch material panel", "Tab moves between buttons, as on any web page; click the icon row instead"],
+      ["⌘Q, ⌘⌥Q, ⌘^F", "Quit, Back to edit, Full screen", "Handled by the browser or the desktop app"],
+    ]],
+    ["Other", [["⌥ drag", "Resize the text box from the center", "Nothing yet: there are no text boxes on the Screen"]]],
+  ];
+  /* J and L: each press goes one step faster in that direction, like CapCut's shuttle. */
+  let playDir = 1;
+  let playRate = 1;
+  function shuttle(dir) {
+    if (timer && playDir === dir) playRate = Math.min(8, playRate * 2);
+    else playRate = 1;
+    playDir = dir;
+    play(true);
+  }
+  function fullPlayer(on) {
+    if (on) page.dataset.fullplayer = "1";
+    else delete page.dataset.fullplayer;
+  }
+  function zoomPlayer(f) {
+    prefs.playerZoom = f ? Math.max(0.5, Math.min(3, (Number(prefs.playerZoom) || 1) * f)) : 1;
+    save();
+    page.style.setProperty("--sc-pz", String(prefs.playerZoom));
+  }
+  function toggleView(k) {
+    prefs[k] = !prefs[k];
+    save();
+    page.dataset[k] = prefs[k] ? "1" : "";
+  }
+  let keysOpen = false;
+  function showKeys(on) {
+    keysOpen = !!on;
+    let box = page.querySelector(".sc-keys");
+    if (!keysOpen) return box && box.remove();
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "sc-keys";
+      box.setAttribute("role", "dialog");
+      box.setAttribute("aria-label", "Keyboard shortcuts");
+      page.appendChild(box);
+    }
+    box.innerHTML = `<div class="sc-keys-in"><header><strong>Keyboard shortcuts</strong><span class="sc-k">CapCut's keys, doing the nearest thing for curiosity nodes. ⌘ is Ctrl on Windows; faded rows have nothing to do here yet.</span><button type="button" data-act="keys-close" aria-label="Close">×</button></header>${SHORTCUTS.map(
+      ([h, rows]) => `<section><h3>${esc(h)}</h3>${rows.map(([k, name, what, test]) => `<p${test === undefined ? ' class="sc-key-none"' : ""}><kbd>${esc(k)}</kbd><b>${esc(name)}</b><span>${esc(what)}</span></p>`).join("")}</section>`
+    ).join("")}</div>`;
+  }
   let prefs = load();
   function load() {
     try {
@@ -101,6 +233,8 @@
     return st.rows.map((r) => {
       const values = {};
       order.forEach((t) => t.curiosities.forEach((c) => values[c] == null && (values[c] = Eng.value(r.id, t.id, c))));
+      /* "transitionKind.setting" is the curiosity's own value, so the frame reads it as transitionKind. */
+      Object.keys(values).forEach((k) => /\.setting$/.test(k) && values[L().base(k)] == null && (values[L().base(k)] = values[k]));
       return { at: null, note: r.label, values, row: r.id };
     });
   }
@@ -117,11 +251,39 @@
     drawViewers();
     drawInspector();
     if (lanes) lanes.draw();
+    tell();
+  }
+  /* The play range (Maya's playback range; CapCut's In point): [from, to] moments, or null for the whole film. */
+  function rangeNow() {
+    const r = prefs.range;
+    if (!r || !Array.isArray(r)) return null;
+    const n = nRows();
+    const a = Math.max(0, Math.min(n - 1, r[0] | 0));
+    const b = Math.max(0, Math.min(n - 1, r[1] | 0));
+    return a < b ? [a, b] : null;
+  }
+  function setRange(end) {
+    const cur = rangeNow() || [0, nRows() - 1];
+    prefs.range = end === "in" ? [row, Math.max(row + 1, cur[1])] : end === "out" ? [Math.min(cur[0], row - 1), row] : null;
+    if (prefs.range && prefs.range[0] < 0) prefs.range[0] = 0;
+    save();
+    drawViewers();
+    if (lanes) lanes.draw();
+    toast(rangeNow() ? `Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}.` : "Play runs over the whole film.");
   }
   function play(on) {
     if (timer) clearInterval(timer);
     timer = null;
-    if (on) timer = setInterval(() => setRow(row + 1 >= nRows() ? 0 : row + 1), Math.round(1100 / (prefs.speed || 1)));
+    if (!on) (playDir = 1), (playRate = 1);
+    if (on) {
+      const rg = rangeNow();
+      if (rg && (row < rg[0] || row > rg[1])) setRow(playDir < 0 ? rg[1] : rg[0]);
+    }
+    if (on)
+      timer = setInterval(() => {
+        const [a, b] = rangeNow() || [0, nRows() - 1];
+        setRow(playDir < 0 ? (row <= a ? b : row - 1) : row >= b ? a : row + 1);
+      }, Math.round(1100 / ((prefs.speed || 1) * playRate)));
     const b = page && page.querySelector('[data-act="play"]');
     if (b) b.textContent = on ? "Pause" : "Play";
   }
@@ -130,7 +292,18 @@
   function selection() {
     return L() ? L().resolve(prefs.sel.level, prefs.sel.id) : { curiosities: [], pairs: [], categories: [] };
   }
+  /* A curiosity's own setting as a lane id. The engine knows the catalog's curiosities by their bare id; one
+     it doesn't know yet (rows loaded after install) is
+     reached through its main slider, "transitionKind.setting". */
+  function keyFor(id) {
+    if (!S() || S().known(id) || !L()) return id;
+    const c = L().get("curiosity", id);
+    const k = c && id + "." + (c.main || "setting");
+    return k && S().known(k) ? k : id;
+  }
   function labelOf(id) {
+    const c = L() && /\.setting$/.test(id) ? L().get("curiosity", L().base(id)) : null;
+    if (c && c.main === "setting") return c.label;
     return S() ? S().label(id) : id;
   }
   function frameOpts(sel, values) {
@@ -179,27 +352,38 @@
     page = document.createElement("section");
     page.className = "sc-page";
     page.setAttribute("aria-label", "Screen");
-    page.innerHTML = `<header class="sc-bar"></header><div class="sc-main"><div class="sc-left"><div class="sc-viewers"></div><div class="sc-timeline"></div></div><aside class="sc-inspector" aria-label="Inspector"></aside></div>`;
+    page.innerHTML = `<header class="sc-bar"></header><div class="sc-main">
+      <section class="sc-lib sc-panel" aria-label="Curiosity library"><nav class="sc-icons" aria-label="Categories"></nav><div class="sc-lib-body"><div class="sc-side"></div><div class="sc-grid"></div></div></section>
+      <section class="sc-player sc-panel" aria-label="Player"><header class="sc-ph"></header><div class="sc-viewers"></div><div class="sc-overview" aria-label="Whole film"></div><div class="sc-transport"></div></section>
+      <aside class="sc-inspector sc-panel" aria-label="Details"></aside>
+      <div class="sc-timeline sc-panel"></div></div>`;
     document.body.appendChild(page);
     page.addEventListener("click", onClick);
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
     page.addEventListener("pointerdown", onKnobDown);
+    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || onOverviewDrag(e));
+    page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
     document.addEventListener("keydown", (e) => {
       if (page.hidden) return;
       const tag = (e.target && e.target.tagName) || "";
-      if (/INPUT|SELECT|TEXTAREA/.test(tag)) return;
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && E()) {
-        e.preventDefault();
-        if (e.shiftKey) E().redo();
-        else E().undo();
-      } else if (e.key === " ") {
-        e.preventDefault();
-        play(!timer);
-      } else if (e.key === "ArrowRight") setRow(row + 1);
-      else if (e.key === "ArrowLeft") setRow(row - 1);
+      if (/INPUT|SELECT|TEXTAREA/.test(tag) || (e.target && e.target.isContentEditable)) return;
+      if (e.key === "Escape" && keysOpen) return showKeys(false);
+      if (e.key === "Escape" && page.dataset.fullplayer) return fullPlayer(false);
+      /* Leave the browser's own copy alone when text is selected. */
+      if (mod(e) && e.key.toLowerCase() === "c" && String(window.getSelection && window.getSelection()).length) return;
+      for (const [, rows] of SHORTCUTS)
+        for (const r of rows)
+          if (r[3] && r[3](e)) {
+            e.preventDefault();
+            r[4](e);
+            if (keysOpen && r[0] !== "?") showKeys(true);
+            return;
+          }
     });
     if (E()) E().on(() => !page.hidden && drawAll(true));
+    /* Something outside the Screen changed what it shows (the Character tab's picked character). */
+    window.addEventListener("curio-screen-redraw", () => !page.hidden && drawAll());
     window.addEventListener("resize", () => !page.hidden && lanes && lanes.draw());
   }
   function drawAll(fromEngine) {
@@ -207,10 +391,63 @@
     row = Math.min(row, nRows() - 1);
     page.dataset.view = prefs.view;
     page.dataset.arrange = prefs.arrange;
+    page.dataset.layout = LAYOUTS.some((l) => l[0] === prefs.layout) ? prefs.layout : "center";
+    page.dataset.guides = prefs.guides ? "1" : "";
+    page.dataset.rulers = prefs.rulers ? "1" : "";
+    page.style.setProperty("--sc-pz", String(Number(prefs.playerZoom) || 1));
     drawBar();
+    drawLibrary();
     drawViewers();
     drawInspector();
     drawTimeline(fromEngine);
+    placePanels();
+    tell();
+  }
+  /* Side panels other threads dock into the Screen (the momentum meter beside the Player):
+     addPanel({ id, label, place: "player" | "details" | "timeline", mount(el) }). The Screen owns where they go;
+     each is mounted once into its own element and kept across redraws. on(fn) is told after every redraw and
+     every playhead move. */
+  const panels = [];
+  const listeners = [];
+  const PLACE = { player: ".sc-player", details: ".sc-inspector", timeline: ".sc-timeline" };
+  function placePanels() {
+    if (!page) return;
+    panels.forEach((p) => {
+      const host = page.querySelector(PLACE[p.place] || PLACE.player);
+      if (!host) return;
+      if (!p.el) {
+        p.el = document.createElement("div");
+        p.el.className = "sc-dock";
+        p.el.dataset.panel = p.id;
+        p.el.setAttribute("aria-label", p.label || p.id);
+      }
+      if (p.el.parentNode !== host) {
+        host.appendChild(p.el);
+        host.classList.add("sc-has-dock");
+      }
+      if (!p.mounted) {
+        p.mounted = true;
+        try {
+          p.mount(p.el);
+        } catch (e) {
+          p.el.textContent = (p.label || p.id) + " could not load.";
+        }
+      }
+    });
+  }
+  function addPanel(spec) {
+    if (!spec || !spec.id || typeof spec.mount !== "function") return false;
+    if (panels.some((p) => p.id === spec.id)) return false;
+    panels.push(Object.assign({ place: "player" }, spec));
+    placePanels();
+    return true;
+  }
+  function tell() {
+    listeners.forEach((fn) => {
+      try {
+        fn({ row, rows: nRows() });
+      } catch (e) {}
+    });
   }
 
   function selectOptions() {
@@ -230,7 +467,7 @@
     bar.innerHTML = `
       <strong class="sc-title">Curiomatic</strong>
       <div class="sc-seg" role="group" aria-label="View">
-        <button type="button" data-view="screen" class="${prefs.view === "screen" ? "on" : ""}" title="Viewers on top, the timeline under them">Screen</button>
+        <button type="button" data-view="screen" class="${prefs.view === "screen" ? "on" : ""}" title="Library, player and details on top, the timeline under them">Screen</button>
         <button type="button" data-view="arrange" class="${prefs.view === "arrange" ? "on" : ""}" title="Every automated curiosity as a track, left to right">Arrange</button>
       </div>
       <div class="sc-look">
@@ -240,24 +477,200 @@
           .join("")}</div>
         <select data-pick-item aria-label="Which ${esc(prefs.sel.level)}">${selectOptions()}</select>
       </div>
-      <div class="sc-seg" role="group" aria-label="Lens">
-        ${[
-          ["highlight", "Highlight", "Light up only what it is about"],
-          ["overlay", "Overlay", "Write its values on the picture"],
-          ["only", "Lens only", "Draw only what it is about"],
-          ["off", "Off", "The plain picture"],
-        ]
-          .map(([id, l, t]) => `<button type="button" data-lens="${id}" class="${prefs.lens === id ? "on" : ""}" title="${t}">${l}</button>`)
-          .join("")}
-      </div>
-      <div class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}<button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button></div>
-      <div class="sc-seg" role="group" aria-label="Viewer layout">
-        <button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}">Side by side</button>
-        <button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}">Stacked</button>
-      </div>
-      ${prefs.view === "arrange" ? `<label class="sc-chk"><input type="checkbox" data-act="viewers-in-arrange" ${prefs.viewersInArrange ? "checked" : ""}> Show viewers</label>` : ""}
+      ${prefs.view === "arrange" ? `<label class="sc-chk"><input type="checkbox" data-act="viewers-in-arrange" ${prefs.viewersInArrange ? "checked" : ""}> Show the player</label>` : ""}
+      <label class="sc-layout" title="Layout, like CapCut's layout menu"><span class="sc-k">Layout</span><select data-pick-layout aria-label="Layout">${LAYOUTS.map(([id, l, t]) => `<option value="${id}" title="${esc(t)}"${prefs.layout === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
+      <button type="button" data-act="shortcuts" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="5" width="17" height="10" rx="1.5"/><path d="M5 8h1M8 8h1M11 8h1M14 8h1M5 11.5h10"/></svg> Shortcuts</button>
       <button type="button" data-act="close" class="sc-close">Back to the app</button>
       <p class="sc-what">${esc(sel.label)}${sel.plain ? ": " + esc(sel.plain) : ""}</p>`;
+  }
+
+  /* ---------- the library (CapCut's top-left panel) ---------- */
+  /* Line icons for the category tabs, drawn on a 20 by 20 grid in the current text color. */
+  const ICONS = {
+    camera: '<rect x="2" y="6" width="12" height="9" rx="1"/><path d="M14 9l4-2v7l-4-2"/>',
+    person: '<circle cx="10" cy="5" r="3"/><path d="M4 18c0-4 3-6 6-6s6 2 6 6"/>',
+    sun: '<circle cx="10" cy="10" r="3.5"/><path d="M10 1v3M10 16v3M1 10h3M16 10h3M3.6 3.6l2 2M14.4 14.4l2 2M3.6 16.4l2-2M14.4 5.6l2-2"/>',
+    filter: '<circle cx="7.5" cy="8" r="4.5"/><circle cx="12.5" cy="8" r="4.5"/><circle cx="10" cy="12.5" r="4.5"/>',
+    house: '<path d="M3 9l7-6 7 6v8H3z"/><path d="M8 17v-5h4v5"/>',
+    shirt: '<path d="M7 3L3 6l2 3 2-1v9h6V8l2 1 2-3-4-3c-1 1.5-2 2-3 2S8 4.5 7 3z"/>',
+    note: '<path d="M8 15V4l8-2v11"/><circle cx="6" cy="15" r="2"/><circle cx="14" cy="13" r="2"/>',
+    text: '<path d="M3 4h10M8 4v13M13 9h5M15.5 9v8"/>',
+    star: '<path d="M10 2l2.4 5 5.6.6-4.2 3.8 1.2 5.6L10 14.2 5 17l1.2-5.6L2 7.6 7.6 7z"/>',
+    bowtie: '<path d="M3 4l7 6-7 6zM17 4l-7 6 7 6z"/>',
+    gauge: '<path d="M3 15a7 7 0 1 1 14 0"/><path d="M10 15l4-5"/>',
+    scissors: '<circle cx="5" cy="15" r="2.5"/><circle cx="15" cy="15" r="2.5"/><path d="M6.5 13L15 3M13.5 13L5 3"/>',
+    heart: '<path d="M10 17s-7-4.5-7-9a4 4 0 0 1 7-2.5A4 4 0 0 1 17 8c0 4.5-7 9-7 9z"/>',
+    smile: '<circle cx="10" cy="10" r="8"/><path d="M6.5 12a4 4 0 0 0 7 0M7.5 7.5v1M12.5 7.5v1"/>',
+    book: '<path d="M3 4h5a2 2 0 0 1 2 2v11a2 2 0 0 0-2-2H3zM17 4h-5a2 2 0 0 0-2 2v11a2 2 0 0 1 2-2h5z"/>',
+    page: '<rect x="4" y="2" width="12" height="16"/><path d="M4 9h12M10 9v9"/>',
+    film: '<rect x="2" y="4" width="16" height="12" rx="1"/><path d="M5 4v12M15 4v12M2 8h3M2 12h3M15 8h3M15 12h3"/>',
+    grid: '<rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/>',
+    people: '<circle cx="7" cy="6" r="2.5"/><circle cx="14" cy="7" r="2"/><path d="M2 17c0-3.5 2.2-5.5 5-5.5s5 2 5 5.5M12.5 12c2.8-.4 5 1.4 5 4.5"/>',
+  };
+  const icon = (name) => `<svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true">${ICONS[name] || ICONS.star}</svg>`;
+  function category() {
+    return L().CATEGORIES.find((c) => c.id === prefs.cat) || L().CATEGORIES[0];
+  }
+  /* The sidebar's groups for a category: its workspaces, then its suites, proximities and proximity suites. */
+  /* ADVANCED (Jeremy, 2026-10-02 20:21Z): "keep the features of Final Cut Pro and hide them under a tab that
+     says ADVANCED and then focus on the features of CapCut". Rows tagged "advanced" (Final Cut Pro features
+     CapCut has no match for, data/db-editing.js) stay out of the category grids and Details, and live under
+     the ADVANCED tab with a map of every Final Cut Pro feature the Screen already does in CapCut's way. */
+  const isAdv = (it) => !!(it && Array.isArray(it.tags) && it.tags.includes("advanced"));
+  const mainOnly = (list) => list.filter((it) => !isAdv(it));
+  const ADV = { id: "advanced", label: "ADVANCED", icon: "gauge", windows: 2, plain: "Final Cut Pro's features: the ones CapCut has no match for, as curiosities, and where every other one lives on this screen." };
+  /* [Final Cut Pro feature, where it is here, the curiosity it opens (or none)] */
+  const FCP_MAP = [
+    ["Browser and Viewer", "The library and the Player", ""],
+    ["Inspector", "Details, on the right", ""],
+    ["Video tracks", "The film clip tracks at the top of the timeline", ""],
+    ["Magnetic timeline", "Magnet in the timeline toolbar (P)", ""],
+    ["Skimming", "Preview axis in the timeline toolbar (S)", ""],
+    ["Range selection", "Play range: I and O", ""],
+    ["Markers", "Marker in the timeline toolbar (M)", ""],
+    ["Keyframes and the Video Animation editor", "Nodes on a lane, with Glide, Smooth or Jump", ""],
+    ["Connected clips", "Overlay", "overlay"],
+    ["Transitions browser", "Transition style", "transitionKind"],
+    ["Retime menu", "Clip speed", "clipSpeed"],
+    ["Hold frame", "Freeze frame", "freezeFrame"],
+    ["Beat Detection", "Cutting to the beat", "beatSync"],
+    ["Color board", "Exposure, and Warmth and tint", "exposure"],
+    ["Match Color and Balance Color", "Shot matching", "colorMatch"],
+    ["Custom LUT", "LUT", "lut"],
+    ["Titles", "On-screen text", "onScreenText"],
+    ["Captions", "Captions", "captions"],
+    ["Keyer", "Cutout and green screen", "cutout"],
+    ["Shape and color masks", "Mask", "maskShape"],
+    ["Object tracker", "Tracking", "tracking"],
+    ["Stabilization and rolling shutter", "Steadying", "stabilization"],
+    ["Ken Burns", "Punch-in and reframe", "reframe"],
+    ["Voiceover tool", "Voice-over", "voiceover"],
+  ];
+  function advancedGroups() {
+    const out = [{ id: "adv:fcp", label: "Final Cut Pro's own", level: "curiosity", items: L().items("curiosity").filter(isAdv) }];
+    [["suite", "Advanced suites"], ["proximity", "Advanced proximities"], ["proximitySuite", "Advanced proximity suites"]].forEach(([lv, label]) => {
+      const items = L().items(lv).filter(isAdv);
+      if (items.length) out.push({ id: "adv:" + lv, label, level: lv, items });
+    });
+    out.push({ id: "adv:map", label: "Final Cut Pro, here", level: "fcp", items: FCP_MAP.map(([id, plain, cur]) => ({ id, label: id, plain: "Here: " + plain, cur: cur && S() && S().known(cur) ? cur : "" })) });
+    return out;
+  }
+  function groupsOf(cat) {
+    const ws = (window.CuriosityDB && window.CuriosityDB.data.workspaces) || [];
+    const out = cat.workspaces
+      .map((w) => ({ id: "ws:" + w, label: (ws.find((x) => x.id === w) || {}).label || w, level: "curiosity", items: mainOnly(L().curiosities(cat.id)).filter((c) => c.workspace === w) }))
+      .filter((g) => g.items.length);
+    [["suite", "Suites"], ["proximity", "Proximities"], ["proximitySuite", "Proximity suites"]].forEach(([lv, label]) => {
+      const items = mainOnly(L().items(lv, cat.id));
+      if (items.length) out.push({ id: lv, label, level: lv, items });
+    });
+    return out;
+  }
+  /* "My film": every lane with nodes (an outliner), then the proximities and suites already joined in. */
+  function mineGroups() {
+    const st = E() && E().state();
+    if (!st) return [];
+    const lanes = Object.keys(st.lanes).map((lk) => {
+      const cur = lk.slice(lk.indexOf("|") + 1);
+      const t = st.tracks.find((x) => lk.startsWith(x.id + "|"));
+      const n = Object.keys(st.lanes[lk].points).length;
+      return { id: cur, label: labelOf(cur), plain: `${n} node${n === 1 ? "" : "s"} on ${t ? t.label : "a track"}${st.lanes[lk].mode === "hold" ? ", jumps between them" : ""}` };
+    });
+    const out = [{ id: "mine:lanes", label: "Automated curiosities", level: "curiosity", items: lanes }];
+    const links = st.links.map((l) => ({ id: l.id, label: l.label || "A proximity", plain: (l.on ? "" : "Switched off. ") + (l.scope ? "Joins two nodes." : "A rule for the whole lane."), link: true }));
+    if (links.length) out.push({ id: "mine:links", label: "Proximities in my film", level: "link", items: links });
+    return out;
+  }
+  /* "Templates": every suite, by category, and the proximity suites as linked recipes. */
+  function templateGroups() {
+    const out = L()
+      .CATEGORIES.map((c) => ({ id: "tpl:" + c.id, label: c.label, level: "suite", items: L().items("suite", c.id) }))
+      .filter((g) => g.items.length);
+    const ps = L().items("proximitySuite");
+    if (ps.length) out.push({ id: "tpl:linked", label: "Linked recipes", level: "proximitySuite", items: ps });
+    return out;
+  }
+  function cardHtml(level, it) {
+    if (level === "fcp") return it.cur ? `<div class="sc-card sc-fcp" data-card="fcp"><button type="button" class="sc-card-b" data-pick-card="curiosity|${esc(it.cur)}"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></button></div>` : `<div class="sc-card sc-fcp" data-card="fcp"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></div></div>`;
+    if (level === "link") return `<div class="sc-card" data-card="link"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Proximity</em></div></div>`;
+    const on = prefs.sel.level === level && prefs.sel.id === it.id;
+    let sub = it.plain || "";
+    if (level === "suite") sub = (it.members || []).length + " curiosities: " + [...new Set((it.members || []).map((m) => labelOf(keyFor(m.curiosity))))].slice(0, 4).join(", ");
+    const tag = level === "curiosity" ? (isAdv(it) ? "Advanced: Final Cut Pro" : it.source === "Final Cut Pro and CapCut" ? "New from editing" : "") : L().LEVELS.find((l) => l.id === level).label;
+    const add = level === "proximity" || level === "proximitySuite" ? "Add it to my film" : level === "suite" ? "Put its curiosities on the timeline" : "Put it on the timeline";
+    const k = level === "curiosity" ? keyFor(it.id) : "";
+    const tiles = on && k && prefs.view !== "arrange" ? tilesOf(k) : [];
+    const here = tiles.length ? String(valueHere(k)) : "";
+    return `<div class="sc-card${on ? " on" : ""}${tiles.length ? " wide" : ""}" data-card="${esc(level)}" data-id="${esc(it.id)}" title="${esc(it.plain || it.label)}">
+      <button type="button" class="sc-card-b" data-pick-card="${esc(level)}|${esc(it.id)}"><strong>${esc(it.label)}</strong><small>${esc(sub)}</small>${tag ? `<em>${esc(tag)}</em>` : ""}</button>
+      <button type="button" class="sc-plus" data-add-card="${esc(level)}|${esc(it.id)}" aria-label="${esc(add)}: ${esc(it.label)}" title="${esc(add)}">+</button>
+      ${tiles.length ? `<div class="sc-tiles" role="group" aria-label="Settings of ${esc(it.label)}"><span class="sc-k">Drop a setting at moment ${row + 1}:</span>${tiles.map((v) => `<button type="button" data-drop="${esc(k)}" data-v="${esc(v)}" class="${String(v) === here ? "on" : ""}">${esc(v)}${S().domain(k).unit && typeof v === "number" ? esc(S().domain(k).unit) : ""}</button>`).join("")}</div>` : ""}
+    </div>`;
+  }
+  function drawLibrary() {
+    if (!page || !L()) return;
+    const box = page.querySelector(".sc-lib");
+    box.hidden = prefs.view === "arrange";
+    if (box.hidden) return;
+    const cat = category();
+    const tab = ["mine", "templates", "advanced"].includes(prefs.libTab) ? prefs.libTab : "";
+    const extra = [["mine", "My film", "film", "Everything automated in my film so far (like Maya's Outliner, or CapCut's Yours)"], ["templates", "Templates", "grid", "Ready-made recipes: every suite, dropped at the playhead as a set of nodes (CapCut's Templates)"]];
+    page.querySelector(".sc-icons").innerHTML =
+      extra.map(([id, label, ic, t]) => `<button type="button" data-libtab="${id}" class="${tab === id ? "on" : ""}" aria-pressed="${tab === id}" title="${esc(t)}">${icon(ic)}<span>${esc(label)}</span></button>`).join("") +
+      L()
+        .CATEGORIES.map((c) => `<button type="button" data-icat="${c.id}" class="${!tab && c.id === cat.id ? "on" : ""}" aria-pressed="${!tab && c.id === cat.id}" title="${esc(c.plain)}">${icon(c.icon)}<span>${esc(c.label)}</span></button>`)
+        .join("") +
+      `<button type="button" data-libtab="advanced" class="sc-adv${tab === "advanced" ? " on" : ""}" aria-pressed="${tab === "advanced"}" title="${esc(ADV.plain)}">${icon(ADV.icon)}<span>${ADV.label}</span></button>`;
+    const groups = tab === "mine" ? mineGroups() : tab === "templates" ? templateGroups() : tab === "advanced" ? advancedGroups() : groupsOf(cat);
+    const gkey = tab || cat.id;
+    const gid = groups.some((g) => g.id === prefs.groups[gkey]) ? prefs.groups[gkey] : (groups[0] || {}).id;
+    page.querySelector(".sc-side").innerHTML = groups.map((g) => `<button type="button" class="sc-pill${g.id === gid && !prefs.search ? " on" : ""}" data-group="${esc(g.id)}"><span>${esc(g.label)}</span><small>${g.items.length}</small></button>`).join("");
+    let cards;
+    let head;
+    const q = String(prefs.search || "").trim().toLowerCase();
+    if (q) {
+      const hits = L()
+        .items("curiosity")
+        .filter((c) => (c.label + " " + (c.plain || "")).toLowerCase().includes(q))
+        .slice(0, 60);
+      head = `${hits.length} curiosit${hits.length === 1 ? "y" : "ies"} match`;
+      cards = hits.map((c) => cardHtml("curiosity", c)).join("");
+    } else {
+      const g = groups.find((x) => x.id === gid);
+      head = g ? g.label : "Nothing here yet";
+      cards = g ? g.items.map((it) => cardHtml(g.level, it)).join("") : "";
+    }
+    const grid = page.querySelector(".sc-grid");
+    const had = grid.querySelector("[data-lib-search]");
+    const focused = had && document.activeElement === had;
+    grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}"><p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>`;
+    if (focused) {
+      const inp = grid.querySelector("[data-lib-search]");
+      inp.focus();
+      inp.setSelectionRange(inp.value.length, inp.value.length);
+    }
+  }
+  /* A card's + : a curiosity goes on the timeline, a suite's curiosities go on it, a proximity (or proximity
+     suite) goes into my film as lane rules. */
+  function addCard(level, id) {
+    if (level === "proximity" || level === "proximitySuite") {
+      prefs.sel = { level, id };
+      save();
+      addProximity();
+      return drawAll();
+    }
+    /* Everything picked lands as nodes on automation lanes at the playhead: a curiosity at its current setting,
+       a suite (a template) with each member at the suite's own setting. */
+    const s = level === "suite" ? L().get("suite", id) : null;
+    const list = s ? (s.members || []).filter((m) => m.curiosity).map((m) => [m.slider ? m.curiosity + "." + m.slider : keyFor(m.curiosity), m.value]) : [[keyFor(id), valueHere(keyFor(id))]];
+    const ok = list.filter(([k]) => S() && S().known(k));
+    ok.forEach(([k]) => showLane(k));
+    save();
+    if (E() && ok.length) {
+      const res = setValues(ok.map(([k, v]) => [k, v == null ? S().start(k) : v]), s ? `Drop ${s.label} at moment ${row + 1}` : null);
+      if (res && res.ok) toast(s ? `${s.label}: ${ok.length} nodes dropped at moment ${row + 1}. Each one is a lane you can automate.` : `${labelOf(ok[0][0])} is on the timeline with a node at moment ${row + 1}. Drag it, or click the lane to add more.`);
+    } else toast(`${list.length > 1 ? list.length + " curiosities are" : labelOf(keyFor(id)) + " is"} on the timeline.`);
+    drawTimeline();
   }
 
   /* ---------- viewers ---------- */
@@ -276,7 +689,7 @@
       const att = attentionAt(beats, i);
       return `<article class="sc-viewer mine${prefs.focus === "mine" ? " focus" : ""}" data-viewer="mine">
         <header><button type="button" class="sc-vname" data-focus="mine">My film</button><span class="sc-vsub">${esc(E() ? E().state().name : "")} · moment ${i + 1} of ${beats.length}</span></header>
-        <div class="sc-frame" data-focus="mine">${F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) }))}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
+        <div class="sc-frame" data-focus="mine">${F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) }))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
         ${scrub(beats, i, fires, "mine")}
         <p class="sc-vnote">${fires.length ? `${esc(sel.label)} shows up ${fires.length} time${fires.length === 1 ? "" : "s"} in your film.` : `${esc(sel.label)} does not show up in your film yet.`}</p>
       </article>`;
@@ -297,13 +710,118 @@
       <p class="sc-vnote">${esc(f.beats[b].at || "")} ${esc(f.beats[b].note || "")}${fires.length ? ` · ${esc(sel.label)}: ${fires.length} time${fires.length === 1 ? "" : "s"}` : ""}</p>
     </article>`;
   }
+  /* ---------- the whole film at a glance (decision 74) ----------
+     The viewers show one moment at a time, so this strip shows every moment of My film as a small storyboard
+     frame, always squeezed to fit, like the thumbnails on CapCut's main track and Final Cut Pro's filmstrips.
+     Click or drag along it to jump anywhere. The bright box is the stretch the timeline below shows now. */
+  const thumbs = new Map();
+  function thumb(values) {
+    const k = castOf() + JSON.stringify(values);
+    if (!thumbs.has(k)) {
+      if (thumbs.size > 400) thumbs.clear();
+      thumbs.set(k, F().svg(values, { title: "", cast: castOf() }).replace("<svg ", '<svg preserveAspectRatio="xMidYMid slice" '));
+    }
+    return thumbs.get(k);
+  }
+  function overviewHtml() {
+    const beats = mineBeats();
+    const n = beats.length;
+    if (!prefs.overview) return `<div class="sc-ov-h"><button type="button" data-act="overview" class="sc-ov-toggle" title="Show every moment of your film in one strip">▸ Whole film</button></div>`;
+    if (!n) return "";
+    const rg = rangeNow();
+    const fires = new Set(L().fires(prefs.sel.level, prefs.sel.id, beats).map((f) => f.beat));
+    const sel = selection();
+    return `<div class="sc-ov-h"><button type="button" data-act="overview" class="sc-ov-toggle" title="Hide the whole-film strip">▾ Whole film</button><span>${n} moment${n === 1 ? "" : "s"} · ${n * secondsPerMoment()} seconds</span>${fires.size ? `<span class="sc-ov-key"><em></em>${esc(sel.label)}</span>` : ""}<span class="sc-ov-tip">Click or drag to jump anywhere</span></div>
+      <div class="sc-ov-strip" data-ov-strip style="--n:${n}">${beats
+        .map((b, j) => `<button type="button" class="sc-ov-f${j === row ? " on" : ""}${rg && (j < rg[0] || j > rg[1]) ? " out" : ""}" data-ov="${j}" title="Moment ${j + 1}${b.note ? ": " + esc(b.note) : ""}. Click to jump here." aria-label="Jump to moment ${j + 1}">${thumb(b.values)}<i>${j + 1}</i>${fires.has(j) ? `<em title="${esc(sel.label)} happens here"></em>` : ""}</button>`)
+        .join("")}<span class="sc-ov-win" hidden></span></div>`;
+  }
+  /* The box on the strip that shows which part of the film the timeline is scrolled to. */
+  function showTimelineWindow() {
+    const box = page && page.querySelector(".sc-ov-win");
+    const sc = page && page.querySelector(".sl-scroll");
+    if (!box) return;
+    const head = sc && sc.querySelector(".sl-heads");
+    const hw = head ? head.offsetWidth : 0;
+    const total = sc ? sc.scrollWidth - hw : 0;
+    const seen = sc ? sc.clientWidth - hw : 0;
+    if (!sc || total <= 0 || seen >= total - 2) return (box.hidden = true);
+    box.hidden = false;
+    box.style.left = (100 * sc.scrollLeft) / total + "%";
+    box.style.width = (100 * Math.min(seen, total)) / total + "%";
+  }
+  /* Jump to a moment from the strip, and scroll the timeline so the playhead is in view. */
+  function jumpTo(j) {
+    setRow(j);
+    const sc = page.querySelector(".sl-scroll");
+    const play = sc && sc.querySelector(".sl-lanes .sl-play, .sl-topsvg .sl-play");
+    const head = sc && sc.querySelector(".sl-heads");
+    if (!play) return;
+    const hw = head ? head.offsetWidth : 0;
+    const x = Number(play.getAttribute("x"));
+    const w = Number(play.getAttribute("width")) || 0;
+    const seen = sc.clientWidth - hw;
+    if (x < sc.scrollLeft || x + w > sc.scrollLeft + seen) sc.scrollLeft = Math.max(0, w > seen ? x : x + w / 2 - seen / 2);
+    showTimelineWindow();
+  }
+  function onOverviewDrag(e) {
+    const strip = e.target.closest && e.target.closest("[data-ov-strip]");
+    if (!strip || e.button > 0) return false;
+    const at = (ev) => {
+      const s = page.querySelector("[data-ov-strip]");
+      const r = s.getBoundingClientRect();
+      return Math.floor(Math.max(0, Math.min(0.9999, (ev.clientX - r.left) / r.width)) * nRows());
+    };
+    let last = at(e);
+    jumpTo(last);
+    const move = (ev) => {
+      const j = at(ev);
+      if (j !== last) jumpTo((last = j));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+    return true;
+  }
+  /* CapCut-style timecode: one moment of my film counts as one second. */
+  /* Seconds per moment: the Momentum window's own setting (localStorage "curiosities-momentum-v1",
+     secondsPerPanel, 3 by default), so the Screen's clock and the momentum meter agree. */
+  function secondsPerMoment() {
+    try {
+      const p = JSON.parse(localStorage.getItem("curiosities-momentum-v1"));
+      if (p && Number(p.secondsPerPanel) > 0) return Number(p.secondsPerPanel);
+    } catch (e) {}
+    return 3;
+  }
+  const tc = (n) => {
+    const t = Math.round(n * secondsPerMoment());
+    return "00:" + String(Math.floor(t / 3600)).padStart(2, "0") + ":" + String(Math.floor((t % 3600) / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0");
+  };
   function drawViewers() {
     if (!page || !L() || !F()) return;
-    const box = page.querySelector(".sc-viewers");
+    const box = page.querySelector(".sc-player");
     const hide = prefs.view === "arrange" && !prefs.viewersInArrange;
     box.hidden = hide;
+    page.querySelector(".sc-viewers").hidden = hide;
     if (hide) return;
-    box.innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine") + `<div class="sc-transport"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><label>Speed <select data-speed>${[0.5, 1, 2, 4].map((s) => `<option value="${s}"${prefs.speed === s ? " selected" : ""}>${s}×</option>`).join("")}</select></label><span class="sc-k">Space plays, arrows step, Ctrl+Z undoes</span></div>`;
+    page.querySelector(".sc-ph").innerHTML = `<strong>Player</strong><div class="sc-seg sc-lens" role="group" aria-label="Lens">${[
+      ["highlight", "Highlight", "Light up only what it is about"],
+      ["overlay", "Overlay", "Write its values on the picture"],
+      ["only", "Lens only", "Draw only what it is about"],
+      ["off", "Off", "The plain picture"],
+    ]
+      .map(([id, l, t]) => `<button type="button" data-lens="${id}" class="${prefs.lens === id ? "on" : ""}" title="${t}">${l}</button>`)
+      .join("")}</div><button type="button" data-act="ghost" class="sc-ghost-b${prefs.ghost ? " on" : ""}" aria-pressed="${!!prefs.ghost}" title="Ghosts: see the moments before and after faintly over your film (Maya's ghosting, an animator's onion skin)">Ghosts</button>`;
+    page.querySelector(".sc-viewers").innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine");
+    page.querySelector(".sc-overview").innerHTML = overviewHtml();
+    showTimelineWindow();
+    page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
+      <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span></span>`;
   }
 
   /* ---------- the inspector ---------- */
@@ -311,7 +829,7 @@
     return (c.sliders || []).length;
   }
   function sliderId(c, s) {
-    return s.id === c.main || s.id === "setting" ? c.id : c.id + "." + s.id;
+    return s.id === c.main || s.id === "setting" ? keyFor(c.id) : c.id + "." + s.id;
   }
   function knob(id, s, val, disabled) {
     const r = s.range;
@@ -342,23 +860,298 @@
     if (!ok.length) return `<svg class="sc-spark" viewBox="0 0 72 16"></svg>`;
     return `<svg class="sc-spark" viewBox="0 0 72 16" aria-hidden="true"><polyline points="${ok.map((p) => p.join(",")).join(" ")}"/></svg>`;
   }
+  /* The key diamond in front of every control (Maya's channel box): filled when there is a node at this moment,
+     hollow when the lane has nodes elsewhere, faint when it is not automated yet. Click to set or take off a key. */
+  function keyBtn(id, ctx) {
+    if (!ctx.edit || !S() || !S().known(id)) return "";
+    const k = keyState(id);
+    const t = k === "here" ? "A key (node) is set here; click to take it off" : k === "lane" ? "Automated, no key at this moment; click to set one" : "Not automated yet; click to set a key here and put it on the timeline";
+    return `<button type="button" class="sc-key ${k || "none"}" data-key="${esc(id)}" title="${t}" aria-label="${esc(t)}: ${esc(labelOf(id))}">${k === "here" ? "◆" : "◇"}</button>`;
+  }
+  /* Momentum, the heart of the app: how the picked curiosity moves the story and the audience's attention. */
+  function momentumBox(m) {
+    const push = Math.max(0, Math.min(5, Number(m.push) || 0));
+    const CUE = { visual: "the eye", audio: "the ear", thought: "the mind", movement: "movement", plot: "the plot" };
+    return `<div class="sc-mom" aria-label="Momentum"><p><strong>Momentum</strong> <span class="sc-mom-bar" title="How hard it pushes the story: ${push} of 5">${"●".repeat(push)}${"○".repeat(5 - push)}</span>${m.cue ? ` <span class="sc-k">pulls ${esc(CUE[m.cue] || m.cue)}</span>` : ""}</p>${m.plot ? `<p><b>Story:</b> ${esc(m.plot)}</p>` : ""}${m.theme ? `<p><b>Theme:</b> ${esc(m.theme)}</p>` : ""}${m.pull ? `<p><b>Attention:</b> ${esc(m.pull)}</p>` : ""}${m.tryThis ? `<p><b>Try:</b> ${esc(m.tryThis)}</p>` : ""}</div>`;
+  }
   function curiosityRow(c, ctx) {
-    const sel = prefs.sel.level === "curiosity" && prefs.sel.id === c.id;
-    const mainVal = ctx.value(c.id);
+    const key = keyFor(c.id);
+    const sel = prefs.sel.level === "curiosity" && (prefs.sel.id === c.id || prefs.sel.id === key);
+    const mainVal = ctx.value(key);
     const open = !!prefs.folds[c.id];
     const fine = (c.sliders || []).filter((s) => s.id !== c.main && s.id !== "setting");
     const mainS = (c.sliders || []).find((s) => s.id === c.main || s.id === "setting") || (c.sliders || [])[0];
-    const take = ctx.insp ? Number((ctx.insp.takes || {})[c.id]) || 0 : 0;
+    const take = ctx.insp ? Number((ctx.insp.takes || {})[key]) || 0 : 0;
     return `<div class="sc-cur${sel ? " sel" : ""}">
       <div class="sc-cur-top">
         <button type="button" class="sc-cur-name" data-select-cur="${esc(c.id)}" title="${esc(c.plain || "")}">${esc(c.label)}</button>
-        ${spark(c.id, ctx.beats)}
+        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win" data-open-win="${esc(c.id)}" title="Open ${esc(c.label)}'s own window: every knob and slider it has" aria-label="Open ${esc(c.label)}'s window">⧉</button>
         ${fine.length ? `<button type="button" class="sc-fold" data-fold="${esc(c.id)}" aria-expanded="${open}" title="The fine controls inside it">${open ? "▾" : "▸"} ${fine.length}</button>` : ""}
       </div>
-      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${esc(mainS.label)}</span>${controlHtml(c.id, mainS, mainVal, !ctx.edit)}</div>` : ""}
-      ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(c.id)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(c.id)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
-      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
+      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyBtn(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
+      ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
+      ${sel && c.momentum ? momentumBox(c.momentum) : ""}
+      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyBtn(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
     </div>`;
+  }
+  /* ---------- a window for every curiosity (Jeremy, 2026-10-02 20:26Z: "a separate pop-up window for every
+     single curiosity which has specific knobs and sliders and features that apply just to that curiosity") ----------
+     Built from the curiosity's own sliders in the database: each one gets the control that fits it (toggle,
+     list, stepped slider, knob or slider), its key diamond, a "+ lane" button and a small chart of how it moves
+     through my film. Emotion, Shot size and Comedy have hand-made parts on top. Windows float over the Screen,
+     several at once; drag one by its title bar. Opened from ⧉ on a lane or in Details. */
+  const wins = [];
+  function openWin(id) {
+    if (!L() || !id) return;
+    const base = L().get("curiosity", id) ? id : L().base(id);
+    if (!L().get("curiosity", base)) return toast("That curiosity has no window yet.");
+    const had = wins.findIndex((w) => w.id === base);
+    if (had >= 0) wins.push(wins.splice(had, 1)[0]);
+    else wins.push({ id: base, x: 120 + (wins.length % 5) * 28, y: 90 + (wins.length % 5) * 28, focus: id === base ? "" : id });
+    drawWins();
+  }
+  function mineCtx() {
+    const beats = mineBeats();
+    const st = E() ? E().state() : null;
+    const r = st && st.rows[row];
+    return {
+      insp: null,
+      beats,
+      edit: !!r,
+      value: (id) => {
+        if (!st || !r) return undefined;
+        const t = st.tracks.find((x) => x.curiosities.includes(id));
+        return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
+      },
+    };
+  }
+  /* Nodes at given moments (not just the playhead), as one undo step: [[curiosity key, moment index, value]]. */
+  function setAt(items, label) {
+    const st = E() && E().state();
+    if (!st) return { ok: false };
+    const cmds = [];
+    const placed = {};
+    items.forEach(([id, j, v]) => {
+      const r = st.rows[j];
+      if (!r || !S().known(id)) return;
+      let track = placed[id] || (st.tracks.find((t) => t.curiosities.includes(id)) || {}).id;
+      if (!track) {
+        track = window.CurioLanes.trackFor(id, st);
+        if (!track) return;
+        cmds.push({ type: "addCuriosity", track, curiosity: id });
+      }
+      placed[id] = track;
+      const val = S().fix(id, v);
+      if (val != null) cmds.push({ type: "setPoint", row: r.id, track, curiosity: id, value: val });
+      showLane(id);
+    });
+    if (!cmds.length) return { ok: false };
+    save();
+    const res = E().send({ type: "batch", label, commands: cmds });
+    if (!res.ok) toast(res.error);
+    return res;
+  }
+  const FEEL_COLOR = { dreamlike: "#9b8cff", melancholy: "#5b7bd5", loving: "#ff7eb6", curious: "#33d1c6", absurd: "#c7e04a", joyful: "#ffd34d", anxious: "#ff9f43", fearful: "#a46cff", triumphant: "#ffb000", angry: "#ff5656" };
+  /* Hand-made parts for the most important curiosities. */
+  function winSpecial(c, ctx) {
+    const key = keyFor(c.id);
+    const n = ctx.beats.length;
+    const strip = (k, fmt) => `<div class="sc-wstrip" role="group" aria-label="Through my film">${ctx.beats.map((b, j) => { const v = L().beatValue(ctx.beats, j, k); return `<button type="button" data-win-row="${j}" class="${j === row ? "on" : ""}" title="Moment ${j + 1}: ${esc(v == null ? "not set" : v)}" style="${fmt ? fmt(v) : ""}"><b>${j + 1}</b><span>${esc(v == null ? "–" : String(v).slice(0, 10))}</span></button>`; }).join("")}</div>`;
+    if (c.id === "emotion") {
+      /* The feeling pad: unpleasant to pleasant across, calm to charged up (the valence and arousal sliders), with
+         each feeling placed where it sits, and the film's emotional road under it. */
+      const SPOT = { dreamlike: [0.62, 0.15], melancholy: [0.18, 0.22], loving: [0.82, 0.35], curious: [0.6, 0.55], absurd: [0.5, 0.68], joyful: [0.88, 0.7], anxious: [0.25, 0.78], fearful: [0.12, 0.88], triumphant: [0.85, 0.92], angry: [0.32, 0.95] };
+      const cur = ctx.value(key);
+      const vk = c.id + ".valence";
+      const ak = c.id + ".arousal";
+      const vp = S().known(vk) ? S().pos(vk, ctx.value(vk)) : null;
+      const ap = S().known(ak) ? S().pos(ak, ctx.value(ak)) : null;
+      return `<div class="sc-wpart"><h4>Feeling pad</h4><p class="sc-k">Click a feeling to set it here. Click the pad itself to set how pleasant (across) and how charged (up) it is.</p>
+        <div class="sc-pad" data-pad="${esc(c.id)}"><span class="sc-pad-x">unpleasant · pleasant</span><span class="sc-pad-y">calm · charged</span>${vp != null && ap != null ? `<i class="sc-pad-dot" style="left:${vp * 100}%;top:${(1 - ap) * 100}%"></i>` : ""}${(S().domain(key).options || []).map((o) => { const p = SPOT[o] || [0.5, 0.5]; return `<button type="button" data-set="${esc(key)}" data-v="${esc(o)}" class="${String(cur) === o ? "on" : ""}" style="left:${p[0] * 100}%;top:${(1 - p[1]) * 100}%;--feel:${FEEL_COLOR[o] || "#888"}">${esc(o)}</button>`; }).join("")}</div>
+        <h4>Emotional road</h4>${strip(key, (v) => `--feel:${FEEL_COLOR[v] || "#555"}`)}</div>`;
+    }
+    if (c.id === "shotSize") {
+      /* Frame sizes drawn around a person: click the frame you want. */
+      const cur = ctx.value(key);
+      const F = { wide: [4, 4, 92, 92], medium: [26, 14, 48, 56], close: [36, 12, 28, 30], insert: [62, 52, 16, 16] };
+      return `<div class="sc-wpart"><h4>Frame sizes</h4><p class="sc-k">Click a frame to set the shot size here.</p>
+        <div class="sc-frames"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="24" r="8"/><path d="M50 32v30M50 40l-14 14M50 40l14 12M50 62l-10 30M50 62l10 30"/><rect x="62" y="54" width="10" height="7" rx="1"/></svg>${["wide", "medium", "close", "insert"].map((o) => { const r = F[o]; return `<button type="button" data-set="${esc(key)}" data-v="${o}" class="${String(cur) === o ? "on" : ""}" style="left:${r[0]}%;top:${r[1]}%;width:${r[2]}%;height:${r[3]}%" title="${o}"><span>${o}</span></button>`; }).join("")}</div>
+        <h4>Through my film</h4>${strip(key)}</div>`;
+    }
+    if (c.id === "angleHeight") {
+      /* Camera height seen from the side: a person, and a camera at each height on an arc around them. */
+      const cur = ctx.value(key);
+      const SPOT = { floor: [12, 90, -8], low: [16, 70, -25], eye: [20, 40, 0], high: [24, 14, 30], overhead: [50, 4, 85] };
+      return `<div class="sc-wpart"><h4>Camera height</h4><p class="sc-k">Seen from the side. Click where the camera should be: lower makes a person look bigger and stronger, higher makes them look smaller.</p>
+        <div class="sc-heights"><svg viewBox="0 0 100 100" aria-hidden="true"><path class="arc" d="M12 92 Q14 10 50 4"/><circle cx="72" cy="34" r="7"/><path d="M72 41v28M72 48l-10 12M72 48l10 12M72 69l-8 23M72 69l8 23"/><line class="floor" x1="0" y1="93" x2="100" y2="93"/></svg>${["floor", "low", "eye", "high", "overhead"]
+          .map((o) => { const p = SPOT[o]; return `<button type="button" data-set="${esc(key)}" data-v="${o}" class="${String(cur) === o ? "on" : ""}" style="left:${p[0]}%;top:${p[1]}%" title="${o}"><svg viewBox="0 0 20 12" aria-hidden="true" style="transform:rotate(${p[2]}deg)"><rect x="1" y="2" width="12" height="8" rx="1.5"/><path d="M13 4l6-3v10l-6-3z"/></svg><span>${o}</span></button>`; })
+          .join("")}</div>
+        <h4>Through my film</h4>${strip(key)}</div>`;
+    }
+    if (c.id === "cameraMove") {
+      /* Each camera move as a small picture of what the camera does. */
+      const cur = ctx.value(key);
+      const PIC = {
+        none: '<rect x="9" y="10" width="14" height="10" rx="2"/>',
+        pan: '<rect x="11" y="11" width="10" height="8" rx="2"/><path d="M4 24 Q16 30 28 24" class="mv"/><path d="M28 24l-4 0M28 24l-2 -3" class="mv"/>',
+        tilt: '<rect x="11" y="11" width="10" height="8" rx="2"/><path d="M27 4 Q32 15 27 26" class="mv"/><path d="M27 4l0 4M27 4l3 2" class="mv"/>',
+        "push in": '<rect x="3" y="11" width="9" height="8" rx="2"/><path d="M14 15h12M26 15l-4-3M26 15l-4 3" class="mv"/><circle cx="29" cy="15" r="2"/>',
+        "pull out": '<rect x="20" y="11" width="9" height="8" rx="2"/><path d="M18 15H6M6 15l4-3M6 15l4 3" class="mv"/><circle cx="3" cy="15" r="2"/>',
+        track: '<rect x="11" y="6" width="10" height="8" rx="2"/><path d="M3 22h26M29 22l-4-3M29 22l-4 3" class="mv"/><path d="M3 26h26" class="rail"/>',
+        crane: '<rect x="18" y="3" width="10" height="8" rx="2"/><path d="M4 28L22 11" class="rail"/><path d="M8 18 Q10 8 16 5" class="mv"/>',
+        zoom: '<rect x="4" y="11" width="10" height="8" rx="2"/><path d="M14 13l14-7M14 17l14 7" class="mv"/>',
+        orbit: '<circle cx="16" cy="15" r="3"/><ellipse cx="16" cy="15" rx="13" ry="7" class="mv"/><rect x="25" y="9" width="6" height="5" rx="1"/>',
+      };
+      return `<div class="sc-wpart"><h4>Camera moves</h4><p class="sc-k">Click the move the camera makes at this moment.</p>
+        <div class="sc-moves">${(S().domain(key).options || Object.keys(PIC))
+          .map((o) => `<button type="button" data-set="${esc(key)}" data-v="${esc(o)}" class="${String(cur) === o ? "on" : ""}"><svg viewBox="0 0 32 30" aria-hidden="true">${PIC[o] || PIC.none}</svg><span>${esc(o)}</span></button>`)
+          .join("")}</div>
+        <h4>Through my film</h4>${strip(key)}</div>`;
+    }
+    if (c.id === "colorRange") {
+      /* From black and white to vivid color, painted in the picked main color; the main colors as swatches. */
+      const cur = ctx.value(key);
+      const hk = c.id + ".paletteHue";
+      const hue = S().known(hk) ? ctx.value(hk) : null;
+      const H = { red: 0, orange: 28, yellow: 50, green: 120, teal: 175, blue: 215, purple: 275, pink: 325 };
+      const h = H[hue] != null ? H[hue] : 28;
+      const SAT = { "black and white": [0, 0], "one color": [55, 0], "two or three colors": [60, 1], "muted color": [28, 3], "natural color": [50, 3], "vivid color": [90, 4] };
+      const chips = (o) => { const [sat, more] = SAT[o] || [40, 2]; return [0, 1, 2, 3, 4].map((k) => `<i style="background:hsl(${(h + (k <= more ? k * 72 : 0)) % 360} ${sat}% ${30 + k * 10}%)"></i>`).join(""); };
+      return `<div class="sc-wpart"><h4>How much color</h4><p class="sc-k">From black and white to vivid color. Each choice is painted in your film's main color.</p>
+        <div class="sc-colors">${(S().domain(key).options || Object.keys(SAT)).map((o) => `<button type="button" data-set="${esc(key)}" data-v="${esc(o)}" class="${String(cur) === o ? "on" : ""}"><span class="sc-chips">${chips(o)}</span><span>${esc(o)}</span></button>`).join("")}</div>
+        ${S().known(hk) ? `<h4>Main color</h4><div class="sc-hues">${(S().domain(hk).options || Object.keys(H)).map((o) => `<button type="button" data-set="${esc(hk)}" data-v="${esc(o)}" class="${String(hue) === o ? "on" : ""}" style="--sw:hsl(${H[o] || 0} 75% 52%)" title="${esc(o)}" aria-label="${esc(o)}"></button>`).join("")}</div>
+        <h4>Main color through my film</h4>${strip(hk, (v) => (H[v] != null ? `--feel:hsl(${H[v]} 75% 52%)` : ""))}` : `<h4>Through my film</h4>${strip(key)}`}</div>`;
+    }
+    if (c.id === "comedyDevice") {
+      /* Joke timing: where setups and payoffs land, and quick ways to build a joke from the playhead. */
+      const bk = keyFor("comicBeat");
+      const last = n - 1;
+      const room = (k) => row + k <= last;
+      return `<div class="sc-wpart"><h4>Joke timing</h4><p class="sc-k">The comic beat at each moment: plant a setup, let it build, land the payoff.</p>
+        ${S().known(bk) ? strip(bk, (v) => (v === "payoff lands" ? "--feel:#ffd34d" : v === "setup planted" ? "--feel:#33d1c6" : v === "building" ? "--feel:#ff9f43" : "")) : ""}
+        <div class="sc-wbtns">
+          <button type="button" data-joke="setup">Plant a setup here</button>
+          <button type="button" data-joke="payoff">Land the payoff here</button>
+          <button type="button" data-joke="three"${room(2) ? "" : " disabled"} title="Setup, build, payoff on three moments in a row from the playhead">Rule of three from here</button>
+          <button type="button" data-joke="callback"${room(3) ? "" : " disabled"} title="A setup here, paid off as a callback three moments later">Callback later</button>
+        </div></div>`;
+    }
+    return "";
+  }
+  function winHtml(w, z) {
+    const c = L().get("curiosity", w.id);
+    const ctx = mineCtx();
+    const key = keyFor(c.id);
+    const cat = L().CATEGORIES.find((x) => x.id === L().categoryOf(c.id)) || { label: "", icon: "star" };
+    const sliders = (c.sliders || []).slice().sort((a, b) => (a.id === c.main || a.id === "setting" ? -1 : b.id === c.main || b.id === "setting" ? 1 : 0));
+    const block = (sl) => {
+      const id = sliderId(c, sl);
+      if (!S().known(id)) return "";
+      const main = id === key;
+      return `<div class="sc-wctl${main ? " main" : ""}${w.focus === id ? " focus" : ""}">
+        <div class="sc-wctl-h"><span>${keyBtn(id, ctx)}<b>${esc(main ? labelOf(id) : sl.label)}</b></span>${spark(id, ctx.beats)}<button type="button" data-win-lane="${esc(id)}" title="Put ${esc(sl.label)} on the timeline as its own lane">+ lane</button></div>
+        ${sl.plain ? `<p class="sc-k">${esc(sl.plain)}</p>` : ""}
+        <div class="sc-ctl">${controlHtml(id, sl, ctx.value(id), !ctx.edit)}</div>
+      </div>`;
+    };
+    return `<section class="sc-win" data-win="${esc(c.id)}" role="dialog" aria-label="${esc(c.label)} window" style="left:${w.x}px;top:${w.y}px;z-index:${60 + z}">
+      <header class="sc-win-h" data-win-drag="${esc(c.id)}">${icon(cat.icon)}<b>${esc(c.label)}</b><small>${esc(cat.label)}${isAdv(c) ? " · ADVANCED" : ""}</small><button type="button" data-win-close="${esc(c.id)}" aria-label="Close the ${esc(c.label)} window">×</button></header>
+      <div class="sc-win-b">
+        ${c.plain ? `<p class="sc-win-plain">${esc(c.plain)}</p>` : ""}
+        <p class="sc-k">My film, moment ${row + 1}: every change here becomes a node.</p>
+        ${winSpecial(c, ctx)}
+        <div class="sc-wpart"><h4>Every knob and slider</h4>${sliders.map(block).join("")}</div>
+        ${c.momentum ? momentumBox(c.momentum) : ""}
+        <div class="sc-wbtns"><button type="button" data-select-cur="${esc(c.id)}">Look through it</button><button type="button" data-win-curve="${esc(key)}">Shape its curve</button></div>
+      </div>
+    </section>`;
+  }
+  function drawWins() {
+    if (!page) return;
+    let box = page.querySelector(".sc-wins-layer");
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "sc-wins-layer";
+      page.appendChild(box);
+    }
+    const scroll = {};
+    box.querySelectorAll(".sc-win").forEach((x) => (scroll[x.dataset.win] = (x.querySelector(".sc-win-b") || {}).scrollTop || 0));
+    box.innerHTML = wins.filter((w) => L().get("curiosity", w.id)).map((w, i) => winHtml(w, i)).join("");
+    box.querySelectorAll(".sc-win").forEach((x) => scroll[x.dataset.win] && (x.querySelector(".sc-win-b").scrollTop = scroll[x.dataset.win]));
+  }
+  function winClick(d, t) {
+    if (d.winClose) {
+      wins.splice(wins.findIndex((w) => w.id === d.winClose) >>> 0, 1);
+      return drawWins(), true;
+    }
+    if (d.winLane) {
+      showLane(d.winLane);
+      save();
+      drawTimeline();
+      toast(`${labelOf(d.winLane)} is on the timeline.`);
+      return true;
+    }
+    if (d.winRow != null && d.winRow !== "") return setRow(Number(d.winRow)), true;
+    if (d.winCurve) {
+      showLane(d.winCurve);
+      save();
+      drawTimeline();
+      const r = lanes && lanes.command ? lanes.curves() : null;
+      if (!r || !r.ok) toast("Give this lane two nodes first; a curve shapes the line between them.");
+      return true;
+    }
+    if (d.joke) {
+      const dev = keyFor("comedyDevice");
+      const bk = keyFor("comicBeat");
+      const now = mineCtx().value(dev);
+      const R = {
+        setup: [[bk, row, "setup planted"]],
+        payoff: [[bk, row, "payoff lands"]],
+        three: [[bk, row, "setup planted"], [bk, row + 1, "building"], [bk, row + 2, "payoff lands"], [dev, row, "rule of three"]],
+        callback: [[bk, row, "setup planted"], [bk, row + 3, "payoff lands"], [dev, row + 3, "callback"]],
+      }[d.joke];
+      if (R) setAt(R, { setup: "Plant a setup", payoff: "Land a payoff", three: "Rule of three", callback: "A callback" }[d.joke]);
+      if (now == null && d.joke !== "three" && d.joke !== "callback") setAt([[dev, row, S().start(dev)]], "Set the comedy device");
+      return true;
+    }
+    return false;
+  }
+  function onPad(e) {
+    const pad = e.target.closest && e.target.closest("[data-pad]");
+    if (!pad || e.target.closest("button")) return false;
+    const r = pad.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    const y = Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / r.height));
+    const id = pad.dataset.pad;
+    const list = [[id + ".valence", S().at(id + ".valence", x)], [id + ".arousal", S().at(id + ".arousal", y)]].filter(([k]) => S().known(k));
+    list.forEach(([k]) => showLane(k));
+    if (list.length) setValues(list, "Set how the feeling feels");
+    return true;
+  }
+  function onWinDrag(e) {
+    const h = e.target.closest && e.target.closest("[data-win-drag]");
+    if (!h || e.target.closest("button")) return false;
+    const w = wins.find((x) => x.id === h.dataset.winDrag);
+    if (!w) return false;
+    const win = h.closest(".sc-win");
+    const x0 = e.clientX - w.x;
+    const y0 = e.clientY - w.y;
+    wins.push(wins.splice(wins.indexOf(w), 1)[0]);
+    win.style.zIndex = 60 + wins.length;
+    const move = (ev) => {
+      w.x = Math.max(0, Math.min(window.innerWidth - 80, ev.clientX - x0));
+      w.y = Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - y0));
+      win.style.left = w.x + "px";
+      win.style.top = w.y + "px";
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+    return true;
   }
   function drawInspector() {
     if (!page || !L()) return;
@@ -380,7 +1173,7 @@
         edit: !!r,
         value: (id) => {
           if (!st || !r) return undefined;
-          const t = st.tracks.find((x) => x.curiosities.includes(id));
+          const t = trackHas(id, st);
           return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
         },
         title: "My film",
@@ -388,28 +1181,27 @@
       };
     }
     const sel = selection();
-    const cats = L().CATEGORIES;
-    const openCat = prefs.cat;
-    const body = cats
-      .map((cat) => {
-        let list = L().curiosities(cat.id);
-        if (!list.length) return "";
-        /* An inspiration film shows the curiosities it actually uses first. */
-        if (insp) list = list.filter((c) => ctx.value(c.id) != null).concat(list.filter((c) => ctx.value(c.id) == null));
-        const isOpen = openCat === cat.id;
-        const lit = sel.categories.includes(cat.id);
-        let inner = "";
-        if (isOpen) {
-          const all = !!prefs.showFine[cat.id];
-          /* The main ones, plus whatever you are looking through, so it is always in reach. */
-          const shown = all ? list : list.filter((c, i) => i < MAIN_SHOWN || sel.curiosities.includes(c.id));
-          inner = `<p class="sc-cat-plain">${esc(cat.plain)} <button type="button" class="sc-wins" data-wins="${cat.windows}" title="The window layout suggested for ${esc(cat.label)}">Use ${cat.windows} window${cat.windows === 1 ? "" : "s"}</button></p>${shown.map((c) => curiosityRow(c, ctx)).join("")}${list.length > MAIN_SHOWN ? `<button type="button" class="sc-more" data-more="${cat.id}">${all ? "Show only the main ones" : `Show all ${list.length} in ${esc(cat.label)}`}</button>` : ""}`;
-        }
-        return `<section class="sc-cat${isOpen ? " open" : ""}${lit ? " lit" : ""}"><button type="button" class="sc-cat-h" data-icat="${cat.id}" aria-expanded="${isOpen}"><span>${esc(cat.label)}</span><small>${list.length}</small></button>${inner}</section>`;
-      })
-      .join("");
+    /* Details shows the category picked in the library's icon row, like CapCut's Details panel follows what
+       is selected. An inspiration film shows the curiosities it actually uses first. */
+    const adv = prefs.libTab === "advanced";
+    const cat = adv ? ADV : category();
+    let list = adv ? L().items("curiosity").filter(isAdv) : mainOnly(L().curiosities(cat.id));
+    if (insp) list = list.filter((c) => ctx.value(keyFor(c.id)) != null).concat(list.filter((c) => ctx.value(keyFor(c.id)) == null));
+    const all = !!prefs.showFine[cat.id];
+    /* The main ones, plus whatever you are looking through, so it is always in reach. */
+    const shown = all ? list : list.filter((c, i) => i < MAIN_SHOWN || sel.curiosities.includes(c.id) || sel.curiosities.includes(keyFor(c.id)));
+    const others = sel.categories.filter((id) => id !== cat.id).map((id) => L().CATEGORIES.find((c) => c.id === id)).filter(Boolean);
+    const body = `<section class="sc-cat open${sel.categories.includes(cat.id) ? " lit" : ""}" data-cat-id="${cat.id}">
+      <h3 class="sc-cat-h">${icon(cat.icon)}<span>${esc(cat.label)}</span><small>${list.length}</small></h3>
+      <p class="sc-cat-plain">${esc(cat.plain)} <button type="button" class="sc-wins" data-wins="${cat.windows}" title="The window layout suggested for ${esc(cat.label)}">Use ${cat.windows} window${cat.windows === 1 ? "" : "s"}</button></p>
+      ${cat.id === "character" && !insp && window.CharacterScreen ? window.CharacterScreen.barHtml() : ""}
+      ${shown.map((c) => curiosityRow(c, ctx)).join("")}
+      ${list.length > MAIN_SHOWN ? `<button type="button" class="sc-more" data-more="${cat.id}">${all ? "Show only the main ones" : `Show all ${list.length} in ${esc(cat.label)}`}</button>` : ""}
+      ${others.length ? `<p class="sc-also">What you are looking through is also in ${others.map((c) => `<button type="button" data-icat="${c.id}">${esc(c.label)}</button>`).join(" ")}</p>` : ""}
+    </section>`;
     const blend = insp ? blendHtml() : "";
-    box.innerHTML = `<header class="sc-insp-h"><strong>${esc(ctx.title)}</strong><span>${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
+    box.innerHTML = `<header class="sc-insp-h"><strong class="sc-details">Details</strong><span><b>${esc(ctx.title)}</b> · ${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
+    drawWins();
   }
 
   /* ---------- blending inspiration films onto my film ---------- */
@@ -492,12 +1284,15 @@
     const out = [];
     const seen = new Set();
     const add = (cur, extra) => {
+      cur = cur && keyFor(cur);
       if (!cur || seen.has(cur) || !S() || !S().known(cur)) return;
       seen.add(cur);
-      out.push(Object.assign({ cur, track: null }, extra || {}));
+      out.push(Object.assign({ cur, track: null, label: labelOf(cur) }, extra || {}));
     };
     if (prefs.view === "screen") {
+      /* What you are looking through, then the tracks you put on with a card's + . */
       sel.curiosities.forEach((c) => add(c));
+      prefs.lanes.forEach((c) => add(c));
       return out;
     }
     /* Arrange: every automated curiosity, the ones you added, then the potential ones. */
@@ -514,15 +1309,15 @@
           });
       });
     }
-    if (prefs.showAll) L().CATEGORIES.forEach((cat) => prefs.openCats[cat.id] && L().curiosities(cat.id).forEach((c) => add(c.id, { group: cat.label })));
+    if (prefs.showAll) L().CATEGORIES.forEach((cat) => prefs.openCats[cat.id] && mainOnly(L().curiosities(cat.id)).forEach((c) => add(c.id, { group: cat.label })));
     return out;
   }
   function laneHeader(ln, i) {
     const cat = L().categoryOf(ln.cur);
     const opts = L()
-      .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(x.id)}"${x.id === ln.cur ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</optgroup>`)
+      .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(keyFor(x.id))}"${keyFor(x.id) === ln.cur ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</optgroup>`)
       .join("");
-    const known = L().get("curiosity", ln.cur);
+    const known = L().get("curiosity", L().base(ln.cur)) && keyFor(L().base(ln.cur)) === ln.cur;
     return `<select class="sl-pick" data-lane-cur="${esc(ln.cur)}" aria-label="Curiosity on this track" title="${esc(((L().CATEGORIES.find((c) => c.id === cat) || {}).label || "") + (ln.group ? " · " + ln.group : ""))}: change which curiosity this track is">${known ? "" : `<option selected>${esc(labelOf(ln.cur))}</option>`}${opts}</select>`;
   }
   function clipRows() {
@@ -550,12 +1345,12 @@
           <button type="button" data-act="show-all" class="${prefs.showAll ? "on" : ""}" aria-pressed="${prefs.showAll}">Show all potential curiosities</button>
           <button type="button" data-act="show-suites" class="${prefs.showSuites ? "on" : ""}" aria-pressed="${prefs.showSuites}">Show all potential curiosity suites</button>
           <select data-add-lane aria-label="Add a curiosity track"><option value="">+ Add a curiosity track</option>${L()
-            .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(x.id)}">${esc(x.label)}</option>`).join("")}</optgroup>`)
+            .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(keyFor(x.id))}">${esc(x.label)}</option>`).join("")}</optgroup>`)
             .join("")}</select>
-          ${prefs.showAll ? `<div class="sc-chips">${L().CATEGORIES.map((c) => `<button type="button" data-open-cat="${c.id}" class="${prefs.openCats[c.id] ? "on" : ""}">${esc(c.label)} <small>${L().curiosities(c.id).length}</small></button>`).join("")}</div>` : ""}
+          ${prefs.showAll ? `<div class="sc-chips">${L().CATEGORIES.map((c) => `<button type="button" data-open-cat="${c.id}" class="${prefs.openCats[c.id] ? "on" : ""}">${esc(c.label)} <small>${mainOnly(L().curiosities(c.id)).length}</small></button>`).join("")}</div>` : ""}
           ${prefs.showSuites ? `<div class="sc-chips">${L().CATEGORIES.map((c) => { const list = L().items("suite", c.id); return list.length ? `<details${list.some((s) => prefs.openSuites[s.id]) ? " open" : ""}><summary>${esc(c.label)} <small>${list.length} suites</small></summary>${list.map((s) => `<button type="button" data-open-suite="${esc(s.id)}" class="${prefs.openSuites[s.id] ? "on" : ""}" title="${esc(s.plain || "")}">${esc(s.label)}</button>`).join("")}</details>` : ""; }).join("")}</div>` : ""}
         </div>`
-        : `<p class="sc-tl-h"><strong>Automation</strong> for ${esc(sel.label)}${sel.pairs.length ? ` · ${sel.pairs.length} proximit${sel.pairs.length === 1 ? "y" : "ies"}: <button type="button" data-act="add-prox">Add ${sel.level === "proximitySuite" ? "this proximity suite" : "this proximity"} to my film</button>` : ""}</p>`;
+        : `<p class="sc-tl-h"><strong>Timeline</strong> ${esc(sel.label)}${sel.pairs.length ? ` · ${sel.pairs.length} proximit${sel.pairs.length === 1 ? "y" : "ies"}: <button type="button" data-act="add-prox">Add ${sel.level === "proximitySuite" ? "this proximity suite" : "this proximity"} to my film</button>` : ""}${prefs.lanes.length ? ` · ${prefs.lanes.length} track${prefs.lanes.length === 1 ? "" : "s"} you added <button type="button" data-act="clear-lanes" title="Take the tracks you added off the timeline (their nodes stay in your film)">Clear</button>` : ""}</p>`;
     if (!fromEngine || !lanes) {
       if (lanes) lanes.destroy();
       box.innerHTML = potential + `<div class="sc-lanes"></div>`;
@@ -566,6 +1361,10 @@
         clips: clipRows,
         header: prefs.view === "arrange" ? laneHeader : null,
         onClip: (j) => setRow(j),
+        onHover: (j) => setRow(j),
+        onOpen: openWin,
+        secondsPerMoment,
+        range: rangeNow,
         onSelect: (cur) => {
           if (prefs.sel.level === "curiosity" && prefs.sel.id === cur) return;
           if (prefs.view === "screen" && prefs.sel.level !== "curiosity") return;
@@ -592,28 +1391,76 @@
     clearTimeout(toast.t);
     toast.t = setTimeout(() => (t.textContent = ""), 5000);
   }
+  /* The track a curiosity is read from and written to: the first one with it, except the character matrix's
+     curiosities, which every character has on their own track (the one picked in the Character tab). */
+  function trackHas(id, st) {
+    if (window.CharacterScreen && window.CharacterScreen.claims(id)) return window.CharacterScreen.trackHas(id, st);
+    return st.tracks.find((t) => t.curiosities.includes(id));
+  }
   function setValue(id, v) {
-    if (!E()) return;
+    return setValues([[id, v]]);
+  }
+  /* Nodes at the playhead for several curiosities at once (a suite or template dropped in), as one undo step. */
+  function setValues(list, label) {
+    if (!E()) return { ok: false };
     const st = E().state();
     const r = st.rows[row];
-    if (!r) return;
-    let track = (st.tracks.find((t) => t.curiosities.includes(id)) || {}).id;
+    if (!r) return { ok: false };
     const cmds = [];
-    if (!track) {
-      track = window.CurioLanes.trackFor(id, st);
-      if (!track) return toast("Every track is full; remove a lane in Arrange first.");
-      cmds.push({ type: "addCuriosity", track, curiosity: id });
-    }
-    const val = S().fix(id, v);
-    if (val == null) return;
-    cmds.push({ type: "setPoint", row: r.id, track, curiosity: id, value: val });
-    const res = E().send({ type: "batch", label: `${labelOf(id)}: ${val} at moment ${row + 1}`, commands: cmds });
+    const placed = {};
+    let full = false;
+    list.forEach(([id, v]) => {
+      let track = placed[id] || (trackHas(id, st) || {}).id;
+      if (!track) {
+        track = window.CurioLanes.trackFor(id, st);
+        if (!track) return (full = true);
+        cmds.push({ type: "addCuriosity", track, curiosity: id });
+      }
+      placed[id] = track;
+      const val = S().fix(id, v);
+      if (val != null) cmds.push({ type: "setPoint", row: r.id, track, curiosity: id, value: val });
+    });
+    if (full) toast("Every track is full; remove a lane in Arrange first.");
+    if (!cmds.length) return { ok: false };
+    const one = list.length === 1 ? list[0] : null;
+    const res = E().send({ type: "batch", label: label || (one ? `${labelOf(one[0])}: ${S().fix(one[0], one[1])} at moment ${row + 1}` : `${list.length} nodes at moment ${row + 1}`), commands: cmds });
     if (!res.ok) toast(res.error);
+    return res;
+  }
+  /* What the current value of a curiosity is at the playhead in my film. */
+  function valueHere(id) {
+    const st = E() && E().state();
+    const r = st && st.rows[row];
+    if (!r) return undefined;
+    const t = st.tracks.find((x) => x.curiosities.includes(id));
+    return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
+  }
+  /* Maya's channel box colors a channel by its keys; here: a key at this moment, a lane with keys elsewhere, or none. */
+  function keyState(id) {
+    const st = E() && E().state();
+    const r = st && st.rows[row];
+    if (!r) return "";
+    const t = st.tracks.find((x) => x.curiosities.includes(id));
+    const lane = t && st.lanes[t.id + "|" + id];
+    if (!lane) return "";
+    return lane.points[r.id] != null ? "here" : "lane";
+  }
+  const showLane = (id) => !prefs.lanes.includes(id) && prefs.lanes.push(id);
+  /* A curiosity's settings as tiles, like CapCut's grid of effect thumbnails: every option, or five steps of a range. */
+  function tilesOf(id) {
+    if (!S() || !S().known(id)) return [];
+    const d = S().domain(id);
+    if (d.kind === "range") return [0, 0.25, 0.5, 0.75, 1].map((p) => S().at(id, p)).filter((v, i, a) => a.indexOf(v) === i);
+    return (d.options || []).slice(0, 18);
   }
   function onClick(e) {
     const t = e.target.closest("button, [data-scrub], .sc-frame");
     if (!t || !page.contains(t)) return;
     const d = t.dataset;
+    if (d.openWin && !t.closest(".sl")) return openWin(d.openWin);
+    if (winClick(d, t)) return;
+    if (d.ov != null && !e.detail) return jumpTo(Number(d.ov));
+    if (d.ov != null) return;
     if (t.matches("[data-scrub]")) {
       const r = t.getBoundingClientRect();
       const fr = Math.max(0, Math.min(0.999, (e.clientX - r.left) / r.width));
@@ -660,10 +1507,58 @@
       save();
       return drawAll();
     }
-    if (d.icat) {
-      prefs.cat = prefs.cat === d.icat ? "" : d.icat;
+    if (d.libtab) {
+      prefs.libTab = prefs.libTab === d.libtab ? "" : d.libtab;
+      prefs.search = "";
       save();
+      drawLibrary();
       return drawInspector();
+    }
+    if ("drop" in d && d.drop) {
+      showLane(d.drop);
+      save();
+      const res = setValue(d.drop, d.v);
+      if (res && res.ok) toast(`${labelOf(d.drop)}: ${S().fix(d.drop, d.v)} at moment ${row + 1}.`);
+      return drawTimeline(), drawLibrary();
+    }
+    if ("key" in d && d.key) {
+      /* Maya's Set Key: keep the setting at this moment as a node; on a key already here, take it off. */
+      const st = E() && E().state();
+      const r = st && st.rows[row];
+      if (!r) return;
+      const t = st.tracks.find((x) => x.curiosities.includes(d.key));
+      if (keyState(d.key) === "here") E().send({ type: "removePoint", row: r.id, track: t.id, curiosity: d.key, label: `Take the key off ${labelOf(d.key)}` });
+      else {
+        showLane(d.key);
+        save();
+        setValue(d.key, valueHere(d.key));
+        drawTimeline();
+      }
+      return;
+    }
+    if (d.icat) {
+      prefs.libTab = "";
+      prefs.cat = d.icat;
+      prefs.search = "";
+      save();
+      drawLibrary();
+      return drawInspector();
+    }
+    if (d.group) {
+      prefs.groups[prefs.libTab || prefs.cat || category().id] = d.group;
+      prefs.search = "";
+      save();
+      return drawLibrary();
+    }
+    if (d.pickCard) {
+      const [level, id] = d.pickCard.split("|");
+      prefs.sel = { level, id };
+      save();
+      return drawAll();
+    }
+    if (d.addCard) {
+      const [level, id] = d.addCard.split("|");
+      return addCard(level, id);
     }
     if (d.more) {
       prefs.showFine[d.more] = !prefs.showFine[d.more];
@@ -697,6 +1592,19 @@
     }
     const act = d.act;
     if (act === "close") return close();
+    if (act === "shortcuts") return showKeys(!keysOpen);
+    if (act === "overview") {
+      prefs.overview = !prefs.overview;
+      save();
+      return drawViewers();
+    }
+    if (act === "ghost") {
+      prefs.ghost = !prefs.ghost;
+      save();
+      return drawViewers();
+    }
+    if (act === "range-clear") return setRange(null);
+    if (act === "keys-close") return showKeys(false);
     if (act === "play") return play(!timer);
     if (act === "prev") return setRow(row - 1);
     if (act === "next") return setRow(row + 1);
@@ -712,6 +1620,11 @@
       return drawTimeline();
     }
     if (act === "add-prox") return addProximity();
+    if (act === "clear-lanes") {
+      prefs.lanes = [];
+      save();
+      return drawTimeline();
+    }
   }
   /* A new inspiration viewer, on a film no other viewer shows yet. */
   function addInspiration() {
@@ -733,6 +1646,11 @@
   function onChange(e) {
     const t = e.target;
     const d = t.dataset;
+    if ("pickLayout" in d) {
+      prefs.layout = t.value;
+      save();
+      return drawAll();
+    }
     if ("pickItem" in d) {
       prefs.sel = { level: prefs.sel.level, id: t.value };
       const r = selection();
@@ -785,6 +1703,11 @@
   function onInput(e) {
     const t = e.target;
     const d = t.dataset;
+    if ("libSearch" in d) {
+      prefs.search = t.value;
+      save();
+      return drawLibrary();
+    }
     if (d.stepSet) {
       const scale = JSON.parse(d.scale);
       const o = t.parentNode.querySelector("output");
@@ -960,5 +1883,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, setRow };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, setRow, row: () => row, addPanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();

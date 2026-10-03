@@ -228,7 +228,7 @@
           .map((c) => {
             const lk = E.laneKey(t.id, c);
             const lane = st.lanes[lk];
-            const lab = `<th class="en-lane" title="${esc(c)}">${esc(S.label(c))}<small>${lane ? (lane.on ? "automated, " + (lane.mode === "hold" ? "holds" : "ramps") : "automation off") : esc(S.group(c) || "")}
+            const lab = `<th class="en-lane" title="${esc(c)}">${esc(S.label(c))}<small>${lane ? (lane.on ? "automated, " + (lane.mode === "hold" ? "holds" : lane.mode === "smooth" ? "smooths" : "ramps") : "automation off") : esc(S.group(c) || "")}
               <button class="en-small" data-act="lane" data-track="${esc(t.id)}" data-cur="${esc(c)}" title="This lane's automation, links and removal">…</button></small></th>`;
             const cells = st.rows
               .map((r) => {
@@ -465,11 +465,11 @@
       btn,
       `<h4>${esc(S.label(cur))} · ${esc((trackOf(st, track) || {}).label)}</h4>
        <div class="en-note">Leads ${leads} link${leads === 1 ? "" : "s"}, follows ${follows}.</div>
-       ${lane ? `<div class="en-row"><button data-pop="mode">${lane.mode === "hold" ? "Ramp between points" : "Hold between points"}</button><button data-pop="onoff">${lane.on ? "Switch automation off" : "Switch automation on"}</button><button data-pop="clear">Clear the lane</button></div>` : `<div class="en-note">No automation yet: click a cell and choose Automation point.</div>`}
+       ${lane ? `<div class="en-row"><button data-pop="mode">${lane.mode === "ramp" ? "Smooth between points" : lane.mode === "smooth" ? "Hold between points" : "Ramp between points"}</button><button data-pop="onoff">${lane.on ? "Switch automation off" : "Switch automation on"}</button><button data-pop="clear">Clear the lane</button></div>` : `<div class="en-note">No automation yet: click a cell and choose Automation point.</div>`}
        <div class="en-row"><button data-pop="lead">Link from this lane</button><button data-pop="remove">Remove from the track</button></div>`,
       (act) => {
         let out = null;
-        if (act === "mode") out = E.send({ type: "laneMode", track, curiosity: cur, mode: lane.mode === "hold" ? "ramp" : "hold" });
+        if (act === "mode") out = E.send({ type: "laneMode", track, curiosity: cur, mode: lane.mode === "ramp" ? "smooth" : lane.mode === "smooth" ? "hold" : "ramp" });
         if (act === "onoff") out = E.send({ type: "laneMode", track, curiosity: cur, on: !lane.on });
         if (act === "clear") out = E.send({ type: "clearLane", track, curiosity: cur });
         if (act === "remove") out = E.send({ type: "removeCuriosity", track, curiosity: cur });
