@@ -383,7 +383,7 @@
   function mount(el, ctx) {
     const E = root.CurioEngine;
     if (!ME() || !ME().available()) {
-      el.innerHTML = `<p>Pace it plans small changes to My film (the engine's film, the one the Screen plays) so that attention moves about as often as in the films you love. Start a film in the engine first (Library, Engine), then come back here.</p>${root.CurioEngineUI ? `<button type="button" data-pc="engine">Open the engine</button>` : ""}`;
+      el.innerHTML = `<p>Pace it plans small changes to My film (the engine's film, the one the Screen plays) so that attention moves about as often as in the films you love.</p><p class="mo-empty">My film has no moments yet. Press Start the example film to get one, or open the engine to start your own.</p><div class="mo-controls">${root.CurioMomentumUI && root.CurioMomentumUI.startFilmButton ? root.CurioMomentumUI.startFilmButton() : ""}${root.CurioEngineUI ? `<button type="button" data-pc="engine">Open the engine</button>` : ""}</div>`;
       wireOnce(el, ctx);
       return;
     }

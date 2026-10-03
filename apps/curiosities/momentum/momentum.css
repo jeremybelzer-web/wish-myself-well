@@ -34,6 +34,15 @@
 .mo-tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper, #fff); }
 .mo-tabs button:focus-visible, .mo-start button:focus-visible { outline: 3px solid var(--mo-bar); outline-offset: 2px; }
 .mo-group-hint { font-size: 13px; color: var(--mo-ink-2); }
+.mo-words { font-size: 13px; color: var(--mo-ink-2); margin-top: 4px; }
+.mo-words summary { cursor: pointer; list-style: none; }
+.mo-words summary::-webkit-details-marker { display: none; }
+.mo-words-more { text-decoration: underline; white-space: nowrap; }
+.mo-words[open] .mo-words-more { display: none; }
+.mo-words dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 10px; margin: 6px 0 0; }
+.mo-words dt { font-weight: 600; color: var(--mo-ink); }
+.mo-words dd { margin: 0; }
+@media (max-width: 600px) { .mo-words dl { grid-template-columns: minmax(0, 1fr); } .mo-words dd { margin-bottom: 4px; } }
 .mo-start { font-size: 14px; background: #fff3d6; border: 2px solid var(--ink); padding: 6px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
 .mo-start button { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 2px 8px; cursor: pointer; color: var(--mo-ink); }
 .mo-start button[data-m="start"] { background: var(--ink); color: var(--paper, #fff); font-weight: 600; }
@@ -49,6 +58,8 @@
 .mo-body { display: grid; gap: 14px; }
 .mo-controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; font-size: 14px; }
 .mo-controls label { display: grid; gap: 3px; }
+.mo-controls label.mo-chip { display: flex; align-items: flex-start; gap: 6px; }
+.mo-controls label.mo-chip input { flex: none; margin-top: 3px; }
 .mo-controls select, .mo-controls input { font: inherit; font-size: 14px; border: 1px solid var(--ink); padding: 4px 6px; background: #fff; color: var(--mo-ink); max-width: 100%; }
 .mo-controls select { max-width: min(420px, 80vw); }
 .mo-controls input[type=number] { width: 90px; }
@@ -217,6 +228,7 @@
 .mo-sp-next { border-top: 1px solid var(--cc-line, #2e2e33); padding-top: 8px; }
 .mo-sp-name { display: flex; justify-content: space-between; gap: 6px; }
 .mo-sp-name b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mo-sp-name small { flex: none; white-space: nowrap; }
 .mo-sp small { color: var(--cc-dim, #9b9ba3); }
 .mo-sp-fam { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
 .mo-sp-fam i { width: 9px; height: 9px; border-radius: 2px; flex: none; align-self: center; }
@@ -474,8 +486,9 @@
 .mls-nav .mls-next { background: var(--ink); color: var(--paper, #fff); }
 .mls-nav button:disabled { opacity: 0.4; cursor: default; }
 .mls-list summary { cursor: pointer; font-size: 14px; font-weight: 600; }
-.mls-list ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 2px; max-height: 320px; overflow-y: auto; }
+.mls-list ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; max-height: 320px; overflow-y: auto; }
 .mls-list li button { width: 100%; display: flex; align-items: center; gap: 8px; text-align: left; font: inherit; font-size: 13px; border: 1px solid transparent; background: transparent; padding: 4px 6px; cursor: pointer; color: var(--mo-ink); min-width: 0; }
+.mls-list .mls-li-t { min-width: 0; overflow-wrap: anywhere; }
 .mls-list li button:hover { border-color: var(--mo-grid); }
 .mls-list li button[aria-current="step"] { border-color: var(--ink); background: var(--mo-surface); font-weight: 600; }
 .mls-list li button.hold { color: var(--mo-ink-2); }
@@ -850,4 +863,15 @@
 @media (max-width: 640px) {
   .mo-al-head { width: 96px; }
   .mo-al-head small { display: none; }
+}
+
+/* ui.js (plain words pass): wide tables become small cards on a phone, each cell with its column's name. */
+@media (max-width: 600px) {
+  .mo-root table.mo-stack, .mo-root table.mo-stack tbody, .mo-root table.mo-stack tr, .mo-root table.mo-stack td { display: block; width: auto; min-width: 0; max-width: 100%; }
+  .mo-root table.mo-stack thead { display: none; }
+  .mo-root table.mo-stack tr { border-top: 1px solid var(--mo-line, #d9d6cf); padding: 6px 0; }
+  .mo-root table.mo-stack td { border: 0; padding: 1px 0; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+  .mo-root table.mo-stack td:empty { display: none; }
+  .mo-root table.mo-stack td[data-l]:not(:first-child)::before { content: attr(data-l) ": "; color: var(--mo-ink-2); font-size: 12px; }
+  .mo-root table.mo-stack td:first-child { font-weight: 600; }
 }

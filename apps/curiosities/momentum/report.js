@@ -218,7 +218,7 @@
     const lines = [`Momentum report: ${d.title}`, "", summaryParagraph(d)];
     if (!d.empty) {
       const n = d.numbers;
-      lines.push("", `Momentum reading: ${n.momentum.toFixed(1)} of 5`, `Moves a minute: ${n.switchesPerMinute}`, `Usual rest on one curiosity: ${n.medianDwell} seconds`, `Longest hold on one kind: ${d.barometer.longest ? Math.round(d.barometer.longest.seconds) + " seconds (" + d.barometer.longest.label + ")" : "none"}`);
+      lines.push("", `Momentum reading: ${n.momentum.toFixed(1)} of 5`, `Moves a minute: ${n.switchesPerMinute}`, `Usual hold on one curiosity: ${n.medianDwell} seconds`, `Longest hold on one kind: ${d.barometer.longest ? Math.round(d.barometer.longest.seconds) + " seconds (" + d.barometer.longest.label + ")" : "none"}`);
       if (d.slices.length) lines.push(`Share of time: ${d.slices.map((x) => `${x.label} ${pct(x.share)}`).join(", ")}`);
       if (d.moves.length) lines.push("", "Moves of attention that happen most:", ...d.moves.map((m) => `- ${famLabel(m.from)} to ${famLabel(m.to)}: ${plural(m.n, "time")}, mostly on ${aOrAn(cueLabel(m.cue).toLowerCase())}`));
       if (d.warnings.length) lines.push("", "Held too long:", ...d.warnings.map((w) => `- ${w.label} held attention for ${Math.round(w.dur)} seconds from ${clock(w.from)}`));
@@ -291,7 +291,7 @@
     const tiles = `<div class="mrp-tiles">
       ${tile(`${n.momentum.toFixed(1)} <small>of 5</small>`, "Momentum reading", "How hard what holds attention pushes the story")}
       ${tile(n.switchesPerMinute, "Moves a minute", c ? `${esc(c.title)}: about ${c.switchesPerMinute}` : "")}
-      ${tile(`${n.medianDwell} s`, "Usual rest", c ? `${esc(c.title)}: about ${c.medianDwell} s` : "On one curiosity")}
+      ${tile(`${n.medianDwell} s`, "Usual hold", c ? `${esc(c.title)}: about ${c.medianDwell} s` : "On one curiosity")}
       ${tile(`${d.barometer.longest ? Math.round(d.barometer.longest.seconds) : 0} s`, "Longest hold", "On one kind of curiosity")}
     </div>`;
     const legend = `<ul class="mrp-legend">${d.slices.map((x) => `<li><i style="background:${x.color}"></i>${esc(x.label)}<span>${pct(x.share)}</span></li>`).join("")}</ul>`;
