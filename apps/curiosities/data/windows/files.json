@@ -65,5 +65,7 @@
   "look-character.js",
   "look-world.js",
   "look-wardrobe.js",
-  "look-sound.js"
+  "look-sound.js",
+  "look-transitions.js",
+  "look-speed.js"
 ]
