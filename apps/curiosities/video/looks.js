@@ -1,8 +1,8 @@
 /* video/looks.js: three curiosities about how the picture itself looks, measured from the inspiration over time
    and applied to another clip, each its own switch with an amount:
    - Borrowed palette: the inspiration's color grade. Each color (red, green, blue) of your frame is remapped so
-     its darks, mids and lights land where the inspiration's are (quantile matching), moment by moment. Skin keeps
-     most of its own hue, so faces don't turn blue or green.
+     its darks, mids and lights land where the inspiration's are (quantile matching), moment by moment; the
+     brightness moves half way. Skin keeps most of its own hue, so faces don't turn blue or green.
    - Grain and softness: how grainy (noise in the flat parts) and how sharp (the edges' fine detail) the
      inspiration is; your clip is softened or sharpened to match, then grain is added.
    - Frame shape: the inspiration's picture shape (bars, or a tall or wide frame) and how dark its edges are
@@ -331,7 +331,13 @@
         have = curveAt(noise, k);
       out.texture = { k: r3(k), grain: r3(Math.sqrt(Math.max(0, g * g - have * have)) * on.grain * 1000) / 1000, amount: on.grain };
     }
-    if (on.shape) out.shape = { aspect: A.aspect, vignette: r3(vigAmount(A.vigMid, B ? B.vigMid : 0) * on.shape), amount: on.shape };
+    if (on.shape) {
+      /* the picture's window follows your people (where skin is, over the second around), centered once bars are on */
+      const T = p.target,
+        near = (T.times || []).map((t, i) => (Math.abs(t - s) <= 1 && T.raw.skin[i] > 0.004 ? i : -1)).filter((i) => i >= 0);
+      const avg = (k) => (near.length ? r3(near.reduce((a, i) => a + T.raw[k][i], 0) / near.length) : 0.5);
+      out.shape = { aspect: A.aspect, vignette: r3(vigAmount(A.vigMid, B ? B.vigMid : 0) * on.shape), amount: on.shape, cx: T.raw && T.raw.skinX ? avg("skinX") : 0.5, cy: T.raw && T.raw.skinY ? avg("skinY") : 0.5 };
+    }
     return Object.keys(out).length ? out : null;
   }
 
@@ -375,7 +381,10 @@
     const ramp = (x, a, z) => clamp((x - a) / z, 0, 1);
     return r > b ? ramp(Y, 45, 15) * ramp(cb, 77, 6) * ramp(127, cb, 6) * ramp(cr, 135, 6) * ramp(175, cr, 6) : 0;
   }
-  /* The borrowed palette, in place. Skin keeps 80% of its own hue and takes the new brightness. */
+  /* The borrowed palette, in place. The colors take the inspiration's curves fully; the brightness moves only
+     half way (TONE), so a dark room under a white title card turns pale and blue without washing out (the
+     "Light and dark" switch does the rest). Skin keeps 80% of its own hue. */
+  const TONE = 0.5;
   function palette(d, w, h, want, amount, have) {
     if (!want || !(amount > 0)) return;
     have = have || quantiles(d, w, h, 3);
@@ -384,20 +393,16 @@
       const r = d[p],
         g = d[p + 1],
         b = d[p + 2];
-      let R = L[0][r],
+      const R = L[0][r],
         G = L[1][g],
         B = L[2][b];
-      const sk = skinness(r, g, b) * 0.8;
-      if (sk > 0.01) {
-        const y0 = luma(r, g, b),
-          y1 = luma(R, G, B);
-        R += (y1 + r - y0 - R) * sk;
-        G += (y1 + g - y0 - G) * sk;
-        B += (y1 + b - y0 - B) * sk;
-      }
-      d[p] = R;
-      d[p + 1] = G;
-      d[p + 2] = B;
+      const y0 = luma(r, g, b),
+        y1 = luma(R, G, B),
+        y = y0 + (y1 - y0) * TONE,
+        sk = skinness(r, g, b) * 0.8;
+      d[p] = y + (R - y1) * (1 - sk) + (r - y0) * sk;
+      d[p + 1] = y + (G - y1) * (1 - sk) + (g - y0) * sk;
+      d[p + 2] = y + (B - y1) * (1 - sk) + (b - y0) * sk;
     }
   }
   /* Soften or sharpen every color, in place. */
@@ -411,7 +416,8 @@
       for (let i = 0; i < n; i++) d[i * 4 + c] = o[i];
     }
   }
-  /* Film grain: brightness noise, sigma as measured (0..1), in clumps cell pixels wide, strongest in the mids. */
+  /* Film grain: brightness noise, sigma as measured (0..1), in clumps cell pixels wide, strongest in the mids and
+     none in pure black (bars stay clean). */
   function grain(d, w, h, sigma, seed, cell) {
     if (!(sigma > 0.0005)) return;
     cell = Math.max(1, Math.round(cell || 1));
@@ -426,14 +432,14 @@
       for (let x = 0; x < w; x++) {
         const p = (y * w + x) * 4;
         const v = luma(d[p], d[p + 1], d[p + 2]) / 255;
-        const e = z[((y / cell) | 0) * gw + ((x / cell) | 0)] * amp * (0.35 + 2.6 * v * (1 - v));
+        const e = z[((y / cell) | 0) * gw + ((x / cell) | 0)] * amp * Math.min(1, v * 10) * (0.35 + 2.6 * v * (1 - v)); /* black stays black */
         d[p] += e;
         d[p + 1] += e;
         d[p + 2] += e;
       }
   }
   /* The picture's shape (bars to the inspiration's picture shape, grown in by amount) and the vignette, in place.
-     Returns the bars drawn (pixels). */
+     The window kept is centered on S.cx, S.cy (your people) and moved to the middle. Returns the bars (pixels). */
   function shape(d, w, h, S) {
     const fa = w / h;
     let bx = 0,
@@ -442,6 +448,10 @@
     else if (S.aspect && S.aspect < fa / 1.01) bx = Math.round(((w - h * S.aspect) / 2) * S.amount);
     const pw = w - 2 * bx,
       ph = h - 2 * by;
+    /* where the kept window starts in the frame */
+    const ox = bx ? clamp(Math.round((S.cx == null ? 0.5 : S.cx) * w - pw / 2), 0, w - pw) : 0,
+      oy = by ? clamp(Math.round((S.cy == null ? 0.5 : S.cy) * h - ph / 2), 0, h - ph) : 0;
+    const src = ox !== bx || oy !== by ? new Uint8ClampedArray(d) : d;
     for (let y = 0; y < h; y++)
       for (let x = 0; x < w; x++) {
         const p = (y * w + x) * 4;
@@ -449,12 +459,11 @@
           d[p] = d[p + 1] = d[p + 2] = 0;
           continue;
         }
-        if (S.vignette > 0) {
-          const f = 1 - S.vignette * vigFall(rad(x - bx, y - by, pw, ph));
-          d[p] *= f;
-          d[p + 1] *= f;
-          d[p + 2] *= f;
-        }
+        const q = ((y - by + oy) * w + x - bx + ox) * 4;
+        const f = S.vignette > 0 ? 1 - S.vignette * vigFall(rad(x - bx, y - by, pw, ph)) : 1;
+        d[p] = src[q] * f;
+        d[p + 1] = src[q + 1] * f;
+        d[p + 2] = src[q + 2] * f;
       }
     return { x: bx, y: by };
   }

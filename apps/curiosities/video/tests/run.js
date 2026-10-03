@@ -328,6 +328,10 @@ check("frame shape: letterbox bars and the picture's shape are found, and drawn 
   LK.shape(half, 320, 180, { aspect: 9 / 16, vignette: 0, amount: 0.5 });
   const side = LK.barsOf(half, 320, 180);
   assert(side.left > 0.15 && side.left < 0.2 && side.top === 0, JSON.stringify(side));
+  /* the tall window follows the people: someone on the left stays in the picture, moved to the middle */
+  const left = pic(320, 180, (x) => (x < 80 ? [200, 40, 40] : [40, 40, 200]));
+  LK.shape(left, 320, 180, { aspect: 9 / 16, vignette: 0, amount: 1, cx: 0.12, cy: 0.5 });
+  assert(left[(90 * 320 + 160) * 4] > 150 && left[(90 * 320 + 10) * 4] === 0, "the red person is in the middle, bars at the sides");
   /* vignette: the edges made as much darker as asked */
   const v = new Uint8ClampedArray(flat);
   LK.shape(v, 320, 180, { aspect: null, vignette: LK.vigAmount(0.4, 0), amount: 1 });
@@ -339,10 +343,14 @@ check("borrowed palette: each color's mean moves to the inspiration's, skin keep
     green = pic(160, 90, (x) => [40 + x / 2, 60 + x, 50 + x * 0.6]);
   const d = new Uint8ClampedArray(green);
   LK.palette(d, 160, 90, LK.quantiles(blue, 160, 90), 1);
-  [0, 1, 2].forEach((c) => assert(Math.abs(chan(d, c) - chan(blue, c)) < 6, "channel " + c + ": " + chan(d, c) + " vs " + chan(blue, c)));
+  /* the colors land on the inspiration's (each color against the brightness), the brightness moves half way */
+  const tint = (x, c) => chan(x, c) - (0.299 * chan(x, 0) + 0.587 * chan(x, 1) + 0.114 * chan(x, 2));
+  const Y = (x) => 0.299 * chan(x, 0) + 0.587 * chan(x, 1) + 0.114 * chan(x, 2);
+  [0, 1, 2].forEach((c) => assert(Math.abs(tint(d, c) - tint(blue, c)) < 5, "color " + c + ": " + tint(d, c) + " vs " + tint(blue, c)));
+  assert(Math.abs(Y(d) - (Y(green) + Y(blue)) / 2) < 4, "brightness half way: " + [Y(green), Y(d), Y(blue)]);
   const halfway = new Uint8ClampedArray(green);
   LK.palette(halfway, 160, 90, LK.quantiles(blue, 160, 90), 0.5);
-  assert(Math.abs(chan(halfway, 2) - (chan(green, 2) + chan(blue, 2)) / 2) < 6, "half the amount, half way");
+  assert(Math.abs(tint(halfway, 2) - (tint(green, 2) + tint(blue, 2)) / 2) < 5, "half the amount, half way");
   /* skin: a face-colored patch keeps most of its warmth while the green scene turns blue */
   const face = pic(160, 90, (x) => (x < 40 ? [205, 150, 120] : [40 + x / 2, 60 + x, 50 + x * 0.6]));
   LK.palette(face, 160, 90, LK.quantiles(blue, 160, 90), 1);
@@ -356,7 +364,7 @@ check("borrowed palette: each color's mean moves to the inspiration's, skin keep
   assert(a.looks.palette.amount === 1 && a.looks.palette.q.b[4] > 0.5, JSON.stringify(a.looks.palette.q.b));
   const after = { times: [0.5, 2, 4], looks: LK.series([0.5, 2, 4].map((t) => ({ t, m: LK.measure(d, 160, 90) }))) };
   const sc = V.score(p, "palette", Object.assign({}, target, { looks: B }), after);
-  assert(sc.gapAfter < sc.gapBefore / 3, JSON.stringify(sc));
+  assert(sc.gapAfter < sc.gapBefore / 2, JSON.stringify(sc));
 });
 check("grain and softness: grain is measured, a soft grainy inspiration softens a crisp clip and adds its grain", () => {
   const crisp = scenePic(320, 180, 0, 0),

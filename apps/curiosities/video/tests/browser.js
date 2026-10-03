@@ -216,7 +216,7 @@ const ok = (cond, text) => {
   await page.click('[data-act="check"]');
   await page.waitForFunction(() => window.CurioVideoUI.state().checks && window.CurioVideoUI.state().checks.palette, null, { timeout: 120000 });
   const pal = await page.evaluate(() => window.CurioVideoUI.state().checks.palette);
-  ok(pal.gapAfter < pal.gapBefore * 0.6, "your clip now has the inspiration's palette: " + JSON.stringify(pal));
+  ok(pal.gapAfter < pal.gapBefore * 0.7, "your clip now has the inspiration's palette: " + JSON.stringify(pal));
 
   /* Everything, played and saved. */
   await page.click('[data-all="1"]');
