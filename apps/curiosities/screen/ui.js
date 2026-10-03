@@ -68,6 +68,7 @@
     range: null,
     guides: [],
     rulers: false,
+    compare: { on: false, split: 50, with: "insp" },
   };
   /* CapCut's layout menu (the layout icon at the top right of its window). Jeremy's screenshots show four
      arrangements: the default, the media panel full height on the left, Details full height on the right, and
@@ -338,6 +339,7 @@
     document.documentElement.classList.add("sc-open");
     prefs.open = true;
     save();
+    takeOpenSnap();
     ensureFilm();
     drawAll();
   }
@@ -365,7 +367,7 @@
     page.addEventListener("pointerdown", onKnobDown);
     if (faces() && faces().attach) faces().attach(faceApi());
     page.addEventListener("keydown", (e) => faces() && faces().keydown && faces().keydown(e, faceHelpers(mineCtx()), faceApi()));
-    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e));
+    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e) || onCompareDrag(e));
     page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
     /* Undo and redo go to the app-wide undo list when the page has one (engine/store.js), so one ⌘Z undoes one
        step of anything. Caught first, on the window, so the app's own ⌘Z handler does not undo a second step. */
@@ -1064,6 +1066,120 @@ document.addEventListener("click", function (e) {
         : ""
     }</span>`;
   }
+  /* ---------- Compare ◐ (CapCut's before/after compare slider) ----------
+     Splits My film's frame: left of a line you can drag is another picture, right is My film at the playhead.
+     The other picture is the film you're learning from at the matching moment (the picked inspiration viewer,
+     else the first, its beats stretched over your film the way Blend and the film lines read it), or your film
+     when you opened the Screen. The engine's history keeps only the names of its undo steps, not the film
+     before them, so "before my last change" can't be shown; a copy taken when the Screen opens stands in.
+     A view setting (prefs.compare: { on, split, with }), never an undo step. */
+  const COMPARE_WITH = [
+    ["insp", "The film I'm learning from"],
+    ["open", "When I opened the Screen"],
+  ];
+  let openSnap = null;
+  function takeOpenSnap() {
+    if (!E()) return;
+    const st = E().state();
+    let res = null;
+    try {
+      res = E().rewrite(st);
+    } catch (err) {}
+    openSnap = res ? { st, res } : null;
+  }
+  function compareNow() {
+    const c = prefs.compare && typeof prefs.compare === "object" ? prefs.compare : {};
+    const split = Number(c.split);
+    return { on: !!c.on, split: c.split != null && isFinite(split) ? Math.max(0, Math.min(100, split)) : 50, with: COMPARE_WITH.some((x) => x[0] === c.with) ? c.with : "insp" };
+  }
+  function setCompare(change) {
+    prefs.compare = Object.assign(compareNow(), change);
+    save();
+  }
+  /* My film's values at moment i as it was when the Screen opened (same moment by its id, else by its place). */
+  function openValues(i) {
+    if (!openSnap) takeOpenSnap();
+    if (!openSnap) return null;
+    const { st, res } = openSnap;
+    const now = E().state().rows[i];
+    const r = (now && st.rows.find((x) => x.id === now.id)) || st.rows[Math.min(i, st.rows.length - 1)];
+    if (!r) return null;
+    const values = {};
+    st.tracks
+      .slice()
+      .sort((a, b) => rank(a) - rank(b))
+      .forEach((t) => t.curiosities.forEach((c) => values[c] == null && (values[c] = res.dest[E().cellKey(r.id, t.id, c)])));
+    Object.keys(values).forEach((k) => /\.setting$/.test(k) && values[L().base(k)] == null && (values[L().base(k)] = values[k]));
+    return values;
+  }
+  /* The picture on the left: { values, label, title, cast } or { none: "why" }. */
+  function compareSide(c, i) {
+    if (c.with === "open") {
+      const values = openValues(i);
+      return values ? { values, label: "When I opened the Screen", title: "Your film at this moment when you opened the Screen", cast: castOf() } : { none: "Nothing kept from when you opened the Screen." };
+    }
+    const v = prefs.insp.find((x) => x.id === prefs.focus) || prefs.insp[0];
+    const f = v && film(v.film);
+    if (!f || !f.beats.length) return { none: "Add an inspiration film to compare with." };
+    const b = beatFor(f);
+    const values = f.beats[b].values || {};
+    return { values, label: "Learning from: " + filmTitle(f), title: filmTitle(f) + ", beat " + (b + 1) + ", the moment that matches yours", cast: Number(values.peopleCount) || 2 };
+  }
+  function compareHtml(i, shape, sel) {
+    const c = compareNow();
+    if (!c.on || !F()) return "";
+    const side = compareSide(c, i);
+    if (side.none) return `<div class="sc-cmp" data-cmp="${c.with}"><span class="sc-cmp-lab l">${esc(side.none)}</span></div>`;
+    let svg = F().svg(side.values, Object.assign(frameOpts(sel, side.values), { title: "", cast: side.cast }));
+    svg = svg.replace("<svg ", `<svg preserveAspectRatio="xMidYMid ${shape === "wide" ? "meet" : "slice"}" `);
+    const pct = Math.round(c.split);
+    return `<div class="sc-cmp" data-cmp="${c.with}" style="--cmp:${pct}%"><div class="sc-cmp-pic" aria-hidden="true">${svg}</div><span class="sc-cmp-lab l" title="${esc(side.title)}">${esc(side.label)}</span><span class="sc-cmp-lab r">My film now</span><div class="sc-cmp-line" data-cmp-line tabindex="0" role="slider" aria-label="Where the split is: drag, or use the left and right arrow keys" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" title="Drag to move the split, or press ← →"></div></div>`;
+  }
+  function compareMenuHtml() {
+    const c = compareNow();
+    return `<span class="sc-cmp-set"><button type="button" data-act="compare" class="${c.on ? "on" : ""}" aria-pressed="${c.on}" title="Compare: split your film's picture with a line you can drag. Left of the line is another picture, right is your film now. It doesn't change your film.">Compare ◐</button><select data-compare-with aria-label="Compare my film with" title="What to show left of the line">${COMPARE_WITH.map(([id, l]) => `<option value="${id}"${c.with === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></span>`;
+  }
+  /* Move the split without redrawing, so the line keeps focus and the drag stays smooth. */
+  function moveSplit(pct, keep) {
+    const v = Math.round(Math.max(0, Math.min(100, pct)) * 10) / 10;
+    prefs.compare = Object.assign(compareNow(), { split: v });
+    const box = page && page.querySelector(".sc-cmp");
+    if (box) {
+      box.style.setProperty("--cmp", v + "%");
+      const line = box.querySelector("[data-cmp-line]");
+      if (line) line.setAttribute("aria-valuenow", String(Math.round(v)));
+    }
+    if (!keep) save();
+  }
+  function onCompareDrag(e) {
+    const line = e.target.closest && e.target.closest("[data-cmp-line]");
+    if (!line || e.button > 0) return false;
+    const frame = line.closest(".sc-frame");
+    const at = (ev) => {
+      const r = frame.getBoundingClientRect();
+      return r.width ? ((ev.clientX - r.left) / r.width) * 100 : compareNow().split;
+    };
+    line.focus();
+    const move = (ev) => moveSplit(at(ev), true);
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      save();
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+    return true;
+  }
+  document.addEventListener("keydown", (e) => {
+    const line = e.target && e.target.closest && e.target.closest("[data-cmp-line]");
+    if (!line || !/^(ArrowLeft|ArrowRight|Home|End)$/.test(e.key)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const step = e.shiftKey ? 10 : 2;
+    const cur = compareNow().split;
+    moveSplit(e.key === "Home" ? 0 : e.key === "End" ? 100 : cur + (e.key === "ArrowRight" ? step : -step));
+  }, true);
   function viewerHtml(kind, v) {
     const sel = selection();
     if (kind === "mine") {
@@ -1077,7 +1193,7 @@ document.addEventListener("click", function (e) {
       const fill = (svg) => (shape === "wide" ? svg : svg.replace("<svg ", '<svg preserveAspectRatio="xMidYMid slice" '));
       return `<article class="sc-viewer mine${prefs.focus === "mine" ? " focus" : ""}" data-viewer="mine">
         <header><button type="button" class="sc-vname" data-focus="mine">My film</button><span class="sc-vsub">${esc(E() ? E().state().name : "")} · moment ${i + 1} of ${beats.length}</span></header>
-        <div class="sc-frame" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${guidesHtml(vals, att, shape)}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
+        <div class="sc-frame${compareNow().on ? " sc-cmp-on" : ""}" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${compareHtml(i, shape, sel)}${guidesHtml(vals, att, shape)}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
         ${scrub(beats, i, fires, "mine")}
         <p class="sc-vnote">${fires.length ? `${esc(sel.label)} shows up ${fires.length} time${fires.length === 1 ? "" : "s"} in your film.` : `${esc(sel.label)} does not show up in your film yet.`}</p>
       </article>`;
@@ -1209,7 +1325,7 @@ document.addEventListener("click", function (e) {
     showTimelineWindow();
     page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
-      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}</span>`;
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}${compareMenuHtml()}</span>`;
   }
 
   /* ---------- the inspector ---------- */
@@ -1935,6 +2051,7 @@ document.addEventListener("click", function (e) {
       const b = page.querySelector('[data-act="guides-menu"]');
       if (b) b.setAttribute("aria-expanded", "false");
     }
+    if (e.target.closest("[data-cmp-line]")) return;
     const t = e.target.closest("button, [data-scrub], .sc-frame");
     if (!t || !page.contains(t)) return;
     const d = t.dataset;
@@ -2087,6 +2204,12 @@ document.addEventListener("click", function (e) {
       save();
       return drawViewers();
     }
+    if (act === "compare") {
+      setCompare({ on: !compareNow().on });
+      drawViewers();
+      const b = page.querySelector('[data-act="compare"]');
+      return b && b.focus();
+    }
     if (act === "guides-menu") {
       guidesOpen = !guidesOpen;
       drawViewers();
@@ -2160,6 +2283,12 @@ document.addEventListener("click", function (e) {
       setGuide(d.guide, t.checked);
       drawViewers();
       const box = page.querySelector(`.sc-guides-menu [data-guide="${d.guide}"]`);
+      return box && box.focus();
+    }
+    if ("compareWith" in d) {
+      setCompare({ with: t.value, on: true });
+      drawViewers();
+      const box = page.querySelector("[data-compare-with]");
       return box && box.focus();
     }
     if ("ratio" in d) {
@@ -2387,5 +2516,5 @@ document.addEventListener("click", function (e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();

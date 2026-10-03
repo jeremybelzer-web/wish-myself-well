@@ -119,6 +119,17 @@ Like the guides CapCut's Player can show. **Guides ▾** sits next to Ratio in t
 
 Guides are a view setting, not part of the film, and never an undo step. They are kept in `curiosities-screen-v1` as `guides: ["thirds", ...]`. An older save that kept `guides: true` (the single ⌘; thirds switch) loads as Thirds. ⌘; still turns the thirds guide on and off. `CurioScreen.guides` has `list()`, `on()` and `spot(values, family, cast)` for tests.
 
+## Compare ◐: two pictures in one frame
+
+Like CapCut's before/after compare slider. **Compare ◐** sits after Guides ▾ in the Player's transport bar. Turn it on and My film's frame splits in two with a white line down it: left of the line is another picture, right of it is My film at the playhead. The small menu next to the button picks the picture on the left:
+
+- **The film I'm learning from**: the inspiration film you picked in the Player (click its Inspect; when your own film is picked, the first inspiration viewer) at the moment that matches yours. The film is stretched to your film's length the same way Blend and the film lines read it, so it is the very frame that viewer shows now.
+- **When I opened the Screen**: your film at this moment as it was when you opened the Screen. A copy is taken each time the Screen opens. "Before my last change" is not offered because the engine's undo list keeps only the name of each step, not the film before it.
+
+Drag the line to move the split, or click the line and press ← and → (Shift for bigger steps, Home and End for the edges). The arrows move the split, not the playhead, while the line has focus. Small labels at the top corners name each side ("Learning from: ..." or "When I opened the Screen" on the left, "My film now" on the right). The split follows the Ratio frame shape, and the left picture is cropped the same way as yours. Guides are drawn over it. Only the line takes clicks; a click anywhere else on the frame reaches the frame as usual.
+
+Compare is a view setting, not part of the film, and never an undo step. It is kept in `curiosities-screen-v1` as `compare: { on, split, with }` (split is 0 to 100, how far across the line is; with is `insp` or `open`). `CurioScreen.compare` has `list()` and `now()` for tests.
+
 ## Whole film strip
 
 Jeremy, 2026-10-02 20:27Z. The viewers show one moment at a time, so the Player has a **Whole film** strip under them (`ui.js` `overviewHtml`): every moment of My film as a small storyboard frame, always squeezed to fit the width, like the thumbnails on CapCut's main track and Final Cut Pro's filmstrips. Click or drag along it to jump anywhere; the timeline scrolls to follow. The current moment is outlined, moments outside the play range are dimmed, a dot marks where the picked curiosity shows up, and a white box shows the stretch the zoomed-in timeline is showing. "▾ Whole film" folds it away (`prefs.overview`).

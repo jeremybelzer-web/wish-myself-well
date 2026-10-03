@@ -540,6 +540,11 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(list.every((x) => x.tip && x.tip.startsWith(x.label + ":") && x.tip.length < 140 && !/\n/.test(x.tip)), "each guide has a one-line plain tooltip starting with its name");
   ok(G.on().join() === "thirds,golden", "saved guides load in menu order, unknown ones dropped");
   ok(mk({ guides: true }).on().join() === "thirds" && mk({ guides: false }).on().length === 0 && mk(null).on().length === 0, "an older save's single guides switch (⌘;) loads as the thirds guide");
+  /* Compare ◐: what it can compare with, and the saved setting read back safely. */
+  const C = (saved) => { const store = { "curiosities-screen-v1": saved == null ? null : JSON.stringify(saved) }; const g = { CurioFrame: w.CurioFrame, document: { readyState: "loading", addEventListener() {} }, localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = v) } }; g.window = g; vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "ui.js"), "utf8"), vm.createContext(g), { filename: "ui.js" }); return g.CurioScreen.compare; };
+  ok(C(null).list().map((x) => x.id).join() === "insp,open" && C(null).list()[0].label === "The film I'm learning from" && C(null).list()[1].label === "When I opened the Screen", "Compare offers the film I'm learning from and when I opened the Screen, in plain words");
+  ok(JSON.stringify(C(null).now()) === JSON.stringify({ on: false, split: 50, with: "insp" }), "Compare starts off, split in the middle, against the film I'm learning from");
+  ok(JSON.stringify(C({ compare: { on: true, split: 140, with: "open" } }).now()) === JSON.stringify({ on: true, split: 100, with: "open" }) && C({ compare: { split: -3, with: "nonsense" } }).now().split === 0 && C({ compare: { with: "nonsense" } }).now().with === "insp" && C({ compare: "junk" }).now().split === 50, "a saved Compare setting is kept inside the frame and unknown choices fall back");
   const F = w.CurioFrame;
   /* The head frame.js actually draws: the first person's head circle. */
   const head = (vals, cast) => { const m = F.svg(vals, { cast }).match(/<circle data-cat="performance" cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"/); return m && { x: +m[1], y: +m[2], r: +m[3] }; };
