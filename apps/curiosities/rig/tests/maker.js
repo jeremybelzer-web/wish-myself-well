@@ -159,7 +159,7 @@ function measure() {
     ok(hats.every((h, i) => read.misc[6 + i].split("|")[2] === h), "hats: " + read.misc.slice(6, 11).join(", "));
     ok(read.misc[11].split("|")[3] === "dress" && read.misc[12].split("|")[4] === "boots" && read.misc[13].split("|")[5] === "hoodie" && read.misc[14].split("|")[6] === "goatee" && read.misc[15].split("|")[6] === "long", "dress, boots, hoodie, goatee, long beard");
     ok(read.nothing === false, "words with no look in them say so");
-    ok(read.surprises.every((s) => s.found && s.n >= 5), `every Surprise me description is read back (${read.surprises.slice(0, 2).map((s) => s.t).join(" / ")})`);
+    ok(read.surprises.every((s) => s.found && s.n >= 5), `every Surprise me description is read back (${(read.surprises.filter((s) => !(s.found && s.n >= 5)).map((s) => s.n + ": " + s.t).join(" / ") || "all read")})`);
 
     /* ----- the first version's saved words still load ----- */
     await page.evaluate((KEY) => {

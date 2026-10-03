@@ -382,12 +382,13 @@
     const HATSAY = { cap: "cap", cowboy: "cowboy hat", straw: "straw hat", top: "top hat", chef: "chef hat", wizard: "pointy hat", crown: "crown", beanie: "beanie", hat: "hat", bandana: "bandana on the head", headband: "headband" };
     if (p.hat) said.push(a(col(p.hatWord) + HATSAY[p.hat]));
     const TOPSAY = { tshirt: "t-shirt", shirt: "shirt", tank: "tank top", jacket: "jacket", hoodie: "hoodie", sweater: "sweater", dress: "" };
-    const robe = p.bottom === "dress" && p.top === "jacket";
+    /* a jacket over a dress is a long robe only when the words say robe (or a wizard look); "a jacket and a dress" stays both */
+    const robe = p.bottom === "dress" && p.top === "jacket" && (has(/\b(robe|tunic)\b/) || p.hat === "wizard");
     if (TOPSAY[p.top] && !robe) said.push(a(col(p.topWord) + (p.plaid ? "plaid " : p.stripes ? "striped " : "") + TOPSAY[p.top]));
     const WEARSAY = { vest: "vest", apron: "apron", cape: "cape", scarf: "scarf", kerchief: "neckerchief", tie: "tie", bowtie: "bow tie", gloves: "gloves", belt: "belt", backpack: "backpack" };
     Object.keys(WEARSAY).forEach((k) => W[k] && said.push(k === "gloves" ? col(W[k].word) + "gloves" : a(col(W[k].word) + WEARSAY[k])));
     const BOTSAY = { trousers: "trousers", shorts: "shorts", overalls: "overalls", skirt: "a skirt", dress: "a dress", kilt: "a tartan kilt" };
-    if (robe) said.push(a(col(p.bottomWord) + "long robe"));
+    if (robe) said.push(a(col(p.bottomWord || p.topWord) + "long robe"));
     else said.push(/^a /.test(BOTSAY[p.bottom]) ? (p.bottomWord ? a(p.bottomWord + " " + BOTSAY[p.bottom].slice(2)) : BOTSAY[p.bottom]) : col(p.bottomWord) + BOTSAY[p.bottom]);
     said.push({ bare: "bare feet", sandals: col(p.shoesWord) + "sandals", sneakers: col(p.shoesWord) + "sneakers", boots: col(p.shoesWord) + "boots", shoes: col(p.shoesWord) + "shoes" }[p.feet]);
     if (p.skinWord) said.push(p.skinWord + " skin");
