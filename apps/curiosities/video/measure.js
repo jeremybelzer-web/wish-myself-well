@@ -721,8 +721,8 @@
       }
       t += step;
     }
-    p.src = src;
-    p.duration = r3(src.length * step);
+    p.src = root.CurioRhythm ? root.CurioRhythm.retime(p, src) : src; /* video/rhythm.js: jumps and holds on the beat */
+    p.duration = r3(p.src.length * step);
     /* Dialogue: new lines on the title's topic, one per phrase of the inspiration's speech, at its times. */
     p.lines = [];
     if (on.dialogue > 0 && insp.speech && insp.speech.phrases.length) {
@@ -874,6 +874,7 @@
       zoom = z;
     } else zoom *= push;
     adj.zoom = r3(Math.max(1, zoom));
+    if (p.rhythm && root.CurioRhythm) root.CurioRhythm.at(p, t, adj); /* video/rhythm.js: punch-ins and flashes */
     if (on.loud && A.raw.db && B.raw.db) {
       const [a, b] = g("db");
       adj.gainDb = clamp(a - b, -24, 18) * on.loud;
@@ -1247,6 +1248,7 @@
       const gap = (x) => r3(mean(x.map((v, i) => Math.abs(v - want[i]))));
       return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
     }
+    if (feat === "rhythm") return root.CurioRhythm ? root.CurioRhythm.score(p, before, after) : { feature: feat, note: "needs video/rhythm.js" };
     if (/^lk:/.test(feat)) return root.CurioLooks ? root.CurioLooks.score(p, feat, before, after) : { feature: feat, note: "needs video/looks.js" };
     if (feat === "cuts") return { feature: "cuts", inspiration: A.cuts.length, before: before.cuts.length, after: after.cuts.length };
     if (feat === "speech") {

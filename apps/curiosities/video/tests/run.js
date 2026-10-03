@@ -544,6 +544,97 @@ check("camera angle by depth: made-up depth and the warp (depth.js)", () => {
   const lower = D.warp(px, W, H, near, W, H, -1, { ref: 0.9, lift: 0.1, pitch: 0, zoom: 0, fit: false });
   assert(row(px, 5) - row(lower, 5) < 0, "from lower down the set slides down instead");
 });
+/* ---------- rhythm (video/rhythm.js): beat, accents, and putting them on another clip ---------- */
+const RH = w.CurioRhythm;
+/* A made-up click track: a click every 60/bpm s from 0.2 s (every 4th one louder), a quiet tick on the off-beats,
+   a faint hiss, and silence (no hiss either) from gap[0] to gap[1] if given. 16 kHz. */
+function clicks(dur, bpm, gap) {
+  const rate = 16000,
+    pcm = new Float32Array(Math.round(dur * rate)),
+    P = 60 / bpm,
+    on = [];
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296) * 2 - 1;
+  const silent = (t) => gap && t >= gap[0] && t < gap[1];
+  for (let i = 0; i < pcm.length; i++) pcm[i] = silent(i / rate) ? 0 : 0.003 * rnd();
+  for (let k = 0, t = 0.2; t < dur - 0.05; k++, t = 0.2 + (k * P) / 2) {
+    if (silent(t)) continue;
+    const beat = k % 2 === 0,
+      amp = beat ? (k % 8 === 0 ? 0.9 : 0.5) : 0.12;
+    if (beat) on.push(t);
+    for (let j = 0; j < 0.03 * rate; j++) {
+      const i = Math.round(t * rate) + j;
+      if (i < pcm.length) pcm[i] += amp * Math.exp(-j / (0.006 * rate)) * (0.6 * rnd() + 0.4 * Math.sin((2 * Math.PI * 1500 * j) / rate));
+    }
+  }
+  return { pcm, rate, on };
+}
+check("rhythm: a click track's tempo is found within 3%, and every beat lands on a click", () => {
+  [128, 96, 150].forEach((bpm) => {
+    const c = clicks(12, bpm);
+    const r = RH.find(c.pcm, c.rate, { duration: 12 });
+    assert.strictEqual(r.from, "sound", bpm + ": " + r.from + " clarity " + r.clarity);
+    assert(Math.abs(r.bpm - bpm) / bpm < 0.03, "tempo " + r.bpm + " for " + bpm);
+    const off = r.beats.map((b) => Math.min(...c.on.map((t) => Math.abs(t - b))));
+    assert(Math.max(...off) < 0.03, bpm + ": a beat 30 ms or more from any click: " + Math.max(...off).toFixed(3));
+    assert(r.beats.length >= c.on.length - 2, bpm + ": beats " + r.beats.length + " of " + c.on.length + " clicks");
+    /* the louder clicks are the accents */
+    const loud = c.on.filter((_, i) => i % 4 === 0);
+    assert(r.accents.length >= loud.length - 1 && r.accents.every((a) => c.on.some((t) => Math.abs(t - a) < 0.04)), "accents on clicks: " + r.accents.join(" "));
+  });
+});
+check("rhythm: no beats come from silence, and a silent clip falls back to its cuts", () => {
+  const c = clicks(14, 120, [5, 9.5]);
+  const r = RH.find(c.pcm, c.rate, { duration: 14 });
+  assert.strictEqual(r.from, "sound");
+  const inGap = r.beats.filter((b) => b > 5.05 && b < 9.45);
+  assert(!inGap.length, "beats in the silence: " + inGap.join(" "));
+  assert(r.beats.some((b) => b > 10) && r.beats.some((b) => b < 4.5), "beats on both sides of the silence");
+  const quiet = new Float32Array(16000 * 6);
+  const none = RH.find(quiet, 16000, { duration: 6 });
+  assert(none.from === "none" && !none.beats.length && !none.accents.length, JSON.stringify(none));
+  const cuts = RH.find(quiet, 16000, { duration: 6, cuts: [1, 2.5, 4] });
+  assert(cuts.from === "cuts" && cuts.beats.join() === "1,2.5,4" && cuts.period === 1.5, JSON.stringify(cuts));
+  assert(RH.of({ cuts: [2], duration: 6 }).beats.join() === "2", "an old dissection uses its cuts");
+});
+check("rhythm on another clip: jump cuts and punch-ins on the beats, a flash on accents; off changes nothing", () => {
+  const c = clicks(6, 120);
+  const A = Object.assign({}, insp, { rhythm: RH.find(c.pcm, c.rate, { duration: 6 }) });
+  assert(V.GROUPS.some((g) => g.id === "rhythm" && g.off) && V.GROUPS.some((g) => g.id === "music" && g.off), "groups added, off");
+  const plain = V.plan(A, target, { on: { light: 1 } });
+  assert(!plain.rhythm && V.at(plain, 1).zoom === 1 && !V.at(plain, 1).rhythm, "off by default");
+  const p = V.plan(A, target, { on: { rhythm: 1 } });
+  const beats = p.rhythm.beats.map((b) => b.t);
+  assert(beats.length >= 15, "beats repeat over the longer clip: " + beats.length);
+  /* a jump cut: at a beat's frame your clip skips ahead more than one frame */
+  const f = Math.ceil(beats[1] * 30 - 1e-6);
+  assert(p.src[f] - p.src[f - 1] > 0.15, "jump at the beat: " + (p.src[f] - p.src[f - 1]));
+  assert(Math.abs(p.src[f + 3] - p.src[f + 2] - 1 / 30) < 0.002, "plays on normally between beats");
+  /* punch-in: close on one beat, wide on the next, with a bump just after each */
+  const z = (t) => V.at(p, t).zoom;
+  assert(z(beats[0] + 0.2) > 1.2 && z(beats[1] + 0.2) < 1.05, "close then wide: " + z(beats[0] + 0.2) + " " + z(beats[1] + 0.2));
+  assert(z(beats[1] + 0.01) > z(beats[1] + 0.3), "a bump that settles");
+  const acc = p.rhythm.accents[0];
+  assert(V.at(p, acc + 0.02).rhythm.flash > 0.5 && V.at(p, acc + 0.35).rhythm.flash < 0.1, "a quick flash on an accent");
+  /* hold and burst: still just after a beat, then faster to catch up */
+  const h = V.plan(A, target, { on: { burst: 1 } });
+  const g = Math.ceil(h.rhythm.beats[2].t * 30 - 1e-6);
+  assert(h.src[g + 2] === h.src[g + 1], "holds after the beat");
+  assert(h.src[g + 12] - h.src[g + 11] > 1.2 / 30, "then runs faster: " + (h.src[g + 12] - h.src[g + 11]) * 30);
+  assert(Math.abs(h.src[g + 15] - plain.src[g + 15]) < 0.06, "and catches up by the next beat");
+  /* the check: after, the picture changes on the beat */
+  const after = { times: [], dt: 0.1, raw: { luma: [], std: [], local: [] } };
+  for (let t = 0; t < p.duration; t += 0.1) {
+    after.times.push(t);
+    const a = V.at(p, t);
+    after.raw.luma.push(0.4 + (a.rhythm ? a.rhythm.flash * 0.3 : 0) + (a.zoom - 1) * 0.2);
+    after.raw.std.push(0.2);
+    after.raw.local.push(0);
+  }
+  const sc = V.score(p, "rhythm", target, after);
+  assert(sc.corrAfter > 0.3 && sc.corrAfter > sc.corrBefore + 0.2, JSON.stringify(sc));
+});
+
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });
