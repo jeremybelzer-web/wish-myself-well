@@ -301,7 +301,9 @@
     const p2 = [160 + half, 88];
     const trail = walked * 140;
     s += `<path d="M${p1[0]} ${p1[1]} l${-Math.min(trail, 60)} ${trail > 60 ? -20 : 0} l${-Math.max(0, trail - 60) * 0.4} ${trail > 60 ? 30 : 0}" fill="none" stroke="#ffd166" stroke-width="1.5" stroke-dasharray="2 3"/>`;
-    s += k.dot({ x: p1[0], y: p1[1], r: 6, color: "#4a6fa5" }) + k.dot({ x: p2[0], y: p2[1], r: 6, color: "#e57373" });
+    /* the two people, seen from above: a shirt-colored body under each face */
+    s += [[p1, "#4a6fa5", 1], [p2, "#e57373", -1]].map(([p, c, lk]) => `<ellipse cx="${p[0]}" cy="${p[1] + 4}" rx="10" ry="6" fill="${c}" stroke="#1c1712"/>` + k.face({ x: p[0], y: p[1] - 2, r: 7, look: lk, eyes: 1, color: "#f0c8a0" })).join("");
+    s += k.label({ x: 160, y: 14, text: "the room seen from above", size: 8, color: "#999" });
     for (let i = 0; i < roam; i++) s += k.arrow({ x1: p1[0], y1: p1[1], x2: p1[0] + Math.cos(i * 2.1) * (12 + i * 6), y2: p1[1] + Math.sin(i * 2.1) * (12 + i * 6), color: "#9fd3ff", w: 1.5 });
     if (close !== 1) {
       const d = close === 2 ? 1 : -1;
@@ -485,9 +487,12 @@
       const alpha = built === 0 ? 1 : built === 1 ? 0.15 + (0.85 * (copies - i)) / copies : (Math.floor(i / 8) % 2 ? 0.35 : 1);
       const isOdd = odd > 0 && i === Math.floor(copies / 2);
       const col = isOdd ? k.mix("#7fb7ff", "#ff5252", odd / 3) : "#7fb7ff";
-      if (y < 160 && y > 20) s += `<rect x="${(x - sz / 2).toFixed(1)}" y="${(y - sz / 2).toFixed(1)}" width="${(sz * (isOdd ? 1 + odd * 0.3 : 1)).toFixed(1)}" height="${sz.toFixed(1)}" fill="${col}" opacity="${(alpha * k.lerp(0.25, 1, rep)).toFixed(2)}"/>`;
+      /* each copy is a little figure (a head on a body), so the repeat reads as people or things in a row */
+      const zw = sz * (isOdd ? 1 + odd * 0.3 : 1);
+      if (y < 150 && y > 20) s += `<g opacity="${(alpha * k.lerp(0.25, 1, rep)).toFixed(2)}" fill="${col}"><circle cx="${x.toFixed(1)}" cy="${(y - sz * 0.55).toFixed(1)}" r="${(zw * 0.32).toFixed(1)}"/><rect x="${(x - zw * 0.35).toFixed(1)}" y="${(y - sz * 0.2).toFixed(1)}" width="${(zw * 0.7).toFixed(1)}" height="${(sz * 0.9).toFixed(1)}" rx="${(zw * 0.2).toFixed(1)}"/></g>`;
     }
     const ag = v.n("appearGap");
+    s += k.person({ x: 28, y: 158, s: 0.62, color: "#e0a050", look: 1 });
     s += tl(k, { x: 70, w: 240, y: 6, label: "appear", marks: Array.from({ length: Math.min(16, ag > 0 ? Math.floor(5 / ag) + 1 : 16) }, (_, i) => ({ at: ag > 0 ? (i * ag) / 5 : 0, color: "#7fb7ff" })) });
     return s + cap(k, `${v("pattern")} · ${v("copies")} copies · ${v("copyGap")} m apart · odd one: ${v("oddOne")}`);
   });

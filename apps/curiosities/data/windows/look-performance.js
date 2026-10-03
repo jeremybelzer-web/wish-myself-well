@@ -446,8 +446,16 @@
       t += len + gap;
     }
     s += side(k, []).replace('y="6" width="102" height="152"', 'y="100" width="102" height="58"') + k.label({ x: 220, y: 112, text: `${wpm} words a minute`, size: 8, color: "#eee", anchor: "start" }) + k.label({ x: 220, y: 124, text: `${lpm} lines a minute`, size: 8, color: "#eee", anchor: "start" }) + k.label({ x: 220, y: 136, text: `gap ${v.n("pauseBetween")} s, overlap ${v.n("overlapSecs")} s`, size: 7, color: "#ccc", anchor: "start" }) + k.label({ x: 220, y: 148, text: `end ${v.n("endChange") > 0 ? "+" : ""}${v.n("endChange")}%`, size: 7, color: "#ccc", anchor: "start" });
-    s += k.label({ x: 10, y: 112, text: `Pace: ${v("setting")}`, size: 11, color: "#fff", anchor: "start", weight: 700 }) + k.label({ x: 10, y: 128, text: `${v("overlap")} · cues ${v("pickup")}`, size: 8, color: "#ccc", anchor: "start" }) + k.label({ x: 10, y: 142, text: `near the end ${v("rush")} · ${v("variation")}`, size: 8, color: "#ccc", anchor: "start" });
-    return s + cap(k, "each block is a line, each dot a word");
+    /* The two speakers themselves: A talks (more dots the faster), B answers over them when lines overlap. */
+    const dots = "•".repeat(k.clamp(Math.round(wpm / 40), 1, 6));
+    const bw = 30 + Math.min(1, wpm / 240) * 40;
+    const fast = speedF < 1;
+    s += k.person({ x: 26, y: 158, s: 0.55, color: ORANGE, look: 1, lean: fast ? 8 : 0, mood: 0.2 }) + k.person({ x: 190, y: 158, s: 0.55, color: "#5a9fd0", look: -1, mood: ov ? -0.2 : 0.1 });
+    s += k.bubble({ x: ov ? 66 : 90, y: 104, w: ov ? Math.min(bw, 58) : bw, h: 16, text: dots, size: 9, tail: -26 });
+    if (ov) s += k.bubble({ x: 150, y: 104, w: Math.min(bw, 58), h: 16, text: dots, size: 9, tail: 26 });
+    if (fast) s += [0, 1, 2].map((i) => `<line x1="${4}" y1="${128 + i * 6}" x2="${12}" y2="${128 + i * 6}" stroke="#aaa" stroke-width="1.2"/>`).join("");
+    s += k.label({ x: 108, y: 152, text: ov ? "talking over each other" : `${v.n("pauseBetween")} s between lines`, size: 7, color: "#aaa" });
+    return s + cap(k, `Pace: ${v("setting")} · ${v("overlap")} · near the end ${v("rush")}`);
   });
 
   /* ---------- Facial expression: a face and the strength of the expression over time ---------- */
@@ -594,7 +602,11 @@
     if (ret >= 1) s += `<rect x="${r1(X(Math.min(0.95, b + 0.2)))}" y="${G.y + G.h - 20}" width="10" height="20" fill="${col}" opacity="0.5"/>`;
     if (ret === 2) s += `<rect x="${r1(X(0.97))}" y="${G.y + G.h - 30}" width="8" height="30" fill="${col}" opacity="0.7"/>`;
     s += k.graph({ x: G.x, y: G.y, w: G.w, h: G.h, points: Array.from({ length: 41 }, (_, i) => arc(i / 40)), color: "#ddd", w2: 2 });
-    s += k.dot({ x: X(pos), y: Y(pos), r: 5, color: col }) + k.label({ x: X(pos), y: Y(pos) - 9, text: `${v.n("position")}%`, size: 8, color: col });
+    /* Faces along the story line: grey ones for the other parts of the story, a bigger one in the tone's color
+       (and wearing its mood) where this tone sits. */
+    const TMOOD = { hopeful: 0.7, playful: 0.9, tense: -0.4, grim: -0.9, bittersweet: 0.1 };
+    [0.1, 0.3, 0.5, 0.7, 0.9].forEach((f) => { if (Math.abs(f - pos) > 0.12) s += k.face({ x: X(f), y: Y(f) - 9, r: 6, mood: 0, eyes: 1, color: "#9a9aa4" }); });
+    s += k.face({ x: X(pos), y: Y(pos) - 12, r: 10, mood: TMOOD[String(v("toneColor"))] || 0, eyes: 1, color: col }) + k.label({ x: k.clamp(X(pos), 20, 300), y: Y(pos) - 26, text: `${v.n("position")}%`, size: 8, color: col });
     s += k.label({ x: 8, y: 16, text: "the story's tension, start to end", size: 8, color: "#999", anchor: "start" }) + k.label({ x: 312, y: 16, text: `turns in ${v.n("turnSeconds")} s · ${v.n("vsFilm")}% of the film's strength`, size: 7, color: "#aaa", anchor: "end" });
     return s + cap(k, `${v("toneColor")} at the ${act}, ${v("contrastPrev")}, ${v("returnLater") === "never" ? "never returns" : v("returnLater")}`);
   });
@@ -888,7 +900,8 @@
       const isS = surp && (i === 4 || (surp === 3 && (i === 1 || i === 7)));
       if (isS) d = hi + 6;
       const x = 36 + i * 17;
-      s += `<rect x="${x}" y="${r1(Y(d))}" width="12" height="${r1(150 - Y(d))}" fill="${isS ? "#ff6b5a" : k.mix("#5a7bb5", "#ff9a5a", p)}"/>` + (isS ? k.label({ x: x + 6, y: Y(d) - 4, text: "!", size: 10, color: "#ff6b5a", weight: 800 }) : "");
+      const loud = k.clamp((d - 15) / 105, 0, 1);
+      s += `<rect x="${x}" y="${r1(Y(d))}" width="12" height="${r1(150 - Y(d))}" fill="${isS ? "#ff6b5a" : k.mix("#5a7bb5", "#ff9a5a", p)}"/>` + k.face({ x: x + 6, y: Y(d) - 7, r: 6, mood: isS ? -0.3 : 0, brows: loud > 0.6 ? -0.6 : 0, mouth: loud, eyes: isS ? 1 : 0.8, color: "#f0c8a0" }) + (isS ? k.label({ x: x + 6, y: Y(d) + 13, text: "!", size: 10, color: "#fff", weight: 800 }) : "");
     });
     s += `<line x1="30" y1="${r1(Y(lo))}" x2="206" y2="${r1(Y(lo))}" stroke="#5a7bb5" stroke-dasharray="3 2"/><line x1="30" y1="${r1(Y(hi))}" x2="206" y2="${r1(Y(hi))}" stroke="#ff9a5a" stroke-dasharray="3 2"/>`;
     s += side(k, [{ label: "Quietest line", text: `${v("quietest")}, ${v.n("quietDb")} dB` }, { label: "Loudest line", text: `${v("loudest")}, ${v.n("loudDb")} dB` }, { label: `Range ${v.n("db")} dB (${v("setting")})`, p: v.n("db") / 30, color: "#ff9a5a" }, { label: "Quiet to loud", text: v("jumpSpeed") }, { label: "Startles us", text: v("surprise") }]);
@@ -922,6 +935,8 @@
     };
     let s = k.bg(BG) + `<rect x="${G.x}" y="${G.y}" width="${G.w}" height="${G.h}" fill="#1d1d22"/>`;
     s += k.graph({ x: G.x, y: G.y, w: G.w, h: G.h, points: Array.from({ length: 241 }, (_, i) => lvl((i / 240) * T)), color: "#ff9a5a", w2: 2 });
+    /* A face every ten seconds, its mouth as open as the voice is loud. */
+    for (let t = 5; t < T; t += 10) { const l = lvl(t); s += k.face({ x: X(t), y: G.y + G.h - l * G.h - 8, r: 6, mouth: l, brows: l > 0.7 ? -0.6 : 0, eyes: 1, color: "#f0c8a0" }); }
     /* The lines underneath: every Nth one has a jump; the cue word marked. */
     const cue = String(v("cueWord"));
     for (let i = 0; i < 12; i++) {
@@ -1141,7 +1156,12 @@
     const G = { x: 12, y: 26, w: 194, h: 110 };
     let s = k.bg(BG) + `<rect x="${G.x}" y="${G.y}" width="${G.w}" height="${G.h}" fill="#1d1d22"/>`;
     s += k.graph({ x: G.x, y: G.y, w: G.w, h: G.h, points: actP, color: YEL, w2: 3 }) + k.graph({ x: G.x, y: G.y, w: G.w, h: G.h, points: camP, color: "#6fb4ff", w2: 2 });
-    s += k.label({ x: 12, y: 18, text: "the action (yellow), the camera (blue)", size: 8, color: "#bbb", anchor: "start" }) + k.cam({ x: 196, y: 150, s: 0.5 });
+    /* The mover on the action line and the camera on its own line, at three moments. */
+    [24, 60, 100].forEach((i) => {
+      const x = G.x + (i / N) * G.w;
+      s += k.person({ x, y: G.y + G.h - actP[i] * G.h, s: 0.36, color: YEL }) + k.cam({ x: x + 2, y: G.y + G.h - camP[i] * G.h + 12, s: 0.5, color: "#6fb4ff" });
+    });
+    s += k.label({ x: 12, y: 18, text: "the mover (yellow), the camera following (blue)", size: 8, color: "#bbb", anchor: "start" });
     s += side(k, [{ label: "Temper", text: `${v("setting")} of 5` }, { label: "Reacts to", text: v("reactsTo") }, { label: `Lag ${lagF} frames`, p: lagF / 24, color: "#6fb4ff" }, { label: "Gets there", text: v("leads") }, { label: `Wobble ${v("shake")}/5, ${v.n("shakeSize")} cm`, p: shake }, { label: `Swings past ${v.n("overshootPct")}%`, p: os / 0.3, color: "#ff9a5a" }]);
     return s + cap(k, `camera ${v("leads")}, reacts to ${v("reactsTo")}`);
   });

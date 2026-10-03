@@ -250,8 +250,8 @@
   /* ---------------- a ladder of nine levels of health (cm-health) ---------------- */
   function ladder(k, v, opts) {
     const x = 60;
-    const top = 26;
-    const step = 13;
+    const top = 40;
+    const step = 12;
     const lvl = cl(v.n("level"), 1, 9);
     const Y = (n) => top + (cl(n, 1, 9) - 1) * step;
     let s = "";
@@ -265,24 +265,29 @@
     s += pl === 1 ? "" : k.arrow({ x1: x + 12, y1: Y(lvl), x2: x + 12, y2: k.clamp(Y(lvl) + (pl === 0 ? -1 : 1) * (6 + dr * 8), 16, 140), color: pl === 0 ? "#6cc070" : "#ef5350", w: 2 });
     s += `<line x1="${x + 20}" y1="${r1(Y(lvl))}" x2="${r1(x + 20 + dr * 10)}" y2="${r1(Y(lvl))}" stroke="#ffd166" stroke-width="2"/>`;
     const seen = [0, 1, 2, 5][I(v, "seenBy")];
-    for (let i = 0; i < 5; i++) s += eye(k, 140 + i * 22, 156, i < seen);
-    s += S(k, 140 + 2 * 22, 146, `noticed by ${v("seenBy")}`, "#aaa", "middle", 7);
+    for (let i = 0; i < 5; i++) s += eye(k, 166 + i * 22, 156, i < seen);
+    s += S(k, 166 + 2 * 22, 146, `noticed by ${v("seenBy")}`, "#aaa", "middle", 7);
     return s;
   }
   W.look("cm-health", (v, k) => {
-    const g = { x: 160, y: 30, w: 140, h: 60 };
+    /* knocked down, then back up: how far up the third figure is shows how fast they bounce back */
     const rec = I(v, "recover");
-    const rs = v.n("recoverScenes") / 20;
-    const f = (t) => (t < 0.2 ? 0.8 : t < 0.25 ? 0.8 - 0.6 * ((t - 0.2) / 0.05) : 0.2 + Math.min(0.6, ((t - 0.25) / (0.05 + rs * 0.7)) * [0.15, 0.4, 0.6, 0.6][rec]));
-    let pts = "";
-    for (let i = 0; i <= 50; i++) pts += `${r1(g.x + (i / 50) * g.w)},${r1(g.y + g.h - f(i / 50) * g.h)} `;
+    const fy = 104;
+    /* the standing figure is as healthy as their level: upright and smiling at 1, slumped and grey at 9 */
+    const h = (cl(v.n("level"), 1, 9) - 1) / 8;
+    const up = [{ lean: 78, mood: -0.7 }, { lean: 45, mood: -0.4 }, { lean: 18, mood: 0 }, { lean: 0, mood: 0.6 }][rec];
+    const figs = `<line x1="160" y1="${fy}" x2="306" y2="${fy}" stroke="#444"/>`;
     return (
       k.bg(BG) +
       ladder(k, v) +
-      `<rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" rx="4" fill="#1d1d24" stroke="#33333d"/>` +
-      `<polyline points="${pts.trim()}" fill="none" stroke="#6cc070" stroke-width="2"/>` +
-      S(k, g.x + 4, g.y - 4, `bounces back ${v("recover")} · ${v.n("recoverScenes")} scenes`, "#aaa", "start", 7) +
-      S(k, 230, 112, `tipped by ${v("trigger")}`, "#ccc") +
+      figs +
+      k.person({ x: 176, y: fy, s: 0.5, color: k.mix("#4a6fa5", "#6a5a5a", h), mood: 0.8 - h * 1.6, lean: h * 14 }) +
+      k.arrow({ x1: 190, y1: 80, x2: 206, y2: 80, color: "#ef5350", w: 1.5 }) +
+      k.person({ x: 226, y: fy, s: 0.5, color: "#4a6fa5", lean: 80, mood: -0.7 }) +
+      k.arrow({ x1: 246, y1: 80, x2: 262, y2: 80, color: "#6cc070", w: 1.5 }) +
+      k.person({ x: 284, y: fy, s: 0.5, color: "#4a6fa5", lean: up.lean, mood: up.mood }) +
+      S(k, 230, 34, `bounces back ${v("recover")} · ${v.n("recoverScenes")} scenes`, "#aaa", "middle", 7) +
+      S(k, 230, 124, `tipped by ${v("trigger")}`, "#ccc") +
       cap(k, `Health level ${v.n("level")} · ${v("pull")} · drift ${v.n("drift")}`)
     );
   });
