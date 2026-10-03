@@ -84,7 +84,8 @@
     else if (has(/\blong\b[a-z ]{0,20}\bhair\b|\bponytail\b/)) (p.hair = "long"), said.push("long hair");
     else if (has(/\b(curly|afro|wavy)\b/)) (p.hair = "curly"), said.push("curly hair");
     const hc = colorNear(t, "hair");
-    if (hc != null) (p.hairColor = hc), said.push("the hair color you gave");
+    /* Plain red washes out to pink under the lights, so red hair gets a deeper red. */
+    if (hc != null) (p.hairColor = hc === COLORS.red ? 0x8e140e : hc), said.push(hc === COLORS.red ? "red hair" : "the hair color you gave");
     /* hat */
     if (has(/\bcowboy hat\b|\bstetson\b/)) p.hat = "cowboy";
     else if (has(/\bstraw hat\b/)) p.hat = "straw";

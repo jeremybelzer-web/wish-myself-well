@@ -318,7 +318,7 @@
   function dock() {
     const scr = window.CurioScreen;
     if (!scr || !scr.addPanel) return void (++tries < 400 && setTimeout(dock, 50));
-    scr.addPanel({ id: "rig3d", label: "3D actors", place: "player", mount: mountPanel });
+    scr.addPanel({ id: "rig3d", label: "3D actors", place: "under", mount: mountPanel });
     scr.on(() => refresh());
     if (E() && E().on) E().on(() => host && isOpen() && refresh());
   }
