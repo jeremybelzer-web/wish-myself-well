@@ -875,3 +875,18 @@
   .mo-root table.mo-stack td[data-l]:not(:first-child)::before { content: attr(data-l) ": "; color: var(--mo-ink-2); font-size: 12px; }
   .mo-root table.mo-stack td:first-child { font-weight: 600; }
 }
+
+/* qa.js pass */
+/* Added tabs whose empty state is bare paragraphs (Pace it, Pads): give the lines and the buttons room. */
+.mo-ext > p + p, .mo-ext > p + .mo-controls, .mo-ext > p + div:not([class]) { margin-top: 10px; }
+/* Cue lab's "How fast attention moves" chart: its 360-wide drawing was blown up to 640 pixels, so its words
+   came out twice the size of the page's. */
+.mcl-chart { max-width: 420px; }
+/* Three films: the three film pickers cut their names short at 250 pixels; there is room for more. */
+.m3-controls select { width: 290px; }
+/* Timeline clock marks: keep the first one inside the box, and on a phone show every other one so they do
+   not run together. */
+.mo-ticks span:first-child { transform: none; }
+@media (max-width: 600px) {
+  .mo-ticks span:nth-child(even) { display: none; }
+}

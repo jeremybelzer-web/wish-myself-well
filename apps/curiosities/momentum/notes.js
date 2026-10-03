@@ -13,6 +13,7 @@
    - note(id)     the momentum note for any curiosity id ("mainEra", or "music.source" for a slider of one).
                   Every curiosity has one: a note written for that curiosity when there is one, otherwise its
                   workspace's note with the curiosity's own name in it. note.source says which.
+   - plain(text)  the text with "beat" said as "moment" (note() already uses it on its label and sentences).
    - familyOf(id) the family id a curiosity's attention belongs to.
    - all()        every curiosity the app knows, each with its note (for the Momentum window and checks).
    - mark(family) the one look of a family on every tab: { family, letter, color, ink, label } (COLORS, LETTERS, OTHER).
@@ -265,7 +266,22 @@
   const family = (id) => FAMILIES.find((f) => f.id === id) || null;
   const lower = (s) => String(s || "").replace(/^[A-Z](?![A-Z])/, (m) => m.toLowerCase());
 
+  /* plain(text): the app's word for one step of a film is "moment" now, but some catalog labels and database
+     notes (outside momentum/) still say "beat". Momentum shows them with the new word. */
+  function plain(text) {
+    if (typeof text !== "string" || !/beat/i.test(text)) return text;
+    return text
+      .replace(/\bafter-beat\b/g, "bounce")
+      .replace(/\bmust beat\b/g, "must outrun")
+      .replace(/\b([Bb])eats\b/g, (m, b) => (b === "B" ? "Moments" : "moments"))
+      .replace(/\b([Bb])eat\b/g, (m, b) => (b === "B" ? "Moment" : "moment"));
+  }
   function note(id) {
+    const n = rawNote(id);
+    ["label", "plot", "theme", "pull", "tryThis"].forEach((k) => (n[k] = plain(n[k])));
+    return n;
+  }
+  function rawNote(id) {
     const b = baseId(id);
     const c = find(b);
     const label = c ? c.label : b;
@@ -358,6 +374,6 @@
   }
 
   const api = root.CurioMomentum || (root.CurioMomentum = {});
-  Object.assign(api, { CUES, FAMILIES, FIELD, WORKSPACE_NOTES: W, WRITTEN: C, note, familyOf, family, find, all, baseId, COLORS, OTHER, LETTERS, mark, colorOf, inkOn, contrast, status, STATUS });
+  Object.assign(api, { CUES, FAMILIES, FIELD, WORKSPACE_NOTES: W, WRITTEN: C, note, plain, familyOf, family, find, all, baseId, COLORS, OTHER, LETTERS, mark, colorOf, inkOn, contrast, status, STATUS });
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();
