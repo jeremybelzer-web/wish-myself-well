@@ -23,7 +23,8 @@
    { text, list: [{ id, name, text }], cur }. "text" is always the current one's words, so the first version's
    { text } still loads (it becomes the first character in the list).
    Face parts carry userData.face ("head", "eye", "brow", "mouth") for rig/faces.js.
-   CurioRig.maker = { read(text) -> plan, surprise() -> words, store() -> the saved list, KEY, START }. */
+   CurioRig.maker = { read(text) -> plan, surprise() -> words, store() -> the saved list, KEY, START,
+     dress(ctx, words) -> builds a made character on another skeleton (used by rig/staging.js) }. */
 (function () {
   const R = window.CurioRig;
   if (!R || !R.extend) return;
@@ -1200,7 +1201,9 @@
     if (r.head) ctx.rotateWorld(r.head, stoopAxis.q.setFromAxisAngle(axis, -0.3));
   }
 
-  R.maker = { read: readWords, surprise, store, KEY, START };
+  /* dress(ctx, words): hang a made character's parts on any Plain figure skeleton (another actor in the same view,
+     rig/staging.js). ctx needs THREE, model, rig and data(id); it changes nothing else here. */
+  R.maker = { read: readWords, surprise, store, KEY, START, dress: (ctx, words) => build(ctx, readWords(words == null ? current(store()).text : words)) };
 
   function sayPlan(p) {
     return p.found ? "Read as: " + p.said.join(", ") + "." : "No look words found, so it made a plain outfit. Try hair, a hat, a beard, glasses, clothes and colors, or Surprise me.";
