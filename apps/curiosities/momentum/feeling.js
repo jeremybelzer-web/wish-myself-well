@@ -519,10 +519,17 @@
       <section><h3>Do feeling turns move attention?</h3><p class="mo-fr-big"><b>${res.align.aligned}</b> of <b>${res.align.turns}</b> ${res.align.turns ? `(${share}%)` : ""}</p><p>${esc(res.align.text)}</p>${per ? `<ul class="mo-fr-per mo-small">${per}</ul>` : ""}</section></div>`;
   }
 
+  /* Left for another tab or the window closed: stop listening to the engine until the tab is back. */
+  function unmount() {
+    if (unhook) unhook();
+    unhook = null;
+    mounted = null;
+  }
+
   function addTab() {
     const UI = root.CurioMomentumUI;
     if (!UI || !UI.addTab) return false;
-    return UI.addTab({ id: "feeling", label: "Feeling road", after: "end", group: "see", mount });
+    return UI.addTab({ id: "feeling", label: "Feeling road", after: "end", group: "see", mount, unmount });
   }
   if (!addTab()) {
     let tries = 0;

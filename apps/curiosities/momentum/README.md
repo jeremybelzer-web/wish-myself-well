@@ -108,6 +108,7 @@ These are guesses about how people watch, kept as plain numbers (`FAMILY_PULL`, 
 | `load.js` | Adds everything to the app's page with one script line. |
 | `files.json` | The load order: `core` (no page) and `screens`. |
 | `tests/run.js` | `node momentum/tests/run.js`: checks with no page. |
+| `tests/speed.js`, `PERFORMANCE.md` | `node momentum/tests/speed.js [--browser]`: Momentum stays quick. Opening the window and every tab once stays under a generous time budget, reopening tabs adds no listeners, a tab stops listening to the engine when it is left (an added tab may give `addTab({ ..., unmount })` for that), and the Screen's panel reads only My film on a change and nothing while the Screen is closed. `PERFORMANCE.md` has the numbers before and after. |
 | `tests/marks.js` | `node momentum/tests/marks.js`: every family has its own letter and a readable color, the Fresh, Getting long and Too long marks follow the limit, and no momentum file keeps its own copy of them. |
 | `tests/browser.js` | `NODE_PATH=/opt/node22/lib/node_modules node momentum/tests/browser.js --three <three.min.js>`: the window in a real browser, the tab groups at 1440 and 375 pixels wide, live mode, phone width, and the panel beside the Screen's Player. |
 | `tests/comedy-timing.js` | `node momentum/tests/comedy-timing.js`: the comedy rhythm with no page; add `--browser` (with `NODE_PATH` and `--three` as above) for the tab in a real browser. |
