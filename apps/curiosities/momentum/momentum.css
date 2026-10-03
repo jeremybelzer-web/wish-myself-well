@@ -925,3 +925,29 @@
   .ap-cell { height: 26px; font-size: 10px; }
 }
 .ap-root .mo-status { display: inline; padding-left: 0; margin: 0; }
+/* ---------- myvideo.js: Your videos' rates ---------- */
+.myv section { margin-top: 16px; }
+.myv button { font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); margin: 6px 8px 0 0; }
+.myv button:disabled { opacity: .5; cursor: default; }
+.myv-empty { border: 1px dashed var(--mo-muted); background: var(--mo-surface); padding: 10px 12px; margin: 10px 0; }
+.myv-empty p { margin: 0 0 6px; }
+.myv-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.myv-list button { display: grid; gap: 2px; width: 100%; text-align: left; margin: 0; border-width: 1px; background: var(--mo-surface); }
+.myv-list li.on button { border-width: 2px; }
+.myv-list button span { font-size: 12px; color: var(--mo-ink-2); }
+.myv-tiles { margin: 10px 0; }
+.myv-status { font-weight: 600; white-space: nowrap; }
+.myv-good { color: var(--mo-ink); }
+.myv-warn { color: #8a5a00; }
+.myv-crit { color: var(--mo-crit); }
+.myv-shares { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 4px; max-width: 520px; }
+.myv-shares li { display: grid; grid-template-columns: minmax(110px, 160px) 1fr 40px; align-items: center; gap: 8px; font-size: 13px; }
+.myv-fam { display: inline-flex; }
+.myv-letter { display: inline-block; min-width: 22px; padding: 1px 3px; text-align: center; font-size: 11px; border-radius: 2px; }
+.myv-bar { height: 10px; background: var(--mo-grid); display: block; }
+.myv-bar i { display: block; height: 100%; }
+.myv-pct { text-align: right; font-variant-numeric: tabular-nums; }
+.myv-vs { padding-left: 18px; margin: 6px 0; }
+.myv-vs li { margin: 3px 0; }
+.myv-me th, .myv-me td { font-weight: 600; }
+.myv .mo-controls { margin-top: 14px; }
