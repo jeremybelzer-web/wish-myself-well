@@ -281,6 +281,11 @@
   const POWER = { blue: "#5fb4ff", white: "#f5f5f5", gold: "#ffc94a", red: "#ff4d4d", purple: "#b77bff", green: "#5fe08a", neon: "#39ffb0", rainbow: "#ff7ae0", "the character's color": "#4a6fa5" };
   const ELEMENT = { water: "#4aa3df", smoke: "#9a9aa3", fire: "#ff7a2a", sand: "#d8b26a", snow: "#eef4ff", "the fire": "#ff7a2a", "the smoke": "#9a9aa3", "the water": "#4aa3df", "the sand": "#d8b26a", "the snow": "#eef4ff" };
   /* Every picture goes through tidy(): long decimals (0.30000000000000004) become at most two places. */
+  /* The index of a setting on its scale (0, 1, 2...). */
+  const LLidx = (v, sid) => {
+    const sl = v.slider(sid);
+    return sl && Array.isArray(sl.scale) ? Math.max(0, sl.scale.findIndex((o) => String(o) === String(v(sid)))) : 0;
+  };
   const tidy = (svg) => String(svg).replace(/-?\d+\.\d{3,}/g, (m) => String(parseFloat(Number(m).toFixed(2))));
   const look = (id, fn) => W.look(id, (v, k) => tidy(fn(v, k)));
   const hasPad = (id) => (((W.get && W.get(id)) || {}).faces || []).some((f) => f.face === "pad");
@@ -384,21 +389,49 @@
     const reach = k.clamp(v.n("reachSecs") / 120 / (0.4 + v.p("speed") * 0.9), 0.08, 1);
     const surges = v.n("surgesPerMin");
     const tension = v.p("tension");
-    const col = ELEMENT[v("whatGrows")] || "#ff7a2a";
-    const f = (t) => {
+    const what = String(v("whatGrows"));
+    const col = ELEMENT[what] || "#ff7a2a";
+    const sizeAt = (t) => {
       const u = Math.min(1, t / reach);
       const step = v.is("shape", /surges/) ? Math.floor(u * 4) / 4 + Math.pow((u * 4) % 1, 4) / 4 : sh(u);
-      return a + (b - a) * step + Math.sin(t * surges * 0.6) * 0.03 * Math.min(1, surges);
+      return k.clamp(a + (b - a) * step, 0, 1);
     };
-    let out = k.bg("#141418");
-    out += curve(k, { x: 16, y: 26, w: 150, h: 110, f, color: k.mix("#ffd166", "#ff3b3b", tension), fill: col, label: "size over time" });
-    out += `<line x1="${r1(16 + reach * 150)}" y1="26" x2="${r1(16 + reach * 150)}" y2="136" stroke="#888" stroke-dasharray="3 3"/>` + k.label({ x: 16 + reach * 150, y: 146, text: `${v.n("reachSecs")} s`, size: 8, color: "#aaa" });
-    /* The thing itself, its start (ghost) and end. */
-    const blob = (r, al) => (/fire/.test(v("whatGrows")) ? flame(k, { x: 245, y: 140, h: r * 2, w: r * 1.2, alpha: al }) : puff(k, { x: 245, y: 140 - r, r, color: col, alpha: al }));
-    out += `<rect x="190" y="140" width="120" height="2" fill="#555"/>`;
-    out += blob(6 + a * 50, 0.35) + blob(6 + b * 50, 0.85);
-    if (tension > 0) out += k.tint({ color: "#ff2a2a", alpha: tension * 0.12 });
-    return out + fitCaption(k, `${v("whatGrows")} ${v("setting")}: ${v("startSize")} → ${v("endSize")}, ${v("shape")}`);
+    /* A night yard with a person for scale; the thing is shown now (solid) with dashed outlines of how big it
+       was earlier in the shot, like a time-lapse. Fire and smoke grow up; water, sand and snow rise from the ground. */
+    const GY = 148;
+    let out = k.bg(k.mix("#141a26", "#2a1414", tension * 0.7)) + `<rect x="0" y="${GY}" width="320" height="${180 - GY}" fill="#2a2620"/>`;
+    out += Array.from({ length: 14 }, (_, i) => k.dot({ x: 10 + k.rnd(i + 3) * 300, y: 8 + k.rnd(i + 21) * 50, r: 0.9, color: "#cfd6e6" })).join("");
+    const worried = tension * (0.4 + b * 0.6);
+    out += k.person({ x: 270, y: GY + 2, s: 1, color: "#4a6fa5", mood: -worried, arms: worried > 0.5 ? 0.6 : 0, lean: worried * -8 });
+    const times = [0, 0.33, 0.66, 1];
+    const layer = /water|sand|snow/.test(what);
+    const shapeOf = (z, ghost) => {
+      if (layer) {
+        const h = 3 + z * 100;
+        const wave = Array.from({ length: 17 }, (_, i) => `L${i * 20} ${r1(GY - h + (/water/.test(what) ? Math.sin(i * 1.3) * 2 : /snow/.test(what) ? -Math.abs(Math.sin(i * 0.7)) * 5 : Math.sin(i * 0.5) * 4))}`).join(" ");
+        return ghost ? `<path d="M0 ${r1(GY - h)} ${wave.replace(/^L0/, "L0")}" fill="none" stroke="${col}" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.6"/>` : `<path d="M0 180 L0 ${r1(GY - h)} ${wave} L320 ${r1(GY - h)} L320 180 Z" fill="${col}" opacity="${/water/.test(what) ? 0.75 : 0.95}"/>`;
+      }
+      if (/fire/.test(what)) {
+        const h = 6 + z * 130;
+        if (ghost) return `<path d="M${r1(110 - h * 0.35)} ${GY} Q${r1(110 - h * 0.35)} ${r1(GY - h * 0.55)} 110 ${r1(GY - h)} Q${r1(110 + h * 0.35)} ${r1(GY - h * 0.55)} ${r1(110 + h * 0.35)} ${GY}" fill="none" stroke="${col}" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.6"/>`;
+        const n = 1 + Math.round(z * 4);
+        return Array.from({ length: n }, (_, i) => flame(k, { x: 110 + (i - (n - 1) / 2) * h * 0.18, y: GY, h: h * (0.75 + k.rnd(i + 4) * 0.3), w: h * 0.4, lean: (k.rnd(i + 8) - 0.5) * 8 })).join("");
+      }
+      const r = 4 + z * 70;
+      return ghost ? k.ring({ x: 110, y: GY - r, r, color: col, dash: "3 3", w: 1.2 }) : [0, 1, 2].map((i) => puff(k, { x: 110 + (i - 1) * r * 0.45, y: GY - r * (0.8 + (i % 2) * 0.3), r: r * 0.7, color: col, alpha: 0.6 })).join("");
+    };
+    out += times.slice(0, 3).map((t) => shapeOf(sizeAt(t * 0.999), true)).join("") + shapeOf(sizeAt(1), false);
+    /* Buried by a rising layer: the person still shows faintly, for scale. */
+    if (layer && sizeAt(1) > 0.3) out += k.person({ x: 270, y: GY + 2, s: 1, color: "#4a6fa5", mood: -worried, alpha: 0.35 });
+    /* Surges: pulses around the edge, more of them the more surges a minute. */
+    const nS = Math.min(8, Math.round(surges / 4));
+    const rNow = layer ? 0 : 4 + sizeAt(1) * 70;
+    if (!layer) out += Array.from({ length: nS }, (_, i) => k.ring({ x: 110, y: GY - rNow, r: rNow + 6 + i * 4, color: "#ffd166", w: 0.8, dash: "1 3" })).join("");
+    else out += Array.from({ length: nS }, (_, i) => `<line x1="${20 + i * 36}" y1="${r1(GY - 6 - sizeAt(1) * 100)}" x2="${20 + i * 36}" y2="${r1(GY - 16 - sizeAt(1) * 100)}" stroke="#ffd166" stroke-width="1.5"/>`).join("");
+    if (tension > 0) out += k.tint({ color: "#ff2a2a", alpha: tension * 0.1 });
+    /* How long it takes, as a small clock in the corner. */
+    out += `<rect x="6" y="6" width="80" height="22" rx="5" fill="#000" opacity="0.6"/>` + k.clock({ x: 18, y: 17, r: 8, p: reach }) + k.label({ x: 30, y: 21, text: `${v.n("reachSecs")} s to full`, size: 8, color: "#ddd", anchor: "start" });
+    return out + fitCaption(k, `${what} ${v("setting")}: ${v("startSize")} → ${v("endSize")}, ${v("shape")}`);
   });
 
   /* Smoke and fire: flames on the ground, a smoke column rising, the glow on the scene. */
@@ -448,43 +481,66 @@
   look("sideStoryline", (v, k) => {
     const st = v.p("setting");
     const share = v.n("share") / 100;
+    const rel = String(v("relation"));
     const REL = { contrasts: "#ff7a5a", echoes: "#7fb7ff", foreshadows: "#c79bff" };
-    const rc = REL[v("relation")] || "#ff7a5a";
-    const x0 = 20;
-    const w = 280;
-    let out = k.bg("#141418");
-    /* What the side story keeps time with. */
-    const tie = String(v("tiedTo"));
-    for (let i = 0; i < 12; i++) out += /music/.test(tie) ? k.text({ x: x0 + i * 24 + 6, y: 34, text: "♪", size: 11, color: "#9fd3ff" }) : /words/.test(tie) ? `<rect x="${x0 + i * 24}" y="27" width="16" height="5" rx="2" fill="#ccc"/>` : i % 3 === 0 ? k.clock({ x: x0 + i * 24 + 8, y: 30, r: 5, p: i / 12 }) : "";
-    out += k.label({ x: x0, y: 20, text: `tied to ${tie}`, size: 8, color: "#aaa", anchor: "start" });
-    /* Main lane. */
-    out += `<rect x="${x0}" y="58" width="${w}" height="20" rx="4" fill="#4a6fa5"/>` + k.label({ x: x0 + 4, y: 54, text: "main story", size: 8, color: "#aaa", anchor: "start" });
-    /* Side lane: cutaways spaced by cuts per minute, sized by clip seconds and share, shifted by lead. */
-    const lead = v.n("leadSecs");
-    const meets = v.p("meets");
-    const meetX = x0 + (v.n("meetsAt") / 100) * w;
-    const lane = 112 - (meets > 0.9 ? 0 : 0);
-    out += k.label({ x: x0 + 4, y: lane - 4, text: "side story", size: 8, color: "#aaa", anchor: "start" });
-    if (st >= 0.99) out += `<rect x="${x0}" y="${lane}" width="${w}" height="20" rx="4" fill="${rc}" opacity="${r1(0.4 + share * 0.6)}"/>`;
-    else {
-      const ret = v.p("returns");
-      const cuts = Math.max(1, Math.round((v.n("cutsPerMin") / 30) * 10 * (0.4 + ret * 0.8) * (st > 0.5 ? 1.5 : 1)));
-      const cw = Math.max(3, (v.n("clipSecs") / 30) * 40 * (0.4 + share * 1.4));
-      for (let i = 0; i < cuts; i++) {
-        const cx = x0 + ((i + 0.5) / cuts) * w + lead * 4;
-        out += `<rect x="${r1(cx - cw / 2)}" y="${lane}" width="${r1(cw)}" height="20" rx="3" fill="${rc}"${st === 0 ? ' opacity="0.25"' : ""}/>`;
-        out += `<line x1="${r1(cx)}" y1="${lane}" x2="${r1(cx)}" y2="78" stroke="${rc}" stroke-width="1" stroke-dasharray="2 2" opacity="0.6"/>`;
+    const rc = REL[rel] || "#ff7a5a";
+    /* A tiny shot: the main story is two people in a warm room; the side story is one person somewhere else,
+       drawn to contrast (night), echo (same pose, other place) or foreshadow (a storm coming). */
+    let nShot = 0;
+    const shot = (x, y, w, h, side, both) => {
+      const sx = w / 60;
+      const head = (hx, c) => `<circle cx="${r1(x + hx * sx)}" cy="${r1(y + h * 0.5)}" r="${r1(Math.max(2, 6 * Math.min(sx, h / 34)))}" fill="#f0c8a0" stroke="${INK}"/><rect x="${r1(x + hx * sx - 5 * Math.min(sx, h / 34))}" y="${r1(y + h * 0.5 + 6 * Math.min(sx, h / 34))}" width="${r1(10 * Math.min(sx, h / 34))}" height="${r1(h * 0.3)}" fill="${c}"/>`;
+      const cid = `cw-ss${++nShot}`;
+      const clip = `<clipPath id="${cid}"><rect x="${r1(x)}" y="${r1(y)}" width="${r1(w)}" height="${r1(h)}"/></clipPath>`;
+      let g;
+      if (!side) g = `<rect x="${r1(x)}" y="${r1(y)}" width="${r1(w)}" height="${r1(h)}" fill="#8a6a4a"/><rect x="${r1(x)}" y="${r1(y + h * 0.78)}" width="${r1(w)}" height="${r1(h * 0.22)}" fill="#5a4030"/>` + head(20, "#4a6fa5") + head(40, "#c0392b");
+      else {
+        const bg = /contrast/.test(rel) ? "#1c2238" : /foreshadow/.test(rel) ? "#3a2a4a" : "#4a7a5a";
+        g = `<rect x="${r1(x)}" y="${r1(y)}" width="${r1(w)}" height="${r1(h)}" fill="${bg}"/>`;
+        if (/contrast/.test(rel)) g += `<circle cx="${r1(x + w * 0.8)}" cy="${r1(y + h * 0.22)}" r="${r1(Math.max(1.5, h * 0.1))}" fill="#eef"/>`;
+        if (/foreshadow/.test(rel)) g += `<path d="M${r1(x + w * 0.75)} ${r1(y + 2)} l${r1(-w * 0.08)} ${r1(h * 0.3)} l${r1(w * 0.06)} 0 l${r1(-w * 0.08)} ${r1(h * 0.3)}" fill="none" stroke="#ffd166" stroke-width="1.5"/>`;
+        if (/echo/.test(rel)) g += `<path d="M${r1(x)} ${r1(y + h * 0.78)} L${r1(x + w)} ${r1(y + h * 0.78)} L${r1(x + w)} ${r1(y + h)} L${r1(x)} ${r1(y + h)} Z" fill="#2f5a3a"/>`;
+        g += head(both ? 46 : 30, "#8e5bd0");
+        if (both) g += head(14, "#4a6fa5");
       }
+      return `<defs>${clip}</defs><g clip-path="url(#${cid})">${g}</g><rect x="${r1(x)}" y="${r1(y)}" width="${r1(w)}" height="${r1(h)}" fill="none" stroke="${both ? "#ffd166" : side ? rc : "#000"}" stroke-width="${both ? 2 : 1}"/>`;
+    };
+    let out = k.bg("#141418");
+    /* The film as a strip of shots, left to right: side-story shots cut in among the main story. */
+    const X0 = 10;
+    const SW = 300;
+    const sy = 18;
+    const sh = 34;
+    out += k.label({ x: X0, y: 12, text: "the film, shot by shot", size: 8, color: "#aaa", anchor: "start" });
+    for (let i = 0; i < 6; i++) out += shot(X0 + i * 50, sy, 50, sh, false);
+    const lead = v.n("leadSecs");
+    const ret = v.p("returns");
+    const sides = [];
+    if (st >= 0.99) sides.push([X0 + SW * (1 - Math.max(0.3, share)) / 2, SW * Math.max(0.3, share)]);
+    else {
+      const cuts = Math.max(1, Math.round((v.n("cutsPerMin") / 30) * 6 * (0.4 + ret * 0.8) * (st > 0.5 ? 1.4 : 1)));
+      const cw = k.clamp((v.n("clipSecs") / 30) * 40 * (0.4 + share * 1.4), 8, SW / cuts - 4);
+      for (let i = 0; i < cuts; i++) sides.push([k.clamp(X0 + ((i + 0.5) / cuts) * SW + lead * 3 - cw / 2, X0, X0 + SW - cw), cw]);
     }
-    /* Where they meet. */
-    out += `<line x1="${r1(meetX)}" y1="52" x2="${r1(meetX)}" y2="138" stroke="#ffd166" stroke-dasharray="2 4" opacity="0.4"/>`;
-    if (meets > 0) {
-      const mx = meets > 0.9 ? meetX : x0 + w - 10;
-      out += `<path d="M${r1(mx - 40)} ${lane + 10} Q${r1(mx - 10)} ${lane + 10} ${r1(mx)} 68" fill="none" stroke="#ffd166" stroke-width="2"/>` + k.dot({ x: mx, y: 68, r: 5 }) + k.label({ x: Math.min(mx, 286), y: 96, text: meets > 0.9 ? `meet ${v.n("meetsAt")}%` : "meet at end", size: 8, color: "#ffd166" });
+    /* With no side story, faint outlines show where the cutaways would go. */
+    sides.forEach(([x, w]) => (out += st > 0 ? shot(x, sy, w, sh, true) : `<rect x="${r1(x)}" y="${sy}" width="${r1(w)}" height="${sh}" fill="none" stroke="${rc}" stroke-dasharray="2 2" opacity="0.6"/>`));
+    /* What it keeps time with, marked under the strip. */
+    const tie = String(v("tiedTo"));
+    for (let i = 0; i < 10; i++) {
+      const tx = X0 + 15 + i * 30 + (/words/.test(tie) ? 0 : 0);
+      out += /music/.test(tie) ? k.text({ x: tx, y: 64, text: "♪", size: 9, color: "#9fd3ff" }) : /words/.test(tie) ? `<rect x="${tx - 6}" y="58" width="12" height="4" rx="2" fill="#ccc"/>` : i % 3 === 0 ? k.clock({ x: tx, y: 60, r: 4, p: i / 10 }) : "";
     }
-    out += k.label({ x: 300, y: 148, text: `${v("relation")}`, size: 10, color: rc, anchor: "end", weight: 700 });
-    out += k.label({ x: 20, y: 148, text: `${lead > 0 ? "ahead of" : lead < 0 ? "behind" : "with"} the words ${Math.abs(lead)} s`, size: 9, color: "#ccc", anchor: "start" });
-    return out + fitCaption(k, `${v("setting")}: ${v.n("share")}% of the time, cuts back ${v("returns")}`);
+    /* Where the two stories meet: one shot with both of them in it. */
+    const meets = v.p("meets");
+    const mAt = meets > 0.9 ? v.n("meetsAt") / 100 : 0.93;
+    if (meets > 0) out += shot(k.clamp(X0 + mAt * SW - 22, X0, X0 + SW - 44), sy - 2, 44, sh + 4, true, true);
+    else out += `<line x1="${r1(X0 + (v.n("meetsAt") / 100) * SW)}" y1="${sy}" x2="${r1(X0 + (v.n("meetsAt") / 100) * SW)}" y2="${sy + sh}" stroke="#ffd166" stroke-dasharray="2 3" opacity="0.4"/>`;
+    /* The two stories, big, side by side, and how they relate. */
+    out += shot(14, 80, 110, 66, false) + k.label({ x: 69, y: 157, text: "main story", size: 8, color: "#ccc" });
+    out += `<g opacity="${st === 0 ? 0.3 : 1}">${shot(196, 80, 110, 66, true)}</g>` + k.label({ x: 251, y: 157, text: st === 0 ? "no side story" : "side story", size: 8, color: rc });
+    out += k.text({ x: 160, y: 112, text: /contrast/.test(rel) ? "≠" : /echo/.test(rel) ? "=" : "→", size: 20, color: rc, weight: 700 }) + k.label({ x: 160, y: 128, text: rel, size: 8, color: rc });
+    out += k.label({ x: 10, y: 76, text: `side shots ${lead > 0 ? "ahead of" : lead < 0 ? "behind" : "with"} the words ${Math.abs(lead)} s`, size: 8, color: "#aaa", anchor: "start" });
+    return out + fitCaption(k, `${v("setting")}: ${v.n("share")}% of the time, cuts back ${v("returns")}, ${meets > 0 ? (meets > 0.9 ? `they meet ${v.n("meetsAt")}% through` : "they meet at the end") : "they never meet"}`);
   });
 
   /* Wind: a person and a tree leaning, wind streaks from the chosen side, and a strength-over-time graph. */
@@ -1006,35 +1062,43 @@
   /* Settle: an object's height after a hit: bounces, then wobble, a last move, and the pause before the next beat. */
   look("settleTime", (v, k) => {
     const st = v.n("setting");
-    const bc = Math.min(12, v.n("bounceCount"));
     const bnc = v.p("bounce");
+    const bc = Math.min(8, v.n("bounceCount") || (bnc > 0 ? 1 : 0));
     const wob = v.p("wobble");
     const wd = v.n("wobbleDeg");
     const wps = v.n("wobblePerSec");
     const hold = v.p("hold");
-    const last = v.p("lastMove");
-    const len = 0.35 + st * 0.12;
-    const f = (t) => {
-      const u = t / len;
-      if (u <= 0.5) {
-        const nb = Math.max(1, bc);
-        const ph = (u / 0.5) * nb;
-        const i = Math.floor(ph);
-        return 0.2 + (1 - Math.pow(2 * (ph % 1) - 1, 2)) * 0.7 * Math.pow(0.35 + bnc * 0.4, i + 1) * (bc ? 1 : 0.1);
-      }
-      if (u <= 1) return 0.2 + Math.sin((u - 0.5) * (4 + wps) * 6) * (wd / 45) * 0.15 * (0.2 + wob) * (1 - u);
-      if (last > 0 && u < 1.15) return 0.2 - last * 0.15 * ((u - 1) / 0.15);
-      return 0.2 - last * 0.15;
-    };
-    let out = k.bg("#141418");
-    out += curve(k, { x: 14, y: 22, w: 200, h: 110, f, color: "#ffd166", label: "height after the hit" });
-    const nextAt = 14 + Math.min(1, len * 1.2 + hold * 0.15) * 200;
-    out += `<line x1="${r1(nextAt)}" y1="22" x2="${r1(nextAt)}" y2="132" stroke="#ff6b6b" stroke-width="2"/>` + k.label({ x: nextAt, y: 145, text: "next beat", size: 8, color: "#ff6b6b" });
-    /* The object, tipped by the wobble. */
-    out += `<g transform="rotate(${r1(wd * (0.3 + wob))} 265 130)"><rect x="252" y="80" width="26" height="50" rx="8" fill="#c9744f" stroke="${INK}" stroke-width="2"/></g><rect x="225" y="130" width="85" height="4" fill="#666"/>`;
-    if (last > 0.9) out += k.arrow({ x1: 280, y1: 90, x2: 300, y2: 125, color: "#ff6b6b" });
-    else if (last > 0) out += k.arrow({ x1: 280, y1: 80, x2: 292, y2: 76, color: "#ffd166" });
-    return out + fitCaption(k, `settles in ${st}/4, ${bc} bounces, ${v("wobble")} ${wd}° at ${wps}/s`);
+    const last = LLidx(v, "lastMove");
+    /* A table in a room. A vase is dropped from the top left; its path is drawn as a dotted trail: each bounce
+       a smaller hop to the right, then it rocks (ghost tilts), maybe tips or falls, while a person waits for the
+       next beat. The longer it takes to settle, the further along the table it lands. */
+    const TY = 120;
+    let out = k.bg("#1b1a22") + `<rect x="0" y="140" width="320" height="40" fill="#2a2520"/>`;
+    out += `<rect x="10" y="${TY}" width="226" height="8" fill="#7a5a3a" stroke="${INK}" stroke-width="1.5"/><rect x="18" y="${TY + 8}" width="8" height="32" fill="#5a4028"/><rect x="220" y="${TY + 8}" width="8" height="32" fill="#5a4028"/>`;
+    const endX = 70 + st * 30 + bc * 4;
+    const hop = (endX - 40) / Math.max(1, bc + 1);
+    let x = 40;
+    let path = `M30 14 Q34 ${TY - 40} 40 ${TY - 10}`;
+    for (let i = 0; i < bc; i++) {
+      const h = 80 * Math.pow(0.3 + bnc * 0.45, i + 1);
+      path += ` Q${r1(x + hop / 2)} ${r1(TY - 10 - h * 2)} ${r1(x + hop)} ${TY - 10}`;
+      x += hop;
+    }
+    path += ` L${r1(endX)} ${TY - 10}`;
+    out += `<path d="${path}" fill="none" stroke="#ffd166" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.8"/>`;
+    if (!bc) out += [-1, 1].map((sd) => `<line x1="${40 + sd * 8}" y1="${TY - 4}" x2="${40 + sd * 16}" y2="${TY - 12}" stroke="#ffd166" stroke-width="1.5"/>`).join("");
+    const vase = (cx, ang, al, fy) => `<g transform="rotate(${r1(ang)} ${r1(cx)} ${fy})" opacity="${al}"><path d="M${r1(cx - 8)} ${fy} L${r1(cx - 11)} ${fy - 22} Q${r1(cx)} ${fy - 34} ${r1(cx + 11)} ${fy - 22} L${r1(cx + 8)} ${fy} Z" fill="#c9744f" stroke="${INK}" stroke-width="1.5"/></g>`;
+    /* Rocking: ghost tilts either side, more of them the faster it wobbles. */
+    const amp = wd * (0.3 + wob * 0.7);
+    const nG = wob > 0 || wd > 0 ? 1 + Math.min(4, Math.round(wps / 5)) : 0;
+    for (let i = nG; i >= 1; i--) out += vase(endX, amp * (i / nG), 0.25, TY) + vase(endX, -amp * (i / nG) * 0.8, 0.25, TY);
+    if (last === 2) out += vase(endX, 0, 0.25, TY) + k.arrow({ x1: endX + 14, y1: TY - 10, x2: 244, y2: 146, color: "#ff6b6b" }) + vase(256, 90, 1, 156);
+    else out += vase(endX, last === 1 ? 24 : 0, 1, TY) + (last === 1 ? k.arrow({ x1: endX + 4, y1: TY - 40, x2: endX + 18, y2: TY - 36, color: "#ffd166" }) : "");
+    /* The next beat: a person who waits a breath, or a long hold, before moving on. */
+    const pause = ["", "…", "……"][LLidx(v, "hold")];
+    out += k.person({ x: 286, y: 158, s: 0.95, color: "#4a6fa5", arms: hold < 0.25 ? 0.7 : 0, walk: hold < 0.25 ? 0.6 : 0, look: -1 });
+    out += k.bubble({ x: 286, y: 40, text: pause ? `wait ${pause}` : "go!", w: 56, h: 20, size: 9, tail: 0 });
+    return out + fitCaption(k, `settles in ${st}/4, ${v.n("bounceCount")} bounces, ${v("wobble")} ${wd}° at ${wps}/s`);
   });
 
   /* Gravity: a jump's arc, a falling ball's path, and the pull arrow. */

@@ -2,6 +2,7 @@
    shapes you can read without hearing it: lanes along a timeline (like an editor's tracks) with loudness as
    height, speakers and an ear for how close or where a sound is, and faces for what the sound does to a scene. */
 (function (W) {
+  const r1 = (n) => Math.round(n * 10) / 10;
   const idx = (v, id) => {
     const s = v.slider(id);
     return s && Array.isArray(s.scale) ? Math.max(0, s.scale.indexOf(v(id))) : 0;
@@ -399,17 +400,30 @@
     const lead = idx(v, "setting");
     const ids = ["dialogue", "music", "effects", "ambience"];
     const cols = ["#7fd1ae", "#ffd166", "#ff9a8a", "#9fb7ff"];
-    let s = k.bg("#16161c");
-    ids.forEach((id, i) => {
-      const p = v.p(id);
-      const x = 30 + i * 74;
-      const isLead = i === lead;
-      s += `<rect x="${x}" y="20" width="44" height="120" rx="6" fill="#202028" stroke="${isLead ? cols[i] : "#333"}" stroke-width="${isLead ? 3 : 1}"/>`;
-      s += `<rect x="${x + 8}" y="${(136 - p * 112).toFixed(1)}" width="28" height="${(p * 112).toFixed(1)}" rx="3" fill="${cols[i]}" opacity="${isLead ? 1 : 0.65}"/>`;
-      s += k.label({ x: x + 22, y: 154, text: id, size: 9, color: isLead ? cols[i] : "#aaa", weight: isLead ? 700 : null });
-      if (isLead) s += k.label({ x: x + 22, y: 14, text: "leads", size: 8, color: cols[i] });
-    });
-    return s + cap(k, `${v("setting")} leads · dialogue ${v("dialogue")}% · music ${v("music")}% · fx ${v("effects")}%`);
+    const P = ids.map((id) => v.p(id));
+    /* A room with four sound sources: two people talking, a radio playing music, a door that slams, rain at the
+       window. Each one is drawn as loud as its level (bigger, brighter, more sound lines); the one that leads is
+       ringed, and the rest step back. */
+    const al = (i) => (0.25 + P[i] * 0.75) * (i === lead ? 1 : 0.8);
+    let s = k.bg("#2a2530") + `<rect x="0" y="128" width="320" height="52" fill="#3a3028"/>`;
+    /* Ambience: rain at the window, more streaks and a wider hiss the louder it is. */
+    s += `<rect x="18" y="20" width="62" height="56" fill="#3b4a66" stroke="${k.INK}" stroke-width="2"/>`;
+    s += `<g opacity="${r1(al(3))}">` + Array.from({ length: 2 + Math.round(P[3] * 16) }, (_, i) => `<line x1="${r1(22 + k.rnd(i + 4) * 54)}" y1="${r1(24 + k.rnd(i + 9) * 40)}" x2="${r1(19 + k.rnd(i + 4) * 54)}" y2="${r1(32 + k.rnd(i + 9) * 40)}" stroke="${cols[3]}" stroke-width="1.2"/>`).join("") + Array.from({ length: Math.round(P[3] * 3) }, (_, i) => `<path d="M${84 + i * 6} ${34 + i * 2} q4 14 0 28" fill="none" stroke="${cols[3]}" stroke-width="1.5"/>`).join("") + "</g>";
+    /* Music: a radio on a shelf with notes floating up. */
+    s += `<rect x="20" y="100" width="56" height="5" fill="#5a4030"/><g opacity="${r1(al(1))}"><rect x="30" y="84" width="36" height="16" rx="3" fill="#8a5a3a" stroke="${k.INK}"/><circle cx="40" cy="92" r="5" fill="#333"/><rect x="50" y="88" width="12" height="3" fill="#ddd"/>${notes(k, 34, 76, 1 + Math.round(P[1] * 4), cols[1], 0.6 + P[1] * 0.5)}</g>`;
+    /* Dialogue: two people talking, bubbles as big as the level. */
+    const bw = 30 + P[0] * 40;
+    s += `<g opacity="${r1(0.5 + al(0) * 0.5)}">${k.person({ x: 135, y: 160, s: 0.95, color: "#4a6fa5", look: 1, mood: 0.3 })}${k.person({ x: 190, y: 160, s: 0.95, color: "#c0392b", look: -1, mood: 0.2 })}</g>`;
+    if (P[0] > 0.02) s += `<g opacity="${r1(al(0))}">${k.bubble({ x: 150, y: 44, text: P[0] > 0.6 ? "Listen to me!" : "hi…", w: bw + 20, h: 14 + P[0] * 10, size: 7 + P[0] * 4, tail: -10 })}</g>`;
+    /* Effects: a door at the right, slamming with a burst. */
+    s += `<rect x="248" y="40" width="44" height="88" fill="#6a4a30" stroke="${k.INK}" stroke-width="2"/><circle cx="284" cy="86" r="2.5" fill="#ffd166"/>`;
+    if (P[2] > 0.02) s += `<g opacity="${r1(al(2))}">` + Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * Math.PI * 2; const r0 = 30; const r2 = 30 + P[2] * 20; return `<line x1="${r1(270 + Math.cos(a) * r0)}" y1="${r1(84 + Math.sin(a) * r0 * 1.4)}" x2="${r1(270 + Math.cos(a) * r2)}" y2="${r1(84 + Math.sin(a) * r2 * 1.4)}" stroke="${cols[2]}" stroke-width="2"/>`; }).join("") + k.text({ x: 270, y: 30, text: "BANG", size: 8 + P[2] * 8, color: cols[2], weight: 700, outline: "#000" }) + "</g>";
+    /* The lead: a ring round the source that carries the scene. */
+    const ring = [[162, 110, 46], [48, 84, 26], [270, 84, 34], [49, 48, 38]][lead];
+    s += k.ring({ x: ring[0], y: ring[1], r: ring[2], color: cols[lead], w: 2, dash: "4 3" }) + chip(k, ring[0], Math.max(16, ring[1] - ring[2] - 2), `${ids[lead]} leads`, cols[lead], "middle");
+    /* The four levels, small, along the floor. */
+    s += ids.map((id, i) => `<rect x="${200 + i * 28}" y="${r1(156 - P[i] * 20)}" width="8" height="${r1(Math.max(1, P[i] * 20))}" fill="${cols[i]}" opacity="${i === lead ? 1 : 0.6}"/>`).join("");
+    return s + cap(k, `${v("setting")} leads · dialogue ${v("dialogue")}% · music ${v("music")}% · fx ${v("effects")}% · ambience ${v("ambience")}%`);
   });
 
   /* ---------- where a sound sits around you ---------- */
@@ -597,29 +611,37 @@
     const punch = v.p("punch");
     const avg = (v.n("averageLoud") + 40) / 35;
     const range = v.n("loudRange") / 30;
-    let s = k.bg("#16161c");
-    s += lane(k, 84, "mix", 130);
-    const ceil = 0.4 + peak * 0.6;
-    const base = 0.15 + (lv * 0.5 + avg * 0.5) * 0.65;
-    s += env(k, {
-      y: 84,
-      h: 128,
-      n: 200,
-      color: lv > 0.9 ? "#ff8a80" : "#9fd3ff",
-      wiggle: true,
-      freq: 2.3,
-      f: (t) => {
-        const sw = Math.sin(t * Math.PI * 3) * (swings * 0.35 + range * 0.25);
-        const hit = punch > 0 && Math.abs(((t * 4) % 1) - 0.5) < 0.03 ? punch * 0.45 : 0;
-        const v0 = base + sw + hit;
-        return Math.min(lv > 0.9 ? 1 : ceil, v0);
-      },
-    });
-    /* The noise floor: a hiss band that shrinks as noise is taken out. */
-    s += `<rect x="50" y="${(84 - (1 - noise) * 8).toFixed(1)}" width="262" height="${((1 - noise) * 16).toFixed(1)}" fill="#ccc" opacity="0.3"/>`;
-    /* The peak ceiling. */
-    s += [-1, 1].map((sd) => `<line x1="50" y1="${(84 + sd * ceil * 64).toFixed(1)}" x2="312" y2="${(84 + sd * ceil * 64).toFixed(1)}" stroke="#ff5252" stroke-dasharray="4 3"/>`).join("") + k.label({ x: 310, y: 84 - ceil * 64 - 3, text: `peak ${v("peak")} dB`, size: 8, color: "#ff8a80", anchor: "end" });
-    s += chip(k, 50, 157, `${v("averageLoud")} LUFS average`, "#9fd3ff") + chip(k, 312, 157, `${v("loudRange")} dB range`, "#ffd166", "end");
+    /* Someone on a sofa watching a screen. Sound comes off the speaker as rings: more and stronger rings the
+       louder the mix, uneven rings for wide swings, a burst for punch, red rings clipped flat at the peak line,
+       and a fizz of hiss that clears as noise is taken out. The viewer leans in to hear, or covers their ears. */
+    let s = k.bg("#1d1a24") + `<rect x="0" y="132" width="320" height="48" fill="#2c2620"/>`;
+    s += `<rect x="16" y="40" width="70" height="48" rx="3" fill="#2e3a4e" stroke="#888" stroke-width="2"/><rect x="46" y="88" width="10" height="44" fill="#444"/>`;
+    s += k.person({ x: 51, y: 84, s: 0.6, color: "#c0392b", arms: lv > 0.6 ? 0.8 : 0.2, mood: 0.4 });
+    s += `<rect x="88" y="70" width="18" height="34" rx="3" fill="#333" stroke="#888"/><circle cx="97" cy="80" r="4" fill="#666"/><circle cx="97" cy="95" r="6" fill="#666"/>`;
+    const loudness = k.clamp(0.25 + lv * 0.4 + avg * 0.35, 0, 1);
+    const ceil = 0.45 + peak * 0.55;
+    const n = 2 + Math.round(loudness * 6);
+    const clipped = lv > 0.9 || loudness > ceil;
+    for (let i = 0; i < n; i++) {
+      const r = 14 + i * 16;
+      const sw = 1 + Math.abs(Math.sin(i * 1.7)) * (swings * 3 + range * 3);
+      const strong = (i % 2 ? 1 : 0.6) * loudness;
+      const over = r / 140 > ceil;
+      s += `<path d="M${r1(106 + r * 0.2)} ${r1(87 - r * 0.7)} A${r} ${r} 0 0 1 ${r1(106 + r * 0.2)} ${r1(87 + r * 0.7)}" fill="none" stroke="${over || (clipped && i > n - 3) ? "#ff5a5a" : "#9fd3ff"}" stroke-width="${r1(sw)}" opacity="${r1(0.3 + strong * 0.6)}"/>`;
+    }
+    /* The peak line: a ceiling the rings are not allowed past. */
+    const px = 106 + ceil * 140;
+    s += `<line x1="${r1(px)}" y1="24" x2="${r1(px)}" y2="130" stroke="#ff5252" stroke-dasharray="4 3"/>` + k.label({ x: px, y: 20, text: `peak ${v("peak")} dB`, size: 8, color: "#ff8a80" });
+    if (punch > 0) s += k.text({ x: 140, y: 34, text: "BOOM", size: 8 + punch * 10, color: "#ffd166", weight: 700, outline: "#000" });
+    /* Hiss: specks around the speaker, fewer as noise reduction rises. */
+    s += Array.from({ length: Math.round((1 - noise) * 30) }, (_, i) => k.dot({ x: 92 + k.rnd(i + 3) * 60, y: 60 + k.rnd(i + 17) * 60, r: 0.9, color: "#ddd" })).join("");
+    /* The viewer: leaning in for quiet, at ease for normal, ears covered when it is loud. */
+    const loud = loudness > 0.75 || clipped;
+    s += `<rect x="236" y="118" width="74" height="16" rx="5" fill="#5a3a4a"/><rect x="236" y="100" width="12" height="34" rx="4" fill="#5a3a4a"/>`;
+    s += k.person({ x: 272, y: 150, s: 0.9, color: "#4a6fa5", look: -1, mood: loud ? -0.7 : loudness < 0.35 ? -0.2 : 0.3, arms: loud ? 1 : 0, lean: loudness < 0.35 ? -12 : 0 });
+    if (loud) s += k.label({ x: 272, y: 52, text: "too loud!", size: 9, color: "#ff8a80", weight: 700 });
+    else if (loudness < 0.35) s += k.label({ x: 272, y: 52, text: "what did they say?", size: 8, color: "#ccc" });
+    s += chip(k, 10, 157, `${v("averageLoud")} LUFS average`, "#9fd3ff") + chip(k, 312, 157, `${v("loudRange")} dB range`, "#ffd166", "end");
     return s + cap(k, `${v("setting")} · ${v("swings")} swings · punch ${v("punch")} · noise −${v("noise")}%`);
   });
 
