@@ -182,6 +182,30 @@ const ok = (cond, msg) => {
   ok(padVals.every((p) => p != null && p >= 0.75), "dragging the pad to its top right sets both settings high: " + JSON.stringify(padVals));
   await page.screenshot({ path: path.join(SHOTS, "windows-2-pad.png") });
 
+  /* The orbit (Jeremy, 15:01Z: a camera angle is a 3D relationship to the subject): drag the camera to the
+     subject's right in the view from above, then above them in the view from the side. */
+  await page.evaluate(() => window.CurioScreen.openWin("cameraPlace"));
+  const orb = '.sc-win[data-win="cameraPlace"]';
+  const drag = async (sel, fx, fy) => {
+    const b = await (await page.$(sel)).boundingBox();
+    await page.mouse.move(b.x + b.width * 0.5, b.y + b.height * 0.8);
+    await page.mouse.down();
+    await page.mouse.move(b.x + b.width * fx, b.y + b.height * fy, { steps: 4 });
+    await page.mouse.up();
+  };
+  const orbVal = (k) => page.evaluate((k) => {
+    const st = window.CurioEngine.state();
+    const t = st.tracks.find((x) => x.curiosities.includes(k));
+    return t ? window.CurioEngine.value(st.rows[window.CurioScreen.row()].id, t.id, k) : null;
+  }, k);
+  await drag(`${orb} [data-orbit-top] svg`, 0.85, 0.5);
+  const around = await orbVal("cameraPlace");
+  ok(around > 70 && around < 110, `from above, dragging to their right puts the camera about 90° around (${around}°)`);
+  await drag(`${orb} [data-orbit-side] svg`, 0.5, 0.15);
+  const height = await orbVal("cameraPlace.height");
+  ok(height > 30, `from the side, dragging up puts the camera above them (${height}°)`);
+  await page.screenshot({ path: path.join(SHOTS, "windows-3-orbit.png") });
+
   ok(!errors.length, "no errors on the page" + (errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""));
   await browser.close();
   server.close();

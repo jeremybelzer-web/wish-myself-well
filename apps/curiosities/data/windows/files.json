@@ -1,5 +1,6 @@
 [
   "windows.js",
+  "win-space.js",
   "win-camera.js",
   "win-performance.js",
   "win-light.js",

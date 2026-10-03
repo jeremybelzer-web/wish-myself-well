@@ -154,6 +154,47 @@
       const sz = isz && sl(c, f.size);
       return `<div class="cw-frame${h.ctx.edit ? "" : " dis"}"${ix || iy ? ` data-xy="${h.esc(ix || "")}|${h.esc(iy || "")}"` : ""} aria-label="Where it sits in the picture"><svg viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true"><rect class="cw-thirds" x="0" y="0" width="160" height="100"/><path class="cw-thirds" d="M53 0v100M107 0v100M0 33h160M0 67h160"/>${person}</svg></div>${ix || iy ? `<p class="sc-k">Click or drag in the picture to place it${ix && iy ? " across and up" : ix ? " left or right" : " higher or lower"}.</p>` : ""}${sz ? `<div class="sc-ctl"><span class="sc-ctl-l">${h.keyBtn(isz, h.ctx)}${h.esc(sz.label)}</span>${h.controlHtml(isz, sz, h.ctx.value(isz), !h.ctx.edit)}</div>` : ""}`;
     },
+    orbit(c, f, h) {
+      const k = (sid) => (f[sid] ? keyOf(c, h, f[sid]) : null);
+      const ka = k("around");
+      if (!ka) return "";
+      const kh = k("height");
+      const kd = k("distance");
+      const ko = k("offAxis");
+      const kr = k("roll");
+      const num = (id, d) => {
+        const v = id ? Number(h.ctx.value(id)) : NaN;
+        return isFinite(v) ? v : d;
+      };
+      const around = num(ka, 0);
+      const height = num(kh, 0);
+      const off = num(ko, 0);
+      const roll = num(kr, 0);
+      /* Distance is drawn on a square-root scale so near places get room: p = sqrt(position on its range). */
+      const dp = kd ? Math.sqrt(Math.max(0, posOf(kd, num(kd, S().at(kd, 0.1))) || 0)) : 0.7;
+      const rad = (d) => (d * Math.PI) / 180;
+      const R = 40 * (0.18 + 0.82 * dp);
+      /* From above: the subject in the middle facing down the page, toward a camera at 0°. */
+      const tx = 50 + R * Math.sin(rad(around));
+      const ty = 50 + R * Math.cos(rad(around));
+      const look = Math.atan2(50 - ty, 50 - tx) + rad(off);
+      const cam = (x, y, a, r) => `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${((a * 180) / Math.PI).toFixed(1)})"><g transform="rotate(${r})"><rect x="-6" y="-4" width="9" height="8" rx="1.5"/><path d="M3 -2.5l5 -2.5v10l-5 -2.5z"/></g><line class="cw-look" x1="8" y1="0" x2="30" y2="0"/></g>`;
+      const top = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle class="cw-ring" cx="50" cy="50" r="40"/><circle class="cw-ring" cx="50" cy="50" r="20"/><path class="cw-ring" d="M50 6v88M6 50h88"/><text x="50" y="99" class="cw-t" text-anchor="middle">front</text><text x="50" y="5" class="cw-t" text-anchor="middle">behind</text><text x="3" y="52" class="cw-t" text-anchor="start">left</text><text x="97" y="52" class="cw-t" text-anchor="end">right</text><g class="cw-subj"><circle cx="50" cy="50" r="5"/><path d="M50 55l-3 4h6z"/></g>${cam(tx, ty, look, 0)}</svg>`;
+      /* From the side: the subject on the left, the camera on an arc above or below their eyes. */
+      const sx = 22 + 62 * Math.cos(rad(height));
+      const sy = 50 - 40 * Math.sin(rad(height));
+      const side = kh ? `<svg viewBox="0 0 100 100" aria-hidden="true"><path class="cw-ring" d="M22 10A40 40 0 0 1 84 50A40 40 0 0 1 22 90"/><line class="cw-ring" x1="22" y1="50" x2="96" y2="50"/><g class="cw-subj"><circle cx="22" cy="42" r="5"/><path d="M22 47v24M22 71l-5 18M22 71l5 18"/></g>${cam(sx, sy, Math.atan2(46 - sy, 22 - sx), roll)}<text x="96" y="47" class="cw-t" text-anchor="end">eye level</text></svg>` : "";
+      const read = [
+        ["around", ka, around, "°"],
+        ["height", kh, height, "°"],
+        ["distance", kd, kd ? num(kd, 0) : null, "m"],
+        ["offAxis", ko, off, "°"],
+        ["roll", kr, roll, "°"],
+      ].filter((x) => x[1]);
+      return `<div class="cw-orbit${h.ctx.edit ? "" : " dis"}"><div class="cw-orbit-top" data-orbit-top="${h.esc(ka)}|${h.esc(kd || "")}" title="From above: drag the camera around them, nearer or farther">${top}<small>From above</small></div>${kh ? `<div class="cw-orbit-side" data-orbit-side="${h.esc(kh)}" title="From the side: drag above or below">${side}<small>From the side</small></div>` : ""}</div>
+        <div class="cw-orbit-read">${read.map(([sid, id, v, u]) => { const s = sl(c, f[sid]); return `<span>${h.keyBtn(id, h.ctx)}${h.esc(s ? s.label : sid)} <b>${v == null ? "–" : Math.round(v * 10) / 10}${u}</b></span>`; }).join("")}</div>
+        <p class="sc-k">Drag the camera in either view. Each number is its own curiosity with its own lane.</p>`;
+    },
   };
 
   /* ---------- shapes over my film (a drawn LFO) ---------- */
@@ -282,6 +323,7 @@
   }
   /* Pad and frame: click or drag to set two settings at once (one undo step when let go). */
   function pointer(e, api) {
+    if (orbitPointer(e, api)) return true;
     const el = e.target.closest && e.target.closest("[data-xy]");
     if (!el || el.classList.contains("dis")) return false;
     e.preventDefault();
@@ -313,6 +355,49 @@
       if (list.length) api.setValues(list, "Set from the pad");
     };
     window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    return true;
+  }
+
+  /* Orbit: from above, the pointer's angle around the subject and its distance; from the side, its height. */
+  function orbitPointer(e, api) {
+    const el = e.target.closest && e.target.closest("[data-orbit-top], [data-orbit-side]");
+    if (!el || el.closest(".cw-orbit.dis")) return false;
+    e.preventDefault();
+    const svg = el.querySelector("svg");
+    const topView = el.hasAttribute("data-orbit-top");
+    const [ka, kd] = topView ? el.dataset.orbitTop.split("|") : [];
+    const kh = topView ? null : el.dataset.orbitSide;
+    let list = [];
+    const at = (ev) => {
+      const r = svg.getBoundingClientRect();
+      const x = ((ev.clientX - r.left) / r.width) * 100;
+      const y = ((ev.clientY - r.top) / r.height) * 100;
+      list = [];
+      if (topView) {
+        const dx = x - 50;
+        const dy = y - 50;
+        const deg = (Math.atan2(dx, dy) * 180) / Math.PI;
+        if (S().known(ka)) list.push([ka, S().fix(ka, Math.round(deg))]);
+        if (kd && S().known(kd)) {
+          const p = Math.max(0, Math.min(1, (Math.hypot(dx, dy) / 40 - 0.18) / 0.82));
+          list.push([kd, S().at(kd, p * p)]);
+        }
+      } else if (S().known(kh)) {
+        const deg = (Math.atan2(50 - y, x - 22) * 180) / Math.PI;
+        list.push([kh, S().fix(kh, Math.round(Math.max(-90, Math.min(90, deg))))]);
+      }
+      const tip = el.querySelector("small");
+      if (tip) tip.textContent = list.map(([k, v]) => v).join(" · ");
+    };
+    at(e);
+    const up = () => {
+      window.removeEventListener("pointermove", at);
+      window.removeEventListener("pointerup", up);
+      list.forEach(([k]) => api.showLane(k));
+      if (list.length) api.setValues(list, topView ? "Move around the subject" : "Move above or below");
+    };
+    window.addEventListener("pointermove", at);
     window.addEventListener("pointerup", up);
     return true;
   }
@@ -371,6 +456,19 @@
 .cw-frame g { fill: none; stroke: #d6d6dc; stroke-width: 2.2; stroke-linecap: round; }
 .cw-frame g circle { fill: #d6d6dc; }
 .cw-frame .cw-dot { width: 10px; height: 10px; }
+.cw-orbit { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cw-orbit > div { position: relative; border: 1px solid var(--cc-line); border-radius: 8px; background: #121214; cursor: grab; touch-action: none; }
+.cw-orbit.dis > div { cursor: default; opacity: 0.7; }
+.cw-orbit svg { width: 100%; height: auto; display: block; }
+.cw-orbit small { position: absolute; left: 6px; top: 4px; font-size: 9px; color: var(--cc-dim); pointer-events: none; }
+.cw-orbit .cw-ring { fill: none; stroke: #2e2e33; stroke-width: 0.8; }
+.cw-orbit .cw-subj { fill: #d6d6dc; stroke: none; }
+.cw-orbit .cw-subj path { fill: none; stroke: #d6d6dc; stroke-width: 2; stroke-linecap: round; }
+.cw-orbit g rect, .cw-orbit g path { fill: var(--cc-accent); }
+.cw-orbit .cw-look { stroke: var(--cc-accent); stroke-width: 0.8; stroke-dasharray: 2 2; }
+.cw-orbit .cw-t { fill: #6b6b73; font-size: 5px; }
+.cw-orbit-read { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 10px; color: var(--cc-dim); }
+.cw-orbit-read b { color: var(--cc-text); }
 .cw-preset-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 4px; }
 .sc-page .cw-preset-row button { display: grid; gap: 2px; text-align: left; padding: 6px 8px; border-left: 3px solid var(--cc-warm); }
 .cw-preset-row b { font-size: 11px; }

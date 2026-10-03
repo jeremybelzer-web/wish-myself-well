@@ -1,0 +1,44 @@
+# A window for every curiosity
+
+Jeremy, 2026-10-03 14:59Z: "What would help you create individual automation windows for each curiosity? by
+defining the parameters that are automatable for each one."
+
+Every curiosity on the Screen opens its own floating window (⧉ on a lane or in Details). This folder says what
+goes in each one:
+
+- **Its own settings.** Each curiosity gets the settings a director, actor, editor, colorist, sound mixer or
+  comedy writer would really turn for that one thing, so every curiosity has at least four of its own (on top of
+  the shared ones every row has: how hard it pushes the story, whether it points ahead, its tie to a theme, and
+  Amount). Every setting is graded (a word scale in order, or a number range), so every one can be automated: a
+  lane on the timeline, a knob, an LFO, a MIDI control.
+- **Faces.** One to three visual controls at the top of the window, picked to fit the curiosity: tiles with
+  pictures, a big dial, a pad you drag across (two settings at once), color swatches, a person in the frame, a
+  direction compass, a mixer of upright faders, a ladder of rungs for something that builds, a see-saw between
+  two ends.
+- **Groups.** Its settings under two to four headings, like Final Cut Pro's and CapCut's inspectors.
+- **Presets.** Two to four one-click looks, named after a kind of film moment ("Hitchcock suspense hold").
+  A preset sets several settings at the playhead as one undo step.
+
+Every window also has, from `screen/windows.js`:
+
+- **Shape over my film**: pick a setting and draw a whole movement across every moment of the film (or the
+  play range): Rise, Fall, Swell, Pulse, Back and forth, Surprise. One undo step. It is an LFO drawn onto the lane.
+- **Surprise me**: every setting of its own picks something at random at the playhead.
+
+The hand-made parts some windows already had (Emotion's feeling pad, Shot size's frames, Angle height, Camera
+move, Color, Comedy's joke timing) stay, above the faces.
+
+## Files
+
+| File | What is in it |
+| --- | --- |
+| `windows.js` | `CuriosityWindows.add(id, { sliders, window })` and `check()`. The format is in its top comment |
+| `win-<category>.js` | One per Screen category (camera, performance, light, grade, world, wardrobe, sound, text, effects, transitions, speed, editing, feeling, comedy, character, story, page): every curiosity whose home is that category |
+| `files.json` | Load order. `index.html` loads them right after `data/db-maya.js`, before `CuriosityDB.install` |
+| `check-windows.js` | `node apps/curiosities/data/windows/check-windows.js [category] [--gaps] [--strict]` checks every slider, face, group and preset, and lists curiosities with no window or fewer than four settings of their own |
+
+`screen/windows.js` (`window.CurioWindowFaces`) draws the faces, presets and shapes inside the window
+`screen/ui.js` opens. Browser test: `screen/tests/windows-browser.js` opens all of them.
+
+New settings are added to the database rows when the page loads, with stable ids (`shotSize.lookRoom`).
+They are not in `data/files.json` or `curiosity-db.json` yet: the database thread can fold this folder in.

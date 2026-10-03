@@ -19,10 +19,13 @@
      { face: "mixer", sliders: [ids] }              a row of upright faders, like a sound desk
      { face: "ladder", slider }                     an ordered scale as rungs, low at the bottom
      { face: "balance", slider, left?, right? }     a see-saw between two ends
+     { face: "orbit", around, height?, distance?, offAxis?, roll? }   the subject seen from above and from the
+                                                    side, with the camera (or light, or sound) around it in 3D;
+                                                    every one a number range in degrees or meters
    Rows another file never loaded (an editing row in a Node check without db-editing.js) are skipped. */
 (function (root) {
   const DB = root.CuriosityDB || (typeof require !== "undefined" ? require("../curiosity-db.js") : null);
-  const FACES = ["tiles", "dial", "pad", "swatches", "frame", "compass", "mixer", "ladder", "balance"];
+  const FACES = ["tiles", "dial", "pad", "swatches", "frame", "compass", "mixer", "ladder", "balance", "orbit"];
   const W = { FACES, specs: {}, added: {}, skipped: [], files: [] };
   W.add = function (id, def) {
     if (!DB || !DB.find(id) || DB.find(id).level !== "curiosity") return W.skipped.push(id), null;
@@ -64,6 +67,7 @@
         if (f.face === "swatches") opts(f.colors, one("slider", "scale"));
         if (f.face === "compass") opts(f.angles, one("slider", "scale"));
         if (f.face === "pad") one("x"), one("y");
+        if (f.face === "orbit") one("around", "range"), ["height", "distance", "offAxis", "roll"].forEach((k) => f[k] != null && one(k, "range"));
         if (f.face === "frame") ["x", "y", "size"].filter((k) => f[k] != null).length ? ["x", "y", "size"].forEach((k) => f[k] != null && need(f[k], where)) : out.push(`${id}: ${where} needs x, y or size`);
         if (f.face === "mixer") Array.isArray(f.sliders) && f.sliders.length >= 2 ? f.sliders.forEach((s) => need(s, where)) : out.push(`${id}: ${where} needs two or more sliders`);
       });
