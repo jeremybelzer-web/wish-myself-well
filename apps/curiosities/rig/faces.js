@@ -307,7 +307,7 @@
         const z = Math.sqrt(Math.max(0.05, 1 - x * x - y * y));
         p = hb.c.clone().addScaledVector(right, x * hb.rx).addScaledVector(up, y * hb.ry).addScaledVector(fwd, (hb.front != null ? hb.front - hb.c.z : z * Math.max(hb.rx, hb.ry * 0.9)));
       }
-      p.addScaledVector(n, Rw * 0.02);
+      p.addScaledVector(n, Rw * 0.035);
       /* into the face group's own frame */
       const local = grp.worldToLocal(p.clone());
       const gq = grp.getWorldQuaternion(new T.Quaternion()).invert();
@@ -324,8 +324,8 @@
     const cap = ctx.rig.head.children.find((c) => c.isMesh && c.userData.hairCap && c.material && c.material.color);
     if (cap) browColor = cap.material.color.clone().multiplyScalar(0.45).getHex(); /* darker than the hair, so they show on it */
     const browMat = mat(browColor, { roughness: 0.8 });
-    const mouthMat = mat(0x6e1e26, { roughness: 0.7, side: T.DoubleSide, emissive: 0x1a0406 });
-    const lipMat = mat(0xb0565a, { roughness: 0.6, side: T.DoubleSide });
+    const mouthMat = mat(0x3c0a10, { roughness: 0.8, side: T.DoubleSide });
+    const lipMat = mat(0xa04a50, { roughness: 0.6, side: T.DoubleSide });
     const tag = (o) => {
       o.traverse((n) => {
         n.userData.faceMade = true;
@@ -449,7 +449,7 @@
       const round = Math.sqrt(Math.max(0, 1 - shape)); /* an open mouth is round, closed at the corners */
       const top = center + t / 2 + gap * 0.35 * round;
       const bot = center - t / 2 - gap * 0.65 * round - (p.curve > 0 ? p.curve * lift * 0.25 * round : 0);
-      const z = -(x * x) * 0.5 * m.bend; /* wraps around the head */
+      const z = -(x * x) * 0.5 * m.bend * 0.85; /* wraps around the head (a little less, so the corners stay out) */
       pos.setXYZ(i * 2, x, top, z);
       pos.setXYZ(i * 2 + 1, x, bot, z);
       lp.setXYZ(i * 2, x * 0.86, bot + t * 0.05, z + t * 0.05);
