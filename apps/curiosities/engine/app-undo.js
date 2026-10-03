@@ -12,16 +12,16 @@
      not recorded.
    - An undo only goes ahead when every key it would put back still holds what the step left there, so it
      can never overwrite something newer (an opened project, another tab).
-   - Steps live in this tab's session storage, so they survive the reload an undo needs; at most 100 steps.
+   - Steps live in this tab's session storage, so they survive the reload an undo needs; at most 300 steps.
      Each step keeps only the changed stretch of text, so big parts do not crowd out older steps.
 
    window.CurioAppUndo = { steps() newest first [{ label, when, key }], undoTo(i), canRedo(), redo(), clear() } */
 (function () {
   if (typeof window === "undefined" || !window.Storage || !window.localStorage) return;
   const PREFIX = "curiosities-";
-  const SKIP = /^curiosities-(engine-v1|engine-view-v1|workspace-v1|glossary-v1|studio-tab-v1)$|-(view|tab|prefs|ui)-v\d+$/;
+  const SKIP = /^curiosities-(engine-v1|engine-view-v1|workspace-v1|glossary-v1|studio-tab-v1|screen-v1)$|-(view|tab|prefs|ui)-v\d+$/;
   const SESSION = "curio-app-undo-v2";
-  const MAX = 100;
+  const MAX = 300;
   const MAX_TEXT = 1500000;
   const MERGE_MS = 1500;
   const NAMES = {

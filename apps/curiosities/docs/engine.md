@@ -69,8 +69,7 @@ The letter's rule is that every change is one undo step, everywhere. The rest of
 
 ## What is not done yet
 
-- **The rest of the app on the shared state.** My film's patch is written and tested; the storyboard and the workspaces are next, the same way.
-- **Tools asking for the whole film.** The bridge answers `timeline` today, but the Maya, Blender, Resolve and Unreal plugins still ask for My film's panels; switching them is a small change in each plugin.
+- **The rest of the app on the shared state.** My film is on it; the storyboard's patch is written and tested (engine handoff 05); the workspaces are next, the same way. Every engine change is already a step on the page's undo list too.
 - **Comics, live-action AI.** Their hosts (a page layout tool, a generation pipeline) are not chosen yet.
 - **Analysis of finished films.** Reading a video file needs shot detection, which a browser cannot do quickly; scripts and shot lists come first.
 

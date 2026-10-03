@@ -895,14 +895,30 @@
       }
     });
   }
+  /* Every undo step has an id. When the shared store is on the page, each step is also put on the app-wide
+     undo list (Ctrl+Z on the page, History), which undoes it here only while it is still this film's newest
+     step: one undo for everything (Jeremy's words #12), and the engine's own Undo stays in step with it. */
+  let stepId = 0;
+  const peek = (list) => (list.length ? list[list.length - 1].id : null);
+  function share(id, label) {
+    const St = root.CurioStore;
+    if (!St || typeof St.external !== "function") return;
+    St.external("engine", {
+      label: "Engine: " + label,
+      undo: () => peek(undoList) === id && undo(),
+      redo: () => peek(redoList) === id && redo(),
+    });
+  }
   function commit(next, label) {
-    undoList.push({ label, text: canon(state) });
+    const id = ++stepId;
+    undoList.push({ id, label, text: canon(state) });
     if (undoList.length > LIMIT.undo) undoList.shift();
     redoList = [];
     state = next;
     result = rewrite(state);
     save();
     emit(label);
+    share(id, label);
   }
   function send(m) {
     let next;
@@ -931,7 +947,7 @@
   function undo() {
     const step = undoList.pop();
     if (!step) return false;
-    redoList.push({ label: step.label, text: canon(state) });
+    redoList.push({ id: step.id, label: step.label, text: canon(state) });
     state = normalize(JSON.parse(step.text));
     result = rewrite(state);
     save();
@@ -941,7 +957,7 @@
   function redo() {
     const step = redoList.pop();
     if (!step) return false;
-    undoList.push({ label: step.label, text: canon(state) });
+    undoList.push({ id: step.id, label: step.label, text: canon(state) });
     state = normalize(JSON.parse(step.text));
     result = rewrite(state);
     save();
