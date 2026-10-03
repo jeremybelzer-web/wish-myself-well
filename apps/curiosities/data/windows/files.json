@@ -22,6 +22,7 @@
   "win-heart-comedy.js",
   "win-heart-emotion.js",
   "win-depth-story.js",
+  "win-depth-cut.js",
   "measure-camera.js",
   "measure-performance.js",
   "measure-light.js",
@@ -59,6 +60,7 @@
   "say-heart-comedy.js",
   "say-heart-emotion.js",
   "say-depth-story.js",
+  "say-depth-cut.js",
   "look-camera.js",
   "look-story.js",
   "look-comedy.js",
@@ -78,5 +80,6 @@
   "look-text.js",
   "look-heart-comedy.js",
   "look-heart-emotion.js",
-  "look-depth-story.js"
+  "look-depth-story.js",
+  "look-depth-cut.js"
 ]
