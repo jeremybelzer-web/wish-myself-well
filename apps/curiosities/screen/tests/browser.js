@@ -1988,6 +1988,203 @@ const ok = (cond, msg) => {
     await page.keyboard.press("Escape");
   }
 
+  /* Quick find (⌘K, Ctrl+K on Windows; the 🔍 in the top bar): one box, typed words, results in groups
+     (Curiosities, Suites, Actions, Moments and markers); arrows and Enter pick, Esc closes; the last 8 picks show
+     when the box is empty; no key typed in it reaches the film. */
+  {
+    const FK = "curiosities-screen-find-v1";
+    const isOpen = () => page.evaluate(() => window.CurioScreenFind.isOpen() && !!document.querySelector(".sc-page .sc-find .sc-find-q"));
+    const inBox = () => page.evaluate(() => !!document.activeElement && document.activeElement.classList.contains("sc-find-q"));
+    const opts = () => page.$$eval(".sc-find-o", (ls) => ls.map((l) => ({ id: l.dataset.findId, label: l.querySelector("b").textContent, sub: (l.querySelector("small") || {}).textContent || "", kbd: (l.querySelector("kbd") || {}).textContent || "", on: l.classList.contains("on") && l.getAttribute("aria-selected") === "true" })));
+    const heads = () => page.$$eval(".sc-find-h > span", (hs) => hs.map((h) => h.textContent));
+    const typeIn = async (q) => {
+      await page.fill(".sc-find-q", q);
+      await page.waitForTimeout(30);
+    };
+    const findOpen = async () => {
+      if (!(await isOpen())) await page.keyboard.press("Control+k");
+    };
+    await page.evaluate((k) => { localStorage.removeItem(k); window.CurioLanes.tools().markers = []; window.CurioScreen.setRow(0); document.activeElement && document.activeElement.blur(); }, FK);
+    const selBefore = await page.evaluate(() => window.CurioScreen.state().sel);
+
+    /* The 🔍 button and the key. */
+    const rowsOf = () => page.evaluate(() => { const ts = [...document.querySelector(".sc-bar").children].filter((c) => !c.classList.contains("sc-what")).map((c) => Math.round(c.getBoundingClientRect().top)); return ts.sort((a, b) => a - b).filter((t, i, a) => i === 0 || t - a[i - 1] > 16).length; });
+    ok(!!(await page.$('.sc-bar [data-act="find"]')) && (await page.$eval('.sc-bar [data-act="find"]', (b) => b.textContent.trim() === "🔍" && /Quick find/.test(b.getAttribute("aria-label")))), "the top bar has a 🔍 Quick find button");
+    ok((await rowsOf()) <= 2, "at 1440px the top bar still fits on two rows with 🔍 in it (" + (await rowsOf()) + ")");
+    await page.click('.sc-bar [data-act="find"]');
+    ok((await isOpen()) && (await inBox()), "the 🔍 button opens Quick find, with the typing in its box");
+    const h0 = await heads();
+    ok(h0.length === 1 && /^Try one of these/.test(h0[0]) && (await opts()).length >= 3, "with nothing typed and nothing picked yet, it offers a few things to try (" + h0.join(", ") + ")");
+    await page.keyboard.press("Escape");
+    ok(!(await isOpen()) && (await page.evaluate(() => document.activeElement && document.activeElement.dataset.act === "find")), "Esc closes it and gives the focus back to 🔍");
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+k");
+    ok((await isOpen()) && (await inBox()), "Ctrl+K opens it (⌘K on a Mac)");
+    await page.keyboard.press("Control+k");
+    ok(!(await isOpen()), "pressed again, it closes");
+    await page.keyboard.press("Meta+k");
+    ok(await isOpen(), "⌘K opens it too");
+    await page.keyboard.press("Escape");
+    await page.click("[data-lib-search]");
+    await page.keyboard.press("Control+k");
+    ok((await isOpen()) && (await inBox()), "it opens while typing in the library's search box too");
+    await page.keyboard.press("Escape");
+    ok(await page.evaluate(() => document.activeElement && "libSearch" in document.activeElement.dataset), "and Esc puts the focus back where it was");
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+
+    /* Keys typed while it is open stay in the box: nothing moves, plays, adds, undoes or opens behind it. */
+    {
+      const snap = () => page.evaluate(() => ({ row: window.CurioScreen.row(), fp: window.CurioEngine.fingerprint() + JSON.stringify(window.CurioEngine.state().lanes), marks: window.CurioLanes.tools().markers.length, tool: window.CurioLanes.tools().tool, zoom: window.CurioLanes.tools().zoom, undo: window.CurioEngine.history().undo.length, play: document.querySelector('[data-act="play"]').textContent, keys: !!document.querySelector(".sc-keys"), ghost: window.CurioScreen.state().ghost }));
+      await page.evaluate(() => window.CurioScreen.setRow(2));
+      const s0 = await snap();
+      await page.keyboard.press("Control+k");
+      for (const k of ["ArrowRight", "ArrowLeft", "Space", "m", "b", "g", "l", "j", "Shift+BracketRight", "Shift+Z", "Control+b", "Control+Equal", "Control+z", "Shift+Slash", "Backspace", "Delete"]) await page.keyboard.press(k);
+      await page.keyboard.type("i o p");
+      const typed = await page.$eval(".sc-find-q", (i) => i.value);
+      /* A key sent from a result row, and a key while nothing inside has focus: still the box's. */
+      await page.evaluate(() => {
+        const li = document.querySelector(".sc-find-o") || document.querySelector(".sc-find-list");
+        li.dispatchEvent(new KeyboardEvent("keydown", { key: "m", code: "KeyM", bubbles: true, cancelable: true }));
+        document.activeElement.blur();
+      });
+      await page.keyboard.press("m");
+      await page.keyboard.press("ArrowRight");
+      const s1 = await snap();
+      ok(JSON.stringify(s1) === JSON.stringify(s0) && (await isOpen()), "while it is open, arrows, Space, M, B, J, L, ⇧], ⌘B, ⌘+, ⌘Z, ?, ⌫ and the rest never reach the film, the timeline or the Player (" + JSON.stringify(s0) + (JSON.stringify(s1) === JSON.stringify(s0) ? "" : " → " + JSON.stringify(s1)) + ")");
+      ok(typed.length >= 3 && /i o p$/.test(typed), "the letters land in the box instead (" + JSON.stringify(typed) + ")");
+      await page.evaluate(() => document.activeElement.blur());
+      await page.keyboard.press("Escape");
+      ok(!(await isOpen()), "Esc closes it even when nothing inside has focus");
+      await page.evaluate(() => document.activeElement && document.activeElement.blur());
+      await page.keyboard.press("m");
+      ok((await page.evaluate(() => window.CurioLanes.tools().markers.length)) === s0.marks + 1, "once it is closed the Screen's keys work again (M adds a marker)");
+      await page.evaluate(() => { window.CurioLanes.tools().markers = []; window.CurioScreen.setRow(0); });
+    }
+
+    /* Find a curiosity by plain words and pick it: the library, Details and the timeline follow, as a card's pick does,
+       and its folded lane group opens. */
+    {
+      const info = await page.evaluate(() => {
+        const L = window.CurioLevels;
+        const c = L.get("curiosity", "emotionIntensity");
+        return { label: c.label, plain: c.plain || "", cat: L.categoryOf("emotionIntensity") };
+      });
+      await page.evaluate((cat) => { const t = window.CurioLanes.tools(); t.folds = t.folds || {}; t.folds[cat] = true; window.CurioScreen.state(); document.querySelector('[data-icat="camera"]').click(); }, info.cat);
+      await page.keyboard.press("Control+k");
+      await typeIn(info.label.toLowerCase().split(" ").filter((w) => w.length > 3).reverse().join(" "));
+      const o = await opts();
+      await page.screenshot({ path: path.join(SHOTS, "screen-11-quick-find.png") });
+      ok(o[0] && o[0].id === "cur:emotionIntensity" && o[0].on, "typing its words in any order finds the curiosity first, lit (" + (o[0] ? o[0].label : "nothing") + ")");
+      ok(!!info.plain && o[0] && o[0].sub === info.plain, "each curiosity shows its short plain description (" + (o[0] ? o[0].sub : "") + ")");
+      ok((await heads())[0] === "Curiosities", "under the Curiosities heading");
+      await page.keyboard.press("Enter");
+      const after = await page.evaluate((cat) => {
+        const st = window.CurioScreen.state();
+        const t = window.CurioLanes.tools();
+        const lk = Object.keys(window.CurioEngine.state().lanes).find((k) => k.endsWith("|emotionIntensity"));
+        return { sel: st.sel, cat: st.cat, tab: st.libTab, card: !!document.querySelector('.sc-grid .sc-card.on[data-id="emotionIntensity"]'), details: !!document.querySelector('.sc-inspector .sc-cur.sel [data-select-cur="emotionIntensity"]'), open: !(t.folds && t.folds[cat]), lane: !!document.querySelector(".sl-heads .sl-head [data-pick=\"emotionIntensity\"]") || (!!lk && !!document.querySelector(`.sl-heads .sl-head [data-lk="${lk}"]`)), closed: !window.CurioScreenFind.isOpen() };
+      }, info.cat);
+      ok(after.closed && after.sel.level === "curiosity" && after.sel.id === "emotionIntensity", "Enter picks it: the Screen looks through it and the box closes");
+      ok(after.cat === info.cat && !after.tab && after.card, "the library moves to its category with its card picked");
+      ok(after.details, "Details shows it picked");
+      ok(after.open && after.lane, "its folded lane group opens and its lane shows on the timeline (" + JSON.stringify({ open: after.open, lane: after.lane }) + ")");
+    }
+
+    /* Run actions: one from the Screen's shortcuts (its key shown), one from a menu, one from the transport bar. */
+    {
+      await page.keyboard.press("Control+k");
+      await typeIn("add marker");
+      const o = await opts();
+      const am = o.find((x) => x.id === "act:key:Add marker");
+      ok(!!am && am.kbd === "M" && o[0].id === am.id && (await heads())[0] === "Actions", "an action shows its shortcut (Add marker, M), under Actions");
+      const m0 = await page.evaluate(() => window.CurioLanes.tools().markers.length);
+      await page.keyboard.press("Enter");
+      ok((await page.evaluate(() => window.CurioLanes.tools().markers.length)) === m0 + 1 && !(await isOpen()), "Enter runs it, the same as pressing M (a marker at the playhead)");
+      await page.evaluate(() => (window.CurioLanes.tools().markers = []));
+      await page.keyboard.press("Control+k");
+      await typeIn("compare turn on");
+      ok((await opts())[0].id === "act:compare", "Compare is found by its name");
+      await page.keyboard.press("Enter");
+      ok(await page.evaluate(() => window.CurioScreen.compare.now().on && !!document.querySelector(".sc-viewer.mine .sc-cmp")), "running it turns Compare on in the Player, as its button does");
+      await page.keyboard.press("Control+k");
+      await typeIn("compare");
+      const off = (await opts()).find((x) => x.id === "act:compare");
+      ok(!!off && /turn off/.test(off.label), "the action now offers to turn it off (" + (off ? off.label : "") + ")");
+      await page.click('.sc-find-o[data-find-id="act:compare"]');
+      ok(await page.evaluate(() => !window.CurioScreen.compare.now().on && !document.querySelector(".sc-cmp")), "clicking a result runs it too (Compare off again)");
+      await page.keyboard.press("Control+k");
+      await typeIn("export");
+      await page.waitForSelector('.sc-find-o[data-find-id="act:export-menu"]');
+      const ids = (await opts()).map((x) => x.id);
+      ok(["act:export-menu", "act:export-sheet", "act:export-png", "act:export-csv"].every((id) => ids.includes(id)), "the Export ▾ items are actions");
+      await page.click('.sc-find-o[data-find-id="act:export-menu"]');
+      ok(await page.evaluate(() => !document.querySelector(".sc-export-menu").hidden), "Export ▾ opens from the box");
+      await page.keyboard.press("Escape");
+      ok(await page.evaluate(() => document.querySelector(".sc-export-menu").hidden), "and its own Esc closes it as before");
+      /* Arrow keys move the light, and Enter runs the lit one. */
+      await page.keyboard.press("Control+k");
+      await typeIn("layout");
+      const l0 = await opts();
+      await page.keyboard.press("ArrowDown");
+      const l1 = await opts();
+      const lit = l1.findIndex((x) => x.on);
+      ok(l0.findIndex((x) => x.on) === 0 && lit === 1 && (await page.$eval(".sc-find-q", (i) => i.getAttribute("aria-activedescendant"))) === "sc-find-o-1", "↓ moves the light to the next result");
+      await page.keyboard.press("ArrowUp");
+      await page.keyboard.press("ArrowUp");
+      ok((await opts()).findIndex((x) => x.on) === l1.length - 1, "↑ from the top wraps to the bottom");
+      await page.keyboard.press("Escape");
+    }
+
+    /* Jump the playhead to a marker by its note, or to "moment 3". */
+    {
+      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the joke lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
+      await page.keyboard.press("Control+k");
+      await typeIn("joke");
+      const o = await opts();
+      ok(o[0] && o[0].id === "moment:" + r4 && /^Moment 5: the joke lands$/.test(o[0].label) && /Marker, red/.test(o[0].sub) && (await heads())[0] === "Moments and markers", "a marker is found by its note, under Moments and markers (" + (o[0] ? o[0].label + " · " + o[0].sub : "") + ")");
+      await page.keyboard.press("Enter");
+      ok((await page.evaluate(() => window.CurioScreen.row())) === 4, "Enter jumps the playhead to it");
+      await page.keyboard.press("Control+k");
+      await typeIn("moment 3");
+      ok(/^Moment 3(:|$)/.test((await opts())[0].label), "\"moment 3\" finds moment 3 first");
+      await page.keyboard.press("Enter");
+      ok((await page.evaluate(() => window.CurioScreen.row())) === 2, "and jumps there");
+      await page.evaluate(() => { window.CurioLanes.tools().markers = []; window.CurioScreen.setRow(0); });
+    }
+
+    /* The last 8 picks, newest first, at the top when the box is empty; kept in curiosities-screen-find-v1. */
+    {
+      for (const q of ["moment 1", "moment 2", "layout player in the middle", "lens highlight"]) {
+        await page.keyboard.press("Control+k");
+        await typeIn(q);
+        await page.keyboard.press("Enter");
+      }
+      await page.keyboard.press("Control+k");
+      const h = await heads();
+      const o = await opts();
+      const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).recent, FK);
+      ok(h[0] === "Recent" && o[0].id === "act:lens-highlight" && o[1].id === "act:layout-center" && saved.length === 8 && saved[0] === "act:lens-highlight", "with the box empty the recent picks come first, newest on top, at most 8 (" + saved.join(", ") + ")");
+      ok(saved.includes("cur:emotionIntensity") === false && saved.filter((x) => x.startsWith("moment:")).length === 4, "older picks fall off the end once there are 8");
+      await page.keyboard.press("Enter");
+      ok(!(await isOpen()) && (await page.evaluate((k) => JSON.parse(localStorage.getItem(k)).recent[0], FK)) === "act:lens-highlight", "a recent pick runs again from there");
+      await page.reload();
+      await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+      await page.keyboard.press("Control+k");
+      ok((await heads())[0] === "Recent" && (await opts())[0].id === "act:lens-highlight", "the recent picks survive a reload");
+      await page.keyboard.press("Escape");
+    }
+
+    /* Listed in the Shortcuts window. */
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.click('[data-act="shortcuts"]');
+    ok((await page.$$eval(".sc-keys-in p", (ps) => ps.map((p) => p.textContent))).some((t) => /^⌘KQuick find/.test(t)), "the Shortcuts window lists ⌘K Quick find");
+    await page.keyboard.press("Escape");
+    /* Look through what was picked before again, so the tests after this see the same Screen. */
+    await page.click(`[data-level="${selBefore.level}"]`);
+    await page.selectOption("[data-pick-item]", selBefore.id);
+    await page.evaluate((k) => { localStorage.removeItem(k); const t = window.CurioLanes.tools(); Object.keys(t.folds || {}).forEach((f) => delete t.folds[f]); localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); }, FK);
+  }
+
   /* Phone width. */
   await page.setViewportSize({ width: 390, height: 900 });
   await page.click('[data-act="close"]');

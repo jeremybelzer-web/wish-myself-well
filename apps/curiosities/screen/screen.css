@@ -795,3 +795,26 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 @media (min-width: 861px) and (max-height: 780px) {
   .sc-page[data-view="screen"]:not([data-layout="right"]) .sc-main { grid-template-rows: minmax(0, 68fr) minmax(0, 32fr); }
 }
+/* Quick find (⌘K, the 🔍 in the top bar): one box over the Screen, results in groups, the picked row lit. */
+.sc-page .sc-find-b { padding: 4px 8px; }
+.sc-find { position: fixed; inset: 0; z-index: 95; display: flex; justify-content: center; align-items: flex-start; padding: 10vh 16px 16px; background: rgba(0, 0, 0, 0.45); }
+.sc-find-in { width: min(640px, 100%); max-height: 72vh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 10px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); overflow: hidden; }
+.sc-page .sc-find-q { font: inherit; font-size: 15px; padding: 12px 14px; border: 0; border-bottom: 1px solid var(--cc-line); background: transparent; color: var(--cc-text); outline: none; min-width: 0; }
+.sc-find-q::placeholder { color: var(--cc-dim); }
+.sc-find-list { list-style: none; margin: 0; padding: 4px; overflow-y: auto; }
+.sc-find-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 8px 10px 3px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cc-dim); }
+.sc-find-h small { text-transform: none; letter-spacing: 0; }
+.sc-find-o { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+.sc-find-o.on { background: var(--cc-hover); box-shadow: inset 2px 0 0 var(--cc-accent); }
+.sc-find-t { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.sc-find-t b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-find-t small { color: var(--cc-dim); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-find-o em { flex: none; font-style: normal; font-size: 11px; color: var(--cc-dim); }
+.sc-find-o kbd { flex: none; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 1px 6px; border: 1px solid var(--cc-line); border-radius: 4px; background: var(--cc-raised); color: var(--cc-text); }
+.sc-find-none { padding: 14px 10px; color: var(--cc-dim); }
+.sc-find-foot { margin: 0; padding: 6px 12px; font-size: 11px; color: var(--cc-dim); border-top: 1px solid var(--cc-line); }
+@media (max-width: 600px) {
+  .sc-find { padding-top: 16px; }
+  .sc-find-in { max-height: calc(100vh - 32px); }
+  .sc-find-o em { display: none; }
+}
