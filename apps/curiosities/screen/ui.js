@@ -362,7 +362,7 @@
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
     page.addEventListener("pointerdown", onKnobDown);
-    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || onOverviewDrag(e));
+    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e));
     page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
     /* Undo and redo go to the app-wide undo list when the page has one (engine/store.js), so one ⌘Z undoes one
        step of anything. Caught first, on the window, so the app's own ⌘Z handler does not undo a second step. */
@@ -1056,7 +1056,12 @@
     }
     return "";
   }
+  /* The faces, groups, presets and shapes from data/windows (screen/windows.js, window.CurioWindowFaces). */
+  const faces = () => window.CurioWindowFaces || null;
+  const faceHelpers = (ctx, focus) => ({ esc, keyFor, sliderId, controlHtml, keyBtn, spark, row, ctx, focus });
+  const faceApi = () => ({ setValues, setAt, showLane, toast, range: rangeNow });
   function winHtml(w, z) {
+    const F = faces();
     const c = L().get("curiosity", w.id);
     const ctx = mineCtx();
     const key = keyFor(c.id);
@@ -1078,7 +1083,8 @@
         ${c.plain ? `<p class="sc-win-plain">${esc(c.plain)}</p>` : ""}
         <p class="sc-k">My film, moment ${row + 1}: every change here becomes a node.</p>
         ${winSpecial(c, ctx)}
-        <div class="sc-wpart"><h4>Every knob and slider</h4>${sliders.map(block).join("")}</div>
+        ${F ? F.html(c, faceHelpers(ctx, w.focus)) : ""}
+        ${(F && F.grouped(c, block)) || `<div class="sc-wpart"><h4>Every knob and slider</h4>${sliders.map(block).join("")}</div>`}
         ${c.momentum ? momentumBox(c.momentum) : ""}
         <div class="sc-wbtns"><button type="button" data-select-cur="${esc(c.id)}">Look through it</button><button type="button" data-win-curve="${esc(key)}">Shape its curve</button></div>
       </div>
@@ -1098,6 +1104,7 @@
     box.querySelectorAll(".sc-win").forEach((x) => scroll[x.dataset.win] && (x.querySelector(".sc-win-b").scrollTop = scroll[x.dataset.win]));
   }
   function winClick(d, t) {
+    if (faces() && (d.cwPreset || d.cwShape || d.cwSurprise)) return faces().click(d, t, faceHelpers(mineCtx()), faceApi());
     if (d.winClose) {
       wins.splice(wins.findIndex((w) => w.id === d.winClose) >>> 0, 1);
       return drawWins(), true;
