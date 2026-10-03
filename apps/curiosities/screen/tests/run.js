@@ -152,5 +152,17 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(lj && lj.scope.from === rr[3].id && lj.scope.to === rr[2].id && E.state().lanes["master|emotion"].points[rr[2].id] === "angry", "the join moves with its reversed nodes");
 }
 
+/* Markers: an old save (a plain list of row ids) becomes markers with a color and a note. */
+{
+  const mm = w.CurioLanes.migrateMarkers;
+  const old = mm(["r3", "r6", "r3"]);
+  ok(old.length === 2 && old.every((m) => m.color === "orange" && m.note === "") && old[0].row === "r3" && old[1].row === "r6", "an old list of row ids becomes orange markers with no note, duplicates dropped");
+  const mixed = mm([{ row: "r1", color: "blue", note: "  the joke lands  " }, { row: "r2", color: "pink" }, "r4", null, { color: "red" }, { row: "r1", color: "red" }]);
+  ok(mixed.length === 3 && mixed[0].color === "blue" && mixed[0].note === "the joke lands" && mixed[1].color === "orange" && mixed[2].row === "r4", "new markers keep their color and trimmed note; unknown colors turn orange; broken entries are dropped");
+  ok(mm([{ row: "r1", note: "x".repeat(200) }])[0].note.length === 80 && mm(null).length === 0 && mm("r1").length === 0, "notes are cut to 80 letters; nothing saved means no markers");
+  ok(w.CurioLanes.MARK_COLORS.length === 6 && w.CurioLanes.MARK_COLORS.every((c) => /^#[0-9a-f]{6}$/.test(c[2])), "six marker colors, like CapCut's");
+  ok(Array.isArray(w.CurioLanes.tools().markers), "the tools keep markers as a list");
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

@@ -450,3 +450,28 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-frame[data-shape="cinema"] { aspect-ratio: 2.39 / 1; width: 100%; }
 .sc-frame:is([data-shape="vertical"], [data-shape="square"], [data-shape="cinema"]) > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sc-frame[data-shape="vertical"] .sc-att { font-size: 9px; top: 2px; right: 2px; left: 2px; text-align: center; }
+
+/* ---------- Markers with a color and a note (CapCut's markers): the flag on the ruler, its pop-up, the Markers list ---------- */
+.sl-marker line { stroke: var(--mk, var(--cc-warm)); }
+.sl-marker path { fill: var(--mk, var(--cc-warm)); }
+.sl-topsvg .sl-marker path, .sl-topsvg .sl-mkhit, .sl-topsvg .sl-mklabel { pointer-events: auto; cursor: pointer; }
+.sl-mkhit { fill: transparent; }
+.sl-mklabel { font-size: 9px; fill: var(--mk, var(--cc-warm)); font-family: system-ui, sans-serif; paint-order: stroke; stroke: #0f0f10; stroke-width: 3px; stroke-linejoin: round; }
+.sl-mkpop { width: 260px; }
+.sl-mknote { display: grid; gap: 2px; color: var(--cc-dim); }
+.sl-mknote input { border: 1px solid var(--cc-line); background: var(--cc-panel); color: var(--cc-text); border-radius: 6px; padding: 4px 6px; font: inherit; }
+.sl-mkcolors { display: flex; gap: 6px; margin: 2px 0; }
+.sc-page .sl-mkcolors button, .sl-mkcolors button { width: 22px; height: 22px; padding: 0; border-radius: 50%; background: var(--mk); box-shadow: none; border: 2px solid transparent; }
+.sc-page .sl-mkcolors button:hover:not(:disabled) { background: var(--mk); filter: brightness(1.15); }
+.sc-page .sl-mkcolors button.on, .sl-mkcolors button.on { border-color: var(--cc-text); box-shadow: inset 0 0 0 1px #0f0f10; }
+.sl-marklist { width: 300px; max-width: calc(100vw - 32px); }
+.sl-marklist .sl-note { color: var(--cc-dim); }
+.sl-marklist ul { list-style: none; margin: 2px 0; padding: 0; display: grid; gap: 2px; max-height: 240px; overflow: auto; }
+.sl-marklist li { display: flex; gap: 2px; }
+.sc-page .sl-mkgo, .sl-mkgo { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: center; text-align: left; background: transparent; padding: 3px 6px; }
+.sc-page .sl-mkedit { background: transparent; padding: 3px 6px; color: var(--cc-dim); }
+.sl-mkdot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--mk); }
+.sl-mkat { flex: none; white-space: nowrap; }
+.sl-mkat small { color: var(--cc-dim); }
+.sl-mktext { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sl-mktext.empty { color: var(--cc-dim); font-style: italic; }

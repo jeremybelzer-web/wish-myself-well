@@ -43,7 +43,9 @@
    - Linkage on (the default): joined nodes move and copy together. Off: a node moves alone and its lines stretch.
    - Auto snapping on (the default): a node dragged sideways to within one moment of a marker lands on it.
    - Preview axis on: hovering over the timeline moves the player to that moment (opts.onHover).
-   - Markers: flags on moments of the film, kept by row id.
+   - Markers: flags on moments of the film, kept by row id, each with a color and a note. Double-click (or
+     right-click) a marker's flag on the ruler to write its note, pick its color or delete it; Markers ▾ lists
+     them all, and clicking one moves the playhead there (opts.onRow, else opts.onClip).
    The mounted lanes answer command(name) so the Screen's keyboard shortcuts can drive them. */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
@@ -62,7 +64,33 @@
     const t = JSON.parse(localStorage.getItem(TOOLS_KEY));
     if (t && typeof t === "object") tools = Object.assign({}, TOOL_DEFAULTS, t);
   } catch (e) {}
-  if (!Array.isArray(tools.markers)) tools.markers = [];
+  /* Markers (CapCut's markers): a flag on one moment with a color and a short note ("the joke lands").
+     Kept as [{ row, color, note }]; older saves kept a plain list of row ids, which migrateMarkers turns into
+     orange markers with no note. */
+  const MARK_COLORS = [
+    ["red", "Red", "#ff5a5f"],
+    ["orange", "Orange", "#ff9f43"],
+    ["yellow", "Yellow", "#ffd43b"],
+    ["green", "Green", "#51cf66"],
+    ["blue", "Blue", "#4dabf7"],
+    ["purple", "Purple", "#b197fc"],
+  ];
+  const MARK_DEFAULT = "orange";
+  const NOTE_MAX = 80;
+  const markColor = (id) => MARK_COLORS.find((c) => c[0] === id) || MARK_COLORS.find((c) => c[0] === MARK_DEFAULT);
+  function migrateMarkers(list) {
+    const out = [];
+    const seen = new Set();
+    (Array.isArray(list) ? list : []).forEach((m) => {
+      const o = typeof m === "string" || typeof m === "number" ? { row: String(m) } : m && typeof m === "object" && m.row != null ? m : null;
+      if (!o || seen.has(String(o.row))) return;
+      seen.add(String(o.row));
+      out.push({ row: String(o.row), color: markColor(o.color)[0], note: String(o.note == null ? "" : o.note).trim().slice(0, NOTE_MAX) });
+    });
+    return out;
+  }
+  tools.markers = migrateMarkers(tools.markers);
+  const markerOf = (rowId) => tools.markers.find((m) => m.row === rowId) || null;
   if (!tools.linkKinds || typeof tools.linkKinds !== "object") tools.linkKinds = {};
   /* Linkage settings, modeled on CapCut's Linkage settings box ("When linkage is turned on, the selected items
      will move or get deleted with the clips on the main track", with a tick per kind: Text, Effects, Stickers,
@@ -685,11 +713,19 @@
         both((h) => (rg[1] < n - 1 ? `<rect class="sl-out" x="${(rg[1] + 1) * colW}" y="0" width="${(n - rg[1] - 1) * colW}" height="${h}"/>` : ""));
         svg.push(`<path class="sl-range" d="M${rg[0] * colW + 6} 2 H${rg[0] * colW + 1} V${svgH - 2} H${rg[0] * colW + 6} M${(rg[1] + 1) * colW - 6} 2 H${(rg[1] + 1) * colW - 1} V${svgH - 2} H${(rg[1] + 1) * colW - 6}"><title>Play range: moments ${rg[0] + 1} to ${rg[1] + 1}</title></path>`);
       }
-      st.rows.forEach((r, j) => {
-        if (!tools.markers.includes(r.id)) return;
+      /* Markers in their own color, the note as the tooltip, and the note written beside the flag when there is
+         room before the next marker. */
+      const marked = st.rows.map((r, j) => [j, markerOf(r.id)]).filter((x) => x[1]);
+      marked.forEach(([j, m], k) => {
         const x = j * colW + colW / 2;
-        tsvg.push(`<g class="sl-marker" data-marker="${j}"><line x1="${x}" x2="${x}" y1="0" y2="${top}"/><path d="M${x - 5} ${Math.max(0, top - 11)}h10v7l-5 4-5-4z"/><title>Marker at moment ${j + 1}</title></g>`);
-        svg.push(`<g class="sl-marker" data-marker="${j}"><line x1="${x}" x2="${x}" y1="0" y2="${svgH}"/><title>Marker at moment ${j + 1}</title></g>`);
+        const c = markColor(m.color);
+        const tip = `Marker at moment ${j + 1}${m.note ? ": " + m.note : ""} (${c[1].toLowerCase()})`;
+        const room = (k + 1 < marked.length ? (marked[k + 1][0] - j) * colW : svgW - x) - 12;
+        const fit = Math.floor(room / 5.6);
+        const label = m.note && fit >= 3 ? (m.note.length > fit ? m.note.slice(0, fit - 1) + "…" : m.note) : "";
+        const fy = Math.max(0, top - 11);
+        tsvg.push(`<g class="sl-marker" data-marker="${j}" style="--mk:${c[2]}"><line x1="${x}" x2="${x}" y1="0" y2="${top}"/><rect class="sl-mkhit" x="${x - 7}" y="${Math.max(0, top - 16)}" width="14" height="16"/><path d="M${x - 5} ${fy}h10v7l-5 4-5-4z"/>${label ? `<text class="sl-mklabel" x="${x + 7}" y="${fy + 7}">${esc(label)}</text>` : ""}<title>${esc(tip)}. Double-click to write a note, change its color or delete it.</title></g>`);
+        svg.push(`<g class="sl-marker" data-marker="${j}" style="--mk:${c[2]}"><line x1="${x}" x2="${x}" y1="0" y2="${svgH}"/><title>${esc(tip)}</title></g>`);
       });
       if (area) svg.push(`<rect class="sl-area" x="${area.j0 * colW}" y="${area.i0 * lh}" width="${(area.j1 - area.j0 + 1) * colW}" height="${(area.i1 - area.i0 + 1) * lh}"><title>Selected: moments ${area.j0 + 1} to ${area.j1 + 1}, ${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""}. Copy, then pick where it goes and Paste.</title></rect>`);
       const ix = st.rows.map((r) => r.id);
@@ -758,7 +794,7 @@
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
           ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}</span>` : ""}
           ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
-          ${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off")}
+          <span class="sl-seg" role="group" aria-label="Markers">${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off. Double-click a marker's flag on the ruler to write a note or change its color.")}${tb("marker-list", `Markers${marked.length ? " " + marked.length : ""} ▾`, "Every marker in your film, with its note: click one to move the playhead there")}</span>
           ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
           ${tb("snap", "Snapping", "Auto snapping (N): a node dropped next to a marker lands on it", tools.snap)}
           <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
@@ -874,6 +910,7 @@
     const touches = new Map();
     let pan = null;
     let topDrag = null;
+    let lastMark = null; /* the last click on a marker's flag: { j, t } */
     let leftDrag = null;
     const center = () => {
       const v = [...touches.values()];
@@ -898,9 +935,11 @@
       const r = sc ? sc.getBoundingClientRect() : { left: 0, top: 0 };
       if (e.target.closest && e.target.closest(".sl-top, .sl-rulerhead")) {
         let j = null;
-        if (clipEl) j = Number(clipEl.dataset.clip) || 0;
+        const markEl = e.target.closest(".sl-top [data-marker]");
+        if (markEl) j = Number(markEl.dataset.marker) || 0;
+        else if (clipEl) j = Number(clipEl.dataset.clip) || 0;
         else if (geo && e.target.closest(".sl-top")) j = Math.max(0, Math.min(geo.n - 1, Math.floor((sc.scrollLeft + e.clientX - r.left - headW()) / geo.colW)));
-        topDrag = { x0: e.clientX, y0: e.clientY, z0: zoomOf(), frac: geo ? (sc.scrollLeft + e.clientX - r.left - headW()) / Math.max(1, geo.svgW) : 0, clip: !!clipEl, j, moved: false };
+        topDrag = { x0: e.clientX, y0: e.clientY, z0: zoomOf(), frac: geo ? (sc.scrollLeft + e.clientX - r.left - headW()) / Math.max(1, geo.svgW) : 0, clip: !!clipEl, mark: !!markEl, j, moved: false };
         e.preventDefault();
         return;
       }
@@ -1026,9 +1065,21 @@
         const d = topDrag;
         topDrag = null;
         if (d.moved) {
+          lastMark = null;
           saveTools();
           say(`Zoom ${Math.round(zoomOf() * 100)}%. Finer lines show as you zoom in.`);
-        } else if (d.j != null && opts.onClip) opts.onClip(d.j);
+          return;
+        }
+        /* A second click on the same marker's flag soon after the first is a double-click: open its pop-up.
+           (The first click moved the playhead and redrew, so the browser's own dblclick may not reach the flag.) */
+        const now = Date.now();
+        if (d.mark && lastMark && lastMark.j === d.j && now - lastMark.t < 500) {
+          lastMark = null;
+          openMarker(d.j, e.clientX, e.clientY);
+          return;
+        }
+        lastMark = d.mark ? { j: d.j, t: now } : null;
+        if (d.j != null && opts.onClip) opts.onClip(d.j);
         return;
       }
       if (leftDrag) {
@@ -1095,7 +1146,7 @@
       let tj = a.j;
       if (tools.snap && tj !== ix) {
         /* Auto snapping: a marker one moment away pulls the node onto it (moments are whole steps already). */
-        const pulls = st.rows.map((r, j) => (tools.markers.includes(r.id) ? j : -9));
+        const pulls = st.rows.map((r, j) => (markerOf(r.id) ? j : -9));
         const near = pulls.filter((j) => j !== ix && Math.abs(j - tj) === 1);
         if (near.length && !pulls.includes(tj)) tj = near[0];
       }
@@ -1177,6 +1228,7 @@
       if (act === "del") return command("delete");
       if (act === "curves") return command("curves");
       if (act === "link-settings") return linkSettings();
+      if (act === "marker-list") return markerList(b);
       if (act === "mode" && b.dataset.lk) {
         /* Maya's graph editor tangents in plain words: glide (linear) or jump (stepped). */
         const st = E().state();
@@ -1329,9 +1381,9 @@
       } else if (name === "marker") {
         const r = st.rows[playRow];
         if (!r) return { ok: false };
-        const had = tools.markers.includes(r.id);
-        tools.markers = had ? tools.markers.filter((m) => m !== r.id) : tools.markers.concat(r.id);
-        say(had ? `Marker taken off moment ${playRow + 1}.` : `Marker added at moment ${playRow + 1}.`);
+        const had = markerOf(r.id);
+        tools.markers = had ? tools.markers.filter((m) => m.row !== r.id) : tools.markers.concat({ row: r.id, color: MARK_DEFAULT, note: "" });
+        say(had ? `Marker taken off moment ${playRow + 1}.` : `Marker added at moment ${playRow + 1}. Double-click its flag on the ruler to write a note or pick a color.`);
       } else if (name === "zoomIn" || name === "zoomOut" || name === "zoomFit") {
         const z = Number(tools.zoom) || 1;
         tools.zoom = name === "zoomFit" ? 1 : Math.max(0.25, Math.min(32, name === "zoomIn" ? z * 1.5 : z / 1.5));
@@ -1558,6 +1610,132 @@
       el.appendChild(pop);
       return pop;
     }
+    /* ---------- markers: the note-and-color pop-up and the Markers list (CapCut's markers) ---------- */
+    const clockOf = (j) => {
+      if (!opts.secondsPerMoment) return "";
+      const t = Math.round(j * (Number(opts.secondsPerMoment()) || 3));
+      return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+    };
+    /* A pop-up placed near a point on the page, kept inside the timeline. */
+    function popAt(cls, label, cx, cy) {
+      const old = el.querySelector(".sl-pop");
+      if (old) old.remove();
+      const pop = document.createElement("div");
+      pop.className = "sl-pop " + cls;
+      pop.setAttribute("role", "dialog");
+      pop.setAttribute("aria-label", label);
+      const r = el.getBoundingClientRect();
+      pop.style.left = Math.max(0, Math.min((el.clientWidth || 800) - 280, cx - r.left - 40)) + "px";
+      pop.style.top = Math.max(0, cy - r.top + 10) + "px";
+      return pop;
+    }
+    function openMarker(j, cx, cy) {
+      const st = E().state();
+      const r = st.rows[j];
+      const m = r && markerOf(r.id);
+      if (!m) return say("There is no marker on that moment."), { ok: false };
+      const pop = popAt("sl-mkpop", "Marker", cx, cy);
+      const tc = clockOf(j);
+      pop.innerHTML = `<p><strong>Marker</strong> · moment ${j + 1}${tc ? ` (${tc} into the film)` : ""}</p>
+        <label class="sl-mknote">Note <input type="text" data-mk-note maxlength="${NOTE_MAX}" placeholder="What happens here, e.g. the joke lands" value="${esc(m.note)}"></label>
+        <div class="sl-mkcolors" role="group" aria-label="Color">${MARK_COLORS.map((c) => `<button type="button" data-mk-color="${c[0]}" class="${m.color === c[0] ? "on" : ""}" aria-pressed="${m.color === c[0]}" title="${c[1]}" aria-label="${c[1]}" style="--mk:${c[2]}"></button>`).join("")}</div>
+        <div class="sl-pop-btns"><button type="button" data-l="delete" title="Take this marker off the film">Delete marker</button><button type="button" data-l="done" class="on">Done</button></div>`;
+      const close = (keepMsg) => {
+        pop.remove();
+        saveTools();
+        const k = keepMsg || msg;
+        draw();
+        say(k);
+        el.focus();
+      };
+      pop.addEventListener("input", (ev) => {
+        if (!ev.target.matches("[data-mk-note]")) return;
+        m.note = ev.target.value.slice(0, NOTE_MAX);
+        saveTools();
+      });
+      pop.addEventListener("keydown", (ev) => {
+        ev.stopPropagation();
+        if (ev.key === "Escape" || (ev.key === "Enter" && ev.target.matches("[data-mk-note]"))) {
+          ev.preventDefault();
+          m.note = m.note.trim();
+          close(m.note ? `Marker at moment ${j + 1}: ${m.note}.` : "");
+        }
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("button");
+        if (!b) return;
+        if (b.dataset.mkColor) {
+          m.color = markColor(b.dataset.mkColor)[0];
+          saveTools();
+          pop.querySelectorAll("[data-mk-color]").forEach((x) => {
+            x.classList.toggle("on", x === b);
+            x.setAttribute("aria-pressed", String(x === b));
+          });
+          return;
+        }
+        if (b.dataset.l === "delete") {
+          tools.markers = tools.markers.filter((x) => x !== m);
+          return close(`Marker taken off moment ${j + 1}.`);
+        }
+        m.note = m.note.trim();
+        close(m.note ? `Marker at moment ${j + 1}: ${m.note}.` : "");
+      };
+      el.appendChild(pop);
+      const inp = pop.querySelector("[data-mk-note]");
+      inp.focus();
+      inp.select();
+      return { ok: true, pop };
+    }
+    /* Move the playhead to a moment and scroll the timeline so it is in the middle of the view. */
+    function goTo(j) {
+      const move = opts.onRow || opts.onClip;
+      if (move) move(j);
+      else draw();
+      const sc = scroller();
+      if (sc && geo) sc.scrollLeft = Math.max(0, j * geo.colW + geo.colW / 2 - (sc.clientWidth - headW()) / 2);
+    }
+    function markerList(btn) {
+      const st = E().state();
+      const b = (btn || el.querySelector('[data-act="marker-list"]') || el).getBoundingClientRect();
+      const pop = popAt("sl-marklist", "Markers", b.left + 40, b.bottom - 4);
+      const list = st.rows.map((r, j) => [j, markerOf(r.id)]).filter((x) => x[1]);
+      pop.innerHTML = `<p><strong>Markers</strong> · ${list.length ? `${list.length} in your film. Click one to move the playhead there.` : "none yet"}</p>
+        ${list.length ? `<ul>${list.map(([j, m]) => { const c = markColor(m.color); const tc = clockOf(j); return `<li><button type="button" class="sl-mkgo" data-mk-go="${j}" title="Move the playhead to moment ${j + 1}"><i class="sl-mkdot" style="--mk:${c[2]}" aria-label="${c[1]}"></i><span class="sl-mkat">Moment ${j + 1}${tc ? ` <small>${tc}</small>` : ""}</span><span class="sl-mktext${m.note ? "" : " empty"}">${esc(m.note || "no note")}</span></button><button type="button" class="sl-mkedit" data-mk-edit="${j}" title="Write a note, change the color or delete this marker" aria-label="Edit the marker at moment ${j + 1}">✎</button></li>`; }).join("")}</ul>` : `<p class="sl-note">Press Marker (or M) to put a flag on the playhead's moment. Double-click a flag on the ruler to write what happens there and pick a color.</p>`}
+        <div class="sl-pop-btns"><button type="button" data-l="close">Close</button></div>`;
+      pop.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Escape") return;
+        ev.stopPropagation();
+        pop.remove();
+        el.focus();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const t = ev.target.closest("button");
+        if (!t) return;
+        if (t.dataset.mkEdit != null) {
+          const r = t.getBoundingClientRect();
+          return openMarker(Number(t.dataset.mkEdit), r.left, r.bottom);
+        }
+        pop.remove();
+        if (t.dataset.mkGo != null) {
+          const j = Number(t.dataset.mkGo);
+          const m = markerOf(st.rows[j].id);
+          goTo(j);
+          say(`Playhead on the marker at moment ${j + 1}${m && m.note ? ": " + m.note : ""}.`);
+        }
+      };
+      el.appendChild(pop);
+      const first = pop.querySelector("button");
+      if (first) first.focus();
+      return pop;
+    }
+    function onMenu(e) {
+      const mk = e.target.closest && e.target.closest(".sl-top [data-marker]");
+      if (!mk) return;
+      e.preventDefault();
+      openMarker(Number(mk.dataset.marker) || 0, e.clientX, e.clientY);
+    }
     function onDbl(e) {
       const node = e.target.closest && e.target.closest("[data-node]");
       if (node) return removeNode(node.dataset.node);
@@ -1578,6 +1756,12 @@
       }
     }
     function onKey(e) {
+      const pop = el.querySelector(".sl-pop");
+      if (e.key === "Escape" && pop) {
+        /* Esc closes any pop-up (curves, linkage settings, a line's menu). */
+        pop.remove();
+        return el.focus();
+      }
       if (e.key === "Escape" && (area || seg)) {
         area = null;
         seg = null;
@@ -1594,6 +1778,7 @@
     window.addEventListener("pointerup", onUp);
     el.addEventListener("click", onClick);
     el.addEventListener("dblclick", onDbl);
+    el.addEventListener("contextmenu", onMenu);
     el.addEventListener("keydown", onKey);
     el.addEventListener("wheel", onWheel, { passive: false });
     draw();
@@ -1605,6 +1790,8 @@
       selectArea: (a) => ((area = a), (sel = null), draw()),
       curves: (sk) => openCurves(sk),
       linkSettings,
+      marker: (j) => openMarker(j, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
+      markers: () => markerList(),
       command,
       destroy() {
         window.removeEventListener("pointermove", onMove);
@@ -1613,5 +1800,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
 })();

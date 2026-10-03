@@ -642,6 +642,55 @@ const ok = (cond, msg) => {
   await setRatio("wide 16:9");
   ok((await shape()).shape === "wide", "back to wide");
 
+  /* Markers with a color and a note (CapCut's markers): add one, double-click its flag to write a note and pick
+     a color, find it in the Markers list, jump to it, delete it; an old save (plain row ids) still loads. */
+  {
+    const MK = () => page.evaluate(() => window.CurioLanes.tools().markers);
+    const rowId = (j) => page.evaluate((j) => window.CurioEngine.state().rows[j].id, j);
+    const r2 = await rowId(2);
+    await page.evaluate((id) => { const t = window.CurioLanes.tools(); t.markers = t.markers.filter((m) => m.row !== id); window.CurioScreen.setRow(2); }, r2);
+    await page.evaluate(() => { document.activeElement && document.activeElement.blur(); const sc = document.querySelector(".sc-lanes .sl-scroll"); if (sc) sc.scrollLeft = 0; });
+    await page.keyboard.press("m");
+    let mk = (await MK()).find((m) => m.row === r2);
+    ok(mk && mk.color === "orange" && mk.note === "", "M adds a marker that has a color (orange to start) and an empty note");
+    const flag = '.sl-topsvg .sl-marker[data-marker="2"] path';
+    await page.dblclick(flag);
+    ok(!!(await page.$(".sl-mkpop")), "double-clicking a marker's flag opens its pop-up");
+    ok((await page.$$(".sl-mkpop [data-mk-color]")).length === 6, "the pop-up offers six colors");
+    await page.fill(".sl-mkpop [data-mk-note]", "the joke lands");
+    await page.click('.sl-mkpop [data-mk-color="blue"]');
+    await page.screenshot({ path: path.join(SHOTS, "screen-9-marker-popup.png") });
+    await page.click('.sl-mkpop [data-l="done"]');
+    mk = (await MK()).find((m) => m.row === r2);
+    ok(!(await page.$(".sl-mkpop")) && mk && mk.note === "the joke lands" && mk.color === "blue", "Done keeps the note and the color");
+    ok(await page.$eval('.sl-topsvg .sl-marker[data-marker="2"]', (g) => /the joke lands/.test(g.querySelector("title").textContent) && /#4dabf7/i.test(g.getAttribute("style"))), "the flag is drawn blue with the note as its tooltip");
+    ok(/^the joke/.test(await page.$eval('.sl-topsvg .sl-marker[data-marker="2"] .sl-mklabel', (t) => t.textContent).catch(() => "")), "the note is written beside the flag when there is room");
+    await page.dblclick(flag);
+    await page.keyboard.press("Escape");
+    ok(!(await page.$(".sl-mkpop")), "Esc closes the marker pop-up");
+    /* The Markers list: jump to a marker. */
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+    await page.click('[data-act="marker-list"]');
+    const item = await page.$('.sl-marklist [data-mk-go="2"]');
+    ok(item && /Moment 3/.test(await item.textContent()) && /the joke lands/.test(await item.textContent()) && !!(await item.$(".sl-mkdot")), "Markers ▾ lists the marker with its moment, color dot and note");
+    await page.screenshot({ path: path.join(SHOTS, "screen-9b-marker-list.png") });
+    await item.click();
+    ok((await page.evaluate(() => window.CurioScreen.row())) === 2 && !(await page.$(".sl-marklist")), "clicking it in the list moves the playhead there");
+    /* Right-click opens the same pop-up; Delete takes the marker off. */
+    await page.click(flag, { button: "right" });
+    ok(!!(await page.$(".sl-mkpop")), "right-clicking a flag opens its pop-up too");
+    await page.click('.sl-mkpop [data-l="delete"]');
+    ok(!(await MK()).some((m) => m.row === r2) && !(await page.$('.sl-topsvg .sl-marker[data-marker="2"]')), "Delete marker takes it off");
+    /* An old save: a plain list of row ids. */
+    const r4 = await rowId(4);
+    await page.evaluate((id) => { const t = JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")) || {}; t.markers = [id]; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); }, r4);
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    const oldM = await MK();
+    ok(oldM.length === 1 && oldM[0].row === r4 && oldM[0].color === "orange" && oldM[0].note === "" && !!(await page.$('.sl-topsvg .sl-marker[data-marker="4"]')), "an old saved marker list (plain row ids) still loads, as orange markers");
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); t.markers = []; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
+  }
+
   /* Phone width. */
   await page.setViewportSize({ width: 390, height: 900 });
   await page.click('[data-act="close"]');
