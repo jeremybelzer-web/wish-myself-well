@@ -181,6 +181,7 @@ function browserCheck() {
         if (x.meter === x.on) seen.add(x.meter);
       }
       await page.click("[data-sb=play]");
+      await page.waitForTimeout(80); /* the meter redraws after the page does; give it the same pause as after ▶ */
       check(seen.size >= 3, `the meter follows playback (${seen.size} panels seen, always the one on show)`);
       a = await atOf();
       check(a.meter === a.on, "after pausing the meter shows the panel on show");
