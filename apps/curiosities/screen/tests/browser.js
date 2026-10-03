@@ -541,7 +541,7 @@ const ok = (cond, msg) => {
       await page.mouse.up();
     };
     await select();
-    ok((await page.$$('.sl [data-act^="area-"]')).length === 6, "a selected area shows Reverse, Flip, Stretch ×2, Squeeze ½, Freeze and Shape ▾");
+    ok((await page.$$('.sl [data-act^="area-"]')).length === 7, "a selected area shows Reverse, Flip, Stretch ×2, Squeeze ½, Freeze, Shape ▾ and Take from the film");
     const pts = () => page.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity")); return st.rows.slice(0, 8).map((r) => (st.lanes[lk].points[r.id] == null ? null : st.lanes[lk].points[r.id])); });
     const orig = await pts();
     const tool = async (act) => { await select(); await page.click(`.sl [data-act="${act}"]`); const p = await pts(); await page.keyboard.press("Control+z"); return p; };
@@ -1185,6 +1185,93 @@ const ok = (cond, msg) => {
     const bn = await band();
     ok(bn && bn.state === "none" && bn.blocks === 0 && !bn.line && /isn't loaded/.test(bn.note), "without the momentum code it draws nothing and says so in one line");
     await page.evaluate(() => { window.CurioAttention = window.__att; delete window.__att; window.CurioScreen.setRow(0); });
+  }
+
+  /* Film lines: the inspiration film picked in the Player drawn as a faint dashed line in each lane (stretched
+     to My film's length); they follow the picked film, the toolbar toggle hides them (kept across a reload), and
+     Take from the film writes the film's settings into a selected area as nodes, one undo step. */
+  {
+    /* The picked film, read the way the Screen reads it: the viewer picked in the Player, else the first. */
+    const expected = () => page.evaluate(() => {
+      const p = JSON.parse(localStorage.getItem("curiosities-screen-v1"));
+      let list = window.CuriosityStudy && window.CuriosityStudy.studies ? window.CuriosityStudy.studies() : [];
+      list = (list.length ? list : window.CuriosityDB.data.scenes).filter((f) => f && Array.isArray(f.beats) && f.beats.length);
+      const v = p.insp.find((x) => x.id === p.focus) || p.insp[0];
+      const f = list.find((x) => x.id === v.film) || list[0];
+      const n = window.CurioEngine.state().rows.length;
+      const name = String(f.title || f.name || f.id).replace(/^Model scene: /, "");
+      const lanes = [...document.querySelectorAll(".sl-heads [data-pick]")].map((b) => b.dataset.pick);
+      const want = {};
+      lanes.forEach((cur) => { const k = window.CurioLanes.filmLine(f.beats, n, cur).filter((x) => x != null).length; if (k) want[cur] = k; });
+      return { id: f.id, name, lanes, want };
+    });
+    const drawn = () => page.evaluate(() => [...document.querySelectorAll(".sl-svg .sl-film")].map((p) => ({ cur: p.dataset.filmLine, pts: (p.getAttribute("d").match(/[ML]/g) || []).length, title: p.querySelector("title").textContent, dash: getComputedStyle(p).strokeDasharray })));
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); delete t.filmLines; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
+    let ex = await expected();
+    let d = await drawn();
+    ok(ex.lanes.length > 0 && Object.keys(ex.want).length > 0 && d.length === Object.keys(ex.want).length, "Film lines are on by default: one dashed line per lane the inspiration film sets (" + d.length + " of " + ex.lanes.length + " lanes)");
+    ok(d.every((x) => ex.want[x.cur] === x.pts && x.title.startsWith(ex.name) && x.dash !== "none"), "each line has a point at every moment the film has a setting, stretched to My film's length, named after " + ex.name);
+    ok(ex.lanes.filter((c) => !ex.want[c]).every((c) => !d.some((x) => x.cur === c)), "a lane the film has no setting for draws no line (" + ex.lanes.filter((c) => !ex.want[c]).length + " such lanes)");
+    const tip = await page.$eval('[data-act="film-lines"]', (b) => ({ t: b.title, on: b.getAttribute("aria-pressed"), text: b.textContent.trim() }));
+    ok(tip.text === "Film lines" && tip.on === "true" && tip.t.includes(ex.name), "the toolbar's Film lines toggle is on and names the film in its tooltip");
+    await page.screenshot({ path: path.join(SHOTS, "screen-9e-film-lines.png") });
+    /* Pick another film in the Player: a second viewer on a different film, then its Inspect. */
+    const firstId = ex.id;
+    if ((await page.$$(".sc-viewer.insp")).length < 2) await page.click('[data-act="add-insp"]');
+    const v2 = await page.$$eval(".sc-viewer.insp", (vs) => vs[1].dataset.viewer);
+    await page.click(`[data-focus="${v2}"].sc-vname`);
+    await page.waitForTimeout(100);
+    ex = await expected();
+    d = await drawn();
+    ok(ex.id !== firstId && d.length === Object.keys(ex.want).length && d.every((x) => ex.want[x.cur] === x.pts && x.title.startsWith(ex.name)), "picking another inspiration film in the Player redraws the lines from that film (" + ex.name + ")");
+    ok((await page.$eval('[data-act="film-lines"]', (b) => b.title)).includes(ex.name), "the tooltip follows the picked film");
+    /* The toggle, kept in the timeline tools across a reload. */
+    await page.click('[data-act="film-lines"]');
+    ok((await drawn()).length === 0 && (await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")).filmLines === false)), "Film lines off hides every line and is kept in curiosities-screen-tools-v1");
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    ok((await drawn()).length === 0 && (await page.$eval('[data-act="film-lines"]', (b) => b.getAttribute("aria-pressed"))) === "false", "they stay hidden after a reload");
+    await page.click('[data-act="film-lines"]');
+    ok((await drawn()).length === Object.keys((await expected()).want).length, "Film lines on brings them back");
+    /* Take from the film: select moments 1 to 4 of a lane the film sets, then press it. */
+    ex = await expected();
+    const cur = Object.keys(ex.want)[0];
+    const box = await page.evaluate((c) => {
+      const sc = document.querySelector(".sl-scroll");
+      sc.scrollLeft = 0;
+      const ly = document.querySelector(`.sl-svg .sl-film[data-film-line="${c}"]`).getBoundingClientRect();
+      const bg = [...document.querySelectorAll(".sl-svg .sl-bg")].find((b) => { const r = b.getBoundingClientRect(); return r.top <= ly.top + 1 && r.bottom >= ly.bottom - 1; });
+      sc.scrollTop = Math.max(0, bg.getBBox().y);
+      const r = bg.getBoundingClientRect();
+      return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length };
+    }, cur);
+    const cw = box.w / box.n;
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    await page.mouse.move(box.x + cw * 0.1, box.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + cw * 3.9, box.y + box.h - 2, { steps: 8 });
+    await page.mouse.up();
+    const takeBtn = await page.$('.sl [data-act="area-take"]');
+    ok(!!takeBtn && (await takeBtn.textContent()).trim() === "Take from the film" && (await takeBtn.getAttribute("title")).includes(ex.name), "a selected area shows Take from the film, naming the film");
+    const filmNow = () => page.evaluate(() => { const st = window.CurioEngine.state(); return JSON.stringify([Object.keys(st.lanes).sort().map((k) => [k, st.lanes[k]]), st.links]); });
+    const before = await filmNow();
+    await page.click('.sl [data-act="area-take"]');
+    const got = await page.evaluate(({ c, id }) => {
+      const st = window.CurioEngine.state();
+      const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + c));
+      let list = window.CuriosityStudy && window.CuriosityStudy.studies ? window.CuriosityStudy.studies() : [];
+      list = (list.length ? list : window.CuriosityDB.data.scenes).filter((f) => f && Array.isArray(f.beats) && f.beats.length);
+      const f = list.find((x) => x.id === id);
+      const line = window.CurioLanes.filmLine(f.beats, st.rows.length, c);
+      return { line: line.slice(0, 4).map(String), pts: st.rows.slice(0, 4).map((r) => (lk && st.lanes[lk].points[r.id] != null ? String(st.lanes[lk].points[r.id]) : "none")), msg: document.querySelector(".sl-msg").textContent };
+    }, { c: cur, id: ex.id });
+    ok(got.line.some((v) => v !== "null") && got.line.every((v, j) => v === "null" || v === got.pts[j]), "Take from the film writes the film's settings as nodes in the selection (" + got.pts.join(",") + " for " + got.line.join(",") + ")");
+    ok(/^Took .+ Undo takes it back/.test(got.msg), "it says what it did in plain words (" + got.msg + ")");
+    await page.keyboard.press("Control+z");
+    ok((await filmNow()) === before, "one ⌘Z takes it all back");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
   }
 
   /* Export ▾ (CapCut's Export button): the storyboard sheet in a new tab, this frame as PNG and SVG, the

@@ -312,6 +312,8 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-keys-in p span { color: var(--cc-dim); }
 .sl-ruler { font-size: 10px; fill: var(--cc-dim); font-family: ui-monospace, Menlo, monospace; }
 .sl-result { fill: none; stroke: rgba(255, 255, 255, 0.22); stroke-width: 1.5; stroke-dasharray: 3 3; pointer-events: none; }
+/* Film lines: the picked inspiration film's own settings, faint and dashed, in the purple of its clip track. */
+.sl-film { fill: none; stroke: #b197fc; stroke-opacity: 0.6; stroke-width: 1.6; stroke-dasharray: 6 4; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
 .sl-auto { fill: none; stroke: var(--cc-accent); stroke-width: 2.2; pointer-events: none; }
 .sl-auto.off { opacity: 0.35; }
 .sl-node { fill: var(--cc-accent); stroke: #0f0f10; stroke-width: 2; cursor: grab; }
