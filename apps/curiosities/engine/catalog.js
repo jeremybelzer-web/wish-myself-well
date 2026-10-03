@@ -53,6 +53,20 @@
     if (s.range && isFinite(s.range.min) && isFinite(s.range.max) && s.range.max > s.range.min) return { c, s, d: { kind: "range", min: Number(s.range.min), max: Number(s.range.max), step: Number(s.range.step) || 1 } };
     return null;
   }
+  function mainScale(id) {
+    const DB = root.CuriosityDB;
+    let c = null;
+    try {
+      c = DB && typeof DB.get === "function" ? DB.get("curiosity", id) : null;
+    } catch (e) {
+      c = null;
+    }
+    const s = c && Array.isArray(c.sliders) ? c.sliders.find((x) => x && (x.id === "setting" || x.id === c.main)) : null;
+    if (s && Array.isArray(s.scale) && s.scale.length > 1) return { kind: "choice", options: s.scale.map(String) };
+    /* A number main setting (featureRate: 1 to 10 a minute). */
+    if (s && s.range && isFinite(s.range.min) && isFinite(s.range.max) && s.range.max > s.range.min) return { kind: "range", min: Number(s.range.min), max: Number(s.range.max), step: Number(s.range.step) || 1 };
+    return null;
+  }
   const cache = Object.create(null);
   function domain(id) {
     id = String(id);
@@ -66,6 +80,12 @@
       d = null;
     }
     if (!d || (d.kind === "choice" && !(d.options && d.options.length)) || (d.kind === "range" && !(d.max > d.min))) d = own(id);
+    /* A curiosity the old catalog only knew as off/on, whose database row grades its main setting (pedal: nothing
+       held, one thing held, several held), uses that scale, so its window, presets and plain words can set it. */
+    if (d.kind === "choice" && d.options.length === 2 && d.options[0] === "off" && d.options[1] === "on") {
+      const g = mainScale(id);
+      if (g) d = g;
+    }
     if (d.kind === "choice" && ENERGY[id]) d = { kind: "choice", options: ENERGY[id].concat(d.options.filter((o) => !ENERGY[id].includes(o))) };
     d = Object.freeze(d.kind === "choice" ? { kind: "choice", options: Object.freeze(d.options.slice()) } : { kind: "range", min: d.min, max: d.max, step: d.step || 1 });
     cache[id] = d;
