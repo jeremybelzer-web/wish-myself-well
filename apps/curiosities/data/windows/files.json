@@ -67,5 +67,7 @@
   "look-wardrobe.js",
   "look-sound.js",
   "look-transitions.js",
-  "look-speed.js"
+  "look-speed.js",
+  "look-performance.js",
+  "look-text.js"
 ]

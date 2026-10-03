@@ -51,7 +51,7 @@ const suites = [
   { name: "engine", ...node("engine/tests/run.js") },
   { name: "engine bridge fuzz", ...node("engine/tests/bridge-fuzz.js") },
   { name: "screen", ...node("screen/tests/run.js") },
-  { name: "curiosity windows", ...node("data/windows/check-windows.js", ["--strict"]) },
+  { name: "curiosity windows", ...node("data/windows/check-windows.js", ["--strict", "--say", "--look"]) },
   { name: "character matrix on the screen", ...node("screen/tests/character.js") },
   { name: "momentum", ...node("momentum/tests/run.js") },
   { name: "video", ...node("video/tests/run.js") },
