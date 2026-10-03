@@ -358,5 +358,30 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(CL.TURN_COLORS.attention === "purple" && CL.TURN_COLORS.feeling === "red" && CL.TURN_COLORS.jump === "yellow", "the turn colors are purple, red and yellow");
 }
 
+/* Lane groups: a folding header per filmmaking category, in the order their first lane comes; folded groups' lanes
+   are left out of the drawn lanes; foldDots says where a folded group's lanes have nodes. */
+{
+  const CL = w.CurioLanes;
+  const lanes = [{ cur: "shotSize" }, { cur: "emotion" }, { cur: "angleHeight" }, { cur: "emotionIntensity" }].map((x) => Object.assign(x, { lk: "t|" + x.cur }));
+  const real = CL.laneGroups(lanes, { folds: {} });
+  ok(real.groups.length === new Set(lanes.map((l) => L.categoryOf(l.cur))).size && real.groups.every((g) => g.lanes.every((l) => L.categoryOf(l.cur) === g.id)) && real.groups[0].id === L.categoryOf("shotSize") && real.groups[0].label === L.CATEGORIES.find((c) => c.id === L.categoryOf("shotSize")).label, "lanes group by the same categories Details uses (" + real.groups.map((g) => g.label + " " + g.count).join(", ") + ")");
+  ok(real.groups[0].lanes.map((l) => l.cur).join() === "shotSize,angleHeight" && real.visible.slice(0, 2).map((l) => l.cur).join() === "shotSize,angleHeight", "a group comes where its first lane did, and lanes keep their order inside it");
+  const catOf = (c) => ({ a: "camera", b: "feeling", c: "camera", d: "comedy" })[c];
+  const labelOf = (id) => id.toUpperCase();
+  const ls = ["a", "b", "c", "d"].map((cur) => ({ cur }));
+  const has = (ln) => ln.cur !== "c";
+  let g = CL.laneGroups(ls, { catOf, labelOf, hasNodes: has, folds: {} });
+  ok(g.groups.map((x) => `${x.label}:${x.count}/${x.withNodes}`).join() === "CAMERA:2/1,FEELING:1/1,COMEDY:1/1", "each group counts its lanes and how many have nodes");
+  g = CL.laneGroups(ls, { catOf, labelOf, hasNodes: has, folds: { camera: true } });
+  ok(g.groups[0].folded && !g.groups[1].folded && g.visible.map((l) => l.cur).join() === "b,d", "a folded group's lanes are not drawn (so an area can't take them in)");
+  g = CL.laneGroups(ls, { catOf, labelOf, folds: { camera: true, feeling: true, comedy: true } });
+  ok(g.visible.length === 0 && g.groups.every((x) => x.folded), "every group can be folded");
+  ok(CL.laneGroups([{ cur: "a" }], { catOf, labelOf, folds: { camera: true } }).groups.length === 0 && CL.laneGroups([{ cur: "a" }], { catOf, folds: { camera: true } }).visible.length === 1, "one lane alone has no group header and is never folded away");
+  const st = { rows: [{ id: "r0" }, { id: "r1" }, { id: "r2" }, { id: "r3" }], lanes: { "t|a": { points: { r1: "x", r3: "y" } }, "t|c": { points: { r1: "z", r2: "w" } } } };
+  const dots = CL.foldDots(st, [{ lk: "t|a" }, { lk: "t|c" }, { lk: null }]);
+  ok(JSON.stringify(dots) === JSON.stringify([{ j: 1, count: 2 }, { j: 2, count: 1 }, { j: 3, count: 1 }]), "a folded group shows a dot at every moment where any of its lanes has a node");
+  ok(CL.tools().folds && typeof CL.tools().folds === "object" && CL.GROUP_H > 0, "folds are kept in the timeline's tools (a view setting)");
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

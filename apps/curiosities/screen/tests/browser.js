@@ -732,6 +732,69 @@ const ok = (cond, msg) => {
     ok(await page.evaluate((lk) => !window.CurioLanes.tools().locks[lk] && !document.querySelector(".sl-svg .sl-lockbg"), lkE), "🔒 again unlocks the lane");
     ok((await film()) === before, "the film is exactly as it was");
   }
+  /* Lane groups (CapCut's folding track groups): a header per category with its counts and ▸/▾; a folded group is one
+     thin row with a dot where any of its lanes has a node; folds are a view setting; an area skips folded lanes. */
+  {
+    const film = () => page.evaluate(() => window.CurioEngine.fingerprint() + JSON.stringify(window.CurioEngine.state().lanes));
+    const before = await film();
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    const info = await page.evaluate(() => {
+      const st = window.CurioEngine.state();
+      const lkE = Object.keys(st.lanes).find((k) => k.endsWith("|emotionIntensity"));
+      const cat = window.CurioLevels.categoryOf("emotionIntensity");
+      const label = window.CurioLevels.CATEGORIES.find((c) => c.id === cat).label;
+      const heads = [...document.querySelectorAll(".sl-heads .sl-ghead")].map((h) => ({ id: h.dataset.group, text: h.textContent }));
+      return { lkE, cat, label, heads, lanes: document.querySelectorAll(".sl-heads .sl-head").length };
+    });
+    ok(info.heads.length >= 2 && info.heads.every((h) => /\d+ lanes? · \d+ with nodes/.test(h.text)), "lanes are grouped under a header per category, each saying how many lanes it holds and how many have nodes (" + info.heads.map((h) => h.text.replace(/\s+/g, " ").trim()).join(" | ") + ")");
+    const gh = info.heads.find((h) => h.id === info.cat);
+    ok(!!gh && gh.text.includes(info.label) && /▾/.test(gh.text), "Strength of the feeling sits under " + info.label + ", the category Details puts it in, open (▾)");
+    ok(!!(await page.$('.sl-tools [data-act="fold-all"]')), "the timeline toolbar has Fold all");
+    const fold = `.sl-heads [data-act="fold"][data-group="${info.cat}"]`;
+    await page.click(fold);
+    const folded = await page.evaluate((o) => {
+      const st = window.CurioEngine.state();
+      const t = JSON.parse(localStorage.getItem("curiosities-screen-tools-v1") || "{}");
+      const dots = [...document.querySelectorAll(`.sl-gdot[data-group="${o.cat}"]`)].map((d) => Number(d.dataset.gdot));
+      const pts = Object.keys(st.lanes[o.lkE].points).map((r) => st.rows.findIndex((x) => x.id === r));
+      const h = document.querySelector(`.sl-heads .sl-ghead[data-group="${o.cat}"]`);
+      return { saved: !!(t.folds && t.folds[o.cat]), gone: !document.querySelector(`.sl-heads .sl-head [data-lk="${o.lkE}"]`), dots, pts, arrow: h && /▸/.test(h.textContent), expanded: document.querySelector(`.sl-heads [data-act="fold"][data-group="${o.cat}"]`).getAttribute("aria-expanded"), focus: document.activeElement && document.activeElement.dataset.act };
+    }, info);
+    ok(folded.gone && folded.arrow && folded.expanded === "false" && folded.focus === "fold", "▾ folds the group: its lanes are tucked away, the arrow turns to ▸ and focus stays on it");
+    ok(folded.pts.length > 0 && folded.pts.every((j) => folded.dots.includes(j)), "the folded row has a dot at every moment where one of its lanes has a node (" + folded.dots.join(",") + ")");
+    ok(folded.saved && (await film()) === before, "the fold is kept in the timeline's tools, and the film is unchanged (not an undo step)");
+    /* An area dragged across every lane leaves the folded lanes out. */
+    const sv = await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = 0; const bgs = [...document.querySelectorAll(".sl-bg")]; const a = bgs[0].getBoundingClientRect(); const b = bgs[bgs.length - 1].getBoundingClientRect(); return { x: a.x, y: a.y, w: a.width, y2: b.y + b.height, n: window.CurioEngine.state().rows.length, lanes: bgs.length }; });
+    const cwG = sv.w / sv.n;
+    await page.mouse.move(sv.x + cwG * 0.2, sv.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(sv.x + cwG * 2.8, Math.min(sv.y2 - 2, sv.y + 600), { steps: 8 });
+    await page.mouse.up();
+    const picked = await page.evaluate((lk) => ({ on: document.querySelectorAll(".sl-heads .sl-head.on").length, area: !!document.querySelector(".sl-area"), hasE: [...document.querySelectorAll(".sl-heads .sl-head.on")].some((h) => h.querySelector(`[data-lk="${lk}"]`)) }), info.lkE);
+    ok(picked.area && picked.on >= 1 && !picked.hasE, "an area dragged across the lanes skips the folded group's lanes (" + picked.on + " lanes taken)");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    /* A dot moves the playhead to its moment. */
+    const dj = folded.dots[folded.dots.length - 1];
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+    await page.evaluate((o) => { const d = document.querySelector(`.sl-gdot[data-group="${o.cat}"][data-gdot="${o.dj}"]`); const sc = document.querySelector(".sl-scroll"); sc.scrollTop = Math.max(0, Number(d.getAttribute("cy")) - 30); sc.scrollLeft = Math.max(0, Number(d.getAttribute("cx")) - 200); }, { cat: info.cat, dj });
+    await page.waitForTimeout(100);
+    const dot = await page.$(`.sl-gdot[data-group="${info.cat}"][data-gdot="${dj}"]`);
+    const db = await dot.boundingBox();
+    await page.mouse.click(db.x + db.width / 2, db.y + db.height / 2);
+    ok((await page.evaluate(() => window.CurioScreen.row())) === dj, "clicking a folded row's dot moves the playhead to that moment");
+    await page.screenshot({ path: path.join(SHOTS, "screen-6e-lane-groups.png") });
+    /* Fold all, then Open all. */
+    await page.click('.sl-tools [data-act="fold-all"]');
+    const all = await page.evaluate(() => ({ heads: document.querySelectorAll(".sl-heads .sl-head").length, groups: document.querySelectorAll(".sl-heads .sl-ghead.is-folded").length, total: document.querySelectorAll(".sl-heads .sl-ghead").length, btn: !!document.querySelector('.sl-tools [data-act="open-all"]') }));
+    ok(all.heads === 0 && all.groups === all.total && all.btn, "Fold all folds every group to one row each, and the button now says Open all");
+    await page.click('.sl-tools [data-act="open-all"]');
+    const back = await page.evaluate(() => ({ heads: document.querySelectorAll(".sl-heads .sl-head").length, folded: document.querySelectorAll(".sl-heads .sl-ghead.is-folded").length, folds: Object.keys(window.CurioLanes.tools().folds).length }));
+    ok(back.heads === info.lanes && back.folded === 0 && back.folds === 0, "Open all brings every lane back (" + back.heads + " lanes)");
+    ok((await film()) === before, "folding and opening never changed the film");
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+  }
   /* Curves: a line between two nodes, shaped and written into the moments between. */
   await page.evaluate(() => document.querySelector(".sl-svg") && window.CurioScreen.setRow(1));
   const segA = await page.evaluate(() => { const s = [...document.querySelectorAll(".sl-seghit")].find((x) => /emotionIntensity\|r1\|r3|emotionIntensity\|/.test(x.dataset.seg)); return s ? s.dataset.seg : null; });

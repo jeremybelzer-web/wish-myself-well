@@ -70,6 +70,18 @@ Like the small buttons on CapCut's track headers (hide or mute a track, lock it)
 
 Off and Solo need a lane that has nodes (an engine lane). Lock needs the lane to be on a track. The mounted lanes also have `laneOff(lk)`, `solo(lk)` and `lock(lk)`.
 
+## Lane groups: fold a whole category
+
+Like CapCut's track groups. With many lanes the timeline gets long, so `lanes.js` puts the lanes under a header for each filmmaking category: the same categories Details is built from (`CurioLevels.categoryOf`), such as Camera, Feeling or Comedy. A group comes where its first lane did, so what you are looking through stays on top, and lanes keep their order inside it. With only one lane there is no header.
+
+- **The header** shows the category's name, how many lanes it holds and how many of them have nodes ("Camera · 5 lanes · 3 with nodes"). Click the name (▾) to fold the group, and again (▸) to open it.
+- **A folded group** is one thin row with a dot at every moment where any of its lanes has a node, so you can still see where things happen. A bigger dot means several lanes have a node there. Click a dot to move the playhead to that moment.
+- **Fold all / Open all** in the timeline toolbar folds every group or opens them all.
+- Folding changes nothing in your film and is not an undo step. It is a view setting kept in `curiosities-screen-tools-v1` as `folds: { category: true }`.
+- A folded group's lanes are not drawn, so an area you drag across the lanes leaves them out (and Copy, Paste, Move and the area tools with it). Folding or opening a group lets go of the selected area. Joins to a lane in a folded group are not drawn until it is opened.
+
+Pure helpers: `laneGroups(lanes, { catOf, labelOf, hasNodes, folds })` and `foldDots(st, lanes)`. The mounted lanes also have `fold(category, folded?)`, `foldAll(folded?)` and `groups()`.
+
 ## Keyframe jumps and the frame shape
 
 Like CapCut's ◀ ◆ ▶: in Details, once a curiosity has nodes, small ◀ and ▶ sit either side of its key diamond. ◀ moves the playhead to the moment of its previous node, ▶ to its next; greyed when there is none that way. The diamond works as before. The windows keep the bare diamond (`keyNavBtns` in `ui.js` wraps `keyBtn` for Details rows only).
