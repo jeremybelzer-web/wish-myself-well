@@ -23,6 +23,12 @@ npm start
 Windows, an AppImage on Linux). Unsigned builds show a warning on first open. Signing needs an Apple
 developer account (about $99 a year) and a Windows certificate; see the plan.
 
+No Mac or Windows machine needed: the "Curiomatic desktop installers" workflow builds all three on GitHub's
+machines. On GitHub, open Actions, pick that workflow, press "Run workflow", and when it finishes download
+curiomatic-macOS, curiomatic-Windows or curiomatic-Linux from the run's Artifacts. It also runs by itself
+when a `curiosities-desktop-*` branch changes this folder. The first time you open an unsigned build: on a
+Mac, right-click the app and choose Open; on Windows, press "More info" then "Run anyway".
+
 ## The bridge
 
 | Way in | Address | Example |
