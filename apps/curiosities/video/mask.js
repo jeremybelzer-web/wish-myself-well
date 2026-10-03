@@ -245,8 +245,8 @@
       cb = color[2] - Y;
     /* a dull target color is pushed to a clear, visible version of the same hue */
     const chroma = Math.max(Math.abs(cr), Math.abs(cg), Math.abs(cb));
-    if (chroma > 0.004 && chroma < 0.18) {
-      const k = 0.18 / chroma;
+    if (chroma > 0.004 && chroma < 0.12) {
+      const k = 0.12 / chroma;
       cr *= k;
       cg *= k;
       cb *= k;

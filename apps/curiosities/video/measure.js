@@ -914,7 +914,7 @@
           /* its vivid color: weighted toward the most colorful pixels (a teal stripe, not the average brown) */
           const mx = Math.max(R, G, B),
             sat = mx ? (mx - Math.min(R, G, B)) / mx : 0,
-            wv = sat * sat + 1e-4;
+            wv = sat * sat * (mx / 255) * (mx / 255) + 1e-4; /* dark pixels' noisy hues count little */
           vw += wv;
           vr += R * wv;
           vg += G * wv;
