@@ -8,6 +8,7 @@
      by decoding the file (when the browser can)
    - pcm(clip) -> Promise<{ data: Float32Array, rate } | null>       the sound as one channel
    - drawApplied(ctx, video, adj, W, H)                               one output frame with a plan's changes
+                                                                      (looks.js draws the palette, grain and frame shape)
    - check(plan, clip, group?, { onProgress? }) -> Promise<{ after, scores }>   renders the applied clip frame by
      frame (no recording), measures it again, and scores each group against the inspiration
    - render(plan, clip, { canvas, record?, speak?, onFrame? }) -> Promise<Blob | null>   plays the applied clip
@@ -162,6 +163,11 @@
     const p = opts.sound === false || big ? null : await pcm(clip);
     const sound = p ? V().envelope(p.data, p.rate) : null;
     const d = V().analyze({ name: clip.name, duration: clip.duration, aspect: box.h / box.w, samples: fr.samples, gw: fr.gw, sound });
+    /* Its looks: palette, grain and sharpness, picture shape (video/looks.js), unless turned off. */
+    if (opts.looks !== false && window.CurioLooks) {
+      if (opts.onProgress) opts.onProgress(0.9, "Looking at its colors, grain and frame");
+      d.looks = await window.CurioLooks.scan(clip, { onProgress: (p) => opts.onProgress && opts.onProgress(0.9 + p * 0.02, "Looking at its colors, grain and frame") });
+    }
     /* The elements (AI cut-outs of the people, their hair, faces and clothes, and the set), unless turned off. */
     if (opts.elements !== false && window.CurioMask) {
       if (opts.onProgress) opts.onProgress(0.92, "Finding the people and their clothes (AI)");
@@ -322,6 +328,9 @@
       if (before) M.keepSkin(d, before, k, W, H);
       ctx.putImageData(img, 0, 0);
     }
+    /* The inspiration's palette (video/looks.js); its grain, softness and frame shape go on last. */
+    const LK = adj.looks && window.CurioLooks;
+    if (LK) LK.draw(ctx, W, H, adj.looks, "color", adj.t);
     /* Element changes (AI cut-outs): recolor clothes or hair, resize or move the people, another clip's set. */
     if (M) {
       /* another clip's set: only its picture, not its black bars */
@@ -345,6 +354,7 @@
       lx.putImageData(img, 0, 0);
       ctx.drawImage(c, 0, 0);
     }
+    if (LK) LK.draw(ctx, W, H, adj.looks, "finish", adj.t);
     if (adj.line && opts.captions !== false) {
       const fs = Math.max(12, Math.round(H / 16));
       ctx.font = `600 ${fs}px system-ui, sans-serif`;
@@ -387,7 +397,9 @@
     const setV = plan.on.set && opts.overlay ? (await open(opts.overlay.url)).video : null;
     const M = window.CurioMask;
     const wantEl = M && M.ready() && (plan.on.wardrobe || plan.on.hair || plan.on.figure || plan.on.set || plan.on.framing);
-    const looks = [];
+    const looks = [],
+      lk = [];
+    const LK = (plan.on.palette || plan.on.grain || plan.on.shape) && window.CurioLooks;
     const W = 320,
       H = Math.max(2, Math.round((W * clip.height) / clip.width));
     const big = canvas(W, H);
@@ -405,6 +417,7 @@
         if (setV && a.parts && a.parts.background) await seek(setV, a.parts.background.t);
         drawApplied(bx, clip.video, a, W, H, { captions: false, overlay: over, setVideo: setV });
         ctx.drawImage(big, 0, 0, w, h);
+        if (LK && t - (lk.length ? lk[lk.length - 1].t : -1) >= 0.5) lk.push({ t, m: LK.measure(bx.getImageData(0, 0, W, H).data, W, H) });
         if (wantEl && looks.length < 240 && (looks.length === 0 || t - looks[looks.length - 1].t >= 0.25)) {
           const k = M.cut(big);
           looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h), blobs: window.CurioFraming ? window.CurioFraming.blobs(k.labels, k.w, k.h) : null });
@@ -417,6 +430,7 @@
     const after = V().analyze({ name: clip.name + " (applied)", duration: plan.duration, aspect: clip.height / clip.width, samples: fr.samples, gw: fr.gw, sound });
     if (looks.length > 1) after.elements = V().elementSeries(looks);
     if (after.elements && window.CurioFraming) after.elements.main = window.CurioFraming.series(looks, H / W);
+    if (lk.length) after.looks = LK.series(lk);
     if (opts.onProgress) opts.onProgress(1, "Done");
     return { after };
   }

@@ -4,7 +4,7 @@ Bring in two video clips. The first (the inspiration) is taken apart into curios
 
 Open it from **Library, Take a clip apart**, or **Import a video** on the Screen's bar. Clips are read on your own computer; nothing is uploaded or saved.
 
-## What it measures (22 curiosities)
+## What it measures (22 curiosities, and three looks)
 
 | Group | Curiosities | How |
 | --- | --- | --- |
@@ -17,9 +17,21 @@ Open it from **Library, Take a clip apart**, or **Import a video** on the Screen
 | | wordsAmount, pace, emoVoice | guesses from loud stretches and the bumps of syllables |
 | Feeling | emotionIntensity, emotion | guesses from all the others |
 
+And three looks of the picture itself (`looks.js`), measured about one and a half times a second:
+
+- **Palette**: where each color's darks, mids and lights sit (red, green and blue, nine points each).
+- **Grain and softness**: how much grain is in the flat parts, and how crisp the strongest edges are.
+- **Frame shape**: black bars and the picture's shape (wide, tall or square), and how much darker the edges are than the middle (vignette).
+
 ## What it applies (one switch and amount each)
 
 Light and dark, contrast, color strength, warm and cool, camera shake (adds the inspiration's wobble and steadies your own), camera moves, how close the shot is (zooms in only), cuts (jump cuts), movement speed (a speed ramp), loudness, dialogue tempo (new lines on your clip's title, timed to the inspiration's sentences), and, off unless turned on, **Lay its graphics over** (the inspiration's picture on top with its pale background taken out).
+
+Three looks, each its own switch and amount:
+
+- **Borrowed palette**: your clip takes on the inspiration's color grade, moment by moment. Each color is remapped so its darks, mids and lights land where the inspiration's are; the brightness moves half way (turn on Light and dark for the rest). Skin keeps most of its own color, so faces don't turn blue or green.
+- **Grain and softness**: your clip is softened or sharpened until it is as crisp as the inspiration, then gets the same amount of film grain (none in pure black).
+- **Frame shape** (off unless turned on): your clip gets the inspiration's picture shape (black bars for a wide film look, or side bars for a tall phone frame), with the picture kept on your people, and its edges darkened as much as the inspiration's.
 
 Timing: **Same speed as the inspiration** (its curves play in real seconds, repeating) or **Stretch over the whole clip**.
 
@@ -44,6 +56,7 @@ When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, t
 
 - `measure.js` (`window.CurioVideo`, no page): frame and sound measures, the dissection, nodes, engine commands, the apply plan, pixel changes, keying, dialogue fitting, scores.
 - `clip.js` (`window.CurioClip`): reads frames by seeking and sound by decoding, draws applied frames, the frame-exact steadier, check, real-time render and recording.
+- `looks.js` (`window.CurioLooks`, no page except `scan` and `draw`): the palette, grain and softness, and frame shape: measured, applied, checked.
 - `ai.js` (`window.CurioAI`): one plug-in slot per curiosity family; your own keys, kept in this browser.
 - `mask.js` (`window.CurioMask`): the AI cut-outs (MediaPipe in the browser), each clip's elements over time, and drawing one element's change.
 - `framing.js` (`window.CurioFraming`, no page): shot framing. The main person in each cut-out (one joined patch, followed from look to look), their eyes, head size and which way they face; the horizon's roll from straight lines; the virtual camera's crop and its smoothed path.

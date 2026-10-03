@@ -15,7 +15,7 @@
    - scan(clip, { box?, looks?, onProgress? }) -> Promise<elements>   the clip's elements over time (CurioVideo.
                                                  elementSeries), about 4 looks a second, 240 at most
    - applyParts(ctx, W, H, parts, { setVideo?, setBox?, cut? })  draws one frame's element changes on the canvas, in place
-   - cutoutCanvas(image, W, H) -> canvas         just the people, on a see-through background
+   - cutoutCanvas(image, W, H) -> canvas|null    just the people, on a see-through background (null: no one there)
    - preview(ctx, W, H)                          tints each element on the canvas (to see what the AI found)
    - configure({ steady: false | { temporal, clean, mix, island, hole, close, feather } })   the steadier cut-out (on by default):
                                                  each frame's AI answer blended with the last frame's, specks of
@@ -639,6 +639,9 @@
     x.drawImage(image, 0, 0, W, H);
     const k = cut(c);
     if (!k) return null;
+    let people = 0;
+    for (let i = 0; i < k.labels.length; i++) if (k.labels[i]) people++;
+    if (people < k.labels.length * 0.002) return null; /* no one in the frame */
     const a = softMask(k, [1, 2, 3, 4, 5], W, H);
     const img = x.getImageData(0, 0, W, H);
     for (let i = 0; i < a.length; i++) img.data[i * 4 + 3] = Math.round(255 * a[i]);
