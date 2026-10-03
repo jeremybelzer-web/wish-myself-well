@@ -1336,8 +1336,8 @@ const ok = (cond, msg) => {
     ok(c.pic && c.pic === c.insp && c.pic !== c.main, "left of the line is the inspiration film's frame at the matching moment");
     ok(c.labels.length === 2 && /^Learning from: /.test(c.labels[0].text) && c.labels[0].l < 0.1 && c.labels[0].t < 0.15 && c.labels[1].text === "My film now" && c.labels[1].l + c.labels[1].w > 0.9 && c.labels[1].t < 0.15, "small labels at the top corners name each side (" + c.labels.map((l) => l.text).join(" / ") + ")");
     ok(c.pe === "none", "the split lets clicks through except on the line");
-    const hit = await page.evaluate(() => { const r = document.querySelector(".sc-viewer.mine .sc-frame").getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width * 0.25, r.top + r.height * 0.6); return { inCmp: !!el.closest(".sc-cmp"), inFrame: !!el.closest(".sc-viewer.mine .sc-frame") }; });
-    ok(!hit.inCmp && hit.inFrame, "a click on the left picture still reaches my film's frame");
+    const hit = await page.evaluate(() => { const r = document.querySelector(".sc-viewer.mine .sc-frame").getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width * 0.25, r.top + r.height * 0.6); return { inCmp: !!el.closest(".sc-cmp"), inFrame: !!el.closest(".sc-viewer.mine .sc-frame"), what: (() => { const a = []; let n = el; while (n && a.length < 5) { a.push((n.tagName || "") + "." + String((n.className && (n.className.baseVal ?? n.className)) || "")); n = n.parentElement; } return a.join(" < ") + " frame " + [r.left, r.top, r.width, r.height].map(Math.round).join(","); })() }; });
+    ok(!hit.inCmp && hit.inFrame, "a click on the left picture still reaches my film's frame" + (hit.inFrame && !hit.inCmp ? "" : ` (hit ${hit.what})`));
     /* Drag the line. */
     await page.mouse.move(c.lineCX, c.lineY);
     await page.mouse.down();
