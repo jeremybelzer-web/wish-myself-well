@@ -31254,6 +31254,149 @@
    }
   },
   {
+   "id": "feelingFaceLens",
+   "level": "curiosity",
+   "label": "Face and feelings",
+   "plain": "What the character's face feels: happy, sad, angry, scared, surprised or disgusted, mixed in any amount, and where the eyes look. A 3D character's face and body follow it.",
+   "workspace": "emotion",
+   "also": [
+    "comedy",
+    "character-motion",
+    "emo-road"
+   ],
+   "group": "Emotion",
+   "kind": "lens",
+   "per": "panel",
+   "main": "happy",
+   "sliders": [
+    {
+     "id": "happy",
+     "label": "Happy",
+     "plain": "A smile that reaches the eyes: mouth corners up, cheeks push the eyes a little closed.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "sad",
+     "label": "Sad",
+     "plain": "Mouth corners down, the inner ends of the brows lift, the head and shoulders sink.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "angry",
+     "label": "Angry",
+     "plain": "Brows pulled down and together, eyes narrow, mouth pressed or bared.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "scared",
+     "label": "Scared",
+     "plain": "Eyes wide, brows up and pulled together, mouth stretched; the body pulls in.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "surprised",
+     "label": "Surprised",
+     "plain": "Brows way up, eyes wide, the jaw drops open. Short-lived: it turns into another feeling.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "disgust",
+     "label": "Disgusted",
+     "plain": "Nose wrinkles, the upper lip lifts on one side, the head pulls back.",
+     "scale": [
+      "not at all",
+      "a little",
+      "clearly",
+      "very"
+     ],
+     "from": "not at all",
+     "to": "very",
+     "curve": "linear"
+    },
+    {
+     "id": "look",
+     "label": "Where the eyes look",
+     "plain": "Only the eyes move, not the head. Eyes going away from someone before the words come say a lot.",
+     "scale": [
+      "ahead",
+      "left",
+      "right",
+      "up",
+      "down",
+      "at the camera"
+     ],
+     "from": "ahead",
+     "to": "at the camera",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "A face shows the feeling before the words do, so the other characters (and the audience) react to it and the scene turns.",
+    "theme": "What a face shows against what the character says is where honesty and pretending live.",
+    "pull": "Close on a face, the audience reads every small change and waits to see what the character will do with it.",
+    "cue": "visual",
+    "tryThis": "Let the face change a beat before the line: a smile that drops, or eyes that go to the door."
+   }
+  },
+  {
    "id": "runningGag",
    "level": "curiosity",
    "label": "Running gag",
