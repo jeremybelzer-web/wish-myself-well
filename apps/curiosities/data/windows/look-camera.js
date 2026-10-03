@@ -1476,7 +1476,8 @@
     const part = v("placedPart");
     const ph = part === "their whole body" ? 70 : 150;
     const headY = part === "their face" ? ys : part === "their eyes" ? ys + ph * 0.035 : ys - ph * 0.3;
-    const faceDir = xs > 160 ? -1 : 1;
+    const fc = v("facing");
+    const faceDir = fc === "left" ? -1 : fc === "right" ? 1 : xs > 160 ? -1 : 1;
     const lr = v.n("lookRoom");
     const sx = k.clamp(xs - faceDir * lr * 0.6, 20, 300);
     const lead = idx(v, "leading");
@@ -1484,7 +1485,7 @@
     const sym = idx(v, "symmetry");
     const bal = v.n("balance");
     const leadL = lead ? [0, 320].map((x0) => [0, 180].map((y0) => ln(x0, y0, sx, headY, "#9fd3ff", lead, "6 4")).join("")).join("") : "";
-    const subj = part === "an object" ? box(sx - 15, ys - 15, 30, 30, "#e07a5f", "#1c1712", 3) : fig(k, sx, headY + ph * 0.88 + ph * 0.1, ph, { look: faceDir, color: "#4a6fa5" });
+    const subj = part === "an object" ? box(sx - 15, ys - 15, 30, 30, "#e07a5f", "#1c1712", 3) : fig(k, sx, headY + ph * 0.88 + ph * 0.1, ph, { look: fc === "toward the camera" ? 0 : faceDir, color: "#4a6fa5" });
     const counter = bal !== 0 ? box(bal < 0 ? 250 : 30, 120 - Math.abs(bal) * 8, 40, Math.abs(bal) * 8 + 10, "#5d4a3a", "#1c1712") : "";
     const mirror = sym ? [40, 280].map((x) => box(x - 10, 40 - sym * 5, 20, 100 + sym * 10, "#5b6f8f", "#1c1712")).join("") : "";
     const frameP = fif ? `<rect x="${R(sx - 50)}" y="${R(headY - 30)}" width="100" height="160" fill="none" stroke="#8a6a4a" stroke-width="${fif * 8}"${fif === 1 ? ' stroke-dasharray="60 40"' : ""}/>` : "";
@@ -1498,7 +1499,7 @@
       side() +
       sm(k, 222, 18, `${v("xPct")}% across, ${v("yPct")}% up`, { size: 7.5 }) +
       sm(k, 222, 32, `Placing ${part}`, { size: 7.5 }) +
-      sm(k, 222, 46, `Look room ${lr}%`, { size: 7.5 }) +
+      sm(k, 222, 46, `Look room ${lr}%, facing ${fc || "the room"}`, { size: 7 }) +
       sm(k, 222, 64, `Balance ${bal}`, { size: 7.5 }) +
       sm(k, 222, 78, `Lines: ${v("leading")}`, { size: 7.5 }) +
       sm(k, 222, 92, `Frame in frame: ${v("frameInFrame")}`, { size: 7 }) +
