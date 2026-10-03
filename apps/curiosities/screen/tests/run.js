@@ -705,6 +705,73 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+/* Look ▾ (CurioScreenLook): copy a whole moment's look, paste it onto another moment or over a stretch. */
+{
+  const K = w.CurioScreenLook;
+  const E = w.CurioEngine;
+  const S = w.CurioScale;
+  ok(!!K && ["copy", "paste", "clean"].every((k) => typeof K[k] === "function"), "the look's command builders are exposed for tests (CurioScreenLook)");
+  if (K) {
+    E.reset(w.CurioSeeds.starter());
+    const rr = E.state().rows;
+    const locks = {};
+    const h = (st) => ({
+      value: (rid, t, c) => E.value(rid, t, c),
+      trackOf: (c) => (st.tracks.find((t) => t.curiosities.includes(c)) || {}).id || null,
+      trackFor: (c) => w.CurioLanes.trackFor(c, st),
+      locked: (lk) => !!locks[lk],
+      fix: (c, v) => S.fix(c, v),
+      start: (c) => S.start(c),
+      known: (c) => S.known(c),
+      limit: E.LIMIT.perTrack,
+    });
+    /* The film's lanes in a fixed order (an undo can put a lane's points back in another order). */
+    const film = () => { const l = E.state().lanes; return JSON.stringify(Object.keys(l).sort().map((k) => [k, l[k].on, l[k].mode, Object.keys(l[k].points).sort().map((r) => [r, l[k].points[r]])])); };
+    const plays = (j) => { const st = E.state(); const out = {}; st.tracks.forEach((t) => t.curiosities.forEach((c) => c in out || (out[c] = String(S.fix(c, E.value(st.rows[j].id, t.id, c)))))); return out; };
+    E.send({ type: "batch", commands: [{ type: "setPoint", row: rr[2].id, track: "camera", curiosity: "shotSize", value: "close" }, { type: "setPoint", row: rr[6].id, track: "camera", curiosity: "shotSize", value: "wide" }, { type: "setPoint", row: rr[4].id, track: "camera", curiosity: "shotSize", value: "medium" }] });
+    const before = film();
+    const curs = [...new Set([].concat(...E.state().tracks.map((t) => t.curiosities)))].filter((c) => S.known(c));
+    const lk = K.copy(E.state(), 2, h(E.state()));
+    ok(!lk.error && lk.from === 2 && lk.row === rr[2].id && lk.count === Object.keys(lk.values).length && lk.count === curs.length, "Copy takes a setting for every curiosity on a track at that moment (" + lk.count + ")");
+    ok(lk.values.shotSize === "close" && Object.keys(lk.values).every((c) => String(lk.values[c]) === plays(2)[c]), "the copied settings are what the moment plays, after the engine's rewrite");
+    ok(film() === before, "copying changes nothing in the film");
+    ok(!!K.copy(E.state(), 99, h(E.state())).error, "copying a moment that is not there is refused in plain words");
+
+    const p = K.paste(E.state(), lk, 5, 5, h(E.state()));
+    ok(!p.error && p.changed.length + p.matched.length === lk.count && p.changed.length > 0 && p.locked.length === 0, "Paste sorts every setting into changed or already matched (" + p.changed.length + " changed, " + p.matched.length + " matched)");
+    ok(p.cmds.every((c) => c.type === "setPoint" && c.row === rr[5].id) && p.cmds.length === p.changed.length, "one moment gets one node per setting that differs, at that moment only");
+    ok(E.send({ type: "batch", commands: p.cmds }).ok, "the paste is one batch");
+    ok(Object.keys(lk.values).every((c) => plays(5)[c] === String(lk.values[c])), "afterwards moment 6 plays moment 3's look");
+    ok(K.paste(E.state(), lk, 5, 5, h(E.state())).changed.length === 0, "pasting again changes nothing: every setting already matches");
+    E.undo();
+    ok(film() === before, "one undo takes the paste back");
+
+    locks["camera|shotSize"] = true;
+    const pl = K.paste(E.state(), lk, 5, 5, h(E.state()));
+    ok(pl.locked.join() === "shotSize" && !pl.cmds.some((c) => c.curiosity === "shotSize"), "a locked lane is skipped and named");
+    delete locks["camera|shotSize"];
+
+    const ps = K.paste(E.state(), lk, 6, 3, h(E.state()));
+    ok(ps.from === 3 && ps.to === 6 && E.send({ type: "batch", commands: ps.cmds }).ok, "a stretch is one batch (either end first)");
+    const ln = E.state().lanes["camera|shotSize"];
+    ok(ln.points[rr[3].id] === "close" && ln.points[rr[6].id] === "close" && ln.points[rr[4].id] == null && ln.points[rr[2].id] === "close", "over a stretch a lane gets a node at the start and the end, the nodes between taken off, the rest kept");
+    ok([3, 4, 5, 6].every((j) => Object.keys(lk.values).every((c) => plays(j)[c] === String(lk.values[c]))), "so every moment of the stretch plays the look");
+    E.undo();
+    ok(film() === before, "one undo takes the stretch back");
+
+    const extra = { values: Object.assign({ composition: "right third" }, lk.values), from: 2 };
+    const pa = K.paste(E.state(), extra, 1, 1, h(E.state()));
+    ok(pa.added.join() === "composition" && pa.cmds[0].type === "addCuriosity" && pa.cmds[0].curiosity === "composition" && E.send({ type: "batch", commands: pa.cmds }).ok, "a curiosity not on a track yet is put on one first (" + pa.added.join() + ")");
+    E.undo();
+    ok(film() === before, "and one undo takes that back too");
+    ok(!!K.paste(E.state(), null, 1, 1, h(E.state())).error, "pasting with nothing copied is refused in plain words");
+
+    const c = K.clean(JSON.parse(JSON.stringify(lk)));
+    ok(c && c.count === lk.count && c.from === 2 && c.values.shotSize === "close", "the copied look comes back from storage as it went in");
+    ok(K.clean(null) === null && K.clean({ values: [] }) === null && K.clean({ values: { a: {} } }) === null && K.clean("x") === null, "a broken stored look is dropped quietly");
+  }
+}
+
 /* History ▾ (CurioScreenHistory): the undo and redo lists turned into the rows the menu draws. */
 {
   const H = w.CurioScreenHistory;
