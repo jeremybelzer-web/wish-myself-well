@@ -230,6 +230,30 @@ check("toMedia gives the media window's sample shape", () => {
   ["t", "luma", "contrast", "sat", "warm", "motion"].forEach((k) => assert(typeof s[k] === "number" && isFinite(s[k]), k));
   assert(m.samples.filter((x) => x.cut).length === insp.cuts.length, "one cut sample per cut");
 });
+check("element cut-outs: stats, series and what to change", () => {
+  /* a 10x10 frame: clothes (4) in the lower half are teal on the left, the rest is set (0) */
+  const w = 10, h = 10, labels = new Uint8Array(w * h), rgba = new Uint8ClampedArray(w * h * 4);
+  for (let i = 0; i < w * h; i++) {
+    const y = (i / w) | 0, x = i % w;
+    if (y >= 5) labels[i] = x < 5 ? 4 : 1;
+    const teal = labels[i] === 4 && x < 2;
+    rgba.set(teal ? [20, 180, 170, 255] : [120, 110, 100, 255], i * 4);
+  }
+  const st = V.partStats(labels, rgba, w, h);
+  assert(Math.abs(st.person.area - 0.5) < 1e-9 && Math.abs(st.clothes.area - 0.25) < 1e-9, "areas " + JSON.stringify(st.person));
+  assert(st.clothes.vg > st.clothes.g && st.clothes.vr < st.clothes.r, "the vivid color leans to the teal: " + JSON.stringify(st.clothes));
+  assert(st.person.bottom === 1 && st.person.top === 0.5, "people's top and bottom");
+  const E = V.elementSeries([{ t: 0, stats: st }, { t: 1, stats: st }, { t: 2, stats: st }]);
+  assert(E.times.length === 3 && E.parts.clothes.area.length === 3, "series");
+  const small = V.partStats(labels.map((l, i) => (i % w < 7 ? l : 0)), rgba, w, h);
+  const A = Object.assign({}, insp, { elements: E }), B = Object.assign({}, insp, { elements: V.elementSeries([{ t: 0, stats: small }, { t: 2, stats: small }]) });
+  const p = V.plan(A, B, { on: { wardrobe: 1, figure: 1, set: 1 } });
+  const a = V.at(p, 1);
+  assert(a.parts && a.parts.clothes && a.parts.clothes.color[1] > a.parts.clothes.color[0], "clothes take the inspiration's teal: " + JSON.stringify(a.parts));
+  assert(a.parts.person && a.parts.person.scale > 1, "smaller people are made bigger: " + JSON.stringify(a.parts.person));
+  assert(a.parts.background && a.parts.background.amount === 1, "the set comes from the inspiration");
+  assert(!V.at(V.plan(insp, insp, { on: { wardrobe: 1 } }), 1).parts, "no cut-outs, no element changes");
+});
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });

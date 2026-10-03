@@ -654,6 +654,11 @@
     { id: "speed", label: "Movement speed", curiosities: ["movementAmount"], check: "local", plain: "Speeds the clip up where the inspiration moves more and slows it down where it moves less." },
     { id: "loud", label: "Loudness", curiosities: ["volume", "emoVoice"], check: "db", plain: "Turns the sound up and down so it gets louder and quieter with the inspiration." },
     { id: "dialogue", label: "Dialogue tempo", curiosities: ["wordsAmount", "pace"], check: "speech", plain: "Writes new lines about the clip's title and times them to the inspiration's sentences: same lengths, same pauses, same syllables per second." },
+    /* Element groups: they need AI cut-outs of both clips (video/mask.js), and change only that element. */
+    { id: "wardrobe", label: "Clothes color", curiosities: ["colorRange"], check: "el:clothes", needs: "elements", plain: "Finds the people's clothes in every frame (AI cut-out) and recolors only the clothes to the inspiration's clothes colors, changing when theirs change." },
+    { id: "hair", label: "Hair color", curiosities: ["colorRange"], check: "el:hair", needs: "elements", plain: "Finds hair in every frame and recolors only the hair to the inspiration's hair color." },
+    { id: "figure", label: "Person size and place", curiosities: ["shotSize"], check: "el:person", needs: "elements", plain: "Cuts the people out and makes them as big in the frame, and as far left or right, as the inspiration's people, moment by moment. The gap they leave is filled from the background around it." },
+    { id: "set", label: "The set (background)", curiosities: ["background"], check: "el:background", needs: "elements", off: true, plain: "Keeps your clip's people and puts them in the inspiration's place: its background, moving as it moves, with its own people still there behind yours. Off unless you turn it on." },
     { id: "overlay", label: "Lay its graphics over", curiosities: ["colorRange"], check: "sat", off: true, plain: "Lays the inspiration's own picture over your clip with its plain light background taken out, so only its graphics (shapes, logos, colored text) show on top. For motion graphics like a title sequence. Off unless you turn it on." },
   ];
   /* Interpolate a per-sample series at time t. */
@@ -854,12 +859,124 @@
       const room = Math.max(0.1, A.duration - (p.overlayFrom || 0));
       adj.overlay = { t: r3((p.overlayFrom || 0) + (p.mode === "stretch" ? ((t / Math.max(0.001, p.duration)) * room) : t % room)), amount: on.overlay };
     }
+    if (on.wardrobe || on.hair || on.figure || on.set) adj.parts = partsAt(p, ta, s);
     if (on.dialogue && p.lines.length) {
       adj.line = lineAt(p, t);
       adj.duck = on.dialogue; /* the clip's own voices step back under the new lines */
     }
     return adj;
   }
+  /* ---------- elements (AI cut-outs) ----------
+     A cut-out is a label per pixel (0 background, 1 hair, 2 body skin, 3 face skin, 4 clothes, 5 other: the
+     MediaPipe selfie multiclass labels). PARTS names the elements made from them; partStats measures each one in a
+     frame; a clip's elements are those measures over time ({ times, dt, parts: { id: { area, cx, cy, top, bottom,
+     r, g, b } } }), made by CurioMask.scan. */
+  const PARTS = [
+    { id: "person", label: "People", ids: [1, 2, 3, 4, 5] },
+    { id: "hair", label: "Hair", ids: [1] },
+    { id: "face", label: "Faces", ids: [3] },
+    { id: "clothes", label: "Clothes", ids: [4] },
+    { id: "background", label: "The set (background)", ids: [0] },
+  ];
+  function partStats(labels, rgba, w, h) {
+    const out = {};
+    PARTS.forEach((pt) => {
+      const want = new Uint8Array(8);
+      pt.ids.forEach((i) => (want[i] = 1));
+      let n = 0,
+        sx = 0,
+        sy = 0,
+        sr = 0,
+        sg = 0,
+        sb = 0,
+        top = h,
+        bottom = -1,
+        vw = 0,
+        vr = 0,
+        vg = 0,
+        vb = 0;
+      for (let i = 0; i < w * h; i++) {
+        if (!want[labels[i] & 7]) continue;
+        const x = i % w,
+          y = (i / w) | 0;
+        n++;
+        sx += x;
+        sy += y;
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+        if (rgba) {
+          const R = rgba[i * 4],
+            G = rgba[i * 4 + 1],
+            B = rgba[i * 4 + 2];
+          sr += R;
+          sg += G;
+          sb += B;
+          /* its vivid color: weighted toward the most colorful pixels (a teal stripe, not the average brown) */
+          const mx = Math.max(R, G, B),
+            sat = mx ? (mx - Math.min(R, G, B)) / mx : 0,
+            wv = sat * sat + 1e-4;
+          vw += wv;
+          vr += R * wv;
+          vg += G * wv;
+          vb += B * wv;
+        }
+      }
+      out[pt.id] = n
+        ? { area: r3(n / (w * h)), cx: r3(sx / n / w), cy: r3(sy / n / h), top: r3(top / h), bottom: r3((bottom + 1) / h), r: r3(sr / n / 255), g: r3(sg / n / 255), b: r3(sb / n / 255), vr: r3(vw ? vr / vw / 255 : 0), vg: r3(vw ? vg / vw / 255 : 0), vb: r3(vw ? vb / vw / 255 : 0) }
+        : { area: 0, cx: 0.5, cy: 0.5, top: 0, bottom: 0, r: 0, g: 0, b: 0, vr: 0, vg: 0, vb: 0 };
+    });
+    return out;
+  }
+  /* A clip's elements from its cut-out looks: [{ t, stats }] -> series, lightly smoothed. */
+  function elementSeries(looks) {
+    const times = looks.map((l) => l.t);
+    const dt = times.length > 1 ? (times[times.length - 1] - times[0]) / (times.length - 1) : 1;
+    const parts = {};
+    PARTS.forEach((pt) => {
+      const o = {};
+      ["area", "cx", "cy", "top", "bottom", "r", "g", "b", "vr", "vg", "vb"].forEach((k) => (o[k] = smooth(looks.map((l) => (l.stats[pt.id] ? l.stats[pt.id][k] : 0)), 1)));
+      parts[pt.id] = o;
+    });
+    return { times, dt: r3(dt), parts };
+  }
+  function elAt(el, part, key, t) {
+    const arr = el && el.parts[part] && el.parts[part][key];
+    if (!arr || !arr.length) return 0;
+    return sampleAt({ times: el.times, dt: el.dt }, arr, t);
+  }
+  /* What to do to each element at one output moment (for clip.js / mask.js to draw). */
+  function partsAt(p, ta, s) {
+    const A = p.insp.elements,
+      B = p.target.elements,
+      on = p.on;
+    if (!A || !B) return null;
+    const out = {};
+    const color = (part) => {
+      if (elAt(A, part, "area", ta) < 0.003) return null;
+      const v = A.parts[part].vr ? "v" : "";
+      return [elAt(A, part, v + "r", ta), elAt(A, part, v + "g", ta), elAt(A, part, v + "b", ta)].map(r3);
+    };
+    if (on.wardrobe) {
+      const c = color("clothes");
+      if (c) out.clothes = { color: c, amount: on.wardrobe };
+    }
+    if (on.hair) {
+      const c = color("hair");
+      if (c) out.hair = { color: c, amount: on.hair };
+    }
+    if (on.figure) {
+      const aA = elAt(A, "person", "area", ta),
+        aB = elAt(B, "person", "area", s);
+      if (aA > 0.01 && aB > 0.01) {
+        const scale = 1 + (clamp(Math.sqrt(aA / aB), 0.55, 1.6) - 1) * on.figure;
+        const dx = (elAt(A, "person", "cx", ta) - elAt(B, "person", "cx", s)) * on.figure;
+        out.person = { scale: r3(scale), dx: r3(dx) };
+      }
+    }
+    if (on.set) out.background = { t: r3(ta), amount: on.set };
+    return Object.keys(out).length ? out : null;
+  }
+
   /* Light, contrast, color strength and warmth, pixel by pixel (RGBA, in place). m is the frame's mean
      brightness (0..1) before the change. */
   function paint(data, w, h, a, m) {
@@ -1022,6 +1139,19 @@
     const feat = g ? g.check : group;
     const A = p.insp;
     const tA = after.times.map((t) => p.tA(t, p.duration));
+    if (/^el:/.test(feat)) {
+      const part = feat.slice(3),
+        key = part === "person" ? "area" : part === "background" ? "r" : "r";
+      const E = after.elements,
+        EA = A.elements,
+        EB = before.elements;
+      if (!E || !EA || !EB) return { feature: feat, note: "needs AI cut-outs of both clips" };
+      const want = E.times.map((t) => elAt(EA, part, key, p.tA(t, p.duration)));
+      const bt = E.times.map((t) => elAt(EB, part, key, p.src[clamp(Math.round(t * p.fps), 0, p.src.length - 1)]));
+      const af = E.parts[part][key];
+      const gap = (x) => r3(mean(x.map((v, i) => Math.abs(v - want[i]))));
+      return { feature: feat, corrBefore: r3(corr(bt, want)), corrAfter: r3(corr(af, want)), gapBefore: gap(bt), gapAfter: gap(af) };
+    }
     if (feat === "cuts") return { feature: "cuts", inspiration: A.cuts.length, before: before.cuts.length, after: after.cuts.length };
     if (feat === "speech") {
       const sum = (d) => {
@@ -1056,5 +1186,5 @@
     return { name: d.name, duration: d.duration, step: step || 2.5, every: d.dt, samples };
   }
 
-  root.CurioVideo = { toMedia, keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
+  root.CurioVideo = { PARTS, partStats, elementSeries, elAt, partsAt, toMedia, keyOut, quickStats, fitLook, frameStats, toGray, motion, histDistance, envelope, speech, analyze, LIST, GROUPS, engineCommands, toRef, plan, at, paint, fitDialogue, syllables, topicOf, corr, series, score, sampleAt, valueAt, smooth };
 })();

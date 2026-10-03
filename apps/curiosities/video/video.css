@@ -66,3 +66,10 @@ html.vd-open, html.vd-open body { overflow: hidden; }
   .vd-apply-row .vd-k, .vd-apply-row .vd-check { grid-column: 1 / -1; }
   .vd-player { grid-template-columns: 1fr; }
 }
+
+/* AI cut-outs */
+.vd-ai { border: 1px solid var(--vd-line, #3335); border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
+.vd-ai header { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.vd-ai-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+.vd-ai-row input[type="password"] { min-width: 14em; }
+.vd-strip .vd-line { fill: none; stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; }

@@ -25,10 +25,24 @@ Timing: **Same speed as the inspiration** (its curves play in real seconds, repe
 
 **Check that it worked** draws the changed clip frame by frame, measures it again and shows, per curiosity, how in step your clip is with the inspiration before and after (1.00 = rises and falls together).
 
+## AI cut-outs (elements)
+
+When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, the "selfie multiclass" model) finds the people in every frame and splits them into hair, face, skin and clothes, with the rest as the set. Each element gets its own lanes: how much of the frame the people fill, where they stand, the color of their clothes and hair, the set's color. Then one element can change on its own, following the inspiration:
+
+- **Clothes color** and **Hair color**: only the clothes or hair are recolored to the inspiration's (its most vivid color, so a teal stripe counts more than the average brown), keeping their folds and shadows.
+- **Person size and place**: the people are cut out and made as big, and as far left or right, as the inspiration's people. The gap is filled from the background around it (rough; a server AI does this properly).
+- **The set (background)**: your people stay, and the background becomes the inspiration's, moving as it moves.
+
+"Show what it found" tints the AI's cut-out on your clip's frame. The AI loads the first time it is needed (about 16 MB from the web), and you can turn it off. Nothing is uploaded.
+
+**Stronger AI, your own key.** `ai.js` (`window.CurioAI`) gives every curiosity family (cut-outs, picture, depth, motion, face, voice, dialogue, music, generate) one plug-in slot, so any company's AI can do that family's job. The browser AI is the default. SAM 2 on fal.ai is wired in for cut-outs that follow a clicked person or object through a whole clip: paste your own fal.ai key in the window. It is kept in your browser under `curiomatic-ai-keys` (never in a `.curio` project file) and sent only to fal.ai. For a paid app, `CurioAI.setProxy("fal", url)` points at your own server, which holds the key. The fal.ai path has not been run end to end yet (it needs a key). Licenses and costs: the project's `video-import/ai-licenses.md`.
+
 ## Files
 
 - `measure.js` (`window.CurioVideo`, no page): frame and sound measures, the dissection, nodes, engine commands, the apply plan, pixel changes, keying, dialogue fitting, scores.
 - `clip.js` (`window.CurioClip`): reads frames by seeking and sound by decoding, draws applied frames, the frame-exact steadier, check, real-time render and recording.
+- `ai.js` (`window.CurioAI`): one plug-in slot per curiosity family; your own keys, kept in this browser.
+- `mask.js` (`window.CurioMask`): the AI cut-outs (MediaPipe in the browser), each clip's elements over time, and drawing one element's change.
 - `ui.js` (`window.CurioVideoUI`), `video.css`, `load.js` (one line in `index.html`), `files.json`.
 - `CurioVideo.toMedia(dissection, step)` hands a dissection to the media window (`media/media.js`, `CurioMedia`) in its own sample shape, so the app has one analyzer: its beats, highlights and studies can come from these measures.
 - Settings: `localStorage` `curiosities-video-v1`.
@@ -42,5 +56,6 @@ Timing: **Same speed as the inspiration** (its curves play in real seconds, repe
 
 - Browsers can't record their own speaking voice: Play speaks the new lines, a saved video keeps them as subtitles.
 - Steadying a phone clip full of moving faces only partly works (the faces move with the camera).
-- A clip can be zoomed in, never made wider. Moving a person's face onto other people is not done.
+- A clip can be zoomed in, never made wider. Face replacement is not done: it needs a server AI and the consent of everyone shown.
+- Cut-outs are per frame, about 4 looks a second when a clip is taken apart; 320 pixels wide, so edges are soft. People who are far away or blurred by motion are sometimes missed.
 - Very long or very large files take a while: up to 900 looks at the picture, and the sound is decoded whole.

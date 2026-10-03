@@ -161,6 +161,12 @@
     const p = opts.sound === false || big ? null : await pcm(clip);
     const sound = p ? V().envelope(p.data, p.rate) : null;
     const d = V().analyze({ name: clip.name, duration: clip.duration, aspect: box.h / box.w, samples: fr.samples, gw: fr.gw, sound });
+    /* The elements (AI cut-outs of the people, their hair, faces and clothes, and the set), unless turned off. */
+    if (opts.elements !== false && window.CurioMask) {
+      if (opts.onProgress) opts.onProgress(0.92, "Finding the people and their clothes (AI)");
+      d.elements = await window.CurioMask.scan(clip, { box, onProgress: (p) => opts.onProgress && opts.onProgress(0.92 + p * 0.08, "Finding the people and their clothes (AI)") });
+      if (!d.elements) delete d.elements;
+    }
     if (opts.onProgress) opts.onProgress(1, "Done");
     return d;
   }
@@ -300,6 +306,8 @@
       V().paint(d, W, H, a, have.luma);
       ctx.putImageData(img, 0, 0);
     }
+    /* Element changes (AI cut-outs): recolor clothes or hair, resize or move the people, another clip's set. */
+    if (adj.parts && window.CurioMask && window.CurioMask.ready()) window.CurioMask.applyParts(ctx, W, H, adj.parts, { setVideo: opts.setVideo });
     /* The inspiration's graphics on top, background taken out, fitted inside the frame. */
     if (adj.overlay && opts.overlay && opts.overlay.videoWidth) {
       const ov = opts.overlay;
@@ -356,6 +364,10 @@
   async function check(plan, clip, opts) {
     opts = opts || {};
     const over = plan.on.overlay && opts.overlay ? opts.overlay.video : null;
+    const setV = plan.on.set && opts.overlay ? (await open(opts.overlay.url)).video : null;
+    const M = window.CurioMask;
+    const wantEl = M && M.ready() && (plan.on.wardrobe || plan.on.hair || plan.on.figure || plan.on.set);
+    const looks = [];
     const W = 320,
       H = Math.max(2, Math.round((W * clip.height) / clip.width));
     const big = canvas(W, H);
@@ -370,14 +382,20 @@
         await seek(clip.video, a.src);
         a = steadyAdj(a, st, clip.video);
         if (over && a.overlay) await seek(over, a.overlay.t);
-        drawApplied(bx, clip.video, a, W, H, { captions: false, overlay: over });
+        if (setV && a.parts && a.parts.background) await seek(setV, a.parts.background.t);
+        drawApplied(bx, clip.video, a, W, H, { captions: false, overlay: over, setVideo: setV });
         ctx.drawImage(big, 0, 0, w, h);
+        if (wantEl && looks.length < 240 && (looks.length === 0 || t - looks[looks.length - 1].t >= 0.25)) {
+          const k = M.cut(big);
+          looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h) });
+        }
       },
       (p) => opts.onProgress && opts.onProgress(p * 0.9, "Measuring the changed clip")
     );
     const src = await pcm(clip);
     const sound = src ? V().envelope(appliedPcm(plan, src).data, src.rate) : null;
     const after = V().analyze({ name: clip.name + " (applied)", duration: plan.duration, aspect: clip.height / clip.width, samples: fr.samples, gw: fr.gw, sound });
+    if (looks.length > 1) after.elements = V().elementSeries(looks);
     if (opts.onProgress) opts.onProgress(1, "Done");
     return { after };
   }
@@ -445,6 +463,11 @@
       running = false;
     };
     await video.play().catch(() => {});
+    let setV = null;
+    if (plan.on.set && opts.overlay) {
+      setV = (await open(opts.overlay.url)).video;
+      await setV.play().catch(() => {});
+    }
     if (over) await over.play().catch(() => {});
     if (ac && ac.state === "suspended") await ac.resume().catch(() => {});
     if (rec) rec.start(250);
@@ -468,7 +491,8 @@
           gain.gain.setTargetAtTime(g, ac.currentTime, 0.03);
         }
         if (over && a.overlay && Math.abs(over.currentTime - a.overlay.t) > 0.3) over.currentTime = a.overlay.t;
-        drawApplied(ctx, video, steadyAdj(a, st, video), W, H, { overlay: over });
+        if (setV && a.parts && a.parts.background && Math.abs(setV.currentTime - a.parts.background.t) > 0.3) setV.currentTime = a.parts.background.t;
+        drawApplied(ctx, video, steadyAdj(a, st, video), W, H, { overlay: over, setVideo: setV });
         if (synth && a.line) {
           const i = plan.lines.indexOf(a.line);
           if (i !== spoken) {
@@ -488,6 +512,7 @@
     });
     video.pause();
     if (over) over.pause();
+    if (setV) setV.pause();
     if (synth) window.speechSynthesis.cancel();
     let blob = null;
     if (rec) {

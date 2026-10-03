@@ -29,7 +29,7 @@
     } catch (e) {}
     const on = {};
     (V() ? V().GROUPS : []).forEach((g) => (on[g.id] = p.on && typeof p.on[g.id] === "number" ? Math.max(0, Math.min(1, p.on[g.id])) : g.off ? 0 : 1));
-    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "" };
+    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false };
   }
   function keep() {
     try {
@@ -60,6 +60,7 @@
           <div class="vd-swap"><button type="button" data-act="swap" ${a.clip || b.clip ? "" : "disabled"} title="Make your clip the inspiration and the inspiration your clip">⇄ Swap</button></div>
           ${clipCard("b", "2. Your clip", "The clip the curiosities are applied to.")}
         </section>
+        ${aiSection()}
         ${note ? `<p class="vd-note" role="status">${esc(note)}</p>` : ""}
         ${a.d || b.d ? lanesSection() : ""}
         ${a.d && b.d ? applySection() : a.d ? `<p class="vd-k vd-pad">Bring in your clip (box 2) to apply these curiosities to it.</p>` : ""}
@@ -82,6 +83,56 @@
          <label class="vd-file">Use another clip<input type="file" accept="video/*" data-file="${k}"></label>`
       : `<label class="vd-drop" data-drop="${k}"><strong>Drop a video here</strong><span>or click to choose one (.mp4, .mov, .webm)</span><input type="file" accept="video/*" data-file="${k}"></label>`;
     return `<article class="vd-card" data-drop="${k}"><header><strong>${esc(title)}</strong><span class="vd-k">${esc(sub)}</span></header>${inner}</article>`;
+  }
+  /* AI cut-outs: on by default, free in the browser; a stronger server AI with the user's own key. */
+  function aiSection() {
+    const AI = window.CurioAI,
+      M = window.CurioMask;
+    if (!AI || !M) return "";
+    const list = AI.providers("cutout");
+    const pick = AI.chosen("cutout") || "mediapipe";
+    const st = !prefs.ai ? "off" : M.ready() ? "ready" : M.failed() ? "couldn't load: " + M.failed() : "loads when you bring in a clip";
+    const fal = list.find((x) => x.company === "fal");
+    const hasKey = !!AI.key("fal");
+    return `<section class="vd-ai">
+      <header><strong>AI cut-outs</strong><span class="vd-k">Finds the people in every frame and splits them into hair, face, skin and clothes, with the rest as the set, so one element can change on its own (${esc(st)}).</span></header>
+      <div class="vd-ai-row">
+        <label><input type="checkbox" data-ai-on ${prefs.ai ? "checked" : ""}> Do it automatically when a clip comes in</label>
+        <label>Which AI <select data-ai-pick>${list.map((x) => `<option value="${esc(x.id)}" ${x.id === pick ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select></label>
+        ${slot.b.clip && M.ready() ? `<button type="button" data-act="ai-preview" title="Tints what the AI found on the frame showing in your clip's box">Show what it found</button>` : ""}
+      </div>
+      ${
+        fal
+          ? `<div class="vd-ai-row"><label>fal.ai key <input type="password" data-ai-key="fal" autocomplete="off" placeholder="${hasKey ? "saved in this browser" : "paste your own key"}"></label>
+        <button type="button" data-act="ai-key-save">Keep it in this browser</button>${hasKey ? `<button type="button" data-act="ai-key-clear">Remove it</button>` : ""}
+        <span class="vd-k">Your key stays in this browser and is sent only to fal.ai. It is never saved in a project file. Cost: ${esc(fal.cost({ seconds: slot.b.clip ? slot.b.clip.duration : 30 }))}.</span></div>`
+          : ""
+      }
+    </section>`;
+  }
+  /* The elements over time: how much of the frame the people fill, where they are, the colors of their clothes
+     and hair (color strips). */
+  function elementLanes(d, which) {
+    const E = d.elements;
+    if (!E) return "";
+    const W = 1000,
+      n = E.times.length;
+    const x = (i) => (E.times[i] / d.duration) * W;
+    const line = (arr, k) => arr.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${(20 - Math.max(0, Math.min(1, v * k)) * 18).toFixed(1)}`).join(" ");
+    const hex = (r, g, b) => `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`;
+    const strip = (part) => {
+      const P = E.parts[part];
+      const v = P.vr ? "v" : "";
+      return E.times.map((t, i) => (P.area[i] < 0.003 ? "" : `<rect x="${x(i)}" y="2" width="${Math.max(1, W / n + 1)}" height="18" style="fill:${hex(P[v + "r"][i], P[v + "g"][i], P[v + "b"][i])}"/>`)).join("");
+    };
+    const row = (name, small, svg) => `<div class="vd-lane"><button type="button" class="vd-lname" data-seekto="${which}">${esc(name)}<small>AI cut-out</small></button><svg class="vd-strip" viewBox="0 0 ${W} 22" preserveAspectRatio="none" data-strip="${which}">${svg}<line class="vd-head" x1="0" x2="0" y1="0" y2="22"/></svg></div>`;
+    return `<div class="vd-group"><h4>Elements (AI cut-outs)</h4>
+      ${row("People: how much of the frame", "", `<path d="${line(E.parts.person.area, 1.6)}" class="vd-line"/>`)}
+      ${row("People: left to right", "", `<path d="${line(E.parts.person.cx, 1)}" class="vd-line"/>`)}
+      ${row("Clothes color", "", strip("clothes"))}
+      ${row("Hair color", "", strip("hair"))}
+      ${row("The set's color", "", strip("background"))}
+    </div>`;
   }
   /* Each curiosity as a lane across the clip: blocks of one value, a node (diamond) where it changes. */
   function lanesSection() {
@@ -118,6 +169,7 @@
       <ul class="vd-sum">${d.summary.map((s) => `<li>${esc(s)}</li>`).join("")}${d.cuts.length ? `<li>Cuts at ${d.cuts.map(fmt).join(", ")}.</li>` : ""}</ul>
       <p class="vd-k">Each lane runs across the whole clip, left to right. A diamond is a node: the moment that curiosity changes. "Measured" lanes are read straight from the picture and sound; "a guess" lanes are worked out from the others. Click a lane to play the clip from there.</p>
       <div class="vd-time"><span>0s</span><span>${fmt(d.duration / 2)}</span><span>${fmt(d.duration)}</span></div>
+      ${elementLanes(d, which)}
       ${Object.keys(groups)
         .map((g) => `<div class="vd-group"><h4>${esc(g)}</h4>${groups[g].map(lane).join("")}</div>`)
         .join("")}
@@ -131,8 +183,9 @@
       .GROUPS.map((g) => {
         const amt = prefs.on[g.id] || 0;
         const ck = checks && checks[g.id];
-        return `<div class="vd-apply-row${amt ? "" : " off"}">
-          <label><input type="checkbox" data-on="${g.id}" ${amt ? "checked" : ""}> <strong>${esc(g.label)}</strong></label>
+        const missing = g.needs === "elements" && !(A.elements && B.elements);
+        return `<div class="vd-apply-row${amt && !missing ? "" : " off"}">
+          <label><input type="checkbox" data-on="${g.id}" ${amt ? "checked" : ""} ${missing ? "disabled" : ""}> <strong>${esc(g.label)}</strong>${missing ? ` <small class="vd-k">needs AI cut-outs of both clips</small>` : ""}</label>
           <input type="range" min="0" max="100" step="5" value="${Math.round(amt * 100)}" data-amt="${g.id}" aria-label="How much of ${esc(g.label)}" ${amt ? "" : "disabled"}><output>${Math.round(amt * 100)}%</output>
           <span class="vd-k">${esc(g.plain)}</span>
           <span class="vd-check">${ck ? checkText(ck) : ""}</span>
@@ -194,6 +247,7 @@
       note = "";
       draw();
       slot[k].d = await C().dissect(clip, {
+        elements: prefs.ai,
         onProgress: (p, what) => {
           slot[k].busy = { p, what };
           const bar = page && page.querySelector(`[data-drop="${k}"] .vd-prog i`);
@@ -333,6 +387,16 @@
       if (act === "save") return play(true);
       if (act === "stop") return C().stop();
       if (act === "check") return check();
+      if (act === "ai-key-save") {
+        const inp = page.querySelector('[data-ai-key="fal"]');
+        if (inp && inp.value.trim()) window.CurioAI.setKey("fal", inp.value.trim());
+        return say(window.CurioAI.key("fal") ? "Your fal.ai key is kept in this browser only." : "Paste a key first.");
+      }
+      if (act === "ai-key-clear") {
+        window.CurioAI.setKey("fal", "");
+        return say("Removed your fal.ai key from this browser.");
+      }
+      if (act === "ai-preview") return aiPreview();
       if (t.dataset.show) {
         show = t.dataset.show;
         return draw();
@@ -347,6 +411,17 @@
     el.addEventListener("change", (e) => {
       const t = e.target;
       if (t.dataset.file) return bring(t.dataset.file, t.files && t.files[0]);
+      if (t.dataset.aiOn != null) {
+        prefs.ai = t.checked;
+        keep();
+        if (prefs.ai) window.CurioMask.load().then(draw);
+        return draw();
+      }
+      if (t.dataset.aiPick != null) {
+        window.CurioAI.choose("cutout", t.value);
+        const pk = window.CurioAI.use("cutout");
+        return say(pk && pk.id === t.value ? "" : "That AI needs its key first; the free browser AI is used until then.");
+      }
       if (t.dataset.on) {
         prefs.on[t.dataset.on] = t.checked ? 1 : 0;
         checks = null;
@@ -414,6 +489,21 @@
       v.currentTime = ((e.clientX - r.left) / r.width) * d.duration;
     });
   }
+  /* Tint what the AI found on the frame showing in your clip's box, in the output canvas. */
+  function aiPreview() {
+    const v = page && page.querySelector('.vd-clips video[data-slot="b"]'),
+      cv = page && page.querySelector("canvas.vd-out");
+    if (!v || !cv || !window.CurioMask.ready()) return;
+    note = "Red: hair. Green: skin. Yellow: faces. Blue: clothes. Pink: glasses and hats. The rest is the set.";
+    saved = null;
+    draw();
+    const cv2 = page.querySelector("canvas.vd-out");
+    const x = cv2.getContext("2d", { willReadFrequently: true });
+    x.drawImage(v, 0, 0, cv2.width, cv2.height);
+    window.CurioMask.preview(x, cv2.width, cv2.height);
+    saved = { frame: x.getImageData(0, 0, cv2.width, cv2.height) };
+    result = true;
+  }
   function open() {
     if (!page) {
       page = document.createElement("div");
@@ -424,6 +514,11 @@
     page.hidden = false;
     document.documentElement.classList.add("vd-open");
     draw();
+    /* The AI cut-out loads in the background so it is ready when a clip comes in. */
+    if (prefs.ai && window.CurioMask && !window.CurioMask.ready())
+      window.CurioMask.load().then(() => {
+        if (page && !page.hidden && !slot.a.busy && !slot.b.busy) draw();
+      });
   }
   function close() {
     C().stop();
