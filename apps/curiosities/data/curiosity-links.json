@@ -10899,6 +10899,1791 @@
    "does": "rise",
    "when": "a comic pair trades lines faster",
    "then": "the spark between them grows"
+  },
+  {
+   "id": "p:straight-answer-reaction",
+   "proximity": "straight-answer-reaction",
+   "label": "When a silly question gets a dead serious answer, the reactions grow",
+   "from": {
+    "curiosity": "straightAnswer",
+    "track": "master",
+    "is": "dead serious",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicReaction",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a silly question gets a dead serious answer",
+   "then": "the reactions grow"
+  },
+  {
+   "id": "p:lecture-said-back",
+   "proximity": "lecture-said-back",
+   "label": "When a silly answer turns into a lecture, someone says it back",
+   "from": {
+    "curiosity": "straightAnswer.detail",
+    "track": "master",
+    "is": "a lecture",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "repeatBack",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a silly answer turns into a lecture",
+   "then": "someone says it back"
+  },
+  {
+   "id": "p:catchphrase-held-back",
+   "proximity": "catchphrase-held-back",
+   "label": "When everyone waits for the catchphrase, holding it back gets the laugh",
+   "from": {
+    "curiosity": "catchphrase.setUp",
+    "track": "master",
+    "is": "everyone waits for it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "catchphrase.withheld",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone waits for the catchphrase",
+   "then": "holding it back gets the laugh"
+  },
+  {
+   "id": "p:catchphrase-sweet-callback",
+   "proximity": "catchphrase-sweet-callback",
+   "label": "When the catchphrase comes back with a new meaning, the callback turns sweet",
+   "from": {
+    "curiosity": "catchphrase.twist",
+    "track": "master",
+    "is": "new meaning",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "callback.mood",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "sweeter",
+   "when": "the catchphrase comes back with a new meaning",
+   "then": "the callback turns sweet"
+  },
+  {
+   "id": "p:topper-then-button",
+   "proximity": "topper-then-button",
+   "label": "When the topper lands, a button closes the scene",
+   "from": {
+    "curiosity": "topper",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sceneButton",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a small laugh",
+   "when": "the topper lands",
+   "then": "a button closes the scene"
+  },
+  {
+   "id": "p:button-then-cut",
+   "proximity": "button-then-cut",
+   "label": "When the button lands, the scene ends on it",
+   "from": {
+    "curiosity": "sceneButton",
+    "track": "master",
+    "is": "a solid laugh",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sceneEnding",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "button joke",
+   "when": "the button lands",
+   "then": "the scene ends on it"
+  },
+  {
+   "id": "p:tiny-want-escalates",
+   "proximity": "tiny-want-escalates",
+   "label": "When a tiny want meets a huge effort, the trouble escalates",
+   "from": {
+    "curiosity": "comicWant",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicEscalation",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a tiny want meets a huge effort",
+   "then": "the trouble escalates"
+  },
+  {
+   "id": "p:tiny-want-ruined",
+   "proximity": "tiny-want-ruined",
+   "label": "When the tiny want is won and ruined, someone is humiliated",
+   "from": {
+    "curiosity": "comicWant.getsIt",
+    "track": "master",
+    "is": "gets it and it's ruined",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "humiliation",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the tiny want is won and ruined",
+   "then": "someone is humiliated"
+  },
+  {
+   "id": "p:roast-comeback",
+   "proximity": "roast-comeback",
+   "label": "When a roast stings, a better comeback follows",
+   "from": {
+    "curiosity": "roast",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "roast.comeback",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a better one",
+   "when": "a roast stings",
+   "then": "a better comeback follows"
+  },
+  {
+   "id": "p:loving-roast-warmth",
+   "proximity": "loving-roast-warmth",
+   "label": "When a roast is loving, the warmth between them grows",
+   "from": {
+    "curiosity": "roast.affection",
+    "track": "master",
+    "is": "loving",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a roast is loving",
+   "then": "the warmth between them grows"
+  },
+  {
+   "id": "p:roast-room-stops",
+   "proximity": "roast-room-stops",
+   "label": "When a roast goes too far, everything stops",
+   "from": {
+    "curiosity": "roast",
+    "track": "master",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "roomStops",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a roast goes too far",
+   "then": "everything stops"
+  },
+  {
+   "id": "p:close-parody-twist",
+   "proximity": "close-parody-twist",
+   "label": "When a parody copies shot for shot, the twist gets the laugh",
+   "from": {
+    "curiosity": "parody",
+    "track": "master",
+    "is": "shot for shot",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "subversion",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a parody copies shot for shot",
+   "then": "the twist gets the laugh"
+  },
+  {
+   "id": "p:satire-darkens",
+   "proximity": "satire-darkens",
+   "label": "When the satire bites harder, the jokes get darker",
+   "from": {
+    "curiosity": "satire",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comedyDevice.darkness",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the satire bites harder",
+   "then": "the jokes get darker"
+  },
+  {
+   "id": "p:meta-talks-to-us",
+   "proximity": "meta-talks-to-us",
+   "label": "When the film jokes about itself, a character talks to us",
+   "from": {
+    "curiosity": "metaJoke",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "fourthWall",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the film jokes about itself",
+   "then": "a character talks to us"
+  },
+  {
+   "id": "p:flop-silence",
+   "proximity": "flop-silence",
+   "label": "When a joke falls flat, the silence stretches",
+   "from": {
+    "curiosity": "jokeBombs",
+    "track": "master",
+    "is": "nothing",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "long",
+   "when": "a joke falls flat",
+   "then": "the silence stretches"
+  },
+  {
+   "id": "p:flop-explained",
+   "proximity": "flop-explained",
+   "label": "When the teller explains the failed joke, they talk past the point",
+   "from": {
+    "curiosity": "jokeBombs.recovery",
+    "track": "master",
+    "is": "explains it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicRamble",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the teller explains the failed joke",
+   "then": "they talk past the point"
+  },
+  {
+   "id": "p:room-stops-scratch",
+   "proximity": "room-stops-scratch",
+   "label": "When the room stops dead, the record scratches",
+   "from": {
+    "curiosity": "roomStops",
+    "track": "master",
+    "is": "dead silence and stares",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicSting",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "record scratch",
+   "when": "the room stops dead",
+   "then": "the record scratches"
+  },
+  {
+   "id": "p:room-stops-cringe",
+   "proximity": "room-stops-cringe",
+   "label": "When the room stops, the cringe rises",
+   "from": {
+    "curiosity": "roomStops",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the room stops",
+   "then": "the cringe rises"
+  },
+  {
+   "id": "p:seen-coming-bigger-laugh",
+   "proximity": "seen-coming-bigger-laugh",
+   "label": "When we see the gag coming, the payoff gets a bigger laugh",
+   "from": {
+    "curiosity": "comicSuspense",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute.size",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": "big laughs",
+   "when": "we see the gag coming",
+   "then": "the payoff gets a bigger laugh"
+  },
+  {
+   "id": "p:trap-shown-fall",
+   "proximity": "trap-shown-fall",
+   "label": "When the trap is shown clearly, the fall comes",
+   "from": {
+    "curiosity": "comicSuspense.clarity",
+    "track": "master",
+    "is": "shown clearly",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "physicalComedy",
+    "track": "master"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a fall",
+   "when": "the trap is shown clearly",
+   "then": "the fall comes"
+  },
+  {
+   "id": "p:loose-overlap",
+   "proximity": "loose-overlap",
+   "label": "When the scene loosens up, the lines start to overlap",
+   "from": {
+    "curiosity": "improvFeel",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicTiming.pace",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "overlapping",
+   "when": "the scene loosens up",
+   "then": "the lines start to overlap"
+  },
+  {
+   "id": "p:loose-crack-up",
+   "proximity": "loose-crack-up",
+   "label": "When the scene feels improvised, someone cracks up",
+   "from": {
+    "curiosity": "improvFeel",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "corpsing",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the scene feels improvised",
+   "then": "someone cracks up"
+  },
+  {
+   "id": "p:cartoon-no-pain",
+   "proximity": "cartoon-no-pain",
+   "label": "When cartoon rules take over, the falls stop hurting",
+   "from": {
+    "curiosity": "cartoonLogic",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "physicalComedy.pain",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "cartoon rules take over",
+   "then": "the falls stop hurting"
+  },
+  {
+   "id": "p:montage-on-beat",
+   "proximity": "montage-on-beat",
+   "label": "When the comic montage starts, the cuts land on the beat",
+   "from": {
+    "curiosity": "comicMontage",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "beatSync",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "on beats",
+   "when": "the comic montage starts",
+   "then": "the cuts land on the beat"
+  },
+  {
+   "id": "p:failure-montage-escalates",
+   "proximity": "failure-montage-escalates",
+   "label": "When the montage shows failed attempts, the disaster escalates",
+   "from": {
+    "curiosity": "comicMontage.kind",
+    "track": "master",
+    "is": "failed attempts",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicEscalation",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the montage shows failed attempts",
+   "then": "the disaster escalates"
+  },
+  {
+   "id": "p:sad-turn-music-drops",
+   "proximity": "sad-turn-music-drops",
+   "label": "When a joke turns sad on one line, the music drops away",
+   "from": {
+    "curiosity": "laughsToTears.speed",
+    "track": "master",
+    "is": "one line",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "noMusic",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a joke turns sad on one line",
+   "then": "the music drops away"
+  },
+  {
+   "id": "p:tears-to-laugh-release",
+   "proximity": "tears-to-laugh-release",
+   "label": "When tears turn into a laugh, the release comes through laughing",
+   "from": {
+    "curiosity": "laughsToTears",
+    "track": "master",
+    "is": "tears to laugh",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRelease",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a laugh",
+   "when": "tears turn into a laugh",
+   "then": "the release comes through laughing"
+  },
+  {
+   "id": "p:self-mock-hurt",
+   "proximity": "self-mock-hurt",
+   "label": "When self-mockery hides hurt, mixed feelings show",
+   "from": {
+    "curiosity": "selfMockery.purpose",
+    "track": "master",
+    "is": "to hide hurt",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mixedFeelings",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "self-mockery hides hurt",
+   "then": "mixed feelings show"
+  },
+  {
+   "id": "p:bag-loses-sympathy",
+   "proximity": "bag-loses-sympathy",
+   "label": "When the punching bag keeps losing, our sympathy grows",
+   "from": {
+    "curiosity": "punchingBag",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "punchingBag.sympathy",
+    "track": "master"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the punching bag keeps losing",
+   "then": "our sympathy grows"
+  },
+  {
+   "id": "p:bag-wins-release",
+   "proximity": "bag-wins-release",
+   "label": "When the punching bag finally wins big, the release floods in",
+   "from": {
+    "curiosity": "punchingBag.turn",
+    "track": "master",
+    "is": "a big win at the end",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "catharsis",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the punching bag finally wins big",
+   "then": "the release floods in"
+  },
+  {
+   "id": "p:epic-slow-motion",
+   "proximity": "epic-slow-motion",
+   "label": "When something tiny is made epic, the picture slows down",
+   "from": {
+    "curiosity": "mockEpic",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "clipSpeed",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "very slow",
+   "when": "something tiny is made epic",
+   "then": "the picture slows down"
+  },
+  {
+   "id": "p:epic-popped",
+   "proximity": "epic-popped",
+   "label": "When the epic fuss cuts hard to reality, a smash cut pops it",
+   "from": {
+    "curiosity": "mockEpic.puncture",
+    "track": "master",
+    "is": "hard cut to reality",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicEdit",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the epic fuss cuts hard to reality",
+   "then": "a smash cut pops it"
+  },
+  {
+   "id": "p:disguise-slips-lie-grows",
+   "proximity": "disguise-slips-lie-grows",
+   "label": "When the disguise slips, the lie grows bigger",
+   "from": {
+    "curiosity": "badDisguise.slips",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "escalatingLie",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the disguise slips",
+   "then": "the lie grows bigger"
+  },
+  {
+   "id": "p:chase-crashes",
+   "proximity": "chase-crashes",
+   "label": "When a comic chase picks up, things crash",
+   "from": {
+    "curiosity": "comicChase",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "impacts",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a comic chase picks up",
+   "then": "things crash"
+  },
+  {
+   "id": "p:near-misses-chaos",
+   "proximity": "near-misses-chaos",
+   "label": "When the near misses pile up, the room falls into chaos",
+   "from": {
+    "curiosity": "nearMiss.count",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "chaosInRoom",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the near misses pile up",
+   "then": "the room falls into chaos"
+  },
+  {
+   "id": "p:near-miss-tension",
+   "proximity": "near-miss-tension",
+   "label": "When two people miss each other by a second, the tension jumps",
+   "from": {
+    "curiosity": "nearMiss",
+    "track": "master",
+    "is": "one second apart",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "two people miss each other by a second",
+   "then": "the tension jumps"
+  },
+  {
+   "id": "p:tag-brings-callback",
+   "proximity": "tag-brings-callback",
+   "label": "When a tag scene ties back, an old joke returns",
+   "from": {
+    "curiosity": "tagScene.link",
+    "track": "master",
+    "is": "a callback",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "callback",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a tag scene ties back",
+   "then": "an old joke returns"
+  },
+  {
+   "id": "p:music-stops-silence-laugh",
+   "proximity": "music-stops-silence-laugh",
+   "label": "When the funny music stops dead, the silence gets the laugh",
+   "from": {
+    "curiosity": "comicScore.stopsDead",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicSound.silenceBeat",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the funny music stops dead",
+   "then": "the silence gets the laugh"
+  },
+  {
+   "id": "p:music-every-step-bigger",
+   "proximity": "music-every-step-bigger",
+   "label": "When the music copies every step, the physical comedy gets bigger",
+   "from": {
+    "curiosity": "comicScore.followsMoves",
+    "track": "master",
+    "is": "every step",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "physicalComedy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music copies every step",
+   "then": "the physical comedy gets bigger"
+  },
+  {
+   "id": "p:ramble-cringe",
+   "proximity": "ramble-cringe",
+   "label": "When someone talks past the point, the cringe rises",
+   "from": {
+    "curiosity": "comicRamble",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone talks past the point",
+   "then": "the cringe rises"
+  },
+  {
+   "id": "p:absurd-said-back",
+   "proximity": "absurd-said-back",
+   "label": "When something absurd is said, someone says it back",
+   "from": {
+    "curiosity": "absurdity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "repeatBack",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "something absurd is said",
+   "then": "someone says it back"
+  },
+  {
+   "id": "p:narrator-freeze",
+   "proximity": "narrator-freeze",
+   "label": "When the narrator jumps in with an intro, the frame freezes",
+   "from": {
+    "curiosity": "narratorGag",
+    "track": "master",
+    "is": "freeze frame intro",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "freezeFrame",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "freeze with a title",
+   "when": "the narrator jumps in with an intro",
+   "then": "the frame freezes"
+  },
+  {
+   "id": "p:narration-contradicted",
+   "proximity": "narration-contradicted",
+   "label": "When the voice-over says one thing and the picture shows another, the narrator joke lands",
+   "from": {
+    "curiosity": "voiceover.truth",
+    "track": "master",
+    "is": "the picture says otherwise",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "narratorGag.contradiction",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the voice-over says one thing and the picture shows another",
+   "then": "the narrator joke lands"
+  },
+  {
+   "id": "p:bit-grows-absurd",
+   "proximity": "bit-grows-absurd",
+   "label": "When everyone plays along, the absurdity grows",
+   "from": {
+    "curiosity": "yesAnd",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "absurdity",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone plays along",
+   "then": "the absurdity grows"
+  },
+  {
+   "id": "p:crack-up-warmth",
+   "proximity": "crack-up-warmth",
+   "label": "When the performers laugh out loud, the warmth grows",
+   "from": {
+    "curiosity": "corpsing",
+    "track": "master",
+    "is": "laughing out loud",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the performers laugh out loud",
+   "then": "the warmth grows"
+  },
+  {
+   "id": "p:close-face-pulls-us-in",
+   "proximity": "close-face-pulls-us-in",
+   "label": "When we see their face up close, we feel with them more",
+   "from": {
+    "curiosity": "shotSize",
+    "track": "camera",
+    "is": "close",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we see their face up close",
+   "then": "we feel with them more"
+  },
+  {
+   "id": "p:felt-with-tears-earned",
+   "proximity": "felt-with-tears-earned",
+   "label": "When we feel with them, their tears feel earned",
+   "from": {
+    "curiosity": "empathy",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "earnedTears",
+    "track": "master"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we feel with them",
+   "then": "their tears feel earned"
+  },
+  {
+   "id": "p:turning-against-them",
+   "proximity": "turning-against-them",
+   "label": "When we turn against them, we stop feeling with them",
+   "from": {
+    "curiosity": "sideTaking",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "we turn against them",
+   "then": "we stop feeling with them"
+  },
+  {
+   "id": "p:kindness-wins-us-over",
+   "proximity": "kindness-wins-us-over",
+   "label": "When they show gentle care, we take their side",
+   "from": {
+    "curiosity": "tenderness",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sideTaking",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they show gentle care",
+   "then": "we take their side"
+  },
+  {
+   "id": "p:vast-place-brings-awe",
+   "proximity": "vast-place-brings-awe",
+   "label": "When the place is huge, awe arrives",
+   "from": {
+    "curiosity": "scale",
+    "track": "master",
+    "is": "city",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "awe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the place is huge",
+   "then": "awe arrives"
+  },
+  {
+   "id": "p:awe-hushes-voices",
+   "proximity": "awe-hushes-voices",
+   "label": "When awe hits, the talking stops",
+   "from": {
+    "curiosity": "awe",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "wordsAmount",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "awe hits",
+   "then": "the talking stops"
+  },
+  {
+   "id": "p:awe-backlight",
+   "proximity": "awe-backlight",
+   "label": "When awe hits, light pours in from behind",
+   "from": {
+    "curiosity": "awe",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "lightingLens.key",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "back",
+   "when": "awe hits",
+   "then": "light pours in from behind"
+  },
+  {
+   "id": "p:old-theme-nostalgia",
+   "proximity": "old-theme-nostalgia",
+   "label": "When an old tune returns, nostalgia comes with it",
+   "from": {
+    "curiosity": "music.repeatTheme",
+    "track": "master",
+    "is": "a theme returns",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "nostalgia",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "an old tune returns",
+   "then": "nostalgia comes with it"
+  },
+  {
+   "id": "p:nostalgia-warms-color",
+   "proximity": "nostalgia-warms-color",
+   "label": "When nostalgia rises, the color warms",
+   "from": {
+    "curiosity": "nostalgia",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmCool",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "warm",
+   "when": "nostalgia rises",
+   "then": "the color warms"
+  },
+  {
+   "id": "p:nostalgia-to-longing",
+   "proximity": "nostalgia-to-longing",
+   "label": "When the past calls, longing grows",
+   "from": {
+    "curiosity": "nostalgia",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "longing",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the past calls",
+   "then": "longing grows"
+  },
+  {
+   "id": "p:longing-to-lonely",
+   "proximity": "longing-to-lonely",
+   "label": "When longing grows, loneliness follows",
+   "from": {
+    "curiosity": "longing",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "longing grows",
+   "then": "loneliness follows"
+  },
+  {
+   "id": "p:lonely-empty-frame",
+   "proximity": "lonely-empty-frame",
+   "label": "When loneliness grows, the frame empties around them",
+   "from": {
+    "curiosity": "loneliness",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emptySpace",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "most",
+   "when": "loneliness grows",
+   "then": "the frame empties around them"
+  },
+  {
+   "id": "p:lonely-music-falls-away",
+   "proximity": "lonely-music-falls-away",
+   "label": "When loneliness grows, the music falls away",
+   "from": {
+    "curiosity": "loneliness",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "noMusic",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "loneliness grows",
+   "then": "the music falls away"
+  },
+  {
+   "id": "p:humiliation-to-shame",
+   "proximity": "humiliation-to-shame",
+   "label": "When they are humiliated, shame sets in",
+   "from": {
+    "curiosity": "humiliation",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they are humiliated",
+   "then": "shame sets in"
+  },
+  {
+   "id": "p:wound-touched-shame",
+   "proximity": "wound-touched-shame",
+   "label": "When the old wound is touched, shame comes back",
+   "from": {
+    "curiosity": "wound.touched",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the old wound is touched",
+   "then": "shame comes back"
+  },
+  {
+   "id": "p:shame-eyes-drop",
+   "proximity": "shame-eyes-drop",
+   "label": "When shame rises, the eyes drop",
+   "from": {
+    "curiosity": "shame",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoEyes",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "down",
+   "when": "shame rises",
+   "then": "the eyes drop"
+  },
+  {
+   "id": "p:shame-room-squirms",
+   "proximity": "shame-room-squirms",
+   "label": "When shame rises, the room squirms",
+   "from": {
+    "curiosity": "shame",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "shame rises",
+   "then": "the room squirms"
+  },
+  {
+   "id": "p:guilt-held-in",
+   "proximity": "guilt-held-in",
+   "label": "When guilt grows, they hold more in",
+   "from": {
+    "curiosity": "guilt",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotionalDebt",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "guilt grows",
+   "then": "they hold more in"
+  },
+  {
+   "id": "p:guilt-under-words",
+   "proximity": "guilt-under-words",
+   "label": "When guilt grows, words stop matching meaning",
+   "from": {
+    "curiosity": "guilt",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "guilt grows",
+   "then": "words stop matching meaning"
+  },
+  {
+   "id": "p:amends-bring-relief",
+   "proximity": "amends-bring-relief",
+   "label": "When they make it right, relief follows",
+   "from": {
+    "curiosity": "guilt.amends",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "relief",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they make it right",
+   "then": "relief follows"
+  },
+  {
+   "id": "p:pride-swells-setback",
+   "proximity": "pride-swells-setback",
+   "label": "When pride swells, a setback follows",
+   "from": {
+    "curiosity": "pride",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotProgress",
+    "track": "character"
+   },
+   "within": 5,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "pride swells",
+   "then": "a setback follows"
+  },
+  {
+   "id": "p:jealousy-opens-gap",
+   "proximity": "jealousy-opens-gap",
+   "label": "When jealousy flares, the two drift apart",
+   "from": {
+    "curiosity": "jealousy",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotionGap",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "jealousy flares",
+   "then": "the two drift apart"
+  },
+  {
+   "id": "p:jealousy-hardens",
+   "proximity": "jealousy-hardens",
+   "label": "When jealousy lingers, it hardens into a grudge",
+   "from": {
+    "curiosity": "jealousy",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "resentment",
+    "track": "master"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "jealousy lingers",
+   "then": "it hardens into a grudge"
+  },
+  {
+   "id": "p:dread-lifts-relief",
+   "proximity": "dread-lifts-relief",
+   "label": "When the dread lifts, relief floods in",
+   "from": {
+    "curiosity": "dread",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "relief",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the dread lifts",
+   "then": "relief floods in"
+  },
+  {
+   "id": "p:relief-breath-out",
+   "proximity": "relief-breath-out",
+   "label": "When relief comes, the breath slows",
+   "from": {
+    "curiosity": "relief",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "bodyFeeling.breath",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "calm",
+   "when": "relief comes",
+   "then": "the breath slows"
+  },
+  {
+   "id": "p:earned-tears-release",
+   "proximity": "earned-tears-release",
+   "label": "When the tears are earned, the release arrives",
+   "from": {
+    "curiosity": "earnedTears",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "catharsis",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the tears are earned",
+   "then": "the release arrives"
+  },
+  {
+   "id": "p:loud-music-too-sweet",
+   "proximity": "loud-music-too-sweet",
+   "label": "When the music swells into a wall of sound, it turns too sweet",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "wall of sound",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sentimentality",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music swells into a wall of sound",
+   "then": "it turns too sweet"
+  },
+  {
+   "id": "p:sugar-pushes-away",
+   "proximity": "sugar-pushes-away",
+   "label": "When it gets too sweet, the audience pulls back",
+   "from": {
+    "curiosity": "sentimentality",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "it gets too sweet",
+   "then": "the audience pulls back"
+  },
+  {
+   "id": "p:cold-telling-distance",
+   "proximity": "cold-telling-distance",
+   "label": "When the telling turns ice cold, we feel less with them",
+   "from": {
+    "curiosity": "storyTemperature",
+    "track": "master",
+    "is": "ice cold",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the telling turns ice cold",
+   "then": "we feel less with them"
+  },
+  {
+   "id": "p:warm-telling-moves-closer",
+   "proximity": "warm-telling-moves-closer",
+   "label": "When the telling warms, the camera moves closer",
+   "from": {
+    "curiosity": "storyTemperature",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close",
+   "when": "the telling warms",
+   "then": "the camera moves closer"
+  },
+  {
+   "id": "p:strong-feeling-in-body",
+   "proximity": "strong-feeling-in-body",
+   "label": "When the feeling grows strong, the body shows it",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "bodyFeeling",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the feeling grows strong",
+   "then": "the body shows it"
+  },
+  {
+   "id": "p:lump-breaks-voice",
+   "proximity": "lump-breaks-voice",
+   "label": "When their throat closes, the voice breaks",
+   "from": {
+    "curiosity": "bodyFeeling.throat",
+    "track": "master",
+    "is": "can't speak",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoVoice.crack",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "breaks",
+   "when": "their throat closes",
+   "then": "the voice breaks"
+  },
+  {
+   "id": "p:fade-leaves-aftertaste",
+   "proximity": "fade-leaves-aftertaste",
+   "label": "When the scene fades out, the feeling lingers",
+   "from": {
+    "curiosity": "fadeEdge",
+    "track": "master",
+    "is": "fade out",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sceneAftertaste",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the scene fades out",
+   "then": "the feeling lingers"
+  },
+  {
+   "id": "p:aftertaste-colors-next",
+   "proximity": "aftertaste-colors-next",
+   "label": "When the feeling lingers, the next scene feels the same",
+   "from": {
+    "curiosity": "sceneAftertaste",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoContrastPrev",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the feeling lingers",
+   "then": "the next scene feels the same"
+  },
+  {
+   "id": "p:release-shapes-ending",
+   "proximity": "release-shapes-ending",
+   "label": "When the big release comes, the ending stays with us",
+   "from": {
+    "curiosity": "catharsis",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "filmAftertaste",
+    "track": "master"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the big release comes",
+   "then": "the ending stays with us"
+  },
+  {
+   "id": "p:echo-shapes-ending",
+   "proximity": "echo-shapes-ending",
+   "label": "When an old feeling comes back, the ending lingers longer",
+   "from": {
+    "curiosity": "feelingEcho",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "filmAftertaste",
+    "track": "master"
+   },
+   "within": 5,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "an old feeling comes back",
+   "then": "the ending lingers longer"
+  },
+  {
+   "id": "p:loss-brings-grief",
+   "proximity": "loss-brings-grief",
+   "label": "When hope is lost, grief sets in",
+   "from": {
+    "curiosity": "hope",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "grief",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "hope is lost",
+   "then": "grief sets in"
+  },
+  {
+   "id": "p:grief-lets-a-laugh-in",
+   "proximity": "grief-lets-a-laugh-in",
+   "label": "When grief is heavy, a laugh slips in",
+   "from": {
+    "curiosity": "grief",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughThroughGrief",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "grief is heavy",
+   "then": "a laugh slips in"
+  },
+  {
+   "id": "p:laugh-into-tears",
+   "proximity": "laugh-into-tears",
+   "label": "When they laugh through sadness, the tears come",
+   "from": {
+    "curiosity": "laughThroughGrief",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoRelease",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "tears",
+   "when": "they laugh through sadness",
+   "then": "the tears come"
+  },
+  {
+   "id": "p:laugh-and-sorrow-mix",
+   "proximity": "laugh-and-sorrow-mix",
+   "label": "When they laugh through sadness, the feelings blend",
+   "from": {
+    "curiosity": "laughThroughGrief",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "mixedFeelings",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "even",
+   "when": "they laugh through sadness",
+   "then": "the feelings blend"
+  },
+  {
+   "id": "p:betrayal-chills",
+   "proximity": "betrayal-chills",
+   "label": "When they are betrayed, the warmth goes cold",
+   "from": {
+    "curiosity": "betrayal",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they are betrayed",
+   "then": "the warmth goes cold"
+  },
+  {
+   "id": "p:betrayal-breeds-grudge",
+   "proximity": "betrayal-breeds-grudge",
+   "label": "When they are betrayed, a grudge takes root",
+   "from": {
+    "curiosity": "betrayal",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "resentment",
+    "track": "master"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they are betrayed",
+   "then": "a grudge takes root"
+  },
+  {
+   "id": "p:grudge-boils-over",
+   "proximity": "grudge-boils-over",
+   "label": "When the grudge nears boiling, anger breaks out",
+   "from": {
+    "curiosity": "resentment.boilsOver",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "angry",
+   "when": "the grudge nears boiling",
+   "then": "anger breaks out"
+  },
+  {
+   "id": "p:forgiveness-rewarms",
+   "proximity": "forgiveness-rewarms",
+   "label": "When they forgive, the warmth comes back",
+   "from": {
+    "curiosity": "forgiveness",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they forgive",
+   "then": "the warmth comes back"
+  },
+  {
+   "id": "p:forgiveness-releases",
+   "proximity": "forgiveness-releases",
+   "label": "When they forgive, the big release comes",
+   "from": {
+    "curiosity": "forgiveness",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "catharsis",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they forgive",
+   "then": "the big release comes"
+  },
+  {
+   "id": "p:tenderness-holds-hands",
+   "proximity": "tenderness-holds-hands",
+   "label": "When tenderness grows, hands are held",
+   "from": {
+    "curiosity": "tenderness",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "touch",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "held",
+   "when": "tenderness grows",
+   "then": "hands are held"
   }
  ],
  "groups": [
@@ -12541,6 +14326,278 @@
     "p:more-screen-time-heavier-plot",
     "p:heavy-side-story-joins-main",
     "p:joined-plots-raise-stakes"
+   ]
+  },
+  {
+   "id": "ps:flop-spiral",
+   "label": "The flop spiral",
+   "plain": "A joke dies, the silence stretches, the teller explains it, the ramble makes it worse, and the cringe peaks.",
+   "proximities": [
+    "flop-silence",
+    "flop-explained",
+    "ramble-cringe",
+    "cringe-silence"
+   ],
+   "links": [
+    "p:flop-silence",
+    "p:flop-explained",
+    "p:ramble-cringe",
+    "p:cringe-silence"
+   ]
+  },
+  {
+   "id": "ps:petty-quest-chain",
+   "label": "Petty quest to ruin",
+   "plain": "A tiny want meets huge effort, a montage of failures escalates it, the prize is won and ruined, and the humiliation makes everyone cringe.",
+   "proximities": [
+    "tiny-want-escalates",
+    "failure-montage-escalates",
+    "tiny-want-ruined",
+    "humiliation-cringe"
+   ],
+   "links": [
+    "p:tiny-want-escalates",
+    "p:failure-montage-escalates",
+    "p:tiny-want-ruined",
+    "p:humiliation-cringe"
+   ]
+  },
+  {
+   "id": "ps:epic-then-popped",
+   "label": "Epic fuss, then popped",
+   "plain": "Something tiny gets the slow-motion hero treatment, a smash cut pops it, a topper follows and a button closes the scene.",
+   "proximities": [
+    "epic-slow-motion",
+    "epic-popped",
+    "laugh-topper",
+    "topper-then-button"
+   ],
+   "links": [
+    "p:epic-slow-motion",
+    "p:epic-popped",
+    "p:laugh-topper",
+    "p:topper-then-button"
+   ]
+  },
+  {
+   "id": "ps:chase-to-crash",
+   "label": "Chase to crash",
+   "plain": "The trap is shown, the music copies every step, the chase picks up, things crash, and cartoon rules mean nobody really gets hurt.",
+   "proximities": [
+    "trap-shown-fall",
+    "music-every-step-bigger",
+    "chase-crashes",
+    "cartoon-no-pain"
+   ],
+   "links": [
+    "p:trap-shown-fall",
+    "p:music-every-step-bigger",
+    "p:chase-crashes",
+    "p:cartoon-no-pain"
+   ]
+  },
+  {
+   "id": "ps:roast-night",
+   "label": "Roast night",
+   "plain": "An insult stings, a better comeback answers, one goes too far and the room stops dead, then the love underneath warms things back up.",
+   "proximities": [
+    "roast-comeback",
+    "roast-room-stops",
+    "room-stops-scratch",
+    "loving-roast-warmth"
+   ],
+   "links": [
+    "p:roast-comeback",
+    "p:roast-room-stops",
+    "p:room-stops-scratch",
+    "p:loving-roast-warmth"
+   ]
+  },
+  {
+   "id": "ps:laugh-then-cry",
+   "label": "Laugh, then cry",
+   "plain": "Self-mockery hides hurt, the joke turns sad on one line, the music drops away, and the tears finally tip back into a laugh.",
+   "proximities": [
+    "self-mock-hurt",
+    "sad-turn-music-drops",
+    "tears-to-laugh-release"
+   ],
+   "links": [
+    "p:self-mock-hurt",
+    "p:sad-turn-music-drops",
+    "p:tears-to-laugh-release"
+   ]
+  },
+  {
+   "id": "ps:sitcom-scene-shape",
+   "label": "Sitcom scene shape",
+   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke.",
+   "proximities": [
+    "catchphrase-held-back",
+    "laugh-topper",
+    "topper-then-button",
+    "button-then-cut",
+    "tag-brings-callback"
+   ],
+   "links": [
+    "p:catchphrase-held-back",
+    "p:laugh-topper",
+    "p:topper-then-button",
+    "p:button-then-cut",
+    "p:tag-brings-callback"
+   ]
+  },
+  {
+   "id": "ps:farce-at-the-doors",
+   "label": "Farce at the doors",
+   "plain": "Two people just miss each other, tension jumps, the disguise slips and the lie grows, until the near misses tip the room into chaos.",
+   "proximities": [
+    "near-miss-tension",
+    "disguise-slips-lie-grows",
+    "lie-grows",
+    "near-misses-chaos"
+   ],
+   "links": [
+    "p:near-miss-tension",
+    "p:disguise-slips-lie-grows",
+    "p:lie-grows",
+    "p:near-misses-chaos"
+   ]
+  },
+  {
+   "id": "ps:from-loss-to-letting-go",
+   "label": "From loss to letting go",
+   "plain": "Hope dies, grief sets in, a laugh slips through, the tears come, and the release arrives.",
+   "proximities": [
+    "loss-brings-grief",
+    "grief-lets-a-laugh-in",
+    "laugh-into-tears",
+    "earned-tears-release"
+   ],
+   "links": [
+    "p:loss-brings-grief",
+    "p:grief-lets-a-laugh-in",
+    "p:laugh-into-tears",
+    "p:earned-tears-release"
+   ]
+  },
+  {
+   "id": "ps:betrayed-then-forgiven",
+   "label": "Betrayed, then forgiven",
+   "plain": "Trust breaks, warmth cools, a grudge grows and boils over, until forgiveness warms things again and brings release.",
+   "proximities": [
+    "betrayal-chills",
+    "betrayal-breeds-grudge",
+    "grudge-boils-over",
+    "forgiveness-rewarms",
+    "forgiveness-releases"
+   ],
+   "links": [
+    "p:betrayal-chills",
+    "p:betrayal-breeds-grudge",
+    "p:grudge-boils-over",
+    "p:forgiveness-rewarms",
+    "p:forgiveness-releases"
+   ]
+  },
+  {
+   "id": "ps:shame-spiral",
+   "label": "Shame spiral",
+   "plain": "An old wound or a public humiliation brings shame, the eyes drop and the whole room squirms.",
+   "proximities": [
+    "wound-touched-shame",
+    "humiliation-to-shame",
+    "shame-eyes-drop",
+    "shame-room-squirms"
+   ],
+   "links": [
+    "p:wound-touched-shame",
+    "p:humiliation-to-shame",
+    "p:shame-eyes-drop",
+    "p:shame-room-squirms"
+   ]
+  },
+  {
+   "id": "ps:getting-it-off-their-chest",
+   "label": "Getting it off their chest",
+   "plain": "Guilt piles up and twists their words until they make it right, relief floods in and the breath slows.",
+   "proximities": [
+    "guilt-held-in",
+    "guilt-under-words",
+    "amends-bring-relief",
+    "relief-breath-out"
+   ],
+   "links": [
+    "p:guilt-held-in",
+    "p:guilt-under-words",
+    "p:amends-bring-relief",
+    "p:relief-breath-out"
+   ]
+  },
+  {
+   "id": "ps:the-ache-of-missing",
+   "label": "The ache of missing",
+   "plain": "An old tune brings back the past, the past turns into longing, longing into loneliness, and the frame and music empty out.",
+   "proximities": [
+    "old-theme-nostalgia",
+    "nostalgia-to-longing",
+    "longing-to-lonely",
+    "lonely-empty-frame",
+    "lonely-music-falls-away"
+   ],
+   "links": [
+    "p:old-theme-nostalgia",
+    "p:nostalgia-to-longing",
+    "p:longing-to-lonely",
+    "p:lonely-empty-frame",
+    "p:lonely-music-falls-away"
+   ]
+  },
+  {
+   "id": "ps:earning-the-tears",
+   "label": "Earning the tears",
+   "plain": "Close faces and small kindnesses win us over, so the tears feel earned, the release lands, and the ending stays with us.",
+   "proximities": [
+    "close-face-pulls-us-in",
+    "kindness-wins-us-over",
+    "felt-with-tears-earned",
+    "earned-tears-release",
+    "release-shapes-ending"
+   ],
+   "links": [
+    "p:close-face-pulls-us-in",
+    "p:kindness-wins-us-over",
+    "p:felt-with-tears-earned",
+    "p:earned-tears-release",
+    "p:release-shapes-ending"
+   ]
+  },
+  {
+   "id": "ps:sugar-backfires",
+   "label": "Too much sugar backfires",
+   "plain": "Music turned up too high makes a scene syrupy, and the audience pulls back instead of leaning in.",
+   "proximities": [
+    "loud-music-too-sweet",
+    "sugar-pushes-away"
+   ],
+   "links": [
+    "p:loud-music-too-sweet",
+    "p:sugar-pushes-away"
+   ]
+  },
+  {
+   "id": "ps:envy-turns-sour",
+   "label": "Envy turns sour",
+   "plain": "Jealousy opens a gap, hardens into a grudge, and finally boils over into anger.",
+   "proximities": [
+    "jealousy-opens-gap",
+    "jealousy-hardens",
+    "grudge-boils-over"
+   ],
+   "links": [
+    "p:jealousy-opens-gap",
+    "p:jealousy-hardens",
+    "p:grudge-boils-over"
    ]
   }
  ]

@@ -50,6 +50,7 @@ New lens rows should go in one place: send them to the database thread, or add t
 | `db-editing.js` | Editing curiosities from Final Cut Pro and CapCut (by the Main layout thread, PR #28): 7 proposed workspaces (transitions, filters and adjustments, text and captions, speed and timing, audio mix, layers and masks, frame and canvas), 34 curiosities with momentum notes, 8 suites, 14 proximities, 3 proximity suites |
 | `db-maya.js` | Maya's big topics as 20 lenses (animation feel, time and speed, poses, face, crowds, light setup, surfaces, skin, drawn or real look, layers, the camera lens, shots in order, forces, cloth, crashes, bits in the air, hair and fur, liquids, smoke and fire, scattered things), many gathering the flat Maya rows as sliders; each row also carries `maya` (the Maya name) and `tool` (the Studio tool). Plus Maya suites, proximities and proximity suites. Loaded after db-momentum.js and writes its own momentum notes. From the "Bring Maya into the app" thread |
 | `db-ties.js` | Every curiosity tied into the four levels: each one is the cause or effect of at least one proximity and a member of at least one suite (223 proximities, 55 suites, 45 proximity suites, written so no curiosity stands alone). Loaded last |
+| `db-heart.js` | Comedy and emotion, deeper: 28 comedy curiosities and 23 emotion curiosities, each with its own sliders and a momentum note, plus 33 suites, 90 proximities and 16 proximity suites that tie them in. Loaded after db-ties.js |
 | `db-proximity-words.js` | Plain "When ..., ..." halves for proximities named another way ("Pride before a fall") |
 | `db-model-scenes.js` | Eight made-up scenes written as beat-by-beat traces (a diner standoff, a meet-cute, a dinner party, a dark hallway, a montage, a deadpan office, a quiet goodbye, a kitchen disaster), so the Prism and Study views have films to split. Not real films |
 | `model-scenes.studies.json` | Those scenes as a file the Study tab's Import button reads. Written by `check-db.js` |
@@ -90,6 +91,7 @@ The database is switched on in `index.html` (this PR): the block below sits righ
    <script src="data/db-editing.js"></script>
    <script src="data/db-maya.js"></script>
    <script src="data/db-ties.js"></script>
+   <script src="data/db-heart.js"></script>
    <script>CuriosityDB.install({ CURIOSITIES, SUITES, PROXIMITIES });</script>
    ```
 

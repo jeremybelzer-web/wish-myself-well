@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 12, CC 65 to 80\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 suite: Comedy punch\n   9 suite: Reaction comedy\n  10 pair: When the picture freezes, a title appears\n  11 pair: When the joke pays off, a mood pops onto a face\n  12 pair: When someone gets angry, steam pops onto their face\n  13 pair: When an outro effect closes the film, an end card follows\n  14 pair: When captions appear word by word, eyes stay glued to the screen\n  15 pair: When the text is in comic-book style, the comedy goes cartoon\n  16 pair: When stickers and emoji pile up, the laughs speed up\nCV-CC 2: MIDI channel 12, CC 81 to 83\n   1 pair: When a chapter card appears, the story stops and restarts\n   2 pairs: Words that point\n   3 pairs: Phone comedy reactions"
+    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 14, CC 33 to 48\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 suite: Comedy punch\n   9 suite: Reaction comedy\n  10 pair: When the picture freezes, a title appears\n  11 pair: When the joke pays off, a mood pops onto a face\n  12 pair: When someone gets angry, steam pops onto their face\n  13 pair: When an outro effect closes the film, an end card follows\n  14 pair: When captions appear word by word, eyes stay glued to the screen\n  15 pair: When the text is in comic-book style, the comedy goes cartoon\n  16 pair: When stickers and emoji pile up, the laughs speed up\nCV-CC 2: MIDI channel 14, CC 49 to 51\n   1 pair: When a chapter card appears, the story stops and restarts\n   2 pairs: Words that point\n   3 pairs: Phone comedy reactions"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
     ],
     "midi": {
-     "channel": 11
+     "channel": 13
     }
    },
    "pos": [
@@ -59,9 +59,9 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     83,
+     49,
+     50,
+     51,
      -1,
      -1,
      -1,
@@ -77,7 +77,7 @@
      -1
     ],
     "midi": {
-     "channel": 11
+     "channel": 13
     }
    },
    "pos": [

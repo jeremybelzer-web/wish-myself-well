@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "FRAME & CANVAS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 14, CC 1 to 14\n   1 Punch-in and reframe\n   2 Mirror and rotate\n   3 Steadying\n   4 Canvas edges\n   5 Fake camera move\n   6 3D frame move\n   7 Focus changed in the edit\n   8 suite: Kaleidoscope\n   9 pair: When the joke pays off, the editor punches in\n  10 pair: When the camera goes handheld, the shake is left in\n  11 pair: When impacts rise, the editor slam zooms\n  12 pair: When the frame spins like a cube, the pace jumps\n  13 pair: When the picture is tilted, the tension rises\n  14 pairs: The editor tells the joke"
+    "text": "FRAME & CANVAS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 15, CC 81 to 94\n   1 Punch-in and reframe\n   2 Mirror and rotate\n   3 Steadying\n   4 Canvas edges\n   5 Fake camera move\n   6 3D frame move\n   7 Focus changed in the edit\n   8 suite: Kaleidoscope\n   9 pair: When the joke pays off, the editor punches in\n  10 pair: When the camera goes handheld, the shake is left in\n  11 pair: When impacts rise, the editor slam zooms\n  12 pair: When the frame spins like a cube, the pace jumps\n  13 pair: When the picture is tilted, the tension rises\n  14 pairs: The editor tells the joke"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     1,
-     2,
-     3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10,
-     11,
-     12,
-     13,
-     14,
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
      -1,
      -1
     ],
     "midi": {
-     "channel": 13
+     "channel": 14
     }
    },
    "pos": [
