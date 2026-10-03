@@ -27,7 +27,7 @@ Curiomatic's main layout. It was first modeled on Final Cut Pro (Jeremy, 2026-10
   - **This frame as a picture** saves the playhead's frame of My film (the plain picture, without the lens) as **PNG** (1280px on its long side) or **SVG**.
   - **Settings list (spreadsheet)** saves a CSV: one row per moment (moment, time, marker note), then one column per curiosity that has a value anywhere, with plain labels in the header and plain values in the cells. It opens in any spreadsheet app.
   - The pure builders are `window.CurioScreenExport`: `sheetHtml(data)`, `csv(moments, { keys, label, text })`, `changes(prev, cur, opts)`, `frameSvg(svg, shape, px)` and `fileName(film, what, ext)`; `tests/run.js` checks them with no page.
-- **Shortcuts** (the bar, or press ?): CapCut's whole Shortcut window (Timeline, Player, Basic and Other tabs) and its toolbar tooltips, each doing the nearest thing here: ⌘B split, ⇧⌘B split all, A select, B split mode, [ and ] step between nodes, P magnet, N snapping, ~ linkage, S preview axis, M marker, ⌘+ and ⌘− zoom, ⇧Z fit, J K L shuttle, Q and W delete left and right, ⇧⌥K add a node, Space play, ⇧⌘F full-screen Player, ⌥⇧+ ⌥⇧− ⌥⇧Z Player zoom, ⌘⌥R rulers, ⌘; guides, ⌘C ⌘X ⌘V, ⇧⌘C and ⇧⌘V copy and paste a node's setting, ⌫ delete, ⌘Z and ⇧⌘Z. Keys with nothing to do here yet are listed, faded. ⌘ is Ctrl on Windows.
+- **Shortcuts** (the bar, or press ?): CapCut's whole Shortcut window (Timeline, Player, Basic and Other tabs) and its toolbar tooltips, each doing the nearest thing here: ⌘B split, ⇧⌘B split all, A select, B split mode, [ and ] step between nodes, P magnet, N snapping, ~ linkage, S preview axis, M marker, ⌘+ and ⌘− zoom, ⇧Z fit, J K L shuttle, Q and W delete left and right, ⇧⌥K add a node, Space play, ⇧⌘F full-screen Player, ⌥⇧+ ⌥⇧− ⌥⇧Z Player zoom, ⌘⌥R rulers, ⌘; the thirds guide, ⌘C ⌘X ⌘V, ⇧⌘C and ⇧⌘V copy and paste a node's setting, ⌫ delete, ⌘Z and ⇧⌘Z. Keys with nothing to do here yet are listed, faded. ⌘ is Ctrl on Windows.
 
 ## How it is built
 
@@ -93,6 +93,18 @@ Pure helpers: `laneGroups(lanes, { catOf, labelOf, hasNodes, folds })` and `fold
 Like CapCut's ◀ ◆ ▶: in Details, once a curiosity has nodes, small ◀ and ▶ sit either side of its key diamond. ◀ moves the playhead to the moment of its previous node, ▶ to its next; greyed when there is none that way. The diamond works as before. The windows keep the bare diamond (`keyNavBtns` in `ui.js` wraps `keyBtn` for Details rows only).
 
 **Ratio** in the Player's transport bar is CapCut's Ratio menu: wide 16:9, vertical 9:16, square 1:1 or cinema 2.39. It is Canvas edges' "Frame shape" slider (`canvasFill.ratio` in `data/db-editing.js`), so picking one puts a node at the playhead, and it can change during the film. My film's frame in the Player takes that shape, no taller than the wide frame, with the storyboard picture cropped to fill it, centered (like reframing a shot); inspiration films keep their own shape.
+
+## Guides over the picture
+
+Like the guides CapCut's Player can show. **Guides ▾** sits next to Ratio in the Player's transport bar. Tick any mix of them; they are drawn over My film's frame only, in its frame shape (a vertical frame gets vertical guides), and never get in the way of a click on the frame. Hover over a guide in the menu for one line on what it is for.
+
+- **Thirds**: two lines each way at a third and two thirds. Put the important thing where the lines cross; pictures feel more alive than when it's dead center.
+- **Center cross**: a small cross in the exact middle.
+- **Safe areas**: the action-safe box (90% of the frame) and the title-safe box (80%), labeled "keep action inside" and "keep words inside".
+- **Golden ratio**: lines at about 38% and 62% each way, a little nearer the middle than thirds.
+- **Where attention is**: the rest of the picture dims a little around a soft glow on the part the moment's attention sits on, with a line such as "Eyes on: the main character's face". It uses the momentum reading's family for the moment (`CurioAttention`, the same as the "Attention:" label). `CurioFrame` doesn't report where it drew things, so `guideSpot` works the spot out from the moment's values with frame.js's own placement rules. Shot size, camera height, how many people and a left composition decide where the main character's face and body are. An insert shot means the object. A feeling, a thought or a plot turn glows on the face. Movement, wardrobe and camera glow on the whole main character, voice on the speech balloon, music on the notes, set and light on the window, comedy on the gag or the laughs. Anything else glows on the middle of the picture. With no reading it glows on the main character's face, where the eye goes first. The glow is cropped with the picture in a non-wide frame, so in a vertical frame it can fall outside what is shown.
+
+Guides are a view setting, not part of the film, and never an undo step. They are kept in `curiosities-screen-v1` as `guides: ["thirds", ...]`. An older save that kept `guides: true` (the single ⌘; thirds switch) loads as Thirds. ⌘; still turns the thirds guide on and off. `CurioScreen.guides` has `list()`, `on()` and `spot(values, family, cast)` for tests.
 
 ## Whole film strip
 

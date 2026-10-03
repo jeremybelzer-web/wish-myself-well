@@ -894,6 +894,90 @@ const ok = (cond, msg) => {
   await setRatio("wide 16:9");
   ok((await shape()).shape === "wide", "back to wide");
 
+  /* Guides (CapCut's Player guides): Guides ▾ in the transport bar, any combination, over my film only, in its
+     frame shape, saved in the Screen's view, never an undo step, never in the way of a click. */
+  {
+    const gd = () => page.evaluate(() => {
+      const f = document.querySelector(".sc-viewer.mine .sc-frame");
+      const r = f.getBoundingClientRect();
+      const o = f.querySelector(".sc-gd");
+      const rel = (el) => { const b = el.getBoundingClientRect(); return { l: (b.left - r.left) / r.width, t: (b.top - r.top) / r.height, w: b.width / r.width, h: b.height / r.height }; };
+      return {
+        on: o ? [...o.querySelectorAll("[data-gd]")].map((g) => g.dataset.gd) : [],
+        box: o && rel(o),
+        thirds: o ? [...o.querySelectorAll('[data-gd="thirds"] .sc-gd-v')].map((e) => rel(e).l) : [],
+        thirdsH: o ? [...o.querySelectorAll('[data-gd="thirds"] .sc-gd-h')].map((e) => rel(e).t) : [],
+        golden: o ? [...o.querySelectorAll('[data-gd="golden"] .sc-gd-v')].map((e) => rel(e).l) : [],
+        cross: o && o.querySelector(".sc-gd-cross") ? rel(o.querySelector(".sc-gd-cross")) : null,
+        action: o && o.querySelector(".sc-gd-box.action") ? rel(o.querySelector(".sc-gd-box.action")) : null,
+        title: o && o.querySelector(".sc-gd-box.title") ? rel(o.querySelector(".sc-gd-box.title")) : null,
+        spot: o && o.querySelector(".sc-gd-spot") ? { el: rel(o.querySelector(".sc-gd-spot")), par: o.querySelector(".sc-gd-att").getAttribute("preserveAspectRatio"), cap: o.querySelector(".sc-gd-cap").textContent } : null,
+        insp: document.querySelectorAll(".sc-viewer.insp .sc-gd").length,
+        pe: o ? getComputedStyle(o).pointerEvents : null,
+        shape: f.dataset.shape, w: r.width, h: r.height,
+      };
+    });
+    const tick = (id) => page.click(`.sc-guides-menu [data-guide="${id}"]`);
+    const near = (a, b, e) => Math.abs(a - b) < (e || 0.015);
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    ok(!!(await page.$('.sc-transport [data-act="guides-menu"]')) && !(await page.$(".sc-guides-menu")) && (await gd()).on.length === 0, "the transport bar has a Guides ▾ menu, closed, with nothing drawn yet");
+    await page.click('[data-act="guides-menu"]');
+    const items = await page.evaluate(() => [...document.querySelectorAll(".sc-guides-menu label")].map((l) => ({ id: l.querySelector("input").dataset.guide, tip: l.title, text: l.textContent.trim() })));
+    ok(items.map((x) => x.id).join() === "thirds,center,safe,golden,attention" && items.every((x) => x.tip.startsWith(x.text + ":")), "it lists Thirds, Center cross, Safe areas, Golden ratio and Where attention is, each with a plain tooltip");
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    await tick("thirds");
+    let g = await gd();
+    ok(g.on.join() === "thirds" && g.thirds.length === 2 && near(g.thirds[0], 1 / 3) && near(g.thirds[1], 2 / 3) && near(g.thirdsH[0], 1 / 3) && near(g.thirdsH[1], 2 / 3), "Thirds draws two lines each way at a third and two thirds (" + g.thirds.map((x) => x.toFixed(3)).join(", ") + ")");
+    ok(g.insp === 0, "guides draw over my film only, not the inspiration films");
+    ok(!!(await page.$(".sc-guides-menu")), "the menu stays open while you tick");
+    await tick("center");
+    g = await gd();
+    ok(g.cross && near(g.cross.l + g.cross.w / 2, 0.5) && near(g.cross.t + g.cross.h / 2, 0.5), "Center cross marks the middle");
+    await tick("safe");
+    g = await gd();
+    ok(g.action && g.title && near(g.action.l, 0.05) && near(g.action.w, 0.9) && near(g.title.l, 0.1) && near(g.title.h, 0.8), "Safe areas draw the action box at 90% and the title box at 80%");
+    await tick("golden");
+    g = await gd();
+    ok(g.golden.length === 2 && near(g.golden[0], 0.382) && near(g.golden[1], 0.618), "Golden ratio draws its lines at 38% and 62%");
+    await tick("attention");
+    g = await gd();
+    ok(g.spot && g.spot.el.w > 0.05 && g.spot.el.l >= -0.2 && g.spot.el.l < 1 && /^Eyes on: /.test(g.spot.cap), "Where attention is glows on part of the picture (" + (g.spot && g.spot.cap) + ")");
+    ok(g.on.join() === "thirds,center,safe,golden,attention" && g.thirds.length === 2 && g.cross && g.action, "all five combine at once");
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0, "guides change nothing in the film (no undo steps)");
+    ok(JSON.stringify(await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-v1")).guides)) === JSON.stringify(["thirds", "center", "safe", "golden", "attention"]), "the guides are kept in the Screen's view (curiosities-screen-v1, guides)");
+    ok(g.pe === "none" && near(g.box.l, 0) && near(g.box.w, 1) && near(g.box.h, 1), "the overlay covers the frame exactly and lets clicks through");
+    await page.screenshot({ path: path.join(SHOTS, "screen-8b-guides.png") });
+    /* A click anywhere else closes the menu; a click on the frame still reaches it. */
+    await page.click(".sc-viewer.insp .sc-frame");
+    ok(!(await page.$(".sc-guides-menu")) && (await page.evaluate(() => window.CurioScreen.state().focus)) !== "mine", "a click outside closes the menu (and picks the inspiration film)");
+    const hit = await page.evaluate(() => { const r = document.querySelector(".sc-viewer.mine .sc-frame").getBoundingClientRect(); const x = r.left + r.width / 3, y = r.top + r.height / 3; const el = document.elementFromPoint(x, y); return { x, y, inGd: !!el.closest(".sc-gd"), inFrame: !!el.closest(".sc-viewer.mine .sc-frame") }; });
+    await page.mouse.click(hit.x, hit.y);
+    ok(!hit.inGd && hit.inFrame && (await page.evaluate(() => window.CurioScreen.state().focus)) === "mine", "a click right where the thirds lines cross still reaches my film's frame");
+    /* The guides follow the vertical frame shape. */
+    await setRatio("vertical 9:16");
+    g = await gd();
+    ok(g.shape === "vertical" && g.h > g.w * 1.5 && near(g.box.w, 1) && near(g.box.h, 1) && near(g.thirds[0], 1 / 3) && near(g.action.w, 0.9) && near(g.cross.l + g.cross.w / 2, 0.5), `in the vertical frame the guides take its shape (${Math.round(g.w)}×${Math.round(g.h)})`);
+    ok(g.spot && g.spot.par === "xMidYMid slice", "the attention glow is cropped with the picture, so it stays on the same spot");
+    await page.screenshot({ path: path.join(SHOTS, "screen-8c-guides-vertical.png") });
+    await setRatio("wide 16:9");
+    /* A reload keeps them; turning them off clears them; ⌘; still flips the thirds guide. */
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    g = await gd();
+    ok(g.on.join() === "thirds,center,safe,golden,attention", "the guides survive a reload");
+    await page.click('[data-act="guides-menu"]');
+    ok((await page.evaluate(() => [...document.querySelectorAll(".sc-guides-menu input")].filter((i) => i.checked).length)) === 5, "the menu shows them ticked after the reload");
+    for (const id of ["thirds", "center", "safe", "golden", "attention"]) await tick(id);
+    ok((await gd()).on.length === 0 && !(await page.$(".sc-viewer.mine .sc-gd")), "unticking every guide clears the frame");
+    await page.click('[data-act="guides-menu"]');
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+;");
+    ok((await gd()).on.join() === "thirds", "⌘; turns the thirds guide on");
+    await page.keyboard.press("Control+;");
+    ok((await gd()).on.length === 0, "and off again");
+  }
+
   /* Markers with a color and a note (CapCut's markers): add one, double-click its flag to write a note and pick
      a color, find it in the Markers list, jump to it, delete it; an old save (plain row ids) still loads. */
   {
