@@ -1307,7 +1307,7 @@
     out += k.graph({ x: 12, y: 24, w: 180, h: 70, points: raw, color: "#666", w2: 1.2 }) + k.graph({ x: 12, y: 24, w: 180, h: 70, points: sm, color: "#ffd166" });
     /* the frame */
     const resid = (1 - lvl) * 8 + keep * 4;
-    const scene = room(k) + k.person({ x: 160, y: 165, s: 1.6, color: "#4a6fa5" }) + [0, 1, 2, 3].map((i) => `<path d="M${40 + i * 80} 0 ${rs ? "L" : "Q"}${rs ? 40 + i * 80 : 70 + i * 80} 90 L${40 + i * 80} 125" stroke="#5a4a3a" stroke-width="5" fill="none"/>`).join("");
+    const scene = room(k) + k.person({ x: 160, y: 165, s: 1.6, color: "#4a6fa5" }) + [0, 1, 2, 3].map((i) => `<path d="M${40 + i * 80} 0 ${rs ? `L${40 + i * 80} 125` : `Q${70 + i * 80} 62 ${40 + i * 80} 125`}" stroke="#5a4a3a" stroke-width="5" fill="none"/>`).join("");
     const inner = `<g opacity="0.35" transform="translate(${r1(resid * 3)} ${r1(-resid * 2)})">${scene}</g><g transform="translate(160 90) scale(${r1((1 + crop) * 100) / 100}) translate(-160 -90)">${scene}</g>`;
     out += mini("cw-stabilization-clip", 200, 30, 110, inner);
     out += rect(200 + 55 - 55 / (1 + crop), 30 + 31 - 31 / (1 + crop), 110 / (1 + crop), 62 / (1 + crop), "none", { stroke: "#06d6a0", sw: 1, dash: "3 2" });

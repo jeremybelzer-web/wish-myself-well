@@ -70,12 +70,27 @@ L.CATEGORIES.filter((c) => !only || c.id === only).forEach((cat) => {
       } catch (e) {
         return problems.push(`curiosity ${c.id}: its live picture fails: ${e.message}`);
       }
+      /* Every path's numbers must fit its commands (a curve needs its control point), or the browser rejects it. */
+      const ARGS = { M: 2, L: 2, T: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, A: 7, Z: 0 };
+      const badPath = (svg) =>
+        (svg.match(/\sd="[^"]*"/g) || []).find((d) => {
+          const segs = d.slice(4, -1).match(/[a-zA-Z][^a-zA-Z]*/g) || [];
+          return segs.some((sg) => {
+            const n = ARGS[sg[0].toUpperCase()];
+            const nums = (sg.slice(1).match(/-?(\d+\.?\d*|\.\d+)(e-?\d+)?/g) || []).length;
+            return n == null || (n === 0 ? nums !== 0 : nums === 0 || nums % n !== 0);
+          });
+        });
+      const bp = base && badPath(base);
+      if (bp) problems.push(`curiosity ${c.id}: its live picture has a broken path${bp}`);
       if (!base || /NaN|undefined/.test(base)) problems.push(`curiosity ${c.id}: its live picture draws NaN or undefined`);
       own.forEach((s) => {
         const [lo, hi] = ends(s);
         try {
           const a = W.drawLook(c, (x) => (x === s ? lo : undefined));
           const b = W.drawLook(c, (x) => (x === s ? hi : undefined));
+          const bp2 = badPath(a) || badPath(b);
+          if (bp2) problems.push(`curiosity ${c.id}: its live picture has a broken path when ${s.id} is at an end:${bp2}`);
           if (/NaN|undefined/.test(a + b)) problems.push(`curiosity ${c.id}: its live picture draws NaN or undefined when ${s.id} is at an end`);
           if (a === b) gaps.push(`${cat.id}: ${c.id}.${s.id} (${s.label}) does not change its live picture`);
         } catch (e) {

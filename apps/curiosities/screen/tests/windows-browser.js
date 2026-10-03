@@ -165,6 +165,8 @@ const ok = (cond, msg) => {
   /* A pad: drag to the top right sets both its settings near their tops. */
   await page.evaluate((id) => window.CurioScreen.openWin(id), pick.pad);
   const padSel = `.sc-win[data-win="${pick.pad}"] .cw-pad`;
+  /* The live picture stays pinned at the top of the window, so bring the pad to the middle of the window first. */
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), padSel);
   const box = await (await page.$(padSel)).boundingBox();
   await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
   await page.mouse.down();
