@@ -32,13 +32,14 @@
   /* Match cut: the last frame of A and the first of B, with the thing that matches across the cut. */
   W.look("matchCut", (v, k) => {
     const kind = v("setting");
-    const mx = (v.n("matchX") / 100) * 320;
-    const my = 180 - (v.n("matchY") / 100) * 180;
+    /* Kept far enough inside each frame that the matching thing is always whole. */
+    const mx = 64 + (v.n("matchX") / 100) * 192;
+    const my = 145 - (v.n("matchY") / 100) * 110;
     const line = v.n("lineUp") / 100;
     const close = idx(v, "closeness");
     const miss = (1 - line) * 70 * (1 - close * 0.3) + (kind === "none" ? 60 : 0);
-    const bx = mx + miss;
-    const by = my + miss * 0.4;
+    const bx = mx + miss <= 256 ? mx + miss : mx - miss;
+    const by = k.clamp(my + miss * 0.4, 30, 150);
     const mark = (x, y, col, sz) => {
       if (kind === "movement") return k.arrow({ x1: x - 40, y1: y + 20, x2: x + 30, y2: y - 20, w: 8, color: col });
       if (kind === "sound") return k.speaker({ x, y, s: 2.2, level: 1, color: col });
@@ -148,7 +149,7 @@
       sm(k, 6, 70, "A", { size: 8 }) +
       sm(k, 112, 70, cut ? "the cut" : "halfway", { size: 8, color: "#ffd166" }) +
       sm(k, 218, 70, "B", { size: 8 }) +
-      (grab > 0 ? [0, 1, 2, 3, 4, 5].slice(0, 1 + Math.round(grab * 5)).map((i) => k.label({ x: 160 + Math.cos(i) * 52, y: 38 + Math.sin(i) * 30, text: "!", size: 10 + grab * 6, color: "#ffd166", weight: 700 })).join("") : "") +
+      (grab > 0 ? [0, 1, 2, 3, 4, 5].slice(0, 1 + Math.round(grab * 5)).map((i) => k.text({ x: 122 + i * 15, y: 24, text: "!", size: 10 + grab * 6, color: "#ffd166", weight: 700, outline: "#000" })).join("") : "") +
       k.arrow({ x1: 160 - Math.cos(k.rad(dirDeg)) * 14, y1: 62 - Math.sin(k.rad(dirDeg)) * 6, x2: 160 + Math.cos(k.rad(dirDeg)) * 14, y2: 62 + Math.sin(k.rad(dirDeg)) * 6, w: 2, color: "#fff" }) +
       beats.join("") +
       box(10, tl + 2, cutX + half - 10, 12, "#4a6fa5", "#1c1712", 2) +

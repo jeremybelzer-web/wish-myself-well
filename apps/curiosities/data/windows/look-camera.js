@@ -7,12 +7,14 @@
     const dist = Math.max(0.3, v.n("distance"));
     const off = v.n("offAxis");
     const roll = v.n("roll");
-    /* The view: closer is bigger; above puts the horizon high and looks down on them; off axis slides them aside. */
-    const s = k.clamp(2.4 / Math.sqrt(dist), 0.25, 4);
-    const horizon = k.clamp(95 + height * 0.9, 8, 172);
-    const x = 110 - off * 1.4 - Math.sin(k.rad(around)) * 18;
+    /* The view: closer is bigger (a close camera crops them to a close-up); a camera above sees more floor (the
+       horizon rises out of the top), below sees more wall; off axis slides them aside; roll leans the whole picture. */
+    const s = k.clamp(1.7 / Math.sqrt(dist), 0.4, 2.3);
+    const horizon = k.clamp(100 - height * 0.85, 12, 168);
+    const x = k.clamp(105 - off * 1.3 - Math.sin(k.rad(around)) * 18, 30, 180);
+    const feet = Math.max(100 + 38 * s, 34 + 76 * s);
     const back = Math.abs(around) > 110;
-    const view = `<g transform="rotate(${roll} 110 90)">${k.wall({ y: horizon, color: "#cdbfa8", floor: "#7d6650" })}${k.person({ x, y: Math.min(220, horizon + 30 * s), s, mood: back ? 0 : 0.3, look: k.clamp(-around / 90, -1, 1), lean: -height * 0.15, alpha: 1, color: "#4a6fa5", eyes: back ? 0 : 0.8 })}</g>`;
+    const view = `<g transform="rotate(${roll} 105 95)"><rect x="-200" y="-200" width="610" height="${Math.round(horizon + 200)}" fill="#cdbfa8"/><rect x="-200" y="${Math.round(horizon)}" width="610" height="${Math.round(400 - horizon)}" fill="#7d6650"/>${k.person({ x, y: feet, s, mood: back ? 0 : 0.3, look: k.clamp(-around / 90, -1, 1), alpha: 1, color: "#4a6fa5", eyes: back ? 0 : 0.8 })}</g>`;
     /* The map: them in the middle, the camera around them at its distance, pointing in (plus off axis). */
     const mx = 265;
     const my = 70;
@@ -20,7 +22,7 @@
     const a = k.rad(around - 90);
     const cx = mx + Math.cos(a) * R;
     const cy = my - Math.sin(a) * R;
-    const map = `<rect x="215" y="10" width="100" height="120" rx="6" fill="#1d1d22" stroke="#444"/>${k.ring({ x: mx, y: my, r: R, color: "#555", dash: "3 3", w: 1 })}${k.dot({ x: mx, y: my, r: 6, color: "#4a6fa5" })}${k.label({ x: mx, y: my - 9, text: "them", size: 8, color: "#aaa" })}${k.cam({ x: cx, y: cy, dir: (Math.atan2(my - cy, mx - cx) * 180) / Math.PI + off, s: 0.6 })}${k.label({ x: mx, y: 124, text: `${Math.round(around)}° · ${dist} m · ${height > 0 ? "above" : height < 0 ? "below" : "eye level"}`, size: 8, color: "#ccc" })}`;
+    const map = `<rect x="215" y="10" width="100" height="120" rx="6" fill="#1d1d22" stroke="#444"/>${k.ring({ x: mx, y: my, r: R, color: "#555", dash: "3 3", w: 1 })}${k.dot({ x: mx, y: my, r: 6, color: "#4a6fa5" })}${k.label({ x: mx, y: my - 9, text: "them", size: 8, color: "#aaa" })}${k.cam({ x: cx, y: cy, dir: (Math.atan2(my - cy, mx - cx) * 180) / Math.PI + off, s: 0.6 })}${k.label({ x: mx, y: 124, text: `${Math.round(around)}° · ${Math.round(dist * 10) / 10} m · ${height > 0 ? "above" : height < 0 ? "below" : "eye level"}`, size: 8, color: "#ccc" })}`;
     return `<clipPath id="cw-cp-view"><rect x="0" y="0" width="210" height="180"/></clipPath>${k.bg("#141418")}<g clip-path="url(#cw-cp-view)">${view}</g>${map}${k.caption(`Measured from ${v("subject")}`)}`;
   });
 
@@ -128,7 +130,7 @@
     const swing = [0.6, 1, 1.5][idx(v, "distanceSwing")];
     const loud = how < 0.4 ? 0.3 + str * 0.7 : how > 0.6 ? -0.4 - str * 0.6 : 0;
     const before = room(k, 140) + fig(k, 160, 165, 100, { mood: 0.1, color: "#4a6fa5" }) + k.bubble({ x: 230, y: 30, w: 90, text: "I quit!", tail: -30 });
-    const h2 = k.clamp(100 * jump, 10, 400);
+    const h2 = k.clamp(100 * jump, 30, 400);
     const after = room(k, 140) + fig(k, 160 + Math.sin(k.rad(turn)) * 60, 70 + h2, h2, { mood: loud > 0 ? -0.7 : 0.4, look: Math.sin(k.rad(turn)) * -1, eyes: Math.cos(k.rad(turn)) < -0.3 ? 0 : 0.8, color: "#4a6fa5" });
     const t = v.n("timing");
     const which = idx(v, "whichLines");
@@ -183,7 +185,7 @@
     for (let i = 0; i < Math.min(10, Math.ceil(lpa)); i++) bub.push(box(14 + i * 18, 132, 14, 9, "#f4f1ea", "#1c1712", 4));
     return (
       k.bg(SKY) +
-      sm(k, 10, 14, `One minute of film: ${n} shots`, { color: "#ddd", size: 9 }) +
+      sm(k, 10, 14, `One minute of film: ${n} ${n === 1 ? "shot" : "shots"}`, { color: "#ddd", size: 9 }) +
       shots(L, 10, 22, 300, 34) +
       ln(10 + peak * 300, 18, 10 + peak * 300, 60, "#ff6b6b", 1.5, "3 2") +
       sm(k, 10, 74, "tension", { color: "#e07a5f", size: 7.5 }) +
@@ -201,7 +203,7 @@
   W.look("cameraOwner", (v, k) => {
     const player = v("setting") === "player";
     const leash = v.n("leash");
-    const R0 = 12 + Math.sqrt(leash / 20) * 50;
+    const R0 = 12 + Math.sqrt(leash / 20) * 40;
     const turn = v.n("turnLimit");
     const mx = 90;
     const my = 80;
@@ -231,7 +233,7 @@
     return (
       k.bg(SKY) +
       box(6, 6, 200, 120, "#1d1d22", "#3a3a44", 6) +
-      wedge +
+      `<clipPath id="cw-co-clip"><rect x="7" y="7" width="198" height="118" rx="6"/></clipPath><g clip-path="url(#cw-co-clip)">${wedge}</g>` +
       k.ring({ x: mx, y: my, r: R0, color: "#666", dash: "3 3", w: 1 }) +
       k.dot({ x: mx, y: my, r: 6, color: "#4a6fa5" }) +
       k.cam({ x: mx, y: my - R0, dir: 90, s: 0.6 }) +
@@ -243,7 +245,7 @@
       `<g transform="translate(262 46)">${box(-22, -10, 44, 22, player ? "#7fb7ff" : "#555", "#1c1712", 10)}${k.dot({ x: -12, y: 0, r: 3, color: "#222" })}${k.dot({ x: 12, y: 0, r: 3, color: "#222" })}</g>` +
       k.meter({ x: 222, y: 76, w: 84, label: `Freedom ${v("freedom")}`, p: fr, color: "#7fb7ff" }) +
       sm(k, 222, 100, `Up / down ${tilt}°`, { size: 7.5 }) +
-      `<path d="M240 110 L${R(240 + Math.cos(k.rad(-tilt)) * 14)} ${R(110 + Math.sin(k.rad(-tilt)) * 14)} A14 14 0 0 1 ${R(240 + Math.cos(k.rad(tilt)) * 14)} ${R(110 + Math.sin(k.rad(tilt)) * 14)} Z" fill="#81b29a" opacity="0.6"/>` +
+      `<path d="M290 110 L${R(290 + Math.cos(k.rad(-tilt)) * 11)} ${R(110 + Math.sin(k.rad(-tilt)) * 11)} A11 11 0 0 1 ${R(290 + Math.cos(k.rad(tilt)) * 11)} ${R(110 + Math.sin(k.rad(tilt)) * 11)} Z" fill="#81b29a" opacity="0.6"/>` +
       sm(k, 10, 136, `Gold = authored, blue = player; handover ${v("handoffSpeed")}, ${v("blendTime")} s`, { size: 7 }) +
       lane +
       k.caption(`Guidance: ${v("guidance")} · handing over ${v("handoff")}`)
@@ -263,16 +265,29 @@
       dy = dy * 0.5 + base[1] * len;
     }
     dy -= v.n("rise") * 10;
-    const x0 = 160 - dx / 2;
-    const y0 = 85 - dy / 2;
+    const sx0 = 160 - dx / 2;
+    const sy0 = 85 - dy / 2;
     const arc = idx(v, "arc");
     const pts = [];
     for (let i = 0; i <= 24; i++) {
       const t = i / 24;
       const bend = [0, 0.15, 0.4, 0.1][arc] * len * Math.sin(Math.PI * t);
       const wob = arc === 3 ? Math.sin(t * Math.PI * 8) * 6 : 0;
-      pts.push([x0 + dx * t - Math.sin(head) * wob, y0 + dy * t - bend + wob]);
+      pts.push([sx0 + dx * t - Math.sin(head) * wob, sy0 + dy * t - bend + wob]);
     }
+    /* Keep the whole path inside the picture: shrink it about its middle when it would run off. */
+    const xsP = pts.map((p) => p[0]);
+    const ysP = pts.map((p) => p[1]);
+    const bx0 = Math.min(...xsP), bx1 = Math.max(...xsP), by0 = Math.min(...ysP), by1 = Math.max(...ysP);
+    const fit = Math.min(1, 220 / Math.max(1, bx1 - bx0), 90 / Math.max(1, by1 - by0));
+    const fcx = (bx0 + bx1) / 2, fcy = (by0 + by1) / 2;
+    for (const p of pts) {
+      p[0] = 160 + (p[0] - fcx) * fit;
+      p[1] = 82 + (p[1] - fcy) * fit;
+    }
+    dx *= fit;
+    dy *= fit;
+    const [x0, y0] = pts[0];
     const end = pts[pts.length - 1];
     const land = idx(v, "landing");
     const endMark = [k.ring({ x: end[0], y: end[1], r: 8, color: "#81b29a", w: 1.5 }), [0, 1, 2, 3, 4, 5].map((i) => ln(end[0], end[1], end[0] + Math.cos(i) * 14, end[1] + Math.sin(i) * 14, "#ff6b6b", 2)).join(""), poly([[end[0], end[1]], [end[0] + 10, end[1] - 14], [end[0] + 20, end[1]], [end[0] + 26, end[1] - 6], [end[0] + 32, end[1]]], "#ffd166", 1.5), k.arrow({ x1: end[0], y1: end[1], x2: end[0] + dx * 0.2 + 6, y2: end[1] + dy * 0.2, color: "#aaa", w: 1.5 })][land];
@@ -295,7 +310,7 @@
       box(x0 - 8, y0 - 8, 16, 16, "#e07a5f", "#1c1712", 3) +
       chip(k, 8, 16, ctl) +
       sm(k, 8, 156, `${v("travel")} m · rises ${v("rise")} m · heading ${v("heading")}° · ${v("moveTime")} s`, { color: "#ddd" }) +
-      k.caption(still ? "Still (dashed: the path it would take)" : `It ${kind}s: ${v("arc")}, ${v("landing")}`)
+      k.caption(still ? "Still (dashed: the path it would take)" : `It ${kind === "pass" ? "passes" : kind + "s"}: ${v("arc")}, ${v("landing")}`)
     );
   });
 
@@ -398,12 +413,12 @@
     const horizon = k.clamp(90 - above * 40, 6, 176);
     const pr = idx(v, "powerRead");
     const ph = k.clamp(120 - above * 30, 50, 165) * (pr === 2 ? 1.1 : pr === 0 ? 0.85 : 1);
-    const view = room(k, horizon) + fig(k, 105, 176 - Math.max(0, above) * 15, ph, { lean: -above * 4, mood: pr === 2 ? 0.6 : pr === 0 ? -0.4 : 0, look: 0 });
+    const view = room(k, horizon) + fig(k, 105, 176 - Math.max(0, above) * 15, ph, { lean: k.clamp(-above * 4, -12, 12), mood: pr === 2 ? 0.6 : pr === 0 ? -0.4 : 0, look: 0 });
     /* side view */
     const gy = 140;
     const px = 290;
     const scaleM = 14;
-    const ch = k.clamp(camH * scaleM * 0.6 + lv * 6 + steep / 10, 0, 120);
+    const ch = k.clamp(camH * scaleM * 0.6 + lv * 6 + steep / 10, 0, 78);
     const cy = gy - ch;
     const sph = eye * 30;
     const ey = gy - sph * 0.88;
@@ -416,7 +431,7 @@
       fig(k, px, gy, sph, { color: "#4a6fa5" }) +
       k.cam({ x: 236, y: cy, dir: (Math.atan2(ey - cy, px - 236) * 180) / Math.PI, s: 0.55 }) +
       ln(236, cy, px, ey, "#ffd166", 1, "3 2") +
-      (climb !== 1 ? k.arrow({ x1: 226, y1: cy, x2: 226, y2: cy + (climb ? -1 : 1) * (8 + v.n("climbTime") / 3), w: 1.5, color: "#81b29a" }) : "") +
+      (climb !== 1 ? k.arrow({ x1: 226, y1: cy, x2: 226, y2: cy + (climb ? -1 : 1) * (8 + v.n("climbTime") / 10), w: 1.5, color: "#81b29a" }) : "") +
       sm(k, 220, 18, `Camera ${camH} m up`, { size: 7.5 }) +
       sm(k, 220, 30, `${steep}° steep · eyes ${v("eyeGap")} m`, { size: 7.5 }) +
       sm(k, 220, 154, `Matched to ${v("subjectHeight")}`, { size: 7 }) +
@@ -449,7 +464,7 @@
     return (
       k.bg(SKY) +
       `<clipPath id="cw-af-clip"><rect x="8" y="16" width="304" height="70"/></clipPath><g clip-path="url(#cw-af-clip)">${out.join("")}</g>` +
-      (sw ? ln(10 + (sw === 1 ? 0.5 : 0.85) * 300, 12, 10 + (sw === 1 ? 0.5 : 0.85) * 300, 92, "#ff6b6b", 2, "4 3") + sm(k, 14 + (sw === 1 ? 0.5 : 0.85) * 300, 100, "style changes", { color: "#ff8a8a", size: 7.5, anchor: "end" }) : "") +
+      (sw ? ln(10 + (sw === 1 ? 0.5 : 0.85) * 300, 14, 10 + (sw === 1 ? 0.5 : 0.85) * 300, 92, "#ff6b6b", 2, "4 3") + sm(k, 6 + (sw === 1 ? 0.5 : 0.85) * 300, 11, "style changes here", { color: "#ff8a8a", size: 7.5, anchor: "end" }) : "") +
       k.meter({ x: 10, y: 112, w: 140, label: `Main style ${v("mixRatio")}% · ${v("purity")}`, p: main, color: "#5b6f8f" }) +
       sm(k, 170, 109, `Longest take ${v("longestTake")} s`, { size: 8 }) +
       box(170, 112, 140, 8, "#34343c", null, 4) +
@@ -553,7 +568,7 @@
     const pl = v.n("pastLine");
     return (
       k.bg(SKY) +
-      sm(k, 10, 14, `A minute of film: ${n} shots of about ${R(sec)} s`, { color: "#ddd", size: 9 }) +
+      sm(k, 10, 14, `A minute of film: ${n} ${n === 1 ? "shot" : "shots"} of about ${R(sec)} s`, { color: "#ddd", size: 9 }) +
       shots(L, 10, 22, 300, 36) +
       sm(k, 10, 78, "One shot: the line, then the hold", { size: 8 }) +
       box(10, 86, 120, 22, "#4a6fa5", "#1c1712", 3) +
@@ -588,7 +603,7 @@
       orbit: "↻",
     }[kind];
     const rv = idx(v, "reveal");
-    const revealPic = [k.label({ x: 160, y: 60, text: "(nothing new)", size: 14, color: "#888" }), k.text({ x: 260, y: 70, text: "✦", size: 30, color: "#ffd166" }), fig(k, 270, 160, 100, { color: "#a5574a", mood: 0.4 }), k.text({ x: 250, y: 70, text: "⌂⌂⌂", size: 34, color: "#cdbfa8" })][rv];
+    const revealPic = ["", k.text({ x: 260, y: 70, text: "✦", size: 30, color: "#ffd166" }), fig(k, 270, 160, 100, { color: "#a5574a", mood: 0.4 }), k.text({ x: 250, y: 70, text: "⌂⌂⌂", size: 34, color: "#cdbfa8" })][rv];
     const toward = /toward/.test(v("direction"));
     const away = /away/.test(v("direction"));
     const inner =
@@ -614,13 +629,14 @@
       sm(k, 222, 52, "Speed over the move", { size: 7.5 }) +
       box(222, 56, 84, 36, "#26262c", "#3a3a44") +
       poly(sp.map(([t, s]) => [224 + t * 80, 90 - s * 30]), "#ffd166", 2) +
-      sm(k, 222, 104, `${v("start")} → ${v("end")}`, { size: 7 }) +
-      sm(k, 222, 120, `Lasts ${mt} s`, { size: 7.5 }) +
-      k.clock({ x: 296, y: 116, r: 7, p: mt / 60 }) +
+      sm(k, 222, 103, v("start"), { size: 7 }) +
+      sm(k, 222, 112, `→ ${v("end")}`, { size: 7 }) +
+      sm(k, 222, 126, `Lasts ${mt} s`, { size: 7.5 }) +
+      k.clock({ x: 296, y: 123, r: 7, p: mt / 60 }) +
       sm(k, 222, 140, `Why: ${v("motivated")}`, { size: 7 }) +
       sm(k, 8, 134, `Goes ${v("direction")}`, { color: "#ddd" }) +
       sm(k, 8, 148, `Reveals ${v("reveal")}`, { color: "#ddd" }) +
-      k.caption(none ? "Camera holds still" : `Camera ${kind}s ${v("direction")}`)
+      k.caption(none ? "Camera holds still" : `Camera ${{ "push in": "pushes in", "pull out": "pulls out" }[kind] || kind + "s"}, going ${v("direction")}`)
     );
   });
 
@@ -647,7 +663,7 @@
     const thumbs = [0, 1, 2]
       .map((i) => {
         const shrink = keep === 2 ? 1 : keep === 1 ? 1 - i * 0.1 : 1 - i * 0.3;
-        const hh = Math.min(48, 6 + (fs / 200) * 40) * shrink;
+        const hh = Math.min(28, 8 + (fs / 200) * 20) * shrink;
         return box(222 + i * 30, 104, 26, 30, "#2a2a30", "#888") + fig(k, 235 + i * 30, 104 + 15 + hh / 2, hh, { color: "#4a6fa5" });
       })
       .join("");
@@ -682,7 +698,7 @@
     return box(x - 12 * s, y - 16 * s, 24 * s, 32 * s, c, "#1c1712", 3) + `<path d="M${R(x + 12 * s)} ${R(y - 8 * s)} q${R(10 * s)} ${R(8 * s)} 0 ${R(16 * s)}" fill="none" stroke="#1c1712" stroke-width="2"/>`;
   }
   W.look("objectKind", (v, k) => {
-    const s = (0.8 + v.n("size") * 0.25) * (0.6 + (Math.log10(v.n("realSize")) / Math.log10(2000)) * 0.8);
+    const s = Math.min(1.9, (0.8 + v.n("size") * 0.25) * (0.6 + (Math.log10(Math.max(1, v.n("realSize"))) / Math.log10(2000)) * 0.8));
     const imp = v.n("importance") / 5;
     const fam = idx(v, "familiar");
     const mean = idx(v, "meaning");
@@ -742,8 +758,9 @@
       k.bg(SKY) +
       shot(k, "cw-oe-clip", 4, 4, 206, inner) +
       side() +
-      sm(k, 222, 18, `${mode === "leaves" ? "Leaves to" : mode === "stays" ? "Stays (from)" : "From"} ${sd}`, { size: 7.5 }) +
-      sm(k, 222, 36, `Speed: ${v("speed")}`, { size: 7.5 }) +
+      sm(k, 222, 18, mode === "leaves" ? "Leaves toward" : mode === "stays" ? "Stays (would come from)" : "Comes in from", { size: 7 }) +
+      sm(k, 222, 28, sd === "toward the lens" ? "the lens" : `the ${sd}`, { size: 7.5, color: "#fff" }) +
+      sm(k, 222, 42, `Speed: ${v("speed")}`, { size: 7.5 }) +
       track(k, 222, 60, 84, "Warning, then arrival") +
       box(222, 60, Math.min(84, wt * 4.2), 5, "#9fd3ff", null, 2.5) +
       box(222 + Math.min(84, wt * 4.2), 60, Math.max(2, Math.min(84 - wt * 4.2, ct * 4.2)), 5, "#ffd166", null, 2.5) +
@@ -842,8 +859,8 @@
     const soft = [1.2, 2.6, 4.5][idx(v, "blurAround")];
     const guide = idx(v, "guideEye");
     const fm = v.n("focusM");
-    const sx = 10 + (v.n("sharpX") / 100) * 300;
-    const sy = 170 - (v.n("sharpY") / 100) * 160;
+    const sx = 16 + (v.n("sharpX") / 100) * 288;
+    const sy = 150 - (v.n("sharpY") / 100) * 104;
     const things = [
       (s) => fig(k, 0, 0, 100 * s, { color: "#4a6fa5" }),
       (s) => k.hand({ x: 0, y: -20 * s, s: 1.4 * s }),
@@ -855,7 +872,7 @@
     const layers = things
       .map((f, i) => {
         const d = depthOf[(i - who + 4) % 4];
-        const sc = 1.3 - d * 0.25;
+        const sc = 1.1 - d * 0.2;
         const blurred = i !== who;
         return { d, s: `<g transform="translate(${xs[i]} ${150 - d * 10})"${blurred ? ` filter="url(#cw-focus-blur)"` : ""}${blurred && guide === 2 ? ' opacity="0.6"' : ""}>${f(sc)}</g>` };
       })
@@ -893,7 +910,7 @@
     const dirt = [];
     for (let i = 0; i < wear * 4; i++) dirt.push(k.dot({ x: 130 + k.rnd(i + 2) * 60, y: 70 + k.rnd(i + 9) * 50, r: 2 + k.rnd(i) * 3, color: "#5a4030" }));
     const sparkle = [];
-    for (let i = 0; i < Math.round(care * 5); i++) sparkle.push(k.label({ x: 100 + k.rnd(i + 20) * 120, y: 30 + k.rnd(i + 30) * 30, text: "✦", size: 9, color: "#ffd166" }));
+    for (let i = 0; i < Math.round(care * 5); i++) sparkle.push(k.label({ x: 112 + i * 24, y: 30 + (i % 2) * 14, text: "✦", size: 9, color: "#ffd166" }));
     const shake = still === 0 ? [0, 1, 2].map((i) => ln(95, 70 + i * 12, 82, 70 + i * 12, "#ddd", 1.5)).join("") + [0, 1, 2].map((i) => ln(225, 70 + i * 12, 238, 70 + i * 12, "#ddd", 1.5)).join("") : still === 2 ? k.label({ x: 245, y: 60, text: "■ still", size: 9, color: "#9fd3ff" }) : "";
     return (
       k.bg(SKY) +
@@ -920,8 +937,8 @@
     const sharpNear = dir > 0.6 ? false : true;
     const nx = 70;
     const fx = 170;
-    const nh = 140 / Math.sqrt(nearM + 0.3);
-    const fh = 140 / Math.sqrt(farM + 0.3);
+    const nh = 160 / (1 + Math.log2(1 + nearM) * 0.35);
+    const fh = 150 / (1 + Math.log2(1 + farM) * 0.45);
     const rev = v("revealsWhat");
     const farThing = rev === "a detail" ? k.text({ x: fx, y: 90, text: "✦", size: 20 + 10 / Math.sqrt(farM), color: "#ffd166" }) : fig(k, fx, 110 + fh * 0.3, Math.min(90, fh), { color: rev === "a threat" ? "#8a2a2a" : "#a5574a", mood: rev === "a threat" ? -0.8 : 0.3, walk: rev === "a person arriving" ? 1 : 0 });
     const inner = room(k, 110, "#3a3640", "#2a2520") + `<g${sharpNear ? ' filter="url(#cw-rf-blur)"' : ""}>${farThing}</g>` + `<g${sharpNear ? "" : ' filter="url(#cw-rf-blur)"'}>${fig(k, nx, 180 + nh * 0.15, Math.min(200, nh), { color: "#4a6fa5", look: 1 })}</g>`;
@@ -1014,7 +1031,7 @@
     const ret = idx(v, "returns");
     const lead = v.n("rampLead");
     const peak = 160;
-    const lvl = (x) => 130 - k.clamp(Math.log2(x) * 10, -20, 20);
+    const lvl = (x) => 136 - k.clamp(Math.log2(x) * 7, -12, 12);
     const base = lvl(1);
     const target = kind === 1 ? base : lvl(kind === 2 ? Math.max(f, 1.5) : kind === 0 ? Math.min(f, 0.7) : f);
     const r0 = peak + lead * 12;
@@ -1127,8 +1144,8 @@
     const deg = v.n("degrees");
     const sd = { left: -1, either: 0.6, right: 1 }[v("side")];
     const a = deg * (sd || 1);
-    const scene = room(k, 120) + fig(k, 160, 165, 110, { color: "#4a6fa5", mood: -0.2 }) + box(240, 30, 40, 40, "#bcd8ef", "#1c1712");
-    const inner = `<g transform="rotate(${tilted ? R(a) : 0} 160 90) scale(${tilted ? R(1 + deg / 60, 2) : 1})" transform-origin="160 90">${scene}</g>` + (tilted ? "" : `<rect x="40" y="20" width="240" height="140" fill="none" stroke="#ffd166" stroke-width="3" stroke-dasharray="8 6" transform="rotate(${R(a)} 160 90)"/>`);
+    const scene = box(-200, -200, 720, 320, "#cdbfa8") + box(-200, 120, 720, 300, "#7d6650") + fig(k, 160, 165, 110, { color: "#4a6fa5", mood: -0.2 }) + box(240, 30, 40, 40, "#bcd8ef", "#1c1712");
+    const inner = `<g transform="translate(160 90) rotate(${tilted ? R(a) : 0}) scale(${tilted ? R(1 + deg / 300, 2) : 1}) translate(-160 -90)">${scene}</g>` + (tilted ? "" : `<rect x="40" y="20" width="240" height="140" fill="none" stroke="#ffd166" stroke-width="3" stroke-dasharray="8 6" transform="rotate(${R(a)} 160 90)"/>`);
     const rb = idx(v, "rockBack");
     const rs = v.n("rockSize");
     const rr = v.n("rockRate");
@@ -1165,17 +1182,19 @@
     const far = v.n("farthestM");
     const vr = v.n("variety") / 5;
     const mx = 100;
-    const my = 76;
-    const rr = (m) => 10 + Math.sqrt(m / 100) * 58;
+    const my = 64;
+    const rr = (m) => 10 + Math.sqrt(m / 100) * 42;
     const best = idx(v, "saveBest");
     const cams = [];
+    const placed = [];
     for (let i = 0; i < n; i++) {
       const t = n > 1 ? i / (n - 1) : 0.5;
       const a = k.rad(-90 + (t - 0.5) * Math.min(360, spread) * (n > 1 ? 1 : 0));
       const d = rr(near + (far - near) * (n > 1 ? (k.rnd(i + 4) * vr + t * (1 - vr)) : 0));
       const x = mx + Math.cos(a) * d;
       const y = my - Math.sin(a) * d * -1;
-      cams.push(k.cam({ x, y, dir: (Math.atan2(my - y, mx - x) * 180) / Math.PI, s: 0.4 + vr * 0.25 * k.rnd(i), color: i === n - 1 && best === 2 ? "#ffd166" : i === 0 && best === 0 ? "#ffd166" : i === Math.floor(n / 2) && best === 1 ? "#ffd166" : "#e2e2e2" }) + k.label({ x, y: y + 14, text: String.fromCharCode(65 + i), size: 8, color: "#ccc" }));
+      cams.push(k.cam({ x, y, dir: (Math.atan2(my - y, mx - x) * 180) / Math.PI, s: 0.4 + vr * 0.25 * k.rnd(i), color: i === n - 1 && best === 2 ? "#ffd166" : i === 0 && best === 0 ? "#ffd166" : i === Math.floor(n / 2) && best === 1 ? "#ffd166" : "#e2e2e2" }) + (placed.some(([px, py]) => Math.abs(px - x) < 9 && Math.abs(py - y) < 9) ? "" : k.label({ x: x + 11, y: y + 3, text: String.fromCharCode(65 + i), size: 8, color: "#ccc" })));
+      placed.push([x, y]);
     }
     const rs = v.p("returnShare") * 0.6 + idx(v, "reuse") * 0.2;
     const seq = [];
@@ -1195,7 +1214,7 @@
       k.dot({ x: mx, y: my, r: 5, color: "#4a6fa5" }) +
       cams.join("") +
       side(6, 120) +
-      sm(k, 222, 20, `${n} setups`, { size: 9, color: "#fff", weight: 700 }) +
+      sm(k, 222, 20, n === 1 ? "1 setup" : `${n} setups`, { size: 9, color: "#fff", weight: 700 }) +
       sm(k, 222, 34, `Spread ${v("spreadDeg")}° · ${v("sides")}`, { size: 7.5 }) +
       sm(k, 222, 48, `${near} m to ${far} m`, { size: 7.5 }) +
       sm(k, 222, 62, `Variety ${v("variety")}`, { size: 7.5 }) +
@@ -1204,7 +1223,7 @@
       (ad !== 1 ? k.text({ x: 296, y: 104, text: ad ? "+" : "−", size: 14, color: ad ? "#7fe07f" : "#ff6b6b" }) : "") +
       sm(k, 10, 136, `Cut order (green = back to an old setup: ${v("returnShare")}%, ${v("reuse")})`, { size: 7 }) +
       seq.join("") +
-      k.caption(`${n} camera angles in the scene`)
+      k.caption(n === 1 ? "One camera angle for the whole scene" : `${n} camera angles in the scene`)
     );
   });
 
@@ -1301,29 +1320,48 @@
     const need = v.n("cueStrength") / 100;
     const cues = [0.4, 0.9, 0.3, 0.7, 1, 0.5, 0.8, 0.6];
     let lastMove = -1e9;
+    let moves = 0;
     const out = [];
-    cues.forEach((s, i) => {
-      const x = 20 + i * 36;
+    const base = 128;
+    cues.forEach((st, i) => {
+      const x = 22 + i * 37;
       const who = i % 2 ? "the listener" : "the speaker";
-      const counts = cue !== 3 && s >= need && (own === "anyone" || own === who) && k.rnd(i + 8) < used + 0.001 && x - lastMove >= rest * 2;
-      out.push(k.label({ x, y: 64, text: ["“…”", "✦", "~", "·"][cue], size: 11, color: i % 2 ? "#a5574a" : "#4a6fa5" }) + box(x - 3, 92 - s * 18, 6, s * 18, i % 2 ? "#a5574a" : "#4a6fa5"));
+      const counts = cue !== 3 && st >= need && (own === "anyone" || own === who) && k.rnd(i + 8) < used + 0.001 && x - lastMove >= rest * 2;
+      out.push(box(x - 3, base - st * 20, 6, st * 20, i % 2 ? "#a5574a" : "#4a6fa5"));
       if (counts) {
         lastMove = x;
-        const mx = x + delay * 6 + ant * 10;
-        out.push(k.arrow({ x1: mx, y1: 108, x2: mx + 20, y2: 108, w: 3 }));
+        moves++;
+        const mx = x + delay * 6 + ant * 8;
+        out.push(k.arrow({ x1: mx - 2, y1: 141, x2: mx + 16, y2: 141, w: 2.5 }));
       }
     });
+    /* The scene: two people talking; the cue shows on whoever owns it, and the camera starts moving (or waits). */
+    const onL = own !== "the listener";
+    const cx = onL ? 110 : 225;
+    const cueMark = [k.bubble({ x: cx + 40, y: 30, w: 110, h: 42, text: "“Now!”", tail: -26, size: 22 }), k.text({ x: cx + 40, y: 52, text: "✦", size: 48, color: "#ffd166" }), k.text({ x: cx + 44, y: 52, text: "~ ~ ~", size: 40, color: "#9fd3ff", weight: 700 }), ""][cue];
+    const camMoves = moves > 0;
+    const inner =
+      room(k, 125) +
+      fig(k, 110, 168, 110, { color: "#4a6fa5", look: 1, arms: onL && cue === 1 ? 1 : 0, mood: 0.3 }) +
+      fig(k, 225, 168, 110, { color: "#a5574a", look: -1, arms: !onL && cue === 1 ? 1 : 0 }) +
+      cueMark +
+      `<g opacity="${camMoves ? 1 : 0.45}">${k.cam({ x: 290, y: 150, dir: 200, s: 1.3 })}</g>` +
+      (camMoves ? k.arrow({ x1: 270, y1: 120, x2: 230 - delay * 6, y2: 104, w: 5 }) : "");
     return (
       k.bg(SKY) +
-      sm(k, 8, 16, `Cues: ${["lines", "actions", "breaths", "none"][cue]} from ${own}`, { color: "#ddd" }) +
-      sm(k, 8, 30, "Strength of each cue", { size: 7.5 }) +
-      ln(10, 92 - need * 18, 310, 92 - need * 18, "#ff6b6b", 1, "3 3") +
-      sm(k, 8, 98 - need * 18 - 8, `needs ${v("cueStrength")}%`, { size: 7, color: "#ff8a8a" }) +
-      ln(10, 92, 310, 92, "#555", 1) +
+      shot(k, "cw-mo-clip", 4, 4, 150, inner) +
+      sm(k, 164, 18, cue === 3 ? "Moves on no cue" : `Starts on ${v("setting") === "action" ? "an" : "a"} ${v("setting")}`, { size: 9, color: "#fff", weight: 700 }) +
+      sm(k, 164, 33, `Whose cue: ${own}`, { size: 7.5 }) +
+      sm(k, 164, 46, `Needs a cue of ${v("cueStrength")}% or more`, { size: 7.5 }) +
+      sm(k, 164, 59, `${delay} beats late · ${v("anticipation")}`, { size: 7.5 }) +
+      sm(k, 164, 72, `${v("cuesUsed")}% of cues · rest ${rest} s`, { size: 7.5 }) +
+      sm(k, 164, 86, camMoves ? `Camera moves ${moves} times here` : "Camera waits: no cue moves it", { size: 7.5, color: camMoves ? "#ffd166" : "#ff8a8a" }) +
+      sm(k, 8, 102, "Cues (blue speaker, red listener, tall = big)", { size: 7, color: "#aaa" }) +
+      ln(10, base - need * 20, 310, base - need * 20, "#ff6b6b", 1, "3 3") +
+      ln(10, base, 310, base, "#555", 1) +
       out.join("") +
-      sm(k, 8, 128, "Camera moves (arrows)", { size: 7.5 }) +
-      sm(k, 8, 144, `Delay ${delay} beats, ${v("anticipation")} · ${v("cuesUsed")}% of cues · rest ${rest} s`, { size: 7.5, color: "#ddd" }) +
-      k.caption(cue === 3 ? "Moves on no cue" : `Moves start on the ${v("setting")}`)
+      sm(k, 8, 156, "Camera moves (arrows)", { size: 7, color: "#aaa" }) +
+      k.caption(cue === 3 ? "The camera moves on no cue" : `The camera moves on the ${v("setting")}`)
     );
   });
 
@@ -1432,10 +1470,10 @@
       k.pie({ x: 264, y: 46, r: 18, p: sh / 360, color: "#ffd166" }) +
       sm(k, 222, 80, `${sh}° · smear ${v("smearLength")}%`, { size: 7.5 }) +
       sm(k, 222, 94, `Follows ${v("direction")}`, { size: 7.5 }) +
-      sm(k, 222, 108, `In action: ${v("onAction")}`, { size: 7 }) +
+      sm(k, 222, 108, `Action: ${v("onAction").replace(/ in action$/, "")}`, { size: 7 }) +
       sm(k, 10, 134, `${fps} frames a second (a quarter second shown) · ${v("choppy")}`, { size: 7.5 }) +
       frames.join("") +
-      k.caption(`${v("setting")} motion blur`)
+      k.caption(`Motion blur: ${v("setting")}`)
     );
   });
 
@@ -1447,7 +1485,8 @@
     const fw = Math.min(300, H0 * w);
     const fh = fw / w;
     const gw = Math.min(300, H0 * guide);
-    const bar = (v.n("barSize") / 100) * fh + [0, 4, 12][idx(v, "letterbox")];
+    const bar = Math.min(fh * 0.3, (v.n("barSize") / 100) * fh + [0, 4, 12][idx(v, "letterbox")]);
+    const visH = fh - 2 * bar;
     const bc = { black: "#000", white: "#f4f4f4", "a color": "#7a3b8a" }[v("barColor")];
     const x = 160 - fw / 2;
     const y = 74 - fh / 2;
@@ -1456,7 +1495,7 @@
     return (
       k.bg(SKY) +
       `<clipPath id="cw-asp-clip"><rect x="${R(x)}" y="${R(y)}" width="${R(fw)}" height="${R(fh)}"/></clipPath>` +
-      `<g clip-path="url(#cw-asp-clip)">${box(0, 0, 320, 180, "#cdbfa8")}${box(0, 100, 320, 80, "#7d6650")}${fig(k, 160, 140, 90, { color: "#4a6fa5" })}${box(0, y, 320, bar, bc)}${box(0, y + fh - bar, 320, bar, bc)}</g>` +
+      `<g clip-path="url(#cw-asp-clip)">${box(0, 0, 320, 180, "#cdbfa8")}${box(0, 74 + visH * 0.3, 320, 120, "#7d6650")}${fig(k, 160, 74 + visH / 2 - 2, Math.min(90, visH * 0.92), { color: "#4a6fa5" })}${box(0, y, 320, bar, bc)}${box(0, y + fh - bar, 320, bar, bc)}</g>` +
       box(x, y, fw, fh, "none", "#ddd") +
       box(160 - gw / 2, 74 - H0 / 2 / (guide / Math.max(1, guide)) * (H0 * guide > 300 ? 300 / (H0 * guide) : 1), gw, (gw / guide), "none", "#ffd166", 0).replace("/>", ' stroke-dasharray="5 4"/>') +
       (op ? k.arrow({ x1: 160, y1: y + bar + 6, x2: 160, y2: y + 2, w: 2, color: "#7fe07f" }) : "") +
@@ -1502,7 +1541,8 @@
       sm(k, 222, 64, `Balance ${bal}`, { size: 7.5 }) +
       sm(k, 222, 78, `Lines: ${v("leading")}`, { size: 7.5 }) +
       sm(k, 222, 92, `Frame in frame: ${v("frameInFrame")}`, { size: 7 }) +
-      sm(k, 222, 106, `Symmetry: ${v("symmetry")}`, { size: 7 }) +
+      sm(k, 222, 104, "Symmetry:", { size: 7 }) +
+      sm(k, 222, 113, v("symmetry"), { size: 7 }) +
       sm(k, 222, 124, `${v("shift")} over ${mt} s`, { size: 7.5 }) +
       box(222, 130, Math.max(2, (mt / 30) * 84), 4, "#81b29a") +
       k.caption(`Subject on the ${v("setting")}, ${v("height")} in frame`)
@@ -1527,7 +1567,7 @@
       box(0, 0, 320, 180, k.mix("#2a2a30", tintC, 0.35)) +
       box(0, 140, 320, 40, "#1f1b18") +
       `<ellipse cx="${R(ex)}" cy="${R(ey)}" rx="${R(40 + pct * 80)}" ry="${R(25 + pct * 40)}" fill="none" stroke="#ffd166" stroke-width="2" stroke-dasharray="6 5"/>` +
-      k.label({ x: ex, y: ey + 4, text: "empty", size: 12, color: "#ffd166" }) +
+      k.label({ x: k.clamp(ex, 26, 294), y: k.clamp(ey + 4, 16, 170), text: "empty", size: 12, color: "#ffd166" }) +
       (where === 2 ? box(sx - 120, sy - 140, 240, 2, "#555") : "") +
       fig(k, sx, sy, ph, { color: "#4a6fa5", mood: feel ? -0.5 : 0.2, look: ex > sx ? 1 : -1 }) +
       (feel === 2 ? `<ellipse cx="${R(ex)}" cy="${R(ey + 20)}" rx="30" ry="50" fill="#000" opacity="0.35"/>` : "") +
@@ -1581,12 +1621,13 @@
       sm(k, 10, 18, "Loudness", { size: 7.5 }) +
       k.graph({ x: 10, y: 10, w: 198, h: 52, points: loud, color: "#9fd3ff", w2: 1.5 }) +
       ln(10, 62 - trig * 52, 208, 62 - trig * 52, "#ff6b6b", 1, "3 3") +
-      sm(k, 150, 60 - trig * 52, `${v("thresholdDb")} dB`, { size: 7, color: "#ff8a8a" }) +
+      sm(k, 206, 59 - trig * 52, `${v("thresholdDb")} dB`, { size: 7, color: "#ff8a8a", anchor: "end" }) +
       box(6, 72, 206, 60, "#1d1d22", "#3a3a44", 4) +
-      sm(k, 10, 84, "Camera push", { size: 7.5 }) +
+      sm(k, 10, 84, "How far the camera pushes in", { size: 7.5 }) +
       k.graph({ x: 10, y: 76, w: 198, h: 52, points: zoom.map((p) => p * (0.3 + msz * 0.7)), color: "#ffd166", w2: 2 }) +
       side() +
-      `<g transform="translate(264 60)">${box(-36, -24, 72, 48, "none", "#888")}${box(-36 * (1 - zEnd * 0.5), -24 * (1 - zEnd * 0.5), 72 * (1 - zEnd * 0.5), 48 * (1 - zEnd * 0.5), "none", "#ffd166")}</g>` +
+      sm(k, 222, 22, "Where it ends (yellow)", { size: 7 }) +
+      `<g transform="translate(264 60)">${box(-36, -24, 72, 48, "#cdbfa8", "#888")}${box(-36, 10, 72, 14, "#7d6650")}${fig(k, 0, 24, 46, { color: "#a5574a", mood: -0.4 })}${k.face({ x: 0, y: -13, r: 6.5, mouth: 0.9, mood: -0.5 })}${box(-36 * (1 - zEnd * 0.5), -24 * (1 - zEnd * 0.5), 72 * (1 - zEnd * 0.5), 48 * (1 - zEnd * 0.5), "none", "#ffd166")}</g>` +
       sm(k, 222, 100, v("direction"), { size: 7.5 }) +
       sm(k, 222, 114, `Strength ${v("strength")}, ${v("moveSize")}%`, { size: 7.5 }) +
       sm(k, 222, 128, `Delay ${dly} beats`, { size: 7.5 }) +
@@ -1603,32 +1644,33 @@
     const nm = v.n("nearM");
     const ns = v.n("nearSize");
     const ratio = v.n("sizeRatio");
-    const size = k.clamp((0.6 + lv * 0.5 + d * 0.5) * Math.sqrt(ns / 30) * Math.sqrt(ratio / 1.5) / Math.sqrt(nm / 0.5), 0.4, 6);
+    const size = k.clamp((0.6 + lv * 0.5 + d * 0.5) * Math.sqrt(ns / 30) * Math.sqrt(ratio / 1.5) / Math.sqrt(nm / 0.5), 0.9, 3);
     const th = idx(v, "threat");
     const thing = v("nearThing");
     const near =
       thing === "a hand"
-        ? k.hand({ x: 160, y: 120, s: size, open: 0.8 })
+        ? k.hand({ x: 100, y: 130, s: size, open: 0.8 })
         : thing === "a foot"
-          ? `<ellipse cx="160" cy="120" rx="${R(30 * size)}" ry="${R(18 * size)}" fill="#5d4a3a" stroke="#1c1712" stroke-width="2"/>`
+          ? `<ellipse cx="100" cy="130" rx="${R(30 * size)}" ry="${R(18 * size)}" fill="#5d4a3a" stroke="#1c1712" stroke-width="2"/>`
           : thing === "a weapon"
-            ? `<path d="M160 ${R(120 - 50 * size)} L${R(160 + 8 * size)} 120 L${R(160 - 8 * size)} 120 Z" fill="#c8c8d0" stroke="#1c1712" stroke-width="2"/>`
-            : box(160 - 20 * size, 120 - 20 * size, 40 * size, 40 * size, "#e07a5f", "#1c1712", 4);
+            ? `<path d="M100 ${R(130 - 50 * size)} L${R(100 + 8 * size)} 130 L${R(100 - 8 * size)} 130 Z" fill="#c8c8d0" stroke="#1c1712" stroke-width="2"/>`
+            : box(100 - 20 * size, 130 - 20 * size, 40 * size, 40 * size, "#e07a5f", "#1c1712", 4);
     const reach = idx(v, "reach");
-    const inner = room(k, 120) + fig(k, 180, 140, 70, { mood: th === 2 ? -0.8 : th === 0 ? 0.8 : 0, arms: 0.4, color: "#4a6fa5" }) + near + (th === 2 ? k.tint({ color: "#a00", alpha: 0.18 }) : "") + (reach !== 1 ? k.arrow({ x1: 60, y1: 40, x2: reach ? 30 : 90, y2: reach ? 20 : 60, w: 3, color: "#81b29a" }) : "");
+    const inner = room(k, 120) + fig(k, 225, 140, 70, { mood: th === 2 ? -0.8 : th === 0 ? 0.8 : 0, arms: 0.4, color: "#4a6fa5" }) + near + (th === 2 ? k.tint({ color: "#a00", alpha: 0.18 }) : "") + (reach !== 1 ? k.arrow({ x1: 60, y1: 40, x2: reach ? 30 : 90, y2: reach ? 20 : 60, w: 3, color: "#81b29a" }) : "");
     return (
       k.bg(SKY) +
       shot(k, "cw-fs-clip", 4, 4, 206, inner) +
       side() +
-      sm(k, 222, 18, `${thing} ${nm} m from lens`, { size: 7.5 }) +
-      sm(k, 222, 34, `${ns}% of frame`, { size: 7.5 }) +
-      sm(k, 222, 48, `${ratio}x the face`, { size: 7.5 }) +
+      sm(k, 222, 18, thing, { size: 7.5, color: "#fff" }) +
+      sm(k, 222, 29, `${nm} m from the lens`, { size: 7.5 }) +
+      sm(k, 222, 44, `${ns}% of frame`, { size: 7.5 }) +
+      sm(k, 222, 57, `${ratio}x the face`, { size: 7.5 }) +
       k.dot({ x: 250, y: 90, r: 4, color: "#f0c8a0" }) +
       k.dot({ x: 280, y: 90, r: Math.min(22, 4 * Math.sqrt(ratio)), color: "#f0c8a0" }) +
       sm(k, 222, 124, `Nearness ${v("distance")}`, { size: 7.5 }) +
       sm(k, 222, 138, v("threat"), { size: 7.5, color: th === 2 ? "#ff8a8a" : "#bbb" }) +
       sm(k, 222, 152, v("reach"), { size: 7.5 }) +
-      k.caption(`${v("setting")} foreshortening`)
+      k.caption(`Foreshortening: ${v("setting")}`)
     );
   });
 

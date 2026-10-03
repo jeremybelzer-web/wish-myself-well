@@ -52,8 +52,9 @@
     const on = v("onWhat");
     const lc = idx(v, "lookChange");
     const zoom = v.n("zoom") / 100;
-    const zx = (v.n("zoomX") / 100) * 320;
-    const zy = 180 - (v.n("zoomY") / 100) * 180;
+    /* The zoom aims somewhere on the subject, so even an extreme corner keeps them partly in the picture. */
+    const zx = 160 + (v.n("zoomX") / 100 - 0.5) * 160;
+    const zy = 90 - (v.n("zoomY") / 100 - 0.5) * 80;
     const pose = on === "a face" ? k.face({ x: 160, y: 90, r: 55, mood: 0.6, mouth: 0.3 }) : on === "a reaction" ? k.face({ x: 160, y: 90, r: 55, mood: -0.2, brows: 1, eyes: 1, mouth: 0.8 }) : fig(k, 160, on === "a mid-air jump" ? 120 : 160, 120, { arms: 1, walk: on === "a mid-air jump" ? 1 : 0.4, mood: 0.6, color: "#4a6fa5" }) + (on === "a mid-air jump" ? `<ellipse cx="160" cy="165" rx="30" ry="5" fill="#000" opacity="0.4"/>` : "");
     const sc = 1 + zoom * 1.2;
     let pic = `<g transform="translate(${R(zx)} ${R(zy)}) scale(${R(sc, 2)}) translate(${R(-zx)} ${R(-zy)})">${room(k, 140)}${pose}</g>`;
@@ -87,7 +88,7 @@
       sm(k, 6, 132, `Lands at ${v("timing")}`, { size: 7.5 }) +
       box(10, 140, 200, 6, "#34343c", null, 3) +
       poly([[Math.max(10, fx - slow * 30), 143], [fx, 137]], "#ffd166", 2) +
-      box(fx, 136, Math.max(3, len * 14), 14, ghost ? "#555" : "#9fd3ff", null, 2) +
+      box(fx, 136, Math.max(3, Math.min(208 - fx, len * 14)), 14, ghost ? "#555" : "#9fd3ff", null, 2) +
       k.caption(ghost ? "No freeze (the frame keeps moving)" : `${v("setting")} on ${on}`)
     );
   });
@@ -140,8 +141,8 @@
       box(10, 20, 300, 74, "#1d1d22", "#3a3a44", 3) +
       ln(10 + at * 300, 20, 10 + at * 300, 94, "#ff6b6b", 1, "3 3") +
       poly(pts, "#ffd166", 2.5) +
-      sm(k, 14, 92 - (s0 / maxC) * 70 - 3, `${s0}`, { size: 7, color: "#9fd3ff" }) +
-      sm(k, 14 + at * 300, 92 - (pk / maxC) * 70 - 4, `${pk}`, { size: 7, color: "#ff8a8a" }) +
+      sm(k, 14, k.clamp(92 - (Math.min(maxC, s0) / maxC) * 70 - 3, 30, 90), `${s0}`, { size: 7, color: "#9fd3ff" }) +
+      sm(k, k.clamp(14 + at * 300, 30, 294), k.clamp(92 - (Math.min(maxC, pk) / maxC) * 70 - 4, 30, 90), `${pk}`, { size: 7, color: "#ff8a8a" }) +
       sm(k, 10, 108, `The shots (${L.length}), each ${v("shortest")} frames to ${maxS} s`, { size: 7.5 }) +
       shots(L, 10, 114, 300, 22) +
       sm(k, 10, 152, `${pauses} pauses of ${pl} s · after the peak: ${v("afterPeak")}`, { size: 7.5, color: "#ddd" }) +
@@ -399,8 +400,8 @@
     const hook = idx(v, "hookFirst");
     const total = v.n("totalLength");
     const best = v.n("bestAt");
-    const phone = box(14, 8, 84, 148, "#111", "#888", 12) + box(20, 18, 72, 128, ti === 1 ? "#1a1a24" : "#2a2a34") + (ti === 1 ? box(20, 18, 72, 14, "#000") + box(20, 132, 72, 14, "#000") : "") + fig(k, 56, 120, 70, { color: accent, mood: 0.5, arms: ti === 4 ? 1 : 0 });
-    const words = [0, 1, 2, 3].slice(0, [0, 1, 4][txt]).map((i) => box(28, 40 + i * 10, 56 - (i % 2) * 14, 6, "#fff", null, 2)).join("");
+    const phone = box(14, 8, 84, 148, "#111", "#888", 12) + box(20, 18, 72, 128, ti === 1 ? "#1a1a24" : "#2a2a34") + (ti === 1 ? box(20, 18, 72, 14, "#000") + box(20, 132, 72, 14, "#000") : "") + fig(k, 56, 138, 64, { color: accent, mood: 0.5, arms: ti === 4 ? 1 : 0 });
+    const words = [0, 1, 2, 3].slice(0, [0, 1, 4][txt]).map((i) => box(28, 26 + i * 9, 56 - (i % 2) * 14, 5, "#fff", null, 2)).join("");
     const spark = Array.from({ length: [0, 3, 9][fx] }, (_, i) => k.label({ x: 24 + k.rnd(i + 2) * 64, y: 30 + k.rnd(i + 7) * 100, text: "✦", size: 8, color: "#ffd166" })).join("");
     const L = Array.from({ length: clips }, (_, i) => cl * (0.8 + k.rnd(i + 1) * 0.4));
     const best0 = hook === 2 ? 0 : hook === 1 ? 0 : -1;
@@ -409,9 +410,8 @@
       phone +
       words +
       spark +
-      (ti === 0 ? sm(k, 30, 100, "no template", { size: 7, color: "#999" }) : "") +
       sm(k, 112, 18, ti === 0 ? "No template" : `${v("setting")} template`, { size: 10, color: ti ? accent : "#ddd", weight: 700 }) +
-      sm(k, 112, 36, `${clips} clips of ${cl} s`, { size: 8 }) +
+      sm(k, 112, 36, `${clips} ${clips === 1 ? "clip" : "clips"} of ${cl} s`, { size: 8 }) +
       shots(L, 112, 42, 198, 20, (i) => (i === best0 && hook ? "#ffd166" : i % 2 ? "#6c8fb8" : "#8fb2d8")) +
       (hook === 1 ? sm(k, 112, 72, "best clip first, sometimes", { size: 7 }) : hook === 2 ? sm(k, 112, 72, "best clip always first", { size: 7, color: "#ffd166" }) : sm(k, 112, 72, "best clip not first", { size: 7 })) +
       sm(k, 112, 92, `Words: ${v("textAmount")} · effects: ${v("effectsLevel")}`, { size: 7.5 }) +
