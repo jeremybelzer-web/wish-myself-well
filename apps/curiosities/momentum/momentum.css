@@ -369,3 +369,53 @@
 }
 .mo-w { display: grid; gap: 14px; }
 .mo-w > p { max-width: 75ch; }
+
+/* drive.js: the Story drive tab. Four kinds, each a color and a letter: P plot, C character, T theme, D decoration only. */
+.mdr { display: grid; gap: 14px; min-width: 0; }
+.mdr section { min-width: 0; }
+.mdr h3 { margin: 0 0 6px; }
+.mdr-head { margin: 0; font-family: var(--serif, serif); font-size: 22px; font-weight: 600; line-height: 1.25; max-width: 60ch; }
+.mdr-plot { --mdr: #eb6834; --mdr-ink: #1c1712; }
+.mdr-character { --mdr: #2a78d6; --mdr-ink: #fff; }
+.mdr-theme { --mdr: #4a3aa7; --mdr-ink: #fff; }
+.mdr-none { --mdr: #e4e1d8; --mdr-ink: #52514e; }
+.mdr-strip { position: relative; height: 30px; border: 2px solid var(--ink); background: var(--mo-surface); overflow: hidden; }
+.mdr-cell { position: absolute; top: 0; bottom: 0; box-sizing: border-box; border-right: 1px solid var(--mo-surface); background: var(--mdr); color: var(--mdr-ink); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.mdr-cell.mdr-none { background: repeating-linear-gradient(135deg, #e4e1d8 0 5px, #f3f1ea 5px 10px); }
+.mdr-cell.mdr-start { background: transparent; }
+.mdr-ticks { position: relative; height: 16px; font-size: 11px; color: var(--mo-muted); font-variant-numeric: tabular-nums; }
+.mdr-ticks span { position: absolute; top: 2px; white-space: nowrap; }
+.mdr-ticks .mdr-tick-mid { transform: translateX(-50%); }
+.mdr-ticks .mdr-tick-end { transform: translateX(-100%); }
+.mdr-legend { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.mdr-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.mdr-legend span { color: var(--mo-ink-2); font-variant-numeric: tabular-nums; }
+.mdr-key { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 3px; background: var(--mdr); color: var(--mdr-ink); font-style: normal; font-size: 11px; font-weight: 700; flex: none; }
+.mdr-key.mdr-none { border: 1px solid #c3c0b6; box-sizing: border-box; }
+.mdr-runs { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.mdr-run { border-left: 4px solid var(--mo-ink-2); padding: 6px 10px; background: var(--mo-surface); display: grid; gap: 4px; font-size: 14px; overflow-wrap: anywhere; }
+.mdr-run .mo-fam { display: inline-flex; }
+.mdr-run button, .mdr-all { justify-self: start; font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); }
+.mdr-try { color: var(--mo-ink-2); }
+.mdr-echo { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; overflow-wrap: anywhere; }
+.mdr-table td:nth-child(3) { white-space: nowrap; }
+.mdr-table .mo-fam { display: inline-flex; }
+.mdr-cmp { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mdr-cmp-row { display: grid; grid-template-columns: minmax(120px, 220px) minmax(80px, 1fr) minmax(160px, 1.2fr); gap: 4px 12px; align-items: center; font-size: 14px; }
+.mdr-cmp-row.mdr-me .mdr-cmp-name { font-weight: 700; }
+.mdr-cmp-bar { display: flex; height: 14px; border: 1px solid var(--mo-ink-2); background: var(--mo-surface); overflow: hidden; }
+.mdr-cmp-bar i { display: block; height: 100%; background: var(--mdr); }
+.mdr-cmp-bar i.mdr-none { background: repeating-linear-gradient(135deg, #e4e1d8 0 4px, #f3f1ea 4px 8px); }
+.mdr-cmp-none { grid-column: 2 / -1; color: var(--mo-ink-2); font-size: 13px; }
+.mdr-rules summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.mdr-rules ul { padding-left: 18px; display: grid; gap: 4px; }
+@media (max-width: 560px) {
+  .mdr-head { font-size: 19px; }
+  .mdr-cmp-row { grid-template-columns: 1fr; }
+  .mdr-cmp-none { grid-column: auto; }
+  .mdr-table thead { display: none; }
+  .mdr-table, .mdr-table tbody, .mdr-table tr, .mdr-table td { display: block; }
+  .mdr-table tr { border-bottom: 1px solid var(--mo-grid); padding: 6px 0; }
+  .mdr-table td { border: 0; padding: 2px 0; }
+  .mdr-table .mo-why { min-width: 0; }
+}
