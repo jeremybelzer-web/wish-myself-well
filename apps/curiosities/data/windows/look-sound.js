@@ -6,7 +6,13 @@
     const s = v.slider(id);
     return s && Array.isArray(s.scale) ? Math.max(0, s.scale.indexOf(v(id))) : 0;
   };
-  const cap = (k, t) => k.caption(String(t).replace(/(\d+\.\d{2})\d+/g, "$1").replace(/ · ( ·)+/g, " ·").slice(0, 56));
+  /* The bottom caption: float noise trimmed, and the type shrunk (down to 7 px) so long settings still fit. */
+  const cap = (k, t) => {
+    let x = String(t).replace(/(\d+\.\d)\d+/g, "$1").replace(/[−-]0(?=[ %]|$)/g, "0").replace(/ · ( ·)+/g, " ·").replace(/ · $/, "");
+    if (x.length > 78) x = x.slice(0, 77) + "…";
+    const size = Math.round(k.clamp(300 / Math.max(1, x.length * 0.55), 7, 10) * 10) / 10;
+    return `<rect x="0" y="162" width="320" height="18" fill="rgba(0,0,0,0.55)"/>` + k.label({ x: 160, y: 175, text: x, size, color: "#f4f4f4" });
+  };
   const chip = (k, x, y, text, color, anchor) => {
     const w = String(text).length * 5.2 + 10;
     const x0 = anchor === "end" ? x - w : anchor === "middle" ? x - w / 2 : x;
@@ -110,9 +116,9 @@
     if (start === 0) s += k.bubble({ x: 108, y: 20, text: "...", w: 30, h: 18, size: 10, tail: -10 });
     if (start === 2) s += `<line x1="128" y1="8" x2="128" y2="88" stroke="#fff" stroke-width="3"/>`;
     if (start === 3) s += k.label({ x: 120, y: 30, text: "!", size: 22, color: "#ffd166", weight: 700 });
-    if (on > 0) s += notes(k, 150, 50, 1 + tells * 2, "#ffd166", 0.9);
-    s += k.label({ x: 230, y: 34, text: ["holds back", "hints", "guides", "insists"][tells], size: 11, color: "#ffd166" });
-    s += k.label({ x: 230, y: 54, text: ["no score", "under the scene", "featured"][on], size: 9, color: "#ccc" });
+    if (on > 0) s += notes(k, 160, 80, 1 + tells * 2, "#ffd166", 0.9);
+    s += k.label({ x: 232, y: 32, text: ["holds back", "hints", "guides", "insists"][tells], size: 11, color: "#ffd166" });
+    s += k.label({ x: 232, y: 50, text: ["no score", "under the scene", "featured"][on], size: 9, color: "#ccc" });
     /* The cue on its lane: how it builds, swells and fades. */
     s += lane(k, 128, "score", 50);
     s += env(k, {
@@ -155,7 +161,7 @@
     s += vline(k, cut, 16, 126, "#fff") + k.label({ x: 50 + cut * 262, y: 136, text: "cut", size: 8, color: "#fff" });
     if (Math.abs(split - cut) > 0.01) s += k.arrow({ x1: 50 + cut * 262, y1: 128, x2: 50 + split * 262, y2: 128, color: "#ffd166", w: 1.5 });
     const icons = ["room tone", "music", "a voice", "a sound effect"];
-    s += chip(k, 50, 158, `${v("setting")} · carries ${icons[carrier]}`, "#ffd166") + chip(k, 312, 158, `${lead > 0 ? "+" : ""}${lead} beats · ${ov} s overlap`, "#ccc", "end");
+    s += chip(k, 50, 158, `carries ${icons[carrier]}`, "#ffd166") + chip(k, 312, 158, `${lead > 0 ? "+" : ""}${lead} beats · ${ov} s overlap`, "#ccc", "end");
     return s + cap(k, `${v("setting")} · ${v("jolt")} · ${v("carrier")}`);
   });
 
@@ -261,10 +267,10 @@
     const fillH = [0, 0.08, 0.35, 0.8][fill] * (0.3 + fl * 0.7);
     s += env(k, { y: 70, h: 66, wiggle: fill >= 2, freq: fill === 3 ? 0.4 : 2.5, color: "#9fd3ff", alpha: 0.8, f: (t) => (t >= a && t <= b ? Math.max(fill ? 0.02 : 0, fillH) : 0) });
     if (fill === 0) s += `<line x1="${(50 + a * 262).toFixed(1)}" y1="${(70 - fl * 30).toFixed(1)}" x2="${(50 + b * 262).toFixed(1)}" y2="${(70 - fl * 30).toFixed(1)}" stroke="#9fd3ff" stroke-dasharray="2 3" opacity="0.5"/>`;
-    if (fill === 0) s += k.label({ x: 50 + ((a + b) / 2) * 262, y: 74, text: "silence", size: 9, color: "#9fd3ff" });
+    if (fill === 0 && b - a > 0.14) s += k.label({ x: 50 + ((a + b) / 2) * 262, y: 74, text: "silence", size: 9, color: "#9fd3ff" });
     /* How much quieter: a drop measured on the side. */
     const dropY = 40 + quieter * 60;
-    s += `<line x1="18" y1="40" x2="18" y2="${dropY.toFixed(1)}" stroke="#ff8a80" stroke-width="3"/>` + k.arrow({ x1: 18, y1: 40, x2: 18, y2: dropY + 4, color: "#ff8a80" }) + k.label({ x: 30, y: 122, text: `−${v("quieterBy")} dB`, size: 8.5, color: "#ff8a80", anchor: "start" });
+    s += `<line x1="18" y1="40" x2="18" y2="${dropY.toFixed(1)}" stroke="#ff8a80" stroke-width="3"/>` + k.arrow({ x1: 18, y1: 40, x2: 18, y2: dropY + 4, color: "#ff8a80" }) + k.label({ x: 30, y: 122, text: v.n("quieterBy") ? `−${v("quieterBy")} dB` : "no drop", size: 8.5, color: "#ff8a80", anchor: "start" });
     /* The gap's job: a face. */
     const moodFace = [{ mood: 0.4, eyes: 0.4 }, { mood: -0.3, brows: -0.6, look: 0.8 }, { mood: -0.2, brows: 0.6, eyes: 1 }, { mood: -0.6, mouth: 0.8, eyes: 1, brows: 1 }, { mood: 0, eyes: 0.6 }][purpose];
     s += k.face(Object.assign({ x: 160, y: 140, r: 18 }, moodFace)) + k.label({ x: 200, y: 144, text: v("purpose"), size: 10, color: "#ddd", anchor: "start" });
@@ -282,31 +288,35 @@
     const sur = idx(v, "surround");
     const boost = v.p("focusBoost");
     let s = k.bg("#16161c");
-    /* The screen in front, the listener below; sounds around them, wider as the mix surrounds you. */
-    s += `<rect x="90" y="10" width="140" height="60" fill="#2e3440" stroke="#888" stroke-width="2"/>` + k.label({ x: 160, y: 66, text: "screen", size: 7.5, color: "#888" });
-    s += k.face({ x: 160, y: 130, r: 14, eyes: 0.9 }) + ear(k, 174, 130, 0.6);
-    const spread = [0.55, 1.2, 2 * Math.PI][sur];
+    /* The screen in front, the listener in the middle; sounds around them, wider as the mix surrounds you.
+       At most 10 marks are drawn so a busy mix still reads; the caption says how dense it really is. */
+    s += `<rect x="100" y="10" width="120" height="54" fill="#2e3440" stroke="#888" stroke-width="2"/>` + k.label({ x: 104, y: 20, text: "screen", size: 7, color: "#888", anchor: "start" });
+    s += k.face({ x: 160, y: 112, r: 14, eyes: 0.9 }) + ear(k, 174, 112, 0.6);
+    const shown = Math.min(dens, real >= 2 ? 6 : 10);
+    const spread = real >= 2 ? [1.3, 2.5, 2 * Math.PI][sur] : [0.9, 1.8, 2 * Math.PI][sur];
     const pts = [];
-    for (let i = 0; i < dens; i++) {
-      const isOff = i < off;
-      const ang = -Math.PI / 2 + (dens > 1 ? (i / (dens - 1) - 0.5) : 0) * spread * (sur === 2 ? (dens - 1) / dens : 1);
-      const r = isOff ? 112 : 78;
-      pts.push([160 + Math.cos(ang) * r * 1.25, 130 + Math.sin(ang) * r * (sur === 2 ? 0.6 : 0.95), isOff]);
+    for (let i = 0; i < shown; i++) {
+      const isOff = i < Math.round((off / Math.max(1, dens)) * shown) || (off > 0 && i === 0);
+      const ang = -Math.PI / 2 + (shown > 1 ? i / (shown - 1) - 0.5 : 0) * spread * (sur === 2 ? (shown - 1) / shown : 1);
+      const rx = isOff ? 136 : 92;
+      const ry = isOff ? 92 : 62;
+      pts.push([k.clamp(160 + Math.cos(ang) * rx, 18, 302), k.clamp(112 + Math.sin(ang) * ry, 16, 128), isOff]);
     }
     const words = ["clink", "tap", "whirr", "creak", "drip", "hum"];
+    const mid = Math.floor(shown / 2);
     pts.forEach(([x, y, isOff], i) => {
-      const big = focus > 0 && i === Math.floor(dens / 2);
-      const sc = big ? 0.6 + focus * 0.25 + boost * 0.6 : 0.55;
-      s += real >= 2 ? k.text({ x, y: y + 4, text: real === 3 ? words[i % 6].toUpperCase() + "!" : words[i % 6], size: 9 * sc * (real === 3 ? 1.6 : 1.2), color: big ? "#ffd166" : "#9fd3ff", weight: 700, outline: real === 3 ? "#000" : null, italic: real === 2 }) : k.speaker({ x, y, s: sc, level: real === 1 ? 1 : 0.6, color: big ? "#ffd166" : isOff ? "#c8a0ff" : "#9fd3ff" });
+      const big = focus > 0 && i === mid;
+      const sc = big ? Math.min(1.3, 0.75 + focus * 0.12 + boost * 0.3) : 0.6;
+      s += real >= 2 ? k.text({ x, y: y + 4, text: real === 3 ? words[i % 6].toUpperCase() + "!" : words[i % 6], size: big ? 10 + focus + boost * 4 : 9, color: big ? "#ffd166" : isOff ? "#c8a0ff" : "#9fd3ff", weight: 700, outline: real === 3 ? "#000" : null, italic: real === 2 }) : k.speaker({ x, y, s: sc, level: real === 1 ? 1 : 0.6, color: big ? "#ffd166" : isOff ? "#c8a0ff" : "#9fd3ff" });
     });
-    if (focus === 3) s += k.tint({ color: "#000", alpha: 0.25 });
-    s += `<rect x="252" y="96" width="8" height="40" fill="#2e2e36"/><rect x="252" y="${(136 - boost * 40).toFixed(1)}" width="8" height="${(boost * 40).toFixed(1)}" fill="#ffd166" opacity="${focus ? 1 : 0.35}"/>` + k.label({ x: 264, y: 120, text: `focus +${v("focusBoost")} dB`, size: 7.5, color: "#ffd166", anchor: "start" });
-    if (focus === 3 && dens) s += k.speaker({ x: pts[Math.floor(dens / 2)][0], y: pts[Math.floor(dens / 2)][1], s: 1.2 + boost * 0.6, level: 1, color: "#ffd166" });
-    /* Bridging the cut, and how busy it is per minute. */
-    const bl = (bridge ? (bridge === 1 ? 0.3 : 1) : 0) * (8 + v.p("bridgeSeconds") * 60);
-    s += `<rect x="240" y="150" width="76" height="10" fill="#2e3440"/><line x1="278" y1="146" x2="278" y2="164" stroke="#fff" stroke-width="2"/>` + (bl ? `<rect x="${278 - bl * 0.5}" y="152" width="${bl * 0.5 + 10}" height="6" fill="#ffd166"/>` : `<rect x="${278 - (8 + v.p("bridgeSeconds") * 60) * 0.5}" y="152" width="${(8 + v.p("bridgeSeconds") * 60) * 0.5 + 10}" height="6" fill="none" stroke="#ffd166" stroke-dasharray="2 2" opacity="0.4"/>`) + k.label({ x: 278, y: 144, text: "cut", size: 7.5, color: "#ccc" });
+    if (focus === 3 && shown) s += k.ring({ x: pts[mid][0], y: pts[mid][1], r: 16, color: "#ffd166", dash: "3 2" });
+    /* A strip along the bottom: how busy, how loud the focus sound is, and the sound carried across a cut. */
+    s += `<rect x="0" y="136" width="320" height="26" fill="#0e0e12"/>`;
     const epm = v.n("eventsPerMinute");
-    s += Array.from({ length: Math.round(epm / 5) }, (_, i) => `<rect x="${6 + i * 3.2}" y="148" width="2" height="${6 + (i % 3) * 3}" fill="#9fd3ff"/>`).join("") + k.label({ x: 6, y: 144, text: `${epm} a minute`, size: 7.5, color: "#ccc", anchor: "start" });
+    s += Array.from({ length: Math.round(epm / 5) }, (_, i) => `<rect x="${6 + i * 3.2}" y="150" width="2" height="${6 + (i % 3) * 2}" fill="#9fd3ff"/>`).join("") + k.label({ x: 6, y: 146, text: `${epm} a minute`, size: 7.5, color: "#ccc", anchor: "start" });
+    s += k.meter({ x: 118, y: 150, w: 84, p: boost, label: `focus +${v("focusBoost")} dB`, color: focus ? "#ffd166" : "#776a40" });
+    const bl = (bridge ? (bridge === 1 ? 0.3 : 1) : 0) * (8 + v.p("bridgeSeconds") * 60);
+    s += `<rect x="240" y="150" width="76" height="8" fill="#2e3440"/><line x1="278" y1="146" x2="278" y2="160" stroke="#fff" stroke-width="2"/>` + (bl ? `<rect x="${(278 - bl * 0.5).toFixed(1)}" y="151" width="${(bl * 0.5 + 10).toFixed(1)}" height="6" fill="#ffd166"/>` : `<rect x="${(278 - (8 + v.p("bridgeSeconds") * 60) * 0.5).toFixed(1)}" y="151" width="${((8 + v.p("bridgeSeconds") * 60) * 0.5 + 10).toFixed(1)}" height="6" fill="none" stroke="#ffd166" stroke-dasharray="2 2" opacity="0.4"/>`) + k.label({ x: 278, y: 145, text: "sound over the cut", size: 7.5, color: "#ccc" });
     return s + cap(k, `${v("density")} · ${v("realism")} · ${v("surround")} · ${off} off screen · +${v("focusBoost")} dB`);
   });
 
@@ -350,7 +360,7 @@
       return m;
     };
     s += env(k, { y: 110, h: 66, wiggle: true, color: "#ffd166", n: 160, f: lvlAt });
-    s += chip(k, 50, 157, `${v("setting")} · ducks ${v("duck")} dB for ${v("duckFor")}`, "#ffd166") + chip(k, 312, 157, `${v("duckAttack")} s down · ${v("duckRelease")} s up`, "#ccc", "end");
+    s += chip(k, 50, 157, `ducks ${v("duck")} dB for ${v("duckFor")}`, "#ffd166") + chip(k, 312, 14, `dips in ${v("duckAttack")} s · back in ${v("duckRelease")} s`, "#ccc", "end");
     return s + cap(k, `${v("setting")} · ${v("musicDb")} dB under speech · ${v("fade")} · fills gaps: ${v("fillsGaps")}`);
   });
 
@@ -369,7 +379,7 @@
     /* The beat it lands on: a face reacting, serious to silly. */
     s += `<rect x="8" y="8" width="120" height="78" fill="#2e3440" stroke="#888"/>` + k.face({ x: 68, y: 48, r: 24, mood: [-0.6, -0.2, 0.3, 0.9][tone], brows: [0.8, 0.5, -0.2, -0.6][tone], mouth: tone === 3 ? 0.7 : 0, eyes: 1 });
     const icon = ["", "↗", "!", "⟲", "wah-wah", "aah", "brrr"][kind];
-    if (kind) s += k.text({ x: 214, y: 56, text: icon, size: 14 + lvl * 16 * (0.5 + sdb), color: "#ffd166", weight: 700, outline: "#000" });
+    if (kind) s += k.text({ x: 214, y: 62, text: icon, size: 14 + lvl * 12 * (0.5 + sdb), color: "#ffd166", weight: 700, outline: "#000" });
     s += k.label({ x: 214, y: 22, text: kind ? v("setting") : "no sting", size: 10, color: "#ccc" });
     /* The lane: each sting a block at the moments, early or late, as long as it is. */
     s += lane(k, 124, "sting", 40);
@@ -380,7 +390,7 @@
       s += block(k, a, a + 0.01 + len * 0.18, 124, 6 + lvl * 14 * (0.4 + sdb), "#ffd166", kind ? 0.9 : 0.22);
     });
     s += k.label({ x: 50 + moments[0] * 262, y: 96, text: "moment", size: 7.5, color: "#e57373" });
-    s += Array.from({ length: spm }, (_, i) => `<rect x="${50 + i * 6}" y="158" width="4" height="7" fill="#ffd166"/>`).join("") + k.label({ x: 50 + spm * 6 + 6, y: 165, text: `${spm} a minute`, size: 8, color: "#ccc", anchor: "start" });
+    s += Array.from({ length: spm }, (_, i) => `<rect x="${50 + i * 6}" y="150" width="4" height="7" fill="#ffd166"/>`).join("") + k.label({ x: 50 + spm * 6 + 6, y: 157, text: `${spm} a minute`, size: 8, color: "#ccc", anchor: "start" });
     return s + cap(k, `${v("setting")} · ${v("level")} · ${v("stingTiming")} · ${v("howOften")} · ${v("tone")}`);
   });
 
@@ -410,8 +420,8 @@
     const onScr = idx(v, "onScreen");
     const moving = idx(v, "moving");
     const cx = 110;
-    const cy = 100;
-    const R = 14 + (Math.log(dist / 0.3) / Math.log(100 / 0.3)) * 66;
+    const cy = 96;
+    const R = 14 + (Math.log(dist / 0.3) / Math.log(100 / 0.3)) * 50;
     const a = k.rad(around - 90);
     const sx = cx + Math.cos(a) * R;
     const sy = cy + Math.sin(a) * R;
@@ -425,7 +435,9 @@
     if (moving === 2) s += k.arrow({ x1: sx - 40, y1: sy + 10, x2: sx + 30, y2: sy - 8, color: "#ffd166", w: 1.5 });
     if (moving === 3) s += k.ring({ x: cx, y: cy, r: R, color: "#ffd166", w: 1.5 }) + k.arrow({ x1: cx + R * 0.7, y1: cy - R * 0.7, x2: cx + R, y2: cy - 2, color: "#ffd166", w: 1.5 });
     s += k.speaker({ x: sx, y: sy, s: 0.7, level: 1 - Math.min(1, R / 90), color: onScr === 0 ? "#ffd166" : onScr === 1 ? "#ffb070" : "#c8a0ff" });
-    s += onScr === 2 ? k.label({ x: sx, y: sy + 20, text: "unseen", size: 8, color: "#c8a0ff" }) : onScr === 1 ? k.label({ x: sx, y: sy + 20, text: "just off the edge", size: 8, color: "#ffb070" }) : "";
+    const ly = sy + 20 > 158 ? sy - 14 : sy + 20;
+    const lx = k.clamp(sx, 44, 176);
+    s += onScr === 2 ? k.label({ x: lx, y: ly, text: "unseen", size: 8, color: "#c8a0ff" }) : onScr === 1 ? k.label({ x: lx, y: ly, text: "just off the edge", size: 8, color: "#ffb070" }) : "";
     /* Side view: above or below. */
     const ha = k.rad(-height);
     s += `<rect x="224" y="4" width="92" height="160" rx="6" fill="#1d1d22" stroke="#333"/>` + k.label({ x: 270, y: 16, text: "from the side", size: 7.5, color: "#888" }) + k.face({ x: 250, y: 90, r: 9, eyes: 0.9, look: 1 });
@@ -622,21 +634,21 @@
     const odb = db(v.n("originalDb"), -60);
     const hello = ["Hello", "Hola", "Bonjour", "Marhaba", "Namaste", "Konnichiwa", "Ciao"][lang];
     let s = k.bg("#16161c");
-    s += `<rect x="8" y="8" width="150" height="96" fill="#2e3440" stroke="#888"/>` + k.face({ x: 70, y: 54, r: 30, mouth: tr === 2 ? 0.6 : 0.3, eyes: 0.9 });
+    s += `<rect x="8" y="8" width="150" height="84" fill="#2e3440" stroke="#888"/>` + k.face({ x: 70, y: 46, r: 27, mouth: tr === 2 ? 0.6 : 0.3, eyes: 0.9 });
     s += k.bubble({ x: 210, y: 30, text: tr === 0 ? "Ahoj" : hello, w: 84, h: 24, size: 11, tail: -40 });
-    if (subs > 0) s += `<rect x="20" y="${88}" width="126" height="13" fill="rgba(0,0,0,0.7)"/>` + k.label({ x: 83, y: 98, text: subs === 1 ? "(key line)" : "Hello, it's me.", size: 8.5, color: "#fff" });
+    if (subs > 0) s += `<rect x="20" y="76" width="126" height="13" fill="rgba(0,0,0,0.7)"/>` + k.label({ x: 83, y: 86, text: subs === 1 ? "(key line)" : "Hello, it's me.", size: 8.5, color: "#fff" });
     /* Lanes: mouth movement, the new voice, the original underneath. */
-    s += lane(k, 122, "mouth", 14) + lane(k, 142, "voice", 18) + lane(k, 162, "original", 14);
+    s += lane(k, 108, "mouth", 14) + lane(k, 127, "voice", 18) + lane(k, 147, "original", 16);
     const words = [[0.1, 0.2], [0.28, 0.42], [0.5, 0.58], [0.66, 0.84]];
     const shift = tr === 2 ? lip * 0.05 : 0.02 + lip * 0.12;
     const voiceCol = [k.hsl(30, 60, 60), k.hsl(200, 45, 60), "#9fd3ff"][like];
     words.forEach(([a, b]) => {
-      s += block(k, a, b, 122, 8, "#e57373");
-      s += block(k, a + (tr ? shift : 0), b + (tr ? shift : 0), 142, 12, tr ? voiceCol : "#9fd3ff");
-      s += block(k, a, b, 162, 2 + (tr ? [0, 0.4, 1][under] : 1) * odb * 10, "#9fd3ff", tr ? 0.35 + under * 0.25 : 0.9);
+      s += block(k, a, b, 108, 8, "#e57373");
+      s += block(k, a + (tr ? shift : 0), b + (tr ? shift : 0), 127, 12, tr ? voiceCol : "#9fd3ff");
+      s += block(k, a, b, 147, 2 + (tr ? [0, 0.4, 1][under] : 1) * odb * 12, "#9fd3ff", tr ? 0.35 + under * 0.25 : 0.9);
     });
-    s += k.label({ x: 210, y: 70, text: tr ? `voice: ${v("soundsLike")}` : "original voice", size: 9, color: voiceCol });
-    s += k.label({ x: 210, y: 86, text: `lips off ${v("lipOffset")} ms`, size: 8.5, color: "#ccc" });
+    s += k.label({ x: 210, y: 64, text: tr ? `voice: ${v("soundsLike")}` : "original voice", size: 9, color: voiceCol });
+    s += k.label({ x: 210, y: 80, text: `lips off ${v("lipOffset")} ms`, size: 8.5, color: "#ccc" });
     return s + cap(k, `${v("setting")} · into ${v("language")} · subtitles: ${v("subtitles")} · original ${v("originalUnder")}`);
   });
 
