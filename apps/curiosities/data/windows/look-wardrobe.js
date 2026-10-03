@@ -10,9 +10,7 @@
   /* The bottom line, shrunk to fit the frame when the words are long. */
   const cap = (k, t) => {
     t = String(t).replace(/(\d+\.\d{2})\d+/g, "$1").replace(/ · ( ·)+/g, " ·").replace(/:\s*$/, "");
-    const sz = Math.max(7.5, Math.min(10, 310 / (t.length * 0.54)));
-    if (t.length * sz * 0.54 > 312) t = t.slice(0, Math.floor(312 / (sz * 0.54)) - 1) + "…";
-    return `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.label({ x: k.W / 2, y: k.H - 5, text: t, size: Math.round(sz * 10) / 10, color: "#f4f4f4" });
+    return `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: k.W / 2, y: k.H - 5, text: t, size: 10, min: 7.5, w: 312, color: "#f4f4f4" });
   };
   const chip = (k, x, y, text, color, anchor) => {
     const w = String(text).length * 5.2 + 10;

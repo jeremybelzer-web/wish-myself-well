@@ -9,9 +9,7 @@
   /* The bottom line, shrunk to fit the frame when the words are long. */
   const cap = (k, t) => {
     t = String(t);
-    const sz = Math.max(7.5, Math.min(10, 310 / (t.length * 0.54)));
-    if (t.length * sz * 0.54 > 312) t = t.slice(0, Math.floor(312 / (sz * 0.54)) - 1) + "…";
-    return `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.label({ x: k.W / 2, y: k.H - 5, text: t, size: Math.round(sz * 10) / 10, color: "#f4f4f4" });
+    return `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: k.W / 2, y: k.H - 5, text: t, size: 10, min: 7.5, w: 312, color: "#f4f4f4" });
   };
   const BG = "#141418";
   const r1 = (n) => Math.round(n * 10) / 10;
@@ -20,14 +18,7 @@
   const ORANGE = "#e0a050";
 
   /* Words that must fit in w pixels: shrink to 6, then cut with "…". */
-  const fit = (k, x, y, text, size, color, w, weight) => {
-    let t = String(text).replace(/\+-/g, "-");
-    const cw = weight ? 0.6 : 0.55;
-    const sz = Math.max(6, Math.min(size, w / (t.length * cw)));
-    const max = Math.floor(w / (sz * cw));
-    if (t.length > max) t = t.slice(0, max - 1) + "…";
-    return k.label({ x, y, text: t, size: Math.round(sz * 10) / 10, color, anchor: "start", weight });
-  };
+  const fit = (k, x, y, text, size, color, w, weight) => k.fitText({ x, y, text: String(text).replace(/\+-/g, "-"), size, color, w, weight, anchor: "start" });
   /* The right-hand panel: rows of {label, p} meters, {label, text} words or {label, n} tick counts. */
   function side(k, rows, title) {
     let s = `<rect x="214" y="6" width="102" height="152" rx="6" fill="#1d1d22" stroke="#444"/>`;
