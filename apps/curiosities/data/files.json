@@ -16,5 +16,6 @@
   "db-proximity-words.js",
   "db-model-scenes.js",
   "db-finish.js",
-  "db-momentum.js"
+  "db-momentum.js",
+  "db-maya.js"
 ]
