@@ -484,3 +484,24 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-areaghost .sl-node { fill: var(--cc-accent); }
 .sl-areaghost.copy .sl-area { fill: rgba(255, 159, 67, 0.16); stroke: var(--cc-warm); }
 .sl-areaghost.copy .sl-node { fill: var(--cc-warm); }
+/* ---------- Lane heads: Off (👁), Solo (S) and Lock (🔒), like CapCut's track buttons ---------- */
+.sl-hbtns { flex: none; display: inline-flex; gap: 1px; align-items: center; }
+.sc-page .sl-hb, .sl-hb { flex: none; background: none; box-shadow: none; border-radius: 3px; padding: 0 2px; min-width: 15px; height: 16px; font-size: 10px; line-height: 16px; font-weight: 700; color: var(--cc-dim); text-align: center; overflow: hidden; }
+.sc-page .sl-hb:hover:not(:disabled) { background: var(--cc-hover); color: var(--cc-text); }
+.sl-hb:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: -1px; }
+/* Unused buttons fold away until the lane head is hovered or a button in it has keyboard focus; on touch screens
+   they always show. A button in use (lane off, soloed or locked) always shows. */
+@media (hover: hover) {
+  .sl-head:not(:hover):not(:focus-within) .sl-hb:not(.on) { min-width: 0; width: 0; padding: 0; opacity: 0; }
+}
+.sc-page .sl-hb-off.on { color: var(--cc-warm); background: linear-gradient(to top right, transparent 44%, var(--cc-warm) 46%, var(--cc-warm) 54%, transparent 56%); }
+.sc-page .sl-hb-solo.on { color: #0f0f10; background: #ffd43b; }
+.sc-page .sl-hb-lock.on { color: var(--cc-text); background: #3a3a42; }
+.sl-head.is-off .sl-name, .sl-head.is-off .sl-sub { opacity: 0.5; }
+.sl-head.is-off .sl-name { text-decoration: line-through; text-decoration-color: rgba(255, 255, 255, 0.35); }
+.sl-head.is-solo { box-shadow: inset 3px 0 0 #ffd43b; }
+.sl-head.is-locked { background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255, 255, 255, 0.035) 6px 9px); }
+.sl-auto.off { stroke-dasharray: 5 4; opacity: 0.3; }
+.sl-node.off { opacity: 0.4; }
+.sl-lockbg { pointer-events: none; }
+.sl-hatch { stroke: rgba(255, 255, 255, 0.06); stroke-width: 3; }

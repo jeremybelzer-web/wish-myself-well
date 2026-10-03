@@ -58,6 +58,16 @@ Jeremy, 2026-10-02 20:26Z (his words #25). In `lanes.js`:
 
 In `ui.js`, **curiosity windows**: ⧉ on every lane and Details row (or `CurioScreen.openWin(id)`) opens a floating window built from the curiosity's sliders, each with its control, key diamond, "+ lane" and a chart. Hand-made parts: Emotion's feeling pad and emotional road, Shot size's frames around a person, Comedy's joke timing (setup, payoff, Rule of three, Callback), Angle height's cameras around a person seen from the side, Camera move's pictures of each move, and color chips and main-color swatches for Black and white to full color.
 
+## Lane heads: Off, Solo and Lock
+
+Like the small buttons on CapCut's track headers (hide or mute a track, lock it) and an audio app's solo. Each lane's name has three small buttons in `lanes.js`. To save room they fold away until you hover over the lane's name or tab to them. They always show on touch screens, and whenever one is in use.
+
+- **👁 Off**: turns the lane's automation off or back on (the engine lane's own `on`, one undo step). An off lane stops changing the film. Its nodes stay, drawn faded with a dashed line, and its name is crossed out.
+- **S Solo**: plays only this lane's automation and turns every other lane off, in one undo step. Press it again and the others come back the way they were. What was on before is kept in the tools as `solo: { lk, was }`. If the film changed in between, only lanes that still exist are put back, and lanes made since are left alone. Soloing another lane keeps the first "before". The soloed lane has a yellow S and a yellow edge. Pure helpers: `soloCommands(st, laneKey, prev)` and `soloActive(st, solo)`.
+- **🔒 Lock**: stops the timeline from changing that lane's nodes. Clicking can't add a node, and nodes can't be dragged, removed, split or curved. Area tools, Move, Remove and Paste skip a locked lane and say so in a short message. A locked lane can still be copied, turned off or soloed. A lock is a view setting, not film data. It is kept in `curiosities-screen-tools-v1` as `locks: { "track|curiosity": true }`. A locked lane has a hatched background and a lit 🔒. Details' controls still write to a locked lane, because the lock covers the timeline only.
+
+Off and Solo need a lane that has nodes (an engine lane). Lock needs the lane to be on a track. The mounted lanes also have `laneOff(lk)`, `solo(lk)` and `lock(lk)`.
+
 ## Keyframe jumps and the frame shape
 
 Like CapCut's ◀ ◆ ▶: in Details, once a curiosity has nodes, small ◀ and ▶ sit either side of its key diamond. ◀ moves the playhead to the moment of its previous node, ▶ to its next; greyed when there is none that way. The diamond works as before. The windows keep the bare diamond (`keyNavBtns` in `ui.js` wraps `keyBtn` for Details rows only).

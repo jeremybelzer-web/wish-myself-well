@@ -33,6 +33,7 @@
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
    - ensure(cur)         make sure a lane's curiosity is on a track (one undo step), returns the track id
    - tools()             the timeline toolbar settings, kept in localStorage "curiosities-screen-tools-v1"
+   - soloCommands(st, laneKey, prev), soloActive(st, solo), isLocked(laneKey)   the lane heads' Solo and Lock
 
    The toolbar copies CapCut's timeline toolbar (Jeremy's screenshots, 2026-10-02): the Select (A) and Split (B)
    tools, Undo, Delete, Add marker (M), the main track magnet (P), linkage (~), the preview axis (S) and zoom.
@@ -270,11 +271,14 @@
   function paste(atRow) {
     if (clip && clip.kind === "area") {
       const st = E().state();
-      const r = pasteAreaCommands(st, clip, clip.lanes.map((l) => l && { cur: l.cur, track: l.track }), Math.max(0, Math.min(Number(atRow) || 0, st.rows.length - 1 - clip.span)));
+      /* Locked lanes are skipped (tools.locks). */
+      let skipped = 0;
+      const targets = clip.lanes.map((l) => (l && isLocked(l.track + "|" + l.cur) ? (skipped++, null) : l && { cur: l.cur, track: l.track }));
+      const r = pasteAreaCommands(st, clip, targets, Math.max(0, Math.min(Number(atRow) || 0, st.rows.length - 1 - clip.span)));
       if (r.error) return { ok: false, error: r.error };
-      if (!r.cmds.length) return { ok: false, error: "Nothing in the clipboard fits this film's tracks." };
+      if (!r.cmds.length) return { ok: false, error: skipped ? "Every lane in the clipboard is locked here, so nothing was pasted." : "Nothing in the clipboard fits this film's tracks." };
       const out = E().send({ type: "batch", label: "Paste automation", commands: r.cmds });
-      return out.ok ? { ok: true, nodes: r.cmds.filter((x) => x.type === "setPoint").length, links: clip.links.length } : out;
+      return out.ok ? { ok: true, nodes: r.cmds.filter((x) => x.type === "setPoint").length, links: r.cmds.filter((x) => x.type === "addLink").length, skipped } : out;
     }
     if (!clip || !clip.nodes || !clip.nodes.length) return { ok: false, error: "Copy a proximity first (pick a node, then Copy)." };
     let st = E().state();
@@ -310,9 +314,14 @@
       if (l.value != null) link.value = l.value;
       cmds.push(link);
     });
-    if (!cmds.length) return { ok: false, error: "Nothing in the clipboard fits this film's tracks." };
-    const out = E().send({ type: "batch", label: clip.links.length > 1 ? "Paste a proximity suite" : clip.links.length ? "Paste a proximity" : "Paste nodes", commands: adds.concat(cmds) });
-    return out.ok ? { ok: true, nodes: clip.nodes.length, links: clip.links.length } : out;
+    /* Locked lanes are skipped: their nodes, and the joins that would end on them. */
+    const lockedLk = (t, c) => isLocked(t + "|" + c);
+    const kept = cmds.filter((c) => !(c.type === "setPoint" ? lockedLk(c.track, c.curiosity) : lockedLk(c.from.track, c.from.curiosity) || lockedLk(c.to.track, c.to.curiosity)));
+    const skipped = cmds.filter((c) => c.type === "setPoint").length - kept.filter((c) => c.type === "setPoint").length;
+    if (!kept.length) return { ok: false, error: skipped ? "Every lane that proximity lands on is locked here, so nothing was pasted." : "Nothing in the clipboard fits this film's tracks." };
+    const links = kept.filter((c) => c.type === "addLink").length;
+    const out = E().send({ type: "batch", label: links > 1 ? "Paste a proximity suite" : links ? "Paste a proximity" : "Paste nodes", commands: adds.concat(kept) });
+    return out.ok ? { ok: true, nodes: kept.length - links, links, skipped } : out;
   }
 
   /* ---------- curves (Jeremy, 2026-10-02 20:26Z: "a curves pop-up menu that allow you to adjust precisely the
@@ -644,6 +653,48 @@
     return out;
   }
 
+  /* ---------- lane heads: Off, Solo and Lock (CapCut's track buttons: hide or mute a track, lock it; an audio
+     app's solo) ----------
+     Off is the engine lane's own `on` (film data, one undo step). Solo turns every other lane off as one batch and
+     remembers each lane's on/off from before in tools.solo = { lk, was: { laneKey: on } }, so pressing it again puts
+     them back (only lanes that still exist; lanes made since are left alone). Lock is a view setting, not film
+     data: tools.locks = { laneKey: true } stops the timeline from changing that lane's nodes. */
+  const onCmd = (lk, on) => {
+    const at = lk.indexOf("|");
+    return { type: "laneMode", track: lk.slice(0, at), curiosity: lk.slice(at + 1), on };
+  };
+  /* Is solo s still in force on this film: its lane is on and every lane it turned off is still off? */
+  function soloActive(st, s) {
+    if (!s || !s.lk || !st.lanes[s.lk] || !st.lanes[s.lk].on) return false;
+    return Object.keys(s.was || {}).every((k) => k === s.lk || !st.lanes[k] || !st.lanes[k].on);
+  }
+  /* The commands for pressing Solo on lane lk, given the solo now remembered (prev). Returns { cmds, solo, off }:
+     solo is what to remember next (null after un-solo); off is true when this press un-solos. */
+  function soloCommands(st, lk, prev) {
+    if (!st.lanes[lk]) return { error: "That lane has no nodes yet, so there is nothing to solo." };
+    const keys = Object.keys(st.lanes).sort();
+    const active = soloActive(st, prev);
+    if (active && prev.lk === lk) {
+      const cmds = keys.filter((k) => typeof prev.was[k] === "boolean" && st.lanes[k].on !== prev.was[k]).map((k) => onCmd(k, prev.was[k]));
+      return { cmds, solo: null, off: true };
+    }
+    /* Soloing another lane while one is soloed keeps the first "before". */
+    const base = active ? prev.was : {};
+    const was = {};
+    keys.forEach((k) => (was[k] = typeof base[k] === "boolean" ? base[k] : st.lanes[k].on !== false));
+    const cmds = keys.filter((k) => st.lanes[k].on !== (k === lk)).map((k) => onCmd(k, k === lk));
+    return { cmds, solo: { lk, was }, off: false };
+  }
+  if (!tools.locks || typeof tools.locks !== "object") tools.locks = {};
+  const isLocked = (lk) => !!(lk && tools.locks[lk]);
+  /* The lane a point command (or any command in a batch) would change that is locked, if any. */
+  function lockedIn(m) {
+    const list = m && m.type === "batch" ? m.commands || [] : [m];
+    const hit = list.find((c) => c && (c.type === "setPoint" || c.type === "removePoint" || c.type === "clearLane") && isLocked(c.track + "|" + c.curiosity));
+    return hit ? hit.track + "|" + hit.curiosity : null;
+  }
+  const lockSay = (lk) => `${S() ? S().label(lk.slice(lk.indexOf("|") + 1)) : lk} is locked (🔒 by its name), so its nodes stay as they are. Click the 🔒 to unlock it.`;
+
   /* ---------- the view ---------- */
   /* Storyboard frames for My film's clip track, as data pictures (each frame stays self-contained, so its arrow
      ids never clash with the page's). Cached by the frame's own text so redraws stay fast. */
@@ -659,6 +710,7 @@
     }
     return u;
   }
+  let mounts = 0;
   function mount(el, opts) {
     opts = opts || {};
     let sel = null; /* selected node key */
@@ -699,6 +751,21 @@
     const laneH = () => Math.max(28, Math.min(320, Number(tools.laneH) || LANE_H));
     const zoomOf = () => Math.max(0.25, Math.min(32, Number(tools.zoom) || 1));
     let lh = LANE_H;
+    const hatchId = "sl-hatch-" + ++mounts;
+    /* The lane head's small buttons: Off (👁), Solo (S) and Lock (🔒). Off and Solo need an engine lane (a lane
+       with nodes); Lock needs the lane to be on a track. They show on hover or focus, and always when in use. */
+    function headBtns(ln, lane, off, solo, lock) {
+      if (!ln.lk) return "";
+      const name = esc(S().label(ln.cur));
+      const lk = esc(ln.lk);
+      const b = (act, on, cls, label, title, aria) => `<button type="button" class="sl-hb ${cls}${on ? " on" : ""}" data-act="${act}" data-lk="${lk}" aria-pressed="${on}" title="${title}" aria-label="${aria}">${label}</button>`;
+      return `<span class="sl-hbtns">${
+        lane
+          ? b("lane-off", off, "sl-hb-off", "👁", off ? `${name}'s automation is off: it isn't changing the film. Click to turn it back on.` : `Turn ${name}'s automation off: it stops changing the film (its nodes stay, drawn faded). Click again to turn it back on.`, `${name}: automation off`) +
+            b("lane-solo", solo, "sl-hb-solo", "S", solo ? `Solo: only ${name}'s automation is playing. Click to bring the other lanes back the way they were.` : `Solo: play only ${name}'s automation and turn every other lane off for now. Click again to bring them back.`, `${name}: solo`)
+          : ""
+      }${b("lane-lock", lock, "sl-hb-lock", "🔒", lock ? `Locked: ${name}'s nodes can't be added, moved or removed on the timeline. Click to unlock.` : `Lock ${name} so its nodes can't be added, moved or removed here by mistake. Click again to unlock.`, `${name}: lock`)}</span>`;
+    }
     function draw() {
       const Eng = E();
       if (!Eng || !S()) {
@@ -733,12 +800,17 @@
         })
       );
       const inArea = (i, j) => area && i >= area.i0 && i <= area.i1 && j >= area.j0 && j <= area.j1;
+      const soloNow = soloActive(st, tools.solo) ? tools.solo.lk : null;
       const heads = lanes
         .map((ln, i) => {
           const picked = (sel && sel.endsWith("@" + ln.lk)) || (area && i >= area.i0 && i <= area.i1);
           const ticks = scaleTicks(ln.cur);
-          return `<div class="sl-head${ln.group ? " sl-in-group" : ""}${picked ? " on" : ""}${ticks ? " has-ticks" : ""}" style="height:${lh}px" data-i="${i}">
-            <div class="sl-head-top">${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}<button type="button" class="sl-win" data-open-win="${esc(ln.cur)}" title="Open ${esc(S().label(ln.cur))}'s own window: every knob and slider it has" aria-label="Open ${esc(S().label(ln.cur))}'s window">⧉</button></div>
+          const lane = ln.lk ? st.lanes[ln.lk] : null;
+          const off = !!lane && !lane.on;
+          const solo = !!lane && soloNow === ln.lk;
+          const lock = isLocked(ln.lk);
+          return `<div class="sl-head${ln.group ? " sl-in-group" : ""}${picked ? " on" : ""}${ticks ? " has-ticks" : ""}${off ? " is-off" : ""}${solo ? " is-solo" : ""}${lock ? " is-locked" : ""}" style="height:${lh}px" data-i="${i}">
+            <div class="sl-head-top">${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}${headBtns(ln, lane, off, solo, lock)}<button type="button" class="sl-win" data-open-win="${esc(ln.cur)}" title="Open ${esc(S().label(ln.cur))}'s own window: every knob and slider it has" aria-label="Open ${esc(S().label(ln.cur))}'s window">⧉</button></div>
             <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(st.lanes[ln.lk])][2])} Click to change.">${MODES[modeOf(st.lanes[ln.lk])][1]}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
             ${ticks}
           </div>`;
@@ -782,6 +854,7 @@
       lanes.forEach((ln, i) => {
         const y0 = i * lh;
         svg.push(`<rect class="sl-bg${i % 2 ? " odd" : ""}" x="0" y="${y0}" width="${svgW}" height="${lh}" data-lane="${i}"/>`);
+        if (isLocked(ln.lk)) svg.push(`<rect class="sl-lockbg" x="0" y="${y0}" width="${svgW}" height="${lh}" fill="url(#${hatchId})"/>`);
         if (ln.track || S().known(ln.cur)) svg.push(valueLines(ln.cur, y0, svgW));
       });
       fineX.forEach(([x, lv]) => svg.push(`<line class="sl-fine sl-fine${lv}" x1="${x}" x2="${x}" y1="0" y2="${svgH}"/>`));
@@ -842,7 +915,7 @@
           const key = nodeKey(p.r, ln.lk);
           const c = xyOf(p);
           const small = cpts.has(p.r);
-          dots.push(`<circle class="sl-node${small ? " sl-cpt" : ""}${sel === key ? " on" : ""}${inArea(i, p.j) ? " in" : ""}" cx="${c[0]}" cy="${c[1]}" r="${small ? 3.5 : 6}" data-node="${esc(key)}" data-lane="${i}"><title>${esc(S().label(ln.cur))}: ${esc(p.v)} at moment ${p.j + 1}${small ? " (on a curve)" : ""}</title></circle>`);
+          dots.push(`<circle class="sl-node${small ? " sl-cpt" : ""}${lane.on ? "" : " off"}${sel === key ? " on" : ""}${inArea(i, p.j) && !isLocked(ln.lk) ? " in" : ""}" cx="${c[0]}" cy="${c[1]}" r="${small ? 3.5 : 6}" data-node="${esc(key)}" data-lane="${i}"><title>${esc(S().label(ln.cur))}: ${esc(p.v)} at moment ${p.j + 1}${small ? " (on a curve)" : ""}</title></circle>`);
         });
       });
       /* Proximities: a line from node to node. */
@@ -888,7 +961,7 @@
           <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
           <div class="sl-top" style="height:${top}px"><svg class="sl-topsvg" width="${svgW}" height="${top}" viewBox="0 0 ${svgW} ${Math.max(1, top)}">${tsvg.join("")}</svg></div>
           <div class="sl-heads" title="Drag right for taller lanes, left for shorter; drag up and down to scroll. Click a lane's name area to select the whole lane (Shift adds more lanes).">${heads}</div>
-          <div class="sl-lanes"><svg class="sl-svg" width="${svgW}" height="${Math.max(1, svgH)}" viewBox="0 0 ${svgW} ${Math.max(1, svgH)}">${svg.join("")}${dots.join("")}${drag && drag.ghost ? drag.ghost : ""}</svg></div>
+          <div class="sl-lanes"><svg class="sl-svg" width="${svgW}" height="${Math.max(1, svgH)}" viewBox="0 0 ${svgW} ${Math.max(1, svgH)}"><defs><pattern id="${hatchId}" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="sl-hatch" x1="0" y1="0" x2="0" y2="9"/></pattern></defs>${svg.join("")}${dots.join("")}${drag && drag.ghost ? drag.ghost : ""}</svg></div>
         </div></div>`;
       const sc = el.querySelector(".sl-scroll");
       const box = el.closest(".sc-timeline");
@@ -950,6 +1023,12 @@
       if (s) s.textContent = msg;
     }
     function send(m) {
+      /* Lock: nothing on the timeline changes a locked lane's nodes. */
+      const lk = lockedIn(m);
+      if (lk) {
+        say(lockSay(lk));
+        return { ok: false, error: lockSay(lk), locked: true };
+      }
       const r = E().send(m);
       if (!r.ok) say(r.error);
       return r;
@@ -1039,6 +1118,16 @@
       const a = at(e);
       /* A press inside the selected area may become a sideways drag of the whole block (decided in onMove). */
       const inArea = !!area && (node ? node.classList.contains("in") : inBlock(a));
+      if (node && isLocked(split(node.dataset.node).lk) && !inArea) {
+        /* A locked lane's node can be picked (to copy it) but not dragged. */
+        sel = node.dataset.node;
+        seg = null;
+        if (opts.onSelect) opts.onSelect(split(sel).cur);
+        e.preventDefault();
+        draw();
+        say(lockSay(split(sel).lk));
+        return;
+      }
       if (node) {
         sel = node.dataset.node;
         seg = null;
@@ -1060,6 +1149,14 @@
       drag = { add: true, start: a, copy: e.altKey || e.shiftKey, area: inArea };
       if (inArea) e.preventDefault();
     }
+    /* The lanes with the locked ones inside the selected area left out (lk: null), and how many were left out:
+       the area tools, Move, Remove and Paste skip locked lanes. */
+    function openLanes() {
+      let skipped = 0;
+      const lanes = geo.lanes.map((ln, i) => (ln && area && i >= area.i0 && i <= area.i1 && isLocked(ln.lk) ? (skipped++, Object.assign({}, ln, { lk: null })) : ln));
+      return { lanes, skipped };
+    }
+    const skipNote = (n) => (n ? ` Skipped ${n} locked lane${n === 1 ? "" : "s"} (🔒).` : "");
     const inBlock = (a) => !!area && !!a.ln && a.i >= area.i0 && a.i <= area.i1 && a.x >= area.j0 * geo.colW && a.x < (area.j1 + 1) * geo.colW;
     /* ---------- dragging the selected area sideways (CapCut: drag a group of clips along the timeline) ----------
        The whole block snaps to whole moments and stays inside the film. While dragging, a copy of the area's
@@ -1097,12 +1194,13 @@
         say("The selection is back where it was; nothing moved.");
         return draw();
       }
-      const r = moveAreaCommands(st, geo.lanes, area, dj, copy);
+      const open = openLanes();
+      const r = moveAreaCommands(st, open.lanes, area, dj, copy);
       if (r.error) return say(r.error), draw();
       const where = Math.abs(dj) + " moment" + (Math.abs(dj) === 1 ? "" : "s") + (dj > 0 ? " later" : " earlier");
       if (!r.nodes) {
         area = r.area;
-        say(`The selection moved ${where}; it had no nodes in it, so the film is the same.`);
+        say(open.skipped ? `Every lane with nodes in the selection is locked, so nothing moved.${skipNote(open.skipped)}` : `The selection moved ${where}; it had no nodes in it, so the film is the same.`);
         return draw();
       }
       const out = send({ type: "batch", label: copy ? "Copy the selection" : "Move the selection", commands: r.cmds });
@@ -1124,6 +1222,7 @@
             (copy ? " The originals stayed where they were." : "") +
             (r.links ? ` ${r.links} join${r.links === 1 ? "" : "s"} came along.` : "") +
             (r.replaced ? ` ${r.replaced} node${r.replaced === 1 ? " that was" : "s that were"} already there ${r.replaced === 1 ? "was" : "were"} replaced.` : "") +
+            skipNote(open.skipped) +
             " Undo (⌘Z) puts everything back."
         );
       }
@@ -1293,6 +1392,7 @@
           return draw();
         }
         if (!a.ln || a.ln !== d.start.ln) return draw();
+        if (isLocked(a.ln.lk)) return say(lockSay(a.ln.lk));
         let track = a.ln.track;
         if (!track) track = ensure(a.ln.cur);
         if (!track) return say("Every track is full; remove a lane first.");
@@ -1311,6 +1411,8 @@
       const copy = d.copy || e.altKey || e.shiftKey;
       /* Dropped on another lane's node: join them (a proximity). */
       if (target && target.dataset.node !== d.key && split(target.dataset.node).lk !== from.lk) {
+        const lockLk = [from.lk, split(target.dataset.node).lk].find(isLocked);
+        if (lockLk) return draw(), say(lockSay(lockLk));
         const r = send(Object.assign(linkCommand(st, from, split(target.dataset.node)), {}));
         if (r.ok) say("Joined: they now move and copy together. Copy proximity takes the pair to another scene.");
         return draw();
@@ -1386,6 +1488,45 @@
       };
       el.appendChild(pop);
     }
+    /* The lane head's buttons: Off, Solo and Lock. Focus goes back to the button after the redraw (keyboard). */
+    function laneButton(act, lk) {
+      const out = act === "lane-off" ? laneOff(lk) : act === "lane-solo" ? laneSolo(lk) : laneLock(lk);
+      const keep = msg;
+      draw();
+      say(keep);
+      const again = el.querySelector(`.sl-heads [data-act="${act}"][data-lk="${CSS.escape(lk)}"]`);
+      if (again) again.focus();
+      return out;
+    }
+    function laneOff(lk) {
+      const st = E().state();
+      const lane = st.lanes[lk];
+      if (!lane) return say("That lane has no nodes yet, so there is nothing to turn off."), { ok: false };
+      const name = S().label(lk.slice(lk.indexOf("|") + 1));
+      const r = E().send(Object.assign(onCmd(lk, !lane.on), { label: lane.on ? "Turn a lane off" : "Turn a lane on" }));
+      say(r.ok ? (lane.on ? `${name}'s automation is off: it no longer changes the film. Its nodes stay; 👁 turns it back on.` : `${name}'s automation is on again.`) : r.error);
+      return r;
+    }
+    function laneSolo(lk) {
+      const st = E().state();
+      const r = soloCommands(st, lk, tools.solo);
+      if (r.error) return say(r.error), { ok: false };
+      const name = S().label(lk.slice(lk.indexOf("|") + 1));
+      const out = r.cmds.length ? E().send({ type: "batch", label: r.off ? "Un-solo a lane" : "Solo a lane", commands: r.cmds }) : { ok: true };
+      if (!out.ok) return say(out.error), out;
+      tools.solo = r.solo;
+      saveTools();
+      say(r.off ? `Solo off: the other lanes are back the way they were.` : `Solo: only ${name}'s automation plays now. Press S again to bring the other lanes back.`);
+      return out;
+    }
+    function laneLock(lk) {
+      const name = S().label(lk.slice(lk.indexOf("|") + 1));
+      if (tools.locks[lk]) delete tools.locks[lk];
+      else tools.locks[lk] = true;
+      saveTools();
+      say(tools.locks[lk] ? `${name} is locked: its nodes can't be added, moved or removed on the timeline.` : `${name} is unlocked.`);
+      return { ok: true, locked: !!tools.locks[lk] };
+    }
     function onClick(e) {
       const w = e.target.closest("[data-open-win]");
       if (w) return opts.onOpen ? opts.onOpen(w.dataset.openWin) : null;
@@ -1402,6 +1543,7 @@
       if (act === "curves") return command("curves");
       if (act === "link-settings") return linkSettings();
       if (act === "marker-list") return markerList(b);
+      if (act === "lane-off" || act === "lane-solo" || act === "lane-lock") return laneButton(act, b.dataset.lk);
       if (act === "mode" && b.dataset.lk) {
         /* Maya's graph editor tangents in plain words: glide (linear) or jump (stepped). */
         const st = E().state();
@@ -1510,16 +1652,17 @@
       } else if (name === "reverse" || name === "flip" || name === "stretch" || name === "squeeze") {
         /* The area tools: one batch each, so one ⌘Z takes it back. */
         if (!area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
-        const r = name === "reverse" ? reverseAreaCommands(st, geo.lanes, area) : name === "flip" ? flipAreaCommands(st, geo.lanes, area) : stretchAreaCommands(st, geo.lanes, area, name === "stretch" ? 2 : 0.5);
+        const open = openLanes();
+        const r = name === "reverse" ? reverseAreaCommands(st, open.lanes, area) : name === "flip" ? flipAreaCommands(st, open.lanes, area) : stretchAreaCommands(st, open.lanes, area, name === "stretch" ? 2 : 0.5);
         const what = { reverse: ["Reverse the selection", "Reversed"], flip: ["Flip the selection", "Flipped"], stretch: ["Stretch the selection", "Stretched"], squeeze: ["Squeeze the selection", "Squeezed"] }[name];
         if (!r.nodes) {
-          say("No nodes in the selection.");
+          say(open.skipped ? "Every lane with nodes in the selection is locked, so nothing changed." + skipNote(open.skipped) : "No nodes in the selection.");
           out = { ok: false };
         } else {
           out = send({ type: "batch", label: what[0], commands: r.cmds });
           if (out.ok) {
             if (r.area) area = r.area;
-            say(`${what[1]} ${r.nodes} node${r.nodes === 1 ? "" : "s"}${r.area ? `; the selection is now moments ${area.j0 + 1} to ${area.j1 + 1}` : ""}. Undo takes it back.`);
+            say(`${what[1]} ${r.nodes} node${r.nodes === 1 ? "" : "s"}${r.area ? `; the selection is now moments ${area.j0 + 1} to ${area.j1 + 1}` : ""}. Undo takes it back.${skipNote(open.skipped)}`);
           }
         }
       } else if (name === "paste" && clip && clip.kind === "area") {
@@ -1573,7 +1716,7 @@
         say(out.ok ? `Copied ${out.nodes} node${out.nodes === 1 ? "" : "s"} and ${out.links} line${out.links === 1 ? "" : "s"}. Move the playhead and press Paste.` : out.error);
       } else if (name === "paste") {
         out = paste(playRow);
-        say(out.ok ? `Pasted ${out.nodes} nodes and ${out.links} lines.` : out.error);
+        say(out.ok ? `Pasted ${out.nodes} nodes and ${out.links} lines.${out.skipped ? ` Skipped ${out.skipped} node${out.skipped === 1 ? "" : "s"} on locked lanes (🔒).` : ""}` : out.error);
       } else return { ok: false, error: "Unknown command." };
       saveTools();
       const keep = msg;
@@ -1585,13 +1728,14 @@
     function removeArea() {
       const st = E().state();
       const doomed = [];
+      const open = openLanes();
       for (let i = area.i0; i <= area.i1; i++) {
-        const ln = geo.lanes[i];
+        const ln = open.lanes[i];
         const lane = ln && ln.lk && st.lanes[ln.lk];
         if (!lane) continue;
         for (let j = area.j0; j <= area.j1; j++) if (lane.points[st.rows[j].id] != null) doomed.push(nodeKey(st.rows[j].id, ln.lk));
       }
-      if (!doomed.length) return say("No nodes in the selection."), { ok: false };
+      if (!doomed.length) return say(open.skipped ? "Every lane with nodes in the selection is locked, so nothing was removed." + skipNote(open.skipped) : "No nodes in the selection."), { ok: false };
       const cmds = [];
       st.links.forEach((l) => {
         const ends = linkEnds(l);
@@ -1602,7 +1746,7 @@
         cmds.push({ type: "removePoint", row: n.row, track: n.track, curiosity: n.cur });
       });
       const out = send({ type: "batch", label: "Remove the selected nodes", commands: cmds });
-      if (out.ok) say(`Removed ${doomed.length} node${doomed.length === 1 ? "" : "s"}.`);
+      if (out.ok) say(`Removed ${doomed.length} node${doomed.length === 1 ? "" : "s"}.${skipNote(open.skipped)}`);
       return out;
     }
     /* Paste the copied area: into the selected area (repeating across a wider one; one copied lane fills every
@@ -1626,11 +1770,13 @@
         i0 = sel ? lanes.findIndex((ln) => ln.lk === split(sel).lk) : first ? lanes.findIndex((ln) => ln.cur === first.cur) : 0;
         if (i0 < 0) i0 = 0;
       }
+      let skipped = 0;
       const targets = c.lanes.map((src, k) => {
         const ln = lanes[i0 + k];
+        if (src && ln && isLocked(ln.lk)) return skipped++, null;
         return src && ln ? { cur: ln.cur, track: ln.track } : null;
       });
-      if (!targets.some(Boolean)) return say("There is no lane there to paste onto."), { ok: false };
+      if (!targets.some(Boolean)) return say(skipped ? "Every lane there is locked, so nothing was pasted." + skipNote(skipped) : "There is no lane there to paste onto."), { ok: false };
       const r = pasteAreaCommands(st, c, targets, start, width);
       if (r.error) return say(r.error), { ok: false };
       const out = send({ type: "batch", label: "Paste automation", commands: r.cmds });
@@ -1638,7 +1784,7 @@
         const across = targets.filter(Boolean).filter((t, k) => c.lanes[k] && t.cur !== c.lanes[k].cur).length;
         const span = Math.max(c.span + 1, width);
         area = { i0, i1: Math.min(lanes.length - 1, i0 + c.lanes.length - 1), j0: start, j1: Math.min(st.rows.length - 1, start + span - 1) };
-        say(`Pasted onto ${targets.filter(Boolean).length} lane${targets.filter(Boolean).length === 1 ? "" : "s"}${across ? `, ${across} of them a different curiosity (values keep their place on its scale)` : ""}.`);
+        say(`Pasted onto ${targets.filter(Boolean).length} lane${targets.filter(Boolean).length === 1 ? "" : "s"}${across ? `, ${across} of them a different curiosity (values keep their place on its scale)` : ""}.${skipNote(skipped)}`);
       }
       return out;
     }
@@ -1665,6 +1811,7 @@
       if (!sk) return say("Make a lane with two nodes first; a curve shapes the line between them."), { ok: false };
       const parts = sk.split("|");
       const lk = parts[0] + "|" + parts[1];
+      if (isLocked(lk)) return say(lockSay(lk)), { ok: false, locked: true };
       const cur = parts[1];
       const lane = st.lanes[lk];
       const ja = st.rows.findIndex((r) => r.id === parts[2]);
@@ -1966,6 +2113,9 @@
       marker: (j) => openMarker(j, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
       markers: () => markerList(),
       command,
+      laneOff: (lk) => laneButton("lane-off", lk),
+      solo: (lk) => laneButton("lane-solo", lk),
+      lock: (lk) => laneButton("lane-lock", lk),
       destroy() {
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", onUp);
@@ -1973,5 +2123,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, moveAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, moveAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
 })();

@@ -620,6 +620,97 @@ const ok = (cond, msg) => {
     await page.focus(".sl");
     await page.keyboard.press("Escape");
   }
+  /* Lane heads: Off (👁), Solo (S) and Lock (🔒), like CapCut's track buttons. Off is the engine lane's `on` (one undo
+     step); Solo turns the other lanes off as one batch and pressing it again restores them; Lock is a view setting
+     that stops the timeline from changing a lane's nodes. Strength of the feeling has 1, 4, 0, 5 at moments 1, 3, 6, 8. */
+  {
+    const film = () => page.evaluate(() => { const st = window.CurioEngine.state(); return JSON.stringify([Object.keys(st.lanes).sort().map((k) => [k, st.lanes[k]]), st.links]); });
+    const onMap = () => page.evaluate(() => { const l = window.CurioEngine.state().lanes; return JSON.stringify(Object.keys(l).sort().map((k) => [k, l[k].on])); });
+    const lkOf = (cur) => page.evaluate((c) => Object.keys(window.CurioEngine.state().lanes).find((k) => k.endsWith("|" + c)), cur);
+    const lkE = await lkOf("emotionIntensity");
+    const lkS = await lkOf("shotSize");
+    const btn = (act, lk) => `.sl-heads [data-act="${act}"][data-lk="${lk}"]`;
+    const headOf = (lk) => `.sl-heads .sl-head:has([data-act="lane-lock"][data-lk="${lk}"])`;
+    const press = async (act, lk) => { await page.hover(headOf(lk)); await page.click(btn(act, lk)); };
+    const msgText = () => page.$eval(".sl-msg", (x) => x.textContent);
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    const before = await film();
+    ok(lkE && lkS && (await page.$(btn("lane-off", lkE))) && (await page.$(btn("lane-solo", lkE))) && (await page.$(btn("lane-lock", lkE))), "each lane's header has Off, Solo and Lock buttons");
+    ok(await page.$eval(btn("lane-off", lkE), (b) => b.title.length > 30 && /stops changing the film/.test(b.title)), "the Off button says in plain words what it does");
+    /* Off */
+    await press("lane-off", lkE);
+    ok(await page.evaluate((lk) => window.CurioEngine.state().lanes[lk].on === false, lkE), "👁 turns the lane's automation off in the engine (on: false)");
+    ok(await page.evaluate((lk) => { const h = document.querySelector(`.sl-heads .sl-head:has([data-lk="${lk}"])`); const i = Number(h.dataset.i); const st = window.CurioEngine.state(); const n = Object.keys(st.lanes[lk].points).length; const offNodes = [...document.querySelectorAll(`.sl-node.off[data-lane="${i}"]`)].length; return h.classList.contains("is-off") && offNodes === n && !!document.querySelector(".sl-auto.off"); }, lkE), "an off lane is drawn dimmed: its header, its nodes and its dashed line");
+    ok(await page.$eval(btn("lane-off", lkE), (b) => b.classList.contains("on") && b.getBoundingClientRect().width > 4), "the Off button stays showing while the lane is off");
+    await page.focus(".sl");
+    await page.keyboard.press("Control+z");
+    ok((await film()) === before, "one ⌘Z turns it back on (the exact film)");
+    /* Solo, by keyboard: focus the S button and press Enter. */
+    const map0 = await onMap();
+    await page.focus(btn("lane-solo", lkS));
+    ok(await page.$eval(btn("lane-solo", lkS), (b) => b.getBoundingClientRect().width > 4), "a lane's buttons show when one of them has keyboard focus");
+    await page.keyboard.press("Enter");
+    ok(await page.evaluate((lk) => { const l = window.CurioEngine.state().lanes; return l[lk].on && Object.keys(l).filter((k) => k !== lk).every((k) => !l[k].on); }, lkS), "S plays only this lane's automation: every other lane is off");
+    ok(await page.evaluate((lk) => document.querySelector(`.sl-heads .sl-head:has([data-lk="${lk}"])`).classList.contains("is-solo") && document.activeElement && document.activeElement.dataset.act === "lane-solo", lkS), "the soloed lane is marked, and focus stays on its S button");
+    await page.keyboard.press("Enter");
+    ok((await onMap()) === map0 && (await film()) === before, "pressing S again brings the other lanes back the way they were");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    /* Lock: no adding by clicking, no dragging, area paste skips it. */
+    const pts = () => page.evaluate((lk) => JSON.stringify(window.CurioEngine.state().lanes[lk].points), lkE);
+    const p0 = await pts();
+    await press("lane-lock", lkE);
+    ok(await page.evaluate((lk) => window.CurioLanes.tools().locks[lk] === true && JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")).locks[lk] === true, lkE), "🔒 keeps the lock in the timeline's tools (a view setting, not film data)");
+    ok(await page.evaluate((lk) => document.querySelector(`.sl-heads .sl-head:has([data-lk="${lk}"])`).classList.contains("is-locked") && !!document.querySelector(".sl-svg .sl-lockbg"), lkE), "a locked lane looks locked: its header and a hatched lane");
+    ok((await film()) === before, "locking changes nothing in the film");
+    const bx = await page.evaluate((a) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[a].getBBox().y); const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a);
+    const cw = bx.w / bx.n;
+    await page.mouse.click(bx.x + cw * 1.5, bx.y + 4);
+    ok((await pts()) === p0 && /locked/.test(await msgText()), "clicking an empty spot on a locked lane adds no node, with a plain message");
+    const n8 = await page.evaluate((lk) => { const st = window.CurioEngine.state(); const c = document.querySelector(`.sl-node[data-node="${st.rows[7].id}@${lk}"]`); const r = c.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, lkE);
+    await page.mouse.move(n8.x, n8.y);
+    await page.mouse.down();
+    await page.mouse.move(n8.x - cw, n8.y - 10, { steps: 6 });
+    await page.mouse.up();
+    ok((await pts()) === p0 && (await film()) === before, "a locked lane's node can't be dragged");
+    await page.mouse.dblclick(n8.x, n8.y);
+    ok((await pts()) === p0, "or removed with a double-click");
+    /* Copy the locked lane (copying is fine), select from it to Shot size, paste: the locked lane is skipped, Shot size takes it. */
+    const subOf = async (i) => (await (await page.$$(".sl-heads .sl-head"))[i].$(".sl-sub")).boundingBox();
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    let sb = await subOf(laneIx.a);
+    await page.mouse.click(sb.x + sb.width - 4, sb.y + 2);
+    await page.click('.sl [data-act="copy"]');
+    sb = await subOf(laneIx.a);
+    await page.mouse.click(sb.x + sb.width - 4, sb.y + 2);
+    sb = await subOf(laneIx.b);
+    await page.keyboard.down("Shift");
+    await page.mouse.click(sb.x + sb.width - 4, sb.y + 2);
+    await page.keyboard.up("Shift");
+    const spread = await page.evaluate(() => { const a = document.querySelectorAll(".sl-heads .sl-head.on"); return a.length; });
+    await page.click('.sl [data-act="paste"]');
+    ok((await pts()) === p0 && /Skipped 1 locked lane/.test(await msgText()), "area paste over several lanes skips the locked one and says so (" + spread + " lanes selected)");
+    const pastedIn = (await film()) !== before;
+    ok(pastedIn, "the unlocked lanes in the selection were pasted into");
+    await page.focus(".sl");
+    if (pastedIn) await page.keyboard.press("Control+z");
+    await page.keyboard.press("Escape");
+    ok((await film()) === before, "and ⌘Z takes the paste back");
+    /* A screenshot with one lane locked and another off, then everything back. */
+    await press("lane-off", lkS);
+    await page.mouse.move(2, 2);
+    await page.evaluate((i) => { const sc = document.querySelector(".sl-scroll"); sc.scrollTop = Math.max(0, Math.min(...i.map((k) => document.querySelectorAll(".sl-bg")[k].getBBox().y)) - 20); }, [laneIx.a, laneIx.b]);
+    await page.waitForTimeout(120);
+    const tlh = await page.$(".sc-timeline");
+    if (tlh) await tlh.screenshot({ path: path.join(SHOTS, "screen-6d-lane-heads.png") });
+    await page.focus(".sl");
+    await page.keyboard.press("Control+z");
+    await press("lane-lock", lkE);
+    ok(await page.evaluate((lk) => !window.CurioLanes.tools().locks[lk] && !document.querySelector(".sl-svg .sl-lockbg"), lkE), "🔒 again unlocks the lane");
+    ok((await film()) === before, "the film is exactly as it was");
+  }
   /* Curves: a line between two nodes, shaped and written into the moments between. */
   await page.evaluate(() => document.querySelector(".sl-svg") && window.CurioScreen.setRow(1));
   const segA = await page.evaluate(() => { const s = [...document.querySelectorAll(".sl-seghit")].find((x) => /emotionIntensity\|r1\|r3|emotionIntensity\|/.test(x.dataset.seg)); return s ? s.dataset.seg : null; });

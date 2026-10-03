@@ -209,5 +209,42 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(film() === before, "and undo restores it");
 }
 
+/* Lane heads: Solo turns every other lane off as one batch and remembers what was on; pressing again restores it. */
+{
+  const CL = w.CurioLanes;
+  E.reset(w.CurioSeeds.starter());
+  const rr = E.state().rows;
+  const pt = (t, c, v) => ({ type: "setPoint", row: rr[0].id, track: t, curiosity: c, value: v });
+  E.send({ type: "batch", commands: [pt("camera", "shotSize", w.CurioScale.domain("shotSize").options[0]), pt("master", "emotion", "angry"), pt("master", "emotionIntensity", 3)] });
+  E.send({ type: "laneMode", track: "master", curiosity: "emotionIntensity", on: false });
+  const on = () => Object.fromEntries(Object.keys(E.state().lanes).sort().map((k) => [k, E.state().lanes[k].on]));
+  const start = JSON.stringify(on());
+  ok(!!CL.soloCommands(E.state(), "camera|nope", null).error, "a lane with no nodes cannot be soloed");
+  const s1 = CL.soloCommands(E.state(), "camera|shotSize", null);
+  ok(!s1.off && s1.cmds.length === 1 && s1.cmds[0].type === "laneMode" && s1.cmds[0].on === false && s1.cmds[0].curiosity === "emotion", "solo turns off only the lanes that were on (" + s1.cmds.length + " command)");
+  ok(s1.solo.lk === "camera|shotSize" && s1.solo.was["master|emotionIntensity"] === false && s1.solo.was["master|emotion"] === true, "solo remembers each lane's on or off from before");
+  ok(E.send({ type: "batch", commands: s1.cmds }).ok && CL.soloActive(E.state(), s1.solo), "after the batch the solo is in force");
+  /* Soloing a lane that was off turns it on and the soloed one off, keeping the first 'before'. */
+  const s2 = CL.soloCommands(E.state(), "master|emotionIntensity", s1.solo);
+  E.send({ type: "batch", commands: s2.cmds });
+  ok(on()["master|emotionIntensity"] === true && on()["camera|shotSize"] === false && s2.solo.was["master|emotionIntensity"] === false && CL.soloActive(E.state(), s2.solo), "soloing another lane moves the solo and keeps what was on at the start");
+  const u = CL.soloCommands(E.state(), "master|emotionIntensity", s2.solo);
+  E.send({ type: "batch", commands: u.cmds });
+  ok(u.off && u.solo === null && JSON.stringify(on()) === start, "pressing Solo again restores exactly what was on before");
+  /* The film changed in between: a lane removed while soloed is skipped on restore; a lane made since is left alone. */
+  const s3 = CL.soloCommands(E.state(), "camera|shotSize", null);
+  E.send({ type: "batch", commands: s3.cmds });
+  E.send({ type: "clearLane", track: "master", curiosity: "emotion" });
+  E.send(pt("camera", "angleHeight", w.CurioScale.at("angleHeight", 0.5)));
+  const made = Object.keys(E.state().lanes).find((k) => !(k in s3.solo.was));
+  ok(CL.soloActive(E.state(), s3.solo), "a lane made while soloed does not break the solo");
+  const u3 = CL.soloCommands(E.state(), "camera|shotSize", s3.solo);
+  ok(u3.off && u3.cmds.every((c) => c.curiosity !== "emotion") && (!!made && u3.cmds.every((c) => c.track + "|" + c.curiosity !== made)), "un-solo restores only lanes that still exist and were there before");
+  ok(CL.soloActive(E.state(), { lk: "camera|shotSize", was: { "master|emotionIntensity": false, "camera|shotSize": true, "camera|gone": true } }), "soloActive ignores lanes that are gone");
+  E.send({ type: "laneMode", track: "camera", curiosity: "shotSize", on: false });
+  ok(!CL.soloActive(E.state(), s3.solo), "a soloed lane turned off is no longer a solo");
+  ok(CL.isLocked(null) === false && typeof CL.tools().locks === "object", "lock is a view setting kept in the tools (by lane key)");
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);
