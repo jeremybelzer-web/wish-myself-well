@@ -16,7 +16,7 @@ Think of your film as a spreadsheet you can play.
 You change cells in four ways, and the engine always applies them in the same order:
 
 1. **Your material**: the value you typed. It ripples through your links.
-2. **Automation**: a lane with points ("loud here, quiet there"); between points it ramps or holds.
+2. **Automation**: a lane with points ("loud here, quiet there"); between points it ramps, smooths (eases in and out, like a spline curve in Maya) or holds.
 3. **Links**: rules between two lanes. "When the feeling changes, the cutting rate follows it." A change in one lane runs through the links into the others, a chain reaction.
 4. **Pins**: a value you fix by hand. It is laid on last, so no rule can move it. You can also switch a cell off.
 
@@ -45,7 +45,7 @@ Everything you do is one **undo** step. The film is saved after every change and
 | The user's hand edits kept apart and replayed last | Hand changes overwrote values | Pins and switched-off cells are stored apart and laid on last |
 | A partial rewrite must equal a full rewrite | Nothing partial | The engine always rewrites the whole film (it takes milliseconds); only sending to My film is partial, and a test checks it leaves the board exactly as a full send would |
 | A window per curiosity, speaking only in messages | Workspaces per curiosity, calling functions directly | The engine's windows speak only in messages (`send({ type, ... })`), so they can be tested without a page |
-| Curiosity lanes over time; a master track | Automation patches in a patch bay | Automation lanes per track, with points that ramp or hold, on one timeline |
+| Curiosity lanes over time; a master track | Automation patches in a patch bay | Automation lanes per track, with points that ramp, smooth or hold, on one timeline |
 | Find out what the host lets code write; plan a print step | Not looked at | Measured: My film has one strand at a time, at most 8 panels, and no per-character values. Whatever it cannot show stays in the engine and is listed in History |
 | Links as plain data: from, to, within, every, does, amount | Proximities in code, with a test function | Links as data with exactly those fields, plus a condition ("only when the leader is angry") and a span of moments, listed, switchable and undoable |
 | Every change one undo step | No undo at all | Undo and redo for the film, and an app-wide history for everything else |
@@ -69,8 +69,7 @@ The letter's rule is that every change is one undo step, everywhere. The rest of
 
 ## What is not done yet
 
-- **The rest of the app on the shared state.** My film's patch is written and tested; the storyboard and the workspaces are next, the same way.
-- **Tools asking for the whole film.** The bridge answers `timeline` today, but the Maya, Blender, Resolve and Unreal plugins still ask for My film's panels; switching them is a small change in each plugin.
+- **The rest of the app on the shared state.** My film is on it; the storyboard's patch is written and tested (engine handoff 05); the workspaces are next, the same way. Every engine change is already a step on the page's undo list too.
 - **Comics, live-action AI.** Their hosts (a page layout tool, a generation pipeline) are not chosen yet.
 - **Analysis of finished films.** Reading a video file needs shot detection, which a browser cannot do quickly; scripts and shot lists come first.
 
