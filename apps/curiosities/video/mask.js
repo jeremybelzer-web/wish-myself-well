@@ -16,7 +16,10 @@
                                                  elementSeries), about 4 looks a second, 240 at most
    - applyParts(ctx, W, H, parts, { setVideo?, setBox?, cut? })  draws one frame's element changes on the canvas, in place
    - cutoutCanvas(image, W, H) -> canvas         just the people, on a see-through background
-   - preview(ctx, W, H)                          tints each element on the canvas (to see what the AI found) */
+   - preview(ctx, W, H)                          tints each element on the canvas (to see what the AI found)
+   - configure({ steady: false | { temporal, clean, mix, island, hole, close, feather } })   the steadier cut-out (on by default):
+                                                 each frame's AI answer blended with the last frame's, specks of
+                                                 person dropped, small holes in people filled, soft edges */
 (function () {
   const V = () => window.CurioVideo;
   const cfg = {
@@ -35,6 +38,10 @@
     if (o.lib) cfg.lib = o.lib;
     if (o.wasm) cfg.wasm = o.wasm;
     if (o.models) Object.assign(cfg.models, o.models);
+    if (o.steady === false) steady.temporal = steady.clean = false;
+    else if (o.steady === true) steady.temporal = steady.clean = true;
+    else if (o.steady) Object.assign(steady, o.steady);
+    if (o.steady != null) tracks.clear();
   }
   function load() {
     if (seg) return Promise.resolve(true);
@@ -47,7 +54,7 @@
             baseOptions: { modelAssetPath: cfg.models.parts, delegate: "CPU" },
             runningMode: "IMAGE",
             outputCategoryMask: true,
-            outputConfidenceMasks: false,
+            outputConfidenceMasks: true,
           });
           return true;
         } catch (e) {
@@ -60,9 +67,10 @@
   }
   const ready = () => !!seg;
 
-  /* One cut-out. image: a canvas (any size); it is looked at CUT_W wide. */
+  /* One cut-out. image: a canvas (any size); it is looked at CUT_W wide. opts.track names a run of frames (one
+     clip playing): its cut-outs are steadied against the frame before; opts.t is the clip time, so a jump resets. */
   const small = { c: null, x: null };
-  function cut(image) {
+  function cut(image, opts) {
     if (!seg) return null;
     const iw = image.width || image.videoWidth,
       ih = image.height || image.videoHeight;
@@ -74,10 +82,187 @@
     }
     small.x.drawImage(image, 0, 0, w, h);
     const res = seg.segment(small.c);
-    const labels = res.categoryMask.getAsUint8Array().slice();
+    let labels = res.categoryMask.getAsUint8Array().slice(),
+      conf = null;
+    /* the AI's confidence per element (0 set ... 5 other), when it gives them at the cut-out size */
+    const cm = res.confidenceMasks;
+    if (cm && cm.length === 6 && cm[0].width === w && cm[0].height === h) conf = cm.map((m) => m.getAsFloat32Array().slice());
     res.close();
-    return { w, h, labels, rgba: small.x.getImageData(0, 0, w, h).data };
+    const k = { w, h, labels, rgba: small.x.getImageData(0, 0, w, h).data };
+    tidy(k, conf, opts && opts.track ? opts : null);
+    return k;
   }
+
+  /* ---------- steadier cut-outs ---------- */
+  /* temporal: blend with the frame before (mix = how much of the new frame, more where the picture moved);
+     clean: drop specks of person smaller than island, fill holes in people smaller than hole (parts of the frame);
+     close: narrow gaps on people's edges shut (pixels); feather: blur passes on the edges (2 when off) */
+  const steady = { temporal: true, clean: true, mix: 0.45, island: 0.002, hole: 0.02, close: 2, feather: 3 };
+  const tracks = new Map();
+  function tidy(k, conf, tr) {
+    if (!steady.temporal && !steady.clean) return k;
+    const { w, h, rgba } = k,
+      n = w * h;
+    if (conf && tr && steady.temporal) {
+      const gray = new Uint8Array(n);
+      for (let i = 0; i < n; i++) gray[i] = (rgba[i * 4] * 77 + rgba[i * 4 + 1] * 150 + rgba[i * 4 + 2] * 29) >> 8;
+      if (blend(conf, gray, tracks.get(tr.track), tr.t, steady.mix)) k.steadied = true;
+      tracks.set(tr.track, { gray, t: tr.t, conf: conf.map((c) => c.slice()) });
+      if (tracks.size > 4) tracks.delete(tracks.keys().next().value);
+    }
+    let pc = null;
+    if (conf) {
+      k.labels = argmax(conf, n);
+      pc = new Float32Array(n);
+      for (let i = 0; i < n; i++) pc[i] = 1 - conf[0][i];
+    }
+    if (steady.clean) cleanLabels(k.labels, w, h, steady, pc);
+    return k;
+  }
+  /* Blend this frame's confidences (in place) with the last frame's. False (and nothing blended) after a cut, a jump
+     in time or a size change. Where the picture changed a lot, the new frame counts more, so moving arms don't smear. */
+  function blend(conf, gray, prev, t, mix) {
+    const n = gray.length;
+    if (!prev || prev.gray.length !== n || prev.conf.length !== conf.length) return false;
+    if (t != null && prev.t != null && (t < prev.t - 0.01 || t - prev.t > 0.5)) return false;
+    let diff = 0;
+    for (let i = 0; i < n; i += 3) diff += Math.abs(gray[i] - prev.gray[i]);
+    if (diff / Math.ceil(n / 3) > 30) return false; /* a cut: a new shot starts fresh */
+    for (let i = 0; i < n; i++) {
+      const a = Math.min(0.9, mix + Math.abs(gray[i] - prev.gray[i]) / 80);
+      for (let l = 0; l < conf.length; l++) conf[l][i] = prev.conf[l][i] + (conf[l][i] - prev.conf[l][i]) * a;
+    }
+    return true;
+  }
+  /* Person where the person elements together beat the set (a blurred arm is often half clothes, half skin, and
+     loses to the set one by one), then whichever element is likeliest. */
+  function argmax(conf, n) {
+    const labels = new Uint8Array(n);
+    for (let i = 0; i < n; i++) {
+      if (conf[0][i] >= 0.5) continue;
+      let b = 1,
+        bv = conf[1][i];
+      for (let l = 2; l < conf.length; l++) if (conf[l][i] > bv) (bv = conf[l][i]), (b = l);
+      labels[i] = b;
+    }
+    return labels;
+  }
+  /* Drop small islands of person and fill small holes inside people, in place. Returns a map per pixel: 1 dropped
+     (now set), 2 filled (now person, with the element most found around the hole). p (optional): the AI's person
+     confidence; a hole bigger than a speck is filled only where the AI half saw a person (motion blur), so a real
+     gap (an arm on a hip) stays open. */
+  function cleanLabels(labels, w, h, o, p) {
+    const n = w * h,
+      fix = new Uint8Array(n),
+      seen = new Uint8Array(n),
+      stack = new Int32Array(n),
+      comp = new Int32Array(n);
+    const minIsland = Math.max(4, (o.island || 0) * n),
+      maxHole = (o.hole || 0) * n;
+    /* the parts of one kind (person or set) joined to i; votes counts the elements around a set part */
+    function grow(i0, fg, votes) {
+      let sp = 0,
+        len = 0,
+        edge = false;
+      stack[sp++] = i0;
+      seen[i0] = 1;
+      while (sp) {
+        const i = stack[--sp];
+        comp[len++] = i;
+        const x = i % w,
+          y = (i / w) | 0;
+        if (x === 0 || y === 0 || x === w - 1 || y === h - 1) edge = true;
+        for (let d = 0; d < 4; d++) {
+          const xx = x + (d === 0 ? -1 : d === 1 ? 1 : 0),
+            yy = y + (d === 2 ? -1 : d === 3 ? 1 : 0);
+          if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+          const j = yy * w + xx;
+          if (!labels[j] !== !fg) {
+            if (votes) votes[labels[j] & 7]++;
+            continue;
+          }
+          if (!seen[j]) {
+            seen[j] = 1;
+            stack[sp++] = j;
+          }
+        }
+      }
+      return { len, edge };
+    }
+    let biggest = 0;
+    const islands = [];
+    for (let i = 0; i < n; i++)
+      if (labels[i] && !seen[i]) {
+        const g = grow(i, true, null);
+        biggest = Math.max(biggest, g.len);
+        if (g.len < minIsland) islands.push(comp.slice(0, g.len));
+      }
+    /* a speck goes, unless it is all the person there is (someone far away) */
+    islands.forEach((c) => {
+      if (c.length === biggest) return;
+      for (let q = 0; q < c.length; q++) (labels[c[q]] = 0), (fix[c[q]] = 1);
+    });
+    /* close narrow gaps (r pixels) along the people's edge, so a ragged blur-bitten edge is whole again and a hole
+       with a thin opening counts as a hole */
+    const r = o.close || 0;
+    if (r > 0 && biggest) {
+      const fg = new Uint8Array(n);
+      for (let i = 0; i < n; i++) fg[i] = labels[i] ? 1 : 0;
+      const shut = boxAll(boxAny(fg, w, h, r), w, h, r);
+      for (let i = 0; i < n; i++)
+        if (shut[i] && !fg[i]) {
+          const x = i % w,
+            y = (i / w) | 0;
+          let best = 0;
+          for (let d = 1; d <= r && !best; d++)
+            for (let q = 0; q < 4 && !best; q++) {
+              const xx = x + (q === 0 ? -d : q === 1 ? d : 0),
+                yy = y + (q === 2 ? -d : q === 3 ? d : 0);
+              if (xx >= 0 && yy >= 0 && xx < w && yy < h) best = fg[yy * w + xx] ? labels[yy * w + xx] : 0;
+            }
+          labels[i] = best || 4;
+          fix[i] = 2;
+        }
+    }
+    seen.fill(0);
+    for (let i = 0; i < n; i++)
+      if (!labels[i] && !seen[i]) {
+        const votes = new Int32Array(8);
+        const g = grow(i, false, votes);
+        if (g.edge || g.len > maxHole || !biggest) continue;
+        if (p && g.len > minIsland) {
+          let s = 0;
+          for (let q = 0; q < g.len; q++) s += p[comp[q]];
+          if (s / g.len < 0.15) continue;
+        }
+        let best = 4;
+        for (let l = 1; l < 6; l++) if (votes[l] > votes[best]) best = l;
+        for (let q = 0; q < g.len; q++) (labels[comp[q]] = best), (fix[comp[q]] = 2);
+      }
+    return fix;
+  }
+  /* Binary grow (any yes within r) and shrink (all yes within r), square windows, by running counts. */
+  function boxCount(m, w, h, r, all) {
+    const t = new Uint8Array(m.length),
+      o = new Uint8Array(m.length);
+    const pass = (src, dst, len, lines, at) => {
+      for (let L = 0; L < lines; L++) {
+        let c = 0,
+          seen = 0;
+        for (let i = 0; i < Math.min(r, len); i++) (c += src[at(L, i)]), seen++;
+        for (let i = 0; i < len; i++) {
+          if (i + r < len) (c += src[at(L, i + r)]), seen++;
+          if (i - r - 1 >= 0) (c -= src[at(L, i - r - 1)]), seen--;
+          dst[at(L, i)] = all ? (c === seen ? 1 : 0) : c > 0 ? 1 : 0;
+        }
+      }
+    };
+    pass(m, t, w, h, (y, x) => y * w + x);
+    pass(t, o, h, w, (x, y) => y * w + x);
+    return o;
+  }
+  const boxAny = (m, w, h, r) => boxCount(m, w, h, r, false),
+    boxAll = (m, w, h, r) => boxCount(m, w, h, r, true);
 
   /* The clip's elements over time. */
   async function scan(clip, opts) {
@@ -107,7 +292,9 @@
     const { w, h, labels } = k;
     let m = new Float32Array(w * h);
     for (let i = 0; i < m.length; i++) m[i] = want[labels[i] & 7];
-    for (let pass = 0; pass < 2; pass++) {
+    /* a softer edge for the steadier cut-out (a cleaned edge is smooth enough to blur a little more) */
+    const passes = steady.clean ? steady.feather : 2;
+    for (let pass = 0; pass < passes; pass++) {
       const o = new Float32Array(m.length);
       for (let y = 0; y < h; y++)
         for (let x = 0; x < w; x++) {
@@ -486,5 +673,5 @@
       scan,
     });
 
-  window.CurioMask = { configure, load, ready, cut, scan, applyParts, keepSkin, cutoutCanvas, preview, failed: () => failed, TINT };
+  window.CurioMask = { configure, load, ready, cut, scan, applyParts, keepSkin, cutoutCanvas, preview, failed: () => failed, TINT, tidy: { cleanLabels, blend, argmax, boxAny, boxAll } };
 })();
