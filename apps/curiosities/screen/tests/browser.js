@@ -541,8 +541,9 @@ const ok = (cond, msg) => {
   await page.evaluate(() => window.CurioEngine.undo());
   ok(await page.evaluate(() => !!window.CurioEngine.state().lanes["camera|shotSize"]), "undo brings it back");
 
-  /* Zoom and scroll, fine lines, area copy and paste, curves, curiosity windows (Jeremy, 20:26Z). */
-  await page.click('[data-view="screen"]');
+  /* Zoom and scroll, fine lines, area copy and paste, curves, curiosity windows (Jeremy, 20:26Z). The button: the
+     Screen's page also carries data-view="screen" while that view is on, and a click on it lands mid-page. */
+  await page.click('button[data-view="screen"]');
   await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks.find((x) => x.curiosities.includes("emotionIntensity")) || st.tracks[0]; if (!t.curiosities.includes("emotionIntensity")) E.send({ type: "addCuriosity", track: t.id, curiosity: "emotionIntensity" }); const cmds = [0, 2, 5, 7].map((j, k) => ({ type: "setPoint", row: st.rows[j].id, track: t.id, curiosity: "emotionIntensity", value: [1, 4, 0, 5][k] })); E.send({ type: "batch", label: "test lane", commands: cmds }); });
   await page.evaluate(() => { window.CurioLanes.tools().zoom = 1; window.CurioLanes.tools().laneH = 50; });
   await page.click('[data-pick-card="curiosity|transitionKind"]').catch(() => {});
@@ -1085,8 +1086,14 @@ const ok = (cond, msg) => {
   ok((await page.$$(".sc-win")).length === 0, "windows close");
 
   /* Keyframe jumps (CapCut's ◀ ◆ ▶ in Details) and the Player's Ratio menu (frame shape). */
-  await page.click('[data-view="screen"]');
-  await page.click('.sc-viewer.mine .sc-vname');
+  /* Clicked on the elements themselves, not by position: as the page redraws, a click by position can land on the
+     Player's Play button instead, and playback then keeps moving the playhead under the checks below. */
+  await page.$eval('[data-view="screen"]', (b) => b.click());
+  await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+  /* The checks below read and write at the playhead, so nothing may be playing: a running Play moves the playhead
+     and redraws Details every 1.1s, which closes an open ⋯ menu, moves the row the Ratio node is looked for at
+     and moves the attention glow. */
+  ok((await page.$eval('[data-act="play"]', (b) => b.textContent)) === "Play", "nothing is playing before the keyframe checks");
   const kid = await page.evaluate(() => (document.querySelector(".sc-inspector .sc-cur .sc-key[data-key]") || {}).dataset?.key);
   ok(!!kid, "Details has a key diamond to work with (" + kid + ")");
   /* Clear its lane, then set keys at moments 2 and 5 with the diamond. */
@@ -1880,7 +1887,7 @@ const ok = (cond, msg) => {
   await page.click("#lib-btn");
   await page.click('#lib-menu [data-screen="screen"]');
   ok(await page.evaluate(() => window.CurioScreen.isOpen()), "on a phone the Library opens the Screen");
-  await page.click('[data-view="screen"]');
+  await page.click('button[data-view="screen"]');
   await page.screenshot({ path: path.join(SHOTS, "screen-6-phone.png") });
   const overflow = await page.evaluate(() => document.querySelector(".sc-page").scrollWidth - window.innerWidth);
   ok(overflow <= 1, "no sideways scroll on a phone (" + overflow + ")");
