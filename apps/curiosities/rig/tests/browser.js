@@ -251,13 +251,28 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         x.ellipse(60, 150, 45, 85, 0, 0, Math.PI * 2);
         x.fill();
         x.beginPath();
+        x.fillStyle = "#2a50ff"; /* a blue head, to see which way up the puppet stands */
         x.arc(60, 40, 32, 0, Math.PI * 2);
         x.fill();
         const c = await CurioRig.fromCutout(cv, "test cut-out");
         await c.ready;
-        return { joints: c.bones().length, err: c.error(), object: c.rig().object };
+        c.el.querySelector('[data-rig="front"]').click();
+        await new Promise((r) => setTimeout(r, 400));
+        const gl = c.el.querySelector("canvas");
+        const out = Object.assign(document.createElement("canvas"), { width: gl.width, height: gl.height });
+        const g = out.getContext("2d");
+        g.drawImage(gl, 0, 0);
+        const d = g.getImageData(0, 0, out.width, out.height).data;
+        let blue = 0, orange = 0, nb = 0, no = 0;
+        for (let i = 0; i < d.length; i += 4) {
+          const y = Math.floor(i / 4 / out.width);
+          if (d[i + 2] > 150 && d[i] < 110) (blue += y), nb++;
+          else if (d[i] > 150 && d[i + 2] < 110) (orange += y), no++;
+        }
+        return { joints: c.bones().length, err: c.error(), object: c.rig().object, headY: nb ? blue / nb : -1, bodyY: no ? orange / no : -1 };
       });
       ok(!pic.err && pic.object && pic.joints === 5, `a cut-out picture becomes a flat puppet with a chain of joints (${pic.joints})`);
+      ok(pic.headY >= 0 && pic.bodyY >= 0 && pic.headY < pic.bodyY, `the puppet stands the right way up, head above body (head at ${pic.headY.toFixed(0)}px, body at ${pic.bodyY.toFixed(0)}px)`);
       await page.evaluate(() => CurioRig.current().set("rigRulesLens.slump", "collapsed"));
       await page.waitForTimeout(400);
       await shot(page, "8-cutout");

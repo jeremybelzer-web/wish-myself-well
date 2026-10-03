@@ -969,7 +969,7 @@
         const name = prefs.character.slice(4);
         const buf = await readFile(name);
         if (!buf) throw new Error("that file is no longer on this device");
-        if (isPicture(name)) return { picture: await createImageBitmap(new Blob([buf])), credit: "Your own picture, made into a flat puppet with a chain of joints. It stays on this device and is never uploaded." };
+        if (isPicture(name)) return { picture: await createImageBitmap(new Blob([buf]), { imageOrientation: "flipY" }) /* three.js does not flip bitmaps itself */, credit: "Your own picture, made into a flat puppet with a chain of joints. It stays on this device and is never uploaded." };
         return { buf, credit: "Your own file. It stays on this device and is never uploaded." };
       }
       const c = CHARACTERS.find((x) => x.id === prefs.character) || CHARACTERS[0];
