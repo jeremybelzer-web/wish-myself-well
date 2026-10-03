@@ -302,10 +302,17 @@
       <section><h3>How each one pulls attention</h3><ul class="mo-w-fams">${fams}</ul></section></div>`;
   }
 
+  /* Left for another tab or the window closed: stop listening to the engine until the tab is back. */
+  function unmount() {
+    if (unhook) unhook();
+    unhook = null;
+    mounted = null;
+  }
+
   function addTab() {
     const UI = root.CurioMomentumUI;
     if (!UI || !UI.addTab) return false;
-    return UI.addTab({ id: "watch", label: "Who we watch", mount });
+    return UI.addTab({ id: "watch", label: "Who we watch", mount, unmount });
   }
   if (!addTab()) {
     /* ui.js loads before this file in load.js; wait for it otherwise. */

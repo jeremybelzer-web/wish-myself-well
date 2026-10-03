@@ -21,6 +21,8 @@
    mount is called each time the tab is drawn, with ctx: prefs(),
    sources(), source(), setSource(id), sourcePicker(attr), readSource(id), beatsOf(id), profiles() (the films
    picked to compare with), allProfiles(), target(), limit(), secondsPerBeat(), refresh().
+   unmount?() is called when another tab opens or the window closes, so a tab can stop listening (engine on(),
+   timers) while it is not on show; mount is called again when it comes back.
    Saves its choices under localStorage key curiosities-momentum-v1 (source, compare-with list, limit,
    seconds per panel, measured films). */
 (function () {
@@ -754,6 +756,16 @@
     } catch (e) {}
   }
 
+  /* The added tab on show, so it can be told when it is left (spec.unmount). */
+  let shownExt = null;
+  function leaveExt(next) {
+    const was = shownExt;
+    if (!was || was === next) return;
+    shownExt = null;
+    try {
+      if (typeof was.unmount === "function") was.unmount();
+    } catch (e) {}
+  }
   function draw() {
     if (!host) return;
     const groups = tabList();
@@ -763,6 +775,7 @@
     if (prefs.tab === "lesson") markStartSeen();
     const showStart = hasLesson && !startSeen();
     const ext = extraTabs.find((t) => t.id === prefs.tab);
+    leaveExt(ext);
     const tabBtn = (t) => `<button type="button" role="tab" aria-selected="${prefs.tab === t.id}" data-tab="${esc(t.id)}">${esc(t.label)}</button>`;
     host.innerHTML = `<div class="mo-in">
       <div class="mo-head"><h2>Momentum</h2>${dlg ? `<button type="button" class="mo-x" data-m="close" aria-label="Close">×</button>` : ""}</div>
@@ -781,6 +794,7 @@
     if (prefs.tab === "notes") drawNotes();
     if (prefs.tab === "perform") drawPerform();
     if (ext) {
+      shownExt = ext;
       try {
         ext.mount(host.querySelector(".mo-ext"), context());
       } catch (e) {
@@ -897,7 +911,10 @@
     if (!dlg) {
       dlg = document.createElement("dialog");
       dlg.className = "mo-dlg";
-      dlg.addEventListener("close", () => stopLive());
+      dlg.addEventListener("close", () => {
+        stopLive();
+        leaveExt(null);
+      });
       document.body.appendChild(dlg);
     }
     mount(dlg);
@@ -908,6 +925,7 @@
   }
   function close() {
     stopLive();
+    leaveExt(null);
     if (dlg && dlg.open) {
       if (dlg.close) dlg.close();
       else dlg.removeAttribute("open");
