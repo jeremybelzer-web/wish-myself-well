@@ -11,6 +11,9 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#1c1712" />
     <style id="workspaces-style">
       /* The bar: My film and Storyboard with the Library menu on the first row, then the workspaces in
          labelled sections (Camera, People, Look, Feeling, Comedy, Story) that wrap onto as many rows as needed. */
@@ -154,17 +157,44 @@
       <section class="study prism hidden" id="prism" style="grid-column: 1 / -1"></section>
     </main>
     <!-- Games (play.js, games.js) are paused until the curiosity model is fleshed out: kept in the folder, not loaded. -->
+    <script src="offline.js"></script>
     <script src="catalog.js"></script>
     <script src="library.js"></script>
     <script src="story-curiosities.js"></script>
     <script src="lenses.js"></script>
     <script src="model.js"></script>
+    <script src="data/curiosity-db.js"></script>
+    <script src="data/db-workspaces.js"></script>
+    <script src="data/db-catalog.js"></script>
+    <script src="data/db-catalog-sliders.js"></script>
+    <script src="data/db-music.js"></script>
+    <script src="data/db-emotion.js"></script>
+    <script src="data/db-comedy.js"></script>
+    <script src="data/db-design.js"></script>
+    <script src="data/db-look.js"></script>
+    <script src="data/db-character.js"></script>
+    <script src="data/db-story.js"></script>
+    <script src="data/db-feeling-comedy.js"></script>
+    <script src="data/db-mix-road.js"></script>
+    <script src="data/db-arc-body.js"></script>
+    <script src="data/db-proximity-words.js"></script>
+    <script src="data/db-model-scenes.js"></script>
+    <script src="data/db-finish.js"></script>
+    <script src="data/db-momentum.js"></script>
+    <script src="data/db-editing.js"></script>
+    <script>CuriosityDB.install({ CURIOSITIES, SUITES, PROXIMITIES });</script>
     <script src="reference.js"></script>
+    <script src="suites.js"></script>
+    <script src="engine/store.js"></script>
     <script src="app.js"></script>
     <script src="story.js"></script>
     <script src="study.js"></script>
     <script src="maya-manual.js"></script>
     <script src="automation.js"></script>
+    <script src="bridge.js"></script>
+    <script src="trace.js"></script>
+    <script src="vcv/curiosity-jacks.js"></script>
+    <script src="vcv/bridge.js"></script>
     <script src="storyboard.js"></script>
     <script src="prism.js"></script>
     <script src="automate.js"></script>
@@ -191,5 +221,10 @@
     <script src="project.js"></script>
     <script src="workspaces.js"></script>
     <script src="glossary.js"></script>
+    <script src="engine/load.js"></script>
+    <script src="momentum/load.js"></script>
+    <script src="screen/load.js"></script>
+    <script src="media/media.js"></script>
+    <script src="video/load.js"></script>
   </body>
 </html>

@@ -29,12 +29,16 @@ A model of a movie, a TV hour, or a video game is only those three. If a fact ca
 5. `story-curiosities.js` — the story curiosities (arc stage, role in the scene, own plot weight, perspective, mindset, focus, Enneagram type and health, herd mentality and who leads it), plus foreshortening. Options are in scale order.
 6. `lenses.js` — lenses. A curiosity is a filter, one way of looking at a scene (someone walks into a bar: look at its color, at the clothes, at the set, at the feeling, at the comedy). `window.CURIOSITY_LENSES` lists each lens as `{id, label, question, main, subs, scope}`: a main curiosity and its sliders (graded sub-parameters, options in scale order). The sliders are also lanes of the main curiosity in automation (`CURIOSITY_FACETS`). Lenses: color, main character's clothes, background clothes, set design, emotion, emotional road (story scope), comedy, comedy from the mix. Comedy is central and has the most sliders. Also lens suites and lens proximities.
 7. `model.js` — suites (catalog, genre, and angle-by-emotion), the emotion map, and the proximities a study can count.
-8. `app.js` — `window.CuriositySuites` (suites graded by share, see below), then My film: draws the strip, the paths, and which proximities are firing; switches the bar's tabs; draws All curiosities and Show structure. `window.CuriosityBoard` is how everything else reads and writes the board.
+8. `suites.js` — `window.CuriositySuites` (suites graded by share, see below). `app.js` — My film: draws the strip, the paths, and which proximities are firing; switches the bar's tabs; draws All curiosities and Show structure. `window.CuriosityBoard` is how everything else reads and writes the board.
 9. `workspaces.js` — the workspaces (see below). `story.js` — the story store: values per character per scene. `storyboard.js` — the Storyboard (`window.CuriosityStoryboard.mount(el)`).
 10. `automation.js` and `automate.js` — the automation engine and its modules (see Automation).
 11. `prism.js` — the Prism. `study.js` — Curated films and the Shelf.
 12. `studio.js` and `studio-*.js` — working tools taken from the Maya and Arnold for Maya manuals. Each file registers one tool with `CuriosityStudio.register`; workspaces show them as their Tools. `maya-manual.js` is the topic inventory; `docs/maya-manual-review.md` is the keep or skip list.
-13. `index.html` — open this in a browser. No build step.
+13. `core/README.md` — the shared core: the files every version loads (web, desktop, a Maya panel), which never touch the page. `bridge.js` (`window.CurioBridge`) is the one message format for VCV Rack, OSC and tool bridges. `node core/check.js` loads the core with no page. `sw.js`, `offline.js` and `manifest.webmanifest` make the app installable and offline when served from a web address.
+14. `maya/` — the Maya panel (`maya/README.md`): the app docked in Maya, each panel's camera curiosities driving `curioCam`, Key shots and Read camera. `maya/scripts/curiosities_maya/curio_camera.py` is the curiosity-to-camera mapping with no Maya in it.
+15. `desktop/` — the desktop app (`desktop/README.md`): Electron around the same files, MIDI everywhere, a File menu, and the local bridge (`bridge-server.js`: WebSocket on 7577, OSC in 7000 and out 7001). `npm run check` there tests the bridge.
+16. `blender/` — the Blender add-on (`blender/README.md`): connects to the desktop app's bridge and drives `CurioCam` with the same camera mapping as Maya. `make_zip.py` builds the installable zip; `tests/test_blender.py` runs with bpy.
+17. `index.html` — open this in a browser. No build step.
 
 State is `localStorage` key `curiosities-board-v2`.
 
@@ -82,6 +86,12 @@ A study is a trace: beat, which curiosities are on, which suites contain them, w
 
 Tick a span of beats and keep one curiosity or one suite on the Shelf. Apply a strand and the board plays it panel by panel. Studies export and import as JSON. State is `localStorage` key `curiosities-studies-v1`. Read `STUDY-PLAN.md` for what comes next.
 
+Share a film (Library menu, `trace.js`, `window.CuriosityTrace`) saves any curated film as a counts-only trace file (`.curiotrace.json`: known curiosity ids and values on their scales, no notes) and loads other people's into Curated films and the Prism. The cloud library is a plan: `docs/shared-library-plan.md`.
+
+DaVinci Resolve (`resolve/`, Workspace > Scripts > Curiosities): storyboard panels as timeline markers, an edit read back onto the board, and any edit traced into a shared-film file. See `resolve/README.md`.
+
+Unreal Engine (`unreal/`, an editor plugin, Tools > Curiosities): a CineCamera that follows the storyboard, shots keyed into a Level Sequence, and a hand-set camera read back onto the board, using the same camera mapping as Maya and Blender. See `unreal/README.md`.
+
 ## Games are paused
 
 Games wait until the curiosity model is fleshed out; they will be the last thing built. `play.js` (the Flip Book) and `games.js` (the Cross-pollinate games) stay in the folder but are not loaded or shown.
@@ -101,3 +111,12 @@ Keep the static files and the look of this folder. Do not add a second git repo 
 ## Saving
 
 `project.js` (`window.CuriosityProject`) bundles every `curiosities-*` localStorage key into one `.curio` file (JSON, format `curiosities-project`, version 1): Save, Save as, Open and New project from the Library menu, with a save indicator in the bar. Autosave history keeps the last 20 snapshots in IndexedDB; any snapshot can be restored and the restore undone.
+
+## The engine
+
+`engine/` (guide: `docs/engine.md`) is the Curiosity Lane letter built for this app: one shared state for a film (moments down, tracks across, a lane per curiosity), a rewrite in a fixed order (your material, automation lanes, links, pins), links between curiosities as plain data with chain reactions, undo for every change (and an app-wide history), saving checked by fingerprint, the clip-matrix cube, and analysis of scripts and shot lists. It opens from Library, Engine once `<script src="engine/load.js"></script>` is the last script in `index.html`; `engine/index.html` runs it on its own. Saved under `curiosities-engine-v1`. Tests: `node engine/tests/run.js` and `node engine/tests/browser.js`. Jeremy's words, numbered and verbatim: `docs/jeremys-words.md`.
+
+## Your own videos (media/)
+
+Library, Bring in a video (`media/media.js`, `window.CurioMedia`) follows Final Cut Pro's and CapCut's rules for big files: the video is left in place (never uploaded, never copied into storage; the browser seeks through it), editing uses a small copy (one small picture per moment, in IndexedDB `curiomatic-media`), the work runs in the background with progress and Stop, and the original is the only thing used for anything final. Its "AI" is measured on the device: cuts, how long shots hold, brightness, warmth, color, contrast and movement become curiosity values per moment (`RULES`), and the stretches with the most change are offered as highlights. The result is a curated film (`CuriosityStudy.add`, `source: "my video"`), values only. Research and next steps: `docs/big-files-and-ai.md`. Test: `node media/tests/browser.js`.
+

@@ -1,0 +1,7006 @@
+{
+ "generated": "by data/check-db.js; do not hand-edit",
+ "format": "curiosities-links",
+ "version": 1,
+ "links": [
+  {
+   "id": "p:handheld-gesture",
+   "proximity": "handheld-gesture",
+   "label": "When the camera goes handheld, gesture grows",
+   "from": {
+    "curiosity": "cameraCarry",
+    "track": "camera",
+    "is": "handheld",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "gesture",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera goes handheld",
+   "then": "gesture grows"
+  },
+  {
+   "id": "p:close-quiet",
+   "proximity": "close-quiet",
+   "label": "When shot size becomes close, volume drops",
+   "from": {
+    "curiosity": "shotSize",
+    "track": "camera",
+    "is": "close",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "volume",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "shot size becomes close",
+   "then": "volume drops"
+  },
+  {
+   "id": "p:approach-push",
+   "proximity": "approach-push",
+   "label": "When a person approaches, the camera pushes in",
+   "from": {
+    "curiosity": "characterPath",
+    "track": "character",
+    "is": "approach",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cameraMove",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "push in",
+   "when": "a person approaches",
+   "then": "the camera pushes in"
+  },
+  {
+   "id": "p:object-insert-prox",
+   "proximity": "object-insert-prox",
+   "label": "When an object enters, the frame becomes an insert",
+   "from": {
+    "curiosity": "objectEnter",
+    "track": "character",
+    "is": "enters",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "insert",
+   "when": "an object enters",
+   "then": "the frame becomes an insert"
+  },
+  {
+   "id": "p:emotion-angle",
+   "proximity": "emotion-angle",
+   "label": "When the emotion changes, the angle height changes",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "angleHeight",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the emotion changes",
+   "then": "the angle height changes"
+  },
+  {
+   "id": "p:emotion-temper",
+   "proximity": "emotion-temper",
+   "label": "When the emotion changes, the move temper changes",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moveTemper",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the emotion changes",
+   "then": "the move temper changes"
+  },
+  {
+   "id": "p:volume-speed",
+   "proximity": "volume-speed",
+   "label": "When volume rises, move speed rises",
+   "from": {
+    "curiosity": "volume",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "moveSpeed",
+    "track": "camera"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "volume rises",
+   "then": "move speed rises"
+  },
+  {
+   "id": "p:rain-wet",
+   "proximity": "rain-wet",
+   "label": "When it rains, surfaces are soaked",
+   "from": {
+    "curiosity": "weather",
+    "track": "master",
+    "is": "rain",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "wetness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "soaked",
+   "when": "it rains",
+   "then": "surfaces are soaked"
+  },
+  {
+   "id": "p:impact-shake",
+   "proximity": "impact-shake",
+   "label": "When impacts rise, the shake rises",
+   "from": {
+    "curiosity": "impacts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cameraShake",
+    "track": "camera"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "impacts rise",
+   "then": "the shake rises"
+  },
+  {
+   "id": "p:toon-line",
+   "proximity": "toon-line",
+   "label": "When the render goes toon, the ink line is heavy",
+   "from": {
+    "curiosity": "renderStyle",
+    "track": "master",
+    "is": "toon",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lineWeight",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "heavy",
+   "when": "the render goes toon",
+   "then": "the ink line is heavy"
+  },
+  {
+   "id": "p:tension-silence",
+   "proximity": "tension-silence",
+   "label": "When tension peaks, a long silence",
+   "from": {
+    "curiosity": "tensionCurve",
+    "track": "master",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "long",
+   "when": "tension peaks",
+   "then": "a long silence"
+  },
+  {
+   "id": "p:energy-hold",
+   "proximity": "energy-hold",
+   "label": "When energy drops, the hold is long",
+   "from": {
+    "curiosity": "energyArc",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "shotDuration",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "long",
+   "when": "energy drops",
+   "then": "the hold is long"
+  },
+  {
+   "id": "p:build-drop#1",
+   "proximity": "build-drop",
+   "label": "When suite Build, suite Drop",
+   "from": {
+    "curiosity": "energyArc",
+    "track": "master",
+    "is": 4,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "energyArc",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": 1,
+   "sameLane": true,
+   "when": "suite Build",
+   "then": "suite Drop"
+  },
+  {
+   "id": "p:build-drop#2",
+   "proximity": "build-drop",
+   "label": "When suite Build, suite Drop",
+   "from": {
+    "curiosity": "energyArc",
+    "track": "master",
+    "is": 4,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": "long",
+   "when": "suite Build",
+   "then": "suite Drop"
+  },
+  {
+   "id": "p:build-drop#3",
+   "proximity": "build-drop",
+   "label": "When suite Build, suite Drop",
+   "from": {
+    "curiosity": "energyArc",
+    "track": "master",
+    "is": 4,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "visualDensity",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": 1,
+   "when": "suite Build",
+   "then": "suite Drop"
+  },
+  {
+   "id": "p:build-drop#4",
+   "proximity": "build-drop",
+   "label": "When suite Build, suite Drop",
+   "from": {
+    "curiosity": "energyArc",
+    "track": "master",
+    "is": 4,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cameraCarry",
+    "track": "camera"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": "locked",
+   "when": "suite Build",
+   "then": "suite Drop"
+  },
+  {
+   "id": "p:aggressive-quiet#1",
+   "proximity": "aggressive-quiet",
+   "label": "When suite Aggressive camera, suite Quiet confession",
+   "from": {
+    "curiosity": "moveTemper",
+    "track": "character",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "volume",
+    "track": "character"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "set",
+   "value": 1,
+   "when": "suite Aggressive camera",
+   "then": "suite Quiet confession"
+  },
+  {
+   "id": "p:aggressive-quiet#2",
+   "proximity": "aggressive-quiet",
+   "label": "When suite Aggressive camera, suite Quiet confession",
+   "from": {
+    "curiosity": "moveTemper",
+    "track": "character",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "breath",
+    "track": "character"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "set",
+   "value": "breath then speak",
+   "when": "suite Aggressive camera",
+   "then": "suite Quiet confession"
+  },
+  {
+   "id": "p:aggressive-quiet#3",
+   "proximity": "aggressive-quiet",
+   "label": "When suite Aggressive camera, suite Quiet confession",
+   "from": {
+    "curiosity": "moveTemper",
+    "track": "character",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cameraCarry",
+    "track": "camera"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "set",
+   "value": "smooth",
+   "when": "suite Aggressive camera",
+   "then": "suite Quiet confession"
+  },
+  {
+   "id": "p:aggressive-quiet#4",
+   "proximity": "aggressive-quiet",
+   "label": "When suite Aggressive camera, suite Quiet confession",
+   "from": {
+    "curiosity": "moveTemper",
+    "track": "character",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cameraMove",
+    "track": "camera"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "set",
+   "value": "push in",
+   "when": "suite Aggressive camera",
+   "then": "suite Quiet confession"
+  },
+  {
+   "id": "p:aggressive-quiet#5",
+   "proximity": "aggressive-quiet",
+   "label": "When suite Aggressive camera, suite Quiet confession",
+   "from": {
+    "curiosity": "moveTemper",
+    "track": "character",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "angleFamily",
+    "track": "camera"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "set",
+   "value": "coverage",
+   "when": "suite Aggressive camera",
+   "then": "suite Quiet confession"
+  },
+  {
+   "id": "p:storm-room#1",
+   "proximity": "storm-room",
+   "label": "When suite Storm, suite Breathing room",
+   "from": {
+    "curiosity": "windForce",
+    "track": "master",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "set",
+   "value": "long",
+   "when": "suite Storm",
+   "then": "suite Breathing room"
+  },
+  {
+   "id": "p:storm-room#2",
+   "proximity": "storm-room",
+   "label": "When suite Storm, suite Breathing room",
+   "from": {
+    "curiosity": "windForce",
+    "track": "master",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emptySpace",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "set",
+   "value": "most",
+   "when": "suite Storm",
+   "then": "suite Breathing room"
+  },
+  {
+   "id": "p:storm-room#3",
+   "proximity": "storm-room",
+   "label": "When suite Storm, suite Breathing room",
+   "from": {
+    "curiosity": "windForce",
+    "track": "master",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shotDuration",
+    "track": "camera"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "set",
+   "value": "long",
+   "when": "suite Storm",
+   "then": "suite Breathing room"
+  },
+  {
+   "id": "p:setup-payoff",
+   "proximity": "setup-payoff",
+   "label": "When a joke's setup is planted, the payoff lands",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "setup planted",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicBeat",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "payoff lands",
+   "sameLane": true,
+   "when": "a joke's setup is planted",
+   "then": "the payoff lands"
+  },
+  {
+   "id": "p:escalation-absurdity",
+   "proximity": "escalation-absurdity",
+   "label": "When the escalation rises, the absurdity rises",
+   "from": {
+    "curiosity": "comicEscalation",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "absurdity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the escalation rises",
+   "then": "the absurdity rises"
+  },
+  {
+   "id": "p:chaos-cringe",
+   "proximity": "chaos-cringe",
+   "label": "When a chaos character enters an orderly room, the cringe rises",
+   "from": {
+    "curiosity": "chaosInRoom",
+    "track": "master",
+    "is": "one chaos character",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a chaos character enters an orderly room",
+   "then": "the cringe rises"
+  },
+  {
+   "id": "p:opposites-laugh",
+   "proximity": "opposites-laugh",
+   "label": "When opposite personality types share the room, more of the laughs come from the mix",
+   "from": {
+    "curiosity": "typeClash",
+    "track": "master",
+    "is": "opposite types",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mixLaughs",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "opposite personality types share the room",
+   "then": "more of the laughs come from the mix"
+  },
+  {
+   "id": "p:status-plot",
+   "proximity": "status-plot",
+   "label": "When the gap in rank grows, the plot takes a turn",
+   "from": {
+    "curiosity": "statusGap",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "mixPlot",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the gap in rank grows",
+   "then": "the plot takes a turn"
+  },
+  {
+   "id": "p:pause-laughs",
+   "proximity": "pause-laughs",
+   "label": "When the pause before the punchline grows, laughs per minute drop but each lands harder",
+   "from": {
+    "curiosity": "comicTiming",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the pause before the punchline grows",
+   "then": "laughs per minute drop but each lands harder"
+  },
+  {
+   "id": "p:light-mood-intensity",
+   "proximity": "light-mood-intensity",
+   "label": "When the mood of the light drops, the strength of the feeling rises",
+   "from": {
+    "curiosity": "lightingMood",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the mood of the light drops",
+   "then": "the strength of the feeling rises"
+  },
+  {
+   "id": "p:intensity-moves",
+   "proximity": "intensity-moves",
+   "label": "When the feeling grows stronger, the posture changes more often",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "postureChanges",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the feeling grows stronger",
+   "then": "the posture changes more often"
+  },
+  {
+   "id": "p:contrast-prev-color",
+   "proximity": "contrast-prev-color",
+   "label": "When a scene feels the opposite of the last one, the color shifts too",
+   "from": {
+    "curiosity": "emoContrastPrev",
+    "track": "master",
+    "is": "the opposite",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorDrift",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a scene feels the opposite of the last one",
+   "then": "the color shifts too"
+  },
+  {
+   "id": "p:lowpoint-turn",
+   "proximity": "lowpoint-turn",
+   "label": "When a character reaches their lowest point, their feeling turns",
+   "from": {
+    "curiosity": "emoRoadCharacter",
+    "track": "character",
+    "is": "lowest point",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoTurn",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "flips",
+   "when": "a character reaches their lowest point",
+   "then": "their feeling turns"
+  },
+  {
+   "id": "p:filter-bw",
+   "proximity": "filter-bw",
+   "label": "When the color filter gets strong, the number of main colors drops",
+   "from": {
+    "curiosity": "colorFilter",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "colorCount",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the color filter gets strong",
+   "then": "the number of main colors drops"
+  },
+  {
+   "id": "p:clutter-cramped",
+   "proximity": "clutter-cramped",
+   "label": "When the clutter rises, the room feels more cramped",
+   "from": {
+    "curiosity": "clutter",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "layoutOpen",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the clutter rises",
+   "then": "the room feels more cramped"
+  },
+  {
+   "id": "p:upkeep-wear",
+   "proximity": "upkeep-wear",
+   "label": "When the place runs down, the clothes wear out too",
+   "from": {
+    "curiosity": "setUpkeep",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "mainWear",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the place runs down",
+   "then": "the clothes wear out too"
+  },
+  {
+   "id": "p:music-cut-line",
+   "proximity": "music-cut-line",
+   "label": "When the music is cut dead, a big line lands",
+   "from": {
+    "curiosity": "music.exit",
+    "track": "master",
+    "is": "cut dead mid-phrase",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "volume",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music is cut dead",
+   "then": "a big line lands"
+  },
+  {
+   "id": "p:silence-reveal",
+   "proximity": "silence-reveal",
+   "label": "When the music drops out, a reveal follows",
+   "from": {
+    "curiosity": "noMusic.purpose",
+    "track": "master",
+    "is": "suspense",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reveal",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the music drops out",
+   "then": "a reveal follows"
+  },
+  {
+   "id": "p:needle-slowmo",
+   "proximity": "needle-slowmo",
+   "label": "When a famous song starts, time slows",
+   "from": {
+    "curiosity": "music.familiarity",
+    "track": "master",
+    "is": "famous",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "speedRamp",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "slow",
+   "when": "a famous song starts",
+   "then": "time slows"
+  },
+  {
+   "id": "p:tempo-cuts",
+   "proximity": "tempo-cuts",
+   "label": "When the tempo rises, the cuts speed up",
+   "from": {
+    "curiosity": "music.tempo",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the tempo rises",
+   "then": "the cuts speed up"
+  },
+  {
+   "id": "p:music-lifts-mood",
+   "proximity": "music-lifts-mood",
+   "label": "When the music turns warm, faces soften",
+   "from": {
+    "curiosity": "music.mood",
+    "track": "master",
+    "is": "warm",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "faceIntensity",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the music turns warm",
+   "then": "faces soften"
+  },
+  {
+   "id": "p:counterpoint-violence",
+   "proximity": "counterpoint-violence",
+   "label": "When the music fights the scene, the violence gets bigger",
+   "from": {
+    "curiosity": "music.counterpoint",
+    "track": "master",
+    "is": "opposite",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "impacts",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music fights the scene",
+   "then": "the violence gets bigger"
+  },
+  {
+   "id": "p:silence-closeup",
+   "proximity": "silence-closeup",
+   "label": "When there is no music, the frame gets closer",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "none",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close",
+   "when": "there is no music",
+   "then": "the frame gets closer"
+  },
+  {
+   "id": "p:radio-dance",
+   "proximity": "radio-dance",
+   "label": "When music plays in the room, someone moves to it",
+   "from": {
+    "curiosity": "music.source",
+    "track": "master",
+    "is": "only the characters",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "gesture",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "music plays in the room",
+   "then": "someone moves to it"
+  },
+  {
+   "id": "p:theme-callback",
+   "proximity": "theme-callback",
+   "label": "When a theme returns, the character it belongs to appears",
+   "from": {
+    "curiosity": "music.repeatTheme",
+    "track": "master",
+    "is": "the main theme",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "bodyEnter",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "enters",
+   "when": "a theme returns",
+   "then": "the character it belongs to appears"
+  },
+  {
+   "id": "p:build-to-silence#1",
+   "proximity": "build-to-silence",
+   "label": "When the music builds to its peak, it cuts out",
+   "from": {
+    "curiosity": "music.energy",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "music.exit",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cut dead mid-phrase",
+   "when": "the music builds to its peak",
+   "then": "it cuts out"
+  },
+  {
+   "id": "p:build-to-silence#2",
+   "proximity": "build-to-silence",
+   "label": "When the music builds to its peak, it cuts out",
+   "from": {
+    "curiosity": "music.energy",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "noMusic.cutoff",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cut dead",
+   "when": "the music builds to its peak",
+   "then": "it cuts out"
+  },
+  {
+   "id": "p:build-to-silence#3",
+   "proximity": "build-to-silence",
+   "label": "When the music builds to its peak, it cuts out",
+   "from": {
+    "curiosity": "music.energy",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "noMusic.fill",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.2,
+   "does": "set",
+   "value": "true silence",
+   "when": "the music builds to its peak",
+   "then": "it cuts out"
+  },
+  {
+   "id": "p:build-to-silence#4",
+   "proximity": "build-to-silence",
+   "label": "When the music builds to its peak, it cuts out",
+   "from": {
+    "curiosity": "music.energy",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "noMusic.contrast",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.15,
+   "does": "set",
+   "value": "wall of sound before",
+   "when": "the music builds to its peak",
+   "then": "it cuts out"
+  },
+  {
+   "id": "p:feeling-shows-face-first",
+   "proximity": "feeling-shows-face-first",
+   "label": "When a feeling rises, the face shows it before the words",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "faceIntensity",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a feeling rises",
+   "then": "the face shows it before the words"
+  },
+  {
+   "id": "p:anger-louder",
+   "proximity": "anger-louder",
+   "label": "When anger rises, the voice gets louder",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "angry",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "volume",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "anger rises",
+   "then": "the voice gets louder"
+  },
+  {
+   "id": "p:fear-still",
+   "proximity": "fear-still",
+   "label": "When fear rises, movement stops",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "fearful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "movementAmount",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "fear rises",
+   "then": "movement stops"
+  },
+  {
+   "id": "p:contagion-spreads",
+   "proximity": "contagion-spreads",
+   "label": "When one character's feeling overflows, others catch it",
+   "from": {
+    "curiosity": "emoShown",
+    "track": "master",
+    "is": "fully shown",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoSpread",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one character's feeling overflows",
+   "then": "others catch it"
+  },
+  {
+   "id": "p:low-then-laugh",
+   "proximity": "low-then-laugh",
+   "label": "After a low scene, a laugh",
+   "from": {
+    "curiosity": "emoRoadFilm",
+    "track": "master",
+    "is": "lowest point",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRoadFilm.laughter",
+    "track": "master"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the film hits a low scene",
+   "then": "a laugh follows"
+  },
+  {
+   "id": "p:hidden-then-burst",
+   "proximity": "hidden-then-burst",
+   "label": "A hidden feeling bursts out later",
+   "from": {
+    "curiosity": "emoShown",
+    "track": "master",
+    "is": "fully hidden",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoShown",
+    "track": "master"
+   },
+   "within": 12,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fully shown",
+   "sameLane": true,
+   "when": "a feeling is kept fully hidden",
+   "then": "it bursts out later"
+  },
+  {
+   "id": "p:joy-light-warms",
+   "proximity": "joy-light-warms",
+   "label": "When joy rises, the light warms",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "joyful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lightingMood",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "bright and warm",
+   "when": "joy rises",
+   "then": "the light warms"
+  },
+  {
+   "id": "p:tension-release",
+   "proximity": "tension-release",
+   "label": "After tension peaks, release follows",
+   "from": {
+    "curiosity": "emoRoadFilm.tension",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoRoadFilm.relief",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the tension peaks",
+   "then": "a release follows"
+  },
+  {
+   "id": "p:joke-reaction",
+   "proximity": "joke-reaction",
+   "label": "After a big joke, cut to a reaction",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicReaction.count",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a joke pays off",
+   "then": "the film cuts to a reaction"
+  },
+  {
+   "id": "p:two-then-break",
+   "proximity": "two-then-break",
+   "label": "Two of a pattern, then the break",
+   "from": {
+    "curiosity": "ruleOfThree",
+    "track": "master",
+    "is": 2,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "ruleOfThree.breakSize",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "two things set a pattern",
+   "then": "the third breaks it"
+  },
+  {
+   "id": "p:pride-fall",
+   "proximity": "pride-fall",
+   "label": "Pride before a fall",
+   "from": {
+    "curiosity": "statusGap.pretense",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "statusGap.fall",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character pretends to more status",
+   "then": "they fall"
+  },
+  {
+   "id": "p:insist-then-do",
+   "proximity": "insist-then-do",
+   "label": "\"I'll never\", then they do",
+   "from": {
+    "curiosity": "irony",
+    "track": "master",
+    "is": "the opposite happens",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicEdit",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character insists they never will",
+   "then": "a hard cut shows them doing it"
+  },
+  {
+   "id": "p:cringe-silence",
+   "proximity": "cringe-silence",
+   "label": "After a cringe, a pointed silence",
+   "from": {
+    "curiosity": "cringe",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicSound.silenceBeat",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "something awkward is said",
+   "then": "a pointed silence hangs"
+  },
+  {
+   "id": "p:escalate-wide",
+   "proximity": "escalate-wide",
+   "label": "As trouble escalates, the frame widens",
+   "from": {
+    "curiosity": "comicEscalation",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "wide",
+   "when": "the trouble escalates",
+   "then": "the frame widens"
+  },
+  {
+   "id": "p:gag-returns",
+   "proximity": "gag-returns",
+   "label": "A running gag returns, bigger",
+   "from": {
+    "curiosity": "runningGag",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "runningGag.variation",
+    "track": "master"
+   },
+   "within": 16,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a running gag comes back",
+   "then": "it is a little different"
+  },
+  {
+   "id": "p:callback-tender",
+   "proximity": "callback-tender",
+   "label": "A joke line returns in a tender moment",
+   "from": {
+    "curiosity": "callback.form",
+    "track": "master",
+    "is": "same words, new meaning",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "callback.mood",
+    "track": "master"
+   },
+   "within": 16,
+   "amount": 0.25,
+   "does": "set",
+   "value": "sweeter",
+   "when": "a joke line comes back later",
+   "then": "it lands in a tender moment"
+  },
+  {
+   "id": "p:absurd-no-reaction",
+   "proximity": "absurd-no-reaction",
+   "label": "Something absurd, nobody reacts",
+   "from": {
+    "curiosity": "absurdity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "absurdity.acceptance",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "nobody blinks",
+   "when": "something absurd happens",
+   "then": "nobody reacts"
+  },
+  {
+   "id": "p:misdirect-pullback",
+   "proximity": "misdirect-pullback",
+   "label": "Misdirection pays off with a pull-back",
+   "from": {
+    "curiosity": "misdirection",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cameraMove",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "pull out",
+   "when": "the audience is misled",
+   "then": "the camera pulls back to show the truth"
+  },
+  {
+   "id": "p:tension-laugh",
+   "proximity": "tension-laugh",
+   "label": "After tension, a laugh breaks it",
+   "from": {
+    "curiosity": "tensionCurve",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the tension rises",
+   "then": "a laugh breaks it"
+  },
+  {
+   "id": "p:change-outfit-change-self",
+   "proximity": "change-outfit-change-self",
+   "label": "A new outfit marks a change in the character",
+   "from": {
+    "curiosity": "mainEra.outfitChange",
+    "track": "character",
+    "is": "transformation",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "arcStage",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character's look transforms",
+   "then": "their arc moves on"
+  },
+  {
+   "id": "p:disguise-reveal",
+   "proximity": "disguise-reveal",
+   "label": "A disguise is followed by its unmasking",
+   "from": {
+    "curiosity": "mainEra.truth",
+    "track": "character",
+    "is": "disguise",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reveal",
+    "track": "master"
+   },
+   "within": 16,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "a character is in disguise",
+   "then": "they are unmasked"
+  },
+  {
+   "id": "p:clutter-close",
+   "proximity": "clutter-close",
+   "label": "In a cluttered room, the shots get closer",
+   "from": {
+    "curiosity": "clutter",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close",
+   "when": "the room is cluttered",
+   "then": "the shots get closer"
+  },
+  {
+   "id": "p:big-space-wide",
+   "proximity": "big-space-wide",
+   "label": "In a huge space, the frame goes wide",
+   "from": {
+    "curiosity": "scale",
+    "track": "master",
+    "is": "city",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "wide",
+   "when": "the space is huge",
+   "then": "the frame goes wide"
+  },
+  {
+   "id": "p:clash-noticed",
+   "proximity": "clash-noticed",
+   "label": "Clashing clothes get noticed",
+   "from": {
+    "curiosity": "mainSetMatch",
+    "track": "character",
+    "is": "clashes",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicReaction",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clothes clash with the place",
+   "then": "someone reacts"
+  },
+  {
+   "id": "p:prop-key-insert",
+   "proximity": "prop-key-insert",
+   "label": "A key prop gets its close-up",
+   "from": {
+    "curiosity": "props.importance",
+    "track": "master",
+    "is": "the key to the scene",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "insert",
+   "when": "a prop becomes the key to the scene",
+   "then": "it gets a close-up"
+  },
+  {
+   "id": "p:decay-mood",
+   "proximity": "decay-mood",
+   "label": "A run-down room darkens the mood",
+   "from": {
+    "curiosity": "setUpkeep",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "settingMood",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the room runs down",
+   "then": "the mood of the place darkens"
+  },
+  {
+   "id": "p:secret-half-light",
+   "proximity": "secret-half-light",
+   "label": "When a secret comes out, the face goes half lit",
+   "from": {
+    "curiosity": "reveal",
+    "track": "master",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lightingLens.faceLight",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "half lit",
+   "when": "a secret comes out",
+   "then": "the face goes half lit"
+  },
+  {
+   "id": "p:drain-on-loss",
+   "proximity": "drain-on-loss",
+   "label": "After a loss, the color drains",
+   "from": {
+    "curiosity": "emotion.valence",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "saturation",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a character's feeling drops sharply",
+   "then": "the color drains"
+  },
+  {
+   "id": "p:flashback-fade#1",
+   "proximity": "flashback-fade",
+   "label": "A flashback brings the faded look",
+   "from": {
+    "curiosity": "transition",
+    "track": "master",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorRange",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "muted color",
+   "when": "the film jumps into the past",
+   "then": "the picture takes the faded look"
+  },
+  {
+   "id": "p:flashback-fade#2",
+   "proximity": "flashback-fade",
+   "label": "A flashback brings the faded look",
+   "from": {
+    "curiosity": "transition",
+    "track": "master",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "saturation",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": 1,
+   "when": "the film jumps into the past",
+   "then": "the picture takes the faded look"
+  },
+  {
+   "id": "p:flashback-fade#3",
+   "proximity": "flashback-fade",
+   "label": "A flashback brings the faded look",
+   "from": {
+    "curiosity": "transition",
+    "track": "master",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorRange.filmStock",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "old film",
+   "when": "the film jumps into the past",
+   "then": "the picture takes the faded look"
+  },
+  {
+   "id": "p:flashback-fade#4",
+   "proximity": "flashback-fade",
+   "label": "A flashback brings the faded look",
+   "from": {
+    "curiosity": "transition",
+    "track": "master",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmCool",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "warm",
+   "when": "the film jumps into the past",
+   "then": "the picture takes the faded look"
+  },
+  {
+   "id": "p:danger-shadows",
+   "proximity": "danger-shadows",
+   "label": "When danger rises, the shadows deepen",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "fearful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lightingLens.shadows",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "deep",
+   "when": "danger rises",
+   "then": "the shadows deepen"
+  },
+  {
+   "id": "p:warm-reunion",
+   "proximity": "warm-reunion",
+   "label": "A reunion warms the color",
+   "from": {
+    "curiosity": "emotionGap.closing",
+    "track": "master",
+    "is": "closing",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmCool",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "warm",
+   "when": "two characters come back together",
+   "then": "the color warms"
+  },
+  {
+   "id": "p:stress-1#1",
+   "proximity": "stress-1",
+   "label": "When a Reformer falls into stress, they look like an Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 65,
+   "when": "a Reformer falls into stress",
+   "then": "they look like an Individualist"
+  },
+  {
+   "id": "p:stress-1#2",
+   "proximity": "stress-1",
+   "label": "When a Reformer falls into stress, they look like an Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 40,
+   "when": "a Reformer falls into stress",
+   "then": "they look like an Individualist"
+  },
+  {
+   "id": "p:stress-1#3",
+   "proximity": "stress-1",
+   "label": "When a Reformer falls into stress, they look like an Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 90,
+   "when": "a Reformer falls into stress",
+   "then": "they look like an Individualist"
+  },
+  {
+   "id": "p:stress-1#4",
+   "proximity": "stress-1",
+   "label": "When a Reformer falls into stress, they look like an Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 50,
+   "when": "a Reformer falls into stress",
+   "then": "they look like an Individualist"
+  },
+  {
+   "id": "p:stress-1#5",
+   "proximity": "stress-1",
+   "label": "When a Reformer falls into stress, they look like an Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Reformer falls into stress",
+   "then": "they look like an Individualist"
+  },
+  {
+   "id": "p:stress-1#6",
+   "proximity": "stress-1",
+   "label": "When a Reformer falls into stress, they look like an Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 35,
+   "when": "a Reformer falls into stress",
+   "then": "they look like an Individualist"
+  },
+  {
+   "id": "p:growth-1#1",
+   "proximity": "growth-1",
+   "label": "When a Reformer grows, they borrow from the Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 80,
+   "when": "a Reformer grows",
+   "then": "they borrow from the Enthusiast"
+  },
+  {
+   "id": "p:growth-1#2",
+   "proximity": "growth-1",
+   "label": "When a Reformer grows, they borrow from the Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 80,
+   "when": "a Reformer grows",
+   "then": "they borrow from the Enthusiast"
+  },
+  {
+   "id": "p:growth-1#3",
+   "proximity": "growth-1",
+   "label": "When a Reformer grows, they borrow from the Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 75,
+   "when": "a Reformer grows",
+   "then": "they borrow from the Enthusiast"
+  },
+  {
+   "id": "p:growth-1#4",
+   "proximity": "growth-1",
+   "label": "When a Reformer grows, they borrow from the Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Reformer grows",
+   "then": "they borrow from the Enthusiast"
+  },
+  {
+   "id": "p:growth-1#5",
+   "proximity": "growth-1",
+   "label": "When a Reformer grows, they borrow from the Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 85,
+   "when": "a Reformer grows",
+   "then": "they borrow from the Enthusiast"
+  },
+  {
+   "id": "p:growth-1#6",
+   "proximity": "growth-1",
+   "label": "When a Reformer grows, they borrow from the Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 35,
+   "when": "a Reformer grows",
+   "then": "they borrow from the Enthusiast"
+  },
+  {
+   "id": "p:stress-2#1",
+   "proximity": "stress-2",
+   "label": "When a Helper falls into stress, they look like a Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 75,
+   "when": "a Helper falls into stress",
+   "then": "they look like a Challenger"
+  },
+  {
+   "id": "p:stress-2#2",
+   "proximity": "stress-2",
+   "label": "When a Helper falls into stress, they look like a Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 95,
+   "when": "a Helper falls into stress",
+   "then": "they look like a Challenger"
+  },
+  {
+   "id": "p:stress-2#3",
+   "proximity": "stress-2",
+   "label": "When a Helper falls into stress, they look like a Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 75,
+   "when": "a Helper falls into stress",
+   "then": "they look like a Challenger"
+  },
+  {
+   "id": "p:stress-2#4",
+   "proximity": "stress-2",
+   "label": "When a Helper falls into stress, they look like a Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 50,
+   "when": "a Helper falls into stress",
+   "then": "they look like a Challenger"
+  },
+  {
+   "id": "p:stress-2#5",
+   "proximity": "stress-2",
+   "label": "When a Helper falls into stress, they look like a Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 75,
+   "when": "a Helper falls into stress",
+   "then": "they look like a Challenger"
+  },
+  {
+   "id": "p:stress-2#6",
+   "proximity": "stress-2",
+   "label": "When a Helper falls into stress, they look like a Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 95,
+   "when": "a Helper falls into stress",
+   "then": "they look like a Challenger"
+  },
+  {
+   "id": "p:growth-2#1",
+   "proximity": "growth-2",
+   "label": "When a Helper grows, they borrow from the Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 65,
+   "when": "a Helper grows",
+   "then": "they borrow from the Individualist"
+  },
+  {
+   "id": "p:growth-2#2",
+   "proximity": "growth-2",
+   "label": "When a Helper grows, they borrow from the Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 40,
+   "when": "a Helper grows",
+   "then": "they borrow from the Individualist"
+  },
+  {
+   "id": "p:growth-2#3",
+   "proximity": "growth-2",
+   "label": "When a Helper grows, they borrow from the Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 90,
+   "when": "a Helper grows",
+   "then": "they borrow from the Individualist"
+  },
+  {
+   "id": "p:growth-2#4",
+   "proximity": "growth-2",
+   "label": "When a Helper grows, they borrow from the Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 50,
+   "when": "a Helper grows",
+   "then": "they borrow from the Individualist"
+  },
+  {
+   "id": "p:growth-2#5",
+   "proximity": "growth-2",
+   "label": "When a Helper grows, they borrow from the Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Helper grows",
+   "then": "they borrow from the Individualist"
+  },
+  {
+   "id": "p:growth-2#6",
+   "proximity": "growth-2",
+   "label": "When a Helper grows, they borrow from the Individualist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 35,
+   "when": "a Helper grows",
+   "then": "they borrow from the Individualist"
+  },
+  {
+   "id": "p:stress-3#1",
+   "proximity": "stress-3",
+   "label": "When an Achiever falls into stress, they look like a Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 10,
+   "when": "an Achiever falls into stress",
+   "then": "they look like a Peacemaker"
+  },
+  {
+   "id": "p:stress-3#2",
+   "proximity": "stress-3",
+   "label": "When an Achiever falls into stress, they look like a Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 20,
+   "when": "an Achiever falls into stress",
+   "then": "they look like a Peacemaker"
+  },
+  {
+   "id": "p:stress-3#3",
+   "proximity": "stress-3",
+   "label": "When an Achiever falls into stress, they look like a Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "an Achiever falls into stress",
+   "then": "they look like a Peacemaker"
+  },
+  {
+   "id": "p:stress-3#4",
+   "proximity": "stress-3",
+   "label": "When an Achiever falls into stress, they look like a Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "an Achiever falls into stress",
+   "then": "they look like a Peacemaker"
+  },
+  {
+   "id": "p:stress-3#5",
+   "proximity": "stress-3",
+   "label": "When an Achiever falls into stress, they look like a Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "an Achiever falls into stress",
+   "then": "they look like a Peacemaker"
+  },
+  {
+   "id": "p:stress-3#6",
+   "proximity": "stress-3",
+   "label": "When an Achiever falls into stress, they look like a Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 15,
+   "when": "an Achiever falls into stress",
+   "then": "they look like a Peacemaker"
+  },
+  {
+   "id": "p:growth-3#1",
+   "proximity": "growth-3",
+   "label": "When an Achiever grows, they borrow from the Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 20,
+   "when": "an Achiever grows",
+   "then": "they borrow from the Loyalist"
+  },
+  {
+   "id": "p:growth-3#2",
+   "proximity": "growth-3",
+   "label": "When an Achiever grows, they borrow from the Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 45,
+   "when": "an Achiever grows",
+   "then": "they borrow from the Loyalist"
+  },
+  {
+   "id": "p:growth-3#3",
+   "proximity": "growth-3",
+   "label": "When an Achiever grows, they borrow from the Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 20,
+   "when": "an Achiever grows",
+   "then": "they borrow from the Loyalist"
+  },
+  {
+   "id": "p:growth-3#4",
+   "proximity": "growth-3",
+   "label": "When an Achiever grows, they borrow from the Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 35,
+   "when": "an Achiever grows",
+   "then": "they borrow from the Loyalist"
+  },
+  {
+   "id": "p:growth-3#5",
+   "proximity": "growth-3",
+   "label": "When an Achiever grows, they borrow from the Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 15,
+   "when": "an Achiever grows",
+   "then": "they borrow from the Loyalist"
+  },
+  {
+   "id": "p:growth-3#6",
+   "proximity": "growth-3",
+   "label": "When an Achiever grows, they borrow from the Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "an Achiever grows",
+   "then": "they borrow from the Loyalist"
+  },
+  {
+   "id": "p:stress-4#1",
+   "proximity": "stress-4",
+   "label": "When an Individualist falls into stress, they look like a Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "an Individualist falls into stress",
+   "then": "they look like a Helper"
+  },
+  {
+   "id": "p:stress-4#2",
+   "proximity": "stress-4",
+   "label": "When an Individualist falls into stress, they look like a Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 60,
+   "when": "an Individualist falls into stress",
+   "then": "they look like a Helper"
+  },
+  {
+   "id": "p:stress-4#3",
+   "proximity": "stress-4",
+   "label": "When an Individualist falls into stress, they look like a Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 30,
+   "when": "an Individualist falls into stress",
+   "then": "they look like a Helper"
+  },
+  {
+   "id": "p:stress-4#4",
+   "proximity": "stress-4",
+   "label": "When an Individualist falls into stress, they look like a Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 15,
+   "when": "an Individualist falls into stress",
+   "then": "they look like a Helper"
+  },
+  {
+   "id": "p:stress-4#5",
+   "proximity": "stress-4",
+   "label": "When an Individualist falls into stress, they look like a Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 40,
+   "when": "an Individualist falls into stress",
+   "then": "they look like a Helper"
+  },
+  {
+   "id": "p:stress-4#6",
+   "proximity": "stress-4",
+   "label": "When an Individualist falls into stress, they look like a Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "an Individualist falls into stress",
+   "then": "they look like a Helper"
+  },
+  {
+   "id": "p:growth-4#1",
+   "proximity": "growth-4",
+   "label": "When an Individualist grows, they borrow from the Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 30,
+   "when": "an Individualist grows",
+   "then": "they borrow from the Reformer"
+  },
+  {
+   "id": "p:growth-4#2",
+   "proximity": "growth-4",
+   "label": "When an Individualist grows, they borrow from the Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 70,
+   "when": "an Individualist grows",
+   "then": "they borrow from the Reformer"
+  },
+  {
+   "id": "p:growth-4#3",
+   "proximity": "growth-4",
+   "label": "When an Individualist grows, they borrow from the Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 35,
+   "when": "an Individualist grows",
+   "then": "they borrow from the Reformer"
+  },
+  {
+   "id": "p:growth-4#4",
+   "proximity": "growth-4",
+   "label": "When an Individualist grows, they borrow from the Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "an Individualist grows",
+   "then": "they borrow from the Reformer"
+  },
+  {
+   "id": "p:growth-4#5",
+   "proximity": "growth-4",
+   "label": "When an Individualist grows, they borrow from the Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "an Individualist grows",
+   "then": "they borrow from the Reformer"
+  },
+  {
+   "id": "p:growth-4#6",
+   "proximity": "growth-4",
+   "label": "When an Individualist grows, they borrow from the Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 80,
+   "when": "an Individualist grows",
+   "then": "they borrow from the Reformer"
+  },
+  {
+   "id": "p:stress-5#1",
+   "proximity": "stress-5",
+   "label": "When an Investigator falls into stress, they look like an Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 80,
+   "when": "an Investigator falls into stress",
+   "then": "they look like an Enthusiast"
+  },
+  {
+   "id": "p:stress-5#2",
+   "proximity": "stress-5",
+   "label": "When an Investigator falls into stress, they look like an Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 80,
+   "when": "an Investigator falls into stress",
+   "then": "they look like an Enthusiast"
+  },
+  {
+   "id": "p:stress-5#3",
+   "proximity": "stress-5",
+   "label": "When an Investigator falls into stress, they look like an Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 75,
+   "when": "an Investigator falls into stress",
+   "then": "they look like an Enthusiast"
+  },
+  {
+   "id": "p:stress-5#4",
+   "proximity": "stress-5",
+   "label": "When an Investigator falls into stress, they look like an Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "an Investigator falls into stress",
+   "then": "they look like an Enthusiast"
+  },
+  {
+   "id": "p:stress-5#5",
+   "proximity": "stress-5",
+   "label": "When an Investigator falls into stress, they look like an Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 85,
+   "when": "an Investigator falls into stress",
+   "then": "they look like an Enthusiast"
+  },
+  {
+   "id": "p:stress-5#6",
+   "proximity": "stress-5",
+   "label": "When an Investigator falls into stress, they look like an Enthusiast",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 35,
+   "when": "an Investigator falls into stress",
+   "then": "they look like an Enthusiast"
+  },
+  {
+   "id": "p:growth-5#1",
+   "proximity": "growth-5",
+   "label": "When an Investigator grows, they borrow from the Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 75,
+   "when": "an Investigator grows",
+   "then": "they borrow from the Challenger"
+  },
+  {
+   "id": "p:growth-5#2",
+   "proximity": "growth-5",
+   "label": "When an Investigator grows, they borrow from the Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 95,
+   "when": "an Investigator grows",
+   "then": "they borrow from the Challenger"
+  },
+  {
+   "id": "p:growth-5#3",
+   "proximity": "growth-5",
+   "label": "When an Investigator grows, they borrow from the Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 75,
+   "when": "an Investigator grows",
+   "then": "they borrow from the Challenger"
+  },
+  {
+   "id": "p:growth-5#4",
+   "proximity": "growth-5",
+   "label": "When an Investigator grows, they borrow from the Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 50,
+   "when": "an Investigator grows",
+   "then": "they borrow from the Challenger"
+  },
+  {
+   "id": "p:growth-5#5",
+   "proximity": "growth-5",
+   "label": "When an Investigator grows, they borrow from the Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 75,
+   "when": "an Investigator grows",
+   "then": "they borrow from the Challenger"
+  },
+  {
+   "id": "p:growth-5#6",
+   "proximity": "growth-5",
+   "label": "When an Investigator grows, they borrow from the Challenger",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 95,
+   "when": "an Investigator grows",
+   "then": "they borrow from the Challenger"
+  },
+  {
+   "id": "p:stress-6#1",
+   "proximity": "stress-6",
+   "label": "When a Loyalist falls into stress, they look like an Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Loyalist falls into stress",
+   "then": "they look like an Achiever"
+  },
+  {
+   "id": "p:stress-6#2",
+   "proximity": "stress-6",
+   "label": "When a Loyalist falls into stress, they look like an Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 90,
+   "when": "a Loyalist falls into stress",
+   "then": "they look like an Achiever"
+  },
+  {
+   "id": "p:stress-6#3",
+   "proximity": "stress-6",
+   "label": "When a Loyalist falls into stress, they look like an Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 45,
+   "when": "a Loyalist falls into stress",
+   "then": "they look like an Achiever"
+  },
+  {
+   "id": "p:stress-6#4",
+   "proximity": "stress-6",
+   "label": "When a Loyalist falls into stress, they look like an Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 60,
+   "when": "a Loyalist falls into stress",
+   "then": "they look like an Achiever"
+  },
+  {
+   "id": "p:stress-6#5",
+   "proximity": "stress-6",
+   "label": "When a Loyalist falls into stress, they look like an Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Loyalist falls into stress",
+   "then": "they look like an Achiever"
+  },
+  {
+   "id": "p:stress-6#6",
+   "proximity": "stress-6",
+   "label": "When a Loyalist falls into stress, they look like an Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 70,
+   "when": "a Loyalist falls into stress",
+   "then": "they look like an Achiever"
+  },
+  {
+   "id": "p:growth-6#1",
+   "proximity": "growth-6",
+   "label": "When a Loyalist grows, they borrow from the Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 10,
+   "when": "a Loyalist grows",
+   "then": "they borrow from the Peacemaker"
+  },
+  {
+   "id": "p:growth-6#2",
+   "proximity": "growth-6",
+   "label": "When a Loyalist grows, they borrow from the Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 20,
+   "when": "a Loyalist grows",
+   "then": "they borrow from the Peacemaker"
+  },
+  {
+   "id": "p:growth-6#3",
+   "proximity": "growth-6",
+   "label": "When a Loyalist grows, they borrow from the Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "a Loyalist grows",
+   "then": "they borrow from the Peacemaker"
+  },
+  {
+   "id": "p:growth-6#4",
+   "proximity": "growth-6",
+   "label": "When a Loyalist grows, they borrow from the Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "a Loyalist grows",
+   "then": "they borrow from the Peacemaker"
+  },
+  {
+   "id": "p:growth-6#5",
+   "proximity": "growth-6",
+   "label": "When a Loyalist grows, they borrow from the Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "a Loyalist grows",
+   "then": "they borrow from the Peacemaker"
+  },
+  {
+   "id": "p:growth-6#6",
+   "proximity": "growth-6",
+   "label": "When a Loyalist grows, they borrow from the Peacemaker",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 15,
+   "when": "a Loyalist grows",
+   "then": "they borrow from the Peacemaker"
+  },
+  {
+   "id": "p:stress-7#1",
+   "proximity": "stress-7",
+   "label": "When an Enthusiast falls into stress, they look like a Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 30,
+   "when": "an Enthusiast falls into stress",
+   "then": "they look like a Reformer"
+  },
+  {
+   "id": "p:stress-7#2",
+   "proximity": "stress-7",
+   "label": "When an Enthusiast falls into stress, they look like a Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 70,
+   "when": "an Enthusiast falls into stress",
+   "then": "they look like a Reformer"
+  },
+  {
+   "id": "p:stress-7#3",
+   "proximity": "stress-7",
+   "label": "When an Enthusiast falls into stress, they look like a Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 35,
+   "when": "an Enthusiast falls into stress",
+   "then": "they look like a Reformer"
+  },
+  {
+   "id": "p:stress-7#4",
+   "proximity": "stress-7",
+   "label": "When an Enthusiast falls into stress, they look like a Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "an Enthusiast falls into stress",
+   "then": "they look like a Reformer"
+  },
+  {
+   "id": "p:stress-7#5",
+   "proximity": "stress-7",
+   "label": "When an Enthusiast falls into stress, they look like a Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "an Enthusiast falls into stress",
+   "then": "they look like a Reformer"
+  },
+  {
+   "id": "p:stress-7#6",
+   "proximity": "stress-7",
+   "label": "When an Enthusiast falls into stress, they look like a Reformer",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 80,
+   "when": "an Enthusiast falls into stress",
+   "then": "they look like a Reformer"
+  },
+  {
+   "id": "p:growth-7#1",
+   "proximity": "growth-7",
+   "label": "When an Enthusiast grows, they borrow from the Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 40,
+   "when": "an Enthusiast grows",
+   "then": "they borrow from the Investigator"
+  },
+  {
+   "id": "p:growth-7#2",
+   "proximity": "growth-7",
+   "label": "When an Enthusiast grows, they borrow from the Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 30,
+   "when": "an Enthusiast grows",
+   "then": "they borrow from the Investigator"
+  },
+  {
+   "id": "p:growth-7#3",
+   "proximity": "growth-7",
+   "label": "When an Enthusiast grows, they borrow from the Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 80,
+   "when": "an Enthusiast grows",
+   "then": "they borrow from the Investigator"
+  },
+  {
+   "id": "p:growth-7#4",
+   "proximity": "growth-7",
+   "label": "When an Enthusiast grows, they borrow from the Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "an Enthusiast grows",
+   "then": "they borrow from the Investigator"
+  },
+  {
+   "id": "p:growth-7#5",
+   "proximity": "growth-7",
+   "label": "When an Enthusiast grows, they borrow from the Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 20,
+   "when": "an Enthusiast grows",
+   "then": "they borrow from the Investigator"
+  },
+  {
+   "id": "p:growth-7#6",
+   "proximity": "growth-7",
+   "label": "When an Enthusiast grows, they borrow from the Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 60,
+   "when": "an Enthusiast grows",
+   "then": "they borrow from the Investigator"
+  },
+  {
+   "id": "p:stress-8#1",
+   "proximity": "stress-8",
+   "label": "When a Challenger falls into stress, they look like an Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 40,
+   "when": "a Challenger falls into stress",
+   "then": "they look like an Investigator"
+  },
+  {
+   "id": "p:stress-8#2",
+   "proximity": "stress-8",
+   "label": "When a Challenger falls into stress, they look like an Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 30,
+   "when": "a Challenger falls into stress",
+   "then": "they look like an Investigator"
+  },
+  {
+   "id": "p:stress-8#3",
+   "proximity": "stress-8",
+   "label": "When a Challenger falls into stress, they look like an Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 80,
+   "when": "a Challenger falls into stress",
+   "then": "they look like an Investigator"
+  },
+  {
+   "id": "p:stress-8#4",
+   "proximity": "stress-8",
+   "label": "When a Challenger falls into stress, they look like an Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Challenger falls into stress",
+   "then": "they look like an Investigator"
+  },
+  {
+   "id": "p:stress-8#5",
+   "proximity": "stress-8",
+   "label": "When a Challenger falls into stress, they look like an Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 20,
+   "when": "a Challenger falls into stress",
+   "then": "they look like an Investigator"
+  },
+  {
+   "id": "p:stress-8#6",
+   "proximity": "stress-8",
+   "label": "When a Challenger falls into stress, they look like an Investigator",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 60,
+   "when": "a Challenger falls into stress",
+   "then": "they look like an Investigator"
+  },
+  {
+   "id": "p:growth-8#1",
+   "proximity": "growth-8",
+   "label": "When a Challenger grows, they borrow from the Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 25,
+   "when": "a Challenger grows",
+   "then": "they borrow from the Helper"
+  },
+  {
+   "id": "p:growth-8#2",
+   "proximity": "growth-8",
+   "label": "When a Challenger grows, they borrow from the Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 60,
+   "when": "a Challenger grows",
+   "then": "they borrow from the Helper"
+  },
+  {
+   "id": "p:growth-8#3",
+   "proximity": "growth-8",
+   "label": "When a Challenger grows, they borrow from the Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 30,
+   "when": "a Challenger grows",
+   "then": "they borrow from the Helper"
+  },
+  {
+   "id": "p:growth-8#4",
+   "proximity": "growth-8",
+   "label": "When a Challenger grows, they borrow from the Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 15,
+   "when": "a Challenger grows",
+   "then": "they borrow from the Helper"
+  },
+  {
+   "id": "p:growth-8#5",
+   "proximity": "growth-8",
+   "label": "When a Challenger grows, they borrow from the Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 40,
+   "when": "a Challenger grows",
+   "then": "they borrow from the Helper"
+  },
+  {
+   "id": "p:growth-8#6",
+   "proximity": "growth-8",
+   "label": "When a Challenger grows, they borrow from the Helper",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Challenger grows",
+   "then": "they borrow from the Helper"
+  },
+  {
+   "id": "p:stress-9#1",
+   "proximity": "stress-9",
+   "label": "When a Peacemaker falls into stress, they look like a Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 20,
+   "when": "a Peacemaker falls into stress",
+   "then": "they look like a Loyalist"
+  },
+  {
+   "id": "p:stress-9#2",
+   "proximity": "stress-9",
+   "label": "When a Peacemaker falls into stress, they look like a Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 45,
+   "when": "a Peacemaker falls into stress",
+   "then": "they look like a Loyalist"
+  },
+  {
+   "id": "p:stress-9#3",
+   "proximity": "stress-9",
+   "label": "When a Peacemaker falls into stress, they look like a Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 20,
+   "when": "a Peacemaker falls into stress",
+   "then": "they look like a Loyalist"
+  },
+  {
+   "id": "p:stress-9#4",
+   "proximity": "stress-9",
+   "label": "When a Peacemaker falls into stress, they look like a Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 35,
+   "when": "a Peacemaker falls into stress",
+   "then": "they look like a Loyalist"
+  },
+  {
+   "id": "p:stress-9#5",
+   "proximity": "stress-9",
+   "label": "When a Peacemaker falls into stress, they look like a Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 15,
+   "when": "a Peacemaker falls into stress",
+   "then": "they look like a Loyalist"
+  },
+  {
+   "id": "p:stress-9#6",
+   "proximity": "stress-9",
+   "label": "When a Peacemaker falls into stress, they look like a Loyalist",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Peacemaker falls into stress",
+   "then": "they look like a Loyalist"
+  },
+  {
+   "id": "p:growth-9#1",
+   "proximity": "growth-9",
+   "label": "When a Peacemaker grows, they borrow from the Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-stability",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Peacemaker grows",
+   "then": "they borrow from the Achiever"
+  },
+  {
+   "id": "p:growth-9#2",
+   "proximity": "growth-9",
+   "label": "When a Peacemaker grows, they borrow from the Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-agency",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 90,
+   "when": "a Peacemaker grows",
+   "then": "they borrow from the Achiever"
+  },
+  {
+   "id": "p:growth-9#3",
+   "proximity": "growth-9",
+   "label": "When a Peacemaker grows, they borrow from the Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-freedom",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 45,
+   "when": "a Peacemaker grows",
+   "then": "they borrow from the Achiever"
+  },
+  {
+   "id": "p:growth-9#4",
+   "proximity": "growth-9",
+   "label": "When a Peacemaker grows, they borrow from the Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-morality",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 60,
+   "when": "a Peacemaker grows",
+   "then": "they borrow from the Achiever"
+  },
+  {
+   "id": "p:growth-9#5",
+   "proximity": "growth-9",
+   "label": "When a Peacemaker grows, they borrow from the Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-risk",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 55,
+   "when": "a Peacemaker grows",
+   "then": "they borrow from the Achiever"
+  },
+  {
+   "id": "p:growth-9#6",
+   "proximity": "growth-9",
+   "label": "When a Peacemaker grows, they borrow from the Achiever",
+   "from": {
+    "curiosity": "cm-health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "cm-control",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.15,
+   "does": "set",
+   "value": 70,
+   "when": "a Peacemaker grows",
+   "then": "they borrow from the Achiever"
+  },
+  {
+   "id": "p:secret-slips-cringe",
+   "proximity": "secret-slips-cringe",
+   "label": "When a secret starts slipping, cringe rises",
+   "from": {
+    "curiosity": "plotSecret",
+    "track": "character",
+    "is": "slipping",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a secret starts slipping",
+   "then": "cringe rises"
+  },
+  {
+   "id": "p:setback-feeling-drops",
+   "proximity": "setback-feeling-drops",
+   "label": "When the character is set back, their emotional road drops",
+   "from": {
+    "curiosity": "plotProgress",
+    "track": "character",
+    "is": "setback",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRoadCharacter",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the character is set back",
+   "then": "their emotional road drops"
+  },
+  {
+   "id": "p:challenge-questioning",
+   "proximity": "challenge-questioning",
+   "label": "When a belief is challenged hard, the mindset opens",
+   "from": {
+    "curiosity": "mindset.challenge",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "mindset",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a belief is challenged hard",
+   "then": "the mindset opens"
+  },
+  {
+   "id": "p:fixation-close",
+   "proximity": "fixation-close",
+   "label": "When a fixation tightens, the shots get closer",
+   "from": {
+    "curiosity": "fixation",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a fixation tightens",
+   "then": "the shots get closer"
+  },
+  {
+   "id": "p:distraction-miss",
+   "proximity": "distraction-miss",
+   "label": "When a distraction pulls hard, something is missed",
+   "from": {
+    "curiosity": "distraction",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "distraction.missed",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a distraction pulls hard",
+   "then": "something is missed"
+  },
+  {
+   "id": "p:dissent-pressure",
+   "proximity": "dissent-pressure",
+   "label": "When someone defies the group, the pressure rises",
+   "from": {
+    "curiosity": "dissenter",
+    "track": "master",
+    "is": "openly defies",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "groupPressure",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone defies the group",
+   "then": "the pressure rises"
+  },
+  {
+   "id": "p:herd-quiet-dissent",
+   "proximity": "herd-quiet-dissent",
+   "label": "When the herd grows, doubts go quiet",
+   "from": {
+    "curiosity": "herdMentality",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dissenter",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the herd grows",
+   "then": "doubts go quiet"
+  },
+  {
+   "id": "p:cliffhanger-turn",
+   "proximity": "cliffhanger-turn",
+   "label": "When a page ends on a cliffhanger, the next page opens big",
+   "from": {
+    "curiosity": "pageTurn",
+    "track": "master",
+    "is": "cliffhanger",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "panelSize",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a page ends on a cliffhanger",
+   "then": "the next page opens big"
+  },
+  {
+   "id": "p:peak-big-panel",
+   "proximity": "peak-big-panel",
+   "label": "When the feeling peaks, the panel grows",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "panelSize",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the feeling peaks",
+   "then": "the panel grows"
+  },
+  {
+   "id": "p:fast-talk-small-panels",
+   "proximity": "fast-talk-small-panels",
+   "label": "When the talk speeds up, panels shrink and multiply",
+   "from": {
+    "curiosity": "wordsAmount",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "panelCount",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the talk speeds up",
+   "then": "panels shrink and multiply"
+  },
+  {
+   "id": "p:quiet-wide-gutter",
+   "proximity": "quiet-wide-gutter",
+   "label": "When a scene ends, the gutter widens",
+   "from": {
+    "curiosity": "tensionCurve",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "gutter",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "scene",
+   "when": "a scene ends",
+   "then": "the gutter widens"
+  },
+  {
+   "id": "p:approach-eyeline",
+   "proximity": "approach-eyeline",
+   "label": "When people get closer, they hold each other's look",
+   "from": {
+    "curiosity": "blocking.distance",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "eyeline",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "people get closer",
+   "then": "they hold each other's look"
+  },
+  {
+   "id": "p:sad-rain",
+   "proximity": "sad-rain",
+   "label": "When sadness rises, the rain starts",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "melancholy",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "weather",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "rain",
+   "when": "sadness rises",
+   "then": "the rain starts"
+  },
+  {
+   "id": "p:tension-crowd-still",
+   "proximity": "tension-crowd-still",
+   "label": "When tension rises, the background goes still",
+   "from": {
+    "curiosity": "tensionCurve",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "envMotion",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "tension rises",
+   "then": "the background goes still"
+  },
+  {
+   "id": "p:anger-warm-red",
+   "proximity": "anger-warm-red",
+   "label": "When anger rises, the color runs warm",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "angry",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmCool",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "anger rises",
+   "then": "the color runs warm"
+  },
+  {
+   "id": "p:fear-color-drains",
+   "proximity": "fear-color-drains",
+   "label": "When fear rises, the color drains",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "fearful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorRange",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "fear rises",
+   "then": "the color drains"
+  },
+  {
+   "id": "p:trigger-turns",
+   "proximity": "trigger-turns",
+   "label": "When a trigger appears, the feeling turns",
+   "from": {
+    "curiosity": "emoTurn.trigger",
+    "track": "master",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoTurn",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a trigger appears",
+   "then": "the feeling turns"
+  },
+  {
+   "id": "p:held-in-release",
+   "proximity": "held-in-release",
+   "label": "When enough feeling is held in, it comes out",
+   "from": {
+    "curiosity": "emotionalDebt",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoRelease.size",
+    "track": "master"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "enough feeling is held in",
+   "then": "it comes out"
+  },
+  {
+   "id": "p:release-lighter",
+   "proximity": "release-lighter",
+   "label": "After a release, the character is lighter",
+   "from": {
+    "curiosity": "emoRelease.size",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoRelease.after",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a feeling is let out",
+   "then": "the character is lighter"
+  },
+  {
+   "id": "p:subtext-pause",
+   "proximity": "subtext-pause",
+   "label": "When said and meant pull apart, the pauses grow",
+   "from": {
+    "curiosity": "subtext",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "said and meant pull apart",
+   "then": "the pauses grow"
+  },
+  {
+   "id": "p:space-closes-intensity",
+   "proximity": "space-closes-intensity",
+   "label": "When people move closer, the feeling grows",
+   "from": {
+    "curiosity": "personalSpace",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "people move closer",
+   "then": "the feeling grows"
+  },
+  {
+   "id": "p:tears-close-up",
+   "proximity": "tears-close-up",
+   "label": "When tears well, the shot gets closer",
+   "from": {
+    "curiosity": "emoEyes.wet",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "tears well",
+   "then": "the shot gets closer"
+  },
+  {
+   "id": "p:we-know-tension",
+   "proximity": "we-know-tension",
+   "label": "When we know more than they do, tension rises",
+   "from": {
+    "curiosity": "audienceFeeling.why",
+    "track": "master",
+    "is": "we know more",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we know more than they do",
+   "then": "tension rises"
+  },
+  {
+   "id": "p:mixed-face-flicker",
+   "proximity": "mixed-face-flicker",
+   "label": "When feelings mix, the face flickers",
+   "from": {
+    "curiosity": "mixedFeelings",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "faceIntensity",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "feelings mix",
+   "then": "the face flickers"
+  },
+  {
+   "id": "p:laugh-topper",
+   "proximity": "laugh-topper",
+   "label": "When a joke lands, a topper follows",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "topper",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a joke lands",
+   "then": "a topper follows"
+  },
+  {
+   "id": "p:lie-grows",
+   "proximity": "lie-grows",
+   "label": "When a lie wobbles, a bigger lie covers it",
+   "from": {
+    "curiosity": "escalatingLie.near",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "escalatingLie",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a lie wobbles",
+   "then": "a bigger lie covers it"
+  },
+  {
+   "id": "p:lie-collapse-humiliation",
+   "proximity": "lie-collapse-humiliation",
+   "label": "When the lie collapses, someone is humiliated",
+   "from": {
+    "curiosity": "escalatingLie.near",
+    "track": "master",
+    "is": "collapsed",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "humiliation",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the lie collapses",
+   "then": "someone is humiliated"
+  },
+  {
+   "id": "p:misunderstanding-chaos",
+   "proximity": "misunderstanding-chaos",
+   "label": "When a misunderstanding deepens, the chaos grows",
+   "from": {
+    "curiosity": "misunderstanding",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "chaosInRoom",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a misunderstanding deepens",
+   "then": "the chaos grows"
+  },
+  {
+   "id": "p:humiliation-cringe",
+   "proximity": "humiliation-cringe",
+   "label": "When someone is humiliated in front of others, the cringe rises",
+   "from": {
+    "curiosity": "humiliation.witnesses",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone is humiliated in front of others",
+   "then": "the cringe rises"
+  },
+  {
+   "id": "p:blind-flaw-setback",
+   "proximity": "blind-flaw-setback",
+   "label": "When a blind flaw grows, the character is set back",
+   "from": {
+    "curiosity": "comicFlaw.size",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotProgress",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a blind flaw grows",
+   "then": "the character is set back"
+  },
+  {
+   "id": "p:aside-reaction",
+   "proximity": "aside-reaction",
+   "label": "When a character talks to us, the others react a beat late",
+   "from": {
+    "curiosity": "fourthWall",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicReaction",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character talks to us",
+   "then": "the others react a beat late"
+  },
+  {
+   "id": "p:specific-callback",
+   "proximity": "specific-callback",
+   "label": "An oddly specific detail comes back later",
+   "from": {
+    "curiosity": "specificity",
+    "track": "master",
+    "is": "absurdly specific",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "callback",
+    "track": "master"
+   },
+   "within": 12,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "an oddly specific detail is planted",
+   "then": "it comes back as a callback"
+  },
+  {
+   "id": "p:guest-chaos",
+   "proximity": "guest-chaos",
+   "label": "When the unwanted guest arrives, the room falls into chaos",
+   "from": {
+    "curiosity": "unwantedGuest",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "chaosInRoom",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the unwanted guest arrives",
+   "then": "the room falls into chaos"
+  },
+  {
+   "id": "p:ego-plot",
+   "proximity": "ego-plot",
+   "label": "When the egos clash, the plot takes a detour",
+   "from": {
+    "curiosity": "egoClash",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "mixPlot",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the egos clash",
+   "then": "the plot takes a detour"
+  },
+  {
+   "id": "p:secret-cringe",
+   "proximity": "secret-cringe",
+   "label": "When the one who doesn't know gets close to the secret, the cringe rises",
+   "from": {
+    "curiosity": "whoKnows.hiding",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the one who doesn't know gets close to the secret",
+   "then": "the cringe rises"
+  },
+  {
+   "id": "p:straight-sells-it",
+   "proximity": "straight-sells-it",
+   "label": "When the chaos grows, the straight man's calm sells the laugh",
+   "from": {
+    "curiosity": "chaosInRoom",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "mixLaughs",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the chaos grows",
+   "then": "the straight man's calm sells the laugh"
+  },
+  {
+   "id": "p:oddone-group",
+   "proximity": "oddone-group",
+   "label": "When the odd one out tries harder, the group pulls away",
+   "from": {
+    "curiosity": "oddOneOut.tries",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "groupPressure",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the odd one out tries harder",
+   "then": "the group pulls away"
+  },
+  {
+   "id": "p:sides-switch",
+   "proximity": "sides-switch",
+   "label": "When the sides switch, the status flips",
+   "from": {
+    "curiosity": "alliances",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "statusGap.flip",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the sides switch",
+   "then": "the status flips"
+  },
+  {
+   "id": "p:chemistry-arc",
+   "proximity": "chemistry-arc",
+   "label": "When the chemistry grows, the characters change",
+   "from": {
+    "curiosity": "chemistry",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "mixArc",
+    "track": "master"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the chemistry grows",
+   "then": "the characters change"
+  },
+  {
+   "id": "p:false-high-falls",
+   "proximity": "false-high-falls",
+   "label": "When a false high peaks, the fall follows",
+   "from": {
+    "curiosity": "falseHigh",
+    "track": "master",
+    "is": "false high",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRoadCharacter",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a false high peaks",
+   "then": "the fall follows"
+  },
+  {
+   "id": "p:big-then-breather",
+   "proximity": "big-then-breather",
+   "label": "When a big feeling peaks, a breather follows",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "breather",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a big feeling peaks",
+   "then": "a breather follows"
+  },
+  {
+   "id": "p:stakes-hope",
+   "proximity": "stakes-hope",
+   "label": "When the stakes rise, hope gets fragile",
+   "from": {
+    "curiosity": "stakes",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "hope.fragile",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the stakes rise",
+   "then": "hope gets fragile"
+  },
+  {
+   "id": "p:hope-gone-catharsis",
+   "proximity": "hope-gone-catharsis",
+   "label": "When hope is lost, the release comes later",
+   "from": {
+    "curiosity": "hope",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "catharsis",
+    "track": "master"
+   },
+   "within": 15,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "hope is lost",
+   "then": "the release comes later"
+  },
+  {
+   "id": "p:echo-catharsis",
+   "proximity": "echo-catharsis",
+   "label": "When an old feeling comes back changed, the release arrives",
+   "from": {
+    "curiosity": "feelingEcho.changed",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "catharsis",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "an old feeling comes back changed",
+   "then": "the release arrives"
+  },
+  {
+   "id": "p:dread-silence",
+   "proximity": "dread-silence",
+   "label": "When dread builds, the music thins out",
+   "from": {
+    "curiosity": "dread",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "music",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "dread builds",
+   "then": "the music thins out"
+  },
+  {
+   "id": "p:warmth-roads",
+   "proximity": "warmth-roads",
+   "label": "When the warmth cools, the two roads part",
+   "from": {
+    "curiosity": "warmth",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "twoRoads.gap",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the warmth cools",
+   "then": "the two roads part"
+  },
+  {
+   "id": "p:relief-laugh",
+   "proximity": "relief-laugh",
+   "label": "When the dread is lifted, a laugh comes",
+   "from": {
+    "curiosity": "dread",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "mixLaughs",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the dread is lifted",
+   "then": "a laugh comes"
+  },
+  {
+   "id": "p:lie-crisis",
+   "proximity": "lie-crisis",
+   "label": "When the lie is exposed, the crisis comes",
+   "from": {
+    "curiosity": "theLie",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "arcStage",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": "crisis",
+   "when": "the lie is exposed",
+   "then": "the crisis comes"
+  },
+  {
+   "id": "p:wound-resist",
+   "proximity": "wound-resist",
+   "label": "When the old wound is touched, they fight the change harder",
+   "from": {
+    "curiosity": "wound.touched",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "resistance",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the old wound is touched",
+   "then": "they fight the change harder"
+  },
+  {
+   "id": "p:test-change",
+   "proximity": "test-change",
+   "label": "When the test is passed, the change shows",
+   "from": {
+    "curiosity": "arcTest.result",
+    "track": "character",
+    "is": "pass",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "changeShows",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the test is passed",
+   "then": "the change shows"
+  },
+  {
+   "id": "p:relapse-road",
+   "proximity": "relapse-road",
+   "label": "When they slip back, their road drops",
+   "from": {
+    "curiosity": "relapse",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoRoadCharacter",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they slip back",
+   "then": "their road drops"
+  },
+  {
+   "id": "p:resist-laugh",
+   "proximity": "resist-laugh",
+   "label": "When they fight the change with jokes, the laughs rise",
+   "from": {
+    "curiosity": "resistance.how",
+    "track": "character",
+    "is": "jokes",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they fight the change with jokes",
+   "then": "the laughs rise"
+  },
+  {
+   "id": "p:change-posture",
+   "proximity": "change-posture",
+   "label": "When the change comes, the posture opens",
+   "from": {
+    "curiosity": "arcStage",
+    "track": "character",
+    "is": "change",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "posture",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "open",
+   "when": "the change comes",
+   "then": "the posture opens"
+  },
+  {
+   "id": "p:line-freeze",
+   "proximity": "line-freeze",
+   "label": "When a big line lands, the body freezes",
+   "from": {
+    "curiosity": "moveOnLine",
+    "track": "character",
+    "is": "on the key word",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "stillness",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a big line lands",
+   "then": "the body freezes"
+  },
+  {
+   "id": "p:listener-leans",
+   "proximity": "listener-leans",
+   "label": "When the speaker gets closer to the truth, the listener leans in",
+   "from": {
+    "curiosity": "subtext",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "listenerBody.agrees",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the speaker gets closer to the truth",
+   "then": "the listener leans in"
+  },
+  {
+   "id": "p:task-angry",
+   "proximity": "task-angry",
+   "label": "When the anger rises, the task gets rougher",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "propBusiness",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the anger rises",
+   "then": "the task gets rougher"
+  },
+  {
+   "id": "p:task-laugh",
+   "proximity": "task-laugh",
+   "label": "When the task falls apart, a laugh comes",
+   "from": {
+    "curiosity": "propBusiness.goesWrong",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the task falls apart",
+   "then": "a laugh comes"
+  },
+  {
+   "id": "p:walk-long-take",
+   "proximity": "walk-long-take",
+   "label": "When they walk and talk, the shots get longer",
+   "from": {
+    "curiosity": "walkAndTalk",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they walk and talk",
+   "then": "the shots get longer"
+  },
+  {
+   "id": "p:approach-space",
+   "proximity": "approach-space",
+   "label": "When a character approaches, personal space shrinks",
+   "from": {
+    "curiosity": "characterPath",
+    "track": "character",
+    "is": "approach",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "personalSpace",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a character approaches",
+   "then": "personal space shrinks"
+  },
+  {
+   "id": "p:speed-cuts",
+   "proximity": "speed-cuts",
+   "label": "When characters speed up, the cutting speeds up",
+   "from": {
+    "curiosity": "characterSpeed",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "characters speed up",
+   "then": "the cutting speeds up"
+  },
+  {
+   "id": "p:dread-tilt",
+   "proximity": "dread-tilt",
+   "label": "When dread builds, the frame tilts",
+   "from": {
+    "curiosity": "dread",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dutch",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "tilted",
+   "when": "dread builds",
+   "then": "the frame tilts"
+  },
+  {
+   "id": "p:feeling-closer",
+   "proximity": "feeling-closer",
+   "label": "When the feeling peaks, the shot gets closer",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shotSize",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the feeling peaks",
+   "then": "the shot gets closer"
+  },
+  {
+   "id": "p:status-angle",
+   "proximity": "status-angle",
+   "label": "When the status flips, the camera angle flips",
+   "from": {
+    "curiosity": "statusGap.flip",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "angleHeight",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the status flips",
+   "then": "the camera angle flips"
+  },
+  {
+   "id": "p:payoff-punch-in",
+   "proximity": "payoff-punch-in",
+   "label": "When the joke pays off, the editor punches in",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reframe",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the joke pays off",
+   "then": "the editor punches in"
+  },
+  {
+   "id": "p:payoff-sound-hit",
+   "proximity": "payoff-sound-hit",
+   "label": "When the joke pays off, a sound hit lands",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sfxHits",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the joke pays off",
+   "then": "a sound hit lands"
+  },
+  {
+   "id": "p:slowmo-music",
+   "proximity": "slowmo-music",
+   "label": "When the clip slows down, the music rises",
+   "from": {
+    "curiosity": "clipSpeed",
+    "track": "master",
+    "is": "slow",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicLevel",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clip slows down",
+   "then": "the music rises"
+  },
+  {
+   "id": "p:fast-cuts-plain",
+   "proximity": "fast-cuts-plain",
+   "label": "When cutting gets fast, transitions become plain cuts",
+   "from": {
+    "curiosity": "cutRate",
+    "track": "camera",
+    "is": "fast",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "transitionKind",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cut",
+   "when": "cutting gets fast",
+   "then": "transitions become plain cuts"
+  },
+  {
+   "id": "p:dream-dissolve",
+   "proximity": "dream-dissolve",
+   "label": "When the feeling turns dreamlike, shots dissolve",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "dreamlike",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "transitionKind",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cross dissolve",
+   "when": "the feeling turns dreamlike",
+   "then": "shots dissolve"
+  },
+  {
+   "id": "p:featured-music-beat",
+   "proximity": "featured-music-beat",
+   "label": "When the music is featured, the cuts find the beat",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "featured",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "beatSync",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music is featured",
+   "then": "the cuts find the beat"
+  },
+  {
+   "id": "p:freeze-title",
+   "proximity": "freeze-title",
+   "label": "When the picture freezes, a title appears",
+   "from": {
+    "curiosity": "freezeFrame",
+    "track": "master",
+    "is": "freeze with a title",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "onScreenText",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "title card",
+   "when": "the picture freezes",
+   "then": "a title appears"
+  },
+  {
+   "id": "p:rewind-sound",
+   "proximity": "rewind-sound",
+   "label": "When the clip rewinds, a sound hit plays",
+   "from": {
+    "curiosity": "playDirection",
+    "track": "master",
+    "is": "rewind and replay",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sfxHits",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clip rewinds",
+   "then": "a sound hit plays"
+  },
+  {
+   "id": "p:impact-flash",
+   "proximity": "impact-flash",
+   "label": "When impacts rise, the picture flashes",
+   "from": {
+    "curiosity": "impacts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "videoEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "flash",
+   "when": "impacts rise",
+   "then": "the picture flashes"
+  },
+  {
+   "id": "p:stop-fade-out",
+   "proximity": "stop-fade-out",
+   "label": "When the pace speeds up then stops, the scene fades out",
+   "from": {
+    "curiosity": "pacingCurve",
+    "track": "master",
+    "is": "speeds up then stops",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fadeEdge",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fade out",
+   "when": "the pace speeds up then stops",
+   "then": "the scene fades out"
+  },
+  {
+   "id": "p:jumpcut-laugh",
+   "proximity": "jumpcut-laugh",
+   "label": "When jump cuts go rhythmic, a joke builds",
+   "from": {
+    "curiosity": "jumpCut",
+    "track": "master",
+    "is": "rhythmic",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicBeat",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "jump cuts go rhythmic",
+   "then": "a joke builds"
+  },
+  {
+   "id": "p:sign-tracks",
+   "proximity": "sign-tracks",
+   "label": "When text labels something, it follows it",
+   "from": {
+    "curiosity": "onScreenText",
+    "track": "master",
+    "is": "sign or label",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tracking",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "text follows",
+   "when": "text labels something",
+   "then": "it follows it"
+  },
+  {
+   "id": "p:cutaway-music-under",
+   "proximity": "cutaway-music-under",
+   "label": "When a cutaway covers the talking, the music sits under",
+   "from": {
+    "curiosity": "overlay",
+    "track": "master",
+    "is": "cutaway over the sound",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicLevel",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "under",
+   "when": "a cutaway covers the talking",
+   "then": "the music sits under"
+  },
+  {
+   "id": "p:handheld-steady-off",
+   "proximity": "handheld-steady-off",
+   "label": "When the camera goes handheld, the shake is left in",
+   "from": {
+    "curiosity": "cameraCarry",
+    "track": "camera",
+    "is": "handheld",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "stabilization",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shaky as shot",
+   "when": "the camera goes handheld",
+   "then": "the shake is left in"
+  },
+  {
+   "id": "p:payoff-mood-face",
+   "proximity": "payoff-mood-face",
+   "label": "When the joke pays off, a mood pops onto a face",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the joke pays off",
+   "then": "a mood pops onto a face"
+  },
+  {
+   "id": "p:angry-steam",
+   "proximity": "angry-steam",
+   "label": "When someone gets angry, steam pops onto their face",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "angry",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "angry steam",
+   "when": "someone gets angry",
+   "then": "steam pops onto their face"
+  },
+  {
+   "id": "p:dreamlike-halo",
+   "proximity": "dreamlike-halo",
+   "label": "When the feeling turns dreamlike, light blooms",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "dreamlike",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lightEffect",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "halo",
+   "when": "the feeling turns dreamlike",
+   "then": "light blooms"
+  },
+  {
+   "id": "p:impact-slam-zoom",
+   "proximity": "impact-slam-zoom",
+   "label": "When impacts rise, the editor slam zooms",
+   "from": {
+    "curiosity": "impacts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cameraEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "slam zoom",
+   "when": "impacts rise",
+   "then": "the editor slam zooms"
+  },
+  {
+   "id": "p:featured-music-pulse",
+   "proximity": "featured-music-pulse",
+   "label": "When the music is featured, the effects pulse on the beat",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "featured",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "videoEffectFamily.onBeat",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "on the beat",
+   "when": "the music is featured",
+   "then": "the effects pulse on the beat"
+  },
+  {
+   "id": "p:scene-end-outro",
+   "proximity": "scene-end-outro",
+   "label": "When the pace races then stops, an outro effect closes it",
+   "from": {
+    "curiosity": "pacingCurve",
+    "track": "master",
+    "is": "speeds up then stops",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "introOutro",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the pace races then stops",
+   "then": "an outro effect closes it"
+  },
+  {
+   "id": "p:face-loving",
+   "proximity": "face-loving",
+   "label": "When someone feels loving, hearts pop onto their face",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "loving",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "loved",
+   "when": "someone feels loving",
+   "then": "hearts pop onto their face"
+  },
+  {
+   "id": "p:face-joyful",
+   "proximity": "face-joyful",
+   "label": "When someone is joyful, a sun pops onto their face",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "joyful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "sunny",
+   "when": "someone is joyful",
+   "then": "a sun pops onto their face"
+  },
+  {
+   "id": "p:face-melancholy",
+   "proximity": "face-melancholy",
+   "label": "When someone turns sad, tears are drawn on",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "melancholy",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "sad tears",
+   "when": "someone turns sad",
+   "then": "tears are drawn on"
+  },
+  {
+   "id": "p:face-anxious",
+   "proximity": "face-anxious",
+   "label": "When someone is anxious, they blush",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "anxious",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shy",
+   "when": "someone is anxious",
+   "then": "they blush"
+  },
+  {
+   "id": "p:face-fearful",
+   "proximity": "face-fearful",
+   "label": "When someone is scared, their soul leaves their body",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "fearful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "departing soul",
+   "when": "someone is scared",
+   "then": "their soul leaves their body"
+  },
+  {
+   "id": "p:face-curious",
+   "proximity": "face-curious",
+   "label": "When someone gets curious, a light bulb pops on",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "curious",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "bright idea",
+   "when": "someone gets curious",
+   "then": "a light bulb pops on"
+  },
+  {
+   "id": "p:face-triumphant",
+   "proximity": "face-triumphant",
+   "label": "When someone triumphs, shades pop on",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "triumphant",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cool",
+   "when": "someone triumphs",
+   "then": "shades pop on"
+  },
+  {
+   "id": "p:face-absurd",
+   "proximity": "face-absurd",
+   "label": "When things turn absurd, question marks pop on",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "absurd",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "moodEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "confused",
+   "when": "things turn absurd",
+   "then": "question marks pop on"
+  },
+  {
+   "id": "p:tears-lower",
+   "proximity": "tears-lower",
+   "label": "When tears are drawn on, the feeling drops",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "sad tears",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion.valence",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "tears are drawn on",
+   "then": "the feeling drops"
+  },
+  {
+   "id": "p:sun-lifts",
+   "proximity": "sun-lifts",
+   "label": "When a sun pops onto a face, the feeling lifts",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "sunny",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion.valence",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a sun pops onto a face",
+   "then": "the feeling lifts"
+  },
+  {
+   "id": "p:steam-winds-up",
+   "proximity": "steam-winds-up",
+   "label": "When steam pops on, the feeling winds up",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "angry steam",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion.arousal",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "steam pops on",
+   "then": "the feeling winds up"
+  },
+  {
+   "id": "p:crackle-winds-up",
+   "proximity": "crackle-winds-up",
+   "label": "When a face crackles, the feeling winds up",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "crackling",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion.arousal",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a face crackles",
+   "then": "the feeling winds up"
+  },
+  {
+   "id": "p:laugh-tears-laughter",
+   "proximity": "laugh-tears-laughter",
+   "label": "When someone laughs till they cry, the audience laughs more",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "laughing till crying",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRoadFilm.laughter",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone laughs till they cry",
+   "then": "the audience laughs more"
+  },
+  {
+   "id": "p:mallet-absurd",
+   "proximity": "mallet-absurd",
+   "label": "When the mallet bonks, the feeling turns absurd",
+   "from": {
+    "curiosity": "moodEffect",
+    "track": "master",
+    "is": "mallet bonk",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotion",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "absurd",
+   "when": "the mallet bonks",
+   "then": "the feeling turns absurd"
+  },
+  {
+   "id": "p:triumph-eyes",
+   "proximity": "triumph-eyes",
+   "label": "When someone triumphs, their eyes light up",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "triumphant",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "superpowerEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "electric eyes",
+   "when": "someone triumphs",
+   "then": "their eyes light up"
+  },
+  {
+   "id": "p:anxious-glitch",
+   "proximity": "anxious-glitch",
+   "label": "When someone panics, the picture glitches",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "anxious",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "glitchEffect",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shaky glitch",
+   "when": "someone panics",
+   "then": "the picture glitches"
+  },
+  {
+   "id": "p:dreamlike-vortex",
+   "proximity": "dreamlike-vortex",
+   "label": "When the feeling turns dreamlike, the room spins",
+   "from": {
+    "curiosity": "emotion",
+    "track": "character",
+    "is": "dreamlike",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "hallucinationEffect",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the feeling turns dreamlike",
+   "then": "the room spins"
+  },
+  {
+   "id": "p:impact-shockwave",
+   "proximity": "impact-shockwave",
+   "label": "When impacts rise, a shockwave flashes",
+   "from": {
+    "curiosity": "impacts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "partyEffect",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "shockwave",
+   "when": "impacts rise",
+   "then": "a shockwave flashes"
+  },
+  {
+   "id": "p:music-party-beat",
+   "proximity": "music-party-beat",
+   "label": "When the music is featured, the flashes hit the beat",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "featured",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "partyEffect.onBeat",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "on the beat",
+   "when": "the music is featured",
+   "then": "the flashes hit the beat"
+  },
+  {
+   "id": "p:outro-end-card",
+   "proximity": "outro-end-card",
+   "label": "When an outro effect closes the film, an end card follows",
+   "from": {
+    "curiosity": "introOutro",
+    "track": "master",
+    "is": "end card",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "endCard",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "an outro effect closes the film",
+   "then": "an end card follows"
+  },
+  {
+   "id": "p:button-sting",
+   "proximity": "button-sting",
+   "label": "When a scene ends on a button joke, a sting hits",
+   "from": {
+    "curiosity": "sceneEnding",
+    "track": "master",
+    "is": "button joke",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicSting",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "hit",
+   "when": "a scene ends on a button joke",
+   "then": "a sting hits"
+  },
+  {
+   "id": "p:cliffhanger-questions",
+   "proximity": "cliffhanger-questions",
+   "label": "When a scene ends on a cliffhanger, the audience's questions rise",
+   "from": {
+    "curiosity": "sceneEnding",
+    "track": "master",
+    "is": "cliffhanger",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a scene ends on a cliffhanger",
+   "then": "the audience's questions rise"
+  },
+  {
+   "id": "p:grab-question",
+   "proximity": "grab-question",
+   "label": "When the opening grabs with a question, a question opens",
+   "from": {
+    "curiosity": "openingGrab",
+    "track": "master",
+    "is": "a question",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the opening grabs with a question",
+   "then": "a question opens"
+  },
+  {
+   "id": "p:payoff-sting",
+   "proximity": "payoff-sting",
+   "label": "When the joke pays off, a music sting lands",
+   "from": {
+    "curiosity": "comicBeat",
+    "track": "master",
+    "is": "payoff lands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicSting",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the joke pays off",
+   "then": "a music sting lands"
+  },
+  {
+   "id": "p:seconds-fast-cuts",
+   "proximity": "seconds-fast-cuts",
+   "label": "When seconds are left on the clock, the cutting gets fast",
+   "from": {
+    "curiosity": "tickingClock",
+    "track": "character",
+    "is": "seconds left",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fast",
+   "when": "seconds are left on the clock",
+   "then": "the cutting gets fast"
+  },
+  {
+   "id": "p:loop-match",
+   "proximity": "loop-match",
+   "label": "When the end loops into the start, the cut matches movement",
+   "from": {
+    "curiosity": "loopEnding",
+    "track": "master",
+    "is": "seamless loop",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "matchCut",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "movement",
+   "when": "the end loops into the start",
+   "then": "the cut matches movement"
+  },
+  {
+   "id": "p:speaker-angle-dialogue",
+   "proximity": "speaker-angle-dialogue",
+   "label": "When the multicam switches on the speaker, dialogue leads the mix",
+   "from": {
+    "curiosity": "multicamSwitch",
+    "track": "master",
+    "is": "switch on the speaker",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundRoles",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "dialogue",
+   "when": "the multicam switches on the speaker",
+   "then": "dialogue leads the mix"
+  },
+  {
+   "id": "p:montage-music-leads",
+   "proximity": "montage-music-leads",
+   "label": "When a running montage rides above the story, the music leads",
+   "from": {
+    "curiosity": "sideStoryline",
+    "track": "master",
+    "is": "a running montage",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundRoles",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "music",
+   "when": "a running montage rides above the story",
+   "then": "the music leads"
+  },
+  {
+   "id": "p:object-focus-push",
+   "proximity": "object-focus-push",
+   "label": "When the focus pulls to an object, the shadows turn",
+   "from": {
+    "curiosity": "editFocus",
+    "track": "master",
+    "is": "pull to an object",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "colorWheels",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the focus pulls to an object",
+   "then": "the shadows turn"
+  }
+ ],
+ "groups": [
+  {
+   "id": "ps:camera-answers-body",
+   "label": "The camera answers the body",
+   "plain": "The camera answers the body: when the camera goes handheld, gesture grows; when a person approaches, the camera pushes in; when an object enters, the frame becomes an insert.",
+   "proximities": [
+    "handheld-gesture",
+    "approach-push",
+    "object-insert-prox"
+   ],
+   "links": [
+    "p:handheld-gesture",
+    "p:approach-push",
+    "p:object-insert-prox"
+   ]
+  },
+  {
+   "id": "ps:emotion-steers-lens",
+   "label": "Emotion steers the lens",
+   "plain": "Emotion steers the lens: when the emotion changes, the angle height changes; when the emotion changes, the move temper changes.",
+   "proximities": [
+    "emotion-angle",
+    "emotion-temper"
+   ],
+   "links": [
+    "p:emotion-angle",
+    "p:emotion-temper"
+   ]
+  },
+  {
+   "id": "ps:loudness-and-size",
+   "label": "Loudness and frame size",
+   "plain": "Loudness and frame size: when shot size becomes close, volume drops; when volume rises, move speed rises.",
+   "proximities": [
+    "close-quiet",
+    "volume-speed"
+   ],
+   "links": [
+    "p:close-quiet",
+    "p:volume-speed"
+   ]
+  },
+  {
+   "id": "ps:weather-and-surface",
+   "label": "Weather and surface",
+   "plain": "Weather and surface: when it rains, surfaces are soaked; when the render goes toon, the ink line is heavy; when impacts rise, the shake rises.",
+   "proximities": [
+    "rain-wet",
+    "toon-line",
+    "impact-shake"
+   ],
+   "links": [
+    "p:rain-wet",
+    "p:toon-line",
+    "p:impact-shake"
+   ]
+  },
+  {
+   "id": "ps:long-form",
+   "label": "Long-form shape",
+   "plain": "Long-form shape: when suite Build, suite Drop; when suite Aggressive camera, suite Quiet confession; when suite Storm, suite Breathing room; when tension peaks, a long silence; when energy drops, the hold is long.",
+   "proximities": [
+    "build-drop",
+    "aggressive-quiet",
+    "storm-room",
+    "tension-silence",
+    "energy-hold"
+   ],
+   "links": [
+    "p:build-drop#1",
+    "p:build-drop#2",
+    "p:build-drop#3",
+    "p:build-drop#4",
+    "p:aggressive-quiet#1",
+    "p:aggressive-quiet#2",
+    "p:aggressive-quiet#3",
+    "p:aggressive-quiet#4",
+    "p:aggressive-quiet#5",
+    "p:storm-room#1",
+    "p:storm-room#2",
+    "p:storm-room#3",
+    "p:tension-silence",
+    "p:energy-hold"
+   ]
+  },
+  {
+   "id": "ps:music-steers-edit",
+   "label": "Music steers the edit",
+   "plain": "The music sets when cuts happen, when time slows and when the room goes quiet.",
+   "proximities": [
+    "tempo-cuts",
+    "needle-slowmo",
+    "build-to-silence"
+   ],
+   "links": [
+    "p:tempo-cuts",
+    "p:needle-slowmo",
+    "p:build-to-silence#1",
+    "p:build-to-silence#2",
+    "p:build-to-silence#3",
+    "p:build-to-silence#4"
+   ]
+  },
+  {
+   "id": "ps:silence-as-weapon",
+   "label": "Silence as a weapon",
+   "plain": "Taking the music away makes lines, reveals and faces hit harder.",
+   "proximities": [
+    "music-cut-line",
+    "silence-reveal",
+    "silence-closeup"
+   ],
+   "links": [
+    "p:music-cut-line",
+    "p:silence-reveal",
+    "p:silence-closeup"
+   ]
+  },
+  {
+   "id": "ps:body-tells-first",
+   "label": "The body tells first",
+   "plain": "Feelings reach the face and body before they reach the words.",
+   "proximities": [
+    "feeling-shows-face-first",
+    "fear-still",
+    "anger-louder",
+    "intensity-moves"
+   ],
+   "links": [
+    "p:feeling-shows-face-first",
+    "p:fear-still",
+    "p:anger-louder",
+    "p:intensity-moves"
+   ]
+  },
+  {
+   "id": "ps:emotional-rollercoaster",
+   "label": "Emotional rollercoaster",
+   "plain": "The film's feeling rises and falls in a rhythm: tension then release, low then a laugh, a low point that turns.",
+   "proximities": [
+    "tension-release",
+    "low-then-laugh",
+    "lowpoint-turn"
+   ],
+   "links": [
+    "p:tension-release",
+    "p:low-then-laugh",
+    "p:lowpoint-turn"
+   ]
+  },
+  {
+   "id": "ps:feelings-spread",
+   "label": "Feelings spread",
+   "plain": "A feeling moves outward from one character to the others, the room and the light.",
+   "proximities": [
+    "contagion-spreads",
+    "joy-light-warms",
+    "hidden-then-burst",
+    "light-mood-intensity"
+   ],
+   "links": [
+    "p:contagion-spreads",
+    "p:joy-light-warms",
+    "p:hidden-then-burst",
+    "p:light-mood-intensity"
+   ]
+  },
+  {
+   "id": "ps:joke-machine",
+   "label": "Joke machine",
+   "plain": "The basic comic beat: a pause, the punchline, the reaction, and a silence after a miss.",
+   "proximities": [
+    "pause-laughs",
+    "joke-reaction",
+    "cringe-silence"
+   ],
+   "links": [
+    "p:pause-laughs",
+    "p:joke-reaction",
+    "p:cringe-silence"
+   ]
+  },
+  {
+   "id": "ps:long-game-comedy",
+   "label": "Long-game comedy",
+   "plain": "Jokes that play across the whole film: setups that pay off, gags that return, lines that come back tender.",
+   "proximities": [
+    "setup-payoff",
+    "gag-returns",
+    "callback-tender"
+   ],
+   "links": [
+    "p:setup-payoff",
+    "p:gag-returns",
+    "p:callback-tender"
+   ]
+  },
+  {
+   "id": "ps:comic-reversals",
+   "label": "Comic reversals",
+   "plain": "Comedy from things turning around: pride falls, refusals reverse, misdirection is revealed.",
+   "proximities": [
+    "pride-fall",
+    "insist-then-do",
+    "misdirect-pullback"
+   ],
+   "links": [
+    "p:pride-fall",
+    "p:insist-then-do",
+    "p:misdirect-pullback"
+   ]
+  },
+  {
+   "id": "ps:comedy-camera",
+   "label": "The camera sells the joke",
+   "plain": "Where the camera goes for comedy: wider as trouble escalates, onto faces after the joke, back to reveal the truth.",
+   "proximities": [
+    "escalate-wide",
+    "joke-reaction",
+    "misdirect-pullback"
+   ],
+   "links": [
+    "p:escalate-wide",
+    "p:joke-reaction",
+    "p:misdirect-pullback"
+   ]
+  },
+  {
+   "id": "ps:the-mix-makes-it-funny",
+   "label": "The mix makes it funny",
+   "plain": "Putting the wrong people together: opposites, a chaos character, a gap in rank, and what it does to the plot.",
+   "proximities": [
+    "opposites-laugh",
+    "chaos-cringe",
+    "status-plot",
+    "pride-fall"
+   ],
+   "links": [
+    "p:opposites-laugh",
+    "p:chaos-cringe",
+    "p:status-plot",
+    "p:pride-fall"
+   ]
+  },
+  {
+   "id": "ps:clothes-tell-the-story",
+   "label": "Clothes tell the story",
+   "plain": "What people wear changes when they change, gives them away, and gets noticed.",
+   "proximities": [
+    "change-outfit-change-self",
+    "disguise-reveal",
+    "clash-noticed",
+    "upkeep-wear"
+   ],
+   "links": [
+    "p:change-outfit-change-self",
+    "p:disguise-reveal",
+    "p:clash-noticed",
+    "p:upkeep-wear"
+   ]
+  },
+  {
+   "id": "ps:set-steers-the-camera",
+   "label": "The set steers the camera",
+   "plain": "The size, clutter and props of a set decide how close the camera gets.",
+   "proximities": [
+    "clutter-close",
+    "big-space-wide",
+    "prop-key-insert"
+   ],
+   "links": [
+    "p:clutter-close",
+    "p:big-space-wide",
+    "p:prop-key-insert"
+   ]
+  },
+  {
+   "id": "ps:light-follows-feeling",
+   "label": "Light follows feeling",
+   "plain": "The light and color change with what the characters feel.",
+   "proximities": [
+    "drain-on-loss",
+    "danger-shadows",
+    "warm-reunion",
+    "joy-light-warms"
+   ],
+   "links": [
+    "p:drain-on-loss",
+    "p:danger-shadows",
+    "p:warm-reunion",
+    "p:joy-light-warms"
+   ]
+  },
+  {
+   "id": "ps:enneagram-stress-arrows",
+   "label": "Stress arrows",
+   "plain": "All nine types sliding toward their stress type as health falls.",
+   "proximities": [
+    "stress-1",
+    "stress-2",
+    "stress-3",
+    "stress-4",
+    "stress-5",
+    "stress-6",
+    "stress-7",
+    "stress-8",
+    "stress-9"
+   ],
+   "links": [
+    "p:stress-1#1",
+    "p:stress-1#2",
+    "p:stress-1#3",
+    "p:stress-1#4",
+    "p:stress-1#5",
+    "p:stress-1#6",
+    "p:stress-2#1",
+    "p:stress-2#2",
+    "p:stress-2#3",
+    "p:stress-2#4",
+    "p:stress-2#5",
+    "p:stress-2#6",
+    "p:stress-3#1",
+    "p:stress-3#2",
+    "p:stress-3#3",
+    "p:stress-3#4",
+    "p:stress-3#5",
+    "p:stress-3#6",
+    "p:stress-4#1",
+    "p:stress-4#2",
+    "p:stress-4#3",
+    "p:stress-4#4",
+    "p:stress-4#5",
+    "p:stress-4#6",
+    "p:stress-5#1",
+    "p:stress-5#2",
+    "p:stress-5#3",
+    "p:stress-5#4",
+    "p:stress-5#5",
+    "p:stress-5#6",
+    "p:stress-6#1",
+    "p:stress-6#2",
+    "p:stress-6#3",
+    "p:stress-6#4",
+    "p:stress-6#5",
+    "p:stress-6#6",
+    "p:stress-7#1",
+    "p:stress-7#2",
+    "p:stress-7#3",
+    "p:stress-7#4",
+    "p:stress-7#5",
+    "p:stress-7#6",
+    "p:stress-8#1",
+    "p:stress-8#2",
+    "p:stress-8#3",
+    "p:stress-8#4",
+    "p:stress-8#5",
+    "p:stress-8#6",
+    "p:stress-9#1",
+    "p:stress-9#2",
+    "p:stress-9#3",
+    "p:stress-9#4",
+    "p:stress-9#5",
+    "p:stress-9#6"
+   ]
+  },
+  {
+   "id": "ps:enneagram-growth-arrows",
+   "label": "Growth arrows",
+   "plain": "All nine types borrowing from their growth type as health improves.",
+   "proximities": [
+    "growth-1",
+    "growth-2",
+    "growth-3",
+    "growth-4",
+    "growth-5",
+    "growth-6",
+    "growth-7",
+    "growth-8",
+    "growth-9"
+   ],
+   "links": [
+    "p:growth-1#1",
+    "p:growth-1#2",
+    "p:growth-1#3",
+    "p:growth-1#4",
+    "p:growth-1#5",
+    "p:growth-1#6",
+    "p:growth-2#1",
+    "p:growth-2#2",
+    "p:growth-2#3",
+    "p:growth-2#4",
+    "p:growth-2#5",
+    "p:growth-2#6",
+    "p:growth-3#1",
+    "p:growth-3#2",
+    "p:growth-3#3",
+    "p:growth-3#4",
+    "p:growth-3#5",
+    "p:growth-3#6",
+    "p:growth-4#1",
+    "p:growth-4#2",
+    "p:growth-4#3",
+    "p:growth-4#4",
+    "p:growth-4#5",
+    "p:growth-4#6",
+    "p:growth-5#1",
+    "p:growth-5#2",
+    "p:growth-5#3",
+    "p:growth-5#4",
+    "p:growth-5#5",
+    "p:growth-5#6",
+    "p:growth-6#1",
+    "p:growth-6#2",
+    "p:growth-6#3",
+    "p:growth-6#4",
+    "p:growth-6#5",
+    "p:growth-6#6",
+    "p:growth-7#1",
+    "p:growth-7#2",
+    "p:growth-7#3",
+    "p:growth-7#4",
+    "p:growth-7#5",
+    "p:growth-7#6",
+    "p:growth-8#1",
+    "p:growth-8#2",
+    "p:growth-8#3",
+    "p:growth-8#4",
+    "p:growth-8#5",
+    "p:growth-8#6",
+    "p:growth-9#1",
+    "p:growth-9#2",
+    "p:growth-9#3",
+    "p:growth-9#4",
+    "p:growth-9#5",
+    "p:growth-9#6"
+   ]
+  },
+  {
+   "id": "ps:secrets-and-lies",
+   "label": "Secrets and lies",
+   "plain": "A slipping secret makes the room cringe, the setbacks pile up, and the feeling drops.",
+   "proximities": [
+    "secret-slips-cringe",
+    "setback-feeling-drops"
+   ],
+   "links": [
+    "p:secret-slips-cringe",
+    "p:setback-feeling-drops"
+   ]
+  },
+  {
+   "id": "ps:eyes-on-one-thing",
+   "label": "Eyes on one thing",
+   "plain": "Fixation narrows the frame while a distraction lets the important thing slip by.",
+   "proximities": [
+    "fixation-close",
+    "distraction-miss"
+   ],
+   "links": [
+    "p:fixation-close",
+    "p:distraction-miss"
+   ]
+  },
+  {
+   "id": "ps:group-closes-ranks",
+   "label": "The group closes ranks",
+   "plain": "Someone defies the group, the pressure rises, and the doubts go quiet.",
+   "proximities": [
+    "dissent-pressure",
+    "herd-quiet-dissent"
+   ],
+   "links": [
+    "p:dissent-pressure",
+    "p:herd-quiet-dissent"
+   ]
+  },
+  {
+   "id": "ps:page-breathes",
+   "label": "The page breathes with the story",
+   "plain": "Panels grow at the peaks, shrink when talk speeds up, and the page turns on a cliffhanger.",
+   "proximities": [
+    "peak-big-panel",
+    "fast-talk-small-panels",
+    "cliffhanger-turn",
+    "quiet-wide-gutter"
+   ],
+   "links": [
+    "p:peak-big-panel",
+    "p:fast-talk-small-panels",
+    "p:cliffhanger-turn",
+    "p:quiet-wide-gutter"
+   ]
+  },
+  {
+   "id": "ps:closing-in",
+   "label": "Closing in",
+   "plain": "People move closer, look at each other, and the camera pushes in.",
+   "proximities": [
+    "approach-eyeline",
+    "approach-push"
+   ],
+   "links": [
+    "p:approach-eyeline",
+    "p:approach-push"
+   ]
+  },
+  {
+   "id": "ps:world-mirrors-feeling",
+   "label": "The world mirrors the feeling",
+   "plain": "The weather and the background follow the characters' feelings.",
+   "proximities": [
+    "sad-rain",
+    "tension-crowd-still"
+   ],
+   "links": [
+    "p:sad-rain",
+    "p:tension-crowd-still"
+   ]
+  },
+  {
+   "id": "ps:color-follows-feeling",
+   "label": "Color follows the feeling",
+   "plain": "Anger warms the picture, fear drains it, joy warms the light.",
+   "proximities": [
+    "anger-warm-red",
+    "fear-color-drains",
+    "joy-light-warms"
+   ],
+   "links": [
+    "p:anger-warm-red",
+    "p:fear-color-drains",
+    "p:joy-light-warms"
+   ]
+  },
+  {
+   "id": "ps:the-dam-breaks",
+   "label": "The dam breaks",
+   "plain": "A trigger turns the feeling, what was held in comes out, and the character is lighter after.",
+   "proximities": [
+    "trigger-turns",
+    "held-in-release",
+    "release-lighter",
+    "hidden-then-burst"
+   ],
+   "links": [
+    "p:trigger-turns",
+    "p:held-in-release",
+    "p:release-lighter",
+    "p:hidden-then-burst"
+   ]
+  },
+  {
+   "id": "ps:what-isnt-said",
+   "label": "What isn't said",
+   "plain": "Words and meaning pull apart, pauses grow, the face flickers and the camera moves in on the eyes.",
+   "proximities": [
+    "subtext-pause",
+    "mixed-face-flicker",
+    "tears-close-up"
+   ],
+   "links": [
+    "p:subtext-pause",
+    "p:mixed-face-flicker",
+    "p:tears-close-up"
+   ]
+  },
+  {
+   "id": "ps:closeness-and-dread",
+   "label": "Closeness and dread",
+   "plain": "People move closer and feel more while we, knowing more, dread what is coming.",
+   "proximities": [
+    "space-closes-intensity",
+    "we-know-tension"
+   ],
+   "links": [
+    "p:space-closes-intensity",
+    "p:we-know-tension"
+   ]
+  },
+  {
+   "id": "ps:farce-engine",
+   "label": "The farce engine",
+   "plain": "A misunderstanding grows the chaos, a lie needs a bigger lie, the lie collapses and someone is humiliated.",
+   "proximities": [
+    "misunderstanding-chaos",
+    "lie-grows",
+    "lie-collapse-humiliation",
+    "humiliation-cringe"
+   ],
+   "links": [
+    "p:misunderstanding-chaos",
+    "p:lie-grows",
+    "p:lie-collapse-humiliation",
+    "p:humiliation-cringe"
+   ]
+  },
+  {
+   "id": "ps:laugh-stack",
+   "label": "Stacking laughs",
+   "plain": "A joke lands, a topper follows, and the specific detail comes back later as a callback.",
+   "proximities": [
+    "laugh-topper",
+    "specific-callback",
+    "setup-payoff"
+   ],
+   "links": [
+    "p:laugh-topper",
+    "p:specific-callback",
+    "p:setup-payoff"
+   ]
+  },
+  {
+   "id": "ps:flaw-comedy",
+   "label": "Comedy of a flaw",
+   "plain": "A blind flaw trips the character up, they're humiliated, and the room cringes.",
+   "proximities": [
+    "blind-flaw-setback",
+    "humiliation-cringe",
+    "pride-fall"
+   ],
+   "links": [
+    "p:blind-flaw-setback",
+    "p:humiliation-cringe",
+    "p:pride-fall"
+   ]
+  },
+  {
+   "id": "ps:house-party",
+   "label": "The house party engine",
+   "plain": "An unwanted guest brings chaos, the calm one sells the laugh, and sides switch until someone is on top.",
+   "proximities": [
+    "guest-chaos",
+    "straight-sells-it",
+    "sides-switch"
+   ],
+   "links": [
+    "p:guest-chaos",
+    "p:straight-sells-it",
+    "p:sides-switch"
+   ]
+  },
+  {
+   "id": "ps:secret-in-the-room",
+   "label": "The secret in the room",
+   "plain": "The outsider nears the truth, the room squirms, and the group closes ranks.",
+   "proximities": [
+    "secret-cringe",
+    "oddone-group"
+   ],
+   "links": [
+    "p:secret-cringe",
+    "p:oddone-group"
+   ]
+  },
+  {
+   "id": "ps:pair-grows",
+   "label": "The pair that grows",
+   "plain": "Egos clash, the plot detours, and the chemistry changes them both.",
+   "proximities": [
+    "ego-plot",
+    "chemistry-arc"
+   ],
+   "links": [
+    "p:ego-plot",
+    "p:chemistry-arc"
+   ]
+  },
+  {
+   "id": "ps:the-fall-and-rise",
+   "label": "The fall and the rise",
+   "plain": "A false high falls, hope is lost, and the release comes later.",
+   "proximities": [
+    "false-high-falls",
+    "hope-gone-catharsis",
+    "echo-catharsis"
+   ],
+   "links": [
+    "p:false-high-falls",
+    "p:hope-gone-catharsis",
+    "p:echo-catharsis"
+   ]
+  },
+  {
+   "id": "ps:room-to-breathe",
+   "label": "Breathing room",
+   "plain": "A big feeling is followed by rest, and lifted dread by a laugh.",
+   "proximities": [
+    "big-then-breather",
+    "relief-laugh"
+   ],
+   "links": [
+    "p:big-then-breather",
+    "p:relief-laugh"
+   ]
+  },
+  {
+   "id": "ps:pressure-cooker",
+   "label": "The pressure cooker",
+   "plain": "Stakes rise, hope gets fragile, dread builds and the music thins out.",
+   "proximities": [
+    "stakes-hope",
+    "dread-silence"
+   ],
+   "links": [
+    "p:stakes-hope",
+    "p:dread-silence"
+   ]
+  },
+  {
+   "id": "ps:arc-engine",
+   "label": "The arc engine",
+   "plain": "The wound is pressed, they resist, the lie is exposed, the crisis comes, and the change shows.",
+   "proximities": [
+    "wound-resist",
+    "lie-crisis",
+    "test-change",
+    "change-posture"
+   ],
+   "links": [
+    "p:wound-resist",
+    "p:lie-crisis",
+    "p:test-change",
+    "p:change-posture"
+   ]
+  },
+  {
+   "id": "ps:body-tells-the-line",
+   "label": "The body tells the line",
+   "plain": "The body freezes on the key word, the listener leans in, and anger goes into the task.",
+   "proximities": [
+    "line-freeze",
+    "listener-leans",
+    "task-angry"
+   ],
+   "links": [
+    "p:line-freeze",
+    "p:listener-leans",
+    "p:task-angry"
+   ]
+  },
+  {
+   "id": "ps:comic-business",
+   "label": "Comic business",
+   "plain": "Jokes against change and a task that falls apart.",
+   "proximities": [
+    "resist-laugh",
+    "task-laugh"
+   ],
+   "links": [
+    "p:resist-laugh",
+    "p:task-laugh"
+   ]
+  },
+  {
+   "id": "ps:camera-follows-feeling",
+   "label": "The camera follows the feeling",
+   "plain": "The camera moves in at the peak, tilts with dread, and looks up when status flips.",
+   "proximities": [
+    "feeling-closer",
+    "dread-tilt",
+    "status-angle"
+   ],
+   "links": [
+    "p:feeling-closer",
+    "p:dread-tilt",
+    "p:status-angle"
+   ]
+  },
+  {
+   "id": "ps:motion-drives-cutting",
+   "label": "Movement drives the cutting",
+   "plain": "Speed brings fast cuts, walking talk brings long takes, and an approach closes the space.",
+   "proximities": [
+    "speed-cuts",
+    "walk-long-take",
+    "approach-space"
+   ],
+   "links": [
+    "p:speed-cuts",
+    "p:walk-long-take",
+    "p:approach-space"
+   ]
+  },
+  {
+   "id": "ps:editor-jokes",
+   "label": "The editor tells the joke",
+   "plain": "When the joke pays off the editor punches in and a sound hits; rhythmic jump cuts build the next joke; a rewind gets its own sound.",
+   "proximities": [
+    "payoff-punch-in",
+    "payoff-sound-hit",
+    "jumpcut-laugh",
+    "rewind-sound"
+   ],
+   "links": [
+    "p:payoff-punch-in",
+    "p:payoff-sound-hit",
+    "p:jumpcut-laugh",
+    "p:rewind-sound"
+   ]
+  },
+  {
+   "id": "ps:music-leads-the-edit",
+   "label": "Music leads the edit",
+   "plain": "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out.",
+   "proximities": [
+    "featured-music-beat",
+    "slowmo-music",
+    "stop-fade-out"
+   ],
+   "links": [
+    "p:featured-music-beat",
+    "p:slowmo-music",
+    "p:stop-fade-out"
+   ]
+  },
+  {
+   "id": "ps:words-on-screen",
+   "label": "Words that point",
+   "plain": "A freeze brings a title, and a label follows what it names.",
+   "proximities": [
+    "freeze-title",
+    "sign-tracks"
+   ],
+   "links": [
+    "p:freeze-title",
+    "p:sign-tracks"
+   ]
+  },
+  {
+   "id": "ps:phone-comedy-reactions",
+   "label": "Phone comedy reactions",
+   "plain": "The joke pays off and a mood pops onto a face, anger brings steam, and an impact brings a slam zoom.",
+   "proximities": [
+    "payoff-mood-face",
+    "angry-steam",
+    "impact-slam-zoom"
+   ],
+   "links": [
+    "p:payoff-mood-face",
+    "p:angry-steam",
+    "p:impact-slam-zoom"
+   ]
+  },
+  {
+   "id": "ps:face-tells-the-feeling",
+   "label": "The face tells the feeling",
+   "plain": "Every feeling brings its cartoon mood onto the face: hearts, a sun, tears, a blush, a soul leaving, a light bulb, shades, question marks.",
+   "proximities": [
+    "face-loving",
+    "face-joyful",
+    "face-melancholy",
+    "face-anxious",
+    "face-fearful",
+    "face-curious",
+    "face-triumphant",
+    "face-absurd"
+   ],
+   "links": [
+    "p:face-loving",
+    "p:face-joyful",
+    "p:face-melancholy",
+    "p:face-anxious",
+    "p:face-fearful",
+    "p:face-curious",
+    "p:face-triumphant",
+    "p:face-absurd"
+   ]
+  },
+  {
+   "id": "ps:mood-moves-the-feeling",
+   "label": "The mood moves the feeling",
+   "plain": "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh.",
+   "proximities": [
+    "tears-lower",
+    "sun-lifts",
+    "steam-winds-up",
+    "crackle-winds-up",
+    "laugh-tears-laughter",
+    "mallet-absurd"
+   ],
+   "links": [
+    "p:tears-lower",
+    "p:sun-lifts",
+    "p:steam-winds-up",
+    "p:crackle-winds-up",
+    "p:laugh-tears-laughter",
+    "p:mallet-absurd"
+   ]
+  },
+  {
+   "id": "ps:effects-show-the-inside",
+   "label": "Effects show the inside",
+   "plain": "What a character feels shows on the picture: triumph lights the eyes, panic glitches the frame, a dream spins the room or blooms with light.",
+   "proximities": [
+    "triumph-eyes",
+    "anxious-glitch",
+    "dreamlike-vortex",
+    "dreamlike-halo"
+   ],
+   "links": [
+    "p:triumph-eyes",
+    "p:anxious-glitch",
+    "p:dreamlike-vortex",
+    "p:dreamlike-halo"
+   ]
+  },
+  {
+   "id": "ps:questions-pull-forward",
+   "label": "Questions pull the audience forward",
+   "plain": "Cliffhangers and opening questions open questions the audience carries forward, and a running clock speeds the cutting.",
+   "proximities": [
+    "cliffhanger-questions",
+    "grab-question",
+    "seconds-fast-cuts"
+   ],
+   "links": [
+    "p:cliffhanger-questions",
+    "p:grab-question",
+    "p:seconds-fast-cuts"
+   ]
+  }
+ ]
+}

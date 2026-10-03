@@ -1,0 +1,14 @@
+schema_version = "1.0.0"
+
+id = "curiosities"
+version = "0.1.0"
+name = "Curiosities"
+tagline = "Storyboard camera curiosities drive a Blender camera"
+maintainer = "Curiosities"
+type = "add-on"
+blender_version_min = "4.2.0"
+license = ["SPDX:GPL-3.0-or-later"]
+category = "Camera"
+
+[permissions]
+network = "Connects to the Curiosities desktop app's bridge on this computer (ws://127.0.0.1:7577)"
