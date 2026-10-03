@@ -691,5 +691,25 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+/* History ▾ (CurioScreenHistory): the undo and redo lists turned into the rows the menu draws. */
+{
+  const H = w.CurioScreenHistory;
+  ok(!!H && typeof H.rows === "function" && typeof H.plain === "function", "History's rows builder is exposed for tests (CurioScreenHistory)");
+  if (H) {
+    ok(H.plain("Engine: Set a node") === "Set a node" && H.plain("Change the board") === "Change the board" && H.plain("") === "Change" && H.plain(null) === "Change", "a step's plain name drops the engine's prefix");
+    const r = H.rows({ undo: ["A", "Engine: B", "C"], redo: ["D", "E"] });
+    ok(r.undo.map((x) => x.label).join() === "C,B,A" && r.undo.map((x) => x.steps).join() === "0,1,2", "undo steps are newest first, each with how many undos go back to just after it");
+    ok(r.redo.map((x) => x.label).join() === "E,D" && r.redo.map((x) => x.steps).join() === "2,1", "redo steps are furthest first (the next one sits next to Now), each with how many redos reach it");
+    ok(r.earlier === 0 && r.later === 0 && r.all === 3, "nothing is hidden when the lists are short");
+    const many = Array.from({ length: 45 }, (_, i) => "Step " + (i + 1));
+    const m = H.rows({ undo: many, redo: many.slice(0, 33) });
+    ok(m.undo.length === 30 && m.undo[0].label === "Step 45" && m.undo[29].label === "Step 16" && m.earlier === 15 && m.all === 45, "at most the last 30 undo steps, with how many earlier ones are not shown");
+    ok(m.redo.length === 30 && m.redo[29].steps === 1 && m.later === 3, "and at most the next 30 redo steps");
+    ok(H.rows({ undo: many }, 5).undo.length === 5 && H.rows({ undo: many }, 5).earlier === 40, "the limit can be set");
+    const e = H.rows(null);
+    ok(!e.undo.length && !e.redo.length && e.all === 0 && H.rows({ undo: "x" }).undo.length === 0, "no history (or a broken one) gives empty lists");
+  }
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

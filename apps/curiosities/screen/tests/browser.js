@@ -1652,6 +1652,78 @@ const ok = (cond, msg) => {
     await page.evaluate(() => { const t = window.CurioLanes.tools(); t.markers = []; window.CurioScreen.setRow(0); });
   }
 
+  /* History ▾ (the History panel of editing apps): the steps you can undo, newest first, under Now, and the steps
+     you can redo over it. Clicking one presses undo or redo that many times, through the same path as ⌘Z. */
+  {
+    const rowsOf = () => page.evaluate(() => { const ts = [...document.querySelector(".sc-bar").children].filter((c) => !c.classList.contains("sc-what")).map((c) => Math.round(c.getBoundingClientRect().top)); return ts.sort((a, b) => a - b).filter((t, i, a) => i === 0 || t - a[i - 1] > 16).length; });
+    ok(!!(await page.$('.sc-bar [data-act="history"]')) && (await page.$eval('.sc-bar [data-act="history"]', (b) => b.textContent.trim())) === "History ▾", "the top bar has a History ▾ button");
+    ok((await rowsOf()) <= 2, "at 1440px the top bar still fits on two rows with History ▾ in it (" + (await rowsOf()) + ")");
+    const fps = await page.evaluate(() => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const track = (st.tracks.find((t) => t.curiosities.includes("shotSize")) || {}).id;
+      const out = [E.fingerprint()];
+      ["wide", "close", "insert"].forEach((v, i) => {
+        E.send({ type: "setPoint", row: st.rows[2].id, track, curiosity: "shotSize", value: v, label: "History test " + "ABC"[i] });
+        out.push(E.fingerprint());
+      });
+      return out;
+    });
+    const store = await page.evaluate(() => !!(window.CurioStore && window.CurioStore.external));
+    await page.click('.sc-bar [data-act="history"]');
+    const menu = () => page.evaluate(() => { const m = document.querySelector(".sc-hist-menu"); return { hidden: m.hidden, cur: (m.querySelector(".sc-hist-cur") || {}).textContent || "", undo: [...m.querySelectorAll('[data-hist^="undo"]')].map((b) => b.textContent), redo: [...m.querySelectorAll('[data-hist^="redo"]')].map((b) => b.textContent), text: m.textContent, now: !!m.querySelector(".sc-hist-now") }; });
+    let mm = await menu();
+    ok(!mm.hidden && mm.cur === "History test C" && mm.undo[0] === "History test B" && mm.undo[1] === "History test A" && mm.now, "History ▾ lists the steps newest first under Now, by their plain names (" + [mm.cur].concat(mm.undo.slice(0, 3)).join(" | ") + ")" + (store ? ", from the app-wide undo list" : ""));
+    ok(!/Engine:/.test(mm.text), "the engine's steps show without a code prefix");
+    const redoBefore = await page.evaluate(() => (window.CurioStore && window.CurioStore.external ? window.CurioStore : window.CurioEngine).history().redo.length);
+    await page.click('.sc-hist-menu [data-hist="undo:2"]');
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fps[1], "clicking an older step goes back to just after it (two undos: the film is as it was after A)");
+    ok((await page.evaluate(() => (window.CurioStore && window.CurioStore.external ? window.CurioStore : window.CurioEngine).history().redo.length)) === redoBefore + 2, "it pressed undo exactly twice on the same undo list ⌘Z uses");
+    mm = await menu();
+    ok(!mm.hidden && mm.cur === "History test A" && mm.redo.slice(-2).join() === "History test C,History test B", "the menu stays open and shows the redo part over Now, the next one nearest (" + mm.redo.slice(-2).join(" | ") + ")");
+    await page.screenshot({ path: path.join(SHOTS, "screen-11-history.png") });
+    await page.click('.sc-hist-menu [data-hist="redo:2"]');
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fps[3] && (await menu()).cur === "History test C" && !(await menu()).redo.length, "clicking a redo step goes forward to just after it (two redos)");
+    await page.click('.sc-hist-menu [data-hist="undo:1"]');
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fps[2], "one step back is one undo");
+    await page.keyboard.press("Control+Shift+z");
+    await page.waitForFunction(() => (document.querySelector(".sc-hist-cur") || {}).textContent === "History test C", null, { timeout: 2000 }).catch(() => {});
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fps[3] && (await menu()).cur === "History test C", "⇧⌘Z redoes it and the open list follows");
+    /* Refresh while open: a change to the film, and a step on the app-wide list from outside the Screen. */
+    await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); E.send({ type: "setPoint", row: st.rows[3].id, track: (st.tracks.find((t) => t.curiosities.includes("shotSize")) || {}).id, curiosity: "shotSize", value: "wide", label: "History test D" }); });
+    await page.waitForFunction(() => (document.querySelector(".sc-hist-cur") || {}).textContent === "History test D", null, { timeout: 3000 }).catch(() => {});
+    mm = await menu();
+    ok(!mm.hidden && mm.cur === "History test D" && mm.undo[0] === "History test C", "the open list refreshes when the film changes");
+    if (store) {
+      await page.evaluate(() => window.CurioStore.external("test", { label: "A change somewhere else", undo: () => true, redo: () => true }));
+      await page.waitForFunction(() => (document.querySelector(".sc-hist-cur") || {}).textContent === "A change somewhere else", null, { timeout: 3000 }).catch(() => {});
+      ok((await menu()).cur === "A change somewhere else", "and when a step lands on the app-wide list from elsewhere in the app");
+      await page.evaluate(() => window.CurioStore.undo());
+    }
+    /* Keyboard: Esc closes and gives focus back; Enter opens with focus inside; arrows move. */
+    await page.keyboard.press("Escape");
+    ok((await menu()).hidden, "Esc closes History");
+    await page.focus('.sc-bar [data-act="history"]');
+    await page.keyboard.press("Enter");
+    ok(!(await menu()).hidden && (await page.evaluate(() => !!document.activeElement.closest(".sc-hist-menu"))), "Enter on History ▾ opens it with focus on a step");
+    const f1 = await page.evaluate(() => document.activeElement.dataset.hist);
+    await page.keyboard.press("ArrowDown");
+    const f2 = await page.evaluate(() => document.activeElement.dataset.hist);
+    ok(f1 && f2 && f1 !== f2, "the arrow keys move through the steps (" + f1 + " → " + f2 + ")");
+    await page.keyboard.press("Escape");
+    ok((await menu()).hidden && (await page.evaluate(() => document.activeElement.dataset.act === "history")), "Esc closes it and focus goes back to History ▾");
+    await page.click('.sc-bar [data-act="history"]');
+    await page.mouse.click(700, 600);
+    ok((await menu()).hidden, "a click anywhere else closes it");
+    /* Empty state: nothing on either list. */
+    await page.evaluate(() => { window.__h = [window.CurioStore && window.CurioStore.history, window.CurioEngine.history]; const none = () => ({ undo: [], redo: [] }); if (window.CurioStore) window.CurioStore.history = none; window.CurioEngine.history = none; });
+    await page.click('.sc-bar [data-act="history"]');
+    mm = await menu();
+    ok(!mm.hidden && mm.text.trim() === "Nothing to undo yet." && !mm.undo.length && !mm.redo.length, "with nothing to undo it says so plainly");
+    await page.evaluate(() => { if (window.CurioStore) window.CurioStore.history = window.__h[0]; window.CurioEngine.history = window.__h[1]; });
+    await page.keyboard.press("Escape");
+  }
+
   /* Phone width. */
   await page.setViewportSize({ width: 390, height: 900 });
   await page.click('[data-act="close"]');

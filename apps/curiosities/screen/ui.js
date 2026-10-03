@@ -503,6 +503,7 @@
       return;
     }
     const sel = selection();
+    const histFocus = historyFocusKey();
     bar.innerHTML = `
       <strong class="sc-title">Curiomatic</strong>
       <div class="sc-seg" role="group" aria-label="View">
@@ -520,8 +521,12 @@
       <label class="sc-layout" title="Layout, like CapCut's layout menu"><span class="sc-k">Layout</span><select data-pick-layout aria-label="Layout">${LAYOUTS.map(([id, l, t]) => `<option value="${id}" title="${esc(t)}"${prefs.layout === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
       <button type="button" data-act="shortcuts" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="5" width="17" height="10" rx="1.5"/><path d="M5 8h1M8 8h1M11 8h1M14 8h1M5 11.5h10"/></svg> Shortcuts</button>
       ${exportMenuHtml()}
+      ${historyMenuHtml()}
       <button type="button" data-act="close" class="sc-close">Back to the app</button>
       <p class="sc-what">${esc(sel.label)}${sel.plain ? ": " + esc(sel.plain) : ""}</p>`;
+    if (histFocus) historyRefocus(histFocus);
+    /* An engine undo redraws before the app-wide list has moved its step, so look again once it has. */
+    if (historyOpen) setTimeout(() => drawHistory(), 0);
   }
 
   /* ---------- Export (CapCut's big Export button at the top right) ----------
@@ -732,6 +737,147 @@ document.addEventListener("click", function (e) {
       document.addEventListener("pointerdown", (e) => exportOpen && !(e.target.closest && e.target.closest(".sc-export")) && toggleExport(false), true);
       document.addEventListener("keydown", (e) => exportOpen && e.key === "Escape" && toggleExport(false));
     }
+  }
+  /* ---------- History ▾ (the History panel of editing apps) ----------
+     Lists the steps you can undo (newest first, under "Now") and the steps you can redo (over "Now"), by their
+     plain names. It reads the app-wide undo list when the page has one (engine/store.js), else the engine's own.
+     Clicking a step goes back or forward to just after it by pressing undo or redo that many times through
+     undoAll, the same path as ⌘Z. The pure part (HISTORY) takes plain lists so tests can check it with no page. */
+  const HISTORY_MAX = 30;
+  const HISTORY = {
+    /* A step's plain name: the engine's steps join the app-wide list as "Engine: <name>". */
+    plain: (label) => String(label == null ? "" : label).replace(/^Engine:\s*/, "").trim() || "Change",
+    /* h = { undo: [names, oldest first], redo: [names, next one first] } (both lists' own shape) -> what to draw:
+       undo: newest first, each with how many undos go back to just after it (0 for the newest: you are there);
+       redo: the furthest first, each with how many redos go forward to just after it (1 for the next one);
+       earlier and later: steps past the last `max` that are not shown; all: every undo step. */
+    rows(h, max) {
+      const n = max > 0 ? Math.floor(max) : HISTORY_MAX;
+      const u = (h && Array.isArray(h.undo) ? h.undo : []).slice().reverse();
+      const r = h && Array.isArray(h.redo) ? h.redo : [];
+      return {
+        undo: u.slice(0, n).map((l, i) => ({ label: HISTORY.plain(l), steps: i })),
+        redo: r.slice(0, n).map((l, i) => ({ label: HISTORY.plain(l), steps: i + 1 })).reverse(),
+        earlier: Math.max(0, u.length - n),
+        later: Math.max(0, r.length - n),
+        all: u.length,
+      };
+    },
+  };
+  window.CurioScreenHistory = HISTORY;
+  function historyNow() {
+    const St = window.CurioStore;
+    if (St && typeof St.external === "function" && typeof St.history === "function") return St.history();
+    return E() && typeof E().history === "function" ? E().history() : { undo: [], redo: [] };
+  }
+  let historyOpen = false;
+  let historyLeft = false; /* the menu opens rightward when its button sits in the left half of the bar */
+  let historyTimer = 0;
+  let historySig = "";
+  const nSteps = (k) => `${k} ${k === 1 ? "step" : "steps"}`;
+  function historyBody() {
+    const h = HISTORY.rows(historyNow());
+    historySig = JSON.stringify(h);
+    if (!h.undo.length && !h.redo.length) return `<p class="sc-hist-empty">Nothing to undo yet.</p>`;
+    const item = (dir, x) => `<button type="button" role="menuitem" data-hist="${dir}:${x.steps}" title="${dir === "undo" ? "Go back" : "Go forward"} ${nSteps(x.steps)}, to just after this">${esc(x.label)}</button>`;
+    let out = "";
+    if (h.redo.length) {
+      out += `<p class="sc-k sc-hist-h">Can redo</p>`;
+      if (h.later) out += `<p class="sc-hist-more">and ${h.later} later</p>`;
+      out += h.redo.map((x) => item("redo", x)).join("");
+    }
+    out += `<p class="sc-hist-now" role="separator">Now</p>`;
+    if (!h.undo.length) return out + `<p class="sc-hist-empty">Nothing left to undo.</p>`;
+    out += `<p class="sc-k sc-hist-h">Can undo</p>`;
+    out += h.undo.map((x) => (x.steps ? item("undo", x) : `<p class="sc-hist-cur" aria-current="step" title="Your film is just after this step">${esc(x.label)}</p>`)).join("");
+    if (h.earlier) out += `<p class="sc-hist-more">and ${h.earlier} earlier</p>`;
+    else out += `<button type="button" role="menuitem" data-hist="undo:${h.all}" class="sc-hist-start" title="Go back ${nSteps(h.all)}, to before every change listed">Before all of these</button>`;
+    return out;
+  }
+  function historyMenuHtml() {
+    return `<span class="sc-hist"><button type="button" data-act="history" class="sc-hist-b" aria-haspopup="true" aria-expanded="${historyOpen}" title="Every change you can undo or redo. Click one to go back or forward to just after it.">History ▾</button>
+      <div class="sc-hist-menu${historyLeft ? " sc-hist-left" : ""}" role="menu" aria-label="History"${historyOpen ? "" : " hidden"}>${historyOpen ? historyBody() : ""}</div></span>`;
+  }
+  /* The menu's own list, redrawn only when the history changed (so focus and scrolling stay put otherwise). */
+  function drawHistory(force) {
+    const m = page && page.querySelector(".sc-hist-menu");
+    if (!m || !historyOpen) return;
+    const sig = JSON.stringify(HISTORY.rows(historyNow()));
+    if (!force && sig === historySig && m.childElementCount) return;
+    const key = historyFocusKey();
+    m.innerHTML = historyBody();
+    if (key) historyRefocus(key);
+  }
+  /* Which menu item has focus, so a redraw can give it back ("menu" when the item is gone). */
+  function historyFocusKey() {
+    const a = document.activeElement;
+    if (!historyOpen || !a || !a.closest || !a.closest(".sc-hist")) return "";
+    return a.dataset && a.dataset.hist ? a.dataset.hist : a.dataset && a.dataset.act === "history" ? "button" : "menu";
+  }
+  function historyRefocus(key) {
+    const box = page && page.querySelector(".sc-hist");
+    if (!box) return;
+    const el = key === "button" ? box.querySelector(".sc-hist-b") : box.querySelector(`[data-hist="${key}"]`) || box.querySelector("[data-hist]") || box.querySelector(".sc-hist-b");
+    if (el) el.focus();
+  }
+  function toggleHistory(on, keyboard) {
+    historyOpen = on == null ? !historyOpen : !!on;
+    const box = page && page.querySelector(".sc-hist");
+    clearInterval(historyTimer);
+    historyTimer = 0;
+    if (!box) return;
+    const m = box.querySelector(".sc-hist-menu");
+    m.hidden = !historyOpen;
+    box.querySelector(".sc-hist-b").setAttribute("aria-expanded", String(historyOpen));
+    if (!historyOpen) return;
+    if (exportOpen) toggleExport(false);
+    const r = box.getBoundingClientRect();
+    historyLeft = r.left + r.width / 2 < window.innerWidth / 2;
+    m.classList.toggle("sc-hist-left", historyLeft);
+    drawHistory(true);
+    /* Steps from parts of the app that do not redraw the Screen (the app-wide list) show up while it is open. */
+    historyTimer = setInterval(() => (!historyOpen || !page || page.hidden ? toggleHistory(false) : drawHistory()), 400);
+    if (keyboard) historyRefocus("menu");
+    if (!toggleHistory.wired) {
+      /* Close on a click anywhere else, or Esc (focus goes back to the button); arrows move through the steps. */
+      toggleHistory.wired = true;
+      document.addEventListener("pointerdown", (e) => historyOpen && !(e.target.closest && e.target.closest(".sc-hist")) && toggleHistory(false), true);
+      document.addEventListener("keydown", (e) => {
+        if (!historyOpen || !page || page.hidden) return;
+        const inMenu = e.target && e.target.closest && e.target.closest(".sc-hist");
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleHistory(false);
+          if (inMenu) page.querySelector(".sc-hist-b").focus();
+          return;
+        }
+        if (!inMenu) return;
+        const list = [...page.querySelectorAll(".sc-hist-menu [data-hist]")];
+        if (!list.length) return;
+        const i = list.indexOf(document.activeElement);
+        const to = e.key === "ArrowDown" ? (i + 1) % list.length : e.key === "ArrowUp" ? (i <= 0 ? list.length - 1 : i - 1) : e.key === "Home" ? 0 : e.key === "End" ? list.length - 1 : -1;
+        if (to < 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        list[to].focus();
+      }, true);
+    }
+  }
+  /* "undo:3" or "redo:2": press undo or redo that many times, exactly like ⌘Z, and say what happened. */
+  function historyPick(spec) {
+    const [dir, k] = String(spec).split(":");
+    const want = Math.max(0, Math.floor(Number(k)) || 0);
+    if (dir !== "undo" && dir !== "redo") return;
+    const before = HISTORY.rows(historyNow());
+    const target = dir === "undo" ? before.undo.find((x) => x.steps === want) : before.redo.find((x) => x.steps === want);
+    let done = 0;
+    while (done < want && undoAll(dir)) done++;
+    drawHistory(true);
+    historyRefocus("menu");
+    const way = dir === "undo" ? "back" : "forward";
+    if (!done) return toast(dir === "undo" ? "There was nothing to undo." : "There was nothing to redo.");
+    toast(done < want ? `Went ${way} ${done} of ${nSteps(want)}; the rest could not be ${dir === "undo" ? "undone" : "redone"}.` : `Went ${way} ${nSteps(done)}${target ? `, to just after "${target.label}"` : ", to before every change listed"}.`);
   }
   /* Markers from the timeline's tools (localStorage "curiosities-screen-tools-v1", markers [{ row, color, note }]). */
   function exportMarkers() {
@@ -2481,6 +2627,8 @@ document.addEventListener("click", function (e) {
     if (act === "close") return close();
     if (act === "shortcuts") return showKeys(!keysOpen);
     if (act === "export") return toggleExport();
+    if (act === "history") return toggleHistory(null, !e.detail);
+    if (d.hist) return historyPick(d.hist);
     if (d.export) return runExport(d.export);
     if (act === "overview") {
       prefs.overview = !prefs.overview;
