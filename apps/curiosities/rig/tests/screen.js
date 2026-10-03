@@ -89,6 +89,22 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         return { viewers: v ? v.getBoundingClientRect().height : 0, onTop: !!top && btn.contains(top), inView: b.bottom <= innerHeight };
       });
       ok(room.viewers > 120 && room.onTop && room.inView, `the 3D window floats over the Screen: the viewers keep their room (${Math.round(room.viewers)} px) and its buttons are not covered`);
+      const kept = await page.evaluate(() => {
+        const box = document.querySelector('[data-panel="rig3d"] [data-r3s="body"]');
+        box.style.left = "1300px";
+        box.style.top = "960px";
+        box.style.right = "auto";
+        return true;
+      });
+      await page.setViewportSize({ width: 1000, height: 700 });
+      await page.waitForTimeout(200);
+      const inside = await page.evaluate(() => {
+        const r = document.querySelector('[data-panel="rig3d"] [data-r3s="body"]').getBoundingClientRect();
+        return r.left >= 0 && r.left < innerWidth - 40 && r.top >= 0 && r.top < innerHeight - 30;
+      });
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await page.evaluate(() => Object.assign(document.querySelector('[data-panel="rig3d"] [data-r3s="body"]').style, { left: "", top: "", right: "" }));
+      ok(kept && inside, "a 3D window dragged low comes back into view when the browser window shrinks");
       ok(info.w > 150 && info.h > 120 && info.sideHidden, `a compact 3D view (${Math.round(info.w)} by ${Math.round(info.h)}) without the 3D window's side panel`);
 
       /* A Spine lane through the engine, the way the Screen writes a node: "relaxed" at moment 1, "collapsed" at moment 3. */

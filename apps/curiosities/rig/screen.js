@@ -112,8 +112,16 @@
 .r3s-host .rig-view canvas{height:min(22vh,190px);min-height:130px}
 .r3s-host .rig-viewbar{font-size:.72rem;margin-top:.2rem;gap:.2rem .6rem}
 @media (min-width:861px){
-.r3s-on .r3s-body{position:fixed;top:6.5rem;right:1rem;width:min(400px,92vw);max-height:calc(100vh - 8rem);overflow:auto;z-index:30;background:var(--cc-panel,var(--panel,#1d1d22));color:var(--cc-text,inherit);border:1px solid #8886;border-radius:.6rem;box-shadow:0 10px 32px #0009;padding:.5rem;box-sizing:border-box}
+.r3s-on .r3s-body{position:fixed;top:6.5rem;right:1rem;width:min(340px,92vw);max-height:min(62vh,540px);overflow:auto;z-index:30;background:var(--cc-panel,var(--panel,#1d1d22));color:var(--cc-text,inherit);border:1px solid #8886;border-radius:.6rem;box-shadow:0 10px 32px #0009;padding:.5rem;box-sizing:border-box}
 .r3s-on .r3s-host .rig-view canvas{height:min(30vh,240px)}
+.r3s-on .r3s-body{overflow-x:hidden}
+.r3s-on .r3s-body *{min-width:0;overflow-wrap:anywhere}
+.r3s-on .r3s-side{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+/* short screens (laptops at 720 to 800 high): a smaller window, clear of the timeline's tools */
+@media (min-width:861px) and (max-height:820px){
+.r3s-on .r3s-body{max-height:48vh}
+.r3s-on .r3s-host .rig-view canvas{height:20vh;min-height:110px}
 }
 .r3s-grip{display:flex;align-items:center;gap:.5rem;cursor:move;user-select:none;touch-action:none;font-size:.75rem;opacity:.85}
 .r3s-grip span{flex:1}
@@ -168,6 +176,7 @@
       addEventListener("pointermove", move);
       addEventListener("pointerup", up);
     });
+    addEventListener("resize", keepInView);
     $("who").addEventListener("change", (e) => {
       if (CS() && CS().pick && e.target.value !== NOBODY) CS().pick(e.target.value);
       refresh();
@@ -217,9 +226,19 @@
     if (v) v.innerHTML = "";
   }
 
+  /* A dragged 3D window stays reachable when the browser window gets smaller. */
+  function keepInView() {
+    const box = host && $("body");
+    if (!box || !box.style.left) return;
+    const r = box.getBoundingClientRect();
+    box.style.left = Math.max(0, Math.min(innerWidth - Math.min(r.width, innerWidth), parseFloat(box.style.left) || 0)) + "px";
+    box.style.top = Math.max(0, Math.min(innerHeight - 40, parseFloat(box.style.top) || 0)) + "px";
+  }
+
   /* Start, swap or stop the 3D view so it matches what should be shown. */
   function refresh() {
     if (!host) return;
+    keepInView();
     const open = isOpen();
     $("toggle").textContent = open ? "Hide 3D" : "Show 3D";
     $("toggle").setAttribute("aria-expanded", String(open));
