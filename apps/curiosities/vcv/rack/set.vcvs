@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "SET DESIGN\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 49 to 64\n   1 Era and style of the place\n   2 Main material\n   3 Soft curves to sharp clean lines\n   4 Art on the walls\n   5 How the art is arranged\n   6 Clutter\n   7 Cramped to open\n   8 Run down to spotless\n   9 Layers behind the people\n  10 Dark to bright colors\n  11 How the room is laid out\n  12 Props\n  13 Scattered things\n  14 suite: Set design lens\n  15 suite: Dive bar\n  16 suite: Upscale lounge\nCV-CC 2: MIDI channel 7, CC 65 to 80\n   1 suite: Period piece\n   2 suite: Cold minimalism\n   3 suite: Warm maximalism\n   4 suite: Lived-in home\n   5 suite: Autumn yard\n   6 pair: When the clutter rises, the room feels more cramped\n   7 pair: When the place runs down, the clothes wear out too\n   8 pair: In a cluttered room, the shots get closer\n   9 pair: In a huge space, the frame goes wide\n  10 pair: A key prop gets its close-up\n  11 pair: A run-down room darkens the mood\n  12 pair: When the wind picks up, scattered leaves start to tumble\n  13 pair: When the set is made of glass, surfaces turn mirror-shiny\n  14 pair: When the room is all sharp straight lines, people feel boxed in\n  15 pair: When the walls are covered in art, the eye wanders off the actors\n  16 pair: When the art hangs perfectly even, the owner reads as rigid\nCV-CC 3: MIDI channel 7, CC 81 to 86\n   1 pair: When the set has deep layers, there's room for a joke in the background\n   2 pair: When the set is painted dark, the picture goes low key\n   3 pair: When the room is laid out in booths, people sit close and talk low\n   4 pairs: The set steers the camera\n   5 pairs: The rigid room gag\n   6 pairs: Dark room secrets"
+    "text": "SET DESIGN\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 8, CC 49 to 64\n   1 Era and style of the place\n   2 Main material\n   3 Soft curves to sharp clean lines\n   4 Art on the walls\n   5 How the art is arranged\n   6 Clutter\n   7 Cramped to open\n   8 Run down to spotless\n   9 Layers behind the people\n  10 Dark to bright colors\n  11 How the room is laid out\n  12 Props\n  13 Scattered things\n  14 suite: Set design lens\n  15 suite: Dive bar\n  16 suite: Upscale lounge\nCV-CC 2: MIDI channel 8, CC 65 to 80\n   1 suite: Period piece\n   2 suite: Cold minimalism\n   3 suite: Warm maximalism\n   4 suite: Lived-in home\n   5 suite: Autumn yard\n   6 pair: When the clutter rises, the room feels more cramped\n   7 pair: When the place runs down, the clothes wear out too\n   8 pair: In a cluttered room, the shots get closer\n   9 pair: In a huge space, the frame goes wide\n  10 pair: A key prop gets its close-up\n  11 pair: A run-down room darkens the mood\n  12 pair: When the wind picks up, scattered leaves start to tumble\n  13 pair: When the set is made of glass, surfaces turn mirror-shiny\n  14 pair: When the room is all sharp straight lines, people feel boxed in\n  15 pair: When the walls are covered in art, the eye wanders off the actors\n  16 pair: When the art hangs perfectly even, the owner reads as rigid\nCV-CC 3: MIDI channel 8, CC 81 to 86\n   1 pair: When the set has deep layers, there's room for a joke in the background\n   2 pair: When the set is painted dark, the picture goes low key\n   3 pair: When the room is laid out in booths, people sit close and talk low\n   4 pairs: The set steers the camera\n   5 pairs: The rigid room gag\n   6 pairs: Dark room secrets"
    },
    "pos": [
     0,
@@ -45,7 +45,7 @@
      64
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
@@ -77,7 +77,7 @@
      80
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
@@ -109,7 +109,7 @@
      -1
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [

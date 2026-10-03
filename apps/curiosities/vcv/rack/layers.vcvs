@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "LAYERS, MASKS & EFFECTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 15, CC 17 to 32\n   1 Overlay\n   2 Blend mode\n   3 Cutout and green screen\n   4 Mask\n   5 Tracking\n   6 Video effect\n   7 Effect family\n   8 Copies of the picture\n   9 Light effect\n  10 Body effect\n  11 Superpower effect\n  12 Hallucination effect\n  13 Copies of a person\n  14 Outline and glow on a person\n  15 Glitch\n  16 Distortion\nCV-CC 2: MIDI channel 15, CC 33 to 48\n   1 Party flash\n   2 Stock clip\n   3 Generated shot\n   4 Side storyline\n   5 suite: Documentary\n   6 suite: Heavenly light\n   7 suite: Party edit\n   8 suite: Superhero moment\n   9 suite: Breakdown\n  10 suite: Trippy vision\n  11 suite: Dance video effects\n  12 suite: Green screen swap\n  13 suite: Light leak overlay\n  14 suite: Music video with a second story\n  15 pair: When impacts rise, the picture flashes\n  16 pair: When text labels something, it follows it\nCV-CC 3: MIDI channel 15, CC 49 to 64\n   1 pair: When the feeling turns dreamlike, light blooms\n   2 pair: When the music is featured, the effects pulse on the beat\n   3 pair: When someone triumphs, their eyes light up\n   4 pair: When someone panics, the picture glitches\n   5 pair: When the feeling turns dreamlike, the room spins\n   6 pair: When impacts rise, a shockwave flashes\n   7 pair: When the music is featured, the flashes hit the beat\n   8 pair: When a light layer is blended in screen mode, the room glows\n   9 pair: When the person is cut out, they get dropped into a new place\n  10 pair: When a generated shot drops into the edit, it has to be color matched\n  11 pair: When a stock scenery clip fills the back, the frame gains depth\n  12 pair: When a mask follows a person, the world shrinks to them\n  13 pair: When the hero's body lights up with power, the stakes rise\n  14 pair: When a person bursts into copies, the scene tips into absurd fun\n  15 pair: When a person gets a glowing aura, the eye locks on them\n  16 pair: When the picture ripples, we drop into a different feeling\nCV-CC 4: MIDI channel 15, CC 65 to 67\n   1 pairs: Effects show the inside\n   2 pairs: Put me somewhere else\n   3 pairs: The power-up moment"
+    "text": "LAYERS, MASKS & EFFECTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 2, CC 17 to 32\n   1 Overlay\n   2 Blend mode\n   3 Cutout and green screen\n   4 Mask\n   5 Tracking\n   6 Video effect\n   7 Effect family\n   8 Copies of the picture\n   9 Light effect\n  10 Body effect\n  11 Superpower effect\n  12 Hallucination effect\n  13 Copies of a person\n  14 Outline and glow on a person\n  15 Glitch\n  16 Distortion\nCV-CC 2: PORT 2 (your second cable), MIDI channel 2, CC 33 to 48\n   1 Party flash\n   2 Stock clip\n   3 Generated shot\n   4 Side storyline\n   5 suite: Documentary\n   6 suite: Heavenly light\n   7 suite: Party edit\n   8 suite: Superhero moment\n   9 suite: Breakdown\n  10 suite: Trippy vision\n  11 suite: Dance video effects\n  12 suite: Green screen swap\n  13 suite: Light leak overlay\n  14 suite: Music video with a second story\n  15 pair: When impacts rise, the picture flashes\n  16 pair: When text labels something, it follows it\nCV-CC 3: PORT 2 (your second cable), MIDI channel 2, CC 49 to 64\n   1 pair: When the feeling turns dreamlike, light blooms\n   2 pair: When the music is featured, the effects pulse on the beat\n   3 pair: When someone triumphs, their eyes light up\n   4 pair: When someone panics, the picture glitches\n   5 pair: When the feeling turns dreamlike, the room spins\n   6 pair: When impacts rise, a shockwave flashes\n   7 pair: When the music is featured, the flashes hit the beat\n   8 pair: When a light layer is blended in screen mode, the room glows\n   9 pair: When the person is cut out, they get dropped into a new place\n  10 pair: When a generated shot drops into the edit, it has to be color matched\n  11 pair: When a stock scenery clip fills the back, the frame gains depth\n  12 pair: When a mask follows a person, the world shrinks to them\n  13 pair: When the hero's body lights up with power, the stakes rise\n  14 pair: When a person bursts into copies, the scene tips into absurd fun\n  15 pair: When a person gets a glowing aura, the eye locks on them\n  16 pair: When the picture ripples, we drop into a different feeling\nCV-CC 4: PORT 2 (your second cable), MIDI channel 2, CC 65 to 67\n   1 pairs: Effects show the inside\n   2 pairs: Put me somewhere else\n   3 pairs: The power-up moment"
    },
    "pos": [
     0,
@@ -45,7 +45,7 @@
      32
     ],
     "midi": {
-     "channel": 14
+     "channel": 1
     }
    },
    "pos": [
@@ -77,7 +77,7 @@
      48
     ],
     "midi": {
-     "channel": 14
+     "channel": 1
     }
    },
    "pos": [
@@ -109,7 +109,7 @@
      64
     ],
     "midi": {
-     "channel": 14
+     "channel": 1
     }
    },
    "pos": [
@@ -141,7 +141,7 @@
      -1
     ],
     "midi": {
-     "channel": 14
+     "channel": 1
     }
    },
    "pos": [

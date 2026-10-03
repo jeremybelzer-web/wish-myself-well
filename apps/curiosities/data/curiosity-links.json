@@ -12684,6 +12684,2307 @@
    "value": "held",
    "when": "tenderness grows",
    "then": "hands are held"
+  },
+  {
+   "id": "p:inciting-raises-questions",
+   "proximity": "inciting-raises-questions",
+   "label": "When something starts it all, the audience starts asking questions",
+   "from": {
+    "curiosity": "incitingEvent",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "something starts it all",
+   "then": "the audience starts asking questions"
+  },
+  {
+   "id": "p:refused-call-stakes-rise",
+   "proximity": "refused-call-stakes-rise",
+   "label": "When they refuse the call twice, the stakes rise",
+   "from": {
+    "curiosity": "incitingEvent.refused",
+    "track": "character",
+    "is": "refuses twice",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "stakes",
+    "track": "master"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they refuse the call twice",
+   "then": "the stakes rise"
+  },
+  {
+   "id": "p:complication-tension",
+   "proximity": "complication-tension",
+   "label": "When things get worse, tension climbs",
+   "from": {
+    "curiosity": "complication",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "things get worse",
+   "then": "tension climbs"
+  },
+  {
+   "id": "p:bad-timing-hope-drops",
+   "proximity": "bad-timing-hope-drops",
+   "label": "When trouble lands just as it was going well, hope drops",
+   "from": {
+    "curiosity": "complication.timing",
+    "track": "character",
+    "is": "just when it was going well",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "hope",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "trouble lands just as it was going well",
+   "then": "hope drops"
+  },
+  {
+   "id": "p:plan-told-falls-apart",
+   "proximity": "plan-told-falls-apart",
+   "label": "When the whole plan is told, it falls apart",
+   "from": {
+    "curiosity": "planShown",
+    "track": "character",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "planShown.works",
+    "track": "character"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "set",
+   "value": "falls apart",
+   "when": "the whole plan is told",
+   "then": "it falls apart"
+  },
+  {
+   "id": "p:hidden-plan-reversal",
+   "proximity": "hidden-plan-reversal",
+   "label": "When the real plan is hidden, a reversal follows",
+   "from": {
+    "curiosity": "planShown.hidden",
+    "track": "character",
+    "is": "the real plan is hidden",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reversal",
+    "track": "character"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the real plan is hidden",
+   "then": "a reversal follows"
+  },
+  {
+   "id": "p:reversal-setback",
+   "proximity": "reversal-setback",
+   "label": "When things flip for the worse, the goal slips away",
+   "from": {
+    "curiosity": "reversal.direction",
+    "track": "character",
+    "is": "good to bad",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "plotProgress",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "big setback",
+   "when": "things flip for the worse",
+   "then": "the goal slips away"
+  },
+  {
+   "id": "p:choice-cost-held-in",
+   "proximity": "choice-cost-held-in",
+   "label": "When a choice costs a lot, the feeling is held in",
+   "from": {
+    "curiosity": "costlyChoice",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotionalDebt",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a choice costs a lot",
+   "then": "the feeling is held in"
+  },
+  {
+   "id": "p:choice-no-return",
+   "proximity": "choice-no-return",
+   "label": "When a choice can never be undone, there is no going back",
+   "from": {
+    "curiosity": "costlyChoice.undo",
+    "track": "character",
+    "is": "can never undo",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pointOfNoReturn",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a choice can never be undone",
+   "then": "there is no going back"
+  },
+  {
+   "id": "p:no-return-stakes",
+   "proximity": "no-return-stakes",
+   "label": "When there is no going back, the stakes rise",
+   "from": {
+    "curiosity": "pointOfNoReturn",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "stakes",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "there is no going back",
+   "then": "the stakes rise"
+  },
+  {
+   "id": "p:opponent-dread",
+   "proximity": "opponent-dread",
+   "label": "When the other side moves, dread grows",
+   "from": {
+    "curiosity": "opponentMove",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the other side moves",
+   "then": "dread grows"
+  },
+  {
+   "id": "p:opponent-shown-to-us",
+   "proximity": "opponent-shown-to-us",
+   "label": "When we see the other side's move, we know first",
+   "from": {
+    "curiosity": "opponentMove.seen",
+    "track": "character",
+    "is": "shown to us",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "knowledgeGap",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "audience first",
+   "when": "we see the other side's move",
+   "then": "we know first"
+  },
+  {
+   "id": "p:opponent-at-door",
+   "proximity": "opponent-at-door",
+   "label": "When the other side is at the door, things get worse",
+   "from": {
+    "curiosity": "opponentMove.distance",
+    "track": "character",
+    "is": "at the door",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the other side is at the door",
+   "then": "things get worse"
+  },
+  {
+   "id": "p:plant-big-reveal",
+   "proximity": "plant-big-reveal",
+   "label": "When a plant is well hidden, the reveal is bigger",
+   "from": {
+    "curiosity": "plantForgotten",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "reveal.size",
+    "track": "master"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a plant is well hidden",
+   "then": "the reveal is bigger"
+  },
+  {
+   "id": "p:planted-object-returns",
+   "proximity": "planted-object-returns",
+   "label": "When an object is planted, the camera comes back to it",
+   "from": {
+    "curiosity": "plantForgotten.kind",
+    "track": "character",
+    "is": "an object",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "returningObject",
+    "track": "character"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "an object is planted",
+   "then": "the camera comes back to it"
+  },
+  {
+   "id": "p:lesson-passes-test",
+   "proximity": "lesson-passes-test",
+   "label": "When the lesson comes back at the key moment, the test is passed",
+   "from": {
+    "curiosity": "mentorLesson.returns",
+    "track": "character",
+    "is": "at the key moment",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "arcTest.result",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "pass",
+   "when": "the lesson comes back at the key moment",
+   "then": "the test is passed"
+  },
+  {
+   "id": "p:mentor-dies-grief",
+   "proximity": "mentor-dies-grief",
+   "label": "When the mentor dies, grief follows",
+   "from": {
+    "curiosity": "mentorLesson.mentorFate",
+    "track": "character",
+    "is": "dies",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "grief",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the mentor dies",
+   "then": "grief follows"
+  },
+  {
+   "id": "p:mirror-realization",
+   "proximity": "mirror-realization",
+   "label": "When the hero sees themself in the mirror character, they understand",
+   "from": {
+    "curiosity": "foil.seen",
+    "track": "character",
+    "is": "in one moment",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "realization",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hero sees themself in the mirror character",
+   "then": "they understand"
+  },
+  {
+   "id": "p:mirror-clash-resistance",
+   "proximity": "mirror-clash-resistance",
+   "label": "When the mirror character clashes harder, the hero fights the change",
+   "from": {
+    "curiosity": "foil.clash",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "resistance",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the mirror character clashes harder",
+   "then": "the hero fights the change"
+  },
+  {
+   "id": "p:realization-sacrifice",
+   "proximity": "realization-sacrifice",
+   "label": "When they see it, they give something up",
+   "from": {
+    "curiosity": "realization",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sacrifice",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they see it",
+   "then": "they give something up"
+  },
+  {
+   "id": "p:sacrifice-change-shows",
+   "proximity": "sacrifice-change-shows",
+   "label": "When they give it up, the change shows",
+   "from": {
+    "curiosity": "sacrifice",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "changeShows",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they give it up",
+   "then": "the change shows"
+  },
+  {
+   "id": "p:lie-blocks-realization",
+   "proximity": "lie-blocks-realization",
+   "label": "When the lie grips harder, they cannot see the truth",
+   "from": {
+    "curiosity": "theLie",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "realization",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the lie grips harder",
+   "then": "they cannot see the truth"
+  },
+  {
+   "id": "p:sharp-focus-narrows",
+   "proximity": "sharp-focus-narrows",
+   "label": "When sharp focus pulls the eye, attention narrows to one thing",
+   "from": {
+    "curiosity": "eyeFirst.by",
+    "track": "character",
+    "is": "sharp focus",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "focusWidth",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "one thing",
+   "when": "sharp focus pulls the eye",
+   "then": "attention narrows to one thing"
+  },
+  {
+   "id": "p:rivals-distract",
+   "proximity": "rivals-distract",
+   "label": "When too many things compete for the eye, distraction grows",
+   "from": {
+    "curiosity": "eyeFirst.rivals",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "distraction",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "too many things compete for the eye",
+   "then": "distraction grows"
+  },
+  {
+   "id": "p:object-returns-questions",
+   "proximity": "object-returns-questions",
+   "label": "When the camera keeps returning to an object, questions grow",
+   "from": {
+    "curiosity": "returningObject",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera keeps returning to an object",
+   "then": "questions grow"
+  },
+  {
+   "id": "p:linger-dread",
+   "proximity": "linger-dread",
+   "label": "When the camera stays too long, dread creeps in",
+   "from": {
+    "curiosity": "lingeringShot",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera stays too long",
+   "then": "dread creeps in"
+  },
+  {
+   "id": "p:linger-uncovers-plant",
+   "proximity": "linger-uncovers-plant",
+   "label": "When the lingering shot hints at a clue, the plant is less hidden",
+   "from": {
+    "curiosity": "lingeringShot.meaning",
+    "track": "character",
+    "is": "a clue",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "plantForgotten",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the lingering shot hints at a clue",
+   "then": "the plant is less hidden"
+  },
+  {
+   "id": "p:offscreen-dread",
+   "proximity": "offscreen-dread",
+   "label": "When more is kept out of sight, dread grows",
+   "from": {
+    "curiosity": "offscreen",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more is kept out of sight",
+   "then": "dread grows"
+  },
+  {
+   "id": "p:unreliable-caught-reversal",
+   "proximity": "unreliable-caught-reversal",
+   "label": "When we catch the false view near the end, everything flips",
+   "from": {
+    "curiosity": "unreliableView.caught",
+    "track": "character",
+    "is": "near the end",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reversal",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we catch the false view near the end",
+   "then": "everything flips"
+  },
+  {
+   "id": "p:unreliable-misdirects",
+   "proximity": "unreliable-misdirects",
+   "label": "When the view gets less trustworthy, the misdirection grows",
+   "from": {
+    "curiosity": "unreliableView",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "misdirection",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the view gets less trustworthy",
+   "then": "the misdirection grows"
+  },
+  {
+   "id": "p:blind-spot-misreads",
+   "proximity": "blind-spot-misreads",
+   "label": "When the blind spot grows, they misread people",
+   "from": {
+    "curiosity": "blindSpot",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "misreading",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the blind spot grows",
+   "then": "they misread people"
+  },
+  {
+   "id": "p:blind-spot-opens",
+   "proximity": "blind-spot-opens",
+   "label": "When the blind spot opens in one blow, they see it all",
+   "from": {
+    "curiosity": "blindSpot.opens",
+    "track": "character",
+    "is": "in one blow",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "realization",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the blind spot opens in one blow",
+   "then": "they see it all"
+  },
+  {
+   "id": "p:misread-strikes-back",
+   "proximity": "misread-strikes-back",
+   "label": "When they strike back at a misread friend, things get worse",
+   "from": {
+    "curiosity": "misreading.acts",
+    "track": "character",
+    "is": "strikes back",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they strike back at a misread friend",
+   "then": "things get worse"
+  },
+  {
+   "id": "p:excuses-slip-back",
+   "proximity": "excuses-slip-back",
+   "label": "When the excuses grow stronger, they slip back",
+   "from": {
+    "curiosity": "excuses",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "relapse",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the excuses grow stronger",
+   "then": "they slip back"
+  },
+  {
+   "id": "p:excuses-cross-line",
+   "proximity": "excuses-cross-line",
+   "label": "When they talk themselves into cruelty, there is no going back",
+   "from": {
+    "curiosity": "excuses.doing",
+    "track": "character",
+    "is": "something cruel",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pointOfNoReturn",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they talk themselves into cruelty",
+   "then": "there is no going back"
+  },
+  {
+   "id": "p:signs-dread",
+   "proximity": "signs-dread",
+   "label": "When they believe the signs more, dread grows",
+   "from": {
+    "curiosity": "readingSigns",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they believe the signs more",
+   "then": "dread grows"
+  },
+  {
+   "id": "p:signs-close-mind",
+   "proximity": "signs-close-mind",
+   "label": "When they live by the signs, their mind closes",
+   "from": {
+    "curiosity": "readingSigns.acts",
+    "track": "character",
+    "is": "lives by them",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mindset",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fixed",
+   "when": "they live by the signs",
+   "then": "their mind closes"
+  },
+  {
+   "id": "p:rumor-turns-crowd",
+   "proximity": "rumor-turns-crowd",
+   "label": "When a rumor spreads further, the crowd turns",
+   "from": {
+    "curiosity": "rumor",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "crowdTurns",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a rumor spreads further",
+   "then": "the crowd turns"
+  },
+  {
+   "id": "p:rumor-monster-pressure",
+   "proximity": "rumor-monster-pressure",
+   "label": "When the rumor becomes a monster, the pressure builds",
+   "from": {
+    "curiosity": "rumor.growth",
+    "track": "master",
+    "is": "becomes a monster",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "groupPressure",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the rumor becomes a monster",
+   "then": "the pressure builds"
+  },
+  {
+   "id": "p:copying-herd",
+   "proximity": "copying-herd",
+   "label": "When people copy each other more, the herd moves as one",
+   "from": {
+    "curiosity": "copying",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "herdMentality",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "people copy each other more",
+   "then": "the herd moves as one"
+  },
+  {
+   "id": "p:crowd-turns-dissenter",
+   "proximity": "crowd-turns-dissenter",
+   "label": "When the crowd turns, someone speaks up",
+   "from": {
+    "curiosity": "crowdTurns",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dissenter",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "speaks up",
+   "when": "the crowd turns",
+   "then": "someone speaks up"
+  },
+  {
+   "id": "p:defiance-rallies",
+   "proximity": "defiance-rallies",
+   "label": "When someone openly defies the group, they start to win them over",
+   "from": {
+    "curiosity": "dissenter",
+    "track": "master",
+    "is": "openly defies",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "rallyingSpeech",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone openly defies the group",
+   "then": "they start to win them over"
+  },
+  {
+   "id": "p:lone-voice-turns-crowd",
+   "proximity": "lone-voice-turns-crowd",
+   "label": "When the lone voice wins them over, the crowd turns",
+   "from": {
+    "curiosity": "rallyingSpeech",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "crowdTurns",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the lone voice wins them over",
+   "then": "the crowd turns"
+  },
+  {
+   "id": "p:long-hold-feeling-deepens",
+   "proximity": "long-hold-feeling-deepens",
+   "label": "When the hold runs long, the feeling deepens",
+   "from": {
+    "curiosity": "holdBeforeCut",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hold runs long",
+   "then": "the feeling deepens"
+  },
+  {
+   "id": "p:hold-goes-silent",
+   "proximity": "hold-goes-silent",
+   "label": "When the hold goes dead silent, the silence stretches",
+   "from": {
+    "curiosity": "holdBeforeCut.sound",
+    "track": "master",
+    "is": "dead silence",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hold goes dead silent",
+   "then": "the silence stretches"
+  },
+  {
+   "id": "p:held-face-then-black",
+   "proximity": "held-face-then-black",
+   "label": "When the hold stays on a face, a cut to black follows",
+   "from": {
+    "curiosity": "holdBeforeCut.onWhat",
+    "track": "master",
+    "is": "a face",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cutToBlack",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hold stays on a face",
+   "then": "a cut to black follows"
+  },
+  {
+   "id": "p:bridge-line-cross-cut",
+   "proximity": "bridge-line-cross-cut",
+   "label": "When a line jumps the cut, the cross-cutting picks up",
+   "from": {
+    "curiosity": "bridgeLine",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "intercut",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a line jumps the cut",
+   "then": "the cross-cutting picks up"
+  },
+  {
+   "id": "p:bridge-line-irony",
+   "proximity": "bridge-line-irony",
+   "label": "When the answer across the cut is a gut punch, the irony bites",
+   "from": {
+    "curiosity": "bridgeLine.sting",
+    "track": "master",
+    "is": "a gut punch",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "irony",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the answer across the cut is a gut punch",
+   "then": "the irony bites"
+  },
+  {
+   "id": "p:cut-before-hit-dread",
+   "proximity": "cut-before-hit-dread",
+   "label": "When the film cuts away before the hit, the dread grows",
+   "from": {
+    "curiosity": "cutBeforeHit",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the film cuts away before the hit",
+   "then": "the dread grows"
+  },
+  {
+   "id": "p:missed-hit-revealed-slowly",
+   "proximity": "missed-hit-revealed-slowly",
+   "label": "When the hit we missed was terrible, a slow reveal follows",
+   "from": {
+    "curiosity": "cutBeforeHit.hurt",
+    "track": "master",
+    "is": 5,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "slowReveal",
+    "track": "master"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hit we missed was terrible",
+   "then": "a slow reveal follows"
+  },
+  {
+   "id": "p:cut-away-to-black",
+   "proximity": "cut-away-to-black",
+   "label": "When the film cuts away to black, the black screen holds",
+   "from": {
+    "curiosity": "cutBeforeHit.cutTo",
+    "track": "master",
+    "is": "black",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cutToBlack",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the film cuts away to black",
+   "then": "the black screen holds"
+  },
+  {
+   "id": "p:hidden-cuts-tension",
+   "proximity": "hidden-cuts-tension",
+   "label": "When the cuts are hidden, the tension keeps building",
+   "from": {
+    "curiosity": "hiddenCut",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the cuts are hidden",
+   "then": "the tension keeps building"
+  },
+  {
+   "id": "p:black-then-time-skip",
+   "proximity": "black-then-time-skip",
+   "label": "When the screen cuts to black, time skips ahead",
+   "from": {
+    "curiosity": "cutToBlack",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "timeSkip",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the screen cuts to black",
+   "then": "time skips ahead"
+  },
+  {
+   "id": "p:black-at-shock-silence",
+   "proximity": "black-at-shock-silence",
+   "label": "When the black hits at the shock, everything goes silent",
+   "from": {
+    "curiosity": "cutToBlack.when",
+    "track": "master",
+    "is": "at the shock",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the black hits at the shock",
+   "then": "everything goes silent"
+  },
+  {
+   "id": "p:time-lapse-skip",
+   "proximity": "time-lapse-skip",
+   "label": "When a time-lapse squeezes the day, the story skips ahead",
+   "from": {
+    "curiosity": "timeLapse",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "timeSkip",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a time-lapse squeezes the day",
+   "then": "the story skips ahead"
+  },
+  {
+   "id": "p:time-lapse-waiting-lonely",
+   "proximity": "time-lapse-waiting-lonely",
+   "label": "When a person waits through a time-lapse, loneliness grows",
+   "from": {
+    "curiosity": "timeLapse.subject",
+    "track": "master",
+    "is": "a person waiting",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a person waits through a time-lapse",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:slow-reveal-heartbeat",
+   "proximity": "slow-reveal-heartbeat",
+   "label": "When the picture slows for the detail, the sound drops to a heartbeat",
+   "from": {
+    "curiosity": "slowReveal",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "slowReveal.soundDrops",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "drops to a heartbeat",
+   "when": "the picture slows for the detail",
+   "then": "the sound drops to a heartbeat"
+  },
+  {
+   "id": "p:slow-detail-turns-story",
+   "proximity": "slow-detail-turns-story",
+   "label": "When the slow detail is shown, the story turns",
+   "from": {
+    "curiosity": "slowReveal",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "reveal",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the slow detail is shown",
+   "then": "the story turns"
+  },
+  {
+   "id": "p:frozen-orbit-impact",
+   "proximity": "frozen-orbit-impact",
+   "label": "When time freezes and the camera circles, the hit lands harder",
+   "from": {
+    "curiosity": "frozenOrbit",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "impacts",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "time freezes and the camera circles",
+   "then": "the hit lands harder"
+  },
+  {
+   "id": "p:years-skipped-card",
+   "proximity": "years-skipped-card",
+   "label": "When years are skipped, a card says so",
+   "from": {
+    "curiosity": "timeSkip",
+    "track": "master",
+    "is": "years",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "chapterCard",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "date and place",
+   "when": "years are skipped",
+   "then": "a card says so"
+  },
+  {
+   "id": "p:stretched-moment-tension",
+   "proximity": "stretched-moment-tension",
+   "label": "When a moment is stretched, the tension rises",
+   "from": {
+    "curiosity": "stretchedMoment",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a moment is stretched",
+   "then": "the tension rises"
+  },
+  {
+   "id": "p:life-or-death-faces",
+   "proximity": "life-or-death-faces",
+   "label": "When the moment is life or death, we cut to the faces watching",
+   "from": {
+    "curiosity": "stretchedMoment.weight",
+    "track": "master",
+    "is": "life or death",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "stretchedMoment.pieces",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "faces watching",
+   "when": "the moment is life or death",
+   "then": "we cut to the faces watching"
+  },
+  {
+   "id": "p:shout-words-shake",
+   "proximity": "shout-words-shake",
+   "label": "When someone shouts, the words act it out",
+   "from": {
+    "curiosity": "volume",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "kineticWords",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone shouts",
+   "then": "the words act it out"
+  },
+  {
+   "id": "p:typed-and-deleted-wait",
+   "proximity": "typed-and-deleted-wait",
+   "label": "When a text is typed and deleted, the wait for a reply grows",
+   "from": {
+    "curiosity": "screenMessages.typing",
+    "track": "master",
+    "is": "typed and deleted",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "screenMessages.reply",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a text is typed and deleted",
+   "then": "the wait for a reply grows"
+  },
+  {
+   "id": "p:messages-spill-secret",
+   "proximity": "messages-spill-secret",
+   "label": "When the messages pile up, a secret slips out",
+   "from": {
+    "curiosity": "screenMessages.count",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotSecret",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the messages pile up",
+   "then": "a secret slips out"
+  },
+  {
+   "id": "p:cheeky-cards-laughs",
+   "proximity": "cheeky-cards-laughs",
+   "label": "When the name cards get cheeky, the laughs come faster",
+   "from": {
+    "curiosity": "nameCard",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the name cards get cheeky",
+   "then": "the laughs come faster"
+  },
+  {
+   "id": "p:late-title-on-shock",
+   "proximity": "late-title-on-shock",
+   "label": "When the title comes late, it lands on a shock",
+   "from": {
+    "curiosity": "titleDrop",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "titleDrop.landing",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a shock",
+   "when": "the title comes late",
+   "then": "it lands on a shock"
+  },
+  {
+   "id": "p:grab-then-title-slams",
+   "proximity": "grab-then-title-slams",
+   "label": "When the opening grabs hard, the title slams in",
+   "from": {
+    "curiosity": "openingGrab",
+    "track": "master",
+    "is": "a shock",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "titleDrop.arrives",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "slams in",
+   "when": "the opening grabs hard",
+   "then": "the title slams in"
+  },
+  {
+   "id": "p:framed-alone",
+   "proximity": "framed-alone",
+   "label": "When someone is boxed in by a frame, loneliness grows",
+   "from": {
+    "curiosity": "frameInFrame",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone is boxed in by a frame",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:security-camera-dread",
+   "proximity": "security-camera-dread",
+   "label": "When we watch through a security camera, dread rises",
+   "from": {
+    "curiosity": "screenLook.source",
+    "track": "master",
+    "is": "security camera",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we watch through a security camera",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:thick-bars-break",
+   "proximity": "thick-bars-break",
+   "label": "When the black bars are thick, something breaks out of them",
+   "from": {
+    "curiosity": "aspect.letterbox",
+    "track": "camera",
+    "is": "thick",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "frameBreak",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the black bars are thick",
+   "then": "something breaks out of them"
+  },
+  {
+   "id": "p:circle-closes-scene",
+   "proximity": "circle-closes-scene",
+   "label": "When the circle closes in, the scene ends",
+   "from": {
+    "curiosity": "irisShot.way",
+    "track": "master",
+    "is": "closes in",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sceneEnding",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "moveWith",
+   "when": "the circle closes in",
+   "then": "the scene ends"
+  },
+  {
+   "id": "p:color-rubs-off-warmth",
+   "proximity": "color-rubs-off-warmth",
+   "label": "When one person's color rubs off on a friend, the warmth grows",
+   "from": {
+    "curiosity": "characterColor.spreads",
+    "track": "master",
+    "is": "rubs off on a friend",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one person's color rubs off on a friend",
+   "then": "the warmth grows"
+  },
+  {
+   "id": "p:colors-fight-egos-clash",
+   "proximity": "colors-fight-egos-clash",
+   "label": "When two people's colors fight, their egos clash",
+   "from": {
+    "curiosity": "characterColor.meet",
+    "track": "master",
+    "is": "fight",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "egoClash",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "two people's colors fight",
+   "then": "their egos clash"
+  },
+  {
+   "id": "p:color-arc-shows-change",
+   "proximity": "color-arc-shows-change",
+   "label": "When the color travels far, the hero's change shows",
+   "from": {
+    "curiosity": "colorArc",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "changeShows",
+    "track": "character"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the color travels far",
+   "then": "the hero's change shows"
+  },
+  {
+   "id": "p:world-colors-leak",
+   "proximity": "world-colors-leak",
+   "label": "When colors leak between worlds, the storylines cross",
+   "from": {
+    "curiosity": "worldColors.crossings",
+    "track": "master",
+    "is": "more and more",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "intercut",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "colors leak between worlds",
+   "then": "the storylines cross"
+  },
+  {
+   "id": "p:warning-color-dread",
+   "proximity": "warning-color-dread",
+   "label": "When the warning color shows up, dread rises",
+   "from": {
+    "curiosity": "warningColor",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the warning color shows up",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:pop-color-becomes-warning",
+   "proximity": "pop-color-becomes-warning",
+   "label": "When one color keeps popping, it becomes a warning",
+   "from": {
+    "curiosity": "colorAccent",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warningColor",
+    "track": "master"
+   },
+   "within": 6,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one color keeps popping",
+   "then": "it becomes a warning"
+  },
+  {
+   "id": "p:loop-speeds-up",
+   "proximity": "loop-speeds-up",
+   "label": "When the repeating notes grow insistent, the music speeds up",
+   "from": {
+    "curiosity": "tensionLoop",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tempoShift",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the repeating notes grow insistent",
+   "then": "the music speeds up"
+  },
+  {
+   "id": "p:loop-breaks-into-hit",
+   "proximity": "loop-breaks-into-hit",
+   "label": "When the repeating notes crash to an end, the music lands on the moment",
+   "from": {
+    "curiosity": "tensionLoop.breaks",
+    "track": "master",
+    "is": "crashes into a hit",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "bigHit",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the repeating notes crash to an end",
+   "then": "the music lands on the moment"
+  },
+  {
+   "id": "p:tempo-up-faster-cuts",
+   "proximity": "tempo-up-faster-cuts",
+   "label": "When the music speeds up a lot, the cuts come faster",
+   "from": {
+    "curiosity": "tempoShift",
+    "track": "master",
+    "is": "speeds a lot",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music speeds up a lot",
+   "then": "the cuts come faster"
+  },
+  {
+   "id": "p:tempo-down-longer-holds",
+   "proximity": "tempo-down-longer-holds",
+   "label": "When the music slows right down, the shots hold longer",
+   "from": {
+    "curiosity": "tempoShift",
+    "track": "master",
+    "is": "slows a lot",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shotDuration",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music slows right down",
+   "then": "the shots hold longer"
+  },
+  {
+   "id": "p:dark-to-bright-hope",
+   "proximity": "dark-to-bright-hope",
+   "label": "When the music turns from dark to bright, hope rises",
+   "from": {
+    "curiosity": "keyShift",
+    "track": "master",
+    "is": "dark turns bright",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "hope",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music turns from dark to bright",
+   "then": "hope rises"
+  },
+  {
+   "id": "p:bright-to-dark-dread",
+   "proximity": "bright-to-dark-dread",
+   "label": "When the music turns from bright to dark, dread creeps in",
+   "from": {
+    "curiosity": "keyShift",
+    "track": "master",
+    "is": "bright turns dark",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music turns from bright to dark",
+   "then": "dread creeps in"
+  },
+  {
+   "id": "p:heroic-theme-pride",
+   "proximity": "heroic-theme-pride",
+   "label": "When the character's tune is played heroic, pride swells",
+   "from": {
+    "curiosity": "characterTheme.version",
+    "track": "master",
+    "is": "heroic",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pride",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the character's tune is played heroic",
+   "then": "pride swells"
+  },
+  {
+   "id": "p:missed-theme-grief",
+   "proximity": "missed-theme-grief",
+   "label": "When a tune plays for someone who is missed, grief rises",
+   "from": {
+    "curiosity": "characterTheme.trigger",
+    "track": "master",
+    "is": "they are missed",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "grief",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a tune plays for someone who is missed",
+   "then": "grief rises"
+  },
+  {
+   "id": "p:theme-warns-arrival",
+   "proximity": "theme-warns-arrival",
+   "label": "When a tune plays just before its owner arrives, the music is warning us",
+   "from": {
+    "curiosity": "characterTheme.trigger",
+    "track": "master",
+    "is": "they are about to arrive",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "musicWarning",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a tune plays just before its owner arrives",
+   "then": "the music is warning us"
+  },
+  {
+   "id": "p:warning-brings-dread",
+   "proximity": "warning-brings-dread",
+   "label": "When the music warns us early, dread builds",
+   "from": {
+    "curiosity": "musicWarning",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music warns us early",
+   "then": "dread builds"
+  },
+  {
+   "id": "p:false-alarm-release",
+   "proximity": "false-alarm-release",
+   "label": "When the music's warning is a false alarm, the release comes",
+   "from": {
+    "curiosity": "musicWarning.payoff",
+    "track": "master",
+    "is": "false alarm",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRelease.size",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music's warning is a false alarm",
+   "then": "the release comes"
+  },
+  {
+   "id": "p:clash-raises-tension",
+   "proximity": "clash-raises-tension",
+   "label": "When the notes clash more, the tension rises",
+   "from": {
+    "curiosity": "clashingNotes",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the notes clash more",
+   "then": "the tension rises"
+  },
+  {
+   "id": "p:clash-settles-release",
+   "proximity": "clash-settles-release",
+   "label": "When the clashing notes settle, the release comes",
+   "from": {
+    "curiosity": "clashingNotes",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "emoRelease.size",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clashing notes settle",
+   "then": "the release comes"
+  },
+  {
+   "id": "p:warped-memory-nostalgia",
+   "proximity": "warped-memory-nostalgia",
+   "label": "When the music warps into a memory, nostalgia comes with it",
+   "from": {
+    "curiosity": "warpedMusic.why",
+    "track": "master",
+    "is": "a memory",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "nostalgia",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music warps into a memory",
+   "then": "nostalgia comes with it"
+  },
+  {
+   "id": "p:warped-music-echoes",
+   "proximity": "warped-music-echoes",
+   "label": "When the music warps, the place starts to echo",
+   "from": {
+    "curiosity": "warpedMusic",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "placeEcho",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music warps",
+   "then": "the place starts to echo"
+  },
+  {
+   "id": "p:humming-others-join-warmth",
+   "proximity": "humming-others-join-warmth",
+   "label": "When others join the humming, warmth grows",
+   "from": {
+    "curiosity": "humming.caught",
+    "track": "master",
+    "is": "others join in",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "others join the humming",
+   "then": "warmth grows"
+  },
+  {
+   "id": "p:hummed-theme-returns",
+   "proximity": "hummed-theme-returns",
+   "label": "When a character hums the film's own theme, the theme comes back",
+   "from": {
+    "curiosity": "humming.known",
+    "track": "master",
+    "is": "the film's own theme",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "characterTheme",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character hums the film's own theme",
+   "then": "the theme comes back"
+  },
+  {
+   "id": "p:performance-crowd-pride",
+   "proximity": "performance-crowd-pride",
+   "label": "When the crowd goes wild for a performance, pride rises",
+   "from": {
+    "curiosity": "onScreenPerformance.audience",
+    "track": "master",
+    "is": "going wild",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pride",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the crowd goes wild for a performance",
+   "then": "pride rises"
+  },
+  {
+   "id": "p:performance-grows-into-score",
+   "proximity": "performance-grows-into-score",
+   "label": "When a performance takes over the scene, the music crosses into the soundtrack",
+   "from": {
+    "curiosity": "onScreenPerformance",
+    "track": "master",
+    "is": "takes over the scene",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sourceToScore",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "from the room into the soundtrack",
+   "when": "a performance takes over the scene",
+   "then": "the music crosses into the soundtrack"
+  },
+  {
+   "id": "p:crossover-music-rises",
+   "proximity": "crossover-music-rises",
+   "label": "When room music crosses into the soundtrack, the music comes forward",
+   "from": {
+    "curiosity": "sourceToScore",
+    "track": "master",
+    "is": "from the room into the soundtrack",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "music",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "room music crosses into the soundtrack",
+   "then": "the music comes forward"
+  },
+  {
+   "id": "p:saved-music-hits-harder",
+   "proximity": "saved-music-hits-harder",
+   "label": "When the music is saved for the big moments, it lands harder",
+   "from": {
+    "curiosity": "musicSpotting.saved",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "bigHit",
+    "track": "master"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music is saved for the big moments",
+   "then": "it lands harder"
+  },
+  {
+   "id": "p:less-music-more-silence",
+   "proximity": "less-music-more-silence",
+   "label": "When less of the film has music, the silences grow",
+   "from": {
+    "curiosity": "musicSpotting",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "noMusic",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "less of the film has music",
+   "then": "the silences grow"
+  },
+  {
+   "id": "p:inner-music-empathy",
+   "proximity": "inner-music-empathy",
+   "label": "When the music plays one person's inner feeling, we feel with them",
+   "from": {
+    "curiosity": "musicPointOfView",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music plays one person's inner feeling",
+   "then": "we feel with them"
+  },
+  {
+   "id": "p:inner-music-their-ears",
+   "proximity": "inner-music-their-ears",
+   "label": "When the music moves inside a character, we start to hear through their ears",
+   "from": {
+    "curiosity": "musicPointOfView",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "subjectiveSound",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music moves inside a character",
+   "then": "we start to hear through their ears"
+  },
+  {
+   "id": "p:ringing-ears-world-hushes",
+   "proximity": "ringing-ears-world-hushes",
+   "label": "When the ears ring, the background falls away",
+   "from": {
+    "curiosity": "subjectiveSound.kind",
+    "track": "master",
+    "is": "ringing ears",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "ambienceBed",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the ears ring",
+   "then": "the background falls away"
+  },
+  {
+   "id": "p:dread-hushes-the-place",
+   "proximity": "dread-hushes-the-place",
+   "label": "When dread builds, the background sound goes quiet",
+   "from": {
+    "curiosity": "dread",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "ambienceBed",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "dread builds",
+   "then": "the background sound goes quiet"
+  },
+  {
+   "id": "p:exaggerated-foley-cartoon",
+   "proximity": "exaggerated-foley-cartoon",
+   "label": "When the handmade sounds are exaggerated, the sound turns cartoony",
+   "from": {
+    "curiosity": "foley.loud",
+    "track": "master",
+    "is": "exaggerated",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundDesign.realism",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cartoon",
+   "when": "the handmade sounds are exaggerated",
+   "then": "the sound turns cartoony"
+  },
+  {
+   "id": "p:footsteps-pull-off-screen",
+   "proximity": "footsteps-pull-off-screen",
+   "label": "When the footsteps are singled out, we listen beyond the frame",
+   "from": {
+    "curiosity": "foley.focus",
+    "track": "master",
+    "is": "footsteps",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "soundDesign.offscreen",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the footsteps are singled out",
+   "then": "we listen beyond the frame"
+  },
+  {
+   "id": "p:echo-brings-loneliness",
+   "proximity": "echo-brings-loneliness",
+   "label": "When the place echoes more, loneliness grows",
+   "from": {
+    "curiosity": "placeEcho",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the place echoes more",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:cathedral-echo-awe",
+   "proximity": "cathedral-echo-awe",
+   "label": "When the echo sounds like a cathedral, awe rises",
+   "from": {
+    "curiosity": "placeEcho.size",
+    "track": "master",
+    "is": "a cathedral",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "awe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the echo sounds like a cathedral",
+   "then": "awe rises"
+  },
+  {
+   "id": "p:style-clash-fights-scene",
+   "proximity": "style-clash-fights-scene",
+   "label": "When the style of music clashes on purpose, the music fights the scene",
+   "from": {
+    "curiosity": "musicStyle",
+    "track": "master",
+    "is": "clashes on purpose",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "music.counterpoint",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "opposite",
+   "when": "the style of music clashes on purpose",
+   "then": "the music fights the scene"
+  },
+  {
+   "id": "p:wrong-era-sung-on-stage",
+   "proximity": "wrong-era-sung-on-stage",
+   "label": "When characters sing music from another time, a performance takes over",
+   "from": {
+    "curiosity": "wrongEraMusic.use",
+    "track": "master",
+    "is": "the characters sing it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "onScreenPerformance",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "characters sing music from another time",
+   "then": "a performance takes over"
+  },
+  {
+   "id": "p:title-theme-comes-back",
+   "proximity": "title-theme-comes-back",
+   "label": "When the title music carries the main theme, the theme becomes easy to recognise",
+   "from": {
+    "curiosity": "titleMusic.tieIn",
+    "track": "master",
+    "is": "the main theme",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "characterTheme",
+    "track": "master"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the title music carries the main theme",
+   "then": "the theme becomes easy to recognise"
+  },
+  {
+   "id": "p:end-music-aftertaste",
+   "proximity": "end-music-aftertaste",
+   "label": "When the closing music is big, the feeling stays after the film",
+   "from": {
+    "curiosity": "titleMusic",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "filmAftertaste",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the closing music is big",
+   "then": "the feeling stays after the film"
+  },
+  {
+   "id": "p:lone-instrument-loneliness",
+   "proximity": "lone-instrument-loneliness",
+   "label": "When one instrument plays alone, loneliness grows",
+   "from": {
+    "curiosity": "leadInstrument.solo",
+    "track": "master",
+    "is": "alone",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one instrument plays alone",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:close-instrument-tenderness",
+   "proximity": "close-instrument-tenderness",
+   "label": "When the instrument sounds right in your ear, tenderness grows",
+   "from": {
+    "curiosity": "leadInstrument.closeness",
+    "track": "master",
+    "is": "right in your ear",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the instrument sounds right in your ear",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:sounds-into-beat-cuts",
+   "proximity": "sounds-into-beat-cuts",
+   "label": "When everyday sounds fall into a beat, the cuts land on it",
+   "from": {
+    "curiosity": "soundsBecomeMusic",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "beatSync",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyday sounds fall into a beat",
+   "then": "the cuts land on it"
+  },
+  {
+   "id": "p:hit-feeling-peaks",
+   "proximity": "hit-feeling-peaks",
+   "label": "When the music lands big on the moment, the feeling peaks",
+   "from": {
+    "curiosity": "bigHit",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music lands big on the moment",
+   "then": "the feeling peaks"
+  },
+  {
+   "id": "p:hit-then-silence",
+   "proximity": "hit-then-silence",
+   "label": "When the big hit is followed by silence, the music drops out",
+   "from": {
+    "curiosity": "bigHit.after",
+    "track": "master",
+    "is": "silence",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "noMusic",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the big hit is followed by silence",
+   "then": "the music drops out"
   }
  ],
  "groups": [
@@ -14598,6 +16899,309 @@
     "p:jealousy-opens-gap",
     "p:jealousy-hardens",
     "p:grudge-boils-over"
+   ]
+  },
+  {
+   "id": "ps:plan-to-pieces",
+   "label": "Plan to pieces",
+   "plain": "The whole plan is told, it falls apart, the hidden part flips everything, and the goal slips away.",
+   "proximities": [
+    "plan-told-falls-apart",
+    "hidden-plan-reversal",
+    "reversal-setback"
+   ],
+   "links": [
+    "p:plan-told-falls-apart",
+    "p:hidden-plan-reversal",
+    "p:reversal-setback"
+   ]
+  },
+  {
+   "id": "ps:the-line-crossed",
+   "label": "The line crossed",
+   "plain": "A costly choice is made, the feeling is held in, there is no going back, and the stakes rise.",
+   "proximities": [
+    "choice-cost-held-in",
+    "choice-no-return",
+    "no-return-stakes"
+   ],
+   "links": [
+    "p:choice-cost-held-in",
+    "p:choice-no-return",
+    "p:no-return-stakes"
+   ]
+  },
+  {
+   "id": "ps:enemy-at-the-door",
+   "label": "Enemy at the door",
+   "plain": "The other side moves, dread grows, they reach the door, things get worse, tension climbs and hope drops.",
+   "proximities": [
+    "opponent-dread",
+    "opponent-at-door",
+    "complication-tension",
+    "bad-timing-hope-drops"
+   ],
+   "links": [
+    "p:opponent-dread",
+    "p:opponent-at-door",
+    "p:complication-tension",
+    "p:bad-timing-hope-drops"
+   ]
+  },
+  {
+   "id": "ps:clue-in-plain-sight",
+   "label": "Clue in plain sight",
+   "plain": "An object is planted, the camera keeps coming back to it, questions grow, a lingering shot gives it away, and the reveal lands.",
+   "proximities": [
+    "planted-object-returns",
+    "object-returns-questions",
+    "linger-uncovers-plant",
+    "plant-big-reveal"
+   ],
+   "links": [
+    "p:planted-object-returns",
+    "p:object-returns-questions",
+    "p:linger-uncovers-plant",
+    "p:plant-big-reveal"
+   ]
+  },
+  {
+   "id": "ps:finally-seeing",
+   "label": "Finally seeing",
+   "plain": "The blind spot opens, they understand, they give something up, and the change shows.",
+   "proximities": [
+    "blind-spot-opens",
+    "realization-sacrifice",
+    "sacrifice-change-shows"
+   ],
+   "links": [
+    "p:blind-spot-opens",
+    "p:realization-sacrifice",
+    "p:sacrifice-change-shows"
+   ]
+  },
+  {
+   "id": "ps:talked-into-it",
+   "label": "Talked into it",
+   "plain": "Excuses pile up, they slip back into old ways, and they talk themselves over a line they cannot uncross.",
+   "proximities": [
+    "excuses-slip-back",
+    "excuses-cross-line",
+    "no-return-stakes"
+   ],
+   "links": [
+    "p:excuses-slip-back",
+    "p:excuses-cross-line",
+    "p:no-return-stakes"
+   ]
+  },
+  {
+   "id": "ps:rumor-to-rally",
+   "label": "From rumor to rally",
+   "plain": "A rumor turns the crowd, one person speaks up, openly defies them, and wins the room back.",
+   "proximities": [
+    "rumor-turns-crowd",
+    "crowd-turns-dissenter",
+    "defiance-rallies",
+    "lone-voice-turns-crowd"
+   ],
+   "links": [
+    "p:rumor-turns-crowd",
+    "p:crowd-turns-dissenter",
+    "p:defiance-rallies",
+    "p:lone-voice-turns-crowd"
+   ]
+  },
+  {
+   "id": "ps:the-hit-we-never-see",
+   "label": "The hit we never see",
+   "plain": "The film cuts away before the blow, the screen goes black and silent, time jumps ahead, and later a slow reveal shows what was left.",
+   "proximities": [
+    "cut-away-to-black",
+    "black-at-shock-silence",
+    "black-then-time-skip",
+    "missed-hit-revealed-slowly"
+   ],
+   "links": [
+    "p:cut-away-to-black",
+    "p:black-at-shock-silence",
+    "p:black-then-time-skip",
+    "p:missed-hit-revealed-slowly"
+   ]
+  },
+  {
+   "id": "ps:time-gets-away",
+   "label": "Time gets away",
+   "plain": "The world races past someone sitting still, the story skips ahead, and a card tells us how many years went by.",
+   "proximities": [
+    "time-lapse-waiting-lonely",
+    "time-lapse-skip",
+    "years-skipped-card"
+   ],
+   "links": [
+    "p:time-lapse-waiting-lonely",
+    "p:time-lapse-skip",
+    "p:years-skipped-card"
+   ]
+  },
+  {
+   "id": "ps:one-second-forever",
+   "label": "One second, forever",
+   "plain": "A life or death moment is stretched across the faces watching, the tension climbs, time freezes, and the hit lands hard.",
+   "proximities": [
+    "life-or-death-faces",
+    "stretched-moment-tension",
+    "frozen-orbit-impact"
+   ],
+   "links": [
+    "p:life-or-death-faces",
+    "p:stretched-moment-tension",
+    "p:frozen-orbit-impact"
+   ]
+  },
+  {
+   "id": "ps:red-means-run",
+   "label": "Red means run",
+   "plain": "A bright color keeps popping until it means trouble, every time it shows up dread rises, and the film cuts away before the worst.",
+   "proximities": [
+    "pop-color-becomes-warning",
+    "warning-color-dread",
+    "cut-before-hit-dread"
+   ],
+   "links": [
+    "p:pop-color-becomes-warning",
+    "p:warning-color-dread",
+    "p:cut-before-hit-dread"
+   ]
+  },
+  {
+   "id": "ps:worlds-collide",
+   "label": "Worlds collide",
+   "plain": "Colors leak from one world to another, the storylines cross, and lines start jumping the cuts between them.",
+   "proximities": [
+    "world-colors-leak",
+    "bridge-line-cross-cut",
+    "color-rubs-off-warmth"
+   ],
+   "links": [
+    "p:world-colors-leak",
+    "p:bridge-line-cross-cut",
+    "p:color-rubs-off-warmth"
+   ]
+  },
+  {
+   "id": "ps:unsent-message",
+   "label": "The unsent message",
+   "plain": "A text is typed and deleted, the wait for a reply stretches, and the messages pile up until a secret slips out.",
+   "proximities": [
+    "typed-and-deleted-wait",
+    "messages-spill-secret"
+   ],
+   "links": [
+    "p:typed-and-deleted-wait",
+    "p:messages-spill-secret"
+   ]
+  },
+  {
+   "id": "ps:the-clock-runs-out",
+   "label": "The clock runs out",
+   "plain": "The repeating notes push harder, the music speeds up, the cuts come faster, the pattern crashes into a big hit, and then silence.",
+   "proximities": [
+    "loop-speeds-up",
+    "tempo-up-faster-cuts",
+    "loop-breaks-into-hit",
+    "hit-then-silence"
+   ],
+   "links": [
+    "p:loop-speeds-up",
+    "p:tempo-up-faster-cuts",
+    "p:loop-breaks-into-hit",
+    "p:hit-then-silence"
+   ]
+  },
+  {
+   "id": "ps:something-is-coming",
+   "label": "Something is coming",
+   "plain": "The music warns us early, the bright tune turns dark, the notes start to clash, dread builds and the place itself goes quiet.",
+   "proximities": [
+    "warning-brings-dread",
+    "bright-to-dark-dread",
+    "clash-raises-tension",
+    "dread-hushes-the-place"
+   ],
+   "links": [
+    "p:warning-brings-dread",
+    "p:bright-to-dark-dread",
+    "p:clash-raises-tension",
+    "p:dread-hushes-the-place"
+   ]
+  },
+  {
+   "id": "ps:the-world-goes-quiet",
+   "label": "The world goes quiet",
+   "plain": "The music moves inside one person, we start to hear through their ears, the background falls away, and the echo leaves them alone.",
+   "proximities": [
+    "inner-music-empathy",
+    "inner-music-their-ears",
+    "ringing-ears-world-hushes",
+    "echo-brings-loneliness"
+   ],
+   "links": [
+    "p:inner-music-empathy",
+    "p:inner-music-their-ears",
+    "p:ringing-ears-world-hushes",
+    "p:echo-brings-loneliness"
+   ]
+  },
+  {
+   "id": "ps:from-the-room-to-the-soundtrack",
+   "label": "From the room to the soundtrack",
+   "plain": "Someone hums the theme, a performance takes over, the song crosses into the soundtrack and comes forward, and the crowd's joy becomes pride.",
+   "proximities": [
+    "hummed-theme-returns",
+    "performance-grows-into-score",
+    "crossover-music-rises",
+    "performance-crowd-pride"
+   ],
+   "links": [
+    "p:hummed-theme-returns",
+    "p:performance-grows-into-score",
+    "p:crossover-music-rises",
+    "p:performance-crowd-pride"
+   ]
+  },
+  {
+   "id": "ps:the-theme-comes-home",
+   "label": "The theme comes home",
+   "plain": "The title music plants the theme, it plays for someone missed, the music turns from dark to bright, and the theme comes back heroic.",
+   "proximities": [
+    "title-theme-comes-back",
+    "missed-theme-grief",
+    "dark-to-bright-hope",
+    "heroic-theme-pride"
+   ],
+   "links": [
+    "p:title-theme-comes-back",
+    "p:missed-theme-grief",
+    "p:dark-to-bright-hope",
+    "p:heroic-theme-pride"
+   ]
+  },
+  {
+   "id": "ps:saving-it-for-the-end",
+   "label": "Saving it for the end",
+   "plain": "Less music means longer silences, so when the saved music finally lands on the moment, the feeling peaks and stays after the film.",
+   "proximities": [
+    "less-music-more-silence",
+    "saved-music-hits-harder",
+    "hit-feeling-peaks",
+    "end-music-aftertaste"
+   ],
+   "links": [
+    "p:less-music-more-silence",
+    "p:saved-music-hits-harder",
+    "p:hit-feeling-peaks",
+    "p:end-music-aftertaste"
    ]
   }
  ]

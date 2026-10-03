@@ -12,7 +12,7 @@ becomes a way to direct a scene.
 
 It works with VCV Rack's own free modules and needs no plugin:
 
-- **One jack per item:** 1430 jacks (481 curiosities, 306 suites, 526 proximities, 117 proximity suites). Each
+- **One jack per item:** 1673 jacks (550 curiosities, 344 suites, 643 proximities, 136 proximity suites). Each
   one is a MIDI channel and a CC number, taken from the database by `vcv/tools/make-vcv.js`.
 - **Ready-made Rack files:** `vcv/rack/<workspace>.vcvs`. Each has CV-CC modules already set, a Notes module that
   names every jack, and an LFO already patched in.
@@ -67,7 +67,7 @@ the same list, so a Rack patch drives the web app, the desktop app or Maya's cam
 - **CC numbers 1 to 112**, seven modules per channel. This keeps clear of CC 0 (bank select) and CC 120 to 127,
   which instruments treat as commands.
 - **Channel 16 is kept for Focus.** One MIDI cable (port) holds 15 channels × 112 CCs = 1,680 jacks (105 modules).
-  Today 104 modules are in use on channels 1 to 15.
+  Today 119 modules are in use: 105 on port 1 and 14 on port 2 (channels 1 and 2).
 - **More than 1,680 jacks: a second cable.** Module 106 onward goes on port 2, starting again at channel 1, CC 1.
   Port 1's jacks never move, so saved patches keep working. In the bank a port 2 jack has an 8th entry (2); the
   Notes module says "PORT 2"; the plugin panel says "Port 2". The bridge tells cables apart by name: a MIDI input
