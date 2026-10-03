@@ -164,5 +164,50 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(Array.isArray(w.CurioLanes.tools().markers), "the tools keep markers as a list");
 }
 
+/* Dragging a selected area sideways: every node in it moves (or, with Alt, is copied) by whole moments, one batch. */
+{
+  const CL = w.CurioLanes;
+  const Sc = w.CurioScale;
+  E.reset(w.CurioSeeds.starter());
+  const rr = E.state().rows;
+  const o = Sc.domain("shotSize").options;
+  const lanesA = [{ track: "camera", cur: "shotSize", lk: "camera|shotSize" }, { track: "master", cur: "emotion", lk: "master|emotion" }];
+  const pt = (j, v, t, c) => ({ type: "setPoint", row: rr[j].id, track: t || "camera", curiosity: c || "shotSize", value: v });
+  E.send({ type: "batch", commands: [pt(0, o[3]), pt(1, o[0]), pt(2, o[1]), pt(4, o[2]), pt(2, "angry", "master", "emotion"), pt(5, o[o.length - 1])] });
+  E.send(CL.linkCommand(E.state(), { row: rr[1].id, track: "camera", cur: "shotSize" }, { row: rr[2].id, track: "master", cur: "emotion" }));
+  E.send(pt(6, "melancholy", "master", "emotion"));
+  E.send(CL.linkCommand(E.state(), { row: rr[2].id, track: "camera", cur: "shotSize" }, { row: rr[6].id, track: "master", cur: "emotion" }));
+  const film = () => JSON.stringify([E.state().lanes, E.state().links]);
+  const before = film();
+  const P = () => E.state().lanes["camera|shotSize"].points;
+  const M = () => E.state().lanes["master|emotion"].points;
+  const ar = { i0: 0, i1: 1, j0: 1, j1: 2 };
+  ok(CL.moveAreaCommands(E.state(), lanesA, ar, 0, false).cmds.length === 0, "a move of zero moments changes nothing");
+  ok(!!CL.moveAreaCommands(E.state(), lanesA, ar, -2, false).error && !!CL.moveAreaCommands(E.state(), lanesA, ar, rr.length - 2, false).error, "the block cannot leave the film at either end");
+  const mv = CL.moveAreaCommands(E.state(), lanesA, ar, 2, false);
+  ok(mv.nodes === 3 && mv.replaced === 1 && mv.links === 1 && mv.area.j0 === 3 && mv.area.j1 === 4, "moving two moments later counts 3 nodes, 1 join inside and 1 node written over, and gives the moved area");
+  ok(E.send({ type: "batch", label: "Move the selection", commands: mv.cmds }).ok, "the move is one batch");
+  ok(P()[rr[3].id] === o[0] && P()[rr[4].id] === o[1] && M()[rr[4].id] === "angry" && P()[rr[1].id] == null && P()[rr[2].id] == null && M()[rr[2].id] == null, "every node in the area moved two moments later and left its old moment");
+  ok(P()[rr[0].id] === o[3] && P()[rr[5].id] === o[o.length - 1] && M()[rr[6].id] === "melancholy", "nodes outside the area stay put (the one under the block was replaced)");
+  const lk1 = E.state().links.find((l) => l.from.curiosity === "shotSize" && l.to.curiosity === "emotion" && l.scope.to === rr[4].id);
+  const lk2 = E.state().links.find((l) => l.scope && l.scope.to === rr[6].id);
+  ok(lk1 && lk1.scope.from === rr[3].id && lk1.within === 1, "a join inside the area moves with its nodes");
+  ok(lk2 && lk2.scope.from === rr[4].id && lk2.within === 2, "a join to a node outside the area stretches");
+  E.undo();
+  ok(film() === before, "one undo brings back the exact film, the replaced node too");
+  const cp = CL.moveAreaCommands(E.state(), lanesA, ar, 3, true);
+  const nl = E.state().links.length;
+  ok(E.send({ type: "batch", label: "Copy the selection", commands: cp.cmds }).ok && cp.nodes === 3, "Alt copies the area as one batch");
+  ok(P()[rr[1].id] === o[0] && P()[rr[2].id] === o[1] && M()[rr[2].id] === "angry" && P()[rr[4].id] === o[0] && P()[rr[5].id] === o[1] && M()[rr[5].id] === "angry" && M()[rr[4].id] == null, "the originals stay and the copy lands three moments later, replacing what was there");
+  ok(E.state().links.length === nl + 1 && E.state().links.some((l) => l.scope && l.scope.from === rr[4].id && l.scope.to === rr[5].id), "the join inside the area is copied with its nodes");
+  E.undo();
+  ok(film() === before, "one undo takes the copy back");
+  /* Moving over its own old place: a one-moment shift overlaps the block with itself. */
+  const ov = CL.moveAreaCommands(E.state(), lanesA, ar, -1, false);
+  ok(E.send({ type: "batch", commands: ov.cmds }).ok && P()[rr[0].id] === o[0] && P()[rr[1].id] === o[1] && P()[rr[2].id] == null && M()[rr[1].id] === "angry" && E.state().lanes["camera|shotSize"].mode === JSON.parse(before)[0]["camera|shotSize"].mode, "a block can move onto its own old moments");
+  E.undo();
+  ok(film() === before, "and undo restores it");
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

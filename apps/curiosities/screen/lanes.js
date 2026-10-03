@@ -16,7 +16,8 @@
 
    Mouse: click an empty spot to add a node; drag a node up or down to change it, sideways to move it (and its
    partners); hold Alt (or Shift) while dragging to copy instead; drop a node on a node in another lane to join
-   them; double-click a node to remove it. Click a line to switch it off or remove it.
+   them; double-click a node to remove it. Click a line to switch it off or remove it. Drag across empty space to
+   select an area; drag inside the area sideways to move all its nodes in time (Alt when you let go: copy them).
 
    window.CurioLanes
    - mount(el, opts) -> { draw(), destroy() }
@@ -561,6 +562,87 @@
     });
     return { cmds, nodes };
   }
+  /* Move the selected area's nodes d moments later (d < 0: earlier), like dragging a group of clips sideways in
+     CapCut. copy: the originals stay and a copy lands d moments away (Alt while dropping). The block is the whole
+     area: whatever its lanes had over the moments it lands on is replaced, so one undo brings that back too. Sets
+     go before removes, so a lane never empties on the way (an empty lane forgets its mode). Joins with both ends
+     inside move (or are copied) with them; a join with one end left outside stretches; a join to a replaced node
+     is removed. Returns { cmds, nodes, replaced, links, moved (old node key -> new row id), area } or { error }. */
+  function moveAreaCommands(st, lanes, ar, d, copy) {
+    const n = st.rows.length;
+    d = Math.round(Number(d) || 0);
+    const out = { cmds: [], nodes: 0, replaced: 0, links: 0, moved: {}, area: { i0: ar.i0, i1: ar.i1, j0: ar.j0 + d, j1: ar.j1 + d } };
+    if (ar.j0 + d < 0 || ar.j1 + d > n - 1) return { error: "That would push part of the selection off the end of the film." };
+    if (!d) return out;
+    const ix = {};
+    st.rows.forEach((r, i) => (ix[r.id] = i));
+    const sets = [];
+    const removes = [];
+    const dropped = new Set(); /* nodes that are gone: replaced, or (copy) originals written over by their copy */
+    const inside = new Set();
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      const before = {};
+      for (let j = Math.min(ar.j0, ar.j0 + d); j <= Math.max(ar.j1, ar.j1 + d); j++) {
+        const v = lane.points[st.rows[j].id];
+        if (v != null) before[j] = v;
+      }
+      const after = Object.assign({}, before);
+      const src = [];
+      for (let j = ar.j0; j <= ar.j1; j++) if (before[j] != null) src.push([j, before[j]]);
+      if (!copy) src.forEach(([j]) => delete after[j]);
+      for (let j = ar.j0 + d; j <= ar.j1 + d; j++) {
+        if (before[j] == null) continue;
+        const k = nodeKey(st.rows[j].id, ln.lk);
+        const isSrc = j >= ar.j0 && j <= ar.j1;
+        if (copy || !isSrc) {
+          dropped.add(k);
+          if (!isSrc) out.replaced++;
+        }
+        delete after[j];
+      }
+      src.forEach(([j, v]) => {
+        after[j + d] = v;
+        const k = nodeKey(st.rows[j].id, ln.lk);
+        inside.add(k);
+        out.moved[k] = st.rows[j + d].id;
+        out.nodes++;
+      });
+      Object.keys(after).forEach((j) => {
+        if (before[j] == null || String(before[j]) !== String(after[j])) sets.push({ type: "setPoint", row: st.rows[j].id, track: ln.track, curiosity: ln.cur, value: after[j] });
+      });
+      Object.keys(before).forEach((j) => after[j] == null && removes.push({ type: "removePoint", row: st.rows[j].id, track: ln.track, curiosity: ln.cur }));
+    }
+    if (!out.nodes) return out;
+    const linkCmds = [];
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends) return;
+      const a = inside.has(ends[0]);
+      const b = inside.has(ends[1]);
+      if (copy) {
+        /* The originals stay, unless their copy landed on them; joins with both ends inside get a copy. */
+        if (ends.some((k) => dropped.has(k))) linkCmds.push({ type: "removeLink", link: l.id });
+        if (!(a && b)) return;
+        const body = JSON.parse(JSON.stringify(l));
+        delete body.id;
+        linkCmds.push(Object.assign({ type: "addLink" }, body, { scope: { from: out.moved[ends[0]], to: out.moved[ends[1]] } }));
+        out.links++;
+        return;
+      }
+      if (ends.some((k) => dropped.has(k))) return linkCmds.push({ type: "removeLink", link: l.id });
+      if (!a && !b) return;
+      const scope = { from: a ? out.moved[ends[0]] : l.scope.from, to: b ? out.moved[ends[1]] : l.scope.to };
+      if (a && b) {
+        out.links++;
+        linkCmds.push({ type: "updateLink", link: l.id, changes: { scope } });
+      } else linkCmds.push({ type: "updateLink", link: l.id, changes: { scope, within: Math.max(0, Math.min(16, Math.abs(ix[scope.to] - ix[scope.from]))) } });
+    });
+    out.cmds = sets.concat(removes, linkCmds);
+    return out;
+  }
 
   /* ---------- the view ---------- */
   /* Storyboard frames for My film's clip track, as data pictures (each frame stays self-contained, so its arrow
@@ -727,7 +809,7 @@
         tsvg.push(`<g class="sl-marker" data-marker="${j}" style="--mk:${c[2]}"><line x1="${x}" x2="${x}" y1="0" y2="${top}"/><rect class="sl-mkhit" x="${x - 7}" y="${Math.max(0, top - 16)}" width="14" height="16"/><path d="M${x - 5} ${fy}h10v7l-5 4-5-4z"/>${label ? `<text class="sl-mklabel" x="${x + 7}" y="${fy + 7}">${esc(label)}</text>` : ""}<title>${esc(tip)}. Double-click to write a note, change its color or delete it.</title></g>`);
         svg.push(`<g class="sl-marker" data-marker="${j}" style="--mk:${c[2]}"><line x1="${x}" x2="${x}" y1="0" y2="${svgH}"/><title>${esc(tip)}</title></g>`);
       });
-      if (area) svg.push(`<rect class="sl-area" x="${area.j0 * colW}" y="${area.i0 * lh}" width="${(area.j1 - area.j0 + 1) * colW}" height="${(area.i1 - area.i0 + 1) * lh}"><title>Selected: moments ${area.j0 + 1} to ${area.j1 + 1}, ${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""}. Copy, then pick where it goes and Paste.</title></rect>`);
+      if (area) svg.push(`<rect class="sl-area" x="${area.j0 * colW}" y="${area.i0 * lh}" width="${(area.j1 - area.j0 + 1) * colW}" height="${(area.i1 - area.i0 + 1) * lh}"><title>Selected: moments ${area.j0 + 1} to ${area.j1 + 1}, ${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""}. Drag it sideways to move it (hold Alt to copy), or Copy, then pick where it goes and Paste.</title></rect>`);
       const ix = st.rows.map((r) => r.id);
       lanes.forEach((ln, i) => {
         if (!ln.track) return;
@@ -800,7 +882,7 @@
           <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
           ${tb("skim", "Preview axis", "Preview axis (S): hover over the timeline to see that moment in the player", tools.skim)}
           <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−), or drag up on the ruler")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+), or drag down on the ruler")}</span>
-          <span class="sl-msg" role="status">${esc(msg || (others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
+          <span class="sl-msg" role="status">${esc(msg || (area ? "Drag the selection sideways to move it; hold Alt (Option) to copy it instead." : others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
         </div>
         <div class="sl-scroll"><div class="sl-body" style="grid-template-columns: var(--sl-head-w, 190px) ${svgW}px">
           <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
@@ -955,10 +1037,12 @@
       }
       if (!e.target.closest || !e.target.closest(".sl-svg")) return;
       const a = at(e);
+      /* A press inside the selected area may become a sideways drag of the whole block (decided in onMove). */
+      const inArea = !!area && (node ? node.classList.contains("in") : inBlock(a));
       if (node) {
         sel = node.dataset.node;
         seg = null;
-        drag = { key: sel, start: a, copy: e.altKey || e.shiftKey, moved: false };
+        drag = { key: sel, start: a, copy: e.altKey || e.shiftKey, moved: false, area: inArea };
         if (opts.onSelect) opts.onSelect(split(sel).cur);
         e.preventDefault();
         return;
@@ -969,10 +1053,83 @@
         el.querySelectorAll(".sl-seghit.on").forEach((x) => x.classList.remove("on"));
         segEl.classList.add("on");
         say("Line picked: double-click it, or press Curves, to shape its curve.");
+        if (inArea) drag = { add: true, start: a, copy: e.altKey || e.shiftKey, area: true, quiet: true };
         return;
       }
       if (!a.ln) return;
-      drag = { add: true, start: a };
+      drag = { add: true, start: a, copy: e.altKey || e.shiftKey, area: inArea };
+      if (inArea) e.preventDefault();
+    }
+    const inBlock = (a) => !!area && !!a.ln && a.i >= area.i0 && a.i <= area.i1 && a.x >= area.j0 * geo.colW && a.x < (area.j1 + 1) * geo.colW;
+    /* ---------- dragging the selected area sideways (CapCut: drag a group of clips along the timeline) ----------
+       The whole block snaps to whole moments and stays inside the film. While dragging, a copy of the area's
+       outline and its nodes slides with the pointer (the originals fade, or stay put with Alt: a copy). */
+    function areaShift(a, d) {
+      const dj = Math.round((a.x - d.start.x) / geo.colW);
+      return Math.max(-area.j0, Math.min(geo.n - 1 - area.j1, dj));
+    }
+    function areaPreview(dj, copy) {
+      const svg = el.querySelector(".sl-svg");
+      if (!svg) return;
+      let g = svg.querySelector(".sl-areaghost");
+      if (!g) {
+        g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        const box = svg.querySelector(".sl-area");
+        if (box) g.appendChild(box.cloneNode(false));
+        svg.querySelectorAll(".sl-node.in").forEach((c) => {
+          const k = c.cloneNode(false);
+          k.removeAttribute("data-node");
+          g.appendChild(k);
+        });
+        svg.appendChild(g);
+      }
+      g.setAttribute("class", "sl-areaghost" + (copy ? " copy" : ""));
+      g.setAttribute("transform", `translate(${dj * geo.colW} 0)`);
+      svg.classList.toggle("sl-areamoving", !copy);
+      const count = svg.querySelectorAll(".sl-node.in[data-node]").length;
+      const nodes = `${count} node${count === 1 ? "" : "s"}`;
+      if (!dj) say(`Drag sideways to move the selection (${nodes}); hold Alt (Option) when you let go to copy instead.`);
+      else say(`${copy ? "Copy" : "Move"} ${nodes} ${Math.abs(dj)} moment${Math.abs(dj) === 1 ? "" : "s"} ${dj > 0 ? "later" : "earlier"}, to moments ${area.j0 + dj + 1} to ${area.j1 + dj + 1}.${copy ? " The originals stay." : " Hold Alt (Option) to copy instead."}`);
+    }
+    function dropArea(dj, copy) {
+      const st = E().state();
+      if (!dj) {
+        say("The selection is back where it was; nothing moved.");
+        return draw();
+      }
+      const r = moveAreaCommands(st, geo.lanes, area, dj, copy);
+      if (r.error) return say(r.error), draw();
+      const where = Math.abs(dj) + " moment" + (Math.abs(dj) === 1 ? "" : "s") + (dj > 0 ? " later" : " earlier");
+      if (!r.nodes) {
+        area = r.area;
+        say(`The selection moved ${where}; it had no nodes in it, so the film is the same.`);
+        return draw();
+      }
+      const out = send({ type: "batch", label: copy ? "Copy the selection" : "Move the selection", commands: r.cmds });
+      if (out.ok) {
+        /* A curve whose two nodes both moved keeps its shape at the new moments. */
+        let kept = false;
+        Object.keys(curves).forEach((sk) => {
+          const p = sk.split("|");
+          const ra = r.moved[nodeKey(p[2], p[0] + "|" + p[1])];
+          const rb = r.moved[nodeKey(p[3], p[0] + "|" + p[1])];
+          if (ra && rb) (curves[segKey(p[0] + "|" + p[1], ra, rb)] = curves[sk]), (kept = true);
+        });
+        if (kept) saveCurves();
+        if (sel && r.moved[sel] && !copy) sel = nodeKey(r.moved[sel], split(sel).lk);
+        area = r.area;
+        const nodes = `${r.nodes} node${r.nodes === 1 ? "" : "s"}`;
+        say(
+          `${copy ? "Copied" : "Moved"} ${nodes} ${where}; they now sit at moments ${area.j0 + 1} to ${area.j1 + 1}.` +
+            (copy ? " The originals stayed where they were." : "") +
+            (r.links ? ` ${r.links} join${r.links === 1 ? "" : "s"} came along.` : "") +
+            (r.replaced ? ` ${r.replaced} node${r.replaced === 1 ? " that was" : "s that were"} already there ${r.replaced === 1 ? "was" : "were"} replaced.` : "") +
+            " Undo (⌘Z) puts everything back."
+        );
+      }
+      const keep = msg;
+      draw();
+      say(keep);
     }
     let hoverJ = -1;
     function onMove(e) {
@@ -1019,6 +1176,10 @@
         } else sc.scrollTop = Math.max(0, leftDrag.st0 - dy);
         return;
       }
+      if (!drag && area && geo && e.target.closest && e.target.closest(".sl-svg") && el.contains(e.target)) {
+        /* A grab hand over the selected area: it can be dragged sideways. */
+        el.querySelector(".sl-svg").classList.toggle("sl-overarea", inBlock(at(e)));
+      }
       if (!drag && tools.skim && opts.onHover && geo && e.target.closest && e.target.closest(".sl-svg") && el.contains(e.target)) {
         const a = at(e);
         if (a.j !== hoverJ) opts.onHover((hoverJ = a.j));
@@ -1028,6 +1189,16 @@
       const a = at(e);
       if (Math.abs(a.x - drag.start.x) + Math.abs(a.y - drag.start.y) > 4) drag.moved = true;
       if (!drag.moved) return;
+      if (drag.area && !drag.areaMove) {
+        /* Inside the selected area: mostly sideways moves the whole block; mostly up or down does what it did
+           before (a node's setting, or a new selection box). */
+        if (Math.abs(a.x - drag.start.x) >= Math.abs(a.y - drag.start.y)) drag.areaMove = true;
+        drag.area = false;
+      }
+      if (drag.areaMove) {
+        if (area) areaPreview(areaShift(a, drag), drag.copy || e.altKey || e.shiftKey);
+        return;
+      }
       const svg = el.querySelector(".sl-svg");
       if (drag.add) {
         /* Dragging across empty space draws a selection box. */
@@ -1092,7 +1263,7 @@
         area = d.shift && area ? { i0: Math.min(area.i0, d.i), i1: Math.max(area.i1, d.i), j0: 0, j1: last } : { i0: d.i, i1: d.i, j0: 0, j1: last };
         sel = null;
         seg = null;
-        say(`${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""} selected. Copy, then pick another lane or area and Paste.`);
+        say(`${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""} selected. Copy, then pick another lane or area and Paste. Drag a selection sideways to move it; hold Alt to copy.`);
         return draw();
       }
       if (!drag) return;
@@ -1100,6 +1271,8 @@
       drag = null;
       const a = at(e);
       const st = E().state();
+      if (d.areaMove) return area ? dropArea(areaShift(a, d), d.copy || e.altKey || e.shiftKey) : draw();
+      if (d.quiet && !d.moved) return;
       if (d.add && d.moved) {
         const j0 = Math.max(0, Math.min(geo.n - 1, Math.floor(Math.min(a.x, d.start.x) / geo.colW)));
         const j1 = Math.max(0, Math.min(geo.n - 1, Math.floor(Math.max(a.x, d.start.x) / geo.colW)));
@@ -1108,7 +1281,7 @@
         area = { i0, i1, j0, j1 };
         sel = null;
         seg = null;
-        say(`Selected moments ${j0 + 1} to ${j1 + 1} on ${i1 - i0 + 1} lane${i1 > i0 ? "s" : ""}. Copy, then select where it goes and Paste.`);
+        say(`Selected moments ${j0 + 1} to ${j1 + 1} on ${i1 - i0 + 1} lane${i1 > i0 ? "s" : ""}. Drag it sideways to move it (Alt copies), or Copy and Paste elsewhere.`);
         return draw();
       }
       if (d.add) {
@@ -1800,5 +1973,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, moveAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
 })();

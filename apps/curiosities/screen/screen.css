@@ -475,3 +475,12 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-mkat small { color: var(--cc-dim); }
 .sl-mktext { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sl-mktext.empty { color: var(--cc-dim); font-style: italic; }
+/* ---------- Dragging the selected area sideways (move its nodes in time; Alt copies) ---------- */
+.sl-svg.sl-overarea { cursor: grab; }
+.sl-svg.sl-areamoving, .sl-svg:has(.sl-areaghost) { cursor: grabbing; }
+.sl-svg.sl-areamoving .sl-node.in[data-node] { opacity: 0.3; }
+.sl-areaghost { pointer-events: none; }
+.sl-areaghost .sl-area { fill: rgba(34, 211, 238, 0.18); stroke-dasharray: none; }
+.sl-areaghost .sl-node { fill: var(--cc-accent); }
+.sl-areaghost.copy .sl-area { fill: rgba(255, 159, 67, 0.16); stroke: var(--cc-warm); }
+.sl-areaghost.copy .sl-node { fill: var(--cc-warm); }
