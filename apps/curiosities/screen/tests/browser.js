@@ -1400,6 +1400,123 @@ const ok = (cond, msg) => {
     ok(!(await cmp()).on && (await cmp()).saved.on === false, "Compare ◐ again turns it off");
   }
 
+  /* Captions (CapCut's captions, from marker notes): a toggle and a select in the transport bar put the note of
+     the moment at the playhead at the bottom of my film's frame, or a dimmer "What's happening" line when the
+     moment has no note. A view setting kept in curiosities-screen-v1 (captions), never in the way of a click. */
+  {
+    const cap = () => page.evaluate(() => {
+      const f = document.querySelector(".sc-viewer.mine .sc-frame");
+      const r = f.getBoundingClientRect();
+      const c = f.querySelector(".sc-cap");
+      const p = c && c.querySelector("p");
+      const b = p && p.getBoundingClientRect();
+      const cs = p && getComputedStyle(p);
+      return {
+        on: !!(document.querySelector('.sc-transport [data-act="captions"]') || {}).classList?.contains("on"),
+        kind: c ? c.dataset.cap : null, text: p ? p.textContent : null,
+        box: b && { l: (b.left - r.left) / r.width, t: (b.top - r.top) / r.height, r: (b.right - r.left) / r.width, b: (b.bottom - r.top) / r.height },
+        cx: b ? b.left + b.width / 2 : null, cy: b ? b.top + b.height / 2 : null,
+        lines: cs ? Math.round(b.height / parseFloat(cs.lineHeight)) : 0,
+        /* How many lines the note would take with no limit: a copy without the two-line clamp. */
+        clipped: p ? (() => { const q = p.cloneNode(true); q.style.cssText = "display:block;-webkit-line-clamp:none;line-clamp:none;position:absolute;visibility:hidden;width:" + b.width + "px"; p.parentNode.appendChild(q); const n = Math.round(q.getBoundingClientRect().height / parseFloat(cs.lineHeight)); q.remove(); return n > 2; })() : false, clamp: cs ? cs.webkitLineClamp : null,
+        fontPx: cs ? parseFloat(cs.fontSize) : 0, color: cs ? cs.color : null, auto: c ? !!c.querySelector(".sc-cap-auto") : false,
+        pe: c ? [getComputedStyle(c).pointerEvents, cs.pointerEvents] : null, z: c ? getComputedStyle(c).zIndex : null,
+        saved: (JSON.parse(localStorage.getItem("curiosities-screen-v1")) || {}).captions,
+        mode: (document.querySelector(".sc-transport [data-captions-mode]") || {}).value,
+        shape: f.dataset.shape, w: r.width, h: r.height,
+      };
+    });
+    const rowId = (j) => page.evaluate((j) => window.CurioEngine.state().rows[j].id, j);
+    const setMarks = (list) => page.evaluate((list) => { const t = window.CurioLanes.tools(); const ids = list.map((m) => m.row); t.markers = t.markers.filter((m) => !ids.includes(m.row)).concat(list); }, list);
+    const ids = [await rowId(2), await rowId(3), await rowId(4), await rowId(5)];
+    const marksBefore = await page.evaluate(() => JSON.stringify(window.CurioLanes.tools().markers));
+    await page.evaluate((ids) => { const t = window.CurioLanes.tools(); t.markers = t.markers.filter((m) => !ids.includes(m.row)); }, ids);
+    await setMarks([{ row: ids[0], color: "blue", note: "the joke lands" }, { row: ids[2], color: "red", note: "she finally says it" }, { row: ids[3], color: "purple", note: "Attention moves to the voice", auto: true }]);
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    ok(!!(await page.$('.sc-transport [data-act="captions"]')) && !(await page.$(".sc-transport select[data-captions-mode]")) && !(await cap()).on && (await cap()).kind === null, "the transport bar has Captions, off to start, with no caption drawn (and no select taking room)");
+    await page.click('.sc-transport [data-act="captions"]');
+    ok((await page.evaluate(() => [...document.querySelectorAll(".sc-transport [data-captions-mode] option")].map((o) => o.textContent).join("|"))) === "My notes only|My notes and what changes", "turned on, a select next to it offers my notes only, or my notes and what changes");
+    await page.evaluate(() => document.querySelector(".sc-viewer.mine .sc-frame").scrollIntoView({ block: "center" }));
+    let c = await cap();
+    ok(c.on && c.kind === "note" && c.text === "the joke lands" && c.saved.on === true && c.saved.mode === "notes", "Captions shows the marker's note on the playhead's moment (" + c.text + ")");
+    ok(c.box && c.box.b > 0.75 && c.box.b <= 1 && c.box.l >= 0 && c.box.r <= 1 && Math.abs((c.box.l + c.box.r) / 2 - 0.5) < 0.03, "the caption sits at the bottom of my film's frame, centered, like a subtitle");
+    ok(c.pe && c.pe.every((x) => x === "none"), "the caption lets every click through");
+    const hit = await page.evaluate(({ x, y }) => { const el = document.elementFromPoint(x, y); return { inCap: !!el.closest(".sc-cap"), inFrame: !!el.closest(".sc-viewer.mine .sc-frame") }; }, { x: c.cx, y: c.cy });
+    ok(!hit.inCap && hit.inFrame, "a click on the caption reaches my film's frame");
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    c = await cap();
+    ok(c.kind === "note" && c.text === "she finally says it", "it changes with the playhead (" + c.text + ")");
+    await page.evaluate(() => window.CurioScreen.setRow(3));
+    ok((await cap()).kind === null, "with my notes only, a moment with no note has no caption");
+    await page.evaluate(() => window.CurioScreen.setRow(5));
+    c = await cap();
+    ok(c.kind === "auto" && c.auto && /^Attention moves to the voice \(auto\)$/.test(c.text), "an auto marker's note shows too, marked (auto) (" + c.text + ")");
+    /* A note written in the timeline shows right away, without moving the playhead. */
+    await page.evaluate((id) => { window.CurioLanes.tools().markers.find((m) => m.row === id).note = "a turn I like"; window.CurioLanes.tools().markers.find((m) => m.row === id).auto = false; }, ids[3]);
+    await page.click(".sc-transport .sc-tc");
+    await page.waitForTimeout(50);
+    c = await cap();
+    ok(c.kind === "note" && c.text === "a turn I like", "a changed note shows in the caption right away (" + c.text + ")");
+    /* My notes and what changes: a moment with no note gets a dimmer "What's happening" line. */
+    const changed = await page.evaluate((id) => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      if (!t) return false;
+      const before = E.value(st.rows[2].id, t.id, "shotSize");
+      return E.send({ type: "setPoint", row: id, track: t.id, curiosity: "shotSize", value: before === "insert" ? "wide" : "insert" }).ok;
+    }, ids[1]);
+    await page.evaluate(() => window.CurioScreen.setRow(3));
+    await page.evaluate(() => { const s = document.querySelector(".sc-transport [data-captions-mode]"); s.value = "changes"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+    c = await cap();
+    ok(changed && c.kind === "hint" && /^What's happening .*Shot size: .+ → .+/.test(c.text) && c.mode === "changes" && c.saved.mode === "changes", "\"My notes and what changes\" shows what changed on a moment with no note (" + c.text + ")");
+    const hintAlpha = (c.color.match(/[\d.]+/g) || []).map(Number)[3];
+    ok(hintAlpha != null && hintAlpha < 0.9, "the \"What's happening\" line is dimmer than a note (" + c.color + ")");
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    ok((await cap()).text === "the joke lands", "a note still wins over what changes");
+    await page.evaluate(() => window.CurioEngine.undo());
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0, "Captions change nothing in the film");
+    /* Two lines at most, with an ellipsis. */
+    await setMarks([{ row: ids[0], color: "blue", note: "the joke lands, and then the second joke lands on top of it, and the whole room falls apart laughing for a very long time while the camera holds still" }]);
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    c = await cap();
+    ok(c.lines <= 2 && c.clipped && c.clamp === "2", "a long note keeps to two lines with an ellipsis (" + c.lines + " lines)");
+    await page.screenshot({ path: path.join(SHOTS, "screen-8f-captions.png") });
+    /* Saved across a reload (the markers are saved too, as the timeline saves them). */
+    await setMarks([{ row: ids[0], color: "blue", note: "the joke lands" }]);
+    await page.evaluate(() => localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(window.CurioLanes.tools())));
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    c = await cap();
+    ok(c.on && c.mode === "changes" && JSON.stringify(c.saved) === JSON.stringify({ on: true, mode: "changes" }) && c.text === "the joke lands", "Captions and the choice survive a reload");
+    /* The vertical frame: the caption stays inside its shape. */
+    await setRatio("vertical 9:16");
+    c = await cap();
+    ok(c.shape === "vertical" && c.h > c.w * 1.5 && c.box && c.box.l >= 0 && c.box.r <= 1.001 && c.box.b <= 1 && c.box.b > 0.7 && c.lines <= 2 && c.fontPx >= 10, `in the vertical frame the caption stays inside its shape (${Math.round(c.w)}×${Math.round(c.h)}, ${c.fontPx}px)`);
+    await page.screenshot({ path: path.join(SHOTS, "screen-8g-captions-vertical.png") });
+    await setRatio("wide 16:9");
+    /* It sits over the guides and under the Compare line. */
+    await page.keyboard.press("Control+;");
+    await page.click('.sc-transport [data-act="compare"]');
+    ok(await page.evaluate(() => { const f = document.querySelector(".sc-viewer.mine .sc-frame"), c = f.querySelector(".sc-cap"), g = f.querySelector(".sc-gd"), l = f.querySelector(".sc-cmp-line"); return !!(c && g && l && g.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING) && Number(getComputedStyle(c).zIndex) < Number(getComputedStyle(l).zIndex); }), "the caption is drawn over the guides and under the Compare line");
+    await page.click('.sc-transport [data-act="compare"]');
+    await page.keyboard.press("Control+;");
+    /* Full player view (⇧⌘F) shows the caption too, bigger. */
+    const small = (await cap()).fontPx;
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+Shift+F");
+    c = await cap();
+    ok((await page.evaluate(() => document.querySelector(".sc-page").dataset.fullplayer === "1")) && c.text === "the joke lands" && c.fontPx > small, "the caption shows in full player view, bigger (" + c.fontPx + "px)");
+    await page.keyboard.press("Escape");
+    /* Off again, and the markers put back as they were. */
+    await page.click('.sc-transport [data-act="captions"]');
+    c = await cap();
+    ok(!c.on && c.kind === null && c.saved.on === false, "Captions again turns them off");
+    await page.evaluate((m) => { window.CurioLanes.tools().markers = JSON.parse(m); localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(window.CurioLanes.tools())); }, marksBefore);
+  }
+
   /* Markers with a color and a note (CapCut's markers): add one, double-click its flag to write a note and pick
      a color, find it in the Markers list, jump to it, delete it; an old save (plain row ids) still loads. */
   {

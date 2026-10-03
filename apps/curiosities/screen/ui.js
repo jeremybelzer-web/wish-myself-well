@@ -69,6 +69,7 @@
     guides: [],
     rulers: false,
     compare: { on: false, split: 50, with: "insp" },
+    captions: { on: false, mode: "notes" },
   };
   /* CapCut's layout menu (the layout icon at the top right of its window). Jeremy's screenshots show four
      arrangements: the default, the media panel full height on the left, Details full height on the right, and
@@ -370,6 +371,7 @@
     if (faces() && faces().attach) faces().attach(faceApi());
     page.addEventListener("keydown", (e) => faces() && faces().keydown && faces().keydown(e, faceHelpers(mineCtx()), faceApi()));
     page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e) || onCompareDrag(e));
+    ["click", "change", "input", "keyup"].forEach((t) => page.addEventListener(t, capSoon));
     page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
     /* Undo and redo go to the app-wide undo list when the page has one (engine/store.js), so one ⌘Z undoes one
        step of anything. Caught first, on the window, so the app's own ⌘Z handler does not undo a second step. */
@@ -1496,6 +1498,99 @@ document.addEventListener("click", function (e) {
     const cur = compareNow().split;
     moveSplit(e.key === "Home" ? 0 : e.key === "End" ? 100 : cur + (e.key === "ArrowRight" ? step : -step));
   }, true);
+  /* ---------- Captions (CapCut's captions, made from your markers) ----------
+     A subtitle at the bottom of My film's frame for the moment at the playhead: the marker's note if the
+     moment has one (an auto marker from Mark the turns says "(auto)" faintly), otherwise, if you ask for it,
+     a dimmer "What's happening" line of the moment's biggest changes since the moment before, written by the
+     Export sheet's own "what changed" helper. A view setting (prefs.captions: { on, mode }), never an undo step. */
+  const CAPTION_MODES = [
+    ["notes", "My notes only"],
+    ["changes", "My notes and what changes"],
+  ];
+  function captionsNow() {
+    const c = prefs.captions && typeof prefs.captions === "object" ? prefs.captions : {};
+    return { on: !!c.on, mode: CAPTION_MODES.some((x) => x[0] === c.mode) ? c.mode : "notes" };
+  }
+  function setCaptions(change) {
+    prefs.captions = Object.assign(captionsNow(), change);
+    save();
+  }
+  /* The caption as plain data: { kind: "note" | "auto" | "hint" | "", text, color }. Pure, so tests can call it.
+     o: { marker, prev, cur, mode, keys, label(k), text(k, v), size(k, a, b) }; size says how big a change is
+     (0 to 1) so the biggest come first; without it the keys keep their order. */
+  function captionFor(o) {
+    const m = o && o.marker;
+    const note = m && typeof m.note === "string" ? m.note.trim() : "";
+    if (note) return { kind: m.auto ? "auto" : "note", text: note, color: m.color || "" };
+    if (!o || o.mode !== "changes" || !o.prev || !o.cur) return { kind: "", text: "", color: "" };
+    const prev = o.prev;
+    const cur = o.cur;
+    const keys = (o.keys || Object.keys(cur)).filter((k) => prev[k] != null && cur[k] != null && String(prev[k]) !== String(cur[k]));
+    const big = (k) => {
+      const n = o.size ? o.size(k, prev[k], cur[k]) : null;
+      return n != null && isFinite(Number(n)) ? Number(n) : 0.5;
+    };
+    const order = o.size ? keys.map((k, i) => [k, big(k), i]).sort((a, b) => b[1] - a[1] || a[2] - b[2]).map((x) => x[0]) : keys;
+    const text = EXPORT.changes(prev, cur, { keys: order, label: o.label || String, text: o.text, max: 2 });
+    return { kind: text ? "hint" : "", text, color: "" };
+  }
+  /* My film's values with "x.setting" left out when it repeats its curiosity's own value, as the Export does. */
+  const capValues = (vals) => {
+    const out = {};
+    Object.keys(vals || {}).forEach((k) => (/\.setting$/.test(k) && vals[L().base(k)] != null ? null : (out[k] = vals[k])));
+    return out;
+  };
+  function captionAt(beats, i) {
+    const c = captionsNow();
+    if (!c.on || !beats[i]) return null;
+    const cur = capValues(beats[i].values);
+    const prev = i > 0 && beats[i - 1] ? capValues(beats[i - 1].values) : null;
+    const lanesFirst = (prefs.lanes || []).filter((k) => k in cur);
+    const keys = lanesFirst.concat(Object.keys(cur).filter((k) => !lanesFirst.includes(k)));
+    const size = (k, a, b) => {
+      try {
+        if (!S() || !S().known(k)) return null;
+        const pa = S().pos(k, a);
+        const pb = S().pos(k, b);
+        return pa == null || pb == null ? null : Math.abs(pa - pb);
+      } catch (e) {
+        return null;
+      }
+    };
+    return captionFor({ marker: exportMarkers()[String(beats[i].row)], prev, cur, mode: c.mode, keys, label: labelOf, text: valueText, size });
+  }
+  function captionHtml(beats, i) {
+    const cap = captionAt(beats, i);
+    if (!cap || !cap.kind) return "";
+    const said = cap.kind === "hint" ? `<span class="sc-cap-k">What's happening</span> ${esc(cap.text)}` : esc(cap.text) + (cap.kind === "auto" ? ` <span class="sc-cap-auto">(auto)</span>` : "");
+    const tip = cap.kind === "hint" ? "What changed since the moment before (a hint, not your words)" : cap.kind === "auto" ? "The note Mark the turns put on this moment" : "Your marker's note on this moment";
+    return `<div class="sc-cap" data-cap="${cap.kind}" title="${esc(tip)}"><p>${said}</p></div>`;
+  }
+  /* A marker's note can change in the timeline without the film changing: update the caption right after a
+     click, a key or typing, without redrawing the Player. */
+  function refreshCaption() {
+    if (!page || page.hidden || !captionsNow().on) return;
+    const frame = page.querySelector(".sc-viewer.mine .sc-frame");
+    if (!frame) return;
+    const beats = mineBeats();
+    const html = captionHtml(beats, Math.min(row, beats.length - 1));
+    const old = frame.querySelector(".sc-cap");
+    if ((old ? old.outerHTML : "") === html) return;
+    if (old) old.remove();
+    if (html) frame.insertAdjacentHTML("beforeend", html);
+    frame.classList.toggle("sc-cap-on", !!html);
+  }
+  let capTimer = null;
+  const capSoon = () => {
+    if (capTimer || !captionsNow().on) return;
+    capTimer = setTimeout(() => ((capTimer = null), refreshCaption()), 0);
+  };
+  /* The select shows only while Captions is on, so the transport bar keeps its room when they're off. */
+  function captionsMenuHtml() {
+    const c = captionsNow();
+    const pick = `<select data-captions-mode aria-label="What the captions show" title="What the captions show">${CAPTION_MODES.map(([id, l]) => `<option value="${id}"${c.mode === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+    return `<span class="sc-cap-set"><button type="button" data-act="captions" class="${c.on ? "on" : ""}" aria-pressed="${c.on}" title="Captions: your marker's note on this moment at the bottom of your film's picture, like subtitles. They don't change your film.">Captions</button>${c.on ? pick : ""}</span>`;
+  }
   function viewerHtml(kind, v) {
     const sel = selection();
     if (kind === "mine") {
@@ -1507,9 +1602,10 @@ document.addEventListener("click", function (e) {
       /* A frame shape other than wide crops the storyboard picture to fill it, as reframing a shot would. */
       const shape = ratioShape();
       const fill = (svg) => (shape === "wide" ? svg : svg.replace("<svg ", '<svg preserveAspectRatio="xMidYMid slice" '));
+      const cap = captionHtml(beats, i);
       return `<article class="sc-viewer mine${prefs.focus === "mine" ? " focus" : ""}" data-viewer="mine">
         <header><button type="button" class="sc-vname" data-focus="mine">My film</button><span class="sc-vsub">${esc(E() ? E().state().name : "")} · moment ${i + 1} of ${beats.length}</span></header>
-        <div class="sc-frame${compareNow().on ? " sc-cmp-on" : ""}" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${compareHtml(i, shape, sel)}${guidesHtml(vals, att, shape)}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}</div>
+        <div class="sc-frame${compareNow().on ? " sc-cmp-on" : ""}${cap ? " sc-cap-on" : ""}" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${compareHtml(i, shape, sel)}${guidesHtml(vals, att, shape)}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}${cap}</div>
         ${scrub(beats, i, fires, "mine")}
         <p class="sc-vnote">${fires.length ? `${esc(sel.label)} shows up ${fires.length} time${fires.length === 1 ? "" : "s"} in your film.` : `${esc(sel.label)} does not show up in your film yet.`}</p>
       </article>`;
@@ -1641,7 +1737,7 @@ document.addEventListener("click", function (e) {
     showTimelineWindow();
     page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
-      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}${compareMenuHtml()}</span>`;
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}${compareMenuHtml()}${captionsMenuHtml()}</span>`;
   }
 
   /* ---------- the inspector ---------- */
@@ -2652,6 +2748,12 @@ document.addEventListener("click", function (e) {
       const b = page.querySelector('[data-act="compare"]');
       return b && b.focus();
     }
+    if (act === "captions") {
+      setCaptions({ on: !captionsNow().on });
+      drawViewers();
+      const b = page.querySelector('[data-act="captions"]');
+      return b && b.focus();
+    }
     if (act === "guides-menu") {
       guidesOpen = !guidesOpen;
       drawViewers();
@@ -2725,6 +2827,12 @@ document.addEventListener("click", function (e) {
       setGuide(d.guide, t.checked);
       drawViewers();
       const box = page.querySelector(`.sc-guides-menu [data-guide="${d.guide}"]`);
+      return box && box.focus();
+    }
+    if ("captionsMode" in d) {
+      setCaptions({ mode: t.value, on: true });
+      drawViewers();
+      const box = page.querySelector("[data-captions-mode]");
       return box && box.focus();
     }
     if ("compareWith" in d) {
@@ -2958,5 +3066,5 @@ document.addEventListener("click", function (e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();

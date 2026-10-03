@@ -558,6 +558,20 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(C(null).list().map((x) => x.id).join() === "insp,open" && C(null).list()[0].label === "The film I'm learning from" && C(null).list()[1].label === "When I opened the Screen", "Compare offers the film I'm learning from and when I opened the Screen, in plain words");
   ok(JSON.stringify(C(null).now()) === JSON.stringify({ on: false, split: 50, with: "insp" }), "Compare starts off, split in the middle, against the film I'm learning from");
   ok(JSON.stringify(C({ compare: { on: true, split: 140, with: "open" } }).now()) === JSON.stringify({ on: true, split: 100, with: "open" }) && C({ compare: { split: -3, with: "nonsense" } }).now().split === 0 && C({ compare: { with: "nonsense" } }).now().with === "insp" && C({ compare: "junk" }).now().split === 50, "a saved Compare setting is kept inside the frame and unknown choices fall back");
+  /* Captions: the saved setting read back safely, and what the caption says for a moment. */
+  const Cap = (saved) => { const store = { "curiosities-screen-v1": saved == null ? null : JSON.stringify(saved) }; const g = { CurioFrame: w.CurioFrame, document: { readyState: "loading", addEventListener() {} }, localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = v) } }; g.window = g; vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "ui.js"), "utf8"), vm.createContext(g), { filename: "ui.js" }); return g.CurioScreen.captions; };
+  const K = Cap(null);
+  ok(K.list().map((x) => x.label).join("|") === "My notes only|My notes and what changes", "Captions offer my notes only, or my notes and what changes, in plain words");
+  ok(JSON.stringify(K.now()) === JSON.stringify({ on: false, mode: "notes" }) && JSON.stringify(Cap({ captions: { on: true, mode: "changes" } }).now()) === JSON.stringify({ on: true, mode: "changes" }) && Cap({ captions: { on: 1, mode: "nonsense" } }).now().mode === "notes" && Cap({ captions: "junk" }).now().on === false, "Captions start off with my notes only, and a saved setting is read back safely");
+  const lab = (k) => ({ shotSize: "Shot size", emotion: "Emotion", volume: "Volume" })[k] || k;
+  const prev = { shotSize: "wide", emotion: "calm", volume: 2 };
+  const cur = { shotSize: "close", emotion: "anxious", volume: 3 };
+  ok(JSON.stringify(K.caption({ marker: { note: "  the joke lands ", color: "blue" }, prev, cur, mode: "changes", label: lab })) === JSON.stringify({ kind: "note", text: "the joke lands", color: "blue" }), "a marker's note is the caption, even when what changes is asked for");
+  ok(K.caption({ marker: { note: "Attention moves", auto: true }, mode: "notes" }).kind === "auto", "a note from Mark the turns is a caption too, marked as auto");
+  ok(K.caption({ marker: { note: "" }, prev, cur, mode: "notes", label: lab }).kind === "" && K.caption({ prev, cur, mode: "notes", label: lab }).kind === "", "with my notes only, a moment with no note has no caption");
+  const hint = K.caption({ marker: { note: "" }, prev, cur, mode: "changes", label: lab, size: (k) => ({ shotSize: 0.5, emotion: 0.9, volume: 0.1 })[k] });
+  ok(hint.kind === "hint" && hint.text === "Emotion: calm → anxious · Shot size: wide → close and 1 more", "with what changes, a moment with no note shows its two biggest changes, biggest first (" + hint.text + ")");
+  ok(K.caption({ prev, cur: Object.assign({}, prev), mode: "changes", label: lab }).kind === "" && K.caption({ prev: null, cur, mode: "changes", label: lab }).kind === "", "nothing changed, or the first moment: no caption");
   const F = w.CurioFrame;
   /* The head frame.js actually draws: the first person's head circle. */
   const head = (vals, cast) => { const m = F.svg(vals, { cast }).match(/<circle data-cat="performance" cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"/); return m && { x: +m[1], y: +m[2], r: +m[3] }; };

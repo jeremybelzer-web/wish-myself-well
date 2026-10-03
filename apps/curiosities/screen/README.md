@@ -144,6 +144,17 @@ Drag the line to move the split, or click the line and press ← and → (Shift 
 
 Compare is a view setting, not part of the film, and never an undo step. It is kept in `curiosities-screen-v1` as `compare: { on, split, with }` (split is 0 to 100, how far across the line is; with is `insp` or `open`). `CurioScreen.compare` has `list()` and `now()` for tests.
 
+## Captions: your notes as subtitles
+
+Like CapCut's captions, made from your markers instead of speech. **Captions** sits after Compare ◐ in the Player's transport bar. Turn it on and the bottom of My film's frame shows a subtitle for the moment at the playhead:
+
+- **Your note**: the note on that moment's marker ("the joke lands"). A note that Mark the turns wrote counts too, with a faint "(auto)" after it.
+- **What's happening** (only when the small menu next to the button, shown while Captions is on, says **My notes and what changes**; **My notes only** is the default): on a moment with no note, a dimmer, slanted line of its two biggest changes since the moment before, such as "Emotion: calm → anxious · Shot size: wide → close-up and 1 more". It is written by the Export sheet's own "what changed" helper (`CurioScreenExport.changes`); the biggest changes are the ones that move furthest along their scale. It reads as a hint, not your words. The first moment, or one where nothing changed, has none.
+
+The caption follows the Ratio frame shape, keeps to two lines and ends in "…" when the note is longer, and is sized to read on a phone (and bigger in full player view, ⇧⌘F). It is drawn over the guides and under the Compare line, and never takes a click: a click on it reaches the frame. While a caption shows, the guides' "Eyes on" line moves to the top of the frame. A note changed in the timeline shows in the caption right away.
+
+Captions are a view setting, not part of the film, and never an undo step. They are kept in `curiosities-screen-v1` as `captions: { on, mode }` (mode is `notes` or `changes`). `CurioScreen.captions` has `list()`, `now()` and `caption(o)` (what the caption says, from a marker and two moments' values) for tests. The Export storyboard sheet already shows the notes and is left as it is.
+
 ## Whole film strip
 
 Jeremy, 2026-10-02 20:27Z. The viewers show one moment at a time, so the Player has a **Whole film** strip under them (`ui.js` `overviewHtml`): every moment of My film as a small storyboard frame, always squeezed to fit the width, like the thumbnails on CapCut's main track and Final Cut Pro's filmstrips. Click or drag along it to jump anywhere; the timeline scrolls to follow. The current moment is outlined, moments outside the play range are dimmed, a dot marks where the picked curiosity shows up, and a white box shows the stretch the zoomed-in timeline is showing. "▾ Whole film" folds it away (`prefs.overview`).
