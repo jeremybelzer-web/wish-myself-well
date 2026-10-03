@@ -20,6 +20,8 @@
        reload()        read the saved key again (after a project file was opened)
    - undo(), redo(), canUndo(), canRedo(), history() -> { undo: [labels], redo: [labels] }: one list for
      every part, newest last
+   - external(name, { label, undo(), redo() }): a step another undo list keeps (the engine's film) joins this
+     list; its undo() and redo() return false when the step is gone there, and it is skipped
    - owns(key) -> true when a part saves under that key (engine/app-undo.js leaves those to this list)
    - parts() -> the registered names
    Storage is window.localStorage; useStorage(s) swaps it (tests). */
@@ -28,6 +30,9 @@
   if (root.CurioStore) return; /* index.html may load it early (before app.js) and engine/load.js again */
   const MERGE_MS = 1500;
   const LIMIT = 300;
+  /* Steps keep two copies of a part; a big part (a storyboard can be most of a megabyte) would fill memory
+     long before 300 steps, so the oldest steps go once the list holds about this many characters. */
+  const MAX_CHARS = 40e6;
   let storage = null;
   try {
     storage = root.localStorage || null;
@@ -110,12 +115,14 @@
       const label = typeof msg.label === "string" && msg.label ? msg.label.slice(0, 80) : msg.type;
       if (!(opt && opt.record === false)) {
         const last = undoList[undoList.length - 1];
+        const size = JSON.stringify(before).length + JSON.stringify(next).length;
         if (last && msg.merge && last.part === name && last.merge === msg.merge && now() - last.at < MERGE_MS) {
           last.after = clone(next);
           last.at = now();
+          last.size = size;
         } else {
-          undoList.push({ part: name, label, merge: msg.merge || null, at: now(), before: clone(before), after: clone(next) });
-          if (undoList.length > LIMIT) undoList.shift();
+          undoList.push({ part: name, label, merge: msg.merge || null, at: now(), before: clone(before), after: clone(next), size });
+          trim();
         }
         redoList = [];
       }
@@ -146,25 +153,48 @@
     return api;
   }
 
-  function undo() {
-    const step = undoList.pop();
-    if (!step) return false;
-    redoList.push(step);
-    parts[step.part]._restore(step.before, "Undo " + step.label);
+  /* A step kept by another undo list (the engine's film): it undoes and redoes itself, and says false when
+     it can no longer (it was undone there already), so it is dropped and the next one is tried. */
+  function trim() {
+    let total = 0;
+    undoList.forEach((st) => (total += st.size || 0));
+    while (undoList.length > LIMIT || (total > MAX_CHARS && undoList.length > 1)) total -= undoList.shift().size || 0;
+  }
+  function external(name, ext) {
+    if (!isObj(ext) || typeof ext.undo !== "function" || typeof ext.redo !== "function") return false;
+    undoList.push({ part: String(name || "other"), label: String(ext.label || "Change").slice(0, 80), at: now(), ext });
+    trim();
+    redoList = [];
     return true;
   }
+  function undo() {
+    for (;;) {
+      const step = undoList.pop();
+      if (!step) return false;
+      if (step.ext) {
+        if (!step.ext.undo()) continue;
+      } else parts[step.part]._restore(step.before, "Undo " + step.label);
+      redoList.push(step);
+      return true;
+    }
+  }
   function redo() {
-    const step = redoList.pop();
-    if (!step) return false;
-    undoList.push(step);
-    parts[step.part]._restore(step.after, "Redo " + step.label);
-    return true;
+    for (;;) {
+      const step = redoList.pop();
+      if (!step) return false;
+      if (step.ext) {
+        if (!step.ext.redo()) continue;
+      } else parts[step.part]._restore(step.after, "Redo " + step.label);
+      undoList.push(step);
+      return true;
+    }
   }
 
   root.CurioStore = {
     part,
     undo,
     redo,
+    external,
     canUndo: () => undoList.length > 0,
     canRedo: () => redoList.length > 0,
     history: () => ({ undo: undoList.map((s) => s.label), redo: redoList.slice().reverse().map((s) => s.label) }),
