@@ -45,7 +45,7 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
 Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 481 curiosities, 306 suites,
-526 proximities, 117 proximity suites and 9,118 sliders, across 32 workspaces, plus 8 model scenes.
+526 proximities, 117 proximity suites and 9,118 sliders, across 32 workspaces, plus 16 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -93,6 +93,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 481
 - [x] Eight made-up model scenes (diner standoff, meet-cute, dinner party, dark hallway, montage, deadpan office, quiet goodbye, kitchen disaster) so the Prism has something to split on first open (PR #7)
 - [ ] Jeremy picks three to five real films or scenes to trace for the Prism (counts only, never scripts)
 - [x] Show the model scenes as curated films in the app, marked "made up for practice" (app thread)
+- [x] Eight more model scenes built on the new comedy and emotion curiosities (funeral giggles, toast that bombs, car betrayal, cartoon chase, canyon awe, sisters forgive, talent show, jealous party) in data/db-model-scenes-2.js
 - [x] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, emotional road, comedy and comedy from the mix (grouping in PR #4; every model scene now has values through every lens, tested)
 - [x] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours ("Make it an analogy" on every Prism row, PR #4)
 - [x] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film ("Borrow this film's emotional road", PR #4)
