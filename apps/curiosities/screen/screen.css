@@ -444,7 +444,7 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-page .sc-knav-b:disabled { opacity: 0.25; cursor: default; }
 /* Frame shape (CapCut's Ratio): my film's frame takes the shape, no taller than the wide frame, the picture cropped to fill it in the middle. */
 .sc-ratio { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--cc-dim); }
-.sc-frame:is([data-shape="vertical"], [data-shape="square"], [data-shape="cinema"]) { background: #000; container-type: size; margin-inline: auto; }
+.sc-frame:is([data-shape="vertical"], [data-shape="square"], [data-shape="cinema"]) { container-type: size; margin-inline: auto; }
 .sc-frame[data-shape="vertical"] { aspect-ratio: 9 / 16; width: 31.64%; }
 .sc-frame[data-shape="square"] { aspect-ratio: 1 / 1; width: 56.25%; }
 .sc-frame[data-shape="cinema"] { aspect-ratio: 2.39 / 1; width: 100%; }
