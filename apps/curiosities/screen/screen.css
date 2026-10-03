@@ -660,3 +660,22 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sc-page .sc-cur-menu button { display: grid; gap: 1px; text-align: left; padding: 5px 8px; background: transparent; }
 .sc-page .sc-cur-menu button:hover, .sc-page .sc-cur-menu button:focus-visible { background: var(--cc-hover); }
 .sc-cur-menu small { color: var(--cc-dim); font-size: 11px; }
+/* History ▾: the steps you can undo (newest first, under Now) and redo (over Now); click one to go back or forward to it. */
+.sc-hist { position: relative; display: inline-flex; }
+.sc-page .sc-hist-b[aria-expanded="true"] { background: var(--cc-hover); color: var(--cc-accent); }
+.sc-hist-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 80; width: 280px; max-width: calc(100vw - 32px); max-height: min(70vh, 520px); overflow-y: auto; display: grid; gap: 1px; padding: 6px; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 8px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+.sc-hist-menu.sc-hist-left { left: 0; right: auto; }
+.sc-hist-menu[hidden] { display: none; }
+.sc-page .sc-hist-menu button { text-align: left; padding: 5px 10px; background: transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-page .sc-hist-menu button:hover, .sc-page .sc-hist-menu button:focus-visible { background: var(--cc-hover); }
+.sc-page .sc-hist-menu button[data-hist^="redo"] { color: var(--cc-dim); }
+.sc-hist-menu p { margin: 0; }
+.sc-hist-menu .sc-hist-h { margin: 4px 10px 2px; }
+.sc-hist-now { margin: 4px 0; padding: 3px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--cc-accent); border-top: 1px solid var(--cc-accent); }
+.sc-hist-cur { padding: 5px 10px; border-radius: 6px; background: var(--cc-raised); color: var(--cc-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-hist-more, .sc-hist-empty { padding: 4px 10px; font-size: 12px; color: var(--cc-dim); }
+.sc-page .sc-hist-menu .sc-hist-start { margin-top: 4px; border-top: 1px solid var(--cc-line); border-radius: 0 0 6px 6px; color: var(--cc-dim); }
+@media (max-width: 720px) {
+  .sc-hist { position: static; }
+  .sc-hist-menu, .sc-hist-menu.sc-hist-left { left: 16px; right: 16px; top: auto; width: auto; max-width: none; margin-top: 34px; }
+}
