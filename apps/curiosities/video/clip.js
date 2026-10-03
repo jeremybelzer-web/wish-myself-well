@@ -175,6 +175,8 @@
       if (opts.onProgress) opts.onProgress(0.92, "Finding the people and their clothes (AI)");
       d.elements = await window.CurioMask.scan(clip, { box, onProgress: (p) => opts.onProgress && opts.onProgress(0.92 + p * 0.08, "Finding the people and their clothes (AI)") });
       if (!d.elements) delete d.elements;
+      /* Where its key light comes from, on the people's faces (video/relight.js). */
+      if (d.elements && window.CurioRelight) d.light = await window.CurioRelight.scan(clip, { box });
     }
     if (opts.onProgress) opts.onProgress(1, "Done");
     return d;
@@ -317,7 +319,7 @@
       ctx.restore();
     } else ctx.drawImage(video, (F ? F.x : 0) + sx, (F ? F.y : 0) + sy, sw, sh, 0, 0, W, H);
     /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI. */
-    const M = adj.parts && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
+    const M = (adj.parts || adj.relight) && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
     const k = M ? M.cut(ctx.canvas, { track: "applied", t: video.currentTime }) : null;
     if (adj.want || adj.luma !== 1 || adj.contrast !== 1 || adj.sat !== 1 || adj.warm) {
       const img = ctx.getImageData(0, 0, W, H);
@@ -333,8 +335,10 @@
     /* The inspiration's palette (video/looks.js); its grain, softness and frame shape go on last. */
     const LK = adj.looks && window.CurioLooks;
     if (LK) LK.draw(ctx, W, H, adj.looks, "color", adj.t);
+    /* The inspiration's key light on your people (video/relight.js), before they are moved or recolored. */
+    if (k && adj.relight && window.CurioRelight) window.CurioRelight.draw(ctx, W, H, adj.relight, k);
     /* Element changes (AI cut-outs): recolor clothes or hair, resize or move the people, another clip's set. */
-    if (M) {
+    if (M && adj.parts) {
       /* another clip's set: only its picture, not its black bars */
       const sv = adj.parts.background && opts.setVideo && opts.setVideo.videoWidth ? opts.setVideo : null;
       M.applyParts(ctx, W, H, adj.parts, { setVideo: opts.setVideo, setBox: sv ? contentBox(sv) : null, cut: k });
@@ -408,6 +412,8 @@
     const looks = [],
       lk = [];
     const LK = (plan.on.palette || plan.on.grain || plan.on.shape) && window.CurioLooks;
+    const RL = plan.on.relight && M && M.ready() && window.CurioRelight,
+      rl = [];
     const W = 320,
       H = Math.max(2, Math.round((W * clip.height) / clip.width));
     const big = canvas(W, H);
@@ -426,6 +432,10 @@
         drawApplied(bx, clip.video, a, W, H, { captions: false, overlay: over, setVideo: setV });
         ctx.drawImage(big, 0, 0, w, h);
         if (LK && t - (lk.length ? lk[lk.length - 1].t : -1) >= 0.5) lk.push({ t, m: LK.measure(bx.getImageData(0, 0, W, H).data, W, H) });
+        if (RL && t - (rl.length ? rl[rl.length - 1].t : -1) >= 0.5) {
+          const k = M.cut(big);
+          if (k) rl.push({ t, m: RL.measure(k.labels, k.rgba, k.w, k.h) });
+        }
         if (wantEl && looks.length < 240 && (looks.length === 0 || t - looks[looks.length - 1].t >= 0.25)) {
           const k = M.cut(big);
           looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h), blobs: window.CurioFraming ? window.CurioFraming.blobs(k.labels, k.w, k.h) : null });
@@ -440,6 +450,7 @@
     if (looks.length > 1) after.elements = V().elementSeries(looks);
     if (after.elements && window.CurioFraming) after.elements.main = window.CurioFraming.series(looks, H / W);
     if (lk.length) after.looks = LK.series(lk);
+    if (rl.length) after.light = RL.series(rl);
     if (opts.onProgress) opts.onProgress(1, "Done");
     return { after };
   }

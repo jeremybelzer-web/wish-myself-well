@@ -779,6 +779,107 @@ check("rhythm on another clip: jump cuts and punch-ins on the beats, a flash on 
   assert(sc.corrAfter > 0.3 && sc.corrAfter > sc.corrBefore + 0.2, JSON.stringify(sc));
 });
 
+const RL = w.CurioRelight;
+/* A made-up person: a round face (lit by light [x, y, z], or evenly when null), hair on top, clothes below, on a grey set. */
+function personFrame(W, H, light) {
+  const labels = new Uint8Array(W * H),
+    d = new Uint8ClampedArray(W * H * 4);
+  const cx = W / 2,
+    cy = H * 0.42,
+    rx = W * 0.16,
+    ry = H * 0.3;
+  const L = light ? (() => { const m = Math.hypot(...light); return light.map((v) => v / m); })() : null;
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const i = y * W + x,
+        p = i * 4;
+      const u = (x - cx) / rx,
+        v = (y - cy) / ry,
+        r2 = u * u + v * v;
+      let c = [100, 100, 100];
+      if (r2 < 1) {
+        labels[i] = v < -0.75 ? 1 : 3;
+        const s = L ? 0.2 + 0.8 * Math.max(0, u * L[0] + v * L[1] + Math.sqrt(1 - r2) * L[2]) : 0.75;
+        c = labels[i] === 1 ? [40, 30, 25] : [230 * s, 170 * s, 140 * s];
+      } else if (y > cy && y <= cy + ry * 1.25 && Math.abs(x - cx) < rx * 0.4) {
+        labels[i] = 2; /* the neck */
+        c = [150, 110, 90];
+      } else if (y > cy + ry * 1.25 && Math.abs(x - cx) < rx * 1.8) {
+        labels[i] = 4;
+        c = [60, 70, 120];
+      }
+      d[p] = c[0];
+      d[p + 1] = c[1];
+      d[p + 2] = c[2];
+      d[p + 3] = 255;
+    }
+  return { labels, d, W, H };
+}
+const halves = (f, d) => {
+  let l = 0,
+    nl = 0,
+    r = 0,
+    nr = 0;
+  for (let i = 0; i < f.W * f.H; i++) {
+    if (f.labels[i] !== 3) continue;
+    const Y = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2];
+    if (i % f.W < f.W / 2) (l += Y), nl++;
+    else (r += Y), nr++;
+  }
+  return { left: l / nl, right: r / nr };
+};
+
+check("key light: a face lit from the left is measured as lit from the left, with a hard shadow side", () => {
+  const f = personFrame(160, 90, [-0.85, -0.1, 0.5]);
+  const m = RL.measure(f.labels, f.d, f.W, f.H);
+  assert.strictEqual(m.side, "left", JSON.stringify(m));
+  assert(m.lx < -0.7 && m.ratio > 2 && m.conf > 0.3, JSON.stringify(m));
+  const r = RL.measure(personFrame(160, 90, [0.85, -0.1, 0.5]).labels, personFrame(160, 90, [0.85, -0.1, 0.5]).d, 160, 90);
+  assert.strictEqual(r.side, "right", JSON.stringify(r));
+  const flat = RL.measure(personFrame(160, 90, null).labels, personFrame(160, 90, null).d, 160, 90);
+  assert(flat.side === "front" && flat.ratio < 1.2, JSON.stringify(flat));
+  const empty = RL.measure(new Uint8Array(160 * 90), personFrame(160, 90, null).d, 160, 90);
+  assert.strictEqual(empty.conf, 0);
+});
+
+check("key light: relighting from the right makes the right half brighter, softly; amount 0 changes nothing", () => {
+  const src = personFrame(160, 90, [-0.85, -0.1, 0.5]); /* lit from the left */
+  const want = RL.measure(personFrame(160, 90, [0.85, -0.1, 0.5]).labels, personFrame(160, 90, [0.85, -0.1, 0.5]).d, 160, 90);
+  const have = RL.measure(src.labels, src.d, 160, 90);
+  const before = halves(src, src.d);
+  assert(before.left > before.right);
+  /* drawn at twice the cut-out's size, as in the app */
+  const big = personFrame(320, 180, [-0.85, -0.1, 0.5]);
+  const d = new Uint8ClampedArray(big.d);
+  assert(RL.apply(d, 320, 180, { w: 160, h: 90, labels: src.labels }, { amount: 1, want, have }));
+  const after = halves(big, d);
+  assert(after.right > after.left * 1.15, JSON.stringify({ before, after }));
+  /* no halo: the set a few pixels (one cut-out pixel and a half) away from the people barely changes */
+  let glow = 0;
+  for (let y = 3; y < 177; y++)
+    for (let x = 3; x < 317; x++) {
+      let close = false;
+      for (let dy = -3; dy <= 3 && !close; dy++) for (let dx = -3; dx <= 3; dx++) if (big.labels[(y + dy) * 320 + x + dx]) close = true;
+      if (close) continue;
+      const i = (y * 320 + x) * 4;
+      glow = Math.max(glow, Math.abs(d[i] - big.d[i]));
+    }
+  assert(glow < 12, "the set around the people changed by " + glow);
+  /* amount 0: the very same pixels */
+  const z = new Uint8ClampedArray(big.d);
+  RL.apply(z, 320, 180, { w: 160, h: 90, labels: src.labels }, { amount: 0, want, have });
+  assert(z.every((v, i) => v === big.d[i]));
+  /* the plan: off by default, and at() hands the want and have over when on */
+  const mk = (light, n) => RL.series([0, 0.5, 1].map((t) => ({ t, m: RL.measure(light.labels, light.d, 160, 90) })));
+  const A = Object.assign({}, insp, { light: mk(personFrame(160, 90, [0.85, -0.1, 0.5])) }),
+    B = Object.assign({}, insp, { light: mk(src) });
+  assert(!V.at(V.plan(A, B, {}), 0.2).relight, "off by default");
+  const a = V.at(V.plan(A, B, { on: { relight: 0.8 } }), 0.2).relight;
+  assert(a && a.amount === 0.8 && a.want.side === "right" && a.have.side === "left", JSON.stringify(a));
+  const sc = V.score(V.plan(A, B, { on: { relight: 1 } }), "relight", B, { times: [0, 0.5, 1], light: mk(personFrame(160, 90, [0.85, -0.1, 0.5])) });
+  assert(sc.gapAfter < 0.2 && sc.gapBefore > 1.5 && /right/.test(sc.note), JSON.stringify(sc));
+});
+
 check("bad input never throws", () => {
   V.analyze({ name: "", duration: 0, samples: [] });
   V.analyze({ name: "x", duration: 1, samples: [{ t: 0, s: V.frameStats(frame(0.5, 0, 0), GW, GH), m: null }] });
