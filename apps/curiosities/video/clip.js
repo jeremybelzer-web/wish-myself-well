@@ -7,7 +7,9 @@
    - dissect(clip, { fps?, onProgress? }) -> Promise<dissection>   frames by seeking (up to 15 looks a second, at most 900), sound
      by decoding the file (when the browser can)
    - pcm(clip) -> Promise<{ data: Float32Array, rate } | null>       the sound as one channel
-   - drawApplied(ctx, video, adj, W, H)                               one output frame with a plan's changes
+   - drawApplied(ctx, video, adj, W, H, opts?)                        one output frame with a plan's changes
+                                                                     (a zoom is drawn sharper by detail.js unless
+                                                                     opts.detail is false)
                                                                       (looks.js draws the palette, grain and frame shape)
    - check(plan, clip, group?, { onProgress? }) -> Promise<{ after, scores }>   renders the applied clip frame by
      frame (no recording), measures it again, and scores each group against the inspiration
@@ -309,15 +311,28 @@
     cy += (adj.dy || 0) * vw;
     const sx = Math.max(0, Math.min(vw - sw, cx - sw / 2)),
       sy = Math.max(0, Math.min(vh - sh, cy - sh / 2));
+    /* A zoom drawn sharper (detail.js): the crop deblocked at its own size, drawn up smoothly, sharpened after. */
+    const ax = (F ? F.x : 0) + sx,
+      ay = (F ? F.y : 0) + sy;
+    const DT = window.CurioDetail && opts.detail !== false ? window.CurioDetail : null;
+    const fw = video.videoWidth,
+      fh = video.videoHeight; /* a tilted crop reaches past its box: then the whole frame is read */
+    const S = DT && (F && F.roll ? DT.source(video, 0, 0, fw, fh, (W * fw) / sw, (H * fh) / sh) : DT.source(video, ax, ay, sw, sh, W, H));
+    const pic = S ? S.img : video,
+      ox = S ? S.ox : 0,
+      oy = S ? S.oy : 0;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     if (F && F.roll) {
       /* a dutch tilt: the whole frame turned about the crop's middle (the crop sits far enough in to fill) */
       ctx.save();
       ctx.translate(W / 2, H / 2);
       ctx.rotate(F.roll);
       ctx.scale(W / sw, H / sh);
-      ctx.drawImage(video, -(F.x + sx + sw / 2), -(F.y + sy + sh / 2));
+      ctx.drawImage(pic, -(ax + sw / 2) + ox, -(ay + sh / 2) + oy);
       ctx.restore();
-    } else ctx.drawImage(video, (F ? F.x : 0) + sx, (F ? F.y : 0) + sy, sw, sh, 0, 0, W, H);
+    } else ctx.drawImage(pic, ax - ox, ay - oy, sw, sh, 0, 0, W, H);
+    if (S) DT.finish(ctx, W, H, S.scale);
     /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI. */
     const M = (adj.parts || adj.relight) && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
     const k = M ? M.cut(ctx.canvas, { track: "applied", t: video.currentTime }) : null;

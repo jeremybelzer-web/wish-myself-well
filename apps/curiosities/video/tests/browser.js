@@ -169,6 +169,42 @@ const ok = (cond, text) => {
   });
   ok(st.a && st.b, "both clips are taken apart");
   ok(st.a && st.a.raw, "the inspiration's sound is read");
+  const dt = await page.evaluate(async () => {
+    const clip = await window.CurioClip.open(window.__b),
+      v = clip.video;
+    await window.CurioClip.seek(v, Math.min(1, clip.duration / 2));
+    const W = v.videoWidth,
+      H = v.videoHeight;
+    const draw = (zoom, detail) => {
+      const c = document.createElement("canvas");
+      c.width = W;
+      c.height = H;
+      const x = c.getContext("2d", { willReadFrequently: true });
+      window.CurioClip.drawApplied(x, v, { zoom, luma: 1, contrast: 1, sat: 1 }, W, H, { captions: false, detail });
+      return x.getImageData(0, 0, W, H).data;
+    };
+    /* how hard the edges are: the sum of squared steps between neighbours */
+    const edges = (d) => {
+      let e = 0;
+      for (let i = 4; i < d.length; i += 4) e += (d[i + 1] - d[i - 3]) ** 2;
+      return e;
+    };
+    /* the sharpen on its own (the deblock smooths tile steps away, which this measure would count as edges) */
+    window.CurioDetail.configure({ deblock: 0 });
+    const plain = draw(2.5, false),
+      sharp = draw(2.5, true);
+    window.CurioDetail.configure({ deblock: 1 });
+    const full = draw(2.5, true);
+    let changed = 0;
+    for (let i = 0; i < full.length; i++) if (Math.abs(full[i] - plain[i]) > 2) changed++;
+    const one = draw(1, true),
+      oneOff = draw(1, false);
+    let same = true;
+    for (let i = 0; i < one.length; i++) if (one[i] !== oneOff[i]) same = false;
+    return { gain: edges(sharp) / Math.max(1, edges(plain)), changed: changed / full.length, same, box: !!document.querySelector("[data-detail]") };
+  });
+  ok(dt.gain > 1.01 && dt.changed > 0.005 && dt.same, "sharper zooms: a 2.5x zoom has harder edges than the plain one, no zoom is untouched: " + JSON.stringify(dt));
+  ok(dt.box, "the Sharper zooms switch shows");
   const key = st.a && st.a.nodes.valueKey;
   ok(key && key.length >= 3, "the light lane changes as the clip goes dark and bright: " + JSON.stringify(key));
   ok((await page.locator(".vd-lane").count()) >= 15, "a lane per curiosity: " + (await page.locator(".vd-lane").count()));

@@ -12,6 +12,7 @@
   const KEY = "curiosities-video-v1";
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const prefs = load();
+  if (window.CurioDetail) window.CurioDetail.configure({ on: prefs.detail });
   const slot = { a: { clip: null, d: null, busy: null }, b: { clip: null, d: null, busy: null } };
   let page = null,
     paidOpen = false,
@@ -30,7 +31,7 @@
     } catch (e) {}
     const on = {};
     (V() ? V().GROUPS : []).forEach((g) => (on[g.id] = p.on && typeof p.on[g.id] === "number" ? Math.max(0, Math.min(1, p.on[g.id])) : g.off ? 0 : 1));
-    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false, tilt: p.tilt === true, pool: Array.isArray(p.pool) ? p.pool.slice(0, 200).map((x) => String(x).slice(0, 160)) : [] };
+    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false, tilt: p.tilt === true, detail: p.detail !== false, pool: Array.isArray(p.pool) ? p.pool.slice(0, 200).map((x) => String(x).slice(0, 160)) : [] };
   }
   function keep() {
     try {
@@ -209,6 +210,7 @@
     return `<section class="vd-apply">
       <header><strong>Apply "${esc(A.title)}" to "${esc(B.title)}"</strong>
         <label>Timing <select data-mode><option value="same" ${prefs.mode === "same" ? "selected" : ""}>Same speed as the inspiration (repeats if your clip is longer)</option><option value="stretch" ${prefs.mode === "stretch" ? "selected" : ""}>Stretch the inspiration over your whole clip</option></select></label>
+        <label class="vd-k" title="When your clip is zoomed in, its compression blocks are softened and its edges sharpened, without halos"><input type="checkbox" data-detail ${prefs.detail ? "checked" : ""}> Sharper zooms</label>
         <span class="vd-seg"><button type="button" data-all="1">All on</button><button type="button" data-all="0">All off</button></span></header>
       <div class="vd-apply-list">${rows}</div>
       ${dlg}
@@ -459,6 +461,9 @@
       } else if (t.dataset.tilt != null) {
         prefs.tilt = t.checked;
         checks = null;
+      } else if (t.dataset.detail != null) {
+        prefs.detail = t.checked;
+        if (window.CurioDetail) window.CurioDetail.configure({ on: prefs.detail });
       } else if (t.dataset.mode != null) {
         prefs.mode = t.value === "stretch" ? "stretch" : "same";
         checks = null;
