@@ -209,5 +209,41 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(film() === before, "and undo restores it");
 }
 
+/* Auto markers (Mark the turns): where attention moves to another family, where the feeling changes, where a
+   lane jumps by more than half its scale. Attention is stubbed: a stretch starts at beats 0, 2 and 4. */
+{
+  const CL = w.CurioLanes;
+  const att = { read: () => ({ segments: [{ beat: 0, family: "camera" }, { beat: 2, family: "feeling" }, { beat: 4, family: "feeling" }] }) };
+  const beats = [
+    { values: { emotion: "joyful", shotSize: "wide" } },
+    { values: { emotion: "joyful", shotSize: "wide" } },
+    { values: { emotion: "anxious", shotSize: "wide" } },
+    { values: { emotion: "anxious", shotSize: "extreme close-up" } },
+    { values: { emotion: "anxious", shotSize: "extreme close-up" } },
+  ];
+  const rows = ["r0", "r1", "r2", "r3", "r4"];
+  const pos = (c, v) => ({ wide: 0.1, "extreme close-up": 1 })[v];
+  const turns = CL.turnMarkers(beats, rows, { attention: att, lanes: ["shotSize"], pos, label: () => "Shot size", familyLabel: (f) => ({ camera: "the camera", feeling: "faces" })[f] });
+  ok(turns.length === 2 && turns.every((t) => t.auto === true), "turnMarkers finds two turns, each flagged auto (" + turns.map((t) => t.row).join(", ") + ")");
+  const t2 = turns.find((t) => t.row === "r2");
+  ok(t2 && t2.color === "purple" && /attention moves from the camera to faces/.test(t2.note) && /feeling turns from joyful to anxious/.test(t2.note), "an attention turn is purple and says where attention moves; the feeling change at the same moment joins its note (" + (t2 && t2.note) + ")");
+  ok(!turns.some((t) => t.row === "r4"), "attention staying in the same family is not a turn");
+  const t3 = turns.find((t) => t.row === "r3");
+  ok(t3 && t3.color === "yellow" && t3.note === "shot size jumps from wide to extreme close-up", "a jump of more than half the scale is a yellow marker");
+  const feel = CL.turnMarkers(beats, rows, {});
+  ok(feel.length === 1 && feel[0].row === "r2" && feel[0].color === "red" && feel[0].note === "feeling turns from joyful to anxious", "without attention or lanes, a feeling change is a red marker");
+  ok(CL.turnMarkers(beats, rows, { lanes: ["shotSize"], pos: () => 0.4 }).length === 1, "a small change is not a jump");
+  /* Merging: a moment with your own marker keeps it; a second run replaces the old auto ones; clearing takes only auto. */
+  const mine = [{ row: "r2", color: "blue", note: "the joke lands" }, { row: "r0", color: "green", note: "" }];
+  let list = CL.mergeTurnMarkers(mine, turns);
+  ok(list.length === 3 && list.find((m) => m.row === "r2").note === "the joke lands" && !list.find((m) => m.row === "r2").auto && list.find((m) => m.row === "r3").auto, "your own marker at the same moment is kept as it is, nothing appended");
+  list = CL.mergeTurnMarkers(list, turns);
+  ok(list.length === 3, "marking the turns again does not duplicate them");
+  ok(CL.migrateMarkers(list).find((m) => m.row === "r3").auto === true && CL.migrateMarkers(JSON.parse(JSON.stringify(list))).filter((m) => m.auto).length === 1, "migrateMarkers keeps the auto flag through a save");
+  const cleared = CL.clearAutoMarkers(list);
+  ok(cleared.length === 2 && cleared.every((m) => !m.auto) && cleared.some((m) => m.note === "the joke lands"), "Clear auto markers takes off only the auto ones");
+  ok(CL.TURN_COLORS.attention === "purple" && CL.TURN_COLORS.feeling === "red" && CL.TURN_COLORS.jump === "yellow", "the turn colors are purple, red and yellow");
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

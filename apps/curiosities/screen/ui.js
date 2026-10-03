@@ -1410,6 +1410,7 @@
         ruler: true,
         clips: clipRows,
         thumbs: () => mineBeats().map((b) => thumb(b.values)),
+        beats: () => mineBeats(),
         header: prefs.view === "arrange" ? laneHeader : null,
         onClip: (j) => setRow(j),
         onHover: (j) => setRow(j),
