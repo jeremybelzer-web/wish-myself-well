@@ -160,7 +160,7 @@
   W.look("intExt", (v, k) => {
     const ext = v.is("setting", /exterior/);
     const view = v.p("view");
-    const leak = Math.round(v.p("outsideSound") * 3);
+    const leak = Math.round(v.p("outsideSound") * 5);
     const thr = idx(v, "threshold");
     const shelter = v.p("shelter");
     const pull = v.p("pullOutside");
@@ -231,7 +231,7 @@
     const gap = v.n("burstEvery");
     const gusts = gap > 0 ? Array.from({ length: Math.min(12, Math.floor(60 / gap)) }, (_, i) => ({ at: ((i + 1) * gap) / 60, color: "#fff" })) : [];
     s += `<rect x="6" y="6" width="150" height="36" rx="4" fill="rgba(0,0,0,0.45)"/>` + k.graph({ x: 12, y: 10, w: 138, h: 18, points: shapes, color: "#ffd166", w2: 2 }) + tl(k, { x: 12, w: 138, y: 32, marks: gusts });
-    return s + cap(k, `${kind} · strength ${v("strength")} · see ${v.n("visibility") >= 1000 ? (v.n("visibility") / 1000).toFixed(1) + " km" : v.n("visibility") + " m"} · ${v("moodMatch")}`);
+    return s + cap(k, `${kind} · strength ${v("strength")} · see ${v.n("visibility")} m · ${v("moodMatch")}`);
   });
 
   /* ---------- scale of the place ---------- */
@@ -558,6 +558,7 @@
     s += k.person({ x: 160, y: 158, s: 1.1, alpha: 1 - steal * 0.6, color: "#4a6fa5" });
     /* Real to dreamlike: a haze and a tilt. */
     s = `<g transform="skewX(${(real * 8).toFixed(1)}) translate(${(-real * 10).toFixed(1)} 0)">${s}</g>` + (real > 0.5 ? k.tint({ color: "#c8a0ff", alpha: (real - 0.5) * 0.6 }) : "");
+    s += k.label({ x: 312, y: 12, text: `${v.n("styledShare")}% styled`, size: 7, color: "#ddd", anchor: "end" });
     return s + cap(k, `${v("setting")} · ${v("styleFamily")} · ${v("wealth")} · ${v("realism")}`);
   });
 
@@ -710,7 +711,7 @@
     /* The person, and a frame around their face when the art frames them. */
     s += k.person({ x: 160, y: 158, s: 1.5, color: "#4a6fa5" });
     if (frames > 0) s += `<rect x="134" y="${76}" width="52" height="40" fill="none" stroke="#5b3f2a" stroke-width="${frames * 3}" opacity="${frames === 1 ? 0.5 : 1}"/>`;
-    return s + cap(k, `${v("setting")} · ${v("straightness")} · ${rows} rows · ${v("artGap")} cm gaps`);
+    return s + cap(k, `${v("setting")} · ${v("straightness")} · ${v.n("artRows")} rows · ${v("artGap")} cm gaps`);
   });
 
   /* ---------- clutter ---------- */
@@ -837,6 +838,7 @@
     s += `<g>${k.person({ x: 160, y: 158, s: 1.6, color: bodyC, skin })}</g>`;
     if (pop === 1) s += `<rect x="134" y="54" width="52" height="120" fill="none" stroke="#fff" stroke-width="1" opacity="0.4"/>`;
     s += `<rect x="248" y="30" width="60" height="30" rx="4" fill="rgba(0,0,0,0.55)"/>` + k.arrow({ x1: 256, y1: 45, x2: 300, y2: 45, color: ["#fff6c0", "#999", "#444"][dark] }) + k.label({ x: 278, y: 56, text: v("darkens"), size: 7.5, color: "#eee" });
+    s += k.label({ x: 312, y: 12, text: `walls give back ${v.n("wallReflect")}%`, size: 7, color: "#ddd", anchor: "end" });
     return s + cap(k, `${v("setting")} · contrast ${v("contrast")} · faces ${face >= 0 ? "+" : ""}${face} stops · ${v("popOut")}`);
   });
 

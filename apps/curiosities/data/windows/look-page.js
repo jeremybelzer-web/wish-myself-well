@@ -155,7 +155,7 @@
     out += `<ellipse cx="160" cy="128" rx="14" ry="8" fill="#fff"/><circle cx="${r1(160 + pace * 6)}" cy="128" r="4" fill="${INK}"/>`;
     for (let i = 0; i < 1 + Math.round(pace * 4); i++) out += line(178, 122 + i * 4, 186 + pace * 16, 122 + i * 4, "#ffd166", 1.5);
     const tp = Math.log(v.n("timePerPanel") / 0.5) / Math.log(1200);
-    out += k.clock({ x: 270, y: 128, r: 14, p: tp }) + tag(k, 270, 154, `${r1(v.n("timePerPanel"))} s of story`, "#ccc", "middle", 7);
+    out += k.clock({ x: 270, y: 128, r: 14, p: tp }) + tag(k, 270, 154, `${Math.round(v.n("timePerPanel") * 100) / 100} s of story`, "#ccc", "middle", 7);
     return out + cap(k, `${n} panel${n === 1 ? "" : "s"} · ${rows} row${rows === 1 ? "" : "s"} · ${v("grid")} · ${flow} · ${v("readPace")}`);
   });
 
@@ -204,7 +204,7 @@
     /* the balloon */
     const bw = 50 + size * 70;
     const bh = 22 + size * 22;
-    const bx = k.clamp(40 + across * 220, 18 + bw / 2, 302 - bw / 2);
+    const bx = 18 + bw / 2 + across * Math.max(0, 284 - bw); /* the whole slider maps inside the panel, no clamping */
     let by = k.clamp(24 + place * 90, 14 + bh / 2, 148 - bh / 2);
     const iv = v("innerVoice");
     /* keep clear of the caption box (top left) and the inner-voice box or bubble */
@@ -287,6 +287,7 @@
       const splash = every > 0 && i % every === every - 1;
       out += rect(140 + (i % 10) * 16, 90 + Math.floor(i / 10) * 22, 12, 18, splash ? "#ffd166" : "#3a3a40", { stroke: "#555" });
     }
+    out += k.label({ x: 312, y: 12, text: `biggest panel ${v.n("biggestShare")}%`, size: 7, color: "#ddd", anchor: "end" });
     return out + cap(k, `${v("setting")} · ${shape} biggest panel for ${bf} · variation ${v.n("variation")} · ${v("eyePull")}`);
   });
 
@@ -406,6 +407,7 @@
     /* only where the big word is not: past that, the count under the page still says how many */
     for (let i = 1; i < Math.min(sp, free.length + 1); i++) { const [x, y] = free[i - 1]; out += k.text({ x, y, text: extras[i % 10], size: 9, color: col, weight: 700, italic: style === "hand-drawn", alpha: op }); }
     out += tag(k, 160, 154, `${sp} sound word${sp === 1 ? "" : "s"} on the page`, "#aaa");
+    out += k.label({ x: 312, y: 12, text: `size ${v.n("size")}/5`, size: 7, color: "#ddd", anchor: "end" });
     return out + cap(k, `${mode} · ${style} · ${v("soundColor")} · ${inP} · ${spread} · tilt ${tilt}°`);
   });
 

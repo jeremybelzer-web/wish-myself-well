@@ -280,7 +280,7 @@
     const rampLen = (v.n("rampTime") / 30) * 0.6 + (1 - v.p("speed")) * 0.3;
     const lead = v.n("lead");
     const beatLbl = never ? "no change" : v("setting").replace(/^on the |^during the /, "");
-    return `${k.bg("#111")}${before}<clipPath id="${id}-r"><rect x="${r1(ax)}" y="0" width="${r1(320 - ax)}" height="180"/></clipPath><g clip-path="url(#${id}-r)">${after}</g>${ax > 161 ? `<rect x="${r1(ax)}" y="0" width="${r1(320 - ax)}" height="180" fill="none" stroke="#ffd166" stroke-dasharray="3 3"/>` : ""}<line x1="160" y1="0" x2="160" y2="162" stroke="#fff" stroke-width="2"/>${k.text({ x: 80, y: 15, text: "before", size: 10, weight: 700, outline: "#000", outlineW: 3 })}${k.text({ x: 240, y: 15, text: never ? "after (no change)" : "after", size: 10, weight: 700, outline: "#000", outlineW: 3 })}${eyeMark}${LL.ramp(k, { x: 14, y: 116, w: 120, h: 26, from: 0.5, to: 0.5 + delta * 0.8, at: 0.45 + lead * 0.1, len: rampLen, beat: 0.45, beatLabel: beatLbl, title: "brightness", color: never ? "#777" : "#ffd166" })}${LL.chip(k, 176, 158 - 10, "set off by " + v("trigger"))}${LL.caption(k, never ? "The light never changes" : `${delta >= 0 ? "Brighter" : "Darker"} ${v("setting")}, ${v.n("rampTime")} s ramp`)}`;
+    return `${k.bg("#111")}${before}<clipPath id="${id}-r"><rect x="${r1(ax)}" y="0" width="${r1(320 - ax)}" height="180"/></clipPath><g clip-path="url(#${id}-r)">${after}</g>${ax > 161 ? `<rect x="${r1(ax)}" y="0" width="${r1(320 - ax)}" height="180" fill="none" stroke="#ffd166" stroke-dasharray="3 3"/>` : ""}<line x1="160" y1="0" x2="160" y2="162" stroke="#fff" stroke-width="2"/>${k.text({ x: 80, y: 15, text: "before", size: 10, weight: 700, outline: "#000", outlineW: 3 })}${k.text({ x: 240, y: 15, text: never ? "after (no change)" : "after", size: 10, weight: 700, outline: "#000", outlineW: 3 })}${eyeMark}${LL.ramp(k, { x: 14, y: 116, w: 120, h: 26, from: 0.5, to: 0.5 + delta * 0.8, at: 0.45 + lead * 0.1, len: rampLen, beat: 0.45, beatLabel: beatLbl, title: "brightness", color: never ? "#777" : "#ffd166" })}${LL.chip(k, 176, 158 - 10, "set off by " + v("trigger"))}${LL.caption(k, never ? `The light never changes (a ${v.n("rampTime")} s ramp if it did)` : `${delta >= 0 ? "Brighter" : "Darker"} ${v("setting")}, ${v.n("rampTime")} s ramp`)}`;
   });
 
   /* Time of day: the sun's place, the sky, the length of the shadow and a clock. */
@@ -357,7 +357,7 @@
     const dripS = Array.from({ length: drips }, (_, i) => `<path d="M${30 + i * 50} 0 l0 ${8 + i * 3} q-3 5 0 7 q3 -2 0 -7" fill="#bcd7f0" stroke="#bcd7f0"/>`).join("");
     const pace = LL.idx(v, "dryingPace");
     const dt = v.n("dryTime");
-    return `${LL.scene({ room: { sky: k.mix("#8cc0ea", "#59636f", rain / 3), clouds: rain / 3 }, under: sheen + pud + mirror, bust: { shine: wet * 0.8, shineN: wet }, over: drops + dripS, grade: { sat: 1 - rain * 0.12, curve: LL.curve({ contrast: wet * 0.15 }) } }, k, id)}${LL.ramp(k, { x: 236, y: 22, w: 72, h: 20, from: 0.5, to: [0.1, 0.5, 0.9][pace], at: 0.1, len: dt / 120, title: "wet over " + dt + " min" })}${LL.caption(k, `${v("setting")}, ${v("rainFall")}, ${v("puddles")} puddles`)}`;
+    return `${LL.scene({ room: { sky: k.mix("#8cc0ea", "#59636f", rain / 3), clouds: rain / 3 }, under: sheen + pud + mirror, bust: { shine: wet * 0.8, shineN: wet }, over: drops + dripS, grade: { sat: 1 - rain * 0.12, curve: LL.curve({ contrast: wet * 0.15 }) } }, k, id)}${LL.ramp(k, { x: 236, y: 22, w: 72, h: 20, from: 0.5, to: [0.1, 0.5, 0.9][pace], at: 0.1, len: dt / 120, title: "wet over " + dt + " min" })}${LL.caption(k, `${v("setting")}, ${v("rainFall")}, ${v("puddles")} puddles · rain ${v.n("rainRate")} mm/h`)}`;
   });
 
   /* Something glows: an orb, the person or the room, with halo, spill and pulse. */
@@ -381,7 +381,7 @@
     const beat = [0, 1, 2, 3][pulse];
     const rate = v.n("pulseRate");
     const wave = k.wave({ x: 12, y: 26, w: 80, h: 14, amp: beat ? 0.4 + beat * 0.2 : 0.02, cycles: Math.max(1, rate / 20), noise: pulse === 3 ? 0.6 : 0, color: col });
-    return `${LL.scene({ room: { win: 0.3, lamp: null }, roomDim: 0.45 - spill * 0.3, under: what !== "person" ? halo : "", bust: { dim: pull * 0.2, key: { ang: 0, dark: 0.7 - spill * 0.4, color: col, colorA: spill * 0.4 } }, over: (what === "person" ? halo : "") + spillS }, k, id)}${LL.box(6, 10, 92, 26)}${wave}${LL.caption(k, none ? "Nothing glows" : `A glowing ${what}, ${v("pulse")}, ${rate} pulses a minute`)}`;
+    return `${LL.scene({ room: { win: 0.3, lamp: null }, roomDim: 0.45 - spill * 0.3, under: what !== "person" ? halo : "", bust: { dim: pull * 0.2, key: { ang: 0, dark: 0.7 - spill * 0.4, color: col, colorA: spill * 0.4 } }, over: (what === "person" ? halo : "") + spillS }, k, id)}${LL.box(6, 10, 92, 26)}${wave}${LL.caption(k, none ? `Nothing glows (would pulse ${v.n("pulseRate")} times a minute)` : `A glowing ${what}, ${v("pulse")}, ${rate} pulses a minute`)}`;
   });
 
   /* Wear: dust, scratches, rust or stains over the room; how much, where, how old and getting worse or not. */
@@ -407,7 +407,7 @@
     const worse = LL.idx(v, "worsens");
     const story = LL.idx(v, "story");
     const clip = `<clipPath id="${id}-c"><rect x="0" y="0" width="${r1(Math.max(8, 320 * share))}" height="180"/></clipPath>`;
-    return `${LL.scene({ room: { wall: k.mix("#b9a58c", "#8a7a62", age), lamp: { on: 0.7 } }, under: `<defs>${clip}</defs><g clip-path="url(#${id}-c)">${marks}</g>`, grade: { sat: 1 - age * 0.45, sepia: age * 0.35 } }, k, id)}${story === 2 ? k.ring({ x: area[0] + area[2] / 2, y: area[1] + Math.min(area[3], 120) / 2, r: 22, color: "#ffd166", dash: "4 3" }) : story === 1 ? LL.chip(k, 8, 20, "hints at the past") : ""}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: [0.15, 0.5, 0.75, 1][worse], at: 0.05, len: 0.9, title: "wear over the film" })}${LL.caption(k, `${v("setting")} ${kind}, looks ${v("age")} old`)}`;
+    return `${LL.scene({ room: { wall: k.mix("#b9a58c", "#8a7a62", age), lamp: { on: 0.7 } }, under: `<defs>${clip}</defs><g clip-path="url(#${id}-c)">${marks}</g>`, grade: { sat: 1 - age * 0.45, sepia: age * 0.35 } }, k, id)}${story === 2 ? k.ring({ x: area[0] + area[2] / 2, y: area[1] + Math.min(area[3], 120) / 2, r: 22, color: "#ffd166", dash: "4 3" }) : story === 1 ? LL.chip(k, 8, 20, "hints at the past") : ""}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: [0.15, 0.5, 0.75, 1][worse], at: 0.05, len: 0.9, title: "wear over the film" })}${LL.caption(k, `${v("setting")} ${kind}, looks ${v("age")} old, frame ${v.n("wornFrame")}% worn`)}`;
   });
 
   /* One color that pops: an accent in one place, everything else muted. */
@@ -436,7 +436,7 @@
     const recurs = LL.idx(v, "recurs");
     const strip = Array.from({ length: 6 }, (_, i) => `<rect x="${236 + i * 12}" y="16" width="10" height="10" fill="${[[0], [0, 3], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]][recurs].includes(i) ? col : "#555"}" stroke="#222"/>`).join("");
     const lead = leads ? k.arrow({ x1: ax, y1: ay, x2: leads === 1 ? 160 : leads === 2 ? 290 : 316, y2: leads === 1 ? 70 : leads === 2 ? 100 : ay, color: "#fff", w: 1.5 }) : "";
-    return `${base}${accent}${lead}${LL.box(230, 6, 84, 26)}${strip}${LL.caption(k, lvl ? `${v("accentHue")} on ${cloth ? "the clothing" : carrier}; the rest ${v("restColor")}` : "No accent color")}`;
+    return `${base}${accent}${lead}${LL.box(230, 6, 84, 26)}${strip}${LL.caption(k, lvl ? `${v("accentHue")} on ${cloth ? "the clothing" : carrier}; the rest ${v("restColor")}, ${v.n("accentY")}% up, ${v.n("accentVsRest")}% apart` : `No accent color (would sit ${v.n("accentY")}% up, ${v.n("accentVsRest")}% apart)`)}`;
   });
 
   /* The color drifts over the scene: a filmstrip that warms or cools as it goes. */
@@ -541,7 +541,7 @@
     const src = `<circle cx="${srcR + 3}" cy="40" r="${srcR}" fill="${col}" stroke="#1c1712" stroke-width="1"/>`;
     const bg = link === "only the hero" ? 0.45 : 0;
     const hero = link === "only the background" ? 0.45 : 0;
-    return `${LL.scene({ room: { win: type === "window" ? 1 : 0.4, lamp: prac ? { on: 1 } : null }, roomDim: bg, pattern: { kind: shape, a: 0.6 }, under: gradient + `<rect x="0" y="0" width="320" height="180" fill="${col}" opacity="${r1(bounce * 0.15)}"/>`, bust: { key: { ang: 190, dark: cl(0.1 + ratio * 0.9 - bounce * 0.25, 0, 1), soft, color: col, colorA: 0.25 }, dim: hero, rim: { w: [0, 2, 5][rimI], a: 0.9, side: 1 } }, haze: { a: [0, 0.35, 0.3][haze], beams: { n: haze === 2 ? 3 : 0, a: 0.8, x: 10, y: 40 } }, over: src }, k, id)}${LL.chipR(k, 314, 18, `halves every ${LL.num(v.n("halfDistance"))} m`)}${LL.chip(k, 6, 18, `lights ${link}`)}${LL.caption(k, `${type}, ${v("ratio")}, ${/bounce/.test(v("bounce")) ? v("bounce") : v("bounce") + " bounce"}`)}`;
+    return `${LL.scene({ room: { win: type === "window" ? 1 : 0.4, lamp: prac ? { on: 1 } : null }, roomDim: bg, pattern: { kind: shape, a: 0.6 }, under: gradient + `<rect x="0" y="0" width="320" height="180" fill="${col}" opacity="${r1(bounce * 0.15)}"/>`, bust: { key: { ang: 190, dark: cl(0.1 + ratio * 0.9 - bounce * 0.25, 0, 1), soft, color: col, colorA: 0.25 }, dim: hero, rim: { w: [0, 2, 5][rimI], a: 0.9, side: 1 } }, haze: { a: [0, 0.35, 0.3][haze], beams: { n: haze === 2 ? 3 : 0, a: 0.8, x: 10, y: 40 } }, over: src }, k, id)}${LL.chipR(k, 314, 18, `halves every ${LL.num(v.n("halfDistance"))} m`)}${LL.chip(k, 6, 18, `lights ${link}`)}${LL.caption(k, `${type}, ${v("ratio")}, ${/bounce/.test(v("bounce")) ? v("bounce") : v("bounce") + " bounce"}, bounce ${v.n("bounceShare")}%`)}`;
   });
 
   /* Skin, from the lens: light through the skin, oil, flush, pores. A big face. */
@@ -560,7 +560,7 @@
     const waxy = thr < 0.2 ? `<circle cx="160" cy="80" r="45" fill="#fff" opacity="0.12"/>` : "";
     const bust = LL.bust({ r: 45, y: 82, skin, key: { ang: 0, dark: 0.45, soft: 0.6 }, glow: { a: 0.2 + thr * 0.5 + sl * 0.3, color: "#ff5a3c", where: thr > 0.9 ? "ears" : "whole face", depth: sl }, shine: 0.15 + oil * 0.85, shineN: shineShare, shineSize: oil, flush: flush * 0.8, pores: det, dim: -0 }, k, id);
     const room = `<rect x="0" y="0" width="320" height="180" fill="${k.mix("#2a2a36", "#9c9cb0", 0.5 - svs * 0.4)}"/>`;
-    return `${room}${bust}${waxy}${det < 0.1 ? `<circle cx="160" cy="82" r="45" fill="${skin}" opacity="0.2"/>` : ""}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.15, to: timing ? 0.9 : 0.15, at: [0, 0.1, 0.4, 0.5][timing], len: timing === 3 ? 0.02 : ft / 30, title: "face colors" })}${LL.caption(k, `${v("glowThrough")}, ${v("oil")} skin, ${v("flush")}, ${v("detail")}`)}`;
+    return `${room}${bust}${waxy}${det < 0.1 ? `<circle cx="160" cy="82" r="45" fill="${skin}" opacity="0.2"/>` : ""}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.15, to: timing ? 0.9 : 0.15, at: [0, 0.1, 0.4, 0.5][timing], len: timing === 3 ? 0.02 : ft / 30, title: "face colors" })}${LL.caption(k, `${v("glowThrough")}, ${v("oil")} skin, ${v("flush")}, ${v("detail")}, shine ${v.n("shineShare")}%`)}`;
   });
 
   /* Where the light is: a map from above, plus what it does to the face. */
@@ -624,7 +624,7 @@
     const t = v.n("contrastTime");
     const curve = LL.curve({ contrast: (c - 0.4) * 1.4, lift: blacks === 0 ? 0.25 : blacks === 1 ? 0.08 : 0, crush: blacks === 3 ? 0.7 : 0, clip: brights === 3 ? 0.8 : brights === 2 ? 0.35 : 0, cap: brights === 0 ? 0.15 : 0 });
     const steps = Array.from({ length: 8 }, (_, i) => `<rect x="${236 + i * 9}" y="22" width="9" height="14" fill="${k.mix("#000000", "#ffffff", cl(curve(i / 7), 0, 1))}"/>`).join("");
-    return `${LL.scene({ room: { lamp: { on: 0.8 } }, roomDim: fvr > 0 ? 0.3 : 0, bust: { key: { dark: cl(0.95 - fill * 0.7, 0, 1), soft: 0.25 }, dim: fvr < 0 ? 0.35 : 0 }, grade: { curve } }, k, id)}${LL.box(230, 8, 84, 34)}${k.label({ x: 236, y: 18, text: "dark → bright", size: 8, anchor: "start", color: "#ccc" })}${steps}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: [0.2, 0.5, 0.75, 0.9][build], at: 0.2, len: build === 3 ? 0.01 : t / 60, title: "over the scene" })}${LL.chip(k, 6, 18, "measured on " + v("contrastFrom"))}${LL.caption(k, `Contrast ${v.n("setting")}, ${v.n("contrastStops")} stops, ${v("blacks")} blacks`)}`;
+    return `${LL.scene({ room: { lamp: { on: 0.8 } }, roomDim: fvr > 0 ? 0.3 : 0, bust: { key: { dark: cl(0.95 - fill * 0.7, 0, 1), soft: 0.25 }, dim: fvr < 0 ? 0.35 : 0 }, grade: { curve } }, k, id)}${LL.box(230, 8, 84, 34)}${k.label({ x: 236, y: 18, text: "dark → bright", size: 8, anchor: "start", color: "#ccc" })}${steps}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: [0.2, 0.5, 0.75, 0.9][build], at: 0.2, len: build === 3 ? 0.01 : t / 60, title: "over the scene" })}${LL.chip(k, 6, 18, "measured on " + v("contrastFrom"))}${LL.caption(k, `Contrast ${v.n("setting")}, ${v.n("contrastStops")} stops, ${v("blacks")} blacks, over ${v.n("contrastTime")} s`)}`;
   });
 
   /* The color of the light, in kelvin, with warm/cool split and green/pink cast. */
@@ -665,7 +665,7 @@
     const darkS = { corners: `<defs><radialGradient id="${id}-v"><stop offset="0.5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.75"/></radialGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#${id}-v)"/>`, background: `<rect x="0" y="0" width="320" height="122" fill="#000" opacity="0.5"/>`, "behind the people": `<rect x="100" y="0" width="120" height="122" fill="#000" opacity="0.55"/>`, "over the faces": "" }[dark];
     const lead = v.n("shiftLead");
     const time = v.n("shiftTime");
-    return `${LL.scene({ room: { win: preset.win, sky: preset.sky, lamp: { on: kind === "practical" ? 1 : 0.2 }, pools }, under: darkS, bust: { key: { dark: kind === "flat" ? 0.1 : 0.3 + st * 0.6, soft: kind === "hard" ? 0 : 0.6 }, dim: dark === "over the faces" ? 0.5 : 0, rim: { w: picks * 5, a: 0.9 } }, over: picks > 0.9 ? `<path d="M0 0 H320 V180 H0 Z M160 32 a52 52 0 1 0 0.1 0 Z" fill="#000" fill-rule="evenodd" opacity="0.45"/>` : "", grade: { tone: () => LL.warmRGB(preset.warm), curve: LL.curve({ bright: preset.br }) } }, k, id)}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.3, to: 0.8, at: 0.45 + lead * 0.08, len: time / 30, beat: 0.45, beatLabel: v("shiftCue"), title: "shift" })}${LL.caption(k, `${kind} lighting, ${v("pools")}, ${n} pool${n === 1 ? "" : "s"}`)}`;
+    return `${LL.scene({ room: { win: preset.win, sky: preset.sky, lamp: { on: kind === "practical" ? 1 : 0.2 }, pools }, under: darkS, bust: { key: { dark: kind === "flat" ? 0.1 : 0.3 + st * 0.6, soft: kind === "hard" ? 0 : 0.6 }, dim: dark === "over the faces" ? 0.5 : 0, rim: { w: picks * 5, a: 0.9 } }, over: picks > 0.9 ? `<path d="M0 0 H320 V180 H0 Z M160 32 a52 52 0 1 0 0.1 0 Z" fill="#000" fill-rule="evenodd" opacity="0.45"/>` : "", grade: { tone: () => LL.warmRGB(preset.warm), curve: LL.curve({ bright: preset.br }) } }, k, id)}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.3, to: 0.8, at: 0.45 + lead * 0.08, len: time / 30, beat: 0.45, beatLabel: v("shiftCue"), title: "shift" })}${LL.caption(k, `${kind} lighting, ${v("pools")}, ${n} pool${n === 1 ? "" : "s"}, shifts in ${v.n("shiftTime")} s`)}`;
   });
 
   /* Hard or soft light: the shadow edge on the face and the source size. */
@@ -682,7 +682,7 @@
     const lw = 4 + size * 18 + width * 22;
     const src = `<rect x="${r1(14 - lw / 4)}" y="${r1(60 - lw / 2)}" width="${r1(lw / 2)}" height="${r1(lw)}" rx="2" fill="#fff6dc"/>${dif > 0.05 ? `<rect x="${r1(14 + lw / 4 + 4)}" y="${r1(60 - lw / 2 - 4)}" width="3" height="${r1(lw + 8)}" fill="#fff" opacity="${r1(dif * 0.9)}"/>` : ""}`;
     const t = v.n("softTime");
-    return `${LL.scene({ room: { win: false, lamp: null }, roomDim: 0.35, pattern: null, bust: { x: 160 + dist * 40, key: { ang: 180, dark: 0.85 - wrap * 0.3, soft: s, lit: 0.45 + wrap * 0.35 } } }, k, id)}${src}${k.meter({ x: 236, y: 150, w: 72, p: t / 30, label: `change in ${t} s` })}${LL.caption(k, `${v("setting")} light, ${v("edge")} shadow edge`)}`;
+    return `${LL.scene({ room: { win: false, lamp: null }, roomDim: 0.35, pattern: null, bust: { x: 160 + dist * 40, key: { ang: 180, dark: 0.85 - wrap * 0.3, soft: s, lit: 0.45 + wrap * 0.35 } } }, k, id)}${src}${k.meter({ x: 236, y: 150, w: 72, p: t / 30, label: `change in ${t} s` })}${LL.caption(k, `${v("setting")} light, ${v("edge")} shadow edge, diffusion ${v.n("diffusion")}%`)}`;
   });
 
   /* Rim light: a bright edge around them, which side, how thick, its color. */
@@ -719,7 +719,7 @@
     const hidden = Array.from({ length: n - nSeen }, (_, i) => `<g transform="translate(${18 + i * 12} 150) rotate(-40) scale(0.55)"><path d="M-10 -9 L8 -6 L8 6 L-10 9 Z" fill="#555" stroke="#1c1712" stroke-width="1.5"/><circle cx="9" cy="0" r="5" fill="#fff3c4"/></g>`).join("") + (n - nSeen ? LL.chip(k, 6, 136, `${n - nSeen} off screen`) : "");
     const bgPools = Array.from({ length: bg }, (_, i) => ({ x: 30 + i * 46, y: 40, rx: 14, a: 0.5 }));
     const switching = come ? Array.from({ length: Math.min(n, come * 2) }, (_, i) => `<line x1="${24 + i * 36}" y1="4" x2="${36 + i * 36}" y2="24" stroke="#e85d75" stroke-width="2"/>`).join("") : "";
-    return `${LL.scene({ room: { win: 0.3, lamp: null, pools: bgPools }, roomDim: 0.4 - Math.min(n, 8) * 0.03, bust: { key: { dark: cl(0.95 - fill * 0.7 - (1 - keyShare) * 0.3, 0, 1), soft: 0.3 }, rim: { w: edges * 2, side: edges >= 2 ? 0 : 1, a: 0.9 } } }, k, id)}${lamps}${switching}${hidden}${LL.ticks(k, 236, 130, 72, Math.min(30, rate), "#e85d75", `${rate} switch/min`)}${LL.caption(k, `${n} light${n === 1 ? "" : "s"}, ${nSeen} seen, key gives ${v.n("keyShare")}%`)}`;
+    return `${LL.scene({ room: { win: 0.3, lamp: null, pools: bgPools }, roomDim: 0.4 - Math.min(n, 8) * 0.03, bust: { key: { dark: cl(0.95 - fill * 0.7 - (1 - keyShare) * 0.3, 0, 1), soft: 0.3 }, rim: { w: edges * 2, side: edges >= 2 ? 0 : 1, a: 0.9 } } }, k, id)}${lamps}${switching}${hidden}${LL.ticks(k, 236, 130, 72, Math.min(30, rate), "#e85d75", `${rate} switch/min`)}${LL.caption(k, `${n} light${n === 1 ? "" : "s"}, ${nSeen} seen, key gives ${v.n("keyShare")}%, ${v.n("motivated")}% motivated`)}`;
   });
 
   /* Shaped light: blinds, leaves or a barndoor cut thrown across the room. */
@@ -738,7 +738,7 @@
     const pat = { kind, a: 0.2 + st * 0.8, size, ang, blur: edge, share, y0: band[0], y1: band[1], shift: sway * 4 };
     const inner = LL.room({ id }, k) + (on === "the people" ? "" : LL.pattern(pat, k, id)) + LL.bust({ key: { dark: 0.3 } }, k, id) + (on === "the people" ? `<g>${LL.pattern(Object.assign({}, pat, { share: share * 0.5 + 0.5 * (share > 0) }), k, id + "-p")}</g>` : on === "everything" ? LL.pattern(pat, k, id + "-e") : "");
     const swayM = sway ? k.arrow({ x1: 140, y1: 10, x2: 180, y2: 10, color: "#ffd166", w: 1.5 }) + k.arrow({ x1: 180, y1: 10, x2: 140, y2: 10, color: "#ffd166", w: 1.5 }) : "";
-    return `${inner}${swayM}${LL.ticks(k, 236, 150, 72, Math.round(rate / 3), "#ffd166", `${v("sway")}, ${rate}/min`)}${LL.caption(k, kind === "open" ? "Open light, no pattern" : `${kind} on ${on}, ${v("patternSize")}, ${v("patternEdge")} edge`)}`;
+    return `${inner}${swayM}${LL.ticks(k, 236, 150, 72, Math.round(rate / 3), "#ffd166", `${v("sway")}, ${rate}/min`)}${LL.caption(k, kind === "open" ? `Open light, no pattern (${v.n("patternShare")}% if it had one)` : `${kind} on ${on}, ${v("patternSize")}, ${v("patternEdge")} edge`)}`;
   });
 
   /* The air: haze, smoke, fog, beams, how far you can see. */
@@ -773,7 +773,7 @@
     const litS = `<rect x="0" y="0" width="${r1(lit * 320)}" height="180" fill="#fff" opacity="0.18"/>`;
     const brightS = { "the face": "", "a window": `<rect x="22" y="22" width="56" height="52" fill="#fff"/>`, "a lamp": `<circle cx="262" cy="70" r="22" fill="#fff6c4"/>`, "the sky": `<rect x="0" y="0" width="320" height="18" fill="#eaf4ff"/>` }[bright];
     const spot = guide > 0 ? `<defs><radialGradient id="${id}-s" cx="0.5" cy="0.45" r="${r1(0.9 - guide * 0.55)}"><stop offset="0.3" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="${r1(guide * 0.8)}"/></radialGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#${id}-s)"/>` : "";
-    return `${LL.scene({ room: { lamp: { on: 0.8 } }, under: brightS + litS + shadow, bust: { key: { dark: 0.5 }, dim: cl(-fs * 0.4, 0, 0.6) }, over: (fs > 0 ? `<circle cx="160" cy="80" r="27" fill="#fff" opacity="${r1(fs * 0.3)}"/>` : "") + spot, grade: { curve: LL.curve({ bright: key * 0.25 + ex * 0.2, contrast: key === 0 ? 0 : 0.1 }) } }, k, id)}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: [0.15, 0.5, 0.85][arc], at: 0.1, len: 0.8, title: "over the section" })}${LL.caption(k, `${v("setting")}, exposure ${v.n("exposure")}, brightest: ${bright}`)}`;
+    return `${LL.scene({ room: { lamp: { on: 0.8 } }, under: brightS + litS + shadow, bust: { key: { dark: 0.5 }, dim: cl(-fs * 0.4, 0, 0.6) }, over: (fs > 0 ? `<circle cx="160" cy="80" r="27" fill="#fff" opacity="${r1(fs * 0.3)}"/>` : "") + spot, grade: { curve: LL.curve({ bright: key * 0.25 + ex * 0.2, contrast: key === 0 ? 0 : 0.1 }) } }, k, id)}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: [0.15, 0.5, 0.85][arc], at: 0.1, len: 0.8, title: "over the section" })}${LL.caption(k, `${v("setting")}, exposure ${v.n("exposure")}, brightest: ${bright}, face ${v.n("faceStops") > 0 ? "+" : ""}${v.n("faceStops")} stops`)}`;
   });
 
   /* Render style: photo, paint, toon or flat, applied to part of the frame. */
@@ -795,7 +795,7 @@
     void clipX;
     const sw = r1(Math.max(4, share * 320));
     const keepFace = reach < 2 ? `<clipPath id="${id}-f"><circle cx="160" cy="80" r="27"/>${reach === 0 ? `<path d="${LL.bustPath(160, 80, 27)}"/>` : ""}</clipPath><g clip-path="url(#${id}-f)">${base}</g>` : "";
-    return `${base}<clipPath id="${id}-c"><rect x="0" y="0" width="${sw}" height="180"/></clipPath><g clip-path="url(#${id}-c)">${styled}${keepFace}</g><line x1="${sw}" y1="0" x2="${sw}" y2="162" stroke="#ffd166" stroke-dasharray="3 3"/>${LL.ticks(k, 236, 130, 72, Math.round(rate / 2), "#ffd166", `${rate} drawings/s`)}${LL.chip(k, 6, 18, `shifts ${v("styleMoment")} · ${time} s`)}${LL.caption(k, `${st}, ${v("detailLevel")}, ${v("shading")} shading, ${v("styleReach")}`)}`;
+    return `${base}<clipPath id="${id}-c"><rect x="0" y="0" width="${sw}" height="180"/></clipPath><g clip-path="url(#${id}-c)">${styled}${keepFace}</g><line x1="${sw}" y1="0" x2="${sw}" y2="162" stroke="#ffd166" stroke-dasharray="3 3"/>${LL.ticks(k, 236, 130, 72, Math.round(rate / 2), "#ffd166", `${rate} drawings/s`)}${LL.chip(k, 6, 18, `shifts ${v("styleMoment")} · ${time} s`)}${LL.caption(k, `${st}, ${v("detailLevel")}, ${v("shading")} shading, ${v("styleReach")}, ${v.n("styledShare")}% styled`)}`;
   });
 
   /* Ink line: outline weight, color, wobble, inner lines, thinner far away, shimmer. */
@@ -854,7 +854,7 @@
     const share = v.p("glowShare");
     const t = v.n("warmTime");
     const backS = back ? `<circle cx="160" cy="82" r="${r1(50 + back * 30)}" fill="#fff4d6" opacity="${r1(back * 0.5)}"/>` : "";
-    return `<rect x="0" y="0" width="320" height="180" fill="#2a2a33"/>${backS}${LL.bust({ r: 42, y: 84, key: { ang: 0, dark: 0.45, soft: 0.6 }, glow: { a: 0.15 + amt * (0.3 + share * 0.5) + back * 0.2, color: col, where, depth: depth + share * 0.5 } }, k, id)}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.2, to: warms ? 0.85 : 0.2, at: warms === 2 ? 0.45 : 0.1, len: t / 30, beat: warms === 2 ? 0.45 : null, title: "warms up" })}${LL.caption(k, v("color") === "none" ? "No color under the skin" : `${v("color")} glow in the ${where}, ${v("depth")}`)}`;
+    return `<rect x="0" y="0" width="320" height="180" fill="#2a2a33"/>${backS}${LL.bust({ r: 42, y: 84, key: { ang: 0, dark: 0.45, soft: 0.6 }, glow: { a: 0.15 + amt * (0.3 + share * 0.5) + back * 0.2, color: col, where, depth: depth + share * 0.5 } }, k, id)}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.2, to: warms ? 0.85 : 0.2, at: warms === 2 ? 0.45 : 0.1, len: t / 30, beat: warms === 2 ? 0.45 : null, title: "warms up" })}${LL.caption(k, v("color") === "none" ? `No color under the skin (${v.n("glowShare")}%, warms in ${v.n("warmTime")} s if used)` : `${v("color")} glow in the ${where}, ${v("depth")}, ${v.n("glowShare")}%, warms in ${v.n("warmTime")} s`)}`;
   });
 
   /* Saturation: the color strength of the frame, the hero, skin and which colors. */
@@ -878,7 +878,7 @@
     const ps = cl(s + hero * 0.8, 0, 3);
     const personG = LL.graded(`${id}-p`, { sat: ps }, person);
     const skinFix = skinP ? `<circle cx="160" cy="80" r="27" fill="#e8b894" opacity="${r1(skinP * 0.6)}"/>` : "";
-    return `${room}${personG}${skinFix}${LL.box(230, 6, 80, 28)}${sw}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: 0.5 + trend * 0.4, at: 0.1, len: pace / 60, title: "over the scene" })}${LL.chip(k, 6, 18, "measured on " + from)}${LL.caption(k, `Color strength ${v.n("satPercent")}%, ${v("trend")}`)}`;
+    return `${room}${personG}${skinFix}${LL.box(230, 6, 80, 28)}${sw}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: 0.5 + trend * 0.4, at: 0.1, len: pace / 60, title: "over the scene" })}${LL.chip(k, 6, 18, "measured on " + from)}${LL.caption(k, `Color strength ${v.n("satPercent")}%, ${v("trend")}, shifts over ${v.n("pace")} s, hero +${v.n("heroGap")}%`)}`;
   });
 
   /* Palette: main and second color, shares, harmony and colors for the characters. */
@@ -921,7 +921,7 @@
     const hueTone = LL.hueRGB(hue, r === 1 || r === 2 ? 0.3 : 0.06);
     const ft = { none: {}, "soft diffusion": { blur: 1.2 }, sepia: { sepia: 0.8 }, "bleach bypass": { sat: 0.5, contrast: 0.5 }, "cross processed": { tone: [0.05, 0.08, -0.12] }, "heavy tint": { tone: LL.hueRGB(hue, 0.35) } }[kind];
     const grain = stock ? Array.from({ length: stock * 70 }, (_, i) => `<circle cx="${r1(k.rnd(i + 1) * 320)}" cy="${r1(k.rnd(i + 99) * 180)}" r="${r1(0.5 + stock * 0.2)}" fill="${i % 2 ? "#fff" : "#000"}" opacity="0.35"/>`).join("") + (stock >= 3 ? `<line x1="${60 + stock * 30}" y1="0" x2="${64 + stock * 30}" y2="180" stroke="#eee" stroke-width="1" opacity="0.6"/>` : "") : "";
-    return `${LL.scene({ room: { lamp: { on: 0.8 } }, bust: { key: { dark: 0.4 } }, over: grain, grade: { sat: Math.min(3, sat * (ft.sat || 1)), blur: ft.blur, sepia: ft.sepia, curve: LL.curve({ bright: br * 0.18, contrast: ft.contrast || 0 }), tone: () => hueTone.map((x, i) => x + (ft.tone ? ft.tone[i] : 0)) } }, k, id)}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: [0.1, 0.5, 0.9][arc], at: 0.2, len: t / 60, title: "color over the film" })}${LL.caption(k, `${v("setting")}, ${kind}, ${v("filmStock")}`)}`;
+    return `${LL.scene({ room: { lamp: { on: 0.8 } }, bust: { key: { dark: 0.4 } }, over: grain, grade: { sat: Math.min(3, sat * (ft.sat || 1)), blur: ft.blur, sepia: ft.sepia, curve: LL.curve({ bright: br * 0.18, contrast: ft.contrast || 0 }), tone: () => hueTone.map((x, i) => x + (ft.tone ? ft.tone[i] : 0)) } }, k, id)}${LL.ramp(k, { x: 236, y: 120, w: 72, h: 22, from: 0.5, to: [0.1, 0.5, 0.9][arc], at: 0.2, len: t / 60, title: "color over the film" })}${LL.caption(k, `${v("setting")}, ${kind}, ${v("filmStock")}, ${v.n("colorPercent")}% color, changes over ${v.n("rangeTime")} s`)}`;
   });
 
   /* A color filter: how strong, in the shadows, middle or highlights, over part of the frame. */
@@ -941,7 +941,7 @@
     const plain = LL.scene({ room: { lamp: { on: 0.6 } }, bust: { key: { dark: 0.45 } } }, k, id + "-p");
     const sw = r1(Math.max(4, share * 320));
     const glass = method === "glass on the lens" ? `<circle cx="300" cy="22" r="12" fill="${LL.hueCss(marks === "the past or a dream" ? 40 : 200, 70, 55)}" opacity="0.6" stroke="#ddd"/>` : method === "in the edit" ? LL.chip(k, 250, 24, "in the edit") : "";
-    return `${plain}<clipPath id="${id}-c"><rect x="0" y="0" width="${sw}" height="180"/></clipPath><g clip-path="url(#${id}-c)">${g}</g>${glass}${k.meter({ x: 236, y: 150, w: 72, p: t / 30, label: `tints over ${t} s` })}${LL.chip(k, 6, 18, "marks " + marks)}${LL.caption(k, lvl ? `${v("setting")} filter in ${v("tintWhere")}, ${v.n("tintShare")}% of frame` : `No color filter (${v.n("tintPercent")}% if one is used)`)}`;
+    return `${plain}<clipPath id="${id}-c"><rect x="0" y="0" width="${sw}" height="180"/></clipPath><g clip-path="url(#${id}-c)">${g}</g>${glass}${k.meter({ x: 236, y: 150, w: 72, p: t / 30, label: `tints over ${t} s` })}${LL.chip(k, 6, 18, "marks " + marks)}${LL.caption(k, lvl ? `${v("setting")} filter in ${v("tintWhere")}, ${v.n("tintShare")}% of frame` : `No color filter (${v.n("tintPercent")}%, ${v.n("tintShare")}% of frame if used)`)}`;
   });
 
   /* Filter color: the exact hue, pale or deep, and how it slides along. */
@@ -1024,7 +1024,7 @@
       return LL.bust({ x: 70 + i * 90, y: 84, r: 24, skin, shirt: ["#c0392b", "#4a6fa5", "#8a6a3a"][i], key: { dark: 0.35 } }, k, `${id}-${i}`) + (i === 0 && prot ? k.label({ x: 70, y: 52, text: "★", size: 11, color: "#ffd166" }) : "") + (even < 0.2 ? Array.from({ length: 5 }, (_, j) => `<circle cx="${r1(70 + i * 90 - 12 + k.rnd(j + i * 7) * 24)}" cy="${r1(84 + k.rnd(j + 30) * 12)}" r="2" fill="#b07a5a" opacity="0.6"/>`).join("") : "");
     }).join("");
     const cuts = [0, 1, 2].map((i) => `<rect x="${236 + i * 24}" y="16" width="22" height="12" fill="${k.mix("#e8b894", ["#d08a6a", "#f0c8a8", "#c8a070"][i], 1 - match)}" stroke="#222"/>`).join("");
-    return `${LL.graded(`${id}-g`, { tone: () => sceneTint }, `<rect x="0" y="0" width="320" height="122" fill="#a8b8c0"/><rect x="0" y="122" width="320" height="58" fill="#5a6a6a"/>`)}${people}${LL.box(230, 6, 84, 26)}${cuts}${LL.caption(k, `Skin ${v("setting")}, protected: ${v("protectWho")}, off by ${v.n("hueOff")}°`)}`;
+    return `${LL.graded(`${id}-g`, { tone: () => sceneTint }, `<rect x="0" y="0" width="320" height="122" fill="#a8b8c0"/><rect x="0" y="122" width="320" height="58" fill="#5a6a6a"/>`)}${people}${LL.box(230, 6, 84, 26)}${cuts}${LL.caption(k, `Skin ${v("setting")}, protected: ${v("protectWho")}, off by ${v.n("hueOff")}°, ${v.n("tintOnSkin")}% on skin`)}`;
   });
 
   /* A surface, from the lens: a sphere and a floor tile showing shine, see-through, bumps, coat, fuzz,
@@ -1063,7 +1063,7 @@
     const glowS = glow ? `<circle cx="${cx}" cy="${cy}" r="${R + 6 + glow * 10}" fill="#ffd27a" opacity="${r1(0.12 + glow * 0.08)}"/>` : "";
     const wearS = wear ? `<g clip-path="url(#${id}-c)">${Array.from({ length: Math.round(wear * 14) }, (_, i) => `<line x1="${r1(cx - R + k.rnd(i + 3) * 2 * R)}" y1="${r1(cy - R + k.rnd(i + 13) * 2 * R)}" x2="${r1(cx - R + k.rnd(i + 3) * 2 * R + 10)}" y2="${r1(cy - R + k.rnd(i + 13) * 2 * R + 4)}" stroke="#e8e0d0" stroke-width="1"/>`).join("")}</g>` : "";
     const bg = `<rect x="0" y="0" width="320" height="120" fill="#c9bba4"/><rect x="0" y="120" width="320" height="60" fill="#6d5a48"/>`;
-    return `${bg}${defs}${glowS}${stripes}${ball}${bumpS}${reflS}${rbS}${sheenS}${coatS}${specS}${wetS}${wearS}<ellipse cx="${cx}" cy="${cy + R + 6}" rx="${R * 0.8}" ry="6" fill="#000" opacity="${r1(0.4 - see * 0.2)}"/>${LL.caption(k, `${mat}: ${v("shine")}, ${v("seeThrough")}, ${v("bumps")}`)}`;
+    return `${bg}${defs}${glowS}${stripes}${ball}${bumpS}${reflS}${rbS}${sheenS}${coatS}${specS}${wetS}${wearS}<ellipse cx="${cx}" cy="${cy + R + 6}" rx="${R * 0.8}" ry="6" fill="#000" opacity="${r1(0.4 - see * 0.2)}"/>${LL.caption(k, `${mat}: ${v("shine")}, ${v("seeThrough")}, ${v("bumps")}, reflects ${v.n("reflectPercent")}%, ${v.n("lightThrough")}% through`)}`;
   });
 
   /* Rendering look, from the lens: outline, shading bands, hatching, wobble, paper. */
@@ -1117,7 +1117,7 @@
     const isoS = iso ? `<rect x="0" y="0" width="320" height="180" fill="#000" opacity="${r1(iso * 0.45)}"/>` : "";
     const att2 = att < 0 ? k.ring({ x: 260, y: 60, r: 22, color: "#ffd166", dash: "3 3" }) : att > 0 ? k.ring({ x: 160, y: 110, r: 40, color: "#ffd166", dash: "3 3" }) : "";
     const blurF = `<defs><filter id="${id}-bl" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="${att > 0 ? 1.5 : 0}"/></filter></defs>`;
-    return `${blurF}<g filter="url(#${id}-bl)">${sky}${hills}</g>${isoS}${shadow}<path d="M100 166 L220 166" stroke="#000" opacity="0"/>${person}${att2}${LL.caption(k, `${v("separation")}, ${layers} layer${layers === 1 ? "" : "s"}, fog from ${v.n("fogStart")} m`)}`;
+    return `${blurF}<g filter="url(#${id}-bl)">${sky}${hills}</g>${isoS}${shadow}<path d="M100 166 L220 166" stroke="#000" opacity="0"/>${person}${att2}${LL.caption(k, `${v("separation")}, ${layers} layer${layers === 1 ? "" : "s"}, fog from ${v.n("fogStart")} m, ${v.n("layerCount")} layers, front ${v.n("frontVsBack") > 0 ? "+" : ""}${v.n("frontVsBack")} stops`)}`;
   });
   /* Dot grids where two settings pair naturally (only where the window has no pad yet). */
   const pad = (id, x, y, xLabel, yLabel) => {

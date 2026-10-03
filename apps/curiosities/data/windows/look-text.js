@@ -77,7 +77,7 @@
     const exit = String(v("exitStyle"));
     const outRamp = exit === "fade" ? 1.2 : exit === "slide" ? 0.6 : exit === "pop" ? 0.2 : 0;
     s += c.s + `<line x1="${c.X(0)}" y1="4" x2="${c.X(0)}" y2="20" stroke="#fff" stroke-width="1.5"/>` + onBar(k, c.X, a, a + Math.max(0.2, v.n("duration")), "#ffd166", v.n("animIn"), outRamp, "") + k.label({ x: 30, y: 9, text: `cut · leaves by ${exit}`, size: 7, color: "#888", anchor: "start" });
-    return s + fitCap(k, !off ? `${kind}: ${v("size")}, ${pos}, ${anim}` : "no text on screen (how it would look, shown faint)");
+    return s + fitCap(k, !off ? `${kind}: ${v("size")}, ${pos}, ${anim}` : `no text (faint: ${v.n("textHeight")}% tall, ${v.n("textAcross")}% across, ${v.n("textUp")}% up, ${v.n("animIn")} s in)`);
   });
 
   /* ---------- Mood sticker on a face ---------- */
@@ -119,7 +119,7 @@
       const on = often === 2 || (often === 1 && i % 3 === 0) || (often === 0 && i === 4);
       s += `<rect x="${244 + (i % 2) * 34}" y="${48 + Math.floor(i / 2) * 26}" width="30" height="22" rx="3" fill="${on ? "#4b4225" : "#2a2a30"}" stroke="${on ? "#ffd166" : "#444"}"/>` + k.face({ x: 259 + (i % 2) * 34, y: 59 + Math.floor(i / 2) * 26, r: 6, mood: 0.3 }) + (on ? k.dot({ x: 266 + (i % 2) * 34, y: 52 + Math.floor(i / 2) * 26, r: 2.5, color: "#ffd166" }) : "");
     }
-    return s + fitCap(k, !ghost ? `${m}, ${v("size")}, ${v("timing")}` : "no mood sticker (how it would look, shown faint)");
+    return s + fitCap(k, !ghost ? `${m}, ${v("size")}, ${v("timing")}` : `no sticker (faint: ${v.n("sizeVsFace")}% of face, ${v.n("heightOffset")}% up, ${v.n("landsAt")} s off)`);
   });
 
   /* ---------- End card ---------- */
@@ -149,7 +149,7 @@
       const sa = b + f + h + v.n("stingerAfter");
       s += onBar(k, c.X, sa, sa + (st === 1 ? 3 : 14), "#7fd18b", 0, 0, "") + k.label({ x: Math.min(c.X(sa) + 2, 266), y: 8, text: st === 1 ? "a hint" : "extra scene", size: 7, color: "#7fd18b", anchor: "start" });
     } else s += k.label({ x: 312, y: 8, text: `+${v.n("stingerAfter")} s, no extra moment`, size: 7, color: "#666", anchor: "end" });
-    return s + fitCap(k, !ghost ? `${words} · ${style} · ${h} s` : "no end card (how it would look, shown faint)");
+    return s + fitCap(k, !ghost ? `${words} · ${style} · ${h} s` : `no end card (faint: letters ${v.n("cardTextHeight")}% tall)`);
   });
 
   /* ---------- Chapter cards ---------- */
@@ -182,7 +182,7 @@
     s += `<line x1="90" y1="140" x2="230" y2="140" stroke="#555"/>` + `<path d="M${X(0)} 140 L${X(f)} 130 L${X(f + h)} 130 L${X(f + h)} 140 Z" fill="#ffd166" opacity="0.8"/>` + k.label({ x: 236, y: 140, text: `fade ${f} s, hold ${h} s`, size: 7, color: "#aaa", anchor: "start" });
     /* A card with no title on it still says how its title would tease, so that setting shows. */
     const hidesTitle = !ghost && !/title|none/.test(kind);
-    return s + fitCap(k, !ghost ? `${kind}, ${style}${hidesTitle ? ` · title tease: ${v("tease")}` : ""}` : "no chapter cards (how they would look, shown faint)");
+    return s + fitCap(k, !ghost ? `${kind}, ${style}${hidesTitle ? ` · title tease: ${v("tease")}` : ""}` : `no chapter cards (faint: letters ${v.n("cardTextHeight")}% tall)`);
   });
 
   /* ---------- Captions ---------- */
@@ -234,7 +234,7 @@
     const read = Math.min(6, 30 / Math.max(1, v.n("readSpeed")));
     s += c.s + k.wave({ x: c.X(0), y: 13, w: c.X(3) - c.X(0), h: 10, amp: 0.8, cycles: 10, noise: 0.4, color: "#9fd3ff" });
     s += onBar(k, c.X, v.n("capLead"), v.n("capLead") + read, "#ffd166", 0, 0, "");
-    return s + fitCap(k, mode === "off" ? "captions off (how they would look, shown faint)" : `${mode}, ${per} words a line, ${pos}`);
+    return s + fitCap(k, mode === "off" ? `captions off (faint: letters ${v.n("capHeight")}% tall)` : `${mode}, ${per} words a line, ${pos}`);
   });
 
   /* ---------- Stickers and emoji ---------- */
@@ -270,7 +270,7 @@
     const c = clockStrip(k, 0, 12, `lands on ${land}`);
     const at = { anywhere: 0.5, "the line": 2, "the beat of the music": 3 }[land];
     s += c.s + (land === "the beat of the music" ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((t) => `<line x1="${c.X(t)}" y1="5" x2="${c.X(t)}" y2="20" stroke="#555"/>`).join("") : "") + (true ? onBar(k, c.X, at, at + Math.max(0.15, v.n("stayFor")), "#ffd166", 0, 0, "") : "");
-    return s + fitCap(k, n0 ? `${v("setting")} ${kind} sticker${n > 1 ? "s" : ""}, ${mo}` : "no stickers (one shown faint)");
+    return s + fitCap(k, n0 ? `${v("setting")} ${kind} sticker${n > 1 ? "s" : ""}, ${mo}` : `no stickers (one shown faint: ${v.n("stickerHeight")}% of the frame, ${v.n("stickerUp")}% up)`);
   });
 
   /* ---------- Text style ---------- */
@@ -300,7 +300,7 @@
     s += k.text({ x, y, text: word, size: fs, color: col, font, weight, spacing: sp, outline: stroke > 0 ? (col === "#111111" ? "#fff" : "#000") : null, outlineW: stroke });
     /* A little shadow compass, so the angle reads at a glance. */
     s += `<circle cx="292" cy="28" r="14" fill="#1d1d22" stroke="#444"/>` + k.arrow({ x1: 292, y1: 28, x2: 292 + Math.cos(a) * (2 + off * 0.55), y2: 28 + Math.sin(a) * (2 + off * 0.55), color: "#ffd166", w: 1.5 }) + k.label({ x: 292, y: 52, text: `shadow ${Math.round(v.n("shadowAngle"))}°`, size: 7, color: "#ddd" }) + `<rect x="254" y="16" width="16" height="16" fill="#000" opacity="${bo.toFixed(2)}" stroke="#888" stroke-dasharray="2 2"/>` + k.label({ x: 262, y: 42, text: "box", size: 7, color: "#ddd" });
-    return s + fitCap(k, `${v("setting")}, ${v("weight")}, ${v("color")}, outline ${stroke} px`);
+    return s + fitCap(k, `${v("setting")}, ${v("weight")}, ${v("color")}, outline ${stroke} px, shadow ${v.n("shadow")}%`);
   });
 
   /* Dot grids (a pad) where two settings pair naturally and the window has none yet. */

@@ -52,7 +52,7 @@
     let out = `<rect x="${x}" y="${y}" width="${w}" height="6" rx="3" fill="#33333a"/>`;
     (o.segs || []).forEach((s) => {
       const a = X(s.from);
-      const b = Math.max(a + 1.5, X(s.to));
+      const b = Math.max(a, X(s.to)) + 1.5; /* never floored, so every step of a time slider moves the end */
       out += `<rect x="${r1(a)}" y="${y}" width="${r1(b - a)}" height="6" rx="3" fill="${s.color || "#ffd166"}"${s.alpha != null ? ` opacity="${s.alpha}"` : ""}/>`;
     });
     (o.marks || []).forEach((m) => {
@@ -75,9 +75,9 @@
   }
   /* Rise, hold, fall over time (seconds), drawn as a curve: how an effect comes and goes. */
   function envelope(k, o) {
-    const rise = Math.max(0.05, o.rise);
-    const hold = Math.max(0.05, o.hold);
-    const fall = Math.max(0.05, o.fall);
+    const rise = 0.05 + Math.max(0, o.rise);
+    const hold = 0.05 + Math.max(0, o.hold);
+    const fall = 0.05 + Math.max(0, o.fall);
     const pre = o.pre == null ? 0.6 : o.pre;
     const total = pre + rise + hold + fall + 0.6;
     const peak = o.peak == null ? 1 : o.peak;
@@ -345,7 +345,7 @@
     /* The count itself: a few shards stand for many, so one more piece would not show otherwise. */
     out += k.label({ x: 300, y: 172 - 28, text: `${v.n("pieces")} pieces`, size: 8, color: "#bbb", anchor: "end" });
     out += timeline(k, { x: 8, y: 20, w: 90, max: 10, label: "warning", segs: [{ from: 0, to: v.n("warnSecs"), color: "#e8d7b0" }], marks: [{ at: v.n("warnSecs"), color: "#ff6b6b" }] });
-    return out + fitCaption(k, `${v("material")} ${v("setting")} · ${v("slowMo")} · ${v.n("distM")} m away`);
+    return out + fitCaption(k, `${v("material")} ${v("setting")} · ${v("slowMo")} · ${v.n("distM")} m away · ${v.n("across")}% across, ${v.n("up")}% up`);
   });
 
   /* Element: water, smoke, fire, sand or snow, placed near or far, moving, arriving. */
@@ -378,7 +378,7 @@
     if (arr > 0) out += k.arrow({ x1: 8, y1: 120, x2: 30 + arr * 60, y2: 120, color: col, w: 1 + arr * 4 });
     out += timeline(k, { x: 214, y: 20, w: 96, max: 30, label: "seconds to arrive", segs: [{ from: 0, to: v.n("arriveSecs"), color: col }] });
     out += chips(k, [`measured from ${v("relTo")}`], { x: 6, y: 5 });
-    return out + fitCaption(k, `${el}, ${v("where")}, ${v("motion")} at ${v.n("driftSpeed")} m/s`);
+    return out + fitCaption(k, `${el}, ${v("where")}, ${v("motion")} at ${v.n("driftSpeed")} m/s · ${v.n("coverage")}% covered, ${v.n("distM")} m away`);
   });
 
   /* Growth: a size-over-time curve (left) and the thing at its start and end size (right). */
@@ -435,7 +435,7 @@
     else out += Array.from({ length: nS }, (_, i) => `<line x1="${20 + i * 36}" y1="${r1(GY - 6 - sizeAt(1) * 100)}" x2="${20 + i * 36}" y2="${r1(GY - 16 - sizeAt(1) * 100)}" stroke="#ffd166" stroke-width="1.5"/>`).join("");
     if (tension > 0) out += k.tint({ color: "#ff2a2a", alpha: tension * 0.1 });
     /* How long it takes, as a small clock in the corner. */
-    out += `<rect x="6" y="6" width="80" height="22" rx="5" fill="#000" opacity="0.6"/>` + k.clock({ x: 18, y: 17, r: 8, p: reach }) + k.label({ x: 30, y: 21, text: `${v.n("reachSecs")} s to full`, size: 8, color: "#ddd", anchor: "start" });
+    out += `<rect x="6" y="6" width="196" height="22" rx="5" fill="#000" opacity="0.6"/>` + k.clock({ x: 18, y: 17, r: 8, p: reach }) + k.label({ x: 30, y: 21, text: `${v.n("reachSecs")} s to full · speed ${v.n("speed")}/5 · ${v.n("surgesPerMin")} surges/min`, size: 8, color: "#ddd", anchor: "start" });
     return out + fitCaption(k, `${what} ${v("setting")}: ${v("startSize")} → ${v("endSize")}, ${v("shape")}`);
   });
 
@@ -479,7 +479,7 @@
     const g = v.p("grows");
     out += k.arrow({ x1: 34, y1: 140, x2: 34 + (g - 0.5) * 50 + (g === 0.5 ? 2 : 0), y2: 140 - (g - 0.5) * 30, color: g > 0.5 ? "#ff6b4a" : g < 0.5 ? "#7fb7ff" : "#aaa", w: 2.5 });
     out += `<rect x="6" y="146" width="${r1(String(v("grows")).length * 4.4 + 10)}" height="13" rx="4" fill="#000" opacity="0.6"/>` + k.label({ x: 11, y: 156, text: v("grows"), size: 8, color: "#ddd", anchor: "start" });
-    return out + fitCaption(k, `${v("heat")}, ${v("thick")} of ${v("smokeColor")} smoke, ${v("danger")}`);
+    return out + fitCaption(k, `${v("heat")}, ${v("thick")} of ${v("smokeColor")} smoke, ${v("danger")} · flames ${v.n("flameM")} m, ${v.n("distM")} m away`);
   });
 
   /* Side storyline: two lanes, the main story and the side one, with its cutaways and where they meet. */
@@ -516,7 +516,7 @@
     const SW = 300;
     const sy = 18;
     const sh = 34;
-    out += k.label({ x: X0, y: 12, text: "the film, shot by shot", size: 8, color: "#aaa", anchor: "start" });
+    out += k.label({ x: X0, y: 12, text: `the film, shot by shot · ${v.n("cutsPerMin")} cutbacks a minute, ${v.n("clipSecs")} s each`, size: 8, color: "#aaa", anchor: "start" });
     for (let i = 0; i < 6; i++) out += shot(X0 + i * 50, sy, 50, sh, false);
     const lead = v.n("leadSecs");
     const ret = v.p("returns");
@@ -594,7 +594,7 @@
     let out = windScene(v, k, { str: "setting", gustSecs: "gustSecs" });
     out += k.speaker({ x: 20, y: 30, s: 0.9, level: v.p("howl") });
     out += chips(k, [`direction from ${v("relTo")}`], { x: 50, y: 5 });
-    return out + fitCaption(k, `wind ${v.n("setting")}/5, ${v("gusts")}, ${v("direction")}, ${v("unease")}`);
+    return out + fitCaption(k, `wind ${v.n("setting")}/5, ${v("gusts")}, ${v("direction")}, ${v("unease")} · gusts ${v.n("gustSecs")} s`);
   });
 
   /* Impacts: hits on a strip of beats, each one a burst sized by force, plus the jolt on a face. */
@@ -690,7 +690,7 @@
     const lens = v.p("hitsLens");
     const nl = Math.round(lens * 9);
     for (let i = 0; i < nl; i++) out += `<circle cx="${r1(20 + k.rnd(i + 70) * 280)}" cy="${r1(10 + k.rnd(i + 80) * 140)}" r="${r1(6 + k.rnd(i + 90) * (lens > 0.9 ? 22 : 8))}" fill="${col}" opacity="0.32" stroke="#fff" stroke-opacity="0.3"/>`;
-    return out + fitCaption(k, `${v("setting")} of ${v("liquid")}, ${v.n("widthM")} m wide, ${v("slowMo")}`);
+    return out + fitCaption(k, `${v("setting")} of ${v("liquid")}, ${v.n("widthM")} m wide, ${v("slowMo")} · ${v.n("distM")} m away, ${v.n("across")}% across`);
   });
 
   /* Fire lights the scene: a face lit from the fire's side, the glow color, flicker and dancing shadows. */
@@ -791,6 +791,7 @@
     const settle = v.n("settle");
     out += k.label({ x: 300, y: 112, text: "~".repeat(1 + settle), size: 14, color: "#9fd3ff", anchor: "end" });
     /* Funny or serious: the onlooker. */
+    out += k.label({ x: 20, y: 42, text: `${v.n("bounces")} bounces · ${v.n("chainCount")} knocked on · ${v.n("distM")} m away`, size: 7, color: "#aaa", anchor: "start" });
     out += k.face({ x: 285, y: 50, r: 22, mood: tone * 1.2 - 0.4, mouth: tone > 0.9 ? 0.7 : 0, brows: -0.5 + tone });
     if (tone > 0.9) out += star(k, { x: 262, y: 26, r: 6, points: 5, color: "#ffd166" }) + star(k, { x: 308, y: 26, r: 6, points: 5, color: "#ffd166" });
     return out + fitCaption(k, `${v("bounce")}, ${v("slide")}, ${v("chain")}, ${v("mess")}, ${v("slowMo")}`);
@@ -929,7 +930,7 @@
     const fpm = v.n("firesPerMin");
     out += beatStrip(k, { x: 214, y: 92, w: 96, beats: 4, events: Array.from({ length: Math.min(30, fpm) }, (_, i) => ({ at: (i + 0.5) / Math.min(30, Math.max(1, fpm)), color: c, w: 1.5 })), label: `${fpm} a minute` });
     out += chips(k, [`fires ${v("trigger")}`, `on ${v("who")}`], { x: 6, y: 5, maxX: 210 });
-    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v("powerColor")}, ${v.n("intensity")}%, reaches ${v.n("reachM")} m`);
+    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v("powerColor")}, ${v.n("intensity")}%, reaches ${v.n("reachM")} m, holds ${v.n("holdSecs")} s`);
   });
 
   /* Hallucination: patterns swelling around a person, or seen through their eyes. */
@@ -1002,7 +1003,7 @@
     out += k.label({ x: 216, y: 38, text: `${v("often")}`, size: 8, color: "#ccc", anchor: "start" });
     out += k.label({ x: 216, y: 50, text: `worse: ${v("worsens")}`, size: 8, color: "#ccc", anchor: "start" });
     out += k.label({ x: 216, y: 62, text: `jumps ${v.n("shiftPct")}%`, size: 8, color: "#ccc", anchor: "start" });
-    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v.n("intensity")}%, ${v.n("coverage")}% of the frame`);
+    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v.n("intensity")}%, ${v.n("coverage")}% of the frame, ${v.n("glitchesPerMin")} a minute`);
   });
 
   /* Turbulence: a field of swirls, chaotic and sized, wildest in one place, with gusts and a hush over time. */
@@ -1034,7 +1035,7 @@
     };
     out += curve(k, { x: 12, y: 132, w: 190, h: 26, f, color: "#cfe6ff", label: "strength over time" });
     out += chips(k, [`gusts on ${v("gustsOn")}`], { x: 214, y: 134 });
-    return out + fitCaption(k, `chaos ${v.n("setting")}/5, swirls ${v.n("scale")}/5, wildest ${wild}`);
+    return out + fitCaption(k, `chaos ${v.n("setting")}/5, swirls ${v.n("scale")}/5, wildest ${wild}, hush ${v.n("hushSecs")} s`);
   });
 
   /* Cloth: a cape on a person, swinging, fluttering, trailing, settling. */
@@ -1152,7 +1153,7 @@
     const gw = v.p("grows");
     out += k.arrow({ x1: 290, y1: 70, x2: 290, y2: 70 - (gw - 0.33) * 45 - (gw === 0.33 ? 0 : 0), color: gw > 0.4 ? "#9fffcf" : gw < 0.3 ? "#ff6b6b" : "#888", w: 2.5 }) + k.label({ x: 290, y: 84, text: v("grows"), size: 8, color: "#ccc" });
     out += critter(k, { x: 40, y: 30, s: 0.8, part: v("whereOn") });
-    return out + fitCaption(k, `${v("setting")}, ${v.n("cm")} cm on ${v("whereOn")}, ${v("evenness")}, ${v("fluff")}`);
+    return out + fitCaption(k, `${v("setting")}, ${v.n("cm")} cm on ${v("whereOn")}, ${v("evenness")}, ${v("fluff")}, ${v.n("growRate") > 0 ? "+" : ""}${v.n("growRate")} cm/min`);
   });
 
   look("clump", (v, k) => {
@@ -1248,7 +1249,7 @@
     const st = v.p("settles");
     const ss = v.n("settleSecs");
     out += curve(k, { x: 222, y: 60, w: 88, h: 30, f: (t) => 0.5 + 0.45 * Math.exp((-t * 6) / (0.2 + ss * 0.3 + st)) * Math.cos(t * 25), color: "#ffd166", label: `settles ${v("settles")}` });
-    return out + fitCaption(k, `fur moved by ${by}, ${v.n("strength")}/5, ${v("travels")}, bends ${v.n("bendDeg")}°`);
+    return out + fitCaption(k, `fur moved by ${by}, ${v.n("strength")}/5, ${v("travels")}, bends ${v.n("bendDeg")}°, ripple ${v.n("rippleSpeed")} m/s`);
   });
 
   look("furLag", (v, k) => {
@@ -1292,7 +1293,7 @@
       out += spiral(k, { x, y, r: (6 + sz * 20) * s, turns: 0.4 + c * 2.2, dir, start: sp * 3 + i, color: "#c8c8d0", alpha: r1(0.25 + hold * 0.6), w: 1 + hold * 2 });
       if (sp > 0) out += `<path d="M${r1(x + (6 + sz * 20) * s)} ${r1(y)} a ${r1((6 + sz * 20) * s)} ${r1((6 + sz * 20) * s)} 0 0 ${dir > 0 ? 1 : 0} ${r1(-sp * 8)} ${r1(sp * 10 * dir)}" fill="none" stroke="#ffd166" stroke-width="1" opacity="0.6"/>`;
     }
-    return out + fitCaption(k, `curl ${v.n("setting")}/5, size ${v.n("size")}/5, turning ${spin}, ${v("holds")}`);
+    return out + fitCaption(k, `curl ${v.n("setting")}/5, size ${v.n("size")}/5, turning ${spin}, ${v("holds")}, ${v.n("curlsInView")} in view, ${v.n("distM")} m`);
   });
 
   /* Scattered things on the ground: how many, spread, size, kind, blowing, and the clear path for the hero. */
@@ -1324,7 +1325,7 @@
     out += k.person({ x: 160, y: 170, s: 0.9, color: "#e05a3a" });
     if (stirs > 0.9) out += windLines(k, { n: 4 + bs, x: 0, y: 100, w: 300, h: 60, angle: 0, len: 10 + bs * 5, alpha: 0.5 });
     out += k.arrow({ x1: 230, y1: 20, x2: 240 + bs * 7, y2: 20, color: stirs > 0.9 ? "#cfe6ff" : "#556", w: 2 }) + k.label({ x: 228, y: 24, text: `${bs} m/s`, size: 8, color: "#ccc", anchor: "end" });
-    return out + fitCaption(k, `${v("kind")}: ${v.n("setting")}/5, ${v("stirs")}, clear path: ${v("clearPath")}, ${v.n("pathM")} m`);
+    return out + fitCaption(k, `${v("kind")}: ${v.n("setting")}/5, ${v("stirs")}, clear path: ${v("clearPath")}, ${v.n("pathM")} m, ${v.n("distM")} m away`);
   });
 
   /* Cloth lens: the fabric itself: its weight, wrinkles, stretch, cling, tears and wetness on a cape. */
@@ -1373,7 +1374,7 @@
     const arr = v.p("arrives");
     out += chips(k, [`${v("arrives")}`, `last ${v("life")}`], { x: 6, y: 5 });
     if (arr > 0.9) out += star(k, { x: 300, y: 20, r: 10, color: "#ffd166" });
-    return out + fitCaption(k, `${kind}: ${v("howMany")}, ${v("fall")} at ${speed} m/s, ${v("depth")}, ${v("size")}`);
+    return out + fitCaption(k, `${kind}: ${v("howMany")}, ${v("fall")} at ${speed} m/s, ${v("depth")}, ${v("size")}, ${v.n("distM")} m`);
   });
 
   /* Fur lens: a whole coat on one patch: length, thickness, clumps, frizz, curls, color, shine, wet, groom. */
@@ -1441,7 +1442,7 @@
     if (lm < 1) out += `<rect x="140" y="55" width="40" height="100" fill="${lm < 0.5 ? "#ff6bd0" : "#ffb070"}" opacity="${r1((1 - lm) * 0.3)}"/>`;
     if (fake > 0) out += `<rect x="${r1(138 - fake * 4)}" y="${r1(53 - fake * 4)}" width="${r1(44 + fake * 8)}" height="${r1(104 + fake * 8)}" fill="none" stroke="#fff" stroke-width="${r1(fake * 3)}" stroke-dasharray="${fake > 0.9 ? "0" : "4 3"}"/>`;
     out += timeline(k, { x: 214, y: 18, w: 96, max: 5, label: `${rv}, ${v.n("revealSecs")} s`, segs: [{ from: 0, to: v.n("revealSecs"), color: "#1ea84a" }] });
-    return out + fitCaption(k, `${kind} onto ${back}, edge ${v.n("edge")}%, ${v("fakeness")}`);
+    return out + fitCaption(k, `${kind} onto ${back}, edge ${v.n("edge")}%, ${v("fakeness")}, spill ${v.n("spillPct")}%`);
   });
 
   /* Mask: a shape over the frame showing inside or outside, its place, size, turn, shape and feather. */
@@ -1470,7 +1471,7 @@
     }
     const mv = v.p("moves");
     if (mv > 0) out += k.arrow({ x1: ax, y1: uy, x2: ax + (mv > 0.9 ? 40 : 20), y2: uy + (mv > 0.9 ? -10 : 0), color: "#ffd166" });
-    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, shows ${v("invert")}, ${v.n("size")}%, turned ${turn}°, feather ${v.n("feather")}%`);
+    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, shows ${v("invert")}, ${v.n("size")}%, turned ${turn}°, feather ${v.n("feather")}%, ${v.n("aspect")}% wide`);
   });
 
   /* Tracking: a label or sticker following a moving target, beside it, lagging or leading. */
@@ -1508,7 +1509,7 @@
       for (let i = 0; i <= 10; i++) kept += (i ? " L" : "M") + path(t - (0.1 + ff * 0.45) * (1 - i / 10)).map(r1).join(" ");
       out += `<path d="${kept}" fill="none" stroke="#ffd166" stroke-width="2"/>`;
     }
-    return out + offNote(k, off, kind) + fitCaption(k, `${kind} ${v("target")}, ${v("side")}, ${v("lead")} (${v.n("leadFrames")} fr)`);
+    return out + offNote(k, off, kind) + fitCaption(k, `${kind} ${v("target")}, ${v("side")}, ${v("lead")} (${v.n("leadFrames")} fr), ${v.n("smooth")}% smooth`);
   });
 
   /* Video effect: the kind on a frame, its intensity and coverage, a body treatment, and pulses on a strip. */
@@ -1686,7 +1687,7 @@
     });
     out += timeline(k, { x: 222, y: 20, w: 88, max: 5, label: "comes in", segs: [{ from: 0, to: v.n("inSecs"), color: c }] });
     out += chips(k, [`shows ${v("showsWhen")}`], { x: 6, y: 5 });
-    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v("color")} on ${v("who")}, ${v.n("intensity")}%, glow ${v.n("glowCm")} cm`);
+    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v("color")} on ${v("who")}, ${v.n("intensity")}%, glow ${v.n("glowCm")} cm, trail ${v.n("trailSecs")} s`);
   });
 
   /* Clones: copies of the person, how many, how far apart, lagging and fading. */
@@ -1772,7 +1773,7 @@
     const settles = v.p("settles") > 0.5;
     out += envelope(k, { x: 222, y: 24, w: 88, h: 50, rise: (v.n("bendSecs") / 3) * (1.2 - bs), snap: bs, hold: 0.8, fall: settles ? 0.05 + v.n("settleSecs") / 3 : 6 + v.n("settleSecs"), pre: 0.4 + v.n("offsetFrames") / 24, peak: 0.2 + st * 0.7, label: `${v("bendSpeed")}, then ${v("settles")}` });
     out += chips(k, [`set off by ${v("cause")}`], { x: 222, y: 94 });
-    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v.n("strength")}%, ${v("area")}, ${v.n("offsetFrames")} frames`);
+    return out + offNote(k, off, kind) + fitCaption(k, `${kind}, ${v.n("strength")}%, ${v("area")}, ${v.n("offsetFrames")} frames, settles ${v.n("settleSecs")} s`);
   });
 
   /* Party flash: flashes on the beat, their color and length, saved for the drop. */

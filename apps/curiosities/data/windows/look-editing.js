@@ -154,7 +154,7 @@
     const mood = { "the one who learns": -0.7, "the one who knew": 0.3, "a bystander": -0.2, nobody: 0 }[rf];
     out += rf === "nobody" ? rect(252, 96, 40, 30, "#222", { stroke: "#555" }) + tag(k, 272, 115, "no face", "#777") : k.face({ x: 272, y: 108, r: 17, mood: mood == null ? 0 : mood, eyes: 1, mouth: rf === "the one who learns" ? 0.6 : 0 });
     out += tag(k, 160, 152, "on their face", "#aaa", "start", 7) + k.meter({ x: 212, y: 146, w: 98 * (0.1 + v.p("reactionHold") * 0.9), p: 1, color: "#e07a5f" });
-    return out + cap(k, `${v("setting")} · ${v("revealSpeed")} · held back ${r1(v.n("holdBack"))} min · on the reaction ${r1(v.n("reactionHold"))} s`);
+    return out + cap(k, `${v("setting")} · ${v("revealSpeed")} · held back ${r1(v.n("holdBack"))} min · on the reaction ${r1(v.n("reactionHold"))} s · we are ${v.n("aheadBy") >= 0 ? "ahead" : "behind"} by ${Math.abs(v.n("aheadBy"))} min`);
   });
 
   /* Mains: each lead's lane through the hour, who gets the most, when they meet, and the longest absence. */
@@ -238,7 +238,7 @@
     /* timeline */
     const ex = 20 + ({ opening: 0.15, middle: 0.5, "last minutes": 0.92 }[v("exitTiming")] || 0.5) * 280;
     const hx = Math.max(20, ex - (v.n("firstHint") / 60) * 140);
-    out += axis(k, 20, 18, 280) + k.dot({ x: hx, y: 18, r: 3, color: "#ffd166" }) + tag(k, hx, 12, "hint", "#ffd166", "middle", 7);
+    out += axis(k, 20, 18, 280) + k.dot({ x: hx, y: 18, r: 3, color: "#ffd166" }) + tag(k, Math.max(hx, 60), 12, `hint ${v.n("firstHint")} min before · warning ${v.n("warning")}/5`, "#ffd166", hx > 60 ? "middle" : "start", 7);
     const warn = Math.min(v.n("warning"), Math.floor((ex - hx) / 8));
     for (let i = 0; i < warn; i++) out += tag(k, hx + ((ex - hx) * (i + 1)) / (warn + 1), 22, "!", "#f2cc8f", "middle", 9);
     out += rect(ex - 2, 12, 4, 12, "#ef476f");
@@ -316,7 +316,7 @@
       out += k.dot({ x: Math.min(300, endX), y: pts[30][1], r: 3.5, color: PAL[i] });
     }
     if (sync > 0.5) out += line(280, 76, 280, 144, "#fff", 1, "3 2");
-    return out + cap(k, `${lines} storylines · ${r1(v.n("dwell"))} s each, down to ${r1(v.n("finalDwell"))} s at the peak · ${v("converge")}`);
+    return out + cap(k, `${lines} storylines · ${r1(v.n("dwell"))} s each, down to ${r1(v.n("finalDwell"))} s at the peak · ${v("converge")} · ${v.n("switchesPerMin")} switches a minute`);
   });
 
   /* Point of view: the people whose story it is, who we're with over time, and how deep inside them we are. */
@@ -327,7 +327,7 @@
     const main = v.n("mainShare") / 100;
     const ret = v.p("returnTo");
     const minW = v.n("shortestStay");
-    let out = k.bg(BG) + k.title("Whose eyes we see through");
+    let out = k.bg(BG) + k.title(`Whose eyes we see through · ${v.n("switchesPerHour")} switches an hour`);
     for (let i = 0; i < n; i++) out += k.face({ x: 22 + i * 26, y: 38, r: 9, color: PAL[i % 8], mood: 0.2 });
     out += k.ring({ x: 22, y: 38, r: 12, color: "#fff", w: 2 });
     const back = ret * 4;
@@ -351,7 +351,7 @@
     const ho = v("handoff");
     const hoIcon = { "hard cut": line(206, 100, 206, 140, "#fff", 3), "a shared object": rect(196, 110, 20, 18, "#f2cc8f", { stroke: "#000", rx: 3 }), "a look": `<ellipse cx="206" cy="120" rx="14" ry="8" fill="#fff"/><circle cx="206" cy="120" r="4" fill="#000"/>`, "a sound": k.speaker({ x: 200, y: 120, s: 1, level: 1 }) }[ho] || "";
     out += k.face({ x: 160, y: 120, r: 13, color: PAL[0] }) + hoIcon + k.face({ x: 252, y: 120, r: 13, color: PAL[1] }) + k.arrow({ x1: 176, y1: 120, x2: 190, y2: 120, color: "#888", w: 1.5 }) + k.arrow({ x1: 222, y1: 120, x2: 236, y2: 120, color: "#888", w: 1.5 }) + tag(k, 206, 150, `passes by ${ho}`, "#ccc");
-    return out + cap(k, `${v("setting")} · ${n} people · ${r1(v.n("mainShare"))}% with the main · shortest stay ${r1(minW)} min`);
+    return out + cap(k, `${v("setting")} · ${n} people · ${r1(v.n("mainShare"))}% with the main · shortest stay ${Math.round(minW * 100) / 100} min`);
   });
 
   /* A scene's last moments: the last shot, how long it holds, the sound tail, and the pull into the next scene. */
@@ -385,7 +385,7 @@
       wpts.push([x, 142 + Math.sin(i * 1.3) * 5 * a]);
     }
     out += path(wpts, "#9fd3ff", 1.5);
-    return out + cap(k, `${end} · ends on ${on} · ${v("late")} · hold ${r1(v.n("holdAfter"))} s · sound ${so}`);
+    return out + cap(k, `${end} · ends on ${on} · ${v("late")} · hold ${r1(v.n("holdAfter"))} s · sound ${so} · last shot ${v.n("lastShotLength")} s`);
   });
 
   /* The opening seconds: the first image, the first sound, a viewer pulled in, and when the title lands. */
@@ -512,7 +512,7 @@
       if (i === bStart + burst) l *= 1 + br * 5;
       L.push(Math.max(0.1, l));
     }
-    let out = k.bg(BG) + k.title("Scenes through the hour") + k.strip({ x: 10, y: 34, w: 300, h: 34, lengths: L, gap: n > 60 ? 0.3 : 1.2 });
+    let out = k.bg(BG) + k.title("Scenes through the hour") + k.label({ x: 310, y: 14, text: `set to ${v.n("perHour")} · new pace in ${v.n("paceChangeTime")} min`, size: 7, color: "#aaa", anchor: "end" }) + k.strip({ x: 10, y: 34, w: 300, h: 34, lengths: L, gap: n > 60 ? 0.3 : 1.2 });
     /* pace graph with the time to change pace */
     const ramp = v.n("paceChangeTime") / 30;
     const pts = [];
@@ -585,7 +585,7 @@
     /* how big in the frame */
     const fs = v.n("frameShare") / 100;
     out += rect(214, 112, 82, 46, "#2c3444", { stroke: "#666" }) + `<path d="M255 ${r1(135 - 22 * fs)} L${r1(255 + 18 * fs)} 135 L255 ${r1(135 + 22 * fs)} L${r1(255 - 18 * fs)} 135 Z" fill="#ef476f" stroke="#000"/>` + tag(k, 180, 138, "in frame:", "#888", "middle", 8);
-    return out + cap(k, `${on ? "yes" : "no signature image"} · ${cnt} returns · ${v("payoff")} · ${v("spotlight")}`);
+    return out + cap(k, `${on ? "yes" : "no signature image"} · ${cnt} returns · ${v("payoff")} · ${v("spotlight")} · ${v.n("secondsEach")} s each`);
   });
 
   /* Energy across the film: its peaks, the dips between, the flat stretches, and what happens at a cut. */
@@ -855,7 +855,7 @@
       void t;
     }
     if (!n) out += tag(k, 160, 40, "no repeats yet (faded: what one would look like)", "#666");
-    return out + cap(k, `${n} returns · every ${sp} scenes, ${v("timingShift")} · varies by ${what} · last is ${land}`);
+    return out + cap(k, `${n} returns · every ${sp} scenes, ${v("timingShift")} · varies by ${what} · last is ${land} · ${v.n("returnLength")} s each`);
   });
 
   /* A contrast map: the film flipping between two sides of a pair (loud and quiet, dark and bright...). */
@@ -933,7 +933,7 @@
     const ce = Math.round(v.p("clipEarly") * 4);
     for (let i = 0; i < 4; i++) out += rect(200 + i * 26, 136, i < ce ? 14 : 22, 12, i < ce ? "#ef476f" : "#555", { stroke: "#000" });
     out += tag(k, 196, 146, "moments cut short:", "#999", "end", 8);
-    return out + cap(k, `${style} · ${br} frames of breath · sound overlaps ${r1(v.n("overlap"))} s (${way})`);
+    return out + cap(k, `${style} · ${br} frames of breath · sound overlaps ${r1(v.n("overlap"))} s (${way}) · ${v.n("clipFrames")} frames clipped`);
   });
 
   /* A motif that rises and falls each time it returns: size, height, brightness or closeness. */
@@ -990,7 +990,7 @@
     });
     out += k.clock({ x: 40, y: 128, r: 18, p: base / 60 }) + tag(k, 66, 132, `typical ${r1(base)} min`, "#ccc", "start");
     out += k.meter({ x: 180, y: 118, w: 120, label: `shortest ${r1(smin)} min`, p: smin / 10, color: "#81b29a" }) + k.meter({ x: 180, y: 140, w: 120, label: `longest ${smax} min`, p: smax / 30, color: "#e07a5f" });
-    return out + cap(k, `${v("setting")} · ${v("lengthSpread")} · longest at the ${v("longestAt")} · ${v("trim")}`);
+    return out + cap(k, `${v("setting")} · ${v("lengthSpread")} · longest at the ${v("longestAt")} · ${v("trim")} · ${v.n("minutes")} min`);
   });
 
   /* Speed of time: a runner drawn as a trail of poses, spaced by speed, plus the speed ramp over time. */
