@@ -118,7 +118,7 @@
      things through the whole clip and returns a mask video (white where they are). Not yet run end to end: it
      needs a key. */
   register("cutout", "fal-sam2", {
-    label: "SAM 2 on fal.ai (stronger, paid, your own key)",
+    label: "Paid, opt in: SAM 2 on fal.ai (your own key)",
     where: "server",
     company: "fal",
     cost: (job) => `about a few cents to under a dollar for a ${Math.round((job && job.seconds) || 30)}-second clip (fal.ai's price applies)`,

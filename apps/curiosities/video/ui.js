@@ -103,9 +103,11 @@
       </div>
       ${
         fal
-          ? `<div class="vd-ai-row"><label>fal.ai key <input type="password" data-ai-key="fal" autocomplete="off" placeholder="${hasKey ? "saved in this browser" : "paste your own key"}"></label>
+          ? `<details class="vd-ai-paid"${hasKey ? " open" : ""}><summary>Paid tier (opt in): stronger AI for final versions</summary>
+        <p class="vd-k">Everything above is free and needs no key. Turn this on only if you want a stronger paid AI. You pay fal.ai directly with your own key.</p>
+        <div class="vd-ai-row"><label>fal.ai key <input type="password" data-ai-key="fal" autocomplete="off" placeholder="${hasKey ? "saved in this browser" : "paste your own key"}"></label>
         <button type="button" data-act="ai-key-save">Keep it in this browser</button>${hasKey ? `<button type="button" data-act="ai-key-clear">Remove it</button>` : ""}
-        <span class="vd-k">Your key stays in this browser and is sent only to fal.ai. It is never saved in a project file. Cost: ${esc(fal.cost({ seconds: slot.b.clip ? slot.b.clip.duration : 30 }))}.</span></div>`
+        <span class="vd-k">Your key stays in this browser and is sent only to fal.ai. It is never saved in a project file. Cost: ${esc(fal.cost({ seconds: slot.b.clip ? slot.b.clip.duration : 30 }))}.</span></div></details>`
           : ""
       }
     </section>`;

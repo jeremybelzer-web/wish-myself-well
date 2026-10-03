@@ -370,7 +370,7 @@
   /* The free browser cut-out is the default for the "cutout" family. */
   if (window.CurioAI)
     window.CurioAI.register("cutout", "mediapipe", {
-      label: "MediaPipe in your browser (free, private)",
+      label: "Free: MediaPipe in your browser (private, no key)",
       where: "browser",
       cost: () => "free: it runs on your own computer",
       load,

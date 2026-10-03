@@ -72,4 +72,6 @@ html.vd-open, html.vd-open body { overflow: hidden; }
 .vd-ai header { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
 .vd-ai-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
 .vd-ai-row input[type="password"] { min-width: 14em; }
+.vd-ai-paid { margin-top: 10px; }
+.vd-ai-paid summary { cursor: pointer; font-weight: 600; }
 .vd-strip .vd-line { fill: none; stroke: currentColor; stroke-width: 2; vector-effect: non-scaling-stroke; }
