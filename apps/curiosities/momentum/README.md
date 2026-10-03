@@ -11,6 +11,7 @@ Open it from **Library, Momentum** (once `<script src="momentum/load.js"></scrip
 - **The ring (pie chart)**: what share of the time each family held attention. Eight families have their own color; the other five are gray and listed under "Other".
 - **What moved it on**: the share of each cue (visual, audio, thought, movement, plot), plus quiet cues, where something stops: the music cuts out, a silence falls, someone goes still.
 - **The timeline**: who held attention when, a letter for the cue at each move, and a line that climbs while one family holds attention and drops when attention moves. The red part is past the limit.
+- **How attention moves**: every move from one family to another, counted: how many times, the cue that made it most often, how often it came from something stopping (a quiet cue), which curiosities took attention, and the cue the films you compare with use for the same move (measured films only). This is Jeremy's question of which action or non-action moves attention, and to where. The Compass uses the same counts: when your measured films make a move mostly on one cue, it suggests that cue. Beside the Screen's Player each meter also says where attention came from and on which cue.
 - **Held too long**: every stretch past the limit, with a different kind of cue to try.
 - **Compared with**: your film against a film you love, or the average of several, in plain sentences.
 - **Film rates**: the default curated list (Claude's estimates, marked as estimates) and any traced film you measure.

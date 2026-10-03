@@ -145,6 +145,8 @@
     const held = run ? Math.round(run.dur) : 0;
     const pct = run ? Math.min(100, (run.dur / lim) * 100) : 0;
     const seg = x && x.seg;
+    const mv = (x && x.reading && x.reading.stats.moves) || [];
+    const lastMove = mv[mv.length - 1] || null;
     const fams = (x && x.families) || [];
     const at = kind === "mine" ? x && x.reading.beats - 1 : x && x.beat;
     const cells = fams.map((f, j) => `<i style="background:${f ? colorOf(f) : "transparent"}"${j === at ? ' class="on"' : ""} title="${esc((kind === "mine" ? "Moment " : "Beat ") + (j + 1) + (f ? ": " + famLabel(f) : ""))}"></i>`).join("");
@@ -153,6 +155,7 @@
       ${run ? `<p class="mo-sp-fam"><i style="background:${colorOf(run.family)}"></i><b>${esc(famLabel(run.family))}</b>${seg ? `<small>${esc(seg.label)}</small>` : ""}</p>` : `<p class="mo-sp-fam"><small>Nothing holds attention yet.</small></p>`}
       <div class="mo-sp-bar ${st.cls}" role="meter" aria-label="${esc(name)}: how long attention has stayed" aria-valuemin="0" aria-valuemax="${lim}" aria-valuenow="${held}"><span style="width:${pct.toFixed(1)}%"></span></div>
       <p class="mo-sp-held"><span>${held} s of ${lim} s</span><span class="mo-sp-st ${st.cls}">${st.icon} ${esc(st.text)}</span></p>
+      ${lastMove ? `<p class="mo-sp-move" title="The last time attention moved between families, and the cue that moved it">Came from ${esc(famLabel(lastMove.from))} on ${lastMove.quiet ? "a stop (" + esc(cueLabel(lastMove.cue).toLowerCase()) + ")" : "a " + esc(cueLabel(lastMove.cue).toLowerCase())}</p>` : ""}
       ${cells ? `<div class="mo-sp-rib" data-rib="${kind}" data-n="${fams.length}" title="${kind === "mine" ? "Your film, colored by what holds attention. Click to move the playhead." : "This film, colored by what holds attention. Click to move the playhead."}">${cells}</div>` : ""}
     </div>`;
   }

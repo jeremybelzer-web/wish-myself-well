@@ -101,6 +101,18 @@ const ok = (cond, text) => {
   ok(after === before + 1, `measuring adds a row (${before} to ${after})`);
   ok(await page.evaluate(() => [...document.querySelectorAll(".mo-dlg .mo-badge")].some((b) => b.textContent === "measured")), "measured row is marked measured");
   await page.screenshot({ path: path.join(SHOTS, "momentum-rates.png") });
+  /* How attention moves, compared with the film just measured. */
+  await page.click('.mo-dlg [data-tab="attention"]');
+  await page.selectOption('.mo-dlg select[data-m="source"]', study);
+  const mid = await page.evaluate(() => [...document.querySelectorAll(".mo-dlg [data-cmp]")].map((b) => b.dataset.cmp).find((id) => id.startsWith("measured-")));
+  if (mid && !(await page.evaluate((id) => document.querySelector(`.mo-dlg [data-cmp="${id}"]`).checked, mid))) await page.click(`.mo-dlg [data-cmp="${mid}"]`);
+  const moves = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll(".mo-dlg .mo-moves tbody tr")];
+    return { rows: rows.length, theirs: rows.filter((r) => !/measure a film|never/.test(r.lastElementChild.textContent)).length };
+  });
+  ok(moves.rows > 0 && moves.theirs > 0, `how attention moves: ${moves.rows} moves, ${moves.theirs} with the measured film's cue`);
+  await page.evaluate(() => document.querySelector(".mo-dlg .mo-moves").scrollIntoView());
+  await page.screenshot({ path: path.join(SHOTS, "momentum-moves.png") });
 
   await page.click('.mo-dlg [data-tab="notes"]');
   await page.fill('.mo-dlg input[data-m="nfind"]', "clothes");
