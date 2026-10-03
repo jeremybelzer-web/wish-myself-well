@@ -95,7 +95,7 @@
     const punch = v.n("punch") / 50;
     const keep = idx(v, "keepSkin") / 2;
     const g = fxOf(o, s, { contrast: punch * 0.35, sat: 1 + punch * 0.35 });
-    return `${scene(k, id, g)}${keepFace(k, id, keep)}${keep ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${thumb(k, id + "-t", 246, 10, 0.2, fxOf(o, 1), name)}${reach(k, 6, 8, ["clip", "scene", "film"], idx(v, "scope"))}${envelope(k, { x: 18, y: 112, w: 110, h: 24, fin: v.n("fadeIn") / 10, fout: v.n("fadeOut") / 10, lead: v.n("cutLead") / 2, wobble: idx(v, "followsMood"), title: "strength over time" })}${LL.chip(k, 236, 150 - 4, "mood: " + v("followsMood"))}${k.caption(`${name} at ${v.n("strength")}%${punch ? `, punch ${punch > 0 ? "+" : ""}${v.n("punch")}` : ""}`)}`;
+    return `${scene(k, id, g)}${keepFace(k, id, keep)}${keep ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${thumb(k, id + "-t", 246, 10, 0.2, fxOf(o, 1), name)}${reach(k, 6, 8, ["clip", "scene", "film"], idx(v, "scope"))}${envelope(k, { x: 18, y: 112, w: 110, h: 24, fin: v.n("fadeIn") / 10, fout: v.n("fadeOut") / 10, lead: v.n("cutLead") / 2, wobble: idx(v, "followsMood"), title: "strength over time" })}${LL.chip(k, 236, 150 - 4, "mood: " + v("followsMood"))}${LLx().caption(k, `${name} at ${v.n("strength")}%${punch ? `, punch ${punch > 0 ? "+" : ""}${v.n("punch")}` : ""}`)}`;
   });
 
   /* An old-media look: era, wear, shake, flicker, faded color, choppy frames, and flashes. */
@@ -137,7 +137,7 @@
     const fr = v.n("flashRate");
     const fl = v.n("flashLength");
     const flashes = Array.from({ length: Math.min(30, Math.round(fr)) }, (_, i) => `<rect x="${r1(240 + (i / Math.max(1, fr)) * 68)}" y="140" width="${r1(Math.max(1, (fl / 10) * 16))}" height="8" fill="#fff" opacity="0.8"/>`).join("");
-    return `${k.bg("#000")}${ghost}<g transform="translate(${r1(shake * 0.6)} 0)">${base}</g>${extra}${scratches}${flickS}${strip}${LL.box(232, 106, 82, 46)}${LL.ticks(k, 240, 124, 68, v.n("flickerRate"), "#fff", `flicker ${v.n("flickerRate")}/s`)}${k.label({ x: 240, y: 137, text: "flashes", size: 7, anchor: "start", color: "#ccc" })}<rect x="${r1(306 - Math.max(1, (fl / 10) * 16))}" y="130" width="${r1(Math.max(1, (fl / 10) * 16))}" height="4" fill="#fff" opacity="0.5"/><line x1="240" y1="144" x2="308" y2="144" stroke="#555"/>${flashes}${LL.chip(k, 6 + (chop ? 12 : 0), 160 - 14, v("showsUp"))}${k.caption(`${none ? "No retro look" : kind}, ${v("era")}, ${v("jitter")}`)}`;
+    return `${k.bg("#000")}${ghost}<g transform="translate(${r1(shake * 0.6)} 0)">${base}</g>${extra}${scratches}${flickS}${strip}${LL.box(232, 106, 82, 46)}${LL.ticks(k, 240, 124, 68, v.n("flickerRate"), "#fff", `flicker ${v.n("flickerRate")}/s`)}${k.label({ x: 240, y: 137, text: "flashes", size: 7, anchor: "start", color: "#ccc" })}<rect x="${r1(306 - Math.max(1, (fl / 10) * 16))}" y="130" width="${r1(Math.max(1, (fl / 10) * 16))}" height="4" fill="#fff" opacity="0.5"/><line x1="240" y1="144" x2="308" y2="144" stroke="#555"/>${flashes}${LL.chip(k, 6 + (chop ? 12 : 0), 160 - 14, v("showsUp"))}${LLx().caption(k, `${none ? "No retro look" : kind}, ${v("era")}, ${v("jitter")}`)}`;
   });
 
   /* Exposure: brighter or darker, highlights, shadows, blown-out whites and crushed blacks, and how the eye
@@ -150,15 +150,15 @@
     const hi = v.n("highlights") / 50;
     const sh = v.n("shadows") / 50;
     const curve = (x) => {
-      let y = x + bright * 0.75 * (word >= 0 || true ? 1 : 1);
+      let y = x + bright * 0.6;
       y += sh * (1 - x) * (1 - x) * 0.3 + hi * x * x * 0.3;
       return y;
     };
     const ws = v.p("whiteShare");
     const bs = v.p("blackShare");
     const read = idx(v, "faceReadable") / 2;
-    const white = ws ? `<defs><radialGradient id="${id}-w"><stop offset="0.6" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><ellipse cx="50" cy="48" rx="${r1(30 + ws * 260)}" ry="${r1(26 + ws * 150)}" fill="url(#${id}-w)"/>` : "";
-    const black = bs ? `<defs><radialGradient id="${id}-b" cx="1" cy="1" r="1"><stop offset="0.6" stop-color="#000"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs><rect x="${r1(320 - bs * 320)}" y="${r1(180 - bs * 180)}" width="${r1(bs * 320)}" height="${r1(bs * 180)}" fill="url(#${id}-b)"/>` : "";
+    const white = ws ? `<defs><radialGradient id="${id}-w"><stop offset="0.6" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><ellipse cx="50" cy="48" rx="${r1(30 + ws * 110)}" ry="${r1(26 + ws * 70)}" fill="url(#${id}-w)"/>` : "";
+    const black = bs ? `<defs><radialGradient id="${id}-b" cx="1" cy="1" r="1"><stop offset="0.6" stop-color="#000"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs><rect x="${r1(320 - bs * 150)}" y="${r1(180 - bs * 90)}" width="${r1(bs * 150)}" height="${r1(bs * 90)}" fill="url(#${id}-b)"/>` : "";
     const adj = idx(v, "adjust");
     const at = v.n("adjustTime") / 10;
     const pts = Array.from({ length: 21 }, (_, i) => {
@@ -166,7 +166,7 @@
       const span = Math.max(0.02, (adj === 0 ? 0.03 : [0, 0.2, 0.5, 0.9][adj]) * (0.3 + at * 0.7));
       return `${r1(240 + t * 68)},${r1(150 - 22 * (1 - Math.exp(-t / span * 2.5)) - 2)}`;
     }).join(" ");
-    return `${scene(k, id, { curve, tone: () => [0, 0, 0] })}${keepFace(k, id, read * 0.85)}${white}${black}${LL.box(232, 112, 82, 46)}${k.label({ x: 238, y: 124, text: "eyes adjust", size: 8, anchor: "start", color: "#ccc" })}<polyline points="${pts}" fill="none" stroke="#ffd166" stroke-width="2"/>${read ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${k.caption(`${v("setting")}, ${v.n("stops") > 0 ? "+" : ""}${v.n("stops")} stops, highlights ${v.n("highlights")}, shadows ${v.n("shadows")}`)}`;
+    return `${scene(k, id, { curve, tone: () => [0, 0, 0] })}${keepFace(k, id, read * 0.85)}${white}${black}${LL.box(232, 112, 82, 46)}${k.label({ x: 238, y: 124, text: "eyes adjust", size: 8, anchor: "start", color: "#ccc" })}<polyline points="${pts}" fill="none" stroke="#ffd166" stroke-width="2"/>${read ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${LLx().caption(k, `${v("setting")}, ${v.n("stops") > 0 ? "+" : ""}${v.n("stops")} stops, highlights ${v.n("highlights")}, shadows ${v.n("shadows")}`)}`;
   });
 
   /* White balance: warmer or cooler, green or magenta, warm light with cool shadows, faces kept natural. */
@@ -188,7 +188,7 @@
     const match = v("matchTo");
     const ref = { "the camera's guess": "#bdbdbd", "the window": "#8cc0ea", "the lamps": "#ffb35c", "a mood choice": "#c26bff" }[match];
     const t = v.n("shiftTime");
-    return `${scene(k, id, { tone })}${keepFace(k, id, keep * 0.85)}${keep ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${LL.box(220, 6, 94, 24)}<rect x="226" y="12" width="12" height="12" fill="${ref}" stroke="#ddd"/>${k.label({ x: 242, y: 21, text: "set to " + match.replace(/^the /, ""), size: 8, anchor: "start", color: "#ddd" })}${k.meter({ x: 236, y: 150, w: 72, p: t / 30, label: `change in ${t} s` })}${k.caption(`${v("setting")}, ${v.n("temperature")} K, ${v("tint")} tint, ${v("splitTone")} split`)}`;
+    return `${scene(k, id, { tone })}${keepFace(k, id, keep * 0.85)}${keep ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${LL.box(200, 6, 114, 24)}<rect x="206" y="12" width="12" height="12" fill="${ref}" stroke="#ddd"/>${k.label({ x: 222, y: 21, text: "set to " + match.replace(/^the /, ""), size: 8, anchor: "start", color: "#ddd" })}${k.meter({ x: 236, y: 150, w: 72, p: t / 30, label: `change in ${t} s` })}${LLx().caption(k, `${v("setting")}, ${v.n("temperature")} K, ${v("tint")} tint, ${v("splitTone")} split`)}`;
   });
 
   /* Texture: soft or gritty, sharpening, clarity, grain and its size, glow around lights, and a vignette whose
@@ -203,8 +203,8 @@
     const gs = idx(v, "grainSize");
     const hal = v.p("halation");
     const vig = v.p("vignette");
-    const vx = v.p("vignetteX") * 320;
-    const vy = (1 - v.p("vignetteY")) * 180;
+    const vx = 60 + v.p("vignetteX") * 200;
+    const vy = 40 + (1 - v.p("vignetteY")) * 90;
     const vr = v.p("vignetteReach");
     const move = idx(v, "vignetteMove");
     const a = r1(sharp * 0.9 * 100) / 100;
@@ -213,9 +213,9 @@
     const inner = scene(k, id, g);
     const halS = hal ? `<g fill="#ff7a4a" opacity="${r1(hal * 0.5 * 100) / 100}"><circle cx="262" cy="70" r="${r1(14 + hal * 18)}"/><rect x="${r1(18 - hal * 8)}" y="${r1(18 - hal * 8)}" width="${r1(64 + hal * 16)}" height="${r1(60 + hal * 16)}" rx="8"/></g>` : "";
     const grainS = grain > 0.01 ? Array.from({ length: Math.round(grain * 260) }, (_, i) => `<rect x="${r1(k.rnd(i + 11) * 320)}" y="${r1(k.rnd(i + 311) * 180)}" width="${[0.8, 1.5, 2.6][gs]}" height="${[0.8, 1.5, 2.6][gs]}" fill="${i % 2 ? "#fff" : "#000"}" opacity="0.35"/>`).join("") : "";
-    const vigS = `<defs><radialGradient id="${id}-v" gradientUnits="userSpaceOnUse" cx="${r1(vx)}" cy="${r1(vy)}" r="${r1(120 + (1 - vr) * 140)}"><stop offset="${r1((0.75 - vr * 0.6) * 100) / 100}" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="${r1(cl(0.1 + vig * 0.85, 0, 1) * 100) / 100}"/></radialGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#${id}-v)"/>${k.dot({ x: vx, y: vy, r: 2.5, color: "#ffd166" })}`;
+    const vigS = `<defs><radialGradient id="${id}-v" gradientUnits="userSpaceOnUse" cx="${r1(vx)}" cy="${r1(vy)}" r="${r1(120 + (1 - vr) * 140)}"><stop offset="${r1((0.75 - vr * 0.6) * 100) / 100}" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="${r1(cl(0.1 + vig * 0.75, 0, 1) * 100) / 100}"/></radialGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#${id}-v)"/>${k.dot({ x: vx, y: vy, r: 2.5, color: "#ffd166" })}`;
     const moveS = move ? k.arrow({ x1: vx, y1: vy, x2: move === 1 ? 160 : 240, y2: move === 1 ? 80 : 130, color: "#ffd166", w: 1.5 }) : "";
-    return `<defs>${sharpF}</defs><g filter="url(#${id}-sh)">${inner}</g>${halS}${grainS}${vigS}${moveS}${k.caption(`${v("setting")}, sharpen ${v.n("sharpen")}, ${v("grainSize")} grain ${v.n("grain")}, vignette ${v.n("vignette")}`)}`;
+    return `<defs>${sharpF}</defs><g filter="url(#${id}-sh)">${inner}</g>${halS}${grainS}${vigS}${moveS}${LLx().caption(k, `${v("setting")}, sharpen ${v.n("sharpen")}, ${v("grainSize")} grain ${v.n("grain")}, vignette ${v.n("vignette")}`)}`;
   });
 
   /* Matching shots: four shots in a row that drift apart or line up in brightness, color and contrast; the
@@ -226,38 +226,45 @@
     const word = idx(v, "setting"); // mismatched close matched deliberately different
     const close = v.p("closeness");
     const base = [0.15, 0.6, 1, 0][word];
-    const match = cl(base * 0.7 + close * 0.3 + (word === 3 ? 0 : 0), 0, 1);
+    const match = cl(base * 0.7 + close * 0.3, 0, 1);
     const what = idx(v, "matchWhat"); // brightness color contrast everything
     const dims = [what === 0 || what === 3, what === 1 || what === 3, what === 2 || what === 3];
     const diff = (on) => (on ? 1 - match : 0.55) * (word === 3 ? 1.6 : 1);
-    const d = [0, 0.9, -0.7, 0.5];
     const skinI = idx(v, "skin");
     const skinCol = ["#9fb89a", "#e8b894", "#f0b890", "#f08a5a"][skinI];
     const brk = v("breakOn");
-    const brkAt = { never: -1, "a time jump": 2, "a dream": 3, "a big turn": 1 }[brk];
-    const shots = d.map((di, i) => {
-      const off = i === brkAt ? 1.4 : di;
-      const g = { curve: LLx().curve({ bright: off * diff(dims[0]) * 0.25, contrast: off * diff(dims[2]) * 0.6 }), tone: () => LL.warmRGB(off * diff(dims[1]) * 0.8) };
-      const x = 6 + i * 78;
-      return `<g transform="translate(${x} 24) scale(0.235)">${LL.scene({ room: { lamp: { on: 0.85 } }, bust: { key: { dark: 0.45 }, skin: skinCol }, grade: g }, k, `${id}-${i}`)}</g><rect x="${x}" y="24" width="75.2" height="42.3" fill="none" stroke="${i === 0 ? "#ffd166" : i === brkAt ? "#e85d75" : "#000"}" stroke-width="1.5"/>${i === brkAt ? k.label({ x: x + 37, y: 76, text: "break: " + brk, size: 7, color: "#e85d75" }) : ""}`;
-    }).join("");
+    const brkAt = { never: -1, "a time jump": 3, "a dream": 4, "a big turn": 2 }[brk];
+    /* How far each shot of the scene drifts from the reference look (the first shot is the reference). */
+    const D = [0, 0.9, -0.7, 0.5, -0.4, 0.8];
+    const gradeOf = (off) => ({ curve: LL.curve({ bright: off * diff(dims[0]) * 0.25, contrast: off * diff(dims[2]) * 0.6 }), tone: () => LL.warmRGB(off * diff(dims[1]) * 0.8) });
+    const shotAt = (x, y, sc, off, sid, extra) => `<g transform="translate(${x} ${y}) scale(${sc})">${LL.scene(Object.assign({ room: { lamp: { on: 0.85 } }, bust: { key: { dark: 0.45 }, skin: skinCol }, grade: gradeOf(off) }, extra || {}), k, sid)}</g>`;
+    /* Big: the reference shot and the next shot side by side, the way a colorist checks a cut. */
+    const refName = { "the shot before": "the shot before", "the scene's key shot": "the key shot", "an inspiration film": "the inspiration" }[v("reference")] || v("reference");
+    const refExtra = /inspiration/.test(v("reference")) ? { room: { lamp: { on: 0.85 }, wall: "#7d8fa8" } } : null;
+    let out = k.bg("#141418");
+    out += shotAt(8, 20, 0.4563, 0, `${id}-ref`, refExtra) + `<rect x="8" y="20" width="146" height="82" fill="none" stroke="#ffd166" stroke-width="2"/>` + k.label({ x: 81, y: 14, text: `reference: ${refName}`, size: 8, color: "#ffd166" });
+    out += shotAt(166, 20, 0.4563, D[1], `${id}-next`) + `<rect x="166" y="20" width="146" height="82" fill="none" stroke="#ccc" stroke-width="1.5"/>` + k.label({ x: 239, y: 14, text: "next shot", size: 8, color: "#ddd" });
+    out += k.text({ x: 160, y: 66, text: match > 0.75 && word !== 3 ? "=" : "≠", size: 14, color: match > 0.75 && word !== 3 ? "#9fe0a0" : "#e85d75", weight: 700, outline: "#000" });
+    /* Small: the scene's shots in order. Matching shots get a green tick; a break is ringed in red; smoothing
+       blends each jump into the next shot over a short ramp. */
+    const span = Math.round(v.n("matchSpan"));
+    const ticks = Math.max(1, Math.round((span / 50) * 6));
     const smooth = idx(v, "smoothJumps");
     const st = v.n("smoothTime") / 5;
-    const vals = d.map((di, i) => 0.5 + (i === brkAt ? 1.4 : di) * (1 - match) * 0.3);
-    let line = "";
-    vals.forEach((val, i) => {
-      const x0 = 14 + i * 78;
-      const y = r1(140 - val * 40);
-      if (i === 0) line += `M${x0} ${y} `;
-      else {
-        const ramp = smooth === 0 ? 0 : (smooth === 1 ? 12 : 26) * (0.4 + st * 0.6);
-        const prevY = r1(140 - vals[i - 1] * 40);
-        line += `L${r1(x0 - ramp)} ${prevY} L${x0} ${y} `;
+    D.forEach((di, i) => {
+      const off = i === brkAt ? 1.5 : di;
+      const x = 8 + i * 51;
+      out += shotAt(x, 116, 0.1563, off, `${id}-s${i}`) + `<rect x="${x}" y="116" width="50" height="28" fill="none" stroke="${i === brkAt ? "#e85d75" : i === 0 ? "#ffd166" : "#000"}" stroke-width="1.5"/>`;
+      if (i > 0 && smooth > 0) {
+        const bw = (smooth === 1 ? 8 : 16) * (0.4 + st * 0.6);
+        out += `<defs><linearGradient id="${id}-g${i}" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity="0.45"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient></defs><rect x="${x}" y="116" width="${r1(bw)}" height="28" fill="url(#${id}-g${i})"/>`;
       }
-      line += `L${x0 + 70} ${y} `;
+      if (i < ticks && i !== brkAt) out += k.label({ x: x + 44, y: 126, text: "✓", size: 9, color: "#9fe0a0", weight: 700 });
     });
-    const span = Math.round(v.n("matchSpan"));
-    return `${k.bg("#141418")}${k.label({ x: 6, y: 16, text: `matched to ${v("reference")}`, size: 9, anchor: "start", color: "#ddd" })}${shots}${LL.box(6, 92, 308, 58)}${k.label({ x: 12, y: 104, text: "brightness, shot to shot", size: 8, anchor: "start", color: "#ccc" })}<path d="${line}" fill="none" stroke="#ffd166" stroke-width="2"/>${LL.ticks(k, 236, 103, 72, Math.min(25, Math.ceil(span / 2)), "#9fe0a0", "")}${k.label({ x: 308, y: 116, text: `${span} shots match`, size: 7, anchor: "end", color: "#9fe0a0" })}${k.label({ x: 308, y: 146, text: `smoothing ${v("smoothJumps")}, ${v.n("smoothTime")} s`, size: 7, anchor: "end", color: "#ccc" })}${k.caption(`${v("setting")} on ${v("matchWhat")}, ${v.n("closeness")}% close, skin ${v("skin")}`)}`;
+    out += k.label({ x: 8, y: 112, text: `the scene, shot by shot · ${span} shot${span === 1 ? "" : "s"} match${span === 1 ? "es" : ""}`, size: 8, anchor: "start", color: "#aaa" });
+    out += k.label({ x: 312, y: 112, text: brkAt >= 0 ? `break for ${brk}` : `smoothing ${v("smoothJumps")}, ${v.n("smoothTime")} s`, size: 8, anchor: "end", color: brkAt >= 0 ? "#e85d75" : "#aaa" });
+    if (brkAt >= 0) out += k.label({ x: 160, y: 156, text: `smoothing ${v("smoothJumps")}, ${v.n("smoothTime")} s`, size: 8, color: "#aaa" });
+    return out + LLx().caption(k, `${v("setting")} on ${v("matchWhat")}, ${v.n("closeness")}% close, skin ${v("skin")}`);
   });
 
   /* A texture laid over the picture: paper, grain, dots, two tones, a photo frame or old film, with edges,
@@ -291,7 +298,7 @@
     const body = blend === 0 ? `${sceneNoPerson}${texMoved}${LL.graded(id + "-pg", g, person)}` : blend === 1 ? `${sceneG}<g opacity="0.55">${texMoved}</g>` : `${sceneG}${texMoved}`;
     const stack = `${LL.box(6, 6, 56, 46)}${["texture", "person", "room"].map((t, i) => `<rect x="12" y="${12 + i * 12}" width="44" height="10" rx="2" fill="${(blend === 2 && i === 0) || (blend === 0 && i === 1) || (blend === 1 && i === 0) ? "#ffd166" : "#444"}"/>${k.label({ x: 34, y: 20 + i * 12, text: blend === 0 ? ["person", "texture", "room"][i] : t, size: 7, color: "#111" })}`).join("")}`;
     const rate = v.n("changeRate");
-    return `${body}${edgeS}${stack}${LL.box(232, 112, 82, 40)}${k.meter({ x: 238, y: 128, w: 68, p: s, label: `strength ${v.n("strength")}%` })}${LL.ticks(k, 238, 145, 68, Math.round(rate), "#ffd166", "")}${k.label({ x: 306, y: 150, text: `${rate}/s`, size: 7, anchor: "end", color: "#ccc" })}${motion ? LL.chip(k, 70, 18, v("motion")) : ""}${LL.chip(k, 6, 160 - 14 - 8, v("showsUp"))}${k.caption(`${kind === "none" ? "No texture" : kind}, ${v("edges")} edges, ${v("paperTint")} paper`)}`;
+    return `${body}${edgeS}${stack}${LL.box(232, 112, 82, 40)}${k.meter({ x: 238, y: 128, w: 68, p: s, label: `strength ${v.n("strength")}%` })}${LL.ticks(k, 238, 145, 68, Math.round(rate), "#ffd166", "")}${k.label({ x: 306, y: 150, text: `${rate}/s`, size: 7, anchor: "end", color: "#ccc" })}${motion ? LL.chip(k, 70, 18, v("motion")) : ""}${LL.chip(k, 6, 160 - 14 - 8, v("showsUp"))}${LLx().caption(k, `${kind === "none" ? "No texture" : kind}, ${v("edges")} edges, ${v("paperTint")} paper`)}`;
   });
 
   /* A filter from a shelf: the family, which one on the shelf, how strong, skin, and how alike the shots are. */
@@ -314,7 +321,7 @@
     }).join("");
     const same = idx(v, "sameAcross");
     const shots = [0, 1, 2].map((i) => `<rect x="${236 + i * 24}" y="138" width="22" height="13" fill="${k.mix(famCol, ["#3a6fd9", "#e04a2a", "#3fa55b"][i], [0.6, 0.25, 0][same])}" stroke="#222"/>`).join("");
-    return `${scene(k, id, g)}${keepFace(k, id, keep * 0.85)}${keep ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${LL.box(4, 4, 312, 26)}${shelf}${LL.box(230, 124, 84, 32)}${k.label({ x: 236, y: 134, text: "shot to shot", size: 7, anchor: "start", color: "#ccc" })}${shots}${k.meter({ x: 12, y: 146, w: 80, p: v.n("fadeIn") / 10, label: `fades in ${v.n("fadeIn")} s` })}${k.caption(`${fam} #${pick} at ${v.n("strength")}%`)}`;
+    return `${scene(k, id, g)}${keepFace(k, id, keep * 0.85)}${keep ? k.ring({ x: 160, y: 80, r: 30, color: "#9fe0a0", dash: "3 2", w: 1.5 }) : ""}${LL.box(4, 4, 312, 26)}${shelf}${LL.box(230, 124, 84, 32)}${k.label({ x: 236, y: 134, text: "shot to shot", size: 7, anchor: "start", color: "#ccc" })}${shots}${k.meter({ x: 12, y: 146, w: 80, p: v.n("fadeIn") / 10, label: `fades in ${v.n("fadeIn")} s` })}${LLx().caption(k, `${fam} #${pick} at ${v.n("strength")}%`)}`;
   });
 
   /* A LUT, a color recipe: the camera's picture on the left, after the recipe on the right, with trims. */
@@ -333,7 +340,7 @@
     const left = scene(k, id + "-a", camera);
     const right = scene(k, id + "-b", after);
     const bt = v.n("blendTime");
-    return `${left}<clipPath id="${id}-r"><rect x="160" y="0" width="160" height="180"/></clipPath><g clip-path="url(#${id}-r)">${right}${keepFace(k, id, keep * 0.85)}</g><line x1="160" y1="0" x2="160" y2="162" stroke="#fff" stroke-width="2"/>${k.label({ x: 80, y: 14, text: "from the camera", size: 9, weight: 700 })}${k.label({ x: 240, y: 14, text: "after the recipe", size: 9, weight: 700 })}${thumb(k, id + "-t", 252, 24, 0.18, log ? fxOf({}, 1, { sat: 1.4, contrast: 0.45 }) : fxOf(o, 1), name)}${k.meter({ x: 236, y: 150, w: 72, p: bt / 10, label: `blends in ${bt} s` })}${k.caption(`${name} at ${v.n("strength")}%, contrast ${ct >= 0 ? "+" : ""}${v.n("contrastTrim")}, color ${cc >= 0 ? "+" : ""}${v.n("colorTrim")}`)}`;
+    return `${left}<clipPath id="${id}-r"><rect x="160" y="0" width="160" height="180"/></clipPath><g clip-path="url(#${id}-r)">${right}${keepFace(k, id, keep * 0.85)}</g><line x1="160" y1="0" x2="160" y2="162" stroke="#fff" stroke-width="2"/>${k.label({ x: 80, y: 14, text: "from the camera", size: 9, weight: 700 })}${k.label({ x: 240, y: 14, text: "after the recipe", size: 9, weight: 700 })}${thumb(k, id + "-t", 252, 24, 0.18, log ? fxOf({}, 1, { sat: 1.4, contrast: 0.45 }) : fxOf(o, 1), name)}${k.meter({ x: 236, y: 150, w: 72, p: bt / 10, label: `blends in ${bt} s` })}${LLx().caption(k, `${name} at ${v.n("strength")}%, contrast ${ct >= 0 ? "+" : ""}${v.n("contrastTrim")}, color ${cc >= 0 ? "+" : ""}${v.n("colorTrim")}`)}`;
   });
 
   /* Color wheels: push the shadows, middle and highlights toward a color, and lift or lower them. */
@@ -366,7 +373,7 @@
       return `<g opacity="${active ? 1 : 0.4}">${ring}<circle cx="${cx}" cy="140" r="14" fill="none" stroke="#ddd"/>${k.dot({ x: px, y: py, r: 3, color: "#fff" })}${lvl != null ? `<rect x="${cx + 17}" y="128" width="3" height="24" fill="#333"/><rect x="${cx + 17}" y="${r1(140 - lvl * 12 - 1)}" width="3" height="3" fill="#fff"/>` : ""}${k.label({ x: cx, y: 125, text: label, size: 7, color: "#ddd" })}</g>`;
     };
     const pt = v.n("pushTime");
-    return `${scene(k, id, { tone, curve: (x) => curve(x) })}${LL.box(118, 110, 196, 46)}${wheel(140, "shadows", hs[0], on[0], sl)}${wheel(200, "middle", hs[1], on[1], null)}${wheel(260, "highlights", hs[2], on[2], hl)}<rect x="300" y="${r1(152 - reachS * 24)}" width="8" height="${r1(reachS * 24 + 1)}" fill="#556"/>${k.meter({ x: 8, y: 150, w: 90, p: pt / 30, label: `pushes in over ${pt} s` })}${k.meter({ x: 8, y: 128, w: 90, p: s, label: `strength ${v.n("strength")}%`, color: "#9fd3ff" })}${k.caption(which === "none" ? "No wheel pushed" : `${which}: ${[v("shadowHue"), v("midHue"), v("highlightHue")].filter((x, i) => on[i]).join(", ")} at ${v.n("strength")}%`)}`;
+    return `${scene(k, id, { tone, curve: (x) => curve(x) })}${LL.box(118, 110, 196, 46)}${wheel(140, "shadows", hs[0], on[0], sl)}${wheel(200, "middle", hs[1], on[1], null)}${wheel(260, "highlights", hs[2], on[2], hl)}<rect x="300" y="${r1(152 - reachS * 24)}" width="8" height="${r1(reachS * 24 + 1)}" fill="#556"/>${LL.box(2, 114, 104, 44)}${k.meter({ x: 8, y: 150, w: 90, p: pt / 30, label: `pushes in over ${pt} s` })}${k.meter({ x: 8, y: 128, w: 90, p: s, label: `strength ${v.n("strength")}%`, color: "#9fd3ff" })}${LLx().caption(k, which === "none" ? "No wheel pushed" : `${which}: ${[v("shadowHue"), v("midHue"), v("highlightHue")].filter((x, i) => on[i]).join(", ")} at ${v.n("strength")}%`)}`;
   });
 
   /* Curves: the shape of the tone curve on one channel, with lifted blacks, lowered whites and the middle,
@@ -394,9 +401,9 @@
     const gy = 10;
     const gw = 76;
     const pts = Array.from({ length: 21 }, (_, i) => `${r1(gx + (i / 20) * gw)},${r1(gy + gw - cl(f(i / 20), 0, 1) * gw)}`).join(" ");
-    const graph = `${LL.box(gx - 6, gy - 4, gw + 12, gw + 18)}<line x1="${gx}" y1="${gy + gw}" x2="${gx + gw}" y2="${gy}" stroke="#555" stroke-dasharray="2 2"/><rect x="${gx}" y="${gy}" width="${gw}" height="${gw}" fill="none" stroke="#555"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2"/>${k.label({ x: gx + gw / 2, y: gy + gw + 10, text: `${ch} · ${v.n("curveStrength")}%`, size: 8, color: col })}`;
+    const graph = `${LL.box(gx - 6, gy - 4, gw + 12, gw + 18)}<line x1="${gx}" y1="${gy + gw}" x2="${gx + gw}" y2="${gy}" stroke="#555" stroke-dasharray="2 2"/><rect x="${gx}" y="${gy}" width="${gw}" height="${gw}" fill="none" stroke="#555"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2"/>${k.label({ x: gx + gw + 4, y: gy + gw + 10, text: `${ch} · ${v.n("curveStrength")}%`, size: 8, color: col, anchor: "end" })}`;
     const bt = v.n("bendTime");
-    return `${scene(k, id, g)}${graph}${k.meter({ x: 8, y: 150, w: 90, p: bt / 30, label: `bends over ${bt} s` })}${k.caption(`${shape} curve on ${ch}, blacks +${v.n("blackLift")}, whites -${v.n("whiteCap")}`)}`;
+    return `${scene(k, id, g)}${graph}${k.meter({ x: 8, y: 150, w: 90, p: bt / 30, label: `bends over ${bt} s` })}${LLx().caption(k, `${shape} curve on ${ch}, blacks ${v.n("blackLift") ? "+" : ""}${v.n("blackLift")}, whites ${v.n("whiteCap") ? "-" : ""}${v.n("whiteCap")}`)}`;
   });
 
   /* Dot grids where two settings pair naturally (only where the window has no pad yet). */

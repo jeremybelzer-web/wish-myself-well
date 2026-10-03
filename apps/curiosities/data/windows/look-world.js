@@ -10,7 +10,11 @@
   /* Place on a log scale, for ranges like 5 m to 10 km. */
   const logp = (x, a, b) => Math.max(0, Math.min(1, (Math.log(Math.max(a, x)) - Math.log(a)) / (Math.log(b) - Math.log(a))));
   /* The bottom caption, kept short enough to read at phone width. */
-  const cap = (k, t) => k.caption(String(t).replace(/(\d+\.\d{2})\d+/g, "$1").replace(/ · ( ·)+/g, " ·").slice(0, 56));
+  /* The bottom line, shrunk to fit the frame when the words are long. */
+  const cap = (k, t) => {
+    t = String(t).replace(/(\d+\.\d{2})\d+/g, "$1").replace(/ · ( ·)+/g, " ·").replace(/:\s*$/, "");
+    return `<rect x="0" y="${k.H - 18}" width="${k.W}" height="18" fill="rgba(0,0,0,0.55)"/>` + k.fitText({ x: k.W / 2, y: k.H - 5, text: t, size: 10, min: 7.5, w: 312, color: "#f4f4f4" });
+  };
   const chip = (k, x, y, text, color, anchor) => {
     const w = String(text).length * 5.2 + 10;
     const x0 = anchor === "end" ? x - w : x;
@@ -50,7 +54,7 @@
     const focus = v.p("placeFocus");
     const turf = v.p("homeTurf");
     const share = v.p("placeInFrame");
-    const s = k.lerp(2.1, 0.55, share);
+    const s = k.lerp(1.35, 0.45, share);
     const est = v.n("establishTime") / 10;
     const lead = v.n("leadIn");
     const here = v.p("timeHere");
@@ -60,7 +64,7 @@
     const strangeTint = strange > 0 ? k.tint({ color: "#7a3cff", alpha: strange * 0.28 }) : "";
     /* The place pulls focus: the person fades back and the place gets a bright outline. */
     const glow = focus > 0 ? `<rect x="3" y="20" width="314" height="138" fill="none" stroke="#ffd166" stroke-width="${(focus * 5).toFixed(1)}" opacity="${(0.3 + focus * 0.6).toFixed(2)}"/>` : "";
-    const pers = k.person({ x: 160, y: 168, s, mood: k.lerp(-0.6, 0.8, turf), arms: k.lerp(-0.3, 0.4, turf), lean: k.lerp(-8, 0, turf), alpha: 1 - focus * 0.55, color: "#4a6fa5", look: idx(v, "seenThrough") === 1 ? -1 : 0 });
+    const pers = k.person({ x: 160, y: 158, s, mood: k.lerp(-0.6, 0.8, turf), arms: k.lerp(-0.3, 0.4, turf), lean: k.lerp(-8, 0, turf), alpha: 1 - focus * 0.55, color: "#4a6fa5", look: idx(v, "seenThrough") === 1 ? -1 : 0 });
     /* Top strip: how long the place is shown first, when the people arrive, the share of film here, visits. */
     const leadAt = k.clamp(0.5 + lead / 60, 0, 1);
     const strip = tl(k, { x: 70, w: 160, y: 24, label: "place first", segs: [{ a: 0, b: est, color: "#ffd166" }], marks: [{ at: leadAt, color: "#9fd3ff" }] });
@@ -136,10 +140,10 @@
     if (cond === 0) s += `<path d="M${px + 10 * size} ${110 - 20 * size} l3 -6 l3 6 l-3 6 Z" fill="#fff"/>`;
     s += `<circle cx="${px}" cy="122" r="3" fill="${owner}"/>`;
     /* The person and their hands: ignored, touched, used, fought over. */
-    s += k.person({ x: 120, y: 168, s: 1.4, arms: hand === 0 ? -0.2 : 0.55, mood: hand === 3 ? -0.8 : 0.2, look: hand === 0 ? -1 : 1, color: "#4a6fa5" });
+    s += k.person({ x: 120, y: 158, s: 1.4, arms: hand === 0 ? -0.2 : 0.55, mood: hand === 3 ? -0.8 : 0.2, look: hand === 0 ? -1 : 1, color: "#4a6fa5" });
     if (hand >= 1) s += `<line x1="140" y1="112" x2="${px - 8}" y2="${118 - 10 * size}" stroke="${k.INK}" stroke-width="3" stroke-linecap="round" opacity="${hand === 1 ? 0.5 : 1}"/>`;
     if (hand === 2) s += `<path d="M${px - 14} ${100 - 14 * size} l-6 -6 M${px + 14} ${100 - 14 * size} l6 -6" stroke="#ffd166" stroke-width="2"/>`;
-    if (hand === 3) s += k.person({ x: 280, y: 168, s: 1.3, arms: 0.55, mood: -0.8, look: -1, color: "#c0392b" }) + `<line x1="262" y1="112" x2="${px + 8}" y2="${118 - 10 * size}" stroke="${k.INK}" stroke-width="3"/>`;
+    if (hand === 3) s += k.person({ x: 280, y: 158, s: 1.3, arms: 0.55, mood: -0.8, look: -1, color: "#c0392b" }) + `<line x1="262" y1="112" x2="${px + 8}" y2="${118 - 10 * size}" stroke="${k.INK}" stroke-width="3"/>`;
     /* The camera singles it out: a frame closing in on it. */
     if (focus > 0) {
       const fw = k.lerp(200, 40 * size + 20, focus);
@@ -182,8 +186,8 @@
     for (let i = 1; i <= leak; i++) s += `<path d="M${(ext ? 100 : 40) + ww + 4 + i * 7} ${30 + wh / 2 - 6 - i * 3} q${6} ${6 + i * 3} 0 ${12 + i * 6}" fill="none" stroke="#9fd3ff" stroke-width="2"/>`;
     /* The person: stays, glimpses, steps through, goes back and forth; looks toward the window as the pull grows. */
     const px = [130, 140, doorX, doorX - 30][thr];
-    s += k.person({ x: px, y: 168, s: 1.25, look: -pull, mood: pull > 0.9 ? -0.4 : 0.2, lean: -pull * 6, color: "#4a6fa5", alpha: thr === 2 ? 0.75 : 1 });
-    if (thr === 3) s += k.arrow({ x1: doorX - 50, y1: 172, x2: doorX + 20, y2: 172 }) + k.arrow({ x1: doorX + 20, y1: 176, x2: doorX - 50, y2: 176, color: "#9fd3ff" });
+    s += k.person({ x: px, y: 158, s: 1.15, look: -pull, mood: pull > 0.9 ? -0.4 : 0.2, lean: -pull * 6, color: "#4a6fa5", alpha: thr === 2 ? 0.75 : 1 });
+    if (thr === 3) s += k.arrow({ x1: doorX - 50, y1: 138, x2: Math.min(312, doorX + 20), y2: 138 }) + k.arrow({ x1: Math.min(312, doorX + 20), y1: 146, x2: doorX - 50, y2: 146, color: "#9fd3ff" });
     if (thr === 1) s += k.arrow({ x1: 150, y1: 90, x2: (ext ? 100 : 40) + ww / 2, y2: 40 + wh / 2, color: "#9fd3ff", w: 1.5 });
     s += k.pie({ x: 300, y: 20, r: 11, p: inside, color: "#ffd166" }) + k.label({ x: 300, y: 42, text: "inside", size: 8, color: "#eee" });
     return s + cap(k, `${v("setting")} · ${v("shelter")} · door ${v("exitDistance")} m away · ${v("threshold")}`);
@@ -214,7 +218,7 @@
     /* Person: marked by the weather, and smiling or not depending on whether it fights or matches the mood. */
     const mood = [0.8, 0.2, -0.5, -1][mm];
     const coat = ["#4a6fa5", "#41608c", "#2d4566", "#1f2f45"][on];
-    s += k.person({ x: 120, y: 170, s: 1.4, mood, lean: -wind * 14 * (on === 3 ? 1.5 : 1), arms: on === 3 ? 0.8 : 0, color: coat });
+    s += k.person({ x: 120, y: 158, s: 1.4, mood, lean: -wind * 14 * (on === 3 ? 1.5 : 1), arms: on === 3 ? 0.8 : 0, color: coat });
     if (on >= 2) s += Array.from({ length: on * 3 }, (_, i) => `<circle cx="${108 + k.rnd(i + 40) * 24}" cy="${100 + k.rnd(i + 50) * 50}" r="1.6" fill="${/dust/.test(kind) ? "#d9b98a" : "#cfe6ff"}"/>`).join("");
     /* Visibility: fog that hides the far trees. */
     s += tree(k, 230, horizon + 8, 0.7, wind * 12) + tree(k, 280, horizon + 4, 0.5, wind * 12);
@@ -271,8 +275,8 @@
   /* ---------- cramped to open (a plan from above) ---------- */
   W.look("layoutOpen", (v, k) => {
     const open = v.p("setting");
-    const rw = 80 + open * 190;
-    const rh = 40 + open * 90;
+    const rw = 110 + open * 170;
+    const rh = 60 + open * 80;
     const x0 = 160 - rw / 2;
     const y0 = 88 - rh / 2;
     const ob = v.n("obstacles");
@@ -297,7 +301,9 @@
     const p2 = [160 + half, 88];
     const trail = walked * 140;
     s += `<path d="M${p1[0]} ${p1[1]} l${-Math.min(trail, 60)} ${trail > 60 ? -20 : 0} l${-Math.max(0, trail - 60) * 0.4} ${trail > 60 ? 30 : 0}" fill="none" stroke="#ffd166" stroke-width="1.5" stroke-dasharray="2 3"/>`;
-    s += k.dot({ x: p1[0], y: p1[1], r: 6, color: "#4a6fa5" }) + k.dot({ x: p2[0], y: p2[1], r: 6, color: "#e57373" });
+    /* the two people, seen from above: a shirt-colored body under each face */
+    s += [[p1, "#4a6fa5", 1], [p2, "#e57373", -1]].map(([p, c, lk]) => `<ellipse cx="${p[0]}" cy="${p[1] + 4}" rx="10" ry="6" fill="${c}" stroke="#1c1712"/>` + k.face({ x: p[0], y: p[1] - 2, r: 7, look: lk, eyes: 1, color: "#f0c8a0" })).join("");
+    s += k.label({ x: 160, y: 14, text: "the room seen from above", size: 8, color: "#999" });
     for (let i = 0; i < roam; i++) s += k.arrow({ x1: p1[0], y1: p1[1], x2: p1[0] + Math.cos(i * 2.1) * (12 + i * 6), y2: p1[1] + Math.sin(i * 2.1) * (12 + i * 6), color: "#9fd3ff", w: 1.5 });
     if (close !== 1) {
       const d = close === 2 ? 1 : -1;
@@ -338,15 +344,18 @@
     }
     /* Where it's measured from, and the focal point at its angle and distance from there. */
     const origin = [[80, 120], [R.x + R.w / 2, R.y + R.h + 10], [R.x, R.y + R.h / 2], [R.x + R.w / 2, R.y + R.h / 2]][from];
-    const fd = 6 + v.p("focalDistance") * 80;
+    const fd = 6 + v.p("focalDistance") * 70;
     const fa = k.rad(v.n("focalAround") - 90);
-    const fx = origin[0] + Math.cos(fa) * fd;
-    const fy = origin[1] + Math.sin(fa) * fd;
-    s += k.ring({ x: origin[0], y: origin[1], r: fd, color: "#666", dash: "3 3", w: 1 });
-    s += from === 1 ? k.cam({ x: origin[0], y: origin[1], dir: -90, s: 0.5 }) : k.dot({ x: origin[0], y: origin[1], r: 5, color: from === 0 ? "#4a6fa5" : "#ccc" });
+    const fx = k.clamp(origin[0] + Math.cos(fa) * fd, R.x + 12, R.x + R.w - 12);
+    const fy = k.clamp(origin[1] + Math.sin(fa) * fd, R.y + 12, R.y + R.h - 22);
+    s += `<clipPath id="cw-setLayout-clip"><rect x="${R.x}" y="${R.y}" width="${R.w}" height="${R.h + 14}"/></clipPath><g clip-path="url(#cw-setLayout-clip)">` + k.ring({ x: origin[0], y: origin[1], r: fd, color: "#888", dash: "3 3", w: 1 }) + `</g>`;
+    /* People in the room, seen from above (a face on a shirt), so the plan reads as a real place. */
+    const topP = (x, y, c, lk) => `<ellipse cx="${x.toFixed(1)}" cy="${(y + 4).toFixed(1)}" rx="8" ry="5" fill="${c}" stroke="${k.INK}"/>` + k.face({ x, y: y - 1, r: 5.5, look: lk, eyes: 1, color: "#f0c8a0" });
+    [[R.x + 62, R.y + 104, "#8a6a9a", 1], [R.x + 112, R.y + 66, "#6a8a6a", -1], [R.x + 168, R.y + 108, "#9a7a4a", -1]].forEach(([x, y, c, lk]) => (s += topP(x, y, c, lk)));
+    s += from === 1 ? k.cam({ x: origin[0], y: origin[1], dir: -90, s: 0.5 }) : from === 0 ? topP(origin[0], origin[1], "#4a6fa5", 1) : k.dot({ x: origin[0], y: origin[1], r: 5, color: "#ccc" });
     if (focal > 0) s += `<path d="M${fx} ${fy - 8} l2.4 5.6 l6 0.6 l-4.6 4 l1.4 6 l-5.2 -3.2 l-5.2 3.2 l1.4 -6 l-4.6 -4 l6 -0.6 Z" fill="#ffd166" stroke="${k.INK}"/>` + k.label({ x: fx, y: fy + 18, text: ["", "counter", "center", "stage"][focal], size: 8, color: "#ffd166" });
     else s += k.ring({ x: fx, y: fy, r: 5, color: "#888", dash: "2 2", w: 1 });
-    s += k.label({ x: 120, y: 16, text: `focal point at ${v("focalAround")}°, ${v("focalDistance")} m`, size: 8, color: "#ccc" });
+    s += k.fitText({ x: 120, y: 16, text: `the room from above · focal point at ${v("focalAround")}°, ${v("focalDistance")} m`, size: 8, min: 6.5, w: 210, color: "#ccc" });
     /* Side view: how far the levels drop. */
     const drop = v.p("levelDrop") * 70;
     s += `<rect x="232" y="22" width="82" height="130" rx="4" fill="#1d1d22" stroke="#444"/><path d="M236 ${60} L270 60 L270 ${60 + drop + 4} L310 ${60 + drop + 4}" fill="none" stroke="#d9cbb5" stroke-width="3"/>` + k.person({ x: 252, y: 60, s: 0.35 }) + k.label({ x: 273, y: 146, text: `${v("levelDrop")} m drop`, size: 8, color: "#ccc" });
@@ -440,7 +449,7 @@
       }
     }
     s += k.arrow({ x1: 160 - dx * 30, y1: 30 - dyS * 8, x2: 160 + dx * 30, y2: 30 + dyS * 8, color: "#ffd166" }) + k.label({ x: 160, y: 50, text: v("direction"), size: 8, color: "#ffd166" });
-    s += k.person({ x: 160, y: 172, s: 1.3, lean: touch * 6 * (dx || 1), arms: [0, 0.2, 0.6, 1][touch], mood: [0.3, 0.2, -0.3, -0.8][touch], color: "#e57373" });
+    s += k.person({ x: 160, y: 158, s: 1.3, lean: touch * 6 * (dx || 1), arms: [0, 0.2, 0.6, 1][touch], mood: [0.3, 0.2, -0.3, -0.8][touch], color: "#e57373" });
     /* Rhythm and surges: a small intensity line and surge ticks. */
     const shape = [[0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5], [0.3, 0.7, 0.3, 0.7, 0.3, 0.7, 0.3, 0.7], [0.3, 0.3, 0.9, 0.3, 0.4, 0.95, 0.3, 0.3], [0.2, 0.9, 0.4, 0.1, 0.8, 0.3, 1, 0.2]][idx(v, "rhythm")];
     const pe = v.n("pulseEvery");
@@ -481,9 +490,12 @@
       const alpha = built === 0 ? 1 : built === 1 ? 0.15 + (0.85 * (copies - i)) / copies : (Math.floor(i / 8) % 2 ? 0.35 : 1);
       const isOdd = odd > 0 && i === Math.floor(copies / 2);
       const col = isOdd ? k.mix("#7fb7ff", "#ff5252", odd / 3) : "#7fb7ff";
-      if (y < 160 && y > 20) s += `<rect x="${(x - sz / 2).toFixed(1)}" y="${(y - sz / 2).toFixed(1)}" width="${(sz * (isOdd ? 1 + odd * 0.3 : 1)).toFixed(1)}" height="${sz.toFixed(1)}" fill="${col}" opacity="${(alpha * k.lerp(0.25, 1, rep)).toFixed(2)}"/>`;
+      /* each copy is a little figure (a head on a body), so the repeat reads as people or things in a row */
+      const zw = sz * (isOdd ? 1 + odd * 0.3 : 1);
+      if (y < 150 && y > 20) s += `<g opacity="${(alpha * k.lerp(0.25, 1, rep)).toFixed(2)}" fill="${col}"><circle cx="${x.toFixed(1)}" cy="${(y - sz * 0.55).toFixed(1)}" r="${(zw * 0.32).toFixed(1)}"/><rect x="${(x - zw * 0.35).toFixed(1)}" y="${(y - sz * 0.2).toFixed(1)}" width="${(zw * 0.7).toFixed(1)}" height="${(sz * 0.9).toFixed(1)}" rx="${(zw * 0.2).toFixed(1)}"/></g>`;
     }
     const ag = v.n("appearGap");
+    s += k.person({ x: 28, y: 158, s: 0.62, color: "#e0a050", look: 1 });
     s += tl(k, { x: 70, w: 240, y: 6, label: "appear", marks: Array.from({ length: Math.min(16, ag > 0 ? Math.floor(5 / ag) + 1 : 16) }, (_, i) => ({ at: ag > 0 ? (i * ag) / 5 : 0, color: "#7fb7ff" })) });
     return s + cap(k, `${v("pattern")} · ${v("copies")} copies · ${v("copyGap")} m apart · odd one: ${v("oddOne")}`);
   });
@@ -543,7 +555,7 @@
     if (personal) s += `<rect x="134" y="114" width="${personal * 44}" height="3" fill="#5b3f2a"/>`;
     /* Styled pieces: little gold markers on the share of things that are styled. */
     for (let i = 0; i < Math.round(styled * 8); i++) s += k.dot({ x: 20 + i * 38, y: ceil + 4, r: 3, color: "#ffd166" });
-    s += k.person({ x: 160, y: 168, s: 1.1, alpha: 1 - steal * 0.6, color: "#4a6fa5" });
+    s += k.person({ x: 160, y: 158, s: 1.1, alpha: 1 - steal * 0.6, color: "#4a6fa5" });
     /* Real to dreamlike: a haze and a tilt. */
     s = `<g transform="skewX(${(real * 8).toFixed(1)}) translate(${(-real * 10).toFixed(1)} 0)">${s}</g>` + (real > 0.5 ? k.tint({ color: "#c8a0ff", alpha: (real - 0.5) * 0.6 }) : "");
     return s + cap(k, `${v("setting")} · ${v("styleFamily")} · ${v("wealth")} · ${v("realism")}`);
@@ -583,10 +595,10 @@
     s += `</g>` + k.floor(150, "#3b332b");
     /* The person, nearer the wall or further out; touching it more and more. */
     const px = 30 + near * 220;
-    s += k.person({ x: px, y: 170, s: 1.3, arms: touch >= 2 ? 0.4 : touch === 1 ? 0.1 : -0.2, lean: touch === 2 ? -10 : 0, look: -1, color: "#4a6fa5" });
+    s += k.person({ x: px, y: 156, s: 1.2, arms: touch >= 2 ? 0.4 : touch === 1 ? 0.1 : -0.2, lean: touch === 2 ? -10 : 0, look: -1, color: "#4a6fa5" });
     if (touch >= 1) s += k.hand({ x: Math.max(18, px - 30), y: 100, s: 0.4, open: 1 });
     if (touch === 3) s += k.arrow({ x1: px - 10, y1: 80, x2: px - 46, y2: 60 });
-    s += k.arrow({ x1: px, y1: 176, x2: 6, y2: 176, color: "#ffd166", w: 1.5 }) + k.label({ x: (px + 6) / 2, y: 172, text: `${v("nearestWall")} m`, size: 8, color: "#ffd166" });
+    s += k.arrow({ x1: px - 8, y1: 154, x2: 6, y2: 154, color: "#ffd166", w: 1.5 }) + k.text({ x: (px + 6) / 2, y: 149, text: `${v("nearestWall")} m`, size: 8, color: "#ffd166", weight: 700, outline: "#1c1712", outlineW: 2.5 });
     return s + cap(k, `${v("setting")} · ${v("texture")} · shine ${v("shine")} · ${v("ageMarks")} marks · ${v("materialShare")}% of frame`);
   });
 
@@ -656,7 +668,7 @@
     /* The many small pieces: rows of little frames at the same height against the eyes. */
     for (let i = 0; i < Math.min(40, count); i++) s += artPiece(k, kind, 90 + (i % 10) * 14, eyeY + dy - 16 + Math.floor(i / 10) * 12, 10 * sc, 8 * sc, 0);
     s += `<line x1="0" y1="${eyeY}" x2="320" y2="${eyeY}" stroke="#4a6fa5" stroke-dasharray="4 4" opacity="0.6"/>` + k.label({ x: 316, y: eyeY - 3, text: "eyes", size: 7.5, color: "#4a6fa5", anchor: "end" });
-    s += k.person({ x: 160, y: 168, s: 1.4, color: "#4a6fa5" });
+    s += k.person({ x: 160, y: 158, s: 1.4, color: "#4a6fa5" });
     if (meaning === 3) s += k.arrow({ x1: 80, y1: eyeY + dy, x2: 140, y2: 70, color: "#ff5252", w: 1.5 });
     return s + cap(k, `${v("artKind")} · ${v("artSize")} · ${count} pieces · ${v("artMeaning")} · ${v("artDistance")} m behind`);
   });
@@ -696,7 +708,7 @@
       s += `<rect x="${cx - cw / 2}" y="${70 - cw * 0.35}" width="${cw}" height="${cw * 0.7}" fill="#e6c35a" stroke="#5b3f2a" stroke-width="3" transform="rotate(${(crook * 8).toFixed(1)} ${cx} 70)"/>`;
     }
     /* The person, and a frame around their face when the art frames them. */
-    s += k.person({ x: 160, y: 176, s: 1.5, color: "#4a6fa5" });
+    s += k.person({ x: 160, y: 158, s: 1.5, color: "#4a6fa5" });
     if (frames > 0) s += `<rect x="134" y="${76}" width="52" height="40" fill="none" stroke="#5b3f2a" stroke-width="${frames * 3}" opacity="${frames === 1 ? 0.5 : 1}"/>`;
     return s + cap(k, `${v("setting")} · ${v("straightness")} · ${rows} rows · ${v("artGap")} cm gaps`);
   });
@@ -725,22 +737,22 @@
       /* Organized hoards stack in neat rows; chaos spreads everywhere. Stay off the clear path. */
       let x;
       let y;
-      if (order > 0.9) (x = 14 + (i % 14) * 6 + (i % 28 >= 14 ? 220 : 0)), (y = 170 - Math.floor(i / 28) * 7);
+      if (order > 0.9) (x = 14 + (i % 14) * 6 + (i % 28 >= 14 ? 220 : 0)), (y = 154 - Math.floor(i / 28) * 7);
       else {
         x = k.rnd(i + 11) * 320;
-        y = 104 + k.rnd(i + 12) * 72;
+        y = 104 + k.rnd(i + 12) * 52;
         const halfAt = (pathW / 2) * ((y - 100) / 80) + 6;
         if (Math.abs(x - 160) < halfAt && way === 0) x = x < 160 ? 160 - halfAt - 6 : 160 + halfAt + 6;
       }
       /* Mess within reach: the closest pieces are pulled to the person. */
-      if (i < 6) (x = px + (i % 2 ? 1 : -1) * (14 + reach * 110)), (y = 160 + (i % 3) * 5);
+      if (i < 6) (x = px + (i % 2 ? 1 : -1) * (14 + reach * 110)), (y = 146 + (i % 3) * 5);
       s += item(x, y, i);
     }
     /* Piles up over the film: a heap that grows. */
     const heap = [0, 10, 26, 46][piles];
     if (heap) s += `<path d="M230 100 Q260 ${100 - heap} 300 100 Z" fill="${k.hsl(kind * 60, 30, 45)}" stroke="${k.INK}"/>`;
     if (piles === 0) s += k.arrow({ x1: 270, y1: 90, x2: 300, y2: 70, color: "#7fd1ae" });
-    s += k.person({ x: px, y: 172, s: 1.3, lean: way === 3 ? 18 : way * 3, mood: way >= 2 ? -0.6 : 0.2, arms: way === 3 ? 0.9 : 0, color: "#4a6fa5" });
+    s += k.person({ x: px, y: 158, s: 1.3, lean: way === 3 ? 18 : way * 3, mood: way >= 2 ? -0.6 : 0.2, arms: way === 3 ? 0.9 : 0, color: "#4a6fa5" });
     return s + cap(k, `clutter ${v("setting")} · ${v("itemCount")} things · ${v("mess")} · ${v("order")} · ${v("clearFloor")}% clear`);
   });
 
@@ -766,7 +778,7 @@
     if (rep === 2) s += `<path d="M200 10 V130 M250 10 V130 M200 50 H250 M200 90 H250" stroke="#999" stroke-width="3"/><rect x="100" y="20" width="60" height="60" fill="#f2ece0"/>`;
     if (rep === 3) s += `<rect x="0" y="0" width="160" height="130" fill="#f6f2ea" opacity="0.85"/><rect x="150" y="100" width="20" height="30" fill="#f6f2ea" stroke="#999"/>`;
     s += k.window_({ x: 240, y: 30, w: 50, h: 40, light: k.lerp(0.35, 0.95, keep) - dust * 0.3 });
-    s += k.person({ x: 120, y: 168, s: 1.2, color: "#4a6fa5" });
+    s += k.person({ x: 120, y: 158, s: 1.2, color: "#4a6fa5" });
     /* Dust and grime: a brown film and floating specks. */
     s += k.tint({ color: "#6a5030", alpha: dust * 0.35 }) + Array.from({ length: Math.round(dust * 40) }, (_, i) => k.dot({ x: k.rnd(i + 70) * 320, y: k.rnd(i + 71) * 160, r: 1, color: "#e6d0a0" })).join("");
     /* Over the film: a small trend line. Years since done up: a calendar badge. */
@@ -822,7 +834,7 @@
     /* The face: brighter or darker than the wall by the stops; the body pops or sinks. */
     const bodyC = k.mix(wallC, pop > 0.5 ? (b > 0.5 ? "#1a2a4a" : "#9fd3ff") : "#4a6fa5", 0.2 + pop * 0.8);
     const skin = k.mix("#000000", "#f0c8a0", k.clamp(0.5 + b * 0.3 + face / 6, 0.05, 1));
-    s += `<g>${k.person({ x: 160, y: 172, s: 1.6, color: bodyC, skin })}</g>`;
+    s += `<g>${k.person({ x: 160, y: 158, s: 1.6, color: bodyC, skin })}</g>`;
     if (pop === 1) s += `<rect x="134" y="54" width="52" height="120" fill="none" stroke="#fff" stroke-width="1" opacity="0.4"/>`;
     s += `<rect x="248" y="30" width="60" height="30" rx="4" fill="rgba(0,0,0,0.55)"/>` + k.arrow({ x1: 256, y1: 45, x2: 300, y2: 45, color: ["#fff6c0", "#999", "#444"][dark] }) + k.label({ x: 278, y: 56, text: v("darkens"), size: 7.5, color: "#eee" });
     return s + cap(k, `${v("setting")} · contrast ${v("contrast")} · faces ${face >= 0 ? "+" : ""}${face} stops · ${v("popOut")}`);
@@ -863,7 +875,7 @@
       const sc = (0.4 + size * 2.2) * (0.4 + d) * (1 + (k.rnd(i + 9) - 0.5) * sizes * 1.6);
       s += draw(x, y, Math.max(0.15, sc), i);
     }
-    s += k.person({ x: 160, y: 170, s: 1.3, walk: dist >= 2 ? 1 : 0.3, mood: dist === 3 ? -0.5 : 0.2, color: "#4a6fa5" });
+    s += k.person({ x: 160, y: 158, s: 1.3, walk: dist >= 2 ? 1 : 0.3, mood: dist === 3 ? -0.5 : 0.2, color: "#4a6fa5" });
     for (let i = 0; i < dist * 3; i++) s += draw(150 + (i % 2 ? 24 : -24) + i * 2, 150 - i * 8, 0.8, i + 100);
     if (moves === 2) s += k.arrow({ x1: 20, y1: 60, x2: 70, y2: 60, color: "#fff", w: 1.5 });
     return s + cap(k, `${v("what")} · ${v("perSquareMeter")} per m² · ${v("pieceSize")} cm · ${v("spread")} · ${v("moves")}`);
