@@ -32,7 +32,7 @@
       .rx-time { overflow-x: auto; border: 2px solid var(--ink); background: var(--paper); position: relative; }
       .rx-row { display: flex; align-items: stretch; border-bottom: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); min-height: 38px; }
       .rx-head { flex: 0 0 168px; position: sticky; left: 0; z-index: 3; background: var(--paper); border-right: 2px solid var(--ink); padding: 4px 6px; font-size: 12px; display: flex; flex-direction: column; gap: 2px; }
-      .rx-head input[type=range] { width: 100%; }
+      .rx-head input[type=range] { width: 100%; margin-left: 0; margin-right: 0; }
       .rx-head .rx-flags { display: flex; gap: 8px; font-family: var(--mono); font-size: 11px; }
       .rx-lane { position: relative; flex: 0 0 auto; }
       .rx-ruler .rx-lane span { position: absolute; top: 0; height: 100%; width: ${BW}px; text-align: center; font-family: var(--mono); font-size: 10px; line-height: 26px; cursor: pointer; border-left: 1px solid color-mix(in srgb, var(--ink) 15%, transparent); }

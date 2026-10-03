@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "Curiosities",
+	"Description": "A CineCamera that follows the Curiosities storyboard, Level Sequence shots keyed from it, and a hand-set camera read back onto the board. Needs the Curiosities desktop app.",
+	"Category": "Editor",
+	"CreatedBy": "Wish Myself Well",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"Plugins": [
+		{ "Name": "PythonScriptPlugin", "Enabled": true },
+		{ "Name": "EditorScriptingUtilities", "Enabled": true },
+		{ "Name": "SequencerScripting", "Enabled": true }
+	]
+}

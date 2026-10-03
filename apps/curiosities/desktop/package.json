@@ -1,0 +1,32 @@
+{
+  "name": "curiosities-desktop",
+  "productName": "Curiomatic",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Curiomatic (the Curiosities app) on the desktop, with MIDI everywhere and a local WebSocket and OSC bridge.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "bridge": "node bridge-server.js",
+    "check": "node check.js",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^44.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "app.curiosities.desktop",
+    "productName": "Curiomatic",
+    "files": ["main.js", "bridge-server.js", "osc.js", "package.json"],
+    "extraResources": [
+      { "from": "..", "to": "app", "filter": ["*.html", "*.js", "*.css", "*.svg", "*.webmanifest", "core/**", "data/**", "vcv/*.js", "engine/*.js", "engine/*.css", "character-matrix/**", "reference/**"] }
+    ],
+    "mac": { "category": "public.app-category.video", "target": "dmg" },
+    "win": { "target": "nsis" },
+    "linux": { "target": "AppImage" }
+  }
+}

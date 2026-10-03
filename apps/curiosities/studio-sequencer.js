@@ -202,7 +202,7 @@
     css.textContent = `
 .sq-root { min-width: 0; max-width: 100%; overflow-x: hidden; }
 .sq-root .studio-grid > * { min-width: 0; }
-.sq-root input:not([type=file]), .sq-root select { width: 100%; box-sizing: border-box; max-width: 100%; }
+.sq-root input:not([type=file]):not([type=checkbox]):not([type=radio]), .sq-root select { width: 100%; box-sizing: border-box; max-width: 100%; }
 .sq-root .sq-bar select { width: auto; }
 .sq-root input[type=file] { max-width: 100%; }
 .sq-root .panel { max-width: 100%; box-sizing: border-box; }

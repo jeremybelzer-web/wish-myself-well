@@ -239,15 +239,20 @@
       </div>
     </div>`;
   }
-  function addLaneHtml(p) {
+  /* The "Add a lane" list names every curiosity (a thousand or more with the database), so it is filled
+     only when someone reaches for it; a page with many cards then stays light. */
+  function addLaneOptions(p) {
     const have = new Set(A().lanes(p.key).map((l) => l.target));
     const cur = A().PARAMS.filter((x) => x.level === "curiosity" && !have.has("c:" + x.id) && x.id !== p.id);
     const groups = {};
     cur.forEach((x) => (groups[x.group] = groups[x.group] || []).push(x));
-    return `<label class="cap au-addlane">Add a lane <select data-lane-add><option value="">pick a curiosity…</option>${Object.keys(groups)
+    return `<option value="">pick a curiosity…</option>${Object.keys(groups)
       .sort()
       .map((g) => `<optgroup label="${esc(g)}">${groups[g].map((x) => `<option value="c:${esc(x.id)}">${esc(x.label)}</option>`).join("")}</optgroup>`)
-      .join("")}</select></label>`;
+      .join("")}`;
+  }
+  function addLaneHtml() {
+    return `<label class="cap au-addlane">Add a lane <select data-lane-add><option value="">pick a curiosity…</option></select></label>`;
   }
   function lanesHtml(c, p) {
     const lanes = A().lanes(p.key);
@@ -401,7 +406,8 @@
     c.sig = A().param(c.key) ? cardSig(c) : "";
     c.stale = false;
     if (A().param(c.key)) wireCard(c);
-    paintCard(c, performance.now());
+    /* The scope canvas waits for the next frame (hubFrame), so drawing many cards forces no layout per card. */
+    paintCard(c, performance.now(), true);
   }
 
   /* Small updates that never redraw: the switch, the run button, the main lane's name, knob positions. */
@@ -441,12 +447,17 @@
     if (!pt.running) c.wrap.querySelectorAll("[data-lmeter]").forEach((i) => ((i.style.width = "0%"), i.parentNode.classList.remove("live")));
   }
 
+  /* Shown on the page? checkVisibility needs only styles, not a layout, so asking it for many cards
+     in a row (after each one's meters were written) stays cheap. */
+  function shownEl(el) {
+    return el.isConnected && (el.checkVisibility ? el.checkVisibility() : el.getClientRects().length > 0);
+  }
   function cardVisible(c) {
-    return c.wrap.isConnected && c.wrap.getClientRects().length > 0;
+    return shownEl(c.wrap);
   }
 
   /* The main meter, m and the scope, drawn every frame while the card is on screen. */
-  function paintCard(c, now) {
+  function paintCard(c, now, textOnly) {
     if (!A().param(c.key)) return;
     const m = A().m(c.key);
     const buf = c.scope;
@@ -456,8 +467,9 @@
     if (mt) mt.textContent = m == null ? "m — (off)" : `m ${m.toFixed(2)}`;
     const mm = c.wrap.querySelector('[data-r="meter"]');
     if (mm) mm.style.width = Math.round(Math.max(0, Math.min(1, m || 0)) * 100) + "%";
+    if (textOnly) return;
     const cv = c.wrap.querySelector('[data-r="scope"]');
-    if (!cv || !cv.getClientRects().length) return;
+    if (!cv || !shownEl(cv)) return;
     const g = cv.getContext("2d");
     const W = cv.width;
     const H = cv.height;
@@ -517,8 +529,8 @@
     prune();
     if (!cards.size) return;
     if (type === "tick") {
-      cards.forEach((c) => {
-        if (!cardVisible(c)) return;
+      /* Read which cards show first, then write the meters, so the page is laid out once, not once per card. */
+      [...cards].filter(cardVisible).forEach((c) => {
         c.wrap.querySelectorAll("[data-lmeter]").forEach((i) => {
           const v = data.ms ? data.ms[i.dataset.lmeter] : null;
           i.style.width = v == null ? "0%" : Math.round(Math.max(0, Math.min(1, v)) * 100) + "%";
@@ -563,15 +575,31 @@
     }
   }
 
+  /* Paints the cards on screen every frame. When every card is hidden (its page is away), it stops asking
+     for frames and only looks again a few times a second. */
+  let hubIdle = 0;
   function hubFrame(now) {
     hubRaf = 0;
     prune();
     if (!cards.size) return;
-    cards.forEach((c) => cardVisible(c) && paintCard(c, now));
-    hubRaf = requestAnimationFrame(hubFrame);
+    const shown = [...cards].filter(cardVisible);
+    shown.forEach((c) => paintCard(c, now));
+    if (shown.length) hubRaf = requestAnimationFrame(hubFrame);
+    else hubIdle = setTimeout(hubPoll, 400);
+  }
+  function hubPoll() {
+    hubIdle = 0;
+    prune();
+    if (!cards.size || hubRaf) return;
+    if ([...cards].some(cardVisible)) hubRaf = requestAnimationFrame(hubFrame);
+    else hubIdle = setTimeout(hubPoll, 400);
   }
   function hubStart() {
     if (!hubUnsub) hubUnsub = A().on(hubEvent);
+    if (hubIdle) {
+      clearTimeout(hubIdle);
+      hubIdle = 0;
+    }
     if (!hubRaf) hubRaf = requestAnimationFrame(hubFrame);
   }
 
@@ -704,6 +732,15 @@
       if (rm) rm.addEventListener("click", () => (own(() => A().removeLane(key, id)), redraw()));
     });
     const addSel = el.querySelector("[data-lane-add]");
+    if (addSel) {
+      const fill = () => {
+        if (addSel.dataset.filled) return;
+        addSel.dataset.filled = "1";
+        const p = A().param(key);
+        if (p) addSel.innerHTML = addLaneOptions(p);
+      };
+      ["pointerdown", "mousedown", "focus", "keydown"].forEach((t) => addSel.addEventListener(t, fill));
+    }
     if (addSel)
       addSel.addEventListener("change", () => {
         if (!addSel.value) return;

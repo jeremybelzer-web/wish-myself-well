@@ -655,6 +655,8 @@
         if (openTerm === term && pinned) close(false); else open(term, true);
         return;
       }
+      /* A click anywhere else (also from the keyboard, which sends no pointerdown) closes the hint. */
+      if (pop && !pop.hidden && !pop.contains(e.target)) close(false);
     }, true);
     document.addEventListener("pointerdown", (e) => {
       if (!pop || pop.hidden) return;

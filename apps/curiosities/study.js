@@ -955,6 +955,18 @@
     studies() {
       return allStudies();
     },
+    /* Add a study (a shared film trace, an import): replaces one with the same id, saves, and redraws. */
+    add(study) {
+      if (!study || !Array.isArray(study.beats)) return null;
+      const s = Object.assign({ kind: "film", camera: "authored" }, study, { id: study.id || uid("s") });
+      const i = store.studies.findIndex((x) => x.id === s.id);
+      if (i >= 0) store.studies[i] = s;
+      else store.studies.push(s);
+      save();
+      const sec = document.getElementById("study");
+      if (sec && !sec.classList.contains("hidden")) draw();
+      return s;
+    },
     /* Only the studies saved in this browser. */
     saved() {
       return store.studies;

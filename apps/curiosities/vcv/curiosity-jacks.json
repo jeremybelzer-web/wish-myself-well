@@ -1,0 +1,7175 @@
+{
+ "made": "vcv/tools/make-vcv.js from the curiosity database",
+ "counts": {
+  "workspaces": 25,
+  "curiosities": 333,
+  "suites": 187,
+  "proximities": 150,
+  "proximitySuites": 44,
+  "scenes": 8,
+  "sliders": 3798
+ },
+ "focus": {
+  "channel": 16,
+  "ccs": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16
+  ]
+ },
+ "jacks": [
+  {
+   "key": "c:shotSize",
+   "channel": 1,
+   "cc": 1,
+   "label": "Shot size",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 1
+  },
+  {
+   "key": "c:angleHeight",
+   "channel": 1,
+   "cc": 2,
+   "label": "Angle height",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 2
+  },
+  {
+   "key": "c:lensLength",
+   "channel": 1,
+   "cc": 3,
+   "label": "Lens length",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 3
+  },
+  {
+   "key": "c:dutch",
+   "channel": 1,
+   "cc": 4,
+   "label": "Dutch / level",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 4
+  },
+  {
+   "key": "c:pov",
+   "channel": 1,
+   "cc": 5,
+   "label": "Point of view",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 5
+  },
+  {
+   "key": "c:angleCount",
+   "channel": 1,
+   "cc": 6,
+   "label": "Angles per scene",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 6
+  },
+  {
+   "key": "c:angleFamily",
+   "channel": 1,
+   "cc": 7,
+   "label": "Angles grouped",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 7
+  },
+  {
+   "key": "c:angleChange",
+   "channel": 1,
+   "cc": 8,
+   "label": "When the angle changes",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 8
+  },
+  {
+   "key": "c:angleToLine",
+   "channel": 1,
+   "cc": 9,
+   "label": "Angle matched to the line",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 9
+  },
+  {
+   "key": "c:angleToAction",
+   "channel": 1,
+   "cc": 10,
+   "label": "Angle matched to the action",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 10
+  },
+  {
+   "key": "c:depthOfField",
+   "channel": 1,
+   "cc": 11,
+   "label": "Depth of field",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 11
+  },
+  {
+   "key": "c:rackFocus",
+   "channel": 1,
+   "cc": 12,
+   "label": "Focus pull",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 12
+  },
+  {
+   "key": "c:motionBlur",
+   "channel": 1,
+   "cc": 13,
+   "label": "Motion blur",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 13
+  },
+  {
+   "key": "c:aspect",
+   "channel": 1,
+   "cc": 14,
+   "label": "Frame shape",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 14
+  },
+  {
+   "key": "c:composition",
+   "channel": 1,
+   "cc": 15,
+   "label": "Where the subject sits",
+   "level": "curiosity",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 15
+  },
+  {
+   "key": "s:coverage",
+   "channel": 1,
+   "cc": 16,
+   "label": "Coverage",
+   "level": "suite",
+   "workspace": "camera-angle",
+   "module": 1,
+   "jack": 16
+  },
+  {
+   "key": "s:oner",
+   "channel": 1,
+   "cc": 17,
+   "label": "Oner",
+   "level": "suite",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 1
+  },
+  {
+   "key": "s:power-low",
+   "channel": 1,
+   "cc": 18,
+   "label": "Looking up at power",
+   "level": "suite",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 2
+  },
+  {
+   "key": "s:small-from-above",
+   "channel": 1,
+   "cc": 19,
+   "label": "Small from above",
+   "level": "suite",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 3
+  },
+  {
+   "key": "s:intimate-close",
+   "channel": 1,
+   "cc": 20,
+   "label": "Close and private",
+   "level": "suite",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 4
+  },
+  {
+   "key": "s:world-off-balance",
+   "channel": 1,
+   "cc": 21,
+   "label": "World off balance",
+   "level": "suite",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 5
+  },
+  {
+   "key": "p:close-quiet",
+   "channel": 1,
+   "cc": 22,
+   "label": "When shot size becomes close, volume drops",
+   "level": "proximity",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 6
+  },
+  {
+   "key": "p:dread-tilt",
+   "channel": 1,
+   "cc": 23,
+   "label": "When dread builds, the frame tilts",
+   "level": "proximity",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 7
+  },
+  {
+   "key": "p:feeling-closer",
+   "channel": 1,
+   "cc": 24,
+   "label": "When the feeling peaks, the shot gets closer",
+   "level": "proximity",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 8
+  },
+  {
+   "key": "p:status-angle",
+   "channel": 1,
+   "cc": 25,
+   "label": "When the status flips, the camera angle flips",
+   "level": "proximity",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 9
+  },
+  {
+   "key": "ps:camera-follows-feeling",
+   "channel": 1,
+   "cc": 26,
+   "label": "The camera follows the feeling",
+   "level": "proximitySuite",
+   "workspace": "camera-angle",
+   "module": 2,
+   "jack": 10
+  },
+  {
+   "key": "c:cutRate",
+   "channel": 1,
+   "cc": 33,
+   "label": "Frequency of angle changes",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 1
+  },
+  {
+   "key": "c:shotDuration",
+   "channel": 1,
+   "cc": 34,
+   "label": "Hold",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 2
+  },
+  {
+   "key": "c:cameraCarry",
+   "channel": 1,
+   "cc": 35,
+   "label": "Camera carry",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 3
+  },
+  {
+   "key": "c:cameraMove",
+   "channel": 1,
+   "cc": 36,
+   "label": "Camera move",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 4
+  },
+  {
+   "key": "c:moveSpeed",
+   "channel": 1,
+   "cc": 37,
+   "label": "Move speed",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 5
+  },
+  {
+   "key": "c:moveFollows",
+   "channel": 1,
+   "cc": 38,
+   "label": "Move follows",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 6
+  },
+  {
+   "key": "c:moveOn",
+   "channel": 1,
+   "cc": 39,
+   "label": "Move starts on",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 7
+  },
+  {
+   "key": "c:cameraOwner",
+   "channel": 1,
+   "cc": 40,
+   "label": "Camera owner",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 8
+  },
+  {
+   "key": "c:moveToVolume",
+   "channel": 1,
+   "cc": 41,
+   "label": "Move against loudness",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 9
+  },
+  {
+   "key": "c:cameraShake",
+   "channel": 1,
+   "cc": 42,
+   "label": "Shake",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 10
+  },
+  {
+   "key": "c:speedRamp",
+   "channel": 1,
+   "cc": 43,
+   "label": "Time speed",
+   "level": "curiosity",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 11
+  },
+  {
+   "key": "s:handheld-hunt",
+   "channel": 1,
+   "cc": 44,
+   "label": "Handheld hunt",
+   "level": "suite",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 12
+  },
+  {
+   "key": "s:smooth-push",
+   "channel": 1,
+   "cc": 45,
+   "label": "Smooth push",
+   "level": "suite",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 13
+  },
+  {
+   "key": "s:object-insert",
+   "channel": 1,
+   "cc": 46,
+   "label": "Object insert",
+   "level": "suite",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 14
+  },
+  {
+   "key": "s:loving-camera",
+   "channel": 1,
+   "cc": 47,
+   "label": "Loving camera",
+   "level": "suite",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 15
+  },
+  {
+   "key": "s:aggressive-camera",
+   "channel": 1,
+   "cc": 48,
+   "label": "Aggressive camera",
+   "level": "suite",
+   "workspace": "camera-motion",
+   "module": 3,
+   "jack": 16
+  },
+  {
+   "key": "s:follows-voice",
+   "channel": 1,
+   "cc": 49,
+   "label": "Follows the voice",
+   "level": "suite",
+   "workspace": "camera-motion",
+   "module": 4,
+   "jack": 1
+  },
+  {
+   "key": "p:handheld-gesture",
+   "channel": 1,
+   "cc": 50,
+   "label": "When the camera goes handheld, gesture grows",
+   "level": "proximity",
+   "workspace": "camera-motion",
+   "module": 4,
+   "jack": 2
+  },
+  {
+   "key": "ps:camera-answers-body",
+   "channel": 1,
+   "cc": 51,
+   "label": "The camera answers the body",
+   "level": "proximitySuite",
+   "workspace": "camera-motion",
+   "module": 4,
+   "jack": 3
+  },
+  {
+   "key": "c:characterPath",
+   "channel": 1,
+   "cc": 65,
+   "label": "Character path",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 1
+  },
+  {
+   "key": "c:characterSpeed",
+   "channel": 1,
+   "cc": 66,
+   "label": "Character speed",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 2
+  },
+  {
+   "key": "c:characterToLens",
+   "channel": 1,
+   "cc": 67,
+   "label": "Toward the lens",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 3
+  },
+  {
+   "key": "c:whoMoves",
+   "channel": 1,
+   "cc": 68,
+   "label": "Who moves",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 4
+  },
+  {
+   "key": "c:bodyEnter",
+   "channel": 1,
+   "cc": 69,
+   "label": "Body in frame",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 5
+  },
+  {
+   "key": "c:moveTemper",
+   "channel": 1,
+   "cc": 70,
+   "label": "Move temper",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 6
+  },
+  {
+   "key": "c:spacing",
+   "channel": 1,
+   "cc": 71,
+   "label": "Spacing",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 7
+  },
+  {
+   "key": "c:stepping",
+   "channel": 1,
+   "cc": 72,
+   "label": "Drawn on",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 8
+  },
+  {
+   "key": "c:overshoot",
+   "channel": 1,
+   "cc": 73,
+   "label": "Overshoot",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 9
+  },
+  {
+   "key": "c:overlap",
+   "channel": 1,
+   "cc": 74,
+   "label": "Overlap",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 10
+  },
+  {
+   "key": "c:arcs",
+   "channel": 1,
+   "cc": 75,
+   "label": "Path shape",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 11
+  },
+  {
+   "key": "c:squash",
+   "channel": 1,
+   "cc": 76,
+   "label": "Squash and stretch",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 12
+  },
+  {
+   "key": "c:poseRate",
+   "channel": 1,
+   "cc": 77,
+   "label": "Key poses per line",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 13
+  },
+  {
+   "key": "c:lipSync",
+   "channel": 1,
+   "cc": 78,
+   "label": "Mouth shapes",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 14
+  },
+  {
+   "key": "s:crossing",
+   "channel": 1,
+   "cc": 79,
+   "label": "Crossing",
+   "level": "suite",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 15
+  },
+  {
+   "key": "s:snappy-cartoon",
+   "channel": 1,
+   "cc": 80,
+   "label": "Snappy cartoon",
+   "level": "suite",
+   "workspace": "character-motion",
+   "module": 5,
+   "jack": 16
+  },
+  {
+   "key": "s:grounded-realism",
+   "channel": 1,
+   "cc": 81,
+   "label": "Grounded realism",
+   "level": "suite",
+   "workspace": "character-motion",
+   "module": 6,
+   "jack": 1
+  },
+  {
+   "key": "s:chase",
+   "channel": 1,
+   "cc": 82,
+   "label": "The chase",
+   "level": "suite",
+   "workspace": "character-motion",
+   "module": 6,
+   "jack": 2
+  },
+  {
+   "key": "s:burst-in",
+   "channel": 1,
+   "cc": 83,
+   "label": "Bursting in",
+   "level": "suite",
+   "workspace": "character-motion",
+   "module": 6,
+   "jack": 3
+  },
+  {
+   "key": "p:approach-push",
+   "channel": 1,
+   "cc": 84,
+   "label": "When a person approaches, the camera pushes in",
+   "level": "proximity",
+   "workspace": "character-motion",
+   "module": 6,
+   "jack": 4
+  },
+  {
+   "key": "p:approach-space",
+   "channel": 1,
+   "cc": 85,
+   "label": "When a character approaches, personal space shrinks",
+   "level": "proximity",
+   "workspace": "character-motion",
+   "module": 6,
+   "jack": 5
+  },
+  {
+   "key": "p:speed-cuts",
+   "channel": 1,
+   "cc": 86,
+   "label": "When characters speed up, the cutting speeds up",
+   "level": "proximity",
+   "workspace": "character-motion",
+   "module": 6,
+   "jack": 6
+  },
+  {
+   "key": "ps:motion-drives-cutting",
+   "channel": 1,
+   "cc": 87,
+   "label": "Movement drives the cutting",
+   "level": "proximitySuite",
+   "workspace": "character-motion",
+   "module": 6,
+   "jack": 7
+  },
+  {
+   "key": "c:objectKind",
+   "channel": 1,
+   "cc": 97,
+   "label": "Object",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 1
+  },
+  {
+   "key": "c:objectPath",
+   "channel": 1,
+   "cc": 98,
+   "label": "Object path",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 2
+  },
+  {
+   "key": "c:objectSpeed",
+   "channel": 1,
+   "cc": 99,
+   "label": "Object speed",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 3
+  },
+  {
+   "key": "c:objectEnter",
+   "channel": 1,
+   "cc": 100,
+   "label": "Object in frame",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 4
+  },
+  {
+   "key": "c:peopleCount",
+   "channel": 1,
+   "cc": 101,
+   "label": "Number of people",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 5
+  },
+  {
+   "key": "c:blocking",
+   "channel": 1,
+   "cc": 102,
+   "label": "Where they stand",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 6
+  },
+  {
+   "key": "c:eyeline",
+   "channel": 1,
+   "cc": 103,
+   "label": "Eyelines",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 7
+  },
+  {
+   "key": "c:focus",
+   "channel": 1,
+   "cc": 104,
+   "label": "Who is sharp",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 8
+  },
+  {
+   "key": "c:look",
+   "channel": 1,
+   "cc": 105,
+   "label": "Look of the actor",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 9
+  },
+  {
+   "key": "c:emptySpace",
+   "channel": 1,
+   "cc": 106,
+   "label": "Empty frame",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 10
+  },
+  {
+   "key": "c:foreshortening",
+   "channel": 1,
+   "cc": 107,
+   "label": "Foreshortening",
+   "level": "curiosity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 11
+  },
+  {
+   "key": "s:power-staging",
+   "channel": 1,
+   "cc": 108,
+   "label": "Power staging",
+   "level": "suite",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 12
+  },
+  {
+   "key": "s:isolated-in-frame",
+   "channel": 1,
+   "cc": 109,
+   "label": "Alone in the frame",
+   "level": "suite",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 13
+  },
+  {
+   "key": "p:object-insert-prox",
+   "channel": 1,
+   "cc": 110,
+   "label": "When an object enters, the frame becomes an insert",
+   "level": "proximity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 14
+  },
+  {
+   "key": "p:approach-eyeline",
+   "channel": 1,
+   "cc": 111,
+   "label": "When people get closer, they hold each other's look",
+   "level": "proximity",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 15
+  },
+  {
+   "key": "ps:closing-in",
+   "channel": 1,
+   "cc": 112,
+   "label": "Closing in",
+   "level": "proximitySuite",
+   "workspace": "placement",
+   "module": 7,
+   "jack": 16
+  },
+  {
+   "key": "c:volume",
+   "channel": 2,
+   "cc": 1,
+   "label": "Volume of the lines",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 1
+  },
+  {
+   "key": "c:dynamicRange",
+   "channel": 2,
+   "cc": 2,
+   "label": "Dynamic range of the lines",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 2
+  },
+  {
+   "key": "c:rangeChanges",
+   "channel": 2,
+   "cc": 3,
+   "label": "How often the range changes",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 3
+  },
+  {
+   "key": "c:pace",
+   "channel": 2,
+   "cc": 4,
+   "label": "Pace",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 4
+  },
+  {
+   "key": "c:silence",
+   "channel": 2,
+   "cc": 5,
+   "label": "Silence length",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 5
+  },
+  {
+   "key": "c:breath",
+   "channel": 2,
+   "cc": 6,
+   "label": "Breathing and speaking",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 6
+  },
+  {
+   "key": "c:eating",
+   "channel": 2,
+   "cc": 7,
+   "label": "Eating and speaking",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 7
+  },
+  {
+   "key": "c:sceneShapes",
+   "channel": 2,
+   "cc": 8,
+   "label": "Shapes in the scene",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 8
+  },
+  {
+   "key": "c:vocalTone",
+   "channel": 2,
+   "cc": 9,
+   "label": "Tone of the line",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 9
+  },
+  {
+   "key": "c:toneArc",
+   "channel": 2,
+   "cc": 10,
+   "label": "Where the tone sits in the story",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 10
+  },
+  {
+   "key": "c:timePerCharacter",
+   "channel": 2,
+   "cc": 11,
+   "label": "Time on each character",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 11
+  },
+  {
+   "key": "c:actionCutRate",
+   "channel": 2,
+   "cc": 12,
+   "label": "Cut rate in action",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 12
+  },
+  {
+   "key": "c:emotion",
+   "channel": 2,
+   "cc": 13,
+   "label": "Emotion of the beat",
+   "level": "curiosity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 13
+  },
+  {
+   "key": "s:quiet-confession",
+   "channel": 2,
+   "cc": 14,
+   "label": "Quiet confession",
+   "level": "suite",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 14
+  },
+  {
+   "key": "s:breathing-room",
+   "channel": 2,
+   "cc": 15,
+   "label": "Breathing room",
+   "level": "suite",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 15
+  },
+  {
+   "key": "p:emotion-angle",
+   "channel": 2,
+   "cc": 16,
+   "label": "When the emotion changes, the angle height changes",
+   "level": "proximity",
+   "workspace": "lines",
+   "module": 8,
+   "jack": 16
+  },
+  {
+   "key": "p:emotion-temper",
+   "channel": 2,
+   "cc": 17,
+   "label": "When the emotion changes, the move temper changes",
+   "level": "proximity",
+   "workspace": "lines",
+   "module": 9,
+   "jack": 1
+  },
+  {
+   "key": "p:volume-speed",
+   "channel": 2,
+   "cc": 18,
+   "label": "When volume rises, move speed rises",
+   "level": "proximity",
+   "workspace": "lines",
+   "module": 9,
+   "jack": 2
+  },
+  {
+   "key": "ps:emotion-steers-lens",
+   "channel": 2,
+   "cc": 19,
+   "label": "Emotion steers the lens",
+   "level": "proximitySuite",
+   "workspace": "lines",
+   "module": 9,
+   "jack": 3
+  },
+  {
+   "key": "ps:loudness-and-size",
+   "channel": 2,
+   "cc": 20,
+   "label": "Loudness and frame size",
+   "level": "proximitySuite",
+   "workspace": "lines",
+   "module": 9,
+   "jack": 4
+  },
+  {
+   "key": "c:gesture",
+   "channel": 2,
+   "cc": 33,
+   "label": "Size of gesture",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 1
+  },
+  {
+   "key": "c:stillness",
+   "channel": 2,
+   "cc": 34,
+   "label": "Stillness",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 2
+  },
+  {
+   "key": "c:blink",
+   "channel": 2,
+   "cc": 35,
+   "label": "Blink",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 3
+  },
+  {
+   "key": "c:anticipation",
+   "channel": 2,
+   "cc": 36,
+   "label": "Anticipation",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 4
+  },
+  {
+   "key": "c:leadPart",
+   "channel": 2,
+   "cc": 37,
+   "label": "Leads the move",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 5
+  },
+  {
+   "key": "c:faceIntensity",
+   "channel": 2,
+   "cc": 38,
+   "label": "Facial expression",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 6
+  },
+  {
+   "key": "c:gazeShift",
+   "channel": 2,
+   "cc": 39,
+   "label": "Eye darts",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 7
+  },
+  {
+   "key": "c:posture",
+   "channel": 2,
+   "cc": 40,
+   "label": "Posture",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 8
+  },
+  {
+   "key": "c:touch",
+   "channel": 2,
+   "cc": 41,
+   "label": "Touch",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 9
+  },
+  {
+   "key": "c:walkAndTalk",
+   "channel": 2,
+   "cc": 42,
+   "label": "Walk and talk",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 10
+  },
+  {
+   "key": "c:propBusiness",
+   "channel": 2,
+   "cc": 43,
+   "label": "Business with a prop",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 11
+  },
+  {
+   "key": "c:moveOnLine",
+   "channel": 2,
+   "cc": 44,
+   "label": "Move on the line",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 12
+  },
+  {
+   "key": "c:listenerBody",
+   "channel": 2,
+   "cc": 45,
+   "label": "The listener's body",
+   "level": "curiosity",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 13
+  },
+  {
+   "key": "s:walk-and-talk",
+   "channel": 2,
+   "cc": 46,
+   "label": "The walk and talk",
+   "level": "suite",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 14
+  },
+  {
+   "key": "s:busy-hands",
+   "channel": 2,
+   "cc": 47,
+   "label": "Busy hands",
+   "level": "suite",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 15
+  },
+  {
+   "key": "s:task-disaster",
+   "channel": 2,
+   "cc": 48,
+   "label": "The task falls apart",
+   "level": "suite",
+   "workspace": "movement-lines",
+   "module": 10,
+   "jack": 16
+  },
+  {
+   "key": "s:freeze-on-the-line",
+   "channel": 2,
+   "cc": 49,
+   "label": "Freeze on the line",
+   "level": "suite",
+   "workspace": "movement-lines",
+   "module": 11,
+   "jack": 1
+  },
+  {
+   "key": "s:the-real-reaction",
+   "channel": 2,
+   "cc": 50,
+   "label": "The real reaction",
+   "level": "suite",
+   "workspace": "movement-lines",
+   "module": 11,
+   "jack": 2
+  },
+  {
+   "key": "p:line-freeze",
+   "channel": 2,
+   "cc": 51,
+   "label": "When a big line lands, the body freezes",
+   "level": "proximity",
+   "workspace": "movement-lines",
+   "module": 11,
+   "jack": 3
+  },
+  {
+   "key": "p:listener-leans",
+   "channel": 2,
+   "cc": 52,
+   "label": "When the speaker gets closer to the truth, the listener leans in",
+   "level": "proximity",
+   "workspace": "movement-lines",
+   "module": 11,
+   "jack": 4
+  },
+  {
+   "key": "p:task-angry",
+   "channel": 2,
+   "cc": 53,
+   "label": "When the anger rises, the task gets rougher",
+   "level": "proximity",
+   "workspace": "movement-lines",
+   "module": 11,
+   "jack": 5
+  },
+  {
+   "key": "p:task-laugh",
+   "channel": 2,
+   "cc": 54,
+   "label": "When the task falls apart, a laugh comes",
+   "level": "proximity",
+   "workspace": "movement-lines",
+   "module": 11,
+   "jack": 6
+  },
+  {
+   "key": "p:walk-long-take",
+   "channel": 2,
+   "cc": 55,
+   "label": "When they walk and talk, the shots get longer",
+   "level": "proximity",
+   "workspace": "movement-lines",
+   "module": 11,
+   "jack": 7
+  },
+  {
+   "key": "ps:body-tells-the-line",
+   "channel": 2,
+   "cc": 56,
+   "label": "The body tells the line",
+   "level": "proximitySuite",
+   "workspace": "movement-lines",
+   "module": 11,
+   "jack": 8
+  },
+  {
+   "key": "ps:comic-business",
+   "channel": 2,
+   "cc": 57,
+   "label": "Comic business",
+   "level": "proximitySuite",
+   "workspace": "movement-lines",
+   "module": 11,
+   "jack": 9
+  },
+  {
+   "key": "c:setting",
+   "channel": 2,
+   "cc": 65,
+   "label": "Setting",
+   "level": "curiosity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 1
+  },
+  {
+   "key": "c:intExt",
+   "channel": 2,
+   "cc": 66,
+   "label": "Interior or exterior",
+   "level": "curiosity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 2
+  },
+  {
+   "key": "c:envMotion",
+   "channel": 2,
+   "cc": 67,
+   "label": "Motion of the environment",
+   "level": "curiosity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 3
+  },
+  {
+   "key": "c:temperature",
+   "channel": 2,
+   "cc": 68,
+   "label": "Temperature",
+   "level": "curiosity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 4
+  },
+  {
+   "key": "c:weather",
+   "channel": 2,
+   "cc": 69,
+   "label": "Weather",
+   "level": "curiosity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 5
+  },
+  {
+   "key": "c:scale",
+   "channel": 2,
+   "cc": 70,
+   "label": "Scale of the place",
+   "level": "curiosity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 6
+  },
+  {
+   "key": "c:repeatInFrame",
+   "channel": 2,
+   "cc": 71,
+   "label": "Repetition in frame",
+   "level": "curiosity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 7
+  },
+  {
+   "key": "s:pathetic-fallacy",
+   "channel": 2,
+   "cc": 72,
+   "label": "The weather feels it too",
+   "level": "suite",
+   "workspace": "background",
+   "module": 12,
+   "jack": 8
+  },
+  {
+   "key": "p:rain-wet",
+   "channel": 2,
+   "cc": 73,
+   "label": "When it rains, surfaces are soaked",
+   "level": "proximity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 9
+  },
+  {
+   "key": "p:sad-rain",
+   "channel": 2,
+   "cc": 74,
+   "label": "When sadness rises, the rain starts",
+   "level": "proximity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 10
+  },
+  {
+   "key": "p:tension-crowd-still",
+   "channel": 2,
+   "cc": 75,
+   "label": "When tension rises, the background goes still",
+   "level": "proximity",
+   "workspace": "background",
+   "module": 12,
+   "jack": 11
+  },
+  {
+   "key": "ps:world-mirrors-feeling",
+   "channel": 2,
+   "cc": 76,
+   "label": "The world mirrors the feeling",
+   "level": "proximitySuite",
+   "workspace": "background",
+   "module": 12,
+   "jack": 12
+  },
+  {
+   "key": "c:key",
+   "channel": 2,
+   "cc": 81,
+   "label": "Key direction",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 1
+  },
+  {
+   "key": "c:contrast",
+   "channel": 2,
+   "cc": 82,
+   "label": "Contrast",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 2
+  },
+  {
+   "key": "c:colorTemp",
+   "channel": 2,
+   "cc": 83,
+   "label": "Color of the light",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 3
+  },
+  {
+   "key": "c:lighting",
+   "channel": 2,
+   "cc": 84,
+   "label": "Lighting",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 4
+  },
+  {
+   "key": "c:timeOfDay",
+   "channel": 2,
+   "cc": 85,
+   "label": "Time of day",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 5
+  },
+  {
+   "key": "c:softness",
+   "channel": 2,
+   "cc": 86,
+   "label": "Softness",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 6
+  },
+  {
+   "key": "c:rim",
+   "channel": 2,
+   "cc": 87,
+   "label": "Rim light",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 7
+  },
+  {
+   "key": "c:lightCount",
+   "channel": 2,
+   "cc": 88,
+   "label": "Sources",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 8
+  },
+  {
+   "key": "c:practicalInFrame",
+   "channel": 2,
+   "cc": 89,
+   "label": "Source in frame",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 9
+  },
+  {
+   "key": "c:lightShape",
+   "channel": 2,
+   "cc": 90,
+   "label": "Shaped light",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 10
+  },
+  {
+   "key": "c:atmosphere",
+   "channel": 2,
+   "cc": 91,
+   "label": "Air",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 11
+  },
+  {
+   "key": "c:lightChange",
+   "channel": 2,
+   "cc": 92,
+   "label": "When the light changes",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 12
+  },
+  {
+   "key": "c:valueKey",
+   "channel": 2,
+   "cc": 93,
+   "label": "Brightness key",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 13
+  },
+  {
+   "key": "c:renderStyle",
+   "channel": 2,
+   "cc": 94,
+   "label": "Render style",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 14
+  },
+  {
+   "key": "c:lineWeight",
+   "channel": 2,
+   "cc": 95,
+   "label": "Ink line",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 15
+  },
+  {
+   "key": "c:gloss",
+   "channel": 2,
+   "cc": 96,
+   "label": "Gloss",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 13,
+   "jack": 16
+  },
+  {
+   "key": "c:wetness",
+   "channel": 2,
+   "cc": 97,
+   "label": "Wetness",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 14,
+   "jack": 1
+  },
+  {
+   "key": "c:skinLight",
+   "channel": 2,
+   "cc": 98,
+   "label": "Light in skin",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 14,
+   "jack": 2
+  },
+  {
+   "key": "c:glow",
+   "channel": 2,
+   "cc": 99,
+   "label": "Something glows",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 14,
+   "jack": 3
+  },
+  {
+   "key": "c:wear",
+   "channel": 2,
+   "cc": 100,
+   "label": "Wear",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 14,
+   "jack": 4
+  },
+  {
+   "key": "c:saturation",
+   "channel": 2,
+   "cc": 101,
+   "label": "Color saturation",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 14,
+   "jack": 5
+  },
+  {
+   "key": "c:palette",
+   "channel": 2,
+   "cc": 102,
+   "label": "Dominant color",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 14,
+   "jack": 6
+  },
+  {
+   "key": "c:lightingLens",
+   "channel": 2,
+   "cc": 103,
+   "label": "Lighting",
+   "level": "curiosity",
+   "workspace": "light",
+   "module": 14,
+   "jack": 7
+  },
+  {
+   "key": "s:noir",
+   "channel": 2,
+   "cc": 104,
+   "label": "Noir",
+   "level": "suite",
+   "workspace": "light",
+   "module": 14,
+   "jack": 8
+  },
+  {
+   "key": "s:golden-hour",
+   "channel": 2,
+   "cc": 105,
+   "label": "Golden hour",
+   "level": "suite",
+   "workspace": "light",
+   "module": 14,
+   "jack": 9
+  },
+  {
+   "key": "s:comic-ink",
+   "channel": 2,
+   "cc": 106,
+   "label": "Comic ink",
+   "level": "suite",
+   "workspace": "light",
+   "module": 14,
+   "jack": 10
+  },
+  {
+   "key": "s:wet-night",
+   "channel": 2,
+   "cc": 107,
+   "label": "Wet night",
+   "level": "suite",
+   "workspace": "light",
+   "module": 14,
+   "jack": 11
+  },
+  {
+   "key": "s:clean-product",
+   "channel": 2,
+   "cc": 108,
+   "label": "Clean product",
+   "level": "suite",
+   "workspace": "light",
+   "module": 14,
+   "jack": 12
+  },
+  {
+   "key": "s:neon-night",
+   "channel": 2,
+   "cc": 109,
+   "label": "Neon night",
+   "level": "suite",
+   "workspace": "light",
+   "module": 14,
+   "jack": 13
+  },
+  {
+   "key": "s:candlelit",
+   "channel": 2,
+   "cc": 110,
+   "label": "Candlelit",
+   "level": "suite",
+   "workspace": "light",
+   "module": 14,
+   "jack": 14
+  },
+  {
+   "key": "s:sitcom-bright",
+   "channel": 2,
+   "cc": 111,
+   "label": "Sitcom bright",
+   "level": "suite",
+   "workspace": "light",
+   "module": 14,
+   "jack": 15
+  },
+  {
+   "key": "s:interrogation",
+   "channel": 2,
+   "cc": 112,
+   "label": "Interrogation",
+   "level": "suite",
+   "workspace": "light",
+   "module": 14,
+   "jack": 16
+  },
+  {
+   "key": "p:toon-line",
+   "channel": 3,
+   "cc": 1,
+   "label": "When the render goes toon, the ink line is heavy",
+   "level": "proximity",
+   "workspace": "light",
+   "module": 15,
+   "jack": 1
+  },
+  {
+   "key": "p:secret-half-light",
+   "channel": 3,
+   "cc": 2,
+   "label": "When a secret comes out, the face goes half lit",
+   "level": "proximity",
+   "workspace": "light",
+   "module": 15,
+   "jack": 2
+  },
+  {
+   "key": "p:drain-on-loss",
+   "channel": 3,
+   "cc": 3,
+   "label": "After a loss, the color drains",
+   "level": "proximity",
+   "workspace": "light",
+   "module": 15,
+   "jack": 3
+  },
+  {
+   "key": "p:flashback-fade",
+   "channel": 3,
+   "cc": 4,
+   "label": "A flashback brings the faded look",
+   "level": "proximity",
+   "workspace": "light",
+   "module": 15,
+   "jack": 4
+  },
+  {
+   "key": "p:danger-shadows",
+   "channel": 3,
+   "cc": 5,
+   "label": "When danger rises, the shadows deepen",
+   "level": "proximity",
+   "workspace": "light",
+   "module": 15,
+   "jack": 5
+  },
+  {
+   "key": "p:warm-reunion",
+   "channel": 3,
+   "cc": 6,
+   "label": "A reunion warms the color",
+   "level": "proximity",
+   "workspace": "light",
+   "module": 15,
+   "jack": 6
+  },
+  {
+   "key": "ps:weather-and-surface",
+   "channel": 3,
+   "cc": 7,
+   "label": "Weather and surface",
+   "level": "proximitySuite",
+   "workspace": "light",
+   "module": 15,
+   "jack": 7
+  },
+  {
+   "key": "ps:light-follows-feeling",
+   "channel": 3,
+   "cc": 8,
+   "label": "Light follows feeling",
+   "level": "proximitySuite",
+   "workspace": "light",
+   "module": 15,
+   "jack": 8
+  },
+  {
+   "key": "c:windForce",
+   "channel": 3,
+   "cc": 17,
+   "label": "Wind",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 1
+  },
+  {
+   "key": "c:turbulence",
+   "channel": 3,
+   "cc": 18,
+   "label": "Chaos",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 2
+  },
+  {
+   "key": "c:clothResponse",
+   "channel": 3,
+   "cc": 19,
+   "label": "Cloth reacts",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 3
+  },
+  {
+   "key": "c:impacts",
+   "channel": 3,
+   "cc": 20,
+   "label": "Impacts per beat",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 4
+  },
+  {
+   "key": "c:breakage",
+   "channel": 3,
+   "cc": 21,
+   "label": "Breaks",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 5
+  },
+  {
+   "key": "c:settleTime",
+   "channel": 3,
+   "cc": 22,
+   "label": "Settle time",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 6
+  },
+  {
+   "key": "c:gravityFeel",
+   "channel": 3,
+   "cc": 23,
+   "label": "Weight",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 7
+  },
+  {
+   "key": "c:furLength",
+   "channel": 3,
+   "cc": 24,
+   "label": "Fur length",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 8
+  },
+  {
+   "key": "c:clump",
+   "channel": 3,
+   "cc": 25,
+   "label": "Clumping",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 9
+  },
+  {
+   "key": "c:frizz",
+   "channel": 3,
+   "cc": 26,
+   "label": "Frizz",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 10
+  },
+  {
+   "key": "c:hairColor",
+   "channel": 3,
+   "cc": 27,
+   "label": "Hair color",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 11
+  },
+  {
+   "key": "c:hairShine",
+   "channel": 3,
+   "cc": 28,
+   "label": "Shine",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 12
+  },
+  {
+   "key": "c:furResponse",
+   "channel": 3,
+   "cc": 29,
+   "label": "Fur reacts to",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 13
+  },
+  {
+   "key": "c:furLag",
+   "channel": 3,
+   "cc": 30,
+   "label": "Fur lag",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 14
+  },
+  {
+   "key": "c:element",
+   "channel": 3,
+   "cc": 31,
+   "label": "Element",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 15
+  },
+  {
+   "key": "c:density",
+   "channel": 3,
+   "cc": 32,
+   "label": "Thickness",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 16,
+   "jack": 16
+  },
+  {
+   "key": "c:growth",
+   "channel": 3,
+   "cc": 33,
+   "label": "Growth",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 1
+  },
+  {
+   "key": "c:curl",
+   "channel": 3,
+   "cc": 34,
+   "label": "Curl",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 2
+  },
+  {
+   "key": "c:splash",
+   "channel": 3,
+   "cc": 35,
+   "label": "Splash",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 3
+  },
+  {
+   "key": "c:scatter",
+   "channel": 3,
+   "cc": 36,
+   "label": "Scattered things",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 4
+  },
+  {
+   "key": "c:fireLight",
+   "channel": 3,
+   "cc": 37,
+   "label": "Fire lights the scene",
+   "level": "curiosity",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 5
+  },
+  {
+   "key": "s:storm",
+   "channel": 3,
+   "cc": 38,
+   "label": "Storm",
+   "level": "suite",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 6
+  },
+  {
+   "key": "s:hearth",
+   "channel": 3,
+   "cc": 39,
+   "label": "Hearth",
+   "level": "suite",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 7
+  },
+  {
+   "key": "s:brawl",
+   "channel": 3,
+   "cc": 40,
+   "label": "Brawl",
+   "level": "suite",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 8
+  },
+  {
+   "key": "s:slow-motion",
+   "channel": 3,
+   "cc": 41,
+   "label": "Slow motion",
+   "level": "suite",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 9
+  },
+  {
+   "key": "s:drenched",
+   "channel": 3,
+   "cc": 42,
+   "label": "Drenched",
+   "level": "suite",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 10
+  },
+  {
+   "key": "s:backlit-fluff",
+   "channel": 3,
+   "cc": 43,
+   "label": "Backlit fluff",
+   "level": "suite",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 11
+  },
+  {
+   "key": "s:windblown",
+   "channel": 3,
+   "cc": 44,
+   "label": "Windblown",
+   "level": "suite",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 12
+  },
+  {
+   "key": "s:avalanche",
+   "channel": 3,
+   "cc": 45,
+   "label": "Avalanche",
+   "level": "suite",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 13
+  },
+  {
+   "key": "s:drift",
+   "channel": 3,
+   "cc": 46,
+   "label": "Drift",
+   "level": "suite",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 14
+  },
+  {
+   "key": "p:impact-shake",
+   "channel": 3,
+   "cc": 47,
+   "label": "When impacts rise, the shake rises",
+   "level": "proximity",
+   "workspace": "effects",
+   "module": 17,
+   "jack": 15
+  },
+  {
+   "key": "c:arcStage",
+   "channel": 3,
+   "cc": 49,
+   "label": "Arc stage",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 1
+  },
+  {
+   "key": "c:dramaticRole",
+   "channel": 3,
+   "cc": 50,
+   "label": "Role in the scene",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 2
+  },
+  {
+   "key": "c:cm-role",
+   "channel": 3,
+   "cc": 51,
+   "label": "Dramatic role",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 3
+  },
+  {
+   "key": "c:arcDirection",
+   "channel": 3,
+   "cc": 52,
+   "label": "Which way they change",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 4
+  },
+  {
+   "key": "c:theLie",
+   "channel": 3,
+   "cc": 53,
+   "label": "The lie they believe",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 5
+  },
+  {
+   "key": "c:wound",
+   "channel": 3,
+   "cc": 54,
+   "label": "The old wound",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 6
+  },
+  {
+   "key": "c:resistance",
+   "channel": 3,
+   "cc": 55,
+   "label": "Fighting the change",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 7
+  },
+  {
+   "key": "c:arcTest",
+   "channel": 3,
+   "cc": 56,
+   "label": "The test",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 8
+  },
+  {
+   "key": "c:relapse",
+   "channel": 3,
+   "cc": 57,
+   "label": "Slipping back",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 9
+  },
+  {
+   "key": "c:changeShows",
+   "channel": 3,
+   "cc": 58,
+   "label": "How the change shows",
+   "level": "curiosity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 10
+  },
+  {
+   "key": "s:growth-arc",
+   "channel": 3,
+   "cc": 59,
+   "label": "Growing up",
+   "level": "suite",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 11
+  },
+  {
+   "key": "s:tragic-fall",
+   "channel": 3,
+   "cc": 60,
+   "label": "The fall",
+   "level": "suite",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 12
+  },
+  {
+   "key": "s:steady-changes-world",
+   "channel": 3,
+   "cc": 61,
+   "label": "The steady one",
+   "level": "suite",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 13
+  },
+  {
+   "key": "s:stubborn-comedy",
+   "channel": 3,
+   "cc": 62,
+   "label": "Refuses to change",
+   "level": "suite",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 14
+  },
+  {
+   "key": "s:mirror-ending",
+   "channel": 3,
+   "cc": 63,
+   "label": "The mirror ending",
+   "level": "suite",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 15
+  },
+  {
+   "key": "p:lie-crisis",
+   "channel": 3,
+   "cc": 64,
+   "label": "When the lie is exposed, the crisis comes",
+   "level": "proximity",
+   "workspace": "arc",
+   "module": 18,
+   "jack": 16
+  },
+  {
+   "key": "p:wound-resist",
+   "channel": 3,
+   "cc": 65,
+   "label": "When the old wound is touched, they fight the change harder",
+   "level": "proximity",
+   "workspace": "arc",
+   "module": 19,
+   "jack": 1
+  },
+  {
+   "key": "p:test-change",
+   "channel": 3,
+   "cc": 66,
+   "label": "When the test is passed, the change shows",
+   "level": "proximity",
+   "workspace": "arc",
+   "module": 19,
+   "jack": 2
+  },
+  {
+   "key": "p:relapse-road",
+   "channel": 3,
+   "cc": 67,
+   "label": "When they slip back, their road drops",
+   "level": "proximity",
+   "workspace": "arc",
+   "module": 19,
+   "jack": 3
+  },
+  {
+   "key": "p:resist-laugh",
+   "channel": 3,
+   "cc": 68,
+   "label": "When they fight the change with jokes, the laughs rise",
+   "level": "proximity",
+   "workspace": "arc",
+   "module": 19,
+   "jack": 4
+  },
+  {
+   "key": "p:change-posture",
+   "channel": 3,
+   "cc": 69,
+   "label": "When the change comes, the posture opens",
+   "level": "proximity",
+   "workspace": "arc",
+   "module": 19,
+   "jack": 5
+  },
+  {
+   "key": "ps:arc-engine",
+   "channel": 3,
+   "cc": 70,
+   "label": "The arc engine",
+   "level": "proximitySuite",
+   "workspace": "arc",
+   "module": 19,
+   "jack": 6
+  },
+  {
+   "key": "c:plotWeight",
+   "channel": 3,
+   "cc": 81,
+   "label": "Own plot weight",
+   "level": "curiosity",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 1
+  },
+  {
+   "key": "c:plotTouch",
+   "channel": 3,
+   "cc": 82,
+   "label": "Own plot meets the main plot",
+   "level": "curiosity",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 2
+  },
+  {
+   "key": "c:plotWant",
+   "channel": 3,
+   "cc": 83,
+   "label": "What they want, against what they need",
+   "level": "curiosity",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 3
+  },
+  {
+   "key": "c:plotSecret",
+   "channel": 3,
+   "cc": 84,
+   "label": "Secret",
+   "level": "curiosity",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 4
+  },
+  {
+   "key": "c:plotProgress",
+   "channel": 3,
+   "cc": 85,
+   "label": "Closer to or further from the goal",
+   "level": "curiosity",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 5
+  },
+  {
+   "key": "s:hidden-agenda",
+   "channel": 3,
+   "cc": 86,
+   "label": "Hidden agenda",
+   "level": "suite",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 6
+  },
+  {
+   "key": "s:wrong-goal",
+   "channel": 3,
+   "cc": 87,
+   "label": "Chasing the wrong thing",
+   "level": "suite",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 7
+  },
+  {
+   "key": "s:dramatic-irony",
+   "channel": 3,
+   "cc": 88,
+   "label": "We know, they don't",
+   "level": "suite",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 8
+  },
+  {
+   "key": "p:secret-slips-cringe",
+   "channel": 3,
+   "cc": 89,
+   "label": "When a secret starts slipping, cringe rises",
+   "level": "proximity",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 9
+  },
+  {
+   "key": "p:setback-feeling-drops",
+   "channel": 3,
+   "cc": 90,
+   "label": "When the character is set back, their emotional road drops",
+   "level": "proximity",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 10
+  },
+  {
+   "key": "ps:secrets-and-lies",
+   "channel": 3,
+   "cc": 91,
+   "label": "Secrets and lies",
+   "level": "proximitySuite",
+   "workspace": "plot",
+   "module": 20,
+   "jack": 11
+  },
+  {
+   "key": "c:perspectiveWidth",
+   "channel": 3,
+   "cc": 97,
+   "label": "Whose good they see",
+   "level": "curiosity",
+   "workspace": "mindset",
+   "module": 21,
+   "jack": 1
+  },
+  {
+   "key": "c:mindset",
+   "channel": 3,
+   "cc": 98,
+   "label": "Mindset",
+   "level": "curiosity",
+   "workspace": "mindset",
+   "module": 21,
+   "jack": 2
+  },
+  {
+   "key": "c:cm-perspective",
+   "channel": 3,
+   "cc": 99,
+   "label": "Closed mindset to Widening mindset",
+   "level": "curiosity",
+   "workspace": "mindset",
+   "module": 21,
+   "jack": 3
+  },
+  {
+   "key": "c:beliefShown",
+   "channel": 3,
+   "cc": 100,
+   "label": "How the belief shows",
+   "level": "curiosity",
+   "workspace": "mindset",
+   "module": 21,
+   "jack": 4
+  },
+  {
+   "key": "s:closed-mind",
+   "channel": 3,
+   "cc": 101,
+   "label": "Closed mind",
+   "level": "suite",
+   "workspace": "mindset",
+   "module": 21,
+   "jack": 5
+  },
+  {
+   "key": "s:widening-circle",
+   "channel": 3,
+   "cc": 102,
+   "label": "The circle widens",
+   "level": "suite",
+   "workspace": "mindset",
+   "module": 21,
+   "jack": 6
+  },
+  {
+   "key": "p:challenge-questioning",
+   "channel": 3,
+   "cc": 103,
+   "label": "When a belief is challenged hard, the mindset opens",
+   "level": "proximity",
+   "workspace": "mindset",
+   "module": 21,
+   "jack": 7
+  },
+  {
+   "key": "c:focusWidth",
+   "channel": 4,
+   "cc": 1,
+   "label": "Focus width",
+   "level": "curiosity",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 1
+  },
+  {
+   "key": "c:focusShift",
+   "channel": 4,
+   "cc": 2,
+   "label": "Focus shift",
+   "level": "curiosity",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 2
+  },
+  {
+   "key": "c:cm-focus",
+   "channel": 4,
+   "cc": 3,
+   "label": "Narrow focus to Wide focus",
+   "level": "curiosity",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 3
+  },
+  {
+   "key": "c:distraction",
+   "channel": 4,
+   "cc": 4,
+   "label": "Distraction",
+   "level": "curiosity",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 4
+  },
+  {
+   "key": "c:fixation",
+   "channel": 4,
+   "cc": 5,
+   "label": "Fixation",
+   "level": "curiosity",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 5
+  },
+  {
+   "key": "s:tunnel-vision",
+   "channel": 4,
+   "cc": 6,
+   "label": "Tunnel vision",
+   "level": "suite",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 6
+  },
+  {
+   "key": "s:distracted-miss",
+   "channel": 4,
+   "cc": 7,
+   "label": "Looks away at the wrong moment",
+   "level": "suite",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 7
+  },
+  {
+   "key": "p:fixation-close",
+   "channel": 4,
+   "cc": 8,
+   "label": "When a fixation tightens, the shots get closer",
+   "level": "proximity",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 8
+  },
+  {
+   "key": "p:distraction-miss",
+   "channel": 4,
+   "cc": 9,
+   "label": "When a distraction pulls hard, something is missed",
+   "level": "proximity",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 9
+  },
+  {
+   "key": "ps:eyes-on-one-thing",
+   "channel": 4,
+   "cc": 10,
+   "label": "Eyes on one thing",
+   "level": "proximitySuite",
+   "workspace": "focus",
+   "module": 22,
+   "jack": 10
+  },
+  {
+   "key": "c:enneagramType",
+   "channel": 4,
+   "cc": 17,
+   "label": "Enneagram type",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 1
+  },
+  {
+   "key": "c:enneagramHealth",
+   "channel": 4,
+   "cc": 18,
+   "label": "Health of the type",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 2
+  },
+  {
+   "key": "c:cm-stability",
+   "channel": 4,
+   "cc": 19,
+   "label": "Stabilizer to Catalyst",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 3
+  },
+  {
+   "key": "c:cm-agency",
+   "channel": 4,
+   "cc": 20,
+   "label": "Reactive to Proactive",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 4
+  },
+  {
+   "key": "c:cm-freedom",
+   "channel": 4,
+   "cc": 21,
+   "label": "Conformist to Individualist",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 5
+  },
+  {
+   "key": "c:cm-morality",
+   "channel": 4,
+   "cc": 22,
+   "label": "Altruistic to Self-serving",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 6
+  },
+  {
+   "key": "c:cm-risk",
+   "channel": 4,
+   "cc": 23,
+   "label": "Cautious to Reckless",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 7
+  },
+  {
+   "key": "c:cm-control",
+   "channel": 4,
+   "cc": 24,
+   "label": "Surrender to Controlling",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 8
+  },
+  {
+   "key": "c:cm-worldview",
+   "channel": 4,
+   "cc": 25,
+   "label": "Idealist to Cynic",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 9
+  },
+  {
+   "key": "c:cm-openness",
+   "channel": 4,
+   "cc": 26,
+   "label": "Open to Secretive",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 10
+  },
+  {
+   "key": "c:cm-emotion",
+   "channel": 4,
+   "cc": 27,
+   "label": "Emotional to Rational",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 11
+  },
+  {
+   "key": "c:cm-adaptability",
+   "channel": 4,
+   "cc": 28,
+   "label": "Flexible to Rigid",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 12
+  },
+  {
+   "key": "c:cm-conflict",
+   "channel": 4,
+   "cc": 29,
+   "label": "Conflict-avoidant to Confrontational",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 13
+  },
+  {
+   "key": "c:cm-temperament",
+   "channel": 4,
+   "cc": 30,
+   "label": "Orderly to Chaotic",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 14
+  },
+  {
+   "key": "c:cm-truth",
+   "channel": 4,
+   "cc": 31,
+   "label": "Honest to Deceptive",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 15
+  },
+  {
+   "key": "c:cm-competence",
+   "channel": 4,
+   "cc": 32,
+   "label": "Ineffective to Highly capable",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 23,
+   "jack": 16
+  },
+  {
+   "key": "c:cm-need",
+   "channel": 4,
+   "cc": 33,
+   "label": "Security to Freedom",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 1
+  },
+  {
+   "key": "c:cm-motivation",
+   "channel": 4,
+   "cc": 34,
+   "label": "External to Internal",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 2
+  },
+  {
+   "key": "c:cm-health",
+   "channel": 4,
+   "cc": 35,
+   "label": "Enneagram health",
+   "level": "curiosity",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 3
+  },
+  {
+   "key": "s:enneagram-1",
+   "channel": 4,
+   "cc": 36,
+   "label": "Type 1: Reformer",
+   "level": "suite",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 4
+  },
+  {
+   "key": "s:enneagram-2",
+   "channel": 4,
+   "cc": 37,
+   "label": "Type 2: Helper",
+   "level": "suite",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 5
+  },
+  {
+   "key": "s:enneagram-3",
+   "channel": 4,
+   "cc": 38,
+   "label": "Type 3: Achiever",
+   "level": "suite",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 6
+  },
+  {
+   "key": "s:enneagram-4",
+   "channel": 4,
+   "cc": 39,
+   "label": "Type 4: Individualist",
+   "level": "suite",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 7
+  },
+  {
+   "key": "s:enneagram-5",
+   "channel": 4,
+   "cc": 40,
+   "label": "Type 5: Investigator",
+   "level": "suite",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 8
+  },
+  {
+   "key": "s:enneagram-6",
+   "channel": 4,
+   "cc": 41,
+   "label": "Type 6: Loyalist",
+   "level": "suite",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 9
+  },
+  {
+   "key": "s:enneagram-7",
+   "channel": 4,
+   "cc": 42,
+   "label": "Type 7: Enthusiast",
+   "level": "suite",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 10
+  },
+  {
+   "key": "s:enneagram-8",
+   "channel": 4,
+   "cc": 43,
+   "label": "Type 8: Challenger",
+   "level": "suite",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 11
+  },
+  {
+   "key": "s:enneagram-9",
+   "channel": 4,
+   "cc": 44,
+   "label": "Type 9: Peacemaker",
+   "level": "suite",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 12
+  },
+  {
+   "key": "p:stress-1",
+   "channel": 4,
+   "cc": 45,
+   "label": "When a Reformer falls into stress, they look like an Individualist",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 13
+  },
+  {
+   "key": "p:growth-1",
+   "channel": 4,
+   "cc": 46,
+   "label": "When a Reformer grows, they borrow from the Enthusiast",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 14
+  },
+  {
+   "key": "p:stress-2",
+   "channel": 4,
+   "cc": 47,
+   "label": "When a Helper falls into stress, they look like a Challenger",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 15
+  },
+  {
+   "key": "p:growth-2",
+   "channel": 4,
+   "cc": 48,
+   "label": "When a Helper grows, they borrow from the Individualist",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 24,
+   "jack": 16
+  },
+  {
+   "key": "p:stress-3",
+   "channel": 4,
+   "cc": 49,
+   "label": "When an Achiever falls into stress, they look like a Peacemaker",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 1
+  },
+  {
+   "key": "p:growth-3",
+   "channel": 4,
+   "cc": 50,
+   "label": "When an Achiever grows, they borrow from the Loyalist",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 2
+  },
+  {
+   "key": "p:stress-4",
+   "channel": 4,
+   "cc": 51,
+   "label": "When an Individualist falls into stress, they look like a Helper",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 3
+  },
+  {
+   "key": "p:growth-4",
+   "channel": 4,
+   "cc": 52,
+   "label": "When an Individualist grows, they borrow from the Reformer",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 4
+  },
+  {
+   "key": "p:stress-5",
+   "channel": 4,
+   "cc": 53,
+   "label": "When an Investigator falls into stress, they look like an Enthusiast",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 5
+  },
+  {
+   "key": "p:growth-5",
+   "channel": 4,
+   "cc": 54,
+   "label": "When an Investigator grows, they borrow from the Challenger",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 6
+  },
+  {
+   "key": "p:stress-6",
+   "channel": 4,
+   "cc": 55,
+   "label": "When a Loyalist falls into stress, they look like an Achiever",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 7
+  },
+  {
+   "key": "p:growth-6",
+   "channel": 4,
+   "cc": 56,
+   "label": "When a Loyalist grows, they borrow from the Peacemaker",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 8
+  },
+  {
+   "key": "p:stress-7",
+   "channel": 4,
+   "cc": 57,
+   "label": "When an Enthusiast falls into stress, they look like a Reformer",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 9
+  },
+  {
+   "key": "p:growth-7",
+   "channel": 4,
+   "cc": 58,
+   "label": "When an Enthusiast grows, they borrow from the Investigator",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 10
+  },
+  {
+   "key": "p:stress-8",
+   "channel": 4,
+   "cc": 59,
+   "label": "When a Challenger falls into stress, they look like an Investigator",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 11
+  },
+  {
+   "key": "p:growth-8",
+   "channel": 4,
+   "cc": 60,
+   "label": "When a Challenger grows, they borrow from the Helper",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 12
+  },
+  {
+   "key": "p:stress-9",
+   "channel": 4,
+   "cc": 61,
+   "label": "When a Peacemaker falls into stress, they look like a Loyalist",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 13
+  },
+  {
+   "key": "p:growth-9",
+   "channel": 4,
+   "cc": 62,
+   "label": "When a Peacemaker grows, they borrow from the Achiever",
+   "level": "proximity",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 14
+  },
+  {
+   "key": "ps:enneagram-stress-arrows",
+   "channel": 4,
+   "cc": 63,
+   "label": "Stress arrows",
+   "level": "proximitySuite",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 15
+  },
+  {
+   "key": "ps:enneagram-growth-arrows",
+   "channel": 4,
+   "cc": 64,
+   "label": "Growth arrows",
+   "level": "proximitySuite",
+   "workspace": "archetype",
+   "module": 25,
+   "jack": 16
+  },
+  {
+   "key": "c:herdMentality",
+   "channel": 4,
+   "cc": 65,
+   "label": "Herd mentality",
+   "level": "curiosity",
+   "workspace": "herd",
+   "module": 26,
+   "jack": 1
+  },
+  {
+   "key": "c:herdLeader",
+   "channel": 4,
+   "cc": 66,
+   "label": "Who leads the herd",
+   "level": "curiosity",
+   "workspace": "herd",
+   "module": 26,
+   "jack": 2
+  },
+  {
+   "key": "c:dissenter",
+   "channel": 4,
+   "cc": 67,
+   "label": "Dissenter",
+   "level": "curiosity",
+   "workspace": "herd",
+   "module": 26,
+   "jack": 3
+  },
+  {
+   "key": "c:groupPressure",
+   "channel": 4,
+   "cc": 68,
+   "label": "Group pressure",
+   "level": "curiosity",
+   "workspace": "herd",
+   "module": 26,
+   "jack": 4
+  },
+  {
+   "key": "s:mob-forms",
+   "channel": 4,
+   "cc": 69,
+   "label": "A mob forms",
+   "level": "suite",
+   "workspace": "herd",
+   "module": 26,
+   "jack": 5
+  },
+  {
+   "key": "s:lone-voice",
+   "channel": 4,
+   "cc": 70,
+   "label": "The lone voice",
+   "level": "suite",
+   "workspace": "herd",
+   "module": 26,
+   "jack": 6
+  },
+  {
+   "key": "p:dissent-pressure",
+   "channel": 4,
+   "cc": 71,
+   "label": "When someone defies the group, the pressure rises",
+   "level": "proximity",
+   "workspace": "herd",
+   "module": 26,
+   "jack": 7
+  },
+  {
+   "key": "p:herd-quiet-dissent",
+   "channel": 4,
+   "cc": 72,
+   "label": "When the herd grows, doubts go quiet",
+   "level": "proximity",
+   "workspace": "herd",
+   "module": 26,
+   "jack": 8
+  },
+  {
+   "key": "ps:group-closes-ranks",
+   "channel": 4,
+   "cc": 73,
+   "label": "The group closes ranks",
+   "level": "proximitySuite",
+   "workspace": "herd",
+   "module": 26,
+   "jack": 9
+  },
+  {
+   "key": "c:mainEra",
+   "channel": 4,
+   "cc": 81,
+   "label": "Era of the clothes",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 1
+  },
+  {
+   "key": "c:mainCost",
+   "channel": 4,
+   "cc": 82,
+   "label": "Cheap to expensive",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 2
+  },
+  {
+   "key": "c:mainCoverage",
+   "channel": 4,
+   "cc": 83,
+   "label": "How much skin is covered",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 3
+  },
+  {
+   "key": "c:mainUtility",
+   "channel": 4,
+   "cc": 84,
+   "label": "Looks or function",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 4
+  },
+  {
+   "key": "c:mainFunction",
+   "channel": 4,
+   "cc": 85,
+   "label": "The job the clothes do",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 5
+  },
+  {
+   "key": "c:mainWear",
+   "channel": 4,
+   "cc": 86,
+   "label": "Wear and tear",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 6
+  },
+  {
+   "key": "c:mainFit",
+   "channel": 4,
+   "cc": 87,
+   "label": "Fit",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 7
+  },
+  {
+   "key": "c:mainFormality",
+   "channel": 4,
+   "cc": 88,
+   "label": "Casual to formal",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 8
+  },
+  {
+   "key": "c:mainSetMatch",
+   "channel": 4,
+   "cc": 89,
+   "label": "Clothes against the set",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 9
+  },
+  {
+   "key": "c:backEra",
+   "channel": 4,
+   "cc": 90,
+   "label": "Era of the clothes",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 10
+  },
+  {
+   "key": "c:backCost",
+   "channel": 4,
+   "cc": 91,
+   "label": "Cheap to expensive",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 11
+  },
+  {
+   "key": "c:backCoverage",
+   "channel": 4,
+   "cc": 92,
+   "label": "How much skin is covered",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 12
+  },
+  {
+   "key": "c:backUtility",
+   "channel": 4,
+   "cc": 93,
+   "label": "Looks or function",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 13
+  },
+  {
+   "key": "c:backFunction",
+   "channel": 4,
+   "cc": 94,
+   "label": "The job the clothes do",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 14
+  },
+  {
+   "key": "c:backWear",
+   "channel": 4,
+   "cc": 95,
+   "label": "Wear and tear",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 15
+  },
+  {
+   "key": "c:backSameness",
+   "channel": 4,
+   "cc": 96,
+   "label": "All different to all alike",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 27,
+   "jack": 16
+  },
+  {
+   "key": "c:backPeriodTruth",
+   "channel": 4,
+   "cc": 97,
+   "label": "True to the time",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 1
+  },
+  {
+   "key": "c:backVsMain",
+   "channel": 4,
+   "cc": 98,
+   "label": "Background against the main character",
+   "level": "curiosity",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 2
+  },
+  {
+   "key": "s:lens-wardrobeMain",
+   "channel": 4,
+   "cc": 99,
+   "label": "Main character's clothes lens",
+   "level": "suite",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 3
+  },
+  {
+   "key": "s:lens-wardrobeBack",
+   "channel": 4,
+   "cc": 100,
+   "label": "Background clothes lens",
+   "level": "suite",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 4
+  },
+  {
+   "key": "s:lens-period",
+   "channel": 4,
+   "cc": 101,
+   "label": "Period truth",
+   "level": "suite",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 5
+  },
+  {
+   "key": "s:anachronism",
+   "channel": 4,
+   "cc": 102,
+   "label": "Deliberate anachronism",
+   "level": "suite",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 6
+  },
+  {
+   "key": "s:working-uniform",
+   "channel": 4,
+   "cc": 103,
+   "label": "Working uniform",
+   "level": "suite",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 7
+  },
+  {
+   "key": "s:dressed-to-impress",
+   "channel": 4,
+   "cc": 104,
+   "label": "Dressed to impress",
+   "level": "suite",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 8
+  },
+  {
+   "key": "s:falling-apart",
+   "channel": 4,
+   "cc": 105,
+   "label": "Falling apart",
+   "level": "suite",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 9
+  },
+  {
+   "key": "s:frontier",
+   "channel": 4,
+   "cc": 106,
+   "label": "Frontier",
+   "level": "suite",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 10
+  },
+  {
+   "key": "p:change-outfit-change-self",
+   "channel": 4,
+   "cc": 107,
+   "label": "A new outfit marks a change in the character",
+   "level": "proximity",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 11
+  },
+  {
+   "key": "p:disguise-reveal",
+   "channel": 4,
+   "cc": 108,
+   "label": "A disguise is followed by its unmasking",
+   "level": "proximity",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 12
+  },
+  {
+   "key": "p:clash-noticed",
+   "channel": 4,
+   "cc": 109,
+   "label": "Clashing clothes get noticed",
+   "level": "proximity",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 13
+  },
+  {
+   "key": "ps:clothes-tell-the-story",
+   "channel": 4,
+   "cc": 110,
+   "label": "Clothes tell the story",
+   "level": "proximitySuite",
+   "workspace": "wardrobe",
+   "module": 28,
+   "jack": 14
+  },
+  {
+   "key": "c:colorRange",
+   "channel": 5,
+   "cc": 1,
+   "label": "Black and white to full color",
+   "level": "curiosity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 1
+  },
+  {
+   "key": "c:colorFilter",
+   "channel": 5,
+   "cc": 2,
+   "label": "Color filter",
+   "level": "curiosity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 2
+  },
+  {
+   "key": "c:filterHue",
+   "channel": 5,
+   "cc": 3,
+   "label": "Filter color",
+   "level": "curiosity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 3
+  },
+  {
+   "key": "c:colorCount",
+   "channel": 5,
+   "cc": 4,
+   "label": "Number of main colors",
+   "level": "curiosity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 4
+  },
+  {
+   "key": "c:colorAccent",
+   "channel": 5,
+   "cc": 5,
+   "label": "One color that pops",
+   "level": "curiosity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 5
+  },
+  {
+   "key": "c:warmCool",
+   "channel": 5,
+   "cc": 6,
+   "label": "Warm to cool",
+   "level": "curiosity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 6
+  },
+  {
+   "key": "c:colorDrift",
+   "channel": 5,
+   "cc": 7,
+   "label": "Color change in the scene",
+   "level": "curiosity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 7
+  },
+  {
+   "key": "c:skinColorTruth",
+   "channel": 5,
+   "cc": 8,
+   "label": "How true skin looks",
+   "level": "curiosity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 8
+  },
+  {
+   "key": "s:lens-color",
+   "channel": 5,
+   "cc": 9,
+   "label": "Color lens",
+   "level": "suite",
+   "workspace": "color",
+   "module": 29,
+   "jack": 9
+  },
+  {
+   "key": "s:lens-look",
+   "channel": 5,
+   "cc": 10,
+   "label": "The whole look",
+   "level": "suite",
+   "workspace": "color",
+   "module": 29,
+   "jack": 10
+  },
+  {
+   "key": "s:teal-and-orange",
+   "channel": 5,
+   "cc": 11,
+   "label": "Teal and orange",
+   "level": "suite",
+   "workspace": "color",
+   "module": 29,
+   "jack": 11
+  },
+  {
+   "key": "s:faded-memory",
+   "channel": 5,
+   "cc": 12,
+   "label": "Faded memory",
+   "level": "suite",
+   "workspace": "color",
+   "module": 29,
+   "jack": 12
+  },
+  {
+   "key": "s:black-and-white-one-color",
+   "channel": 5,
+   "cc": 13,
+   "label": "Black and white with one color",
+   "level": "suite",
+   "workspace": "color",
+   "module": 29,
+   "jack": 13
+  },
+  {
+   "key": "s:bleak-gray",
+   "channel": 5,
+   "cc": 14,
+   "label": "Bleak gray",
+   "level": "suite",
+   "workspace": "color",
+   "module": 29,
+   "jack": 14
+  },
+  {
+   "key": "p:filter-bw",
+   "channel": 5,
+   "cc": 15,
+   "label": "When the color filter gets strong, the number of main colors drops",
+   "level": "proximity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 15
+  },
+  {
+   "key": "p:anger-warm-red",
+   "channel": 5,
+   "cc": 16,
+   "label": "When anger rises, the color runs warm",
+   "level": "proximity",
+   "workspace": "color",
+   "module": 29,
+   "jack": 16
+  },
+  {
+   "key": "p:fear-color-drains",
+   "channel": 5,
+   "cc": 17,
+   "label": "When fear rises, the color drains",
+   "level": "proximity",
+   "workspace": "color",
+   "module": 30,
+   "jack": 1
+  },
+  {
+   "key": "ps:color-follows-feeling",
+   "channel": 5,
+   "cc": 18,
+   "label": "Color follows the feeling",
+   "level": "proximitySuite",
+   "workspace": "color",
+   "module": 30,
+   "jack": 2
+  },
+  {
+   "key": "c:setStyle",
+   "channel": 5,
+   "cc": 33,
+   "label": "Era and style of the place",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 1
+  },
+  {
+   "key": "c:setMaterial",
+   "channel": 5,
+   "cc": 34,
+   "label": "Main material",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 2
+  },
+  {
+   "key": "c:setLines",
+   "channel": 5,
+   "cc": 35,
+   "label": "Soft curves to sharp clean lines",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 3
+  },
+  {
+   "key": "c:wallArt",
+   "channel": 5,
+   "cc": 36,
+   "label": "Art on the walls",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 4
+  },
+  {
+   "key": "c:artArrangement",
+   "channel": 5,
+   "cc": 37,
+   "label": "How the art is arranged",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 5
+  },
+  {
+   "key": "c:clutter",
+   "channel": 5,
+   "cc": 38,
+   "label": "Clutter",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 6
+  },
+  {
+   "key": "c:layoutOpen",
+   "channel": 5,
+   "cc": 39,
+   "label": "Cramped to open",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 7
+  },
+  {
+   "key": "c:setUpkeep",
+   "channel": 5,
+   "cc": 40,
+   "label": "Run down to spotless",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 8
+  },
+  {
+   "key": "c:setDepth",
+   "channel": 5,
+   "cc": 41,
+   "label": "Layers behind the people",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 9
+  },
+  {
+   "key": "c:setBrightness",
+   "channel": 5,
+   "cc": 42,
+   "label": "Dark to bright colors",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 10
+  },
+  {
+   "key": "c:setLayout",
+   "channel": 5,
+   "cc": 43,
+   "label": "How the room is laid out",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 11
+  },
+  {
+   "key": "c:props",
+   "channel": 5,
+   "cc": 44,
+   "label": "Props",
+   "level": "curiosity",
+   "workspace": "set",
+   "module": 31,
+   "jack": 12
+  },
+  {
+   "key": "s:lens-set",
+   "channel": 5,
+   "cc": 45,
+   "label": "Set design lens",
+   "level": "suite",
+   "workspace": "set",
+   "module": 31,
+   "jack": 13
+  },
+  {
+   "key": "s:dive-bar",
+   "channel": 5,
+   "cc": 46,
+   "label": "Dive bar",
+   "level": "suite",
+   "workspace": "set",
+   "module": 31,
+   "jack": 14
+  },
+  {
+   "key": "s:upscale-lounge",
+   "channel": 5,
+   "cc": 47,
+   "label": "Upscale lounge",
+   "level": "suite",
+   "workspace": "set",
+   "module": 31,
+   "jack": 15
+  },
+  {
+   "key": "s:period-piece",
+   "channel": 5,
+   "cc": 48,
+   "label": "Period piece",
+   "level": "suite",
+   "workspace": "set",
+   "module": 31,
+   "jack": 16
+  },
+  {
+   "key": "s:minimalist-cold",
+   "channel": 5,
+   "cc": 49,
+   "label": "Cold minimalism",
+   "level": "suite",
+   "workspace": "set",
+   "module": 32,
+   "jack": 1
+  },
+  {
+   "key": "s:maximalist-warm",
+   "channel": 5,
+   "cc": 50,
+   "label": "Warm maximalism",
+   "level": "suite",
+   "workspace": "set",
+   "module": 32,
+   "jack": 2
+  },
+  {
+   "key": "s:lived-in-home",
+   "channel": 5,
+   "cc": 51,
+   "label": "Lived-in home",
+   "level": "suite",
+   "workspace": "set",
+   "module": 32,
+   "jack": 3
+  },
+  {
+   "key": "p:clutter-cramped",
+   "channel": 5,
+   "cc": 52,
+   "label": "When the clutter rises, the room feels more cramped",
+   "level": "proximity",
+   "workspace": "set",
+   "module": 32,
+   "jack": 4
+  },
+  {
+   "key": "p:upkeep-wear",
+   "channel": 5,
+   "cc": 53,
+   "label": "When the place runs down, the clothes wear out too",
+   "level": "proximity",
+   "workspace": "set",
+   "module": 32,
+   "jack": 5
+  },
+  {
+   "key": "p:clutter-close",
+   "channel": 5,
+   "cc": 54,
+   "label": "In a cluttered room, the shots get closer",
+   "level": "proximity",
+   "workspace": "set",
+   "module": 32,
+   "jack": 6
+  },
+  {
+   "key": "p:big-space-wide",
+   "channel": 5,
+   "cc": 55,
+   "label": "In a huge space, the frame goes wide",
+   "level": "proximity",
+   "workspace": "set",
+   "module": 32,
+   "jack": 7
+  },
+  {
+   "key": "p:prop-key-insert",
+   "channel": 5,
+   "cc": 56,
+   "label": "A key prop gets its close-up",
+   "level": "proximity",
+   "workspace": "set",
+   "module": 32,
+   "jack": 8
+  },
+  {
+   "key": "p:decay-mood",
+   "channel": 5,
+   "cc": 57,
+   "label": "A run-down room darkens the mood",
+   "level": "proximity",
+   "workspace": "set",
+   "module": 32,
+   "jack": 9
+  },
+  {
+   "key": "ps:set-steers-the-camera",
+   "channel": 5,
+   "cc": 58,
+   "label": "The set steers the camera",
+   "level": "proximitySuite",
+   "workspace": "set",
+   "module": 32,
+   "jack": 10
+  },
+  {
+   "key": "c:emotionIntensity",
+   "channel": 5,
+   "cc": 65,
+   "label": "Strength of the feeling",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 1
+  },
+  {
+   "key": "c:emoMove",
+   "channel": 5,
+   "cc": 66,
+   "label": "How they move",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 2
+  },
+  {
+   "key": "c:emoVoice",
+   "channel": 5,
+   "cc": 67,
+   "label": "Feeling in the voice",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 3
+  },
+  {
+   "key": "c:movementAmount",
+   "channel": 5,
+   "cc": 68,
+   "label": "Amount of movement",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 4
+  },
+  {
+   "key": "c:wordsAmount",
+   "channel": 5,
+   "cc": 69,
+   "label": "Amount said",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 5
+  },
+  {
+   "key": "c:postureChanges",
+   "channel": 5,
+   "cc": 70,
+   "label": "Posture changes",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 6
+  },
+  {
+   "key": "c:emoActions",
+   "channel": 5,
+   "cc": 71,
+   "label": "Size of the actions",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 7
+  },
+  {
+   "key": "c:settingMood",
+   "channel": 5,
+   "cc": 72,
+   "label": "Mood of the place",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 8
+  },
+  {
+   "key": "c:lightingMood",
+   "channel": 5,
+   "cc": 73,
+   "label": "Mood of the light",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 9
+  },
+  {
+   "key": "c:emoContrastPrev",
+   "channel": 5,
+   "cc": 74,
+   "label": "Against the last scene",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 10
+  },
+  {
+   "key": "c:emotionGap",
+   "channel": 5,
+   "cc": 75,
+   "label": "Feeling gap between characters",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 11
+  },
+  {
+   "key": "c:mixedFeelings",
+   "channel": 5,
+   "cc": 76,
+   "label": "Mixed feelings",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 12
+  },
+  {
+   "key": "c:subtext",
+   "channel": 5,
+   "cc": 77,
+   "label": "Said against meant",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 13
+  },
+  {
+   "key": "c:emoEyes",
+   "channel": 5,
+   "cc": 78,
+   "label": "The eyes",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 14
+  },
+  {
+   "key": "c:emoHands",
+   "channel": 5,
+   "cc": 79,
+   "label": "The hands",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 15
+  },
+  {
+   "key": "c:personalSpace",
+   "channel": 5,
+   "cc": 80,
+   "label": "Personal space",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 33,
+   "jack": 16
+  },
+  {
+   "key": "c:emoRelease",
+   "channel": 5,
+   "cc": 81,
+   "label": "Release",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 1
+  },
+  {
+   "key": "c:audienceFeeling",
+   "channel": 5,
+   "cc": 82,
+   "label": "What the audience feels",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 2
+  },
+  {
+   "key": "s:emotion-loving",
+   "channel": 5,
+   "cc": 83,
+   "label": "Feels loving",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 3
+  },
+  {
+   "key": "s:emotion-joyful",
+   "channel": 5,
+   "cc": 84,
+   "label": "Feels joyful",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 4
+  },
+  {
+   "key": "s:emotion-curious",
+   "channel": 5,
+   "cc": 85,
+   "label": "Feels curious",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 5
+  },
+  {
+   "key": "s:emotion-melancholy",
+   "channel": 5,
+   "cc": 86,
+   "label": "Feels melancholy",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 6
+  },
+  {
+   "key": "s:emotion-anxious",
+   "channel": 5,
+   "cc": 87,
+   "label": "Feels anxious",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 7
+  },
+  {
+   "key": "s:emotion-fearful",
+   "channel": 5,
+   "cc": 88,
+   "label": "Feels fearful",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 8
+  },
+  {
+   "key": "s:emotion-angry",
+   "channel": 5,
+   "cc": 89,
+   "label": "Feels angry",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 9
+  },
+  {
+   "key": "s:emotion-triumphant",
+   "channel": 5,
+   "cc": 90,
+   "label": "Feels triumphant",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 10
+  },
+  {
+   "key": "s:emotion-absurd",
+   "channel": 5,
+   "cc": 91,
+   "label": "Feels absurd",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 11
+  },
+  {
+   "key": "s:emotion-dreamlike",
+   "channel": 5,
+   "cc": 92,
+   "label": "Feels dreamlike",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 12
+  },
+  {
+   "key": "s:lens-emotion",
+   "channel": 5,
+   "cc": 93,
+   "label": "Emotion lens",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 13
+  },
+  {
+   "key": "s:lens-feeling",
+   "channel": 5,
+   "cc": 94,
+   "label": "Feeling of the scene",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 14
+  },
+  {
+   "key": "s:held-back-tears",
+   "channel": 5,
+   "cc": 95,
+   "label": "Held-back tears",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 15
+  },
+  {
+   "key": "s:rage-boils-over",
+   "channel": 5,
+   "cc": 96,
+   "label": "Rage boils over",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 34,
+   "jack": 16
+  },
+  {
+   "key": "s:quiet-joy",
+   "channel": 5,
+   "cc": 97,
+   "label": "Quiet joy",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 1
+  },
+  {
+   "key": "s:frozen-fear",
+   "channel": 5,
+   "cc": 98,
+   "label": "Frozen fear",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 2
+  },
+  {
+   "key": "s:mood-whiplash",
+   "channel": 5,
+   "cc": 99,
+   "label": "Mood whiplash",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 3
+  },
+  {
+   "key": "s:calm-in-the-storm",
+   "channel": 5,
+   "cc": 100,
+   "label": "Calm in the storm",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 4
+  },
+  {
+   "key": "s:mask-slips",
+   "channel": 5,
+   "cc": 101,
+   "label": "The mask slips",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 5
+  },
+  {
+   "key": "s:laughing-through-tears",
+   "channel": 5,
+   "cc": 102,
+   "label": "Laughing through tears",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 6
+  },
+  {
+   "key": "s:brave-face",
+   "channel": 5,
+   "cc": 103,
+   "label": "Brave face",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 7
+  },
+  {
+   "key": "s:dawning-realization",
+   "channel": 5,
+   "cc": 104,
+   "label": "Dawning realization",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 8
+  },
+  {
+   "key": "s:the-breakdown",
+   "channel": 5,
+   "cc": 105,
+   "label": "The breakdown",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 9
+  },
+  {
+   "key": "s:cold-fury",
+   "channel": 5,
+   "cc": 106,
+   "label": "Cold fury",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 10
+  },
+  {
+   "key": "s:giddy-relief",
+   "channel": 5,
+   "cc": 107,
+   "label": "Giddy relief",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 11
+  },
+  {
+   "key": "s:numb-shock",
+   "channel": 5,
+   "cc": 108,
+   "label": "Numb shock",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 12
+  },
+  {
+   "key": "s:awkward-tenderness",
+   "channel": 5,
+   "cc": 109,
+   "label": "Awkward tenderness",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 13
+  },
+  {
+   "key": "s:dramatic-dread",
+   "channel": 5,
+   "cc": 110,
+   "label": "Dread: we know, they don't",
+   "level": "suite",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 14
+  },
+  {
+   "key": "p:light-mood-intensity",
+   "channel": 5,
+   "cc": 111,
+   "label": "When the mood of the light drops, the strength of the feeling rises",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 15
+  },
+  {
+   "key": "p:intensity-moves",
+   "channel": 5,
+   "cc": 112,
+   "label": "When the feeling grows stronger, the posture changes more often",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 35,
+   "jack": 16
+  },
+  {
+   "key": "p:contrast-prev-color",
+   "channel": 6,
+   "cc": 1,
+   "label": "When a scene feels the opposite of the last one, the color shifts too",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 1
+  },
+  {
+   "key": "p:feeling-shows-face-first",
+   "channel": 6,
+   "cc": 2,
+   "label": "When a feeling rises, the face shows it before the words",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 2
+  },
+  {
+   "key": "p:anger-louder",
+   "channel": 6,
+   "cc": 3,
+   "label": "When anger rises, the voice gets louder",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 3
+  },
+  {
+   "key": "p:fear-still",
+   "channel": 6,
+   "cc": 4,
+   "label": "When fear rises, movement stops",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 4
+  },
+  {
+   "key": "p:contagion-spreads",
+   "channel": 6,
+   "cc": 5,
+   "label": "When one character's feeling overflows, others catch it",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 5
+  },
+  {
+   "key": "p:joy-light-warms",
+   "channel": 6,
+   "cc": 6,
+   "label": "When joy rises, the light warms",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 6
+  },
+  {
+   "key": "p:trigger-turns",
+   "channel": 6,
+   "cc": 7,
+   "label": "When a trigger appears, the feeling turns",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 7
+  },
+  {
+   "key": "p:release-lighter",
+   "channel": 6,
+   "cc": 8,
+   "label": "After a release, the character is lighter",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 8
+  },
+  {
+   "key": "p:subtext-pause",
+   "channel": 6,
+   "cc": 9,
+   "label": "When said and meant pull apart, the pauses grow",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 9
+  },
+  {
+   "key": "p:space-closes-intensity",
+   "channel": 6,
+   "cc": 10,
+   "label": "When people move closer, the feeling grows",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 10
+  },
+  {
+   "key": "p:tears-close-up",
+   "channel": 6,
+   "cc": 11,
+   "label": "When tears well, the shot gets closer",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 11
+  },
+  {
+   "key": "p:we-know-tension",
+   "channel": 6,
+   "cc": 12,
+   "label": "When we know more than they do, tension rises",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 12
+  },
+  {
+   "key": "p:mixed-face-flicker",
+   "channel": 6,
+   "cc": 13,
+   "label": "When feelings mix, the face flickers",
+   "level": "proximity",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 13
+  },
+  {
+   "key": "ps:body-tells-first",
+   "channel": 6,
+   "cc": 14,
+   "label": "The body tells first",
+   "level": "proximitySuite",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 14
+  },
+  {
+   "key": "ps:feelings-spread",
+   "channel": 6,
+   "cc": 15,
+   "label": "Feelings spread",
+   "level": "proximitySuite",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 15
+  },
+  {
+   "key": "ps:what-isnt-said",
+   "channel": 6,
+   "cc": 16,
+   "label": "What isn't said",
+   "level": "proximitySuite",
+   "workspace": "emotion",
+   "module": 36,
+   "jack": 16
+  },
+  {
+   "key": "ps:closeness-and-dread",
+   "channel": 6,
+   "cc": 17,
+   "label": "Closeness and dread",
+   "level": "proximitySuite",
+   "workspace": "emotion",
+   "module": 37,
+   "jack": 1
+  },
+  {
+   "key": "c:emoRoadCharacter",
+   "channel": 6,
+   "cc": 33,
+   "label": "Where this character is on their road",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 1
+  },
+  {
+   "key": "c:emoRoadFilm",
+   "channel": 6,
+   "cc": 34,
+   "label": "Where the film is on its road",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 2
+  },
+  {
+   "key": "c:emoTurn",
+   "channel": 6,
+   "cc": 35,
+   "label": "Does the feeling turn",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 3
+  },
+  {
+   "key": "c:emoShown",
+   "channel": 6,
+   "cc": 36,
+   "label": "Hidden to shown",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 4
+  },
+  {
+   "key": "c:emoSpread",
+   "channel": 6,
+   "cc": 37,
+   "label": "How far the feeling spreads",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 5
+  },
+  {
+   "key": "c:catharsis",
+   "channel": 6,
+   "cc": 38,
+   "label": "Catharsis",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 6
+  },
+  {
+   "key": "c:emotionalDebt",
+   "channel": 6,
+   "cc": 39,
+   "label": "Feeling held in",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 7
+  },
+  {
+   "key": "c:hope",
+   "channel": 6,
+   "cc": 40,
+   "label": "Hope",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 8
+  },
+  {
+   "key": "c:stakes",
+   "channel": 6,
+   "cc": 41,
+   "label": "What they stand to lose",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 9
+  },
+  {
+   "key": "c:breather",
+   "channel": 6,
+   "cc": 42,
+   "label": "Breather",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 10
+  },
+  {
+   "key": "c:falseHigh",
+   "channel": 6,
+   "cc": 43,
+   "label": "False high, false low",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 11
+  },
+  {
+   "key": "c:twoRoads",
+   "channel": 6,
+   "cc": 44,
+   "label": "Two roads",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 12
+  },
+  {
+   "key": "c:feelingEcho",
+   "channel": 6,
+   "cc": 45,
+   "label": "A feeling comes back",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 13
+  },
+  {
+   "key": "c:warmth",
+   "channel": 6,
+   "cc": 46,
+   "label": "Warmth between two",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 14
+  },
+  {
+   "key": "c:dread",
+   "channel": 6,
+   "cc": 47,
+   "label": "Dread",
+   "level": "curiosity",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 15
+  },
+  {
+   "key": "s:lens-emoRoad",
+   "channel": 6,
+   "cc": 48,
+   "label": "Emotional road lens",
+   "level": "suite",
+   "workspace": "emo-road",
+   "module": 38,
+   "jack": 16
+  },
+  {
+   "key": "s:rock-bottom",
+   "channel": 6,
+   "cc": 49,
+   "label": "Rock bottom",
+   "level": "suite",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 1
+  },
+  {
+   "key": "s:hope-dies",
+   "channel": 6,
+   "cc": 50,
+   "label": "Hope dies",
+   "level": "suite",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 2
+  },
+  {
+   "key": "s:the-midpoint-win",
+   "channel": 6,
+   "cc": 51,
+   "label": "The midpoint win",
+   "level": "suite",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 3
+  },
+  {
+   "key": "s:rest-stop",
+   "channel": 6,
+   "cc": 52,
+   "label": "A rest stop",
+   "level": "suite",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 4
+  },
+  {
+   "key": "s:crossed-roads",
+   "channel": 6,
+   "cc": 53,
+   "label": "Crossed roads",
+   "level": "suite",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 5
+  },
+  {
+   "key": "s:the-old-song",
+   "channel": 6,
+   "cc": 54,
+   "label": "The old song",
+   "level": "suite",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 6
+  },
+  {
+   "key": "s:slow-dread",
+   "channel": 6,
+   "cc": 55,
+   "label": "Slow dread",
+   "level": "suite",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 7
+  },
+  {
+   "key": "s:everything-to-lose",
+   "channel": 6,
+   "cc": 56,
+   "label": "Everything to lose",
+   "level": "suite",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 8
+  },
+  {
+   "key": "p:lowpoint-turn",
+   "channel": 6,
+   "cc": 57,
+   "label": "When a character reaches their lowest point, their feeling turns",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 9
+  },
+  {
+   "key": "p:low-then-laugh",
+   "channel": 6,
+   "cc": 58,
+   "label": "After a low scene, a laugh",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 10
+  },
+  {
+   "key": "p:hidden-then-burst",
+   "channel": 6,
+   "cc": 59,
+   "label": "A hidden feeling bursts out later",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 11
+  },
+  {
+   "key": "p:tension-release",
+   "channel": 6,
+   "cc": 60,
+   "label": "After tension peaks, release follows",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 12
+  },
+  {
+   "key": "p:held-in-release",
+   "channel": 6,
+   "cc": 61,
+   "label": "When enough feeling is held in, it comes out",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 13
+  },
+  {
+   "key": "p:false-high-falls",
+   "channel": 6,
+   "cc": 62,
+   "label": "When a false high peaks, the fall follows",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 14
+  },
+  {
+   "key": "p:big-then-breather",
+   "channel": 6,
+   "cc": 63,
+   "label": "When a big feeling peaks, a breather follows",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 15
+  },
+  {
+   "key": "p:stakes-hope",
+   "channel": 6,
+   "cc": 64,
+   "label": "When the stakes rise, hope gets fragile",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 39,
+   "jack": 16
+  },
+  {
+   "key": "p:hope-gone-catharsis",
+   "channel": 6,
+   "cc": 65,
+   "label": "When hope is lost, the release comes later",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 1
+  },
+  {
+   "key": "p:echo-catharsis",
+   "channel": 6,
+   "cc": 66,
+   "label": "When an old feeling comes back changed, the release arrives",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 2
+  },
+  {
+   "key": "p:dread-silence",
+   "channel": 6,
+   "cc": 67,
+   "label": "When dread builds, the music thins out",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 3
+  },
+  {
+   "key": "p:warmth-roads",
+   "channel": 6,
+   "cc": 68,
+   "label": "When the warmth cools, the two roads part",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 4
+  },
+  {
+   "key": "p:relief-laugh",
+   "channel": 6,
+   "cc": 69,
+   "label": "When the dread is lifted, a laugh comes",
+   "level": "proximity",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 5
+  },
+  {
+   "key": "ps:emotional-rollercoaster",
+   "channel": 6,
+   "cc": 70,
+   "label": "Emotional rollercoaster",
+   "level": "proximitySuite",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 6
+  },
+  {
+   "key": "ps:the-dam-breaks",
+   "channel": 6,
+   "cc": 71,
+   "label": "The dam breaks",
+   "level": "proximitySuite",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 7
+  },
+  {
+   "key": "ps:the-fall-and-rise",
+   "channel": 6,
+   "cc": 72,
+   "label": "The fall and the rise",
+   "level": "proximitySuite",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 8
+  },
+  {
+   "key": "ps:room-to-breathe",
+   "channel": 6,
+   "cc": 73,
+   "label": "Breathing room",
+   "level": "proximitySuite",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 9
+  },
+  {
+   "key": "ps:pressure-cooker",
+   "channel": 6,
+   "cc": 74,
+   "label": "The pressure cooker",
+   "level": "proximitySuite",
+   "workspace": "emo-road",
+   "module": 40,
+   "jack": 10
+  },
+  {
+   "key": "c:comedyDevice",
+   "channel": 6,
+   "cc": 81,
+   "label": "Kind of joke",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 1
+  },
+  {
+   "key": "c:comedyTopic",
+   "channel": 6,
+   "cc": 82,
+   "label": "What the joke is about",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 2
+  },
+  {
+   "key": "c:comicTiming",
+   "channel": 6,
+   "cc": 83,
+   "label": "Pause before the punchline",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 3
+  },
+  {
+   "key": "c:comicEscalation",
+   "channel": 6,
+   "cc": 84,
+   "label": "Escalation",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 4
+  },
+  {
+   "key": "c:absurdity",
+   "channel": 6,
+   "cc": 85,
+   "label": "Absurdity",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 5
+  },
+  {
+   "key": "c:comicRegister",
+   "channel": 6,
+   "cc": 86,
+   "label": "Deadpan to broad",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 6
+  },
+  {
+   "key": "c:cringe",
+   "channel": 6,
+   "cc": 87,
+   "label": "Cringe",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 7
+  },
+  {
+   "key": "c:comicBeat",
+   "channel": 6,
+   "cc": 88,
+   "label": "Setup and payoff",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 8
+  },
+  {
+   "key": "c:payoffDistance",
+   "channel": 6,
+   "cc": 89,
+   "label": "Scenes from setup to payoff",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 9
+  },
+  {
+   "key": "c:laughsPerMinute",
+   "channel": 6,
+   "cc": 90,
+   "label": "Laughs per minute",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 10
+  },
+  {
+   "key": "c:jokeCarrier",
+   "channel": 6,
+   "cc": 91,
+   "label": "Who carries the joke",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 11
+  },
+  {
+   "key": "c:comicReaction",
+   "channel": 6,
+   "cc": 92,
+   "label": "Reaction to the joke",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 12
+  },
+  {
+   "key": "c:runningGag",
+   "channel": 6,
+   "cc": 93,
+   "label": "Running gag",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 13
+  },
+  {
+   "key": "c:callback",
+   "channel": 6,
+   "cc": 94,
+   "label": "Callback",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 14
+  },
+  {
+   "key": "c:ruleOfThree",
+   "channel": 6,
+   "cc": 95,
+   "label": "Rule of three",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 15
+  },
+  {
+   "key": "c:physicalComedy",
+   "channel": 6,
+   "cc": 96,
+   "label": "Physical comedy",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 41,
+   "jack": 16
+  },
+  {
+   "key": "c:wordplay",
+   "channel": 6,
+   "cc": 97,
+   "label": "Wordplay",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 1
+  },
+  {
+   "key": "c:misdirection",
+   "channel": 6,
+   "cc": 98,
+   "label": "Misdirection",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 2
+  },
+  {
+   "key": "c:irony",
+   "channel": 6,
+   "cc": 99,
+   "label": "Irony",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 3
+  },
+  {
+   "key": "c:understatement",
+   "channel": 6,
+   "cc": 100,
+   "label": "Understatement",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 4
+  },
+  {
+   "key": "c:fishOutOfWater",
+   "channel": 6,
+   "cc": 101,
+   "label": "Fish out of water",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 5
+  },
+  {
+   "key": "c:visualGag",
+   "channel": 6,
+   "cc": 102,
+   "label": "Visual gag",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 6
+  },
+  {
+   "key": "c:subversion",
+   "channel": 6,
+   "cc": 103,
+   "label": "Subversion",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 7
+  },
+  {
+   "key": "c:comicEdit",
+   "channel": 6,
+   "cc": 104,
+   "label": "Comic edit",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 8
+  },
+  {
+   "key": "c:comicSound",
+   "channel": 6,
+   "cc": 105,
+   "label": "Comic sound",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 9
+  },
+  {
+   "key": "c:comicFlaw",
+   "channel": 6,
+   "cc": 106,
+   "label": "Comic flaw",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 10
+  },
+  {
+   "key": "c:comicPremise",
+   "channel": 6,
+   "cc": 107,
+   "label": "Comic premise",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 11
+  },
+  {
+   "key": "c:topper",
+   "channel": 6,
+   "cc": 108,
+   "label": "The topper",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 12
+  },
+  {
+   "key": "c:specificity",
+   "channel": 6,
+   "cc": 109,
+   "label": "Oddly specific",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 13
+  },
+  {
+   "key": "c:fourthWall",
+   "channel": 6,
+   "cc": 110,
+   "label": "Talking to the camera",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 14
+  },
+  {
+   "key": "c:exaggeration",
+   "channel": 6,
+   "cc": 111,
+   "label": "Exaggeration",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 15
+  },
+  {
+   "key": "c:humiliation",
+   "channel": 6,
+   "cc": 112,
+   "label": "Humiliation",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 42,
+   "jack": 16
+  },
+  {
+   "key": "c:escalatingLie",
+   "channel": 7,
+   "cc": 1,
+   "label": "The lie that grows",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 1
+  },
+  {
+   "key": "c:misunderstanding",
+   "channel": 7,
+   "cc": 2,
+   "label": "Misunderstanding",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 2
+  },
+  {
+   "key": "c:cutawayGag",
+   "channel": 7,
+   "cc": 3,
+   "label": "Cutaway gag",
+   "level": "curiosity",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 3
+  },
+  {
+   "key": "s:lens-comedy",
+   "channel": 7,
+   "cc": 4,
+   "label": "Comedy lens",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 4
+  },
+  {
+   "key": "s:lens-laugh",
+   "channel": 7,
+   "cc": 5,
+   "label": "Where the laugh comes from",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 5
+  },
+  {
+   "key": "s:deadpan",
+   "channel": 7,
+   "cc": 6,
+   "label": "Deadpan",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 6
+  },
+  {
+   "key": "s:slapstick",
+   "channel": 7,
+   "cc": 7,
+   "label": "Slapstick",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 7
+  },
+  {
+   "key": "s:mockumentary",
+   "channel": 7,
+   "cc": 8,
+   "label": "Mockumentary",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 8
+  },
+  {
+   "key": "s:screwball",
+   "channel": 7,
+   "cc": 9,
+   "label": "Screwball",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 9
+  },
+  {
+   "key": "s:cringe-comedy",
+   "channel": 7,
+   "cc": 10,
+   "label": "Cringe comedy",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 10
+  },
+  {
+   "key": "s:absurdist",
+   "channel": 7,
+   "cc": 11,
+   "label": "Absurdist",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 11
+  },
+  {
+   "key": "s:dark-comedy",
+   "channel": 7,
+   "cc": 12,
+   "label": "Dark comedy",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 12
+  },
+  {
+   "key": "s:rom-com-banter",
+   "channel": 7,
+   "cc": 13,
+   "label": "Rom-com banter",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 13
+  },
+  {
+   "key": "s:snowball-disaster",
+   "channel": 7,
+   "cc": 14,
+   "label": "Snowball disaster",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 14
+  },
+  {
+   "key": "s:pull-back-reveal",
+   "channel": 7,
+   "cc": 15,
+   "label": "Pull-back reveal",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 15
+  },
+  {
+   "key": "s:smash-cut-contradiction",
+   "channel": 7,
+   "cc": 16,
+   "label": "Smash cut contradiction",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 43,
+   "jack": 16
+  },
+  {
+   "key": "s:background-gags",
+   "channel": 7,
+   "cc": 17,
+   "label": "Background gags",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 1
+  },
+  {
+   "key": "s:farce",
+   "channel": 7,
+   "cc": 18,
+   "label": "Farce",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 2
+  },
+  {
+   "key": "s:the-topper",
+   "channel": 7,
+   "cc": 19,
+   "label": "The topper",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 3
+  },
+  {
+   "key": "s:punching-up",
+   "channel": 7,
+   "cc": 20,
+   "label": "Punching up",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 4
+  },
+  {
+   "key": "s:aside-to-camera",
+   "channel": 7,
+   "cc": 21,
+   "label": "The aside",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 5
+  },
+  {
+   "key": "s:oddly-specific-world",
+   "channel": 7,
+   "cc": 22,
+   "label": "Oddly specific world",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 6
+  },
+  {
+   "key": "s:blind-flaw",
+   "channel": 7,
+   "cc": 23,
+   "label": "Blind to their flaw",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 7
+  },
+  {
+   "key": "s:cutaway-contradiction",
+   "channel": 7,
+   "cc": 24,
+   "label": "The cutaway that contradicts",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 8
+  },
+  {
+   "key": "s:big-reaction",
+   "channel": 7,
+   "cc": 25,
+   "label": "Bigger than life",
+   "level": "suite",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 9
+  },
+  {
+   "key": "p:setup-payoff",
+   "channel": 7,
+   "cc": 26,
+   "label": "When a joke's setup is planted, the payoff lands",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 10
+  },
+  {
+   "key": "p:escalation-absurdity",
+   "channel": 7,
+   "cc": 27,
+   "label": "When the escalation rises, the absurdity rises",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 11
+  },
+  {
+   "key": "p:pause-laughs",
+   "channel": 7,
+   "cc": 28,
+   "label": "When the pause before the punchline grows, laughs per minute drop but each lands harder",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 12
+  },
+  {
+   "key": "p:joke-reaction",
+   "channel": 7,
+   "cc": 29,
+   "label": "After a big joke, cut to a reaction",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 13
+  },
+  {
+   "key": "p:two-then-break",
+   "channel": 7,
+   "cc": 30,
+   "label": "Two of a pattern, then the break",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 14
+  },
+  {
+   "key": "p:insist-then-do",
+   "channel": 7,
+   "cc": 31,
+   "label": "\"I'll never\", then they do",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 15
+  },
+  {
+   "key": "p:cringe-silence",
+   "channel": 7,
+   "cc": 32,
+   "label": "After a cringe, a pointed silence",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 44,
+   "jack": 16
+  },
+  {
+   "key": "p:escalate-wide",
+   "channel": 7,
+   "cc": 33,
+   "label": "As trouble escalates, the frame widens",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 1
+  },
+  {
+   "key": "p:gag-returns",
+   "channel": 7,
+   "cc": 34,
+   "label": "A running gag returns, bigger",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 2
+  },
+  {
+   "key": "p:callback-tender",
+   "channel": 7,
+   "cc": 35,
+   "label": "A joke line returns in a tender moment",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 3
+  },
+  {
+   "key": "p:absurd-no-reaction",
+   "channel": 7,
+   "cc": 36,
+   "label": "Something absurd, nobody reacts",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 4
+  },
+  {
+   "key": "p:misdirect-pullback",
+   "channel": 7,
+   "cc": 37,
+   "label": "Misdirection pays off with a pull-back",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 5
+  },
+  {
+   "key": "p:tension-laugh",
+   "channel": 7,
+   "cc": 38,
+   "label": "After tension, a laugh breaks it",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 6
+  },
+  {
+   "key": "p:laugh-topper",
+   "channel": 7,
+   "cc": 39,
+   "label": "When a joke lands, a topper follows",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 7
+  },
+  {
+   "key": "p:lie-grows",
+   "channel": 7,
+   "cc": 40,
+   "label": "When a lie wobbles, a bigger lie covers it",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 8
+  },
+  {
+   "key": "p:lie-collapse-humiliation",
+   "channel": 7,
+   "cc": 41,
+   "label": "When the lie collapses, someone is humiliated",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 9
+  },
+  {
+   "key": "p:misunderstanding-chaos",
+   "channel": 7,
+   "cc": 42,
+   "label": "When a misunderstanding deepens, the chaos grows",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 10
+  },
+  {
+   "key": "p:humiliation-cringe",
+   "channel": 7,
+   "cc": 43,
+   "label": "When someone is humiliated in front of others, the cringe rises",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 11
+  },
+  {
+   "key": "p:blind-flaw-setback",
+   "channel": 7,
+   "cc": 44,
+   "label": "When a blind flaw grows, the character is set back",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 12
+  },
+  {
+   "key": "p:aside-reaction",
+   "channel": 7,
+   "cc": 45,
+   "label": "When a character talks to us, the others react a beat late",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 13
+  },
+  {
+   "key": "p:specific-callback",
+   "channel": 7,
+   "cc": 46,
+   "label": "An oddly specific detail comes back later",
+   "level": "proximity",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 14
+  },
+  {
+   "key": "ps:joke-machine",
+   "channel": 7,
+   "cc": 47,
+   "label": "Joke machine",
+   "level": "proximitySuite",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 15
+  },
+  {
+   "key": "ps:long-game-comedy",
+   "channel": 7,
+   "cc": 48,
+   "label": "Long-game comedy",
+   "level": "proximitySuite",
+   "workspace": "comedy",
+   "module": 45,
+   "jack": 16
+  },
+  {
+   "key": "ps:comic-reversals",
+   "channel": 7,
+   "cc": 49,
+   "label": "Comic reversals",
+   "level": "proximitySuite",
+   "workspace": "comedy",
+   "module": 46,
+   "jack": 1
+  },
+  {
+   "key": "ps:comedy-camera",
+   "channel": 7,
+   "cc": 50,
+   "label": "The camera sells the joke",
+   "level": "proximitySuite",
+   "workspace": "comedy",
+   "module": 46,
+   "jack": 2
+  },
+  {
+   "key": "ps:farce-engine",
+   "channel": 7,
+   "cc": 51,
+   "label": "The farce engine",
+   "level": "proximitySuite",
+   "workspace": "comedy",
+   "module": 46,
+   "jack": 3
+  },
+  {
+   "key": "ps:laugh-stack",
+   "channel": 7,
+   "cc": 52,
+   "label": "Stacking laughs",
+   "level": "proximitySuite",
+   "workspace": "comedy",
+   "module": 46,
+   "jack": 4
+  },
+  {
+   "key": "ps:flaw-comedy",
+   "channel": 7,
+   "cc": 53,
+   "label": "Comedy of a flaw",
+   "level": "proximitySuite",
+   "workspace": "comedy",
+   "module": 46,
+   "jack": 5
+  },
+  {
+   "key": "c:typeClash",
+   "channel": 7,
+   "cc": 65,
+   "label": "How different the personalities are",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 1
+  },
+  {
+   "key": "c:chaosInRoom",
+   "channel": 7,
+   "cc": 66,
+   "label": "Chaos in an orderly room",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 2
+  },
+  {
+   "key": "c:statusGap",
+   "channel": 7,
+   "cc": 67,
+   "label": "Gap in rank",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 3
+  },
+  {
+   "key": "c:mixPlot",
+   "channel": 7,
+   "cc": 68,
+   "label": "What the mix does to the plot",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 4
+  },
+  {
+   "key": "c:mixArc",
+   "channel": 7,
+   "cc": 69,
+   "label": "What the mix does to the characters",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 5
+  },
+  {
+   "key": "c:mixLaughs",
+   "channel": 7,
+   "cc": 70,
+   "label": "Laughs from the mix",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 6
+  },
+  {
+   "key": "c:doubleAct",
+   "channel": 7,
+   "cc": 71,
+   "label": "The double act",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 7
+  },
+  {
+   "key": "c:straightMan",
+   "channel": 7,
+   "cc": 72,
+   "label": "The straight man",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 8
+  },
+  {
+   "key": "c:oddOneOut",
+   "channel": 7,
+   "cc": 73,
+   "label": "The odd one out",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 9
+  },
+  {
+   "key": "c:egoClash",
+   "channel": 7,
+   "cc": 74,
+   "label": "Clash of egos",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 10
+  },
+  {
+   "key": "c:whoKnows",
+   "channel": 7,
+   "cc": 75,
+   "label": "Who knows what",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 11
+  },
+  {
+   "key": "c:alliances",
+   "channel": 7,
+   "cc": 76,
+   "label": "Who sides with whom",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 12
+  },
+  {
+   "key": "c:unwantedGuest",
+   "channel": 7,
+   "cc": 77,
+   "label": "The unwanted guest",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 13
+  },
+  {
+   "key": "c:chemistry",
+   "channel": 7,
+   "cc": 78,
+   "label": "Chemistry",
+   "level": "curiosity",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 14
+  },
+  {
+   "key": "s:lens-comedyMix",
+   "channel": 7,
+   "cc": 79,
+   "label": "Comedy from the mix lens",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 15
+  },
+  {
+   "key": "s:straight-man-funny-man",
+   "channel": 7,
+   "cc": 80,
+   "label": "Straight one and funny one",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 47,
+   "jack": 16
+  },
+  {
+   "key": "s:chaos-agent",
+   "channel": 7,
+   "cc": 81,
+   "label": "Chaos agent",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 1
+  },
+  {
+   "key": "s:odd-couple",
+   "channel": 7,
+   "cc": 82,
+   "label": "The odd couple",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 2
+  },
+  {
+   "key": "s:calm-in-the-madness",
+   "channel": 7,
+   "cc": 83,
+   "label": "Calm in the madness",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 3
+  },
+  {
+   "key": "s:fish-in-the-group",
+   "channel": 7,
+   "cc": 84,
+   "label": "Doesn't belong here",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 4
+  },
+  {
+   "key": "s:petty-war",
+   "channel": 7,
+   "cc": 85,
+   "label": "The petty war",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 5
+  },
+  {
+   "key": "s:everyone-knows-but-one",
+   "channel": 7,
+   "cc": 86,
+   "label": "Everyone knows but one",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 6
+  },
+  {
+   "key": "s:status-swap",
+   "channel": 7,
+   "cc": 87,
+   "label": "Status swap",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 7
+  },
+  {
+   "key": "s:worst-guest",
+   "channel": 7,
+   "cc": 88,
+   "label": "The worst possible guest",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 8
+  },
+  {
+   "key": "s:banter",
+   "channel": 7,
+   "cc": 89,
+   "label": "Banter",
+   "level": "suite",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 9
+  },
+  {
+   "key": "p:chaos-cringe",
+   "channel": 7,
+   "cc": 90,
+   "label": "When a chaos character enters an orderly room, the cringe rises",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 10
+  },
+  {
+   "key": "p:opposites-laugh",
+   "channel": 7,
+   "cc": 91,
+   "label": "When opposite personality types share the room, more of the laughs come from the mix",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 11
+  },
+  {
+   "key": "p:status-plot",
+   "channel": 7,
+   "cc": 92,
+   "label": "When the gap in rank grows, the plot takes a turn",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 12
+  },
+  {
+   "key": "p:pride-fall",
+   "channel": 7,
+   "cc": 93,
+   "label": "Pride before a fall",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 13
+  },
+  {
+   "key": "p:guest-chaos",
+   "channel": 7,
+   "cc": 94,
+   "label": "When the unwanted guest arrives, the room falls into chaos",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 14
+  },
+  {
+   "key": "p:ego-plot",
+   "channel": 7,
+   "cc": 95,
+   "label": "When the egos clash, the plot takes a detour",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 15
+  },
+  {
+   "key": "p:secret-cringe",
+   "channel": 7,
+   "cc": 96,
+   "label": "When the one who doesn't know gets close to the secret, the cringe rises",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 48,
+   "jack": 16
+  },
+  {
+   "key": "p:straight-sells-it",
+   "channel": 7,
+   "cc": 97,
+   "label": "When the chaos grows, the straight man's calm sells the laugh",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 49,
+   "jack": 1
+  },
+  {
+   "key": "p:oddone-group",
+   "channel": 7,
+   "cc": 98,
+   "label": "When the odd one out tries harder, the group pulls away",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 49,
+   "jack": 2
+  },
+  {
+   "key": "p:sides-switch",
+   "channel": 7,
+   "cc": 99,
+   "label": "When the sides switch, the status flips",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 49,
+   "jack": 3
+  },
+  {
+   "key": "p:chemistry-arc",
+   "channel": 7,
+   "cc": 100,
+   "label": "When the chemistry grows, the characters change",
+   "level": "proximity",
+   "workspace": "comedy-mix",
+   "module": 49,
+   "jack": 4
+  },
+  {
+   "key": "ps:the-mix-makes-it-funny",
+   "channel": 7,
+   "cc": 101,
+   "label": "The mix makes it funny",
+   "level": "proximitySuite",
+   "workspace": "comedy-mix",
+   "module": 49,
+   "jack": 5
+  },
+  {
+   "key": "ps:house-party",
+   "channel": 7,
+   "cc": 102,
+   "label": "The house party engine",
+   "level": "proximitySuite",
+   "workspace": "comedy-mix",
+   "module": 49,
+   "jack": 6
+  },
+  {
+   "key": "ps:secret-in-the-room",
+   "channel": 7,
+   "cc": 103,
+   "label": "The secret in the room",
+   "level": "proximitySuite",
+   "workspace": "comedy-mix",
+   "module": 49,
+   "jack": 7
+  },
+  {
+   "key": "ps:pair-grows",
+   "channel": 7,
+   "cc": 104,
+   "label": "The pair that grows",
+   "level": "proximitySuite",
+   "workspace": "comedy-mix",
+   "module": 49,
+   "jack": 8
+  },
+  {
+   "key": "c:musicCue",
+   "channel": 8,
+   "cc": 1,
+   "label": "Score",
+   "level": "curiosity",
+   "workspace": "music",
+   "module": 50,
+   "jack": 1
+  },
+  {
+   "key": "c:soundDensity",
+   "channel": 8,
+   "cc": 2,
+   "label": "Sound density",
+   "level": "curiosity",
+   "workspace": "music",
+   "module": 50,
+   "jack": 2
+  },
+  {
+   "key": "c:soundToCut",
+   "channel": 8,
+   "cc": 3,
+   "label": "Sound against the cut",
+   "level": "curiosity",
+   "workspace": "music",
+   "module": 50,
+   "jack": 3
+  },
+  {
+   "key": "c:music",
+   "channel": 8,
+   "cc": 4,
+   "label": "Music",
+   "level": "curiosity",
+   "workspace": "music",
+   "module": 50,
+   "jack": 4
+  },
+  {
+   "key": "c:noMusic",
+   "channel": 8,
+   "cc": 5,
+   "label": "No music",
+   "level": "curiosity",
+   "workspace": "music",
+   "module": 50,
+   "jack": 5
+  },
+  {
+   "key": "c:soundDesign",
+   "channel": 8,
+   "cc": 6,
+   "label": "Sound around the scene",
+   "level": "curiosity",
+   "workspace": "music",
+   "module": 50,
+   "jack": 6
+  },
+  {
+   "key": "s:needle-drop",
+   "channel": 8,
+   "cc": 7,
+   "label": "Needle drop",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 7
+  },
+  {
+   "key": "s:ironic-counterpoint",
+   "channel": 8,
+   "cc": 8,
+   "label": "Ironic counterpoint",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 8
+  },
+  {
+   "key": "s:radio-in-the-room",
+   "channel": 8,
+   "cc": 9,
+   "label": "Radio in the room",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 9
+  },
+  {
+   "key": "s:score-swell",
+   "channel": 8,
+   "cc": 10,
+   "label": "Score swell",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 10
+  },
+  {
+   "key": "s:sudden-silence",
+   "channel": 8,
+   "cc": 11,
+   "label": "Sudden silence",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 11
+  },
+  {
+   "key": "s:bare-scene",
+   "channel": 8,
+   "cc": 12,
+   "label": "Bare scene",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 12
+  },
+  {
+   "key": "s:suspense-drone",
+   "channel": 8,
+   "cc": 13,
+   "label": "Suspense drone",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 13
+  },
+  {
+   "key": "s:montage-song",
+   "channel": 8,
+   "cc": 14,
+   "label": "Montage song",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 14
+  },
+  {
+   "key": "s:returning-theme",
+   "channel": 8,
+   "cc": 15,
+   "label": "Returning theme",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 15
+  },
+  {
+   "key": "s:heightened-sound",
+   "channel": 8,
+   "cc": 16,
+   "label": "Heightened sound",
+   "level": "suite",
+   "workspace": "music",
+   "module": 50,
+   "jack": 16
+  },
+  {
+   "key": "p:music-cut-line",
+   "channel": 8,
+   "cc": 17,
+   "label": "When the music is cut dead, a big line lands",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 1
+  },
+  {
+   "key": "p:silence-reveal",
+   "channel": 8,
+   "cc": 18,
+   "label": "When the music drops out, a reveal follows",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 2
+  },
+  {
+   "key": "p:needle-slowmo",
+   "channel": 8,
+   "cc": 19,
+   "label": "When a famous song starts, time slows",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 3
+  },
+  {
+   "key": "p:tempo-cuts",
+   "channel": 8,
+   "cc": 20,
+   "label": "When the tempo rises, the cuts speed up",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 4
+  },
+  {
+   "key": "p:music-lifts-mood",
+   "channel": 8,
+   "cc": 21,
+   "label": "When the music turns warm, faces soften",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 5
+  },
+  {
+   "key": "p:counterpoint-violence",
+   "channel": 8,
+   "cc": 22,
+   "label": "When the music fights the scene, the violence gets bigger",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 6
+  },
+  {
+   "key": "p:silence-closeup",
+   "channel": 8,
+   "cc": 23,
+   "label": "When there is no music, the frame gets closer",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 7
+  },
+  {
+   "key": "p:radio-dance",
+   "channel": 8,
+   "cc": 24,
+   "label": "When music plays in the room, someone moves to it",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 8
+  },
+  {
+   "key": "p:theme-callback",
+   "channel": 8,
+   "cc": 25,
+   "label": "When a theme returns, the character it belongs to appears",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 9
+  },
+  {
+   "key": "p:build-to-silence",
+   "channel": 8,
+   "cc": 26,
+   "label": "When the music builds to its peak, it cuts out",
+   "level": "proximity",
+   "workspace": "music",
+   "module": 51,
+   "jack": 10
+  },
+  {
+   "key": "ps:music-steers-edit",
+   "channel": 8,
+   "cc": 27,
+   "label": "Music steers the edit",
+   "level": "proximitySuite",
+   "workspace": "music",
+   "module": 51,
+   "jack": 11
+  },
+  {
+   "key": "ps:silence-as-weapon",
+   "channel": 8,
+   "cc": 28,
+   "label": "Silence as a weapon",
+   "level": "proximitySuite",
+   "workspace": "music",
+   "module": 51,
+   "jack": 12
+  },
+  {
+   "key": "c:mains",
+   "channel": 8,
+   "cc": 33,
+   "label": "Featured mains",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 1
+  },
+  {
+   "key": "c:groups",
+   "channel": 8,
+   "cc": 34,
+   "label": "Groups in the hour",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 2
+  },
+  {
+   "key": "c:exit",
+   "channel": 8,
+   "cc": 35,
+   "label": "Exit",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 3
+  },
+  {
+   "key": "c:featureRate",
+   "channel": 8,
+   "cc": 36,
+   "label": "How often a main is in the season",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 4
+  },
+  {
+   "key": "c:sceneRate",
+   "channel": 8,
+   "cc": 37,
+   "label": "Scene change rate",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 5
+  },
+  {
+   "key": "c:phraseScheme",
+   "channel": 8,
+   "cc": 38,
+   "label": "Sequence lengths",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 6
+  },
+  {
+   "key": "c:sceneEntry",
+   "channel": 8,
+   "cc": 39,
+   "label": "How a scene begins",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 7
+  },
+  {
+   "key": "c:transition",
+   "channel": 8,
+   "cc": 40,
+   "label": "Transition",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 8
+  },
+  {
+   "key": "c:callResponse",
+   "channel": 8,
+   "cc": 41,
+   "label": "Call and response",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 9
+  },
+  {
+   "key": "c:repetition",
+   "channel": 8,
+   "cc": 42,
+   "label": "Repetition scheme",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 10
+  },
+  {
+   "key": "c:hook",
+   "channel": 8,
+   "cc": 43,
+   "label": "Signature image",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 11
+  },
+  {
+   "key": "c:contrastMap",
+   "channel": 8,
+   "cc": 44,
+   "label": "Contrast map",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 12
+  },
+  {
+   "key": "c:tensionCurve",
+   "channel": 8,
+   "cc": 45,
+   "label": "Tension",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 13
+  },
+  {
+   "key": "c:energyArc",
+   "channel": 8,
+   "cc": 46,
+   "label": "Energy",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 14
+  },
+  {
+   "key": "c:visualDensity",
+   "channel": 8,
+   "cc": 47,
+   "label": "Visual density",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 15
+  },
+  {
+   "key": "c:pedal",
+   "channel": 8,
+   "cc": 48,
+   "label": "Constant",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 52,
+   "jack": 16
+  },
+  {
+   "key": "c:psychOut",
+   "channel": 8,
+   "cc": 49,
+   "label": "Psych-out shift",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 1
+  },
+  {
+   "key": "c:cutArticulation",
+   "channel": 8,
+   "cc": 50,
+   "label": "Cut articulation",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 2
+  },
+  {
+   "key": "c:operatorFeel",
+   "channel": 8,
+   "cc": 51,
+   "label": "Operator feel",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 3
+  },
+  {
+   "key": "c:motifShape",
+   "channel": 8,
+   "cc": 52,
+   "label": "Motif shape",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 4
+  },
+  {
+   "key": "c:intercut",
+   "channel": 8,
+   "cc": 53,
+   "label": "Cross-cutting",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 5
+  },
+  {
+   "key": "c:reveal",
+   "channel": 8,
+   "cc": 54,
+   "label": "Reveal timing",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 6
+  },
+  {
+   "key": "c:povSwitch",
+   "channel": 8,
+   "cc": 55,
+   "label": "Story point of view",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 7
+  },
+  {
+   "key": "c:sceneLength",
+   "channel": 8,
+   "cc": 56,
+   "label": "Scene length",
+   "level": "curiosity",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 8
+  },
+  {
+   "key": "s:two-person",
+   "channel": 8,
+   "cc": 57,
+   "label": "Two-person hour",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 9
+  },
+  {
+   "key": "s:build",
+   "channel": 8,
+   "cc": 58,
+   "label": "Build",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 10
+  },
+  {
+   "key": "s:drop",
+   "channel": 8,
+   "cc": 59,
+   "label": "Drop",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 11
+  },
+  {
+   "key": "s:signature-return",
+   "channel": 8,
+   "cc": 60,
+   "label": "Signature return",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 12
+  },
+  {
+   "key": "s:genre-crime",
+   "channel": 8,
+   "cc": 61,
+   "label": "Crime, Tarantino style",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 13
+  },
+  {
+   "key": "s:genre-horror",
+   "channel": 8,
+   "cc": 62,
+   "label": "Horror",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 14
+  },
+  {
+   "key": "s:genre-action",
+   "channel": 8,
+   "cc": 63,
+   "label": "Action",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 15
+  },
+  {
+   "key": "s:genre-western",
+   "channel": 8,
+   "cc": 64,
+   "label": "Western",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 53,
+   "jack": 16
+  },
+  {
+   "key": "s:genre-musical",
+   "channel": 8,
+   "cc": 65,
+   "label": "Musical",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 1
+  },
+  {
+   "key": "s:genre-documentary",
+   "channel": 8,
+   "cc": 66,
+   "label": "Documentary",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 2
+  },
+  {
+   "key": "s:genre-surrealist",
+   "channel": 8,
+   "cc": 67,
+   "label": "Surrealist",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 3
+  },
+  {
+   "key": "s:genre-romcom",
+   "channel": 8,
+   "cc": 68,
+   "label": "Romantic comedy",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 4
+  },
+  {
+   "key": "p:tension-silence",
+   "channel": 8,
+   "cc": 69,
+   "label": "When tension peaks, a long silence",
+   "level": "proximity",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 5
+  },
+  {
+   "key": "p:energy-hold",
+   "channel": 8,
+   "cc": 70,
+   "label": "When energy drops, the hold is long",
+   "level": "proximity",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 6
+  },
+  {
+   "key": "p:build-drop",
+   "channel": 8,
+   "cc": 71,
+   "label": "When suite Build, suite Drop",
+   "level": "proximity",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 7
+  },
+  {
+   "key": "p:aggressive-quiet",
+   "channel": 8,
+   "cc": 72,
+   "label": "When suite Aggressive camera, suite Quiet confession",
+   "level": "proximity",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 8
+  },
+  {
+   "key": "p:storm-room",
+   "channel": 8,
+   "cc": 73,
+   "label": "When suite Storm, suite Breathing room",
+   "level": "proximity",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 9
+  },
+  {
+   "key": "ps:long-form",
+   "channel": 8,
+   "cc": 74,
+   "label": "Long-form shape",
+   "level": "proximitySuite",
+   "workspace": "structure",
+   "module": 54,
+   "jack": 10
+  },
+  {
+   "key": "c:panelCount",
+   "channel": 8,
+   "cc": 81,
+   "label": "Panels",
+   "level": "curiosity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 1
+  },
+  {
+   "key": "c:gutter",
+   "channel": 8,
+   "cc": 82,
+   "label": "Gutter",
+   "level": "curiosity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 2
+  },
+  {
+   "key": "c:balloon",
+   "channel": 8,
+   "cc": 83,
+   "label": "Balloon against caption",
+   "level": "curiosity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 3
+  },
+  {
+   "key": "c:panelSize",
+   "channel": 8,
+   "cc": 84,
+   "label": "Panel size",
+   "level": "curiosity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 4
+  },
+  {
+   "key": "c:panelBreak",
+   "channel": 8,
+   "cc": 85,
+   "label": "Breaking the frame",
+   "level": "curiosity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 5
+  },
+  {
+   "key": "c:textDensity",
+   "channel": 8,
+   "cc": 86,
+   "label": "Words per panel",
+   "level": "curiosity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 6
+  },
+  {
+   "key": "c:soundLettering",
+   "channel": 8,
+   "cc": 87,
+   "label": "Sound effects",
+   "level": "curiosity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 7
+  },
+  {
+   "key": "c:pageTurn",
+   "channel": 8,
+   "cc": 88,
+   "label": "Page-turn reveal",
+   "level": "curiosity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 8
+  },
+  {
+   "key": "s:six-panel-grid",
+   "channel": 8,
+   "cc": 89,
+   "label": "Steady six-panel grid",
+   "level": "suite",
+   "workspace": "page",
+   "module": 55,
+   "jack": 9
+  },
+  {
+   "key": "s:splash-reveal",
+   "channel": 8,
+   "cc": 90,
+   "label": "Splash-page reveal",
+   "level": "suite",
+   "workspace": "page",
+   "module": 55,
+   "jack": 10
+  },
+  {
+   "key": "s:silent-page",
+   "channel": 8,
+   "cc": 91,
+   "label": "Silent page",
+   "level": "suite",
+   "workspace": "page",
+   "module": 55,
+   "jack": 11
+  },
+  {
+   "key": "s:talky-page",
+   "channel": 8,
+   "cc": 92,
+   "label": "Talky page",
+   "level": "suite",
+   "workspace": "page",
+   "module": 55,
+   "jack": 12
+  },
+  {
+   "key": "s:strip-gag",
+   "channel": 8,
+   "cc": 93,
+   "label": "Three-panel strip gag",
+   "level": "suite",
+   "workspace": "page",
+   "module": 55,
+   "jack": 13
+  },
+  {
+   "key": "s:action-page",
+   "channel": 8,
+   "cc": 94,
+   "label": "Action page",
+   "level": "suite",
+   "workspace": "page",
+   "module": 55,
+   "jack": 14
+  },
+  {
+   "key": "p:cliffhanger-turn",
+   "channel": 8,
+   "cc": 95,
+   "label": "When a page ends on a cliffhanger, the next page opens big",
+   "level": "proximity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 15
+  },
+  {
+   "key": "p:peak-big-panel",
+   "channel": 8,
+   "cc": 96,
+   "label": "When the feeling peaks, the panel grows",
+   "level": "proximity",
+   "workspace": "page",
+   "module": 55,
+   "jack": 16
+  },
+  {
+   "key": "p:fast-talk-small-panels",
+   "channel": 8,
+   "cc": 97,
+   "label": "When the talk speeds up, panels shrink and multiply",
+   "level": "proximity",
+   "workspace": "page",
+   "module": 56,
+   "jack": 1
+  },
+  {
+   "key": "p:quiet-wide-gutter",
+   "channel": 8,
+   "cc": 98,
+   "label": "When a scene ends, the gutter widens",
+   "level": "proximity",
+   "workspace": "page",
+   "module": 56,
+   "jack": 2
+  },
+  {
+   "key": "ps:page-breathes",
+   "channel": 8,
+   "cc": 99,
+   "label": "The page breathes with the story",
+   "level": "proximitySuite",
+   "workspace": "page",
+   "module": 56,
+   "jack": 3
+  }
+ ]
+}

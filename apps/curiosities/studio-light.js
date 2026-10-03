@@ -7,6 +7,7 @@
    practicalInFrame, lightShape, atmosphere, lighting). The live ones go to the board as a strand. */
 
 (function () {
+  let prevAutoOff = null;
   if (!window.CuriosityStudio) return;
 
   const KEY = "curiosities-studio-light-v1";
@@ -1696,6 +1697,9 @@
       }
     }
     if (window.CurioAuto && window.CurioAuto.on) {
+      /* One listener per tool: a fresh draw lets go of the last one (and the old page it holds). */
+      if (prevAutoOff) prevAutoOff();
+      prevAutoOff = () => off();
       const off = window.CurioAuto.on((type, d) => {
         if (!el.isConnected) return off();
         if (type !== "tick" || !d || !d.ms || !d.panels || !d.panels[0]) return;

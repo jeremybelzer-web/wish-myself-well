@@ -1,137 +1,23 @@
-/* Suites, measured by degree. A curiosity is a lens: one way to look at a scene. A suite is a group of
-   lenses you look through together, so a beat matches it by degree, the share of its members whose value
-   is on (0 to 100%), never all-or-nothing. A suite with no fixed values (a lens suite, set {}) is only a
-   named group of lenses: show its members' values side by side instead of a match.
-   window.CuriositySuites is shared by the Board, Study, the Prism, automation and the workspaces. */
-(function () {
-  /* A suite as a proximity's cause counts as present when at least this share of its members match.
-     Half: most of the look is there, even if a lens or two differs. */
-  const SUITE_CAUSE_SHARE = 0.5;
-
-  const list = () => (typeof SUITES !== "undefined" ? SUITES : []);
-  /* Lens suites come from lenses.js, which may load before or after this file: pick them up whenever asked. */
-  function sync() {
-    const extra = window.CURIOSITY_LENS_SUITES;
-    if (!Array.isArray(extra) || typeof SUITES === "undefined") return list();
-    extra.forEach((s) => {
-      if (!s || !s.id) return;
-      const have = SUITES.find((x) => x.id === s.id);
-      if (have) {
-        if (!have.kind) have.kind = "lens";
-        if (!have.set) have.set = {};
-        return;
-      }
-      SUITES.push(Object.assign({}, s, { kind: "lens", set: s.set || {} }));
-    });
-    return SUITES;
-  }
-  sync();
-  function find(s) {
-    return typeof s === "string" ? list().find((x) => x.id === s) || null : s || null;
-  }
-  /* Does the suite name values to look for? A lens suite does not. */
-  function fixed(s) {
-    s = find(s);
-    return !!s && !!s.set && Object.keys(s.set).length > 0;
-  }
-  /* Its members: the curiosities with fixed values, or the lenses of a lens suite. */
-  function members(s) {
-    s = find(s);
-    if (!s) return [];
-    return fixed(s) ? Object.keys(s.set) : (s.lenses || []).slice();
-  }
-  function same(a, b) {
-    return a != null && b != null && a !== "" && String(a) === String(b);
-  }
-  /* How much of a suite one set of values shows: {on: [ids that match], total, share 0 to 1}. null for a lens suite. */
-  function match(s, values) {
-    s = find(s);
-    if (!fixed(s)) return null;
-    values = values || {};
-    const ids = Object.keys(s.set);
-    const on = ids.filter((id) => same(values[id], s.set[id]));
-    return { on, total: ids.length, share: ids.length ? on.length / ids.length : 0 };
-  }
-  /* Across many beats or panels: the average share, the best beat, and the share at each one. */
-  function across(s, list_) {
-    s = find(s);
-    if (!fixed(s)) return null;
-    const each = (list_ || []).map((v) => match(s, v));
-    const shares = each.map((m) => m.share);
-    let best = -1;
-    shares.forEach((x, i) => (best < 0 || x > shares[best]) && (best = i));
-    const mean = shares.length ? shares.reduce((a, b) => a + b, 0) / shares.length : 0;
-    const total = Object.keys(s.set).length;
-    return { shares, each, mean, best, peak: best >= 0 ? shares[best] : 0, total, on: Math.round(mean * total) };
-  }
-  /* A suite cause is present at a beat when at least half its members match. */
-  function present(s, values) {
-    const m = match(s, values);
-    return !!m && m.total > 0 && m.share >= SUITE_CAUSE_SHARE;
-  }
-  const pct = (x) => Math.round((Number(x) || 0) * 100) + "%";
-  const esc = (v) =>
-    String(v == null ? "" : v)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  const word = (n) => (n === 1 ? "lens" : "lenses");
-  /* "3 of 5 lenses, 60%" */
-  function text(m) {
-    if (!m) return "";
-    const on = m.on && m.on.length != null ? m.on.length : m.on;
-    return `${on} of ${m.total} ${word(m.total)}, ${pct(m.share != null ? m.share : m.mean)}`;
-  }
-  /* A graded bar: how full the match is. */
-  function bar(share) {
-    const p = Math.max(0, Math.min(100, Math.round((Number(share) || 0) * 100)));
-    return `<span class="suite-bar" role="img" aria-label="${p}% of the suite matches"><i style="width:${p}%"></i></span>`;
-  }
-  /* One line: "Noir 3 of 5 lenses, 60%" and its bar. */
-  function html(s, m, extra) {
-    s = find(s);
-    if (!s || !m) return "";
-    return `<span class="suite-share" title="${esc(s.note || "")}"><b>${esc(s.label)}</b> <span class="suite-n">${esc(text(m))}</span>${bar(m.share != null ? m.share : m.mean)}${extra ? ` <span class="cap">${extra}</span>` : ""}</span>`;
-  }
-  /* A lens suite: its members' values side by side. label(id) names a curiosity. */
-  function side(s, values, label) {
-    s = find(s);
-    if (!s) return "";
-    values = values || {};
-    const name = label || ((id) => ((typeof CURIOSITIES !== "undefined" && CURIOSITIES.find((c) => c.id === id)) || { label: id }).label);
-    return `<span class="suite-side">${members(s)
-      .map((id) => {
-        const v = values[id];
-        const set = v != null && v !== "";
-        return `<span class="chip${set ? "" : " suite-unset"}">${esc(name(id))}: ${set ? esc(v) : "—"}</span>`;
-      })
-      .join("")}</span>`;
-  }
-
-  if (!document.getElementById("suite-share-css")) {
-    const st = document.createElement("style");
-    st.id = "suite-share-css";
-    st.textContent = `
-.suite-share { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; max-width: 100%; }
-.suite-share .suite-n { font-family: var(--mono, monospace); font-size: 11px; }
-.suite-bar { display: inline-block; width: 64px; height: 6px; border: 1px solid currentColor; border-radius: 3px; overflow: hidden; vertical-align: middle; opacity: .85; flex: none; }
-.suite-bar i { display: block; height: 100%; background: currentColor; }
-.suite-side { display: inline-flex; flex-wrap: wrap; gap: 4px; }
-.suite-side .suite-unset { opacity: .55; }
-.suite-list { display: grid; gap: 4px; margin: 6px 0; font-size: 13px; }
-.suite-list .suite-share { display: flex; }
-td .suite-share { display: flex; margin: 2px 0; }
-`;
-    (document.head || document.documentElement).appendChild(st);
-  }
-
-  window.CuriositySuites = { CAUSE_SHARE: SUITE_CAUSE_SHARE, sync, find, fixed, members, match, across, present, text, bar, html, side, pct };
-})();
-
 (function () {
   const live = CURIOSITIES.filter((c) => c.live);
-  const state = load();
+  /* My film's data is one part of the app's shared state (engine/store.js): it changes only through the
+     commands in boardCommands(), each change is one step on the app-wide undo list (Ctrl+Z, undone in
+     place), and it still saves under curiosities-board-v2. `state` is the part's live view: read it, and
+     change it with change(). Without the store (an older page) the same commands run on a plain copy. */
+  const boardPart = window.CurioStore ? window.CurioStore.part("board", { key: "curiosities-board-v2", initial: () => ({}), normalize: fixBoard, commands: boardCommands() }) : null;
+  const state = boardPart ? boardPart.view() : load();
+  /* Automation never survives a reload (every patch starts stopped): empty its layer once at start, not in
+     fixBoard, which the store runs after every command. */
+  if (state.auto && !(window.CurioAuto && CurioAuto.running && CurioAuto.running().length)) {
+    if (boardPart) boardPart.send({ type: "apply", label: "Automation", values: {} }, { record: false });
+    else { state.auto = null; save(); }
+  }
+  function change(msg, opt) {
+    if (boardPart) return boardPart.send(msg, opt);
+    boardCommands()[msg.type](state, msg);
+    save();
+    return { ok: true };
+  }
   const sceneSelect = { id: state.sceneId || "glass" };
 
   const controls = document.getElementById("controls");
@@ -219,12 +105,15 @@ td .suite-share { display: flex; margin: 2px 0; }
       const raw = localStorage.getItem("curiosities-board-v2");
       if (raw) saved = JSON.parse(raw);
     } catch (e) {}
+    return fixBoard(saved);
+  }
+  /* What My film keeps, from whatever was saved: the scene, the suite, the live controls, the applied strand
+     and the automation layer (emptied once at start, above). */
+  function fixBoard(saved) {
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) saved = {};
     const base = { sceneId: saved.sceneId || "glass", suite: saved.suite || "", applied: saved.applied || null, auto: saved.auto || null };
-    /* Before workspaces, running automation replaced the applied strand. It now has its own layer. */
-    if (base.applied && base.applied.label === "Automation" && !base.auto) {
-      base.auto = base.applied.values;
-      base.applied = null;
-    }
+    /* Before workspaces, running automation replaced the applied strand: drop that stale strand. */
+    if (base.applied && base.applied.label === "Automation") base.applied = null;
     live.forEach((c) => {
       base[c.id] = saved[c.id] != null ? saved[c.id] : c.value;
     });
@@ -233,6 +122,39 @@ td .suite-share { display: flex; margin: 2px 0; }
 
   function save() {
     localStorage.setItem("curiosities-board-v2", JSON.stringify(state));
+  }
+  /* Every way My film changes, as a command on a copy of its data (d). */
+  function boardCommands() {
+    const suiteOn = (d, id) => {
+      d.suite = id || "";
+      const suite = SUITES.find((s) => s.id === id);
+      if (suite) {
+        Object.assign(d, suite.set);
+        Object.keys(suite.set).forEach((k) => unapplyIn(d, k));
+      }
+    };
+    return {
+      scene(d, m) {
+        d.sceneId = String(m.id);
+      },
+      suite(d, m) {
+        suiteOn(d, m.id);
+      },
+      set(d, m) {
+        if (!live.find((c) => c.id === m.id)) throw new Error("There is no control " + m.id + ".");
+        d[m.id] = m.value;
+        unapplyIn(d, m.id);
+      },
+      apply(d, m) {
+        const values = m.values && typeof m.values === "object" && Object.keys(m.values).length ? m.values : null;
+        if (m.label === "Automation") d.auto = values;
+        else d.applied = values ? { label: String(m.label || "Strand"), values } : null;
+      },
+      clear(d) {
+        d.applied = null;
+        d.auto = null;
+      },
+    };
   }
 
   function esc(s) {
@@ -299,35 +221,30 @@ td .suite-share { display: flex; margin: 2px 0; }
   function onChange(e) {
     const t = e.target;
     if (t.id === "scene") {
-      state.sceneId = t.value;
+      change({ type: "scene", id: t.value, label: "Change the scene" });
     } else if (t.id === "suite") {
-      state.suite = t.value;
-      const suite = SUITES.find((s) => s.id === t.value);
-      if (suite) {
-        Object.assign(state, suite.set);
-        Object.keys(suite.set).forEach(unapply);
-      }
+      change({ type: "suite", id: t.value, label: "Play a suite" });
       drawControls();
     } else if (t.dataset.id) {
-      state[t.dataset.id] = t.type === "range" ? Number(t.value) : t.value;
-      unapply(t.dataset.id);
+      const c = live.find((x) => x.id === t.dataset.id);
+      /* A slider being dragged is one undo step. */
+      change({ type: "set", id: t.dataset.id, value: t.type === "range" ? Number(t.value) : t.value, label: "Change " + ((c && c.label) || t.dataset.id), merge: "set:" + t.dataset.id });
       const read = document.getElementById("read-" + t.dataset.id);
       if (read) read.textContent = state[t.dataset.id];
     }
-    save();
     drawBoard();
     notify();
   }
 
   /* A control you touch by hand wins over a strand applied from the Shelf. */
-  function unapply(id) {
-    if (state.auto && id in state.auto) {
-      delete state.auto[id];
-      if (!Object.keys(state.auto).length) state.auto = null;
+  function unapplyIn(st, id) {
+    if (st.auto && id in st.auto) {
+      delete st.auto[id];
+      if (!Object.keys(st.auto).length) st.auto = null;
     }
-    if (!state.applied || !(id in state.applied.values)) return;
-    delete state.applied.values[id];
-    if (!Object.keys(state.applied.values).length) state.applied = null;
+    if (!st.applied || !(id in st.applied.values)) return;
+    delete st.applied.values[id];
+    if (!Object.keys(st.applied.values).length) st.applied = null;
   }
 
   function volumeSize(i, st) {
@@ -978,9 +895,7 @@ td .suite-share { display: flex; margin: 2px 0; }
     const clear = document.getElementById("clear-applied");
     if (clear)
       clear.onclick = () => {
-        state.applied = null;
-        state.auto = null;
-        save();
+        change({ type: "clear", label: "Clear the strands" });
         drawBoard();
         notify();
       };
@@ -1242,9 +1157,8 @@ td .suite-share { display: flex; margin: 2px 0; }
       return out;
     },
     apply(label, values) {
-      if (label === "Automation") state.auto = values && Object.keys(values).length ? values : null;
-      else state.applied = values && Object.keys(values).length ? { label, values } : null;
-      save();
+      /* Running automation rewrites its layer about eight times a second: saved, but not an undo step. */
+      change({ type: "apply", label, values: values && typeof values === "object" ? values : {} }, { record: label !== "Automation" });
       drawBoard();
       notify();
     },
@@ -1263,9 +1177,7 @@ td .suite-share { display: flex; margin: 2px 0; }
     /* Set one control for the whole scene, as if moved by hand. */
     set(id, value) {
       if (!live.find((c) => c.id === id)) return;
-      state[id] = value;
-      unapply(id);
-      save();
+      change({ type: "set", id, value, label: "Change " + (live.find((c) => c.id === id).label || id) });
       drawControls();
       drawBoard();
       notify();
@@ -1277,14 +1189,28 @@ td .suite-share { display: flex; margin: 2px 0; }
     playSuite(id) {
       const suite = SUITES.find((s) => s.id === id);
       if (!suite) return;
-      state.suite = id;
-      Object.assign(state, suite.set);
-      Object.keys(suite.set).forEach(unapply);
-      save();
+      change({ type: "suite", id, label: "Play " + (suite.label || id) });
       drawControls();
       drawBoard();
     },
   };
+
+  /* Undo and redo come back here: redraw from the restored data. Ctrl+Z and Ctrl+Shift+Z undo across the
+     app (the engine's window has its own). */
+  if (boardPart) {
+    boardPart.on((_, label) => {
+      if (!/^(Undo|Redo|Load)/.test(label || "")) return;
+      drawControls();
+      drawBoard();
+      notify();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (!(e.ctrlKey || e.metaKey) || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "") || e.target.isContentEditable) return;
+      if (document.querySelector(".en-overlay:not([hidden])")) return;
+      const k = e.key.toLowerCase();
+      if (k === "z" && !e.shiftKey ? window.CurioStore.undo() : (k === "z" && e.shiftKey) || k === "y" ? window.CurioStore.redo() : false) e.preventDefault();
+    });
+  }
 
   drawControls();
   drawBoard();
