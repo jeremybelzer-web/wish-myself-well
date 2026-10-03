@@ -131,8 +131,8 @@
       ["⇧⌘C", "Copy attributes", "Copy the picked node's setting", (e) => mod(e) && e.shiftKey && key(e, "c"), lk("copyLook")],
       ["⇧⌘V", "Paste attributes", "Give that setting to another node of the same curiosity", (e) => mod(e) && e.shiftKey && key(e, "v"), lk("pasteLook")],
       ["⌫", "Delete", "Remove the picked node", (e) => plain(e) && (e.key === "Backspace" || e.key === "Delete"), lk("delete")],
-      ["⌘Z", "Undo", "Undo the last change to your film", (e) => mod(e) && !e.shiftKey && key(e, "z"), () => E() && E().undo()],
-      ["⇧⌘Z", "Reset (redo)", "Redo what you undid", (e) => mod(e) && e.shiftKey && key(e, "z"), () => E() && E().redo()],
+      ["⌘Z", "Undo", "Undo the last change to your film", (e) => mod(e) && !e.shiftKey && key(e, "z"), () => undoAll("undo")],
+      ["⇧⌘Z", "Reset (redo)", "Redo what you undid", (e) => mod(e) && e.shiftKey && key(e, "z"), () => undoAll("redo")],
       ["?", "Shortcuts", "Show or hide this list", (e) => !mod(e) && e.key === "?", () => showKeys(!keysOpen)],
       ["esc", "Exit full screen", "Leave the full-screen Player, or close this list", null, null],
       ["⌘I, ⌘E, ⌘N", "Import, Export, New project", "In the app's Library menu (Open, Print, New project); the browser keeps these keys"],
@@ -364,6 +364,19 @@
     page.addEventListener("pointerdown", onKnobDown);
     page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || onOverviewDrag(e));
     page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
+    /* Undo and redo go to the app-wide undo list when the page has one (engine/store.js), so one ⌘Z undoes one
+       step of anything. Caught first, on the window, so the app's own ⌘Z handler does not undo a second step. */
+    window.addEventListener("keydown", (e) => {
+      if (page.hidden || !mod(e) || e.altKey) return;
+      const tag = (e.target && e.target.tagName) || "";
+      if (/INPUT|SELECT|TEXTAREA/.test(tag) || (e.target && e.target.isContentEditable)) return;
+      const k = e.key.toLowerCase();
+      const dir = k === "z" ? (e.shiftKey ? "redo" : "undo") : k === "y" && !e.shiftKey ? "redo" : null;
+      if (!dir) return;
+      e.preventDefault();
+      e.stopPropagation();
+      undoAll(dir);
+    }, true);
     document.addEventListener("keydown", (e) => {
       if (page.hidden) return;
       const tag = (e.target && e.target.tagName) || "";
@@ -921,6 +934,11 @@
         return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
       },
     };
+  }
+  function undoAll(dir) {
+    const St = window.CurioStore;
+    if (St && typeof St.external === "function" && typeof St[dir] === "function") return St[dir]();
+    return E() && E()[dir]();
   }
   /* Nodes at given moments (not just the playhead), as one undo step: [[curiosity key, moment index, value]]. */
   function setAt(items, label) {
