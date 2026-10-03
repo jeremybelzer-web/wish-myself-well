@@ -228,6 +228,67 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(CL.shapeAreaCommands(E.state(), lanesA, ar, "riseFall").cmds.filter((c) => c.type === "setPoint").every((c) => rr.some((r, j) => r.id === c.row && j >= 0 && j <= 6)), "Shape writes nodes on whole moments inside the selection only");
 }
 
+/* Suite clips: a selected area kept under a name, dropped in again at the playhead (one batch), as it is or as an analogy. */
+{
+  const CL = w.CurioLanes;
+  const Sc = w.CurioScale;
+  E.reset(w.CurioSeeds.starter());
+  const rr = E.state().rows;
+  const o = Sc.domain("shotSize").options;
+  const lanesA = [{ track: "camera", cur: "shotSize", lk: "camera|shotSize" }, { track: null, cur: "notOnATrack", lk: null }, { track: "master", cur: "emotion", lk: "master|emotion" }];
+  const pt = (j, v, t, c) => ({ type: "setPoint", row: rr[j].id, track: t || "camera", curiosity: c || "shotSize", value: v });
+  E.send({ type: "batch", commands: [pt(1, o[1]), pt(3, o[3]), pt(2, "angry", "master", "emotion")] });
+  E.send(CL.linkCommand(E.state(), { row: rr[1].id, track: "camera", cur: "shotSize" }, { row: rr[2].id, track: "master", cur: "emotion" }));
+  const raw = CL.copyArea(E.state(), lanesA, { i0: 0, i1: 2, j0: 1, j1: 3 });
+  const c = CL.suiteClip(raw, "  the slow reveal  ");
+  ok(c && c.name === "the slow reveal" && c.span === 2 && c.lanes.length === 2 && c.curiosities.join() === "shotSize,emotion" && /^sc-/.test(c.id) && !isNaN(Date.parse(c.made)), "a suite clip keeps the selection's lanes under a trimmed name (a lane not on a track is left out)");
+  ok(c.links.length === 1 && c.links[0].from.lane === 0 && c.links[0].to.lane === 1, "its join is kept and points at the right lanes after the empty lane is left out");
+  ok(CL.suiteClip({ span: 1, lanes: [null] }, "x") === null && CL.suiteClip(raw, "").name === "Suite clip", "nothing to keep gives no clip; no name gives a plain one");
+  ok(/^3 moments long · Shot size, /.test(CL.suiteClipSummary(c)) && !/shotSize/.test(CL.suiteClipSummary(c)), "the list shows how many moments long and the curiosities in plain labels (" + CL.suiteClipSummary(c) + ")");
+  const mig = CL.migrateSuiteClips([c, null, { id: "x" }, c, JSON.parse(JSON.stringify(c))]);
+  ok(mig.length === 1 && mig[0].id === c.id && CL.migrateSuiteClips("junk").length === 0, "saved clips load cleaned: broken and repeated ones are dropped");
+  ok(CL.SUITE_KEY === "curiosities-suite-clips-v1" && Array.isArray(CL.suiteClips()), "suite clips are kept in curiosities-suite-clips-v1");
+  /* Drop at moment 4 (the starter film has 8): one batch, values as saved, the join comes along. */
+  const before = JSON.stringify([E.state().lanes, E.state().links]);
+  const shown = [{ cur: "shotSize", track: "camera" }, { cur: "emotion", track: "master" }];
+  const d = CL.dropSuiteClipCommands(E.state(), c, 4, { shown });
+  const nl = E.state().links.length;
+  ok(!d.error && d.start === 4 && !d.moved && d.lanes.join() === "shotSize,emotion" && d.hidden.length === 0 && E.send({ type: "batch", label: "Drop", commands: d.cmds }).ok, "dropping a suite clip is one batch onto the matching lanes");
+  const P = () => E.state().lanes["camera|shotSize"].points;
+  ok(P()[rr[4].id] === o[1] && P()[rr[6].id] === o[3] && E.state().lanes["master|emotion"].points[rr[5].id] === "angry" && E.state().links.length === nl + 1, "the nodes land in the same places from the playhead and the join comes along");
+  E.undo();
+  ok(JSON.stringify([E.state().lanes, E.state().links]) === before, "one undo takes the drop back");
+  /* Too near the end: it moves earlier to fit; longer than the film: a plain error. */
+  const end = CL.dropSuiteClipCommands(E.state(), c, rr.length - 1, { shown });
+  ok(end.start === rr.length - 3 && end.moved, "dropped at the last moment, it starts earlier so it fits");
+  ok(/moments long, and your film has only/.test(CL.dropSuiteClipCommands(E.state(), Object.assign({}, c, { span: rr.length + 2 }), 0, { shown }).error), "a clip longer than the film says so");
+  /* A curiosity the timeline doesn't show still goes into the film (on its track); one not on any track is added. */
+  const hid = CL.dropSuiteClipCommands(E.state(), c, 0, { shown: shown.slice(0, 1) });
+  ok(hid.hidden.join() === "emotion" && hid.lanes.includes("emotion"), "a curiosity the timeline doesn't show is still dropped, and named");
+  const fresh = Object.assign(JSON.parse(JSON.stringify(c)), { lanes: [Object.assign({}, c.lanes[0], { cur: "transitionKind", track: "camera", points: [{ at: 0, value: Sc.at("transitionKind", 0) }] })], links: [], curiosities: ["transitionKind"] });
+  const add = CL.dropSuiteClipCommands(E.state(), fresh, 0, { shown });
+  ok(!add.error && add.cmds.some((x) => x.type === "addCuriosity" && x.curiosity === "transitionKind") && add.hidden.join() === "transitionKind", "a curiosity not in the film yet is put on a track first (" + (add.error || add.cmds.map((x) => x.type).join(",")) + ")");
+  /* Analogy: shot size starts from what the film plays at the playhead and keeps its moves, step for step. */
+  E.send(pt(5, o[0]));
+  const startHere = E.value(rr[5].id, "camera", "shotSize");
+  const an = CL.dropSuiteClipCommands(E.state(), c, 5, { shown, analogy: true });
+  const m = an.moves.find((x) => x.cur === "shotSize");
+  const step = (v) => Math.round(Sc.pos("shotSize", v) * Sc.steps("shotSize"));
+  ok(!an.error && m && m.to === startHere && m.steps === step(startHere) - step(o[1]), "as an analogy each lane starts from its own setting at the playhead (" + o[1] + " becomes " + m.to + ")");
+  E.send({ type: "batch", commands: an.cmds });
+  ok(step(P()[rr[7].id]) - step(P()[rr[5].id]) === step(o[3]) - step(o[1]), "and makes the same moves up its scale");
+  const lnk = E.state().links[E.state().links.length - 1];
+  ok(lnk.from.is === P()[rr[5].id], "the join's cause moves with its node");
+  E.undo();
+  const top = CL.analogyClip(c, [o[o.length - 1], null]);
+  ok(top.moves[0].clamped && top.clip.lanes[0].points.every((p) => Sc.fix("shotSize", p.value) != null) && top.moves[1].kept && top.clip.lanes[1].points[0].value === c.lanes[1].points[0].value, "a move past the top of the scale stops there; a lane with no setting keeps the clip's values");
+  /* A locked lane is skipped. */
+  CL.tools().locks = Object.assign({}, CL.tools().locks, { "master|emotion": true });
+  const lk = CL.dropSuiteClipCommands(E.state(), c, 0, { shown });
+  ok(lk.locked.join() === "emotion" && lk.lanes.join() === "shotSize" && !lk.cmds.some((x) => x.curiosity === "emotion"), "a locked lane is skipped and named");
+  delete CL.tools().locks["master|emotion"];
+}
+
 /* Markers: an old save (a plain list of row ids) becomes markers with a color and a note. */
 {
   const mm = w.CurioLanes.migrateMarkers;

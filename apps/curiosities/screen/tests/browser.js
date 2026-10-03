@@ -566,6 +566,58 @@ const ok = (cond, msg) => {
     await page.focus(".sl");
     await page.keyboard.press("Escape");
     ok((await page.$$('.sl [data-act^="area-"]')).length === 0 && JSON.stringify(await pts()) === JSON.stringify(orig), "Esc lets go of the area and its tools hide");
+
+    /* Save as suite clip (CapCut's compound clip, kept to use again): name it in a small pop-up, find it in
+       Suite clips ▾, drop it at the playhead (one undo step), as an analogy, and rename it. The reload and
+       Delete are checked at the end, after the film's own reload. */
+    await page.evaluate(() => localStorage.removeItem("curiosities-suite-clips-v1"));
+    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-suite-clips-v1") || "[]"));
+    /* Moments 1 to 4 of the lane again, measured afresh (the lanes are taller now). */
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    const bx = await page.evaluate((a) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = Math.max(0, document.querySelectorAll(".sl-bg")[a].getBBox().y); const r = document.querySelectorAll(".sl-bg")[a].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, laneIx.a);
+    const cw2 = bx.w / bx.n;
+    await page.mouse.move(bx.x + cw2 * 0.1, bx.y + 2);
+    await page.mouse.down();
+    await page.mouse.move(bx.x + cw2 * 3.9, bx.y + bx.h - 2, { steps: 8 });
+    await page.mouse.up();
+    ok(!!(await page.$('.sl .sl-areatools [data-act="suite-save"]')), "a selected area's tools offer Save as suite clip");
+    await page.click('.sl [data-act="suite-save"]');
+    ok(await page.evaluate(() => { const p = document.querySelector(".sl-suitepop"); return !!p && document.activeElement === p.querySelector("[data-suite-name]"); }), "it asks for a name in a small pop-up in the timeline, ready to type");
+    await page.fill(".sl-suitepop [data-suite-name]", "the slow reveal");
+    await page.keyboard.press("Enter");
+    const sv = await saved();
+    ok(sv.length === 1 && sv[0].name === "the slow reveal" && sv[0].span === 3 && sv[0].lanes.some((l) => l.cur === "emotionIntensity") && !(await page.$(".sl-suitepop")), "Enter saves it as a suite clip in curiosities-suite-clips-v1 (" + (sv[0] ? sv[0].name + ", " + (sv[0].span + 1) + " moments" : "nothing") + ")");
+    ok(await page.evaluate(() => /Saved "the slow reveal" as a suite clip/.test(document.querySelector(".sl-msg").textContent) && /Suite clips 1 ▾/.test(document.querySelector('[data-act="suite-list"]').textContent)), "it says so, and the toolbar's Suite clips ▾ counts it");
+    await page.focus(".sl");
+    await page.keyboard.press("Escape");
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    await page.click('.sl [data-act="suite-list"]');
+    const li = await page.evaluate(() => [...document.querySelectorAll(".sl-suitelist li")].map((x) => ({ name: x.querySelector(".sl-suitename").textContent, what: x.querySelector(".sl-suitewhat").textContent, acts: [...x.querySelectorAll("button")].map((b) => b.textContent) })));
+    const plain = await page.evaluate(() => window.CurioScale.label("emotionIntensity"));
+    ok(li.length === 1 && li[0].name === "the slow reveal" && /^4 moments long · /.test(li[0].what) && li[0].what.includes(plain) && !li[0].what.includes("emotionIntensity"), "Suite clips ▾ lists it with how many moments long and its curiosities in plain words (" + (li[0] ? li[0].what : "") + ")");
+    ok(li[0] && ["Drop at the playhead", "Drop as an analogy", "Rename", "Delete"].every((t) => li[0].acts.includes(t)), "each clip offers Drop at the playhead, Drop as an analogy, Rename and Delete");
+    const fpBefore = await page.evaluate(() => window.CurioEngine.fingerprint());
+    await page.click(".sl-suitelist [data-suite-drop]");
+    const dropped = await pts();
+    ok(String(dropped[4]) === String(orig[0]) && String(dropped[6]) === String(orig[2]) && dropped[5] == null && JSON.stringify(dropped.slice(0, 4)) === JSON.stringify(orig.slice(0, 4)), "Drop at the playhead puts the clip's nodes in starting at moment 5 (" + dropped.join(",") + ")");
+    ok(await page.evaluate(() => /Dropped "the slow reveal" at moment 5/.test(document.querySelector(".sl-msg").textContent)), "it says where it dropped and onto which lanes");
+    await page.keyboard.press("Control+z");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig) && (await page.evaluate(() => window.CurioEngine.fingerprint())) === fpBefore, "one ⌘Z takes the whole drop back");
+    await page.click('.sl [data-act="suite-list"]');
+    await page.click(".sl-suitelist [data-suite-analogy]");
+    const an = await pts();
+    const anMsg = await page.evaluate(() => document.querySelector(".sl-msg").textContent);
+    ok(/as an analogy at moment 5/.test(anMsg) && an[4] != null && an[6] != null, "Drop as an analogy drops it too, starting from each lane's own setting (" + an.join(",") + ")");
+    await page.keyboard.press("Control+z");
+    ok(JSON.stringify(await pts()) === JSON.stringify(orig), "one ⌘Z takes the analogy back");
+    await page.click('.sl [data-act="suite-list"]');
+    await page.click(".sl-suitelist [data-suite-rename]");
+    ok(await page.evaluate(() => document.querySelector(".sl-suitepop [data-suite-name]").value === "the slow reveal"), "Rename opens the name pop-up with its name");
+    await page.fill(".sl-suitepop [data-suite-name]", "the slower reveal");
+    await page.click('.sl-suitepop [data-l="ok"]');
+    ok((await saved()).map((c) => c.name).join() === "the slower reveal" && (await page.evaluate(() => /Renamed "the slow reveal" to "the slower reveal"/.test(document.querySelector(".sl-msg").textContent))), "Rename changes only its name");
+    await page.evaluate(() => window.CurioScreen.setRow(0));
   }
   /* Moving an area: drag the selected block sideways (CapCut: a group of clips) and every node in it moves by whole
      moments, one undo step; Alt when letting go copies. Strength of the feeling has 1, 4, 0, 5 at moments 1, 3, 6, 8. */
@@ -1182,6 +1234,17 @@ const ok = (cond, msg) => {
   await page.reload();
   await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
   ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp, "the film survives a reload");
+  /* The suite clip saved earlier is still there after the reload; Delete asks once more, then takes it off. */
+  {
+    const names = await page.evaluate(() => window.CurioLanes.suiteClips().map((c) => c.name));
+    ok(names.join() === "the slower reveal" && (await page.evaluate(() => /Suite clips 1 ▾/.test(document.querySelector('[data-act="suite-list"]').textContent))), "the suite clip survives a reload (" + names.join(",") + ")");
+    await page.click('.sl [data-act="suite-list"]');
+    await page.click(".sl-suitelist [data-suite-delete]");
+    ok((await page.$$(".sl-suitelist li")).length === 1 && (await page.$eval(".sl-suitelist [data-suite-delete]", (b) => b.textContent)) === "Delete for good?", "Delete asks once more before taking a clip off");
+    await page.click(".sl-suitelist [data-suite-delete]");
+    ok((await page.$$(".sl-suitelist li")).length === 0 && JSON.parse(await page.evaluate(() => localStorage.getItem("curiosities-suite-clips-v1"))).length === 0 && (await page.evaluate(() => window.CurioEngine.fingerprint())) === fp, "Delete takes the suite clip off the list and leaves the film alone");
+    await page.keyboard.press("Escape");
+  }
   await page.click('[data-act="close"]');
   ok(await page.evaluate(() => !window.CurioScreen.isOpen()), "Back to the app closes it");
   await page.click("[data-screen]");
