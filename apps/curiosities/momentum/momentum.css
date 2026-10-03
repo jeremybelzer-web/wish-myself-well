@@ -570,6 +570,37 @@
 .mcl-chart text { font-size: 12px; fill: var(--mo-ink); font-family: inherit; }
 .mcl-chart .mcl-bar-me { font-weight: 700; }
 .mcl-chart .mcl-bar-v { fill: var(--mo-ink-2); font-variant-numeric: tabular-nums; }
+
+/* ---------- feeling.js: the "Feeling road" tab ---------- */
+.mo-fr { display: grid; gap: 12px; min-width: 0; }
+.mo-fr p { max-width: 72ch; }
+.mo-fr-btn { justify-self: start; font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); text-align: left; max-width: 100%; }
+.mo-fr-fill { padding: 8px 10px; border: 2px dashed var(--mo-muted); background: var(--mo-surface); font-size: 14px; }
+.mo-fr-flash { padding: 6px 10px; border-left: 4px solid var(--mo-good); background: var(--mo-surface); font-size: 14px; }
+.mo-fr-chart { display: grid; gap: 6px; min-width: 0; }
+.mo-fr-row { display: grid; grid-template-columns: minmax(64px, 130px) minmax(0, 1fr); gap: 8px; align-items: center; min-width: 0; }
+.mo-fr-name { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; }
+.mo-fr-name i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.mo-fr-ribbon, .mo-fr-ticks { display: grid; gap: 1px; min-width: 0; }
+.mo-fr-cell { height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 0 2px rgba(0, 0, 0, 0.6); overflow: hidden; border-radius: 2px; }
+.mo-fr-cell.mo-fr-move { box-shadow: inset 2px 0 0 var(--mo-ink); }
+.mo-fr-ticks span { text-align: center; font-size: 11px; color: var(--mo-ink-2); font-variant-numeric: tabular-nums; overflow: hidden; }
+.mo-fr-plot { position: relative; height: 40px; border-bottom: 1px solid var(--mo-grid); background: repeating-linear-gradient(to bottom, transparent 0 9px, var(--mo-grid) 9px 10px); min-width: 0; }
+.mo-fr-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.mo-fr-line { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.mo-fr-line.mo-fr-film { stroke-width: 3; }
+.mo-fr-dot { stroke-width: 7; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.mo-fr-flatband { fill: rgba(250, 178, 25, 0.28); }
+.mo-fr-mark { position: absolute; top: -4px; transform: translateX(-50%); width: 16px; height: 16px; border-radius: 50%; background: var(--mo-crit); color: #fff; font-size: 12px; font-weight: 700; line-height: 16px; text-align: center; cursor: help; }
+.mo-fr-mark.mo-fr-key { position: static; transform: none; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.mo-fr-list.mo-fr-misses { list-style: none; padding-left: 0; }
+.mo-fr-list.mo-fr-misses li { display: flex; gap: 8px; align-items: flex-start; }
+.mo-fr-key-band { display: inline-block; width: 16px; height: 10px; background: rgba(250, 178, 25, 0.5); flex: none; }
+.mo-fr-legend { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-top: 8px; }
+.mo-fr-list { margin: 0; padding-left: 20px; display: grid; gap: 10px; font-size: 14px; }
+.mo-fr-list li { display: grid; gap: 4px; }
+.mo-fr-big { font-size: 22px; }
+.mo-fr-per { margin: 6px 0 0; padding-left: 18px; }
 /* three.js: the Three films tab. */
 .m3 { display: grid; gap: 12px; min-width: 0; }
 .m3 section { min-width: 0; }
