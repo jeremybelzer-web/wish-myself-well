@@ -310,7 +310,11 @@
       ctx.putImageData(img, 0, 0);
     }
     /* Element changes (AI cut-outs): recolor clothes or hair, resize or move the people, another clip's set. */
-    if (M) M.applyParts(ctx, W, H, adj.parts, { setVideo: opts.setVideo, cut: k });
+    if (M) {
+      /* another clip's set: only its picture, not its black bars */
+      const sv = adj.parts.background && opts.setVideo && opts.setVideo.videoWidth ? opts.setVideo : null;
+      M.applyParts(ctx, W, H, adj.parts, { setVideo: opts.setVideo, setBox: sv ? contentBox(sv) : null, cut: k });
+    }
     /* The inspiration's graphics on top, background taken out, fitted inside the frame. */
     if (adj.overlay && opts.overlay && opts.overlay.videoWidth) {
       const ov = opts.overlay;

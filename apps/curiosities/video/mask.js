@@ -14,7 +14,7 @@
                                                  4 clothes, 5 other (glasses, hats)
    - scan(clip, { box?, looks?, onProgress? }) -> Promise<elements>   the clip's elements over time (CurioVideo.
                                                  elementSeries), about 4 looks a second, 240 at most
-   - applyParts(ctx, W, H, parts, { setVideo?, cut? })  draws one frame's element changes on the canvas, in place
+   - applyParts(ctx, W, H, parts, { setVideo?, setBox?, cut? })  draws one frame's element changes on the canvas, in place
    - preview(ctx, W, H)                          tints each element on the canvas (to see what the AI found) */
 (function () {
   const V = () => window.CurioVideo;
@@ -326,10 +326,11 @@
         frameC.x = frameC.c.getContext("2d", { willReadFrequently: true });
       }
       const v = opts.setVideo,
-        vw = v.videoWidth,
-        vh = v.videoHeight;
+        bx = opts.setBox || { x: 0, y: 0, w: v.videoWidth, h: v.videoHeight },
+        vw = bx.w,
+        vh = bx.h;
       const kk = Math.max(W / vw, H / vh);
-      frameC.x.drawImage(v, (W - vw * kk) / 2, (H - vh * kk) / 2, vw * kk, vh * kk);
+      frameC.x.drawImage(v, bx.x, bx.y, vw, vh, (W - vw * kk) / 2, (H - vh * kk) / 2, vw * kk, vh * kk);
       const setD = frameC.x.getImageData(0, 0, W, H).data;
       /* Its own people stay (yours stand in front of them) unless asked to take them out (a rough fill). */
       const empty = parts.background.empty;
