@@ -23,7 +23,7 @@
     "productName": "Curiomatic",
     "files": ["main.js", "bridge-server.js", "osc.js", "package.json"],
     "extraResources": [
-      { "from": "..", "to": "app", "filter": ["*.html", "*.js", "*.css", "*.svg", "*.webmanifest", "core/**", "data/**", "vcv/*.js", "engine/*.js", "engine/*.css", "character-matrix/**", "reference/**"] }
+      { "from": "..", "to": "app", "filter": ["*.html", "*.js", "*.css", "*.svg", "*.webmanifest", "core/**", "data/**", "vcv/*.js", "engine/*.js", "engine/*.css", "character-matrix/**", "reference/**", "momentum/*.js", "momentum/*.css", "screen/*.js", "screen/*.css", "video/*.js", "video/*.css", "media/*.js", "media/*.css"] }
     ],
     "mac": { "category": "public.app-category.video", "target": "dmg" },
     "win": { "target": "nsis" },

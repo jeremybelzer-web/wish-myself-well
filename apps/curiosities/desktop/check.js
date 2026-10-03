@@ -8,6 +8,16 @@ const bridge = require("./bridge-server.js");
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/* The installer (npm run dist) copies the app's files with the filter in package.json. Every file the page
+   loads must match it, or the installed app opens with parts missing. Same glob rules as electron-builder:
+   * stays inside a folder, ** crosses folders. */
+{
+  const filter = require("./package.json").build.extraResources[0].filter;
+  const rx = filter.map((g) => new RegExp("^" + g.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*\*/g, "\u0000").replace(/\*/g, "[^/]*").replace(/\u0000/g, ".*") + "$"));
+  const left = require("../core/site-check.js").siteFiles().filter((f) => !rx.some((r) => r.test(f)));
+  assert.deepStrictEqual(left, [], "files the page loads that the installer would leave out: add them to build.extraResources in package.json");
+}
+
 (async () => {
   /* OSC codec */
   const enc = osc.encode("/curio/set/c/angleHeight", [0.5, 3, "x", true]);
