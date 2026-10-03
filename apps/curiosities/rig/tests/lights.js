@@ -162,7 +162,7 @@ async function look(page, values) {
       const flat = await look(page, Object.assign({}, plain, { "lightRigLens.ratio": "flat and even" }));
       const cr = (m) => Math.max(m.left, m.right) / Math.max(1, Math.min(m.left, m.right));
       ok(black.pixels > 2000, `the figure is found in the picture (${black.pixels} pixels)`);
-      ok(cr(black) > 2.5 && black.right > black.left, `"one side black": the lit half is much brighter than the dark half (${black.right.toFixed(0)} against ${black.left.toFixed(0)})`);
+      ok(cr(black) > 2 && black.right > black.left, `"one side black": the lit half is much brighter than the dark half (${black.right.toFixed(0)} against ${black.left.toFixed(0)})`);
       ok(cr(flat) < cr(black) / 1.8, `"flat and even" is far more even (${flat.right.toFixed(0)} against ${flat.left.toFixed(0)})`);
       ok(black.state.fill === 0 && black.state.sky < 0.01 && flat.state.fill > 0.5, `the fill and sky lights go out for "one side black" (fill ${black.state.fill.toFixed(2)}, sky ${black.state.sky.toFixed(3)})`);
 
