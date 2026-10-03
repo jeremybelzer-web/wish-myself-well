@@ -306,7 +306,9 @@
       /* Measure this frame as it is now (zoomed and slid), then set the gains to land on the inspiration's. */
       const have = V().quickStats(d, 7);
       const a = V().fitLook(adj, have);
+      const before = k && (a.warm || a.sat !== 1) ? new Uint8ClampedArray(d) : null;
       V().paint(d, W, H, a, have.luma);
+      if (before) M.keepSkin(d, before, k, W, H);
       ctx.putImageData(img, 0, 0);
     }
     /* Element changes (AI cut-outs): recolor clothes or hair, resize or move the people, another clip's set. */

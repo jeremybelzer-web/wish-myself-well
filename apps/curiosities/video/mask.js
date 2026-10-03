@@ -238,7 +238,7 @@
   }
   /* Recolor: each pixel keeps its own light and shade (its brightness) and takes the new color's hue and
      strength, so folds and shadows stay. Very dark and very bright pixels take less of it, as dyed cloth does. */
-  function recolor(d, mask, color, amount) {
+  function recolor(d, mask, color, amount, keepLight) {
     const Y = 0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2];
     let cr = color[0] - Y,
       cg = color[1] - Y,
@@ -258,12 +258,41 @@
         g = d[i * 4 + 1] / 255,
         b = d[i * 4 + 2] / 255;
       const y = 0.299 * r + 0.587 * g + 0.114 * b;
+      /* white or gray hair keeps its own lightness: light, colorless hair is not dyed (fades out from mid to
+         light, and with how gray it is) */
+      let aa = a;
+      if (keepLight && y > 0.5) aa *= Math.max(0, 1 - (y - 0.5) / 0.3) * Math.min(1, (Math.max(r, g, b) - Math.min(r, g, b)) / 0.12);
+      if (aa <= 0.01) continue;
+      const o2 = recolorPixel(r, g, b, y, cr, cg, cb, aa);
+      for (let c = 0; c < 3; c++) d[i * 4 + c] = o2[c];
+    }
+  }
+  function recolorPixel(r, g, b, y, cr, cg, cb, a) {
+    {
       const room = Math.min(1, 4 * y * (1 - y) + 0.15);
       const nr = y + cr * room * 1.6,
         ng = y + cg * room * 1.6,
         nb = y + cb * room * 1.6;
       const o = [r + (nr - r) * a, g + (ng - g) * a, b + (nb - b) * a];
-      for (let c = 0; c < 3; c++) d[i * 4 + c] = o[c] < 0 ? 0 : o[c] > 1 ? 255 : o[c] * 255;
+      return o.map((v) => (v < 0 ? 0 : v > 1 ? 255 : v * 255));
+    }
+  }
+  /* Faces and skin keep most of their own color when the whole frame is tinted (warmer, cooler, stronger or
+     weaker color): they take the new brightness, but 70% of their own hue. before: the frame's pixels before the
+     tint; d: after, changed in place. */
+  function keepSkin(d, before, k, W, H) {
+    const m = softMask(k, [2, 3], W, H);
+    for (let i = 0; i < m.length; i++) {
+      const a = m[i] * 0.7;
+      if (a < 0.01) continue;
+      const p = i * 4;
+      const y0 = 0.299 * before[p] + 0.587 * before[p + 1] + 0.114 * before[p + 2],
+        y1 = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2];
+      for (let c = 0; c < 3; c++) {
+        const own = y1 + (before[p + c] - y0);
+        const v = d[p + c] * (1 - a) + own * a;
+        d[p + c] = v < 0 ? 0 : v > 255 ? 255 : v;
+      }
     }
   }
   const frameC = { c: null, x: null };
@@ -280,7 +309,7 @@
     const img = ctx.getImageData(0, 0, W, H);
     const d = img.data;
     if (parts.clothes) recolor(d, softMask(k, [4], W, H), parts.clothes.color, parts.clothes.amount);
-    if (parts.hair) recolor(d, softMask(k, [1], W, H), parts.hair.color, parts.hair.amount);
+    if (parts.hair) recolor(d, softMask(k, [1], W, H), parts.hair.color, parts.hair.amount, true);
     let personA = null;
     if (parts.person || parts.background) personA = softMask(k, [1, 2, 3, 4, 5], W, H);
     if (parts.person && (Math.abs(parts.person.scale - 1) > 0.01 || Math.abs(parts.person.dx) > 0.005)) {
@@ -442,5 +471,5 @@
       scan,
     });
 
-  window.CurioMask = { configure, load, ready, cut, scan, applyParts, preview, failed: () => failed, TINT };
+  window.CurioMask = { configure, load, ready, cut, scan, applyParts, keepSkin, preview, failed: () => failed, TINT };
 })();
