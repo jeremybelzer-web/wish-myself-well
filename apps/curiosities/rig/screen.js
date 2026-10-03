@@ -189,11 +189,19 @@
       e.preventDefault();
       const text = $("ask").value.trim();
       if (!ctl || !text) return;
-      const res = ctl.ask(text);
-      Object.keys(R().readRequest(text).values || {}).forEach((id) => !lastAsk.includes(id) && lastAsk.push(id));
+      /* an acting move ("does a double take") plays now and can be keyed; the rest of the words go to the rules */
+      const G = R().gestures;
+      const move = G ? G.say(text, ctl) : null;
+      if (move && !lastAsk.includes("actingLens.move")) lastAsk.push("actingLens.move");
+      const rest = move ? move.rest : text;
+      const res = rest ? ctl.ask(rest) : { changes: [] };
+      Object.keys(R().readRequest(rest).values || {}).forEach((id) => !lastAsk.includes(id) && lastAsk.push(id));
+      const said = move ? `Acting move: ${move.id}. ` : "";
       $("said").textContent = res.changes.length
-        ? "Changed: " + res.changes.join("; ") + ". Where the timeline already says something here, it still wins: press Key this on the timeline to change it there."
-        : "I did not find anything to change in that. Try a feeling (sleepy, scared) or a move (walk, look up).";
+        ? said + "Changed: " + res.changes.join("; ") + ". Where the timeline already says something here, it still wins: press Key this on the timeline to change it there."
+        : move
+        ? said + "Press Key this on the timeline to play it at this moment of the film."
+        : "I did not find anything to change in that. Try a feeling (sleepy, scared), a move (walk, look up) or an acting move (shrug, double take).";
     });
     $("key").addEventListener("click", keyThis);
     if (typeof IntersectionObserver === "function") {

@@ -43843,6 +43843,222 @@
    }
   },
   {
+   "id": "actingLens",
+   "level": "curiosity",
+   "label": "Acting moves",
+   "plain": "Short acting moves a 3D character plays on top of whatever else it is doing: a double take, a shrug, a pratfall, a wave, a bow. How big, how fast, and the timing that makes them funny.",
+   "workspace": "character-motion",
+   "also": [
+    "comedy",
+    "emotion"
+   ],
+   "group": "Maya: Acting moves",
+   "kind": "lens",
+   "per": "panel",
+   "main": "move",
+   "sliders": [
+    {
+     "id": "move",
+     "label": "Acting move",
+     "plain": "Which move the character plays. Put one on the timeline and it plays when the playhead gets there.",
+     "scale": [
+      "none",
+      "double take",
+      "shrug",
+      "facepalm",
+      "spit take",
+      "pratfall",
+      "slow burn",
+      "freeze in shock",
+      "wobbly knees",
+      "victory dance",
+      "wave",
+      "point",
+      "nod yes",
+      "shake no",
+      "hands on hips",
+      "cross arms",
+      "sigh",
+      "look around",
+      "jump for joy",
+      "bow"
+     ],
+     "from": "none",
+     "to": "bow",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "size",
+     "label": "How big",
+     "plain": "How far the body goes. Small reads as real life; huge reads as a cartoon.",
+     "scale": [
+      "tiny",
+      "small",
+      "normal",
+      "big",
+      "huge"
+     ],
+     "from": "tiny",
+     "to": "huge",
+     "curve": "linear"
+    },
+    {
+     "id": "speed",
+     "label": "How fast",
+     "plain": "How fast the move plays from start to end.",
+     "scale": [
+      "very slow",
+      "slow",
+      "normal",
+      "quick",
+      "snappy"
+     ],
+     "from": "very slow",
+     "to": "snappy",
+     "curve": "linear"
+    },
+    {
+     "id": "windup",
+     "label": "Wind-up first",
+     "plain": "A small move the other way before the big one, so the eye knows something is coming (animators call it anticipation).",
+     "scale": [
+      "none",
+      "a little",
+      "clear",
+      "big"
+     ],
+     "from": "none",
+     "to": "big",
+     "curve": "linear"
+    },
+    {
+     "id": "hold",
+     "label": "Hold the pose",
+     "plain": "How long the strongest pose stays still so the audience can read it.",
+     "scale": [
+      "no hold",
+      "short",
+      "clear",
+      "long"
+     ],
+     "from": "no hold",
+     "to": "long",
+     "curve": "linear"
+    },
+    {
+     "id": "settle",
+     "label": "Settle at the end",
+     "plain": "How the body comes back to rest: all at once, gently, or going a little past and wobbling (overshoot and settle).",
+     "scale": [
+      "stops dead",
+      "eases back",
+      "overshoots and wobbles"
+     ],
+     "from": "stops dead",
+     "to": "overshoots and wobbles",
+     "curve": "linear"
+    },
+    {
+     "id": "pause",
+     "label": "Comedy timing",
+     "plain": "A pause just before the payoff. The longer the wait, the bigger the laugh, until it gets awkward (which is funny too).",
+     "scale": [
+      "no pause",
+      "a beat",
+      "a long beat",
+      "painfully long"
+     ],
+     "from": "no pause",
+     "to": "painfully long",
+     "curve": "linear"
+    },
+    {
+     "id": "cue",
+     "label": "Play it",
+     "plain": "Each time this turns to go, the move plays again. Use it to repeat the same move later in the film.",
+     "scale": [
+      "wait",
+      "go"
+     ],
+     "from": "wait",
+     "to": "go",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves the audience needing what comes next.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Maya",
+   "tags": [
+    "maya",
+    "tool:rig3d"
+   ],
+   "maya": "Pose-to-pose animation, Trax and Time Editor clips, animation layers (a move layered on top of a walk)",
+   "tool": "rig3d",
+   "momentum": {
+    "push": 2,
+    "plot": "A clear acting beat tells the audience exactly how a character takes the news, so the story can move on.",
+    "theme": "The same move played twice (a second double take, a bigger pratfall) turns a gag into a running theme.",
+    "pull": "A sudden move after stillness pulls every eye in the frame.",
+    "cue": "movement",
+    "tryThis": "Hold still one beat longer than feels right, then do the double take."
+   }
+  },
+  {
    "id": "faceLens",
    "level": "curiosity",
    "label": "Face acting",
