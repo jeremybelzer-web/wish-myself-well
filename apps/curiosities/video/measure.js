@@ -938,7 +938,8 @@
       /* How much it looks like background: pale (bright) and plain (colorless). */
       const pale = clamp((y - 0.45) / 0.15, 0, 1),
         plain = clamp((0.2 - sat) / 0.1, 0, 1);
-      data[p + 3] = Math.round(255 * a * (1 - pale * plain));
+      /* Keep what was already see-through (outside the fitted graphic) see-through. */
+      data[p + 3] = Math.round(data[p + 3] * a * (1 - pale * plain));
     }
   }
 

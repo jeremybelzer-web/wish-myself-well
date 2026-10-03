@@ -51,6 +51,7 @@ const suites = [
   { name: "engine", ...node("engine/tests/run.js") },
   { name: "engine bridge fuzz", ...node("engine/tests/bridge-fuzz.js") },
   { name: "screen", ...node("screen/tests/run.js") },
+  { name: "curiosity windows", ...node("data/windows/check-windows.js", ["--strict", "--say", "--look"]) },
   { name: "character matrix on the screen", ...node("screen/tests/character.js") },
   { name: "momentum", ...node("momentum/tests/run.js") },
   { name: "episodes", ...node("episodes/tests/run.js") },
@@ -65,6 +66,7 @@ const suites = [
   { name: "blender", ...py("blender/tests/test_blender.py"), needs: python && has(python, ["-c", "import bpy"]) ? "" : "Blender's Python (bpy)" },
   /* Browser. */
   { name: "screen in a browser", browser: true, ...node("screen/tests/browser.js") },
+  { name: "every curiosity window in a browser", browser: true, ...node("screen/tests/windows-browser.js") },
   { name: "character matrix in a browser", browser: true, ...node("screen/tests/character-browser.js", threeArgs) },
   { name: "engine in a browser", browser: true, ...node("engine/tests/browser.js", threeArgs) },
   { name: "momentum in a browser", browser: true, ...node("momentum/tests/browser.js", threeArgs) },
