@@ -1388,6 +1388,7 @@
 .sc-page .sc-win .sc-frames button span { cursor: pointer; padding: 1px 5px; background: rgba(255, 255, 255, 0.85); border-radius: 3px; }
 .cw-look-pic { border-radius: 6px; overflow: hidden; background: #111; line-height: 0; }
 .cw-look-pic svg { width: 100%; height: auto; display: block; }
+.sc-page .sc-win .sc-wctl .sc-ctl { grid-template-columns: 1fr; }
 .sc-page .sc-win .sc-chips { display: flex; flex-wrap: wrap; gap: 3px; }
 .sc-page .sc-win .sc-chips button { padding: 3px 7px; font-size: 10px; border-radius: 10px; }
 .sc-page .sc-win .sc-chips button.on { background: var(--cc-accent); color: var(--cc-accent-ink); }
