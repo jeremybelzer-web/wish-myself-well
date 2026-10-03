@@ -1080,12 +1080,12 @@
       </div>`;
     };
     return `<section class="sc-win" data-win="${esc(c.id)}" role="dialog" aria-label="${esc(c.label)} window" style="left:${w.x}px;top:${w.y}px;z-index:${60 + z}">
-      <header class="sc-win-h" data-win-drag="${esc(c.id)}">${icon(cat.icon)}<b>${F ? "Fine-tune: " : ""}${esc(c.label)}</b><small>${esc(cat.label)}${isAdv(c) ? " · ADVANCED" : ""}</small><button type="button" data-win-close="${esc(c.id)}" aria-label="Close the ${esc(c.label)} window">×</button></header>
+      <header class="sc-win-h" data-win-drag="${esc(c.id)}">${icon(cat.icon)}<b>${esc(c.label)}</b><small>${esc(cat.label)}${isAdv(c) ? " · ADVANCED" : ""}</small><button type="button" data-win-close="${esc(c.id)}" aria-label="Close the ${esc(c.label)} window">×</button></header>
       <div class="sc-win-b">
         ${c.plain ? `<p class="sc-win-plain">${esc(c.plain)}</p>` : ""}
         <p class="sc-k">My film, moment ${row + 1}: every change here becomes a node.</p>
-        ${F && F.sayHtml ? F.sayHtml(c, faceHelpers(ctx)) : ""}
         ${winSpecial(c, ctx)}
+        ${F && F.sayHtml ? F.sayHtml(c, faceHelpers(ctx)) : ""}
         ${F ? F.html(c, faceHelpers(ctx, w.focus)) : ""}
         ${(F && F.grouped(c, block)) || `<div class="sc-wpart"><h4>Every knob and slider</h4>${sliders.map(block).join("")}</div>`}
         ${c.momentum ? momentumBox(c.momentum) : ""}
