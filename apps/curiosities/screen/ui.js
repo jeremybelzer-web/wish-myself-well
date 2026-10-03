@@ -254,7 +254,9 @@
   const nRows = () => (E() ? E().state().rows.length : 1);
   const beatFor = (f) => (f && f.beats.length > 1 && nRows() > 1 ? Math.round((row * (f.beats.length - 1)) / (nRows() - 1)) : 0);
   function setRow(j) {
+    const was = row;
     row = Math.max(0, Math.min(nRows() - 1, j | 0));
+    trMoved(was, row); /* a transition plays when the playhead steps across a join */
     drawViewers();
     drawInspector();
     if (lanes) lanes.draw();
@@ -366,6 +368,7 @@
       <aside class="sc-inspector sc-panel" aria-label="Details"></aside>
       <div class="sc-timeline sc-panel"></div></div>`;
     document.body.appendChild(page);
+    trWire();
     page.addEventListener("click", onClick);
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
@@ -595,8 +598,10 @@
     function csv(moments, o) {
       const keys = keysWithValues(moments, o.keys);
       const text = o.text || ((k, v) => String(v));
-      const head = ["Moment", "Time", "Marker note"].concat(keys.map((k) => o.label(k)));
-      const rows = moments.map((m) => [m.n, m.clock || "", m.note || ""].concat(keys.map((k) => (m.values && m.values[k] != null && m.values[k] !== "" ? text(k, m.values[k]) : ""))));
+      /* Transitions: a "Transition in" column (how the moment before hands over to this one) once any join has one. */
+      const tr = moments.some((m) => m.transition);
+      const head = ["Moment", "Time", "Marker note"].concat(tr ? ["Transition in"] : [], keys.map((k) => o.label(k)));
+      const rows = moments.map((m) => [m.n, m.clock || "", m.note || ""].concat(tr ? [m.n > 1 ? m.transition || "Cut" : ""] : [], keys.map((k) => (m.values && m.values[k] != null && m.values[k] !== "" ? text(k, m.values[k]) : ""))));
       return "﻿" + [head].concat(rows).map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
     }
     /* The printable storyboard sheet: a whole page of its own (opened in a new tab), 2, 3 or 4 frames per row,
@@ -609,7 +614,7 @@
   <div class="pic">${m.svg}</div>
   <figcaption><b>Moment ${html(m.n)}</b> <span class="t">${html(m.clock)}</span>${m.label ? ` <span class="l">${html(m.label)}</span>` : ""}
   ${m.note ? `<p class="mk"><i style="background:${MARK_HEX[m.color] || MARK_HEX.orange}"></i>${html(m.note)}</p>` : ""}
-  <p class="ch">${m.changes ? html(m.changes) : m.n === 1 ? "Where the film starts." : "Nothing changes from the moment before."}</p></figcaption>
+  ${m.transition ? `<p class="tr">Comes in with: ${html(m.transition)}</p>` : ""}<p class="ch">${m.changes ? html(m.changes) : m.n === 1 ? "Where the film starts." : "Nothing changes from the moment before."}</p></figcaption>
 </figure>`;
       return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -634,6 +639,7 @@
   .mk { margin: 3px 0 0; font-weight: 600; }
   .mk i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
   .ch { margin: 3px 0 0; color: #4a423b; font-size: 12px; }
+  .tr { margin: 3px 0 0; color: #0e7490; font-size: 12px; font-weight: 600; }
   @media (max-width: 600px) { .grid { grid-template-columns: repeat(min(var(--per, 3), 2), minmax(0, 1fr)); } }
   @media print { body { padding: 0; } .tools { display: none; } .grid { gap: 10px; } }
 </style></head>
@@ -1011,7 +1017,8 @@ document.addEventListener("click", function (e) {
       const values = {};
       Object.keys(b.values).forEach((k) => (/\.setting$/.test(k) && b.values[L().base(k)] != null ? null : (values[k] = b.values[k])));
       const mk = marks[String(b.row)];
-      return { n: i + 1, clock: tc(i), values, raw: b.values, note: mk ? mk.note || "" : "", color: mk ? mk.color : "", label: b.note && !/^moment \d+$/i.test(b.note) ? b.note : "" };
+      const tr = i ? trAt(i + 1) : null;
+      return { n: i + 1, clock: tc(i), values, raw: b.values, note: mk ? mk.note || "" : "", color: mk ? mk.color : "", label: b.note && !/^moment \d+$/i.test(b.note) ? b.note : "", transition: tr && tr.kind !== "cut" ? TRANSITIONS.label(tr) : "" };
     });
     const film = E() ? E().state().name : "";
     return { moments, film, keys: EXPORT.keysWithValues(moments, prefs.lanes), shape: ratioShape() };
@@ -1079,8 +1086,405 @@ document.addEventListener("click", function (e) {
     if (what === "csv") {
       const name = EXPORT.fileName(d.film, "settings", "csv");
       downloadBlob(name, new Blob([EXPORT.csv(d.moments, { keys: d.keys, label: labelOf, text: valueText })], { type: "text/csv;charset=utf-8" }));
-      return toast(`Saved ${name}: ${d.moments.length} moments, ${d.keys.length} curiosities.`);
+      const trs = d.moments.filter((m) => m.transition).length;
+      return toast(`Saved ${name}: ${d.moments.length} moments, ${d.keys.length} curiosities${trs ? `, ${trs} transition${trs === 1 ? "" : "s"}` : ""}.`);
     }
+  }
+
+  /* ---------- Transitions between moments (CapCut's Transitions tab, made for My film's joins) ----------
+     The film is a flipbook-style storyboard, a moment at a time, so a transition sits on a join: how moment N
+     hands over to moment N+1. Cut (nothing in between) is the default. Each join's choice is the Screen's own
+     setting, not the engine's: a { kind, len } per join, keyed by the number of the moment it leads into ("3" is
+     the join from moment 2 into moment 3), len a fraction of a moment. Saved under localStorage
+     "curiosities-screen-transitions-v1" through a part of the app-wide store (engine/store.js), so every change
+     is one step on the same undo list as ⌘Z and History ▾. (The data's Transition style curiosity is a value
+     per moment that holds until the next node, so it can't say "this join only"; it is left as it is.)
+     The pure part (TRANSITIONS) takes plain data so tests can check it with no page. */
+  const TR_KEY = "curiosities-screen-transitions-v1";
+  const TRANSITIONS = (() => {
+    const KINDS = [
+      ["cut", "Cut", "Cut: the next picture appears at once, with nothing in between."],
+      ["fade", "Fade", "Fade: the picture melts into the next one."],
+      ["wipe", "Wipe", "Wipe: the next picture slides in from the left like a curtain and covers this one."],
+      ["push", "Push", "Push: the next picture shoves this one out of the frame, sideways."],
+      ["zoom", "Zoom", "Zoom: this picture rushes toward you and fades, and the next one is behind it."],
+      ["match", "Match", "Match: the drawing stays put and only the settings that change move into place."],
+    ];
+    const LENGTHS = [
+      [0.25, "a quarter of a moment"],
+      [0.5, "half a moment"],
+      [0.75, "three quarters of a moment"],
+      [1, "a whole moment"],
+    ];
+    const LEN = 0.5;
+    const ids = KINDS.map((k) => k[0]);
+    const isObj = (x) => x != null && typeof x === "object" && !Array.isArray(x);
+    const fixLen = (v) => {
+      const n = Number(v);
+      return isFinite(n) && n > 0 ? Math.round(Math.max(0.1, Math.min(1, n)) * 100) / 100 : LEN;
+    };
+    /* What is kept: { joins: { "3": { kind, len } } }. Cuts are not kept (they are the default); a broken entry
+       is dropped quietly. */
+    function clean(raw) {
+      const out = { joins: {} };
+      const j = isObj(raw) && isObj(raw.joins) ? raw.joins : {};
+      Object.keys(j).forEach((k) => {
+        const n = Number(k);
+        const t = j[k];
+        if (!Number.isInteger(n) || n < 2 || n > 100000 || !isObj(t) || !ids.includes(t.kind) || t.kind === "cut") return;
+        out.joins[String(n)] = { kind: t.kind, len: fixLen(t.len) };
+      });
+      return out;
+    }
+    const at = (data, into) => {
+      const t = data && data.joins && data.joins[String(into)];
+      return t && ids.includes(t.kind) && t.kind !== "cut" ? { kind: t.kind, len: fixLen(t.len) } : { kind: "cut", len: LEN };
+    };
+    /* A new copy with the join into moment `into` set (kind "cut" takes it off). len left out keeps the join's own. */
+    function set(data, into, kind, len) {
+      const out = clean(data);
+      const n = Number(into);
+      if (!Number.isInteger(n) || n < 2 || !ids.includes(kind)) return out;
+      const was = at(out, n);
+      if (kind === "cut") delete out.joins[String(n)];
+      else out.joins[String(n)] = { kind, len: fixLen(len == null ? was.len : len) };
+      return out;
+    }
+    /* Use on every join: every join of a film with n moments gets the same kind and length. */
+    function all(data, n, kind, len) {
+      let out = { joins: {} };
+      for (let j = 2; j <= n; j++) out = set(out, j, kind, len == null ? LEN : len);
+      return out;
+    }
+    const kindOf = (id) => KINDS.find((k) => k[0] === id) || KINDS[0];
+    const lenText = (len) => {
+      const l = LENGTHS.find((x) => Math.abs(x[0] - len) < 0.001);
+      return l ? l[1] : Math.round(len * 100) + "% of a moment";
+    };
+    /* "Fade, half a moment", or "Cut". */
+    const label = (t) => (!t || t.kind === "cut" ? "Cut" : kindOf(t.kind)[1] + ", " + lenText(fixLen(t.len)));
+    /* Every join that isn't a plain cut, in order, for Export: [{ into, kind, len, text }]. */
+    function list(data, n) {
+      const out = [];
+      for (let j = 2; j <= n; j++) {
+        const t = at(data, j);
+        if (t.kind !== "cut") out.push({ into: j, kind: t.kind, len: t.len, text: label(t) });
+      }
+      return out;
+    }
+    const ease = (p) => {
+      const x = Math.max(0, Math.min(1, Number(p) || 0));
+      return x * x * (3 - 2 * x);
+    };
+    /* Match: the settings that differ move from a to b by their place on each curiosity's scale; a value that
+       isn't on a scale changes halfway. domain(k) -> { kind: "choice", options } or { kind: "range", min, max, step }. */
+    function blend(a, b, p, domain) {
+      const out = Object.assign({}, a || {}, b || {});
+      const x = Math.max(0, Math.min(1, Number(p) || 0));
+      Object.keys(out).forEach((k) => {
+        const va = a ? a[k] : undefined;
+        const vb = b ? b[k] : undefined;
+        if (va == null || vb == null) return (out[k] = x < 0.5 ? (va == null ? vb : va) : vb == null ? va : vb);
+        if (String(va) === String(vb)) return (out[k] = vb);
+        const d = domain ? domain(k) : null;
+        if (d && d.kind === "range" && isFinite(Number(va)) && isFinite(Number(vb))) {
+          const step = Number(d.step) || 0;
+          const v = Number(va) + (Number(vb) - Number(va)) * x;
+          return (out[k] = step ? Math.round(Math.round(v / step) * step * 1e6) / 1e6 : v);
+        }
+        const opts = d && d.kind === "choice" ? d.options || [] : [];
+        const ia = opts.indexOf(String(va));
+        const ib = opts.indexOf(String(vb));
+        if (ia >= 0 && ib >= 0) return (out[k] = opts[Math.round(ia + (ib - ia) * x)]);
+        out[k] = x < 0.5 ? va : vb;
+      });
+      return out;
+    }
+    /* How the two pictures look at progress p (0: all the moment before, 1: all the new one), as CSS for the
+       picture going out (old) and the one coming in (cur). Match redraws the old picture instead (blend). */
+    function style(kind, p) {
+      const e = ease(p);
+      const pc = (v) => Math.round(v * 1000) / 10 + "%";
+      const r3 = (v) => String(Math.round(v * 1000) / 1000);
+      if (kind === "fade") return { old: { opacity: r3(1 - e) }, cur: {} };
+      if (kind === "wipe") return { old: { clipPath: `inset(0px 0px 0px ${pc(e)})` }, cur: {} };
+      if (kind === "push") return { old: { transform: `translateX(-${pc(e)})` }, cur: { transform: `translateX(${pc(1 - e)})` } };
+      if (kind === "zoom") return { old: { transform: `scale(${r3(1 + 0.6 * e)})`, opacity: r3(1 - e) }, cur: { transform: `scale(${r3(0.9 + 0.1 * e)})` } };
+      return { old: {}, cur: {} };
+    }
+    return { KINDS, LENGTHS, LEN, clean, at, set, all, label, list, ease, blend, style, lenText };
+  })();
+  window.CurioScreenTransitions = TRANSITIONS;
+
+  /* The saved transitions: a part of the app-wide store when the page has one (one undo step per change, on the
+     same list as ⌘Z), else plain storage with no undo. */
+  let trPart = null;
+  function trStore() {
+    if (trPart) return trPart;
+    const St = window.CurioStore;
+    const commands = {
+      set: (d, m) => (d.joins = TRANSITIONS.set(d, m.into, m.kind, m.len).joins),
+      all: (d, m) => (d.joins = TRANSITIONS.all(d, m.n, m.kind, m.len).joins),
+    };
+    if (St && typeof St.part === "function") {
+      try {
+        trPart = St.part("screenTransitions", { key: TR_KEY, initial: () => ({ joins: {} }), normalize: TRANSITIONS.clean, commands });
+        trPart.on(trChanged);
+        return trPart;
+      } catch (e) {
+        trPart = null;
+      }
+    }
+    let data = { joins: {} };
+    try {
+      data = TRANSITIONS.clean(JSON.parse(localStorage.getItem(TR_KEY)));
+    } catch (e) {}
+    trPart = {
+      undo: false,
+      view: () => data,
+      send(msg) {
+        if (!msg || !commands[msg.type]) return { ok: false };
+        const d = JSON.parse(JSON.stringify(data));
+        commands[msg.type](d, msg);
+        const next = TRANSITIONS.clean(d);
+        if (JSON.stringify(next) === JSON.stringify(data)) return { ok: true, unchanged: true };
+        data = next;
+        try {
+          localStorage.setItem(TR_KEY, JSON.stringify(data));
+        } catch (e) {}
+        trChanged();
+        return { ok: true };
+      },
+    };
+    return trPart;
+  }
+  const trData = () => trStore().view();
+  const trAt = (into) => TRANSITIONS.at(trData(), into);
+  function trChanged() {
+    if (!page || page.hidden) return;
+    trStop();
+    drawViewers();
+    drawInspector();
+    if (lanes) lanes.draw();
+    if (trMenuAt) {
+      const m = trMenuDraw();
+      const b = m.querySelector("[data-tr-kind].on");
+      if (b && m.contains(document.activeElement) === false) b.focus();
+    }
+  }
+  /* into: the moment number (1-based) the join leads into. */
+  function trSet(into, kind, len) {
+    const was = trAt(into);
+    const t = { kind: kind || was.kind, len: len == null ? was.len : len };
+    const r = trStore().send({ type: "set", into, kind: t.kind, len: t.len, label: `Transition into moment ${into}: ${TRANSITIONS.label(t)}` });
+    if (r && r.ok && !r.unchanged) toast(`Moment ${into - 1} into moment ${into}: ${TRANSITIONS.label(t)}.${trStore().undo === false ? "" : " Undo takes it back."}`);
+    return r;
+  }
+  function trAll(kind, len) {
+    const n = nRows();
+    const t = { kind, len: len == null ? TRANSITIONS.LEN : len };
+    const r = trStore().send({ type: "all", n, kind, len: t.len, label: `Every join: ${TRANSITIONS.label(t)}` });
+    if (r && r.ok && !r.unchanged) toast(`All ${Math.max(0, n - 1)} joins: ${TRANSITIONS.label(t)}.${trStore().undo === false ? "" : " Undo takes it back."}`);
+    else if (r && r.unchanged) toast(`Every join is already ${TRANSITIONS.label(t)}.`);
+    return r;
+  }
+  /* The ◇ on My film's clip track: one per join, for lanes.js (opts.joins). */
+  function trJoins() {
+    const n = nRows();
+    const out = [null];
+    for (let j = 1; j < n; j++) {
+      const t = trAt(j + 1);
+      out.push({ kind: t.kind, title: `Transition from moment ${j} into ${j + 1}: ${TRANSITIONS.label(t)}. Click to choose.` });
+    }
+    return out;
+  }
+  /* The chooser, used in Details and in the ◇'s pop-up: a button per kind, the length, Use on every join. */
+  function trChooserHtml(into, where) {
+    const t = trAt(into);
+    return `<div class="sc-seg sc-tr-kinds" role="group" aria-label="Transition into moment ${into}">${TRANSITIONS.KINDS.map(([id, l, tip]) => `<button type="button" data-tr-kind="${id}" data-tr-into="${into}" class="${t.kind === id ? "on" : ""}" aria-pressed="${t.kind === id}" title="${esc(tip)}">${esc(l)}</button>`).join("")}</div>
+      <div class="sc-tr-more"><label class="sc-tr-len" title="How long the transition takes, as a part of one moment">Length <select data-tr-len data-tr-into="${into}" aria-label="Length of the transition into moment ${into}"${t.kind === "cut" ? " disabled" : ""}>${TRANSITIONS.LENGTHS.map(([v, l]) => `<option value="${v}"${Math.abs(v - t.len) < 0.001 ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
+      <button type="button" class="sc-tr-all" data-tr-all="${into}" data-tr-where="${where}" title="Give every join in your film this same transition and length (one undo step)">Use on every join</button></div>`;
+  }
+  /* Details: the join into the moment at the playhead. */
+  function trRowHtml() {
+    if (row < 1) return `<section class="sc-trrow" data-tr-row="1"><p><b>Transition</b> · Moment 1 is where the film starts, so there is no join before it. Move the playhead to a later moment to choose how it comes in.</p></section>`;
+    const into = row + 1;
+    const t = trAt(into);
+    return `<section class="sc-trrow" data-tr-row="${into}"><p><b>Transition</b> · how moment ${row} hands over to moment ${into}: <span class="sc-tr-now">${esc(TRANSITIONS.label(t))}</span></p>${trChooserHtml(into, "details")}</section>`;
+  }
+  /* The ◇'s pop-up, beside the ◇. */
+  let trMenuAt = null;
+  function trMenuClose(focusBack) {
+    const m = page && page.querySelector(".sc-tr-menu");
+    if (m) m.remove();
+    const j = trMenuAt;
+    trMenuAt = null;
+    if (focusBack && j) {
+      const d = page.querySelector(`.sl-top [data-join="${j - 1}"]`);
+      if (d && d.focus) d.focus();
+    }
+  }
+  function trMenuDraw() {
+    let m = page.querySelector(".sc-tr-menu");
+    if (!m) {
+      m = document.createElement("div");
+      m.className = "sc-tr-menu";
+      m.setAttribute("role", "dialog");
+      page.appendChild(m);
+    }
+    const into = trMenuAt;
+    const t = trAt(into);
+    m.setAttribute("aria-label", `Transition into moment ${into}`);
+    m.innerHTML = `<p class="sc-tr-mh"><b>Moment ${into - 1} → ${into}</b><button type="button" class="sc-tr-x" data-tr-close aria-label="Close">×</button></p>${trChooserHtml(into, "menu")}<p class="sc-tr-tip">${esc(TRANSITIONS.KINDS.find((k) => k[0] === t.kind)[2])}</p>`;
+    return m;
+  }
+  function trMenuOpen(j, anchor) {
+    trMenuAt = j + 1;
+    const m = trMenuDraw();
+    const r = anchor.getBoundingClientRect();
+    const w = Math.min(380, window.innerWidth - 32);
+    m.style.width = w + "px";
+    m.style.left = Math.max(16, Math.min(window.innerWidth - w - 16, r.left + r.width / 2 - w / 2)) + "px";
+    const h = m.offsetHeight || 140;
+    m.style.top = (r.top - h - 6 >= 8 ? r.top - h - 6 : Math.max(8, Math.min(window.innerHeight - h - 8, r.bottom + 6))) + "px";
+    const b = m.querySelector("[data-tr-kind].on") || m.querySelector("button");
+    if (b) b.focus();
+  }
+  /* Clicks, changes and keys, caught before the page's own handlers. */
+  function trClick(e) {
+    const t = e.target;
+    if (!t || !t.closest) return;
+    if (trMenuAt && !t.closest(".sc-tr-menu, .sl-top [data-join]")) trMenuClose();
+    const join = t.closest(".sl-top [data-join]");
+    if (join) {
+      e.stopPropagation();
+      return trMenuAt === Number(join.dataset.join) + 1 ? trMenuClose() : trMenuOpen(Number(join.dataset.join), join);
+    }
+    const b = t.closest("[data-tr-kind], [data-tr-all], [data-tr-close]");
+    if (!b || !page.contains(b)) return;
+    e.stopPropagation();
+    if (b.dataset.trClose != null) return trMenuClose(true);
+    if (b.dataset.trKind) return trSet(Number(b.dataset.trInto), b.dataset.trKind);
+    const t0 = trAt(Number(b.dataset.trAll));
+    trAll(t0.kind, t0.len);
+  }
+  function trChange(e) {
+    const s = e.target;
+    if (!s || !s.dataset || s.dataset.trLen == null) return;
+    e.stopPropagation();
+    trSet(Number(s.dataset.trInto), null, Number(s.value));
+  }
+  function trKey(e) {
+    const t = e.target;
+    if (e.key === "Escape" && trMenuAt) {
+      e.stopPropagation();
+      return trMenuClose(true);
+    }
+    const join = t && t.closest && t.closest(".sl-top [data-join]");
+    if (join && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      e.stopPropagation();
+      trMenuOpen(Number(join.dataset.join), join);
+    }
+  }
+  function trWire() {
+    page.addEventListener("click", trClick, true);
+    page.addEventListener("change", trChange, true);
+    page.addEventListener("keydown", trKey, true);
+  }
+  /* Playing it: when the playhead steps one moment across a join (Play, ◀ ▶, scrubbing), the picture going out is
+     laid over the new one and moved by the transition's style, a frame at a time, for its length. One moment
+     lasts as long as Play holds it (1.1s at 1×), so a half-moment fade takes 0.55s at 1×. Cheap: one extra
+     storyboard <svg> (cached) and a few CSS properties per frame. */
+  let trAnim = null;
+  const momentMs = () => Math.round(1100 / ((prefs.speed || 1) * playRate));
+  function trMoved(was, now) {
+    trStop();
+    if (!page || page.hidden || Math.abs(now - was) !== 1) return;
+    const into = Math.max(was, now) + 1;
+    const t = trAt(into);
+    if (t.kind === "cut") return;
+    const beats = mineBeats();
+    if (!beats[was] || !beats[now]) return;
+    trAnim = { into, kind: t.kind, from: beats[was].values, to: beats[now].values, start: performance.now(), dur: Math.max(60, t.len * momentMs()), p: 0, frozen: false, cache: new Map() };
+    trAnim.raf = requestAnimationFrame(trTick);
+  }
+  function trTick() {
+    if (!trAnim || trAnim.frozen) return;
+    const p = (performance.now() - trAnim.start) / trAnim.dur;
+    if (p >= 1) return trStop();
+    trPaint(p);
+    trAnim.raf = requestAnimationFrame(trTick);
+  }
+  function trStop() {
+    if (trAnim && trAnim.raf) cancelAnimationFrame(trAnim.raf);
+    trAnim = null;
+    const fr = page && page.querySelector(".sc-viewer.mine .sc-frame");
+    if (!fr) return;
+    const o = fr.querySelector(":scope > .sc-tr");
+    if (o) o.remove();
+    fr.classList.remove("sc-tr-on");
+    delete fr.dataset.tr;
+    const cur = fr.querySelector(":scope > svg");
+    if (cur) cur.style.transform = "";
+  }
+  /* The old picture as an <svg>, in My film's frame shape (Match: the settings blended at p). */
+  function trSvg(values) {
+    const k = JSON.stringify(values);
+    if (trAnim.cache.has(k)) return trAnim.cache.get(k);
+    let svg = F().svg(values, { title: "", cast: castOf() });
+    if (ratioShape() !== "wide") svg = svg.replace("<svg ", '<svg preserveAspectRatio="xMidYMid slice" ');
+    if (trAnim.cache.size > 40) trAnim.cache.clear();
+    trAnim.cache.set(k, svg);
+    return svg;
+  }
+  function trPaint(p) {
+    const fr = page && page.querySelector(".sc-viewer.mine .sc-frame");
+    if (!trAnim || !fr || !F()) return;
+    trAnim.p = p;
+    const cur = fr.querySelector(":scope > svg");
+    let o = fr.querySelector(":scope > .sc-tr");
+    if (!o) {
+      o = document.createElement("div");
+      o.className = "sc-tr";
+      o.setAttribute("aria-hidden", "true");
+      if (cur) cur.after(o);
+      else fr.prepend(o);
+    }
+    fr.classList.add("sc-tr-on");
+    fr.dataset.tr = trAnim.kind;
+    o.dataset.tr = trAnim.kind;
+    o.dataset.p = String(Math.round(p * 100) / 100);
+    const values = trAnim.kind === "match" ? TRANSITIONS.blend(trAnim.from, trAnim.to, TRANSITIONS.ease(p), (k) => (S() && S().known(k) ? S().domain(k) : null)) : trAnim.from;
+    const svg = trSvg(values);
+    if (o.__svg !== svg) (o.innerHTML = svg), (o.__svg = svg);
+    const s = TRANSITIONS.style(trAnim.kind, p);
+    o.style.opacity = s.old.opacity || "";
+    o.style.clipPath = s.old.clipPath || "";
+    o.style.transform = s.old.transform || "";
+    /* The new picture keeps the Player zoom (--sc-pz) under its own move. */
+    if (cur) cur.style.transform = s.cur.transform ? `${s.cur.transform} scale(var(--sc-pz, 1))` : "";
+  }
+  /* drawViewers rebuilt the Player: put a running transition back on the new frame. */
+  function trDecorate() {
+    if (trAnim) trPaint(trAnim.p);
+  }
+  /* Tests and a still preview: the join into moment `into`, held at progress p (the playhead on that moment). */
+  function trPreview(into, p) {
+    trStop();
+    const n = Number(into);
+    if (!page || !Number.isInteger(n) || n < 2 || n > nRows()) return null;
+    row = n - 1;
+    drawViewers();
+    drawInspector();
+    if (lanes) lanes.draw();
+    tell();
+    const t = trAt(n);
+    if (t.kind === "cut") return { kind: "cut", len: t.len };
+    const beats = mineBeats();
+    trAnim = { into: n, kind: t.kind, from: beats[n - 2].values, to: beats[n - 1].values, p: 0, frozen: true, cache: new Map() };
+    trPaint(Math.max(0, Math.min(1, Number(p) || 0)));
+    return { kind: t.kind, len: t.len };
   }
 
   /* ---------- the library (CapCut's top-left panel) ---------- */
@@ -1834,6 +2238,7 @@ document.addEventListener("click", function (e) {
     page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
       <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}${compareMenuHtml()}${captionsMenuHtml()}</span>`;
+    trDecorate();
   }
 
   /* ---------- the inspector ---------- */
@@ -2542,7 +2947,7 @@ document.addEventListener("click", function (e) {
       ${others.length ? `<p class="sc-also">What you are looking through is also in ${others.map((c) => `<button type="button" data-icat="${c.id}">${esc(c.label)}</button>`).join(" ")}</p>` : ""}
     </section>`;
     const blend = insp ? blendHtml() : "";
-    box.innerHTML = `<header class="sc-insp-h"><strong class="sc-details">Details</strong><span><b>${esc(ctx.title)}</b> · ${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ctx.edit ? lookMenuHtml() : ""}</header>${blend}<div class="sc-cats">${body}</div>`;
+    box.innerHTML = `<header class="sc-insp-h"><strong class="sc-details">Details</strong><span><b>${esc(ctx.title)}</b> · ${esc(ctx.sub)}</span>${insp ? `<button type="button" data-focus="mine">Inspect my film</button>` : ctx.edit ? lookMenuHtml() : ""}</header>${!insp && ctx.edit ? trRowHtml() : ""}${blend}<div class="sc-cats">${body}</div>`;
     drawWins();
   }
 
@@ -2705,6 +3110,7 @@ document.addEventListener("click", function (e) {
         ruler: true,
         clips: clipRows,
         thumbs: () => mineBeats().map((b) => thumb(b.values)),
+        joins: trJoins,
         beats: () => mineBeats(),
         /* Film lines: the inspiration viewer picked in the Player (else the first one). */
         inspiration: () => { const v = prefs.insp.find((x) => x.id === prefs.focus) || prefs.insp[0], f = v && film(v.film); return f ? { name: filmTitle(f), beats: f.beats } : null; },
@@ -3311,5 +3717,5 @@ document.addEventListener("click", function (e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();

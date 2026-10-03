@@ -167,6 +167,33 @@ The caption follows the Ratio frame shape, keeps to two lines and ends in "…" 
 
 Captions are a view setting, not part of the film, and never an undo step. They are kept in `curiosities-screen-v1` as `captions: { on, mode }` (mode is `notes` or `changes`). `CurioScreen.captions` has `list()`, `now()` and `caption(o)` (what the caption says, from a marker and two moments' values) for tests. The Export storyboard sheet already shows the notes and is left as it is.
 
+## Transitions between moments
+
+Like CapCut's Transitions tab, made for a storyboard. My film plays a moment at a time, like a flipbook, so a transition sits on a **join**: how moment N hands over to moment N+1. Each join gets one of six, each with a one-line tooltip:
+
+- **Cut** (the default, how it always worked): the next picture appears at once, with nothing in between.
+- **Fade**: the picture melts into the next one.
+- **Wipe**: the next picture slides in from the left like a curtain and covers this one.
+- **Push**: the next picture shoves this one out of the frame, sideways.
+- **Zoom**: this picture rushes toward you and fades, and the next one is behind it.
+- **Match**: the drawing stays put and only the settings that change move into place (a shot size steps through the sizes between, a number counts up; anything not on a scale changes halfway).
+
+And a **length**: a quarter, half (the default), three quarters or a whole moment.
+
+Three ways to set it:
+
+1. **The ◇ on the timeline.** My film's clip track has a small ◇ at every join; it fills in once the join has something other than a Cut, and its tooltip names it. Click it (or tab to it and press Enter) for a small chooser: the six kinds, Length and Use on every join. Esc or a click elsewhere closes it.
+2. **Details.** On My film, a **Transition** row under the header is for the join *into* the moment at the playhead ("how moment 4 hands over to moment 5"). On moment 1 it says there is no join before it.
+3. **Use on every join** (in both) gives every join of the film the same kind and length.
+
+It plays in the Player whenever the playhead steps one moment across a join: with Play (its length is a part of how long Play holds a moment, so at 1× a half-moment Fade takes 0.55s), with ◀ ▶, and when you scrub along the strip or the timeline. The picture going out is laid over the new one and moved by CSS (opacity, a clip, a slide or a scale; Match redraws the one storyboard picture with blended settings, cached), so it costs one extra frame while it runs. A jump of more than one moment just cuts. Only My film plays transitions; inspiration films are left as they are.
+
+Each change is **one undo step** on the app-wide list (⌘Z, ⇧⌘Z and History ▾ name it, "Transition into moment 3: Fade, half a moment"); Use on every join is one step too. Transitions are the Screen's own setting, not the engine's film: they are kept in `localStorage` key `curiosities-screen-transitions-v1` as `{ joins: { "3": { kind, len } } }`, keyed by the number of the moment the join leads into (cuts are not kept). They are a part of the shared store (`engine/store.js`, part `screenTransitions`), which is what puts them on the undo list; without the store they are still saved but not undoable. The database's **Transition style** curiosity is a different thing, a value per moment that holds until the next node, and is left as it is. Because they are keyed by moment number, adding or taking out a moment in the middle of the film does not move them along.
+
+**Export** lists them: the Settings list gets a **Transition in** column (once any join has one; "Cut" elsewhere), and each frame on the Storyboard sheet that doesn't come in on a cut says "Comes in with: Fade, half a moment".
+
+The pure part is `window.CurioScreenTransitions` (`KINDS`, `LENGTHS`, `clean`, `at`, `set`, `all`, `label`, `list`, `blend`, `style`); `CurioScreen.transitions` has `now()`, `at(into)`, `set(into, kind, len)`, `all(kind, len)`, `preview(into, p)` (holds the Player at progress p of the join, for tests) and `playing()`. `lanes.js` draws the ◇ from the `joins` mount option.
+
 ## Whole film strip
 
 Jeremy, 2026-10-02 20:27Z. The viewers show one moment at a time, so the Player has a **Whole film** strip under them (`ui.js` `overviewHtml`): every moment of My film as a small storyboard frame, always squeezed to fit the width, like the thumbnails on CapCut's main track and Final Cut Pro's filmstrips. Click or drag along it to jump anywhere; the timeline scrolls to follow. The current moment is outlined, moments outside the play range are dimmed, a dot marks where the picked curiosity shows up, and a white box shows the stretch the zoomed-in timeline is showing. "▾ Whole film" folds it away (`prefs.overview`).

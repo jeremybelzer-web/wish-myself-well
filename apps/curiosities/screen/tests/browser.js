@@ -1988,6 +1988,144 @@ const ok = (cond, msg) => {
     await page.keyboard.press("Escape");
   }
 
+  /* Transitions between moments (CapCut's Transitions tab, for My film's joins): a ◇ on My film's clip track at
+     each join opens a chooser; Details has a Transition row for the join into the playhead's moment; Use on every
+     join; each change is one undo step; it plays (the picture going out over the new one, in its style) when Play
+     or a scrub steps across the join; it is kept across a reload; Export lists it. */
+  {
+    await page.$eval('button[data-view="screen"]', (b) => b.click());
+    await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+    if ((await page.$eval('[data-act="play"]', (b) => b.textContent)) !== "Play") await page.$eval('[data-act="play"]', (b) => b.click());
+    const T = (into) => page.evaluate((j) => window.CurioScreen.transitions.at(j), into);
+    const n = await page.evaluate(() => window.CurioEngine.state().rows.length);
+    ok(n >= 5, `my film has enough moments for the transition checks (${n})`);
+    /* Moments 2, 3 and 4 look different, so a frame mid-transition shows two different pictures. */
+    await page.evaluate(() => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const track = (st.tracks.find((t) => t.curiosities.includes("shotSize")) || {}).id;
+      E.send({ type: "batch", label: "Transition test shots", commands: [["wide", 1], ["close", 2], ["wide", 3], ["close", 4]].map(([v, j]) => ({ type: "setPoint", row: st.rows[j].id, track, curiosity: "shotSize", value: v })) });
+      window.CurioScreen.transitions.all("cut");
+      window.CurioScreen.setRow(0);
+    });
+    ok(JSON.stringify(await page.evaluate(() => window.CurioScreen.transitions.now())) === '{"joins":{}}', "every join starts as a Cut");
+    ok((await page.$$(".sl-top .sl-join[data-join]")).length === n - 1 && !(await page.$(".sl-top .sl-join.set")), `a ◇ sits on My film's clip track at each of the ${n - 1} joins`);
+    ok(/from moment 2 into 3: Cut/.test(await page.$eval('.sl-top [data-join="2"] title', (t) => t.textContent)), "the ◇'s tooltip names the join and its transition");
+    /* The ◇: click to choose. */
+    await page.click('.sl-top [data-join="2"]');
+    const menu = () => page.evaluate(() => { const m = document.querySelector(".sc-tr-menu"); return m ? { text: m.textContent, kinds: [...m.querySelectorAll("[data-tr-kind]")].map((b) => b.textContent + "|" + b.title), on: (m.querySelector("[data-tr-kind].on") || {}).dataset?.trKind, len: (m.querySelector("[data-tr-len]") || {}).value, focus: m.contains(document.activeElement) } : null; });
+    let mm = await menu();
+    ok(mm && /Moment 2 → 3/.test(mm.text) && mm.kinds.length === 6 && mm.on === "cut" && mm.focus, "clicking the ◇ opens a chooser for that join, with focus inside it");
+    ok(mm && mm.kinds.every((k) => { const [l, t] = k.split("|"); return t.startsWith(l + ": "); }) && mm.kinds.some((k) => k === "Fade|Fade: the picture melts into the next one."), "each choice has a one-line tooltip in plain words (" + (mm ? mm.kinds.map((k) => k.split("|")[0]).join(", ") : "") + ")");
+    await page.screenshot({ path: path.join(SHOTS, "screen-12-transition-menu.png") });
+    await page.click('.sc-tr-menu [data-tr-kind="fade"]');
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.5 && (await T(2)).kind === "cut", "picking Fade sets the join into moment 3 only (half a moment to start)");
+    ok(!!(await page.$('.sl-top .sl-join.set[data-join="2"][data-kind="fade"]')) && (await page.$$(".sl-top .sl-join.set")).length === 1, "its ◇ fills in on the timeline");
+    mm = await menu();
+    ok(mm && mm.on === "fade" && /melts/.test(mm.text), "the chooser stays open, showing Fade and what it does");
+    await page.selectOption(".sc-tr-menu [data-tr-len]", "0.25");
+    ok((await T(3)).len === 0.25, "the length can be set: a quarter of a moment");
+    await page.keyboard.press("Escape");
+    ok(!(await menu()), "Esc closes the chooser");
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    /* One undo step per change, on the same list as ⌘Z and History ▾. */
+    const store = await page.evaluate(() => !!(window.CurioStore && window.CurioStore.part));
+    ok(store, "the page has the app-wide undo list for transitions to join");
+    ok(await page.evaluate(() => window.CurioStore.history().undo.slice(-1)[0] === "Transition into moment 3: Fade, a quarter of a moment"), "the change is named plainly on the undo list (History ▾)");
+    await page.keyboard.press("Control+z");
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.5, "one ⌘Z takes back only the length");
+    await page.keyboard.press("Control+z");
+    ok((await T(3)).kind === "cut" && !(await page.$(".sl-top .sl-join.set")), "another takes back the Fade, and the ◇ empties");
+    await page.keyboard.press("Control+Shift+z");
+    await page.keyboard.press("Control+Shift+z");
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.25, "⇧⌘Z redoes both");
+    /* Details: the Transition row for the join into the playhead's moment. */
+    await page.evaluate(() => window.CurioScreen.setRow(0));
+    ok(/no join before it/.test(await page.$eval(".sc-inspector .sc-trrow", (s) => s.textContent)), "on moment 1 Details says there is no join before it");
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    ok(!!(await page.$('.sc-inspector .sc-trrow[data-tr-row="5"] [data-tr-kind="cut"].on')) && /moment 4 hands over to moment 5: Cut/.test(await page.$eval(".sc-inspector .sc-trrow", (s) => s.textContent)), "on moment 5 Details shows the Transition row for the join into it");
+    await page.click('.sc-inspector .sc-trrow [data-tr-kind="push"]');
+    ok((await T(5)).kind === "push" && !!(await page.$('.sc-inspector .sc-trrow [data-tr-kind="push"].on')) && !!(await page.$('.sl-top .sl-join.set[data-join="4"][data-kind="push"]')), "picking Push in Details sets the join into moment 5, and its ◇ fills in");
+    /* Use on every join, one undo step. */
+    await page.click('.sc-inspector .sc-trrow [data-tr-all]');
+    const every = await page.evaluate(() => window.CurioScreen.transitions.now());
+    ok(Object.keys(every.joins).length === n - 1 && Object.values(every.joins).every((t) => t.kind === "push" && t.len === 0.5) && (await page.$$(".sl-top .sl-join.set")).length === n - 1, `Use on every join gives all ${n - 1} joins Push`);
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+z");
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.25 && (await T(5)).kind === "push" && (await T(2)).kind === "cut", "one ⌘Z takes Use on every join back");
+    await page.evaluate(() => window.CurioScreen.transitions.set(4, "match"));
+    /* It plays: a frame mid-transition shows both moments, in the transition's style. */
+    const mid = (into, p) => page.evaluate(([j, q]) => {
+      const r = window.CurioScreen.transitions.preview(j, q);
+      const fr = document.querySelector(".sc-viewer.mine .sc-frame");
+      const o = fr.querySelector(":scope > .sc-tr");
+      const cur = fr.querySelector(":scope > svg");
+      const cs = o ? getComputedStyle(o) : null;
+      return { r, row: window.CurioScreen.row(), tr: o ? o.dataset.tr : null, has: !!(o && o.querySelector("svg")), same: o && cur ? o.querySelector("svg").outerHTML === cur.outerHTML : null, opacity: cs ? Number(cs.opacity) : null, transform: cs ? cs.transform : "", clip: cs ? cs.clipPath : "", curT: cur ? cur.style.transform : "", sub: (document.querySelector(".sc-viewer.mine .sc-vsub") || {}).textContent || "" };
+    }, [into, p]);
+    let g = await mid(3, 0.5);
+    ok(g.r && g.r.kind === "fade" && g.row === 2 && g.tr === "fade" && g.has && g.same === false, "halfway through the Fade into moment 3, the Player shows moment 2's picture over moment 3's (two different pictures)");
+    ok(Math.abs(g.opacity - 0.5) < 0.02, `and moment 2's picture is half melted away (opacity ${g.opacity})`);
+    await page.screenshot({ path: path.join(SHOTS, "screen-12b-transition-fade.png") });
+    g = await mid(5, 0.5);
+    ok(g.tr === "push" && /matrix\(1, 0, 0, 1, -\d/.test(g.transform) && /translateX\(50%\)/.test(g.curT), `halfway through the Push the old picture is shoved half out and the new one half in (${g.transform}; ${g.curT})`);
+    g = await mid(4, 0.5);
+    ok(g.tr === "match" && g.has && g.opacity === 1 && g.transform === "none", "Match holds the drawing still (no fade, no move) and redraws only the settings that change");
+    g = await mid(2, 0.5);
+    ok(g.r && g.r.kind === "cut" && g.tr === null, "a Cut shows only the new moment");
+    /* While playing: Play steps across the join and the Fade plays, then goes away. */
+    if (await page.$('[data-act="range-clear"]')) await page.$eval('[data-act="range-clear"]', (b) => b.click());
+    await page.evaluate(() => window.CurioScreen.setRow(1));
+    ok(!(await page.$(".sc-viewer.mine .sc-tr")), "moving off a held preview clears it");
+    await page.$eval('[data-act="play"]', (b) => b.click());
+    const seen = await page.waitForFunction(() => { const p = window.CurioScreen.transitions.playing(); const o = document.querySelector(".sc-viewer.mine .sc-frame > .sc-tr"); return p && p.into === 3 && p.kind === "fade" && o && o.dataset.tr === "fade" && Number(getComputedStyle(o).opacity) < 1 ? true : null; }, null, { timeout: 4000, polling: "raf" }).then(() => true).catch(() => false);
+    await page.$eval('[data-act="play"]', (b) => b.click());
+    ok(seen, "while Play runs, stepping from moment 2 into 3 plays the Fade over the new picture");
+    /* Scrubbing across a join plays it too, and it ends on its own after its length. */
+    await page.evaluate(() => { window.CurioScreen.setRow(3); window.CurioScreen.setRow(4); });
+    ok(await page.evaluate(() => { const p = window.CurioScreen.transitions.playing(); return !!(p && p.into === 5 && p.kind === "push" && document.querySelector('.sc-viewer.mine .sc-tr[data-tr="push"]')); }), "scrubbing from moment 4 to 5 shows the Push");
+    const ended = await page.waitForFunction(() => !window.CurioScreen.transitions.playing() && !document.querySelector(".sc-viewer.mine .sc-tr"), null, { timeout: 4000 }).then(() => true).catch(() => false);
+    ok(ended, "and it ends by itself, leaving the plain picture");
+    await page.evaluate(() => { window.CurioScreen.setRow(4); window.CurioScreen.setRow(2); });
+    ok(!(await page.evaluate(() => window.CurioScreen.transitions.playing())), "a jump of more than one moment just cuts");
+    /* Saved with the Screen's own settings, across a reload. */
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-transitions-v1")));
+    ok(saved && saved.joins["3"].kind === "fade" && saved.joins["3"].len === 0.25 && saved.joins["4"].kind === "match" && saved.joins["5"].kind === "push", "the transitions are kept in curiosities-screen-transitions-v1, by the moment each join leads into");
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.$eval('button[data-view="screen"]', (b) => b.click());
+    await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    ok((await T(3)).kind === "fade" && (await T(3)).len === 0.25 && (await T(4)).kind === "match" && (await T(5)).kind === "push", "they come back after a reload");
+    ok(!!(await page.$('.sl-top .sl-join.set[data-join="2"][data-kind="fade"]')) && /Fade, a quarter of a moment/.test(await page.$eval(".sc-inspector .sc-trrow", (s) => s.textContent)), "the ◇ and Details show them after the reload");
+    /* Export lists them: the settings list and the storyboard sheet. */
+    await page.evaluate(() => {
+      window.__dl = [];
+      const real = HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click = function () {
+        if (!this.download) return real.call(this);
+        const rec = { name: this.download, text: "" };
+        window.__dl.push(rec);
+        rec.done = fetch(this.href).then((r) => r.text()).then((t) => (rec.text = t));
+      };
+    });
+    await page.click('.sc-bar [data-act="export"]');
+    await page.click('[data-export="csv"]');
+    await page.waitForFunction(() => window.__dl.length >= 1, null, { timeout: 10000 });
+    const csv = await page.evaluate(async () => (await window.__dl[0].done, window.__dl[0].text));
+    const lines = csv.replace(/^﻿/, "").trim().split("\r\n");
+    ok(/^Moment,Time,Marker note,Transition in,/.test(lines[0]) && /^3,[^,]*,,"Fade, a quarter of a moment",/.test(lines[3]) && /^5,[^,]*,,"Push, half a moment",/.test(lines[5]) && /^2,[^,]*,,Cut,/.test(lines[2]), "the settings list has a Transition in column naming each join's transition (" + (lines[3] || "").slice(0, 60) + ")");
+    await page.click('.sc-bar [data-act="export"]');
+    const [sheet] = await Promise.all([page.waitForEvent("popup", { timeout: 10000 }), page.click('[data-export="sheet"]')]);
+    await sheet.waitForLoadState();
+    const trs = await sheet.evaluate(() => [...document.querySelectorAll("figure.f")].map((f, i) => (f.querySelector(".tr") ? i + 1 + ":" + f.querySelector(".tr").textContent : "")).filter(Boolean));
+    await sheet.close();
+    ok(trs.join(" | ") === "3:Comes in with: Fade, a quarter of a moment | 4:Comes in with: Match, half a moment | 5:Comes in with: Push, half a moment", "the storyboard sheet says how each moment comes in (" + trs.join(" | ") + ")");
+    /* Leave every join a Cut for the checks after this. */
+    await page.evaluate(() => { window.CurioScreen.transitions.all("cut"); window.CurioScreen.setRow(0); });
+    ok(JSON.stringify(await page.evaluate(() => window.CurioScreen.transitions.now())) === '{"joins":{}}', "Use on every join with Cut puts every join back to a plain cut");
+  }
+
   /* Phone width. */
   await page.setViewportSize({ width: 390, height: 900 });
   await page.click('[data-act="close"]');

@@ -792,5 +792,60 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+/* Transitions between moments (CurioScreenTransitions): Cut, Fade, Wipe, Push, Zoom and Match on the joins of My
+   film, kept per join by the number of the moment it leads into; and Export lists them. */
+{
+  const T = w.CurioScreenTransitions;
+  ok(!!T && typeof T.set === "function" && typeof T.blend === "function", "the transition helpers are exposed for tests (CurioScreenTransitions)");
+  if (T) {
+    ok(T.KINDS.map((k) => k[0]).join() === "cut,fade,wipe,push,zoom,match", "six transitions: Cut, Fade, Wipe, Push, Zoom and Match");
+    ok(T.KINDS.every(([id, label, tip]) => tip.startsWith(label + ": ") && tip.length < 100 && !/dissolve|keyframe|interpolat/i.test(tip)), "each has a one-line tooltip in plain words");
+    ok(T.KINDS.find((k) => k[0] === "fade")[2] === "Fade: the picture melts into the next one.", "Fade's tooltip: the picture melts into the next one");
+    const empty = T.clean(null);
+    ok(JSON.stringify(empty) === '{"joins":{}}' && T.at(empty, 3).kind === "cut" && T.at(empty, 3).len === 0.5, "with nothing saved every join is a Cut (the default)");
+    const a = T.set(empty, 3, "fade", 0.25);
+    ok(T.at(a, 3).kind === "fade" && T.at(a, 3).len === 0.25 && T.at(a, 4).kind === "cut" && JSON.stringify(empty) === '{"joins":{}}', "setting the join into moment 3 changes only that join, on a copy");
+    const b = T.set(a, 3, "push");
+    ok(T.at(b, 3).kind === "push" && T.at(b, 3).len === 0.25, "picking another kind keeps the join's length");
+    ok(!T.set(b, 3, "cut").joins["3"], "Cut takes the join off (cuts are not kept)");
+    ok(!Object.keys(T.set(empty, 1, "fade").joins).length && !Object.keys(T.set(empty, 3, "spin").joins).length, "moment 1 has no join before it, and an unknown kind is refused");
+    const all = T.all(b, 5, "zoom", 0.75);
+    ok(Object.keys(all.joins).join() === "2,3,4,5" && Object.values(all.joins).every((t) => t.kind === "zoom" && t.len === 0.75), "Use on every join gives every join of a 5-moment film the same kind and length");
+    ok(!Object.keys(T.all(all, 5, "cut").joins).length, "Use on every join with Cut clears them all");
+    const dirty = T.clean({ joins: { 2: { kind: "wipe", len: 7 }, x: { kind: "fade" }, 0: { kind: "fade" }, 4: { kind: "nope" }, 5: "fade", 6: { kind: "cut" } } });
+    ok(JSON.stringify(dirty) === '{"joins":{"2":{"kind":"wipe","len":1}}}', "a broken save is cleaned quietly (lengths kept between a tenth and a whole moment)");
+    ok(T.label({ kind: "fade", len: 0.5 }) === "Fade, half a moment" && T.label({ kind: "cut" }) === "Cut" && T.label({ kind: "match", len: 1 }) === "Match, a whole moment", "plain labels for each choice");
+    const ls = T.list(T.set(T.set(empty, 2, "wipe", 1), 4, "fade"), 4);
+    ok(ls.length === 2 && ls[0].into === 2 && ls[0].text === "Wipe, a whole moment" && ls[1].into === 4 && ls[1].text === "Fade, half a moment", "the list for Export: every join that isn't a Cut, in order");
+    /* Styles at the middle of the transition. */
+    ok(T.style("fade", 0.5).old.opacity === "0.5" && T.style("fade", 0).old.opacity === "1" && T.style("fade", 1).old.opacity === "0", "Fade: the picture going out melts from fully there to gone");
+    ok(T.style("wipe", 0.5).old.clipPath === "inset(0px 0px 0px 50%)", "Wipe: halfway, the left half shows the new picture");
+    ok(T.style("push", 0.5).old.transform === "translateX(-50%)" && T.style("push", 0.5).cur.transform === "translateX(50%)", "Push: halfway, both pictures share the frame side by side");
+    ok(/^scale\(1\.3\)$/.test(T.style("zoom", 0.5).old.transform) && T.style("zoom", 0.5).old.opacity === "0.5", "Zoom: the picture going out grows and fades");
+    ok(!Object.keys(T.style("cut", 0.5).old).length && !Object.keys(T.style("match", 0.5).old).length, "Cut and Match move nothing with CSS");
+    /* Match: only the settings that change move, by their place on the scale. */
+    const dom = (k) => (k === "shotSize" ? { kind: "choice", options: ["extreme wide", "wide", "medium", "close", "extreme close"] } : k === "level" ? { kind: "range", min: 0, max: 10, step: 1 } : null);
+    const from = { shotSize: "extreme wide", level: 0, mood: "calm", same: "x" };
+    const to = { shotSize: "extreme close", level: 10, mood: "angry", same: "x" };
+    const mid = T.blend(from, to, 0.5, dom);
+    ok(mid.shotSize === "medium" && mid.level === 5 && mid.same === "x" && mid.mood === "angry", "Match halfway: a shot moves to the middle of its scale, a number halfway, the rest switch at the middle (" + JSON.stringify(mid) + ")");
+    ok(JSON.stringify(T.blend(from, to, 0, dom)) === JSON.stringify(from) && JSON.stringify(T.blend(from, to, 1, dom)) === JSON.stringify(to), "Match starts at the moment before and ends at the new one");
+    ok(T.blend(from, to, 0.25, dom).shotSize === "wide" && T.blend({ a: 1 }, { b: 2 }, 0.2).a === 1, "Match a quarter in, and settings only one side has");
+  }
+  const X = w.CurioScreenExport;
+  if (X) {
+    const ms = [
+      { n: 1, clock: "0", note: "", values: { shotSize: "wide" } },
+      { n: 2, clock: "3", note: "", values: { shotSize: "close" }, transition: "Fade, half a moment" },
+      { n: 3, clock: "6", note: "", values: { shotSize: "close" } },
+    ];
+    const lines = X.csv(ms, { keys: [], label: (k) => k }).replace(/^﻿/, "").split("\r\n");
+    ok(lines[0] === "Moment,Time,Marker note,Transition in,shotSize" && lines[1] === "1,0,,,wide" && lines[2] === "2,3,,\"Fade, half a moment\",close" && lines[3] === "3,6,,Cut,close", "the settings list has a Transition in column once a join has one (" + lines.slice(0, 4).join(" | ") + ")");
+    ok(!X.csv([ms[0], ms[2]], { keys: [], label: (k) => k }).includes("Transition in"), "and none when every join is a cut");
+    const sheet = X.sheetHtml({ moments: ms.map((m) => Object.assign({ svg: "<svg></svg>" }, m)) });
+    ok(sheet.includes("Comes in with: Fade, half a moment") && (sheet.match(/class="tr"/g) || []).length === 1, "the storyboard sheet says how each moment comes in, where it isn't a cut");
+  }
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

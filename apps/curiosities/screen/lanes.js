@@ -28,6 +28,8 @@
        opts.ruler        draw moment numbers above the lanes
        opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
        opts.thumbs()     -> one storyboard frame <svg> string per moment, drawn on My film's clip track when zoomed in
+       opts.joins()      -> per moment j, { kind, title } for the transition into it (null for the first): a ◇
+                         on My film's clip track at each join, [data-join=j]; the page handles its click
        opts.beats()      -> [{ values }] My film's values per moment, read by Mark the turns (else read from the engine)
        opts.showLanes(curs) adds lanes to the timeline for curiosities a dropped suite clip put into the film
        opts.attention    the momentum reading the Attention track uses (else the page's CurioAttention)
@@ -1505,6 +1507,18 @@
           }
           tsvg.push(`<g class="sl-clip ${esc(c.cls || "")}${pic ? " has-thumb" : ""}" data-clip="${j}"><rect x="${x + 1}" y="${y + 2}" width="${w}" height="${CLIP_H - 4}" rx="4"/>${pic}<text x="${tx}" y="${y + 18}">${esc(String(c.text || "").slice(0, Math.max(0, Math.floor((x + w - tx) / 6))))}</text><title>${esc(c.title || c.text || "")}</title></g>`);
         });
+        /* Transitions: a small ◇ on My film's clip track at each join between two moments (opts.joins() -> one
+           { kind, title } per moment, the join into it; the first is null). The page opens a chooser on click. */
+        if (film && opts.joins) {
+          const js = opts.joins() || [];
+          for (let j = 1; j < n; j++) {
+            const jn = js[j];
+            if (!jn) continue;
+            const x = j * colW;
+            const cy = y + CLIP_H / 2;
+            tsvg.push(`<g class="sl-join${jn.kind && jn.kind !== "cut" ? " set" : ""}" data-join="${j}" data-kind="${esc(jn.kind || "cut")}" tabindex="0" role="button" aria-label="${esc(jn.title || "Transition")}"><rect class="sl-joinhit" x="${x - 8}" y="${y + 2}" width="16" height="${CLIP_H - 4}"/><path d="M${x} ${cy - 6}l6 6-6 6-6-6z"/><title>${esc(jn.title || "")}</title></g>`);
+          }
+        }
       });
       tsvg.push(att.svg);
       const rulerY = clipRows.length * CLIP_H + att.h;
@@ -1903,6 +1917,8 @@
       const segEl = e.target.closest && e.target.closest("[data-seg]");
       const clipEl = e.target.closest && e.target.closest("[data-clip]");
       const r = sc ? sc.getBoundingClientRect() : { left: 0, top: 0 };
+      /* A transition's ◇ is the page's (opts.joins): its click opens the chooser, so no zoom drag or playhead move. */
+      if (e.target.closest && e.target.closest(".sl-top [data-join]")) return;
       if (e.target.closest && e.target.closest(".sl-top, .sl-rulerhead")) {
         let j = null;
         const markEl = e.target.closest(".sl-top [data-marker]");
