@@ -767,6 +767,22 @@
       }
       p.overlayFrom = r3(from);
     }
+    /* Another clip's set: start it where it is most colorful too (a title sequence opens on a plain card). */
+    if (on.set) {
+      const span = Math.min(insp.duration, p.duration);
+      let from = 0,
+        best = -1;
+      if (opts.setFrom != null) from = clamp(Number(opts.setFrom) || 0, 0, Math.max(0, insp.duration - 0.1));
+      else if (insp.duration > span + 0.5)
+        for (let a = 0; a + span <= insp.duration + 1e-6; a += 0.5) {
+          const m = mean(insp.times.map((t, i) => (t >= a && t < a + span ? insp.raw.sat[i] : null)).filter((x) => x != null));
+          if (m > best) {
+            best = m;
+            from = a;
+          }
+        }
+      p.setFrom = r3(from);
+    }
     if (on.shake || on.move) {
       const need = [];
       for (let k = 0; k < p.src.length; k += 3) {
@@ -973,7 +989,7 @@
         out.person = { scale: r3(scale), dx: r3(dx) };
       }
     }
-    if (on.set) out.background = { t: r3(ta), amount: on.set };
+    if (on.set) out.background = { t: r3(p.setFrom ? (p.setFrom + ta) % Math.max(0.1, p.insp.duration) : ta), amount: on.set };
     return Object.keys(out).length ? out : null;
   }
 
