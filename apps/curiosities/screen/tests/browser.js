@@ -913,6 +913,55 @@ const ok = (cond, msg) => {
     await page.evaluate(() => { window.CurioEngine.undo(); const t = window.CurioLanes.tools(); t.markers = []; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
   }
 
+  /* The Attention track (CapCut's waveform under the clips, for attention): a band right under My film's clip
+     track with a colored block per moment, a filled line, a key; a click jumps there; the toolbar toggle hides it. */
+  {
+    const band = () => page.evaluate(() => {
+      const g = document.querySelector(".sl-topsvg .sl-att");
+      if (!g) return null;
+      const bg = g.querySelector(".sl-attbg").getBoundingClientRect();
+      const mine = [...document.querySelectorAll(".sl-topsvg .sl-clip.mine rect")].map((r) => r.getBoundingClientRect());
+      const ruler = document.querySelector(".sl-topsvg .sl-rulerbg");
+      const blocks = [...g.querySelectorAll(".sl-attblock")];
+      return { state: g.dataset.attTrack, top: bg.top, bottom: bg.bottom, mineBottom: mine.length ? Math.max(...mine.map((r) => r.bottom)) : null, rulerTop: ruler ? ruler.getBoundingClientRect().top : null, blocks: blocks.length, families: [...new Set(blocks.map((b) => b.dataset.family))], w: blocks[0] ? blocks[0].getBoundingClientRect().width : 0, title: blocks[0] ? blocks[0].querySelector("title").textContent : "", line: !!g.querySelector(".sl-attline") && !!g.querySelector(".sl-attarea"), html: g.innerHTML, keys: [...document.querySelectorAll(".sl-atthead .sl-attkey")].map((k) => k.textContent), note: (g.querySelector(".sl-attnote") || {}).textContent || "" };
+    });
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); delete t.attention; localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); window.CurioScreen.setRow(0); });
+    const b0 = await band();
+    ok(b0 && b0.state === "on" && b0.blocks > 0 && b0.line, "the Attention track is on by default: colored blocks and a filled line (" + (b0 && b0.blocks) + " blocks)");
+    ok(b0 && b0.mineBottom != null && b0.top >= b0.mineBottom - 1 && b0.bottom <= b0.rulerTop + 1, "it sits right under My film's clip track, above the ruler");
+    ok(b0 && b0.keys.length === b0.families.length && b0.keys.length > 0 && /attention is on .+\. How strongly the film pulls forward: \d+%/.test(b0.title), "the key names each family shown, and a block's tooltip names what holds attention (" + (b0 && b0.keys.join(", ")) + ")");
+    const target = await page.evaluate(() => { const bl = [...document.querySelectorAll(".sl-topsvg .sl-attblock")].map((b) => Number(b.dataset.att)); return bl.find((j) => j >= 2) ?? bl[bl.length - 1]; });
+    await page.click(`.sl-topsvg .sl-attblock[data-att="${target}"]`);
+    ok((await page.evaluate(() => window.CurioScreen.row())) === target, "clicking the Attention track moves the playhead to that moment (" + target + ")");
+    /* It follows zoom like the other tracks. */
+    await page.click('[data-act="zoom-in"]');
+    const bz = await band();
+    ok(bz && bz.w > b0.w * 1.2, "zooming in widens its blocks with the moments (" + Math.round(b0.w) + "px to " + Math.round(bz.w) + "px)");
+    await page.click('[data-act="zoom-fit"]');
+    /* It redraws when nodes change: a feeling that swings every moment moves attention to Feeling. */
+    await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks.find((x) => x.curiosities.includes("emotion")); E.send({ type: "batch", label: "test attention", commands: st.rows.map((r, j) => ({ type: "setPoint", row: r.id, track: t.id, curiosity: "emotion", value: j % 2 ? "joyful" : "anxious" })) }); });
+    const b1 = await band();
+    ok(b1 && b1.html !== bz.html && b1.families.includes("feeling"), "it redraws when nodes change (now: " + (b1 && b1.families.join(", ")) + ")");
+    await page.evaluate(() => window.CurioEngine.undo());
+    await page.screenshot({ path: path.join(SHOTS, "screen-9d-attention-track.png") });
+    /* The toolbar toggle, kept in the timeline tools. */
+    ok(await page.evaluate(() => document.querySelector('[data-act="attention-track"]').getAttribute("aria-pressed") === "true"), "the toolbar's Attention toggle shows it is on");
+    await page.click('[data-act="attention-track"]');
+    ok(!(await band()) && !(await page.$(".sl-atthead")) && (await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")).attention === false)), "Attention off hides the track and is kept in curiosities-screen-tools-v1");
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    ok(!(await band()), "it stays hidden after a reload");
+    await page.click('[data-act="attention-track"]');
+    ok((await band()).state === "on", "Attention on brings it back");
+    /* Without the momentum code: nothing drawn, one plain line. */
+    await page.evaluate(() => { window.__att = window.CurioAttention; delete window.CurioAttention; });
+    await page.click('[data-act="attention-track"]');
+    await page.click('[data-act="attention-track"]');
+    const bn = await band();
+    ok(bn && bn.state === "none" && bn.blocks === 0 && !bn.line && /isn't loaded/.test(bn.note), "without the momentum code it draws nothing and says so in one line");
+    await page.evaluate(() => { window.CurioAttention = window.__att; delete window.__att; window.CurioScreen.setRow(0); });
+  }
+
   /* Phone width. */
   await page.setViewportSize({ width: 390, height: 900 });
   await page.click('[data-act="close"]');
