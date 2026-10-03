@@ -1030,6 +1030,7 @@
       if (!o) return;
       o.traverse((n) => {
         if (n.geometry) n.geometry.dispose();
+        if (n.isSkinnedMesh && n.skeleton) n.skeleton.dispose(); /* its bone texture */
         [].concat(n.material || []).forEach((m) => {
           Object.keys(m).forEach((k) => m[k] && m[k].isTexture && m[k].dispose());
           m.dispose();

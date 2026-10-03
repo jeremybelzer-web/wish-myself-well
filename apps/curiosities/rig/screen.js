@@ -88,8 +88,9 @@
     if (document.getElementById("rig3d-screen-css")) return;
     const st = document.createElement("style");
     st.id = "rig3d-screen-css";
-    /* Closed: a slim bar under the Player. Open: the panel moves up beside the viewers, as a column of its own
-       (on wide screens), so the viewers keep their height. */
+    /* Closed: a slim bar under the Player. Open (on wide screens): the 3D view floats as a small window over the
+       Screen that can be dragged anywhere, so the viewers, the Momentum column and the Details keep their room.
+       On narrow screens it opens in place under the Player. */
     st.textContent = `.r3s{font-size:.8rem;border-top:1px solid #8884;padding:.3rem .5rem}
 .r3s-bar{display:flex;flex-wrap:wrap;gap:.3rem .7rem;align-items:center}
 .r3s-bar b{font-weight:600}
@@ -111,20 +112,12 @@
 .r3s-host .rig-view canvas{height:min(22vh,190px);min-height:130px}
 .r3s-host .rig-viewbar{font-size:.72rem;margin-top:.2rem;gap:.2rem .6rem}
 @media (min-width:861px){
-.sc-player:has(> .sc-dock .r3s-on){grid-template-columns:minmax(0,1fr) minmax(15rem,34%)}
-.sc-player:has(> .sc-dock .r3s-on) > *{grid-column:1/-1}
-.sc-player:has(> .sc-dock .r3s-on) > .sc-viewers{grid-column:1;grid-row:2}
-.sc-player > .sc-dock:has(.r3s-on){grid-column:2;grid-row:2;min-height:0;overflow:auto}
-.sc-dock .r3s-on{border-top:0;border-left:1px solid #8884;min-height:100%;box-sizing:border-box}
-/* With the Momentum column also in the Player (momentum.css): viewers, then 3D, then Momentum, side by side. */
-.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on){grid-template-columns:minmax(0,1fr) minmax(15rem,30%) 204px}
-.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp.folded):has(> .sc-dock .r3s-on){grid-template-columns:minmax(0,1fr) minmax(15rem,30%) 34px}
-.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > *{grid-column:1/3}
-.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > .sc-viewers{grid-column:1;grid-row:2}
-.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > .sc-dock:has(.r3s-on){grid-column:2;grid-row:2}
-.sc-page:not([data-layout="right"]) .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > .mo-sp{grid-column:3;grid-row:1/-1}
-/* The Player as a tall column on the right: Momentum sits under everything, full width. */
-.sc-page[data-layout="right"] .sc-player:has(> .mo-sp):has(> .sc-dock .r3s-on) > .mo-sp{grid-column:1/-1}
+.r3s-on .r3s-body{position:fixed;top:6.5rem;right:1rem;width:min(400px,92vw);max-height:calc(100vh - 8rem);overflow:auto;z-index:30;background:var(--cc-panel,var(--panel,#1d1d22));color:var(--cc-text,inherit);border:1px solid #8886;border-radius:.6rem;box-shadow:0 10px 32px #0009;padding:.5rem;box-sizing:border-box}
+.r3s-on .r3s-host .rig-view canvas{height:min(30vh,240px)}
+}
+.r3s-grip{display:flex;align-items:center;gap:.5rem;cursor:move;user-select:none;touch-action:none;font-size:.75rem;opacity:.85}
+.r3s-grip span{flex:1}
+@media (max-width:860px){.r3s-grip{display:none}}
 }`;
     document.head.appendChild(st);
   }
@@ -136,6 +129,7 @@
       <div class="r3s-bar"><b>3D actors</b><small>Your characters as 3D bodies, acting out the film as it plays.</small>
         <button type="button" data-r3s="toggle" aria-expanded="false">Show 3D</button></div>
       <div class="r3s-body" data-r3s="body" hidden>
+        <div class="r3s-grip" data-r3s="grip" title="Drag to move the 3D window"><span>⠿ 3D actors</span><button type="button" data-r3s="hide">Hide 3D</button></div>
         <div class="r3s-host" data-r3s="view"></div>
         <div class="r3s-side">
           <label>Who <select data-r3s="who" title="Which character on the timeline to show"></select></label>
@@ -147,11 +141,32 @@
         </div>
       </div>
     </div>`;
-    $("toggle").addEventListener("click", () => {
+    const toggle = () => {
       const v = read(VIEW_KEY, {});
       v.open = !v.open;
       write(VIEW_KEY, v);
       refresh();
+    };
+    $("toggle").addEventListener("click", toggle);
+    $("hide").addEventListener("click", toggle);
+    /* drag the floating 3D window by its top strip; it stays inside the browser window */
+    $("grip").addEventListener("pointerdown", (e) => {
+      if (e.target.closest("button")) return;
+      const box = $("body");
+      const r = box.getBoundingClientRect();
+      const dx = e.clientX - r.left;
+      const dy = e.clientY - r.top;
+      const move = (ev) => {
+        box.style.left = Math.max(0, Math.min(innerWidth - r.width, ev.clientX - dx)) + "px";
+        box.style.top = Math.max(0, Math.min(innerHeight - 40, ev.clientY - dy)) + "px";
+        box.style.right = "auto";
+      };
+      const up = () => {
+        removeEventListener("pointermove", move);
+        removeEventListener("pointerup", up);
+      };
+      addEventListener("pointermove", move);
+      addEventListener("pointerup", up);
     });
     $("who").addEventListener("change", (e) => {
       if (CS() && CS().pick && e.target.value !== NOBODY) CS().pick(e.target.value);

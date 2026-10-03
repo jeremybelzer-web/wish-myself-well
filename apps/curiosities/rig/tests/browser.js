@@ -393,11 +393,12 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         };
         await go("fox");
         await go("rigged-figure");
-        const before = c.ctx.renderer.info.memory.geometries;
+        const m = c.ctx.renderer.info.memory;
+        const before = m.geometries + m.textures;
         for (let i = 0; i < 6; i++) await go(i % 2 ? "rigged-figure" : "fox");
-        return { before, after: c.ctx.renderer.info.memory.geometries };
+        return { before, after: m.geometries + m.textures };
       });
-      ok(mem.after <= mem.before + 2, `switching characters gives graphics memory back (${mem.before} to ${mem.after} pieces)`);
+      ok(mem.after <= mem.before + 2, `switching characters gives graphics memory back (geometries and textures: ${mem.before} to ${mem.after})`);
       ok(!leak.err && !warnings.some((w) => /Too many active WebGL/.test(w)), `opening and closing 18 times does not run out of 3D views (${leak.canvases} canvases)`);
       await page.evaluate(() => document.querySelector(".rig-dlg").close());
     }

@@ -81,6 +81,14 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         return { joints: c.bones().length, w: cv.width, h: cv.height, sideHidden: !side || getComputedStyle(side).display === "none", who: window.CurioRigScreen.shown(), cast: window.CurioRigScreen.cast() };
       });
       ok(info.joints === 19 && info.cast === "rigged-figure", `the shown character (${info.who || "the film"}) is played by the plain figure, 19 joints (${info.joints})`);
+      const room = await page.evaluate(() => {
+        const v = document.querySelector(".sc-player .sc-viewers");
+        const btn = document.querySelector('[data-panel="rig3d"] .r3s-ask button');
+        const b = btn.getBoundingClientRect();
+        const top = document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2);
+        return { viewers: v ? v.getBoundingClientRect().height : 0, onTop: !!top && btn.contains(top), inView: b.bottom <= innerHeight };
+      });
+      ok(room.viewers > 120 && room.onTop && room.inView, `the 3D window floats over the Screen: the viewers keep their room (${Math.round(room.viewers)} px) and its buttons are not covered`);
       ok(info.w > 150 && info.h > 120 && info.sideHidden, `a compact 3D view (${Math.round(info.w)} by ${Math.round(info.h)}) without the 3D window's side panel`);
 
       /* A Spine lane through the engine, the way the Screen writes a node: "relaxed" at moment 1, "collapsed" at moment 3. */
