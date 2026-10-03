@@ -484,3 +484,25 @@
   html.mrp-printing body > *:not(.mrp-print-copy) { display: none !important; }
   html.mrp-printing .mrp-print-copy { display: block !important; }
 }
+/* cuelab.js: the Cue lab tab. */
+.mcl { display: grid; gap: 14px; min-width: 0; }
+.mcl section { min-width: 0; }
+.mcl-table th[scope=row] { font-weight: 600; min-width: 140px; }
+.mcl-table td { white-space: nowrap; }
+.mcl-table tr.mcl-me th, .mcl-table tr.mcl-me td { background: var(--mo-surface); border-top: 2px solid var(--mo-ink); border-bottom: 2px solid var(--mo-ink); }
+.mcl-none { max-width: 75ch; }
+.mcl-vs, .mcl-steal { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; font-size: 14px; }
+.mcl-vs li { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 4px 8px; align-items: baseline; }
+.mcl-mark { font-size: 13px; font-weight: 600; white-space: nowrap; }
+@media (max-width: 520px) { .mcl-vs li { grid-template-columns: minmax(0, 1fr); } }
+.mcl-less { color: var(--mo-crit); }
+.mcl-same { color: var(--mo-ink-2); }
+.mcl-more { color: #0b5cad; }
+.mcl-steal li { border: 1px solid var(--line, rgba(0,0,0,.14)); background: var(--mo-surface); padding: 8px 10px; display: grid; gap: 4px; min-width: 0; }
+.mcl-steal-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-weight: 600; }
+.mcl-steal-head .mo-fam { display: inline-flex; }
+.mcl-steal button { justify-self: start; font: inherit; font-size: 13px; border: 2px solid var(--ink); background: #fff; padding: 4px 10px; cursor: pointer; color: var(--mo-ink); }
+.mcl-chart { width: 100%; max-width: 640px; height: auto; display: block; }
+.mcl-chart text { font-size: 12px; fill: var(--mo-ink); font-family: inherit; }
+.mcl-chart .mcl-bar-me { font-weight: 700; }
+.mcl-chart .mcl-bar-v { fill: var(--mo-ink-2); font-variant-numeric: tabular-nums; }
