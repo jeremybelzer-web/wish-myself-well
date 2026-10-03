@@ -245,7 +245,8 @@
       cb = color[2] - Y;
     /* a dull target color is pushed to a clear, visible version of the same hue */
     const chroma = Math.max(Math.abs(cr), Math.abs(cg), Math.abs(cb));
-    if (chroma > 0.004 && chroma < 0.12) {
+    /* (not for hair: real hair colors are dull, and a boosted brown turns ginger) */
+    if (!keepLight && chroma > 0.004 && chroma < 0.12) {
       const k = 0.12 / chroma;
       cr *= k;
       cg *= k;
@@ -258,10 +259,10 @@
         g = d[i * 4 + 1] / 255,
         b = d[i * 4 + 2] / 255;
       const y = 0.299 * r + 0.587 * g + 0.114 * b;
-      /* white or gray hair keeps its own lightness: light, colorless hair is not dyed (fades out from mid to
-         light, and with how gray it is) */
+      /* gray and white hair stays gray: hair that is not dark and has little color of its own is dyed only as
+         much as it has color (dark hair and colored hair, blond or red, take the new color fully) */
       let aa = a;
-      if (keepLight && y > 0.5) aa *= Math.max(0, 1 - (y - 0.5) / 0.3) * Math.min(1, (Math.max(r, g, b) - Math.min(r, g, b)) / 0.12);
+      if (keepLight && y > 0.3) aa *= Math.min(1, (Math.max(r, g, b) - Math.min(r, g, b)) / 0.15);
       if (aa <= 0.01) continue;
       const o2 = recolorPixel(r, g, b, y, cr, cg, cb, aa);
       for (let c = 0; c < 3; c++) d[i * 4 + c] = o2[c];
