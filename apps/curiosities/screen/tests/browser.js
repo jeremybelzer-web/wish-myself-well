@@ -137,6 +137,74 @@ const ok = (cond, msg) => {
   await page.fill("[data-lib-search]", "freeze");
   ok(await page.$('[data-pick-card="curiosity|freezeFrame"]'), "the library search finds curiosities in any category");
   await page.fill("[data-lib-search]", "");
+  /* Favorites and Recently used (CapCut's star on any effect, and its Recently used list). */
+  {
+    const FK = "curiosities-screen-faves-v1";
+    const fv = () => page.evaluate(() => window.CurioScreen.faves.now());
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    await page.click('[data-icat="transitions"]');
+    await page.click(".sc-side .sc-pill:first-child");
+    const sel0 = await page.evaluate(() => JSON.stringify(window.CurioScreen.state().sel));
+    const curRef = await page.evaluate(() => { const s = window.CurioScreen.state().sel; return [...document.querySelectorAll('.sc-grid .sc-card[data-card="curiosity"] [data-fave]')].map((b) => b.dataset.fave).find((r) => r !== "curiosity|" + s.id); });
+    const star = await page.$eval(`[data-fave="${curRef}"]`, (b) => ({ tag: b.tagName, pressed: b.getAttribute("aria-pressed"), label: b.getAttribute("aria-label"), name: b.closest(".sc-card").querySelector("strong").textContent }));
+    ok(star.tag === "BUTTON" && star.pressed === "false" && star.label.includes(star.name), "every card has a star button with aria-pressed and a label naming the item (" + star.label + ")");
+    ok((await page.$$(".sc-grid .sc-card[data-card='curiosity']")).length === (await page.$$(".sc-grid .sc-card[data-card='curiosity'] [data-fave]")).length, "every curiosity card in the grid has a star");
+    await page.click(`[data-fave="${curRef}"]`);
+    ok((await page.evaluate(() => JSON.stringify(window.CurioScreen.state().sel))) === sel0, "clicking the star does not pick the card");
+    ok((await page.$eval(`[data-fave="${curRef}"]`, (b) => b.getAttribute("aria-pressed") + b.textContent)) === "true★" && (await fv()).faves.join() === curRef, "the star fills and the item is a favorite");
+    await page.click('[data-group="suite"]');
+    const suiteRef = await page.$eval('.sc-card[data-card="suite"] [data-fave]', (b) => b.dataset.fave);
+    const suiteName = await page.$eval('.sc-card[data-card="suite"] strong', (s) => s.textContent);
+    await page.focus(`[data-fave="${suiteRef}"]`);
+    await page.keyboard.press("Enter");
+    ok((await fv()).faves.join() === curRef + "," + suiteRef && (await page.evaluate(() => JSON.stringify(window.CurioScreen.state().sel))) === sel0, "a suite's star works from the keyboard, also without picking it");
+    ok(await page.evaluate(() => document.querySelector(".sc-icons button").dataset.libtab === "faves" && /Favorites/.test(document.querySelector(".sc-icons button").textContent)), "★ Favorites is the first tab in the library's icon row");
+    await page.click('[data-libtab="faves"]');
+    const shown = () => page.evaluate(() => { const h = [...document.querySelectorAll(".sc-grid .sc-fave-h")].map((x) => x.textContent); const secs = {}; let cur = ""; [...document.querySelector(".sc-grid").children].forEach((el) => { if (el.matches(".sc-fave-h")) cur = el.textContent; else if (el.matches(".sc-cards")) secs[cur] = [...el.querySelectorAll("[data-fave]")].map((b) => b.dataset.fave); }); return { h, secs }; });
+    let s = await shown();
+    ok(JSON.stringify(s.secs.Starred) === JSON.stringify([curRef, suiteRef]), "the Favorites tab lists every starred item as cards, in the order starred");
+    ok(s.h[0] === "Recently used" && s.secs["Recently used"][0] === "curiosity|transitionKind", "Recently used sits at the top of the Favorites tab, newest first (" + (s.secs["Recently used"] || []).slice(0, 3).join(",") + ")");
+    /* Pick 14 different curiosities from a search: recently used keeps the last 12, no repeats. */
+    await page.click('[data-icat="camera"]');
+    await page.fill("[data-lib-search]", "e");
+    const picked = await page.evaluate(() => { const out = []; for (let i = 0; i < 14; i++) { const b = document.querySelectorAll('.sc-grid [data-pick-card^="curiosity|"]')[i]; out.push(b.dataset.pickCard); b.click(); } document.querySelectorAll('.sc-grid [data-pick-card^="curiosity|"]')[5].click(); return out; });
+    let r = (await fv()).recent;
+    ok(r.length === 12 && new Set(r).size === 12 && r[0] === picked[5] && r[1] === picked[13] && !r.includes(picked[0]), "recently used updates on each pick: newest first, at most 12, no repeats");
+    const fp1 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    await page.fill("[data-lib-search]", "");
+    await page.click('[data-libtab="faves"]');
+    await page.click(`.sc-grid [data-add-card="${suiteRef}"]`);
+    ok((await fv()).recent[0] === suiteRef, "putting something into the film puts it at the top of recently used");
+    await page.keyboard.press("Control+z");
+    /* Search covers Favorites. */
+    await page.fill("[data-lib-search]", suiteName.slice(0, 6));
+    ok(await page.evaluate((ref) => !!document.querySelector(`.sc-grid [data-fave="${ref}"]`) && /favorite/.test(document.querySelector(".sc-grid-h").textContent), suiteRef), "search in the Favorites tab finds a starred suite");
+    await page.click('[data-icat="camera"]');
+    await page.fill("[data-lib-search]", suiteName.slice(0, 6));
+    ok(await page.evaluate((ref) => !!document.querySelector(`.sc-grid [data-fave="${ref}"]`) && [...document.querySelectorAll(".sc-fave-h")].some((h) => /Favorites/.test(h.textContent)), suiteRef), "search in any tab finds favorites too, suites included");
+    await page.fill("[data-lib-search]", "");
+    /* A saved id the database no longer has is skipped; the list survives a reload. */
+    await page.evaluate((k) => { const p = JSON.parse(localStorage.getItem(k)); p.faves.push("suite|gone-for-good"); localStorage.setItem(k, JSON.stringify(p)); }, FK);
+    const before = await fv();
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    const after = await fv();
+    ok(JSON.stringify(after.recent) === JSON.stringify(before.recent) && after.faves.slice(0, 2).join() === curRef + "," + suiteRef, "favorites and recently used survive a reload");
+    await page.click('[data-libtab="faves"]');
+    s = await shown();
+    ok(JSON.stringify(s.secs.Starred) === JSON.stringify([curRef, suiteRef]), "an id the database no longer has is skipped quietly");
+    /* Unstar from the Favorites tab; the last one gone shows the plain empty state. */
+    await page.click(`.sc-grid [data-fave="${curRef}"]`);
+    await page.click(`.sc-grid [data-fave="${suiteRef}"]`);
+    ok(await page.evaluate(() => /Star anything in the library to keep it here/.test(document.querySelector(".sc-grid").textContent)), "with nothing starred the Favorites tab says: Star anything in the library to keep it here");
+    ok((await page.evaluate(() => window.CurioEngine.fingerprint())) === fp1 && fp1 === fp0, "stars, picks and recently used leave the film unchanged (not in the film, not in undo)");
+    ok(!(await page.evaluate((k) => Object.keys(JSON.parse(localStorage.getItem("curiosities-engine-v1") || "{}")).some((x) => /fave/i.test(x)), FK)), "nothing about favorites is saved with the film");
+    /* Back to where the walk-through was: the Transitions tab, looking through Transition style. */
+    await page.click('[data-icat="transitions"]');
+    await page.click(".sc-side .sc-pill:first-child");
+    await page.click('[data-pick-card="curiosity|transitionKind"]');
+    if ((await page.evaluate(() => window.CurioScreen.state().sel.id)) !== "transitionKind") await page.click('[data-pick-card="curiosity|transitionKind"]');
+  }
   await page.click('[data-act="clear-lanes"]');
   await page.screenshot({ path: path.join(SHOTS, "screen-1b-transitions.png") });
 

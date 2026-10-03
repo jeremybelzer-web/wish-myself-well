@@ -883,6 +883,85 @@ document.addEventListener("click", function (e) {
     if (ps.length) out.push({ id: "tpl:linked", label: "Linked recipes", level: "proximitySuite", items: ps });
     return out;
   }
+  /* Favorites and Recently used (CapCut's star on any effect, and its Recently used list). Kept in localStorage
+     "curiosities-screen-faves-v1" as { faves: ["level|id"], recent: ["level|id"] }: a view setting, not part of
+     the film and never an undo step. faves are in the order starred; recent is newest first, at most 12, no
+     repeats. Ids the database no longer has are skipped quietly. */
+  const FAVE_KEY = "curiosities-screen-faves-v1";
+  const FAVE_LEVELS = ["curiosity", "suite", "proximity", "proximitySuite"];
+  const RECENT_MAX = 12;
+  const faveRef = (level, id) => level + "|" + id;
+  function faveClean(list, max) {
+    const out = [];
+    (Array.isArray(list) ? list : []).forEach((x) => {
+      if (typeof x !== "string" || out.includes(x)) return;
+      if (x.indexOf("|") > 0 && FAVE_LEVELS.includes(x.slice(0, x.indexOf("|")))) out.push(x);
+    });
+    return max ? out.slice(0, max) : out;
+  }
+  function faveLoad() {
+    let p = null;
+    try {
+      p = JSON.parse(localStorage.getItem(FAVE_KEY));
+    } catch (e) {}
+    p = p && typeof p === "object" ? p : {};
+    return { faves: faveClean(p.faves), recent: faveClean(p.recent, RECENT_MAX) };
+  }
+  let faves = faveLoad();
+  function faveSave() {
+    try {
+      localStorage.setItem(FAVE_KEY, JSON.stringify(faves));
+    } catch (e) {}
+  }
+  /* Pure steps on a { faves, recent } object, so tests can check them with no page. */
+  function faveToggle(state, ref) {
+    const has = state.faves.includes(ref);
+    return { faves: has ? state.faves.filter((x) => x !== ref) : state.faves.concat(ref), recent: state.recent.slice() };
+  }
+  function faveUsed(state, ref) {
+    return { faves: state.faves.slice(), recent: [ref].concat(state.recent.filter((x) => x !== ref)).slice(0, RECENT_MAX) };
+  }
+  /* The item a saved ref names, or null when the database no longer has it. A curiosity named by its lane key
+     ("shotSize.setting", as in the My film tab) is found by its curiosity. */
+  function faveItem(ref) {
+    const at = String(ref).indexOf("|");
+    const level = ref.slice(0, at);
+    const id = ref.slice(at + 1);
+    if (at < 1 || !L() || !FAVE_LEVELS.includes(level)) return null;
+    let it = L().get(level, id);
+    if (!it && level === "curiosity" && L().base) it = L().get("curiosity", L().base(id));
+    return it ? { level, it } : null;
+  }
+  /* A card's own ref: curiosities are kept by their curiosity id, so a lane key and its curiosity share one star. */
+  function cardRef(level, it) {
+    const f = faveItem(faveRef(level, it.id));
+    return f ? faveRef(level, f.it.id) : "";
+  }
+  const faveItems = (list) => list.map(faveItem).filter(Boolean);
+  function faveStar(ref) {
+    const f = faveItem(ref);
+    if (!f) return;
+    const r = faveRef(f.level, f.it.id);
+    faves = faveToggle(faves, r);
+    faveSave();
+    toast(faves.faves.includes(r) ? `${f.it.label} is in Favorites.` : `${f.it.label} is out of Favorites.`);
+    drawLibrary();
+    const b = page && [...page.querySelectorAll("[data-fave]")].find((x) => x.dataset.fave === r);
+    if (b) b.focus();
+  }
+  function faveUse(level, id) {
+    const f = faveItem(faveRef(level, id));
+    if (!f) return;
+    faves = faveUsed(faves, faveRef(level, f.it.id));
+    faveSave();
+  }
+  function faveGroups() {
+    const recent = faveItems(faves.recent);
+    const out = [];
+    if (recent.length) out.push({ id: "fav:recent", label: "Recently used", items: recent });
+    out.push({ id: "fav:stars", label: "Starred", items: faveItems(faves.faves), empty: "Star anything in the library to keep it here." });
+    return out;
+  }
   function cardHtml(level, it) {
     if (level === "fcp") return it.cur ? `<div class="sc-card sc-fcp" data-card="fcp"><button type="button" class="sc-card-b" data-pick-card="curiosity|${esc(it.cur)}"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></button></div>` : `<div class="sc-card sc-fcp" data-card="fcp"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Final Cut Pro</em></div></div>`;
     if (level === "link") return `<div class="sc-card" data-card="link"><div class="sc-card-b"><strong>${esc(it.label)}</strong><small>${esc(it.plain)}</small><em>Proximity</em></div></div>`;
@@ -897,30 +976,40 @@ document.addEventListener("click", function (e) {
     return `<div class="sc-card${on ? " on" : ""}${tiles.length ? " wide" : ""}" data-card="${esc(level)}" data-id="${esc(it.id)}" title="${esc(it.plain || it.label)}">
       <button type="button" class="sc-card-b" data-pick-card="${esc(level)}|${esc(it.id)}"><strong>${esc(it.label)}</strong><small>${esc(sub)}</small>${tag ? `<em>${esc(tag)}</em>` : ""}</button>
       <button type="button" class="sc-plus" data-add-card="${esc(level)}|${esc(it.id)}" aria-label="${esc(add)}: ${esc(it.label)}" title="${esc(add)}">+</button>
+      ${starHtml(level, it)}
       ${tiles.length ? `<div class="sc-tiles" role="group" aria-label="Settings of ${esc(it.label)}"><span class="sc-k">Drop a setting at moment ${row + 1}:</span>${tiles.map((v) => `<button type="button" data-drop="${esc(k)}" data-v="${esc(v)}" class="${String(v) === here ? "on" : ""}">${esc(v)}${S().domain(k).unit && typeof v === "number" ? esc(S().domain(k).unit) : ""}</button>`).join("")}</div>` : ""}
     </div>`;
   }
+  /* The small star on every card: a real button, so it works from the keyboard. */
+  function starHtml(level, it) {
+    const ref = cardRef(level, it);
+    if (!ref) return "";
+    const on = faves.faves.includes(ref);
+    return `<button type="button" class="sc-star${on ? " on" : ""}" data-fave="${esc(ref)}" aria-pressed="${on}" aria-label="Favorite: ${esc(it.label)}" title="${on ? "In Favorites: click to take it out" : "Add to Favorites"}">${on ? "★" : "☆"}</button>`;
+  }
+  const cardList = (items) => items.map((x) => cardHtml(x.level, x.it)).join("");
   function drawLibrary() {
     if (!page || !L()) return;
     const box = page.querySelector(".sc-lib");
     box.hidden = prefs.view === "arrange";
     if (box.hidden) return;
     const cat = category();
-    const tab = ["mine", "templates", "advanced"].includes(prefs.libTab) ? prefs.libTab : "";
-    const extra = [["mine", "My film", "film", "Everything automated in my film so far (like Maya's Outliner, or CapCut's Yours)"], ["templates", "Templates", "grid", "Ready-made recipes: every suite, dropped at the playhead as a set of nodes (CapCut's Templates)"]];
+    const tab = ["faves", "mine", "templates", "advanced"].includes(prefs.libTab) ? prefs.libTab : "";
+    const extra = [["faves", "★ Favorites", "star", "Everything you starred, and the last 12 things you picked or put in your film"], ["mine", "My film", "film", "Everything automated in my film so far (like Maya's Outliner, or CapCut's Yours)"], ["templates", "Templates", "grid", "Ready-made recipes: every suite, dropped at the playhead as a set of nodes (CapCut's Templates)"]];
     page.querySelector(".sc-icons").innerHTML =
       extra.map(([id, label, ic, t]) => `<button type="button" data-libtab="${id}" class="${tab === id ? "on" : ""}" aria-pressed="${tab === id}" title="${esc(t)}">${icon(ic)}<span>${esc(label)}</span></button>`).join("") +
       L()
         .CATEGORIES.map((c) => `<button type="button" data-icat="${c.id}" class="${!tab && c.id === cat.id ? "on" : ""}" aria-pressed="${!tab && c.id === cat.id}" title="${esc(c.plain)}">${icon(c.icon)}<span>${esc(c.label)}</span></button>`)
         .join("") +
       `<button type="button" data-libtab="advanced" class="sc-adv${tab === "advanced" ? " on" : ""}" aria-pressed="${tab === "advanced"}" title="${esc(ADV.plain)}">${icon(ADV.icon)}<span>${ADV.label}</span></button>`;
-    const groups = tab === "mine" ? mineGroups() : tab === "templates" ? templateGroups() : tab === "advanced" ? advancedGroups() : groupsOf(cat);
+    const groups = tab === "faves" ? faveGroups() : tab === "mine" ? mineGroups() : tab === "templates" ? templateGroups() : tab === "advanced" ? advancedGroups() : groupsOf(cat);
     const gkey = tab || cat.id;
     const gid = groups.some((g) => g.id === prefs.groups[gkey]) ? prefs.groups[gkey] : (groups[0] || {}).id;
     page.querySelector(".sc-side").innerHTML = groups.map((g) => `<button type="button" class="sc-pill${g.id === gid && !prefs.search ? " on" : ""}" data-group="${esc(g.id)}"><span>${esc(g.label)}</span><small>${g.items.length}</small></button>`).join("");
     let cards;
     let head;
     const q = String(prefs.search || "").trim().toLowerCase();
+    let faveHtml = "";
     if (q) {
       const hits = L()
         .items("curiosity")
@@ -928,6 +1017,22 @@ document.addEventListener("click", function (e) {
         .slice(0, 60);
       head = `${hits.length} curiosit${hits.length === 1 ? "y" : "ies"} match`;
       cards = hits.map((c) => cardHtml("curiosity", c)).join("");
+      /* Search covers Favorites and Recently used too, suites and proximities included. In the Favorites tab
+         they are all it shows; elsewhere they come after the matching curiosities. */
+      const seen = new Set();
+      const fh = faveItems(faves.faves.concat(faves.recent)).filter((x) => {
+        const r = faveRef(x.level, x.it.id);
+        if (seen.has(r)) return false;
+        seen.add(r);
+        return (x.it.label + " " + (x.it.plain || "")).toLowerCase().includes(q);
+      });
+      if (tab === "faves") {
+        head = `${fh.length} favorite${fh.length === 1 ? "" : "s"} match`;
+        cards = cardList(fh);
+      } else if (fh.length) faveHtml = `<p class="sc-grid-h sc-fave-h">In Favorites and Recently used</p><div class="sc-cards">${cardList(fh)}</div>`;
+    } else if (tab === "faves") {
+      /* Both sections at once: Recently used on top, then everything starred. */
+      faveHtml = groups.map((g) => `<p class="sc-grid-h sc-fave-h" id="sc-${g.id.replace(":", "-")}">${esc(g.label)}</p>${g.items.length ? `<div class="sc-cards">${cardList(g.items)}</div>` : `<p class="sc-k sc-fave-empty">${esc(g.empty)}</p>`}`).join("");
     } else {
       const g = groups.find((x) => x.id === gid);
       head = g ? g.label : "Nothing here yet";
@@ -936,7 +1041,8 @@ document.addEventListener("click", function (e) {
     const grid = page.querySelector(".sc-grid");
     const had = grid.querySelector("[data-lib-search]");
     const focused = had && document.activeElement === had;
-    grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}"><p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>`;
+    const body = tab === "faves" && !q ? faveHtml : `<p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>${faveHtml}`;
+    grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}">${body}`;
     if (focused) {
       const inp = grid.querySelector("[data-lib-search]");
       inp.focus();
@@ -2062,6 +2168,11 @@ document.addEventListener("click", function (e) {
     const t = e.target.closest("button, [data-scrub], .sc-frame");
     if (!t || !page.contains(t)) return;
     const d = t.dataset;
+    if (d.fave) {
+      /* The star only toggles the favorite: the click goes no further, so the card is not picked. */
+      e.stopPropagation();
+      return faveStar(d.fave);
+    }
     if (d.openWin && !t.closest(".sl")) return openWin(d.openWin);
     if (winClick(d, t)) return;
     if (d.ov != null && !e.detail) return jumpTo(Number(d.ov));
@@ -2154,16 +2265,22 @@ document.addEventListener("click", function (e) {
       prefs.groups[prefs.libTab || prefs.cat || category().id] = d.group;
       prefs.search = "";
       save();
-      return drawLibrary();
+      drawLibrary();
+      /* Favorites shows both its sections at once, so a pill scrolls to its section. */
+      const sec = prefs.libTab === "faves" && page.querySelector("#sc-" + d.group.replace(":", "-"));
+      if (sec && sec.scrollIntoView) sec.scrollIntoView({ block: "start" });
+      return;
     }
     if (d.pickCard) {
       const [level, id] = d.pickCard.split("|");
       prefs.sel = { level, id };
+      faveUse(level, id);
       save();
       return drawAll();
     }
     if (d.addCard) {
       const [level, id] = d.addCard.split("|");
+      faveUse(level, id);
       return addCard(level, id);
     }
     if (d.more) {
@@ -2523,5 +2640,5 @@ document.addEventListener("click", function (e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
 })();
