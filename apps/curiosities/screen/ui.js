@@ -141,6 +141,8 @@
       ["⌘Z", "Undo", "Undo the last change to your film", (e) => mod(e) && !e.shiftKey && key(e, "z"), () => undoAll("undo")],
       ["⇧⌘Z", "Reset (redo)", "Redo what you undid", (e) => mod(e) && e.shiftKey && key(e, "z"), () => undoAll("redo")],
       ["?", "Shortcuts", "Show or hide this list", (e) => !mod(e) && e.key === "?", () => showKeys(!keysOpen)],
+      /* Quick find (the 🔍 in the top bar): handled first by its own listener, so it works while typing in a box too. */
+      ["⌘K", "Quick find", "Find a curiosity, a suite, an action or a marker by typing a few words (Ctrl+K on Windows)", (e) => FIND.isKey(e), () => toggleFind()],
       ["esc", "Exit full screen", "Leave the full-screen Player, or close this list", null, null],
       ["⌘I, ⌘E, ⌘N", "Import, Export, New project", "In the app's Library menu (Open, Print, New project); the browser keeps these keys"],
       ["⇥", "Switch material panel", "Tab moves between buttons, as on any web page; click the icon row instead"],
@@ -530,6 +532,7 @@
       </div>
       ${prefs.view === "arrange" ? `<label class="sc-chk"><input type="checkbox" data-act="viewers-in-arrange" ${prefs.viewersInArrange ? "checked" : ""}> Show the player</label>` : ""}
       <label class="sc-layout" title="Layout, like CapCut's layout menu"><span class="sc-k">Layout</span><select data-pick-layout aria-label="Layout">${LAYOUTS.map(([id, l, t]) => `<option value="${id}" title="${esc(t)}"${prefs.layout === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
+      <button type="button" data-act="find" class="sc-find-b" aria-haspopup="dialog" aria-expanded="${findOpen}" title="Find anything: a curiosity, a suite, an action or a marker (${findKeyName()})" aria-label="Quick find (${findKeyName()})">🔍</button>
       <button type="button" data-act="shortcuts" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="5" width="17" height="10" rx="1.5"/><path d="M5 8h1M8 8h1M11 8h1M14 8h1M5 11.5h10"/></svg> Shortcuts</button>
       ${exportMenuHtml()}
       ${historyMenuHtml()}
@@ -1759,6 +1762,14 @@ document.addEventListener("click", function (e) {
       inp.setSelectionRange(inp.value.length, inp.value.length);
     }
   }
+  /* Picking a card looks through it (Details and the timeline follow; a new prefs.sel opens its lane's group).
+     Quick find (⌘K) picks through here too. */
+  function pickCard(level, id) {
+    prefs.sel = { level, id };
+    faveUse(level, id);
+    save();
+    return drawAll();
+  }
   /* A card's + : a curiosity goes on the timeline, a suite's curiosities go on it, a proximity (or proximity
      suite) goes into my film as lane rules. */
   function addCard(level, id) {
@@ -2639,7 +2650,9 @@ document.addEventListener("click", function (e) {
      that tool: the Screen's shortcuts and its ⌘Z leave them alone, so they never change the film behind it. */
   function inToolWindow(e) {
     const t = e && e.target;
-    if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg")) return true;
+    if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg, .sc-find")) return true;
+    /* Quick find (⌘K) takes every key while it is open. */
+    if (findOpen) return true;
     /* A tool opened as a modal window takes the keys even when nothing inside it has focus. */
     try {
       return !!document.querySelector("dialog:modal");
@@ -3336,10 +3349,7 @@ document.addEventListener("click", function (e) {
     }
     if (d.pickCard) {
       const [level, id] = d.pickCard.split("|");
-      prefs.sel = { level, id };
-      faveUse(level, id);
-      save();
-      return drawAll();
+      return pickCard(level, id);
     }
     if (d.addCard) {
       const [level, id] = d.addCard.split("|");
@@ -3379,6 +3389,7 @@ document.addEventListener("click", function (e) {
     const act = d.act;
     if (act === "close") return close();
     if (act === "shortcuts") return showKeys(!keysOpen);
+    if (act === "find") return toggleFind(true);
     if (act === "export") return toggleExport();
     if (act === "history") return toggleHistory(null, !e.detail);
     if (d.hist) return historyPick(d.hist);
@@ -3630,6 +3641,400 @@ document.addEventListener("click", function (e) {
     const v = Math.max(Number(k.dataset.min), Math.min(Number(k.dataset.max), (k.dataset.val !== "" && isFinite(Number(k.dataset.val)) ? Number(k.dataset.val) : Number(k.dataset.min)) + dir * step));
     setValue(k.dataset.knob, v);
   }, true);
+
+  /* ---------- Quick find (⌘K, Ctrl+K on Windows; the 🔍 in the top bar) ----------
+     CapCut's search and an editing app's command palette in one box: type a few words and pick from
+     Curiosities (with each one's short plain description), Suites, Actions (the Screen's own menus, toolbar
+     buttons and shortcuts, each run through the same function or button) and Moments and markers (a marker by
+     its note, or "moment 12"). Arrow keys and Enter pick, Esc closes. With nothing typed it shows the last 8
+     picks, kept in localStorage "curiosities-screen-find-v1" as { recent: [ids] } (a view setting, never an
+     undo step). While it is open every key stays in the box: inToolWindow says so, and the box stops each key
+     from going on to the Screen's shortcuts. The matcher (FIND) is pure, so tests can check it with no page. */
+  const FIND = (() => {
+    const KEY = "curiosities-screen-find-v1";
+    const MAX = 8;
+    const GROUPS = [["cur", "Curiosities"], ["suite", "Suites"], ["act", "Actions"], ["moment", "Moments and markers"]];
+    const LIMITS = { cur: 8, suite: 5, act: 8, moment: 8 };
+    /* Lower case, accents off, anything but letters and digits as one space. */
+    const norm = (s) =>
+      String(s == null ? "" : s)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    const split = (s) => (s ? s.split(" ") : []);
+    /* How well a query fits: every word typed must be found, in any order. A word that starts a word of the
+       label counts most (the first word most of all), then one found inside the label, then one that starts a
+       word of the extra words (the description, the category), then one found inside them. 0: no match. */
+    function score(query, label, extra) {
+      const q = norm(query);
+      if (!q) return 1;
+      const l = norm(label);
+      const x = norm(extra);
+      const lw = split(l);
+      const xw = split(x);
+      const tight = l.replace(/ /g, "");
+      let total = 0;
+      for (const t of split(q)) {
+        const i = lw.findIndex((w) => w.startsWith(t));
+        let s = 0;
+        if (i === 0) s = 5;
+        else if (i > 0) s = 4;
+        else if (l.includes(t) || tight.includes(t)) s = 2;
+        else if (xw.some((w) => w.startsWith(t))) s = 1.5;
+        else if (x.includes(t)) s = 0.5;
+        else return 0;
+        total += s;
+      }
+      if (l === q) total += 6;
+      else if ((l + " ").startsWith(q + " ")) total += 3;
+      else if (l.startsWith(q)) total += 1;
+      return total;
+    }
+    /* items: [{ id, group, label, words, boost? }] -> [{ group, label, items, more }], each group best first (ties
+       keep the given order), at most limits[group] shown, groups ordered by their best match. boost lifts an item
+       that matches at all: your own marker notes beat a curiosity that matches the same word as well. */
+    function rank(query, items, limits) {
+      const lim = limits || LIMITS;
+      const by = {};
+      (items || []).forEach((it, i) => {
+        const s = score(query, it.label, it.words) + (Number(it.boost) || 0);
+        if (s > Number(it.boost || 0)) (by[it.group] = by[it.group] || []).push({ it, s, i });
+      });
+      return GROUPS.filter(([g]) => by[g])
+        .map(([g, label], gi) => {
+          const list = by[g].sort((a, b) => b.s - a.s || a.i - b.i);
+          const n = lim[g] || 8;
+          return { group: g, label, best: list[0].s, gi, items: list.slice(0, n).map((x) => x.it), more: Math.max(0, list.length - n) };
+        })
+        .sort((a, b) => b.best - a.best || a.gi - b.gi)
+        .map(({ group, label, items, more }) => ({ group, label, items, more }));
+    }
+    /* The recent picks: newest first, no repeats, at most 8; junk dropped. */
+    function clean(list) {
+      const out = [];
+      (Array.isArray(list) ? list : []).forEach((x) => typeof x === "string" && /^(cur|suite|act|moment):./.test(x) && !out.includes(x) && out.push(x));
+      return out.slice(0, MAX);
+    }
+    const remember = (list, id) => clean([id].concat(clean(list).filter((x) => x !== id)));
+    /* ⌘K on a Mac, Ctrl+K on Windows: no Shift, no Option/Alt (⇧⌥K adds a keyframe, plain K stops playing). */
+    const isKey = (e) => !!e && !!(e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.code === "KeyK" || String(e.key || "").toLowerCase() === "k");
+    return { KEY, MAX, GROUPS, LIMITS, norm, score, rank, clean, remember, isKey };
+  })();
+  let findOpen = false;
+  let findRoot = null;
+  let findItems = [];
+  let findShown = [];
+  let findActive = 0;
+  let findBack = null;
+  const findMac = () => {
+    try {
+      return /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || "");
+    } catch (e) {
+      return true;
+    }
+  };
+  const findKeyName = () => (findMac() ? "⌘K" : "Ctrl+K");
+  function findRecent() {
+    try {
+      return FIND.clean((JSON.parse(localStorage.getItem(FIND.KEY)) || {}).recent);
+    } catch (e) {
+      return [];
+    }
+  }
+  function findRemember(id) {
+    try {
+      localStorage.setItem(FIND.KEY, JSON.stringify({ recent: FIND.remember(findRecent(), id) }));
+    } catch (e) {}
+  }
+  /* Look through a curiosity or a suite from the box: the library moves to its category and group (so its card
+     shows, picked), then the card's own pick runs (Details, the Player and the timeline follow, and the lane's
+     folded group opens). */
+  function findLook(level, id) {
+    const it = L().get(level, id);
+    if (!it) return toast("The database no longer has that.");
+    prefs.search = "";
+    prefs.libTab = "";
+    if (isAdv(it)) {
+      prefs.libTab = "advanced";
+      prefs.groups.advanced = level === "curiosity" ? "adv:fcp" : "adv:" + level;
+    } else {
+      const cat = level === "curiosity" ? L().categoryOf(id) : (L().resolve(level, id).categories || [])[0];
+      if (cat && L().CATEGORIES.some((c) => c.id === cat)) prefs.cat = cat;
+      if (level !== "curiosity") prefs.groups[prefs.cat] = level;
+      else if (it.workspace) prefs.groups[prefs.cat] = "ws:" + it.workspace;
+    }
+    pickCard(level, id);
+    const card = page.querySelector(".sc-card.on");
+    if (card && card.scrollIntoView) card.scrollIntoView({ block: "nearest" });
+    toast(`Looking through ${it.label}${level === "suite" ? " (a suite)" : ""}. Details and the timeline show it${level === "suite" ? "; its + in the library puts it on the timeline" : ""}.`);
+  }
+  /* Press a button that is on the Screen right now, the way a click would. */
+  function findPress(sel, why) {
+    const b = page && page.querySelector(sel);
+    if (b && !b.disabled && b.offsetParent !== null) return b.click();
+    toast(why || "That button is not on the Screen right now.");
+  }
+  const findSay = (r) => r && (r.message || r.error) && toast(r.message || r.error);
+  const noLanes = () => toast("The timeline is not ready yet.");
+  /* Every action: the Screen's shortcuts first, by CapCut's names and their plain descriptions, then the menus
+     and toolbar buttons that have no key. Each runs the same function the key, menu or button runs. */
+  function findActions() {
+    const out = [];
+    const add = (id, label, sub, keys, run) => out.push({ id: "act:" + id, group: "act", label, sub, keys: keys || "", words: sub, run });
+    SHORTCUTS.forEach(([, rows]) =>
+      rows.forEach((r) => {
+        if (!r[3] || !r[4] || r[1] === "Quick find" || r[0] === "← →") return;
+        add("key:" + r[1], r[1], r[2], r[0], () => r[4]({ key: "", code: "", preventDefault() {} }));
+      })
+    );
+    const playerHidden = "The Player is hidden; switch to the Screen view first.";
+    add("prev-moment", "Previous moment", "Move the playhead one moment back", "←", () => setRow(row - 1));
+    add("next-moment", "Next moment", "Move the playhead one moment on", "→", () => setRow(row + 1));
+    add("export-menu", "Export ▾", "Open the Export menu: a storyboard sheet, a picture or a spreadsheet", "", () => toggleExport(true));
+    add("export-sheet", "Export a storyboard sheet", "Every moment as a frame, with notes and what changes, ready to print", "", () => runExport("sheet"));
+    add("export-png", "Export this frame as a PNG picture", "My film at the playhead as a picture file", "", () => runExport("png"));
+    add("export-svg", "Export this frame as an SVG picture", "My film at the playhead, sharp at any size", "", () => runExport("svg"));
+    add("export-csv", "Export the settings list (spreadsheet)", "One row per moment, one column per curiosity, as a CSV file", "", () => runExport("csv"));
+    add("history", "History ▾", "Every change you can undo or redo; pick one to go back or forward to it", "", () => toggleHistory(true, true));
+    add("guides-menu", "Guides ▾", "Lines over your film's picture to help you place things", "", () => ((guidesOpen = true), drawViewers()));
+    GUIDES.forEach(([id, l, tip]) => {
+      const on = guidesOn().includes(id);
+      add("guide-" + id, `Guides: ${on ? "hide" : "show"} ${l.toLowerCase()}`, tip, "", () => (setGuide(id, !guidesOn().includes(id)), drawViewers()));
+    });
+    add("compare", compareNow().on ? "Compare ◐: turn off" : "Compare ◐: turn on", "Split your film's picture with a line you can drag: another picture on the left, your film on the right", "", () => (setCompare({ on: !compareNow().on }), drawViewers()));
+    COMPARE_WITH.forEach(([id, l]) => add("compare-" + id, "Compare with: " + l, "Turns Compare on with this picture left of the line", "", () => (setCompare({ with: id, on: true }), drawViewers())));
+    add("captions", captionsNow().on ? "Captions: turn off" : "Captions: turn on", "Your marker's note on this moment at the bottom of your film's picture, like subtitles", "", () => (setCaptions({ on: !captionsNow().on }), drawViewers()));
+    CAPTION_MODES.forEach(([id, l]) => add("captions-" + id, "Captions: " + l.toLowerCase(), "Turns Captions on, showing this", "", () => (setCaptions({ mode: id, on: true }), drawViewers())));
+    add("look-menu", "Look ▾", "Copy every setting this moment plays, then paste that look onto another moment", "", () => (page.querySelector(".sc-mlook") ? lookOpen || toggleLook() : toast("Look ▾ is in Details while My film is picked in the Player.")));
+    add("look-stretch", "Paste the look into the selected stretch", "The copied look held over the stretch selected on the timeline", "", () => lookPaste("stretch"));
+    add("mark-turns", "Mark the turns", "A marker on every moment where the film turns: attention moves, the feeling changes, or a track jumps", "", () => (lanes ? findSay(lanes.markTurns()) : noLanes()));
+    add("clear-auto", "Clear auto markers", "Take off only the markers Mark the turns put on; your own markers stay", "", () => (lanes ? findSay(lanes.clearAuto()) : noLanes()));
+    add("markers", "Markers ▾", "The list of every marker; pick one to move the playhead there", "", () => (lanes ? lanes.markers() : noLanes()));
+    add("attention", "Attention track", "Show or hide the band under the clips that shows where the audience's attention is", "", () => (lanes ? lanes.attention() : noLanes()));
+    add("film-lines", "Film lines", "Show or hide the inspiration film's settings as a faint line in each lane", "", () => (lanes ? lanes.filmLines() : noLanes()));
+    add("fold-all", "Fold every lane group", "Each category's lanes fold into one header row on the timeline", "", () => (lanes ? lanes.foldAll(true) : noLanes()));
+    add("open-all", "Open every lane group", "Unfold every category's lanes on the timeline", "", () => (lanes ? lanes.foldAll(false) : noLanes()));
+    LAYOUTS.forEach(([id, l, tip]) => add("layout-" + id, "Layout: " + l, tip, "", () => ((prefs.layout = id), save(), drawAll())));
+    [["screen", "Screen view", "Library, player and details on top, the timeline under them"], ["arrange", "Arrange view", "Every automated curiosity as a track, left to right"]].forEach(([id, l, tip]) => add("view-" + id, l, tip, "", () => ((prefs.view = id), save(), drawAll())));
+    [1, 2, 3].forEach((n) => add("wins-" + n, `${n} window${n === 1 ? "" : "s"} in the Player`, n === 1 ? "Only your film" : `${n - 1} inspiration film${n > 2 ? "s" : ""} and your film`, "", () => findPress(`.sc-wins-set [data-wins="${n}"]`, playerHidden)));
+    add("add-insp", "Add an inspiration film", "Another viewer with a film to learn from", "", () => findPress('[data-act="add-insp"]', playerHidden));
+    [["side", "Viewers side by side"], ["stack", "Viewers stacked"]].forEach(([id, l]) => add("arr-" + id, l, "How the Player's viewers sit", "", () => ((prefs.arrange = id), save(), drawAll())));
+    [["highlight", "Lens: highlight", "Light up only what you are looking through"], ["overlay", "Lens: overlay", "Write its values on the picture"], ["only", "Lens: lens only", "Draw only what it is about"], ["off", "Lens: off", "The plain picture"]].forEach(([id, l, tip]) => add("lens-" + id, l, tip, "", () => ((prefs.lens = id), save(), drawBar(), drawViewers())));
+    add("overview", "Whole-film strip", "Show or hide a frame for every moment under the viewers", "", () => ((prefs.overview = !prefs.overview), save(), drawViewers()));
+    add("close", "Back to the app", "Leave the Screen", "", () => close());
+    /* The ⋯ menu of the curiosity you are looking through (Details): the same four ways, the same steps. */
+    if (prefs.sel.level === "curiosity" && E() && S()) {
+      const k = keyFor(prefs.sel.id);
+      if (S().known(k)) {
+        const name = labelOf(k);
+        add("row-all", `${name}: use this setting all through the film`, "From the ⋯ menu in Details: the setting at the playhead from the first moment to the last", "", () => applyCur("all", k));
+        if (curArea()) add("row-stretch", `${name}: use this setting in the selected stretch`, "From the ⋯ menu in Details: held over the stretch selected on the timeline", "", () => applyCur("stretch", k));
+        add("row-reset", `${name}: reset to how the scene starts`, "From the ⋯ menu in Details: take off this lane's nodes after the first moment", "", () => applyCur("reset", k));
+        add("row-clear", `${name}: clear this lane`, "From the ⋯ menu in Details: take every node off this lane", "", () => applyCur("clear", k));
+      }
+    }
+    return out;
+  }
+  /* Every moment of My film, by its number, its marker's note and its label: a marker by its note, or "moment 12". */
+  function findMoments() {
+    const st = E() && E().state();
+    if (!st) return [];
+    const marks = exportMarkers();
+    return st.rows.map((r, j) => {
+      const m = marks[String(r.id)];
+      const note = m && typeof m.note === "string" ? m.note.trim() : "";
+      const lab = r.label && !/^moment \d+$/i.test(r.label) ? String(r.label) : "";
+      const sub = m ? `${m.auto ? "Auto marker (Mark the turns)" : "Marker"}${m.color ? ", " + m.color : ""}${note && lab ? " · " + lab : ""}` : "Move the playhead here";
+      return {
+        id: "moment:" + r.id,
+        group: "moment",
+        label: `Moment ${j + 1}` + (note ? ": " + note : lab ? ": " + lab : ""),
+        sub,
+        words: [m ? "marker" : "", m && m.color, note && lab, tc(j)].filter(Boolean).join(" "),
+        boost: note ? 1.5 : 0,
+        run: () => {
+          setRow(j);
+          toast(`Playhead on moment ${j + 1}${note ? ": " + note : ""}.`);
+        },
+      };
+    });
+  }
+  function findCatalog() {
+    if (!L()) return [];
+    const catLabel = (id) => (L().CATEGORIES.find((c) => c.id === id) || {}).label || "";
+    const curs = L()
+      .items("curiosity")
+      .map((c) => {
+        const cat = catLabel(L().categoryOf(c.id));
+        return { id: "cur:" + c.id, group: "cur", label: c.label, sub: c.plain || "", tag: isAdv(c) ? "Advanced" : cat, words: [c.plain, cat, isAdv(c) ? "advanced final cut pro" : ""].join(" "), run: () => findLook("curiosity", c.id) };
+      });
+    const suites = L()
+      .items("suite")
+      .map((s) => {
+        const names = [...new Set((s.members || []).filter((m) => m.curiosity).map((m) => labelOf(keyFor(m.curiosity))))];
+        const sub = s.plain || `${(s.members || []).length} curiosities: ${names.slice(0, 4).join(", ")}`;
+        return { id: "suite:" + s.id, group: "suite", label: s.label, sub, words: [sub, names.join(" "), catLabel((L().resolve("suite", s.id).categories || [])[0])].join(" "), run: () => findLook("suite", s.id) };
+      });
+    return curs.concat(suites, findActions(), findMoments());
+  }
+  const FIND_KIND = { cur: "Curiosity", suite: "Suite", act: "Action", moment: "Moment" };
+  /* With nothing typed: the recent picks, then a few to try. */
+  const FIND_TRY = ["act:export-sheet", "act:guides-menu", "act:mark-turns", "act:history", "act:key:Shortcuts"];
+  function findGroups(q) {
+    if (FIND.norm(q)) return FIND.rank(q, findItems);
+    const byId = new Map(findItems.map((it) => [it.id, it]));
+    const recent = findRecent()
+      .map((id) => byId.get(id))
+      .filter(Boolean);
+    const out = [];
+    if (recent.length) out.push({ group: "recent", label: "Recent", items: recent, more: 0 });
+    const tries = FIND_TRY.map((id) => byId.get(id)).filter((it) => it && !recent.includes(it));
+    if (tries.length) out.push({ group: "try", label: recent.length ? "Try" : "Try one of these, or type a few words", items: tries, more: 0 });
+    return out;
+  }
+  function drawFind() {
+    if (!findRoot) return;
+    const q = findRoot.querySelector(".sc-find-q").value;
+    const groups = findGroups(q);
+    findShown = [].concat(...groups.map((g) => g.items));
+    findActive = Math.max(0, Math.min(findActive, findShown.length - 1));
+    let i = 0;
+    const opt = (g, it) => {
+      const n = i++;
+      const tag = g.group === "recent" || g.group === "try" ? FIND_KIND[it.group] : it.group === "cur" ? it.tag : "";
+      return `<li role="option" id="sc-find-o-${n}" class="sc-find-o" data-find-i="${n}" data-find-id="${esc(it.id)}" aria-selected="false"><span class="sc-find-t"><b>${esc(it.label)}</b>${it.sub ? `<small>${esc(it.sub)}</small>` : ""}</span>${tag ? `<em>${esc(tag)}</em>` : ""}${it.keys ? `<kbd>${esc(it.keys)}</kbd>` : ""}</li>`;
+    };
+    findRoot.querySelector(".sc-find-list").innerHTML = groups.length
+      ? groups.map((g) => `<li class="sc-find-h" role="presentation"><span>${esc(g.label)}</span>${g.more ? `<small>${g.more} more: type another word to narrow it down</small>` : ""}</li>` + g.items.map((it) => opt(g, it)).join("")).join("")
+      : `<li class="sc-find-none" role="presentation">Nothing matches “${esc(q.trim())}”. Try fewer letters or another word.</li>`;
+    findMark();
+  }
+  /* Move the highlight without redrawing the list. */
+  function findMark() {
+    const input = findRoot.querySelector(".sc-find-q");
+    findRoot.querySelectorAll(".sc-find-o").forEach((li) => {
+      const on = Number(li.dataset.findI) === findActive;
+      li.classList.toggle("on", on);
+      li.setAttribute("aria-selected", String(on));
+      if (on && li.scrollIntoView) li.scrollIntoView({ block: "nearest" });
+    });
+    if (findShown.length) input.setAttribute("aria-activedescendant", "sc-find-o-" + findActive);
+    else input.removeAttribute("aria-activedescendant");
+  }
+  function findBuild() {
+    findRoot = document.createElement("div");
+    findRoot.className = "sc-find";
+    findRoot.innerHTML = `<div class="sc-find-in" role="dialog" aria-modal="true" aria-label="Quick find">
+      <input type="text" class="sc-find-q" role="combobox" aria-expanded="true" aria-controls="sc-find-list" aria-autocomplete="list" aria-label="Find a curiosity, a suite, an action or a marker" placeholder="Find a curiosity, a suite, an action or a marker…" autocomplete="off" spellcheck="false">
+      <ul id="sc-find-list" class="sc-find-list" role="listbox" aria-label="What matches"></ul>
+      <p class="sc-find-foot">↑ ↓ to move · Enter to pick · Esc to close · ${esc(findKeyName())} opens this anywhere on the Screen</p></div>`;
+    const input = findRoot.querySelector(".sc-find-q");
+    input.addEventListener("input", () => ((findActive = 0), drawFind()));
+    findRoot.addEventListener("keydown", (e) => {
+      /* No key typed here goes on to the Screen's shortcuts, the timeline or the app behind it. */
+      e.stopPropagation();
+      const n = findShown.length;
+      if (e.key === "Escape") return e.preventDefault(), closeFind(true);
+      if (e.key === "Enter") return e.preventDefault(), findRun(findActive);
+      const dir = e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey) ? 1 : e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey) ? -1 : 0;
+      if (e.key === "Tab") e.preventDefault();
+      if (!dir || !n) return;
+      e.preventDefault();
+      findActive = (findActive + dir + n) % n;
+      findMark();
+    });
+    ["keyup", "keypress"].forEach((t) => findRoot.addEventListener(t, (e) => e.stopPropagation()));
+    findRoot.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+      if (!e.target.closest(".sc-find-in")) {
+        e.preventDefault();
+        closeFind(true);
+      } else if (e.target !== input) e.preventDefault(); /* the typing stays in the box */
+    });
+    findRoot.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const li = e.target.closest("[data-find-i]");
+      if (li) findRun(Number(li.dataset.findI));
+    });
+    findRoot.addEventListener("mousemove", (e) => {
+      const li = e.target.closest("[data-find-i]");
+      if (li && Number(li.dataset.findI) !== findActive) {
+        findActive = Number(li.dataset.findI);
+        findMark();
+      }
+    });
+  }
+  function openFind() {
+    if (!page || page.hidden || !L()) return;
+    if (findOpen) return findRoot.querySelector(".sc-find-q").focus();
+    findBack = document.activeElement;
+    if (exportOpen) toggleExport(false);
+    if (historyOpen) toggleHistory(false);
+    closeLook();
+    closeCurMenu();
+    if (keysOpen) showKeys(false);
+    if (!findRoot) findBuild();
+    findItems = findCatalog();
+    findOpen = true;
+    findActive = 0;
+    findRoot.querySelector(".sc-find-q").value = "";
+    page.appendChild(findRoot);
+    drawFind();
+    findRoot.querySelector(".sc-find-q").focus();
+    const b = page.querySelector('[data-act="find"]');
+    if (b) b.setAttribute("aria-expanded", "true");
+  }
+  function closeFind(back) {
+    if (!findOpen) return;
+    findOpen = false;
+    if (findRoot) findRoot.remove();
+    const b = page && page.querySelector('[data-act="find"]');
+    if (b) b.setAttribute("aria-expanded", "false");
+    if (back) {
+      const to = findBack && findBack.isConnected && findBack !== document.body ? findBack : b;
+      if (to && to.focus) to.focus();
+    }
+    findBack = null;
+  }
+  function toggleFind(on) {
+    if (on == null ? findOpen : !on) closeFind(true);
+    else openFind();
+  }
+  /* Pick a result: the box closes first, so a menu the action opens can take the focus. */
+  function findRun(i) {
+    const it = findShown[i];
+    if (!it) return;
+    closeFind(false);
+    findRemember(it.id);
+    try {
+      it.run();
+    } catch (err) {
+      toast("That did not work: " + (err && err.message ? err.message : err));
+    }
+  }
+  /* ⌘K before the Screen's other keys, so it also works while typing in a box (but not in a tool window). */
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (!page || page.hidden) return;
+      /* While it is open, a key pressed with the focus outside the box (after a click on its edge, say) still
+         belongs to it: Esc closes it, anything else goes back into the box and no further. */
+      if (findOpen && findRoot && !findRoot.contains(e.target) && !FIND.isKey(e)) {
+        e.stopPropagation();
+        if (e.key === "Escape") return e.preventDefault(), closeFind(true);
+        return findRoot.querySelector(".sc-find-q").focus();
+      }
+      if (!FIND.isKey(e)) return;
+      if (!findOpen && inToolWindow(e)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFind();
+    },
+    true
+  );
+  window.CurioScreenFind = Object.assign({}, FIND, { open: () => openFind(), close: () => closeFind(true), isOpen: () => findOpen, items: () => findCatalog().map(({ id, group, label, sub, keys }) => ({ id, group, label, sub, keys: keys || "" })) });
 
   /* ---------- a viewer for any other screen ---------- */
   /* mountViewer(el, { curiosities: [ids], category, film: studyId | "mine" }): a small viewer that plays a film

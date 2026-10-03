@@ -847,5 +847,48 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+/* Quick find (⌘K): the matcher, the grouping and the recent picks, from ui.js with no page. */
+{
+  const g = { CurioFrame: w.CurioFrame, CurioLevels: w.CurioLevels, document: { readyState: "loading", addEventListener() {} }, localStorage: { getItem: () => null, setItem() {} } };
+  g.window = g;
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "ui.js"), "utf8"), vm.createContext(g), { filename: "ui.js" });
+  const Q = g.CurioScreenFind;
+  ok(!!Q && typeof Q.score === "function" && typeof Q.rank === "function" && Q.KEY === "curiosities-screen-find-v1" && Q.MAX === 8, "Quick find's matcher is exposed for tests (CurioScreenFind), its recent picks kept under curiosities-screen-find-v1, 8 of them");
+  if (Q) {
+    ok(Q.norm("  Compare ◐: Turn ON ") === "compare turn on" && Q.norm("Café") === "cafe" && Q.norm(null) === "", "words are matched in plain lower case, accents and signs left out");
+    ok(Q.score("shot", "Shot size") > Q.score("shot", "Snapshot") && Q.score("shot", "Snapshot") > 0, "a word that starts a word beats one found inside a word");
+    ok(Q.score("size", "Shot size") > Q.score("size", "Resize") && Q.score("shot", "Shot size") > Q.score("size", "Shot size"), "the first word counts most, then any word start, then letters inside");
+    ok(Q.score("size shot", "Shot size") > 0 && Q.score("sh si", "Shot size") > 0, "words can be typed in any order, and partly");
+    ok(Q.score("shot zoom", "Shot size") === 0 && Q.score("xyz", "Shot size") === 0, "every word typed must be found, or it is no match");
+    ok(Q.score("shotsize", "Shot size") > 0, "letters run together still find the label");
+    ok(Q.score("wide", "Shot size", "How much of the scene is in the frame: wide to close") > 0 && Q.score("wide", "Shot size", "") === 0 && Q.score("shot", "Shot size", "") > Q.score("wide", "Shot size", "wide to close"), "the plain description is searched too, below the label");
+    ok(Q.score("shot size", "Shot size") > Q.score("shot size", "Shot size change") && Q.score("moment 12", "Moment 12") > Q.score("moment 1", "Moment 12") && Q.score("moment 12", "Moment 1") === 0, "the exact label first, then labels that start with what was typed; moment 12 is not moment 1");
+    const items = [
+      { id: "cur:a", group: "cur", label: "Snapshot", words: "" },
+      { id: "cur:b", group: "cur", label: "Shot size", words: "how big" },
+      { id: "act:c", group: "act", label: "Export a storyboard sheet", words: "print every shot" },
+      { id: "moment:r5", group: "moment", label: "Moment 5: the shot lands", words: "marker red" },
+      { id: "suite:d", group: "suite", label: "Handheld hunt", words: "" },
+    ];
+    const r = Q.rank("shot", items);
+    ok(r.map((x) => x.group).join() === "cur,moment,act" && r[0].items.map((x) => x.id).join() === "cur:b,cur:a", "results come in groups, best group first, each best first, groups with nothing left out (" + r.map((x) => x.group + ":" + x.items.map((i) => i.id).join("/")).join(" ") + ")");
+    ok(Q.rank("shot", items, { cur: 1 })[0].items.length === 1 && Q.rank("shot", items, { cur: 1 })[0].more === 1, "each group shows at most its limit, and says how many more there are");
+    ok(Q.rank("joke", [{ id: "moment:r1", group: "moment", label: "Moment 2: the joke lands", words: "marker" }])[0].items[0].id === "moment:r1" && Q.rank("red", items)[0].group === "moment", "a marker is found by its note, or by its color");
+    const notes = [{ id: "cur:k", group: "cur", label: "Kind of joke", words: "" }, { id: "moment:r5", group: "moment", label: "Moment 5: the joke lands", words: "marker", boost: 1.5 }];
+    ok(Q.rank("joke", notes)[0].group === "moment" && Q.rank("kind", notes).length === 1 && Q.rank("kind", notes)[0].group === "cur", "your own marker note comes before a curiosity that matches the same word, but a boost never makes a match");
+    ok(Q.rank("zzz", items).length === 0, "nothing found: no groups");
+    ok(Q.GROUPS.map((x) => x[1]).join() === "Curiosities,Suites,Actions,Moments and markers", "the groups are Curiosities, Suites, Actions, and Moments and markers");
+    let rec = [];
+    for (let i = 0; i < 10; i++) rec = Q.remember(rec, "act:a" + i);
+    ok(rec.length === 8 && rec[0] === "act:a9" && rec[7] === "act:a2", "the last 8 picks are kept, newest first");
+    rec = Q.remember(rec, "act:a5");
+    ok(rec[0] === "act:a5" && rec.filter((x) => x === "act:a5").length === 1 && rec.length === 8, "picking one again moves it to the top, with no repeats");
+    ok(Q.clean(["cur:x", "cur:x", 3, null, "bogus", "nope:x", "cur:", "moment:r1"]).join() === "cur:x,moment:r1" && Q.clean("x").length === 0, "a broken saved list is cleaned quietly");
+    const ev = (o) => Object.assign({ key: "k", code: "KeyK", ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }, o);
+    ok(Q.isKey(ev({ metaKey: true })) && Q.isKey(ev({ ctrlKey: true })) && Q.isKey(ev({ ctrlKey: true, key: "K" })), "⌘K on a Mac and Ctrl+K on Windows open it");
+    ok(!Q.isKey(ev({})) && !Q.isKey(ev({ ctrlKey: true, shiftKey: true })) && !Q.isKey(ev({ altKey: true, shiftKey: true })) && !Q.isKey(ev({ ctrlKey: true, altKey: true })) && !Q.isKey(ev({ ctrlKey: true, key: "j", code: "KeyJ" })), "plain K (stop playing), ⇧⌥K (add a keyframe) and other keys do not");
+  }
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);
