@@ -7,7 +7,7 @@ const vm = require("vm");
 const load = require(path.join(__dirname, "..", "..", "engine", "tests", "load.js"));
 const core = load();
 const w = core.window;
-["levels.js", "frame.js", "lanes.js"].forEach((f) => {
+["../data/db-editing.js", "levels.js", "frame.js", "lanes.js"].forEach((f) => {
   const code = fs.readFileSync(path.join(__dirname, "..", f), "utf8");
   vm.runInContext(code, core.context || vm.createContext(w), { filename: f });
 });
@@ -25,8 +25,10 @@ const ws = DB.data.workspaces.map((x) => x.id);
 const inCats = [].concat(...L.CATEGORIES.map((c) => c.workspaces));
 ok(ws.every((id) => inCats.filter((x) => x === id).length === 1), "every workspace sits in exactly one of the " + L.CATEGORIES.length + " categories");
 ok(L.CATEGORIES.every((c) => [1, 2, 3].includes(c.windows)), "every category opens with one, two or three windows");
-const total = L.CATEGORIES.reduce((a, c) => a + L.curiosities(c.id).length, 0);
-ok(total === DB.data.curiosities.length, "the categories hold every curiosity once (" + total + ")");
+const total = L.CATEGORIES.reduce((a, c) => a + L.curiosities(c.id).filter((x) => L.categoryOf(x.id) === c.id).length, 0);
+ok(total === DB.data.curiosities.length, "the categories hold every curiosity once in its home category (" + total + ")");
+ok(L.curiosities("feeling").some((x) => x.id === "moodEffect") && L.curiosities("text").some((x) => x.id === "moodEffect"), "Mood stickers on faces show under Text and under Feeling");
+ok(L.items("proximity", "feeling").filter((p) => /^face-/.test(p.id)).length === 8 && L.items("proximitySuite", "feeling").some((p) => p.id === "mood-moves-the-feeling"), "Body Mood effects feed the Emotion curiosities, both ways");
 
 /* The four levels resolve to curiosities to look at. */
 for (const lv of ["curiosity", "suite", "proximity", "proximitySuite"]) {
@@ -40,6 +42,17 @@ L.items("proximity").forEach((p) => scenes.forEach((s) => (fired += L.fires("pro
 ok(fired > 0, "proximities are found firing in the model scenes (" + fired + ")");
 ok(L.fires("curiosity", "shotSize", scenes[0].beats).length > 1, "a curiosity is found where it changes");
 ok(L.control({ scale: ["off", "on"] }) === "toggle" && L.control({ scale: ["a", "b", "c"], unordered: true }) === "choice" && L.control({ range: { min: 0, max: 5 } }) === "knob" && L.control({ range: { min: 0, max: 100 } }) === "slider", "each slider gets a fitting control");
+
+/* The editing curiosities from Final Cut Pro and CapCut (data/db-editing.js). */
+const edit = DB.data.curiosities.filter((c) => c.source === "Final Cut Pro and CapCut");
+ok(edit.length >= 30 && edit.every((c) => c.momentum && c.sliders.length >= 4), "the editing curiosities load, each with a momentum note and its sliders (" + edit.length + ")");
+ok(["transitions", "grade", "text", "speed"].every((id) => L.curiosities(id).length >= 3), "the new CapCut categories (Transitions, Filters, Text, Speed) have curiosities");
+ok(DB.check().length === 0, "the database check finds no problems with them" + (DB.check().length ? ": " + DB.check().slice(0, 6).join("; ") : ""));
+const adv = DB.data.curiosities.filter((c) => (c.tags || []).includes("advanced"));
+ok(adv.length >= 8 && adv.every((c) => c.source === "Final Cut Pro" && c.momentum), "Final Cut Pro's own curiosities load, tagged advanced (" + adv.length + ")");
+ok(["suites", "proximities"].every((k) => DB.data[k].some((x) => (x.tags || []).includes("advanced"))), "an advanced suite and advanced proximities load");
+const ed = w.CurioFrame.svg({ transitionKind: "wipe", filterLook: "night", onScreenText: "title card", clipSpeed: "fast" }, { highlight: ["transitions"] });
+ok(["transitions", "grade", "text", "speed"].every((c) => ed.includes(`data-cat="${c}"`)) && /data-cat="grade" opacity="0.18"/.test(ed), "the frame draws transitions, filters, text and speed, and dims them by category");
 
 /* The frame. */
 const svg = w.CurioFrame.svg(scenes[0].beats[0].values, { highlight: ["camera"], labels: [["Shot size", "wide"]] });
@@ -70,6 +83,31 @@ const pa = w.CurioLanes.paste(0);
 ok(pa.ok && E.state().links.length === n0 + 1 && E.state().lanes["camera|shotSize"].points[r[0].id] === "close", "paste puts the pair and its line at another moment");
 E.undo();
 ok(E.state().links.length === n0, "undo takes the paste back");
+
+/* CapCut's linkage (~) off: a node moves alone and its line stretches. The magnet (P): later nodes come along. */
+const k3 = r[3].id + "@camera|shotSize";
+const solo = w.CurioLanes.shiftCommands(E.state(), k3, -1, false, { solo: true });
+ok(E.send({ type: "batch", commands: solo.cmds }).ok, "a node can move alone with linkage off");
+const s2 = E.state();
+const ln2 = s2.links.find((l) => l.to.curiosity === "emotion" && l.scope);
+ok(s2.lanes["camera|shotSize"].points[r[2].id] === "close" && s2.lanes["master|emotion"].points[r[5].id] === "angry" && ln2.scope.from === r[2].id && ln2.scope.to === r[5].id && ln2.within === 3, "its partner stays put and the line stretches");
+E.undo();
+E.send({ type: "setPoint", row: r[6].id, track: "camera", curiosity: "shotSize", value: "wide" });
+const rip = w.CurioLanes.shiftCommands(E.state(), k3, 1, false, { solo: true, ripple: true });
+ok(E.send({ type: "batch", commands: rip.cmds }).ok, "the magnet moves later nodes too");
+const s3 = E.state().lanes["camera|shotSize"].points;
+ok(s3[r[4].id] === "close" && s3[r[7].id] === "wide" && s3[r[6].id] == null, "every later node in the lane slid along by the same amount");
+E.undo();
+/* Linkage settings (CapCut's box of kinds): with the emotion curiosity's kind unticked, its node stays behind and its line stretches. */
+const emoCat = w.CurioLevels.categoryOf("emotion");
+const noFeel = (k) => w.CurioLevels.categoryOf(k.slice(k.indexOf("|") + 1)) !== emoCat;
+ok(w.CurioLanes.group(k3, E.state(), noFeel).nodes.length === 1 && w.CurioLanes.group(k3, E.state()).nodes.length === 2, "linkage settings leave unticked kinds out of the group");
+const kinded = w.CurioLanes.shiftCommands(E.state(), k3, 1, false, { allow: noFeel });
+ok(E.send({ type: "batch", commands: kinded.cmds }).ok && E.state().lanes["master|emotion"].points[r[5].id] === "angry" && E.state().lanes["camera|shotSize"].points[r[4].id] === "close", "the grabbed node moves and the unticked partner stays put");
+E.undo();
+const cpk = w.CurioLanes.copyGroup(k3, { allow: noFeel });
+ok(cpk.ok && cpk.nodes === 1 && cpk.links === 0, "copy leaves unticked kinds behind too");
+ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === true, "linkage starts on, as in CapCut");
 
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);
