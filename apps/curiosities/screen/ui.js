@@ -91,13 +91,15 @@
       ["⇧⌘B", "Split all", "Cut every lane on the timeline at the playhead", (e) => mod(e) && e.shiftKey && key(e, "b"), lk("splitAll")],
       ["A", "Select mode", "Click a node to pick it, click an empty spot to add one", (e) => plain(e) && !e.shiftKey && key(e, "a"), lk("select")],
       ["B", "Split mode", "Click a lane to cut its line with a node", (e) => plain(e) && !e.shiftKey && key(e, "b"), lk("split")],
-      ["[", "Select leftward", "Pick the node to the left (CapCut picks every clip to the left)", (e) => plain(e) && e.key === "[", lk("left")],
-      ["]", "Select rightward", "Pick the node to the right", (e) => plain(e) && e.key === "]", lk("right")],
+      ["[", "Select leftward", "Pick the node to the left (CapCut picks every clip to the left)", (e) => plain(e) && !e.shiftKey && e.key === "[", lk("left")],
+      ["]", "Select rightward", "Pick the node to the right", (e) => plain(e) && !e.shiftKey && e.key === "]", lk("right")],
       ["P", "Main track magnet", "Moving a node moves every later node in its lane too", (e) => plain(e) && key(e, "p"), lk("magnet")],
       ["N", "Auto snapping", "A node dropped next to a marker lands on it", (e) => plain(e) && key(e, "n"), lk("snap")],
       ["~", "Linkage switch", "Joined nodes move and copy together (on) or alone (off)", (e) => plain(e) && (e.key === "~" || e.key === "`"), lk("linkage")],
       ["S", "Preview axis switch", "Hover over the timeline to see that moment in the player", (e) => plain(e) && !e.shiftKey && key(e, "s"), lk("skim")],
       ["M", "Add marker", "Put a marker on the playhead's moment (again to take it off)", (e) => plain(e) && key(e, "m"), lk("marker")],
+      ["⇧[", "Previous marker", "Move the playhead back to the marker before it", (e) => plain(e) && e.shiftKey && (e.key === "{" || e.code === "BracketLeft"), lk("prevMarker")],
+      ["⇧]", "Next marker", "Move the playhead on to the next marker", (e) => plain(e) && e.shiftKey && (e.key === "}" || e.code === "BracketRight"), lk("nextMarker")],
       ["⌘+", "Zoom in", "Wider moments on the timeline", (e) => mod(e) && !e.altKey && (e.key === "=" || e.key === "+"), lk("zoomIn")],
       ["⌘−", "Zoom out", "Narrower moments on the timeline", (e) => mod(e) && !e.altKey && (e.key === "-" || e.key === "_"), lk("zoomOut")],
       ["⇧Z", "Zoom to fit timeline", "The whole film fits the timeline", (e) => plain(e) && e.shiftKey && key(e, "z"), lk("zoomFit")],
@@ -1801,6 +1803,9 @@ document.addEventListener("click", function (e) {
     if (st) rows.push({ label: "My film", title: "Your film's moments", clips: st.rows.map((r, i) => ({ from: i / st.rows.length, to: (i + 1) / st.rows.length, text: r.label, cls: "mine" })) });
     return rows;
   }
+  /* Picking a curiosity opens its lane's group on the timeline if it is folded (lanes.js reveal). Every pick sets a
+     new prefs.sel, so a new one means a pick; a redraw because the film changed leaves the folds alone. */
+  let revealed = prefs.sel;
   function drawTimeline(fromEngine) {
     const box = page.querySelector(".sc-timeline");
     if (!E() || !window.CurioLanes) {
@@ -1850,6 +1855,8 @@ document.addEventListener("click", function (e) {
         },
       });
     } else lanes.draw();
+    if (!fromEngine && prefs.sel !== revealed && prefs.sel && prefs.sel.level === "curiosity" && lanes.reveal) lanes.reveal(keyFor(prefs.sel.id));
+    revealed = prefs.sel;
   }
 
   /* ---------- events ---------- */

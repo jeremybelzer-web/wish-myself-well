@@ -245,6 +245,35 @@ const ok = (cond, msg) => {
   ok((await T()).markers.length === m0 + 1 && !!(await page.$(".sl-marker")), "M adds a marker at the playhead");
   await page.keyboard.press("m");
   ok((await T()).markers.length === m0, "M again takes it off");
+  /* ⇧[ and ⇧]: previous and next marker, like CapCut; the status line says when there is none that way. */
+  {
+    const keep = await page.evaluate(() => JSON.stringify(window.CurioLanes.tools().markers));
+    const rowNow = () => page.evaluate(() => window.CurioScreen.row());
+    const said = () => page.evaluate(() => document.querySelector(".sl-msg").textContent);
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); const st = window.CurioEngine.state(); t.markers = [{ row: st.rows[4].id, color: "red", note: "the joke lands" }, { row: st.rows[1].id, color: "orange", note: "" }]; window.CurioScreen.setRow(0); });
+    await page.keyboard.press("Shift+BracketRight");
+    const r1 = await rowNow();
+    await page.keyboard.press("Shift+BracketRight");
+    const r2 = await rowNow();
+    const s2 = await said();
+    ok(r1 === 1 && r2 === 4 && /marker, at moment 5: the joke lands/.test(s2), "⇧] moves the playhead to the next marker, then the one after (" + r1 + ", " + r2 + ": " + s2 + ")");
+    await page.keyboard.press("Shift+BracketRight");
+    const s3 = await said();
+    ok((await rowNow()) === 4 && /No marker after moment 5/.test(s3), "with no marker further on, ⇧] stays put and the status line says so (" + s3 + ")");
+    await page.keyboard.press("Shift+BracketLeft");
+    const r4 = await rowNow();
+    await page.keyboard.press("Shift+BracketLeft");
+    const s5 = await said();
+    ok(r4 === 1 && (await rowNow()) === 1 && /No marker before moment 2/.test(s5), "⇧[ goes back to the previous marker, and says when there is none before it (" + s5 + ")");
+    await page.evaluate(() => { window.CurioLanes.tools().markers = []; window.CurioScreen.setRow(2); });
+    await page.keyboard.press("Shift+BracketRight");
+    ok((await rowNow()) === 2 && /no markers yet/.test(await said()), "with no markers at all, the status line says to press M");
+    await page.evaluate((k) => { window.CurioLanes.tools().markers = JSON.parse(k); window.CurioScreen.setRow(0); }, keep);
+    await page.click('[data-act="shortcuts"]');
+    const listed = await page.$$eval(".sc-keys-in p", (ps) => ps.map((p) => p.textContent));
+    ok(listed.some((t) => /^⇧\[Previous marker/.test(t)) && listed.some((t) => /^⇧\]Next marker/.test(t)), "the Shortcuts window lists ⇧[ Previous marker and ⇧] Next marker");
+    await page.keyboard.press("Escape");
+  }
   await page.keyboard.press("Control+Equal");
   ok((await T()).zoom > 1, "⌘+ zooms the timeline in");
   await page.keyboard.press("Shift+Z");
@@ -825,7 +854,7 @@ const ok = (cond, msg) => {
       const heads = [...document.querySelectorAll(".sl-heads .sl-ghead")].map((h) => ({ id: h.dataset.group, text: h.textContent }));
       return { lkE, cat, label, heads, lanes: document.querySelectorAll(".sl-heads .sl-head").length };
     });
-    ok(info.heads.length >= 2 && info.heads.every((h) => /\d+ lanes? · \d+ with nodes/.test(h.text)), "lanes are grouped under a header per category, each saying how many lanes it holds and how many have nodes (" + info.heads.map((h) => h.text.replace(/\s+/g, " ").trim()).join(" | ") + ")");
+    ok(info.heads.length >= 2 && info.heads.every((h) => /· \d+ · \d+●/.test(h.text)), "lanes are grouped under a header per category, each saying how many lanes it holds and how many have nodes (" + info.heads.map((h) => h.text.replace(/\s+/g, " ").trim()).join(" | ") + ")");
     const gh = info.heads.find((h) => h.id === info.cat);
     ok(!!gh && gh.text.includes(info.label) && /▾/.test(gh.text), "Strength of the feeling sits under " + info.label + ", the category Details puts it in, open (▾)");
     ok(!!(await page.$('.sl-tools [data-act="fold-all"]')), "the timeline toolbar has Fold all");
@@ -871,6 +900,44 @@ const ok = (cond, msg) => {
     const back = await page.evaluate(() => ({ heads: document.querySelectorAll(".sl-heads .sl-head").length, folded: document.querySelectorAll(".sl-heads .sl-ghead.is-folded").length, folds: Object.keys(window.CurioLanes.tools().folds).length }));
     ok(back.heads === info.lanes && back.folded === 0 && back.folds === 0, "Open all brings every lane back (" + back.heads + " lanes)");
     ok((await film()) === before, "folding and opening never changed the film");
+    /* The header fits the 190px name column: a short count ("Camera · 5 · 4●") with the full wording in its
+       tooltip and aria-label. */
+    const fit = await page.evaluate(() => [...document.querySelectorAll(".sl-heads .sl-ghead")].map((h) => {
+      const c = h.querySelector(".sl-gcount");
+      const b = h.querySelector(".sl-fold");
+      return { text: h.textContent.replace(/\s+/g, " ").trim(), w: h.getBoundingClientRect().width, cRight: c.getBoundingClientRect().right, hRight: h.getBoundingClientRect().right, cClip: c.scrollWidth > c.clientWidth + 1, tip: c.title, aria: b.getAttribute("aria-label") || "" };
+    }));
+    ok(fit.length >= 2 && fit.every((h) => /· \d+ · \d+●$/.test(h.text) && h.cRight <= h.hRight + 0.5 && !h.cClip), "each group header's count shows in full inside the name column (" + fit.map((h) => h.text + " @" + Math.round(h.w) + "px").join(" | ") + ")");
+    ok(fit.every((h) => /: \d+ lanes?, \d+ with nodes$/.test(h.tip) && /: \d+ lanes?, \d+ with nodes\. (Fold|Open) /.test(h.aria)), "the full wording (\"" + (fit[0] || {}).tip + "\") is in the tooltip and the fold button's aria-label");
+    /* Picking a curiosity whose group is folded opens that group (and only that one) and scrolls to its lane. */
+    const other = info.heads.find((h) => h.id !== info.cat);
+    const selBefore = await page.evaluate(() => window.CurioScreen.state().sel);
+    await page.click(fold);
+    if (other) await page.click(`.sl-heads [data-act="fold"][data-group="${other.id}"]`);
+    await page.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollTop = sc.scrollHeight; });
+    await page.evaluate(() => window.CurioScreen.openWin("emotionIntensity"));
+    await page.click('.sc-win[data-win="emotionIntensity"] [data-select-cur="emotionIntensity"]');
+    const shown = await page.evaluate((o) => {
+      const t = window.CurioLanes.tools();
+      const head = [...document.querySelectorAll(".sl-heads .sl-head")].find((h) => h.querySelector(`[data-lk="${o.lkE}"]`));
+      const sc = document.querySelector(".sl-scroll").getBoundingClientRect();
+      const top = document.querySelector(".sl-top").getBoundingClientRect().bottom;
+      const r = head && head.getBoundingClientRect();
+      return { open: !t.folds[o.cat], other: o.other ? !!t.folds[o.other] : true, head: !!head, inView: !!r && r.top >= top - 1 && r.bottom <= sc.bottom + 1, msg: document.querySelector(".sl-msg").textContent };
+    }, { lkE: info.lkE, cat: info.cat, other: other && other.id });
+    ok(shown.open && shown.head, "picking a curiosity in its window opens its folded group, so its lane shows (" + shown.msg + ")");
+    ok(shown.inView, "and the timeline scrolls so its lane is in view");
+    ok(shown.other, "another folded group stays folded");
+    await page.click('.sc-win[data-win="emotionIntensity"] [data-win-close="emotionIntensity"]');
+    /* Look through what was picked before again, so the tests after this see the same timeline. */
+    await page.click(`[data-level="${selBefore.level}"]`);
+    await page.selectOption("[data-pick-item]", selBefore.id);
+    /* A redraw because the film changed does not open a group you folded again. */
+    await page.click(fold);
+    await page.evaluate(() => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks[0]; E.send({ type: "setPoint", row: st.rows[0].id, track: t.id, curiosity: t.curiosities[0], value: E.value(st.rows[0].id, t.id, t.curiosities[0]) }); E.undo(); });
+    ok(await page.evaluate((c) => !!window.CurioLanes.tools().folds[c], info.cat), "a change to the film never opens a folded group");
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); Object.keys(t.folds).forEach((k) => delete t.folds[k]); localStorage.setItem("curiosities-screen-tools-v1", JSON.stringify(t)); });
+    ok((await film()) === before, "picking and folding never changed the film");
     await page.evaluate(() => window.CurioScreen.setRow(0));
   }
   /* Curves: a line between two nodes, shaped and written into the moments between. */
@@ -1351,6 +1418,8 @@ const ok = (cond, msg) => {
   await page.screenshot({ path: path.join(SHOTS, "screen-6-phone.png") });
   const overflow = await page.evaluate(() => document.querySelector(".sc-page").scrollWidth - window.innerWidth);
   ok(overflow <= 1, "no sideways scroll on a phone (" + overflow + ")");
+  const phoneHeads = await page.evaluate(() => [...document.querySelectorAll(".sl-heads .sl-ghead")].map((h) => { const c = h.querySelector(".sl-gcount"); const b = h.querySelector(".sl-fold"); return { text: h.textContent.replace(/\s+/g, " ").trim(), w: Math.round(h.getBoundingClientRect().width), fits: c.getBoundingClientRect().right <= h.getBoundingClientRect().right + 0.5 && c.scrollWidth <= c.clientWidth + 1, name: b.getBoundingClientRect().width, size: parseFloat(getComputedStyle(c).fontSize) }; }));
+  ok(phoneHeads.length >= 1 && phoneHeads.every((h) => h.fits && h.name >= 24 && h.size >= 10), "on a phone the group headers still fit their narrower name column, counts in full and the name readable (" + phoneHeads.map((h) => h.text + " @" + h.w + "px").join(" | ") + ")");
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   /* Reload: the Screen comes back, the film is the same. */

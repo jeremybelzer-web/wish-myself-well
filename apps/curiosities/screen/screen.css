@@ -560,12 +560,20 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-mkauto { flex: none; margin-left: auto; padding: 0 5px; border: 1px solid var(--cc-line); border-radius: 6px; font-size: 10px; line-height: 15px; color: var(--cc-dim); }
 
 /* ---------- Lane groups (CapCut's folding track groups): a header per category, ▸/▾ to fold it ---------- */
-.sl-ghead { box-sizing: border-box; display: flex; align-items: center; gap: 6px; padding: 0 6px 0 4px; border-bottom: 1px solid var(--cc-line); background: #1d1d21; overflow: hidden; white-space: nowrap; }
+.sl-ghead { box-sizing: border-box; display: flex; align-items: center; gap: 4px; padding: 0 6px 0 4px; border-bottom: 1px solid var(--cc-line); background: #1d1d21; overflow: hidden; white-space: nowrap; }
 .sc-page .sl-fold, .sl-fold { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; background: none; box-shadow: none; padding: 0 2px; border-radius: 3px; font-size: 11px; font-weight: 700; line-height: 18px; color: var(--cc-text); text-align: left; }
 .sc-page .sl-fold:hover { background: var(--cc-hover); }
 .sl-fold:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: -1px; }
 .sl-fold-arrow { display: inline-block; width: 10px; color: var(--cc-accent); }
-.sl-gcount { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 10px; color: var(--cc-dim); }
+.sl-gcount { flex: none; font-size: 10px; color: var(--cc-dim); font-variant-numeric: tabular-nums; }
+/* The header's count is short ("· 5 · 4●": lanes, then lanes with nodes) so it always shows in the 190px name
+   column; the category's name gives way first (it ends in "…"), and the full wording is in the tooltip. Phones
+   (124px column) tighten the spacing. */
+@media (max-width: 860px) {
+  .sl-ghead { gap: 3px; padding: 0 4px 0 2px; }
+  .sc-page .sl-fold, .sl-fold { padding: 0 1px; }
+  .sl-fold-arrow { width: 9px; }
+}
 .sl-ghead.is-folded { background: #19191c; }
 .sl-gbg { fill: #1d1d21; }
 .sl-gbg.folded { fill: #19191c; }
