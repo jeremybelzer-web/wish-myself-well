@@ -293,40 +293,612 @@
 
   /* ---------- say it (Jeremy, 2026-10-03 15:02Z: "we can also allow the user to simply speak their request if
      they don't want to get into tweaking these parameters") ----------
-     Plain words in, settings out, worked out on the device: each part of the request (split at commas, "and",
-     "then") is matched against the curiosity's presets, the words on its scales, numbers with a unit (30
-     degrees, 2 meters, 40%, 3 seconds), and more or less of a setting it names (closer, higher, faster, more
-     X, less X). Returns [[key, value, label]] and what it understood. */
-  const UNIT = [
-    [/^(°|deg|degs|degree|degrees)$/, "°"],
-    [/^(m|meter|meters|metre|metres)$/, "m"],
-    [/^(%|percent|per cent)$/, "%"],
-    [/^(s|sec|secs|second|seconds)$/, "s"],
-    [/^(mm|millimeter|millimeters)$/, "mm"],
+     Plain words in, settings out, worked out on the device. The request is cleaned up first (typos fixed against
+     the words the app knows, "abit" split, "its to dark" read as "too dark"), then split into parts (commas, "and",
+     "then", "but"; never inside a word on a scale like "black and white"). Each part is matched, in this order:
+       1. nothing of it      "no music", "turn off the captions", "without blur": the setting it names goes to
+                             its none, off or zero
+       2. a word on a scale  "close", "a double take", or a beginner's word for one ("sunset" is dusk, "tux" is
+                             formal, "like a horror movie" is fearful or dark). "more X" also raises its strength;
+                             "not so X", "too X" step away from X
+       3. a number           with a unit (30 degrees, 2 meters, 40%, 3 seconds, 120 bpm, 2x, half a second); with
+                             "more", "further", "darker" it moves by that much from where it is ("2 meters further")
+       4. more or less       comparatives and verbs (closer, dirtier, colder, brighten, tone down, zoom out, too
+                             loud, not so many): the setting whose scale words, label ends ("Cheap to expensive")
+                             or label match the word moves that way from where it is. Left, right, behind, above
+                             and below turn an angle around the subject.
+       5. a feeling or genre word ("creepier", "like a thriller") raises a setting named after it.
+     The plain-words phrases (data/windows/say-<category>.js) and the presets' names are matched first, on the
+     whole request. Returns { set: [[key, value, label]], said: [what it understood] }.
+     data/windows/say-eval.js scores this against data/windows/say-eval.json. */
+  const UNITS = [
+    ["°/s", /^(°|deg|degrees?) ?(per|a|\/) ?(s|sec|second)$/],
+    ["°/min", /^(°|deg|degrees?) ?(per|a|\/) ?(min|minute)$/],
+    ["m/s", /^(m|meters?|metres?) ?(per|a|\/) ?(s|sec|second)$/],
+    ["cm/s", /^(cm|centimeters?) ?(per|a|\/) ?(s|sec|second)$/],
+    ["cm/min", /^(cm|centimeters?) ?(per|a|\/) ?(min|minute)$/],
+    ["wpm", /^(wpm|words? (per|a) minute)$/],
+    ["bpm", /^(bpm|beats? (per|a) minute)$/],
+    ["/min", /^((per|a|an|each|every|\/) ?(min|mins|minute)|per min)$/],
+    ["/s", /^((per|a|each|every|\/) ?(s|sec|second))$/],
+    ["/h", /^((per|an|a|each|every|\/) ?(h|hour))$/],
+    ["°C", /^(°c|celsius|degrees? c|degrees? celsius)$/],
+    ["°", /^(°|deg|degs|degree|degrees)$/],
+    ["mm", /^(mm|millimeters?|millimetres?)$/],
+    ["cm", /^(cm|centimeters?|centimetres?)$/],
+    ["m", /^(m|meters?|metres?)$/],
+    ["%", /^(%|percent|per cent|% of \w+)$/],
+    ["ms", /^(ms|milliseconds?)$/],
+    ["s", /^(s|sec|secs|seconds?)$/],
+    ["min", /^(min|mins|minutes?)$/],
+    ["h", /^(h|hrs?|hours?)$/],
+    ["x", /^(x|times)$/],
+    ["K", /^(k|kelvin)$/],
+    ["dB", /^(db|decibels?)$/],
+    ["fps", /^(fps|frames per second)$/],
+    ["frames", /^(frames?)$/],
+    ["stops", /^(stops?)$/],
+    ["semitones", /^(semitones?)$/],
+    ["$", /^(\$|dollars?|bucks)$/],
+    ["o'clock", /^(o'?clock|am|pm)$/],
   ];
-  const UP = /\b(more|higher|up|raise|bigger|larger|louder|faster|stronger|longer|further|farther|brighter|warmer|wider|above|increase)\b/;
-  const DOWN = /\b(less|lower|down|smaller|quieter|softer|slower|weaker|shorter|closer|nearer|darker|cooler|tighter|below|decrease|reduce)\b/;
-  /* Words that point at a kind of setting even when its label is not said. */
-  const HINT = { closer: "distance", nearer: "distance", farther: "distance", further: "distance", above: "height", below: "height", higher: "height", lower: "height", faster: "speed", slower: "speed", louder: "loud", quieter: "loud", brighter: "bright", darker: "bright", longer: "long", shorter: "long" };
-  const words = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9%°.\s-]/g, " ").split(/\s+/).filter((w) => w.length > 2 && !/^(the|and|but|with|from|into|this|that|them|their|how|its|it's|very|much|make|more|less|set|for|of|to|is|are|was|be|a|an)$/.test(w));
+  const canonUnit = (u) => {
+    const x = String(u || "").toLowerCase().trim();
+    const hit = UNITS.find(([, re]) => re.test(x));
+    return hit ? hit[0] : x.replace(/s$/, "");
+  };
+  /* A slider's unit, in the same words (minutes per main and per minute are both "/min"). */
+  const unitOf = (s) => (s && s.range ? canonUnit(String(s.range.unit || "").replace(/ per main$/, "")) : "");
+  const STOP = new Set("the a an and but with from into onto this that these those them their there they he she him her his hers its it's it is are was be been being to of for on in at by as so too very much make made makes let lets please pls plz can could would you i i'd want like just also some any one bit little lot more less set put get go have has had do does done than then up down out over off".split(" "));
+  const stemOf = (w) => {
+    w = String(w);
+    if (w.length > 4 && /ies$/.test(w)) return w.slice(0, -3) + "y";
+    if (w.length > 5 && /(ing)$/.test(w)) return w.slice(0, -3);
+    if (w.length > 4 && /(ed)$/.test(w)) return w.slice(0, -2);
+    if (w.length > 4 && /(es)$/.test(w) && !/(ses|ces|ges|ves|tes|les|kes|mes|nes|pes|res|zes)$/.test(w)) return w.slice(0, -2);
+    if (w.length > 3 && /s$/.test(w) && !/ss$/.test(w)) return w.slice(0, -1);
+    return w;
+  };
+  /* Two words are the same word: equal, the same stem, or one starts the other (five letters or more). */
+  const same = (a, b) => {
+    if (a === b) return true;
+    const sa = stemOf(a);
+    const sb = stemOf(b);
+    if (sa === sb || sa === b || a === sb) return true;
+    const n = Math.min(a.length, b.length);
+    return n >= 5 && Math.abs(a.length - b.length) <= 4 && (a.startsWith(b) || b.startsWith(a) || sa.startsWith(sb) || sb.startsWith(sa));
+  };
+  const wordsOf = (t) => String(t || "").toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9%°$'\s-]/g, " ").replace(/-/g, " ").split(/\s+/).filter(Boolean);
+  const content = (t) => wordsOf(t).filter((w) => w.length > 1 && !STOP.has(w) && !/^\d/.test(w));
+  const words = (t) => content(t).filter((w) => w.length > 2);
   function overlap(a, b) {
-    const B = new Set(words(b));
-    return words(a).filter((w) => B.has(w) || [...B].some((x) => x.length > 4 && w.length > 4 && (x.startsWith(w.slice(0, 5)) || w.startsWith(x.slice(0, 5))))).length;
+    const B = words(b);
+    return words(a).filter((w) => B.some((x) => same(w, x))).length;
   }
+  const hasWord = (list, w) => list.some((x) => same(x, w));
+  const phraseIn = (clause, ph) => new RegExp("(^|[^a-z0-9])" + String(ph).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z0-9]|$)").test(clause);
+
+  /* Beginner words and what they point at. Each concept lists words that may appear on a scale or in a label
+     (the first that fits the curiosity wins); "vs" is its opposite. */
+  const CONCEPTS = {};
+  [
+    "close: close, near, tight, closeup, insert, touching | far",
+    "near: close, near | far",
+    "tight: close, tight, skin tight, fitted, cramped, snug | loose",
+    "far: far, distant, away, wide, apart | close",
+    "wide: wide, open, roomy, loose, far, wide open | tight",
+    "big: big, large, huge, bigger, full screen, splash, page-sized, a big, size | small",
+    "large: large, big, huge, size | small",
+    "huge: huge, large, big, vast, city, size | small",
+    "small: small, little, tiny, few, closet | big",
+    "tiny: tiny, small, little, closet | big",
+    "loud: loud, volume, level, presence, shout, noisy, loudness | quiet",
+    "quiet: quiet, soft talk, whisper, silent, hush | loud",
+    "fast: fast, quick, rapid, speed, hurrying, urgent, flies in, rushing | slow",
+    "quick: quick, fast, rapid, snap | slow",
+    "slow: slow, lazy, gentle, creeping, creeps | fast",
+    "long: long, lingering, lingers, length, duration, hold, longest | short",
+    "short: short, brief, quick, flash | long",
+    "high: high, above, overhead, tall, towering, up | low",
+    "tall: tall, towering, high | short",
+    "low: low, below, floor, under, down | high",
+    "bright: bright, light, high key, sunny, blown out, brightness, exposure | dark",
+    "light: light, bright | dark",
+    "dark: dark, dim, low key, shadow, black, gloomy, darkness | bright",
+    "dim: dim, dark | bright",
+    "warm: warm, golden, amber, very warm, warmth, tender | cool",
+    "cool: cool, cold, blue, icy, cooler | warm",
+    "cold: cold, icy, cool, freezing, chill, cold day | warm",
+    "hot: hot, heat, warm, sweltering | cold",
+    "hard: hard, harsh, crisp, razor sharp, strong | soft",
+    "harsh: harsh, hard | soft",
+    "soft: soft, gentle, diffused, feathered, creamy, smooth | hard",
+    "gentle: gentle, soft, light, slow | strong",
+    "sharp: sharp, crisp, clear, focus, detail, sharpen | soft",
+    "crisp: crisp, sharp | soft",
+    "blurry: blur, blurry, shallow, soft, melted | sharp",
+    "thick: thick, dense, wall, thickness, plume | thin",
+    "thin: thin, sparse, wisp, hairline | thick",
+    "heavy: heavy, weight, very heavy, strong | light",
+    "strong: strong, strength, intense, intensity, force, power, how strongly, how much | weak",
+    "weak: weak, faint, subtle, gentle | strong",
+    "intense: intense, intensity, strong, extreme, arousal, energy, strength | calm",
+    "calm: calm, still, relaxed, gentle, steady, quiet, lazy | intense",
+    "relaxed: relaxed, calm, lazy, easy, comfortable | tense",
+    "tense: tense, tension, anxious, uneasy, nervous, unbearable | relaxed",
+    "nervous: nervous, anxious, shaky, fidgety | calm",
+    "happy: happy, joyful, joy, cheerful, sunny, playful | sad",
+    "joyful: joyful, happy | sad",
+    "sad: sad, unhappy, melancholy, gloomy, grim, tragic, sadder | happy",
+    "scary: fearful, dread, fear, scary, creepy, menacing, threatening, dark, uneasy, minor, tense, oppressive, scared",
+    "scared: fearful, scared, fear, afraid, dread",
+    "afraid: fearful, scared, fear",
+    "creepy: dread, creepy, menacing, uneasy, threatening, dark, fearful, spooky",
+    "spooky: dread, spooky, dark, uneasy, menacing, fearful, under",
+    "horror: fearful, dread, dark, uneasy, menacing, threatening, minor, oppressive, under, scary",
+    "frightening: fearful, dread, menacing",
+    "angry: angry, anger, furious, rage, hot | calm",
+    "mad: angry, anger",
+    "funny: funny, comic, comedy, laugh, joke, playful, silly, comedic",
+    "silly: silly, absurd, playful, cartoon",
+    "romantic: loving, romantic, warm, tender, soft, golden",
+    "love: loving, love, tender, warm",
+    "dreamy: dreamlike, dreamy, dream, soft, slow and dreamy",
+    "weird: absurd, absurdity, strange, uncanny, weird, odd, surreal | grounded",
+    "strange: strange, uncanny, unusual, weird, absurd | familiar",
+    "odd: odd, strange, unusual, uncanny",
+    "grounded: grounded, real, realistic, true to life | weird",
+    "real: real, realistic, true to life, photoreal | stylized",
+    "realistic: realistic, real, true to life, photoreal | cartoony",
+    "cartoony: cartoon, cartoony, toon, rubber hose wild, stylized, rubbery | realistic",
+    "cartoon: cartoon, toon, cartoony",
+    "busy: busy, crowded, packed, dense, density, chaos, cluttered, overwhelming, many | empty",
+    "crowded: crowded, packed, crowd, busy, full | empty",
+    "empty: empty, sparse, silent, bare, none, nothing | busy",
+    "simple: simple, clean, minimal, plain, one clear, simple shapes | busy",
+    "messy: messy, mess, chaos, chaotic, clutter, dirty, wild, disaster | clean",
+    "clean: clean, neat, tidy, spotless, orderly, brand new, crisp | dirty",
+    "neat: neat, tidy, clean, orderly, spotless | messy",
+    "tidy: tidy, neat, spotless, orderly | messy",
+    "organized: orderly, organized, neat, tidy | chaotic",
+    "orderly: orderly, organized | chaotic",
+    "chaotic: chaos, chaotic, wild, frantic | orderly",
+    "wild: wild, chaotic, frantic, explosive | calm",
+    "dirty: dirty, grime, stains, dust, torn and dirty, worn, grimy | clean",
+    "expensive: expensive, luxury, rich, pricey, fancy, posh, smart, wealth | cheap",
+    "fancy: expensive, luxury, fancy, posh, smart, rich, formal | cheap",
+    "posh: expensive, luxury, posh, rich | cheap",
+    "classy: expensive, smart, formal, luxury | cheap",
+    "cheap: cheap, poor, rags, budget | expensive",
+    "rich: rich, wealth, wealthy, palatial, luxury, expensive | poor",
+    "wealthy: rich, wealth, wealthy, palatial | poor",
+    "poor: poor, cheap, rags, modest, hard times | rich",
+    "formal: formal, ceremony, business, dressy, smart | casual",
+    "dressy: formal, dressy, smart | casual",
+    "casual: casual, relaxed, everyday, neat casual | formal",
+    "baggy: baggy, loose | tight",
+    "loose: loose, baggy, relaxed, loosely | tight",
+    "old: old, worn, vintage, retro, ancient, aged, decades, years | new",
+    "new: new, brand new, fresh, modern | old",
+    "smooth: smooth, steady, silky, stable, locked, gimbal, glides | shaky",
+    "steady: steady, locked, stable, still, smooth | shaky",
+    "stable: stable, steady, locked, smooth | shaky",
+    "shaky: shaky, shake, wobble, wobbly, handheld, jitter, jumpy | steady",
+    "wobbly: wobble, wobbly, shaky | steady",
+    "choppy: choppy, stuttering, jumpy | smooth",
+    "rough: rough, grainy, gritty, choppy, raw | smooth",
+    "gritty: gritty, grain, grainy, raw | smooth",
+    "colorful: color, colorful, saturated, saturation, vivid, rich, colour | gray",
+    "saturated: saturated, saturation, vivid, colorful | gray",
+    "vivid: vivid, saturated, colorful | gray",
+    "gray: gray, grey, muted, faded, washed out, drained, desaturated, pale, nearly gray | colorful",
+    "faded: faded, washed out, muted, pale | vivid",
+    "deep: deep, low, depth, very deep | shallow",
+    "shallow: shallow | deep",
+    "open: open, roomy, wide open, shown, plain to see, openly | closed",
+    "closed: closed, cramped, hidden, shut | open",
+    "cramped: cramped, snug, boxed in, tight | open",
+    "roomy: roomy, open, wide open | cramped",
+    "spacious: roomy, open, wide open, spacious | cramped",
+    "cozy: cozy, warm, snug, comfortable | gloomy",
+    "gloomy: gloomy, dark, grey, oppressive, bleak, grim | cozy",
+    "cheerful: joyful, cheerful, happy, sunny | gloomy",
+    "hopeful: hope, hopeful, optimistic | hopeless",
+    "powerful: powerful, power, strong, dominant, towering | weak",
+    "sweaty: sweaty, sweat, oily, dewy | dry",
+    "wet: wet, soaked, damp, rain, wetter | dry",
+    "dry: dry | wet",
+    "frizzy: frizz, frizzy",
+    "awkward: awkward, cringe, uncomfortable, unbearable | comfortable",
+    "embarrassing: humiliation, embarrassing, cringe, awkward",
+    "secretive: secret, secretive, hidden, hiding | open",
+    "honest: honest, true, truth | deceptive",
+    "deceptive: deceptive, lie, lies, liar, lying, dishonest | honest",
+    "proactive: proactive, active | reactive",
+    "active: proactive, active | reactive",
+    "passive: reactive, passive | proactive",
+    "confrontational: confrontational, aggressive, fight, fights | avoidant",
+    "aggressive: confrontational, aggressive | avoidant",
+    "reckless: reckless, risky, daring | cautious",
+    "careful: cautious, careful | reckless",
+    "cautious: cautious, careful | reckless",
+    "controlling: controlling, control, bossy | surrender",
+    "emotional: emotional, feeling | rational",
+    "logical: rational, logical | emotional",
+    "rational: rational, logical | emotional",
+    "cynical: cynic, cynical, sarcastic | idealist",
+    "optimistic: idealist, optimistic, hopeful | cynic",
+    "idealistic: idealist, idealistic | cynic",
+    "capable: capable, competent, skilled, effective, good, highly capable | ineffective",
+    "competent: capable, competent | ineffective",
+    "good: capable, good, better | bad",
+    "clumsy: ineffective, clumsy, useless | capable",
+    "useless: ineffective, useless | capable",
+    "selfish: self-serving, selfish, greedy | altruistic",
+    "greedy: self-serving, greedy, selfish | altruistic",
+    "generous: altruistic, generous, kind, selfless | self-serving",
+    "kind: kind, affectionate, warm, gentle, altruistic | cruel",
+    "mean: cruel, mean, biting | kind",
+    "cruel: cruel, biting | kind",
+    "rebel: individualist, rebel, rebellious | conformist",
+    "rebellious: individualist, rebel, rebellious | conformist",
+    "chaos: chaotic, chaos, catalyst",
+    "flexible: flexible | rigid",
+    "rigid: rigid, strict, stiff | flexible",
+    "stiff: stiff, rigid, robotic | loose",
+    "obvious: obvious, showy, clear, unmissable | subtle",
+    "subtle: subtle, invisible, hint, faint | obvious",
+    "noticeable: noticeable, showy, clear, obvious | subtle",
+    "dramatic: dramatic, big, showy, theatrical | subtle",
+    "exaggerated: exaggerated, exaggeration, pushed, huge | subtle",
+    "deadpan: deadpan, dry, stone still, flat | broad",
+    "broad: broad, big, cartoon | deadpan",
+    "clear: clear, readable, crystal clear, spelled out | vague",
+    "late: late, after, later | early",
+    "early: early, before, ahead | late",
+    "smart: smart, clever, brilliant, sharp | groaner",
+    "clever: clever, brilliant, sharp | groaner",
+    "deeper: deep",
+    "many: many, lots, busy, a lot, constantly | few",
+    "few: few, a few, rarely, sparse | many",
+    "often: often, constantly, frequently, every | rarely",
+    "rare: rare, rarely, once, never | often",
+    "colder: cold",
+    "steep: steep, steeper | gentle",
+    "safe: safe, sheltered, sealed off | dangerous",
+    "dangerous: dangerous, deadly, danger, risky | safe",
+    "lonely: lonely, alone, isolated, empty",
+    "trippy: hallucination, trippy, intensity, psychedelic",
+    "glossy: glossy, shiny, gloss, mirror, slicked | matte",
+    "shiny: shine, shiny, glossy, gloss, mirror | dull",
+    "dull: dull, matte | shiny",
+    "visible: visible, shown, plain to see, noticeable | hidden",
+    "hidden: hidden, hiding, bottled up, fully hidden | shown",
+    "proud: proud, pride | ashamed",
+    "frantic: frantic, panicked, urgent | calm",
+    "urgent: urgent, frantic, panicked, rushing | lazy",
+    "lazy: lazy, relaxed, slow | urgent",
+    "thriller: tension, tense, suspense, fast, urgent, anxious, dread",
+    "suspense: suspense, tension, tense, dread",
+    "action: fast, urgent, frantic, explosive, punchy",
+    "documentary: handheld, natural, true to life, raw, honest",
+    "noir: dark and harsh, low key, hard, black and white, dark",
+    "western: old west",
+    "futuristic: futuristic, future",
+    "sci: futuristic, future",
+    "vintage: vintage, retro, old film, film grain",
+    "earthquake: shake, the ground, strong, all over",
+  ].forEach((line) => {
+    const [head, rest] = line.split(":");
+    const [syn, vs] = rest.split("|");
+    CONCEPTS[head.trim()] = { syn: syn.split(",").map((x) => x.trim()).filter(Boolean), vs: vs ? vs.split(",").map((x) => x.trim()).filter(Boolean) : [] };
+  });
+  /* Several words for a word on a scale ("sunset" is dusk). Tried after the scale's own words. */
+  const SAYS = [
+    [/\b(sunset|sundown|golden hour|magic hour|evening|twilight)\b/, ["dusk"]],
+    [/\b(sunrise|dawn|early morning|first light|daybreak)\b/, ["dawn"]],
+    [/\b(midnight|night ?time|after dark|nighttime)\b/, ["night"]],
+    [/\b(noon|midday|daytime|afternoon|broad daylight)\b/, ["day"]],
+    [/\b(outside|outdoors|out of doors)\b/, ["exterior"]],
+    [/\b(inside|indoors)\b/, ["interior"]],
+    [/\b(tux|tuxedo|black tie|gown|suit and tie|evening dress)\b/, ["formal"]],
+    [/\b(pajamas|pyjamas|pjs|nightgown|bathrobe)\b/, ["sleepwear"]],
+    [/\b(monochrome|b ?& ?w|b and w|black ?& ?white|grayscale|greyscale|no colou?r)\b/, ["black and white"]],
+    [/\b(slow ?mo|slo ?mo|slowmo|slow motion)\b/, ["slow motion", "slow"]],
+    [/\b(super slow|really slow|very slow)\b/, ["very slow motion", "very slow"]],
+    [/\b(freeze|frozen|pause it|stop it)\b/, ["frozen", "freeze frame", "freeze"]],
+    [/\b(documentary|doc style|found footage|shaky cam|shakey cam)\b/, ["handheld"]],
+    [/\b(steadicam|gimbal)\b/, ["smooth"]],
+    [/\b(tripod|rock steady|dead still|locked off|lock it off|lock it)\b/, ["locked"]],
+    [/\b(birds? ?eye|bird's eye|top down|from above|straight down|overhead)\b/, ["overhead"]],
+    [/\b(worm'?s ?eye|from the floor|ground level)\b/, ["floor"]],
+    [/\b(close ?up|closeup|close-up|tight shot)\b/, ["close"]],
+    [/\b(wide shot|long shot|establishing shot|full shot)\b/, ["wide"]],
+    [/\b(telephoto|zoom lens)\b/, ["long"]],
+    [/\b(move in|go in|dolly in|creep in|push closer|zoom in|get closer)\b/, ["push in"]],
+    [/\b(pull back|move back|dolly out|pull away|zoom out|back up|back out)\b/, ["pull out"]],
+    [/\b(back away|walk away|step back|backs? off|retreats?)\b/, ["retreat", "away", "pull out", "moving apart"]],
+    [/\b(walk(s|ing)? (toward|towards|up to|over to)|approach(es)?|come closer|comes closer|walks? up)\b/, ["approach", "toward", "closing in"]],
+    [/\b((at|toward|towards|into) the (camera|lens)|to camera|down the lens)\b/, ["toward", "at the camera", "stares into it", "talks to us", "the camera"]],
+    [/\b(circle|circles|circling|orbit|spin around|go around them|around them)\b/, ["orbit", "circle"]],
+    [/\b(follow(s|ing)? (them|him|her)|tracking shot)\b/, ["track"]],
+    [/\b(sweep up|rise up|go up high|crane up|jib)\b/, ["crane"]],
+    [/\b(widescreen|cinemascope|scope|cinema screen|at the cinema|letterbox)\b/, ["2.39", "cinema 2.39"]],
+    [/\b(old tv|square|4 ?: ?3|boxy|academy)\b/, ["1.33", "square 1:1"]],
+    [/\b(vertical|portrait mode|for phones?|tiktok|reels|stories)\b/, ["vertical 9:16"]],
+    [/\b(each others? eyes|eye to eye|lock eyes|gaze at each other)\b/, ["both hold"]],
+    [/\b(smash|shatter|shatters|smashes|explodes into pieces)\b/, ["shatters"]],
+    [/\b(crack|cracks|cracking)\b/, ["cracks", "cracking"]],
+    [/\b(whisper|whispers|whispering|whispered)\b/, ["whispered", "whisper"]],
+    [/\b(shout|shouts|shouting|yell|yells|yelling|scream|screams)\b/, ["shouted", "shouting", "shout"]],
+    [/\b(lens flare|flare)\b/, ["sun flare", "a glint", "streaks"]],
+    [/\b(god ?rays|light beams|sunbeams)\b/, ["god rays", "beams"]],
+    [/\b(robot|robotic|computer voice)\b/, ["robot"]],
+    [/\b(phone call|on the phone|walkie|radio)\b/, ["radio"]],
+    [/\b(deeper voice|voice deeper|lower voice)\b/, ["deep"]],
+    [/\b(rewind|rewinds|backwards|in reverse|reversed)\b/, ["reversed", "rewind and replay", "rewinds"]],
+    [/\b(moonlight|moonlit|by the moon)\b/, ["moon"]],
+    [/\b(cartoon|cartoony|animated|toon)\b/, ["toon", "cartoon", "cartoony"]],
+    [/\b(painted|painterly|painting|watercolou?r|oil paint)\b/, ["painterly"]],
+    [/\b(soaking|soaked|drenched|wet through|sopping)\b/, ["soaked"]],
+    [/\b(pun|puns|wordplay)\b/, ["pun"]],
+    [/\b(rapid fire|rapid-fire|machine gun)\b/, ["rapid fire"]],
+    [/\b(talks? to (us|the camera|the audience)|addresses the camera|breaks? the fourth wall)\b/, ["talks to us"]],
+    [/\b(glance|glances|a look)\b/, ["a glance", "glances", "a look"]],
+    [/\b(tears|crying|cries|weeps|weeping|sobbing)\b/, ["tears", "falling", "welling"]],
+    [/\b(laughs?|laughing|giggles?)\b/, ["a laugh", "laughs", "laughter"]],
+    [/\b(fists?|clench(es|ed)?)\b/, ["clench", "clenched"]],
+    [/\b(tunnel vision|laser focus(ed)?)\b/, ["one thing"]],
+    [/\b(mentor|teacher|wise old)\b/, ["mentor"]],
+    [/\b(villain|bad guy|antagonist|enemy)\b/, ["antagonist", "the villain", "villain"]],
+    [/\b(killer|murderer|monster|stalker)\b/, ["the villain", "a person"]],
+    [/\b(dog|dogs|cat|cats|bird|animal|pet)\b/, ["an animal", "animal", "pet"]],
+    [/\b(kid|kids|child|children|little boy|little girl|toddler)\b/, ["a child", "child"]],
+    [/\b(giant|from way below)\b/, ["a giant"]],
+    [/\b(handwritten|hand written|handwriting|script font)\b/, ["handwritten"]],
+    [/\b(name tag|nametag|name card|lower third)\b/, ["lower third"]],
+    [/\b(title card|title screen|intertitle)\b/, ["title card"]],
+    [/\b(subtitles?)\b/, ["every line", "caption"]],
+    [/\b(emojis?)\b/, ["emoji"]],
+    [/\b(audience (knows?|sees?|learns?) (it )?first|we know before)\b/, ["audience first"]],
+    [/\b(happy and sad|bittersweet|mixed feelings|two feelings)\b/, ["even", "torn between two", "bittersweet"]],
+    [/\b(dream|imagined|daydream|fantasy|not real)\b/, ["psych-out", "dreamlike", "for a dream"]],
+    [/\b(seamless(ly)?)\b/, ["seamless", "seamless loop"]],
+    [/\b(neutral|normal|regular|default|natural)\b/, ["neutral", "normal", "natural"]],
+    [/\b(sarcastic|sarcasm|ironic)\b/, ["the opposite", "a hint of something else", "irony"]],
+    [/\b(poker face|stone face|blank face|expressionless|deadpan face)\b/, ["blank", "stone still"]],
+    [/\b(squint|squints|squinting)\b/, ["narrowed"]],
+    [/\b(holds? (his |her |their )?hands?|hand in hand|holding hands)\b/, ["held"]],
+    [/\b(quick touch|brief touch|brush(es)? (of )?hands?|tap)\b/, ["brief"]],
+    [/\b(slouch|slouches|slouching|hunched)\b/, ["slumped"]],
+    [/\b(stand(s|ing)? up straight|stand(s|ing)? tall)\b/, ["upright", "towering"]],
+    [/\b(burst(s|ing)? in(to)?|barge(s|d)? in|storm(s|ed)? in)\b/, ["bursts in", "burst in"]],
+    [/\b(nobody|no one|none of them)\b/, ["neither", "no one", "nobody"]],
+    [/\b(gasp|gasps|gasping)\b/, ["gasp"]],
+    [/\b(sigh|sighs)\b/, ["sigh", "a sigh"]],
+    [/\b(fog|foggy|mist|misty)\b/, ["fog", "haze"]],
+    [/\b(candle|candles|candlelit|candlelight)\b/, ["candle"]],
+    [/\b(raining|rainy|rain)\b/, ["rain"]],
+    [/\b(sandstorm|dust storm|dusty)\b/, ["dust"]],
+    [/\b(sunny|clear sky|clear skies|blue sky)\b/, ["clear"]],
+    [/\b(tiny room|small room|closet|cupboard|phone booth)\b/, ["closet"]],
+    [/\b(skyscraper|stadium|cathedral|huge place|enormous)\b/, ["city"]],
+    [/\b(ripped|rips?|torn|tears? (his|her|their) )\b/, ["torn and dirty", "tears"]],
+    [/\b(armou?r|knight|plate mail)\b/, ["armor"]],
+    [/\b(uniforms?|all the same|matching outfits)\b/, ["uniforms"]],
+    [/\b(poor|broke|poverty)\b/, ["cheap", "rags", "poor"]],
+    [/\b(heart ?beat|pulsing)\b/, ["heartbeat"]],
+    [/\b(split screen|splitscreen)\b/, ["split screen"]],
+    [/\b(pip|picture in picture)\b/, ["picture in picture"]],
+    [/\b(see through|see-through|transparent|translucent)\b/, ["see-through"]],
+    [/\b(on the beat|on beat|to the beat|with the beat|on the music)\b/, ["right on the beat", "on beats", "on the beat"]],
+    [/\b(seconds? left|last seconds|about to run out)\b/, ["seconds left"]],
+    [/\b(ticking clock|deadline|countdown|time running out)\b/, ["firm deadline", "tight"]],
+    [/\b(goes? wrong|gets? worse|worse|setback|fail(s|ed)?)\b/, ["setback", "fail"]],
+    [/\b(chooses?|the choice|decides?|makes? a choice)\b/, ["choice"]],
+    [/\b(grows|growing|gets bigger|spreads)\b/, ["building", "grows"]],
+    [/\b(still|motionless|frozen in place|doesn't move|does not move)\b/, ["frozen", "still"]],
+    [/\b(caption boxes|narration boxes|narration|captions instead)\b/, ["caption"]],
+    [/\b(jagged|spiky)\b/, ["jagged"]],
+    [/\b(splash page|full page)\b/, ["splash"]],
+    [/\b(page turn|turn the page)\b/, ["cliffhanger", "reveal"]],
+    [/\b(silent|no words|wordless)\b/, ["none", "silent"]],
+    [/\b(blurred edges|blur the edges|blurred background fill)\b/, ["blurred copy"]],
+    [/\b(fill it|fill the frame|edge to edge)\b/, ["fills the frame", "full screen"]],
+  ];
+
+  /* Words a request may use for "more" or "less" of something, with the quality they point at. */
+  const MORE_WORDS = /\b(more|increase|raise|boost|up|higher|extra|another|add|crank|bump|pump|amp|intensify|heighten|amplify|exaggerate|escalate|strengthen|grow|build|stronger|bigger|harder|heavier)\b/;
+  const LESS_WORDS = /\b(less|fewer|decrease|reduce|lower|down|drop|minimi[sz]e|lessen|weaken|tone|dial|ease|weaker|smaller|softer|lighter)\b/;
+  const VERBS = {
+    brighten: ["bright", 1], darken: ["dark", 1], lighten: ["bright", 1], soften: ["soft", 1], sharpen: ["sharp", 1], thicken: ["thick", 1], thin: ["thin", 1],
+    widen: ["wide", 1], narrow: ["wide", -1], lengthen: ["long", 1], extend: ["long", 1], shorten: ["short", 1], trim: ["short", 1], quicken: ["fast", 1], hurry: ["fast", 1], rush: ["fast", 1],
+    deepen: ["deep", 1], tighten: ["tight", 1], loosen: ["loose", 1], simplify: ["simple", 1], calm: ["calm", 1], hush: ["quiet", 1], quiet: ["quiet", 1], mute: ["quiet", 1],
+    warm: ["warm", 1], cool: ["cool", 1], heat: ["hot", 1], slow: ["slow", 1], speed: ["fast", 1], shrink: ["small", 1], enlarge: ["big", 1], dim: ["dark", 1], clean: ["clean", 1], tidy: ["clean", 1],
+    dirty: ["dirty", 1], muddy: ["dirty", 1], blur: ["blurry", 1], focus: ["sharp", 1], open: ["open", 1], cover: ["covered", 1], hide: ["hidden", 1], reveal: ["shown", 1],
+    zoom: null, punch: null, push: null, pull: null,
+  };
+  const PHRASAL = [
+    [/\bzoom(ed|ing)? in\b|\bpunch(es|ed)? in\b|\bpush in\b|\bget closer\b|\bmove closer\b|\bgo closer\b/, "close", 1],
+    [/\bzoom(ed|ing)? out\b|\bpull(ed)? back\b|\bpull out\b|\bback up\b|\bmove back\b|\bshow more\b|\bsee more\b/, "wide", 1],
+    [/\bspeed(s|ed)? (it |things )?up\b|\bpick(s)? up the pace\b|\bhurry\b/, "fast", 1],
+    [/\bslow(s|ed)? (it |things |everything )?down\b|\btake (it|your|their) time\b/, "slow", 1],
+    [/\bcalm(s|ed)? (it |things |everything )?down\b|\bsettle down\b|\bchill\b/, "calm", 1],
+    [/\bwarm(s|ed)? (it )?up\b/, "warm", 1],
+    [/\bcool(s|ed)? (it )?(down|off)\b/, "cool", 1],
+    [/\bopen(s|ed)? (it |them |him |her )?up\b/, "open", 1],
+    [/\bcover(s|ed)? (it |them |him |her )?up\b/, "covered", 1],
+    [/\bbuild(s)? (it |the tension )?up\b/, null, 1],
+    [/\b(tone|dial|turn|bring|knock|take)(s|ed)? (it |this |that |them |things |everything |the \w+ )?(down|back)\b/, null, -1],
+    [/\b(turn|crank|bump|pump|dial|amp|kick|ramp)(s|ed)? (it |this |that |them |things |everything |the \w+ )?up\b/, null, 1],
+    [/\bstep it up\b|\bgo bigger\b|\bpush it\b|\bgo further\b|\ball out\b/, null, 1],
+  ];
+  const IRREGULAR = { better: "good", worse: "bad", further: "far", farther: "far", fewer: "few", less: "few", more: "many", elder: "old", nearer: "near" };
+  const NOT_COMPARATIVE = new Set("never over under after other water layer player power corner character paper speaker listener border order ever either neither whether together rather number member remember answer letter matter finger shoulder monster danger anger hunger killer partner sister brother mother father teacher poster filter cover center flicker shimmer timer river silver winter summer super sticker banner slider viewer chapter gutter hammer trigger shower tower upper outer inner cheer steer sheer peer here there where were offer enter wonder bother gather consider deliver discover render laser computer trailer thriller lover lovers stranger strangers villager soldier soldiers driver drivers dinner diner butter weather leather feather feathers blur stir her per sooner later lasers ladder jitter litter flower flowers hour hours sister cover wrapper wrapper stopper chopper helicopter keeper banner manner tiger cancer major minor razor mirror horror terror error sugar dollar vinegar silhouette after before ever whatever however together cluster".split(" "));
+
+  /* Every word the app knows (labels, scales, plain words, phrases, presets): typos are fixed toward these. */
+  let VOCAB = null;
+  function vocab() {
+    if (VOCAB) return VOCAB;
+    const n = new Map();
+    const add = (t) => wordsOf(t).forEach((w) => /^[a-z]{2,}$/.test(w) && n.set(w, (n.get(w) || 0) + 1));
+    const DB = window.CuriosityDB;
+    const rows = DB && DB.data && DB.data.curiosities ? Object.values(DB.data.curiosities) : [];
+    rows.forEach((c) => {
+      add(c.label);
+      add(c.plain);
+      (c.sliders || []).forEach((s) => {
+        add(s.label);
+        add(s.plain);
+        add(s.id.replace(/([A-Z])/g, " $1"));
+        (s.scale || []).forEach(add);
+      });
+    });
+    const W = window.CuriosityWindows;
+    if (W) {
+      Object.values(W.phrases || {}).forEach((m) => Object.keys(m).forEach(add));
+      Object.values(W.specs || {}).forEach((sp) => (sp.presets || []).forEach((p) => add(p.label)));
+    }
+    Object.entries(CONCEPTS).forEach(([k, v]) => (add(k), v.syn.forEach(add), v.vs.forEach(add)));
+    SAYS.forEach(([, to]) => to.forEach(add));
+    add(Object.keys(VERBS).join(" ") + " " + Object.keys(IRREGULAR).join(" "));
+    add("make it more less a bit lot little please closer further farther higher lower bigger smaller louder quieter faster slower longer shorter brighter darker warmer cooler wider tighter softer harder stronger weaker thicker thinner heavier lighter deeper sharper smoother rougher dirtier cleaner messier cheaper fancier happier sadder scarier creepier funnier weirder busier emptier simpler colder hotter wetter drier calmer angrier gentler too not dont don't no without remove turn off on add left right behind front above below up down around away toward towards camera seconds second minutes minute meters meter degrees degree percent times twice half double frames per hour hours stops shot scene film movie like look feel feels want need way much very really super totally completely slightly kind sort of so many few its it's to");
+    VOCAB = n;
+    return n;
+  }
+  /* One edit away (a letter added, dropped, changed or two swapped). */
+  function edits1(w) {
+    const out = new Set();
+    const L = "abcdefghijklmnopqrstuvwxyz";
+    for (let i = 0; i <= w.length; i++) {
+      if (i < w.length) out.add(w.slice(0, i) + w.slice(i + 1));
+      if (i < w.length - 1) out.add(w.slice(0, i) + w[i + 1] + w[i] + w.slice(i + 2));
+      for (const ch of L) {
+        if (i < w.length) out.add(w.slice(0, i) + ch + w.slice(i + 1));
+        out.add(w.slice(0, i) + ch + w.slice(i));
+      }
+    }
+    return out;
+  }
+  function fixTypos(t) {
+    const V = vocab();
+    return t.replace(/[a-z]{4,}/g, (w) => {
+      if (V.has(w) || V.has(stemOf(w))) return w;
+      /* Two words run together ("abit", "makeit"). */
+      for (let i = 1; i < w.length - 1; i++) {
+        const a = w.slice(0, i);
+        const b = w.slice(i);
+        if ((a.length > 2 || /^(a|an|it|in|on|to|of|so|up)$/.test(a)) && V.has(a) && V.has(b) && b.length > 1) return a + " " + b;
+      }
+      let best = null;
+      let n = 0;
+      edits1(w).forEach((x) => {
+        const f = V.get(x) || 0;
+        if (x.length > 3 && f > n) (best = x), (n = f);
+      });
+      return best || w;
+    });
+  }
+  /* Light clean-up before matching: shorthands, "its to dark", contractions. */
+  function tidy(text) {
+    let t = String(text || "").toLowerCase().replace(/[’`]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, " ").trim();
+    t = t.replace(/\bdo not\b|\bdon't\b|\bdont\b|\bdoesn'?t\b/g, "dont").replace(/\bisn'?t\b|\baren'?t\b|\bwasn'?t\b|\bshouldn'?t\b|\bcan'?t\b|\bwon'?t\b/g, "not");
+    t = t.replace(/\b(pls|plz|please|thanks|thank you|kinda|sorta|maybe|can you|could you|i want|i'd like|i would like|we need|let's|lets)\b/g, " ");
+    t = fixTypos(t);
+    /* "its to dark", "way to loud": "to" before a describing word is "too". */
+    t = t.replace(/\b(its|it's|it is|is|was|are|way|far|much|that's|thats|bit|little|just)\s+to\s+(?=[a-z]+(?:er)?\b(?!\s+(?:the|a|an|it|them|him|her|be|make|look|feel)\b))/g, (m, a) => a + " too ");
+    return t.replace(/\s+/g, " ").trim();
+  }
+  /* Numbers said in words, for the number step only ("half a second", "a meter and a half", "two"). */
+  const NUMWORD = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, fifteen: 15, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90, hundred: 100, dozen: 12 };
+  function numbersIn(t) {
+    t = t
+      .replace(/\b(a|an|one) (\w+?)s? and a half\b/g, "1.5 $2")
+      .replace(/\b(\d+(?:\.\d+)?) (\w+?)s? and a half\b/g, (m, n, u) => Number(n) + 0.5 + " " + u)
+      .replace(/\bhalf an? (second|minute|meter|metre|hour|stop|degree|beat|frame)\b/g, "0.5 $1")
+      .replace(/\ba quarter of an? (second|minute|hour)\b/g, "0.25 $1")
+      .replace(/\bhalf (of )?the (frame|screen|picture|shot|panel|page|width|height)\b/g, "50%")
+      .replace(/\ba third of the (frame|screen|picture|shot)\b/g, "33%")
+      .replace(/\ba quarter of the (frame|screen|picture|shot)\b/g, "25%")
+      .replace(/\bhalf speed\b/g, "0.5x")
+      .replace(/\bdouble speed\b/g, "2x")
+      .replace(/\b(normal|real) speed\b|\breal time\b/g, "1x")
+      .replace(/\btwice\b/g, "2 times")
+      .replace(/\bthree times\b/g, "3 times")
+      .replace(/\ba couple( of)?\b/g, "2")
+      .replace(/\ban? (second|minute|meter|metre|hour|stop|degree|beat|frame|foot)\b/g, "1 $1");
+    t = t.replace(/\b(a )?(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|dozen)\b/g, (m, a, w) => (a && w !== "hundred" && w !== "dozen" ? a : "") + NUMWORD[w]);
+    return t.replace(/\b(\d+) (\d+)\b/g, (m, a, b) => (Number(a) % 10 === 0 && Number(b) < 10 ? String(Number(a) + Number(b)) : m));
+  }
+
+  /* How far a request asks to go: "completely" is all the way, "a lot" is two steps, anything else is one. */
+  const lotOf = (clause) =>
+    /\b(completely|totally|fully|entirely|all the way|as \w+ as (possible|it gets|you can)|max(imum)?|the most|extremely|the least|super duper)\b/.test(clause)
+      ? "end"
+      : /\b(a lot|lots|much|way|far|very|really|super|heaps|tons|seriously|massively|hugely)\b/.test(clause)
+        ? 2
+        : 1;
+  /* A beginner word's concept ("slowly" is slow, "gently" is gentle, "scarier" is scary). */
+  function concept(w) {
+    if (!w) return null;
+    const tries = [w, stemOf(w)];
+    if (/ily$/.test(w)) tries.push(w.slice(0, -3) + "y");
+    if (/ly$/.test(w)) tries.push(w.slice(0, -2), w.slice(0, -1) + "e", w.slice(0, -2) + "e");
+    for (const x of tries) if (CONCEPTS[x]) return CONCEPTS[x];
+    return null;
+  }
+  /* Comparatives and their plain word: dirtier is dirty, bigger is big, closer is close; "slowly" is slow. */
+  function baseOf(w) {
+    if (!w) return null;
+    if (IRREGULAR[w] !== undefined) return IRREGULAR[w];
+    const V = vocab();
+    const ok = (x) => x.length > 2 && (CONCEPTS[x] || (V.get(x) || 0) > 0);
+    if (/ly$/.test(w) && w.length > 4) {
+      const t = [];
+      if (/ily$/.test(w)) t.push(w.slice(0, -3) + "y");
+      if (/ly$/.test(w)) t.push(w.slice(0, -2), w.slice(0, -1) + "e");
+      const f = t.find((x) => CONCEPTS[x]);
+      if (f) return f;
+    }
+    if (!/er$/.test(w) || w.length < 5 || NOT_COMPARATIVE.has(w)) return null;
+    const tries = [];
+    if (/ier$/.test(w)) tries.push(w.slice(0, -3) + "y");
+    if (/([bdgmnprt])\1er$/.test(w)) tries.push(w.slice(0, -3));
+    tries.push(w.slice(0, -2), w.slice(0, -1));
+    return tries.find(ok) || null;
+  }
+  /* Words with no side of their own: which way they push a strength ("stronger" is up, "gentler" is down). */
+  const GENERIC = { strong: 1, weak: -1, big: 1, small: -1, large: 1, little: -1, heavy: 1, light: -1, hard: 1, intense: 1, gentle: -1, high: 1, low: -1, many: 1, few: -1 };
   function interpret(c, text, h) {
     const sp = spec(c) || {};
     const own = (c.sliders || []).filter((s) => !["themeLink", "pointsAhead"].includes(s.id));
     const out = new Map();
     const said = [];
+    const nameOf = (s) => (s.id === c.main ? c.label : s.label);
     const put = (s, v, why) => {
       const k = h.sliderId(c, s);
-      if (!S().known(k)) return;
+      if (!S().known(k)) return false;
       const f = S().fix(k, v);
-      if (f == null) return;
-      out.set(k, [k, f, s.id === c.main ? c.label : s.label]);
+      if (f == null) return false;
+      out.set(k, [k, f, nameOf(s)]);
       said.push(why);
+      return true;
     };
-    let t = String(text || "").toLowerCase();
+    const cur = (s) => {
+      const v = h.ctx.value(h.sliderId(c, s));
+      return v == null ? null : v;
+    };
+    const posNow = (s) => {
+      const k = h.sliderId(c, s);
+      const p = posOf(k, cur(s));
+      return p == null ? 0.5 : p;
+    };
+    const ordered = (s) => !!(s.range || (s.scale && !s.unordered && s.scale.length > 1));
+    const isMain = (s) => s.id === c.main || s.id === "setting";
+    /* Its own settings, without the ones every row shares (how noticeable, how it changes) unless named. */
+    const mine = own.filter((s) => !SHARED.includes(s.id) && !["noticeable", "change"].includes(s.id));
+    let t = tidy(text);
+    const raw = String(text || "").toLowerCase();
     /* A preset's full name first, so a phrase inside it ("from below" in "Hero from below") does not split it. */
     const named = new Set();
     (sp.presets || [])
@@ -334,7 +906,7 @@
       .sort((a, b) => b.label.length - a.label.length)
       .forEach((p) => {
         const nm = p.label.toLowerCase();
-        if (!t.includes(nm)) return;
+        if (!t.includes(nm) && !raw.includes(nm)) return;
         Object.entries(p.set || {}).forEach(([sid, v]) => {
           const s = sl(c, sid);
           if (s) put(s, v, "");
@@ -349,7 +921,7 @@
     Object.keys(PH)
       .sort((a, b) => b.length - a.length)
       .forEach((ph) => {
-        const re = new RegExp("(^|[^a-z])" + ph.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z]|$)");
+        const re = new RegExp("(^|[^a-z])" + ph.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z]|$)");
         if (!re.test(t)) return;
         Object.entries(PH[ph]).forEach(([sid, v]) => {
           const s = sl(c, sid);
@@ -369,81 +941,421 @@
         said.push(`the preset "${p.label}"`);
       }
     });
-    const best = (clause, list) => {
+
+    /* How well a part of the request names a slider: its label, its id's words, the curiosity's name for the
+       main setting, a little for its plain words. Labels about timing or measuring count only when the request
+       talks about time. */
+    const TIMEY = /^(time|seconds?|minutes?|how long|when|measured|where|lands|arrives|starts?|fastest|longest|early|late|before|delay|lead|ahead|comes in|hint)\b/i;
+    const TIMEWORDS = /\b(time|seconds?|minutes?|long|when|early|late|before|after|delay|wait|sooner|until|takes?)\b/;
+    const labelWords = (s) => words(s.label + (isMain(s) ? " " + c.label : ""));
+    const nameScore = (s, clause) => {
+      const cw = words(clause);
+      if (!cw.length) return 0;
+      const lw = words(s.label);
+      const iw = s.id === "setting" ? [] : words(s.id.replace(/([A-Z])/g, " $1").replace(/-/g, " "));
+      let n = 0;
+      cw.forEach((w) => {
+        if (hasWord(lw, w)) n += 2;
+        else if (hasWord(iw, w)) n += 1.5;
+      });
+      if (lw.length && lw.every((w) => hasWord(cw, w))) n += 1;
+      if (isMain(s)) {
+        const cl = words(c.label);
+        cw.forEach((w) => hasWord(cl, w) && !hasWord(lw, w) && (n += 2));
+        n += 0.3;
+      }
+      n += overlap(s.plain || "", clause) * 0.25;
+      if (TIMEY.test(s.label) && !TIMEWORDS.test(clause)) n -= 1.5;
+      if (s.range && unitOf(s) && !/\d/.test(clause)) n -= 0.4;
+      return n;
+    };
+    const best = (clause, list, min) => {
       let top = null;
-      let score = 0;
+      let score = min == null ? 0 : min;
       list.forEach((s) => {
-        const idWords = s.id.replace(/([A-Z])/g, " $1").toLowerCase();
-        let n = overlap(s.id === c.main ? s.label + " " + c.label : s.label, clause) * 2 + overlap(s.plain, clause) * 0.5 + (s.id !== "setting" && s.id !== c.main ? overlap(idWords, clause) * 2 : 0);
-        Object.entries(HINT).forEach(([w, part]) => new RegExp("\\b" + w + "\\b").test(clause) && (s.id.toLowerCase().includes(part) || s.label.toLowerCase().includes(part)) && (n += 3));
-        if (s.id === c.main) n += 0.25;
+        const n = nameScore(s, clause);
         if (n > score) (score = n), (top = s);
       });
       return top;
     };
-    t.split(/,|;|\band\b|\bthen\b|\.\s/).map((x) => x.trim()).filter(Boolean).forEach((clause) => {
-      /* 1. A word or phrase on a scale (the longest match wins). */
-      let hit = null;
-      own.forEach((s) => (s.scale || []).forEach((o) => {
-        const w = String(o).toLowerCase();
-        if (w.length > 1 && new RegExp("(^|[^a-z])" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z]|$)").test(clause)) {
-          const sc = w.length + overlap(s.label, clause) * 3 + (s.id === c.main ? 1 : 0);
-          if (!hit || sc > hit.sc) hit = { s, o, sc };
-        }
-      }));
-      if (hit) {
-        /* "not so close", "less wide", "too dark": one step from that word toward the middle of its scale. */
-        const w = String(hit.o).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        if (hit.s.scale.length > 2 && new RegExp("\\b(not|less|too|isn't|not that)\\s+(so\\s+|too\\s+|that\\s+|very\\s+)?" + w + "([^a-z]|$)").test(clause)) {
-          const i = hit.s.scale.indexOf(hit.o);
-          const j = i < (hit.s.scale.length - 1) / 2 ? i + 1 : i - 1;
-          return put(hit.s, hit.s.scale[j], `${hit.s.id === c.main ? c.label : hit.s.label}: ${hit.s.scale[j]} (not so ${hit.o})`);
-        }
-        return put(hit.s, hit.o, `${hit.s.id === c.main ? c.label : hit.s.label}: ${hit.o}`);
+    /* The slider that holds "how much" of the curiosity, for a bare "more" or "less": the main setting when it is
+       a plain number, else its strength. */
+    const strengthOf = (except) => {
+      const ok = (x) => x !== except && ordered(x) && !TIMEY.test(x.label);
+      const main = mine.find((x) => isMain(x) && ok(x) && x.range && !unitOf(x));
+      return (
+        main ||
+        mine.find((x) => ok(x) && /intens|strength|arous|wound up|energy|how much|how many|how strong|^level|force|thick|density|^size\b|^how big|pressure|^amount said/.test((x.id + " " + x.label).toLowerCase())) ||
+        mine.find((x) => isMain(x) && ok(x) && x.range)
+      );
+    };
+    /* Move a slider one or more steps from where it is (a quarter of its value for numbers, 15° for angles). */
+    const nudge = (s, dir, lot, why) => {
+      if (!s) return false;
+      const k = h.sliderId(c, s);
+      if (!S().known(k)) return false;
+      let v;
+      if (lot === "end") v = s.scale ? s.scale[dir > 0 ? s.scale.length - 1 : 0] : dir > 0 ? s.range.max : s.range.min;
+      else if (s.scale) {
+        const n = s.scale.length;
+        const at = s.scale.indexOf(String(cur(s)));
+        const now = at < 0 ? Math.round(posNow(s) * (n - 1)) : at;
+        v = s.scale[Math.max(0, Math.min(n - 1, now + dir * lot))];
+      } else {
+        const r = s.range;
+        const now = cur(s);
+        const n = Number(now);
+        const has = now != null && isFinite(n);
+        const span = r.max - r.min;
+        const step = r.step || 1;
+        let d = unitOf(s) === "°" ? 15 * lot : has && n !== 0 ? Math.abs(n) * 0.25 * lot : span * 0.1 * lot;
+        if (span <= 12) d = Math.max(d, step * lot);
+        const base = has ? n : S().at(k, 0.5);
+        v = S().fix(k, Math.max(r.min, Math.min(r.max, base + dir * d)));
       }
-      /* 2. A number, with a unit if one is said. */
-      const m = clause.match(/(-?\d+(?:\.\d+)?)\s*(°|%|[a-z]+)?/);
+      if (String(v) === String(cur(s))) return false;
+      return put(s, v, why || `${nameOf(s)}: ${dir > 0 ? "up" : "down"} to ${v}${s.range ? s.range.unit || "" : ""}`);
+    };
+    /* Where a word sits on a slider's scale. */
+    function polarity(s, word) {
+      const hits = [];
+      if (s.scale && !s.unordered)
+        s.scale.forEach((o, i) => {
+          const ow = content(o);
+          if (ow.length && ow.some((x) => same(x, word))) hits.push({ o, p: i / Math.max(1, s.scale.length - 1), exact: ow.length === 1 });
+        });
+      return hits;
+    }
+    /* The ends of a label that runs from one thing to another: "Cheap to expensive", "Reactive to Proactive". */
+    const ends = (s) => {
+      const m = String(s.label || "").toLowerCase().match(/^(.+?)\s+to\s+(.+)$/);
+      return m && !/^(how|what|who|where|when|which|time|share|seconds|minutes|distance|space|gap|closer)\b/.test(m[1]) ? [words(m[1]), words(m[2])] : null;
+    };
+    /* Find what "more <word>" means here: a word on one side of a scale, an end of a label, or a slider named
+       after it (or after a word that means the same; an opposite word counts the other way). */
+    function resolve(word, sign, clause) {
+      const C = concept(word);
+      const alts = [[word, 1, 1]];
+      if (C) {
+        C.syn.filter((x) => x !== word).forEach((x) => alts.push([x, 1, 0.75]));
+        C.vs.forEach((x) => {
+          alts.push([x, -1, 0.55]);
+          const V2 = CONCEPTS[x];
+          if (V2) V2.syn.filter((y) => y !== x).forEach((y) => alts.push([y, -1, 0.45]));
+        });
+      }
+      const cands = [];
+      alts.forEach(([w0, flip, trust]) => {
+        const ws = content(w0);
+        if (!ws.length) return;
+        const w = ws[ws.length - 1];
+        mine.filter(ordered).forEach((s) => {
+          const bonus = nameScore(s, clause) * 0.3 + (isMain(s) ? 0.8 : 0);
+          const hits = polarity(s, w).filter((x) => x.p !== 0.5);
+          if (hits.length) {
+            const dir = hits.reduce((a, x) => a + (x.p - 0.5), 0) > 0 ? 1 : -1;
+            return cands.push({ s, dir: dir * flip, score: 3 * trust + bonus + (hits.some((x) => x.exact) ? 0.2 : 0), via: "scale", hits, flip });
+          }
+          const e = ends(s);
+          if (e && (e[1].some((x) => same(x, w)) || e[0].some((x) => same(x, w)))) {
+            const d = e[1].some((x) => same(x, w)) ? flip : -flip;
+            return cands.push({ s, dir: d, score: (sign < 0 ? 3.4 : 2.8) * trust + bonus, via: "ends" });
+          }
+          if (labelWords(s).concat(s.id !== "setting" ? words(s.id.replace(/([A-Z])/g, " $1")) : []).some((x) => same(x, w)))
+            cands.push({ s, dir: flip, score: 2.4 * trust + bonus + (s.range && unitOf(s) ? -0.3 : 0) + (TIMEY.test(s.label) ? -1.5 : 0), via: "label" });
+        });
+      });
+      if (!cands.length) return null;
+      cands.sort((a, b) => b.score - a.score);
+      if (window.SAYDEBUG) console.log("resolve", word, sign, cands.slice(0, 4).map((x) => [x.s.id, x.dir, x.via, Math.round(x.score * 100) / 100, (x.hits || []).map((y) => y.o).join("/")]));
+      return cands[0];
+    }
+    /* Apply "more" or "less" of a resolved quality: step from where it is, and at least to the nearest word on the
+       scale that says it ("more scared" is fearful, "warmer" from neutral is warm). */
+    function lean(r, sign, lot, why) {
+      const s = r.s;
+      const dir = r.dir * sign;
+      if (r.via === "scale" && s.scale && lot !== "end" && sign > 0 && r.flip > 0) {
+        const n = s.scale.length;
+        const at = s.scale.indexOf(String(cur(s)));
+        const now = at < 0 ? Math.floor((n - 1) / 2) : at;
+        const want = r.hits
+          .map((x) => s.scale.indexOf(x.o))
+          .filter((i) => (dir > 0 ? i > now : i < now))
+          .sort((a, b) => Math.abs(a - now) - Math.abs(b - now))[0];
+        const stepTo = Math.max(0, Math.min(n - 1, now + dir * lot));
+        const i = want == null ? stepTo : dir > 0 ? Math.max(want, stepTo) : Math.min(want, stepTo);
+        if (i !== now) return put(s, s.scale[i], why || `${nameOf(s)}: ${s.scale[i]}`);
+      }
+      return nudge(s, dir, lot, why);
+    }
+    /* Left, right, behind, above, below: turn an angle around the subject. */
+    const ANGLEY = /\b(left|right|behind|from the back|from the front|head on|above|below|beneath|under|higher|lower|up high|down low|from up|from down|overhead|look(s|ing)? (down|up))\b/;
+    function aroundMove(clause, lot) {
+      const lr = mine.find((s) => s.range && unitOf(s) === "°" && /left or right/.test(s.label.toLowerCase()));
+      const ud = mine.find((s) => s.range && unitOf(s) === "°" && /above or below|up or down/.test(s.label.toLowerCase()));
+      const L2 = lot === "end" ? 6 : lot;
+      let did = false;
+      if (lr) {
+        if (/\b(from )?behind\b|\bfrom the back\b/.test(clause)) did = put(lr, 180, `${nameOf(lr)}: behind (180°)`);
+        else if (/\bfrom the front\b|\bhead on\b|\bstraight on\b/.test(clause)) did = put(lr, 0, `${nameOf(lr)}: in front (0°)`);
+        else if (/\bleft\b/.test(clause)) did = nudge(lr, -1, L2);
+        else if (/\bright\b/.test(clause)) did = nudge(lr, 1, L2);
+      }
+      if (ud) {
+        if (/\b(above|over|higher|up high|from up|overhead|look(s|ing)? down)\b/.test(clause)) did = nudge(ud, 1, L2) || did;
+        else if (/\b(below|under|beneath|lower|down low|from down|look(s|ing)? up)\b/.test(clause)) did = nudge(ud, -1, L2) || did;
+      }
+      return did;
+    }
+    /* Words of a request that ask for a direction rather than a thing. */
+    const isDirWord = (w) => !!(baseOf(w) || VERBS[w] || /^(more|less|fewer|too|not|dont)$/.test(w));
+    /* Option words that are themselves a trend or comparison ("warmer", "speeding up", "brighter by the end"). */
+    const trendy = (o) => content(o).some((x) => (baseOf(x) && !CONCEPTS[x]) || /ing$/.test(x) || /^(slows|speeds|over|end)$/.test(x));
+    const NUMBER_WORDS = /^(none|one|two|three|four|five|a few|many|several|1|2|3|4|5)$/;
+
+    /* Split into parts, keeping words on this curiosity's scales whole ("black and white", "teal and orange"). */
+    const keep = [];
+    own.forEach((s) => (s.scale || []).forEach((o) => /\band\b|,/.test(String(o)) && keep.push(String(o).toLowerCase())));
+    (sp.presets || []).forEach((p) => /\band\b/.test(p.label) && keep.push(p.label.toLowerCase()));
+    keep.push("black and white", "and a half", "back and forth", "now and then", "on and off", "stop and go");
+    keep.sort((a, b) => b.length - a.length).forEach((o) => {
+      if (t.includes(o)) t = t.split(o).join(o.replace(/ and /g, " \u0001 ").replace(/,/g, "\u0002"));
+    });
+    const parts = t.split(/,|;|\band\b|\bthen\b|\bbut\b|\bplus\b|\balso\b|\.\s/).map((x) => x.replace(/\u0001/g, "and").replace(/\u0002/g, ",").trim()).filter(Boolean);
+
+    parts.forEach((whole) => {
+      let clause = whole;
+      const lot = lotOf(clause);
+      const neg = /\b(not|dont|never|no longer|stop being)\b/.test(clause);
+      const nt0 = numbersIn(clause.replace(/\b(1[0-9]|20)?[0-9]0s\b/g, " "));
+      const hasNum = /\d/.test(nt0);
+      const toks = content(clause);
+      const dirAsked = toks.some(isDirWord) || PHRASAL.some(([re]) => re.test(clause));
+      /* 1. Nothing of it: "no music", "without blur", "turn off the captions", "stop blinking". */
+      const zero = !hasNum && clause.match(/\b(?:no|without|turn(?:ed)? off|switch(?:ed)? off|stop|kill|get rid of|lose the|no more|zero|dont)\s+(?:the\s+|any\s+|all\s+|a\s+|more\s+)?(.+)$/);
+      if (zero && !/\b(so|too|as)\s+(much|many)\b|\bso\b/.test(clause)) {
+        const ZERO = /^(none|no|off|never|nothing|silent|still|stays|holds|0)$/i;
+        const cand = best(zero[1], mine.filter((s) => (s.scale ? s.scale.some((o) => ZERO.test(String(o))) : s.range && s.range.min === 0)), 0.5);
+        if (cand) {
+          const z = cand.scale ? cand.scale.find((o) => ZERO.test(String(o))) : 0;
+          if (put(cand, z, `${nameOf(cand)}: ${z}${cand.range ? cand.range.unit || "" : ""}`)) return;
+        }
+      }
+      /* 2. Words on its scales (the longest wins, up to three settings in one part: "pan left", "fade out to
+         white", "picture in picture in the corner"), or a beginner's word for one. */
+      const otherNamed = (s0, txt) => {
+        const rest = txt.replace(/\b(more|less|fewer|extra|lots of)\b/g, " ");
+        const b = best(rest, mine.filter((x) => x !== s0 && ordered(x)), 1.9);
+        return b && b !== s0 ? b : null;
+      };
+      const findHit = (txt, taken, first) => {
+        let hit = null;
+        const consider = (s, o, sc, span) => {
+          if (taken.has(s) || SHARED.includes(s.id)) return;
+          const lab = overlap(s.label, txt);
+          /* A comparison word on a side setting ("warmer than the room", "speeding up") is a direction, unless
+             the request names that setting; a number word ("one") only counts where the setting is named. */
+          if (!isMain(s) && !lab && trendy(o) && first) return;
+          if (!isMain(s) && !lab && NUMBER_WORDS.test(String(o).toLowerCase())) return;
+          if (!hit || sc > hit.sc) hit = { s, o, sc, span };
+        };
+        own.forEach((s) =>
+          (s.scale || []).forEach((o) => {
+            const w = String(o).toLowerCase();
+            if (w.length > 1 && phraseIn(txt, w) && (first || w.length > 2)) consider(s, o, w.length + overlap(s.label, txt) * 3 + (isMain(s) ? 1 : 0), w);
+          })
+        );
+        if (!(hasNum && first)) {
+          SAYS.forEach(([re, to]) => {
+            const m = txt.match(re);
+            if (!m) return;
+            to.forEach((w, i) =>
+              own.forEach((s) =>
+                (s.scale || []).forEach((o) => {
+                  if (String(o).toLowerCase() === w) consider(s, o, m[0].length + 0.5 - i * 0.3 + overlap(s.label, txt) * 2 + (isMain(s) ? 1 : 0), m[0]);
+                })
+              )
+            );
+          });
+        }
+        if (!hit && first && !hasNum && !dirAsked) {
+          /* Other forms of a word on a scale ("burst into the room" is "bursts in", "rewind" is "rewind and replay"). */
+          const cw = content(txt);
+          const cl = words(c.label);
+          own.forEach((s) =>
+            (s.scale || []).forEach((o) => {
+              const ow = content(o).filter((x) => x.length > 2);
+              if (!ow.length) return;
+              const got = ow.filter((x) => cw.some((y) => same(x, y)));
+              if (!got.length || got.every((x) => hasWord(cl, x))) return;
+              if (got.length === ow.length || (got[0] === ow[0] && ow.length <= 3 && got.length * 2 >= ow.length))
+                consider(s, o, got.join(" ").length * 0.8 + overlap(s.label, txt) * 3 + (isMain(s) ? 1 : 0) - (got.length < ow.length ? 2 : 0), null);
+            })
+          );
+        }
+        return hit;
+      };
+      const taken = new Set();
+      let hit = findHit(clause, taken, true);
+      /* "more flicker" when a setting is called Flicker: that setting, not the word "flicker" on another scale. */
+      if (hit && /\b(more|less|fewer|extra|lots of)\b/.test(clause) && otherNamed(hit.s, clause) && overlap(hit.s.label, clause) === 0) hit = null;
+      if (hit && /\b(more|less|too|not|so|fewer|heavier|harder|stronger|weaker|lighter)\b/.test(clause) && String(hit.o) === String(cur(hit.s)) && strengthOf(hit.s)) {
+        /* The word is already set: "more rain" when it rains means harder. */
+        if (nudge(strengthOf(hit.s), /\b(less|fewer|lighter|weaker|not so|too)\b/.test(clause) ? -1 : 1, lot)) return;
+      }
+      let did = false;
+      while (hit && taken.size < 3) {
+        const w = String(hit.o).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const s = hit.s;
+        taken.add(s);
+        /* "not so close", "less wide", "too dark", "dont make it so fast": step away from that word (from where
+           it is now when that is further). */
+        if (s.scale.length > 2 && !s.unordered && new RegExp("\\b(not|less|too|dont|never)\\b[^,.]{0,24}?\\b(so|too|that|very|as)?\\s*" + w + "([^a-z]|$)").test(clause)) {
+          const i = s.scale.indexOf(hit.o);
+          const away = i < (s.scale.length - 1) / 2 ? 1 : -1;
+          const now = cur(s) == null ? -1 : s.scale.indexOf(String(cur(s)));
+          const j = now < 0 ? i + away : away > 0 ? Math.max(i + away, now + away) : Math.min(i + away, now + away);
+          const v = s.scale[Math.max(0, Math.min(s.scale.length - 1, j))];
+          did = put(s, v, `${nameOf(s)}: ${v} (not so ${hit.o})`) || did;
+        } else {
+          did = put(s, hit.o, `${nameOf(s)}: ${hit.o}`) || did;
+          /* "more smoke", "more confetti": the word and more of it. */
+          const st = strengthOf(s);
+          if (st && new RegExp("\\b(more|lots of|extra|heavier|bigger|thicker|stronger)\\s+(\\w+\\s+)?" + w).test(clause)) nudge(st, 1, lot);
+        }
+        if (hit.span) clause = clause.replace(hit.span, " ");
+        hit = findHit(clause, taken, false);
+      }
+      if (did && !/\d/.test(numbersIn(clause.replace(/\b(1[0-9]|20)?[0-9]0s\b/g, " ")))) return;
+      /* 3. A number, with a unit if one is said. */
+      const nt = numbersIn(clause.replace(/\b(1[0-9]|20)?[0-9]0s\b/g, " "));
+      const m = nt.match(/(-?\d+(?:\.\d+)?)\s*(°c|°|%|\$|x\b|[a-z']+(?:\s+(?:per|a|an|\/)\s+[a-z]+|\s+of\s+(?:width|frame|hair|height))?)?/);
       if (m) {
         let n = Number(m[1]);
-        let unit = (UNIT.find(([re]) => re.test(m[2] || "")) || [])[1];
-        /* "2x" or "half speed" on a setting measured in %: 2x is 200%. */
-        if (/^(x|times)$/.test(m[2] || "") && own.some((s) => s.range && s.range.unit === "%" && !SHARED.includes(s.id))) (n *= 100), (unit = "%");
-        if (/\b(left|below|under|down)\b/.test(clause) && n > 0 && unit === "°") n = -n;
-        const all = own.filter((s) => s.range && (!unit || (s.range.unit || "") === unit));
-        /* The shared settings (amount, push) only when they are named. */
-        const nums = all.filter((s) => !SHARED.includes(s.id) || overlap(s.label, clause) > 0);
-        const s = best(clause, nums) || (nums.length ? nums.find((x) => x.id === c.main) || nums[0] : null);
-        if (s) return put(s, n, `${s.id === c.main ? c.label : s.label}: ${n}${s.range.unit || ""}`);
-      }
-      /* 3. More or less of something. */
-      const up = UP.test(clause);
-      const down = DOWN.test(clause);
-      if (up !== down) {
-        const ord = own.filter((s) => (s.range || (s.scale && !s.unordered)) && !SHARED.includes(s.id));
-        /* A bare "more" or "less" means more of it: its strength, if it has one, rather than the next word on a list. */
-        const bare = !words(clause.replace(UP, " ").replace(DOWN, " ").replace(/\b(a|bit|lot|little|much|way|very|far|please|it)\b/g, " ")).length;
-        const strong = bare ? ord.find((x) => /intens|strength|arous|wound up|energy|level|how much|how strong/.test((x.id + " " + x.label).toLowerCase())) : null;
-        const s = strong || best(clause, ord);
-        if (!s) return;
-        const k = h.sliderId(c, s);
-        const cur = h.ctx.value(k);
-        const p = posOf(k, cur);
-        const lot = /\b(lot|much|way|very|far)\b/.test(clause) ? 2 : 1;
-        let v;
-        if (s.scale) v = S().at(k, Math.max(0, Math.min(1, (p == null ? 0.5 : p) + ((up ? 1 : -1) * lot) / Math.max(1, s.scale.length - 1))));
-        else {
-          /* Numbers move by a sensible amount from where they are: 15° a step, otherwise a quarter of the value. */
-          const r = s.range;
-          const n = Number(cur);
-          const d = r.unit === "°" ? 15 * lot : isFinite(n) && n !== 0 && cur != null ? Math.abs(n) * 0.25 * lot : (r.max - r.min) * 0.1 * lot;
-          const base = isFinite(n) && cur != null ? n : S().at(k, 0.5);
-          v = S().fix(k, Math.max(r.min, Math.min(r.max, base + (up ? d : -d))));
+        const said2 = (m[2] || "").trim();
+        const known = UNITS.some(([, re]) => re.test(said2));
+        let unit = said2 ? canonUnit(said2) : "";
+        /* "5 laughs a minute", "20 cuts per minute": the rate is the unit, the noun names the slider. */
+        const rate = nt.match(/\b(per|a|an|each|every)\s+(minute|min|second|sec|hour)\b/);
+        if (rate && !known) unit = canonUnit("per " + rate[2]);
+        /* "3 in the afternoon", "9 pm". */
+        if (/\b(pm|p\.m\.|in the (afternoon|evening)|at night|tonight)\b/.test(nt) && n < 12) (n += 12), (unit = "o'clock");
+        else if (/\b(am|a\.m\.|in the morning|o'?clock)\b/.test(nt)) unit = "o'clock";
+        /* "2x" or "4 times faster" on a speed measured in %: 2x is 200%. */
+        const speedPct = own.find((s) => s.range && s.range.unit === "%" && !SHARED.includes(s.id) && /speed|rate|pace/.test((s.label + " " + s.id).toLowerCase()));
+        if (unit === "x" && !own.some((s) => s.range && unitOf(s) === "x") && speedPct && !labelHasTimes()) (n *= 100), (unit = "%");
+        function labelHasTimes() {
+          return own.some((s) => s.range && /\btimes\b/.test(s.label.toLowerCase()) && !unitOf(s));
         }
-        put(s, v, `${s.id === c.main ? c.label : s.label}: ${up ? "up" : "down"} to ${v}${s.range ? s.range.unit || "" : ""}`);
+        const upish = /\b(more|further|farther|higher|longer|bigger|brighter|louder|faster|warmer|wider|extra|another|add|up|later|forward|stronger|thicker|deeper)\b/.test(nt);
+        const downish = /\b(less|fewer|closer|nearer|lower|shorter|smaller|darker|quieter|slower|cooler|tighter|down|earlier|back|weaker|thinner)\b/.test(nt);
+        const relative = (upish || downish) && !(upish && downish) && !/\b(to|at|exactly)\s+-?\d/.test(nt) && unit !== "%" && unit !== "x";
+        const mult = /\btimes\b/.test(nt) && unit === "x" && (upish || downish || /\bas\b/.test(nt)) ? n : null;
+        if (/\b(left|below|under|down)\b/.test(clause) && n > 0 && unit === "°" && !relative) n = -n;
+        const nums0 = own.filter((s) => s.range && !taken.has(s) && (!SHARED.includes(s.id) || overlap(s.label, clause) > 0));
+        const unitWord = said2 && !known && !rate ? stemOf(said2.split(" ")[0]) : "";
+        const labelHas = (s, u) =>
+          !!u && (labelWords(s).some((x) => same(x, u)) || (u === "/min" && /per minute|a minute|per min/.test(s.label.toLowerCase())) || (u === "x" && /\btimes\b/.test(s.label.toLowerCase())));
+        const fits = (s) => unitOf(s) === unit || labelHas(s, unit) || (unit === "°" && unitOf(s) === "°C") || (unit === "/min" && /\/min/.test(unitOf(s)));
+        let nums = !unit || mult ? nums0 : nums0.filter(fits);
+        /* A setting with no unit whose label the request names ("1 second pause" on Pause before the punchline). */
+        if (unit && !mult) nums = nums.concat(nums0.filter((s) => !unitOf(s) && !nums.includes(s) && nameScore(s, clause) >= 2));
+        if (!nums.length && unit && !known) nums = nums0;
+        if (!unit && !mult) {
+          /* No unit: a setting with no unit, or the one it names. */
+          const plain = nums.filter((s) => !unitOf(s) || unitOf(s) === "x");
+          if (plain.length && !best(clause, nums.filter((s) => unitOf(s)), 1.5)) nums = plain;
+        }
+        const score = (s) => nameScore(s, clause) + (unitWord && labelHas(s, unitWord) ? 1 : 0) + (unit && unitOf(s) === unit ? 0.5 : 0);
+        let s = null;
+        let top = -5;
+        nums.forEach((x) => {
+          const v = score(x);
+          if (v > top) (top = v), (s = x);
+        });
+        if (s) {
+          const k = h.sliderId(c, s);
+          const now = Number(cur(s) == null ? S().at(k, 0.5) : cur(s));
+          let v = n;
+          let note = "";
+          if (mult != null) (v = downish ? now / mult : now * mult), (note = ` (${downish ? "÷" : "×"}${mult})`);
+          else if (relative) (v = now + (downish && !upish ? -n : n)), (note = ` (${downish && !upish ? "-" : "+"}${n})`);
+          v = Math.max(s.range.min, Math.min(s.range.max, v));
+          if (put(s, v, `${nameOf(s)}: ${S().fix(k, v)}${s.range.unit || ""}${note}`)) return;
+        }
+      }
+      if (did) return;
+      /* 4. More or less of something. */
+      const half = /\b(by half|in half|half as \w+|halve)\b/.test(clause) ? 0.5 : /\b(twice as|double)\b/.test(clause) ? 2 : null;
+      let sign = 0;
+      let base = null;
+      let lotX = lot;
+      PHRASAL.some(([re, b, sg, l2]) => re.test(clause) && ((base = b), (sign = sg), l2 && (lotX = l2), true));
+      if (!sign)
+        toks.some((w) => {
+          if (VERBS[w]) return (base = VERBS[w][0]), (sign = VERBS[w][1]), true;
+          const b = baseOf(w);
+          if (b && b !== "many" && b !== "few") return (base = b), (sign = 1), true;
+          return false;
+        });
+      const tooM = clause.match(/\b(too|so|that)\s+(\w+)/);
+      if (tooM && !sign && !/^(much|many|the|a|it|far|long)$/.test(tooM[2])) (base = baseOf(tooM[2]) || tooM[2]), (sign = 1);
+      const moreM = clause.match(/\b(more|less)\s+(\w+)/);
+      if (!sign && moreM && concept(moreM[2])) (base = moreM[2]), (sign = moreM[1] === "more" ? 1 : -1);
+      const genericUp = MORE_WORDS.test(clause);
+      const genericDown = LESS_WORDS.test(clause) || /\bfewer\b/.test(clause);
+      if (!sign && (genericUp || genericDown) && genericUp !== genericDown) sign = genericUp ? 1 : -1;
+      if (!sign && neg && /\b(so|as|that) (much|many|often)\b/.test(clause)) sign = -1;
+      /* Bare describing words ("controlling", "optimistic", "a rebel", "the light changes slowly"): the last one
+         that means something here. */
+      if (!sign) {
+        const polar = toks
+          .slice()
+          .reverse()
+          .find((w) => w.length > 3 && concept(w) && resolve(w, 1, clause));
+        if (polar) (base = polar), (sign = 1);
+      }
+      /* "less X", "not so X", "too X", "dont make it X". */
+      if (base && sign > 0 && (/\b(less|not so|not as|not that|too|no longer|isn't)\b/.test(clause) || (neg && !/\b(dont|not) (stop|lose)\b/.test(clause)))) sign = -sign;
+      if (ANGLEY.test(clause) && aroundMove(clause, lotX)) return;
+      if (sign) {
+        if (base && base !== "many" && base !== "few") {
+          const r = resolve(base, sign, clause);
+          if (r) {
+            if (half && r.s.range) {
+              const now = Number(cur(r.s) == null ? S().at(h.sliderId(c, r.s), 0.5) : cur(r.s));
+              const f = r.dir * sign > 0 ? (half === 0.5 ? 1.5 : 2) : 0.5;
+              return put(r.s, now * f, `${nameOf(r.s)}: ${S().fix(h.sliderId(c, r.s), now * f)}${r.s.range.unit || ""}`);
+            }
+            if (lean(r, sign, lotX)) return;
+          }
+          /* A plain "stronger", "weaker", "bigger": more or less of whatever the rest of the request names. */
+          if (GENERIC[base] != null) sign = sign * GENERIC[base];
+        }
+        /* "more X", "less X", "add X", "turn the music down": the slider X names, or its strength. */
+        const ord = mine.filter(ordered);
+        const rest = toks.filter((w) => !isDirWord(w) && !MORE_WORDS.test(w) && !LESS_WORDS.test(w) && !/^(bit|lot|little|way|very|far|add|make|turn|keep|some|really|super|slightly)$/.test(w)).join(" ");
+        const bare = !words(rest).length;
+        const named2 = bare ? null : best(rest, ord, 0.9);
+        const onlyOptions = !bare && own.some((x) => (x.scale || []).some((o) => phraseIn(rest, String(o).toLowerCase())));
+        const s = named2 || (bare || onlyOptions ? strengthOf() : null);
+        if (s && half && s.range) {
+          const now = Number(cur(s) == null ? S().at(h.sliderId(c, s), 0.5) : cur(s));
+          return put(s, now * (sign > 0 ? (half === 2 ? 2 : 1.5) : 0.5), `${nameOf(s)}: ${sign > 0 ? "up" : "down"}`);
+        }
+        if (s && nudge(s, sign, lotX)) return;
+      }
+      /* 5. A feeling or genre word that names a setting ("creepier", "like a thriller", "obsessed"). */
+      const feel = toks.map((w) => concept(w) || concept(baseOf(w) || "")).find(Boolean);
+      if (feel) {
+        const s = mine.filter(ordered).find((x) => feel.syn.some((w) => labelWords(x).some((y) => same(y, w))));
+        if (s) nudge(s, 1, lot);
       }
     });
     return { set: [...out.values()], said: said.filter(Boolean) };
   }
+
   /* ---------- the live picture (Jeremy, 17:44Z: "see the results on the screen") ----------
      Every window opens with a picture of what its settings do (data/windows/look-<category>.js). It shows the
      values at the playhead and redraws while a slider is being dragged, before the node is set. */
