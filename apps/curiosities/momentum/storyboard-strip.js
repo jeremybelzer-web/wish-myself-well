@@ -248,9 +248,14 @@
     queued = true;
     (root.requestAnimationFrame || setTimeout)(scan);
   };
-  const ours = (n) => !!(n && n.nodeType === 1 && n.closest && n.closest(".mo-sbs, .mo-sbm"));
+  /* Changes inside the strip, the Momentum window or the Screen's momentum panel never touch a storyboard reel,
+     so they do not wake the scan (every Momentum tab draw would otherwise). */
+  const ours = (n) => {
+    const el = n && (n.nodeType === 1 ? n : n.parentElement);
+    return !!(el && el.closest && el.closest(".mo-sbs, .mo-sbm, .mo-dlg, .mo-sp"));
+  };
   function onMutate(list) {
-    /* The strip's own changes do not count. */
+    /* The strip's own changes (and the Momentum window's) do not count. */
     for (const m of list) {
       if (ours(m.target)) continue;
       if (m.type === "childList" && [...m.addedNodes, ...m.removedNodes].every(ours)) continue;

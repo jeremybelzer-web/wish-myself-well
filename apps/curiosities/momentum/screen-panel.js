@@ -107,12 +107,26 @@
     });
     return { families: out, full: r };
   }
+  /* The inspiration films do not change when My film does, so their readings are kept: an engine change then
+     reads only My film (2 readings instead of 2 per film). Keyed by the film itself, the beat and the settings. */
+  let filmMemo = new WeakMap();
+  function memo(f, key, make) {
+    let m = filmMemo.get(f);
+    if (!m || m.beats !== f.beats || m.len !== f.beats.length) filmMemo.set(f, (m = { beats: f.beats, len: f.beats.length, map: new Map() }));
+    if (!m.map.has(key)) {
+      if (m.map.size > 200) m.map.clear();
+      m.map.set(key, make());
+    }
+    return m.map.get(key);
+  }
+  const filmAt = (f, b, fo) => memo(f, "at|" + b + "|" + fo.secondsPerBeat + "|" + fo.limit, () => Object.assign(readAt(f.beats, b, fo), ribbon(f.beats, fo)));
+  const measured = (f, spb) => memo(f, "measure|" + spb, () => R().measure(f, { secondsPerBeat: spb }));
   function read(rowArg) {
     if (!A() || !M() || !R()) return null;
     const mp = momentumPrefs();
     const onScreen = screenFilms();
     const listed = R().DEFAULT_FILMS.concat(mp.measured).filter((x) => mp.compare.includes(x.id));
-    const measuredOnScreen = onScreen.map((f) => R().measure(f, { secondsPerBeat: mp.spb }));
+    const measuredOnScreen = onScreen.map((f) => measured(f, mp.spb));
     const profiles = own.against === "screen" && measuredOnScreen.length ? measuredOnScreen : listed;
     const target = R().average(profiles);
     const limit = mp.limit || R().limitFor(target);
@@ -124,7 +138,7 @@
     const filmsOut = onScreen.map((f, k) => {
       const b = f.beats.length > 1 && n > 1 ? Math.round((row * (f.beats.length - 1)) / (n - 1)) : 0;
       const fo = { secondsPerBeat: mp.spb, limit };
-      return Object.assign({ id: f.id, key: f.id + ":" + k, title: filmTitle(f), beat: b, n: f.beats.length }, readAt(f.beats, b, fo), ribbon(f.beats, fo));
+      return Object.assign({ id: f.id, key: f.id + ":" + k, title: filmTitle(f), beat: b, n: f.beats.length }, filmAt(f, b, fo));
     });
     const compass = mine && C() ? C().point(mine.reading, profiles) : null;
     return { row, n, limit, spb: mp.spb, mine, films: filmsOut, compass, against: profiles.length ? (own.against === "screen" && measuredOnScreen.length ? "the films on screen" : profiles.map((p) => p.title).join(", ")) : "" };
@@ -176,6 +190,9 @@
     el.classList.add("mo-sp");
     function draw(force) {
       if (!el.isConnected) return;
+      /* While the Screen is closed the panel is not on show: skip the work; the Screen redraws when it opens again
+         and tells us (CurioScreen.on), so the panel is drawn fresh then, instead of reading the films for nothing. */
+      if (!force && !el.getClientRects().length) return;
       try {
         data = read(getRow());
       } catch (e) {

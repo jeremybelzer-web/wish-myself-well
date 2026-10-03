@@ -284,9 +284,19 @@
     const fill = (s) => s.replace(/\{name\}/g, lower(label));
     return { id: b, label, family: fam ? fam.id : "cut", push: w[0], plot: fill(w[1]), theme: fill(w[2]), pull: fill(w[3]), cue: WS_CUE[ws] || (fam ? fam.cue : "visual"), tryThis: fill(w[4]), source: "workspace", workspace: ws };
   }
+  /* all() is asked for on many tabs and on every draw (Cue lab asks for it once per idea), so the list is kept
+     until the database or the catalog changes (a different list, or a row added). Callers get their own array. */
+  let allMemo = null;
   function all() {
     const D = db();
     const rows = D ? D.data.curiosities : catalog();
+    const cat = catalog();
+    const key = [rows, rows.length, cat, cat.length, Object.keys(C).length];
+    if (allMemo && allMemo.key.every((k, i) => k === key[i])) return allMemo.list.slice();
+    allMemo = { key, list: build(rows) };
+    return allMemo.list.slice();
+  }
+  function build(rows) {
     const seen = new Set();
     const out = [];
     rows.concat(catalog()).forEach((c) => {
