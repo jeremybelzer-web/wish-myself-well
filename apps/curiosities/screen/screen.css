@@ -645,3 +645,10 @@ html.sc-open, html.sc-open body { overflow: hidden; }
   .sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr); }
   .sc-player > .sc-docks { grid-column: auto; grid-row: auto; border-left: 0; border-top: 1px solid var(--cc-line); overflow: visible; }
 }
+/* A Details row's ⋯ menu: Use this all through the film, in the selected stretch, Reset, Clear. */
+.sc-page .sc-cur-more { flex: none; background: none; padding: 0 6px; font-size: 14px; line-height: 1; color: var(--cc-dim); }
+.sc-page .sc-cur-more:hover, .sc-page .sc-cur-more[aria-expanded="true"] { color: var(--cc-accent); background: var(--cc-hover); }
+.sc-cur-menu { display: grid; gap: 2px; margin: 6px 0 2px; padding: 4px; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 6px; }
+.sc-page .sc-cur-menu button { display: grid; gap: 1px; text-align: left; padding: 5px 8px; background: transparent; }
+.sc-page .sc-cur-menu button:hover, .sc-page .sc-cur-menu button:focus-visible { background: var(--cc-hover); }
+.sc-cur-menu small { color: var(--cc-dim); font-size: 11px; }

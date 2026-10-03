@@ -653,6 +653,62 @@ document.addEventListener("click", function (e) {
   })();
   window.CurioScreenExport = EXPORT;
 
+  /* ---------- a curiosity row's ⋯ menu (CapCut's "Apply to all" and Reset in Details) ----------
+     Pure command builders, one undo step each, so the tests can check them with no page. st is the engine state,
+     track and cur name the lane, v is the setting to keep. add: the curiosity is not on the track yet, so it is
+     put there first. Each returns { cmds, ... } or { error } in plain words. */
+  const APPLY = (() => {
+    const laneOf = (st, track, cur) => (track && st.lanes[track + "|" + cur]) || null;
+    const pointRows = (st, lane) => (lane ? st.rows.map((r, j) => (lane.points[r.id] != null ? j : -1)).filter((j) => j >= 0) : []);
+    const say = (cur) => (window.CurioScale && window.CurioScale.label ? window.CurioScale.label(cur) : cur);
+    /* One node at the first moment with setting v, every other node off, and the lane set to Jump so it stays flat. */
+    function allFilm(st, track, cur, v, add) {
+      if (!st.rows.length) return { error: "Your film has no moments yet." };
+      if (v == null) return { error: `${say(cur)} has no setting at the playhead to use.` };
+      const lane = laneOf(st, track, cur);
+      const cmds = add ? [{ type: "addCuriosity", track, curiosity: cur }] : [];
+      cmds.push({ type: "setPoint", row: st.rows[0].id, track, curiosity: cur, value: v });
+      const gone = pointRows(st, lane).filter((j) => j > 0);
+      gone.forEach((j) => cmds.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: cur }));
+      cmds.push({ type: "laneMode", track, curiosity: cur, mode: "hold" });
+      return { cmds, removed: gone.length };
+    }
+    /* Setting v held from moment j0 to moment j1: nodes at both ends, the nodes between them off. */
+    function stretch(st, track, cur, v, j0, j1, add) {
+      const a = Math.max(0, Math.min(j0, j1));
+      const b = Math.min(st.rows.length - 1, Math.max(j0, j1));
+      if (!(b >= a) || !st.rows[a]) return { error: "Select a stretch of moments on the timeline first." };
+      if (v == null) return { error: `${say(cur)} has no setting at the playhead to use.` };
+      const lane = laneOf(st, track, cur);
+      const cmds = add ? [{ type: "addCuriosity", track, curiosity: cur }] : [];
+      cmds.push({ type: "setPoint", row: st.rows[a].id, track, curiosity: cur, value: v });
+      if (b > a) cmds.push({ type: "setPoint", row: st.rows[b].id, track, curiosity: cur, value: v });
+      const gone = pointRows(st, lane).filter((j) => j > a && j < b);
+      gone.forEach((j) => cmds.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: cur }));
+      return { cmds, removed: gone.length, from: a, to: b };
+    }
+    /* Back to how the scene starts: the nodes after the first moment off. When the first moment has no node of its
+       own, one is put there with the setting it plays now (start), so the start looks the same afterwards. */
+    function reset(st, track, cur, start) {
+      const lane = laneOf(st, track, cur);
+      const at = pointRows(st, lane);
+      const gone = at.filter((j) => j > 0);
+      if (!gone.length) return { error: `${say(cur)} already stays as it starts, so there is nothing to reset.` };
+      const cmds = [];
+      if (!at.includes(0) && start != null) cmds.push({ type: "setPoint", row: st.rows[0].id, track, curiosity: cur, value: start });
+      gone.forEach((j) => cmds.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: cur }));
+      return { cmds, removed: gone.length };
+    }
+    /* Every node off the lane. */
+    function clear(st, track, cur) {
+      const lane = laneOf(st, track, cur);
+      if (!lane) return { error: `${say(cur)} has no nodes, so there is nothing to clear.` };
+      return { cmds: [{ type: "clearLane", track, curiosity: cur }], removed: pointRows(st, lane).length };
+    }
+    return { allFilm, stretch, reset, clear };
+  })();
+  window.CurioScreenApply = APPLY;
+
   let exportOpen = false;
   function exportMenuHtml() {
     return `<span class="sc-export"><button type="button" data-act="export" class="sc-export-b" aria-haspopup="true" aria-expanded="${exportOpen}" title="Save your film as a storyboard sheet, a picture or a spreadsheet. Nothing is uploaded.">Export ▾</button>
@@ -1420,13 +1476,118 @@ document.addEventListener("click", function (e) {
     return `<div class="sc-cur${sel ? " sel" : ""}">
       <div class="sc-cur-top">
         <button type="button" class="sc-cur-name" data-select-cur="${esc(c.id)}" title="${esc(c.plain || "")}">${esc(c.label)}</button>
-        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win sc-finetune" data-open-win="${esc(c.id)}" title="Fine-tune ${esc(c.label)}: every setting inside it (${fine.length + 1}), each its own lane, or say what you want" aria-label="Fine-tune ${esc(c.label)}">Fine-tune</button>
+        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win sc-finetune" data-open-win="${esc(c.id)}" title="Fine-tune ${esc(c.label)}: every setting inside it (${fine.length + 1}), each its own lane, or say what you want" aria-label="Fine-tune ${esc(c.label)}">Fine-tune</button>${ctx.edit && S() && S().known(key) ? `<button type="button" class="sc-cur-more" data-cur-menu="${esc(key)}" aria-haspopup="menu" aria-expanded="false" title="More for ${esc(c.label)}: use this setting all through the film or in the selected stretch, reset it, or clear its lane" aria-label="More for ${esc(c.label)}">⋯</button>` : ""}
       </div>
       ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyNavBtns(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
       ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
       ${sel && c.momentum ? momentumBox(c.momentum) : ""}
       ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyNavBtns(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
     </div>`;
+  }
+  /* The ⋯ menu on a Details row (CapCut's "Apply to all" and Reset): four ways to spread or take back one lane's
+     setting, each one undo step (APPLY builds the commands). It opens under the row's name, is reached with Tab,
+     moves with the arrow keys and closes on Esc or a click anywhere else. */
+  let curMenu = null; /* { key, btn } while a row's menu is open */
+  function curArea() {
+    const a = lanes && lanes.area && lanes.area();
+    return a && Number.isFinite(a.j0) && Number.isFinite(a.j1) ? { j0: Math.min(a.j0, a.j1), j1: Math.max(a.j0, a.j1) } : null;
+  }
+  function closeCurMenu(focusBack) {
+    const m = page && page.querySelector(".sc-cur-menu");
+    const had = curMenu;
+    curMenu = null;
+    if (m) m.remove();
+    if (had && had.btn && had.btn.isConnected) {
+      had.btn.setAttribute("aria-expanded", "false");
+      if (focusBack) had.btn.focus();
+    }
+    return !!m;
+  }
+  function openCurMenu(btn) {
+    const key = btn.dataset.curMenu;
+    const was = curMenu && curMenu.key === key && page.querySelector(".sc-cur-menu");
+    closeCurMenu();
+    if (was) return;
+    const ar = curArea();
+    const items = [
+      ["all", "Use this all through the film", "The setting at the playhead from the first moment to the last, flat"],
+      ar && ["stretch", "Use this in the selected stretch", `The setting at the playhead held from moment ${ar.j0 + 1} to moment ${ar.j1 + 1}`],
+      ["reset", "Reset to how the scene starts", "Take off this lane's nodes after the first moment"],
+      ["clear", "Clear this lane", "Take every node off this lane"],
+    ].filter(Boolean);
+    const m = document.createElement("div");
+    m.className = "sc-cur-menu";
+    m.setAttribute("role", "menu");
+    m.setAttribute("aria-label", "More for " + labelOf(key));
+    m.innerHTML = items.map(([id, l, tip]) => `<button type="button" role="menuitem" data-cur-apply="${id}" data-cur="${esc(key)}"><b>${esc(l)}</b><small>${esc(tip)}</small></button>`).join("");
+    m.addEventListener("keydown", onCurMenuKey);
+    btn.closest(".sc-cur-top").after(m);
+    btn.setAttribute("aria-expanded", "true");
+    curMenu = { key, btn };
+    m.querySelector("button").focus();
+  }
+  function onCurMenuKey(e) {
+    const list = [...e.currentTarget.querySelectorAll("[data-cur-apply]")];
+    const i = list.indexOf(document.activeElement);
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      return closeCurMenu(true);
+    }
+    if (e.key === "Tab") return closeCurMenu();
+    const to = e.key === "ArrowDown" ? (i + 1) % list.length : e.key === "ArrowUp" ? (i - 1 + list.length) % list.length : e.key === "Home" ? 0 : e.key === "End" ? list.length - 1 : -1;
+    if (to < 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    list[to].focus();
+  }
+  /* Carry out a menu item on curiosity key's lane, and say what happened in the status line. */
+  function applyCur(kind, key) {
+    const st = E() && E().state();
+    if (!st || !S()) return;
+    const name = labelOf(key);
+    const n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
+    let track = (trackHas(key, st) || {}).id;
+    let add = false;
+    if (!track && (kind === "reset" || kind === "clear")) return toast(`${name} has no nodes, so there is nothing to ${kind === "reset" ? "reset" : "clear"}.`);
+    if (!track) {
+      track = window.CurioLanes && window.CurioLanes.trackFor(key, st);
+      if (!track) return toast("Every track is full; remove a lane in Arrange first.");
+      add = true;
+    }
+    if (window.CurioLanes && window.CurioLanes.isLocked && window.CurioLanes.isLocked(track + "|" + key)) return toast(`${name} is locked (the 🔒 by its name on the timeline), so nothing was changed. Click the 🔒 to unlock it first.`);
+    const r = st.rows[row];
+    const here = r ? S().fix(key, add ? S().start(key) : E().value(r.id, track, key)) : null;
+    let res;
+    let label;
+    let said;
+    if (kind === "all") {
+      res = APPLY.allFilm(st, track, key, here, add);
+      label = `${name}: ${here} all through the film`;
+      said = () => `${name} is now ${here} all through the film: one node at moment 1${res.removed ? `, ${n(res.removed, "other node", "other nodes")} taken off` : ""}, and the lane jumps so it stays flat. Undo takes it back.`;
+    } else if (kind === "stretch") {
+      const ar = curArea();
+      if (!ar) return toast("Select a stretch of moments on the timeline first (drag across empty space in the lanes).");
+      res = APPLY.stretch(st, track, key, here, ar.j0, ar.j1, add);
+      label = `${name}: ${here} from moment ${ar.j0 + 1} to ${ar.j1 + 1}`;
+      said = () => `${name} holds at ${here} from moment ${res.from + 1} to moment ${res.to + 1}${res.removed ? `; ${n(res.removed, "node", "nodes")} in between taken off` : ""}. Undo takes it back.`;
+    } else if (kind === "reset") {
+      res = APPLY.reset(st, track, key, st.rows[0] ? S().fix(key, E().value(st.rows[0].id, track, key)) : null);
+      label = `Reset ${name} to how the scene starts`;
+      said = () => `${name} is back to how the scene starts: ${n(res.removed, "node", "nodes")} after the first moment taken off. Undo takes it back.`;
+    } else if (kind === "clear") {
+      res = APPLY.clear(st, track, key);
+      label = `Clear the ${name} lane`;
+      said = () => `${name}'s lane is clear: ${n(res.removed, "node", "nodes")} taken off. Undo takes it back.`;
+    } else return;
+    if (res.error) return toast(res.error);
+    if (kind === "all" || kind === "stretch") {
+      showLane(key);
+      save();
+    }
+    const out = E().send({ type: "batch", label, commands: res.cmds });
+    if (!out.ok) return toast(out.error || "That did not work, so nothing was changed.");
+    toast(said());
   }
   /* ---------- a window for every curiosity (Jeremy, 2026-10-02 20:26Z: "a separate pop-up window for every
      single curiosity which has specific knobs and sliders and features that apply just to that curiosity") ----------
@@ -2058,10 +2219,13 @@ document.addEventListener("click", function (e) {
       const b = page.querySelector('[data-act="guides-menu"]');
       if (b) b.setAttribute("aria-expanded", "false");
     }
+    if (curMenu && !e.target.closest(".sc-cur-menu, [data-cur-menu]")) closeCurMenu();
     if (e.target.closest("[data-cmp-line]")) return;
     const t = e.target.closest("button, [data-scrub], .sc-frame");
     if (!t || !page.contains(t)) return;
     const d = t.dataset;
+    if (d.curMenu) return openCurMenu(t);
+    if (d.curApply) return closeCurMenu(), applyCur(d.curApply, d.cur);
     if (d.openWin && !t.closest(".sl")) return openWin(d.openWin);
     if (winClick(d, t)) return;
     if (d.ov != null && !e.detail) return jumpTo(Number(d.ov));

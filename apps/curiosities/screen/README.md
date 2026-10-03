@@ -102,6 +102,17 @@ The Prism idea, on the timeline: the film you are learning from is white light, 
 
 Pure helpers on `CurioLanes`: `filmBeat(j, n, count)` (which beat moment j reads), `filmLine(beats, n, cur)` (the line's setting at each moment, or null) and `takeFromFilmCommands(st, lanes, area, beats)`. The mounted lanes also have `filmLines()` (the toggle) and `take()`.
 
+## A row's ⋯ menu (Apply to all and Reset)
+
+CapCut's Details panel has "Apply to all" and a Reset for each section. Here every curiosity row in Details (on My film) has a small **⋯** beside Fine-tune with four choices, each one undo step:
+
+1. **Use this all through the film**: the setting at the playhead becomes one node at the first moment, the lane's other nodes come off, and the lane is set to Jump so it stays flat.
+2. **Use this in the selected stretch** (only while a stretch is selected on the timeline): the setting at the playhead is held from the first to the last selected moment, with nodes at both ends and the nodes between them taken off. The rest of the lane is kept.
+3. **Reset to how the scene starts**: the lane's nodes after the first moment come off. If the first moment had no node of its own, one is put there with the setting it plays now, so the start looks the same. With nothing to reset, it says so and changes nothing.
+4. **Clear this lane**: every node comes off.
+
+Each one says what it did in the Screen's status line and ends with "Undo takes it back." A lane locked on the timeline (🔒) is refused with a plain message. The menu is reached with Tab, moves with the arrow keys, and closes on Esc (focus goes back to ⋯) or a click anywhere else. The commands are built by `window.CurioScreenApply` (`allFilm`, `stretch`, `reset`, `clear`), which take the engine state and return `{ cmds }` or `{ error }`; `node screen/tests/run.js` checks them, and `screen/tests/browser.js` checks each choice, its one undo and the lock.
+
 ## Keyframe jumps and the frame shape
 
 Like CapCut's ◀ ◆ ▶: in Details, once a curiosity has nodes, small ◀ and ▶ sit either side of its key diamond. ◀ moves the playhead to the moment of its previous node, ▶ to its next; greyed when there is none that way. The diamond works as before. The windows keep the bare diamond (`keyNavBtns` in `ui.js` wraps `keyBtn` for Details rows only).
