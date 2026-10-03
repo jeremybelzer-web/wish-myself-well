@@ -119,7 +119,7 @@
     scr += rect(0, 0, 70, 180, "#7a2a3a") + rect(250, 0, 70, 180, "#7a2a3a") + k.text({ x: 218, y: 70, text: "!", size: 30 + sz * 20, color: "#ffd166", weight: 800, outline: "#000" });
     out += mini("cw-reveal-scr", 10, 74, 140, scr);
     /* who learns first: two short tracks, the earlier dot learns first */
-    const shift = (v.p("setting") - 0.5) * -40 - v.n("aheadBy") * 1.5;
+    const shift = (v.p("setting") - 0.5) * 40 - v.n("aheadBy") * 1.5; /* "before": the audience learns before the characters */
     const tx = (d) => k.clamp(198 + d * 0.6, 162, 236);
     out += tag(k, 160, 88, "we learn", "#ccc", "start", 7) + line(162, 95, 236, 95, "#444", 2) + k.dot({ x: tx(shift), y: 95, r: 4.5, color: "#06d6a0" });
     out += tag(k, 160, 110, `${v("aheadOf")} learns`, "#ccc", "start", 7) + line(162, 117, 236, 117, "#444", 2) + k.dot({ x: tx(0), y: 117, r: 4.5, color: "#e07a5f" });
