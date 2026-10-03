@@ -1,0 +1,52 @@
+# Momentum
+
+The heart of the app (Jeremy's words #14 to #16): the feeling that a film is going somewhere important. An audience can pay attention to only one thing at a time, and when what holds it keeps moving between different curiosities, the film stays rich and engaging. Momentum shows how long attention rests on each kind of curiosity, warns when one runs too long, and records the cue that moved it on.
+
+Open it from **Library, Momentum** (once `<script src="momentum/load.js"></script>` is in `index.html`), or on its own page: `momentum/index.html`.
+
+## What you see
+
+- **The meter**: how long one family of curiosities has held attention, against a limit. Green means fresh, yellow means getting long, red means too long. With "My film, live" it follows what you play or perform, and it keeps climbing while nothing changes. For any other film, point at the timeline to see the meter at that moment.
+- **Four numbers**: the momentum reading (how hard whatever holds attention pushes the story, worn down when it stays too long), how many times a minute attention moves, the usual rest, and the longest rest.
+- **The ring (pie chart)**: what share of the time each family held attention. Eight families have their own color; the other five are gray and listed under "Other".
+- **What moved it on**: the share of each cue (visual, audio, thought, movement, plot), plus quiet cues, where something stops: the music cuts out, a silence falls, someone goes still.
+- **The timeline**: who held attention when, a letter for the cue at each move, and a line that climbs while one family holds attention and drops when attention moves. The red part is past the limit.
+- **Held too long**: every stretch past the limit, with a different kind of cue to try.
+- **Compared with**: your film against a film you love, or the average of several, in plain sentences.
+- **Film rates**: the default curated list (Claude's estimates, marked as estimates) and any traced film you measure.
+- **Momentum notes**: every curiosity's note on how it moves the plot forward, how it builds the themes, how it pulls attention onward, and one thing to try. This covers clothes and landscape too.
+
+- **Compass** (the Prism Compass): where attention should go next. A needle points at the family to move to, chosen from how often your films move from the current family to each other one (once you have measured a traced film), how much more time your films give each family, how long since it last held attention, and how hard it pushes the story. The top three come with reasons, a curiosity to try, and **Make this move on My film**, which steps one live control of that family by one notch.
+- **On the engine**: the engine's timeline (Library, Engine) as the audience would watch it, with an attention lane and a cue lane, one cell per moment. Every stretch past the limit gets a suggested engine link: the curiosity holding attention leads one from another family, so its next change moves attention on. **Add this link to the engine** is an ordinary engine command, one undo step.
+- **Perform**: follow My film live and send the meter out while you perform. MIDI control changes go out (attention CC 20, momentum CC 21, family CC 22, compass CC 23; the channel and numbers can be changed), with a note each time attention moves (60 visual, 61 audio, 62 thought, 63 movement, 64 plot) and note 72 past the limit. The desktop app's bridge sends the same values (OSC `/curio/value/m/attention`, `m/over`, `m/momentum`, `m/family`, `m/compass`, 0 to 1, and the same over WebSocket). A phone buzzes past the limit, and a full-screen **stage meter** can be read from across a room.
+
+## Films it can read
+
+My film live, My film's panels, the engine's timeline, any storyboard scene, the whole storyboard, and every curated film (your studies, shared traces, and the made-up practice scenes). Panels have no clock, so **Seconds per panel** sets how long each one lasts (3 by default).
+
+## How attention is worked out
+
+1. At each beat, every curiosity whose value changed could take the audience's attention.
+2. Its pull is the size of the change (steps along its scale), times how strongly its family draws the eye (faces, voices and plot pull hardest), nudged up by how much it pushes the story.
+3. The strongest one takes attention if its pull is big enough. Otherwise attention stays where it was. The same curiosity changing again keeps attention where it is.
+4. Attention stays until something else takes it. A family that holds attention past the limit gets a warning. By default the limit is 2.5 times the usual family stretch in the films you compare with. You can set your own.
+
+These are guesses about how people watch, kept as plain numbers (`FAMILY_PULL`, `SHIFT_MIN` in `attention.js`) so they can be tuned or replaced by measurement.
+
+## Files
+
+| File | What it does |
+| --- | --- |
+| `notes.js` | `window.CurioMomentum`: the 13 attention families, the 5 cues, and a momentum note for every curiosity (84 written one by one, the rest from their workspace's note). `FIELD` is the proposed database field. |
+| `attention.js` | `window.CurioAttention`: reads a film into attention stretches, statistics and warnings; `live()` records a performance. |
+| `rates.js` | `window.CurioRates`: the default curated list (estimates), `measure()` for traced films, `compare()`, `average()`. |
+| `compass.js` | `window.CurioCompass`: `point(reading, profiles)` gives the needle and the options; `move(option, board)` gives one notch on a live control. |
+| `engine-lanes.js` | `window.CurioMomentumEngine`: the engine's film read as attention, `lanes()`, `suggestions()`, `addSuggestion()`, and `band()` in the shape an engine timeline band could draw. |
+| `perform.js` | `window.CurioPerform`: follows My film live and sends the meter to MIDI, the bridge (`CurioBridge.values()`), a phone buzz and the stage meter. Settings: `curiosities-momentum-perform-v1`. |
+| `ui.js`, `momentum.css` | The Momentum window and the Library menu item. `CurioMomentumUI.mountNote(el, id)` puts one curiosity's note anywhere, for example in a workspace. |
+| `load.js` | Adds everything to the app's page with one script line. |
+| `files.json` | The load order: `core` (no page) and `screens`. |
+| `tests/run.js` | `node momentum/tests/run.js`: checks with no page. |
+| `tests/browser.js` | `NODE_PATH=/opt/node22/lib/node_modules node momentum/tests/browser.js --three <three.min.js>`: the window in a real browser, live mode, and phone width. |
+
+Saved choices: `localStorage` key `curiosities-momentum-v1`.

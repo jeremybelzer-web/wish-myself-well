@@ -58,7 +58,7 @@ const SUITES = [
 const PROXIMITIES = [
   {
     id: "handheld-gesture",
-    when: "cameraCarry is handheld",
+    when: "the camera goes handheld",
     then: "gesture grows",
     within: 2,
     x: { curiosity: "cameraCarry", is: "handheld" },
@@ -115,6 +115,17 @@ SUITES.push(
   { id: "signature-return", label: "Signature return", note: "The signature image comes back again.", set: { hook: "yes", repetition: 3 } }
 );
 
+/* Suites from Sharani's Maya areas (docs/maya-curiosities-map.md), used by the Studio tools. */
+SUITES.push(
+  { id: "clean-product", label: "Clean product", note: "Satin surfaces, new, soft light.", set: { gloss: "satin", wear: "new", softness: "soft" } },
+  { id: "slow-motion", label: "Slow motion", note: "Floaty weight, long settle.", set: { gravityFeel: "floaty", settleTime: 4 } },
+  { id: "drenched", label: "Drenched", note: "Matted, glossy hair that moves with the body.", set: { clump: "matted", hairShine: "glossy", furResponse: "the body", wetness: "soaked" } },
+  { id: "backlit-fluff", label: "Backlit fluff", note: "Frizzy hair with a strong rim.", set: { frizz: 4, rim: "strong", hairShine: "sheen" } },
+  { id: "windblown", label: "Windblown", note: "Hair taken by the wind and lagging.", set: { furResponse: "wind", frizz: 3, furLag: 1 } },
+  { id: "avalanche", label: "Avalanche", note: "A wall of snow building, many impacts.", set: { element: "snow", density: "wall", growth: "building", impacts: 8 } },
+  { id: "drift", label: "Drift", note: "Wisps of smoke curling through beams.", set: { element: "smoke", density: "wisp", curl: 3, atmosphere: "beams" } }
+);
+
 /* Genres are suites too: the curiosities that tend to be on together. Starting guesses from
    docs/scene-memory-app-framework.md until curated scenes are traced. */
 SUITES.push(
@@ -161,3 +172,8 @@ PROXIMITIES.push(
   { id: "aggressive-quiet", when: "suite Aggressive camera", then: "suite Quiet confession", within: 6, x: { suite: "aggressive-camera" }, y: { suite: "quiet-confession" } },
   { id: "storm-room", when: "suite Storm", then: "suite Breathing room", within: 8, x: { suite: "storm" }, y: { suite: "breathing-room" } }
 );
+
+/* Cause-and-effect pairs from the lenses (comedy, emotion, color, wardrobe, set), when lenses.js is loaded. */
+(window.CURIOSITY_LENS_PROXIMITIES || []).forEach((p) => {
+  if (p && p.id && !PROXIMITIES.some((q) => q.id === p.id)) PROXIMITIES.push(p);
+});

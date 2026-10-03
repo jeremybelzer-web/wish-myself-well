@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Curiosities — storyboard board</title>
+    <title>Curiomatic</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -11,12 +11,113 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#1c1712" />
+    <style id="workspaces-style">
+      /* The bar: My film and Storyboard with the Library menu on the first row, then the workspaces in
+         labelled sections (Camera, People, Look, Feeling, Comedy, Story) that wrap onto as many rows as needed. */
+      .tabs { display: block; }
+      .tabs-top { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .tabs-top .lib { margin-left: auto; }
+      .tabs-ws { display: flex; flex-wrap: wrap; gap: 6px 8px; margin-top: 8px; }
+      .ws-sec { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 4px 6px 4px 8px; border-left: 3px solid var(--line); min-width: 0; max-width: 100%; }
+      .ws-sec.is-comedy { border-left-color: var(--saffron); background: #fbe6d3; }
+      .ws-group { flex: none; font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--saffron); margin-right: 2px; }
+      .ws-sec.is-comedy .ws-group { color: var(--ink); font-weight: 500; }
+      .tabs-ws button, .tabs-top button { flex: none; white-space: nowrap; }
+      .lib { position: relative; flex: none; }
+      .tabs #lib-btn::after { content: " ▾"; }
+      .lib-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 40; width: 250px; max-width: calc(100vw - 32px); background: var(--panel); border: 3px solid var(--ink); box-shadow: 4px 4px 0 rgba(28, 23, 18, 0.25); display: grid; }
+      .lib-menu[hidden] { display: none; }
+      .tabs .lib-menu button { display: grid; text-align: left; border: 0; border-bottom: 1px solid var(--line); padding: 8px 10px; background: none; white-space: normal; }
+      .tabs .lib-menu button:last-child { border-bottom: 0; }
+      .tabs .lib-menu button:hover, .tabs .lib-menu button:focus-visible { background: var(--ink); color: var(--paper); }
+      .lib-menu small { font-family: var(--sans); font-size: 12px; text-transform: none; letter-spacing: 0; opacity: 0.75; }
+      /* The phone bar's "Workspaces" button and its sheet: shown only on narrow screens. */
+      .ws-pick, .ws-sheet-head { display: none; }
+      .ws-sheet-back[hidden] { display: none; }
+      @media (max-width: 600px) {
+        .tabs-top { flex-wrap: nowrap; gap: 5px; }
+        .tabs-top > button, .tabs-top .lib > button { font-size: 10px; letter-spacing: 0.04em; padding: 6px 7px; }
+        .tabs .tabs-top .proj-ind { flex: none; font-size: 0; padding: 4px 6px; }
+        .tabs .tabs-top .proj-ind::before { font-size: 12px; content: "●"; }
+        .ws-pick { display: inline-flex; align-items: center; gap: 2px; flex: 1 1 auto; min-width: 0; justify-content: center; }
+        .ws-pick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+        .tabs .tabs-ws { display: none; }
+        .tabs.ws-sheet-open .tabs-ws { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 6px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; max-height: min(78vh, 640px); overflow-y: auto; margin: 0; padding: 0 16px 18px; background: var(--paper); border-top: 3px solid var(--ink); box-shadow: 0 -6px 0 rgba(28, 23, 18, 0.18); }
+        .ws-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: sticky; top: 0; background: var(--paper); padding: 12px 0 8px; border-bottom: 1px solid var(--line); font-family: var(--serif); font-size: 17px; }
+        .ws-sheet-back { position: fixed; inset: 0; z-index: 59; background: rgba(28, 23, 18, 0.35); }
+        .ws-sec { flex: none; padding: 3px 4px 3px 6px; gap: 5px; }
+        .ws-group { width: 100%; }
+        .tabs-ws .ws-sec button { font-size: 11px; letter-spacing: 0.04em; padding: 8px 9px; }
+      }
+      @media (max-width: 600px) {
+        header.top { flex-direction: column; align-items: start; padding: 16px 16px 10px; }
+        .tabs { padding: 10px 16px 0; }
+        main { padding: 12px 16px 40px; }
+      }
+      /* A workspace page */
+      .ws { min-width: 0; }
+      .ws h3 { font-family: var(--serif); font-weight: 500; font-size: 18px; margin: 0 0 6px; }
+      .ws h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin: 14px 0 4px; }
+      .ws-jump { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 4px; font-family: var(--mono); font-size: 11px; }
+      .ws-jump a { color: var(--saffron); }
+      .ws-part { border-top: 2px solid var(--ink); padding-top: 10px; margin-top: 14px; min-width: 0; }
+      .ws-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: end; margin: 6px 0; }
+      .ws-row > label.field { margin: 0; min-width: 0; }
+      .ws-step { display: inline-flex; align-items: center; gap: 8px; }
+      .ws-step b { font-family: var(--mono); font-size: 14px; min-width: 2ch; text-align: center; }
+      .ws-step button { width: 30px; height: 28px; padding: 0; font-size: 16px; }
+      .ws-add { display: flex; gap: 6px; }
+      .ws-add input { width: 130px; min-width: 0; }
+      .ws-scroll { overflow-x: auto; max-width: 100%; }
+      .ws-grid { border-collapse: collapse; font-size: 13px; }
+      .ws-grid th, .ws-grid td { border: 1px solid var(--line); padding: 4px 6px; vertical-align: top; text-align: left; }
+      .ws-grid thead th { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+      .ws-grid tbody th { font-weight: 500; min-width: 120px; max-width: 220px; }
+      .ws-grid td { min-width: 104px; }
+      .ws-grid select, .ws-grid input { width: 100%; min-width: 92px; font-size: 13px; }
+      .ws-now { display: block; font-family: var(--mono); font-size: 10px; color: var(--saffron); min-height: 0; }
+      .ws-tag { font-family: var(--mono); font-size: 9px; text-transform: uppercase; color: #7a6f63; border: 1px solid var(--line); padding: 0 3px; }
+      .ws-mini { margin-top: 10px; }
+      .ws-mini .panel { flex: 0 0 180px; min-height: 0; }
+      .ws-mini .balloon { font-size: 13px !important; }
+      .ws-mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 10px; align-items: start; }
+      .ws-mod { min-width: 0; }
+      .ws-mod.ws-flash { outline: 3px solid var(--saffron); outline-offset: 3px; }
+      .ws-g { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--saffron); margin: 10px 0 4px; }
+      .ws-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+      .ws-chips button { font-family: var(--mono); font-size: 11px; text-align: left; max-width: 100%; white-space: normal; }
+      .ws-fallback { border: 1px dashed var(--saffron); background: #fff8ef; padding: 6px 8px; }
+      .ws-matrix { margin-top: 10px; }
+      .ws-all { margin-top: 10px; }
+      .ws-all summary { cursor: pointer; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+      .ws-tool { min-width: 0; max-width: 100%; }
+      .ws-subtabs button { font-family: var(--mono); font-size: 11px; }
+      /* Lens workspaces: the question, then each lens's main curiosity with its sliders under it. */
+      .ws-question { font-family: var(--serif); font-size: 18px; line-height: 1.35; margin: 4px 0 8px; padding: 8px 12px; border-left: 4px solid var(--saffron); background: var(--panel); max-width: 62ch; }
+      .ws-grid tr.ws-secrow th { background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+      .ws-grid tr.ws-main th { font-weight: 600; }
+      .ws-grid tr.ws-sub th { padding-left: 18px; font-weight: 400; }
+      .ws-lens { border-left: 3px solid var(--line); padding-left: 10px; margin: 10px 0; min-width: 0; }
+      .ws-lens > h4 { margin-top: 4px; }
+      .ws-lens .ws-q { margin: 0 0 6px; }
+      .ws-sliders { margin-top: 8px; }
+      #workspace .ws-sb .sb > h3:first-child { display: none; }
+      /* Lens marks on a panel (app.js): the words for clothes, set and color under the stage drawing. */
+      .lens-line { margin: -4px 0 0; font-family: var(--mono); font-size: 10px; line-height: 1.35; color: #3a3229; overflow-wrap: anywhere; }
+      .lens-line span { display: inline; margin-right: 6px; }
+      .lens-line b { color: var(--saffron); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; font-size: 9px; }
+      .stage.lensed { background: #fffaf2; height: auto; aspect-ratio: 200 / 90; }
+      .sb-thumb .stage.lensed { height: 29px; aspect-ratio: auto; }
+    </style>
   </head>
   <body>
     <header class="top">
       <div>
         <p>Wish Myself Well · a tool, also a product</p>
-        <h1>Curiosities</h1>
+        <h1>Curiomatic</h1>
         <p>
           Change a measurable thing about a scene and the storyboard changes.
           The same shop exists inside Season 5. Ida builds it. We build it here.
@@ -24,27 +125,106 @@
       </div>
       <p><a href="../../web/index.html#skits/5">Back to Book 05</a></p>
     </header>
-    <nav class="tabs" id="tabs">
-      <button type="button" data-tab="board" class="on">Board</button>
-      <button type="button" data-tab="study">Study</button>
-      <button type="button" data-tab="play">Play</button>
-      <button type="button" data-tab="catalog">Catalog</button>
-      <button type="button" data-tab="reference">Ensembles</button>
+    <nav class="tabs" id="tabs" aria-label="Workspaces">
+      <div class="tabs-top">
+        <button type="button" data-tab="board" class="on">My film</button>
+        <button type="button" data-tab="ws" data-ws="storyboard" title="Keep many scenes of My film and flip through them like a flip book.">Storyboard</button>
+        <div class="lib">
+          <button type="button" id="lib-btn" aria-haspopup="true" aria-expanded="false" aria-controls="lib-menu">Library</button>
+          <div class="lib-menu" id="lib-menu" hidden>
+            <button type="button" data-tab="study">Curated films<small>studies and the Shelf</small></button>
+            <button type="button" data-tab="prism">Prism<small>split a whole film</small></button>
+            <button type="button" data-tab="catalog">All curiosities<small>suites, proximities, moves</small></button>
+            <button type="button" data-tab="tool" data-tool="manual">Maya manual<small>every topic, and Start here</small></button>
+            <button type="button" data-tab="tool" data-tool="words">Words<small>every film and Maya word, in plain language</small></button>
+            <button type="button" data-tab="tool" data-tool="print">Print<small>pages and frames</small></button>
+            <button type="button" data-tab="reference">Show structure<small>companies and exits</small></button>
+            <button type="button" data-tab="automate">Automation patch bay<small>every automation at once</small></button>
+          </div>
+        </div>
+      </div>
+      <div class="tabs-ws" id="ws-buttons"></div>
     </nav>
     <main class="layout">
       <section class="controls" id="controls"></section>
       <section class="board" id="board"></section>
+      <section class="study workspace hidden" id="workspace" style="grid-column: 1 / -1"></section>
       <section class="catalog hidden" id="catalog" style="grid-column: 1 / -1"></section>
       <section class="ref hidden" id="ref" style="grid-column: 1 / -1"></section>
       <section class="study hidden" id="study" style="grid-column: 1 / -1"></section>
-      <section class="study play hidden" id="play" style="grid-column: 1 / -1"></section>
+      <section class="study studio hidden" id="studio" style="grid-column: 1 / -1"></section>
+      <section class="study automate hidden" id="automate" style="grid-column: 1 / -1"></section>
+      <section class="study prism hidden" id="prism" style="grid-column: 1 / -1"></section>
     </main>
+    <!-- Games (play.js, games.js) are paused until the curiosity model is fleshed out: kept in the folder, not loaded. -->
+    <script src="offline.js"></script>
     <script src="catalog.js"></script>
     <script src="library.js"></script>
+    <script src="story-curiosities.js"></script>
+    <script src="lenses.js"></script>
     <script src="model.js"></script>
+    <script src="data/curiosity-db.js"></script>
+    <script src="data/db-workspaces.js"></script>
+    <script src="data/db-catalog.js"></script>
+    <script src="data/db-catalog-sliders.js"></script>
+    <script src="data/db-music.js"></script>
+    <script src="data/db-emotion.js"></script>
+    <script src="data/db-comedy.js"></script>
+    <script src="data/db-design.js"></script>
+    <script src="data/db-look.js"></script>
+    <script src="data/db-character.js"></script>
+    <script src="data/db-story.js"></script>
+    <script src="data/db-feeling-comedy.js"></script>
+    <script src="data/db-mix-road.js"></script>
+    <script src="data/db-arc-body.js"></script>
+    <script src="data/db-proximity-words.js"></script>
+    <script src="data/db-model-scenes.js"></script>
+    <script src="data/db-finish.js"></script>
+    <script src="data/db-momentum.js"></script>
+    <script src="data/db-editing.js"></script>
+    <script>CuriosityDB.install({ CURIOSITIES, SUITES, PROXIMITIES });</script>
     <script src="reference.js"></script>
+    <script src="suites.js"></script>
+    <script src="engine/store.js"></script>
     <script src="app.js"></script>
+    <script src="story.js"></script>
     <script src="study.js"></script>
-    <script src="play.js"></script>
+    <script src="maya-manual.js"></script>
+    <script src="automation.js"></script>
+    <script src="bridge.js"></script>
+    <script src="trace.js"></script>
+    <script src="vcv/curiosity-jacks.js"></script>
+    <script src="vcv/bridge.js"></script>
+    <script src="storyboard.js"></script>
+    <script src="prism.js"></script>
+    <script src="automate.js"></script>
+    <script src="studio.js"></script>
+    <script src="studio-start.js"></script>
+    <script src="studio-manual.js"></script>
+    <script src="studio-camera.js"></script>
+    <script src="studio-curves.js"></script>
+    <script src="studio-light.js"></script>
+    <script src="studio-sequencer.js"></script>
+    <script src="studio-motion.js"></script>
+    <script src="studio-face.js"></script>
+    <script src="studio-rig.js"></script>
+    <script src="studio-crowd.js"></script>
+    <script src="studio-passes.js"></script>
+    <script src="studio-remix.js"></script>
+    <script src="studio-shading.js"></script>
+    <script src="studio-dynamics.js"></script>
+    <script src="studio-fur.js"></script>
+    <script src="studio-bifrost.js"></script>
+    <script src="studio-chain.js"></script>
+    <script src="studio-live.js"></script>
+    <script src="studio-print.js"></script>
+    <script src="project.js"></script>
+    <script src="workspaces.js"></script>
+    <script src="glossary.js"></script>
+    <script src="engine/load.js"></script>
+    <script src="momentum/load.js"></script>
+    <script src="screen/load.js"></script>
+    <script src="media/media.js"></script>
+    <script src="video/load.js"></script>
   </body>
 </html>

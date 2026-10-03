@@ -1,0 +1,67 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "TRANSITIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 49 to 60\n   1 Transition style\n   2 Clip animation\n   3 Fade in and out\n   4 Transition family\n   5 Intro and outro effect\n   6 Match cut\n   7 suite: Classic and gentle\n   8 pair: When cutting gets fast, transitions become plain cuts\n   9 pair: When the feeling turns dreamlike, shots dissolve\n  10 pair: When the pace speeds up then stops, the scene fades out\n  11 pair: When the pace races then stops, an outro effect closes it\n  12 pair: When the end loops into the start, the cut matches movement"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 8
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}

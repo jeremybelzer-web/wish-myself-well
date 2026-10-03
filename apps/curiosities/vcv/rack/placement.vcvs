@@ -1,0 +1,67 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "PLACEMENT\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 97 to 112\n   1 Object\n   2 Object path\n   3 Object speed\n   4 Object in frame\n   5 Number of people\n   6 Where they stand\n   7 Eyelines\n   8 Who is sharp\n   9 Look of the actor\n  10 Empty frame\n  11 Foreshortening\n  12 suite: Power staging\n  13 suite: Alone in the frame\n  14 pair: When an object enters, the frame becomes an insert\n  15 pair: When people get closer, they hold each other's look\n  16 pairs: Closing in"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 0
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}

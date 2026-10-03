@@ -1,0 +1,131 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "LIGHT & LOOK\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 2, CC 81 to 96\n   1 Key direction\n   2 Contrast\n   3 Color of the light\n   4 Lighting\n   5 Time of day\n   6 Softness\n   7 Rim light\n   8 Sources\n   9 Source in frame\n  10 Shaped light\n  11 Air\n  12 When the light changes\n  13 Brightness key\n  14 Render style\n  15 Ink line\n  16 Gloss\nCV-CC 2: MIDI channel 2, CC 97 to 112\n   1 Wetness\n   2 Light in skin\n   3 Something glows\n   4 Wear\n   5 Color saturation\n   6 Dominant color\n   7 Lighting\n   8 suite: Noir\n   9 suite: Golden hour\n  10 suite: Comic ink\n  11 suite: Wet night\n  12 suite: Clean product\n  13 suite: Neon night\n  14 suite: Candlelit\n  15 suite: Sitcom bright\n  16 suite: Interrogation\nCV-CC 3: MIDI channel 3, CC 1 to 8\n   1 pair: When the render goes toon, the ink line is heavy\n   2 pair: When a secret comes out, the face goes half lit\n   3 pair: After a loss, the color drains\n   4 pair: A flashback brings the faded look\n   5 pair: When danger rises, the shadows deepen\n   6 pair: A reunion warms the color\n   7 pairs: Weather and surface\n   8 pairs: Light follows feeling"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 1
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 1
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 2
+    }
+   },
+   "pos": [
+    40,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}

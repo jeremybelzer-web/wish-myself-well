@@ -278,3 +278,11 @@ table.cross td.expect { background: rgba(196, 92, 38, 0.15); outline: 1px solid 
 .catalog .prox-form input { font-family: var(--sans); font-size: 14px; background: white; cursor: text; width: 100%; }
 .catalog .chip { display: inline-block; font-family: var(--mono); font-size: 10px; border: 1px solid var(--line); padding: 2px 5px; margin: 0 4px 4px 0; background: white; }
 .catalog .mono { font-family: var(--mono); font-size: 11px; }
+
+/* Studio */
+.studio-body { display: block; }
+.studio-grid { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 16px; align-items: start; }
+@media (max-width: 760px) { .studio-grid { grid-template-columns: 1fr; } }
+.studio-body canvas, .studio-body svg.view { width: 100%; height: auto; display: block; border: 2px solid var(--ink); background: #fff; }
+button.linkish { background: none; border: 0; padding: 0; font: inherit; text-align: left; cursor: pointer; color: var(--ink); }
+table.manual select { width: auto; }
