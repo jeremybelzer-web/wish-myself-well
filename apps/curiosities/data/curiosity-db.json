@@ -51973,6 +51973,1029 @@
    }
   },
   {
+   "id": "multicamSwitch",
+   "level": "curiosity",
+   "label": "Multicam angle switching",
+   "plain": "Several cameras film the same moment at once, and the edit switches between them live (Final Cut's multicam clips).",
+   "workspace": "structure",
+   "also": [],
+   "group": "Editing (Final Cut Pro)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Switching",
+     "plain": "What decides when the picture jumps to another camera.",
+     "scale": [
+      "one angle",
+      "switch on the speaker",
+      "switch on reactions",
+      "switch on the beat",
+      "switch freely"
+     ],
+     "from": "one angle",
+     "to": "switch freely",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "angles",
+     "label": "Cameras filming at once",
+     "plain": "How many angles there are to switch between.",
+     "range": {
+      "min": 2,
+      "max": 16,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 16,
+     "curve": "linear"
+    },
+    {
+     "id": "rate",
+     "label": "Switches per minute",
+     "plain": "How often the picture changes camera.",
+     "range": {
+      "min": 0,
+      "max": 30,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 30,
+     "curve": "linear"
+    },
+    {
+     "id": "soundFrom",
+     "label": "Sound from",
+     "plain": "Where the sound comes from while the picture switches.",
+     "scale": [
+      "one angle",
+      "the angle shown",
+      "a separate recorder"
+     ],
+     "from": "one angle",
+     "to": "a separate recorder",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "editing",
+    "final-cut-pro",
+    "advanced"
+   ],
+   "momentum": {
+    "push": 2,
+    "plot": "Switching to whoever matters keeps the audience on the person the story is about right now.",
+    "theme": "Staying on one angle while the others talk says who the scene really belongs to.",
+    "pull": "Every switch is a small jolt that renews attention.",
+    "cue": "visual",
+    "tryThis": "Hold on the listener while the speaker says the important line."
+   }
+  },
+  {
+   "id": "colorWheels",
+   "level": "curiosity",
+   "label": "Color wheels",
+   "plain": "Pushing a color into the shadows, the midtones or the highlights separately (Final Cut's color wheels).",
+   "workspace": "grade",
+   "also": [],
+   "group": "Editing (Final Cut Pro)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Wheel pushed",
+     "plain": "Which part of the picture gets a color push.",
+     "scale": [
+      "none",
+      "shadows",
+      "midtones",
+      "highlights",
+      "all three"
+     ],
+     "from": "none",
+     "to": "all three",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "shadowHue",
+     "label": "Shadow color",
+     "plain": "The color laid into the dark parts.",
+     "scale": [
+      "neutral",
+      "cool blue",
+      "teal",
+      "green",
+      "warm orange",
+      "magenta"
+     ],
+     "from": "neutral",
+     "to": "magenta",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "highlightHue",
+     "label": "Highlight color",
+     "plain": "The color laid into the bright parts.",
+     "scale": [
+      "neutral",
+      "cool blue",
+      "teal",
+      "green",
+      "warm orange",
+      "magenta"
+     ],
+     "from": "neutral",
+     "to": "magenta",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "strength",
+     "label": "Strength",
+     "plain": "How strong the push is.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "editing",
+    "final-cut-pro",
+    "advanced"
+   ],
+   "momentum": {
+    "push": 1,
+    "plot": "A shift in the shadows' color can tell the audience the story has turned before anyone says so.",
+    "theme": "Cool shadows and warm faces is the look of a film about people warmer than their world.",
+    "pull": "Color the eye didn't expect pulls it to the part of the frame that changed.",
+    "cue": "visual",
+    "tryThis": "Turn the shadows cold the moment the secret comes out."
+   }
+  },
+  {
+   "id": "colorCurves",
+   "level": "curiosity",
+   "label": "Color curves",
+   "plain": "Bending the brightness or one color channel with a curve (Final Cut's color curves and hue/saturation curves).",
+   "workspace": "grade",
+   "also": [],
+   "group": "Editing (Final Cut Pro)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Curve shape",
+     "plain": "The shape bent into the picture's brightness.",
+     "scale": [
+      "flat",
+      "gentle S",
+      "strong S",
+      "faded blacks",
+      "crushed blacks",
+      "inverted"
+     ],
+     "from": "flat",
+     "to": "inverted",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "channel",
+     "label": "Channel",
+     "plain": "Which part of the color the curve bends.",
+     "scale": [
+      "all",
+      "red",
+      "green",
+      "blue",
+      "hue vs saturation"
+     ],
+     "from": "all",
+     "to": "hue vs saturation",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "How far the curve bends.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "editing",
+    "final-cut-pro",
+    "advanced"
+   ],
+   "momentum": {
+    "push": 1,
+    "plot": "A strong curve hardens a scene as it gets serious.",
+    "theme": "Faded blacks read as memory or nostalgia.",
+    "pull": "Contrast pulls the eye to the brightest face.",
+    "cue": "visual",
+    "tryThis": "Fade the blacks for the flashback, then crush them when you come back."
+   }
+  },
+  {
+   "id": "soundRoles",
+   "level": "curiosity",
+   "label": "Sound roles",
+   "plain": "Every sound is tagged as dialogue, music, effects or ambience, and each group is balanced as one (Final Cut's roles).",
+   "workspace": "audio-mix",
+   "also": [],
+   "group": "Editing (Final Cut Pro)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Leading role",
+     "plain": "Which group of sounds leads the mix here.",
+     "scale": [
+      "dialogue",
+      "music",
+      "effects",
+      "ambience"
+     ],
+     "from": "dialogue",
+     "to": "ambience",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "dialogue",
+     "label": "Dialogue level",
+     "plain": "How loud the voices sit.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "music",
+     "label": "Music level",
+     "plain": "How loud the music sits.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effects",
+     "label": "Effects level",
+     "plain": "How loud the sound effects sit.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "editing",
+    "final-cut-pro",
+    "advanced"
+   ],
+   "momentum": {
+    "push": 2,
+    "plot": "Letting music lead over the voices tells the audience the feeling matters more than the words now.",
+    "theme": "Ambience leading makes the place a character.",
+    "pull": "Whatever leads the mix is what the ear follows.",
+    "cue": "audio",
+    "tryThis": "Drop the dialogue under the music for the one line nobody should hear."
+   }
+  },
+  {
+   "id": "sideStoryline",
+   "level": "curiosity",
+   "label": "Side storyline",
+   "plain": "A run of clips riding above the main story: cutaways, a montage under a speech, a second story told at the same time (Final Cut's connected storylines).",
+   "workspace": "layers",
+   "also": [],
+   "group": "Editing (Final Cut Pro)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Side storyline",
+     "plain": "How much is told above the main story.",
+     "scale": [
+      "none",
+      "a few cutaways",
+      "a running montage",
+      "a second story"
+     ],
+     "from": "none",
+     "to": "a second story",
+     "curve": "linear"
+    },
+    {
+     "id": "share",
+     "label": "Share of screen time",
+     "plain": "How much of the time the side storyline holds the screen.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "tiedTo",
+     "label": "Tied to",
+     "plain": "What the side clips are cut to.",
+     "scale": [
+      "the words",
+      "the music",
+      "its own timing"
+     ],
+     "from": "the words",
+     "to": "its own timing",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "editing",
+    "final-cut-pro",
+    "advanced"
+   ],
+   "momentum": {
+    "push": 3,
+    "plot": "A second story under the first lets two plot lines move forward at once.",
+    "theme": "Cutting to the side story on a key word makes the two comment on each other.",
+    "pull": "Cutaways give the eye something new while the ear keeps the thread.",
+    "cue": "plot",
+    "tryThis": "Lay the heist under the toast at the wedding."
+   }
+  },
+  {
+   "id": "nestedScene",
+   "level": "curiosity",
+   "label": "Nested scene",
+   "plain": "A group of shots packed into one piece that moves, repeats and changes as a unit (Final Cut's compound clips).",
+   "workspace": "structure",
+   "also": [],
+   "group": "Editing (Final Cut Pro)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Nesting",
+     "plain": "How much is packed into one piece.",
+     "scale": [
+      "none",
+      "a group of shots",
+      "a whole sequence",
+      "a scene inside a scene"
+     ],
+     "from": "none",
+     "to": "a scene inside a scene",
+     "curve": "linear"
+    },
+    {
+     "id": "reuse",
+     "label": "Used again",
+     "plain": "Whether the packed piece comes back.",
+     "scale": [
+      "once",
+      "twice",
+      "as a motif"
+     ],
+     "from": "once",
+     "to": "as a motif",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "editing",
+    "final-cut-pro",
+    "advanced"
+   ],
+   "momentum": {
+    "push": 2,
+    "plot": "A sequence that comes back unchanged tells the audience something has, or hasn't, changed around it.",
+    "theme": "A repeated piece becomes a motif the film can lean on.",
+    "pull": "A familiar sequence returning makes the audience compare.",
+    "cue": "thought",
+    "tryThis": "Repeat the morning routine sequence, then break it at the end."
+   }
+  },
+  {
+   "id": "retimeQuality",
+   "level": "curiosity",
+   "label": "Slow motion quality",
+   "plain": "How the in-between frames of slow motion are made: repeated, blended, or invented (Final Cut's frame sampling, frame blending and optical flow).",
+   "workspace": "speed",
+   "also": [],
+   "group": "Editing (Final Cut Pro)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Frames made by",
+     "plain": "How smooth slowed-down footage looks.",
+     "scale": [
+      "repeating frames",
+      "frame blending",
+      "optical flow"
+     ],
+     "from": "repeating frames",
+     "to": "optical flow",
+     "curve": "linear"
+    },
+    {
+     "id": "smoothness",
+     "label": "Smoothness",
+     "plain": "How fluid the slow motion feels.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "editing",
+    "final-cut-pro",
+    "advanced"
+   ],
+   "momentum": {
+    "push": 1,
+    "plot": "Smooth slow motion stretches a moment the story wants remembered.",
+    "theme": "Stuttering slow motion feels raw and real; silky slow motion feels like a dream.",
+    "pull": "Silky motion holds the eye on the moment.",
+    "cue": "movement",
+    "tryThis": "Use stuttering slow motion for the fall and silky for the catch."
+   }
+  },
+  {
+   "id": "editFocus",
+   "level": "curiosity",
+   "label": "Focus changed in the edit",
+   "plain": "Moving the focus after filming, from one person or thing to another (Final Cut's Cinematic mode editing).",
+   "workspace": "canvas",
+   "also": [],
+   "group": "Editing (Final Cut Pro)",
+   "kind": "measure",
+   "per": "panel",
+   "main": "setting",
+   "sliders": [
+    {
+     "id": "setting",
+     "label": "Focus",
+     "plain": "Where the focus goes.",
+     "scale": [
+      "as filmed",
+      "pull to the speaker",
+      "pull to the listener",
+      "pull to an object",
+      "rack back and forth"
+     ],
+     "from": "as filmed",
+     "to": "rack back and forth",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "blur",
+     "label": "Background blur",
+     "plain": "How soft everything out of focus gets.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "pullSpeed",
+     "label": "Pull speed",
+     "plain": "How fast the focus moves.",
+     "scale": [
+      "snap",
+      "quick",
+      "slow"
+     ],
+     "from": "snap",
+     "to": "slow",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "editing",
+    "final-cut-pro",
+    "advanced"
+   ],
+   "momentum": {
+    "push": 2,
+    "plot": "Pulling focus to an object tells the audience it will matter.",
+    "theme": "Focus on the listener says the reaction is the story.",
+    "pull": "The eye goes wherever the focus lands.",
+    "cue": "visual",
+    "tryThis": "Pull focus to the gun on the table, then back to the smile."
+   }
+  },
+  {
    "id": "animFeelLens",
    "level": "curiosity",
    "label": "Animation feel",
@@ -83902,6 +84925,127 @@
    "tags": []
   },
   {
+   "id": "final-cut-finish",
+   "level": "suite",
+   "label": "Final Cut finishing pass",
+   "plain": "A pro finishing pass: warm highlights on the wheels, a gentle S curve, dialogue leading the mix, and silky slow motion.",
+   "workspace": "grade",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "colorWheels",
+     "value": "highlights"
+    },
+    {
+     "weight": 100,
+     "curiosity": "colorCurves",
+     "value": "gentle S"
+    },
+    {
+     "weight": 100,
+     "curiosity": "soundRoles",
+     "value": "dialogue"
+    },
+    {
+     "weight": 100,
+     "curiosity": "retimeQuality",
+     "value": "optical flow"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:colorWheels",
+     "label": "Weight of colorWheels",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:colorCurves",
+     "label": "Weight of colorCurves",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:soundRoles",
+     "label": "Weight of soundRoles",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:retimeQuality",
+     "label": "Weight of retimeQuality",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "advanced"
+   ]
+  },
+  {
    "id": "cartoon-bounce",
    "level": "suite",
    "label": "Cartoon bounce",
@@ -103061,6 +104205,272 @@
    ],
    "source": "Final Cut Pro and CapCut",
    "tags": []
+  },
+  {
+   "id": "speaker-angle-dialogue",
+   "level": "proximity",
+   "label": "When the multicam switches on the speaker, dialogue leads the mix",
+   "plain": "When the multicam switches on the speaker, dialogue leads the mix at once.",
+   "workspace": "audio-mix",
+   "also": [
+    "structure"
+   ],
+   "when": {
+    "curiosity": "multicamSwitch",
+    "is": "switch on the speaker"
+   },
+   "then": {
+    "curiosity": "soundRoles",
+    "is": "dialogue"
+   },
+   "whenText": "the multicam switches on the speaker",
+   "thenText": "dialogue leads the mix",
+   "within": 0,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "advanced"
+   ]
+  },
+  {
+   "id": "montage-music-leads",
+   "level": "proximity",
+   "label": "When a running montage rides above the story, the music leads",
+   "plain": "When a running montage rides above the story, the music leads at once.",
+   "workspace": "audio-mix",
+   "also": [
+    "layers"
+   ],
+   "when": {
+    "curiosity": "sideStoryline",
+    "is": "a running montage"
+   },
+   "then": {
+    "curiosity": "soundRoles",
+    "is": "music"
+   },
+   "whenText": "a running montage rides above the story",
+   "thenText": "the music leads",
+   "within": 0,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 2,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "advanced"
+   ]
+  },
+  {
+   "id": "object-focus-push",
+   "level": "proximity",
+   "label": "When the focus pulls to an object, the shadows turn",
+   "plain": "When the focus pulls to an object, the shadow color changes within 1 beat.",
+   "workspace": "grade",
+   "also": [
+    "canvas"
+   ],
+   "when": {
+    "curiosity": "editFocus",
+    "is": "pull to an object"
+   },
+   "then": {
+    "curiosity": "colorWheels",
+    "change": "changes"
+   },
+   "whenText": "the focus pulls to an object",
+   "thenText": "the shadows turn",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "Final Cut Pro",
+   "tags": [
+    "advanced"
+   ]
   },
   {
    "id": "crash-shake",
