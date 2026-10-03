@@ -59,6 +59,10 @@
   function A() {
     return window.CurioAuto;
   }
+  /* Outside modulation sources other parts register (CurioAuto.addSource), as [mod, label] choices. */
+  function srcChoices() {
+    return A() && A().sources ? A().sources().map((x) => [x.mod, x.label]) : [];
+  }
   function esc(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
@@ -230,7 +234,7 @@
       </div>
       <div class="au-lane-body">
         <div class="au-row"><label class="cap">from ${lanePicker(l, "from")}</label><label class="cap">to ${lanePicker(l, "to")}</label><label class="cap">curve ${curveSelect("data-lane-curve", l.curve)}</label></div>
-        <div class="au-row"><label class="cap">moved by <select data-lane-mod>${[["follow", "follows the main lane"], ["lfo", "its own LFO"], ["manual", "a knob"], ["midi", "a MIDI control"]].map(([v, n]) => `<option value="${v}"${mod === v ? " selected" : ""}>${n}</option>`).join("")}</select></label>
+        <div class="au-row"><label class="cap">moved by <select data-lane-mod>${[["follow", "follows the main lane"], ["lfo", "its own LFO"], ["manual", "a knob"], ["midi", "a MIDI control"], ...srcChoices()].map(([v, n]) => `<option value="${v}"${mod === v ? " selected" : ""}>${n}</option>`).join("")}</select></label>
           ${mod === "lfo" ? `<label class="cap">shape <select data-lane-shape>${SHAPES.map((s) => `<option${(l.shape || "sine") === s ? " selected" : ""}>${s}</option>`).join("")}</select></label><label class="cap">rate <input type="number" data-lane-rate min="0.05" max="10" step="0.05" value="${Number(l.rate) || 0.5}"> Hz</label>` : ""}
           ${mod === "manual" || mod === "midi" ? `<label class="au-knob au-lknob"><span>${mod === "midi" ? "MIDI value" : "Knob"}</span><input type="range" data-lane-manual min="0" max="1" step="0.01" value="${Number(l.manual) || 0}"></label>` : ""}
           ${mod === "midi" ? `<button type="button" data-lane-learn>${learning ? "Move a MIDI control…" : "Learn"}</button><span class="cap">${esc(bind ? bindingText(bind) : "")}</span>${bind ? `<button type="button" class="link" data-lane-unbind>Clear</button>` : ""}` : ""}
@@ -329,12 +333,16 @@
           ${sweepHtml("data-main-across", pt.across)}
           <div class="au-row">
             <span class="au-lab">Moved by</span>
-            <div class="au-seg">${["lfo", "manual", "midi"].map((m) => `<button type="button" data-mod="${m}" class="${pt.mod === m ? "on" : ""}">${m === "lfo" ? "LFO" : m === "midi" ? "MIDI CC" : "Knob"}</button>`).join("")}</div>
+            <div class="au-seg">${["lfo", "manual", "midi"].map((m) => `<button type="button" data-mod="${m}" class="${pt.mod === m ? "on" : ""}">${m === "lfo" ? "LFO" : m === "midi" ? "MIDI CC" : "Knob"}</button>`).join("")}${srcChoices()
+              .map(([m, n]) => `<button type="button" data-mod="${esc(m)}" class="${pt.mod === m ? "on" : ""}">${esc(n)}</button>`)
+              .join("")}</div>
           </div>
           ${
             pt.mod === "lfo"
               ? `<div class="au-row"><span class="au-lab">Shape</span><div class="au-seg">${SHAPES.map((s) => `<button type="button" data-shape="${s}" class="${pt.shape === s ? "on" : ""}">${s}</button>`).join("")}</div></div>
                  <div class="au-knobs">${knob("rate", "Rate Hz", 0.05, 10, 0.05, pt.rate, (v) => Number(v).toFixed(2))}${knob("depth", "Depth", 0, 1, 0.05, pt.depth, (v) => Math.round(v * 100) + "%")}</div>`
+              : /^source:/.test(pt.mod || "")
+              ? `<div class="au-knobs">${knob("depth", "Depth", 0, 1, 0.05, pt.depth, (v) => Math.round(v * 100) + "%")}</div>`
               : `<div class="au-knobs">${knob("manual", pt.mod === "midi" ? "CC value" : "Knob", 0, 1, 0.01, pt.manual, (v) => Number(v).toFixed(2))}</div>`
           }
           <canvas class="au-scope" data-r="scope" width="300" height="70"></canvas>`;

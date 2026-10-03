@@ -85,7 +85,7 @@
       id: "measured-" + (study.id || "film"),
       title: study.title || study.name || "Traced film",
       estimate: false,
-      source: `Measured from a trace of ${r.beats} beats, ${round(r.seconds)} seconds`,
+      source: `Measured from a trace of ${r.beats} moments, ${round(r.seconds)} seconds`,
       switchesPerMinute: s.switchesPerMinute,
       medianDwell: s.medianDwell,
       medianFamilyRun: s.medianFamilyRun,
