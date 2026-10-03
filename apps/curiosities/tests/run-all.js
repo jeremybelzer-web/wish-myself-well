@@ -53,6 +53,7 @@ const suites = [
   { name: "screen", ...node("screen/tests/run.js") },
   { name: "momentum", ...node("momentum/tests/run.js") },
   { name: "video", ...node("video/tests/run.js") },
+  { name: "cloud saving (off)", ...node("sync/tests/run.js") },
   { name: "site files committed", ...node("core/site-check.js") },
   { name: "desktop bridge", ...node("desktop/check.js"), needs: fs.existsSync(path.join(APP, "desktop/node_modules/ws")) ? "" : "desktop/node_modules (npm install in desktop/)" },
   { name: "maya camera", ...py("maya/tests/test_curio_camera.py") },

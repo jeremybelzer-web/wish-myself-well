@@ -32,6 +32,7 @@ Blender). The exit code is 1 when anything failed. GitHub runs the quick and bro
 | screen | `screen/tests/run.js` | the Screen's levels, lanes, nodes, proximities, copy, paste and undo |
 | momentum | `momentum/tests/run.js` | film profiles, the compass, attention and cue lanes |
 | video | `video/tests/run.js`, `video/tests/browser.js` | taking a clip apart into lanes and applying it, with and without a browser |
+| cloud saving | `sync/tests/run.js` | the (still switched off) cloud saving merges a project part by part |
 | site files | `core/site-check.js` | every file the page loads is committed, so it works when hosted |
 | desktop bridge | `desktop/check.js` | OSC and WebSocket messages for the desktop app |
 | maya, resolve, unreal, blender | `*/tests/test_*.py` | the camera mapping and each add-on (Blender needs Blender) |
