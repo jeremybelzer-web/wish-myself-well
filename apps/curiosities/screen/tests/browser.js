@@ -2040,6 +2040,77 @@ const ok = (cond, msg) => {
   await page.click("[data-screen]");
   ok(await page.evaluate(() => window.CurioScreen.isOpen()), "the bar's Screen button opens it");
 
+  /* ---------- Small screens: a short laptop with the Momentum dock, and tap-sized group headers on a phone ----------
+     Each check opens the Screen fresh in its own browser context (its own window size and storage). */
+  {
+    const fresh = async (opts) => {
+      const ctx = await browser.newContext(opts);
+      const p = await ctx.newPage();
+      p.on("pageerror", (e) => errors.push(String(e)));
+      await p.goto(base + "index.html?screen=1");
+      await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+      return { ctx, p };
+    };
+    /* Both viewers keep a usable height with the Momentum column docked beside the Player: each whole frame is in
+       view without scrolling the viewers, and the docked column is still there beside them. */
+    const viewerGeo = (p) =>
+      p.evaluate(() => {
+        const r = (e) => e.getBoundingClientRect();
+        const v = document.querySelector(".sc-player > .sc-viewers");
+        const vr = r(v);
+        const frames = [...v.querySelectorAll(".sc-viewer .sc-frame")].map((f) => { const b = r(f); return { w: Math.round(b.width), h: Math.round(b.height), inView: b.top >= vr.top - 1 && b.bottom <= vr.bottom + 1 }; });
+        const dock = document.querySelector('.sc-player > .sc-docks > .sc-dock[data-panel="momentum"]');
+        const col = document.querySelector(".sc-player > .sc-docks");
+        const pl = r(document.querySelector(".sc-player"));
+        return { frames, vh: Math.round(vr.height), spill: v.scrollHeight - v.clientHeight, dock: !!dock, dockH: col ? Math.round(r(col).height) : 0, beside: col ? r(col).left >= vr.right - 1 : false, colTop: col ? Math.round(r(col).top - pl.top) : -1 };
+      });
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 1280, height: 800 } });
+      await p.waitForSelector('.sc-player > .sc-docks > .sc-dock[data-panel="momentum"]', { timeout: 10000 }).catch(() => {});
+      await p.waitForTimeout(300);
+      const g = await viewerGeo(p);
+      await p.screenshot({ path: path.join(SHOTS, "screen-7-laptop-1280x800.png") });
+      ok(g.dock && g.beside && g.dockH >= 150, `at 1280×800 the Momentum panel stays docked beside the viewers (${g.dockH}px tall)`);
+      ok(g.frames.length === 2 && g.frames.every((f) => f.inView && f.h >= 80 && f.w >= 140) && g.spill <= 8 && g.vh >= 190, `at 1280×800 with the Momentum dock both frames are whole and in view (viewers ${g.vh}px tall, frames ${g.frames.map((f) => f.w + "×" + f.h).join(", ")}, ${g.spill}px to scroll)`);
+      await ctx.close();
+    }
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 1440, height: 1000 } });
+      await p.waitForSelector('.sc-player > .sc-docks > .sc-dock[data-panel="momentum"]', { timeout: 10000 }).catch(() => {});
+      await p.waitForTimeout(300);
+      const g = await viewerGeo(p);
+      ok(g.dock && g.beside && g.colTop <= 1 && g.frames.every((f) => f.inView && f.h >= 100), `at 1440×1000 the Momentum column still runs the Player's full height beside the viewers (frames ${g.frames.map((f) => f.w + "×" + f.h).join(", ")})`);
+      await ctx.close();
+    }
+    /* On a phone a lane group's header row is at least 32px, in the name column and in the picture alike, and the
+       first lane under it starts where the header ends. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      await p.evaluate(() => [...document.querySelectorAll('[data-add-card^="curiosity|"]')].slice(0, 2).forEach((b) => b.click()));
+      await p.click('[data-icat="transitions"]');
+      await p.click('[data-add-card="curiosity|transitionKind"]');
+      await p.waitForTimeout(200);
+      const gg = await p.evaluate(() => {
+        const heads = [...document.querySelectorAll(".sl-heads .sl-ghead")];
+        const h0 = heads[0];
+        const next = h0 && h0.nextElementSibling;
+        return {
+          n: heads.length,
+          rows: heads.map((h) => Math.round(h.getBoundingClientRect().height)),
+          fold: heads.map((h) => Math.round(h.querySelector(".sl-fold").getBoundingClientRect().height)),
+          bands: [...document.querySelectorAll(".sl-svg .sl-gbg")].map((r) => Number(r.getAttribute("height"))),
+          gh: window.CurioLanes.GROUP_H,
+          joined: !!next && next.classList.contains("sl-head") && Math.abs(next.getBoundingClientRect().top - h0.getBoundingClientRect().bottom) <= 1,
+        };
+      });
+      const tl = await p.$(".sc-timeline");
+      if (tl) await tl.screenshot({ path: path.join(SHOTS, "screen-7-phone-groups.png") });
+      ok(gg.n >= 1 && gg.gh >= 32 && gg.rows.every((h) => h >= 32) && gg.fold.every((h) => h >= 28), `on a phone the lane group headers are big enough to tap (rows ${gg.rows.join(", ")}px, fold buttons ${gg.fold.join(", ")}px)`);
+      ok(gg.bands.length === gg.n && gg.bands.every((h) => h === gg.gh) && gg.joined, "on a phone the group rows in the picture match the headers, and the lanes start where each header ends");
+      await ctx.close();
+    }
+  }
+
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
   server.close();
