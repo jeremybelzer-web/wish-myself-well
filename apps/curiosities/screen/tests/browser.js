@@ -1181,6 +1181,10 @@ const ok = (cond, msg) => {
     ok(!(await band()) && !(await page.$(".sl-atthead")) && (await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")).attention === false)), "Attention off hides the track and is kept in curiosities-screen-tools-v1");
     await page.reload();
     await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    if (momLane) {
+      await page.waitForFunction(() => window.CurioMomentumLane && window.CurioMomentumLane.attached(), null, { timeout: 15000 });
+      await page.evaluate(() => { window.CurioMomentumLane.detach(); window.dispatchEvent(new Event("resize")); });
+    }
     ok(!(await band()), "it stays hidden after a reload");
     await page.click('[data-act="attention-track"]');
     ok((await band()).state === "on", "Attention on brings it back");
