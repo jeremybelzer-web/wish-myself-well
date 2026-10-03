@@ -199,22 +199,25 @@
       return loud > -60 && mx > floor && om > 0.5;
     });
   }
-  /* Accents: onsets that stand out (well above the usual onset), at least 0.25 s apart, strongest first. */
-  function accents(o, db, hop) {
+  /* Accents: onsets that stand out (well above the usual onset), at least apart seconds (0.25) apart, strongest
+     first. */
+  function accents(o, db, hop, apart) {
     const n = o.length;
     const loud = pct(db, 0.98);
     const nz = Array.from(o).filter((v) => v > 0);
     if (!nz.length || loud < -60) return [];
-    const thr = Math.max(pct(nz, 0.9), mean(nz) * 3);
-    const gap = Math.round(0.25 / hop);
+    const thr = Math.max(pct(nz, 0.9), mean(nz) * 2);
+    const gap = Math.round((apart || 0.25) / hop);
     const peaks = [];
     for (let i = 1; i < n - 1; i++) if (o[i] >= thr && o[i] >= o[i - 1] && o[i] > o[i + 1]) peaks.push(i);
-    peaks.sort((a, b) => o[b] - o[a]);
+    /* the hardest hit is the loudest just after its onset */
+    const hit = (i) => Math.max(...Array.from(db.subarray(i, Math.min(n, i + 5))));
+    peaks.sort((a, b) => hit(b) - hit(a));
     const keep = [];
     peaks.forEach((i) => {
       if (keep.every((k) => Math.abs(k - i) >= gap)) keep.push(i);
     });
-    return keep.sort((a, b) => a - b);
+    return keep; /* loudest first */
   }
   function find(pcm, rate, opts) {
     opts = opts || {};
@@ -228,7 +231,13 @@
       for (let k = Math.max(0, i - 2); k <= Math.min(O.o.length - 1, i + 2); k++) m = Math.max(m, O.o[k]);
       return m;
     };
-    const acc = accents(O.o, O.db, O.hop).map((i) => r3(i * O.hop + O.t0));
+    /* the hardest hits only: about one every two beats, never closer than a beat and a half, so the flashes stay special */
+    const all = accents(O.o, O.db, O.hop, Math.max(0.25, 1.5 * T.period));
+    const most = Math.max(2, Math.round(dur / (2 * (T.period || 1))));
+    const acc = all
+      .slice(0, most)
+      .sort((a, b) => a - b)
+      .map((i) => r3(i * O.hop + O.t0));
     /* a clear beat: the onsets repeat strongly, and the beats found cover most of the clip */
     let beats = T.period ? track(O.o, O.db, O.hop, T.period).map((i) => i * O.hop + O.t0) : [];
     const covered = beats.length * T.period;
@@ -339,7 +348,7 @@
     let zoom = 1;
     if (k >= 0) {
       const b = B.beats[k];
-      const close = k % 2 === 0 ? 1 + 0.3 * amt * (0.6 + 0.4 * b.s) : 1;
+      const close = k % 2 === 0 ? 1 + 0.4 * amt * (0.6 + 0.4 * b.s) : 1;
       zoom = close * (1 + 0.08 * amt * Math.exp(-(t - b.t) / 0.15));
       /* when the people are known, punch in on them */
       const T = p.target;

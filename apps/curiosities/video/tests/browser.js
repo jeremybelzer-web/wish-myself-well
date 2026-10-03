@@ -248,7 +248,9 @@ const ok = (cond, text) => {
     return { loud: rms(withM, 1.2, 1.8) - rms(own, 1.2, 1.8), quiet: rms(withM, 2.2, 2.8) - rms(own, 2.2, 2.8) };
   });
   ok(mix.loud > 0.05 && mix.loud > mix.quiet + 0.05, "its music is mixed under your sound, loud where it is loud: " + JSON.stringify(mix));
-  if (rh && rh.beats.length) {
+  /* the made-up inspiration has only two loud starts (no beat, no cuts): give it four beats so the check runs */
+  if (!rh || rh.beats.length < 4) await page.evaluate(() => (window.CurioVideoUI.state().a.rhythm = window.CurioRhythm.fromCuts([0.5, 1.5, 2.5, 3.5], 4.2)));
+  {
     await page.uncheck('[data-on="palette"]');
     await page.check('[data-on="rhythm"]');
     await page.check('[data-on="music"]');
