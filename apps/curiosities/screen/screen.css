@@ -431,9 +431,13 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 .sl-ticks span { font-size: 8px; max-width: 58px; overflow: hidden; text-overflow: ellipsis; }
 .sc-colors button > span:last-child { flex: 1; text-align: left; }
 
-/* ---------- Area tools (Reverse, Flip, Stretch, Squeeze) and storyboard frames on My film's clip track ---------- */
+/* ---------- Area tools (Reverse, Flip, Stretch, Squeeze, Freeze, Shape) and storyboard frames on My film's clip track ---------- */
 .sl-areatools { margin-left: 2px; }
 .sc-page .sl-areatools button { color: var(--cc-accent); }
+/* Shape ▾: the ready-made shapes for a selected area, two to a row. */
+.sl-shapemenu { width: 260px; max-width: calc(100vw - 32px); }
+.sl-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 4px 0 2px; }
+.sl-presets button { text-align: left; }
 .sl-thumb { pointer-events: none; }
 .sl-clip.has-thumb rect { fill: #174e55; }
 /* Keyframe jumps (CapCut's ◀ ◆ ▶): in Details, jump to the key before or after the playhead. */

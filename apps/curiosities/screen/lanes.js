@@ -653,6 +653,135 @@
     });
     return { cmds, nodes };
   }
+  /* ---------- area tools: Freeze and Shape (CapCut's Freeze frame and Speed > Curve presets, for settings) ----------
+     Both rewrite each selected lane's nodes over the area as one batch. laneSeries gives what a lane itself plays at
+     every moment (the engine's own rule: before the first node its setting, after the last node its setting, and
+     glide, smooth or jump between). rewriteArea puts a lane's new values (j -> value) in place of its nodes inside
+     the area: sets go before removes so a lane never empties, a join to a node that is gone is removed, and a join
+     to a node whose setting changed is kept in step (as Flip does). */
+  function laneSeries(st, lane, cur) {
+    const ix = {};
+    st.rows.forEach((r, i) => (ix[r.id] = i));
+    const pts = Object.keys(lane.points)
+      .filter((r) => ix[r] != null)
+      .map((r) => ({ i: ix[r], v: lane.points[r] }))
+      .sort((a, b) => a.i - b.i);
+    return st.rows.map((_, i) => {
+      if (!pts.length) return null;
+      let a = null;
+      let b = null;
+      for (const p of pts) {
+        if (p.i <= i) a = p;
+        if (p.i >= i && !b) b = p;
+      }
+      if (!a) return b.v;
+      if (!b || a === b || lane.mode === "hold") return a.v;
+      const pa = S().pos(cur, a.v);
+      const pb = S().pos(cur, b.v);
+      let t = (i - a.i) / (b.i - a.i);
+      if (lane.mode === "smooth") t = t * t * (3 - 2 * t);
+      return pa == null || pb == null ? a.v : S().at(cur, pa + (pb - pa) * t);
+    });
+  }
+  function rewriteArea(st, ar, edits) {
+    const sets = [];
+    const removes = [];
+    const changed = {};
+    const gone = new Set();
+    edits.forEach(({ ln, lane, put }) => {
+      for (let j = ar.j0; j <= ar.j1; j++) {
+        const r = st.rows[j].id;
+        const had = lane.points[r];
+        const v = put[j];
+        if (v == null) {
+          if (had != null) removes.push({ type: "removePoint", row: r, track: ln.track, curiosity: ln.cur }), gone.add(nodeKey(r, ln.lk));
+        } else if (had == null || String(had) !== String(v)) {
+          sets.push({ type: "setPoint", row: r, track: ln.track, curiosity: ln.cur, value: v });
+          if (had != null) changed[nodeKey(r, ln.lk)] = v;
+        }
+      }
+    });
+    const links = [];
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends) return;
+      if (ends.some((k) => gone.has(k))) return links.push({ type: "removeLink", link: l.id });
+      if (changed[ends[0]] != null && l.from.is != null) links.push({ type: "updateLink", link: l.id, changes: { from: { is: changed[ends[0]] } } });
+      if (changed[ends[1]] != null && l.does === "set") links.push({ type: "updateLink", link: l.id, changes: { value: changed[ends[1]] } });
+    });
+    return sets.concat(removes, links);
+  }
+  /* Freeze: every selected lane holds the setting it has at the area's first moment until its last moment. The
+     nodes inside go; a node at the first and last moment carry that one setting, so nothing drifts in between
+     (glide, smooth or jump alike). Returns { cmds, nodes, lanes }. */
+  function freezeAreaCommands(st, lanes, ar) {
+    const edits = [];
+    let nodes = 0;
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      const v = laneSeries(st, lane, ln.cur)[ar.j0];
+      if (v == null) continue;
+      const put = { [ar.j0]: v, [ar.j1]: v };
+      edits.push({ ln, lane, put });
+      nodes += ar.j1 > ar.j0 ? 2 : 1;
+    }
+    return { cmds: rewriteArea(st, ar, edits), nodes, lanes: edits.length };
+  }
+  /* Shape presets (CapCut's speed curves, Montage, Hero, Bullet and so on, used on settings instead of speed).
+     [name, what it does, f(k, n) -> 0..1 at moment k of the area's n + 1 moments, follows the lane's direction].
+     A preset that follows the direction falls instead of rising when the lane ends lower than it starts. */
+  const PRESETS = {
+    easeIn: ["Ease in", "Ease in: starts slowly, then speeds up to the finish.", (k, n) => Math.pow(k / n, 2), true],
+    easeOut: ["Ease out", "Ease out: moves fast at first, then settles gently.", (k, n) => 1 - Math.pow(1 - k / n, 2), true],
+    riseFall: ["Rise and fall", "Rise and fall: climbs to its highest in the middle, then comes back down (a montage).", (k, n) => Math.sin(Math.PI * (k / n)), false],
+    pulse: ["Pulse", "Pulse: a quick flash to its highest in the middle, low before and after.", (k, n) => (k > 0 && k < n && Math.abs(k - n / 2) < 1 ? 1 : 0), false],
+    holdJump: ["Hold then jump", "Hold then jump: stays still, then changes all at once at the last moment (a hero moment).", (k, n) => (k === n ? 1 : 0), true],
+    build: ["Build", "Build: climbs in a few even steps, like stairs.", (k, n) => { const L = Math.min(4, n + 1); return Math.min(1, Math.floor((k / n) * L) / (L - 1)); }, true],
+  };
+  /* Shape: each selected lane's settings over the area, rewritten by a preset between the lane's own lowest and
+     highest setting there. Nodes go on whole moments only, and only where the shape bends (a flat run keeps its
+     two ends). A lane that holds one setting over the whole area has nothing to shape and is left alone (flat).
+     Returns { cmds, nodes, lanes, flat } or { error }. */
+  function shapeAreaCommands(st, lanes, ar, preset) {
+    const p = PRESETS[preset];
+    if (!p) return { error: "There is no shape called " + preset + "." };
+    const n = ar.j1 - ar.j0;
+    if (n < 1) return { error: "Select at least two moments to shape." };
+    const edits = [];
+    let nodes = 0;
+    let flat = 0;
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      const series = laneSeries(st, lane, ln.cur);
+      const pos = [];
+      for (let j = ar.j0; j <= ar.j1; j++) pos.push(S().pos(ln.cur, series[j]));
+      if (pos.some((x) => x == null)) continue;
+      const lo = Math.min(...pos);
+      const hi = Math.max(...pos);
+      if (hi - lo < 1e-9) {
+        flat++;
+        continue;
+      }
+      const down = p[3] && pos[n] < pos[0];
+      const vals = pos.map((_, k) => {
+        const f = Math.max(0, Math.min(1, p[2](k, n)));
+        return S().fix(ln.cur, S().at(ln.cur, down ? hi - (hi - lo) * f : lo + (hi - lo) * f));
+      });
+      const put = {};
+      vals.forEach((v, k) => {
+        if (v == null) return;
+        if (k > 0 && k < n && String(vals[k - 1]) === String(v) && String(vals[k + 1]) === String(v)) return;
+        put[ar.j0 + k] = v;
+        nodes++;
+      });
+      edits.push({ ln, lane, put });
+    }
+    return { cmds: rewriteArea(st, ar, edits), nodes, lanes: edits.length, flat };
+  }
   /* Move the selected area's nodes d moments later (d < 0: earlier), like dragging a group of clips sideways in
      CapCut. copy: the originals stay and a copy lands d moments away (Alt while dropping). The block is the whole
      area: whatever its lanes had over the moments it lands on is replaced, so one undo brings that back too. Sets
@@ -1029,7 +1158,7 @@
           <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
-          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}</span>` : ""}
+          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}</span>` : ""}
           ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
           <span class="sl-seg" role="group" aria-label="Markers">${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off. Double-click a marker's flag on the ruler to write a note or change its color.")}${tb("marker-list", `Markers${marked.length ? " " + marked.length : ""} ▾`, "Every marker in your film, with its note: click one to move the playhead there")}</span>
           ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
@@ -1625,6 +1754,7 @@
       if (act === "curves") return command("curves");
       if (act === "link-settings") return linkSettings();
       if (act === "marker-list") return markerList(b);
+      if (act === "area-shape") return shapeMenu(b);
       if (act === "lane-off" || act === "lane-solo" || act === "lane-lock") return laneButton(act, b.dataset.lk);
       if (act === "mode" && b.dataset.lk) {
         /* Maya's graph editor tangents in plain words: glide (linear) or jump (stepped). */
@@ -1653,7 +1783,7 @@
       hold: ["hold", "⌐ Jump", "Jumps: holds each node's setting until the next node (Maya's stepped curve).", "Make a lane jump"],
     };
     const modeOf = (lane) => (MODES[lane.mode] ? lane.mode : "ramp");
-    const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit", "area-reverse": "reverse", "area-flip": "flip", "area-stretch": "stretch", "area-squeeze": "squeeze" };
+    const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit", "area-reverse": "reverse", "area-flip": "flip", "area-stretch": "stretch", "area-squeeze": "squeeze", "area-freeze": "freeze" };
     /* The nodes of a lane in film order, as keys. */
     function laneNodes(st, lk) {
       const lane = st.lanes[lk];
@@ -1677,7 +1807,7 @@
       return { ok: true };
     }
     /* command(name): what the toolbar buttons and the Screen's keyboard shortcuts do. */
-    function command(name) {
+    function command(name, preset) {
       const st = E() && E().state();
       if (!st) return { ok: false };
       let out = { ok: true };
@@ -1746,6 +1876,27 @@
             if (r.area) area = r.area;
             say(`${what[1]} ${r.nodes} node${r.nodes === 1 ? "" : "s"}${r.area ? `; the selection is now moments ${area.j0 + 1} to ${area.j1 + 1}` : ""}. Undo takes it back.${skipNote(open.skipped)}`);
           }
+        }
+      } else if (name === "freeze" || name === "shape") {
+        /* Freeze and Shape: one batch each, and the selection stays where it is. */
+        if (!area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+        const open = openLanes();
+        const r = name === "freeze" ? freezeAreaCommands(st, open.lanes, area) : shapeAreaCommands(st, open.lanes, area, preset);
+        const span = `moment ${area.j0 + 1} to ${area.j1 + 1}`;
+        const flatNote = r.flat ? ` Left ${r.flat} lane${r.flat === 1 ? "" : "s"} alone that stay${r.flat === 1 ? "s" : ""} at one setting there, so there is nothing to shape.` : "";
+        if (r.error) {
+          say(r.error);
+          out = { ok: false, error: r.error };
+        } else if (!r.lanes) {
+          say(open.skipped ? "Every lane with nodes in the selection is locked, so nothing changed." + skipNote(open.skipped) : r.flat ? "Each selected lane stays at one setting there, so there is nothing to shape. Shape works between a lane's lowest and highest setting in the selection." : "No lanes with nodes in the selection.");
+          out = { ok: false };
+        } else if (!r.cmds.length) {
+          say((name === "freeze" ? `Already still from ${span}.` : `Already in that shape from ${span}.`) + skipNote(open.skipped) + flatNote);
+        } else {
+          const label = name === "freeze" ? "Freeze the selection" : "Shape the selection: " + PRESETS[preset][0];
+          out = send({ type: "batch", label, commands: r.cmds });
+          const lanesN = `${r.lanes} lane${r.lanes === 1 ? "" : "s"}`;
+          if (out.ok) say((name === "freeze" ? `Froze ${lanesN} from ${span}: each holds its setting from moment ${area.j0 + 1}.` : `${PRESETS[preset][0]} on ${lanesN} from ${span}.`) + " Undo takes it back." + skipNote(open.skipped) + flatNote);
         }
       } else if (name === "paste" && clip && clip.kind === "area") {
         out = pasteHere();
@@ -2135,6 +2286,33 @@
       draw();
       return { ok: true, removed: n, message: n ? `Took off ${n} auto marker${n === 1 ? "" : "s"}; your own markers stay.` : "There are no auto markers to take off." };
     }
+    /* Shape ▾: the presets as a small menu under the button. Each one is one undo step; the menu closes. */
+    function shapeMenu(btn) {
+      if (!area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+      const b = (btn || el.querySelector('[data-act="area-shape"]') || el).getBoundingClientRect();
+      const pop = popAt("sl-shapemenu", "Shape", b.left + 40, b.bottom - 4);
+      pop.innerHTML = `<p><strong>Shape</strong> · each selected lane, between its own lowest and highest setting from moment ${area.j0 + 1} to ${area.j1 + 1}</p>
+        <div class="sl-presets" role="group" aria-label="Shapes">${Object.keys(PRESETS).map((k) => `<button type="button" data-preset="${k}" title="${esc(PRESETS[k][1])}">${esc(PRESETS[k][0])}</button>`).join("")}</div>
+        <div class="sl-pop-btns"><button type="button" data-l="close">Close</button></div>`;
+      pop.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Escape") return;
+        ev.stopPropagation();
+        pop.remove();
+        el.focus();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const t = ev.target.closest("button");
+        if (!t) return;
+        pop.remove();
+        if (t.dataset.preset) command("shape", t.dataset.preset);
+        else el.focus();
+      };
+      el.appendChild(pop);
+      const first = pop.querySelector("button");
+      if (first) first.focus();
+      return pop;
+    }
     function markerList(btn) {
       const st = E().state();
       const b = (btn || el.querySelector('[data-act="marker-list"]') || el).getBoundingClientRect();
@@ -2240,6 +2418,8 @@
       linkSettings,
       marker: (j) => openMarker(j, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
       markers: () => markerList(),
+      shapeMenu: () => shapeMenu(),
+      shape: (preset) => command("shape", preset),
       markTurns,
       clearAuto,
       command,
@@ -2253,5 +2433,5 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, moveAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers };
 })();
