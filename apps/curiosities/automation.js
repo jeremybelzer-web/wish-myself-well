@@ -286,9 +286,31 @@
     }
     return f < 0.5 ? 0 : 1;
   }
+  /* Outside sources, like an LFO but read from another part of the app (momentum: how stale attention is).
+     A patch or lane picks one as mod "source:<id>"; read() gives 0..1, times depth. */
+  const SOURCES = new Map();
+  function addSource(src) {
+    if (!src || !src.id || typeof src.read !== "function") return false;
+    SOURCES.set(String(src.id), { id: String(src.id), label: String(src.label || src.id), read: src.read });
+    emit("sources", { id: String(src.id) });
+    return true;
+  }
+  const isSource = (mod) => typeof mod === "string" && mod.startsWith("source:");
+  function sourceAt(mod) {
+    const src = SOURCES.get(mod.slice(7));
+    if (!src) return 0;
+    let v = 0;
+    try {
+      v = Number(src.read());
+    } catch (e) {
+      v = 0;
+    }
+    return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0;
+  }
   function mOf(p, now) {
     if (!p.running) return null;
     if (p.mod === "manual" || p.mod === "midi") return p.manual;
+    if (isSource(p.mod)) return sourceAt(p.mod) * (p.depth == null ? 1 : p.depth);
     const phase = ((now - (t0[p.key] || now)) / 1000) * p.rate;
     return shapeAt(p.shape, phase, p.key) * p.depth;
   }
@@ -390,6 +412,7 @@
     const across = Number(o.across) || 0;
     if (o.mod === "follow") return master * (1 - across + across * rel);
     if (o.mod === "manual" || o.mod === "midi") return Math.max(0, Math.min(1, Number(o.manual) || 0)) * (1 - across + across * rel);
+    if (isSource(o.mod)) return sourceAt(o.mod) * (o.depth == null ? 1 : Number(o.depth)) * (1 - across + across * rel);
     const phase = ((now - (t0[key] || now)) / 1000) * (Number(o.rate) || 1) + (across * rel) / 2; /* half a cycle, so the two ends of the moment sit opposite */
     return shapeAt(o.shape || "sine", phase, key + ":" + Math.round(across * rel * 8)) * (o.depth == null ? 1 : Number(o.depth));
   }
@@ -652,6 +675,9 @@
 
   window.CurioAuto = {
     PARAMS,
+    /* addSource({ id, label, read: () => 0..1 }): a modulation source next to LFO, knob and MIDI ("source:" + id). */
+    addSource,
+    sources: () => Array.from(SOURCES.values()).map((x) => ({ id: x.id, label: x.label, mod: "source:" + x.id, value: sourceAt("source:" + x.id) })),
     PROXIMITY_SUITES,
     param: paramOf,
     /* Per character (story workspaces): "c:arcStage" + "Nessa" -> "c:arcStage@Nessa", that character's own patch. */

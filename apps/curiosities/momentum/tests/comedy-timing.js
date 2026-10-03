@@ -115,11 +115,11 @@ function nodeChecks() {
     assert.strictEqual(r.seconds, 130);
     assert.strictEqual(r.perMinute, Math.round((r.jokes.length / 130) * 600) / 10);
     assert(/^Your jokes come every \d+ seconds .*Hot Fuzz is estimated at about one every 15/.test(r.sentences[0]), r.sentences[0]);
-    assert(r.sentences.some((s) => /beat before the punchline/.test(s)));
+    assert(r.sentences.some((s) => /pause before the punchline/.test(s)));
     assert(r.sentences.every((s) => !/—/.test(s)), "no em-dashes");
     const none = T.timing([{ values: { shotSize: "wide" } }, { values: { shotSize: "close" } }]);
     assert.strictEqual(none.jokes.length, 0);
-    assert(/no comedy beats yet/.test(none.sentences[0]));
+    assert(/has no jokes yet/.test(none.sentences[0]));
   });
   ok("the comedy estimates are marked, cover the comedies in the default list, and stay out of rates.js", () => {
     const ids = ctx.CurioRates.DEFAULT_FILMS.map((p) => p.id);

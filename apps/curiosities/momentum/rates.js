@@ -159,7 +159,7 @@
     else out.push({ weight: 0, text: `Attention moves about as often as in ${name} (${stats.switchesPerMinute} against ${profile.switchesPerMinute} times a minute).` });
     const fams = new Set(Object.keys(stats.familyShare || {}).concat(Object.keys(profile.familyShare || {})));
     fams.forEach((f) => {
-      const mine = (stats.familyShare || {})[f] || 0;
+      const mine = Math.min(1, (stats.familyShare || {})[f] || 0);
       const theirs = (profile.familyShare || {})[f] || 0;
       const d = mine - theirs;
       if (Math.abs(d) < 0.08) return;
