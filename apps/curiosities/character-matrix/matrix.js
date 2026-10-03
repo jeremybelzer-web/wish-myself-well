@@ -15,7 +15,14 @@
    the selected character live; "Write into scene" keeps what it is showing.
 
    window.CharacterMatrix.mount(element) draws the whole workspace into any element. State is localStorage key
-   "curiosities-character-matrix-v1". Needs three.js (global THREE) for the 3D view. */
+   "curiosities-character-matrix-v1". Needs three.js (global THREE) for the 3D view.
+
+   Linked to a timeline (CharacterMatrix.link(adapter), used by the Screen through screen/character.js): the cast
+   and the scenes come from the adapter instead of the browser. Each character is a character track, each scene
+   a moment, and every edit here is sent back as timeline nodes (one undo step per edit), so the matrix and
+   the timeline are one film. adapter: { pull() -> { scenes, characters }, push(state, characterId), add(c),
+   remove(id), rename(id, name), setType(id, n), setColor(id, color), pick(id), picked(), addScene(), label }.
+   unlink() goes back to the matrix's own cast. */
 
 (function () {
   const D = window.CHARACTER_MATRIX_DATA;
@@ -25,6 +32,10 @@
   const TYPE = Object.fromEntries(D.TYPES.map((t) => [t.n, t]));
   const ROLE = Object.fromEntries(D.ROLES.map((r) => [r.id, r]));
   const BINS = 5;
+  const MAX_SCENES = 64;
+  /* The view settings the matrix keeps in the browser even while a timeline owns the cast. */
+  const VIEW_KEYS = ["view", "space", "refHealth", "isolate"];
+  let link = null;
 
   const clamp = (v, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, v));
   const lerp = (a, b, k) => a + (b - a) * k;
@@ -86,7 +97,7 @@
     normalise();
   }
   function normalise() {
-    state.scenes = clamp(Math.round(state.scenes) || 1, 1, 40);
+    state.scenes = clamp(Math.round(state.scenes) || 1, 1, MAX_SCENES);
     state.characters.forEach((c) => {
       c.scenes = c.scenes || [];
       for (let i = 0; i < state.scenes; i++) {
@@ -101,8 +112,43 @@
   }
   function save() {
     try {
-      localStorage.setItem(KEY, JSON.stringify(state));
+      if (link) {
+        /* The timeline owns the cast: keep only the view, on top of the matrix's own saved cast. */
+        const own = JSON.parse(localStorage.getItem(KEY) || "null") || fresh();
+        VIEW_KEYS.forEach((k) => (own[k] = state[k]));
+        localStorage.setItem(KEY, JSON.stringify(own));
+      } else localStorage.setItem(KEY, JSON.stringify(state));
     } catch (e) {}
+  }
+
+  /* ---------- linked to a timeline ---------- */
+  const castSig = (scenes, cast) =>
+    JSON.stringify([
+      scenes,
+      cast.map((c) => [c.id, c.name, c.type, c.color, c.scenes.map((x) => [x.health, x.role, Object.keys(x.offsets || {}).sort().map((k) => [k, Math.round(x.offsets[k])])])]),
+    ]);
+  /* Read the cast from the timeline; true when it changed. */
+  function pull() {
+    if (!link) return false;
+    const got = link.pull();
+    if (!got || !Array.isArray(got.characters)) return false;
+    if (castSig(clamp(got.scenes || 1, 1, MAX_SCENES), got.characters) === castSig(state.scenes, state.characters)) return false;
+    state.scenes = got.scenes;
+    state.characters = got.characters;
+    normalise();
+    return true;
+  }
+  /* After an edit: send the character back to the timeline (one undo step). */
+  function push(id) {
+    if (!link || !id) return;
+    const c = state.characters.find((x) => x.id === id);
+    if (!c) return;
+    const r = link.push(state, id);
+    if (r && r.error) note(r.error);
+  }
+  function note(text) {
+    const el = root && root.querySelector(".cm-link-note");
+    if (el) el.textContent = text || "";
   }
   const selected = () => state.characters.find((c) => c.id === state.selected) || null;
 
@@ -629,7 +675,7 @@
         <button type="button" data-view="space" class="${state.view === "space" ? "on" : ""}">Space</button>
       </div>
       <label>Scene <input type="range" min="0" max="${state.scenes - 1}" step="1" data-f="scene" value="${state.scene}" /> <b>${state.scene + 1}</b> of
-        <button type="button" data-act="scenes-" title="Fewer scenes">−</button>${state.scenes}<button type="button" data-act="scenes+" title="More scenes">+</button></label>
+        ${link ? `${state.scenes}<button type="button" data-act="scenes+" title="Add a moment at the end of the timeline">+</button>` : `<button type="button" data-act="scenes-" title="Fewer scenes">−</button>${state.scenes}<button type="button" data-act="scenes+" title="More scenes">+</button>`}</label>
       <button type="button" data-act="play">${playing ? "Stop" : "Play scenes"}</button>
       <label>Type faces at <select data-f="refHealth"><option value="follow"${state.refHealth === "follow" ? " selected" : ""}>selected's health</option>${D.LEVELS.map((l) => `<option value="${l.level}"${String(state.refHealth) === String(l.level) ? " selected" : ""}>${l.level} ${esc(l.label)}</option>`).join("")}</select></label>
       <label>Show <select data-f="isolate"><option value="related"${state.isolate === "related" ? " selected" : ""}>selected's type, stress and growth</option><option value=""${state.isolate == null || state.isolate === "" ? " selected" : ""}>all nine types</option>${D.TYPES.map((t) => `<option value="${t.n}"${Number(state.isolate) === t.n ? " selected" : ""}>only ${t.n} ${esc(t.name)}</option>`).join("")}</select></label>
@@ -671,7 +717,18 @@
       <div class="cm-scroll"><table class="cm-table"><thead><tr><th></th><th>Curiosity</th><th>A</th><th>B</th><th>Driven by</th><th>Rate or position</th><th>Trigger</th><th>Out</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
+  function renderHead() {
+    const el = root.querySelector(".cm-head");
+    el.innerHTML = `<div>
+        <h2>Character matrix</h2>
+        <p class="cm-small">Front face: who the character is, axis by axis. Depth: the nine Enneagram types, each a fingerprint across the same axes. Health bends a type toward its stress type or its growth type. Drag to turn, scroll to zoom.</p>
+        ${link ? `<p class="cm-linked">Linked to ${esc(link.label || "the timeline")}: each character is a character track and each scene a moment. Every change here is a node on the timeline, and undo there takes it back. Axes without a lane follow the type at that health. <span class="cm-link-note"></span></p>` : ""}
+      </div>
+      <div class="cm-btns"><button type="button" data-act="export">Export</button>${link ? "" : `<button type="button" data-act="import">Import</button><button type="button" data-act="example">Example cast</button>`}<input type="file" accept="application/json" data-import hidden /></div>`;
+  }
+
   function renderAll() {
+    renderHead();
     renderBar();
     renderCast();
     renderReadout();
@@ -679,9 +736,10 @@
     dirty = true;
   }
 
-  function commit(re) {
+  function commit(re, touched) {
     normalise();
     save();
+    if (touched) push(touched);
     if (re === false) {
       renderReadout();
       dirty = true;
@@ -700,7 +758,7 @@
       const sc = c.scenes[state.scene];
       const base = typeProfile(c.type, sc.health)[i];
       sc.offsets[el.dataset.axis] = Number(el.value) - base;
-      return commit(false);
+      return commit(false, e.type === "change" && c.id);
     }
     const f = el.dataset.f;
     if (f === "scene") {
@@ -709,14 +767,23 @@
     }
     if (f === "health" && c) {
       c.scenes[state.scene].health = Number(el.value);
-      return commit();
+      /* While dragging, redraw everything but the slider itself, so the drag is not cut off; on release, the rest. */
+      if (e.type !== "change") {
+        const lv = levelOf(Number(el.value));
+        const lab = el.closest("label");
+        if (lab && lab.firstChild) lab.firstChild.textContent = `Health: ${el.value} · ${lv.label} (${lv.band})`;
+        return commit(false);
+      }
+      return commit(undefined, c.id);
     }
     if (f === "name" && c && e.type === "change") {
       c.name = el.value || "Unnamed";
+      if (link) link.rename(c.id, c.name);
       return commit();
     }
     if (f === "color" && c) {
       c.color = el.value;
+      if (link && e.type === "change") link.setColor(c.id, c.color);
       return commit(e.type === "change" ? undefined : false);
     }
     if (el.dataset.auto && e.type === "change") {
@@ -737,12 +804,18 @@
     const c = selected();
     const f = el.dataset.f;
     if (f === "type" && c) {
+      if (link) {
+        /* On a timeline the axis lanes are what the film says: a new type changes only the axes without lanes. */
+        link.setType(c.id, Number(el.value));
+        pull();
+        return commit();
+      }
       c.type = Number(el.value);
       return commit();
     }
     if (f === "role" && c) {
       c.scenes[state.scene].role = el.value;
-      return commit();
+      return commit(undefined, c.id);
     }
     if (f === "refHealth") {
       state.refHealth = el.value === "follow" ? "follow" : Number(el.value);
@@ -781,6 +854,7 @@
     const A = auto();
     if (b.dataset.pick) {
       state.selected = b.dataset.pick;
+      if (link && link.pick) link.pick(state.selected);
       return commit();
     }
     if (b.dataset.view) {
@@ -800,28 +874,47 @@
     if (act === "add") {
       const n = 1 + Math.floor(Math.random() * 9);
       const ch = { id: newId(), name: `Character ${state.characters.length + 1}`, type: n, color: TYPE[n].color, scenes: [] };
+      if (link) {
+        const r = link.add(ch);
+        if (!r || r.error) return note((r && r.error) || "No room for another character track.");
+        pull();
+        state.selected = r.id;
+        if (link.pick) link.pick(r.id);
+        return commit();
+      }
       state.characters.push(ch);
       state.selected = ch.id;
       return commit();
     }
-    if (act === "remove" && c && confirm(`Remove ${c.name}?`)) {
+    if (act === "remove" && c && confirm(link ? `Remove ${c.name}'s track and its lanes from the timeline? Undo brings it back.` : `Remove ${c.name}?`)) {
+      if (link) {
+        link.remove(c.id);
+        pull();
+        return commit();
+      }
       state.characters = state.characters.filter((x) => x !== c);
       return commit();
     }
     if (act === "reset" && c) {
       c.scenes[state.scene].offsets = {};
-      return commit();
+      return commit(undefined, c.id);
     }
     if (act === "copy-next" && c && state.scene < state.scenes - 1) {
       c.scenes[state.scene + 1] = JSON.parse(JSON.stringify(c.scenes[state.scene]));
       state.scene += 1;
-      return commit();
+      return commit(undefined, c.id);
     }
     if (act === "scenes+") {
+      if (link) {
+        const r = link.addScene();
+        if (r && r.error) note(r.error);
+        pull();
+        return commit();
+      }
       state.scenes += 1;
       return commit();
     }
-    if (act === "scenes-" && state.scenes > 1) {
+    if (act === "scenes-" && state.scenes > 1 && !link) {
       state.scenes -= 1;
       return commit();
     }
@@ -846,7 +939,7 @@
         const d = Math.round(v - base[i]);
         if (d) sc.offsets[AX[i].id] = d;
       });
-      return commit();
+      return commit(undefined, c.id);
     }
     if (act === "export") {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -909,18 +1002,13 @@
 
   function mount(el) {
     if (root) return root;
-    load();
+    if (link) pull();
+    else load();
     registerCuriosities();
     root = el;
     el.classList.add("cm");
     el.innerHTML = `
-      <div class="cm-head">
-        <div>
-          <h2>Character matrix</h2>
-          <p class="cm-small">Front face: who the character is, axis by axis. Depth: the nine Enneagram types, each a fingerprint across the same axes. Health bends a type toward its stress type or its growth type. Drag to turn, scroll to zoom.</p>
-        </div>
-        <div class="cm-btns"><button type="button" data-act="export">Export</button><button type="button" data-act="import">Import</button><button type="button" data-act="example">Example cast</button><input type="file" accept="application/json" data-import hidden /></div>
-      </div>
+      <div class="cm-head"></div>
       <div class="cm-grid">
         <aside class="cm-cast"></aside>
         <div class="cm-stage"><div class="cm-bar-top"></div><div class="cm-view"></div></div>
@@ -951,6 +1039,29 @@
 
   window.CharacterMatrix = {
     mount,
+    /* Hand the cast to a timeline (see the top of this file). */
+    link(adapter) {
+      if (!state) load();
+      link = adapter;
+      const want = adapter.picked && adapter.picked();
+      pull();
+      if (want && state.characters.some((c) => c.id === want)) state.selected = want;
+      normalise();
+      if (root) renderAll();
+    },
+    unlink() {
+      if (!link) return;
+      link = null;
+      load();
+      if (root) renderAll();
+    },
+    linked: () => !!link,
+    /* The timeline changed: read it again, and redraw only if the cast is different. */
+    refresh() {
+      if (link && pull() && root) renderAll();
+    },
+    AXES: AX,
+    TYPES: TYPE,
     data: D,
     typeProfile,
     nearestTypes,
