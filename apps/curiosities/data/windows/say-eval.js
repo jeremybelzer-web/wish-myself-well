@@ -83,7 +83,7 @@ items
     const row = byCat.get(it.cat) || byCat.set(it.cat, { n: 0, ok: 0 }).get(it.cat);
     row.n++;
     if (ok) row.ok++;
-    else fails.push(`${it.cat.padEnd(11)} ${it.id}: "${it.say}" wants ${it.expect}; got ${r.set.map(([k, v]) => k.replace(c.id + ".", "") + "=" + v).join(", ") || "nothing"}`);
+    else fails.push(`${it.cat.padEnd(11)} ${it.id}: "${it.say}" wants ${it.expect}; got ${r.set.map(([k, v]) => k.replace(c.id + ".", "") + "=" + v + " (from " + start(k) + ")").join(", ") || "nothing"}`);
   });
 
 let n = 0;

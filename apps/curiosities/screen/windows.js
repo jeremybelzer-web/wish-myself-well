@@ -294,20 +294,24 @@
   /* ---------- say it (Jeremy, 2026-10-03 15:02Z: "we can also allow the user to simply speak their request if
      they don't want to get into tweaking these parameters") ----------
      Plain words in, settings out, worked out on the device. The request is cleaned up first (typos fixed against
-     the words the app knows, "abit" split, "its to dark" read as "too dark"), then split into parts (commas, "and",
+     the words the app knows, "abit" split, "its to dark" read as "too dark", "the 80s" as the 1980s), then split into parts (commas, "and",
      "then", "but"; never inside a word on a scale like "black and white"). Each part is matched, in this order:
        1. nothing of it      "no music", "turn off the captions", "without blur": the setting it names goes to
                              its none, off or zero
        2. a word on a scale  "close", "a double take", or a beginner's word for one ("sunset" is dusk, "tux" is
-                             formal, "like a horror movie" is fearful or dark). "more X" also raises its strength;
-                             "not so X", "too X" step away from X
+                             formal, "a little shake" is "subtle shake"), up to three in one part ("pan left
+                             slowly"). "more smoke" also raises its strength; "not so X", "too X" step away from X;
+                             a comparison left over ("bigger text at the bottom") goes on to step 4
        3. a number           with a unit (30 degrees, 2 meters, 40%, 3 seconds, 120 bpm, 2x, half a second); with
                              "more", "further", "darker" it moves by that much from where it is ("2 meters further")
        4. more or less       comparatives and verbs (closer, dirtier, colder, brighten, tone down, zoom out, too
                              loud, not so many): the setting whose scale words, label ends ("Cheap to expensive")
-                             or label match the word moves that way from where it is. Left, right, behind, above
-                             and below turn an angle around the subject.
-       5. a feeling or genre word ("creepier", "like a thriller") raises a setting named after it.
+                             or label match the word moves that way from where it is (a word for the measure
+                             itself, like "speed" for slower, counts either way). A word with no side of its own
+                             ("stronger wind", "thicker outline") moves the setting the rest names. Left, right,
+                             behind, above and below turn an angle around the subject.
+       5. a describing word on its own ("spooky lighting", "gray hair", "shaky cam"): the last one that means
+                             something here, words for a feeling first and the curiosity's own name last.
      The plain-words phrases (data/windows/say-<category>.js) and the presets' names are matched first, on the
      whole request. Returns { set: [[key, value, label]], said: [what it understood] }.
      data/windows/say-eval.js scores this against data/windows/say-eval.json. */
@@ -359,17 +363,24 @@
     if (w.length > 3 && /s$/.test(w) && !/ss$/.test(w)) return w.slice(0, -1);
     return w;
   };
+  /* "windy" is wind, "foggy" is fog, "shaky" is shake, "messy" is mess. */
+  const yForm = (a, b) => {
+    if (!/[^aeiou]y$/.test(a) || a.length < 4) return false;
+    const x = a.slice(0, -1);
+    return b === x || b === x + "e" || (/(.)\1$/.test(x) && b === x.slice(0, -1)) || stemOf(b) === x;
+  };
   /* Two words are the same word: equal, the same stem, or one starts the other (five letters or more). */
   const same = (a, b) => {
     if (a === b) return true;
     const sa = stemOf(a);
     const sb = stemOf(b);
     if (sa === sb || sa === b || a === sb) return true;
+    if (yForm(a, b) || yForm(b, a)) return true;
     const n = Math.min(a.length, b.length);
     return n >= 5 && Math.abs(a.length - b.length) <= 4 && (a.startsWith(b) || b.startsWith(a) || sa.startsWith(sb) || sb.startsWith(sa));
   };
   const wordsOf = (t) => String(t || "").toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9%°$'\s-]/g, " ").replace(/-/g, " ").split(/\s+/).filter(Boolean);
-  const content = (t) => wordsOf(t).filter((w) => w.length > 1 && !STOP.has(w) && !/^\d/.test(w));
+  const content = (t) => wordsOf(t).filter((w) => w.length > 1 && !STOP.has(w) && (!/^\d/.test(w) || /^\d{4}s$/.test(w)));
   const words = (t) => content(t).filter((w) => w.length > 2);
   function overlap(a, b) {
     const B = words(b);
@@ -386,7 +397,7 @@
     "near: close, near | far",
     "tight: close, tight, skin tight, fitted, cramped, snug | loose",
     "far: far, distant, away, wide, apart | close",
-    "wide: wide, open, roomy, loose, far, wide open | tight",
+    "wide: wide, width, open, roomy, loose, far, wide open | tight",
     "big: big, large, huge, bigger, full screen, splash, page-sized, a big, size | small",
     "large: large, big, huge, size | small",
     "huge: huge, large, big, vast, city, size | small",
@@ -547,7 +558,11 @@
     "rigid: rigid, strict, stiff | flexible",
     "stiff: stiff, rigid, robotic | loose",
     "obvious: obvious, showy, clear, unmissable | subtle",
-    "subtle: subtle, invisible, hint, faint | obvious",
+    "practical: practical, function, functional, useful, utility, gear, pockets | looks, decorative, pretty, fashion",
+    "subtle: subtle, invisible, hint, faint, understated, restrained | obvious, strong",
+    "still: still, stillness, frozen, statue still, motionless, calm | restless, fidgety",
+    "transparent: transparent, see through, faint, ghostly | opaque, opacity, solid",
+    "opaque: opaque, opacity, solid | transparent",
     "noticeable: noticeable, showy, clear, obvious | subtle",
     "dramatic: dramatic, big, showy, theatrical | subtle",
     "exaggerated: exaggerated, exaggeration, pushed, huge | subtle",
@@ -593,6 +608,13 @@
     const [syn, vs] = rest.split("|");
     CONCEPTS[head.trim()] = { syn: syn.split(",").map((x) => x.trim()).filter(Boolean), vs: vs ? vs.split(",").map((x) => x.trim()).filter(Boolean) : [] };
   });
+  /* Single words listed under exactly one concept, and that concept. */
+  const SYN_OF = {};
+  (() => {
+    const n = {};
+    Object.entries(CONCEPTS).forEach(([k, v]) => v.syn.forEach((w) => /^[a-z]{4,}$/.test(w) && w !== k && (n[w] = n[w] ? n[w].concat(k) : [k])));
+    Object.entries(n).forEach(([w, ks]) => ks.length === 1 && (SYN_OF[w] = ks[0]));
+  })();
   /* Several words for a word on a scale ("sunset" is dusk). Tried after the scale's own words. */
   const SAYS = [
     [/\b(sunset|sundown|golden hour|magic hour|evening|twilight)\b/, ["dusk"]],
@@ -702,7 +724,18 @@
     [/\b(jagged|spiky)\b/, ["jagged"]],
     [/\b(splash page|full page)\b/, ["splash"]],
     [/\b(page turn|turn the page)\b/, ["cliffhanger", "reveal"]],
-    [/\b(silent|no words|wordless)\b/, ["none", "silent"]],
+    [/\b(silent|silence|dead silence|no words|wordless)\b/, ["none", "silent"]],
+    [/\blook(s|ing)? down (on|at)\b|\bfrom above\b/, ["high"]],
+    [/\blook(s|ing)? up (at|to)\b/, ["low"]],
+    [/\blook(s|ing)? (powerful|strong|heroic|dominant|big|tall|in charge|scary|menacing)\b/, ["low"]],
+    [/\blook(s|ing)? (small|weak|vulnerable|helpless|powerless|tiny|lost)\b/, ["high"]],
+    [/\bmusic videos?\b|\btrailer\b|\bmontage\b/, ["fast"]],
+    [/\bback ?lit\b|\bback ?light\b|\bfrom behind\b/, ["back"]],
+    [/\btunnel vision\b|\bone track mind\b/, ["one thing"]],
+    [/\bshow (it )?all\b|\bshow everything\b|\bholds? nothing back\b/, ["fully shown"]],
+    [/\blet (it|them|everything|it all) out\b/, ["let out"]],
+    [/\bat once\b|\bat the same time\b|\bequally\b|\bhalf and half\b|\bfifty fifty\b/, ["even"]],
+    [/\bticking\b|\brunning out of time\b/, ["seconds left", "a firm deadline"]],
     [/\b(blurred edges|blur the edges|blurred background fill)\b/, ["blurred copy"]],
     [/\b(fill it|fill the frame|edge to edge)\b/, ["fills the frame", "full screen"]],
   ];
@@ -729,19 +762,24 @@
     [/\bopen(s|ed)? (it |them |him |her )?up\b/, "open", 1],
     [/\bcover(s|ed)? (it |them |him |her )?up\b/, "covered", 1],
     [/\bbuild(s)? (it |the tension )?up\b/, null, 1],
-    [/\b(tone|dial|turn|bring|knock|take)(s|ed)? (it |this |that |them |things |everything |the \w+ )?(down|back)\b/, null, -1],
+    [/\b(tone|dial|turn|knock|take)(s|ed)? (it |this |that |them |things |everything |the \w+ )?(down|back)\b|\bbring(s)? (it |this |that |them |things |everything |the \w+ )?down\b/, null, -1],
+    [/\bdress(es|ed)? (him |her |them |it )?down\b/, "formal", -1],
+    [/\bdress(es|ed)? (him |her |them |it )?up\b/, "formal", 1],
     [/\b(turn|crank|bump|pump|dial|amp|kick|ramp)(s|ed)? (it |this |that |them |things |everything |the \w+ )?up\b/, null, 1],
+    [/\bwash(ed|es)? (it |the colou?rs? )?out\b|\bwashed out\b|\bdrain(ed)? (the )?colou?rs?\b|\bdesaturat\w*|\bmuted colou?rs?\b/, "colorful", -1],
+    [/\bblack and white\b|\bmonochrome\b|\bgr[ae]yscale\b|\bno colou?rs?\b/, "colorful", -1, "end"],
+    [/\bsee[ -]?through\b|\btransparent\b|\btranslucent\b/, "transparent", 1],
     [/\bstep it up\b|\bgo bigger\b|\bpush it\b|\bgo further\b|\ball out\b/, null, 1],
   ];
   const IRREGULAR = { better: "good", worse: "bad", further: "far", farther: "far", fewer: "few", less: "few", more: "many", elder: "old", nearer: "near" };
-  const NOT_COMPARATIVE = new Set("never over under after other water layer player power corner character paper speaker listener border order ever either neither whether together rather number member remember answer letter matter finger shoulder monster danger anger hunger killer partner sister brother mother father teacher poster filter cover center flicker shimmer timer river silver winter summer super sticker banner slider viewer chapter gutter hammer trigger shower tower upper outer inner cheer steer sheer peer here there where were offer enter wonder bother gather consider deliver discover render laser computer trailer thriller lover lovers stranger strangers villager soldier soldiers driver drivers dinner diner butter weather leather feather feathers blur stir her per sooner later lasers ladder jitter litter flower flowers hour hours sister cover wrapper wrapper stopper chopper helicopter keeper banner manner tiger cancer major minor razor mirror horror terror error sugar dollar vinegar silhouette after before ever whatever however together cluster".split(" "));
+  const NOT_COMPARATIVE = new Set("helper achiever challenger peacemaker reformer leader follower walker runner dancer singer hunter killer viewer cutter gutter shooter fighter lover never over under after other water layer player power corner character paper speaker listener border order ever either neither whether together rather number member remember answer letter matter finger shoulder monster danger anger hunger killer partner sister brother mother father teacher poster filter cover center flicker shimmer timer river silver winter summer super sticker banner slider viewer chapter gutter hammer trigger shower tower upper outer inner cheer steer sheer peer here there where were offer enter wonder bother gather consider deliver discover render laser computer trailer thriller lover lovers stranger strangers villager soldier soldiers driver drivers dinner diner butter weather leather feather feathers blur stir her per sooner later lasers ladder jitter litter flower flowers hour hours sister cover wrapper wrapper stopper chopper helicopter keeper banner manner tiger cancer major minor razor mirror horror terror error sugar dollar vinegar silhouette after before ever whatever however together cluster".split(" "));
 
   /* Every word the app knows (labels, scales, plain words, phrases, presets): typos are fixed toward these. */
   let VOCAB = null;
   function vocab() {
     if (VOCAB) return VOCAB;
     const n = new Map();
-    const add = (t) => wordsOf(t).forEach((w) => /^[a-z]{2,}$/.test(w) && n.set(w, (n.get(w) || 0) + 1));
+    const add = (t) => wordsOf(String(t || "").replace(/'/g, " ")).forEach((w) => /^[a-z]{2,}$/.test(w) && n.set(w, (n.get(w) || 0) + 1));
     const DB = window.CuriosityDB;
     const rows = DB && DB.data && DB.data.curiosities ? Object.values(DB.data.curiosities) : [];
     rows.forEach((c) => {
@@ -762,7 +800,7 @@
     Object.entries(CONCEPTS).forEach(([k, v]) => (add(k), v.syn.forEach(add), v.vs.forEach(add)));
     SAYS.forEach(([, to]) => to.forEach(add));
     add(Object.keys(VERBS).join(" ") + " " + Object.keys(IRREGULAR).join(" "));
-    add("make it more less a bit lot little please closer further farther higher lower bigger smaller louder quieter faster slower longer shorter brighter darker warmer cooler wider tighter softer harder stronger weaker thicker thinner heavier lighter deeper sharper smoother rougher dirtier cleaner messier cheaper fancier happier sadder scarier creepier funnier weirder busier emptier simpler colder hotter wetter drier calmer angrier gentler too not dont don't no without remove turn off on add left right behind front above below up down around away toward towards camera seconds second minutes minute meters meter degrees degree percent times twice half double frames per hour hours stops shot scene film movie like look feel feels want need way much very really super totally completely slightly kind sort of so many few its it's to");
+    add("make it more less a bit lot little please closer further farther higher lower bigger smaller louder quieter faster slower longer shorter brighter darker warmer cooler wider tighter softer harder stronger weaker thicker thinner heavier lighter deeper sharper smoother rougher dirtier cleaner messier cheaper fancier happier sadder scarier creepier funnier weirder busier emptier simpler colder hotter wetter drier calmer angrier gentler too not dont don't no without remove turn off on add left right behind front above below up down around away toward towards camera seconds second minutes minute meters meter degrees degree percent times twice half double frames per hour hours stops shot scene film movie like look feel feels want need way much very really super totally completely slightly kind sort of so many few its it's to afternoon morning evening tonight midnight noon today yesterday tomorrow weekend everyone everything everybody someone something somebody anyone anything nobody nothing nowhere somewhere everywhere inside outside without within upstairs downstairs background foreground onscreen offscreen overall another together himself herself themselves itself whatever whenever wherever sometimes");
     VOCAB = n;
     return n;
   }
@@ -788,13 +826,19 @@
       for (let i = 1; i < w.length - 1; i++) {
         const a = w.slice(0, i);
         const b = w.slice(i);
-        if ((a.length > 2 || /^(a|an|it|in|on|to|of|so|up)$/.test(a)) && V.has(a) && V.has(b) && b.length > 1) return a + " " + b;
+        if ((a.length > 2 || /^(a|an|it|in|on|to|of|so|up)$/.test(a)) && V.has(a) && V.has(b) && (b.length > 2 || /^(it|up|on|in)$/.test(b))) return a + " " + b;
       }
+      /* "shakey" is shaky. */
+      if (/ey$/.test(w) && V.has(w.slice(0, -2) + "y")) return w.slice(0, -2) + "y";
+      /* One edit away; a letter left out or doubled ("sader", "quiter") beats a changed one, and the same ending
+         beats a different one; then the more common word. */
       let best = null;
       let n = 0;
       edits1(w).forEach((x) => {
         const f = V.get(x) || 0;
-        if (x.length > 3 && f > n) (best = x), (n = f);
+        if (x.length < 4 || !f) return;
+        const sc = Math.log(1 + f) + (x.length !== w.length ? 1.5 : 0) + (x.slice(-2) === w.slice(-2) ? 1.5 : 0) + (x[0] === w[0] ? 1 : 0);
+        if (sc > n) (best = x), (n = sc);
       });
       return best || w;
     });
@@ -806,9 +850,13 @@
     t = t.replace(/\b(pls|plz|please|thanks|thank you|kinda|sorta|maybe|can you|could you|i want|i'd like|i would like|we need|let's|lets)\b/g, " ");
     t = fixTypos(t);
     /* "its to dark", "way to loud": "to" before a describing word is "too". */
-    t = t.replace(/\b(its|it's|it is|is|was|are|way|far|much|that's|thats|bit|little|just)\s+to\s+(?=[a-z]+(?:er)?\b(?!\s+(?:the|a|an|it|them|him|her|be|make|look|feel)\b))/g, (m, a) => a + " too ");
+    t = t.replace(/\b(its|it's|it is|is|was|are|way|far|much|that's|thats|bit|little|just)\s+to\s+([a-z]+)\b(?!\s+(?:the|a|an|it|them|him|her|be|make|look|feel)\b)/g, (m, a, w) => (CONCEPTS[w] || CONCEPTS[stemOf(w)] || baseOf(w) ? a + " too " + w : m));
+    /* Decades: "the 80s", "'80s", "eighties" are the 1980s. */
+    t = t.replace(/(^|[^0-9])'?([2-9]0)'?s\b/g, (m, a, d) => a + "19" + d + "s").replace(/\b(twenties|thirties|forties|fifties|sixties|seventies|eighties|nineties)\b/g, (w) => "19" + { twenties: 2, thirties: 3, forties: 4, fifties: 5, sixties: 6, seventies: 7, eighties: 8, nineties: 9 }[w] + "0s");
     return t.replace(/\s+/g, " ").trim();
   }
+  const TIDIED = new Map();
+  const tidyPhrase = (ph) => (TIDIED.has(ph) ? TIDIED.get(ph) : TIDIED.set(ph, tidy(ph)).get(ph));
   /* Numbers said in words, for the number step only ("half a second", "a meter and a half", "two"). */
   const NUMWORD = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, fifteen: 15, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90, hundred: 100, dozen: 12 };
   function numbersIn(t) {
@@ -845,6 +893,8 @@
     if (/ily$/.test(w)) tries.push(w.slice(0, -3) + "y");
     if (/ly$/.test(w)) tries.push(w.slice(0, -2), w.slice(0, -1) + "e", w.slice(0, -2) + "e");
     for (const x of tries) if (CONCEPTS[x]) return CONCEPTS[x];
+    /* A word listed under one concept only ("whisper" is quiet, "shout" is loud). */
+    for (const x of tries) if (SYN_OF[x]) return CONCEPTS[SYN_OF[x]];
     return null;
   }
   /* Comparatives and their plain word: dirtier is dirty, bigger is big, closer is close; "slowly" is slow. */
@@ -868,7 +918,8 @@
     return tries.find(ok) || null;
   }
   /* Words with no side of their own: which way they push a strength ("stronger" is up, "gentler" is down). */
-  const GENERIC = { strong: 1, weak: -1, big: 1, small: -1, large: 1, little: -1, heavy: 1, light: -1, hard: 1, intense: 1, gentle: -1, high: 1, low: -1, many: 1, few: -1 };
+  const DIMENSIONS = /^(speed|pace|tempo|volume|loudness|level|size|length|duration|height|distance|brightness|saturation|weight|thickness|strength|intensity|amount|density|depth|width|temperature|energy|opacity)$/;
+  const GENERIC = { long: 1, short: -1, fast: 1, slow: -1, loud: 1, quiet: -1, thick: 1, thin: -1, deep: 1, shallow: -1, wide: 1, narrow: -1, strong: 1, weak: -1, big: 1, small: -1, large: 1, little: -1, heavy: 1, light: -1, hard: 1, intense: 1, gentle: -1, high: 1, low: -1, many: 1, few: -1 };
   function interpret(c, text, h) {
     const sp = spec(c) || {};
     const own = (c.sliders || []).filter((s) => !["themeLink", "pointsAhead"].includes(s.id));
@@ -921,7 +972,9 @@
     Object.keys(PH)
       .sort((a, b) => b.length - a.length)
       .forEach((ph) => {
-        const re = new RegExp("(^|[^a-z])" + ph.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z]|$)");
+        /* The phrase cleaned up the same way as the request ("don't react" is "dont react" in both). */
+        if (!tidyPhrase(ph)) return;
+        const re = new RegExp("(^|[^a-z])" + tidyPhrase(ph).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z]|$)");
         if (!re.test(t)) return;
         Object.entries(PH[ph]).forEach(([sid, v]) => {
           const s = sl(c, sid);
@@ -954,8 +1007,10 @@
       const lw = words(s.label);
       const iw = s.id === "setting" ? [] : words(s.id.replace(/([A-Z])/g, " $1").replace(/-/g, " "));
       let n = 0;
+      /* A word that only names the curiosity ("freeze" in Freeze frame) says little about a side setting. */
+      const own = isMain(s) ? [] : words(c.label);
       cw.forEach((w) => {
-        if (hasWord(lw, w)) n += 2;
+        if (hasWord(lw, w)) n += hasWord(own, w) ? 0.75 : 2;
         else if (hasWord(iw, w)) n += 1.5;
       });
       if (lw.length && lw.every((w) => hasWord(cw, w))) n += 1;
@@ -1044,17 +1099,21 @@
           if (V2) V2.syn.filter((y) => y !== x).forEach((y) => alts.push([y, -1, 0.45]));
         });
       }
+      /* A word that names the measure itself ("speed", "volume", "size") is as good as the word asked for. */
+      alts.forEach((a) => DIMENSIONS.test(a[0]) && (a[2] = Math.max(a[2], 0.9)));
       const cands = [];
       alts.forEach(([w0, flip, trust]) => {
         const ws = content(w0);
         if (!ws.length) return;
         const w = ws[ws.length - 1];
         mine.filter(ordered).forEach((s) => {
-          const bonus = nameScore(s, clause) * 0.3 + (isMain(s) ? 0.8 : 0);
+          const bonus = nameScore(s, clause) * 0.3 + (isMain(s) ? 1.2 : 0);
           const hits = polarity(s, w).filter((x) => x.p !== 0.5);
           if (hits.length) {
             const dir = hits.reduce((a, x) => a + (x.p - 0.5), 0) > 0 ? 1 : -1;
-            return cands.push({ s, dir: dir * flip, score: 3 * trust + bonus + (hits.some((x) => x.exact) ? 0.2 : 0), via: "scale", hits, flip });
+            /* A trend on a side setting ("slows down", "gets messier") is not what "slower" means unless it is named. */
+            const drift = !isMain(s) && nameScore(s, clause) < 1 && hits.every((x) => trendy(x.o)) ? -1.5 : 0;
+            return cands.push({ s, dir: dir * flip, score: 3 * trust + bonus + drift + (hits.some((x) => x.exact) ? 0.2 : 0), via: "scale", hits, flip });
           }
           const e = ends(s);
           if (e && (e[1].some((x) => same(x, w)) || e[0].some((x) => same(x, w)))) {
@@ -1062,12 +1121,11 @@
             return cands.push({ s, dir: d, score: (sign < 0 ? 3.4 : 2.8) * trust + bonus, via: "ends" });
           }
           if (labelWords(s).concat(s.id !== "setting" ? words(s.id.replace(/([A-Z])/g, " $1")) : []).some((x) => same(x, w)))
-            cands.push({ s, dir: flip, score: 2.4 * trust + bonus + (s.range && unitOf(s) ? -0.3 : 0) + (TIMEY.test(s.label) ? -1.5 : 0), via: "label" });
+            cands.push({ s, dir: flip, score: 2.4 * trust + (trust === 1 && words(s.label).length === 1 ? 1 : 0) + bonus + (s.range && unitOf(s) ? -0.3 : 0) + (TIMEY.test(s.label) ? -1.5 : 0), via: "label" });
         });
       });
       if (!cands.length) return null;
       cands.sort((a, b) => b.score - a.score);
-      if (window.SAYDEBUG) console.log("resolve", word, sign, cands.slice(0, 4).map((x) => [x.s.id, x.dir, x.via, Math.round(x.score * 100) / 100, (x.hits || []).map((y) => y.o).join("/")]));
       return cands[0];
     }
     /* Apply "more" or "less" of a resolved quality: step from where it is, and at least to the nearest word on the
@@ -1102,9 +1160,15 @@
         else if (/\bleft\b/.test(clause)) did = nudge(lr, -1, L2);
         else if (/\bright\b/.test(clause)) did = nudge(lr, 1, L2);
       }
+      /* From below, "up high" means above the eye line, not just a little less low. */
+      const climb = (s, dir) => {
+        const v = Number(cur(s));
+        if (isFinite(v) && v * dir < 0 && !/\b(higher|lower)\b/.test(clause)) return put(s, Math.max(s.range.min, Math.min(s.range.max, dir * 15 * L2)), `${nameOf(s)}: ${dir > 0 ? "above" : "below"}`);
+        return nudge(s, dir, L2);
+      };
       if (ud) {
-        if (/\b(above|over|higher|up high|from up|overhead|look(s|ing)? down)\b/.test(clause)) did = nudge(ud, 1, L2) || did;
-        else if (/\b(below|under|beneath|lower|down low|from down|look(s|ing)? up)\b/.test(clause)) did = nudge(ud, -1, L2) || did;
+        if (/\b(above|over|higher|up high|from up|overhead|look(s|ing)? down)\b/.test(clause)) did = climb(ud, 1) || did;
+        else if (/\b(below|under|beneath|lower|down low|from down|look(s|ing)? up)\b/.test(clause)) did = climb(ud, -1) || did;
       }
       return did;
     }
@@ -1112,6 +1176,7 @@
     const isDirWord = (w) => !!(baseOf(w) || VERBS[w] || /^(more|less|fewer|too|not|dont)$/.test(w));
     /* Option words that are themselves a trend or comparison ("warmer", "speeding up", "brighter by the end"). */
     const trendy = (o) => content(o).some((x) => (baseOf(x) && !CONCEPTS[x]) || /ing$/.test(x) || /^(slows|speeds|over|end)$/.test(x));
+    const NUMBERISH = /^(seconds?|minutes?|hours?|times|percent|degrees?|meters?|frames?|beats?)$/;
     const NUMBER_WORDS = /^(none|one|two|three|four|five|a few|many|several|1|2|3|4|5)$/;
 
     /* Split into parts, keeping words on this curiosity's scales whole ("black and white", "teal and orange"). */
@@ -1120,7 +1185,7 @@
     (sp.presets || []).forEach((p) => /\band\b/.test(p.label) && keep.push(p.label.toLowerCase()));
     keep.push("black and white", "and a half", "back and forth", "now and then", "on and off", "stop and go");
     keep.sort((a, b) => b.length - a.length).forEach((o) => {
-      if (t.includes(o)) t = t.split(o).join(o.replace(/ and /g, " \u0001 ").replace(/,/g, "\u0002"));
+      if (t.includes(o)) t = t.split(o).join(o.replace(/\band\b/g, "\u0001").replace(/,/g, "\u0002"));
     });
     const parts = t.split(/,|;|\band\b|\bthen\b|\bbut\b|\bplus\b|\balso\b|\.\s/).map((x) => x.replace(/\u0001/g, "and").replace(/\u0002/g, ",").trim()).filter(Boolean);
 
@@ -1130,7 +1195,7 @@
       const neg = /\b(not|dont|never|no longer|stop being)\b/.test(clause);
       const nt0 = numbersIn(clause.replace(/\b(1[0-9]|20)?[0-9]0s\b/g, " "));
       const hasNum = /\d/.test(nt0);
-      const toks = content(clause);
+      let toks = content(clause);
       const dirAsked = toks.some(isDirWord) || PHRASAL.some(([re]) => re.test(clause));
       /* 1. Nothing of it: "no music", "without blur", "turn off the captions", "stop blinking". */
       const zero = !hasNum && clause.match(/\b(?:no|without|turn(?:ed)? off|switch(?:ed)? off|stop|kill|get rid of|lose the|no more|zero|dont)\s+(?:the\s+|any\s+|all\s+|a\s+|more\s+)?(.+)$/);
@@ -1153,13 +1218,26 @@
         let hit = null;
         const consider = (s, o, sc, span) => {
           if (taken.has(s) || SHARED.includes(s.id)) return;
-          const lab = overlap(s.label, txt);
+          const ow = content(o);
+          const lab = words(s.label).filter((x) => !ow.some((y) => same(x, y)) && hasWord(words(txt), x)).length;
           /* A comparison word on a side setting ("warmer than the room", "speeding up") is a direction, unless
              the request names that setting; a number word ("one") only counts where the setting is named. */
-          if (!isMain(s) && !lab && trendy(o) && first) return;
+          if (!isMain(s) && !lab && trendy(o) && first && dirAsked) return;
           if (!isMain(s) && !lab && NUMBER_WORDS.test(String(o).toLowerCase())) return;
           if (!hit || sc > hit.sc) hit = { s, o, sc, span };
         };
+        /* "a little shake" is "subtle shake", "a big storm" is "heavy storm". */
+        const SOFT = "(?:a little|a bit of|a touch of|slight|slightly|small|light|subtle|gentle|mild)";
+        const HARD = "(?:a lot of|lots of|big|huge|heavy|strong|massive|intense|wild)";
+        own.forEach((s) =>
+          (s.scale || []).forEach((o) => {
+            const m = String(o).toLowerCase().match(/^(subtle|slight|gentle|light|small|mild|heavy|strong|big|wild|intense) (.+)$/);
+            if (!m) return;
+            const re = new RegExp("\\b" + (/^(subtle|slight|gentle|light|small|mild)$/.test(m[1]) ? SOFT : HARD) + "\\s+" + m[2].replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b");
+            const mm = txt.match(re);
+            if (mm) consider(s, o, mm[0].length + overlap(s.label, txt) * 3 + (isMain(s) ? 1 : 0), mm[0]);
+          })
+        );
         own.forEach((s) =>
           (s.scale || []).forEach((o) => {
             const w = String(o).toLowerCase();
@@ -1189,6 +1267,7 @@
               if (!ow.length) return;
               const got = ow.filter((x) => cw.some((y) => same(x, y)));
               if (!got.length || got.every((x) => hasWord(cl, x))) return;
+              if (got.length < ow.length && got.every((x) => cw.some((y) => same(x, y) && concept(y)))) return;
               if (got.length === ow.length || (got[0] === ow[0] && ow.length <= 3 && got.length * 2 >= ow.length))
                 consider(s, o, got.join(" ").length * 0.8 + overlap(s.label, txt) * 3 + (isMain(s) ? 1 : 0) - (got.length < ow.length ? 2 : 0), null);
             })
@@ -1200,9 +1279,9 @@
       let hit = findHit(clause, taken, true);
       /* "more flicker" when a setting is called Flicker: that setting, not the word "flicker" on another scale. */
       if (hit && /\b(more|less|fewer|extra|lots of)\b/.test(clause) && otherNamed(hit.s, clause) && overlap(hit.s.label, clause) === 0) hit = null;
-      if (hit && /\b(more|less|too|not|so|fewer|heavier|harder|stronger|weaker|lighter)\b/.test(clause) && String(hit.o) === String(cur(hit.s)) && strengthOf(hit.s)) {
+      if (hit && /\b(more|less|fewer|heavier|harder|stronger|weaker|lighter|add|extra)\b/.test(clause) && !/\b(not|dont|too)\b/.test(clause) && String(hit.o) === String(cur(hit.s)) && strengthOf(hit.s)) {
         /* The word is already set: "more rain" when it rains means harder. */
-        if (nudge(strengthOf(hit.s), /\b(less|fewer|lighter|weaker|not so|too)\b/.test(clause) ? -1 : 1, lot)) return;
+        if (nudge(strengthOf(hit.s), /\b(less|fewer|lighter|weaker)\b/.test(clause) ? -1 : 1, lot)) return put(hit.s, hit.o, "");
       }
       let did = false;
       while (hit && taken.size < 3) {
@@ -1221,13 +1300,17 @@
         } else {
           did = put(s, hit.o, `${nameOf(s)}: ${hit.o}`) || did;
           /* "more smoke", "more confetti": the word and more of it. */
-          const st = strengthOf(s);
+          /* Only for things ("more smoke"); "more relaxed" is just that word. */
+          const st = content(hit.o).some((x) => concept(x) && concept(x).vs.length) ? null : strengthOf(s);
           if (st && new RegExp("\\b(more|lots of|extra|heavier|bigger|thicker|stronger)\\s+(\\w+\\s+)?" + w).test(clause)) nudge(st, 1, lot);
+          else if (st && new RegExp("\\b(fewer|less|lighter|thinner|weaker|smaller)\\s+(\\w+\\s+)?" + w).test(clause)) nudge(st, -1, lot);
         }
         if (hit.span) clause = clause.replace(hit.span, " ");
         hit = findHit(clause, taken, false);
       }
-      if (did && !/\d/.test(numbersIn(clause.replace(/\b(1[0-9]|20)?[0-9]0s\b/g, " ")))) return;
+      /* "bigger text at the bottom": a comparison left over after the words on scales goes on to step 4. */
+      const dirLeft = did && content(clause).some((w) => baseOf(w) && baseOf(w) !== "many" && baseOf(w) !== "few");
+      if (did && !dirLeft && !/\d/.test(numbersIn(clause.replace(/\b(1[0-9]|20)?[0-9]0s\b/g, " ")))) return;
       /* 3. A number, with a unit if one is said. */
       const nt = numbersIn(clause.replace(/\b(1[0-9]|20)?[0-9]0s\b/g, " "));
       const m = nt.match(/(-?\d+(?:\.\d+)?)\s*(°c|°|%|\$|x\b|[a-z']+(?:\s+(?:per|a|an|\/)\s+[a-z]+|\s+of\s+(?:width|frame|hair|height))?)?/);
@@ -1240,7 +1323,7 @@
         const rate = nt.match(/\b(per|a|an|each|every)\s+(minute|min|second|sec|hour)\b/);
         if (rate && !known) unit = canonUnit("per " + rate[2]);
         /* "3 in the afternoon", "9 pm". */
-        if (/\b(pm|p\.m\.|in the (afternoon|evening)|at night|tonight)\b/.test(nt) && n < 12) (n += 12), (unit = "o'clock");
+        if (/\b(pm|p\.m\.|in the (afternoon|evening)|at night|tonight)\b/.test(nt + " " + whole) && n < 12) (n += 12), (unit = "o'clock");
         else if (/\b(am|a\.m\.|in the morning|o'?clock)\b/.test(nt)) unit = "o'clock";
         /* "2x" or "4 times faster" on a speed measured in %: 2x is 200%. */
         const speedPct = own.find((s) => s.range && s.range.unit === "%" && !SHARED.includes(s.id) && /speed|rate|pace/.test((s.label + " " + s.id).toLowerCase()));
@@ -1251,7 +1334,7 @@
         const upish = /\b(more|further|farther|higher|longer|bigger|brighter|louder|faster|warmer|wider|extra|another|add|up|later|forward|stronger|thicker|deeper)\b/.test(nt);
         const downish = /\b(less|fewer|closer|nearer|lower|shorter|smaller|darker|quieter|slower|cooler|tighter|down|earlier|back|weaker|thinner)\b/.test(nt);
         const relative = (upish || downish) && !(upish && downish) && !/\b(to|at|exactly)\s+-?\d/.test(nt) && unit !== "%" && unit !== "x";
-        const mult = /\btimes\b/.test(nt) && unit === "x" && (upish || downish || /\bas\b/.test(nt)) ? n : null;
+        const mult = unit === "x" && /\b(times|x)\s+(as|more|less|faster|slower|bigger|smaller|longer|shorter|louder|quieter|brighter|darker|further|closer)\b/.test(nt) ? n : null;
         if (/\b(left|below|under|down)\b/.test(clause) && n > 0 && unit === "°" && !relative) n = -n;
         const nums0 = own.filter((s) => s.range && !taken.has(s) && (!SHARED.includes(s.id) || overlap(s.label, clause) > 0));
         const unitWord = said2 && !known && !rate ? stemOf(said2.split(" ")[0]) : "";
@@ -1267,7 +1350,14 @@
           const plain = nums.filter((s) => !unitOf(s) || unitOf(s) === "x");
           if (plain.length && !best(clause, nums.filter((s) => unitOf(s)), 1.5)) nums = plain;
         }
-        const score = (s) => nameScore(s, clause) + (unitWord && labelHas(s, unitWord) ? 1 : 0) + (unit && unitOf(s) === unit ? 0.5 : 0);
+        const timeUnit = /^(s|ms|min|h|frames|beats?)$/.test(unit);
+        /* "for 2 seconds", "over 3 seconds": how long it lasts. */
+        const howLong = timeUnit && /\b(for|over|lasting|lasts?|hold(s|ing)? (it )?for)\s+-?\d/.test(nt) ? 2 : 0.6;
+        const score = (s) =>
+          nameScore(s, clause) +
+          (unitWord && labelHas(s, unitWord) ? 1 : 0) +
+          (unit && unitOf(s) === unit ? (known ? 0.5 : 3) : 0) +
+          (timeUnit && /how long|length|duration|lasts|^hold|holds? for/.test(s.label.toLowerCase() + " " + s.id.toLowerCase()) ? howLong : 0);
         let s = null;
         let top = -5;
         nums.forEach((x) => {
@@ -1285,7 +1375,8 @@
           if (put(s, v, `${nameOf(s)}: ${S().fix(k, v)}${s.range.unit || ""}${note}`)) return;
         }
       }
-      if (did) return;
+      if (did && !dirLeft) return;
+      if (dirLeft) toks = content(clause);
       /* 4. More or less of something. */
       const half = /\b(by half|in half|half as \w+|halve)\b/.test(clause) ? 0.5 : /\b(twice as|double)\b/.test(clause) ? 2 : null;
       let sign = 0;
@@ -1310,18 +1401,31 @@
       /* Bare describing words ("controlling", "optimistic", "a rebel", "the light changes slowly"): the last one
          that means something here. */
       if (!sign) {
+        const cname = words(c.label);
         const polar = toks
           .slice()
           .reverse()
-          .find((w) => w.length > 3 && concept(w) && resolve(w, 1, clause));
+          .sort((a, b) => (concept(b) ? 1 : 0) - (concept(a) ? 1 : 0) + (hasWord(cname, a) ? 2 : 0) - (hasWord(cname, b) ? 2 : 0))
+          .find((w) => {
+            if (w.length < 4 || NUMBERISH.test(w)) return false;
+            const r = resolve(w, 1, clause);
+            return r && (concept(w) || r.score >= 2);
+          });
         if (polar) (base = polar), (sign = 1);
       }
       /* "less X", "not so X", "too X", "dont make it X". */
       if (base && sign > 0 && (/\b(less|not so|not as|not that|too|no longer|isn't)\b/.test(clause) || (neg && !/\b(dont|not) (stop|lose)\b/.test(clause)))) sign = -sign;
       if (ANGLEY.test(clause) && aroundMove(clause, lotX)) return;
       if (sign) {
+        /* "stronger wind", "harder hits", "bigger text": a word with no side of its own moves what the rest names. */
+        const restOf = () => toks.filter((w) => !isDirWord(w) && !MORE_WORDS.test(w) && !LESS_WORDS.test(w) && !/^(bit|lot|little|way|very|far|add|make|turn|keep|some|really|super|slightly)$/.test(w)).join(" ");
+        let gNamed = base && GENERIC[base] != null && restOf() ? best(restOf(), mine.filter(ordered), 1.9) : null;
+        /* A side setting only ("bigger balloons" is their size, "longer fade" its length, not more of them). */
+        if (gNamed && isMain(gNamed) && !(gNamed.range && !unitOf(gNamed))) gNamed = null;
+        const r0 = base && base !== "many" && base !== "few" ? resolve(base, sign, clause) : null;
+        if (gNamed && !(r0 && (r0.via === "scale" || r0.s === gNamed || nameScore(r0.s, restOf()) >= nameScore(gNamed, restOf()))) && nudge(gNamed, sign * GENERIC[base], lotX)) return;
         if (base && base !== "many" && base !== "few") {
-          const r = resolve(base, sign, clause);
+          const r = r0;
           if (r) {
             if (half && r.s.range) {
               const now = Number(cur(r.s) == null ? S().at(h.sliderId(c, r.s), 0.5) : cur(r.s));
@@ -1339,7 +1443,7 @@
         const bare = !words(rest).length;
         const named2 = bare ? null : best(rest, ord, 0.9);
         const onlyOptions = !bare && own.some((x) => (x.scale || []).some((o) => phraseIn(rest, String(o).toLowerCase())));
-        const s = named2 || (bare || onlyOptions ? strengthOf() : null);
+        const s = named2 || strengthOf();
         if (s && half && s.range) {
           const now = Number(cur(s) == null ? S().at(h.sliderId(c, s), 0.5) : cur(s));
           return put(s, now * (sign > 0 ? (half === 2 ? 2 : 1.5) : 0.5), `${nameOf(s)}: ${sign > 0 ? "up" : "down"}`);
