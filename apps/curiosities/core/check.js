@@ -25,6 +25,8 @@ assert(core.CurioAuto.running().includes(key), "set starts the parameter");
 assert.strictEqual(core.CurioAuto.m(key), 0.42, "set steers the main lane");
 assert.deepStrictEqual(plain(B.values().find((v) => v.key === key)), { type: "value", key, m: 0.42 }, "values reports it");
 assert.strictEqual(B.handle({ type: "set", key: "c:nope", m: 1 }).type, "error", "unknown keys are refused");
+assert.strictEqual(B.handle({ type: "nope" }).error, "unknown type nope", "an unknown type is named, even with no key (tools fall back on it)");
+assert.strictEqual(B.handle({ type: "set", key: "c:nope", m: 1 }).error, "unknown key c:nope", "a known type with a bad key names the key");
 const osc = B.toOsc({ type: "set", key: "c:angleHeight", m: 0.5 });
 assert.deepStrictEqual(plain(osc), { address: "/curio/set/c/angleHeight", args: [0.5] }, "OSC address out");
 assert.deepStrictEqual(plain(B.fromOsc(osc.address, osc.args)), { type: "set", key: "c:angleHeight", m: 0.5 }, "OSC address back in");
