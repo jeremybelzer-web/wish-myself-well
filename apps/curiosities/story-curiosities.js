@@ -41,7 +41,8 @@
     ["1 Reformer", "2 Helper", "3 Achiever", "4 Individualist", "5 Investigator", "6 Loyalist", "7 Enthusiast", "8 Challenger", "9 Peacemaker"],
     "The character's Enneagram type: the core fear and desire they act from."
   );
-  pick("enneagramHealth", "Story: Archetype", "Health of the type", ["unhealthy", "average", "healthy"], "How healthy the type is playing in this scene, from unhealthy to healthy.");
+  /* "Health of the type" (enneagramHealth) was merged into the character matrix's Enneagram health (cm-health,
+     1 at their best to 9 at their worst); CuriosityDB.install moves saved story values across. */
 
   range("herdMentality", "Story: Herd mentality", "Herd mentality", 0, 5, "How much the group this character is in thinks as one: 0 everyone their own mind, 5 one mind.");
   pick("herdLeader", "Story: Herd mentality", "Who leads the herd", ["no one", "one voice", "a few", "the crowd"], "Who the group follows in this scene.");
