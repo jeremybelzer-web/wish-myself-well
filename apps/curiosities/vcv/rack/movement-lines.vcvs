@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "MOVEMENT WITH LINES\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 2, CC 49 to 64\n   1 Size of gesture\n   2 Stillness\n   3 Blink\n   4 Anticipation\n   5 Leads the move\n   6 Facial expression\n   7 Eye darts\n   8 Posture\n   9 Touch\n  10 Walk and talk\n  11 Business with a prop\n  12 Move on the line\n  13 The listener's body\n  14 suite: The walk and talk\n  15 suite: Busy hands\n  16 suite: The task falls apart\nCV-CC 2: MIDI channel 2, CC 65 to 73\n   1 suite: Freeze on the line\n   2 suite: The real reaction\n   3 pair: When a big line lands, the body freezes\n   4 pair: When the speaker gets closer to the truth, the listener leans in\n   5 pair: When the anger rises, the task gets rougher\n   6 pair: When the task falls apart, a laugh comes\n   7 pair: When they walk and talk, the shots get longer\n   8 pairs: The body tells the line\n   9 pairs: Comic business"
+    "text": "MOVEMENT WITH LINES\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 2, CC 97 to 112\n   1 Size of gesture\n   2 Stillness\n   3 Blink\n   4 Anticipation\n   5 Leads the move\n   6 Facial expression\n   7 Eye darts\n   8 Posture\n   9 Touch\n  10 Walk and talk\n  11 Business with a prop\n  12 Move on the line\n  13 The listener's body\n  14 suite: The walk and talk\n  15 suite: Busy hands\n  16 suite: The task falls apart\nCV-CC 2: MIDI channel 3, CC 1 to 16\n   1 suite: Freeze on the line\n   2 suite: The real reaction\n   3 suite: Thinking face\n   4 suite: Stage-size acting\n   5 pair: When a big line lands, the body freezes\n   6 pair: When the speaker gets closer to the truth, the listener leans in\n   7 pair: When the anger rises, the task gets rougher\n   8 pair: When the task falls apart, a laugh comes\n   9 pair: When they walk and talk, the shots get longer\n  10 pair: When the wind-up is big, the body stretches far on the release\n  11 pair: When the eyes keep darting, the character reads as nervous\n  12 pair: When the eyes snap to something, the eyes lead the turn\n  13 pair: When a character stops blinking, they become unsettling\n  14 pair: When a touch is held, the beat turns tender\n  15 pairs: The body tells the line\n  16 pairs: Comic business\nCV-CC 3: MIDI channel 3, CC 17 to 17\n   1 pairs: The eyes give it away"
    },
    "pos": [
     0,
@@ -27,22 +27,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
     ],
     "midi": {
      "channel": 1
@@ -59,15 +59,47 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 2
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -77,11 +109,11 @@
      -1
     ],
     "midi": {
-     "channel": 1
+     "channel": 2
     }
    },
    "pos": [
-    32,
+    40,
     0
    ]
   }

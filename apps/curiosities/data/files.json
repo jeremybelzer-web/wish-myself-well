@@ -18,5 +18,8 @@
   "db-finish.js",
   "db-momentum.js",
   "db-editing.js",
-  "db-maya.js"
+  "db-maya.js",
+  "db-ties.js",
+  "db-heart.js",
+  "db-model-scenes-2.js"
 ]

@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "WARDROBE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 33 to 48\n   1 Era of the clothes\n   2 Cheap to expensive\n   3 How much skin is covered\n   4 Looks or function\n   5 The job the clothes do\n   6 Wear and tear\n   7 Fit\n   8 Casual to formal\n   9 Clothes against the set\n  10 Era of the clothes\n  11 Cheap to expensive\n  12 How much skin is covered\n  13 Looks or function\n  14 The job the clothes do\n  15 Wear and tear\n  16 All different to all alike\nCV-CC 2: MIDI channel 5, CC 49 to 62\n   1 True to the time\n   2 Background against the main character\n   3 suite: Main character's clothes lens\n   4 suite: Background clothes lens\n   5 suite: Period truth\n   6 suite: Deliberate anachronism\n   7 suite: Working uniform\n   8 suite: Dressed to impress\n   9 suite: Falling apart\n  10 suite: Frontier\n  11 pair: A new outfit marks a change in the character\n  12 pair: A disguise is followed by its unmasking\n  13 pair: Clashing clothes get noticed\n  14 pairs: Clothes tell the story"
+    "text": "WARDROBE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 81 to 96\n   1 Era of the clothes\n   2 Cheap to expensive\n   3 How much skin is covered\n   4 Looks or function\n   5 The job the clothes do\n   6 Wear and tear\n   7 Fit\n   8 Casual to formal\n   9 Clothes against the set\n  10 Era of the clothes\n  11 Cheap to expensive\n  12 How much skin is covered\n  13 Looks or function\n  14 The job the clothes do\n  15 Wear and tear\n  16 All different to all alike\nCV-CC 2: MIDI channel 6, CC 97 to 112\n   1 True to the time\n   2 Background against the main character\n   3 suite: Main character's clothes lens\n   4 suite: Background clothes lens\n   5 suite: Period truth\n   6 suite: Deliberate anachronism\n   7 suite: Working uniform\n   8 suite: Dressed to impress\n   9 suite: Falling apart\n  10 suite: Frontier\n  11 pair: A new outfit marks a change in the character\n  12 pair: A disguise is followed by its unmasking\n  13 pair: Clashing clothes get noticed\n  14 pair: When the crowd is in rags, the hero's clean clothes make them the only one\n  15 pair: When the hero is the only one dressed that way, the eye finds them in the crowd\n  16 pair: When the hero dresses unlike everyone else, they feel out of place\nCV-CC 3: MIDI channel 7, CC 1 to 16\n   1 pair: When the hero's clothes are luxury, they stand out from the room\n   2 pair: When the clothes are very formal, people move stiffly\n   3 pair: When the clothes are baggy, a trip or a snag is waiting\n   4 pair: When a layer of clothing comes off, the characters get closer\n   5 pair: When the hero suits up in armor, big action follows\n   6 pair: When the outfit is only for show, the hero is wrong for the job\n   7 pair: When the crowd dresses in 1920s clothes, the room follows\n   8 pair: When the background clothes are clearly wrong for the time, the scene turns into a joke\n   9 pair: When everyone wears the same uniform, the place feels oppressive\n  10 pair: When the crowd's clothes are torn and dirty, the place reads as run down\n  11 pair: When the crowd is bundled up, the picture turns cool\n  12 pair: When the crowd wears work clothes, the place reads as a working site\n  13 pair: When the crowd dresses only for show, the room is rich\n  14 pairs: Clothes tell the story\n  15 pairs: The standout hero\n  16 pairs: Dressed wrong for it"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
     ],
     "midi": {
-     "channel": 4
+     "channel": 5
     }
    },
    "pos": [
@@ -59,29 +59,61 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     -1,
-     -1
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
     ],
     "midi": {
-     "channel": 4
+     "channel": 5
     }
    },
    "pos": [
     32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    40,
     0
    ]
   }
