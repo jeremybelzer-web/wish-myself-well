@@ -73,6 +73,46 @@
       })
       .join("");
   }
+  /* A film frame w by h at (x, y) holding a 320x180 drawing; a frame wider than 16:9 shows the middle band. */
+  const cell = (id, x, y, w, h, inner, stroke) => {
+    const s = Math.max(h / 180, w / 320);
+    const ty = Math.min(y, Math.max(y + h - 180 * s, y + h / 2 - 110 * s));
+    return `<clipPath id="${id}"><rect x="${R(x)}" y="${R(y)}" width="${R(Math.max(0.5, w))}" height="${R(h)}"/></clipPath><g clip-path="url(#${id})"><g transform="translate(${R(x + w / 2 - 160 * s)} ${R(ty)}) scale(${R(s, 3)})">${inner}</g></g>` + box(x, y, w, h, "none", stroke || "#0b0b0d");
+  };
+  /* The dark band and sprocket holes behind a strip of film frames. */
+  const sprockets = (x, y, w, h) => {
+    let o = box(x - 2, y - 6, w + 4, h + 12, "#0b0b0d");
+    for (let hx = x + 2; hx < x + w - 2; hx += 7) o += box(hx, y - 4, 3, 2.5, "#4a4a52") + box(hx, y + h + 1.5, 3, 2.5, "#4a4a52");
+    return o;
+  };
+  /* One angle on a two-person talk: 0 wide, 1 close on her, 2 close on him, 3 over his shoulder. */
+  const TALK_BG = ["#5b4a6b", "#7a5a48", "#3f5a6e", "#4b5e4a"];
+  function talk(k, a, open) {
+    const bg = box(0, 0, 320, 180, TALK_BG[a]);
+    if (a === 0) return bg + box(0, 140, 320, 40, "#2a2228") + fig(k, 110, 150, 80, { color: "#e07a5f", look: 1 }) + fig(k, 210, 150, 80, { color: "#4a6fa5", look: -1 }) + box(125, 120, 70, 9, "#8a6a4a", "#1c1712");
+    if (a === 1) return bg + box(70, 150, 140, 60, "#e07a5f", "#1c1712", 30) + k.face({ x: 140, y: 92, r: 58, look: 1, mouth: open ? 0.5 : 0 });
+    if (a === 2) return bg + box(110, 150, 140, 60, "#4a6fa5", "#1c1712", 30) + k.face({ x: 180, y: 92, r: 58, look: -1, color: "#c89a72", mouth: open ? 0.5 : 0 });
+    return bg + fig(k, 220, 175, 120, { color: "#e07a5f", look: -1 }) + `<circle cx="70" cy="110" r="70" fill="#2b2420"/>` + box(-10, 160, 160, 40, "#4a6fa5", "#1c1712", 20);
+  }
+  const TALK_ORDER = [0, 1, 2, 1, 3, 2, 1, 2, 0, 2, 1, 3];
+  /* A strip of film frames whose widths follow the shot lengths; each shot is a new angle on the same talk. */
+  function talkStrip(k, id, lengths, x, y, w, h) {
+    const tot = lengths.reduce((a, b) => a + b, 0) || 1;
+    let at = x;
+    let out = sprockets(x, y, w, h);
+    lengths.forEach((l, i) => {
+      const ww = (l / tot) * w;
+      const a = TALK_ORDER[i % TALK_ORDER.length];
+      out += ww < 7 ? box(at, y, Math.max(0.6, ww), h, TALK_BG[a], "#0b0b0d") : cell(`${id}-${i}`, at, y, ww, h, talk(k, a));
+      at += ww;
+    });
+    return out;
+  }
+  /* A person seen from above: shoulders and a head, nose pointing dir degrees (0 = right, 90 = down). */
+  const topPerson = (k, x, y, dir, color, sc) => {
+    const q = sc || 1;
+    return `<g transform="translate(${R(x)} ${R(y)}) rotate(${R(dir || 0)}) scale(${R(q, 2)})"><ellipse cx="0" cy="0" rx="5" ry="10" fill="${color || "#4a6fa5"}" stroke="#1c1712" stroke-width="1.2"/><circle cx="1" cy="0" r="5.5" fill="#5a4030" stroke="#1c1712" stroke-width="1.2"/><circle cx="6.5" cy="0" r="1.6" fill="#f0c8a0"/></g>`;
+  };
   const SKY = "#141418";
 
   /* Point of view: the shot as seen through someone (or something), with whose eyes, trust and timing beside it. */
@@ -185,11 +225,12 @@
     for (let i = 0; i < Math.min(10, Math.ceil(lpa)); i++) bub.push(box(14 + i * 18, 132, 14, 9, "#f4f1ea", "#1c1712", 4));
     return (
       k.bg(SKY) +
-      sm(k, 10, 14, `One minute of film: ${n} ${n === 1 ? "shot" : "shots"}`, { color: "#ddd", size: 9 }) +
-      shots(L, 10, 22, 300, 34) +
-      ln(10 + peak * 300, 18, 10 + peak * 300, 60, "#ff6b6b", 1.5, "3 2") +
-      sm(k, 10, 74, "tension", { color: "#e07a5f", size: 7.5 }) +
-      k.graph({ x: 10, y: 66, w: 300, h: 30, points: tpts, color: ft > 0.1 ? "#e07a5f" : "#5a3a33", w2: 1.5 }) +
+      sm(k, 10, 12, `One minute of film: ${n} ${n === 1 ? "shot" : "shots"}, each a new angle`, { color: "#ddd", size: 9 }) +
+      talkStrip(k, "cw-cr", L, 10, 22, 300, 46) +
+      ln(10 + peak * 300, 14, 10 + peak * 300, 76, "#ff6b6b", 1.5, "3 2") +
+      sm(k, 10 + peak * 300 + (peak > 0.7 ? -4 : 4), 84, "fastest", { color: "#ff6b6b", size: 7, anchor: peak > 0.7 ? "end" : "start" }) +
+      sm(k, 10, 96, "tension", { color: "#e07a5f", size: 7.5 }) +
+      k.graph({ x: 46, y: 86, w: 264, h: 16, points: tpts, color: ft > 0.1 ? "#e07a5f" : "#5a3a33", w2: 1.5 }) +
       sm(k, 10, 112, `New pace reached in ${v("rampTime")} s`, { size: 7.5 }) +
       poly([[180, 112], [180 + ramp * 120, 102], [310, 102]], "#7fe07f", 2) +
       sm(k, 10, 124, `${lpa} lines per angle`, { size: 7.5 }) +
@@ -235,7 +276,7 @@
       box(6, 6, 200, 120, "#1d1d22", "#3a3a44", 6) +
       `<clipPath id="cw-co-clip"><rect x="7" y="7" width="198" height="118" rx="6"/></clipPath><g clip-path="url(#cw-co-clip)">${wedge}</g>` +
       k.ring({ x: mx, y: my, r: R0, color: "#666", dash: "3 3", w: 1 }) +
-      k.dot({ x: mx, y: my, r: 6, color: "#4a6fa5" }) +
+      topPerson(k, mx, my, -90, "#4a6fa5", 1.1) +
       k.cam({ x: mx, y: my - R0, dir: 90, s: 0.6 }) +
       sm(k, mx + 8, my - R0 / 2, `${leash} m`, { size: 7.5 }) +
       (g > 0 ? `${k.text({ x: 175, y: 40, text: "★", size: 16, color: "#ffd166" })}${k.arrow({ x1: mx + 10, y1: my - 10, x2: mx + 10 + g * 70, y2: my - 10 - g * 35, w: 1 + g * 3, color: "#ffd166" })}` : "") +
@@ -497,19 +538,43 @@
       if (mid && i % (mid === 1 ? 3 : 1) === 0) cuts.push(lx + w * 0.45);
       if (mode === 1 || mode === 2) cuts.push(lx + w * 0.7);
     });
-    const listen = lines.filter(([, , who], i) => react && who === 0 && (react === 2 || i === 0)).map(([lx, w]) => box(lx + w + 2, 98, hold * 3 + 1, 14, "#81b29a", "#1c1712", 2, 0.8));
+    /* Squeeze everything into the picture's width. */
+    const xEnd = Math.max(...lines.map(([lx, w]) => lx + w + (react ? hold * 3 : 0)));
+    const fx = Math.min(1, 300 / (xEnd - 10));
+    const X = (x) => 10 + (x - 10) * fx;
+    lines.forEach((l) => { l[0] = X(l[0]); l[1] *= fx; });
+    const cutsX = cuts.map(X).filter((c) => c > 10.5 && c < 309.5).sort((a, b) => a - b);
+    const listen = lines.filter(([, , who], i) => react && who === 0 && (react === 2 || i === 0)).map(([lx, w]) => box(lx + w + 1, 24, hold * 3 * fx + 1, 14, "#81b29a", "#1c1712", 2, 0.8));
+    /* What is on screen between the cuts: the speaker first, then the listener after each cut inside the line. */
+    const edges = mode === 3 ? [10, 310] : [10, ...cutsX, 310];
+    let strip = sprockets(10, 52, 300, 44);
+    let lastLine = -1;
+    let turn = 0;
+    for (let i = 0; i < edges.length - 1; i++) {
+      const x0 = edges[i];
+      const w = edges[i + 1] - x0;
+      if (w < 0.5) continue;
+      const m = x0 + w / 2;
+      let li = 0;
+      lines.forEach(([lx], j) => { if (m >= lx - 2) li = j; });
+      const [lx, lw, who] = lines[li];
+      if (li !== lastLine) { lastLine = li; turn = 0; } else turn++;
+      const afterLine = m > lx + lw;
+      const sp = afterLine ? 1 - who : turn % 2 ? 1 - who : who;
+      const a = mode === 3 ? 0 : sp === 0 ? 1 : 2;
+      strip += w < 6 ? box(x0, 52, w, 44, TALK_BG[a], "#0b0b0d") : cell(`cw-ac-${i}`, x0, 52, w, 44, talk(k, a, !afterLine && sp === who));
+    }
     return (
       k.bg(SKY) +
-      k.face({ x: 80, y: 44, r: 26, mood: 0.2, look: 1, mouth: 0.4, color: "#f0c8a0" }) +
-      k.face({ x: 240, y: 44, r: 26, mood: 0, look: -1, color: "#e0b090" }) +
-      sm(k, 70, 84, "A", { size: 9 }) +
-      sm(k, 236, 84, "B", { size: 9 }) +
-      lines.map(([lx, w, who]) => box(lx, 98, w, 14, who ? "#a5574a" : "#4a6fa5", "#1c1712", 3)).join("") +
+      sm(k, 10, 14, "Who is talking (orange her, blue him)", { size: 7.5 }) +
+      lines.map(([lx, w, who]) => box(lx, 24, w, 14, who ? "#4a6fa5" : "#e07a5f", "#1c1712", 7) + k.label({ x: lx + w / 2, y: 34, text: "blah blah", size: 7, color: "#fff" })).join("") +
       listen.join("") +
-      (mode === 3 ? sm(k, 10, 130, "Locked: the angle never changes", { color: "#ff8a8a" }) : "") +
-      cuts.map((c) => ln(c, 92, c, 118, mode === 3 ? "#555" : "#ffd166", 2, mode === 3 ? "2 2" : null)).join("") +
-      (mode === 1 || mode === 2 ? lines.map(([lx, w]) => k.label({ x: lx + w * 0.7, y: 128, text: "✦", size: 9, color: "#e07a5f" })).join("") : "") +
-      sm(k, 10, 146, `Cuts ${lead < 0 ? -lead + " beats early" : lead > 0 ? lead + " beats late" : "on time"} · ${cpl} per line · listener ${hold} s`, { color: "#ddd" }) +
+      strip +
+      (mode === 3 ? sm(k, 10, 112, "Locked: the angle never changes", { color: "#ff8a8a" }) : "") +
+      cutsX.map((c) => ln(c, 18, c, 102, mode === 3 ? "#555" : "#ffd166", 1.5, mode === 3 ? "2 2" : null)).join("") +
+      (mode === 1 || mode === 2 ? lines.map(([lx, w]) => k.label({ x: lx + w * 0.7, y: 112, text: "✦ action", size: 7, color: "#e07a5f" })).join("") : "") +
+      sm(k, 10, 128, `Yellow lines = cuts · ${mode === 3 ? 0 : cutsX.length} cuts here`, { size: 7.5, color: "#ffd166" }) +
+      sm(k, 10, 144, `Cuts ${lead < 0 ? -lead + " beats early" : lead > 0 ? lead + " beats late" : "on time"} · ${cpl} per line · on the listener ${hold} s`, { color: "#ddd" }) +
       k.caption(`Changes ${v("setting")}, cuts inside a sentence ${v("midWord")}, ${v("tighten")}`)
     );
   });
@@ -566,20 +631,23 @@
     }
     const hp = v.p("holdPast");
     const pl = v.n("pastLine");
+    let holdCells = "";
+    for (let i = 0; i < Math.ceil(pl); i++) holdCells += cell(`cw-sd-h${i}`, 56 + i * 16, 92, Math.min(16, (pl - i) * 16), 26, talk(k, 1), "#81b29a");
     return (
       k.bg(SKY) +
-      sm(k, 10, 14, `A minute of film: ${n} ${n === 1 ? "shot" : "shots"} of about ${R(sec)} s`, { color: "#ddd", size: 9 }) +
-      shots(L, 10, 22, 300, 36) +
-      sm(k, 10, 78, "One shot: the line, then the hold", { size: 8 }) +
-      box(10, 86, 120, 22, "#4a6fa5", "#1c1712", 3) +
-      k.label({ x: 70, y: 101, text: "“…and that's all.”", size: 8, color: "#fff" }) +
-      box(130, 86, Math.max(2, pl * 16), 22, "#81b29a", "#1c1712", 3) +
-      sm(k, 134 + pl * 16, 101, `+${pl} s`, { size: 8 }) +
-      sm(k, 10, 126, "Comfort", { size: 7.5 }) +
-      box(60, 120, 250, 6, "#34343c", null, 3) +
-      box(60, 120, 100, 6, "#81b29a", null, 3) +
-      ln(60 + 60 + hp * 170, 114, 60 + 60 + hp * 170, 132, hp > 0.6 ? "#ff6b6b" : "#ffd166", 2.5) +
-      sm(k, 10, 146, `Holds: ${v("variety")}, ${v("growth")} (${v("holdChange")}%/min)`, { color: "#ddd" }) +
+      sm(k, 10, 12, `A minute of film: ${n} ${n === 1 ? "shot" : "shots"} of about ${R(sec)} s`, { color: "#ddd", size: 9 }) +
+      talkStrip(k, "cw-sd", L, 10, 22, 300, 40) +
+      sm(k, 10, 84, "One shot: the last line, then the hold", { size: 8 }) +
+      cell("cw-sd-line", 10, 92, 44, 26, talk(k, 1, true), "#ffd166") +
+      holdCells +
+      k.label({ x: 32, y: 128, text: "“…that's all.”", size: 7, color: "#fff" }) +
+      sm(k, 60 + pl * 16, 109, pl > 0 ? `+${pl} s of silence` : "cut on the word", { size: 7.5, color: "#81b29a" }) +
+      sm(k, 10, 141, "cuts early", { size: 7 }) +
+      sm(k, 310, 141, "too long", { size: 7, anchor: "end" }) +
+      box(56, 136, 200, 6, "#34343c", null, 3) +
+      box(56 + 50, 136, 70, 6, "#81b29a", null, 3) +
+      ln(56 + 10 + hp * 180, 131, 56 + 10 + hp * 180, 147, hp > 0.6 ? "#ff6b6b" : "#ffd166", 2.5) +
+      sm(k, 10, 156, `Holds: ${v("variety")}, ${v("growth")} (${v("holdChange")}%/min)`, { color: "#ddd" }) +
       k.caption(`${v("setting")} holds, ${v("holdPast")}, longest on ${v("longestAt")}`)
     );
   });
@@ -667,7 +735,7 @@
         return box(222 + i * 30, 104, 26, 30, "#2a2a30", "#888") + fig(k, 235 + i * 30, 104 + 15 + hh / 2, hh, { color: "#4a6fa5" });
       })
       .join("");
-    const subj = who === 0 ? k.dot({ x: sx, y: sy, r: 6, color: "#4a6fa5" }) : who === 1 ? box(sx - 6, sy - 6, 12, 12, "#e07a5f", "#1c1712", 2) : k.label({ x: sx, y: sy + 4, text: "∅", size: 12, color: "#888" });
+    const subj = who === 0 ? topPerson(k, sx, sy, (Math.atan2(path[Math.min(12, k.clamp(8 + lead, 0, 12) + 1)][1] - sy, 14) * 180) / Math.PI, "#4a6fa5") : who === 1 ? box(sx - 6, sy - 6, 12, 12, "#e07a5f", "#1c1712", 2) : k.label({ x: sx, y: sy + 4, text: "∅", size: 12, color: "#888" });
     return (
       k.bg(SKY) +
       box(6, 6, 200, 150, "#1d1d22", "#3a3a44", 6) +
@@ -1186,6 +1254,7 @@
     const rr = (m) => 10 + Math.sqrt(m / 100) * 42;
     const best = idx(v, "saveBest");
     const cams = [];
+    const views = [];
     const placed = [];
     for (let i = 0; i < n; i++) {
       const t = n > 1 ? i / (n - 1) : 0.5;
@@ -1193,6 +1262,7 @@
       const d = rr(near + (far - near) * (n > 1 ? (k.rnd(i + 4) * vr + t * (1 - vr)) : 0));
       const x = mx + Math.cos(a) * d;
       const y = my - Math.sin(a) * d * -1;
+      views.push([a, d]);
       cams.push(k.cam({ x, y, dir: (Math.atan2(my - y, mx - x) * 180) / Math.PI, s: 0.4 + vr * 0.25 * k.rnd(i), color: i === n - 1 && best === 2 ? "#ffd166" : i === 0 && best === 0 ? "#ffd166" : i === Math.floor(n / 2) && best === 1 ? "#ffd166" : "#e2e2e2" }) + (placed.some(([px, py]) => Math.abs(px - x) < 9 && Math.abs(py - y) < 9) ? "" : k.label({ x: x + 11, y: y + 3, text: String.fromCharCode(65 + i), size: 8, color: "#ccc" })));
       placed.push([x, y]);
     }
@@ -1203,7 +1273,13 @@
       const back = k.rnd(i + 40) < rs && i > 0;
       const id = back ? Math.floor(k.rnd(i + 3) * Math.min(n, next || 1)) : next % n;
       if (!back) next++;
-      seq.push(box(10 + i * 14.5, 140, 13, 12, back ? "#81b29a" : "#5b6f8f", "#1c1712", 2) + k.label({ x: 16.5 + i * 14.5, y: 149, text: String.fromCharCode(65 + id), size: 7, color: "#fff" }));
+      if (i < 7) {
+        /* What that camera sees: the closer it stands, the bigger they are; its side sets the backdrop. */
+        const [va, vd] = views[id];
+        const big = k.clamp(1.6 - (vd - 10) / 35, 0.35, 1.6);
+        const scene = box(0, 0, 320, 180, k.mix("#3f5a6e", "#7a5a48", (Math.sin(va) + 1) / 2)) + box(0, 140, 320, 40, "#2a2228") + fig(k, 160, 120 + big * 60, 100 * big, { color: "#4a6fa5", look: Math.cos(va) > 0.3 ? -1 : Math.cos(va) < -0.3 ? 1 : 0 });
+        seq.push(cell(`cw-ak-${i}`, 10 + i * 43, 135, 42, 22, scene, back ? "#81b29a" : "#0b0b0d") + k.text({ x: 13 + i * 43, y: 143, text: String.fromCharCode(65 + id), size: 7, color: "#fff", anchor: "start", weight: 700, outline: "#000" }));
+      }
     }
     const ad = idx(v, "adding");
     return (
@@ -1211,7 +1287,7 @@
       box(6, 6, 200, 120, "#1d1d22", "#3a3a44", 6) +
       k.ring({ x: mx, y: my, r: rr(near), color: "#555", dash: "2 3", w: 1 }) +
       k.ring({ x: mx, y: my, r: rr(far), color: "#555", dash: "2 3", w: 1 }) +
-      k.dot({ x: mx, y: my, r: 5, color: "#4a6fa5" }) +
+      topPerson(k, mx, my, -90, "#4a6fa5", 0.9) +
       cams.join("") +
       side(6, 120) +
       sm(k, 222, 20, n === 1 ? "1 setup" : `${n} setups`, { size: 9, color: "#fff", weight: 700 }) +
@@ -1221,7 +1297,7 @@
       sm(k, 222, 80, `Best (gold): ${v("saveBest")}`, { size: 7 }) +
       sm(k, 222, 100, v("adding"), { size: 7.5 }) +
       (ad !== 1 ? k.text({ x: 296, y: 104, text: ad ? "+" : "−", size: 14, color: ad ? "#7fe07f" : "#ff6b6b" }) : "") +
-      sm(k, 10, 136, `Cut order (green = back to an old setup: ${v("returnShare")}%, ${v("reuse")})`, { size: 7 }) +
+      sm(k, 10, 131, `The cut, shot by shot (green = back to an old setup: ${v("returnShare")}%, ${v("reuse")})`, { size: 7 }) +
       seq.join("") +
       k.caption(n === 1 ? "One camera angle for the whole scene" : `${n} camera angles in the scene`)
     );
@@ -1288,17 +1364,23 @@
       s *= 0.6 + 0.4 * Math.exp(-Math.pow((t - peak) / 0.2, 2));
       curve.push([10 + t * 200, 150 - s * 28]);
     }
+    /* A street seen from the side: the walker's ghosts show their pace, the camera's ghosts on the track show its pace. */
+    const cg = Math.min(46, 4 + camLen / 3.2);
+    const blurP = Math.min(14, cg / 3);
+    let street = `<clipPath id="cw-ms-clip"><rect x="6" y="6" width="308" height="100" rx="6"/></clipPath><g clip-path="url(#cw-ms-clip)">` + box(6, 6, 308, 100, "#2c3440") + box(6, 82, 308, 24, "#3a332b");
+    for (let i = 0; i < 8; i++) street += box(14 + i * 40 - blurP / 2, 34 + (i % 2) * 8, 16 + blurP, 48 - (i % 2) * 8, "#46505e", null, 2, 0.9 - blurP / 30);
+    for (let i = 4; i >= 1; i--) street += `<g opacity="${R(0.5 - i * 0.1, 2)}">${fig(k, 180 - i * 12, 82, 44, { walk: 1, lean: 6, color: "#4a6fa5" })}</g>`;
+    street += fig(k, 180, 82, 44, { walk: 1, lean: 6, color: "#4a6fa5" });
+    street += box(6, 99, 308, 3, "#666");
+    for (let i = 4; i >= 1; i--) street += `<g opacity="${R(0.75 - i * 0.14, 2)}">${k.cam({ x: 196 - i * cg, y: 92, s: 0.7 })}</g>`;
+    street += [-3, 0, 3].map((d) => ln(180 - cg * 0.8, 92 + d, 180, 92 + d, ["#81b29a", "#9fd3ff", "#ffd166", "#ff6b6b"][urg], 1.2)).join("") + k.cam({ x: 196, y: 92, s: 0.7 }) + sm(k, 212, 96, "camera", { size: 7, color: "#ddd" }) + "</g>";
     return (
       k.bg(SKY) +
-      box(6, 6, 308, 100, "#1d1d22", "#3a3a44", 6) +
-      fig(k, 60, 60, 40, { walk: 1, color: "#4a6fa5", lean: 6 }) +
-      k.arrow({ x1: 75, y1: 40, x2: 75 + subjLen, y2: 40, w: 2, color: "#4a6fa5" }) +
-      k.cam({ x: 60, y: 86, dir: 0, s: 0.6 }) +
-      k.arrow({ x1: 75, y1: 86, x2: 75 + camLen, y2: 86, w: 2 + lvl * 0.6, color: ["#81b29a", "#9fd3ff", "#ffd166", "#ff6b6b"][urg] }) +
-      Array.from({ length: Math.round(lvl) }, (_, i) => ln(30 - i * 4, 80 + i * 3, 44 - i * 4, 80 + i * 3, "#888", 1)).join("") +
-      `<path d="M270 50 L270 22 A28 28 0 ${dps > 180 ? 1 : 0} 1 ${R(270 + Math.sin(k.rad(Math.min(359, dps))) * 28)} ${R(50 - Math.cos(k.rad(Math.min(359, dps))) * 28)} Z" fill="#9fd3ff" opacity="0.35"/>` +
-      sm(k, 236, 96, `turns ${dps}°/s`, { size: 7.5 }) +
-      sm(k, 12, 20, `Camera ${ms} m/s · ${v("vsSubject")}% of the subject (${v("matchesSubject")})`, { size: 7.5, color: "#ddd" }) +
+      street +
+      sm(k, 12, 18, `Camera ${ms} m/s · ${v("vsSubject")}% of the walker (${v("matchesSubject")})`, { size: 7.5, color: "#fff" }) +
+      `<path d="M286 52 L286 30 A22 22 0 ${dps > 180 ? 1 : 0} 1 ${R(286 + Math.sin(k.rad(Math.min(359, dps))) * 22)} ${R(52 - Math.cos(k.rad(Math.min(359, dps))) * 22)} Z" fill="#9fd3ff" opacity="${dps > 0 ? 0.5 : 0}"/>` +
+      k.cam({ x: 286, y: 52, dir: -90 + Math.min(359, dps), s: 0.45 }) +
+      sm(k, 304, 72, `turns ${dps}°/s`, { size: 7, anchor: "end", color: "#ddd" }) +
       box(6, 112, 210, 46, "#1d1d22", "#3a3a44", 4) +
       poly(curve, "#ffd166", 2) +
       ln(10 + peak * 200, 116, 10 + peak * 200, 156, "#ff6b6b", 1, "2 2") +
@@ -1383,19 +1465,24 @@
       const tt = ease === 1 ? t * t : ease === 2 ? Math.sqrt(t) : t;
       xs.push(30 + tt * gap * (n - 1));
     }
-    const endX = Math.min(290, xs[n - 1]);
-    const balls = xs.map((x, i) => k.dot({ x: Math.min(290, x), y: 70, r: 9, color: i === n - 1 ? "#e07a5f" : "#e07a5f55" })).join("");
-    const smear = trail ? `<rect x="${R(endX - 20 - trail * 30)}" y="${70 - 7}" width="${R(20 + trail * 30)}" height="14" rx="7" fill="#e07a5f" opacity="0.35"/>` : "";
-    const camBox = box(endX - 50 - vc * 30, 30, 100, 80, "none", "#ffd166", 0);
-    const impact = imp === 0 ? "" : [0, 1, 2, 3, 4].slice(0, imp * 2 + 1).map((i) => ln(endX + 10, 70, endX + 18 + imp * 6, 70 + (i - imp) * 6, "#fff", 1.5)).join("");
+    const endX = Math.min(276, xs[n - 1]);
+    const by = 92;
+    const ballAt = (x, op) => `<g opacity="${op}"><circle cx="${R(x)}" cy="${by}" r="9" fill="#e07a5f" stroke="#1c1712" stroke-width="1.5"/><path d="M${R(x - 9)} ${by} Q${R(x)} ${by - 6} ${R(x + 9)} ${by}" fill="none" stroke="#fff" stroke-width="1.5"/></g>`;
+    const balls = xs.map((x, i) => ballAt(Math.min(endX, x), i === n - 1 ? 1 : R(0.15 + i * 0.07, 2))).join("");
+    const smear = trail ? `<rect x="${R(endX - 20 - trail * 40)}" y="${by - 7}" width="${R(20 + trail * 40)}" height="14" rx="7" fill="#e07a5f" opacity="${trail === 2 ? 0.6 : 0.35}"/>` : "";
+    const camBox = box(endX - 50 - vc * 30, 30, 100, 76, "none", "#ffd166", 0).replace("/>", ' stroke-width="2"/>');
+    const crate = imp ? box(endX + 10, by - 22 + imp * 0, 24, 31, "#8a6a4a", "#1c1712", 2) : "";
+    const impact = imp === 0 ? "" : [0, 1, 2, 3, 4].slice(0, imp * 2 + 1).map((i) => ln(endX + 10, by - 6, endX - 2 - imp * 6, by - 10 + (i - imp) * 6, "#fff", 1.5 + imp * 0.5)).join("") + (imp === 2 ? k.text({ x: endX + 22, y: by - 30, text: "✶", size: 20, color: "#ffd166" }) : "");
     return (
       k.bg(SKY) +
       room(k, 100, "#3a3640", "#2a2520") +
+      fig(k, 26, 104, 56, { color: "#4a6fa5", walk: 1, arms: 0.4 }) +
+      crate +
       camBox +
       smear +
       balls +
       impact +
-      sm(k, endX - 50 - vc * 30, 26, "frame", { size: 7, color: "#ffd166" }) +
+      sm(k, endX - 50 - vc * 30, 26, "the camera's frame", { size: 7, color: "#ffd166" }) +
       box(6, 116, 308, 40, "#1d1d22", "#3a3a44", 4) +
       sm(k, 12, 130, `${ms} m/s · crosses in ${ct} s · stops in ${st} s`, { color: "#ddd" }) +
       box(12, 138, Math.max(2, (ct / 20) * 140), 5, "#9fd3ff", null, 2) +
@@ -1614,25 +1701,26 @@
       else z = set === 2 ? z : z * (set === 0 ? 0.5 : 1 - 0.3 / (1 + stime));
       return z;
     });
-    const zEnd = Math.max(...zoom) * (0.2 + msz) * (dirP >= 0 ? 1 : -1) * (dirP === 0 ? 0.5 : 1);
+    /* Ten frames along the same stretch: the camera pushes in (or pulls out) as the voice gets loud. */
+    const frames = [];
+    for (let i = 0; i < 10; i++) {
+      const j = Math.round(i * 6.5);
+      const sign = dirP > 0 ? 1 : dirP < 0 ? -1 : j < 30 ? 1 : -1;
+      const sc = Math.max(0.45, 1 + sign * zoom[j] * (0.3 + msz * 0.7) * 1.8);
+      const shout = loud[j] > 0.55;
+      const inner = `<g transform="translate(160 70) scale(${R(sc, 2)}) translate(-160 -70)">${box(-400, -300, 1120, 420, "#cdbfa8")}${box(-400, 120, 1120, 400, "#7d6650")}${room(k, 120)}${fig(k, 160, 175, 150, { color: "#a5574a", arms: shout ? 0.8 : 0 })}${k.face({ x: 160, y: 45, r: 20, mouth: shout ? 1 : 0.1, mood: shout ? -0.5 : 0, brows: shout ? -1 : 0 })}</g>`;
+      frames.push(cell(`cw-mv-${i}`, 10 + i * 30, 72, 30, 40, inner, sc > 1.05 ? "#ffd166" : sc < 0.95 ? "#9fd3ff" : "#0b0b0d"));
+    }
     return (
       k.bg(SKY) +
-      box(6, 6, 206, 60, "#1d1d22", "#3a3a44", 4) +
-      sm(k, 10, 18, "Loudness", { size: 7.5 }) +
-      k.graph({ x: 10, y: 10, w: 198, h: 52, points: loud, color: "#9fd3ff", w2: 1.5 }) +
-      ln(10, 62 - trig * 52, 208, 62 - trig * 52, "#ff6b6b", 1, "3 3") +
-      sm(k, 206, 59 - trig * 52, `${v("thresholdDb")} dB`, { size: 7, color: "#ff8a8a", anchor: "end" }) +
-      box(6, 72, 206, 60, "#1d1d22", "#3a3a44", 4) +
-      sm(k, 10, 84, "How far the camera pushes in", { size: 7.5 }) +
-      k.graph({ x: 10, y: 76, w: 198, h: 52, points: zoom.map((p) => p * (0.3 + msz * 0.7)), color: "#ffd166", w2: 2 }) +
-      side() +
-      sm(k, 222, 22, "Where it ends (yellow)", { size: 7 }) +
-      `<g transform="translate(264 60)">${box(-36, -24, 72, 48, "#cdbfa8", "#888")}${box(-36, 10, 72, 14, "#7d6650")}${fig(k, 0, 24, 46, { color: "#a5574a", mood: -0.4 })}${k.face({ x: 0, y: -13, r: 6.5, mouth: 0.9, mood: -0.5 })}${box(-36 * (1 - zEnd * 0.5), -24 * (1 - zEnd * 0.5), 72 * (1 - zEnd * 0.5), 48 * (1 - zEnd * 0.5), "none", "#ffd166")}</g>` +
-      sm(k, 222, 100, v("direction"), { size: 7.5 }) +
-      sm(k, 222, 114, `Strength ${v("strength")}, ${v("moveSize")}%`, { size: 7.5 }) +
-      sm(k, 222, 128, `Delay ${dly} beats`, { size: 7.5 }) +
-      sm(k, 222, 142, `Settles ${v("settleAfter")}, ${stime} s`, { size: 7 }) +
-      sm(k, 10, 148, `Starts at ${v("threshold")}`, { size: 7.5, color: "#ddd" }) +
+      sm(k, 10, 12, "How loud they are", { size: 7.5, color: "#9fd3ff" }) +
+      k.graph({ x: 10, y: 14, w: 300, h: 40, points: loud, color: "#9fd3ff", w2: 1.5 }) +
+      ln(10, 54 - trig * 40, 310, 54 - trig * 40, "#ff6b6b", 1, "3 3") +
+      sm(k, 310, 51 - trig * 40, `starts at ${v("thresholdDb")} dB`, { size: 7, color: "#ff8a8a", anchor: "end" }) +
+      sprockets(10, 72, 300, 40) +
+      frames.join("") +
+      sm(k, 10, 132, `Loud ${v("direction")} · strength ${v("strength")}, ${v("moveSize")}% · ${dly} beats late`, { size: 7.5, color: "#ddd" }) +
+      sm(k, 10, 146, `Moves at ${v("threshold")} · settles ${v("settleAfter")}, ${stime} s`, { size: 7.5 }) +
       k.caption(`Camera ${v("setting")}`)
     );
   });

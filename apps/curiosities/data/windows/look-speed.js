@@ -301,49 +301,64 @@
     const look = idx(v, "rewindLook");
     const ang = idx(v, "replayAngle");
     const turn = v.n("replayTurn");
-    const fw = 90;
-    const segs = [];
+    const turnDeg = ang === 2 ? Math.min(180, turn + 30) : turn;
+    /* The moment itself: someone jumps a crate. t runs 0..1 through the jump; view 1 is closer, view 2 turned. */
+    const jump = (t, view, tint) => {
+      const px = 90 + t * 140;
+      const lift = Math.sin(Math.PI * t) * 45;
+      const wallC = view === 0 ? "#3a3640" : k.mix("#3a3640", "#4b5e4a", Math.min(1, turnDeg / 120 + (view === 2 ? 0.3 : 0)));
+      let sc = `${box(0, 0, 320, 180, wallC)}${box(0, 140, 320, 40, "#2a2520")}${box(140, 104, 40, 36, "#8a6a4a", "#1c1712", 2)}${fig(k, px, 140 - lift, 100, { arms: 0.8, walk: 0.6, mood: 0.6, color: "#4a6fa5" })}`;
+      if (view && turnDeg > 90) sc = `<g transform="translate(320 0) scale(-1 1)">${sc}</g>`;
+      if (view === 1 || (view === 2 && ang === 1)) sc = `<g transform="translate(160 95) scale(1.6) translate(${R(-(view && turnDeg > 90 ? 320 - px : px))} ${R(-(90 - lift))})">${sc}</g>`;
+      return sc + (tint ? box(0, 0, 320, 180, tint, null, 0, 0.3) : "");
+    };
+    const fy = 30;
+    const fh = 32;
+    const fwid = 36;
+    let strip = "";
     let x = 10;
-    const y = 52;
-    if (dir === "reversed") {
-      segs.push(k.arrow({ x1: x + fw, y1: y, x2: x, y2: y, w: 8, color: "#e07a5f" }));
-      x += fw + 6;
-    } else {
-      segs.push(box(x, y - 8, fw, 16, "#4a6fa5", "#1c1712", 3) + k.arrow({ x1: x + 10, y1: y, x2: x + fw - 8, y2: y, w: 2, color: "#fff" }));
-      x += fw + 4;
-    }
+    let nid = 0;
+    const frame = (t, view, tint, stroke, op, extra) => {
+      const c = cell(`cw-pd-${nid++}`, x, fy, fwid, fh, jump(t, view, tint) + (extra || ""), stroke);
+      x += fwid + 1;
+      return op < 1 ? `<g opacity="${op}">${c}</g>` : c;
+    };
+    const marks = [];
+    /* Plays: forward, or backward with the frames running the other way. */
+    marks.push([x, dir === "reversed" ? "plays backward ◀" : "plays ▶", dir === "reversed" ? "#ff8a8a" : "#9fd3ff"]);
+    for (let i = 0; i < 4; i++) strip += frame(dir === "reversed" ? 1 - i / 3 : i / 3, 0, dir === "reversed" ? "#e07a5f" : null, "#0b0b0d", 1);
     const ghost = dir !== "rewind and replay";
-    const rwLen = Math.max(8, (fw * 100) / rwp);
-    let g = `<g${ghost ? ' opacity="0.35"' : ""}>`;
-    g += box(x, y - 8, rwLen, 16, "#e07a5f", "#1c1712", 3) + k.arrow({ x1: x + rwLen - 2, y1: y, x2: x + 2, y2: y, w: 2, color: "#fff" });
-    if (look === 1) for (let i = 0; i < 3; i++) g += ln(x, y - 5 + i * 5, x + rwLen, y - 5 + i * 5, "#000", 1);
-    if (look === 2) g += ln(x - 6, y - 10, x + rwLen + 6, y - 10, "#fff", 2) + ln(x - 6, y + 10, x + rwLen + 6, y + 10, "#fff", 2);
-    x += rwLen + gap * 20 + 4;
-    const repLen = Math.min(120, (fw * 100) / rpp / (rs === 0 ? 1 : rs === 1 ? 1.5 : 2));
-    for (let i = 0; i < Math.max(1, reps); i++) {
-      if (x > 310) break;
-      g += box(x, y - 8, Math.min(repLen, 312 - x), 16, "#81b29a", "#1c1712", 3, reps === 0 ? 0.3 : 1);
-      x += Math.min(repLen, 312 - x) + 3;
+    const op = ghost ? 0.3 : 1;
+    /* Rewind: fewer frames the faster it runs, with its look on top. */
+    const nRw = Math.max(1, Math.min(4, Math.round(400 / rwp)));
+    const rwLook = look === 1 ? [40, 80, 120].map((yy) => box(0, yy, 320, 6, "#000", null, 0, 0.6)).join("") : look === 2 ? [50, 95, 130].map((yy) => box(0, yy, 320, 10, "#fff", null, 0, 0.4)).join("") : "";
+    x += 3;
+    marks.push([x, `rewind ${rwp}%`, "#ff8a8a", op]);
+    for (let i = 0; i < nRw; i++) strip += frame(1 - (i + 1) / (nRw + 1), 0, "#e07a5f", "#e07a5f", op, rwLook);
+    x += 3 + gap * 8;
+    /* Replays: slower replays take more frames, from the chosen angle. */
+    const nRp = Math.max(1, Math.min(7, Math.round(300 / rpp / [0.7, 1, 1.4][rs])));
+    if (reps > 0 && x + fwid <= 311) marks.push([x, `replay ×${reps}`, "#81b29a", op]);
+    for (let r = 0; r < Math.max(1, reps) && x < 300; r++) {
+      for (let i = 0; i < nRp && x + fwid <= 311; i++) strip += frame(nRp > 1 ? i / (nRp - 1) : 0.5, ang ? (ang === 1 ? 1 : 2) : 0, null, "#81b29a", reps === 0 ? 0.15 : op);
+      x += 4;
     }
-    g += "</g>";
-    const mx = 70;
-    const my = 126;
-    const camA = k.rad(-90 + (ang === 2 ? turn + 30 : turn));
-    const cr = ang === 1 ? 14 : 22;
+    let lastEnd = 0;
     return (
       k.bg(SKY) +
-      sm(k, 10, 22, dir === "forward" ? "Plays forward (faded: a rewind and replay)" : dir === "reversed" ? "Plays backward (faded: a rewind and replay)" : "Plays, rewinds, then replays", { size: 8, color: "#ddd" }) +
-      segs.join("") +
-      g +
-      sm(k, 10, 78, `Rewind ${rwp}% · ${v("rewindLook")} · ${v("rewindSound")}`, { size: 7.5 }) +
-      sm(k, 10, 90, `Replay ${reps}x at ${rpp}% (${v("replaySpeed")}) after ${gap} s`, { size: 7.5 }) +
-      box(10, 96, 120, 62, "#1d1d22", "#3a3a44", 4) +
-      k.dot({ x: mx, y: my + 8, r: 5, color: "#4a6fa5" }) +
-      k.cam({ x: mx, y: my + 8 - 22, dir: 90, s: 0.45, color: "#777" }) +
-      k.cam({ x: mx + Math.cos(camA) * cr, y: my + 8 + Math.sin(camA) * cr, dir: (Math.atan2(-Math.sin(camA), -Math.cos(camA)) * 180) / Math.PI, s: 0.45, color: "#81b29a" }) +
-      sm(k, 140, 116, `Replay from: ${v("replayAngle")}`, { size: 7.5 }) +
-      sm(k, 140, 130, `turned ${turn}°`, { size: 7.5 }) +
-      sm(k, 140, 146, `Rewind sound: ${v("rewindSound")}`, { size: 7.5 }) +
+      sm(k, 10, 12, dir === "forward" ? "Plays forward (faded: what a rewind and replay would add)" : dir === "reversed" ? "Plays backward (faded: a rewind and replay)" : "Plays, rewinds, then replays", { size: 8, color: "#ddd" }) +
+      sprockets(10, fy, 300, fh) +
+      strip +
+      marks.map(([mx, t, c, o]) => { const at = Math.min(Math.max(mx, lastEnd), 310 - t.length * 3.6); lastEnd = at + t.length * 3.6 + 6; return `<g opacity="${o == null ? 1 : o}">${sm(k, at, fy - 9, t, { size: 6.5, color: c })}</g>`; }).join("") +
+      sm(k, 10, 84, `Rewind ${rwp}% · ${v("rewindLook")} · ${v("rewindSound")}`, { size: 7.5 }) +
+      sm(k, 10, 96, `Replay ${reps}x at ${rpp}% (${v("replaySpeed")}) after ${gap} s`, { size: 7.5 }) +
+      sm(k, 10, 108, "The shot", { size: 7, color: "#9fd3ff" }) +
+      cell("cw-pd-a", 10, 112, 80, 45, jump(0.5, 0), "#888") +
+      sm(k, 98, 108, "The replay", { size: 7, color: "#81b29a" }) +
+      cell("cw-pd-b", 98, 112, 80, 45, jump(0.5, ang ? (ang === 1 ? 1 : 2) : 0), "#81b29a") +
+      sm(k, 188, 124, `Replay from: ${v("replayAngle")}`, { size: 7.5 }) +
+      sm(k, 188, 138, `turned ${turn}°`, { size: 7.5 }) +
+      sm(k, 188, 152, `Rewind sound: ${v("rewindSound")}`, { size: 7.5 }) +
       k.caption(`Direction: ${dir}`)
     );
   });
@@ -475,6 +490,19 @@
     const spark = Array.from({ length: [0, 3, 9][fx] }, (_, i) => k.label({ x: 24 + k.rnd(i + 2) * 64, y: 30 + k.rnd(i + 7) * 100, text: "✦", size: 8, color: "#ffd166" })).join("");
     const L = Array.from({ length: clips }, (_, i) => cl * (0.8 + k.rnd(i + 1) * 0.4));
     const best0 = hook === 2 ? 0 : hook === 1 ? 0 : -1;
+    /* Each clip is its own little shot: a new place, the same person; the best one gets the gold frame. */
+    const BGS = ["#4b5e4a", "#5b4a6b", "#7a5a48", "#3f5a6e", "#6b6a48"];
+    const totL = L.reduce((a, b) => a + b, 0) || 1;
+    let at = 112;
+    const clipCells = L.map((l, i) => {
+      const w = (l / totL) * 198;
+      const bgc = BGS[i % BGS.length];
+      const isBest = i === best0 && hook;
+      const inner = set(k, bgc) + fig(k, 120 + (i % 3) * 40, 168, 80 - (i % 2) * 10, { color: accent, mood: 0.5, arms: i % 2 });
+      const c = w < 6 ? box(at, 42, w, 22, bgc, "#0b0b0d") : cell(`cw-et-${i}`, at, 42, w, 22, inner, isBest ? "#ffd166" : "#0b0b0d");
+      at += w;
+      return c;
+    }).join("");
     return (
       k.bg(SKY) +
       phone +
@@ -482,9 +510,10 @@
       spark +
       sm(k, 112, 18, ti === 0 ? "No template" : `${v("setting")} template`, { size: 10, color: ti ? accent : "#ddd", weight: 700 }) +
       sm(k, 112, 36, `${clips} ${clips === 1 ? "clip" : "clips"} of ${cl} s`, { size: 8 }) +
-      shots(L, 112, 42, 198, 20, (i) => (i === best0 && hook ? "#ffd166" : i % 2 ? "#6c8fb8" : "#8fb2d8")) +
-      (hook === 1 ? sm(k, 112, 72, "best clip first, sometimes", { size: 7 }) : hook === 2 ? sm(k, 112, 72, "best clip always first", { size: 7, color: "#ffd166" }) : sm(k, 112, 72, "best clip not first", { size: 7 })) +
-      sm(k, 112, 92, `Words: ${v("textAmount")} · effects: ${v("effectsLevel")}`, { size: 7.5 }) +
+      sprockets(112, 42, 198, 22) +
+      clipCells +
+      (hook === 1 ? sm(k, 112, 80, "best clip first, sometimes", { size: 7 }) : hook === 2 ? sm(k, 112, 80, "best clip always first", { size: 7, color: "#ffd166" }) : sm(k, 112, 80, "best clip not first", { size: 7 })) +
+      sm(k, 112, 97, `Words: ${v("textAmount")} · effects: ${v("effectsLevel")}`, { size: 7.5 }) +
       sm(k, 112, 114, `Whole edit ${total} s`, { size: 8 }) +
       box(112, 120, 198, 6, "#34343c", null, 3) +
       box(112, 120, Math.max(3, (total / 180) * 198), 6, accent, null, 3) +
