@@ -110,6 +110,29 @@ check("rewrite: source, then lanes, then links, then edits, in that order", () =
   E.send({ type: "edit", row: "r5", track: "a", curiosity: "gesture", off: true });
   assert.strictEqual(E.value("r5", "a", "gesture"), null);
 });
+check("lanes: smooth eases out of one point and into the next; a bad mode is refused", () => {
+  E.reset();
+  const film = tiny();
+  film.rows = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => ({ id: "r" + i, label: "R" + i }));
+  assert.ok(E.send({ type: "importFilm", film }).ok);
+  E.send({ type: "setPoint", row: "r1", track: "a", curiosity: "volume", value: 1 });
+  E.send({ type: "setPoint", row: "r9", track: "a", curiosity: "volume", value: 5 });
+  const run = () => film.rows.map((r) => E.value(r.id, "a", "volume"));
+  const ramp = run();
+  assert.ok(E.send({ type: "laneMode", track: "a", curiosity: "volume", mode: "smooth" }).ok);
+  const smooth = run();
+  assert.strictEqual(smooth[0], 1);
+  assert.strictEqual(smooth[8], 5, "the points themselves are unchanged");
+  assert.strictEqual(smooth[4], ramp[4], "halfway is halfway either way");
+  assert.ok(smooth[1] < ramp[1], "smooth leaves the first point slowly (" + smooth + " vs " + ramp + ")");
+  assert.ok(smooth[7] >= ramp[7], "and arrives at the last one slowly");
+  for (let i = 1; i < 9; i++) assert.ok(smooth[i] >= smooth[i - 1], "and never turns back");
+  assert.strictEqual(E.send({ type: "laneMode", track: "a", curiosity: "volume", mode: "wobble" }).ok, false, "a lane ramps, smooths or holds");
+  E.save();
+  B.E.load();
+  same(film.rows.map((r) => B.E.value(r.id, "a", "volume")), smooth, "smooth survives a reload");
+});
+
 check("links: a follower holds its new value until its own material changes", () => {
   E.reset();
   E.send({ type: "importFilm", film: tiny() });
@@ -207,7 +230,7 @@ function randomCommand(R, st) {
     case "clearLane": {
       const lanes = Object.keys(st.lanes);
       const [t, c] = lanes.length ? pick(lanes).split("|") : [tr().id, "volume"];
-      return { type: kind, track: t, curiosity: c, mode: pick(["ramp", "hold"]), on: R() < 0.8 };
+      return { type: kind, track: t, curiosity: c, mode: pick(["ramp", "smooth", "hold"]), on: R() < 0.8 };
     }
     case "addLink": {
       const l = { type: kind, from: end(), to: end(), does: pick(["follow", "oppose", "rise", "fall", "moveWith", "set"]), amount: Math.round(R() * 100) / 100, within: Math.floor(R() * 3), every: R() < 0.2 ? 1 + Math.floor(R() * 3) : 0 };
