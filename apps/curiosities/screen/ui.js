@@ -862,8 +862,11 @@
     if (kind === "toggle") return `<span class="sc-toggle" role="group">${s.scale.map((o) => `<button type="button" data-set="${esc(id)}" data-v="${esc(o)}" class="${String(val) === String(o) ? "on" : ""}"${dis}>${esc(o)}</button>`).join("")}</span>`;
     if (kind === "choice") return `<select data-set="${esc(id)}"${dis}><option value="">not set</option>${s.scale.map((o) => `<option${String(val) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
     if (kind === "steps") {
-      const i = s.scale.findIndex((o) => String(o) === String(val));
-      return `<span class="sc-steps"><input type="range" min="0" max="${s.scale.length - 1}" step="1" value="${i < 0 ? 0 : i}" data-step-set="${esc(id)}" data-scale="${esc(JSON.stringify(s.scale))}"${dis} aria-label="${esc(s.label)}"><output>${esc(val == null ? "not set" : val)}</output></span>`;
+      /* The engine's order when it has one for the same words (Emotion runs calm to charged, not database order). */
+      const d = S() && S().known(id) ? S().domain(id) : null;
+      const sc = d && d.kind === "choice" && d.options.length === s.scale.length && s.scale.every((o) => d.options.includes(String(o))) ? d.options : s.scale;
+      const i = sc.findIndex((o) => String(o) === String(val));
+      return `<span class="sc-steps"><input type="range" min="0" max="${sc.length - 1}" step="1" value="${i < 0 ? 0 : i}" data-step-set="${esc(id)}" data-scale="${esc(JSON.stringify(sc))}"${dis} aria-label="${esc(s.label)}"><output>${esc(val == null ? "not set" : val)}</output></span>`;
     }
     if (kind === "knob") return knob(id, s, val == null ? s.range.min : val, disabled);
     const r = s.range || { min: 0, max: 100, step: 1, unit: "" };
@@ -938,7 +941,11 @@
       const wh = Math.min(vh * 0.78, 720);
       /* Each lap of seven moves a little right, so the eighth does not land exactly on the first. */
       const lap = Math.floor(n / 7) * 14;
-      wins.push({ id: base, x: Math.max(8, Math.min(120 + (n % 7) * 28 + lap, vw - ww - 8)), y: Math.max(8, Math.min(90 + (n % 7) * 28, vh - wh - 8)), focus: id === base ? "" : id });
+      wins.push({ id: base, x: Math.max(8, Math.min(120 + (n % 7) * 28 + lap, vw - ww - 8)), y: (() => {
+        /* On a short screen the cascade wraps back to the top instead of piling up at the bottom. */
+        const room = Math.max(0, vh - wh - 16);
+        return room > 0 ? 8 + ((82 + (n % 7) * 28) % (room + 1)) : 8;
+      })(), focus: id === base ? "" : id });
     }
     drawWins();
   }
