@@ -2459,7 +2459,19 @@
   }
   function addReturnButtons() {
     const top = document.querySelector(".tabs-top");
-    if (top && !top.querySelector("[data-viewer]")) top.insertBefore(viewerButton("cv-open-btn"), top.firstChild);
+    if (top && !top.querySelector(":scope > [data-viewer]")) top.insertBefore(viewerButton("cv-open-btn"), top.firstChild);
+    const lm = document.getElementById("lib-menu");
+    if (lm && !lm.querySelector("[data-viewer]")) {
+      /* on a phone the top row has no room for Viewer, so Library carries it there */
+      const b = viewerButton("phone-only");
+      b.innerHTML = "Viewer<small>the picture of your film and the comic strip</small>";
+      b.addEventListener("click", () => {
+        lm.hidden = true;
+        const lb = document.getElementById("lib-btn");
+        if (lb) lb.setAttribute("aria-expanded", "false");
+      });
+      lm.insertBefore(b, lm.firstChild);
+    }
     const bar = document.querySelector(".sc-page .sc-bar");
     if (bar && !bar.querySelector("[data-viewer]")) {
       const b = viewerButton("cv-open-btn");
