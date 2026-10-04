@@ -647,7 +647,11 @@
         x.flip = false;
       }
     });
-    if (E() && E().perform) E().perform(null);
+    /* Only when something was playing on top of the film: a redraw re-sets the playhead, which would cut short a
+       transition that is playing (stopping, then scrubbing across a join). */
+    const had = E() && E().performing ? E().performing().length : 0;
+    if (!had) return;
+    if (E().perform) E().perform(null);
     redraw();
     if (why) toast(why);
   }
