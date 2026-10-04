@@ -3452,6 +3452,7 @@
       return [v.reduce((a, p) => a + p.x, 0) / v.length, v.reduce((a, p) => a + p.y, 0) / v.length];
     };
     let levelDrag = null;
+    let levelPress = null;
     function levelFrom(lvEl, x) {
       const r = lvEl.getBoundingClientRect();
       return Math.round(Math.max(0, Math.min(1, (x - r.left) / Math.max(1, r.width))) * 100);
@@ -3520,6 +3521,14 @@
         e.preventDefault();
         const lk = lvEl.dataset.laneLevel;
         if (isLocked(lk)) return say(lockSay(lk));
+        /* A second press soon after the first is a double-click (the redraw replaces the bar, so the browser's own
+           dblclick may not fire): back to 100%. */
+        const now = Date.now();
+        if (levelPress && levelPress.lk === lk && now - levelPress.t < DBL_MS) {
+          levelPress = null;
+          return setLevel(lk, 100);
+        }
+        levelPress = { lk, t: now };
         levelDrag = { lk, el: lvEl, pct: levelFrom(lvEl, e.clientX), x0: e.clientX, moved: false };
         levelPaint(levelDrag);
         return;
@@ -3832,6 +3841,7 @@
       if (levelDrag) {
         const d = levelDrag;
         levelDrag = null;
+        if (d.moved && Math.abs(d.x0 - e.clientX) > 3) levelPress = null;
         return setLevel(d.lk, d.pct);
       }
       if (ckDrag) {
@@ -4650,6 +4660,8 @@
       if (!st) return { ok: false };
       let out = { ok: true };
       const playRow = opts.row ? opts.row() : 0;
+      /* A picked master ◆ or ◇ is what Delete removes (before any area or node). */
+      if (name === "delete" && mSel && mFind(st, mSel)) return mRemove(mSel) || { ok: true };
       if (name === "subs") {
         /* ⌥K (CapCut's Show/hide keyframe panel): open or fold the picked lane's automation group. */
         let cur = preset || (sel ? split(sel).cur : area && geo.lanes[area.i0] ? geo.lanes[area.i0].cur : null);
@@ -5640,7 +5652,12 @@
         seg = null;
         return draw();
       }
-      if (mSel && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return mRemove(mSel);
+      if (mSel && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) {
+        /* Only the master node: the page's own ⌫ shortcut must not also remove the selected nodes. */
+        e.preventDefault();
+        e.stopPropagation();
+        return mRemove(mSel);
+      }
       /* ⌥⌫ is the Screen's Take out moments, not Remove nodes. */
       if (area && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return command("delete");
       if (ckSel && !sel && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return removeClipKey(ckSel.cur, ckSel.j);
