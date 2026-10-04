@@ -561,7 +561,10 @@
     jumpEarly: ["Jump early", "Jumps to the next node's setting right away and holds it.", false],
     jumpLate: ["Jump late", "Holds the first node's setting, then jumps at the last moment.", false],
   };
+  /* The shape math lives in the engine (CurioEngine.shapeAt), so the line drawn is the line played; this copy is
+     only for a page without the engine. */
   function shapeAt(shape, bend, t) {
+    if (E() && typeof E().shapeAt === "function") return E().shapeAt(shape, bend, t);
     const k = 1 + 4 * Math.max(0, Math.min(1, (Number(bend) || 0) / 100));
     if (shape === "smooth") return t < 0.5 ? 0.5 * Math.pow(2 * t, k) : 1 - 0.5 * Math.pow(2 - 2 * t, k);
     if (shape === "slowStart") return Math.pow(t, k);

@@ -819,6 +819,52 @@ check("speed: a full rewrite of the biggest film is quick", () => {
   assert.ok(ms < 500);
 });
 
+check("level bar: a lane below 100% plays that share of its distance from neutral, saved only below 100%", () => {
+  E.reset();
+  E.send({ type: "importFilm", film: tiny() });
+  E.send({ type: "batch", commands: [{ type: "setPoint", row: "r1", track: "a", curiosity: "volume", value: 5 }, { type: "setPoint", row: "r5", track: "a", curiosity: "volume", value: 1 }] });
+  same(E.neutral("volume"), 3);
+  assert.strictEqual(E.value("r1", "a", "volume"), 5);
+  assert.ok(E.send({ type: "laneMode", track: "a", curiosity: "volume", level: 0.5 }).ok);
+  assert.strictEqual(E.state().lanes["a|volume"].level, 0.5);
+  assert.strictEqual(E.value("r1", "a", "volume"), 4, "halfway from neutral 3 to 5");
+  assert.strictEqual(E.value("r5", "a", "volume"), 2, "halfway from neutral 3 to 1");
+  E.send({ type: "laneMode", track: "a", curiosity: "volume", level: 0 });
+  assert.strictEqual(E.value("r1", "a", "volume"), 3, "0% plays the neutral value");
+  E.send({ type: "laneMode", track: "a", curiosity: "volume", level: 1 });
+  assert.ok(!("level" in E.state().lanes["a|volume"]), "100% is not written down");
+  E.undo();
+  assert.strictEqual(E.state().lanes["a|volume"].level, 0);
+  same(E.shapeAt("slowStart", 100, 0.5), Math.pow(0.5, 5));
+  same(E.drift(), []);
+});
+check("master nodes: kept valid, tidied when rows, curiosities or tracks go, and one undo step", () => {
+  E.reset();
+  E.send({ type: "importFilm", film: tiny() });
+  const masters = { seq: 2, list: [{ id: "M1", label: "Look", src: { tracks: ["a"], t0: "r1", t1: "r2" }, span: 2, suite: { lanes: [{ cur: "volume", track: "a", mode: "ramp", points: [[0, 5], [1, 4], [7, 2]] }] }, on: true, gate: { 1: 0, 9: 0 }, lfo: 3, scale: 250, nodes: [{ id: "N1", n: 1, track: "a", t: "r3", lks: ["a|volume"], under: { "a|volume": { r3: null, r4: 2 } }, scale: -50 }, { id: "N2", n: 2, track: "zz", t: "r3", lks: [] }] }] };
+  assert.ok(E.send({ type: "setMasters", masters }).ok);
+  const m = E.state().masters.list[0];
+  same(m.suite.lanes[0].points, [[0, 5], [1, 4]], "points past the span go");
+  same(m.gate, { 1: 0 });
+  assert.strictEqual(m.lfo, 0, "an LFO is every 1, 2 or 4 moments");
+  assert.strictEqual(m.scale, 100);
+  same(m.nodes.map((x) => x.id), ["N1"], "a node on a missing track goes");
+  same(m.nodes[0].under, { "a|volume": { r3: null, r4: 2 } });
+  assert.strictEqual(m.nodes[0].scale, -50);
+  E.send({ type: "removeRow", row: "r4" });
+  same(E.state().masters.list[0].nodes[0].under, { "a|volume": { r3: null } });
+  E.send({ type: "removeCuriosity", track: "a", curiosity: "volume" });
+  same(E.state().masters.list[0].nodes[0].lks, [null]);
+  E.send({ type: "removeRow", row: "r3" });
+  same(E.state().masters.list[0].nodes, []);
+  E.undo();
+  E.undo();
+  E.undo();
+  assert.strictEqual(E.state().masters.list[0].nodes[0].under["a|volume"].r4, 2, "undo brings back the under data exactly");
+  assert.ok(E.send({ type: "setMasters", masters: null }).ok);
+  assert.ok(!("masters" in E.state()), "no masters: nothing written (old saves keep their fingerprint)");
+  same(E.drift(), []);
+});
 check("every command leaves a state that needs no fixing to survive a reload", () => {
   const d = E.drift();
   assert.strictEqual(d.length, 0, d.length ? "a " + d[0].type + " command left:\n" + d[0].before.slice(0, 600) + "\nwhich reload turns into:\n" + d[0].after.slice(0, 600) : "");
