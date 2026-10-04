@@ -7,7 +7,8 @@
    take a curiosity from two films and blend it, click a lane to add nodes, join two nodes across lanes (a
    proximity), copy and paste it, move a node (its partner moves too), switch to Arrange, show all potential
    curiosities and suites, change a track's curiosity, undo, reload. Two tracks with the same curiosity show two
-   rows named by their track, and Add a curiosity track offers graded lanes. The page must report no errors. */
+   rows named by their track, and Add a curiosity track offers graded lanes. A curiosity, a suite and a proximity of
+   your own are made in the library, used, kept over a reload, shared as a file and deleted. The page must report no errors. */
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -2524,11 +2525,11 @@ const ok = (cond, msg) => {
 
     /* Jump the playhead to a marker by its note, or to "moment 3". */
     {
-      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the joke lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
+      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the zebra lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
       await page.keyboard.press("Control+k");
-      await typeIn("joke");
+      await typeIn("zebra"); /* a word no curiosity uses, so the marker is the only match */
       const o = await opts();
-      ok(o[0] && o[0].id === "moment:" + r4 && /^Moment 5: the joke lands$/.test(o[0].label) && /Marker, red/.test(o[0].sub) && (await heads())[0] === "Moments and markers", "a marker is found by its note, under Moments and markers (" + (o[0] ? o[0].label + " · " + o[0].sub : "") + ")");
+      ok(o[0] && o[0].id === "moment:" + r4 && /^Moment 5: the zebra lands$/.test(o[0].label) && /Marker, red/.test(o[0].sub) && (await heads())[0] === "Moments and markers", "a marker is found by its note, under Moments and markers (" + (o[0] ? o[0].label + " · " + o[0].sub : "") + ")");
       await page.keyboard.press("Enter");
       ok((await page.evaluate(() => window.CurioScreen.row())) === 4, "Enter jumps the playhead to it");
       await page.keyboard.press("Control+k");
@@ -4002,6 +4003,181 @@ const ok = (cond, msg) => {
     await p.screenshot({ path: path.join(SHOTS, "screen-17f-1280.png") });
     await ctx.close();
   }
+
+  /* Your own curiosities, suites and proximities (screen/mine.js; Jeremy: "The user should be able to define and
+     create their own curiosities as well as curiosity suites and proximities"). Make a curiosity with named steps
+     from the library, put it in the film, set a node, Details shows and edits it, one undo step, a reload keeps it,
+     a suite and a proximity with it, Quick find finds it, export and import as a file, delete asks first, and its
+     id never clashes with the database's. */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    const ID = "my-tension-in-the-room";
+    const lane = () => p.evaluate((id) => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + id)); return lk ? st.rows.map((r) => st.lanes[lk].points[r.id] == null ? null : st.lanes[lk].points[r.id]) : null; }, ID);
+    const formOpen = () => p.evaluate(() => !!document.querySelector(".sc-mydlg[open]"));
+    await p.click('[data-icat="feeling"]');
+    ok(!!(await p.$('.sc-mybar [data-my-new="curiosity"]')) && !!(await p.$('.sc-mybar [data-my-act="export"]')) && !!(await p.$('.sc-mybar [data-my-act="import"]')), "the library's category tab starts with + New curiosity, Export mine and Import…");
+    await p.click('.sc-mybar [data-my-new="curiosity"]');
+    ok(await formOpen(), "+ New curiosity opens a small form over the Screen");
+    ok(await p.evaluate(() => { const t = document.querySelector(".sc-mydlg").textContent; return /What it is/.test(t) && /How it moves the story forward and the audience's attention/.test(t) && /What to try/.test(t) && /Named steps/.test(t) && /A number range/.test(t) && document.querySelector('.sc-mydlg [name="cat"]').value === "feeling"; }), "it asks in plain words: name, what it is, how it moves the story and the audience's attention, what to try, category (the tab you are in) and its scale");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    ok((await formOpen()) && /Give it a name/.test(await p.$eval(".sc-my-err", (e) => e.textContent)), "saving with no name says what's missing and keeps the form open");
+    await p.fill('.sc-mydlg [name="label"]', "Tension in the room");
+    await p.fill('.sc-mydlg [name="plain"]', "How wound up everyone in the scene is.");
+    await p.fill('.sc-mydlg [name="story"]', "Rising tension makes the audience lean in and wait for something to break.");
+    await p.fill('.sc-mydlg [name="tryThis"]', "Let it climb for three moments, then drop it to calm at once.");
+    await p.fill('.sc-mydlg [name="steps"]', "calm");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    ok((await formOpen()) && /at least two different steps/.test(await p.$eval(".sc-my-err", (e) => e.textContent)), "one step is not a scale: it asks for at least two, in order");
+    await p.fill('.sc-mydlg [name="steps"]', "calm → tense → frantic");
+    await p.click('.sc-mydlg [data-my-do="extra-add"]');
+    await p.fill('.sc-mydlg .sc-myextra [data-x="label"]', "Speed");
+    await p.fill('.sc-mydlg .sc-myextra [data-x="scale"]', "0 to 10 km/h");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17-my-curiosity-form.png") });
+    const u0 = await p.evaluate(() => window.CurioStore.history().undo.length);
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    ok(!(await formOpen()), "Make it closes the form");
+    const card = await p.evaluate((id) => { const c = document.querySelector(`.sc-grid .sc-card[data-card="curiosity"][data-id="${id}"]`); return c ? { mine: c.classList.contains("mine"), tag: (c.querySelector(".sc-mine-tag") || {}).textContent, edit: !!c.querySelector("[data-my-edit]"), plus: !!c.querySelector("[data-add-card]"), on: c.classList.contains("on") } : null; }, ID);
+    ok(card && card.mine && card.tag === "mine" && card.edit && card.plus && card.on, "it shows in Feeling's cards, picked, with a small mine mark, a ✎ and a + like any card");
+    const hist = await p.evaluate(() => window.CurioStore.history().undo);
+    ok(hist.length === u0 + 1 && /Make the curiosity Tension in the room/.test(hist[hist.length - 1]), "making it is one undo step: " + hist[hist.length - 1]);
+    ok(await p.evaluate((id) => window.CurioScale.known(id) && window.CurioScale.domain(id).options.join() === "calm,tense,frantic" && window.CurioScale.known(id + ".speed") && JSON.parse(localStorage.getItem("curiosities-user-curiosities-v1")).curiosities[0].id === id, ID), "the engine knows its steps and its extra slider, and it is saved in curiosities-user-curiosities-v1");
+    await p.keyboard.press("Control+z");
+    ok(!(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)) && !(await p.evaluate((id) => window.CurioScale.known(id), ID)), "⌘Z takes it back");
+    await p.keyboard.press("Control+Shift+z");
+    ok(!!(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)), "and ⇧⌘Z brings it back");
+    /* Into the film, a node, and Details. */
+    await p.evaluate(() => window.CurioScreen.setRow(0));
+    await p.click(`[data-add-card="curiosity|${ID}"]`);
+    let l = await lane();
+    ok(l && l[0] === "calm", "its + puts it on the timeline with a node at the playhead (" + (l && l[0]) + ")");
+    ok(await p.evaluate(() => [...document.querySelectorAll(".sl-name")].some((b) => b.textContent === "Tension in the room")), "its lane shows on the timeline by its name");
+    await p.evaluate(() => window.CurioScreen.setRow(4));
+    await p.waitForTimeout(100);
+    const det = await p.evaluate((id) => { const i = document.querySelector(`.sc-inspector input[data-step-set="${id}"]`); return i ? { max: i.max, name: [...document.querySelectorAll(".sc-inspector .sc-cur-name")].some((b) => b.textContent === "Tension in the room") } : null; }, ID);
+    ok(det && det.max === "2" && det.name, "Details shows it with its three steps");
+    await p.evaluate((id) => { const i = document.querySelector(`.sc-inspector input[data-step-set="${id}"]`); i.value = "2"; i.dispatchEvent(new Event("input", { bubbles: true })); i.dispatchEvent(new Event("change", { bubbles: true })); }, ID);
+    await p.waitForTimeout(100);
+    l = await lane();
+    ok(l && l[4] === "frantic", "Details writes a node at the playhead: frantic at moment 5");
+    ok(await p.evaluate((id) => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks.find((x) => x.curiosities.includes(id)); return E.value(st.rows[2].id, t.id, id) === "tense"; }, ID), "the engine plays it: between calm and frantic the lane passes tense");
+    ok(/frantic/.test(await p.$eval(`.sc-inspector input[data-step-set="${ID}"] + output`, (o) => o.textContent)), "Details shows the setting at the playhead");
+    await p.screenshot({ path: path.join(SHOTS, "screen-18-my-curiosity.png") });
+    /* A reload keeps it, its lane and its nodes. */
+    await p.reload();
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    l = await lane();
+    ok(l && l[0] === "calm" && l[4] === "frantic", "after a reload it is still known and its nodes are all there (" + JSON.stringify(l && l.slice(0, 5)) + ")");
+    await p.click('[data-icat="feeling"]');
+    const gid = await p.evaluate((id) => "ws:" + window.CuriosityDB.get("curiosity", id).workspace, ID);
+    await p.click(`.sc-side [data-group="${gid}"]`);
+    ok(!!(await p.$(`.sc-grid .sc-card.mine[data-id="${ID}"]`)), "and its card is back in the library");
+    /* A suite with it. */
+    await p.click('.sc-side [data-group="suite"]');
+    ok(!!(await p.$('.sc-mybar [data-my-new="suite"].on')), "the Suites group's bar offers + New suite");
+    await p.click('.sc-mybar [data-my-new="suite"]');
+    ok(await formOpen(), "+ New suite opens its form");
+    await p.fill('.sc-mydlg [name="label"]', "The calm before the storm");
+    await p.fill(".sc-mydlg [data-my-filter]", "tension");
+    await p.click(`.sc-mydlg [data-my-pickcur="${ID}"]`);
+    await p.fill(".sc-mydlg [data-my-filter]", "shot size");
+    await p.click('.sc-mydlg [data-my-pickcur="shotSize"]');
+    await p.selectOption(`.sc-mydlg [data-my-member="${ID}"] select`, "calm");
+    await p.selectOption('.sc-mydlg [data-my-member="shotSize"] select', "wide");
+    await p.screenshot({ path: path.join(SHOTS, "screen-19-my-suite-form.png") });
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    const SID = await p.evaluate(() => (window.CurioMine.data().suites[0] || {}).id);
+    ok(SID === "my-the-calm-before-the-storm" && !(await formOpen()) && !!(await p.$(`.sc-grid .sc-card.mine[data-card="suite"][data-id="${SID}"]`)), "the suite shows with the category's suites, marked mine (" + SID + ")");
+    await p.evaluate(() => window.CurioScreen.setRow(6));
+    await p.click(`[data-add-card="suite|${SID}"]`);
+    l = await lane();
+    ok(l && l[6] === "calm" && (await p.evaluate(() => { const st = window.CurioEngine.state(); return st.lanes["camera|shotSize"] && st.lanes["camera|shotSize"].points[st.rows[6].id] === "wide"; })), "its + drops each member at its setting at the playhead");
+    /* A proximity with it. */
+    await p.click('.sc-side [data-group="proximity"]');
+    await p.click('.sc-mybar [data-my-new="proximity"]');
+    ok(await formOpen(), "+ New proximity opens its form");
+    await p.selectOption('.sc-mydlg [name="whenCur"]', ID);
+    await p.selectOption('.sc-mydlg [name="whenChange"]', "rises");
+    await p.selectOption('.sc-mydlg [name="thenCur"]', "shotSize");
+    await p.selectOption('.sc-mydlg [name="thenChange"]', "is");
+    await p.selectOption('.sc-mydlg [name="thenIs"]', "close");
+    await p.fill('.sc-mydlg [name="within"]', "2");
+    await p.dispatchEvent('.sc-mydlg [name="within"]', "change");
+    const sent = await p.$eval(".sc-mydlg [data-my-preview]", (e) => e.textContent);
+    ok(sent === "When Tension in the room goes up, Shot size becomes close within 2 moments.", "it reads as a plain sentence while you make it: " + sent);
+    await p.screenshot({ path: path.join(SHOTS, "screen-20-my-proximity-form.png") });
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    const PID = await p.evaluate(() => (window.CurioMine.data().proximities[0] || {}).id);
+    ok(!!PID && PID.startsWith("my-") && !!(await p.$(`.sc-grid .sc-card.mine[data-card="proximity"][data-id="${PID}"]`)), "the proximity shows with the category's proximities, marked mine (" + PID + ")");
+    ok(await p.evaluate((pid) => window.CURIOSITY_LINKS.links.some((x) => x.proximity === pid) && window.CurioLevels.resolve("proximity", pid).pairs[0].within === 2, PID), "it is a proximity the levels and the engine's link pack know");
+    const n0 = await p.evaluate(() => window.CurioEngine.state().links.length);
+    await p.click(`[data-add-card="proximity|${PID}"]`);
+    ok(await p.evaluate(({ n0, id }) => { const st = window.CurioEngine.state(); return st.links.length === n0 + 1 && st.links.some((x) => x.from.curiosity === id && x.to.curiosity === "shotSize" && x.does === "set"); }, { n0, id: ID }), "its + adds it to the film as a rule: when Tension rises, Shot size becomes close");
+    /* Quick find. */
+    await p.keyboard.press("Control+k");
+    await p.fill(".sc-find-q", "tension room");
+    await p.waitForTimeout(50);
+    const hit = await p.$eval(`.sc-find-o[data-find-id="cur:${ID}"]`, (li) => ({ label: li.querySelector("b").textContent, tag: (li.querySelector("em") || {}).textContent || "" })).catch(() => null);
+    ok(hit && hit.label === "Tension in the room" && /^Mine/.test(hit.tag), "⌘K Quick find finds it, marked Mine (" + (hit && hit.tag) + ")");
+    await p.fill(".sc-find-q", "calm before storm");
+    await p.waitForTimeout(50);
+    ok(!!(await p.$(`.sc-find-o[data-find-id="suite:${SID}"]`)), "and finds the suite");
+    await p.fill(".sc-find-q", "new curiosity");
+    await p.waitForTimeout(50);
+    ok(!!(await p.$('.sc-find-o[data-find-id="act:my-new-curiosity"]')), "and offers New curiosity as an action");
+    await p.keyboard.press("Escape");
+    /* Change it: one more step, and its nodes keep their place on the new steps. */
+    await p.click(`.sc-side [data-group="${gid}"]`);
+    await p.click(`[data-my-edit="curiosity|${ID}"]`);
+    ok((await formOpen()) && (await p.$eval('.sc-mydlg [name="label"]', (i) => i.value)) === "Tension in the room" && (await p.$eval('.sc-mydlg [name="steps"]', (i) => i.value)) === "calm, tense, frantic", "✎ opens the form with what you made");
+    await p.fill('.sc-mydlg [name="steps"]', "still, calm, tense, frantic, panic");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    l = await lane();
+    ok(l && l[0] === "calm" && l[4] === "frantic" && (await p.evaluate((id) => window.CurioScale.domain(id).options.length === 5, ID)), "Save changes uses the new steps, and the film's nodes are still calm and frantic");
+    /* Export and import as a file. */
+    const [dl] = await Promise.all([p.waitForEvent("download"), p.click('.sc-mybar [data-my-act="export"]')]);
+    const file = fs.readFileSync(await dl.path(), "utf8");
+    const shared = JSON.parse(file);
+    ok(dl.suggestedFilename() === "curiomatic-my-curiosities.json" && shared.format === "curiomatic-my-curiosities" && shared.curiosities.length === 1 && shared.suites.length === 1 && shared.proximities.length === 1, "Export mine saves everything you made as one .json file (" + dl.suggestedFilename() + ")");
+    /* Delete asks first. */
+    await p.click(`[data-my-edit="curiosity|${ID}"]`);
+    await p.click('.sc-mydlg [data-my-do="ask-delete"]');
+    const sure = await p.$eval(".sc-mydlg .sc-my-sure", (e) => ({ shown: !e.hidden, text: e.querySelector("p").textContent }));
+    ok(sure.shown && /^Delete Tension in the room\?/.test(sure.text) && /in your film on 1 lane/.test(sure.text) && /"The calm before the storm"/.test(sure.text), "Delete… asks first, and says what goes with it: " + sure.text);
+    ok(await p.evaluate((id) => window.CurioScale.known(id) && !!window.CurioMine.get("curiosity", id), ID), "nothing is deleted yet");
+    await p.click('.sc-mydlg [data-my-do="keep"]');
+    await p.click('.sc-mydlg [data-my-do="cancel"]');
+    ok(!(await formOpen()) && !!(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)), "Keep it and Cancel leave it as it was");
+    await p.click(`[data-my-edit="curiosity|${ID}"]`);
+    await p.click('.sc-mydlg [data-my-do="ask-delete"]');
+    await p.click('.sc-mydlg [data-my-do="delete"]');
+    ok(!(await formOpen()) && !(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)) && !(await p.evaluate((id) => window.CurioScale.known(id) || !!window.CurioMine.get("curiosity", id), ID)) && (await lane()) === null, "Delete for good takes it out of the library, the engine and the film");
+    /* Import the file again: the curiosity comes back; the suite and proximity you still have are skipped. */
+    await p.setInputFiles(".sc-mybar [data-my-file]", { name: "curiomatic-my-curiosities.json", mimeType: "application/json", buffer: Buffer.from(file) });
+    await p.waitForFunction((id) => !!window.CurioMine.get("curiosity", id), ID, { timeout: 5000 }).catch(() => {});
+    const back = await p.evaluate((id) => ({ c: window.CurioMine.get("curiosity", id), d: window.CurioMine.data(), toast: (document.querySelector(".sc-toast") || {}).textContent || "" }), ID);
+    ok(back.c && back.c.scale.steps.length === 5 && back.d.suites.length === 1 && back.d.proximities.length === 1 && /Brought in 1 curiosity/.test(back.toast) && /2 you already had were skipped/.test(back.toast), "Import… brings it back from the file, skipping what you already have: " + back.toast);
+    ok(await p.evaluate((id) => window.CurioScale.known(id) && window.CurioLevels.categoryOf(id) === "feeling", ID), "and it works again at once");
+    /* Ids never clash: one named like a database curiosity gets its own "my-" id. */
+    await p.click('.sc-mybar [data-my-new="curiosity"]');
+    await p.fill('.sc-mydlg [name="label"]', "Shot size");
+    await p.check('.sc-mydlg [name="kind"][value="range"]');
+    await p.fill('.sc-mydlg [name="min"]', "0");
+    await p.fill('.sc-mydlg [name="max"]', "100");
+    await p.fill('.sc-mydlg [name="unit"]', "%");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    const ids = await p.evaluate(() => { const DB = window.CuriosityDB; const mine = window.CurioMine.data(); const all = [].concat(DB.data.curiosities, DB.data.suites, DB.data.proximities, DB.data.proximitySuites); const seen = {}; let dup = 0; all.forEach((x) => (seen[x.id] ? dup++ : (seen[x.id] = 1))); return { mine: mine.curiosities.map((c) => c.id), dup, dbMy: all.filter((x) => x.id.startsWith("my-")).every((x) => [].concat(mine.curiosities, mine.suites, mine.proximities).some((m) => m.id === x.id)), shot: window.CurioScale.domain("shotSize").options.join(), range: window.CurioScale.domain("my-shot-size") }; });
+    ok(ids.mine.includes("my-shot-size") && ids.dup === 0 && ids.dbMy && ids.shot === "insert,close,medium,wide" && ids.range.kind === "range" && ids.range.max === 100, "one named Shot size is my-shot-size, a number range from 0 to 100; the database's Shot size keeps its own steps and no id is used twice");
+    await p.screenshot({ path: path.join(SHOTS, "screen-21-my-curiosities.png") });
+    await ctx.close();
+  }
+
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
   server.close();
