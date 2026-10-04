@@ -93,10 +93,14 @@ const ok = (cond, msg) => {
     return CurioViewer.faces(p, lv.panel.place[p.id]).length;
   });
   if (THREE_FILE && (await page.evaluate(() => !!window.CurioRigActors))) {
-    await page.waitForFunction((id) => CurioRigActors.ready(id), ida.id, { timeout: 30000 }).catch(() => {});
-    await page.evaluate(() => CurioViewer.redraw());
+    /* the 3D files load, then the body is built from the words */
+    await page.waitForFunction((id) => {
+      const lv = CurioViewer.live();
+      CurioViewer.redraw();
+      return CurioViewer.faces(lv.film.objects.find((o) => o.id === id), lv.panel.place[id]).some((x) => x.tag === "rig");
+    }, ida.id, { timeout: 30000, polling: 250 }).catch(() => {});
     const tags = (await facesOf(ida.id)).filter((x) => x.tag === "rig").length;
-    ok(tags > 20, `Ida is drawn as a full 3D character (${tags} faces)`);
+    ok(tags > 20, `Ida is drawn as a full 3D character (${tags} faces)` + (tags > 20 ? "" : " " + (await page.evaluate((id) => JSON.stringify([CurioRigActors.error(), CurioRigActors.on(id), CurioRigActors.ready(id), !!window.THREE, CurioRigActors.plan(id)]), ida.id))));
     await shot("0-3d");
   }
   /* the block figure, for the checks below */
