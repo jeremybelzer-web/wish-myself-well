@@ -186,12 +186,12 @@ const ok = (cond, msg) => {
   ok(!(await page.isVisible(".cw-bubble")), "it does not start by itself a second time");
 
   /* As people get it: the Screen open on start, and another part's own .cv-root on the page. */
-  const real = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  /* a fresh browser profile, so nothing is remembered (clearing after the first load raced the tour's own start) */
+  const realCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const real = await realCtx.newPage();
   real.on("pageerror", (e) => errors.push(e.message));
   await real.addInitScript(OTHER_CV_ROOT);
   await real.goto(base + "?viewer=1&walkthrough=1&screen=1");
-  await real.evaluate(() => localStorage.clear());
-  await real.reload();
   await real.waitForSelector(".cw-bubble", { timeout: 20000 });
   await real.waitForTimeout(200);
   ok(await real.evaluate(() => !!document.querySelector(".cv-root[data-other]") && CurioScreen.isOpen() && CurioViewer.isOpen()), "second walk: the Screen is open under the Viewer, with another part's .cv-root on the page");

@@ -183,7 +183,7 @@
   const els = {};
 
   function rootEl() {
-    return document.querySelector(".cv-root");
+    return document.querySelector(".cv-root.cv-viewer");
   }
   function open(app, opts) {
     if (!APPS[app]) return null;

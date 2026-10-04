@@ -274,7 +274,7 @@
     if (menu) menu.hidden = true;
   }
   function openMenu(o, ids, clientX, clientY) {
-    const root = document.querySelector(".cv-root");
+    const root = document.querySelector(".cv-root.cv-viewer");
     if (!root) return;
     if (!menu) {
       menu = document.createElement("div");
