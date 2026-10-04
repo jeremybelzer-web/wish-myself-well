@@ -90,7 +90,7 @@ Like CapCut's track groups. With many lanes the timeline gets long, so `lanes.js
 - **Picking a curiosity opens its group.** When you pick a curiosity (a library card, its name in Details, Look through it in a window, or a lane's name) and its group is folded, the group opens so its lane shows, and the timeline scrolls up or down to it. Other groups stay as they are. A redraw because the film changed never opens a group.
 - **A folded group** is one thin row with a dot at every moment where any of its lanes has a node, so you can still see where things happen. A bigger dot means several lanes have a node there. Click a dot to move the playhead to that moment.
 - **Fold all / Open all** in the timeline toolbar folds every group or opens them all.
-- Folding changes nothing in your film and is not an undo step. It is a view setting kept in `curiosities-screen-tools-v1` as `folds: { category: true }`.
+- Folding changes nothing in your film. It is a view setting kept in `curiosities-screen-tools-v1` as `folds: { category: true }`, and each fold is an undo step of its own (see Resizing and folding panels).
 - A folded group's lanes are not drawn, so an area you drag across the lanes leaves them out (and Copy, Paste, Move and the area tools with it). Folding or opening a group lets go of the selected area. Joins to a lane in a folded group are not drawn until it is opened.
 
 Pure helpers: `laneGroups(lanes, { catOf, labelOf, hasNodes, folds })` and `foldDots(st, lanes)`. The mounted lanes also have `fold(category, folded?)`, `foldAll(folded?)`, `groups()` and `reveal(curiosity)` (opens that curiosity's folded group and scrolls to its lane; the Screen calls it when you pick one). `groupText(group)` gives the header's short and full wording.
@@ -157,7 +157,7 @@ Like the guides CapCut's Player can show. **Guides ▾** sits next to Ratio in t
 - **Golden ratio**: lines at about 38% and 62% each way, a little nearer the middle than thirds.
 - **Where attention is**: the rest of the picture dims a little around a soft glow on the part the moment's attention sits on, with a line such as "Eyes on: the main character's face". It uses the momentum reading's family for the moment (`CurioAttention`, the same as the "Attention:" label). `CurioFrame` doesn't report where it drew things, so `guideSpot` works the spot out from the moment's values with frame.js's own placement rules. Shot size, camera height, how many people and a left composition decide where the main character's face and body are. An insert shot means the object. A feeling, a thought or a plot turn glows on the face. Movement, wardrobe and camera glow on the whole main character, voice on the speech balloon, music on the notes, set and light on the window, comedy on the gag or the laughs. Anything else glows on the middle of the picture. With no reading it glows on the main character's face, where the eye goes first. The glow is cropped with the picture in a non-wide frame, so in a vertical frame it can fall outside what is shown.
 
-Guides are a view setting, not part of the film, and never an undo step. They are kept in `curiosities-screen-v1` as `guides: ["thirds", ...]`. An older save that kept `guides: true` (the single ⌘; thirds switch) loads as Thirds. ⌘; still turns the thirds guide on and off. `CurioScreen.guides` has `list()`, `on()` and `spot(values, family, cast)` for tests.
+Guides are a view setting, not part of the film; turning one on or off is an undo step (see Resizing and folding panels). They are kept in `curiosities-screen-v1` as `guides: ["thirds", ...]`. An older save that kept `guides: true` (the single ⌘; thirds switch) loads as Thirds. ⌘; still turns the thirds guide on and off. `CurioScreen.guides` has `list()`, `on()` and `spot(values, family, cast)` for tests.
 
 ## Compare ◐: two pictures in one frame
 
@@ -168,7 +168,7 @@ Like CapCut's before/after compare slider. **Compare ◐** sits after Guides ▾
 
 Drag the line to move the split, or click the line and press ← and → (Shift for bigger steps, Home and End for the edges). The arrows move the split, not the playhead, while the line has focus. Small labels at the top corners name each side ("Learning from: ..." or "When I opened the Screen" on the left, "My film now" on the right). The split follows the Ratio frame shape, and the left picture is cropped the same way as yours. Guides are drawn over it. Only the line takes clicks; a click anywhere else on the frame reaches the frame as usual.
 
-Compare is a view setting, not part of the film, and never an undo step. It is kept in `curiosities-screen-v1` as `compare: { on, split, with }` (split is 0 to 100, how far across the line is; with is `insp` or `open`). `CurioScreen.compare` has `list()` and `now()` for tests.
+Compare is a view setting, not part of the film; turning it on or off, what it shows and a drag of its line are undo steps (see Resizing and folding panels). It is kept in `curiosities-screen-v1` as `compare: { on, split, with }` (split is 0 to 100, how far across the line is; with is `insp` or `open`). `CurioScreen.compare` has `list()` and `now()` for tests.
 
 ## Captions: your notes as subtitles
 
@@ -179,7 +179,7 @@ Like CapCut's captions, made from your markers instead of speech. **Captions** s
 
 The caption follows the Ratio frame shape, keeps to two lines and ends in "…" when the note is longer, and is sized to read on a phone (and bigger in full player view, ⇧⌘F). It is drawn over the guides and under the Compare line, and never takes a click: a click on it reaches the frame. While a caption shows, the guides' "Eyes on" line moves to the top of the frame. A note changed in the timeline shows in the caption right away.
 
-Captions are a view setting, not part of the film, and never an undo step. They are kept in `curiosities-screen-v1` as `captions: { on, mode }` (mode is `notes` or `changes`). `CurioScreen.captions` has `list()`, `now()` and `caption(o)` (what the caption says, from a marker and two moments' values) for tests. The Export storyboard sheet already shows the notes and is left as it is.
+Captions are a view setting, not part of the film; turning them on or off and what they show are undo steps (see Resizing and folding panels). They are kept in `curiosities-screen-v1` as `captions: { on, mode }` (mode is `notes` or `changes`). `CurioScreen.captions` has `list()`, `now()` and `caption(o)` (what the caption says, from a marker and two moments' values) for tests. The Export storyboard sheet already shows the notes and is left as it is.
 
 ## Transitions between moments
 
@@ -284,6 +284,31 @@ Jeremy, 2026-10-02 20:21Z: "keep the features of Final Cut Pro and hide them und
 - **Final Cut Pro, here**: every other Final Cut Pro feature, and where it already lives on the Screen in CapCut's way (Inspector is Details, Skimming is Preview axis, Retime is Clip speed...). A card that maps to a curiosity opens it.
 
 While ADVANCED is open, Details shows the advanced curiosities' controls.
+
+## Resizing and folding panels, and undo for the view
+
+Jeremy, 2026-10-04: "Each window should be resizable. The main view window, the control window to its right, all borders should be draggable and resizable ... The user should be able to completely collapse any window, and then hovering the cursor over that spot should show the user they can drag that border out ... using a small triangle or triangles", and "UNDO - undo should be able to undo absolutely anything. Even dragging windows around."
+
+**Borders.** Every border between the Screen's panels can be dragged: library | Player, Player | Details (in every layout from the Layout menu, and in Arrange), the panels above | the timeline, the Player | the side panels column beside it (the Momentum column), the library's group list | its cards, and the top of the Whole film strip (its frames get taller). Hovering a border shows the resize cursor, a cyan line along it and small triangles (◂ ▸ or ▴ ▾) pointing the ways it can go. With the keyboard: Tab to a border, then the arrow keys (Shift for 60px steps, Home and End for the smallest and biggest size). Each panel has a smallest size (library 200px, Details 220px, timeline 110px, side panels 150px, group list 84px, strip 24 to 160px) and the Player always keeps at least 240 by 140px. Double-click a border to put its panel back to its usual size.
+
+**Folding a panel away.** Drag a border past half its panel's smallest size, click the small « (or ») that shows on the border while you hover it, or press Enter on a focused border. The panel folds away completely and leaves a thin edge. Hovering the edge shows the resize cursor and one triangle pointing the way to drag it out; drag it out to the width you want, or click it (or Enter) to bring the panel back at the size it had. The Whole film strip folds into its "▸ Whole film" line.
+
+Sizes are kept in the Screen's view (`curiosities-screen-v1`, `sizes: { lib, insp, tl, dock, side, ov, shut: { panel: true } }` in pixels), so they come back after a reload; on a smaller window they are fitted so the Player keeps its room. Up to 860px wide (tablets and phones) the panels stack and the page scrolls, so there are no borders there and the stylesheet's sizes are used.
+
+**⧉ windows** can be resized too: drag the corner at their bottom right, or Tab to it and use the arrow keys.
+
+**Undo for the view.** Your film, transitions and words on the frame were already undo steps on the app-wide list (`CurioStore`). Now the Screen's own view is too, each change one step on the same list, so ⌘Z, ⇧⌘Z, the timeline's Undo and Redo and History ▾ take them in order, by plain names:
+
+- panels: "Resize the library", "Collapse Details", "Bring back the timeline", "Reset the size of the library's group list";
+- ⧉ windows: "Open the Shot size window", "Move the Shot size window", "Resize the Shot size window", "Close the Shot size window" (undo opens it again where it was);
+- the Player: the 1 2 3 windows and + Inspiration film ("Add an inspiration film"), which film a viewer shows and what you take from it, Side or Stack, the lens, Ghosts, the speed, the Player's zoom, rulers, the play range, Guides, Compare (on or off, what it shows, "Move the Compare line"), Captions, the Whole film strip; the Layout menu ("Layout: Player on the right"); Screen or Arrange; which lanes the timeline shows; Arrange's Show all potential curiosities and suites;
+- the timeline's own view (`curiosities-screen-tools-v1`): zoom, lane height, folded lane groups, markers (adding, removing, changing one, the automatic markers), locks, Magnet, Snapping, Linkage and its settings, the preview axis, Film lines, the Attention track, and the Select and Split tools.
+
+How it works (`ui.js`, the block "Panels you can resize and fold away"): the view is read just before each gesture (a press of the mouse or a key, the first turn of the wheel, a list being picked from) and again just after it ends; whatever changed becomes one step. So a whole drag is one step, never one per pixel, and key presses on the same border less than 1.5 seconds apart join one step. A gesture that also changed the film (any step of its own on the app-wide list: a node, a ripple, a template) is left to that step, so one undo never takes back half of something: a ripple's markers and play range still come back with the ripple's own step. A gesture that only moved around (picking a card, a category, a lane, a viewer) is not a step, and neither is a change made with no gesture at all (by another part of the app). Undoing a view step puts back only what that step changed.
+
+Not undo steps: the playhead and playing, which card, category or lane is picked, the library search, scrolling, and things that only last a moment (menus, Quick find, the shortcuts sheet). The Momentum column's own Hide and Open, and the Character tab's colours and types, belong to those parts and keep their own saving.
+
+For other screens: `CurioScreen.splitter(el, { axis, grow, size, min, max, foldable, folded, set, reset, name })` makes any element such a border (pointer, keys, folding, triangles; it brings its own small stylesheet), so the Viewer's panels can use the same one. `CurioScreen.panels` has `now()`, `borders()` and `reset()`; `window.CurioScreenPanels` holds the pure part (cleaning saved sizes, where a drag lands, the grid's columns and rows, each layout's borders, and the plain names of view steps), checked in `tests/run.js`.
 
 ## Hooks for other threads
 

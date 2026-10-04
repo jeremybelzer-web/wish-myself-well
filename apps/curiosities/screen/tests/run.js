@@ -1251,5 +1251,34 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+
+/* Panels you can resize and fold away, and undo for the Screen's view (CurioScreenPanels): the pure part. */
+{
+  const P = w.CurioScreenPanels;
+  ok(!!P && ["clean", "settle", "templates", "borders", "grows", "sizesLabel", "winsLabel", "viewLabel"].every((k) => typeof P[k] === "function"), "the panel helpers are exposed for tests (CurioScreenPanels)");
+  if (P) {
+    ok(JSON.stringify(P.clean(null)) === '{"shut":{}}' && JSON.stringify(P.clean({ lib: 300.4, insp: "x", tl: -5, bogus: 3, shut: { insp: true, ov: true, tl: "yes" } })) === '{"shut":{"insp":true},"lib":300,"tl":0}', "a saved sizes object is cleaned: numbers only, folds only for panels that fold, nothing else kept");
+    ok(JSON.stringify(P.settle(150, 200, 600, true)) === '{"size":200,"shut":false}' && JSON.stringify(P.settle(90, 200, 600, true)) === '{"size":0,"shut":true}' && JSON.stringify(P.settle(90, 200, 600, false)) === '{"size":200,"shut":false}' && P.settle(900, 200, 600, true).size === 600, "a drag stops at the smallest size, folds the panel past half of it, and stops at the biggest");
+    ok(P.templates({}, "center", "screen").cols === null && P.templates({}, "center", "screen").rows === null, "with no sizes set the stylesheet's own sizes are kept");
+    const t1 = P.templates({ lib: 320, insp: 300, tl: 260 }, "center", "screen");
+    ok(t1.cols === "320px minmax(0, 1.35fr) 300px" && t1.rows === "minmax(0, 1fr) 260px", "set sizes go on the grid, the Player taking what is left: " + t1.cols + " / " + t1.rows);
+    ok(P.templates({ lib: 320, insp: 300 }, "right", "screen").cols === "320px 300px minmax(0, 1.2fr)", "with the Player on the right, the library and Details are the first two columns");
+    ok(P.templates({ lib: 320, shut: { lib: true } }, "center", "screen").cols === "0px minmax(0, 1.35fr) minmax(280px, 0.8fr)", "a folded panel's column is 0px and the other keeps its usual share");
+    ok(P.templates({ insp: 300, tl: 200 }, "center", "arrange", null, false).cols === "minmax(0, 1fr) 300px" && P.templates({ insp: 300, tl: 200 }, "center", "arrange", null, false).rows === null && P.templates({ tl: 200 }, "center", "arrange", null, true).rows === "minmax(0, 1fr) 200px", "Arrange: Details beside the timeline, and the timeline under the Player only when the viewers show");
+    ok(P.templates({ lib: 900 }, "center", "screen", (k, v) => Math.min(v, 500)).cols.startsWith("500px"), "sizes are fitted to the window (the Player keeps its room)");
+    ok(P.borders("center", "screen").map((b) => b.id + ":" + b.edge).join() === "lib:right,insp:left,tl:top" && P.borders("right", "screen").find((b) => b.id === "insp").edge === "right" && P.borders("center", "arrange", { player: true, dock: true }).map((b) => b.id).join() === "insp,tl,dock", "each layout has its borders, on the right edges");
+    ok(P.grows("right") === 1 && P.grows("left") === -1 && P.grows("top") === -1, "dragging toward a panel's far side makes it bigger");
+    ok(P.sizesLabel({}, { lib: 300, shut: {} }) === "Resize the library" && P.sizesLabel({ insp: 300 }, { insp: 300, shut: { insp: true } }) === "Collapse Details" && P.sizesLabel({ tl: 200, shut: { tl: true } }, { tl: 200 }) === "Bring back the timeline" && P.sizesLabel({ side: 120 }, {}) === "Reset the size of the library's group list" && P.sizesLabel({ lib: 1, insp: 2 }, {}) === "Reset the panel sizes", "panel steps have plain names (Resize the library, Collapse Details, Bring back the timeline...)");
+    ok(P.sizesLabel({}, { lib: 400, insp: 300 }, "insp") === "Resize Details", "the border you dragged names the step, even when the other column's width is kept with it");
+    const nm = (id) => ({ shotSize: "Shot size", emotion: "Feeling" })[id] || id;
+    const wA = [{ id: "shotSize", x: 10, y: 10, w: null, h: null }];
+    ok(P.winsLabel([], wA, nm) === "Open the Shot size window" && P.winsLabel(wA, [], nm) === "Close the Shot size window" && P.winsLabel(wA, [{ id: "shotSize", x: 40, y: 10, w: null, h: null }], nm) === "Move the Shot size window" && P.winsLabel(wA, [{ id: "shotSize", x: 10, y: 10, w: 400, h: 300 }], nm) === "Resize the Shot size window", "window steps: Open, Close, Move and Resize the Shot size window");
+    const V = (d) => P.viewLabel(d, { win: nm, layout: (x) => ({ right: "Player on the right" })[x] || x, guide: (x) => ({ thirds: "thirds" })[x] || x, cat: (x) => ({ camera: "Camera" })[x] || x });
+    ok(V({ prefs: { layout: ["center", "right"] } }) === "Layout: Player on the right" && V({ prefs: { arrange: ["side", "stack"] } }) === "Stack the viewers" && V({ prefs: { insp: [[{}], [{}, {}]] } }) === "Add an inspiration film" && V({ prefs: { insp: [[{}, {}], []] } }) === "Show only my film in the Player", "the Player's layout steps: the layout menu, Side or Stack, 1 2 3 windows");
+    ok(V({ prefs: { compare: [{ on: false }, { on: true }] } }) === "Turn Compare on" && V({ prefs: { compare: [{ on: true, split: 50 }, { on: true, split: 70 }] } }) === "Move the Compare line" && V({ prefs: { captions: [{ on: true }, { on: false }] } }) === "Turn captions off" && V({ prefs: { guides: [[], ["thirds"]] } }) === "Show the thirds guide" && V({ prefs: { overview: [true, false] } }) === "Collapse the whole film strip", "Compare, captions, guides and the whole film strip have plain names");
+    ok(V({ tools: { zoom: [1, 1.5] } }) === "Zoom in on the timeline" && V({ tools: { laneH: [50, 80] } }) === "Make the lanes taller" && V({ tools: { folds: [{}, { camera: true }] } }) === "Fold the Camera lanes" && V({ tools: { markers: [[], [{ row: "r1" }]] } }) === "Add a marker" && V({ tools: { magnet: [false, true] } }) === "Turn the magnet on" && V({ tools: { tool: ["select", "split"] } }) === "Use the Split tool" && V({ tools: { locks: [{}, { "t|c": true }] } }) === "Lock a lane", "the timeline's view steps: zoom, lane height, folds, markers, toolbar toggles, locks");
+    ok(V({ wins: [[], wA] }) === "Open the Shot size window" && V({ prefs: { ghost: [false, true], lens: ["highlight", "off"] } }) === "Lens: off (and 1 more change)" && V({}) === "Change the view", "one gesture that changed two things says so; nothing named falls back to Change the view");
+  }
+}
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);

@@ -70,6 +70,7 @@
     rulers: false,
     compare: { on: false, split: 50, with: "insp" },
     captions: { on: false, mode: "notes" },
+    sizes: {},
   };
   /* CapCut's layout menu (the layout icon at the top right of its window). Jeremy's screenshots show four
      arrangements: the default, the media panel full height on the left, Details full height on the right, and
@@ -375,6 +376,10 @@
       <aside class="sc-inspector sc-panel" aria-label="Details"></aside>
       <div class="sc-timeline sc-panel"></div></div>`;
     document.body.appendChild(page);
+    /* Undo for the view reads it before each gesture, so it listens first; then the borders between panels. */
+    vuWire();
+    splitsWire();
+    page.addEventListener("keydown", winGripKey);
     trWire();
     txtWire();
     page.addEventListener("click", onClick);
@@ -391,7 +396,7 @@
       toggleTrPop(trPop, false);
     });
     page.addEventListener("keydown", (e) => faces() && faces().keydown && faces().keydown(e, faceHelpers(mineCtx()), faceApi()));
-    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e) || onCompareDrag(e));
+    page.addEventListener("pointerdown", (e) => onWinGrip(e) || onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e) || onCompareDrag(e));
     ["click", "change", "input", "keyup"].forEach((t) => page.addEventListener(t, capSoon));
     page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
     /* Undo and redo go to the app-wide undo list when the page has one (engine/store.js), so one ⌘Z undoes one
@@ -443,6 +448,7 @@
     drawInspector();
     drawTimeline(fromEngine);
     placePanels();
+    sizesApply();
     tell();
   }
   /* Side panels other threads dock into the Screen (the momentum meter beside the Player):
@@ -4215,7 +4221,14 @@ document.addEventListener("click", function (e) {
   }
   function undoAll(dir) {
     const St = window.CurioStore;
-    if (St && typeof St.external === "function" && typeof St[dir] === "function") return St[dir]();
+    /* A view change still waiting to be written down goes on the list first; afterwards the view is read again,
+       so what the undo put back is not taken for a new change. */
+    if (St && typeof St.external === "function" && typeof St[dir] === "function") {
+      vuFlush();
+      const done = St[dir]();
+      vuSync();
+      return done;
+    }
     return E() && E()[dir]();
   }
   /* Nodes at given moments (not just the playhead), as one undo step: [[curiosity key, moment index, value]]. */
@@ -4352,7 +4365,8 @@ document.addEventListener("click", function (e) {
         <div class="sc-ctl">${controlHtml(id, sl, ctx.value(id), !ctx.edit, true)}</div>
       </div>`;
     };
-    return `<section class="sc-win" data-win="${esc(c.id)}" role="dialog" aria-label="${esc(c.label)} window" style="left:${w.x}px;top:${w.y}px;z-index:${60 + z}">
+    const wh = `${w.w ? `;width:${w.w}px` : ""}${w.h ? `;height:${w.h}px;max-height:none` : ""}`;
+    return `<section class="sc-win" data-win="${esc(c.id)}" role="dialog" aria-label="${esc(c.label)} window" style="left:${w.x}px;top:${w.y}px;z-index:${60 + z}${wh}">
       <header class="sc-win-h" data-win-drag="${esc(c.id)}">${icon(cat.icon)}<b>${esc(c.label)}</b><small>${esc(cat.label)}${isAdv(c) ? " · ADVANCED" : ""}</small><button type="button" data-win-close="${esc(c.id)}" aria-label="Close the ${esc(c.label)} window">×</button></header>
       <div class="sc-win-b">
         ${c.plain ? `<p class="sc-win-plain">${esc(c.plain)}</p>` : ""}
@@ -4365,6 +4379,7 @@ document.addEventListener("click", function (e) {
         ${c.momentum ? momentumBox(c.momentum) : ""}
         <div class="sc-wbtns"><button type="button" data-select-cur="${esc(c.id)}">Look through it</button><button type="button" data-win-curve="${esc(key)}">Shape its curve</button></div>
       </div>
+      <span class="sc-win-grip" data-win-grip="${esc(c.id)}" tabindex="0" role="separator" aria-label="Resize the ${esc(c.label)} window: drag this corner, or use the arrow keys" title="Drag this corner to resize the window (or focus it and use the arrow keys)"></span>
     </section>`;
   }
   function drawWins() {
@@ -5490,6 +5505,7 @@ document.addEventListener("click", function (e) {
     [["side", "Viewers side by side"], ["stack", "Viewers stacked"]].forEach(([id, l]) => add("arr-" + id, l, "How the Player's viewers sit", "", () => ((prefs.arrange = id), save(), drawAll())));
     [["highlight", "Lens: highlight", "Light up only what you are looking through"], ["overlay", "Lens: overlay", "Write its values on the picture"], ["only", "Lens: lens only", "Draw only what it is about"], ["off", "Lens: off", "The plain picture"]].forEach(([id, l, tip]) => add("lens-" + id, l, tip, "", () => ((prefs.lens = id), save(), drawBar(), drawViewers())));
     add("overview", "Whole-film strip", "Show or hide a frame for every moment under the viewers", "", () => ((prefs.overview = !prefs.overview), save(), drawViewers()));
+    add("panels-reset", "Reset the panel sizes", "Put every panel back to its usual size and bring back any you folded away", "", () => window.CurioScreen.panels.reset());
     add("close", "Back to the app", "Leave the Screen", "", () => close());
     tplFindActions(add);
     rippleFindActions(add);
@@ -5801,4 +5817,916 @@ document.addEventListener("click", function (e) {
   /* Ripple: ripple("add" | "duplicate" | "delete", { a, b }?) adds a copy of the playhead's moment, duplicates or
      takes out moments (the selected stretch, else the playhead's moment), as one undo step. */
   window.CurioScreen.ripple = (kind, o) => ripple(kind, o);
+
+  /* ---------- Panels you can resize and fold away, and undo for the Screen's own view ----------
+     Jeremy, 2026-10-04: "Each window should be resizable. The main view window, the control window to its right,
+     all borders should be draggable and resizable ... The user should be able to completely collapse any window,
+     and then hovering the cursor over that spot should show the user they can drag that border out", and "UNDO -
+     undo should be able to undo absolutely anything. Even dragging windows around."
+
+     Borders (splitters). Every border between the Screen's panels can be dragged: the library | Player, Player |
+     Details, the panels above | the timeline, the Player | the side panels column beside it (Momentum), the
+     library's group list | its cards, and the top of the whole film strip. Focus one (Tab) and the arrow keys move
+     it (Shift for bigger steps, Home and End for the smallest and biggest); Enter folds the panel away and brings
+     it back; a double-click puts it back to its usual size. Dragging a border past half its panel's smallest size
+     folds the panel away completely, and so does the small « on the border. A folded panel leaves a thin edge:
+     hovering over it shows the resize cursor and a small triangle pointing the way to drag; dragging it out, or
+     a click, brings the panel back. Sizes are kept in the Screen's view (curiosities-screen-v1, prefs.sizes:
+     { lib, insp, tl, dock, side, ov } in pixels and shut: { panel: true } for folded ones). Phones and narrow
+     windows stack the panels and scroll, so the borders are only on screens wider than 860px.
+
+     Undo for the view (VU). The film, transitions and words on the frame were already on the app-wide undo list
+     (engine/store.js); the Screen's own view was not. Now each change you make to it is one step on the same list,
+     with a plain name: panel sizes and folds, the ⧉ windows (open, close, move, resize), the Player's layout
+     (1 2 3 windows, Side or Stack, the inspiration films and what you take from them, Guides, Compare and where
+     its line is, Captions, Ghosts, the lens, the speed, the play range, rulers, the whole film strip), the layout
+     menu, Screen or Arrange, which lanes show, and the timeline's own view (zoom, lane height, folded groups,
+     markers, locks, Magnet, Snapping, Linkage, Film lines, the Attention track, the Select and Split tools).
+     How: the view is read before each gesture (a press of the mouse or a key, a wheel turn) and again just after
+     it ends; what changed becomes one step, so a whole drag is one step, not one per pixel. A gesture that also
+     changed the film (an engine or store step: a ripple, a node, a template) is left to that step, so one undo
+     never takes back half of something; a gesture that only moved around (picked a card, a category, a lane) is
+     not a step either. Not steps: the playhead and playing, which card or category is picked, the library
+     search, scrolling, and momentary things (menus, Quick find, the shortcuts sheet). Two key presses on the same
+     border less than 1.5 seconds apart join one step. CurioScreenPanels holds the pure part, for tests. */
+  const SPLIT = (() => {
+    const PANES = {
+      lib: { axis: "x", min: 200, max: 1400, name: "the library" },
+      insp: { axis: "x", min: 220, max: 1400, name: "Details" },
+      tl: { axis: "y", min: 110, max: 3000, name: "the timeline" },
+      dock: { axis: "x", min: 150, max: 900, name: "the side panels beside the Player" },
+      side: { axis: "x", min: 84, max: 420, name: "the library's group list" },
+      ov: { axis: "y", min: 24, max: 160, name: "the whole film strip" },
+    };
+    const KEYS = Object.keys(PANES);
+    const num = (v) => (typeof v === "number" && isFinite(v) ? Math.round(Math.max(0, Math.min(4000, v))) : null);
+    /* A saved sizes object, checked: pixel sizes only where they are numbers, folds only for panels that fold. */
+    function clean(raw) {
+      const o = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+      const out = { shut: {} };
+      KEYS.forEach((k) => {
+        const v = num(o[k]);
+        if (v != null) out[k] = v;
+        if (k !== "ov" && o.shut && typeof o.shut === "object" && o.shut[k] === true) out.shut[k] = true;
+      });
+      return out;
+    }
+    /* Where a drag lands: under half the smallest size the panel folds away (when it can), else it stays between
+       its smallest and biggest size. */
+    function settle(px, min, max, foldable) {
+      if (foldable && px < min / 2) return { size: 0, shut: true };
+      return { size: Math.round(Math.max(min, Math.min(Math.max(min, max), px))), shut: false };
+    }
+    /* The grid's columns and rows for the sizes you set (null where the stylesheet's own sizes are kept).
+       layout: center | media | details | right; view: screen | arrange; open: the panels' sizes clamped to fit. */
+    function templates(s, layout, view, fit, playerShown) {
+      s = clean(s);
+      const px = (k, d) => (s.shut[k] ? "0px" : s[k] != null ? Math.round(fit ? fit(k, s[k]) : s[k]) + "px" : d);
+      let cols = null;
+      let rows = null;
+      const xSet = (k) => s[k] != null || !!s.shut[k];
+      if (view === "arrange") {
+        if (xSet("insp")) cols = `minmax(0, 1fr) ${px("insp", "minmax(280px, 340px)")}`;
+        if (playerShown && xSet("tl")) rows = `minmax(0, 1fr) ${px("tl")}`;
+        return { cols, rows };
+      }
+      const right = layout === "right";
+      if (xSet("lib") || xSet("insp")) {
+        const lib = px("lib", right ? "minmax(280px, 1.1fr)" : "minmax(280px, 0.95fr)");
+        const insp = px("insp", right ? "minmax(260px, 0.8fr)" : "minmax(280px, 0.8fr)");
+        cols = right ? `${lib} ${insp} minmax(0, 1.2fr)` : `${lib} minmax(0, 1.35fr) ${insp}`;
+      }
+      if (xSet("tl")) rows = `minmax(0, 1fr) ${px("tl")}`;
+      return { cols, rows };
+    }
+    /* Which borders the layout has: [{ id, edge }], edge being the side of that panel the border runs along. */
+    function borders(layout, view, has) {
+      has = has || {};
+      const out = [];
+      if (view === "arrange") {
+        out.push({ id: "insp", edge: "left" });
+        if (has.player) out.push({ id: "tl", edge: "top" });
+      } else {
+        out.push({ id: "lib", edge: "right" });
+        out.push({ id: "insp", edge: layout === "right" ? "right" : "left" });
+        out.push({ id: "tl", edge: "top" });
+      }
+      if (has.side) out.push({ id: "side", edge: "right" });
+      if (has.dock) out.push({ id: "dock", edge: "left" });
+      if (has.ov) out.push({ id: "ov", edge: "top" });
+      return out;
+    }
+    /* A drag towards the right (or down) makes a panel bigger when the border is on its right (or bottom) edge. */
+    const grows = (edge) => (edge === "right" || edge === "bottom" ? 1 : -1);
+    function sizesLabel(b, a, hint) {
+      b = clean(b);
+      a = clean(a);
+      const changed = KEYS.filter((k) => b[k] !== a[k] || !!b.shut[k] !== !!a.shut[k]);
+      if (!changed.length) return "";
+      if (changed.length > 1 && changed.every((k) => a[k] == null && !a.shut[k])) return "Reset the panel sizes";
+      const k = changed.find((x) => !!b.shut[x] !== !!a.shut[x]) || (hint && changed.includes(hint) ? hint : changed.find((x) => b[x] != null) || changed[0]);
+      const name = PANES[k].name;
+      if (!b.shut[k] && a.shut[k]) return "Collapse " + name;
+      if (b.shut[k] && !a.shut[k]) return "Bring back " + name;
+      if (a[k] == null) return "Reset the size of " + name;
+      return "Resize " + name;
+    }
+    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    const onOff = (v, what) => `Turn ${what} ${v ? "on" : "off"}`;
+    const same = (x, y) => JSON.stringify(x) === JSON.stringify(y);
+    /* The ⧉ windows: [{ id, x, y, w, h }] before and after. */
+    function winsLabel(b, a, name) {
+      name = name || ((id) => id);
+      const ids = (l) => l.map((w) => w.id);
+      const opened = a.filter((w) => !ids(b).includes(w.id));
+      const closed = b.filter((w) => !ids(a).includes(w.id));
+      if (opened.length) return `Open the ${name(opened[0].id)} window`;
+      if (closed.length) return `Close the ${name(closed[0].id)} window`;
+      const moved = a.find((w) => { const o = b.find((x) => x.id === w.id); return o && (o.x !== w.x || o.y !== w.y); });
+      const sized = a.find((w) => { const o = b.find((x) => x.id === w.id); return o && (o.w !== w.w || o.h !== w.h); });
+      if (sized) return `Resize the ${name(sized.id)} window`;
+      if (moved) return `Move the ${name(moved.id)} window`;
+      return "";
+    }
+    const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+    /* The view's plain name for one step. d = { prefs: { key: [before, after] }, tools: { key: [b, a] }, wins: [b, a],
+       hint }; names: { layout(id), guide(id), caption(id), compare(id), cat(id), win(id), lens(id) } (ids when left out). */
+    function viewLabel(d, names) {
+      const n = Object.assign({ layout: (x) => x, guide: (x) => x, caption: (x) => x, compare: (x) => x, cat: (x) => x, win: (x) => x, lens: (x) => x }, names || {});
+      const P = (d && d.prefs) || {};
+      const T = (d && d.tools) || {};
+      const out = [];
+      const add = (s) => s && out.push(s);
+      if (P.sizes) add(sizesLabel(P.sizes[0], P.sizes[1], d.hint));
+      if (d && d.wins) add(winsLabel(d.wins[0], d.wins[1], n.win));
+      if (P.layout) add(`Layout: ${n.layout(P.layout[1])}`);
+      if (P.view) add(P.view[1] === "arrange" ? "Open Arrange" : "Back to the Screen's panels");
+      if (P.insp) {
+        const [b, a] = P.insp.map((x) => (Array.isArray(x) ? x : []));
+        if (a.length !== b.length) add(a.length === b.length + 1 ? "Add an inspiration film" : a.length === b.length - 1 ? "Remove an inspiration film" : a.length ? `Show ${a.length + 1} windows in the Player` : "Show only my film in the Player");
+        else if (a.some((v, i) => (v && v.film) !== (b[i] && b[i].film))) add("Change the inspiration film");
+        else if (!same(a.map((v) => v && v.takes), b.map((v) => v && v.takes))) add("Change what I take from an inspiration film");
+        else add("Change the viewers");
+      }
+      if (P.arrange) add(P.arrange[1] === "stack" ? "Stack the viewers" : "Put the viewers side by side");
+      if (P.lens) add(`Lens: ${n.lens(P.lens[1])}`);
+      if (P.ghost) add(onOff(P.ghost[1], "Ghosts"));
+      if (P.speed) add(`Play speed ${P.speed[1]}×`);
+      if (P.playerZoom) add(Number(P.playerZoom[1]) === 1 ? "Reset the Player's zoom" : Number(P.playerZoom[1]) > Number(P.playerZoom[0]) ? "Zoom in on the Player" : "Zoom out of the Player");
+      if (P.rulers) add(P.rulers[1] ? "Show the rulers" : "Hide the rulers");
+      if (P.overview) add(P.overview[1] ? "Bring back the whole film strip" : "Collapse the whole film strip");
+      if (P.range) add(P.range[1] ? `Play moments ${P.range[1][0] + 1} to ${P.range[1][1] + 1}` : "Play the whole film");
+      if (P.guides) {
+        const [b, a] = P.guides.map((x) => (Array.isArray(x) ? x : []));
+        const on = a.filter((x) => !b.includes(x));
+        const off = b.filter((x) => !a.includes(x));
+        add(on.length === 1 && !off.length ? `Show the ${n.guide(on[0])} guide` : off.length === 1 && !on.length ? `Hide the ${n.guide(off[0])} guide` : a.length ? "Change the guides" : "Hide the guides");
+      }
+      if (P.compare) {
+        const [b, a] = P.compare.map((x) => x || {});
+        add(!!a.on !== !!b.on ? onOff(a.on, "Compare") : a.with !== b.with ? `Compare with ${n.compare(a.with)}` : "Move the Compare line");
+      }
+      if (P.captions) {
+        const [b, a] = P.captions.map((x) => x || {});
+        add(!!a.on !== !!b.on ? onOff(a.on, "captions") : `Captions show ${n.caption(a.mode)}`);
+      }
+      if (P.lanes) {
+        const [b, a] = P.lanes.map((x) => (Array.isArray(x) ? x : []));
+        add(a.length > b.length ? "Show a lane on the timeline" : a.length < b.length ? "Take a lane off the timeline" : "Reorder the lanes");
+      }
+      if (P.showAll) add(P.showAll[1] ? "Show all potential curiosities" : "Hide the potential curiosities");
+      if (P.showSuites) add(P.showSuites[1] ? "Show all potential curiosity suites" : "Hide the potential curiosity suites");
+      if (P.viewersInArrange) add(P.viewersInArrange[1] ? "Show the viewers in Arrange" : "Hide the viewers in Arrange");
+      if (T.zoom) add(Number(T.zoom[1]) > Number(T.zoom[0] || 1) ? "Zoom in on the timeline" : "Zoom out of the timeline");
+      if (T.laneH) add(Number(T.laneH[1]) > Number(T.laneH[0] || 0) ? "Make the lanes taller" : "Make the lanes shorter");
+      if (T.folds) {
+        const [b, a] = T.folds.map((x) => (x && typeof x === "object" ? x : {}));
+        const shut = Object.keys(a).filter((k) => a[k] && !b[k]);
+        const open = Object.keys(b).filter((k) => b[k] && !a[k]);
+        add(shut.length > 1 ? "Fold every lane group" : open.length > 1 ? "Open every lane group" : shut.length ? `Fold the ${n.cat(shut[0])} lanes` : open.length ? `Open the ${n.cat(open[0])} lanes` : "");
+      }
+      if (T.markers) {
+        const [b, a] = T.markers.map((x) => (Array.isArray(x) ? x : []));
+        const auto = (l) => l.filter((m) => m && m.auto).length;
+        add(auto(a) !== auto(b) && a.length - auto(a) === b.length - auto(b) ? (auto(a) > auto(b) ? "Add markers where the film turns" : "Take off the automatic markers") : a.length > b.length ? (a.length === b.length + 1 ? "Add a marker" : "Add markers") : a.length < b.length ? (a.length === b.length - 1 ? "Remove a marker" : "Remove markers") : "Change a marker");
+      }
+      if (T.locks) {
+        const cnt = (x) => Object.keys(x && typeof x === "object" ? x : {}).filter((k) => x[k]).length;
+        add(cnt(T.locks[1]) > cnt(T.locks[0]) ? "Lock a lane" : "Unlock a lane");
+      }
+      const BOOL = { magnet: "the magnet", snap: "snapping", linkage: "linkage", skim: "the preview axis", attention: "the Attention track", filmLines: "film lines" };
+      Object.keys(BOOL).forEach((k) => T[k] && add(onOff(T[k][1] !== false && T[k][1] != null ? true : false, BOOL[k])));
+      if (T.tool) add(T.tool[1] === "split" ? "Use the Split tool" : "Use the Select tool");
+      if (T.linkKinds || T.linkDelete) add("Change the linkage settings");
+      if (!out.length && Object.keys(T).length) add("Change the timeline's view");
+      if (!out.length) return "Change the view";
+      return out.length === 1 ? cap(out[0]) : `${cap(out[0])} (and ${plural(out.length - 1, "more change", "more changes")})`;
+    }
+    return { PANES, KEYS, clean, settle, templates, borders, grows, sizesLabel, winsLabel, viewLabel };
+  })();
+  window.CurioScreenPanels = SPLIT;
+
+  /* splitter(el, o): makes el a border that can be dragged with the pointer or moved with the keyboard (focus it,
+     then the arrow keys). Reusable: window.CurioScreen.splitter(el, o), so the Viewer's panels can have the same
+     borders. It brings its own small stylesheet (#sc-split-css).
+     o = {
+       axis: "x" (a border between left and right, dragged sideways) or "y" (between top and bottom),
+       grow: 1 when dragging right or down makes the panel bigger, -1 when left or up does,
+       size() -> the panel's open size in px (kept while it is folded), min() and max() -> px,
+       foldable: true when it can fold away (dragging past half the smallest size, Enter, or its « button),
+       folded() -> true while folded away,
+       set(px, folded, phase): phase is "move" while dragging, "end" when let go, "key" for a key, "fold" for a fold,
+       reset(): a double-click, back to its usual size; name: "the library", for the tooltip and screen readers;
+       step (default 10px), bigStep (default 60px with Shift) }
+     -> { update(), destroy() }. update() refreshes the triangles (which way it can go) and the screen-reader values.
+     While folded, the border is a thin edge: hovering shows the resize cursor and the triangle pointing the way to
+     drag it out; a click or a drag brings the panel back. */
+  function splitter(el, o) {
+    if (!el || !o) return null;
+    splitCss();
+    const x = o.axis !== "y";
+    const grow = o.grow === -1 ? -1 : 1;
+    const name = o.name || "this panel";
+    const step = o.step || 10;
+    const big = o.bigStep || 60;
+    const folded = () => !!(o.foldable && o.folded && o.folded());
+    el.classList.add("sc-split");
+    el.dataset.axis = x ? "x" : "y";
+    el.setAttribute("role", "separator");
+    el.setAttribute("aria-orientation", x ? "vertical" : "horizontal");
+    if (!el.hasAttribute("tabindex")) el.tabIndex = 0;
+    const A = x ? "◂" : "▴";
+    const B = x ? "▸" : "▾";
+    el.innerHTML = `<i class="sc-split-line" aria-hidden="true"></i><span class="sc-split-tri" aria-hidden="true"><b class="a">${A}</b><b class="b">${B}</b></span>${o.foldable ? `<button type="button" class="sc-split-fold" tabindex="-1">${grow > 0 ? "«" : "»"}</button>` : ""}`;
+    const fold = el.querySelector(".sc-split-fold");
+    function update() {
+      const f = folded();
+      const s = f ? 0 : o.size();
+      const max = o.max();
+      const canGrow = s < max - 1;
+      const canShrink = !f && (o.foldable || s > o.min() + 1);
+      /* a = left or up, b = right or down. */
+      const showA = grow > 0 ? canShrink : canGrow;
+      const showB = grow > 0 ? canGrow : canShrink;
+      el.classList.toggle("folded", f);
+      el.classList.toggle("no-a", !showA);
+      el.classList.toggle("no-b", !showB);
+      el.setAttribute("aria-valuemin", "0");
+      el.setAttribute("aria-valuemax", String(Math.round(max)));
+      el.setAttribute("aria-valuenow", String(Math.round(s)));
+      const way = x ? (grow > 0 ? "right" : "left") : grow > 0 ? "down" : "up";
+      const tip = f ? `${cap(name)} is folded away. Drag ${way}, or click, to bring it back.` : `Drag to resize ${name}. Arrow keys work too.${o.foldable ? " Enter folds it away." : ""} Double-click for its usual size.`;
+      el.title = tip;
+      el.setAttribute("aria-label", f ? `Bring back ${name}` : `Resize ${name}`);
+      if (fold) {
+        fold.title = `Collapse ${name}`;
+        fold.setAttribute("aria-label", `Collapse ${name}`);
+      }
+    }
+    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    /* from: the size the drag started at, kept as the size the panel comes back at if this folds it. */
+    function land(px, phase, from) {
+      const r = SPLIT.settle(px, o.min(), o.max(), !!o.foldable);
+      o.set(r.shut ? from || o.size() : r.size, r.shut, phase);
+      update();
+    }
+    function toggle() {
+      if (!o.foldable) return;
+      if (folded()) o.set(Math.max(o.min(), Math.min(o.max(), o.size() || o.min())), false, "fold");
+      else o.set(o.size(), true, "fold");
+      update();
+    }
+    let drag = null;
+    function down(e) {
+      if (e.button !== 0 || (fold && e.target === fold)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const f = folded();
+      drag = { at: x ? e.clientX : e.clientY, s0: f ? 0 : o.size(), f, moved: false, id: e.pointerId };
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      el.classList.add("drag");
+      document.documentElement.dataset.scSplitting = x ? "x" : "y";
+    }
+    function move(e) {
+      if (!drag) {
+        /* The triangles follow the pointer along the border. */
+        const r = el.getBoundingClientRect();
+        const along = x ? e.clientY - r.top : e.clientX - r.left;
+        const len = x ? r.height : r.width;
+        el.style.setProperty("--at", Math.max(14, Math.min(len - 14, along)) + "px");
+        return;
+      }
+      const d = ((x ? e.clientX : e.clientY) - drag.at) * grow;
+      if (!drag.moved && Math.abs(d) < 3) return;
+      drag.moved = true;
+      land(drag.s0 + d, "move", drag.s0);
+    }
+    function end(e, cancel) {
+      if (!drag) return;
+      const g = drag;
+      drag = null;
+      el.classList.remove("drag");
+      delete document.documentElement.dataset.scSplitting;
+      try {
+        el.releasePointerCapture(g.id);
+      } catch (err) {}
+      if (cancel) {
+        o.set(g.f ? o.size() : g.s0, g.f, "end");
+        return update();
+      }
+      if (!g.moved) {
+        if (g.f) toggle();
+        return;
+      }
+      land(g.s0 + ((x ? e.clientX : e.clientY) - g.at) * grow, "end", g.s0);
+    }
+    function key(e) {
+      if (e.target !== el || e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key;
+      const toB = x ? k === "ArrowRight" : k === "ArrowDown";
+      const toA = x ? k === "ArrowLeft" : k === "ArrowUp";
+      if (k === "Escape" && drag) return e.preventDefault(), e.stopPropagation(), end(null, true);
+      if (k === "Enter") {
+        if (!o.foldable) return;
+        e.preventDefault();
+        e.stopPropagation();
+        return toggle();
+      }
+      if (!toA && !toB && k !== "Home" && k !== "End") return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (k === "Home") return land(o.min(), "key");
+      if (k === "End") return land(o.max(), "key");
+      const d = (toB ? 1 : -1) * grow * (e.shiftKey ? big : step);
+      /* From folded, a press the right way opens it at its smallest size; the other way does nothing. */
+      if (folded()) return d > 0 ? land(Math.max(o.min(), o.size() > 0 ? Math.min(o.size(), o.min()) : o.min()), "key") : undefined;
+      const next = o.size() + d;
+      /* Keys stop at the smallest size; only Enter or « folds, so holding a key down never folds by surprise. */
+      land(Math.max(o.min(), next), "key");
+    }
+    const dbl = (e) => {
+      if (fold && e.target === fold) return;
+      e.preventDefault();
+      if (o.reset) o.reset();
+      update();
+    };
+    const foldClick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggle();
+    };
+    const up = (e) => end(e, false);
+    const cancel = (e) => end(e, true);
+    el.addEventListener("pointerdown", down);
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", cancel);
+    el.addEventListener("lostpointercapture", up);
+    el.addEventListener("keydown", key);
+    el.addEventListener("dblclick", dbl);
+    if (fold) fold.addEventListener("click", foldClick);
+    update();
+    return {
+      update,
+      destroy() {
+        el.removeEventListener("pointerdown", down);
+        el.removeEventListener("pointermove", move);
+        el.removeEventListener("pointerup", up);
+        el.removeEventListener("pointercancel", cancel);
+        el.removeEventListener("lostpointercapture", up);
+        el.removeEventListener("keydown", key);
+        el.removeEventListener("dblclick", dbl);
+        if (fold) fold.removeEventListener("click", foldClick);
+      },
+    };
+  }
+  /* The splitter's own look, so it works on any page that calls it (the Screen places its borders in screen.css). */
+  function splitCss() {
+    if (typeof document === "undefined" || !document.head || document.getElementById("sc-split-css")) return;
+    const st = document.createElement("style");
+    st.id = "sc-split-css";
+    st.textContent = `.sc-split { position: absolute; z-index: 5; box-sizing: border-box; touch-action: none; outline: none; --at: 50%; }
+.sc-split[data-axis="x"] { width: 10px; cursor: col-resize; }
+.sc-split[data-axis="y"] { height: 10px; cursor: row-resize; }
+.sc-split-line { position: absolute; pointer-events: none; background: #22d3ee; opacity: 0; transition: opacity 0.12s; }
+.sc-split[data-axis="x"] .sc-split-line { top: 0; bottom: 0; left: 4px; width: 2px; }
+.sc-split[data-axis="y"] .sc-split-line { left: 0; right: 0; top: 4px; height: 2px; }
+.sc-split:hover .sc-split-line, .sc-split:focus-visible .sc-split-line, .sc-split.drag .sc-split-line { opacity: 1; }
+.sc-split-tri { position: absolute; display: flex; gap: 6px; pointer-events: none; opacity: 0; transition: opacity 0.12s; color: #22d3ee; font: 700 13px/1 system-ui, sans-serif; text-shadow: 0 0 3px #000, 0 0 2px #000; }
+.sc-split[data-axis="x"] .sc-split-tri { top: var(--at); left: 50%; transform: translate(-50%, -50%); flex-direction: row; }
+.sc-split[data-axis="y"] .sc-split-tri { left: var(--at); top: 50%; transform: translate(-50%, -50%); flex-direction: column; gap: 4px; }
+.sc-split-tri b { display: block; }
+.sc-split.no-a .sc-split-tri .a, .sc-split.no-b .sc-split-tri .b { visibility: hidden; }
+.sc-split:hover .sc-split-tri, .sc-split:focus-visible .sc-split-tri, .sc-split.drag .sc-split-tri { opacity: 1; }
+.sc-split-fold { position: absolute; display: none; z-index: 1; width: 18px; height: 18px; padding: 0 !important; border: 1px solid #22d3ee !important; border-radius: 50% !important; background: #1c1c1e !important; color: #22d3ee !important; font: 700 11px/16px system-ui, sans-serif !important; cursor: pointer; }
+.sc-split[data-axis="x"] .sc-split-fold { top: 10px; left: 50%; transform: translateX(-50%); }
+.sc-split[data-axis="y"] .sc-split-fold { left: 10px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+.sc-split:hover .sc-split-fold, .sc-split:focus-visible .sc-split-fold { display: block; }
+.sc-split.folded .sc-split-fold { display: none; }
+.sc-split.folded .sc-split-line { opacity: 0.55; background: #6b6b74; }
+.sc-split.folded:hover .sc-split-line, .sc-split.folded:focus-visible .sc-split-line { opacity: 1; background: #22d3ee; }
+.sc-split.folded[data-axis="x"] .sc-split-line { left: 3px; width: 4px; border-radius: 2px; }
+.sc-split.folded[data-axis="y"] .sc-split-line { top: 3px; height: 4px; border-radius: 2px; }
+html[data-sc-splitting="x"], html[data-sc-splitting="x"] * { cursor: col-resize !important; user-select: none !important; }
+html[data-sc-splitting="y"], html[data-sc-splitting="y"] * { cursor: row-resize !important; user-select: none !important; }`;
+    document.head.appendChild(st);
+  }
+
+  /* ---- The Screen's own borders ---- */
+  const PLAYER_MIN_W = 240;
+  const PLAYER_MIN_H = 140;
+  const wide = () => (window.innerWidth || 1024) > 860;
+  const sizesNow = () => SPLIT.clean(prefs.sizes);
+  const splits = {}; /* id -> { el, ctl, edge } */
+  let splitsHint = "";
+  function paneEl(id) {
+    if (!page) return null;
+    return page.querySelector({ lib: ".sc-lib", insp: ".sc-inspector", tl: ".sc-timeline", dock: ".sc-player > .sc-docks", side: ".sc-lib .sc-side", ov: ".sc-player > .sc-overview" }[id]);
+  }
+  /* What a panel measures now (its open size even while folded: the size it comes back at). */
+  function paneSize(id) {
+    const s = sizesNow();
+    if (id === "ov") return s.ov != null ? s.ov : 46;
+    if (s[id] != null) return s[id];
+    const el = paneEl(id);
+    if (!el) return SPLIT.PANES[id].min;
+    const r = el.getBoundingClientRect();
+    const v = SPLIT.PANES[id].axis === "x" ? r.width : r.height;
+    return v > 1 ? Math.round(v) : Math.round(SPLIT.PANES[id].min * 1.4);
+  }
+  function mainBox() {
+    const m = page && page.querySelector(".sc-main");
+    return m ? m.getBoundingClientRect() : { width: 1200, height: 700 };
+  }
+  /* The biggest a panel can be while the Player keeps room (and the timeline keeps its own). */
+  function paneMax(id) {
+    const P = SPLIT.PANES[id];
+    const mb = mainBox();
+    const s = sizesNow();
+    const w = (k) => (s.shut[k] ? 0 : paneSize(k));
+    if (id === "lib" || id === "insp") {
+      const other = prefs.view === "arrange" ? 0 : w(id === "lib" ? "insp" : "lib");
+      return Math.max(P.min, Math.min(P.max, mb.width - 24 - other - PLAYER_MIN_W));
+    }
+    if (id === "tl") return Math.max(P.min, Math.min(P.max, mb.height - 18 - PLAYER_MIN_H));
+    if (id === "dock") {
+      const pl = page.querySelector(".sc-player");
+      return Math.max(P.min, Math.min(P.max, (pl ? pl.getBoundingClientRect().width : 600) - PLAYER_MIN_W));
+    }
+    if (id === "side") {
+      const lib = paneEl("lib");
+      return Math.max(P.min, Math.min(P.max, (lib ? lib.getBoundingClientRect().width : 300) - 120));
+    }
+    return P.max;
+  }
+  function paneFolded(id) {
+    if (id === "ov") return !prefs.overview;
+    return !!sizesNow().shut[id];
+  }
+  /* A border moved: keep the new size (folded or not) in the view, and redraw just the sizes. */
+  function paneSet(id, px, shut, phase) {
+    const s = sizesNow();
+    /* The first time a side column is set, the other one keeps the width it has now, so only this border moves. */
+    if ((id === "lib" || id === "insp") && prefs.view === "screen") {
+      const other = id === "lib" ? "insp" : "lib";
+      if (s[other] == null && !s.shut[other]) s[other] = paneSize(other);
+    }
+    if (id === "ov") {
+      if (shut) prefs.overview = false;
+      else {
+        if (!prefs.overview) prefs.overview = true;
+        s.ov = Math.round(px);
+      }
+    } else if (shut) {
+      /* Folded, it keeps the size it comes back at: the one it had before this drag. */
+      s[id] = px > 0 ? Math.round(px) : s[id] != null ? s[id] : paneSize(id);
+      s.shut[id] = true;
+    } else {
+      s[id] = Math.round(px);
+      delete s.shut[id];
+    }
+    prefs.sizes = s;
+    splitsHint = id;
+    save();
+    /* The strip folds and comes back by redrawing it (its "▸ Whole film" header stays as the thin edge). */
+    if (id === "ov" && !!page.querySelector(".sc-ov-strip") !== !!prefs.overview) drawViewers();
+    sizesApply();
+    if (phase !== "move") vuSoon(0);
+  }
+  function paneReset(id) {
+    const s = sizesNow();
+    delete s[id];
+    delete s.shut[id];
+    if (id === "ov" && !prefs.overview) prefs.overview = true;
+    prefs.sizes = s;
+    splitsHint = id;
+    save();
+    if (id === "ov") drawViewers();
+    sizesApply();
+    vuSoon(0);
+  }
+  /* Put the sizes on the grid. Called after every redraw, a border drag, a window resize and an undo. */
+  let sizesRaf = 0;
+  function sizesApply() {
+    if (!page) return;
+    const main = page.querySelector(".sc-main");
+    if (!main) return;
+    const s = sizesNow();
+    const player = page.querySelector(".sc-player");
+    const fit = (k, v) => Math.max(SPLIT.PANES[k].min, Math.min(paneMax(k), v));
+    const t = SPLIT.templates(s, page.dataset.layout, prefs.view, wide() ? fit : null, !!(player && !player.hidden));
+    const set = (attr, prop, v) => {
+      if (v) {
+        main.setAttribute(attr, "");
+        main.style.setProperty(prop, v);
+      } else {
+        main.removeAttribute(attr);
+        main.style.removeProperty(prop);
+      }
+    };
+    set("data-cols", "--sc-cols", t.cols);
+    set("data-rows", "--sc-rows", t.rows);
+    ["lib", "insp", "tl"].forEach((k) => {
+      const el = paneEl(k);
+      if (el) el.classList.toggle("sc-shut", !!s.shut[k] && (k !== "lib" || prefs.view === "screen") && (k !== "tl" || prefs.view === "screen" || !!(player && !player.hidden)));
+    });
+    if (player) {
+      const dockSet = s.dock != null || !!s.shut.dock;
+      if (dockSet) player.style.setProperty("--sc-dock-user", s.shut.dock ? "0px" : Math.round(wide() ? fit("dock", s.dock) : s.dock) + "px");
+      else player.style.removeProperty("--sc-dock-user");
+      player.toggleAttribute("data-dock-sized", dockSet);
+      const docks = paneEl("dock");
+      if (docks) docks.classList.toggle("sc-shut", !!s.shut.dock);
+      const ov = paneEl("ov");
+      if (ov) {
+        if (s.ov != null) ov.style.setProperty("--sc-ov-h", Math.max(SPLIT.PANES.ov.min, Math.min(SPLIT.PANES.ov.max, s.ov)) + "px");
+        else ov.style.removeProperty("--sc-ov-h");
+      }
+    }
+    const body = page.querySelector(".sc-lib-body");
+    if (body) {
+      const sideSet = s.side != null || !!s.shut.side;
+      if (sideSet) body.style.setProperty("--sc-side-w", s.shut.side ? "0px" : Math.round(wide() ? fit("side", s.side) : s.side) + "px");
+      else body.style.removeProperty("--sc-side-w");
+      body.toggleAttribute("data-side-sized", sideSet);
+      const side = paneEl("side");
+      if (side) side.classList.toggle("sc-shut", !!s.shut.side);
+    }
+    if (!sizesRaf)
+      sizesRaf = requestAnimationFrame(() => {
+        sizesRaf = 0;
+        splitsPlace();
+        /* The timeline draws to its own width: redraw it only when a border changed that. */
+        const tl = page.querySelector(".sc-timeline");
+        const key = tl ? tl.clientWidth + "x" + tl.clientHeight : "";
+        if (lanes && !page.hidden && key !== sizesApply.tl) {
+          if (sizesApply.tl) lanes.draw();
+          sizesApply.tl = key;
+        }
+      });
+  }
+  /* Which borders there are now, made once each and placed over the panels' edges. */
+  function splitsPlace() {
+    if (!page || page.hidden) return;
+    const main = page.querySelector(".sc-main");
+    let box = main && main.querySelector(":scope > .sc-splits");
+    if (!main) return;
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "sc-splits";
+      main.appendChild(box);
+    }
+    const player = page.querySelector(".sc-player");
+    const playerShown = !!(player && !player.hidden);
+    const lib = paneEl("lib");
+    const libBody = page.querySelector(".sc-lib-body");
+    const has = {
+      player: playerShown,
+      side: prefs.view === "screen" && !!lib && !sizesNow().shut.lib && !!libBody && getComputedStyle(libBody).gridTemplateColumns.split(" ").length > 1,
+      dock: playerShown && !!player.querySelector(":scope > .sc-docks > .sc-dock:not(.folded)") && page.dataset.layout !== "right",
+      ov: playerShown && !!paneEl("ov") && (!!page.querySelector(".sc-ov-strip") || !prefs.overview),
+    };
+    const list = wide() && !page.dataset.fullplayer ? SPLIT.borders(page.dataset.layout, prefs.view, has) : [];
+    const want = new Set(list.map((b) => b.id));
+    Object.keys(splits).forEach((id) => {
+      if (want.has(id) && splits[id].edge === list.find((b) => b.id === id).edge) return;
+      splits[id].ctl.destroy();
+      splits[id].el.remove();
+      delete splits[id];
+    });
+    const mb = main.getBoundingClientRect();
+    list.forEach((b) => {
+      if (!splits[b.id]) {
+        const el = document.createElement("div");
+        el.dataset.split = b.id;
+        box.appendChild(el);
+        const P = SPLIT.PANES[b.id];
+        const ctl = splitter(el, {
+          axis: P.axis,
+          grow: SPLIT.grows(b.edge),
+          name: P.name,
+          foldable: true,
+          size: () => paneSize(b.id),
+          min: () => P.min,
+          max: () => paneMax(b.id),
+          folded: () => paneFolded(b.id),
+          set: (px, shut, phase) => paneSet(b.id, px, shut, phase),
+          reset: () => paneReset(b.id),
+        });
+        splits[b.id] = { el, ctl, edge: b.edge };
+      }
+      const sp = splits[b.id];
+      const pane = paneEl(b.id);
+      if (!pane) return (sp.el.hidden = true);
+      sp.el.hidden = false;
+      const r = pane.getBoundingClientRect();
+      const L0 = r.left - mb.left;
+      const T0 = r.top - mb.top;
+      const st = sp.el.style;
+      if (SPLIT.PANES[b.id].axis === "x") {
+        const at = b.edge === "right" ? r.right - mb.left + (b.id === "side" ? 0 : 3) : L0 - (b.id === "dock" ? 0 : 3);
+        st.left = Math.round(at - 5) + "px";
+        st.top = Math.round(T0) + "px";
+        st.height = Math.max(24, Math.round(r.height)) + "px";
+        st.width = "";
+      } else {
+        const at = b.id === "ov" ? T0 : T0 - 3;
+        st.top = Math.round(at - 5) + "px";
+        st.left = Math.round(L0) + "px";
+        st.width = Math.max(24, Math.round(r.width)) + "px";
+        st.height = "";
+      }
+      sp.ctl.update();
+    });
+  }
+  function splitsWire() {
+    window.addEventListener("resize", () => page && !page.hidden && sizesApply());
+    /* The stylesheet may arrive after the first drawing: place the borders again once it has. */
+    const again = () => page && !page.hidden && sizesApply();
+    window.addEventListener("load", again);
+    document.querySelectorAll('link[rel="stylesheet"][href*="screen.css"]').forEach((l) => l.addEventListener("load", again));
+    setTimeout(again, 600);
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => {
+        if (!page || page.hidden || sizesRaf) return;
+        sizesRaf = requestAnimationFrame(() => {
+          sizesRaf = 0;
+          splitsPlace();
+        });
+      });
+      [".sc-main", ".sc-lib", ".sc-player", ".sc-inspector", ".sc-timeline", ".sc-player > .sc-overview"].forEach((q) => {
+        const el = page.querySelector(q);
+        if (el) ro.observe(el);
+      });
+    }
+  }
+
+  /* ---- Undo for the Screen's own view (see the top of this block) ---- */
+  const VIEW_KEYS = ["sizes", "layout", "view", "insp", "arrange", "lens", "ghost", "speed", "playerZoom", "rulers", "overview", "range", "guides", "compare", "captions", "lanes", "showAll", "showSuites", "viewersInArrange"];
+  const TOOLS_KEY = "curiosities-screen-tools-v1";
+  const TOOL_SKIP = { solo: true }; /* Solo goes with the lane switches it turns off and on, which are the film's */
+  const VU = { base: null, sig: "", timer: 0, open: false, kind: "", last: null, lastSig: "", wired: false };
+  const vcl = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
+  function vuOn() {
+    const St = window.CurioStore;
+    return !!(page && !page.hidden && St && typeof St.external === "function" && typeof St.history === "function");
+  }
+  function vuNow() {
+    const p = {};
+    VIEW_KEYS.forEach((k) => (p[k] = vcl(prefs[k])));
+    const T = {};
+    const live = window.CurioLanes && window.CurioLanes.tools ? window.CurioLanes.tools() : null;
+    if (live) Object.keys(live).forEach((k) => !TOOL_SKIP[k] && (T[k] = vcl(live[k])));
+    const W = wins.map((w) => ({ id: w.id, x: w.x, y: w.y, w: w.w || null, h: w.h || null }));
+    return { prefs: p, tools: T, wins: W, nav: JSON.stringify([prefs.sel, prefs.cat, prefs.libTab, prefs.focus]) };
+  }
+  function filmSig() {
+    const St = window.CurioStore;
+    if (!St || typeof St.history !== "function") return "";
+    const h = St.history();
+    return h.undo.length + "|" + h.redo.length + "|" + (h.undo[h.undo.length - 1] || "");
+  }
+  function vuSync() {
+    clearTimeout(VU.timer);
+    VU.timer = 0;
+    if (!page) return;
+    VU.base = vuNow();
+    VU.sig = filmSig();
+  }
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  /* What changed between two view readings: { prefs: {k: [b, a]}, tools: {k: [b, a]}, wins: [b, a] | null }. */
+  function vuDiff(b, a) {
+    const d = { prefs: {}, tools: {}, wins: null };
+    VIEW_KEYS.forEach((k) => !same(b.prefs[k], a.prefs[k]) && (d.prefs[k] = [b.prefs[k], a.prefs[k]]));
+    new Set(Object.keys(b.tools).concat(Object.keys(a.tools))).forEach((k) => !same(b.tools[k], a.tools[k]) && (d.tools[k] = [b.tools[k], a.tools[k]]));
+    /* The windows' order (which is in front) is not a step on its own. */
+    const key = (l) => JSON.stringify(l.slice().sort((p, q) => (p.id < q.id ? -1 : 1)));
+    if (key(b.wins) !== key(a.wins)) d.wins = [b.wins, a.wins];
+    return d;
+  }
+  const vuEmpty = (d) => !Object.keys(d.prefs).length && !Object.keys(d.tools).length && !d.wins;
+  function vuCheck() {
+    clearTimeout(VU.timer);
+    VU.timer = 0;
+    if (!vuOn() || !VU.base) return vuSync();
+    const now = vuNow();
+    const sig = filmSig();
+    const base = VU.base;
+    VU.base = now;
+    const hint = splitsHint;
+    splitsHint = "";
+    /* The gesture changed the film too (its own undo step keeps it), or only moved around: not a view step. */
+    if (sig !== VU.sig || now.nav !== base.nav) return void (VU.sig = sig);
+    const d = vuDiff(base, now);
+    if (vuEmpty(d)) return;
+    d.hint = hint;
+    const label = SPLIT.viewLabel(d, vuNames());
+    const pick = (side) => ({ prefs: Object.fromEntries(Object.keys(d.prefs).map((k) => [k, vcl(d.prefs[k][side])])), tools: Object.fromEntries(Object.keys(d.tools).map((k) => [k, vcl(d.tools[k][side])])), wins: d.wins ? vcl(d.wins[side]) : null });
+    const keys = JSON.stringify([Object.keys(d.prefs), Object.keys(d.tools), !!d.wins]);
+    const t = Date.now();
+    /* Arrow-key presses on the same border (or ⌘+ on the timeline, or a window's corner) close together join one
+       step; clicks never do, so two markers added one after the other are two steps. */
+    const steady = Object.keys(d.prefs).every((k) => k === "sizes") && Object.keys(d.tools).every((k) => k === "zoom" || k === "laneH");
+    if (VU.kind === "key" && steady && VU.last && VU.lastSig === sig && VU.last.label === label && VU.last.keys === keys && t - VU.last.at < 1500) {
+      VU.last.after = pick(1);
+      VU.last.at = t;
+      VU.sig = filmSig();
+      return;
+    }
+    const step = { label, keys, at: t, before: pick(0), after: pick(1) };
+    /* While the Viewer is open over the Screen (html.cv-open) it takes every key, so a ⌘Z that reaches the
+       app-wide list then leaves the Screen's view as it is (the step still counts, so nothing older is undone). */
+    const covered = () => document.documentElement.classList.contains("cv-open");
+    window.CurioStore.external("screenView", {
+      label,
+      undo: () => (covered() || vuApply(step.before), true),
+      redo: () => (covered() || vuApply(step.after), true),
+    });
+    VU.last = step;
+    VU.sig = VU.lastSig = filmSig();
+  }
+  function vuNames() {
+    const find = (list) => (id) => ((list || []).find((x) => x[0] === id) || [0, id])[1];
+    return {
+      layout: (id) => find(LAYOUTS)(id),
+      guide: (id) => find(GUIDES)(id).toLowerCase(),
+      caption: (id) => find(CAPTION_MODES)(id).toLowerCase(),
+      compare: (id) => find(COMPARE_WITH)(id).toLowerCase(),
+      lens: (id) => ({ highlight: "Highlight", overlay: "Overlay", only: "Lens only", off: "Off" })[id] || id,
+      cat: (id) => ((L() && L().CATEGORIES.find((c) => c.id === id)) || { label: id }).label,
+      win: (id) => ((L() && L().get("curiosity", id)) || { label: id }).label,
+    };
+  }
+  /* Put one side of a view step back: only the parts that step changed. */
+  function vuApply(part) {
+    const speedWas = prefs.speed;
+    Object.keys(part.prefs || {}).forEach((k) => (part.prefs[k] === undefined ? delete prefs[k] : (prefs[k] = vcl(part.prefs[k]))));
+    if (!prefs.sizes) prefs.sizes = {};
+    save();
+    const live = window.CurioLanes && window.CurioLanes.tools ? window.CurioLanes.tools() : null;
+    if (live && part.tools && Object.keys(part.tools).length) {
+      Object.keys(part.tools).forEach((k) => (part.tools[k] === undefined ? delete live[k] : (live[k] = vcl(part.tools[k]))));
+      try {
+        localStorage.setItem(TOOLS_KEY, JSON.stringify(live));
+      } catch (e) {}
+    }
+    if (part.wins) {
+      const focus = {};
+      wins.forEach((w) => (focus[w.id] = w.focus || ""));
+      const order = wins.map((w) => w.id);
+      const next = part.wins.map((w) => Object.assign({ focus: focus[w.id] || "" }, w));
+      next.sort((p, q) => (order.indexOf(p.id) + 1 || 1e3) - (order.indexOf(q.id) + 1 || 1e3));
+      wins.splice(0, wins.length, ...next);
+      next.forEach((w) => {
+        if (!w.w) delete w.w;
+        if (!w.h) delete w.h;
+      });
+      drawWins();
+    }
+    if (page && !page.hidden) {
+      drawAll();
+      if (timer && prefs.speed !== speedWas) play(true);
+    }
+  }
+  /* Check the view a moment after a gesture ends (the page's own handlers run first). */
+  function vuSoon(ms) {
+    if (!page || page.hidden) return;
+    clearTimeout(VU.timer);
+    VU.timer = setTimeout(vuCheck, ms == null ? 250 : ms);
+  }
+  /* Before a gesture: a check still waiting is done now (so steps keep their order); else the view is read fresh,
+     so a change made with no gesture (a program, a reload of another part) is never taken for one of yours. */
+  function vuStart(e) {
+    if (!page || page.hidden || VU.open) return;
+    VU.open = true;
+    VU.kind = e && e.type === "keydown" ? "key" : "pointer";
+    if (VU.timer) vuCheck();
+    else vuSync();
+  }
+  function vuEnd() {
+    if (!page || page.hidden) return;
+    VU.open = false;
+    vuSoon(250);
+  }
+  /* Before an undo or redo: a check still waiting goes on the list first; after it, the view is read again. */
+  function vuFlush() {
+    if (VU.timer) vuCheck();
+  }
+  function vuWire() {
+    if (VU.wired) return;
+    VU.wired = true;
+    window.addEventListener("pointerdown", vuStart, true);
+    window.addEventListener("keydown", (e) => !e.repeat && vuStart(e), true);
+    window.addEventListener("pointerup", vuEnd, true);
+    window.addEventListener("pointercancel", vuEnd, true);
+    window.addEventListener("keyup", vuEnd, true);
+    /* A list picked from (the layout menu, a film) changes after the press has ended. */
+    window.addEventListener(
+      "change",
+      () => {
+        if (!page || page.hidden || VU.open) return;
+        /* Caught before the page's own handler: with no gesture waiting, read the view as it is before this change. */
+        if (!VU.timer) vuSync();
+        vuSoon(250);
+      },
+      true
+    );
+    /* The wheel zooms the timeline (⌘ or a pinch) and changes the lane height (Alt): one step when it stops. */
+    window.addEventListener(
+      "wheel",
+      () => {
+        if (!page || page.hidden) return;
+        if (!VU.timer && !VU.open) {
+          vuSync();
+          VU.kind = "wheel";
+        }
+        if (!VU.open) vuSoon(450);
+      },
+      { capture: true, passive: true }
+    );
+    vuSync();
+  }
+  /* Keyboard for a ⧉ window's resize corner: arrows make it wider, narrower, taller or shorter (Shift: bigger steps). */
+  function winGripKey(e) {
+    const g = e.target && e.target.closest && e.target.closest("[data-win-grip]");
+    if (!g || e.metaKey || e.ctrlKey || e.altKey) return;
+    const dx = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    const dy = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+    if (!dx && !dy) return;
+    const w = wins.find((x) => x.id === g.dataset.winGrip);
+    const win = g.closest(".sc-win");
+    if (!w || !win) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const r = win.getBoundingClientRect();
+    const st = e.shiftKey ? 60 : 20;
+    winResizeTo(w, win, r.width + dx * st, r.height + dy * st);
+  }
+  function winResizeTo(w, win, ww, hh) {
+    const vw = window.innerWidth || 1024;
+    const vh = window.innerHeight || 768;
+    w.w = Math.round(Math.max(240, Math.min(vw - w.x - 4, ww)));
+    w.h = Math.round(Math.max(160, Math.min(vh - w.y - 4, hh)));
+    win.style.width = w.w + "px";
+    win.style.height = w.h + "px";
+    win.style.maxHeight = "none";
+  }
+  function onWinGrip(e) {
+    const g = e.target.closest && e.target.closest("[data-win-grip]");
+    if (!g) return false;
+    const w = wins.find((x) => x.id === g.dataset.winGrip);
+    const win = g.closest(".sc-win");
+    if (!w || !win) return false;
+    const r = win.getBoundingClientRect();
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    wins.push(wins.splice(wins.indexOf(w), 1)[0]);
+    win.style.zIndex = 60 + wins.length;
+    document.documentElement.dataset.scSplitting = "xy";
+    const move = (ev) => winResizeTo(w, win, r.width + ev.clientX - x0, r.height + ev.clientY - y0);
+    const up = () => {
+      delete document.documentElement.dataset.scSplitting;
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+    return true;
+  }
+  /* Borders for any page: CurioScreen.splitter(el, opts) (see splitter above). panels: the sizes now, and reset(). */
+  window.CurioScreen.splitter = splitter;
+  window.CurioScreen.panels = {
+    now: () => sizesNow(),
+    borders: () => Object.keys(splits).filter((id) => !splits[id].el.hidden),
+    reset() {
+      prefs.sizes = {};
+      if (!prefs.overview) prefs.overview = true;
+      save();
+      if (page && !page.hidden) drawAll();
+      vuSoon(0);
+    },
+  };
 })();

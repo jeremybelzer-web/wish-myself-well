@@ -3687,6 +3687,321 @@ const ok = (cond, msg) => {
     await ctx.close();
   }
 
+  /* ---------- Borders you can drag, panels you can fold away, and undo for everything on the Screen (Jeremy,
+     2026-10-04: "Each window should be resizable ... all borders should be draggable ... completely collapse any
+     window ... the cursor become a line along the edge ... a small triangle", and "UNDO - undo should be able to
+     undo absolutely anything. Even dragging windows around."). Its own browser context, so its storage starts
+     empty. ---------- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    await p.waitForTimeout(700);
+    const box = (q) => p.evaluate((q) => { const e = document.querySelector(q); if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, r: r.right, b: r.bottom }; }, q);
+    const split = (id) => box(`.sc-split[data-split="${id}"]`);
+    const sizes = () => p.evaluate(() => window.CurioScreen.panels.now());
+    const hist = () => p.evaluate(() => window.CurioStore.history());
+    const lastStep = async () => { const h = await hist(); return h.undo[h.undo.length - 1] || ""; };
+    /* Drag a border by (dx, dy) from a point along it (k: 0 to 1 of the way along). */
+    const drag = async (id, dx, dy, k) => {
+      const s = await split(id);
+      const x = s.x + (s.w > 20 ? s.w * (k == null ? 0.5 : k) : s.w / 2);
+      const y = s.y + (s.h > 20 ? s.h * (k == null ? 0.5 : k) : s.h / 2);
+      await p.mouse.move(x, y);
+      await p.mouse.down();
+      await p.mouse.move(x + dx / 2, y + dy / 2, { steps: 4 });
+      await p.mouse.move(x + dx, y + dy, { steps: 4 });
+      await p.mouse.up();
+      await p.waitForTimeout(350);
+    };
+    const borders = await p.evaluate(() => window.CurioScreen.panels.borders());
+    ok(["lib", "insp", "tl", "dock", "side", "ov"].every((b) => borders.includes(b)), "every border between the Screen's panels can be dragged: library, Details, timeline, the side panels column, the library's group list and the whole film strip (" + borders.join(", ") + ")");
+    ok(await p.evaluate(() => [...document.querySelectorAll(".sc-split")].every((s) => s.getAttribute("role") === "separator" && s.tabIndex === 0 && /Resize /.test(s.getAttribute("aria-label")))), "each border is a separator you can reach with Tab, named in plain words");
+    /* Hover: the resize cursor and triangles pointing both ways. */
+    let s0 = await split("lib");
+    await p.mouse.move(s0.x + s0.w / 2, s0.y + s0.h * 0.4);
+    await p.waitForTimeout(250);
+    const hover = await p.evaluate(() => {
+      const s = document.querySelector('.sc-split[data-split="lib"]');
+      const tri = s.querySelector(".sc-split-tri");
+      const vis = (q) => getComputedStyle(s.querySelector(q)).visibility !== "hidden";
+      return { cursor: getComputedStyle(s).cursor, line: Number(getComputedStyle(s.querySelector(".sc-split-line")).opacity), tri: Number(getComputedStyle(tri).opacity), a: vis(".sc-split-tri .a"), b: vis(".sc-split-tri .b"), text: tri.textContent };
+    });
+    ok(hover.cursor === "col-resize" && hover.line > 0.9, `hovering a border shows the resize cursor and a line along it (${hover.cursor})`);
+    ok(hover.tri > 0.9 && hover.a && hover.b && hover.text === "◂▸", "and small triangles showing it drags both ways (◂ ▸)");
+    const tlHover = await (async () => { const t = await split("tl"); await p.mouse.move(t.x + t.w * 0.3, t.y + t.h / 2); await p.waitForTimeout(200); return p.evaluate(() => { const s = document.querySelector('.sc-split[data-split="tl"]'); return [getComputedStyle(s).cursor, s.querySelector(".sc-split-tri").textContent]; }); })();
+    ok(tlHover[0] === "row-resize" && tlHover[1] === "▴▾", `the timeline's border shows the up and down cursor and ▴ ▾ (${tlHover.join(" ")})`);
+    await p.screenshot({ path: path.join(SHOTS, "screen-17a-border-hover.png") });
+    /* Drag each border. */
+    const g0 = { lib: await box(".sc-lib"), insp: await box(".sc-inspector"), tl: await box(".sc-timeline"), dock: await box(".sc-player > .sc-docks"), side: await box(".sc-lib .sc-side"), ov: await box(".sc-ov-strip") };
+    const n0 = (await hist()).undo.length;
+    await drag("lib", -70, 0);
+    const libW = (await box(".sc-lib")).w;
+    ok(Math.abs(libW - (g0.lib.w - 70)) <= 4, `dragging the library's border 70px left makes it 70px narrower (${Math.round(g0.lib.w)} → ${Math.round(libW)})`);
+    ok((await hist()).undo.length === n0 + 1 && (await lastStep()) === "Resize the library", `the whole drag is one undo step, "${await lastStep()}"`);
+    const playerW = (await box(".sc-player")).w;
+    await drag("insp", -50, 0);
+    ok(Math.abs((await box(".sc-inspector")).w - (g0.insp.w + 50)) <= 4 && Math.abs((await box(".sc-lib")).w - libW) <= 2, "dragging Details' border left makes Details wider and leaves the library alone");
+    ok((await lastStep()) === "Resize Details", "one step: " + (await lastStep()));
+    await drag("tl", 0, -60, 0.3);
+    ok(Math.abs((await box(".sc-timeline")).h - (g0.tl.h + 60)) <= 4, `dragging the timeline's border up 60px makes it taller (${Math.round(g0.tl.h)} → ${Math.round((await box(".sc-timeline")).h)})`);
+    ok((await lastStep()) === "Resize the timeline", "one step: " + (await lastStep()));
+    await drag("dock", 40, 0);
+    ok(Math.abs((await box(".sc-player > .sc-docks")).w - (g0.dock.w - 40)) <= 4, `dragging the side panels' border right makes the Momentum column narrower (${Math.round(g0.dock.w)} → ${Math.round((await box(".sc-player > .sc-docks")).w)})`);
+    await drag("side", 30, 0);
+    ok(Math.abs((await box(".sc-lib .sc-side")).w - (g0.side.w + 30)) <= 4, "dragging the library's group list border widens the list");
+    await drag("ov", 0, -30);
+    ok(Math.abs((await box(".sc-ov-strip")).h - (g0.ov.h + 30)) <= 4, `dragging the top of the whole film strip makes its frames taller (${Math.round(g0.ov.h)} → ${Math.round((await box(".sc-ov-strip")).h)})`);
+    const hNow = await hist();
+    ok(hNow.undo.slice(-3).join(" | ") === "Resize the side panels beside the Player | Resize the library's group list | Resize the whole film strip", "each border has its own plain name: " + hNow.undo.slice(-3).join(" | "));
+    /* Sizes keep their smallest: a short drag stops at the minimum instead of folding. */
+    /* Keyboard: focus a border, arrow keys move it. */
+    const libBefore = (await box(".sc-lib")).w;
+    await p.focus('.sc-split[data-split="lib"]');
+    await p.keyboard.press("ArrowRight");
+    await p.keyboard.press("ArrowRight");
+    await p.waitForTimeout(300);
+    ok(Math.abs((await box(".sc-lib")).w - (libBefore + 20)) <= 2, `→ twice on the library's border widens it by 20px (${Math.round(libBefore)} → ${Math.round((await box(".sc-lib")).w)})`);
+    await p.keyboard.press("Shift+ArrowLeft");
+    await p.waitForTimeout(300);
+    ok(Math.abs((await box(".sc-lib")).w - (libBefore - 40)) <= 2, "Shift+← takes a bigger step (60px)");
+    const kh = await hist();
+    ok(kh.undo[kh.undo.length - 1] === "Resize the library" && kh.undo[kh.undo.length - 2] !== "Resize the library", "key presses close together on one border are one undo step");
+    ok((await p.evaluate(() => window.CurioScreen.row())) === 0, "the arrow keys on a border move the border, not the playhead");
+    /* Fold a panel away: drag past half its smallest size. */
+    await drag("insp", 600, 0, 0.6);
+    ok((await sizes()).shut.insp === true && (await box(".sc-inspector")).w < 2, "dragging Details' border far to the right folds Details away completely");
+    ok((await lastStep()) === "Collapse Details", `one step named "${await lastStep()}"`);
+    const pw = (await box(".sc-player")).w;
+    ok(pw > playerW + 200, `the Player takes the room (${Math.round(playerW)} → ${Math.round(pw)}px)`);
+    s0 = await split("insp");
+    ok(s0 && s0.r >= 1425, "a thin edge is left at the right side of the Screen");
+    await p.mouse.move(s0.x + s0.w / 2, s0.y + s0.h * 0.5);
+    await p.waitForTimeout(250);
+    const edge = await p.evaluate(() => {
+      const s = document.querySelector('.sc-split[data-split="insp"]');
+      const vis = (q) => getComputedStyle(s.querySelector(q)).visibility !== "hidden";
+      return { folded: s.classList.contains("folded"), cursor: getComputedStyle(s).cursor, tri: Number(getComputedStyle(s.querySelector(".sc-split-tri")).opacity), left: vis(".sc-split-tri .a"), right: vis(".sc-split-tri .b"), title: s.title, label: s.getAttribute("aria-label") };
+    });
+    ok(edge.folded && edge.cursor === "col-resize" && edge.tri > 0.9, `hovering the folded edge shows the resize cursor and a triangle (${edge.cursor})`);
+    ok(edge.left && !edge.right, "the triangle points the one way to drag it out: ◂ (left)");
+    ok(/drag left, or click, to bring it back/i.test(edge.title) && edge.label === "Bring back Details", "its tooltip says so in plain words: " + edge.title);
+    await p.screenshot({ path: path.join(SHOTS, "screen-17b-details-folded.png") });
+    await p.screenshot({ path: path.join(SHOTS, "screen-17c-folded-edge-zoom.png"), clip: { x: 1300, y: s0.y + s0.h * 0.5 - 60, width: 140, height: 120 } });
+    /* Drag it back out. */
+    await drag("insp", -300, 0, 0.5);
+    ok(!(await sizes()).shut.insp && Math.abs((await box(".sc-inspector")).w - 294) <= 12, `dragging the folded edge out brings Details back at the width you drag to (${Math.round((await box(".sc-inspector")).w)}px)`);
+    ok((await lastStep()) === "Bring back Details", "named " + (await lastStep()));
+    /* The « button folds; a click on the edge brings it back. */
+    s0 = await split("lib");
+    await p.mouse.move(s0.x + s0.w / 2, s0.y + 60);
+    await p.waitForTimeout(200);
+    await p.click('.sc-split[data-split="lib"] .sc-split-fold');
+    await p.waitForTimeout(300);
+    ok((await sizes()).shut.lib === true && (await box(".sc-lib")).w < 2, "the small « on a border folds its panel away");
+    ok((await lastStep()) === "Collapse the library", "named " + (await lastStep()));
+    s0 = await split("lib");
+    await p.mouse.click(s0.x + s0.w / 2, s0.y + s0.h / 2);
+    await p.waitForTimeout(300);
+    ok(!(await sizes()).shut.lib && Math.abs((await box(".sc-lib")).w - (libBefore - 40)) <= 3, "a click on the folded edge brings the library back at its old width");
+    /* Enter folds from the keyboard, and Enter again brings it back. */
+    await p.focus('.sc-split[data-split="tl"]');
+    await p.keyboard.press("Enter");
+    await p.waitForTimeout(300);
+    ok((await sizes()).shut.tl === true && (await box(".sc-timeline")).h < 2, "Enter on the timeline's border folds the timeline away");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17d-timeline-folded.png") });
+    await p.keyboard.press("Enter");
+    await p.waitForTimeout(300);
+    ok(!(await sizes()).shut.tl && (await box(".sc-timeline")).h > 150, "and Enter again brings it back");
+    /* Double-click puts a border back to its usual size. */
+    s0 = await split("side");
+    await p.mouse.dblclick(s0.x + s0.w / 2, s0.y + s0.h / 2);
+    await p.waitForTimeout(300);
+    ok((await sizes()).side == null && Math.abs((await box(".sc-lib .sc-side")).w - g0.side.w) <= 2, "a double-click puts the group list back to its usual width");
+    /* Sizes are kept across a reload. */
+    const keep = await sizes();
+    const kept = { lib: (await box(".sc-lib")).w, insp: (await box(".sc-inspector")).w, tl: (await box(".sc-timeline")).h };
+    await p.reload();
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.waitForTimeout(900);
+    const after = { lib: (await box(".sc-lib")).w, insp: (await box(".sc-inspector")).w, tl: (await box(".sc-timeline")).h };
+    ok(JSON.stringify(await sizes()) === JSON.stringify(keep) && Math.abs(after.lib - kept.lib) <= 2 && Math.abs(after.insp - kept.insp) <= 2 && Math.abs(after.tl - kept.tl) <= 2, `the sizes are kept across a reload (library ${Math.round(after.lib)}, Details ${Math.round(after.insp)}, timeline ${Math.round(after.tl)})`);
+    /* Undo everything on the Screen: a resize, a fold, a window move and a view toggle; redo. */
+    const lib1 = (await box(".sc-lib")).w;
+    await drag("lib", 50, 0);
+    await drag("tl", 0, 900, 0.3);
+    ok((await sizes()).shut.tl === true, "the timeline folds when its border is dragged right down");
+    await p.evaluate(() => window.CurioScreen.openWin("shotSize"));
+    await p.waitForTimeout(200);
+    await p.click(".sc-title"); /* a click on nothing starts the next gesture */
+    const w0 = await box('.sc-win[data-win="shotSize"]');
+    await p.mouse.move(w0.x + 80, w0.y + 15);
+    await p.mouse.down();
+    await p.mouse.move(w0.x + 180, w0.y + 75, { steps: 6 });
+    await p.mouse.up();
+    await p.waitForTimeout(350);
+    const w1 = await box('.sc-win[data-win="shotSize"]');
+    ok(Math.abs(w1.x - w0.x - 100) <= 2 && (await lastStep()) === "Move the Shot size window", `dragging a window's title bar is one step, "${await lastStep()}"`);
+    const g = await box('.sc-win[data-win="shotSize"] .sc-win-grip');
+    await p.mouse.move(g.x + g.w / 2, g.y + g.h / 2);
+    await p.mouse.down();
+    await p.mouse.move(g.x + 60, g.y - 100, { steps: 6 });
+    await p.mouse.up();
+    await p.waitForTimeout(350);
+    const w2 = await box('.sc-win[data-win="shotSize"]');
+    ok(Math.abs(w2.w - w1.w - 52) <= 4 && (await lastStep()) === "Resize the Shot size window", `dragging a window's corner resizes it (${Math.round(w1.w)}×${Math.round(w1.h)} → ${Math.round(w2.w)}×${Math.round(w2.h)}), "${await lastStep()}"`);
+    await p.click('[data-act="compare"]');
+    await p.waitForTimeout(350);
+    ok(await p.evaluate(() => window.CurioScreen.compare.now().on), "Compare is on");
+    ok((await lastStep()) === "Turn Compare on", "a view toggle is an undo step: " + (await lastStep()));
+    await p.click('.sc-wins-set [data-wins="3"]');
+    await p.waitForTimeout(350);
+    ok((await lastStep()) === "Add an inspiration film" && (await p.$$(".sc-viewer")).length === 3, "the 1 2 3 windows are an undo step: " + (await lastStep()));
+    /* History lists them, newest first. */
+    await p.click('[data-act="history"]');
+    await p.waitForTimeout(300);
+    const listed = await p.evaluate(() => [...document.querySelectorAll(".sc-hist-menu .sc-hist-cur, .sc-hist-menu [data-hist^='undo']")].map((b) => b.textContent));
+    ok(["Add an inspiration film", "Turn Compare on", "Resize the Shot size window", "Move the Shot size window", "Collapse the timeline", "Resize the library"].every((l, i) => listed[i] === l), "History ▾ lists them by name, newest first: " + listed.slice(0, 6).join(" · "));
+    await p.keyboard.press("Escape");
+    await p.click(".sc-title");
+    /* ⌘Z, one at a time. */
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.$$(".sc-viewer")).length === 2, "⌘Z takes the third window away again");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(!(await p.evaluate(() => window.CurioScreen.compare.now().on)), "⌘Z turns Compare off again");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box('.sc-win[data-win="shotSize"]')).w - w1.w) <= 2, "⌘Z puts the window back to its old size");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box('.sc-win[data-win="shotSize"]')).x - w0.x) <= 2, "⌘Z moves the window back where it was");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(!(await sizes()).shut.tl && (await box(".sc-timeline")).h > 150, "⌘Z brings the folded timeline back");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box(".sc-lib")).w - lib1) <= 2, "⌘Z puts the library back to its width before the drag");
+    /* ⇧⌘Z redoes them, in order. */
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box(".sc-lib")).w - (lib1 + 50)) <= 2, "⇧⌘Z redoes the resize");
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    ok((await sizes()).shut.tl === true, "⇧⌘Z folds the timeline away again");
+    await p.keyboard.press("Control+Shift+z");
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    const w3 = await box('.sc-win[data-win="shotSize"]');
+    ok(Math.abs(w3.x - w1.x) <= 2 && Math.abs(w3.w - w2.w) <= 2, "⇧⌘Z moves and resizes the window again");
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    ok(await p.evaluate(() => window.CurioScreen.compare.now().on), "⇧⌘Z turns Compare on again");
+    /* Closing a window is a step; undo opens it where it was. */
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    await p.waitForTimeout(350);
+    ok(!(await p.$('.sc-win[data-win="shotSize"]')) && (await lastStep()) === "Close the Shot size window", "closing a window is a step: " + (await lastStep()));
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    const w4 = await box('.sc-win[data-win="shotSize"]');
+    ok(w4 && Math.abs(w4.x - w1.x) <= 2 && Math.abs(w4.w - w2.w) <= 2, "⌘Z opens it again, same place, same size");
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    await p.waitForTimeout(300);
+    /* The timeline's own view: zoom, a folded lane group, a marker, a toolbar toggle. */
+    await p.keyboard.press("Control+Shift+z").catch(() => {});
+    if ((await sizes()).shut.tl) {
+      await p.focus('.sc-split[data-split="tl"]');
+      await p.keyboard.press("Enter");
+      await p.waitForTimeout(300);
+    }
+    const z0 = await p.evaluate(() => window.CurioLanes.tools().zoom || 1);
+    await p.click('.sl-tools [data-tool="zoomIn"], .sl-tools button[title^="Zoom in"]').catch(() => {});
+    await p.waitForTimeout(350);
+    const z1 = await p.evaluate(() => window.CurioLanes.tools().zoom || 1);
+    ok(z1 > z0 && /Zoom in on the timeline/.test(await lastStep()), `zooming the timeline is a step (${z0} → ${z1}), "${await lastStep()}"`);
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => window.CurioLanes.tools().zoom || 1)) === z0, "⌘Z zooms back out");
+    const mag0 = await p.evaluate(() => !!window.CurioLanes.tools().magnet);
+    await p.click('.sl-tools button:text-is("Magnet")');
+    await p.waitForTimeout(350);
+    ok((await p.evaluate(() => !!window.CurioLanes.tools().magnet)) !== mag0 && (await lastStep()) === `Turn the magnet ${mag0 ? "off" : "on"}`, "the toolbar's Magnet is a step: " + (await lastStep()));
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => !!window.CurioLanes.tools().magnet)) === mag0 && !!(await p.$('.sl-tools button.on:text-is("Magnet")')) === mag0, "⌘Z turns it back, and the button shows it");
+    const marks0 = await p.evaluate(() => window.CurioLanes.tools().markers.length);
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.waitForTimeout(350);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0 + 1 && (await lastStep()) === "Add a marker", "a marker is a step: " + (await lastStep()));
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0, "⌘Z takes the marker off");
+    const nm0 = (await hist()).undo.length;
+    await p.evaluate(() => window.CurioScreen.setRow(2));
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.evaluate(() => window.CurioScreen.setRow(4));
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.waitForTimeout(350);
+    ok((await hist()).undo.length === nm0 + 2, "two markers added one right after the other are two steps, not one");
+    await p.keyboard.press("Control+z");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0, "and two ⌘Z take both off");
+    await p.evaluate(() => window.CurioScreen.setRow(0));
+    /* A lane from a second category, so the timeline has lane groups to fold. */
+    await p.fill("[data-lib-search]", "Transition style");
+    await p.click('.sc-grid [data-add-card="curiosity|transitionKind"]');
+    await p.fill("[data-lib-search]", "");
+    await p.waitForTimeout(300);
+    const fold = await p.$(".sl-fold");
+    ok(!!fold, "the timeline has lane groups");
+    if (fold) {
+      await fold.click();
+      await p.waitForTimeout(350);
+      ok(/^Fold the .+ lanes$/.test(await lastStep()), "folding a lane group is a step: " + (await lastStep()));
+      await p.keyboard.press("Control+z");
+      await p.waitForTimeout(250);
+      ok(!Object.values(await p.evaluate(() => window.CurioLanes.tools().folds)).some((v) => v), "⌘Z opens it again");
+    }
+    /* What is not a step: the playhead, and picking a card. */
+    const nPlain = (await hist()).undo.length;
+    await p.keyboard.press("ArrowRight");
+    await p.click('[data-pick-card="curiosity|shotSize"]').catch(() => {});
+    await p.waitForTimeout(400);
+    ok((await hist()).undo.length === nPlain, "moving the playhead and picking a card are not undo steps");
+    /* A film change in the same gesture as a view change stays one step: a ripple takes back markers and all. */
+    const st0 = await p.evaluate(() => [window.CurioEngine.state().rows.length, window.CurioLanes.tools().markers.length]);
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.waitForTimeout(350);
+    const nr = (await hist()).undo.length;
+    await p.evaluate(() => window.CurioScreen.ripple("add"));
+    await p.click(".sc-title");
+    await p.waitForTimeout(350);
+    ok((await hist()).undo.length === nr + 1, "a ripple (with its markers sliding along) is one step, not a film step and a view step");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(300);
+    const st1 = await p.evaluate(() => [window.CurioEngine.state().rows.length, window.CurioLanes.tools().markers.length]);
+    ok(st1[0] === st0[0] && st1[1] === st0[1] + 1, `one ⌘Z takes the whole ripple back and leaves the marker added before it (${st1.join(", ")})`);
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(300);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === st0[1], "and the next ⌘Z takes off that marker");
+    /* Phone: the panels stack and scroll, so there are no borders to drag. */
+    await p.setViewportSize({ width: 390, height: 844 });
+    await p.waitForTimeout(500);
+    ok(await p.evaluate(() => getComputedStyle(document.querySelector(".sc-splits")).display === "none"), "on a phone the panels stack and scroll, with no borders in the way");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17e-phone.png") });
+    await p.setViewportSize({ width: 1280, height: 800 });
+    await p.waitForTimeout(500);
+    const fits = await p.evaluate(() => { const m = document.querySelector(".sc-main").getBoundingClientRect(); return [".sc-lib", ".sc-player", ".sc-inspector", ".sc-timeline"].every((q) => { const r = document.querySelector(q).getBoundingClientRect(); return r.right <= m.right + 1 && r.left >= m.left - 1; }) && document.querySelector(".sc-player").getBoundingClientRect().width >= 230; });
+    ok(fits, "at 1280×800 the saved sizes still fit, the Player keeps room");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17f-1280.png") });
+    await ctx.close();
+  }
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
   server.close();
