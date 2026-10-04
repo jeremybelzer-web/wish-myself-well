@@ -74,6 +74,10 @@
       /* A later file can enrich an earlier row: new sliders are added (before "amount"), other fields only
          fill gaps, and fields named in item.override (workspace, plain...) replace the earlier value. */
       const old = index[level][item.id];
+      /* Suites, proximities and proximity suites are not enriched: a second one with the same id but a different
+         label is almost always a new idea that picked a taken id, and would otherwise vanish silently. */
+      if (level !== "curiosity" && level !== "workspace" && item.label && old.label && item.label !== old.label)
+        clashes.push(`${level} ${item.id}: "${item.label}" was dropped, "${old.label}" already uses that id`);
       (item.sliders || []).forEach((s) => {
         if (!old.sliders) return;
         const same = old.sliders.find((o) => o.id === s.id);

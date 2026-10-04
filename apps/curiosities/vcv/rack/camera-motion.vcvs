@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "CAMERA MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 49 to 64\n   1 Frequency of angle changes\n   2 Hold\n   3 Camera carry\n   4 Camera move\n   5 Move speed\n   6 Move follows\n   7 Move starts on\n   8 Camera owner\n   9 Move against loudness\n  10 Shake\n  11 Time speed\n  12 Slow push in on a face\n  13 The camera circles them\n  14 Turning to reveal\n  15 The camera wanders off\n  16 The stretching background shot\nCV-CC 2: MIDI channel 1, CC 65 to 80\n   1 suite: Handheld hunt\n   2 suite: Smooth push\n   3 suite: Object insert\n   4 suite: Loving camera\n   5 suite: Aggressive camera\n   6 suite: Follows the voice\n   7 suite: Video game camera\n   8 suite: The floor drops\n   9 suite: Something in the room\n  10 pair: When the camera goes handheld, gesture grows\n  11 pair: When the player takes the camera, the view becomes theirs\n  12 pair: When a character crosses the room, the camera move starts with them\n  13 pair: When the camera follows a character, it tracks alongside them\n  14 pair: When the camera moves on a breath, a small pause opens up\n  15 pair: When the camera jumps on loud moments, the shot gets shakier\n  16 pair: When the camera turns to reveal a person, it becomes an entrance\nCV-CC 3: MIDI channel 1, CC 81 to 94\n   1 pair: When the camera pushes in on a face, we feel with them\n   2 pair: When the camera pushes in as they realise, the realisation lands\n   3 pair: When the background stretches, we feel it in the body\n   4 pair: When the sound drops out under the stretch, we hear through their ears\n   5 pair: When the camera circles a kiss, tenderness grows\n   6 pair: When the camera whirls around them, the feeling peaks\n   7 pair: When the turn reveals a threat, dread rises\n   8 pair: When the turn is a whip, the picture blurs\n   9 pair: When the camera wanders off to a clue, the audience holds a question\n  10 pair: When the camera wanders off, it lingers where it lands\n  11 pairs: The camera answers the body\n  12 pairs: Camera moves with a reason\n  13 pairs: The ground gives way\n  14 pairs: Someone is there"
+    "text": "CAMERA MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 81 to 96\n   1 Frequency of angle changes\n   2 Hold\n   3 Camera carry\n   4 Camera move\n   5 Move speed\n   6 Move follows\n   7 Move starts on\n   8 Camera owner\n   9 Move against loudness\n  10 Shake\n  11 Time speed\n  12 Slow push in on a face\n  13 The camera circles them\n  14 Turning to reveal\n  15 The camera wanders off\n  16 The stretching background shot\nCV-CC 2: MIDI channel 1, CC 97 to 112\n   1 suite: Handheld hunt\n   2 suite: Smooth push\n   3 suite: Object insert\n   4 suite: Loving camera\n   5 suite: Aggressive camera\n   6 suite: Follows the voice\n   7 suite: Video game camera\n   8 suite: The floor drops\n   9 suite: Something in the room\n  10 suite: Handheld realism\n  11 pair: When the camera goes handheld, gesture grows\n  12 pair: When the player takes the camera, the view becomes theirs\n  13 pair: When a character crosses the room, the camera move starts with them\n  14 pair: When the camera follows a character, it tracks alongside them\n  15 pair: When the camera moves on a breath, a small pause opens up\n  16 pair: When the camera jumps on loud moments, the shot gets shakier\nCV-CC 3: MIDI channel 2, CC 1 to 16\n   1 pair: When the camera turns to reveal a person, it becomes an entrance\n   2 pair: When the camera pushes in on a face, we feel with them\n   3 pair: When the camera pushes in as they realise, the realisation lands\n   4 pair: When the background stretches, we feel it in the body\n   5 pair: When the sound drops out under the stretch, we hear through their ears\n   6 pair: When the camera circles a kiss, tenderness grows\n   7 pair: When the camera whirls around them, the feeling peaks\n   8 pair: When the turn reveals a threat, dread rises\n   9 pair: When the turn is a whip, the picture blurs\n  10 pair: When the camera wanders off to a clue, the audience holds a question\n  11 pair: When the camera wanders off, it lingers where it lands\n  12 pair: When the camera whips to the side, a new neat picture is waiting\n  13 pair: When the camera follows close behind them, we feel what they feel\n  14 pair: When the person panics, the camera shakes more\n  15 pair: When the number peaks, the camera rises above them\n  16 pairs: The camera answers the body\nCV-CC 4: MIDI channel 2, CC 17 to 20\n   1 pairs: Camera moves with a reason\n   2 pairs: The ground gives way\n   3 pairs: Someone is there\n   4 pairs: Handheld realism: the moves"
    },
    "pos": [
     0,
@@ -27,22 +27,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
     ],
     "midi": {
      "channel": 0
@@ -59,22 +59,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
     ],
     "midi": {
      "channel": 0
@@ -91,29 +91,61 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
-     91,
-     92,
-     93,
-     94,
-     -1,
-     -1
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
     ],
     "midi": {
-     "channel": 0
+     "channel": 1
     }
    },
    "pos": [
     40,
+    0
+   ]
+  },
+  {
+   "id": 7,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     18,
+     19,
+     20,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 1
+    }
+   },
+   "pos": [
+    48,
     0
    ]
   }
