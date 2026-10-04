@@ -1496,7 +1496,7 @@
 .cv-transport input[type=range] { flex: 1 1 160px; width: auto; }
 .cv-play { min-width: 74px; }
 .cv-details { display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
-.cv-tabs { display: flex; gap: 4px; padding: 8px 8px 0; border-bottom: 1px solid var(--c-line); }
+.cv-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 8px 0; border-bottom: 1px solid var(--c-line); }
 .cv-tabs button { border-radius: 6px 6px 0 0; }
 .cv-body { padding: 10px 12px 16px; overflow: auto; display: grid; align-content: start; gap: 8px; }
 .cv-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
