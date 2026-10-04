@@ -1251,5 +1251,139 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+
+/* Panels you can resize and fold away, and undo for the Screen's view (CurioScreenPanels): the pure part. */
+{
+  const P = w.CurioScreenPanels;
+  ok(!!P && ["clean", "settle", "templates", "borders", "grows", "sizesLabel", "winsLabel", "viewLabel"].every((k) => typeof P[k] === "function"), "the panel helpers are exposed for tests (CurioScreenPanels)");
+  if (P) {
+    ok(JSON.stringify(P.clean(null)) === '{"shut":{}}' && JSON.stringify(P.clean({ lib: 300.4, insp: "x", tl: -5, bogus: 3, shut: { insp: true, ov: true, tl: "yes" } })) === '{"shut":{"insp":true},"lib":300,"tl":0}', "a saved sizes object is cleaned: numbers only, folds only for panels that fold, nothing else kept");
+    ok(JSON.stringify(P.settle(150, 200, 600, true)) === '{"size":200,"shut":false}' && JSON.stringify(P.settle(90, 200, 600, true)) === '{"size":0,"shut":true}' && JSON.stringify(P.settle(90, 200, 600, false)) === '{"size":200,"shut":false}' && P.settle(900, 200, 600, true).size === 600, "a drag stops at the smallest size, folds the panel past half of it, and stops at the biggest");
+    ok(P.templates({}, "center", "screen").cols === null && P.templates({}, "center", "screen").rows === null, "with no sizes set the stylesheet's own sizes are kept");
+    const t1 = P.templates({ lib: 320, insp: 300, tl: 260 }, "center", "screen");
+    ok(t1.cols === "320px minmax(0, 1.35fr) 300px" && t1.rows === "minmax(0, 1fr) 260px", "set sizes go on the grid, the Player taking what is left: " + t1.cols + " / " + t1.rows);
+    ok(P.templates({ lib: 320, insp: 300 }, "right", "screen").cols === "320px 300px minmax(0, 1.2fr)", "with the Player on the right, the library and Details are the first two columns");
+    ok(P.templates({ lib: 320, shut: { lib: true } }, "center", "screen").cols === "0px minmax(0, 1.35fr) minmax(280px, 0.8fr)", "a folded panel's column is 0px and the other keeps its usual share");
+    ok(P.templates({ insp: 300, tl: 200 }, "center", "arrange", null, false).cols === "minmax(0, 1fr) 300px" && P.templates({ insp: 300, tl: 200 }, "center", "arrange", null, false).rows === null && P.templates({ tl: 200 }, "center", "arrange", null, true).rows === "minmax(0, 1fr) 200px", "Arrange: Details beside the timeline, and the timeline under the Player only when the viewers show");
+    ok(P.templates({ lib: 900 }, "center", "screen", (k, v) => Math.min(v, 500)).cols.startsWith("500px"), "sizes are fitted to the window (the Player keeps its room)");
+    ok(P.borders("center", "screen").map((b) => b.id + ":" + b.edge).join() === "lib:right,insp:left,tl:top" && P.borders("right", "screen").find((b) => b.id === "insp").edge === "right" && P.borders("center", "arrange", { player: true, dock: true }).map((b) => b.id).join() === "insp,tl,dock", "each layout has its borders, on the right edges");
+    ok(P.grows("right") === 1 && P.grows("left") === -1 && P.grows("top") === -1, "dragging toward a panel's far side makes it bigger");
+    ok(P.sizesLabel({}, { lib: 300, shut: {} }) === "Resize the library" && P.sizesLabel({ insp: 300 }, { insp: 300, shut: { insp: true } }) === "Collapse Details" && P.sizesLabel({ tl: 200, shut: { tl: true } }, { tl: 200 }) === "Bring back the timeline" && P.sizesLabel({ side: 120 }, {}) === "Reset the size of the library's group list" && P.sizesLabel({ lib: 1, insp: 2 }, {}) === "Reset the panel sizes", "panel steps have plain names (Resize the library, Collapse Details, Bring back the timeline...)");
+    ok(P.sizesLabel({}, { lib: 400, insp: 300 }, "insp") === "Resize Details", "the border you dragged names the step, even when the other column's width is kept with it");
+    const nm = (id) => ({ shotSize: "Shot size", emotion: "Feeling" })[id] || id;
+    const wA = [{ id: "shotSize", x: 10, y: 10, w: null, h: null }];
+    ok(P.winsLabel([], wA, nm) === "Open the Shot size window" && P.winsLabel(wA, [], nm) === "Close the Shot size window" && P.winsLabel(wA, [{ id: "shotSize", x: 40, y: 10, w: null, h: null }], nm) === "Move the Shot size window" && P.winsLabel(wA, [{ id: "shotSize", x: 10, y: 10, w: 400, h: 300 }], nm) === "Resize the Shot size window", "window steps: Open, Close, Move and Resize the Shot size window");
+    const V = (d) => P.viewLabel(d, { win: nm, layout: (x) => ({ right: "Player on the right" })[x] || x, guide: (x) => ({ thirds: "thirds" })[x] || x, cat: (x) => ({ camera: "Camera" })[x] || x });
+    ok(V({ prefs: { layout: ["center", "right"] } }) === "Layout: Player on the right" && V({ prefs: { arrange: ["side", "stack"] } }) === "Stack the viewers" && V({ prefs: { insp: [[{}], [{}, {}]] } }) === "Add an inspiration film" && V({ prefs: { insp: [[{}, {}], []] } }) === "Show only my film in the Player", "the Player's layout steps: the layout menu, Side or Stack, 1 2 3 windows");
+    ok(V({ prefs: { compare: [{ on: false }, { on: true }] } }) === "Turn Compare on" && V({ prefs: { compare: [{ on: true, split: 50 }, { on: true, split: 70 }] } }) === "Move the Compare line" && V({ prefs: { captions: [{ on: true }, { on: false }] } }) === "Turn captions off" && V({ prefs: { guides: [[], ["thirds"]] } }) === "Show the thirds guide" && V({ prefs: { overview: [true, false] } }) === "Collapse the whole film strip", "Compare, captions, guides and the whole film strip have plain names");
+    ok(V({ tools: { zoom: [1, 1.5] } }) === "Zoom in on the timeline" && V({ tools: { laneH: [50, 80] } }) === "Make the lanes taller" && V({ tools: { folds: [{}, { camera: true }] } }) === "Fold the Camera lanes" && V({ tools: { markers: [[], [{ row: "r1" }]] } }) === "Add a marker" && V({ tools: { magnet: [false, true] } }) === "Turn the magnet on" && V({ tools: { tool: ["select", "split"] } }) === "Use the Split tool" && V({ tools: { locks: [{}, { "t|c": true }] } }) === "Lock a lane", "the timeline's view steps: zoom, lane height, folds, markers, toolbar toggles, locks");
+    ok(V({ wins: [[], wA] }) === "Open the Shot size window" && V({ prefs: { ghost: [false, true], lens: ["highlight", "off"] } }) === "Lens: off (and 1 more change)" && V({}) === "Change the view", "one gesture that changed two things says so; nothing named falls back to Change the view");
+  }
+}
+
+/* Your own curiosities, suites and proximities (screen/mine.js): what is kept, the database rows, the engine
+   playing their lanes, proximities as engine links, sharing as a file, and one undo step through the app-wide store. */
+{
+  const before = { shot: JSON.stringify(w.CurioScale.domain("shotSize")), label: w.CurioScale.label("shotSize"), n: DB.data.curiosities.length };
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "mine.js"), "utf8"), core.context || vm.createContext(w), { filename: "mine.js" });
+  const M = w.CurioMine;
+  ok(!!M && typeof M.install === "function", "mine.js loads with no page (CurioMine)");
+  const all = [].concat(DB.data.curiosities, DB.data.suites, DB.data.proximities, DB.data.proximitySuites, DB.data.workspaces);
+  ok(all.every((x) => !String(x.id).startsWith(M.PREFIX)), "no database id starts with \"my-\", so yours can never clash with its rows (" + all.length + " checked)");
+  ok(M.parseSteps("calm → tense → frantic").join() === "calm,tense,frantic" && M.parseSteps("slow, steady,fast").join() === "slow,steady,fast" && M.parseSteps("a > b\nc").join() === "a,b,c", "steps can be written with arrows, commas, > or one per line");
+  ok(!M.cleanScale({ kind: "steps", steps: "calm" }) && !M.cleanScale({ kind: "steps", steps: "calm, Calm" }) && !M.cleanScale({ kind: "range", min: 5, max: 5 }) && !M.cleanScale({ kind: "range", min: "", max: 10 }), "a scale needs two different steps, or a range that goes up");
+  ok(M.cleanScale({ kind: "range", min: 0, max: 200, unit: "bpm" }).step === 1 && M.scaleWords(M.cleanScale({ kind: "range", min: 0, max: 200, unit: "bpm" })) === "0 to 200 bpm" && M.scaleWords(M.cleanScale({ kind: "steps", steps: "calm, tense, frantic" })) === "calm to frantic", "a scale in plain words: calm to frantic, 0 to 200 bpm");
+  const tension = { id: M.newId("Tension in the room", {}), label: "Tension in the room", plain: "How wound up everyone is.", story: "Rising tension makes the audience lean in.", tryThis: "Let it climb, then drop it at once.", cat: "feeling", cue: "thought", push: 3, scale: { kind: "steps", steps: "calm, tense, frantic" }, extras: [{ label: "Speed", scale: { kind: "range", min: 0, max: 10, unit: "km/h" } }, { label: "Speed", scale: { kind: "steps", steps: "slow, fast" } }] };
+  ok(tension.id === "my-tension-in-the-room", "a new id is \"my-\" and the name: " + tension.id);
+  const data0 = M.clean({ curiosities: [tension, Object.assign({}, tension, { label: "again" }), { id: "shotSize", label: "Not mine", scale: { kind: "steps", steps: "a, b" } }, { id: "my-broken", label: "No scale" }] });
+  ok(data0.curiosities.length === 1 && data0.curiosities[0].extras.map((x) => x.id).join() === "speed,speed-2", "kept: one per id, only \"my-\" ids, only with a scale; extra sliders get their own ids (" + data0.curiosities[0].extras.map((x) => x.id).join() + ")");
+  ok(M.newId("Tension in the room", data0) === "my-tension-in-the-room-2" && M.newId("Shot size", data0) === "my-shot-size", "a name already taken gets -2; a database name is fine, it starts with my- (" + M.newId("Tension in the room", data0) + ")");
+  const suite = { id: M.newId("Calm before the storm", data0), label: "Calm before the storm", plain: "Everything goes quiet.", cat: "feeling", members: [{ curiosity: tension.id, value: "calm" }, { curiosity: "shotSize", value: "wide" }, { curiosity: "shotSize" }] };
+  const prox = { id: "my-when-tension-rises", label: "", cat: "feeling", when: { curiosity: tension.id, change: "rises" }, then: { curiosity: "shotSize", change: "is", is: "close" }, within: 2 };
+  const data1 = M.clean({ curiosities: [tension], suites: [suite], proximities: [prox] });
+  ok(data1.suites[0].members.length === 2 && data1.proximities[0].when.change === "rises" && data1.proximities[0].then.is === "close", "a suite keeps each member once; a proximity keeps its two halves");
+  ok(M.install(data1), "install registers them with the curiosity database");
+  const S = w.CurioScale;
+  const row = DB.get("curiosity", tension.id);
+  ok(row && DB.data.curiosities.includes(row) && row.main === "setting" && row.tags.includes("mine") && row.momentum.tryThis === tension.tryThis, "the curiosity is a database row, with its main setting and its momentum note");
+  ok(L.categoryOf(tension.id) === "feeling" && L.curiosities("feeling").some((c) => c.id === tension.id) && L.categoryOf(tension.id + ".speed") === "feeling", "it sits in the category you picked (Feeling), so the library and Details list it");
+  ok(S.known(tension.id) && S.known(tension.id + ".speed") && S.known(tension.id + ".speed-2") && !S.known(tension.id + ".setting") && !S.known("my-nothing"), "the engine knows its lane and its extra sliders' lanes");
+  ok(JSON.stringify(S.domain(tension.id).options) === '["calm","tense","frantic"]' && S.domain(tension.id + ".speed").max === 10 && S.label(tension.id) === "Tension in the room" && S.label(tension.id + ".speed") === "Tension in the room: speed", "its scale and plain names come from what you made");
+  ok(S.fix(tension.id, "TENSE") === "tense" && S.fix(tension.id, "bored") === null && S.pos(tension.id, "frantic") === 1 && S.at(tension.id, 0.5) === "tense" && S.step(tension.id, "calm", 1) === "tense" && S.start(tension.id) === "calm" && S.fix(tension.id + ".speed", 7.4) === 7, "values snap to its scale; steps move one at a time");
+  ok(JSON.stringify(S.domain("shotSize")) === before.shot && S.label("shotSize") === before.label, "every other curiosity's scale is left exactly as the engine had it");
+  ok(DB.check().length === 0, "the database check still finds no problems with yours in it" + (DB.check().length ? ": " + DB.check().slice(0, 4).join("; ") : ""));
+  /* The engine plays it. */
+  E.reset(w.CurioSeeds.starter());
+  const rr = E.state().rows;
+  const setT = E.send({ type: "batch", commands: [{ type: "addCuriosity", track: "master", curiosity: tension.id }, { type: "setPoint", row: rr[0].id, track: "master", curiosity: tension.id, value: "calm" }, { type: "setPoint", row: rr[4].id, track: "master", curiosity: tension.id, value: "frantic" }] });
+  ok(setT.ok && E.value(rr[0].id, "master", tension.id) === "calm" && E.value(rr[4].id, "master", tension.id) === "frantic", "the engine takes nodes on its lane and plays them");
+  ok(E.value(rr[2].id, "master", tension.id) === "tense", "between two nodes the lane glides along your steps (" + E.value(rr[2].id, "master", tension.id) + ")");
+  ok(!E.send({ type: "setPoint", row: rr[1].id, track: "master", curiosity: tension.id, value: "bored" }).ok, "a value that isn't one of its steps is refused, in plain words");
+  /* Suites and proximities, through the levels and the engine's link pack. */
+  ok(L.resolve("suite", suite.id).curiosities.join() === tension.id + ",shotSize" && L.items("suite", "feeling").some((s) => s.id === suite.id), "the suite looks through its curiosities, in its category");
+  const pr = L.resolve("proximity", prox.id);
+  ok(pr.pairs.length === 1 && pr.pairs[0].from === tension.id && pr.pairs[0].to === "shotSize" && pr.pairs[0].within === 2 && pr.pairs[0].toIs === "close", "the proximity reads as a pair: Tension leads, Shot size follows within 2 moments");
+  const beats = [{ values: { [tension.id]: "calm", shotSize: "wide" } }, { values: { [tension.id]: "tense" } }, { values: {} }, { values: { shotSize: "close" } }];
+  ok(L.fires("proximity", prox.id, beats).length === 1 && L.fires("proximity", prox.id, beats)[0].to === 3, "it is found firing in a film where Tension rises and Shot size becomes close two moments later");
+  ok(M.sentence(data1.proximities[0]) === "When Tension in the room goes up, Shot size becomes close within 2 moments.", "a proximity in plain words: " + M.sentence(data1.proximities[0]));
+  const links = w.CURIOSITY_LINKS.links.filter((l) => l.proximity === prox.id);
+  ok(links.length === 1 && links[0].from.curiosity === tension.id && links[0].to.curiosity === "shotSize" && links[0].does === "set" && links[0].value === "close" && links[0].from.change === "rises", "it is in the engine's proximity pack (window.CURIOSITY_LINKS) as a link");
+  const imp = E.send({ type: "importLinks", pack: w.CurioSeeds.dbPack(), only: links.map((l) => l.id), addLanes: true });
+  ok(imp.ok && imp.added === 1 && E.state().links.some((l) => l.from.curiosity === tension.id && l.to.curiosity === "shotSize"), "the engine adds it to the film as a rule");
+  /* Changing the scale: nodes keep their place on it. */
+  const data2 = M.clean({ curiosities: [Object.assign({}, tension, { scale: { kind: "steps", steps: "still, calm, uneasy, tense, frantic, panic" } })], suites: data1.suites, proximities: data1.proximities });
+  M.install(data2);
+  ok(S.domain(tension.id).options.length === 6 && S.fix(tension.id, "frantic") === "frantic" && S.fix(tension.id, "panic") === "panic", "a changed scale is used at once");
+  M.install(M.clean({ curiosities: [Object.assign({}, tension, { scale: { kind: "steps", steps: "low, high" } })] }));
+  ok(S.fix(tension.id, "frantic") === "high" && S.fix(tension.id, "calm") === "low", "a node on the old steps lands at the same place on the new ones (frantic → high, calm → low)");
+  M.install(data1);
+  /* Sharing as a file. */
+  const file = M.exportJson(data1, [prox.id]);
+  const parsed = JSON.parse(file);
+  ok(parsed.format === M.FORMAT && parsed.proximities.length === 1 && parsed.curiosities.length === 1 && parsed.suites.length === 0, "exporting a proximity brings the curiosity of yours it uses, so the file works on its own");
+  const fresh = M.importJson(M.exportJson(data1), { curiosities: [], suites: [], proximities: [] });
+  ok(!fresh.error && fresh.added === 3 && fresh.renamed === 0 && JSON.stringify(M.clean(fresh.items)) === JSON.stringify(data1), "export, then import into an empty list: the same three, exactly");
+  const same = M.importJson(file, data1);
+  ok(same.added === 0 && same.skipped === 2, "importing what you already have skips it");
+  const other = JSON.parse(M.exportJson(data1));
+  other.curiosities[0].label = "Someone else's tension";
+  other.curiosities[0].scale = { kind: "steps", steps: ["meh", "wow"] };
+  const clash = M.importJson(JSON.stringify(other), data1);
+  const newCur = clash.items.curiosities[0];
+  ok(clash.renamed >= 1 && newCur && newCur.id !== tension.id && M.isMine(newCur.id) && clash.items.suites[0].members[0].curiosity === newCur.id && clash.items.proximities[0].when.curiosity === newCur.id, "a different item with an id you use gets a new one, and its suite and proximity follow it (" + (newCur && newCur.id) + ")");
+  const sneaky = M.importJson(JSON.stringify({ format: M.FORMAT, curiosities: [{ id: "shotSize", label: "Shot size", scale: { kind: "steps", steps: ["a", "b"] } }], suites: [{ id: "my-s", label: "S", members: [{ curiosity: "noSuchThing" }, { curiosity: "shotSize" }] }] }), { curiosities: [], suites: [], proximities: [] });
+  ok(sneaky.items.curiosities[0].id.startsWith("my-") && sneaky.items.curiosities[0].id !== "shotSize" && sneaky.dropped === 1 && sneaky.items.suites[0].members.length === 1, "a file can't land on a database id (shotSize became " + sneaky.items.curiosities[0].id + "), and members this app doesn't know are left out");
+  ok(!!M.importJson("not json", data1).error && !!M.importJson('{"format":"other"}', data1).error && !!M.importJson('{"format":"curiomatic-my-curiosities"}', data1).error, "a broken or foreign file is refused with a plain message");
+  /* The saved part: one undo step on the app-wide list. */
+  M.install(M.clean(null));
+  ok(!DB.data.curiosities.some((c) => c.id === tension.id) && !S.known(tension.id) && !DB.data.proximities.some((p) => p.id === prox.id), "deleting takes them out of the database lists and the engine's scales");
+  const St = w.CurioStore;
+  const part = M.store();
+  ok(part && part.undo !== false && St.parts().includes("screenMyCuriosities"), "what you make is a part of the app-wide store (one undo list with ⌘Z)");
+  const u0 = St.history().undo.length;
+  ok(part.send({ type: "put", level: "curiosity", item: data1.curiosities[0], label: "Make the curiosity Tension in the room" }).ok && S.known(tension.id) && St.history().undo.length === u0 + 1, "making one is one undo step, and it is registered at once");
+  St.undo();
+  ok(!S.known(tension.id) && !DB.data.curiosities.some((c) => c.id === tension.id), "undo takes it away again");
+  St.redo();
+  ok(S.known(tension.id) && part.view().curiosities.length === 1, "redo brings it back");
+  ok(part.send({ type: "add", items: { suites: data1.suites, proximities: data1.proximities }, label: "Import" }).ok && part.view().suites.length === 1 && part.view().proximities.length === 1, "an import is one step too");
+  ok(part.send({ type: "remove", level: "curiosity", id: tension.id, label: "Delete" }).ok && !S.known(tension.id), "deleting is one step");
+  St.undo();
+  ok(S.known(tension.id), "and undo brings a deleted one back");
+  /* A reload: the engine reads its film before mine.js loads, so it leaves out nodes of yours; start() puts them back. */
+  E.reset(w.CurioSeeds.starter());
+  const r2 = E.state().rows;
+  E.send({ type: "batch", commands: [{ type: "addCuriosity", track: "master", curiosity: tension.id }, { type: "setPoint", row: r2[1].id, track: "master", curiosity: tension.id, value: "tense" }] });
+  M.install(M.clean(null));
+  E.load();
+  ok(!Object.keys(E.state().lanes).some((k) => k.endsWith("|" + tension.id)), "read before your curiosities are registered, the film loses their nodes (what happens before mine.js loads)");
+  M.install(part.view());
+  ok(M.rescue() && E.value(r2[1].id, "master", tension.id) === "tense", "rescue() reads the saved film again once they are registered, and the nodes are back");
+  part.send({ type: "remove", level: "curiosity", id: tension.id, label: "x" });
+  part.send({ type: "remove", level: "suite", id: suite.id, label: "x" });
+  part.send({ type: "remove", level: "proximity", id: prox.id, label: "x" });
+  ok(DB.data.curiosities.length === before.n, "with everything of yours deleted, the database is as it was");
+}
+
 console.log(fails ? fails + " failed" : "all passed");
 process.exit(fails ? 1 : 0);
