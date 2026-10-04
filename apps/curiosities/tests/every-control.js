@@ -1,10 +1,11 @@
 /* Every control on every page, in a real browser:
      node apps/curiosities/tests/every-control.js [--width 1400] [--three three.min.js] [--only "Emotion,Prism"]
-       [--max 250] [--jobs 4] [--all] [--debug] [--out report.json]
+       [--max 250] [--jobs 4] [--part 1/2] [--all] [--debug] [--out report.json]
+   --part k/n  only every n-th page, starting at the k-th, so a long run can be split across machines.
    (needs Playwright and Chromium; set NODE_PATH to where Playwright is installed if it is not local).
 
    Opens the app with nothing saved (a fresh browser profile per page, --jobs pages at a time), then for each page (My film, Storyboard, every workspace in the bar, every
-   item in the Library menu): presses every visible button, ticks every checkbox and picks every choice of every
+   item in the Library menu, every tab of the Screen's library): presses every visible button, ticks every checkbox and picks every choice of every
    dropdown, one at a time, the way a curious beginner would. After each one it goes back to that page if the
    control took it somewhere else.
 
@@ -26,6 +27,7 @@ const ONLY = arg("--only", "").split(",").filter(Boolean);
 const MAX = Number(arg("--max", 250));
 const OUT = arg("--out", "");
 const JOBS = Number(arg("--jobs", 4));
+const [PART, PARTS] = arg("--part", "1/1").split("/").map(Number);
 const DEBUG = args.includes("--debug");
 /* Grids repeat one control per panel or scene; by default only the first of each is used. --all uses every one. */
 const ALL = args.includes("--all");
@@ -94,7 +96,19 @@ async function testPage(browser, url, [name, kind, key]) {
         document.querySelector("#lib-btn").click();
         document.querySelectorAll("#lib-menu button")[i].click();
       }, key);
-    else await page.evaluate((s) => document.querySelector(s) && document.querySelector(s).click(), key);
+    else if (kind === "screentab") {
+      /* One tab of the Screen's curiosity library (CapCut's icon tabs, ADVANCED, Character...). */
+      await page.evaluate(() => {
+        document.querySelector("#lib-btn").click();
+        const b = [...document.querySelectorAll("#lib-menu button")].find((x) => x.firstChild.textContent.trim() === "Screen");
+        if (b) b.click();
+      });
+      await page.waitForTimeout(400);
+      await page.evaluate((id) => {
+        const t = document.querySelector(id);
+        if (t) t.click();
+      }, key);
+    } else await page.evaluate((s) => document.querySelector(s) && document.querySelector(s).click(), key);
     await page.waitForTimeout(400);
   }
   /* Which page is showing: the visible main sections and overlays, and the lit bar button. */
@@ -211,9 +225,20 @@ async function testPage(browser, url, [name, kind, key]) {
   ];
   for (const [label, id] of await scout.page.$$eval("#ws-buttons button[data-ws]", (bs) => bs.map((b) => [b.textContent.trim(), b.dataset.ws]))) pages.push([label, "bar", `#ws-buttons button[data-ws="${id}"]`]);
   for (const [label, i] of await scout.page.$$eval("#lib-menu button", (bs) => bs.map((b, i) => [b.firstChild.textContent.trim(), i]))) pages.push(["Library: " + label, "lib", i]);
+  /* Every tab of the Screen's library, each as its own page. */
+  await scout.page.evaluate(() => {
+    document.querySelector("#lib-btn").click();
+    const b = [...document.querySelectorAll("#lib-menu button")].find((x) => x.firstChild.textContent.trim() === "Screen");
+    if (b) b.click();
+  });
+  await scout.page.waitForTimeout(600);
+  for (const [label, id] of await scout.page.$$eval(".sc-icons [data-libtab], .sc-icons [data-icat]", (bs) =>
+    bs.map((b) => [b.textContent.trim() || b.title, b.dataset.libtab ? `.sc-icons [data-libtab="${b.dataset.libtab}"]` : `.sc-icons [data-icat="${b.dataset.icat}"]`])
+  ))
+    pages.push(["Screen tab: " + label, "screentab", id]);
   await scout.context.close();
 
-  const todo = pages.filter(([name]) => !ONLY.length || ONLY.some((w) => name.includes(w)));
+  const todo = pages.filter(([name]) => !ONLY.length || ONLY.some((w) => name.includes(w))).filter((p, i) => i % PARTS === PART - 1);
   await Promise.all(
     Array.from({ length: Math.max(1, JOBS) }, async () => {
       while (todo.length) {

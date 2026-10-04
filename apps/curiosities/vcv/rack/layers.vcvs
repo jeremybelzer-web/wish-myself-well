@@ -1,0 +1,131 @@
+{
+ "modules": [
+  {
+   "id": 1,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "LAYERS, MASKS & EFFECTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 10, CC 97 to 112\n   1 Overlay\n   2 Blend mode\n   3 Cutout and green screen\n   4 Mask\n   5 Tracking\n   6 Video effect\n   7 Effect family\n   8 Copies of the picture\n   9 Light effect\n  10 Body effect\n  11 Superpower effect\n  12 Hallucination effect\n  13 Copies of a person\n  14 Outline and glow on a person\n  15 Glitch\n  16 Distortion\nCV-CC 2: MIDI channel 11, CC 1 to 16\n   1 Party flash\n   2 Stock clip\n   3 Generated shot\n   4 Side storyline\n   5 suite: Documentary\n   6 suite: Heavenly light\n   7 suite: Party edit\n   8 suite: Superhero moment\n   9 suite: Breakdown\n  10 suite: Trippy vision\n  11 pair: When impacts rise, the picture flashes\n  12 pair: When text labels something, it follows it\n  13 pair: When the feeling turns dreamlike, light blooms\n  14 pair: When the music is featured, the effects pulse on the beat\n  15 pair: When someone triumphs, their eyes light up\n  16 pair: When someone panics, the picture glitches\nCV-CC 3: MIDI channel 11, CC 17 to 20\n   1 pair: When the feeling turns dreamlike, the room spins\n   2 pair: When impacts rise, a shockwave flashes\n   3 pair: When the music is featured, the flashes hit the beat\n   4 pairs: Effects show the inside"
+   },
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "id": 2,
+   "plugin": "Fundamental",
+   "model": "LFO",
+   "pos": [
+    15,
+    0
+   ]
+  },
+  {
+   "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 10
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     18,
+     19,
+     20,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 10
+    }
+   },
+   "pos": [
+    40,
+    0
+   ]
+  }
+ ],
+ "cables": [
+  {
+   "id": 4,
+   "outputModuleId": 2,
+   "outputId": 0,
+   "inputModuleId": 3,
+   "inputId": 0,
+   "color": "#f3374b"
+  }
+ ]
+}

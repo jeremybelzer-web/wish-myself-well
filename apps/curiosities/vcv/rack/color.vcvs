@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "COLOR\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 1 to 16\n   1 Black and white to full color\n   2 Color filter\n   3 Filter color\n   4 Number of main colors\n   5 One color that pops\n   6 Warm to cool\n   7 Color change in the scene\n   8 How true skin looks\n   9 suite: Color lens\n  10 suite: The whole look\n  11 suite: Teal and orange\n  12 suite: Faded memory\n  13 suite: Black and white with one color\n  14 suite: Bleak gray\n  15 pair: When the color filter gets strong, the number of main colors drops\n  16 pair: When anger rises, the color runs warm\nCV-CC 2: MIDI channel 5, CC 17 to 18\n   1 pair: When fear rises, the color drains\n   2 pairs: Color follows the feeling"
+    "text": "COLOR\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 65 to 80\n   1 Black and white to full color\n   2 Color filter\n   3 Filter color\n   4 Number of main colors\n   5 One color that pops\n   6 Warm to cool\n   7 Color change in the scene\n   8 How true skin looks\n   9 suite: Color lens\n  10 suite: The whole look\n  11 suite: Teal and orange\n  12 suite: Faded memory\n  13 suite: Black and white with one color\n  14 suite: Bleak gray\n  15 pair: When the color filter gets strong, the number of main colors drops\n  16 pair: When anger rises, the color runs warm\nCV-CC 2: MIDI channel 5, CC 81 to 82\n   1 pair: When fear rises, the color drains\n   2 pairs: Color follows the feeling"
    },
    "pos": [
     0,
@@ -27,22 +27,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     1,
-     2,
-     3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10,
-     11,
-     12,
-     13,
-     14,
-     15,
-     16
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
     ],
     "midi": {
      "channel": 4
@@ -59,8 +59,8 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     17,
-     18,
+     81,
+     82,
      -1,
      -1,
      -1,

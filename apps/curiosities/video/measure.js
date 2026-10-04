@@ -627,15 +627,29 @@
     if (!rows.length) return [];
     const kindTrack = (kind) => (st.tracks || []).find((t) => t.kind === kind) || (st.tracks || [])[0];
     const cmds = [];
-    const added = {};
+    const added = {},
+      extra = {};
     lanesOf(d).forEach((c) => {
       if (!c.nodes || !c.nodes.length || (only && !only.has(c.id))) return;
       if (S() && c.nodes.some((n) => S().fix(c.id, n.value) == null)) return;
-      const t = kindTrack(c.track);
+      let t = kindTrack(c.track);
       if (!t) return;
-      const has = (t.curiosities || []).includes(c.id) || (added[t.id] || []).includes(c.id);
+      const full = (x) => (x.curiosities || []).length + (added[x.id] || []).length >= 24;
+      const on = (x) => (x.curiosities || []).includes(c.id) || (added[x.id] || []).includes(c.id);
+      /* A full track (24 curiosities) spills into a second one next to it, made once. */
+      if (!on(t) && full(t)) {
+        const id = t.id + "-more";
+        let more = (st.tracks || []).find((x) => x.id === id) || extra[id];
+        if (!more) {
+          if ((st.tracks || []).length + Object.keys(extra).length >= 16) return;
+          more = extra[id] = { id, curiosities: [] };
+          cmds.push({ type: "addTrack", id, kind: "other", label: t.label + ", more" });
+        }
+        t = more;
+      }
+      const has = on(t);
       if (!has) {
-        if ((t.curiosities || []).length + (added[t.id] || []).length >= 24) return;
+        if (full(t)) return;
         cmds.push({ type: "addCuriosity", track: t.id, curiosity: c.id });
         (added[t.id] = added[t.id] || []).push(c.id);
       } else if (st.lanes && st.lanes[t.id + "|" + c.id]) cmds.push({ type: "clearLane", track: t.id, curiosity: c.id });
