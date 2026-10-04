@@ -371,6 +371,7 @@
       <div class="sc-timeline sc-panel"></div></div>`;
     document.body.appendChild(page);
     trWire();
+    txtWire();
     page.addEventListener("click", onClick);
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
@@ -603,8 +604,10 @@
       const text = o.text || ((k, v) => String(v));
       /* Transitions: a "Transition in" column (how the moment before hands over to this one) once any join has one. */
       const tr = moments.some((m) => m.transition);
-      const head = ["Moment", "Time", "Marker note"].concat(tr ? ["Transition in"] : [], keys.map((k) => o.label(k)));
-      const rows = moments.map((m) => [m.n, m.clock || "", m.note || ""].concat(tr ? [m.n > 1 ? m.transition || "Cut" : ""] : [], keys.map((k) => (m.values && m.values[k] != null && m.values[k] !== "" ? text(k, m.values[k]) : ""))));
+      /* Words on the frame: a "Text" column (every text that shows on the moment) once any moment has one. */
+      const tx = moments.some((m) => m.text);
+      const head = ["Moment", "Time", "Marker note"].concat(tr ? ["Transition in"] : [], tx ? ["Text"] : [], keys.map((k) => o.label(k)));
+      const rows = moments.map((m) => [m.n, m.clock || "", m.note || ""].concat(tr ? [m.n > 1 ? m.transition || "Cut" : ""] : [], tx ? [m.text || ""] : [], keys.map((k) => (m.values && m.values[k] != null && m.values[k] !== "" ? text(k, m.values[k]) : ""))));
       return "﻿" + [head].concat(rows).map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
     }
     /* The printable storyboard sheet: a whole page of its own (opened in a new tab), 2, 3 or 4 frames per row,
@@ -617,7 +620,7 @@
   <div class="pic">${m.svg}</div>
   <figcaption><b>Moment ${html(m.n)}</b> <span class="t">${html(m.clock)}</span>${m.label ? ` <span class="l">${html(m.label)}</span>` : ""}
   ${m.note ? `<p class="mk"><i style="background:${MARK_HEX[m.color] || MARK_HEX.orange}"></i>${html(m.note)}</p>` : ""}
-  ${m.transition ? `<p class="tr">Comes in with: ${html(m.transition)}</p>` : ""}<p class="ch">${m.changes ? html(m.changes) : m.n === 1 ? "Where the film starts." : "Nothing changes from the moment before."}</p></figcaption>
+  ${m.transition ? `<p class="tr">Comes in with: ${html(m.transition)}</p>` : ""}${m.text ? `<p class="tx">On the frame: ${html(m.text)}</p>` : ""}<p class="ch">${m.changes ? html(m.changes) : m.n === 1 ? "Where the film starts." : "Nothing changes from the moment before."}</p></figcaption>
 </figure>`;
       return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -643,6 +646,7 @@
   .mk i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
   .ch { margin: 3px 0 0; color: #4a423b; font-size: 12px; }
   .tr { margin: 3px 0 0; color: #0e7490; font-size: 12px; font-weight: 600; }
+  .tx { margin: 3px 0 0; color: #7c2d12; font-size: 12px; }
   @media (max-width: 600px) { .grid { grid-template-columns: repeat(min(var(--per, 3), 2), minmax(0, 1fr)); } }
   @media print { body { padding: 0; } .tools { display: none; } .grid { gap: 10px; } }
 </style></head>
@@ -1021,7 +1025,8 @@ document.addEventListener("click", function (e) {
       Object.keys(b.values).forEach((k) => (/\.setting$/.test(k) && b.values[L().base(k)] != null ? null : (values[k] = b.values[k])));
       const mk = marks[String(b.row)];
       const tr = i ? trAt(i + 1) : null;
-      return { n: i + 1, clock: tc(i), values, raw: b.values, note: mk ? mk.note || "" : "", color: mk ? mk.color : "", label: b.note && !/^moment \d+$/i.test(b.note) ? b.note : "", transition: tr && tr.kind !== "cut" ? TRANSITIONS.label(tr) : "" };
+      const texts = TEXT.at(txtData(), i + 1);
+      return { n: i + 1, clock: tc(i), values, raw: b.values, note: mk ? mk.note || "" : "", color: mk ? mk.color : "", label: b.note && !/^moment \d+$/i.test(b.note) ? b.note : "", transition: tr && tr.kind !== "cut" ? TRANSITIONS.label(tr) : "", texts, text: TEXT.csvText(texts) };
     });
     const film = E() ? E().state().name : "";
     return { moments, film, keys: EXPORT.keysWithValues(moments, prefs.lanes), shape: ratioShape() };
@@ -1046,7 +1051,7 @@ document.addEventListener("click", function (e) {
     if (what === "sheet") {
       const moments = d.moments.map((m, i) =>
         Object.assign({}, m, {
-          svg: EXPORT.frameSvg(F().svg(m.raw, Object.assign({ title: "Moment " + m.n }, opts)), d.shape),
+          svg: txtPaint(EXPORT.frameSvg(F().svg(m.raw, Object.assign({ title: "Moment " + m.n }, opts)), d.shape), m.texts, d.shape),
           changes: i ? EXPORT.changes(d.moments[i - 1].values, m.values, { keys: d.keys, label: labelOf, text: valueText }) : "",
         })
       );
@@ -1063,7 +1068,7 @@ document.addEventListener("click", function (e) {
       const i = Math.min(row, d.moments.length - 1);
       const m = d.moments[i];
       const base = EXPORT.fileName(d.film, "moment " + m.n, what);
-      const svg = EXPORT.frameSvg(F().svg(m.raw, Object.assign({ title: "My film, moment " + m.n }, opts)), d.shape, what === "png" ? 1280 : 0);
+      const svg = txtPaint(EXPORT.frameSvg(F().svg(m.raw, Object.assign({ title: "My film, moment " + m.n }, opts)), d.shape, what === "png" ? 1280 : 0), m.texts, d.shape);
       if (what === "svg") {
         downloadBlob(base, new Blob([svg], { type: "image/svg+xml" }));
         return toast(`Saved ${base}.`);
@@ -1090,7 +1095,8 @@ document.addEventListener("click", function (e) {
       const name = EXPORT.fileName(d.film, "settings", "csv");
       downloadBlob(name, new Blob([EXPORT.csv(d.moments, { keys: d.keys, label: labelOf, text: valueText })], { type: "text/csv;charset=utf-8" }));
       const trs = d.moments.filter((m) => m.transition).length;
-      return toast(`Saved ${name}: ${d.moments.length} moments, ${d.keys.length} curiosities${trs ? `, ${trs} transition${trs === 1 ? "" : "s"}` : ""}.`);
+      const txs = txtData().items.length;
+      return toast(`Saved ${name}: ${d.moments.length} moments, ${d.keys.length} curiosities${trs ? `, ${trs} transition${trs === 1 ? "" : "s"}` : ""}${txs ? `, ${txs} text${txs === 1 ? "" : "s"}` : ""}.`);
     }
   }
 
@@ -1489,6 +1495,606 @@ document.addEventListener("click", function (e) {
     trPaint(Math.max(0, Math.min(1, Number(p) || 0)));
     return { kind: t.kind, len: t.len };
   }
+
+  /* ---------- Words on the frame (CapCut's Text tab, made for a storyboard) ----------
+     A text item is words drawn on My film's picture: the words (and, for a Lower third, a job or role), the
+     moments it shows on (from moment A to moment B, 1-based), a place in the frame (a 9-spot grid, tl ... br),
+     a size (S, M, L), a style (Title, Lower third, Sign / Insert, Sound effect, Thought) and a fade in and out.
+     Like transitions, it is the Screen's own setting, kept under localStorage "curiosities-screen-text-v1" as
+     { items: [{ id, words, sub, from, to, spot, size, style, fade }] } through a part of the app-wide store
+     (engine/store.js, part "screenText"), so every change is one step on the same undo list as ⌘Z and History ▾.
+     The pure part (TEXT) takes plain data so tests can check it with no page; it also draws the words as SVG for
+     the Export (the PNG and SVG frame and the storyboard sheet). */
+  const TXT_KEY = "curiosities-screen-text-v1";
+  const TEXT = (() => {
+    /* [id, label, one-line tooltip, default spot, default words] */
+    const STYLES = [
+      ["title", "Title", "Title: big bold words across the picture, like a film's name or a chapter card.", "bc", "Title"],
+      ["lower", "Lower third", "Lower third: a name and job in the bottom corner, like the news.", "bl", "Name"],
+      ["sign", "Sign / Insert", "Sign or insert: words written on something in the scene, like a shop sign, a letter or a phone screen.", "tc", "OPEN"],
+      ["sfx", "Sound effect", "Sound effect: a comic-book noise like POW!, drawn big and bright.", "mc", "POW!"],
+      ["thought", "Thought", "Thought: what someone is thinking, in a cloud bubble.", "tr", "I wonder…"],
+    ];
+    const SPOTS = [
+      ["tl", "Top left"],
+      ["tc", "Top centre"],
+      ["tr", "Top right"],
+      ["ml", "Middle left"],
+      ["mc", "Middle"],
+      ["mr", "Middle right"],
+      ["bl", "Bottom left"],
+      ["bc", "Bottom centre"],
+      ["br", "Bottom right"],
+    ];
+    /* [id, button, name, font size as a percent of the frame's shorter side] */
+    const SIZES = [
+      ["s", "S", "Small", 5.5],
+      ["m", "M", "Medium", 8],
+      ["l", "L", "Large", 11.5],
+    ];
+    const SCALE = { title: 1.15, lower: 0.8, sign: 0.8, sfx: 1.45, thought: 0.75 };
+    const SUB = "Job";
+    const MAX = 60;
+    const styleIds = STYLES.map((s) => s[0]);
+    const spotIds = SPOTS.map((s) => s[0]);
+    const sizeIds = SIZES.map((s) => s[0]);
+    const isObj = (x) => x != null && typeof x === "object" && !Array.isArray(x);
+    const styleOf = (id) => STYLES.find((s) => s[0] === id) || STYLES[0];
+    const sizeOf = (id) => SIZES.find((s) => s[0] === id) || SIZES[1];
+    const spotName = (id) => (SPOTS.find((s) => s[0] === id) || SPOTS[7])[1];
+    const moment = (v) => {
+      const n = Math.round(Number(v));
+      return isFinite(n) ? Math.max(1, Math.min(100000, n)) : null;
+    };
+    const str = (v, max) => (typeof v === "string" ? v.replace(/[\r\n\t]+/g, " ").slice(0, max) : "");
+    /* What is kept: a broken item is dropped quietly, a missing field gets its default. */
+    function clean(raw) {
+      const out = { items: [] };
+      const list = isObj(raw) && Array.isArray(raw.items) ? raw.items : [];
+      const seen = new Set();
+      list.forEach((t) => {
+        if (!isObj(t) || typeof t.id !== "string" || !/^[\w-]{1,24}$/.test(t.id) || seen.has(t.id) || out.items.length >= MAX) return;
+        let a = moment(t.from);
+        let b = moment(t.to == null ? t.from : t.to);
+        if (a == null || b == null) return;
+        if (a > b) [a, b] = [b, a];
+        const style = styleIds.includes(t.style) ? t.style : "title";
+        seen.add(t.id);
+        out.items.push({ id: t.id, words: str(t.words, 160), sub: str(t.sub, 80), from: a, to: b, spot: spotIds.includes(t.spot) ? t.spot : styleOf(style)[3], size: sizeIds.includes(t.size) ? t.size : "m", style, fade: !!t.fade });
+      });
+      return out;
+    }
+    /* A new id no item has: t1, t2, ... */
+    function nextId(data) {
+      const nums = clean(data).items.map((t) => Number((/^t(\d+)$/.exec(t.id) || [])[1]) || 0);
+      return "t" + (Math.max(0, ...nums) + 1);
+    }
+    /* A new text item with its style's defaults: { id, from, to?, style?, ... }. */
+    function make(o) {
+      const style = styleIds.includes(o && o.style) ? o.style : "title";
+      const s = styleOf(style);
+      return clean({ items: [Object.assign({ words: s[4], sub: style === "lower" ? SUB : "", spot: s[3], size: "m", style, fade: false }, o, { to: o && o.to != null ? o.to : o && o.from })] }).items[0] || null;
+    }
+    function add(data, item) {
+      const out = clean(data);
+      const t = make(item || {});
+      if (t && !out.items.some((x) => x.id === t.id) && out.items.length < MAX) out.items.push(t);
+      return out;
+    }
+    /* A new copy with item id changed. Changing the style also moves it to the new style's own spot when it still
+       sat on the old style's, and swaps the words when they were still the old style's example words. */
+    function update(data, id, patch) {
+      const out = clean(data);
+      const i = out.items.findIndex((x) => x.id === id);
+      if (i < 0 || !isObj(patch)) return out;
+      const was = out.items[i];
+      const next = Object.assign({}, was);
+      ["words", "sub", "from", "to", "spot", "size", "style", "fade"].forEach((k) => k in patch && (next[k] = patch[k]));
+      if ("from" in patch && !("to" in patch) && moment(next.from) > was.to) next.to = next.from;
+      if ("to" in patch && !("from" in patch) && moment(next.to) < was.from) next.from = next.to;
+      if (patch.style && patch.style !== was.style && styleIds.includes(patch.style)) {
+        const o = styleOf(was.style);
+        const n = styleOf(patch.style);
+        if (!("spot" in patch) && was.spot === o[3]) next.spot = n[3];
+        if (!("words" in patch) && was.words === o[4]) next.words = n[4];
+        if (!("sub" in patch) && patch.style === "lower" && !was.sub) next.sub = SUB;
+      }
+      out.items[i] = next;
+      return clean(out);
+    }
+    function remove(data, id) {
+      const out = clean(data);
+      out.items = out.items.filter((x) => x.id !== id);
+      return out;
+    }
+    /* The items that show on moment n (1-based), in the order they were added. */
+    const at = (data, n) => clean(data).items.filter((t) => t.from <= n && n <= t.to);
+    const short = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+    /* 'Title “The end”' */
+    const label = (t) => `${styleOf(t.style)[1]} “${short(t.words || "", 28)}”`;
+    const spanText = (t) => (t.from === t.to ? `moment ${t.from}` : `moments ${t.from} to ${t.to}`);
+    /* The Settings list's Text cell for one moment: 'Title: The end · Lower third: Ana (director)'. */
+    const csvText = (items) => (items || []).map((t) => `${styleOf(t.style)[1]}: ${t.words}${t.style === "lower" && t.sub ? ` (${t.sub})` : ""}`).join(" · ");
+    /* Where a pointer lands, as fractions of the frame (0 to 1), is one of the 9 spots. */
+    const spotAt = (fx, fy) => (fy < 1 / 3 ? "t" : fy < 2 / 3 ? "m" : "b") + (fx < 1 / 3 ? "l" : fx < 2 / 3 ? "c" : "r");
+    /* Words broken into at most `max` lines of about `chars` letters each; what doesn't fit ends in "…". */
+    function wrap(words, chars, max) {
+      const c = Math.max(4, Math.floor(chars));
+      const out = [];
+      let line = "";
+      String(words || "")
+        .split(/\s+/)
+        .filter(Boolean)
+        .forEach((w) => {
+          while (w.length > c) {
+            if (line) out.push(line);
+            line = "";
+            out.push(w.slice(0, c));
+            w = w.slice(c);
+          }
+          if (!w) return;
+          if (!line) line = w;
+          else if ((line + " " + w).length <= c) line += " " + w;
+          else out.push(line), (line = w);
+        });
+      if (line) out.push(line);
+      if (out.length > max) {
+        const keep = out.slice(0, max);
+        keep[max - 1] = short(keep[max - 1] + " " + out[max], c);
+        if (!/…$/.test(keep[max - 1])) keep[max - 1] = short(keep[max - 1], c - 1) + "…";
+        return keep;
+      }
+      return out.length ? out : [""];
+    }
+    const xml = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+    const r1 = (n) => Math.round(n * 10) / 10;
+    /* How big one item draws, in the frame's own units (box: the part of the 320 by 180 picture that shows). */
+    function measure(t, box, maxW) {
+      const fs = (sizeOf(t.size)[3] * (SCALE[t.style] || 1) * Math.min(box.w, box.h)) / 100;
+      const cw = fs * (t.style === "sfx" ? 0.62 : 0.56);
+      const pad = t.style === "thought" ? fs * 0.6 : t.style === "title" || t.style === "sfx" ? 0 : fs * 0.4;
+      const lines = wrap(t.words, (maxW - pad * 2) / cw, t.style === "lower" ? 2 : 3);
+      const subFs = fs * 0.68;
+      const sub = t.style === "lower" && t.sub ? wrap(t.sub, (maxW - pad * 2) / (subFs * 0.55), 1) : [];
+      const lh = fs * 1.15;
+      const tw = Math.max(...lines.map((l) => l.length * cw), ...sub.map((l) => l.length * subFs * 0.55), fs);
+      const extra = t.style === "lower" ? fs * 0.3 : 0; /* the colored edge */
+      return { fs, lh, lines, sub, subFs, pad, w: Math.min(maxW, tw + pad * 2 + extra), h: lines.length * lh + (sub.length ? subFs * 1.2 : 0) + pad * 2, extra };
+    }
+    /* One item drawn at its box (x, y: top left; m: measure()). */
+    function drawOne(t, x, y, m) {
+      const font = 'font-family="Arial, Helvetica, sans-serif"';
+      const cx = x + m.w / 2;
+      const tsp = (lines, x0, y0, lh) => lines.map((l, i) => `<tspan x="${r1(x0)}" y="${r1(y0 + i * lh)}">${xml(l)}</tspan>`).join("");
+      const base = y + m.pad + m.fs * 0.9;
+      const g = (inner, more) => `<g class="cf-txt" data-txt="${xml(t.id)}" data-style="${t.style}"${more || ""}>${inner}</g>`;
+      if (t.style === "title") return g(`<text ${font} font-size="${r1(m.fs)}" font-weight="800" text-anchor="middle" fill="#ffffff" stroke="#111111" stroke-width="${r1(m.fs * 0.14)}" stroke-linejoin="round" paint-order="stroke">${tsp(m.lines, cx, base, m.lh)}</text>`);
+      if (t.style === "sfx") return g(`<text font-family="Impact, 'Arial Black', Arial, sans-serif" font-size="${r1(m.fs)}" font-weight="900" font-style="italic" text-anchor="middle" fill="#ffd43b" stroke="#c92a2a" stroke-width="${r1(m.fs * 0.16)}" stroke-linejoin="round" paint-order="stroke">${tsp(m.lines, cx, base, m.lh)}</text>`, ` transform="rotate(-8 ${r1(cx)} ${r1(y + m.h / 2)})"`);
+      if (t.style === "lower")
+        return g(
+          `<rect x="${r1(x)}" y="${r1(y)}" width="${r1(m.w)}" height="${r1(m.h)}" fill="#0f172a" fill-opacity="0.86"/><rect x="${r1(x)}" y="${r1(y)}" width="${r1(m.extra)}" height="${r1(m.h)}" fill="#22d3ee"/>` +
+            `<text ${font} font-size="${r1(m.fs)}" font-weight="700" fill="#ffffff">${tsp(m.lines, x + m.extra + m.pad, base, m.lh)}</text>` +
+            (m.sub.length ? `<text ${font} font-size="${r1(m.subFs)}" fill="#cbd5e1">${tsp(m.sub, x + m.extra + m.pad, y + m.pad + m.lines.length * m.lh + m.subFs * 0.85, m.subFs)}</text>` : "")
+        );
+      if (t.style === "sign") return g(`<rect x="${r1(x)}" y="${r1(y)}" width="${r1(m.w)}" height="${r1(m.h)}" rx="${r1(m.fs * 0.15)}" fill="#fff8dc" stroke="#3b2f2f" stroke-width="${r1(Math.max(0.6, m.fs * 0.08))}"/><text ${font} font-size="${r1(m.fs)}" font-weight="800" text-anchor="middle" fill="#2b2118" letter-spacing="${r1(m.fs * 0.04)}">${tsp(m.lines, cx, base, m.lh)}</text>`);
+      /* thought: a cloud bubble with two small puffs under it */
+      const pr = m.fs * 0.22;
+      return g(`<circle cx="${r1(x + m.w * 0.22)}" cy="${r1(y + m.h + pr * 1.6)}" r="${r1(pr)}" fill="#ffffff" stroke="#333333" stroke-width="0.6"/><circle cx="${r1(x + m.w * 0.14)}" cy="${r1(y + m.h + pr * 3.6)}" r="${r1(pr * 0.6)}" fill="#ffffff" stroke="#333333" stroke-width="0.6"/><rect x="${r1(x)}" y="${r1(y)}" width="${r1(m.w)}" height="${r1(m.h)}" rx="${r1(Math.min(m.h / 2, m.w / 2))}" fill="#ffffff" stroke="#333333" stroke-width="0.7"/><text ${font} font-size="${r1(m.fs)}" font-style="italic" text-anchor="middle" fill="#222222">${tsp(m.lines, cx, base, m.lh)}</text>`);
+    }
+    /* Every item of one moment as SVG, in the frame's own units: box is the part of the 320 by 180 picture that
+       shows ({ x, y, w, h }); o.lift raises the bottom row by that many units (to clear a caption). Items on the
+       same spot stack: down from the top, up from the bottom, around the middle. */
+    function svg(items, box, o) {
+      const b = box || { x: 0, y: 0, w: 320, h: 180 };
+      const mx = b.w * 0.04;
+      const my = b.h * 0.05;
+      const gap = Math.min(b.w, b.h) * 0.02;
+      const lift = (o && o.lift) || 0;
+      const out = [];
+      spotIds.forEach((sp) => {
+        const list = (items || []).filter((t) => t.spot === sp);
+        if (!list.length) return;
+        const col = sp[1];
+        const rw = sp[0];
+        const maxW = col === "c" ? b.w * 0.86 : b.w * 0.46;
+        const ms = list.map((t) => measure(t, b, maxW));
+        const total = ms.reduce((a, m) => a + m.h, 0) + gap * (ms.length - 1);
+        let y = rw === "t" ? b.y + my : rw === "m" ? b.y + (b.h - total) / 2 : b.y + b.h - my - lift - total;
+        list.forEach((t, i) => {
+          const m = ms[i];
+          const x = col === "l" ? b.x + mx : col === "c" ? b.x + (b.w - m.w) / 2 : b.x + b.w - mx - m.w;
+          out.push(drawOne(t, x, y, m));
+          y += m.h + gap;
+        });
+      });
+      return out.length ? `<g class="cf-texts">${out.join("")}</g>` : "";
+    }
+    return { STYLES, SPOTS, SIZES, MAX, clean, nextId, make, add, update, remove, at, label, spanText, csvText, spotAt, spotName, wrap, svg, styleOf, sizeOf };
+  })();
+  window.CurioScreenText = TEXT;
+
+  /* The saved text items: a part of the app-wide store when the page has one (one undo step per change), else
+     plain storage with no undo. */
+  let txtPart = null;
+  function txtStore() {
+    if (txtPart) return txtPart;
+    const St = window.CurioStore;
+    const commands = {
+      add: (d, m) => (d.items = TEXT.add(d, m.item).items),
+      update: (d, m) => (d.items = TEXT.update(d, m.id, m.patch).items),
+      remove: (d, m) => (d.items = TEXT.remove(d, m.id).items),
+    };
+    if (St && typeof St.part === "function") {
+      try {
+        txtPart = St.part("screenText", { key: TXT_KEY, initial: () => ({ items: [] }), normalize: TEXT.clean, commands });
+        txtPart.on(txtChanged);
+        return txtPart;
+      } catch (e) {
+        txtPart = null;
+      }
+    }
+    let data = { items: [] };
+    try {
+      data = TEXT.clean(JSON.parse(localStorage.getItem(TXT_KEY)));
+    } catch (e) {}
+    txtPart = {
+      undo: false,
+      view: () => data,
+      send(msg) {
+        if (!msg || !commands[msg.type]) return { ok: false };
+        const d = JSON.parse(JSON.stringify(data));
+        commands[msg.type](d, msg);
+        const next = TEXT.clean(d);
+        if (JSON.stringify(next) === JSON.stringify(data)) return { ok: true, unchanged: true };
+        data = next;
+        try {
+          localStorage.setItem(TXT_KEY, JSON.stringify(data));
+        } catch (e) {}
+        txtChanged();
+        return { ok: true };
+      },
+    };
+    return txtPart;
+  }
+  const txtData = () => TEXT.clean(txtStore().view());
+  const txtItem = (id) => txtData().items.find((t) => t.id === id) || null;
+  const txtUndoSay = () => (txtStore().undo === false ? "" : " Undo takes it back.");
+  let txtEditId = null;
+  function txtChanged() {
+    if (!page || page.hidden) return;
+    drawViewers();
+    if (lanes) lanes.draw();
+    if (txtEditId) {
+      if (!txtItem(txtEditId)) txtMenuClose();
+      else txtMenuDraw();
+    }
+  }
+  /* "T Text": a new Title at the playhead, and its editor open with the words picked, ready to type over. */
+  function txtAdd() {
+    if (!E()) return toast("Your film is not loaded yet.");
+    const d = txtData();
+    if (d.items.length >= TEXT.MAX) return toast(`Your film already has ${TEXT.MAX} texts; delete one to add another.`);
+    const id = TEXT.nextId(d);
+    const r = txtStore().send({ type: "add", item: { id, from: row + 1, to: row + 1 }, label: `Add text at moment ${row + 1}` });
+    if (!r || !r.ok) return r;
+    toast(`Words added at moment ${row + 1}. Type over them; drag them on the picture to move them.${txtUndoSay()}`);
+    txtMenuOpen(id);
+    return Object.assign({ id }, r);
+  }
+  function txtSet(id, patch, label, merge) {
+    const t = txtItem(id);
+    if (!t) return { ok: false };
+    const msg = { type: "update", id, patch, label: label || `Change ${TEXT.label(t)}` };
+    if (merge) msg.merge = merge;
+    return txtStore().send(msg);
+  }
+  function txtSpan(id, a, b) {
+    const t = txtItem(id);
+    if (!t) return { ok: false };
+    const n = nRows();
+    const from = Math.max(1, Math.min(n, Math.min(a, b)));
+    const to = Math.max(from, Math.min(n, Math.max(a, b)));
+    const r = txtSet(id, { from, to }, `${TEXT.label(t)}: ${TEXT.spanText({ from, to })}`);
+    if (r && r.ok && !r.unchanged) toast(`${TEXT.label(t)} shows on ${TEXT.spanText({ from, to })}.${txtUndoSay()}`);
+    return r;
+  }
+  function txtMove(id, spot) {
+    const t = txtItem(id);
+    if (!t) return { ok: false };
+    const r = txtSet(id, { spot }, `Move ${TEXT.label(t)} to ${TEXT.spotName(spot).toLowerCase()}`);
+    if (r && r.ok && !r.unchanged) toast(`${TEXT.label(t)} moved to the ${TEXT.spotName(spot).toLowerCase()}.${txtUndoSay()}`);
+    return r;
+  }
+  function txtDel(id) {
+    const t = txtItem(id);
+    if (!t) return { ok: false };
+    const r = txtStore().send({ type: "remove", id, label: `Delete ${TEXT.label(t)}` });
+    if (r && r.ok) toast(`${TEXT.label(t)} deleted.${txtUndoSay()}`);
+    if (txtEditId === id) txtMenuClose();
+    return r;
+  }
+  /* The words on My film's frame at moment i (0-based): HTML over the picture, one box per spot that has words.
+     While Play runs, a text set to fade fades in on its first moment and out at the end of its last. */
+  function txtLayerHtml(i) {
+    const items = TEXT.at(txtData(), i + 1);
+    if (!items.length) return "";
+    const ms = momentMs();
+    return `<div class="sc-txt-layer" style="--txt-fo:${Math.round(ms * 0.35)}ms;--txt-fd:${Math.round(ms * 0.6)}ms">${TEXT.SPOTS.map(([sp, name]) => {
+      const list = items.filter((t) => t.spot === sp);
+      if (!list.length) return "";
+      return `<div class="sc-txt-spot" data-spot="${sp}" data-row="${sp[0]}" data-col="${sp[1]}">${list
+        .map((t) => {
+          const fade = timer && t.fade ? (t.from === i + 1 && t.to === i + 1 ? "both" : t.from === i + 1 ? "in" : t.to === i + 1 ? "out" : "") : "";
+          return `<button type="button" class="sc-txt" data-txt="${esc(t.id)}" data-style="${t.style}" data-size="${t.size}"${fade ? ` data-fade="${fade}"` : ""}${txtEditId === t.id ? ' aria-expanded="true"' : ""} title="${esc(TEXT.label(t))} (${esc(TEXT.styleOf(t.style)[1])}, ${esc(name.toLowerCase())}, ${esc(TEXT.spanText(t))}). Click to change it, drag it to another place, Delete removes it."><span class="sc-txt-w">${esc(t.words || " ")}</span>${t.style === "lower" && t.sub ? `<span class="sc-txt-sub">${esc(t.sub)}</span>` : ""}</button>`;
+        })
+        .join("")}</div>`;
+    }).join("")}</div>`;
+  }
+  /* Bottom-row words step up above a caption while one shows, so the two never cover each other. */
+  function txtAvoid() {
+    const frame = page && page.querySelector(".sc-viewer.mine .sc-frame");
+    const layer = frame && frame.querySelector(".sc-txt-layer");
+    if (!layer) return;
+    const cap = frame.querySelector(".sc-cap p");
+    if (!cap) return layer.classList.remove("sc-txt-lift");
+    const fr = frame.getBoundingClientRect();
+    const cr = cap.getBoundingClientRect();
+    layer.style.setProperty("--txt-capb", Math.max(0, Math.round(fr.bottom - cr.top + 4)) + "px");
+    layer.classList.add("sc-txt-lift");
+  }
+  /* The timeline's Text row (lanes.js, opts.texts). */
+  function txtLanes() {
+    return {
+      items: txtData().items.map((t) => ({ id: t.id, j0: t.from - 1, j1: t.to - 1, style: t.style, text: `${TEXT.styleOf(t.style)[1]}: ${t.words}`, title: `${TEXT.label(t)}, on ${TEXT.spanText(t)}. Drag an end to change when it shows, the middle to move it; click it to change the words.` })),
+      onSpan: (id, j0, j1) => txtSpan(id, j0 + 1, j1 + 1),
+      onPick: (id) => txtPick(id),
+    };
+  }
+  /* A bar on the timeline picked: the playhead goes to the text's first moment (unless it already shows), and its
+     editor opens. */
+  function txtPick(id) {
+    const t = txtItem(id);
+    if (!t) return;
+    if (row + 1 < t.from || row + 1 > t.to) setRow(t.from - 1);
+    txtMenuOpen(id);
+  }
+  /* The editor: a small pop-up beside the words. */
+  function txtMenuClose(focusBack) {
+    const m = page && page.querySelector(".sc-txt-menu");
+    if (m) m.remove();
+    const id = txtEditId;
+    txtEditId = null;
+    const el = id && page && page.querySelector(`.sc-viewer.mine [data-txt="${id}"]`);
+    if (el) el.removeAttribute("aria-expanded");
+    if (focusBack && el && el.focus) el.focus();
+  }
+  function txtMenuDraw() {
+    const t = txtItem(txtEditId);
+    if (!t) return null;
+    let m = page.querySelector(".sc-txt-menu");
+    /* Keep the focus (and the caret) where it was when the editor is drawn again after a change. */
+    const fa = m && m.contains(document.activeElement) ? document.activeElement : null;
+    let keep = null;
+    if (fa) {
+      const k = [...fa.attributes].map((a) => a.name).find((nm) => /^data-txt-/.test(nm));
+      let s0 = null;
+      let s1 = null;
+      try {
+        s0 = fa.selectionStart;
+        s1 = fa.selectionEnd;
+      } catch (err) {}
+      if (k) keep = { sel: fa.getAttribute(k) ? `[${k}="${fa.getAttribute(k)}"]` : `[${k}]`, s: s0, e: s1 };
+    }
+    if (!m) {
+      m = document.createElement("div");
+      m.className = "sc-txt-menu";
+      m.setAttribute("role", "dialog");
+      page.appendChild(m);
+    }
+    const n = nRows();
+    const st = TEXT.styleOf(t.style);
+    m.setAttribute("aria-label", `Words on the frame: ${TEXT.label(t)}`);
+    m.dataset.txtFor = t.id;
+    m.innerHTML = `<p class="sc-txt-mh"><b>Words on the frame</b><button type="button" class="sc-tr-x" data-txt-close aria-label="Close">×</button></p>
+      <label class="sc-txt-f">Words <input type="text" data-txt-words maxlength="160" value="${esc(t.words)}" aria-label="Words"></label>
+      ${t.style === "lower" ? `<label class="sc-txt-f">Job or role <input type="text" data-txt-sub maxlength="80" value="${esc(t.sub)}" aria-label="Job or role"></label>` : ""}
+      <div class="sc-seg sc-txt-styles" role="group" aria-label="Style">${TEXT.STYLES.map(([id, l, tip]) => `<button type="button" data-txt-style="${id}" class="${t.style === id ? "on" : ""}" aria-pressed="${t.style === id}" title="${esc(tip)}">${esc(l)}</button>`).join("")}</div>
+      <div class="sc-txt-row"><div class="sc-txt-grid9" role="group" aria-label="Place in the frame">${TEXT.SPOTS.map(([id, l]) => `<button type="button" data-txt-spot="${id}" class="${t.spot === id ? "on" : ""}" aria-pressed="${t.spot === id}" aria-label="${esc(l)}" title="${esc(l)}"></button>`).join("")}</div>
+      <div class="sc-txt-col"><span class="sc-seg" role="group" aria-label="Size">${TEXT.SIZES.map(([id, b, l]) => `<button type="button" data-txt-size="${id}" class="${t.size === id ? "on" : ""}" aria-pressed="${t.size === id}" title="${esc(l)}">${b}</button>`).join("")}</span>
+      <span class="sc-txt-span">Shows on moments <input type="number" data-txt-from min="1" max="${n}" value="${t.from}" aria-label="First moment it shows on"> to <input type="number" data-txt-to min="1" max="${n}" value="${t.to}" aria-label="Last moment it shows on"></span>
+      <label class="sc-txt-fade" title="The words fade in on their first moment and out at the end of their last, while Play runs"><input type="checkbox" data-txt-fade${t.fade ? " checked" : ""}> Fade in and out</label></div></div>
+      <p class="sc-txt-tip">${esc(st[2])}</p>
+      <p class="sc-txt-acts"><button type="button" class="sc-txt-del" data-txt-del title="Delete these words from your film (Undo brings them back)">Delete</button></p>`;
+    if (keep) {
+      const back = m.querySelector(keep.sel);
+      if (back) {
+        back.focus();
+        try {
+          if (keep.s != null && back.setSelectionRange) back.setSelectionRange(keep.s, keep.e);
+        } catch (err) {}
+      }
+    }
+    return m;
+  }
+  function txtMenuOpen(id) {
+    if (!txtItem(id)) return;
+    txtEditId = id;
+    const old = page.querySelector(".sc-txt-menu");
+    if (old) old.remove();
+    const m = txtMenuDraw();
+    const anchor = page.querySelector(`.sc-viewer.mine [data-txt="${id}"]`) || page.querySelector(".sc-viewer.mine .sc-frame") || page.querySelector(".sc-player");
+    if (anchor && anchor.dataset.txt) anchor.setAttribute("aria-expanded", "true");
+    const r = anchor ? anchor.getBoundingClientRect() : { left: 16, right: 16, top: 16, bottom: 16, width: 0 };
+    const w = Math.min(340, window.innerWidth - 32);
+    m.style.width = w + "px";
+    const h = m.offsetHeight || 260;
+    /* Beside the words when there is room (right, then left), else under or over them. */
+    let left = r.right + 10;
+    let top = r.top + r.height / 2 - h / 2;
+    if (left + w > window.innerWidth - 16) left = r.left - w - 10;
+    if (left < 16) {
+      left = Math.max(16, Math.min(window.innerWidth - w - 16, r.left + r.width / 2 - w / 2));
+      top = r.bottom + 8 + h <= window.innerHeight - 8 ? r.bottom + 8 : r.top - h - 8;
+    }
+    m.style.left = Math.round(left) + "px";
+    m.style.top = Math.round(Math.max(8, Math.min(window.innerHeight - h - 8, top))) + "px";
+    const inp = m.querySelector("[data-txt-words]");
+    if (inp) {
+      inp.focus();
+      inp.select();
+    }
+  }
+  /* Clicks, typing, changes and keys, caught before the page's own handlers (as the transitions' are). */
+  let txtSwallow = 0;
+  function txtClick(e) {
+    const t = e.target;
+    if (!t || !t.closest) return;
+    if (txtEditId && !t.closest(".sc-txt-menu, [data-txt], [data-txt-bar], [data-act='txt-add'], [data-txt-add]")) txtMenuClose();
+    if (Date.now() - txtSwallow < 350 && t.closest(".sc-viewer.mine .sc-frame")) {
+      e.stopPropagation();
+      return;
+    }
+    const add = t.closest("[data-act='txt-add'], [data-txt-add]");
+    if (add && page.contains(add)) {
+      e.stopPropagation();
+      return txtAdd();
+    }
+    const word = t.closest(".sc-viewer.mine [data-txt]");
+    if (word) {
+      e.stopPropagation();
+      return txtEditId === word.dataset.txt ? txtMenuClose() : txtMenuOpen(word.dataset.txt);
+    }
+    const m = t.closest(".sc-txt-menu");
+    if (!m) return;
+    e.stopPropagation();
+    const b = t.closest("button");
+    if (!b || !txtEditId) return;
+    const id = txtEditId;
+    const it = txtItem(id);
+    if (b.dataset.txtClose != null) return txtMenuClose(true);
+    if (b.dataset.txtDel != null) return txtDel(id);
+    if (b.dataset.txtStyle) return txtSet(id, { style: b.dataset.txtStyle }, `${TEXT.label(it)}: ${TEXT.styleOf(b.dataset.txtStyle)[1]}`);
+    if (b.dataset.txtSpot) return txtMove(id, b.dataset.txtSpot);
+    if (b.dataset.txtSize) return txtSet(id, { size: b.dataset.txtSize }, `${TEXT.label(it)}: size ${TEXT.sizeOf(b.dataset.txtSize)[2].toLowerCase()}`);
+  }
+  function txtInput(e) {
+    const s = e.target;
+    if (!s || !s.closest || !s.closest(".sc-txt-menu")) return;
+    e.stopPropagation();
+    if (!txtEditId) return;
+    if (s.dataset.txtWords != null) return txtSet(txtEditId, { words: s.value }, `Text words: “${s.value.slice(0, 28)}”`, "txt-words-" + txtEditId);
+    if (s.dataset.txtSub != null) return txtSet(txtEditId, { sub: s.value }, `Text job or role: “${s.value.slice(0, 28)}”`, "txt-sub-" + txtEditId);
+  }
+  function txtChange(e) {
+    const s = e.target;
+    if (!s || !s.closest || !s.closest(".sc-txt-menu")) return;
+    e.stopPropagation();
+    if (!txtEditId) return;
+    const t = txtItem(txtEditId);
+    if (!t) return;
+    if (s.dataset.txtFade != null) return txtSet(t.id, { fade: s.checked }, `${TEXT.label(t)}: ${s.checked ? "fade in and out" : "no fade"}`);
+    if (s.dataset.txtFrom != null || s.dataset.txtTo != null) {
+      const v = Math.round(Number(s.value));
+      if (!isFinite(v)) return txtMenuDraw();
+      return s.dataset.txtFrom != null ? txtSpan(t.id, v, Math.max(v, t.to)) : txtSpan(t.id, Math.min(v, t.from), v);
+    }
+  }
+  function txtKey(e) {
+    const t = e.target;
+    if (!t || !t.closest) return;
+    const m = t.closest(".sc-txt-menu");
+    if (m) {
+      /* Keys typed in the editor stay there: no Screen shortcut sees them. */
+      e.stopPropagation();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        txtMenuClose(true);
+      } else if (e.key === "Enter" && t.tagName === "INPUT" && t.type !== "checkbox") {
+        e.preventDefault();
+        if (t.type === "number") t.dispatchEvent(new Event("change", { bubbles: true }));
+        else txtMenuClose(true);
+      }
+      return;
+    }
+    if (e.key === "Escape" && txtEditId) {
+      e.stopPropagation();
+      return txtMenuClose(true);
+    }
+    const word = t.closest(".sc-viewer.mine [data-txt]");
+    const bar = t.closest(".sl-top [data-txt-bar]");
+    const id = word ? word.dataset.txt : bar ? bar.dataset.txtBar : null;
+    if (!id) return;
+    if (e.key === "Delete" || e.key === "Backspace") {
+      e.preventDefault();
+      e.stopPropagation();
+      return txtDel(id);
+    }
+    if (bar && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      e.stopPropagation();
+      return txtPick(id);
+    }
+  }
+  /* Drag the words on the picture to another of the 9 spots: the grid shows while dragging, the spot under the
+     pointer lights up, and letting go moves them there (one undo step). */
+  function txtDown(e) {
+    const word = e.button > 0 || !e.target.closest ? null : e.target.closest(".sc-viewer.mine .sc-frame [data-txt]");
+    if (!word) return;
+    const frame = word.closest(".sc-frame");
+    const id = word.dataset.txt;
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    let dragging = false;
+    let spot = null;
+    e.preventDefault();
+    e.stopPropagation();
+    const at = (ev) => {
+      const r = frame.getBoundingClientRect();
+      return TEXT.spotAt(Math.max(0, Math.min(0.999, (ev.clientX - r.left) / Math.max(1, r.width))), Math.max(0, Math.min(0.999, (ev.clientY - r.top) / Math.max(1, r.height))));
+    };
+    const move = (ev) => {
+      if (!dragging && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 5) return;
+      if (!dragging) {
+        dragging = true;
+        txtMenuClose();
+        frame.classList.add("sc-txt-dragging");
+        frame.insertAdjacentHTML("beforeend", `<div class="sc-txt-drop" aria-hidden="true">${TEXT.SPOTS.map(([sp, l]) => `<i data-drop="${sp}"><span>${esc(l)}</span></i>`).join("")}</div>`);
+      }
+      spot = at(ev);
+      word.style.transform = `translate(${ev.clientX - x0}px, ${ev.clientY - y0}px)`;
+      frame.querySelectorAll(".sc-txt-drop [data-drop]").forEach((c) => c.classList.toggle("on", c.dataset.drop === spot));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      if (!dragging) return;
+      txtSwallow = Date.now();
+      frame.classList.remove("sc-txt-dragging");
+      const g = frame.querySelector(".sc-txt-drop");
+      if (g) g.remove();
+      word.style.transform = "";
+      const t = txtItem(id);
+      if (t && spot && spot !== t.spot) txtMove(id, spot);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+  function txtWire() {
+    page.addEventListener("click", txtClick, true);
+    page.addEventListener("input", txtInput, true);
+    page.addEventListener("change", txtChange, true);
+    page.addEventListener("keydown", txtKey, true);
+    page.addEventListener("pointerdown", txtDown, true);
+  }
+  /* The Export's frames with the words drawn on: svg is a frame already cropped by EXPORT.frameSvg to shape. */
+  function txtPaint(svg, items, shape) {
+    if (!items || !items.length) return svg;
+    const s = EXPORT.SHAPES[shape] || EXPORT.SHAPES.wide;
+    const g = TEXT.svg(items, { x: (320 - s.w) / 2, y: (180 - s.h) / 2, w: s.w, h: s.h });
+    const k = String(svg).lastIndexOf("</svg>");
+    return k < 0 ? svg : svg.slice(0, k) + g + svg.slice(k);
+  }
+  const txtButtonHtml = () => `<button type="button" data-act="txt-add" class="sc-txt-b" title="Text: put words on your film's picture at this moment, like CapCut's Text tab (a title, a name and job, a sign, a sound effect or a thought). Click words on the picture to change them, drag them to move them.">T Text</button>`;
 
   /* ---------- the library (CapCut's top-left panel) ---------- */
   /* Line icons for the category tabs, drawn on a 20 by 20 grid in the current text color. */
@@ -1957,7 +2563,9 @@ document.addEventListener("click", function (e) {
     const grid = page.querySelector(".sc-grid");
     const had = grid.querySelector("[data-lib-search]");
     const focused = had && document.activeElement === had;
-    const body = (tab === "templates" && !q ? myTplHtml() : "") + (tab === "faves" && !q ? faveHtml : `<p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>${faveHtml}`);
+    /* The Text tab starts with a way to put words on the frame (the same as T Text in the Player). */
+    const txtLib = !tab && !q && cat.id === "text" ? `<div class="sc-txt-libadd"><button type="button" data-txt-add title="Put words on your film's picture at the playhead: a title, a name and job, a sign, a sound effect or a thought">T Words on the frame</button><small>Drawn on your film's picture at the playhead. Click them there to change them.</small></div>` : "";
+    const body = (tab === "templates" && !q ? myTplHtml() : "") + (tab === "faves" && !q ? faveHtml : `${txtLib}<p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>${faveHtml}`);
     grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}">${body}`;
     tplWire();
     if (focused) {
@@ -2294,6 +2902,7 @@ document.addEventListener("click", function (e) {
     if (old) old.remove();
     if (html) frame.insertAdjacentHTML("beforeend", html);
     frame.classList.toggle("sc-cap-on", !!html);
+    txtAvoid();
   }
   let capTimer = null;
   const capSoon = () => {
@@ -2320,7 +2929,7 @@ document.addEventListener("click", function (e) {
       const cap = captionHtml(beats, i);
       return `<article class="sc-viewer mine${prefs.focus === "mine" ? " focus" : ""}" data-viewer="mine">
         <header><button type="button" class="sc-vname" data-focus="mine">My film</button><span class="sc-vsub">${esc(E() ? E().state().name : "")} · moment ${i + 1} of ${beats.length}</span></header>
-        <div class="sc-frame${compareNow().on ? " sc-cmp-on" : ""}${cap ? " sc-cap-on" : ""}" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${compareHtml(i, shape, sel)}${guidesHtml(vals, att, shape)}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}${cap}</div>
+        <div class="sc-frame${compareNow().on ? " sc-cmp-on" : ""}${cap ? " sc-cap-on" : ""}" data-focus="mine" data-shape="${shape}">${fill(F().svg(vals, Object.assign(frameOpts(sel, vals), { title: "My film, moment " + (i + 1) })))}${prefs.ghost ? [[i - 1, "before"], [i + 1, "after"]].filter(([j]) => beats[j]).map(([j, w]) => `<div class="sc-ghost ${w}" aria-hidden="true">${F().svg(beats[j].values, { title: "" })}</div>`).join("") : ""}${compareHtml(i, shape, sel)}${guidesHtml(vals, att, shape)}${att ? `<span class="sc-att" title="What holds the audience's attention now (momentum)">Attention: ${esc(att.label)}</span>` : ""}${txtLayerHtml(i)}${cap}</div>
         ${scrub(beats, i, fires, "mine")}
         <p class="sc-vnote">${fires.length ? `${esc(sel.label)} shows up ${fires.length} time${fires.length === 1 ? "" : "s"} in your film.` : `${esc(sel.label)} does not show up in your film yet.`}</p>
       </article>`;
@@ -2452,8 +3061,9 @@ document.addEventListener("click", function (e) {
     showTimelineWindow();
     page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
-      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}${compareMenuHtml()}${captionsMenuHtml()}</span>`;
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}${compareMenuHtml()}${captionsMenuHtml()}${txtButtonHtml()}</span>`;
     trDecorate();
+    txtAvoid();
   }
 
   /* ---------- the inspector ---------- */
@@ -2854,7 +3464,7 @@ document.addEventListener("click", function (e) {
      that tool: the Screen's shortcuts and its ⌘Z leave them alone, so they never change the film behind it. */
   function inToolWindow(e) {
     const t = e && e.target;
-    if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg, .sc-find, .sc-tplpop, .sl-tplpop")) return true;
+    if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg, .sc-find, .sc-tplpop, .sl-tplpop, .sc-txt-menu")) return true;
     /* Quick find (⌘K) takes every key while it is open. */
     if (findOpen) return true;
     /* A tool opened as a modal window takes the keys even when nothing inside it has focus. */
@@ -3328,6 +3938,7 @@ document.addEventListener("click", function (e) {
         clips: clipRows,
         thumbs: () => mineBeats().map((b) => thumb(b.values)),
         joins: trJoins,
+        texts: txtLanes,
         beats: () => mineBeats(),
         /* Film lines: the inspiration viewer picked in the Player (else the first one). */
         inspiration: () => { const v = prefs.insp.find((x) => x.id === prefs.focus) || prefs.insp[0], f = v && film(v.film); return f ? { name: filmTitle(f), beats: f.beats } : null; },
@@ -4011,6 +4622,7 @@ document.addEventListener("click", function (e) {
     COMPARE_WITH.forEach(([id, l]) => add("compare-" + id, "Compare with: " + l, "Turns Compare on with this picture left of the line", "", () => (setCompare({ with: id, on: true }), drawViewers())));
     add("captions", captionsNow().on ? "Captions: turn off" : "Captions: turn on", "Your marker's note on this moment at the bottom of your film's picture, like subtitles", "", () => (setCaptions({ on: !captionsNow().on }), drawViewers()));
     CAPTION_MODES.forEach(([id, l]) => add("captions-" + id, "Captions: " + l.toLowerCase(), "Turns Captions on, showing this", "", () => (setCaptions({ mode: id, on: true }), drawViewers())));
+    add("text-add", "Text: add words on the frame", "Words drawn on your film's picture at the playhead: a title, a name and job, a sign, a sound effect or a thought", "", () => txtAdd());
     add("look-menu", "Look ▾", "Copy every setting this moment plays, then paste that look onto another moment", "", () => (page.querySelector(".sc-mlook") ? lookOpen || toggleLook() : toast("Look ▾ is in Details while My film is picked in the Player.")));
     add("look-stretch", "Paste the look into the selected stretch", "The copied look held over the stretch selected on the timeline", "", () => lookPaste("stretch"));
     add("mark-turns", "Mark the turns", "A marker on every moment where the film turns: attention moves, the feeling changes, or a track jumps", "", () => (lanes ? findSay(lanes.markTurns()) : noLanes()));
@@ -4327,7 +4939,7 @@ document.addEventListener("click", function (e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
   /* My templates: list(), save(name, note), use(id, { at, stretch }), rename(id, name, note), remove(id),
      exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick). */
   window.CurioScreen.templates = TPL_API;

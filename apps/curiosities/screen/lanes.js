@@ -30,6 +30,10 @@
        opts.thumbs()     -> one storyboard frame <svg> string per moment, drawn on My film's clip track when zoomed in
        opts.joins()      -> per moment j, { kind, title } for the transition into it (null for the first): a ◇
                          on My film's clip track at each join, [data-join=j]; the page handles its click
+       opts.texts()      -> { items: [{ id, j0, j1, style, text, title }], onSpan(id, j0, j1), onPick(id) }: the words
+                         drawn on My film's frames, as thin bars on a Text row just under My film's clip track
+                         (only while there are any); drag a bar's end to change its moments, its middle to move it,
+                         click it to pick it (textRows packs overlapping bars into sub-rows)
        opts.beats()      -> [{ values }] My film's values per moment, read by Mark the turns (else read from the engine)
        opts.showLanes(curs) adds lanes to the timeline for curiosities a dropped suite clip put into the film
        opts.attention    the momentum reading the Attention track uses (else the page's CurioAttention)
@@ -1415,6 +1419,23 @@
      reading gives no push at all, the strength is derived instead from how much the curiosities change between
      one moment and the next (the share of values that differ), since a film that changes is a film that moves. */
   const ATT_H = 32;
+  /* The Text row (opts.texts): each bar on the first sub-row where it fits, so bars never overlap.
+     items: [{ id, j0, j1 }] -> { rowOf: { id: k }, count } */
+  const TXT_ROW = 14;
+  function textRows(items) {
+    const ends = [];
+    const rowOf = {};
+    (items || [])
+      .slice()
+      .sort((a, b) => a.j0 - b.j0 || a.j1 - b.j1)
+      .forEach((t) => {
+        let k = ends.findIndex((e) => e < t.j0);
+        if (k < 0) k = ends.length;
+        ends[k] = Math.max(t.j0, t.j1);
+        rowOf[t.id] = k;
+      });
+    return { rowOf, count: ends.length };
+  }
   const ATT_COLORS = { camera: "#4dabf7", movement: "#ff922b", voice: "#20c997", feeling: "#f06595", comedy: "#fcc419", wardrobe: "#cc5de8", place: "#94d82d", light: "#ffa8a8", music: "#1c7ed6", plot: "#ff6b6b", mind: "#9775fa", effects: "#66d9e8", cut: "#ced4da" };
   const ATT_OTHER = "#868e96";
   const ATT_NONE = "The Attention track needs the momentum code, which isn't loaded, so there is nothing to show.";
@@ -1580,8 +1601,9 @@
       lh = laneH();
       const clipRows = opts.clips ? opts.clips() : [];
       const CLIP_H = 28;
-      const att = attentionBand(st, colW, svgW, clipRows.length * CLIP_H); /* the Attention track, under My film's clips */
-      const top = clipRows.length * CLIP_H + att.h + (opts.ruler ? RULER + 8 : 0);
+      const txt = textBand(colW, svgW, n, clipRows.length * CLIP_H); /* the Text row, right under My film's clips */
+      const att = attentionBand(st, colW, svgW, clipRows.length * CLIP_H + txt.h); /* the Attention track, under them */
+      const top = clipRows.length * CLIP_H + txt.h + att.h + (opts.ruler ? RULER + 8 : 0);
       /* Rows top to bottom: each group's header (a thin row), then its lanes unless it is folded. */
       const gh = groupH();
       yTops = [];
@@ -1685,8 +1707,9 @@
           }
         }
       });
+      tsvg.push(txt.svg);
       tsvg.push(att.svg);
-      const rulerY = clipRows.length * CLIP_H + att.h;
+      const rulerY = clipRows.length * CLIP_H + txt.h + att.h;
       if (opts.ruler) {
         tsvg.push(`<rect class="sl-rulerbg" x="0" y="${rulerY}" width="${svgW}" height="${RULER + 8}"><title>Drag down to zoom in, up to zoom out, sideways to scroll</title></rect>`);
         st.rows.forEach((r, j) => tsvg.push(`<line class="sl-tick0" x1="${j * colW}" x2="${j * colW}" y1="${rulerY}" y2="${top}"/><text x="${j * colW + 4}" y="${rulerY + 12}" class="sl-ruler">${j + 1}</text>`));
@@ -1834,7 +1857,7 @@
           <span class="sl-msg" role="status">${esc(msg || (area ? "Drag the selection sideways to move it; hold Alt (Option) to copy it instead." : others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
         </div>
         <div class="sl-scroll"><div class="sl-body" style="grid-template-columns: var(--sl-head-w, 190px) ${svgW}px">
-          <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${att.head}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
+          <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${txt.head}${att.head}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
           <div class="sl-top" style="height:${top}px"><svg class="sl-topsvg" width="${svgW}" height="${top}" viewBox="0 0 ${svgW} ${Math.max(1, top)}">${tsvg.join("")}</svg></div>
           <div class="sl-heads" title="Drag right for taller lanes, left for shorter; drag up and down to scroll. Click a lane's name area to select the whole lane (Shift adds more lanes).">${heads}</div>
           <div class="sl-lanes"><svg class="sl-svg" width="${svgW}" height="${Math.max(1, svgH)}" viewBox="0 0 ${svgW} ${Math.max(1, svgH)}"><defs><pattern id="${hatchId}" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="sl-hatch" x1="0" y1="0" x2="0" y2="9"/></pattern></defs>${svg.join("")}${dots.join("")}${drag && drag.ghost ? drag.ghost : ""}</svg></div>
@@ -1851,6 +1874,82 @@
       }
     }
     let scrollKeep = null;
+    /* ---------- the Text row (opts.texts): words on My film's frames as thin bars ----------
+       One bar per text item over the moments it shows on, packed into sub-rows so bars never overlap. Each end
+       is a handle: drag it to change the first or last moment; drag the middle to move the whole stretch; a
+       click picks it (the page opens its editor). The drag paints the bar as it goes and tells the page once,
+       when you let go, so it is one undo step. */
+    function textBand(colW, svgW, n, y) {
+      const d = opts.texts ? opts.texts() : null;
+      const items = d && Array.isArray(d.items) ? d.items.filter((t) => t && t.id != null) : [];
+      if (!items.length || !n) return { h: 0, svg: "", head: "" };
+      const pk = textRows(items);
+      const h = Math.max(1, pk.count) * TXT_ROW + 6;
+      const out = [`<g class="sl-txt"><rect class="sl-txtbg" x="0" y="${y}" width="${svgW}" height="${h}"/>`];
+      items.forEach((t) => {
+        const a = Math.max(0, Math.min(n - 1, t.j0 | 0));
+        const b = Math.max(a, Math.min(n - 1, t.j1 | 0));
+        const x = a * colW + 2;
+        const w = Math.max(8, (b - a + 1) * colW - 4);
+        const yy = y + 3 + (pk.rowOf[t.id] || 0) * TXT_ROW;
+        const bh = TXT_ROW - 3;
+        const words = String(t.text || "");
+        const room = Math.max(0, Math.floor((w - 16) / 5.5));
+        out.push(`<g class="sl-txtbar" data-txt-bar="${esc(t.id)}" data-style="${esc(t.style || "")}" data-j0="${a}" data-j1="${b}" tabindex="0" role="button" aria-label="${esc(t.title || words)}"><rect class="sl-txtbody" x="${x}" y="${yy}" width="${w}" height="${bh}" rx="3"/>${room > 2 ? `<text class="sl-txtword" x="${x + 8}" y="${yy + bh - 2.5}">${esc(words.length > room ? words.slice(0, room - 1) + "…" : words)}</text>` : ""}<rect class="sl-txtend" data-txt-end="a" x="${x}" y="${yy}" width="6" height="${bh}" rx="2"/><rect class="sl-txtend" data-txt-end="b" x="${x + w - 6}" y="${yy}" width="6" height="${bh}" rx="2"/><title>${esc(t.title || words)}</title></g>`);
+      });
+      out.push("</g>");
+      const tip = "Text: the words drawn on My film's picture. Each bar covers the moments one shows on: drag an end to change them, drag the middle to move it, click it to change the words.";
+      return { h, svg: out.join(""), head: `<div class="sl-head sl-cliphead sl-txthead" style="height:${h}px" title="${esc(tip)}"><b>T Text</b><span class="sl-txtcount">${items.length}</span></div>` };
+    }
+    function textDown(e, g) {
+      e.preventDefault();
+      e.stopPropagation();
+      const t = opts.texts ? opts.texts() : null;
+      if (!t) return;
+      const end = e.target.closest("[data-txt-end]");
+      const d = { id: g.dataset.txtBar, part: end ? end.dataset.txtEnd : "move", x0: e.clientX, j0: Number(g.dataset.j0) || 0, j1: Number(g.dataset.j1) || 0, moved: false };
+      d.a = d.j0;
+      d.b = d.j1;
+      const colW = geo.colW;
+      const n = geo.n;
+      const paint = () => {
+        const x = d.a * colW + 2;
+        const w = Math.max(8, (d.b - d.a + 1) * colW - 4);
+        const body = g.querySelector(".sl-txtbody");
+        if (body) body.setAttribute("x", x), body.setAttribute("width", w);
+        const ea = g.querySelector('[data-txt-end="a"]');
+        const eb = g.querySelector('[data-txt-end="b"]');
+        if (ea) ea.setAttribute("x", x);
+        if (eb) eb.setAttribute("x", x + w - 6);
+        const word = g.querySelector(".sl-txtword");
+        if (word) word.setAttribute("x", x + 8);
+        g.classList.add("dragging");
+        const m = el.querySelector(".sl-msg");
+        if (m) m.textContent = d.a === d.b ? `Shows on moment ${d.a + 1}` : `Shows on moments ${d.a + 1} to ${d.b + 1}`;
+      };
+      const move = (ev) => {
+        if (!d.moved && Math.abs(ev.clientX - d.x0) < 4) return;
+        d.moved = true;
+        const dj = Math.round((ev.clientX - d.x0) / colW);
+        if (d.part === "a") (d.a = Math.max(0, Math.min(d.j1, d.j0 + dj))), (d.b = d.j1);
+        else if (d.part === "b") (d.a = d.j0), (d.b = Math.min(n - 1, Math.max(d.j0, d.j1 + dj)));
+        else {
+          const s = Math.max(-d.j0, Math.min(n - 1 - d.j1, dj));
+          d.a = d.j0 + s;
+          d.b = d.j1 + s;
+        }
+        paint();
+      };
+      const up = () => {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        if (!d.moved) return t.onPick ? t.onPick(d.id) : null;
+        if ((d.a !== d.j0 || d.b !== d.j1) && t.onSpan) t.onSpan(d.id, d.a, d.b);
+        else draw();
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+    }
     /* The Attention track (see attentionTrack): one block per moment colored by what holds attention, a filled
        line for how strongly the film pulls forward, and the families as a small key in its name. It lives in the
        top bar, so it follows zoom and scroll, and a click on it moves the playhead like a click on the ruler.
@@ -2082,6 +2181,9 @@
       const segEl = e.target.closest && e.target.closest("[data-seg]");
       const clipEl = e.target.closest && e.target.closest("[data-clip]");
       const r = sc ? sc.getBoundingClientRect() : { left: 0, top: 0 };
+      /* A text's bar on the Text row: drag its ends or its middle (opts.texts). */
+      const tbar = e.target.closest && e.target.closest(".sl-top [data-txt-bar]");
+      if (tbar && geo) return textDown(e, tbar);
       /* A transition's ◇ is the page's (opts.joins): its click opens the chooser, so no zoom drag or playhead move. */
       if (e.target.closest && e.target.closest(".sl-top [data-join]")) return;
       if (e.target.closest && e.target.closest(".sl-top, .sl-rulerhead")) {
@@ -3678,7 +3780,7 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, textRows, TXT_ROW, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
   /* Templates (Save as template; the library's My templates). */
   Object.assign(root.CurioLanes, { TEMPLATE_KEY, TEMPLATE_FORMAT, TPL_MIME: "application/x-curiomatic-template", template, migrateTemplates, templateSummary, templatePreview, stretchTemplate, useTemplateCommands, exportTemplates, importTemplates, templates: () => loadTemplates(), saveTemplates });
 })();
