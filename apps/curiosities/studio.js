@@ -223,6 +223,9 @@
 
   window.CuriosityStudio = {
     register(m) {
+      /* the same id again takes the earlier one's place (rig/load.js registers "rig3d" before rig.js arrives) */
+      const i = modules.findIndex((x) => x.id === m.id);
+      if (i >= 0) modules.splice(i, 1);
       modules.push(m);
       modules.sort((a, b) => (a.order || 50) - (b.order || 50));
     },

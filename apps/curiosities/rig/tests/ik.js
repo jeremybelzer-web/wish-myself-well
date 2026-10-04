@@ -91,6 +91,8 @@ const f2 = (x) => x.toFixed(3);
   try {
     await page.goto(base + "index.html?screen=0");
     await page.waitForFunction(() => window.CurioRig && document.querySelector("#lib-menu [data-rig3d]"), null, { timeout: 15000 });
+    /* the 3D files load on first use (rig/load.js): fetch them before using the add-ons */
+    await page.evaluate(() => CurioRig.load());
     ok(await page.evaluate(() => CurioRig.extensions().some((x) => x.id === "ik") && !!window.CurioRigIK), "Feet and hands is added to the 3D view");
     await page.evaluate(() => {
       localStorage.removeItem("curiosities-rig3d-v1");

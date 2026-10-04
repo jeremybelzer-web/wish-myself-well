@@ -58,6 +58,9 @@ const shot = async (page, name) => {
   await page.route("**/fonts.g*/**", (r) => r.abort());
   try {
     await page.goto(base + "index.html?screen=0");
+    /* the 3D files load on first use (rig/load.js): fetch them before using the add-ons */
+    await page.waitForFunction(() => window.CurioRig && window.CurioRig.load, null, { timeout: 15000 });
+    await page.evaluate(() => CurioRig.load());
     await page.waitForFunction(() => window.CurioRig && window.CurioRigCamera && document.querySelector("#lib-menu [data-rig3d]"), null, { timeout: 15000 });
     ok(await page.evaluate(() => CurioRig.extensions().some((x) => x.id === "camera")), "the Camera add-on is registered");
     await page.evaluate(() => {

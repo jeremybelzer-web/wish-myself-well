@@ -81,9 +81,11 @@
   function cast(trackId) {
     const id = trackId === undefined ? shown() : trackId;
     const c = castData().cast[id || NOBODY];
-    const list = R() ? R().CHARACTERS : [];
+    const list = (R() && R().CHARACTERS) || [];
     if (madeOf(c)) return c;
-    return list.some((x) => x.id === c) ? c : list[0] ? list[0].id : "rigged-figure";
+    /* before the 3D files have arrived (rig/load.js) the list is empty: keep the saved choice */
+    if (!list.length) return c || "rigged-figure";
+    return list.some((x) => x.id === c) ? c : list[0].id;
   }
   function setCast(trackId, charId) {
     const c = castData();
@@ -98,6 +100,7 @@
   let visible = false;
   let lastAsk = [];
   let selSig = "";
+  let waiting = false;
   const isOpen = () => !!read(VIEW_KEY, {}).open;
   /* the other character tracks join the 3D view as more actors (rig/staging.js), unless turned off */
   const together = () => read(VIEW_KEY, {}).together !== false;
@@ -231,6 +234,16 @@
     });
     $("key").addEventListener("click", keyThis);
     $("beat-key").addEventListener("click", () => {
+      /* rig/scene.js arrives with the other 3D files on first use (rig/load.js) */
+      if (R() && R().loaded && !R().loaded()) {
+        $("said").textContent = "Getting the 3D files ready…";
+        return void R()
+          .load()
+          .then(
+            () => $("beat-key").click(),
+            (e) => ($("said").textContent = e.message)
+          );
+      }
       const B = window.CurioRigScene;
       const text = $("beat").value.trim() || (B ? B.EXAMPLE : "");
       if (!B || !B.toTimeline) return void ($("said").textContent = "Whole beats need the scene add-on (rig/scene.js).");
@@ -303,6 +316,26 @@
     const scr = window.CurioScreen;
     const live = open && visible && (!scr || !scr.isOpen || scr.isOpen()) && !!R();
     if (!live) return stop3D();
+    /* the 3D files arrive on first use (rig/load.js); show the view once they are in */
+    if (R().loaded && !R().loaded()) {
+      if (waiting) return;
+      waiting = true;
+      $("moment").textContent = "Getting the 3D view ready…";
+      R()
+        .load()
+        .then(
+          () => {
+            waiting = false;
+            selSig = "";
+            refresh();
+          },
+          (e) => {
+            waiting = false;
+            $("moment").textContent = e.message;
+          }
+        );
+      return;
+    }
     fillSelects();
     const who = shown();
     const r = scr && scr.row ? scr.row() : 0;

@@ -131,6 +131,9 @@ async function look(page, values) {
   };
   try {
     await page.goto(base + "index.html?screen=0");
+    /* the 3D files load on first use (rig/load.js): fetch them before using the add-ons */
+    await page.waitForFunction(() => window.CurioRig && window.CurioRig.load, null, { timeout: 15000 });
+    await page.evaluate(() => CurioRig.load());
     await page.waitForFunction(() => window.CurioRig && window.CurioRigLights && document.querySelector("#lib-menu [data-rig3d]"), null, { timeout: 15000 });
     ok(CurioRigHas(await page.evaluate(() => CurioRig.extensions().map((x) => x.id))), "the Light add-on is part of the 3D view");
     await page.evaluate(() => {

@@ -126,6 +126,9 @@ const OTHERS = [
       ["curiosities-rig3d-made-v1", "curiosities-rig3d-sets-v1", "curiosities-rig3d-v1", "curiosities-storyboard-v1"].forEach((k) => localStorage.removeItem(k));
     });
     await page.reload();
+    /* the 3D files load on first use (rig/load.js): fetch them before using the add-ons */
+    await page.waitForFunction(() => window.CurioRig && window.CurioRig.load, null, { timeout: 15000 });
+    await page.evaluate(() => CurioRig.load());
     await page.waitForFunction(() => window.CurioRig && window.CurioRigScene && window.CuriosityStoryboard && document.querySelector("#lib-menu [data-rig3d]"), null, { timeout: 15000 });
     ok(await page.evaluate(() => CurioRig.extensions().some((x) => x.id === "scene") && typeof CurioRig.maker.remember === "function"), "Make a whole scene from words is part of the 3D view, and the maker keeps characters by name (CurioRig.maker.remember)");
 
