@@ -81,6 +81,7 @@ const suites = [
   { name: "engine in a browser", browser: true, secs: 135, ...node("engine/tests/browser.js", threeArgs) },
   { name: "momentum in a browser", browser: true, secs: 30, ...node("momentum/tests/browser.js", threeArgs) },
   { name: "video in a browser", browser: true, secs: 25, ...node("video/tests/browser.js") },
+  { name: "viewer in a browser", browser: true, secs: 15, ...node("viewer/tests/browser.js") },
   { name: "storyboard flip book", browser: true, secs: 10, ...node("tests/flipbook.js") },
   { name: "save, new, open a project", browser: true, secs: 30, ...node("tests/save-open.js") },
   { name: "bring in a video", browser: true, secs: 25, ...node("media/tests/browser.js") },

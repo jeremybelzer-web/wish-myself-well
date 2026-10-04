@@ -40,6 +40,8 @@ A model of a movie, a TV hour, or a video game is only those three. If a fact ca
 16. `blender/` — the Blender add-on (`blender/README.md`): connects to the desktop app's bridge and drives `CurioCam` with the same camera mapping as Maya. `make_zip.py` builds the installable zip; `tests/test_blender.py` runs with bpy.
 17. `index.html` — open this in a browser. No build step.
 
+**The Viewer opens first** (`viewer/viewer.js`, `window.CurioViewer`, see `viewer/README.md`): a big picture of the film where shapes move, a comic strip that plays one panel at a time with speech balloons, and plain controls to move things, turn them toward the camera and change the lens (fisheye, foreshortening, height, side, lean). Its Full editor button shows the rest of the app.
+
 State is `localStorage` key `curiosities-board-v2`.
 
 ## The bar: My film, Storyboard, the workspaces, and the Library
