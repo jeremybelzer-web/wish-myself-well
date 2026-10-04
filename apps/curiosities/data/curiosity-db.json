@@ -231,7 +231,7 @@
    "id": "shotSize",
    "level": "curiosity",
    "label": "Shot size",
-   "plain": "Wide, medium, close, insert. How much of the body the frame keeps.",
+   "plain": "How much of the body the frame shows: wide (the whole body and the place), medium (from the waist up), close (the face), or insert (a very close shot of a small thing, like a hand or a key).",
    "workspace": "camera-angle",
    "also": [],
    "group": "Camera",
@@ -361,7 +361,8 @@
     "pull": "A cut in close forces the audience onto one face or thing: it now holds attention.",
     "cue": "visual",
     "tryThis": "Move one size closer each time the stakes rise in a scene."
-   }
+   },
+   "replained": true
   },
   {
    "id": "angleHeight",
@@ -624,8 +625,8 @@
   {
    "id": "dutch",
    "level": "curiosity",
-   "label": "Dutch / level",
-   "plain": "Horizon tilted or true.",
+   "label": "Tilted or level frame",
+   "plain": "Whether the horizon is level or tilted. A tilted frame is called a Dutch angle; it makes a scene feel uneasy or off balance.",
    "workspace": "camera-angle",
    "also": [],
    "group": "Camera",
@@ -635,7 +636,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Dutch / level",
+     "label": "Tilted or level frame",
      "plain": "Its setting in this panel.",
      "scale": [
       "level",
@@ -752,13 +753,15 @@
     "pull": "A sudden tilt makes the audience feel uneasy and watch for trouble.",
     "cue": "visual",
     "tryThis": "Tilt the camera only after the lie is told, and level it when it is found out."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "pov",
    "level": "curiosity",
-   "label": "Point of view",
-   "plain": "Whose eyes, or nobody’s.",
+   "label": "Whose eyes the shot sees through",
+   "plain": "Whether the shot is seen through someone's eyes (a point of view shot), through an object, or through nobody's. Not \"Story point of view\", which is whose story each scene tells.",
    "workspace": "camera-angle",
    "also": [],
    "group": "Camera",
@@ -768,7 +771,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Point of view",
+     "label": "Whose eyes the shot sees through",
      "plain": "Its setting in this panel.",
      "scale": [
       "nobody",
@@ -796,7 +799,7 @@
     {
      "id": "honesty",
      "label": "Trust the eyes",
-     "plain": "Whether the point of view shows the truth or the person's bent version of it.",
+     "plain": "Whether the point of view shows the truth or the person's bent version of it. (Same idea as \"A view we cannot trust\".)",
      "scale": [
       "true",
       "biased",
@@ -872,13 +875,15 @@
     "pull": "A point-of-view shot makes the audience search the frame the way the character would.",
     "cue": "thought",
     "tryThis": "Switch to the villain's eyes once, just before they act."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "angleCount",
    "level": "curiosity",
    "label": "Angles per scene",
-   "plain": "How many distinct setups the scene is allowed.",
+   "plain": "How many camera setups the scene is allowed. A setup is one place for the camera with its own angle.",
    "workspace": "camera-angle",
    "also": [],
    "group": "Camera",
@@ -902,8 +907,8 @@
     },
     {
      "id": "reuse",
-     "label": "Return to setups",
-     "plain": "How often the scene goes back to an angle it already used.",
+     "label": "Back to an earlier angle",
+     "plain": "How often the scene goes back to a camera setup (place and angle) it already used.",
      "scale": [
       "never",
       "sometimes",
@@ -916,7 +921,7 @@
     {
      "id": "variety",
      "label": "How different the setups are",
-     "plain": "From near-identical angles to wildly different ones.",
+     "plain": "From near-identical camera setups to wildly different ones.",
      "range": {
       "min": 0,
       "max": 5,
@@ -995,13 +1000,14 @@
     "pull": "Each new position is a new view, which refreshes attention.",
     "cue": "visual",
     "tryThis": "Save one new camera position for the turn of the scene."
-   }
+   },
+   "replained": true
   },
   {
    "id": "angleFamily",
    "level": "curiosity",
    "label": "Angles grouped",
-   "plain": "Coverage cuts around a line. An oner stays. Montage stacks. Handheld hunts.",
+   "plain": "How the shots of a scene are planned as a set. Coverage: the scene is filmed from several angles and the edit cuts between them, keeping the camera on one side of \"the line\" (an imaginary line between two people, so they keep facing each other on screen). A oner: one long shot with no cuts at all. Montage: many short shots stacked to show time passing. Handheld: a camera held in the hands that hunts for the action.",
    "workspace": "camera-angle",
    "also": [],
    "group": "Camera",
@@ -1012,7 +1018,7 @@
     {
      "id": "setting",
      "label": "Angles grouped",
-     "plain": "Its setting in this panel.",
+     "plain": "Coverage (cutting between several angles of the same moment), oner (one shot, no cuts), montage (short stacked shots of time passing) or handheld (a held camera searching for the action).",
      "scale": [
       "coverage",
       "oner",
@@ -1118,7 +1124,8 @@
     "pull": "An unbroken shot makes the audience wait for the cut that never comes.",
     "cue": "visual",
     "tryThis": "Shoot the scene's most awkward moment in one unbroken shot, and let the silence be the joke."
-   }
+   },
+   "replained": true
   },
   {
    "id": "angleChange",
@@ -1369,7 +1376,7 @@
    "id": "angleToAction",
    "level": "curiosity",
    "label": "Angle matched to the action",
-   "plain": "The insert for a hand. The wide for a crossing of the room.",
+   "plain": "Whether each shot fits the action it shows: an insert (a very close shot of a small thing) for a hand at work, a wide shot for someone crossing the room. Or the shot can play against the action on purpose.",
    "workspace": "camera-angle",
    "also": [],
    "group": "Camera",
@@ -1484,13 +1491,14 @@
     "pull": "A sudden close-up of an action makes the audience remember it for later.",
     "cue": "visual",
     "tryThis": "Cut close on a hand pocketing the key, then never mention it until the end."
-   }
+   },
+   "replained": true
   },
   {
    "id": "cutRate",
    "level": "curiosity",
-   "label": "Frequency of angle changes",
-   "plain": "How often the setup is allowed to move, per line or per beat.",
+   "label": "How often the shot changes",
+   "plain": "How often the picture is allowed to change to a new camera setup (a new place and angle for the camera), per line or per beat. The other side of \"How long each shot lasts\": many changes a minute means short shots. \"Cut rate in action\" counts only during action, and \"Something new every\" counts anything new, not only cuts.",
    "workspace": "camera-motion",
    "also": [],
    "group": "Camera",
@@ -1500,7 +1508,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Frequency of angle changes",
+     "label": "How often the shot changes",
      "plain": "Its setting in this panel.",
      "scale": [
       "slow",
@@ -1604,13 +1612,15 @@
     "pull": "Every cut is a new thing to look at, so the cut rate is the rate attention is moved by the camera.",
     "cue": "visual",
     "tryThis": "Speed up the cutting as the scene nears its turn, then hold one long shot after it."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "shotDuration",
    "level": "curiosity",
-   "label": "Hold",
-   "plain": "How long a panel stays before the next angle.",
+   "label": "How long each shot lasts",
+   "plain": "How long a shot or panel stays before the picture changes to the next angle. The other side of \"How often the shot changes\": long shots mean few changes.",
    "workspace": "camera-motion",
    "also": [],
    "group": "Camera",
@@ -1620,7 +1630,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Hold",
+     "label": "How long each shot lasts",
      "plain": "Its setting in this panel.",
      "scale": [
       "short",
@@ -1724,13 +1734,15 @@
     "pull": "A long hold stretches attention on one thing; past a point the audience starts looking for what is wrong.",
     "cue": "visual",
     "tryThis": "Hold just long enough to make them uneasy, then cut."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "cameraCarry",
    "level": "curiosity",
-   "label": "Camera carry",
-   "plain": "Locked sits. Smooth is one line. Handheld is unsteady.",
+   "label": "How the camera is held",
+   "plain": "How the camera is held: locked (fixed on a stand, it does not move), smooth (it glides along one steady path, on a track or a steadying rig), or handheld (held in the hands, a little unsteady).",
    "workspace": "camera-motion",
    "also": [],
    "group": "Camera move",
@@ -1740,7 +1752,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Camera carry",
+     "label": "How the camera is held",
      "plain": "Its setting in this panel.",
      "scale": [
       "locked",
@@ -1754,7 +1766,7 @@
     {
      "id": "wobble",
      "label": "Wobble",
-     "plain": "For handheld, how much the frame shakes.",
+     "plain": "For handheld, how much the frame shakes. (Shot that way; same as \"Camera shake while filming\".)",
      "range": {
       "min": 0,
       "max": 5,
@@ -1847,7 +1859,9 @@
     "pull": "Switching from still to shaky warns that the calm is over.",
     "cue": "visual",
     "tryThis": "Lock the camera still for a deadpan joke, so nothing distracts from the face."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "cameraMove",
@@ -2239,8 +2253,8 @@
   {
    "id": "moveOn",
    "level": "curiosity",
-   "label": "Move starts on",
-   "plain": "The cue that starts the move.",
+   "label": "Camera move starts on",
+   "plain": "The cue that starts the camera's move: a line, an action, a breath, or no cue. Not \"Move on the line\", which is a person's body moving with the words.",
    "workspace": "camera-motion",
    "also": [],
    "group": "Camera move",
@@ -2250,7 +2264,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Move starts on",
+     "label": "Camera move starts on",
      "plain": "Its setting in this panel.",
      "scale": [
       "line",
@@ -2358,13 +2372,15 @@
     "pull": "A move that kicks off on a cue tells the audience that cue mattered.",
     "cue": "movement",
     "tryThis": "Start a slow push in on the exact word where the character gives themselves away."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "cameraOwner",
    "level": "curiosity",
    "label": "Camera owner",
-   "plain": "An authored camera, or the player’s. Games need both.",
+   "plain": "Who controls the camera: authored (the filmmaker chooses every shot) or the player (in a game, the player steers it). Games need both.",
    "workspace": "camera-motion",
    "also": [],
    "group": "Camera move",
@@ -2479,7 +2495,8 @@
     "pull": "Taking control back from the player tells them something important is about to happen.",
     "cue": "plot",
     "tryThis": "Take the camera away from the player only for the key reveal."
-   }
+   },
+   "replained": true
   },
   {
    "id": "characterPath",
@@ -3615,8 +3632,8 @@
   {
    "id": "key",
    "level": "curiosity",
-   "label": "Key direction",
-   "plain": "Side, front, back, under, none.",
+   "label": "Where the main light comes from",
+   "plain": "Where the key light (the main, brightest light on a face) comes from: the side, the front, behind, below, or no main light at all.",
    "workspace": "light",
    "also": [],
    "group": "Light",
@@ -3626,7 +3643,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Key direction",
+     "label": "Where the main light comes from",
      "plain": "Its setting in this panel.",
      "scale": [
       "side",
@@ -3655,8 +3672,8 @@
     },
     {
      "id": "ratio",
-     "label": "Key to fill",
-     "plain": "How much brighter the main light is than the fill.",
+     "label": "Main light against fill light",
+     "plain": "How much brighter the main light is than the fill light (a softer second light that lightens the shadows). 1:1 is flat; 16:1 leaves one side of the face nearly black.",
      "range": {
       "min": 1,
       "max": 16,
@@ -3733,7 +3750,9 @@
     "pull": "A face lit from one side leaves half in shadow, and the audience waits to see the hidden half.",
     "cue": "visual",
     "tryThis": "Light a character from the front all film, then swing the light to the side the moment they start lying."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "contrast",
@@ -3862,7 +3881,7 @@
    "id": "colorTemp",
    "level": "curiosity",
    "label": "Color of the light",
-   "plain": "Warm practical, cold day, mixed.",
+   "plain": "The color of the light on set: warm practical (the orange glow of lamps and candles that are part of the scene), cold day (the blue of daylight or an overcast sky), or a mix of both.",
    "workspace": "light",
    "also": [
     "color"
@@ -3887,8 +3906,8 @@
     },
     {
      "id": "kelvin",
-     "label": "Kelvin",
-     "plain": "Warm candle (low) to blue sky (high).",
+     "label": "Color number (kelvin)",
+     "plain": "Light color measured in kelvin, a number for how warm or blue light is: low is orange candlelight (about 1800), high is blue sky (about 10000).",
      "range": {
       "min": 1800,
       "max": 10000,
@@ -3979,13 +3998,14 @@
     "pull": "When warm and cold light meet on one face, the audience feels a pull between two places and wants to see which wins.",
     "cue": "visual",
     "tryThis": "Keep a home scene warm, then let a cold blue light from an opened door fall across it."
-   }
+   },
+   "replained": true
   },
   {
    "id": "lighting",
    "level": "curiosity",
-   "label": "Lighting",
-   "plain": "The look of the room as a single choice the board can render.",
+   "label": "Lighting preset",
+   "plain": "The look of the room as one ready-made choice the board can draw: dusk, flat, practical (lit by the lamps that are part of the scene), hard, or moon. Close to \"Lighting\", which breaks the light into its parts.",
    "workspace": "light",
    "also": [
     "color"
@@ -3997,7 +4017,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Lighting",
+     "label": "Lighting preset",
      "plain": "Its setting in this panel.",
      "scale": [
       "dusk",
@@ -4106,7 +4126,9 @@
     "pull": "A sudden switch in the room's light makes the audience ask what just changed, carrying them into the next beat.",
     "cue": "visual",
     "tryThis": "Snap the room from warm lamps to hard overhead light at the exact line where the argument starts."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "timeOfDay",
@@ -5119,7 +5141,7 @@
     {
      "id": "distance",
      "label": "Distance between them",
-     "plain": "From touching to across the room.",
+     "plain": "From touching to across the room. (Same as \"Personal space\".)",
      "range": {
       "min": 0,
       "max": 5,
@@ -5350,8 +5372,8 @@
   {
    "id": "focus",
    "level": "curiosity",
-   "label": "Who is sharp",
-   "plain": "The face, the hand, the crystal, the door.",
+   "label": "What is in sharp focus",
+   "plain": "Which thing the lens keeps sharp while the rest goes soft: a face, a hand, an object, or a door. Not the Focus workspace, which is about what a character pays attention to.",
    "workspace": "placement",
    "also": [],
    "group": "People",
@@ -5361,7 +5383,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Who is sharp",
+     "label": "What is in sharp focus",
      "plain": "Its setting in this panel.",
      "scale": [
       "face",
@@ -5467,7 +5489,9 @@
     "pull": "When the sharp spot slides to something new, every eye follows it.",
     "cue": "visual",
     "tryThis": "Shift the sharpness from a face to a door just before someone knocks."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "look",
@@ -5961,8 +5985,8 @@
   {
    "id": "pace",
    "level": "curiosity",
-   "label": "Pace",
-   "plain": "Speed of the line against the hold of the shot.",
+   "label": "Speaking speed",
+   "plain": "How fast the lines are spoken, against how long the shot holds. Not \"Cutting speed across the scene\", which is about the edit, or \"Walking back and forth\", which is a person walking.",
    "workspace": "lines",
    "also": [],
    "group": "Sound",
@@ -5972,7 +5996,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Pace",
+     "label": "Speaking speed",
      "plain": "Its setting in this panel.",
      "scale": [
       "slow",
@@ -6076,7 +6100,9 @@
     "pull": "A change in pace makes the audience listen differently.",
     "cue": "audio",
     "tryThis": "Speed up the talking as an argument nears its turn."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "silence",
@@ -6571,8 +6597,8 @@
   {
    "id": "stillness",
    "level": "curiosity",
-   "label": "Stillness",
-   "plain": "How much of the person is allowed to move.",
+   "label": "How still this person is",
+   "plain": "How much of this one person is allowed to move. Not \"How much everyone moves\", which is everyone in the scene.",
    "workspace": "movement-lines",
    "also": [],
    "group": "Body",
@@ -6582,7 +6608,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Stillness",
+     "label": "How still this person is",
      "plain": "Its setting in this panel.",
      "range": {
       "min": 0,
@@ -6688,13 +6714,15 @@
     "pull": "When someone stops moving, the audience stops too and waits for what breaks the stillness.",
     "cue": "movement",
     "tryThis": "Freeze a character completely after bad news while everyone else keeps moving around them."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "blink",
    "level": "curiosity",
    "label": "Blink",
-   "plain": "A tell. Easy to fake. The crystal does not use it.",
+   "plain": "Whether, and how often, a character blinks. A blink is a tell (a small sign that gives a thought or a feeling away) and is easy to fake, so some performers hold their eyes still and never blink.",
    "workspace": "movement-lines",
    "also": [],
    "group": "Body",
@@ -6807,13 +6835,14 @@
     "pull": "A blink on a thought makes the audience read the face for what was just decided.",
     "cue": "visual",
     "tryThis": "Have a liar blink slightly too often when telling the big lie."
-   }
+   },
+   "replained": true
   },
   {
    "id": "panelCount",
    "level": "curiosity",
    "label": "Panels",
-   "plain": "The strip’s length. Tied to angles when the board is in coverage.",
+   "plain": "How many panels the strip has. When the board is set to coverage (cutting between several angles of the same moment), the number of panels follows the number of angles.",
    "workspace": "page",
    "also": [],
    "group": "Comic",
@@ -6928,13 +6957,14 @@
     "pull": "A long strip of panels makes the reader race along to see how it ends, often for the punchline.",
     "cue": "visual",
     "tryThis": "Use three small panels to set up a joke and one last panel for the punchline."
-   }
+   },
+   "replained": true
   },
   {
    "id": "gutter",
    "level": "curiosity",
    "label": "Gutter",
-   "plain": "The gap where time happens off-panel.",
+   "plain": "The gutter is the white gap between comic panels, where time passes that we do not see. None: the panels touch. Beat: a moment passes in the gap. Scene: a whole scene jumps by. Close to \"The jump between panels\"; this one is the gap itself and its width, that one how big the jump in the story is.",
    "workspace": "page",
    "also": [],
    "group": "Comic",
@@ -7049,7 +7079,8 @@
     "pull": "A wide gap makes the reader wonder what happened in between and hurry to the next panel.",
     "cue": "thought",
     "tryThis": "Put the crash in the gap between panels and show only the before and after."
-   }
+   },
+   "replained": true
   },
   {
    "id": "balloon",
@@ -7175,8 +7206,8 @@
   {
    "id": "mains",
    "level": "curiosity",
-   "label": "Featured mains",
-   "plain": "Our hour follows two to four. Not a crowd of points of view.",
+   "label": "Number of main characters",
+   "plain": "How many main characters the hour follows, from two to four, rather than a crowd of people whose eyes we see through.",
    "workspace": "structure",
    "also": [],
    "group": "Story",
@@ -7186,7 +7217,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Featured mains",
+     "label": "Number of main characters",
      "plain": "Its setting in this panel.",
      "range": {
       "min": 2,
@@ -7201,7 +7232,7 @@
     {
      "id": "share",
      "label": "Share of the hour",
-     "plain": "How much of the hour the mains hold together.",
+     "plain": "How much of the hour the mains hold together. For the whole hour; \"Screen time per person in this scene\" is one scene.",
      "range": {
       "min": 0,
       "max": 100,
@@ -7294,7 +7325,9 @@
     "pull": "Following a small group means each one's next move matters, and the audience wants to see them all through.",
     "cue": "plot",
     "tryThis": "Pick two to four mains and give each one a goal they chase all hour."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "groups",
@@ -7422,7 +7455,7 @@
    "id": "exit",
    "level": "curiosity",
    "label": "Exit",
-   "plain": "The other ensemble lets principals out by death. Ours may also walk out.",
+   "plain": "How a character leaves the story: stays, walks out, or dies. Many shows with a big shared cast only let their main characters leave by dying; here they can also simply walk out.",
    "workspace": "structure",
    "also": [],
    "group": "Story",
@@ -7539,7 +7572,8 @@
     "pull": "Hints that a main might leave make the audience watch every scene with them closely, fearing it is the last.",
     "cue": "plot",
     "tryThis": "Plant a small warning of the exit two scenes before it happens so it hurts but feels fair."
-   }
+   },
+   "replained": true
   },
   {
    "id": "featureRate",
@@ -7667,7 +7701,7 @@
    "id": "depthOfField",
    "level": "curiosity",
    "label": "Depth of field",
-   "plain": "How deep the sharp zone is",
+   "plain": "How deep the sharp zone is (the depth of field): shallow means only one thing is sharp and the rest is blurred; deep means near and far are both sharp.",
    "workspace": "camera-angle",
    "also": [],
    "group": "Camera",
@@ -7690,8 +7724,8 @@
     },
     {
      "id": "fstop",
-     "label": "F-stop",
-     "plain": "The lens opening; low numbers blur the background.",
+     "label": "Lens opening (f-stop)",
+     "plain": "The size of the lens opening, written as an f-stop number: low numbers (like 1.4) are a wide opening that blurs the background; high numbers (like 22) are a small opening that keeps everything sharp.",
      "range": {
       "min": 1.4,
       "max": 22,
@@ -7782,7 +7816,8 @@
     "pull": "With everything sharp, the eye can wander to a background gag or threat.",
     "cue": "visual",
     "tryThis": "Keep the whole room sharp so a background character can do something funny."
-   }
+   },
+   "replained": true
   },
   {
    "id": "rackFocus",
@@ -7909,7 +7944,7 @@
    "id": "motionBlur",
    "level": "curiosity",
    "label": "Motion blur",
-   "plain": "Blur amount per shot",
+   "plain": "How much moving things smear in each shot (motion blur).",
    "workspace": "camera-angle",
    "also": [],
    "group": "Camera",
@@ -7932,8 +7967,8 @@
     },
     {
      "id": "shutter",
-     "label": "Shutter angle",
-     "plain": "Low is crisp and choppy, high is smeary.",
+     "label": "Shutter angle (blur in each frame)",
+     "plain": "Shutter angle: how long each frame's shutter stays open. Low (like 45) is crisp and choppy; high (like 360) is smeary.",
      "range": {
       "min": 45,
       "max": 360,
@@ -8024,13 +8059,14 @@
     "pull": "Heavy blur on a fast move makes the eye feel the speed and catch the stop.",
     "cue": "visual",
     "tryThis": "Keep motion crisp in the fight, and smear it only when the hero is dazed."
-   }
+   },
+   "replained": true
   },
   {
    "id": "aspect",
    "level": "curiosity",
    "label": "Frame shape",
-   "plain": "Aspect ratio per shot or panel",
+   "plain": "The shape of the frame, written as its width against its height (the aspect ratio): 1.33 is almost square, like old TV; 1.85 is a common cinema shape; 2.39 is very wide widescreen.",
    "workspace": "camera-angle",
    "also": [],
    "group": "Camera",
@@ -8041,7 +8077,7 @@
     {
      "id": "setting",
      "label": "Frame shape",
-     "plain": "Its setting in this panel.",
+     "plain": "1.33 (almost square, like old TV), 1.85 (common cinema), 2.39 (very wide) or a custom shape.",
      "scale": [
       "1.33",
       "1.85",
@@ -8145,7 +8181,8 @@
     "pull": "When the frame changes shape, the audience knows they have entered a new world.",
     "cue": "visual",
     "tryThis": "Widen the frame the moment the hero finally gets out."
-   }
+   },
+   "replained": true
   },
   {
    "id": "composition",
@@ -8204,7 +8241,7 @@
     {
      "id": "frameInFrame",
      "label": "Frame within the frame",
-     "plain": "A door or window that frames the subject again.",
+     "plain": "A door or window that frames the subject again. (Same as \"Frame within a frame\".)",
      "scale": [
       "none",
       "partial",
@@ -8527,8 +8564,8 @@
   {
    "id": "moveTemper",
    "level": "curiosity",
-   "label": "Move temper",
-   "plain": "The camera's attitude to the action",
+   "label": "The camera's attitude",
+   "plain": "How the camera feels about the action, from loving (1: gentle, patient, close) to aggressive (5: pushy, quick, rough).",
    "workspace": "character-motion",
    "also": [],
    "group": "Camera move",
@@ -8538,7 +8575,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Move temper",
+     "label": "The camera's attitude",
      "plain": "Its setting in this panel.",
      "range": {
       "min": 1,
@@ -8644,13 +8681,15 @@
     "pull": "When the camera's mood changes, the audience senses the scene has turned.",
     "cue": "visual",
     "tryThis": "Keep the camera calm all scene, then let it lurch once at the turn."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "cameraShake",
    "level": "curiosity",
-   "label": "Shake",
-   "plain": "Shake amplitude per beat",
+   "label": "Camera shake while filming",
+   "plain": "How much the camera shakes as the shot is filmed, beat by beat. Not \"Camera move added in the edit\", which fakes a shake later, or \"Shake removed in the edit\", which smooths it out.",
    "workspace": "camera-motion",
    "also": [],
    "group": "Camera move",
@@ -8660,7 +8699,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Shake",
+     "label": "Camera shake while filming",
      "plain": "Its setting in this panel.",
      "range": {
       "min": 0,
@@ -8766,13 +8805,15 @@
     "pull": "A sudden shake jolts attention onto the cause, and a tiny shake for a small thud can be funny.",
     "cue": "movement",
     "tryThis": "Shake the camera hard for a door slam to oversell it for a laugh."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "speedRamp",
    "level": "curiosity",
-   "label": "Time speed",
-   "plain": "Playback speed of the shot",
+   "label": "Speed ramp (speed changing in the shot)",
+   "plain": "How fast the shot plays, and whether the speed ramps (changes inside the shot, like slowing down for the hit). Close to \"Clip speed\"; this one adds the ramp, that one sets one speed for the whole clip.",
    "workspace": "camera-motion",
    "also": [],
    "group": "Camera move",
@@ -8782,7 +8823,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Time speed",
+     "label": "Speed ramp (speed changing in the shot)",
      "plain": "Its setting in this panel.",
      "scale": [
       "slow",
@@ -8887,13 +8928,15 @@
     "pull": "A change in time speed grabs attention instantly.",
     "cue": "visual",
     "tryThis": "Ramp to slow motion on the last second before a choice."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "spacing",
    "level": "curiosity",
-   "label": "Spacing",
-   "plain": "The shape of each move's curve",
+   "label": "Speed within a move",
+   "plain": "How a move speeds up and slows down along its path: even (the same speed all the way), ease in or ease out (gentle at one end), ease both (gentle at both ends) or snap (sudden). Animators call this spacing.",
    "workspace": "character-motion",
    "also": [],
    "group": "Animation",
@@ -8903,7 +8946,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Spacing",
+     "label": "Speed within a move",
      "plain": "Its setting in this panel.",
      "scale": [
       "even",
@@ -9010,13 +9053,15 @@
     "pull": "A move that snaps after a slow start jolts attention, the classic setup for a cartoon gag.",
     "cue": "movement",
     "tryThis": "Start a reach slowly, then snap it to the end for a comic grab."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "stepping",
    "level": "curiosity",
-   "label": "Drawn on",
-   "plain": "Frames each pose holds",
+   "label": "Drawn on ones, twos or threes",
+   "plain": "How many film frames each drawing or pose is held for. On ones, a new pose every frame (smooth). On twos, every second frame (the snappy, classic hand-drawn look). On threes, every third frame (choppy, like stop-motion).",
    "workspace": "character-motion",
    "also": [],
    "group": "Animation",
@@ -9026,8 +9071,8 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Drawn on",
-     "plain": "Its setting in this panel.",
+     "label": "Drawn on ones, twos or threes",
+     "plain": "Ones (a new pose every frame, smooth), twos (every second frame, snappy) or threes (every third frame, choppy).",
      "scale": [
       "ones",
       "twos",
@@ -9130,7 +9175,9 @@
     "pull": "Switching from smooth to choppy motion makes a moment pop out of the flow.",
     "cue": "visual",
     "tryThis": "Animate the frantic panic beat in a choppier rate than the calm around it."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "anticipation",
@@ -9744,7 +9791,7 @@
    "id": "squash",
    "level": "curiosity",
    "label": "Squash and stretch",
-   "plain": "Deformation amount",
+   "plain": "How much a body, a face or a thing squishes and stretches as it moves, like a bouncing ball that flattens when it lands and stretches as it flies. A classic cartoon trick: 0 is stiff, 5 is very rubbery.",
    "workspace": "character-motion",
    "also": [],
    "group": "Animation",
@@ -9859,7 +9906,8 @@
     "pull": "A big stretch before a move warns the eye that something fast is coming.",
     "cue": "movement",
     "tryThis": "Squash a character flat on landing, then stretch them tall in surprise."
-   }
+   },
+   "replained": true
   },
   {
    "id": "poseRate",
@@ -11096,7 +11144,7 @@
    "id": "lightShape",
    "level": "curiosity",
    "label": "Shaped light",
-   "plain": "Patterns cast by gobo, blocker, barndoor",
+   "plain": "A pattern cut into the light by something put in front of it: open (no pattern), blinds (stripes, like light through window blinds), leaves (dappled shadow, like sun through a tree), or barndoor (a hard straight edge made by the metal flaps on the front of a film light). On set this is done with a gobo or a blocker, a cut-out or a board in front of the lamp.",
    "workspace": "light",
    "also": [],
    "group": "Light",
@@ -11212,7 +11260,8 @@
     "pull": "Moving patterns of light across a wall draw the eye along with them toward the next thing in the room.",
     "cue": "visual",
     "tryThis": "Cast blind-shaped stripes across the suspect's face only after the detective starts to doubt them."
-   }
+   },
+   "replained": true
   },
   {
    "id": "atmosphere",
@@ -11339,7 +11388,7 @@
    "id": "lightChange",
    "level": "curiosity",
    "label": "When the light changes",
-   "plain": "Light-change ticks against cuts and actions",
+   "plain": "When the light changes against the edit: never, on the cut (the new shot has new light), on an action (someone flips a switch), or during a held shot (the light shifts while we watch).",
    "workspace": "light",
    "also": [],
    "group": "Light",
@@ -11455,13 +11504,14 @@
     "pull": "A change in light pulls every eye.",
     "cue": "visual",
     "tryThis": "Change the light at the moment the feeling turns."
-   }
+   },
+   "replained": true
   },
   {
    "id": "valueKey",
    "level": "curiosity",
-   "label": "Brightness key",
-   "plain": "Overall brightness by section",
+   "label": "Dark or bright overall (in the lighting)",
+   "plain": "How dark or bright the lighting is overall, scene by scene: low key (mostly dark, with deep shadows), mid, or high key (bright and even, with few shadows).",
    "workspace": "light",
    "also": [
     "color"
@@ -11473,8 +11523,8 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Brightness key",
-     "plain": "Its setting in this panel.",
+     "label": "Dark or bright overall (in the lighting)",
+     "plain": "Low key (mostly dark, deep shadows), mid, or high key (bright and even).",
      "scale": [
       "low key",
       "mid",
@@ -11487,7 +11537,7 @@
     {
      "id": "exposure",
      "label": "Exposure",
-     "plain": "Darker (negative) or brighter (positive) than normal.",
+     "plain": "Darker (below 0) or brighter (above 0) than normal, in stops (each stop doubles or halves the light).",
      "range": {
       "min": -3,
       "max": 3,
@@ -11578,7 +11628,9 @@
     "pull": "A jump from a dark scene to a bright one feels like coming up for air, and the audience follows the release.",
     "cue": "visual",
     "tryThis": "Keep comedy scenes bright and even, then drop the brightness hard for the one scene that is not a joke."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "renderStyle",
@@ -12069,7 +12121,7 @@
    "id": "skinLight",
    "level": "curiosity",
    "label": "Light in skin",
-   "plain": "Subsurface glow in skin",
+   "plain": "How much light glows through skin, the soft reddish glow you see in ears or in fingers held up to a lamp. 3D software calls it subsurface scattering.",
    "workspace": "light",
    "also": [],
    "group": "Shading and color",
@@ -12185,13 +12237,14 @@
     "pull": "When a face starts to glow with warmth, the audience feels the character waking up and watches for what they do.",
     "cue": "visual",
     "tryThis": "Give a sick character's skin no warm glow, then let the warmth return in the scene where they recover."
-   }
+   },
+   "replained": true
   },
   {
    "id": "glow",
    "level": "curiosity",
    "label": "Something glows",
-   "plain": "Emitting things in frame",
+   "plain": "Something in the picture gives off its own light: an object (a lamp, a screen), a person, or the whole room.",
    "workspace": "light",
    "also": [],
    "group": "Shading and color",
@@ -12307,13 +12360,14 @@
     "pull": "A glowing object is the first place the eye goes, and the audience waits for someone to reach for it.",
     "cue": "visual",
     "tryThis": "Make the key object glow faintly in the first scene so the audience spots it long before the characters do."
-   }
+   },
+   "replained": true
   },
   {
    "id": "wear",
    "level": "curiosity",
-   "label": "Wear",
-   "plain": "Damage and dirt over the scene",
+   "label": "Surface wear",
+   "plain": "Damage and dirt on the surfaces of the scene: dust, scratches, rust, stains. Close to \"Run down to spotless\"; this one is the look of the surfaces, that one how well the place is looked after.",
    "workspace": "light",
    "also": [],
    "group": "Shading and color",
@@ -12323,7 +12377,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Wear",
+     "label": "Surface wear",
      "plain": "Its setting in this panel.",
      "scale": [
       "new",
@@ -12428,13 +12482,15 @@
     "pull": "A spotless object in a ruined room stands out, and the audience wonders why it alone survived.",
     "cue": "visual",
     "tryThis": "Show the same room new at the start and ruined at the end, with one item left untouched."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "saturation",
    "level": "curiosity",
    "label": "Color saturation",
-   "plain": "Saturation of the frame",
+   "plain": "How strong the colors are, from washed out and grayish (low) to rich and vivid (high). Close to \"Black and white to full color\"; this one is only how strong the colors are and whether they drain or fill, that one also picks the main hue and the overall look.",
    "workspace": "light",
    "also": [
     "color"
@@ -12551,13 +12607,14 @@
     "pull": "Color slowly returning to a gray world makes the audience watch for what brought it back.",
     "cue": "visual",
     "tryThis": "Drain the color a little in every scene after the loss, then let one bright color return at the end."
-   }
+   },
+   "replained": true
   },
   {
    "id": "palette",
    "level": "curiosity",
-   "label": "Dominant color",
-   "plain": "The main hue per shot as a color strip",
+   "label": "Range of colors",
+   "plain": "How many colors lead each shot, shown as a strip of color, and how they go together. Close to \"Number of main colors\"; this one adds the harmony (how the colors relate).",
    "workspace": "light",
    "also": [],
    "group": "Shading and color",
@@ -12567,7 +12624,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Dominant color",
+     "label": "Range of colors",
      "plain": "Its setting in this panel.",
      "scale": [
       "one color",
@@ -12673,7 +12730,9 @@
     "pull": "A single shot of a clashing color jumps out and makes the audience look for what it means.",
     "cue": "visual",
     "tryThis": "Keep every shot in soft blues, then let the rival walk in wearing bright orange."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "windForce",
@@ -13890,7 +13949,7 @@
    "id": "hairColor",
    "level": "curiosity",
    "label": "Hair color",
-   "plain": "Melanin value",
+   "plain": "How light or dark the hair is (set by melanin, the natural pigment in hair), plus how much gray is in it and how varied the strands are.",
    "workspace": "effects",
    "also": [],
    "group": "Dynamics, fur and Bifrost",
@@ -14005,7 +14064,8 @@
     "pull": "A streak of gray appearing makes the audience wonder what this person went through.",
     "cue": "visual",
     "tryThis": "Add a single gray streak after the scene that frightens the hero most."
-   }
+   },
+   "replained": true
   },
   {
    "id": "hairShine",
@@ -14499,7 +14559,7 @@
    "id": "density",
    "level": "curiosity",
    "label": "Thickness",
-   "plain": "Volume density",
+   "plain": "How thick the smoke, fog, mist or dust is: a wisp, a plume, or a wall you cannot see through.",
    "workspace": "effects",
    "also": [],
    "group": "Dynamics, fur and Bifrost",
@@ -14614,7 +14674,8 @@
     "pull": "A wall of smoke hides what is behind it, and the audience waits for something to step out.",
     "cue": "visual",
     "tryThis": "Let the fog grow too thick to see through, then have a figure walk out of it."
-   }
+   },
+   "replained": true
   },
   {
    "id": "growth",
@@ -14983,8 +15044,8 @@
   {
    "id": "scatter",
    "level": "curiosity",
-   "label": "Scattered things",
-   "plain": "Leaves, debris or crowd per area",
+   "label": "Scattered bits per area",
+   "plain": "How many leaves, bits of debris or people are scattered over each part of the picture. Close to \"Scattered things\"; this one is a quick amount, spread and size, that one names what is scattered and how it moves.",
    "workspace": "effects",
    "also": [],
    "group": "Dynamics, fur and Bifrost",
@@ -14994,7 +15055,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Scattered things",
+     "label": "Scattered bits per area",
      "plain": "Its setting in this panel.",
      "range": {
       "min": 0,
@@ -15100,7 +15161,9 @@
     "pull": "A trail of scattered things leads the eye like breadcrumbs toward where the action is.",
     "cue": "visual",
     "tryThis": "Lay a trail of fallen leaves or dropped items leading right to the hiding spot."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "fireLight",
@@ -15227,7 +15290,7 @@
    "id": "repeatInFrame",
    "level": "curiosity",
    "label": "Repetition in frame",
-   "plain": "Rows of the same thing (MASH arrays)",
+   "plain": "Rows or patterns of the same thing repeated across the picture: seats, windows, soldiers, lamps. In Maya this is done with MASH, a tool that copies one object many times.",
    "workspace": "background",
    "also": [],
    "group": "Dynamics, fur and Bifrost",
@@ -15343,13 +15406,14 @@
     "pull": "The eye scans a pattern for the odd one out, which is a ready-made gag.",
     "cue": "visual",
     "tryThis": "Fill the frame with identical desks and make one of them wrong."
-   }
+   },
+   "replained": true
   },
   {
    "id": "musicCue",
    "level": "curiosity",
-   "label": "Score",
-   "plain": "Where music plays and how loud",
+   "label": "Score (music only we hear)",
+   "plain": "Where the score (music written for the film that only the audience hears) plays, and how loud. Close to \"Music\"; this one is a simple off, under or featured switch with a loudness, that one holds every music choice.",
    "workspace": "music",
    "also": [],
    "group": "Sound",
@@ -15359,7 +15423,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Score",
+     "label": "Score (music only we hear)",
      "plain": "Its setting in this panel.",
      "scale": [
       "off",
@@ -15464,13 +15528,15 @@
     "pull": "A score change moves attention to what it plays under.",
     "cue": "audio",
     "tryThis": "Bring the main tune back only at turning points."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "soundDensity",
    "level": "curiosity",
    "label": "Sound density",
-   "plain": "Layers of sound at once",
+   "plain": "How many layers of sound play at once: voices, music, effects, the background.",
    "workspace": "music",
    "also": [],
    "group": "Sound",
@@ -15586,13 +15652,14 @@
     "pull": "When layers drop out, the audience listens harder for what is left.",
     "cue": "audio",
     "tryThis": "Build the sound layers up through the scene, then cut to one sound when the turn hits."
-   }
+   },
+   "replained": true
   },
   {
    "id": "soundToCut",
    "level": "curiosity",
    "label": "Sound against the cut",
-   "plain": "Sound leading or trailing the picture cut",
+   "plain": "Whether the sound changes at the same moment as the picture. A J-cut: the next scene's sound starts before its picture. An L-cut: this scene's sound carries on over the next picture. Hard: sound and picture change together.",
    "workspace": "music",
    "also": [],
    "group": "Sound",
@@ -15603,7 +15670,7 @@
     {
      "id": "setting",
      "label": "Sound against the cut",
-     "plain": "Its setting in this panel.",
+     "plain": "J-cut (the next scene's sound starts before its picture), L-cut (this scene's sound carries on over the next picture) or hard (both change at once).",
      "scale": [
       "J-cut",
       "L-cut",
@@ -15707,13 +15774,14 @@
     "pull": "Hearing the next scene first makes the audience want to see it.",
     "cue": "audio",
     "tryThis": "Start the next scene's sound a second before the cut."
-   }
+   },
+   "replained": true
   },
   {
    "id": "sceneRate",
    "level": "curiosity",
    "label": "Scene change rate",
-   "plain": "How often the scene changes, the film's harmonic rhythm",
+   "plain": "How often the film moves on to a new scene, the way a song changes chords: slowly, at a medium rate, or fast. Close to \"Scene length\", seen from the other side: long scenes mean the scene changes rarely.",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -15827,13 +15895,14 @@
     "pull": "Speeding up scene changes near the end makes the audience feel the story rushing toward its climax.",
     "cue": "plot",
     "tryThis": "Cut between scenes faster and faster in the last act, then slow down for the final scene."
-   }
+   },
+   "replained": true
   },
   {
    "id": "phraseScheme",
    "level": "curiosity",
    "label": "Sequence lengths",
-   "plain": "Lengths of runs of related shots, like 4+4 or 3+3+2",
+   "plain": "How long the runs of related shots are, like phrases in music: single shots, pairs, threes, fours or long runs, and patterns such as 4+4 (two runs of four shots) or 3+3+2 (two runs of three, then two).",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -15949,13 +16018,14 @@
     "pull": "Once the audience feels the pattern, they expect the next run, and a break surprises them.",
     "cue": "visual",
     "tryThis": "Cut a scene in steady groups of four shots, then cut one group short right at the punchline."
-   }
+   },
+   "replained": true
   },
   {
    "id": "sceneEntry",
    "level": "curiosity",
    "label": "How a scene begins",
-   "plain": "The film's anacrusis",
+   "plain": "How a scene begins: in the middle of the action, on a line of talk, on an establishing shot (a wide shot that shows where we are), or with its sound starting before its picture. Like the lead-in notes before a song's first full beat.",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -15966,7 +16036,7 @@
     {
      "id": "setting",
      "label": "How a scene begins",
-     "plain": "Its setting in this panel.",
+     "plain": "In action, on a line, establishing (a wide shot of the place first) or sound first (we hear the scene before we see it).",
      "scale": [
       "in action",
       "on a line",
@@ -16071,13 +16141,14 @@
     "pull": "Coming in late makes the audience work to catch up.",
     "cue": "visual",
     "tryThis": "Start each scene as late as you can."
-   }
+   },
+   "replained": true
   },
   {
    "id": "transition",
    "level": "curiosity",
-   "label": "Transition",
-   "plain": "How each boundary is crossed",
+   "label": "How scenes join (storytelling)",
+   "plain": "How one scene hands over to the next: a plain cut; a match cut (the new shot echoes a shape or a move from the last one); a smash cut (a sudden hard cut to something very different); a dissolve (one picture melts into the next); or a sound bridge (the next scene's sound starts before its picture, or this scene's sound carries on over the next).",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -16087,8 +16158,8 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Transition",
-     "plain": "Its setting in this panel.",
+     "label": "How scenes join (storytelling)",
+     "plain": "Cut, match cut (the new shot echoes the last), smash cut (a sudden jump to something very different), dissolve (one picture melts into the next) or sound bridge (the sound crosses the cut early or late).",
      "scale": [
       "cut",
       "match cut",
@@ -16194,13 +16265,15 @@
     "pull": "A clever transition carries attention across the cut.",
     "cue": "visual",
     "tryThis": "Match a shape or sound from the end of one scene to the start of the next."
-   }
+   },
+   "replained": true,
+   "relabeled": true
   },
   {
    "id": "callResponse",
    "level": "curiosity",
    "label": "Call and response",
-   "plain": "Who answers whom across cuts",
+   "plain": "Whether a shot or a line is answered by another a few cuts later, like a call and its reply in music. Close to \"A line that jumps the cut\"; this one is how often answers echo across cuts through the scene, that one a single line answered across one cut.",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -16315,7 +16388,8 @@
     "pull": "When one shot poses a question, the audience wants the next shot to answer it.",
     "cue": "thought",
     "tryThis": "End one scene on a question and cut straight to someone else saying the answer, for comedy, the wrong one."
-   }
+   },
+   "replained": true
   },
   {
    "id": "repetition",
@@ -16442,8 +16516,8 @@
   {
    "id": "hook",
    "level": "curiosity",
-   "label": "Signature image",
-   "plain": "Where the memorable image or line recurs",
+   "label": "Signature image or line",
+   "plain": "A memorable image or line that comes back again and again. Not \"The object we keep seeing\", which is a thing the camera keeps finding, or the \"Story weight\" slider in \"Props\", which is how much the scene leans on an object.",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -16453,7 +16527,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Signature image",
+     "label": "Signature image or line",
      "plain": "Its setting in this panel.",
      "scale": [
       "no",
@@ -16557,7 +16631,9 @@
     "pull": "Recognition pulls attention.",
     "cue": "visual",
     "tryThis": "Open and close the film on the same image, changed."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "contrastMap",
@@ -17290,8 +17366,8 @@
   {
    "id": "cutArticulation",
    "level": "curiosity",
-   "label": "Cut articulation",
-   "plain": "Clipped cuts against long overlaps, staccato against legato",
+   "label": "Clipped or flowing cuts",
+   "plain": "Whether the cuts are clipped, each shot stopping sharply like short separate notes, or flowing, with sound and picture overlapping across the cut like notes joined smoothly. 0 is clipped, 5 is fully overlapping.",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -17301,7 +17377,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Cut articulation",
+     "label": "Clipped or flowing cuts",
      "plain": "Its setting in this panel.",
      "range": {
       "min": 0,
@@ -17406,13 +17482,15 @@
     "pull": "Sharp cuts jolt the audience to attention, while smooth ones carry them gently into the next shot.",
     "cue": "visual",
     "tryThis": "Use short, sharp cuts for the slapstick chase and slow blended cuts for the quiet morning after."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "operatorFeel",
    "level": "curiosity",
-   "label": "Operator feel",
-   "plain": "Small timing drift in camera and cuts, the humanized feel",
+   "label": "Human touch in camera and cuts",
+   "plain": "Small timing wobbles in the camera and the cuts, as if a person (the camera operator) were doing it by hand rather than a machine: a pan that starts a little late, a cut a little early.",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -17422,7 +17500,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Operator feel",
+     "label": "Human touch in camera and cuts",
      "plain": "Its setting in this panel.",
      "range": {
       "min": 0,
@@ -17528,13 +17606,15 @@
     "pull": "A slightly late camera catching up to the action makes the audience feel they are chasing it too.",
     "cue": "movement",
     "tryThis": "Have the camera be a beat late to find the person who just spoke, like a real operator surprised."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "motifShape",
    "level": "curiosity",
    "label": "Motif shape",
-   "plain": "The rise and fall of a visual motif, such as size, height or brightness, across its returns",
+   "plain": "How a visual motif (an image or shape the film keeps bringing back) changes each time it returns: it rises (bigger, higher or brighter), falls, rises then falls (an arch), or stays the same.",
    "workspace": "structure",
    "also": [],
    "group": "Edit and structure",
@@ -17650,7 +17730,8 @@
     "pull": "As the motif grows with each return, the audience expects it to peak and watches for that moment.",
     "cue": "visual",
     "tryThis": "Show the moon a little bigger each time it appears, fullest on the night of the climax."
-   }
+   },
+   "replained": true
   },
   {
    "id": "panelSize",
@@ -17777,8 +17858,8 @@
   {
    "id": "panelBreak",
    "level": "curiosity",
-   "label": "Breaking the frame",
-   "plain": "Figures crossing panel borders",
+   "label": "Breaking the panel border",
+   "plain": "Figures or things crossing the border of a comic panel. Not \"Bursting past the film frame\", which is the edge of a film picture.",
    "workspace": "page",
    "also": [],
    "group": "Comic",
@@ -17788,7 +17869,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Breaking the frame",
+     "label": "Breaking the panel border",
      "plain": "Its setting in this panel.",
      "scale": [
       "none",
@@ -17893,7 +17974,9 @@
     "pull": "A figure crossing the border leaps out at the reader and pulls their eye toward the next panel.",
     "cue": "visual",
     "tryThis": "Let the character's fist or foot break out of the panel border at the biggest hit, or a pratfall."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "textDensity",
@@ -18382,8 +18465,8 @@
   {
    "id": "reveal",
    "level": "curiosity",
-   "label": "Reveal timing",
-   "plain": "When the audience learns a fact relative to the characters",
+   "label": "When the audience learns it",
+   "plain": "When the audience learns a fact compared with the characters: before them, with them, or after them. Close to \"Who knows first\"; this one is about the timing and the size of one reveal.",
    "workspace": "structure",
    "also": [],
    "group": "Story",
@@ -18393,7 +18476,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Reveal timing",
+     "label": "When the audience learns it",
      "plain": "Its setting in this panel.",
      "scale": [
       "before",
@@ -18498,13 +18581,15 @@
     "pull": "A held-back answer is the strongest pull a film has.",
     "cue": "plot",
     "tryThis": "Reveal the answer one scene after the audience starts to guess it."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "povSwitch",
    "level": "curiosity",
    "label": "Story point of view",
-   "plain": "Whose story each scene tells",
+   "plain": "Whose story each scene tells, and whether that changes from scene to scene. Not \"Whose eyes the shot sees through\", which is a single shot seen through someone's eyes.",
    "workspace": "structure",
    "also": [],
    "group": "Story",
@@ -18619,13 +18704,14 @@
     "pull": "Switching to a new person makes the audience wonder what they know that the others don't.",
     "cue": "thought",
     "tryThis": "Tell one scene from the villain's side, then go back to the hero knowing more than they do."
-   }
+   },
+   "replained": true
   },
   {
    "id": "sceneLength",
    "level": "curiosity",
    "label": "Scene length",
-   "plain": "Minutes per scene",
+   "plain": "How long each scene runs, in minutes.",
    "workspace": "structure",
    "also": [],
    "group": "Story",
@@ -18740,7 +18826,8 @@
     "pull": "A scene that runs longer than the ones before makes the audience feel this one matters.",
     "cue": "thought",
     "tryThis": "Keep most scenes short, then let one key scene run twice as long."
-   }
+   },
+   "replained": true
   },
   {
    "id": "sceneShapes",
@@ -18867,8 +18954,8 @@
   {
    "id": "vocalTone",
    "level": "curiosity",
-   "label": "Tone of the line",
-   "plain": "What the voice does through the line",
+   "label": "Shape of the voice through the line",
+   "plain": "What the voice does through one line: flat, rising, falling, breaking, whispered, shouted. Not \"Feeling in the voice\", which is how much feeling you can hear.",
    "workspace": "lines",
    "also": [],
    "group": "Scene memory",
@@ -18878,7 +18965,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Tone of the line",
+     "label": "Shape of the voice through the line",
      "plain": "Its setting in this panel.",
      "scale": [
       "flat",
@@ -18986,7 +19073,9 @@
     "pull": "A tone that does not fit the words makes the audience listen harder.",
     "cue": "audio",
     "tryThis": "Say the threat sweetly."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "toneArc",
@@ -19114,8 +19203,8 @@
   {
    "id": "timePerCharacter",
    "level": "curiosity",
-   "label": "Time on each character",
-   "plain": "Share of screen time per person",
+   "label": "Screen time per person in this scene",
+   "plain": "How the screen time in this scene is shared between the people in it. Not the \"Share of the hour\" slider in \"Number of main characters\", which is the whole hour.",
    "workspace": "lines",
    "also": [],
    "group": "Scene memory",
@@ -19125,7 +19214,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Time on each character",
+     "label": "Screen time per person in this scene",
      "plain": "Its setting in this panel.",
      "scale": [
       "one person dominates",
@@ -19230,13 +19319,15 @@
     "pull": "When a minor character suddenly gets more time, the audience wonders why.",
     "cue": "visual",
     "tryThis": "Give a background character slightly more time each scene until they become important."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "actionCutRate",
    "level": "curiosity",
    "label": "Cut rate in action",
-   "plain": "Cuts per minute during action beats only",
+   "plain": "How many cuts a minute during action beats only. A narrower version of \"How often the shot changes\".",
    "workspace": "lines",
    "also": [],
    "group": "Scene memory",
@@ -19352,7 +19443,8 @@
     "pull": "Each cut throws the eye to something new, keeping the audience racing to keep up.",
     "cue": "visual",
     "tryThis": "Cut faster as the fight builds, then hold one wide shot to show the result."
-   }
+   },
+   "replained": true
   },
   {
    "id": "emotion",
@@ -19613,8 +19705,8 @@
   {
    "id": "dramaticRole",
    "level": "curiosity",
-   "label": "Role in the scene",
-   "plain": "The job this character does for the others in this scene.",
+   "label": "Role in the scene (short list)",
+   "plain": "The job this character does for the others in this scene. Close to \"Role in the scene\"; this one is the story workspace's shorter list of 13 roles, without ally and without whether they know the role they play.",
    "workspace": "arc",
    "also": [],
    "group": "Story: Character arc",
@@ -19624,7 +19716,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Role in the scene",
+     "label": "Role in the scene (short list)",
      "plain": "Its setting in this panel.",
      "scale": [
       "stabilizer",
@@ -19739,7 +19831,9 @@
     "pull": "When a role snaps, like the anchor suddenly turning wildcard, the audience leans in to see what breaks next.",
     "cue": "plot",
     "tryThis": "Give every scene one catalyst, and make it the person the audience least expects."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "plotWeight",
@@ -19797,7 +19891,7 @@
     {
      "id": "stakes",
      "label": "What they stand to lose",
-     "plain": "How much rides on this character's own plot.",
+     "plain": "How much rides on this character's own plot. (Same as \"What they stand to lose\".)",
      "scale": [
       "nothing much",
       "pride",
@@ -20030,7 +20124,7 @@
    "id": "perspectiveWidth",
    "level": "curiosity",
    "label": "Whose good they see",
-   "plain": "How wide the circle is that the character weighs: only themselves, out to the world.",
+   "plain": "How wide the circle is that the character weighs: only themselves, out to the world. Close to \"Altruistic to Self-serving\", which is whether they serve others or themselves first; this one is how wide the circle of people they weigh is.",
    "workspace": "mindset",
    "also": [],
    "group": "Story: Perspective & mindset",
@@ -20159,13 +20253,14 @@
     "pull": "When the circle starts shrinking, the audience waits for who will be left out and hurt.",
     "cue": "thought",
     "tryThis": "Give them a choice where helping family means letting down a stranger they just met."
-   }
+   },
+   "replained": true
   },
   {
    "id": "mindset",
    "level": "curiosity",
-   "label": "Mindset",
-   "plain": "Fixed, questioning, open: how ready they are to change their mind.",
+   "label": "Ready to change their mind",
+   "plain": "Fixed, questioning, open: how ready they are to change their mind. Close to \"Closed mindset to Widening mindset\"; this one adds how hard the scene pushes, the belief being challenged, and how much they fool themself.",
    "workspace": "mindset",
    "also": [],
    "group": "Story: Perspective & mindset",
@@ -20175,7 +20270,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Mindset",
+     "label": "Ready to change their mind",
      "plain": "Its setting in this panel.",
      "scale": [
       "fixed",
@@ -20308,13 +20403,15 @@
     "pull": "The more a belief is challenged, the more the audience waits for it to bend or break.",
     "cue": "thought",
     "tryThis": "Have a stubborn character win an argument with logic that is clearly, comically wrong."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "focusWidth",
    "level": "curiosity",
-   "label": "Focus width",
-   "plain": "What the character is paying attention to, narrow to wide.",
+   "label": "What they pay attention to",
+   "plain": "What the character is paying attention to, narrow to wide. Close to \"Narrow focus to Wide focus\"; this one names what they attend to (one thing up to the world) and whether the camera narrows with them.",
    "workspace": "focus",
    "also": [],
    "group": "Story: Focus",
@@ -20324,7 +20421,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Focus width",
+     "label": "What they pay attention to",
      "plain": "Its setting in this panel.",
      "scale": [
       "one thing",
@@ -20444,7 +20541,9 @@
     "pull": "If the camera follows their focus, the audience notices the thing they are missing in the edge of frame.",
     "cue": "visual",
     "tryThis": "Keep the character fixed on one person while the real trouble happens behind them in plain view."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "focusShift",
@@ -20727,7 +20826,7 @@
     {
      "id": "pressure",
      "label": "Peer pressure",
-     "plain": "How much the group pushes.",
+     "plain": "How much the group pushes. (Same as \"Group pressure\".)",
      "range": {
       "min": 0,
       "max": 5,
@@ -21141,7 +21240,7 @@
     {
      "id": "filterKind",
      "label": "Kind of look",
-     "plain": "A finished look laid over the picture, beyond a plain color tint.",
+     "plain": "A finished look laid over the picture, beyond a plain color tint: soft diffusion (a gentle glow), sepia (old brown photo), bleach bypass (low color, high contrast, silvery), cross processed (odd, strong shifted colors, as if the film was developed the wrong way) or a heavy tint.",
      "scale": [
       "none",
       "soft diffusion",
@@ -21158,7 +21257,7 @@
     {
      "id": "brightness",
      "label": "Overall brightness",
-     "plain": "How bright the picture is overall.",
+     "plain": "How bright the picture is overall. (Close to \"Exposure (brightness set in the edit)\" and \"Dark or bright overall (in the lighting)\".)",
      "scale": [
       "very dark",
       "dark",
@@ -21256,8 +21355,8 @@
   {
    "id": "colorFilter",
    "level": "curiosity",
-   "label": "Color filter",
-   "plain": "Whether the crew tinted the picture with a colored glass or a color change afterwards, and how strongly.",
+   "label": "Color tint",
+   "plain": "Whether the crew tinted the picture with a colored glass or a color change afterwards, and how strongly. Not \"Filter\" (a ready-made look in the edit app); this one is a tint of one color.",
    "workspace": "color",
    "also": [],
    "group": "Lens: Color",
@@ -21267,7 +21366,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Color filter",
+     "label": "Color tint",
      "plain": "Its setting in this panel.",
      "scale": [
       "none",
@@ -21373,7 +21472,9 @@
     "pull": "When the tint changes, the audience knows they have crossed into another part of the story.",
     "cue": "visual",
     "tryThis": "Give each separate storyline its own tint so the audience always knows where they are."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "filterHue",
@@ -22114,7 +22215,7 @@
   {
    "id": "mainEra",
    "level": "curiosity",
-   "label": "Era of the clothes",
+   "label": "Main: era of the clothes",
    "plain": "Which time the main character's clothes come from, oldest to newest.",
    "workspace": "wardrobe",
    "also": [],
@@ -22125,7 +22226,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Era of the clothes",
+     "label": "Main: era of the clothes",
      "plain": "Its setting in this panel.",
      "scale": [
       "ancient",
@@ -22295,12 +22396,13 @@
     "pull": "An out-of-time outfit makes the audience ask why they dress that way.",
     "cue": "visual",
     "tryThis": "Let the era of their clothes move toward today as they let go of the past."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "mainCost",
    "level": "curiosity",
-   "label": "Cheap to expensive",
+   "label": "Main: cheap to expensive",
    "plain": "How much the main character's clothes would cost.",
    "workspace": "wardrobe",
    "also": [],
@@ -22311,7 +22413,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Cheap to expensive",
+     "label": "Main: cheap to expensive",
      "plain": "Its setting in this panel.",
      "scale": [
       "rags",
@@ -22419,12 +22521,13 @@
     "pull": "A sudden change in what someone can afford is a plot question the audience wants answered.",
     "cue": "visual",
     "tryThis": "Dress them one step richer or poorer after each turn of fortune."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "mainCoverage",
    "level": "curiosity",
-   "label": "How much skin is covered",
+   "label": "Main: how much skin is covered",
    "plain": "How much of the body the clothes cover, from very little to everything but the face.",
    "workspace": "wardrobe",
    "also": [],
@@ -22435,7 +22538,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "How much skin is covered",
+     "label": "Main: how much skin is covered",
      "plain": "Its setting in this panel.",
      "scale": [
       "very little",
@@ -22542,12 +22645,13 @@
     "pull": "A change in how much is shown draws the eye and makes the audience wonder what changed inside.",
     "cue": "visual",
     "tryThis": "Uncover a little each time the character lets someone in."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "mainUtility",
    "level": "curiosity",
-   "label": "Looks or function",
+   "label": "Main: looks or function",
    "plain": "Whether the clothes are there to look good or to do a job.",
    "workspace": "wardrobe",
    "also": [],
@@ -22558,7 +22662,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Looks or function",
+     "label": "Main: looks or function",
      "plain": "Its setting in this panel.",
      "scale": [
       "only for looks",
@@ -22665,12 +22769,13 @@
     "pull": "Seeing someone dress for a task tells the audience the task is coming, and they wait for it.",
     "cue": "visual",
     "tryThis": "Show the character putting on the clothes for the coming scene."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "mainFunction",
    "level": "curiosity",
-   "label": "The job the clothes do",
+   "label": "Main: the job the clothes do",
    "plain": "What the clothes are for, from nothing in particular to full protection, like leather chaps that stop a rider's legs from rubbing raw or a motorcycle jacket for a fall.",
    "workspace": "wardrobe",
    "also": [],
@@ -22681,7 +22786,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "The job the clothes do",
+     "label": "Main: the job the clothes do",
      "plain": "Its setting in this panel.",
      "scale": [
       "none",
@@ -22792,12 +22897,13 @@
     "pull": "A disguise makes the audience wait for it to be found out.",
     "cue": "plot",
     "tryThis": "Put a character in a disguise one scene before someone who could see through it arrives."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "mainWear",
    "level": "curiosity",
-   "label": "Wear and tear",
+   "label": "Main: wear and tear",
    "plain": "How used the clothes look, from brand new to torn and dirty.",
    "workspace": "wardrobe",
    "also": [],
@@ -22808,7 +22914,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Wear and tear",
+     "label": "Main: wear and tear",
      "plain": "Its setting in this panel.",
      "scale": [
       "brand new",
@@ -22915,7 +23021,8 @@
     "pull": "A new tear or stain makes the audience ask what just happened.",
     "cue": "visual",
     "tryThis": "Let the same outfit get a little more worn each act."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "mainFit",
@@ -23290,7 +23397,7 @@
   {
    "id": "backEra",
    "level": "curiosity",
-   "label": "Era of the clothes",
+   "label": "Crowd: era of the clothes",
    "plain": "Which time the background people's clothes come from, oldest to newest.",
    "workspace": "wardrobe",
    "also": [],
@@ -23301,7 +23408,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Era of the clothes",
+     "label": "Crowd: era of the clothes",
      "plain": "Its setting in this panel.",
      "scale": [
       "ancient",
@@ -23472,12 +23579,13 @@
     "pull": "One background person from the wrong era is a visual gag the eye hunts for.",
     "cue": "visual",
     "tryThis": "Hide one person in modern clothes in a period crowd as a running joke."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "backCost",
    "level": "curiosity",
-   "label": "Cheap to expensive",
+   "label": "Crowd: cheap to expensive",
    "plain": "How much the background people's clothes would cost.",
    "workspace": "wardrobe",
    "also": [],
@@ -23488,7 +23596,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Cheap to expensive",
+     "label": "Crowd: cheap to expensive",
      "plain": "Its setting in this panel.",
      "scale": [
       "rags",
@@ -23596,12 +23704,13 @@
     "pull": "A hero dressed cheaper or richer than the crowd stands out and becomes the focus.",
     "cue": "visual",
     "tryThis": "Dress the crowd in luxury when the broke hero walks in."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "backCoverage",
    "level": "curiosity",
-   "label": "How much skin is covered",
+   "label": "Crowd: how much skin is covered",
    "plain": "How much of the body the background people's clothes cover.",
    "workspace": "wardrobe",
    "also": [],
@@ -23612,7 +23721,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "How much skin is covered",
+     "label": "Crowd: how much skin is covered",
      "plain": "Its setting in this panel.",
      "scale": [
       "very little",
@@ -23719,12 +23828,13 @@
     "pull": "A hero covered too much or too little for the crowd stands out instantly, often for a laugh.",
     "cue": "visual",
     "tryThis": "Put a fully bundled-up hero on a beach full of swimmers."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "backUtility",
    "level": "curiosity",
-   "label": "Looks or function",
+   "label": "Crowd: looks or function",
    "plain": "Whether the background people dress to look good or to do a job.",
    "workspace": "wardrobe",
    "also": [],
@@ -23735,7 +23845,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Looks or function",
+     "label": "Crowd: looks or function",
      "plain": "Its setting in this panel.",
      "scale": [
       "only for looks",
@@ -23842,12 +23952,13 @@
     "pull": "One person dressed for show among workers draws the eye to them.",
     "cue": "visual",
     "tryThis": "Put the vain character in fancy clothes among a crew in overalls."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "backFunction",
    "level": "curiosity",
-   "label": "The job the clothes do",
+   "label": "Crowd: the job the clothes do",
    "plain": "What the background clothes are for, like work wear in a factory or riding clothes in a western.",
    "workspace": "wardrobe",
    "also": [],
@@ -23858,7 +23969,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "The job the clothes do",
+     "label": "Crowd: the job the clothes do",
      "plain": "Its setting in this panel.",
      "scale": [
       "none",
@@ -23969,12 +24080,13 @@
     "pull": "Clothes for a danger that has not appeared yet make the audience wait for it.",
     "cue": "visual",
     "tryThis": "Dress every extra in helmets before the hero learns why."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "backWear",
    "level": "curiosity",
-   "label": "Wear and tear",
+   "label": "Crowd: wear and tear",
    "plain": "How used the background clothes look.",
    "workspace": "wardrobe",
    "also": [],
@@ -23985,7 +24097,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Wear and tear",
+     "label": "Crowd: wear and tear",
      "plain": "Its setting in this panel.",
      "scale": [
       "brand new",
@@ -24092,7 +24204,8 @@
     "pull": "Clothes getting dirtier scene by scene make the audience feel things are getting worse.",
     "cue": "visual",
     "tryThis": "Make the crowd's clothes a little more worn each time the hero returns."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "backSameness",
@@ -26160,7 +26273,7 @@
    "id": "emoVoice",
    "level": "curiosity",
    "label": "Feeling in the voice",
-   "plain": "How much of the feeling you can hear in how they speak.",
+   "plain": "How much of the feeling you can hear in how they speak. Not \"Shape of the voice through the line\", which is the shape of one line.",
    "workspace": "emotion",
    "also": [],
    "group": "Lens: Emotion",
@@ -26292,13 +26405,14 @@
     "pull": "A wavering voice makes the audience listen for the moment it cracks.",
     "cue": "audio",
     "tryThis": "Keep the voice steady through the whole speech and let it crack on the last word."
-   }
+   },
+   "replained": true
   },
   {
    "id": "movementAmount",
    "level": "curiosity",
-   "label": "Amount of movement",
-   "plain": "How much the people move in the scene: 0 nobody moves, 5 constant motion.",
+   "label": "How much everyone moves",
+   "plain": "How much the people move in the scene: 0 nobody moves, 5 constant motion. Not \"How still this person is\", which is one person.",
    "workspace": "emotion",
    "also": [],
    "group": "Lens: Emotion",
@@ -26308,7 +26422,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Amount of movement",
+     "label": "How much everyone moves",
      "plain": "Its setting in this panel.",
      "range": {
       "min": 0,
@@ -26428,7 +26542,9 @@
     "pull": "Motion catches the eye, and a sudden stop makes the audience wonder what happened.",
     "cue": "movement",
     "tryThis": "Have everyone stop moving at once just before the key line."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "wordsAmount",
@@ -27455,7 +27571,7 @@
     {
      "id": "tension",
      "label": "Tension",
-     "plain": "How tight the audience is, from at ease to on the edge of the seat.",
+     "plain": "How tight the audience is, from at ease to on the edge of the seat. (Same as \"Tension\".)",
      "range": {
       "min": 0,
       "max": 5,
@@ -27483,7 +27599,7 @@
     {
      "id": "relief",
      "label": "Release",
-     "plain": "How much tension is let go in this scene.",
+     "plain": "How much tension is let go in this scene. (Same as \"Release\".)",
      "range": {
       "min": 0,
       "max": 5,
@@ -30321,7 +30437,7 @@
     },
     {
      "id": "balance",
-     "label": "Who gets the laughs",
+     "label": "How the laughs are shared",
      "plain": "How the laughs are spread across the people.",
      "scale": [
       "one of them",
@@ -30909,8 +31025,8 @@
   {
    "id": "soundDesign",
    "level": "curiosity",
-   "label": "Sound around the scene",
-   "plain": "The sounds that are not music or voices: footsteps, traffic, wind, a ticking clock, and how much they are pushed.",
+   "label": "Sound effects around the scene",
+   "plain": "The sounds that are not music or voices: footsteps, traffic, wind, a ticking clock, and how much they are pushed. Its \"How busy\" slider is close to \"Sound density\", which counts the layers of sound at once.",
    "workspace": "music",
    "also": [
     "background"
@@ -30980,7 +31096,7 @@
     {
      "id": "bridge",
      "label": "Sound bridges the cut",
-     "plain": "Whether a sound from the next scene starts before the cut, or one from this scene carries into the next.",
+     "plain": "A sound bridge: whether a sound from the next scene starts before the cut, or one from this scene carries on into the next.",
      "scale": [
       "no",
       "a little early",
@@ -31056,7 +31172,9 @@
     "pull": "An off-screen sound makes the audience look for its source.",
     "cue": "audio",
     "tryThis": "Let the audience hear the danger before they see it."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "emotionGap",
@@ -31723,7 +31841,7 @@
     {
      "id": "kind",
      "label": "Kind",
-     "plain": "The type of verbal joke.",
+     "plain": "The type of verbal joke: a pun, a misunderstanding, a comeback, a malapropism (using a wrong word that sounds like the right one) or repetition.",
      "scale": [
       "pun",
       "misunderstanding",
@@ -32206,8 +32324,8 @@
   {
    "id": "fishOutOfWater",
    "level": "curiosity",
-   "label": "Fish out of water",
-   "plain": "A character in a world they do not fit.",
+   "label": "Out of place in a strange world",
+   "plain": "A character in a whole world they do not fit: a city person on a farm, a farmer at a palace. Close to \"Doesn't fit this group\", which is about one group of people rather than a whole world.",
    "workspace": "comedy",
    "also": [
     "wardrobe",
@@ -32325,7 +32443,9 @@
     "pull": "The audience wants to see what new rule they will break next and whether they learn.",
     "cue": "thought",
     "tryThis": "Give them one small win in the new world each act, and one big mistake."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "visualGag",
@@ -32578,7 +32698,7 @@
    "id": "comicEdit",
    "level": "curiosity",
    "label": "Comic edit",
-   "plain": "How the cutting itself makes a joke: smash cuts, cutaways, hard contradiction.",
+   "plain": "How the cutting itself makes a joke: smash cuts (a sudden hard cut that contradicts what was just said), cutaways (a quick cut away to something else and back), and picture that flatly contradicts the words.",
    "workspace": "comedy",
    "also": [
     "structure",
@@ -32606,7 +32726,7 @@
     {
      "id": "cutaway",
      "label": "Cutaways",
-     "plain": "How often the film cuts away to a quick joke elsewhere and back.",
+     "plain": "How often the film cuts away to a quick joke elsewhere and back. (Close to \"Cutaway gag\", which is one cutaway joke.)",
      "range": {
       "min": 0,
       "max": 5,
@@ -32697,7 +32817,8 @@
     "pull": "A cut that answers a line makes the audience expect the edit itself to tell the next joke.",
     "cue": "visual",
     "tryThis": "Have them say 'this will be easy', then smash cut to the disaster."
-   }
+   },
+   "replained": true
   },
   {
    "id": "comicSound",
@@ -32730,7 +32851,7 @@
     {
      "id": "sting",
      "label": "Musical sting",
-     "plain": "A short burst of music that marks the joke.",
+     "plain": "A short burst of music that marks the joke. (Same idea as \"Music sting\".)",
      "scale": [
       "none",
       "soft",
@@ -32854,7 +32975,7 @@
     {
      "id": "importance",
      "label": "Story weight",
-     "plain": "From set dressing to the object the scene turns on.",
+     "plain": "From set dressing to the object the scene turns on. Not \"The object we keep seeing\", which is an object that keeps coming back across scenes.",
      "scale": [
       "dressing",
       "useful",
@@ -33015,7 +33136,7 @@
     {
      "id": "key",
      "label": "Where the main light comes from",
-     "plain": "Side, front, back, under, none.",
+     "plain": "Where the key light (the main, brightest light on a face) comes from: the side, the front, behind, below, or no main light at all.",
      "ref": "key",
      "curve": "linear",
      "scale": [
@@ -33059,7 +33180,7 @@
     {
      "id": "colorTemp",
      "label": "Color of the light",
-     "plain": "Warm practical, cold day, mixed.",
+     "plain": "The color of the light on set: warm practical (the orange glow of lamps and candles that are part of the scene), cold day (the blue of daylight or an overcast sky), or a mix of both.",
      "ref": "colorTemp",
      "curve": "linear",
      "scale": [
@@ -33073,7 +33194,7 @@
     {
      "id": "valueKey",
      "label": "Dark or bright",
-     "plain": "Overall brightness by section",
+     "plain": "How dark or bright the lighting is overall: low key (mostly dark, deep shadows), mid, or high key (bright and even).",
      "ref": "valueKey",
      "curve": "linear",
      "scale": [
@@ -33116,7 +33237,7 @@
     {
      "id": "lightShape",
      "label": "Shaped light",
-     "plain": "Patterns cast by gobo, blocker, barndoor",
+     "plain": "A pattern cut into the light by something put in front of it: open (no pattern), blinds (stripes, like light through window blinds), leaves (dappled shadow, like sun through a tree), or barndoor (a hard straight edge made by the metal flaps on the front of a film light). On set this is done with a gobo or a blocker, a cut-out or a board in front of the lamp.",
      "ref": "lightShape",
      "curve": "linear",
      "scale": [
@@ -33658,7 +33779,7 @@
    "id": "cm-morality",
    "level": "curiosity",
    "label": "Altruistic to Self-serving",
-   "plain": "Whose good do they serve first?",
+   "plain": "Whose good do they serve first? Close to \"Whose good they see\", which is how wide the circle of people they weigh is; this one is whether they put others or themselves first.",
    "workspace": "archetype",
    "also": [
     "arc"
@@ -33775,7 +33896,8 @@
     "pull": "A selfish character doing one kind thing makes the audience wonder what they are really after.",
     "cue": "thought",
     "tryThis": "Have a selfish character do a good deed for a completely selfish reason, and say so."
-   }
+   },
+   "replained": true
   },
   {
    "id": "cm-risk",
@@ -34396,7 +34518,7 @@
    "id": "cm-adaptability",
    "level": "curiosity",
    "label": "Flexible to Rigid",
-   "plain": "Do they bend with circumstances or hold their line?",
+   "plain": "Do they bend with circumstances or hold their line? Not \"Closed mindset to Widening mindset\": this one is bending to the situation, not changing what they believe.",
    "workspace": "archetype",
    "also": [
     "arc"
@@ -34513,7 +34635,8 @@
     "pull": "When a rigid person finally has to bend, the audience waits to see if they snap instead.",
     "cue": "thought",
     "tryThis": "Put a rigid character in a situation that changes every minute and refuse to let them leave."
-   }
+   },
+   "replained": true
   },
   {
    "id": "cm-conflict",
@@ -35626,7 +35749,7 @@
   {
    "id": "cm-role",
    "level": "curiosity",
-   "label": "Dramatic role",
+   "label": "Role in the scene",
    "plain": "The job the character does for the others in this scene: stabilizer (keeps the group together), catalyst (causes change), challenger (tests other characters), mediator (resolves conflicts), mentor (gives knowledge or perspective), temptation (pulls others toward something), mirror (reflects another character back at them), foil (embodies an opposing worldview), wildcard (is the unpredictable variable), anchor (stands for continuity), trickster (breaks assumptions), moral center (sets the ethical reference point), antagonistic force (actively blocks the protagonist), ally (fights alongside the protagonist).",
    "workspace": "arc",
    "also": [
@@ -35755,7 +35878,8 @@
     "pull": "A character who is unaware of the role they play makes the audience wait for the moment they find out.",
     "cue": "plot",
     "tryThis": "Let a trickster deliberately play the mentor for one scene, and let the advice be hilariously wrong."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "plotWant",
@@ -37069,8 +37193,8 @@
   {
    "id": "emoEyes",
    "level": "curiosity",
-   "label": "The eyes",
-   "plain": "What the eyes do: where they look, how wet, how wide, how often they blink.",
+   "label": "The eyes, for the feeling",
+   "plain": "What the eyes do: where they look, how wet, how wide, how often they blink. This one is about what the eyes show of the feeling. \"Eye darts\" counts quick eye moves, \"Blink\" is blinking as a tell, and \"Eyelines\" is who looks at whom.",
    "workspace": "emotion",
    "also": [
     "character-motion",
@@ -37204,7 +37328,9 @@
     "pull": "The audience follows the eyes to what the character is looking at.",
     "cue": "visual",
     "tryThis": "Have them look at the door before they say they'll stay."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "emoHands",
@@ -39189,7 +39315,7 @@
    "id": "cutawayGag",
    "level": "curiosity",
    "label": "Cutaway gag",
-   "plain": "A quick cut away to something else (a memory, an imagined moment, what someone else is doing) that makes the line funnier.",
+   "plain": "A quick cut away to something else (a memory, an imagined moment, what someone else is doing) that makes the line funnier. Cutaways also appear in \"Overlay\" (a cutaway laid over the sound), \"Side storyline\" (a run of cutaways above the story) and the \"Cutaways\" slider in \"Comic edit\" (how often the comic cutting uses them); this one is a single cutaway that makes a line funnier.",
    "workspace": "comedy",
    "also": [
     "structure"
@@ -39322,7 +39448,8 @@
     "pull": "Once the film starts cutting away, the audience waits for the next line that will trigger one.",
     "cue": "visual",
     "tryThis": "Cut to the memory that proves the line wrong, then straight back to their face."
-   }
+   },
+   "replained": true
   },
   {
    "id": "doubleAct",
@@ -39592,8 +39719,8 @@
   {
    "id": "oddOneOut",
    "level": "curiosity",
-   "label": "The odd one out",
-   "plain": "One person who doesn't fit the group: the vegan at the barbecue, the adult at the kids' party.",
+   "label": "Doesn't fit this group",
+   "plain": "One person who doesn't fit the group: the vegan at the barbecue, the adult at the kids' party. Close to \"Out of place in a strange world\", which is about a whole strange world rather than one group.",
    "workspace": "comedy-mix",
    "also": [
     "comedy",
@@ -39712,7 +39839,9 @@
     "pull": "The audience wonders whether the group will throw them out or follow them.",
     "cue": "visual",
     "tryThis": "End the scene with the group copying the odd one out."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "egoClash",
@@ -39842,8 +39971,8 @@
   {
    "id": "whoKnows",
    "level": "curiosity",
-   "label": "Who knows what",
-   "plain": "Some people in the room know a secret and some don't. The comedy and tension come from the gap.",
+   "label": "Who is in on it, around the room",
+   "plain": "Some people in the room know a secret and some don't. The comedy and tension come from the gap. Close to \"Secret\"; this one is how many people in the room know, that one the secret itself and how well it is kept.",
    "workspace": "comedy-mix",
    "also": [
     "comedy",
@@ -39962,7 +40091,9 @@
     "pull": "The audience waits for the secret to slip out, and watches every near miss.",
     "cue": "plot",
     "tryThis": "Tell the audience the secret first, then put the one person who doesn't know in the room."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "alliances",
@@ -40273,7 +40404,7 @@
     {
      "id": "mirror",
      "label": "Mirroring",
-     "plain": "Whether they copy each other's moves and words without noticing.",
+     "plain": "Whether they copy each other's moves and words without noticing. (Same as \"Copying each other's body\".)",
      "scale": [
       "none",
       "some",
@@ -42588,7 +42719,7 @@
    "id": "moveOnLine",
    "level": "curiosity",
    "label": "Move on the line",
-   "plain": "When the body moves against the words: a step on the key word, a turn before the line, freezing after it.",
+   "plain": "When the body moves against the words: a step on the key word, a turn before the line, freezing after it. Not \"Camera move starts on\", which is the camera's move.",
    "workspace": "movement-lines",
    "also": [
     "lines",
@@ -42706,7 +42837,8 @@
     "pull": "Freezing after a line makes the audience wait for the reaction.",
     "cue": "movement",
     "tryThis": "Have the character step forward on the key word, then freeze for a beat after it."
-   }
+   },
+   "replained": true
   },
   {
    "id": "listenerBody",
@@ -42850,7 +42982,7 @@
    "id": "transitionKind",
    "level": "curiosity",
    "label": "Transition style",
-   "plain": "The effect between two clips (CapCut's Transitions tab, Final Cut's Transitions browser).",
+   "plain": "The effect between two clips (CapCut's Transitions tab, Final Cut's Transitions browser). Close to \"How scenes join (storytelling)\", which is what the join means for the story; this one is the editing effect.",
    "workspace": "transitions",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -42861,7 +42993,7 @@
     {
      "id": "setting",
      "label": "Transition style",
-     "plain": "Which transition crosses this cut.",
+     "plain": "Which transition crosses this cut. A cross dissolve melts one shot into the next; a wipe slides a line across the screen; a whip pan is a camera turn so fast the picture blurs into the next shot; a morph bends one picture into the other.",
      "scale": [
       "cut",
       "fade to black",
@@ -43017,7 +43149,8 @@
     "pull": "A showy transition makes the audience look at what comes next.",
     "cue": "visual",
     "tryThis": "Save the one flashy transition for the moment the story jumps."
-   }
+   },
+   "replained": true
   },
   {
    "id": "clipAnimation",
@@ -43427,8 +43560,8 @@
   {
    "id": "exposure",
    "level": "curiosity",
-   "label": "Exposure",
-   "plain": "How bright the picture is overall, and its highlights and shadows (CapCut's Adjustment tab, Final Cut's color board).",
+   "label": "Exposure (brightness set in the edit)",
+   "plain": "How bright the picture is overall, and its highlights and shadows (CapCut's Adjustment tab, Final Cut's color board). Close to \"Dark or bright overall (in the lighting)\", which sets it in the lighting; this one is set in the edit.",
    "workspace": "grade",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -43438,7 +43571,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Exposure",
+     "label": "Exposure (brightness set in the edit)",
      "plain": "Overall brightness.",
      "scale": [
       "very dark",
@@ -43563,13 +43696,15 @@
     "pull": "The eye goes to the brightest thing in the frame.",
     "cue": "visual",
     "tryThis": "Make the room a little darker each time the lie grows."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "whiteBalance",
    "level": "curiosity",
-   "label": "Warmth and tint",
-   "plain": "How warm or cool the picture reads, and its green or magenta tint (Final Cut's white balance, CapCut's temperature and tint).",
+   "label": "Warmth set in the edit",
+   "plain": "How warm or cool the picture reads, and its green or magenta tint (Final Cut's white balance, CapCut's temperature and tint). Close to \"Warm to cool\"; this one is set in the edit, with exact numbers and a green or magenta tint. \"Color of the light\" is the light on set.",
    "workspace": "grade",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -43595,7 +43730,7 @@
     {
      "id": "temperature",
      "label": "Temperature",
-     "plain": "The color temperature in kelvin.",
+     "plain": "The color temperature in kelvin, a number for how warm or blue the picture is: low is orange, high is blue.",
      "range": {
       "min": 2500,
       "max": 10000,
@@ -43689,13 +43824,15 @@
     "pull": "A sudden change of warmth tells the audience the feeling of the place changed.",
     "cue": "visual",
     "tryThis": "Cool the picture slowly over a dinner that is going badly."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "texture",
    "level": "curiosity",
    "label": "Film texture",
-   "plain": "How soft, crisp or gritty the picture is: sharpening, clarity, grain and vignette.",
+   "plain": "How soft, crisp or gritty the picture is: sharpening (crisper edges), clarity (more contrast in the middle tones, so detail pops), grain (a fine film-like speckle) and vignette (darkened corners).",
    "workspace": "grade",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -43829,7 +43966,8 @@
     "pull": "A vignette pushes attention to the middle of the frame.",
     "cue": "visual",
     "tryThis": "Add grain only to the flashbacks."
-   }
+   },
+   "replained": true
   },
   {
    "id": "colorMatch",
@@ -43972,7 +44110,7 @@
     {
      "id": "setting",
      "label": "On-screen text",
-     "plain": "What kind of text is on screen.",
+     "plain": "What kind of text is on screen: a caption, a title card (a full screen of words), a lower third (a name and a title across the bottom part of the screen), a sign or label, a sound word (like BANG) or credits.",
      "scale": [
       "none",
       "caption",
@@ -45145,8 +45283,8 @@
   {
    "id": "pacingCurve",
    "level": "curiosity",
-   "label": "Pace across the scene",
-   "plain": "How the cutting speeds up or slows down over the scene.",
+   "label": "Cutting speed across the scene",
+   "plain": "How the cutting speeds up or slows down over the scene. Not \"Speaking speed\", which is how fast people talk, or \"Walking back and forth\", which is a person walking.",
    "workspace": "speed",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -45156,7 +45294,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Pace",
+     "label": "Shape of the cutting speed",
      "plain": "The shape of the pace.",
      "scale": [
       "slows down",
@@ -45268,13 +45406,15 @@
     "pull": "Faster cutting raises the audience's pulse; a sudden stop makes them hold their breath.",
     "cue": "visual",
     "tryThis": "Speed up toward the reveal, then hold one long still shot on it."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "musicLevel",
    "level": "curiosity",
    "label": "Music under speech",
-   "plain": "How loud the music sits against the voices, and how much it ducks when someone talks.",
+   "plain": "How loud the music sits against the voices, and how much it ducks (dips down by itself) when someone talks. Close to the \"Loudness against the voices\" slider in \"Music\"; this one adds how much the music dips when someone talks.",
    "workspace": "audio-mix",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -45394,7 +45534,8 @@
     "pull": "When the music swells, the audience feels a peak coming.",
     "cue": "audio",
     "tryThis": "Let the music swallow the last line so the audience has to imagine it."
-   }
+   },
+   "replained": true
   },
   {
    "id": "audioFade",
@@ -45644,7 +45785,7 @@
    "id": "sfxHits",
    "level": "curiosity",
    "label": "Edited-in sound hits",
-   "plain": "Sound effects added in the edit: whooshes, hits, pops, risers (CapCut's Audio tab).",
+   "plain": "Sound effects added in the edit: whooshes, hits, pops, risers (CapCut's Audio tab). Not \"Music sting\", which is a burst of music.",
    "workspace": "audio-mix",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -45768,7 +45909,8 @@
     "pull": "A hit on a cut punches the moment into the audience.",
     "cue": "audio",
     "tryThis": "Put a record scratch on the moment everything stops."
-   }
+   },
+   "replained": true
   },
   {
    "id": "loudness",
@@ -46024,7 +46166,7 @@
    "id": "overlay",
    "level": "curiosity",
    "label": "Overlay",
-   "plain": "A clip laid over the main clip: a cutaway while the sound carries on, picture in picture, split screen (CapCut's Overlay, Final Cut's connected clips).",
+   "plain": "A clip laid over the main clip: a cutaway while the sound carries on, picture in picture, split screen (CapCut's Overlay, Final Cut's connected clips). Its cutaway setting is close to \"Cutaway gag\", which is a cutaway made for a joke.",
    "workspace": "layers",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -46161,7 +46303,8 @@
     "pull": "Two pictures at once make the audience compare them.",
     "cue": "visual",
     "tryThis": "Split the screen between two people describing the same date very differently."
-   }
+   },
+   "replained": true
   },
   {
    "id": "blendMode",
@@ -46427,7 +46570,7 @@
    "id": "maskShape",
    "level": "curiosity",
    "label": "Mask",
-   "plain": "A shape that limits where an effect or a layer shows (Final Cut's shape, vignette, gradient and magnetic masks).",
+   "plain": "A shape that limits where an effect or a layer shows: a vignette (an oval that keeps or darkens the edges), a circle, a rectangle, a gradient (a soft fade from one side), a drawn shape, or one that follows a person on its own (Final Cut's magnetic mask).",
    "workspace": "layers",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -46549,7 +46692,8 @@
     "pull": "A mask points the eye at what is left uncovered.",
     "cue": "visual",
     "tryThis": "Close an iris on the character's face as they realize the truth."
-   }
+   },
+   "replained": true
   },
   {
    "id": "tracking",
@@ -46742,7 +46886,7 @@
     {
      "id": "body",
      "label": "On a body",
-     "plain": "A body effect on a person.",
+     "plain": "A body effect on a person. (Same idea as \"Body effect\".)",
      "scale": [
       "no",
       "outline glow",
@@ -46829,8 +46973,8 @@
   {
    "id": "reframe",
    "level": "curiosity",
-   "label": "Punch-in and reframe",
-   "plain": "Zooming into the picture in the edit: a punch-in, or a slow drift across a still (Final Cut's Ken Burns, CapCut's scale).",
+   "label": "Punch-in made in the edit",
+   "plain": "Zooming into the picture in the edit: a punch-in, or a slow drift across a still (Final Cut's Ken Burns, CapCut's scale). Close to \"Camera move added in the edit\"; this one is a still, steady push in or a slow drift, that one a moving, showy move.",
    "workspace": "canvas",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -46952,7 +47096,9 @@
     "pull": "A sudden jump closer is a jolt that lands the joke.",
     "cue": "visual",
     "tryThis": "Punch in on the face the moment the character realizes, with no sound."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "imageTransform",
@@ -47085,8 +47231,8 @@
   {
    "id": "stabilization",
    "level": "curiosity",
-   "label": "Steadying",
-   "plain": "How much camera shake is smoothed out in the edit (Final Cut's stabilization and rolling shutter fix).",
+   "label": "Shake removed in the edit",
+   "plain": "How much camera shake is smoothed out in the edit (Final Cut's stabilization and rolling shutter fix, which straightens the jelly-like wobble of fast moves). Not \"Camera shake while filming\", which is the shake as filmed.",
    "workspace": "canvas",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -47096,7 +47242,7 @@
    "sliders": [
     {
      "id": "setting",
-     "label": "Steadying",
+     "label": "Shake removed in the edit",
      "plain": "How steady the result is.",
      "scale": [
       "shaky as shot",
@@ -47190,7 +47336,9 @@
     "pull": "Smooth footage lets the eye rest on faces.",
     "cue": "movement",
     "tryThis": "Steady the calm scenes and leave the shake in when the panic starts."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "canvasFill",
@@ -47235,8 +47383,8 @@
     },
     {
      "id": "ratio",
-     "label": "Frame shape",
-     "plain": "The project's frame shape.",
+     "label": "Canvas shape",
+     "plain": "The project's frame shape. Not \"Frame shape\", which is the shape of each shot.",
      "scale": [
       "wide 16:9",
       "vertical 9:16",
@@ -47324,7 +47472,7 @@
    "id": "transitionFamily",
    "level": "curiosity",
    "label": "Transition family",
-   "plain": "Which family of transition crosses the cut, sorted the way CapCut's Transitions tab sorts them.",
+   "plain": "Which family of transition crosses the cut, sorted the way CapCut's Transitions tab sorts them. Close to \"Transition style\"; this one picks the shelf of effects and how hard they hit, that one the exact effect.",
    "workspace": "transitions",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -47467,7 +47615,8 @@
     "pull": "A hard-hitting transition jolts the audience into the next scene.",
     "cue": "visual",
     "tryThis": "Use the calmest family inside a scene and save the explosive one for the jump to a new place."
-   }
+   },
+   "replained": true
   },
   {
    "id": "introOutro",
@@ -47603,8 +47752,8 @@
   {
    "id": "videoEffectFamily",
    "level": "curiosity",
-   "label": "Effect family",
-   "plain": "Which family of video effect is laid over the picture, sorted the way CapCut's Effects tab sorts them.",
+   "label": "Video effect family",
+   "plain": "Which family of video effect is laid over the picture, sorted the way CapCut's Effects tab sorts them. Close to \"Video effect\"; this one picks the shelf the effect comes from, that one the exact effect.",
    "workspace": "layers",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -47751,13 +47900,15 @@
     "pull": "A new effect makes the eye re-read the whole frame.",
     "cue": "visual",
     "tryThis": "Switch to the comics family for the daydream and snap back to clean picture when it ends."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "cameraEffect",
    "level": "curiosity",
-   "label": "Fake camera move",
-   "plain": "A camera move added in the edit, not shot: slam zoom, zoom lens, sway, shake, radial blur, tracking (CapCut's Motion effects).",
+   "label": "Camera move added in the edit",
+   "plain": "A camera move added in the edit, not filmed: a slam zoom (a sudden fast zoom in), a zoom, a sway, a shake, a radial blur (a blur streaking out from the middle), a tracking move (CapCut's Motion effects). Close to \"Punch-in made in the edit\", which is a still push in rather than a move.",
    "workspace": "canvas",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -47882,7 +48033,9 @@
     "pull": "Sudden movement grabs the eye instantly.",
     "cue": "movement",
     "tryThis": "Slam zoom on the face the instant the bad news lands."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "multiplyEffect",
@@ -48018,7 +48171,7 @@
    "id": "lightEffect",
    "level": "curiosity",
    "label": "Light effect",
-   "plain": "Light added over the picture: god rays, a flare, a halo, a light leak, lightning, a burn (CapCut's Light effects).",
+   "plain": "Light added over the picture in the edit: god rays (beams of light, like sun through clouds), a sun flare, a halo, a light leak (a soft colored glow bleeding in from the edge, like old film), a blaze burst, lightning, or a film burn (the frame looking as if it is scorching). These come from CapCut's Light effects.",
    "workspace": "layers",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -48143,7 +48296,8 @@
     "pull": "The brightest thing in the frame pulls the eye, so added light points.",
     "cue": "visual",
     "tryThis": "Give the villain a halo for the moment they pretend to be good."
-   }
+   },
+   "replained": true
   },
   {
    "id": "textureEffect",
@@ -49993,7 +50147,7 @@
    "id": "filterFamily",
    "level": "curiosity",
    "label": "Filter family",
-   "plain": "Which shelf the filter comes from, the way CapCut's Filters tab sorts them: featured, life, landscape, portrait, mono, movies, retro, night, cool, warm.",
+   "plain": "Which shelf the filter comes from, the way CapCut's Filters tab sorts them: featured, life, landscape, portrait, mono, movies, retro, night, cool, warm. Close to \"Filter\"; this one is the shelf the filter sits on, that one the exact look.",
    "workspace": "grade",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -50106,13 +50260,14 @@
     "pull": "A new look makes the audience re-read the whole picture.",
     "cue": "visual",
     "tryThis": "Keep the life family for home and jump to the movies family when the dream begins."
-   }
+   },
+   "replained": true
   },
   {
    "id": "lut",
    "level": "curiosity",
    "label": "LUT (a color recipe)",
-   "plain": "A saved color recipe applied in one go, from CapCut's Adjustment tab (LUT) and Final Cut's Custom LUT effect: a film stock look, teal and orange, bleach bypass, day for night.",
+   "plain": "A LUT (short for look-up table) is a saved color recipe applied in one go: a film stock look, teal and orange, bleach bypass, day for night. From CapCut's Adjustment tab (LUT) and Final Cut's Custom LUT effect. Close to \"Filter\": a LUT is the exact color recipe, a filter a ready-made look you pick by name.",
    "workspace": "grade",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -50123,7 +50278,7 @@
     {
      "id": "setting",
      "label": "LUT",
-     "plain": "Which recipe.",
+     "plain": "Film stock (the look of a real film), teal and orange, bleach bypass (low color, high contrast, a gritty silvery look), day for night (daytime footage darkened and tinted blue to pass as night), warm or cool print, or log to normal (turning the flat, grayish footage some cameras record into normal color).",
      "scale": [
       "none",
       "film stock",
@@ -50223,7 +50378,8 @@
     "pull": "Color sets the mood before the audience reads anything else.",
     "cue": "visual",
     "tryThis": "Give each of the two families in the story its own LUT."
-   }
+   },
+   "replained": true
   },
   {
    "id": "editTemplate",
@@ -50703,7 +50859,7 @@
    "id": "sceneEnding",
    "level": "curiosity",
    "label": "How the scene ends",
-   "plain": "The last beat of a scene: a button joke, a cliffhanger, a quiet fade, an open question, a cut on action, a smash cut to something opposite.",
+   "plain": "The last beat of a scene: a button joke (one small last laugh that closes the scene), a cliffhanger, a quiet fade, an open question, a cut on action (cutting in the middle of a movement), a smash cut (a sudden hard cut to something opposite), or a callback (an earlier joke or line coming back).",
    "workspace": "structure",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -50731,8 +50887,8 @@
     },
     {
      "id": "late",
-     "label": "Leaves",
-     "plain": "How soon after its point the scene ends.",
+     "label": "How soon it leaves",
+     "plain": "How soon after its point the scene ends. (Same idea as \"Holding before the cut\".)",
      "scale": [
       "right after the point",
       "a beat after",
@@ -50812,7 +50968,8 @@
     "pull": "The last beat is what the audience carries into the next scene.",
     "cue": "plot",
     "tryThis": "End the quiet dinner on a smash cut to the loudest place in the story."
-   }
+   },
+   "replained": true
   },
   {
    "id": "openQuestions",
@@ -51512,7 +51669,7 @@
    "id": "musicSting",
    "level": "curiosity",
    "label": "Music sting",
-   "plain": "A short burst of music that punctuates a moment: a rise, a hit, a record scratch, a sad trombone, a choir.",
+   "plain": "A short burst of music that punctuates a moment: a rise, a hit, a record scratch, a sad trombone, a choir. A sting is short and comes without a build. Not \"Music lands on the moment\", which the music builds up to, or \"Edited-in sound hits\", which are sound effects rather than music.",
    "workspace": "audio-mix",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -51621,13 +51778,14 @@
     "pull": "A sudden sound snaps attention back.",
     "cue": "audio",
     "tryThis": "Hit a record scratch right as the plan goes wrong, then freeze."
-   }
+   },
+   "replained": true
   },
   {
    "id": "attentionReset",
    "level": "curiosity",
    "label": "Something new every",
-   "plain": "How often something new appears to win back attention: a cut, a sound, a joke, a new face, a change of place.",
+   "plain": "How often something new appears to win back attention: a cut, a sound, a joke, a new face, a change of place. Wider than \"How often the shot changes\", which counts only cuts.",
    "workspace": "speed",
    "also": [],
    "group": "Editing (Final Cut Pro and CapCut)",
@@ -51735,7 +51893,8 @@
     "pull": "Attention drifts after a few seconds with nothing new.",
     "cue": "movement",
     "tryThis": "Cut to a new angle on every joke and hold still for the sad part."
-   }
+   },
+   "replained": true
   },
   {
    "id": "chapterCard",
@@ -51855,7 +52014,7 @@
    "id": "multicamSwitch",
    "level": "curiosity",
    "label": "Multicam angle switching",
-   "plain": "Several cameras film the same moment at once, and the edit switches between them live (Final Cut's multicam clips).",
+   "plain": "Several cameras film the same moment at once (multicam), and the edit switches between them, choosing which camera we see at each moment (Final Cut's multicam clips).",
    "workspace": "structure",
    "also": [],
    "group": "Editing (Final Cut Pro)",
@@ -51991,13 +52150,14 @@
     "pull": "Every switch is a small jolt that renews attention.",
     "cue": "visual",
     "tryThis": "Hold on the listener while the speaker says the important line."
-   }
+   },
+   "replained": true
   },
   {
    "id": "colorWheels",
    "level": "curiosity",
    "label": "Color wheels",
-   "plain": "Pushing a color into the shadows, the midtones or the highlights separately (Final Cut's color wheels).",
+   "plain": "Pushing a color into the shadows, the midtones (the in-between brightness, like most skin and walls) or the highlights separately, with Final Cut's color wheels.",
    "workspace": "grade",
    "also": [],
    "group": "Editing (Final Cut Pro)",
@@ -52008,7 +52168,7 @@
     {
      "id": "setting",
      "label": "Wheel pushed",
-     "plain": "Which part of the picture gets a color push.",
+     "plain": "Which part of the picture gets a color push: the shadows (dark parts), the midtones (middle brightness), the highlights (bright parts), or all three.",
      "scale": [
       "none",
       "shadows",
@@ -52139,13 +52299,14 @@
     "pull": "Color the eye didn't expect pulls it to the part of the frame that changed.",
     "cue": "visual",
     "tryThis": "Turn the shadows cold the moment the secret comes out."
-   }
+   },
+   "replained": true
   },
   {
    "id": "colorCurves",
    "level": "curiosity",
    "label": "Color curves",
-   "plain": "Bending the brightness or one color channel with a curve (Final Cut's color curves and hue/saturation curves).",
+   "plain": "Bending the brightness, or one color channel (only the red, the green or the blue in the picture), with a curve: Final Cut's color curves and hue and saturation curves.",
    "workspace": "grade",
    "also": [],
    "group": "Editing (Final Cut Pro)",
@@ -52156,7 +52317,7 @@
     {
      "id": "setting",
      "label": "Curve shape",
-     "plain": "The shape bent into the picture's brightness.",
+     "plain": "Flat (no change), gentle S or strong S (an S-shaped curve: darks darker and brights brighter, so more contrast), faded blacks (the darkest parts lifted to a soft gray), crushed blacks (dark detail pushed to solid black) or inverted (like a negative).",
      "scale": [
       "flat",
       "gentle S",
@@ -52173,7 +52334,7 @@
     {
      "id": "channel",
      "label": "Channel",
-     "plain": "Which part of the color the curve bends.",
+     "plain": "Which part of the color the curve bends: all of it, only the red, green or blue channel (one of the three colors every picture is mixed from), or how strong each hue is (hue vs saturation).",
      "scale": [
       "all",
       "red",
@@ -52256,7 +52417,8 @@
     "pull": "Contrast pulls the eye to the brightest face.",
     "cue": "visual",
     "tryThis": "Fade the blacks for the flashback, then crush them when you come back."
-   }
+   },
+   "replained": true
   },
   {
    "id": "soundRoles",
@@ -52302,7 +52464,7 @@
     {
      "id": "music",
      "label": "Music level",
-     "plain": "How loud the music sits.",
+     "plain": "How loud the music sits. (Same idea as \"Music under speech\".)",
      "range": {
       "min": 0,
       "max": 100,
@@ -52403,7 +52565,7 @@
    "id": "sideStoryline",
    "level": "curiosity",
    "label": "Side storyline",
-   "plain": "A run of clips riding above the main story: cutaways, a montage under a speech, a second story told at the same time (Final Cut's connected storylines).",
+   "plain": "A run of clips riding above the main story: cutaways, a montage under a speech, a second story told at the same time (Final Cut's connected storylines). A run of cutaways here is close to \"Cutaway gag\", which is a single cutaway joke.",
    "workspace": "layers",
    "also": [],
    "group": "Editing (Final Cut Pro)",
@@ -52523,7 +52685,8 @@
     "pull": "Cutaways give the eye something new while the ear keeps the thread.",
     "cue": "plot",
     "tryThis": "Lay the heist under the toast at the wedding."
-   }
+   },
+   "replained": true
   },
   {
    "id": "nestedScene",
@@ -52651,7 +52814,7 @@
     {
      "id": "setting",
      "label": "Frames made by",
-     "plain": "How smooth slowed-down footage looks.",
+     "plain": "How slowed-down footage gets its extra frames: repeating frames (choppy), frame blending (two frames mixed into each new one, a little ghostly) or optical flow (the computer invents the in-between frames, the smoothest).",
      "scale": [
       "repeating frames",
       "frame blending",
@@ -53858,7 +54021,7 @@
    "id": "lightRigLens",
    "level": "curiosity",
    "label": "Light setup",
-   "plain": "What kind of lights light the scene and how they work together: the sun, the sky, a window, a spotlight, a bare bulb; how bright the dark side is; light bouncing off walls.",
+   "plain": "What kind of lights light the scene and how they work together: the sun, the sky, a window, a spotlight, a bare bulb; how bright the dark side is; light bouncing off walls. Close to \"Lighting\"; this one is about the kinds of lights and how they work together, that one gathers direction, hardness, warmth and shape.",
    "workspace": "light",
    "also": [
     "set",
@@ -54080,7 +54243,8 @@
     "pull": "The eye goes to the brightest thing in the frame, so light steers attention.",
     "cue": "visual",
     "tryThis": "Light only the person who is lying, and let everyone else fall into shadow."
-   }
+   },
+   "replained": true
   },
   {
    "id": "surfaceLens",
@@ -54643,7 +54807,7 @@
    "id": "layersLens",
    "level": "curiosity",
    "label": "Layers of the picture",
-   "plain": "The picture as layers you can turn up and down: foreground against background, contact shadows, fog with depth, one light group louder than another.",
+   "plain": "The picture as layers you can turn up and down: foreground against background, contact shadows (the dark where things touch), fog that grows with distance, and one light group (a set of lights mixed together as one) louder than another.",
    "workspace": "light",
    "also": [
     "structure",
@@ -54697,7 +54861,7 @@
     {
      "id": "lightMix",
      "label": "Light mix",
-     "plain": "Which group of lights is turned up when the layers are mixed.",
+     "plain": "Which group of lights (a set of lights mixed together as one) is turned up when the layers are combined.",
      "scale": [
       "the main light",
       "even",
@@ -54791,7 +54955,8 @@
     "pull": "The layer that is brightest and sharpest is the one the eye goes to.",
     "cue": "visual",
     "tryThis": "Fade the background into fog as the character shuts the world out."
-   }
+   },
+   "replained": true
   },
   {
    "id": "cameraLensLens",
@@ -54867,7 +55032,7 @@
     {
      "id": "shake",
      "label": "Shake",
-     "plain": "How much the camera shakes.",
+     "plain": "How much the camera shakes. Shot that way: same as \"Camera shake while filming\". \"Camera move added in the edit\" adds a shake in the edit, and \"Shake removed in the edit\" removes it.",
      "ref": "cameraShake",
      "curve": "linear",
      "range": {
@@ -58738,7 +58903,7 @@
   {
    "id": "laughsToTears",
    "level": "curiosity",
-   "label": "Funny to sad switch",
+   "label": "The turn from funny to sad",
    "plain": "A scene shifts from laughs to real sadness, or back, so the joke suddenly hurts or the tears get a laugh.",
    "workspace": "comedy",
    "also": [],
@@ -58885,7 +59050,8 @@
     "pull": "We feel caught off guard and want to know what comes next.",
     "cue": "thought",
     "tryThis": "Let a running joke land one last time, then have the person laughing go quiet in the middle of it."
-   }
+   },
+   "relabeled": true
   },
   {
    "id": "selfMockery",
@@ -63496,8 +63662,8 @@
   {
    "id": "laughThroughGrief",
    "level": "curiosity",
-   "label": "Laughing through sadness",
-   "plain": "A laugh that breaks into a sad moment: a funny memory at a funeral, a silly mistake during a goodbye. It lightens grief without erasing it.",
+   "label": "A laugh inside grief",
+   "plain": "A laugh that breaks into a sad moment: a funny memory at a funeral, a silly mistake during a goodbye. It lightens grief without erasing it. Close to \"The turn from funny to sad\"; this one is a laugh that breaks into grief, that one a whole scene that switches mood.",
    "workspace": "emotion",
    "also": [
     "comedy"
@@ -63656,7 +63822,9 @@
     "pull": "The surprise of laughing when we expected to cry keeps us alert.",
     "cue": "audio",
     "tryThis": "At the funeral, let someone mispronounce the dead man's favorite word, the way he always did."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "grief",
@@ -66029,8 +66197,8 @@
   {
    "id": "foil",
    "level": "curiosity",
-   "label": "The mirror character",
-   "plain": "A character who shows the hero who they could become: someone with the same start who took a different road.",
+   "label": "The character they could become",
+   "plain": "A character who shows the hero who they could become: someone with the same start who took a different road. Not the mirror or foil roles in \"Role in the scene\", which are a job someone does in one scene; this one is a whole other character who shares the hero's start.",
    "workspace": "arc",
    "also": [],
    "group": "",
@@ -66174,7 +66342,9 @@
     "pull": "We watch to see which road the hero will take.",
     "cue": "visual",
     "tryThis": "Put the hero and the mirror character in the same pose in the same doorway, scenes apart."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "realization",
@@ -66634,7 +66804,7 @@
    "id": "returningObject",
    "level": "curiosity",
    "label": "The object we keep seeing",
-   "plain": "An object the camera keeps coming back to, so we feel it matters before we know why.",
+   "plain": "An object the camera keeps coming back to, so we feel it matters before we know why. Not \"Signature image or line\" (a memorable shot or line that comes back) or the \"Story weight\" slider in \"Props\" (how much one scene leans on an object).",
    "workspace": "focus",
    "also": [],
    "group": "",
@@ -66781,7 +66951,8 @@
     "pull": "Each return makes us ask: why does the film keep showing us this?",
     "cue": "visual",
     "tryThis": "Show the same photo on the fridge in three scenes; in the fourth, have it gone."
-   }
+   },
+   "replained": true
   },
   {
    "id": "unreliableView",
@@ -66940,7 +67111,7 @@
    "id": "offscreen",
    "level": "curiosity",
    "label": "What we do not see",
-   "plain": "The camera keeps something out of the picture, so we have to imagine it. What we imagine is often stronger than what could be shown.",
+   "plain": "The camera keeps something out of the picture, so we have to imagine it. What we imagine is often stronger than what could be shown. Close to \"Cutting away before the hit\", which hides the moment by cutting away; this one keeps it outside the frame.",
    "workspace": "focus",
    "also": [],
    "group": "",
@@ -67087,13 +67258,14 @@
     "pull": "We want to see it, so we keep watching.",
     "cue": "audio",
     "tryThis": "Keep the camera on the lead's face as they open the box, and only play the sound of what is inside."
-   }
+   },
+   "replained": true
   },
   {
    "id": "lingeringShot",
    "level": "curiosity",
    "label": "The camera stays too long",
-   "plain": "The shot holds after the action is done. The extra seconds tell us something here matters, even if we cannot say what.",
+   "plain": "The shot holds after the action is done. The extra seconds tell us something here matters, even if we cannot say what. Close to \"Holding before the cut\"; this one is a hold that hints at something (a feeling, a warning, a clue), that one lets a moment sink in before the cut.",
    "workspace": "focus",
    "also": [],
    "group": "",
@@ -67238,7 +67410,8 @@
     "pull": "The extra seconds make us uneasy and curious.",
     "cue": "visual",
     "tryThis": "After everyone leaves the room, hold on the empty chair for five more seconds."
-   }
+   },
+   "replained": true
   },
   {
    "id": "blindSpot",
@@ -68758,7 +68931,7 @@
    "id": "cutBeforeHit",
    "level": "curiosity",
    "label": "Cutting away before the hit",
-   "plain": "The film cuts away just before the punch, the crash or the kiss lands, and lets us hear it or imagine it.",
+   "plain": "The film cuts away just before the punch, the crash or the kiss lands, and lets us hear it or imagine it. Close to \"What we do not see\", which keeps the moment outside the frame; this one hides it by cutting away.",
    "workspace": "transitions",
    "also": [],
    "group": "",
@@ -68903,7 +69076,8 @@
     "pull": "We lean in to find out what really happened.",
     "cue": "thought",
     "tryThis": "Cut from the raised fist straight to a cook cracking an egg in the next scene."
-   }
+   },
+   "replained": true
   },
   {
    "id": "hiddenCut",
@@ -70865,8 +71039,8 @@
   {
    "id": "frameBreak",
    "level": "curiosity",
-   "label": "Breaking out of the frame",
-   "plain": "Something bursts past the edge of the picture: a hand reaches over the black bars, a ball flies out of the box, the frame itself cracks.",
+   "label": "Bursting past the film frame",
+   "plain": "Something bursts past the edge of the picture: a hand reaches over the black bars, a ball flies out of the box, the frame itself cracks. Not \"Breaking the panel border\", which is the border of a comic panel.",
    "workspace": "canvas",
    "also": [],
    "group": "",
@@ -71011,7 +71185,9 @@
     "pull": "We feel it coming at us and sit up.",
     "cue": "movement",
     "tryThis": "Put black bars on the scene, then let the hero's fist punch up through the top bar."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "irisShot",
@@ -73276,7 +73452,7 @@
    "id": "bigHit",
    "level": "curiosity",
    "label": "Music lands on the moment",
-   "plain": "The music builds and lands its biggest note exactly on one moment: a cut, a punch, a kiss, a reveal. A crescendo (music getting louder and fuller) aimed at a single frame.",
+   "plain": "The music builds and lands its biggest note exactly on one moment: a cut, a punch, a kiss, a reveal. A crescendo (music getting louder and fuller) aimed at a single frame. Not \"Music sting\", which is short and comes without a build.",
    "workspace": "music",
    "also": [],
    "group": "",
@@ -73437,7 +73613,8 @@
     "pull": "The build makes us lean toward the moment; the hit drops us into what follows.",
     "cue": "audio",
     "tryThis": "Build the score for 20 seconds and land the biggest chord on the cut to the reveal."
-   }
+   },
+   "replained": true
   },
   {
    "id": "clashingNotes",
@@ -76426,7 +76603,7 @@
    "id": "backTurned",
    "level": "curiosity",
    "label": "Saying it with their back turned",
-   "plain": "A character turns away from the person they are talking to, so the line goes to a wall or a window. It hides the face and shows they cannot, or will not, look at them.",
+   "plain": "A character turns away from the person they are talking to, so the line goes to a wall or a window. It hides the face and shows they cannot, or will not, look at them. Close to \"Facing us or turned away\"; this one is turning away from the other person while talking, that one turning away from the camera.",
    "workspace": "movement-lines",
    "also": [],
    "group": "",
@@ -76586,7 +76763,8 @@
     "pull": "We want to see the face they are hiding.",
     "cue": "movement",
     "tryThis": "Let him say 'I'm fine' to the window, and show us his face that she cannot see."
-   }
+   },
+   "replained": true
   },
   {
    "id": "ownHabit",
@@ -77097,8 +77275,8 @@
   {
    "id": "pacing",
    "level": "curiosity",
-   "label": "Pacing back and forth",
-   "plain": "A character walks back and forth in a small space, turning at the same spots, because they are worried, angry or thinking hard. The path shows a mind going round in circles.",
+   "label": "Walking back and forth",
+   "plain": "A character walks back and forth in a small space, turning at the same spots, because they are worried, angry or thinking hard. The path shows a mind going round in circles. Not \"Speaking speed\" (how fast people talk) or \"Cutting speed across the scene\" (how fast the edit cuts).",
    "workspace": "character-motion",
    "also": [],
    "group": "",
@@ -77261,7 +77439,9 @@
     "pull": "We wait for the thought that finally stops them.",
     "cue": "movement",
     "tryThis": "Have him pace the same four steps, faster each lap, then stop dead mid-step when he has the answer."
-   }
+   },
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "bigEntrance",
@@ -85548,8 +85728,8 @@
   {
    "id": "coverage",
    "level": "suite",
-   "label": "Coverage",
-   "plain": "Cuts around the line.",
+   "label": "Coverage (shots from every side)",
+   "plain": "The scene filmed from several angles, cutting between them on the lines.",
    "workspace": "camera-angle",
    "also": [],
    "kind": "",
@@ -85643,13 +85823,15 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "oner",
    "level": "suite",
-   "label": "Oner",
-   "plain": "One smooth tracking shot.",
+   "label": "One smooth following shot (a oner)",
+   "plain": "One smooth shot that follows the action with no cuts (a oner).",
    "workspace": "camera-angle",
    "also": [
     "camera-motion"
@@ -85764,7 +85946,9 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "handheld-hunt",
@@ -86898,8 +87082,8 @@
   {
    "id": "snappy-cartoon",
    "level": "suite",
-   "label": "Snappy cartoon",
-   "plain": "On twos, big wind-up, bounce.",
+   "label": "Snappy cartoon moves",
+   "plain": "Drawn on twos (a new pose every second frame), a big wind-up before each move, and a bounce at the end.",
    "workspace": "character-motion",
    "also": [
     "movement-lines"
@@ -87014,13 +87198,15 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "grounded-realism",
    "level": "suite",
-   "label": "Grounded realism",
-   "plain": "On ones, small wind-up, settles.",
+   "label": "Grounded realism (how they move)",
+   "plain": "Drawn on ones (a new pose every frame), a small wind-up before each move, and moves that settle into place.",
    "workspace": "character-motion",
    "also": [
     "movement-lines"
@@ -87135,7 +87321,9 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "noir",
@@ -87278,8 +87466,8 @@
   {
    "id": "golden-hour",
    "level": "suite",
-   "label": "Golden hour",
-   "plain": "Warm back light and a strong rim.",
+   "label": "Golden hour: warm light from behind",
+   "plain": "Warm light from behind the people and a strong rim (a bright edge of light around them), as at the end of the day.",
    "workspace": "light",
    "also": [],
    "kind": "",
@@ -87392,13 +87580,15 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "comic-ink",
    "level": "suite",
-   "label": "Comic ink",
-   "plain": "Toon render, heavy line, low saturation.",
+   "label": "Cartoon look with heavy ink lines",
+   "plain": "A drawn cartoon look (toon render) with heavy ink lines and low color.",
    "workspace": "light",
    "also": [],
    "kind": "",
@@ -87492,7 +87682,9 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "wet-night",
@@ -87821,7 +88013,7 @@
   {
    "id": "hearth",
    "level": "suite",
-   "label": "Hearth",
+   "label": "Fire lighting the room",
    "plain": "A steady fire lights the room.",
    "workspace": "effects",
    "also": [
@@ -87937,7 +88129,8 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "relabeled": true
   },
   {
    "id": "brawl",
@@ -88308,7 +88501,7 @@
    "id": "breathing-room",
    "level": "suite",
    "label": "Breathing room",
-   "plain": "Long silence, empty frame, long hold.",
+   "plain": "Long silence, empty frame, long hold. Not \"Rest after a big feeling\", which is the rule that rest follows a big feeling; this one sets the quiet itself.",
    "workspace": "lines",
    "also": [
     "placement",
@@ -88405,7 +88598,8 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "signature-return",
@@ -89773,8 +89967,8 @@
   {
    "id": "genre-documentary",
    "level": "suite",
-   "label": "Documentary",
-   "plain": "Handheld, practical light, a human operator's drift.",
+   "label": "Documentary look (camera and light)",
+   "plain": "A handheld camera, light from the lamps that are really there, and the small drift of a person operating the camera.",
    "workspace": "structure",
    "also": [],
    "kind": "genre",
@@ -89868,7 +90062,9 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "genre-surrealist",
@@ -93867,7 +94063,7 @@
    "id": "lens-period",
    "level": "suite",
    "label": "Period truth",
-   "plain": "Whether clothes and set all belong to the same time.",
+   "plain": "Whether clothes and set all belong to the same time. Shares half its members with \"The whole look\"; this one checks that everything belongs to one time.",
    "workspace": "wardrobe",
    "also": [
     "set"
@@ -93996,13 +94192,14 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "lens-feeling",
    "level": "suite",
    "label": "Feeling of the scene",
-   "plain": "The emotion with the color and the place that carry it.",
+   "plain": "The emotion with the color and the place that carry it. Mostly inside \"Emotion lens\", which adds the body, voice, face and actions.",
    "workspace": "emotion",
    "also": [
     "color"
@@ -94167,7 +94364,8 @@
     }
    ],
    "source": "model.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "lens-laugh",
@@ -95196,7 +95394,7 @@
    "id": "montage-song",
    "level": "suite",
    "label": "Montage song",
-   "plain": "One song carries many short shots of time passing, the edit cutting on its beat.",
+   "plain": "One song carries many short shots of time passing, the edit cutting on its beat. Close to \"Music video cutting\"; this one is a song carrying time passing in a story, that one flashy cutting on the beat.",
    "workspace": "music",
    "also": [
     "structure"
@@ -95313,7 +95511,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "returning-theme",
@@ -96300,7 +96499,7 @@
    "id": "rock-bottom",
    "level": "suite",
    "label": "Rock bottom",
-   "plain": "The lowest scene of a character's road: closed posture, little said, a room that agrees.",
+   "plain": "The lowest scene of a character's road: closed posture, little said, a room that agrees. Close to \"Hope dies\"; that one is hope running out, this one how the lowest scene looks.",
    "workspace": "emo-road",
    "also": [
     "arc"
@@ -96396,7 +96595,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "deadpan",
@@ -97303,7 +97503,7 @@
    "id": "rom-com-banter",
    "level": "suite",
    "label": "Rom-com banter",
-   "plain": "Two opposites trading quick lines, affectionate teasing, a status seesaw.",
+   "plain": "Two opposites trading quick lines, affectionate teasing, a status seesaw. Close to \"Banter\"; this one is two opposites who like each other.",
    "workspace": "comedy",
    "also": [
     "lines",
@@ -97441,7 +97641,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "straight-man-funny-man",
@@ -99990,7 +100191,7 @@
   {
    "id": "candlelit",
    "level": "suite",
-   "label": "Candlelit",
+   "label": "Candlelight on faces",
    "plain": "Warm flickering light from a flame, deep shadows, faces half lit.",
    "workspace": "light",
    "also": [
@@ -100110,7 +100311,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true
   },
   {
    "id": "bleak-gray",
@@ -106449,8 +106651,8 @@
   {
    "id": "the-breakdown",
    "level": "suite",
-   "label": "The breakdown",
-   "plain": "Everything held in comes out at once.",
+   "label": "Breaking down in tears",
+   "plain": "Everything held in comes out at once. Not \"Glitch breakdown (the picture falls apart)\", which breaks up the picture.",
    "workspace": "emotion",
    "also": [
     "emo-road"
@@ -106567,7 +106769,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "cold-fury",
@@ -107077,8 +107281,8 @@
   {
    "id": "dramatic-dread",
    "level": "suite",
-   "label": "Dread: we know, they don't",
-   "plain": "The audience knows the danger; the character is cheerful. We feel the fear for them.",
+   "label": "We see the danger, they don't",
+   "plain": "The audience knows the danger; the character is cheerful. We feel the fear for them. Close to \"We know, they don't\"; that one is any secret we know, this one is danger and the fear we feel for them.",
    "workspace": "emotion",
    "also": [
     "structure"
@@ -107175,7 +107379,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "farce",
@@ -107302,8 +107508,8 @@
   {
    "id": "the-topper",
    "level": "suite",
-   "label": "The topper",
-   "plain": "A joke lands, then another tops it, then one more.",
+   "label": "Topping the joke, twice",
+   "plain": "A joke lands, then another tops it, then one more. \"The topper\" is one extra joke; this suite stacks them and lands the payoff.",
    "workspace": "comedy",
    "also": [],
    "kind": "",
@@ -107398,7 +107604,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "punching-up",
@@ -108147,7 +108355,7 @@
    "id": "calm-in-the-madness",
    "level": "suite",
    "label": "Calm in the madness",
-   "plain": "One person stays calm while everything around them falls apart.",
+   "plain": "One person stays calm while everything around them falls apart. Close to \"Straight one and funny one\"; this one is one calm person against a whole room of chaos.",
    "workspace": "comedy-mix",
    "also": [
     "comedy"
@@ -108243,7 +108451,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "fish-in-the-group",
@@ -109601,7 +109810,7 @@
   {
    "id": "growth-arc",
    "level": "suite",
-   "label": "Growing up",
+   "label": "Ends better than they began",
    "plain": "The character lets go of the lie, passes the test and ends better than they began.",
    "workspace": "arc",
    "also": [
@@ -109699,7 +109908,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true
   },
   {
    "id": "tragic-fall",
@@ -110635,7 +110845,7 @@
    "id": "power-low",
    "level": "suite",
    "label": "Looking up at power",
-   "plain": "A low angle on a wide lens makes a character loom.",
+   "plain": "A low angle on a wide lens makes a character loom. Close to \"Power staging\"; this one is only the camera looking up.",
    "workspace": "camera-angle",
    "also": [
     "comedy-mix"
@@ -110731,7 +110941,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "small-from-above",
@@ -111250,7 +111461,7 @@
   {
    "id": "viral-edit",
    "level": "suite",
-   "label": "Viral edit",
+   "label": "Phone-video editing tricks",
    "plain": "The fast phone-video style CapCut is known for: punch-ins, jump cuts, big captions, sound hits, cuts on the beat.",
    "workspace": "speed",
    "also": [],
@@ -111383,7 +111594,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "relabeled": true
   },
   {
    "id": "classic-dissolve",
@@ -111508,7 +111720,7 @@
   {
    "id": "music-video-cut",
    "level": "suite",
-   "label": "Music video",
+   "label": "Music video cutting",
    "plain": "Cuts on the bars, flashes and pulses with the beat, music over everything.",
    "workspace": "speed",
    "also": [],
@@ -111642,13 +111854,14 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "relabeled": true
   },
   {
    "id": "documentary-edit",
    "level": "suite",
-   "label": "Documentary",
-   "plain": "Cutaways over the interview, a running voice-over, captions, steady footage, lower thirds.",
+   "label": "Documentary edit (interviews and captions)",
+   "plain": "Cutaways over the interview, a running voice-over, captions, steadied footage and lower thirds (names across the bottom of the screen). Close to \"Documentary look (camera and light)\", which is how it is filmed; this one is how it is edited.",
    "workspace": "layers",
    "also": [],
    "kind": "",
@@ -111780,7 +111993,9 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "comedy-punch-edit",
@@ -112062,7 +112277,7 @@
   {
    "id": "silent-film-edit",
    "level": "suite",
-   "label": "Silent film",
+   "label": "Silent film look (in the edit)",
    "plain": "Black and white, sped up, title cards, grain, fades at both ends.",
    "workspace": "grade",
    "also": [],
@@ -112195,7 +112410,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "relabeled": true
   },
   {
    "id": "trailer-edit",
@@ -112321,7 +112537,7 @@
    "id": "reaction-comedy-edit",
    "level": "suite",
    "label": "Reaction comedy",
-   "plain": "A cartoon mood on the face, a fake slam zoom, a sound hit and a short freeze, the way phone comedy lands a reaction.",
+   "plain": "A cartoon mood on the face, a fake slam zoom, a sound hit and a short freeze, the way phone comedy lands a reaction. Close to \"Comedy punch\"; this one is built around a reaction face, that one around the editor's own jokes.",
    "workspace": "titles",
    "also": [],
    "kind": "",
@@ -112435,7 +112651,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "zine-scrapbook",
@@ -113040,8 +113257,8 @@
   {
    "id": "breakdown",
    "level": "suite",
-   "label": "Breakdown",
-   "plain": "A shaking glitch, a ripple warp and a glitch transition: the picture falling apart with the person.",
+   "label": "Glitch breakdown (the picture falls apart)",
+   "plain": "A shaking glitch, a ripple warp and a glitch transition: the picture falling apart with the person. Not \"Breaking down in tears\", which is a person crying; this one is the picture itself breaking up.",
    "workspace": "layers",
    "also": [],
    "kind": "",
@@ -113154,7 +113371,9 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "trippy-vision",
@@ -113399,8 +113618,8 @@
   {
    "id": "viral-short",
    "level": "suite",
-   "label": "Viral short",
-   "plain": "Start mid-action, something new every couple of seconds, captions on, and an end that loops into the start.",
+   "label": "Viral short: hook and loop",
+   "plain": "Start mid-action, something new every couple of seconds, captions on, and an end that loops into the start. Close to \"Phone-video editing tricks\"; that one is the editing tricks, this one the shape of the whole short (grab at the start, loop at the end).",
    "workspace": "structure",
    "also": [],
    "kind": "",
@@ -113513,7 +113732,9 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "episode-cliffhanger",
@@ -113878,8 +114099,8 @@
   {
    "id": "cartoon-bounce",
    "level": "suite",
-   "label": "Cartoon bounce",
-   "plain": "Rubbery cartoon bodies: pushed poses, squash and stretch, big wind-ups, things that bounce like super balls.",
+   "label": "Rubbery cartoon bodies",
+   "plain": "Rubbery cartoon bodies: pushed poses, squash and stretch, big wind-ups, things that bounce like super balls. Close to \"Snappy cartoon moves\"; this one is about rubbery bodies and bouncing things, that one about timing.",
    "workspace": "character-motion",
    "also": [
     "comedy"
@@ -114020,13 +114241,15 @@
    "source": "Maya",
    "tags": [
     "maya"
-   ]
+   ],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "heavy-and-real",
    "level": "suite",
-   "label": "Heavy and real",
-   "plain": "Real weight: realistic movement, things land with a thud, heavy fabric, nothing floats.",
+   "label": "Heavy and real (weight and landing)",
+   "plain": "Real weight: realistic movement, things land with a thud, heavy fabric, nothing floats. Close to \"Grounded realism (how they move)\"; that one is the timing of moves, this one the weight of bodies and things.",
    "workspace": "character-motion",
    "also": [
     "effects"
@@ -114167,7 +114390,9 @@
    "source": "Maya",
    "tags": [
     "maya"
-   ]
+   ],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "stop-motion-feel",
@@ -114321,7 +114546,7 @@
    "id": "campfire-night",
    "level": "suite",
    "label": "Campfire night",
-   "plain": "A fire in the dark: flames lighting faces, sparks rising, flushed skin, one side of every face black.",
+   "plain": "A fire in the dark: flames lighting faces, sparks rising, flushed skin, one side of every face black. Close to \"Fire lighting the room\"; that one is a steady fire indoors, this one a fire in the dark outdoors with sparks and black shadows.",
    "workspace": "light",
    "also": [
     "effects",
@@ -114463,7 +114688,8 @@
    "source": "Maya",
    "tags": [
     "maya"
-   ]
+   ],
+   "replained": true
   },
   {
    "id": "warm-animated-feature",
@@ -114615,8 +114841,8 @@
   {
    "id": "ink-comic",
    "level": "suite",
-   "label": "Ink comic",
-   "plain": "A printed comic look: flat color in two bands, heavy crosshatched shadows, paper grain.",
+   "label": "Printed comic page look",
+   "plain": "A printed comic look: flat color in two bands, heavy crosshatched shadows, paper grain. Close to \"Cartoon look with heavy ink lines\"; this one is a printed page, with crosshatching (shadows drawn as crossed lines) and paper grain.",
    "workspace": "page",
    "also": [
     "light",
@@ -114738,7 +114964,9 @@
    "source": "Maya",
    "tags": [
     "maya"
-   ]
+   ],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "underwater",
@@ -115614,7 +115842,7 @@
    "id": "cut-on-the-words",
    "level": "suite",
    "label": "Cut on the words",
-   "plain": "A talk-driven scene where every shot is chosen for a line, cuts fall on the lines, and the next voice often starts before the cut.",
+   "plain": "A talk-driven scene where every shot is chosen for a line, cuts fall on the lines, and the next voice often starts before the cut. Close to \"Coverage (shots from every side)\"; this one chooses each shot for a line and lets the next voice start before the cut.",
    "workspace": "camera-angle",
    "also": [
     "lines"
@@ -115748,7 +115976,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "cut-on-the-move",
@@ -116294,8 +116523,8 @@
   {
    "id": "old-cartoon-bounce",
    "level": "suite",
-   "label": "Old cartoon bounce",
-   "plain": "1930s cartoon style: everything moves in loops and curves, squashes and stretches, and springs past its mark.",
+   "label": "1930s rubber-hose cartoon",
+   "plain": "1930s cartoon style: everything moves in loops and curves, squashes and stretches, and springs past its mark. Close to \"Rubbery cartoon bodies\"; this one is the old style of loops and curves.",
    "workspace": "character-motion",
    "also": [],
    "kind": "",
@@ -116427,7 +116656,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "budget-tv-animation",
@@ -117011,7 +117242,7 @@
    "id": "rapid-fire-banter",
    "level": "suite",
    "label": "Rapid-fire banter",
-   "plain": "Quick-witted comedy talk: fast lines, one person grabbing most of the floor, voices jumping around, hard cuts, quick glances.",
+   "plain": "Quick-witted comedy talk: fast lines, one person grabbing most of the floor, voices jumping around, hard cuts, quick glances. Close to \"Banter\"; this one is about speed and the cutting.",
    "workspace": "lines",
    "also": [
     "camera-angle"
@@ -117145,7 +117376,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "widescreen-epic",
@@ -117311,7 +117543,7 @@
    "id": "hazy-memory",
    "level": "suite",
    "label": "Hazy memory",
-   "plain": "A flashback or dream: voices echo, sounds melt into each other, movement smears, and the frame is an old-fashioned square.",
+   "plain": "A flashback or dream: voices echo, sounds melt into each other, movement smears, and the frame is an old-fashioned square. Close to \"Faded memory\"; that one is the color, this one the sound, the blur and the frame shape.",
    "workspace": "audio-mix",
    "also": [
     "camera-angle"
@@ -117426,7 +117658,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "dubbed-foreign-film",
@@ -118235,8 +118468,8 @@
   {
    "id": "magic-hour",
    "level": "suite",
-   "label": "Magic hour",
-   "plain": "The short golden window at the end of the day: light that shifts as you watch, skin that glows, a few warm neighboring colors.",
+   "label": "Magic hour: the last golden minutes",
+   "plain": "The short golden window at the end of the day: light that shifts as you watch, skin that glows, a few warm neighboring colors. The same time of day as \"Golden hour: warm light from behind\"; that one sets warm light from behind with a bright edge, this one the light changing as you watch, glowing skin and a few warm colors.",
    "workspace": "light",
    "also": [],
    "kind": "",
@@ -118369,13 +118602,15 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "candlelit-room",
    "level": "suite",
-   "label": "Candlelit room",
-   "plain": "Low light from a few flames: faces glow warm, the colors stay few and close, and the light flickers on the action.",
+   "label": "A room lit by a few flames",
+   "plain": "Low light from a few flames: faces glow warm, the colors stay few and close, and the light flickers on the action. Close to \"Candlelight on faces\"; that one is the light on the faces, this one the whole room's few colors and glowing skin.",
    "workspace": "light",
    "also": [],
    "kind": "",
@@ -118508,7 +118743,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "shampoo-ad-hair",
@@ -121315,7 +121552,7 @@
    "id": "narrowing-in",
    "level": "suite",
    "label": "Narrowing in",
-   "plain": "A character's attention shrinks until only one thing matters to them and nothing else gets through. Great for obsession, panic and heists.",
+   "plain": "A character's attention shrinks until only one thing matters to them and nothing else gets through. Great for obsession, panic and heists. Close to \"Tunnel vision\"; that one has the camera narrow with them, this one is about the mind shutting everything else out.",
    "workspace": "focus",
    "also": [],
    "kind": "",
@@ -121428,7 +121665,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "slow-burn-gags",
@@ -121553,7 +121791,7 @@
    "id": "stranger-in-a-strange-land",
    "level": "suite",
    "label": "Stranger in a strange land",
-   "plain": "Someone badly out of place, a group that does not know what to make of them, and plenty of double takes. Think a city person on a farm or a kid at a board meeting.",
+   "plain": "Someone badly out of place, a group that does not know what to make of them, and plenty of double takes. Think a city person on a farm or a kid at a board meeting. Close to \"Doesn't belong here\"; that one is one group, this one a whole strange world.",
    "workspace": "comedy",
    "also": [
     "comedy-mix"
@@ -121668,7 +121906,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "twisting-the-familiar",
@@ -122418,7 +122657,7 @@
    "id": "earned-release",
    "level": "suite",
    "label": "Earned release",
-   "plain": "A feeling held in for a long time, tied to an old hurt that finally comes out, breaks free in tears or laughter. The big cry at the end of the film.",
+   "plain": "A feeling held in for a long time, tied to an old hurt that finally comes out, breaks free in tears or laughter. The big cry at the end of the film. Close to \"Breaking down in tears\"; this one is the big release at the end of a long road, tied to an old hurt.",
    "workspace": "emo-road",
    "also": [
     "arc",
@@ -122535,7 +122774,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "two-steps-forward",
@@ -122940,7 +123180,7 @@
    "id": "door-slamming-farce",
    "level": "suite",
    "label": "Door-slamming farce",
-   "plain": "People who must not meet keep missing each other by seconds, in bad disguises, telling bigger and bigger lies.",
+   "plain": "People who must not meet keep missing each other by seconds, in bad disguises, telling bigger and bigger lies. Close to \"Farce\"; this one is the doors-and-disguises kind, people missing each other by seconds.",
    "workspace": "comedy-mix",
    "also": [],
    "kind": "",
@@ -123072,7 +123312,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "slapstick-chase",
@@ -123475,7 +123716,7 @@
    "id": "sad-clown",
    "level": "suite",
    "label": "Sad clown",
-   "plain": "Someone who jokes about themselves and always loses, until the laugh turns into real tears.",
+   "plain": "Someone who jokes about themselves and always loses, until the laugh turns into real tears. Close to \"Laughing through tears\"; this one is a person who jokes until the joke turns to real tears.",
    "workspace": "comedy",
    "also": [],
    "kind": "",
@@ -123608,7 +123849,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "sharp-satire",
@@ -124111,7 +124353,7 @@
    "id": "dry-double-act",
    "level": "suite",
    "label": "Dry double act",
-   "plain": "Two people, one says something silly, the other answers seriously or says it back flat.",
+   "plain": "Two people, one says something silly, the other answers seriously or says it back flat. Close to \"Straight one and funny one\"; this one is the dry back-and-forth of the two.",
    "workspace": "comedy-mix",
    "also": [],
    "kind": "",
@@ -124225,7 +124467,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "tearjerker-finale",
@@ -125022,7 +125265,7 @@
    "id": "laughing-at-the-funeral",
    "level": "suite",
    "label": "Laughing at the funeral",
-   "plain": "Grief broken by a laugh that makes the sadness bearable, and sometimes deeper.",
+   "plain": "Grief broken by a laugh that makes the sadness bearable, and sometimes deeper. Close to \"Laughing through tears\"; this one is grief, that one any mixed sad and happy moment.",
    "workspace": "emotion",
    "also": [
     "comedy"
@@ -125137,7 +125380,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "lonely-heart",
@@ -126167,7 +126411,7 @@
    "id": "a-scene-that-lingers",
    "level": "suite",
    "label": "A scene that lingers",
-   "plain": "A scene that ends but does not let go: a held shot, a fade out, a silence the feeling hangs in.",
+   "plain": "A scene that ends but does not let go: a held shot, a fade out, a silence the feeling hangs in. Close to \"Breathing room\" and \"Let it sink in\"; this one is about the end of a scene and the feeling it leaves.",
    "workspace": "emotion",
    "also": [
     "structure"
@@ -126282,7 +126526,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "gentle-care",
@@ -126532,7 +126777,7 @@
    "id": "rose-tinted-past",
    "level": "suite",
    "label": "Rose-tinted past",
-   "plain": "A warm, golden look back: warm color, an old theme returning, a feeling from long ago coming back.",
+   "plain": "A warm, golden look back: warm color, an old theme returning, a feeling from long ago coming back. Close to \"Faded memory\"; this one remembers fondly, with an old tune coming back.",
    "workspace": "emo-road",
    "also": [
     "color",
@@ -126649,7 +126894,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "phew",
@@ -127034,8 +127280,8 @@
   {
    "id": "crossing-the-line",
    "level": "suite",
-   "label": "Crossing the line",
-   "plain": "Something starts it all, the character makes a choice that costs them, and there is no going back once the stakes are clear.",
+   "label": "Crossing the point of no return",
+   "plain": "Something starts it all, the character makes a choice that costs them, and there is no going back once the stakes are clear. Not \"A line carried across the cut\", which is about the edit.",
    "workspace": "plot",
    "also": [],
    "kind": "",
@@ -127149,7 +127395,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "enemy-closing-in",
@@ -128318,7 +128566,7 @@
    "id": "mob-rule",
    "level": "suite",
    "label": "Mob rule",
-   "plain": "A rumor spreads, people copy each other, the pressure builds, and the crowd turns on someone.",
+   "plain": "A rumor spreads, people copy each other, the pressure builds, and the crowd turns on someone. Close to \"A mob forms\"; that one is a crowd becoming one mind behind one voice, this one the rumor and copying that turn it on someone.",
    "workspace": "herd",
    "also": [],
    "kind": "",
@@ -128431,13 +128679,14 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "one-against-many",
    "level": "suite",
    "label": "One against many",
-   "plain": "One person speaks up against the whole group, pays for it, and slowly wins the room over.",
+   "plain": "One person speaks up against the whole group, pays for it, and slowly wins the room over. Close to \"The lone voice\"; that one frames one person alone against the group, this one follows them winning the room over.",
    "workspace": "herd",
    "also": [],
    "kind": "",
@@ -128552,13 +128801,14 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "let-it-sink-in",
    "level": "suite",
    "label": "Let it sink in",
-   "plain": "The shot stays on a face in dead silence long after the line, then cuts hard to black or fades away.",
+   "plain": "The shot stays on a face in dead silence long after the line, then cuts hard to black or fades away. Close to \"Breathing room\"; this one holds on one face in silence, then cuts away.",
    "workspace": "transitions",
    "also": [],
    "kind": "",
@@ -128673,7 +128923,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "thriller-cutting",
@@ -128816,8 +129067,8 @@
   {
    "id": "passing-the-line",
    "level": "suite",
-   "label": "Passing the line",
-   "plain": "A line starts in one place and ends in another, sounds carry across the cut, and two storylines talk to each other.",
+   "label": "A line carried across the cut",
+   "plain": "A line starts in one place and ends in another, sounds carry across the cut, and two storylines talk to each other. Not \"Crossing the point of no return\", which is about the story.",
    "workspace": "transitions",
    "also": [],
    "kind": "",
@@ -128931,13 +129182,15 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "one-unbroken-shot",
    "level": "suite",
-   "label": "One unbroken shot",
-   "plain": "The whole scene seems to run in one long shot, with every cut hidden, and nothing lets us breathe.",
+   "label": "One shot with hidden cuts",
+   "plain": "The whole scene seems to run in one long shot, with every cut hidden, and nothing lets us breathe. Close to \"One smooth following shot (a oner)\"; this one may hide real cuts and is used to keep the tension.",
    "workspace": "transitions",
    "also": [],
    "kind": "",
@@ -129052,7 +129305,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "action-showcase",
@@ -129695,8 +129950,8 @@
   {
    "id": "silent-film-homage",
    "level": "suite",
-   "label": "Silent film homage",
-   "plain": "Like a film from the 1920s: black and white, sped-up action, title cards, and a circle closing on the last face.",
+   "label": "Silent film homage (closing circle)",
+   "plain": "Like a film from the 1920s: black and white, sped-up action, title cards, and a circle closing on the last face. Close to \"Silent film look (in the edit)\"; this one adds the iris (a circle that closes on the last face).",
    "workspace": "canvas",
    "also": [],
    "kind": "",
@@ -129809,7 +130064,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "comic-book-frame",
@@ -132674,7 +132931,7 @@
    "id": "bundle-of-nerves",
    "level": "suite",
    "label": "Bundle of nerves",
-   "plain": "Their habit shows all the time, they pace fast, mutter to themselves and never finish a sentence.",
+   "plain": "Their habit shows all the time, they pace fast, mutter to themselves and never finish a sentence. Close to \"Psyching up\"; that one is getting ready alone, this one nerves that never settle.",
    "workspace": "movement-lines",
    "also": [],
    "kind": "",
@@ -132826,7 +133083,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "the-standoff",
@@ -133291,7 +133549,7 @@
    "id": "the-floor-drops",
    "level": "suite",
    "label": "The floor drops",
-   "plain": "The camera creeps in on a face as they realise something, the room stretches behind them, the sound drops out and nobody speaks.",
+   "plain": "The camera creeps in on a face as they realise something, the room stretches behind them, the sound drops out and nobody speaks. Close to \"Dawning realization\"; this one is the camera's trick: the push in and the stretching room.",
    "workspace": "camera-motion",
    "also": [],
    "kind": "",
@@ -133425,7 +133683,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "something-in-the-room",
@@ -134617,7 +134876,7 @@
    "id": "looming-over",
    "level": "suite",
    "label": "Looming over them",
-   "plain": "The one with power stands higher and closest to the camera, filling the frame, while the other sits small and far away.",
+   "plain": "The one with power stands higher and closest to the camera, filling the frame, while the other sits small and far away. Close to \"Power staging\"; this one uses height and nearness to the camera.",
    "workspace": "placement",
    "also": [],
    "kind": "",
@@ -134771,7 +135030,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "growing-apart",
@@ -134917,7 +135177,7 @@
    "id": "the-outsider",
    "level": "suite",
    "label": "The outsider",
-   "plain": "One person at the edge of the frame, far from a big group that does not notice, until the group comes to them.",
+   "plain": "One person at the edge of the frame, far from a big group that does not notice, until the group comes to them. Close to \"Doesn't belong here\"; this one is how the outsider is placed in the frame.",
    "workspace": "placement",
    "also": [],
    "kind": "",
@@ -135052,7 +135312,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "big-reveal-page",
@@ -139999,8 +140260,8 @@
   {
    "id": "style-mockumentary",
    "level": "suite",
-   "label": "Mockumentary",
-   "plain": "Made up but shot like a real documentary: a shaky held camera, people talking straight to us in interviews, sudden zooms onto awkward faces, long looks at the lens and dry, painful silences. In the spirit of Christopher Guest.",
+   "label": "Mockumentary (full style)",
+   "plain": "Made up but shot like a real documentary: a shaky held camera, people talking straight to us in interviews, sudden zooms onto awkward faces, long looks at the lens and dry, painful silences. In the spirit of Christopher Guest. A longer version of \"Mockumentary\".",
    "workspace": "comedy",
    "also": [
     "camera-motion",
@@ -140234,7 +140495,9 @@
    "source": "database",
    "tags": [
     "style"
-   ]
+   ],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "style-jump-scare-build",
@@ -141283,8 +141546,8 @@
   {
    "id": "style-musical-number",
    "level": "suite",
-   "label": "Musical number",
-   "plain": "Everyday sounds fall into a beat, a song starts in the room and grows into the full soundtrack, every move lands on the music, the camera rises and circles, and the crowd joins in under bright warm light. In the spirit of classic Hollywood musicals.",
+   "label": "Musical number (full style)",
+   "plain": "Everyday sounds fall into a beat, a song starts in the room and grows into the full soundtrack, every move lands on the music, the camera rises and circles, and the crowd joins in under bright warm light. In the spirit of classic Hollywood musicals. A longer version of \"Musical number\", with the camera and the light.",
    "workspace": "music",
    "also": [
     "camera-motion",
@@ -141538,7 +141801,9 @@
    "source": "database",
    "tags": [
     "style"
-   ]
+   ],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "style-kitchen-sink",
@@ -147691,7 +147956,7 @@
    "id": "drain-on-loss",
    "level": "proximity",
    "label": "After a loss, the color drains",
-   "plain": "A sharp drop in a character's feeling is followed by less saturated color within two beats.",
+   "plain": "A sharp drop in a character's feeling is followed by less saturated color within two beats. Close to \"When fear rises, the color drains\"; this one starts from a loss rather than fear.",
    "workspace": "light",
    "also": [
     "emotion"
@@ -147782,7 +148047,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "flashback-fade",
@@ -150088,7 +150354,7 @@
    "id": "herd-quiet-dissent",
    "level": "proximity",
    "label": "When the herd grows, doubts go quiet",
-   "plain": "As the herd mentality grows, a dissenter drops back toward going along within a few beats.",
+   "plain": "As the herd mentality grows, a dissenter drops back toward going along within a few beats. Runs the other way from \"When someone defies the group, the pressure rises\"; with both on, each sets off the other in a loop.",
    "workspace": "herd",
    "also": [],
    "when": {
@@ -150176,7 +150442,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "cliffhanger-turn",
@@ -152737,7 +153004,7 @@
    "id": "secret-cringe",
    "level": "proximity",
    "label": "When the one who doesn't know gets close to the secret, the cringe rises",
-   "plain": "As the outsider gets near the truth, the room squirms within a beat.",
+   "plain": "As the outsider gets near the truth, the room squirms within a beat. Close to \"When a secret starts slipping, cringe rises\"; this one is the outsider getting close.",
    "workspace": "comedy-mix",
    "also": [
     "comedy"
@@ -152828,7 +153095,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "straight-sells-it",
@@ -155591,7 +155859,7 @@
    "id": "payoff-sound-hit",
    "level": "proximity",
    "label": "When the joke pays off, a sound hit lands",
-   "plain": "When the joke pays off, a sound hit lands at once.",
+   "plain": "When the joke pays off, a sound hit lands at once. Close to \"When the joke pays off, a music sting lands\"; this one is a sound effect, that one a burst of music.",
    "workspace": "audio-mix",
    "also": [
     "comedy"
@@ -155681,7 +155949,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "slowmo-music",
@@ -157069,7 +157338,7 @@
    "id": "featured-music-pulse",
    "level": "proximity",
    "label": "When the music is featured, the effects pulse on the beat",
-   "plain": "When the music is featured, the effects pulse on the beat at once.",
+   "plain": "When the music is featured, the effects pulse on the beat at once. Close to \"When the music is featured, the flashes hit the beat\"; this one is any effect pulsing, that one flashes.",
    "workspace": "layers",
    "also": [
     "music"
@@ -157146,7 +157415,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "scene-end-outro",
@@ -159794,7 +160064,7 @@
    "id": "crash-shake",
    "level": "proximity",
    "label": "When something crashes, the camera shakes",
-   "plain": "A crash makes the camera jolt, as if it felt the hit too.",
+   "plain": "A crash makes the camera jolt, as if it felt the hit too. Close to \"When impacts rise, the shake rises\".",
    "workspace": "effects",
    "also": [
     "camera-motion"
@@ -159888,7 +160158,8 @@
    "source": "Maya",
    "tags": [
     "maya"
-   ]
+   ],
+   "replained": true
   },
   {
    "id": "landing-settle",
@@ -160080,7 +160351,7 @@
    "id": "wind-hair",
    "level": "proximity",
    "label": "When the wind picks up, hair streams one way",
-   "plain": "Hair follows the wind a moment after it arrives.",
+   "plain": "Hair follows the wind a moment after it arrives. Close to \"When the wind picks up, the hair frizzes\"; this one is the hair streaming, that one the hair frizzing.",
    "workspace": "effects",
    "also": [
     "character-motion"
@@ -160160,7 +160431,8 @@
    "source": "Maya",
    "tags": [
     "maya"
-   ]
+   ],
+   "replained": true
   },
   {
    "id": "rain-hair",
@@ -163338,7 +163610,7 @@
    "id": "no-blink-unsettling",
    "level": "proximity",
    "label": "When a character stops blinking, they become unsettling",
-   "plain": "A stare that never blinks feels cold or dangerous, and the audience starts to fear what this person will do.",
+   "plain": "A stare that never blinks feels cold or dangerous, and the audience starts to fear what this person will do. Runs the other way from \"When a character gets nervous, they blink more\"; with both on, each sets off the other in a loop.",
    "workspace": "movement-lines",
    "also": [
     "lines"
@@ -163414,7 +163686,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "held-touch-tender",
@@ -166284,7 +166557,7 @@
    "id": "cold-light-pulls-apart",
    "level": "proximity",
    "label": "When the light goes cold, the characters drift apart",
-   "plain": "A cold, blue light makes people feel further from each other, and the gap between what they feel grows.",
+   "plain": "A cold, blue light makes people feel further from each other, and the gap between what they feel grows. Runs the other way from \"A reunion warms the color\"; with both on, each sets off the other in a loop.",
    "workspace": "light",
    "also": [
     "emotion"
@@ -166374,7 +166647,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "dusk-brings-dusk-light",
@@ -168020,7 +168294,7 @@
    "id": "ruined-surfaces-gloom",
    "level": "proximity",
    "label": "When everything looks worn and ruined, the place feels gloomy",
-   "plain": "Rust, dust and stains tell us this place has been forgotten, and the mood sinks.",
+   "plain": "Rust, dust and stains tell us this place has been forgotten, and the mood sinks. Close to \"A run-down room darkens the mood\"; the same rule, starting from \"Surface wear\" instead of \"Run down to spotless\".",
    "workspace": "light",
    "also": [
     "emotion"
@@ -168096,7 +168370,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "narrow-palette-one-pop",
@@ -172363,7 +172638,7 @@
    "id": "very-warm-cozy",
    "level": "proximity",
    "label": "When the color is pushed very warm, the place feels cozy",
-   "plain": "Warm, orange color feels like firelight and home.",
+   "plain": "Warm, orange color feels like firelight and home. Close to \"When the light is warm lamplight, the room feels cozy\"; this one is the color in the edit, that one the lamps on set.",
    "workspace": "grade",
    "also": [
     "emotion"
@@ -172439,7 +172714,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "gritty-oppressive",
@@ -173116,7 +173392,7 @@
    "id": "punchy-transitions-fast-reset",
    "level": "proximity",
    "label": "When transitions get explosive, something new arrives every second or two",
-   "plain": "Hard, flashy transitions push the edit to a fast rhythm.",
+   "plain": "Hard, flashy transitions push the edit to a fast rhythm. Runs the other way from \"When cutting gets fast, transitions become plain cuts\"; with both on, each sets off the other in a loop.",
    "workspace": "transitions",
    "also": [
     "speed"
@@ -173193,7 +173469,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "fast-reset-more-laughs",
@@ -174797,7 +175074,7 @@
    "id": "tension-shortens-scenes",
    "level": "proximity",
    "label": "When tension climbs, scenes get shorter",
-   "plain": "As things get tense, writers cut scenes down to just the important moment. Shorter scenes then make the tension feel even tighter.",
+   "plain": "As things get tense, writers cut scenes down to just the important moment. Shorter scenes then make the tension feel even tighter. Runs the other way from \"When scenes start changing faster, the tension climbs\"; with both on, each sets off the other in a loop.",
    "workspace": "structure",
    "also": [],
    "when": {
@@ -174885,7 +175162,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "clock-speeds-scenes",
@@ -176720,7 +176998,7 @@
    "id": "joined-plots-raise-stakes",
    "level": "proximity",
    "label": "When a side story merges into the main plot, the stakes jump",
-   "plain": "Once a character's personal problem is tied to the main problem, failing means losing both, so everything matters more.",
+   "plain": "Once a character's personal problem is tied to the main problem, failing means losing both, so everything matters more. Runs the other way from \"When a side story grows heavy enough, it gets pulled into the main plot\"; with both on, each sets off the other in a loop.",
    "workspace": "plot",
    "also": [
     "emo-road"
@@ -176810,7 +177088,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "more-mains-stories-cross",
@@ -196066,7 +196345,7 @@
    "id": "tempo-up-faster-cuts",
    "level": "proximity",
    "label": "When the music speeds up a lot, the cuts come faster",
-   "plain": "When the music races, the edit changes angle more often within 2 beats.",
+   "plain": "When the music races, the edit changes angle more often within 2 beats. Close to \"When the tempo rises, the cuts speed up\".",
    "workspace": "music",
    "also": [],
    "when": {
@@ -196154,7 +196433,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "tempo-down-longer-holds",
@@ -219507,8 +219787,8 @@
   {
    "id": "emotion-steers-lens",
    "level": "proximitySuite",
-   "label": "Emotion steers the lens",
-   "plain": "Emotion steers the lens: when the emotion changes, the angle height changes; when the emotion changes, the move temper changes.",
+   "label": "Feeling sets the camera height",
+   "plain": "When the feeling changes, the camera's height changes, and so does its attitude (gentle or aggressive).",
    "workspace": "lines",
    "also": [
     "camera-angle",
@@ -219605,7 +219885,9 @@
     }
    ],
    "source": "automation.js",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "loudness-and-size",
@@ -219714,7 +219996,7 @@
    "id": "weather-and-surface",
    "level": "proximitySuite",
    "label": "Weather and surface",
-   "plain": "Weather and surface: when it rains, surfaces are soaked; when the render goes toon, the ink line is heavy; when impacts rise, the shake rises.",
+   "plain": "Weather and surface: when it rains, surfaces are soaked; when the render goes toon, the ink line is heavy; when impacts rise, the shake rises. Its toon line and impact shake pairs are not about weather; they may belong elsewhere.",
    "workspace": "light",
    "also": [
     "background",
@@ -219840,7 +220122,8 @@
     }
    ],
    "source": "automation.js",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "long-form",
@@ -221718,7 +222001,7 @@
   {
    "id": "light-follows-feeling",
    "level": "proximitySuite",
-   "label": "Light follows feeling",
+   "label": "Light follows loss and reunion",
    "plain": "The light and color change with what the characters feel.",
    "workspace": "light",
    "also": [
@@ -221873,7 +222156,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true
   },
   {
    "id": "enneagram-stress-arrows",
@@ -223155,8 +223439,8 @@
   {
    "id": "color-follows-feeling",
    "level": "proximitySuite",
-   "label": "Color follows the feeling",
-   "plain": "Anger warms the picture, fear drains it, joy warms the light.",
+   "label": "Color follows anger, fear and joy",
+   "plain": "Anger warms the picture, fear drains it, joy warms the light. Close to \"Light follows loss and reunion\"; both share joy warming the light.",
    "workspace": "color",
    "also": [
     "emotion",
@@ -223282,7 +223566,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "the-dam-breaks",
@@ -224235,7 +224521,7 @@
    "id": "secret-in-the-room",
    "level": "proximitySuite",
    "label": "The secret in the room",
-   "plain": "The outsider nears the truth, the room squirms, and the group closes ranks.",
+   "plain": "The outsider nears the truth, the room squirms, and the group closes ranks. Close to \"Secrets and lies\"; that one follows a secret slipping and the setbacks, this one the outsider getting close.",
    "workspace": "comedy-mix",
    "also": [
     "comedy",
@@ -224332,7 +224618,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "pair-grows",
@@ -224570,8 +224857,8 @@
   {
    "id": "room-to-breathe",
    "level": "proximitySuite",
-   "label": "Breathing room",
-   "plain": "A big feeling is followed by rest, and lifted dread by a laugh.",
+   "label": "Rest after a big feeling",
+   "plain": "A big feeling is followed by rest, and lifted dread by a laugh. Not \"Breathing room\", which sets a quiet, empty, long-held moment.",
    "workspace": "emo-road",
    "also": [
     "structure",
@@ -224668,7 +224955,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "pressure-cooker",
@@ -224936,8 +225225,8 @@
   {
    "id": "body-tells-the-line",
    "level": "proximitySuite",
-   "label": "The body tells the line",
-   "plain": "The body freezes on the key word, the listener leans in, and anger goes into the task.",
+   "label": "The body moves with the words",
+   "plain": "The body freezes on the key word, the listener leans in, and anger goes into the task. Close in name to \"The body tells first\", which is the feeling showing before the words; this one is the body moving with them.",
    "workspace": "movement-lines",
    "also": [
     "emotion"
@@ -225062,7 +225351,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "comic-business",
@@ -225170,7 +225461,7 @@
    "id": "camera-follows-feeling",
    "level": "proximitySuite",
    "label": "The camera follows the feeling",
-   "plain": "The camera moves in at the peak, tilts with dread, and looks up when status flips.",
+   "plain": "The camera moves in at the peak, tilts with dread, and looks up when status flips. Close to \"Feeling sets the camera height\"; this one moves closer at the peak, tilts with dread and looks up when status flips.",
    "workspace": "camera-angle",
    "also": [
     "emotion"
@@ -225295,7 +225586,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "motion-drives-cutting",
@@ -225589,8 +225881,8 @@
   {
    "id": "music-leads-the-edit",
    "level": "proximitySuite",
-   "label": "Music leads the edit",
-   "plain": "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out.",
+   "label": "Featured music drives the edit",
+   "plain": "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out. Close to \"Music steers the edit\"; that one starts from the tempo and builds to silence, this one starts from featured music and ends in a fade out.",
    "workspace": "speed",
    "also": [],
    "members": [
@@ -225713,7 +226005,9 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "words-on-screen",
@@ -226222,7 +226516,7 @@
    "id": "mood-moves-the-feeling",
    "level": "proximitySuite",
    "label": "The mood moves the feeling",
-   "plain": "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh.",
+   "plain": "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh. Runs the other way from \"The face tells the feeling\"; with both on, each sets off the other in a loop.",
    "workspace": "emotion",
    "also": [],
    "members": [
@@ -226432,7 +226726,8 @@
     }
    ],
    "source": "Final Cut Pro and CapCut",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "effects-show-the-inside",
@@ -229624,7 +229919,7 @@
    "id": "noir-squeeze",
    "level": "proximitySuite",
    "label": "Noir squeeze",
-   "plain": "Side light, rising contrast, a dark picture, and characters hiding what they mean: the classic crime-film tightening.",
+   "plain": "Side light, rising contrast, a dark picture (low key: mostly dark with deep shadows) and characters hiding what they mean: the classic crime-film tightening, starting from the light.",
    "workspace": "light",
    "also": [],
    "members": [
@@ -229747,7 +230042,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "smoky-blinds",
@@ -231098,7 +231394,7 @@
    "id": "dark-room-secrets",
    "level": "proximitySuite",
    "label": "Dark room secrets",
-   "plain": "Dark walls push the picture into low key, and in the dark people stop saying what they mean.",
+   "plain": "Dark walls push the picture into low key, and in the dark people stop saying what they mean. Close to \"Noir squeeze\"; same ending, but this one starts from the set.",
    "workspace": "set",
    "also": [
     "light"
@@ -231194,7 +231490,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "memory-box",
@@ -231302,7 +231599,7 @@
    "id": "hard-edge-grade",
    "level": "proximitySuite",
    "label": "Hard-edge grade",
-   "plain": "Crushed blacks push the contrast up, the picture goes dark, and the characters start hiding things.",
+   "plain": "Crushed blacks push the contrast up, the picture goes dark, and the characters start hiding things. Close to \"Noir squeeze\"; same ending, but this one starts in the edit.",
    "workspace": "grade",
    "also": [
     "light"
@@ -231427,7 +231724,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "hyper-edit",
@@ -232499,8 +232797,8 @@
   {
    "id": "growing-up",
    "level": "proximitySuite",
-   "label": "Growing up",
-   "plain": "Caring wider lines up want and need, they act on their belief, the choice changes them, and the change shows.",
+   "label": "Caring wider leads to change",
+   "plain": "Caring wider lines up want and need, they act on their belief, the choice changes them, and the change shows. Close to \"Ends better than they began\", which sets where the arc ends; this one is the chain of causes that gets them there.",
    "workspace": "mindset",
    "also": [],
    "members": [
@@ -232652,7 +232950,9 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "relabeled": true,
+   "replained": true
   },
   {
    "id": "holding-it-in-until",
@@ -233835,7 +234135,7 @@
    "id": "sitcom-scene-shape",
    "level": "proximitySuite",
    "label": "Sitcom scene shape",
-   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke.",
+   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke. Shares the topper pair with \"Stacking laughs\"; this one is the shape of a whole sitcom scene.",
    "workspace": "comedy",
    "also": [],
    "members": [
@@ -234016,13 +234316,14 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "farce-at-the-doors",
    "level": "proximitySuite",
    "label": "Farce at the doors",
-   "plain": "Two people just miss each other, tension jumps, the disguise slips and the lie grows, until the near misses tip the room into chaos.",
+   "plain": "Two people just miss each other, tension jumps, the disguise slips and the lie grows, until the near misses tip the room into chaos. Close to \"The farce engine\"; this one is the doors and disguises kind.",
    "workspace": "comedy-mix",
    "also": [],
    "members": [
@@ -234174,7 +234475,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "from-loss-to-letting-go",
@@ -238484,7 +238786,7 @@
    "id": "the-truth-comes-out-sideways",
    "level": "proximitySuite",
    "label": "The truth comes out sideways",
-   "plain": "The big line is thrown away into silence, the next one trails off, the body answers instead, and a line cut off before the key word leaves us with a question.",
+   "plain": "The big line is thrown away into silence, the next one trails off, the body answers instead, and a line cut off before the key word leaves us with a question. Close to \"What isn't said\"; that one is about the face and the camera, this one about the lines.",
    "workspace": "lines",
    "also": [],
    "members": [
@@ -238636,7 +238938,8 @@
     }
    ],
    "source": "database",
-   "tags": []
+   "tags": [],
+   "replained": true
   },
   {
    "id": "the-ground-gives-way",

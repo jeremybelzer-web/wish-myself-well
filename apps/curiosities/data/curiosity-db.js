@@ -495,7 +495,17 @@
     install(t) {
       api.resolve();
       t = t || {};
-      if (t.CURIOSITIES) api.legacyRows(t.CURIOSITIES).forEach((r) => t.CURIOSITIES.push(r));
+      if (t.CURIOSITIES) {
+        /* Rows the app already has keep their own values, except a label or note that data/db-plain.js rewrote
+           in plain words: those follow the database, so lanes, lists and the inspector all say the same thing. */
+        t.CURIOSITIES.forEach((r) => {
+          const c = index.curiosity[r.id];
+          if (!c) return;
+          if (c.relabeled) r.label = c.label;
+          if (c.replained && "note" in r) r.note = c.plain;
+        });
+        api.legacyRows(t.CURIOSITIES).forEach((r) => t.CURIOSITIES.push(r));
+      }
       if (t.SUITES) {
         /* Suites the app already has keep their own values; they only gain the database's member weights (0..1). */
         const have = Object.fromEntries(api.legacySuites([]).map((r) => [r.id, r]));

@@ -19089,8 +19089,8 @@
   },
   {
    "id": "ps:emotion-steers-lens",
-   "label": "Emotion steers the lens",
-   "plain": "Emotion steers the lens: when the emotion changes, the angle height changes; when the emotion changes, the move temper changes.",
+   "label": "Feeling sets the camera height",
+   "plain": "When the feeling changes, the camera's height changes, and so does its attitude (gentle or aggressive).",
    "proximities": [
     "emotion-angle",
     "emotion-temper"
@@ -19116,7 +19116,7 @@
   {
    "id": "ps:weather-and-surface",
    "label": "Weather and surface",
-   "plain": "Weather and surface: when it rains, surfaces are soaked; when the render goes toon, the ink line is heavy; when impacts rise, the shake rises.",
+   "plain": "Weather and surface: when it rains, surfaces are soaked; when the render goes toon, the ink line is heavy; when impacts rise, the shake rises. Its toon line and impact shake pairs are not about weather; they may belong elsewhere.",
    "proximities": [
     "rain-wet",
     "toon-line",
@@ -19349,7 +19349,7 @@
   },
   {
    "id": "ps:light-follows-feeling",
-   "label": "Light follows feeling",
+   "label": "Light follows loss and reunion",
    "plain": "The light and color change with what the characters feel.",
    "proximities": [
     "drain-on-loss",
@@ -19592,8 +19592,8 @@
   },
   {
    "id": "ps:color-follows-feeling",
-   "label": "Color follows the feeling",
-   "plain": "Anger warms the picture, fear drains it, joy warms the light.",
+   "label": "Color follows anger, fear and joy",
+   "plain": "Anger warms the picture, fear drains it, joy warms the light. Close to \"Light follows loss and reunion\"; both share joy warming the light.",
    "proximities": [
     "anger-warm-red",
     "fear-color-drains",
@@ -19715,7 +19715,7 @@
   {
    "id": "ps:secret-in-the-room",
    "label": "The secret in the room",
-   "plain": "The outsider nears the truth, the room squirms, and the group closes ranks.",
+   "plain": "The outsider nears the truth, the room squirms, and the group closes ranks. Close to \"Secrets and lies\"; that one follows a secret slipping and the setbacks, this one the outsider getting close.",
    "proximities": [
     "secret-cringe",
     "oddone-group"
@@ -19755,8 +19755,8 @@
   },
   {
    "id": "ps:room-to-breathe",
-   "label": "Breathing room",
-   "plain": "A big feeling is followed by rest, and lifted dread by a laugh.",
+   "label": "Rest after a big feeling",
+   "plain": "A big feeling is followed by rest, and lifted dread by a laugh. Not \"Breathing room\", which sets a quiet, empty, long-held moment.",
    "proximities": [
     "big-then-breather",
     "relief-laugh"
@@ -19798,8 +19798,8 @@
   },
   {
    "id": "ps:body-tells-the-line",
-   "label": "The body tells the line",
-   "plain": "The body freezes on the key word, the listener leans in, and anger goes into the task.",
+   "label": "The body moves with the words",
+   "plain": "The body freezes on the key word, the listener leans in, and anger goes into the task. Close in name to \"The body tells first\", which is the feeling showing before the words; this one is the body moving with them.",
    "proximities": [
     "line-freeze",
     "listener-leans",
@@ -19827,7 +19827,7 @@
   {
    "id": "ps:camera-follows-feeling",
    "label": "The camera follows the feeling",
-   "plain": "The camera moves in at the peak, tilts with dread, and looks up when status flips.",
+   "plain": "The camera moves in at the peak, tilts with dread, and looks up when status flips. Close to \"Feeling sets the camera height\"; this one moves closer at the peak, tilts with dread and looks up when status flips.",
    "proximities": [
     "feeling-closer",
     "dread-tilt",
@@ -19873,8 +19873,8 @@
   },
   {
    "id": "ps:music-leads-the-edit",
-   "label": "Music leads the edit",
-   "plain": "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out.",
+   "label": "Featured music drives the edit",
+   "plain": "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out. Close to \"Music steers the edit\"; that one starts from the tempo and builds to silence, this one starts from featured music and ends in a fade out.",
    "proximities": [
     "featured-music-beat",
     "slowmo-music",
@@ -19942,7 +19942,7 @@
   {
    "id": "ps:mood-moves-the-feeling",
    "label": "The mood moves the feeling",
-   "plain": "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh.",
+   "plain": "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh. Runs the other way from \"The face tells the feeling\"; with both on, each sets off the other in a loop.",
    "proximities": [
     "tears-lower",
     "sun-lifts",
@@ -20320,7 +20320,7 @@
   {
    "id": "ps:noir-squeeze",
    "label": "Noir squeeze",
-   "plain": "Side light, rising contrast, a dark picture, and characters hiding what they mean: the classic crime-film tightening.",
+   "plain": "Side light, rising contrast, a dark picture (low key: mostly dark with deep shadows) and characters hiding what they mean: the classic crime-film tightening, starting from the light.",
    "proximities": [
     "side-key-raises-contrast",
     "contrast-goes-low-key",
@@ -20506,7 +20506,7 @@
   {
    "id": "ps:dark-room-secrets",
    "label": "Dark room secrets",
-   "plain": "Dark walls push the picture into low key, and in the dark people stop saying what they mean.",
+   "plain": "Dark walls push the picture into low key, and in the dark people stop saying what they mean. Close to \"Noir squeeze\"; same ending, but this one starts from the set.",
    "proximities": [
     "dark-set-low-key",
     "low-key-hides-meaning"
@@ -20532,7 +20532,7 @@
   {
    "id": "ps:hard-edge-grade",
    "label": "Hard-edge grade",
-   "plain": "Crushed blacks push the contrast up, the picture goes dark, and the characters start hiding things.",
+   "plain": "Crushed blacks push the contrast up, the picture goes dark, and the characters start hiding things. Close to \"Noir squeeze\"; same ending, but this one starts in the edit.",
    "proximities": [
     "crushed-blacks-contrast",
     "contrast-goes-low-key",
@@ -20668,8 +20668,8 @@
   },
   {
    "id": "ps:growing-up",
-   "label": "Growing up",
-   "plain": "Caring wider lines up want and need, they act on their belief, the choice changes them, and the change shows.",
+   "label": "Caring wider leads to change",
+   "plain": "Caring wider lines up want and need, they act on their belief, the choice changes them, and the change shows. Close to \"Ends better than they began\", which sets where the arc ends; this one is the chain of causes that gets them there.",
    "proximities": [
     "wider-care-want-meets-need",
     "aligned-want-big-choice",
@@ -20816,7 +20816,7 @@
   {
    "id": "ps:sitcom-scene-shape",
    "label": "Sitcom scene shape",
-   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke.",
+   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke. Shares the topper pair with \"Stacking laughs\"; this one is the shape of a whole sitcom scene.",
    "proximities": [
     "catchphrase-held-back",
     "laugh-topper",
@@ -20835,7 +20835,7 @@
   {
    "id": "ps:farce-at-the-doors",
    "label": "Farce at the doors",
-   "plain": "Two people just miss each other, tension jumps, the disguise slips and the lie grows, until the near misses tip the room into chaos.",
+   "plain": "Two people just miss each other, tension jumps, the disguise slips and the lie grows, until the near misses tip the room into chaos. Close to \"The farce engine\"; this one is the doors and disguises kind.",
    "proximities": [
     "near-miss-tension",
     "disguise-slips-lie-grows",
@@ -21325,7 +21325,7 @@
   {
    "id": "ps:the-truth-comes-out-sideways",
    "label": "The truth comes out sideways",
-   "plain": "The big line is thrown away into silence, the next one trails off, the body answers instead, and a line cut off before the key word leaves us with a question.",
+   "plain": "The big line is thrown away into silence, the next one trails off, the body answers instead, and a line cut off before the key word leaves us with a question. Close to \"What isn't said\"; that one is about the face and the camera, this one about the lines.",
    "proximities": [
     "thrown-line-silence",
     "trailing-off-body-answers",

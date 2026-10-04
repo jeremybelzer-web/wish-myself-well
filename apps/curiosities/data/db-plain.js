@@ -25,11 +25,17 @@
     const main = x.level === "curiosity" ? x.sliders.find((s) => s.id === x.main) : null;
     if (main && main.label === x.label) main.label = text;
     x.label = text;
+    x.relabeled = true; /* install() then renames the app's own older row too, so timeline lanes match */
   };
-  const plain = (id, text) => (row(id).plain = text);
+  const plain = (id, text) => {
+    const x = row(id);
+    x.plain = text;
+    x.replained = true;
+  };
   const addPlain = (id, text) => {
     const x = row(id);
     x.plain = (x.plain || "").replace(/\s+$/, "").replace(/([^.!?])$/, "$1.") + " " + text;
+    x.replained = true;
   };
   const sliderLabel = (id, sliderId, text) => (slider(id, sliderId).label = text);
   const sliderPlain = (id, sliderId, text) => (slider(id, sliderId).plain = text);
@@ -348,7 +354,7 @@
   plain("speedRamp", `How fast the shot plays, and whether the speed ramps (changes inside the shot, like slowing down for the hit). Close to ${name("clipSpeed")}; this one adds the ramp, that one sets one speed for the whole clip.`);
   /* 10. */
   label("transition", "How scenes join (storytelling)");
-  label("transitionKind", "Transition effect (in the edit)");
+  /* transitionKind keeps "Transition style": the Screen tests and the CapCut-style cards name it that way. */
   addPlain("transitionKind", `Close to ${name("transition")}, which is what the join means for the story; this one is the editing effect.`);
   addPlain("transitionFamily", `Close to ${name("transitionKind")}; this one picks the shelf of effects and how hard they hit, that one the exact effect.`);
   /* 11. */
