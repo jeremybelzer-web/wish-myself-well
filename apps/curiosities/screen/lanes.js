@@ -1838,11 +1838,12 @@
       const keep = old ? [old.scrollLeft, old.scrollTop] : scrollKeep;
       el.innerHTML = `<div class="sl-tools">
           <span class="sl-seg" role="group" aria-label="Tool">${tb("tool-select", "Select", "Select (A): click a node to pick it, click an empty spot to add a node there, drag across empty space to select an area", tools.tool === "select")}${tb("tool-split", "Split", "Split (B): click a lane to cut its line with a node, keeping what plays", tools.tool === "split")}</span>
-          <button type="button" data-act="undo" ${Eng.canUndo() ? "" : "disabled"}>Undo</button><button type="button" data-act="redo" ${Eng.canRedo() ? "" : "disabled"}>Redo</button>
+          ${opts.ripple ? `<span class="sl-seg sl-moments" role="group" aria-label="Moments">${tb("ripple-add", "+ Moment", `Add a moment here (⌥M): a copy of moment ${playRow + 1} goes right after it, so nothing jumps. Everything after it (nodes, joins, markers, transitions and words) slides one moment later.`)}${tb("ripple-delete", "− Moment", `Take out moment ${playRow + 1} (⌥⌫) and close the gap: everything after it slides one moment earlier. With a stretch selected, takes out the whole stretch.`)}</span>` : ""}
+          <button type="button" data-act="undo" ${(opts.canUndo ? opts.canUndo("undo") : Eng.canUndo()) ? "" : "disabled"}>Undo</button><button type="button" data-act="redo" ${(opts.canUndo ? opts.canUndo("redo") : Eng.canRedo()) ? "" : "disabled"}>Redo</button>
           <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
-          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("area-take", "Take from the film", filmTip("take"))}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}${tb("tpl-save", "Save as template", "Save as template: keep the selected stretch under a name and a note, such as \"slow-burn reveal\", to use again anywhere from the library's Templates tab (My templates).")}</span>` : ""}
+          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("area-take", "Take from the film", filmTip("take"))}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}${tb("tpl-save", "Save as template", "Save as template: keep the selected stretch under a name and a note, such as \"slow-burn reveal\", to use again anywhere from the library's Templates tab (My templates).")}${opts.ripple ? tb("ripple-duplicate", "Duplicate moments", `Duplicate moments (⇧⌥M): a copy of moments ${area.j0 + 1} to ${area.j1 + 1} (every lane, not only the selected ones) goes right after them, and everything after slides later.`) + tb("ripple-delete", "Take out moments", `Take out moments ${area.j0 + 1} to ${area.j1 + 1} (⌥⌫) on every lane and close the gap: everything after slides earlier. Remove nodes keeps the moments and only clears the selected lanes.`) : ""}</span>` : ""}
           ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
           <span class="sl-seg" role="group" aria-label="Markers">${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off. Double-click a marker's flag on the ruler to write a note or change its color.")}${tb("marker-list", `Markers${marked.length ? " " + marked.length : ""} ▾`, "Every marker in your film, with its note: click one to move the playhead there")}</span>
           ${tb("suite-list", `Suite clips${suiteList.length ? " " + suiteList.length : ""} ▾`, "Your saved suite clips: drop one in at the playhead (as it is, or as an analogy), rename it or delete it")}
@@ -2692,8 +2693,10 @@
       if (pick && opts.onSelect) opts.onSelect(pick.dataset.pick);
       if (!b) return;
       const act = b.dataset.act;
-      if (act === "undo") E().undo();
-      if (act === "redo") E().redo();
+      if (act === "undo") opts.undo ? opts.undo("undo") : E().undo();
+      if (act === "redo") opts.undo ? opts.undo("redo") : E().redo();
+      /* Add, duplicate or take out moments: the Screen does it (opts.ripple), as one undo step. */
+      if (/^ripple-/.test(act) && opts.ripple) return opts.ripple(act.slice(7));
       if (act === "copy") return command("copy");
       if (act === "paste") return command("paste");
       if (act === "del") return command("delete");
@@ -3681,9 +3684,10 @@
         seg = null;
         return draw();
       }
-      if (area && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return command("delete");
+      /* ⌥⌫ is the Screen's Take out moments, not Remove nodes. */
+      if (area && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return command("delete");
       if (!sel || !el.contains(document.activeElement || el)) return;
-      if ((e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) removeNode(sel);
+      if (!e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) removeNode(sel);
     }
     el.classList.add("sl");
     el.tabIndex = el.tabIndex >= 0 ? el.tabIndex : 0;
@@ -3781,6 +3785,13 @@
   }
 
   root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, textRows, TXT_ROW, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
+  /* Ripple (the Screen's Add a moment here, Duplicate and Take out moments): put back a whole marker list at once,
+     saved, so one undo can bring back the markers on moments that were taken out. */
+  root.CurioLanes.setMarkers = (list) => {
+    tools.markers = migrateMarkers(list);
+    saveTools();
+    return tools.markers;
+  };
   /* Templates (Save as template; the library's My templates). */
   Object.assign(root.CurioLanes, { TEMPLATE_KEY, TEMPLATE_FORMAT, TPL_MIME: "application/x-curiomatic-template", template, migrateTemplates, templateSummary, templatePreview, stretchTemplate, useTemplateCommands, exportTemplates, importTemplates, templates: () => loadTemplates(), saveTemplates });
 })();

@@ -110,6 +110,11 @@
       ["L", "Shuttle right", "Play forward; press again to go faster", (e) => plain(e) && key(e, "l"), () => shuttle(1)],
       ["Q", "Delete left", "Remove the picked lane's nodes before the playhead", (e) => plain(e) && key(e, "q"), lk("deleteLeft")],
       ["W", "Delete right", "Remove the picked lane's nodes after the playhead", (e) => plain(e) && key(e, "w"), lk("deleteRight")],
+      /* Ripple (CapCut's Split and Delete with the main track magnet, for whole moments). e.code, because Option
+         changes e.key on a Mac (⌥M types µ). */
+      ["⌥M", "Add a moment here", "Put a copy of the playhead's moment right after it, so nothing jumps; everything after slides one moment later", (e) => e.altKey && !mod(e) && !e.shiftKey && e.code === "KeyM", () => ripple("add")],
+      ["⇧⌥M", "Duplicate moments", "Copy the stretch selected on the timeline (or the playhead's moment) right after itself; everything after slides later", (e) => e.altKey && e.shiftKey && !mod(e) && e.code === "KeyM", () => ripple("duplicate")],
+      ["⌥⌫", "Take out moments", "Take out the playhead's moment (or the selected stretch) and close the gap; everything after slides earlier", (e) => e.altKey && !mod(e) && !e.shiftKey && (e.key === "Backspace" || e.key === "Delete"), () => ripple("delete")],
       ["⇧⌥K", "Add keyframe", "Add a node at the playhead on the picked lane (a node is a keyframe)", (e) => e.altKey && e.shiftKey && !mod(e) && e.code === "KeyK", lk("splitHere")],
       ["⇧↩ or I", "In", "Start the play range at the playhead, so Play loops over a part (Maya's playback range)", (e) => !mod(e) && ((e.shiftKey && e.key === "Enter") || (plain(e) && !e.shiftKey && key(e, "i"))), () => setRange("in")],
       ["O", "Out", "End the play range at the playhead (not in CapCut's list; most editors use it)", (e) => plain(e) && !e.shiftKey && key(e, "o"), () => setRange("out")],
@@ -1234,6 +1239,8 @@ document.addEventListener("click", function (e) {
     const commands = {
       set: (d, m) => (d.joins = TRANSITIONS.set(d, m.into, m.kind, m.len).joins),
       all: (d, m) => (d.joins = TRANSITIONS.all(d, m.n, m.kind, m.len).joins),
+      /* Ripple (adding or taking out moments) puts back a whole set of joins at once. */
+      replace: (d, m) => (d.joins = TRANSITIONS.clean({ joins: m.joins }).joins),
     };
     if (St && typeof St.part === "function") {
       try {
@@ -1723,6 +1730,8 @@ document.addEventListener("click", function (e) {
       add: (d, m) => (d.items = TEXT.add(d, m.item).items),
       update: (d, m) => (d.items = TEXT.update(d, m.id, m.patch).items),
       remove: (d, m) => (d.items = TEXT.remove(d, m.id).items),
+      /* Ripple (adding or taking out moments) puts back a whole set of texts at once. */
+      replace: (d, m) => (d.items = TEXT.clean({ items: m.items }).items),
     };
     if (St && typeof St.part === "function") {
       try {
@@ -2095,6 +2104,433 @@ document.addEventListener("click", function (e) {
     return k < 0 ? svg : svg.slice(0, k) + g + svg.slice(k);
   }
   const txtButtonHtml = () => `<button type="button" data-act="txt-add" class="sc-txt-b" title="Text: put words on your film's picture at this moment, like CapCut's Text tab (a title, a name and job, a sign, a sound effect or a thought). Click words on the picture to change them, drag them to move them.">T Text</button>`;
+
+  /* ---------- Ripple: add, duplicate and take out moments (CapCut's Split and Delete with ripple, for moments) ----------
+     My film is a flipbook-style storyboard, a moment at a time. Its moments are the engine's rows (engine/state.js
+     st.rows, at most E.LIMIT.rows); the clock only says how long each lasts (secondsPerPanel in
+     curiosities-momentum-v1), so adding or taking out a moment is the engine's own addRow and removeRow, sent from
+     here. Everything kept per moment moves with it, in ONE undo step:
+     - nodes on every lane: kept by moment id, so they slide along by themselves. A copied moment gets copies of its
+       nodes (and its own material and pins), and where a lane's line would now play something else (a glide that
+       got one moment longer, a node taken out), a node with what it played before goes in, so nothing jumps.
+     - joins (proximities): a join inside a duplicated stretch is copied with it; one that spans the new or missing
+       moments has its gap (within) changed; one that touches a moment taken out goes with it.
+     - markers (curiosities-screen-tools-v1): kept by moment id, so they slide along; one on a moment taken out goes.
+     - transitions (screenTransitions) and words on the frame (screenText): kept by moment NUMBER, so they are
+       renumbered here. Copies of the joins and texts inside a duplicated stretch go with the copies.
+     - the play range (I and O): renumbered the same way.
+     The engine's step goes on the app-wide undo list as usual (CurioStore.external). The two store parts are
+     changed with { record: false } (no step of their own), and this block listens to the engine: when that very
+     step is undone or redone (⌘Z, History ▾, the timeline's Undo, or the engine's own undo), the transitions,
+     texts, markers and play range are put back with it. So one ⌘Z takes back everything.
+     Locked lanes (🔒): a ripple shifts the whole film in time, so a locked lane's nodes slide along with their
+     moments like everything else, but nothing is ever added to or taken off a locked lane: a copy gets no node
+     there (its line runs on across the copy), and taking out a moment that has a node on a locked lane is refused.
+     The pure part (RIPPLE, window.CurioScreenRipple) takes the engine state and plain data, for tests. */
+  const RIPPLE = (() => {
+    const own = (o, k) => !!o && Object.prototype.hasOwnProperty.call(o, k);
+    const ease = (t) => t * t * (3 - 2 * t);
+    const same = (x, y) => String(x) === String(y);
+    const lkSplit = (lk) => [lk.slice(0, lk.indexOf("|")), lk.slice(lk.indexOf("|") + 1)];
+    /* What a lane plays at each moment of ids: the engine's own rule (laneValues in engine/state.js). */
+    function laneValues(ids, lane, cur, Sc) {
+      const ix = {};
+      ids.forEach((id, i) => (ix[id] = i));
+      const pts = Object.keys((lane && lane.points) || {})
+        .filter((r) => ix[r] != null)
+        .map((r) => ({ i: ix[r], v: lane.points[r] }))
+        .sort((p, q) => p.i - q.i);
+      const out = new Array(ids.length).fill(undefined);
+      if (!pts.length) return out;
+      for (let i = 0; i < ids.length; i++) {
+        let a = null;
+        let b = null;
+        for (const p of pts) {
+          if (p.i <= i) a = p;
+          if (p.i >= i && !b) b = p;
+        }
+        if (!a) out[i] = b.v;
+        else if (!b || a === b || lane.mode === "hold") out[i] = a.v;
+        else {
+          const pa = Sc.pos(cur, a.v);
+          const pb = Sc.pos(cur, b.v);
+          const t = (i - a.i) / (b.i - a.i);
+          out[i] = pa == null || pb == null ? a.v : Sc.at(cur, pa + (pb - pa) * (lane.mode === "smooth" ? ease(t) : t));
+        }
+      }
+      return out;
+    }
+    const fits = (ids, want, lane, cur, Sc, pts) => {
+      const got = laneValues(ids, { mode: lane.mode, points: pts }, cur, Sc);
+      return ids.map((id, i) => i).filter((i) => want[i] !== undefined && !same(got[i], want[i]));
+    };
+    /* Nodes (into pts) so the lane plays `want` at every moment of ids: first at the edges of the change, then
+       wherever it still plays something else, until nothing differs. */
+    function keepShape(ids, want, lane, cur, Sc, pts, edges) {
+      if (!fits(ids, want, lane, cur, Sc, pts).length) return;
+      edges.forEach((i) => i >= 0 && i < ids.length && want[i] !== undefined && !own(pts, ids[i]) && (pts[ids[i]] = want[i]));
+      for (let pass = 0; pass <= ids.length; pass++) {
+        const off = fits(ids, want, lane, cur, Sc, pts);
+        if (!off.length) return;
+        off.forEach((i) => (pts[ids[i]] = want[i]));
+      }
+    }
+    /* The ids the engine will give the next k rows (its newId: "r" + st.next, skipping any id already used). */
+    function freshIds(st, k) {
+      const used = new Set([].concat(st.rows.map((r) => r.id), st.tracks.map((t) => t.id), st.links.map((l) => l.id), (st.refs || []).map((r) => r.id)));
+      let next = Number(st.next) || 1;
+      const out = [];
+      while (out.length < k) {
+        let id;
+        do id = "r" + next++;
+        while (used.has(id));
+        used.add(id);
+        out.push(id);
+      }
+      return out;
+    }
+    const copyLabel = (r, j) => (!r.label || r.label === r.id || /^moment \d+$/i.test(r.label) ? `Copy of moment ${j + 1}` : (r.label + " (again)").slice(0, 80));
+    const span = (a, b) => (a === b ? `moment ${a + 1}` : `moments ${a + 1} to ${b + 1}`);
+    const check = (st, a, b) => Number.isInteger(a) && Number.isInteger(b) && a >= 0 && a <= b && b < st.rows.length;
+    /* k = b - a + 1 copies of moments a..b (numbered from 0) go right after b. h = { S (CurioScale), locked(lk),
+       maxRows, maxLinks }. -> { cmds, k, ids (the copies' ids), nodes, links, full (joins not copied: no room),
+       locked: [lane keys whose line now runs across the copies] } or { error }. */
+    function insert(st, a, b, h) {
+      h = h || {};
+      const Sc = h.S;
+      if (!check(st, a, b)) return { error: "Pick a moment of your film first." };
+      const n = st.rows.length;
+      const k = b - a + 1;
+      const max = h.maxRows || 64;
+      if (n + k > max) return { error: `A film holds ${max} moments here, and this would make ${n + k}. Take some out first.` };
+      const ids = st.rows.map((r) => r.id);
+      const fresh = freshIds(st, k);
+      const newIds = ids.slice(0, b + 1).concat(fresh, ids.slice(b + 1));
+      const copyOf = {};
+      ids.slice(a, b + 1).forEach((id, i) => (copyOf[id] = fresh[i]));
+      const isLocked = (lk) => !!(h.locked && h.locked(lk));
+      const cmds = [];
+      for (let i = 0; i < k; i++) cmds.push({ type: "addRow", at: b + 1 + i, copy: false, label: copyLabel(st.rows[a + i], a + i) });
+      /* The moment's own material and pins come along, so the copy looks the same. */
+      Object.keys(st.source).forEach((key) => {
+        const [r, t, c] = key.split("|");
+        if (copyOf[r]) cmds.push({ type: "setSource", row: copyOf[r], track: t, curiosity: c, value: st.source[key] });
+      });
+      Object.keys(st.edits).forEach((key) => {
+        const [r, t, c] = key.split("|");
+        const e = st.edits[key];
+        if (!copyOf[r] || !e) return;
+        cmds.push(e.off ? { type: "edit", row: copyOf[r], track: t, curiosity: c, off: true } : { type: "edit", row: copyOf[r], track: t, curiosity: c, value: e.v });
+      });
+      let nodes = 0;
+      const locked = [];
+      Object.keys(st.lanes)
+        .sort()
+        .forEach((lk) => {
+          const lane = st.lanes[lk];
+          const [track, cur] = lkSplit(lk);
+          const old = laneValues(ids, lane, cur, Sc);
+          const want = old.slice(0, b + 1).concat(old.slice(a, b + 1), old.slice(b + 1));
+          if (isLocked(lk)) {
+            if (fits(newIds, want, lane, cur, Sc, lane.points).length) locked.push(lk);
+            return;
+          }
+          const pts = Object.assign({}, lane.points);
+          ids.slice(a, b + 1).forEach((id) => own(lane.points, id) && (pts[copyOf[id]] = lane.points[id]));
+          keepShape(newIds, want, lane, cur, Sc, pts, [a, b, b + 1, b + k]);
+          Object.keys(pts).forEach((id) => {
+            if (own(lane.points, id) && same(lane.points[id], pts[id])) return;
+            cmds.push({ type: "setPoint", row: id, track, curiosity: cur, value: pts[id] });
+            nodes++;
+          });
+        });
+      /* Joins: copied inside the stretch, a longer gap across it. */
+      const ix = {};
+      ids.forEach((id, i) => (ix[id] = i));
+      let room = (h.maxLinks || 200) - st.links.length;
+      let links = 0;
+      let full = 0;
+      st.links.forEach((l) => {
+        if (!l.scope || ix[l.scope.from] == null || ix[l.scope.to] == null) return;
+        const lo = Math.min(ix[l.scope.from], ix[l.scope.to]);
+        const hi = Math.max(ix[l.scope.from], ix[l.scope.to]);
+        if (lo >= a && hi <= b) {
+          if (isLocked(l.from.track + "|" + l.from.curiosity) || isLocked(l.to.track + "|" + l.to.curiosity)) return;
+          if (room <= 0) return void full++;
+          const body = JSON.parse(JSON.stringify(l));
+          delete body.id;
+          body.type = "addLink";
+          body.scope = { from: copyOf[l.scope.from], to: copyOf[l.scope.to] };
+          cmds.push(body);
+          room--;
+          links++;
+        } else if (lo <= b && hi > b) {
+          const w = Math.min(16, hi - lo + k);
+          if (w !== l.within) cmds.push({ type: "updateLink", link: l.id, changes: { within: w } });
+        }
+      });
+      return { cmds, k, ids: fresh, nodes, links, full, locked };
+    }
+    /* Moments a..b (numbered from 0) come out and everything after slides back. -> { cmds, k, ids (the moments
+       taken out), nodes (nodes that go with them), links (joins that go), fixed (nodes put in so the moments
+       around the gap keep playing what they did), locked: [lanes whose line now joins across the gap] } or
+       { error, locked } when a locked lane has a node there. */
+    function remove(st, a, b, h) {
+      h = h || {};
+      const Sc = h.S;
+      if (!check(st, a, b)) return { error: "Pick a moment of your film first." };
+      const n = st.rows.length;
+      const k = b - a + 1;
+      if (n - k < 1) return { error: "Your film needs at least one moment, so they can't all be taken out." };
+      const ids = st.rows.map((r) => r.id);
+      const gone = ids.slice(a, b + 1);
+      const doomed = new Set(gone);
+      const keep = ids.filter((id) => !doomed.has(id));
+      const isLocked = (lk) => !!(h.locked && h.locked(lk));
+      const hit = Object.keys(st.lanes)
+        .sort()
+        .find((lk) => isLocked(lk) && gone.some((id) => own(st.lanes[lk].points, id)));
+      if (hit) return { error: `${Sc && Sc.label ? Sc.label(lkSplit(hit)[1]) : hit} is locked (🔒) and has a node on ${span(a, b)}, so nothing was taken out. Unlock it first, or pick other moments.`, locked: hit };
+      const cmds = [];
+      const ix = {};
+      ids.forEach((id, i) => (ix[id] = i));
+      let links = 0;
+      st.links.forEach((l) => {
+        if (!l.scope || ix[l.scope.from] == null || ix[l.scope.to] == null) return;
+        if (doomed.has(l.scope.from) || doomed.has(l.scope.to)) {
+          cmds.push({ type: "removeLink", link: l.id });
+          return void links++;
+        }
+        const lo = Math.min(ix[l.scope.from], ix[l.scope.to]);
+        const hi = Math.max(ix[l.scope.from], ix[l.scope.to]);
+        if (lo < a && hi > b) {
+          const w = Math.min(16, hi - lo - k);
+          if (w !== l.within) cmds.push({ type: "updateLink", link: l.id, changes: { within: w } });
+        }
+      });
+      let nodes = 0;
+      let fixed = 0;
+      const locked = [];
+      Object.keys(st.lanes)
+        .sort()
+        .forEach((lk) => {
+          const lane = st.lanes[lk];
+          const [track, cur] = lkSplit(lk);
+          gone.forEach((id) => own(lane.points, id) && nodes++);
+          const old = laneValues(ids, lane, cur, Sc);
+          const want = old.slice(0, a).concat(old.slice(b + 1));
+          const pts = {};
+          Object.keys(lane.points).forEach((id) => !doomed.has(id) && (pts[id] = lane.points[id]));
+          if (isLocked(lk)) {
+            if (fits(keep, want, lane, cur, Sc, pts).length) locked.push(lk);
+            return;
+          }
+          /* A lane whose every node was in the gap has nothing left to play: it goes with them. */
+          if (!Object.keys(pts).length) return;
+          keepShape(keep, want, lane, cur, Sc, pts, [a - 1, a]);
+          Object.keys(pts).forEach((id) => {
+            if (own(lane.points, id) && same(lane.points[id], pts[id])) return;
+            cmds.push({ type: "setPoint", row: id, track, curiosity: cur, value: pts[id] });
+            fixed++;
+          });
+        });
+      gone.forEach((id) => cmds.push({ type: "removeRow", row: id }));
+      return { cmds, k, ids: gone, nodes, links, fixed, locked };
+    }
+    /* The Screen's own per-moment things. op = { kind: "insert" | "delete", a, b }, moments numbered from 0. */
+    /* Transitions: { "into": { kind, len } }, keyed by the number (from 1) of the moment the join leads into. A copy
+       comes in on a cut; the joins inside a duplicated stretch are copied with it; the join into the moment after a
+       gap keeps the transition that moment came in with. */
+    function joins(j, op) {
+      const out = {};
+      const A = op.a + 1;
+      const B = op.b + 1;
+      const k = B - A + 1;
+      Object.keys(j || {}).forEach((key) => {
+        const m = Number(key);
+        if (!Number.isInteger(m)) return;
+        let to;
+        if (op.kind === "insert") {
+          to = m > B ? m + k : m;
+          if (m > A && m <= B) out[String(m + k)] = j[key];
+        } else to = m < A ? m : m > B ? m - k : null;
+        if (to != null && to >= 2) out[String(to)] = j[key];
+      });
+      return out;
+    }
+    /* Words on the frame: [{ id, from, to, ... }], moments numbered from 1. Words showing on the stretch's last
+       moment run on over the copies; words wholly inside the stretch get a copy on the copies; words after it
+       slide along. Taking moments out shortens the words over them, and words wholly inside go.
+       -> { items, copied, gone } */
+    function texts(items, op, max) {
+      const A = op.a + 1;
+      const B = op.b + 1;
+      const k = B - A + 1;
+      const out = [];
+      const extra = [];
+      let gone = 0;
+      (items || []).forEach((t) => {
+        const x = Object.assign({}, t);
+        if (op.kind === "insert") {
+          if (t.from > B) Object.assign(x, { from: t.from + k, to: t.to + k });
+          else if (t.to >= B) x.to = t.to + k;
+          else if (t.from >= A) extra.push(Object.assign({}, t, { from: t.from + k, to: t.to + k }));
+          out.push(x);
+        } else {
+          const f = t.from < A ? t.from : t.from > B ? t.from - k : A;
+          const e = t.to < A ? t.to : t.to > B ? t.to - k : A - 1;
+          if (f <= e) out.push(Object.assign(x, { from: f, to: e }));
+          else gone++;
+        }
+      });
+      let num = Math.max(0, ...out.map((t) => Number((/^t(\d+)$/.exec(t.id) || [])[1]) || 0));
+      let copied = 0;
+      extra.forEach((c) => {
+        if (out.length >= (max || 60)) return;
+        out.push(Object.assign(c, { id: "t" + ++num }));
+        copied++;
+      });
+      return { items: out, copied, gone };
+    }
+    /* Markers are kept by moment id, so they slide along by themselves; one on a moment taken out goes. */
+    const markers = (list, goneIds) => (list || []).filter((m) => !(goneIds || []).includes(m.row));
+    /* The play range [from, to] (numbered from 0), or null. */
+    function range(r, op) {
+      if (!Array.isArray(r) || r.length < 2) return null;
+      const k = op.b - op.a + 1;
+      let [p, q] = r;
+      if (op.kind === "insert") {
+        if (p > op.b) p += k;
+        if (q >= op.b) q += k;
+      } else {
+        p = p < op.a ? p : p > op.b ? p - k : op.a;
+        q = q < op.a ? q : q > op.b ? q - k : op.a - 1;
+      }
+      return p < q ? [p, q] : null;
+    }
+    return { laneValues, freshIds, insert, remove, joins, texts, markers, range, span };
+  })();
+  window.CurioScreenRipple = RIPPLE;
+
+  /* The page side: the buttons, keys and Quick find actions all come here. */
+  const rippleSteps = { undo: [], redo: [] };
+  let rippleHooked = false;
+  function rippleSnap() {
+    const LL = window.CurioLanes;
+    return JSON.parse(
+      JSON.stringify({
+        joins: TRANSITIONS.clean(trData()).joins,
+        items: txtData().items,
+        markers: LL && LL.tools ? LL.tools().markers || [] : [],
+        range: Array.isArray(prefs.range) ? prefs.range : null,
+      })
+    );
+  }
+  function ripplePut(s) {
+    trStore().send({ type: "replace", joins: s.joins, label: "Moments moved" }, { record: false });
+    txtStore().send({ type: "replace", items: s.items, label: "Moments moved" }, { record: false });
+    if (window.CurioLanes && window.CurioLanes.setMarkers) window.CurioLanes.setMarkers(s.markers);
+    prefs.range = s.range ? s.range.slice() : null;
+    save();
+    if (!page || page.hidden) return;
+    if (row > nRows() - 1) setRow(nRows() - 1);
+    drawViewers();
+    if (lanes) lanes.draw();
+  }
+  /* The engine's step is the undo step: when it is undone or redone (however that happens), the rest follows. */
+  function rippleHook() {
+    if (rippleHooked || !E()) return;
+    rippleHooked = true;
+    E().on((ev) => {
+      const l = String((ev && ev.label) || "");
+      const top = (list) => list[list.length - 1];
+      if (/^Undo: /.test(l)) {
+        const s = top(rippleSteps.undo);
+        if (s && l === "Undo: " + s.label) rippleSteps.redo.push(rippleSteps.undo.pop()), ripplePut(s.before);
+      } else if (/^Redo: /.test(l)) {
+        const s = top(rippleSteps.redo);
+        if (s && l === "Redo: " + s.label) rippleSteps.undo.push(rippleSteps.redo.pop()), ripplePut(s.after);
+      } else if (l === "Load" || l === "Reset") {
+        rippleSteps.undo = [];
+        rippleSteps.redo = [];
+      } else rippleSteps.redo = [];
+    });
+  }
+  const rippleWords = (xs) => (xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1]);
+  function rippleSay(m) {
+    if (page) toast(m);
+    if (lanes && lanes.say) lanes.say(m);
+  }
+  /* kind: "add" (a copy of the playhead's moment right after it), "duplicate" (the stretch selected on the
+     timeline, else the playhead's moment) or "delete" (the selected stretch, else the playhead's moment).
+     o.a and o.b (moments from 0) pick the moments instead. */
+  function ripple(kind, o) {
+    o = o || {};
+    const Eng = E();
+    if (!Eng || !S()) return rippleSay("Your film is not loaded yet."), { ok: false };
+    const st = Eng.state();
+    const raw = lanes && lanes.area ? lanes.area() : null;
+    const ar = curArea();
+    let a = row;
+    let b = row;
+    if (Number.isInteger(o.a)) (a = o.a), (b = Number.isInteger(o.b) ? o.b : o.a);
+    else if (kind !== "add" && ar) (a = ar.j0), (b = Math.min(ar.j1, st.rows.length - 1));
+    const LL = window.CurioLanes;
+    const h = { S: S(), locked: (lk) => !!(LL && LL.isLocked && LL.isLocked(lk)), maxRows: (Eng.LIMIT && Eng.LIMIT.rows) || 64, maxLinks: (Eng.LIMIT && Eng.LIMIT.links) || 200 };
+    const del = kind === "delete";
+    const plan = del ? RIPPLE.remove(st, a, b, h) : RIPPLE.insert(st, a, b, h);
+    if (plan.error) return rippleSay(plan.error), { ok: false, error: plan.error, locked: plan.locked };
+    if (plan.cmds.length > 500) {
+      const e = `That is too big a change for one step (${plan.cmds.length} small changes; the most is 500). Pick a shorter stretch.`;
+      return rippleSay(e), { ok: false, error: e };
+    }
+    const k = plan.k;
+    const op = { kind: del ? "delete" : "insert", a, b };
+    const before = rippleSnap();
+    const tx = RIPPLE.texts(before.items, op, TEXT.MAX);
+    const after = { joins: RIPPLE.joins(before.joins, op), items: tx.items, markers: RIPPLE.markers(before.markers, del ? plan.ids : []), range: RIPPLE.range(before.range, op) };
+    const where = RIPPLE.span(a, b);
+    const label = kind === "add" ? `Add a moment after moment ${a + 1}` : del ? `Take out ${where}` : `Duplicate ${where}`;
+    rippleHook();
+    const r = Eng.send({ type: "batch", label, commands: plan.cmds });
+    if (!r.ok) return rippleSay(r.error), r;
+    rippleSteps.undo.push({ label, before, after });
+    if (rippleSteps.undo.length > 100) rippleSteps.undo.shift();
+    rippleSteps.redo = [];
+    ripplePut(after);
+    const names = plan.locked.map((lk) => labelOf(lk.slice(lk.indexOf("|") + 1)));
+    const one = names.length === 1;
+    const lockNote = names.length ? ` ${rippleWords(names)} ${one ? "is" : "are"} locked (🔒), so ${one ? "its line was" : "their lines were"} left alone and now ${del ? (one ? "joins" : "join") : one ? "runs" : "run"} across ${del ? "the gap" : "the new moments"}.` : "";
+    const moved = "nodes, joins, markers, transitions and words";
+    let msg;
+    if (del) {
+      const lost = [];
+      if (plan.nodes) lost.push(`${plan.nodes} node${plan.nodes === 1 ? "" : "s"}`);
+      if (plan.links) lost.push(`${plan.links} join${plan.links === 1 ? "" : "s"}`);
+      const mk = before.markers.length - after.markers.length;
+      if (mk) lost.push(`${mk} marker${mk === 1 ? "" : "s"}`);
+      if (tx.gone) lost.push(`${tx.gone} text${tx.gone === 1 ? "" : "s"}`);
+      msg = `Took out ${where}. Everything after moved ${k} moment${k === 1 ? "" : "s"} earlier (${moved}).${lost.length ? ` ${rippleWords(lost)} on ${k === 1 ? "it" : "them"} went too.` : ""} Undo takes it back.`;
+      setRow(Math.min(a, nRows() - 1));
+      if (raw && lanes.selectArea) lanes.selectArea(null);
+    } else {
+      const copies = RIPPLE.span(b + 1, b + k);
+      msg = kind === "add" ? `Added moment ${b + 2}, a copy of moment ${a + 1}. Everything after it moved one moment later (${moved}). Undo takes it back.` : `Duplicated ${where}: the copy is ${copies}, and everything after moved ${k} moment${k === 1 ? "" : "s"} later (${moved}). Undo takes it back.`;
+      if (plan.full) msg += ` ${plan.full} join${plan.full === 1 ? " was" : "s were"} not copied: your film holds ${h.maxLinks} joins here.`;
+      setRow(b + 1);
+      if (kind === "duplicate" && raw && lanes.selectArea) lanes.selectArea(Object.assign({}, raw, { j0: b + 1, j1: b + k }));
+    }
+    rippleSay(msg + lockNote);
+    return { ok: true, k, a, b, message: msg + lockNote };
+  }
+  /* Quick find: the same, with the stretch's moments in plain words when one is selected. */
+  function rippleFindActions(add) {
+    const ar = curArea();
+    if (!ar) return;
+    const where = RIPPLE.span(ar.j0, ar.j1);
+    add("ripple-dup-area", `Duplicate the selected stretch (${where})`, "A copy of every moment in it goes right after it; everything after slides later", "⇧⌥M", () => ripple("duplicate"));
+    add("ripple-del-area", `Take out the selected stretch (${where})`, "The moments come out and everything after slides earlier to close the gap", "⌥⌫", () => ripple("delete"));
+  }
 
   /* ---------- the library (CapCut's top-left panel) ---------- */
   /* Line icons for the category tabs, drawn on a 20 by 20 grid in the current text color. */
@@ -3949,6 +4385,11 @@ document.addEventListener("click", function (e) {
         onOpen: openWin,
         secondsPerMoment,
         range: rangeNow,
+        /* Add, duplicate and take out moments (the timeline toolbar and its area tools), and the toolbar's Undo
+           and Redo on the app-wide list, so they take back a whole ripple the way ⌘Z does. */
+        ripple: (kind) => ripple(kind),
+        undo: (dir) => undoAll(dir),
+        canUndo: (dir) => { const St = window.CurioStore; return St && typeof St.external === "function" ? (dir === "redo" ? St.canRedo() : St.canUndo()) : !!(E() && (dir === "redo" ? E().canRedo() : E().canUndo())); },
         onSelect: (cur) => {
           if (prefs.sel.level === "curiosity" && prefs.sel.id === cur) return;
           if (prefs.view === "screen" && prefs.sel.level !== "curiosity") return;
@@ -4641,6 +5082,7 @@ document.addEventListener("click", function (e) {
     add("overview", "Whole-film strip", "Show or hide a frame for every moment under the viewers", "", () => ((prefs.overview = !prefs.overview), save(), drawViewers()));
     add("close", "Back to the app", "Leave the Screen", "", () => close());
     tplFindActions(add);
+    rippleFindActions(add);
     /* The ⋯ menu of the curiosity you are looking through (Details): the same four ways, the same steps. */
     if (prefs.sel.level === "curiosity" && E() && S()) {
       const k = keyFor(prefs.sel.id);
@@ -4943,4 +5385,7 @@ document.addEventListener("click", function (e) {
   /* My templates: list(), save(name, note), use(id, { at, stretch }), rename(id, name, note), remove(id),
      exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick). */
   window.CurioScreen.templates = TPL_API;
+  /* Ripple: ripple("add" | "duplicate" | "delete", { a, b }?) adds a copy of the playhead's moment, duplicates or
+     takes out moments (the selected stretch, else the playhead's moment), as one undo step. */
+  window.CurioScreen.ripple = (kind, o) => ripple(kind, o);
 })();
