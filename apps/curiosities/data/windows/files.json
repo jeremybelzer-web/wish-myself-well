@@ -28,6 +28,7 @@
   "win-depth-world.js",
   "win-depth-look.js",
   "win-depth-fx.js",
+  "win-depth-comedy.js",
   "measure-camera.js",
   "measure-performance.js",
   "measure-light.js",
@@ -71,6 +72,7 @@
   "say-depth-world.js",
   "say-depth-look.js",
   "say-depth-fx.js",
+  "say-depth-comedy.js",
   "look-camera.js",
   "look-story.js",
   "look-comedy.js",
@@ -96,5 +98,6 @@
   "look-depth-acting.js",
   "look-depth-world.js",
   "look-depth-look.js",
-  "look-depth-fx.js"
+  "look-depth-fx.js",
+  "look-depth-comedy.js"
 ]
