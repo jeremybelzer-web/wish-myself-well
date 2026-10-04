@@ -92,6 +92,7 @@ const suites = [
   { name: "people: feelings, Enneagram, chaos matrix", browser: true, secs: 12, ...node("viewer/tests/people.js") },
   { name: "rate of speech", browser: true, secs: 10, ...node("viewer/tests/speech.js") },
   { name: "comic strip playhead and layouts", browser: true, secs: 15, ...node("viewer/tests/comic.js") },
+  { name: "hover help", browser: true, secs: 15, ...node("viewer/tests/hoverhelp.js") },
   { name: "storyboard flip book", browser: true, secs: 10, ...node("tests/flipbook.js") },
   { name: "save, new, open a project", browser: true, secs: 30, ...node("tests/save-open.js") },
   { name: "bring in a video", browser: true, secs: 25, ...node("media/tests/browser.js") },

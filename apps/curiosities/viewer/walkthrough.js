@@ -15,12 +15,16 @@
 
   const V = () => window.CurioViewer;
   const S = () => window.CurioScreen;
-  const goViewer = (tab) => () => {
-    if (V() && !V().isOpen()) V().open();
-    if (tab) {
-      const b = document.querySelector(`.cv-tabs [data-tab="${tab}"]`);
-      if (b) b.click();
-    }
+  const goViewer = (tab) => {
+    const go = () => {
+      if (V() && !V().isOpen()) V().open();
+      if (tab) {
+        const b = document.querySelector(`.cv-tabs [data-tab="${tab}"]`);
+        if (b) b.click();
+      }
+    };
+    go.tab = tab || "";
+    return go;
   };
   /* The Screen's steps need the Screen itself, in its Screen view (the library, Player, Details and timeline),
      with the Viewer closed; the app's steps need both closed. stop() puts back what was open before. */
@@ -68,7 +72,7 @@
     { part: "The rest of the app", go: goApp, sel: "#tabs .tabs-top", title: "My film, Storyboard and Library", text: "My film is the first board: change a measurable thing about a scene and the storyboard changes. Storyboard keeps many scenes to flip through. Library holds curated films, the Prism, every curiosity and the Maya manual." },
     { part: "The rest of the app", go: goApp, sel: "#ws-buttons", title: "Workspaces", text: "One page per big area of filmmaking: Camera, People, Look, Sound, Feeling, Comedy and Story. Each page shows those curiosities in your film, lets you automate them, borrow them from a film, and use its tools." },
     { part: "The rest of the app", go: goApp, sel: "#lib-btn", title: "Library", text: "Curated films and the Shelf, the Prism (split a whole film into its curiosities), All curiosities, the Maya manual, Words (every film word in plain language) and Print." },
-    { part: "Help", go: goViewer("move"), sel: ".cv-bar .cw-help", title: "Help ▸ App Walkthrough", text: "That's the tour. Open it again any time from Help at the top of any page. Have fun making your film." },
+    { part: "Help", go: goViewer("move"), sel: ".cv-bar .cw-help", title: "Help ▸ App Walkthrough", text: "That's the tour. Open it again any time from Help at the top of any page. Help ▸ Hover help (on to start with) shows a little bubble saying what anything does when you rest the pointer on it; turn it off there when you know your way around. Have fun making your film." },
   ];
 
   /* ---------- the look ---------- */
@@ -164,11 +168,12 @@
       menu = document.createElement("div");
       menu.className = "cw-menu";
       menu.setAttribute("role", "menu");
-      menu.innerHTML = `<button type="button" role="menuitem" data-cw="tour">App Walkthrough<small>a guided tour of every part, in thought bubbles</small></button>`;
+      menu.innerHTML = `<button type="button" role="menuitem" data-cw="tour">App Walkthrough<small>a guided tour of every part, in thought bubbles</small></button>${window.CurioHoverHelp ? `<button type="button" role="menuitem" data-cw="hover">Hover help: <span class="hh-state">${CurioHoverHelp.on() ? "on" : "off"}</span><small>rest the pointer on anything to see what it does</small></button>` : ""}`;
       menu.addEventListener("click", (e) => {
         const b = e.target.closest("[data-cw]");
         if (!b) return;
         menu.hidden = true;
+        if (b.dataset.cw === "hover") return window.CurioHoverHelp && CurioHoverHelp.toggle();
         start(0);
       });
       document.addEventListener("click", (e) => {
@@ -375,7 +380,7 @@
     start: (i) => start(i || 0),
     stop,
     step: () => at,
-    steps: () => STEPS.map((s) => ({ part: s.part || "", title: s.title, sel: s.sel || "" })),
+    steps: () => STEPS.map((s) => ({ part: s.part || "", title: s.title, sel: s.sel || "", text: s.text, tab: (s.go && s.go.tab) || "" })),
     key: SEEN,
   };
 })();

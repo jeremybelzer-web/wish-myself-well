@@ -228,3 +228,12 @@ Data: `panel.words[k].rate`. Test: `node viewer/tests/speech.js`.
   cut-outs, a little turned, on paper). Pictures are drawn to each frame's shape. Key `curiosities-viewer-comiclayout-v1`.
 
 Test: `node viewer/tests/comic.js`.
+
+### Hover help (`viewer/hoverhelp.js`)
+
+Rest the pointer on anything (Viewer, Screen, the rest of the app) and a bubble says what it is: the control's
+own description (title, aria-label, data-help), a slider's name and its two ends, a menu's choices, the thing
+in the picture under the pointer, and the part of the app it belongs to in the walkthrough's words (the
+walkthrough's `steps()` now carry their text and tab). The browser's own tooltip is held back while the
+bubble shows. Help ▸ Hover help turns it on or off (key `curio-hoverhelp-v1`, on to start with; automated
+browsers start with it off unless `?hoverhelp=1`). Test: `node viewer/tests/hoverhelp.js`.
