@@ -119,3 +119,22 @@ coming in or going out, rain, balloons and captions) plus the story values a pan
 sample borrows them. Hooks it uses in viewer.js: `onDraw`, `onChange`, `under`, `seek`.
 
 Test: `node viewer/tests/focus-lane.js` (in `tests/run-all.js --browser`).
+
+## Round 6 (Jeremy's notes, 2026-10-04 20:16Z)
+
+- **Looking around.** A plain drag anywhere in the picture swings the camera, including over a thing that
+  isn't picked yet (that click picks it). Drag a thing that is already picked to move it. The camera swings all
+  the way round, and under the subject too: from underneath, the floor is see-through like glass.
+- **Nothing disappears up close.** A face partly behind the camera is cut at the camera instead of dropped
+  (`clipNear`, `projectFace`), so buildings stay when you zoom or slide right up to them or past them.
+- **Fisheye** now goes from a straight-line lens through an equidistant fisheye (50%) to an equisolid one
+  (100%, like an 8mm circular fisheye), widening as it bends (`lensR`, `lensTh`). **Haze** starts past the
+  subject, so the least foreshortening (a long lens far away) is no longer grey.
+- **Windows.** A + in every window's corner tab adds a window. Under the picture: *Fit all windows on screen*
+  or *Keep size, swipe the top edge* (one big window; drag along its top edge, or click its dots, to see the
+  others; key `curiosities-viewer-winmode-v1`).
+- **Front and center** has an attention pie (right now), a graph (the whole film) and a list of every
+  curiosity on, by share; click the pie or the graph to see it bigger. Pointing at a shortened name shows it in
+  full at the top right.
+
+Test: `node viewer/tests/camera.js`.
