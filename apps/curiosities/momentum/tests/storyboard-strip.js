@@ -3,7 +3,8 @@
    NODE_PATH=/opt/node22/lib/node_modules node momentum/tests/storyboard-strip.js --browser [--three <three.min.js>] [--shots <dir>]
      also opens the app in Chromium: puts two scenes on the Storyboard, checks one cell per panel in Flip through
      and in All scenes (lined up under the panels), that the meter follows the arrows and playback, that a cell
-     jumps the flip book, the Momentum window's seconds per panel, phone width with no sideways scroll, print,
+     jumps the flip book, the Momentum window's seconds per panel, the storyboard's own listeners (and the page
+     watcher for an older storyboard), phone width with no sideways scroll, print,
      and no page errors. */
 const path = require("path");
 const fs = require("fs");
@@ -238,6 +239,55 @@ function browserCheck() {
       const pr = await page.evaluate(() => ({ strip: !!document.querySelector(".mo-sbs") && getComputedStyle(document.querySelector(".mo-sbs")).display !== "none", wide: document.documentElement.scrollWidth > window.innerWidth + 1 }));
       check(pr.strip && !pr.wide, "print: the strip shows and the page does not grow sideways");
       await page.emulateMedia({ media: "screen" });
+
+      /* The storyboard's own listeners (CuriosityStoryboard.on): used when there, unsubscribed on detach, and the
+         page watcher kept for an older storyboard. */
+      const mode0 = await page.evaluate(() => window.CurioMomentumStoryboard.mode());
+      check(mode0 === "events", "it listens to the storyboard's draw and page events (" + mode0 + ")");
+      await page.evaluate(() => document.querySelector("[data-sb=view-flip]").click());
+      await page.waitForSelector("[data-sb=thumbs] .mo-sbs .mo-sbs-cell", { timeout: 5000 });
+      const off = await page.evaluate(async () => {
+        const S = window.CurioMomentumStoryboard;
+        S.detach();
+        const raf = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        document.querySelector("[data-sb=next]").click();
+        await raf();
+        await raf();
+        return { attached: S.attached(), mode: S.mode(), strips: document.querySelectorAll(".mo-sbs").length };
+      });
+      check(!off.attached && off.mode === "" && off.strips === 0, "detach unsubscribes: a page turn after it adds no strip (" + JSON.stringify(off) + ")");
+      const back = await page.evaluate(async () => {
+        const S = window.CurioMomentumStoryboard;
+        S.attach();
+        const raf = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        await raf();
+        const strip = !!document.querySelector("[data-sb=thumbs] .mo-sbs");
+        document.querySelector("[data-sb=next]").click();
+        await new Promise((r) => setTimeout(r, 80));
+        const on = document.querySelector(".sb-thumb.on").dataset.go;
+        return { mode: S.mode(), strip, follows: document.querySelector(".mo-sbm").dataset.at === on };
+      });
+      check(back.mode === "events" && back.strip && back.follows, "attach again: the strip comes back and the meter follows a page turn (" + JSON.stringify(back) + ")");
+      const old = await page.evaluate(async () => {
+        const S = window.CurioMomentumStoryboard;
+        const SB = window.CuriosityStoryboard;
+        const had = SB.on;
+        S.detach();
+        SB.on = undefined; /* an older storyboard */
+        S.attach();
+        const mode = S.mode();
+        await new Promise((r) => setTimeout(r, 80));
+        document.querySelector("[data-sb=next]").click();
+        await new Promise((r) => setTimeout(r, 80));
+        const on = document.querySelector(".sb-thumb.on").dataset.go;
+        const res = { mode, strip: !!document.querySelector("[data-sb=thumbs] .mo-sbs"), follows: document.querySelector(".mo-sbm").dataset.at === on };
+        S.detach();
+        SB.on = had;
+        S.attach();
+        res.after = S.mode();
+        return res;
+      });
+      check(old.mode === "observer" && old.strip && old.follows && old.after === "events", "with an older storyboard (no on) it watches the page instead (" + JSON.stringify(old) + ")");
 
       /* Phone width. */
       const phone = await open({ width: 375, height: 800 });

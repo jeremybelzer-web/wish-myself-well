@@ -297,9 +297,9 @@
     const out = [];
     r.jokes.forEach((j, k) => {
       if ((j.kind === "payoff" || j.setupAt != null) && !j.pauseBefore)
-        out.push({ kind: "pause", joke: k, at: j.at, row: j.row, text: `Add a pause before the payoff at ${clock(j.at)} (${j.label}). One still beat, or something going quiet, lets the audience lean in before the laugh.` });
+        out.push({ kind: "pause", joke: k, at: j.at, row: j.row, text: `Add a pause before the payoff at ${clock(j.at)} (${j.label}). One still moment, or something going quiet, lets the audience lean in before the laugh.` });
       if (j.landing < 1 && k < r.jokes.length - 1)
-        out.push({ kind: "land", joke: k, at: j.at, row: j.row, text: `The laugh at ${clock(j.at)} gets ${j.landing ? "under a second" : "no time"} before attention moves on. Hold on a reaction for a beat so it can land.` });
+        out.push({ kind: "land", joke: k, at: j.at, row: j.row, text: `The laugh at ${clock(j.at)} gets ${j.landing ? "under a second" : "no time"} before attention moves on. Hold on a reaction for a moment so it can land.` });
     });
     r.unpaid.forEach((s) => out.push({ kind: "unpaid", at: s.at, row: s.row, text: `The setup at ${clock(s.at)} (${s.label}) never pays off. Pay it off later, or cut it.` }));
     if (r.jokes.length >= 3 && !r.callbacks) {
@@ -319,7 +319,7 @@
     const yours = title ? "Its" : "Your";
     const out = [];
     if (!r.jokes.length && !r.setups.length) {
-      out.push(`${you} has no comedy beats yet. Mark a moment with "Setup and payoff" (setup planted, then payoff lands later), a Topper, a Cutaway gag or a Callback, and the rhythm shows here.`);
+      out.push(`${you} has no jokes yet. Mark a moment with "Setup and payoff" (setup planted, then payoff lands later), a Topper, a Cutaway gag or a Callback, and the rhythm shows here.`);
       return out;
     }
     const films = (compare || []).filter((p) => p && p.secondsPerJoke);
@@ -335,7 +335,7 @@
     if (r.medianGap != null) out.push(`A setup usually pays off ${secs(r.medianGap)} later${r.longestGap > r.medianGap ? `, and the longest wait is ${secs(r.longestGap)}` : ""}${p && p.medianGap != null ? `. ${p.title} ${est(p)} ${secs(p.medianGap)}${p.longestGap ? `, with its longest setups waiting ${secs(p.longestGap)}` : ""}` : ""}.`);
     if (r.payoffs) {
       const n = r.jokes.filter((j) => (j.kind === "payoff" || j.setupAt != null) && j.pauseBefore).length;
-      out.push(`${n} of ${r.payoffs} payoff${r.payoffs === 1 ? " has" : "s have"} a beat before the punchline (a pause, a quiet cue, or a still moment)${p && p.pauseShare != null ? `; ${p.title} ${est(p)} ${Math.round(p.pauseShare * 100)} in 100` : ""}.`);
+      out.push(`${n} of ${r.payoffs} payoff${r.payoffs === 1 ? " has" : "s have"} a pause before the punchline (a written pause, a quiet cue, or a still moment)${p && p.pauseShare != null ? `; ${p.title} ${est(p)} ${Math.round(p.pauseShare * 100)} in 100` : ""}.`);
     }
     if (r.jokes.length) {
       out.push(`A laugh usually gets ${secs(r.medianLanding)} to land before attention moves on${p && p.landing != null ? `; ${p.title} ${est(p)} ${secs(p.landing)}` : ""}.`);
@@ -352,7 +352,7 @@
       id: i.id || "measured-comedy",
       title: i.title || "Measured film",
       estimate: false,
-      source: "Measured from the film's comedy beats",
+      source: "Measured from the film's jokes",
       secondsPerJoke: r.everySeconds,
       perMinute: r.perMinute,
       medianGap: r.medianGap,
@@ -475,9 +475,9 @@
     r.setups.forEach((s) => parts.push(mark(x(s.at), "S", `Setup at ${clock(s.at)}: ${s.label}${s.paid ? "" : " (never pays off)"}`)));
     r.jokes.forEach((j) => {
       const k = j.callback ? "C" : j.kind === "payoff" || j.setupAt != null ? "P" : "J";
-      parts.push(mark(x(j.at), k, `${clock(j.at)}: ${KIND_WORDS[j.kind]} (${j.label})${j.pauseBefore ? ", with a beat before it" : ""}, lands for ${j.landing} seconds`));
+      parts.push(mark(x(j.at), k, `${clock(j.at)}: ${KIND_WORDS[j.kind]} (${j.label})${j.pauseBefore ? ", with a pause before it" : ""}, lands for ${j.landing} seconds`));
     });
-    return `<svg class="ct-strip" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="The film's comedy beats: setups, payoffs and callbacks, with an arc from each setup to its payoff">${parts.join("")}</svg>`;
+    return `<svg class="ct-strip" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="The film's jokes: setups, payoffs and callbacks, with an arc from each setup to its payoff">${parts.join("")}</svg>`;
   }
 
   function tiles(r, cmp) {
@@ -487,7 +487,7 @@
     return `<div class="mo-tiles">
       ${t("Jokes a minute", r.perMinute, them("perMinute", (v) => v))}
       ${t("Setup to payoff", r.medianGap != null ? secs(r.medianGap) : dash, them("medianGap", secs))}
-      ${t("Beat before the punchline", r.pauseShare != null ? `${Math.round(r.pauseShare * 100)} <small>in 100 payoffs</small>` : dash, them("pauseShare", (v) => `${Math.round(v * 100)} in 100`))}
+      ${t("Pause before the punchline", r.pauseShare != null ? `${Math.round(r.pauseShare * 100)} <small>in 100 payoffs</small>` : dash, them("pauseShare", (v) => `${Math.round(v * 100)} in 100`))}
       ${t("Time to land", r.medianLanding != null ? secs(r.medianLanding) : dash, them("landing", secs))}
       ${t("Callbacks", r.callbacks, r.unpaid.length ? `${r.unpaid.length} setup${r.unpaid.length === 1 ? "" : "s"} never pay${r.unpaid.length === 1 ? "s" : ""} off` : "")}
     </div>`;
@@ -502,7 +502,7 @@
       .filter((s) => s.id !== "live")
       .map((s) => `<option value="${esc(s.id)}"${s.id === prefs.other ? " selected" : ""}>${esc(s.label)}</option>`)
       .join("");
-    return `<div class="mo-scroll"><table class="mo-rates ct-table"><thead><tr><th>Film</th><th></th><th>A joke</th><th>Setup to payoff</th><th>Beat before</th><th>Time to land</th><th>Callbacks</th><th>Why</th></tr></thead><tbody>
+    return `<div class="mo-scroll"><table class="mo-rates ct-table"><thead><tr><th>Film</th><th></th><th>A joke</th><th>Setup to payoff</th><th>Pause before</th><th>Time to land</th><th>Callbacks</th><th>Why</th></tr></thead><tbody>
       ${row(mine, `<span class="mo-badge mo-badge-m">this film</span>`)}
       ${COMEDY_FILMS.map((p) => row(p, `<span class="mo-badge">estimate</span>`)).join("")}
       ${prefs.measured.map((p) => row(p, `<span class="mo-badge mo-badge-m">measured</span>`, ` <button type="button" data-ct-unmeasure="${esc(p.id)}">Remove</button>`)).join("")}
@@ -532,7 +532,7 @@
       .join("");
     el.innerHTML = `<div class="ct-root">
       ${said ? `<div class="mo-flash" role="status">${esc(said)}</div>` : ""}
-      <p>Comedy rhythm: how often the jokes come, how long a setup waits for its payoff, whether a beat of stillness comes before the punchline, and how long a laugh gets before attention moves on.</p>
+      <p>Comedy rhythm: how often the jokes come, how long a setup waits for its payoff, whether a pause comes before the punchline, and how long a laugh gets before attention moves on.</p>
       <div class="mo-controls"><label>Film${ctx.sourcePicker("data-ct-source")}</label></div>
       ${tiles(r, COMEDY_FILMS.concat(prefs.measured).find((p) => p.id === r.closest) || COMEDY_FILMS[1])}
       <section><h3>In plain words</h3><ul class="ct-sent">${r.sentences.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></section>
@@ -540,7 +540,7 @@
         <div class="ct-strip-box">${stripSvg(r, Math.max(280, (el.clientWidth || 600) - 4))}</div>
         <ul class="ct-key"><li><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" class="ct-m ct-s"></circle></svg> S, a setup</li><li><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" class="ct-m ct-p"></circle></svg> P, a payoff</li><li><svg width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="10" height="10" class="ct-m ct-j"></rect></svg> J, another joke (a topper, a cutaway, a laugh)</li><li><svg width="16" height="16" aria-hidden="true"><path d="M8 1 l7 7 l-7 7 l-7 -7 z" class="ct-m ct-c"></path></svg> C, a callback</li><li><svg width="16" height="16" aria-hidden="true"><rect x="0" y="5" width="16" height="6" class="ct-band"></rect></svg> comedy holds attention</li><li>An arc above joins a setup to its payoff; a dashed arc below joins a callback to the joke it returns to; a ? marks a setup that never pays off.</li></ul>
       </section>
-      <section><h3>Suggestions</h3>${sugg ? `<ul class="mo-sugg">${sugg}</ul>${engine ? `<p class="mo-small">A pause on the engine is one more notch of "Pause before the punchline" at that moment. The engine's Undo takes it back.</p>` : ""}` : `<p class="mo-small"><span class="mo-status mo-good">●</span> Nothing to suggest: every payoff has a beat before it and every setup pays off.</p>`}</section>
+      <section><h3>Suggestions</h3>${sugg ? `<ul class="mo-sugg">${sugg}</ul>${engine ? `<p class="mo-small">A pause on the engine is one more notch of "Pause before the punchline" at that moment. The engine's Undo takes it back.</p>` : ""}` : `<p class="mo-small"><span class="mo-status mo-good">●</span> Nothing to suggest: every payoff has a pause before it and every setup pays off.</p>`}</section>
       ${list ? `<details class="mo-table"><summary>Every joke (${r.jokes.length})</summary><ol class="ct-jokes">${list}</ol></details>` : ""}
       <section><h3>Compared with comedies</h3>${compareTable(r, ctx)}</section>
     </div>`;

@@ -361,8 +361,11 @@
     page.addEventListener("click", onClick);
     page.addEventListener("change", onChange);
     page.addEventListener("input", onInput);
+    page.addEventListener("input", (e) => faces() && faces().input && faces().input(e, faceHelpers(mineCtx())));
     page.addEventListener("pointerdown", onKnobDown);
-    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || onOverviewDrag(e));
+    if (faces() && faces().attach) faces().attach(faceApi());
+    page.addEventListener("keydown", (e) => faces() && faces().keydown && faces().keydown(e, faceHelpers(mineCtx()), faceApi()));
+    page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e));
     page.addEventListener("scroll", (e) => e.target.classList && e.target.classList.contains("sl-scroll") && showTimelineWindow(), true);
     /* Undo and redo go to the app-wide undo list when the page has one (engine/store.js), so one ⌘Z undoes one
        step of anything. Caught first, on the window, so the app's own ⌘Z handler does not undo a second step. */
@@ -850,14 +853,20 @@
     const a = -135 + 270 * (isFinite(p) ? Math.max(0, Math.min(1, p)) : 0);
     return `<span class="sc-knob${disabled ? " dis" : ""}" role="slider" tabindex="${disabled ? -1 : 0}" aria-label="${esc(s.label)}" aria-valuemin="${r.min}" aria-valuemax="${r.max}" aria-valuenow="${esc(val)}" data-knob="${esc(id)}" data-min="${r.min}" data-max="${r.max}" data-step="${r.step || 1}" data-val="${esc(val)}"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13"/><line x1="16" y1="16" x2="16" y2="5" transform="rotate(${a} 16 16)"/></svg><b>${esc(val == null ? "–" : val)}</b></span>`;
   }
-  function controlHtml(id, s, val, disabled) {
+  function controlHtml(id, s, val, disabled, big) {
     const kind = L().control(s);
     const dis = disabled ? " disabled" : "";
+    /* In a curiosity's own window a list with no order is a grid of chips to tap, not a menu (decision in
+       decisions/curiosity-windows-thread.md). */
+    if (kind === "choice" && big) return `<span class="sc-chips" role="group" aria-label="${esc(s.label)}">${s.scale.map((o) => `<button type="button" data-set="${esc(id)}" data-v="${esc(o)}" class="${String(val) === String(o) ? "on" : ""}"${dis}>${esc(o)}</button>`).join("")}</span>`;
     if (kind === "toggle") return `<span class="sc-toggle" role="group">${s.scale.map((o) => `<button type="button" data-set="${esc(id)}" data-v="${esc(o)}" class="${String(val) === String(o) ? "on" : ""}"${dis}>${esc(o)}</button>`).join("")}</span>`;
     if (kind === "choice") return `<select data-set="${esc(id)}"${dis}><option value="">not set</option>${s.scale.map((o) => `<option${String(val) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
     if (kind === "steps") {
-      const i = s.scale.findIndex((o) => String(o) === String(val));
-      return `<span class="sc-steps"><input type="range" min="0" max="${s.scale.length - 1}" step="1" value="${i < 0 ? 0 : i}" data-step-set="${esc(id)}" data-scale="${esc(JSON.stringify(s.scale))}"${dis} aria-label="${esc(s.label)}"><output>${esc(val == null ? "not set" : val)}</output></span>`;
+      /* The engine's order when it has one for the same words (Emotion runs calm to charged, not database order). */
+      const d = S() && S().known(id) ? S().domain(id) : null;
+      const sc = d && d.kind === "choice" && d.options.length === s.scale.length && s.scale.every((o) => d.options.includes(String(o))) ? d.options : s.scale;
+      const i = sc.findIndex((o) => String(o) === String(val));
+      return `<span class="sc-steps"><input type="range" min="0" max="${sc.length - 1}" step="1" value="${i < 0 ? 0 : i}" data-step-set="${esc(id)}" data-scale="${esc(JSON.stringify(sc))}"${dis} aria-label="${esc(s.label)}"><output>${esc(val == null ? "not set" : val)}</output></span>`;
     }
     if (kind === "knob") return knob(id, s, val == null ? s.range.min : val, disabled);
     const r = s.range || { min: 0, max: 100, step: 1, unit: "" };
@@ -891,15 +900,16 @@
     const key = keyFor(c.id);
     const sel = prefs.sel.level === "curiosity" && (prefs.sel.id === c.id || prefs.sel.id === key);
     const mainVal = ctx.value(key);
-    const open = !!prefs.folds[c.id];
+    /* The fine controls live behind Fine-tune now (Jeremy, 2026-10-03 15:02Z: "All these parameters can be hidden
+       under the word fine-tune"); the inline fold stays off. */
+    const open = false;
     const fine = (c.sliders || []).filter((s) => s.id !== c.main && s.id !== "setting");
     const mainS = (c.sliders || []).find((s) => s.id === c.main || s.id === "setting") || (c.sliders || [])[0];
     const take = ctx.insp ? Number((ctx.insp.takes || {})[key]) || 0 : 0;
     return `<div class="sc-cur${sel ? " sel" : ""}">
       <div class="sc-cur-top">
         <button type="button" class="sc-cur-name" data-select-cur="${esc(c.id)}" title="${esc(c.plain || "")}">${esc(c.label)}</button>
-        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win" data-open-win="${esc(c.id)}" title="Open ${esc(c.label)}'s own window: every knob and slider it has" aria-label="Open ${esc(c.label)}'s window">⧉</button>
-        ${fine.length ? `<button type="button" class="sc-fold" data-fold="${esc(c.id)}" aria-expanded="${open}" title="The fine controls inside it">${open ? "▾" : "▸"} ${fine.length}</button>` : ""}
+        ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win sc-finetune" data-open-win="${esc(c.id)}" title="Fine-tune ${esc(c.label)}: every setting inside it (${fine.length + 1}), each its own lane, or say what you want" aria-label="Fine-tune ${esc(c.label)}">Fine-tune</button>
       </div>
       ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyBtn(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
       ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
@@ -919,8 +929,24 @@
     const base = L().get("curiosity", id) ? id : L().base(id);
     if (!L().get("curiosity", base)) return toast("That curiosity has no window yet.");
     const had = wins.findIndex((w) => w.id === base);
-    if (had >= 0) wins.push(wins.splice(had, 1)[0]);
-    else wins.push({ id: base, x: 120 + (wins.length % 5) * 28, y: 90 + (wins.length % 5) * 28, focus: id === base ? "" : id });
+    if (had >= 0) {
+      wins.push(wins.splice(had, 1)[0]);
+      if (id !== base) wins[wins.length - 1].focus = id;
+    } else {
+      /* Kept inside the screen, so the × can always be tapped (phone width too); every new one steps down. */
+      const vw = window.innerWidth || 1024;
+      const vh = window.innerHeight || 768;
+      const ww = Math.min(360, vw - 32);
+      const n = wins.length;
+      const wh = Math.min(vh * 0.78, 720);
+      /* Each lap of seven moves a little right, so the eighth does not land exactly on the first. */
+      const lap = Math.floor(n / 7) * 14;
+      wins.push({ id: base, x: Math.max(8, Math.min(120 + (n % 7) * 28 + lap, vw - ww - 8)), y: (() => {
+        /* On a short screen the cascade wraps back to the top instead of piling up at the bottom. */
+        const room = Math.max(0, vh - wh - 16);
+        return room > 0 ? 8 + ((82 + (n % 7) * 28) % (room + 1)) : 8;
+      })(), focus: id === base ? "" : id });
+    }
     drawWins();
   }
   function mineCtx() {
@@ -1056,7 +1082,12 @@
     }
     return "";
   }
+  /* The faces, groups, presets and shapes from data/windows (screen/windows.js, window.CurioWindowFaces). */
+  const faces = () => window.CurioWindowFaces || null;
+  const faceHelpers = (ctx, focus) => ({ esc, keyFor, sliderId, controlHtml, keyBtn, spark, row, ctx, focus });
+  const faceApi = () => ({ setValues, setAt, showLane, toast, range: rangeNow, value: valueHere, helpers: () => faceHelpers(mineCtx()) });
   function winHtml(w, z) {
+    const F = faces();
     const c = L().get("curiosity", w.id);
     const ctx = mineCtx();
     const key = keyFor(c.id);
@@ -1067,9 +1098,9 @@
       if (!S().known(id)) return "";
       const main = id === key;
       return `<div class="sc-wctl${main ? " main" : ""}${w.focus === id ? " focus" : ""}">
-        <div class="sc-wctl-h"><span>${keyBtn(id, ctx)}<b>${esc(main ? labelOf(id) : sl.label)}</b></span>${spark(id, ctx.beats)}<button type="button" data-win-lane="${esc(id)}" title="Put ${esc(sl.label)} on the timeline as its own lane">+ lane</button></div>
+        <div class="sc-wctl-h"><span>${keyBtn(id, ctx)}<b>${esc(main ? labelOf(id) : sl.label)}</b></span>${spark(id, ctx.beats)}${F && F.midiBtn ? F.midiBtn(id) : ""}<button type="button" data-win-lane="${esc(id)}" title="Put ${esc(sl.label)} on the timeline as its own lane">+ lane</button></div>
         ${sl.plain ? `<p class="sc-k">${esc(sl.plain)}</p>` : ""}
-        <div class="sc-ctl">${controlHtml(id, sl, ctx.value(id), !ctx.edit)}</div>
+        <div class="sc-ctl">${controlHtml(id, sl, ctx.value(id), !ctx.edit, true)}</div>
       </div>`;
     };
     return `<section class="sc-win" data-win="${esc(c.id)}" role="dialog" aria-label="${esc(c.label)} window" style="left:${w.x}px;top:${w.y}px;z-index:${60 + z}">
@@ -1077,8 +1108,11 @@
       <div class="sc-win-b">
         ${c.plain ? `<p class="sc-win-plain">${esc(c.plain)}</p>` : ""}
         <p class="sc-k">My film, moment ${row + 1}: every change here becomes a node.</p>
+        ${F && F.lookHtml ? F.lookHtml(c, faceHelpers(ctx)) : ""}
         ${winSpecial(c, ctx)}
-        <div class="sc-wpart"><h4>Every knob and slider</h4>${sliders.map(block).join("")}</div>
+        ${F && F.sayHtml ? F.sayHtml(c, faceHelpers(ctx)) : ""}
+        ${F ? F.html(c, faceHelpers(ctx, w.focus)) : ""}
+        ${(F && F.grouped(c, block)) || `<div class="sc-wpart"><h4>Every knob and slider</h4>${sliders.map(block).join("")}</div>`}
         ${c.momentum ? momentumBox(c.momentum) : ""}
         <div class="sc-wbtns"><button type="button" data-select-cur="${esc(c.id)}">Look through it</button><button type="button" data-win-curve="${esc(key)}">Shape its curve</button></div>
       </div>
@@ -1094,10 +1128,22 @@
     }
     const scroll = {};
     box.querySelectorAll(".sc-win").forEach((x) => (scroll[x.dataset.win] = (x.querySelector(".sc-win-b") || {}).scrollTop || 0));
+    /* Keep keyboard focus on the same control across the redraw, so arrow keys keep stepping. */
+    const a = document.activeElement;
+    const aw = a && box.contains(a) && a.closest(".sc-win");
+    const attr = aw && ["data-set", "data-step-set", "data-knob", "data-cw-say-text", "data-cw-shape-pick"].find((n) => a.hasAttribute(n));
+    const keep = attr ? `.sc-win[data-win="${aw.dataset.win}"] [${attr}="${a.getAttribute(attr)}"]${a.dataset.v != null ? `[data-v="${a.dataset.v}"]` : ""}` : null;
     box.innerHTML = wins.filter((w) => L().get("curiosity", w.id)).map((w, i) => winHtml(w, i)).join("");
     box.querySelectorAll(".sc-win").forEach((x) => scroll[x.dataset.win] && (x.querySelector(".sc-win-b").scrollTop = scroll[x.dataset.win]));
+    if (keep) {
+      try {
+        const el = box.querySelector(keep);
+        if (el) el.focus({ preventScroll: true });
+      } catch (e) {}
+    }
   }
   function winClick(d, t) {
+    if (faces() && (d.cwPreset || d.cwShape || d.cwSurprise || d.cwSay || d.cwMic || d.cwMidi)) return faces().click(d, t, faceHelpers(mineCtx()), faceApi());
     if (d.winClose) {
       wins.splice(wins.findIndex((w) => w.id === d.winClose) >>> 0, 1);
       return drawWins(), true;
@@ -1785,7 +1831,7 @@
     const min = Number(k.dataset.min);
     const max = Number(k.dataset.max);
     const step = Number(k.dataset.step) || 1;
-    const start = Number(k.dataset.val) || min;
+    const start = k.dataset.val !== "" && isFinite(Number(k.dataset.val)) ? Number(k.dataset.val) : min;
     const y0 = e.clientY;
     let val = start;
     const move = (ev) => {
@@ -1795,6 +1841,7 @@
       if (b) b.textContent = val;
       const ln = k.querySelector("line");
       if (ln) ln.setAttribute("transform", `rotate(${-135 + (270 * (val - min)) / (max - min || 1)} 16 16)`);
+      if (faces() && faces().live) faces().live(k, [[k.dataset.knob, val]], faceApi());
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
@@ -1811,7 +1858,7 @@
     e.stopPropagation();
     const step = Number(k.dataset.step) || 1;
     const dir = /Up|Right/.test(e.key) ? 1 : -1;
-    const v = Math.max(Number(k.dataset.min), Math.min(Number(k.dataset.max), (Number(k.dataset.val) || 0) + dir * step));
+    const v = Math.max(Number(k.dataset.min), Math.min(Number(k.dataset.max), (k.dataset.val !== "" && isFinite(Number(k.dataset.val)) ? Number(k.dataset.val) : Number(k.dataset.min)) + dir * step));
     setValue(k.dataset.knob, v);
   }, true);
 

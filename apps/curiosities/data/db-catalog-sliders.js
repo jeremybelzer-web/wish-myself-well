@@ -211,7 +211,6 @@
   X("focusWidth", R("strength", "How firmly", 0, 5, "How locked their attention is."), NOTICE);
   X("focusShift", R("speed", "Speed", 0, 5, "How fast the focus moves."), NOTICE);
   X("enneagramType", R("wing", "Wing", -5, 5, "Leans toward the type before (negative) or after (positive) on the circle."), NOTICE);
-  X("enneagramHealth", R("level", "Level", 1, 9, "1 most healthy to 9 least healthy, as in the character matrix."), CHANGE("their health"));
   X("herdMentality", R("pressure", "Peer pressure", 0, 5, "How much the group pushes."), CHANGE("the herd"));
   X("herdLeader", R("strength", "Leader's pull", 0, 5, "How strongly the leader pulls the herd."), CHANGE("who leads"));
 
