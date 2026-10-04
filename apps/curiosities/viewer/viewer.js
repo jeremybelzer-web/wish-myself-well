@@ -1249,10 +1249,10 @@
 
   /* ---------- the page ---------- */
   const CSS = `
-.cv-root { --c-ground:#0f0f10; --c-panel:#1c1c1e; --c-raised:#2a2a2d; --c-hover:#34343a; --c-line:#2e2e33; --c-text:#ececee; --c-dim:#9b9ba3; --c-accent:#22d3ee; --c-ink:#062a31; --c-warm:#ff9f43;
+.cv-root.cv-viewer { --c-ground:#0f0f10; --c-panel:#1c1c1e; --c-raised:#2a2a2d; --c-hover:#34343a; --c-line:#2e2e33; --c-text:#ececee; --c-dim:#9b9ba3; --c-accent:#22d3ee; --c-ink:#062a31; --c-warm:#ff9f43;
   position: fixed; inset: 0; z-index: 70; background: var(--c-ground); color: var(--c-text); display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 13px; color-scheme: dark; }
-.cv-root[hidden] { display: none; }
+.cv-root.cv-viewer[hidden] { display: none; }
 .cv-root [hidden] { display: none !important; }
 .cv-root button, .cv-root select, .cv-root input, .cv-root textarea { font: inherit; font-size: 12px; color: inherit; }
 .cv-root button { border: 0; background: var(--c-raised); padding: 5px 10px; cursor: pointer; border-radius: 6px; }
@@ -1386,7 +1386,10 @@
       document.head.appendChild(st);
     }
     root = document.createElement("section");
-    root.className = "cv-root";
+    /* cv-viewer marks this as the Viewer's own root: other parts may use a .cv-root of their own (voice/voice.js's
+       🎤 does), and the full-window layout below must never land on theirs (it turned it into a black page
+       over the Screen and the app whenever the Viewer was closed). */
+    root.className = "cv-root cv-viewer";
     root.setAttribute("aria-label", "Viewer");
     root.innerHTML = `
       <header class="cv-bar">

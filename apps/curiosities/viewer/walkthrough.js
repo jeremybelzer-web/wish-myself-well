@@ -22,9 +22,16 @@
       if (b) b.click();
     }
   };
+  /* The Screen's steps need the Screen itself, in its Screen view (the library, Player, Details and timeline),
+     with the Viewer closed; the app's steps need both closed. stop() puts back what was open before. */
+  let was = null;
   const goScreen = () => {
     if (V() && V().isOpen()) V().close();
     if (S() && !S().isOpen()) S().open();
+    if (S() && S().view && S().view() !== "screen") {
+      if (was && !was.view) was.view = S().view();
+      S().view("screen");
+    }
   };
   const goApp = () => {
     if (V() && V().isOpen()) V().close();
@@ -36,7 +43,7 @@
     { go: goViewer("move"), title: "Welcome to Curiomatic", text: "This walk shows you every part of the app, one at a time, for Jeremy and Sharani. Press Next (or the → key). You can stop any time and open it again from Help ▸ App Walkthrough at the top." },
     { part: "The Viewer", go: goViewer("move"), sel: ".cv-win", title: "The picture of your film", text: "This is your film as a moving picture. Things in the scene are simple shapes, so it opens fast and you can change anything. Drag a shape to move it. Drag empty space to swing the camera around." },
     { part: "The Viewer", go: goViewer(), sel: ".cv-win", title: "Move yourself around", text: "Hold Control and drag to slide yourself through the world, like grabbing a map. Double-click a spot to zoom in there, like Google Maps. Shift and double-click zooms out. The scroll wheel goes closer or farther." },
-    { part: "The Viewer", go: goViewer(), sel: ".cv-wtab", title: "Switch films from the corner", text: "Every window has this tab in its upper-left corner. Swipe it left or right, or tap ‹ ›, to switch which film the window shows: your film, an inspiration film, or a video from your computer." },
+    { part: "The Viewer", go: goViewer(), sel: ".cv-wtab", title: "Switch films from the corner", text: "Every window has this tab in its upper-left corner. To switch which film the window shows, tap the ‹ › arrows, or click and drag left or right on the tab to swipe between films: your film or an inspiration film." },
     { part: "The Viewer", go: goViewer(), sel: '[data-act="addwin"]', title: "+ Window", text: "Opens another window next to your film, so you can watch an inspiration film side by side. Open as many as you need. In an inspiration window, Use this camera in my panel copies its camera onto your film." },
     { part: "The Viewer", go: goViewer(), sel: ".cv-under", title: "Front and center", text: "Usually only one or two curiosities at a time move the story forward and hold the audience's attention. This lane shows which ones, moment by moment: Leading is the one holding attention, With it is the strongest other one changing, and Suite shows a group of them when most of it is on. A ⚡ means the one in front was set off by something else (a proximity), and the line above says by what. Click any block to jump there." },
     { part: "The Viewer", go: goViewer(), sel: ".cv-transport", title: "Play", text: "Plays the film one panel at a time. Things glide from where they stand in one panel to where they stand in the next. The slider jumps anywhere in the film. Space bar plays and stops." },
@@ -91,7 +98,6 @@
   let light = null;
   let bubble = null;
   let dots = [];
-  let screenWasOpen = false;
 
   function style() {
     if (document.getElementById("cw-style")) return;
@@ -188,7 +194,7 @@
     try {
       localStorage.setItem(SEEN, "1");
     } catch (e) {}
-    if (at < 0) screenWasOpen = !!(S() && S().isOpen());
+    if (at < 0) was = { viewer: !!(V() && V().isOpen()), screen: !!(S() && S().isOpen()), view: null };
     if (!light) {
       light = document.createElement("div");
       light.className = "cw-light";
@@ -327,10 +333,14 @@
       document.removeEventListener("keydown", onKey, true);
       window.removeEventListener("resize", place);
     }
-    /* back where people start: the Screen as it was, the Viewer on top */
+    /* back to what was open when the tour started (the Viewer, the Screen and its view), however it ended */
+    const w = was;
+    was = null;
+    if (!w) return;
     try {
-      if (screenWasOpen && S() && !S().isOpen()) S().open();
-      if (V() && !V().isOpen()) V().open();
+      if (S() && w.view && S().view) S().view(w.view);
+      if (S() && w.screen !== S().isOpen()) w.screen ? S().open() : S().close();
+      if (V() && w.viewer !== V().isOpen()) w.viewer ? V().open() : V().close();
     } catch (e) {}
   }
 

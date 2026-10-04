@@ -800,7 +800,7 @@
     tool = TOOLS[t] ? t : "select";
     S.tool = tool;
     saveS();
-    const root = document.querySelector(".cv-root");
+    const root = document.querySelector(".cv-root.cv-viewer");
     if (root) {
       Object.keys(TOOLS).forEach((k) => root.classList.toggle("cvb-t-" + k, k === tool));
       root.querySelectorAll("[data-btool]").forEach((b) => b.classList.toggle("on", b.dataset.btool === tool));
@@ -1924,7 +1924,7 @@
   /* ---------- a little message over the picture ---------- */
   let flashT = 0;
   function flash(msg) {
-    const root = document.querySelector(".cv-root");
+    const root = document.querySelector(".cv-root.cv-viewer");
     if (!root) return;
     let el = root.querySelector(".cvb-flash");
     if (!el) {
@@ -1944,7 +1944,7 @@
   const filt = { world: null, place: null, type: null, q: "" };
   function openSearch(pre) {
     const L0 = lib();
-    const root = document.querySelector(".cv-root");
+    const root = document.querySelector(".cv-root.cv-viewer");
     if (!root) return;
     if (!L0) return flash("The object library did not load.");
     if (pre) Object.assign(filt, { world: pre.world || null, place: pre.place || null, type: pre.type || null, q: "" });
@@ -2219,7 +2219,7 @@
   V.setTool(handler);
   /* the tool's class goes on the Viewer once it exists */
   const mark = () => {
-    if (document.querySelector(".cv-root")) setTool(tool);
+    if (document.querySelector(".cv-root.cv-viewer")) setTool(tool);
     else setTimeout(mark, 300);
   };
   mark();
