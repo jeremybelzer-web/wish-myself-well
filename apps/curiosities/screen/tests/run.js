@@ -357,6 +357,57 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(!!CL.importTemplates("not json", []).error && !!CL.importTemplates({ nothing: 1 }, []).error, "a file that isn't JSON or has no templates gives a plain error");
 }
 
+/* A template used as an analogy: each lane's shape lands on a cousin curiosity (Shot size → Lens length), every
+   value keeping its place on its scale, as one batch; locked lanes skipped, missing lanes added. */
+{
+  const CL = w.CurioLanes;
+  const Sc = w.CurioScale;
+  E.reset(w.CurioSeeds.starter());
+  const rr = E.state().rows;
+  const o = Sc.domain("shotSize").options;
+  const lanesA = [{ track: "camera", cur: "shotSize", lk: "camera|shotSize" }, { track: "master", cur: "emotion", lk: "master|emotion" }];
+  const pt = (j, v, t, c) => ({ type: "setPoint", row: rr[j].id, track: t || "camera", curiosity: c || "shotSize", value: v });
+  E.send({ type: "batch", commands: [pt(0, o[0]), pt(1, o[1]), pt(2, o[3]), pt(1, "angry", "master", "emotion")] });
+  E.send(CL.linkCommand(E.state(), { row: rr[1].id, track: "camera", cur: "shotSize" }, { row: rr[1].id, track: "master", cur: "emotion" }));
+  const t = CL.template(CL.copyArea(E.state(), lanesA, { i0: 0, i1: 1, j0: 0, j1: 2 }), "slow-burn reveal", "");
+  const cs = CL.analogyCandidates("shotSize");
+  ok(cs.length > 1 && cs[0].cur === "lensLength" && cs[0].label === "Lens length" && !cs.some((c) => c.cur === "shotSize"), "Shot size's closest cousin is Lens length (" + cs.map((c) => c.cur).join(", ") + ")");
+  ok(CL.analogyCandidates("shotSize", { avoid: ["lensLength"] })[0].cur !== "lensLength" && CL.analogyCandidates("notARealCuriosity").length === 0, "a cousin to avoid is left out; an unknown curiosity has none");
+  ok(CL.analogyCandidates("emotion").every((c) => Sc.known(c.cur) && (Sc.domain(c.cur).kind === "range" || Sc.domain(c.cur).options.length > 1)), "every cousin has a scale or a range for values to keep their place on");
+  const plan = CL.templateAnalogy(t);
+  const p0 = plan.pairs[0];
+  ok(plan.pairs.length === 2 && p0.from === "shotSize" && p0.to === "lensLength" && p0.fromLabel === "Shot size" && p0.toLabel === "Lens length", "the plan maps Shot size → Lens length");
+  ok(!plan.pairs.some((p) => t.curiosities.includes(p.to)) && plan.pairs[0].to !== plan.pairs[1].to && !plan.clash && plan.left.length === 0, "no lane lands on a curiosity the template already has, or on another lane's cousin");
+  const placeOk = p0.values.every((v) => v.to === Sc.at("lensLength", Sc.pos("shotSize", v.from)));
+  ok(p0.values.length === 3 && placeOk && p0.values[0].to === "wide" && p0.values[2].to === "long", "each value keeps its place on the scale (" + p0.values.map((v) => v.from + "→" + v.to).join(", ") + ")");
+  ok(plan.clip.curiosities.join() === "lensLength," + plan.pairs[1].to && plan.clip.links.length === 1 && plan.clip.links[0].from.is === Sc.at("lensLength", Sc.pos("shotSize", o[1])), "the moved template's join follows its nodes, its cause moved onto the new scale");
+  /* Picks: a different cousin, or leave a lane out; two lanes on one cousin is a clash. */
+  const pk = CL.templateAnalogy(t, { picks: { shotSize: "angleHeight", emotion: "" } });
+  ok(pk.pairs[0].to === "angleHeight" && pk.left.join() === "emotion" && pk.clip.lanes.length === 1, "a picked cousin is used, and a lane can be left out");
+  ok(CL.templateAnalogy(t, { picks: { shotSize: "angleHeight", emotion: "angleHeight" } }).clash === "angleHeight", "two lanes on one cousin is a clash, with no clip");
+  ok(CL.templateAnalogy(t, { picks: { shotSize: "", emotion: "" } }).clip === null && /no close cousin/.test(CL.useTemplateCommands(E.state(), t, 0, { analogy: { shotSize: "", emotion: "" } }).error), "nothing left to write says so plainly");
+  /* Use it at moment 4: one batch, Lens length gets Shot size's shape, Shot size is left as it was. */
+  const shown = [{ cur: "shotSize", track: "camera" }, { cur: "emotion", track: "master" }, { cur: "lensLength", track: "camera" }];
+  const before = JSON.stringify([E.state().lanes, E.state().links]);
+  const shotBefore = JSON.stringify(E.state().lanes["camera|shotSize"].points);
+  const u = CL.useTemplateCommands(E.state(), t, 4, { shown, analogy: true });
+  ok(!u.error && u.start === 4 && u.lanes.includes("lensLength") && !u.lanes.includes("shotSize") && u.pairs.length === 2 && E.send({ type: "batch", label: "Use as an analogy", commands: u.cmds }).ok, "using it as an analogy is one batch onto the cousins");
+  const LP = E.state().lanes["camera|lensLength"].points;
+  ok(LP[rr[4].id] === "wide" && LP[rr[5].id] === Sc.at("lensLength", Sc.pos("shotSize", o[1])) && LP[rr[6].id] === "long", "Lens length takes Shot size's shape, shifted to start at moment 5");
+  ok(JSON.stringify(E.state().lanes["camera|shotSize"].points) === shotBefore, "Shot size itself is not touched");
+  E.undo();
+  ok(JSON.stringify([E.state().lanes, E.state().links]) === before, "one undo takes it back");
+  /* A locked cousin lane is skipped; a cousin not in the film yet is put on a track. */
+  CL.tools().locks = Object.assign({}, CL.tools().locks, { "camera|lensLength": true });
+  const lk = CL.useTemplateCommands(E.state(), t, 0, { shown, analogy: true });
+  ok(lk.locked.join() === "lensLength" && !lk.cmds.some((x) => x.curiosity === "lensLength"), "a locked lane is skipped and named");
+  delete CL.tools().locks["camera|lensLength"];
+  const fresh = CL.template({ span: 1, lanes: [{ cur: "transitionKind", track: null, points: [{ at: 0, value: Sc.at("transitionKind", 0) }, { at: 1, value: Sc.at("transitionKind", 1) }] }], links: [] }, "new lane");
+  const fp = CL.templateAnalogy(fresh).pairs[0];
+  const add = CL.useTemplateCommands(E.state(), fresh, 0, { shown, analogy: true });
+  ok(fp.to && !E.state().tracks.some((x) => x.curiosities.includes(fp.to)) && !add.error && add.cmds.some((x) => x.type === "addCuriosity" && x.curiosity === fp.to), "a cousin not in the film yet is put on a track first (" + fp.to + ")");
+}
+
 /* Markers: an old save (a plain list of row ids) becomes markers with a color and a note. */
 {
   const mm = w.CurioLanes.migrateMarkers;

@@ -2788,6 +2788,153 @@ const ok = (cond, msg) => {
     await ctx.close();
   }
 
+  /* ---------- A template used as an analogy: the card's Use as an analogy and ⌘K's "Use template as an analogy"
+     open a small preview listing where each lane's shape lands ("Shot size → Lens length", and its values), with
+     Apply and Cancel. Apply writes the cousins with the template's shape (one undo step); Cancel writes nothing;
+     keys typed in the preview never reach the film; it stays on screen at 1280×800 and 390px wide. In its own
+     browser context so its storage starts empty. ---------- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    await p.fill("[data-lib-search]", "Shot size");
+    await p.click('.sc-grid [data-add-card="curiosity|shotSize"]');
+    await p.fill("[data-lib-search]", "");
+    /* A four-moment template: shot size climbs from insert to wide. Saved straight into My templates. */
+    const setup = await p.evaluate(() => {
+      const E = window.CurioEngine;
+      const Sc = window.CurioScale;
+      const CL = window.CurioLanes;
+      const st = E.state();
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      const cmds = [];
+      st.rows.forEach((r) => st.lanes[t.id + "|shotSize"] && st.lanes[t.id + "|shotSize"].points[r.id] != null && cmds.push({ type: "removePoint", row: r.id, track: t.id, curiosity: "shotSize" }));
+      [0, 0.34, 0.67, 1].forEach((pp, j) => cmds.push({ type: "setPoint", row: st.rows[j].id, track: t.id, curiosity: "shotSize", value: Sc.fix("shotSize", Sc.at("shotSize", pp)) }));
+      const r = E.send({ type: "batch", label: "Analogy test setup", commands: cmds });
+      const tpl = CL.template(CL.copyArea(E.state(), [{ track: t.id, cur: "shotSize", lk: t.id + "|shotSize" }], { i0: 0, i1: 0, j0: 0, j1: 3 }), "slow climb", "insert to wide");
+      CL.saveTemplates([tpl]);
+      window.CurioScreen.setRow(4);
+      return { ok: r.ok && !!tpl, id: tpl && tpl.id, n: E.state().rows.length };
+    });
+    ok(setup.ok && setup.n >= 8, "analogy: a saved template whose shot size climbs over four moments");
+    if ((await p.evaluate(() => window.CurioScreen.state().libTab)) !== "templates") await p.click('[data-libtab="templates"]');
+    const acts = await p.$$eval('.sc-tplcard [data-tpl-act]', (bs) => bs.map((b) => b.textContent));
+    ok(acts.includes("Use at the playhead") && acts.includes("Use as an analogy"), "a template card offers Use as an analogy next to Use at the playhead (" + acts.join(", ") + ")");
+    const film = () => p.evaluate(() => window.CurioEngine.fingerprint());
+    const lensPts = () => p.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|lensLength")); return st.rows.map((r) => (lk && st.lanes[lk].points[r.id] != null ? String(st.lanes[lk].points[r.id]) : null)); });
+    const shotPts = () => p.evaluate(() => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|shotSize")); return st.rows.map((r) => (st.lanes[lk].points[r.id] == null ? null : String(st.lanes[lk].points[r.id]))); });
+    const pop = () => p.evaluate(() => {
+      const el = document.querySelector(".sc-tplpop.sc-tplan");
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return {
+        rows: [...el.querySelectorAll("[data-tplan-row]")].map((li) => ({ from: li.querySelector("strong").textContent, to: li.querySelector("select") ? li.querySelector("select").selectedOptions[0].textContent : "", vals: li.querySelector(".sc-tplan-vals").textContent, line: li.querySelector(".sc-tplan-map").firstChild.textContent + " → " + (li.querySelector("select") ? li.querySelector("select").selectedOptions[0].textContent : "") })),
+        btns: [...el.querySelectorAll("[data-tplpop]")].map((b) => b.textContent),
+        box: { l: r.left, t: r.top, r: r.right, b: r.bottom },
+        vw: window.innerWidth,
+        vh: window.innerHeight,
+        focus: el.contains(document.activeElement),
+      };
+    });
+    const onScreen = (q) => !!q && q.box.l >= 0 && q.box.t >= 0 && q.box.r <= q.vw && q.box.b <= q.vh;
+    const shot0 = await shotPts();
+    const fp0 = await film();
+    const lens0 = await lensPts();
+    /* The preview: Shot size → Lens length, with each value's new place, and Apply / Cancel. */
+    await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+    const q1 = await pop();
+    ok(!!q1 && q1.rows.length === 1 && q1.rows[0].line === "Shot size → Lens length", "Use as an analogy opens a preview listing the mapping (" + (q1 ? q1.rows.map((r) => r.line).join("; ") : "none") + ")");
+    ok(q1 && q1.rows[0].vals === "insert → wide, close → normal, medium → normal, wide → long", "it lists what each value becomes, keeping its place on the scale (" + (q1 ? q1.rows[0].vals : "") + ")");
+    ok(q1 && q1.btns.join() === "Cancel,Apply" && q1.focus, "with Cancel and Apply, the focus inside it");
+    ok(onScreen(q1), "the preview stays on screen at 1280×800 (" + JSON.stringify(q1 && q1.box) + ")");
+    ok((await film()) === fp0, "opening the preview writes nothing");
+    /* Keys typed in it stay in it: Screen shortcuts and ⌘Z never reach the film behind it. */
+    const tools0 = await p.evaluate(() => JSON.stringify([window.CurioLanes.tools().tool, window.CurioLanes.tools().skim, window.CurioLanes.tools().snap, window.CurioLanes.tools().magnet, window.CurioLanes.tools().markers.length, window.CurioScreen.row()]));
+    await p.focus('.sc-tplan [data-tplpop="cancel"]');
+    for (const k of ["m", "b", "s", "n", "p", "ArrowRight", "Control+z", "Shift+Slash"]) await p.keyboard.press(k);
+    const tools1 = await p.evaluate(() => JSON.stringify([window.CurioLanes.tools().tool, window.CurioLanes.tools().skim, window.CurioLanes.tools().snap, window.CurioLanes.tools().magnet, window.CurioLanes.tools().markers.length, window.CurioScreen.row()]));
+    ok(tools1 === tools0 && (await film()) === fp0 && !!(await pop()), "keys typed in the preview never reach the film or the timeline");
+    /* Cancel writes nothing. */
+    await p.click('.sc-tplan [data-tplpop="cancel"]');
+    ok(!(await pop()) && (await film()) === fp0 && JSON.stringify(await lensPts()) === JSON.stringify(lens0), "Cancel closes it and writes nothing");
+    /* Esc cancels too. */
+    await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+    await p.keyboard.press("Escape");
+    ok(!(await pop()) && (await film()) === fp0, "Esc closes it and writes nothing too");
+    /* Apply: Lens length takes Shot size's shape from the playhead (moment 5); Shot size is untouched; one undo. */
+    const hist0 = await p.evaluate(() => window.CurioEngine.history().undo.length);
+    await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+    await p.click('.sc-tplan [data-tplpop="ok"]');
+    const lens1 = await lensPts();
+    const shot1 = await shotPts();
+    const hist1 = await p.evaluate(() => window.CurioEngine.history().undo.length);
+    const msg = await p.evaluate(() => document.querySelector(".sl-msg").textContent);
+    ok(!(await pop()) && lens1[4] === "wide" && lens1[5] === "normal" && lens1[6] === "normal" && lens1[7] === "long", "Apply writes Lens length with the template's shape from moment 5 (" + lens1.join(",") + ")");
+    ok(JSON.stringify(shot1) === JSON.stringify(shot0), "Shot size itself is left as it was");
+    ok(/as an analogy at moment 5/.test(msg) && /Shot size → Lens length/.test(msg) && /Undo takes it back/.test(msg), "the status line says what moved where (" + msg + ")");
+    ok(hist1 === hist0 + 1, "it is one undo step (" + hist0 + " → " + hist1 + ")");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0 && JSON.stringify(await lensPts()) === JSON.stringify(lens0), "one ⌘Z takes it all back");
+    /* A different cousin picked in the preview is the one written. */
+    await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+    const other = await p.evaluate(() => { const s = document.querySelector(".sc-tplan [data-tplan-pick]"); const o = [...s.options].find((x) => x.value && x.value !== "lensLength"); return o && { value: o.value, label: o.textContent }; });
+    await p.selectOption(".sc-tplan [data-tplan-pick]", other.value);
+    const q2 = await pop();
+    ok(!!q2 && q2.rows[0].to === other.label && q2.rows[0].line === "Shot size → " + other.label, "picking another cousin updates the preview (" + (q2 ? q2.rows[0].line + ": " + q2.rows[0].vals : "") + ")");
+    await p.click('.sc-tplan [data-tplpop="ok"]');
+    const wrote = await p.evaluate((cur) => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + cur)); return !!lk && st.lanes[lk].points[st.rows[4].id] != null; }, other.value);
+    ok(wrote && JSON.stringify(await lensPts()) === JSON.stringify(lens0), "Apply writes the picked cousin instead of Lens length");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0, "and one ⌘Z takes that back");
+    /* A locked lane is skipped. */
+    const lensLk = await p.evaluate(() => { const st = window.CurioEngine.state(); const t = st.tracks.find((x) => x.curiosities.includes("lensLength")); return t ? t.id + "|lensLength" : null; });
+    if (lensLk) {
+      await p.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), lensLk);
+      await p.click('.sc-tplcard [data-tpl-act="analogy"]');
+      await p.click('.sc-tplan [data-tplpop="ok"]');
+      const m2 = await p.evaluate(() => document.querySelector(".sl-msg").textContent);
+      ok((await film()) === fp0 && JSON.stringify(await lensPts()) === JSON.stringify(lens0) && /locked/.test(m2), "with Lens length locked, nothing is written and it says why (" + m2 + ")");
+      await p.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], lensLk);
+    }
+    /* ⌘K: "Use template as an analogy: slow climb" sits next to "Use template: slow climb" and opens the preview. */
+    const finds = await p.evaluate(() => window.CurioScreenFind.items().filter((x) => /^act:tpl-/.test(x.id)).map((x) => x.label));
+    const iu = finds.indexOf("Use template: slow climb");
+    ok(iu >= 0 && finds[iu + 1] === "Use template as an analogy: slow climb", "Quick find (⌘K) lists Use template as an analogy right after Use template (" + finds.join(", ") + ")");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+k");
+    await p.fill(".sc-find-q", "Use template as an analogy");
+    await p.waitForTimeout(40);
+    const first = await p.$eval(".sc-find-o", (l) => l.querySelector("b").textContent).catch(() => "");
+    await p.keyboard.press("Enter");
+    await p.waitForTimeout(60);
+    const q3 = await pop();
+    ok(first === "Use template as an analogy: slow climb" && !!q3 && q3.rows[0].line === "Shot size → Lens length" && !(await p.evaluate(() => window.CurioScreenFind.isOpen())), "picking it in ⌘K opens the same preview (" + first + ")");
+    ok(onScreen(q3) && q3.focus && (await film()) === fp0, "from ⌘K it opens on screen with the focus in it, and writes nothing yet");
+    await p.click('.sc-tplan [data-tplpop="ok"]');
+    const lens3 = await lensPts();
+    ok(lens3[4] === "wide" && lens3[7] === "long", "Apply from the ⌘K preview writes the cousin too");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0, "and one ⌘Z takes it back");
+    /* On a phone (390px wide) the preview still fits on screen. */
+    await p.setViewportSize({ width: 390, height: 800 });
+    await p.waitForTimeout(120);
+    await p.evaluate((id) => window.CurioScreen.templates.preview(id), setup.id);
+    const q4 = await pop();
+    ok(onScreen(q4) && q4.box.r - q4.box.l <= 390 - 16, "at 390px wide the preview fits on screen (" + JSON.stringify(q4 && q4.box) + ")");
+    const btnH = await p.$$eval(".sc-tplan [data-tplpop]", (bs) => bs.map((b) => b.getBoundingClientRect()).every((r) => r.right <= window.innerWidth && r.bottom <= window.innerHeight));
+    ok(btnH, "and its Apply and Cancel are on screen");
+    await p.keyboard.press("Escape");
+    ok(!(await pop()) && (await film()) === fp0, "Esc closes it on a phone too, writing nothing");
+    await ctx.close();
+  }
+
   /* ---------- Ripple: Add a moment here, Duplicate moments and Take out moments (CapCut's Split and Delete with
      ripple, for whole moments). Nodes on every lane, markers, transitions and words on the frame all move together,
      nothing jumps, and one undo (⌘Z, the toolbar's Undo) takes all of it back; a locked lane is never changed.

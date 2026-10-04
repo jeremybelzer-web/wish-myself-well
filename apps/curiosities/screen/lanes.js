@@ -66,6 +66,9 @@
      "curiosities-screen-templates-v1"; the library's My templates uses one (one undo step), and a card dragged onto
      the lanes lands at that moment. template, migrateTemplates, templateSummary, templatePreview, stretchTemplate,
      useTemplateCommands, exportTemplates, importTemplates, templates(), saveTemplates(list)
+   - a template as an analogy: analogyCandidates(cur, { avoid, max }) the curiosities most like one (best first),
+     templateAnalogy(t, { picks }) -> { pairs, left, clip, clash } (each lane's shape moved onto its cousin, values
+     keeping their place on the scale); useTemplateCommands(st, t, start, { analogy: true | picks }) uses it
 
    The toolbar copies CapCut's timeline toolbar (Jeremy's screenshots, 2026-10-02): the Select (A) and Split (B)
    tools, Undo, Delete, Add marker (M), the main track magnet (P), linkage (~), the preview axis (S) and zoom.
@@ -943,11 +946,156 @@
   function useTemplateCommands(st, t, start, o) {
     o = o || {};
     if (!t || !t.lanes) return { error: "That template is gone." };
-    const use = o.span != null ? stretchTemplate(t, o.span) : t;
+    let use = o.span != null ? stretchTemplate(t, o.span) : t;
+    let an = null;
+    if (o.analogy) {
+      /* As an analogy: each lane's shape moves onto its cousin curiosity first (templateAnalogy). */
+      an = templateAnalogy(use, { picks: o.analogy === true ? null : o.analogy });
+      if (an.clash) return { error: `Two lanes of the template "${t.name}" would both land on ${S().label(an.clash)}. Pick a different cousin for one of them.`, pairs: an.pairs, left: an.left };
+      if (!an.clip) return { error: `Every lane in the template "${t.name}" is left out or has no close cousin to carry its shape onto, so it wasn't used.`, pairs: an.pairs, left: an.left };
+      use = an.clip;
+    }
     const r = dropSuiteClipCommands(st, use, start, { shown: o.shown });
     if (r.error) r.error = r.locked && r.locked.length ? `Every lane in the template "${t.name}" is locked here (🔒), so it wasn't used.` : r.error.replace(/suite clip/g, "template");
     else r.span = use.span;
+    if (an) Object.assign(r, { pairs: an.pairs.filter((p) => p.to), left: an.left });
     return r;
+  }
+
+  /* ---------- a template as an analogy: the same shape on a cousin curiosity ----------
+     "Shot size goes close, then wide" becomes "Lens length goes normal, then long": each lane's moves land on a
+     related curiosity instead, and each value keeps its place on its scale (low stays low, the top stays the top),
+     the same way area paste moves a lane onto a different curiosity. The cousin is picked from a short hand-made
+     list of clear pairs first, then by how close the two are in the curiosity database: the same workspace, the
+     same library category, how many suites hold both and how many proximities join them. Only curiosities with
+     an ordered scale (or a number range) count, and never one already in the template, so two lanes never land
+     on one curiosity. Then it is used like any template: dropSuiteClipCommands, one undo step, locked lanes
+     skipped, missing lanes added. */
+  const COUSINS = {
+    shotSize: ["lensLength"],
+    lensLength: ["shotSize"],
+    cutRate: ["shotDuration"],
+    shotDuration: ["cutRate"],
+    cameraMove: ["cameraCarry"],
+    cameraCarry: ["cameraMove"],
+    angleHeight: ["dutch"],
+    dutch: ["angleHeight"],
+  };
+  const DBget = (id) => {
+    const DB = root.CuriosityDB;
+    try {
+      return DB && typeof DB.get === "function" ? DB.get("curiosity", id) : null;
+    } catch (e) {
+      return null;
+    }
+  };
+  /* A curiosity whose main setting is a scale in order or a number range: its values have a place to keep. */
+  function hasOrder(id) {
+    if (!S() || !S().known(id)) return false;
+    const d = S().domain(id);
+    if (d.kind === "choice" ? d.options.length < 2 : !(d.max > d.min)) return false;
+    const c = DBget(id);
+    const s = c && Array.isArray(c.sliders) ? c.sliders.find((x) => x && (x.id === "setting" || x.id === c.main)) : null;
+    return !(s && s.unordered);
+  }
+  const cousinCache = Object.create(null);
+  /* The curiosities most like `cur`, best first: [{ cur, label, score }]. o.avoid: ids to leave out; o.max (6). */
+  function analogyCandidates(cur, o) {
+    o = o || {};
+    const DB = root.CuriosityDB;
+    const src = DBget(cur);
+    if (!DB || !DB.data || !src) return [];
+    if (!cousinCache[cur]) {
+      const score = Object.create(null);
+      const add = (id, n) => id && id !== cur && (score[id] = (score[id] || 0) + n);
+      const shared = Object.create(null);
+      (DB.data.suites || []).forEach((s) => {
+        const m = (s.members || []).map((x) => x && x.curiosity);
+        if (m.includes(cur)) new Set(m).forEach((id) => id !== cur && (shared[id] = (shared[id] || 0) + 1));
+      });
+      Object.keys(shared).forEach((id) => add(id, Math.min(5, shared[id])));
+      (DB.data.proximities || []).forEach((p) => {
+        const a = p.when && p.when.curiosity;
+        const b = p.then && p.then.curiosity;
+        if (a === cur) add(b, 2);
+        else if (b === cur) add(a, 2);
+      });
+      const cat = L() && L().categoryOf ? L().categoryOf(cur) : null;
+      (DB.data.curiosities || []).forEach((c) => {
+        if (c.id === cur) return;
+        if (c.workspace && c.workspace === src.workspace) add(c.id, 4);
+        if ((src.also || []).includes(c.workspace) || (c.also || []).includes(src.workspace)) add(c.id, 2);
+        if (cat && L().categoryOf(c.id) === cat) add(c.id, 1);
+      });
+      (COUSINS[cur] || []).forEach((id) => add(id, 100));
+      const order = (DB.data.curiosities || []).map((c) => c.id);
+      cousinCache[cur] = Object.keys(score)
+        .filter((id) => score[id] >= 2 && hasOrder(id))
+        .sort((a, b) => score[b] - score[a] || order.indexOf(a) - order.indexOf(b))
+        .map((id) => ({ cur: id, score: score[id] }));
+    }
+    const avoid = new Set(o.avoid || []);
+    return cousinCache[cur]
+      .filter((x) => !avoid.has(x.cur))
+      .slice(0, o.max || 6)
+      .map((x) => ({ cur: x.cur, label: S().label(x.cur), score: x.score }));
+  }
+  /* The plan for using template t as an analogy. o.picks: { fromCur: toCur } to choose a different cousin ("" leaves
+     that lane out). Returns { pairs: [{ from, to, fromLabel, toLabel, values: [{ from, to }], choices }], left
+     (curiosities with no cousin or left out), clip (the template moved onto the cousins, or null when nothing is
+     left), clash (a cousin picked for two lanes) }. */
+  function templateAnalogy(t, o) {
+    o = o || {};
+    const picks = o.picks || {};
+    const mine = (t.curiosities || t.lanes.map((l) => l.cur)).slice();
+    const taken = [];
+    const pairs = t.lanes.map((l) => {
+      const choices = analogyCandidates(l.cur, { avoid: mine, max: 6 });
+      let to = null;
+      if (Object.prototype.hasOwnProperty.call(picks, l.cur)) {
+        const p = picks[l.cur];
+        to = p && !mine.includes(p) && S().known(p) && hasOrder(p) ? p : null;
+        if (to && !choices.some((c) => c.cur === to)) choices.push({ cur: to, label: S().label(to), score: 0 });
+      } else to = (choices.find((c) => !taken.includes(c.cur)) || {}).cur || null;
+      if (to) taken.push(to);
+      const seen = new Set();
+      const values = [];
+      l.points.slice().sort((a, b) => a.at - b.at).forEach((p) => {
+        const k = String(p.value);
+        if (seen.has(k)) return;
+        seen.add(k);
+        values.push({ from: p.value, to: to ? S().fix(to, convert(l.cur, to, p.value)) : null });
+      });
+      return { from: l.cur, to, fromLabel: S().label(l.cur), toLabel: to ? S().label(to) : "", values, choices };
+    });
+    const tos = pairs.map((p) => p.to).filter(Boolean);
+    const clash = tos.find((x, i) => tos.indexOf(x) !== i) || null;
+    const left = pairs.filter((p) => !p.to).map((p) => p.from);
+    let clip = null;
+    if (tos.length && !clash) {
+      const moved = {
+        span: t.span,
+        lanes: t.lanes.map((l, k) => {
+          const to = pairs[k].to;
+          if (!to) return null;
+          return { cur: to, track: l.track, mode: l.mode, points: l.points.map((p) => ({ at: p.at, value: S().fix(to, convert(l.cur, to, p.value)) })).filter((p) => p.value != null) };
+        }),
+        links: (t.links || []).map((l) => {
+          const a = t.lanes[l.from.lane];
+          const b = t.lanes[l.to.lane];
+          const ta = pairs[l.from.lane] && pairs[l.from.lane].to;
+          const tb = pairs[l.to.lane] && pairs[l.to.lane].to;
+          const out = JSON.parse(JSON.stringify(l));
+          if (a && ta && l.from.is != null) out.from.is = S().fix(ta, convert(a.cur, ta, l.from.is));
+          if (b && tb && l.does === "set" && l.value != null) out.value = S().fix(tb, convert(b.cur, tb, l.value));
+          /* The join's old label named the old curiosities. */
+          if (ta && tb) out.label = `${S().label(ta)} leads ${S().label(tb)}`;
+          return out;
+        }),
+      };
+      clip = suiteClip(moved, (t.name || "Template") + " (analogy)", { id: t.id, made: t.made });
+    }
+    return { pairs, left, clip, clash };
   }
   /* The .json file's text for some templates. */
   function exportTemplates(list) {
@@ -3662,8 +3810,8 @@
       saveTemplates(list.filter((x) => x !== t));
       return { ok: true, template: t, message: `Deleted the template "${t.name}". Your film is not changed.` };
     }
-    /* Use a template: at moment o.at (the playhead when left out), or stretched over the selected area (o.stretch).
-       One undo step. Says what it did in the status line. */
+    /* Use a template: at moment o.at (the playhead when left out), or stretched over the selected area (o.stretch);
+       o.analogy (true, or { fromCur: toCur } picks) moves each lane's shape onto its cousin curiosity. One undo step. Says what it did in the status line. */
     function useTemplate(id, o) {
       o = o || {};
       const t = loadTemplates().find((x) => x.id === id);
@@ -3674,11 +3822,16 @@
       }
       const st = E().state();
       const at = o.stretch ? area.j0 : o.at != null ? Math.max(0, Math.min(st.rows.length - 1, Number(o.at) || 0)) : opts.row ? opts.row() : 0;
-      const r = useTemplateCommands(st, t, at, { shown: lanesNow(st), span: o.stretch ? area.j1 - area.j0 : null });
+      const r = useTemplateCommands(st, t, at, { shown: lanesNow(st), span: o.stretch ? area.j1 - area.j0 : null, analogy: o.analogy || null });
       if (r.error) return say(r.error), { ok: false, error: r.error };
-      const out = send({ type: "batch", label: (o.stretch ? "Use a template, stretched: " : "Use a template: ") + t.name, commands: r.cmds });
+      const out = send({ type: "batch", label: (o.analogy ? "Use a template as an analogy: " : o.stretch ? "Use a template, stretched: " : "Use a template: ") + t.name, commands: r.cmds });
       if (!out.ok) return out;
-      const parts = [`Used the template "${t.name}" at moment ${r.start + 1} on ${r.lanes.length} lane${r.lanes.length === 1 ? "" : "s"}: ${listWords(r.lanes)}.`];
+      const parts = [`Used the template "${t.name}" ${o.analogy ? "as an analogy " : ""}at moment ${r.start + 1} on ${r.lanes.length} lane${r.lanes.length === 1 ? "" : "s"}: ${listWords(r.lanes)}.`];
+      if (o.analogy) {
+        const used = (r.pairs || []).filter((p) => r.lanes.includes(p.to));
+        if (used.length) parts.push(`The shapes moved over, each value keeping its place on its scale: ${used.map((p) => `${p.fromLabel} → ${p.toLabel}`).join("; ")}.`);
+        if (r.left && r.left.length) parts.push(`${listWords(r.left)} had no cousin to move onto, so ${r.left.length === 1 ? "it was" : "they were"} left out.`);
+      }
       if (o.stretch && r.span !== t.span) parts.push(`It was ${t.span + 1} moment${t.span ? "s" : ""} long and now fills the selected ${r.span + 1}.`);
       else if (o.stretch) parts.push("It already fit the selected area.");
       if (r.moved) parts.push(`It starts at moment ${r.start + 1} so it fits before the end of the film.`);
@@ -3691,7 +3844,7 @@
       const m = parts.join(" ");
       draw();
       say(m);
-      return { ok: true, start: r.start, span: r.span, lanes: r.lanes, hidden: r.hidden, locked: r.locked, message: m };
+      return { ok: true, start: r.start, span: r.span, lanes: r.lanes, hidden: r.hidden, locked: r.locked, pairs: r.pairs, left: r.left, message: m };
     }
     /* The small pop-up for a template's name and note: saving the selected area (t null) or renaming a saved one. */
     function templateNamePop(t, cx, cy) {
@@ -3844,7 +3997,7 @@
         say(r.message || r.error);
         return r;
       },
-      /* templates: saveTemplate(name, note), templateName() (the pop-up), useTemplate(id, { at, stretch }),
+      /* templates: saveTemplate(name, note), templateName() (the pop-up), useTemplate(id, { at, stretch, analogy }),
          renameTemplate(id, name, note), deleteTemplate(id) */
       saveTemplate: (name, note) => {
         const r = saveTemplate(name, note);
@@ -3904,5 +4057,5 @@
   /* Graded lanes (a curiosity's own sliders offered as lanes) and lane names with their track. */
   Object.assign(root.CurioLanes, { PARTS, PART_TRACK, laneParts, partTrack, lkName });
   /* Templates (Save as template; the library's My templates). */
-  Object.assign(root.CurioLanes, { TEMPLATE_KEY, TEMPLATE_FORMAT, TPL_MIME: "application/x-curiomatic-template", template, migrateTemplates, templateSummary, templatePreview, stretchTemplate, useTemplateCommands, exportTemplates, importTemplates, templates: () => loadTemplates(), saveTemplates });
+  Object.assign(root.CurioLanes, { TEMPLATE_KEY, TEMPLATE_FORMAT, TPL_MIME: "application/x-curiomatic-template", template, migrateTemplates, templateSummary, templatePreview, stretchTemplate, useTemplateCommands, analogyCandidates, templateAnalogy, exportTemplates, importTemplates, templates: () => loadTemplates(), saveTemplates });
 })();

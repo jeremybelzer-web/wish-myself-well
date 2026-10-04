@@ -2704,7 +2704,7 @@ document.addEventListener("click", function (e) {
     return `<div class="sc-card sc-tplcard" data-card="mytpl" data-tpl="${esc(t.id)}" draggable="true" title="Drag onto the timeline to use it at that moment">
       <div class="sc-tpl-body"><strong>${esc(t.name)}</strong>${t.note ? `<small class="sc-tpl-note">${esc(t.note)}</small>` : ""}<small class="sc-tpl-what">${esc(TPL().templateSummary(t))}</small></div>
       <div class="sc-tpl-pic" aria-hidden="true">${TPL().templatePreview(t, 132, 48)}</div>
-      <div class="sc-tpl-acts"><button type="button" class="on" data-tpl-act="use" data-tpl-id="${esc(t.id)}" title="Write this template's nodes starting at the playhead (or across the selected area when Stretch to the selected area is ticked). One undo takes it back.">Use at the playhead</button><button type="button" data-tpl-act="rename" data-tpl-id="${esc(t.id)}" title="Change its name or note">Rename</button><button type="button" data-tpl-act="delete" data-tpl-id="${esc(t.id)}" title="Delete this template (your film is not changed)">Delete</button><button type="button" data-tpl-act="export" data-tpl-id="${esc(t.id)}" title="Save this template as a .json file to share">Export</button></div>
+      <div class="sc-tpl-acts"><button type="button" class="on" data-tpl-act="use" data-tpl-id="${esc(t.id)}" title="Write this template's nodes starting at the playhead (or across the selected area when Stretch to the selected area is ticked). One undo takes it back.">Use at the playhead</button><button type="button" data-tpl-act="analogy" data-tpl-id="${esc(t.id)}" title="Carry this template's shape onto related curiosities instead (Shot size becomes Lens length, say). Shows what will change first.">Use as an analogy</button><button type="button" data-tpl-act="rename" data-tpl-id="${esc(t.id)}" title="Change its name or note">Rename</button><button type="button" data-tpl-act="delete" data-tpl-id="${esc(t.id)}" title="Delete this template (your film is not changed)">Delete</button><button type="button" data-tpl-act="export" data-tpl-id="${esc(t.id)}" title="Save this template as a .json file to share">Export</button></div>
     </div>`;
   }
   function myTplHtml() {
@@ -2820,6 +2820,109 @@ document.addEventListener("click", function (e) {
     inp.select();
     return pop;
   }
+  /* Use as an analogy: a small pop-up first lists where each lane's shape will land ("Shot size → Lens length",
+     and its values: "close → normal"), each with a pick of other close cousins, then Apply writes it (one undo
+     step) and Cancel writes nothing. Keys typed in it stay in it (inToolWindow knows .sc-tplpop). */
+  const tplAnalogyPlan = (id, picks) => {
+    const t = tplList().find((x) => x.id === id);
+    return t ? Object.assign(TPL().templateAnalogy(t, { picks: picks || null }), { template: t }) : null;
+  };
+  /* The picks as they stand: the first plan's choices, then whatever was changed in the pop-up. */
+  const tplAnalogyPicks = (id, changed) => {
+    const plan = tplAnalogyPlan(id);
+    if (!plan) return null;
+    const out = {};
+    plan.pairs.forEach((p) => (out[p.from] = p.to || ""));
+    return Object.assign(out, changed || {});
+  };
+  function tplAnalogyUse(id, picks) {
+    const plan = tplAnalogyPlan(id, picks);
+    if (!plan) return toast("That template is gone."), { ok: false, error: "That template is gone." };
+    if (plan.clash) {
+      const e = `Two lanes would both land on ${S() ? S().label(plan.clash) : plan.clash}. Pick a different cousin for one of them.`;
+      return toast(e), { ok: false, error: e };
+    }
+    const keep = {};
+    plan.pairs.forEach((p) => (keep[p.from] = p.to || ""));
+    return tplUse(id, { analogy: keep });
+  }
+  function tplAnalogyPop(id, btn) {
+    const t = tplList().find((x) => x.id === id);
+    if (!t || !page) return null;
+    const old = page.querySelector(".sc-tplpop");
+    if (old) old.remove();
+    const changed = {};
+    const pop = document.createElement("div");
+    pop.className = "sc-tplpop sc-tplan";
+    pop.setAttribute("role", "dialog");
+    pop.setAttribute("aria-label", "Use as an analogy");
+    const lab = (cur) => (S() ? S().label(cur) : cur);
+    const valWords = (p) => p.values.map((v) => `${v.from} → ${v.to == null ? "?" : v.to}`).join(", ");
+    const drawPop = () => {
+      const plan = tplAnalogyPlan(id, tplAnalogyPicks(id, changed));
+      const rows = plan.pairs
+        .map(
+          (p) => `<li data-tplan-row="${esc(p.from)}"><span class="sc-tplan-map"><strong>${esc(p.fromLabel)}</strong> → ${
+            p.choices.length
+              ? `<select data-tplan-pick="${esc(p.from)}" aria-label="Where the shape of ${esc(p.fromLabel)} goes">${p.choices.map((c) => `<option value="${esc(c.cur)}"${c.cur === p.to ? " selected" : ""}>${esc(c.label)}</option>`).join("")}<option value=""${p.to ? "" : " selected"}>Leave it out</option></select>`
+              : `<em>no close cousin</em>`
+          }</span><small class="sc-tplan-vals">${p.to ? esc(valWords(p)) : "Left out: nothing is written for it."}</small></li>`
+        )
+        .join("");
+      const can = !!plan.clip && !plan.clash;
+      pop.innerHTML = `<p><strong>Use "${esc(t.name)}" as an analogy</strong></p>
+        <p class="sc-tplan-help">Each lane's ups and downs move onto a related curiosity. A value keeps its place on the scale: the low end stays low, the top stays the top.</p>
+        <ul class="sc-tplan-list">${rows}</ul>
+        ${plan.clash ? `<p class="sc-tplan-warn">Two lanes both land on ${esc(lab(plan.clash))}. Pick a different one for one of them.</p>` : !plan.clip ? `<p class="sc-tplan-warn">Nothing to write: every lane is left out.</p>` : ""}
+        <p class="sc-tplan-help">It starts at the playhead. One undo takes it back. Locked lanes (🔒) are skipped.</p>
+        <div class="sc-tplpop-btns"><button type="button" data-tplpop="cancel">Cancel</button><button type="button" data-tplpop="ok" class="on"${can ? "" : " disabled"}>Apply</button></div>`;
+    };
+    drawPop();
+    /* Beside the button, kept inside the window (a phone included). */
+    const place = () => {
+      const w = pop.offsetWidth;
+      const h = pop.offsetHeight;
+      const r = btn && btn.isConnected && btn.offsetParent ? btn.getBoundingClientRect() : { left: (window.innerWidth - w) / 2, bottom: 72 };
+      pop.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left)) + "px";
+      pop.style.top = Math.max(8, Math.min(window.innerHeight - h - 8, r.bottom + 6)) + "px";
+    };
+    const close = () => {
+      pop.remove();
+      const b = page.querySelector(`[data-tpl-act="analogy"][data-tpl-id="${CSS.escape(id)}"]`);
+      if (b && b.offsetParent) b.focus();
+    };
+    const done = () => {
+      const res = tplAnalogyUse(id, tplAnalogyPicks(id, changed));
+      if (res && res.ok === false && /Pick a different/.test(res.error || "")) return;
+      close();
+    };
+    pop.addEventListener("keydown", (ev) => {
+      ev.stopPropagation();
+      if (ev.key === "Escape") return ev.preventDefault(), close();
+      if (ev.key === "Enter" && !ev.target.matches("select, button")) ev.preventDefault(), done();
+    });
+    pop.addEventListener("keyup", (ev) => ev.stopPropagation());
+    pop.addEventListener("change", (ev) => {
+      ev.stopPropagation();
+      const sel = ev.target.closest && ev.target.closest("[data-tplan-pick]");
+      if (!sel) return;
+      changed[sel.dataset.tplanPick] = sel.value;
+      drawPop();
+      place();
+      const again = pop.querySelector(`[data-tplan-pick="${CSS.escape(sel.dataset.tplanPick)}"]`);
+      if (again) again.focus();
+    });
+    pop.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const b = ev.target.closest("[data-tplpop]");
+      if (b && !b.disabled) return b.dataset.tplpop === "ok" ? done() : close();
+    });
+    page.appendChild(pop);
+    place();
+    const first = pop.querySelector('[data-tplpop="ok"]:not([disabled])') || pop.querySelector('[data-tplpop="cancel"]');
+    if (first) first.focus();
+    return pop;
+  }
   function tplClick(e) {
     const b = e.target.closest && e.target.closest("[data-tpl-act]");
     if (!b || !page.contains(b)) return;
@@ -2827,6 +2930,7 @@ document.addEventListener("click", function (e) {
     const act = b.dataset.tplAct;
     if (act === "use") return tplUse(id);
     if (act === "rename") return tplRenamePop(id, b);
+    if (act === "analogy") return tplAnalogyPop(id, b);
     if (act === "export") {
       const t = tplList().find((x) => x.id === id);
       if (t) tplDownload([id], `curiomatic-template-${tplSlug(t.name)}.json`), toast(`Saved "${t.name}" as a .json file. Anyone can bring it in with Import…`);
@@ -2881,7 +2985,10 @@ document.addEventListener("click", function (e) {
   function tplFindActions(add) {
     if (!TPL()) return;
     if (curArea()) add("tpl-save", "Save as template", "Keep the selected stretch of the timeline under a name, to use again anywhere", "", () => (lanes ? lanes.templateName() : toast("The timeline is not ready yet.")));
-    tplList().forEach((t) => add("tpl-use:" + t.id, `Use template: ${t.name}`, (t.note ? t.note + " · " : "") + TPL().templateSummary(t), "", () => tplUse(t.id)));
+    tplList().forEach((t) => {
+      add("tpl-use:" + t.id, `Use template: ${t.name}`, (t.note ? t.note + " · " : "") + TPL().templateSummary(t), "", () => tplUse(t.id));
+      add("tpl-analogy:" + t.id, `Use template as an analogy: ${t.name}`, "Carry its shape onto related curiosities (shows what will change first) · " + TPL().templateSummary(t), "", () => setTimeout(() => tplAnalogyPop(t.id, null), 0));
+    });
   }
   const TPL_API = {
     list: () => JSON.parse(JSON.stringify(tplList())),
@@ -2892,6 +2999,14 @@ document.addEventListener("click", function (e) {
     exportJson: tplExportJson,
     importJson: tplImport,
     stretch: (on) => (on != null && (tplStretch = !!on), tplStretch),
+    /* As an analogy: plan(id, picks?) -> { pairs, left, clash, ok } (what would change), preview(id) opens the
+       pop-up, analogy(id, picks?) uses it at once (one undo step). */
+    plan: (id, picks) => {
+      const p = tplAnalogyPlan(id, picks);
+      return p ? JSON.parse(JSON.stringify({ pairs: p.pairs, left: p.left, clash: p.clash, ok: !!p.clip && !p.clash })) : null;
+    },
+    preview: (id) => !!tplAnalogyPop(id, page && page.querySelector(`[data-tpl-act="analogy"][data-tpl-id="${CSS.escape(id)}"]`)),
+    analogy: (id, picks) => tplAnalogyUse(id, picks),
   };
   /* Favorites and Recently used (CapCut's star on any effect, and its Recently used list). Kept in localStorage
      "curiosities-screen-faves-v1" as { faves: ["level|id"], recent: ["level|id"] }: a view setting, not part of
@@ -5677,8 +5792,9 @@ document.addEventListener("click", function (e) {
   else setTimeout(wire, 0);
 
   window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
-  /* My templates: list(), save(name, note), use(id, { at, stretch }), rename(id, name, note), remove(id),
-     exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick). */
+  /* My templates: list(), save(name, note), use(id, { at, stretch, analogy }), rename(id, name, note), remove(id),
+     exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick), and as an analogy
+     plan(id, picks?), preview(id) (the pop-up) and analogy(id, picks?). */
   window.CurioScreen.templates = TPL_API;
   /* Ripple: ripple("add" | "duplicate" | "delete", { a, b }?) adds a copy of the playhead's moment, duplicates or
      takes out moments (the selected stretch, else the playhead's moment), as one undo step. */
