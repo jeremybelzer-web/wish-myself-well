@@ -76,6 +76,8 @@ body = body.replace(/<script src="([^"]+)"><\/script>/g, (m, src) => {
 });
 const bad = body.match(/<script src="(?!https:\/\/cdnjs)[^"]*"/); if (bad) console.log("note: text contains", bad[0]);
 body = body.replace(/(\s*)$/, "\n" + matrix().join("\n") + "$1");
-const page = `<title>Curiomatic</title>\n${js(fs.readFileSync(path.join(__dirname, "shim.js"), "utf8"))}\n${head.replace(/<title>[^<]*<\/title>/, "")}\n${body}\n`;
+// The charset comes first: opened straight from disk, a page without one is read as Windows-1252, which garbles
+// non-ASCII text and breaks regular expressions that use it (the Screen then never loads).
+const page = `<meta charset="utf-8">\n<title>Curiomatic</title>\n${js(fs.readFileSync(path.join(__dirname, "shim.js"), "utf8"))}\n${head.replace(/<title>[^<]*<\/title>/, "")}\n${body}\n`;
 fs.writeFileSync(OUT, page);
 console.log(seen.length, "scripts;", (page.length / 1e6).toFixed(2), "MB");
