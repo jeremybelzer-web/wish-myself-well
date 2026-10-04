@@ -39,7 +39,7 @@
       ["findTime", "Time to find the subject", [0, 2, "seconds", 0.1], "How long the eye takes to find what matters after the cut."],
       ["breaks", "When the match is broken on purpose", ["never", "at the scary moment", "at the big turn", "at every cut in the fight"], "Where the film throws the eye off on purpose to shake us.", U],
     ],
-    [3, "Smooth eye paths let a fast run of shots feel like one push forward, so the story can race.", "A broken eye path can make us feel the character's shock with them.", "The eye never has to search, so it flows straight into the next shot.", "visual", "In a chase, end each shot with the runner on the right third and start the next shot with them there too."]);
+    [2, "Smooth eye paths let a fast run of shots feel like one push forward, so the story can race.", "A broken eye path can make us feel the character's shock with them.", "The eye never has to search, so it flows straight into the next shot.", "visual", "In a chase, end each shot with the runner on the right third and start the next shot with them there too."]);
 
   c("allEyesTurn", "Everyone looks the same way", "focus",
     "A whole room, or a whole crowd, turns to look at the same thing: a door that opens, a sound, one person standing up. The audience's eyes follow theirs, and we badly want to see what they see. Filmmakers use it to announce that something new has arrived.",
