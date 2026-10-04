@@ -84,6 +84,7 @@ const suites = [
   { name: "3D more than one actor", browser: true, ...node("rig/tests/staging.js", threeArgs) },
   { name: "3D sets from words", browser: true, ...node("rig/tests/sets.js", threeArgs) },
   { name: "3D whole scene from words", browser: true, ...node("rig/tests/scene.js", threeArgs) },
+  { name: "3D beat on the timeline", browser: true, ...node("rig/tests/beat-lanes.js", threeArgs) },
   /* --browser uses the first 60 kinds of control on each page (about 15 minutes); --full uses them all. */
   { name: "every control in a browser", browser: true, ...node("tests/every-control.js", [...threeArgs, "--max", FULL ? "250" : "60"]) },
   { name: "every control on a phone", browser: true, ...node("tests/every-control.js", [...threeArgs, "--width", "390", "--max", FULL ? "250" : "30"]) },

@@ -25,9 +25,17 @@
    plays it and sends drawings of it (rig/snapshot.js, up to 24, as one new scene) to the storyboard.
    Free and on this device; nothing is sent anywhere.
 
+   - the camera (rig/camera.js's lenses): "close-up on Ida", "wide shot", "over Nessa's shoulder" (a medium shot),
+     "low angle", "high angle", "overhead", "dutch angle", "long lens", "the camera pushes in" (one size tighter)
+     or "pulls back". Camera words go with the next thing anyone does (or get a moment of their own at the end).
+   "Put this beat on the timeline" writes it into the Screen's lanes at the playhead as one undo step, one moment
+   per step (see toTimeline below), so the film itself carries the beat; playing the Screen replays it from the
+   lanes, without this file's own player. The Screen's 3D panel (rig/screen.js) has the same box.
+
    ctx.prefs.sceneText keeps the words. window.CurioRigScene = { EXAMPLE, read(text) -> plan, build(ctx, text)
    -> Promise<plan>, play(ctx) -> seconds, playWords(ctx, text), flipBook(ctx, text) -> Promise, hold(ctx, on),
-   state(ctx) } for tests. */
+   state(ctx), toTimeline(text, { row }) -> { ok, error?, from, to, tracks, lanes, said }, lanesOf(plan or text),
+   BEAT_KEY } for tests. */
 (function () {
   const R = window.CurioRig;
   if (!R || !R.extend) return;
@@ -53,7 +61,7 @@
 
   /* words that start with a capital letter but are not names */
   const NOT_NAMES = new Set(
-    "a an the at in on inside outside by near then and but so later meanwhile suddenly finally afterwards after before when while now next she he they it we i you everyone everybody nobody someone somebody both all this that there here his her their its one night morning noon sunset evening today tonight yes no oh ok okay hey wow".split(" ")
+    "a an the at in on inside outside by near then and but so later meanwhile suddenly finally afterwards after before when while now next she he they it we i you everyone everybody nobody someone somebody both all this that there here his her their its one night morning noon sunset evening today tonight yes no oh ok okay hey wow close-up close-ups closeup close wide low high medium dutch overhead over extreme camera zoom cut push pull tight angle shot insert long eye bird's worm's from looking we".split(" ")
   );
   const SUBJECT_LEAD = /^(?:and |then |so |but |now |suddenly |finally |later |meanwhile |slowly |quickly |after that |at last )+/;
   const SPEAK = /\b(says?|said|saying|speaks?|talks?|talking|tells?|asks?|shouts?|whispers?|yells?|answers?|replies|reply|explains?|mutters?|calls? out|announces?|sings?|jokes?)\b/;
@@ -89,10 +97,90 @@
   const FEEL_SAY = { happy: "happy", sad: "sad", angry: "angry", scared: "scared", surprised: "surprised", disgust: "disgusted" };
   const howMuch = (v) => (v < 0.5 ? "a little " : v > 0.9 ? "very " : "");
 
+  /* ---------- the camera in words (rig/camera.js's lenses) ----------
+     Each rule: [words, lens, value]. Read in this order, and each match is blanked so "wide lens" is not also a
+     wide shot. push: +1 one size tighter (the camera pushes in), -1 one size wider (it pulls back). */
+  const SHOTS = ["insert", "close", "medium", "wide"];
+  const CAM_START = { shotSize: "medium", angleHeight: "eye", lensLength: "normal", dutch: "level" };
+  const CAM_RULES = [
+    [/\bwide[- ]?(?:angle )?lens\b|\bfish ?eye\b/, "lensLength", "wide"],
+    [/\blong lens\b|\btelephoto(?: lens)?\b|\bzoom lens\b/, "lensLength", "long"],
+    [/\bnormal lens\b/, "lensLength", "normal"],
+    [/\b(?:extreme |very |big )?close[- ]?ups?\b|\bclose shot\b|\bclose (?:in )?on\b|\btight (?:shot )?on\b/, "shotSize", "close"],
+    [/\binsert(?: shot)?\b|\bdetail shot\b/, "shotSize", "insert"],
+    [/\bmedium(?: close)?(?:[- ]shot)?\b|\bmid[- ]shot\b|\bwaist[- ]up\b|\btwo[- ]shot\b/, "shotSize", "medium"],
+    [/\bover (?:the |her |his |their |[\p{L}'-]+'s? )?shoulders?\b|\bover[- ]the[- ]shoulder\b/u, "shotSize", "medium"],
+    [/\bwide(?= on\b)|\bwide[- ]shot\b|\b(?:goes|go|cuts? to(?: a)?) wide\b|\blong shot\b|\bfull shot\b|\bestablishing shot\b/, "shotSize", "wide"],
+    [/\blow[- ]angle\b|\bfrom below\b|\blooking up at\b/, "angleHeight", "low"],
+    [/\bhigh[- ]angle\b|\bfrom above\b|\blooking down (?:at|on)\b/, "angleHeight", "high"],
+    [/\boverhead\b|\bbird'?s[- ]eye\b|\btop[- ]down\b/, "angleHeight", "overhead"],
+    [/\bworm'?s[- ]eye\b|\bfrom the floor\b|\bground[- ]level\b/, "angleHeight", "floor"],
+    [/\beye[- ]level\b|\beye height\b/, "angleHeight", "eye"],
+    [/\bdutch(?: angle| tilt)?\b|\btilted (?:frame|camera|horizon|angle|shot)\b|\bcanted\b|\bthe (?:frame|camera|horizon) tilts\b/, "dutch", "tilted"],
+    [/\blevel horizon\b|\bthe horizon levels\b/, "dutch", "level"],
+  ];
+  const CAM_PUSH = /\b(?:push(?:es)?|pushing|creeps?|creeping|dolly|dollies|dollying|moves?|moving|zooms?|zooming|closes) in\b/;
+  const CAM_PULL = /\b(?:pull(?:s)?|pulling|dolly|dollies|zooms?|zooming|moves?|backs?) (?:back|out|away)\b/;
+  const CAM_WHO = /\b(?:the )?camera\b|\bwe see\b|\bwe cut\b|\bcut to\b|\bshot\b|\blens\b|\bangle\b/;
+  const CAM_SAY = { shotSize: (v) => (v === "close" ? "close-up" : v + " shot"), angleHeight: (v) => (v === "eye" ? "camera at eye level" : v === "overhead" ? "camera overhead" : v === "floor" ? "camera on the floor" : v + " angle"), lensLength: (v) => v + " lens", dutch: (v) => (v === "tilted" ? "tilted horizon" : "level horizon") };
+  /* the camera words in one clause: { set: { lens: value }, push, on, over, said, rest } or null */
+  function readCamera(text, names) {
+    let t = " " + text + " ";
+    const out = { set: {}, push: 0, on: -1, over: -1, said: [] };
+    const blank = (m) => (t = t.slice(0, m.index) + " ".repeat(m[0].length) + t.slice(m.index + m[0].length));
+    const nameAt = (s) => {
+      for (let i = 0; i < names.length; i++) if (new RegExp("\\b" + reEsc(names[i].toLowerCase()) + "(?:'s)?\\b").test(s)) return i;
+      return -1;
+    };
+    CAM_RULES.forEach(([re, id, v]) => {
+      const m = t.match(re);
+      if (!m) return;
+      const ots = /shoulder/.test(m[0]);
+      if (ots) out.over = nameAt(m[0]);
+      else if (id === "shotSize") {
+        const after = t.slice(m.index + m[0].length).match(/^\s*(?:on|of|at)?\s*([\p{L}'-]+)/u);
+        if (after && nameAt(after[1]) >= 0) out.on = nameAt(after[1]);
+      }
+      if (out.set[id] == null) {
+        out.set[id] = v;
+        out.said.push(ots ? (out.over >= 0 ? `over ${names[out.over]}'s shoulder` : "over the shoulder") : CAM_SAY[id](v) + (id === "shotSize" && out.on >= 0 ? " on " + names[out.on] : ""));
+      }
+      blank(m);
+    });
+    let m;
+    const camLike = CAM_WHO.test(t) || Object.keys(out.set).length > 0;
+    if (camLike && (m = t.match(CAM_PUSH))) (out.push = 1), out.said.push("the camera pushes in"), blank(m);
+    else if (camLike && (m = t.match(CAM_PULL))) (out.push = -1), out.said.push("the camera pulls back"), blank(m);
+    if (!Object.keys(out.set).length && !out.push) return null;
+    out.rest = t.replace(/\b(?:the camera|camera|we see|we cut to|cut to|then|and|on|of|at|a|an|the|to)\b/g, " ").replace(/\s+/g, " ").trim();
+    return out;
+  }
+  const mergeCam = (a, b) => (a ? { set: Object.assign({}, a.set, b.set), push: b.push || a.push, on: b.on >= 0 ? b.on : a.on, over: b.over >= 0 ? b.over : a.over, said: a.said.concat(b.said) } : b);
+  /* what the camera lenses are at each step of the beat: [{ shotSize, angleHeight, lensLength, dutch, cameraMove } or null] */
+  /* where the camera starts: a wide shot of everyone when there is more than one person, else a medium shot */
+  const camStart = (plan) => Object.assign({}, CAM_START, plan && plan.cast.length > 1 ? { shotSize: "wide" } : {});
+  function cameraAt(plan) {
+    const now = camStart(plan);
+    let moved = false;
+    return plan.steps.map((s) => {
+      const out = {};
+      if (moved) (out.cameraMove = "none"), (moved = false);
+      if (!s.cam) return Object.keys(out).length ? out : null;
+      if (s.cam.push) {
+        out.shotSize = SHOTS[clamp(SHOTS.indexOf(now.shotSize) - s.cam.push, 1, 3)];
+        out.cameraMove = s.cam.push > 0 ? "push in" : "pull out";
+        moved = true;
+      }
+      Object.assign(out, s.cam.set);
+      Object.keys(CAM_START).forEach((k) => out[k] != null && (now[k] = out[k]));
+      return out;
+    });
+  }
+
   /* ---------- reading the words ---------- */
   function read(text) {
     const raw = String(text || "").replace(/\s+/g, " ").trim();
-    const plan = { text: raw, cast: [], setWords: [], sit: false, sitPhrase: "", sitters: [], standers: [], preset: "", steps: [], ignored: [], famous: [] };
+    const plan = { text: raw, cast: [], setWords: [], sit: false, sitPhrase: "", sitters: [], standers: [], preset: "", steps: [], camera: [], ignored: [], famous: [] };
     const nameIndex = (n) => plan.cast.findIndex((c) => c.name.toLowerCase() === n.toLowerCase());
     const addName = (name, look) => {
       const i = nameIndex(name);
@@ -135,7 +223,8 @@
         return false;
       }
     };
-    (body.match(/\b[A-Z][\p{L}'-]*\b/gu) || []).forEach((w) => {
+    (body.match(/\b[A-Z][\p{L}'-]*\b/gu) || []).forEach((w0) => {
+      const w = w0.replace(/'s?$/, "");
       const lw = w.toLowerCase();
       if (NOT_NAMES.has(lw) || nameIndex(w) >= 0) return;
       if (FAMOUS.includes(lw) && !known.includes(lw)) plan.famous.push({ name: w, left: [], asName: true });
@@ -183,6 +272,7 @@
       );
     /* 4. each clause */
     let last = null;
+    let cam = null; /* camera words waiting for the next step */
     const subjectsOf = (c) => {
       const lead = c.replace(SUBJECT_LEAD, "");
       const off = c.length - lead.length;
@@ -201,7 +291,16 @@
       return null;
     };
     clauses.forEach((c) => {
-      const plain = c.trim();
+      let plain = c.trim();
+      /* the camera: "close-up on Ida", "low angle", "the camera pushes in"; it goes with the next step */
+      const cw = readCamera(plain, names);
+      if (cw) {
+        cam = mergeCam(cam, cw);
+        const rest = cw.rest;
+        const acts = SPEAK.test(rest) || WALK.test(rest) || SIT.test(rest) || FEEL.some((x) => x[1].test(rest)) || !!(R.gestures && R.gestures.read(rest));
+        if (!acts) return;
+        plain = rest;
+      }
       let who = subjectsOf(plain);
       const mentioned = findNames(plain);
       const sets = R.sets ? R.sets.read(plain.replace(/\b(sits?|sitting|seated|sat|stands?|standing)\b/g, "")) : null;
@@ -289,10 +388,17 @@
       /* "gasps and freezes in shock": the same move twice in a row is one step */
       if (prev && step.move && prev.move === step.move && prev.who.join() === who.join() && !step.walk && !step.say) {
         step.feel.forEach(([f, v]) => !prev.feel.some((x) => x[0] === f) && prev.feel.push([f, v]));
+        if (cam) (prev.cam = mergeCam(prev.cam, cam)), (cam = null);
         return;
       }
-      if (step.say || step.move || step.feel.length || step.walk || step.look != null) plan.steps.push(step);
+      if (step.say || step.move || step.feel.length || step.walk || step.look != null) {
+        if (cam) (step.cam = cam), (cam = null);
+        plan.steps.push(step);
+      }
     });
+    /* camera words after the last thing anyone does: a moment of their own */
+    if (cam) plan.steps.push({ text: cam.said.join(", "), who: [], say: false, move: "", feel: [], walk: null, look: null, cam });
+    plan.camera = cameraAt(plan);
     if (!plan.preset && plan.cast.length > 1) plan.preset = plan.cast.length > 2 ? "circle" : "face to face";
     plan.setText = plan.setWords.length || plan.sit ? (plan.setWords.join(", ") + (plan.sit ? (plan.setWords.length ? ", " : "") + "sitting" + (plan.sitPhrase ? " " + plan.sitPhrase : "") : "")).trim() : "";
     if (plan.sit && !plan.setWords.length && !plan.sitPhrase) plan.setText = "a room, sitting on a chair";
@@ -350,6 +456,14 @@
     const m = {};
     (list || []).forEach(([f, v]) => (m[f] = v));
     FEELINGS.forEach((f) => setVal(ctx, c, F + f, m[f] || 0));
+  }
+  /* the camera lenses on this view's own sliders (rig/camera.js reads them) */
+  function camTo(ctx, vals) {
+    Object.keys(CAM_START).forEach((id) => {
+      const s = R.SLIDERS.find((x) => x.id === id);
+      if (!s || vals[id] == null || s.scale.indexOf(vals[id]) < 0) return;
+      setVal(ctx, ctx, id, s.scale.indexOf(vals[id]) / (s.scale.length - 1));
+    });
   }
   function say(ctx, text) {
     const S = st(ctx);
@@ -457,9 +571,12 @@
       if (s.look != null) bits.push("looks at " + names[s.look]);
       if (s.move) bits.push(s.move);
       if (s.feel.length && !s.move && !s.say) bits.push(s.feel.map(([f, v]) => howMuch(v) + FEEL_SAY[f]).join(" and "));
-      return `${k + 1}. ${list(s.who.map((i) => names[i]))} ${bits.join(", ")}`;
+      if (s.cam && !s.who.length) bits.push(s.cam.said.join(", "));
+      return `${k + 1}. ${s.who.length ? list(s.who.map((i) => names[i])) + " " : ""}${bits.join(", ")}`;
     });
     if (order.length) report.push(["Moves in order", order.join("  ")]);
+    const cams = plan.steps.map((s, k) => (s.cam ? `${k + 1}. ${s.cam.said.join(", ")}` : "")).filter(Boolean);
+    if (cams.length) report.push(["Camera", cams.join("  ") + (plan.steps.some((s) => s.cam && (s.cam.on > 0 || s.cam.over >= 0)) ? " (closer shots frame the first character in the view)" : "")]);
     if (plan.ignored.length) report.push(["Ignored", plan.ignored.map((x) => `"${x}"`).join(", ")]);
     S.report = report;
     S.built = text;
@@ -499,14 +616,21 @@
     if (St && n > 1) St.preset(plan.preset, { ctx });
     if (St && St.speaker && n > 1) St.speaker(-1, { ctx });
     for (let i = 0; i < Math.max(1, n); i++) feel(ctx, i, []);
+    /* the camera starts from a plain shot when the words move it */
+    const camAt = plan.camera || [];
+    if (camAt.some(Boolean)) {
+      ctx.prefs.camera = Object.assign({}, ctx.prefs.camera, { follow: true });
+      camTo(ctx, camStart(plan));
+    }
     const q = [];
     let t = 0.4;
-    plan.steps.forEach((s) => {
+    plan.steps.forEach((s, k) => {
       let d = 0.9;
       const who = s.who;
       q.push({
         at: t,
         fn: () => {
+          if (camAt[k]) camTo(ctx, camAt[k]);
           if (s.say && St && n > 1) St.speaker(who[0], { ctx });
           if (s.look != null && St && n > 1) St.speaker(s.look, { ctx });
           who.forEach((i) => {
@@ -573,17 +697,313 @@
     return r;
   }
 
+  /* ---------- putting the beat on the timeline ----------
+     The beat becomes nodes on the Screen's curiosity lanes, one moment (row) per step, starting at the playhead,
+     as one undo step. Every character in it gets a character track (found by name, else added) with its own
+     lanes, a value on every moment of the beat so nothing ramps in between: the feelings (feelingFaceLens), the
+     acting move (actingLens.move, with Play it, actingLens.cue, on go where a move starts) and who is speaking
+     (eyeline.speaking). The film's own lanes get how far apart they stand (blocking.distance),
+     where it happens (setting.place) and the time of day; the camera track gets the camera words. Lanes this
+     makes hold their value from node to node. Then the Screen plays the beat from the lanes alone: rig.js,
+     staging.js, faces.js and gestures.js already follow them, and follow() below builds the set and turns
+     everyone to whoever is speaking. */
+  const BEAT_KEY = "curiosities-rig3d-beat-v1";
+  const AMOUNT = ["not at all", "a little", "clearly", "very"];
+  const MOVE = "actingLens.move";
+  const CUE = "actingLens.cue";
+  const SPEAKING = "eyeline.speaking";
+  const PLACE = "setting.place";
+  const PLACE_WORDS = { car: "inside a car", kitchen: "a kitchen", bedroom: "a bedroom", living: "a living room", office: "an office", classroom: "a classroom", diner: "a diner", bar: "a bar", stage: "a stage", bathroom: "a bathroom", store: "a store", garage: "a garage", room: "a room", road: "a road", street: "a street", park: "a park", forest: "a forest", beach: "a beach", desert: "a desert", farm: "a farm", yard: "a backyard", lot: "a parking lot", outside: "outside" };
+  /* the catalog's Time of day (dawn, day, dusk, night) and the set's words for it */
+  const DAY = { morning: "dawn", noon: "day", sunset: "dusk", night: "night" };
+  const DAY_WORDS = { dawn: "in the morning", day: "at noon", dusk: "at sunset", night: "at night" };
+  const Sc = () => window.CurioScale;
+  const TOD = () => (Sc() && Sc().fix("timeOfDay", "night") ? "timeOfDay" : "timeOfDay.setting");
+  function readBeatKeep() {
+    try {
+      const v = JSON.parse(localStorage.getItem(BEAT_KEY) || "null");
+      return v && typeof v === "object" && v.sets && typeof v.sets === "object" ? v : { sets: {}, sit: {} };
+    } catch (e) {
+      return { sets: {}, sit: {} };
+    }
+  }
+  function writeBeatKeep(v) {
+    try {
+      localStorage.setItem(BEAT_KEY, JSON.stringify(v));
+    } catch (e) {}
+  }
+
+  /* What the beat puts on each lane: { n, chars: [{ i, lanes: { id: [value per moment] } }], film: { id: { k: v } },
+     camera: { id: { k: v } } } (k: the moment of the beat, 0 is the playhead). Pure: tests read it too. */
+  function lanesOf(plan) {
+    const n = Math.max(1, plan.steps.length);
+    const cast = Math.max(1, plan.cast.length);
+    const used = [...new Set(plan.steps.flatMap((s) => s.feel.map((x) => x[0])))];
+    const moves = plan.steps.some((s) => s.move);
+    const speaks = cast > 1 && plan.steps.some((s) => s.say || s.look != null);
+    const chars = [];
+    for (let i = 0; i < cast; i++) chars.push({ i, lanes: {} });
+    chars.forEach((c) => {
+      used.forEach((f) => (c.lanes["feelingFaceLens." + f] = []));
+      if (moves) (c.lanes[MOVE] = []), (c.lanes[CUE] = []);
+      if (speaks) c.lanes[SPEAKING] = [];
+    });
+    const now = chars.map(() => ({}));
+    let spk = -1;
+    plan.steps.forEach((s, k) => {
+      if (s.say) spk = s.who[0];
+      if (s.look != null) spk = s.look;
+      s.who.forEach((i) => {
+        if (s.feel.length && now[i]) now[i] = Object.fromEntries(s.feel);
+      });
+      chars.forEach((c) => {
+        used.forEach((f) => (c.lanes["feelingFaceLens." + f][k] = AMOUNT[Math.round(clamp(now[c.i][f] || 0, 0, 1) * 3)]));
+        const mine = s.move && s.who.includes(c.i);
+        if (moves) (c.lanes[MOVE][k] = mine ? s.move : "none"), (c.lanes[CUE][k] = mine ? "go" : "wait");
+        if (speaks) c.lanes[SPEAKING][k] = spk === c.i ? "speaking" : "listening";
+      });
+    });
+    if (!plan.steps.length) chars.forEach((c) => Object.keys(c.lanes).forEach((id) => (c.lanes[id] = [])));
+    const film = {};
+    const St = Stg();
+    if (plan.cast.length > 1 && St && St.PRESETS) {
+      const pr = St.PRESETS.find((x) => x.id === plan.preset);
+      const scale = St.SLIDERS[0].scale;
+      if (pr && scale.indexOf(pr.dist) >= 0) film["blocking.distance"] = { 0: scale.indexOf(pr.dist) };
+    }
+    if (plan.setText && R.sets) {
+      const p = R.sets.read(plan.setText);
+      if (p.place && PLACE_WORDS[p.place]) {
+        film[PLACE] = { 0: PLACE_WORDS[p.place] };
+        if (p.time && DAY[p.time]) film[TOD()] = { 0: DAY[p.time] };
+      }
+    }
+    const camera = {};
+    (plan.camera || []).forEach((v, k) => v && Object.keys(v).forEach((id) => ((camera[id] = camera[id] || {})[k] = v[id])));
+    /* the beat starts from a plain shot (wide on everyone, or medium on one) on every camera lane it moves */
+    const start = camStart(plan);
+    Object.keys(camera).forEach((id) => camera[id][0] == null && (camera[id][0] = id === "cameraMove" ? "none" : start[id]));
+    return { n, chars, film, camera };
+  }
+
+  /* Write the beat at the playhead (or opts.row, a moment's index) as one undo step.
+     -> { ok, error?, from, to, tracks: { name: trackId }, lanes, said } */
+  function toTimeline(text, opts) {
+    opts = opts || {};
+    const E = window.CurioEngine;
+    if (!E || !E.send || !Sc()) return { ok: false, error: "The timeline is not on this page." };
+    const plan = read(text);
+    const L = lanesOf(plan);
+    if (!plan.steps.length && !Object.keys(L.film).length) return { ok: false, error: "Nothing to put on the timeline yet: say who does what (Nessa says something; Ida laughs)." };
+    const st = E.state();
+    const LIM = E.LIMIT || { rows: 64, tracks: 16, perTrack: 24 };
+    const scr = window.CurioScreen;
+    const p = clamp(opts.row != null ? opts.row | 0 : scr && scr.row ? scr.row() : 0, 0, Math.max(0, st.rows.length));
+    const cmds = [];
+    const notes = [];
+    /* rows: one per step, added at the end when the film is too short (their ids worked out the engine's way) */
+    const rowIds = st.rows.map((r) => r.id);
+    const taken = new Set(st.rows.map((r) => r.id).concat(st.tracks.map((t) => t.id), (st.links || []).map((l) => l.id), (st.refs || []).map((r) => r.id)));
+    let next = st.next || 1;
+    const freshRow = () => {
+      let id;
+      do id = "r" + next++;
+      while (taken.has(id));
+      taken.add(id);
+      return id;
+    };
+    const added = [];
+    while (rowIds.length < p + L.n) {
+      if (rowIds.length >= LIM.rows) return { ok: false, error: `The beat needs ${L.n} moments from the playhead, and a film holds ${LIM.rows} here. Move the playhead back first.` };
+      const id = freshRow();
+      cmds.push({ type: "addRow", copy: false });
+      rowIds.push(id);
+      added.push(id);
+    }
+    /* tracks */
+    const curs = {};
+    const kinds = {};
+    st.tracks.forEach((t) => ((curs[t.id] = t.curiosities.slice()), (kinds[t.id] = t.kind)));
+    let nTracks = st.tracks.length;
+    const newTrack = (kind, label) => {
+      if (nTracks >= LIM.tracks) return null;
+      const slug = String(label).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "track";
+      let id = kind + "-" + slug;
+      for (let k = 2; taken.has(id); k++) id = kind + "-" + slug + "-" + k;
+      taken.add(id);
+      cmds.push({ type: "addTrack", id, kind, label, curiosities: [] });
+      curs[id] = [];
+      kinds[id] = kind;
+      nTracks++;
+      return id;
+    };
+    const tracks = {};
+    const charTrack = plan.cast.map((c) => {
+      const t = st.tracks.find((x) => x.kind === "character" && String(x.label || "").trim().toLowerCase() === c.name.toLowerCase());
+      const id = t ? t.id : newTrack("character", c.name);
+      if (!id) notes.push(`no room for a track for ${c.name} (a film holds ${LIM.tracks} tracks)`);
+      tracks[c.name] = id;
+      return id;
+    });
+    /* with no names, the shown character (or the first character track) plays it */
+    if (!plan.cast.length) {
+      const RS = window.CurioRigScreen;
+      const any = (RS && RS.shown && RS.shown()) || (st.tracks.find((t) => t.kind === "character") || {}).id || newTrack("character", "Character");
+      charTrack.push(any);
+    }
+    const filmAt = {};
+    const filmTrack = (id, kind) => (filmAt[id] !== undefined ? filmAt[id] : (filmAt[id] = filmTrack1(id, kind)));
+    const filmTrack1 = (id, kind) => {
+      const have = st.tracks.filter((t) => t.curiosities.includes(id));
+      const t = have.find((x) => x.kind !== "character") || have[0];
+      if (t) return t.id;
+      const room = Object.keys(curs).find((k) => kinds[k] === kind && curs[k].length < LIM.perTrack);
+      return room || newTrack(kind, kind === "camera" ? "Camera" : "Master");
+    };
+    let lanes = 0;
+    const point = (track, id, k, value) => {
+      if (!track) return;
+      const v = Sc().fix(id, value);
+      if (v == null) return void notes.push(`${id} has no "${value}"`);
+      if (!curs[track].includes(id)) {
+        if (curs[track].length >= LIM.perTrack) return void (notes.includes(track + " is full") || notes.push(track + " is full"));
+        cmds.push({ type: "addCuriosity", track, curiosity: id });
+        curs[track].push(id);
+      }
+      cmds.push({ type: "setPoint", row: rowIds[p + k], track, curiosity: id, value: v });
+      const lk = track + "|" + id;
+      if (!point.seen.has(lk)) {
+        point.seen.add(lk);
+        lanes++;
+        const lane = st.lanes[lk];
+        if (!lane || !Object.keys(lane.points || {}).length) point.hold.push({ type: "laneMode", track, curiosity: id, mode: "hold" });
+      }
+    };
+    point.seen = new Set();
+    point.hold = [];
+    L.chars.forEach((c) => Object.keys(c.lanes).forEach((id) => c.lanes[id].forEach((v, k) => point(charTrack[c.i], id, k, v))));
+    Object.keys(L.film).forEach((id) => Object.keys(L.film[id]).forEach((k) => point(filmTrack(id, "master"), id, +k, L.film[id][k])));
+    Object.keys(L.camera).forEach((id) => Object.keys(L.camera[id]).forEach((k) => point(filmTrack(id, "camera"), id, +k, L.camera[id][k])));
+    cmds.push(...point.hold);
+    if (!lanes) return { ok: false, error: "Nothing could go on the timeline" + (notes.length ? ": " + notes.join("; ") : ".") };
+    const who = plan.cast.map((c) => c.name);
+    const label = `Beat: ${who.length ? list(who) : "the film"}, moments ${p + 1} to ${p + L.n}`;
+    const res = E.send({ type: "batch", label, commands: cmds });
+    if (!res.ok) return { ok: false, error: res.error };
+    /* the moments added must be the ones the nodes went on; if not, take it back */
+    const now = E.state().rows.map((r) => r.id);
+    if (added.some((id) => !now.includes(id))) {
+      E.undo();
+      return { ok: false, error: "The film changed while the beat was written; try again." };
+    }
+    /* the looks: each name is kept as a made character, and plays its track on the Screen */
+    const RS = window.CurioRigScreen;
+    plan.cast.forEach((c, i) => {
+      let words = c.look || null;
+      const had = R.maker && R.maker.store().list.find((m) => m.name.trim().toLowerCase() === c.name.toLowerCase());
+      if (!words && !had) words = PLAIN[i % PLAIN.length];
+      const r = R.maker && R.maker.remember ? R.maker.remember(c.name, words, false) : null;
+      if (r && RS && RS.setCast && charTrack[i]) RS.setCast(charTrack[i], "made:" + r.id);
+    });
+    /* the set's whole words (things, colors, who sits) are kept for its place and time of day */
+    if (plan.setText && L.film[PLACE]) {
+      keepSet(plan.setText);
+      const k = L.film[PLACE][0] + "|" + (L.film[TOD()] ? L.film[TOD()][0] : "");
+      const keep = readBeatKeep();
+      keep.sets[k] = plan.setText;
+      keep.sit = keep.sit || {};
+      keep.sit[k] = plan.sit && plan.sitters.length && plan.sitters.length < plan.cast.length ? plan.sitters.map((i) => charTrack[i]).filter(Boolean) : null;
+      writeBeatKeep(keep);
+    }
+    const said = `On the timeline at moments ${p + 1} to ${p + L.n}: ${lanes} lane${lanes === 1 ? "" : "s"} for ${who.length ? list(who) : "the film"}${Object.keys(L.camera).length ? " and the camera" : ""}. One undo takes it all back. Press Play on the Screen to see it.` + (notes.length ? " Left out: " + notes.join("; ") + "." : "");
+    return { ok: true, from: p, to: p + L.n - 1, tracks, lanes, said, label, rows: rowIds.slice(p, p + L.n) };
+  }
+
+  /* ---------- on the Screen: the lanes that need the whole view (the set, who is speaking) ---------- */
+  function follow(ctx) {
+    if (ctx.actor) return;
+    const RS = window.CurioRigScreen;
+    const ctl = RS && RS.controller && RS.controller();
+    const E = window.CurioEngine;
+    const Scr = window.CurioScreen;
+    if (!ctl || ctl.ctx !== ctx || !E || !Scr || !Scr.isOpen || !Scr.isOpen() || !Scr.row) return;
+    const S = st(ctx);
+    if (S.fAt != null && Math.abs(ctx.clock - S.fAt) < 0.12) return;
+    S.fAt = ctx.clock;
+    let es;
+    try {
+      es = E.state();
+    } catch (e) {
+      return;
+    }
+    const r = es.rows[Scr.row()];
+    if (!r) return;
+    const lane = (t, id) => t.curiosities.includes(id) && es.lanes[t.id + "|" + id] && es.lanes[t.id + "|" + id].on !== false;
+    const val = (t, id) => {
+      try {
+        return E.value(r.id, t.id, id);
+      } catch (e) {
+        return null;
+      }
+    };
+    /* where it happens */
+    const pt = es.tracks.find((t) => lane(t, PLACE));
+    const Sets = window.CurioRigSets;
+    if (pt && Sets) {
+      const place = val(pt, PLACE);
+      const tt = es.tracks.find((t) => lane(t, TOD()));
+      const time = tt ? val(tt, TOD()) : "";
+      const key = place + "|" + (time || "");
+      if (place && key !== S.fSet) {
+        S.fSet = key;
+        if (place === "anywhere") Sets.clear(ctx);
+        else {
+          const keep = readBeatKeep();
+          const words = keep.sets[key] || `${place}${DAY_WORDS[time] ? " " + DAY_WORDS[time] : ""}`;
+          const sitT = keep.sit && keep.sit[key];
+          const order = actorTracks(ctx);
+          Sets.sitters(ctx, Array.isArray(sitT) ? order.map((t, i) => (sitT.includes(t) ? i : -1)).filter((i) => i >= 0) : null);
+          Sets.make(ctx, words);
+        }
+      }
+    }
+    /* who is speaking: everyone else looks at them */
+    const St = Stg();
+    const sp = es.tracks.filter((t) => t.kind === "character" && lane(t, SPEAKING));
+    if (sp.length && St && St.speaker) {
+      const talking = sp.filter((t) => val(t, SPEAKING) === "speaking").map((t) => t.id);
+      const order = actorTracks(ctx);
+      const i = order.findIndex((t) => talking.includes(t));
+      const sig = i + "|" + order.join();
+      if (sig !== S.fSpk) {
+        S.fSpk = sig;
+        St.speaker(i, { ctx });
+      }
+    }
+  }
+  /* the character track of each actor in the view: actor 1 is the one the Screen shows */
+  function actorTracks(ctx) {
+    const RS = window.CurioRigScreen;
+    const St = Stg();
+    const s = St && St.state ? St.state({ ctx }) : null;
+    const first = RS && RS.shown ? RS.shown() : "";
+    return s && s.actors.length ? s.actors.map((a, i) => (i === 0 ? first : a.track)) : [first];
+  }
+
   R.extend({
     id: ID,
     label: "Make a whole scene from words",
-    beforeRender: (ctx, dt) => tick(ctx, dt),
+    beforeRender(ctx, dt) {
+      tick(ctx, dt);
+      follow(ctx);
+    },
     panel(ctx) {
       const S = st(ctx);
       const text = ctx.prefs.sceneText || EXAMPLE;
       return `<h4 title="In Maya: a whole shot blocked from a script: set, characters, staging and animation">Make a whole scene from words</h4>
         <p class="cap">Write one beat: where it happens, who is in it (their look in brackets after the name), who sits or stands where, who speaks, how they feel and what they do, in order.</p>
         <textarea data-scene="text" rows="4" style="width:100%;box-sizing:border-box" aria-label="The beat in words">${esc(text)}</textarea>
-        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0"><button type="button" data-scene="play">Play the beat</button><button type="button" data-scene="flip">Send to the storyboard as a flip book</button><button type="button" data-scene="example" title="Puts the diner example in the box">Show me an example</button></div>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin:.3rem 0"><button type="button" data-scene="play">Play the beat</button><button type="button" data-scene="lanes" title="Write the beat into the timeline's lanes at the playhead, one moment per step, as one step you can undo">Put this beat on the timeline</button><button type="button" data-scene="flip">Send to the storyboard as a flip book</button><button type="button" data-scene="example" title="Puts the diner example in the box">Show me an example</button></div>
         <p class="cap" data-scene="said" role="status">${esc(S.said)}</p>
         <div class="cap" data-scene="read"></div>
         <p class="cap">Free and on this device. Looks are our own: a famous character's name is never copied, only your look words are used.</p>`;
@@ -609,6 +1029,10 @@
       };
       q("play").addEventListener("click", busy(q("play"), () => playWords(ctx, words())));
       q("flip").addEventListener("click", busy(q("flip"), () => flipBook(ctx, words())));
+      q("lanes").addEventListener("click", () => {
+        const r = toTimeline(words());
+        say(ctx, r.ok ? r.said : r.error);
+      });
       q("example").addEventListener("click", () => {
         q("text").value = EXAMPLE;
         q("text").focus();
@@ -630,6 +1054,9 @@
     },
     playWords: (ctx, text) => playWords(ctx, text),
     flipBook: (ctx, text) => flipBook(ctx, text),
+    toTimeline: (text, opts) => toTimeline(text, opts),
+    lanesOf: (planOrText) => lanesOf(typeof planOrText === "string" ? read(planOrText) : planOrText),
+    BEAT_KEY,
     state(ctx) {
       const S = st(ctx);
       return { built: S.built, playing: !!S.run, left: S.run ? S.run.q.length : 0, total: S.run ? S.run.total : 0, at: S.run ? ctx.clock - S.run.t0 : 0, plays: S.plays, report: S.report.map((x) => x.slice()), said: S.said, plan: S.plan };

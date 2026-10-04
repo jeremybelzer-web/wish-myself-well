@@ -53,6 +53,8 @@
   X("peopleCount", R("background", "Extras", 0, 50, "People in the background as well.", "people"), L("density", "Spread or packed", ["spread out", "normal", "packed"], "How close together they stand."));
   X("blocking", R("distance", "Distance between them", 0, 5, "From touching to across the room."), CHANGE("the arrangement"), L("power", "Who holds the center", ["no one", "the speaker", "the listener", "the one who wins"], "Who stands in the strongest place."));
   X("eyeline", R("hold", "How long a look lasts", 0, 5, "From a flick to a stare.", "seconds"), L("avoid", "Avoiding", ["nobody", "one avoids", "both avoid"], "Whether someone refuses to look."));
+  /* Who is talking now, one lane per character track: the others turn to look at whoever is speaking (rig/staging.js). */
+  X("eyeline", L("speaking", "Speaking now", ["listening", "speaking"], "Whether this character is the one talking at this moment. Everyone else looks at them."));
   X("focus", R("speed", "How fast it moves", 0, 5, "How quickly attention passes between things."), NOTICE);
   X("look", R("care", "Care in the look", 0, 5, "How much attention went into hair, makeup and clothes."), CHANGE("the look"));
   X("foreshortening", R("distance", "How near the lens", 0, 5, "How close the near hand or object comes to the lens."), NOTICE);
@@ -92,6 +94,9 @@
 
   /* Background */
   X("setting", R("familiarity", "Familiar or strange", 0, 5, "How ordinary or unusual the place is for the audience."), CHANGE("the place"));
+  /* Where it happens, as words a 3D set can be built from (rig/sets.js reads them; rig/scene.js keys them when a
+     beat is put on the timeline). Not an order: "anywhere" means no set. */
+  X("setting", ["place", "Where it happens", ["anywhere", "a room", "a kitchen", "a bedroom", "a living room", "an office", "a classroom", "a diner", "a bar", "a stage", "inside a car", "a bathroom", "a store", "a garage", "a road", "a street", "a park", "a forest", "a beach", "a desert", "a farm", "a backyard", "a parking lot", "outside"], "The place the scene happens in. The 3D view builds a simple set of it when the playhead gets there.", { unordered: true }]);
   X("intExt", R("view", "View outside", 0, 5, "How much of the outside we see from inside (or inside from outside)."), CHANGE("the location"));
   X("envMotion", R("howMuch", "How much", 0, 5, "How busy the background motion is."), R("speed", "Speed", 0, 5, "How fast it moves."));
   X("temperature", R("shown", "How it shows", 0, 5, "How much the heat or cold shows: breath, sweat, shivering."), CHANGE("the temperature"));

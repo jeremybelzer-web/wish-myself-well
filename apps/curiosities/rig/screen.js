@@ -19,6 +19,10 @@
 
    - Everyone together: with more than one character track, the other tracks join the 3D view as more actors,
      staged together (rig/staging.js); kept per device in curiosities-rig3d-screen-view-v1 ({ together }).
+   - Write a whole beat: a box for rig/scene.js's words ("At a diner at night, Ida (...) sits across from Nessa
+     (...). Nessa says something; Ida does a double take, then laughs.") and "Put this beat on the timeline", which
+     writes it into the lanes at the playhead as one undo step (CurioRigScene.toTimeline). Played by also offers
+     each character made from words ("made:<id>"); the shown one plays as "Made from your words".
 
    window.CurioRigScreen = { cast(trackId?) -> characterId, setCast(trackId, characterId), shown() -> trackId,
      open(on), controller(), together(), setTogether(on), keyThis() } */
@@ -65,10 +69,20 @@
     const p = CS() && CS().track ? CS().track() : null;
     return list.some((t) => t.id === p) ? p : list[0].id;
   }
+  /* a character made from words, by its saved id (rig/maker.js) */
+  function madeOf(c) {
+    const m = /^made:(.+)$/.exec(c || "");
+    try {
+      return m && R() && R().maker ? R().maker.store().list.find((x) => x.id === m[1]) || null : null;
+    } catch (e) {
+      return null;
+    }
+  }
   function cast(trackId) {
     const id = trackId === undefined ? shown() : trackId;
     const c = castData().cast[id || NOBODY];
     const list = R() ? R().CHARACTERS : [];
+    if (madeOf(c)) return c;
     return list.some((x) => x.id === c) ? c : list[0] ? list[0].id : "rigged-figure";
   }
   function setCast(trackId, charId) {
@@ -107,7 +121,9 @@
 .r3s-side{display:grid;grid-template-columns:1fr 1fr;gap:.3rem .4rem;align-content:start}
 .r3s-side label{display:grid;gap:.1rem}
 .r3s-side select,.r3s-side input{font:inherit;min-width:0}
-.r3s-ask,.r3s-said,.r3s-side [data-r3s="key"],.r3s-side small,.r3s-side .r3s-together{grid-column:1/-1}
+.r3s-ask,.r3s-said,.r3s-side [data-r3s="key"],.r3s-side small,.r3s-side .r3s-together,.r3s-beat{grid-column:1/-1}
+.r3s-beat textarea{width:100%;box-sizing:border-box;font:inherit;margin:.2rem 0}
+.r3s-beat summary{cursor:pointer}
 .r3s-ask{display:flex;gap:.3rem}.r3s-ask input{flex:1}
 .r3s-said{margin:0;opacity:.85}
 .r3s-said:empty{display:none}
@@ -151,6 +167,10 @@
           <p class="r3s-said" data-r3s="said" role="status"></p>
           <label class="r3s-together" title="With more than one character on the timeline, the others join the 3D view as more actors (rig/staging.js)"><span><input type="checkbox" data-r3s="together"> Everyone together</span></label>
           <button type="button" data-r3s="key" title="Put what the 3D character is doing now on the timeline, at the playhead, as one step you can undo">Key this on the timeline</button>
+          <details class="r3s-beat" data-r3s="beat-box"><summary>Write a whole beat</summary>
+            <textarea data-r3s="beat" rows="3" aria-label="The beat in words" placeholder="At a diner at night, Ida (spiky red hair, overalls) sits across from Nessa (curly black hair, yellow hoodie). Nessa says something; Ida does a double take, then laughs."></textarea>
+            <button type="button" data-r3s="beat-key" title="Each step of the beat becomes a moment on the timeline, starting at the playhead: feelings, acting moves, who speaks, the set and the camera. One undo takes it back.">Put this beat on the timeline</button>
+          </details>
           <small data-r3s="moment"></small>
         </div>
       </div>
@@ -210,6 +230,16 @@
         : "I did not find anything to change in that. Try a feeling (sleepy, scared), a move (walk, look up) or an acting move (shrug, double take).";
     });
     $("key").addEventListener("click", keyThis);
+    $("beat-key").addEventListener("click", () => {
+      const B = window.CurioRigScene;
+      const text = $("beat").value.trim() || (B ? B.EXAMPLE : "");
+      if (!B || !B.toTimeline) return void ($("said").textContent = "Whole beats need the scene add-on (rig/scene.js).");
+      $("beat").value = text;
+      const r = B.toTimeline(text);
+      $("said").textContent = r.ok ? r.said : r.error;
+      selSig = "";
+      refresh();
+    });
     $("together").checked = together();
     $("together").addEventListener("change", (e) => {
       const v = read(VIEW_KEY, {});
@@ -235,7 +265,13 @@
     $("who").innerHTML = list.length
       ? list.map((t) => `<option value="${esc(t.id)}"${t.id === who ? " selected" : ""}>${esc(t.label)}</option>`).join("")
       : `<option value="${NOBODY}">The film (no characters on the timeline yet)</option>`;
-    $("actor").innerHTML = (R() ? R().CHARACTERS : []).map((x) => `<option value="${esc(x.id)}"${x.id === c ? " selected" : ""}>${esc(x.label)}${x.object ? " (an object)" : ""}</option>`).join("");
+    let made = [];
+    try {
+      made = R() && R().maker ? R().maker.store().list : [];
+    } catch (e) {}
+    $("actor").innerHTML =
+      (R() ? R().CHARACTERS : []).map((x) => `<option value="${esc(x.id)}"${x.id === c ? " selected" : ""}>${esc(x.label)}${x.object ? " (an object)" : ""}</option>`).join("") +
+      (made.length ? `<optgroup label="Made from your words">${made.map((m) => `<option value="made:${esc(m.id)}"${"made:" + m.id === c ? " selected" : ""}>${esc(m.name)}</option>`).join("")}</optgroup>` : "");
   }
 
   function stop3D() {
@@ -272,11 +308,15 @@
     const r = scr && scr.row ? scr.row() : 0;
     const name = who ? (characterTracks().find((t) => t.id === who) || {}).label : "";
     $("moment").textContent = `Showing moment ${r + 1}${name ? " for " + name : ""}.`;
-    const want = (who || NOBODY) + "|" + cast(who);
+    const c = cast(who);
+    const m = madeOf(c);
+    const want = (who || NOBODY) + "|" + c + (m ? "|" + m.text : "");
     if (ctl && ctlFor === want) return;
     stop3D();
     ctlFor = want;
-    ctl = R().mount($("view"), { character: cast(who), track: () => shown(), screen: true });
+    /* a character made from words plays as "Made from your words", with that one picked */
+    if (m && R().maker.remember) R().maker.remember(m.name, null, true);
+    ctl = R().mount($("view"), { character: m ? "made" : c, track: () => shown(), screen: true });
   }
 
   /* ---------- Key this on the timeline: what the 3D character does now, as nodes at the playhead ---------- */

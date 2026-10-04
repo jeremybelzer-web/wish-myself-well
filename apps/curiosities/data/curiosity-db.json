@@ -4239,6 +4239,41 @@
      "curve": "linear"
     },
     {
+     "id": "place",
+     "label": "Where it happens",
+     "plain": "The place the scene happens in. The 3D view builds a simple set of it when the playhead gets there.",
+     "scale": [
+      "anywhere",
+      "a room",
+      "a kitchen",
+      "a bedroom",
+      "a living room",
+      "an office",
+      "a classroom",
+      "a diner",
+      "a bar",
+      "a stage",
+      "inside a car",
+      "a bathroom",
+      "a store",
+      "a garage",
+      "a road",
+      "a street",
+      "a park",
+      "a forest",
+      "a beach",
+      "a desert",
+      "a farm",
+      "a backyard",
+      "a parking lot",
+      "outside"
+     ],
+     "from": "anywhere",
+     "to": "outside",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
      "id": "push",
      "label": "Pushes the story",
      "plain": "How much this curiosity moves the story forward here.",
@@ -5228,6 +5263,18 @@
      ],
      "from": "nobody",
      "to": "both avoid",
+     "curve": "linear"
+    },
+    {
+     "id": "speaking",
+     "label": "Speaking now",
+     "plain": "Whether this character is the one talking at this moment. Everyone else looks at them.",
+     "scale": [
+      "listening",
+      "speaking"
+     ],
+     "from": "listening",
+     "to": "speaking",
      "curve": "linear"
     },
     {
