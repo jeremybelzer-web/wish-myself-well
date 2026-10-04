@@ -74,7 +74,7 @@
   const ADDABLE = ["person", "box", "ball", "tree", "lamp", "building"];
   /* Hooks for add-ons (viewer/build.js): extra tabs, a tool that takes over the pointer, drawings over the
      picture, extra rows in the "In the scene" list, and keys. */
-  const HOOK = { tabs: [], tool: null, over: [], things: [], keys: [], draw: [], change: [] };
+  const HOOK = { tabs: [], tool: null, over: [], things: [], keys: [], draw: [], change: [], pose: [] };
   const POSES = [
     ["stand", "Standing"],
     ["walk", "Walking"],
@@ -371,16 +371,22 @@
      fish = 0 (straight lines stay straight) to 1 (a full fisheye); height = degrees above the subject (negative is
      below, looking up); around = degrees around the subject (0 is in front, from +z); tilt = the frame's lean. */
   function makeCamera(cam, target, W, H) {
-    const f = clamp(cam.lens || 35, 4, 600);
-    const d = Math.max(0.12, ((cam.shot || 2) * f) / SENSOR_H);
+    const f = clamp((cam.pose && cam.pose.lens) || cam.lens || 35, 4, 600);
+    let d = Math.max(0.12, ((cam.shot || 2) * f) / SENSOR_H);
     const pitch = clamp(cam.height || 0, -89, 89.5) * DEG;
     const yaw = (cam.around || 0) * DEG;
-    const pos = [target[0] + d * Math.sin(yaw) * Math.cos(pitch), target[1] + d * Math.sin(pitch), target[2] + d * Math.cos(yaw) * Math.cos(pitch)];
+    let pos = [target[0] + d * Math.sin(yaw) * Math.cos(pitch), target[1] + d * Math.sin(pitch), target[2] + d * Math.cos(yaw) * Math.cos(pitch)];
+    /* a flight path (viewer/flight.js) puts the camera at a spot and points it at a spot */
+    if (cam.pose && cam.pose.pos) {
+      pos = cam.pose.pos.slice();
+      d = Math.max(0.05, len(sub(target, pos)));
+      if (d < 0.06) target = add(pos, [0, 0, -1]);
+    }
     const fwd = norm(sub(target, pos));
     let right = norm(cross(fwd, [0, 1, 0]));
     if (len(right) < 0.5) right = [Math.cos(yaw), 0, -Math.sin(yaw)];
     const up = cross(right, fwd);
-    const r = (cam.tilt || 0) * DEG;
+    const r = ((cam.tilt || 0) + ((cam.pose && cam.pose.roll) || 0)) * DEG;
     const R = add(mul(right, Math.cos(r)), mul(up, Math.sin(r)));
     const U = add(mul(up, Math.cos(r)), mul(right, -Math.sin(r)));
     /* Fisheye: 0 is a normal straight-line lens. Going up, the picture bends more and more like a real fisheye:
@@ -692,6 +698,17 @@
         pan: [0, 1, 2].map((k) => lerp((a.cam.pan || [0, 0, 0])[k], (n.pan || [0, 0, 0])[k], e)),
       });
     }
+    /* a flight path for this panel (viewer/flight.js) flies the camera instead */
+    for (const fn of HOOK.pose) {
+      let pose = null;
+      try {
+        pose = fn(a, u, place, c);
+      } catch (err) {}
+      if (pose) {
+        c = Object.assign({}, c, { pose });
+        break;
+      }
+    }
     return { i, u, panel: a, place, cam: c, phase: t * Math.PI * 2 * 1.5 };
   }
   function aimPoint(id, place) {
@@ -704,6 +721,7 @@
   /* Where the camera looks: its subject, slid by pan (Control-drag, or a double-click zoom). */
   function camTarget(st) {
     const c = st.cam;
+    if (c.pose && c.pose.target) return c.pose.target.slice();
     const pan = Array.isArray(c.pan) ? c.pan : [0, 0, 0];
     let t;
     if (c.aimFrom !== undefined) {
@@ -1059,7 +1077,10 @@
     });
     polys.sort((a, b) => b.depth - a.depth);
     const lw = Math.max(0.6, W / 1100);
-    polys.forEach((P) => {
+    /* background blur: draw everything, blur it, then draw the subject and what is in front of it sharp again */
+    const blur = clamp(st.cam.blur || 0, 0, 1);
+    const subjD = len(sub(target, C.pos)) + 0.6;
+    const drawPoly = (P) => {
       if (P.f.line) return drawLine(ctx, C, P, look, opts);
       if (P.f.text) return drawText3(ctx, C, P, look, opts, W);
       const col = shadeColor(P.f, L, look, P.depth);
@@ -1072,7 +1093,19 @@
       ctx.lineWidth = lw;
       ctx.stroke();
       if (opts.picks) opts.picks.push({ s: P.s, obj: P.f.obj, tag: P.f.tag, n: P.f.n, pts: P.f.pts });
-    });
+    };
+    if (blur > 0.01 && typeof document !== "undefined") {
+      polys.forEach((P) => P.depth > subjD && drawPoly(P));
+      const tmp = document.createElement("canvas");
+      tmp.width = W;
+      tmp.height = H;
+      tmp.getContext("2d").drawImage(ctx.canvas, 0, 0);
+      ctx.save();
+      ctx.filter = `blur(${(blur * W) / 90}px)`;
+      ctx.drawImage(tmp, 0, 0);
+      ctx.restore();
+      polys.forEach((P) => P.depth <= subjD && drawPoly(P));
+    } else polys.forEach(drawPoly);
     /* rain */
     if (st.panel.rain !== "none") {
       const frozen = st.panel.rain === "frozen";
@@ -1107,6 +1140,18 @@
       ctx.arc(W / 2, H / 2, R, 0, Math.PI * 2, true);
       ctx.fillStyle = "rgba(0,0,0,0.92)";
       ctx.fill("evenodd");
+      ctx.restore();
+    }
+    /* the color filter over the picture (the words stay clear on top) */
+    const flt = FILTERS[st.cam.filter || "none"];
+    if (flt && flt.css && typeof document !== "undefined") {
+      const tmp = document.createElement("canvas");
+      tmp.width = W;
+      tmp.height = H;
+      tmp.getContext("2d").drawImage(ctx.canvas, 0, 0);
+      ctx.save();
+      ctx.filter = flt.css;
+      ctx.drawImage(tmp, 0, 0);
       ctx.restore();
     }
     if (opts.words !== false) drawWords(ctx, W, H, st, C, opts);
@@ -1269,8 +1314,24 @@
     if (a < 160) return "behind, toward " + side;
     return "behind them";
   }
+  function blurWords(b) {
+    return b < 0.02 ? "none" : b < 0.35 ? "a little" : b < 0.7 ? "soft background" : "only the subject is sharp";
+  }
+  /* color filters over the whole picture (canvas filters) */
+  const FILTERS = {
+    none: { label: "None", css: "" },
+    warm: { label: "Warm, golden", css: "sepia(0.35) saturate(1.25) hue-rotate(-10deg)" },
+    cool: { label: "Cool, blue", css: "saturate(0.9) hue-rotate(18deg) brightness(0.97)" },
+    noir: { label: "Black and white", css: "grayscale(1) contrast(1.25)" },
+    sepia: { label: "Old photo", css: "sepia(0.85) contrast(0.95)" },
+    neon: { label: "Neon night", css: "saturate(1.8) contrast(1.15) hue-rotate(-20deg)" },
+    faded: { label: "Faded film", css: "contrast(0.8) saturate(0.7) brightness(1.08)" },
+    dream: { label: "Dreamy glow", css: "brightness(1.12) saturate(1.2) blur(0.6px)" },
+  };
   function tiltWords(t) {
     if (Math.abs(t) < 2) return "level";
+    if (Math.abs(t) > 150) return "upside down";
+    if (Math.abs(t) > 60) return (t > 0 ? "turned far right" : "turned far left") + ", the world on its side";
     return (t > 0 ? "leaning right" : "leaning left") + " (a Dutch angle: the world feels off balance)";
   }
   function panelLine(p) {
@@ -1915,7 +1976,10 @@
       ${rng("height", "Camera height", -89, 89, 1, Math.round(c.height), hw[0], ["straight below, through the floor", "straight above"])}
       <small class="cv-say" data-sayl="height">${hw[1]}</small>
       ${rng("around", "Camera side", -180, 180, 1, Math.round(c.around), aroundWords(c.around - aimTurn), ["", ""])}
-      ${rng("tilt", "Lean", -30, 30, 1, Math.round(c.tilt), tiltWords(c.tilt))}
+      ${rng("tilt", "Lean (turn the lens)", -180, 180, 1, Math.round(c.tilt), tiltWords(c.tilt), ["all the way round to the left", "all the way round to the right"])}
+      <label class="cv-field"><span><b>Color filter</b></span><select data-k="filter">${Object.keys(FILTERS).map((k) => `<option value="${k}"${(c.filter || "none") === k ? " selected" : ""}>${FILTERS[k].label}</option>`).join("")}</select></label>
+      ${rng("blur", "Background blur", 0, 100, 1, Math.round((c.blur || 0) * 100), blurWords(c.blur || 0), ["sharp all through", "only the subject is sharp"])}
+      <small class="cv-say">Blurs everything behind what the camera points at, like a wide-open lens, so the subject stands out.</small>
       <label class="cv-field"><span><b>From this panel to the next</b></span><select data-k="move"><option value="cut"${c.move !== "glide" ? " selected" : ""}>Cut: jump to the next panel's camera</option><option value="glide"${c.move === "glide" ? " selected" : ""}>Glide: the camera moves smoothly into the next panel's camera</option></select></label>
       <h3>From above</h3>
       <canvas class="cv-map" width="600" height="300" aria-label="A map from above: the camera and what it sees"></canvas>
@@ -2556,6 +2620,12 @@
       case "tilt":
         p.cam.tilt = +v;
         break;
+      case "filter":
+        p.cam.filter = v;
+        break;
+      case "blur":
+        p.cam.blur = +v / 100;
+        break;
       case "move":
         p.cam.move = v;
         break;
@@ -2921,6 +2991,11 @@
     /* the strip under the picture (viewer/focus-lane.js): onDraw(fn(seconds, panel, total)) runs on every
        drawn frame, onChange(fn) after every edit; under() is the box under the picture; seek(seconds) */
     onDraw: (fn) => HOOK.draw.push(fn),
+    /* onPose(fn(panel, u, place, cam) -> { pos, target, roll, lens } or null): fly the camera (viewer/flight.js) */
+    onPose: (fn) => HOOK.pose.push(fn),
+    aimPoint: (id, place) => aimPoint(id, place),
+    stateAt: (t) => stateAt(clamp(+t || 0, 0, total())),
+    starts: () => starts(),
     onChange: (fn) => HOOK.change.push(fn),
     under: () => (root ? root.querySelector(".cv-under") : null),
     seek: (t) => selectPanel(panelAt(clamp(Number(t) || 0, 0, total())).i),

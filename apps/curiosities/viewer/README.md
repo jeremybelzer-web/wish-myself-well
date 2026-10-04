@@ -138,3 +138,26 @@ Test: `node viewer/tests/focus-lane.js` (in `tests/run-all.js --browser`).
   full at the top right.
 
 Test: `node viewer/tests/camera.js`.
+
+### Camera flight path (`viewer/flight.js`)
+
+Drone-style, modelled on how DJI waypoint missions and Litchi plan a flight: each waypoint has a place and
+height, where the camera looks, a lens turn (roll) and a lens length; the drone flies smoothly through them
+without stopping (DJI's "curve size", here *Smooth corners*), and looks either where you pointed it
+(interpolated between waypoints), at one point of interest the whole way, or ahead along the path.
+
+- **Flight path tab.** ● Record plays the panel for its seconds while you fly: drag to swing round,
+  Control-drag to slide, wheel for distance, W/A/S/D fly, R/F up and down, Q/E turn the lens, Esc throws the
+  take away. A point is kept every quarter second.
+- **The 3D graph** shows the path from outside with the floor grid, every thing as a labelled dot and the
+  camera's look line. Drag it to turn it, wheel to zoom, drag a numbered waypoint to move it across the floor,
+  Shift-drag to raise or lower it. + Waypoint here adds the current camera at the playhead; ✕ takes one out.
+- **Spin the lens while flying** adds up to two full turns over the panel.
+- Data: `panel.flight = {on, look: "recorded"|"poi"|"path", poi, curve, spin, pts: [{t, p, l, roll, lens}]}`
+  (`t` 0..1 through the panel). The Viewer asks every `CurioViewer.onPose(fn)` for the camera; the flight
+  path answers with `{pos, target, roll, lens}`.
+- **Camera & lens** also gained *Lean* all the way round (-180° to 180°), a *Color filter* (warm, cool, noir,
+  sepia, neon, faded, dream) and *Background blur* (everything farther than the thing the camera looks at goes
+  soft; it stays sharp).
+
+Test: `node viewer/tests/flight.js`.
