@@ -12,12 +12,13 @@ head = head
   .replace(/<meta charset[^>]*>/, "").replace(/<meta name="viewport"[^>]*>/, "")
   .replace(/<link rel="manifest"[^>]*>/, "").replace(/<link rel="icon"[^>]*>/, "").replace(/<meta name="theme-color"[^>]*>/, "")
   .replace(/<link rel="stylesheet" href="styles.css"[^>]*>/, () => css(read("styles.css")));
-// A folder's load.js adds <folder>.css and its FILES list at run time; inline them instead.
+// A folder's load.js adds <folder>.css (when it has one) and its FILES list at run time; inline them instead.
 const loader = (dir) => {
   const src = read(dir + "/load.js");
   const files = JSON.parse(src.match(/const FILES = (\[[^\]]*\])/)[1]);
   const flag = src.match(/window\.(__\w+) = true/)[1];
-  return [css(read(`${dir}/${dir}.css`)), js(`window.${flag} = true;`), ...files.map((f) => js(read(dir + "/" + f)))];
+  const sheet = fs.existsSync(path.join(APP, `${dir}/${dir}.css`)) ? [css(read(`${dir}/${dir}.css`))] : [];
+  return [...sheet, js(`window.${flag} = true;`), ...files.map((f) => js(read(dir + "/" + f)))];
 };
 // rig/load.js fetches the 3D files when someone first opens 3D. The link has no files to fetch, so the code rides
 // along in the page: a small hook hands each file load.js (or rig.js, for GLTFLoader.js) asks for to the page as an
