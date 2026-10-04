@@ -74,6 +74,7 @@ const suites = [
   { name: "save, new, open a project", browser: true, ...node("tests/save-open.js") },
   { name: "bring in a video", browser: true, ...node("media/tests/browser.js") },
   { name: "3D characters", browser: true, ...node("rig/tests/browser.js", threeArgs) },
+  { name: "3D loads on first use", browser: true, ...node("rig/tests/lazy.js", threeArgs) },
   { name: "3D feet and hands (IK)", browser: true, ...node("rig/tests/ik.js", threeArgs) },
   { name: "3D lights", browser: true, ...node("rig/tests/lights.js", threeArgs) },
   { name: "3D forces", browser: true, ...node("rig/tests/dynamics.js", threeArgs) },

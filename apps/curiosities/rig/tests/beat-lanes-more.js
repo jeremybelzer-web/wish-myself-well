@@ -65,6 +65,9 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
       ["curiosities-rig3d-screen-view-v1", "curiosities-rig3d-cast-v1", "curiosities-rig3d-v1", "curiosities-rig3d-beat-v1", "curiosities-rig3d-made-v1", "curiosities-rig3d-sets-v1"].forEach((k) => localStorage.removeItem(k));
     });
     await page.reload();
+    /* the 3D files load on first use (rig/load.js): fetch them before using the add-ons */
+    await page.waitForFunction(() => window.CurioRig && window.CurioRig.load, null, { timeout: 15000 });
+    await page.evaluate(() => CurioRig.load());
     await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen() && window.CurioRigScreen && window.CurioRigScene && window.CurioEngine && window.CurioRigStaging && document.querySelector('[data-panel="rig3d"] [data-r3s="toggle"]'), null, { timeout: 15000 });
 
     /* ---------- Eyelines: on the catalog's eyeline.setting lane ---------- */

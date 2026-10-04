@@ -107,6 +107,9 @@ const HELPERS = () => {
   };
   try {
     await page.goto(base + "index.html?screen=0");
+    /* the 3D files load on first use (rig/load.js): fetch them before using the add-ons */
+    await page.waitForFunction(() => window.CurioRig && window.CurioRig.load, null, { timeout: 15000 });
+    await page.evaluate(() => CurioRig.load());
     await page.waitForFunction(() => window.CurioRig && CurioRig.gestures && document.querySelector("#lib-menu [data-rig3d]"), null, { timeout: 15000 });
     ok(await page.evaluate(() => CurioRig.extensions().some((x) => x.id === "gestures")), "Acting moves is part of the 3D view");
     const lens = await page.evaluate(() => {

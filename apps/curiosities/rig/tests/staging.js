@@ -96,6 +96,9 @@ const MADE = {
       localStorage.setItem("curiosities-rig3d-v1", JSON.stringify({ character: "made" }));
     }, MADE);
     await page.reload();
+    /* the 3D files load on first use (rig/load.js): fetch them before using the add-ons */
+    await page.waitForFunction(() => window.CurioRig && window.CurioRig.load, null, { timeout: 15000 });
+    await page.evaluate(() => CurioRig.load());
     await page.waitForFunction(() => window.CurioRig && window.CurioRigStaging && document.querySelector("#lib-menu [data-rig3d]"), null, { timeout: 15000 });
     ok(await page.evaluate(() => CurioRig.extensions().some((x) => x.id === "staging") && typeof CurioRig.maker.dress === "function"), "More than one actor is part of the 3D view, and the maker hands out its builder (CurioRig.maker.dress)");
     await page.evaluate(() => document.querySelector("#lib-menu [data-rig3d]").click());

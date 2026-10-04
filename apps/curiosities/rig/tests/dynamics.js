@@ -59,6 +59,9 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
   const wait = (ms) => page.waitForTimeout(ms);
   try {
     await page.goto(base + "index.html?screen=0");
+    /* the 3D files load on first use (rig/load.js): fetch them before using the add-ons */
+    await page.waitForFunction(() => window.CurioRig && window.CurioRig.load, null, { timeout: 15000 });
+    await page.evaluate(() => CurioRig.load());
     await page.waitForFunction(() => window.CurioRig && CurioRig.forces && document.querySelector("#lib-menu [data-rig3d]"), null, { timeout: 15000 });
     ok(await page.evaluate(() => CurioRig.extensions().some((x) => x.id === "forces")), "Forces is an add-on of the 3D view");
     await page.evaluate(() => {
