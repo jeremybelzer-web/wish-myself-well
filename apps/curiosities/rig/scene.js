@@ -21,7 +21,8 @@
    - acting moves (rig/gestures.js), in order: anything gestures.js reads ("does a double take", "shrugs").
    Each clause is one step; steps play one after another, each as long as its move (or about a second and a
    half), on the 3D view's own clock. A walk with an acting move in it or after it ("walks over to Nessa and
-   shrugs", "walks over to Nessa, then shrugs") lasts until the walker gets there: the shrug plays on arriving. The "Read as" list shows what each part understood, and anything ignored.
+   shrugs", "walks over to Nessa, then shrugs") lasts until the walker gets there: the shrug plays on arriving. So does a sit or a feeling of the walker's
+   ("walks over to Nessa and sits", "walks over to Nessa, then smiles"). The "Read as" list shows what each part understood, and anything ignored.
    "Play the beat" builds what changed and plays it from the start; "Send to the storyboard as a flip book"
    plays it and sends drawings of it (rig/snapshot.js, up to 24, as one new scene) to the storyboard.
    Free and on this device; nothing is sent anywhere.
@@ -333,8 +334,9 @@
         else if (sets.place && !mentioned.length) plan.setWords.push(plain);
       }
       /* sitting or standing: at the start ("Ida sits across from Nessa") everyone named sits from the first moment;
-         after something has happened ("Ida walks over to Nessa, sits") it is a moment of its own, for who does it */
-      const later = plan.steps.length > 0;
+         after something has happened ("Ida walks over to Nessa, sits") it is a moment of its own, for who does it,
+         and so is sitting at the end of a walk ("Ida walks over to Nessa and sits": she sits once she is there) */
+      const later = plan.steps.length > 0 || WALK.test(plain);
       if (SIT.test(plain)) {
         plan.sit = true;
         const seat = plain.match(SEAT_AT);
@@ -435,8 +437,9 @@
   /* How long each step's walk takes, worked out the way rig/staging.js walks (1.15 m a second at a normal pace,
      stopping at talking distance from a person) from where everyone stands for the beat's staging, plus a little
      to start and turn. A walk "waits" when an acting move comes in the same step ("walks over to Nessa and
-     shrugs") or later ("walks over to Nessa, then shrugs"): the walk's step then lasts until they get there, and
-     the move plays after, never at the start of the walk. -> [{ secs, wait }] per step */
+     shrugs") or later ("walks over to Nessa, then shrugs"), or a sit or a feeling of someone walking does
+     ("walks over to Nessa and sits", "..., then smiles"): the walk's step then lasts until they get there, and
+     the move, the sit or the feeling comes after, never at the start of the walk. -> [{ secs, wait }] per step */
   const WALK_SPEED = 1.15;
   /* one moment of the Screen's timeline at its normal speed (screen/ui.js plays a moment every 1.1 seconds) */
   const MOMENT = 1.1;
@@ -462,7 +465,10 @@
     }
     plan.steps.forEach((s, k) => {
       if (!s.walk) return;
-      out[k].wait = plan.steps.slice(k).some((x) => x.move);
+      /* any acting move waits; so does a sit or a feeling by someone in this walk ("walks over to Nessa and sits",
+         "..., then smiles") */
+      const mine = (x) => (x.sit || x.feel.length) && (x.who || []).some((i) => s.who.includes(i));
+      out[k].wait = plan.steps.slice(k).some((x) => x.move || mine(x));
       if (!pos) return void (out[k].secs = 2.6);
       let far = 0;
       s.who.forEach((i) => {
@@ -709,23 +715,28 @@
       let d = 0.9;
       const who = s.who;
       const wait = s.walk && St && n > 1 && walks[k].wait;
+      /* sitting down and feeling something: on arriving when the step is a walk that waits, else now (standing up
+         always comes first) */
+      const settle = (up, down) => {
+        if (((up && s.stand) || (down && s.sit)) && Sets && sitNow) {
+          who.forEach((i) => {
+            const at = sitNow.indexOf(i);
+            if (down && s.sit && at < 0) sitNow.push(i);
+            if (up && s.stand && at >= 0) sitNow.splice(at, 1);
+          });
+          Sets.sitters(ctx, sitNow.slice());
+        }
+        if (down && s.feel.length) who.forEach((i) => feel(ctx, i, s.feel));
+      };
       q.push({
         at: t,
         fn: () => {
           if (camAt[k]) camTo(ctx, camAt[k]);
           if (camAt[k] && camAt[k][FRAMES] != null && St && St.subject) St.subject(camAt[k][FRAMES], { ctx });
-          if ((s.sit || s.stand) && Sets && sitNow) {
-            who.forEach((i) => {
-              const at = sitNow.indexOf(i);
-              if (s.sit && at < 0) sitNow.push(i);
-              if (s.stand && at >= 0) sitNow.splice(at, 1);
-            });
-            Sets.sitters(ctx, sitNow.slice());
-          }
+          settle(true, !wait);
           if (s.say && St && n > 1) St.speaker(who[0], { ctx });
           if (s.look != null && St && n > 1) St.speaker(s.look, { ctx });
           who.forEach((i) => {
-            if (s.feel.length) feel(ctx, i, s.feel);
             const c = actorCtx(ctx, i);
             if (s.walk && St && n > 1) {
               const all = St.actors({ ctx });
@@ -737,6 +748,8 @@
           if (wait && S.run) S.run.wait = { who: who.slice(), until: ctx.clock + walks[k].secs + 8 };
         },
       });
+      /* the beat's clock stands still while they walk, so this comes once they get there */
+      if (wait && (s.sit || s.feel.length)) q.push({ at: t + 0.05, fn: () => settle(false, true) });
       if (s.say) d = Math.max(d, 1.5);
       if (s.move) d = Math.max(d, moveLength(ctx, s.move) + 0.15);
       if (s.feel.length && !s.move) d = Math.max(d, 1.3);
@@ -744,6 +757,9 @@
       if (wait) {
         /* the clock waits while they walk; the step goes on for the move they make on arriving */
         d = s.move ? moveLength(ctx, s.move) + 0.15 : 0.3;
+        if (s.sit) d = Math.max(d, 1.2);
+        if (s.feel.length && !s.move) d = Math.max(d, 1.3);
+        d += 0.05;
         walking += walks[k].secs;
       } else if (s.walk) d = Math.max(d, 2.2 + (s.move ? moveLength(ctx, s.move) : 0));
       t += d;
@@ -804,8 +820,8 @@
 
   /* ---------- putting the beat on the timeline ----------
      The beat becomes nodes on the Screen's curiosity lanes, one moment (row) per step, starting at the playhead
-     (a walk an acting move waits for takes as many moments as the walk does, and a move in its clause plays on
-     the moment after they arrive; lanesOf's steps say where each step and move landed),
+     (a walk an acting move, a sit or a feeling waits for takes as many moments as the walk does, and a move, sit or
+     feeling in its clause comes on the moment after they arrive; lanesOf's steps say where each step and move landed),
      as one undo step. Every character in it gets a character track (found by name, else added) with its own
      lanes, a value on every moment of the beat so nothing ramps in between: the feelings (feelingFaceLens), the
      acting move (actingLens.move, with Play it, actingLens.cue, on go where a move starts), who is speaking
@@ -852,8 +868,9 @@
   }
 
   /* What the beat puts on each lane: { n, chars: [{ i, lanes: { id: [value per moment] } }], film: { id: { k: v } },
-     camera: { id: { k: v } }, steps: [{ at, move, walk }], moment } (k: the moment of the beat, 0 is the playhead; at and
-     move: the moments a step starts and its move plays; walk: its walk in seconds). Pure: tests read it too. */
+     camera: { id: { k: v } }, steps: [{ at, move, arrive, walk }], moment } (k: the moment of the beat, 0 is the playhead;
+     at and move: the moments a step starts and its move plays; arrive: for a walk that waits, the moment they get
+     there, when its move, sit or feeling comes; walk: its walk in seconds). Pure: tests read it too. */
   function lanesOf(plan) {
     const cast = Math.max(1, plan.cast.length);
     const used = [...new Set(plan.steps.flatMap((s) => s.feel.map((x) => x[0])))];
@@ -872,7 +889,7 @@
       if (walks && s.walk && times[k].wait) {
         const span = Math.max(1, Math.ceil(times[k].secs / MOMENT));
         moveAt[k] = m + span;
-        m += span + (s.move ? 1 : 0);
+        m += span + (s.move || s.sit || s.feel.length ? 1 : 0);
       } else (moveAt[k] = m), m++;
     });
     const n = Math.max(1, m);
@@ -891,13 +908,21 @@
     plan.steps.forEach((s, k) => {
       if (s.say) spk = s.who[0];
       if (s.look != null) spk = s.look;
-      s.who.forEach((i) => {
-        if (s.feel.length && now[i]) now[i] = Object.fromEntries(s.feel);
-        if (s.sit) sitting.add(i);
-        if (s.stand) sitting.delete(i);
-      });
+      /* a walk that waits: its sit and feeling come on the moment they arrive (moveAt), with its move */
+      const late = walks && s.walk && times[k].wait;
+      let done = false;
+      const settle = () => {
+        done = true;
+        s.who.forEach((i) => {
+          if (s.feel.length && now[i]) now[i] = Object.fromEntries(s.feel);
+          if (s.sit) sitting.add(i);
+        });
+      };
+      s.who.forEach((i) => s.stand && sitting.delete(i));
+      if (!late) settle();
       const end = k + 1 < plan.steps.length ? at[k + 1] : n;
-      for (let j = at[k]; j < end; j++)
+      for (let j = at[k]; j < end; j++) {
+        if (!done && j >= moveAt[k]) settle();
         chars.forEach((c) => {
           used.forEach((f) => (c.lanes["feelingFaceLens." + f][j] = AMOUNT[Math.round(clamp(now[c.i][f] || 0, 0, 1) * 3)]));
           const mine = s.move && s.who.includes(c.i) && j === moveAt[k];
@@ -909,6 +934,8 @@
             c.lanes[WALK_TO][j] = !w ? "stays put" : typeof w.to === "number" ? "@" + w.to : w.to === "back" ? "the back" : w.to.z > 1 ? "the front" : "the middle";
           }
         });
+      }
+      if (!done) settle();
     });
     if (!plan.steps.length) chars.forEach((c) => Object.keys(c.lanes).forEach((id) => (c.lanes[id] = [])));
     const film = {};
@@ -933,7 +960,7 @@
     if (camera[FRAMES]) Object.keys(camera[FRAMES]).forEach((k) => (camera[FRAMES][k] = "@" + camera[FRAMES][k]));
     Object.keys(camera).forEach((id) => camera[id][0] == null && (camera[id][0] = id === "cameraMove" ? "none" : id === FRAMES ? "whoever is shown" : start[id]));
     /* steps: where each step starts and where its move plays, in moments, and how long its walk takes (seconds) */
-    return { n, chars, film, camera, steps: plan.steps.map((s, k) => ({ at: at[k], move: s.move ? moveAt[k] : null, walk: s.walk ? times[k].secs : 0 })), moment: MOMENT };
+    return { n, chars, film, camera, steps: plan.steps.map((s, k) => ({ at: at[k], move: s.move ? moveAt[k] : null, arrive: s.walk && times[k].wait ? moveAt[k] : null, walk: s.walk ? times[k].secs : 0 })), moment: MOMENT };
   }
 
   /* Write the beat at the playhead (or opts.row, a moment's index) as one undo step.

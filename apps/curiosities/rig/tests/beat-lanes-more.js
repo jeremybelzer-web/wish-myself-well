@@ -7,7 +7,8 @@
    off or on); "Ida and Nessa stand far apart at a diner. Ida walks over to Nessa, sits. Close-up on Ida. Ida
    smiles." is read as a walk, then a sit, then a smile with a close-up on Ida, and lanesOf gives How they stand
    together (standoff), Walks to, Sitting or standing and Who it frames; put on the timeline these land on the
-   right tracks with the right words ("the second character" is the second character track) as one undo step;
+   right tracks with the right words ("the second character" is the second character track) as one undo step,
+   the far walk lasting several moments and the sit coming on the moment Ida gets there;
    pressing the Screen's own Play stages everyone on their marks, walks Ida over to Nessa, seats her in the
    diner, and the camera's close-up frames Ida, all from the lanes (scene.js's own player never runs); a Who it
    frames node on the second character frames Nessa; going back to the start puts everyone on their marks
@@ -84,15 +85,22 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
       const B = window.CurioRigScene;
       const p = B.read(BEAT);
       const L = B.lanesOf(p);
-      return { names: p.cast.map((c) => c.name), preset: p.preset, steps: p.steps.map((s) => ({ who: s.who, walk: s.walk && s.walk.where, sit: s.sit, feel: s.feel.map((f) => f[0]).join() })), sitFirst: p.sitFirst, setText: p.setText, ida: L.chars[0].lanes, nessa: L.chars[1].lanes, film: L.film, camera: L.camera, n: L.n };
+      return { names: p.cast.map((c) => c.name), preset: p.preset, steps: p.steps.map((s) => ({ who: s.who, walk: s.walk && s.walk.where, sit: s.sit, feel: s.feel.map((f) => f[0]).join() })), sitFirst: p.sitFirst, setText: p.setText, ida: L.chars[0].lanes, nessa: L.chars[1].lanes, film: L.film, camera: L.camera, n: L.n, at: L.steps.map((x) => x.at) };
     }, BEAT);
+    /* the walk is far, so it lasts several moments; the sit comes on the moment Ida gets there, the smile after */
+    const SIT_AT = rd.at[1];
+    const CLOSE_AT = rd.at[2];
+    const N = rd.n;
+    const row = (k, v, other) => Array.from({ length: N }, (_, j) => (j === k ? v : other)).join();
+    const from = (k, before, after) => Array.from({ length: N }, (_, j) => (j < k ? before : after)).join();
     ok(rd.names.join() === "Ida,Nessa" && rd.preset === "standoff", `two people, far apart: a standoff (${rd.names}, ${rd.preset})`);
     ok(rd.steps.length === 3 && rd.steps[0].walk === "Nessa" && rd.steps[1].sit && rd.steps[1].who.join() === "0" && rd.steps[2].feel === "happy", `moments: Ida walks to Nessa, Ida sits, Ida smiles (${JSON.stringify(rd.steps)})`);
     ok(rd.sitFirst.length === 0 && /diner/.test(rd.setText) && /sitting/.test(rd.setText), `nobody sits at the start; the set is a diner with seats (${rd.setText})`);
-    ok(rd.ida["characterPath.to"].join() === "@1,stays put,stays put" && !rd.nessa["characterPath.to"].some((v) => v !== "stays put"), `Walks to: Ida to Nessa at the first moment (${rd.ida["characterPath.to"]})`);
-    ok(rd.ida["blocking.seated"].join() === "standing,sitting,sitting" && rd.nessa["blocking.seated"].join() === "standing,standing,standing", `Sitting or standing: Ida sits from the second moment, Nessa stands (${rd.ida["blocking.seated"]} / ${rd.nessa["blocking.seated"]})`);
+    ok(rd.at[0] === 0 && SIT_AT >= 3 && CLOSE_AT === SIT_AT + 1 && N === CLOSE_AT + 1, `the walk takes ${SIT_AT} moments; Ida sits on moment ${SIT_AT + 1}, when she gets there, and smiles on moment ${CLOSE_AT + 1} (${rd.at}; ${N} moments)`);
+    ok(rd.ida["characterPath.to"].join() === row(0, "@1", "stays put") && !rd.nessa["characterPath.to"].some((v) => v !== "stays put"), `Walks to: Ida to Nessa at the first moment (${rd.ida["characterPath.to"]})`);
+    ok(rd.ida["blocking.seated"].join() === from(SIT_AT, "standing", "sitting") && rd.nessa["blocking.seated"].every((v) => v === "standing"), `Sitting or standing: Ida sits once she gets there, Nessa stands (${rd.ida["blocking.seated"]} / ${rd.nessa["blocking.seated"]})`);
     ok(rd.film["blocking.together"] && rd.film["blocking.together"][0] === "standoff", `How they stand together: standoff (${JSON.stringify(rd.film["blocking.together"])})`);
-    ok(rd.camera.shotSize && rd.camera.shotSize[0] === "wide" && rd.camera.shotSize[2] === "close" && rd.camera["shotSize.who"] && rd.camera["shotSize.who"][0] === "whoever is shown" && rd.camera["shotSize.who"][2] === "@0", `Who it frames: the close-up is on Ida (${JSON.stringify(rd.camera)})`);
+    ok(rd.camera.shotSize && rd.camera.shotSize[0] === "wide" && rd.camera.shotSize[CLOSE_AT] === "close" && rd.camera["shotSize.who"] && rd.camera["shotSize.who"][0] === "whoever is shown" && rd.camera["shotSize.who"][CLOSE_AT] === "@0", `Who it frames: the close-up is on Ida (${JSON.stringify(rd.camera)})`);
     const rd2 = await page.evaluate(() => {
       const B = window.CurioRigScene;
       const p = B.read("Ida (red hair) and Nessa (black hair) sit side by side. Nessa says something. Ida stands up. Over Nessa's shoulder, Ida shrugs. Nessa walks to the middle.");
@@ -113,7 +121,7 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
       return { print: E.fingerprint(), undo: E.history().undo.length };
     });
     const put = await page.evaluate((BEAT) => window.CurioRigScene.toTimeline(BEAT), BEAT);
-    ok(put.ok && put.from === 1 && put.to === 3, `the beat goes on the timeline at moments 2 to 4 (${put.ok ? put.said : put.error})`);
+    ok(put.ok && put.from === 1 && put.to === N, `the beat goes on the timeline at moments 2 to ${N + 1} (${put.ok ? put.said : put.error})`);
     const lanes = await page.evaluate((put) => {
       const E = window.CurioEngine;
       const st = E.state();
@@ -140,10 +148,10 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         undo: E.history().undo.length,
       };
     }, put);
-    ok(lanes.order.join() === "Ida,Nessa" && lanes.idaWalk.join() === "the second character,stays put,stays put" && lanes.nessaWalk.every((v) => v === "stays put"), `Walks to on Ida's track: the second character (Nessa's track) (${lanes.idaWalk})`);
-    ok(lanes.idaSeat.join() === "standing,sitting,sitting" && lanes.nessaSeat.join() === "standing,standing,standing", `Sitting or standing on each track (${lanes.idaSeat} / ${lanes.nessaSeat})`);
+    ok(lanes.order.join() === "Ida,Nessa" && lanes.idaWalk.join() === row(0, "the second character", "stays put") && lanes.nessaWalk.every((v) => v === "stays put"), `Walks to on Ida's track: the second character (Nessa's track) (${lanes.idaWalk})`);
+    ok(lanes.idaSeat.join() === from(SIT_AT, "standing", "sitting") && lanes.nessaSeat.every((v) => v === "standing"), `Sitting or standing on each track (${lanes.idaSeat} / ${lanes.nessaSeat})`);
     ok(lanes.together && lanes.together.kind !== "character" && lanes.together.v[0] === "standoff", `How they stand together on the film's track (${JSON.stringify(lanes.together)})`);
-    ok(lanes.frames && lanes.frames.kind === "camera" && lanes.frames.v.join() === "whoever is shown,whoever is shown,the first character" && lanes.shot.v.join() === "wide,wide,close", `Who it frames on the camera track: the first character (Ida) for the close-up (${lanes.frames && lanes.frames.v}; ${lanes.shot && lanes.shot.v})`);
+    ok(lanes.frames && lanes.frames.kind === "camera" && lanes.frames.v.join() === from(CLOSE_AT, "whoever is shown", "the first character") && lanes.shot.v.join() === from(CLOSE_AT, "wide", "close"), `Who it frames on the camera track: the first character (Ida) for the close-up (${lanes.frames && lanes.frames.v}; ${lanes.shot && lanes.shot.v})`);
     ok(lanes.undo === pre.undo + 1, "all of it is one undo step");
 
     /* ---------- the Screen plays it from the lanes ---------- */
@@ -171,7 +179,7 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
       ok(start.names.join() === "Ida,Nessa" && start.preset === "standoff" && start.gap > 3, `at the start: Ida and Nessa on their standoff marks, far apart (${start.preset}, ${start.gap.toFixed(2)} m)`);
       await page.evaluate(() => document.querySelector('[data-act="play"]').click());
       const seen = await page.evaluate(
-        () =>
+        (N) =>
           new Promise((done) => {
             const ctl = window.CurioRigScreen.controller();
             const out = [];
@@ -182,30 +190,31 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
               const cam = window.CurioRigCamera.info() || {};
               const a = s.actors;
               out.push({ t: Math.round(performance.now() - t0), row: window.CurioScreen.row(), walking: a[0].walking, arrived: a[0].arrived, gap: +Math.hypot(a[0].x - a[1].x, a[0].z - a[1].z).toFixed(2), sitters: s.sitters, subject: s.subject, place: sets.place || "", idaSits: (sets.seats || []).some((x) => x.i === 0 && x.sitting), nessaSits: (sets.seats || []).some((x) => x.i === 1 && x.sitting), on: cam.on, follow: cam.follow, scene: window.CurioRigScene.state(ctl.ctx).plays });
-              if (performance.now() - t0 > 8500) {
+              if (performance.now() - t0 > 1100 * N + 2500) {
                 clearInterval(iv);
                 done(out);
               }
             }, 100);
-          })
+          }),
+        N
       );
       await page.evaluate(() => document.querySelector('[data-act="play"]').click());
       const atRow = (r) => seen.filter((x) => x.row === r);
       ok(atRow(1).some((x) => x.walking), `at moment 2 Ida walks (${JSON.stringify(atRow(1).slice(-1)[0])})`);
       const end = seen[seen.length - 1];
       ok(seen.some((x) => x.arrived > 0) && end.gap < 1.5, `Ida walked over to Nessa and stopped at talking distance (${end.gap} m)`);
-      ok(atRow(2).some((x) => x.sitters && x.sitters.join() === "0") && seen.some((x) => x.idaSits) && !seen.some((x) => x.nessaSits), `from moment 3 Ida sits on a seat of the diner, Nessa stands (${JSON.stringify(end)})`);
-      ok(seen.some((x) => x.row >= 3 && x.subject === 0 && x.follow), `from moment 4 the close-up frames Ida, actor 1 (${JSON.stringify(atRow(3).slice(-1)[0])})`);
+      ok(seen.filter((x) => x.row <= SIT_AT).every((x) => !(x.sitters || []).length) && atRow(SIT_AT + 1).some((x) => x.sitters && x.sitters.join() === "0") && seen.some((x) => x.idaSits) && !seen.some((x) => x.nessaSits), `Ida stays standing while she walks; from moment ${SIT_AT + 2}, once there, she sits on a seat of the diner, Nessa stands (${JSON.stringify(end)})`);
+      ok(seen.some((x) => x.row >= CLOSE_AT + 1 && x.subject === 0 && x.follow), `from moment ${CLOSE_AT + 2} the close-up frames Ida, actor 1 (${JSON.stringify(atRow(CLOSE_AT + 1).slice(-1)[0])})`);
       ok(seen.every((x) => x.scene === 0), "scene.js's own player never ran: the walk, the sitting and the camera came from the lanes");
 
       /* Who it frames on the second character: the close-up is on Nessa */
-      await page.evaluate((put) => {
+      await page.evaluate(({ put, CLOSE_AT }) => {
         const E = window.CurioEngine;
         const st = E.state();
         const cam = st.tracks.find((t) => t.curiosities.includes("shotSize.who"));
-        E.send({ type: "setPoint", row: put.rows[2], track: cam.id, curiosity: "shotSize.who", value: "the second character" });
-        window.CurioScreen.setRow(3);
-      }, put);
+        E.send({ type: "setPoint", row: put.rows[CLOSE_AT], track: cam.id, curiosity: "shotSize.who", value: "the second character" });
+        window.CurioScreen.setRow(CLOSE_AT + 1);
+      }, { put, CLOSE_AT });
       await page.waitForTimeout(900);
       const nessa = await page.evaluate(() => {
         const ctl = window.CurioRigScreen.controller();
@@ -248,9 +257,9 @@ const shot = async (page, name) => SHOTS && (fs.mkdirSync(SHOTS, { recursive: tr
         await page.evaluate(() => window.CurioScreen.setRow(1));
         await page.waitForTimeout(2000);
         await shot(page, "lanes-more-walk");
-        await page.evaluate(() => window.CurioScreen.setRow(2));
+        await page.evaluate((r) => window.CurioScreen.setRow(r), SIT_AT + 1);
         await page.waitForTimeout(4000);
-        await page.evaluate(() => window.CurioScreen.setRow(3));
+        await page.evaluate((r) => window.CurioScreen.setRow(r), CLOSE_AT + 1);
         await page.waitForTimeout(1500);
         /* the 3D view by itself too: Ida seated in the diner, the close-up on her */
         const cv = await page.$('[data-panel="rig3d"] canvas');
