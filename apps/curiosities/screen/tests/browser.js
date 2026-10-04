@@ -365,7 +365,7 @@ const ok = (cond, msg) => {
     const keep = await page.evaluate(() => JSON.stringify(window.CurioLanes.tools().markers));
     const rowNow = () => page.evaluate(() => window.CurioScreen.row());
     const said = () => page.evaluate(() => document.querySelector(".sl-msg").textContent);
-    await page.evaluate(() => { const t = window.CurioLanes.tools(); const st = window.CurioEngine.state(); t.markers = [{ row: st.rows[4].id, color: "red", note: "the zebra lands" }, { row: st.rows[1].id, color: "orange", note: "" }]; window.CurioScreen.setRow(0); });
+    await page.evaluate(() => { const t = window.CurioLanes.tools(); const st = window.CurioEngine.state(); t.markers = [{ row: st.rows[4].id, color: "red", note: "the joke lands" }, { row: st.rows[1].id, color: "orange", note: "" }]; window.CurioScreen.setRow(0); });
     await page.keyboard.press("Shift+BracketRight");
     const r1 = await rowNow();
     await page.keyboard.press("Shift+BracketRight");
@@ -2525,7 +2525,7 @@ const ok = (cond, msg) => {
 
     /* Jump the playhead to a marker by its note, or to "moment 3". */
     {
-      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the joke lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
+      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the zebra lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
       await page.keyboard.press("Control+k");
       await typeIn("zebra"); /* a word no curiosity uses, so the marker is the only match */
       const o = await opts();
