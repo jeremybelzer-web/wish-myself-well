@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "PERSONAL PLOT\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 33 to 48\n   1 Own plot weight\n   2 Own plot meets the main plot\n   3 What they want, against what they need\n   4 Secret\n   5 Closer to or further from the goal\n   6 Questions the audience is holding\n   7 A clock running out\n   8 Who knows first\n   9 What starts it all\n  10 Things get worse\n  11 The reversal\n  12 A choice with a cost\n  13 No going back\n  14 The other side makes a move\n  15 The forgotten plant\n  16 Showing the plan\nCV-CC 2: MIDI channel 7, CC 49 to 64\n   1 suite: Hidden agenda\n   2 suite: Chasing the wrong thing\n   3 suite: We know, they don't\n   4 suite: Bomb under the table\n   5 suite: Whodunit hook\n   6 suite: Two steps forward, one back\n   7 suite: The plan goes wrong\n   8 suite: Crossing the point of no return\n   9 suite: Enemy closing in\n  10 suite: Heist caper\n  11 pair: When a secret starts slipping, cringe rises\n  12 pair: When the character is set back, their emotional road drops\n  13 pair: When a scene ends on a cliffhanger, the audience's questions rise\n  14 pair: When the opening grabs with a question, a question opens\n  15 pair: When the clock gets tight, the scenes speed up\n  16 pair: When the audience knows first, every calm moment fills with dread\nCV-CC 3: MIDI channel 7, CC 65 to 80\n   1 pair: When a side story grows heavy enough, it gets pulled into the main plot\n   2 pair: When a side story merges into the main plot, the stakes jump\n   3 pair: When what they want is the opposite of what they need, they fight the change\n   4 pair: When what they want finally lines up with what they need, they act on what they believe\n   5 pair: When something starts it all, the audience starts asking questions\n   6 pair: When they refuse the call twice, the stakes rise\n   7 pair: When things get worse, tension climbs\n   8 pair: When trouble lands just as it was going well, hope drops\n   9 pair: When the whole plan is told, it falls apart\n  10 pair: When the real plan is hidden, a reversal follows\n  11 pair: When things flip for the worse, the goal slips away\n  12 pair: When a choice costs a lot, the feeling is held in\n  13 pair: When a choice can never be undone, there is no going back\n  14 pair: When there is no going back, the stakes rise\n  15 pair: When the other side moves, dread grows\n  16 pair: When we see the other side's move, we know first\nCV-CC 4: MIDI channel 7, CC 81 to 94\n   1 pair: When the other side is at the door, things get worse\n   2 pair: When a plant is well hidden, the reveal is bigger\n   3 pair: When the clock is down to seconds, the cuts speed up\n   4 pair: When the talk loosens up, a secret slips out\n   5 pair: When the plan is laid out in full, something is bound to go wrong\n   6 pair: When it all seems to fall apart, the hidden part of the plan pays off\n   7 pairs: Secrets and lies\n   8 pairs: Questions pull the audience forward\n   9 pairs: Knowing too much\n  10 pairs: The side story takes over\n  11 pairs: Plan to pieces\n  12 pairs: The line crossed\n  13 pairs: Enemy at the door\n  14 pairs: Heist caper: the moves"
+    "text": "PERSONAL PLOT\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 65 to 80\n   1 Own plot weight\n   2 Own plot meets the main plot\n   3 What they want, against what they need\n   4 Secret\n   5 Closer to or further from the goal\n   6 Questions the audience is holding\n   7 A clock running out\n   8 Who knows first\n   9 What starts it all\n  10 Things get worse\n  11 The reversal\n  12 A choice with a cost\n  13 No going back\n  14 The other side makes a move\n  15 The forgotten plant\n  16 Showing the plan\nCV-CC 2: MIDI channel 7, CC 81 to 96\n   1 suite: Hidden agenda\n   2 suite: Chasing the wrong thing\n   3 suite: We know, they don't\n   4 suite: Bomb under the table\n   5 suite: Whodunit hook\n   6 suite: Two steps forward, one back\n   7 suite: The plan goes wrong\n   8 suite: Crossing the point of no return\n   9 suite: Enemy closing in\n  10 suite: Heist caper\n  11 pair: When a secret starts slipping, cringe rises\n  12 pair: When the character is set back, their emotional road drops\n  13 pair: When a scene ends on a cliffhanger, the audience's questions rise\n  14 pair: When the opening grabs with a question, a question opens\n  15 pair: When the clock gets tight, the scenes speed up\n  16 pair: When the audience knows first, every calm moment fills with dread\nCV-CC 3: MIDI channel 7, CC 97 to 112\n   1 pair: When a side story grows heavy enough, it gets pulled into the main plot\n   2 pair: When a side story merges into the main plot, the stakes jump\n   3 pair: When what they want is the opposite of what they need, they fight the change\n   4 pair: When what they want finally lines up with what they need, they act on what they believe\n   5 pair: When something starts it all, the audience starts asking questions\n   6 pair: When they refuse the call twice, the stakes rise\n   7 pair: When things get worse, tension climbs\n   8 pair: When trouble lands just as it was going well, hope drops\n   9 pair: When the whole plan is told, it falls apart\n  10 pair: When the real plan is hidden, a reversal follows\n  11 pair: When things flip for the worse, the goal slips away\n  12 pair: When a choice costs a lot, the feeling is held in\n  13 pair: When a choice can never be undone, there is no going back\n  14 pair: When there is no going back, the stakes rise\n  15 pair: When the other side moves, dread grows\n  16 pair: When we see the other side's move, we know first\nCV-CC 4: MIDI channel 8, CC 1 to 14\n   1 pair: When the other side is at the door, things get worse\n   2 pair: When a plant is well hidden, the reveal is bigger\n   3 pair: When the clock is down to seconds, the cuts speed up\n   4 pair: When the talk loosens up, a secret slips out\n   5 pair: When the plan is laid out in full, something is bound to go wrong\n   6 pair: When it all seems to fall apart, the hidden part of the plan pays off\n   7 pairs: Secrets and lies\n   8 pairs: Questions pull the audience forward\n   9 pairs: Knowing too much\n  10 pairs: The side story takes over\n  11 pairs: Plan to pieces\n  12 pairs: The line crossed\n  13 pairs: Enemy at the door\n  14 pairs: Heist caper: the moves"
    },
    "pos": [
     0,
@@ -23,70 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
-    ],
-    "midi": {
-     "channel": 6
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
-    ],
-    "midi": {
-     "channel": 6
-    }
-   },
-   "pos": [
-    32,
-    0
-   ]
-  },
-  {
-   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -113,12 +49,12 @@
     }
    },
    "pos": [
-    40,
+    24,
     0
    ]
   },
   {
-   "id": 7,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -137,11 +73,75 @@
      92,
      93,
      94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    40,
+    0
+   ]
+  },
+  {
+   "id": 7,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
      -1,
      -1
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
