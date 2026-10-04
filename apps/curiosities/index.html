@@ -36,9 +36,13 @@
       .lib-menu small { font-family: var(--sans); font-size: 12px; text-transform: none; letter-spacing: 0; opacity: 0.75; }
       /* The phone bar's "Workspaces" button and its sheet: shown only on narrow screens. */
       .ws-pick, .ws-sheet-head { display: none; }
+      /* Viewer and Help ▸ App Walkthrough: buttons in the top row, moved into Library on phones so the row fits. */
+      .tabs .lib-menu button.phone-only { display: none; }
       .ws-sheet-back[hidden] { display: none; }
       @media (max-width: 600px) {
         .tabs-top { flex-wrap: nowrap; gap: 5px; }
+        .tabs-top > .cv-open-btn, .tabs-top > .cw-help { display: none; }
+        .tabs .lib-menu button.phone-only { display: grid; }
         .tabs-top > button, .tabs-top .lib > button { font-size: 10px; letter-spacing: 0.04em; padding: 6px 7px; }
         .tabs .tabs-top .proj-ind { flex: none; font-size: 0; padding: 4px 6px; }
         .tabs .tabs-top .proj-ind::before { font-size: 12px; content: "●"; }
@@ -305,5 +309,6 @@
     <script src="viewer/viewer.js"></script>
     <script src="viewer/objects.js"></script>
     <script src="viewer/build.js"></script>
+    <script src="viewer/walkthrough.js"></script>
   </body>
 </html>

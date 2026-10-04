@@ -82,3 +82,20 @@ editor** button closes it (the Screen and the rest of the app are underneath); a
 and on the Screen brings it back.
 
 Test: `node viewer/tests/browser.js` (in `tests/run-all.js --browser`).
+
+## App Walkthrough
+
+`viewer/walkthrough.js` (`window.CurioWalkthrough`) is a guided tour in thought bubbles: a cream comic-style
+bubble with a little trail of circles points at each part while the rest of the page dims. 24 steps cover the
+Viewer, then the Screen (the tour opens it), then the rest of the app (My film, Storyboard, workspaces,
+Library). Next or the → key goes on, Back or ← goes back, Escape or × stops; at the end the Viewer is back on
+top. A step whose part isn't on the page is skipped, so the tour keeps working as parts move.
+
+It starts by itself the first time someone opens the app on a device (remembered in `localStorage`
+`curio-walkthrough-seen-v1`, outside the `curiosities-*` saves on purpose). Afterward it lives under
+**Help ▾ ▸ App Walkthrough** at the top of the Viewer, the Screen and the app; the Help button is added by the
+tour itself and put back if a bar redraws, so those files need no change. `?walkthrough=0` skips the first-run
+start; automated test runs skip it unless `?walkthrough=1`. Adding a step: one entry in `STEPS` with `part`,
+`title`, `text`, `sel` (the part to light up) and `go` (what to open first).
+
+Test: `node viewer/tests/walkthrough.js` (in `tests/run-all.js --browser`).
