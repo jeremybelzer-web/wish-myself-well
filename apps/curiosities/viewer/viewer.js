@@ -1360,7 +1360,7 @@
 .cv-open-btn { font-weight: 600; }
 @media (max-width: 1100px) { .cv-main { grid-template-columns: minmax(0, 1fr) 300px; } .cv-things { grid-column: 1 / -1; order: 3; display: flex; flex-wrap: wrap; } .cv-things h3 { width: 100%; } .cv-thing { width: auto; } }
 @media (max-width: 760px) {
-  .cv-root { display: block; overflow: auto; }
+  .cv-root.cv-viewer { display: block; overflow: auto; }
   .cv-main { display: flex; flex-direction: column; padding: 6px 0; }
   .cv-pane, .cv-details, .cv-body, .cv-player { overflow: visible; }
   .cv-player { display: block; }
