@@ -340,7 +340,10 @@ const ok = (cond, msg) => {
   /* A master node: the hook trigger(id, on). */
   await T(() => {
     window.__mcalls = [];
-    window.CurioMasters = window.CurioMasters || { trigger: (id, on, o) => window.__mcalls.push([id, on, o && o.scale]) };
+    /* Spy on the hook: the real CurioMasters (masters.js) when it is loaded, a stand-in otherwise. */
+    window.CurioMasters = window.CurioMasters || {};
+    window.__mreal = window.CurioMasters.trigger;
+    window.CurioMasters.trigger = (id, on, o) => window.__mcalls.push([id, on, o && o.scale]);
     const d = document.createElement("span");
     d.setAttribute("data-master", "m1");
     d.setAttribute("data-mnode", "n1");
@@ -363,6 +366,7 @@ const ok = (cond, msg) => {
   const calls = await T(() => window.__mcalls);
   ok(calls.length === 2 && calls[0][0] === "n1" && calls[0][1] === true && calls[0][2] === -50 && calls[1][1] === null, `a master node is driven through CurioMasters.trigger(id, on, { scale }) (${JSON.stringify(calls)})`);
   ok((await T(() => window.CurioTriggers.forTarget("mnode:n1"))).length === 1, "forTarget lists a master node's triggers for its Proximity view");
+  await T(() => { if (window.__mreal) window.CurioMasters.trigger = window.__mreal; });
 
   /* The Triggers window. */
   await page.click('[data-ctr-open="list"]');
