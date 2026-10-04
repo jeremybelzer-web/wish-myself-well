@@ -86,11 +86,10 @@
     ["wave", "Waving"],
   ];
 
-  function personParts(d, pose, phase) {
-    const skin = d.skin || "#c98d63";
-    const shirt = d.color || "#4a7bd0";
-    const pants = d.pants || "#2d2f3a";
-    const hair = d.hair || "#1d1712";
+  /* the limb angles of a pose at a moment (degrees): legs and arms swing forward (negative) or back about the hip
+     or shoulder, wave lifts the right arm out to the side, waveL the left; drop lowers the body (metres). The
+     block figure and the 3D characters (viewer/rig-actors.js) are both posed from these. */
+  function limbsOf(pose, phase) {
     let legA = 0;
     let legB = 0;
     let armA = 0;
@@ -117,6 +116,14 @@
       waveL = r.waveL || 0;
       drop = r.drop || 0;
     }
+    return { legA, legB, armA, armB, wave, waveL, drop, sit: /^sit/.test(pose) };
+  }
+  function personParts(d, pose, phase) {
+    const skin = d.skin || "#c98d63";
+    const shirt = d.color || "#4a7bd0";
+    const pants = d.pants || "#2d2f3a";
+    const hair = d.hair || "#1d1712";
+    let { legA, legB, armA, armB, wave, waveL, drop } = limbsOf(pose, phase);
     const P = [];
     if (/^sit/.test(pose)) {
       drop = -0.4;
@@ -389,7 +396,7 @@
         let n = newell(pts);
         const fc = pts.reduce((a, b) => add(a, b), [0, 0, 0]).map((v) => v / pts.length);
         if ((!p.poly || p.center) && dot(n, sub(fc, cw)) < 0) n = mul(n, -1);
-        out.push({ pts, n, color: rgba, glow: !!p.glow, glass: !!p.glass, two: !!p.two, obj: def.id, tag });
+        out.push({ pts, n, color: rgba, glow: !!p.glow, glass: !!p.glass, two: !!p.two, soft: !!p.soft, obj: def.id, tag });
       });
     });
     return out;
@@ -1130,7 +1137,8 @@
       if (P.f.glass) ctx.globalAlpha = 0.28;
       ctx.fill();
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = P.f.glow ? col : "rgba(10,10,14,0.55)";
+      /* soft: a smooth surface made of many small faces (a 3D character) shows no lines between them */
+      ctx.strokeStyle = P.f.glow || P.f.soft ? col : "rgba(10,10,14,0.55)";
       ctx.lineWidth = lw;
       ctx.stroke();
       if (opts.picks) opts.picks.push({ s: P.s, obj: P.f.obj, tag: P.f.tag, n: P.f.n, pts: P.f.pts });
@@ -3070,6 +3078,8 @@
     key: KEY,
     /* ---- for add-ons (viewer/build.js) ---- */
     makers: MAKERS,
+    /* limbs(pose, phase): the limb angles a pose gives at a moment (see limbsOf) */
+    limbs: (pose, phase) => limbsOf(pose || "stand", phase || 0),
     kinds: KINDS,
     addTab: (t) => {
       if (!HOOK.tabs.some((x) => x.id === t.id)) HOOK.tabs.push(t);
