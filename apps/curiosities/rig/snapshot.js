@@ -419,6 +419,7 @@
       S.look = look;
     }
     /* captures waiting for this frame (or for a moment of the view's clock) */
+    S.drawnAt = performance.now();
     if (S.queue.length) {
       let url = "";
       while (S.queue.length && (S.queue[0].at == null || ctx.clock >= S.queue[0].at - 0.004)) {
@@ -497,16 +498,19 @@
     const jobs = [];
     const all = Array.from({ length: count }, (_, k) => new Promise((resolve) => jobs.push({ at: t0 + k * gap, done: resolve })));
     S.queue.push(...jobs);
-    const limit = setTimeout(() => {
-      /* the view stopped drawing (a hidden tab): finish with what it shows now */
+    /* Only when the view stops drawing (a hidden tab) for 3 s: finish with what it shows now. A slow but
+       running view keeps going, since its clock (not the wall clock) decides each drawing's moment. */
+    const limit = setInterval(() => {
+      if (performance.now() - (S.drawnAt || 0) < 3000) return;
+      clearInterval(limit);
       const left = jobs.filter((j) => S.queue.includes(j));
       if (!left.length) return;
       S.queue = S.queue.filter((j) => !left.includes(j));
       apply(ctx);
       const url = picture(ctx, S);
       left.forEach((j) => j.done(url));
-    }, (count * gap + 4) * 1000);
-    return Promise.all(all).finally(() => clearTimeout(limit));
+    }, 500);
+    return Promise.all(all).finally(() => clearInterval(limit));
   }
 
   /* ---------- into the storyboard ---------- */
