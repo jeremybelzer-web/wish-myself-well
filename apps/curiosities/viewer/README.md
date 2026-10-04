@@ -99,3 +99,23 @@ start; automated test runs skip it unless `?walkthrough=1`. Adding a step: one e
 `title`, `text`, `sel` (the part to light up) and `go` (what to open first).
 
 Test: `node viewer/tests/walkthrough.js` (in `tests/run-all.js --browser`).
+
+## Front and center
+
+`viewer/focus-lane.js` (`window.CurioFocusLane`) is the lane right under the picture (Jeremy, 2026-10-04):
+usually only one or two curiosities at a time move the story forward and hold the audience's attention, so
+the lane always shows which. **Leading** is who holds attention, read by the app's own attention model
+(`CurioAttention.read`, the one behind the Screen's Attention band); it holds until something else takes it.
+**With it** is the strongest other curiosity changing in that panel (the one that pushes the story hardest).
+**Suite** shows the suite the leading one or the one with it belongs to, when most of its lenses are on.
+A **⚡** marks a proximity: the one in front was set off by something else a moment before (a rule from
+`PROXIMITIES`, such as "an object enters" setting off a cut to an insert), and the line above the rows says by
+what. Click a block to jump there.
+
+Each panel is read as curiosity values: from the picture (shot size, camera height, lens and fisheye, the
+camera pushing in, pulling out or circling, people moving toward or away from the camera, people and things
+coming in or going out, rain, balloons and captions) plus the story values a panel carries in `panel.v`
+(emotion, plot progress, a reveal, a comic beat, tension, volume...). The sample has them; a saved copy of the
+sample borrows them. Hooks it uses in viewer.js: `onDraw`, `onChange`, `under`, `seek`.
+
+Test: `node viewer/tests/focus-lane.js` (in `tests/run-all.js --browser`).

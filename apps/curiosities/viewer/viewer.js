@@ -74,7 +74,7 @@
   const ADDABLE = ["person", "box", "ball", "tree", "lamp", "building"];
   /* Hooks for add-ons (viewer/build.js): extra tabs, a tool that takes over the pointer, drawings over the
      picture, extra rows in the "In the scene" list, and keys. */
-  const HOOK = { tabs: [], tool: null, over: [], things: [], keys: [] };
+  const HOOK = { tabs: [], tool: null, over: [], things: [], keys: [], draw: [], change: [] };
   const POSES = [
     ["stand", "Standing"],
     ["walk", "Walking"],
@@ -438,19 +438,19 @@
       Object.keys(change || {}).forEach((k) => Object.assign(place[k], change[k]));
       P.push(Object.assign({ id: "p" + ++n, sec, cam: cam(c), place, words: [], caption: "", note: "", rain: "fall" }, extra || {}));
     }
-    panel(2.5, { shot: 9, lens: 24, height: 22, around: 15, aim: "tuktuk", move: "glide" }, { passenger: { x: -2.2, z: 3.2, y: 0, turn: -150, pose: "walk" }, phone: { show: false } }, { note: "WIDE, high. A rain city at dusk.", caption: "A rain city at dusk. Prices glow on every wall like shop signs." });
-    panel(2, { shot: 4.2, lens: 28, height: 14, around: 30, aim: "tuktuk" }, { passenger: { x: -1.6, z: 2.4, turn: -160 } }, { note: "WIDE, high, push in. One small tuk-tuk at the curb, its little lamp on.", caption: "One small tuk-tuk at the curb, its little lamp on." });
-    panel(2, { shot: 1.1, lens: 40, height: 4, around: 78, aim: "biju" }, { passenger: { x: -1.3, z: 1.4, turn: 170 } }, { note: "MEDIUM. Biju, in the driver's seat, eats a slice of mango. Calm.", caption: "Biju eats a slice of mango. Calm." });
-    panel(2, { shot: 2.6, lens: 32, height: 8, around: 15, aim: "tuktuk", move: "cut" }, { passenger: { x: -0.6, z: 0, y: 0.55, turn: 90, pose: "sit" }, phone: { show: true } }, { note: "MEDIUM. A passenger climbs into the back, soaked, staring at a phone." });
-    panel(2, { shot: 0.32, lens: 50, height: 12, around: 10, aim: "phone" }, {}, { note: "TINY. The phone: a number counting down fast, in red.", caption: "A number counting down fast, in red." });
-    panel(2, { shot: 0.5, lens: 35, height: 2, around: 80, aim: "passenger", move: "glide" }, {}, { note: "CLOSE. The passenger's face, lit red.", words: [{ who: "passenger", text: "No. No no." }] });
-    panel(2, { shot: 0.42, lens: 22, height: 0, around: 70, aim: "passenger" }, {}, { note: "CLOSE, push in.", words: [{ who: "passenger", text: "It's gone. I had a year in there." }] });
-    panel(2, { shot: 2.3, lens: 30, height: 4, around: 8, aim: "tuktuk" }, {}, { note: "MEDIUM. Biju looks in the little mirror.", words: [{ who: "passenger", text: "Say something." }] });
-    panel(2, { shot: 0.5, lens: 50, height: 6, around: 5, aim: "napkin" }, { napkin: { show: true, turn: 0 }, phone: { show: false } }, { note: "TINY. He takes one napkin. The raindrops start to stop in the air.", caption: "He takes one napkin. The rain stops in the air.", rain: "frozen" });
-    panel(2.5, { shot: 7, lens: 20, height: 18, around: -40, aim: "tuktuk", move: "glide" }, {}, { note: "WIDE, circle. The camera goes all the way around the tuk-tuk.", caption: "Every raindrop hangs, frozen.", rain: "frozen" });
+    panel(2.5, { shot: 9, lens: 24, height: 22, around: 15, aim: "tuktuk", move: "glide" }, { passenger: { x: -2.2, z: 3.2, y: 0, turn: -150, pose: "walk" }, phone: { show: false } }, { v: { emotion: "melancholy", temperature: "cold", tensionCurve: 1 }, note: "WIDE, high. A rain city at dusk.", caption: "A rain city at dusk. Prices glow on every wall like shop signs." });
+    panel(2, { shot: 4.2, lens: 28, height: 14, around: 30, aim: "tuktuk" }, { passenger: { x: -1.6, z: 2.4, turn: -160 } }, { v: { tensionCurve: 1 }, note: "WIDE, high, push in. One small tuk-tuk at the curb, its little lamp on.", caption: "One small tuk-tuk at the curb, its little lamp on." });
+    panel(2, { shot: 1.1, lens: 40, height: 4, around: 78, aim: "biju" }, { passenger: { x: -1.3, z: 1.4, turn: 170 } }, { v: { emotion: "joyful", emotionIntensity: 1, tensionCurve: 1 }, note: "MEDIUM. Biju, in the driver's seat, eats a slice of mango. Calm.", caption: "Biju eats a slice of mango. Calm." });
+    panel(2, { shot: 2.6, lens: 32, height: 8, around: 15, aim: "tuktuk", move: "cut" }, { passenger: { x: -0.6, z: 0, y: 0.55, turn: 90, pose: "sit" }, phone: { show: true } }, { v: { plotProgress: "step forward", tensionCurve: 2 }, note: "MEDIUM. A passenger climbs into the back, soaked, staring at a phone." });
+    panel(2, { shot: 0.32, lens: 50, height: 12, around: 10, aim: "phone" }, {}, { v: { reveal: "with", plotSecret: "slipping", tensionCurve: 3 }, note: "TINY. The phone: a number counting down fast, in red.", caption: "A number counting down fast, in red." });
+    panel(2, { shot: 0.5, lens: 35, height: 2, around: 80, aim: "passenger", move: "glide" }, {}, { v: { emotion: "anxious", emotionIntensity: 4, faceIntensity: 4, tensionCurve: 4, volume: 4 }, note: "CLOSE. The passenger's face, lit red.", words: [{ who: "passenger", text: "No. No no." }] });
+    panel(2, { shot: 0.42, lens: 22, height: 0, around: 70, aim: "passenger" }, {}, { v: { plotProgress: "big setback", emotion: "melancholy", emoTurn: "flips", emotionIntensity: 5, tensionCurve: 5, volume: 3 }, note: "CLOSE, push in.", words: [{ who: "passenger", text: "It's gone. I had a year in there." }] });
+    panel(2, { shot: 2.3, lens: 30, height: 4, around: 8, aim: "tuktuk" }, {}, { v: { eyeline: "glances", tensionCurve: 5, volume: 4 }, note: "MEDIUM. Biju looks in the little mirror.", words: [{ who: "passenger", text: "Say something." }] });
+    panel(2, { shot: 0.5, lens: 50, height: 6, around: 5, aim: "napkin" }, { napkin: { show: true, turn: 0 }, phone: { show: false } }, { v: { emotion: "dreamlike", silence: "long", tensionCurve: 5, volume: 1 }, note: "TINY. He takes one napkin. The raindrops start to stop in the air.", caption: "He takes one napkin. The rain stops in the air.", rain: "frozen" });
+    panel(2.5, { shot: 7, lens: 20, height: 18, around: -40, aim: "tuktuk", move: "glide" }, {}, { v: { comicBeat: "setup planted", emotionIntensity: 3 }, note: "WIDE, circle. The camera goes all the way around the tuk-tuk.", caption: "Every raindrop hangs, frozen.", rain: "frozen" });
     panel(1.5, { shot: 7, lens: 20, height: 18, around: 140, aim: "tuktuk" }, {}, { note: "WIDE, circle (the camera arrives on the far side).", rain: "frozen" });
-    panel(2.5, { shot: 1.3, lens: 16, fish: 0.5, height: -10, around: -30, aim: "biju" }, { biju: { turn: -90, pose: "sitreach" }, napkin: { x: 0.0, y: 1.12, z: 0.3, turn: -30 } }, { note: "CLOSE, low. Biju turns and holds the napkin out with both hands, like the last wire on a bomb.", words: [{ who: "biju", text: "Wipe your face." }], rain: "frozen" });
-    panel(2.5, { shot: 0.5, lens: 50, height: 8, around: -20, aim: "napkin" }, { napkin: { x: -0.25, z: 0.3, turn: -20 } }, { note: "TINY, payoff. The fingers take it. The rain falls again.", caption: "The fingers take it. The rain falls again.", rain: "fall" });
+    panel(2.5, { shot: 1.3, lens: 16, fish: 0.5, height: -10, around: -30, aim: "biju" }, { biju: { turn: -90, pose: "sitreach" }, napkin: { x: 0.0, y: 1.12, z: 0.3, turn: -30 } }, { v: { comicBeat: "building", emotion: "absurd", emotionIntensity: 4, silence: "none", volume: 2 }, note: "CLOSE, low. Biju turns and holds the napkin out with both hands, like the last wire on a bomb.", words: [{ who: "biju", text: "Wipe your face." }], rain: "frozen" });
+    panel(2.5, { shot: 0.5, lens: 50, height: 8, around: -20, aim: "napkin" }, { napkin: { x: -0.25, z: 0.3, turn: -20 } }, { v: { comicBeat: "payoff lands", emotion: "loving", plotProgress: "step forward", tensionCurve: 1, emotionIntensity: 2 }, note: "TINY, payoff. The fingers take it. The rain falls again.", caption: "The fingers take it. The rain falls again.", rain: "fall" });
     return { v: 1, title: "The napkin (Episode 1, scene 1)", look: "dusk", objects, panels: P, sel: "biju" };
   }
 
@@ -1282,7 +1282,7 @@
 .cv-thing.off { opacity: 0.5; }
 .cv-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .cv-addrow { display: flex; flex-wrap: wrap; gap: 4px; }
-.cv-player { display: grid; grid-template-rows: minmax(0, 1fr) auto; padding: 6px; gap: 6px; overflow: hidden; }
+.cv-player { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; padding: 6px; gap: 6px; overflow: hidden; }
 .cv-stage { position: relative; min-height: 0; display: grid; place-items: center; }
 .cv-wins { display: grid; gap: 6px; justify-content: center; align-content: center; width: 100%; height: 100%; }
 .cv-win { position: relative; background: #000; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--c-line); }
@@ -1405,6 +1405,7 @@
         <aside class="cv-pane cv-things" aria-label="In the scene"></aside>
         <section class="cv-pane cv-player" aria-label="Player">
           <div class="cv-stage"><div class="cv-wins"></div><input type="file" class="cv-vfile" accept="video/*" hidden /></div>
+          <div class="cv-under" hidden></div>
           <div class="cv-transport">
             <button type="button" data-act="first" title="First panel">⏮</button>
             <button type="button" data-act="prev" title="Previous panel">◀</button>
@@ -1674,6 +1675,11 @@
       const card = root.querySelector(`.cv-card[data-i="${st.i}"] canvas`);
       if (card) drawFrame(card.getContext("2d"), card.width, card.height, st, {});
     }
+    HOOK.draw.forEach((fn) => {
+      try {
+        fn(T, st.i, total());
+      } catch (e) {}
+    });
   }
   const fmt = (s) => {
     const m = Math.floor(s / 60);
@@ -1925,6 +1931,11 @@
   /* After a change: save, redraw. full = rebuild the side panels too (not while a slider is being dragged). */
   function changed(full) {
     save();
+    HOOK.change.forEach((fn) => {
+      try {
+        fn();
+      } catch (e) {}
+    });
     if (full) drawAll();
     else {
       drawBar();
@@ -2761,6 +2772,12 @@
     onOverlay: (fn) => HOOK.over.push(fn),
     onThings: (fn) => HOOK.things.push(fn),
     onKey: (fn) => HOOK.keys.push(fn),
+    /* the strip under the picture (viewer/focus-lane.js): onDraw(fn(seconds, panel, total)) runs on every
+       drawn frame, onChange(fn) after every edit; under() is the box under the picture; seek(seconds) */
+    onDraw: (fn) => HOOK.draw.push(fn),
+    onChange: (fn) => HOOK.change.push(fn),
+    under: () => (root ? root.querySelector(".cv-under") : null),
+    seek: (t) => selectPanel(panelAt(clamp(Number(t) || 0, 0, total())).i),
     /* the live film and helpers; change the film, then call changed() */
     live: () => ({
       film,
