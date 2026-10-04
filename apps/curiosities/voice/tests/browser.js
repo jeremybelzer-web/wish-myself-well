@@ -74,8 +74,8 @@ const COVERAGE = () => {
   const hear = (t) => page.evaluate((x) => window.CurioVoice.hear(x), t);
   const row = () => page.evaluate(() => window.CurioScreen.row());
 
-  ok(await page.evaluate(() => !!document.querySelector(".cv-root .cv-mic")), "the 🎤 button is on the Screen");
-  ok(await page.evaluate(() => { const b = document.querySelector(".cv-mic").getBoundingClientRect(); const h = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!(h && h.closest(".cv-root")); }), "the 🎤 button sits on top of the Screen (nothing covers it)");
+  ok(await page.evaluate(() => !!document.querySelector(".vo-root .vo-mic")), "the 🎤 button is on the Screen");
+  ok(await page.evaluate(() => { const b = document.querySelector(".vo-mic").getBoundingClientRect(); const h = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!(h && h.closest(".vo-root")); }), "the 🎤 button sits on top of the Screen (nothing covers it)");
 
   /* Moments, and words for numbers. */
   await hear("go to moment 3");
@@ -115,12 +115,12 @@ const COVERAGE = () => {
 
   /* "Which one?": when two things fit as well, the best three, then a number picks. */
   const amb = await hear("make it warmer");
-  const choices = await page.evaluate(() => document.querySelectorAll(".cv-choices li").length);
+  const choices = await page.evaluate(() => document.querySelectorAll(".vo-choices li").length);
   ok(/Which one/.test(amb) ? choices >= 2 : true, `an unclear command offers choices to pick from (${choices} shown)`);
   if (/Which one/.test(amb)) {
     const picked = await hear("number 1");
     ok(!/nothing to pick/.test(picked) && picked.length > 0, '"number 1" picks the first choice', picked);
-    ok(await page.evaluate(() => document.querySelector(".cv-choices").hidden), "and the choices go away");
+    ok(await page.evaluate(() => document.querySelector(".vo-choices").hidden), "and the choices go away");
   }
 
   /* Things other parts of the app register. */
@@ -134,15 +134,15 @@ const COVERAGE = () => {
   ok(reg.ran === 1 && reg.a === "Spun it.", "a command registered with CurioCommands.mappable runs by voice and says its own answer", JSON.stringify(reg));
 
   /* The typed box does the same. */
-  await page.click(".cv-mic").catch(() => {});
+  await page.click(".vo-mic").catch(() => {});
   await page.evaluate(() => window.CurioVoice.stop());
-  await page.fill(".cv-q", "go to moment 2");
-  await page.press(".cv-q", "Enter");
+  await page.fill(".vo-q", "go to moment 2");
+  await page.press(".vo-q", "Enter");
   await page.waitForTimeout(100);
   ok((await row()) === 1, "typing a command in the box and pressing Enter does it");
-  ok(await page.evaluate(() => /moment 2/.test(document.querySelector(".cv-did").textContent)), "the box says what it did");
+  ok(await page.evaluate(() => /moment 2/.test(document.querySelector(".vo-did").textContent)), "the box says what it did");
   await page.evaluate(() => window.CurioVoice.help(true));
-  ok(await page.evaluate(() => /can reach <b>[\d,]+<\/b>/.test(document.querySelector(".cv-help").innerHTML)), '"What can I say?" shows examples and how many things voice can reach');
+  ok(await page.evaluate(() => /can reach <b>[\d,]+<\/b>/.test(document.querySelector(".vo-help").innerHTML)), '"What can I say?" shows examples and how many things voice can reach');
   await page.evaluate(() => window.CurioVoice.help(false));
 
   /* Every example in "What can I say?" does something (none says it found nothing or asks "which one?"). */
@@ -168,7 +168,7 @@ const COVERAGE = () => {
   report.push(["the Screen", cov1]);
   const leave = await hear("open my film");
   ok(/Opened/.test(leave) && (await page.evaluate(() => !window.CurioScreen.isOpen())), '"open my film" leaves the Screen for My film, from the bar under it', leave);
-  ok(await page.evaluate(() => !!document.querySelector(".cv-root .cv-mic") && document.querySelector(".cv-mic").offsetParent !== null), "the 🎤 button is there off the Screen too");
+  ok(await page.evaluate(() => !!document.querySelector(".vo-root .vo-mic") && document.querySelector(".vo-mic").offsetParent !== null), "the 🎤 button is there off the Screen too");
   report.push(["My film", await page.evaluate(COVERAGE)]);
   for (const ws of ["Storyboard", "Camera angle", "Color", "Comedy"]) {
     const r = await hear("open " + ws.toLowerCase());

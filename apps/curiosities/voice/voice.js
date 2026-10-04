@@ -61,7 +61,7 @@
   window.CurioCommands = CurioCommands;
 
   /* ---------- what is on the page right now ---------- */
-  const ours = (el) => !!(el.closest && el.closest(".cv-root"));
+  const ours = (el) => !!(el.closest && el.closest(".vo-root"));
   const visible = (el) => !!(el.getClientRects && el.getClientRects().length) && getComputedStyle(el).visibility !== "hidden";
   function nameOf(el) {
     const own = el.getAttribute("aria-label") || "";
@@ -144,8 +144,8 @@
   }
   function flash(el) {
     try {
-      el.classList.add("cv-flash");
-      setTimeout(() => el.classList.remove("cv-flash"), 900);
+      el.classList.add("vo-flash");
+      setTimeout(() => el.classList.remove("vo-flash"), 900);
     } catch (e) {}
   }
 
@@ -557,39 +557,39 @@
     css.textContent = CSS_TEXT;
     document.head.appendChild(css);
     root = document.createElement("div");
-    root.className = "cv-root";
-    root.innerHTML = `<button type="button" class="cv-mic" aria-label="Talk to Curiomatic (Alt+V)" title="Talk to Curiomatic: press and say what you want (Alt+V, ⌥V on a Mac)">🎤</button>
-      <div class="cv-box" role="dialog" aria-label="Voice commands" hidden>
-        <header><strong>Voice</strong><label class="cv-hf" title="Keep listening, one command per sentence, until you say &quot;stop listening&quot;"><input type="checkbox" data-cv="hf"> Hands-free</label><button type="button" data-cv="help" aria-expanded="false">What can I say?</button><button type="button" data-cv="close" aria-label="Close">×</button></header>
-        <p class="cv-live" aria-live="polite"></p>
-        <p class="cv-did" role="status" aria-live="polite"></p>
-        <ol class="cv-choices" hidden></ol>
-        <form class="cv-form"><input type="text" class="cv-q" placeholder="Or type it: &quot;go to moment 3 then play&quot;" aria-label="Type a command" autocomplete="off" spellcheck="false"><button type="submit">Do it</button></form>
-        <div class="cv-help" hidden></div>
-        <p class="cv-foot"><label><input type="checkbox" data-cv="talk"> Say the answer out loud</label> · Everything is one undo step: say "undo".</p>
+    root.className = "vo-root";
+    root.innerHTML = `<button type="button" class="vo-mic" aria-label="Talk to Curiomatic (Alt+V)" title="Talk to Curiomatic: press and say what you want (Alt+V, ⌥V on a Mac)">🎤</button>
+      <div class="vo-box" role="dialog" aria-label="Voice commands" hidden>
+        <header><strong>Voice</strong><label class="vo-hf" title="Keep listening, one command per sentence, until you say &quot;stop listening&quot;"><input type="checkbox" data-vo="hf"> Hands-free</label><button type="button" data-vo="help" aria-expanded="false">What can I say?</button><button type="button" data-vo="close" aria-label="Close">×</button></header>
+        <p class="vo-live" aria-live="polite"></p>
+        <p class="vo-did" role="status" aria-live="polite"></p>
+        <ol class="vo-choices" hidden></ol>
+        <form class="vo-form"><input type="text" class="vo-q" placeholder="Or type it: &quot;go to moment 3 then play&quot;" aria-label="Type a command" autocomplete="off" spellcheck="false"><button type="submit">Do it</button></form>
+        <div class="vo-help" hidden></div>
+        <p class="vo-foot"><label><input type="checkbox" data-vo="talk"> Say the answer out loud</label> · Everything is one undo step: say "undo".</p>
       </div>`;
     document.body.appendChild(root);
-    const box = root.querySelector(".cv-box");
-    root.querySelector(".cv-mic").addEventListener("click", () => (listening ? stop() : listen()));
-    root.querySelector(".cv-form").addEventListener("submit", (e) => {
+    const box = root.querySelector(".vo-box");
+    root.querySelector(".vo-mic").addEventListener("click", () => (listening ? stop() : listen()));
+    root.querySelector(".vo-form").addEventListener("submit", (e) => {
       e.preventDefault();
-      const q = root.querySelector(".cv-q");
+      const q = root.querySelector(".vo-q");
       const v = q.value;
       q.value = "";
       if (v.trim()) hear(v);
     });
     root.addEventListener("click", (e) => {
-      const b = e.target.closest("[data-cv]");
-      if (b && b.dataset.cv === "close") return close();
-      if (b && b.dataset.cv === "help") return toggleHelp(!helpOpen);
-      const li = e.target.closest("[data-cv-pick]");
-      if (li) hear(String(Number(li.dataset.cvPick) + 1));
-      const ex = e.target.closest("[data-cv-try]");
-      if (ex) hear(ex.dataset.cvTry);
+      const b = e.target.closest("[data-vo]");
+      if (b && b.dataset.vo === "close") return close();
+      if (b && b.dataset.vo === "help") return toggleHelp(!helpOpen);
+      const li = e.target.closest("[data-vo-pick]");
+      if (li) hear(String(Number(li.dataset.voPick) + 1));
+      const ex = e.target.closest("[data-vo-try]");
+      if (ex) hear(ex.dataset.voTry);
     });
     root.addEventListener("change", (e) => {
-      if (e.target.dataset.cv === "hf") handsFree(e.target.checked);
-      if (e.target.dataset.cv === "talk") (prefs.talkBack = e.target.checked), savePrefs();
+      if (e.target.dataset.vo === "hf") handsFree(e.target.checked);
+      if (e.target.dataset.vo === "talk") (prefs.talkBack = e.target.checked), savePrefs();
     });
     /* Keys typed in the box stay in the box (the Screen's shortcuts do not see them). */
     ["keydown", "keyup", "keypress"].forEach((t) =>
@@ -602,44 +602,44 @@
   }
   function open() {
     build();
-    root.querySelector(".cv-box").hidden = false;
+    root.querySelector(".vo-box").hidden = false;
     drawState();
   }
   function close() {
     if (!root) return;
     stop();
     handsFree(false);
-    root.querySelector(".cv-box").hidden = true;
+    root.querySelector(".vo-box").hidden = true;
   }
   function drawState() {
     if (!root) return;
-    const mic = root.querySelector(".cv-mic");
+    const mic = root.querySelector(".vo-mic");
     mic.classList.toggle("on", listening);
     mic.setAttribute("aria-pressed", String(listening));
-    root.querySelector("[data-cv=hf]").checked = !!prefs.handsFree;
-    root.querySelector("[data-cv=hf]").disabled = !Rec;
-    root.querySelector("[data-cv=talk]").checked = !!prefs.talkBack;
+    root.querySelector("[data-vo=hf]").checked = !!prefs.handsFree;
+    root.querySelector("[data-vo=hf]").disabled = !Rec;
+    root.querySelector("[data-vo=talk]").checked = !!prefs.talkBack;
   }
   function live(t) {
     if (!root) return;
-    root.querySelector(".cv-live").textContent = listening ? (t ? `“${t}”` : "Listening…") : "";
+    root.querySelector(".vo-live").textContent = listening ? (t ? `“${t}”` : "Listening…") : "";
   }
   function note(m) {
     build();
     open();
-    root.querySelector(".cv-did").textContent = m;
+    root.querySelector(".vo-did").textContent = m;
   }
   function show(heard, did) {
     build();
     open();
-    root.querySelector(".cv-live").textContent = `Heard: “${heard}”`;
-    root.querySelector(".cv-did").textContent = did;
+    root.querySelector(".vo-live").textContent = `Heard: “${heard}”`;
+    root.querySelector(".vo-did").textContent = did;
   }
   function drawChoices() {
     if (!root) return;
-    const ol = root.querySelector(".cv-choices");
+    const ol = root.querySelector(".vo-choices");
     ol.hidden = !pending;
-    ol.innerHTML = pending ? pending.list.map((it, i) => `<li data-cv-pick="${i}" role="button" tabindex="0"><b>${i + 1}</b> ${esc(it.label)}<small>${esc(where(it))}</small></li>`).join("") : "";
+    ol.innerHTML = pending ? pending.list.map((it, i) => `<li data-vo-pick="${i}" role="button" tabindex="0"><b>${i + 1}</b> ${esc(it.label)}<small>${esc(where(it))}</small></li>`).join("") : "";
   }
   const where = (it) => (/^screen:act/.test(it.group) ? "Screen action" : /^screen:cur/.test(it.group) ? "Curiosity" : /^screen:suite/.test(it.group) ? "Suite" : /^screen:moment/.test(it.group) ? "Moment" : it.group === "phrase" ? "Plain words for " + (it.words || "") : it.group === "page" ? "On the page" : "App");
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -654,15 +654,15 @@
     build();
     open();
     helpOpen = !!on;
-    const h = root.querySelector(".cv-help");
+    const h = root.querySelector(".vo-help");
     h.hidden = !helpOpen;
-    root.querySelector("[data-cv=help]").setAttribute("aria-expanded", String(helpOpen));
+    root.querySelector("[data-vo=help]").setAttribute("aria-expanded", String(helpOpen));
     if (!helpOpen) return;
     const n = everything().length;
     h.innerHTML =
       `<p>Right now I can reach <b>${n.toLocaleString()}</b> things: every button, menu and tab you can see, every Screen action and moment, every curiosity and its plain-words phrases. Say two in a row with "then". Click an example to try it.</p>` +
-      EXAMPLES.map(([t, list]) => `<h5>${esc(t)}</h5><p>${list.map((x) => `<button type="button" data-cv-try="${esc(x)}">${esc(x)}</button>`).join("")}</p>`).join("") +
-      (Rec ? "" : `<p class="cv-warn">This browser can't listen, so type commands in the box (Chrome, Edge and Safari can listen).</p>`);
+      EXAMPLES.map(([t, list]) => `<h5>${esc(t)}</h5><p>${list.map((x) => `<button type="button" data-vo-try="${esc(x)}">${esc(x)}</button>`).join("")}</p>`).join("") +
+      (Rec ? "" : `<p class="vo-warn">This browser can't listen, so type commands in the box (Chrome, Edge and Safari can listen).</p>`);
   }
 
   /* Alt+V (⌥V on a Mac; e.code, because Option changes e.key): listen, or stop listening. */
@@ -679,34 +679,34 @@
   );
 
   const CSS_TEXT = `
-.cv-root { position: fixed; left: 12px; bottom: 12px; z-index: 2147483000; font: 13px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: #e8e8ea; color-scheme: dark; }
-.cv-mic { width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a3a40; background: #1f1f24; font-size: 20px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
-.cv-mic:hover { background: #2a2a31; }
-.cv-mic.on { background: #c7354a; border-color: #ff6b7f; animation: cv-pulse 1.2s ease-in-out infinite; }
-@keyframes cv-pulse { 50% { box-shadow: 0 0 0 8px rgba(255,107,127,.25); } }
-@media (prefers-reduced-motion: reduce) { .cv-mic.on { animation: none; } }
-.cv-box { position: absolute; left: 0; bottom: 54px; width: min(380px, calc(100vw - 24px)); max-height: min(70vh, 560px); overflow: auto; background: #18181c; border: 1px solid #34343b; border-radius: 10px; padding: 10px 12px; box-shadow: 0 8px 28px rgba(0,0,0,.5); }
-.cv-box[hidden], .cv-root [hidden] { display: none !important; }
-.cv-box header { display: flex; gap: 8px; align-items: center; }
-.cv-box header strong { flex: 1; }
-.cv-box button { font: inherit; font-size: 12px; color: inherit; background: #2a2a31; border: 0; border-radius: 6px; padding: 4px 9px; cursor: pointer; }
-.cv-box button:hover { background: #34343c; }
-.cv-hf, .cv-foot label { font-size: 12px; color: #b8b8c0; display: inline-flex; gap: 4px; align-items: center; }
-.cv-live { margin: 8px 0 2px; color: #9fd3ff; min-height: 1.2em; }
-.cv-did { margin: 2px 0 8px; min-height: 1.2em; }
-.cv-choices { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; }
-.cv-choices li { background: #232329; border-radius: 6px; padding: 5px 8px; cursor: pointer; }
-.cv-choices li:hover, .cv-choices li:focus { background: #2e2e36; outline: none; }
-.cv-choices b { display: inline-block; width: 1.4em; color: #ffcf5c; }
-.cv-choices small { display: block; color: #8d8d96; margin-left: 1.6em; }
-.cv-form { display: flex; gap: 6px; }
-.cv-q { flex: 1; min-width: 0; font: inherit; color: inherit; background: #101013; border: 1px solid #3a3a40; border-radius: 6px; padding: 5px 8px; }
-.cv-help h5 { margin: 10px 0 4px; font-size: 12px; color: #b8b8c0; }
-.cv-help p { margin: 4px 0; }
-.cv-help p button { margin: 0 4px 4px 0; }
-.cv-warn { color: #ffcf5c; }
-.cv-foot { margin: 8px 0 0; font-size: 11px; color: #8d8d96; }
-.cv-flash { outline: 2px solid #ff6b7f !important; outline-offset: 2px; }
+.vo-root { position: fixed; left: 12px; bottom: 12px; z-index: 2147483000; font: 13px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: #e8e8ea; color-scheme: dark; }
+.vo-mic { width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a3a40; background: #1f1f24; font-size: 20px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+.vo-mic:hover { background: #2a2a31; }
+.vo-mic.on { background: #c7354a; border-color: #ff6b7f; animation: vo-pulse 1.2s ease-in-out infinite; }
+@keyframes vo-pulse { 50% { box-shadow: 0 0 0 8px rgba(255,107,127,.25); } }
+@media (prefers-reduced-motion: reduce) { .vo-mic.on { animation: none; } }
+.vo-box { position: absolute; left: 0; bottom: 54px; width: min(380px, calc(100vw - 24px)); max-height: min(70vh, 560px); overflow: auto; background: #18181c; border: 1px solid #34343b; border-radius: 10px; padding: 10px 12px; box-shadow: 0 8px 28px rgba(0,0,0,.5); }
+.vo-box[hidden], .vo-root [hidden] { display: none !important; }
+.vo-box header { display: flex; gap: 8px; align-items: center; }
+.vo-box header strong { flex: 1; }
+.vo-box button { font: inherit; font-size: 12px; color: inherit; background: #2a2a31; border: 0; border-radius: 6px; padding: 4px 9px; cursor: pointer; }
+.vo-box button:hover { background: #34343c; }
+.vo-hf, .vo-foot label { font-size: 12px; color: #b8b8c0; display: inline-flex; gap: 4px; align-items: center; }
+.vo-live { margin: 8px 0 2px; color: #9fd3ff; min-height: 1.2em; }
+.vo-did { margin: 2px 0 8px; min-height: 1.2em; }
+.vo-choices { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; }
+.vo-choices li { background: #232329; border-radius: 6px; padding: 5px 8px; cursor: pointer; }
+.vo-choices li:hover, .vo-choices li:focus { background: #2e2e36; outline: none; }
+.vo-choices b { display: inline-block; width: 1.4em; color: #ffcf5c; }
+.vo-choices small { display: block; color: #8d8d96; margin-left: 1.6em; }
+.vo-form { display: flex; gap: 6px; }
+.vo-q { flex: 1; min-width: 0; font: inherit; color: inherit; background: #101013; border: 1px solid #3a3a40; border-radius: 6px; padding: 5px 8px; }
+.vo-help h5 { margin: 10px 0 4px; font-size: 12px; color: #b8b8c0; }
+.vo-help p { margin: 4px 0; }
+.vo-help p button { margin: 0 4px 4px 0; }
+.vo-warn { color: #ffcf5c; }
+.vo-foot { margin: 8px 0 0; font-size: 11px; color: #8d8d96; }
+.vo-flash { outline: 2px solid #ff6b7f !important; outline-offset: 2px; }
 `;
 
   const start = () => build();
