@@ -5547,8 +5547,10 @@ document.addEventListener("click", function (e) {
     return curs.concat(suites, findActions(), findMoments());
   }
   /* Quick find's whole list ({ id, group, label, sub, run }) for voice/ (CurioScreen.commands()), so every
-     action can be said. Added to CurioScreen once it exists. */
+     action can be said. */
   const commandList = () => (page && L() ? findCatalog() : []);
+  /* Set right after this file has run (CurioScreen is made at its end); kept here, away from that line. */
+  Promise.resolve().then(() => window.CurioScreen && !window.CurioScreen.commands && (window.CurioScreen.commands = commandList));
   const FIND_KIND = { cur: "Curiosity", suite: "Suite", act: "Action", moment: "Moment" };
   /* With nothing typed: the recent picks, then a few to try. */
   const FIND_TRY = ["act:export-sheet", "act:guides-menu", "act:mark-turns", "act:history", "act:key:Shortcuts"];
@@ -5795,7 +5797,6 @@ document.addEventListener("click", function (e) {
   else setTimeout(wire, 0);
 
   window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
-  window.CurioScreen.commands = commandList;
   /* My templates: list(), save(name, note), use(id, { at, stretch, analogy }), rename(id, name, note), remove(id),
      exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick), and as an analogy
      plan(id, picks?), preview(id) (the pop-up) and analogy(id, picks?). */
