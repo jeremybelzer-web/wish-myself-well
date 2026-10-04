@@ -2126,6 +2126,225 @@ const ok = (cond, msg) => {
     ok(JSON.stringify(await page.evaluate(() => window.CurioScreen.transitions.now())) === '{"joins":{}}', "Use on every join with Cut puts every join back to a plain cut");
   }
 
+  /* Words on the frame (CapCut's Text tab, for a storyboard): T Text in the Player adds words at the playhead and
+     opens a small editor; they show only on their moments, in one of 9 spots, in a style (Title, Lower third,
+     Sign / Insert, Sound effect, Thought), size and fade; drag them on the picture to another spot; bars on a Text
+     row under My film's clip track change their moments; Delete removes them; each change is one undo step; kept
+     in curiosities-screen-text-v1 across a reload; the Export draws them and lists them; never under a caption. */
+  {
+    await page.$eval('button[data-view="screen"]', (b) => b.click());
+    await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+    if ((await page.$eval('[data-act="play"]', (b) => b.textContent)) !== "Play") await page.$eval('[data-act="play"]', (b) => b.click());
+    if (await page.$('[data-act="range-clear"]')) await page.$eval('[data-act="range-clear"]', (b) => b.click());
+    const TX = () => page.evaluate(() => window.CurioScreen.text.now());
+    const one = async () => (await TX()).items[0];
+    const undoN = () => page.evaluate(() => window.CurioStore.history().undo.length);
+    const lastUndo = () => page.evaluate(() => window.CurioStore.history().undo.slice(-1)[0]);
+    const words = () => page.$$eval(".sc-viewer.mine .sc-frame .sc-txt", (ls) => ls.map((l) => l.dataset.txt + ":" + l.querySelector(".sc-txt-w").textContent));
+    const menu = () => page.evaluate(() => { const m = document.querySelector(".sc-txt-menu"); return m ? { for: m.dataset.txtFor, text: m.textContent, focus: document.activeElement && document.activeElement.dataset ? Object.keys(document.activeElement.dataset)[0] || "" : "", styles: [...m.querySelectorAll("[data-txt-style]")].map((b) => b.textContent + "|" + b.title), spots: m.querySelectorAll("[data-txt-spot]").length, sub: !!m.querySelector("[data-txt-sub]") } : null; });
+    const n = await page.evaluate(() => window.CurioEngine.state().rows.length);
+    ok(n >= 7, `my film has enough moments for the text checks (${n})`);
+    await page.evaluate(() => { window.CurioScreen.text.now().items.forEach((t) => window.CurioScreen.text.remove(t.id)); window.CurioScreen.text.edit(null); window.CurioScreen.setRow(2); });
+    ok((await TX()).items.length === 0 && !(await page.$(".sl-top .sl-txt")) && !(await page.$(".sc-viewer.mine .sc-txt")), "no words on the frame to start, and no Text row on the timeline");
+    const tb = await page.$('.sc-transport [data-act="txt-add"]');
+    ok(!!tb && (await tb.textContent()) === "T Text" && /words on your film's picture/.test(await tb.getAttribute("title")), "the Player's transport bar has T Text, with a plain tooltip");
+    /* T Text: a Title at the playhead, bottom centre, and its editor open with the words picked. */
+    const u0 = await undoN();
+    await page.click('.sc-transport [data-act="txt-add"]');
+    let t = await one();
+    ok(t && t.from === 3 && t.to === 3 && t.style === "title" && t.spot === "bc" && t.size === "m" && t.words === "Title" && !t.fade, "T Text adds a Title at the playhead's moment (3), bottom centre, medium");
+    ok((await undoN()) === u0 + 1 && (await lastUndo()) === "Add text at moment 3", "adding it is one undo step, named plainly");
+    let mm = await menu();
+    ok(mm && mm.for === t.id && mm.focus === "txtWords" && (await page.evaluate(() => { const i = document.activeElement; return i.selectionStart === 0 && i.selectionEnd === i.value.length; })), "its editor opens with the words picked, ready to type over");
+    ok(mm && mm.styles.length === 5 && mm.styles.every((s) => { const [l, tip] = s.split("|"); return tip.startsWith(l.replace(" / Insert", " or insert") + ": ") || tip.startsWith(l + ": "); }) && mm.styles.some((s) => s === "Lower third|Lower third: a name and job in the bottom corner, like the news.") && mm.spots === 9, "the five styles each have a one-line tooltip in plain words, and the place is a 9-spot grid (" + (mm ? mm.styles.map((s) => s.split("|")[0]).join(", ") : "") + ")");
+    ok(JSON.stringify(await words()) === JSON.stringify([t.id + ":Title"]), "the words show on my film's frame");
+    await page.screenshot({ path: path.join(SHOTS, "screen-13-text-added.png") });
+    /* Typing in the editor never reaches the Screen's shortcuts (Space plays, M adds a marker, A, B, S...). */
+    const marks0 = await page.evaluate(() => window.CurioLanes.tools().markers.length);
+    const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
+    const u1 = await undoN();
+    await page.keyboard.type("Space Monkeys mask", { delay: 15 });
+    await page.keyboard.press("Backspace");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("3");
+    t = await one();
+    ok(t.words === "Space Monkeys 3", "typing changes the words (" + t.words + ")");
+    ok((await page.$eval('[data-act="play"]', (b) => b.textContent)) === "Play" && (await page.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0 && (await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0 && (await TX()).items.length === 1 && (await page.evaluate(() => window.CurioScreen.row())) === 2, "typing Space, M, S, A, K or Backspace in the editor plays nothing, adds no marker, deletes nothing and leaves the film alone");
+    ok((await undoN()) === u1 + 1, "a burst of typing is one undo step");
+    ok(JSON.stringify(await words()) === JSON.stringify([t.id + ":Space Monkeys 3"]), "the frame shows the new words as you type");
+    /* Style, size, fade: one undo step each. */
+    await page.click('.sc-txt-menu [data-txt-style="lower"]');
+    t = await one();
+    ok(t.style === "lower" && t.spot === "bl" && t.sub === "Job" && t.words === "Space Monkeys 3" && (await menu()).sub, "Lower third moves it to the bottom left (its own place) and asks for a job or role; your words stay");
+    await page.fill(".sc-txt-menu [data-txt-sub]", "Director");
+    await page.click('.sc-txt-menu [data-txt-size="l"]');
+    t = await one();
+    ok(t.sub === "Director" && t.size === "l", "the job and the size (L) can be set");
+    ok(await page.evaluate((id) => { const b = document.querySelector(`.sc-viewer.mine .sc-txt[data-txt="${id}"]`); return b && b.dataset.style === "lower" && b.dataset.size === "l" && b.querySelector(".sc-txt-sub").textContent === "Director" && b.closest(".sc-txt-spot").dataset.spot === "bl"; }, t.id), "the frame draws it as a lower third, large, bottom left, with the job under the name");
+    await page.click(".sc-txt-menu [data-txt-fade]");
+    ok((await one()).fade === true, "Fade in and out can be turned on");
+    await page.keyboard.press("Escape");
+    ok(!(await menu()), "Esc closes the editor");
+    const u2 = await undoN();
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());
+    await page.keyboard.press("Control+z");
+    ok((await one()).fade === false && (await one()).size === "l" && (await undoN()) === u2 - 1, "one ⌘Z takes back only the fade");
+    await page.keyboard.press("Control+z");
+    ok((await one()).size === "m" && (await one()).sub === "Director", "another takes back only the size");
+    await page.keyboard.press("Control+Shift+z");
+    await page.keyboard.press("Control+Shift+z");
+    ok((await one()).size === "l" && (await one()).fade === true, "⇧⌘Z redoes both");
+    /* Click the words on the frame to edit them; set the moments it shows on. */
+    await page.click(`.sc-viewer.mine .sc-txt[data-txt="${t.id}"]`);
+    mm = await menu();
+    ok(mm && mm.for === t.id, "clicking the words on the frame opens their editor");
+    await page.fill(".sc-txt-menu [data-txt-to]", "4");
+    await page.press(".sc-txt-menu [data-txt-to]", "Enter");
+    t = await one();
+    ok(t.from === 3 && t.to === 4 && (await lastUndo()) === "Lower third “Space Monkeys 3”: moments 3 to 4", "it can show from moment 3 to moment 4 (one undo step: " + (await lastUndo()) + ")");
+    await page.keyboard.press("Escape");
+    const showsOn = [];
+    for (let j = 0; j < 6; j++) {
+      await page.evaluate((j) => window.CurioScreen.setRow(j), j);
+      if ((await words()).length) showsOn.push(j + 1);
+    }
+    ok(showsOn.join() === "3,4", "the words show only on their moments (" + showsOn.join(", ") + ")");
+    /* Drag them on the picture to another spot: the top right. */
+    await page.evaluate(() => window.CurioScreen.setRow(2));
+    const fr = await page.$eval(".sc-viewer.mine .sc-frame", (f) => { const r = f.getBoundingClientRect(); return { l: r.left, t: r.top, w: r.width, h: r.height }; });
+    const wb = await page.$eval(`.sc-viewer.mine .sc-txt[data-txt="${t.id}"]`, (b) => { const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    const u3 = await undoN();
+    await page.mouse.move(wb.x, wb.y);
+    await page.mouse.down();
+    await page.mouse.move(wb.x + 20, wb.y - 10, { steps: 3 });
+    await page.mouse.move(fr.l + fr.w * 0.85, fr.t + fr.h * 0.15, { steps: 8 });
+    const grid = await page.evaluate(() => { const g = document.querySelector(".sc-viewer.mine .sc-txt-drop"); return g ? { cells: g.querySelectorAll("[data-drop]").length, on: (g.querySelector("[data-drop].on") || {}).dataset?.drop } : null; });
+    ok(grid && grid.cells === 9 && grid.on === "tr", "while dragging, the 9 spots show and the one under the pointer lights up (" + (grid && grid.on) + ")");
+    await page.mouse.up();
+    t = await one();
+    ok(t.spot === "tr" && (await undoN()) === u3 + 1 && (await page.$eval(`.sc-viewer.mine .sc-txt[data-txt="${t.id}"]`, (b) => b.closest(".sc-txt-spot").dataset.spot)) === "tr" && !(await page.$(".sc-txt-drop")), "letting go moves the words to the top right, in one undo step");
+    ok(!(await menu()), "a drag does not open the editor");
+    await page.keyboard.press("Control+z");
+    ok((await one()).spot === "bl", "⌘Z puts them back bottom left");
+    await page.keyboard.press("Control+Shift+z");
+    ok((await one()).spot === "tr", "⇧⌘Z moves them again");
+    /* The Text row on the timeline: a bar over moments 3 to 4, its ends drag to change them. */
+    const bar = () => page.evaluate((id) => { const g = document.querySelector(`.sl-top .sl-txtbar[data-txt-bar="${id}"]`); if (!g) return null; const r = g.querySelector(".sl-txtbody").getBoundingClientRect(); const mine = [...document.querySelectorAll(".sl-topsvg .sl-clip.mine rect")].map((x) => x.getBoundingClientRect()); const head = document.querySelector(".sl-corner .sl-txthead"); return { j0: Number(g.dataset.j0), j1: Number(g.dataset.j1), l: r.left, r: r.right, t: r.top, b: r.bottom, y: r.top + r.height / 2, mineBottom: Math.max(...mine.map((x) => x.bottom)), head: head ? head.textContent : "", title: g.querySelector("title").textContent }; }, t.id);
+    let bb = await bar();
+    ok(bb && bb.j0 === 2 && bb.j1 === 3 && bb.t >= bb.mineBottom - 1 && bb.t - bb.mineBottom < 12 && /T Text/.test(bb.head), "a thin bar on a Text row, just under My film's clip track, covers moments 3 to 4");
+    ok(bb && /Drag an end/.test(bb.title), "the bar's tooltip says how to change it");
+    const col = await page.evaluate(() => { const s = document.querySelector(".sl-svg").getBoundingClientRect(); return s.width / window.CurioEngine.state().rows.length; });
+    const u4 = await undoN();
+    await page.mouse.move(bb.r - 3, bb.y);
+    await page.mouse.down();
+    await page.mouse.move(bb.r - 3 + col * 2, bb.y, { steps: 6 });
+    await page.mouse.up();
+    t = await one();
+    ok(t.from === 3 && t.to === 6 && (await undoN()) === u4 + 1, "dragging the bar's right end two moments later makes it show on moments 3 to 6, in one undo step");
+    bb = await bar();
+    await page.mouse.move(bb.l + 3, bb.y);
+    await page.mouse.down();
+    await page.mouse.move(bb.l + 3 - col, bb.y, { steps: 6 });
+    await page.mouse.up();
+    t = await one();
+    ok(t.from === 2 && t.to === 6 && (await undoN()) === u4 + 2, "dragging its left end one moment earlier makes it start on moment 2");
+    bb = await bar();
+    ok(bb.j0 === 1 && bb.j1 === 5, "the bar follows (moments 2 to 6)");
+    await page.keyboard.press("Control+z");
+    ok((await one()).from === 3 && (await one()).to === 6, "⌘Z takes back only the last drag");
+    await page.keyboard.press("Control+Shift+z");
+    bb = await bar();
+    await page.mouse.click(bb.l + (bb.r - bb.l) / 2, bb.y);
+    mm = await menu();
+    ok(mm && mm.for === t.id && (await page.evaluate(() => window.CurioScreen.row())) >= 1, "clicking the bar opens the words' editor");
+    await page.keyboard.press("Escape");
+    /* A second one from the library's Text tab; Delete removes it, ⌘Z brings it back, the editor's Delete too. */
+    await page.evaluate(() => window.CurioScreen.setRow(4));
+    await page.click('[data-icat="text"]');
+    ok(!!(await page.$(".sc-grid [data-txt-add]")), "the library's Text tab has a button for words on the frame");
+    await page.click(".sc-grid [data-txt-add]");
+    let d = await TX();
+    const t2 = d.items[1];
+    ok(d.items.length === 2 && t2.from === 5 && t2.to === 5 && t2.id !== t.id, "it adds words at the playhead too (moment 5)");
+    await page.click(`.sc-txt-menu [data-txt-style="sfx"]`);
+    ok((await TX()).items[1].style === "sfx" && (await TX()).items[1].words === "POW!" && (await TX()).items[1].spot === "mc", "Sound effect turns the example words into POW!, in the middle");
+    ok((await page.$$(".sl-top .sl-txtbar")).length === 2 && (await page.evaluate(() => { const r = [...document.querySelectorAll(".sl-top .sl-txtbody")].map((x) => x.getBoundingClientRect()); return r[0].top !== r[1].top; })), "two texts on the same moments get their own rows on the Text row, so the bars never overlap");
+    await page.screenshot({ path: path.join(SHOTS, "screen-13b-text-two.png") });
+    await page.keyboard.press("Escape");
+    await page.focus(`.sc-viewer.mine .sc-txt[data-txt="${t2.id}"]`);
+    await page.keyboard.press("Delete");
+    ok((await TX()).items.length === 1 && !(await page.$(`.sc-viewer.mine .sc-txt[data-txt="${t2.id}"]`)) && (await page.evaluate(() => window.CurioEngine.fingerprint())) === fp0, "Delete on the words removes them (and nothing else)");
+    ok((await lastUndo()) === "Delete Sound effect “POW!”", "the delete is named on the undo list");
+    await page.keyboard.press("Control+z");
+    ok((await TX()).items.length === 2, "⌘Z brings them back");
+    await page.click(`.sc-viewer.mine .sc-txt[data-txt="${t2.id}"]`);
+    await page.click(".sc-txt-menu [data-txt-del]");
+    ok((await TX()).items.length === 1 && !(await menu()), "the editor's Delete removes them too, and closes the editor");
+    /* Kept across a reload. */
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-text-v1")));
+    ok(saved && saved.items.length === 1 && saved.items[0].words === "Space Monkeys 3" && saved.items[0].sub === "Director" && saved.items[0].from === 2 && saved.items[0].to === 6 && saved.items[0].spot === "tr", "the words are kept in curiosities-screen-text-v1");
+    await page.reload();
+    await page.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await page.$eval('button[data-view="screen"]', (b) => b.click());
+    await page.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+    await page.evaluate(() => window.CurioScreen.setRow(3));
+    t = await one();
+    ok(t && t.words === "Space Monkeys 3" && t.spot === "tr" && t.from === 2 && t.to === 6 && JSON.stringify(await words()) === JSON.stringify([t.id + ":Space Monkeys 3"]) && !!(await bar()), "they come back after a reload, on the frame and on the Text row");
+    /* Export: the settings list has a Text column, the storyboard sheet and the frame picture draw the words. */
+    await page.evaluate(() => {
+      window.__dl = [];
+      const real = HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click = function () {
+        if (!this.download) return real.call(this);
+        const rec = { name: this.download, text: "" };
+        window.__dl.push(rec);
+        rec.done = fetch(this.href).then((r) => r.text()).then((x) => (rec.text = x));
+      };
+    });
+    await page.click('.sc-bar [data-act="export"]');
+    await page.click('[data-export="csv"]');
+    await page.waitForFunction(() => window.__dl.length >= 1, null, { timeout: 10000 });
+    const csv = await page.evaluate(async () => (await window.__dl[0].done, window.__dl[0].text));
+    const lines = csv.replace(/^﻿/, "").trim().split("\r\n");
+    const heads = lines[0].split(",");
+    const tcol = heads.indexOf("Text");
+    ok(tcol === 3 && lines[2].includes("Lower third: Space Monkeys 3 (Director)") && lines[6].includes("Lower third: Space Monkeys 3 (Director)") && !lines[7].includes("Space Monkeys"), "the settings list has a Text column naming the words on each moment (" + (lines[2] || "").slice(0, 70) + ")");
+    await page.click('.sc-bar [data-act="export"]');
+    await page.click('[data-export="svg"]');
+    await page.waitForFunction(() => window.__dl.length >= 2, null, { timeout: 10000 });
+    const svgFile = await page.evaluate(async () => (await window.__dl[1].done, window.__dl[1].text));
+    const said = ((svgFile.match(/<g class="cf-txt" data-txt="[^"]+" data-style="lower">[\s\S]*?<\/g>/) || [""])[0].match(/<tspan[^>]*>([^<]*)<\/tspan>/g) || []).map((x) => x.replace(/<[^>]+>/g, "")).join(" ");
+    ok(said === "Space Monkeys 3 Director", "the frame as a picture (SVG) draws the words (" + said + ")");
+    await page.click('.sc-bar [data-act="export"]');
+    const [sheet] = await Promise.all([page.waitForEvent("popup", { timeout: 10000 }), page.click('[data-export="sheet"]')]);
+    await sheet.waitForLoadState();
+    const sh = await sheet.evaluate(() => [...document.querySelectorAll("figure.f")].map((f, i) => (f.querySelector('svg g.cf-txt[data-style="lower"]') && /On the frame: Lower third: Space Monkeys 3 \(Director\)/.test((f.querySelector(".tx") || {}).textContent || "") ? i + 1 : 0)).filter(Boolean));
+    await sheet.close();
+    ok(sh.join() === "2,3,4,5,6", "the storyboard sheet draws the words on moments 2 to 6 and names them under each frame (" + sh.join(", ") + ")");
+    /* Captions: words at the bottom step up above a caption while one shows, so they never overlap. */
+    await page.evaluate((id) => window.CurioScreen.text.set(id, { spot: "bc", size: "l" }), t.id);
+    const rid = await page.evaluate(() => window.CurioEngine.state().rows[3].id);
+    const marksSaved = await page.evaluate(() => JSON.stringify(window.CurioLanes.tools().markers));
+    await page.evaluate((r) => { const tl = window.CurioLanes.tools(); tl.markers = tl.markers.filter((m) => m.row !== r).concat([{ row: r, color: "blue", note: "the long note that the caption shows here, long enough to wrap onto a second line in the frame at the bottom" }]); }, rid);
+    const capWasOn = await page.evaluate(() => window.CurioScreen.captions.now().on);
+    if (!capWasOn) await page.click('.sc-transport [data-act="captions"]');
+    await page.evaluate(() => window.CurioScreen.setRow(3));
+    const gap = () => page.evaluate((id) => { const c = document.querySelector(".sc-viewer.mine .sc-cap p"); const w = document.querySelector(`.sc-viewer.mine .sc-txt[data-txt="${id}"]`); if (!c || !w) return null; const a = c.getBoundingClientRect(); const b = w.getBoundingClientRect(); const f = w.closest(".sc-frame").getBoundingClientRect(); return { overlap: !(b.bottom <= a.top || b.top >= a.bottom || b.right <= a.left || b.left >= a.right), above: b.bottom <= a.top, inside: b.top >= f.top - 1 }; }, t.id);
+    let g = await gap();
+    ok(g && !g.overlap && g.above && g.inside, "with a caption showing, words at the bottom sit above it, never on it");
+    await page.screenshot({ path: path.join(SHOTS, "screen-13c-text-caption.png") });
+    await page.evaluate((id) => window.CurioScreen.text.set(id, { spot: "bl", size: "m" }), t.id);
+    g = await gap();
+    ok(g && !g.overlap, "bottom left too");
+    if (!capWasOn) await page.click('.sc-transport [data-act="captions"]');
+    await page.evaluate((m) => { window.CurioLanes.tools().markers = JSON.parse(m); }, marksSaved);
+    /* Leave no words for the checks after this. */
+    await page.evaluate(() => { window.CurioScreen.text.now().items.forEach((x) => window.CurioScreen.text.remove(x.id)); window.CurioScreen.setRow(0); });
+    ok((await TX()).items.length === 0 && !(await page.$(".sl-top .sl-txt")), "with every text deleted, the Text row goes away");
+  }
+
   /* Quick find (⌘K, Ctrl+K on Windows; the 🔍 in the top bar): one box, typed words, results in groups
      (Curiosities, Suites, Actions, Moments and markers); arrows and Enter pick, Esc closes; the last 8 picks show
      when the box is empty; no key typed in it reaches the film. */

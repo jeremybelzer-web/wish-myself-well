@@ -537,6 +537,72 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+/* Words on the frame (CurioScreenText, CapCut's Text tab for a storyboard): the items, their moments, spots,
+   styles and sizes, the SVG the Export draws, the CSV's Text column, and the timeline's Text row packing. */
+{
+  const T = w.CurioScreenText;
+  const X = w.CurioScreenExport;
+  ok(!!T && typeof T.add === "function" && typeof T.svg === "function", "the text helpers are exposed for tests (CurioScreenText)");
+  if (T) {
+    ok(T.STYLES.map((s) => s[1]).join() === "Title,Lower third,Sign / Insert,Sound effect,Thought" && T.STYLES.every((s) => s[2].length > 20 && s[2].length < 120 && !s[2].includes("\n")), "five styles, each with a one-line tooltip in plain words");
+    ok(T.STYLES.find((s) => s[0] === "lower")[2] === "Lower third: a name and job in the bottom corner, like the news.", "Lower third says what it is like the news does");
+    ok(T.SPOTS.length === 9 && T.SPOTS.map((s) => s[0]).join() === "tl,tc,tr,ml,mc,mr,bl,bc,br" && T.SIZES.map((s) => s[1]).join() === "S,M,L", "a 9-spot grid and three sizes");
+    let d = T.add({ items: [] }, { id: "t1", from: 3 });
+    ok(JSON.stringify(d.items[0]) === JSON.stringify({ id: "t1", words: "Title", sub: "", from: 3, to: 3, spot: "bc", size: "m", style: "title", fade: false }), "a new text is a Title on one moment, bottom centre, medium, no fade");
+    ok(T.nextId(d) === "t2" && T.nextId({ items: [] }) === "t1", "each new text gets an id no other has");
+    d = T.add(d, { id: "t2", from: 2, to: 5, style: "sfx" });
+    ok(d.items[1].words === "POW!" && d.items[1].spot === "mc", "a Sound effect starts as POW! in the middle");
+    ok(T.at(d, 3).map((t) => t.id).join() === "t1,t2" && T.at(d, 2).map((t) => t.id).join() === "t2" && T.at(d, 6).length === 0, "a text shows only on its own moments");
+    let u = T.update(d, "t1", { style: "lower" });
+    ok(u.items[0].style === "lower" && u.items[0].spot === "bl" && u.items[0].words === "Name" && u.items[0].sub === "Job", "changing the style moves an untouched text to the style's own place and example words");
+    u = T.update(T.update(d, "t1", { words: "Ana", spot: "tr" }), "t1", { style: "lower" });
+    ok(u.items[0].words === "Ana" && u.items[0].spot === "tr", "but words you wrote and a place you picked stay");
+    u = T.update(d, "t2", { from: 7 });
+    ok(u.items[1].from === 7 && u.items[1].to === 7, "a first moment past the last pulls the last along");
+    u = T.update(d, "t2", { to: 1 });
+    ok(u.items[1].from === 1 && u.items[1].to === 1, "a last moment before the first pulls the first along");
+    ok(T.remove(d, "t1").items.map((t) => t.id).join() === "t2" && T.update(d, "nope", { words: "x" }).items.length === 2, "a text can be removed; changing one that isn't there changes nothing");
+    const c = T.clean({ items: [{ id: "a", from: 5, to: 2, spot: "zz", size: "huge", style: "comic", words: "line\nbreak" }, { id: "a", from: 1 }, { id: "b" }, { id: "bad id!", from: 1 }, null, { id: "c", from: "2", fade: 1 }] });
+    ok(c.items.length === 2 && c.items[0].from === 2 && c.items[0].to === 5 && c.items[0].spot === "bc" && c.items[0].size === "m" && c.items[0].style === "title" && c.items[0].words === "line break" && c.items[1].from === 2 && c.items[1].fade === true, "a broken saved list is cleaned quietly (moments in order, unknown values back to their defaults, repeats and broken items dropped)");
+    ok(T.clean("x").items.length === 0 && T.clean({ items: Array.from({ length: 90 }, (_, i) => ({ id: "t" + i, from: 1 })) }).items.length === T.MAX, "no list, no items; at most " + T.MAX + " texts");
+    ok(T.spotAt(0.1, 0.1) === "tl" && T.spotAt(0.5, 0.5) === "mc" && T.spotAt(0.9, 0.95) === "br" && T.spotAt(0.4, 0.8) === "bc", "a point on the frame falls in one of the 9 spots");
+    ok(T.wrap("one two three four five six", 9, 2).length === 2 && /…$/.test(T.wrap("one two three four five six", 9, 2)[1]) && T.wrap("short", 20, 3).join() === "short" && T.wrap("abcdefghijklmnop", 6, 3).join("|") === "abcdef|ghijkl|mnop", "long words wrap onto at most a few lines, the rest ending in …");
+    const lower = T.make({ id: "t9", from: 1, style: "lower", words: 'Ana & "Bo"', sub: "<director>" });
+    const svg = T.svg([lower, d.items[1]], { x: 0, y: 0, w: 320, h: 180 });
+    ok(/^<g class="cf-texts">/.test(svg) && svg.includes('data-style="lower"') && svg.includes('data-style="sfx"') && svg.includes("Ana &amp; &quot;Bo&quot;") && svg.includes("&lt;director&gt;") && !svg.includes("<director>"), "the Export draws each text as SVG, its words escaped");
+    ok(/rotate\(-8 /.test(svg) && svg.includes('fill="#ffd43b"') && svg.includes('fill="#22d3ee"'), "a Sound effect is drawn tilted and yellow like a comic; a Lower third has its colored edge");
+    const xs = (s) => [...s.matchAll(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)].map((m) => m.slice(1).map(Number));
+    const box = { x: 109.38, y: 0, w: 101.25, h: 180 };
+    const inside = xs(T.svg([lower], box)).every(([x, y, wd, h]) => x >= box.x - 0.1 && x + wd <= box.x + box.w + 0.1 && y >= 0 && y + h <= 180);
+    ok(inside, "in a vertical frame the words stay inside the part of the picture that shows");
+    const big = xs(T.svg([Object.assign({}, lower, { size: "l" })], { x: 0, y: 0, w: 320, h: 180 }))[0];
+    const small = xs(T.svg([Object.assign({}, lower, { size: "s" })], { x: 0, y: 0, w: 320, h: 180 }))[0];
+    ok(big[3] > small[3] * 1.6, "L draws bigger than S (" + big[3] + " to " + small[3] + " tall)");
+    const two = xs(T.svg([Object.assign({}, lower, { id: "x1", spot: "bl" }), Object.assign({}, lower, { id: "x2", spot: "bl" })], { x: 0, y: 0, w: 320, h: 180 }));
+    ok(two.length === 4 && two[0][1] + two[0][3] <= two[2][1] + 0.01, "two texts in one spot stack, never on top of each other");
+    const lifted = xs(T.svg([lower], { x: 0, y: 0, w: 320, h: 180 }, { lift: 40 }))[0];
+    const plain = xs(T.svg([lower], { x: 0, y: 0, w: 320, h: 180 }))[0];
+    ok(Math.abs(plain[1] - lifted[1] - 40) < 0.2, "the bottom row can be lifted clear of a caption");
+    ok(T.svg([], { x: 0, y: 0, w: 320, h: 180 }) === "", "no texts, nothing drawn");
+    ok(T.csvText([lower, d.items[1]]) === 'Lower third: Ana & "Bo" (<director>) · Sound effect: POW!' && T.label(lower) === 'Lower third “Ana & "Bo"”' && T.spanText({ from: 2, to: 2 }) === "moment 2" && T.spanText({ from: 2, to: 5 }) === "moments 2 to 5", "plain words for the Settings list, the undo list and the status line");
+  }
+  if (X) {
+    const ms = [
+      { n: 1, clock: "a", note: "", values: { shotSize: "wide" }, text: "" },
+      { n: 2, clock: "b", note: "", values: { shotSize: "close" }, text: "Title: The end" },
+    ];
+    const lines = X.csv(ms, { keys: [], label: (k) => k }).replace(/^﻿/, "").trim().split("\r\n");
+    ok(lines[0] === "Moment,Time,Marker note,Text,shotSize" && lines[1] === "1,a,,,wide" && lines[2] === "2,b,,Title: The end,close", "the Settings list has a Text column once any moment has words on the frame (" + lines[0] + ")");
+    ok(X.csv([ms[0]], { keys: [], label: (k) => k }).split("\r\n")[0].indexOf("Text") < 0, "and none when no moment has any");
+    const sheet = X.sheetHtml({ moments: ms.map((m) => Object.assign({}, m, { svg: "<svg></svg>", changes: "" })), shape: "wide" });
+    ok((sheet.match(/<p class="tx">On the frame: Title: The end<\/p>/g) || []).length === 1, "the storyboard sheet names the words under the frame that has them");
+  }
+  const L2 = w.CurioLanes;
+  const pk = L2.textRows([{ id: "a", j0: 0, j1: 3 }, { id: "b", j0: 2, j1: 4 }, { id: "c", j0: 4, j1: 5 }, { id: "d", j0: 6, j1: 6 }]);
+  ok(pk.count === 2 && pk.rowOf.a === 0 && pk.rowOf.b === 1 && pk.rowOf.c === 0 && pk.rowOf.d === 0, "the timeline's Text row puts overlapping bars on their own sub-rows, and reuses a row once it is free");
+  ok(L2.textRows([]).count === 0, "no texts, no rows");
+}
+
 /* The Player's guides (CapCut's guides over the picture): ui.js loaded with no page, only a stub document and
    a saved view, to check the guide list, the saved setting and where "Where attention is" glows. */
 {

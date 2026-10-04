@@ -195,6 +195,40 @@ Each change is **one undo step** on the app-wide list (⌘Z, ⇧⌘Z and History
 
 The pure part is `window.CurioScreenTransitions` (`KINDS`, `LENGTHS`, `clean`, `at`, `set`, `all`, `label`, `list`, `blend`, `style`); `CurioScreen.transitions` has `now()`, `at(into)`, `set(into, kind, len)`, `all(kind, len)`, `preview(into, p)` (holds the Player at progress p of the join, for tests) and `playing()`. `lanes.js` draws the ◇ from the `joins` mount option.
 
+## Words on the frame (Text)
+
+Like CapCut's Text tab, made for a storyboard: words drawn on My film's picture. Each text has:
+
+- **The words.** A Lower third also has a second line, the job or role.
+- **The moments it shows on**: from moment A to moment B. A new one shows on the playhead's moment only.
+- **A place in the frame**: one of 9 spots, from top left to bottom right. Each style starts in its own spot.
+- **A size**: S, M or L, measured from the frame's shorter side, so it reads the same in every Ratio and in the full Player.
+- **A style.** Each has a one-line tooltip:
+  - **Title**: big bold words across the picture, like a film's name or a chapter card. Starts bottom centre.
+  - **Lower third**: a name and job in the bottom corner, like the news. Starts bottom left.
+  - **Sign / Insert**: words written on something in the scene, like a shop sign, a letter or a phone screen. Starts top centre.
+  - **Sound effect**: a comic-book noise like POW!, drawn big, yellow and tilted. Starts in the middle.
+  - **Thought**: what someone is thinking, in a cloud bubble. Starts top right.
+- **Fade in and out**: while Play runs, the words fade in on their first moment and fade out at the end of their last.
+
+Ways to add and change them:
+
+1. **T Text** in the Player's transport bar adds a Title at the playhead and opens a small editor beside it, with the words picked so you can type over them. The library's **Text** tab starts with the same button (**T Words on the frame**), and Quick find has "Text: add words on the frame".
+2. **Click the words on the picture** to open their editor: words (and job), style, the 9-spot grid, size, the moments it shows on, and Fade. Esc or a click elsewhere closes it. Changing the style moves the words to the new style's own spot, unless you already moved them. The same goes for the example words ("Title" becomes "POW!") unless you already changed them.
+3. **Drag the words on the picture** to another spot. While you drag, the 9 spots show and the one under the pointer lights up.
+4. **Delete** (or Backspace) on the focused words removes them, and so does the editor's Delete.
+5. **The Text row on the timeline**, just under My film's clip track, shows each text as a thin bar over its moments. It is only there while the film has text. Drag a bar's end to change its first or last moment, or drag its middle to move the whole stretch. Click a bar (or press Enter on it) to open its editor; the playhead moves to it first if it isn't showing there. Bars that share moments go on separate rows so they never overlap.
+
+Keys typed in the editor stay in the editor. Space, M, S and the other Screen shortcuts do nothing there, and neither do ⌘Z or ⌘K (`inToolWindow` counts `.sc-txt-menu` as a tool window).
+
+**Captions**: while a caption shows, the words in the bottom row move up above it, so the two never cover each other.
+
+Each change is **one undo step** on the app-wide list, with a plain name ("Add text at moment 3", "Move Title “The end” to top right", "Lower third “Ana”: moments 3 to 4"). A burst of typing counts as one step. Text belongs to the Screen, not to the engine's film. It is kept in `localStorage` key `curiosities-screen-text-v1` as `{ items: [{ id, words, sub, from, to, spot, size, style, fade }] }` (moments are numbered from 1; spots are `tl tc tr ml mc mr bl bc br`; sizes `s m l`; styles `title lower sign sfx thought`). It is a part of the shared store (`engine/store.js`, part `screenText`), the same way transitions are. Without the store it is still saved, but not undoable. Like transitions, texts are keyed by moment number, so adding or removing a moment in the middle of the film does not move them.
+
+**Export** draws them: the PNG and SVG frame and every frame of the Storyboard sheet show the words in their spots, cropped to the Ratio like the picture. Each sheet frame also says "On the frame: Title: The end". The Settings list gets a **Text** column once any moment has words ("Lower third: Ana (director) · Sound effect: POW!").
+
+The pure part is `window.CurioScreenText` (`STYLES`, `SPOTS`, `SIZES`, `clean`, `nextId`, `make`, `add`, `update`, `remove`, `at`, `label`, `spanText`, `csvText`, `spotAt`, `wrap`, `svg(items, box, { lift })`). `CurioScreen.text` has `now()`, `add()`, `set(id, patch)`, `move(id, spot)`, `span(id, from, to)`, `remove(id)`, `edit(id)` and `editing()`. `lanes.js` draws the Text row from the `texts` mount option and packs it with `CurioLanes.textRows`.
+
 ## Whole film strip
 
 Jeremy, 2026-10-02 20:27Z. The viewers show one moment at a time, so the Player has a **Whole film** strip under them (`ui.js` `overviewHtml`): every moment of My film as a small storyboard frame, always squeezed to fit the width, like the thumbnails on CapCut's main track and Final Cut Pro's filmstrips. Click or drag along it to jump anywhere; the timeline scrolls to follow. The current moment is outlined, moments outside the play range are dimmed, a dot marks where the picked curiosity shows up, and a white box shows the stretch the zoomed-in timeline is showing. "▾ Whole film" folds it away (`prefs.overview`).
