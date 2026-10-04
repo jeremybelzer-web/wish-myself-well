@@ -1015,3 +1015,24 @@ p.msc-good { font-weight: 600; }
 .msc-all li { overflow-wrap: anywhere; }
 .msc-cur { color: var(--mo-ink-2); font-size: 12px; }
 .msc-ex { display: block; color: var(--mo-ink-2); }
+
+/* handoffs.js: the Hand-offs tab */
+.ho-root { display: grid; gap: 14px; }
+.ho-root section { display: grid; gap: 6px; }
+.ho-root h3 { margin: 0; }
+.ho-root p { margin: 0; overflow-wrap: anywhere; }
+.ho-big { font-size: 15px; }
+.ho-big b { font-size: 22px; }
+.ho-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ho-row, .ho-sug { border: 1px solid var(--mo-grid); border-left-width: 4px; padding: 8px 10px; display: grid; gap: 4px; background: var(--mo-surface); }
+.ho-row.ho-moves { border-left-color: var(--mo-ink); }
+.ho-row.ho-rests { border-left-style: dashed; border-left-color: var(--mo-muted); }
+.ho-say { font-size: 14px; }
+.ho-ends { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; }
+.ho-fam { display: inline-flex; align-items: center; gap: 5px; }
+.ho-letter { display: inline-block; min-width: 20px; padding: 1px 4px; border-radius: 3px; font-size: 11px; text-align: center; }
+.ho-none { color: var(--mo-ink-2); }
+.ho-arrow { font-weight: 700; }
+.ho-kind { font-size: 13px; font-weight: 600; }
+.ho-nums { border-collapse: collapse; font-size: 14px; }
+.ho-nums th, .ho-nums td { border-bottom: 1px solid var(--mo-grid); padding: 4px 10px 4px 0; text-align: left; }
