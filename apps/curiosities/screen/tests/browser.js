@@ -271,6 +271,28 @@ const ok = (cond, msg) => {
     return out;
   });
   ok(keyGuard.row === 1 && keyGuard.undo, "arrows and Space inside a tool window leave the film behind it alone");
+  /* The Viewer (Draw & build) open over the Screen marks <html> with cv-open: the Screen's keys stay quiet. */
+  const viewerGuard = await page.evaluate(() => {
+    window.CurioScreen.setRow(1);
+    if (document.activeElement) document.activeElement.blur();
+    document.documentElement.classList.add("cv-open");
+    const send = (key, o) => document.body.dispatchEvent(new KeyboardEvent("keydown", Object.assign({ key, bubbles: true, cancelable: true }, o || {})));
+    const undo0 = window.CurioEngine.history().undo.length;
+    const marks0 = JSON.stringify(window.CurioLanes.tools().markers || []);
+    send("ArrowRight");
+    send(" ");
+    send("m");
+    send("k", { metaKey: true });
+    send("z", { metaKey: true });
+    const out = { row: window.CurioScreen.row(), undo: window.CurioEngine.history().undo.length === undo0, marks: JSON.stringify(window.CurioLanes.tools().markers || []) === marks0, find: !document.querySelector(".sc-find:not([hidden])") };
+    document.documentElement.classList.remove("cv-open");
+    send("ArrowRight");
+    out.after = window.CurioScreen.row();
+    window.CurioScreen.setRow(1);
+    return out;
+  });
+  ok(viewerGuard.row === 1 && viewerGuard.undo && viewerGuard.marks && viewerGuard.find, "with the Viewer open over the Screen (html.cv-open), arrows, Space, M, ⌘K and ⌘Z leave the Screen alone");
+  ok(viewerGuard.after === 2, "and once the Viewer closes the Screen's keys work again (" + viewerGuard.after + ")");
   ok(await page.evaluate(() => window.CurioScreen.removePanel("test-dock") && window.CurioScreen.removePanel("test-dock-2") && !document.querySelector('.sc-dock[data-panel^="test-dock"]')), "a docked panel can be taken off again");
 
   /* Maya's ghosting, the play range, and the momentum box. */
