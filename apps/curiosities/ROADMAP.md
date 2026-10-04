@@ -44,8 +44,8 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 632 curiosities, 412 suites,
-898 proximities, 176 proximity suites and 13,827 sliders, across 32 workspaces, plus 32 model scenes.
+Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 652 curiosities, 438 suites,
+998 proximities, 193 proximity suites and 14,976 sliders, across 32 workspaces, plus 32 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -78,6 +78,8 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 632
 - [x] Filters, camera angles, character types and wardrobe, deeper: 20 curiosities (a glow around bright things, blacks that swallow the detail, over the shoulder, the camera at a child's height, the trickster, the caretaker, the rival who becomes a friend, a change of clothes marks the turn, taking off the uniform ...)
 - [x] Style playbooks: 16 directing styles you can apply to your own film, each a look plus its signature "When ..., then ..." moves, in the spirit of Tarantino, Wes Anderson, Hitchcock, Keaton, Spielberg, Ozu, Nora Ephron, Soderbergh and others (data/db-styles.js)
 - [x] Light, effects, layers, structure and the emotional road, deeper: 21 curiosities (a light that flickers when something is wrong, only an outline against the light, rain on the window, fog that hides then shows, one thing keeps its color, a map that shows the journey, the story told backwards, a glimpse of what is coming, it seems to end but doesn't, all seems lost, the calm before the storm ...)
+- [x] Comedy, deeper again: 20 curiosities (the wrong person overhears, trying too hard to be cool, taking it literally, the plan that fails at step one, the long walk of shame, the deliberately cheap effect, the joke you catch the second time, mistaken for someone else, the animal that steals the scene, a war fought politely, two talks that cross, everyone fixing it at once ...)
+- [x] Comedy style playbooks: 12 comedy styles, in the spirit of Mel Brooks, Monty Python, Edgar Wright, Judd Apatow, the Coen brothers, Chaplin, Jarmusch and Kaurismaki, Wilder and Sturges, Ricky Gervais, the Airplane! team, John Hughes and Lubitsch (data/db-styles-comedy.js)
 - [x] Database check for near-duplicates and film jargon (report: /mnt/project-files/database/audit-2026-10-03.md). 104 labels and 200 descriptions rewritten in plain words (data/db-plain.js); nothing merged or deleted yet
 - [ ] Jeremy and Sharani decide the 24 possible merges in the audit (keep, merge or rename), then the database thread merges them
 - [x] Momentum: attention meter, pie, timeline, cues, momentum notes, film rates, the Prism Compass, attention lanes on the engine and a performable meter (PRs #18, #20, #21); the meter beside the Screen's Player (draft PR, Momentum thread)
@@ -123,7 +125,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 632
 - [ ] Logins and cloud sync, optional (Phase 3)
 - [ ] Desktop app (Phase 4)
 - [ ] Panel inside Maya, with curiosities driving the camera and keys (Phase 5)
-- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 2,118 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). The extra jacks past the first 105 modules now go on a second MIDI cable, so the database can keep growing. Next: someone with VCV Rack opens the files and builds the plugin
+- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 2,281 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). The extra jacks past the first 105 modules now go on a second MIDI cable, so the database can keep growing. Next: someone with VCV Rack opens the files and builds the plugin
 - [ ] Other tools: Unreal, Blender, Resolve (Phase 7)
 
 ## 6. Checks with people
