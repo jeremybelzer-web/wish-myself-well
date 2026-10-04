@@ -67,7 +67,10 @@
     const visitsS = Array.from({ length: visits }, (_, i) => `<rect x="${240 + i * 14}" y="22" width="10" height="10" rx="2" fill="#7fd1ae"/>`).join("");
     const pieS = k.pie({ x: 300, y: 50, r: 11, p: here, color: "#ffd166" });
     const turfLabel = chip(k, 8, 52, ["nobody's", "a stranger's", "shared", "the hero's own"][idx(v, "homeTurf")] + " place", "#ccc");
-    return k.bg("#141418") + placeLayer + strangeTint + glow + pers + `<rect x="0" y="16" width="320" height="22" fill="rgba(0,0,0,0.5)"/>` + strip + visitsS + pieS + turfLabel + cap(k, `${v("setting")} · seen through ${eye} · ${["familiar", "", "", "", "", "strange"][Math.round(strange * 5)] || "a little strange"}`.replace(" ·  ·", " ·"));
+    /* Where it happens (the 3D view builds a simple set of it). */
+    const PLACE_ICON = { anywhere: "❔", "a room": "🚪", "a kitchen": "🍳", "a bedroom": "🛏️", "a living room": "🛋️", "an office": "💼", "a classroom": "🏫", "a diner": "🍔", "a bar": "🍸", "a stage": "🎭", "inside a car": "🚗", "a bathroom": "🛁", "a store": "🛒", "a garage": "🔧", "a road": "🛣️", "a street": "🏙️", "a park": "🌳", "a forest": "🌲", "a beach": "🏖️", "a desert": "🏜️", "a farm": "🚜", "a backyard": "🏡", "a parking lot": "🅿️", outside: "☀️" };
+    const placeChip = v.slider("place") ? chip(k, 8, 70, `${PLACE_ICON[String(v("place"))] || "📍"} ${v("place")}`, "#ffd166") : "";
+    return k.bg("#141418") + placeLayer + strangeTint + glow + pers + `<rect x="0" y="16" width="320" height="22" fill="rgba(0,0,0,0.5)"/>` + strip + visitsS + pieS + turfLabel + placeChip + cap(k, `${v("setting")} · seen through ${eye} · ${["familiar", "", "", "", "", "strange"][Math.round(strange * 5)] || "a little strange"}`.replace(" ·  ·", " ·"));
   });
 
   /* ---------- temperature ---------- */
