@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "EMOTIONAL ROAD\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 13, CC 49 to 64\n   1 Where this character is on their road\n   2 Where the film is on its road\n   3 Does the feeling turn\n   4 Hidden to shown\n   5 How far the feeling spreads\n   6 Catharsis\n   7 Feeling held in\n   8 Hope\n   9 What they stand to lose\n  10 Breather\n  11 False high, false low\n  12 Two roads\n  13 A feeling comes back\n  14 Warmth between two\n  15 Dread\n  16 On their side, or against them\nCV-CC 2: MIDI channel 13, CC 65 to 80\n   1 Nostalgia\n   2 Longing\n   3 Guilt\n   4 Earned tears\n   5 Cool or warm telling\n   6 Feeling left when the film ends\n   7 Grief\n   8 Loneliness\n   9 Betrayal\n  10 Forgiveness\n  11 Resentment\n  12 All seems lost\n  13 The calm before the storm\n  14 A small win to hold on to\n  15 We already know it ends badly\n  16 The moment we're all waiting for\nCV-CC 3: MIDI channel 13, CC 81 to 96\n   1 suite: Emotional road lens\n   2 suite: Rock bottom\n   3 suite: Hope dies\n   4 suite: The midpoint win\n   5 suite: A rest stop\n   6 suite: Crossed roads\n   7 suite: The old song\n   8 suite: Slow dread\n   9 suite: Everything to lose\n  10 suite: Earned release\n  11 suite: Tearjerker finale\n  12 suite: Slow-burn grudge\n  13 suite: Bittersweet ending\n  14 suite: Cold and distant\n  15 suite: Lonely heart\n  16 suite: A guilty conscience\nCV-CC 4: MIDI channel 13, CC 97 to 112\n   1 suite: Stab in the back\n   2 suite: Making peace\n   3 suite: Rose-tinted past\n   4 suite: Rooting for the wrong one\n   5 suite: Back from the bottom\n   6 suite: The long-awaited meeting\n   7 suite: Slow-burn dread\n   8 pair: When a character reaches their lowest point, their feeling turns\n   9 pair: After a low scene, a laugh\n  10 pair: A hidden feeling bursts out later\n  11 pair: After tension peaks, release follows\n  12 pair: When enough feeling is held in, it comes out\n  13 pair: When a false high peaks, the fall follows\n  14 pair: When a big feeling peaks, a breather follows\n  15 pair: When the stakes rise, hope gets fragile\n  16 pair: When hope is lost, the release comes later\nCV-CC 5: MIDI channel 14, CC 1 to 16\n   1 pair: When an old feeling comes back changed, the release arrives\n   2 pair: When dread builds, the music thins out\n   3 pair: When the warmth cools, the two roads part\n   4 pair: When the dread is lifted, a laugh comes\n   5 pair: When dread builds, a character's attention starts narrowing\n   6 pair: When we feel with them, their tears feel earned\n   7 pair: When we turn against them, we stop feeling with them\n   8 pair: When they show gentle care, we take their side\n   9 pair: When an old tune returns, nostalgia comes with it\n  10 pair: When nostalgia rises, the color warms\n  11 pair: When the past calls, longing grows\n  12 pair: When longing grows, loneliness follows\n  13 pair: When loneliness grows, the frame empties around them\n  14 pair: When loneliness grows, the music falls away\n  15 pair: When guilt grows, they hold more in\n  16 pair: When guilt grows, words stop matching meaning\nCV-CC 6: MIDI channel 14, CC 17 to 32\n   1 pair: When jealousy lingers, it hardens into a grudge\n   2 pair: When the tears are earned, the release arrives\n   3 pair: When the telling turns ice cold, we feel less with them\n   4 pair: When the telling warms, the camera moves closer\n   5 pair: When the big release comes, the ending stays with us\n   6 pair: When an old feeling comes back, the ending lingers longer\n   7 pair: When hope is lost, grief sets in\n   8 pair: When grief is heavy, a laugh slips in\n   9 pair: When they are betrayed, the warmth goes cold\n  10 pair: When they are betrayed, a grudge takes root\n  11 pair: When the grudge nears boiling, anger breaks out\n  12 pair: When they forgive, the warmth comes back\n  13 pair: When they forgive, the big release comes\n  14 pair: When hope comes back, the picture softens\n  15 pair: When dread runs high, the colors start to go wrong\n  16 pair: When grief gets heavier, the rain comes to the window\nCV-CC 7: MIDI channel 14, CC 33 to 48\n   1 pair: When the calm before the storm lasts longer, the sky turns harder\n   2 pair: When a feeling comes back, the memory shows over the present\n   3 pair: When all seems lost, hope drops\n   4 pair: When they hit the bottom, a small win comes next\n   5 pair: When the small win matters more, hope rises\n   6 pair: When only the audience knows the storm is coming, dread rises\n   7 pair: When the calm lasts longer, tenderness grows\n   8 pair: When we are surer it ends badly, the tears are earned\n   9 pair: When the happy moments come before a known bad end, our feelings get mixed\n  10 pair: When the moment is held back longer, hope builds\n  11 pair: When the moment finally comes and beats our hopes, relief floods in\n  12 pair: When the audience knows the danger first, every calm line adds dread\n  13 pair: When someone leaves home for good, the house goes lonely\n  14 pair: When they argue, they warm to each other\n  15 pair: When a mix-up pulls them apart, the longing grows\n  16 pair: When summer turns to autumn, the longing sets in\nCV-CC 8: MIDI channel 14, CC 49 to 64\n   1 pair: When their shame is seen by others, the resentment boils\n   2 pair: When a small win comes after many losses, the relief is huge\n   3 pair: When nobody shows a feeling, the loneliness shows through\n   4 pair: When dawn comes, the friends finally say what they mean\n   5 pairs: Emotional rollercoaster\n   6 pairs: The dam breaks\n   7 pairs: The fall and the rise\n   8 pairs: Rest after a big feeling\n   9 pairs: The pressure cooker\n  10 pairs: From loss to letting go\n  11 pairs: Betrayed, then forgiven\n  12 pairs: Getting it off their chest\n  13 pairs: The ache of missing\n  14 pairs: Earning the tears\n  15 pairs: The climb back\n  16 pairs: Slow-burn dread: the moves"
+    "text": "EMOTIONAL ROAD\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 13, CC 81 to 96\n   1 Where this character is on their road\n   2 Where the film is on its road\n   3 Does the feeling turn\n   4 Hidden to shown\n   5 How far the feeling spreads\n   6 Catharsis\n   7 Feeling held in\n   8 Hope\n   9 What they stand to lose\n  10 Breather\n  11 False high, false low\n  12 Two roads\n  13 A feeling comes back\n  14 Warmth between two\n  15 Dread\n  16 On their side, or against them\nCV-CC 2: MIDI channel 13, CC 97 to 112\n   1 Nostalgia\n   2 Longing\n   3 Guilt\n   4 Earned tears\n   5 Cool or warm telling\n   6 Feeling left when the film ends\n   7 Grief\n   8 Loneliness\n   9 Betrayal\n  10 Forgiveness\n  11 Resentment\n  12 All seems lost\n  13 The calm before the storm\n  14 A small win to hold on to\n  15 We already know it ends badly\n  16 The moment we're all waiting for\nCV-CC 3: MIDI channel 14, CC 1 to 16\n   1 The feeling hits later\n   2 A thing that holds a feeling\n   3 A feeling that grows the whole film\n   4 The come-down after a high\n   5 Trading places in feeling\n   6 The feeling nobody names\n   7 Love the other never sees\n   8 The empty place\n   9 suite: Emotional road lens\n  10 suite: Rock bottom\n  11 suite: Hope dies\n  12 suite: The midpoint win\n  13 suite: A rest stop\n  14 suite: Crossed roads\n  15 suite: The old song\n  16 suite: Slow dread\nCV-CC 4: MIDI channel 14, CC 17 to 32\n   1 suite: Everything to lose\n   2 suite: Earned release\n   3 suite: Tearjerker finale\n   4 suite: Slow-burn grudge\n   5 suite: Bittersweet ending\n   6 suite: Cold and distant\n   7 suite: Lonely heart\n   8 suite: A guilty conscience\n   9 suite: Stab in the back\n  10 suite: Making peace\n  11 suite: Rose-tinted past\n  12 suite: Rooting for the wrong one\n  13 suite: Back from the bottom\n  14 suite: The long-awaited meeting\n  15 suite: The hole in the family\n  16 suite: Love that takes its time\nCV-CC 5: MIDI channel 14, CC 33 to 48\n   1 suite: After the party\n   2 suite: Holding each other up\n   3 suite: Slow-burn dread\n   4 pair: When a character reaches their lowest point, their feeling turns\n   5 pair: After a low scene, a laugh\n   6 pair: A hidden feeling bursts out later\n   7 pair: After tension peaks, release follows\n   8 pair: When enough feeling is held in, it comes out\n   9 pair: When a false high peaks, the fall follows\n  10 pair: When a big feeling peaks, a breather follows\n  11 pair: When the stakes rise, hope gets fragile\n  12 pair: When hope is lost, the release comes later\n  13 pair: When an old feeling comes back changed, the release arrives\n  14 pair: When dread builds, the music thins out\n  15 pair: When the warmth cools, the two roads part\n  16 pair: When the dread is lifted, a laugh comes\nCV-CC 6: MIDI channel 14, CC 49 to 64\n   1 pair: When dread builds, a character's attention starts narrowing\n   2 pair: When we feel with them, their tears feel earned\n   3 pair: When we turn against them, we stop feeling with them\n   4 pair: When they show gentle care, we take their side\n   5 pair: When an old tune returns, nostalgia comes with it\n   6 pair: When nostalgia rises, the color warms\n   7 pair: When the past calls, longing grows\n   8 pair: When longing grows, loneliness follows\n   9 pair: When loneliness grows, the frame empties around them\n  10 pair: When loneliness grows, the music falls away\n  11 pair: When guilt grows, they hold more in\n  12 pair: When guilt grows, words stop matching meaning\n  13 pair: When jealousy lingers, it hardens into a grudge\n  14 pair: When the tears are earned, the release arrives\n  15 pair: When the telling turns ice cold, we feel less with them\n  16 pair: When the telling warms, the camera moves closer\nCV-CC 7: MIDI channel 14, CC 65 to 80\n   1 pair: When the big release comes, the ending stays with us\n   2 pair: When an old feeling comes back, the ending lingers longer\n   3 pair: When hope is lost, grief sets in\n   4 pair: When grief is heavy, a laugh slips in\n   5 pair: When they are betrayed, the warmth goes cold\n   6 pair: When they are betrayed, a grudge takes root\n   7 pair: When the grudge nears boiling, anger breaks out\n   8 pair: When they forgive, the warmth comes back\n   9 pair: When they forgive, the big release comes\n  10 pair: When hope comes back, the picture softens\n  11 pair: When dread runs high, the colors start to go wrong\n  12 pair: When grief gets heavier, the rain comes to the window\n  13 pair: When the calm before the storm lasts longer, the sky turns harder\n  14 pair: When a feeling comes back, the memory shows over the present\n  15 pair: When all seems lost, hope drops\n  16 pair: When they hit the bottom, a small win comes next\nCV-CC 8: MIDI channel 14, CC 81 to 96\n   1 pair: When the small win matters more, hope rises\n   2 pair: When only the audience knows the storm is coming, dread rises\n   3 pair: When the calm lasts longer, tenderness grows\n   4 pair: When we are surer it ends badly, the tears are earned\n   5 pair: When the happy moments come before a known bad end, our feelings get mixed\n   6 pair: When the moment is held back longer, hope builds\n   7 pair: When the moment finally comes and beats our hopes, relief floods in\n   8 pair: When the feeling hits later, the release is bigger\n   9 pair: When a thing holds more feeling, we keep seeing it\n  10 pair: When the keepsake is given away, the feeling is let go\n  11 pair: When the big moment is saved for the whole film, the tears are earned\n  12 pair: When a feeling grows slowly, the warmth between them climbs\n  13 pair: When the feeling is never said, longing builds\n  14 pair: When a high falls further, the next scene feels the opposite\n  15 pair: When the come-down is faced alone, loneliness grows\n  16 pair: When two people trade places in feeling, their roads cross\nCV-CC 9: MIDI channel 14, CC 97 to 112\n   1 pair: When the feeling goes unnamed for longer, dread builds\n   2 pair: When the unspoken thing is finally shouted, catharsis comes\n   3 pair: When love goes unseen, the audience feels it for them\n   4 pair: When the hidden care is found too late, grief deepens\n   5 pair: When the empty place is felt more, grief grows\n   6 pair: When the empty place is shown often, nobody can name it\n   7 pair: When the audience knows the danger first, every calm line adds dread\n   8 pair: When someone leaves home for good, the house goes lonely\n   9 pair: When they argue, they warm to each other\n  10 pair: When a mix-up pulls them apart, the longing grows\n  11 pair: When summer turns to autumn, the longing sets in\n  12 pair: When their shame is seen by others, the resentment boils\n  13 pair: When a small win comes after many losses, the relief is huge\n  14 pair: When nobody shows a feeling, the loneliness shows through\n  15 pair: When dawn comes, the friends finally say what they mean\n  16 pairs: Emotional rollercoaster\nCV-CC 10: MIDI channel 15, CC 1 to 13\n   1 pairs: The dam breaks\n   2 pairs: The fall and the rise\n   3 pairs: Rest after a big feeling\n   4 pairs: The pressure cooker\n   5 pairs: From loss to letting go\n   6 pairs: Betrayed, then forgiven\n   7 pairs: Getting it off their chest\n   8 pairs: The ache of missing\n   9 pairs: Earning the tears\n  10 pairs: The climb back\n  11 pairs: The gone and the silent\n  12 pairs: Leaning on each other\n  13 pairs: Slow-burn dread: the moves"
    },
    "pos": [
     0,
@@ -23,70 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
-    ],
-    "midi": {
-     "channel": 12
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
-    ],
-    "midi": {
-     "channel": 12
-    }
-   },
-   "pos": [
-    32,
-    0
-   ]
-  },
-  {
-   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -113,12 +49,12 @@
     }
    },
    "pos": [
-    40,
+    24,
     0
    ]
   },
   {
-   "id": 7,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -145,12 +81,12 @@
     }
    },
    "pos": [
-    48,
+    32,
     0
    ]
   },
   {
-   "id": 8,
+   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -177,12 +113,12 @@
     }
    },
    "pos": [
-    56,
+    40,
     0
    ]
   },
   {
-   "id": 9,
+   "id": 7,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -209,12 +145,12 @@
     }
    },
    "pos": [
-    64,
+    48,
     0
    ]
   },
   {
-   "id": 10,
+   "id": 8,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -241,12 +177,12 @@
     }
    },
    "pos": [
-    72,
+    56,
     0
    ]
   },
   {
-   "id": 11,
+   "id": 9,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -273,7 +209,135 @@
     }
    },
    "pos": [
+    64,
+    0
+   ]
+  },
+  {
+   "id": 10,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
+    ],
+    "midi": {
+     "channel": 13
+    }
+   },
+   "pos": [
+    72,
+    0
+   ]
+  },
+  {
+   "id": 11,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 13
+    }
+   },
+   "pos": [
     80,
+    0
+   ]
+  },
+  {
+   "id": 12,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 13
+    }
+   },
+   "pos": [
+    88,
+    0
+   ]
+  },
+  {
+   "id": 13,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 14
+    }
+   },
+   "pos": [
+    96,
     0
    ]
   }

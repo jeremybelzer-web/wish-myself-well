@@ -44,8 +44,8 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 668 curiosities, 446 suites,
-1,025 proximities, 197 proximity suites and 15,387 sliders, across 32 workspaces, plus 56 model scenes.
+Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 684 curiosities, 454 suites,
+1,054 proximities, 201 proximity suites and 15,811 sliders, across 32 workspaces, plus 64 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -81,6 +81,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 668
 - [x] Comedy, deeper again: 20 curiosities (the wrong person overhears, trying too hard to be cool, taking it literally, the plan that fails at step one, the long walk of shame, the deliberately cheap effect, the joke you catch the second time, mistaken for someone else, the animal that steals the scene, a war fought politely, two talks that cross, everyone fixing it at once ...)
 - [x] Comedy style playbooks: 12 comedy styles, in the spirit of Mel Brooks, Monty Python, Edgar Wright, Judd Apatow, the Coen brothers, Chaplin, Jarmusch and Kaurismaki, Wilder and Sturges, Ricky Gervais, the Airplane! team, John Hughes and Lubitsch (data/db-styles-comedy.js)
 - [x] Audience attention, deeper: 16 curiosities (keeping the eye in place across a cut, everyone looks the same way, something that doesn't belong, how far apart the surprises come, the promise of the opening, a stretch where nothing pulls, leaving at the best part, the answer almost given, the closed box we want opened, one answer opens a bigger question, the clue that points the wrong way, knowing what they want in this scene, a rule we learn early, asking our question for us, time to take in the shot, the moment we're all waiting for), 8 suites, 27 proximities and 4 proximity suites, each with its window (data/db-depth-attention.js)
+- [x] Feeling and the emotional road, deeper: 16 curiosities (numb after the shock, taking it out on the wrong thing, playing the big moment small, out of step with the room, comfort taken or pushed away, bracing for it, whose face carries it, keeping busy so as not to feel, the feeling hits later, a thing that holds a feeling, a feeling that grows the whole film, the come-down after a high, trading places in feeling, the feeling nobody names, love the other never sees, the empty place), 8 suites, 29 proximities and 4 proximity suites, each with its window (data/db-depth-feeling.js)
 - [x] Database check for near-duplicates and film jargon (report: /mnt/project-files/database/audit-2026-10-03.md). 104 labels and 200 descriptions rewritten in plain words (data/db-plain.js); nothing merged or deleted yet
 - [x] Film words the first plain pass left bare, explained: 33 more descriptions (decibels, sun flare, low key, smash cut, dissolve, insert shot, gutter, button joke and more) in data/db-plain-2.js. No names or ids changed
 - [ ] Jeremy and Sharani decide the 24 possible merges in the audit (keep, merge or rename), then the database thread merges them
@@ -110,6 +111,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 668
 - [x] Eight practice scenes, one per comedy style (a launderette showdown, a council that cancels Tuesday, a 3 a.m. sandwich cut to the beat, friends on a shed roof, a funeral will swap, a balloon seller in love, a manager's own birthday, a war of compliments at a garden wedding) in data/db-model-scenes-5.js
 - [x] Eight practice scenes for the director styles not yet practiced (a walk to the bike pound, a whale rising from the fog, a basement dryer jump scare, tangled dog leads, a cake contest heist, the last day of the town pool, a bus depot song at dawn, the electric meter running out) in data/db-model-scenes-6.js
 - [x] Two practice scenes each for the last four comedy styles (deadpan pauses, rapid wit, a gag a second, one wild night): a ferry cafe's last crossing, a tuba at lost property, rival pitches in a stuck lift, a fixed radio quiz, a pedal-boat submarine, a hedge courtroom, a lost concert wristband, a parrot chase at a party. Every style now has a scene (data/db-model-scenes-7.js)
+- [x] Eight practice scenes that steer the audience's attention, using all 16 new attention curiosities (a lighthouse mystery with a torn page, a sealed case on a night train, a recipe tin at a family table, a best man's shuffled cards, a last free throw, a bookshop's last shift, a treehouse map with one rule, a beekeeper at first frost) in data/db-model-scenes-8.js
 - [x] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, emotional road, comedy and comedy from the mix (grouping in PR #4; every model scene now has values through every lens, tested)
 - [x] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours ("Make it an analogy" on every Prism row, PR #4)
 - [x] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film ("Borrow this film's emotional road", PR #4)
@@ -130,7 +132,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 668
 - [ ] Logins and cloud sync, optional (Phase 3)
 - [ ] Desktop app (Phase 4)
 - [ ] Panel inside Maya, with curiosities driving the camera and keys (Phase 5)
-- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 2,336 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). The extra jacks past the first 105 modules now go on a second MIDI cable, so the database can keep growing. Next: someone with VCV Rack opens the files and builds the plugin
+- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 2,393 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). The extra jacks past the first 105 modules now go on a second MIDI cable, so the database can keep growing. Next: someone with VCV Rack opens the files and builds the plugin
 - [ ] Other tools: Unreal, Blender, Resolve (Phase 7)
 
 ## 6. Checks with people

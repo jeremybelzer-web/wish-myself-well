@@ -2685,7 +2685,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "EMOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 12, CC 1 to 16\n   1 Strength of the feeling\n   2 How they move\n   3 Feeling in the voice\n   4 How much everyone moves\n   5 Amount said\n   6 Posture changes\n   7 Size of the actions\n   8 Mood of the place\n   9 Mood of the light\n  10 Against the last scene\n  11 Feeling gap between characters\n  12 Mixed feelings\n  13 Said against meant\n  14 The eyes, for the feeling\n  15 The hands\n  16 Personal space\nCV-CC 2: MIDI channel 12, CC 17 to 32\n   1 Release\n   2 What the audience feels\n   3 Feeling with them\n   4 Awe\n   5 Shame\n   6 Pride\n   7 Jealousy\n   8 Relief\n   9 Too sweet\n  10 Feeling in the body\n  11 Feeling left at the end of the scene\n  12 A laugh inside grief\n  13 Tenderness\n  14 suite: Feels loving\n  15 suite: Feels joyful\n  16 suite: Feels curious\nCV-CC 3: MIDI channel 12, CC 33 to 48\n   1 suite: Feels melancholy\n   2 suite: Feels anxious\n   3 suite: Feels fearful\n   4 suite: Feels angry\n   5 suite: Feels triumphant\n   6 suite: Feels absurd\n   7 suite: Feels dreamlike\n   8 suite: Emotion lens\n   9 suite: Feeling of the scene\n  10 suite: Held-back tears\n  11 suite: Rage boils over\n  12 suite: Quiet joy\n  13 suite: Frozen fear\n  14 suite: Mood whiplash\n  15 suite: Calm in the storm\n  16 suite: The mask slips\nCV-CC 4: MIDI channel 12, CC 49 to 64\n   1 suite: Laughing through tears\n   2 suite: Brave face\n   3 suite: Dawning realization\n   4 suite: Breaking down in tears\n   5 suite: Cold fury\n   6 suite: Giddy relief\n   7 suite: Numb shock\n   8 suite: Awkward tenderness\n   9 suite: We see the danger, they don't\n  10 suite: Cartoon feelings\n  11 suite: Laying it on thick\n  12 suite: Struck with awe\n  13 suite: Laughing at the funeral\n  14 suite: Wanting to disappear\n  15 suite: Green with envy\n  16 suite: Proud moment\nCV-CC 5: MIDI channel 12, CC 65 to 80\n   1 suite: Right there with them\n   2 suite: A scene that lingers\n   3 suite: Gentle care\n   4 suite: Shaking with it\n   5 suite: Phew\n   6 suite: Big blockbuster awe\n   7 pair: When the mood of the light drops, the strength of the feeling rises\n   8 pair: When the feeling grows stronger, the posture changes more often\n   9 pair: When a scene feels the opposite of the last one, the color shifts too\n  10 pair: When a feeling rises, the face shows it before the words\n  11 pair: When anger rises, the voice gets louder\n  12 pair: When fear rises, movement stops\n  13 pair: When one character's feeling overflows, others catch it\n  14 pair: When joy rises, the light warms\n  15 pair: When a trigger appears, the feeling turns\n  16 pair: After a release, the character is lighter\nCV-CC 6: MIDI channel 12, CC 81 to 96\n   1 pair: When said and meant pull apart, the pauses grow\n   2 pair: When people move closer, the feeling grows\n   3 pair: When tears well, the shot gets closer\n   4 pair: When we know more than they do, tension rises\n   5 pair: When feelings mix, the face flickers\n   6 pair: When someone feels loving, hearts pop onto their face\n   7 pair: When someone is joyful, a sun pops onto their face\n   8 pair: When someone turns sad, tears are drawn on\n   9 pair: When someone is anxious, they blush\n  10 pair: When someone is scared, their soul leaves their body\n  11 pair: When someone gets curious, a light bulb pops on\n  12 pair: When someone triumphs, shades pop on\n  13 pair: When things turn absurd, question marks pop on\n  14 pair: When tears are drawn on, the feeling drops\n  15 pair: When a sun pops onto a face, the feeling lifts\n  16 pair: When steam pops on, the feeling winds up\nCV-CC 7: MIDI channel 12, CC 97 to 112\n   1 pair: When a face crackles, the feeling winds up\n   2 pair: When someone laughs till they cry, the audience laughs more\n   3 pair: When the mallet bonks, the feeling turns absurd\n   4 pair: When the room feels cozy, people sit closer\n   5 pair: When the voice breaks, the tears come\n   6 pair: When the hands clench, a bigger action follows\n   7 pair: When the actions get bigger, the voice gives way\n   8 pair: When someone freezes, a slow-burn reaction follows\n   9 pair: When we see their face up close, we feel with them more\n  10 pair: When the place is huge, awe arrives\n  11 pair: When awe hits, the talking stops\n  12 pair: When awe hits, light pours in from behind\n  13 pair: When they are humiliated, shame sets in\n  14 pair: When the old wound is touched, shame comes back\n  15 pair: When shame rises, the eyes drop\n  16 pair: When shame rises, the room squirms\nCV-CC 8: MIDI channel 13, CC 1 to 16\n   1 pair: When they make it right, relief follows\n   2 pair: When pride swells, a setback follows\n   3 pair: When jealousy flares, the two drift apart\n   4 pair: When the dread lifts, relief floods in\n   5 pair: When relief comes, the breath slows\n   6 pair: When the music swells into a wall of sound, it turns too sweet\n   7 pair: When it gets too sweet, the audience pulls back\n   8 pair: When the feeling grows strong, the body shows it\n   9 pair: When their throat closes, the voice breaks\n  10 pair: When the scene fades out, the feeling lingers\n  11 pair: When the feeling lingers, the next scene feels the same\n  12 pair: When they laugh through sadness, the tears come\n  13 pair: When they laugh through sadness, the feelings blend\n  14 pair: When tenderness grows, hands are held\n  15 pair: When what they mean drifts far from what they say, sentences trail off\n  16 pair: When their feelings drift apart, the frame splits them\nCV-CC 9: MIDI channel 13, CC 17 to 32\n   1 pair: When the feeling runs high, the face stays flat\n   2 pair: When a face stares up in wonder, the reveal feels bigger\n   3 pair: When the feeling is kept inside, the weight we carry grows\n   4 pair: When the feeling gets too big for talking, they burst into song\n   5 pair: When no music tells us what to feel, a small kindness hits harder\n   6 pair: When a loose scene runs long, a true feeling slips out between the jokes\n   7 pair: When no one speaks, we read the face and feel more for them\n   8 pair: When a sad thing is said flatly, we laugh and ache at once\n   9 pair: When the clueless one finally sees how they look, we feel for them\n  10 pair: When perfect manners are kept up, jealousy simmers underneath\n  11 pairs: The body tells first\n  12 pairs: Feelings spread\n  13 pairs: What isn't said\n  14 pairs: Closeness and dread\n  15 pairs: The face tells the feeling\n  16 pairs: The mood moves the feeling\nCV-CC 10: MIDI channel 13, CC 33 to 37\n   1 pairs: Holding it in, until\n   2 pairs: Shame spiral\n   3 pairs: Too much sugar backfires\n   4 pairs: Envy turns sour\n   5 pairs: Big blockbuster awe: the moves"
+    "text": "EMOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 12, CC 1 to 16\n   1 Strength of the feeling\n   2 How they move\n   3 Feeling in the voice\n   4 How much everyone moves\n   5 Amount said\n   6 Posture changes\n   7 Size of the actions\n   8 Mood of the place\n   9 Mood of the light\n  10 Against the last scene\n  11 Feeling gap between characters\n  12 Mixed feelings\n  13 Said against meant\n  14 The eyes, for the feeling\n  15 The hands\n  16 Personal space\nCV-CC 2: MIDI channel 12, CC 17 to 32\n   1 Release\n   2 What the audience feels\n   3 Feeling with them\n   4 Awe\n   5 Shame\n   6 Pride\n   7 Jealousy\n   8 Relief\n   9 Too sweet\n  10 Feeling in the body\n  11 Feeling left at the end of the scene\n  12 A laugh inside grief\n  13 Tenderness\n  14 Numb after the shock\n  15 Taking it out on the wrong thing\n  16 Playing the big moment small\nCV-CC 3: MIDI channel 12, CC 33 to 48\n   1 Out of step with the room\n   2 Comfort, taken or pushed away\n   3 Bracing for it\n   4 Whose face carries it\n   5 Keeping busy so as not to feel\n   6 suite: Feels loving\n   7 suite: Feels joyful\n   8 suite: Feels curious\n   9 suite: Feels melancholy\n  10 suite: Feels anxious\n  11 suite: Feels fearful\n  12 suite: Feels angry\n  13 suite: Feels triumphant\n  14 suite: Feels absurd\n  15 suite: Feels dreamlike\n  16 suite: Emotion lens\nCV-CC 4: MIDI channel 12, CC 49 to 64\n   1 suite: Feeling of the scene\n   2 suite: Held-back tears\n   3 suite: Rage boils over\n   4 suite: Quiet joy\n   5 suite: Frozen fear\n   6 suite: Mood whiplash\n   7 suite: Calm in the storm\n   8 suite: The mask slips\n   9 suite: Laughing through tears\n  10 suite: Brave face\n  11 suite: Dawning realization\n  12 suite: Breaking down in tears\n  13 suite: Cold fury\n  14 suite: Giddy relief\n  15 suite: Numb shock\n  16 suite: Awkward tenderness\nCV-CC 5: MIDI channel 12, CC 65 to 80\n   1 suite: We see the danger, they don't\n   2 suite: Cartoon feelings\n   3 suite: Laying it on thick\n   4 suite: Struck with awe\n   5 suite: Laughing at the funeral\n   6 suite: Wanting to disappear\n   7 suite: Green with envy\n   8 suite: Proud moment\n   9 suite: Right there with them\n  10 suite: A scene that lingers\n  11 suite: Gentle care\n  12 suite: Shaking with it\n  13 suite: Phew\n  14 suite: After the news\n  15 suite: The quiet reunion\n  16 suite: Anger with nowhere to go\nCV-CC 6: MIDI channel 12, CC 81 to 96\n   1 suite: The proud face in the crowd\n   2 suite: Big blockbuster awe\n   3 pair: When the mood of the light drops, the strength of the feeling rises\n   4 pair: When the feeling grows stronger, the posture changes more often\n   5 pair: When a scene feels the opposite of the last one, the color shifts too\n   6 pair: When a feeling rises, the face shows it before the words\n   7 pair: When anger rises, the voice gets louder\n   8 pair: When fear rises, movement stops\n   9 pair: When one character's feeling overflows, others catch it\n  10 pair: When joy rises, the light warms\n  11 pair: When a trigger appears, the feeling turns\n  12 pair: After a release, the character is lighter\n  13 pair: When said and meant pull apart, the pauses grow\n  14 pair: When people move closer, the feeling grows\n  15 pair: When tears well, the shot gets closer\n  16 pair: When we know more than they do, tension rises\nCV-CC 7: MIDI channel 12, CC 97 to 112\n   1 pair: When feelings mix, the face flickers\n   2 pair: When someone feels loving, hearts pop onto their face\n   3 pair: When someone is joyful, a sun pops onto their face\n   4 pair: When someone turns sad, tears are drawn on\n   5 pair: When someone is anxious, they blush\n   6 pair: When someone is scared, their soul leaves their body\n   7 pair: When someone gets curious, a light bulb pops on\n   8 pair: When someone triumphs, shades pop on\n   9 pair: When things turn absurd, question marks pop on\n  10 pair: When tears are drawn on, the feeling drops\n  11 pair: When a sun pops onto a face, the feeling lifts\n  12 pair: When steam pops on, the feeling winds up\n  13 pair: When a face crackles, the feeling winds up\n  14 pair: When someone laughs till they cry, the audience laughs more\n  15 pair: When the mallet bonks, the feeling turns absurd\n  16 pair: When the room feels cozy, people sit closer\nCV-CC 8: MIDI channel 13, CC 1 to 16\n   1 pair: When the voice breaks, the tears come\n   2 pair: When the hands clench, a bigger action follows\n   3 pair: When the actions get bigger, the voice gives way\n   4 pair: When someone freezes, a slow-burn reaction follows\n   5 pair: When we see their face up close, we feel with them more\n   6 pair: When the place is huge, awe arrives\n   7 pair: When awe hits, the talking stops\n   8 pair: When awe hits, light pours in from behind\n   9 pair: When they are humiliated, shame sets in\n  10 pair: When the old wound is touched, shame comes back\n  11 pair: When shame rises, the eyes drop\n  12 pair: When shame rises, the room squirms\n  13 pair: When they make it right, relief follows\n  14 pair: When pride swells, a setback follows\n  15 pair: When jealousy flares, the two drift apart\n  16 pair: When the dread lifts, relief floods in\nCV-CC 9: MIDI channel 13, CC 17 to 32\n   1 pair: When relief comes, the breath slows\n   2 pair: When the music swells into a wall of sound, it turns too sweet\n   3 pair: When it gets too sweet, the audience pulls back\n   4 pair: When the feeling grows strong, the body shows it\n   5 pair: When their throat closes, the voice breaks\n   6 pair: When the scene fades out, the feeling lingers\n   7 pair: When the feeling lingers, the next scene feels the same\n   8 pair: When they laugh through sadness, the tears come\n   9 pair: When they laugh through sadness, the feelings blend\n  10 pair: When tenderness grows, hands are held\n  11 pair: When what they mean drifts far from what they say, sentences trail off\n  12 pair: When their feelings drift apart, the frame splits them\n  13 pair: When they go numb, the feeling is held in\n  14 pair: When they go numb for long, the feeling hits later\n  15 pair: When the sound goes silent in the numbness, the music drops out\n  16 pair: When a feeling is held in too long, it lands on the wrong thing\nCV-CC 10: MIDI channel 13, CC 33 to 48\n   1 pair: When it lands on a friend, the gap between them grows\n   2 pair: When the big moment is played smaller, the audience feels more\n   3 pair: When they are out of step with the room, they stand apart\n   4 pair: When the room catches their feeling, it spreads\n   5 pair: When comfort is taken, the warmth between them grows\n   6 pair: When the bracing falls apart, the feeling spills out\n   7 pair: When we watch a loving face, we feel more\n   8 pair: When the face is shown up to the eyes, the camera pushes in\n   9 pair: When they keep busier, the hands show the strain\n  10 pair: When someone stops their hands, comfort comes in\n  11 pair: When the feeling runs high, the face stays flat\n  12 pair: When a face stares up in wonder, the reveal feels bigger\n  13 pair: When the feeling is kept inside, the weight we carry grows\n  14 pair: When the feeling gets too big for talking, they burst into song\n  15 pair: When no music tells us what to feel, a small kindness hits harder\n  16 pair: When a loose scene runs long, a true feeling slips out between the jokes\nCV-CC 11: MIDI channel 13, CC 49 to 64\n   1 pair: When no one speaks, we read the face and feel more for them\n   2 pair: When a sad thing is said flatly, we laugh and ache at once\n   3 pair: When the clueless one finally sees how they look, we feel for them\n   4 pair: When perfect manners are kept up, jealousy simmers underneath\n   5 pairs: The body tells first\n   6 pairs: Feelings spread\n   7 pairs: What isn't said\n   8 pairs: Closeness and dread\n   9 pairs: The face tells the feeling\n  10 pairs: The mood moves the feeling\n  11 pairs: Holding it in, until\n  12 pairs: Shame spiral\n  13 pairs: Too much sugar backfires\n  14 pairs: Envy turns sour\n  15 pairs: The feeling that waits\n  16 pairs: Saved and played small\nCV-CC 12: MIDI channel 13, CC 65 to 65\n   1 pairs: Big blockbuster awe: the moves"
    },
    "pos": [
     0,
@@ -2991,17 +2991,17 @@
      35,
      36,
      37,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
     ],
     "midi": {
      "channel": 12
@@ -3014,18 +3014,6 @@
   },
   {
    "id": 107,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "EMOTIONAL ROAD\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 13, CC 49 to 64\n   1 Where this character is on their road\n   2 Where the film is on its road\n   3 Does the feeling turn\n   4 Hidden to shown\n   5 How far the feeling spreads\n   6 Catharsis\n   7 Feeling held in\n   8 Hope\n   9 What they stand to lose\n  10 Breather\n  11 False high, false low\n  12 Two roads\n  13 A feeling comes back\n  14 Warmth between two\n  15 Dread\n  16 On their side, or against them\nCV-CC 2: MIDI channel 13, CC 65 to 80\n   1 Nostalgia\n   2 Longing\n   3 Guilt\n   4 Earned tears\n   5 Cool or warm telling\n   6 Feeling left when the film ends\n   7 Grief\n   8 Loneliness\n   9 Betrayal\n  10 Forgiveness\n  11 Resentment\n  12 All seems lost\n  13 The calm before the storm\n  14 A small win to hold on to\n  15 We already know it ends badly\n  16 The moment we're all waiting for\nCV-CC 3: MIDI channel 13, CC 81 to 96\n   1 suite: Emotional road lens\n   2 suite: Rock bottom\n   3 suite: Hope dies\n   4 suite: The midpoint win\n   5 suite: A rest stop\n   6 suite: Crossed roads\n   7 suite: The old song\n   8 suite: Slow dread\n   9 suite: Everything to lose\n  10 suite: Earned release\n  11 suite: Tearjerker finale\n  12 suite: Slow-burn grudge\n  13 suite: Bittersweet ending\n  14 suite: Cold and distant\n  15 suite: Lonely heart\n  16 suite: A guilty conscience\nCV-CC 4: MIDI channel 13, CC 97 to 112\n   1 suite: Stab in the back\n   2 suite: Making peace\n   3 suite: Rose-tinted past\n   4 suite: Rooting for the wrong one\n   5 suite: Back from the bottom\n   6 suite: The long-awaited meeting\n   7 suite: Slow-burn dread\n   8 pair: When a character reaches their lowest point, their feeling turns\n   9 pair: After a low scene, a laugh\n  10 pair: A hidden feeling bursts out later\n  11 pair: After tension peaks, release follows\n  12 pair: When enough feeling is held in, it comes out\n  13 pair: When a false high peaks, the fall follows\n  14 pair: When a big feeling peaks, a breather follows\n  15 pair: When the stakes rise, hope gets fragile\n  16 pair: When hope is lost, the release comes later\nCV-CC 5: MIDI channel 14, CC 1 to 16\n   1 pair: When an old feeling comes back changed, the release arrives\n   2 pair: When dread builds, the music thins out\n   3 pair: When the warmth cools, the two roads part\n   4 pair: When the dread is lifted, a laugh comes\n   5 pair: When dread builds, a character's attention starts narrowing\n   6 pair: When we feel with them, their tears feel earned\n   7 pair: When we turn against them, we stop feeling with them\n   8 pair: When they show gentle care, we take their side\n   9 pair: When an old tune returns, nostalgia comes with it\n  10 pair: When nostalgia rises, the color warms\n  11 pair: When the past calls, longing grows\n  12 pair: When longing grows, loneliness follows\n  13 pair: When loneliness grows, the frame empties around them\n  14 pair: When loneliness grows, the music falls away\n  15 pair: When guilt grows, they hold more in\n  16 pair: When guilt grows, words stop matching meaning\nCV-CC 6: MIDI channel 14, CC 17 to 32\n   1 pair: When jealousy lingers, it hardens into a grudge\n   2 pair: When the tears are earned, the release arrives\n   3 pair: When the telling turns ice cold, we feel less with them\n   4 pair: When the telling warms, the camera moves closer\n   5 pair: When the big release comes, the ending stays with us\n   6 pair: When an old feeling comes back, the ending lingers longer\n   7 pair: When hope is lost, grief sets in\n   8 pair: When grief is heavy, a laugh slips in\n   9 pair: When they are betrayed, the warmth goes cold\n  10 pair: When they are betrayed, a grudge takes root\n  11 pair: When the grudge nears boiling, anger breaks out\n  12 pair: When they forgive, the warmth comes back\n  13 pair: When they forgive, the big release comes\n  14 pair: When hope comes back, the picture softens\n  15 pair: When dread runs high, the colors start to go wrong\n  16 pair: When grief gets heavier, the rain comes to the window\nCV-CC 7: MIDI channel 14, CC 33 to 48\n   1 pair: When the calm before the storm lasts longer, the sky turns harder\n   2 pair: When a feeling comes back, the memory shows over the present\n   3 pair: When all seems lost, hope drops\n   4 pair: When they hit the bottom, a small win comes next\n   5 pair: When the small win matters more, hope rises\n   6 pair: When only the audience knows the storm is coming, dread rises\n   7 pair: When the calm lasts longer, tenderness grows\n   8 pair: When we are surer it ends badly, the tears are earned\n   9 pair: When the happy moments come before a known bad end, our feelings get mixed\n  10 pair: When the moment is held back longer, hope builds\n  11 pair: When the moment finally comes and beats our hopes, relief floods in\n  12 pair: When the audience knows the danger first, every calm line adds dread\n  13 pair: When someone leaves home for good, the house goes lonely\n  14 pair: When they argue, they warm to each other\n  15 pair: When a mix-up pulls them apart, the longing grows\n  16 pair: When summer turns to autumn, the longing sets in\nCV-CC 8: MIDI channel 14, CC 49 to 64\n   1 pair: When their shame is seen by others, the resentment boils\n   2 pair: When a small win comes after many losses, the relief is huge\n   3 pair: When nobody shows a feeling, the loneliness shows through\n   4 pair: When dawn comes, the friends finally say what they mean\n   5 pairs: Emotional rollercoaster\n   6 pairs: The dam breaks\n   7 pairs: The fall and the rise\n   8 pairs: Rest after a big feeling\n   9 pairs: The pressure cooker\n  10 pairs: From loss to letting go\n  11 pairs: Betrayed, then forgiven\n  12 pairs: Getting it off their chest\n  13 pairs: The ache of missing\n  14 pairs: Earning the tears\n  15 pairs: The climb back\n  16 pairs: Slow-burn dread: the moves"
-   },
-   "pos": [
-    0,
-    19
-   ]
-  },
-  {
-   "id": 108,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -3052,39 +3040,51 @@
     }
    },
    "pos": [
-    15,
-    19
+    95,
+    18
    ]
   },
   {
-   "id": 109,
+   "id": 108,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
     "ccs": [
      65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
     ],
     "midi": {
      "channel": 12
     }
    },
    "pos": [
-    23,
+    103,
+    18
+   ]
+  },
+  {
+   "id": 109,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "EMOTIONAL ROAD\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 13, CC 81 to 96\n   1 Where this character is on their road\n   2 Where the film is on its road\n   3 Does the feeling turn\n   4 Hidden to shown\n   5 How far the feeling spreads\n   6 Catharsis\n   7 Feeling held in\n   8 Hope\n   9 What they stand to lose\n  10 Breather\n  11 False high, false low\n  12 Two roads\n  13 A feeling comes back\n  14 Warmth between two\n  15 Dread\n  16 On their side, or against them\nCV-CC 2: MIDI channel 13, CC 97 to 112\n   1 Nostalgia\n   2 Longing\n   3 Guilt\n   4 Earned tears\n   5 Cool or warm telling\n   6 Feeling left when the film ends\n   7 Grief\n   8 Loneliness\n   9 Betrayal\n  10 Forgiveness\n  11 Resentment\n  12 All seems lost\n  13 The calm before the storm\n  14 A small win to hold on to\n  15 We already know it ends badly\n  16 The moment we're all waiting for\nCV-CC 3: MIDI channel 14, CC 1 to 16\n   1 The feeling hits later\n   2 A thing that holds a feeling\n   3 A feeling that grows the whole film\n   4 The come-down after a high\n   5 Trading places in feeling\n   6 The feeling nobody names\n   7 Love the other never sees\n   8 The empty place\n   9 suite: Emotional road lens\n  10 suite: Rock bottom\n  11 suite: Hope dies\n  12 suite: The midpoint win\n  13 suite: A rest stop\n  14 suite: Crossed roads\n  15 suite: The old song\n  16 suite: Slow dread\nCV-CC 4: MIDI channel 14, CC 17 to 32\n   1 suite: Everything to lose\n   2 suite: Earned release\n   3 suite: Tearjerker finale\n   4 suite: Slow-burn grudge\n   5 suite: Bittersweet ending\n   6 suite: Cold and distant\n   7 suite: Lonely heart\n   8 suite: A guilty conscience\n   9 suite: Stab in the back\n  10 suite: Making peace\n  11 suite: Rose-tinted past\n  12 suite: Rooting for the wrong one\n  13 suite: Back from the bottom\n  14 suite: The long-awaited meeting\n  15 suite: The hole in the family\n  16 suite: Love that takes its time\nCV-CC 5: MIDI channel 14, CC 33 to 48\n   1 suite: After the party\n   2 suite: Holding each other up\n   3 suite: Slow-burn dread\n   4 pair: When a character reaches their lowest point, their feeling turns\n   5 pair: After a low scene, a laugh\n   6 pair: A hidden feeling bursts out later\n   7 pair: After tension peaks, release follows\n   8 pair: When enough feeling is held in, it comes out\n   9 pair: When a false high peaks, the fall follows\n  10 pair: When a big feeling peaks, a breather follows\n  11 pair: When the stakes rise, hope gets fragile\n  12 pair: When hope is lost, the release comes later\n  13 pair: When an old feeling comes back changed, the release arrives\n  14 pair: When dread builds, the music thins out\n  15 pair: When the warmth cools, the two roads part\n  16 pair: When the dread is lifted, a laugh comes\nCV-CC 6: MIDI channel 14, CC 49 to 64\n   1 pair: When dread builds, a character's attention starts narrowing\n   2 pair: When we feel with them, their tears feel earned\n   3 pair: When we turn against them, we stop feeling with them\n   4 pair: When they show gentle care, we take their side\n   5 pair: When an old tune returns, nostalgia comes with it\n   6 pair: When nostalgia rises, the color warms\n   7 pair: When the past calls, longing grows\n   8 pair: When longing grows, loneliness follows\n   9 pair: When loneliness grows, the frame empties around them\n  10 pair: When loneliness grows, the music falls away\n  11 pair: When guilt grows, they hold more in\n  12 pair: When guilt grows, words stop matching meaning\n  13 pair: When jealousy lingers, it hardens into a grudge\n  14 pair: When the tears are earned, the release arrives\n  15 pair: When the telling turns ice cold, we feel less with them\n  16 pair: When the telling warms, the camera moves closer\nCV-CC 7: MIDI channel 14, CC 65 to 80\n   1 pair: When the big release comes, the ending stays with us\n   2 pair: When an old feeling comes back, the ending lingers longer\n   3 pair: When hope is lost, grief sets in\n   4 pair: When grief is heavy, a laugh slips in\n   5 pair: When they are betrayed, the warmth goes cold\n   6 pair: When they are betrayed, a grudge takes root\n   7 pair: When the grudge nears boiling, anger breaks out\n   8 pair: When they forgive, the warmth comes back\n   9 pair: When they forgive, the big release comes\n  10 pair: When hope comes back, the picture softens\n  11 pair: When dread runs high, the colors start to go wrong\n  12 pair: When grief gets heavier, the rain comes to the window\n  13 pair: When the calm before the storm lasts longer, the sky turns harder\n  14 pair: When a feeling comes back, the memory shows over the present\n  15 pair: When all seems lost, hope drops\n  16 pair: When they hit the bottom, a small win comes next\nCV-CC 8: MIDI channel 14, CC 81 to 96\n   1 pair: When the small win matters more, hope rises\n   2 pair: When only the audience knows the storm is coming, dread rises\n   3 pair: When the calm lasts longer, tenderness grows\n   4 pair: When we are surer it ends badly, the tears are earned\n   5 pair: When the happy moments come before a known bad end, our feelings get mixed\n   6 pair: When the moment is held back longer, hope builds\n   7 pair: When the moment finally comes and beats our hopes, relief floods in\n   8 pair: When the feeling hits later, the release is bigger\n   9 pair: When a thing holds more feeling, we keep seeing it\n  10 pair: When the keepsake is given away, the feeling is let go\n  11 pair: When the big moment is saved for the whole film, the tears are earned\n  12 pair: When a feeling grows slowly, the warmth between them climbs\n  13 pair: When the feeling is never said, longing builds\n  14 pair: When a high falls further, the next scene feels the opposite\n  15 pair: When the come-down is faced alone, loneliness grows\n  16 pair: When two people trade places in feeling, their roads cross\nCV-CC 9: MIDI channel 14, CC 97 to 112\n   1 pair: When the feeling goes unnamed for longer, dread builds\n   2 pair: When the unspoken thing is finally shouted, catharsis comes\n   3 pair: When love goes unseen, the audience feels it for them\n   4 pair: When the hidden care is found too late, grief deepens\n   5 pair: When the empty place is felt more, grief grows\n   6 pair: When the empty place is shown often, nobody can name it\n   7 pair: When the audience knows the danger first, every calm line adds dread\n   8 pair: When someone leaves home for good, the house goes lonely\n   9 pair: When they argue, they warm to each other\n  10 pair: When a mix-up pulls them apart, the longing grows\n  11 pair: When summer turns to autumn, the longing sets in\n  12 pair: When their shame is seen by others, the resentment boils\n  13 pair: When a small win comes after many losses, the relief is huge\n  14 pair: When nobody shows a feeling, the loneliness shows through\n  15 pair: When dawn comes, the friends finally say what they mean\n  16 pairs: Emotional rollercoaster\nCV-CC 10: MIDI channel 15, CC 1 to 13\n   1 pairs: The dam breaks\n   2 pairs: The fall and the rise\n   3 pairs: Rest after a big feeling\n   4 pairs: The pressure cooker\n   5 pairs: From loss to letting go\n   6 pairs: Betrayed, then forgiven\n   7 pairs: Getting it off their chest\n   8 pairs: The ache of missing\n   9 pairs: Earning the tears\n  10 pairs: The climb back\n  11 pairs: The gone and the silent\n  12 pairs: Leaning on each other\n  13 pairs: Slow-burn dread: the moves"
+   },
+   "pos": [
+    0,
     19
    ]
   },
@@ -3116,7 +3116,7 @@
     }
    },
    "pos": [
-    31,
+    15,
     19
    ]
   },
@@ -3148,7 +3148,7 @@
     }
    },
    "pos": [
-    39,
+    23,
     19
    ]
   },
@@ -3180,7 +3180,7 @@
     }
    },
    "pos": [
-    47,
+    31,
     19
    ]
   },
@@ -3212,7 +3212,7 @@
     }
    },
    "pos": [
-    55,
+    39,
     19
    ]
   },
@@ -3244,7 +3244,7 @@
     }
    },
    "pos": [
-    63,
+    47,
     19
    ]
   },
@@ -3276,24 +3276,12 @@
     }
    },
    "pos": [
-    71,
+    55,
     19
    ]
   },
   {
    "id": 116,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "COMEDY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 14, CC 65 to 80\n   1 Kind of joke\n   2 What the joke is about\n   3 Pause before the punchline\n   4 Escalation\n   5 Absurdity\n   6 Deadpan to broad\n   7 Cringe\n   8 Setup and payoff\n   9 Scenes from setup to payoff\n  10 Laughs per minute\n  11 Who carries the joke\n  12 Reaction to the joke\n  13 Running gag\n  14 Callback\n  15 Rule of three\n  16 Physical comedy\nCV-CC 2: MIDI channel 14, CC 81 to 96\n   1 Wordplay\n   2 Misdirection\n   3 Irony\n   4 Understatement\n   5 Out of place in a strange world\n   6 Visual gag\n   7 Subversion\n   8 Comic edit\n   9 Comic sound\n  10 Comic flaw\n  11 Comic premise\n  12 The topper\n  13 Oddly specific\n  14 Talking to the camera\n  15 Exaggeration\n  16 Humiliation\nCV-CC 3: MIDI channel 14, CC 97 to 112\n   1 The lie that grows\n   2 Misunderstanding\n   3 Cutaway gag\n   4 Serious answer to a silly question\n   5 Catchphrase\n   6 The button\n   7 Tiny want, huge effort\n   8 Insults and roasts\n   9 Parody\n  10 Satire\n  11 Joke about the film itself\n  12 The joke that falls flat\n  13 Seeing the gag coming\n  14 Made up on the spot\n  15 Cartoon rules\n  16 The turn from funny to sad\nCV-CC 4: MIDI channel 15, CC 1 to 16\n   1 Making fun of yourself\n   2 The bad disguise\n   3 The tag scene\n   4 Talking past the point\n   5 Saying it back\n   6 Cracking up\n   7 The wrong person overhears\n   8 Trying too hard to be cool\n   9 Taking it literally\n  10 The plan that fails at step one\n  11 The long walk of shame\n  12 The deliberately cheap effect\n  13 The joke you catch the second time\n  14 Keeping up polite appearances\n  15 The one who never gets the joke\n  16 The joke we only hear\nCV-CC 5: MIDI channel 15, CC 17 to 32\n   1 Interrupted at the worst moment\n   2 Mistaken for someone else\n   3 The animal that steals the scene\n   4 The fumbled hello\n   5 suite: Comedy lens\n   6 suite: Where the laugh comes from\n   7 suite: Deadpan\n   8 suite: Slapstick\n   9 suite: Mockumentary\n  10 suite: Screwball\n  11 suite: Cringe comedy\n  12 suite: Absurdist\n  13 suite: Dark comedy\n  14 suite: Rom-com banter\n  15 suite: Snowball disaster\n  16 suite: Pull-back reveal\nCV-CC 6: MIDI channel 15, CC 33 to 48\n   1 suite: Smash cut contradiction\n   2 suite: Background gags\n   3 suite: Farce\n   4 suite: Topping the joke, twice\n   5 suite: Punching up\n   6 suite: The aside\n   7 suite: Oddly specific world\n   8 suite: Blind to their flaw\n   9 suite: The cutaway that contradicts\n  10 suite: Bigger than life\n  11 suite: Slow-burn gags\n  12 suite: Stranger in a strange land\n  13 suite: Twisting the familiar\n  14 suite: Spoof movie\n  15 suite: Roast battle\n  16 suite: The flop\nCV-CC 7: MIDI channel 15, CC 49 to 64\n   1 suite: Loose and improvised\n   2 suite: Sad clown\n   3 suite: Sharp satire\n   4 suite: Sitcom habits\n   5 suite: Petty quest\n   6 suite: Heard through the wall\n   7 suite: Dinner with the in-laws\n   8 suite: The cool act collapses\n   9 suite: Best laid plans\n  10 suite: Cardboard and string\n  11 suite: One for the second watch\n  12 suite: The proposal that keeps failing\n  13 suite: The crash in the next room\n  14 suite: Always a beat behind\n  15 suite: Silent-film physical comedy\n  16 suite: Mockumentary (full style)\nCV-CC 8: MIDI channel 15, CC 65 to 80\n   1 suite: Genre spoof, gag after gag\n   2 suite: Absurd sketch logic\n   3 suite: Fast visual comedy cut to the beat\n   4 suite: Dark comedy of bad plans\n   5 suite: Sweet clown with a broken heart\n   6 suite: Deadpan stillness and long pauses\n   7 suite: Rapid wordplay and wit\n   8 suite: Squirm comedy of the clueless boss\n   9 suite: Gag every second, played straight\n  10 pair: When a joke's setup is planted, the payoff lands\n  11 pair: When the escalation rises, the absurdity rises\n  12 pair: When the pause before the punchline grows, laughs per minute drop but each lands harder\n  13 pair: After a big joke, cut to a reaction\n  14 pair: Two of a pattern, then the break\n  15 pair: \"I'll never\", then they do\n  16 pair: After a cringe, a pointed silence\nCV-CC 9: MIDI channel 15, CC 81 to 96\n   1 pair: As trouble escalates, the frame widens\n   2 pair: A running gag returns, bigger\n   3 pair: A joke line returns in a tender moment\n   4 pair: Something absurd, nobody reacts\n   5 pair: Misdirection pays off with a pull-back\n   6 pair: After tension, a laugh breaks it\n   7 pair: When a joke lands, a topper follows\n   8 pair: When a lie wobbles, a bigger lie covers it\n   9 pair: When the lie collapses, someone is humiliated\n  10 pair: When a misunderstanding deepens, the chaos grows\n  11 pair: When someone is humiliated in front of others, the cringe rises\n  12 pair: When a blind flaw grows, the character is set back\n  13 pair: When a character talks to us, the others react a beat late\n  14 pair: An oddly specific detail comes back later\n  15 pair: When the physical comedy turns destructive, things shatter\n  16 pair: When the joke is built on a misunderstanding, the confusion keeps getting deeper\nCV-CC 10: MIDI channel 15, CC 97 to 112\n   1 pair: When the joke aims at the powerful, the audience laughs harder\n   2 pair: When the comedy goes cartoon-big, the falls get bigger\n   3 pair: When the payoff comes long after its setup, the laugh is bigger\n   4 pair: When the joke rests on the straight one, they stay perfectly calm\n   5 pair: When someone lands a sharp comeback, the pecking order wobbles\n   6 pair: When a disaster is treated as no big deal, the laugh comes in the pause\n   7 pair: When someone is badly out of place, the awkward moments pile up\n   8 pair: When more sight gags fill the frame, the laughs come faster\n   9 pair: When the setup feels very familiar, the payoff gets turned upside down\n  10 pair: When the comic idea is crystal clear, the scene can push it further and further\n  11 pair: When the situation keeps escalating, everything gets exaggerated\n  12 pair: When things get exaggerated far enough, they tip into the absurd\n  13 pair: When a cutaway shows the opposite of what was just said, the laugh lands on the cut\n  14 pair: When a silly question gets a dead serious answer, the reactions grow\n  15 pair: When a silly answer turns into a lecture, someone says it back\n  16 pair: When everyone waits for the catchphrase, holding it back gets the laugh\nCV-CC 11: PORT 2 (your second cable), MIDI channel 1, CC 1 to 16\n   1 pair: When the catchphrase comes back with a new meaning, the callback turns sweet\n   2 pair: When the topper lands, a button closes the scene\n   3 pair: When the button lands, the scene ends on it\n   4 pair: When a tiny want meets a huge effort, the trouble escalates\n   5 pair: When the tiny want is won and ruined, someone is humiliated\n   6 pair: When a roast stings, a better comeback follows\n   7 pair: When a roast is loving, the warmth between them grows\n   8 pair: When a roast goes too far, everything stops\n   9 pair: When a parody copies shot for shot, the twist gets the laugh\n  10 pair: When the satire bites harder, the jokes get darker\n  11 pair: When the film jokes about itself, a character talks to us\n  12 pair: When a joke falls flat, the silence stretches\n  13 pair: When the teller explains the failed joke, they talk past the point\n  14 pair: When we see the gag coming, the payoff gets a bigger laugh\n  15 pair: When the trap is shown clearly, the fall comes\n  16 pair: When the scene loosens up, the lines start to overlap\nCV-CC 12: PORT 2 (your second cable), MIDI channel 1, CC 17 to 32\n   1 pair: When the scene feels improvised, someone cracks up\n   2 pair: When cartoon rules take over, the falls stop hurting\n   3 pair: When a joke turns sad on one line, the music drops away\n   4 pair: When tears turn into a laugh, the release comes through laughing\n   5 pair: When self-mockery hides hurt, mixed feelings show\n   6 pair: When the disguise slips, the lie grows bigger\n   7 pair: When a tag scene ties back, an old joke returns\n   8 pair: When someone talks past the point, the cringe rises\n   9 pair: When something absurd is said, someone says it back\n  10 pair: When the performers laugh out loud, the warmth grows\n  11 pair: When the wrong person overhears more, the mix-up grows\n  12 pair: When the one who overheard tells everyone, more of the room is in on it\n  13 pair: When the speaker turns around and sees who heard, the cringe rises\n  14 pair: When the cool act collapses completely, someone is humiliated\n  15 pair: When someone tries harder to be cool, they start copying the cool one\n  16 pair: When the humiliation is bigger, the walk out gets longer\nCV-CC 13: PORT 2 (your second cable), MIDI channel 1, CC 33 to 48\n   1 pair: When the walk of shame gets longer, shame gets heavier\n   2 pair: When one person claps during the walk out, the cringe rises\n   3 pair: When the words are acted out in full, the slapstick gets bigger\n   4 pair: When the literal one is new to the language, they feel out of place\n   5 pair: When the careful plan fails at once, things get worse\n   6 pair: When every failed plan brings a longer one, it becomes a running gag\n   7 pair: When they make it up and make it worse, everyone jumps in to fix it\n   8 pair: When the effect looks cheaper, the absurdity grows\n   9 pair: When the cheap effect copies an old style in full, the parody shows\n  10 pair: When the joke is hidden deeper, the payoff comes from further away\n  11 pair: When they stay more polite, what they mean slips under the words\n  12 pair: When everyone's manners crack at the end, the room stops dead\n  13 pair: When one person never gets the joke, they stop fitting the group\n  14 pair: When the one who never got it makes the best joke, it tops them all\n  15 pair: When the crash stays out of sight, the faces carry the joke\n  16 pair: When they walk back in calm after the crash, the understatement lands\nCV-CC 14: PORT 2 (your second cable), MIDI channel 1, CC 49 to 64\n   1 pair: When the big moment keeps getting cut off, it becomes a running gag\n   2 pair: When the big moment is lost, the question stays open\n   3 pair: When they happily play the wrong person, the lie grows\n   4 pair: When the mix-up grows, the real one keeps nearly turning up\n   5 pair: When the real one turns up, every problem meets in one room\n   6 pair: When the animal steals more of the scene, the eye leaves the people\n   7 pair: When the humans pretend not to see the animal, the polite act strains\n   8 pair: When the greeting fumbles longer, the cringe rises\n   9 pair: When the greeting ends in bumped heads, the slapstick lands\n  10 pair: When the details are absurdly specific, the sadness underneath shows through\n  11 pair: When the talk speeds up, the chaos around them grows\n  12 pair: When the stunt is shown wide in one shot, our jaw drops\n  13 pair: When we see the trap before the hero does, the laugh grows\n  14 pair: When the face stays blank, the chaos around gets funnier\n  15 pair: When someone looks straight at the camera, the laugh doubles\n  16 pair: When the next shot shows the opposite of the interview, the irony is plain\nCV-CC 15: PORT 2 (your second cable), MIDI channel 1, CC 65 to 80\n   1 pair: When the genre's rules are clearly borrowed, breaking them gets the laugh\n   2 pair: When the film jokes about being a film, the laughs come faster\n   3 pair: When nobody in the scene blinks at the absurd, it gets funnier\n   4 pair: When one silly idea is followed with strict logic, it climbs higher and higher\n   5 pair: When the joke aims at people in charge, the rules get sillier\n   6 pair: When a joke is quietly planted early, it pays off much later\n   7 pair: When one person cracks up, the laughing spreads around the room\n   8 pair: When greed blinds them, every fix makes it worse\n   9 pair: When the rich look down on the little hero, the gags punch upward\n  10 pair: When almost nothing is said, each line is held longer before the cut\n  11 pair: When a brilliant line lands, someone tops it\n  12 pair: When a phrase comes back with a new meaning, it hits harder than the first time\n  13 pair: When a dead joke gets explained, the silence grows\n  14 pair: When they need to be liked, they try too hard and it gets worse\n  15 pair: When the actors play it dead straight, the laughs get bigger\n  16 pair: When a phrase is taken word for word, the picture shows it\nCV-CC 16: PORT 2 (your second cable), MIDI channel 1, CC 81 to 96\n   1 pair: When gags fill every corner of the frame, the laughs never stop\n   2 pairs: Joke machine\n   3 pairs: Long-game comedy\n   4 pairs: Comic reversals\n   5 pairs: The camera sells the joke\n   6 pairs: The farce engine\n   7 pairs: Stacking laughs\n   8 pairs: Comedy of a flaw\n   9 pairs: Smash and scatter\n  10 pairs: The cartoon spiral\n  11 pairs: The calm one cracks\n  12 pairs: The flop spiral\n  13 pairs: Petty quest to ruin\n  14 pairs: Roast night\n  15 pairs: Laugh, then cry\n  16 pairs: Sitcom scene shape\nCV-CC 17: PORT 2 (your second cable), MIDI channel 1, CC 97 to 110\n   1 pairs: From one overheard line\n   2 pairs: From cool to the door\n   3 pairs: Plan to pandemonium\n   4 pairs: Silent-film physical comedy: the moves\n   5 pairs: Mockumentary: the moves\n   6 pairs: Genre spoof, gag after gag: the moves\n   7 pairs: Absurd sketch logic: the moves\n   8 pairs: Fast visual comedy cut to the beat: the moves\n   9 pairs: Dark comedy of bad plans: the moves\n  10 pairs: Sweet clown with a broken heart: the moves\n  11 pairs: Deadpan stillness and long pauses: the moves\n  12 pairs: Rapid wordplay and wit: the moves\n  13 pairs: Squirm comedy of the clueless boss: the moves\n  14 pairs: Gag every second, played straight: the moves"
-   },
-   "pos": [
-    0,
-    20
-   ]
-  },
-  {
-   "id": 117,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -3320,12 +3308,12 @@
     }
    },
    "pos": [
-    15,
-    20
+    63,
+    19
    ]
   },
   {
-   "id": 118,
+   "id": 117,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -3352,12 +3340,12 @@
     }
    },
    "pos": [
-    23,
-    20
+    71,
+    19
    ]
   },
   {
-   "id": 119,
+   "id": 118,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -3384,12 +3372,12 @@
     }
    },
    "pos": [
-    31,
-    20
+    79,
+    19
    ]
   },
   {
-   "id": 120,
+   "id": 119,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -3407,16 +3395,28 @@
      11,
      12,
      13,
-     14,
-     15,
-     16
+     -1,
+     -1,
+     -1
     ],
     "midi": {
      "channel": 14
     }
    },
    "pos": [
-    39,
+    87,
+    19
+   ]
+  },
+  {
+   "id": 120,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "COMEDY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 15, CC 17 to 32\n   1 Kind of joke\n   2 What the joke is about\n   3 Pause before the punchline\n   4 Escalation\n   5 Absurdity\n   6 Deadpan to broad\n   7 Cringe\n   8 Setup and payoff\n   9 Scenes from setup to payoff\n  10 Laughs per minute\n  11 Who carries the joke\n  12 Reaction to the joke\n  13 Running gag\n  14 Callback\n  15 Rule of three\n  16 Physical comedy\nCV-CC 2: MIDI channel 15, CC 33 to 48\n   1 Wordplay\n   2 Misdirection\n   3 Irony\n   4 Understatement\n   5 Out of place in a strange world\n   6 Visual gag\n   7 Subversion\n   8 Comic edit\n   9 Comic sound\n  10 Comic flaw\n  11 Comic premise\n  12 The topper\n  13 Oddly specific\n  14 Talking to the camera\n  15 Exaggeration\n  16 Humiliation\nCV-CC 3: MIDI channel 15, CC 49 to 64\n   1 The lie that grows\n   2 Misunderstanding\n   3 Cutaway gag\n   4 Serious answer to a silly question\n   5 Catchphrase\n   6 The button\n   7 Tiny want, huge effort\n   8 Insults and roasts\n   9 Parody\n  10 Satire\n  11 Joke about the film itself\n  12 The joke that falls flat\n  13 Seeing the gag coming\n  14 Made up on the spot\n  15 Cartoon rules\n  16 The turn from funny to sad\nCV-CC 4: MIDI channel 15, CC 65 to 80\n   1 Making fun of yourself\n   2 The bad disguise\n   3 The tag scene\n   4 Talking past the point\n   5 Saying it back\n   6 Cracking up\n   7 The wrong person overhears\n   8 Trying too hard to be cool\n   9 Taking it literally\n  10 The plan that fails at step one\n  11 The long walk of shame\n  12 The deliberately cheap effect\n  13 The joke you catch the second time\n  14 Keeping up polite appearances\n  15 The one who never gets the joke\n  16 The joke we only hear\nCV-CC 5: MIDI channel 15, CC 81 to 96\n   1 Interrupted at the worst moment\n   2 Mistaken for someone else\n   3 The animal that steals the scene\n   4 The fumbled hello\n   5 suite: Comedy lens\n   6 suite: Where the laugh comes from\n   7 suite: Deadpan\n   8 suite: Slapstick\n   9 suite: Mockumentary\n  10 suite: Screwball\n  11 suite: Cringe comedy\n  12 suite: Absurdist\n  13 suite: Dark comedy\n  14 suite: Rom-com banter\n  15 suite: Snowball disaster\n  16 suite: Pull-back reveal\nCV-CC 6: MIDI channel 15, CC 97 to 112\n   1 suite: Smash cut contradiction\n   2 suite: Background gags\n   3 suite: Farce\n   4 suite: Topping the joke, twice\n   5 suite: Punching up\n   6 suite: The aside\n   7 suite: Oddly specific world\n   8 suite: Blind to their flaw\n   9 suite: The cutaway that contradicts\n  10 suite: Bigger than life\n  11 suite: Slow-burn gags\n  12 suite: Stranger in a strange land\n  13 suite: Twisting the familiar\n  14 suite: Spoof movie\n  15 suite: Roast battle\n  16 suite: The flop\nCV-CC 7: PORT 2 (your second cable), MIDI channel 1, CC 1 to 16\n   1 suite: Loose and improvised\n   2 suite: Sad clown\n   3 suite: Sharp satire\n   4 suite: Sitcom habits\n   5 suite: Petty quest\n   6 suite: Heard through the wall\n   7 suite: Dinner with the in-laws\n   8 suite: The cool act collapses\n   9 suite: Best laid plans\n  10 suite: Cardboard and string\n  11 suite: One for the second watch\n  12 suite: The proposal that keeps failing\n  13 suite: The crash in the next room\n  14 suite: Always a beat behind\n  15 suite: Silent-film physical comedy\n  16 suite: Mockumentary (full style)\nCV-CC 8: PORT 2 (your second cable), MIDI channel 1, CC 17 to 32\n   1 suite: Genre spoof, gag after gag\n   2 suite: Absurd sketch logic\n   3 suite: Fast visual comedy cut to the beat\n   4 suite: Dark comedy of bad plans\n   5 suite: Sweet clown with a broken heart\n   6 suite: Deadpan stillness and long pauses\n   7 suite: Rapid wordplay and wit\n   8 suite: Squirm comedy of the clueless boss\n   9 suite: Gag every second, played straight\n  10 pair: When a joke's setup is planted, the payoff lands\n  11 pair: When the escalation rises, the absurdity rises\n  12 pair: When the pause before the punchline grows, laughs per minute drop but each lands harder\n  13 pair: After a big joke, cut to a reaction\n  14 pair: Two of a pattern, then the break\n  15 pair: \"I'll never\", then they do\n  16 pair: After a cringe, a pointed silence\nCV-CC 9: PORT 2 (your second cable), MIDI channel 1, CC 33 to 48\n   1 pair: As trouble escalates, the frame widens\n   2 pair: A running gag returns, bigger\n   3 pair: A joke line returns in a tender moment\n   4 pair: Something absurd, nobody reacts\n   5 pair: Misdirection pays off with a pull-back\n   6 pair: After tension, a laugh breaks it\n   7 pair: When a joke lands, a topper follows\n   8 pair: When a lie wobbles, a bigger lie covers it\n   9 pair: When the lie collapses, someone is humiliated\n  10 pair: When a misunderstanding deepens, the chaos grows\n  11 pair: When someone is humiliated in front of others, the cringe rises\n  12 pair: When a blind flaw grows, the character is set back\n  13 pair: When a character talks to us, the others react a beat late\n  14 pair: An oddly specific detail comes back later\n  15 pair: When the physical comedy turns destructive, things shatter\n  16 pair: When the joke is built on a misunderstanding, the confusion keeps getting deeper\nCV-CC 10: PORT 2 (your second cable), MIDI channel 1, CC 49 to 64\n   1 pair: When the joke aims at the powerful, the audience laughs harder\n   2 pair: When the comedy goes cartoon-big, the falls get bigger\n   3 pair: When the payoff comes long after its setup, the laugh is bigger\n   4 pair: When the joke rests on the straight one, they stay perfectly calm\n   5 pair: When someone lands a sharp comeback, the pecking order wobbles\n   6 pair: When a disaster is treated as no big deal, the laugh comes in the pause\n   7 pair: When someone is badly out of place, the awkward moments pile up\n   8 pair: When more sight gags fill the frame, the laughs come faster\n   9 pair: When the setup feels very familiar, the payoff gets turned upside down\n  10 pair: When the comic idea is crystal clear, the scene can push it further and further\n  11 pair: When the situation keeps escalating, everything gets exaggerated\n  12 pair: When things get exaggerated far enough, they tip into the absurd\n  13 pair: When a cutaway shows the opposite of what was just said, the laugh lands on the cut\n  14 pair: When a silly question gets a dead serious answer, the reactions grow\n  15 pair: When a silly answer turns into a lecture, someone says it back\n  16 pair: When everyone waits for the catchphrase, holding it back gets the laugh\nCV-CC 11: PORT 2 (your second cable), MIDI channel 1, CC 65 to 80\n   1 pair: When the catchphrase comes back with a new meaning, the callback turns sweet\n   2 pair: When the topper lands, a button closes the scene\n   3 pair: When the button lands, the scene ends on it\n   4 pair: When a tiny want meets a huge effort, the trouble escalates\n   5 pair: When the tiny want is won and ruined, someone is humiliated\n   6 pair: When a roast stings, a better comeback follows\n   7 pair: When a roast is loving, the warmth between them grows\n   8 pair: When a roast goes too far, everything stops\n   9 pair: When a parody copies shot for shot, the twist gets the laugh\n  10 pair: When the satire bites harder, the jokes get darker\n  11 pair: When the film jokes about itself, a character talks to us\n  12 pair: When a joke falls flat, the silence stretches\n  13 pair: When the teller explains the failed joke, they talk past the point\n  14 pair: When we see the gag coming, the payoff gets a bigger laugh\n  15 pair: When the trap is shown clearly, the fall comes\n  16 pair: When the scene loosens up, the lines start to overlap\nCV-CC 12: PORT 2 (your second cable), MIDI channel 1, CC 81 to 96\n   1 pair: When the scene feels improvised, someone cracks up\n   2 pair: When cartoon rules take over, the falls stop hurting\n   3 pair: When a joke turns sad on one line, the music drops away\n   4 pair: When tears turn into a laugh, the release comes through laughing\n   5 pair: When self-mockery hides hurt, mixed feelings show\n   6 pair: When the disguise slips, the lie grows bigger\n   7 pair: When a tag scene ties back, an old joke returns\n   8 pair: When someone talks past the point, the cringe rises\n   9 pair: When something absurd is said, someone says it back\n  10 pair: When the performers laugh out loud, the warmth grows\n  11 pair: When the wrong person overhears more, the mix-up grows\n  12 pair: When the one who overheard tells everyone, more of the room is in on it\n  13 pair: When the speaker turns around and sees who heard, the cringe rises\n  14 pair: When the cool act collapses completely, someone is humiliated\n  15 pair: When someone tries harder to be cool, they start copying the cool one\n  16 pair: When the humiliation is bigger, the walk out gets longer\nCV-CC 13: PORT 2 (your second cable), MIDI channel 1, CC 97 to 112\n   1 pair: When the walk of shame gets longer, shame gets heavier\n   2 pair: When one person claps during the walk out, the cringe rises\n   3 pair: When the words are acted out in full, the slapstick gets bigger\n   4 pair: When the literal one is new to the language, they feel out of place\n   5 pair: When the careful plan fails at once, things get worse\n   6 pair: When every failed plan brings a longer one, it becomes a running gag\n   7 pair: When they make it up and make it worse, everyone jumps in to fix it\n   8 pair: When the effect looks cheaper, the absurdity grows\n   9 pair: When the cheap effect copies an old style in full, the parody shows\n  10 pair: When the joke is hidden deeper, the payoff comes from further away\n  11 pair: When they stay more polite, what they mean slips under the words\n  12 pair: When everyone's manners crack at the end, the room stops dead\n  13 pair: When one person never gets the joke, they stop fitting the group\n  14 pair: When the one who never got it makes the best joke, it tops them all\n  15 pair: When the crash stays out of sight, the faces carry the joke\n  16 pair: When they walk back in calm after the crash, the understatement lands\nCV-CC 14: PORT 2 (your second cable), MIDI channel 2, CC 1 to 16\n   1 pair: When the big moment keeps getting cut off, it becomes a running gag\n   2 pair: When the big moment is lost, the question stays open\n   3 pair: When they happily play the wrong person, the lie grows\n   4 pair: When the mix-up grows, the real one keeps nearly turning up\n   5 pair: When the real one turns up, every problem meets in one room\n   6 pair: When the animal steals more of the scene, the eye leaves the people\n   7 pair: When the humans pretend not to see the animal, the polite act strains\n   8 pair: When the greeting fumbles longer, the cringe rises\n   9 pair: When the greeting ends in bumped heads, the slapstick lands\n  10 pair: When the details are absurdly specific, the sadness underneath shows through\n  11 pair: When the talk speeds up, the chaos around them grows\n  12 pair: When the stunt is shown wide in one shot, our jaw drops\n  13 pair: When we see the trap before the hero does, the laugh grows\n  14 pair: When the face stays blank, the chaos around gets funnier\n  15 pair: When someone looks straight at the camera, the laugh doubles\n  16 pair: When the next shot shows the opposite of the interview, the irony is plain\nCV-CC 15: PORT 2 (your second cable), MIDI channel 2, CC 17 to 32\n   1 pair: When the genre's rules are clearly borrowed, breaking them gets the laugh\n   2 pair: When the film jokes about being a film, the laughs come faster\n   3 pair: When nobody in the scene blinks at the absurd, it gets funnier\n   4 pair: When one silly idea is followed with strict logic, it climbs higher and higher\n   5 pair: When the joke aims at people in charge, the rules get sillier\n   6 pair: When a joke is quietly planted early, it pays off much later\n   7 pair: When one person cracks up, the laughing spreads around the room\n   8 pair: When greed blinds them, every fix makes it worse\n   9 pair: When the rich look down on the little hero, the gags punch upward\n  10 pair: When almost nothing is said, each line is held longer before the cut\n  11 pair: When a brilliant line lands, someone tops it\n  12 pair: When a phrase comes back with a new meaning, it hits harder than the first time\n  13 pair: When a dead joke gets explained, the silence grows\n  14 pair: When they need to be liked, they try too hard and it gets worse\n  15 pair: When the actors play it dead straight, the laughs get bigger\n  16 pair: When a phrase is taken word for word, the picture shows it\nCV-CC 16: PORT 2 (your second cable), MIDI channel 2, CC 33 to 48\n   1 pair: When gags fill every corner of the frame, the laughs never stop\n   2 pairs: Joke machine\n   3 pairs: Long-game comedy\n   4 pairs: Comic reversals\n   5 pairs: The camera sells the joke\n   6 pairs: The farce engine\n   7 pairs: Stacking laughs\n   8 pairs: Comedy of a flaw\n   9 pairs: Smash and scatter\n  10 pairs: The cartoon spiral\n  11 pairs: The calm one cracks\n  12 pairs: The flop spiral\n  13 pairs: Petty quest to ruin\n  14 pairs: Roast night\n  15 pairs: Laugh, then cry\n  16 pairs: Sitcom scene shape\nCV-CC 17: PORT 2 (your second cable), MIDI channel 2, CC 49 to 62\n   1 pairs: From one overheard line\n   2 pairs: From cool to the door\n   3 pairs: Plan to pandemonium\n   4 pairs: Silent-film physical comedy: the moves\n   5 pairs: Mockumentary: the moves\n   6 pairs: Genre spoof, gag after gag: the moves\n   7 pairs: Absurd sketch logic: the moves\n   8 pairs: Fast visual comedy cut to the beat: the moves\n   9 pairs: Dark comedy of bad plans: the moves\n  10 pairs: Sweet clown with a broken heart: the moves\n  11 pairs: Deadpan stillness and long pauses: the moves\n  12 pairs: Rapid wordplay and wit: the moves\n  13 pairs: Squirm comedy of the clueless boss: the moves\n  14 pairs: Gag every second, played straight: the moves"
+   },
+   "pos": [
+    0,
     20
    ]
   },
@@ -3448,7 +3448,7 @@
     }
    },
    "pos": [
-    47,
+    15,
     20
    ]
   },
@@ -3480,7 +3480,7 @@
     }
    },
    "pos": [
-    55,
+    23,
     20
    ]
   },
@@ -3512,7 +3512,7 @@
     }
    },
    "pos": [
-    63,
+    31,
     20
    ]
   },
@@ -3544,7 +3544,7 @@
     }
    },
    "pos": [
-    71,
+    39,
     20
    ]
   },
@@ -3576,7 +3576,7 @@
     }
    },
    "pos": [
-    79,
+    47,
     20
    ]
   },
@@ -3608,7 +3608,7 @@
     }
    },
    "pos": [
-    87,
+    55,
     20
    ]
   },
@@ -3640,7 +3640,7 @@
     }
    },
    "pos": [
-    95,
+    63,
     20
    ]
   },
@@ -3672,7 +3672,7 @@
     }
    },
    "pos": [
-    103,
+    71,
     20
    ]
   },
@@ -3704,7 +3704,7 @@
     }
    },
    "pos": [
-    111,
+    79,
     20
    ]
   },
@@ -3736,7 +3736,7 @@
     }
    },
    "pos": [
-    119,
+    87,
     20
    ]
   },
@@ -3768,7 +3768,7 @@
     }
    },
    "pos": [
-    127,
+    95,
     20
    ]
   },
@@ -3800,7 +3800,7 @@
     }
    },
    "pos": [
-    135,
+    103,
     20
    ]
   },
@@ -3824,32 +3824,20 @@
      108,
      109,
      110,
-     -1,
-     -1
+     111,
+     112
     ],
     "midi": {
      "channel": 0
     }
    },
    "pos": [
-    143,
+    111,
     20
    ]
   },
   {
    "id": 134,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "COMEDY FROM THE MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 2, CC 1 to 16\n   1 How different the personalities are\n   2 Chaos in an orderly room\n   3 Gap in rank\n   4 What the mix does to the plot\n   5 What the mix does to the characters\n   6 Laughs from the mix\n   7 The double act\n   8 The straight man\n   9 Doesn't fit this group\n  10 Clash of egos\n  11 Who is in on it, around the room\n  12 Who sides with whom\n  13 The unwanted guest\n  14 Chemistry\n  15 Everything stops\n  16 Comic montage\nCV-CC 2: PORT 2 (your second cable), MIDI channel 2, CC 17 to 32\n   1 The punching bag\n   2 Making something tiny epic\n   3 Chase played for laughs\n   4 The near miss\n   5 Funny music\n   6 The narrator joke\n   7 Everyone plays along\n   8 A war fought politely\n   9 Two talks that cross\n  10 Everyone fixing it at once\n  11 Shot like the wrong kind of film\n  12 Every problem in one room\n  13 Copying someone, badly\n  14 suite: Comedy from the mix lens\n  15 suite: Straight one and funny one\n  16 suite: Chaos agent\nCV-CC 3: PORT 2 (your second cable), MIDI channel 2, CC 33 to 48\n   1 suite: The odd couple\n   2 suite: Calm in the madness\n   3 suite: Doesn't belong here\n   4 suite: The petty war\n   5 suite: Everyone knows but one\n   6 suite: Status swap\n   7 suite: The worst possible guest\n   8 suite: Banter\n   9 suite: Trickster stirs the pot\n  10 suite: Shifting loyalties\n  11 suite: Door-slamming farce\n  12 suite: Slapstick chase\n  13 suite: Wry narrator\n  14 suite: Dry double act\n  15 suite: The wrong man\n  16 suite: Sweet poison\nCV-CC 4: PORT 2 (your second cable), MIDI channel 2, CC 49 to 64\n   1 suite: Too many hands\n   2 suite: A western in the living room\n   3 suite: Two tables, one conversation\n   4 suite: Rapid-fire screwball\n   5 suite: Romantic comedy meet-cute\n   6 suite: Loose improvised hangout comedy\n   7 suite: One wild night teen comedy\n   8 suite: Romantic comedy of manners\n   9 pair: When a chaos character enters an orderly room, the cringe rises\n  10 pair: When opposite personality types share the room, more of the laughs come from the mix\n  11 pair: When the gap in rank grows, the plot takes a turn\n  12 pair: Pride before a fall\n  13 pair: When the unwanted guest arrives, the room falls into chaos\n  14 pair: When the egos clash, the plot takes a detour\n  15 pair: When the one who doesn't know gets close to the secret, the cringe rises\n  16 pair: When the chaos grows, the straight man's calm sells the laugh\nCV-CC 5: PORT 2 (your second cable), MIDI channel 2, CC 65 to 80\n   1 pair: When the odd one out tries harder, the group pulls away\n   2 pair: When the sides switch, the status flips\n   3 pair: When the chemistry grows, the characters change\n   4 pair: When the calm one finally loses it, the biggest laugh lands\n   5 pair: When a comic pair trades lines faster, the spark between them grows\n   6 pair: When the room stops dead, the record scratches\n   7 pair: When the room stops, the cringe rises\n   8 pair: When the comic montage starts, the cuts land on the beat\n   9 pair: When the montage shows failed attempts, the disaster escalates\n  10 pair: When the punching bag keeps losing, our sympathy grows\n  11 pair: When the punching bag finally wins big, the release floods in\n  12 pair: When something tiny is made epic, the picture slows down\n  13 pair: When the epic fuss cuts hard to reality, a smash cut pops it\n  14 pair: When a comic chase picks up, things crash\n  15 pair: When the near misses pile up, the room falls into chaos\n  16 pair: When two people miss each other by a second, the tension jumps\nCV-CC 6: PORT 2 (your second cable), MIDI channel 2, CC 81 to 96\n   1 pair: When the funny music stops dead, the silence gets the laugh\n   2 pair: When the music copies every step, the physical comedy gets bigger\n   3 pair: When the narrator jumps in with an intro, the frame freezes\n   4 pair: When the voice-over says one thing and the picture shows another, the narrator joke lands\n   5 pair: When everyone plays along, the absurdity grows\n   6 pair: When the manners must hold, the fight goes polite\n   7 pair: When egos clash at a formal table, the war goes polite\n   8 pair: When the polite war turns into a real fight, chaos fills the room\n   9 pair: When the two talks cross more, misunderstandings grow\n  10 pair: When a crossed line gives away a secret, more people know it\n  11 pair: When more helpers make it worse, the trouble escalates\n  12 pair: When every helper breaks something new, chaos fills the room\n  13 pair: When the scene copies another kind of film more fully, it becomes a parody\n  14 pair: When the borrowed style snaps back to normal, a hard comic cut pops it\n  15 pair: When the lie keeps growing, every problem heads for one room\n  16 pair: When more problems meet in one room, the near misses pile up\nCV-CC 7: PORT 2 (your second cable), MIDI channel 2, CC 97 to 112\n   1 pair: When the farce blows up into a chase, the comic chase begins\n   2 pair: When the copying goes further, the cringe rises\n   3 pair: When the copied one starts copying back, a double act is born\n   4 pair: When they talk over each other, the sparks between them grow\n   5 pair: When the calm one finally loses it, the biggest laugh lands\n   6 pair: When two strangers bump into each other, the spark starts\n   7 pair: When the talk wanders off topic, the friends feel more real\n   8 pair: When friends roast each other with love, the warmth between them grows\n   9 pair: When the little hero keeps losing, we root for them harder\n  10 pair: When the boss pretends to be one of the team, the room goes stiff\n  11 pair: When the careful friend is dragged along, the wild one pushes harder\n  12 pair: When polite words say the opposite of the wish, the spark grows\n  13 pairs: The mix makes it funny\n  14 pairs: The house party engine\n  15 pairs: The secret in the room\n  16 pairs: The pair that grows\nCV-CC 8: PORT 2 (your second cable), MIDI channel 3, CC 1 to 10\n   1 pairs: Epic fuss, then popped\n   2 pairs: Chase to crash\n   3 pairs: Farce at the doors\n   4 pairs: Manners at war\n   5 pairs: From the wrong man to a farce\n   6 pairs: Rapid-fire screwball: the moves\n   7 pairs: Romantic comedy meet-cute: the moves\n   8 pairs: Loose improvised hangout comedy: the moves\n   9 pairs: One wild night teen comedy: the moves\n  10 pairs: Romantic comedy of manners: the moves"
-   },
-   "pos": [
-    0,
-    21
-   ]
-  },
-  {
-   "id": 135,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -3876,12 +3864,12 @@
     }
    },
    "pos": [
-    15,
-    21
+    119,
+    20
    ]
   },
   {
-   "id": 136,
+   "id": 135,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -3908,12 +3896,12 @@
     }
    },
    "pos": [
-    23,
-    21
+    127,
+    20
    ]
   },
   {
-   "id": 137,
+   "id": 136,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -3940,12 +3928,12 @@
     }
    },
    "pos": [
-    31,
-    21
+    135,
+    20
    ]
   },
   {
-   "id": 138,
+   "id": 137,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -3964,15 +3952,27 @@
      60,
      61,
      62,
-     63,
-     64
+     -1,
+     -1
     ],
     "midi": {
      "channel": 1
     }
    },
    "pos": [
-    39,
+    143,
+    20
+   ]
+  },
+  {
+   "id": 138,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "COMEDY FROM THE MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 2, CC 65 to 80\n   1 How different the personalities are\n   2 Chaos in an orderly room\n   3 Gap in rank\n   4 What the mix does to the plot\n   5 What the mix does to the characters\n   6 Laughs from the mix\n   7 The double act\n   8 The straight man\n   9 Doesn't fit this group\n  10 Clash of egos\n  11 Who is in on it, around the room\n  12 Who sides with whom\n  13 The unwanted guest\n  14 Chemistry\n  15 Everything stops\n  16 Comic montage\nCV-CC 2: PORT 2 (your second cable), MIDI channel 2, CC 81 to 96\n   1 The punching bag\n   2 Making something tiny epic\n   3 Chase played for laughs\n   4 The near miss\n   5 Funny music\n   6 The narrator joke\n   7 Everyone plays along\n   8 A war fought politely\n   9 Two talks that cross\n  10 Everyone fixing it at once\n  11 Shot like the wrong kind of film\n  12 Every problem in one room\n  13 Copying someone, badly\n  14 suite: Comedy from the mix lens\n  15 suite: Straight one and funny one\n  16 suite: Chaos agent\nCV-CC 3: PORT 2 (your second cable), MIDI channel 2, CC 97 to 112\n   1 suite: The odd couple\n   2 suite: Calm in the madness\n   3 suite: Doesn't belong here\n   4 suite: The petty war\n   5 suite: Everyone knows but one\n   6 suite: Status swap\n   7 suite: The worst possible guest\n   8 suite: Banter\n   9 suite: Trickster stirs the pot\n  10 suite: Shifting loyalties\n  11 suite: Door-slamming farce\n  12 suite: Slapstick chase\n  13 suite: Wry narrator\n  14 suite: Dry double act\n  15 suite: The wrong man\n  16 suite: Sweet poison\nCV-CC 4: PORT 2 (your second cable), MIDI channel 3, CC 1 to 16\n   1 suite: Too many hands\n   2 suite: A western in the living room\n   3 suite: Two tables, one conversation\n   4 suite: Rapid-fire screwball\n   5 suite: Romantic comedy meet-cute\n   6 suite: Loose improvised hangout comedy\n   7 suite: One wild night teen comedy\n   8 suite: Romantic comedy of manners\n   9 pair: When a chaos character enters an orderly room, the cringe rises\n  10 pair: When opposite personality types share the room, more of the laughs come from the mix\n  11 pair: When the gap in rank grows, the plot takes a turn\n  12 pair: Pride before a fall\n  13 pair: When the unwanted guest arrives, the room falls into chaos\n  14 pair: When the egos clash, the plot takes a detour\n  15 pair: When the one who doesn't know gets close to the secret, the cringe rises\n  16 pair: When the chaos grows, the straight man's calm sells the laugh\nCV-CC 5: PORT 2 (your second cable), MIDI channel 3, CC 17 to 32\n   1 pair: When the odd one out tries harder, the group pulls away\n   2 pair: When the sides switch, the status flips\n   3 pair: When the chemistry grows, the characters change\n   4 pair: When the calm one finally loses it, the biggest laugh lands\n   5 pair: When a comic pair trades lines faster, the spark between them grows\n   6 pair: When the room stops dead, the record scratches\n   7 pair: When the room stops, the cringe rises\n   8 pair: When the comic montage starts, the cuts land on the beat\n   9 pair: When the montage shows failed attempts, the disaster escalates\n  10 pair: When the punching bag keeps losing, our sympathy grows\n  11 pair: When the punching bag finally wins big, the release floods in\n  12 pair: When something tiny is made epic, the picture slows down\n  13 pair: When the epic fuss cuts hard to reality, a smash cut pops it\n  14 pair: When a comic chase picks up, things crash\n  15 pair: When the near misses pile up, the room falls into chaos\n  16 pair: When two people miss each other by a second, the tension jumps\nCV-CC 6: PORT 2 (your second cable), MIDI channel 3, CC 33 to 48\n   1 pair: When the funny music stops dead, the silence gets the laugh\n   2 pair: When the music copies every step, the physical comedy gets bigger\n   3 pair: When the narrator jumps in with an intro, the frame freezes\n   4 pair: When the voice-over says one thing and the picture shows another, the narrator joke lands\n   5 pair: When everyone plays along, the absurdity grows\n   6 pair: When the manners must hold, the fight goes polite\n   7 pair: When egos clash at a formal table, the war goes polite\n   8 pair: When the polite war turns into a real fight, chaos fills the room\n   9 pair: When the two talks cross more, misunderstandings grow\n  10 pair: When a crossed line gives away a secret, more people know it\n  11 pair: When more helpers make it worse, the trouble escalates\n  12 pair: When every helper breaks something new, chaos fills the room\n  13 pair: When the scene copies another kind of film more fully, it becomes a parody\n  14 pair: When the borrowed style snaps back to normal, a hard comic cut pops it\n  15 pair: When the lie keeps growing, every problem heads for one room\n  16 pair: When more problems meet in one room, the near misses pile up\nCV-CC 7: PORT 2 (your second cable), MIDI channel 3, CC 49 to 64\n   1 pair: When the farce blows up into a chase, the comic chase begins\n   2 pair: When the copying goes further, the cringe rises\n   3 pair: When the copied one starts copying back, a double act is born\n   4 pair: When they talk over each other, the sparks between them grow\n   5 pair: When the calm one finally loses it, the biggest laugh lands\n   6 pair: When two strangers bump into each other, the spark starts\n   7 pair: When the talk wanders off topic, the friends feel more real\n   8 pair: When friends roast each other with love, the warmth between them grows\n   9 pair: When the little hero keeps losing, we root for them harder\n  10 pair: When the boss pretends to be one of the team, the room goes stiff\n  11 pair: When the careful friend is dragged along, the wild one pushes harder\n  12 pair: When polite words say the opposite of the wish, the spark grows\n  13 pairs: The mix makes it funny\n  14 pairs: The house party engine\n  15 pairs: The secret in the room\n  16 pairs: The pair that grows\nCV-CC 8: PORT 2 (your second cable), MIDI channel 3, CC 65 to 74\n   1 pairs: Epic fuss, then popped\n   2 pairs: Chase to crash\n   3 pairs: Farce at the doors\n   4 pairs: Manners at war\n   5 pairs: From the wrong man to a farce\n   6 pairs: Rapid-fire screwball: the moves\n   7 pairs: Romantic comedy meet-cute: the moves\n   8 pairs: Loose improvised hangout comedy: the moves\n   9 pairs: One wild night teen comedy: the moves\n  10 pairs: Romantic comedy of manners: the moves"
+   },
+   "pos": [
+    0,
     21
    ]
   },
@@ -4004,7 +4004,7 @@
     }
    },
    "pos": [
-    47,
+    15,
     21
    ]
   },
@@ -4036,7 +4036,7 @@
     }
    },
    "pos": [
-    55,
+    23,
     21
    ]
   },
@@ -4068,7 +4068,7 @@
     }
    },
    "pos": [
-    63,
+    31,
     21
    ]
   },
@@ -4088,36 +4088,24 @@
      8,
      9,
      10,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
     ],
     "midi": {
      "channel": 2
     }
    },
    "pos": [
-    71,
+    39,
     21
    ]
   },
   {
    "id": 143,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "MUSIC & SOUND\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 3, CC 17 to 32\n   1 Score (music only we hear)\n   2 Sound density\n   3 Sound against the cut\n   4 Music\n   5 No music\n   6 Sound effects around the scene\n   7 Music speeds up or slows down\n   8 Music turns sad or bright\n   9 The lead instrument\n  10 Style of music\n  11 Music crosses over\n  12 A character's own tune\n  13 Someone hums or sings\n  14 A song performed in the story\n  15 Repeating notes that build tension\n  16 Music lands on the moment\nCV-CC 2: PORT 2 (your second cable), MIDI channel 3, CC 33 to 48\n   1 Sweet or clashing notes\n   2 Bent or broken music\n   3 Where the music goes\n   4 Whose feeling the music plays\n   5 Music warns us early\n   6 Music from another time\n   7 Title music\n   8 Everyday sounds turn into music\n   9 suite: Needle drop\n  10 suite: Ironic counterpoint\n  11 suite: Radio in the room\n  12 suite: Score swell\n  13 suite: Sudden silence\n  14 suite: Bare scene\n  15 suite: Suspense drone\n  16 suite: Montage song\nCV-CC 3: PORT 2 (your second cable), MIDI channel 3, CC 49 to 64\n   1 suite: Returning theme\n   2 suite: Heightened sound\n   3 suite: The hero's theme returns\n   4 suite: Horror score\n   5 suite: Creepy lullaby\n   6 suite: Old story, new songs\n   7 suite: Musical number\n   8 suite: Race against the clock\n   9 suite: Spare and honest\n  10 suite: Grand opening\n  11 suite: Love theme\n  12 suite: Horror jump scare build\n  13 suite: Musical number (full style)\n  14 pair: When the music is cut dead, a big line lands\n  15 pair: When the music drops out, a reveal follows\n  16 pair: When a famous song starts, time slows\nCV-CC 4: PORT 2 (your second cable), MIDI channel 3, CC 65 to 80\n   1 pair: When the tempo rises, the cuts speed up\n   2 pair: When the music turns warm, faces soften\n   3 pair: When the music fights the scene, the violence gets bigger\n   4 pair: When there is no music, the frame gets closer\n   5 pair: When music plays in the room, someone moves to it\n   6 pair: When a theme returns, the character it belongs to appears\n   7 pair: When the music builds to its peak, it cuts out\n   8 pair: When the repeating notes grow insistent, the music speeds up\n   9 pair: When the repeating notes crash to an end, the music lands on the moment\n  10 pair: When the music speeds up a lot, the cuts come faster\n  11 pair: When the music slows right down, the shots hold longer\n  12 pair: When the music turns from dark to bright, hope rises\n  13 pair: When the music turns from bright to dark, dread creeps in\n  14 pair: When the character's tune is played heroic, pride swells\n  15 pair: When a tune plays for someone who is missed, grief rises\n  16 pair: When a tune plays just before its owner arrives, the music is warning us\nCV-CC 5: PORT 2 (your second cable), MIDI channel 3, CC 81 to 96\n   1 pair: When the music warns us early, dread builds\n   2 pair: When the music's warning is a false alarm, the release comes\n   3 pair: When the notes clash more, the tension rises\n   4 pair: When the clashing notes settle, the release comes\n   5 pair: When the music warps into a memory, nostalgia comes with it\n   6 pair: When the music warps, the place starts to echo\n   7 pair: When others join the humming, warmth grows\n   8 pair: When a character hums the film's own theme, the theme comes back\n   9 pair: When the crowd goes wild for a performance, pride rises\n  10 pair: When a performance takes over the scene, the music crosses into the soundtrack\n  11 pair: When room music crosses into the soundtrack, the music comes forward\n  12 pair: When the music is saved for the big moments, it lands harder\n  13 pair: When less of the film has music, the silences grow\n  14 pair: When the music plays one person's inner feeling, we feel with them\n  15 pair: When the music moves inside a character, we start to hear through their ears\n  16 pair: When the style of music clashes on purpose, the music fights the scene\nCV-CC 6: PORT 2 (your second cable), MIDI channel 3, CC 97 to 112\n   1 pair: When characters sing music from another time, a performance takes over\n   2 pair: When the title music carries the main theme, the theme becomes easy to recognise\n   3 pair: When the closing music is big, the feeling stays after the film\n   4 pair: When one instrument plays alone, loneliness grows\n   5 pair: When the instrument sounds right in your ear, tenderness grows\n   6 pair: When everyday sounds fall into a beat, the cuts land on it\n   7 pair: When the music lands big on the moment, the feeling peaks\n   8 pair: When the big hit is followed by silence, the music drops out\n   9 pair: When a cheerful old song plays over cruelty, the audience feels something stranger than the scene\n  10 pair: When the danger rushes in, the music stops dead\n  11 pair: When no one speaks, the music follows every step\n  12 pair: When the big reveal lands, the orchestra swells\n  13 pair: When the hero's tune comes back, the audience lets go\n  14 pair: When the music drains away, we brace for a shock\n  15 pair: When they finally stand close, the music swells\n  16 pair: When the clock is down to seconds, the music speeds up\nCV-CC 7: PORT 2 (your second cable), MIDI channel 4, CC 1 to 14\n   1 pair: When a famous song from their youth plays, the past floods back\n   2 pair: When everyday sounds fall into a beat, the song begins\n   3 pair: When the music turns out to be playing in the room, the film winks at itself\n   4 pair: When every action lands on the beat, the laughs come faster\n   5 pair: When music carries the turn from funny to sad, the tears feel earned\n   6 pairs: Music steers the edit\n   7 pairs: Silence as a weapon\n   8 pairs: The clock runs out\n   9 pairs: Something is coming\n  10 pairs: From the room to the soundtrack\n  11 pairs: The theme comes home\n  12 pairs: Saving it for the end\n  13 pairs: Horror jump scare build: the moves\n  14 pairs: Musical number: the moves"
-   },
-   "pos": [
-    0,
-    22
-   ]
-  },
-  {
-   "id": 144,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4144,12 +4132,12 @@
     }
    },
    "pos": [
-    15,
-    22
+    47,
+    21
    ]
   },
   {
-   "id": 145,
+   "id": 144,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4176,12 +4164,12 @@
     }
    },
    "pos": [
-    23,
-    22
+    55,
+    21
    ]
   },
   {
-   "id": 146,
+   "id": 145,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4208,12 +4196,12 @@
     }
    },
    "pos": [
-    31,
-    22
+    63,
+    21
    ]
   },
   {
-   "id": 147,
+   "id": 146,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4228,19 +4216,31 @@
      72,
      73,
      74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
     ],
     "midi": {
      "channel": 2
     }
    },
    "pos": [
-    39,
+    71,
+    21
+   ]
+  },
+  {
+   "id": 147,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "MUSIC & SOUND\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 3, CC 81 to 96\n   1 Score (music only we hear)\n   2 Sound density\n   3 Sound against the cut\n   4 Music\n   5 No music\n   6 Sound effects around the scene\n   7 Music speeds up or slows down\n   8 Music turns sad or bright\n   9 The lead instrument\n  10 Style of music\n  11 Music crosses over\n  12 A character's own tune\n  13 Someone hums or sings\n  14 A song performed in the story\n  15 Repeating notes that build tension\n  16 Music lands on the moment\nCV-CC 2: PORT 2 (your second cable), MIDI channel 3, CC 97 to 112\n   1 Sweet or clashing notes\n   2 Bent or broken music\n   3 Where the music goes\n   4 Whose feeling the music plays\n   5 Music warns us early\n   6 Music from another time\n   7 Title music\n   8 Everyday sounds turn into music\n   9 suite: Needle drop\n  10 suite: Ironic counterpoint\n  11 suite: Radio in the room\n  12 suite: Score swell\n  13 suite: Sudden silence\n  14 suite: Bare scene\n  15 suite: Suspense drone\n  16 suite: Montage song\nCV-CC 3: PORT 2 (your second cable), MIDI channel 4, CC 1 to 16\n   1 suite: Returning theme\n   2 suite: Heightened sound\n   3 suite: The hero's theme returns\n   4 suite: Horror score\n   5 suite: Creepy lullaby\n   6 suite: Old story, new songs\n   7 suite: Musical number\n   8 suite: Race against the clock\n   9 suite: Spare and honest\n  10 suite: Grand opening\n  11 suite: Love theme\n  12 suite: Horror jump scare build\n  13 suite: Musical number (full style)\n  14 pair: When the music is cut dead, a big line lands\n  15 pair: When the music drops out, a reveal follows\n  16 pair: When a famous song starts, time slows\nCV-CC 4: PORT 2 (your second cable), MIDI channel 4, CC 17 to 32\n   1 pair: When the tempo rises, the cuts speed up\n   2 pair: When the music turns warm, faces soften\n   3 pair: When the music fights the scene, the violence gets bigger\n   4 pair: When there is no music, the frame gets closer\n   5 pair: When music plays in the room, someone moves to it\n   6 pair: When a theme returns, the character it belongs to appears\n   7 pair: When the music builds to its peak, it cuts out\n   8 pair: When the repeating notes grow insistent, the music speeds up\n   9 pair: When the repeating notes crash to an end, the music lands on the moment\n  10 pair: When the music speeds up a lot, the cuts come faster\n  11 pair: When the music slows right down, the shots hold longer\n  12 pair: When the music turns from dark to bright, hope rises\n  13 pair: When the music turns from bright to dark, dread creeps in\n  14 pair: When the character's tune is played heroic, pride swells\n  15 pair: When a tune plays for someone who is missed, grief rises\n  16 pair: When a tune plays just before its owner arrives, the music is warning us\nCV-CC 5: PORT 2 (your second cable), MIDI channel 4, CC 33 to 48\n   1 pair: When the music warns us early, dread builds\n   2 pair: When the music's warning is a false alarm, the release comes\n   3 pair: When the notes clash more, the tension rises\n   4 pair: When the clashing notes settle, the release comes\n   5 pair: When the music warps into a memory, nostalgia comes with it\n   6 pair: When the music warps, the place starts to echo\n   7 pair: When others join the humming, warmth grows\n   8 pair: When a character hums the film's own theme, the theme comes back\n   9 pair: When the crowd goes wild for a performance, pride rises\n  10 pair: When a performance takes over the scene, the music crosses into the soundtrack\n  11 pair: When room music crosses into the soundtrack, the music comes forward\n  12 pair: When the music is saved for the big moments, it lands harder\n  13 pair: When less of the film has music, the silences grow\n  14 pair: When the music plays one person's inner feeling, we feel with them\n  15 pair: When the music moves inside a character, we start to hear through their ears\n  16 pair: When the style of music clashes on purpose, the music fights the scene\nCV-CC 6: PORT 2 (your second cable), MIDI channel 4, CC 49 to 64\n   1 pair: When characters sing music from another time, a performance takes over\n   2 pair: When the title music carries the main theme, the theme becomes easy to recognise\n   3 pair: When the closing music is big, the feeling stays after the film\n   4 pair: When one instrument plays alone, loneliness grows\n   5 pair: When the instrument sounds right in your ear, tenderness grows\n   6 pair: When everyday sounds fall into a beat, the cuts land on it\n   7 pair: When the music lands big on the moment, the feeling peaks\n   8 pair: When the big hit is followed by silence, the music drops out\n   9 pair: When a cheerful old song plays over cruelty, the audience feels something stranger than the scene\n  10 pair: When the danger rushes in, the music stops dead\n  11 pair: When no one speaks, the music follows every step\n  12 pair: When the big reveal lands, the orchestra swells\n  13 pair: When the hero's tune comes back, the audience lets go\n  14 pair: When the music drains away, we brace for a shock\n  15 pair: When they finally stand close, the music swells\n  16 pair: When the clock is down to seconds, the music speeds up\nCV-CC 7: PORT 2 (your second cable), MIDI channel 4, CC 65 to 78\n   1 pair: When a famous song from their youth plays, the past floods back\n   2 pair: When everyday sounds fall into a beat, the song begins\n   3 pair: When the music turns out to be playing in the room, the film winks at itself\n   4 pair: When every action lands on the beat, the laughs come faster\n   5 pair: When music carries the turn from funny to sad, the tears feel earned\n   6 pairs: Music steers the edit\n   7 pairs: Silence as a weapon\n   8 pairs: The clock runs out\n   9 pairs: Something is coming\n  10 pairs: From the room to the soundtrack\n  11 pairs: The theme comes home\n  12 pairs: Saving it for the end\n  13 pairs: Horror jump scare build: the moves\n  14 pairs: Musical number: the moves"
+   },
+   "pos": [
+    0,
     22
    ]
   },
@@ -4272,7 +4272,7 @@
     }
    },
    "pos": [
-    47,
+    15,
     22
    ]
   },
@@ -4304,7 +4304,7 @@
     }
    },
    "pos": [
-    55,
+    23,
     22
    ]
   },
@@ -4328,32 +4328,20 @@
      12,
      13,
      14,
-     -1,
-     -1
+     15,
+     16
     ],
     "midi": {
      "channel": 3
     }
    },
    "pos": [
-    63,
+    31,
     22
    ]
   },
   {
    "id": 151,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "EDITING & STRUCTURE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 4, CC 17 to 32\n   1 Number of main characters\n   2 Groups in the hour\n   3 Exit\n   4 How often a main is in the season\n   5 Scene change rate\n   6 Sequence lengths\n   7 How a scene begins\n   8 How scenes join (storytelling)\n   9 Call and response\n  10 Repetition scheme\n  11 Signature image or line\n  12 Contrast map\n  13 Tension\n  14 Energy\n  15 Visual density\n  16 Constant\nCV-CC 2: PORT 2 (your second cable), MIDI channel 4, CC 33 to 48\n   1 Psych-out shift\n   2 Clipped or flowing cuts\n   3 Human touch in camera and cuts\n   4 Motif shape\n   5 Cross-cutting\n   6 When the audience learns it\n   7 Story point of view\n   8 Scene length\n   9 How the scene ends\n  10 The opening grab\n  11 Ends where it starts\n  12 Multicam angle switching\n  13 Nested scene\n  14 Time and speed\n  15 Shots in order\n  16 The story told backwards\nCV-CC 3: PORT 2 (your second cable), MIDI channel 4, CC 49 to 64\n   1 A glimpse of what is coming\n   2 The same moment from another side\n   3 It seems to end, but doesn't\n   4 Someone telling the story\n   5 How far apart the surprises come\n   6 The promise of the opening\n   7 A stretch where nothing pulls\n   8 Leaving at the best part\n   9 suite: Two-person hour\n  10 suite: Build\n  11 suite: Drop\n  12 suite: Signature return\n  13 suite: Crime, Tarantino style\n  14 suite: Horror\n  15 suite: Action\n  16 suite: Western\nCV-CC 4: PORT 2 (your second cable), MIDI channel 4, CC 65 to 80\n   1 suite: Musical\n   2 suite: Documentary look (camera and light)\n   3 suite: Surrealist\n   4 suite: Romantic comedy\n   5 suite: Viral short: hook and loop\n   6 suite: Episode cliffhanger\n   7 suite: Stop-motion feel\n   8 suite: The big moment\n   9 suite: Breakneck pace\n  10 suite: Slow and patient\n  11 suite: Cut like music\n  12 suite: Ensemble patchwork\n  13 suite: Losing a main character\n  14 suite: Studio sitcom\n  15 suite: A story inside the story\n  16 suite: From the end, back\nCV-CC 5: PORT 2 (your second cable), MIDI channel 4, CC 81 to 96\n   1 suite: How did I get here?\n   2 suite: The same night, twice\n   3 suite: It is not over\n   4 suite: Just one more episode\n   5 suite: A promise kept\n   6 suite: Waking up a flat middle\n   7 suite: Long talk that snaps into violence\n   8 pair: When tension peaks, a long silence\n   9 pair: When energy drops, the hold is long\n  10 pair: When suite Build, suite Drop\n  11 pair: When suite Aggressive camera, suite Quiet confession\n  12 pair: When suite Storm, suite Breathing room\n  13 pair: When time slows, the bits in the air hang\n  14 pair: When scenes start changing faster, the tension climbs\n  15 pair: When tension climbs, scenes get shorter\n  16 pair: When the hour splits into two groups, the film cuts back and forth between them\nCV-CC 6: PORT 2 (your second cable), MIDI channel 4, CC 97 to 112\n   1 pair: When the film cuts between two places faster and faster, the clock feels tighter\n   2 pair: When a scene starts in the middle of the action, the audience starts asking questions\n   3 pair: When every shot answers the one before, laughs come faster\n   4 pair: When shots come in threes, the third one becomes the punchline\n   5 pair: When the same moment keeps repeating, it turns into a running gag\n   6 pair: When the film's signature image comes back, the old feeling comes back with it\n   7 pair: When scenes are built to clash, the feeling flips at the cut\n   8 pair: When one sound or image is held under everything, dread builds\n   9 pair: When a scare turns out to be fake, the audience laughs with relief\n  10 pair: When the cuts get louder and sharper, the energy jumps\n  11 pair: When the camera feels like a nosy person in the room, awkward moments get more awkward\n  12 pair: When a repeating tune or image keeps climbing, hope climbs with it\n  13 pair: When the story hops between characters, the audience learns things before they do\n  14 pair: When a main character shows up more often, their own story gets heavier\n  15 pair: When more main characters share the spotlight, their stories start crossing\n  16 pair: When a main character dies, the tears come soon after\nCV-CC 7: PORT 2 (your second cable), MIDI channel 5, CC 1 to 16\n   1 pair: When a scene plays out inside another scene, the audience starts doubting what's real\n   2 pair: When the shots get short, the energy climbs\n   3 pair: When the story runs backwards, we already know how it ends\n   4 pair: When the story runs backwards, we ask why\n   5 pair: When the glimpse of the future shows a death, dread rises\n   6 pair: When the glimpse of the future is clearer, the ending feels fixed\n   7 pair: When the second look changes more, we know more than they do\n   8 pair: When the second look changes everything, the story flips\n   9 pair: When the fake ending is more convincing, we let our breath out\n  10 pair: When the villain comes back after the ending, things get worse\n  11 pair: When the teller is lying, we cannot trust what we see\n  12 pair: When the story is told to a child, tenderness grows\n  13 pair: When surprises come more often, tension rises\n  14 pair: When the opening grabs with a promise, the promise gets clearer\n  15 pair: When the opening's promise is broken, the film turns on us\n  16 pair: When nothing pulls, the audience drifts\nCV-CC 8: PORT 2 (your second cable), MIDI channel 5, CC 17 to 32\n   1 pair: When a flat stretch is fixed with a clock, the clock starts running\n   2 pair: When a flat stretch is fixed with a question, someone asks it out loud\n   3 pair: When a scene ends on a cliffhanger, we leave at the best part\n   4 pair: When the film cuts between stories more, it leaves each nearer its peak\n   5 pair: When we leave a story at its peak, its question rides along\n   6 pair: When the talk runs long and casual, violence arrives without warning\n   7 pair: When a chapter card appears, the story jumps to someone else's side\n   8 pair: When a false scare passes, the real one comes right after\n   9 pair: When the cutting jumps between the crew, the tension climbs\n  10 pair: When the film notices it has gone too far, it just stops and moves on\n  11 pair: When the cut goes to whoever is listening, the joke lands twice\n  12 pair: When violence breaks out, the next scene is calm and ordinary\n  13 pairs: Long-form shape\n  14 pairs: The squeeze\n  15 pairs: We know how it ends\n  16 pairs: Leaving at the peak\nCV-CC 9: PORT 2 (your second cable), MIDI channel 5, CC 33 to 34\n   1 pairs: Waking the middle\n   2 pairs: Long talk that snaps into violence: the moves"
-   },
-   "pos": [
-    0,
-    23
-   ]
-  },
-  {
-   "id": 152,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4380,12 +4368,12 @@
     }
    },
    "pos": [
-    15,
-    23
+    39,
+    22
    ]
   },
   {
-   "id": 153,
+   "id": 152,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4412,12 +4400,12 @@
     }
    },
    "pos": [
-    23,
-    23
+    47,
+    22
    ]
   },
   {
-   "id": 154,
+   "id": 153,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4444,12 +4432,12 @@
     }
    },
    "pos": [
-    31,
-    23
+    55,
+    22
    ]
   },
   {
-   "id": 155,
+   "id": 154,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4468,15 +4456,27 @@
      76,
      77,
      78,
-     79,
-     80
+     -1,
+     -1
     ],
     "midi": {
      "channel": 3
     }
    },
    "pos": [
-    39,
+    63,
+    22
+   ]
+  },
+  {
+   "id": 155,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "EDITING & STRUCTURE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 4, CC 81 to 96\n   1 Number of main characters\n   2 Groups in the hour\n   3 Exit\n   4 How often a main is in the season\n   5 Scene change rate\n   6 Sequence lengths\n   7 How a scene begins\n   8 How scenes join (storytelling)\n   9 Call and response\n  10 Repetition scheme\n  11 Signature image or line\n  12 Contrast map\n  13 Tension\n  14 Energy\n  15 Visual density\n  16 Constant\nCV-CC 2: PORT 2 (your second cable), MIDI channel 4, CC 97 to 112\n   1 Psych-out shift\n   2 Clipped or flowing cuts\n   3 Human touch in camera and cuts\n   4 Motif shape\n   5 Cross-cutting\n   6 When the audience learns it\n   7 Story point of view\n   8 Scene length\n   9 How the scene ends\n  10 The opening grab\n  11 Ends where it starts\n  12 Multicam angle switching\n  13 Nested scene\n  14 Time and speed\n  15 Shots in order\n  16 The story told backwards\nCV-CC 3: PORT 2 (your second cable), MIDI channel 5, CC 1 to 16\n   1 A glimpse of what is coming\n   2 The same moment from another side\n   3 It seems to end, but doesn't\n   4 Someone telling the story\n   5 How far apart the surprises come\n   6 The promise of the opening\n   7 A stretch where nothing pulls\n   8 Leaving at the best part\n   9 suite: Two-person hour\n  10 suite: Build\n  11 suite: Drop\n  12 suite: Signature return\n  13 suite: Crime, Tarantino style\n  14 suite: Horror\n  15 suite: Action\n  16 suite: Western\nCV-CC 4: PORT 2 (your second cable), MIDI channel 5, CC 17 to 32\n   1 suite: Musical\n   2 suite: Documentary look (camera and light)\n   3 suite: Surrealist\n   4 suite: Romantic comedy\n   5 suite: Viral short: hook and loop\n   6 suite: Episode cliffhanger\n   7 suite: Stop-motion feel\n   8 suite: The big moment\n   9 suite: Breakneck pace\n  10 suite: Slow and patient\n  11 suite: Cut like music\n  12 suite: Ensemble patchwork\n  13 suite: Losing a main character\n  14 suite: Studio sitcom\n  15 suite: A story inside the story\n  16 suite: From the end, back\nCV-CC 5: PORT 2 (your second cable), MIDI channel 5, CC 33 to 48\n   1 suite: How did I get here?\n   2 suite: The same night, twice\n   3 suite: It is not over\n   4 suite: Just one more episode\n   5 suite: A promise kept\n   6 suite: Waking up a flat middle\n   7 suite: Long talk that snaps into violence\n   8 pair: When tension peaks, a long silence\n   9 pair: When energy drops, the hold is long\n  10 pair: When suite Build, suite Drop\n  11 pair: When suite Aggressive camera, suite Quiet confession\n  12 pair: When suite Storm, suite Breathing room\n  13 pair: When time slows, the bits in the air hang\n  14 pair: When scenes start changing faster, the tension climbs\n  15 pair: When tension climbs, scenes get shorter\n  16 pair: When the hour splits into two groups, the film cuts back and forth between them\nCV-CC 6: PORT 2 (your second cable), MIDI channel 5, CC 49 to 64\n   1 pair: When the film cuts between two places faster and faster, the clock feels tighter\n   2 pair: When a scene starts in the middle of the action, the audience starts asking questions\n   3 pair: When every shot answers the one before, laughs come faster\n   4 pair: When shots come in threes, the third one becomes the punchline\n   5 pair: When the same moment keeps repeating, it turns into a running gag\n   6 pair: When the film's signature image comes back, the old feeling comes back with it\n   7 pair: When scenes are built to clash, the feeling flips at the cut\n   8 pair: When one sound or image is held under everything, dread builds\n   9 pair: When a scare turns out to be fake, the audience laughs with relief\n  10 pair: When the cuts get louder and sharper, the energy jumps\n  11 pair: When the camera feels like a nosy person in the room, awkward moments get more awkward\n  12 pair: When a repeating tune or image keeps climbing, hope climbs with it\n  13 pair: When the story hops between characters, the audience learns things before they do\n  14 pair: When a main character shows up more often, their own story gets heavier\n  15 pair: When more main characters share the spotlight, their stories start crossing\n  16 pair: When a main character dies, the tears come soon after\nCV-CC 7: PORT 2 (your second cable), MIDI channel 5, CC 65 to 80\n   1 pair: When a scene plays out inside another scene, the audience starts doubting what's real\n   2 pair: When the shots get short, the energy climbs\n   3 pair: When the story runs backwards, we already know how it ends\n   4 pair: When the story runs backwards, we ask why\n   5 pair: When the glimpse of the future shows a death, dread rises\n   6 pair: When the glimpse of the future is clearer, the ending feels fixed\n   7 pair: When the second look changes more, we know more than they do\n   8 pair: When the second look changes everything, the story flips\n   9 pair: When the fake ending is more convincing, we let our breath out\n  10 pair: When the villain comes back after the ending, things get worse\n  11 pair: When the teller is lying, we cannot trust what we see\n  12 pair: When the story is told to a child, tenderness grows\n  13 pair: When surprises come more often, tension rises\n  14 pair: When the opening grabs with a promise, the promise gets clearer\n  15 pair: When the opening's promise is broken, the film turns on us\n  16 pair: When nothing pulls, the audience drifts\nCV-CC 8: PORT 2 (your second cable), MIDI channel 5, CC 81 to 96\n   1 pair: When a flat stretch is fixed with a clock, the clock starts running\n   2 pair: When a flat stretch is fixed with a question, someone asks it out loud\n   3 pair: When a scene ends on a cliffhanger, we leave at the best part\n   4 pair: When the film cuts between stories more, it leaves each nearer its peak\n   5 pair: When we leave a story at its peak, its question rides along\n   6 pair: When the talk runs long and casual, violence arrives without warning\n   7 pair: When a chapter card appears, the story jumps to someone else's side\n   8 pair: When a false scare passes, the real one comes right after\n   9 pair: When the cutting jumps between the crew, the tension climbs\n  10 pair: When the film notices it has gone too far, it just stops and moves on\n  11 pair: When the cut goes to whoever is listening, the joke lands twice\n  12 pair: When violence breaks out, the next scene is calm and ordinary\n  13 pairs: Long-form shape\n  14 pairs: The squeeze\n  15 pairs: We know how it ends\n  16 pairs: Leaving at the peak\nCV-CC 9: PORT 2 (your second cable), MIDI channel 5, CC 97 to 98\n   1 pairs: Waking the middle\n   2 pairs: Long talk that snaps into violence: the moves"
+   },
+   "pos": [
+    0,
     23
    ]
   },
@@ -4508,7 +4508,7 @@
     }
    },
    "pos": [
-    47,
+    15,
     23
    ]
   },
@@ -4540,7 +4540,7 @@
     }
    },
    "pos": [
-    55,
+    23,
     23
    ]
   },
@@ -4572,7 +4572,7 @@
     }
    },
    "pos": [
-    63,
+    31,
     23
    ]
   },
@@ -4604,7 +4604,7 @@
     }
    },
    "pos": [
-    71,
+    39,
     23
    ]
   },
@@ -4616,6 +4616,134 @@
     "ccs": [
      33,
      34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    47,
+    23
+   ]
+  },
+  {
+   "id": 161,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    55,
+    23
+   ]
+  },
+  {
+   "id": 162,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    63,
+    23
+   ]
+  },
+  {
+   "id": 163,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    71,
+    23
+   ]
+  },
+  {
+   "id": 164,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
      -1,
      -1,
      -1,
@@ -4641,159 +4769,19 @@
    ]
   },
   {
-   "id": 161,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "PAGE & PANEL\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 5, CC 49 to 64\n   1 Panels\n   2 Gutter\n   3 Balloon against caption\n   4 Panel size\n   5 Breaking the panel border\n   6 Words per panel\n   7 Sound effects\n   8 Page-turn reveal\n   9 A full-page picture\n  10 The jump between panels\n  11 A panel with no words\n  12 The same panel again\n  13 The path the eye reads\n  14 suite: Steady six-panel grid\n  15 suite: Splash-page reveal\n  16 suite: Silent page\nCV-CC 2: PORT 2 (your second cable), MIDI channel 5, CC 65 to 80\n   1 suite: Talky page\n   2 suite: Three-panel strip gag\n   3 suite: Action page\n   4 suite: Printed comic page look\n   5 suite: Big reveal page\n   6 suite: The comic pause on the page\n   7 pair: When a page ends on a cliffhanger, the next page opens big\n   8 pair: When the feeling peaks, the panel grows\n   9 pair: When the talk speeds up, panels shrink and multiply\n  10 pair: When a scene ends, the gutter widens\n  11 pair: When words move from speech balloons into captions, we hear what the character is really thinking\n  12 pair: When a picture breaks out of its panel, the page bursts with energy\n  13 pair: When the words thin out, the pictures get bigger\n  14 pair: When a picture fills the whole page, the sound effects grow as big as the page\n  15 pair: When a sound effect fills the page, the picture bursts out of its frame\n  16 pair: When the page turn is a reveal, a full-page picture follows\nCV-CC 3: PORT 2 (your second cable), MIDI channel 5, CC 81 to 92\n   1 pair: When the picture takes more of the page, awe rises\n   2 pair: When the jump is to another place or time, the gap between panels marks a new scene\n   3 pair: When the reader fills in more, the questions pile up\n   4 pair: When the panels go silent, the words thin out\n   5 pair: When a silent panel shows an empty room, loneliness grows\n   6 pair: When the same panel repeats more, the comic pause gets longer\n   7 pair: When the repeat is an awkward silence, the cringe grows\n   8 pair: When the reading path is clearer, the eye lands where it should\n   9 pair: When the page has more balloons, the words pile up\n  10 pairs: The page breathes with the story\n  11 pairs: The loud page\n  12 pairs: Turn the page"
-   },
-   "pos": [
-    0,
-    24
-   ]
-  },
-  {
-   "id": 162,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
-    ],
-    "midi": {
-     "channel": 4
-    }
-   },
-   "pos": [
-    15,
-    24
-   ]
-  },
-  {
-   "id": 163,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
-    ],
-    "midi": {
-     "channel": 4
-    }
-   },
-   "pos": [
-    23,
-    24
-   ]
-  },
-  {
-   "id": 164,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
-     91,
-     92,
-     -1,
-     -1,
-     -1,
-     -1
-    ],
-    "midi": {
-     "channel": 4
-    }
-   },
-   "pos": [
-    31,
-    24
-   ]
-  },
-  {
    "id": 165,
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "TRANSITIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 5, CC 97 to 112\n   1 Transition style\n   2 Clip animation\n   3 Fade in and out\n   4 Transition family\n   5 Intro and outro effect\n   6 Match cut\n   7 Holding before the cut\n   8 A line that jumps the cut\n   9 Cutting away before the hit\n  10 Hidden cut\n  11 Sudden black screen\n  12 Keeping the eye in place across the cut\n  13 suite: Classic and gentle\n  14 suite: Opening titles\n  15 suite: Time jump match cut\n  16 suite: Let it sink in\nCV-CC 2: PORT 2 (your second cable), MIDI channel 6, CC 1 to 16\n   1 suite: Thriller cutting\n   2 suite: A line carried across the cut\n   3 suite: One shot with hidden cuts\n   4 pair: When cutting gets fast, transitions become plain cuts\n   5 pair: When the feeling turns dreamlike, shots dissolve\n   6 pair: When the pace speeds up then stops, the scene fades out\n   7 pair: When the pace races then stops, an outro effect closes it\n   8 pair: When the end loops into the start, the cut matches movement\n   9 pair: When clips bounce in, the video turns playful\n  10 pair: When transitions get explosive, something new arrives every second or two\n  11 pair: When the hold runs long, the feeling deepens\n  12 pair: When the hold goes dead silent, the silence stretches\n  13 pair: When the hold stays on a face, a cut to black follows\n  14 pair: When a line jumps the cut, the cross-cutting picks up\n  15 pair: When the answer across the cut is a gut punch, the irony bites\n  16 pair: When the film cuts away before the hit, the dread grows\nCV-CC 3: PORT 2 (your second cable), MIDI channel 6, CC 17 to 26\n   1 pair: When the hit we missed was terrible, a slow reveal follows\n   2 pair: When the film cuts away to black, the black screen holds\n   3 pair: When the cuts are hidden, the tension keeps building\n   4 pair: When the screen cuts to black, time skips ahead\n   5 pair: When the black hits at the shock, everything goes silent\n   6 pair: When the eye path is smoother, the cutting can speed up\n   7 pair: When a scene ends quietly, the camera rests on an empty room\n   8 pair: When the camera whips from place to place, the scenes fly by faster\n   9 pairs: The hyper edit\n  10 pairs: The hit we never see"
+    "text": "PAGE & PANEL\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 6, CC 1 to 16\n   1 Panels\n   2 Gutter\n   3 Balloon against caption\n   4 Panel size\n   5 Breaking the panel border\n   6 Words per panel\n   7 Sound effects\n   8 Page-turn reveal\n   9 A full-page picture\n  10 The jump between panels\n  11 A panel with no words\n  12 The same panel again\n  13 The path the eye reads\n  14 suite: Steady six-panel grid\n  15 suite: Splash-page reveal\n  16 suite: Silent page\nCV-CC 2: PORT 2 (your second cable), MIDI channel 6, CC 17 to 32\n   1 suite: Talky page\n   2 suite: Three-panel strip gag\n   3 suite: Action page\n   4 suite: Printed comic page look\n   5 suite: Big reveal page\n   6 suite: The comic pause on the page\n   7 pair: When a page ends on a cliffhanger, the next page opens big\n   8 pair: When the feeling peaks, the panel grows\n   9 pair: When the talk speeds up, panels shrink and multiply\n  10 pair: When a scene ends, the gutter widens\n  11 pair: When words move from speech balloons into captions, we hear what the character is really thinking\n  12 pair: When a picture breaks out of its panel, the page bursts with energy\n  13 pair: When the words thin out, the pictures get bigger\n  14 pair: When a picture fills the whole page, the sound effects grow as big as the page\n  15 pair: When a sound effect fills the page, the picture bursts out of its frame\n  16 pair: When the page turn is a reveal, a full-page picture follows\nCV-CC 3: PORT 2 (your second cable), MIDI channel 6, CC 33 to 44\n   1 pair: When the picture takes more of the page, awe rises\n   2 pair: When the jump is to another place or time, the gap between panels marks a new scene\n   3 pair: When the reader fills in more, the questions pile up\n   4 pair: When the panels go silent, the words thin out\n   5 pair: When a silent panel shows an empty room, loneliness grows\n   6 pair: When the same panel repeats more, the comic pause gets longer\n   7 pair: When the repeat is an awkward silence, the cringe grows\n   8 pair: When the reading path is clearer, the eye lands where it should\n   9 pair: When the page has more balloons, the words pile up\n  10 pairs: The page breathes with the story\n  11 pairs: The loud page\n  12 pairs: Turn the page"
    },
    "pos": [
     0,
-    25
+    24
    ]
   },
   {
    "id": 166,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     97,
-     98,
-     99,
-     100,
-     101,
-     102,
-     103,
-     104,
-     105,
-     106,
-     107,
-     108,
-     109,
-     110,
-     111,
-     112
-    ],
-    "midi": {
-     "channel": 4
-    }
-   },
-   "pos": [
-    15,
-    25
-   ]
-  },
-  {
-   "id": 167,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4820,12 +4808,12 @@
     }
    },
    "pos": [
-    23,
-    25
+    15,
+    24
    ]
   },
   {
-   "id": 168,
+   "id": 167,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4840,36 +4828,24 @@
      24,
      25,
      26,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
+     27,
+     28,
+     29,
+     30,
+     31,
+     32
     ],
     "midi": {
      "channel": 5
     }
    },
    "pos": [
-    31,
-    25
+    23,
+    24
    ]
   },
   {
-   "id": 169,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "FILTERS & ADJUSTMENTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 6, CC 33 to 48\n   1 Filter\n   2 Exposure (brightness set in the edit)\n   3 Warmth set in the edit\n   4 Film texture\n   5 Shot matching\n   6 Texture effect\n   7 Retro look\n   8 Filter family\n   9 LUT (a color recipe)\n  10 Color wheels\n  11 Color curves\n  12 A glow around bright things\n  13 Blacks that swallow the detail\n  14 The picture hardens as things get worse\n  15 A look too perfect to trust\n  16 Colors go wrong when the mind does\nCV-CC 2: PORT 2 (your second cable), MIDI channel 6, CC 49 to 64\n   1 suite: Dream sequence\n   2 suite: Silent film look (in the edit)\n   3 suite: Zine scrapbook\n   4 suite: Old home video\n   5 suite: Final Cut finishing pass\n   6 suite: True to life grade\n   7 suite: Summer blockbuster grade\n   8 suite: The soft glow of memory\n   9 suite: Into the dark\n  10 suite: The perfect town\n  11 suite: The picture falls apart\n  12 pair: When the focus pulls to an object, the shadows turn\n  13 pair: When the night filter goes on, the scene plays as night\n  14 pair: When the picture is blown out, the whole room seems to glow\n  15 pair: When the color is pushed very warm, the place feels cozy\n  16 pair: When the image turns gritty, the world feels harsh\nCV-CC 3: PORT 2 (your second cable), MIDI channel 6, CC 65 to 80\n   1 pair: When a shot is graded to clash on purpose, the feeling jumps\n   2 pair: When the blacks are crushed, the contrast jumps\n   3 pair: When the teal and orange recipe goes on, skin stays warm while the rest turns teal\n   4 pair: When a movie filter goes on, black bars come with it\n   5 pair: When the picture gets a polaroid look, copies stack like photos on a table\n   6 pair: When it looks like old home video, the feeling turns bittersweet\n   7 pair: When the bright parts glow more, nostalgia comes\n   8 pair: When the glow has a red edge, the picture looks like old film\n   9 pair: When the glow only comes around one person, tenderness grows\n  10 pair: When the blacks swallow more, dread rises\n  11 pair: When the black hides a person, more is kept from us\n  12 pair: When more of the frame is black, the questions pile up\n  13 pair: When the dark lifts at the reveal, a question is answered\n  14 pair: When the look follows the trouble closely, tension rises\n  15 pair: When the color drains away, hope fades\n  16 pair: When the look gets more perfect, we trust it less\nCV-CC 4: PORT 2 (your second cable), MIDI channel 6, CC 81 to 86\n   1 pair: When the perfect look breaks apart, everything flips\n   2 pair: When the colors go wrong, we cannot trust what we see\n   3 pairs: Memory box\n   4 pairs: Hard-edge grade\n   5 pairs: The look darkens\n   6 pairs: The lie in the picture"
-   },
-   "pos": [
-    0,
-    26
-   ]
-  },
-  {
-   "id": 170,
+   "id": 168,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4886,22 +4862,34 @@
      42,
      43,
      44,
-     45,
-     46,
-     47,
-     48
+     -1,
+     -1,
+     -1,
+     -1
     ],
     "midi": {
      "channel": 5
     }
    },
    "pos": [
-    15,
-    26
+    31,
+    24
    ]
   },
   {
-   "id": 171,
+   "id": 169,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "TRANSITIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 6, CC 49 to 64\n   1 Transition style\n   2 Clip animation\n   3 Fade in and out\n   4 Transition family\n   5 Intro and outro effect\n   6 Match cut\n   7 Holding before the cut\n   8 A line that jumps the cut\n   9 Cutting away before the hit\n  10 Hidden cut\n  11 Sudden black screen\n  12 Keeping the eye in place across the cut\n  13 suite: Classic and gentle\n  14 suite: Opening titles\n  15 suite: Time jump match cut\n  16 suite: Let it sink in\nCV-CC 2: PORT 2 (your second cable), MIDI channel 6, CC 65 to 80\n   1 suite: Thriller cutting\n   2 suite: A line carried across the cut\n   3 suite: One shot with hidden cuts\n   4 pair: When cutting gets fast, transitions become plain cuts\n   5 pair: When the feeling turns dreamlike, shots dissolve\n   6 pair: When the pace speeds up then stops, the scene fades out\n   7 pair: When the pace races then stops, an outro effect closes it\n   8 pair: When the end loops into the start, the cut matches movement\n   9 pair: When clips bounce in, the video turns playful\n  10 pair: When transitions get explosive, something new arrives every second or two\n  11 pair: When the hold runs long, the feeling deepens\n  12 pair: When the hold goes dead silent, the silence stretches\n  13 pair: When the hold stays on a face, a cut to black follows\n  14 pair: When a line jumps the cut, the cross-cutting picks up\n  15 pair: When the answer across the cut is a gut punch, the irony bites\n  16 pair: When the film cuts away before the hit, the dread grows\nCV-CC 3: PORT 2 (your second cable), MIDI channel 6, CC 81 to 90\n   1 pair: When the hit we missed was terrible, a slow reveal follows\n   2 pair: When the film cuts away to black, the black screen holds\n   3 pair: When the cuts are hidden, the tension keeps building\n   4 pair: When the screen cuts to black, time skips ahead\n   5 pair: When the black hits at the shock, everything goes silent\n   6 pair: When the eye path is smoother, the cutting can speed up\n   7 pair: When a scene ends quietly, the camera rests on an empty room\n   8 pair: When the camera whips from place to place, the scenes fly by faster\n   9 pairs: The hyper edit\n  10 pairs: The hit we never see"
+   },
+   "pos": [
+    0,
+    25
+   ]
+  },
+  {
+   "id": 170,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4928,12 +4916,12 @@
     }
    },
    "pos": [
-    23,
-    26
+    15,
+    25
    ]
   },
   {
-   "id": 172,
+   "id": 171,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4960,12 +4948,12 @@
     }
    },
    "pos": [
-    31,
-    26
+    23,
+    25
    ]
   },
   {
-   "id": 173,
+   "id": 172,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -4976,10 +4964,10 @@
      84,
      85,
      86,
-     -1,
-     -1,
-     -1,
-     -1,
+     87,
+     88,
+     89,
+     90,
      -1,
      -1,
      -1,
@@ -4992,24 +4980,24 @@
     }
    },
    "pos": [
-    39,
+    31,
+    25
+   ]
+  },
+  {
+   "id": 173,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "FILTERS & ADJUSTMENTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 6, CC 97 to 112\n   1 Filter\n   2 Exposure (brightness set in the edit)\n   3 Warmth set in the edit\n   4 Film texture\n   5 Shot matching\n   6 Texture effect\n   7 Retro look\n   8 Filter family\n   9 LUT (a color recipe)\n  10 Color wheels\n  11 Color curves\n  12 A glow around bright things\n  13 Blacks that swallow the detail\n  14 The picture hardens as things get worse\n  15 A look too perfect to trust\n  16 Colors go wrong when the mind does\nCV-CC 2: PORT 2 (your second cable), MIDI channel 7, CC 1 to 16\n   1 suite: Dream sequence\n   2 suite: Silent film look (in the edit)\n   3 suite: Zine scrapbook\n   4 suite: Old home video\n   5 suite: Final Cut finishing pass\n   6 suite: True to life grade\n   7 suite: Summer blockbuster grade\n   8 suite: The soft glow of memory\n   9 suite: Into the dark\n  10 suite: The perfect town\n  11 suite: The picture falls apart\n  12 pair: When the focus pulls to an object, the shadows turn\n  13 pair: When the night filter goes on, the scene plays as night\n  14 pair: When the picture is blown out, the whole room seems to glow\n  15 pair: When the color is pushed very warm, the place feels cozy\n  16 pair: When the image turns gritty, the world feels harsh\nCV-CC 3: PORT 2 (your second cable), MIDI channel 7, CC 17 to 32\n   1 pair: When a shot is graded to clash on purpose, the feeling jumps\n   2 pair: When the blacks are crushed, the contrast jumps\n   3 pair: When the teal and orange recipe goes on, skin stays warm while the rest turns teal\n   4 pair: When a movie filter goes on, black bars come with it\n   5 pair: When the picture gets a polaroid look, copies stack like photos on a table\n   6 pair: When it looks like old home video, the feeling turns bittersweet\n   7 pair: When the bright parts glow more, nostalgia comes\n   8 pair: When the glow has a red edge, the picture looks like old film\n   9 pair: When the glow only comes around one person, tenderness grows\n  10 pair: When the blacks swallow more, dread rises\n  11 pair: When the black hides a person, more is kept from us\n  12 pair: When more of the frame is black, the questions pile up\n  13 pair: When the dark lifts at the reveal, a question is answered\n  14 pair: When the look follows the trouble closely, tension rises\n  15 pair: When the color drains away, hope fades\n  16 pair: When the look gets more perfect, we trust it less\nCV-CC 4: PORT 2 (your second cable), MIDI channel 7, CC 33 to 38\n   1 pair: When the perfect look breaks apart, everything flips\n   2 pair: When the colors go wrong, we cannot trust what we see\n   3 pairs: Memory box\n   4 pairs: Hard-edge grade\n   5 pairs: The look darkens\n   6 pairs: The lie in the picture"
+   },
+   "pos": [
+    0,
     26
    ]
   },
   {
    "id": 174,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 6, CC 97 to 112\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 Words that act out their meaning\n   9 Texts on screen\n  10 Name card for a new face\n  11 When the title appears\n  12 suite: Comedy punch\n  13 suite: Reaction comedy\n  14 suite: Life on screens\n  15 suite: Meet the crew\n  16 pair: When the picture freezes, a title appears\nCV-CC 2: PORT 2 (your second cable), MIDI channel 7, CC 1 to 16\n   1 pair: When the joke pays off, a mood pops onto a face\n   2 pair: When someone gets angry, steam pops onto their face\n   3 pair: When an outro effect closes the film, an end card follows\n   4 pair: When captions appear word by word, eyes stay glued to the screen\n   5 pair: When the text is in comic-book style, the comedy goes cartoon\n   6 pair: When stickers and emoji pile up, the laughs speed up\n   7 pair: When a chapter card appears, the story stops and restarts\n   8 pair: When someone shouts, the words act it out\n   9 pair: When a text is typed and deleted, the wait for a reply grows\n  10 pair: When the messages pile up, a secret slips out\n  11 pair: When the name cards get cheeky, the laughs come faster\n  12 pair: When the title comes late, it lands on a shock\n  13 pair: When the opening grabs hard, the title slams in\n  14 pairs: Words that point\n  15 pairs: Phone comedy reactions\n  16 pairs: The unsent message"
-   },
-   "pos": [
-    0,
-    27
-   ]
-  },
-  {
-   "id": 175,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5037,11 +5025,11 @@
    },
    "pos": [
     15,
-    27
+    26
    ]
   },
   {
-   "id": 176,
+   "id": 175,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5069,23 +5057,11 @@
    },
    "pos": [
     23,
-    27
+    26
    ]
   },
   {
-   "id": 177,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "SPEED & TIMING\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 7, CC 17 to 32\n   1 Clip speed\n   2 Reverse and replay\n   3 Freeze frame\n   4 Jump cuts\n   5 Cutting to the beat\n   6 Cutting speed across the scene\n   7 Edit template\n   8 Something new every\n   9 Slow motion quality\n  10 Time-lapse\n  11 Slowing down for the detail\n  12 Frozen moment, camera circles\n  13 Skipping ahead in time\n  14 Stretching a moment\n  15 Time to take in the shot\n  16 suite: Phone-video editing tricks\nCV-CC 2: PORT 2 (your second cable), MIDI channel 7, CC 33 to 48\n   1 suite: Music video cutting\n   2 suite: Trailer\n   3 suite: Vlog kit\n   4 suite: Instant replay\n   5 suite: Action showcase\n   6 suite: Time flies\n   7 pair: When the music is featured, the cuts find the beat\n   8 pair: When jump cuts go rhythmic, a joke builds\n   9 pair: When seconds are left on the clock, the cutting gets fast\n  10 pair: When a clip slows way down, it needs smooth in-between frames\n  11 pair: When something new arrives every second or two, the jokes come faster\n  12 pair: When the edit template is meme, the smash cuts pile up\n  13 pair: When a time-lapse squeezes the day, the story skips ahead\n  14 pair: When a person waits through a time-lapse, loneliness grows\n  15 pair: When the picture slows for the detail, the sound drops to a heartbeat\n  16 pair: When the slow detail is shown, the story turns\nCV-CC 3: PORT 2 (your second cable), MIDI channel 7, CC 49 to 57\n   1 pair: When time freezes and the camera circles, the hit lands harder\n   2 pair: When years are skipped, a card says so\n   3 pair: When a moment is stretched, the tension rises\n   4 pair: When the moment is life or death, we cut to the faces watching\n   5 pair: When shots are held long after we have read them, the camera lingers\n   6 pair: When the cuts land on the beat, an everyday chore feels like an action scene\n   7 pairs: Featured music drives the edit\n   8 pairs: Time gets away\n   9 pairs: One second, forever"
-   },
-   "pos": [
-    0,
-    28
-   ]
-  },
-  {
-   "id": 178,
+   "id": 176,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5112,12 +5088,12 @@
     }
    },
    "pos": [
-    15,
-    28
+    31,
+    26
    ]
   },
   {
-   "id": 179,
+   "id": 177,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5128,41 +5104,9 @@
      36,
      37,
      38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
-    ],
-    "midi": {
-     "channel": 6
-    }
-   },
-   "pos": [
-    23,
-    28
-   ]
-  },
-  {
-   "id": 180,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -5176,24 +5120,56 @@
     }
    },
    "pos": [
-    31,
-    28
+    39,
+    26
    ]
   },
   {
-   "id": 181,
+   "id": 178,
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "AUDIO MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 7, CC 65 to 80\n   1 Music under speech\n   2 Audio fades\n   3 Voice effect\n   4 Edited-in sound hits\n   5 Loudness\n   6 Voice-over\n   7 Translated voice\n   8 Voice cleanup\n   9 Music sting\n  10 Sound roles\n  11 Handmade sounds\n  12 Background sound of the place\n  13 Hearing through their ears\n  14 Echo of the place\n  15 suite: Hazy memory\n  16 suite: Dubbed foreign film\nCV-CC 2: PORT 2 (your second cable), MIDI channel 7, CC 81 to 96\n   1 suite: Clean interview sound\n   2 suite: Inside their head\n   3 suite: Handmade sound world\n   4 suite: Shell-shocked\n   5 pair: When the joke pays off, a sound hit lands\n   6 pair: When the clip slows down, the music rises\n   7 pair: When the clip rewinds, a sound hit plays\n   8 pair: When a cutaway covers the talking, the music sits under\n   9 pair: When a scene ends on a button joke, a sting hits\n  10 pair: When the joke pays off, a music sting lands\n  11 pair: When the multicam switches on the speaker, dialogue leads the mix\n  12 pair: When a running montage rides above the story, the music leads\n  13 pair: When the voice-over is caught out by the picture, the scene turns funny\n  14 pair: When a voice echoes, the moment feels like a dream or a memory\n  15 pair: When a voice is translated, the mouths stop matching the words\n  16 pair: When the ears ring, the background falls away\nCV-CC 3: PORT 2 (your second cable), MIDI channel 7, CC 97 to 106\n   1 pair: When dread builds, the background sound goes quiet\n   2 pair: When the handmade sounds are exaggerated, the sound turns cartoony\n   3 pair: When the footsteps are singled out, we listen beyond the frame\n   4 pair: When the place echoes more, loneliness grows\n   5 pair: When the echo sounds like a cathedral, awe rises\n   6 pair: When there is no music, the sound of the place fills in\n   7 pair: When the hero tells the story in voice-over, the truth gets murkier\n   8 pair: When the scare hits, the sound slams to its loudest\n   9 pair: When every tiny action gets a whoosh or a thud, the cuts snap harder\n  10 pairs: The world goes quiet"
+    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 7, CC 49 to 64\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 Words that act out their meaning\n   9 Texts on screen\n  10 Name card for a new face\n  11 When the title appears\n  12 suite: Comedy punch\n  13 suite: Reaction comedy\n  14 suite: Life on screens\n  15 suite: Meet the crew\n  16 pair: When the picture freezes, a title appears\nCV-CC 2: PORT 2 (your second cable), MIDI channel 7, CC 65 to 80\n   1 pair: When the joke pays off, a mood pops onto a face\n   2 pair: When someone gets angry, steam pops onto their face\n   3 pair: When an outro effect closes the film, an end card follows\n   4 pair: When captions appear word by word, eyes stay glued to the screen\n   5 pair: When the text is in comic-book style, the comedy goes cartoon\n   6 pair: When stickers and emoji pile up, the laughs speed up\n   7 pair: When a chapter card appears, the story stops and restarts\n   8 pair: When someone shouts, the words act it out\n   9 pair: When a text is typed and deleted, the wait for a reply grows\n  10 pair: When the messages pile up, a secret slips out\n  11 pair: When the name cards get cheeky, the laughs come faster\n  12 pair: When the title comes late, it lands on a shock\n  13 pair: When the opening grabs hard, the title slams in\n  14 pairs: Words that point\n  15 pairs: Phone comedy reactions\n  16 pairs: The unsent message"
    },
    "pos": [
     0,
-    29
+    27
    ]
   },
   {
-   "id": 182,
+   "id": 179,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    15,
+    27
+   ]
+  },
+  {
+   "id": 180,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5220,12 +5196,24 @@
     }
    },
    "pos": [
-    15,
-    29
+    23,
+    27
    ]
   },
   {
-   "id": 183,
+   "id": 181,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "SPEED & TIMING\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 7, CC 81 to 96\n   1 Clip speed\n   2 Reverse and replay\n   3 Freeze frame\n   4 Jump cuts\n   5 Cutting to the beat\n   6 Cutting speed across the scene\n   7 Edit template\n   8 Something new every\n   9 Slow motion quality\n  10 Time-lapse\n  11 Slowing down for the detail\n  12 Frozen moment, camera circles\n  13 Skipping ahead in time\n  14 Stretching a moment\n  15 Time to take in the shot\n  16 suite: Phone-video editing tricks\nCV-CC 2: PORT 2 (your second cable), MIDI channel 7, CC 97 to 112\n   1 suite: Music video cutting\n   2 suite: Trailer\n   3 suite: Vlog kit\n   4 suite: Instant replay\n   5 suite: Action showcase\n   6 suite: Time flies\n   7 pair: When the music is featured, the cuts find the beat\n   8 pair: When jump cuts go rhythmic, a joke builds\n   9 pair: When seconds are left on the clock, the cutting gets fast\n  10 pair: When a clip slows way down, it needs smooth in-between frames\n  11 pair: When something new arrives every second or two, the jokes come faster\n  12 pair: When the edit template is meme, the smash cuts pile up\n  13 pair: When a time-lapse squeezes the day, the story skips ahead\n  14 pair: When a person waits through a time-lapse, loneliness grows\n  15 pair: When the picture slows for the detail, the sound drops to a heartbeat\n  16 pair: When the slow detail is shown, the story turns\nCV-CC 3: PORT 2 (your second cable), MIDI channel 8, CC 1 to 9\n   1 pair: When time freezes and the camera circles, the hit lands harder\n   2 pair: When years are skipped, a card says so\n   3 pair: When a moment is stretched, the tension rises\n   4 pair: When the moment is life or death, we cut to the faces watching\n   5 pair: When shots are held long after we have read them, the camera lingers\n   6 pair: When the cuts land on the beat, an everyday chore feels like an action scene\n   7 pairs: Featured music drives the edit\n   8 pairs: Time gets away\n   9 pairs: One second, forever"
+   },
+   "pos": [
+    0,
+    28
+   ]
+  },
+  {
+   "id": 182,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5252,12 +5240,12 @@
     }
    },
    "pos": [
-    23,
-    29
+    15,
+    28
    ]
   },
   {
-   "id": 184,
+   "id": 183,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5272,36 +5260,24 @@
      104,
      105,
      106,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
     ],
     "midi": {
      "channel": 6
     }
    },
    "pos": [
-    31,
-    29
+    23,
+    28
    ]
   },
   {
-   "id": 185,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "LAYERS, MASKS & EFFECTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 8, CC 1 to 16\n   1 Overlay\n   2 Blend mode\n   3 Cutout and green screen\n   4 Mask\n   5 Tracking\n   6 Video effect\n   7 Video effect family\n   8 Copies of the picture\n   9 Light effect\n  10 Body effect\n  11 Superpower effect\n  12 Hallucination effect\n  13 Copies of a person\n  14 Outline and glow on a person\n  15 Glitch\n  16 Distortion\nCV-CC 2: PORT 2 (your second cable), MIDI channel 8, CC 17 to 32\n   1 Party flash\n   2 Stock clip\n   3 Generated shot\n   4 Side storyline\n   5 A memory laid over the present\n   6 One thing keeps its color\n   7 Drawings on top of the picture\n   8 A map that shows the journey\n   9 suite: Documentary edit (interviews and captions)\n  10 suite: Heavenly light\n  11 suite: Party edit\n  12 suite: Superhero moment\n  13 suite: Glitch breakdown (the picture falls apart)\n  14 suite: Trippy vision\n  15 suite: Dance video effects\n  16 suite: Green screen swap\nCV-CC 3: PORT 2 (your second cable), MIDI channel 8, CC 33 to 48\n   1 suite: Light leak overlay\n   2 suite: Music video with a second story\n   3 suite: Ghosts of the old house\n   4 suite: The red coat\n   5 suite: A diary on the move\n   6 pair: When impacts rise, the picture flashes\n   7 pair: When text labels something, it follows it\n   8 pair: When the feeling turns dreamlike, light blooms\n   9 pair: When the music is featured, the effects pulse on the beat\n  10 pair: When someone triumphs, their eyes light up\n  11 pair: When someone panics, the picture glitches\n  12 pair: When the feeling turns dreamlike, the room spins\n  13 pair: When impacts rise, a shockwave flashes\n  14 pair: When the music is featured, the flashes hit the beat\n  15 pair: When a light layer is blended in screen mode, the room glows\n  16 pair: When the person is cut out, they get dropped into a new place\nCV-CC 4: PORT 2 (your second cable), MIDI channel 8, CC 49 to 64\n   1 pair: When a generated shot drops into the edit, it has to be color matched\n   2 pair: When a stock scenery clip fills the back, the frame gains depth\n   3 pair: When a mask follows a person, the world shrinks to them\n   4 pair: When the hero's body lights up with power, the stakes rise\n   5 pair: When a person bursts into copies, the scene tips into absurd fun\n   6 pair: When a person gets a glowing aura, the eye locks on them\n   7 pair: When the picture ripples, we drop into a different feeling\n   8 pair: When the memory shows more strongly over the present, nostalgia comes\n   9 pair: When the memory stays and follows them, grief gets heavier\n  10 pair: When only one thing keeps its color, the eye goes there first\n  11 pair: When the one colored thing is gone, grief comes\n  12 pair: When the drawings show the hero's thoughts, we feel with them\n  13 pair: When the drawings sketch a plan, the plan is shown\n  14 pair: When the map line travels further, more time is skipped\n  15 pairs: Effects show the inside\n  16 pairs: Put me somewhere else\nCV-CC 5: PORT 2 (your second cable), MIDI channel 8, CC 65 to 66\n   1 pairs: The power-up moment\n   2 pairs: The past lays over us"
-   },
-   "pos": [
-    0,
-    30
-   ]
-  },
-  {
-   "id": 186,
+   "id": 184,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5315,25 +5291,37 @@
      7,
      8,
      9,
-     10,
-     11,
-     12,
-     13,
-     14,
-     15,
-     16
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
     ],
     "midi": {
      "channel": 7
     }
    },
    "pos": [
-    15,
-    30
+    31,
+    28
    ]
   },
   {
-   "id": 187,
+   "id": 185,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "AUDIO MIX\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 8, CC 17 to 32\n   1 Music under speech\n   2 Audio fades\n   3 Voice effect\n   4 Edited-in sound hits\n   5 Loudness\n   6 Voice-over\n   7 Translated voice\n   8 Voice cleanup\n   9 Music sting\n  10 Sound roles\n  11 Handmade sounds\n  12 Background sound of the place\n  13 Hearing through their ears\n  14 Echo of the place\n  15 suite: Hazy memory\n  16 suite: Dubbed foreign film\nCV-CC 2: PORT 2 (your second cable), MIDI channel 8, CC 33 to 48\n   1 suite: Clean interview sound\n   2 suite: Inside their head\n   3 suite: Handmade sound world\n   4 suite: Shell-shocked\n   5 pair: When the joke pays off, a sound hit lands\n   6 pair: When the clip slows down, the music rises\n   7 pair: When the clip rewinds, a sound hit plays\n   8 pair: When a cutaway covers the talking, the music sits under\n   9 pair: When a scene ends on a button joke, a sting hits\n  10 pair: When the joke pays off, a music sting lands\n  11 pair: When the multicam switches on the speaker, dialogue leads the mix\n  12 pair: When a running montage rides above the story, the music leads\n  13 pair: When the voice-over is caught out by the picture, the scene turns funny\n  14 pair: When a voice echoes, the moment feels like a dream or a memory\n  15 pair: When a voice is translated, the mouths stop matching the words\n  16 pair: When the ears ring, the background falls away\nCV-CC 3: PORT 2 (your second cable), MIDI channel 8, CC 49 to 58\n   1 pair: When dread builds, the background sound goes quiet\n   2 pair: When the handmade sounds are exaggerated, the sound turns cartoony\n   3 pair: When the footsteps are singled out, we listen beyond the frame\n   4 pair: When the place echoes more, loneliness grows\n   5 pair: When the echo sounds like a cathedral, awe rises\n   6 pair: When there is no music, the sound of the place fills in\n   7 pair: When the hero tells the story in voice-over, the truth gets murkier\n   8 pair: When the scare hits, the sound slams to its loudest\n   9 pair: When every tiny action gets a whoosh or a thud, the cuts snap harder\n  10 pairs: The world goes quiet"
+   },
+   "pos": [
+    0,
+    29
+   ]
+  },
+  {
+   "id": 186,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5360,12 +5348,12 @@
     }
    },
    "pos": [
-    23,
-    30
+    15,
+    29
    ]
   },
   {
-   "id": 188,
+   "id": 187,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5392,12 +5380,12 @@
     }
    },
    "pos": [
-    31,
-    30
+    23,
+    29
    ]
   },
   {
-   "id": 189,
+   "id": 188,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5412,19 +5400,31 @@
      56,
      57,
      58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
     ],
     "midi": {
      "channel": 7
     }
    },
    "pos": [
-    39,
+    31,
+    29
+   ]
+  },
+  {
+   "id": 189,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "LAYERS, MASKS & EFFECTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 8, CC 65 to 80\n   1 Overlay\n   2 Blend mode\n   3 Cutout and green screen\n   4 Mask\n   5 Tracking\n   6 Video effect\n   7 Video effect family\n   8 Copies of the picture\n   9 Light effect\n  10 Body effect\n  11 Superpower effect\n  12 Hallucination effect\n  13 Copies of a person\n  14 Outline and glow on a person\n  15 Glitch\n  16 Distortion\nCV-CC 2: PORT 2 (your second cable), MIDI channel 8, CC 81 to 96\n   1 Party flash\n   2 Stock clip\n   3 Generated shot\n   4 Side storyline\n   5 A memory laid over the present\n   6 One thing keeps its color\n   7 Drawings on top of the picture\n   8 A map that shows the journey\n   9 suite: Documentary edit (interviews and captions)\n  10 suite: Heavenly light\n  11 suite: Party edit\n  12 suite: Superhero moment\n  13 suite: Glitch breakdown (the picture falls apart)\n  14 suite: Trippy vision\n  15 suite: Dance video effects\n  16 suite: Green screen swap\nCV-CC 3: PORT 2 (your second cable), MIDI channel 8, CC 97 to 112\n   1 suite: Light leak overlay\n   2 suite: Music video with a second story\n   3 suite: Ghosts of the old house\n   4 suite: The red coat\n   5 suite: A diary on the move\n   6 pair: When impacts rise, the picture flashes\n   7 pair: When text labels something, it follows it\n   8 pair: When the feeling turns dreamlike, light blooms\n   9 pair: When the music is featured, the effects pulse on the beat\n  10 pair: When someone triumphs, their eyes light up\n  11 pair: When someone panics, the picture glitches\n  12 pair: When the feeling turns dreamlike, the room spins\n  13 pair: When impacts rise, a shockwave flashes\n  14 pair: When the music is featured, the flashes hit the beat\n  15 pair: When a light layer is blended in screen mode, the room glows\n  16 pair: When the person is cut out, they get dropped into a new place\nCV-CC 4: PORT 2 (your second cable), MIDI channel 9, CC 1 to 16\n   1 pair: When a generated shot drops into the edit, it has to be color matched\n   2 pair: When a stock scenery clip fills the back, the frame gains depth\n   3 pair: When a mask follows a person, the world shrinks to them\n   4 pair: When the hero's body lights up with power, the stakes rise\n   5 pair: When a person bursts into copies, the scene tips into absurd fun\n   6 pair: When a person gets a glowing aura, the eye locks on them\n   7 pair: When the picture ripples, we drop into a different feeling\n   8 pair: When the memory shows more strongly over the present, nostalgia comes\n   9 pair: When the memory stays and follows them, grief gets heavier\n  10 pair: When only one thing keeps its color, the eye goes there first\n  11 pair: When the one colored thing is gone, grief comes\n  12 pair: When the drawings show the hero's thoughts, we feel with them\n  13 pair: When the drawings sketch a plan, the plan is shown\n  14 pair: When the map line travels further, more time is skipped\n  15 pairs: Effects show the inside\n  16 pairs: Put me somewhere else\nCV-CC 5: PORT 2 (your second cable), MIDI channel 9, CC 17 to 18\n   1 pairs: The power-up moment\n   2 pairs: The past lays over us"
+   },
+   "pos": [
+    0,
     30
    ]
   },
@@ -5436,44 +5436,32 @@
     "ccs": [
      65,
      66,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
     ],
     "midi": {
      "channel": 7
     }
    },
    "pos": [
-    47,
+    15,
     30
    ]
   },
   {
    "id": 191,
-   "plugin": "Core",
-   "model": "Notes",
-   "data": {
-    "text": "FRAME & CANVAS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 8, CC 81 to 96\n   1 Punch-in made in the edit\n   2 Mirror and rotate\n   3 Shake removed in the edit\n   4 Canvas edges\n   5 Camera move added in the edit\n   6 3D frame move\n   7 Focus changed in the edit\n   8 Frame within a frame\n   9 Seen through a screen\n  10 Bursting past the film frame\n  11 The closing circle\n  12 suite: Kaleidoscope\n  13 suite: Boxed in\n  14 suite: Silent film homage (closing circle)\n  15 suite: Comic book frame\n  16 pair: When the joke pays off, the editor punches in\nCV-CC 2: PORT 2 (your second cable), MIDI channel 8, CC 97 to 106\n   1 pair: When the camera goes handheld, the shake is left in\n   2 pair: When impacts rise, the editor slam zooms\n   3 pair: When the frame spins like a cube, the pace jumps\n   4 pair: When the picture is tilted, the tension rises\n   5 pair: When someone is boxed in by a frame, loneliness grows\n   6 pair: When we watch through a security camera, dread rises\n   7 pair: When the black bars are thick, something breaks out of them\n   8 pair: When the circle closes in, the scene ends\n   9 pair: When someone says something awkward, the camera snaps in on a face\n  10 pairs: The editor tells the joke"
-   },
-   "pos": [
-    0,
-    31
-   ]
-  },
-  {
-   "id": 192,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5500,12 +5488,12 @@
     }
    },
    "pos": [
-    15,
-    31
+    23,
+    30
    ]
   },
   {
-   "id": 193,
+   "id": 192,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -5520,6 +5508,70 @@
      104,
      105,
      106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 7
+    }
+   },
+   "pos": [
+    31,
+    30
+   ]
+  },
+  {
+   "id": 193,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 8
+    }
+   },
+   "pos": [
+    39,
+    30
+   ]
+  },
+  {
+   "id": 194,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     18,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -5528,7 +5580,83 @@
      -1
     ],
     "midi": {
-     "channel": 7
+     "channel": 8
+    }
+   },
+   "pos": [
+    47,
+    30
+   ]
+  },
+  {
+   "id": 195,
+   "plugin": "Core",
+   "model": "Notes",
+   "data": {
+    "text": "FRAME & CANVAS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 9, CC 33 to 48\n   1 Punch-in made in the edit\n   2 Mirror and rotate\n   3 Shake removed in the edit\n   4 Canvas edges\n   5 Camera move added in the edit\n   6 3D frame move\n   7 Focus changed in the edit\n   8 Frame within a frame\n   9 Seen through a screen\n  10 Bursting past the film frame\n  11 The closing circle\n  12 suite: Kaleidoscope\n  13 suite: Boxed in\n  14 suite: Silent film homage (closing circle)\n  15 suite: Comic book frame\n  16 pair: When the joke pays off, the editor punches in\nCV-CC 2: PORT 2 (your second cable), MIDI channel 9, CC 49 to 58\n   1 pair: When the camera goes handheld, the shake is left in\n   2 pair: When impacts rise, the editor slam zooms\n   3 pair: When the frame spins like a cube, the pace jumps\n   4 pair: When the picture is tilted, the tension rises\n   5 pair: When someone is boxed in by a frame, loneliness grows\n   6 pair: When we watch through a security camera, dread rises\n   7 pair: When the black bars are thick, something breaks out of them\n   8 pair: When the circle closes in, the scene ends\n   9 pair: When someone says something awkward, the camera snaps in on a face\n  10 pairs: The editor tells the joke"
+   },
+   "pos": [
+    0,
+    31
+   ]
+  },
+  {
+   "id": 196,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 8
+    }
+   },
+   "pos": [
+    15,
+    31
+   ]
+  },
+  {
+   "id": 197,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 8
     }
    },
    "pos": [

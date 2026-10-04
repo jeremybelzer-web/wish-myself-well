@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "EMOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 12, CC 1 to 16\n   1 Strength of the feeling\n   2 How they move\n   3 Feeling in the voice\n   4 How much everyone moves\n   5 Amount said\n   6 Posture changes\n   7 Size of the actions\n   8 Mood of the place\n   9 Mood of the light\n  10 Against the last scene\n  11 Feeling gap between characters\n  12 Mixed feelings\n  13 Said against meant\n  14 The eyes, for the feeling\n  15 The hands\n  16 Personal space\nCV-CC 2: MIDI channel 12, CC 17 to 32\n   1 Release\n   2 What the audience feels\n   3 Feeling with them\n   4 Awe\n   5 Shame\n   6 Pride\n   7 Jealousy\n   8 Relief\n   9 Too sweet\n  10 Feeling in the body\n  11 Feeling left at the end of the scene\n  12 A laugh inside grief\n  13 Tenderness\n  14 suite: Feels loving\n  15 suite: Feels joyful\n  16 suite: Feels curious\nCV-CC 3: MIDI channel 12, CC 33 to 48\n   1 suite: Feels melancholy\n   2 suite: Feels anxious\n   3 suite: Feels fearful\n   4 suite: Feels angry\n   5 suite: Feels triumphant\n   6 suite: Feels absurd\n   7 suite: Feels dreamlike\n   8 suite: Emotion lens\n   9 suite: Feeling of the scene\n  10 suite: Held-back tears\n  11 suite: Rage boils over\n  12 suite: Quiet joy\n  13 suite: Frozen fear\n  14 suite: Mood whiplash\n  15 suite: Calm in the storm\n  16 suite: The mask slips\nCV-CC 4: MIDI channel 12, CC 49 to 64\n   1 suite: Laughing through tears\n   2 suite: Brave face\n   3 suite: Dawning realization\n   4 suite: Breaking down in tears\n   5 suite: Cold fury\n   6 suite: Giddy relief\n   7 suite: Numb shock\n   8 suite: Awkward tenderness\n   9 suite: We see the danger, they don't\n  10 suite: Cartoon feelings\n  11 suite: Laying it on thick\n  12 suite: Struck with awe\n  13 suite: Laughing at the funeral\n  14 suite: Wanting to disappear\n  15 suite: Green with envy\n  16 suite: Proud moment\nCV-CC 5: MIDI channel 12, CC 65 to 80\n   1 suite: Right there with them\n   2 suite: A scene that lingers\n   3 suite: Gentle care\n   4 suite: Shaking with it\n   5 suite: Phew\n   6 suite: Big blockbuster awe\n   7 pair: When the mood of the light drops, the strength of the feeling rises\n   8 pair: When the feeling grows stronger, the posture changes more often\n   9 pair: When a scene feels the opposite of the last one, the color shifts too\n  10 pair: When a feeling rises, the face shows it before the words\n  11 pair: When anger rises, the voice gets louder\n  12 pair: When fear rises, movement stops\n  13 pair: When one character's feeling overflows, others catch it\n  14 pair: When joy rises, the light warms\n  15 pair: When a trigger appears, the feeling turns\n  16 pair: After a release, the character is lighter\nCV-CC 6: MIDI channel 12, CC 81 to 96\n   1 pair: When said and meant pull apart, the pauses grow\n   2 pair: When people move closer, the feeling grows\n   3 pair: When tears well, the shot gets closer\n   4 pair: When we know more than they do, tension rises\n   5 pair: When feelings mix, the face flickers\n   6 pair: When someone feels loving, hearts pop onto their face\n   7 pair: When someone is joyful, a sun pops onto their face\n   8 pair: When someone turns sad, tears are drawn on\n   9 pair: When someone is anxious, they blush\n  10 pair: When someone is scared, their soul leaves their body\n  11 pair: When someone gets curious, a light bulb pops on\n  12 pair: When someone triumphs, shades pop on\n  13 pair: When things turn absurd, question marks pop on\n  14 pair: When tears are drawn on, the feeling drops\n  15 pair: When a sun pops onto a face, the feeling lifts\n  16 pair: When steam pops on, the feeling winds up\nCV-CC 7: MIDI channel 12, CC 97 to 112\n   1 pair: When a face crackles, the feeling winds up\n   2 pair: When someone laughs till they cry, the audience laughs more\n   3 pair: When the mallet bonks, the feeling turns absurd\n   4 pair: When the room feels cozy, people sit closer\n   5 pair: When the voice breaks, the tears come\n   6 pair: When the hands clench, a bigger action follows\n   7 pair: When the actions get bigger, the voice gives way\n   8 pair: When someone freezes, a slow-burn reaction follows\n   9 pair: When we see their face up close, we feel with them more\n  10 pair: When the place is huge, awe arrives\n  11 pair: When awe hits, the talking stops\n  12 pair: When awe hits, light pours in from behind\n  13 pair: When they are humiliated, shame sets in\n  14 pair: When the old wound is touched, shame comes back\n  15 pair: When shame rises, the eyes drop\n  16 pair: When shame rises, the room squirms\nCV-CC 8: MIDI channel 13, CC 1 to 16\n   1 pair: When they make it right, relief follows\n   2 pair: When pride swells, a setback follows\n   3 pair: When jealousy flares, the two drift apart\n   4 pair: When the dread lifts, relief floods in\n   5 pair: When relief comes, the breath slows\n   6 pair: When the music swells into a wall of sound, it turns too sweet\n   7 pair: When it gets too sweet, the audience pulls back\n   8 pair: When the feeling grows strong, the body shows it\n   9 pair: When their throat closes, the voice breaks\n  10 pair: When the scene fades out, the feeling lingers\n  11 pair: When the feeling lingers, the next scene feels the same\n  12 pair: When they laugh through sadness, the tears come\n  13 pair: When they laugh through sadness, the feelings blend\n  14 pair: When tenderness grows, hands are held\n  15 pair: When what they mean drifts far from what they say, sentences trail off\n  16 pair: When their feelings drift apart, the frame splits them\nCV-CC 9: MIDI channel 13, CC 17 to 32\n   1 pair: When the feeling runs high, the face stays flat\n   2 pair: When a face stares up in wonder, the reveal feels bigger\n   3 pair: When the feeling is kept inside, the weight we carry grows\n   4 pair: When the feeling gets too big for talking, they burst into song\n   5 pair: When no music tells us what to feel, a small kindness hits harder\n   6 pair: When a loose scene runs long, a true feeling slips out between the jokes\n   7 pair: When no one speaks, we read the face and feel more for them\n   8 pair: When a sad thing is said flatly, we laugh and ache at once\n   9 pair: When the clueless one finally sees how they look, we feel for them\n  10 pair: When perfect manners are kept up, jealousy simmers underneath\n  11 pairs: The body tells first\n  12 pairs: Feelings spread\n  13 pairs: What isn't said\n  14 pairs: Closeness and dread\n  15 pairs: The face tells the feeling\n  16 pairs: The mood moves the feeling\nCV-CC 10: MIDI channel 13, CC 33 to 37\n   1 pairs: Holding it in, until\n   2 pairs: Shame spiral\n   3 pairs: Too much sugar backfires\n   4 pairs: Envy turns sour\n   5 pairs: Big blockbuster awe: the moves"
+    "text": "EMOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 12, CC 1 to 16\n   1 Strength of the feeling\n   2 How they move\n   3 Feeling in the voice\n   4 How much everyone moves\n   5 Amount said\n   6 Posture changes\n   7 Size of the actions\n   8 Mood of the place\n   9 Mood of the light\n  10 Against the last scene\n  11 Feeling gap between characters\n  12 Mixed feelings\n  13 Said against meant\n  14 The eyes, for the feeling\n  15 The hands\n  16 Personal space\nCV-CC 2: MIDI channel 12, CC 17 to 32\n   1 Release\n   2 What the audience feels\n   3 Feeling with them\n   4 Awe\n   5 Shame\n   6 Pride\n   7 Jealousy\n   8 Relief\n   9 Too sweet\n  10 Feeling in the body\n  11 Feeling left at the end of the scene\n  12 A laugh inside grief\n  13 Tenderness\n  14 Numb after the shock\n  15 Taking it out on the wrong thing\n  16 Playing the big moment small\nCV-CC 3: MIDI channel 12, CC 33 to 48\n   1 Out of step with the room\n   2 Comfort, taken or pushed away\n   3 Bracing for it\n   4 Whose face carries it\n   5 Keeping busy so as not to feel\n   6 suite: Feels loving\n   7 suite: Feels joyful\n   8 suite: Feels curious\n   9 suite: Feels melancholy\n  10 suite: Feels anxious\n  11 suite: Feels fearful\n  12 suite: Feels angry\n  13 suite: Feels triumphant\n  14 suite: Feels absurd\n  15 suite: Feels dreamlike\n  16 suite: Emotion lens\nCV-CC 4: MIDI channel 12, CC 49 to 64\n   1 suite: Feeling of the scene\n   2 suite: Held-back tears\n   3 suite: Rage boils over\n   4 suite: Quiet joy\n   5 suite: Frozen fear\n   6 suite: Mood whiplash\n   7 suite: Calm in the storm\n   8 suite: The mask slips\n   9 suite: Laughing through tears\n  10 suite: Brave face\n  11 suite: Dawning realization\n  12 suite: Breaking down in tears\n  13 suite: Cold fury\n  14 suite: Giddy relief\n  15 suite: Numb shock\n  16 suite: Awkward tenderness\nCV-CC 5: MIDI channel 12, CC 65 to 80\n   1 suite: We see the danger, they don't\n   2 suite: Cartoon feelings\n   3 suite: Laying it on thick\n   4 suite: Struck with awe\n   5 suite: Laughing at the funeral\n   6 suite: Wanting to disappear\n   7 suite: Green with envy\n   8 suite: Proud moment\n   9 suite: Right there with them\n  10 suite: A scene that lingers\n  11 suite: Gentle care\n  12 suite: Shaking with it\n  13 suite: Phew\n  14 suite: After the news\n  15 suite: The quiet reunion\n  16 suite: Anger with nowhere to go\nCV-CC 6: MIDI channel 12, CC 81 to 96\n   1 suite: The proud face in the crowd\n   2 suite: Big blockbuster awe\n   3 pair: When the mood of the light drops, the strength of the feeling rises\n   4 pair: When the feeling grows stronger, the posture changes more often\n   5 pair: When a scene feels the opposite of the last one, the color shifts too\n   6 pair: When a feeling rises, the face shows it before the words\n   7 pair: When anger rises, the voice gets louder\n   8 pair: When fear rises, movement stops\n   9 pair: When one character's feeling overflows, others catch it\n  10 pair: When joy rises, the light warms\n  11 pair: When a trigger appears, the feeling turns\n  12 pair: After a release, the character is lighter\n  13 pair: When said and meant pull apart, the pauses grow\n  14 pair: When people move closer, the feeling grows\n  15 pair: When tears well, the shot gets closer\n  16 pair: When we know more than they do, tension rises\nCV-CC 7: MIDI channel 12, CC 97 to 112\n   1 pair: When feelings mix, the face flickers\n   2 pair: When someone feels loving, hearts pop onto their face\n   3 pair: When someone is joyful, a sun pops onto their face\n   4 pair: When someone turns sad, tears are drawn on\n   5 pair: When someone is anxious, they blush\n   6 pair: When someone is scared, their soul leaves their body\n   7 pair: When someone gets curious, a light bulb pops on\n   8 pair: When someone triumphs, shades pop on\n   9 pair: When things turn absurd, question marks pop on\n  10 pair: When tears are drawn on, the feeling drops\n  11 pair: When a sun pops onto a face, the feeling lifts\n  12 pair: When steam pops on, the feeling winds up\n  13 pair: When a face crackles, the feeling winds up\n  14 pair: When someone laughs till they cry, the audience laughs more\n  15 pair: When the mallet bonks, the feeling turns absurd\n  16 pair: When the room feels cozy, people sit closer\nCV-CC 8: MIDI channel 13, CC 1 to 16\n   1 pair: When the voice breaks, the tears come\n   2 pair: When the hands clench, a bigger action follows\n   3 pair: When the actions get bigger, the voice gives way\n   4 pair: When someone freezes, a slow-burn reaction follows\n   5 pair: When we see their face up close, we feel with them more\n   6 pair: When the place is huge, awe arrives\n   7 pair: When awe hits, the talking stops\n   8 pair: When awe hits, light pours in from behind\n   9 pair: When they are humiliated, shame sets in\n  10 pair: When the old wound is touched, shame comes back\n  11 pair: When shame rises, the eyes drop\n  12 pair: When shame rises, the room squirms\n  13 pair: When they make it right, relief follows\n  14 pair: When pride swells, a setback follows\n  15 pair: When jealousy flares, the two drift apart\n  16 pair: When the dread lifts, relief floods in\nCV-CC 9: MIDI channel 13, CC 17 to 32\n   1 pair: When relief comes, the breath slows\n   2 pair: When the music swells into a wall of sound, it turns too sweet\n   3 pair: When it gets too sweet, the audience pulls back\n   4 pair: When the feeling grows strong, the body shows it\n   5 pair: When their throat closes, the voice breaks\n   6 pair: When the scene fades out, the feeling lingers\n   7 pair: When the feeling lingers, the next scene feels the same\n   8 pair: When they laugh through sadness, the tears come\n   9 pair: When they laugh through sadness, the feelings blend\n  10 pair: When tenderness grows, hands are held\n  11 pair: When what they mean drifts far from what they say, sentences trail off\n  12 pair: When their feelings drift apart, the frame splits them\n  13 pair: When they go numb, the feeling is held in\n  14 pair: When they go numb for long, the feeling hits later\n  15 pair: When the sound goes silent in the numbness, the music drops out\n  16 pair: When a feeling is held in too long, it lands on the wrong thing\nCV-CC 10: MIDI channel 13, CC 33 to 48\n   1 pair: When it lands on a friend, the gap between them grows\n   2 pair: When the big moment is played smaller, the audience feels more\n   3 pair: When they are out of step with the room, they stand apart\n   4 pair: When the room catches their feeling, it spreads\n   5 pair: When comfort is taken, the warmth between them grows\n   6 pair: When the bracing falls apart, the feeling spills out\n   7 pair: When we watch a loving face, we feel more\n   8 pair: When the face is shown up to the eyes, the camera pushes in\n   9 pair: When they keep busier, the hands show the strain\n  10 pair: When someone stops their hands, comfort comes in\n  11 pair: When the feeling runs high, the face stays flat\n  12 pair: When a face stares up in wonder, the reveal feels bigger\n  13 pair: When the feeling is kept inside, the weight we carry grows\n  14 pair: When the feeling gets too big for talking, they burst into song\n  15 pair: When no music tells us what to feel, a small kindness hits harder\n  16 pair: When a loose scene runs long, a true feeling slips out between the jokes\nCV-CC 11: MIDI channel 13, CC 49 to 64\n   1 pair: When no one speaks, we read the face and feel more for them\n   2 pair: When a sad thing is said flatly, we laugh and ache at once\n   3 pair: When the clueless one finally sees how they look, we feel for them\n   4 pair: When perfect manners are kept up, jealousy simmers underneath\n   5 pairs: The body tells first\n   6 pairs: Feelings spread\n   7 pairs: What isn't said\n   8 pairs: Closeness and dread\n   9 pairs: The face tells the feeling\n  10 pairs: The mood moves the feeling\n  11 pairs: Holding it in, until\n  12 pairs: Shame spiral\n  13 pairs: Too much sugar backfires\n  14 pairs: Envy turns sour\n  15 pairs: The feeling that waits\n  16 pairs: Saved and played small\nCV-CC 12: MIDI channel 13, CC 65 to 65\n   1 pairs: Big blockbuster awe: the moves"
    },
    "pos": [
     0,
@@ -320,6 +320,70 @@
      35,
      36,
      37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 12
+    }
+   },
+   "pos": [
+    96,
+    0
+   ]
+  },
+  {
+   "id": 14,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 12
+    }
+   },
+   "pos": [
+    104,
+    0
+   ]
+  },
+  {
+   "id": 15,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -337,7 +401,7 @@
     }
    },
    "pos": [
-    96,
+    112,
     0
    ]
   }

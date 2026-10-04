@@ -20105,6 +20105,573 @@
    "then": "relief floods in"
   },
   {
+   "id": "p:numb-holds-feeling-in",
+   "proximity": "numb-holds-feeling-in",
+   "label": "When they go numb, the feeling is held in",
+   "from": {
+    "curiosity": "shockNumb",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotionalDebt",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they go numb",
+   "then": "the feeling is held in"
+  },
+  {
+   "id": "p:numb-hits-later",
+   "proximity": "numb-hits-later",
+   "label": "When they go numb for long, the feeling hits later",
+   "from": {
+    "curiosity": "shockNumb.lasts",
+    "track": "master",
+    "is": "most of the film",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "delayedReaction",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they go numb for long",
+   "then": "the feeling hits later"
+  },
+  {
+   "id": "p:numb-quiet-sound",
+   "proximity": "numb-quiet-sound",
+   "label": "When the sound goes silent in the numbness, the music drops out",
+   "from": {
+    "curiosity": "shockNumb.sound",
+    "track": "master",
+    "is": "total silence",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "noMusic",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the sound goes silent in the numbness",
+   "then": "the music drops out"
+  },
+  {
+   "id": "p:late-hit-release",
+   "proximity": "late-hit-release",
+   "label": "When the feeling hits later, the release is bigger",
+   "from": {
+    "curiosity": "delayedReaction",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoRelease",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the feeling hits later",
+   "then": "the release is bigger"
+  },
+  {
+   "id": "p:held-in-wrong-target",
+   "proximity": "held-in-wrong-target",
+   "label": "When a feeling is held in too long, it lands on the wrong thing",
+   "from": {
+    "curiosity": "emotionalDebt",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "displacedFeeling",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a feeling is held in too long",
+   "then": "it lands on the wrong thing"
+  },
+  {
+   "id": "p:wrong-target-friend-gap",
+   "proximity": "wrong-target-friend-gap",
+   "label": "When it lands on a friend, the gap between them grows",
+   "from": {
+    "curiosity": "displacedFeeling.target",
+    "track": "master",
+    "is": "a friend",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotionGap",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "it lands on a friend",
+   "then": "the gap between them grows"
+  },
+  {
+   "id": "p:keepsake-returns",
+   "proximity": "keepsake-returns",
+   "label": "When a thing holds more feeling, we keep seeing it",
+   "from": {
+    "curiosity": "keepsake",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "returningObject",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a thing holds more feeling",
+   "then": "we keep seeing it"
+  },
+  {
+   "id": "p:keepsake-given-release",
+   "proximity": "keepsake-given-release",
+   "label": "When the keepsake is given away, the feeling is let go",
+   "from": {
+    "curiosity": "keepsake.fate",
+    "track": "master",
+    "is": "given away",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRelease",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the keepsake is given away",
+   "then": "the feeling is let go"
+  },
+  {
+   "id": "p:small-play-audience",
+   "proximity": "small-play-audience",
+   "label": "When the big moment is played smaller, the audience feels more",
+   "from": {
+    "curiosity": "bigFeelingSmall",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "audienceFeeling",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "stronger",
+   "when": "the big moment is played smaller",
+   "then": "the audience feels more"
+  },
+  {
+   "id": "p:small-play-earned",
+   "proximity": "small-play-earned",
+   "label": "When the big moment is saved for the whole film, the tears are earned",
+   "from": {
+    "curiosity": "bigFeelingSmall.savedFor",
+    "track": "master",
+    "is": "the whole film",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "earnedTears",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the big moment is saved for the whole film",
+   "then": "the tears are earned"
+  },
+  {
+   "id": "p:slow-burn-warmth",
+   "proximity": "slow-burn-warmth",
+   "label": "When a feeling grows slowly, the warmth between them climbs",
+   "from": {
+    "curiosity": "slowBurn",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a feeling grows slowly",
+   "then": "the warmth between them climbs"
+  },
+  {
+   "id": "p:slow-burn-never-said-longing",
+   "proximity": "slow-burn-never-said-longing",
+   "label": "When the feeling is never said, longing builds",
+   "from": {
+    "curiosity": "slowBurn.admitted",
+    "track": "master",
+    "is": "never",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "longing",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the feeling is never said",
+   "then": "longing builds"
+  },
+  {
+   "id": "p:come-down-contrast",
+   "proximity": "come-down-contrast",
+   "label": "When a high falls further, the next scene feels the opposite",
+   "from": {
+    "curiosity": "comeDown",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoContrastPrev",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a high falls further",
+   "then": "the next scene feels the opposite"
+  },
+  {
+   "id": "p:come-down-alone-lonely",
+   "proximity": "come-down-alone-lonely",
+   "label": "When the come-down is faced alone, loneliness grows",
+   "from": {
+    "curiosity": "comeDown.alone",
+    "track": "master",
+    "is": "alone",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the come-down is faced alone",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:out-of-step-apart",
+   "proximity": "out-of-step-apart",
+   "label": "When they are out of step with the room, they stand apart",
+   "from": {
+    "curiosity": "moodOutOfStep",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "apartFromGroup",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they are out of step with the room",
+   "then": "they stand apart"
+  },
+  {
+   "id": "p:room-catches-spread",
+   "proximity": "room-catches-spread",
+   "label": "When the room catches their feeling, it spreads",
+   "from": {
+    "curiosity": "moodOutOfStep.ends",
+    "track": "master",
+    "is": "the room catches it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoSpread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the room catches their feeling",
+   "then": "it spreads"
+  },
+  {
+   "id": "p:seesaw-roads-cross",
+   "proximity": "seesaw-roads-cross",
+   "label": "When two people trade places in feeling, their roads cross",
+   "from": {
+    "curiosity": "emotionSeesaw",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "twoRoads",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "crossing",
+   "when": "two people trade places in feeling",
+   "then": "their roads cross"
+  },
+  {
+   "id": "p:comfort-taken-warmth",
+   "proximity": "comfort-taken-warmth",
+   "label": "When comfort is taken, the warmth between them grows",
+   "from": {
+    "curiosity": "comfortOffered",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "comfort is taken",
+   "then": "the warmth between them grows"
+  },
+  {
+   "id": "p:unspoken-dread",
+   "proximity": "unspoken-dread",
+   "label": "When the feeling goes unnamed for longer, dread builds",
+   "from": {
+    "curiosity": "unspokenFeeling",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the feeling goes unnamed for longer",
+   "then": "dread builds"
+  },
+  {
+   "id": "p:unspoken-said-catharsis",
+   "proximity": "unspoken-said-catharsis",
+   "label": "When the unspoken thing is finally shouted, catharsis comes",
+   "from": {
+    "curiosity": "unspokenFeeling.said",
+    "track": "master",
+    "is": "in a shout",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "catharsis",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the unspoken thing is finally shouted",
+   "then": "catharsis comes"
+  },
+  {
+   "id": "p:brace-falls-apart-release",
+   "proximity": "brace-falls-apart-release",
+   "label": "When the bracing falls apart, the feeling spills out",
+   "from": {
+    "curiosity": "bracing.ready",
+    "track": "master",
+    "is": "falls apart",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRelease",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the bracing falls apart",
+   "then": "the feeling spills out"
+  },
+  {
+   "id": "p:reaction-holder-empathy",
+   "proximity": "reaction-holder-empathy",
+   "label": "When we watch a loving face, we feel more",
+   "from": {
+    "curiosity": "reactionHolder",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we watch a loving face",
+   "then": "we feel more"
+  },
+  {
+   "id": "p:reaction-holder-push-in",
+   "proximity": "reaction-holder-push-in",
+   "label": "When the face is shown up to the eyes, the camera pushes in",
+   "from": {
+    "curiosity": "reactionHolder.size",
+    "track": "master",
+    "is": "just the eyes",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pushInFace",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the face is shown up to the eyes",
+   "then": "the camera pushes in"
+  },
+  {
+   "id": "p:busy-hands-strain",
+   "proximity": "busy-hands-strain",
+   "label": "When they keep busier, the hands show the strain",
+   "from": {
+    "curiosity": "keepingBusy",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoHands",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they keep busier",
+   "then": "the hands show the strain"
+  },
+  {
+   "id": "p:busy-stopped-comfort",
+   "proximity": "busy-stopped-comfort",
+   "label": "When someone stops their hands, comfort comes in",
+   "from": {
+    "curiosity": "keepingBusy.stops",
+    "track": "master",
+    "is": "someone stops their hands",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comfortOffered",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone stops their hands",
+   "then": "comfort comes in"
+  },
+  {
+   "id": "p:unseen-care-audience",
+   "proximity": "unseen-care-audience",
+   "label": "When love goes unseen, the audience feels it for them",
+   "from": {
+    "curiosity": "unseenCare",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "audienceFeeling",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "stronger",
+   "when": "love goes unseen",
+   "then": "the audience feels it for them"
+  },
+  {
+   "id": "p:unseen-care-too-late-grief",
+   "proximity": "unseen-care-too-late-grief",
+   "label": "When the hidden care is found too late, grief deepens",
+   "from": {
+    "curiosity": "unseenCare.found",
+    "track": "master",
+    "is": "too late",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "grief",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hidden care is found too late",
+   "then": "grief deepens"
+  },
+  {
+   "id": "p:empty-place-grief",
+   "proximity": "empty-place-grief",
+   "label": "When the empty place is felt more, grief grows",
+   "from": {
+    "curiosity": "emptyPlace",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "grief",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the empty place is felt more",
+   "then": "grief grows"
+  },
+  {
+   "id": "p:empty-place-unspoken",
+   "proximity": "empty-place-unspoken",
+   "label": "When the empty place is shown often, nobody can name it",
+   "from": {
+    "curiosity": "emptyPlace",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "unspokenFeeling",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the empty place is shown often",
+   "then": "nobody can name it"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -25250,6 +25817,74 @@
     "p:rule-broken-complication",
     "p:red-herring-misdirection",
     "p:red-herring-late-reversal"
+   ]
+  },
+  {
+   "id": "ps:the-feeling-that-waits",
+   "label": "The feeling that waits",
+   "plain": "Numbness holds the feeling in, it hits later somewhere ordinary, and the release is bigger for the wait.",
+   "proximities": [
+    "numb-holds-feeling-in",
+    "numb-hits-later",
+    "late-hit-release",
+    "held-in-wrong-target"
+   ],
+   "links": [
+    "p:numb-holds-feeling-in",
+    "p:numb-hits-later",
+    "p:late-hit-release",
+    "p:held-in-wrong-target"
+   ]
+  },
+  {
+   "id": "ps:the-gone-and-the-silent",
+   "label": "The gone and the silent",
+   "plain": "The empty place keeps returning, nobody can name it, dread builds, and when it is finally shouted the room breaks open.",
+   "proximities": [
+    "empty-place-grief",
+    "empty-place-unspoken",
+    "unspoken-dread",
+    "unspoken-said-catharsis"
+   ],
+   "links": [
+    "p:empty-place-grief",
+    "p:empty-place-unspoken",
+    "p:unspoken-dread",
+    "p:unspoken-said-catharsis"
+   ]
+  },
+  {
+   "id": "ps:saved-and-small",
+   "label": "Saved and played small",
+   "plain": "The big feeling is saved and played small, the audience feels more than the character shows, and the tears are earned.",
+   "proximities": [
+    "small-play-audience",
+    "small-play-earned",
+    "reaction-holder-empathy",
+    "reaction-holder-push-in"
+   ],
+   "links": [
+    "p:small-play-audience",
+    "p:small-play-earned",
+    "p:reaction-holder-empathy",
+    "p:reaction-holder-push-in"
+   ]
+  },
+  {
+   "id": "ps:leaning-on-each-other",
+   "label": "Leaning on each other",
+   "plain": "Comfort taken warms them, the busy hands are stopped, the two trade places, and the slow-growing feeling warms them further.",
+   "proximities": [
+    "comfort-taken-warmth",
+    "busy-stopped-comfort",
+    "seesaw-roads-cross",
+    "slow-burn-warmth"
+   ],
+   "links": [
+    "p:comfort-taken-warmth",
+    "p:busy-stopped-comfort",
+    "p:seesaw-roads-cross",
+    "p:slow-burn-warmth"
    ]
   },
   {
