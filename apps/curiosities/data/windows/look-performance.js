@@ -161,6 +161,13 @@
     s += side(k, [{ label: "When they set off", text: v("pathTiming") }, { label: "Moving relative to", text: rel }, { label: "Meters walked", text: `${v.n("pathMeters")} m` }, { label: `Seconds: ${v.n("pathSeconds")} s`, p: v.p("pathSeconds"), color: "#9fd3ff" }, { label: `Ends ${v.n("endGap")} m from them`, p: v.p("endGap") }, { label: "Heading vs camera", text: `${v.n("pathHeading")}°` }]);
     const t = track(k, { x: 10, y: 156, w: 196, t0: -2, t1: 5, line: [0, 2] });
     s += t.s + mark(k, t.X(when(tm / 2)), 150, col, "");
+    /* Walks to (the 3D view's lane): another character, the middle, the front by the camera, or the back. */
+    if (v.slider("to")) {
+      const to = String(v("to"));
+      const T = { "the first character": [150, 62], "the second character": [176, 40], "the third character": [176, 92], "the fourth character": [130, 108], "the middle": [108, 76], "the front": [108, 118], "the back": [108, 18] }[to];
+      if (T) s += k.ring({ x: T[0], y: T[1], r: 9, color: "#7fd18b", w: 2, dash: "3 2" }) + `<line x1="${S[0]}" y1="${S[1]}" x2="${r1(T[0])}" y2="${r1(T[1])}" stroke="#7fd18b" stroke-width="1.5" stroke-dasharray="2 3"/>` + k.label({ x: 108, y: 36, text: "walks to " + to, size: 7.5, color: "#7fd18b" });
+      else s += k.ring({ x: S[0], y: S[1], r: 11, color: "#7fd18b", w: 2 }) + k.label({ x: S[0], y: S[1] - 14, text: "stays put", size: 7, color: "#7fd18b" });
+    }
     return s + cap(k, still ? "stays still" : `${shape}, ${pur}, ${v("smoothness")}, ends ${end}`);
   });
 
@@ -1785,4 +1792,47 @@
   pad("propBusiness", "busyShare", "pauseSeconds", "hands less to more busy", "shorter to longer pause");
   pad("moveOnLine", "moveOffset", "moveMeters", "before to after the word", "smaller to bigger move");
   pad("rigRulesLens", "walkSpeed", "headTurn", "slower to faster walk", "head turns less to more");
+
+  /* ---------- Acting moves: the person doing the move, and its timing on a strip ---------- */
+  const MOVES = {
+    none: [0, 0, 0, 0], "double take": [0.2, -8, -0.2, 1], shrug: [0.6, 0, 0, 0], facepalm: [0.9, 6, -0.6, 0], "spit take": [0.3, 12, -0.4, 0],
+    pratfall: [1, -60, -0.8, 0], "slow burn": [-0.5, 0, -1, 0], "freeze in shock": [0.8, -4, -0.7, 0], "wobbly knees": [-0.2, 5, -0.5, 0],
+    "victory dance": [1, 10, 1, 0], wave: [0.9, 0, 0.7, 0], point: [0.7, 6, 0.2, 1], "nod yes": [0, 8, 0.5, 0], "shake no": [0, -4, -0.4, -1],
+    "hands on hips": [0.1, 0, -0.2, 0], "cross arms": [0.4, 0, -0.3, 0], sigh: [-0.4, 6, -0.5, 0], "look around": [0, 0, 0, -1], "jump for joy": [1, 0, 1, 0], bow: [-0.3, 35, 0.3, 0],
+  };
+  W.look("actingLens", (v, k) => {
+    const mv = String(v("move"));
+    const [a0, l0, mood, look] = MOVES[mv] || MOVES.none;
+    const big = [0.3, 0.6, 1, 1.3, 1.6][idx(v, "size", 5)];
+    const sp = idx(v, "speed", 5);
+    const wu = idx(v, "windup", 4);
+    const hold = idx(v, "hold", 4);
+    const st = idx(v, "settle", 3);
+    const pz = idx(v, "pause", 4);
+    const go = String(v("cue")) === "go";
+    const lift = mv === "jump for joy" ? 14 * big : 0;
+    let s = k.bg(BG) + `<rect x="6" y="6" width="204" height="112" fill="#2a2f3a"/><rect x="6" y="100" width="204" height="18" fill="#3b332b"/>`;
+    /* The wind-up: a faint pose leaning the other way first. */
+    if (wu) s += k.person({ x: 60, y: 104, s: 1.1, lean: -l0 * 0.3 * wu - 6 * wu, arms: k.clamp(-a0 * 0.4, -1, 1), alpha: 0.25, color: "#888" }) + k.arrow({ x1: 70, y1: 30, x2: 70 - wu * 8, y2: 30, color: "#9fd3ff", w: 1.5 }) + k.label({ x: 60, y: 22, text: "wind-up", size: 7, color: "#9fd3ff" });
+    s += ghost(mv !== "none", k.person({ x: 110, y: 104 - lift, s: 1.1, arms: k.clamp(a0 * big, -1, 1), lean: l0 * big, mood, look, color: ORANGE }));
+    s += speed(k, 96, 60, sp + 1, 6 + sp * 4);
+    if (st === 2) s += [0, 1, 2].map((i) => `<path d="M${150 + i * 6} 44 q3 -5 6 0 q3 5 6 0" fill="none" stroke="#ffd166" stroke-width="1.2"/>`).join("");
+    s += pill(k, 150, 18, go ? "▶ play it now" : "waiting", go ? "#2f6b3a" : "#2c2c34");
+    s += k.label({ x: 110, y: 114, text: mv === "none" ? "no move yet: shown faint" : mv, size: 9, color: "#fff", weight: 600 });
+    /* Timing strip: pause, wind-up, the move, the hold. */
+    const segs = [["pause", [0, 0.4, 0.9, 1.6][pz], "#555"], ["wind-up", [0, 0.2, 0.4, 0.7][wu], "#9fd3ff"], ["move", [1.6, 1.2, 0.8, 0.5, 0.3][sp] * big, ORANGE], ["hold", [0, 0.3, 0.7, 1.2][hold], YEL]];
+    const tot = 5;
+    let x = 10;
+    s += k.label({ x: 10, y: 130, text: "timing (seconds across)", size: 7, color: "#999", anchor: "start" });
+    segs.forEach(([lab, t, c]) => {
+      const w = (t / tot) * 196;
+      if (w > 0.5) s += `<rect x="${r1(x)}" y="136" width="${r1(Math.max(1, w - 1))}" height="10" rx="2" fill="${c}"/>` + (w > 22 ? k.label({ x: x + w / 2, y: 144, text: lab, size: 6.5, color: "#111" }) : "");
+      x += w;
+    });
+    /* How it settles: stops dead, eases back, or overshoots and wobbles. */
+    const pts = Array.from({ length: 17 }, (_, i) => { const t = i / 16; return st === 0 ? (t < 0.5 ? 0.9 : 0.1) : st === 1 ? 0.1 + 0.8 * Math.exp(-t * 4) : 0.5 + 0.4 * Math.cos(t * 14) * Math.exp(-t * 3); });
+    s += side(k, [{ label: "How big", text: v("size") }, { label: "How fast", text: v("speed") }, { label: "Hold the pose", text: v("hold") }, { label: "Comedy timing", text: v("pause") }]);
+    s += k.label({ x: 265, y: 116, text: String(v("settle")), size: 7, color: "#999" }) + `<rect x="222" y="120" width="86" height="32" fill="#141418"/>` + k.graph({ x: 224, y: 122, w: 82, h: 28, points: pts, color: YEL });
+    return s + k.caption(mv === "none" ? "no acting move" : `${v("size")} ${mv}, ${v("speed")}`);
+  });
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));

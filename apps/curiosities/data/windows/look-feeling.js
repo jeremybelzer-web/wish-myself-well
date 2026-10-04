@@ -1435,4 +1435,35 @@
     if (spec && (spec.faces || []).some((f) => f.face === "pad")) return;
     W.add(id, { window: { faces: [{ face: "pad", x, y, xLabel, yLabel }] } });
   });
+
+  /* ---------- Face and feelings: one face mixing six feelings, and where the eyes look ---------- */
+  const FEELS = [["happy", "😊", "#ffd166"], ["sad", "😢", "#5a7bb5"], ["angry", "😠", "#d9483b"], ["scared", "😨", "#6b5aa8"], ["surprised", "😮", "#6fd3c4"], ["disgust", "🤢", "#7fae4a"]];
+  W.look("feelingFaceLens", (v, k) => {
+    const a = {};
+    FEELS.forEach(([id]) => (a[id] = v.p(id)));
+    const mood = cl(a.happy - a.sad - a.angry * 0.5 - a.scared * 0.3 - a.disgust * 0.4, -1, 1);
+    const brows = cl(a.surprised * 0.9 + a.scared * 0.6 + a.sad * 0.3 + a.happy * 0.1 - a.angry * 0.9 - a.disgust * 0.3, -1, 1);
+    const eyes = cl(0.75 + a.surprised * 0.25 + a.scared * 0.25 - a.angry * 0.35 - a.happy * 0.15 - a.disgust * 0.2, 0.1, 1);
+    const mouth = cl(a.surprised * 0.9 + a.scared * 0.5 + a.angry * 0.2, 0, 1);
+    const lk = String(v("look"));
+    const look = lk === "left" ? -1 : lk === "right" ? 1 : 0;
+    const top = FEELS.slice().sort((x, y) => a[y[0]] - a[x[0]])[0];
+    let s = k.bg("#141418") + `<rect x="6" y="6" width="198" height="150" rx="4" fill="${top && a[top[0]] > 0 ? top[2] : "#2a2f3a"}" opacity="0.18"/>`;
+    s += k.face({ x: 96, y: 80 + (lk === "down" ? 4 : lk === "up" ? -4 : 0), r: 50, mood, brows, eyes, mouth, look });
+    if (a.scared > 0) s += `<path d="M${r1(140)} ${r1(50)} q4 8 0 12 q-4 -4 0 -12" fill="#6ec3ff" opacity="${r1(0.3 + a.scared * 0.7)}"/>`;
+    if (a.disgust > 0) s += `<path d="M84 ${r1(84)} q6 -${r1(3 + a.disgust * 4)} 12 0 q6 -${r1(3 + a.disgust * 4)} 12 0" fill="none" stroke="#1c1712" stroke-width="1.5" opacity="${r1(0.3 + a.disgust * 0.7)}"/>`;
+    /* Where the eyes look. */
+    const D = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[lk];
+    if (D) s += k.arrow({ x1: 96 + D[0] * 58, y1: 70 + D[1] * 58, x2: 96 + D[0] * 80, y2: 70 + D[1] * 68, color: "#ffd166", w: 2 });
+    if (lk === "at the camera") s += k.cam({ x: 180, y: 140, dir: 200, s: 0.55, color: "#ffd166" });
+    s += S(k, 10, 18, `eyes: ${lk}`, "#ffd166", "start", 8);
+    /* The mix as six upright bars. */
+    s += `<rect x="214" y="6" width="102" height="152" rx="6" fill="#1d1d22" stroke="#444"/>` + S(k, 265, 18, "the mix", "#999", "middle", 7.5);
+    FEELS.forEach(([id, icon, col], i) => {
+      const h = 4 + a[id] * 90;
+      s += `<rect x="${222 + i * 15}" y="${r1(130 - h)}" width="11" height="${r1(h)}" rx="2" fill="${col}" opacity="${r1(0.35 + a[id] * 0.65)}"/>` + k.label({ x: 227.5 + i * 15, y: 146, text: icon, size: 9 });
+    });
+    const shown = FEELS.filter(([id]) => a[id] > 0).map(([id]) => `${v(id)} ${id === "disgust" ? "disgusted" : id}`);
+    return s + k.caption(shown.length ? shown.join(", ") : "no feeling showing yet");
+  });
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));

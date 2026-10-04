@@ -7,7 +7,10 @@
    - dissect(clip, { fps?, onProgress? }) -> Promise<dissection>   frames by seeking (up to 15 looks a second, at most 900), sound
      by decoding the file (when the browser can)
    - pcm(clip) -> Promise<{ data: Float32Array, rate } | null>       the sound as one channel
-   - drawApplied(ctx, video, adj, W, H)                               one output frame with a plan's changes
+   - drawApplied(ctx, video, adj, W, H, opts?)                        one output frame with a plan's changes
+                                                                     (a zoom is drawn sharper by detail.js unless
+                                                                     opts.detail is false)
+                                                                      (looks.js draws the palette, grain and frame shape)
    - check(plan, clip, group?, { onProgress? }) -> Promise<{ after, scores }>   renders the applied clip frame by
      frame (no recording), measures it again, and scores each group against the inspiration
    - render(plan, clip, { canvas, record?, speak?, onFrame? }) -> Promise<Blob | null>   plays the applied clip
@@ -116,6 +119,7 @@
       const s = V().frameStats(ax.getImageData(0, 0, STAT_W, h).data, STAT_W, h);
       const g = V().toGray(bx.getImageData(0, 0, GRAY_W, gh).data, GRAY_W, gh);
       const gf = V().toGray(fx.getImageData(0, 0, FW, fh).data, FW, fh);
+      if (window.CurioFraming) s.roll = window.CurioFraming.roll(gf, FW, fh); /* the horizon's roll, for a dutch tilt */
       samples.push({ t: times[i], s, m: prev ? V().motion(prev, g, GRAY_W, gh, 5, { prev: prevFine, cur: gf, w: FW, h: fh }) : null });
       prev = g;
       prevFine = gf;
@@ -161,6 +165,26 @@
     const p = opts.sound === false || big ? null : await pcm(clip);
     const sound = p ? V().envelope(p.data, p.rate) : null;
     const d = V().analyze({ name: clip.name, duration: clip.duration, aspect: box.h / box.w, samples: fr.samples, gw: fr.gw, sound });
+    /* Its beat and accents (video/rhythm.js), or its cuts when it has no clear beat. */
+    if (window.CurioRhythm) d.rhythm = window.CurioRhythm.find(p && p.data, p && p.rate, { cuts: d.cuts, duration: d.duration });
+    /* Its looks: palette, grain and sharpness, picture shape (video/looks.js), unless turned off. */
+    if (opts.looks !== false && window.CurioLooks) {
+      if (opts.onProgress) opts.onProgress(0.9, "Looking at its colors, grain and frame");
+      d.looks = await window.CurioLooks.scan(clip, { onProgress: (p) => opts.onProgress && opts.onProgress(0.9 + p * 0.02, "Looking at its colors, grain and frame") });
+    }
+    /* How movement looks: smear and picture rate (video/shutter.js), unless turned off. */
+    if (opts.shutter !== false && window.CurioShutter) {
+      if (opts.onProgress) opts.onProgress(0.915, "Looking at how it moves");
+      d.shutter = await window.CurioShutter.scan(clip);
+    }
+    /* The elements (AI cut-outs of the people, their hair, faces and clothes, and the set), unless turned off. */
+    if (opts.elements !== false && window.CurioMask) {
+      if (opts.onProgress) opts.onProgress(0.92, "Finding the people and their clothes (AI)");
+      d.elements = await window.CurioMask.scan(clip, { box, onProgress: (p) => opts.onProgress && opts.onProgress(0.92 + p * 0.08, "Finding the people and their clothes (AI)") });
+      if (!d.elements) delete d.elements;
+      /* Where its key light comes from, on the people's faces (video/relight.js). */
+      if (d.elements && window.CurioRelight) d.light = await window.CurioRelight.scan(clip, { box });
+    }
     if (opts.onProgress) opts.onProgress(1, "Done");
     return d;
   }
@@ -275,8 +299,12 @@
      subtitle. */
   function drawApplied(ctx, video, adj, W, H, opts) {
     opts = opts || {};
-    const vw = video.videoWidth,
-      vh = video.videoHeight;
+    const SH = adj.shutter && window.CurioShutter; /* motion feel (video/shutter.js): a held picture is drawn again */
+    if (SH && SH.held(ctx, adj.shutter, W, H)) return;
+    /* Shot framing (framing.js): a virtual camera's crop of the frame; the other camera changes work inside it. */
+    const F = adj.frame && window.CurioFraming ? window.CurioFraming.rect(adj.frame, video.videoWidth, video.videoHeight) : null;
+    const vw = F ? F.w : video.videoWidth,
+      vh = F ? F.h : video.videoHeight;
     const z = Math.max(1, adj.zoom || 1);
     const sw = vw / z,
       sh = vh / z;
@@ -290,15 +318,52 @@
     cy += (adj.dy || 0) * vw;
     const sx = Math.max(0, Math.min(vw - sw, cx - sw / 2)),
       sy = Math.max(0, Math.min(vh - sh, cy - sh / 2));
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, H);
+    /* A zoom drawn sharper (detail.js): the crop deblocked at its own size, drawn up smoothly, sharpened after. */
+    const ax = (F ? F.x : 0) + sx,
+      ay = (F ? F.y : 0) + sy;
+    const DT = window.CurioDetail && opts.detail !== false ? window.CurioDetail : null;
+    const fw = video.videoWidth,
+      fh = video.videoHeight; /* a tilted crop reaches past its box: then the whole frame is read */
+    const S = DT && (F && F.roll ? DT.source(video, 0, 0, fw, fh, (W * fw) / sw, (H * fh) / sh) : DT.source(video, ax, ay, sw, sh, W, H));
+    const pic = S ? S.img : video,
+      ox = S ? S.ox : 0,
+      oy = S ? S.oy : 0;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    if (F && F.roll) {
+      /* a dutch tilt: the whole frame turned about the crop's middle (the crop sits far enough in to fill) */
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(F.roll);
+      ctx.scale(W / sw, H / sh);
+      ctx.drawImage(pic, -(ax + sw / 2) + ox, -(ay + sh / 2) + oy);
+      ctx.restore();
+    } else ctx.drawImage(pic, ax - ox, ay - oy, sw, sh, 0, 0, W, H);
+    if (S) DT.finish(ctx, W, H, S.scale);
+    /* Cut out the people before the light and contrast change: a darkened, hard-contrast frame confuses the AI. */
+    const M = (adj.parts || adj.relight) && window.CurioMask && window.CurioMask.ready() ? window.CurioMask : null;
+    const k = M ? M.cut(ctx.canvas, { track: "applied", t: video.currentTime }) : null;
     if (adj.want || adj.luma !== 1 || adj.contrast !== 1 || adj.sat !== 1 || adj.warm) {
       const img = ctx.getImageData(0, 0, W, H);
       const d = img.data;
       /* Measure this frame as it is now (zoomed and slid), then set the gains to land on the inspiration's. */
       const have = V().quickStats(d, 7);
       const a = V().fitLook(adj, have);
+      const before = k && (a.warm || a.sat !== 1) ? new Uint8ClampedArray(d) : null;
       V().paint(d, W, H, a, have.luma);
+      if (before) M.keepSkin(d, before, k, W, H);
       ctx.putImageData(img, 0, 0);
+    }
+    /* The inspiration's palette (video/looks.js); its grain, softness and frame shape go on last. */
+    const LK = adj.looks && window.CurioLooks;
+    if (LK) LK.draw(ctx, W, H, adj.looks, "color", adj.t);
+    /* The inspiration's key light on your people (video/relight.js), before they are moved or recolored. */
+    if (k && adj.relight && window.CurioRelight) window.CurioRelight.draw(ctx, W, H, adj.relight, k);
+    /* Element changes (AI cut-outs): recolor clothes or hair, resize or move the people, another clip's set. */
+    if (M && adj.parts) {
+      /* another clip's set: only its picture, not its black bars */
+      const sv = adj.parts.background && opts.setVideo && opts.setVideo.videoWidth ? opts.setVideo : null;
+      M.applyParts(ctx, W, H, adj.parts, { setVideo: opts.setVideo, setBox: sv ? contentBox(sv) : null, cut: k });
     }
     /* The inspiration's graphics on top, background taken out, fitted inside the frame. */
     if (adj.overlay && opts.overlay && opts.overlay.videoWidth) {
@@ -317,6 +382,9 @@
       lx.putImageData(img, 0, 0);
       ctx.drawImage(c, 0, 0);
     }
+    if (LK) LK.draw(ctx, W, H, adj.looks, "finish", adj.t);
+    if (SH) SH.draw(ctx, W, H, adj.shutter); /* smeared along the movement */
+    if (adj.rhythm && window.CurioRhythm) window.CurioRhythm.draw(ctx, W, H, adj.rhythm); /* a flash on the accents */
     if (adj.line && opts.captions !== false) {
       const fs = Math.max(12, Math.round(H / 16));
       ctx.font = `600 ${fs}px system-ui, sans-serif`;
@@ -328,25 +396,31 @@
       ctx.strokeText(adj.line.text, W / 2, H - fs * 0.6, W * 0.94);
       ctx.fillText(adj.line.text, W / 2, H - fs * 0.6, W * 0.94);
     }
+    if (SH) SH.keep(ctx, adj.shutter, W, H);
   }
 
   /* The applied clip's sound, worked out offline: the clip's sound taken in the time map's order, turned up and
      down by the plan, the clip's own voices stepped back under the new lines. (The new voice itself is spoken
-     live by the browser and is not in this.) */
-  function appliedPcm(plan, src) {
+     live by the browser and is not in this.) With a rhythm (rhythm.js) the sound never steps back: it runs on while the picture holds still.
+     music: the inspiration's sound, mixed under at the inspiration's time when "Its music under yours" is on. */
+  function appliedPcm(plan, src, music) {
     const rate = src.rate,
       n = Math.round(plan.duration * rate);
     const out = new Float32Array(n);
     const per = Math.round(rate / plan.fps);
+    const mu = music && plan.on.music ? plan.on.music : 0;
+    let from = 0;
     for (let k = 0; k * per < n; k++) {
       const t = k / plan.fps;
       const a = V().at(plan, t);
-      const from = Math.round(a.src * rate);
-      let g = Math.pow(10, a.gainDb / 20);
+      from = plan.rhythm && k ? Math.max(from + per, Math.round(a.src * rate)) : Math.round(a.src * rate);
+      let g = Math.pow(10, a.gainDb / 20) * (1 - 0.7 * mu);
       if (a.line) g *= Math.pow(10, (-14 * a.duck) / 20);
+      const m0 = mu ? Math.round(a.ta * music.rate) : 0;
       for (let j = 0; j < per && k * per + j < n; j++) {
         const x = src.data[from + j];
-        out[k * per + j] = x == null ? 0 : Math.max(-1, Math.min(1, x * g));
+        const y = mu ? music.data[m0 + Math.round((j * music.rate) / rate)] || 0 : 0;
+        out[k * per + j] = Math.max(-1, Math.min(1, (x == null ? 0 : x * g) + y * mu));
       }
     }
     return { data: out, rate };
@@ -356,6 +430,14 @@
   async function check(plan, clip, opts) {
     opts = opts || {};
     const over = plan.on.overlay && opts.overlay ? opts.overlay.video : null;
+    const setV = plan.on.set && opts.overlay ? (await open(opts.overlay.url)).video : null;
+    const M = window.CurioMask;
+    const wantEl = M && M.ready() && (plan.on.wardrobe || plan.on.hair || plan.on.figure || plan.on.set || plan.on.framing);
+    const looks = [],
+      lk = [];
+    const LK = (plan.on.palette || plan.on.grain || plan.on.shape) && window.CurioLooks;
+    const RL = plan.on.relight && M && M.ready() && window.CurioRelight,
+      rl = [];
     const W = 320,
       H = Math.max(2, Math.round((W * clip.height) / clip.width));
     const big = canvas(W, H);
@@ -370,14 +452,30 @@
         await seek(clip.video, a.src);
         a = steadyAdj(a, st, clip.video);
         if (over && a.overlay) await seek(over, a.overlay.t);
-        drawApplied(bx, clip.video, a, W, H, { captions: false, overlay: over });
+        if (setV && a.parts && a.parts.background) await seek(setV, a.parts.background.t);
+        drawApplied(bx, clip.video, a, W, H, { captions: false, overlay: over, setVideo: setV });
         ctx.drawImage(big, 0, 0, w, h);
+        if (LK && t - (lk.length ? lk[lk.length - 1].t : -1) >= 0.5) lk.push({ t, m: LK.measure(bx.getImageData(0, 0, W, H).data, W, H) });
+        if (RL && t - (rl.length ? rl[rl.length - 1].t : -1) >= 0.5) {
+          const k = M.cut(big);
+          if (k) rl.push({ t, m: RL.measure(k.labels, k.rgba, k.w, k.h) });
+        }
+        if (wantEl && looks.length < 240 && (looks.length === 0 || t - looks[looks.length - 1].t >= 0.25)) {
+          const k = M.cut(big);
+          looks.push({ t, stats: V().partStats(k.labels, k.rgba, k.w, k.h), blobs: window.CurioFraming ? window.CurioFraming.blobs(k.labels, k.w, k.h) : null });
+        }
       },
       (p) => opts.onProgress && opts.onProgress(p * 0.9, "Measuring the changed clip")
     );
     const src = await pcm(clip);
-    const sound = src ? V().envelope(appliedPcm(plan, src).data, src.rate) : null;
+    const music = plan.on.music && opts.overlay ? await pcm(opts.overlay) : null;
+    const sound = src ? V().envelope(appliedPcm(plan, src, music).data, src.rate) : null;
     const after = V().analyze({ name: clip.name + " (applied)", duration: plan.duration, aspect: clip.height / clip.width, samples: fr.samples, gw: fr.gw, sound });
+    if (looks.length > 1) after.elements = V().elementSeries(looks);
+    if (after.elements && window.CurioFraming) after.elements.main = window.CurioFraming.series(looks, H / W);
+    if (lk.length) after.looks = LK.series(lk);
+    if (rl.length) after.light = RL.series(rl);
+    if (plan.on.shutter && window.CurioShutter) after.shutter = await window.CurioShutter.scan(clip, { plan }); /* motion feel, as drawn */
     if (opts.onProgress) opts.onProgress(1, "Done");
     return { after };
   }
@@ -417,7 +515,8 @@
     }
     let ac = null,
       gain = null,
-      dest = null;
+      dest = null,
+      mus = null;
     try {
       ac = new (window.AudioContext || window.webkitAudioContext)();
       const node = ac.createMediaElementSource(video);
@@ -426,6 +525,18 @@
       dest = ac.createMediaStreamDestination();
       gain.connect(dest);
       if (opts.listen !== false) gain.connect(ac.destination);
+      /* "Its music under yours": the inspiration's own sound, kept at the inspiration's time */
+      if (plan.on.music && opts.overlay) {
+        mus = document.createElement("video");
+        mus.src = opts.overlay.url;
+        mus.crossOrigin = "anonymous";
+        mus.preload = "auto";
+        const mg = ac.createGain();
+        mg.gain.value = plan.on.music;
+        ac.createMediaElementSource(mus).connect(mg);
+        mg.connect(dest);
+        if (opts.listen !== false) mg.connect(ac.destination);
+      }
     } catch (e) {
       video.muted = opts.listen === false;
     }
@@ -445,7 +556,13 @@
       running = false;
     };
     await video.play().catch(() => {});
+    let setV = null;
+    if (plan.on.set && opts.overlay) {
+      setV = (await open(opts.overlay.url)).video;
+      await setV.play().catch(() => {});
+    }
     if (over) await over.play().catch(() => {});
+    if (mus) await mus.play().catch(() => {});
     if (ac && ac.state === "suspended") await ac.resume().catch(() => {});
     if (rec) rec.start(250);
     const t0 = performance.now();
@@ -461,14 +578,20 @@
         const next = plan.src[Math.min(plan.src.length - 1, k + 1)];
         const rate = Math.max(0.5, Math.min(2, (next - plan.src[k]) * plan.fps || 1));
         if (Math.abs(video.playbackRate - rate) > 0.02) video.playbackRate = rate;
-        if (Math.abs(video.currentTime - a.src) > 0.25) video.currentTime = a.src;
+        /* holding still on a beat (rhythm.js): pause; its jump cuts are smaller, so follow the map closer */
+        const held = plan.rhythm && next - plan.src[k] < 1e-4;
+        if (held && !video.paused) video.pause();
+        else if (!held && video.paused && !video.ended) video.play().catch(() => {});
+        if (Math.abs(video.currentTime - a.src) > (plan.rhythm ? 0.12 : 0.25)) video.currentTime = a.src;
+        if (mus && Math.abs(mus.currentTime - a.ta) > 0.3) mus.currentTime = a.ta;
         if (gain) {
-          let g = Math.pow(10, a.gainDb / 20);
+          let g = Math.pow(10, a.gainDb / 20) * (mus ? 1 - 0.7 * plan.on.music : 1);
           if (a.line) g *= Math.pow(10, (-14 * a.duck) / 20);
           gain.gain.setTargetAtTime(g, ac.currentTime, 0.03);
         }
         if (over && a.overlay && Math.abs(over.currentTime - a.overlay.t) > 0.3) over.currentTime = a.overlay.t;
-        drawApplied(ctx, video, steadyAdj(a, st, video), W, H, { overlay: over });
+        if (setV && a.parts && a.parts.background && Math.abs(setV.currentTime - a.parts.background.t) > 0.3) setV.currentTime = a.parts.background.t;
+        drawApplied(ctx, video, steadyAdj(a, st, video), W, H, { overlay: over, setVideo: setV });
         if (synth && a.line) {
           const i = plan.lines.indexOf(a.line);
           if (i !== spoken) {
@@ -488,6 +611,8 @@
     });
     video.pause();
     if (over) over.pause();
+    if (mus) mus.pause();
+    if (setV) setV.pause();
     if (synth) window.speechSynthesis.cancel();
     let blob = null;
     if (rec) {

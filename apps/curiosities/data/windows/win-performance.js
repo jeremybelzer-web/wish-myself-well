@@ -1122,4 +1122,25 @@
       ],
     },
   });
+
+  /* Acting moves (actingLens, rig/gestures.js): short moves a 3D character plays, with comedy timing. */
+  W.add("actingLens", {
+    window: {
+      faces: [
+        { face: "tiles", slider: "move", icons: { none: "🧍", "double take": "👀", shrug: "🤷", facepalm: "🤦", "spit take": "💦", pratfall: "🍌", "slow burn": "😤", "freeze in shock": "🥶", "wobbly knees": "🦵", "victory dance": "🕺", wave: "👋", point: "👉", "nod yes": "🙂", "shake no": "🙅", "hands on hips": "🦸", "cross arms": "🙎", sigh: "😮‍💨", "look around": "🔍", "jump for joy": "🙌", bow: "🙇" } },
+        { face: "ladder", slider: "size" },
+        { face: "mixer", sliders: ["windup", "hold", "pause", "settle"] },
+      ],
+      groups: [
+        { label: "The move", sliders: ["move", "size", "speed", "cue"] },
+        { label: "Comedy timing", sliders: ["windup", "hold", "settle", "pause"] },
+      ],
+      presets: [
+        { label: "Cartoon double take", plain: "A big wind-up, a snappy look back, and a wobble at the end.", set: { move: "double take", size: "huge", speed: "snappy", windup: "big", settle: "overshoots and wobbles" } },
+        { label: "Deadpan shrug", plain: "A tiny shrug after a long, awkward wait.", set: { move: "shrug", size: "small", speed: "slow", pause: "painfully long", settle: "stops dead" } },
+        { label: "Silent-film pratfall", plain: "A big fall, held so everyone sees it land.", set: { move: "pratfall", size: "big", windup: "clear", hold: "long", pause: "a beat" } },
+        { label: "Slow burn to the camera", plain: "Anger that builds slowly and holds.", set: { move: "slow burn", speed: "very slow", hold: "long", windup: "none" } },
+      ],
+    },
+  });
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));

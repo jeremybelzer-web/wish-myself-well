@@ -55,6 +55,38 @@
     ],
   });
 
+  /* Face and feelings (2026-10-03): the feelings a 3D character's face shows (rig/faces.js). Six basic feelings
+     a face can mix, and where the eyes look. How big the face goes and how often it blinks are the Face acting
+     lens's "expression" and "blinks" (faceLens in db-maya.js). When the timeline has none of these lanes, the 3D
+     face follows the Emotion lanes instead (emotion, emotionIntensity, emoShown, emoRoadCharacter). */
+  const faceRow = DB.curiosity({
+    id: "feelingFaceLens",
+    label: "Face and feelings",
+    workspace: W,
+    also: ["comedy", "character-motion", "emo-road"],
+    group: "Emotion",
+    kind: "lens",
+    plain: "What the character's face feels: happy, sad, angry, scared, surprised or disgusted, mixed in any amount, and where the eyes look. A 3D character's face and body follow it.",
+    main: "happy",
+    sliders: [
+      ["happy", "Happy", ["not at all", "a little", "clearly", "very"], "A smile that reaches the eyes: mouth corners up, cheeks push the eyes a little closed."],
+      ["sad", "Sad", ["not at all", "a little", "clearly", "very"], "Mouth corners down, the inner ends of the brows lift, the head and shoulders sink."],
+      ["angry", "Angry", ["not at all", "a little", "clearly", "very"], "Brows pulled down and together, eyes narrow, mouth pressed or bared."],
+      ["scared", "Scared", ["not at all", "a little", "clearly", "very"], "Eyes wide, brows up and pulled together, mouth stretched; the body pulls in."],
+      ["surprised", "Surprised", ["not at all", "a little", "clearly", "very"], "Brows way up, eyes wide, the jaw drops open. Short-lived: it turns into another feeling."],
+      ["disgust", "Disgusted", ["not at all", "a little", "clearly", "very"], "Nose wrinkles, the upper lip lifts on one side, the head pulls back."],
+      ["look", "Where the eyes look", ["ahead", "left", "right", "up", "down", "at the camera"], "Only the eyes move, not the head. Eyes going away from someone before the words come say a lot.", { unordered: true }],
+    ],
+  });
+  faceRow.momentum = {
+    push: 3,
+    plot: "A face shows the feeling before the words do, so the other characters (and the audience) react to it and the scene turns.",
+    theme: "What a face shows against what the character says is where honesty and pretending live.",
+    pull: "Close on a face, the audience reads every small change and waits to see what the character will do with it.",
+    cue: "visual",
+    tryThis: "Let the face change a beat before the line: a smile that drops, or eyes that go to the door.",
+  };
+
   const S = (id, label, plain, members, extra) => DB.suite(Object.assign({ id, label, plain, workspace: W, members }, extra || {}));
   S("held-back-tears", "Held-back tears", "A strong sad feeling kept almost hidden: a still body, a wavering voice, a face that slips.", [
     { curiosity: "emotion", value: "melancholy" },
