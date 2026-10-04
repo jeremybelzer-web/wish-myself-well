@@ -3094,12 +3094,15 @@ document.addEventListener("click", function (e) {
     let sub = it.plain || "";
     if (level === "suite") sub = (it.members || []).length + " curiosities: " + [...new Set((it.members || []).map((m) => labelOf(keyFor(m.curiosity))))].slice(0, 4).join(", ");
     const tag = level === "curiosity" ? (isAdv(it) ? "Advanced: Final Cut Pro" : it.source === "Final Cut Pro and CapCut" ? "New from editing" : "") : L().LEVELS.find((l) => l.id === level).label;
+    /* Yours (screen/mine.js): a small "mine" mark and a ✎ to change, share or delete it. */
+    const mine = isMineIt(it.id) && !!MY_WORD[level];
     const add = level === "proximity" || level === "proximitySuite" ? "Add it to my film" : level === "suite" ? "Put its curiosities on the timeline" : "Put it on the timeline";
     const k = level === "curiosity" ? keyFor(it.id) : "";
     const tiles = on && k && prefs.view !== "arrange" ? tilesOf(k) : [];
     const here = tiles.length ? String(valueHere(k)) : "";
-    return `<div class="sc-card${on ? " on" : ""}${tiles.length ? " wide" : ""}" data-card="${esc(level)}" data-id="${esc(it.id)}" title="${esc(it.plain || it.label)}">
-      <button type="button" class="sc-card-b" data-pick-card="${esc(level)}|${esc(it.id)}"><strong>${esc(it.label)}</strong><small>${esc(sub)}</small>${tag ? `<em>${esc(tag)}</em>` : ""}</button>
+    return `<div class="sc-card${on ? " on" : ""}${tiles.length ? " wide" : ""}${mine ? " mine" : ""}" data-card="${esc(level)}" data-id="${esc(it.id)}" title="${esc(it.plain || it.label)}">
+      <button type="button" class="sc-card-b" data-pick-card="${esc(level)}|${esc(it.id)}"><strong>${esc(it.label)}</strong><small>${esc(sub)}</small>${tag || mine ? `<em>${mine ? `<b class="sc-mine-tag">mine</b>` : ""}${esc(tag)}</em>` : ""}</button>
+      ${mine ? `<button type="button" class="sc-my-edit" data-my-edit="${esc(level)}|${esc(it.id)}" aria-label="Change, share or delete ${esc(it.label)}" title="Change it, share it or delete it">✎</button>` : ""}
       <button type="button" class="sc-plus" data-add-card="${esc(level)}|${esc(it.id)}" aria-label="${esc(add)}: ${esc(it.label)}" title="${esc(add)}">+</button>
       ${starHtml(level, it)}
       ${tiles.length ? `<div class="sc-tiles" role="group" aria-label="Settings of ${esc(it.label)}"><span class="sc-k">Drop a setting at moment ${row + 1}:</span>${tiles.map((v) => `<button type="button" data-drop="${esc(k)}" data-v="${esc(v)}" class="${String(v) === here ? "on" : ""}">${esc(v)}${S().domain(k).unit && typeof v === "number" ? esc(S().domain(k).unit) : ""}</button>`).join("")}</div>` : ""}
@@ -3168,9 +3171,12 @@ document.addEventListener("click", function (e) {
     const focused = had && document.activeElement === had;
     /* The Text tab starts with a way to put words on the frame (the same as T Text in the Player). */
     const txtLib = !tab && !q && cat.id === "text" ? `<div class="sc-txt-libadd"><button type="button" data-txt-add title="Put words on your film's picture at the playhead: a title, a name and job, a sign, a sound effect or a thought">T Words on the frame</button><small>Drawn on your film's picture at the playhead. Click them there to change them.</small></div>` : "";
-    const body = (tab === "templates" && !q ? myTplHtml() : "") + (tab === "faves" && !q ? faveHtml : `${txtLib}<p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>${faveHtml}`);
+    /* + New curiosity (or suite, or proximity), Export mine and Import… over a category's cards (screen/mine.js). */
+    const myBar = !tab && !q ? myBarHtml((groups.find((x) => x.id === gid) || {}).level, groups) : "";
+    const body = (tab === "templates" && !q ? myTplHtml() : "") + (tab === "faves" && !q ? faveHtml : `${txtLib}${myBar}<p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>${faveHtml}`);
     grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}">${body}`;
     tplWire();
+    myWire();
     iconsFit();
     if (focused) {
       const inp = grid.querySelector("[data-lib-search]");
@@ -3264,6 +3270,477 @@ document.addEventListener("click", function (e) {
       if (res && res.ok) toast(s ? `${s.label}: ${ok.length} nodes dropped at moment ${row + 1}. Each one is a lane you can automate.` : `${labelOf(ok[0][0])} is on the timeline with a node at moment ${row + 1}. Drag it, or click the lane to add more.`);
     } else toast(`${list.length > 1 ? list.length + " curiosities are" : labelOf(keyFor(id)) + " is"} on the timeline.`);
     drawTimeline();
+  }
+
+  /* ---------- My own curiosities, suites and proximities (screen/mine.js) ----------
+     Jeremy: "The user should be able to define and create their own curiosities as well as curiosity suites and
+     proximities." The library's category tabs start with + New curiosity (+ New suite in Suites, + New proximity
+     in Proximities, and either of those beside it when the category has none yet), Export mine and Import….
+     Each opens a small form in a window over the Screen. What you make shows in the library like any card, with
+     a small "mine" mark and a ✎ to change, share or delete it (Delete asks first); its + puts it in the film,
+     its lane plays in the engine, Details edits it and Quick find finds it. Making or changing one is one undo
+     step (CurioMine's part of the app-wide store). */
+  const MY = () => window.CurioMine || null;
+  const isMineIt = (id) => !!(MY() && MY().isMine(id));
+  const MY_WORD = { curiosity: "curiosity", suite: "suite", proximity: "proximity" };
+  const MY_NEW = { curiosity: "+ New curiosity", suite: "+ New suite", proximity: "+ New proximity" };
+  const MY_TIP = {
+    curiosity: "Make your own curiosity: one thing about a scene you can look at and change, with a scale from one end to the other",
+    suite: "Make your own suite: a few curiosities you look at together",
+    proximity: "Make your own proximity: when one curiosity changes, another one follows soon after",
+  };
+  const MY_CUES = [["visual", "the eye"], ["audio", "the ear"], ["thought", "the mind"], ["movement", "movement"], ["plot", "the plot"]];
+  let myDlg = null; /* { el, level, it, picked } while the form is open */
+  let myWired = false;
+  function myWire() {
+    if (myWired || !page) return;
+    myWired = true;
+    page.addEventListener("click", myClick);
+    page.addEventListener("change", (e) => {
+      const t = e.target;
+      if (!t.matches || !t.matches("[data-my-file]") || !t.files || !t.files[0]) return;
+      const file = t.files[0];
+      t.value = "";
+      (file.text ? file.text() : Promise.reject(new Error("no text"))).then(myImport, () => toast("That file couldn't be read."));
+    });
+    window.addEventListener("curio-mine", () => {
+      laneOptsMemo = null;
+      if (page && !page.hidden) drawAll();
+    });
+  }
+  /* The bar over a category's cards: the + New button for the group you are in, and the other kinds the
+     category has no group for yet, then Export mine and Import…. */
+  function myBarHtml(level, groups) {
+    if (!MY()) return "";
+    const lv = level === "suite" ? "suite" : level === "proximity" || level === "proximitySuite" ? "proximity" : "curiosity";
+    const extra = ["curiosity", "suite", "proximity"].filter((l) => l !== lv && l !== "curiosity" && !groups.some((g) => g.level === l));
+    const d = MY().data();
+    const n = d.curiosities.length + d.suites.length + d.proximities.length;
+    const btn = (l, on) => `<button type="button" class="sc-my-new${on ? " on" : ""}" data-my-new="${l}" title="${esc(MY_TIP[l])}">${MY_NEW[l]}</button>`;
+    return `<div class="sc-mybar">${btn(lv, true)}${extra.map((l) => btn(l)).join("")}<span class="sc-mybar-r"><button type="button" data-my-act="export"${n ? "" : " disabled"} title="Save everything you made (${n}) as one .json file to share">Export mine</button><button type="button" data-my-act="import" title="Bring in curiosities, suites and proximities someone shared as a .json file">Import…</button><input type="file" accept=".json,application/json" data-my-file hidden></span></div>`;
+  }
+  /* Every curiosity the engine can play, by category, yours first in each: [{ key, label, cat, mine }]. */
+  function myAllCurs() {
+    const out = [];
+    L().CATEGORIES.forEach((c) => {
+      const list = mainOnly(L().curiosities(c.id)).filter((x) => L().categoryOf(x.id) === c.id);
+      list
+        .filter((x) => isMineIt(x.id))
+        .concat(list.filter((x) => !isMineIt(x.id)))
+        .forEach((x) => {
+          const key = keyFor(x.id);
+          if (S() && S().known(key)) out.push({ key, label: x.label, cat: c.label, mine: isMineIt(x.id) });
+        });
+    });
+    return out;
+  }
+  function myCurSelect(name, sel, all) {
+    const groups = [];
+    all.forEach((x) => {
+      let g = groups.find((y) => y.cat === x.cat);
+      if (!g) groups.push((g = { cat: x.cat, items: [] }));
+      g.items.push(x);
+    });
+    return `<select name="${name}" data-my-cur><option value="">Pick a curiosity…</option>${groups.map((g) => `<optgroup label="${esc(g.cat)}">${g.items.map((x) => `<option value="${esc(x.key)}"${x.key === sel ? " selected" : ""}>${esc(x.label)}${x.mine ? " (mine)" : ""}</option>`).join("")}</optgroup>`).join("")}</select>`;
+  }
+  /* A setting of a curiosity: a list of its steps, or a number box for a range. */
+  function myValueCtl(name, key, val, any) {
+    const d = key && S() && S().known(key) ? S().domain(key) : null;
+    if (!d) return `<select name="${name}" disabled><option value="">pick a curiosity first</option></select>`;
+    if (d.kind === "range") return `<input type="number" name="${name}" min="${d.min}" max="${d.max}" step="${d.step || "any"}" value="${val == null ? "" : esc(val)}" placeholder="${any ? "any" : d.min + " to " + d.max}" aria-label="Setting">`;
+    return `<select name="${name}" aria-label="Setting">${any ? `<option value="">any setting</option>` : ""}${d.options.map((o) => `<option${String(o) === String(val) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  }
+  const myCatSelect = (sel) => `<select name="cat">${L().CATEGORIES.map((c) => `<option value="${c.id}"${c.id === sel ? " selected" : ""}>${esc(c.label)}</option>`).join("")}</select>`;
+  /* An extra slider's scale in one box: "slow, steady, fast" (steps) or "0 to 10 km/h" (a range with a unit). */
+  function myScaleText(sc) {
+    return !sc ? "" : sc.kind === "steps" ? sc.steps.join(", ") : `${sc.min} to ${sc.max}${sc.unit ? " " + sc.unit : ""}`;
+  }
+  function myParseScale(text) {
+    const m = /^\s*(-?\d+(?:\.\d+)?)\s*(?:to|-|–|—|…|\.\.)\s*(-?\d+(?:\.\d+)?)\s*(.*)$/i.exec(String(text || ""));
+    return m ? { kind: "range", min: Number(m[1]), max: Number(m[2]), unit: m[3].trim() } : { kind: "steps", steps: text };
+  }
+  const myExtraRow = (x) => `<div class="sc-myextra"${x && x.id ? ` data-x-id="${esc(x.id)}"` : ""}><input data-x="label" maxlength="40" placeholder="Name, e.g. Speed" value="${esc(x ? x.label : "")}" aria-label="Slider name"><input data-x="scale" placeholder="slow, steady, fast  or  0 to 10 km/h" value="${esc(x ? myScaleText(x.scale) : "")}" aria-label="Its steps, or a number range"><button type="button" data-my-extra-del aria-label="Take this slider out" title="Take this slider out">×</button></div>`;
+  function myFormHtml(level, it) {
+    const cat = it ? it.cat : prefs.libTab ? "story" : category().id;
+    const head = `<h2>${it ? `Change ${esc(MY_WORD[level])}: ${esc(it.label)}` : MY_NEW[level].replace("+ ", "")}</h2>`;
+    const foot = `<p class="sc-my-err" role="alert"></p>
+      <div class="sc-my-sure" hidden><p></p><div class="sc-mybtns"><button type="button" data-my-do="keep">Keep it</button><button type="button" data-my-do="delete" class="sl-warn">Delete for good</button></div></div>
+      <div class="sc-mybtns">${it ? `<button type="button" data-my-do="ask-delete" title="Delete this ${MY_WORD[level]} (asks first)">Delete…</button><button type="button" data-my-do="export" title="Save it as a .json file to share">Export this</button>` : ""}<span class="sc-mybtns-r"><button type="button" data-my-do="cancel">Cancel</button><button type="button" data-my-do="save" class="on">${it ? "Save changes" : level === "curiosity" ? "Make it" : "Make it"}</button></span></div>`;
+    if (level === "curiosity") {
+      const sc = it ? it.scale : { kind: "steps", steps: [] };
+      const isRange = sc.kind === "range";
+      return `<form class="sc-myform" data-my-form="curiosity" novalidate>${head}
+        <p class="sc-k">A curiosity is one thing about a scene you can look at and change, with a scale from one end to the other, like how tense the room is: calm, tense, frantic.</p>
+        <label>Name <input name="label" maxlength="60" placeholder="e.g. Tension in the room" value="${esc(it ? it.label : "")}"></label>
+        <label>What it is <textarea name="plain" rows="2" maxlength="400" placeholder="e.g. How wound up everyone in the scene is.">${esc(it ? it.plain : "")}</textarea></label>
+        <label>How it moves the story forward and the audience's attention <textarea name="story" rows="2" maxlength="400" placeholder="e.g. Rising tension makes the audience lean in and wait for something to break.">${esc(it ? it.story : "")}</textarea></label>
+        <label>What to try <input name="tryThis" maxlength="240" placeholder="e.g. Let it climb for three moments, then drop it to calm at once." value="${esc(it ? it.tryThis : "")}"></label>
+        <div class="sc-myrow"><label>Category ${myCatSelect(cat)}</label>
+          <label>What it catches first <select name="cue">${MY_CUES.map(([v, l]) => `<option value="${v}"${(it ? it.cue : "visual") === v ? " selected" : ""}>${l}</option>`).join("")}</select></label>
+          <label>How hard it pushes the story <select name="push">${[0, 1, 2, 3, 4, 5].map((n) => `<option value="${n}"${(it ? it.push : 2) === n ? " selected" : ""}>${n} of 5</option>`).join("")}</select></label></div>
+        <fieldset><legend>Its scale</legend>
+          <div class="sc-myrow"><label class="sc-myradio"><input type="radio" name="kind" value="steps"${isRange ? "" : " checked"}> Named steps</label><label class="sc-myradio"><input type="radio" name="kind" value="range"${isRange ? " checked" : ""}> A number range</label></div>
+          <div data-my-steps${isRange ? " hidden" : ""}><label>Steps, in order <input name="steps" placeholder="calm, tense, frantic" value="${esc(!isRange ? sc.steps.join(", ") : "")}"></label><small class="sc-k">From one end to the other, with commas or → between them.</small></div>
+          <div data-my-range class="sc-myrow"${isRange ? "" : " hidden"}><label>From <input type="number" step="any" name="min" value="${isRange ? esc(sc.min) : ""}" placeholder="0"></label><label>to <input type="number" step="any" name="max" value="${isRange ? esc(sc.max) : ""}" placeholder="100"></label><label>Unit <input name="unit" maxlength="16" placeholder="bpm, %, people" value="${isRange ? esc(sc.unit) : ""}"></label></div>
+        </fieldset>
+        <fieldset><legend>Extra sliders (if you like)</legend><small class="sc-k">Finer parts of it, each its own lane on the timeline.</small><div data-my-extras>${(it ? it.extras : []).map(myExtraRow).join("")}</div><button type="button" data-my-do="extra-add">+ Add a slider</button></fieldset>
+        ${foot}</form>`;
+    }
+    if (level === "suite") {
+      return `<form class="sc-myform" data-my-form="suite" novalidate>${head}
+        <p class="sc-k">A suite is a few curiosities you look at together, each at a setting if you like (a handheld chase: handheld camera, fast cutting, close shots).</p>
+        <label>Name <input name="label" maxlength="60" placeholder="e.g. The calm before the storm" value="${esc(it ? it.label : "")}"></label>
+        <label>What it is <textarea name="plain" rows="2" maxlength="400" placeholder="e.g. Everything goes quiet and still just before the big moment.">${esc(it ? it.plain : "")}</textarea></label>
+        <div class="sc-myrow"><label>Category ${myCatSelect(cat)}</label></div>
+        <fieldset><legend>Its curiosities <small data-my-count></small></legend>
+          <div data-my-picked class="sc-mypicked"></div>
+          <input type="search" data-my-filter placeholder="Find curiosities to add, e.g. camera, music, mine" aria-label="Find curiosities to add">
+          <div data-my-pick class="sc-mypick" role="group" aria-label="Curiosities to add"></div>
+        </fieldset>
+        ${foot}</form>`;
+    }
+    const all = myAllCurs();
+    const w = it ? it.when : { curiosity: "", change: "rises" };
+    const t = it ? it.then : { curiosity: "", change: "changes" };
+    const chg = (name, cur, then) => `<select name="${name}" data-my-chg>${[["rises", "goes up"], ["drops", "goes down"], ["changes", then ? "changes too" : "changes"], ["is", "becomes…"]].map(([v, l]) => `<option value="${v}"${cur === v ? " selected" : ""}>${l}</option>`).join("")}</select>`;
+    return `<form class="sc-myform" data-my-form="proximity" novalidate>${head}
+      <p class="sc-k">A proximity is when one curiosity leads to another soon after: when the music swells, the camera pushes in within a moment or two.</p>
+      <div class="sc-mysent"><span>When</span>${myCurSelect("whenCur", w.curiosity, all)}${chg("whenChange", w.change)}<span data-my-val="when">${w.change === "is" ? myValueCtl("whenIs", w.curiosity, w.is) : ""}</span>
+        <span>then</span>${myCurSelect("thenCur", t.curiosity, all)}${chg("thenChange", t.change, true)}<span data-my-val="then">${t.change === "is" ? myValueCtl("thenIs", t.curiosity, t.is) : ""}</span>
+        <span>within</span><input type="number" name="within" min="0" max="16" step="1" value="${it ? it.within : 2}" aria-label="Moments"><span>moments.</span></div>
+      <p class="sc-mypreview" data-my-preview aria-live="polite"></p>
+      <label>Name (if you like; the sentence above is used otherwise) <input name="label" maxlength="120" value="${esc(it ? it.label : "")}"></label>
+      <label>What it is <textarea name="plain" rows="2" maxlength="400" placeholder="e.g. Why this tends to happen, or where you saw it.">${esc(it ? it.plain : "")}</textarea></label>
+      <div class="sc-myrow"><label>Category ${myCatSelect(cat)}</label></div>
+      ${foot}</form>`;
+  }
+  const myVal = (f, n) => {
+    const x = f.querySelector(`[name="${n}"]`);
+    return x ? x.value : "";
+  };
+  function myRead() {
+    const d = myDlg;
+    const f = d.el.querySelector("form");
+    const id = d.it ? d.it.id : null;
+    const M = MY();
+    if (d.level === "curiosity") {
+      const label = myVal(f, "label").trim();
+      if (!label) return { error: "Give it a name.", focus: "label" };
+      const kind = (f.querySelector('[name="kind"]:checked') || {}).value || "steps";
+      const scale = kind === "range" ? { kind: "range", min: myVal(f, "min"), max: myVal(f, "max"), unit: myVal(f, "unit") } : { kind: "steps", steps: myVal(f, "steps") };
+      if (!M.cleanScale(scale)) return kind === "range" ? { error: "Give a number to start from and a bigger one to end at, like 0 and 100.", focus: "min" } : { error: "Write at least two different steps, in order, like: calm, tense, frantic.", focus: "steps" };
+      const extras = [];
+      for (const r of f.querySelectorAll(".sc-myextra")) {
+        const xl = r.querySelector('[data-x="label"]').value.trim();
+        const xs = r.querySelector('[data-x="scale"]').value.trim();
+        if (!xl && !xs) continue;
+        if (!xl) return { error: "Give each extra slider a name." };
+        const sc = myParseScale(xs);
+        if (!M.cleanScale(sc)) return { error: `The slider "${xl}" needs at least two steps (slow, fast) or a number range (0 to 10 km/h).` };
+        extras.push({ id: r.dataset.xId || undefined, label: xl, scale: sc });
+      }
+      const item = { id: id || M.newId(label, M.data()), label, plain: myVal(f, "plain"), story: myVal(f, "story"), tryThis: myVal(f, "tryThis"), cat: myVal(f, "cat"), cue: myVal(f, "cue"), push: Number(myVal(f, "push")), scale, extras };
+      const c = M.clean({ curiosities: [item] }).curiosities[0];
+      return c ? { item: c } : { error: "Something in it couldn't be kept; check the name and the scale." };
+    }
+    if (d.level === "suite") {
+      const label = myVal(f, "label").trim();
+      if (!label) return { error: "Give the suite a name.", focus: "label" };
+      myKeepPicked();
+      if (d.picked.length < 2) return { error: "Pick at least two curiosities for the suite (a suite is a group)." };
+      const members = d.picked.map((m) => (m.value == null || m.value === "" ? { curiosity: m.curiosity } : { curiosity: m.curiosity, value: S().fix(m.curiosity, m.value) })).map((m) => (m.value == null ? { curiosity: m.curiosity } : m));
+      const s = M.clean({ suites: [{ id: id || M.newId(label, M.data()), label, plain: myVal(f, "plain"), cat: myVal(f, "cat"), members }] }).suites[0];
+      return s ? { item: s } : { error: "Something in it couldn't be kept." };
+    }
+    const end = (p) => {
+      const cur = myVal(f, p + "Cur");
+      const change = myVal(f, p + "Change");
+      const o = { curiosity: cur, change };
+      if (change === "is") o.is = S().fix(cur, myVal(f, p + "Is"));
+      return o;
+    };
+    const when = end("when");
+    const then = end("then");
+    if (!when.curiosity || !then.curiosity) return { error: "Pick a curiosity for both halves: the one that changes first, and the one that follows." };
+    if ((when.change === "is" && when.is == null) || (then.change === "is" && then.is == null)) return { error: "Pick the setting it becomes." };
+    if (when.curiosity === then.curiosity && !(when.change === "is" && then.change === "is" && String(when.is) !== String(then.is))) return { error: "Pick two different curiosities, or the same one becoming two different settings (a setup and its payoff)." };
+    const within = Math.max(0, Math.min(16, Math.round(Number(myVal(f, "within")) || 0)));
+    const p = { id: "my-x", when, then, within, cat: myVal(f, "cat") };
+    const label = myVal(f, "label").trim() || M.sentence(p, labelOf).replace(/\.$/, "");
+    const item = M.clean({ proximities: [Object.assign(p, { id: id || M.newId(label.replace(/^When /, ""), M.data()), label, plain: myVal(f, "plain") })] }).proximities[0];
+    return item ? { item } : { error: "Something in it couldn't be kept." };
+  }
+  function myErr(m, focus) {
+    if (!myDlg) return;
+    const p = myDlg.el.querySelector(".sc-my-err");
+    p.textContent = m || "";
+    const f = focus && myDlg.el.querySelector(`[name="${focus}"]`);
+    if (f) f.focus();
+  }
+  /* Suites: the picked members (with a setting each) and a list to pick from, found by a few typed words. */
+  function myKeepPicked() {
+    const d = myDlg;
+    if (!d || d.level !== "suite") return;
+    d.el.querySelectorAll("[data-my-member]").forEach((row) => {
+      const m = d.picked.find((x) => x.curiosity === row.dataset.myMember);
+      const v = row.querySelector('[name="memberValue"]');
+      if (m && v) m.value = v.value === "" ? null : v.value;
+    });
+  }
+  function myDrawPick() {
+    const d = myDlg;
+    if (!d || d.level !== "suite") return;
+    myKeepPicked();
+    const all = d.all || (d.all = myAllCurs());
+    const name = (k) => (all.find((x) => x.key === k) || {}).label || labelOf(k);
+    d.el.querySelector("[data-my-count]").textContent = `(${d.picked.length} picked)`;
+    d.el.querySelector("[data-my-picked]").innerHTML = d.picked.length
+      ? d.picked.map((m) => `<div class="sc-mymember" data-my-member="${esc(m.curiosity)}"><span>${esc(name(m.curiosity))}</span>${myValueCtl("memberValue", m.curiosity, m.value, true)}<button type="button" data-my-unpick="${esc(m.curiosity)}" aria-label="Take ${esc(name(m.curiosity))} out of the suite" title="Take it out">×</button></div>`).join("")
+      : `<p class="sc-k">Nothing picked yet. Tick curiosities below.</p>`;
+    const q = String(d.el.querySelector("[data-my-filter]").value || "").trim().toLowerCase();
+    const words = q.split(/\s+/).filter(Boolean);
+    const hits = all.filter((x) => !d.picked.some((m) => m.curiosity === x.key) && words.every((w) => (x.label + " " + x.cat + (x.mine ? " mine" : "")).toLowerCase().includes(w)));
+    const shown = hits.slice(0, 40);
+    d.el.querySelector("[data-my-pick]").innerHTML =
+      shown.map((x) => `<label class="sc-mypick-row"><input type="checkbox" data-my-pickcur="${esc(x.key)}"> ${esc(x.label)} <small>${esc(x.cat)}${x.mine ? " · mine" : ""}</small></label>`).join("") + (hits.length > shown.length ? `<p class="sc-k">and ${hits.length - shown.length} more: type a few words to narrow it down.</p>` : hits.length ? "" : `<p class="sc-k">No curiosity matches.</p>`);
+  }
+  function myPreview() {
+    const d = myDlg;
+    if (!d || d.level !== "proximity") return;
+    const f = d.el.querySelector("form");
+    ["when", "then"].forEach((p) => {
+      const box = f.querySelector(`[data-my-val="${p}"]`);
+      const want = myVal(f, p + "Change") === "is" ? myVal(f, p + "Cur") : "";
+      if (box.dataset.for !== want) {
+        box.dataset.for = want;
+        box.innerHTML = want ? myValueCtl(p + "Is", want, null) : "";
+      }
+    });
+    const r = myRead();
+    f.querySelector("[data-my-preview]").textContent = r.item ? MY().sentence(r.item, labelOf) : "";
+  }
+  function myOpen(level, id) {
+    if (!MY() || !page || !L() || !MY_WORD[level]) return null;
+    myClose();
+    const it = id ? MY().get(level, id) : null;
+    if (id && !it) return toast("That one is gone."), null;
+    const el = document.createElement("dialog");
+    el.className = "sc-mydlg";
+    el.setAttribute("aria-label", it ? `Change ${MY_WORD[level]}: ${it.label}` : MY_NEW[level].replace("+ ", ""));
+    myDlg = { el, level, it, picked: level === "suite" && it ? it.members.map((m) => ({ curiosity: m.curiosity, value: m.value == null ? null : m.value })) : [], back: document.activeElement };
+    el.innerHTML = myFormHtml(level, it);
+    page.appendChild(el);
+    el.addEventListener("click", myDlgClick);
+    el.addEventListener("input", myDlgInput);
+    el.addEventListener("change", myDlgInput);
+    el.addEventListener("submit", (e) => e.preventDefault());
+    el.addEventListener("cancel", (e) => (e.preventDefault(), myClose()));
+    /* Keys typed in the form stay in it (inToolWindow knows dialogs too): Enter in a box saves, Esc closes. */
+    el.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Escape") return e.preventDefault(), myClose();
+      if (e.key === "Enter" && e.target.matches && e.target.matches("input:not([type=checkbox]):not([type=radio]):not([type=search])")) return e.preventDefault(), mySave();
+    });
+    try {
+      el.showModal();
+    } catch (e) {
+      el.setAttribute("open", "");
+    }
+    if (level === "suite") myDrawPick();
+    if (level === "proximity") myPreview();
+    const first = el.querySelector(level === "proximity" ? '[name="whenCur"]' : '[name="label"]');
+    if (first) first.focus();
+    return el;
+  }
+  function myClose() {
+    if (!myDlg) return;
+    const d = myDlg;
+    myDlg = null;
+    try {
+      d.el.close();
+    } catch (e) {}
+    d.el.remove();
+    if (d.back && d.back.isConnected && d.back.focus) d.back.focus();
+  }
+  /* After a curiosity's scale changed, its nodes in the film move to the same place on the new scale (the engine
+     reads its film again with the new scale; CurioMine remembers the old one for the rest of the session). */
+  function myRefit(before, after) {
+    const Eng = E();
+    if (!Eng || !Eng.load) return;
+    const sc = (c) => JSON.stringify([c.scale].concat(c.extras.map((x) => [x.id, x.scale])));
+    if (sc(before) === sc(after)) return;
+    const st = Eng.state();
+    if (!Object.keys(st.lanes).some((lk) => L().base(lk.split("|")[1]) === after.id)) return;
+    Eng.load({ keepHistory: true });
+    if (Eng.save) Eng.save();
+  }
+  function mySave() {
+    const d = myDlg;
+    if (!d) return { ok: false };
+    const r = myRead();
+    if (r.error) return myErr(r.error, r.focus), { ok: false, error: r.error };
+    const item = r.item;
+    const word = MY_WORD[d.level];
+    const res = MY().store().send({ type: "put", level: d.level, item, label: `${d.it ? "Change" : "Make"} the ${word} ${item.label}`.slice(0, 80) });
+    if (!res.ok) return myErr(res.error || "That couldn't be kept."), res;
+    if (d.it && d.level === "curiosity") myRefit(d.it, item);
+    myClose();
+    /* Show it: its category's tab, its group, picked. */
+    const row = L().get(d.level, item.id);
+    prefs.libTab = "";
+    prefs.search = "";
+    prefs.cat = item.cat;
+    prefs.groups[item.cat] = d.level === "curiosity" ? "ws:" + ((row && row.workspace) || "") : d.level;
+    prefs.sel = { level: d.level, id: item.id };
+    save();
+    drawAll();
+    const undo = MY().store().undo === false ? "" : " ⌘Z takes it back.";
+    const next = d.level === "proximity" ? "Its + adds it to your film." : d.level === "suite" ? "Its + puts its curiosities on the timeline." : "Its + puts it on the timeline.";
+    toast(res.unchanged ? `Nothing changed in ${item.label}.` : `${d.it ? "Changed" : "Made"} your ${word} ${item.label}. ${next}${undo}`);
+    return { ok: true, id: item.id };
+  }
+  /* What deleting takes with it, in plain words. */
+  function myDeleteWords() {
+    const d = myDlg;
+    const id = d.it.id;
+    const parts = [];
+    let lanesIn = 0;
+    if (d.level === "curiosity") {
+      const st = E() && E().state();
+      lanesIn = st ? st.tracks.reduce((a, t) => a + t.curiosities.filter((c) => L().base(c) === id).length, 0) : 0;
+      if (lanesIn) parts.push(`It is in your film on ${lanesIn} lane${lanesIn === 1 ? "" : "s"}; ${lanesIn === 1 ? "that lane comes" : "those lanes come"} out too.`);
+      const data = MY().data();
+      const users = data.suites.filter((s) => s.members.some((m) => L().base(m.curiosity) === id)).map((s) => s.label).concat(data.proximities.filter((p) => [p.when, p.then].some((e) => L().base(e.curiosity) === id)).map((p) => p.label));
+      const q = users.slice(0, 3).map((u) => `"${u}"`);
+      if (users.length) parts.push(`Your ${users.length === 1 ? "suite or proximity" : "suites and proximities"} ${q.join(", ")}${users.length > 3 ? " and " + (users.length - 3) + " more" : ""} will skip it.`);
+    }
+    return `Delete ${d.it.label}? ${parts.join(" ")}${MY().store().undo === false ? " This can't be undone." : lanesIn ? " ⌘Z twice brings both back." : " ⌘Z brings it back."}`;
+  }
+  function myDelete() {
+    const d = myDlg;
+    if (!d || !d.it) return { ok: false };
+    const id = d.it.id;
+    const name = d.it.label;
+    let out = 0;
+    if (d.level === "curiosity" && E()) {
+      const cmds = [];
+      E()
+        .state()
+        .tracks.forEach((t) => t.curiosities.forEach((c) => L().base(c) === id && cmds.push({ type: "removeCuriosity", track: t.id, curiosity: c })));
+      if (cmds.length) {
+        const r = E().send({ type: "batch", label: `Take ${name} out of my film`, commands: cmds });
+        if (r.ok) out = cmds.length;
+      }
+      prefs.lanes = prefs.lanes.filter((c) => L().base(c) !== id);
+    }
+    const res = MY().store().send({ type: "remove", level: d.level, id, label: `Delete the ${MY_WORD[d.level]} ${name}`.slice(0, 80) });
+    if (!res.ok) return myErr(res.error || "That couldn't be deleted."), res;
+    if (prefs.sel.id === id) prefs.sel = JSON.parse(JSON.stringify(DEFAULTS.sel));
+    myClose();
+    save();
+    drawAll();
+    toast(`Deleted your ${MY_WORD[d.level]} ${name}${out ? ` and took its ${out} lane${out === 1 ? "" : "s"} out of your film` : ""}.${MY().store().undo === false ? "" : out ? " ⌘Z twice brings both back." : " ⌘Z brings it back."}`);
+    return { ok: true };
+  }
+  function myDownload(ids, name) {
+    downloadBlob(name, new Blob([MY().exportJson(null, ids)], { type: "application/json" }));
+  }
+  function myImport(text) {
+    const r = MY().importJson(text);
+    if (r.error) return toast(r.error), { ok: false, error: r.error };
+    if (!r.added) {
+      toast(`Nothing new in that file${r.skipped ? ": you already have " + (r.skipped === 1 ? "it" : "all " + r.skipped) : ""}.`);
+      return Object.assign({ ok: true }, r);
+    }
+    const res = MY().store().send({ type: "add", items: r.items, label: `Import ${r.added} of my own curiosities` });
+    if (!res.ok) return toast(res.error || "That file couldn't be brought in."), res;
+    const n = (k, one, many) => (r.items[k].length ? `${r.items[k].length} ${r.items[k].length === 1 ? one : many}` : "");
+    const what = [n("curiosities", "curiosity", "curiosities"), n("suites", "suite", "suites"), n("proximities", "proximity", "proximities")].filter(Boolean);
+    const parts = [`Brought in ${what.length > 1 ? what.slice(0, -1).join(", ") + " and " + what[what.length - 1] : what[0]}.`];
+    if (r.renamed) parts.push(`${r.renamed} had a name you already use, so ${r.renamed === 1 ? "it got" : "they got"} a new one.`);
+    if (r.skipped) parts.push(`${r.skipped} you already had ${r.skipped === 1 ? "was" : "were"} skipped.`);
+    if (r.dropped) parts.push(`${r.dropped} part${r.dropped === 1 ? "" : "s"} naming curiosities this app doesn't know ${r.dropped === 1 ? "was" : "were"} left out.`);
+    toast(parts.join(" "));
+    return Object.assign({ ok: true }, r);
+  }
+  function myClick(e) {
+    const b = e.target.closest && e.target.closest("[data-my-new], [data-my-edit], [data-my-act]");
+    if (!b || !page.contains(b) || (myDlg && myDlg.el.contains(b))) return;
+    if (b.dataset.myNew) return myOpen(b.dataset.myNew);
+    if (b.dataset.myEdit) {
+      const [level, id] = b.dataset.myEdit.split("|");
+      return myOpen(level, id);
+    }
+    if (b.dataset.myAct === "export") {
+      const d = MY().data();
+      const n = d.curiosities.length + d.suites.length + d.proximities.length;
+      if (!n) return toast("You haven't made anything to share yet.");
+      myDownload(null, "curiomatic-my-curiosities.json");
+      return toast(`Saved everything you made (${n}) as one .json file. Anyone can bring it in with Import….`);
+    }
+    if (b.dataset.myAct === "import") {
+      const f = page.querySelector("[data-my-file]");
+      return f && f.click();
+    }
+  }
+  function myDlgClick(e) {
+    const d = myDlg;
+    if (!d) return;
+    if (e.target === d.el) return myClose(); /* a click on the dimmed backdrop */
+    const b = e.target.closest && e.target.closest("button, [data-my-pickcur], input[name='kind']");
+    if (!b) return;
+    const f = d.el.querySelector("form");
+    if (b.matches("[data-my-pickcur]")) {
+      myKeepPicked();
+      if (b.checked && !d.picked.some((m) => m.curiosity === b.dataset.myPickcur)) d.picked.push({ curiosity: b.dataset.myPickcur, value: null });
+      return myDrawPick();
+    }
+    if (b.matches("input[name='kind']")) {
+      f.querySelector("[data-my-steps]").hidden = b.value !== "steps";
+      f.querySelector("[data-my-range]").hidden = b.value !== "range";
+      return;
+    }
+    if (b.dataset.myUnpick) {
+      myKeepPicked();
+      d.picked = d.picked.filter((m) => m.curiosity !== b.dataset.myUnpick);
+      return myDrawPick();
+    }
+    if ("myExtraDel" in b.dataset) return b.closest(".sc-myextra").remove();
+    const act = b.dataset.myDo;
+    if (act === "extra-add") {
+      const box = f.querySelector("[data-my-extras]");
+      if (box.children.length >= 8) return myErr("Eight extra sliders at most.");
+      box.insertAdjacentHTML("beforeend", myExtraRow(null));
+      return box.lastElementChild.querySelector("input").focus();
+    }
+    if (act === "cancel") return myClose();
+    if (act === "save") return mySave();
+    if (act === "export" && d.it) return myDownload([d.it.id], `curiomatic-mine-${MY().slug(d.it.label, "item")}.json`), toast(`Saved ${d.it.label} as a .json file to share.`);
+    if (act === "ask-delete" && d.it) {
+      const sure = f.querySelector(".sc-my-sure");
+      sure.querySelector("p").textContent = myDeleteWords();
+      sure.hidden = false;
+      return sure.querySelector('[data-my-do="keep"]').focus();
+    }
+    if (act === "keep") {
+      f.querySelector(".sc-my-sure").hidden = true;
+      return f.querySelector('[data-my-do="ask-delete"]').focus();
+    }
+    if (act === "delete") return myDelete();
+  }
+  function myDlgInput(e) {
+    const d = myDlg;
+    if (!d) return;
+    /* Only while typing: the search box's change event comes as it loses focus, often to a tick in the list, and
+       redrawing the list then would take that tick away before its click lands. */
+    if (e.target.matches("[data-my-filter]")) return e.type === "input" ? myDrawPick() : undefined;
+    if (d.level === "proximity" && (e.type === "change" || e.target.name === "within")) myPreview();
+    if (e.target.closest(".sc-my-err") === null && d.el.querySelector(".sc-my-err").textContent && e.type === "input") myErr("");
+  }
+  /* ⌘K: make a new one of each kind. */
+  function myFindActions(add) {
+    if (!MY()) return;
+    ["curiosity", "suite", "proximity"].forEach((l) => add("my-new-" + l, MY_NEW[l].replace("+ ", ""), MY_TIP[l], "", () => myOpen(l)));
   }
 
   /* ---------- viewers ---------- */
@@ -5105,7 +5582,12 @@ document.addEventListener("click", function (e) {
     const Eng = E();
     const seeds = window.CurioSeeds;
     if (!Eng || !seeds || !seeds.dbPack) return toast("The engine's link pack is not loaded.");
-    const r = Eng.send({ type: "importLinks", pack: seeds.dbPack(), only: [prefs.sel.id], addLanes: true, label: "Add " + selection().label });
+    /* The database's pack names a proximity's links "p:<id>" ("p:<id>#2" for a suite's members) and a proximity
+       suite "ps:<id>", so those are what `only` asks for (the bare id alone matched nothing). */
+    const pack = seeds.dbPack();
+    const id = prefs.sel.id;
+    const only = prefs.sel.level === "proximitySuite" ? [id, "ps:" + id] : [id, "p:" + id].concat((pack.links || []).filter((l) => l && l.proximity === id).map((l) => l.id));
+    const r = Eng.send({ type: "importLinks", pack, only, addLanes: true, label: "Add " + selection().label });
     toast(r.ok ? `Added: ${r.added || 0} new, ${r.updated || 0} updated${r.waiting ? ", " + r.waiting + " waiting for lanes" : ""}. They are rules for the whole lane; join nodes in the lanes to pin one to two moments.` : r.error);
   }
   function onChange(e) {
@@ -5493,6 +5975,7 @@ document.addEventListener("click", function (e) {
     add("close", "Back to the app", "Leave the Screen", "", () => close());
     tplFindActions(add);
     rippleFindActions(add);
+    myFindActions(add);
     /* The ⋯ menu of the curiosity you are looking through (Details): the same four ways, the same steps. */
     if (prefs.sel.level === "curiosity" && E() && S()) {
       const k = keyFor(prefs.sel.id);
@@ -5537,14 +6020,14 @@ document.addEventListener("click", function (e) {
       .items("curiosity")
       .map((c) => {
         const cat = catLabel(L().categoryOf(c.id));
-        return { id: "cur:" + c.id, group: "cur", label: c.label, sub: c.plain || "", tag: isAdv(c) ? "Advanced" : cat, words: [c.plain, cat, isAdv(c) ? "advanced final cut pro" : ""].join(" "), run: () => findLook("curiosity", c.id) };
+        return { id: "cur:" + c.id, group: "cur", label: c.label, sub: c.plain || "", tag: isAdv(c) ? "Advanced" : isMineIt(c.id) ? "Mine · " + cat : cat, words: [c.plain, cat, isAdv(c) ? "advanced final cut pro" : "", isMineIt(c.id) ? "mine made by me my own" : ""].join(" "), run: () => findLook("curiosity", c.id) };
       });
     const suites = L()
       .items("suite")
       .map((s) => {
         const names = [...new Set((s.members || []).filter((m) => m.curiosity).map((m) => labelOf(keyFor(m.curiosity))))];
         const sub = s.plain || `${(s.members || []).length} curiosities: ${names.slice(0, 4).join(", ")}`;
-        return { id: "suite:" + s.id, group: "suite", label: s.label, sub, words: [sub, names.join(" "), catLabel((L().resolve("suite", s.id).categories || [])[0])].join(" "), run: () => findLook("suite", s.id) };
+        return { id: "suite:" + s.id, group: "suite", label: s.label, sub, words: [sub, names.join(" "), catLabel((L().resolve("suite", s.id).categories || [])[0]), isMineIt(s.id) ? "mine made by me my own" : ""].join(" "), run: () => findLook("suite", s.id) };
       });
     return curs.concat(suites, findActions(), findMoments());
   }
@@ -5801,4 +6284,7 @@ document.addEventListener("click", function (e) {
   /* Ripple: ripple("add" | "duplicate" | "delete", { a, b }?) adds a copy of the playhead's moment, duplicates or
      takes out moments (the selected stretch, else the playhead's moment), as one undo step. */
   window.CurioScreen.ripple = (kind, o) => ripple(kind, o);
+  /* Your own curiosities, suites and proximities (screen/mine.js): open(level, id?) the form (new, or change one
+     of yours), save() what it holds, close(), form() the open window (or null), importText(text). */
+  window.CurioScreen.mine = { open: myOpen, save: mySave, close: myClose, form: () => (myDlg ? myDlg.el : null), importText: myImport };
 })();
