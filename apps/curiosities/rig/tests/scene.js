@@ -8,7 +8,8 @@
    diner example and 3 other beats build and play to the end (every actor loaded, every move played, the last
    feelings showing); the set keeps clear of every actor, and is laid out again when the staging changes; two
    people sit across one table; the Sketch look (and its outlines) reaches every actor; building 5 scenes leaves
-   no WebGL memory behind; the flip book of the beat lands in the storyboard. No page errors. Screenshots (the
+   no WebGL memory behind; a shrug, a sit or a smile after a far walk by the same walker starts after she gets there,
+   on the lanes and in the view; the flip book of the beat lands in the storyboard. No page errors. Screenshots (the
    diner mid double take in color and in pencil, the storyboard after the flip book) go to --shots (default
    /mnt/project-files/maya-app/3d-characters when it exists) as scene-*.png. */
 const http = require("http");
@@ -177,6 +178,46 @@ const OTHERS = [
     ok(wk[0].shrugAt >= 4 && wk[1].shrugAt === wk[0].shrugAt && wk[1].at[1].at === wk[1].shrugAt, `far apart, the walk lasts ${wk[0].shrugAt} moments in both wordings, and "then shrugs" is its own step starting when she arrives`);
     ok(wk.every((w) => w.ids === "actingLens.cue,actingLens.move,characterPath.to"), `the lanes are the same ones (${wk[0].ids})`);
 
+    /* a sit or a feeling after a far walk by the same walker waits too: Ida sits, or smiles, on a moment after she
+       gets to Nessa, never while she walks; someone else's feeling does not wait for her walk */
+    const AFTER = [
+      ["Ida (red hair) and Nessa (black hair) stand far apart. Ida walks over to Nessa and sits.", "sit"],
+      ["Ida (red hair) and Nessa (black hair) stand far apart. Ida walks over to Nessa, then sits.", "sit"],
+      ["Ida (red hair) and Nessa (black hair) stand far apart. Ida walks over to Nessa and smiles.", "feel"],
+      ["Ida (red hair) and Nessa (black hair) stand far apart. Ida walks over to Nessa, then smiles.", "feel"],
+      ["Ida (red hair) and Nessa (black hair) stand far apart. Ida walks over to Nessa. Nessa smiles.", "other"],
+    ];
+    const af = await page.evaluate((list) => {
+      const B = CurioRigScene;
+      const St = CurioRigStaging;
+      return list.map(([t, kind]) => {
+        const p = B.read(t);
+        const L = B.lanesOf(p);
+        const lane = (c, id) => L.chars[c].lanes[id] || [];
+        const walkAt = lane(0, "characterPath.to").indexOf("@1");
+        const at =
+          kind === "sit" ? lane(0, "blocking.seated").indexOf("sitting") : kind === "feel" ? lane(0, "feelingFaceLens.happy").findIndex((v) => v !== "not at all") : lane(1, "feelingFaceLens.happy").findIndex((v) => v !== "not at all");
+        const pr = St.PRESETS.find((x) => x.id === (p.preset || "face to face"));
+        const scale = St.SLIDERS[0].scale;
+        const d = St.meters(scale.indexOf(pr.dist) / (scale.length - 1));
+        const m = St.layout(pr.id, 2, d, false);
+        const gap = Math.hypot(m[0].x - m[1].x, m[0].z - m[1].z);
+        const secs = Math.max(0, gap - Math.min(d, St.meters(scale.indexOf("personal") / (scale.length - 1)))) / 1.15;
+        return { kind, n: L.n, walkAt, at, arrive: walkAt * L.moment + secs, start: at * L.moment, before: kind === "sit" ? lane(0, "blocking.seated").slice(0, Math.max(0, at)) : lane(0, "feelingFaceLens.happy").slice(0, Math.max(0, at)), ids: L.chars.map((c) => Object.keys(c.lanes).sort().join()).join(" / ") };
+      });
+    }, AFTER);
+    af.forEach((w, k) => {
+      const words = AFTER[k][0].replace(/ \([a-z ]+\)/g, "");
+      if (w.kind === "other") ok(w.walkAt === 0 && w.at === 1 && w.n === 2, `"${words}": Nessa's smile does not wait for Ida's walk (moment ${w.at + 1} of ${w.n})`);
+      else
+        ok(
+          w.walkAt === 0 && w.at >= 3 && w.start >= w.arrive && w.before.every((v) => v === (w.kind === "sit" ? "standing" : "not at all")),
+          `"${words}": the walk starts at moment ${w.walkAt + 1}, Ida gets there at ${w.arrive.toFixed(1)} s, she ${w.kind === "sit" ? "sits" : "smiles"} from moment ${w.at + 1} (${w.start.toFixed(1)} s), after she arrives (${w.n} moments)`
+        );
+    });
+    ok(af[1].at === af[0].at && af[3].at === af[2].at, `"and sits" and "then sits" land on the same moment (${af[0].at + 1}), as do "and smiles" and "then smiles" (${af[2].at + 1})`);
+    ok(af[0].ids === "blocking.seated,characterPath.to / blocking.seated,characterPath.to" && af[2].ids === "characterPath.to,feelingFaceLens.happy / characterPath.to,feelingFaceLens.happy", `the lanes are the same ones (${af[0].ids}; ${af[2].ids})`);
+
     await page.evaluate(() => document.querySelector("#lib-menu [data-rig3d]").click());
     await page.waitForSelector(".rig-dlg[open] canvas");
     await page.evaluate(() => CurioRig.current().ready);
@@ -287,6 +328,36 @@ const OTHERS = [
       );
       ok(timing.walked && timing.arrive != null && timing.shrug != null && timing.shrug >= timing.arrive && timing.gap < 1.5, `played in the view, Ida walks over to Nessa (${timing.gap.toFixed(2)} m apart at the end), then shrugs once she is there (the shrug starts ${timing.arrive != null && timing.shrug != null ? (timing.shrug - timing.arrive).toFixed(2) : "?"} s after she arrives)`);
       await waitDone();
+
+      /* a walk then a sit, and a walk then a smile, played in the view: both come once Ida has got to Nessa */
+      for (const kind of ["sit", "feel"]) {
+        await build(AFTER[kind === "sit" ? 1 : 3][0]);
+        const tm = await page.evaluate(
+          (kind) =>
+            new Promise((done) => {
+              const ctx = CurioRig.current().ctx;
+              CurioRigScene.play(ctx);
+              let walked = false;
+              let arrive = null;
+              let when = null;
+              const t0 = performance.now();
+              const go = () => {
+                const a = CurioRigStaging.actors({ ctx });
+                if (a && a[0].walking) walked = true;
+                if (walked && arrive == null && a && !a[0].walking) arrive = ctx.clock;
+                const set = CurioRigSets.state(ctx) || {};
+                const did = kind === "sit" ? (set.seats || []).some((x) => x.i === 0 && x.sitting) : a && (a[0].ctx.prefs.values["feelingFaceLens.happy"] || 0) > 0;
+                if (when == null && did) when = ctx.clock;
+                if ((when != null && arrive != null) || performance.now() - t0 > 30000) return done({ walked, arrive, when, gap: a ? Math.hypot(a[0].x - a[1].x, a[0].z - a[1].z) : 0 });
+                requestAnimationFrame(go);
+              };
+              go();
+            }),
+          kind
+        );
+        ok(tm.walked && tm.arrive != null && tm.when != null && tm.when >= tm.arrive && tm.gap < 1.5, `played in the view, Ida walks over to Nessa (${tm.gap.toFixed(2)} m apart at the end), then ${kind === "sit" ? "sits" : "smiles"} once she is there (${tm.arrive != null && tm.when != null ? (tm.when - tm.arrive).toFixed(2) : "?"} s after she arrives)`);
+        await waitDone();
+      }
 
       /* 5: the example again; nothing left behind */
       await build(await page.evaluate(() => CurioRigScene.EXAMPLE));
