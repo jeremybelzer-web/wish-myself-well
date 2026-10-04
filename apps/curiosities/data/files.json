@@ -28,6 +28,7 @@
   "db-depth-world.js",
   "db-depth-look.js",
   "db-styles.js",
+  "db-plain.js",
   "db-model-scenes-2.js",
   "db-model-scenes-3.js"
 ]
