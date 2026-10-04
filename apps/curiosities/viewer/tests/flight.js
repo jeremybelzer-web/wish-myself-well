@@ -155,12 +155,17 @@ const ok = (cond, msg) => {
   await g.scrollIntoViewIfNeeded();
   let at = await L((k) => CurioFlight.graphPoint(k), k);
   ok(at && at[0] > gb.x && at[0] < gb.x + gb.width, "the waypoint is on the graph");
+  /* what is under the pointer there (when this fails, the message says) */
+  const under = await L((p) => {
+    const el = document.elementFromPoint(p[0], p[1]);
+    return el ? el.tagName.toLowerCase() + "." + String(el.className || "").replace(/\s+/g, ".") : "nothing";
+  }, at);
   await page.mouse.move(at[0], at[1]);
   await page.mouse.down();
   await page.mouse.move(at[0] + 50, at[1] + 10, { steps: 5 });
   await page.mouse.up();
   const mid = await L((k) => CurioViewer.live().panel.flight.pts[k].p.slice(), k);
-  ok(Math.hypot(mid[0] - before[0], mid[2] - before[2]) > 0.2 && Math.abs(mid[1] - before[1]) < 1e-6, `dragging waypoint ${k + 1} moves it across the floor, not up or down`);
+  ok(Math.hypot(mid[0] - before[0], mid[2] - before[2]) > 0.2 && Math.abs(mid[1] - before[1]) < 1e-6, `dragging waypoint ${k + 1} moves it across the floor, not up or down (${before.map((v) => +v.toFixed(4)).join(",")} → ${mid.map((v) => +v.toFixed(4)).join(",")}; pointer at ${at.map(Math.round).join(",")} on ${under})`);
   at = await L((k) => CurioFlight.graphPoint(k), k);
   await page.keyboard.down("Shift");
   await page.mouse.move(at[0], at[1]);
