@@ -55,6 +55,13 @@
   X("eyeline", R("hold", "How long a look lasts", 0, 5, "From a flick to a stare.", "seconds"), L("avoid", "Avoiding", ["nobody", "one avoids", "both avoid"], "Whether someone refuses to look."));
   /* Who is talking now, one lane per character track: the others turn to look at whoever is speaking (rig/staging.js). */
   X("eyeline", L("speaking", "Speaking now", ["listening", "speaking"], "Whether this character is the one talking at this moment. Everyone else looks at them."));
+  /* The 3D staging on lanes (rig/staging.js follows them on the Screen; rig/scene.js keys them when a beat is put on
+     the timeline). "The first character" is the top character track on the timeline, "the second" the next one. */
+  const WHO = ["the first character", "the second character", "the third character", "the fourth character"];
+  X("blocking", ["together", "How they stand together", ["face to face", "side by side", "one behind the other", "over the shoulder", "circle", "standoff", "huddle"], "Where everyone stands, all at once. The 3D view puts them on their marks when the playhead gets there.", { unordered: true }]);
+  X("blocking", L("seated", "Sitting or standing", ["standing", "sitting"], "Whether this character sits down (on a seat of the set) or stands."));
+  X("characterPath", ["to", "Walks to", ["stays put"].concat(WHO, ["the middle", "the front", "the back"]), "Where this character walks when the playhead gets here: to another character (stopping at talking distance, facing them), the middle, the front near the camera, or back. Characters count from the top character track.", { unordered: true }]);
+  X("shotSize", ["who", "Who it frames", ["whoever is shown"].concat(WHO), "Whose face and body a close-up or medium shot is on. Characters count from the top character track; a wide shot keeps everyone.", { unordered: true }]);
   X("focus", R("speed", "How fast it moves", 0, 5, "How quickly attention passes between things."), NOTICE);
   X("look", R("care", "Care in the look", 0, 5, "How much attention went into hair, makeup and clothes."), CHANGE("the look"));
   X("foreshortening", R("distance", "How near the lens", 0, 5, "How close the near hand or object comes to the lens."), NOTICE);

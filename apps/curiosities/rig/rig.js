@@ -483,7 +483,7 @@
   const isPicture = (name) => /\.(png|webp|jpe?g|gif)$/i.test(name || "");
 
   /* ---------- add-ons: other files add rules to the 3D view ----------
-     CurioRig.extend({ id, label, sliders?: [{id, lens, label, scale, start}], panel?(ctx) -> html, wire?(ctx, box),
+     CurioRig.extend({ id, label, sliders?: [{id, lens, label, scale, start, lane?}], panel?(ctx) -> html, wire?(ctx, box),
        setup?(ctx), built?(ctx), afterBase?(ctx, dt), afterRules?(ctx, dt), beforeRender?(ctx, dt) })
      setup runs once the scene exists, built after each character or object loads, afterBase after the clip and
      before the driven poses, afterRules after follow-through (IK, constraints, dynamics), beforeRender last.
@@ -1183,11 +1183,12 @@
       SLIDERS.forEach((s) => {
         /* the Screen's 3D panel says which character track it shows; else the first track with this rule */
         const want = opts && (typeof opts.track === "function" ? opts.track() : opts.track);
-        const t = (want && (st.tracks || []).find((x) => x.id === want && (x.curiosities || []).includes(s.id))) || (st.tracks || []).find((x) => (x.curiosities || []).includes(s.id));
+        const id = s.lane || s.id; /* a slider may live on another lane id (Eyelines: the catalog's eyeline.setting) */
+        const t = (want && (st.tracks || []).find((x) => x.id === want && (x.curiosities || []).includes(id))) || (st.tracks || []).find((x) => (x.curiosities || []).includes(id));
         if (!t) return;
-        const lane = st.lanes && st.lanes[t.id + "|" + s.id];
+        const lane = st.lanes && st.lanes[t.id + "|" + id];
         if (!lane || lane.on === false) return;
-        const v = valueWord(s, E.value(r.id, t.id, s.id));
+        const v = valueWord(s, E.value(r.id, t.id, id));
         if (v != null) fromTimeline[s.id] = v;
       });
     }

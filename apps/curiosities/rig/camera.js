@@ -5,7 +5,9 @@
    (wide, normal, long: the field of view and how far back the camera must stand) and Dutch / level (the
    horizon tilts), plus three sliders of the lens cameraLensLens in data/db-maya.js: Wide or long, Shake and
    Dark corners. Framing aims at the character: close is head and shoulders, medium is waist up, wide is the
-   whole body with room, insert is a hand (or the tip, for an object, or a front foot, for an animal).
+   whole body with room, insert is a hand (or the tip, for an object, or a front foot, for an animal). With more
+   than one actor (rig/staging.js), wide keeps everyone and the closer shots are on actor 1, or on the actor the
+   staging names in ctx.data("camera").subject (the Screen's Who it frames lane, shotSize.who).
 
    In Maya: camera attributes (Focal Length, Angle of View, Film Back), framing a shot, the Camera Sequencer.
 
@@ -60,6 +62,13 @@
     if (pad) b.expandByScalar(pad);
     return b;
   }
+  /* Who a close-up or medium shot is on: actor 1 (the view's own character), or the actor the staging add-on
+     names in ctx.data("camera").subject (the Screen's Who it frames lane, rig/staging.js). A wide shot keeps
+     everyone (data.box is the whole group then). */
+  function subjectOf(ctx) {
+    const s = ctx.data("camera").subject;
+    return s && s.model && s.rig && s.bones ? s : ctx;
+  }
   /* A box for each of the four shot sizes, in the scene's units, from where the joints are right now. */
   function shotBoxes(ctx) {
     const THREE = ctx.THREE;
@@ -68,13 +77,14 @@
     const H = Math.max(0.3, whole.max.y - whole.min.y);
     const L = Math.max(H, whole.max.x - whole.min.x, whole.max.z - whole.min.z);
     const wide = whole.clone().expandByScalar(L * 0.08);
-    const r = ctx.rig;
+    const sub = subjectOf(ctx);
+    const r = sub.rig;
     const out = { wide, medium: wide, close: wide, insert: wide };
-    if (!r || !ctx.model) return out;
+    if (!r || !sub.model) return out;
     const up = (p, h) => p.clone().add(new THREE.Vector3(0, h, 0));
     const last = (list) => list[list.length - 1];
     if (r.object) {
-      const chain = ctx.bones.slice();
+      const chain = sub.bones.slice();
       const tip = r.head ? pos(THREE, r.head) : up(whole.getCenter(new THREE.Vector3()), H / 2);
       const n = chain.length;
       const top = (from) => chain.slice(from).map((b) => pos(THREE, b)).concat([tip]);
@@ -85,7 +95,7 @@
     }
     if (!r.head) return out;
     const head = pos(THREE, r.head);
-    const headTop = d.headTop != null ? d.headTop : H * 0.1;
+    const headTop = d.headTop != null && sub === ctx ? d.headTop : H * 0.1;
     if (r.quadruped) {
       const neck = r.neck.length ? pos(THREE, r.neck[0]) : head;
       const chest = r.chest ? pos(THREE, r.chest) : neck;
@@ -140,7 +150,7 @@
     const dist = Math.max(fr.height / 2 / tanV, fr.across / 2 / tanH) + fr.across / 2;
     /* how high the camera stands: an angle up or down to the middle of the frame; eye height is the head's */
     let eye = 0;
-    const r = ctx.rig;
+    const r = subjectOf(ctx).rig;
     if (r && r.head && !r.object) eye = Math.asin(clamp((pos(THREE, r.head).y - fr.center.y) / dist, -0.6, 0.6));
     const ELEV = [-40 * DEG, -22 * DEG, eye, 30 * DEG, 80 * DEG];
     const hv = clamp(ctx.val("angleHeight"), 0, 1) * (ELEV.length - 1);
@@ -315,7 +325,8 @@
         cam.rotateY(amp * (Math.sin(t * 11.3 + 2.1) * 0.6 + Math.sin(t * 23.9 + 0.4) * 0.4));
       }
       cam.updateMatrixWorld(true);
-      lastInfo = { follow: true, fov: n.fov, mm: want.mm, roll: n.roll / DEG, elev: n.elev / DEG, dist: n.dist, center: n.center.toArray() };
+      const sub = subjectOf(ctx);
+      lastInfo = { follow: true, fov: n.fov, mm: want.mm, roll: n.roll / DEG, elev: n.elev / DEG, dist: n.dist, center: n.center.toArray(), want: want.center.toArray(), on: sub !== ctx && sub.actor ? sub.actor.name || "" : "" };
       const text = "Now: " + describe(ctx, want) + ".";
       if (nowEl && nowEl.textContent !== text) nowEl.textContent = text;
     },

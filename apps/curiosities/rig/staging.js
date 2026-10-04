@@ -37,14 +37,17 @@
      Their sliders start at the defaults;
      the style sliders (How far joints bend, Loose parts, How big the face goes, Blinks, the acting timing) are
      shared with actor 1.
-   - The camera add-on frames everyone in a wide shot (its whole-body box becomes the group's); closer shots stay
-     on actor 1. With the camera not following, "Keep everyone in the picture" moves the orbit's middle to the
+   - The camera add-on frames everyone in a wide shot (its whole-body box becomes the group's); closer shots are
+     on actor 1, or on the actor named by subject(i) (on the Screen: the camera track's Who it frames lane).
+   - On the Screen the staging follows lanes too (see "the staging lanes" below): How they stand together, each
+     character's Walks to and Sitting or standing, and Who it frames. Eyelines is keyed on the catalog's
+     eyeline.setting lane (the bare eyeline curiosity is only off or on). With the camera not following, "Keep everyone in the picture" moves the orbit's middle to the
      group and backs off until all fit.
 
    Saved in the 3D view's prefs (curiosities-rig3d-v1) as prefs.staging = { cast: [{ who, name }], name0, preset,
    front, speaker, look, frame, line, lineA, lineB }.
    window.CurioRigStaging = { PRESETS, layout(preset, n, d, cheat), meters(v), state(ctl), ready(ctl),
-     cast(list, ctl), preset(id, ctl), walkTo(i, target, ctl), beat(text, ctl), speaker(i, ctl), line(on, a, b, ctl),
+     cast(list, ctl), preset(id, ctl), walkTo(i, target, ctl), subject(i, ctl), beat(text, ctl), speaker(i, ctl), line(on, a, b, ctl),
      sameSide(ctl), lookError(i, ctl), front(i, ctl), actors(ctl) -> where everyone stands, or null with one actor } */
 (function () {
   const R = window.CurioRig;
@@ -74,7 +77,8 @@
   const EYE_WORDS = ["no one meets", "glances", "one holds the look", "both hold"];
   const SLIDERS = [
     { id: DIST, lens: "blocking", label: "How far apart", scale: DIST_WORDS, start: 2 },
-    { id: EYE, lens: "eyeline", label: "Eyelines", scale: EYE_WORDS, start: 3 },
+    /* the catalog's eyeline curiosity is off or on by itself; its four words are its setting slider */
+    { id: EYE, lens: "eyeline", label: "Eyelines", scale: EYE_WORDS, start: 3, lane: "eyeline.setting" },
   ];
   const meters = (v) => {
     const t = clamp(v, 0, 1) * (DIST_M.length - 1);
@@ -430,12 +434,13 @@
     const t = st && (st.tracks || []).find((x) => x.id === a.track);
     if (!r || !t) return a.tl;
     R.SLIDERS.forEach((s) => {
-      if (!(t.curiosities || []).includes(s.id)) return;
-      const lane = st.lanes && st.lanes[t.id + "|" + s.id];
+      const id = s.lane || s.id;
+      if (!(t.curiosities || []).includes(id)) return;
+      const lane = st.lanes && st.lanes[t.id + "|" + id];
       if (!lane || lane.on === false) return;
       let v = null;
       try {
-        v = E.value(r.id, t.id, s.id);
+        v = E.value(r.id, t.id, id);
       } catch (e) {}
       const n = s.scale.length - 1;
       let x = null;
@@ -1121,6 +1126,114 @@
     return true;
   }
 
+  /* ---------- on the Screen: the staging lanes ----------
+     The timeline carries the staging as lanes, so playing the Screen stages the beat by itself:
+     - blocking.together (How they stand together, on any track): everyone goes to their marks for it when the
+       playhead reaches a new value (and again when the playhead goes back, so a replay starts on the marks);
+     - each character track's characterPath.to (Walks to): when the playhead reaches a moment where it changes to
+       a person, the middle, the front or the back, that character walks there (to a person: stops at talking
+       distance, facing them);
+     - each character track's blocking.seated (Sitting or standing): who sits on a seat of the set (rig/sets.js);
+     - the camera's shotSize.who (Who it frames): a close-up or medium shot frames that character (rig/camera.js
+       reads ctx.data("camera").subject); a wide shot keeps everyone.
+     A person on a lane is "the first character" (the top character track on the timeline), "the second"... */
+  const TOGETHER = "blocking.together";
+  const SEATED = "blocking.seated";
+  const WALK_TO = "characterPath.to";
+  const FRAMES = "shotSize.who";
+  const WHO_WORDS = ["the first character", "the second character", "the third character", "the fourth character"];
+  function followLanes(ctx) {
+    const st = S(ctx);
+    const RS = screenCtl(ctx);
+    const E = window.CurioEngine;
+    const Scr = window.CurioScreen;
+    if (!RS || !E || !Scr || !Scr.isOpen || !Scr.isOpen() || !Scr.row) {
+      st.lnRow = null;
+      st.subject = st.subjectOwn || 0;
+      return;
+    }
+    const idx = Scr.row();
+    if (idx === st.lnRow && ctx.clock - (st.lnAt || 0) < 0.15) return;
+    st.lnAt = ctx.clock;
+    let es;
+    try {
+      es = E.state();
+    } catch (e) {
+      return;
+    }
+    const r = es.rows[idx];
+    if (!r) return;
+    const prev = es.rows[idx - 1];
+    const lane = (t, id) => (t.curiosities || []).includes(id) && es.lanes[t.id + "|" + id] && es.lanes[t.id + "|" + id].on !== false;
+    const val = (row, t, id) => {
+      try {
+        return row ? E.value(row.id, t.id, id) : null;
+      } catch (e) {
+        return null;
+      }
+    };
+    const chars = es.tracks.filter((t) => t.kind === "character");
+    const all = everyone(ctx);
+    const shown = RS.shown ? RS.shown() : "";
+    const trackOf = (i) => (i === 0 ? (chars.find((t) => t.id === shown) || chars[0] || {}).id : all[i].track);
+    const actorOf = (trackId) => all.findIndex((a, i) => trackOf(i) === trackId);
+    const actorOfWord = (w) => {
+      const k = WHO_WORDS.indexOf(w);
+      return k >= 0 && chars[k] ? actorOf(chars[k].id) : -1;
+    };
+    const moved = st.lnRow !== idx;
+    const back = moved && (st.lnRow == null || idx < st.lnRow);
+    st.lnRow = idx;
+    if (active(ctx)) {
+      /* how they stand together; a replay (the playhead going back) starts everyone on their marks again */
+      const walkers = chars.filter((t) => lane(t, WALK_TO));
+      const pt = es.tracks.find((t) => lane(t, TOGETHER));
+      const pv = pt ? val(r, pt, TOGETHER) : null;
+      const known = pv && PRESETS.some((x) => x.id === pv);
+      if ((known && pv !== st.lnPreset) || (back && (known || walkers.length))) {
+        if (known) st.lnPreset = pv;
+        setPreset(ctx, known ? pv : P(ctx).preset);
+      }
+      /* walking: on reaching a moment where the lane changes to somewhere */
+      if (moved)
+        walkers.forEach((t) => {
+          const v = val(r, t, WALK_TO);
+          if (!v || v === "stays put") return;
+          if (!back && prev && val(prev, t, WALK_TO) === v) return;
+          const i = actorOf(t.id);
+          if (i < 0 || !all[i]) return;
+          const k = actorOfWord(v);
+          const me = all[i].pos;
+          const target = k >= 0 ? k : v === "the middle" ? { x: 0, z: 0 } : v === "the front" ? { x: 0, z: 1.6 } : v === "the back" ? { x: me.x, z: me.z - 1.8 } : null;
+          if (target != null && target !== i) walkTo(ctx, i, target);
+        });
+    }
+    /* who sits */
+    const Sets = window.CurioRigSets;
+    const seated = chars.filter((t) => lane(t, SEATED));
+    if (seated.length && Sets && Sets.sitters) {
+      const list = all.map((a, i) => i).filter((i) => {
+        const t = seated.find((x) => x.id === trackOf(i));
+        return t && val(r, t, SEATED) === "sitting";
+      });
+      const sig = list.join();
+      if (sig !== st.lnSit) {
+        st.lnSit = sig;
+        Sets.sitters(ctx, list);
+      }
+    } else st.lnSit = null;
+    /* who the camera frames */
+    const ft = es.tracks.find((t) => lane(t, FRAMES));
+    const fv = ft ? val(r, ft, FRAMES) : null;
+    st.subject = fv ? Math.max(0, actorOfWord(fv)) : st.subjectOwn || 0;
+  }
+  /* the camera's subject: the actor a close-up frames (rig/camera.js), or null for actor 1 */
+  function subjectCtx(ctx) {
+    const st = S(ctx);
+    const a = st.subject > 0 && active(ctx) ? st.actors[st.subject - 1] : null;
+    return a && live(a) ? a.ctx : null;
+  }
+
   /* ---------- a beat in words: "Ida walks over to Nessa and shrugs" ---------- */
   const WALK_RE = /\b(walks?|walking|goes|go|crosses|cross|runs?|steps?|moves?|heads?|wanders?|strolls?|rushes|rush|hurries|hurry|comes?|backs? away)\b/;
   const SPEAK_RE = /\b(says?|speaks?|talks?|tells?|asks?|shouts?|whispers?|yells?|answers?|replies|explains?)\b/;
@@ -1240,6 +1353,9 @@
         st.syncAt = ctx.clock;
         syncCast(ctx);
       }
+      followLanes(ctx);
+      const cam = ctx.data("camera");
+      if (cam) cam.subject = subjectCtx(ctx);
       if (!active(ctx)) {
         if (st.stage0 && (st.stage0.position.lengthSq() || st.stage0.rotation.y)) st.stage0.position.set(0, 0, 0), st.stage0.rotation.set(0, 0, 0);
         if (st.camSet) {
@@ -1476,6 +1592,13 @@
       draw(ctx);
     },
     walkTo: (i, target, ctl, then) => walkTo(C(ctl), i, target, then),
+    /* who the camera frames in a close-up or medium shot: an actor's number (0 is actor 1). The Screen's Who it
+       frames lane wins while it has one. */
+    subject(i, ctl) {
+      const ctx = C(ctl);
+      if (ctx) S(ctx).subjectOwn = Math.max(0, i | 0);
+      if (ctx && !screenCtl(ctx)) S(ctx).subject = S(ctx).subjectOwn;
+    },
     /* everyone on the floor, cheaply (rig/sets.js keeps its set clear of them; rig/scene.js plays beats):
        null when only one actor is in the view, else [{ i, name, x, z, yaw, walking, settled, loaded, ctx }] */
     actors(ctl) {
@@ -1529,6 +1652,8 @@
         eyeline: ctx.pick(EYE),
         speaker: p.speaker,
         front: p.front,
+        subject: st.subject || 0,
+        sitters: st.lnSit == null ? null : st.lnSit ? st.lnSit.split(",").map(Number) : [],
         line: { on: !!p.line, visible: !!(st.line && st.line.g.visible), crossed: !!st.crossed, side: st.lineSide, warn: warnText(ctx), overlay: !!(st.ov && !st.ov.hidden) },
         actors: everyone(ctx).map((a, i) => {
           const me = a.primary ? Object.assign({}, a, { ctx }) : a;

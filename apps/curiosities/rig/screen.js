@@ -342,23 +342,24 @@
       const here = tl[s.id] != null ? s.scale[Math.round(tl[s.id] * n)] : s.scale[s.start];
       /* only what this actor was told here: the 3D window's other settings are shared and may be left over */
       if (!lastAsk.includes(s.id) || word === here) return;
-      const val = S ? S.fix(s.id, word) : word;
+      const id = s.lane || s.id; /* the lane it is keyed on (Eyelines: eyeline.setting) */
+      const val = S ? S.fix(id, word) : word;
       if (val == null) return;
       let track = null;
       if (tr) {
-        if (tr.curiosities.includes(s.id)) track = tr.id;
+        if (tr.curiosities.includes(id)) track = tr.id;
         else if (tr.curiosities.length + added < Eng.LIMIT.perTrack) {
-          cmds.push({ type: "addCuriosity", track: tr.id, curiosity: s.id });
+          cmds.push({ type: "addCuriosity", track: tr.id, curiosity: id });
           added++;
           track = tr.id;
         }
       } else {
-        const any = st.tracks.find((t) => t.curiosities.includes(s.id));
+        const any = st.tracks.find((t) => t.curiosities.includes(id));
         if (any) track = any.id;
-        else if (window.CurioLanes && (track = window.CurioLanes.trackFor(s.id, st))) cmds.push({ type: "addCuriosity", track, curiosity: s.id });
+        else if (window.CurioLanes && (track = window.CurioLanes.trackFor(id, st))) cmds.push({ type: "addCuriosity", track, curiosity: id });
       }
       if (!track) return (full = true);
-      cmds.push({ type: "setPoint", row: r.id, track, curiosity: s.id, value: val });
+      cmds.push({ type: "setPoint", row: r.id, track, curiosity: id, value: val });
       words.push(`${s.label}: ${word}`);
     });
     if (!cmds.length) {

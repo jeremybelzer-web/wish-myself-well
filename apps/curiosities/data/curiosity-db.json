@@ -247,6 +247,22 @@
      "curve": "linear"
     },
     {
+     "id": "who",
+     "label": "Who it frames",
+     "plain": "Whose face and body a close-up or medium shot is on. Characters count from the top character track; a wide shot keeps everyone.",
+     "scale": [
+      "whoever is shown",
+      "the first character",
+      "the second character",
+      "the third character",
+      "the fourth character"
+     ],
+     "from": "whoever is shown",
+     "to": "the fourth character",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
      "id": "push",
      "label": "Pushes the story",
      "plain": "How much this curiosity moves the story forward here.",
@@ -2499,6 +2515,25 @@
      "from": "smooth",
      "to": "erratic",
      "curve": "linear"
+    },
+    {
+     "id": "to",
+     "label": "Walks to",
+     "plain": "Where this character walks when the playhead gets here: to another character (stopping at talking distance, facing them), the middle, the front near the camera, or back. Characters count from the top character track.",
+     "scale": [
+      "stays put",
+      "the first character",
+      "the second character",
+      "the third character",
+      "the fourth character",
+      "the middle",
+      "the front",
+      "the back"
+     ],
+     "from": "stays put",
+     "to": "the back",
+     "curve": "steps",
+     "unordered": true
     },
     {
      "id": "push",
@@ -5142,6 +5177,36 @@
      ],
      "from": "no one",
      "to": "the one who wins",
+     "curve": "linear"
+    },
+    {
+     "id": "together",
+     "label": "How they stand together",
+     "plain": "Where everyone stands, all at once. The 3D view puts them on their marks when the playhead gets there.",
+     "scale": [
+      "face to face",
+      "side by side",
+      "one behind the other",
+      "over the shoulder",
+      "circle",
+      "standoff",
+      "huddle"
+     ],
+     "from": "face to face",
+     "to": "huddle",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "seated",
+     "label": "Sitting or standing",
+     "plain": "Whether this character sits down (on a seat of the set) or stands.",
+     "scale": [
+      "standing",
+      "sitting"
+     ],
+     "from": "standing",
+     "to": "sitting",
      "curve": "linear"
     },
     {
