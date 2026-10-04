@@ -92708,8 +92708,8 @@
       "unit": "",
       "step": 1
      },
-     "from": 3,
-     "to": 5,
+     "from": 2,
+     "to": 4,
      "curve": "linear"
     },
     {
@@ -92758,7 +92758,7 @@
    "source": "database",
    "tags": [],
    "momentum": {
-    "push": 3,
+    "push": 2,
     "plot": "Smooth eye paths let a fast run of shots feel like one push forward, so the story can race.",
     "theme": "A broken eye path can make us feel the character's shock with them.",
     "pull": "The eye never has to search, so it flows straight into the next shot.",
