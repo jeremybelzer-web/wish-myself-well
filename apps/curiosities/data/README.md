@@ -65,6 +65,7 @@ New lens rows should go in one place: send them to the database thread, or add t
 | `db-model-scenes-2.js` | Eight more made-up scenes built around the new comedy and emotion curiosities (a funeral giggle, a toast that bombs, a betrayal in a car, a cartoon chase, a canyon, two sisters making peace, a talent show, a jealous friend). Not real films |
 | `db-model-scenes-3.js` | Eight more made-up scenes built around the new music and sound, story and attention, and cut, speed, caption, frame and color curiosities (a heist plan told over the heist, a small-town rumor, a first day at school on a phone, a band's first gig, a chase that becomes a time-lapse, a choice at a crossroads, a reunion at a train station, a quiet night shift). Not real films |
 | `db-model-scenes-4.js` | Eight more made-up scenes, each practicing one directing style from `db-styles.js` with the newest acting, world and look curiosities (long talk that snaps at a diner breakfast, symmetry and deadpan pastel in a seaside hotel, slow-burn dread on a frozen lake, rapid-fire screwball in a newsroom, silent-film physical comedy on a windy building, quiet family drama at a last supper, neon noir in a night taxi, a mockumentary pumpkin show). Not real films |
+| `db-model-scenes-5.js` | Eight more made-up scenes, each practicing one comedy style from `db-styles-comedy.js` with the newest comedy curiosities from `db-depth-comedy.js` (genre spoof at a launderette showdown, absurd sketch logic at a council that cancels Tuesday, fast visual comedy cut to the beat over a 3 a.m. sandwich, loose hangout comedy on a shed roof, dark comedy of bad plans at a funeral lunch, a sweet clown selling balloons, squirm comedy at a manager's birthday, a comedy of manners at a garden wedding). Not real films |
 | `db-proximity-words.js` | Plain "When ..., ..." halves for proximities named another way ("Pride before a fall") |
 | `db-model-scenes.js` | Eight made-up scenes written as beat-by-beat traces (a diner standoff, a meet-cute, a dinner party, a dark hallway, a montage, a deadpan office, a quiet goodbye, a kitchen disaster), so the Prism and Study views have films to split. Not real films |
 | `model-scenes.studies.json` | Those scenes as a file the Study tab's Import button reads. Written by `check-db.js` |
@@ -120,6 +121,7 @@ The database is switched on in `index.html` (this PR): the block below sits righ
    <script src="data/db-model-scenes-2.js"></script>
    <script src="data/db-model-scenes-3.js"></script>
    <script src="data/db-model-scenes-4.js"></script>
+   <script src="data/db-model-scenes-5.js"></script>
    <script>CuriosityDB.install({ CURIOSITIES, SUITES, PROXIMITIES });</script>
    ```
 
