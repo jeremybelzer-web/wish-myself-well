@@ -20672,6 +20672,1022 @@
    "then": "nobody can name it"
   },
   {
+   "id": "p:self-story-feeds-lie",
+   "proximity": "self-story-feeds-lie",
+   "label": "When they cling to their role, the lie they believe grows",
+   "from": {
+    "curiosity": "selfStory",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "theLie",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they cling to their role",
+   "then": "the lie they believe grows"
+  },
+  {
+   "id": "p:victim-story-resentment",
+   "proximity": "victim-story-resentment",
+   "label": "When they cast themself as the victim, resentment grows",
+   "from": {
+    "curiosity": "selfStory.role",
+    "track": "character",
+    "is": "the victim",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "resentment",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they cast themself as the victim",
+   "then": "resentment grows"
+  },
+  {
+   "id": "p:all-or-nothing-misreads",
+   "proximity": "all-or-nothing-misreads",
+   "label": "When they think in black and white, they misread people",
+   "from": {
+    "curiosity": "allOrNothing",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "misreading",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they think in black and white",
+   "then": "they misread people"
+  },
+  {
+   "id": "p:inner-putdowns-shame",
+   "proximity": "inner-putdowns-shame",
+   "label": "When the voice in their head puts them down, shame grows",
+   "from": {
+    "curiosity": "innerVoice.says",
+    "track": "character",
+    "is": "put-downs",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the voice in their head puts them down",
+   "then": "shame grows"
+  },
+  {
+   "id": "p:talk-back-change-shows",
+   "proximity": "talk-back-change-shows",
+   "label": "When they talk back to the voice for good, the change shows",
+   "from": {
+    "curiosity": "innerVoice.answers",
+    "track": "character",
+    "is": "talks back for good",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "changeShows",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they talk back to the voice for good",
+   "then": "the change shows"
+  },
+  {
+   "id": "p:frozen-thinking-replays",
+   "proximity": "frozen-thinking-replays",
+   "label": "When they freeze by thinking, they replay it later",
+   "from": {
+    "curiosity": "thinkOrLeap",
+    "track": "character",
+    "is": "frozen by thinking",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "replaying",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they freeze by thinking",
+   "then": "they replay it later"
+  },
+  {
+   "id": "p:worst-case-dread",
+   "proximity": "worst-case-dread",
+   "label": "When they imagine the worst, dread fills the scene",
+   "from": {
+    "curiosity": "expectWorst",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they imagine the worst",
+   "then": "dread fills the scene"
+  },
+  {
+   "id": "p:worst-case-much-better-relief",
+   "proximity": "worst-case-much-better-relief",
+   "label": "When it turns out much better, relief floods in",
+   "from": {
+    "curiosity": "expectWorst.reality",
+    "track": "character",
+    "is": "much better",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "relief",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "it turns out much better",
+   "then": "relief floods in"
+  },
+  {
+   "id": "p:replay-guilt",
+   "proximity": "replay-guilt",
+   "label": "When they keep replaying it, guilt grows",
+   "from": {
+    "curiosity": "replaying",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "guilt",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they keep replaying it",
+   "then": "guilt grows"
+  },
+  {
+   "id": "p:quiet-majority-pressure",
+   "proximity": "quiet-majority-pressure",
+   "label": "When most keep quiet, the pressure grows",
+   "from": {
+    "curiosity": "quietMajority",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "groupPressure",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "most keep quiet",
+   "then": "the pressure grows"
+  },
+  {
+   "id": "p:one-voice-crowd-turns",
+   "proximity": "one-voice-crowd-turns",
+   "label": "When one voice breaks the silence, the crowd turns",
+   "from": {
+    "curiosity": "quietMajority.breaks",
+    "track": "master",
+    "is": "one voice breaks it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "crowdTurns",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one voice breaks the silence",
+   "then": "the crowd turns"
+  },
+  {
+   "id": "p:inside-joke-shuts-out",
+   "proximity": "inside-joke-shuts-out",
+   "label": "When the joke shuts someone out, they stand out more",
+   "from": {
+    "curiosity": "insideJoke.outsider",
+    "track": "master",
+    "is": "an outsider is shut out",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "oddOneOut",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the joke shuts someone out",
+   "then": "they stand out more"
+  },
+  {
+   "id": "p:cruel-test-guilt",
+   "proximity": "cruel-test-guilt",
+   "label": "When the way in is a cruel act, guilt follows",
+   "from": {
+    "curiosity": "initiation.kind",
+    "track": "master",
+    "is": "a cruel act",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "guilt",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the way in is a cruel act",
+   "then": "guilt follows"
+  },
+  {
+   "id": "p:leader-strong-right-hand",
+   "proximity": "leader-strong-right-hand",
+   "label": "When the leader grows stronger, the right hand grows more loyal",
+   "from": {
+    "curiosity": "herdLeader",
+    "track": "master",
+    "is": "one voice",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "rightHand",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the leader grows stronger",
+   "then": "the right hand grows more loyal"
+  },
+  {
+   "id": "p:right-hand-doubts-leader-falls",
+   "proximity": "right-hand-doubts-leader-falls",
+   "label": "When the right hand doubts out loud, the leader weakens",
+   "from": {
+    "curiosity": "rightHand.doubts",
+    "track": "master",
+    "is": "said out loud",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "herdLeader",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the right hand doubts out loud",
+   "then": "the leader weakens"
+  },
+  {
+   "id": "p:unlikely-helper-wins-them",
+   "proximity": "unlikely-helper-wins-them",
+   "label": "When the least likely person helps, the others follow",
+   "from": {
+    "curiosity": "bystanders.helper",
+    "track": "master",
+    "is": "the least likely person",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "rallyingSpeech",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the least likely person helps",
+   "then": "the others follow"
+  },
+  {
+   "id": "p:rumor-finds-scapegoat",
+   "proximity": "rumor-finds-scapegoat",
+   "label": "When a rumor spreads, the group finds someone to blame",
+   "from": {
+    "curiosity": "rumor",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "scapegoat",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a rumor spreads",
+   "then": "the group finds someone to blame"
+  },
+  {
+   "id": "p:scapegoat-shame-later",
+   "proximity": "scapegoat-shame-later",
+   "label": "When the group feels shame later, guilt comes",
+   "from": {
+    "curiosity": "scapegoat.group",
+    "track": "master",
+    "is": "feels shame later",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "guilt",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the group feels shame later",
+   "then": "guilt comes"
+  },
+  {
+   "id": "p:bystander-shame",
+   "proximity": "bystander-shame",
+   "label": "When everyone just watches, shame follows",
+   "from": {
+    "curiosity": "bystanders",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone just watches",
+   "then": "shame follows"
+  },
+  {
+   "id": "p:wound-makes-vow",
+   "proximity": "wound-makes-vow",
+   "label": "When the old wound is deeper, the promise to themself is stronger",
+   "from": {
+    "curiosity": "wound",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "selfVow",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the old wound is deeper",
+   "then": "the promise to themself is stronger"
+  },
+  {
+   "id": "p:first-step-hope",
+   "proximity": "first-step-hope",
+   "label": "When they take a brave first step, hope rises",
+   "from": {
+    "curiosity": "firstStep",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "hope",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they take a brave first step",
+   "then": "hope rises"
+  },
+  {
+   "id": "p:first-step-back-relapse",
+   "proximity": "first-step-back-relapse",
+   "label": "When they step back after the first step, they slip",
+   "from": {
+    "curiosity": "firstStep.after",
+    "track": "character",
+    "is": "they step back",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "relapse",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they step back after the first step",
+   "then": "they slip"
+  },
+  {
+   "id": "p:fake-change-test",
+   "proximity": "fake-change-test",
+   "label": "When the change is only for show, a test comes",
+   "from": {
+    "curiosity": "falseChange",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "arcTest",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the change is only for show",
+   "then": "a test comes"
+  },
+  {
+   "id": "p:noticed-change-shows",
+   "proximity": "noticed-change-shows",
+   "label": "When others notice, the change shows more",
+   "from": {
+    "curiosity": "othersNotice",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "changeShows",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "others notice",
+   "then": "the change shows more"
+  },
+  {
+   "id": "p:pulled-back-relapse",
+   "proximity": "pulled-back-relapse",
+   "label": "When others pull them back, they slip",
+   "from": {
+    "curiosity": "othersNotice.pushback",
+    "track": "character",
+    "is": "pulling them back",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "relapse",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "others pull them back",
+   "then": "they slip"
+  },
+  {
+   "id": "p:empty-win-realization",
+   "proximity": "empty-win-realization",
+   "label": "When winning feels empty, they see it",
+   "from": {
+    "curiosity": "goalSwap.trigger",
+    "track": "character",
+    "is": "winning and finding it empty",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "realization",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "winning feels empty",
+   "then": "they see it"
+  },
+  {
+   "id": "p:vow-broken-no-return",
+   "proximity": "vow-broken-no-return",
+   "label": "When they break the promise for good reason, there is no going back",
+   "from": {
+    "curiosity": "selfVow.ends",
+    "track": "character",
+    "is": "broken for good reason",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pointOfNoReturn",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they break the promise for good reason",
+   "then": "there is no going back"
+  },
+  {
+   "id": "p:too-late-grief",
+   "proximity": "too-late-grief",
+   "label": "When the change comes too late, grief deepens",
+   "from": {
+    "curiosity": "tooLateChange",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "grief",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the change comes too late",
+   "then": "grief deepens"
+  },
+  {
+   "id": "p:meant-for-another-subtext",
+   "proximity": "meant-for-another-subtext",
+   "label": "When a line is aimed through someone else, said and meant pull apart",
+   "from": {
+    "curiosity": "meantForAnother",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a line is aimed through someone else",
+   "then": "said and meant pull apart"
+  },
+  {
+   "id": "p:meant-for-another-last-word",
+   "proximity": "meant-for-another-last-word",
+   "label": "When the target answers the same way, the fight for the last word starts",
+   "from": {
+    "curiosity": "meantForAnother.reacts",
+    "track": "character",
+    "is": "answers back the same way",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "lastWordFight",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the target answers the same way",
+   "then": "the fight for the last word starts"
+  },
+  {
+   "id": "p:question-back-almost-answer",
+   "proximity": "question-back-almost-answer",
+   "label": "When questions come back as questions, the answer keeps slipping away",
+   "from": {
+    "curiosity": "questionBack",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "almostAnswer",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "questions come back as questions",
+   "then": "the answer keeps slipping away"
+  },
+  {
+   "id": "p:word-clash-status",
+   "proximity": "word-clash-status",
+   "label": "When one talks and the other barely answers, the gap in rank shows",
+   "from": {
+    "curiosity": "wordCountClash",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "statusGap",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one talks and the other barely answers",
+   "then": "the gap in rank shows"
+  },
+  {
+   "id": "p:taken-back-unspoken",
+   "proximity": "taken-back-unspoken",
+   "label": "When words keep being taken back, the feeling nobody names grows",
+   "from": {
+    "curiosity": "takenBackWord",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "unspokenFeeling",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "words keep being taken back",
+   "then": "the feeling nobody names grows"
+  },
+  {
+   "id": "p:taken-back-called-out",
+   "proximity": "taken-back-called-out",
+   "label": "When the slip is called out, the secret starts slipping",
+   "from": {
+    "curiosity": "takenBackWord.heard",
+    "track": "character",
+    "is": "yes, and calls it out",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "plotSecret",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "slipping",
+   "when": "the slip is called out",
+   "then": "the secret starts slipping"
+  },
+  {
+   "id": "p:way-of-talking-outsider",
+   "proximity": "way-of-talking-outsider",
+   "label": "When their way of talking stands out, they feel out of place",
+   "from": {
+    "curiosity": "wayOfTalking",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "fishOutOfWater",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "their way of talking stands out",
+   "then": "they feel out of place"
+  },
+  {
+   "id": "p:voice-slips-language",
+   "proximity": "voice-slips-language",
+   "label": "When the real voice slips out in anger, they switch languages",
+   "from": {
+    "curiosity": "wayOfTalking.slips",
+    "track": "character",
+    "is": "when angry",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "languageSwitch",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the real voice slips out in anger",
+   "then": "they switch languages"
+  },
+  {
+   "id": "p:language-switch-apart",
+   "proximity": "language-switch-apart",
+   "label": "When they switch languages, someone is left standing apart",
+   "from": {
+    "curiosity": "languageSwitch",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "apartFromGroup",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they switch languages",
+   "then": "someone is left standing apart"
+  },
+  {
+   "id": "p:last-word-walk-out",
+   "proximity": "last-word-walk-out",
+   "label": "When the fight for the last word grows, someone walks out",
+   "from": {
+    "curiosity": "lastWordFight",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "walkOut",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the fight for the last word grows",
+   "then": "someone walks out"
+  },
+  {
+   "id": "p:whisper-tenderness",
+   "proximity": "whisper-tenderness",
+   "label": "When the room is loud and they lean in, tenderness grows",
+   "from": {
+    "curiosity": "whisperInNoise",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the room is loud and they lean in",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:whisper-room-drops",
+   "proximity": "whisper-room-drops",
+   "label": "When the whisper matters most, the room sound falls away",
+   "from": {
+    "curiosity": "whisperInNoise.drop",
+    "track": "character",
+    "is": "almost all the way",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "ambienceBed",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the whisper matters most",
+   "then": "the room sound falls away"
+  },
+  {
+   "id": "p:dodge-open-questions",
+   "proximity": "dodge-open-questions",
+   "label": "When the subject keeps changing, our questions pile up",
+   "from": {
+    "curiosity": "dodgedQuestion",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the subject keeps changing",
+   "then": "our questions pile up"
+  },
+  {
+   "id": "p:dodge-pinned-secret",
+   "proximity": "dodge-pinned-secret",
+   "label": "When they are pinned down, the secret has a close call",
+   "from": {
+    "curiosity": "dodgedQuestion.asker",
+    "track": "character",
+    "is": "pins them down",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "plotSecret",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close call",
+   "when": "they are pinned down",
+   "then": "the secret has a close call"
+  },
+  {
+   "id": "p:full-name-dread",
+   "proximity": "full-name-dread",
+   "label": "When the full name is used, dread comes in",
+   "from": {
+    "curiosity": "sayingTheName.form",
+    "track": "character",
+    "is": "the full name",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the full name is used",
+   "then": "dread comes in"
+  },
+  {
+   "id": "p:first-name-warmth",
+   "proximity": "first-name-warmth",
+   "label": "When a name is used for the first time, warmth grows",
+   "from": {
+    "curiosity": "sayingTheName.first",
+    "track": "character",
+    "is": "first time ever",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a name is used for the first time",
+   "then": "warmth grows"
+  },
+  {
+   "id": "p:finish-sentence-warmth",
+   "proximity": "finish-sentence-warmth",
+   "label": "When they finish each other's lines, warmth grows",
+   "from": {
+    "curiosity": "finishSentence",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they finish each other's lines",
+   "then": "warmth grows"
+  },
+  {
+   "id": "p:finish-wrong-misunderstanding",
+   "proximity": "finish-wrong-misunderstanding",
+   "label": "When the line is finished wrong, a misunderstanding starts",
+   "from": {
+    "curiosity": "finishSentence.right",
+    "track": "character",
+    "is": "wrong",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "misunderstanding",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the line is finished wrong",
+   "then": "a misunderstanding starts"
+  },
+  {
+   "id": "p:rehearsed-trails-off",
+   "proximity": "rehearsed-trails-off",
+   "label": "When the real moment drifts from the practice, the line trails off",
+   "from": {
+    "curiosity": "rehearsedLine",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "trailingOff",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the real moment drifts from the practice",
+   "then": "the line trails off"
+  },
+  {
+   "id": "p:read-aloud-release",
+   "proximity": "read-aloud-release",
+   "label": "When the reader cannot go on, the feeling spills out",
+   "from": {
+    "curiosity": "readAloud.breaks",
+    "track": "character",
+    "is": "cannot go on",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoRelease",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the reader cannot go on",
+   "then": "the feeling spills out"
+  },
+  {
+   "id": "p:side-by-side-says-more",
+   "proximity": "side-by-side-says-more",
+   "label": "When they sit side by side, more gets said",
+   "from": {
+    "curiosity": "sideBySideTalk",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "wordsAmount",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they sit side by side",
+   "then": "more gets said"
+  },
+  {
+   "id": "p:body-opposite-subtext",
+   "proximity": "body-opposite-subtext",
+   "label": "When the body says the opposite, said and meant pull apart",
+   "from": {
+    "curiosity": "bodySaysOpposite",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the body says the opposite",
+   "then": "said and meant pull apart"
+  },
+  {
+   "id": "p:door-touch-tenderness",
+   "proximity": "door-touch-tenderness",
+   "label": "When both touch the door, tenderness comes through it",
+   "from": {
+    "curiosity": "throughTheDoor.touch",
+    "track": "character",
+    "is": "both sides touching",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "both touch the door",
+   "then": "tenderness comes through it"
+  },
+  {
+   "id": "p:door-shut-loneliness",
+   "proximity": "door-shut-loneliness",
+   "label": "When the barrier is more solid, loneliness grows",
+   "from": {
+    "curiosity": "throughTheDoor",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the barrier is more solid",
+   "then": "loneliness grows"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -25885,6 +26901,142 @@
     "p:busy-stopped-comfort",
     "p:seesaw-roads-cross",
     "p:slow-burn-warmth"
+   ]
+  },
+  {
+   "id": "ps:the-voice-in-the-head",
+   "label": "The voice in the head",
+   "plain": "The voice puts them down and shame grows, they freeze and replay the moment, guilt follows, until they talk back for good.",
+   "proximities": [
+    "inner-putdowns-shame",
+    "frozen-thinking-replays",
+    "replay-guilt",
+    "talk-back-change-shows"
+   ],
+   "links": [
+    "p:inner-putdowns-shame",
+    "p:frozen-thinking-replays",
+    "p:replay-guilt",
+    "p:talk-back-change-shows"
+   ]
+  },
+  {
+   "id": "ps:thinking-traps",
+   "label": "Thinking traps",
+   "plain": "The role they cling to feeds their lie, black and white thinking misreads people, and the worst they imagine fills the room with dread.",
+   "proximities": [
+    "self-story-feeds-lie",
+    "all-or-nothing-misreads",
+    "worst-case-dread",
+    "victim-story-resentment"
+   ],
+   "links": [
+    "p:self-story-feeds-lie",
+    "p:all-or-nothing-misreads",
+    "p:worst-case-dread",
+    "p:victim-story-resentment"
+   ]
+  },
+  {
+   "id": "ps:silence-in-the-crowd",
+   "label": "Silence in the crowd",
+   "plain": "Most keep quiet and the pressure grows, a rumor finds someone to blame, then the least likely person helps and the crowd turns.",
+   "proximities": [
+    "quiet-majority-pressure",
+    "rumor-finds-scapegoat",
+    "unlikely-helper-wins-them",
+    "one-voice-crowd-turns"
+   ],
+   "links": [
+    "p:quiet-majority-pressure",
+    "p:rumor-finds-scapegoat",
+    "p:unlikely-helper-wins-them",
+    "p:one-voice-crowd-turns"
+   ]
+  },
+  {
+   "id": "ps:changing-for-real",
+   "label": "Changing for real",
+   "plain": "A brave first step brings hope, others notice, some pull them back, and a fake change gets tested until it is real.",
+   "proximities": [
+    "first-step-hope",
+    "noticed-change-shows",
+    "pulled-back-relapse",
+    "fake-change-test"
+   ],
+   "links": [
+    "p:first-step-hope",
+    "p:noticed-change-shows",
+    "p:pulled-back-relapse",
+    "p:fake-change-test"
+   ]
+  },
+  {
+   "id": "ps:pressure-under-the-words",
+   "label": "Pressure under the words",
+   "plain": "A line aimed through someone else, a question turned back, a subject changed, and one person doing all the talking: the real fight happens under the words.",
+   "proximities": [
+    "meant-for-another-subtext",
+    "question-back-almost-answer",
+    "dodge-open-questions",
+    "word-clash-status"
+   ],
+   "links": [
+    "p:meant-for-another-subtext",
+    "p:question-back-almost-answer",
+    "p:dodge-open-questions",
+    "p:word-clash-status"
+   ]
+  },
+  {
+   "id": "ps:what-slips-out",
+   "label": "What slips out",
+   "plain": "A word taken back, a slip called out, the old voice coming back in anger, and a practiced line that falls apart.",
+   "proximities": [
+    "taken-back-unspoken",
+    "taken-back-called-out",
+    "voice-slips-language",
+    "rehearsed-trails-off"
+   ],
+   "links": [
+    "p:taken-back-unspoken",
+    "p:taken-back-called-out",
+    "p:voice-slips-language",
+    "p:rehearsed-trails-off"
+   ]
+  },
+  {
+   "id": "ps:close-without-looking",
+   "label": "Close without looking",
+   "plain": "A whisper in a loud room, lines finished for each other, a name said for the first time, and a hard talk side by side.",
+   "proximities": [
+    "whisper-tenderness",
+    "finish-sentence-warmth",
+    "first-name-warmth",
+    "side-by-side-says-more"
+   ],
+   "links": [
+    "p:whisper-tenderness",
+    "p:finish-sentence-warmth",
+    "p:first-name-warmth",
+    "p:side-by-side-says-more"
+   ]
+  },
+  {
+   "id": "ps:doors-and-last-words",
+   "label": "Doors and last words",
+   "plain": "Digs answered with digs turn into a fight for the last word, someone walks out, and the door between them is shut until a hand touches it.",
+   "proximities": [
+    "meant-for-another-last-word",
+    "last-word-walk-out",
+    "door-shut-loneliness",
+    "door-touch-tenderness"
+   ],
+   "links": [
+    "p:meant-for-another-last-word",
+    "p:last-word-walk-out",
+    "p:door-shut-loneliness",
+    "p:door-touch-tenderness"
    ]
   },
   {

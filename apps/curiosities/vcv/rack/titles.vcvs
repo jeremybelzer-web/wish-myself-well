@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 7, CC 49 to 64\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 Words that act out their meaning\n   9 Texts on screen\n  10 Name card for a new face\n  11 When the title appears\n  12 suite: Comedy punch\n  13 suite: Reaction comedy\n  14 suite: Life on screens\n  15 suite: Meet the crew\n  16 pair: When the picture freezes, a title appears\nCV-CC 2: PORT 2 (your second cable), MIDI channel 7, CC 65 to 80\n   1 pair: When the joke pays off, a mood pops onto a face\n   2 pair: When someone gets angry, steam pops onto their face\n   3 pair: When an outro effect closes the film, an end card follows\n   4 pair: When captions appear word by word, eyes stay glued to the screen\n   5 pair: When the text is in comic-book style, the comedy goes cartoon\n   6 pair: When stickers and emoji pile up, the laughs speed up\n   7 pair: When a chapter card appears, the story stops and restarts\n   8 pair: When someone shouts, the words act it out\n   9 pair: When a text is typed and deleted, the wait for a reply grows\n  10 pair: When the messages pile up, a secret slips out\n  11 pair: When the name cards get cheeky, the laughs come faster\n  12 pair: When the title comes late, it lands on a shock\n  13 pair: When the opening grabs hard, the title slams in\n  14 pairs: Words that point\n  15 pairs: Phone comedy reactions\n  16 pairs: The unsent message"
+    "text": "TEXT & CAPTIONS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 8, CC 49 to 64\n   1 On-screen text\n   2 Captions\n   3 Text style\n   4 Stickers and emoji\n   5 Mood sticker on a face\n   6 End card\n   7 Chapter cards\n   8 Words that act out their meaning\n   9 Texts on screen\n  10 Name card for a new face\n  11 When the title appears\n  12 suite: Comedy punch\n  13 suite: Reaction comedy\n  14 suite: Life on screens\n  15 suite: Meet the crew\n  16 pair: When the picture freezes, a title appears\nCV-CC 2: PORT 2 (your second cable), MIDI channel 8, CC 65 to 80\n   1 pair: When the joke pays off, a mood pops onto a face\n   2 pair: When someone gets angry, steam pops onto their face\n   3 pair: When an outro effect closes the film, an end card follows\n   4 pair: When captions appear word by word, eyes stay glued to the screen\n   5 pair: When the text is in comic-book style, the comedy goes cartoon\n   6 pair: When stickers and emoji pile up, the laughs speed up\n   7 pair: When a chapter card appears, the story stops and restarts\n   8 pair: When someone shouts, the words act it out\n   9 pair: When a text is typed and deleted, the wait for a reply grows\n  10 pair: When the messages pile up, a secret slips out\n  11 pair: When the name cards get cheeky, the laughs come faster\n  12 pair: When the title comes late, it lands on a shock\n  13 pair: When the opening grabs hard, the title slams in\n  14 pairs: Words that point\n  15 pairs: Phone comedy reactions\n  16 pairs: The unsent message"
    },
    "pos": [
     0,
@@ -45,7 +45,7 @@
      64
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
@@ -77,7 +77,7 @@
      80
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
