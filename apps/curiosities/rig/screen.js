@@ -113,8 +113,10 @@
     /* Closed: a slim bar under the Player. Open (on wide screens): the 3D view floats as a small window over the
        Screen that can be dragged anywhere, so the viewers, the Momentum column and the Details keep their room.
        On narrow screens it opens in place under the Player. */
-    st.textContent = `.r3s{font-size:.8rem;border-top:1px solid #8884;padding:.3rem .5rem}
-.r3s-bar{display:flex;flex-wrap:wrap;gap:.3rem .7rem;align-items:center}
+    st.textContent = `.r3s{font-size:.8rem;border-top:1px solid #8884;padding:.12rem .5rem}
+.r3s-bar{display:flex;flex-wrap:nowrap;gap:.6rem;align-items:center;white-space:nowrap;line-height:1.25}
+.r3s-bar small{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.r3s-bar button{margin-left:auto;padding:.05rem .5rem;font-size:.75rem;line-height:1.25}
 .r3s-bar b{font-weight:600}
 .r3s-bar small{opacity:.7}
 .r3s-on .r3s-bar small{display:none}

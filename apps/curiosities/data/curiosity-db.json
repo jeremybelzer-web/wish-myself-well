@@ -309,7 +309,9 @@
      "from": "whoever is shown",
      "to": "the fourth character",
      "curve": "steps",
-     "unordered": true
+     "unordered": true,
+     "lane": true,
+     "track": "camera"
     },
     {
      "id": "push",
@@ -2582,7 +2584,9 @@
      "from": "stays put",
      "to": "the back",
      "curve": "steps",
-     "unordered": true
+     "unordered": true,
+     "lane": true,
+     "track": "character"
     },
     {
      "id": "push",
@@ -4355,7 +4359,9 @@
      "from": "anywhere",
      "to": "outside",
      "curve": "steps",
-     "unordered": true
+     "unordered": true,
+     "lane": true,
+     "track": "master"
     },
     {
      "id": "push",
@@ -5244,7 +5250,9 @@
      "from": "face to face",
      "to": "huddle",
      "curve": "steps",
-     "unordered": true
+     "unordered": true,
+     "lane": true,
+     "track": "master"
     },
     {
      "id": "seated",
@@ -5256,7 +5264,9 @@
      ],
      "from": "standing",
      "to": "sitting",
-     "curve": "linear"
+     "curve": "linear",
+     "lane": true,
+     "track": "character"
     },
     {
      "id": "push",
@@ -5350,7 +5360,9 @@
      ],
      "from": "no one meets",
      "to": "both hold",
-     "curve": "linear"
+     "curve": "linear",
+     "lane": true,
+     "track": "master"
     },
     {
      "id": "hold",
@@ -5389,7 +5401,9 @@
      ],
      "from": "listening",
      "to": "speaking",
-     "curve": "linear"
+     "curve": "linear",
+     "lane": true,
+     "track": "character"
     },
     {
      "id": "push",
