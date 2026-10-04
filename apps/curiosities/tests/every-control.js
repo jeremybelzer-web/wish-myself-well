@@ -1,6 +1,7 @@
 /* Every control on every page, in a real browser:
      node apps/curiosities/tests/every-control.js [--width 1400] [--three three.min.js] [--only "Emotion,Prism"]
-       [--max 250] [--jobs 4] [--all] [--debug] [--out report.json]
+       [--max 250] [--jobs 4] [--part 1/2] [--all] [--debug] [--out report.json]
+   --part k/n  only every n-th page, starting at the k-th, so a long run can be split across machines.
    (needs Playwright and Chromium; set NODE_PATH to where Playwright is installed if it is not local).
 
    Opens the app with nothing saved (a fresh browser profile per page, --jobs pages at a time), then for each page (My film, Storyboard, every workspace in the bar, every
@@ -26,6 +27,7 @@ const ONLY = arg("--only", "").split(",").filter(Boolean);
 const MAX = Number(arg("--max", 250));
 const OUT = arg("--out", "");
 const JOBS = Number(arg("--jobs", 4));
+const [PART, PARTS] = arg("--part", "1/1").split("/").map(Number);
 const DEBUG = args.includes("--debug");
 /* Grids repeat one control per panel or scene; by default only the first of each is used. --all uses every one. */
 const ALL = args.includes("--all");
@@ -236,7 +238,7 @@ async function testPage(browser, url, [name, kind, key]) {
     pages.push(["Screen tab: " + label, "screentab", id]);
   await scout.context.close();
 
-  const todo = pages.filter(([name]) => !ONLY.length || ONLY.some((w) => name.includes(w)));
+  const todo = pages.filter(([name]) => !ONLY.length || ONLY.some((w) => name.includes(w))).filter((p, i) => i % PARTS === PART - 1);
   await Promise.all(
     Array.from({ length: Math.max(1, JOBS) }, async () => {
       while (todo.length) {
