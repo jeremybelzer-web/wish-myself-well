@@ -144,6 +144,39 @@ const OTHERS = [
     const r2 = await page.evaluate((t) => CurioRigScene.read(t), OTHERS[1]);
     ok(r2.steps[0].walk && r2.steps[0].walk.to === 1 && r2.steps[0].move === "point" && r2.steps.length === 2, "walks over to Juno and points: one walk that ends with the point");
 
+    /* a move after a walk waits for the walk: on the timeline the walk's step lasts as many moments as the walk
+       takes (worked out here on its own, from staging.js's marks and its 1.15 m a second), and the shrug starts
+       on a moment after they arrive, never at the start of the walk; the lanes stay the same ones */
+    const WALKS = [
+      "Ida (red hair) and Nessa (black hair) stand far apart. Ida walks over to Nessa and shrugs.",
+      "Ida (red hair) and Nessa (black hair) stand far apart. Ida walks over to Nessa, then shrugs.",
+      "Ida (red hair) walks over to Nessa (black hair) and shrugs.",
+      "Ida (red hair) walks over to Nessa (black hair), then shrugs.",
+    ];
+    const wk = await page.evaluate((list) => {
+      const B = CurioRigScene;
+      const St = CurioRigStaging;
+      return list.map((t) => {
+        const p = B.read(t);
+        const L = B.lanesOf(p);
+        const ida = L.chars[0].lanes;
+        const walkAt = ida["characterPath.to"].indexOf("@1");
+        const shrugAt = ida["actingLens.move"].findIndex((v, j) => v === "shrug" && ida["actingLens.cue"][j] === "go");
+        const pr = St.PRESETS.find((x) => x.id === (p.preset || "face to face"));
+        const scale = St.SLIDERS[0].scale;
+        const d = St.meters(scale.indexOf(pr.dist) / (scale.length - 1));
+        const m = St.layout(pr.id, 2, d, false);
+        const gap = Math.hypot(m[0].x - m[1].x, m[0].z - m[1].z);
+        const secs = Math.max(0, gap - Math.min(d, St.meters(scale.indexOf("personal") / (scale.length - 1)))) / 1.15;
+        return { preset: p.preset, steps: p.steps.length, n: L.n, walkAt, shrugAt, at: L.steps, arrive: walkAt * L.moment + secs, shrug: shrugAt * L.moment, walks: ida["characterPath.to"].filter((v) => v !== "stays put").length, shrugs: ida["actingLens.move"].filter((v) => v === "shrug").length, ids: Object.keys(ida).sort().join() };
+      });
+    }, WALKS);
+    wk.forEach((w, k) =>
+      ok(w.walkAt === 0 && w.shrugAt > w.walkAt && w.shrug >= w.arrive && w.walks === 1 && w.shrugs === 1, `"${WALKS[k].replace(/ \([a-z ]+\)/g, "")}": the walk starts at moment ${w.walkAt + 1}, Ida gets there at ${w.arrive.toFixed(1)} s, the shrug starts at moment ${w.shrugAt + 1} (${w.shrug.toFixed(1)} s), after she arrives (${w.n} moments, ${w.preset || "no staging words"})`)
+    );
+    ok(wk[0].shrugAt >= 4 && wk[1].shrugAt === wk[0].shrugAt && wk[1].at[1].at === wk[1].shrugAt, `far apart, the walk lasts ${wk[0].shrugAt} moments in both wordings, and "then shrugs" is its own step starting when she arrives`);
+    ok(wk.every((w) => w.ids === "actingLens.cue,actingLens.move,characterPath.to"), `the lanes are the same ones (${wk[0].ids})`);
+
     await page.evaluate(() => document.querySelector("#lib-menu [data-rig3d]").click());
     await page.waitForSelector(".rig-dlg[open] canvas");
     await page.evaluate(() => CurioRig.current().ready);
@@ -228,6 +261,32 @@ const OTHERS = [
         ok(L.actors.every((a) => a.parts > 0 && a.drawn === a.parts), `beat ${k + 2}: the pencil look is on every actor`);
         if (k === 2) ok(L.actors.every((a) => a.happy === 1), "everyone laughs: all three end very happy");
       }
+
+      /* a walk then a shrug, played in the view: the shrug starts once Ida has got to Nessa */
+      await build(WALKS[1]);
+      const timing = await page.evaluate(
+        () =>
+          new Promise((done) => {
+            const ctx = CurioRig.current().ctx;
+            CurioRigScene.play(ctx);
+            let walked = false;
+            let arrive = null;
+            let shrug = null;
+            const t0 = performance.now();
+            const go = () => {
+              const a = CurioRigStaging.actors({ ctx });
+              const g = CurioRig.gestures.state({ ctx }) || {};
+              if (a && a[0].walking) walked = true;
+              if (walked && arrive == null && a && !a[0].walking) arrive = ctx.clock;
+              if (shrug == null && g.playing === "shrug") shrug = ctx.clock;
+              if ((shrug != null && arrive != null) || performance.now() - t0 > 30000) return done({ walked, arrive, shrug, gap: a ? Math.hypot(a[0].x - a[1].x, a[0].z - a[1].z) : 0 });
+              requestAnimationFrame(go);
+            };
+            go();
+          })
+      );
+      ok(timing.walked && timing.arrive != null && timing.shrug != null && timing.shrug >= timing.arrive && timing.gap < 1.5, `played in the view, Ida walks over to Nessa (${timing.gap.toFixed(2)} m apart at the end), then shrugs once she is there (the shrug starts ${timing.arrive != null && timing.shrug != null ? (timing.shrug - timing.arrive).toFixed(2) : "?"} s after she arrives)`);
+      await waitDone();
 
       /* 5: the example again; nothing left behind */
       await build(await page.evaluate(() => CurioRigScene.EXAMPLE));

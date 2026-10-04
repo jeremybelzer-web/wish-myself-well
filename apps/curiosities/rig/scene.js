@@ -20,7 +20,8 @@
      A double take also looks surprised.
    - acting moves (rig/gestures.js), in order: anything gestures.js reads ("does a double take", "shrugs").
    Each clause is one step; steps play one after another, each as long as its move (or about a second and a
-   half), on the 3D view's own clock. The "Read as" list shows what each part understood, and anything ignored.
+   half), on the 3D view's own clock. A walk with an acting move in it or after it ("walks over to Nessa and
+   shrugs", "walks over to Nessa, then shrugs") lasts until the walker gets there: the shrug plays on arriving. The "Read as" list shows what each part understood, and anything ignored.
    "Play the beat" builds what changed and plays it from the start; "Send to the storyboard as a flip book"
    plays it and sends drawings of it (rig/snapshot.js, up to 24, as one new scene) to the storyboard.
    Free and on this device; nothing is sent anywhere.
@@ -431,6 +432,62 @@
     }
   }
 
+  /* How long each step's walk takes, worked out the way rig/staging.js walks (1.15 m a second at a normal pace,
+     stopping at talking distance from a person) from where everyone stands for the beat's staging, plus a little
+     to start and turn. A walk "waits" when an acting move comes in the same step ("walks over to Nessa and
+     shrugs") or later ("walks over to Nessa, then shrugs"): the walk's step then lasts until they get there, and
+     the move plays after, never at the start of the walk. -> [{ secs, wait }] per step */
+  const WALK_SPEED = 1.15;
+  /* one moment of the Screen's timeline at its normal speed (screen/ui.js plays a moment every 1.1 seconds) */
+  const MOMENT = 1.1;
+  function walkTimes(plan) {
+    const out = plan.steps.map(() => ({ secs: 0, wait: false }));
+    const n = plan.cast.length;
+    if (n < 2) return out;
+    const St = Stg();
+    let pos = null;
+    let near = 1.15;
+    let gap = 1.15;
+    if (St && St.layout && St.meters && St.PRESETS && St.SLIDERS) {
+      const scale = St.SLIDERS[0].scale;
+      const pr = St.PRESETS.find((x) => x.id === plan.preset);
+      const at = (w) => St.meters(Math.max(0, scale.indexOf(w)) / (scale.length - 1));
+      near = at("personal");
+      gap = at(pr ? pr.dist : "personal");
+      try {
+        pos = St.layout(pr ? pr.id : "face to face", n, gap, false).map((p) => ({ x: p.x, z: p.z }));
+      } catch (e) {
+        pos = null;
+      }
+    }
+    plan.steps.forEach((s, k) => {
+      if (!s.walk) return;
+      out[k].wait = plan.steps.slice(k).some((x) => x.move);
+      if (!pos) return void (out[k].secs = 2.6);
+      let far = 0;
+      s.who.forEach((i) => {
+        const me = pos[i];
+        if (!me) return;
+        const w = s.walk.to;
+        let to = null;
+        if (typeof w === "number" && pos[w] && w !== i) {
+          const b = pos[w];
+          const dx = me.x - b.x;
+          const dz = me.z - b.z;
+          const L = Math.hypot(dx, dz) || 1;
+          const stop = Math.max(0.5, Math.min(gap, near, L));
+          to = { x: b.x + (dx / L) * stop, z: b.z + (dz / L) * stop };
+        } else if (w === "back") to = { x: me.x, z: me.z - 1.8 };
+        else if (w && typeof w.x === "number") to = { x: w.x, z: w.z };
+        if (!to) return;
+        far = Math.max(far, Math.hypot(to.x - me.x, to.z - me.z));
+        pos[i] = to;
+      });
+      out[k].secs = far / WALK_SPEED + 0.4;
+    });
+    return out;
+  }
+
   /* ---------- per view ---------- */
   const STATE = new WeakMap();
   const st = (ctx) => {
@@ -645,9 +702,13 @@
     }
     const q = [];
     let t = 0.4;
+    /* a walk with a move in it or after it holds the beat's clock until the walkers get there (see walkTimes) */
+    const walks = walkTimes(plan);
+    let walking = 0;
     plan.steps.forEach((s, k) => {
       let d = 0.9;
       const who = s.who;
+      const wait = s.walk && St && n > 1 && walks[k].wait;
       q.push({
         at: t,
         fn: () => {
@@ -673,26 +734,39 @@
               St.walkTo(i, to, { ctx }, s.move || "");
             } else if (s.move && c && R.gestures) R.gestures.play({ ctx: c }, s.move);
           });
+          if (wait && S.run) S.run.wait = { who: who.slice(), until: ctx.clock + walks[k].secs + 8 };
         },
       });
       if (s.say) d = Math.max(d, 1.5);
       if (s.move) d = Math.max(d, moveLength(ctx, s.move) + 0.15);
       if (s.feel.length && !s.move) d = Math.max(d, 1.3);
       if (s.sit || s.stand) d = Math.max(d, 1.2);
-      if (s.walk) d = Math.max(d, 2.2 + (s.move ? moveLength(ctx, s.move) : 0));
+      if (wait) {
+        /* the clock waits while they walk; the step goes on for the move they make on arriving */
+        d = s.move ? moveLength(ctx, s.move) + 0.15 : 0.3;
+        walking += walks[k].secs;
+      } else if (s.walk) d = Math.max(d, 2.2 + (s.move ? moveLength(ctx, s.move) : 0));
       t += d;
     });
     const total = t + 0.6;
-    S.run = { t0: ctx.clock, q, total };
+    S.run = { t0: ctx.clock, q, total, wait: null };
     S.plays++;
-    say(ctx, plan.steps.length ? `Playing the beat (${total.toFixed(1)} seconds).` : "Nothing to play yet: say who does what (Nessa says something; Ida laughs).");
-    return total;
+    const secs = total + walking;
+    say(ctx, plan.steps.length ? `Playing the beat (${secs.toFixed(1)} seconds).` : "Nothing to play yet: say who does what (Nessa says something; Ida laughs).");
+    return secs;
   }
   function tick(ctx, dt) {
     const S = st(ctx);
     const r = S.run;
     if (!r) return;
     if (S.hold) r.t0 += dt || 0; /* held: the beat waits where it is */
+    else if (r.wait) {
+      /* a walk the next move waits for: the beat's clock stands still until everyone walking gets there */
+      const St = Stg();
+      const all = St && St.actors ? St.actors({ ctx }) : null;
+      if (all && ctx.clock < r.wait.until && r.wait.who.some((i) => all[i] && all[i].walking)) r.t0 += dt || 0;
+      else r.wait = null;
+    }
     const t = ctx.clock - r.t0;
     while (r.q.length && t >= r.q[0].at) {
       try {
@@ -729,7 +803,9 @@
   }
 
   /* ---------- putting the beat on the timeline ----------
-     The beat becomes nodes on the Screen's curiosity lanes, one moment (row) per step, starting at the playhead,
+     The beat becomes nodes on the Screen's curiosity lanes, one moment (row) per step, starting at the playhead
+     (a walk an acting move waits for takes as many moments as the walk does, and a move in its clause plays on
+     the moment after they arrive; lanesOf's steps say where each step and move landed),
      as one undo step. Every character in it gets a character track (found by name, else added) with its own
      lanes, a value on every moment of the beat so nothing ramps in between: the feelings (feelingFaceLens), the
      acting move (actingLens.move, with Play it, actingLens.cue, on go where a move starts), who is speaking
@@ -776,15 +852,30 @@
   }
 
   /* What the beat puts on each lane: { n, chars: [{ i, lanes: { id: [value per moment] } }], film: { id: { k: v } },
-     camera: { id: { k: v } } } (k: the moment of the beat, 0 is the playhead). Pure: tests read it too. */
+     camera: { id: { k: v } }, steps: [{ at, move, walk }], moment } (k: the moment of the beat, 0 is the playhead; at and
+     move: the moments a step starts and its move plays; walk: its walk in seconds). Pure: tests read it too. */
   function lanesOf(plan) {
-    const n = Math.max(1, plan.steps.length);
     const cast = Math.max(1, plan.cast.length);
     const used = [...new Set(plan.steps.flatMap((s) => s.feel.map((x) => x[0])))];
     const moves = plan.steps.some((s) => s.move);
     const speaks = cast > 1 && plan.steps.some((s) => s.say || s.look != null);
     const walks = cast > 1 && plan.steps.some((s) => s.walk);
     const sits = plan.sit && plan.cast.length > 0;
+    /* the moments of each step: one, except a walk a move waits for (walkTimes), which lasts as many moments as
+       the walk takes; a move in the walk's own clause gets the moment after they arrive */
+    const times = walks ? walkTimes(plan) : plan.steps.map(() => ({ secs: 0, wait: false }));
+    const at = [];
+    const moveAt = [];
+    let m = 0;
+    plan.steps.forEach((s, k) => {
+      at[k] = m;
+      if (walks && s.walk && times[k].wait) {
+        const span = Math.max(1, Math.ceil(times[k].secs / MOMENT));
+        moveAt[k] = m + span;
+        m += span + (s.move ? 1 : 0);
+      } else (moveAt[k] = m), m++;
+    });
+    const n = Math.max(1, m);
     const chars = [];
     for (let i = 0; i < cast; i++) chars.push({ i, lanes: {} });
     chars.forEach((c) => {
@@ -805,17 +896,19 @@
         if (s.sit) sitting.add(i);
         if (s.stand) sitting.delete(i);
       });
-      chars.forEach((c) => {
-        used.forEach((f) => (c.lanes["feelingFaceLens." + f][k] = AMOUNT[Math.round(clamp(now[c.i][f] || 0, 0, 1) * 3)]));
-        const mine = s.move && s.who.includes(c.i);
-        if (moves) (c.lanes[MOVE][k] = mine ? s.move : "none"), (c.lanes[CUE][k] = mine ? "go" : "wait");
-        if (speaks) c.lanes[SPEAKING][k] = spk === c.i ? "speaking" : "listening";
-        if (sits) c.lanes[SEATED][k] = sitting.has(c.i) ? "sitting" : "standing";
-        if (walks) {
-          const w = s.walk && s.who.includes(c.i) ? s.walk : null;
-          c.lanes[WALK_TO][k] = !w ? "stays put" : typeof w.to === "number" ? "@" + w.to : w.to === "back" ? "the back" : w.to.z > 1 ? "the front" : "the middle";
-        }
-      });
+      const end = k + 1 < plan.steps.length ? at[k + 1] : n;
+      for (let j = at[k]; j < end; j++)
+        chars.forEach((c) => {
+          used.forEach((f) => (c.lanes["feelingFaceLens." + f][j] = AMOUNT[Math.round(clamp(now[c.i][f] || 0, 0, 1) * 3)]));
+          const mine = s.move && s.who.includes(c.i) && j === moveAt[k];
+          if (moves) (c.lanes[MOVE][j] = mine ? s.move : "none"), (c.lanes[CUE][j] = mine ? "go" : "wait");
+          if (speaks) c.lanes[SPEAKING][j] = spk === c.i ? "speaking" : "listening";
+          if (sits) c.lanes[SEATED][j] = sitting.has(c.i) ? "sitting" : "standing";
+          if (walks) {
+            const w = s.walk && s.who.includes(c.i) && j === at[k] ? s.walk : null;
+            c.lanes[WALK_TO][j] = !w ? "stays put" : typeof w.to === "number" ? "@" + w.to : w.to === "back" ? "the back" : w.to.z > 1 ? "the front" : "the middle";
+          }
+        });
     });
     if (!plan.steps.length) chars.forEach((c) => Object.keys(c.lanes).forEach((id) => (c.lanes[id] = [])));
     const film = {};
@@ -834,12 +927,13 @@
       }
     }
     const camera = {};
-    (plan.camera || []).forEach((v, k) => v && Object.keys(v).forEach((id) => ((camera[id] = camera[id] || {})[k] = v[id])));
+    (plan.camera || []).forEach((v, k) => v && Object.keys(v).forEach((id) => ((camera[id] = camera[id] || {})[at[k] != null ? at[k] : k] = v[id])));
     /* the beat starts from a plain shot (wide on everyone, or medium on one) on every camera lane it moves */
     const start = camStart(plan);
     if (camera[FRAMES]) Object.keys(camera[FRAMES]).forEach((k) => (camera[FRAMES][k] = "@" + camera[FRAMES][k]));
     Object.keys(camera).forEach((id) => camera[id][0] == null && (camera[id][0] = id === "cameraMove" ? "none" : id === FRAMES ? "whoever is shown" : start[id]));
-    return { n, chars, film, camera };
+    /* steps: where each step starts and where its move plays, in moments, and how long its walk takes (seconds) */
+    return { n, chars, film, camera, steps: plan.steps.map((s, k) => ({ at: at[k], move: s.move ? moveAt[k] : null, walk: s.walk ? times[k].secs : 0 })), moment: MOMENT };
   }
 
   /* Write the beat at the playhead (or opts.row, a moment's index) as one undo step.
