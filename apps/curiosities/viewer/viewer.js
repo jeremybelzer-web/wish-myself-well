@@ -74,7 +74,7 @@
   const ADDABLE = ["person", "box", "ball", "tree", "lamp", "building"];
   /* Hooks for add-ons (viewer/build.js): extra tabs, a tool that takes over the pointer, drawings over the
      picture, extra rows in the "In the scene" list, and keys. */
-  const HOOK = { tabs: [], tool: null, over: [], things: [], keys: [], draw: [], change: [], pose: [], parts: [] };
+  const HOOK = { tabs: [], tool: null, over: [], things: [], keys: [], draw: [], change: [], pose: [], parts: [], play: [] };
   /* more poses for people (viewer/build.js adds run, lie down, swim ...): name -> fn(phase) giving limb angles */
   const POSE_FX = {};
   const POSES = [
@@ -606,6 +606,13 @@
   let playing = false;
   let speed = 1;
   let loop = true;
+  /* when you stop: go back to where you pressed Play ("replay", the default) or stay where it stopped ("advance") */
+  const AFTERSTOP_KEY = "curiosities-viewer-afterstop-v1";
+  let afterStop = "replay";
+  try {
+    if (localStorage.getItem(AFTERSTOP_KEY) === "advance") afterStop = "advance";
+  } catch (e) {}
+  let playFrom = null;
   let upMeans = "floor"; /* the pad's up and down: "floor" (farther and nearer) or "air" (lift and lower) */
   let step = 0.3;
   let tab = "move";
@@ -1614,6 +1621,7 @@
             <select data-k="winmode" title="How to see many windows: fit them all on screen, or keep one big and swipe its top edge to see the others"><option value="fit">Fit all windows on screen</option><option value="swipe">Keep size, swipe the top edge</option></select>
             <select data-k="speed" title="How fast it plays"><option value="0.5">½ speed</option><option value="1" selected>Normal speed</option><option value="2">2× speed</option></select>
             <label title="Start again at the end"><input type="checkbox" data-k="loop" checked /> Loop</label>
+            <select data-k="afterstop" title="What happens when you press Pause"><option value="replay"${afterStop === "replay" ? " selected" : ""}>Pause: back to where I pressed Play</option><option value="advance"${afterStop === "advance" ? " selected" : ""}>Pause: stay where it stopped</option></select>
           </div>
         </section>
         <aside class="cv-pane cv-details" aria-label="Details">
@@ -2234,9 +2242,9 @@
 
   /* ---------- actions ---------- */
   function selectPanel(i) {
+    setPlaying(false);
     cur = clamp(i, 0, film.panels.length - 1);
     T = starts()[cur];
-    setPlaying(false);
     drawAll();
     const el = root.querySelector(`.cv-card[data-i="${cur}"]`);
     if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -2325,9 +2333,19 @@
     bird: { height: 86, tilt: 0 },
     dutch: { tilt: 18 },
   };
+  function playHooks() {
+    HOOK.play.forEach((fn) => {
+      try {
+        fn(playing, T);
+      } catch (e) {}
+    });
+  }
   function setPlaying(on) {
     if (on && T >= total() - 0.01) T = 0;
+    const was = playing;
     playing = !!on;
+    if (playing && !was) playFrom = T;
+    if (was !== playing) playHooks();
     if (!playing) {
       const s = starts();
       const at = panelAt(T).i;
@@ -2338,6 +2356,17 @@
       last = performance.now();
       requestAnimationFrame(tick);
     } else draw();
+  }
+  /* Play / Pause from the button or the space bar: pausing goes back to where Play was pressed unless
+     "keep advancing" is chosen */
+  function togglePlay() {
+    if (!playing) return setPlaying(true);
+    setPlaying(false);
+    if (afterStop === "replay" && playFrom != null) {
+      T = clamp(playFrom, 0, total());
+      cur = panelAt(T).i;
+      drawAll();
+    }
   }
   let last = 0;
   function tick(now) {
@@ -2354,6 +2383,7 @@
         T = total() - 1e-6;
         playing = false;
         drawBar();
+        playHooks();
       }
     }
     const now2 = panelAt(T).i;
@@ -2448,7 +2478,7 @@
     const p = film.panels[cur];
     switch (act) {
       case "play":
-        return setPlaying(!playing);
+        return togglePlay();
       case "addwin":
         return addWin();
       case "unpan":
@@ -2606,6 +2636,13 @@
     if (k === "speed") return (speed = +v);
     if (k === "winmode") return setWinMode(v);
     if (k === "loop") return (loop = el.checked);
+    if (k === "afterstop") {
+      afterStop = v === "advance" ? "advance" : "replay";
+      try {
+        localStorage.setItem(AFTERSTOP_KEY, afterStop);
+      } catch (e) {}
+      return;
+    }
     if (k === "upMeans") return (upMeans = v);
     if (k === "step") return (step = +v);
     if (k === "look") {
@@ -2906,7 +2943,7 @@
     }
     if (e.key === " ") {
       e.preventDefault();
-      return setPlaying(!playing);
+      return togglePlay();
     }
     if (e.key === "q" || e.key === "e") {
       const pl = selPlace();
@@ -3017,6 +3054,7 @@
       changed(true);
     },
     play: (on) => setPlaying(on !== false),
+    togglePlay: () => togglePlay(),
     time: (t) => {
       if (t !== undefined) {
         T = clamp(+t, 0, total());
@@ -3064,6 +3102,9 @@
     stateAt: (t) => stateAt(clamp(+t || 0, 0, total())),
     starts: () => starts(),
     onChange: (fn) => HOOK.change.push(fn),
+    /* onPlay(fn(on, seconds)): told when playing starts or stops; playing() says which */
+    onPlay: (fn) => HOOK.play.push(fn),
+    playing: () => playing,
     under: () => (root ? root.querySelector(".cv-under") : null),
     seek: (t) => selectPanel(panelAt(clamp(Number(t) || 0, 0, total())).i),
     /* the live film and helpers; change the film, then call changed() */

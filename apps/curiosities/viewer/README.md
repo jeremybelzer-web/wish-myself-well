@@ -212,3 +212,19 @@ tapping once per syllable (*Tap it*, or the space bar), or by saying the line in
 the app times the voice from when it starts to when it stops). The note says how long the line takes and
 warns when it runs past the panel. Playing, the words appear at that speed, balloon after balloon.
 Data: `panel.words[k].rate`. Test: `node viewer/tests/speech.js`.
+
+### Comic strip playhead and comic layouts (`viewer/comic.js`)
+
+- An orange playhead (line and ▼) on the storyboard strip, over a ruler with half-second ticks. Drag along
+  the ruler to scrub (the strip scrolls along at its edges); click inside a panel to jump to that moment.
+- Sound while scrubbing and playing (Web Audio, no files): a blip for every syllable of a balloon at its rate
+  of speech, each speaker with their own pitch; a hiss over falling rain; a tick at each new panel. 🔊 Sound
+  in the strip head turns it off (key `curiosities-viewer-sound-v1`).
+- Pause goes back to where Play was pressed (default) or stays where it stopped, picked under the picture
+  (key `curiosities-viewer-afterstop-v1`; `CurioViewer.onPlay`, `playing()`, `togglePlay()`).
+- Read as a comic → Layout: Simple grid, **Modern comic** (frame by shot and story: establishing = full tier,
+  big beats = splash, tiny inserts = small oval inset, high or low angles = tall, close = narrow, short panels
+  smaller, tilted or fisheye = slanted; tiers read left to right, in order) or **Zine** (borderless photocopied
+  cut-outs, a little turned, on paper). Pictures are drawn to each frame's shape. Key `curiosities-viewer-comiclayout-v1`.
+
+Test: `node viewer/tests/comic.js`.

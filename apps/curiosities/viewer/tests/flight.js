@@ -61,14 +61,15 @@ const ok = (cond, msg) => {
       const cv = CurioViewer.live().canvas;
       const d = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
       let sat = 0, n = 0, edge = 0;
-      for (let i = 0; i < d.length; i += 4 * 37) {
+      /* the lower half only: the words (caption, balloons) stay clear on top of filters and blur */
+      for (let i = Math.floor(cv.height / 2) * cv.width * 4; i < d.length; i += 4 * 37) {
         const mx = Math.max(d[i], d[i + 1], d[i + 2]);
         const mn = Math.min(d[i], d[i + 1], d[i + 2]);
         sat += mx - mn;
         n++;
       }
       /* sharpness: sum of differences between neighbours along the middle row */
-      const W = cv.width, y = Math.floor(cv.height * 0.4);
+      const W = cv.width, y = Math.floor(cv.height * 0.75);
       for (let x = 1; x < W; x++) {
         const a = (y * W + x) * 4, b = a - 4;
         edge += Math.abs(d[a] - d[b]) + Math.abs(d[a + 1] - d[b + 1]);
