@@ -122,6 +122,12 @@
       ["G", "Ghosts", "See the moments before and after faintly (Maya's ghosting); not in CapCut", (e) => plain(e) && !e.shiftKey && key(e, "g"), () => ((prefs.ghost = !prefs.ghost), save(), drawViewers())],
       /* e.code, because Option changes e.key on a Mac (⌥K types ˚). */
       ["⌥K", "Show/hide keyframe panel", "Open or fold the picked lane's automation group: a lane for each setting in its window", (e) => e.altKey && !e.shiftKey && !mod(e) && e.code === "KeyK", lk("subs")],
+      /* CapCut lists these four with the keyframe keys; Ease in, Ease out and Easing have no key there either. They
+         do something here (test null: not faded), from a click or a right-click. */
+      ["⇧ click", "Add keyframe on keyframe panel", "A click on a lane in the open automation group (⌥K) adds a node there, with or without ⇧", null],
+      ["(none)", "Ease in", "Right-click a ◇ keyframe on a curiosity's lane, or a line, and pick Ease in", null],
+      ["(none)", "Ease out", "Right-click a ◇ keyframe on a curiosity's lane, or a line, and pick Ease out", null],
+      ["(none)", "Easing", "Right-click a ◇ keyframe on a curiosity's lane, or a line, and pick Ease in and out", null],
     ]],
     ["Player", [
       ["Space", "Play/Pause", "Play the film from the playhead", (e) => plain(e) && e.key === " ", () => play(!timer)],
@@ -3853,8 +3859,9 @@ document.addEventListener("click", function (e) {
     const t = k === "here" ? "A key (node) is set here; click to take it off" : k === "lane" ? "Automated, no key at this moment; click to set one" : "Not automated yet; click to set a key here and put it on the timeline";
     return `<button type="button" class="sc-key ${k || "none"}" data-key="${esc(id)}" title="${t}" aria-label="${esc(t)}: ${esc(labelOf(id))}">${k === "here" ? "◆" : "◇"}</button>`;
   }
-  /* CapCut's ◀ ◆ ▶ beside a keyframed setting: jump to the key before or after the playhead (Details rows only;
-     the windows keep the bare diamond). Shown once the lane has a node; an arrow with no key that way is greyed. */
+  /* CapCut's ◀ ◆ ▶ at the right end of a keyframed setting's row: jump to the key before or after the playhead, in
+     Details and in the windows (Jeremy, 2026-10-04 17:41Z: the keyframe ◇ sits where CapCut's does). Shown once
+     the lane has a node; an arrow with no key that way is greyed. */
   function keyNav(id) {
     const st = E() && E().state();
     const t = st && st.tracks.find((x) => x.curiosities.includes(id));
@@ -3873,6 +3880,20 @@ document.addEventListener("click", function (e) {
       return `<button type="button" class="sc-knav-b" data-key-jump="${j < 0 ? "" : j}" data-dir="${dir}"${j < 0 ? " disabled" : ""} title="${t}" aria-label="${esc(t)}: ${esc(labelOf(id))}">${dir === "prev" ? "◀" : "▶"}</button>`;
     };
     return `<span class="sc-knav">${b("prev", n.prev)}${k}${b("next", n.next)}</span>`;
+  }
+  /* CapCut's section diamond (on "Position & Size" and the like): one ◇ for every setting under a heading. Filled
+     when each of them has a key at the playhead, half-lit when some do. Click sets a key on every setting that has
+     none here; when all have one, it takes them all off. One undo step; a locked lane (🔒) is left alone. In the
+     title bar of a window it covers every setting in the window. */
+  function keyAllBtn(ids, ctx, inTitle) {
+    if (!ctx.edit || !S()) return "";
+    const list = (ids || []).filter((id, i, a) => id && S().known(id) && a.indexOf(id) === i);
+    if (list.length < 2) return "";
+    const n = list.filter((id) => keyState(id) === "here").length;
+    const k = n === list.length ? "here" : n ? "some" : "none";
+    const what = inTitle ? `every setting in this window (${list.length})` : `the ${list.length} settings under this heading`;
+    const t = k === "here" ? `A key is set here on ${what}; click to take them all off` : `Set a key here on ${what}${n ? ` (${n} already have one)` : ""}`;
+    return `<button type="button" class="sc-key sc-keyall ${k}${inTitle ? " sc-keyall-t" : ""}" data-key-all="${esc(list.join(","))}" title="${esc(t)}" aria-label="${esc(t)}">${k === "here" ? "◆" : "◇"}</button>`;
   }
   /* Momentum, the heart of the app: how the picked curiosity moves the story and the audience's attention. */
   function momentumBox(m) {
@@ -3895,10 +3916,10 @@ document.addEventListener("click", function (e) {
         <button type="button" class="sc-cur-name" data-select-cur="${esc(c.id)}" title="${esc(c.plain || "")}">${esc(c.label)}</button>
         ${spark(key, ctx.beats)}<button type="button" class="sc-cur-win sc-finetune" data-open-win="${esc(c.id)}" title="Fine-tune ${esc(c.label)}: every setting inside it (${fine.length + 1}), each its own lane, or say what you want" aria-label="Fine-tune ${esc(c.label)}">Fine-tune</button>${ctx.edit && S() && S().known(key) ? `<button type="button" class="sc-cur-more" data-cur-menu="${esc(key)}" aria-haspopup="menu" aria-expanded="false" title="More for ${esc(c.label)}: use this setting all through the film or in the selected stretch, reset it, or clear its lane" aria-label="More for ${esc(c.label)}">⋯</button>` : ""}
       </div>
-      ${mainS ? `<div class="sc-ctl"><span class="sc-ctl-l">${keyNavBtns(key, ctx)}${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}</div>` : ""}
+      ${mainS ? `<div class="sc-ctl sc-ctl-k"><span class="sc-ctl-l">${esc(mainS.label)}</span>${controlHtml(key, mainS, mainVal, !ctx.edit)}${keyNavBtns(key, ctx)}</div>` : ""}
       ${ctx.insp ? `<div class="sc-take"><label><input type="checkbox" data-take="${esc(key)}" ${take > 0 ? "checked" : ""}> Take into my film</label>${take > 0 ? `<input type="range" min="5" max="100" step="5" value="${Math.round(take * 100)}" data-take-amt="${esc(key)}" aria-label="Blend amount"><output>${Math.round(take * 100)}%</output>` : ""}</div>` : ""}
       ${sel && c.momentum ? momentumBox(c.momentum) : ""}
-      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${keyNavBtns(sliderId(c, s), ctx)}${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}</div>`).join("")}</div>` : ""}
+      ${open ? `<div class="sc-fine">${fine.map((s) => `<div class="sc-ctl sc-ctl-k"><span class="sc-ctl-l" title="${esc(s.plain || "")}">${esc(s.label)}</span>${controlHtml(sliderId(c, s), s, ctx.value(sliderId(c, s)), !ctx.edit)}${keyNavBtns(sliderId(c, s), ctx)}</div>`).join("")}</div>` : ""}
     </div>`;
   }
   /* The ⋯ menu on a Details row (CapCut's "Apply to all" and Reset): four ways to spread or take back one lane's
@@ -4346,13 +4367,13 @@ document.addEventListener("click", function (e) {
       if (!S().known(id)) return "";
       const main = id === key;
       return `<div class="sc-wctl${main ? " main" : ""}${w.focus === id ? " focus" : ""}">
-        <div class="sc-wctl-h"><span>${keyBtn(id, ctx)}<b>${esc(main ? labelOf(id) : sl.label)}</b></span>${spark(id, ctx.beats)}${F && F.midiBtn ? F.midiBtn(id) : ""}<button type="button" data-win-lane="${esc(id)}" title="Put ${esc(sl.label)} on the timeline as its own lane">+ lane</button></div>
+        <div class="sc-wctl-h"><span><b>${esc(main ? labelOf(id) : sl.label)}</b></span>${spark(id, ctx.beats)}${F && F.midiBtn ? F.midiBtn(id) : ""}<button type="button" data-win-lane="${esc(id)}" title="Put ${esc(sl.label)} on the timeline as its own lane">+ lane</button>${keyNavBtns(id, ctx)}</div>
         ${sl.plain ? `<p class="sc-k">${esc(sl.plain)}</p>` : ""}
         <div class="sc-ctl">${controlHtml(id, sl, ctx.value(id), !ctx.edit, true)}</div>
       </div>`;
     };
     return `<section class="sc-win" data-win="${esc(c.id)}" role="dialog" aria-label="${esc(c.label)} window" style="left:${w.x}px;top:${w.y}px;z-index:${60 + z}">
-      <header class="sc-win-h" data-win-drag="${esc(c.id)}">${icon(cat.icon)}<b>${esc(c.label)}</b><small>${esc(cat.label)}${isAdv(c) ? " · ADVANCED" : ""}</small><button type="button" data-win-close="${esc(c.id)}" aria-label="Close the ${esc(c.label)} window">×</button></header>
+      <header class="sc-win-h" data-win-drag="${esc(c.id)}">${icon(cat.icon)}<b>${esc(c.label)}</b><small>${esc(cat.label)}${isAdv(c) ? " · ADVANCED" : ""}</small>${keyAllBtn(sliders.map((s) => sliderId(c, s)), ctx, true)}<button type="button" data-win-close="${esc(c.id)}" aria-label="Close the ${esc(c.label)} window">×</button></header>
       <div class="sc-win-b">
         ${c.plain ? `<p class="sc-win-plain">${esc(c.plain)}</p>` : ""}
         <p class="sc-k">My film, moment ${row + 1}: every change here becomes a node.</p>
@@ -4360,7 +4381,7 @@ document.addEventListener("click", function (e) {
         ${winSpecial(c, ctx)}
         ${F && F.sayHtml ? F.sayHtml(c, faceHelpers(ctx)) : ""}
         ${F ? F.html(c, faceHelpers(ctx, w.focus)) : ""}
-        ${(F && F.grouped(c, block)) || `<div class="sc-wpart"><h4>Every knob and slider</h4>${sliders.map(block).join("")}</div>`}
+        ${(F && F.grouped(c, block, (list) => keyAllBtn(list.map((s) => sliderId(c, s)), ctx))) || `<div class="sc-wpart"><div class="sc-wpart-h"><h4>Every knob and slider</h4>${keyAllBtn(sliders.map((s) => sliderId(c, s)), ctx)}</div>${sliders.map(block).join("")}</div>`}
         ${c.momentum ? momentumBox(c.momentum) : ""}
         <div class="sc-wbtns"><button type="button" data-select-cur="${esc(c.id)}">Look through it</button><button type="button" data-win-curve="${esc(key)}">Shape its curve</button></div>
       </div>
@@ -4817,8 +4838,11 @@ document.addEventListener("click", function (e) {
     const cmds = [];
     const placed = {};
     let full = false;
+    const locked = [];
     list.forEach(([id, v]) => {
       let track = placed[id] || (trackHas(id, st) || {}).id;
+      /* A lane locked on the timeline (🔒) keeps its nodes: a change in Details or a window does not write one. */
+      if (track && window.CurioLanes && window.CurioLanes.isLocked && window.CurioLanes.isLocked(track + "|" + id)) return locked.push(id);
       if (!track) {
         track = window.CurioLanes.trackFor(id, st);
         if (!track) return (full = true);
@@ -4829,11 +4853,48 @@ document.addEventListener("click", function (e) {
       if (val != null) cmds.push({ type: "setPoint", row: r.id, track, curiosity: id, value: val });
     });
     if (full) toast("Every track is full; remove a lane in Arrange first.");
-    if (!cmds.length) return { ok: false };
+    if (locked.length) toast(`${locked.length === 1 ? labelOf(locked[0]) + " is" : locked.length + " settings are"} locked (🔒 by the name on the timeline), so ${locked.length === 1 ? "its keys stay" : "their keys stay"} as they are. Click the 🔒 to unlock.`);
+    if (!cmds.length) {
+      if (locked.length) drawAll(); /* the control springs back to what still plays */
+      return { ok: false, locked: locked.length > 0 };
+    }
     const one = list.length === 1 ? list[0] : null;
     const res = E().send({ type: "batch", label: label || (one ? `${labelOf(one[0])}: ${S().fix(one[0], one[1])} at moment ${row + 1}` : `${list.length} nodes at moment ${row + 1}`), commands: cmds });
     if (!res.ok) toast(res.error);
     return res;
+  }
+  /* Is this setting's lane locked on the timeline (🔒)? */
+  function lockedHere(id, st) {
+    const t = trackHas(id, st || (E() && E().state()));
+    return !!(t && window.CurioLanes && window.CurioLanes.isLocked && window.CurioLanes.isLocked(t.id + "|" + id));
+  }
+  /* CapCut's section ◇: set a key at the playhead on every setting in ids that has none here, or, when they all
+     have one, take them all off. One undo step; locked lanes (🔒) are skipped and the status says so. */
+  function keyAll(ids) {
+    const st = E() && E().state();
+    const r = st && st.rows[row];
+    if (!r || !S()) return;
+    const list = ids.filter((id) => S().known(id));
+    const locked = list.filter((id) => lockedHere(id, st));
+    const free = list.filter((id) => !locked.includes(id));
+    const lockSay = locked.length ? ` ${locked.length === 1 ? labelOf(locked[0]) + " is" : locked.length + " settings are"} locked (🔒 on the timeline), so ${locked.length === 1 ? "it was" : "they were"} left as they are.` : "";
+    if (!free.length) return toast(`Every setting here is locked (🔒 on the timeline), so nothing was changed.`);
+    const allHere = list.every((id) => keyState(id) === "here");
+    if (allHere) {
+      const cmds = free.map((id) => ({ type: "removePoint", row: r.id, track: trackHas(id, st).id, curiosity: id }));
+      const res = E().send({ type: "batch", label: `Take the keys off ${cmds.length} settings at moment ${row + 1}`, commands: cmds });
+      if (!res.ok) return toast(res.error);
+      return toast(`Took the keys off ${cmds.length} settings at moment ${row + 1}.${lockSay}`);
+    }
+    const need = free.filter((id) => keyState(id) !== "here");
+    if (!need.length) return toast(`Every setting that is not locked already has a key at moment ${row + 1}.${lockSay}`);
+    /* The curiosity's own lane shows on the timeline; its other settings' keys go in its automation group, where
+       the lane's ◇ keyframes show them (as a clip's keyframes show in CapCut). */
+    need.forEach((id) => showLane(laneFor(id)));
+    save();
+    const res = setValues(need.map((id) => [id, valueHere(id)]), `Set a key on ${need.length} settings at moment ${row + 1}`);
+    if (res && res.ok) toast(`Set a key on ${need.length} setting${need.length === 1 ? "" : "s"} at moment ${row + 1}.${lockSay}`);
+    drawTimeline();
   }
   /* What the current value of a curiosity is at the playhead in my film. */
   function valueHere(id) {
@@ -4854,6 +4915,13 @@ document.addEventListener("click", function (e) {
     return lane.points[r.id] != null ? "here" : "lane";
   }
   const showLane = (id) => !prefs.lanes.includes(id) && prefs.lanes.push(id);
+  /* The lane a ◇ puts on the timeline: a curiosity's own lane. A setting inside its window (curiosity.setting)
+     keys into that lane's automation group, where the lane's ◇ keyframes show it, as a clip's keyframes show in
+     CapCut; "+ lane" in the window still gives a setting a lane of its own. */
+  const laneFor = (id) => {
+    const top = String(id).split(".")[0];
+    return top !== id && S() && S().known(top) ? top : id;
+  };
   /* A curiosity's settings as tiles, like CapCut's grid of effect thumbnails: every option, or five steps of a range. */
   function tilesOf(id) {
     if (!S() || !S().known(id)) return [];
@@ -4956,6 +5024,7 @@ document.addEventListener("click", function (e) {
       return drawTimeline(), drawLibrary();
     }
     if (d.keyJump) return setRow(Number(d.keyJump));
+    if (d.keyAll) return keyAll(d.keyAll.split(","));
     if ("key" in d && d.key) {
       /* Maya's Set Key: keep the setting at this moment as a node; on a key already here, take it off. */
       const st = E() && E().state();
@@ -4966,7 +5035,7 @@ document.addEventListener("click", function (e) {
       if (t && window.CurioLanes && window.CurioLanes.isLocked(t.id + "|" + d.key)) return toast(`${labelOf(d.key)} is locked on the timeline (🔒 by its name), so its keys stay as they are.`);
       if (keyState(d.key) === "here") E().send({ type: "removePoint", row: r.id, track: t.id, curiosity: d.key, label: `Take the key off ${labelOf(d.key)}` });
       else {
-        showLane(d.key);
+        showLane(laneFor(d.key));
         save();
         setValue(d.key, valueHere(d.key));
         drawTimeline();

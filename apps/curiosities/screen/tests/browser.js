@@ -3829,6 +3829,144 @@ const ok = (cond, msg) => {
     await ctx.close();
   }
 
+  /* CapCut's keyframe ◇ system (Jeremy, 2026-10-04 17:41Z: "the same system so it's easy for users to go from using
+     CapCut to using this app"). The ◇ sits at the right end of each setting's row, with ◀ ▶ around it once the setting
+     has keys, in Details and in the windows; a heading has a section ◇ for every setting under it; a curiosity's lane
+     draws CapCut's keyframe diamonds along its bottom edge: click to go there, drag sideways to move, Delete to take
+     off, right-click for Ease in, Ease out and Ease in and out. Each is one undo step, and a locked lane is left
+     alone. The Ableton line gestures above are unchanged. */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.evaluate(() => window.CurioEngine.reset(window.CurioSeeds.starter()));
+    const undoN = () => p.evaluate(() => window.CurioEngine.history().undo.length);
+    const ptsOf = (key) => p.evaluate((key) => { const st = window.CurioEngine.state(); const t = st.tracks.find((x) => x.curiosities.includes(key)); const l = t && st.lanes[t.id + "|" + key]; return l ? st.rows.map((r, j) => (l.points[r.id] == null ? null : j)).filter((j) => j != null) : []; }, key);
+    const said = () => p.evaluate(() => [(document.querySelector(".sc-toast") || {}).textContent || "", (document.querySelector(".sl-msg") || {}).textContent || ""].join(" | "));
+    /* 1. Where the ◇ sits: the right end of a Details row, after its value. */
+    const placed = await p.evaluate(() => {
+      const k = document.querySelector(".sc-inspector .sc-cur .sc-ctl .sc-key[data-key]");
+      const row = k && k.closest(".sc-ctl");
+      const ctl = row && row.querySelector("input, select, .sc-chips, .sc-toggle, .sc-knob, .sc-steps");
+      if (!k || !ctl) return null;
+      const a = k.getBoundingClientRect(), b = ctl.getBoundingClientRect(), r = row.getBoundingClientRect();
+      return { right: a.left >= b.right - 1, last: row.lastElementChild.contains(k), inRow: a.right <= r.right + 1, labelFirst: !row.querySelector(".sc-ctl-l .sc-key") };
+    });
+    ok(placed && placed.right && placed.last && placed.inRow && placed.labelFirst, "Details: a setting's ◇ sits at the right end of its row, after the value, as in CapCut's Details panel");
+    /* 2. In a window: the ◇ is the last thing on a setting's header row; ◀ ▶ come once it has keys. */
+    await p.evaluate(() => window.CurioScreen.openWin("shotSize"));
+    await p.click('.sc-win [data-win-lane="shotSize"]');
+    const winKey = (id) => p.evaluate((id) => { const k = [...document.querySelectorAll(".sc-win .sc-wctl-h .sc-key[data-key]")].find((b) => b.dataset.key === id); if (!k) return null; const h = k.closest(".sc-wctl-h"); const n = k.closest(".sc-knav"); return { last: h.lastElementChild === (n || k), here: k.classList.contains("here"), arrows: !!n }; }, id);
+    const w0 = await winKey("shotSize.amount");
+    ok(w0 && w0.last && !w0.arrows, "a window: each setting's ◇ is the last thing on its row, with no arrows before it has keys");
+    await p.evaluate(() => window.CurioScreen.setRow(1));
+    await p.evaluate(() => [...document.querySelectorAll(".sc-win .sc-key[data-key]")].find((b) => b.dataset.key === "shotSize.amount").click());
+    await p.evaluate(() => window.CurioScreen.setRow(5));
+    await p.evaluate(() => [...document.querySelectorAll(".sc-win .sc-key[data-key]")].find((b) => b.dataset.key === "shotSize.amount").click());
+    await p.evaluate(() => window.CurioScreen.setRow(3));
+    const w1 = await winKey("shotSize.amount");
+    const nav = await p.evaluate(() => { const n = [...document.querySelectorAll(".sc-win .sc-key[data-key]")].find((b) => b.dataset.key === "shotSize.amount").closest(".sc-knav"); return [n.querySelector('[data-dir="prev"]').dataset.keyJump, n.querySelector('[data-dir="next"]').dataset.keyJump]; });
+    ok(w1 && w1.arrows && w1.last && nav[0] === "1" && nav[1] === "5", "once it has keys, ◀ ◇ ▶ sit at the right end of its row in the window too, pointing at the keys before and after");
+    await p.evaluate(() => [...document.querySelectorAll(".sc-win .sc-key[data-key]")].find((b) => b.dataset.key === "shotSize.amount").closest(".sc-knav").querySelector('[data-dir="next"]').click());
+    ok((await p.evaluate(() => window.CurioScreen.row())) === 5 && (await winKey("shotSize.amount")).here, "▶ in the window jumps to the next key, and the ◇ fills (◆) on it");
+    /* 3. A heading's section ◇ (CapCut's diamond on Position & Size): every setting under it, one undo step. */
+    await p.evaluate(() => window.CurioScreen.setRow(2));
+    const sec = await p.evaluate(() => { const b = document.querySelector(".sc-win .sc-wpart-h [data-key-all]"); return b ? { ids: b.dataset.keyAll.split(","), cls: b.className, head: b.closest(".sc-wpart-h").querySelector("h4").textContent } : null; });
+    ok(sec && sec.ids.length >= 2 && /none|some/.test(sec.cls), `a window's heading (${sec && sec.head}) has a section ◇ for its ${sec && sec.ids.length} settings`);
+    ok(!!(await p.$(".sc-win .sc-win-h [data-key-all]")), "the window's title bar has one for every setting in the window");
+    const hereAll = () => p.evaluate((ids) => ids.map((id) => { const st = window.CurioEngine.state(); const t = st.tracks.find((x) => x.curiosities.includes(id)); const l = t && st.lanes[t.id + "|" + id]; return !!(l && l.points[st.rows[2].id] != null); }), sec.ids);
+    let u0 = await undoN();
+    await p.click(".sc-win .sc-wpart-h [data-key-all]");
+    ok((await hereAll()).every(Boolean) && (await undoN()) === u0 + 1, "a click sets a key at the playhead on every setting under the heading, as one undo step");
+    ok(await p.evaluate(() => { const b = document.querySelector(".sc-win .sc-wpart-h [data-key-all]"); return b.classList.contains("here") && b.textContent === "◆"; }), "then the section ◇ is filled (◆)");
+    u0 = await undoN();
+    await p.click(".sc-win .sc-wpart-h [data-key-all]");
+    ok((await hereAll()).every((x) => !x) && (await undoN()) === u0 + 1, "a click on the filled one takes them all off, as one undo step");
+    /* 4. Locks: the section ◇ leaves a locked lane alone, and a changed value does not write into one. */
+    const LKA = await p.evaluate(() => { const st = window.CurioEngine.state(); const t = st.tracks.find((x) => x.curiosities.includes("shotSize.amount")); return t.id + "|shotSize.amount"; });
+    await p.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), LKA);
+    const amt0 = await ptsOf("shotSize.amount");
+    await p.evaluate(() => window.CurioScreen.setRow(2));
+    await p.click(".sc-win .sc-win-h [data-key-all]");
+    ok(JSON.stringify(await ptsOf("shotSize.amount")) === JSON.stringify(amt0) && /locked/.test(await said()), "the section ◇ leaves a locked (🔒) setting's keys as they are, and says so");
+    await p.evaluate(() => window.CurioEngine.undo());
+    const u1 = await undoN();
+    await p.evaluate(() => { const i = document.querySelector('.sc-win input[data-set="shotSize.amount"]'); i.value = String(Number(i.max) || 100); i.dispatchEvent(new Event("change", { bubbles: true })); });
+    ok(JSON.stringify(await ptsOf("shotSize.amount")) === JSON.stringify(amt0) && (await undoN()) === u1 && /locked/.test(await said()), "changing a locked setting in a window writes no key there, and says why");
+    await p.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], LKA);
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    /* 5. The lane's keyframe diamonds (CapCut's keyframes on a clip). Keys: shotSize at 0 and 4, its amount at 1 and 5. */
+    const LK = await p.evaluate(() => {
+      const E = window.CurioEngine, S = window.CurioScale, st = E.state(), r = st.rows;
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      const lane = st.lanes[t.id + "|shotSize"];
+      E.send({ type: "batch", label: "test keys", commands: Object.keys(lane ? lane.points : {}).map((row) => ({ type: "removePoint", row, track: t.id, curiosity: "shotSize" })).concat([{ type: "setPoint", row: r[0].id, track: t.id, curiosity: "shotSize", value: S.at("shotSize", 0.2) }, { type: "setPoint", row: r[4].id, track: t.id, curiosity: "shotSize", value: S.at("shotSize", 0.8) }]) });
+      const T = window.CurioLanes.tools();
+      T.zoom = 1;
+      T.subs.shotSize = false;
+      window.CurioScreen.setRow(7);
+      return t.id + "|shotSize";
+    });
+    await p.waitForTimeout(100);
+    const diamonds = () => p.evaluate(() => [...document.querySelectorAll('.sl-svg .sl-ckey[data-subdot="shotSize"]')].map((d) => Number(d.dataset.ckey)).sort((a, b) => a - b));
+    ok(JSON.stringify(await diamonds()) === "[0,1,4,5]" && (await p.evaluate(() => document.querySelector(".sl-svg .sl-ckey").tagName === "path")), "the lane draws a ◇ along its bottom edge wherever any of its settings has a key (" + (await diamonds()).join(",") + "), as CapCut does on a clip");
+    const dpos = (j) => p.evaluate((j) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; const d = document.querySelector(`.sl-svg .sl-ckey[data-subdot="shotSize"][data-ckey="${j}"]`); sc.scrollTop = Math.max(0, d.getBBox().y - 60); const r = d.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, j);
+    const colW = await p.evaluate(() => { const a = document.querySelector('.sl-svg .sl-ckey[data-ckey="0"]').getBoundingClientRect(); const b = document.querySelector('.sl-svg .sl-ckey[data-ckey="4"]').getBoundingClientRect(); return (b.x - a.x) / 4; });
+    let d = await dpos(4);
+    u0 = await undoN();
+    await p.mouse.click(d.x, d.y);
+    ok((await p.evaluate(() => window.CurioScreen.row())) === 4 && (await undoN()) === u0 && (await p.evaluate(() => document.querySelector('.sl-ckey[data-ckey="4"]').classList.contains("on"))), "a click on a ◇ moves the playhead there and picks it, changing nothing");
+    /* Drag the ◇ at moment 1 two moments later: the amount key moves to 3, one undo step. */
+    d = await dpos(1);
+    u0 = await undoN();
+    await p.mouse.move(d.x, d.y);
+    await p.mouse.down();
+    await p.mouse.move(d.x + colW, d.y, { steps: 4 });
+    await p.mouse.move(d.x + colW * 2, d.y, { steps: 4 });
+    await p.mouse.up();
+    ok(JSON.stringify(await ptsOf("shotSize.amount")) === "[3,5]" && JSON.stringify(await ptsOf("shotSize")) === "[0,4]" && (await undoN()) === u0 + 1, "dragging a ◇ sideways moves its keys to the new moment, as one undo step (amount now at " + (await ptsOf("shotSize.amount")).join(",") + ")");
+    /* Delete takes off the picked ◇'s keys. */
+    d = await dpos(3);
+    await p.mouse.click(d.x, d.y);
+    u0 = await undoN();
+    await p.keyboard.press("Delete");
+    ok(JSON.stringify(await ptsOf("shotSize.amount")) === "[5]" && (await undoN()) === u0 + 1, "Delete takes the picked ◇'s keys off, as one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+    /* Right-click: Ease in on the line leaving the keyframe, for every setting it stands for. */
+    d = await dpos(0);
+    await p.mouse.click(d.x, d.y, { button: "right" });
+    ok(!!(await p.$('.sl-linemenu [data-m="easeIn"]')) && !!(await p.$('.sl-linemenu [data-m="easeOut"]')) && !!(await p.$('.sl-linemenu [data-m="easeBoth"]')) && !!(await p.$('.sl-linemenu [data-m="remove"]')), "right-clicking a ◇ offers Ease in, Ease out, Ease in and out, and Remove keyframe");
+    u0 = await undoN();
+    await p.click('.sl-linemenu [data-m="easeIn"]');
+    ok(await p.evaluate((lk) => { const st = window.CurioEngine.state(); const c = window.CurioLanes.curves()[lk + "|" + st.rows[0].id + "|" + st.rows[4].id]; return !!c && c.shape === "slowStart"; }, LK) && (await undoN()) === u0 + 1, "Ease in curves the line leaving that keyframe (the same slow start as the line's menu), one undo step");
+    ok(JSON.stringify(await diamonds()) === "[0,3,4,5]", "the curve's in-between points draw no extra ◇");
+    await p.evaluate(() => window.CurioEngine.undo());
+    /* A locked lane keeps its key when a ◇ is dragged; the others move. */
+    await p.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), LK);
+    await p.evaluate(() => window.CurioLanes.tools().subs.shotSize = false);
+    await p.evaluate(() => window.CurioScreen.setRow(7));
+    const both = await p.evaluate((lk) => { const E = window.CurioEngine, st = E.state(); const t = lk.split("|")[0]; E.send({ type: "setPoint", row: st.rows[4].id, track: t, curiosity: "shotSize.amount", value: window.CurioScale.at("shotSize.amount", 0.5) }); return true; }, LK);
+    await p.waitForTimeout(50);
+    d = await dpos(4);
+    await p.mouse.move(d.x, d.y);
+    await p.mouse.down();
+    await p.mouse.move(d.x + colW, d.y, { steps: 4 });
+    await p.mouse.up();
+    ok(both && JSON.stringify(await ptsOf("shotSize")) === "[0,4]" && (await ptsOf("shotSize.amount")).includes(5) && !(await ptsOf("shotSize.amount")).includes(4) && /locked/.test(await said()), "dragging a ◇ leaves a locked lane's key where it is and says so; the other settings' keys move");
+    await p.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], LK);
+    /* The Shortcuts window lists CapCut's other keyframe entries. */
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.click('[data-act="shortcuts"]');
+    const listed = await p.$$eval(".sc-keys-in p", (ps) => ps.map((x) => x.textContent));
+    ok(["Add keyframe on keyframe panel", "Ease in", "Ease out", "Easing"].every((n) => listed.some((t) => t.includes(n))) && listed.some((t) => /^⇧⌥KAdd keyframe/.test(t)) && listed.some((t) => /^⌥KShow\/hide keyframe panel/.test(t)), "the Shortcuts window lists CapCut's keyframe entries: ⇧⌥K, ⌥K, ⇧ click, Ease in, Ease out, Easing");
+    await p.keyboard.press("Escape");
+    await p.screenshot({ path: path.join(SHOTS, "screen-18-capcut-keyframes.png") });
+    await ctx.close();
+  }
+
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
   server.close();

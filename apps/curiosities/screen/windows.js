@@ -152,7 +152,7 @@
       const scale = 0.35 + k * 1.3;
       const person = `<g transform="translate(${8 + x * 144} ${90 - y * 40}) scale(${scale})"><circle cx="0" cy="-34" r="7"/><path d="M0 -27v26M0 -20l-11 11M0 -20l11 11M0 -1l-8 22M0 -1l8 22"/></g>`;
       const sz = isz && sl(c, f.size);
-      return `<div class="cw-frame${h.ctx.edit ? "" : " dis"}"${ix || iy ? ` data-xy="${h.esc(ix || "")}|${h.esc(iy || "")}"` : ""} aria-label="Where it sits in the picture"><svg viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true"><rect class="cw-thirds" x="0" y="0" width="160" height="100"/><path class="cw-thirds" d="M53 0v100M107 0v100M0 33h160M0 67h160"/>${person}</svg></div>${ix || iy ? `<p class="sc-k">Click or drag in the picture to place it${ix && iy ? " across and up" : ix ? " left or right" : " higher or lower"}.</p>` : ""}${sz ? `<div class="sc-ctl"><span class="sc-ctl-l">${h.keyBtn(isz, h.ctx)}${h.esc(sz.label)}</span>${h.controlHtml(isz, sz, h.ctx.value(isz), !h.ctx.edit)}</div>` : ""}`;
+      return `<div class="cw-frame${h.ctx.edit ? "" : " dis"}"${ix || iy ? ` data-xy="${h.esc(ix || "")}|${h.esc(iy || "")}"` : ""} aria-label="Where it sits in the picture"><svg viewBox="0 0 160 100" preserveAspectRatio="none" aria-hidden="true"><rect class="cw-thirds" x="0" y="0" width="160" height="100"/><path class="cw-thirds" d="M53 0v100M107 0v100M0 33h160M0 67h160"/>${person}</svg></div>${ix || iy ? `<p class="sc-k">Click or drag in the picture to place it${ix && iy ? " across and up" : ix ? " left or right" : " higher or lower"}.</p>` : ""}${sz ? `<div class="sc-ctl sc-ctl-k"><span class="sc-ctl-l">${h.esc(sz.label)}</span>${h.controlHtml(isz, sz, h.ctx.value(isz), !h.ctx.edit)}${h.keyBtn(isz, h.ctx)}</div>` : ""}`;
     },
     orbit(c, f, h) {
       const k = (sid) => (f[sid] ? keyOf(c, h, f[sid]) : null);
@@ -271,7 +271,8 @@
     return `<svg viewBox="0 0 24 16" aria-hidden="true"><path d="${P[k] || ""}"/></svg>`;
   }
   /* Groups: the window's "Every knob and slider" under headings; any setting no group names goes in "More". */
-  function grouped(c, block) {
+  /* head(list) (optional): what sits at the right of a heading, the section's ◇ for every setting under it. */
+  function grouped(c, block, head) {
     const sp = spec(c);
     if (!sp || !(sp.groups || []).length) return null;
     const used = new Set();
@@ -283,10 +284,10 @@
     };
     const out = sp.groups.map((g) => {
       const list = (g.sliders || []).map(pick).filter(Boolean);
-      return list.length ? `<div class="sc-wpart"><h4>${escText(g.label)}</h4>${list.map(block).join("")}</div>` : "";
+      return list.length ? `<div class="sc-wpart"><div class="sc-wpart-h"><h4>${escText(g.label)}</h4>${head ? head(list) : ""}</div>${list.map(block).join("")}</div>` : "";
     });
     const rest = (c.sliders || []).filter((s) => !used.has(s.id));
-    if (rest.length) out.push(`<div class="sc-wpart"><h4>More</h4>${rest.map(block).join("")}</div>`);
+    if (rest.length) out.push(`<div class="sc-wpart"><div class="sc-wpart-h"><h4>More</h4>${head ? head(rest) : ""}</div>${rest.map(block).join("")}</div>`);
     return out.join("");
   }
   const escText = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);

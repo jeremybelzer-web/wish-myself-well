@@ -603,6 +603,27 @@
     });
     return out;
   }
+  /* CapCut draws a clip's keyframes as small diamonds along the clip's bottom edge, one wherever any of its
+     settings has a keyframe (Jeremy, 2026-10-04 17:41Z: the ◇ system works like CapCut's). Here a curiosity's lane
+     is the clip and its settings are the master lane and its automation group's sub-lanes. clipKeys(st, lks) ->
+     [{ j, count, lks }]: each moment where one or more of the lanes lks has a node, leaving out the points that only
+     draw a curve. */
+  function clipKeys(st, lks) {
+    const real = {};
+    (lks || []).forEach((lk) => {
+      const lane = lk && st.lanes[lk];
+      if (!lane) return;
+      const all = st.rows.map((r, j) => (lane.points[r.id] != null ? { r: r.id, j, v: lane.points[r.id] } : null)).filter(Boolean);
+      const cp = curvePoints(st, lk, all);
+      real[lk] = new Set(all.filter((p) => !cp.has(p.r)).map((p) => p.r));
+    });
+    const out = [];
+    st.rows.forEach((r, j) => {
+      const hit = Object.keys(real).filter((lk) => real[lk].has(r.id));
+      if (hit.length) out.push({ j, count: hit.length, lks: hit });
+    });
+    return out;
+  }
   function segPath(p, q, mode) {
     if (mode === "hold") return `H${q[0]} V${q[1]}`;
     if (mode === "smooth") return `C${(p[0] + q[0]) / 2} ${p[1]} ${(p[0] + q[0]) / 2} ${q[1]} ${q[0]} ${q[1]}`;
@@ -1876,6 +1897,9 @@
       ".sl-svg .sl-segghost { fill: none; stroke: var(--cc-warm, #ffb347); stroke-width: 2; stroke-dasharray: 5 3; pointer-events: none; }",
       ".sl-svg .sl-hoverval { font-size: 10px; fill: var(--cc-text, #eee); paint-order: stroke; stroke: #0f0f10; stroke-width: 3px; pointer-events: none; }",
       ".sl-svg .sl-subdot { fill: var(--cc-dim, #999); }",
+      ".sl-svg .sl-ckey { fill: #dfe9f0; stroke: #0f0f10; stroke-width: 0.8; cursor: ew-resize; }",
+      ".sl-svg .sl-ckey.on { fill: var(--cc-warm, #ffb347); stroke: #fff; }",
+      ".sl-svg .sl-ckey.drag { fill: var(--cc-accent, #22d3ee); }",
       ".sc-page .sl-hb.sl-hb-switch, .sl-hb.sl-hb-switch { width: auto !important; min-width: 26px !important; padding: 0 4px !important; opacity: 1 !important; border: 1px solid var(--cc-accent, #22d3ee); color: var(--cc-accent, #22d3ee); border-radius: 8px; font-size: 9px; }",
       ".sc-page .sl-hb.sl-hb-switch.on, .sl-hb.sl-hb-switch.on { background: none !important; border-color: var(--cc-dim, #777); color: var(--cc-dim, #777); }",
       ".sl-hb.sl-hb-switch:disabled { opacity: 0.45 !important; }",
@@ -1914,6 +1938,8 @@
     let area = null; /* a selected area: lanes i0 to i1, moments j0 to j1 */
     let seg = null; /* a picked line between two nodes: "track|curiosity|rowA|rowB" */
     let drag = null;
+    let ckSel = null; /* a picked keyframe diamond on a curiosity's lane (CapCut's clip keyframe): { cur, j } */
+    let ckDrag = null;
     let msg = "";
     let geo = null;
     let laneTop = 0;
@@ -2239,12 +2265,18 @@
       });
       /* A master lane whose automation group is folded: small dots along its bottom edge where its settings'
          lanes have nodes (as a folded group of lanes shows them). */
+      /* They are CapCut's keyframe diamonds on a clip: one wherever any of the curiosity's settings (the master lane
+         included) has a key. Click one to pick it and move the playhead there, drag it sideways to move those keys,
+         Delete takes them off, right-click for Ease in, Ease out and Ease in and out. */
       lanes.forEach((ln, i) => {
         if (!ln.subCount || ln.subOpen) return;
-        const cy = yTops[i] + lh - 3;
-        foldDots(st, ln.subRows).forEach((d) =>
-          dots.push(`<circle class="sl-gdot sl-subdot" cx="${d.j * colW + colW / 2}" cy="${cy}" r="2.5" data-gdot="${d.j}" data-subdot="${esc(ln.cur)}"><title>${esc(S().label(ln.cur))}'s automation group (folded): ${d.count} setting${d.count === 1 ? " has a node" : "s have nodes"} at moment ${d.j + 1}. Click to move the playhead here.</title></circle>`)
-        );
+        const cy = yTops[i] + lh - 5;
+        clipKeys(st, clipLks(ln)).forEach((d) => {
+          const cx = d.j * colW + colW / 2;
+          const on = ckSel && ckSel.cur === ln.cur && ckSel.j === d.j;
+          /* Drawn under the nodes (unshift), so a node that sits low on the lane is still the one a press finds. */
+          dots.unshift(`<path class="sl-gdot sl-subdot sl-ckey${on ? " on" : ""}" d="M${cx} ${cy - 4.5} L${cx + 4.5} ${cy} L${cx} ${cy + 4.5} L${cx - 4.5} ${cy} Z" data-gdot="${d.j}" data-subdot="${esc(ln.cur)}" data-ckey="${d.j}"><title>${esc(S().label(ln.cur))}: a keyframe at moment ${d.j + 1} on ${d.count} setting${d.count === 1 ? "" : "s"}. Click to go there; drag sideways to move it; Delete takes it off; right-click for Ease.</title></path>`);
+        });
       });
       /* Proximities: a line from node to node. */
       const laneIx = {};
@@ -2643,6 +2675,15 @@
         return;
       }
       if (!e.target.closest || !e.target.closest(".sl-svg")) return;
+      const ck = e.target.closest("[data-ckey]");
+      if (ck) {
+        /* A keyframe diamond: a click picks it and moves the playhead there; a drag sideways moves its keys. */
+        e.preventDefault();
+        el.focus({ preventScroll: true });
+        ckDrag = { cur: ck.dataset.subdot, j0: Number(ck.dataset.ckey) || 0, j: Number(ck.dataset.ckey) || 0, x0: e.clientX, el: ck, moved: false };
+        return;
+      }
+      ckSel = null;
       const gdot = e.target.closest("[data-gdot]");
       if (gdot) {
         /* A folded group's dot: move the playhead to that moment. */
@@ -2804,6 +2845,19 @@
           return;
         }
       }
+      if (ckDrag) {
+        const dx = e.clientX - ckDrag.x0;
+        if (!ckDrag.moved && Math.abs(dx) < 4) return;
+        ckDrag.moved = true;
+        const n = geo ? geo.n : 1;
+        ckDrag.j = Math.max(0, Math.min(n - 1, ckDrag.j0 + Math.round(dx / (geo ? geo.colW : 40))));
+        if (ckDrag.el && ckDrag.el.isConnected) {
+          ckDrag.el.setAttribute("transform", `translate(${(ckDrag.j - ckDrag.j0) * (geo ? geo.colW : 40)} 0)`);
+          ckDrag.el.classList.add("drag");
+        }
+        say(`Moving ${S().label(ckDrag.cur)}'s keyframe to moment ${ckDrag.j + 1}. Let go to keep it.`);
+        return;
+      }
       if (topDrag) {
         const dx = e.clientX - topDrag.x0;
         const dy = e.clientY - topDrag.y0;
@@ -2896,6 +2950,18 @@
           if (touches.size < 2) pan = null;
           return;
         }
+      }
+      if (ckDrag) {
+        const d = ckDrag;
+        ckDrag = null;
+        if (d.moved && d.j !== d.j0) return moveClipKey(d.cur, d.j0, d.j);
+        ckSel = { cur: d.cur, j: d.j0 };
+        sel = null;
+        seg = null;
+        if (opts.onClip) opts.onClip(d.j0);
+        draw();
+        say(`${S().label(d.cur)}'s keyframe at moment ${d.j0 + 1} is picked: drag it sideways to move it, Delete takes it off, right-click for Ease.`);
+        return;
       }
       if (topDrag) {
         const d = topDrag;
@@ -3083,24 +3149,146 @@
       segGhost(ghostPath(d.i, g.ja, qa, g.jb, qb, g.rec, g.lane.mode), [[nodeKey(d.ra, d.lk), yy(qa)], [nodeKey(d.rb, d.lk), yy(qb)]]);
       say(`Moving both nodes of this line: ${S().at(g.cur, qa)} and ${S().at(g.cur, qb)}. Let go to keep it.`);
     }
-    /* Write a curve into the line sk (the Curves pop-up's Apply, Alt + drag and the ease words all use this):
-       clear the moments between, then bake the curve's points in, as one undo step. pick: { shape, bend }. */
-    function writeCurve(sk, pick, label) {
+    /* ---------- CapCut's keyframe diamonds on a curiosity's lane (its clip) ----------
+       The lanes a curiosity's diamonds stand for: its master lane and its automation group's sub-lanes that have a
+       track. A locked lane (🔒) is left out of every change. */
+    function clipLks(ln) {
+      return [ln.lk].concat((ln.subRows || []).map((r) => r.lk)).filter(Boolean);
+    }
+    function clipOf(cur) {
+      const ln = geo && geo.lanes.find((x) => x && !x.sub && x.cur === cur && x.subRows);
+      return ln ? clipLks(ln) : [];
+    }
+    function clipHere(cur, j) {
+      const st = E().state();
+      const k = clipKeys(st, clipOf(cur)).find((d) => d.j === j);
+      const lks = k ? k.lks : [];
+      return { st, lks: lks.filter((lk) => !isLocked(lk)), locked: lks.filter(isLocked) };
+    }
+    const lockedNote = (locked) => (locked.length ? ` ${locked.length === 1 ? lkName(locked[0]) + " is" : locked.length + " settings are"} locked (🔒), so ${locked.length === 1 ? "it stays" : "they stay"} as ${locked.length === 1 ? "it is" : "they are"}.` : "");
+    /* Drag a diamond sideways: every key it stands for moves from moment j0 to j1, as one undo step. Whatever those
+       lanes had at j1 is replaced, and joins move with their nodes (the area move's rules). */
+    function moveClipKey(cur, j0, j1) {
+      const h = clipHere(cur, j0);
+      if (!h.lks.length) return say(h.locked.length ? lockSay(h.locked[0]) : "That keyframe is gone."), { ok: false };
+      const list = h.lks.map((lk) => ({ lk, track: lk.slice(0, lk.indexOf("|")), cur: lk.slice(lk.indexOf("|") + 1) }));
+      const m = moveAreaCommands(h.st, list, { i0: 0, i1: list.length - 1, j0, j1: j0 }, j1 - j0, false);
+      if (m.error) return say(m.error), { ok: false };
+      if (!m.cmds.length) return { ok: true };
+      const r = send({ type: "batch", label: `Move a keyframe of ${S().label(cur)} to moment ${j1 + 1}`, commands: m.cmds });
+      if (r.ok) {
+        ckSel = { cur, j: j1 };
+        if (opts.onClip) opts.onClip(j1);
+        draw();
+        say(`Moved ${S().label(cur)}'s keyframe (${m.nodes} setting${m.nodes === 1 ? "" : "s"}) from moment ${j0 + 1} to ${j1 + 1}.${m.replaced ? ` It replaced ${m.replaced} key${m.replaced === 1 ? "" : "s"} there.` : ""}${lockedNote(h.locked)}`);
+      }
+      return r;
+    }
+    /* Delete (or the right-click menu) on a picked diamond: take off every key it stands for, joins to them too. */
+    function removeClipKey(cur, j) {
+      const h = clipHere(cur, j);
+      if (!h.lks.length) return say(h.locked.length ? lockSay(h.locked[0]) : "That keyframe is gone."), { ok: false };
+      const r0 = h.st.rows[j].id;
+      const doomed = h.lks.map((lk) => nodeKey(r0, lk));
+      const cmds = [];
+      h.st.links.forEach((l) => {
+        const ends = linkEnds(l);
+        if (ends && ends.some((k) => doomed.includes(k))) cmds.push({ type: "removeLink", link: l.id });
+      });
+      h.lks.forEach((lk) => cmds.push({ type: "removePoint", row: r0, track: lk.slice(0, lk.indexOf("|")), curiosity: lk.slice(lk.indexOf("|") + 1) }));
+      const r = send({ type: "batch", label: `Remove a keyframe of ${S().label(cur)} at moment ${j + 1}`, commands: cmds });
+      if (r.ok) {
+        ckSel = null;
+        draw();
+        say(`Took ${S().label(cur)}'s keyframe off moment ${j + 1} (${h.lks.length} setting${h.lks.length === 1 ? "" : "s"}).${lockedNote(h.locked)}`);
+      }
+      return r;
+    }
+    /* CapCut's Ease in, Ease out and Easing on a keyframe: the line leaving it, on each setting it stands for, gets
+       the same curve the line's right-click menu writes (EASES), all in one undo step. */
+    function easeClipKey(cur, j, ease) {
+      const h = clipHere(cur, j);
+      if (!h.lks.length) return say(h.locked.length ? lockSay(h.locked[0]) : "That keyframe is gone."), { ok: false };
+      const pick = { shape: EASES[ease][1], bend: 40 };
+      const r0 = h.st.rows[j].id;
+      const cmds = [];
+      const sks = [];
+      let tight = 0;
+      h.lks.forEach((lk) => {
+        const next = clipKeys(h.st, [lk]).find((d) => d.j > j);
+        if (!next) return;
+        const sk = segKey(lk, r0, h.st.rows[next.j].id);
+        const c = curveCommands(h.st, sk, pick);
+        if (c.error) return tight++;
+        cmds.push(...c.cmds);
+        sks.push(sk);
+      });
+      if (!sks.length) return say(tight ? "The next keyframe is on the very next moment, so there is no room to ease. Move it further away first." : `No line leaves this keyframe: ${S().label(cur)} has no key after moment ${j + 1}.`), { ok: false };
+      const had = {};
+      sks.forEach((sk) => ((had[sk] = curves[sk]), (curves[sk] = { shape: pick.shape, bend: pick.bend })));
+      saveCurves();
+      const r = cmds.length ? send({ type: "batch", label: `${EASES[ease][0]}: ${S().label(cur)} from moment ${j + 1}`, commands: cmds }) : { ok: true };
+      if (!r.ok) {
+        sks.forEach((sk) => (had[sk] ? (curves[sk] = had[sk]) : delete curves[sk]));
+        saveCurves();
+      } else {
+        draw();
+        say(`${EASES[ease][0]} on ${sks.length} setting${sks.length === 1 ? "" : "s"} of ${S().label(cur)}, from moment ${j + 1} to the next keyframe.${lockedNote(h.locked)}`);
+      }
+      return r;
+    }
+    function clipKeyMenu(e) {
+      const ck = e.target.closest && e.target.closest(".sl-svg [data-ckey]");
+      if (!ck) return false;
+      e.preventDefault();
+      const cur = ck.dataset.subdot;
+      const j = Number(ck.dataset.ckey) || 0;
+      ckSel = { cur, j };
+      sel = null;
+      seg = null;
+      draw();
+      const pop = popAt("sl-linemenu", "Keyframe", e.clientX, e.clientY);
+      pop.innerHTML = `<p><strong>Keyframe</strong> · ${esc(S().label(cur))}, moment ${j + 1}</p><div class="sl-pop-btns" style="flex-wrap:wrap">${Object.keys(EASES).map((k) => `<button type="button" data-m="${k}" title="${esc(SHAPES[EASES[k][1]][1])}">${esc(EASES[k][0])}</button>`).join("")}<button type="button" data-m="remove">Remove keyframe</button><button type="button" data-m="close">Close</button></div>`;
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("[data-m]");
+        if (!b) return;
+        pop.remove();
+        const m = b.dataset.m;
+        if (EASES[m]) return easeClipKey(cur, j, m);
+        if (m === "remove") return removeClipKey(cur, j);
+        el.focus();
+      };
+      el.appendChild(pop);
+      return true;
+    }
+    /* The commands that write curve pick into the line sk: clear the moments between, then bake the curve's points
+       in. -> { cmds } or { error }. */
+    function curveCommands(now, sk, pick) {
       const parts = sk.split("|");
-      const lk = parts[0] + "|" + parts[1];
       const cur = parts[1];
-      if (isLocked(lk)) return say(lockSay(lk)), { ok: false, locked: true };
-      const now = E().state();
-      const ln = now.lanes[lk];
+      const ln = now.lanes[parts[0] + "|" + parts[1]];
       const ja = now.rows.findIndex((r) => r.id === parts[2]);
       const jb = now.rows.findIndex((r) => r.id === parts[3]);
-      if (!ln || ja < 0 || jb < 0 || ln.points[parts[2]] == null || ln.points[parts[3]] == null) return say("That line is gone."), { ok: false };
-      if (jb - ja < 2) return say("These two nodes are on neighbouring moments, so the line between them has no room to curve. Move one further away first."), { ok: false };
+      if (!ln || ja < 0 || jb < 0 || ln.points[parts[2]] == null || ln.points[parts[3]] == null) return { error: "That line is gone." };
+      if (jb - ja < 2) return { error: "These two nodes are on neighbouring moments, so the line between them has no room to curve. Move one further away first." };
       const a = { r: parts[2], j: ja, v: ln.points[parts[2]] };
       const b = { r: parts[3], j: jb, v: ln.points[parts[3]] };
       const cmds = [];
       for (let j = ja + 1; j < jb; j++) if (ln.points[now.rows[j].id] != null) cmds.push({ type: "removePoint", row: now.rows[j].id, track: parts[0], curiosity: cur });
       if (pick.shape !== "straight") bake(cur, a, b, pick, now.rows).forEach((p) => cmds.push({ type: "setPoint", row: p.row, track: parts[0], curiosity: cur, value: p.value }));
+      return { cmds, ja, jb };
+    }
+    /* Write a curve into the line sk (the Curves pop-up's Apply, Alt + drag and the ease words all use this):
+       clear the moments between, then bake the curve's points in, as one undo step. pick: { shape, bend }. */
+    function writeCurve(sk, pick, label) {
+      const parts = sk.split("|");
+      const lk = parts[0] + "|" + parts[1];
+      if (isLocked(lk)) return say(lockSay(lk)), { ok: false, locked: true };
+      const now = E().state();
+      const cc = curveCommands(now, sk, pick);
+      if (cc.error) return say(cc.error), { ok: false };
+      const { cmds, ja, jb } = cc;
       const had = curves[sk];
       if (pick.shape === "straight") delete curves[sk];
       else curves[sk] = { shape: pick.shape, bend: pick.bend };
@@ -4468,6 +4656,7 @@
     el.addEventListener("dragover", onTplOver);
     el.addEventListener("drop", onTplDrop);
     function onMenu(e) {
+      if (clipKeyMenu(e)) return;
       if (lineMenu(e)) return;
       const mk = e.target.closest && e.target.closest(".sl-top [data-marker]");
       if (!mk) return;
@@ -4510,6 +4699,7 @@
       }
       /* ⌥⌫ is the Screen's Take out moments, not Remove nodes. */
       if (area && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return command("delete");
+      if (ckSel && !sel && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return removeClipKey(ckSel.cur, ckSel.j);
       if (!sel || !el.contains(document.activeElement || el)) return;
       if (!e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) removeNode(sel);
     }
@@ -4627,7 +4817,7 @@
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, automationGroup, segMoveCommands, bendFrom, simplifyCommands, EASES, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, textRows, TXT_ROW, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
+  root.CurioLanes = { clipKeys, SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, automationGroup, segMoveCommands, bendFrom, simplifyCommands, EASES, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, textRows, TXT_ROW, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
   /* Ripple (the Screen's Add a moment here, Duplicate and Take out moments): put back a whole marker list at once,
      saved, so one undo can bring back the markers on moments that were taken out. */
   root.CurioLanes.setMarkers = (list) => {
