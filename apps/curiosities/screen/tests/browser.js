@@ -3172,6 +3172,228 @@ const ok = (cond, msg) => {
     }
   }
 
+  /* ---------- Look check leftovers (decisions 104 and 113): the transport bar beside the Momentum dock stays at
+     most two rows with Captions on (⋯ More and Captions ▾ hold the rest, every control reachable by mouse and
+     keys), the library's category tabs can all be reached at 1280 and 1440 wide, and on a 390px phone the older
+     controls are 28px to tap. Each in its own context. ---------- */
+  {
+    const fresh = async (opts) => {
+      const ctx = await browser.newContext(opts);
+      const p = await ctx.newPage();
+      p.on("pageerror", (e) => errors.push(String(e)));
+      await p.goto(base + "index.html?screen=1");
+      await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+      await p.click('button[data-view="screen"]');
+      await p.waitForTimeout(200);
+      return { ctx, p };
+    };
+    /* Rows of the bar: visible controls grouped by their middle line; an open menu doesn't count. */
+    const bar = (p) =>
+      p.evaluate(() => {
+        const t = document.querySelector(".sc-transport");
+        const ys = [...t.querySelectorAll("button, select, .sc-tc")].filter((e) => e.getClientRects().length && !e.closest(".sc-trpop.open")).map((e) => { const r = e.getBoundingClientRect(); return r.top + r.height / 2; }).sort((a, b) => a - b);
+        let rows = 0;
+        let last = -1e9;
+        for (const y of ys) if (y - last > 8) (rows++, (last = y));
+        const tr = t.getBoundingClientRect();
+        const col = document.querySelector(".sc-player > .sc-docks");
+        const f = document.querySelector(".sc-viewer.mine .sc-frame").getBoundingClientRect();
+        return { rows, h: Math.round(tr.height), compact: t.classList.contains("sc-tr-compact"), underDock: !!col && col.getClientRects().length > 0 && tr.right > col.getBoundingClientRect().left + 1 && tr.bottom > col.getBoundingClientRect().top + 1 && tr.top < col.getBoundingClientRect().bottom - 1, frame: [Math.round(f.width), Math.round(f.height)] };
+      });
+    /* A control can be clicked where it is: on screen and not covered. */
+    const hittable = (p, sel) =>
+      p.evaluate((s) => {
+        const e = document.querySelector(s);
+        if (!e || !e.getClientRects().length) return false;
+        const r = e.getBoundingClientRect();
+        if (r.left < 0 || r.top < 0 || r.right > innerWidth || r.bottom > innerHeight) return false;
+        const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return !!at && (at === e || e.contains(at) || (e.tagName === "SELECT" && at.closest("label") === e.closest("label")));
+      }, sel);
+    /* Which step the bar is on, and whether it needs it: each step is taken only when the one before takes more than
+       two rows. */
+    const level = (p) =>
+      p.evaluate(() => {
+        const t = document.querySelector(".sc-transport");
+        const rows = () => {
+          const ys = [...t.querySelectorAll("button, select, .sc-tc")].filter((e) => e.getClientRects().length && !e.closest(".sc-trpop.open")).map((e) => { const r = e.getBoundingClientRect(); return r.top + r.height / 2; }).sort((a, b) => a - b);
+          let n = 0;
+          let last = -1e9;
+          for (const y of ys) if (y - last > 8) (n++, (last = y));
+          return n;
+        };
+        const c = t.classList.contains("sc-tr-compact");
+        const s = t.classList.contains("sc-tr-short");
+        let needC = null;
+        let needS = null;
+        if (c) {
+          t.classList.remove("sc-tr-compact", "sc-tr-short");
+          needC = rows() > 2;
+          t.classList.add("sc-tr-compact");
+          if (s) {
+            needS = rows() > 2;
+            t.classList.add("sc-tr-short");
+          }
+        }
+        return { c, s, needC, needS };
+      });
+    let inlineSeen = false;
+    for (const [w, h] of [[1440, 1000], [1280, 800]]) {
+      const { ctx, p } = await fresh({ viewport: { width: w, height: h } });
+      await p.waitForSelector('.sc-player > .sc-docks > .sc-dock[data-panel="momentum"]', { timeout: 10000 }).catch(() => {});
+      await p.waitForTimeout(300);
+      await p.click('.sc-transport [data-act="captions"]');
+      await p.waitForTimeout(100);
+      const g = await bar(p);
+      await p.screenshot({ path: path.join(SHOTS, `screen-15-transport-${w}.png`) });
+      ok(g.rows <= 2 && !g.underDock, `leftovers: at ${w}×${h} with the Momentum dock and Captions on, the play bar is ${g.rows} rows (${g.h}px), not under the dock; My film's frame ${g.frame.join("×")}`);
+      ok(g.frame[0] >= 140 && g.frame[1] >= 80, `leftovers: at ${w}×${h} My film's frame keeps its size (${g.frame.join("×")})`);
+      const direct = ['[data-act="prev"]', '[data-act="play"]', '[data-act="next"]', "[data-speed]", '[data-wins="1"]', '[data-wins="2"]', '[data-wins="3"]', '[data-act="add-insp"]', '[data-act="guides-menu"]', '[data-act="compare"]', '[data-act="captions"]', '[data-act="txt-add"]'];
+      const miss = [];
+      for (const s of direct) if (!(await hittable(p, ".sc-transport " + s))) miss.push(s);
+      ok(miss.length === 0, `leftovers: at ${w}×${h} the play controls, windows, Inspiration film, Guides, Compare, Captions and T Text stay on the bar` + (miss.length ? " (hidden: " + miss.join(", ") + ")" : ""));
+      ok((await p.$eval('.sc-transport [data-act="txt-add"]', (b) => b.textContent)) === "T Text" && (await p.$eval('.sc-transport [data-act="play"]', (b) => b.textContent)) === "Play", "leftovers: the short labels keep their full names (T Text, Play) for screen readers and tests");
+      if (g.compact) {
+        /* ⋯ More by keyboard: Enter opens it with the focus on its first control, Tab moves through it, Esc closes it and
+           gives the focus back. */
+        await p.focus('.sc-transport [data-act="tr-more"]');
+        await p.keyboard.press("Enter");
+        await p.waitForTimeout(50);
+        const m = await p.evaluate(() => ({ open: !!document.querySelector(".sc-more-menu.open"), exp: document.querySelector('[data-act="tr-more"]').getAttribute("aria-expanded"), focus: document.activeElement.dataset.arr || "" }));
+        ok(m.open && m.exp === "true" && m.focus === "side", `leftovers: at ${w}×${h} Enter on ⋯ More opens it with the focus on Side (${JSON.stringify(m)})`);
+        const inMore = ['[data-arr="side"]', '[data-arr="stack"]', "select[data-ratio]", "select[data-compare-with]"];
+        const missM = [];
+        for (const s of inMore) if (!(await hittable(p, ".sc-transport .sc-more-menu " + s))) missM.push(s);
+        ok(missM.length === 0, `leftovers: at ${w}×${h} ⋯ More holds Side, Stack, Ratio and what Compare shows, all on screen and clickable` + (missM.length ? " (not: " + missM.join(", ") + ")" : ""));
+        await p.keyboard.press("Tab");
+        ok((await p.evaluate(() => document.activeElement.dataset.arr)) === "stack", "leftovers: Tab moves on to Stack inside the menu");
+        await p.keyboard.press("Tab");
+        ok((await p.evaluate(() => "ratio" in document.activeElement.dataset)) === true, "leftovers: and on to Ratio");
+        await p.selectOption(".sc-transport select[data-ratio]", "square 1:1");
+        await p.waitForTimeout(100);
+        const r1 = await p.evaluate(() => ({ shape: document.querySelector(".sc-viewer.mine .sc-frame").dataset.shape, open: !!document.querySelector(".sc-more-menu.open"), focus: "ratio" in document.activeElement.dataset }));
+        ok(r1.shape === "square" && r1.open && r1.focus, `leftovers: Ratio works from ⋯ More, and the menu stays open with the focus on it (${JSON.stringify(r1)})`);
+        await p.keyboard.press("Escape");
+        await p.waitForTimeout(50);
+        const m2 = await p.evaluate(() => ({ open: !!document.querySelector(".sc-trpop.open"), focus: document.activeElement.dataset.act || "" }));
+        ok(!m2.open && m2.focus === "tr-more", `leftovers: Esc closes ⋯ More and the focus goes back to it (${JSON.stringify(m2)})`);
+        await p.click('.sc-transport [data-act="tr-more"]');
+        await p.click('.sc-transport .sc-more-menu [data-arr="stack"]');
+        ok((await p.evaluate(() => window.CurioScreen.state().arrange)) === "stack", "leftovers: Stack works from ⋯ More with the mouse");
+        await p.click('.sc-transport .sc-more-menu [data-arr="side"]');
+        await p.mouse.click(5, h - 5);
+        ok(!(await p.$(".sc-trpop.open")), "leftovers: a click elsewhere closes ⋯ More");
+        /* Captions ▾: the captions mode in a small menu on the Captions button. */
+        await p.click('.sc-transport [data-act="cap-pop"]');
+        const c = await p.evaluate(() => ({ open: !!document.querySelector(".sc-cap-pop.open"), focus: "captionsMode" in document.activeElement.dataset }));
+        ok(c.open && c.focus && (await hittable(p, ".sc-transport select[data-captions-mode]")), `leftovers: Captions ▾ opens the captions mode, on screen, with the focus on it (${JSON.stringify(c)})`);
+        await p.selectOption(".sc-transport select[data-captions-mode]", "changes");
+        await p.waitForTimeout(50);
+        ok((await p.evaluate(() => window.CurioScreen.captions.now().mode)) === "changes", "leftovers: picking a mode there changes what the captions show");
+        await p.keyboard.press("Escape");
+        ok(!(await p.$(".sc-trpop.open")) && (await p.evaluate(() => document.activeElement.dataset.act)) === "cap-pop", "leftovers: Esc closes Captions ▾ and the focus goes back to ▾");
+        ok((await bar(p)).rows <= 2, "leftovers: still two rows after using the menus");
+      } else ok(false, `leftovers: at ${w}×${h} the bar goes compact beside the dock`);
+      let lv = await level(p);
+      ok(lv.c && lv.needC && (!lv.s || lv.needS), `leftovers: at ${w}×${h} the bar takes the least compact step that fits two rows (${lv.s ? "menus and short labels" : "menus, full labels"}; ${JSON.stringify(lv)})`);
+      /* On a wide screen the bar steps back: full labels, and with Captions off every control inline as before. */
+      await p.setViewportSize({ width: 2560, height: h });
+      await p.waitForTimeout(250);
+      const wideOn = await bar(p);
+      lv = await level(p);
+      ok(wideOn.rows <= 2 && !lv.s && (!lv.c || lv.needC), `leftovers: at 2560 wide with Captions on the bar is ${wideOn.rows} rows with full labels (${JSON.stringify(lv)})`);
+      await p.click('.sc-transport [data-act="captions"]');
+      await p.waitForTimeout(100);
+      const wide = await bar(p);
+      const inline = await p.evaluate(() => {
+        const vis = (s) => { const e = document.querySelector(".sc-transport " + s); return !!e && e.getClientRects().length > 0; };
+        const cw = document.querySelector(".sc-transport [data-compare-with]").getBoundingClientRect();
+        const cb = document.querySelector('.sc-transport [data-act="compare"]').getBoundingClientRect();
+        return { all: ['[data-arr="side"]', "select[data-ratio]", "select[data-compare-with]"].every(vis), more: vis('[data-act="tr-more"]') || vis('[data-act="cap-pop"]'), nextTo: Math.abs(cw.top - cb.top) < 6 && cw.left > cb.left && cw.left - cb.right < 12 };
+      });
+      lv = await level(p);
+      if (!wide.compact) {
+        inlineSeen = true;
+        ok(wide.rows <= 2 && inline.all && !inline.more && inline.nextTo, `leftovers: at 2560×${h} with Captions off the bar keeps every control inline as before, what Compare shows right after Compare ◐ (${wide.rows} rows, ${JSON.stringify(inline)})`);
+      } else ok(wide.rows <= 2 && lv.needC && !lv.s, `leftovers: at 2560×${h} with Captions off the bar still needs ⋯ More, with full labels (${JSON.stringify(lv)})`);
+      await ctx.close();
+    }
+    ok(inlineSeen, "leftovers: with room to spare (2560×800, Captions off) the bar is not compact at all");
+    /* The library's category tabs: › and ‹ scroll the strip until every tab has been wholly in view, clear of the
+       ADVANCED tab pinned at the right; a tab reached with the keyboard is scrolled clear of it too. */
+    for (const w of [1280, 1440]) {
+      const { ctx, p } = await fresh({ viewport: { width: w, height: 800 } });
+      await p.waitForTimeout(200);
+      const strip = () =>
+        p.evaluate(() => {
+          const nav = document.querySelector(".sc-icons");
+          const n = nav.getBoundingClientRect();
+          const adv = nav.querySelector(".sc-adv").getBoundingClientRect();
+          const [l, r] = [...document.querySelectorAll(".sc-icons-arr")];
+          const whole = [...nav.querySelectorAll("button")].filter((b) => { const q = b.getBoundingClientRect(); const right = b.classList.contains("sc-adv") ? n.right : adv.left; return q.left >= n.left - 0.5 && q.right <= right + 0.5; }).map((b) => b.dataset.icat || b.dataset.libtab);
+          return { whole, all: [...nav.querySelectorAll("button")].map((b) => b.dataset.icat || b.dataset.libtab), l: l.hidden ? "hidden" : l.disabled ? "off" : "on", r: r.hidden ? "hidden" : r.disabled ? "off" : "on", lw: Math.round(l.getBoundingClientRect().width), x: nav.scrollLeft };
+        });
+      let s = await strip();
+      await p.locator(".sc-lib").screenshot({ path: path.join(SHOTS, `screen-15-library-tabs-${w}.png`) });
+      ok(s.l === "off" && s.r === "on", `leftovers: at ${w} wide the category strip shows a › (and a greyed ‹) because ${s.all.length - s.whole.length} tabs don't fit`);
+      const seen = new Set(s.whole);
+      for (let i = 0; i < 12 && s.r === "on"; i++) {
+        await p.click('.sc-icons-arr[data-icons-scroll="1"]');
+        await p.waitForTimeout(450);
+        s = await strip();
+        s.whole.forEach((x) => seen.add(x));
+      }
+      const never = s.all.filter((x) => !seen.has(x));
+      ok(never.length === 0 && s.r === "off" && s.l === "on", `leftovers: at ${w} wide › brings every category tab wholly into view, one stretch at a time` + (never.length ? " (never whole: " + never.join(", ") + ")" : ""));
+      await p.click('.sc-icons-arr[data-icons-scroll="-1"]');
+      await p.waitForTimeout(450);
+      ok((await strip()).x < s.x, "leftovers: ‹ scrolls back");
+      await p.evaluate(() => (document.querySelector(".sc-icons").scrollLeft = 0));
+      const lastCat = s.all[s.all.length - 2];
+      await p.focus(`.sc-icons [data-icat="${lastCat}"]`);
+      await p.waitForTimeout(100);
+      ok((await strip()).whole.includes(lastCat), `leftovers: at ${w} wide a tab reached with the keyboard (${lastCat}) is scrolled clear of ADVANCED`);
+      await p.keyboard.press("Enter");
+      await p.waitForTimeout(100);
+      ok((await p.evaluate((c) => document.querySelector(`.sc-icons [data-icat="${c}"]`).classList.contains("on"), lastCat)) && (await strip()).whole.includes(lastCat), "leftovers: and Enter picks it, still in view");
+      const x0 = (await strip()).x;
+      await p.evaluate(() => (document.querySelector(".sc-icons").scrollLeft = 0));
+      await p.hover(".sc-icons");
+      await p.mouse.wheel(0, 300);
+      await p.waitForTimeout(150);
+      ok((await strip()).x > 0, `leftovers: at ${w} wide the mouse wheel scrolls the strip sideways (was at ${Math.round(x0)}px)`);
+      await ctx.close();
+    }
+    /* A 390px phone: every control is about 28px to tap, apart from the lane heads' 24px Off/Solo/Lock and ⧉ (the
+       names need the room), the timeline group rows and the frames, which keep their own sizes. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      await p.waitForTimeout(200);
+      const small = () =>
+        p.$$eval(".sc-page button, .sc-page select", (bs) =>
+          bs
+            .filter((b) => b.getClientRects().length && !b.closest(".sl-heads, .sc-frames, .sc-ov") && !b.matches(".sl-hb, .sl-win, .sl-fold, .sc-ov-f"))
+            .map((b) => { const r = b.getBoundingClientRect(); return { t: (b.textContent || b.getAttribute("aria-label") || b.tagName).trim().slice(0, 16), w: Math.round(r.width), h: Math.round(r.height) }; })
+            .filter((x) => x.h < 27.5 || x.w < 27.5)
+        );
+      const fmt = (l) => l.slice(0, 8).map((x) => x.t + " " + x.w + "×" + x.h).join(", ") + (l.length > 8 ? " and " + (l.length - 8) + " more" : "");
+      let s = await small();
+      ok(s.length === 0, `leftovers: on a phone every older control is at least 28px to tap (cards' + and ☆, the 1 2 3 windows, lens, Details, timeline tools)` + (s.length ? " (" + fmt(s) + ")" : ""));
+      const sz = await p.evaluate(() => ({ plus: [...document.querySelectorAll(".sc-card .sc-plus")].slice(0, 3).map((b) => Math.round(b.getBoundingClientRect().width)), star: [...document.querySelectorAll(".sc-card .sc-star")].slice(0, 3).map((b) => Math.round(b.getBoundingClientRect().height)), wins: [...document.querySelectorAll(".sc-transport [data-wins]")].map((b) => Math.round(b.getBoundingClientRect().width) + "×" + Math.round(b.getBoundingClientRect().height)) }));
+      ok(sz.plus.every((x) => x >= 28) && sz.star.every((x) => x >= 28) && sz.wins.length === 3, `leftovers: on a phone a card's + is ${sz.plus.join("/")}px, its ☆ ${sz.star.join("/")}px, the windows ${sz.wins.join(", ")}`);
+      await p.click('[data-libtab="templates"]');
+      await p.waitForTimeout(100);
+      const ov = await p.evaluate(() => [...document.querySelectorAll(".sc-card")].filter((c) => c.querySelector(".sc-plus") && c.querySelector(".sc-star")).every((c) => { const a = c.querySelector(".sc-plus").getBoundingClientRect(); const b = c.querySelector(".sc-star").getBoundingClientRect(); return a.right <= b.left + 0.5 || b.right <= a.left + 0.5 || a.bottom <= b.top + 0.5 || b.bottom <= a.top + 0.5; }));
+      ok(ov, "leftovers: on a phone a card's + and ☆ never sit on top of each other (Templates' wide cards too)");
+      s = await small();
+      ok(s.length === 0, "leftovers: on a phone the Templates tab's controls are 28px too" + (s.length ? " (" + fmt(s) + ")" : ""));
+      ok(!(await p.evaluate(() => document.querySelector(".sc-transport").classList.contains("sc-tr-compact"))), "leftovers: on a phone the play bar keeps its controls inline (no ⋯ More)");
+      ok((await p.evaluate(() => Math.max(document.querySelector(".sc-page").scrollWidth, document.documentElement.scrollWidth) - innerWidth)) <= 1, "leftovers: on a phone the bigger controls don't make the page scroll sideways");
+      await p.screenshot({ path: path.join(SHOTS, "screen-15-phone.png") });
+      await ctx.close();
+    }
+  }
+
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
   server.close();

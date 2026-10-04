@@ -370,7 +370,7 @@
     page.className = "sc-page";
     page.setAttribute("aria-label", "Screen");
     page.innerHTML = `<header class="sc-bar"></header><div class="sc-main">
-      <section class="sc-lib sc-panel" aria-label="Curiosity library"><nav class="sc-icons" aria-label="Categories"></nav><div class="sc-lib-body"><div class="sc-side"></div><div class="sc-grid"></div></div></section>
+      <section class="sc-lib sc-panel" aria-label="Curiosity library"><div class="sc-icons-wrap"><button type="button" class="sc-icons-arr" data-icons-scroll="-1" tabindex="-1" aria-label="Scroll the categories left" title="More categories to the left" hidden>‹</button><nav class="sc-icons" aria-label="Categories"></nav><button type="button" class="sc-icons-arr" data-icons-scroll="1" tabindex="-1" aria-label="Scroll the categories right" title="More categories to the right" hidden>›</button></div><div class="sc-lib-body"><div class="sc-side"></div><div class="sc-grid"></div></div></section>
       <section class="sc-player sc-panel" aria-label="Player"><header class="sc-ph"></header><div class="sc-viewers"></div><div class="sc-overview" aria-label="Whole film"></div><div class="sc-transport"></div></section>
       <aside class="sc-inspector sc-panel" aria-label="Details"></aside>
       <div class="sc-timeline sc-panel"></div></div>`;
@@ -383,6 +383,13 @@
     page.addEventListener("input", (e) => faces() && faces().input && faces().input(e, faceHelpers(mineCtx())));
     page.addEventListener("pointerdown", onKnobDown);
     if (faces() && faces().attach) faces().attach(faceApi());
+    /* Esc closes the transport's ⋯ More or Captions ▾ menu and gives the focus back to its button. */
+    page.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape" || !trPop || !e.target.closest || !e.target.closest(".sc-transport")) return;
+      e.preventDefault();
+      e.stopPropagation();
+      toggleTrPop(trPop, false);
+    });
     page.addEventListener("keydown", (e) => faces() && faces().keydown && faces().keydown(e, faceHelpers(mineCtx()), faceApi()));
     page.addEventListener("pointerdown", (e) => onWinDrag(e) || onPad(e) || (faces() && faces().pointer(e, faceApi())) || onOverviewDrag(e) || onCompareDrag(e));
     ["click", "change", "input", "keyup"].forEach((t) => page.addEventListener(t, capSoon));
@@ -2109,7 +2116,7 @@ document.addEventListener("click", function (e) {
     const k = String(svg).lastIndexOf("</svg>");
     return k < 0 ? svg : svg.slice(0, k) + g + svg.slice(k);
   }
-  const txtButtonHtml = () => `<button type="button" data-act="txt-add" class="sc-txt-b" title="Text: put words on your film's picture at this moment, like CapCut's Text tab (a title, a name and job, a sign, a sound effect or a thought). Click words on the picture to change them, drag them to move them.">T Text</button>`;
+  const txtButtonHtml = () => `<button type="button" data-act="txt-add" class="sc-txt-b" title="Text: put words on your film's picture at this moment, like CapCut's Text tab (a title, a name and job, a sign, a sound effect or a thought). Click words on the picture to change them, drag them to move them.">T<span class="sc-lbl"> Text</span></button>`;
 
   /* ---------- Ripple: add, duplicate and take out moments (CapCut's Split and Delete with ripple, for moments) ----------
      My film is a flipbook-style storyboard, a moment at a time. Its moments are the engine's rows (engine/state.js
@@ -3010,11 +3017,69 @@ document.addEventListener("click", function (e) {
     const body = (tab === "templates" && !q ? myTplHtml() : "") + (tab === "faves" && !q ? faveHtml : `${txtLib}<p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>${faveHtml}`);
     grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}">${body}`;
     tplWire();
+    iconsFit();
     if (focused) {
       const inp = grid.querySelector("[data-lib-search]");
       inp.focus();
       inp.setSelectionRange(inp.value.length, inp.value.length);
     }
+  }
+  /* ---------- The library's category tabs (look check, decision 113) ----------
+     Seventeen tabs don't fit a laptop's library (at 1280 wide they stopped at "Perform…"). Like CapCut's tab
+     strip, the row scrolls sideways with a ‹ and › at its ends while there's more that way (greyed at an end,
+     gone when everything fits); a mouse wheel scrolls it too, and a tab picked or reached with Tab is scrolled
+     clear of the ADVANCED tab that stays pinned at the right end. */
+  let iconsOn = null;
+  let iconsWired = false;
+  function iconsShow(b, nav) {
+    if (!b || !nav) return;
+    const n = nav.getBoundingClientRect();
+    const r = b.getBoundingClientRect();
+    const adv = nav.querySelector(".sc-adv");
+    const right = adv && adv !== b ? adv.getBoundingClientRect().left : n.right;
+    if (r.left < n.left) nav.scrollLeft -= n.left - r.left + 4;
+    else if (r.right > right) nav.scrollLeft += r.right - right + 4;
+  }
+  function iconsArrows() {
+    const nav = page && page.querySelector(".sc-icons");
+    if (!nav) return;
+    const over = nav.scrollWidth > nav.clientWidth + 1;
+    const [l, r] = page.querySelectorAll(".sc-icons-arr");
+    l.hidden = r.hidden = !over;
+    l.disabled = nav.scrollLeft <= 1;
+    r.disabled = nav.scrollLeft + nav.clientWidth >= nav.scrollWidth - 1;
+  }
+  function iconsFit() {
+    const nav = page && page.querySelector(".sc-icons");
+    if (!nav) return;
+    if (!iconsWired) {
+      iconsWired = true;
+      nav.addEventListener("scroll", iconsArrows, { passive: true });
+      nav.addEventListener("wheel", (e) => {
+        if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || nav.scrollWidth <= nav.clientWidth + 1) return;
+        nav.scrollLeft += e.deltaY;
+        e.preventDefault();
+      }, { passive: false });
+      nav.addEventListener("focusin", (e) => iconsShow(e.target.closest && e.target.closest("button"), nav));
+      page.addEventListener("click", (e) => {
+        const a = e.target.closest && e.target.closest("[data-icons-scroll]");
+        if (!a) return;
+        /* A stretch is what shows left of the pinned ADVANCED tab, less a tab's width, so no tab is skipped. */
+        const adv = nav.querySelector(".sc-adv");
+        const room = (adv ? adv.getBoundingClientRect().left : nav.getBoundingClientRect().right) - nav.getBoundingClientRect().left;
+        const widest = Math.max(48, ...[...nav.querySelectorAll("button:not(.sc-adv)")].map((b) => b.getBoundingClientRect().width));
+        const by = Math.max(48, room - widest - 6) * Number(a.dataset.iconsScroll);
+        nav.scrollBy({ left: by, behavior: "smooth" });
+      });
+      window.addEventListener("resize", () => !page.hidden && iconsArrows());
+      if (window.ResizeObserver) new ResizeObserver(() => !page.hidden && iconsArrows()).observe(nav);
+    }
+    iconsArrows();
+    const on = nav.querySelector("button.on");
+    const id = on && (on.dataset.icat || on.dataset.libtab);
+    if (on && id !== iconsOn) iconsShow(on, nav);
+    iconsOn = id;
+    iconsArrows();
   }
   /* Picking a card looks through it (Details and the timeline follow; a new prefs.sel opens its lane's group).
      Quick find (⌘K) picks through here too. */
@@ -3220,7 +3285,12 @@ document.addEventListener("click", function (e) {
   }
   function compareMenuHtml() {
     const c = compareNow();
-    return `<span class="sc-cmp-set"><button type="button" data-act="compare" class="${c.on ? "on" : ""}" aria-pressed="${c.on}" title="Compare: split your film's picture with a line you can drag. Left of the line is another picture, right is your film now. It doesn't change your film.">Compare ◐</button><select data-compare-with aria-label="Compare my film with" title="What to show left of the line">${COMPARE_WITH.map(([id, l]) => `<option value="${id}"${c.with === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></span>`;
+    return `<span class="sc-cmp-set"><button type="button" data-act="compare" class="${c.on ? "on" : ""}" aria-pressed="${c.on}" title="Compare: split your film's picture with a line you can drag. Left of the line is another picture, right is your film now. It doesn't change your film."><span class="sc-lbl">Compare </span>◐</button></span>`;
+  }
+  /* What Compare shows left of the line: beside Compare ◐ when there's room, in ⋯ More when the bar is compact. */
+  function compareWithHtml() {
+    const c = compareNow();
+    return `<label class="sc-cmpw"><span class="sc-cmpw-l">Compare with</span><select data-compare-with aria-label="Compare my film with" title="What to show left of the line">${COMPARE_WITH.map(([id, l]) => `<option value="${id}"${c.with === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`;
   }
   /* Move the split without redrawing, so the line keeps focus and the drag stays smooth. */
   function moveSplit(pct, keep) {
@@ -3355,7 +3425,7 @@ document.addEventListener("click", function (e) {
   function captionsMenuHtml() {
     const c = captionsNow();
     const pick = `<select data-captions-mode aria-label="What the captions show" title="What the captions show">${CAPTION_MODES.map(([id, l]) => `<option value="${id}"${c.mode === id ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
-    return `<span class="sc-cap-set"><button type="button" data-act="captions" class="${c.on ? "on" : ""}" aria-pressed="${c.on}" title="Captions: your marker's note on this moment at the bottom of your film's picture, like subtitles. They don't change your film.">Captions</button>${c.on ? pick : ""}</span>`;
+    return `<span class="sc-cap-set"><button type="button" data-act="captions" class="${c.on ? "on" : ""}" aria-pressed="${c.on}" title="Captions: your marker's note on this moment at the bottom of your film's picture, like subtitles. They don't change your film."><span class="sc-lbl">Captions</span></button>${c.on ? `<button type="button" data-act="cap-pop" class="sc-cap-pop-b${trPop === "cap" ? " on" : ""}" aria-haspopup="true" aria-expanded="${trPop === "cap"}" aria-label="What the captions show" title="What the captions show">▾</button><span class="sc-trpop sc-cap-pop${trPop === "cap" ? " open" : ""}">${pick}</span>` : ""}</span>`;
   }
   function viewerHtml(kind, v) {
     const sel = selection();
@@ -3501,11 +3571,81 @@ document.addEventListener("click", function (e) {
     page.querySelector(".sc-viewers").innerHTML = prefs.insp.map((v) => viewerHtml("insp", v)).join("") + viewerHtml("mine");
     page.querySelector(".sc-overview").innerHTML = overviewHtml();
     showTimelineWindow();
-    page.querySelector(".sc-transport").innerHTML = `<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
+    /* A redraw while ⋯ More or Captions ▾ is open keeps the focus on the same control inside it. */
+    const fa = trPop && !popFocus && document.activeElement;
+    if (fa && fa.closest && fa.closest(".sc-transport .sc-trpop")) {
+      const k = ["ratio", "compareWith", "captionsMode", "arr"].find((x) => x in fa.dataset);
+      if (k) popFocus = `[data-${k.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}${k === "arr" ? `="${fa.dataset.arr}"` : ""}]`;
+    }
+    page.querySelector(".sc-transport").innerHTML =`<span class="sc-tc" title="One moment of your film is ${secondsPerMoment()} seconds (the Momentum window's setting)">${tc(row)} / ${tc(Math.max(0, nRows() - 1))}</span>
       <span class="sc-play"><button type="button" data-act="prev" aria-label="Back one moment">◀</button><button type="button" data-act="play" class="sc-playb">${timer ? "Pause" : "Play"}</button><button type="button" data-act="next" aria-label="Forward one moment">▶</button><select data-speed aria-label="Speed">${[0.5, 1, 2, 4].map((sp) => `<option value="${sp}"${prefs.speed === sp ? " selected" : ""}>${sp}×</option>`).join("")}</select>${rangeNow() ? `<button type="button" data-act="range-clear" class="sc-range-b on" title="Play loops over moments ${rangeNow()[0] + 1} to ${rangeNow()[1] + 1}. Click to play the whole film again.">Loop ${rangeNow()[0] + 1}–${rangeNow()[1] + 1} ×</button>` : ""}</span>
-      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+ Inspiration film</button><span class="sc-seg" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : ""}${guidesMenuHtml()}${compareMenuHtml()}${captionsMenuHtml()}${txtButtonHtml()}</span>`;
+      <span class="sc-wins-set"><span class="sc-seg" role="group" aria-label="Windows">${[1, 2, 3].map((n) => `<button type="button" data-wins="${n}" class="${prefs.insp.length + 1 === n ? "on" : ""}" title="${n === 1 ? "Only your film" : n - 1 + " inspiration film" + (n > 2 ? "s" : "") + " and your film"}">${n}</button>`).join("")}</span><button type="button" data-act="add-insp" title="Add another inspiration film viewer">+<span class="sc-lbl"> Inspiration film</span></button>${guidesMenuHtml()}${compareMenuHtml()}${captionsMenuHtml()}${txtButtonHtml()}${moreMenuHtml()}</span>`;
     trDecorate();
     txtAvoid();
+    fitTransport();
+    if (popFocus) {
+      const el = page.querySelector(".sc-transport " + popFocus);
+      popFocus = null;
+      if (el) el.focus();
+    }
+  }
+  /* ---------- The transport bar's ⋯ More and Captions ▾ (look check, decisions 104 and 113) ----------
+     With a panel docked beside the Player (the Momentum column) the bar is narrow, and turning Captions on used to
+     wrap it onto five rows and squeeze the viewers. When the bar would take more than two rows it goes compact,
+     like CapCut's Player bar: the timecode and play controls on the first row, the picture tools on the second,
+     the captions mode behind a small ▾ on Captions, and the less-used controls (viewer Side/Stack, Ratio, what
+     Compare shows) in a ⋯ More menu at the end (.sc-tr-compact). If that still takes more than two rows the
+     picture tools get short labels too (+, ◐, CC, T; .sc-tr-short), the full names kept for screen readers and
+     tooltips. Every control is the same element with the same data- attribute either way: CSS lays them out
+     inline when there's room and as small menus when compact. Phones keep the inline bar. */
+  let trPop = null; /* "more" | "cap" | null: which small transport menu is open */
+  let popFocus = null; /* a selector to give the focus back to after a redraw while a menu is open */
+  function moreMenuHtml() {
+    const open = trPop === "more";
+    const ratio = ratioOpts().length ? `<label class="sc-ratio" title="Frame shape (CapCut's Ratio): how wide or tall your film's picture is; picking one puts a node at this moment. Wide fits a TV or laptop, vertical a phone held upright, square a social post, cinema an extra-wide movie screen.">Ratio <select data-ratio aria-label="Frame shape of my film">${ratioOpts().map((o) => `<option${String(valueHere(RATIO)) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>` : "";
+    return `<span class="sc-more"><button type="button" data-act="tr-more" class="sc-more-b${open ? " on" : ""}" aria-haspopup="true" aria-expanded="${open}" aria-label="More Player controls" title="More: viewer layout, Ratio, and what Compare shows">⋯</button><span class="sc-trpop sc-more-menu${open ? " open" : ""}" role="group" aria-label="More Player controls"><span class="sc-seg sc-arr-set" role="group" aria-label="Viewer layout"><button type="button" data-arr="side" class="${prefs.arrange === "side" ? "on" : ""}" title="Viewers side by side">Side</button><button type="button" data-arr="stack" class="${prefs.arrange === "stack" ? "on" : ""}" title="Viewers stacked">Stack</button></span>${ratio}${compareWithHtml()}</span></span>`;
+  }
+  /* How many rows the bar's controls take (an open menu doesn't count). */
+  function trRows(t) {
+    const ys = [...t.querySelectorAll("button, select, .sc-tc")]
+      .filter((e) => e.getClientRects().length && !e.closest(".sc-trpop.open"))
+      .map((e) => e.getBoundingClientRect())
+      .filter((r) => r.width > 0)
+      .map((r) => r.top + r.height / 2)
+      .sort((a, b) => a - b);
+    let n = 0;
+    let last = -1e9;
+    for (const y of ys) if (y - last > 8) (n++, (last = y));
+    return n;
+  }
+  /* Compact when the bar would wrap past two rows; only on wide screens (phones lay the bar out on their own).
+     Checked after every redraw of the bar and whenever its width changes (a panel docked or taken off, a resize). */
+  let trWidth = 0;
+  let trWatch = false;
+  function fitTransport() {
+    const t = page && page.querySelector(".sc-transport");
+    if (!t || !t.getClientRects().length) return;
+    trWidth = Math.round(t.getBoundingClientRect().width);
+    t.classList.remove("sc-tr-compact", "sc-tr-short");
+    if (innerWidth > 860 && trRows(t) > 2) {
+      t.classList.add("sc-tr-compact");
+      if (trRows(t) > 2) t.classList.add("sc-tr-short");
+    }
+    if (trWatch) return;
+    trWatch = true;
+    if (window.ResizeObserver)
+      new ResizeObserver(() => {
+        if (!page.hidden && Math.round(t.getBoundingClientRect().width) !== trWidth) fitTransport();
+      }).observe(t);
+    window.addEventListener("resize", () => !page.hidden && fitTransport());
+  }
+  function toggleTrPop(which, open) {
+    trPop = open === undefined ? (trPop === which ? null : which) : open ? which : null;
+    if (trPop) {
+      guidesOpen = false;
+      popFocus = trPop === "more" ? ".sc-more-menu button" : "[data-captions-mode]";
+    } else popFocus = which === "more" ? '[data-act="tr-more"]' : '[data-act="cap-pop"]';
+    drawViewers();
   }
 
   /* ---------- the inspector ---------- */
@@ -4494,6 +4634,11 @@ document.addEventListener("click", function (e) {
       const b = page.querySelector('[data-act="guides-menu"]');
       if (b) b.setAttribute("aria-expanded", "false");
     }
+    if (trPop && !e.target.closest(trPop === "more" ? ".sc-more" : ".sc-cap-set")) {
+      trPop = null;
+      page.querySelectorAll(".sc-trpop.open").forEach((m) => m.classList.remove("open"));
+      page.querySelectorAll('[data-act="tr-more"], [data-act="cap-pop"]').forEach((b) => (b.setAttribute("aria-expanded", "false"), b.classList.remove("on")));
+    }
     if (curMenu && !e.target.closest(".sc-cur-menu, [data-cur-menu]")) closeCurMenu();
     if (lookOpen && !e.target.closest(".sc-mlook")) closeLook();
     if (e.target.closest("[data-cmp-line]")) return;
@@ -4678,7 +4823,10 @@ document.addEventListener("click", function (e) {
       const b = page.querySelector('[data-act="captions"]');
       return b && b.focus();
     }
+    if (act === "tr-more") return toggleTrPop("more");
+    if (act === "cap-pop") return toggleTrPop("cap");
     if (act === "guides-menu") {
+      trPop = null;
       guidesOpen = !guidesOpen;
       drawViewers();
       const b = page.querySelector('[data-act="guides-menu"]');

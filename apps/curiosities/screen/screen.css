@@ -759,14 +759,14 @@ html.sc-open, html.sc-open body { overflow: hidden; }
   .sc-guides-menu { left: 10px; right: 10px; min-width: 0; }
   .sc-guides-menu p { max-width: none; }
 }
-/* Phones: every control is at least about 24px to tap. Timeline group headers (rows drawn to match the lanes,
+/* Phones: every control is at least about 28px to tap (26px before decision 113's leftovers). Timeline group headers (rows drawn to match the lanes,
    32px tall on phones and touch screens, see groupH() in lanes.js) and the frames in a viewer or the whole-film
    strip keep their sizes. */
 @media (max-width: 480px) {
-  .sc-page button:not(.sc-ov-f):not(.sl-fold):not(.sl-hb):not(.sl-heads button), .sc-page select { min-height: 26px; }
+  .sc-page button:not(.sc-ov-f):not(.sl-fold):not(.sl-hb):not(.sl-heads button), .sc-page select { min-height: 28px; }
   .sc-page .sc-frames button { min-height: 0; }
-  .sc-page .sc-plus, .sc-page .sc-star { width: 26px; height: 26px; line-height: 26px; }
-  .sc-page .sc-knav-b, .sc-page .sc-key, .sc-page .sc-cur-more, .sc-page .sl-mkedit { min-width: 26px; }
+  .sc-page .sc-plus, .sc-page .sc-star { width: 28px; height: 28px; line-height: 28px; }
+  .sc-page .sc-knav-b, .sc-page .sc-key, .sc-page .sc-cur-more, .sc-page .sl-mkedit { min-width: 28px; }
   .sc-page .sc-knav-b { font-size: 11px; }
   /* A lane head (124px wide on a phone) puts its name and ⧉ on the first row and its Off, Solo and Lock buttons
      beside the track name on the second, so the buttons can be tap-sized without squeezing the name away. */
@@ -962,4 +962,62 @@ html.sc-open, html.sc-open body { overflow: hidden; }
   .sc-txt-fade, .sc-mytpl-tools label { min-height: 28px; }
   .sc-txt-grid9 { grid-template: repeat(3, 28px) / repeat(3, 34px); }
   .sc-page .sc-txt-grid9 button { min-height: 0 !important; }
+}
+
+/* ---------- Look check leftovers (decisions 104 and 113) ----------
+   1. The Player's transport bar stays at most two rows beside a docked panel. Side/Stack, Ratio and what Compare
+   shows live in a ⋯ More wrapper and the captions mode in a Captions ▾ wrapper (see moreMenuHtml in ui.js). With
+   room to spare the wrappers vanish (display: contents) and every control sits inline in its old order; when the
+   bar would take more than two rows ui.js marks it .sc-tr-compact and they become small menus; if that is still
+   more than two rows it adds .sc-tr-short, short labels (+, ◐, CC, T) with the full names kept for screen readers. */
+.sc-more, .sc-cap-set { position: relative; }
+.sc-more-b, .sc-cap-pop-b { display: none; }
+.sc-transport:not(.sc-tr-compact) .sc-more, .sc-transport:not(.sc-tr-compact) .sc-trpop { display: contents; }
+.sc-transport:not(.sc-tr-compact) .sc-cmpw { display: contents; }
+.sc-transport:not(.sc-tr-compact) .sc-cmpw-l { display: none; }
+.sc-cmpw select { max-width: 150px; font-size: 12px; }
+.sc-transport:not(.sc-tr-compact) .sc-wins-set > .sc-seg:first-child { order: 1; }
+.sc-transport:not(.sc-tr-compact) [data-act="add-insp"] { order: 2; }
+.sc-transport:not(.sc-tr-compact) .sc-arr-set { order: 3; }
+.sc-transport:not(.sc-tr-compact) .sc-ratio { order: 4; }
+.sc-transport:not(.sc-tr-compact) .sc-guides { order: 5; }
+.sc-transport:not(.sc-tr-compact) .sc-cmp-set { order: 6; }
+.sc-transport:not(.sc-tr-compact) .sc-cmpw select { order: 7; }
+.sc-transport:not(.sc-tr-compact) .sc-cap-set { order: 8; }
+.sc-transport:not(.sc-tr-compact) .sc-txt-b { order: 9; }
+.sc-page .sc-transport.sc-tr-compact { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 5px 8px; padding: 5px 8px; }
+.sc-tr-short .sc-tc { font-size: 11px; white-space: nowrap; }
+.sc-page .sc-tr-compact .sc-wins-set { flex: 1 1 100%; justify-content: flex-start; gap: 5px; }
+.sc-tr-short .sc-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.sc-page .sc-tr-short [data-act="add-insp"], .sc-page .sc-tr-short [data-act="compare"], .sc-page .sc-tr-short .sc-txt-b { min-width: 28px; padding-left: 7px; padding-right: 7px; }
+.sc-page .sc-tr-short [data-act="captions"] { padding-left: 7px; padding-right: 7px; }
+.sc-tr-short [data-act="captions"]::before { content: "CC" / ""; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+.sc-tr-compact .sc-cap-set { gap: 1px; }
+.sc-page .sc-tr-compact .sc-cap-pop-b { display: inline-block; padding-left: 5px; padding-right: 5px; }
+.sc-page .sc-tr-compact .sc-more-b { display: inline-block; min-width: 28px; padding-left: 6px; padding-right: 6px; font-weight: 700; }
+.sc-tr-compact .sc-trpop { display: none; }
+.sc-tr-compact .sc-trpop.open { display: grid; position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 30; gap: 8px; justify-items: start; min-width: 190px; padding: 8px; background: var(--cc-panel); border: 1px solid var(--cc-line); border-radius: 8px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); }
+.sc-tr-compact .sc-cmpw { display: grid; gap: 3px; font-size: 12px; color: var(--cc-dim); }
+.sc-tr-compact .sc-cmpw select, .sc-tr-compact .sc-cap-pop select { max-width: 200px; }
+/* 2. The library's category tabs scroll sideways between a ‹ and a › (iconsFit in ui.js), so every tab can be
+   reached at any width; the arrows grey out at an end and go when every tab fits. */
+.sc-icons-wrap { display: flex; align-items: stretch; min-width: 0; border-bottom: 1px solid var(--cc-line); }
+.sc-icons-wrap > .sc-icons { flex: 1 1 auto; min-width: 0; border-bottom: 0; scrollbar-width: none; }
+.sc-icons-wrap > .sc-icons::-webkit-scrollbar { display: none; }
+.sc-page .sc-icons-arr { flex: none; width: 22px; padding: 0; border-radius: 0; background: var(--cc-panel); color: var(--cc-text); font-size: 18px; line-height: 1; }
+.sc-page .sc-icons-arr:hover:not(:disabled) { background: var(--cc-raised); }
+.sc-page .sc-icons-arr:disabled { opacity: 0.3; cursor: default; }
+.sc-icons-arr[hidden] { display: none; }
+.sc-icons-wrap > .sc-icons-arr:first-child { border-right: 1px solid var(--cc-line); }
+.sc-icons-wrap > .sc-icons-arr:last-child { border-left: 1px solid var(--cc-line); }
+/* 3. Phones: the older controls reach 28px to tap like the new ones (the phone rule above now says 28px tall, the
+   card + and ☆ are 28px round). Narrow ones (the 1 2 3 window buttons, ‹ ›, colour swatches) are 28px wide too.
+   The lane heads' Off/Solo/Lock and ⧉ (24px, so a 124px head keeps its name), the timeline group rows and the
+   frames in a viewer or the whole-film strip keep their sizes. */
+@media (max-width: 480px) {
+  .sc-page .sc-seg button, .sc-page .sc-docks button { min-width: 28px; }
+  .sc-page .sc-icons-arr { width: 28px; }
+  .sc-page .sc-hues button { width: 28px; height: 28px; }
+  .sc-page .sc-card.wide .sc-plus { right: 36px; }
+  .sc-page .sc-card-b { padding-right: 34px; }
 }
