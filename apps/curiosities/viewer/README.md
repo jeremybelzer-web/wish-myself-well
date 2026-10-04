@@ -185,3 +185,30 @@ without stopping (DJI's "curve size", here *Smooth corners*), and looks either w
   soft; it stays sharp).
 
 Test: `node viewer/tests/flight.js`.
+
+### People (`viewer/people.js`)
+
+A People tab for every person in the scene, set panel by panel (a value set in a panel is a ◆ key and holds
+until the next one, like CapCut keyframes):
+
+- **Emotion wheel**: Plutchik's eight feelings (joy, trust, fear, surprise, sadness, disgust, anger,
+  anticipation), mild in the middle, strongest at the rim, with the blends between neighbours named (love,
+  awe, remorse ...). *Tilt into 3D* lays it back into Plutchik's cone and draws the character's path through
+  the film over it.
+- **Enneagram type and emotional health** (1 liberated .. 9 collapsed), from `character-matrix/data.js`.
+  Changing a character's type partway through the film first shows Jeremy's warning ("The audience will
+  experience this user as having undergone a massive change in personality ...").
+- **Chaos matrix**: orderly to chaotic, keeps things as they are to a force for change, with a *why*. It starts
+  where the type and health put it.
+- **Emotional roadmap**: every character's feeling in every panel, and the film's (the strongest feeling in
+  each panel). Click a square to go there.
+
+Data: `panel.people[objectId] = {emo: {a, r}, type, health, chaos, change, why}`. Test: `node viewer/tests/people.js`.
+
+### Rate of speech (`viewer/speech.js`)
+
+Every speech balloon has a Speed in syllables a second (slow drawl to auctioneer), set with the slider, by
+tapping once per syllable (*Tap it*, or the space bar), or by saying the line into the microphone (*Say it*:
+the app times the voice from when it starts to when it stops). The note says how long the line takes and
+warns when it runs past the panel. Playing, the words appear at that speed, balloon after balloon.
+Data: `panel.words[k].rate`. Test: `node viewer/tests/speech.js`.

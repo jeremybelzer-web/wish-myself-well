@@ -1232,6 +1232,9 @@
     const n = p.words.length;
     p.words.forEach((wd, k) => {
       if (!wd.text) return;
+      /* playing: the words appear at the speed they are spoken (viewer/speech.js); the balloon keeps its full size */
+      const said = opts.talk && window.CurioSpeech ? CurioSpeech.reveal(p, k, st.u * p.sec) : null;
+      if (said === "") return;
       ctx.font = `700 ${fs}px ${COMIC}`;
       const lines = wrapText(ctx, wd.text, W * (W < 700 ? 0.42 : 0.28));
       const pad = fs * 0.6;
@@ -1305,7 +1308,13 @@
       ctx.lineTo(bx + fs * 0.5, y + h);
       ctx.stroke();
       ctx.fillStyle = "#111";
-      lines.forEach((l, i) => ctx.fillText(l, x + pad, y + pad + i * fs * 1.15));
+      let left = said == null ? Infinity : said.split(/\s+/).filter(Boolean).length;
+      lines.forEach((l, i) => {
+        if (left <= 0) return;
+        const ws = l.split(/\s+/).filter(Boolean);
+        ctx.fillText(ws.length <= left ? l : ws.slice(0, left).join(" "), x + pad, y + pad + i * fs * 1.15);
+        left -= ws.length;
+      });
     });
   }
 
@@ -1890,7 +1899,7 @@
       withFilm(f, () => {
         const len = total();
         const s = stateAt(mine ? T : T % Math.max(0.001, len));
-        const C = drawFrame(w.ctx, w.canvas.width, w.canvas.height, s, { sel: mine && !playing ? film.sel : null, picks: w.picks, top: (36 * w.canvas.width) / Math.max(1, w.el.clientWidth || w.canvas.width) });
+        const C = drawFrame(w.ctx, w.canvas.width, w.canvas.height, s, { talk: playing, sel: mine && !playing ? film.sel : null, picks: w.picks, top: (36 * w.canvas.width) / Math.max(1, w.el.clientWidth || w.canvas.width) });
         if (mine && !playing) HOOK.over.forEach((fn) => fn(w.ctx, C, s));
         if (mine && !mineC) mineC = C;
         if (mine && !st) st = s;
@@ -2044,7 +2053,7 @@
       <h3>Speech balloons</h3>
       ${p.words
         .map(
-          (w, k) => `<div class="cv-balloon"><div class="cv-row"><select data-k="who" data-w="${k}">${people.map((o) => `<option value="${esc(o.id)}"${o.id === w.who ? " selected" : ""}>${esc(o.name)}</option>`).join("")}<option value=""${!w.who ? " selected" : ""}>Someone we can't see</option></select><button type="button" data-delword="${k}" title="Take this balloon out">✕</button></div><textarea data-k="text" data-w="${k}" rows="2">${esc(w.text)}</textarea></div>`
+          (w, k) => `<div class="cv-balloon"><div class="cv-row"><select data-k="who" data-w="${k}">${people.map((o) => `<option value="${esc(o.id)}"${o.id === w.who ? " selected" : ""}>${esc(o.name)}</option>`).join("")}<option value=""${!w.who ? " selected" : ""}>Someone we can't see</option></select><button type="button" data-delword="${k}" title="Take this balloon out">✕</button></div><textarea data-k="text" data-w="${k}" rows="2">${esc(w.text)}</textarea>${window.CurioSpeech ? CurioSpeech.row(w, k) : ""}</div>`
         )
         .join("")}
       <button type="button" data-act="addword">+ Add a balloon</button>
