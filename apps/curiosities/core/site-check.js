@@ -27,6 +27,8 @@ for (const f of [...want]) {
 /* The 3D character matrix loads on demand from workspaces.js. */
 const ws = read("workspaces.js");
 for (const m of ws.matchAll(/"(character-matrix\/[\w.-]+\.(?:js|css))"/g)) want.add(m[1]);
+/* The 3D characters (rig/rig.js) load their loader and model files on demand. */
+if (want.has("rig/rig.js")) for (const m of read("rig/rig.js").matchAll(/"(rig\/[\w/.-]+\.(?:js|glb))"/g)) want.add(m[1]);
 
 const missing = [...want].filter((f) => !tracked.has(f)).sort();
 const onDisk = missing.filter((f) => fs.existsSync(path.join(APP, f)));

@@ -819,4 +819,25 @@
       ],
     },
   });
+
+  /* Face and feelings (feelingFaceLens, rig/faces.js): six feelings a 3D face mixes, and where the eyes look. */
+  W.add("feelingFaceLens", {
+    window: {
+      faces: [
+        { face: "mixer", sliders: ["happy", "sad", "angry", "scared", "surprised", "disgust"] },
+        { face: "tiles", slider: "look", icons: { ahead: "😐", left: "👈", right: "👉", up: "👆", down: "👇", "at the camera": "📷" } },
+      ],
+      groups: [
+        { label: "Good feelings", sliders: ["happy", "surprised"] },
+        { label: "Hard feelings", sliders: ["sad", "angry", "scared", "disgust"] },
+        { label: "The eyes", sliders: ["look"] },
+      ],
+      presets: [
+        { label: "Big happy grin", plain: "Pure joy, looking right at us.", set: { happy: "very", sad: "not at all", angry: "not at all", look: "at the camera" } },
+        { label: "Horror scream", plain: "Terrified and shocked at once.", set: { scared: "very", surprised: "clearly", happy: "not at all" } },
+        { label: "Smiling through tears", plain: "Happy and sad mixed, eyes down.", set: { happy: "a little", sad: "clearly", look: "down" } },
+        { label: "Silent fury", plain: "Angry and a little disgusted, eyes fixed to one side.", set: { angry: "very", disgust: "a little", look: "left" } },
+      ],
+    },
+  });
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));
