@@ -53,6 +53,10 @@
      "curiosities-suite-clips-v1"; Suite clips ▾ drops one at the playhead (one undo step), as an analogy too.
      suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips()
    - soloCommands(st, laneKey, prev), soloActive(st, solo), isLocked(laneKey)   the lane heads' Solo and Lock
+   - templates: Save as template (the area toolbar) keeps a selection with a name and a note in localStorage
+     "curiosities-screen-templates-v1"; the library's My templates uses one (one undo step), and a card dragged onto
+     the lanes lands at that moment. template, migrateTemplates, templateSummary, templatePreview, stretchTemplate,
+     useTemplateCommands, exportTemplates, importTemplates, templates(), saveTemplates(list)
 
    The toolbar copies CapCut's timeline toolbar (Jeremy's screenshots, 2026-10-02): the Select (A) and Split (B)
    tools, Undo, Delete, Add marker (M), the main track magnet (P), linkage (~), the preview axis (S) and zoom.
@@ -747,6 +751,167 @@
     }
   }
   loadSuiteClips();
+
+  /* ---------- templates (CapCut's Templates, made curiosity-centric) ----------
+     A template is a selected stretch of the timeline (some lanes, moments A..B) kept under a name with a plain
+     note, such as "slow-burn reveal" or "comedy double take", to use again anywhere, in this film or another.
+     It is a suite clip with a note: copyArea's format, so each node sits relative to the stretch's start and
+     its value keeps its place on each curiosity's scale when it lands. Kept in localStorage
+     "curiosities-screen-templates-v1" as [{ id, name, note, made, span, lanes, links, curiosities }]; saving,
+     renaming and deleting one is not a film change, so it is not in undo. Using one is: one batch command.
+     Export and Import are a .json file { format: "curiomatic-templates", version: 1, templates: [...] }. */
+  const TEMPLATE_KEY = "curiosities-screen-templates-v1";
+  const TEMPLATE_FORMAT = "curiomatic-templates";
+  const TEMPLATE_NOTE_MAX = 240;
+  const templateId = () => "tp-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  /* A template from copyArea's result (or a saved one): suiteClip's cleaning, plus the note. */
+  function template(c, name, note, o) {
+    o = o || {};
+    const t = suiteClip(c, String(name == null ? "" : name).trim() || "Template", { id: o.id || templateId(), made: o.made });
+    if (!t) return null;
+    t.note = String(note == null ? "" : note).trim().slice(0, TEMPLATE_NOTE_MAX);
+    return t;
+  }
+  function migrateTemplates(list) {
+    if (!Array.isArray(list)) return [];
+    const seen = new Set();
+    const out = [];
+    list.forEach((x) => {
+      if (!x || typeof x !== "object" || !x.id || seen.has(String(x.id))) return;
+      const t = template(x, x.name, x.note, { id: String(x.id), made: x.made });
+      if (!t) return;
+      seen.add(t.id);
+      out.push(t);
+    });
+    return out;
+  }
+  /* "4 moments · Shot size and Emotion", for a template card. */
+  function templateSummary(t) {
+    const n = (t.span || 0) + 1;
+    const l = (t.curiosities || []).map((cur) => (S() && S().label ? S().label(cur) : cur));
+    return `${n} moment${n === 1 ? "" : "s"} · ${l.length > 1 ? l.slice(0, -1).join(", ") + " and " + l[l.length - 1] : l[0] || ""}`;
+  }
+  /* A tiny picture of the template's lane shapes: one polyline per lane, each in its own band (low at the bottom
+     of the band, high at the top), stepped when the lane jumps between nodes. */
+  const TEMPLATE_COLORS = ["#22d3ee", "#f59e0b", "#a78bfa", "#34d399", "#f472b6", "#60a5fa"];
+  function templatePreview(t, w, h) {
+    w = w || 120;
+    const lanes = (t && t.lanes) || [];
+    const band = Math.max(8, Math.min(18, Math.floor((h || 48) / Math.max(1, lanes.length))));
+    const H = band * Math.max(1, lanes.length);
+    const span = Math.max(1, (t && t.span) || 0);
+    const lines = lanes.map((l, k) => {
+      const pts = l.points.slice().sort((a, b) => a.at - b.at);
+      const y = (v) => {
+        const p = S() && S().pos ? S().pos(l.cur, v) : null;
+        return (k * band + 2 + (1 - (p == null ? 0.5 : p)) * (band - 4)).toFixed(1);
+      };
+      const x = (at) => ((at / span) * (w - 4) + 2).toFixed(1);
+      const xy = [];
+      pts.forEach((p, i) => {
+        if (l.mode === "hold" && i) xy.push(`${x(p.at)},${y(pts[i - 1].value)}`);
+        xy.push(`${x(p.at)},${y(p.value)}`);
+      });
+      if (xy.length === 1) xy.push(`${(w - 2).toFixed(1)},${y(pts[0].value)}`);
+      return `<polyline data-tpl-lane="${esc(l.cur)}" points="${xy.join(" ")}" fill="none" stroke="${TEMPLATE_COLORS[k % TEMPLATE_COLORS.length]}" stroke-width="1.5" stroke-linejoin="round"/>`;
+    });
+    return `<svg class="tpl-preview" viewBox="0 0 ${w} ${H}" width="${w}" height="${H}" role="img" aria-label="The shape of each lane in this template">${lines.join("")}</svg>`;
+  }
+  /* The template spread over `span` moments instead of its own (Stretch to the selected area): the same maths as
+     Stretch ×2 and Squeeze ½ (each node's distance from the start times the factor, rounded to a whole moment;
+     when two land on one moment the later one stays). Joins follow their nodes. A one-moment template is held. */
+  function stretchTemplate(t, span) {
+    span = Math.max(0, Math.round(Number(span) || 0));
+    const out = JSON.parse(JSON.stringify(t));
+    const f = t.span ? span / t.span : 0;
+    const map = (at) => Math.max(0, Math.min(span, Math.round(at * f)));
+    out.lanes.forEach((l) => {
+      const by = {};
+      const pts = l.points.slice().sort((a, b) => a.at - b.at);
+      pts.forEach((p) => (by[map(p.at)] = { at: map(p.at), value: p.value }));
+      if (!t.span && span && pts.length) by[span] = { at: span, value: pts[pts.length - 1].value };
+      l.points = Object.values(by).sort((a, b) => a.at - b.at);
+    });
+    out.links.forEach((l) => {
+      l.from.at = map(l.from.at);
+      l.to.at = map(l.to.at);
+      l.within = Math.max(0, Math.min(16, Math.abs(l.to.at - l.from.at)));
+    });
+    out.span = span;
+    return out;
+  }
+  /* The commands that use a template at moment `start` (moved earlier if it would run off the end). o.shown: the
+     timeline's lanes; o.span: stretch it over that many moments after start first. Missing curiosities go onto
+     their usual track; locked lanes are skipped. Returns dropSuiteClipCommands' answer, in template words. */
+  function useTemplateCommands(st, t, start, o) {
+    o = o || {};
+    if (!t || !t.lanes) return { error: "That template is gone." };
+    const use = o.span != null ? stretchTemplate(t, o.span) : t;
+    const r = dropSuiteClipCommands(st, use, start, { shown: o.shown });
+    if (r.error) r.error = r.locked && r.locked.length ? `Every lane in the template "${t.name}" is locked here (🔒), so it wasn't used.` : r.error.replace(/suite clip/g, "template");
+    else r.span = use.span;
+    return r;
+  }
+  /* The .json file's text for some templates. */
+  function exportTemplates(list) {
+    return JSON.stringify({ format: TEMPLATE_FORMAT, version: 1, made: new Date().toISOString(), templates: migrateTemplates(list) }, null, 2);
+  }
+  /* Templates read from a file's text, added to `have`: the file format, a bare list, or one template. A template
+     that is already here (same id and same nodes) is skipped; one whose id is taken by a different template gets
+     a new id. Lanes of curiosities this app doesn't know are left out (dropped counts them).
+     Returns { list, added, skipped, dropped } or { error }. */
+  function importTemplates(text, have) {
+    let data;
+    try {
+      data = typeof text === "string" ? JSON.parse(text) : text;
+    } catch (e) {
+      return { error: "That file isn't a templates file: it isn't JSON." };
+    }
+    const raw = Array.isArray(data) ? data : data && Array.isArray(data.templates) ? data.templates : data && Array.isArray(data.lanes) ? [data] : null;
+    if (!raw) return { error: "That file has no templates in it." };
+    const list = migrateTemplates(have);
+    const same = (a, b) => JSON.stringify([a.lanes, a.links]) === JSON.stringify([b.lanes, b.links]);
+    const known = (cur) => !S() || !S().known || S().known(cur);
+    const added = [];
+    let skipped = 0;
+    let dropped = 0;
+    raw.forEach((x) => {
+      if (!x || typeof x !== "object") return skipped++;
+      const lanes = (Array.isArray(x.lanes) ? x.lanes : []).map((l) => (l && known(l.cur) ? l : (l && dropped++, null)));
+      const t = template(Object.assign({}, x, { lanes }), x.name, x.note, { id: x.id ? String(x.id) : undefined, made: x.made });
+      if (!t) return skipped++;
+      const clash = list.find((y) => y.id === t.id);
+      if (clash && same(clash, t)) return skipped++;
+      if (clash) t.id = templateId();
+      list.push(t);
+      added.push(t);
+    });
+    return { list, added, skipped, dropped };
+  }
+  let templateList = [];
+  function loadTemplates() {
+    try {
+      templateList = migrateTemplates(JSON.parse(localStorage.getItem(TEMPLATE_KEY)));
+    } catch (e) {
+      templateList = templateList || [];
+    }
+    return templateList;
+  }
+  /* Keep the list (or a new one), and tell the page (the library's My templates) it changed. */
+  function saveTemplates(list) {
+    if (list) templateList = list;
+    let kept = true;
+    try {
+      localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templateList));
+    } catch (e) {
+      kept = false;
+    }
+    try {
+      if (root.dispatchEvent && typeof CustomEvent === "function") root.dispatchEvent(new CustomEvent("curio-templates"));
+    } catch (e) {}
+    return kept;
+  }
+  loadTemplates();
 
   /* ---------- area tools: Reverse, Flip, Stretch and Squeeze (CapCut's Reverse and speed, for nodes) ----------
      Each works on the selected area's nodes, lane by lane, as one batch (one undo step). lanes: [{ track, cur, lk }].
@@ -1654,7 +1819,7 @@
           <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
-          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("area-take", "Take from the film", filmTip("take"))}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}</span>` : ""}
+          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("area-take", "Take from the film", filmTip("take"))}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}${tb("tpl-save", "Save as template", "Save as template: keep the selected stretch under a name and a note, such as \"slow-burn reveal\", to use again anywhere from the library's Templates tab (My templates).")}</span>` : ""}
           ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
           <span class="sl-seg" role="group" aria-label="Markers">${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off. Double-click a marker's flag on the ruler to write a note or change its color.")}${tb("marker-list", `Markers${marked.length ? " " + marked.length : ""} ▾`, "Every marker in your film, with its note: click one to move the playhead there")}</span>
           ${tb("suite-list", `Suite clips${suiteList.length ? " " + suiteList.length : ""} ▾`, "Your saved suite clips: drop one in at the playhead (as it is, or as an analogy), rename it or delete it")}
@@ -2439,6 +2604,10 @@
         return suiteNamePop(null, r.left, r.bottom);
       }
       if (act === "suite-list") return suiteMenu(b);
+      if (act === "tpl-save") {
+        const r = b.getBoundingClientRect();
+        return templateNamePop(null, r.left, r.bottom);
+      }
       if (act === "attention-track") return toggleAttention();
       if (act === "film-lines") return toggleFilmLines();
       if (act === "lane-off" || act === "lane-solo" || act === "lane-lock") return laneButton(act, b.dataset.lk);
@@ -3247,6 +3416,132 @@
       if (first) first.focus();
       return pop;
     }
+    /* ---------- templates: Save as template (the selected area's tools), and using one from the library ---------- */
+    /* Keep the selected area as a named template with a plain note. Returns { ok, template, message } or { ok: false, error }. */
+    function saveTemplate(name, note) {
+      if (!area) return { ok: false, error: "Select an area first: drag across empty space on the lanes." };
+      if (!String(name || "").trim()) return { ok: false, error: "Give the template a name first." };
+      const t = template(copyArea(E().state(), geo.lanes, area), String(name).slice(0, SUITE_NAME_MAX), note);
+      if (!t) return { ok: false, error: "There are no curiosity lanes in the selection to save. Select some lanes that are in your film." };
+      const list = loadTemplates().concat(t);
+      const kept = saveTemplates(list);
+      const n = t.curiosities.length;
+      const message = `Saved the template "${t.name}": ${n} curiosit${n === 1 ? "y" : "ies"} over ${t.span + 1} moment${t.span ? "s" : ""}. Find it in the library's Templates tab, under My templates, to use it anywhere.${kept ? "" : " This browser isn't keeping saved data for this page, so it will be gone after a reload."}`;
+      return { ok: true, template: t, message };
+    }
+    function renameTemplate(id, name, note) {
+      const list = loadTemplates();
+      const t = list.find((x) => x.id === id);
+      name = String(name || "").trim().slice(0, SUITE_NAME_MAX);
+      if (!t) return { ok: false, error: "That template is gone." };
+      if (!name) return { ok: false, error: "Give the template a name first." };
+      const was = t.name;
+      t.name = name;
+      if (note != null) t.note = String(note).trim().slice(0, TEMPLATE_NOTE_MAX);
+      saveTemplates(list);
+      return { ok: true, message: was === name ? `Kept the template "${name}"${note != null ? " with its new note" : ""}.` : `Renamed the template "${was}" to "${name}".` };
+    }
+    function deleteTemplate(id) {
+      const list = loadTemplates();
+      const t = list.find((x) => x.id === id);
+      if (!t) return { ok: false, error: "That template is gone." };
+      saveTemplates(list.filter((x) => x !== t));
+      return { ok: true, template: t, message: `Deleted the template "${t.name}". Your film is not changed.` };
+    }
+    /* Use a template: at moment o.at (the playhead when left out), or stretched over the selected area (o.stretch).
+       One undo step. Says what it did in the status line. */
+    function useTemplate(id, o) {
+      o = o || {};
+      const t = loadTemplates().find((x) => x.id === id);
+      if (!t) return say("That template is gone."), { ok: false, error: "That template is gone." };
+      if (o.stretch && !area) {
+        const e = "Select an area on the timeline first, then the template is stretched to fit it.";
+        return say(e), { ok: false, error: e };
+      }
+      const st = E().state();
+      const at = o.stretch ? area.j0 : o.at != null ? Math.max(0, Math.min(st.rows.length - 1, Number(o.at) || 0)) : opts.row ? opts.row() : 0;
+      const r = useTemplateCommands(st, t, at, { shown: lanesNow(st), span: o.stretch ? area.j1 - area.j0 : null });
+      if (r.error) return say(r.error), { ok: false, error: r.error };
+      const out = send({ type: "batch", label: (o.stretch ? "Use a template, stretched: " : "Use a template: ") + t.name, commands: r.cmds });
+      if (!out.ok) return out;
+      const parts = [`Used the template "${t.name}" at moment ${r.start + 1} on ${r.lanes.length} lane${r.lanes.length === 1 ? "" : "s"}: ${listWords(r.lanes)}.`];
+      if (o.stretch && r.span !== t.span) parts.push(`It was ${t.span + 1} moment${t.span ? "s" : ""} long and now fills the selected ${r.span + 1}.`);
+      else if (o.stretch) parts.push("It already fit the selected area.");
+      if (r.moved) parts.push(`It starts at moment ${r.start + 1} so it fits before the end of the film.`);
+      if (r.hidden.length && opts.showLanes) {
+        opts.showLanes(r.hidden);
+        parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "was" : "were"} not on this timeline, so ${r.hidden.length === 1 ? "it has" : "they have"} a lane now.`);
+      } else if (r.hidden.length) parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "is" : "are"} in your film now but not shown on this timeline (Arrange shows every lane).`);
+      if (r.locked.length) parts.push(`Skipped ${listWords(r.locked)}: locked (🔒).`);
+      parts.push("Undo takes it back.");
+      const m = parts.join(" ");
+      draw();
+      say(m);
+      return { ok: true, start: r.start, span: r.span, lanes: r.lanes, hidden: r.hidden, locked: r.locked, message: m };
+    }
+    /* The small pop-up for a template's name and note: saving the selected area (t null) or renaming a saved one. */
+    function templateNamePop(t, cx, cy) {
+      if (!t && !area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+      const pop = popAt("sl-suitepop sl-tplpop", t ? "Rename template" : "Save as template", cx, cy);
+      const lanesN = t ? t.curiosities.length : new Set(geo.lanes.slice(area.i0, area.i1 + 1).filter((ln) => ln && ln.track).map((ln) => ln.cur)).size;
+      const span = t ? t.span + 1 : area.j1 - area.j0 + 1;
+      pop.innerHTML = `<p><strong>${t ? "Rename template" : "Save as template"}</strong> · ${lanesN} lane${lanesN === 1 ? "" : "s"}, ${span} moment${span === 1 ? "" : "s"}</p>
+        <label class="sl-mknote">Name <input type="text" data-tpl-name maxlength="${SUITE_NAME_MAX}" placeholder="e.g. slow-burn reveal" value="${esc(t ? t.name : `Template ${loadTemplates().length + 1}`)}"></label>
+        <label class="sl-mknote">Note (optional) <input type="text" data-tpl-note maxlength="${TEMPLATE_NOTE_MAX}" placeholder="e.g. hold wide, then push in on the face" value="${esc(t ? t.note || "" : "")}"></label>
+        <p class="sl-note">${t ? "Only the name and note change." : "Keeps the nodes and joins in the selection, each in its place on its curiosity's scale. Use it again from the library's Templates tab."}</p>
+        <div class="sl-pop-btns"><button type="button" data-l="cancel">Cancel</button><button type="button" data-l="ok" class="on">${t ? "Rename" : "Save"}</button></div>`;
+      const close = (m) => {
+        pop.remove();
+        draw();
+        say(m == null ? msg : m);
+        el.focus();
+      };
+      const done = () => {
+        const name = pop.querySelector("[data-tpl-name]").value.trim();
+        const note = pop.querySelector("[data-tpl-note]").value;
+        if (!name) {
+          say("Give the template a name first.");
+          return pop.querySelector("[data-tpl-name]").focus();
+        }
+        const r = t ? renameTemplate(t.id, name, note) : saveTemplate(name, note);
+        close(r.message || r.error);
+      };
+      pop.addEventListener("keydown", (ev) => {
+        ev.stopPropagation();
+        if (ev.key === "Escape") return ev.preventDefault(), close(t ? "" : "Not saved.");
+        if (ev.key === "Enter" && ev.target.matches("input")) ev.preventDefault(), done();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("button");
+        if (!b) return;
+        if (b.dataset.l === "ok") return done();
+        close(t ? "" : "Not saved.");
+      };
+      el.appendChild(pop);
+      const inp = pop.querySelector("[data-tpl-name]");
+      inp.focus();
+      inp.select();
+      return { ok: true, pop };
+    }
+    /* A template card dragged from the library onto the timeline lands at the moment under the pointer. */
+    const TPL_MIME = "application/x-curiomatic-template";
+    const tplDrag = (e) => !!(e.dataTransfer && [...(e.dataTransfer.types || [])].includes(TPL_MIME));
+    function onTplOver(e) {
+      if (!tplDrag(e)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    }
+    function onTplDrop(e) {
+      if (!tplDrag(e) || !geo) return;
+      e.preventDefault();
+      const svg = el.querySelector(".sl-svg");
+      const r = (svg || el).getBoundingClientRect();
+      const j = Math.max(0, Math.min(geo.n - 1, Math.floor((e.clientX - r.left) / geo.colW)));
+      useTemplate(e.dataTransfer.getData(TPL_MIME), { at: j });
+    }
+    el.addEventListener("dragover", onTplOver);
+    el.addEventListener("drop", onTplDrop);
     function onMenu(e) {
       const mk = e.target.closest && e.target.closest(".sl-top [data-marker]");
       if (!mk) return;
@@ -3334,6 +3629,27 @@
         say(r.message || r.error);
         return r;
       },
+      /* templates: saveTemplate(name, note), templateName() (the pop-up), useTemplate(id, { at, stretch }),
+         renameTemplate(id, name, note), deleteTemplate(id) */
+      saveTemplate: (name, note) => {
+        const r = saveTemplate(name, note);
+        draw();
+        say(r.ok ? r.message : r.error);
+        return r;
+      },
+      templateName: () => templateNamePop(null, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
+      useTemplate,
+      renameTemplate: (id, name, note) => {
+        const r = renameTemplate(id, name, note);
+        say(r.message || r.error);
+        return r;
+      },
+      deleteTemplate: (id) => {
+        const r = deleteTemplate(id);
+        say(r.message || r.error);
+        return r;
+      },
+      say,
       markTurns,
       clearAuto,
       attention: toggleAttention,
@@ -3363,4 +3679,6 @@
   }
 
   root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
+  /* Templates (Save as template; the library's My templates). */
+  Object.assign(root.CurioLanes, { TEMPLATE_KEY, TEMPLATE_FORMAT, TPL_MIME: "application/x-curiomatic-template", template, migrateTemplates, templateSummary, templatePreview, stretchTemplate, useTemplateCommands, exportTemplates, importTemplates, templates: () => loadTemplates(), saveTemplates });
 })();

@@ -1596,6 +1596,209 @@ document.addEventListener("click", function (e) {
     if (ps.length) out.push({ id: "tpl:linked", label: "Linked recipes", level: "proximitySuite", items: ps });
     return out;
   }
+  /* ---------- My templates (CapCut's Templates, made curiosity-centric) ----------
+     Stretches of the timeline you saved with Save as template (the timeline's area toolbar, or ⌘K), shown at the
+     top of the Templates tab. Each card has the name, the note, how many moments, which curiosities and a tiny
+     picture of each lane's shape. Use at the playhead (or drag the card onto the timeline at a moment; tick
+     Stretch to the selected area to fit it to a selection instead), Rename, Delete (asks once more) and Export.
+     Export all and Import… share them as a .json file. The list and its rules live in lanes.js (CurioLanes:
+     templates(), useTemplateCommands, exportTemplates, importTemplates); using one is one undo step. */
+  let tplStretch = false;
+  const TPL = () => (window.CurioLanes && window.CurioLanes.templates ? window.CurioLanes : null);
+  const tplList = () => (TPL() ? TPL().templates() : []);
+  function tplCard(t) {
+    return `<div class="sc-card sc-tplcard" data-card="mytpl" data-tpl="${esc(t.id)}" draggable="true" title="Drag onto the timeline to use it at that moment">
+      <div class="sc-tpl-body"><strong>${esc(t.name)}</strong>${t.note ? `<small class="sc-tpl-note">${esc(t.note)}</small>` : ""}<small class="sc-tpl-what">${esc(TPL().templateSummary(t))}</small></div>
+      <div class="sc-tpl-pic" aria-hidden="true">${TPL().templatePreview(t, 132, 48)}</div>
+      <div class="sc-tpl-acts"><button type="button" class="on" data-tpl-act="use" data-tpl-id="${esc(t.id)}" title="Write this template's nodes starting at the playhead (or across the selected area when Stretch to the selected area is ticked). One undo takes it back.">Use at the playhead</button><button type="button" data-tpl-act="rename" data-tpl-id="${esc(t.id)}" title="Change its name or note">Rename</button><button type="button" data-tpl-act="delete" data-tpl-id="${esc(t.id)}" title="Delete this template (your film is not changed)">Delete</button><button type="button" data-tpl-act="export" data-tpl-id="${esc(t.id)}" title="Save this template as a .json file to share">Export</button></div>
+    </div>`;
+  }
+  function myTplHtml() {
+    const list = tplList();
+    if (!TPL()) return "";
+    return `<section class="sc-mytpl" id="sc-mytpl" aria-label="My templates">
+      <div class="sc-mytpl-h"><p class="sc-grid-h sc-fave-h">My templates <small>${list.length}</small></p>
+        <span class="sc-mytpl-tools"><label title="When an area is selected on the timeline, Use fits the template to it: its moves spread out or squeeze in to fill the selection"><input type="checkbox" data-tpl-stretch${tplStretch ? " checked" : ""}> Stretch to the selected area</label><button type="button" data-tpl-act="export-all"${list.length ? "" : " disabled"} title="Save every template as one .json file to share">Export all</button><button type="button" data-tpl-act="import" title="Bring in templates from a .json file someone shared">Import…</button><input type="file" accept=".json,application/json" data-tpl-file hidden></span></div>
+      ${list.length ? `<div class="sc-cards sc-mytpl-cards">${list.map(tplCard).join("")}</div>` : `<p class="sc-k">Select a stretch on the timeline (drag across empty space on the lanes), then press Save as template in the timeline's toolbar. It shows up here, ready to use again in this film or another.</p>`}
+      <p class="sc-grid-h sc-fave-h">Ready-made recipes</p>
+    </section>`;
+  }
+  const tplSay = (m) => {
+    if (lanes && lanes.say) lanes.say(m);
+    toast(m);
+  };
+  function tplUse(id, o) {
+    if (!lanes || !lanes.useTemplate) return toast("The timeline is not ready yet."), { ok: false };
+    o = Object.assign({ stretch: tplStretch && !!curArea() }, o || {});
+    if (tplStretch && !curArea() && o.at == null) toast("No area is selected, so it goes at the playhead.");
+    const r = lanes.useTemplate(id, o);
+    if (r && r.message) toast(r.message);
+    else if (r && r.error) toast(r.error);
+    return r;
+  }
+  function tplRename(id, name, note) {
+    const list = tplList();
+    const t = list.find((x) => x.id === id);
+    name = String(name || "").trim().slice(0, 60);
+    if (!t) return { ok: false, error: "That template is gone." };
+    if (!name) return { ok: false, error: "Give the template a name first." };
+    const was = t.name;
+    t.name = name;
+    if (note != null) t.note = String(note).trim().slice(0, 240);
+    TPL().saveTemplates(list);
+    const message = was === name ? `Kept the template "${name}"${note != null ? " with its note" : ""}.` : `Renamed the template "${was}" to "${name}".`;
+    tplSay(message);
+    return { ok: true, message };
+  }
+  function tplRemove(id) {
+    const list = tplList();
+    const t = list.find((x) => x.id === id);
+    if (!t) return { ok: false, error: "That template is gone." };
+    TPL().saveTemplates(list.filter((x) => x !== t));
+    const message = `Deleted the template "${t.name}". Your film is not changed.`;
+    tplSay(message);
+    return { ok: true, message };
+  }
+  const tplExportJson = (ids) => TPL().exportTemplates(ids ? tplList().filter((t) => ids.includes(t.id)) : tplList());
+  function tplImport(text) {
+    const r = TPL().importTemplates(text, tplList());
+    if (r.error) return tplSay(r.error), { ok: false, error: r.error };
+    if (r.added.length) TPL().saveTemplates(r.list);
+    const names = r.added.map((t) => `"${t.name}"`);
+    const parts = [r.added.length ? `Imported ${r.added.length} template${r.added.length === 1 ? "" : "s"}: ${names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0]}.` : "No new templates in that file."];
+    if (r.skipped) parts.push(`${r.skipped} ${r.skipped === 1 ? "was" : "were"} already here or empty, so ${r.skipped === 1 ? "it was" : "they were"} skipped.`);
+    if (r.dropped) parts.push(`${r.dropped} lane${r.dropped === 1 ? "" : "s"} of curiosities this app doesn't know ${r.dropped === 1 ? "was" : "were"} left out.`);
+    const message = parts.join(" ");
+    tplSay(message);
+    return { ok: true, added: r.added.map((t) => t.id), skipped: r.skipped, dropped: r.dropped, message };
+  }
+  function tplDownload(ids, name) {
+    const blob = new Blob([tplExportJson(ids)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  const tplSlug = (s) => String(s || "template").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "template";
+  /* The small pop-up for a template's new name and note, beside its card (Enter saves, Esc cancels). */
+  function tplRenamePop(id, btn) {
+    const t = tplList().find((x) => x.id === id);
+    if (!t || !page) return;
+    const old = page.querySelector(".sc-tplpop");
+    if (old) old.remove();
+    const pop = document.createElement("div");
+    pop.className = "sc-tplpop";
+    pop.setAttribute("role", "dialog");
+    pop.setAttribute("aria-label", "Rename template");
+    pop.innerHTML = `<p><strong>Rename template</strong></p>
+      <label>Name <input type="text" data-tplpop-name maxlength="60" value="${esc(t.name)}"></label>
+      <label>Note (optional) <input type="text" data-tplpop-note maxlength="240" placeholder="e.g. hold wide, then push in on the face" value="${esc(t.note || "")}"></label>
+      <div class="sc-tplpop-btns"><button type="button" data-tplpop="cancel">Cancel</button><button type="button" data-tplpop="ok" class="on">Rename</button></div>`;
+    const r = btn ? btn.getBoundingClientRect() : { left: 40, bottom: 80 };
+    pop.style.left = Math.max(8, Math.min(window.innerWidth - 290, r.left)) + "px";
+    pop.style.top = Math.max(8, Math.min(window.innerHeight - 190, r.bottom + 6)) + "px";
+    const close = () => {
+      pop.remove();
+      const b = page.querySelector(`[data-tpl-act="rename"][data-tpl-id="${CSS.escape(id)}"]`);
+      if (b) b.focus();
+    };
+    const done = () => {
+      const res = tplRename(id, pop.querySelector("[data-tplpop-name]").value, pop.querySelector("[data-tplpop-note]").value);
+      if (!res.ok) return toast(res.error), pop.querySelector("[data-tplpop-name]").focus();
+      close();
+    };
+    pop.addEventListener("keydown", (ev) => {
+      ev.stopPropagation();
+      if (ev.key === "Escape") return ev.preventDefault(), close();
+      if (ev.key === "Enter" && ev.target.matches("input")) ev.preventDefault(), done();
+    });
+    pop.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const b = ev.target.closest("[data-tplpop]");
+      if (b) return b.dataset.tplpop === "ok" ? done() : close();
+    });
+    page.appendChild(pop);
+    const inp = pop.querySelector("[data-tplpop-name]");
+    inp.focus();
+    inp.select();
+    return pop;
+  }
+  function tplClick(e) {
+    const b = e.target.closest && e.target.closest("[data-tpl-act]");
+    if (!b || !page.contains(b)) return;
+    const id = b.dataset.tplId;
+    const act = b.dataset.tplAct;
+    if (act === "use") return tplUse(id);
+    if (act === "rename") return tplRenamePop(id, b);
+    if (act === "export") {
+      const t = tplList().find((x) => x.id === id);
+      if (t) tplDownload([id], `curiomatic-template-${tplSlug(t.name)}.json`), toast(`Saved "${t.name}" as a .json file. Anyone can bring it in with Import…`);
+      return;
+    }
+    if (act === "export-all") return tplDownload(null, "curiomatic-templates.json"), toast(`Saved ${tplList().length} template${tplList().length === 1 ? "" : "s"} as one .json file.`);
+    if (act === "import") {
+      const f = page.querySelector("[data-tpl-file]");
+      return f && f.click();
+    }
+    if (act === "delete") {
+      /* Two clicks: deleting a template can't be undone. */
+      if (b.dataset.sure !== "1") {
+        b.dataset.sure = "1";
+        b.textContent = "Delete for good?";
+        b.classList.add("sl-warn");
+        return toast("Press Delete for good? to delete it. Your film is not changed.");
+      }
+      return tplRemove(id);
+    }
+  }
+  function tplChange(e) {
+    const t = e.target;
+    if (!t.matches) return;
+    if (t.matches("[data-tpl-stretch]")) {
+      tplStretch = t.checked;
+      return toast(tplStretch ? (curArea() ? "Use now fits a template to the selected area." : "Use will fit a template to the selected area. Select one on the timeline first.") : "Use puts a template at the playhead, at its own length.");
+    }
+    if (t.matches("[data-tpl-file]") && t.files && t.files[0]) {
+      const file = t.files[0];
+      t.value = "";
+      (file.text ? file.text() : Promise.reject(new Error("no text"))).then(tplImport, () => tplSay("That file couldn't be read."));
+    }
+  }
+  function tplDragStart(e) {
+    const c = e.target.closest && e.target.closest("[data-tpl][draggable]");
+    if (!c || !e.dataTransfer || !TPL()) return;
+    e.dataTransfer.setData(TPL().TPL_MIME, c.dataset.tpl);
+    e.dataTransfer.setData("text/plain", (tplList().find((x) => x.id === c.dataset.tpl) || {}).name || "");
+    e.dataTransfer.effectAllowed = "copy";
+  }
+  let tplWired = false;
+  function tplWire() {
+    if (tplWired || !page) return;
+    tplWired = true;
+    page.addEventListener("click", tplClick);
+    page.addEventListener("change", tplChange);
+    page.addEventListener("dragstart", tplDragStart);
+    window.addEventListener("curio-templates", () => prefs.libTab === "templates" && drawLibrary());
+  }
+  /* ⌘K's actions: save the selected stretch as a template, and use each one at the playhead. */
+  function tplFindActions(add) {
+    if (!TPL()) return;
+    if (curArea()) add("tpl-save", "Save as template", "Keep the selected stretch of the timeline under a name, to use again anywhere", "", () => (lanes ? lanes.templateName() : toast("The timeline is not ready yet.")));
+    tplList().forEach((t) => add("tpl-use:" + t.id, `Use template: ${t.name}`, (t.note ? t.note + " · " : "") + TPL().templateSummary(t), "", () => tplUse(t.id)));
+  }
+  const TPL_API = {
+    list: () => JSON.parse(JSON.stringify(tplList())),
+    save: (name, note) => (lanes ? lanes.saveTemplate(name, note) : { ok: false, error: "The timeline is not ready yet." }),
+    use: (id, o) => tplUse(id, o),
+    rename: tplRename,
+    remove: tplRemove,
+    exportJson: tplExportJson,
+    importJson: tplImport,
+    stretch: (on) => (on != null && (tplStretch = !!on), tplStretch),
+  };
   /* Favorites and Recently used (CapCut's star on any effect, and its Recently used list). Kept in localStorage
      "curiosities-screen-faves-v1" as { faves: ["level|id"], recent: ["level|id"] }: a view setting, not part of
      the film and never an undo step. faves are in the order starred; recent is newest first, at most 12, no
@@ -1754,8 +1957,9 @@ document.addEventListener("click", function (e) {
     const grid = page.querySelector(".sc-grid");
     const had = grid.querySelector("[data-lib-search]");
     const focused = had && document.activeElement === had;
-    const body = tab === "faves" && !q ? faveHtml : `<p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>${faveHtml}`;
+    const body = (tab === "templates" && !q ? myTplHtml() : "") + (tab === "faves" && !q ? faveHtml : `<p class="sc-grid-h">${esc(head)}</p><div class="sc-cards">${cards || `<p class="sc-k">No matches.</p>`}</div>${faveHtml}`);
     grid.innerHTML = `<input type="search" data-lib-search placeholder="Search every curiosity" aria-label="Search every curiosity" value="${esc(prefs.search || "")}">${body}`;
+    tplWire();
     if (focused) {
       const inp = grid.querySelector("[data-lib-search]");
       inp.focus();
@@ -2650,7 +2854,7 @@ document.addEventListener("click", function (e) {
      that tool: the Screen's shortcuts and its ⌘Z leave them alone, so they never change the film behind it. */
   function inToolWindow(e) {
     const t = e && e.target;
-    if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg, .sc-find")) return true;
+    if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg, .sc-find, .sc-tplpop, .sl-tplpop")) return true;
     /* Quick find (⌘K) takes every key while it is open. */
     if (findOpen) return true;
     /* A tool opened as a modal window takes the keys even when nothing inside it has focus. */
@@ -3824,6 +4028,7 @@ document.addEventListener("click", function (e) {
     [["highlight", "Lens: highlight", "Light up only what you are looking through"], ["overlay", "Lens: overlay", "Write its values on the picture"], ["only", "Lens: lens only", "Draw only what it is about"], ["off", "Lens: off", "The plain picture"]].forEach(([id, l, tip]) => add("lens-" + id, l, tip, "", () => ((prefs.lens = id), save(), drawBar(), drawViewers())));
     add("overview", "Whole-film strip", "Show or hide a frame for every moment under the viewers", "", () => ((prefs.overview = !prefs.overview), save(), drawViewers()));
     add("close", "Back to the app", "Leave the Screen", "", () => close());
+    tplFindActions(add);
     /* The ⋯ menu of the curiosity you are looking through (Details): the same four ways, the same steps. */
     if (prefs.sel.level === "curiosity" && E() && S()) {
       const k = keyFor(prefs.sel.id);
@@ -4123,4 +4328,7 @@ document.addEventListener("click", function (e) {
   else setTimeout(wire, 0);
 
   window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  /* My templates: list(), save(name, note), use(id, { at, stretch }), rename(id, name, note), remove(id),
+     exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick). */
+  window.CurioScreen.templates = TPL_API;
 })();

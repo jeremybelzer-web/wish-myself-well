@@ -2380,6 +2380,187 @@ const ok = (cond, msg) => {
   await page.click("[data-screen]");
   ok(await page.evaluate(() => window.CurioScreen.isOpen()), "the bar's Screen button opens it");
 
+  /* ---------- Templates (CapCut's Templates, curiosity-centric): save a stretch from an area with a name and a note,
+     find it in the library's Templates tab with a preview, use it at the playhead (one undo), drag it onto the
+     timeline, skip a locked lane, stretch it to a selected area, rename, export, delete, import, keep across a
+     reload. In its own browser context so its storage starts empty. ---------- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    const TK = "curiosities-screen-templates-v1";
+    const CURS = ["shotSize", "emotionIntensity"];
+    for (const [cur, words] of [["shotSize", "Shot size"], ["emotionIntensity", "Strength of the feeling"]]) {
+      await p.fill("[data-lib-search]", words);
+      await p.click(`.sc-grid [data-add-card="curiosity|${cur}"]`);
+    }
+    await p.fill("[data-lib-search]", "");
+    /* Four moments of shape on each lane: shot size climbs, the feeling rises and falls. */
+    const setup = await p.evaluate((curs) => {
+      const E = window.CurioEngine;
+      const Sc = window.CurioScale;
+      const st = E.state();
+      const shapes = { shotSize: [0, 0.34, 0.67, 1], emotionIntensity: [0.2, 0.9, 0.5, 0.1] };
+      const cmds = [];
+      curs.forEach((cur) => {
+        const t = st.tracks.find((x) => x.curiosities.includes(cur));
+        st.rows.forEach((r) => st.lanes[t.id + "|" + cur] && st.lanes[t.id + "|" + cur].points[r.id] != null && cmds.push({ type: "removePoint", row: r.id, track: t.id, curiosity: cur }));
+        shapes[cur].forEach((pp, j) => cmds.push({ type: "setPoint", row: st.rows[j].id, track: t.id, curiosity: cur, value: Sc.fix(cur, Sc.at(cur, pp)) }));
+      });
+      const r = E.send({ type: "batch", label: "Template test setup", commands: cmds });
+      window.CurioScreen.setRow(0);
+      return { ok: r.ok, n: st.rows.length };
+    }, CURS);
+    ok(setup.ok && setup.n >= 8, "templates: two lanes with four moments of shape to save");
+    const pts = (cur) => p.evaluate((c) => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + c)); return st.rows.map((r) => (st.lanes[lk].points[r.id] == null ? null : String(st.lanes[lk].points[r.id]))); }, cur);
+    const orig = { shotSize: await pts("shotSize"), emotionIntensity: await pts("emotionIntensity") };
+    const film = () => p.evaluate(() => window.CurioEngine.fingerprint());
+    const msg = () => p.evaluate(() => document.querySelector(".sl-msg").textContent);
+    /* Drag an area across both lanes, moments a to b. */
+    const selectArea = async (a, b) => {
+      await p.focus(".sl");
+      await p.keyboard.press("Escape");
+      const g = await p.evaluate(() => {
+        const names = [...document.querySelectorAll(".sl-heads .sl-head")].map((h) => h.textContent);
+        const ix = [names.findIndex((t) => /Shot size/.test(t)), names.findIndex((t) => /Strength of the feeling/.test(t))];
+        const sc = document.querySelector(".sl-scroll");
+        sc.scrollLeft = 0;
+        const bgs = document.querySelectorAll(".sl-bg");
+        sc.scrollTop = Math.max(0, bgs[Math.min(...ix)].getBBox().y);
+        const r0 = bgs[Math.min(...ix)].getBoundingClientRect();
+        const r1 = bgs[Math.max(...ix)].getBoundingClientRect();
+        return { ix, x: r0.x, y0: r0.y, y1: r1.y + r1.height, w: r0.width, n: window.CurioEngine.state().rows.length };
+      });
+      const cw = g.w / g.n;
+      await p.mouse.move(g.x + cw * (a + 0.1), g.y0 + 2);
+      await p.mouse.down();
+      await p.mouse.move(g.x + cw * (b + 0.9), g.y1 - 2, { steps: 8 });
+      await p.mouse.up();
+      return g;
+    };
+    const g0 = await selectArea(0, 3);
+    ok(g0.ix.every((i) => i >= 0) && !!(await p.$('.sl .sl-areatools [data-act="tpl-save"]')), "a selected area's tools offer Save as template");
+    const before = { tools: await p.evaluate(() => JSON.stringify([window.CurioLanes.tools().tool, window.CurioLanes.tools().skim, window.CurioLanes.tools().snap, window.CurioLanes.tools().magnet])), fp: await film(), row: await p.evaluate(() => window.CurioScreen.row()) };
+    await p.click('.sl [data-act="tpl-save"]');
+    ok(await p.evaluate(() => { const pop = document.querySelector(".sl-tplpop"); return !!pop && document.activeElement === pop.querySelector("[data-tpl-name]") && !!pop.querySelector("[data-tpl-note]"); }), "it asks for a name and an optional note in a small pop-up, ready to type");
+    await p.keyboard.press("Control+a");
+    /* Typed letters include Screen shortcuts (s, b, n, l, m, p): none of them may reach the Screen. */
+    await p.keyboard.type("slow-burn reveal pm");
+    await p.focus(".sl-tplpop [data-tpl-note]");
+    await p.keyboard.type("hold wide, then push in");
+    const typedSafe = (await p.evaluate(() => JSON.stringify([window.CurioLanes.tools().tool, window.CurioLanes.tools().skim, window.CurioLanes.tools().snap, window.CurioLanes.tools().magnet]))) === before.tools && (await film()) === before.fp && (await p.evaluate(() => window.CurioScreen.row())) === before.row;
+    ok(typedSafe, "typing in the name and note boxes doesn't trigger Screen shortcuts");
+    await p.keyboard.press("Enter");
+    const kept = await p.evaluate((k) => JSON.parse(localStorage.getItem(k) || "[]"), TK);
+    ok(kept.length === 1 && kept[0].name === "slow-burn reveal pm" && kept[0].note === "hold wide, then push in" && kept[0].span === 3 && CURS.every((c) => kept[0].curiosities.includes(c)) && !(await p.$(".sl-tplpop")), "Enter saves it in curiosities-screen-templates-v1 with its name, note, length and curiosities");
+    ok(/Saved the template "slow-burn reveal pm"/.test(await msg()), "the status line says it was saved");
+    /* The library's Templates tab: My templates on top, with the card and its preview. */
+    const openTab = async () => { if ((await p.evaluate(() => window.CurioScreen.state().libTab)) !== "templates") await p.click('[data-libtab="templates"]'); };
+    await openTab();
+    const card = await p.evaluate(() => { const c = document.querySelector(".sc-mytpl .sc-tplcard"); return c && { name: c.querySelector("strong").textContent, note: (c.querySelector(".sc-tpl-note") || {}).textContent, what: c.querySelector(".sc-tpl-what").textContent, lines: c.querySelectorAll(".sc-tpl-pic svg polyline").length, lanes: [...c.querySelectorAll(".sc-tpl-pic polyline")].map((x) => x.dataset.tplLane), drag: c.getAttribute("draggable"), acts: [...c.querySelectorAll("[data-tpl-act]")].map((b) => b.textContent) }; });
+    const plain = await p.evaluate(() => window.CurioScale.label("emotionIntensity"));
+    ok(card && card.name === "slow-burn reveal pm" && card.note === "hold wide, then push in" && /^4 moments · /.test(card.what) && card.what.includes(plain) && card.what.includes("Shot size"), "My templates shows a card with the name, note, how many moments and which curiosities (" + (card ? card.what : "none") + ")");
+    ok(card && card.lines === kept[0].lanes.length && CURS.every((c) => card.lanes.includes(c)) && card.drag === "true", "the card has a tiny preview with one line per lane, and can be dragged");
+    ok(card && ["Use at the playhead", "Rename", "Delete", "Export"].every((t) => card.acts.includes(t)) && (await p.$$('.sc-card[data-card="suite"]')).length >= 1, "each card offers Use at the playhead, Rename, Delete and Export; the ready-made suites are still there below");
+    const shot = await p.$(".sc-lib");
+    if (shot) await shot.screenshot({ path: path.join(SHOTS, "screen-8-my-templates.png") });
+    /* Use at the playhead (moment 5): the same shapes, shifted by four moments, as one undo step. */
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.evaluate(() => window.CurioScreen.setRow(4));
+    const fp0 = await film();
+    const hist0 = await p.evaluate(() => (window.CurioEngine.history ? window.CurioEngine.history().undo.length : 0));
+    await p.click('.sc-tplcard [data-tpl-act="use"]');
+    const used = { shotSize: await pts("shotSize"), emotionIntensity: await pts("emotionIntensity") };
+    ok(CURS.every((c) => [0, 1, 2, 3].every((j) => used[c][4 + j] === orig[c][j]) && JSON.stringify(used[c].slice(0, 4)) === JSON.stringify(orig[c].slice(0, 4))), "Use at the playhead writes the same shapes starting at moment 5 (" + used.shotSize.join(",") + ")");
+    ok(/Used the template "slow-burn reveal pm" at moment 5/.test(await msg()) && /Undo takes it back/.test(await msg()), "the status line says what it did");
+    const hist1 = await p.evaluate(() => (window.CurioEngine.history ? window.CurioEngine.history().undo.length : 0));
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0 && (!hist0 && !hist1 || hist1 === hist0 + 1), "it is one undo step: one ⌘Z takes it all back");
+    /* Drag the card onto the timeline at moment 3. */
+    const dropAt = await p.evaluate((j) => {
+      const card = document.querySelector(".sc-tplcard");
+      const svg = document.querySelector(".sl-svg");
+      const n = window.CurioEngine.state().rows.length;
+      const r = svg.getBoundingClientRect();
+      const x = r.left + (r.width / n) * (j + 0.5);
+      const y = r.top + 40;
+      const dt = new DataTransfer();
+      card.dispatchEvent(new DragEvent("dragstart", { bubbles: true, cancelable: true, dataTransfer: dt }));
+      const over = new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: x, clientY: y });
+      svg.dispatchEvent(over);
+      svg.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: x, clientY: y }));
+      return { accepted: over.defaultPrevented, types: [...dt.types] };
+    }, 2);
+    const dragged = await pts("shotSize");
+    ok(dropAt.accepted && [0, 1, 2, 3].every((j) => dragged[2 + j] === orig.shotSize[j]), "dragging a card onto the timeline uses it at the moment it lands on (moment 3: " + dragged.join(",") + ")");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0, "and one ⌘Z takes the drop back");
+    /* A locked lane is skipped and named. */
+    const lk = await p.evaluate(() => Object.keys(window.CurioEngine.state().lanes).find((k) => k.endsWith("|emotionIntensity")));
+    await p.evaluate((l) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${l}"]`).click(), lk);
+    ok(await p.evaluate((l) => window.CurioLanes.isLocked(l), lk), "the feeling's lane is locked");
+    await p.click('.sc-tplcard [data-tpl-act="use"]');
+    const lockShot = await pts("shotSize");
+    const lockFeel = await pts("emotionIntensity");
+    ok(lockShot[4] === orig.shotSize[0] && lockShot[7] === orig.shotSize[3] && JSON.stringify(lockFeel) === JSON.stringify(orig.emotionIntensity), "with a lane locked, the template writes only the other lanes");
+    ok(/Skipped .*locked/.test(await msg()) && (await msg()).includes(plain), "and the status line names the locked lane it skipped");
+    await p.keyboard.press("Control+z");
+    await p.evaluate((l) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${l}"]`).click(), lk);
+    ok((await film()) === fp0 && !(await p.evaluate((l) => window.CurioLanes.isLocked(l), lk)), "one ⌘Z takes it back, and the lane is unlocked again");
+    /* Stretch to the selected area: moments 1 to 7 (seven moments) take the four-moment template at 0, 2, 4, 6. */
+    await selectArea(0, 6);
+    await p.check(".sc-mytpl [data-tpl-stretch]");
+    await p.click('.sc-tplcard [data-tpl-act="use"]');
+    const st7 = await pts("shotSize");
+    const o = orig.shotSize;
+    ok(st7[0] === o[0] && st7[2] === o[1] && st7[4] === o[2] && st7[6] === o[3] && st7[1] == null && st7[3] == null && st7[5] == null, "Stretch to the selected area spreads the template over the seven selected moments (" + st7.join(",") + ")");
+    ok(/now fills the selected 7/.test(await msg()), "the status line says it was stretched to fit");
+    await p.keyboard.press("Control+z");
+    ok((await film()) === fp0, "one ⌘Z takes the stretched use back");
+    await p.uncheck(".sc-mytpl [data-tpl-stretch]");
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    /* Rename in a small pop-up beside the card (typing there doesn't reach the Screen either). */
+    await p.click('.sc-tplcard [data-tpl-act="rename"]');
+    ok(await p.evaluate(() => { const pop = document.querySelector(".sc-tplpop"); return !!pop && document.activeElement === pop.querySelector("[data-tplpop-name]") && pop.querySelector("[data-tplpop-name]").value === "slow-burn reveal pm"; }), "Rename opens a small pop-up with its name, ready to type");
+    await p.keyboard.press("Control+a");
+    await p.keyboard.type("comedy double take");
+    await p.keyboard.press("Enter");
+    ok((await p.evaluate((k) => JSON.parse(localStorage.getItem(k))[0].name, TK)) === "comedy double take" && (await p.$eval(".sc-tplcard strong", (s) => s.textContent)) === "comedy double take" && !(await p.$(".sc-tplpop")) && (await film()) === fp0, "Rename changes its name on the card and in storage, and not the film");
+    /* Export: a .json file through a download link. */
+    const [dl] = await Promise.all([p.waitForEvent("download"), p.click('.sc-tplcard [data-tpl-act="export"]')]);
+    const file = path.join(SHOTS, "curiomatic-template-test.json");
+    await dl.saveAs(file);
+    const json = JSON.parse(fs.readFileSync(file, "utf8"));
+    ok(/^curiomatic-template-comedy-double-take\.json$/.test(dl.suggestedFilename()) && json.format === "curiomatic-templates" && json.templates.length === 1 && json.templates[0].name === "comedy double take", "Export saves the template as a .json file (" + dl.suggestedFilename() + ")");
+    /* Delete asks once more, then takes it off. */
+    await p.click('.sc-tplcard [data-tpl-act="delete"]');
+    ok((await p.$eval('.sc-tplcard [data-tpl-act="delete"]', (b) => b.textContent)) === "Delete for good?", "Delete asks once more");
+    await p.click('.sc-tplcard [data-tpl-act="delete"]');
+    ok(!(await p.$(".sc-tplcard")) && (await p.evaluate((k) => JSON.parse(localStorage.getItem(k)).length, TK)) === 0 && (await film()) === fp0, "then the template is gone and the film is unchanged");
+    /* Import the exported file back through the file box: the same template, the same nodes. */
+    await p.setInputFiles(".sc-mytpl [data-tpl-file]", file);
+    await p.waitForFunction((k) => JSON.parse(localStorage.getItem(k) || "[]").length === 1, TK, { timeout: 5000 }).catch(() => {});
+    const back = await p.evaluate((k) => JSON.parse(localStorage.getItem(k) || "[]"), TK);
+    ok(back.length === 1 && back[0].name === "comedy double take" && JSON.stringify(back[0].lanes) === JSON.stringify(json.templates[0].lanes) && !!(await p.$(".sc-tplcard")), "Import brings the exported file back with the same nodes");
+    const rt = await p.evaluate(() => { const T = window.CurioScreen.templates; const text = T.exportJson(); const id = T.list()[0].id; T.remove(id); const r = T.importJson(text); return { ok: r.ok, n: T.list().length, same: JSON.stringify(JSON.parse(text).templates[0].lanes) === JSON.stringify(T.list()[0].lanes), again: T.importJson(text).added.length }; });
+    ok(rt.ok && rt.n === 1 && rt.same && rt.again === 0, "the export JSON round-trips through the import function, and importing it twice adds nothing");
+    /* Quick find lists Save as template (with an area) and each template's Use. */
+    const finds = await p.evaluate(() => window.CurioScreenFind.items().filter((x) => /^act:tpl-/.test(x.id)).map((x) => x.label));
+    ok(finds.some((l) => l === "Use template: comedy double take"), "Quick find (⌘K) lists each template's Use (" + finds.join(", ") + ")");
+    /* Kept across a reload. */
+    await p.reload();
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await openTab();
+    ok((await p.$$eval(".sc-tplcard strong", (x) => x.map((s) => s.textContent))).join() === "comedy double take", "My templates are kept across a reload");
+    await ctx.close();
+  }
+
   /* ---------- Small screens: a short laptop with the Momentum dock, and tap-sized group headers on a phone ----------
      Each check opens the Screen fresh in its own browser context (its own window size and storage). */
   {

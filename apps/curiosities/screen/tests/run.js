@@ -289,6 +289,74 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   delete CL.tools().locks["master|emotion"];
 }
 
+/* Templates (CapCut's Templates, curiosity-centric): a stretch kept with a name and a note, used anywhere as one
+   batch, stretched to a selected area, shared as a .json file. */
+{
+  const CL = w.CurioLanes;
+  const Sc = w.CurioScale;
+  E.reset(w.CurioSeeds.starter());
+  const rr = E.state().rows;
+  const o = Sc.domain("shotSize").options;
+  const lanesA = [{ track: "camera", cur: "shotSize", lk: "camera|shotSize" }, { track: "master", cur: "emotion", lk: "master|emotion" }];
+  const pt = (j, v, t, c) => ({ type: "setPoint", row: rr[j].id, track: t || "camera", curiosity: c || "shotSize", value: v });
+  E.send({ type: "batch", commands: [pt(0, o[0]), pt(1, o[1]), pt(2, o[3]), pt(1, "angry", "master", "emotion")] });
+  const raw = CL.copyArea(E.state(), lanesA, { i0: 0, i1: 1, j0: 0, j1: 2 });
+  const t = CL.template(raw, "  slow-burn reveal ", "  hold wide, then push in  ");
+  ok(t && t.name === "slow-burn reveal" && t.note === "hold wide, then push in" && t.span === 2 && /^tp-/.test(t.id) && t.curiosities.join() === "shotSize,emotion", "a template keeps the stretch's lanes with a trimmed name and note");
+  ok(t.lanes[0].points.map((p) => p.at + ":" + p.value).join() === `0:${o[0]},1:${o[1]},2:${o[3]}`, "its nodes are kept relative to the stretch's start (area copy's format)");
+  ok(CL.template({ span: 1, lanes: [null] }, "x") === null && CL.template(raw, "", null).name === "Template" && CL.template(raw, "a", null).note === "", "nothing to keep gives no template; no name or note gives plain ones");
+  ok(/^3 moments · Shot size and /.test(CL.templateSummary(t)), "a card says how many moments and which curiosities (" + CL.templateSummary(t) + ")");
+  const pic = CL.templatePreview(t, 120, 48);
+  ok(/^<svg/.test(pic) && (pic.match(/<polyline/g) || []).length === 2 && /data-tpl-lane="shotSize"/.test(pic), "the preview is a small SVG with one polyline per lane");
+  ok(CL.TEMPLATE_KEY === "curiosities-screen-templates-v1" && CL.migrateTemplates([t, null, { id: "x" }, t]).length === 1 && CL.migrateTemplates("junk").length === 0, "templates are kept in curiosities-screen-templates-v1, cleaned when read");
+  /* Use at moment 4: one batch, the same shapes shifted. */
+  const before = JSON.stringify([E.state().lanes, E.state().links]);
+  const shown = [{ cur: "shotSize", track: "camera" }, { cur: "emotion", track: "master" }];
+  const u = CL.useTemplateCommands(E.state(), t, 4, { shown });
+  ok(!u.error && u.start === 4 && u.span === 2 && E.send({ type: "batch", label: "Use", commands: u.cmds }).ok, "using a template is one batch");
+  const P = () => E.state().lanes["camera|shotSize"].points;
+  ok(P()[rr[4].id] === o[0] && P()[rr[5].id] === o[1] && P()[rr[6].id] === o[3], "its nodes land in the same shape, shifted to start at moment 5");
+  E.undo();
+  ok(JSON.stringify([E.state().lanes, E.state().links]) === before, "one undo takes it back");
+  /* Stretch to a 5-moment area: the same maths as Stretch ×2. */
+  const s = CL.stretchTemplate(t, 4);
+  ok(s.span === 4 && s.lanes[0].points.map((p) => p.at).join() === "0,2,4" && s.lanes[0].points[2].value === o[3], "stretching to five moments spreads the nodes out (0, 2, 4)");
+  const q = CL.stretchTemplate(t, 1);
+  ok(q.lanes[0].points.map((p) => p.at).join() === "0,1" && q.lanes[0].points[1].value === o[3], "squeezing to two moments keeps the later node where two land together");
+  const one = CL.stretchTemplate(Object.assign(JSON.parse(JSON.stringify(t)), { span: 0, lanes: [{ cur: "shotSize", track: "camera", mode: "ramp", points: [{ at: 0, value: o[2] }] }], links: [] }), 3);
+  ok(one.lanes[0].points.map((p) => p.at + ":" + p.value).join() === `0:${o[2]},3:${o[2]}`, "a one-moment template stretched is held over the area");
+  const us = CL.useTemplateCommands(E.state(), t, 2, { shown, span: 4 });
+  E.send({ type: "batch", commands: us.cmds });
+  ok(us.span === 4 && P()[rr[2].id] === o[0] && P()[rr[4].id] === o[1] && P()[rr[6].id] === o[3], "used with a span, it fills the selected area");
+  E.undo();
+  /* A locked lane is skipped; a curiosity not in the film is put on a track. */
+  CL.tools().locks = Object.assign({}, CL.tools().locks, { "master|emotion": true });
+  const lk = CL.useTemplateCommands(E.state(), t, 0, { shown });
+  ok(lk.locked.join() === "emotion" && !lk.cmds.some((x) => x.curiosity === "emotion"), "a locked lane is skipped and named");
+  CL.tools().locks["camera|shotSize"] = true;
+  ok(/template/.test(CL.useTemplateCommands(E.state(), t, 0, { shown }).error || ""), "with every lane locked it says so, in template words");
+  delete CL.tools().locks["master|emotion"];
+  delete CL.tools().locks["camera|shotSize"];
+  const fresh = CL.template({ span: 1, lanes: [{ cur: "transitionKind", track: null, points: [{ at: 0, value: Sc.at("transitionKind", 0) }, { at: 1, value: Sc.at("transitionKind", 1) }] }], links: [] }, "new lane");
+  const add = CL.useTemplateCommands(E.state(), fresh, 0, { shown });
+  ok(!add.error && add.cmds.some((x) => x.type === "addCuriosity" && x.curiosity === "transitionKind"), "a curiosity not in the film yet is put on a track first");
+  /* Export and Import: a round trip, duplicates skipped, a clashing id renamed, unknown curiosities left out. */
+  const text = CL.exportTemplates([t, fresh]);
+  const file = JSON.parse(text);
+  ok(file.format === "curiomatic-templates" && file.version === 1 && file.templates.length === 2, "export writes a curiomatic-templates file");
+  const back = CL.importTemplates(text, []);
+  ok(!back.error && back.added.length === 2 && JSON.stringify(back.list[0].lanes) === JSON.stringify(t.lanes) && back.list[0].note === t.note, "importing it brings both back exactly");
+  const again = CL.importTemplates(text, back.list);
+  ok(again.added.length === 0 && again.skipped === 2, "importing the same file twice skips what is already here");
+  const other = JSON.parse(JSON.stringify(t));
+  other.lanes[0].points[0].value = o[2];
+  const clash = CL.importTemplates([other], [t]);
+  ok(clash.added.length === 1 && clash.added[0].id !== t.id && clash.list.length === 2, "a different template with a taken id gets a new id");
+  const odd = CL.importTemplates({ templates: [Object.assign(JSON.parse(JSON.stringify(t)), { id: "odd", lanes: t.lanes.concat([{ cur: "notARealCuriosity", points: [{ at: 0, value: 1 }] }]) })] }, []);
+  ok(odd.dropped === 1 && odd.added[0].curiosities.join() === "shotSize,emotion", "lanes of curiosities this app doesn't know are left out and counted");
+  ok(!!CL.importTemplates("not json", []).error && !!CL.importTemplates({ nothing: 1 }, []).error, "a file that isn't JSON or has no templates gives a plain error");
+}
+
 /* Markers: an old save (a plain list of row ids) becomes markers with a color and a note. */
 {
   const mm = w.CurioLanes.migrateMarkers;
