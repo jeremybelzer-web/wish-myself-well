@@ -188,6 +188,18 @@
     /* ---------- reading ---------- */
 
     get: (level, id) => (index[level] || {})[id] || null,
+    /* Take a row out of its list and its index, so a curiosity someone made and then deleted is gone everywhere.
+       Returns the removed row, or null when nothing has that id. Other rows that name it (a suite's members,
+       a proximity's from/to) are left alone; check() reports them as missing. */
+    remove(level, id) {
+      const item = (index[level] || {})[id];
+      if (!item) return null;
+      const list = level === "workspace" ? db.workspaces : db[level === "curiosity" ? "curiosities" : level === "suite" ? "suites" : level === "proximity" ? "proximities" : "proximitySuites"];
+      const at = list.indexOf(item);
+      if (at >= 0) list.splice(at, 1);
+      delete index[level][id];
+      return item;
+    },
     find(id) {
       for (const l of ["curiosity", "suite", "proximity", "proximitySuite"]) if (index[l][id]) return index[l][id];
       return null;

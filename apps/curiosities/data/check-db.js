@@ -33,3 +33,12 @@ console.log(`Wrote curiosity-links.json: ${LINKS.links.length} links from ${n.pr
 /* The model scenes as a file the Study tab's Import button reads. */
 fs.writeFileSync(path.join(__dirname, "model-scenes.studies.json"), JSON.stringify(DB.studiesExport(), null, 1) + "\n");
 console.log("Wrote model-scenes.studies.json");
+/* remove() check, after the files are written: a made-up curiosity goes in and comes back out leaving no trace. */
+const before = DB.counts().curiosities;
+DB.curiosity({ id: "zzCheckRemove", label: "Check remove", workspace: "structure" });
+const gone = DB.remove("curiosity", "zzCheckRemove");
+if (!gone || DB.get("curiosity", "zzCheckRemove") || DB.counts().curiosities !== before || DB.remove("curiosity", "zzCheckRemove") !== null) {
+  console.log("remove() did not take the row out of its list and index");
+  process.exit(1);
+}
+console.log("remove() takes a row out of its list and index");
