@@ -12,15 +12,17 @@
    - Momentum notes: every curiosity's note: how it moves the plot and themes forward and pulls attention on.
 
    window.CurioMomentumUI = { open(tab), close(), mount(el), noteHtml(id), mountNote(el, id), addTab(spec), context() }
-   addTab({ id, label, after?: "end", group?: "see"|"fix"|"learn"|"live"|"share", mount(el, ctx) }) adds a tab
+   addTab({ id, label, after?: "end"|"start", group?: "see"|"fix"|"learn"|"live"|"share", mount(el, ctx) }) adds a tab
    from another momentum file. The tabs sit in five groups (See it, Fix it, Learn it, Play it live, Share it):
    without a group a known id goes to its own group (TAB_GROUP) and an unknown one to See it. Within a group the
-   order is the built-in tabs, then added tabs, then those with after: "end". Every group shows with its name
+   order is the built-in tabs, then added tabs, then those with after: "end"; a tab with after: "start" comes
+   first of all (Home), and the window opens on the first tab until the person picks one. Every group shows with its name
    (over its tabs on a wide screen, beside them on a phone), so every tab is one click away; the group of the
    open tab is marked, and open(id) marks the right group.
    mount is called each time the tab is drawn, with ctx: prefs(),
    sources(), source(), setSource(id), sourcePicker(attr), readSource(id), beatsOf(id), profiles() (the films
-   picked to compare with), allProfiles(), target(), limit(), secondsPerBeat(), refresh().
+   picked to compare with), allProfiles(), target(), limit(), secondsPerBeat(), refresh(), open(tabId) (switches
+   the window to that tab and remembers it), tabs() (the groups in order: [{ id, label, hint, tabs: [{ id, label }] }]).
    unmount?() is called when another tab opens or the window closes, so a tab can stop listening (engine on(),
    timers) while it is not on show; mount is called again when it comes back.
    Saves its choices under localStorage key curiosities-momentum-v1 (source, compare-with list, limit,
@@ -57,7 +59,7 @@
     } catch (e) {}
     p = p && typeof p === "object" ? p : {};
     return {
-      tab: p.tab || "attention",
+      tab: p.tab || "",
       source: p.source || "",
       compare: Array.isArray(p.compare) && p.compare.length ? p.compare : ["pulp-fiction"],
       limit: Number(p.limit) > 0 ? Number(p.limit) : null,
@@ -226,6 +228,14 @@
       limit,
       secondsPerBeat: () => prefs.secondsPerPanel,
       refresh: () => draw(),
+      open: (id) => {
+        if (!tabList().some((g) => g.tabs.some((t) => t.id === id))) return false;
+        prefs.tab = id;
+        savePrefs();
+        draw();
+        return true;
+      },
+      tabs: () => tabList().map((g) => ({ id: g.id, label: g.label, hint: g.hint, tabs: g.tabs.map((t) => ({ id: t.id, label: t.label })) })),
       sourcePicker: (attr) => {
         const list = sources();
         ensureSource(list);
@@ -780,10 +790,11 @@
   /* Every tab in its group, in the old order within each group (built-in tabs, added tabs, then after: "end"). */
   function tabList() {
     const flat = [
+      ...extraTabs.filter((t) => t.after === "start").map((t) => [t.id, t.label, t.group]),
       ["attention", "Attention"],
       ["compass", "Compass"],
       ["engine", "On the engine"],
-      ...extraTabs.filter((t) => t.after !== "end").map((t) => [t.id, t.label, t.group]),
+      ...extraTabs.filter((t) => t.after !== "end" && t.after !== "start").map((t) => [t.id, t.label, t.group]),
       ["perform", "Perform"],
       ["rates", "Film rates"],
       ["notes", "Momentum notes"],
@@ -820,6 +831,8 @@
     if (!host) return;
     const groups = tabList();
     const all = groups.reduce((a, g) => a.concat(g.tabs), []);
+    /* Nobody has picked a tab yet: open on the first one (Home, when it is loaded). */
+    if (!prefs.tab && all[0]) prefs.tab = all[0].id;
     const cur = all.find((t) => t.id === prefs.tab) || all[0];
     const hasLesson = all.some((t) => t.id === "lesson");
     if (prefs.tab === "lesson") markStartSeen();
