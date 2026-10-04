@@ -205,6 +205,17 @@ until the next one, like CapCut keyframes):
 
 Data: `panel.people[objectId] = {emo: {a, r}, type, health, chaos, change, why}`. Test: `node viewer/tests/people.js`.
 
+- **Acts like right now** (Jeremy, 22:06Z): health moves them along the usual Enneagram lines. At health 1-2
+  they act like their growth number, 3 leans that way, 4-6 is themselves, 7 leans toward their stress number,
+  and 8-9 they act like it (a Loyalist 6 at their best acts like a 9, at their worst like a 3). The tab says how
+  that looks and what the other type wants and fears. It can be set by hand per panel (`acts`, a ◆ key).
+  `CurioPeople.actsLike(type, health)`.
+- **What they want right now**: their motivation in this panel (`motive`, a ◆ key), beside their type's core
+  desire and fear.
+- **Their normal amount of chaos**: a yellow ring on the chaos matrix (`object.normal = { chaos, change }`, set
+  with the slider or Make this their normal), so you can see how far this panel's dot is from their usual self.
+  When a panel doesn't set a place, the dot sits at their normal.
+
 ### Rate of speech (`viewer/speech.js`)
 
 Every speech balloon has a Speed in syllables a second (slow drawl to auctioneer), set with the slider, by
