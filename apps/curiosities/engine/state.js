@@ -86,7 +86,7 @@
       const p = S.pos(c, v);
       const n = S.pos(c, S.start(c));
       if (p == null || n == null) return v;
-      return S.at(c, Math.min(1, Math.max(0, n + (p - n) * (1 + Math.max(-100, Math.min(100, Number(s) || 0)) / 100))));
+      return S.at(c, Math.min(1, Math.max(0, n + (p - n) * ((Math.max(-100, Math.min(100, Number(s) || 0)) + 100) / 200))));
     };
     performLayers.forEach((layer) => {
       const ls = layer && isObj(layer.lanes) ? layer.lanes : {};

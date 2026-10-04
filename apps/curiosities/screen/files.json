@@ -1,6 +1,6 @@
 {
   "note": "The Screen, in load order. 'core' never touches the page (browser and Node); 'screens' draw and need the engine (engine/load.js) first. load.js must list the same files.",
-  "core": ["levels.js", "frame.js"],
+  "core": ["levels.js", "mine.js", "frame.js"],
   "screens": ["lanes.js", "masters.js", "character.js", "windows.js", "ui.js", "triggers.js"],
   "css": "screen.css"
 }

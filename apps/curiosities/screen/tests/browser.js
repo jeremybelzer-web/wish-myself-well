@@ -7,7 +7,8 @@
    take a curiosity from two films and blend it, click a lane to add nodes, join two nodes across lanes (a
    proximity), copy and paste it, move a node (its partner moves too), switch to Arrange, show all potential
    curiosities and suites, change a track's curiosity, undo, reload. Two tracks with the same curiosity show two
-   rows named by their track, and Add a curiosity track offers graded lanes. The page must report no errors. */
+   rows named by their track, and Add a curiosity track offers graded lanes. A curiosity, a suite and a proximity of
+   your own are made in the library, used, kept over a reload, shared as a file and deleted. The page must report no errors. */
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -271,6 +272,28 @@ const ok = (cond, msg) => {
     return out;
   });
   ok(keyGuard.row === 1 && keyGuard.undo, "arrows and Space inside a tool window leave the film behind it alone");
+  /* The Viewer (Draw & build) open over the Screen marks <html> with cv-open: the Screen's keys stay quiet. */
+  const viewerGuard = await page.evaluate(() => {
+    window.CurioScreen.setRow(1);
+    if (document.activeElement) document.activeElement.blur();
+    document.documentElement.classList.add("cv-open");
+    const send = (key, o) => document.body.dispatchEvent(new KeyboardEvent("keydown", Object.assign({ key, bubbles: true, cancelable: true }, o || {})));
+    const undo0 = window.CurioEngine.history().undo.length;
+    const marks0 = JSON.stringify(window.CurioLanes.tools().markers || []);
+    send("ArrowRight");
+    send(" ");
+    send("m");
+    send("k", { metaKey: true });
+    send("z", { metaKey: true });
+    const out = { row: window.CurioScreen.row(), undo: window.CurioEngine.history().undo.length === undo0, marks: JSON.stringify(window.CurioLanes.tools().markers || []) === marks0, find: !document.querySelector(".sc-find:not([hidden])") };
+    document.documentElement.classList.remove("cv-open");
+    send("ArrowRight");
+    out.after = window.CurioScreen.row();
+    window.CurioScreen.setRow(1);
+    return out;
+  });
+  ok(viewerGuard.row === 1 && viewerGuard.undo && viewerGuard.marks && viewerGuard.find, "with the Viewer open over the Screen (html.cv-open), arrows, Space, M, ⌘K and ⌘Z leave the Screen alone");
+  ok(viewerGuard.after === 2, "and once the Viewer closes the Screen's keys work again (" + viewerGuard.after + ")");
   ok(await page.evaluate(() => window.CurioScreen.removePanel("test-dock") && window.CurioScreen.removePanel("test-dock-2") && !document.querySelector('.sc-dock[data-panel^="test-dock"]')), "a docked panel can be taken off again");
 
   /* Maya's ghosting, the play range, and the momentum box. */
@@ -2502,11 +2525,11 @@ const ok = (cond, msg) => {
 
     /* Jump the playhead to a marker by its note, or to "moment 3". */
     {
-      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the joke lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
+      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the zebra lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
       await page.keyboard.press("Control+k");
-      await typeIn("joke");
+      await typeIn("zebra"); /* a word no curiosity uses, so the marker is the only match */
       const o = await opts();
-      ok(o[0] && o[0].id === "moment:" + r4 && /^Moment 5: the joke lands$/.test(o[0].label) && /Marker, red/.test(o[0].sub) && (await heads())[0] === "Moments and markers", "a marker is found by its note, under Moments and markers (" + (o[0] ? o[0].label + " · " + o[0].sub : "") + ")");
+      ok(o[0] && o[0].id === "moment:" + r4 && /^Moment 5: the zebra lands$/.test(o[0].label) && /Marker, red/.test(o[0].sub) && (await heads())[0] === "Moments and markers", "a marker is found by its note, under Moments and markers (" + (o[0] ? o[0].label + " · " + o[0].sub : "") + ")");
       await page.keyboard.press("Enter");
       ok((await page.evaluate(() => window.CurioScreen.row())) === 4, "Enter jumps the playhead to it");
       await page.keyboard.press("Control+k");
@@ -4284,6 +4307,496 @@ const ok = (cond, msg) => {
     const onScreen = await timing();
     ok(onScreen.lanes < 16, "on the Screen, the lanes with master nodes redraw in " + onScreen.lanes.toFixed(1) + " ms (under one 16 ms frame)");
     note("a master node switch (engine, plan and the whole page redrawing) takes " + onScreen.edit.toFixed(1) + " ms on the Screen; in the Arrange view the lanes redraw in " + inArrange.lanes.toFixed(1) + " ms and a switch takes " + inArrange.edit.toFixed(1) + " ms");
+    await ctx.close();
+  }
+
+  /* ---------- Borders you can drag, panels you can fold away, and undo for everything on the Screen (Jeremy,
+     2026-10-04: "Each window should be resizable ... all borders should be draggable ... completely collapse any
+     window ... the cursor become a line along the edge ... a small triangle", and "UNDO - undo should be able to
+     undo absolutely anything. Even dragging windows around."). Its own browser context, so its storage starts
+     empty. ---------- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    await p.waitForTimeout(700);
+    const box = (q) => p.evaluate((q) => { const e = document.querySelector(q); if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, r: r.right, b: r.bottom }; }, q);
+    const split = (id) => box(`.sc-split[data-split="${id}"]`);
+    const sizes = () => p.evaluate(() => window.CurioScreen.panels.now());
+    const hist = () => p.evaluate(() => window.CurioStore.history());
+    const lastStep = async () => { const h = await hist(); return h.undo[h.undo.length - 1] || ""; };
+    /* Drag a border by (dx, dy) from a point along it (k: 0 to 1 of the way along). */
+    const drag = async (id, dx, dy, k) => {
+      const s = await split(id);
+      const x = s.x + (s.w > 20 ? s.w * (k == null ? 0.5 : k) : s.w / 2);
+      const y = s.y + (s.h > 20 ? s.h * (k == null ? 0.5 : k) : s.h / 2);
+      await p.mouse.move(x, y);
+      await p.mouse.down();
+      await p.mouse.move(x + dx / 2, y + dy / 2, { steps: 4 });
+      await p.mouse.move(x + dx, y + dy, { steps: 4 });
+      await p.mouse.up();
+      await p.waitForTimeout(350);
+    };
+    const borders = await p.evaluate(() => window.CurioScreen.panels.borders());
+    ok(["lib", "insp", "tl", "dock", "side", "ov"].every((b) => borders.includes(b)), "every border between the Screen's panels can be dragged: library, Details, timeline, the side panels column, the library's group list and the whole film strip (" + borders.join(", ") + ")");
+    ok(await p.evaluate(() => [...document.querySelectorAll(".sc-split")].every((s) => s.getAttribute("role") === "separator" && s.tabIndex === 0 && /Resize /.test(s.getAttribute("aria-label")))), "each border is a separator you can reach with Tab, named in plain words");
+    /* Hover: the resize cursor and triangles pointing both ways. */
+    let s0 = await split("lib");
+    await p.mouse.move(s0.x + s0.w / 2, s0.y + s0.h * 0.4);
+    await p.waitForTimeout(250);
+    const hover = await p.evaluate(() => {
+      const s = document.querySelector('.sc-split[data-split="lib"]');
+      const tri = s.querySelector(".sc-split-tri");
+      const vis = (q) => getComputedStyle(s.querySelector(q)).visibility !== "hidden";
+      return { cursor: getComputedStyle(s).cursor, line: Number(getComputedStyle(s.querySelector(".sc-split-line")).opacity), tri: Number(getComputedStyle(tri).opacity), a: vis(".sc-split-tri .a"), b: vis(".sc-split-tri .b"), text: tri.textContent };
+    });
+    ok(hover.cursor === "col-resize" && hover.line > 0.9, `hovering a border shows the resize cursor and a line along it (${hover.cursor})`);
+    ok(hover.tri > 0.9 && hover.a && hover.b && hover.text === "◂▸", "and small triangles showing it drags both ways (◂ ▸)");
+    const tlHover = await (async () => { const t = await split("tl"); await p.mouse.move(t.x + t.w * 0.3, t.y + t.h / 2); await p.waitForTimeout(200); return p.evaluate(() => { const s = document.querySelector('.sc-split[data-split="tl"]'); return [getComputedStyle(s).cursor, s.querySelector(".sc-split-tri").textContent]; }); })();
+    ok(tlHover[0] === "row-resize" && tlHover[1] === "▴▾", `the timeline's border shows the up and down cursor and ▴ ▾ (${tlHover.join(" ")})`);
+    await p.screenshot({ path: path.join(SHOTS, "screen-17a-border-hover.png") });
+    /* Drag each border. */
+    const g0 = { lib: await box(".sc-lib"), insp: await box(".sc-inspector"), tl: await box(".sc-timeline"), dock: await box(".sc-player > .sc-docks"), side: await box(".sc-lib .sc-side"), ov: await box(".sc-ov-strip") };
+    const n0 = (await hist()).undo.length;
+    await drag("lib", -70, 0);
+    const libW = (await box(".sc-lib")).w;
+    ok(Math.abs(libW - (g0.lib.w - 70)) <= 4, `dragging the library's border 70px left makes it 70px narrower (${Math.round(g0.lib.w)} → ${Math.round(libW)})`);
+    ok((await hist()).undo.length === n0 + 1 && (await lastStep()) === "Resize the library", `the whole drag is one undo step, "${await lastStep()}"`);
+    const playerW = (await box(".sc-player")).w;
+    await drag("insp", -50, 0);
+    ok(Math.abs((await box(".sc-inspector")).w - (g0.insp.w + 50)) <= 4 && Math.abs((await box(".sc-lib")).w - libW) <= 2, "dragging Details' border left makes Details wider and leaves the library alone");
+    ok((await lastStep()) === "Resize Details", "one step: " + (await lastStep()));
+    await drag("tl", 0, -60, 0.3);
+    ok(Math.abs((await box(".sc-timeline")).h - (g0.tl.h + 60)) <= 4, `dragging the timeline's border up 60px makes it taller (${Math.round(g0.tl.h)} → ${Math.round((await box(".sc-timeline")).h)})`);
+    ok((await lastStep()) === "Resize the timeline", "one step: " + (await lastStep()));
+    await drag("dock", 40, 0);
+    ok(Math.abs((await box(".sc-player > .sc-docks")).w - (g0.dock.w - 40)) <= 4, `dragging the side panels' border right makes the Momentum column narrower (${Math.round(g0.dock.w)} → ${Math.round((await box(".sc-player > .sc-docks")).w)})`);
+    await drag("side", 30, 0);
+    ok(Math.abs((await box(".sc-lib .sc-side")).w - (g0.side.w + 30)) <= 4, "dragging the library's group list border widens the list");
+    await drag("ov", 0, -30);
+    ok(Math.abs((await box(".sc-ov-strip")).h - (g0.ov.h + 30)) <= 4, `dragging the top of the whole film strip makes its frames taller (${Math.round(g0.ov.h)} → ${Math.round((await box(".sc-ov-strip")).h)})`);
+    const hNow = await hist();
+    ok(hNow.undo.slice(-3).join(" | ") === "Resize the side panels beside the Player | Resize the library's group list | Resize the whole film strip", "each border has its own plain name: " + hNow.undo.slice(-3).join(" | "));
+    /* Sizes keep their smallest: a short drag stops at the minimum instead of folding. */
+    /* Keyboard: focus a border, arrow keys move it. */
+    const libBefore = (await box(".sc-lib")).w;
+    await p.focus('.sc-split[data-split="lib"]');
+    await p.keyboard.press("ArrowRight");
+    await p.keyboard.press("ArrowRight");
+    await p.waitForTimeout(300);
+    ok(Math.abs((await box(".sc-lib")).w - (libBefore + 20)) <= 2, `→ twice on the library's border widens it by 20px (${Math.round(libBefore)} → ${Math.round((await box(".sc-lib")).w)})`);
+    await p.keyboard.press("Shift+ArrowLeft");
+    await p.waitForTimeout(300);
+    ok(Math.abs((await box(".sc-lib")).w - (libBefore - 40)) <= 2, "Shift+← takes a bigger step (60px)");
+    const kh = await hist();
+    ok(kh.undo[kh.undo.length - 1] === "Resize the library" && kh.undo[kh.undo.length - 2] !== "Resize the library", "key presses close together on one border are one undo step");
+    ok((await p.evaluate(() => window.CurioScreen.row())) === 0, "the arrow keys on a border move the border, not the playhead");
+    /* Fold a panel away: drag past half its smallest size. */
+    await drag("insp", 600, 0, 0.6);
+    ok((await sizes()).shut.insp === true && (await box(".sc-inspector")).w < 2, "dragging Details' border far to the right folds Details away completely");
+    ok((await lastStep()) === "Collapse Details", `one step named "${await lastStep()}"`);
+    const pw = (await box(".sc-player")).w;
+    ok(pw > playerW + 200, `the Player takes the room (${Math.round(playerW)} → ${Math.round(pw)}px)`);
+    s0 = await split("insp");
+    ok(s0 && s0.r >= 1425, "a thin edge is left at the right side of the Screen");
+    await p.mouse.move(s0.x + s0.w / 2, s0.y + s0.h * 0.5);
+    await p.waitForTimeout(250);
+    const edge = await p.evaluate(() => {
+      const s = document.querySelector('.sc-split[data-split="insp"]');
+      const vis = (q) => getComputedStyle(s.querySelector(q)).visibility !== "hidden";
+      return { folded: s.classList.contains("folded"), cursor: getComputedStyle(s).cursor, tri: Number(getComputedStyle(s.querySelector(".sc-split-tri")).opacity), left: vis(".sc-split-tri .a"), right: vis(".sc-split-tri .b"), title: s.title, label: s.getAttribute("aria-label") };
+    });
+    ok(edge.folded && edge.cursor === "col-resize" && edge.tri > 0.9, `hovering the folded edge shows the resize cursor and a triangle (${edge.cursor})`);
+    ok(edge.left && !edge.right, "the triangle points the one way to drag it out: ◂ (left)");
+    ok(/drag left, or click, to bring it back/i.test(edge.title) && edge.label === "Bring back Details", "its tooltip says so in plain words: " + edge.title);
+    await p.screenshot({ path: path.join(SHOTS, "screen-17b-details-folded.png") });
+    await p.screenshot({ path: path.join(SHOTS, "screen-17c-folded-edge-zoom.png"), clip: { x: 1300, y: s0.y + s0.h * 0.5 - 60, width: 140, height: 120 } });
+    /* Drag it back out. */
+    await drag("insp", -300, 0, 0.5);
+    ok(!(await sizes()).shut.insp && Math.abs((await box(".sc-inspector")).w - 294) <= 12, `dragging the folded edge out brings Details back at the width you drag to (${Math.round((await box(".sc-inspector")).w)}px)`);
+    ok((await lastStep()) === "Bring back Details", "named " + (await lastStep()));
+    /* The « button folds; a click on the edge brings it back. */
+    s0 = await split("lib");
+    await p.mouse.move(s0.x + s0.w / 2, s0.y + 60);
+    await p.waitForTimeout(200);
+    await p.click('.sc-split[data-split="lib"] .sc-split-fold');
+    await p.waitForTimeout(300);
+    ok((await sizes()).shut.lib === true && (await box(".sc-lib")).w < 2, "the small « on a border folds its panel away");
+    ok((await lastStep()) === "Collapse the library", "named " + (await lastStep()));
+    s0 = await split("lib");
+    await p.mouse.click(s0.x + s0.w / 2, s0.y + s0.h / 2);
+    await p.waitForTimeout(300);
+    ok(!(await sizes()).shut.lib && Math.abs((await box(".sc-lib")).w - (libBefore - 40)) <= 3, "a click on the folded edge brings the library back at its old width");
+    /* Enter folds from the keyboard, and Enter again brings it back. */
+    await p.focus('.sc-split[data-split="tl"]');
+    await p.keyboard.press("Enter");
+    await p.waitForTimeout(300);
+    ok((await sizes()).shut.tl === true && (await box(".sc-timeline")).h < 2, "Enter on the timeline's border folds the timeline away");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17d-timeline-folded.png") });
+    await p.keyboard.press("Enter");
+    await p.waitForTimeout(300);
+    ok(!(await sizes()).shut.tl && (await box(".sc-timeline")).h > 150, "and Enter again brings it back");
+    /* Double-click puts a border back to its usual size. */
+    s0 = await split("side");
+    await p.mouse.dblclick(s0.x + s0.w / 2, s0.y + s0.h / 2);
+    await p.waitForTimeout(300);
+    ok((await sizes()).side == null && Math.abs((await box(".sc-lib .sc-side")).w - g0.side.w) <= 2, "a double-click puts the group list back to its usual width");
+    /* Sizes are kept across a reload. */
+    const keep = await sizes();
+    const kept = { lib: (await box(".sc-lib")).w, insp: (await box(".sc-inspector")).w, tl: (await box(".sc-timeline")).h };
+    await p.reload();
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.waitForTimeout(900);
+    const after = { lib: (await box(".sc-lib")).w, insp: (await box(".sc-inspector")).w, tl: (await box(".sc-timeline")).h };
+    ok(JSON.stringify(await sizes()) === JSON.stringify(keep) && Math.abs(after.lib - kept.lib) <= 2 && Math.abs(after.insp - kept.insp) <= 2 && Math.abs(after.tl - kept.tl) <= 2, `the sizes are kept across a reload (library ${Math.round(after.lib)}, Details ${Math.round(after.insp)}, timeline ${Math.round(after.tl)})`);
+    /* Undo everything on the Screen: a resize, a fold, a window move and a view toggle; redo. */
+    const lib1 = (await box(".sc-lib")).w;
+    await drag("lib", 50, 0);
+    await drag("tl", 0, 900, 0.3);
+    ok((await sizes()).shut.tl === true, "the timeline folds when its border is dragged right down");
+    await p.evaluate(() => window.CurioScreen.openWin("shotSize"));
+    await p.waitForTimeout(200);
+    await p.click(".sc-title"); /* a click on nothing starts the next gesture */
+    const w0 = await box('.sc-win[data-win="shotSize"]');
+    await p.mouse.move(w0.x + 80, w0.y + 15);
+    await p.mouse.down();
+    await p.mouse.move(w0.x + 180, w0.y + 75, { steps: 6 });
+    await p.mouse.up();
+    await p.waitForTimeout(350);
+    const w1 = await box('.sc-win[data-win="shotSize"]');
+    ok(Math.abs(w1.x - w0.x - 100) <= 2 && (await lastStep()) === "Move the Shot size window", `dragging a window's title bar is one step, "${await lastStep()}"`);
+    const g = await box('.sc-win[data-win="shotSize"] .sc-win-grip');
+    await p.mouse.move(g.x + g.w / 2, g.y + g.h / 2);
+    await p.mouse.down();
+    await p.mouse.move(g.x + 60, g.y - 100, { steps: 6 });
+    await p.mouse.up();
+    await p.waitForTimeout(350);
+    const w2 = await box('.sc-win[data-win="shotSize"]');
+    ok(Math.abs(w2.w - w1.w - 52) <= 4 && (await lastStep()) === "Resize the Shot size window", `dragging a window's corner resizes it (${Math.round(w1.w)}×${Math.round(w1.h)} → ${Math.round(w2.w)}×${Math.round(w2.h)}), "${await lastStep()}"`);
+    await p.click('[data-act="compare"]');
+    await p.waitForTimeout(350);
+    ok(await p.evaluate(() => window.CurioScreen.compare.now().on), "Compare is on");
+    ok((await lastStep()) === "Turn Compare on", "a view toggle is an undo step: " + (await lastStep()));
+    await p.click('.sc-wins-set [data-wins="3"]');
+    await p.waitForTimeout(350);
+    ok((await lastStep()) === "Add an inspiration film" && (await p.$$(".sc-viewer")).length === 3, "the 1 2 3 windows are an undo step: " + (await lastStep()));
+    /* History lists them, newest first. */
+    await p.click('[data-act="history"]');
+    await p.waitForTimeout(300);
+    const listed = await p.evaluate(() => [...document.querySelectorAll(".sc-hist-menu .sc-hist-cur, .sc-hist-menu [data-hist^='undo']")].map((b) => b.textContent));
+    ok(["Add an inspiration film", "Turn Compare on", "Resize the Shot size window", "Move the Shot size window", "Collapse the timeline", "Resize the library"].every((l, i) => listed[i] === l), "History ▾ lists them by name, newest first: " + listed.slice(0, 6).join(" · "));
+    await p.keyboard.press("Escape");
+    await p.click(".sc-title");
+    /* ⌘Z, one at a time. */
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.$$(".sc-viewer")).length === 2, "⌘Z takes the third window away again");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(!(await p.evaluate(() => window.CurioScreen.compare.now().on)), "⌘Z turns Compare off again");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box('.sc-win[data-win="shotSize"]')).w - w1.w) <= 2, "⌘Z puts the window back to its old size");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box('.sc-win[data-win="shotSize"]')).x - w0.x) <= 2, "⌘Z moves the window back where it was");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(!(await sizes()).shut.tl && (await box(".sc-timeline")).h > 150, "⌘Z brings the folded timeline back");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box(".sc-lib")).w - lib1) <= 2, "⌘Z puts the library back to its width before the drag");
+    /* ⇧⌘Z redoes them, in order. */
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    ok(Math.abs((await box(".sc-lib")).w - (lib1 + 50)) <= 2, "⇧⌘Z redoes the resize");
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    ok((await sizes()).shut.tl === true, "⇧⌘Z folds the timeline away again");
+    await p.keyboard.press("Control+Shift+z");
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    const w3 = await box('.sc-win[data-win="shotSize"]');
+    ok(Math.abs(w3.x - w1.x) <= 2 && Math.abs(w3.w - w2.w) <= 2, "⇧⌘Z moves and resizes the window again");
+    await p.keyboard.press("Control+Shift+z");
+    await p.waitForTimeout(250);
+    ok(await p.evaluate(() => window.CurioScreen.compare.now().on), "⇧⌘Z turns Compare on again");
+    /* Closing a window is a step; undo opens it where it was. */
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    await p.waitForTimeout(350);
+    ok(!(await p.$('.sc-win[data-win="shotSize"]')) && (await lastStep()) === "Close the Shot size window", "closing a window is a step: " + (await lastStep()));
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    const w4 = await box('.sc-win[data-win="shotSize"]');
+    ok(w4 && Math.abs(w4.x - w1.x) <= 2 && Math.abs(w4.w - w2.w) <= 2, "⌘Z opens it again, same place, same size");
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    await p.waitForTimeout(300);
+    /* The timeline's own view: zoom, a folded lane group, a marker, a toolbar toggle. */
+    await p.keyboard.press("Control+Shift+z").catch(() => {});
+    if ((await sizes()).shut.tl) {
+      await p.focus('.sc-split[data-split="tl"]');
+      await p.keyboard.press("Enter");
+      await p.waitForTimeout(300);
+    }
+    const z0 = await p.evaluate(() => window.CurioLanes.tools().zoom || 1);
+    await p.click('.sl-tools [data-tool="zoomIn"], .sl-tools button[title^="Zoom in"]').catch(() => {});
+    await p.waitForTimeout(350);
+    const z1 = await p.evaluate(() => window.CurioLanes.tools().zoom || 1);
+    ok(z1 > z0 && /Zoom in on the timeline/.test(await lastStep()), `zooming the timeline is a step (${z0} → ${z1}), "${await lastStep()}"`);
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => window.CurioLanes.tools().zoom || 1)) === z0, "⌘Z zooms back out");
+    const mag0 = await p.evaluate(() => !!window.CurioLanes.tools().magnet);
+    await p.click('.sl-tools button:text-is("Magnet")');
+    await p.waitForTimeout(350);
+    ok((await p.evaluate(() => !!window.CurioLanes.tools().magnet)) !== mag0 && (await lastStep()) === `Turn the magnet ${mag0 ? "off" : "on"}`, "the toolbar's Magnet is a step: " + (await lastStep()));
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => !!window.CurioLanes.tools().magnet)) === mag0 && !!(await p.$('.sl-tools button.on:text-is("Magnet")')) === mag0, "⌘Z turns it back, and the button shows it");
+    const marks0 = await p.evaluate(() => window.CurioLanes.tools().markers.length);
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.waitForTimeout(350);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0 + 1 && (await lastStep()) === "Add a marker", "a marker is a step: " + (await lastStep()));
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0, "⌘Z takes the marker off");
+    const nm0 = (await hist()).undo.length;
+    await p.evaluate(() => window.CurioScreen.setRow(2));
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.evaluate(() => window.CurioScreen.setRow(4));
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.waitForTimeout(350);
+    ok((await hist()).undo.length === nm0 + 2, "two markers added one right after the other are two steps, not one");
+    await p.keyboard.press("Control+z");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(250);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === marks0, "and two ⌘Z take both off");
+    await p.evaluate(() => window.CurioScreen.setRow(0));
+    /* A lane from a second category, so the timeline has lane groups to fold. */
+    await p.fill("[data-lib-search]", "Transition style");
+    await p.click('.sc-grid [data-add-card="curiosity|transitionKind"]');
+    await p.fill("[data-lib-search]", "");
+    await p.waitForTimeout(300);
+    const fold = await p.$(".sl-fold");
+    ok(!!fold, "the timeline has lane groups");
+    if (fold) {
+      await fold.click();
+      await p.waitForTimeout(350);
+      ok(/^Fold the .+ lanes$/.test(await lastStep()), "folding a lane group is a step: " + (await lastStep()));
+      await p.keyboard.press("Control+z");
+      await p.waitForTimeout(250);
+      ok(!Object.values(await p.evaluate(() => window.CurioLanes.tools().folds)).some((v) => v), "⌘Z opens it again");
+    }
+    /* What is not a step: the playhead, and picking a card. */
+    const nPlain = (await hist()).undo.length;
+    await p.keyboard.press("ArrowRight");
+    await p.click('[data-pick-card="curiosity|shotSize"]').catch(() => {});
+    await p.waitForTimeout(400);
+    ok((await hist()).undo.length === nPlain, "moving the playhead and picking a card are not undo steps");
+    /* A film change in the same gesture as a view change stays one step: a ripple takes back markers and all. */
+    const st0 = await p.evaluate(() => [window.CurioEngine.state().rows.length, window.CurioLanes.tools().markers.length]);
+    await p.click('.sl-tools button:text-is("Marker")');
+    await p.waitForTimeout(350);
+    const nr = (await hist()).undo.length;
+    await p.evaluate(() => window.CurioScreen.ripple("add"));
+    await p.click(".sc-title");
+    await p.waitForTimeout(350);
+    ok((await hist()).undo.length === nr + 1, "a ripple (with its markers sliding along) is one step, not a film step and a view step");
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(300);
+    const st1 = await p.evaluate(() => [window.CurioEngine.state().rows.length, window.CurioLanes.tools().markers.length]);
+    ok(st1[0] === st0[0] && st1[1] === st0[1] + 1, `one ⌘Z takes the whole ripple back and leaves the marker added before it (${st1.join(", ")})`);
+    await p.keyboard.press("Control+z");
+    await p.waitForTimeout(300);
+    ok((await p.evaluate(() => window.CurioLanes.tools().markers.length)) === st0[1], "and the next ⌘Z takes off that marker");
+    /* Phone: the panels stack and scroll, so there are no borders to drag. */
+    await p.setViewportSize({ width: 390, height: 844 });
+    await p.waitForTimeout(500);
+    ok(await p.evaluate(() => getComputedStyle(document.querySelector(".sc-splits")).display === "none"), "on a phone the panels stack and scroll, with no borders in the way");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17e-phone.png") });
+    await p.setViewportSize({ width: 1280, height: 800 });
+    await p.waitForTimeout(500);
+    const fits = await p.evaluate(() => { const m = document.querySelector(".sc-main").getBoundingClientRect(); return [".sc-lib", ".sc-player", ".sc-inspector", ".sc-timeline"].every((q) => { const r = document.querySelector(q).getBoundingClientRect(); return r.right <= m.right + 1 && r.left >= m.left - 1; }) && document.querySelector(".sc-player").getBoundingClientRect().width >= 230; });
+    ok(fits, "at 1280×800 the saved sizes still fit, the Player keeps room");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17f-1280.png") });
+    await ctx.close();
+  }
+
+  /* Your own curiosities, suites and proximities (screen/mine.js; Jeremy: "The user should be able to define and
+     create their own curiosities as well as curiosity suites and proximities"). Make a curiosity with named steps
+     from the library, put it in the film, set a node, Details shows and edits it, one undo step, a reload keeps it,
+     a suite and a proximity with it, Quick find finds it, export and import as a file, delete asks first, and its
+     id never clashes with the database's. */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    const ID = "my-tension-in-the-room";
+    const lane = () => p.evaluate((id) => { const st = window.CurioEngine.state(); const lk = Object.keys(st.lanes).find((k) => k.endsWith("|" + id)); return lk ? st.rows.map((r) => st.lanes[lk].points[r.id] == null ? null : st.lanes[lk].points[r.id]) : null; }, ID);
+    const formOpen = () => p.evaluate(() => !!document.querySelector(".sc-mydlg[open]"));
+    await p.click('[data-icat="feeling"]');
+    ok(!!(await p.$('.sc-mybar [data-my-new="curiosity"]')) && !!(await p.$('.sc-mybar [data-my-act="export"]')) && !!(await p.$('.sc-mybar [data-my-act="import"]')), "the library's category tab starts with + New curiosity, Export mine and Import…");
+    await p.click('.sc-mybar [data-my-new="curiosity"]');
+    ok(await formOpen(), "+ New curiosity opens a small form over the Screen");
+    ok(await p.evaluate(() => { const t = document.querySelector(".sc-mydlg").textContent; return /What it is/.test(t) && /How it moves the story forward and the audience's attention/.test(t) && /What to try/.test(t) && /Named steps/.test(t) && /A number range/.test(t) && document.querySelector('.sc-mydlg [name="cat"]').value === "feeling"; }), "it asks in plain words: name, what it is, how it moves the story and the audience's attention, what to try, category (the tab you are in) and its scale");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    ok((await formOpen()) && /Give it a name/.test(await p.$eval(".sc-my-err", (e) => e.textContent)), "saving with no name says what's missing and keeps the form open");
+    await p.fill('.sc-mydlg [name="label"]', "Tension in the room");
+    await p.fill('.sc-mydlg [name="plain"]', "How wound up everyone in the scene is.");
+    await p.fill('.sc-mydlg [name="story"]', "Rising tension makes the audience lean in and wait for something to break.");
+    await p.fill('.sc-mydlg [name="tryThis"]', "Let it climb for three moments, then drop it to calm at once.");
+    await p.fill('.sc-mydlg [name="steps"]', "calm");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    ok((await formOpen()) && /at least two different steps/.test(await p.$eval(".sc-my-err", (e) => e.textContent)), "one step is not a scale: it asks for at least two, in order");
+    await p.fill('.sc-mydlg [name="steps"]', "calm → tense → frantic");
+    await p.click('.sc-mydlg [data-my-do="extra-add"]');
+    await p.fill('.sc-mydlg .sc-myextra [data-x="label"]', "Speed");
+    await p.fill('.sc-mydlg .sc-myextra [data-x="scale"]', "0 to 10 km/h");
+    await p.screenshot({ path: path.join(SHOTS, "screen-17-my-curiosity-form.png") });
+    const u0 = await p.evaluate(() => window.CurioStore.history().undo.length);
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    ok(!(await formOpen()), "Make it closes the form");
+    const card = await p.evaluate((id) => { const c = document.querySelector(`.sc-grid .sc-card[data-card="curiosity"][data-id="${id}"]`); return c ? { mine: c.classList.contains("mine"), tag: (c.querySelector(".sc-mine-tag") || {}).textContent, edit: !!c.querySelector("[data-my-edit]"), plus: !!c.querySelector("[data-add-card]"), on: c.classList.contains("on") } : null; }, ID);
+    ok(card && card.mine && card.tag === "mine" && card.edit && card.plus && card.on, "it shows in Feeling's cards, picked, with a small mine mark, a ✎ and a + like any card");
+    const hist = await p.evaluate(() => window.CurioStore.history().undo);
+    ok(hist.length === u0 + 1 && /Make the curiosity Tension in the room/.test(hist[hist.length - 1]), "making it is one undo step: " + hist[hist.length - 1]);
+    ok(await p.evaluate((id) => window.CurioScale.known(id) && window.CurioScale.domain(id).options.join() === "calm,tense,frantic" && window.CurioScale.known(id + ".speed") && JSON.parse(localStorage.getItem("curiosities-user-curiosities-v1")).curiosities[0].id === id, ID), "the engine knows its steps and its extra slider, and it is saved in curiosities-user-curiosities-v1");
+    await p.keyboard.press("Control+z");
+    ok(!(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)) && !(await p.evaluate((id) => window.CurioScale.known(id), ID)), "⌘Z takes it back");
+    await p.keyboard.press("Control+Shift+z");
+    ok(!!(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)), "and ⇧⌘Z brings it back");
+    /* Into the film, a node, and Details. */
+    await p.evaluate(() => window.CurioScreen.setRow(0));
+    await p.click(`[data-add-card="curiosity|${ID}"]`);
+    let l = await lane();
+    ok(l && l[0] === "calm", "its + puts it on the timeline with a node at the playhead (" + (l && l[0]) + ")");
+    ok(await p.evaluate(() => [...document.querySelectorAll(".sl-name")].some((b) => b.textContent === "Tension in the room")), "its lane shows on the timeline by its name");
+    await p.evaluate(() => window.CurioScreen.setRow(4));
+    await p.waitForTimeout(100);
+    const det = await p.evaluate((id) => { const i = document.querySelector(`.sc-inspector input[data-step-set="${id}"]`); return i ? { max: i.max, name: [...document.querySelectorAll(".sc-inspector .sc-cur-name")].some((b) => b.textContent === "Tension in the room") } : null; }, ID);
+    ok(det && det.max === "2" && det.name, "Details shows it with its three steps");
+    await p.evaluate((id) => { const i = document.querySelector(`.sc-inspector input[data-step-set="${id}"]`); i.value = "2"; i.dispatchEvent(new Event("input", { bubbles: true })); i.dispatchEvent(new Event("change", { bubbles: true })); }, ID);
+    await p.waitForTimeout(100);
+    l = await lane();
+    ok(l && l[4] === "frantic", "Details writes a node at the playhead: frantic at moment 5");
+    ok(await p.evaluate((id) => { const E = window.CurioEngine; const st = E.state(); const t = st.tracks.find((x) => x.curiosities.includes(id)); return E.value(st.rows[2].id, t.id, id) === "tense"; }, ID), "the engine plays it: between calm and frantic the lane passes tense");
+    ok(/frantic/.test(await p.$eval(`.sc-inspector input[data-step-set="${ID}"] + output`, (o) => o.textContent)), "Details shows the setting at the playhead");
+    await p.screenshot({ path: path.join(SHOTS, "screen-18-my-curiosity.png") });
+    /* A reload keeps it, its lane and its nodes. */
+    await p.reload();
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    l = await lane();
+    ok(l && l[0] === "calm" && l[4] === "frantic", "after a reload it is still known and its nodes are all there (" + JSON.stringify(l && l.slice(0, 5)) + ")");
+    await p.click('[data-icat="feeling"]');
+    const gid = await p.evaluate((id) => "ws:" + window.CuriosityDB.get("curiosity", id).workspace, ID);
+    await p.click(`.sc-side [data-group="${gid}"]`);
+    ok(!!(await p.$(`.sc-grid .sc-card.mine[data-id="${ID}"]`)), "and its card is back in the library");
+    /* A suite with it. */
+    await p.click('.sc-side [data-group="suite"]');
+    ok(!!(await p.$('.sc-mybar [data-my-new="suite"].on')), "the Suites group's bar offers + New suite");
+    await p.click('.sc-mybar [data-my-new="suite"]');
+    ok(await formOpen(), "+ New suite opens its form");
+    await p.fill('.sc-mydlg [name="label"]', "The calm before the storm");
+    await p.fill(".sc-mydlg [data-my-filter]", "tension");
+    await p.click(`.sc-mydlg [data-my-pickcur="${ID}"]`);
+    await p.fill(".sc-mydlg [data-my-filter]", "shot size");
+    await p.click('.sc-mydlg [data-my-pickcur="shotSize"]');
+    await p.selectOption(`.sc-mydlg [data-my-member="${ID}"] select`, "calm");
+    await p.selectOption('.sc-mydlg [data-my-member="shotSize"] select', "wide");
+    await p.screenshot({ path: path.join(SHOTS, "screen-19-my-suite-form.png") });
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    const SID = await p.evaluate(() => (window.CurioMine.data().suites[0] || {}).id);
+    ok(SID === "my-the-calm-before-the-storm" && !(await formOpen()) && !!(await p.$(`.sc-grid .sc-card.mine[data-card="suite"][data-id="${SID}"]`)), "the suite shows with the category's suites, marked mine (" + SID + ")");
+    await p.evaluate(() => window.CurioScreen.setRow(6));
+    await p.click(`[data-add-card="suite|${SID}"]`);
+    l = await lane();
+    ok(l && l[6] === "calm" && (await p.evaluate(() => { const st = window.CurioEngine.state(); return st.lanes["camera|shotSize"] && st.lanes["camera|shotSize"].points[st.rows[6].id] === "wide"; })), "its + drops each member at its setting at the playhead");
+    /* A proximity with it. */
+    await p.click('.sc-side [data-group="proximity"]');
+    await p.click('.sc-mybar [data-my-new="proximity"]');
+    ok(await formOpen(), "+ New proximity opens its form");
+    await p.selectOption('.sc-mydlg [name="whenCur"]', ID);
+    await p.selectOption('.sc-mydlg [name="whenChange"]', "rises");
+    await p.selectOption('.sc-mydlg [name="thenCur"]', "shotSize");
+    await p.selectOption('.sc-mydlg [name="thenChange"]', "is");
+    await p.selectOption('.sc-mydlg [name="thenIs"]', "close");
+    await p.fill('.sc-mydlg [name="within"]', "2");
+    await p.dispatchEvent('.sc-mydlg [name="within"]', "change");
+    const sent = await p.$eval(".sc-mydlg [data-my-preview]", (e) => e.textContent);
+    ok(sent === "When Tension in the room goes up, Shot size becomes close within 2 moments.", "it reads as a plain sentence while you make it: " + sent);
+    await p.screenshot({ path: path.join(SHOTS, "screen-20-my-proximity-form.png") });
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    const PID = await p.evaluate(() => (window.CurioMine.data().proximities[0] || {}).id);
+    ok(!!PID && PID.startsWith("my-") && !!(await p.$(`.sc-grid .sc-card.mine[data-card="proximity"][data-id="${PID}"]`)), "the proximity shows with the category's proximities, marked mine (" + PID + ")");
+    ok(await p.evaluate((pid) => window.CURIOSITY_LINKS.links.some((x) => x.proximity === pid) && window.CurioLevels.resolve("proximity", pid).pairs[0].within === 2, PID), "it is a proximity the levels and the engine's link pack know");
+    const n0 = await p.evaluate(() => window.CurioEngine.state().links.length);
+    await p.click(`[data-add-card="proximity|${PID}"]`);
+    ok(await p.evaluate(({ n0, id }) => { const st = window.CurioEngine.state(); return st.links.length === n0 + 1 && st.links.some((x) => x.from.curiosity === id && x.to.curiosity === "shotSize" && x.does === "set"); }, { n0, id: ID }), "its + adds it to the film as a rule: when Tension rises, Shot size becomes close");
+    /* Quick find. */
+    await p.keyboard.press("Control+k");
+    await p.fill(".sc-find-q", "tension room");
+    await p.waitForTimeout(50);
+    const hit = await p.$eval(`.sc-find-o[data-find-id="cur:${ID}"]`, (li) => ({ label: li.querySelector("b").textContent, tag: (li.querySelector("em") || {}).textContent || "" })).catch(() => null);
+    ok(hit && hit.label === "Tension in the room" && /^Mine/.test(hit.tag), "⌘K Quick find finds it, marked Mine (" + (hit && hit.tag) + ")");
+    await p.fill(".sc-find-q", "calm before storm");
+    await p.waitForTimeout(50);
+    ok(!!(await p.$(`.sc-find-o[data-find-id="suite:${SID}"]`)), "and finds the suite");
+    await p.fill(".sc-find-q", "new curiosity");
+    await p.waitForTimeout(50);
+    ok(!!(await p.$('.sc-find-o[data-find-id="act:my-new-curiosity"]')), "and offers New curiosity as an action");
+    await p.keyboard.press("Escape");
+    /* Change it: one more step, and its nodes keep their place on the new steps. */
+    await p.click(`.sc-side [data-group="${gid}"]`);
+    await p.click(`[data-my-edit="curiosity|${ID}"]`);
+    ok((await formOpen()) && (await p.$eval('.sc-mydlg [name="label"]', (i) => i.value)) === "Tension in the room" && (await p.$eval('.sc-mydlg [name="steps"]', (i) => i.value)) === "calm, tense, frantic", "✎ opens the form with what you made");
+    await p.fill('.sc-mydlg [name="steps"]', "still, calm, tense, frantic, panic");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    l = await lane();
+    ok(l && l[0] === "calm" && l[4] === "frantic" && (await p.evaluate((id) => window.CurioScale.domain(id).options.length === 5, ID)), "Save changes uses the new steps, and the film's nodes are still calm and frantic");
+    /* Export and import as a file. */
+    const [dl] = await Promise.all([p.waitForEvent("download"), p.click('.sc-mybar [data-my-act="export"]')]);
+    const file = fs.readFileSync(await dl.path(), "utf8");
+    const shared = JSON.parse(file);
+    ok(dl.suggestedFilename() === "curiomatic-my-curiosities.json" && shared.format === "curiomatic-my-curiosities" && shared.curiosities.length === 1 && shared.suites.length === 1 && shared.proximities.length === 1, "Export mine saves everything you made as one .json file (" + dl.suggestedFilename() + ")");
+    /* Delete asks first. */
+    await p.click(`[data-my-edit="curiosity|${ID}"]`);
+    await p.click('.sc-mydlg [data-my-do="ask-delete"]');
+    const sure = await p.$eval(".sc-mydlg .sc-my-sure", (e) => ({ shown: !e.hidden, text: e.querySelector("p").textContent }));
+    ok(sure.shown && /^Delete Tension in the room\?/.test(sure.text) && /in your film on 1 lane/.test(sure.text) && /"The calm before the storm"/.test(sure.text), "Delete… asks first, and says what goes with it: " + sure.text);
+    ok(await p.evaluate((id) => window.CurioScale.known(id) && !!window.CurioMine.get("curiosity", id), ID), "nothing is deleted yet");
+    await p.click('.sc-mydlg [data-my-do="keep"]');
+    await p.click('.sc-mydlg [data-my-do="cancel"]');
+    ok(!(await formOpen()) && !!(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)), "Keep it and Cancel leave it as it was");
+    await p.click(`[data-my-edit="curiosity|${ID}"]`);
+    await p.click('.sc-mydlg [data-my-do="ask-delete"]');
+    await p.click('.sc-mydlg [data-my-do="delete"]');
+    ok(!(await formOpen()) && !(await p.$(`.sc-grid .sc-card[data-id="${ID}"]`)) && !(await p.evaluate((id) => window.CurioScale.known(id) || !!window.CurioMine.get("curiosity", id), ID)) && (await lane()) === null, "Delete for good takes it out of the library, the engine and the film");
+    /* Import the file again: the curiosity comes back; the suite and proximity you still have are skipped. */
+    await p.setInputFiles(".sc-mybar [data-my-file]", { name: "curiomatic-my-curiosities.json", mimeType: "application/json", buffer: Buffer.from(file) });
+    await p.waitForFunction((id) => !!window.CurioMine.get("curiosity", id), ID, { timeout: 5000 }).catch(() => {});
+    const back = await p.evaluate((id) => ({ c: window.CurioMine.get("curiosity", id), d: window.CurioMine.data(), toast: (document.querySelector(".sc-toast") || {}).textContent || "" }), ID);
+    ok(back.c && back.c.scale.steps.length === 5 && back.d.suites.length === 1 && back.d.proximities.length === 1 && /Brought in 1 curiosity/.test(back.toast) && /2 you already had were skipped/.test(back.toast), "Import… brings it back from the file, skipping what you already have: " + back.toast);
+    ok(await p.evaluate((id) => window.CurioScale.known(id) && window.CurioLevels.categoryOf(id) === "feeling", ID), "and it works again at once");
+    /* Ids never clash: one named like a database curiosity gets its own "my-" id. */
+    await p.click('.sc-mybar [data-my-new="curiosity"]');
+    await p.fill('.sc-mydlg [name="label"]', "Shot size");
+    await p.check('.sc-mydlg [name="kind"][value="range"]');
+    await p.fill('.sc-mydlg [name="min"]', "0");
+    await p.fill('.sc-mydlg [name="max"]', "100");
+    await p.fill('.sc-mydlg [name="unit"]', "%");
+    await p.click('.sc-mydlg [data-my-do="save"]');
+    const ids = await p.evaluate(() => { const DB = window.CuriosityDB; const mine = window.CurioMine.data(); const all = [].concat(DB.data.curiosities, DB.data.suites, DB.data.proximities, DB.data.proximitySuites); const seen = {}; let dup = 0; all.forEach((x) => (seen[x.id] ? dup++ : (seen[x.id] = 1))); return { mine: mine.curiosities.map((c) => c.id), dup, dbMy: all.filter((x) => x.id.startsWith("my-")).every((x) => [].concat(mine.curiosities, mine.suites, mine.proximities).some((m) => m.id === x.id)), shot: window.CurioScale.domain("shotSize").options.join(), range: window.CurioScale.domain("my-shot-size") }; });
+    ok(ids.mine.includes("my-shot-size") && ids.dup === 0 && ids.dbMy && ids.shot === "insert,close,medium,wide" && ids.range.kind === "range" && ids.range.max === 100, "one named Shot size is my-shot-size, a number range from 0 to 100; the database's Shot size keeps its own steps and no id is used twice");
+    await p.screenshot({ path: path.join(SHOTS, "screen-21-my-curiosities.png") });
     await ctx.close();
   }
 

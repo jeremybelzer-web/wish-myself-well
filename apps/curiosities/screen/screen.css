@@ -1042,3 +1042,75 @@ html.sc-open, html.sc-open body { overflow: hidden; }
   .sc-page .sc-card.wide .sc-plus { right: 36px; }
   .sc-page .sc-card-b { padding-right: 34px; }
 }
+
+/* ---------- Borders you can drag between the panels, and panels folded away (Jeremy, 2026-10-04: "Each window
+   should be resizable ... The user should be able to completely collapse any window"). ui.js places each border
+   (.sc-split, its look comes with ui.js's splitter()) over the edge between two panels; the sizes go on the grid
+   as --sc-cols and --sc-rows. Phones and narrow windows stack the panels, so they keep the stylesheet's sizes. ---------- */
+.sc-main { position: relative; }
+.sc-splits { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.sc-splits > .sc-split { pointer-events: auto; }
+.sc-page[data-fullplayer="1"] .sc-splits { display: none; }
+@media (max-width: 860px) { .sc-splits { display: none; } }
+@media (min-width: 861px) {
+  .sc-page .sc-main[data-cols] { grid-template-columns: var(--sc-cols) !important; }
+  .sc-page .sc-main[data-rows] { grid-template-rows: var(--sc-rows) !important; }
+  .sc-page .sc-panel.sc-shut { visibility: hidden; overflow: hidden !important; padding: 0 !important; min-width: 0; min-height: 0; }
+  .sc-page:not([data-layout="right"]) .sc-player.sc-has-dock[data-dock-sized]:has(> .sc-docks > .sc-dock:not(.folded)) { grid-template-columns: minmax(0, 1fr) var(--sc-dock-user) !important; }
+  .sc-player > .sc-docks.sc-shut { visibility: hidden; border-left: 0; }
+  .sc-lib-body[data-side-sized] { grid-template-columns: var(--sc-side-w) minmax(0, 1fr); }
+  .sc-lib-body > .sc-side.sc-shut { visibility: hidden; padding: 0; border-right: 0; overflow: hidden; }
+}
+.sc-overview .sc-ov-strip { height: var(--sc-ov-h, 46px); }
+/* A ⧉ window's resize corner. */
+.sc-win-grip { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; touch-action: none; border-bottom-right-radius: 10px; background: linear-gradient(135deg, transparent 52%, var(--cc-dim) 52% 58%, transparent 58% 70%, var(--cc-dim) 70% 76%, transparent 76%); opacity: 0.7; }
+.sc-win-grip:hover, .sc-win-grip:focus-visible { opacity: 1; background-color: rgba(34, 211, 238, 0.12); }
+html[data-sc-splitting="xy"], html[data-sc-splitting="xy"] * { cursor: nwse-resize !important; user-select: none !important; }
+/* A focused border shows its line and triangles instead of a box around it. */
+.sc-page .sc-split:focus-visible { outline: none; }
+.sc-page .sc-split[data-axis="x"]:focus-visible .sc-split-line { width: 3px; }
+.sc-page .sc-split[data-axis="y"]:focus-visible .sc-split-line { height: 3px; }
+
+/* ---------- Your own curiosities, suites and proximities (screen/mine.js, ui.js "My own curiosities") ---------- */
+.sc-mybar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 2px; }
+.sc-mybar-r { margin-left: auto; display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.sc-page .sc-my-new.on { color: var(--cc-accent); }
+.sc-mine-tag { font-weight: 600; color: var(--cc-accent); margin-right: 4px; }
+.sc-mine-tag::before { content: "● "; font-size: 8px; vertical-align: 1px; }
+.sc-card.mine { box-shadow: inset 3px 0 0 var(--cc-accent); }
+.sc-card.mine.on { box-shadow: inset 0 0 0 2px var(--cc-accent); }
+.sc-page .sc-my-edit { position: absolute; right: 4px; top: 26px; width: 20px; height: 20px; padding: 0; border-radius: 50%; background: transparent; color: var(--cc-dim); font-size: 12px; line-height: 20px; box-shadow: none; }
+.sc-page .sc-my-edit:hover { color: var(--cc-text); background: #333338; }
+.sc-page .sc-card.wide .sc-my-edit { right: 52px; top: 6px; }
+.sc-mydlg { padding: 0; border: 1px solid var(--cc-line); border-radius: 10px; background: var(--cc-panel); color: var(--cc-text); width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); }
+.sc-mydlg::backdrop { background: rgba(0, 0, 0, 0.55); }
+.sc-myform { display: grid; gap: 8px; padding: 14px 16px; font-size: 13px; }
+.sc-myform h2 { margin: 0; font-size: 15px; }
+.sc-myform p { margin: 0; }
+.sc-myform label { display: grid; gap: 3px; color: var(--cc-dim); font-size: 12px; }
+.sc-myform label.sc-myradio, .sc-mypick-row { display: flex; gap: 6px; align-items: center; color: var(--cc-text); }
+.sc-page .sc-myform input:not([type="radio"]):not([type="checkbox"]), .sc-page .sc-myform textarea { border: 1px solid var(--cc-line); background: var(--cc-raised); color: var(--cc-text); border-radius: 6px; padding: 5px 7px; font: inherit; font-size: 13px; box-sizing: border-box; width: 100%; }
+.sc-myform fieldset { border: 1px solid var(--cc-line); border-radius: 8px; padding: 8px 10px; display: grid; gap: 6px; margin: 0; min-width: 0; }
+.sc-myform legend { padding: 0 4px; font-weight: 600; }
+.sc-myrow { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: end; }
+.sc-myrow > label { flex: 1 1 120px; }
+.sc-myextra, .sc-mymember { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: 6px; align-items: center; }
+.sc-mymember { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+.sc-page .sc-mymember select, .sc-page .sc-mymember input { max-width: none; width: 100%; }
+.sc-mypicked { display: grid; gap: 4px; }
+.sc-mypick { display: grid; gap: 2px; max-height: 180px; overflow: auto; padding-right: 4px; }
+.sc-mypick-row small { color: var(--cc-dim); }
+.sc-mysent { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sc-page .sc-myform .sc-mysent input[type="number"] { width: 72px; }
+.sc-mypreview { color: var(--cc-accent); min-height: 1.2em; }
+.sc-my-err { color: var(--cc-warm); }
+.sc-my-sure { border: 1px solid var(--cc-warm); border-radius: 8px; padding: 8px 10px; display: grid; gap: 6px; }
+.sc-page .sc-my-sure .sl-warn { color: var(--cc-warm); box-shadow: inset 0 0 0 1px var(--cc-warm); }
+.sc-mybtns { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sc-mybtns-r { margin-left: auto; display: inline-flex; gap: 6px; }
+@media (max-width: 480px) {
+  .sc-page .sc-my-edit { width: 28px; height: 28px; line-height: 28px; top: 34px; }
+  .sc-page .sc-card.wide .sc-my-edit { right: 68px; }
+  .sc-myextra, .sc-mymember { grid-template-columns: minmax(0, 1fr) auto; }
+  .sc-myextra > input:nth-child(2), .sc-mymember > :nth-child(2) { grid-column: 1 / 2; grid-row: 2; }
+}
