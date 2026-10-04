@@ -218,6 +218,17 @@ until the next one, like CapCut keyframes):
 
 Data: `panel.people[objectId] = {emo: {a, r}, type, health, chaos, change, why}`. Test: `node viewer/tests/people.js`.
 
+- **Acts like right now** (Jeremy, 22:06Z): health moves them along the usual Enneagram lines. At health 1-2
+  they act like their growth number, 3 leans that way, 4-6 is themselves, 7 leans toward their stress number,
+  and 8-9 they act like it (a Loyalist 6 at their best acts like a 9, at their worst like a 3). The tab says how
+  that looks and what the other type wants and fears. It can be set by hand per panel (`acts`, a ◆ key).
+  `CurioPeople.actsLike(type, health)`.
+- **What they want right now**: their motivation in this panel (`motive`, a ◆ key), beside their type's core
+  desire and fear.
+- **Their normal amount of chaos**: a yellow ring on the chaos matrix (`object.normal = { chaos, change }`, set
+  with the slider or Make this their normal), so you can see how far this panel's dot is from their usual self.
+  When a panel doesn't set a place, the dot sits at their normal.
+
 ### Rate of speech (`viewer/speech.js`)
 
 Every speech balloon has a Speed in syllables a second (slow drawl to auctioneer), set with the slider, by
@@ -254,3 +265,14 @@ browsers start with it off unless `?hoverhelp=1`). Test: `node viewer/tests/hove
 ### Borders (`viewer/borders.js`, `window.CurioBorders`)
 
 Every border between the Viewer's panels can be dragged, using the Screen's own border tool (`CurioScreen.splitter`, screen/ui.js) so they look and work the same: In the scene | the picture, the picture | Details, the picture | Front and center, and everything above | the storyboard. Hovering shows a cyan line and triangles pointing the ways it can go. The arrow keys move a focused border, double-click gives the usual size, and «, Enter or a drag past the smallest size folds a panel away completely; click or drag the thin edge left behind to bring it back. Sizes are kept with the film in `film.view.borders` ({ left, right, lane, strip, fold }), so Undo and Redo take a border move back like any other change (`CurioViewer.remember(tag)` adds an undo step without moving the playhead), and they come back after a reload. Only wider than 1100px and not in Read as a comic; phones keep their one column. Test: `viewer/tests/borders.js`.
+
+### 3D characters (`viewer/rig-actors.js`, `window.CurioRigActors`)
+
+Jeremy, 22:06Z: "we want 3D characters both selectable and draw-able and tweak-able modifiable". The **3D** button next to a person in In the scene (`object.rig`, the whole film, one undo step) or `place.rig` per panel (true or false, written by Draw & build) plays that person with a 3D character: the Plain figure's skeleton from rig/ dressed by Make a character from words (`CurioRig.maker.make(ctx, plan)`). The Viewer draws it itself, face by face (soft faces, no lines between them), so it is in the same world as the block shapes: hidden behind things, bent by the fisheye, filtered, blurred, in the comic strip, and clicking it picks it (`pickAt`).
+
+- Look: `place.look` (words) or `object.look`, else words from the person's own colors (with their exact colors); `place.lookParts` / `object.lookParts` change single parts of `CurioRig.maker.read(words)` using the maker's names (hair, hairColor, top, topColor, bottom, bottomColor, feet, shoesColor, hat, hatColor, skin, build, height, kid, old...). A color can be a number or a word.
+- Pose: `CurioViewer.limbs(pose, phase)` (the block figure's own limb angles, every pose in POSE_FX too) turns the skeleton's arms and legs; sitting bends the hips and knees and lowers the body.
+- Face: the mouth follows the People tab's feeling (smile, grumpy, surprised, serious).
+- Loads on first use (`CurioRig.load()`, three.js from cdnjs, `rig/GLTFLoader.js`, the Plain figure). Each look is built once; surfaces are simplified (points closer than 4.5 cm merged, small pieces less, at most about 44 faces a piece and 110 for the head) so a scene still plays.
+
+Test: `viewer/tests/rig-actors.js [--three three.min.js]`.

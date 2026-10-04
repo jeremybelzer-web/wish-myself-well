@@ -95,6 +95,7 @@ const suites = [
   { name: "comic strip playhead and layouts", browser: true, secs: 15, ...node("viewer/tests/comic.js") },
   { name: "hover help", browser: true, secs: 15, ...node("viewer/tests/hoverhelp.js") },
   { name: "viewer borders", browser: true, secs: 15, ...node("viewer/tests/borders.js") },
+  { name: "viewer 3D characters", browser: true, secs: 20, ...node("viewer/tests/rig-actors.js", threeArgs) },
   { name: "storyboard flip book", browser: true, secs: 10, ...node("tests/flipbook.js") },
   { name: "save, new, open a project", browser: true, secs: 30, ...node("tests/save-open.js") },
   { name: "bring in a video", browser: true, secs: 25, ...node("media/tests/browser.js") },

@@ -337,12 +337,17 @@ const ok = (cond, msg) => {
   /* walls and a room */
   await page.keyboard.press("w");
   [x, y] = at(0.2, 0.8);
+  /* when this fails, the message says which tool was on and what was under the pointer */
+  const wallWhy = await page.evaluate(([x, y]) => {
+    const el = document.elementFromPoint(x, y);
+    return "tool " + CurioBuild.tool() + ", focus " + (document.activeElement ? document.activeElement.tagName.toLowerCase() + "." + String(document.activeElement.className || "").replace(/\s+/g, ".") : "none") + ", under " + (el ? el.tagName.toLowerCase() + "." + String(el.className || "").replace(/\s+/g, ".") : "nothing");
+  }, [x, y]);
   await page.mouse.move(x, y);
   await page.mouse.down();
   await page.mouse.move(x + 200, y, { steps: 5 });
   await page.mouse.up();
   d = await sel();
-  ok(d && d.make === "walls" && d.segs.length === 1 && Math.hypot(d.segs[0][2], d.segs[0][3]) > 0.4, "Wall: dragging on the floor builds a wall");
+  ok(d && d.make === "walls" && d.segs.length === 1 && Math.hypot(d.segs[0][2], d.segs[0][3]) > 0.4, "Wall: dragging on the floor builds a wall" + (d && d.make === "walls" ? "" : ` (${wallWhy}; picked ${d ? d.make || d.kind : "nothing"})`));
   await page.keyboard.press("r");
   [x, y] = at(0.6, 0.78);
   await page.mouse.move(x, y);

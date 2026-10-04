@@ -116,6 +116,45 @@ const ok = (cond, msg) => {
   await page.$eval('[data-pf="why"]', (el) => el.dispatchEvent(new Event("change", { bubbles: true })));
   ok((await L(() => CurioPeople.at(9, "passenger").why)) === "The rage finally pushes them to act.", "the why is kept and held into the next panel");
 
+  /* who they act like: health moves them along the Enneagram's lines (Jeremy, 22:06Z) */
+  let A = await L(() => CurioPeople.at(8, "passenger").acts);
+  ok(A && A.n === 9 && A.how === "growth", "at health 2 the Loyalist (6) acts like a Peacemaker (9), their growth number");
+  ok(/Peacemaker/.test(await page.textContent(".cvp-body")) && /growth line/.test(await page.textContent(".cvp-body")), "and the tab says so in words");
+  A = await L(() => CurioPeople.at(6, "passenger").acts);
+  ok(A && A.n === 3 && A.how === "stress" && !A.lean, "at health 8 they act like an Achiever (3), their stress number");
+  ok((await L(() => CurioPeople.at(0, "passenger").acts.how)) === "own", "at average health they act like themselves");
+  await page.selectOption('[data-pf="acts"]', "5");
+  A = await L(() => CurioPeople.at(8, "passenger").acts);
+  ok(A.n === 5 && A.how === "set" && (await page.locator('[data-pk="acts"].on').count()) === 1, "who they act like can be set by hand, with a ◆ key");
+  await page.selectOption('[data-pf="acts"]', "");
+  ok((await L(() => CurioPeople.at(8, "passenger").acts.n)) === 9, "and handed back to their health");
+
+  /* what they want right now */
+  await page.fill('[data-pf="motive"]', "Make the driver pay for this.");
+  await page.$eval('[data-pf="motive"]', (el) => el.dispatchEvent(new Event("change", { bubbles: true })));
+  ok((await L(() => CurioPeople.at(9, "passenger").motive)) === "Make the driver pay for this.", "their motivation is kept and held into the next panel");
+  ok((await L(() => CurioPeople.at(0, "passenger").motive)) === "Get across town on time without anyone noticing she's late.", "the sample passenger starts with a motivation");
+
+  /* their normal amount of chaos */
+  ok((await L(() => CurioPeople.at(8, "passenger").normal.chaos)) === 45, "the sample passenger has a normal amount of chaos");
+  ok(/more chaotic than usual/.test(await page.textContent(".cvp-usual")), "and the tab compares this panel to it: " + (await page.textContent(".cvp-usual")));
+  await page.click('[data-pa="normalhere"]');
+  ok(/about as chaotic as usual/.test(await page.textContent(".cvp-usual")), "Make this their normal moves the ring to the dot");
+  await page.waitForTimeout(1000); /* quick changes of the same kind join one undo step */
+  await page.$eval('[data-pf="normal"]', (el) => {
+    el.value = "10";
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  ok((await L(() => CurioPeople.at(3, "passenger").normal.chaos)) === 10, "the slider sets their normal for the whole film");
+  await L(() => CurioViewer.undo());
+  await page.waitForTimeout(80);
+  ok((await L(() => CurioPeople.at(3, "passenger").normal.chaos)) > 80, "undo takes the normal back");
+  await L(() => CurioViewer.undo());
+  await page.waitForTimeout(80);
+  ok((await L(() => CurioPeople.at(3, "passenger").normal.chaos)) === 45, "and again");
+  await L(() => CurioViewer.select(8));
+  await page.waitForTimeout(80);
+
   /* changing their Enneagram type partway through */
   await page.selectOption('[data-pf="type"]', "8");
   await page.waitForTimeout(80);

@@ -8,6 +8,11 @@
      (character-matrix/data.js, PRs #6 and #31).
    - Their place in the chaos matrix: orderly or chaotic (and why), a force for change or one that keeps
      things as they are.
+   - Who they act like in this moment (Jeremy, 22:06Z): health pulls them along the usual Enneagram lines,
+     toward their growth number when they are at their best and toward their stress number when they are at
+     their worst ("it might make them behave like a different Enneagram number"); it can be set by hand.
+   - Their normal amount of chaos (a ring on the matrix) next to where they are right now, and what they want
+     right now (their motivation) beside their type's core desire and fear.
    Every value is automatable: setting it in a panel puts a ◆ key there (like CapCut's keyframes) and the
    panels after hold it until the next key. Changing someone's Enneagram type partway through the film shows
    Jeremy's warning first.
@@ -16,7 +21,9 @@
 
    Data: panel.people = { [objectId]: { emo: {a: degrees round the wheel, joy = 0, clockwise; r: 0 calm .. 1
    intense}, type: 1..9, health: 1..9, chaos: 0 orderly .. 100 chaotic, change: 0 keeps things as they are ..
-   100 force for change, why: text } } — only what was set in that panel (keys).
+   100 force for change, why: text, acts: 1..9 (who they act like, by hand; empty = from health), motive: text } }
+   — only what was set in that panel (keys). Their normal place in the matrix is on the person:
+   object.normal = { chaos, change }.
    API: window.CurioPeople { at(i, who) -> resolved values, emotionName({a, r}), EMOTIONS, WARNING }. */
 (function () {
   "use strict";
@@ -71,8 +78,8 @@
     return { name: (band === 0 ? "a little " : band === 2 ? "deep " : "") + word, family: word, color: mix(EMOTIONS[j].color, EMOTIONS[(j + 1) % 8].color, 0.5), r, a, k: j, blend: true };
   }
 
-  const FIELDS = ["emo", "type", "health", "chaos", "change", "why"];
-  const LABEL = { emo: "Feeling", type: "Enneagram type", health: "Health", chaos: "Orderly or chaotic", change: "Force for change", why: "Why" };
+  const FIELDS = ["emo", "type", "health", "chaos", "change", "why", "acts", "motive"];
+  const LABEL = { emo: "Feeling", type: "Enneagram type", health: "Health", chaos: "Orderly or chaotic", change: "Force for change", why: "Why", acts: "Acts like", motive: "What they want right now" };
 
   /* ---------- reading values: the last key at or before the panel ---------- */
   function film() {
@@ -106,25 +113,48 @@
     if (health <= 3) chaos -= (10 * (4 - health)) / 3;
     return { chaos: Math.round(clamp(chaos, 0, 100)), change: Math.round(clamp(change, 0, 100)) };
   }
+  /* who they act like at this health: along the Enneagram's growth line at their best, its stress line at
+     their worst. how: "own", "growth" or "stress"; lean: only partly (health 3 or 7). */
+  function actsLike(type, health) {
+    const T = typeOf(type);
+    if (!T) return null;
+    const h = Math.round(health);
+    if (h <= 3 && T.growth) return { n: T.growth, how: "growth", lean: h === 3, looks: T.growthLooks };
+    if (h >= 7 && T.stress) return { n: T.stress, how: "stress", lean: h === 7, looks: T.stressLooks };
+    return { n: T.n, how: "own", lean: false, looks: "" };
+  }
+  function normalOf(who) {
+    const o = film().objects.find((x) => x.id === who);
+    return o && o.normal && o.normal.chaos != null ? o.normal : null;
+  }
   function at(i, who) {
     const g = (f) => keyAt(i, who, f);
     const type = g("type");
     const health = g("health");
     const t = type ? +type.v : null;
     const h = health ? +health.v : 5;
-    const d = typeDefaults(t, h);
+    const actsKey = g("acts");
+    let acts = actsLike(t, h);
+    if (actsKey && typeOf(actsKey.v)) acts = { n: +actsKey.v, how: t && +actsKey.v === t ? "own" : "set", lean: false, looks: "" };
+    /* the matrix leans the way the type they act like would, unless a place is set or they have a normal one */
+    const norm = normalOf(who);
+    const d = norm || typeDefaults(acts && !acts.lean ? acts.n : t, h);
     const chaos = g("chaos");
     const change = g("change");
     const emo = g("emo");
     const why = g("why");
+    const motive = g("motive");
     return {
       emo: emo ? emo.v : { a: 0, r: 0 },
       type: t,
       health: h,
+      acts,
       chaos: chaos ? +chaos.v : d.chaos,
       change: change ? +change.v : d.change,
+      normal: norm,
       why: why ? why.v : "",
-      from: { emo: emo && emo.at, type: type && type.at, health: health && health.at, chaos: chaos && chaos.at, change: change && change.at, why: why && why.at },
+      motive: motive ? motive.v : "",
+      from: { emo: emo && emo.at, type: type && type.at, health: health && health.at, chaos: chaos && chaos.at, change: change && change.at, why: why && why.at, acts: actsKey && actsKey.at, motive: motive && motive.at },
     };
   }
   /* the first panel where this character's type is set, and whether it later becomes something else */
@@ -156,6 +186,16 @@
       p.people = p.people || {};
       p.people[who] = Object.assign(p.people[who] || {}, v);
     };
+    const person = (id, normal) => {
+      const o = f.objects.find((x) => x.id === id);
+      if (o && !o.normal) o.normal = normal;
+    };
+    person("biju", { chaos: 22, change: 30 });
+    person("passenger", { chaos: 45, change: 40 });
+    put("p1", "biju", { motive: "Get through the shift in peace, and finish the mango." });
+    put("p12", "biju", { motive: "Get the phone back to her before the countdown ends." });
+    put("p1", "passenger", { motive: "Get across town on time without anyone noticing she's late." });
+    put("p6", "passenger", { motive: "Find the phone. Nothing else matters." });
     put("p1", "biju", { type: 9, health: 3, emo: { a: 0, r: 0.3 }, chaos: 22, change: 30, why: "Biju keeps his small world steady: the same route, the same mango. He changes things only by staying calm while everyone else falls apart." });
     put("p3", "biju", { emo: { a: 0, r: 0.55 } });
     put("p8", "biju", { emo: { a: 45, r: 0.35 } });
@@ -232,16 +272,45 @@
       ${T ? `<p class="cvp-small"><b>Wants</b> ${esc(T.desire)}. <b>Fears</b> ${esc(T.fear)}. <b>Drives the story by</b> ${esc(T.engine.replace(/\.$/, "").toLowerCase())}.</p>` : ""}
       <label class="cv-field"><span><b>Emotional health</b> ${keyMark(i, "health", v.from.health)}<em>${Math.round(v.health)} · ${esc(L ? L.label : band)}</em></span><input type="range" data-pf="health" min="1" max="9" step="1" value="${Math.round(v.health)}" /><span class="cv-ends"><span>healthy, at their best</span><span>unhealthy, at their worst</span></span></label>
       ${T ? `<p class="cvp-small">${esc(T[band])}</p>` : ""}
+      ${T ? actsHtml(i, v, name) : ""}
+      <label class="cv-field"><span><b>What they want right now</b> ${keyMark(i, "motive", v.from.motive)}</span><textarea data-pf="motive" rows="2" placeholder="Their motivation in this moment.${T ?  " At heart " + esc(an(T.name)) + " wants " + esc(T.desire) + "." : ""}">${esc(v.motive)}</textarea></label>
       <h3>Chaos matrix ${keyMark(i, "chaos", v.from.chaos)}</h3>
       <canvas class="cvp-chaos" aria-label="Chaos matrix. Left to right: orderly to chaotic. Bottom to top: keeps things as they are to a force for change. Click or drag to place them."></canvas>
       <p class="cvp-small cvp-place">${esc(placeWords(v.chaos, v.change))}</p>
-      <label class="cv-field"><span><b>Why</b> ${keyMark(i, "why", v.from.why)}</span><textarea data-pf="why" rows="3" placeholder="Why are they chaotic or orderly? Why do they change things, or keep them as they are?${T ? " (A " + esc(T.name) + " is driven by: " + esc(T.engine) + ")" : ""}">${esc(v.why)}</textarea></label>
+      <p class="cvp-small cvp-usual">${esc(usualWords(v))}</p>
+      <label class="cv-field"><span><b>Their normal amount of chaos</b><em>${v.normal ? Math.round(v.normal.chaos) + " · " + (v.normal.chaos < 40 ? "orderly" : v.normal.chaos > 60 ? "chaotic" : "in between") : "not set"}</em></span><input type="range" data-pf="normal" min="0" max="100" step="1" value="${v.normal ? Math.round(v.normal.chaos) : v.chaos}" /><span class="cv-ends"><span>orderly</span><span>chaotic</span></span></label>
+      <div class="cvp-row"><button type="button" data-pa="normalhere" title="Their usual self is where they are in this panel: the ring moves to the dot">Make this their normal</button>${v.normal ? `<button type="button" data-pa="normaloff" title="No normal: the matrix follows their type and health">Clear their normal</button>` : ""}<span class="cvp-small">The ring is how they usually are; the dot is this panel.</span></div>
+      <label class="cv-field"><span><b>Why</b> ${keyMark(i, "why", v.from.why)}</span><textarea data-pf="why" rows="3" placeholder="Why are they chaotic or orderly? Why do they change things, or keep them as they are?${T ? " (" + esc(an(T.name)).replace(/^a/, "A") + " is driven by: " + esc(T.engine) + ")" : ""}">${esc(v.why)}</textarea></label>
       <h3>Emotional roadmap</h3>
       <canvas class="cvp-road" aria-label="Every character's feeling in every panel, and the film's. Click a square to go to that panel."></canvas>
       <p class="cvp-small">Each square is a panel: its color is the feeling, brighter is stronger. ◆ marks a change set there, ⚠ a change of personality. The top row is the film: the strongest feeling in each panel.</p>`;
     wheel();
     chaos();
     road();
+  }
+  const aN = (n) => (+n === 8 ? "an " : "a ");
+  const an = (word) => (/^[aeiou]/i.test(word) ? "an " : "a ") + word;
+  function usualWords(v) {
+    if (!v.normal) return "No normal set yet: the ring shows where they usually are once you set it.";
+    const d = Math.round(v.chaos - v.normal.chaos);
+    const how = Math.abs(d) < 8 ? "about as chaotic as usual" : d > 0 ? `${d} more chaotic than usual` : `${-d} more orderly than usual`;
+    return `Usually ${Math.round(v.normal.chaos)} on the chaos scale; right now ${Math.round(v.chaos)}: ${how}.`;
+  }
+  function actsHtml(i, v, name) {
+    const A = v.acts;
+    const T = typeOf(v.type);
+    const AT = A ? typeOf(A.n) : null;
+    let say;
+    if (!A || A.how === "own") say = `<b>${esc(name)}</b> acts like their own type, ${aN(T.n)}<b>${T.n} · ${esc(T.name)}</b>.`;
+    else if (A.how === "set") say = `Set by hand: <b>${esc(name)}</b> acts like ${aN(AT.n)}<b>${AT.n} · ${esc(AT.name)}</b> here.`;
+    else
+      say = `${A.lean ? "Leaning toward" : "Acting like"} ${aN(AT.n)}<b>${AT.n} · ${esc(AT.name)}</b>, along their ${A.how === "growth" ? "growth line (at their best)" : "stress line (at their worst)"}: ${esc(A.looks)}.`;
+    return `<h3>Acts like right now ${keyMark(i, "acts", v.from.acts)}<em class="cvp-acts">${AT ? AT.n + " · " + esc(AT.name) : ""}</em></h3>
+      <p class="cvp-small">${say} Their health moves this: healthy pulls them toward ${aN(T.growth)}${T.growth}, unhealthy toward ${aN(T.stress)}${T.stress}.</p>
+      ${AT && AT.n !== T.n ? `<p class="cvp-small"><b>${esc(an(AT.name)).replace(/^a/, "A")} wants</b> ${esc(AT.desire)}. <b>Fears</b> ${esc(AT.fear)}.</p>` : ""}
+      <label class="cv-field"><span><b>Acts like</b></span><select data-pf="acts"><option value=""${v.from.acts == null ? " selected" : ""}>From their health (automatic)</option>${M()
+        .TYPES.map((t) => `<option value="${t.n}"${v.from.acts != null && t.n === A.n ? " selected" : ""}>${t.n} · ${esc(t.name)}${t.n === T.n ? " (their own)" : t.n === T.growth ? " (growth)" : t.n === T.stress ? " (stress)" : ""}</option>`)
+        .join("")}</select></label>`;
   }
   function placeWords(c, ch) {
     const o = c < 40 ? "orderly" : c > 60 ? "chaotic" : "between order and chaos";
@@ -455,6 +524,18 @@
     pts.forEach((p, k) => (k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])));
     g.stroke();
     g.setLineDash([]);
+    if (at(i, w).normal) {
+      const n = at(i, w).normal;
+      g.strokeStyle = "#ffcc33";
+      g.lineWidth = 2.5;
+      g.beginPath();
+      g.arc(G.X(n.chaos), G.Y(n.change), 13, 0, Math.PI * 2);
+      g.stroke();
+      g.fillStyle = "#ffcc33";
+      g.font = "600 10px system-ui, sans-serif";
+      g.textAlign = "center";
+      g.fillText("normal", G.X(n.chaos), G.Y(n.change) + 24);
+    }
     const me = pts[i];
     g.fillStyle = "#22d3ee";
     g.strokeStyle = "#fff";
@@ -544,6 +625,15 @@
     p.people[w][field] = value;
     V().changed(false);
   }
+  /* their normal place is about the person, not a panel: one undo step, kept on the person */
+  function setNormal(n) {
+    const o = film().objects.find((x) => x.id === pick());
+    if (!o) return;
+    V().edit("people-normal");
+    if (n) o.normal = { chaos: Math.round(n.chaos), change: Math.round(n.change) };
+    else delete o.normal;
+    V().changed(false);
+  }
   function clearKey(field) {
     const L = V().live();
     const w = pick();
@@ -574,6 +664,11 @@
       pending = null;
       return render();
     }
+    if (b.dataset.pa === "normalhere" || b.dataset.pa === "normaloff") {
+      const v = at(cur(), pick());
+      setNormal(b.dataset.pa === "normaloff" ? null : { chaos: v.chaos, change: v.change });
+      return render();
+    }
     if (b.dataset.pa === "typeno") {
       pending = null;
       return render();
@@ -583,7 +678,7 @@
       const i = cur();
       const v = at(i, pick());
       if (v.from[f] === i) clearKey(f);
-      else setKey(f, f === "emo" ? Object.assign({}, v.emo) : v[f]);
+      else setKey(f, f === "emo" ? Object.assign({}, v.emo) : f === "acts" ? (v.acts ? v.acts.n : "") : v[f]);
       return render();
     }
   }
@@ -591,6 +686,11 @@
     const el = e.target;
     if (!el.closest || !el.closest(".cvp-body") || !el.dataset.pf) return;
     const f = el.dataset.pf;
+    if (f === "normal" && e.type === "input") {
+      const em = el.closest(".cv-field").querySelector("em");
+      if (em) em.textContent = el.value + " · " + (+el.value < 40 ? "orderly" : +el.value > 60 ? "chaotic" : "in between");
+      return;
+    }
     if (f === "health" && e.type === "input") {
       const em = el.closest(".cv-field").querySelector("em");
       const D = M();
@@ -616,6 +716,15 @@
     }
     if (f === "health") setKey("health", +el.value);
     if (f === "why") setKey("why", el.value);
+    if (f === "motive") setKey("motive", el.value);
+    if (f === "acts") {
+      if (el.value) setKey("acts", +el.value);
+      else clearKey("acts");
+    }
+    if (f === "normal") {
+      const v = at(cur(), pick());
+      setNormal({ chaos: +el.value, change: v.normal ? v.normal.change : v.change });
+    }
     render();
   }
   /* dragging on the wheel and the matrix */
@@ -732,5 +841,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioPeople = { at, emotionName: (e) => emotionOf(e).name, emotionOf, EMOTIONS, BLENDS, WARNING, typeChanges };
+  window.CurioPeople = { at, actsLike, emotionName: (e) => emotionOf(e).name, emotionOf, EMOTIONS, BLENDS, WARNING, typeChanges };
 })();

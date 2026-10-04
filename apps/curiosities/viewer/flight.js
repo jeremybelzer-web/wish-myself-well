@@ -471,7 +471,9 @@
     else {
       const fwd = [-Math.sin(gv.yaw), 0, -Math.cos(gv.yaw)];
       const right = [fwd[2], 0, -fwd[0]];
-      q.p = add(q.p, add(mul(right, -dx * k), mul(fwd, -dy * k))).map(r2);
+      /* across the floor only: the height stays exactly as it was (rounding it would nudge it up or down) */
+      const n = add(q.p, add(mul(right, -dx * k), mul(fwd, -dy * k)));
+      q.p = [r2(n[0]), q.p[1], r2(n[2])];
     }
     V().changed(false);
     graph();
