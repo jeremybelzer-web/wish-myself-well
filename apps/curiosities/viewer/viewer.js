@@ -64,8 +64,17 @@
     tuktuk: { label: "Tuk-tuk", look: 1.1, ring: 1.6, color: "#e7c235" },
     napkin: { label: "Napkin", look: 0, ring: 0.2, color: "#f7f4ea" },
     phone: { label: "Phone", look: 0, ring: 0.15, color: "#1b1b20" },
+    /* anything made with the Build tools (viewer/build.js): drawings, words, parts, objects from the search.
+       o.make names its maker (MAKERS), and o.look / o.ring override these. */
+    made: { label: "Thing", look: 0.5, ring: 0.5, color: "#8a8f9c" },
   };
+  const MAKERS = {};
+  const ringOf = (o) => (o.ring != null ? o.ring : KINDS[o.kind].ring || 0.5);
+  const lookOf = (o) => (o.look != null ? o.look : KINDS[o.kind].look || 0);
   const ADDABLE = ["person", "box", "ball", "tree", "lamp", "building"];
+  /* Hooks for add-ons (viewer/build.js): extra tabs, a tool that takes over the pointer, drawings over the
+     picture, extra rows in the "In the scene" list, and keys. */
+  const HOOK = { tabs: [], tool: null, over: [], things: [], keys: [] };
   const POSES = [
     ["stand", "Standing"],
     ["walk", "Walking"],
@@ -181,6 +190,15 @@
         return [{ box: [0.24, 0.24, 0.012], at: [0, 0, 0], color: d.color || "#f7f4ea" }];
       case "phone":
         return [{ box: [0.08, 0.15, 0.012], at: [0, 0, 0], color: "#1b1b20" }, { quad: [0.068, 0.13], at: [0, 0, 0.0075], color: d.screen || "#ff3b3b", glow: true }];
+      case "made":
+        if (MAKERS[d.make]) {
+          try {
+            return MAKERS[d.make](d, place, phase) || [];
+          } catch (e) {
+            return [{ box: [0.5, 0.5, 0.5], at: [0, 0.25, 0], color: d.color }];
+          }
+        }
+        return [{ box: [0.5, 0.5, 0.5], at: [0, 0.25, 0], color: d.color }];
       default:
         return [{ box: [0.5, 0.5, 0.5], at: [0, 0.25, 0], color: d.color }];
     }
@@ -222,6 +240,37 @@
       for (let j = 0; j < M; j++) for (let i = 0; i < N; i++) F.push([pt(i, j), pt(i + 1, j), pt(i + 1, j + 1), pt(i, j + 1)]);
       return { faces: F, center: c };
     }
+    if (p.cyl) {
+      const [r, h] = p.cyl;
+      const N = p.n || 12;
+      const F = [];
+      const ring = (y) => Array.from({ length: N }, (_, i) => [c[0] + r * Math.cos((i / N) * Math.PI * 2), y, c[2] + r * Math.sin((i / N) * Math.PI * 2)]);
+      const lo = ring(c[1]);
+      const hi = ring(c[1] + h);
+      for (let i = 0; i < N; i++) F.push([lo[i], lo[(i + 1) % N], hi[(i + 1) % N], hi[i]]);
+      F.push(hi.slice(), lo.slice().reverse());
+      return { faces: F, center: [c[0], c[1] + h / 2, c[2]] };
+    }
+    if (p.wedge) {
+      const [w, h, d] = p.wedge;
+      const x0 = c[0] - w / 2, x1 = c[0] + w / 2, y0 = c[1] - h / 2, y1 = c[1] + h / 2, z0 = c[2] - d / 2, z1 = c[2] + d / 2;
+      return {
+        faces: [
+          [[x0, y0, z1], [x1, y0, z1], [x1, y1, z0], [x0, y1, z0]],
+          [[x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [x1, y0, z0]],
+          [[x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1]],
+          [[x0, y0, z0], [x0, y0, z1], [x0, y1, z0]],
+          [[x1, y0, z0], [x1, y1, z0], [x1, y0, z1]],
+        ],
+        center: [c[0], c[1] - h / 6, c[2] - d / 6],
+      };
+    }
+    if (p.flat) {
+      const [w, d] = p.flat;
+      return { faces: [[[c[0] - w / 2, c[1], c[2] + d / 2], [c[0] + w / 2, c[1], c[2] + d / 2], [c[0] + w / 2, c[1], c[2] - d / 2], [c[0] - w / 2, c[1], c[2] - d / 2]]], center: [c[0], c[1] - 1, c[2]] };
+    }
+    /* poly: faces given point by point (two: true shows them from both sides) */
+    if (p.poly) return { faces: p.poly, center: p.center || c || [0, 0, 0] };
     if (p.cone) {
       const [r, h] = p.cone;
       const F = [];
@@ -262,30 +311,56 @@
   function thingFaces(def, place, phase) {
     const parts = kindParts(def, place, phase);
     const s = place.size || 1;
+    /* sx, sy, sz stretch one way only (the Scale tool), on top of size */
+    const S = [s * (place.sx || 1), s * (place.sy || 1), s * (place.sz || 1)];
     const t = (place.turn || 0) * DEG;
     const st = Math.sin(t);
     const ct = Math.cos(t);
     const pos = [place.x || 0, place.y || 0, place.z || 0];
-    const toWorld = (p) => [pos[0] + s * (p[0] * ct + p[2] * st), pos[1] + s * p[1], pos[2] + s * (-p[0] * st + p[2] * ct)];
+    const toWorld = (p) => {
+      const q = [p[0] * S[0], p[1] * S[1], p[2] * S[2]];
+      return [pos[0] + (q[0] * ct + q[2] * st), pos[1] + q[1], pos[2] + (-q[0] * st + q[2] * ct)];
+    };
     const out = [];
-    parts.forEach((p) => {
-      const pf = partFaces(p);
+    parts.forEach((p, pi) => {
+      const piv = p.pivot || p.at;
+      const turned = (p.rx || p.ry || p.rz) && piv;
       const local = (q) => {
-        if (!p.pivot) return q;
-        let v = sub(q, p.pivot);
+        if (!turned) return q;
+        let v = sub(q, piv);
         if (p.rz) v = rotZ(v, p.rz * DEG);
         if (p.rx) v = rotX(v, p.rx * DEG);
-        return add(v, p.pivot);
+        if (p.ry) {
+          const a = p.ry * DEG;
+          v = [v[0] * Math.cos(a) + v[2] * Math.sin(a), v[1], -v[0] * Math.sin(a) + v[2] * Math.cos(a)];
+        }
+        return add(v, piv);
       };
-      const cw = toWorld(local(pf.center));
       const rgba = /^#[0-9a-f]{8}$/i.test(p.color || "") ? null : hex(p.color);
       if (!rgba) return;
+      const tag = p.tag != null ? p.tag : pi;
+      if (p.line) {
+        /* a pencil line: drawn as a stroke of width w metres, seen from every side */
+        const pts = p.line.map((q) => toWorld(local(q)));
+        if (pts.length) out.push({ pts, line: true, w: (p.w || 0.02) * Math.cbrt(S[0] * S[1] * S[2]), color: rgba, obj: def.id, tag, dash: p.dash });
+        return;
+      }
+      if (p.text != null) {
+        /* words in the world: a sign of height h metres, written along +x, facing +z */
+        const h = p.size || 0.3;
+        const a = p.at || [0, 0, 0];
+        out.push({ text: String(p.text), face: !!p.face, font: p.font || "system-ui, sans-serif", weight: p.weight || "700", italic: !!p.italic, align: p.align || "center", h, color: rgba, glow: !!p.glow, obj: def.id, tag, outline: p.outline,
+          o: toWorld(local(a)), ax: sub(toWorld(local(add(a, [1, 0, 0]))), toWorld(local(a))), ay: sub(toWorld(local(add(a, [0, 1, 0]))), toWorld(local(a))), n: norm(sub(toWorld(local(add(a, [0, 0, 1]))), toWorld(local(a)))), pts: [toWorld(local(a))] });
+        return;
+      }
+      const pf = partFaces(p);
+      const cw = toWorld(local(pf.center));
       pf.faces.forEach((f) => {
         const pts = f.map((q) => toWorld(local(q)));
         let n = newell(pts);
         const fc = pts.reduce((a, b) => add(a, b), [0, 0, 0]).map((v) => v / pts.length);
-        if (dot(n, sub(fc, cw)) < 0) n = mul(n, -1);
-        out.push({ pts, n, color: rgba, glow: !!p.glow, glass: !!p.glass, obj: def.id });
+        if ((!p.poly || p.center) && dot(n, sub(fc, cw)) < 0) n = mul(n, -1);
+        out.push({ pts, n, color: rgba, glow: !!p.glow, glass: !!p.glass, two: !!p.two, obj: def.id, tag });
       });
     });
     return out;
@@ -548,6 +623,9 @@
         z: lerp(p.z, q.z, e),
         turn: lerpAngle(p.turn, q.turn, e),
         size: lerp(p.size || 1, q.size || 1, e),
+        sx: lerp(p.sx || 1, q.sx || 1, e),
+        sy: lerp(p.sy || 1, q.sy || 1, e),
+        sz: lerp(p.sz || 1, q.sz || 1, e),
         show: p.show !== false,
         pose: moving[o.id] && !/^sit/.test(p.pose || "") && !/^sit/.test(q.pose || "") && u < 0.999 ? "walk" : p.pose || "stand",
       };
@@ -574,9 +652,8 @@
     const o = objById(id);
     const p = o && place[o.id];
     if (!o || !p) return [0, 0.9, 0];
-    const k = KINDS[o.kind];
     const sitDrop = o.kind === "person" && /^sit/.test(p.pose || "") ? 0.4 : 0;
-    return [p.x, p.y + ((k.look || 0) - sitDrop) * (p.size || 1), p.z];
+    return [p.x, p.y + (lookOf(o) - sitDrop) * (p.size || 1) * (p.sy || 1), p.z];
   }
   /* Where the camera looks: its subject, slid by pan (Control-drag, or a double-click zoom). */
   function camTarget(st) {
@@ -639,6 +716,99 @@
     ctx.moveTo(s[0][0], s[0][1]);
     for (let k = 1; k < s.length; k++) ctx.lineTo(s[k][0], s[k][1]);
     ctx.closePath();
+  }
+
+  /* A pencil line in the world: thicker near, thinner far. Clicking near it picks its thing. */
+  function drawLine(ctx, C, P, look, opts) {
+    const f = P.f;
+    const fog = clamp((P.depth - 8) / 45, 0, 0.75);
+    const c = f.color.map((v, k) => clamp(Math.round(lerp(v, look.fog[k], fog)), 0, 255));
+    ctx.strokeStyle = `rgb(${c.join(",")})`;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    if (f.dash) ctx.setLineDash([6, 6]);
+    const s = P.s;
+    for (let k = 1; k < s.length; k++) {
+      const a = s[k - 1];
+      const b = s[k];
+      if (!a || !b) continue;
+      ctx.lineWidth = Math.max(1, (f.w * C.F) / Math.max(0.05, (a[2] + b[2]) / 2));
+      ctx.beginPath();
+      ctx.moveTo(a[0], a[1]);
+      ctx.lineTo(b[0], b[1]);
+      ctx.stroke();
+    }
+    if (s.length === 1 && s[0]) {
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.beginPath();
+      ctx.arc(s[0][0], s[0][1], Math.max(1, (f.w * C.F) / s[0][2] / 2), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.setLineDash([]);
+    if (opts.picks) {
+      /* a thin band around the line, so it can be clicked */
+      for (let k = 1; k < s.length; k++) {
+        const a = s[k - 1];
+        const b = s[k];
+        if (!a || !b) continue;
+        const dx = b[0] - a[0];
+        const dy = b[1] - a[1];
+        const l = Math.hypot(dx, dy) || 1;
+        const r = Math.max(5, ctx.lineWidth);
+        const nx = (-dy / l) * r;
+        const ny = (dx / l) * r;
+        opts.picks.push({ s: [[a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny], [b[0] - nx, b[1] - ny], [a[0] - nx, a[1] - ny]], obj: f.obj, tag: f.tag });
+      }
+    }
+  }
+  /* Words in the world: laid on a flat sign, so they shrink with distance and lean with the thing.
+     Seen from behind they are turned round so they still read left to right. */
+  function drawText3(ctx, C, P, look, opts, W) {
+    const f = P.f;
+    let ax = f.ax;
+    let ay = f.ay;
+    if (f.face) {
+      /* always turned to face the camera, like a label */
+      ax = mul(C.right, len(f.ax));
+      ay = mul(C.up, len(f.ay));
+    } else if (dot(f.n, sub(C.pos, f.o)) < 0) ax = mul(ax, -1);
+    const o = project(C, f.o);
+    const px = project(C, add(f.o, mul(ax, 0.01)));
+    const py = project(C, add(f.o, mul(ay, 0.01)));
+    if (!o || !px || !py) return;
+    const a = [(px[0] - o[0]) / 0.01, (px[1] - o[1]) / 0.01];
+    const b = [(py[0] - o[0]) / 0.01, (py[1] - o[1]) / 0.01];
+    if (Math.abs(a[0] * b[1] - a[1] * b[0]) < 1e-6) return;
+    const fog = clamp((P.depth - 8) / 45, 0, 0.75);
+    const c = f.color.map((v, k) => clamp(Math.round(lerp(v, look.fog[k], fog)), 0, 255));
+    const PX = 100; /* draw the letters 100 px tall, then map to h metres */
+    const k = f.h / PX;
+    ctx.save();
+    /* text space: x right along ax, y down (minus ay) */
+    ctx.setTransform(a[0] * k, a[1] * k, -b[0] * k, -b[1] * k, o[0], o[1]);
+    ctx.font = `${f.italic ? "italic " : ""}${f.weight} ${PX}px ${f.font}`;
+    ctx.textAlign = f.align;
+    ctx.textBaseline = "alphabetic";
+    const lines = f.text.split("\n");
+    const w = Math.max(...lines.map((l) => ctx.measureText(l).width), 1);
+    lines.forEach((l, i) => {
+      const y = (i - lines.length + 1) * PX * 1.15;
+      if (f.outline) {
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = f.outline;
+        ctx.lineJoin = "round";
+        ctx.strokeText(l, 0, y);
+      }
+      ctx.fillStyle = `rgb(${c.join(",")})`;
+      ctx.fillText(l, 0, y);
+    });
+    ctx.restore();
+    if (opts.picks) {
+      const x0 = f.align === "center" ? -w / 2 : f.align === "right" || f.align === "end" ? -w : 0;
+      const top = -(lines.length - 1) * PX * 1.15 - PX * 0.85;
+      const map = (x, y) => [o[0] + a[0] * k * x - b[0] * k * y, o[1] + a[1] * k * x - b[1] * k * y];
+      opts.picks.push({ s: [map(x0, top), map(x0 + w, top), map(x0 + w, PX * 0.25), map(x0, PX * 0.25)], obj: f.obj, tag: f.tag });
+    }
   }
 
   /* Draws the frame at time t (or a panel's first moment) into a 2D context of W x H.
@@ -730,8 +900,8 @@
     /* soft shadows under things */
     film.objects.forEach((o) => {
       const p = st.place[o.id];
-      if (!p || !p.show || p.y > 0.3 || o.kind === "building") return;
-      const r = (KINDS[o.kind].ring || 0.5) * (p.size || 1) * 0.85;
+      if (!p || !p.show || p.y > 0.3 || o.kind === "building" || o.noShadow) return;
+      const r = ringOf(o) * (p.size || 1) * Math.max(p.sx || 1, p.sz || 1) * 0.85;
       ctx.beginPath();
       let ok = true;
       for (let k = 0; k <= 16; k++) {
@@ -752,7 +922,7 @@
       const p = st.place[opts.sel];
       const o = objById(opts.sel);
       if (p && o) {
-        const r = (KINDS[o.kind].ring || 0.5) * (p.size || 1);
+        const r = ringOf(o) * (p.size || 1) * Math.max(p.sx || 1, p.sz || 1);
         ctx.beginPath();
         let ok = true;
         for (let k = 0; k <= 32; k++) {
@@ -779,8 +949,24 @@
       const p = st.place[o.id];
       if (!p || !p.show) return;
       thingFaces(o, p, st.phase).forEach((f) => {
+        if (f.line) {
+          const s = f.pts.map((q) => project(C, q));
+          const ok = s.filter(Boolean);
+          if (!ok.length) return;
+          polys.push({ s, depth: ok.reduce((a, q) => a + q[2], 0) / ok.length, f });
+          return;
+        }
+        if (f.text) {
+          const s0 = project(C, f.o);
+          if (!s0) return;
+          polys.push({ s: [s0], depth: s0[2], f });
+          return;
+        }
         const fc = f.pts.reduce((a, b) => add(a, b), [0, 0, 0]).map((v) => v / f.pts.length);
-        if (dot(f.n, sub(C.pos, fc)) <= 0) return;
+        if (dot(f.n, sub(C.pos, fc)) <= 0) {
+          if (!f.two) return;
+          f = Object.assign({}, f, { n: mul(f.n, -1) });
+        }
         const big = nsub > 1 && Math.max(len(sub(f.pts[0], f.pts[2])), len(sub(f.pts[1], f.pts[f.pts.length - 1]))) > 0.6;
         subdivide(f.pts, big ? nsub : 1).forEach((pp) => {
           const s = pp.map((q) => project(C, q));
@@ -793,6 +979,8 @@
     polys.sort((a, b) => b.depth - a.depth);
     const lw = Math.max(0.6, W / 1100);
     polys.forEach((P) => {
+      if (P.f.line) return drawLine(ctx, C, P, look, opts);
+      if (P.f.text) return drawText3(ctx, C, P, look, opts, W);
       const col = shadeColor(P.f, L, look, P.depth);
       ctx.fillStyle = col;
       polyPath(ctx, P.s);
@@ -802,7 +990,7 @@
       ctx.strokeStyle = P.f.glow ? col : "rgba(10,10,14,0.55)";
       ctx.lineWidth = lw;
       ctx.stroke();
-      if (opts.picks) opts.picks.push({ s: P.s, obj: P.f.obj });
+      if (opts.picks) opts.picks.push({ s: P.s, obj: P.f.obj, tag: P.f.tag, n: P.f.n, pts: P.f.pts });
     });
     /* rain */
     if (st.panel.rain !== "none") {
@@ -893,7 +1081,7 @@
       let head = null;
       if (who && who.show) {
         const o = objById(wd.who);
-        const mouth = o && o.kind === "person" ? (/^sit/.test(who.pose || "") ? 1.14 : 1.54) * (who.size || 1) : KINDS[o ? o.kind : "box"].look;
+        const mouth = o && o.kind === "person" ? (/^sit/.test(who.pose || "") ? 1.14 : 1.54) * (who.size || 1) : (o ? lookOf(o) : KINDS.box.look);
         head = project(C, [who.x, who.y + mouth, who.z]);
         if (head && (head[0] < 0 || head[0] > W || head[1] < 0 || head[1] > H)) head = null;
       }
@@ -1233,7 +1421,7 @@
           <nav class="cv-tabs">
             <button type="button" data-tab="move">Move it</button>
             <button type="button" data-tab="camera">Camera &amp; lens</button>
-            <button type="button" data-tab="words">Words</button>
+            <button type="button" data-tab="words">Words</button>${HOOK.tabs.map((t) => `<button type="button" data-tab="${t.id}">${t.label}</button>`).join("")}
           </nav>
           <div class="cv-body"></div>
         </aside>
@@ -1300,6 +1488,7 @@
       w.canvas.addEventListener("wheel", on(onWheel), { passive: false });
       w.canvas.addEventListener("dblclick", on((e) => {
         if (wins[i] !== "mine") return;
+        if (HOOK.tool && HOOK.tool.dbl && HOOK.tool.dbl(e)) return;
         zoomAt(e, e.shiftKey || e.altKey ? 2 : 0.5);
       }));
       w.canvas.addEventListener("contextmenu", (e) => wins[i] === "mine" && e.preventDefault());
@@ -1462,6 +1651,7 @@
         const len = total();
         const s = stateAt(mine ? T : T % Math.max(0.001, len));
         const C = drawFrame(w.ctx, w.canvas.width, w.canvas.height, s, { sel: mine && !playing ? film.sel : null, picks: w.picks, top: (36 * w.canvas.width) / Math.max(1, w.el.clientWidth || w.canvas.width) });
+        if (mine && !playing) HOOK.over.forEach((fn) => fn(w.ctx, C, s));
         if (mine && !mineC) mineC = C;
         if (mine && !st) st = s;
         w.hud.textContent = (mine ? "" : "Inspiration · ") + `Panel ${s.i + 1} of ${film.panels.length} · ` + camLine(s.cam);
@@ -1503,6 +1693,7 @@
         })
         .join("") +
       `<h3>Add a shape</h3><div class="cv-addrow">${ADDABLE.map((k) => `<button type="button" data-addkind="${k}">+ ${KINDS[k].label}</button>`).join("")}</div>`;
+    HOOK.things.forEach((fn) => fn(box));
   }
 
   function rng(k, label, min, max, stepv, val, say, ends) {
@@ -1514,7 +1705,10 @@
     const p = film.panels[cur];
     if (tab === "move") body.innerHTML = moveHtml(p);
     else if (tab === "camera") body.innerHTML = cameraHtml(p);
-    else body.innerHTML = wordsHtml(p);
+    else if (HOOK.tabs.some((t) => t.id === tab)) {
+      body.innerHTML = "";
+      HOOK.tabs.find((t) => t.id === tab).render(body);
+    } else body.innerHTML = wordsHtml(p);
     if (tab === "camera") drawMap();
   }
   function moveHtml(p) {
@@ -1653,7 +1847,7 @@
     film.objects.forEach((o) => {
       const p = st.place[o.id];
       if (!p || !p.show) return;
-      const r = Math.max(3, (KINDS[o.kind].ring || 0.4) * (p.size || 1) * sc * (o.kind === "building" ? 0.8 : 0.5));
+      const r = Math.max(3, (ringOf(o) || 0.4) * (p.size || 1) * sc * (o.kind === "building" ? 0.8 : 0.5));
       c.fillStyle = o.color;
       c.globalAlpha = o.id === film.sel ? 1 : 0.75;
       c.beginPath();
@@ -2289,6 +2483,11 @@
     if (e.button > 2) return;
     if (wins[activeWin] !== "mine") return;
     if (playing) setPlaying(false);
+    if (HOOK.tool && HOOK.tool.down && HOOK.tool.down(e)) {
+      drag = { kind: "tool" };
+      canvas.setPointerCapture(e.pointerId);
+      return;
+    }
     if (e.ctrlKey || e.metaKey || e.button === 1 || e.button === 2) {
       /* Control-drag (or right-drag, or middle-drag): slide yourself around the world */
       e.preventDefault();
@@ -2316,7 +2515,9 @@
     draw();
   }
   function onMove(e) {
+    if (HOOK.tool && HOOK.tool.hover && (!drag || drag.kind === "tool")) HOOK.tool.hover(e, !!drag);
     if (!drag) return;
+    if (drag.kind === "tool") return HOOK.tool && HOOK.tool.move && HOOK.tool.move(e);
     const pt = canvasPoint(e);
     const dx = pt[0] - drag.last[0];
     const dy = pt[1] - drag.last[1];
@@ -2374,8 +2575,13 @@
     }
     changed(false);
   }
-  function onUp() {
+  function onUp(e) {
     if (!drag) return;
+    if (drag.kind === "tool") {
+      drag = null;
+      if (HOOK.tool && HOOK.tool.up) HOOK.tool.up(e);
+      return;
+    }
     drag = null;
     canvas.classList.remove("dragging");
     drawDetails();
@@ -2405,6 +2611,7 @@
       e.preventDefault();
       return e.shiftKey ? restore(redo, undo) : restore(undo, redo);
     }
+    if (!typing && HOOK.keys.some((fn) => fn(e))) return;
     if (typing || mod || e.altKey) return;
     const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] };
     if (arrows[e.key] && film.sel) {
@@ -2525,5 +2732,62 @@
     words: { shot: shotWords, lens: lensWords, height: heightWords },
     undo: () => restore(undo, redo),
     key: KEY,
+    /* ---- for add-ons (viewer/build.js) ---- */
+    makers: MAKERS,
+    kinds: KINDS,
+    addTab: (t) => {
+      if (!HOOK.tabs.some((x) => x.id === t.id)) HOOK.tabs.push(t);
+      if (root) {
+        const nav = root.querySelector(".cv-tabs");
+        if (nav && !nav.querySelector(`[data-tab="${t.id}"]`)) nav.insertAdjacentHTML("beforeend", `<button type="button" data-tab="${t.id}">${t.label}</button>`);
+      }
+    },
+    setTool: (tool) => {
+      HOOK.tool = tool || null;
+      W_EL.forEach((w) => w.canvas.classList.toggle("cv-tooling", !!tool));
+    },
+    onOverlay: (fn) => HOOK.over.push(fn),
+    onThings: (fn) => HOOK.things.push(fn),
+    onKey: (fn) => HOOK.keys.push(fn),
+    /* the live film and helpers; change the film, then call changed() */
+    live: () => ({
+      film,
+      cur,
+      panel: film.panels[cur],
+      C: lastC,
+      canvas,
+      picks,
+      tab,
+      state: stateAt(T),
+    }),
+    showTab: (id) => {
+      tab = id;
+      if (root) drawDetails();
+    },
+    edit: (tag) => {
+      atPanelStart();
+      remember(tag || "edit");
+    },
+    changed: (full) => {
+      thumbsDirty = true;
+      changed(full);
+    },
+    redraw: () => draw(),
+    canvasPoint: (e) => canvasPoint(e),
+    pickAt: (e) => {
+      const pt = canvasPoint(e);
+      for (let i = picks.length - 1; i >= 0; i--) if (inside(pt, picks[i].s)) return picks[i];
+      return null;
+    },
+    ray: (e) => {
+      const C = lastC;
+      if (!C) return null;
+      const pt = canvasPoint(e);
+      return { from: C.pos, dir: unproject(C, pt[0], pt[1]), C };
+    },
+    projectNow: (p) => (lastC ? project(lastC, p) : null),
+    floorDirs: () => floorDirs(),
+    faces: (o, place) => thingFaces(o, place, 0),
+    tool: () => HOOK.tool,
   };
 })();
