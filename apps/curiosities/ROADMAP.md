@@ -45,7 +45,7 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
 Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 652 curiosities, 438 suites,
-998 proximities, 193 proximity suites and 14,976 sliders, across 32 workspaces, plus 48 model scenes.
+998 proximities, 193 proximity suites and 14,976 sliders, across 32 workspaces, plus 56 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -107,6 +107,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 652
 - [x] Eight practice scenes, one per director style (a diner talk that snaps, a pastel hotel counting spoons, ice cracking behind two people, a wrong obituary, a window washer in the wind, a last supper at home, a taxi in neon rain, a giant pumpkin show) in data/db-model-scenes-4.js
 - [x] Eight practice scenes, one per comedy style (a launderette showdown, a council that cancels Tuesday, a 3 a.m. sandwich cut to the beat, friends on a shed roof, a funeral will swap, a balloon seller in love, a manager's own birthday, a war of compliments at a garden wedding) in data/db-model-scenes-5.js
 - [x] Eight practice scenes for the director styles not yet practiced (a walk to the bike pound, a whale rising from the fog, a basement dryer jump scare, tangled dog leads, a cake contest heist, the last day of the town pool, a bus depot song at dawn, the electric meter running out) in data/db-model-scenes-6.js
+- [x] Two practice scenes each for the last four comedy styles (deadpan pauses, rapid wit, a gag a second, one wild night): a ferry cafe's last crossing, a tuba at lost property, rival pitches in a stuck lift, a fixed radio quiz, a pedal-boat submarine, a hedge courtroom, a lost concert wristband, a parrot chase at a party. Every style now has a scene (data/db-model-scenes-7.js)
 - [x] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, emotional road, comedy and comedy from the mix (grouping in PR #4; every model scene now has values through every lens, tested)
 - [x] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours ("Make it an analogy" on every Prism row, PR #4)
 - [x] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film ("Borrow this film's emotional road", PR #4)
