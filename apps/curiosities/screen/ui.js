@@ -755,7 +755,8 @@ document.addEventListener("click", function (e) {
        value(rowId, trackId, cur)  what plays there      trackOf(cur)  the track it is on now, or null
        trackFor(cur)  the track it would go on            locked(laneKey)  true when the lane is locked
        fix(cur, v)  v snapped to the curiosity's scale     start(cur)  where its scale starts
-       known(cur)  true when the engine knows it           limit  how many curiosities a track holds */
+       known(cur)  true when the engine knows it           limit  how many curiosities a track holds
+       perTrack  true: a curiosity on several tracks pastes each track's own setting (copy keeps them in byTrack) */
   const LOOK = (() => {
     const same = (h, cur, a, b) => a != null && b != null && String(h.fix(cur, a)) === String(h.fix(cur, b));
     /* -> { from, row, values: { cur: setting } } or { error } */
@@ -774,7 +775,20 @@ document.addEventListener("click", function (e) {
       );
       const n = Object.keys(values).length;
       if (!n) return { error: `Moment ${j + 1} has no settings to copy yet.` };
-      return { from: j, row: r.id, values, count: n };
+      /* A curiosity on several tracks (one per character) keeps each track's own setting too, by lane key, so
+         pasting gives every track back its own; values keeps the one Details shows. */
+      const byTrack = {};
+      Object.keys(values).forEach((cur) => {
+        const on = st.tracks.filter((t) => t.curiosities.includes(cur));
+        if (on.length < 2) return;
+        on.forEach((t) => {
+          const v = h.fix(cur, h.value(r.id, t.id, cur));
+          if (v != null) byTrack[t.id + "|" + cur] = v;
+        });
+      });
+      const out = { from: j, row: r.id, values, count: n };
+      if (Object.keys(byTrack).length) out.byTrack = byTrack;
+      return out;
     }
     /* The look onto moments a to b (a === b: one moment). One moment gets a node per setting that differs. A stretch
        gets, per lane that does not already play the setting all the way through, a node at its first and its last
@@ -794,21 +808,37 @@ document.addEventListener("click", function (e) {
       };
       const sets = [];
       const removes = [];
+      /* With h.perTrack, each track gets its own setting back where the look kept one (byTrack) and the track still
+         carries the curiosity; such a curiosity counts once, changed when any of its lanes changed. */
+      const tracksNow = (cur) => st.tracks.filter((t) => t.curiosities.includes(cur)).map((t) => t.id);
       Object.keys(look.values).forEach((cur) => {
         if (!h.known(cur)) return;
-        const v = h.fix(cur, look.values[cur]);
-        if (v == null) return;
-        let track = h.trackOf(cur);
+        const own = look.byTrack && h.perTrack ? tracksNow(cur).filter((t) => look.byTrack[t + "|" + cur] != null) : [];
+        if (own.length > 1) {
+          const rs = own.map((t) => one(cur, look.byTrack[t + "|" + cur], t));
+          if (rs.includes("changed")) out.changed.push(cur);
+          if (rs.includes("locked")) out.locked.push(cur);
+          if (!rs.includes("changed") && !rs.includes("locked") && rs.includes("matched")) out.matched.push(cur);
+          return;
+        }
+        const r = one(cur, look.values[cur], null);
+        if (r && out[r]) out[r].push(cur);
+      });
+      /* One lane: "changed", "matched", "locked", "full" or "" (nothing to write). */
+      function one(cur, value, onTrack) {
+        const v = h.fix(cur, value);
+        if (v == null) return "";
+        let track = onTrack || h.trackOf(cur);
         const on = !!track;
         const plays = (j) => (on ? h.value(st.rows[j].id, track, cur) : h.start(cur));
         let all = true;
         for (let j = from; j <= to && all; j++) all = same(h, cur, plays(j), v);
-        if (all) return out.matched.push(cur);
+        if (all) return "matched";
         if (!on) {
           track = h.trackFor(cur);
-          if (!track || !roomOn(track)) return out.full.push(cur);
+          if (!track || !roomOn(track)) return "full";
         }
-        if (h.locked(track + "|" + cur)) return out.locked.push(cur);
+        if (h.locked(track + "|" + cur)) return "locked";
         if (!on) {
           adds[track] = (adds[track] || 0) + 1;
           out.cmds.push({ type: "addCuriosity", track, curiosity: cur });
@@ -818,8 +848,8 @@ document.addEventListener("click", function (e) {
         if (to > from) sets.push({ type: "setPoint", row: st.rows[to].id, track, curiosity: cur, value: v });
         const lane = on ? st.lanes[track + "|" + cur] : null;
         if (lane) for (let j = from + 1; j < to; j++) if (lane.points[st.rows[j].id] != null) removes.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: cur });
-        out.changed.push(cur);
-      });
+        return "changed";
+      }
       /* Sets before removes, so a lane never empties on the way. */
       out.cmds = out.cmds.concat(sets, removes);
       return out;
@@ -834,7 +864,16 @@ document.addEventListener("click", function (e) {
       });
       const n = Object.keys(values).length;
       if (!n) return null;
-      return { from: Math.max(0, Math.floor(Number(x.from)) || 0), row: typeof x.row === "string" ? x.row : "", values, count: n };
+      const out = { from: Math.max(0, Math.floor(Number(x.from)) || 0), row: typeof x.row === "string" ? x.row : "", values, count: n };
+      if (x.byTrack && typeof x.byTrack === "object" && !Array.isArray(x.byTrack)) {
+        const byTrack = {};
+        Object.keys(x.byTrack).forEach((k) => {
+          const v = x.byTrack[k];
+          if (/^[^|]+\|[^|]+$/.test(k) && k.split("|")[1] in values && (typeof v === "string" || (typeof v === "number" && isFinite(v)) || typeof v === "boolean")) byTrack[k] = v;
+        });
+        if (Object.keys(byTrack).length) out.byTrack = byTrack;
+      }
+      return out;
     }
     return { copy, paste, clean };
   })();
@@ -3877,6 +3916,7 @@ document.addEventListener("click", function (e) {
       start: (cur) => S().start(cur),
       known: (cur) => S().known(cur),
       limit: E().LIMIT && E().LIMIT.perTrack,
+      perTrack: true,
     };
   }
   const nSettings = (k) => `${k} ${k === 1 ? "setting" : "settings"}`;
@@ -4333,7 +4373,7 @@ document.addEventListener("click", function (e) {
           return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
         },
         title: "My film",
-        sub: "Moment " + (row + 1) + ": every change becomes a node here",
+        sub: "Moment " + (row + 1) + ": every change becomes a node here" + onTrackNote(st),
       };
     }
     const sel = selection();
@@ -4445,11 +4485,22 @@ document.addEventListener("click", function (e) {
       seen.add(cur);
       out.push(Object.assign({ cur, track: null, label: labelOf(cur) }, extra || {}));
     };
+    /* Two or more tracks carrying the same curiosity (one per character, say) each get their own row, named by
+       the track ("Eyelines · Character B"), with its own Off, Solo and Lock. One track: one row, as always. */
+    const perTrack = (list) => {
+      const rows = [];
+      list.forEach((ln) => {
+        const on = st.tracks.filter((t) => t.curiosities.includes(ln.cur));
+        if (on.length < 2) return rows.push(ln);
+        on.forEach((t) => rows.push(Object.assign({}, ln, { track: t.id, trackLabel: t.label || t.id, label: ln.label + " · " + (t.label || t.id) })));
+      });
+      return rows;
+    };
     if (prefs.view === "screen") {
       /* What you are looking through, then the tracks you put on with a card's + . */
       sel.curiosities.forEach((c) => add(c));
       prefs.lanes.forEach((c) => add(c));
-      return out;
+      return perTrack(out);
     }
     /* Arrange: every automated curiosity, the ones you added, then the potential ones. */
     sel.curiosities.forEach((c) => add(c));
@@ -4465,16 +4516,63 @@ document.addEventListener("click", function (e) {
           });
       });
     }
-    if (prefs.showAll) L().CATEGORIES.forEach((cat) => prefs.openCats[cat.id] && mainOnly(L().curiosities(cat.id)).forEach((c) => add(c.id, { group: cat.label })));
-    return out;
+    /* Potential lanes: each main curiosity of an open category, with its graded lanes (eyeline.speaking...) right
+       after it; a curiosity whose bare lane is only off or on shows its graded lane in its place. */
+    if (prefs.showAll)
+      L().CATEGORIES.forEach(
+        (cat) =>
+          prefs.openCats[cat.id] &&
+          mainOnly(L().curiosities(cat.id)).forEach((c) => {
+            const g = partsOf(c.id);
+            if (!g.bareSecond) add(c.id, { group: cat.label });
+            g.parts.forEach((p) => add(p.key, { group: cat.label }));
+          })
+      );
+    return perTrack(out);
+  }
+  /* The graded lanes the pickers offer for a curiosity (CurioLanes.laneParts), or none when lanes.js is older. */
+  function partsOf(id) {
+    const CL = window.CurioLanes;
+    return CL && CL.laneParts ? CL.laneParts(id) : { parts: [], bareSecond: false };
+  }
+  /* Every curiosity as <option>s by category, for Add a curiosity track and each track's dropdown. A curiosity's
+     graded lanes follow it, indented ("↳ Eyelines: speaking now"); when its bare lane is only off or on, its
+     graded lane takes its name and place, and the bare lane comes last, marked as the bare lane. Built once per
+     timeline draw; each track's dropdown marks its own curiosity as selected. */
+  var laneOptsMemo = null;
+  function laneOptions() {
+    if (laneOptsMemo) return laneOptsMemo;
+    const opt = (v, text, title) => `<option value="${esc(v)}"${title ? ` title="${esc(title)}"` : ""}>${esc(text)}</option>`;
+    const sub = (t) => "  ↳ " + t;
+    laneOptsMemo = L()
+      .CATEGORIES.map((c) => {
+        const items = L()
+          .curiosities(c.id)
+          .map((x) => {
+            const g = partsOf(x.id);
+            if (!g.parts.length) return opt(keyFor(x.id), x.label);
+            const main = g.parts.find((p) => p.main);
+            const name = (p) => (p.main ? p.label : S() && S().known(p.key) ? labelOf(p.key) : p.label);
+            const each = (p) => (p.track === "character" ? " One lane for each character." : "");
+            const head = g.bareSecond ? opt(main.key, x.label, `${x.label}, graded (${main.key}).${each(main)}`) : opt(keyFor(x.id), x.label);
+            const rest = g.parts.filter((p) => !(g.bareSecond && p === main)).map((p) => opt(p.key, sub(name(p)), `${name(p)} (${p.key}): a graded lane of ${x.label}.${each(p)}`));
+            const bare = g.bareSecond ? opt(x.id, sub(x.label + " (bare lane)"), `The bare ${x.label} lane (${x.id}), kept for older films. The graded ${x.label} lane above is the one other tools read.`) : "";
+            return head + rest.join("") + bare;
+          })
+          .join("");
+        return `<optgroup label="${esc(c.label)}">${items}</optgroup>`;
+      })
+      .join("");
+    return laneOptsMemo;
   }
   function laneHeader(ln, i) {
     const cat = L().categoryOf(ln.cur);
-    const opts = L()
-      .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(keyFor(x.id))}"${keyFor(x.id) === ln.cur ? " selected" : ""}>${esc(x.label)}</option>`).join("")}</optgroup>`)
-      .join("");
-    const known = L().get("curiosity", L().base(ln.cur)) && keyFor(L().base(ln.cur)) === ln.cur;
-    return `<select class="sl-pick" data-lane-cur="${esc(ln.cur)}" aria-label="Curiosity on this track" title="${esc(((L().CATEGORIES.find((c) => c.id === cat) || {}).label || "") + (ln.group ? " · " + ln.group : ""))}: change which curiosity this track is">${known ? "" : `<option selected>${esc(labelOf(ln.cur))}</option>`}${opts}</select>`;
+    const all = laneOptions();
+    const mine = `value="${esc(ln.cur)}"`;
+    const has = all.indexOf(mine + ">") >= 0 || all.indexOf(mine + " ") >= 0;
+    const opts = has ? all.replace(new RegExp(mine.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?=[ >])"), mine + " selected") : all;
+    const tr = ln.trackLabel && ln.track ? ` data-lane-track="${esc(ln.track)}"` : "";
+    return `<select class="sl-pick" data-lane-cur="${esc(ln.cur)}"${tr} aria-label="Curiosity on this track${ln.trackLabel ? " (" + esc(ln.trackLabel) + ")" : ""}" title="${esc(((L().CATEGORIES.find((c) => c.id === cat) || {}).label || "") + (ln.group ? " · " + ln.group : "") + (ln.trackLabel ? " · " + ln.trackLabel : ""))}: change which curiosity this track is">${has ? "" : `<option selected>${esc(labelOf(ln.cur))}</option>`}${opts}</select>`;
   }
   function clipRows() {
     const rows = [];
@@ -4498,14 +4596,14 @@ document.addEventListener("click", function (e) {
       return;
     }
     const sel = selection();
+    laneOptsMemo = null; /* the database may have grown graded lanes since the last draw */
     const potential =
       prefs.view === "arrange"
         ? `<div class="sc-potential">
           <button type="button" data-act="show-all" class="${prefs.showAll ? "on" : ""}" aria-pressed="${prefs.showAll}">Show all potential curiosities</button>
           <button type="button" data-act="show-suites" class="${prefs.showSuites ? "on" : ""}" aria-pressed="${prefs.showSuites}">Show all potential curiosity suites</button>
           <select data-add-lane aria-label="Add a curiosity track"><option value="">+ Add a curiosity track</option>${L()
-            .CATEGORIES.map((c) => `<optgroup label="${esc(c.label)}">${L().curiosities(c.id).map((x) => `<option value="${esc(keyFor(x.id))}">${esc(x.label)}</option>`).join("")}</optgroup>`)
-            .join("")}</select>
+            .CATEGORIES.length ? laneOptions() : ""}</select>
           ${prefs.showAll ? `<div class="sc-chips">${L().CATEGORIES.map((c) => `<button type="button" data-open-cat="${c.id}" class="${prefs.openCats[c.id] ? "on" : ""}">${esc(c.label)} <small>${mainOnly(L().curiosities(c.id)).length}</small></button>`).join("")}</div>` : ""}
           ${prefs.showSuites ? `<div class="sc-chips">${L().CATEGORIES.map((c) => { const list = L().items("suite", c.id); return list.length ? `<details${list.some((s) => prefs.openSuites[s.id]) ? " open" : ""}><summary>${esc(c.label)} <small>${list.length} suites</small></summary>${list.map((s) => `<button type="button" data-open-suite="${esc(s.id)}" class="${prefs.openSuites[s.id] ? "on" : ""}" title="${esc(s.plain || "")}">${esc(s.label)}</button>`).join("")}</details>` : ""; }).join("")}</div>` : ""}
         </div>`
@@ -4536,8 +4634,12 @@ document.addEventListener("click", function (e) {
         ripple: (kind) => ripple(kind),
         undo: (dir) => undoAll(dir),
         canUndo: (dir) => { const St = window.CurioStore; return St && typeof St.external === "function" ? (dir === "redo" ? St.canRedo() : St.canUndo()) : !!(E() && (dir === "redo" ? E().canRedo() : E().canUndo())); },
-        onSelect: (cur) => {
-          if (prefs.sel.level === "curiosity" && prefs.sel.id === cur) return;
+        onSelect: (cur, track) => {
+          /* A row of one track (two tracks carry this curiosity): Details now reads and writes that track's lane. */
+          const before = pickedTrack ? pickedTrack.cur + "|" + pickedTrack.track : "";
+          pickedTrack = track ? { cur, track } : null;
+          const moved = before !== (pickedTrack ? cur + "|" + track : "");
+          if (prefs.sel.level === "curiosity" && prefs.sel.id === cur) return moved ? drawInspector() : undefined;
           if (prefs.view === "screen" && prefs.sel.level !== "curiosity") return;
           prefs.sel = { level: "curiosity", id: cur };
           save();
@@ -4565,10 +4667,27 @@ document.addEventListener("click", function (e) {
     toast.t = setTimeout(() => (t.textContent = ""), 5000);
   }
   /* The track a curiosity is read from and written to: the first one with it, except the character matrix's
-     curiosities, which every character has on their own track (the one picked in the Character tab). */
+     curiosities, which every character has on their own track (the one picked in the Character tab). When several
+     tracks carry another curiosity, it is the track whose row was last picked on the timeline, else the character
+     picked in the Character tab if that character carries it, else the first. */
+  var pickedTrack = null; /* { cur, track }: the row picked on the timeline */
+  /* Details' header says which track it edits when the picked curiosity is on several: " · Eyelines on Character B". */
+  function onTrackNote(st) {
+    if (!st || !prefs.sel || prefs.sel.level !== "curiosity") return "";
+    const id = keyFor(prefs.sel.id);
+    if (st.tracks.filter((t) => t.curiosities.includes(id)).length < 2) return "";
+    const t = trackHas(id, st);
+    return t ? ` · ${labelOf(id)} on ${t.label || t.id}` : "";
+  }
   function trackHas(id, st) {
     if (window.CharacterScreen && window.CharacterScreen.claims(id)) return window.CharacterScreen.trackHas(id, st);
-    return st.tracks.find((t) => t.curiosities.includes(id));
+    const on = st.tracks.filter((t) => t.curiosities.includes(id));
+    if (on.length < 2) return on[0];
+    const row = pickedTrack && pickedTrack.cur === id ? on.find((t) => t.id === pickedTrack.track) : null;
+    if (row) return row;
+    const CS = window.CharacterScreen;
+    const ch = CS && CS.track ? CS.track(st) : null;
+    return on.find((t) => t.kind === "character" && t.id === ch) || on[0];
   }
   function setValue(id, v) {
     return setValues([[id, v]]);
@@ -4605,7 +4724,7 @@ document.addEventListener("click", function (e) {
     const st = E() && E().state();
     const r = st && st.rows[row];
     if (!r) return undefined;
-    const t = st.tracks.find((x) => x.curiosities.includes(id));
+    const t = trackHas(id, st);
     return t ? E().value(r.id, t.id, id) : S() ? S().start(id) : undefined;
   }
   /* Maya's channel box colors a channel by its keys; here: a key at this moment, a lane with keys elsewhere, or none. */
@@ -4613,7 +4732,7 @@ document.addEventListener("click", function (e) {
     const st = E() && E().state();
     const r = st && st.rows[row];
     if (!r) return "";
-    const t = st.tracks.find((x) => x.curiosities.includes(id));
+    const t = trackHas(id, st);
     const lane = t && st.lanes[t.id + "|" + id];
     if (!lane) return "";
     return lane.points[r.id] != null ? "here" : "lane";
@@ -4726,7 +4845,7 @@ document.addEventListener("click", function (e) {
       const st = E() && E().state();
       const r = st && st.rows[row];
       if (!r) return;
-      const t = st.tracks.find((x) => x.curiosities.includes(d.key));
+      const t = trackHas(d.key, st);
       if (keyState(d.key) === "here") E().send({ type: "removePoint", row: r.id, track: t.id, curiosity: d.key, label: `Take the key off ${labelOf(d.key)}` });
       else {
         showLane(d.key);
@@ -4944,9 +5063,10 @@ document.addEventListener("click", function (e) {
     if ("addLane" in d && t.value) {
       if (!prefs.lanes.includes(t.value)) prefs.lanes.push(t.value);
       save();
+      eachCharacter(t.value);
       return drawTimeline();
     }
-    if (d.laneCur) return swapLane(d.laneCur, t.value);
+    if (d.laneCur) return swapLane(d.laneCur, t.value, d.laneTrack || null);
     if (d.set && t.tagName === "SELECT") return t.value && setValue(d.set, t.value);
     if (d.set) return setValue(d.set, Number(t.value));
     if (d.stepSet) {
@@ -4982,15 +5102,32 @@ document.addEventListener("click", function (e) {
   }
   /* A track's dropdown changes which curiosity it is: its nodes move to the new curiosity, each kept at the
      same place on its scale (low stays low), as one undo step. */
-  function swapLane(oldCur, newCur) {
+  /* A graded lane that every character has on their own track (eyeline.speaking, blocking.seated...): adding it
+     puts it on each character track that has room, as one undo step, so each character gets their own row. */
+  function eachCharacter(key) {
+    const CL = window.CurioLanes;
+    if (!E() || !CL || !CL.partTrack || CL.partTrack(key) !== "character") return null;
+    const st = E().state();
+    const cmds = st.tracks.filter((t) => t.kind === "character" && !t.curiosities.includes(key) && t.curiosities.length < E().LIMIT.perTrack).map((t) => ({ type: "addCuriosity", track: t.id, curiosity: key }));
+    if (!cmds.length) return null;
+    const r = E().send({ type: "batch", label: `Add a lane for each character: ${labelOf(key)}`, commands: cmds });
+    if (!r.ok) toast(r.error);
+    else toast(`${labelOf(key)}: one lane for each character (${cmds.length}).`);
+    return r;
+  }
+  /* A track's dropdown changes which curiosity it is. On a row of one track (several tracks carry the curiosity),
+     only that track's lane changes. */
+  function swapLane(oldCur, newCur, onTrack) {
     if (!newCur || oldCur === newCur) return;
     const Eng = E();
     const st = Eng.state();
     const cmds = [];
-    const t = st.tracks.find((x) => x.curiosities.includes(oldCur));
+    const t = (onTrack && st.tracks.find((x) => x.id === onTrack && x.curiosities.includes(oldCur))) || st.tracks.find((x) => x.curiosities.includes(oldCur));
     const lane = t && st.lanes[t.id + "|" + oldCur];
     if (lane) {
-      let track = (st.tracks.find((x) => x.curiosities.includes(newCur)) || {}).id;
+      const same = onTrack && t.id === onTrack && (t.curiosities.includes(newCur) || t.curiosities.length < Eng.LIMIT.perTrack) ? t.id : null;
+      let track = same || (st.tracks.find((x) => x.curiosities.includes(newCur)) || {}).id;
+      if (same && !t.curiosities.includes(newCur)) cmds.push({ type: "addCuriosity", track, curiosity: newCur });
       if (!track) {
         track = window.CurioLanes.trackFor(newCur, st);
         if (!track) return toast("Every track is full.");
@@ -5003,12 +5140,14 @@ document.addEventListener("click", function (e) {
       });
       cmds.push({ type: "clearLane", track: t.id, curiosity: oldCur });
     }
-    prefs.lanes = prefs.lanes.filter((c) => c !== oldCur);
+    /* The other tracks' rows of the old curiosity stay when only one track's row changed. */
+    const others = onTrack && st.tracks.some((x) => x.id !== onTrack && x.curiosities.includes(oldCur));
+    if (!others) prefs.lanes = prefs.lanes.filter((c) => c !== oldCur);
     if (!prefs.lanes.includes(newCur)) prefs.lanes.push(newCur);
     if (prefs.sel.level === "curiosity" && prefs.sel.id === oldCur) prefs.sel.id = newCur;
     save();
     if (cmds.length) {
-      const r = Eng.send({ type: "batch", label: `Track ${labelOf(oldCur)} becomes ${labelOf(newCur)}`, commands: cmds });
+      const r = Eng.send({ type: "batch", label: `Track ${labelOf(oldCur)}${onTrack && t ? " on " + (t.label || t.id) : ""} becomes ${labelOf(newCur)}`, commands: cmds });
       if (!r.ok) toast(r.error);
     }
     drawAll();

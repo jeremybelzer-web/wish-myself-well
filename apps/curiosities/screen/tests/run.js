@@ -906,6 +906,76 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+/* Graded lanes ("eyeline.speaking") in the pickers, and one lane per track when several tracks carry the same
+   curiosity (one per character): paste, suite clips and templates, a moment's look, and lane names keep each
+   track's own lane. */
+{
+  const CL = w.CurioLanes;
+  const E = w.CurioEngine;
+  const S = w.CurioScale;
+  ok(["laneParts", "partTrack", "lkName"].every((k) => typeof CL[k] === "function"), "the graded-lane helpers are exposed (laneParts, partTrack, lkName)");
+  /* A stand-in database: eyeline's bare lane is only off or on; its graded setting and Speaking now are graded. */
+  const rows = {
+    eyeline: { id: "eyeline", label: "Eyelines", main: "setting", sliders: [{ id: "setting", label: "Eyelines", scale: ["no one meets", "glances"] }, { id: "hold", label: "How long", range: { min: 0, max: 5 } }, { id: "speaking", label: "Speaking now", scale: ["listening", "speaking"] }] },
+    shotSize: { id: "shotSize", label: "Shot size", main: "setting", sliders: [{ id: "setting", scale: ["wide", "close"] }, { id: "who", label: "Who it frames", scale: ["whoever is shown", "the first character"] }, { id: "headroom", label: "Headroom", scale: ["a", "b"] }] },
+    focus: { id: "focus", label: "Focus", sliders: [{ id: "speed", label: "Speed", scale: ["x", "y"] }, { id: "pull", label: "Focus pull", scale: ["x", "y"], lane: true, track: "camera" }] },
+  };
+  const fake = (have) => ({ row: (id) => rows[id] || null, known: (k) => have.includes(k), auto: (id) => (id === "eyeline" ? { kind: "choice", options: ["off", "on"] } : { kind: "choice", options: ["a", "b"] }) });
+  const all = ["eyeline.setting", "eyeline.speaking", "eyeline.hold", "shotSize.who", "shotSize.headroom", "focus.speed", "focus.pull"];
+  const ey = CL.laneParts("eyeline", fake(all));
+  ok(ey.parts.map((p) => p.key).join() === "eyeline.setting,eyeline.speaking" && ey.bareSecond && ey.parts[0].main && ey.parts[0].label === "Eyelines" && ey.parts[1].label === "Eyelines: Speaking now", "an off-or-on curiosity offers its graded setting first (its bare lane second), then its staging lanes, with plain names; other sliders are not offered");
+  ok(ey.parts.every((p) => p.track === "character"), "Eyelines' graded lanes go on character tracks, one per character");
+  const ey2 = CL.laneParts("eyeline", fake(["eyeline.setting"]));
+  ok(ey2.parts.map((p) => p.key).join() === "eyeline.setting" && ey2.bareSecond, "a graded lane the database does not grade in this build is not offered (no Speaking now without it)");
+  const ss = CL.laneParts("shotSize", fake(all));
+  ok(ss.parts.map((p) => p.key).join() === "shotSize.who" && !ss.bareSecond && ss.parts[0].track === "camera", "a graded curiosity keeps its bare lane first and offers Who it frames, on the camera track");
+  const fo = CL.laneParts("focus", fake(all));
+  ok(fo.parts.map((p) => p.key).join() === "focus.pull" && fo.parts[0].track === "camera", "a slider the database marks lane: true is offered too, on the track it names");
+  ok(CL.laneParts("nothing", fake(all)).parts.length === 0 && CL.laneParts("eyeline.speaking", fake(all)).parts.length === 0, "nothing is offered for an unknown curiosity or a lane key");
+  ok(CL.partTrack("eyeline.speaking", fake(all)) === "character" && CL.partTrack("shotSize.who", fake(all)) === "camera" && CL.partTrack("shotSize", fake(all)) === "", "partTrack says which kind of track a graded lane goes on");
+  /* The real database in this build: Eyelines' graded setting is there; the rest only once the 3D staging lanes are. */
+  const real = CL.laneParts("eyeline");
+  ok(real.parts.some((p) => p.key === "eyeline.setting") && real.parts.every((p) => S.known(p.key)), "with the real database, Eyelines offers its graded setting (" + real.parts.map((p) => p.key).join(", ") + ")");
+
+  /* Two tracks carrying the same curiosity. */
+  E.reset(w.CurioSeeds.starter());
+  let st = E.state();
+  const two = st.tracks.filter((t) => t.kind === "character" && t.curiosities.includes("characterPath"));
+  ok(two.length === 2, "the starter film has characterPath on both character tracks");
+  const [A, B] = two.map((t) => t.id);
+  const rr = st.rows;
+  ok(CL.lkName(A + "|characterPath") === S.label("characterPath") + " · " + two[0].label && CL.lkName("camera|shotSize") === S.label("shotSize"), "a lane's name carries its track only when several tracks carry the curiosity (" + CL.lkName(B + "|characterPath") + ")");
+  const gv = S.domain("characterPath").options;
+  E.send({ type: "batch", commands: [{ type: "setPoint", row: rr[0].id, track: A, curiosity: "characterPath", value: gv[0] }, { type: "setPoint", row: rr[1].id, track: A, curiosity: "characterPath", value: gv[1] }, { type: "setPoint", row: rr[0].id, track: B, curiosity: "characterPath", value: gv[gv.length - 1] }] });
+  st = E.state();
+  const lanes = [A, B].map((t) => ({ cur: "characterPath", track: t, lk: t + "|characterPath" }));
+  const c = CL.copyArea(st, lanes, { i0: 0, i1: 1, j0: 0, j1: 1 });
+  ok(c.lanes.length === 2 && c.lanes[0].track === A && c.lanes[1].track === B, "copying an area keeps each track's lane");
+  const pc = CL.pasteAreaCommands(st, c, [{ cur: "characterPath", track: A }, { cur: "characterPath", track: B }], 4);
+  const onA = pc.cmds.filter((x) => x.type === "setPoint" && x.track === A);
+  const onB = pc.cmds.filter((x) => x.type === "setPoint" && x.track === B);
+  ok(onA.length >= 2 && onB.length >= 1 && onA.some((x) => x.value === gv[1]) && onB.every((x) => x.row !== rr[5].id || x.value === E.value(rr[1].id, B, "characterPath")), "pasting onto two tracks with the same curiosity writes each track's own lane (not both onto the first)");
+  ok(E.send({ type: "batch", commands: pc.cmds }).ok && E.state().lanes[B + "|characterPath"].points[rr[4].id] === gv[gv.length - 1] && E.state().lanes[A + "|characterPath"].points[rr[4].id] === gv[0], "after the paste each track plays its own copy");
+  E.undo();
+  st = E.state();
+  const clip = CL.suiteClip(CL.copyArea(st, lanes.slice(1), { i0: 0, i1: 0, j0: 0, j1: 1 }), "B only");
+  const tg = CL.suiteClipTargets(st, clip, lanes);
+  ok(tg.targets.length === 1 && tg.targets[0].track === B, "a suite clip or template from the second track lands on the second track's row, not the first one with that curiosity");
+
+  /* A moment's look with two tracks of the same curiosity. */
+  const K = w.CurioScreenLook;
+  const h = (perTrack) => ({ value: (rid, t, cc) => E.value(rid, t, cc), trackOf: (cc) => (st.tracks.find((t) => t.curiosities.includes(cc)) || {}).id || null, trackFor: (cc) => CL.trackFor(cc, st), locked: () => false, fix: (cc, v) => S.fix(cc, v), start: (cc) => S.start(cc), known: (cc) => S.known(cc), limit: E.LIMIT.perTrack, perTrack });
+  const lk = K.copy(st, 0, h(true));
+  ok(lk.byTrack && lk.byTrack[A + "|characterPath"] === gv[0] && lk.byTrack[B + "|characterPath"] === gv[gv.length - 1] && lk.values.characterPath === gv[0], "copying a moment's look keeps each track's own setting of a shared curiosity");
+  E.send({ type: "setPoint", row: rr[2].id, track: B, curiosity: "characterPath", value: gv[1] });
+  st = E.state();
+  const p = K.paste(st, lk, 3, 3, h(true));
+  const gB = p.cmds.find((x) => x.curiosity === "characterPath" && x.track === B);
+  const gA = p.cmds.find((x) => x.curiosity === "characterPath" && x.track === A);
+  ok(gA && gA.value === gv[0] && gB && gB.value === gv[gv.length - 1] && p.changed.filter((x) => x === "characterPath").length === 1, "pasting it gives each track its own setting back, counted once");
+  ok(K.clean(JSON.parse(JSON.stringify(lk))).byTrack[B + "|characterPath"] === gv[gv.length - 1] && !K.clean({ values: { a: 1 }, byTrack: { "x|b": 2 } }).byTrack, "the per-track settings come back from storage, and stray ones are dropped");
+}
+
 /* History ▾ (CurioScreenHistory): the undo and redo lists turned into the rows the menu draws. */
 {
   const H = w.CurioScreenHistory;
