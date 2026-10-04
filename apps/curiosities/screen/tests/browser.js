@@ -2780,6 +2780,183 @@ const ok = (cond, msg) => {
     await ctx.close();
   }
 
+  /* ---------- Ripple: Add a moment here, Duplicate moments and Take out moments (CapCut's Split and Delete with
+     ripple, for whole moments). Nodes on every lane, markers, transitions and words on the frame all move together,
+     nothing jumps, and one undo (⌘Z, the toolbar's Undo) takes all of it back; a locked lane is never changed.
+     In its own browser context so its storage starts empty. ---------- */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.click('button[data-view="screen"]');
+    for (const [cur, words] of [["shotSize", "Shot size"], ["emotionIntensity", "Strength of the feeling"]]) {
+      await p.fill("[data-lib-search]", words);
+      await p.click(`.sc-grid [data-add-card="curiosity|${cur}"]`);
+    }
+    await p.fill("[data-lib-search]", "");
+    const setup = await p.evaluate(() => {
+      const E = window.CurioEngine;
+      const Sc = window.CurioScale;
+      const st = E.state();
+      const tr = (cur) => st.tracks.find((x) => x.curiosities.includes(cur)).id;
+      const cmds = [];
+      ["shotSize", "emotionIntensity"].forEach((cur) => {
+        const lane = st.lanes[tr(cur) + "|" + cur];
+        if (lane) Object.keys(lane.points).forEach((r) => cmds.push({ type: "removePoint", row: r, track: tr(cur), curiosity: cur }));
+      });
+      const at = (cur, j, pp) => cmds.push({ type: "setPoint", row: st.rows[j].id, track: tr(cur), curiosity: cur, value: Sc.fix(cur, Sc.at(cur, pp)) });
+      at("shotSize", 2, 0.75);
+      at("shotSize", 5, 0);
+      at("emotionIntensity", 1, 0.1);
+      at("emotionIntensity", 6, 0.9);
+      const r = E.send({ type: "batch", label: "Ripple test setup", commands: cmds });
+      window.CurioLanes.setMarkers([{ row: st.rows[2].id, color: "red", note: "the joke lands" }, { row: st.rows[5].id, color: "blue", note: "the turn" }]);
+      window.CurioScreen.transitions.set(4, "fade");
+      window.CurioScreen.transitions.set(7, "wipe");
+      window.CurioScreen.setRow(5);
+      const t = window.CurioScreen.text.add();
+      window.CurioScreen.text.edit(null);
+      window.CurioScreen.text.span(t.id, 6, 7);
+      window.CurioScreen.setRow(3);
+      document.activeElement && document.activeElement.blur();
+      return { ok: r.ok, n: st.rows.length, store: !!window.CurioStore };
+    });
+    ok(setup.ok && setup.n >= 8 && setup.store, "ripple: two lanes with nodes, two markers, two transitions and words on moments 6 to 7");
+    const snap = () =>
+      p.evaluate(() => {
+        const E = window.CurioEngine;
+        const st = E.state();
+        const ix = {};
+        st.rows.forEach((r, i) => (ix[r.id] = i));
+        const tr = (c) => st.tracks.find((x) => x.curiosities.includes(c)).id;
+        const lanes = {};
+        ["shotSize", "emotionIntensity"].forEach((c) => { const l = st.lanes[tr(c) + "|" + c]; lanes[c] = st.rows.map((r) => (l && l.points[r.id] != null ? String(l.points[r.id]) : null)); });
+        return {
+          n: st.rows.length,
+          lanes,
+          plays: st.rows.map((r) => ["shotSize", "emotionIntensity"].map((c) => String(E.value(r.id, tr(c), c))).join("/")),
+          /* What the lanes' own nodes and lines play (links that react to a change are laid on after). */
+          lanePlays: st.rows.map((r, i) => ["shotSize", "emotionIntensity"].map((c) => String(window.CurioScreenRipple.laneValues(st.rows.map((x) => x.id), st.lanes[tr(c) + "|" + c], c, window.CurioScale)[i])).join("/")),
+          markers: window.CurioLanes.tools().markers.map((m) => [ix[m.row] + 1, m.note]),
+          joins: window.CurioScreen.transitions.now().joins,
+          texts: window.CurioScreen.text.now().items.map((t) => [t.from, t.to]),
+          steps: window.CurioStore.history().undo.length,
+          savedMarks: (JSON.parse(localStorage.getItem("curiosities-screen-tools-v1") || "{}").markers || []).length,
+          savedJoins: Object.keys((JSON.parse(localStorage.getItem("curiosities-screen-transitions-v1") || "{}").joins) || {}).sort().join(),
+          row: window.CurioScreen.row(),
+          msg: (document.querySelector(".sl-msg") || {}).textContent || "",
+        };
+      });
+    const film = (s) => JSON.stringify({ n: s.n, lanes: s.lanes, plays: s.plays, markers: s.markers, joins: s.joins, texts: s.texts });
+    const s0 = await snap();
+    ok(s0.markers.length === 2 && Object.keys(s0.joins).join() === "4,7" && JSON.stringify(s0.texts) === "[[6,7]]", "ripple: the setup is in place (" + JSON.stringify([s0.markers, s0.joins, s0.texts]) + ")");
+
+    /* + Moment in the timeline toolbar: a copy of moment 4 right after it. */
+    ok(!!(await p.$('.sl-tools [data-act="ripple-add"]')) && !!(await p.$('.sl-tools [data-act="ripple-delete"]')), "the timeline toolbar has + Moment and − Moment");
+    await p.click('.sl-tools [data-act="ripple-add"]');
+    const s1 = await snap();
+    ok(s1.n === s0.n + 1 && JSON.stringify(s1.plays) === JSON.stringify(s0.plays.slice(0, 4).concat([s0.plays[3]], s0.plays.slice(4))), "+ Moment adds a copy of the playhead's moment right after it, and nothing jumps (every moment plays what it did)");
+    ok(JSON.stringify(s1.lanes.shotSize.slice(6)) === JSON.stringify(s0.lanes.shotSize.slice(5)) && s1.lanes.emotionIntensity[7] === s0.lanes.emotionIntensity[6], "the nodes after it slid one moment later on every lane");
+    ok(JSON.stringify(s1.markers) === JSON.stringify([[3, "the joke lands"], [7, "the turn"]]) && s1.savedMarks === 2, "the marker after it slid along too (moment 6 → 7), and the markers are saved");
+    ok(Object.keys(s1.joins).join() === "4,8" && s1.joins["8"].kind === "wipe" && s1.savedJoins === "4,8", "the transition after it moved with its moment (into 7 → into 8); the copy comes in on a cut");
+    ok(JSON.stringify(s1.texts) === "[[7,8]]", "the words on moments 6 to 7 now show on 7 to 8");
+    ok(s1.steps === s0.steps + 1, "it is one undo step on the app-wide list (" + s0.steps + " → " + s1.steps + ")");
+    ok(s1.row === 4 && /Added moment 5, a copy of moment 4/.test(s1.msg) && /Undo takes it back/.test(s1.msg), "the playhead moves to the copy and the toolbar says what happened in plain words (" + s1.msg.slice(0, 90) + ")");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+z");
+    const u1 = await snap();
+    ok(film(u1) === film(s0) && u1.steps === s0.steps && u1.savedMarks === 2 && u1.savedJoins === "4,7", "one ⌘Z takes all of it back: the moment, the nodes, the markers, the transitions and the words");
+    await p.keyboard.press("Control+Shift+z");
+    ok(film(await snap()) === film(s1), "⇧⌘Z puts all of it back again");
+    await p.click('.sl-tools [data-act="undo"]');
+    ok(film(await snap()) === film(s0), "the timeline toolbar's Undo takes back the whole step too");
+
+    /* The keys: ⌥M adds, ⌥⌫ takes out the playhead's moment. */
+    await p.evaluate(() => { window.CurioScreen.setRow(3); document.activeElement && document.activeElement.blur(); });
+    await p.keyboard.press("Alt+m");
+    const k1 = await snap();
+    ok(k1.n === s0.n + 1 && k1.row === 4, "⌥M adds a moment here");
+    await p.keyboard.press("Alt+Backspace");
+    const k2 = await snap();
+    ok(k2.n === s0.n && JSON.stringify(k2.plays) === JSON.stringify(s0.plays) && JSON.stringify([k2.markers, k2.joins, k2.texts]) === JSON.stringify([s0.markers, s0.joins, s0.texts]), "⌥⌫ takes the playhead's moment out again and everything slides back");
+    await p.keyboard.press("Control+z");
+    await p.keyboard.press("Control+z");
+    ok(film(await snap()) === film(s0), "two undos go back to where it started");
+
+    /* A stretch: select moments 2 to 4 on the lanes, then Duplicate moments and Take out moments. */
+    const box = await p.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = 0; const bg = document.querySelectorAll(".sl-bg")[0]; const r = bg.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; });
+    const cw = box.w / box.n;
+    const select = async () => {
+      await p.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; sc.scrollTop = 0; });
+      await p.focus(".sl");
+      await p.keyboard.press("Escape");
+      await p.mouse.move(box.x + cw * 1.1, box.y + 2);
+      await p.mouse.down();
+      await p.mouse.move(box.x + cw * 3.9, box.y + box.h - 2, { steps: 8 });
+      await p.mouse.up();
+    };
+    await select();
+    ok(!!(await p.$('.sl-areatools [data-act="ripple-duplicate"]')) && !!(await p.$('.sl-areatools [data-act="ripple-delete"]')), "a selected stretch shows Duplicate moments and Take out moments in the area tools");
+    await p.click('.sl-areatools [data-act="ripple-duplicate"]');
+    const d1 = await snap();
+    ok(d1.n === s0.n + 3 && JSON.stringify(d1.lanePlays) === JSON.stringify(s0.lanePlays.slice(0, 4).concat(s0.lanePlays.slice(1, 4), s0.lanePlays.slice(4))), "Duplicate moments copies moments 2 to 4 right after them; on every lane the copies play the same and nothing else changes");
+    ok(JSON.stringify(d1.markers) === JSON.stringify([[3, "the joke lands"], [9, "the turn"]]) && Object.keys(d1.joins).join() === "4,7,10" && JSON.stringify(d1.texts) === "[[9,10]]", "markers, transitions and words after the stretch slide 3 moments later; the transition inside it is copied (" + JSON.stringify([d1.markers, d1.joins, d1.texts]) + ")");
+    ok(d1.steps === s0.steps + 1 && /Duplicated moments 2 to 4: the copy is moments 5 to 7/.test(d1.msg) && (await p.evaluate(() => !!document.querySelector(".sl-area"))), "one undo step, a plain message, and the copies are selected");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+z");
+    ok(film(await snap()) === film(s0), "one undo takes the duplicate back");
+    await select();
+    await p.click('.sl-areatools [data-act="ripple-delete"]');
+    const t1 = await snap();
+    ok(t1.n === s0.n - 3 && JSON.stringify(t1.lanePlays) === JSON.stringify([s0.lanePlays[0]].concat(s0.lanePlays.slice(4))), "Take out moments takes moments 2 to 4 out of every lane; on every lane each moment left plays what it did");
+    ok(JSON.stringify(t1.markers) === JSON.stringify([[3, "the turn"]]) && JSON.stringify(t1.joins) === JSON.stringify({ 4: s0.joins["7"] }) && JSON.stringify(t1.texts) === "[[3,4]]", "everything after slides back 3 moments; the marker and the transition on the moments taken out go (" + JSON.stringify([t1.markers, t1.joins, t1.texts]) + ")");
+    ok(t1.steps === s0.steps + 1 && /Took out moments 2 to 4/.test(t1.msg) && /1 marker/.test(t1.msg), "one undo step, and the message says what went with them (" + t1.msg.slice(0, 120) + ")");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+z");
+    const t2 = await snap();
+    ok(film(t2) === film(s0) && t2.savedMarks === 2, "one undo shifts it all back, the marker and transition on those moments included");
+
+    /* A locked lane: never changed. */
+    const lockRes = await p.evaluate(() => {
+      const st = window.CurioEngine.state();
+      const lk = Object.keys(st.lanes).find((k) => k.endsWith("|shotSize"));
+      window.CurioLanes.tools().locks[lk] = true;
+      window.CurioScreen.setRow(2);
+      const del = window.CurioScreen.ripple("delete");
+      const n = window.CurioEngine.state().rows.length;
+      const add = window.CurioScreen.ripple("add");
+      const st2 = window.CurioEngine.state();
+      const pts = st2.rows.map((r) => (st2.lanes[lk].points[r.id] != null ? String(st2.lanes[lk].points[r.id]) : null));
+      const msg = document.querySelector(".sl-msg").textContent;
+      return { lk, del, n, add: add.ok, pts, msg };
+    });
+    ok(lockRes.del.ok === false && /locked/.test(lockRes.del.error) && lockRes.n === s0.n, "taking out a moment with a node on a locked lane is refused with a plain reason, and nothing changes");
+    ok(lockRes.add && lockRes.pts[3] === null && lockRes.pts[2] === s0.lanes.shotSize[2] && lockRes.pts[6] === s0.lanes.shotSize[5] && /locked/.test(lockRes.msg), "adding a moment still works: the locked lane gets no node on the copy, its nodes slide along, and the message says so");
+    await p.evaluate((lk) => { delete window.CurioLanes.tools().locks[lk]; document.activeElement && document.activeElement.blur(); }, lockRes.lk);
+    await p.keyboard.press("Control+z");
+    ok(film(await snap()) === film(s0), "one undo takes that back too");
+
+    /* ⌘K: the actions by name, with their keys. */
+    await p.keyboard.press("Control+k");
+    await p.fill(".sc-find-q", "add a moment");
+    await p.waitForTimeout(40);
+    const fo = await p.$$eval(".sc-find-o", (ls) => ls.map((l) => ({ label: l.querySelector("b").textContent, kbd: (l.querySelector("kbd") || {}).textContent || "" })));
+    ok(fo.length && fo[0].label === "Add a moment here" && fo[0].kbd === "⌥M", "Quick find has Add a moment here, with its key (" + JSON.stringify(fo.slice(0, 2)) + ")");
+    await p.keyboard.press("Enter");
+    ok((await snap()).n === s0.n + 1, "picking it adds the moment");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Control+z");
+    await p.keyboard.press("Control+k");
+    await p.fill(".sc-find-q", "take out moments");
+    await p.waitForTimeout(40);
+    ok((await p.$$eval(".sc-find-o b", (bs) => bs.map((b) => b.textContent))).includes("Take out moments"), "and Take out moments");
+    await p.keyboard.press("Escape");
+    await ctx.close();
+  }
+
   /* ---------- Small screens: a short laptop with the Momentum dock, and tap-sized group headers on a phone ----------
      Each check opens the Screen fresh in its own browser context (its own window size and storage). */
   {

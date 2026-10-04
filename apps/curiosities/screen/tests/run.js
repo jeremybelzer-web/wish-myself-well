@@ -981,6 +981,112 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+/* Ripple (CurioScreenRipple): add a copy of a moment, duplicate a stretch, take moments out; nodes, joins, the
+   moment's own material, transitions, words, markers and the play range all move together, nothing jumps. */
+{
+  const R = w.CurioScreenRipple;
+  const E = w.CurioEngine;
+  const Sc = w.CurioScale;
+  ok(!!R && ["insert", "remove", "joins", "texts", "markers", "range", "laneValues"].every((k) => typeof R[k] === "function"), "the ripple helpers are exposed for tests (CurioScreenRipple)");
+  if (R) {
+    const h = (locked) => ({ S: Sc, locked: (lk) => (locked || []).includes(lk), maxRows: E.LIMIT.rows, maxLinks: E.LIMIT.links });
+    /* What every cell of the film plays, moment by moment (the engine's result after links and pins). */
+    const plays = () => {
+      const st = E.state();
+      return st.rows.map((r) => st.tracks.map((t) => t.curiosities.map((c) => String(E.value(r.id, t.id, c))).join(",")).join(";"));
+    };
+    E.reset(w.CurioSeeds.starter());
+    let rr = E.state().rows;
+    const lo = Sc.at("emotionIntensity", 0);
+    const hi = Sc.at("emotionIntensity", 1);
+    E.send({ type: "batch", commands: [
+      { type: "setPoint", row: rr[1].id, track: "master", curiosity: "emotionIntensity", value: lo },
+      { type: "setPoint", row: rr[6].id, track: "master", curiosity: "emotionIntensity", value: hi },
+      { type: "setPoint", row: rr[2].id, track: "camera", curiosity: "shotSize", value: "close" },
+      { type: "setPoint", row: rr[4].id, track: "camera", curiosity: "shotSize", value: "wide" },
+      { type: "laneMode", track: "camera", curiosity: "shotSize", mode: "hold" },
+      { type: "edit", row: rr[3].id, track: "char1", curiosity: "volume", value: Sc.fix("volume", Sc.at("volume", 1)) },
+    ] });
+    const join = w.CurioLanes.linkCommand(E.state(), { row: rr[1].id, track: "master", cur: "emotionIntensity" }, { row: rr[4].id, track: "camera", cur: "shotSize" });
+    ok(E.send(join).ok, "ripple setup: a glide, a held lane, a pin and a join across moments 2 to 5");
+    const drift0 = E.drift().length;
+
+    /* Add a moment here: a copy of moment 4 (in the middle of the glide, and the pinned moment) after it. */
+    let before = plays();
+    let st = E.state();
+    const add = R.insert(st, 3, 3, h());
+    ok(!add.error && add.k === 1 && add.ids.length === 1 && add.cmds[0].type === "addRow" && add.cmds[0].at === 4, "Add a moment here plans one new moment right after the playhead's");
+    ok(E.send({ type: "batch", label: "Add a moment after moment 4", commands: add.cmds }).ok, "the engine takes it as one batch");
+    st = E.state();
+    let after = plays();
+    ok(st.rows.length === 9 && st.rows[4].id === add.ids[0] && st.rows[4].label === "Copy of moment 4", "the film is one moment longer and the copy sits at moment 5, the id the plan expected");
+    ok(JSON.stringify(after) === JSON.stringify(before.slice(0, 4).concat([before[3]], before.slice(4))), "nothing jumps: the copy plays exactly what moment 4 plays, and every other moment plays what it did");
+    ok(st.lanes["master|emotionIntensity"].points[rr[6].id] === hi && st.lanes["camera|shotSize"].points[rr[4].id] === "wide", "the nodes after it slid along with their moments (they are kept by moment)");
+    ok(st.edits[add.ids[0] + "|char1|volume"] && st.edits[add.ids[0] + "|char1|volume"].v === st.edits[rr[3].id + "|char1|volume"].v, "the copy keeps moment 4's pin (hand edit)");
+    const lnk = st.links.find((l) => l.scope && l.scope.from === rr[1].id);
+    ok(lnk && lnk.within === 4, "the join across it now spans one more moment (within 3 → " + (lnk && lnk.within) + ")");
+    ok(E.drift().length === drift0, "the ripple leaves nothing the engine would change on a reload");
+    E.undo();
+    ok(JSON.stringify(plays()) === JSON.stringify(before) && E.state().rows.length === 8, "one undo takes it back");
+
+    /* Duplicate moments 2 to 5: the join inside is copied, the copies play the same. */
+    before = plays();
+    st = E.state();
+    const dup = R.insert(st, 1, 4, h());
+    ok(!dup.error && dup.k === 4 && dup.links === 1, "Duplicate moments 2 to 5 plans 4 copies and a copy of the join inside them");
+    ok(E.send({ type: "batch", commands: dup.cmds }).ok, "duplicating is one batch");
+    st = E.state();
+    after = plays();
+    ok(st.rows.length === 12 && JSON.stringify(after) === JSON.stringify(before.slice(0, 5).concat(before.slice(1, 5), before.slice(5))), "the copies (moments 6 to 9) play what moments 2 to 5 play, and the rest is unchanged");
+    const copied = st.links.find((l) => l.scope && l.scope.from === dup.ids[0]);
+    ok(copied && copied.scope.to === dup.ids[3] && copied.within === 3, "the copied join links the copies' nodes, with the same gap");
+    E.undo();
+
+    /* Take out moments 3 to 4: the join from 2 to 5 spans the gap, the nodes there go, the rest keeps playing. */
+    before = plays();
+    st = E.state();
+    const del = R.remove(st, 2, 3, h());
+    ok(!del.error && del.k === 2 && del.nodes === 1 && del.cmds.filter((c) => c.type === "removeRow").length === 2, "Take out moments 3 to 4 plans two moments out, and the one node on them");
+    ok(E.send({ type: "batch", commands: del.cmds }).ok, "taking out is one batch");
+    st = E.state();
+    after = plays();
+    ok(st.rows.length === 6 && JSON.stringify(after) === JSON.stringify(before.slice(0, 2).concat(before.slice(4))), "every moment left plays what it played before: the glide keeps its shape around the gap (nodes put in where it would have changed)");
+    const kept = st.links.find((l) => l.scope && l.scope.from === rr[1].id);
+    ok(kept && kept.within === 1 && kept.scope.to === rr[4].id, "the join across the gap now spans 2 fewer moments");
+    E.undo();
+    const del2 = R.remove(E.state(), 4, 4, h());
+    ok(del2.links === 1 && del2.cmds[0].type === "removeLink", "taking out a moment with a joined node takes the join too (it would otherwise become a rule for the whole lane)");
+    ok(R.remove(E.state(), 0, 7, h()).error && R.insert(E.state(), 0, 60, h()).error && R.insert(E.state(), 3, 2, h()).error, "the last moment can't go, a film can't grow past its limit, and a backwards stretch is refused");
+
+    /* Locked lanes: nothing is added to or taken off them; their nodes still slide along with their moments. */
+    const lockShot = h(["camera|shotSize"]);
+    const ref = R.remove(E.state(), 2, 3, lockShot);
+    ok(!!ref.error && ref.locked === "camera|shotSize" && /locked/.test(ref.error), "taking out a moment with a node on a locked lane is refused, with a plain reason");
+    const insL = R.insert(E.state(), 2, 2, lockShot);
+    ok(!insL.error && !insL.cmds.some((c) => c.type === "setPoint" && c.curiosity === "shotSize") && !insL.cmds.some((c) => c.type === "addLink"), "a copy of a moment gets no node (and no join) on a locked lane");
+    ok(R.remove(E.state(), 5, 5, lockShot).ok !== false && !R.remove(E.state(), 5, 5, lockShot).error, "a moment with no node on the locked lane can still be taken out");
+
+    /* The Screen's own things. */
+    const J = { 2: { kind: "fade" }, 3: { kind: "wipe" }, 4: { kind: "push" }, 5: { kind: "zoom" }, 6: { kind: "match" } };
+    ok(JSON.stringify(Object.keys(R.joins(J, { kind: "insert", a: 2, b: 2 }))) === '["2","3","5","6","7"]' && R.joins(J, { kind: "insert", a: 2, b: 2 })["5"].kind === "push", "transitions: a copy of moment 3 comes in on a cut, and the joins after it move one later");
+    const jd = R.joins(J, { kind: "insert", a: 1, b: 3 });
+    ok(jd["3"].kind === "wipe" && jd["4"].kind === "push" && !jd["5"] && jd["6"].kind === "wipe" && jd["7"].kind === "push" && jd["8"].kind === "zoom" && jd["9"].kind === "match", "transitions: duplicating moments 2 to 4 copies the joins inside the stretch onto the copies");
+    const jr = R.joins(J, { kind: "delete", a: 2, b: 3 });
+    ok(JSON.stringify(jr) === JSON.stringify({ 2: { kind: "fade" }, 3: { kind: "zoom" }, 4: { kind: "match" } }), "transitions: taking out moments 3 and 4 drops their joins; moment 5 keeps the way it comes in");
+    ok(!Object.keys(R.joins({ 3: { kind: "fade" } }, { kind: "delete", a: 0, b: 1 })).length, "transitions: a join that would lead into moment 1 goes");
+    const T = [{ id: "t1", from: 1, to: 3 }, { id: "t2", from: 4, to: 5 }, { id: "t3", from: 1, to: 2 }, { id: "t4", from: 3, to: 3 }];
+    const ti = R.texts(T, { kind: "insert", a: 2, b: 2 }).items;
+    ok(ti[0].to === 4 && ti[1].from === 5 && ti[1].to === 6 && ti[2].to === 2 && ti[3].from === 3 && ti[3].to === 4 && ti.length === 4, "words: over the playhead's moment they run on over the copy; after it they slide along");
+    const tdup = R.texts([{ id: "t1", from: 2, to: 3 }, { id: "t2", from: 3, to: 6 }, { id: "t3", from: 5, to: 5 }], { kind: "insert", a: 1, b: 3 });
+    ok(tdup.copied === 1 && tdup.items.find((t) => t.id === "t4" && t.from === 5 && t.to === 6) && tdup.items[1].to === 9 && tdup.items[2].from === 8, "words: duplicating moments 2 to 4 copies words wholly inside the stretch onto the copies");
+    const tdel = R.texts([{ id: "t1", from: 1, to: 5 }, { id: "t2", from: 2, to: 3 }, { id: "t3", from: 3, to: 6 }, { id: "t4", from: 4, to: 4 }], { kind: "delete", a: 1, b: 2 });
+    ok(tdel.gone === 1 && JSON.stringify(tdel.items.map((t) => [t.id, t.from, t.to])) === JSON.stringify([["t1", 1, 3], ["t3", 2, 4], ["t4", 2, 2]]), "words: taking out moments 2 and 3 shortens words over them and drops words wholly inside");
+    ok(R.markers([{ row: "r3" }, { row: "r5" }], ["r3"]).length === 1 && R.markers([{ row: "r3" }], []).length === 1, "markers ride along by moment; one on a moment taken out goes");
+    ok(JSON.stringify(R.range([1, 4], { kind: "insert", a: 4, b: 4 })) === "[1,5]" && JSON.stringify(R.range([5, 7], { kind: "insert", a: 2, b: 3 })) === "[7,9]" && JSON.stringify(R.range([1, 6], { kind: "delete", a: 2, b: 3 })) === "[1,4]" && R.range([2, 3], { kind: "delete", a: 2, b: 3 }) === null, "the play range grows, slides or shrinks with them");
+    ok(JSON.stringify(R.freshIds({ next: 3, rows: [{ id: "r4" }], tracks: [], links: [{ id: "r3" }] }, 2)) === '["r5","r6"]', "new moment ids are worked out the engine's way (skipping ids in use)");
+  }
+}
+
 /* Quick find (⌘K): the matcher, the grouping and the recent picks, from ui.js with no page. */
 {
   const g = { CurioFrame: w.CurioFrame, CurioLevels: w.CurioLevels, document: { readyState: "loading", addEventListener() {} }, localStorage: { getItem: () => null, setItem() {} } };
