@@ -72,6 +72,22 @@
       .join("");
   }
   const SKY = "#141418";
+  /* The 3D view's staging words (rig/staging.js), drawn small: how everyone stands together, seen from above, as
+     dots with a tick for where each one faces. Returns "" when the row has no such setting. */
+  const TOGETHER = {
+    "face to face": [[-10, 0, 0], [10, 0, 180]],
+    "side by side": [[-7, 0, 270], [7, 0, 270]],
+    "one behind the other": [[0, -8, 270], [0, 8, 270]],
+    "over the shoulder": [[-6, 6, 30], [10, -6, 210]],
+    circle: [[0, -10, 270], [10, 0, 180], [0, 10, 90], [-10, 0, 0]],
+    standoff: [[-20, 0, 0], [20, 0, 180]],
+    huddle: [[-4, -4, 315], [4, -4, 225], [4, 4, 135], [-4, 4, 45]],
+  };
+  function marksFromAbove(k, x, y, word) {
+    const pts = TOGETHER[word] || TOGETHER["face to face"];
+    const col = word === "standoff" ? "#ff6b6b" : "#ffd166";
+    return box(x - 26, y - 16, 52, 32, "#1d1d22", "#555", 4) + pts.map(([dx, dy, a]) => k.dot({ x: x + dx, y: y + dy, r: 3, color: col }) + ln(x + dx, y + dy, x + dx + Math.cos(k.rad(a)) * 6, y + dy + Math.sin(k.rad(a)) * 6, "#eee", 1.2)).join("");
+  }
 
   /* Point of view: the shot as seen through someone (or something), with whose eyes, trust and timing beside it. */
   W.look("pov", (v, k) => {
@@ -347,6 +363,8 @@
       sm(k, 222, 130, `Gap ${v("gapMeters")} m · face ${face}°`, { size: 7.5 }) +
       sm(k, 222, 142, `Back ${dg} m · up ${v("heightGap")} m`, { size: 7.5 }) +
       sm(k, 222, 154, `from ${v("placedFrom")}`, { size: 7.5, color: "#ff8a8a" }) +
+      (v.slider("together") ? marksFromAbove(k, 38, 26, String(v("together"))) + sm(k, 68, 22, String(v("together")), { size: 7.5, color: "#ffd166" }) : "") +
+      (v.slider("seated") ? (v("seated") === "sitting" ? box(105 - gap / 2 - 14, 128, 28, 6, "#8a6a4a", "#1c1712", 2) + box(105 - gap / 2 + 10, 108, 5, 26, "#8a6a4a", "#1c1712", 2) + sm(k, 68, 34, "sitting down", { size: 7.5 }) : sm(k, 68, 34, "standing up", { size: 7.5 })) : "") +
       k.caption(`${v("setting")} · center: ${v("power")} · ${v("gapClosing")}`)
     );
   });
@@ -384,6 +402,7 @@
       poly([[222, 140], [264, 140 - ten * 6], [306, 140 - ten * 14]], "#e07a5f", 2) +
       sm(k, 222, 154, `vs ${v("measuredFrom")}`, { size: 7, color: "#ff8a8a" }) +
       sm(k, 8, 154, `${v("subjectHeight")}% tall · gap above ${v("topGap")}%`, { size: 7.5, color: "#ddd" }) +
+      (v.slider("who") ? chip(k, 8, 18, String(v("who")) === "whoever is shown" ? "on whoever is shown" : "on " + String(v("who")), String(v("who")) === "whoever is shown" ? "#2c2c34" : "#5a4a1a", "#ffd166") + (String(v("who")) === "whoever is shown" ? "" : k.label({ x: x0, y: Math.max(14, top - 4), text: "★ " + (["the first character", "the second character", "the third character", "the fourth character"].indexOf(String(v("who"))) + 1), size: 9, color: "#ffd166" })) : "") +
       k.caption(`${v("setting")} shot, ${v("subjectCount")} in frame`)
     );
   });
@@ -818,7 +837,8 @@
     for (let i = 0; i < Math.min(30, lpm); i++) ticks.push(ln(14 + (i / Math.max(1, Math.min(30, lpm))) * 190, 156, 14 + (i / Math.max(1, Math.min(30, lpm))) * 190, 150 - (0.5 + wr * (i / Math.max(1, lpm) - 0.5)) * 8, "#ffd166", 1.5));
     return (
       k.bg(SKY) +
-      k.face({ x: 80, y: ay + tilt * 0.3, r: 30, look: aLook, mood: 0.1, brows: av ? -0.5 : 0 }) +
+      k.face({ x: 80, y: ay + tilt * 0.3, r: 30, look: aLook, mood: 0.1, brows: av ? -0.5 : 0, mouth: v("speaking") === "speaking" ? 0.6 : 0 }) +
+      (v.slider("speaking") ? (v("speaking") === "speaking" ? k.bubble({ x: 160, y: 50, w: 70, h: 18, text: "talking now", size: 9, tail: -40 }) : sm(k, 52, 112, "listening", { size: 7.5, color: "#9fd3ff" })) : "") +
       k.face({ x: 240, y: ay, r: 30, look: bLook, mood: 0, color: "#e0b090" }) +
       ln(ex, ay, tg[0] - 10, ty, "#ffd166", 1 + strong * 3 + hold * 0.4, av ? "3 4" : m === 0 ? "2 5" : null) +
       (m >= 3 && av < 2 ? ln(240 - 30, ay + 4, ex, ay + 4, "#9fd3ff", 1 + hold * 0.4) : "") +
@@ -1476,7 +1496,8 @@
     const part = v("placedPart");
     const ph = part === "their whole body" ? 70 : 150;
     const headY = part === "their face" ? ys : part === "their eyes" ? ys + ph * 0.035 : ys - ph * 0.3;
-    const faceDir = xs > 160 ? -1 : 1;
+    const fc = v("facing");
+    const faceDir = fc === "left" ? -1 : fc === "right" ? 1 : xs > 160 ? -1 : 1;
     const lr = v.n("lookRoom");
     const sx = k.clamp(xs - faceDir * lr * 0.6, 20, 300);
     const lead = idx(v, "leading");
@@ -1484,7 +1505,7 @@
     const sym = idx(v, "symmetry");
     const bal = v.n("balance");
     const leadL = lead ? [0, 320].map((x0) => [0, 180].map((y0) => ln(x0, y0, sx, headY, "#9fd3ff", lead, "6 4")).join("")).join("") : "";
-    const subj = part === "an object" ? box(sx - 15, ys - 15, 30, 30, "#e07a5f", "#1c1712", 3) : fig(k, sx, headY + ph * 0.88 + ph * 0.1, ph, { look: faceDir, color: "#4a6fa5" });
+    const subj = part === "an object" ? box(sx - 15, ys - 15, 30, 30, "#e07a5f", "#1c1712", 3) : fig(k, sx, headY + ph * 0.88 + ph * 0.1, ph, { look: fc === "toward the camera" ? 0 : faceDir, color: "#4a6fa5" });
     const counter = bal !== 0 ? box(bal < 0 ? 250 : 30, 120 - Math.abs(bal) * 8, 40, Math.abs(bal) * 8 + 10, "#5d4a3a", "#1c1712") : "";
     const mirror = sym ? [40, 280].map((x) => box(x - 10, 40 - sym * 5, 20, 100 + sym * 10, "#5b6f8f", "#1c1712")).join("") : "";
     const frameP = fif ? `<rect x="${R(sx - 50)}" y="${R(headY - 30)}" width="100" height="160" fill="none" stroke="#8a6a4a" stroke-width="${fif * 8}"${fif === 1 ? ' stroke-dasharray="60 40"' : ""}/>` : "";
@@ -1498,7 +1519,7 @@
       side() +
       sm(k, 222, 18, `${v("xPct")}% across, ${v("yPct")}% up`, { size: 7.5 }) +
       sm(k, 222, 32, `Placing ${part}`, { size: 7.5 }) +
-      sm(k, 222, 46, `Look room ${lr}%`, { size: 7.5 }) +
+      sm(k, 222, 46, `Look room ${lr}%, facing ${fc || "the room"}`, { size: 7 }) +
       sm(k, 222, 64, `Balance ${bal}`, { size: 7.5 }) +
       sm(k, 222, 78, `Lines: ${v("leading")}`, { size: 7.5 }) +
       sm(k, 222, 92, `Frame in frame: ${v("frameInFrame")}`, { size: 7 }) +

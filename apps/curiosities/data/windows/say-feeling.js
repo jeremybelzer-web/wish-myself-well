@@ -363,4 +363,23 @@
     "fiddle with something": { doing: "fidget", touches: "an object" },
     "calm hands": { doing: "still", tension: 0, gestures: 2 },
   });
+
+  W.say("feelingFaceLens", {
+    "make them smile": { happy: "clearly" },
+    "big smile": { happy: "very", sad: "not at all" },
+    "make them sad": { sad: "clearly", happy: "not at all" },
+    "about to cry": { sad: "very" },
+    "make them angry": { angry: "clearly" },
+    "furious": { angry: "very" },
+    "make them scared": { scared: "clearly" },
+    "terrified": { scared: "very", surprised: "a little" },
+    "surprise them": { surprised: "very" },
+    "grossed out": { disgust: "very" },
+    "no feeling": { happy: "not at all", sad: "not at all", angry: "not at all", scared: "not at all", surprised: "not at all", disgust: "not at all" },
+    "happy and sad": { happy: "a little", sad: "a little" },
+    "look at the camera": { look: "at the camera" },
+    "look away": { look: "left" },
+    "look down": { look: "down" },
+    "look up": { look: "up" },
+  });
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));

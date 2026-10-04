@@ -5,10 +5,20 @@ on:
     paths: ["apps/curiosities/**", ".github/workflows/curiomatic-tests.yml"]
   pull_request:
     paths: ["apps/curiosities/**", ".github/workflows/curiomatic-tests.yml"]
+# A newer push to the same branch or pull request stops the run that is still going.
+concurrency:
+  group: curiomatic-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
+    # The tests run in three parts side by side (tests/run-all.js --shard); part 1 also has the quick checks.
+    name: test (part ${{ matrix.shard }} of 3)
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     defaults:
       run:
         working-directory: apps/curiosities
@@ -27,4 +37,4 @@ jobs:
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       - run: npx playwright install --with-deps chromium
-      - run: node tests/run-all.js --browser
+      - run: node tests/run-all.js --browser --shard ${{ matrix.shard }}/3
