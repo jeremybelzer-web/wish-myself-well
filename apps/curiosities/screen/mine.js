@@ -447,6 +447,8 @@
   }
   function unplace(level, id) {
     const db = DB();
+    /* The database's own remove (PR #131) also clears its index; before it lands, take the row out of its list. */
+    if (typeof db.remove === "function") return void db.remove(level, id);
     const row = db.get(level, id);
     const list = db.data[LIST[level]];
     const i = row ? list.indexOf(row) : -1;
