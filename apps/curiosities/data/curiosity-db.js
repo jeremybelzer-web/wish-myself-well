@@ -60,6 +60,10 @@
     /* A list with no order (which track, which type) steps from item to item instead of gliding. */
     out.curve = s.curve || (s.unordered ? "steps" : "linear");
     if (s.unordered) out.unordered = true;
+    /* lane: the Screen offers this slider as a timeline lane of its own; track says which kind of track it sits on
+       ("character": one lane per character track, "camera", or "master": one lane for the whole scene). */
+    if (s.lane) out.lane = true;
+    if (s.track) out.track = s.track;
     return out;
   }
 

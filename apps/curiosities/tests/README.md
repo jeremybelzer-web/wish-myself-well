@@ -11,7 +11,11 @@ Or, inside `apps/curiosities/`: `npm test`, `npm run test:browser`, `npm run tes
 The summary lists each suite as **pass**, **FAIL** or **skip** (a tool it needs is not installed, such as
 Blender). The exit code is 1 when anything failed. GitHub runs the quick and browser tests on every push to a
 `curiosities-*` branch and every pull request that touches `apps/curiosities/`
-(`.github/workflows/curiomatic-tests.yml`).
+(`.github/workflows/curiomatic-tests.yml`). It runs them as three parts side by side, so a run fits the job time
+limit: `--shard 1/3` (and `2/3`, `3/3`) runs one part. Part 1 has all the quick checks; the browser and long
+suites are dealt out longest first, using the rough `secs` each suite lists in `run-all.js` (give a new slow
+suite a `secs`). The two every-control runs are each split in half by page (`every-control.js --part 1/2`).
+On GitHub a failing suite's FAIL lines also appear as notes on the check's page, so you rarely need the log.
 
 ## Setting up the browser tests
 

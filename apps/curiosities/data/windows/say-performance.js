@@ -437,4 +437,23 @@
     "make it cartoony": { limits: "like rubber", floppy: "floppy" },
     "stiff as a board": { floppy: "stiff", limits: "stiff" },
   });
+
+  W.say("actingLens", {
+    "do a double take": { move: "double take", windup: "clear" },
+    "make them shrug": { move: "shrug" },
+    "they fall over": { move: "pratfall", size: "big" },
+    "wave hello": { move: "wave" },
+    "take a bow": { move: "bow", hold: "clear" },
+    "dance for joy": { move: "victory dance", size: "big" },
+    "make it bigger": { size: "huge" },
+    "make it smaller": { size: "small" },
+    "keep it subtle": { size: "tiny", settle: "eases back" },
+    "faster": { speed: "snappy" },
+    "slower": { speed: "very slow" },
+    "wait for the laugh": { pause: "a long beat", hold: "long" },
+    "awkward pause first": { pause: "painfully long" },
+    "cartoony": { size: "huge", windup: "big", settle: "overshoots and wobbles" },
+    "play it again": { cue: "go" },
+    "no move": { move: "none" },
+  });
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));
