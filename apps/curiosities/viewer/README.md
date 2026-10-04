@@ -237,3 +237,7 @@ in the picture under the pointer, and the part of the app it belongs to in the w
 walkthrough's `steps()` now carry their text and tab). The browser's own tooltip is held back while the
 bubble shows. Help ▸ Hover help turns it on or off (key `curio-hoverhelp-v1`, on to start with; automated
 browsers start with it off unless `?hoverhelp=1`). Test: `node viewer/tests/hoverhelp.js`.
+
+### Borders (`viewer/borders.js`, `window.CurioBorders`)
+
+Every border between the Viewer's panels can be dragged, using the Screen's own border tool (`CurioScreen.splitter`, screen/ui.js) so they look and work the same: In the scene | the picture, the picture | Details, the picture | Front and center, and everything above | the storyboard. Hovering shows a cyan line and triangles pointing the ways it can go. The arrow keys move a focused border, double-click gives the usual size, and «, Enter or a drag past the smallest size folds a panel away completely; click or drag the thin edge left behind to bring it back. Sizes are kept with the film in `film.view.borders` ({ left, right, lane, strip, fold }), so Undo and Redo take a border move back like any other change (`CurioViewer.remember(tag)` adds an undo step without moving the playhead), and they come back after a reload. Only wider than 1100px and not in Read as a comic; phones keep their one column. Test: `viewer/tests/borders.js`.

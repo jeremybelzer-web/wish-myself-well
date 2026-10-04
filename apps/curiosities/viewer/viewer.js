@@ -3104,6 +3104,9 @@
     onChange: (fn) => HOOK.change.push(fn),
     /* onPlay(fn(on, seconds)): told when playing starts or stops; playing() says which */
     onPlay: (fn) => HOOK.play.push(fn),
+    /* remember(tag): put the film as it is now on the undo list, without moving the playhead (for changes
+       that aren't about a panel, like the Viewer's border sizes in film.view) */
+    remember: (tag) => remember(tag),
     playing: () => playing,
     under: () => (root ? root.querySelector(".cv-under") : null),
     seek: (t) => selectPanel(panelAt(clamp(Number(t) || 0, 0, total())).i),
