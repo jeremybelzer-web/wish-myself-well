@@ -1730,7 +1730,7 @@
     const lv = L();
     const o = lv.film.sel && obj(lv.film.sel);
     const T = TOOLS[tool];
-    let h = `<div class="cvb">`;
+    let h = `<div class="cvb"><div class="cvb-winslot"></div>`;
     h += `<div class="cvb-tools" role="toolbar" aria-label="Build tools">${Object.keys(TOOLS)
       .map((k) => `<button type="button" data-btool="${k}" class="${k === tool ? "on" : ""}" title="${esc(TOOLS[k][1])} (${TOOLS[k][2]}). ${esc(TOOLS[k][3])}"><span>${TOOLS[k][0]}</span><small>${esc(TOOLS[k][1])}</small></button>`)
       .join("")}</div>
@@ -1760,6 +1760,7 @@
       <label class="cv-field"><span><b>Wall height</b><em>${S.wallH.toFixed(1)} m</em></span><input type="range" data-bk="wallH" min="0.5" max="6" step="0.1" value="${S.wallH}" /></label>`);
     h += `</div>`;
     body.innerHTML = h;
+    if (window.CurioBuildWindows) window.CurioBuildWindows.slot(body.querySelector(".cvb-winslot"));
     if (!body.dataset.cvbWired) {
       body.dataset.cvbWired = "1";
       body.addEventListener("click", onTabClick);
@@ -2034,12 +2035,13 @@
         filt.q = e.target.value;
         fillSearch();
       });
-      SW.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
+      /* Escape closes it wherever the focus is (a removed button leaves the focus on the page) */
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && SW && !SW.hidden) {
           e.stopPropagation();
           closeSearch();
         }
-      });
+      }, true);
     }
     SW.hidden = false;
     const M = MODES[filt.mode];
@@ -2477,7 +2479,12 @@
     openSearch,
     closeSearch,
     parts: PART_KEYS.slice(),
+    partNames: Object.fromEntries(PART_KEYS.map((k) => [k, PARTS[k][0]])),
     pieces: Object.keys(PIECES),
+    pieceNames: Object.fromEntries(Object.keys(PIECES).map((k) => [k, PIECES[k][0]])),
+    materials: Object.fromEntries(Object.keys(MATERIALS).map((k) => [k, MATERIALS[k].slice()])),
+    prefabList: PREFABS.map((p) => ({ id: p.id, name: p.name, say: p.say })),
+    addSetting,
     prefabs: PREFABS.map((p) => p.id),
     fonts: Object.keys(FONTS),
     shapes: Object.keys(SHAPES),

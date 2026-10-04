@@ -412,14 +412,22 @@ const ok = (cond, msg) => {
 
     /* Control+drag spins a thing; Control+click opens what it can do */
     await page.evaluate(() => CurioBuild.setTool("select"));
-    const pid = (await film()).objects.find((o) => o.kind === "person").id;
-    const spot = await page.evaluate((id) => {
+    /* a person you can see (not one sitting inside the tuk-tuk) */
+    const [pid, spot] = await page.evaluate(() => {
       const lv = CurioViewer.live();
-      const pl = lv.panel.place[id];
-      const p = CurioViewer.projectNow([pl.x, pl.y + 1.1, pl.z]);
       const r = lv.canvas.getBoundingClientRect();
-      return p && [r.left + (p[0] * r.width) / lv.canvas.width, r.top + (p[1] * r.height) / lv.canvas.height];
-    }, pid);
+      for (const o of lv.film.objects.filter((x) => x.kind === "person")) {
+        const pl = lv.panel.place[o.id];
+        for (const h of [1.1, 0.8, 1.4, 0.5]) {
+          const p = CurioViewer.projectNow([pl.x, pl.y + h, pl.z]);
+          if (!p) continue;
+          const xy = [r.left + (p[0] * r.width) / lv.canvas.width, r.top + (p[1] * r.height) / lv.canvas.height];
+          const k = CurioViewer.pickAt({ clientX: xy[0], clientY: xy[1] });
+          if (k && k.obj === o.id) return [o.id, xy];
+        }
+      }
+      return [null, null];
+    });
     if (spot) {
       const turn0 = (await film()).panels[0].place[pid].turn || 0;
       await page.keyboard.down("Control");
@@ -432,10 +440,16 @@ const ok = (cond, msg) => {
       ok(Math.abs(turn1 - turn0) > 20, `Control+drag on a person spins them (${turn0} → ${turn1})`);
       const spot2 = await page.evaluate((id) => {
         const lv = CurioViewer.live();
-        const pl = lv.panel.place[id];
-        const p = CurioViewer.projectNow([pl.x, pl.y + 1.1, pl.z]);
         const r = lv.canvas.getBoundingClientRect();
-        return [r.left + (p[0] * r.width) / lv.canvas.width, r.top + (p[1] * r.height) / lv.canvas.height];
+        const pl = lv.panel.place[id];
+        for (const h of [1.1, 0.8, 1.4, 0.5, 0.3, 1.6]) {
+          const p = CurioViewer.projectNow([pl.x, pl.y + h, pl.z]);
+          if (!p) continue;
+          const xy = [r.left + (p[0] * r.width) / lv.canvas.width, r.top + (p[1] * r.height) / lv.canvas.height];
+          const k = CurioViewer.pickAt({ clientX: xy[0], clientY: xy[1] });
+          if (k && k.obj === id) return xy;
+        }
+        return [0, 0];
       }, pid);
       await page.keyboard.down("Control");
       await page.mouse.click(spot2[0], spot2[1]);

@@ -114,9 +114,9 @@
         const ang = (i / n) * Math.PI * 2 + rnd(i, 1);
         const rr = rad * (0.25 + rnd(i, 2) * 0.55);
         const fl = 0.75 + 0.25 * Math.sin(ph * 4 + i * 1.7);
-        const h = (0.35 + rnd(i, 3) * 0.5) * a * fl * Math.max(0.6, rad);
+        const h = (0.5 + rnd(i, 3) * 0.7) * a * fl * Math.max(0.8, rad);
         const y = top * (0.4 + rnd(i, 4) * 0.6);
-        out.push({ cone: [0.12 * a + rnd(i, 5) * 0.1, h], at: [Math.cos(ang) * rr, y, Math.sin(ang) * rr], color: i % 3 ? "#ff7a1a" : "#ffd23a", glow: true });
+        out.push({ cone: [0.16 * a + rnd(i, 5) * 0.12, h], at: [Math.cos(ang) * rr, y, Math.sin(ang) * rr], color: i % 3 ? "#ff7a1a" : "#ffd23a", glow: true });
       }
       out.push({ cone: [rad * 0.35 * a, 0.9 * a * Math.max(0.6, rad)], at: [0, top * 0.85, 0], color: "#ffb02e", glow: true });
       return out;
@@ -319,7 +319,7 @@
     return s.turnSnap || 15;
   };
   function down(e, o, ids) {
-    const pt = V.canvasPoint(e);
+    const pt = [e.clientX, e.clientY];
     const starts = {};
     ids.forEach((id) => {
       const pl = L().panel.place[id];
@@ -330,7 +330,7 @@
   }
   function move(e) {
     if (!drag) return;
-    const pt = V.canvasPoint(e);
+    const pt = [e.clientX, e.clientY];
     const dx = pt[0] - drag.pt0[0];
     const dy = pt[1] - drag.pt0[1];
     if (!drag.moved && Math.hypot(dx, dy) < 5) return;
