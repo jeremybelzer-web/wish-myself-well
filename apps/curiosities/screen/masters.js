@@ -22,7 +22,7 @@
      gate[k]   0: that moment plays what was there before
      lfo       1, 2 or 4: on for that many moments, then off for as many, from the start
      scale     -100 (off: what was there before) to 100 (the suite as copied): each value moves that share of
-               the way from what was there before (Jeremy's "−100 % (off) to +100 %")
+               the way from what was there before (the notes' "−100 % (off) to +100 %")
    A node fully on at 100% writes the suite's own nodes (the same points a plain paste writes); otherwise it writes
    one point per moment so the gate, LFO and scale play exactly.
 
@@ -30,8 +30,10 @@
    an undo step: it lays the lanes it would write over the saved ones with CurioEngine.perform("masters", layer)
    (the Triggers helper's layer API) and trigger(id, null) puts it back as drawn. No perform API: nothing happens.
 
-   THE VIEW (lanes.js calls it): one master lane per track, on top of the timeline's lanes (the music app's
-   "each track has its notes, then one Master lane"). The track's name selects the track (click: just it; ⌘/Ctrl:
+   THE VIEW (lanes.js draws it): one master lane per track, in a band under the timeline's lanes (the music app
+   has "each track has its notes, then one Master lane"; here the lanes stay grouped by category, CapCut-style, so
+   the master lanes sit together under them). The band shows the tracks that hold master nodes, lit or folded
+   tracks, or every track with Tracks switched on in the Master Nodes window. The track's name selects the track (click: just it; ⌘/Ctrl:
    add or take away; ⇧: a run); selected tracks light up and are where a multi-track paste goes. ▸/▾ folds every
    lane on that track; a folded track's master lane shows faint ticks wherever the track holds automation.
    On a master lane:

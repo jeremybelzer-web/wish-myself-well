@@ -2116,7 +2116,8 @@
     }
     /* ---------- track master lanes and master nodes (screen/masters.js has the rules; the music app's notes,
        sections 3 to 6; /mnt/project-files/decisions/music-app-parity.md) ----------
-       One master lane per track on top of the lanes: the track's name (click selects it; ⌘/Ctrl adds or takes away;
+       One master lane per track, in a band under the lanes (shown for tracks with master nodes, lit or folded
+       tracks, or every track with Tracks on in the Master Nodes window): the track's name (click selects it; ⌘/Ctrl adds or takes away;
        ⇧ selects a run), ▸/▾ folding every lane on that track (folded: faint ticks wherever the track holds
        automation), and the track's master nodes: ◆ START, a line, ◆ END over each placed copy, and the source ◇
        where it was copied from. */
