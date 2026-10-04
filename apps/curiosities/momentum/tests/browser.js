@@ -300,10 +300,10 @@ const ok = (cond, text) => {
   const hasPlayer = await sp.waitForSelector(".sc-page .sc-player", { timeout: 5000 }).then(() => true, () => false);
   if (!hasPlayer) console.log("skip the Screen has no Player panel here (it arrives with the CapCut layout)");
   else {
-    await sp.waitForSelector(".sc-player > .mo-sp .mo-sp-film", { timeout: 8000 });
+    await sp.waitForSelector(".sc-player .mo-sp .mo-sp-film", { timeout: 8000 });
     const side = await sp.evaluate(() => {
       const p = document.querySelector(".sc-player").getBoundingClientRect();
-      const m = document.querySelector(".sc-player > .mo-sp").getBoundingClientRect();
+      const m = document.querySelector(".sc-player .mo-sp").getBoundingClientRect();
       const v = document.querySelector(".sc-player > .sc-viewers").getBoundingClientRect();
       return { inside: m.right <= p.right + 1 && m.left >= p.left - 1, beside: m.left >= v.right - 1, w: Math.round(m.width) };
     });
@@ -341,7 +341,7 @@ const ok = (cond, text) => {
       await sp.selectOption("select[data-pick-layout]", "right");
       await sp.waitForTimeout(150);
       const under = await sp.evaluate(() => {
-        const m = document.querySelector(".sc-player > .mo-sp").getBoundingClientRect();
+        const m = document.querySelector(".sc-player .mo-sp").getBoundingClientRect();
         const t = document.querySelector(".sc-player > .sc-transport").getBoundingClientRect();
         return m.top >= t.bottom - 1;
       });
