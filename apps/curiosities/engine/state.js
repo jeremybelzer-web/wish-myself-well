@@ -73,9 +73,9 @@
      fingerprinted, not on the undo list, and listeners are not told (whoever performs redraws). Named layers, so
      the triggers (screen/triggers.js) and the master nodes each keep their own; they are laid over the saved lanes
      in the order they were first set, before the rewrite's step 2, so links and hand edits still run after.
-     layer: { lanes: { "track|cur": { on?, mode?, points?: { rowId: value }, scale?: -100..100, set?: 0..1,
-     nodes?: { rowId: { off?, scale?, set? } } } } }. scale moves values toward (-) or away from (+) the
-     curiosity's start value (its neutral), -100 being the start value itself; set holds the whole lane at that
+     layer: { lanes: { "track|cur": { on?, mode?, points?: { rowId: value }, scale?: 0..100, set?: 0..1,
+     nodes?: { rowId: { off?, scale?, set? } } } } }. scale is how far each value goes from the
+     curiosity's start value (its neutral): 0 is the start value itself, 100 the value as drawn; set holds the whole lane at that
      place on its scale. */
   const performLayers = new Map();
   function performedLanes(st) {
@@ -86,7 +86,7 @@
       const p = S.pos(c, v);
       const n = S.pos(c, S.start(c));
       if (p == null || n == null) return v;
-      return S.at(c, Math.min(1, Math.max(0, n + (p - n) * ((Math.max(-100, Math.min(100, Number(s) || 0)) + 100) / 200))));
+      return S.at(c, Math.min(1, Math.max(0, n + (p - n) * (Math.max(0, Math.min(100, Number(s) || 0)) / 100))));
     };
     performLayers.forEach((layer) => {
       const ls = layer && isObj(layer.lanes) ? layer.lanes : {};
@@ -263,7 +263,7 @@
        { list: [{ id, label, src: { tracks, t0, t1 }, span, suite: { lanes: [{ cur, track, mode, points: [[at, value]] }] },
                   on, gate: { k: 0 }, lfo, scale, nodes: [{ id, n, track, t, lks, on?, gate?, lfo?, scale?, under }] }],
          seq }
-     t0, t1, t: row ids; span: how many moments; at, k: moments from the start; lfo 0, 1, 2 or 4 moments; scale -100
+     t0, t1, t: row ids; span: how many moments; at, k: moments from the start; lfo 0, 1, 2 or 4 moments; scale 0
      (off) to 100 (as copied); n: the order nodes were placed in (the newest wins where two overlap); under:
      { "track|curiosity": { rowId: value or null } }, what each moment held before (null: no point). A node's own
      on, gate, lfo or scale overrides its master's; left out, the master's (the source ◇) rules. */
@@ -306,7 +306,7 @@
         on: m.on !== false,
         gate: fixGate(m.gate, span),
         lfo: LFOS.includes(Number(m.lfo)) ? Number(m.lfo) : 0,
-        scale: int(m.scale, -100, 100, 100),
+        scale: int(m.scale, 0, 100, 100),
         nodes: [],
       };
       const nids = new Set();
@@ -321,7 +321,7 @@
         if (typeof x.on === "boolean") node.on = x.on;
         if (isObj(x.gate)) node.gate = fixGate(x.gate, span);
         if (x.lfo != null && LFOS.includes(Number(x.lfo))) node.lfo = Number(x.lfo);
-        if (x.scale != null && isFinite(Number(x.scale))) node.scale = int(x.scale, -100, 100, 100);
+        if (x.scale != null && isFinite(Number(x.scale))) node.scale = int(x.scale, 0, 100, 100);
         if (isObj(x.under))
           Object.keys(x.under).forEach((lk) => {
             if (!node.lks.includes(lk) || !isObj(x.under[lk])) return;

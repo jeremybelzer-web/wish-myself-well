@@ -122,7 +122,7 @@
   }
   function cleanDoes(d) {
     d = isObj(d) ? d : {};
-    return { act: pick(DOES, d.act, "on"), amount: Math.round(clamp(d.amount, -100, 100, 50)), value: Math.round(clamp(d.value, 0, 100, 100)), mode: pick(MODES, d.mode, "latch") };
+    return { act: pick(DOES, d.act, "on"), amount: Math.round(clamp(d.amount, 0, 100, 50)), value: Math.round(clamp(d.value, 0, 100, 100)), mode: pick(MODES, d.mode, "latch") };
   }
   function cleanLimits(l) {
     l = isObj(l) ? l : {};
@@ -397,7 +397,7 @@
   }
   function doesName(d) {
     const a = (DOES.find((x) => x[0] === d.act) || DOES[0])[1].toLowerCase();
-    const how = d.act === "scale" ? ` ${d.amount > 0 ? "+" : ""}${d.amount}%` : d.act === "set" ? ` to ${d.value}%` : "";
+    const how = d.act === "scale" ? ` to ${d.amount}%` : d.act === "set" ? ` to ${d.value}%` : "";
     return `${a}${how}${d.act === "press" ? "" : ", " + (MODES.find((m) => m[0] === d.mode) || MODES[0])[1].toLowerCase()}`;
   }
   const autoName = (t) => `${whenName(t.when)} → ${(DOES.find((x) => x[0] === t.does.act) || DOES[0])[1].toLowerCase()}`;
@@ -576,7 +576,7 @@
       else if (t.does.act === "off") masterCall(t, false);
       else if (t.does.act === "onoff") masterCall(t, !(x.flip = !x.flip));
       else if (t.does.act === "scale") masterCall(t, true, { scale: t.does.amount });
-      else if (t.does.act === "set" || t.does.act === "follow") masterCall(t, true, { scale: Math.round(((t.does.act === "set" ? t.does.value / 100 : x.value == null ? 1 : x.value) * 200) - 100) });
+      else if (t.does.act === "set" || t.does.act === "follow") masterCall(t, true, { scale: Math.round(((t.does.act === "set" ? t.does.value / 100 : x.value == null ? 1 : x.value) * 100)) });
       else masterCall(t, true);
       drawProx();
       return;
@@ -979,7 +979,7 @@
     else whenBody = `<label>Movement <select data-f="when.zone">${ZONES.map((z) => opt(z[0], z[1], w.zone)).join("")}</select></label><p class="ctr-k">The camera stays off until you switch it on in the Curiosity Proximity window. The picture is read in this browser only, as movement in parts of the frame; nothing is recorded or uploaded.</p>`;
     const d = t.does;
     const l = t.limits;
-    const doesBody = `<label>Does <select data-f="does.act">${DOES.map((x) => opt(x[0], x[1], d.act)).join("")}</select></label>${d.act === "scale" ? `<label>By <input type="number" min="-100" max="100" step="5" data-f="does.amount" value="${d.amount}">%</label>` : ""}${d.act === "set" ? `<label>To <input type="number" min="0" max="100" step="5" data-f="does.value" value="${d.value}">% of its scale</label>` : ""}${d.act === "press" ? `<p class="ctr-k">A press acts for one moment, then lets go.</p>` : `<span class="ctr-seg" role="group" aria-label="How it acts">${MODES.map((m) => `<button type="button" data-ctr-mode="${m[0]}" class="${d.mode === m[0] ? "on" : ""}" aria-pressed="${d.mode === m[0]}" title="${esc(m[2])}">${esc(m[1])}</button>`).join("")}</span>`}`;
+    const doesBody = `<label>Does <select data-f="does.act">${DOES.map((x) => opt(x[0], x[1], d.act)).join("")}</select></label>${d.act === "scale" ? `<label>By <input type="number" min="0" max="100" step="5" data-f="does.amount" value="${d.amount}">%</label>` : ""}${d.act === "set" ? `<label>To <input type="number" min="0" max="100" step="5" data-f="does.value" value="${d.value}">% of its scale</label>` : ""}${d.act === "press" ? `<p class="ctr-k">A press acts for one moment, then lets go.</p>` : `<span class="ctr-seg" role="group" aria-label="How it acts">${MODES.map((m) => `<button type="button" data-ctr-mode="${m[0]}" class="${d.mode === m[0] ? "on" : ""}" aria-pressed="${d.mode === m[0]}" title="${esc(m[2])}">${esc(m[1])}</button>`).join("")}</span>`}`;
     const ranges = l.ranges.map((r, i) => `<span class="ctr-range">moments <input type="number" min="1" data-range="${i}|0" value="${r[0]}"> to <input type="number" min="1" data-range="${i}|1" value="${r[1]}"> <button type="button" data-range-del="${i}" aria-label="Remove this range">×</button></span>`).join("");
     const limBody = `<label>Only between <input type="number" min="0" max="100" data-f="limits.lo" value="${l.lo}"> and <input type="number" min="0" max="100" data-f="limits.hi" value="${l.hi}"> % (velocity or value)</label>
       <label><select data-f="limits.count">${COUNTS.map((c) => opt(c[0], c[1], l.count)).join("")}</select>${l.count === "every" ? "" : ` N = <input type="number" min="1" max="999" data-f="limits.n" value="${l.n}">`}</label>

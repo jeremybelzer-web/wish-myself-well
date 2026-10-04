@@ -4111,7 +4111,7 @@ const ok = (cond, msg) => {
     await p.mouse.click(g.x, g.y);
     ok(!((await masters())[0].nodes[0].gate || {})["1"], "a second click opens the gate again");
 
-    /* 5. Drag the line up or down to scale it (−100 to +100%). */
+    /* 5. Drag the line up or down to scale it (0 to 100%). */
     await p.waitForTimeout(450);
     u0 = await undoN();
     await p.mouse.move(g.x, g.y);
@@ -4120,7 +4120,7 @@ const ok = (cond, msg) => {
     await p.mouse.move(g.x, g.y + 14, { steps: 3 });
     await p.mouse.up();
     const sc = (await masters())[0].nodes[0].scale;
-    ok(sc != null && sc < 100 && sc >= -100 && (await undoN()) === u0 + 1, "dragging its line down scales it (now " + sc + "%), one undo step");
+    ok(sc != null && sc < 100 && sc >= 0 && (await undoN()) === u0 + 1, "dragging its line down scales it (now " + sc + "%), one undo step");
     await p.evaluate(() => window.CurioEngine.undo());
 
     /* 6. LFO from the window: every 2 moments it switches on and off. */

@@ -231,7 +231,7 @@ const ok = (cond, msg) => {
     return { ok: r.ok, err: r.error, track: ch.id, rows: st.rows.map((x) => x.id), lines: st.rows.map((x, j) => window.CurioTriggers.eventsAt(j).filter((e) => e.event === "line").length) };
   });
   ok(ev.ok && ev.lines[1] === 1 && ev.lines[4] === 1 && ev.lines[2] === 0, `a line of dialogue is found where a character starts speaking (${ev.lines})`);
-  const id3 = await T((ev) => window.CurioTriggers.add({ target: { kind: "suite", from: "curiosity", cur: "shotSize", track: "" }, when: { kind: "event", event: "line", track: ev.track, row: ev.rows[4] }, does: { act: "scale", amount: -100, mode: "hold" } }).id, ev);
+  const id3 = await T((ev) => window.CurioTriggers.add({ target: { kind: "suite", from: "curiosity", cur: "shotSize", track: "" }, when: { kind: "event", event: "line", track: ev.track, row: ev.rows[4] }, does: { act: "scale", amount: 0, mode: "hold" } }).id, ev);
   const fires = [];
   for (let j = 0; j < 6; j++) {
     await T((j) => window.CurioScreen.setRow(j), j);
@@ -358,13 +358,13 @@ const ok = (cond, msg) => {
   await page.fill('.ctr-win [data-f="when.num"]', "62");
   await page.dispatchEvent('.ctr-win [data-f="when.num"]', "change");
   await page.selectOption('.ctr-win [data-f="does.act"]', "scale");
-  await page.fill('.ctr-win [data-f="does.amount"]', "-50");
+  await page.fill('.ctr-win [data-f="does.amount"]', "25");
   await page.dispatchEvent('.ctr-win [data-f="does.amount"]', "change");
   await page.click('.ctr-win [data-ctr-mode="hold"]');
   await page.click(".ctr-win [data-ctr-save]");
   await T(() => (window.CurioTriggers.midi({ kind: "note", num: 62, on: true, vel: 90 }), window.CurioTriggers.midi({ kind: "note", num: 62, on: false })));
   const calls = await T(() => window.__mcalls);
-  ok(calls.length === 2 && calls[0][0] === "n1" && calls[0][1] === true && calls[0][2] === -50 && calls[1][1] === null, `a master node is driven through CurioMasters.trigger(id, on, { scale }) (${JSON.stringify(calls)})`);
+  ok(calls.length === 2 && calls[0][0] === "n1" && calls[0][1] === true && calls[0][2] === 25 && calls[1][1] === null, `a master node is driven through CurioMasters.trigger(id, on, { scale }) (${JSON.stringify(calls)})`);
   ok((await T(() => window.CurioTriggers.forTarget("mnode:n1"))).length === 1, "forTarget lists a master node's triggers for its Proximity view");
   await T(() => { if (window.__mreal) window.CurioMasters.trigger = window.__mreal; });
 

@@ -2215,12 +2215,12 @@
       const st = E().state();
       const f = mFind(st, id);
       if (!f) return;
-      s = Math.max(-100, Math.min(100, Math.round(Number(s) || 0)));
+      s = Math.max(0, Math.min(100, Math.round(Number(s) || 0)));
       const r = masterChange(`Scale ${f.m.label} to ${s}%`, (next) => {
         mTarget(next, id).scale = s;
       });
       if (!r.drawn) draw();
-      if (r.ok) say(`${f.m.label} scaled to ${s > 0 ? "+" : ""}${s}%${s <= -100 ? " (off: what was there before plays)" : s >= 100 ? " (as copied)" : ""}.`);
+      if (r.ok) say(`${f.m.label} scaled to ${s}%${s <= 0 ? " (off: what was there before plays)" : s >= 100 ? " (as copied)" : ""}.`);
       return r;
     }
     function mLfo(id, every) {
@@ -2402,7 +2402,7 @@
           const on = Mx.momentOn(eff, k);
           svg.push(`<line class="sl-mline${on ? "" : " gated"}" x1="${(p.j0 + k) * colW}" x2="${(p.j0 + k + 1) * colW}" y1="${ly}" y2="${ly}" data-mown="${esc(id)}"/><rect class="sl-mhit" x="${(p.j0 + k) * colW}" y="${y}" width="${colW}" height="${band.mh}" data-mline="${esc(id)}" data-master="${esc(p.m.id)}" data-mnode="${esc(id)}" data-k="${k}"><title>${esc(p.m.label)}, moment ${p.j0 + k + 1}: ${on ? "plays" : "gated (what was there before plays)"}. Click to ${on ? "gate" : "open"} it; drag up or down to scale (${eff.scale > 0 ? "+" : ""}${eff.scale}%).</title></rect>`);
         }
-        const tag = [eff.on ? "" : "off", eff.lfo ? `LFO ${eff.lfo}` : "", eff.scale !== 100 ? `${eff.scale > 0 ? "+" : ""}${eff.scale}%` : ""].filter(Boolean).join(" ");
+        const tag = [eff.on ? "" : "off", eff.lfo ? `LFO ${eff.lfo}` : "", eff.scale !== 100 ? `${eff.scale}%` : ""].filter(Boolean).join(" ");
         if (tag && (p.j1 - p.j0 + 1) * colW > 60) svg.push(`<text class="sl-mtag" x="${p.j0 * colW + 14}" y="${y + 9}" data-mown="${esc(id)}">${esc(tag)}</text>`);
         [p.j0 * colW + 6, (p.j1 + 1) * colW - 6].forEach((cx, e) =>
           dots.push(`<path class="sl-mnode${eff.on ? "" : " off"}${mSel === id ? " on" : ""}${area && mInArea(st, area).includes(id) ? " in" : ""}" d="${diamond(cx, y + band.mh / 2, 5.5)}" data-mnode="${esc(id)}" data-master="${esc(p.m.id)}" data-mown="${esc(id)}" data-end="${e}"><title>${esc(p.m.label)} ${e ? "END" : "START"} ◆, moments ${p.j0 + 1} to ${p.j1 + 1}${tag ? " (" + esc(tag) + ")" : ""}. Drag sideways to move; double-click: on / off; ⌥-click or Delete: remove; right-click for more.</title></path>`)
@@ -2489,10 +2489,10 @@
         say(d.dj ? `Move it ${Math.abs(d.dj)} moment${Math.abs(d.dj) === 1 ? "" : "s"} ${d.dj > 0 ? "later" : "earlier"}; let go to keep it.` : "Drag sideways to move it.");
       } else if (d.kind === "line") {
         const mh = mrowH();
-        d.scale = Math.max(-100, Math.min(100, Math.round(d.scale0 - (dy / Math.max(8, mh - 8)) * 200)));
+        d.scale = Math.max(0, Math.min(100, Math.round(d.scale0 - (dy / Math.max(8, mh - 8)) * 100)));
         const shift = ((M().amountOf(d.scale0) - M().amountOf(d.scale)) * (mh - 8)).toFixed(1);
         own.filter((x) => x.classList.contains("sl-mline")).forEach((x) => x.setAttribute("transform", `translate(0 ${shift})`));
-        say(`Scale ${d.scale > 0 ? "+" : ""}${d.scale}%${d.scale <= -100 ? " (off)" : ""}: let go to keep it.`);
+        say(`Scale ${d.scale}%${d.scale <= 0 ? " (off)" : ""}: let go to keep it.`);
       }
     }
     function bandUp() {
@@ -2548,7 +2548,7 @@
       if (f.node) pop.dataset.mnode = f.node.id;
       pop.innerHTML = `<p><strong>${esc(mName(st, f))}</strong></p><div class="sl-pop-btns" style="flex-wrap:wrap;justify-content:flex-start"><button type="button" data-mm="toggle">${eff.on ? "Switch off" : "Switch on"}</button>${M()
         .LFOS.map((n) => `<button type="button" data-mm="lfo" data-n="${n}" class="${eff.lfo === n ? "on" : ""}" aria-pressed="${eff.lfo === n}">${n ? `LFO ${n}` : "No LFO"}</button>`)
-        .join("")}${[100, 50, 0, -50, -100].map((s) => `<button type="button" data-mm="scale" data-n="${s}" class="${eff.scale === s ? "on" : ""}">${s > 0 ? "+" : ""}${s}%</button>`).join("")}${f.node && (f.node.on != null || f.node.scale != null || f.node.lfo != null || f.node.gate != null) ? `<button type="button" data-mm="inherit" title="Take away this copy's own settings, so its source ◇ controls it again">Follow the source ◇</button>` : ""}<button type="button" data-mm="remove">${f.src ? "Remove the master" : "Remove"}</button><button type="button" data-mm="win">Master Nodes…</button><button type="button" data-mm="close" data-m="close">Close</button></div>`;
+        .join("")}${[100, 75, 50, 25, 0].map((s) => `<button type="button" data-mm="scale" data-n="${s}" class="${eff.scale === s ? "on" : ""}">${s}%</button>`).join("")}${f.node && (f.node.on != null || f.node.scale != null || f.node.lfo != null || f.node.gate != null) ? `<button type="button" data-mm="inherit" title="Take away this copy's own settings, so its source ◇ controls it again">Follow the source ◇</button>` : ""}<button type="button" data-mm="remove">${f.src ? "Remove the master" : "Remove"}</button><button type="button" data-mm="win">Master Nodes…</button><button type="button" data-mm="close" data-m="close">Close</button></div>`;
       el.appendChild(pop);
       pop.addEventListener("click", (ev) => {
         const b = ev.target.closest("[data-mm]");
@@ -2617,13 +2617,13 @@
             const a = ix.indexOf(m.src.t0);
             return `<section class="sl-mwin-m" data-mid="${esc(m.id)}"><p><strong>${esc(m.label)}</strong> · ${m.span} moment${m.span === 1 ? "" : "s"} · ◇ from ${esc((m.src.tracks || []).map(tr).join(", ") || "elsewhere")}${a >= 0 ? `, moment ${a + 1}` : ""}</p>
               <div class="sl-mwin-row"><button type="button" data-mw="mon" class="${m.on !== false ? "on" : ""}" aria-pressed="${m.on !== false}">${m.on !== false ? "ON" : "OFF"}</button>
-              <label>Scale <input type="range" min="-100" max="100" step="1" value="${m.scale}" data-mw="mscale" aria-label="${esc(m.label)} scale"> <output>${m.scale > 0 ? "+" : ""}${m.scale}%</output></label>
+              <label>Scale <input type="range" min="0" max="100" step="1" value="${m.scale}" data-mw="mscale" aria-label="${esc(m.label)} scale"> <output>${m.scale}%</output></label>
               ${lfoSel("mlfo", m.lfo, false)}<button type="button" data-mw="mremove">Remove</button></div>
               ${gates(m, m.gate, "src:" + m.id)}
               <ul>${(m.nodes || [])
                 .map((n) => {
                   const j = ix.indexOf(n.t);
-                  return `<li data-nid="${esc(n.id)}"><span>◆ ${esc(tr(n.track))}, moments ${j + 1} to ${j + m.span}</span> ${onSel(n.on)} <label><input type="checkbox" data-mw="nownscale"${n.scale != null ? " checked" : ""}> own scale</label>${n.scale != null ? ` <input type="range" min="-100" max="100" step="1" value="${n.scale}" data-mw="nscale" aria-label="Scale of this copy"> <output>${n.scale > 0 ? "+" : ""}${n.scale}%</output>` : ""} ${lfoSel("nlfo", n.lfo, true)} <button type="button" data-mw="nremove">Remove</button>${n.gate ? `<div>${gates(m, n.gate, n.id)} <button type="button" data-mw="ngateoff">Gate as the source ◇</button></div>` : ""}</li>`;
+                  return `<li data-nid="${esc(n.id)}"><span>◆ ${esc(tr(n.track))}, moments ${j + 1} to ${j + m.span}</span> ${onSel(n.on)} <label><input type="checkbox" data-mw="nownscale"${n.scale != null ? " checked" : ""}> own scale</label>${n.scale != null ? ` <input type="range" min="0" max="100" step="1" value="${n.scale}" data-mw="nscale" aria-label="Scale of this copy"> <output>${n.scale}%</output>` : ""} ${lfoSel("nlfo", n.lfo, true)} <button type="button" data-mw="nremove">Remove</button>${n.gate ? `<div>${gates(m, n.gate, n.id)} <button type="button" data-mw="ngateoff">Gate as the source ◇</button></div>` : ""}</li>`;
                 })
                 .join("")}</ul></section>`;
           })

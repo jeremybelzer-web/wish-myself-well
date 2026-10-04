@@ -1258,7 +1258,7 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   ok(!!C, "screen/triggers.js loads with no page");
   if (C) {
     const t = C.cleanOne({ target: { kind: "node", lk: "cam|shotSize", row: "r3" }, when: { kind: "midi", type: "cc", num: 300 }, does: { act: "scale", amount: -500, mode: "nope" }, limits: { lo: 90, hi: 10, ranges: [[5, 2], "x"], count: "nth", n: 0, sections: { mode: "only", list: ["a"] } } }, 0);
-    ok(t.when.num === 127 && t.does.amount === -100 && t.does.mode === "latch" && t.limits.lo === 10 && t.limits.hi === 90 && JSON.stringify(t.limits.ranges) === "[[2,5]]" && t.limits.n === 1, "a trigger is cleaned: numbers kept in range, ranges in order, unknown words back to the default");
+    ok(t.when.num === 127 && t.does.amount === 0 && t.does.mode === "latch" && t.limits.lo === 10 && t.limits.hi === 90 && JSON.stringify(t.limits.ranges) === "[[2,5]]" && t.limits.n === 1, "a trigger is cleaned: numbers kept in range, ranges in order, unknown words back to the default");
     ok(C.clean({ list: [{ target: { kind: "bogus" } }, null, { target: { kind: "suite", from: "library", id: "noir" } }] }).list.length === 1, "a broken saved trigger is dropped quietly");
     const rows = [1, 2, 3, 4, 5, 6].map((i) => ({ id: "r" + i }));
     const secs = C.sectionsOf([{ row: "r5", note: "" }, { row: "r3", note: "Act 2" }, { row: "gone" }], rows);

@@ -21,8 +21,8 @@
      on        false: nothing is written; what was there before plays
      gate[k]   0: that moment plays what was there before
      lfo       1, 2 or 4: on for that many moments, then off for as many, from the start
-     scale     -100 (off: what was there before) to 100 (the suite as copied): each value moves that share of
-               the way from what was there before (the notes' "−100 % (off) to +100 %")
+     scale     0 (off: what was there before) to 100 (the suite as copied): each value moves that share of
+               the way from what was there before (Jeremy, 2026-10-04: "0-100 not -100 to +100")
    A node fully on at 100% writes the suite's own nodes (the same points a plain paste writes); otherwise it writes
    one point per moment so the gate, LFO and scale play exactly.
 
@@ -39,7 +39,7 @@
    On a master lane:
      double-click ◆ or ◇      on / off (◇: the master, so every destination that has no setting of its own)
      click one moment of a line  gate that moment (click again to open it)
-     drag a line up or down      scale from −100% (off) to +100%
+     drag a line up or down      scale from 0% (off) to 100%
      drag ◆ sideways             move that destination
      ⌥-click (or Delete)         remove a ◆ (⌥-click ◇ removes the whole master and every destination)
      right-click                 a menu: On / Off, LFO every 1, 2 or 4 moments, Scale, Remove, Master Nodes…
@@ -69,7 +69,7 @@
     if (eff.lfo > 0 && Math.floor(k / eff.lfo) % 2 === 1) return false;
     return true;
   }
-  const amountOf = (scale) => Math.max(0, Math.min(1, (Number(scale) + 100) / 200));
+  const amountOf = (scale) => Math.max(0, Math.min(1, (Number(scale) || 0) / 100));
   /* A value at a place on a curiosity's scale, and back. */
   const posOf = (cur, v) => (S() ? S().pos(cur, v) : null);
   const atPos = (cur, p) => S().at(cur, Math.max(0, Math.min(1, p)));
@@ -392,7 +392,7 @@
       if (on == null) delete overNow[n.id];
       else {
         const o = { on: !!on };
-        if (opts && opts.scale != null && isFinite(Number(opts.scale))) o.scale = Math.max(-100, Math.min(100, Number(opts.scale)));
+        if (opts && opts.scale != null && isFinite(Number(opts.scale))) o.scale = Math.max(0, Math.min(100, Number(opts.scale)));
         overNow[n.id] = o;
       }
     });

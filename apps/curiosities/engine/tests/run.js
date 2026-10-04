@@ -841,16 +841,16 @@ check("level bar: a lane below 100% plays that share of its distance from neutra
 check("master nodes: kept valid, tidied when rows, curiosities or tracks go, and one undo step", () => {
   E.reset();
   E.send({ type: "importFilm", film: tiny() });
-  const masters = { seq: 2, list: [{ id: "M1", label: "Look", src: { tracks: ["a"], t0: "r1", t1: "r2" }, span: 2, suite: { lanes: [{ cur: "volume", track: "a", mode: "ramp", points: [[0, 5], [1, 4], [7, 2]] }] }, on: true, gate: { 1: 0, 9: 0 }, lfo: 3, scale: 250, nodes: [{ id: "N1", n: 1, track: "a", t: "r3", lks: ["a|volume"], under: { "a|volume": { r3: null, r4: 2 } }, scale: -50 }, { id: "N2", n: 2, track: "zz", t: "r3", lks: [] }] }] };
+  const masters = { seq: 2, list: [{ id: "M1", label: "Look", src: { tracks: ["a"], t0: "r1", t1: "r2" }, span: 2, suite: { lanes: [{ cur: "volume", track: "a", mode: "ramp", points: [[0, 5], [1, 4], [7, 2]] }] }, on: true, gate: { 1: 0, 9: 0 }, lfo: 3, scale: 250, nodes: [{ id: "N1", n: 1, track: "a", t: "r3", lks: ["a|volume"], under: { "a|volume": { r3: null, r4: 2 } }, scale: 40 }, { id: "N2", n: 2, track: "zz", t: "r3", lks: [] }] }] };
   assert.ok(E.send({ type: "setMasters", masters }).ok);
   const m = E.state().masters.list[0];
   same(m.suite.lanes[0].points, [[0, 5], [1, 4]], "points past the span go");
   same(m.gate, { 1: 0 });
   assert.strictEqual(m.lfo, 0, "an LFO is every 1, 2 or 4 moments");
-  assert.strictEqual(m.scale, 100);
+  assert.strictEqual(m.scale, 100, "scale runs 0 to 100: 250 is held at 100");
   same(m.nodes.map((x) => x.id), ["N1"], "a node on a missing track goes");
   same(m.nodes[0].under, { "a|volume": { r3: null, r4: 2 } });
-  assert.strictEqual(m.nodes[0].scale, -50);
+  assert.strictEqual(m.nodes[0].scale, 40, "a node's own scale in range is kept");
   E.send({ type: "removeRow", row: "r4" });
   same(E.state().masters.list[0].nodes[0].under, { "a|volume": { r3: null } });
   E.send({ type: "removeCuriosity", track: "a", curiosity: "volume" });
@@ -861,6 +861,12 @@ check("master nodes: kept valid, tidied when rows, curiosities or tracks go, and
   E.undo();
   E.undo();
   assert.strictEqual(E.state().masters.list[0].nodes[0].under["a|volume"].r4, 2, "undo brings back the under data exactly");
+  const low = JSON.parse(JSON.stringify(E.state().masters));
+  low.list[0].scale = -50;
+  low.list[0].nodes[0].scale = -100;
+  assert.ok(E.send({ type: "setMasters", masters: low }).ok);
+  assert.strictEqual(E.state().masters.list[0].scale, 0, "scale runs 0 to 100: -50 is held at 0 (off)");
+  assert.strictEqual(E.state().masters.list[0].nodes[0].scale, 0, "a node's -100 is held at 0 (off)");
   assert.ok(E.send({ type: "setMasters", masters: null }).ok);
   assert.ok(!("masters" in E.state()), "no masters: nothing written (old saves keep their fingerprint)");
   same(E.drift(), []);
@@ -877,9 +883,13 @@ check("perform: a trigger's performance plays but is never saved, fingerprinted 
   assert.notDeepStrictEqual(["r1", "r2", "r3", "r4", "r5"].map((r) => E.value(r, "a", "volume")), before, "switching the lane off plays");
   E.perform("triggers", { lanes: { "a|volume": { set: 1 } } });
   assert.strictEqual(E.value("r3", "a", "volume"), 5, "set holds the whole lane at the top");
-  E.perform("triggers", { lanes: { "a|volume": { scale: -100 } } });
+  E.perform("triggers", { lanes: { "a|volume": { scale: 100 } } });
+  assert.strictEqual(E.value("r5", "a", "volume"), 5, "scale 100 plays the lane as drawn");
+  E.perform("triggers", { lanes: { "a|volume": { scale: 0 } } });
   const start = E.value("r1", "a", "volume");
-  assert.strictEqual(E.value("r5", "a", "volume"), start, "scale -100 pulls every node to the curiosity's neutral");
+  assert.strictEqual(E.value("r5", "a", "volume"), start, "scale 0 pulls every node to the curiosity's neutral");
+  E.perform("triggers", { lanes: { "a|volume": { scale: -100 } } });
+  assert.strictEqual(E.value("r5", "a", "volume"), start, "a scale below 0 is held at 0 (off)");
   E.perform("triggers", { lanes: { "a|volume": { nodes: { r5: { off: true } } } } });
   assert.strictEqual(E.value("r3", "a", "volume"), 1, "a node switched off is left out of the line");
   E.perform("masters", { lanes: { "a|gesture": { points: { r2: 4 } } } });
