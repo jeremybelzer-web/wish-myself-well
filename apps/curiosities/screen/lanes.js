@@ -23,7 +23,7 @@
    - mount(el, opts) -> { draw(), destroy() }
        opts.lanes()      -> [{ track (or null), cur, label?, group? }]  which lanes to show, top to bottom
        opts.row()        -> the playhead's moment index (paste goes there)
-       opts.onSelect(cur) told when a lane or node is picked
+       opts.onSelect(cur, track) told when a lane or node is picked (track: the row's track when it names one)
        opts.header(lane) -> extra HTML for a lane's header (the Arrange view's dropdown)
        opts.ruler        draw moment numbers above the lanes
        opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
@@ -49,6 +49,11 @@
      mergeTurnMarkers(markers, turns) and clearAutoMarkers(markers) put them in and take them off
    - attentionTrack(beats, { attention, secondsPerBeat }) -> what the Attention track draws (see below)
    - trackFor(cur)       the track a curiosity goes on when it is not on one yet
+                         (a graded part goes on its own kind of track: partTrack(key) "character", "camera" or "master")
+   - laneParts(id, h?)   -> { parts: [{ key, slider, label, track, main }], bareSecond }: the graded lanes the pickers
+                         offer for curiosity id (see "graded lanes" below); lkName(laneKey) a lane's name with its
+                         track when several tracks carry the same curiosity ("Eyelines · Character B")
+   - opts.lanes() entries may name a track and a trackLabel: two tracks with the same curiosity are two rows
    - group(nodeKey)      the nodes and links joined to a node
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
    - ensure(cur)         make sure a lane's curiosity is on a track (one undo step), returns the track id
@@ -216,6 +221,75 @@
     } catch (e) {}
   }
 
+  /* ---------- graded lanes: a curiosity's own sliders as lanes ("eyeline.speaking") ----------
+     The engine already reads any "curiosity.slider" lane whose slider the curiosity database grades
+     (CurioScale.known). Only a few of a curiosity's sliders are offered as lanes in the pickers, so a list of
+     thousands does not drown the timeline's dropdowns. A slider is offered when:
+     - it is one of the staging lanes the 3D characters read (PARTS: Eyelines' Speaking now, How they stand
+       together, Sitting or standing, Walks to, Who it frames, Where it happens), or
+     - its database row says lane: true (a later database change can add more without touching the Screen), or
+     - it is the main graded setting of a curiosity whose bare lane the app only knows as off or on (Eyelines:
+       eyeline.setting). Then the graded lane comes first and the bare lane is kept, offered second.
+     Each is offered only when the database grades it in this build, so the pickers work with or without them.
+     A part's track kind ("character": one lane per character, "camera", "master") says where it goes. */
+  const PARTS = { eyeline: ["setting", "speaking"], blocking: ["together", "seated"], characterPath: ["to"], shotSize: ["who"], setting: ["place"] };
+  const PART_TRACK = { "eyeline.setting": "character", "eyeline.speaking": "character", "blocking.seated": "character", "characterPath.to": "character", "shotSize.who": "camera", "blocking.together": "master", "setting.place": "master" };
+  const TRACK_KINDS = ["character", "camera", "master"];
+  function partHelpers(h) {
+    h = h || {};
+    return {
+      known: h.known || ((k) => !!(S() && S().known(k))),
+      row: h.row || ((id) => (L() && L().get ? L().get("curiosity", id) : null)),
+      /* The app's own idea of the bare lane (automation.js), before the engine grades it from the database. */
+      auto:
+        h.auto ||
+        ((id) => {
+          try {
+            return root.CurioAuto && root.CurioAuto.domain ? root.CurioAuto.domain(id) : null;
+          } catch (e) {
+            return null;
+          }
+        }),
+    };
+  }
+  const offOn = (d) => !!d && d.kind === "choice" && Array.isArray(d.options) && d.options.length === 2 && d.options[0] === "off" && d.options[1] === "on";
+  /* -> { parts: [{ key, slider, label, track, main }], bareSecond } for curiosity id (a bare id). */
+  function laneParts(id, h) {
+    const P = partHelpers(h);
+    const out = { parts: [], bareSecond: false };
+    if (!id || String(id).indexOf(".") >= 0) return out;
+    const c = P.row(id);
+    if (!c || !Array.isArray(c.sliders)) return out;
+    const main = c.main || "setting";
+    const bareOnOff = offOn(P.auto(id));
+    const want = [];
+    if (bareOnOff) want.push(main);
+    (PARTS[id] || []).forEach((s) => want.push(s));
+    c.sliders.forEach((s) => s && s.lane === true && want.push(s.id));
+    const seen = new Set();
+    want.forEach((sid) => {
+      const key = id + "." + sid;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const s = c.sliders.find((x) => x && x.id === sid);
+      if (!s || !P.known(key)) return;
+      /* A graded main setting is offered only to stand in for an off-or-on bare lane. */
+      if (sid === main && !bareOnOff && !(PARTS[id] || []).includes(sid) && s.lane !== true) return;
+      const track = TRACK_KINDS.includes(s.track) ? s.track : PART_TRACK[key] || "";
+      out.parts.push({ key, slider: sid, label: sid === main ? (c.label || id) + (bareOnOff ? "" : " (graded)") : (c.label || id) + ": " + String(s.label || sid), track, main: sid === main });
+    });
+    out.bareSecond = bareOnOff && out.parts.some((p) => p.main);
+    return out;
+  }
+  /* The kind of track a lane key goes on when it is a graded part with a known place, else "". */
+  function partTrack(key, h) {
+    key = String(key || "");
+    const dot = key.indexOf(".");
+    if (dot < 1) return "";
+    const p = laneParts(key.slice(0, dot), h).parts.find((x) => x.key === key);
+    return p ? p.track : PART_TRACK[key] || "";
+  }
+
   function trackFor(cur, st) {
     st = st || E().state();
     /* The character matrix's curiosities go on the picked character's own track (screen/character.js). */
@@ -223,9 +297,26 @@
     const have = st.tracks.find((t) => t.curiosities.includes(cur));
     if (have) return have.id;
     const cat = L() ? L().categoryOf(cur) : "";
-    const kind = cat === "camera" ? "camera" : cat === "performance" || cat === "wardrobe" ? "character" : "master";
+    const kind = partTrack(cur) || (cat === "camera" ? "camera" : cat === "performance" || cat === "wardrobe" ? "character" : "master");
     const t = st.tracks.find((x) => x.kind === kind && x.curiosities.length < E().LIMIT.perTrack) || st.tracks.find((x) => x.curiosities.length < E().LIMIT.perTrack);
     return t ? t.id : null;
+  }
+  /* A lane's plain name: the curiosity, and the track's name when more than one track carries that curiosity
+     ("Eyelines · Character B"), so a message says which of them changed. */
+  function lkName(lk, st) {
+    lk = String(lk || "");
+    const bar = lk.indexOf("|");
+    const cur = lk.slice(bar + 1);
+    const name = S() ? S().label(cur) : cur;
+    try {
+      st = st || (E() && E().state());
+    } catch (e) {
+      st = null;
+    }
+    if (!st || !st.tracks) return name;
+    const on = st.tracks.filter((t) => t.curiosities.includes(cur));
+    const t = on.length > 1 ? on.find((x) => x.id === lk.slice(0, bar)) : null;
+    return t ? name + " · " + (t.label || t.id) : name;
   }
   function ensure(cur) {
     const st = E().state();
@@ -556,13 +647,14 @@
     targets.forEach((t, k) => {
       const src = c.lanes[k];
       if (!t || !src) return;
-      let track = placed[t.cur] || t.track || (st.tracks.find((x) => x.curiosities.includes(t.cur)) || {}).id;
+      /* A target that names its track keeps it (two tracks can carry the same curiosity, one lane each). */
+      let track = t.track || placed[t.cur] || (st.tracks.find((x) => x.curiosities.includes(t.cur)) || {}).id;
       if (!track) {
         track = trackFor(t.cur, st);
         if (!track) return;
         adds.push({ type: "addCuriosity", track, curiosity: t.cur });
       }
-      placed[t.cur] = track;
+      if (!placed[t.cur]) placed[t.cur] = track;
       const lane = st.lanes[track + "|" + t.cur];
       for (let j = start; j < Math.min(n, start + fill); j++) if (lane && lane.points[st.rows[j].id] != null) cmds.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: t.cur });
       for (let rep = 0; rep * span < fill; rep++)
@@ -654,7 +746,8 @@
     const locked = [];
     const targets = c.lanes.map((l) => {
       if (!l) return null;
-      const ln = (shown || []).find((x) => x && x.cur === l.cur);
+      /* The shown lane on the same track first (one lane per track when several carry the curiosity). */
+      const ln = (shown || []).find((x) => x && x.cur === l.cur && l.track && x.track === l.track) || (shown || []).find((x) => x && x.cur === l.cur);
       const holds = (id) => id && st.tracks.some((t) => t.id === id && t.curiosities.includes(l.cur));
       const track = ln && holds(ln.track) ? ln.track : holds(l.track) ? l.track : (st.tracks.find((t) => t.curiosities.includes(l.cur)) || {}).id || null;
       if (track && isLocked(track + "|" + l.cur)) {
@@ -1571,7 +1664,7 @@
        with nodes); Lock needs the lane to be on a track. They show on hover or focus, and always when in use. */
     function headBtns(ln, lane, off, solo, lock) {
       if (!ln.lk) return "";
-      const name = esc(S().label(ln.cur));
+      const name = esc(S().label(ln.cur) + (ln.trackLabel ? " · " + ln.trackLabel : ""));
       const lk = esc(ln.lk);
       const b = (act, on, cls, label, title, aria) => `<button type="button" class="sl-hb ${cls}${on ? " on" : ""}" data-act="${act}" data-lk="${lk}" aria-pressed="${on}" title="${title}" aria-label="${aria}">${label}</button>`;
       return `<span class="sl-hbtns">${
@@ -1648,7 +1741,7 @@
           const solo = !!lane && soloNow === ln.lk;
           const lock = isLocked(ln.lk);
           return `<div class="sl-head${ln.group ? " sl-in-group" : ""}${picked ? " on" : ""}${ticks ? " has-ticks" : ""}${off ? " is-off" : ""}${solo ? " is-solo" : ""}${lock ? " is-locked" : ""}" style="height:${lh}px" data-i="${i}">
-            <div class="sl-head-top">${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}${headBtns(ln, lane, off, solo, lock)}<button type="button" class="sl-win" data-open-win="${esc(ln.cur)}" title="Fine-tune ${esc(S().label(ln.cur))}: every setting inside it, or say what you want" aria-label="Fine-tune ${esc(S().label(ln.cur))}">⧉</button></div>
+            <div class="sl-head-top">${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}"${ln.trackLabel && ln.track ? ` data-pick-track="${esc(ln.track)}"` : ""}>${esc(ln.label || S().label(ln.cur))}</button>`}${headBtns(ln, lane, off, solo, lock)}<button type="button" class="sl-win" data-open-win="${esc(ln.cur)}" title="Fine-tune ${esc(S().label(ln.cur))}: every setting inside it, or say what you want" aria-label="Fine-tune ${esc(S().label(ln.cur))}">⧉</button></div>
             <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(st.lanes[ln.lk])][2])} Click to change.">${MODES[modeOf(st.lanes[ln.lk])][1]}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
             ${ticks}
           </div>`;
@@ -2224,7 +2317,7 @@
         /* A locked lane's node can be picked (to copy it) but not dragged. */
         sel = node.dataset.node;
         seg = null;
-        if (opts.onSelect) opts.onSelect(split(sel).cur);
+        if (opts.onSelect) opts.onSelect(split(sel).cur, split(sel).track);
         e.preventDefault();
         draw();
         say(lockSay(split(sel).lk));
@@ -2234,7 +2327,7 @@
         sel = node.dataset.node;
         seg = null;
         drag = { key: sel, start: a, copy: e.altKey || e.shiftKey, moved: false, area: inArea };
-        if (opts.onSelect) opts.onSelect(split(sel).cur);
+        if (opts.onSelect) opts.onSelect(split(sel).cur, split(sel).track);
         e.preventDefault();
         return;
       }
@@ -2662,7 +2755,7 @@
       const st = E().state();
       const lane = st.lanes[lk];
       if (!lane) return say("That lane has no nodes yet, so there is nothing to turn off."), { ok: false };
-      const name = S().label(lk.slice(lk.indexOf("|") + 1));
+      const name = lkName(lk);
       const r = E().send(Object.assign(onCmd(lk, !lane.on), { label: lane.on ? "Turn a lane off" : "Turn a lane on" }));
       say(r.ok ? (lane.on ? `${name}'s automation is off: it no longer changes the film. Its nodes stay; 👁 turns it back on.` : `${name}'s automation is on again.`) : r.error);
       return r;
@@ -2671,7 +2764,7 @@
       const st = E().state();
       const r = soloCommands(st, lk, tools.solo);
       if (r.error) return say(r.error), { ok: false };
-      const name = S().label(lk.slice(lk.indexOf("|") + 1));
+      const name = lkName(lk);
       const out = r.cmds.length ? E().send({ type: "batch", label: r.off ? "Un-solo a lane" : "Solo a lane", commands: r.cmds }) : { ok: true };
       if (!out.ok) return say(out.error), out;
       tools.solo = r.solo;
@@ -2680,7 +2773,7 @@
       return out;
     }
     function laneLock(lk) {
-      const name = S().label(lk.slice(lk.indexOf("|") + 1));
+      const name = lkName(lk);
       if (tools.locks[lk]) delete tools.locks[lk];
       else tools.locks[lk] = true;
       saveTools();
@@ -2692,7 +2785,7 @@
       if (w) return opts.onOpen ? opts.onOpen(w.dataset.openWin) : null;
       const b = e.target.closest("button[data-act]");
       const pick = e.target.closest("[data-pick]");
-      if (pick && opts.onSelect) opts.onSelect(pick.dataset.pick);
+      if (pick && opts.onSelect) opts.onSelect(pick.dataset.pick, pick.dataset.pickTrack || null);
       if (!b) return;
       const act = b.dataset.act;
       if (act === "undo") opts.undo ? opts.undo("undo") : E().undo();
@@ -2767,7 +2860,7 @@
       const hit = dir < 0 ? list.filter((x) => x[1] < from).pop() : list.find((x) => x[1] > from);
       if (!hit) return { ok: false, error: dir < 0 ? "No node further left in this lane." : "No node further right in this lane." };
       sel = hit[0];
-      if (opts.onSelect) opts.onSelect(split(sel).cur);
+      if (opts.onSelect) opts.onSelect(split(sel).cur, split(sel).track);
       return { ok: true };
     }
     /* command(name): what the toolbar buttons and the Screen's keyboard shortcuts do. */
@@ -2994,7 +3087,7 @@
       } else {
         start = opts.row ? opts.row() : 0;
         const first = c.lanes.find(Boolean);
-        i0 = sel ? lanes.findIndex((ln) => ln.lk === split(sel).lk) : first ? lanes.findIndex((ln) => ln.cur === first.cur) : 0;
+        i0 = sel ? lanes.findIndex((ln) => ln.lk === split(sel).lk) : first ? (lanes.findIndex((ln) => ln.cur === first.cur && first.track && ln.track === first.track) + 1 || lanes.findIndex((ln) => ln.cur === first.cur) + 1) - 1 : 0;
         if (i0 < 0) i0 = 0;
       }
       let skipped = 0;
@@ -3808,6 +3901,8 @@
     saveTools();
     return tools.markers;
   };
+  /* Graded lanes (a curiosity's own sliders offered as lanes) and lane names with their track. */
+  Object.assign(root.CurioLanes, { PARTS, PART_TRACK, laneParts, partTrack, lkName });
   /* Templates (Save as template; the library's My templates). */
   Object.assign(root.CurioLanes, { TEMPLATE_KEY, TEMPLATE_FORMAT, TPL_MIME: "application/x-curiomatic-template", template, migrateTemplates, templateSummary, templatePreview, stretchTemplate, useTemplateCommands, exportTemplates, importTemplates, templates: () => loadTemplates(), saveTemplates });
 })();

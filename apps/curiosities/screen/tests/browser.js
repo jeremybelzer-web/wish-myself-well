@@ -6,7 +6,8 @@
    on start, pick each level, change a control in the inspector (a node appears), add an inspiration viewer,
    take a curiosity from two films and blend it, click a lane to add nodes, join two nodes across lanes (a
    proximity), copy and paste it, move a node (its partner moves too), switch to Arrange, show all potential
-   curiosities and suites, change a track's curiosity, undo, reload. The page must report no errors. */
+   curiosities and suites, change a track's curiosity, undo, reload. Two tracks with the same curiosity show two
+   rows named by their track, and Add a curiosity track offers graded lanes. The page must report no errors. */
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -1211,7 +1212,11 @@ const ok = (cond, msg) => {
     const lookItems = () => page.$$eval(".sc-mlook-menu [data-look]", (b) => b.map((x) => x.dataset.look + (x.disabled ? "-off" : "")).join());
     /* Every curiosity on a track, as Details reads it: the track it is on, and what it plays at moment j. */
     const plays = (j) => page.evaluate((j) => { const E = window.CurioEngine, S = window.CurioScale, st = E.state(), out = {}; st.tracks.forEach((t) => t.curiosities.forEach((c) => { if (c in out || !S.known(c)) return; const tr = st.tracks.find((x) => x.curiosities.includes(c)); out[c] = String(S.fix(c, E.value(st.rows[j].id, tr.id, c))); })); return out; }, j);
-    const nodeAt = (j) => page.evaluate((j) => { const st = window.CurioEngine.state(), out = {}; Object.keys(st.lanes).forEach((lk) => { const v = st.lanes[lk].points[st.rows[j].id]; if (v != null) out[lk.split("|")[1]] = String(v); }); return out; }, j);
+    /* The node at moment j on the lane plays() reads: the first track that carries each curiosity (when several
+       tracks carry one, each keeps its own lane, and the look gives each its own setting back, see byLane). */
+    const nodeAt = (j) => page.evaluate((j) => { const st = window.CurioEngine.state(), out = {}; st.tracks.forEach((t) => t.curiosities.forEach((c) => { if (c in out || st.tracks.find((x) => x.curiosities.includes(c)) !== t) return; const l = st.lanes[t.id + "|" + c]; const v = l && l.points[st.rows[j].id]; if (v != null) out[c] = String(v); })); return out; }, j);
+    /* What every lane plays at moment j, by lane key ("char2|characterPath"), for curiosities on several tracks. */
+    const byLane = (j) => page.evaluate((j) => { const E = window.CurioEngine, S = window.CurioScale, st = E.state(), out = {}; st.tracks.forEach((t) => t.curiosities.forEach((c) => { if (S.known(c) && st.tracks.filter((x) => x.curiosities.includes(c)).length > 1) out[t.id + "|" + c] = String(S.fix(c, E.value(st.rows[j].id, t.id, c))); })); return out; }, j);
     await page.evaluate(() => { document.querySelector(".sl").focus(); });
     await page.keyboard.press("Escape");
     /* Make moment 3 differ from moments 6 to 8 on three lanes no link changes, so the paste has something to change:
@@ -1240,6 +1245,7 @@ const ok = (cond, msg) => {
     ok(!(await page.$(".sc-mlook-menu")) && (await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute("data-look-menu"))), "Esc closes it and gives focus back to Look ▾");
     const fp0 = await page.evaluate(() => window.CurioEngine.fingerprint());
     const at3 = await plays(2);
+    const lanes3 = await byLane(2);
     await page.click(look);
     await page.click('.sc-mlook-menu [data-look="copy"]');
     let msg = await said();
@@ -1262,6 +1268,8 @@ const ok = (cond, msg) => {
     const nodes6 = await nodeAt(5);
     ok(new RegExp("^Pasted moment 3's look onto moment 6: " + differ.length + " settings? changed, " + (n3 - differ.length) + " already matched\\.").test(msg) && /Undo takes it back\.$/.test(msg), "Paste says how many settings changed and how many already matched (" + msg + ")");
     ok(differ.length >= made.length && differ.every((c) => nodes6[c] === at3[c]), "every setting that differed gets a node at moment 6 with moment 3's setting (" + differ.length + ")");
+    const lanes6 = await byLane(5);
+    ok(Object.keys(lanes3).every((lk) => lanes6[lk] === lanes3[lk]), "a curiosity on several tracks (one per character) gets each track's own moment 3 setting back (" + Object.keys(lanes3).length + " lanes)");
     const still = Object.keys(at3).filter((c) => after6[c] !== at3[c]);
     ok(made.every((c) => after6[c] === at3[c]) && (still.length === 0 || /a link or a pin/.test(msg)), "moment 6 now plays moment 3's look" + (still.length ? " (a link or a pin still changes " + still.join(", ") + ", and the message says so)" : ""));
     ok(await page.keyboard.press("Control+z").then(lanesNow).then((f) => f === before), "one undo takes the whole paste back");
@@ -3170,6 +3178,122 @@ const ok = (cond, msg) => {
       ok((await p.evaluate(() => document.querySelector(".sc-page").scrollWidth - innerWidth)) <= 1, "look check: on a phone none of it makes the page scroll sideways");
       await ctx.close();
     }
+  }
+
+  {
+    /* One lane per track, and graded lanes in the pickers (a fresh page). Two character tracks carry Character path
+       in the starter film: each gets its own row named by the track, its own Off, Solo and Lock, and an edit on one
+       leaves the other alone. Arrange's Add a curiosity track offers a curiosity's graded lanes under it, and adding
+       one that every character has puts it on each character track. */
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    const T = await p.evaluate(() => {
+      const E = window.CurioEngine;
+      E.reset(window.CurioSeeds.starter());
+      const ch = E.state().tracks.filter((t) => t.kind === "character" && t.curiosities.includes("characterPath"));
+      E.send({ type: "batch", commands: [{ type: "renameTrack", track: ch[0].id, label: "Maya" }, { type: "renameTrack", track: ch[1].id, label: "Sam" }] });
+      return { A: ch[0].id, B: ch[1].id, cat: window.CurioLevels.categoryOf("characterPath") };
+    });
+    await p.click('button[data-view="screen"]');
+    await p.click(`[data-icat="${T.cat}"]`);
+    await p.fill("[data-lib-search]", "Character path");
+    await p.click('[data-add-card="curiosity|characterPath"]');
+    await p.fill("[data-lib-search]", "");
+    await p.waitForTimeout(200);
+    const rows = await p.evaluate(() => [...document.querySelectorAll(".sl-heads .sl-name")].map((b) => b.textContent).filter((t) => /^Character path/.test(t)));
+    ok(rows.includes("Character path · Maya") && rows.includes("Character path · Sam") && rows.length === 2, "two tracks with the same curiosity show two rows, each named by its track (" + rows.join(", ") + ")");
+    const heads = await p.evaluate((T) => [T.A, T.B].map((t) => !!document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${t}|characterPath"]`)), T);
+    ok(heads[0] && heads[1], "each row has its own Lock (and Off and Solo once it has nodes)");
+    const laneOf = (T) => p.evaluate((T) => { const l = window.CurioEngine.state().lanes; return [T.A, T.B].map((t) => JSON.stringify(l[t + "|characterPath"] ? l[t + "|characterPath"].points : {})); }, T);
+    const nodesOf = (T) => p.evaluate((T) => { const l = window.CurioEngine.state().lanes; return [T.A, T.B].map((t) => (l[t + "|characterPath"] ? Object.keys(l[t + "|characterPath"].points).length : 0)); }, T);
+    /* Click on Sam's row in the lanes: the node lands on Sam's lane only. */
+    const before = await laneOf(T);
+    const at = await p.evaluate((T) => {
+      const h = [...document.querySelectorAll(".sl-heads .sl-head")].find((x) => x.querySelector(`[data-lk="${T.B}|characterPath"]`));
+      h.scrollIntoView({ block: "center" });
+      const svg = document.querySelector(".sl-svg").getBoundingClientRect();
+      const r = h.getBoundingClientRect();
+      const n = window.CurioEngine.state().rows.length;
+      return { x: svg.left + (svg.width / n) * 2.5, y: r.top + r.height * 0.3 };
+    }, T);
+    await p.mouse.click(at.x, at.y);
+    await p.waitForTimeout(150);
+    const after1 = await laneOf(T);
+    const n1 = await nodesOf(T);
+    ok(after1[0] === before[0] && after1[1] !== before[1] && n1[1] === 1, `a click on Sam's row puts a node on Sam's lane only (Maya ${n1[0]}, Sam ${n1[1]} nodes)`);
+    const btn = await p.evaluate((T) => [T.A, T.B].map((t) => [!!document.querySelector(`.sl-heads [data-act="lane-solo"][data-lk="${t}|characterPath"]`), !!document.querySelector(`.sl-heads [data-act="lane-off"][data-lk="${t}|characterPath"]`)]), T);
+    ok(btn[1][0] && btn[1][1] && (n1[0] > 0) === btn[0][0], "Sam's row, now with a node, has its own Off and Solo");
+    const clickLock = (t) => p.evaluate((lk) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${lk}"]`).click(), t + "|characterPath");
+    await clickLock(T.A);
+    const locks = await p.evaluate((T) => [window.CurioLanes.isLocked(T.A + "|characterPath"), window.CurioLanes.isLocked(T.B + "|characterPath")], T);
+    ok(locks[0] && !locks[1], "locking Maya's row leaves Sam's unlocked");
+    await clickLock(T.A);
+    await p.evaluate((T) => document.querySelector(`.sl-heads [data-act="lane-off"][data-lk="${T.B}|characterPath"]`).click(), T);
+    const offs = await p.evaluate((T) => { const l = window.CurioEngine.state().lanes; return [T.A, T.B].map((t) => (l[t + "|characterPath"] ? l[t + "|characterPath"].on : null)); }, T);
+    ok(offs[1] === false && offs[0] !== false, "turning Sam's row off leaves Maya's playing");
+    await p.evaluate((T) => document.querySelector(`.sl-heads [data-act="lane-off"][data-lk="${T.B}|characterPath"]`).click(), T);
+    /* Details edits the row picked on the timeline. */
+    await p.click(`.sl-heads .sl-name[data-pick-track="${T.B}"]`);
+    await p.waitForTimeout(150);
+    const det = await p.evaluate(() => ({ head: document.querySelector(".sc-insp-h").textContent, has: !!document.querySelector('.sc-inspector input[data-step-set="characterPath"]') }));
+    ok(/Character path on Sam/.test(det.head), "Details' header says it edits Sam's lane after Sam's row is picked (" + det.head.replace(/\s+/g, " ").slice(0, 120) + ")");
+    ok(det.has, "Details shows Character path's control");
+    if (det.has) {
+      const b2 = await laneOf(T);
+      await p.evaluate(() => { const s = document.querySelector('.sc-inspector input[data-step-set="characterPath"]'); s.value = String((Number(s.value) + 2) % 5); s.dispatchEvent(new Event("change", { bubbles: true })); });
+      await p.waitForTimeout(150);
+      const a2 = await laneOf(T);
+      ok(a2[0] === b2[0] && a2[1] !== b2[1], "a change in Details goes on Sam's lane; Maya's is left alone");
+    }
+    await p.click(`.sl-heads .sl-name[data-pick-track="${T.A}"]`);
+    await p.waitForTimeout(150);
+    ok(/Character path on Maya/.test(await p.$eval(".sc-insp-h", (h) => h.textContent)), "picking Maya's row moves Details to Maya's lane");
+    await p.screenshot({ path: path.join(SHOTS, "screen-15-lane-per-track.png") });
+
+    /* Graded lanes in Arrange's Add a curiosity track. Without the 3D staging lanes in the database, a stand-in
+       slider (Eyelines: Speaking now) shows how one appears; with them, the real ones are used. */
+    const fake = await p.evaluate(() => {
+      const DB = window.CuriosityDB;
+      if (window.CurioScale.known("eyeline.speaking")) return false;
+      const real = DB.get.bind(DB);
+      const speak = { id: "speaking", label: "Speaking now", scale: ["listening", "speaking"] };
+      DB.get = (lv, id) => { const r = real(lv, id); return lv === "curiosity" && id === "eyeline" && r && !r.sliders.some((s) => s.id === "speaking") ? Object.assign({}, r, { sliders: r.sliders.concat([speak]) }) : r; };
+      return true;
+    });
+    await p.click('button[data-view="arrange"]');
+    await p.waitForTimeout(200);
+    const pick = await p.evaluate(() => {
+      const o = [...document.querySelectorAll("[data-add-lane] option")].map((x) => [x.value, x.textContent]);
+      const ix = (v) => o.findIndex((x) => x[0] === v);
+      const has = ["eyeline.setting", "eyeline.speaking", "blocking.together", "blocking.seated", "characterPath.to", "shotSize.who", "setting.place"].filter((k) => ix(k) >= 0);
+      return { setting: ix("eyeline.setting"), speaking: ix("eyeline.speaking"), bare: ix("eyeline"), speakText: (o[ix("eyeline.speaking")] || [])[1], settingText: (o[ix("eyeline.setting")] || [])[1], bareText: (o[ix("eyeline")] || [])[1], has, known: has.every((k) => window.CurioScale.known(k)) };
+    });
+    ok(pick.setting >= 0 && pick.speaking > pick.setting && pick.bare > pick.speaking, `Add a curiosity track offers Eyelines' graded lanes under it, the bare lane last (${pick.settingText} / ${pick.speakText} / ${pick.bareText})`);
+    ok(/Speaking now/i.test(pick.speakText || "") && /bare lane/.test(pick.bareText || "") && (pick.settingText || "").trim() === "Eyelines", "with plain names: Eyelines, ↳ Eyelines: speaking now, ↳ Eyelines (bare lane)");
+    ok(pick.known, "every graded lane offered is one the engine grades (" + pick.has.join(", ") + (fake ? "; Speaking now is a stand-in here" : "") + ")");
+    await p.evaluate(() => { const s = document.querySelector("[data-add-lane]"); s.value = "eyeline.speaking"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+    await p.waitForTimeout(200);
+    const add = await p.evaluate((T) => {
+      const st = window.CurioEngine.state();
+      const on = st.tracks.filter((t) => t.curiosities.includes("eyeline.speaking")).map((t) => t.id);
+      const heads = [...document.querySelectorAll(".sl-heads .sl-head")].filter((h) => h.querySelector('[data-lane-cur="eyeline.speaking"]')).map((h) => h.textContent);
+      return { on, heads: heads.length, lanes: window.CurioScreen.state().lanes.includes("eyeline.speaking") };
+    }, T);
+    ok(add.on.includes(T.A) && add.on.includes(T.B) && add.lanes, `adding Eyelines: speaking now puts it on every character track (${add.on.join(", ")})`);
+    ok(add.heads === 2, `and it shows one row per character in Arrange (${add.heads})`);
+    const val = await p.evaluate((T) => {
+      const E = window.CurioEngine;
+      const r = E.state().rows[1].id;
+      E.send({ type: "batch", commands: [{ type: "setPoint", row: r, track: T.A, curiosity: "eyeline.speaking", value: "listening" }, { type: "setPoint", row: r, track: T.B, curiosity: "eyeline.speaking", value: "speaking" }] });
+      return [E.value(r, T.A, "eyeline.speaking"), E.value(r, T.B, "eyeline.speaking")];
+    }, T);
+    ok(val[1] === "speaking" && val[0] === "listening", `each character's Speaking now lane is its own (Maya ${val[0]}, Sam ${val[1]})`);
+    await p.screenshot({ path: path.join(SHOTS, "screen-16-graded-lanes.png") });
+    await ctx.close();
   }
 
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
