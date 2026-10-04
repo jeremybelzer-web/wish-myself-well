@@ -865,6 +865,38 @@ check("master nodes: kept valid, tidied when rows, curiosities or tracks go, and
   assert.ok(!("masters" in E.state()), "no masters: nothing written (old saves keep their fingerprint)");
   same(E.drift(), []);
 });
+check("perform: a trigger's performance plays but is never saved, fingerprinted or an undo step, and goes back exactly", () => {
+  E.reset();
+  assert.ok(E.send({ type: "importFilm", film: tiny() }).ok);
+  E.send({ type: "setPoint", row: "r1", track: "a", curiosity: "volume", value: 1 });
+  E.send({ type: "setPoint", row: "r5", track: "a", curiosity: "volume", value: 5 });
+  const fp = E.fingerprint();
+  const undo = E.history().undo.length;
+  const before = ["r1", "r2", "r3", "r4", "r5"].map((r) => E.value(r, "a", "volume"));
+  E.perform("triggers", { lanes: { "a|volume": { on: false } } });
+  assert.notDeepStrictEqual(["r1", "r2", "r3", "r4", "r5"].map((r) => E.value(r, "a", "volume")), before, "switching the lane off plays");
+  E.perform("triggers", { lanes: { "a|volume": { set: 1 } } });
+  assert.strictEqual(E.value("r3", "a", "volume"), 5, "set holds the whole lane at the top");
+  E.perform("triggers", { lanes: { "a|volume": { scale: -100 } } });
+  const start = E.value("r1", "a", "volume");
+  assert.strictEqual(E.value("r5", "a", "volume"), start, "scale -100 pulls every node to the curiosity's neutral");
+  E.perform("triggers", { lanes: { "a|volume": { nodes: { r5: { off: true } } } } });
+  assert.strictEqual(E.value("r3", "a", "volume"), 1, "a node switched off is left out of the line");
+  E.perform("masters", { lanes: { "a|gesture": { points: { r2: 4 } } } });
+  assert.strictEqual(E.performing().join(","), "triggers,masters", "two named layers at once");
+  assert.strictEqual(E.value("r4", "a", "gesture"), 4);
+  assert.strictEqual(E.fingerprint(), fp, "the saved film is untouched");
+  assert.strictEqual(E.history().undo.length, undo, "and no undo step was made");
+  E.send({ type: "setPoint", row: "r3", track: "a", curiosity: "volume", value: 2 });
+  assert.strictEqual(E.history().undo.length, undo + 1, "a real edit during a performance is still one undo step");
+  E.undo();
+  assert.strictEqual(E.value("r3", "a", "volume"), 1, "undo keeps the performance on top");
+  E.perform(null);
+  assert.deepStrictEqual(["r1", "r2", "r3", "r4", "r5"].map((r) => E.value(r, "a", "volume")), before, "put back exactly when playback stops");
+  assert.strictEqual(E.fingerprint(), fp);
+  assert.strictEqual(E.performing().length, 0);
+});
+
 check("every command leaves a state that needs no fixing to survive a reload", () => {
   const d = E.drift();
   assert.strictEqual(d.length, 0, d.length ? "a " + d[0].type + " command left:\n" + d[0].before.slice(0, 600) + "\nwhich reload turns into:\n" + d[0].after.slice(0, 600) : "");

@@ -67,6 +67,65 @@
   }
   const cellKey = (r, t, c) => r + "|" + t + "|" + c;
   const laneKey = (t, c) => t + "|" + c;
+  /* ---------- the performance (Jeremy's triggers, "curiosity proximity") ----------
+     A trigger firing during playback is not an undo step: it is a performance, and it is put back when playback
+     stops (the music app's notes, section 6). So it is kept here, beside the state, never in it: not saved, not
+     fingerprinted, not on the undo list, and listeners are not told (whoever performs redraws). Named layers, so
+     the triggers (screen/triggers.js) and the master nodes each keep their own; they are laid over the saved lanes
+     in the order they were first set, before the rewrite's step 2, so links and hand edits still run after.
+     layer: { lanes: { "track|cur": { on?, mode?, points?: { rowId: value }, scale?: -100..100, set?: 0..1,
+     nodes?: { rowId: { off?, scale?, set? } } } } }. scale moves values toward (-) or away from (+) the
+     curiosity's start value (its neutral), -100 being the start value itself; set holds the whole lane at that
+     place on its scale. */
+  const performLayers = new Map();
+  function performedLanes(st) {
+    const lanes = Object.assign({}, st.lanes);
+    const firstRow = st.rows.length ? st.rows[0].id : null;
+    const carries = (t, c) => st.tracks.some((tr) => tr.id === t && tr.curiosities.includes(c));
+    const scaled = (c, v, s) => {
+      const p = S.pos(c, v);
+      const n = S.pos(c, S.start(c));
+      if (p == null || n == null) return v;
+      return S.at(c, Math.min(1, Math.max(0, n + (p - n) * (1 + Math.max(-100, Math.min(100, Number(s) || 0)) / 100))));
+    };
+    performLayers.forEach((layer) => {
+      const ls = layer && isObj(layer.lanes) ? layer.lanes : {};
+      Object.keys(ls).forEach((lk) => {
+        const o = ls[lk];
+        const [t, c] = lk.split("|");
+        if (!isObj(o) || !c || !carries(t, c)) return;
+        const was = lanes[lk];
+        const lane = was ? { on: was.on, mode: was.mode, points: Object.assign({}, was.points) } : { on: true, mode: "ramp", points: {} };
+        if (isObj(o.points)) {
+          lane.points = {};
+          Object.keys(o.points).forEach((r) => {
+            const v = S.fix(c, o.points[r]);
+            if (v != null) lane.points[r] = v;
+          });
+        }
+        if (typeof o.on === "boolean") lane.on = o.on;
+        if (MODES.includes(o.mode)) lane.mode = o.mode;
+        if (isObj(o.nodes))
+          Object.keys(o.nodes).forEach((r) => {
+            const nd = o.nodes[r];
+            if (!isObj(nd) || lane.points[r] == null) return;
+            if (nd.off) delete lane.points[r];
+            else if (typeof nd.set === "number") lane.points[r] = S.at(c, nd.set);
+            else if (typeof nd.scale === "number") lane.points[r] = scaled(c, lane.points[r], nd.scale);
+          });
+        if (typeof o.scale === "number") Object.keys(lane.points).forEach((r) => (lane.points[r] = scaled(c, lane.points[r], o.scale)));
+        if (typeof o.set === "number" && firstRow) {
+          lane.points = { [firstRow]: S.at(c, o.set) };
+          lane.mode = "hold";
+          lane.on = true;
+        }
+        if (!was && !Object.keys(lane.points).length) return;
+        lanes[lk] = lane;
+      });
+    });
+    return lanes;
+  }
+  const performed = (st) => (performLayers.size ? Object.assign({}, st, { lanes: performedLanes(st) }) : st);
   function idOk(s) {
     return typeof s === "string" && /^[A-Za-z0-9_.:@-]{1,80}$/.test(s) && !/^(__proto__|constructor|prototype|hasOwnProperty|toString|valueOf)$/.test(s);
   }
@@ -445,6 +504,7 @@
     return ((h >>> 0) % 100000) / 100000;
   }
   function rewrite(st) {
+    if (st === state) st = performed(st); /* the live film plays its performance; other states are rewritten as they are */
     const n = st.rows.length;
     const dest = Object.create(null);
     const why = Object.create(null);
@@ -1232,6 +1292,16 @@
         hush--;
       }
     },
+    /* The performance (see performLayers): perform(name, layer) sets one layer, perform(name, null) clears it,
+       perform(null) clears them all (playback stopped). Not saved and not an undo step; listeners are not told. */
+    perform(name, layer) {
+      if (name == null) performLayers.clear();
+      else if (layer == null) performLayers.delete(String(name));
+      else performLayers.set(String(name), clone(layer));
+      result = rewrite(state);
+      return [...performLayers.keys()];
+    },
+    performing: () => [...performLayers.keys()],
     /* Forget the redo steps (after the self-check undid its own test steps). */
     dropRedo(n) {
       redoList.splice(Math.max(0, redoList.length - (n == null ? redoList.length : n)));
