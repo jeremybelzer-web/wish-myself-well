@@ -379,6 +379,72 @@
     return { v: 1, title: "The napkin (Episode 1, scene 1)", look: "dusk", objects, panels: P, sel: "biju" };
   }
 
+  /* Inspiration films: short built-in examples to study and borrow from, shown in extra windows. */
+  function makeFilm(id, title, look, objects, base, steps) {
+    const P = [];
+    steps.forEach(([sec, c, change, extra], k) => {
+      const prev = P.length ? P[P.length - 1].place : base;
+      const place = clone(prev);
+      Object.keys(change || {}).forEach((o) => Object.assign(place[o], change[o]));
+      P.push(Object.assign({ id: id + "-" + (k + 1), sec, cam: cam(c), place, words: [], caption: "", note: "", rain: "none" }, extra || {}));
+    });
+    return { v: 1, id, title, look, objects, panels: P, sel: null, inspiration: true };
+  }
+  function chaseFilm() {
+    const objects = [
+      { id: "runner", kind: "person", name: "Runner", color: "#d94f4f", skin: "#c58b62", hair: "#2a1a10" },
+      { id: "chaser", kind: "person", name: "Chaser", color: "#2b2d3a", skin: "#e0b08a", hair: "#111", pants: "#15161c" },
+      { id: "crate", kind: "box", name: "Crate", color: "#9b6b3d" },
+      { id: "c1", kind: "building", name: "Building", color: "#2c3047", w: 6, h: 10, d: 4 },
+      { id: "c2", kind: "building", name: "Building", color: "#3a2c40", w: 5, h: 7, d: 4 },
+      { id: "c3", kind: "building", name: "Building", color: "#26383d", w: 7, h: 12, d: 4 },
+      { id: "cl1", kind: "lamp", name: "Lamp", color: "#3a3a40" },
+      { id: "cl2", kind: "lamp", name: "Lamp", color: "#3a3a40" },
+    ];
+    const base = {
+      runner: { x: -6, y: 0, z: 2, turn: 90, size: 1, show: true, pose: "walk" },
+      chaser: { x: -9.5, y: 0, z: 2.4, turn: 90, size: 1, show: true, pose: "walk" },
+      crate: { x: 4.5, y: 0, z: 0.6, turn: 10, size: 1, show: true },
+      c1: { x: -8, y: 0, z: -6, turn: 0, size: 1, show: true },
+      c2: { x: -1, y: 0, z: -6.5, turn: 0, size: 1, show: true },
+      c3: { x: 7, y: 0, z: -6, turn: 0, size: 1, show: true },
+      cl1: { x: -3, y: 0, z: -2.5, turn: 0, size: 1, show: true },
+      cl2: { x: 5, y: 0, z: -2.5, turn: 0, size: 1, show: true },
+    };
+    return makeFilm("insp-chase", "The chase", "night", objects, base, [
+      [2, { shot: 7, lens: 24, height: 20, around: 25, aim: "runner", move: "glide" }, {}, { caption: "Someone runs.", note: "WIDE, high. The runner comes round the corner." }],
+      [2, { shot: 2.4, lens: 12, fish: 0.6, height: -22, around: 75, aim: "runner", move: "glide" }, { runner: { x: -2, z: 1.5 }, chaser: { x: -6, z: 2 } }, { note: "Worm's eye, fisheye: the runner looms over the lens." }],
+      [1.5, { shot: 0.6, lens: 35, height: 2, around: 70, tilt: 18, aim: "chaser" }, { runner: { x: 1.5, z: 1 }, chaser: { x: -2.5, z: 1.6 } }, { words: [{ who: "chaser", text: "Stop!" }], note: "CLOSE, Dutch angle on the chaser." }],
+      [2, { shot: 2.2, lens: 18, height: -10, around: 100, aim: "runner" }, { runner: { x: 4.3, y: 0.6, z: 0.6 }, chaser: { x: 0.5, z: 1.2 } }, { note: "LOW. The runner jumps onto the crate." }],
+      [2, { shot: 9, lens: 24, height: 86, around: 0, aim: "runner" }, { runner: { x: 8, y: 0, z: -0.5 }, chaser: { x: 4, z: 0.4 } }, { note: "Bird's eye: two dots on the street." }],
+      [2, { shot: 0.5, lens: 120, height: 3, around: 60, aim: "runner" }, { runner: { turn: 200, pose: "stand" }, chaser: { pose: "stand" } }, { words: [{ who: "runner", text: "Not today." }], note: "CLOSE, long lens: the runner looks back." }],
+    ]);
+  }
+  function takeFilm() {
+    const objects = [
+      { id: "ida", kind: "person", name: "Ida", color: "#3f9b6a", skin: "#e2b18f", hair: "#b8442c" },
+      { id: "nessa", kind: "person", name: "Nessa", color: "#e8c547", skin: "#8a5a3c", hair: "#111" },
+      { id: "tree", kind: "tree", name: "Tree", color: "#3f8f4f" },
+      { id: "ball", kind: "ball", name: "Ball", color: "#d94f6a" },
+      { id: "t1", kind: "building", name: "House", color: "#b8a68e", w: 7, h: 5, d: 5 },
+    ];
+    const base = {
+      ida: { x: -0.45, y: 0, z: 0, turn: 0, size: 1, show: true, pose: "stand" },
+      nessa: { x: 0.45, y: 0, z: 0, turn: 0, size: 1, show: true, pose: "stand" },
+      tree: { x: -3, y: 0, z: -2.5, turn: 0, size: 1.4, show: true },
+      ball: { x: 1.6, y: 0, z: 0.8, turn: 0, size: 0.6, show: true },
+      t1: { x: 2.5, y: 0, z: -6, turn: 0, size: 1, show: true },
+    };
+    return makeFilm("insp-take", "The double take", "day", objects, base, [
+      [2, { shot: 2.2, lens: 35, height: 4, around: 0, aim: "nessa" }, {}, { words: [{ who: "nessa", text: "I sold the house." }], note: "MEDIUM two-shot. Both face us." }],
+      [1.5, { shot: 0.9, lens: 50, height: 2, around: 0, aim: "ida" }, {}, { words: [{ who: "ida", text: "Nice." }], note: "Ida doesn't react." }],
+      [1, { shot: 0.9, lens: 50, height: 2, around: 0, aim: "ida" }, {}, { caption: "A beat.", note: "Hold. Nothing happens." }],
+      [1.5, { shot: 0.55, lens: 85, height: 2, around: -10, aim: "ida", move: "glide" }, { ida: { turn: 80 } }, { words: [{ who: "ida", text: "You WHAT?" }], note: "The double take: Ida's head snaps round." }],
+      [1.5, { shot: 0.3, lens: 85, height: 0, around: -15, aim: "ida" }, {}, { note: "Push in on the face." }],
+      [2, { shot: 4, lens: 24, height: 12, around: -30, aim: "nessa" }, { nessa: { pose: "wave", turn: -60 } }, { words: [{ who: "nessa", text: "It was a good offer." }], note: "WIDE. Nessa shrugs it off." }],
+    ]);
+  }
+
   function fixFilm(f) {
     if (!f || !Array.isArray(f.panels) || !f.panels.length || !Array.isArray(f.objects)) return sampleFilm();
     f.objects = f.objects.filter((o) => o && o.id && KINDS[o.kind]);
@@ -417,6 +483,36 @@
   let step = 0.3;
   let tab = "move";
   let rainT = 0;
+
+  /* ---------- windows: My film plus as many inspiration films as you like ---------- */
+  const WKEY = "curiosities-viewer-windows-v1";
+  const INSP = [chaseFilm(), takeFilm()]; /* plus videos brought in this session (not saved: they stay on your computer) */
+  let wins = (() => {
+    try {
+      const w = JSON.parse(localStorage.getItem(WKEY) || "null");
+      if (Array.isArray(w) && w.length) return w.filter((id) => id === "mine" || INSP.some((f) => f.id === id)).slice(0, 8);
+    } catch (e) {}
+    return ["mine"];
+  })();
+  if (!wins.length) wins = ["mine"];
+  const W_EL = []; /* per window: { el, canvas, ctx, hud, video, picks } */
+  let activeWin = 0;
+  function saveWins() {
+    try {
+      localStorage.setItem(WKEY, JSON.stringify(wins.filter((id) => id === "mine" || !/^vid-/.test(id))));
+    } catch (e) {}
+  }
+  const allFilms = () => [{ id: "mine", title: "My film" }, ...INSP.map((f) => ({ id: f.id, title: f.title, video: f.kind === "video" }))];
+  const filmFor = (id) => (id === "mine" ? film : INSP.find((f) => f.id === id) || film);
+  function withFilm(f, fn) {
+    const keep = film;
+    film = f;
+    try {
+      return fn();
+    } finally {
+      film = keep;
+    }
+  }
 
   const starts = () => {
     const s = [];
@@ -731,7 +827,7 @@
       ctx.fill("evenodd");
       ctx.restore();
     }
-    if (opts.words !== false) drawWords(ctx, W, H, st, C);
+    if (opts.words !== false) drawWords(ctx, W, H, st, C, opts);
     return C;
   }
 
@@ -751,7 +847,8 @@
     if (line) lines.push(line);
     return lines;
   }
-  function drawWords(ctx, W, H, st, C) {
+  function drawWords(ctx, W, H, st, C, opts) {
+    opts = opts || {};
     const p = st.panel;
     const fs = Math.max(9, Math.round(W * (W < 700 ? 0.042 : 0.022)));
     ctx.textBaseline = "top";
@@ -762,7 +859,7 @@
       const w = Math.max(...lines.map((l) => ctx.measureText(l).width)) + pad * 2;
       const h = lines.length * fs * 1.2 + pad * 2 - fs * 0.2;
       const x = W * 0.02;
-      const y = H * 0.03;
+      const y = H * 0.03 + (opts.top || 0);
       ctx.fillStyle = "#ffe98a";
       ctx.strokeStyle = "#111";
       ctx.lineWidth = Math.max(1, W / 450);
@@ -787,22 +884,22 @@
         head = project(C, [who.x, who.y + mouth, who.z]);
         if (head && (head[0] < 0 || head[0] > W || head[1] < 0 || head[1] > H)) head = null;
       }
-      const capBottom = p.caption ? H * 0.03 + fs * 1.2 * 3 + fs : 0;
+      const capBottom = p.caption ? H * 0.03 + (opts.top || 0) + fs * 1.2 * 3 + fs : 0;
       let x;
       let y;
       if (head) {
         /* above the speaker when there is room, else beside the face */
         x = head[0] - w / 2;
         y = head[1] - h - Math.max(H * 0.1, fs * 2);
-        if (y < H * 0.03) {
-          y = H * 0.04 + k * (h + fs * 0.5);
+        if (y < H * 0.03 + (opts.top || 0)) {
+          y = H * 0.04 + (opts.top || 0) + k * (h + fs * 0.5);
           const room = head[0] > W / 2 ? head[0] - W * 0.08 - w : W * 0.92 - (head[0] + W * 0.08);
           x = head[0] > W / 2 ? head[0] - W * 0.08 - w : head[0] + W * 0.08;
           if (room < 0) x = head[0] > W / 2 ? W * 0.02 : W * 0.98 - w;
         }
       } else {
         x = W * (n === 1 ? 0.62 : 0.5 + 0.22 * k) - w / 2;
-        y = H * 0.04 + k * (h + fs * 0.6);
+        y = H * 0.04 + (opts.top || 0) + k * (h + fs * 0.6);
       }
       x = clamp(x, W * 0.02, W * 0.98 - w);
       if (p.caption && x < W * 0.5 && y < capBottom) y = capBottom;
@@ -986,9 +1083,28 @@
 .cv-addrow { display: flex; flex-wrap: wrap; gap: 4px; }
 .cv-player { display: grid; grid-template-rows: minmax(0, 1fr) auto; padding: 6px; gap: 6px; overflow: hidden; }
 .cv-stage { position: relative; min-height: 0; display: grid; place-items: center; }
-.cv-canvas { display: block; max-width: 100%; max-height: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 4px; touch-action: none; cursor: grab; }
+.cv-wins { display: grid; gap: 6px; justify-content: center; align-content: center; width: 100%; height: 100%; }
+.cv-win { position: relative; background: #000; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--c-line); }
+.cv-win.is-mine { box-shadow: 0 0 0 1px var(--c-accent); }
+.cv-wins[data-n="1"] .cv-win.is-mine { box-shadow: none; }
+.cv-canvas, .cv-video { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; object-fit: contain; background: #000; }
+.cv-win:not(.is-mine) .cv-canvas { cursor: default; }
+.cv-wtab { position: absolute; left: 6px; top: 6px; display: flex; align-items: center; gap: 2px; background: rgba(12,12,14,0.78); border-radius: 6px; padding: 2px; touch-action: pan-y; user-select: none; max-width: calc(100% - 50px); z-index: 2; }
+.cv-root .cv-wtab button { background: transparent; padding: 3px 7px; font-size: 12px; }
+.cv-root .cv-wtab .cv-wname { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.cv-win.is-mine .cv-wname { color: var(--c-accent); }
+.cv-wmenu { position: absolute; left: 6px; top: 38px; z-index: 3; display: grid; background: var(--c-panel); border: 1px solid var(--c-line); border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); max-width: calc(100% - 12px); }
+.cv-root .cv-wmenu button { background: transparent; text-align: left; }
+.cv-root .cv-wclose { position: absolute; right: 6px; top: 6px; z-index: 2; background: rgba(12,12,14,0.78); width: 28px; height: 28px; padding: 0; font-size: 16px; }
+.cv-root .cv-wadd { font-weight: 600; }
+.cv-root .cv-wuse { position: absolute; right: 6px; bottom: 6px; z-index: 2; font-size: 11px; background: rgba(12,12,14,0.8); }
+.cv-slide-l { animation: cv-sl 0.22s ease-out; }
+.cv-slide-r { animation: cv-sr 0.22s ease-out; }
+@keyframes cv-sl { from { transform: translateX(24px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+@keyframes cv-sr { from { transform: translateX(-24px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cv-slide-l, .cv-slide-r { animation: none; } }
 .cv-canvas.dragging { cursor: grabbing; }
-.cv-hud { position: absolute; left: 10px; bottom: 8px; font-size: 11px; color: #fff; background: rgba(0,0,0,0.55); padding: 3px 8px; border-radius: 4px; pointer-events: none; max-width: 70%; }
+.cv-hud { position: absolute; left: 8px; bottom: 6px; font-size: 11px; color: #fff; background: rgba(0,0,0,0.55); padding: 3px 8px; border-radius: 4px; pointer-events: none; max-width: 70%; }
 .cv-transport { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .cv-transport .cv-time { font-variant-numeric: tabular-nums; color: var(--c-dim); min-width: 92px; }
 .cv-transport input[type=range] { flex: 1 1 160px; width: auto; }
@@ -1057,8 +1173,6 @@
 
   let root = null;
   let canvas = null;
-  let ctx2 = null;
-  let hud = null;
   let picks = [];
   let lastC = null;
   let thumbsDirty = true;
@@ -1089,7 +1203,7 @@
       <div class="cv-main">
         <aside class="cv-pane cv-things" aria-label="In the scene"></aside>
         <section class="cv-pane cv-player" aria-label="Player">
-          <div class="cv-stage"><canvas class="cv-canvas" tabindex="0" aria-label="The picture. Drag a shape to move it. Drag empty space to swing the camera. Scroll to go closer or farther."></canvas><div class="cv-hud"></div></div>
+          <div class="cv-stage"><div class="cv-wins"></div><input type="file" class="cv-vfile" accept="video/*" hidden /></div>
           <div class="cv-transport">
             <button type="button" data-act="first" title="First panel">⏮</button>
             <button type="button" data-act="prev" title="Previous panel">◀</button>
@@ -1097,6 +1211,7 @@
             <button type="button" data-act="next" title="Next panel">▶</button>
             <span class="cv-time"></span>
             <input type="range" class="cv-scrub" min="0" max="1000" value="0" aria-label="Where in the film" />
+            <button type="button" class="cv-wadd" data-act="addwin" title="Open another window next to your film, to watch an inspiration film side by side. Add as many as you like.">+ Window</button>
             <select data-k="speed" title="How fast it plays"><option value="0.5">½ speed</option><option value="1" selected>Normal speed</option><option value="2">2× speed</option></select>
             <label title="Start again at the end"><input type="checkbox" data-k="loop" checked /> Loop</label>
           </div>
@@ -1121,9 +1236,8 @@
         <div class="cv-cards"></div>
       </section>`;
     document.body.appendChild(root);
-    canvas = root.querySelector(".cv-canvas");
-    ctx2 = canvas.getContext("2d");
-    hud = root.querySelector(".cv-hud");
+    buildWins();
+    root.querySelector(".cv-vfile").addEventListener("change", onVideoFile);
     root.addEventListener("click", onClick);
     root.addEventListener("input", onInput);
     root.addEventListener("change", onInput);
@@ -1131,15 +1245,6 @@
       remember("title");
       film.title = e.target.textContent.trim() || "My film";
       save();
-    });
-    canvas.addEventListener("pointerdown", onDown);
-    canvas.addEventListener("pointermove", onMove);
-    canvas.addEventListener("pointerup", onUp);
-    canvas.addEventListener("pointercancel", onUp);
-    canvas.addEventListener("wheel", onWheel, { passive: false });
-    canvas.addEventListener("dblclick", (e) => {
-      const hit = pickAt(e);
-      if (hit) faceCamera(hit);
     });
     document.addEventListener("keydown", onKey);
     window.addEventListener("resize", () => draw());
@@ -1152,33 +1257,207 @@
   }
 
   /* ---------- drawing the page ---------- */
-  function sizeCanvas() {
-    const stage = canvas.parentElement;
+  function buildWins() {
+    const box = root.querySelector(".cv-wins");
+    W_EL.forEach((w) => w.video && w.video.pause());
+    box.innerHTML = "";
+    W_EL.length = 0;
+    wins.forEach((id, i) => {
+      const el = document.createElement("div");
+      el.className = "cv-win";
+      el.dataset.w = i;
+      el.innerHTML = `<canvas class="cv-canvas" tabindex="0" aria-label="The picture. Drag a shape to move it. Drag empty space to swing the camera. Scroll to go closer or farther."></canvas><video class="cv-video" muted playsinline loop hidden></video>
+        <div class="cv-wtab" title="Swipe left or right here to switch films"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button></div>
+        ${i ? `<button type="button" class="cv-wclose" data-wclose="${i}" title="Close this window" aria-label="Close this window">×</button>` : ""}
+        <div class="cv-wmenu" hidden></div>
+        <div class="cv-hud"></div><button type="button" class="cv-wuse" data-wuse="${i}" title="Copy this film's camera (shot size, lens, fisheye, height, side, lean) onto the panel you are working on" hidden>Use this camera in my panel</button>`;
+      box.appendChild(el);
+      const w = { el, canvas: el.querySelector("canvas"), hud: el.querySelector(".cv-hud"), video: el.querySelector("video"), picks: [] };
+      w.ctx = w.canvas.getContext("2d");
+      const on = (fn) => (e) => {
+        activeWin = i;
+        canvas = w.canvas;
+        picks = w.picks;
+        fn(e);
+      };
+      w.canvas.addEventListener("pointerdown", on(onDown));
+      w.canvas.addEventListener("pointermove", on(onMove));
+      w.canvas.addEventListener("pointerup", on(onUp));
+      w.canvas.addEventListener("pointercancel", on(onUp));
+      w.canvas.addEventListener("wheel", on(onWheel), { passive: false });
+      w.canvas.addEventListener("dblclick", on((e) => {
+        if (wins[i] !== "mine") return;
+        const hit = pickAt(e);
+        if (hit) faceCamera(hit);
+      }));
+      swipeable(el.querySelector(".cv-wtab"), i);
+      W_EL.push(w);
+    });
+    canvas = W_EL[0].canvas;
+    picks = W_EL[0].picks;
+    root.querySelector(".cv-wins").dataset.n = wins.length;
+  }
+  /* Swipe the corner tab left or right to switch which film the window shows. */
+  function swipeable(tabEl, i) {
+    let x0 = null;
+    let moved = false;
+    tabEl.addEventListener("pointerdown", (e) => {
+      x0 = e.clientX;
+      moved = false;
+    });
+    tabEl.addEventListener("pointermove", (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0;
+      if (Math.abs(dx) > 36) {
+        if (!moved) {
+          try {
+            tabEl.setPointerCapture(e.pointerId);
+          } catch (err) {}
+        }
+        moved = true;
+        x0 = e.clientX;
+        stepWin(i, dx < 0 ? 1 : -1);
+      }
+    });
+    const end = () => {
+      x0 = null;
+      if (moved) {
+        tabEl.dataset.swiped = "1";
+        setTimeout(() => (tabEl.dataset.swiped = ""), 50);
+      }
+    };
+    tabEl.addEventListener("pointerup", end);
+    tabEl.addEventListener("pointercancel", end);
+  }
+  function stepWin(i, d) {
+    const list = allFilms();
+    const at = list.findIndex((f) => f.id === wins[i]);
+    setWin(i, list[(at + d + list.length) % list.length].id, d);
+  }
+  function setWin(i, id, d) {
+    wins[i] = id;
+    saveWins();
+    const w = W_EL[i];
+    if (w) {
+      w.el.classList.remove("cv-slide-l", "cv-slide-r");
+      void w.el.offsetWidth;
+      if (d) w.el.classList.add(d > 0 ? "cv-slide-l" : "cv-slide-r");
+      w.el.querySelector(".cv-wmenu").hidden = true;
+    }
+    draw();
+  }
+  function addWin() {
+    if (wins.length >= 8) return;
+    const shown = new Set(wins);
+    const next = INSP.find((f) => !shown.has(f.id)) || INSP[0];
+    wins.push(next ? next.id : "mine");
+    saveWins();
+    buildWins();
+    draw();
+  }
+  function closeWin(i) {
+    if (!i || i >= wins.length) return;
+    wins.splice(i, 1);
+    saveWins();
+    buildWins();
+    draw();
+  }
+  function winMenu(i) {
+    const m = W_EL[i] && W_EL[i].el.querySelector(".cv-wmenu");
+    if (!m) return;
+    if (!m.hidden) return (m.hidden = true);
+    m.innerHTML =
+      allFilms()
+        .map((f) => `<button type="button" data-wpick="${i}" data-film="${esc(f.id)}"${f.id === wins[i] ? ' class="on"' : ""}>${f.id === "mine" ? "My film" : (f.video ? "Video: " : "Inspiration: ") + esc(f.title)}</button>`)
+        .join("") + `<button type="button" data-wvideo="${i}">+ Bring in a video from my computer…</button>`;
+    m.hidden = false;
+  }
+  let videoFor = 0;
+  function onVideoFile(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    const id = "vid-" + Date.now().toString(36);
+    INSP.push({ id, kind: "video", title: file.name.replace(/\.[^.]+$/, ""), url: URL.createObjectURL(file) });
+    setWin(videoFor, id, 1);
+  }
+  function layoutWins() {
+    const stage = root.querySelector(".cv-stage");
     const r = stage.getBoundingClientRect();
-    let w = r.width;
-    let h = (w * 9) / 16;
-    if (h > r.height && r.height > 50) {
-      h = r.height;
-      w = (h * 16) / 9;
+    const n = W_EL.length;
+    const gap = 6;
+    const autoH = r.height < 60 || window.innerWidth <= 760;
+    let best = { cols: 1, w: r.width };
+    for (let cols = 1; cols <= n; cols++) {
+      const rows = Math.ceil(n / cols);
+      let w = (r.width - gap * (cols - 1)) / cols;
+      if (!autoH) w = Math.min(w, (((r.height - gap * (rows - 1)) / rows) * 16) / 9);
+      if (autoH && cols > (r.width < 560 ? 1 : 2)) break;
+      if (w > best.w || cols === 1) best = { cols, w };
     }
+    const box = root.querySelector(".cv-wins");
+    box.style.gridTemplateColumns = `repeat(${best.cols}, ${Math.floor(best.w)}px)`;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const W = Math.max(320, Math.round(w * dpr));
-    const H = Math.round((W * 9) / 16);
-    if (canvas.width !== W || canvas.height !== H) {
-      canvas.width = W;
-      canvas.height = H;
-    }
-    canvas.style.width = Math.round(w) + "px";
-    canvas.style.height = Math.round(h) + "px";
+    W_EL.forEach((w) => {
+      const W = Math.max(320, Math.round(best.w * dpr * (n > 2 ? 0.85 : 1)));
+      const H = Math.round((W * 9) / 16);
+      if (w.canvas.width !== W || w.canvas.height !== H) {
+        w.canvas.width = W;
+        w.canvas.height = H;
+      }
+      w.el.style.width = Math.floor(best.w) + "px";
+      w.el.style.height = Math.floor((best.w * 9) / 16) + "px";
+    });
+  }
+  function camLine(c) {
+    return `${shotWords(c.shot)[0]} · ${heightWords(c.height)[0]} · ${Math.round(c.lens)}mm lens${c.fish > 0.05 ? " · fisheye " + Math.round(c.fish * 100) + "%" : ""}${Math.abs(c.tilt) >= 2 ? " · leaning" : ""}`;
   }
   function draw() {
     if (!root || root.hidden) return;
-    sizeCanvas();
-    const st = stateAt(T);
-    picks = [];
-    lastC = drawFrame(ctx2, canvas.width, canvas.height, st, { sel: playing ? null : film.sel, picks });
-    const c = st.cam;
-    hud.textContent = `Panel ${st.i + 1} of ${film.panels.length} · ${shotWords(c.shot)[0]} · ${heightWords(c.height)[0]} · ${Math.round(c.lens)}mm lens${c.fish > 0.05 ? " · fisheye " + Math.round(c.fish * 100) + "%" : ""}${Math.abs(c.tilt) >= 2 ? " · leaning" : ""}`;
+    layoutWins();
+    let mineC = null;
+    let st = null;
+    W_EL.forEach((w, i) => {
+      const f = filmFor(wins[i]);
+      const mine = f === film;
+      const list = allFilms();
+      const at = list.findIndex((x) => x.id === wins[i]);
+      w.el.classList.toggle("is-mine", mine);
+      w.el.querySelector(".cv-wname").textContent = (mine ? "My film" : (f.kind === "video" ? "Video · " : "Inspiration · ") + f.title) + ` (${at + 1}/${list.length})`;
+      w.el.querySelector(".cv-wuse").hidden = mine || f.kind === "video";
+      if (f.kind === "video") {
+        w.canvas.hidden = true;
+        w.video.hidden = false;
+        if (w.video.dataset.src !== f.url) {
+          w.video.src = f.url;
+          w.video.dataset.src = f.url;
+        }
+        if (playing && w.video.paused) w.video.play().catch(() => {});
+        if (!playing) {
+          w.video.pause();
+          const d = w.video.duration;
+          if (d && isFinite(d) && Math.abs(w.video.currentTime - (T % d)) > 0.08) w.video.currentTime = T % d;
+        }
+        w.hud.textContent = "Your video · plays only on this computer";
+        return;
+      }
+      w.canvas.hidden = false;
+      w.video.hidden = true;
+      if (!w.video.paused) w.video.pause();
+      w.picks.length = 0;
+      withFilm(f, () => {
+        const len = total();
+        const s = stateAt(mine ? T : T % Math.max(0.001, len));
+        const C = drawFrame(w.ctx, w.canvas.width, w.canvas.height, s, { sel: mine && !playing ? film.sel : null, picks: w.picks, top: (36 * w.canvas.width) / Math.max(1, w.el.clientWidth || w.canvas.width) });
+        if (mine && !mineC) mineC = C;
+        if (mine && !st) st = s;
+        w.hud.textContent = (mine ? "" : "Inspiration · ") + `Panel ${s.i + 1} of ${film.panels.length} · ` + camLine(s.cam);
+        w.state = s;
+      });
+    });
+    if (mineC) lastC = mineC;
+    if (!st) st = stateAt(T);
+    if (!lastC) lastC = makeCamera(st.cam, camTarget(st), 1600, 900);
     const tt = root.querySelector(".cv-time");
     tt.textContent = `${fmt(T)} / ${fmt(total())}`;
     const sc = root.querySelector(".cv-scrub");
@@ -1186,6 +1465,7 @@
     root.querySelectorAll(".cv-card").forEach((el) => {
       el.classList.toggle("now", playing && +el.dataset.i === st.i);
     });
+    root.querySelector(".cv-wadd").disabled = wins.length >= 8;
     if (tab === "camera") drawMap();
     if (root.classList.contains("cv-comic") && playing) {
       const card = root.querySelector(`.cv-card[data-i="${st.i}"] canvas`);
@@ -1622,6 +1902,7 @@
   }
 
   function onClick(e) {
+    if (!e.target.closest(".cv-wmenu, .cv-wname")) root.querySelectorAll(".cv-wmenu").forEach((m) => (m.hidden = true));
     const b = e.target.closest("button, [data-thing]");
     if (!b || !root.contains(b)) return;
     const d = b.dataset;
@@ -1638,6 +1919,36 @@
       return;
     }
     if (d.addkind) return addThing(d.addkind);
+    if (d.wstep) {
+      const i = +b.closest(".cv-win").dataset.w;
+      return stepWin(i, +d.wstep);
+    }
+    if (d.wmenu) {
+      if (b.closest(".cv-wtab").dataset.swiped === "1") return;
+      return winMenu(+d.wmenu);
+    }
+    if (d.wpick) return setWin(+d.wpick, d.film, 0);
+    if (d.wvideo) {
+      videoFor = +d.wvideo;
+      W_EL[videoFor].el.querySelector(".cv-wmenu").hidden = true;
+      return root.querySelector(".cv-vfile").click();
+    }
+    if (d.wclose) return closeWin(+d.wclose);
+    if (d.wuse) {
+      const w = W_EL[+d.wuse];
+      if (!w || !w.state) return;
+      atPanelStart();
+      remember("usecam");
+      const c = w.state.cam;
+      const mine = film.panels[cur].cam;
+      ["shot", "lens", "fish", "height", "tilt"].forEach((k) => (mine[k] = Math.round(c[k] * 1000) / 1000));
+      /* the side is measured from the subject's face, so it means the same thing in your scene */
+      const theirAim = filmFor(wins[+d.wuse]).panels[w.state.i].place[c.aim || c.aimTo];
+      const myAim = film.panels[cur].place[mine.aim];
+      mine.around = Math.round(wrap180(c.around - (theirAim ? theirAim.turn : 0) + (myAim ? myAim.turn : 0)));
+      tab = "camera";
+      return changed(true);
+    }
     if (d.mv) {
       const [x, y] = d.mv.split(",").map(Number);
       return nudge(x, y, e.shiftKey);
@@ -1667,6 +1978,8 @@
     switch (act) {
       case "play":
         return setPlaying(!playing);
+      case "addwin":
+        return addWin();
       case "first":
         return selectPanel(0);
       case "prev":
@@ -1917,6 +2230,7 @@
   }
   function onDown(e) {
     if (e.button !== 0) return;
+    if (wins[activeWin] !== "mine") return;
     if (playing) setPlaying(false);
     const hit = pickAt(e);
     canvas.setPointerCapture(e.pointerId);
@@ -1988,6 +2302,7 @@
     drawStrip();
   }
   function onWheel(e) {
+    if (wins[activeWin] !== "mine") return;
     e.preventDefault();
     atPanelStart();
     remember("wheel");

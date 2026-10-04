@@ -6,6 +6,13 @@ controls to change what you see. Built because the metrics-first pages were hard
 - **The picture.** A small 3D drawer on a 2D canvas (no three.js): a street with floor tiles, people, a
   tuk-tuk, buildings with lit windows and signs, boxes, balls, trees, lamp posts, rain. Things glide from where
   they stand in one panel to where they stand in the next while the film plays; people walk when they move.
+- **Windows.** **+ Window** (under the picture) opens another window beside your film, as many as you like
+  (up to 8). Each window has a tab in its upper-left corner: swipe it left or right (or tap its ‹ ›) to switch
+  which loaded film it shows, or tap the name for the list. Loaded films are My film, the built-in inspiration
+  films (The chase, The double take) and any video you bring in from your computer (it stays on your
+  computer and is not saved). All windows play together. **Use this camera in my panel** copies an inspiration
+  film's shot size, lens, fisheye, height, side (measured from the subject's face) and lean onto your panel.
+  Which films are open is kept in `curiosities-viewer-windows-v1`.
 - **Move it.** Pick a thing (click it in the picture or its name on the left). The arrow pad moves it left,
   right, up, down and on the four diagonals ("up and down" means farther and nearer on the floor, or up in the
   air). Drag it in the picture (Shift lifts it). Turn it, Face the camera, Side on, Back to the camera, size,

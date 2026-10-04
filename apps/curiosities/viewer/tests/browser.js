@@ -153,6 +153,35 @@ const ok = (cond, msg) => {
   await page.screenshot({ path: path.join(SHOTS, "viewer-playing.png") });
   await page.click('[data-act="play"]');
 
+  /* more windows for inspiration films, and swiping the corner to switch films */
+  await page.click('[data-act="addwin"]');
+  ok((await page.locator(".cv-win").count()) === 2, "+ Window opens a second window");
+  const name1 = await page.textContent('.cv-win[data-w="1"] .cv-wname');
+  ok(/Inspiration/.test(name1), `the new window shows an inspiration film (${name1})`);
+  await page.click('[data-act="addwin"]');
+  ok((await page.locator(".cv-win").count()) === 3, "+ Window again opens a third");
+  const tab = await page.locator('.cv-win[data-w="1"] .cv-wtab').boundingBox();
+  await page.mouse.move(tab.x + tab.width - 20, tab.y + tab.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(tab.x - 40, tab.y + tab.height / 2, { steps: 8 });
+  await page.mouse.up();
+  const name2 = await page.textContent('.cv-win[data-w="1"] .cv-wname');
+  ok(name2 !== name1, `swiping the corner tab switches the film (${name1} to ${name2})`);
+  await page.click('.cv-win[data-w="1"] [data-wstep="1"]');
+  ok((await page.textContent('.cv-win[data-w="1"] .cv-wname')) !== name2, "the corner arrow switches the film too");
+  await page.click('.cv-win[data-w="2"] .cv-wname');
+  ok(await page.isVisible('.cv-win[data-w="2"] .cv-wmenu'), "the film's name opens a list of loaded films");
+  await page.click('.cv-win[data-w="2"] [data-wpick="2"][data-film="insp-take"]');
+  ok(/double take/i.test(await page.textContent('.cv-win[data-w="2"] .cv-wname')), "picking from the list shows that film");
+  const lensBefore = await page.evaluate(() => CurioViewer.film().panels[CurioViewer.panel()].cam.lens);
+  await page.click('.cv-win[data-w="2"] [data-wuse="2"]');
+  const lensAfter = await page.evaluate(() => CurioViewer.film().panels[CurioViewer.panel()].cam.lens);
+  ok(lensAfter !== lensBefore, `Use this camera copies the inspiration's lens into my panel (${lensBefore} to ${lensAfter} mm)`);
+  await page.screenshot({ path: path.join(SHOTS, "viewer-windows.png") });
+  await page.click('.cv-win[data-w="2"] [data-wclose="2"]');
+  await page.click('.cv-win[data-w="1"] [data-wclose="1"]');
+  ok((await page.locator(".cv-win").count()) === 1, "× closes the extra windows");
+
   /* a new panel */
   const np0 = await page.locator(".cv-card").count();
   await page.click('[data-act="addpanel"]');
