@@ -1016,6 +1016,21 @@
 
   const handler = {
     down(e) {
+      /* Control+drag a thing spins it; Control+click (or right-click) it opens what it can do (viewer/actions.js).
+         Control+drag on empty space still slides you through the world. */
+      if (((e.ctrlKey && !e.metaKey) || e.button === 2) && window.CurioActions) {
+        const pk0 = V.pickAt(e);
+        const o0 = pk0 && obj(pk0.obj);
+        if (!o0) return false;
+        if (o0.locked) {
+          flash(o0.name + " is locked. Unlock it with 🔒 in the list on the left.");
+          return true;
+        }
+        const ids0 = e.altKey ? [o0.id] : groupOf(o0);
+        if (!ids0.every((id) => selection().includes(id))) selectIds(ids0);
+        drag = { kind: "act" };
+        return window.CurioActions.down(e, o0, ids0);
+      }
       if (e.ctrlKey || e.metaKey || e.button !== 0) return false;
       const lv = L();
       const pt = V.canvasPoint(e);
@@ -1070,6 +1085,7 @@
     },
     move(e) {
       if (!drag) return;
+      if (drag.kind === "act") return window.CurioActions.move(e);
       if (drag.kind === "floor") return moveFloor(e);
       if (drag.kind === "handle") return moveHandle(e);
       if (drag.kind === "stroke") return moveStroke(e);
@@ -1080,9 +1096,10 @@
       }
       if (drag.kind === "shift" || drag.kind === "lift") return moveLift(e);
     },
-    up() {
+    up(e) {
       const d = drag;
       drag = null;
+      if (d && d.kind === "act") return window.CurioActions.up(e);
       if (d && d.kind === "stroke") endStroke(d);
       if (d && d.kind === "wall") endWall(d);
       if (d && d.kind === "box") endBox(d);
@@ -1638,25 +1655,54 @@
         } else multi = [];
       }, true);
     }
-    const div = document.createElement("div");
-    div.className = "cvb-quick";
-    div.innerHTML = `<h3>Draw &amp; build</h3><div class="cv-addrow">
-      <button type="button" data-bq="draw" title="Draw in the picture with a pencil (P)">✏ Draw</button>
-      <button type="button" data-bq="words" title="Put words in the picture (T)">T Words</button>
-      <button type="button" data-bq="parts" title="Blocks, balls, ramps and other basic shapes">◼ Parts</button>
-      <button type="button" class="cv-primary" data-bq="search" title="Search everyday objects: rooms of a house, city streets, the country, water and sky">🔍 Search objects</button></div>`;
-    box.appendChild(div);
-    div.addEventListener("click", (e) => {
-      const b = e.target.closest("[data-bq]");
-      if (!b) return;
-      const q = b.dataset.bq;
-      if (q === "search") return openSearch();
-      if (q === "parts") {
-        openSection = "parts";
-        setTool("select");
-      } else setTool(q);
-      V.showTab("build");
-    });
+    /* Jeremy (20:16Z): the list scrolls, every row has a +, and the searches sit at the top */
+    const rows = Array.from(box.querySelectorAll(":scope > .cvb-trow"));
+    if (rows.length) {
+      const sc = document.createElement("div");
+      sc.className = "cvb-scroll cvb-scene";
+      rows[0].before(sc);
+      rows.forEach((r) => {
+        const id = r.querySelector("[data-thing]").dataset.thing;
+        r.querySelector("[data-beye]").insertAdjacentHTML("beforebegin", `<button type="button" class="cvb-ic cvb-plus" data-bplus="${esc(id)}" title="Add another one like it" aria-label="Add another ${esc((obj(id) || {}).name || "")}">+</button>`);
+        sc.appendChild(r);
+      });
+    }
+    const finds = document.createElement("div");
+    finds.className = "cvb-finds";
+    finds.innerHTML = `<button type="button" data-find="objects" title="Search hundreds of everyday objects: World, Place, Type">🔍 Object search</button><button type="button" data-find="settings" title="Pick where the scene takes place: a kitchen, a street, a forest, a harbor…">🏙 Setting search</button><button type="button" data-find="characters" title="Bring people and animals in, take them out, or change them">🧍 Character search</button>`;
+    box.prepend(finds);
+    const addRow = box.querySelector(".cv-addrow");
+    if (addRow) {
+      const list = document.createElement("div");
+      list.className = "cvb-scroll cvb-addlist";
+      addRow.querySelectorAll("[data-addkind]").forEach((b) => {
+        b.className = "cvb-addit";
+        b.innerHTML = `<span>${esc(b.textContent.replace(/^\+\s*/, ""))}</span><b aria-hidden="true">+</b>`;
+        list.appendChild(b);
+      });
+      Object.keys(PARTS).forEach((k) => list.insertAdjacentHTML("beforeend", `<button type="button" class="cvb-addit" data-bpart="${k}" title="${esc(PARTS[k][1])}"><span>${esc(PARTS[k][0])}</span><b aria-hidden="true">+</b></button>`));
+      list.insertAdjacentHTML("beforeend", `<button type="button" class="cvb-addit" data-bq="draw" title="Draw in the picture with a pencil (P)"><span>✏ A drawing</span><b aria-hidden="true">+</b></button><button type="button" class="cvb-addit" data-bq="words" title="Put words in the picture (T)"><span>T Words</span><b aria-hidden="true">+</b></button>`);
+      addRow.replaceWith(list);
+    }
+    if (!box.dataset.cvbFinds) {
+      box.dataset.cvbFinds = "1";
+      box.addEventListener("click", (e) => {
+        const f = e.target.closest("[data-find]");
+        if (f) return openSearch({ mode: f.dataset.find });
+        const pl = e.target.closest("[data-bplus]");
+        if (pl) {
+          e.stopPropagation();
+          return duplicate(pl.dataset.bplus);
+        }
+        const pt = e.target.closest("[data-bpart]");
+        if (pt) return addPart(pt.dataset.bpart);
+        const q = e.target.closest("[data-bq]");
+        if (q) {
+          setTool(q.dataset.bq);
+          V.showTab("build");
+        }
+      });
+    }
   });
 
   /* ---------- the Build tab ---------- */
@@ -1941,27 +1987,36 @@
 
   /* ---------- the Search window: Omnisphere-style filter columns ---------- */
   let SW = null;
-  const filt = { world: null, place: null, type: null, q: "" };
+  const filt = { world: null, place: null, type: null, q: "", mode: "objects" };
+  /* three searches share one window: objects (World > Place > Type), settings (where the scene takes place) and
+     characters (people and animals: bring them in, take them out, change them) */
+  const MODES = {
+    objects: ["Search objects", "Type anything: dog, boat, kitchen, police…", "Each column narrows the one after it, like Omnisphere: pick a world, then a place, then a type, or just type. Click an object to put it in the middle of your picture; double-click to put it in and close."],
+    settings: ["Search settings", "Type a place: kitchen, street, forest, harbor…", "Pick where the scene takes place. A setting puts that place's things around the middle of your picture and leaves the middle free for your characters. Indoors gets walls."],
+    characters: ["Search characters", "Type anyone: child, police, chef, dog, bird…", "Bring people and animals in, or take them out. Click one in the scene to pick it and change it in Move it; Control+click it in the picture to tell it what to do."],
+  };
+  const CHAR_TYPES = ["People", "Animals"];
   function openSearch(pre) {
     const L0 = lib();
     const root = document.querySelector(".cv-root");
     if (!root) return;
     if (!L0) return flash("The object library did not load.");
-    if (pre) Object.assign(filt, { world: pre.world || null, place: pre.place || null, type: pre.type || null, q: "" });
+    if (pre) Object.assign(filt, { world: pre.world || null, place: pre.place || null, type: pre.type || null, q: "", mode: MODES[pre.mode] ? pre.mode : "objects" });
+    if (!MODES[filt.mode]) filt.mode = "objects";
     if (!SW) {
       SW = document.createElement("div");
       SW.className = "cvb-search";
       SW.setAttribute("role", "dialog");
       SW.setAttribute("aria-label", "Search objects");
       SW.innerHTML = `<div class="cvb-sbox">
-        <header><b>Search objects</b><input type="search" class="cvb-q" placeholder="Type anything: dog, boat, kitchen, police…" aria-label="Search" /><span class="cvb-count"></span><button type="button" data-sclose aria-label="Close">×</button></header>
+        <header><b class="cvb-stitle">Search objects</b><nav class="cvb-modes">${Object.keys(MODES).map((m) => `<button type="button" data-smode="${m}">${MODES[m][0].replace("Search ", "")}</button>`).join("")}</nav><input type="search" class="cvb-q" placeholder="" aria-label="Search" /><span class="cvb-count"></span><button type="button" data-sclose aria-label="Close">×</button></header>
         <div class="cvb-cols">
           <div class="cvb-col" data-col="world"><h4>World</h4><div></div></div>
           <div class="cvb-col" data-col="place"><h4>Place</h4><div></div></div>
           <div class="cvb-col" data-col="type"><h4>Type</h4><div></div></div>
-          <div class="cvb-results"><div class="cvb-cards"></div></div>
+          <div class="cvb-results"><div class="cvb-inscene" hidden></div><div class="cvb-cards"></div></div>
         </div>
-        <footer class="cv-say">Each column narrows the one after it, like Omnisphere: pick a world, then a place, then a type, or just type. Click an object to put it in the middle of your picture; double-click to put it in and close.</footer></div>`;
+        <footer class="cv-say"><span class="cvb-sfoot"></span> <label class="cvb-repl" hidden><input type="checkbox" checked data-repl /> Replace the setting that is there now</label></footer></div>`;
       root.appendChild(SW);
       SW.addEventListener("click", onSearchClick);
       SW.addEventListener("dblclick", (e) => {
@@ -1980,6 +2035,15 @@
       });
     }
     SW.hidden = false;
+    const M = MODES[filt.mode];
+    SW.setAttribute("aria-label", M[0]);
+    SW.querySelector(".cvb-stitle").textContent = M[0];
+    SW.querySelector(".cvb-q").placeholder = M[1];
+    SW.querySelector(".cvb-sfoot").textContent = M[2];
+    SW.querySelector(".cvb-repl").hidden = filt.mode !== "settings";
+    SW.querySelectorAll("[data-smode]").forEach((b) => b.classList.toggle("on", b.dataset.smode === filt.mode));
+    SW.querySelector('[data-col="type"]').hidden = filt.mode === "settings";
+    Object.keys(MODES).forEach((m) => SW.classList.toggle("cvb-m-" + m, m === filt.mode));
     SW.querySelector(".cvb-q").value = filt.q;
     fillSearch();
     setTimeout(() => SW.querySelector(".cvb-q").focus(), 0);
@@ -1988,6 +2052,7 @@
     if (SW) SW.hidden = true;
   }
   function matches(it, f, skip) {
+    if (f.mode === "characters" && !CHAR_TYPES.includes(it.type)) return false;
     if (skip !== "world" && f.world && it.world !== f.world) return false;
     if (skip !== "place" && f.place && !(it.places || []).includes(f.place)) return false;
     if (skip !== "type" && f.type && it.type !== f.type) return false;
@@ -2014,7 +2079,9 @@
     col("world", L0.WORLDS);
     const places = filt.world ? L0.PLACES[filt.world] || [] : L0.WORLDS.reduce((a, w) => a.concat(L0.PLACES[w] || []), []);
     col("place", places);
-    col("type", L0.TYPES);
+    col("type", filt.mode === "characters" ? CHAR_TYPES : L0.TYPES);
+    fillInScene();
+    if (filt.mode === "settings") return fillSettings(places);
     const found = items.filter((it) => matches(it, filt));
     SW.querySelector(".cvb-count").textContent = found.length + " found";
     const cards = SW.querySelector(".cvb-cards");
@@ -2117,8 +2184,138 @@
       thumbCache[it.id] = ctx.getImageData(0, 0, W, H);
     } catch (e) {}
   }
+  /* ---- characters already in the scene: pick to change them, ✕ to take them out ---- */
+  function charsInScene() {
+    const L0 = lib();
+    return L().film.objects.filter((o) => o.kind === "person" || (o.item && L0 && (L0.find(o.item) || {}).type === "Animals"));
+  }
+  function fillInScene() {
+    const box = SW.querySelector(".cvb-inscene");
+    if (filt.mode !== "characters") return (box.hidden = true);
+    const list = charsInScene();
+    box.hidden = false;
+    box.innerHTML = `<b>In this scene</b>` + (list.length ? list.map((o) => `<span class="cvb-chip"><button type="button" data-cpick="${esc(o.id)}" title="Pick ${esc(o.name)} and change it in Move it"><i style="background:${esc(o.color)}"></i>${esc(o.name)}</button><button type="button" data-cact="${esc(o.id)}" title="What should ${esc(o.name)} do?">⋯</button><button type="button" data-cout="${esc(o.id)}" title="Take ${esc(o.name)} out of the scene" aria-label="Take ${esc(o.name)} out">✕</button></span>`).join("") : `<span class="cv-say">Nobody yet. Pick someone below.</span>`);
+  }
+
+  /* ---- settings: every place in the library, plus the ready-made sets ---- */
+  const INDOORS = { Household: 1 };
+  const FLOORS = { Kitchen: "#c9b79a", "Living room": "#a8774f", Bedroom: "#8f6f58", Bathroom: "#d9dde0", Garage: "#8c8c8c", Office: "#7d8794" };
+  function settingItems(place) {
+    const L0 = lib();
+    const order = ["Furniture", "Buildings", "Nature", "Vehicles", "Signs & street", "Things", "Animals"];
+    const its = L0.items.filter((it) => (it.places || []).includes(place) && it.type !== "People");
+    its.sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
+    const out = [];
+    const perType = {};
+    its.forEach((it) => {
+      perType[it.type] = (perType[it.type] || 0) + 1;
+      if (out.length < 9 && perType[it.type] <= (it.type === "Animals" ? 1 : 3)) out.push(it);
+    });
+    return out;
+  }
+  function fillSettings(places) {
+    const L0 = lib();
+    const q = filt.q.toLowerCase().split(/\s+/).filter(Boolean);
+    const okWords = (hay) => q.every((w) => hay.includes(w) || hay.includes(w.replace(/s$/, "")));
+    const cards = [];
+    L0.WORLDS.forEach((w) => {
+      if (filt.world && w !== filt.world) return;
+      (L0.PLACES[w] || []).forEach((pl) => {
+        if (filt.place && pl !== filt.place) return;
+        const its = settingItems(pl);
+        if (!okWords([w, pl, its.map((i) => i.name).join(" ")].join(" ").toLowerCase())) return;
+        cards.push(`<button type="button" class="cvb-setcard" data-setting="${esc(pl)}" data-sworld="${esc(w)}"><b>${esc(pl)}</b><small>${esc(w)}${INDOORS[w] ? " · indoors, with walls" : ""}</small><span>${esc(its.map((i) => i.name).join(", "))}</span></button>`);
+      });
+    });
+    PREFABS.forEach((pf) => {
+      if (filt.world || filt.place) return;
+      if (!okWords([pf.name, pf.say].join(" ").toLowerCase())) return;
+      cards.push(`<button type="button" class="cvb-setcard" data-prefab="${esc(pf.id)}"><b>${esc(pf.name)}</b><small>Ready-made set</small><span>${esc(pf.say)}</span></button>`);
+    });
+    SW.querySelector(".cvb-count").textContent = cards.length + " found";
+    SW.querySelector(".cvb-cards").innerHTML = cards.length ? cards.join("") : `<p class="cv-say">Nothing matches. Try fewer words, or press All in a column.</p>`;
+  }
+  function clearSetting() {
+    const ids = L().film.objects.filter((o) => o.setting).map((o) => o.id);
+    const lv = L();
+    lv.film.objects = lv.film.objects.filter((o) => !o.setting);
+    lv.film.panels.forEach((p) => ids.forEach((id) => delete p.place[id]));
+    if (ids.includes(lv.film.sel)) lv.film.sel = null;
+    multi = [];
+  }
+  function addSetting(place, world, replace) {
+    const L0 = lib();
+    if (!L0) return 0;
+    const its = settingItems(place);
+    const C = L().C;
+    const tg = C ? C.target : [0, 0, 0];
+    const { r, f } = V.floorDirs();
+    V.edit("build-setting");
+    if (replace) clearSetting();
+    const lv = L();
+    const base = Math.atan2(-f[0], -f[2]) / DEG;
+    const put = (def, dx, dz, turn, y) => {
+      def.setting = place;
+      const x = r3(tg[0] + r[0] * dx - f[0] * dz);
+      const z = r3(tg[2] + r[2] * dx - f[2] * dz);
+      lv.film.objects.push(def);
+      lv.film.panels.forEach((p) => (p.place[def.id] = { x, y: y || 0, z, turn: Math.round(base + (turn || 0)), size: 1, show: true, pose: "stand" }));
+    };
+    if (INDOORS[world]) {
+      /* three walls behind and beside the middle, and a floor; the side toward the camera stays open */
+      const w = 9, d = 7;
+      put({ id: uid("walls"), kind: "made", make: "walls", name: place + " walls", color: "#e9e5dc", h: S.wallH || 2.6, t: 0.15, segs: [[-w / 2, -d / 2, w / 2, -d / 2], [w / 2, -d / 2, w / 2, d / 2], [-w / 2, d / 2, -w / 2, -d / 2]], floor: [-w / 2, -d / 2, w / 2, d / 2], floorColor: FLOORS[place] || "#b59c7c", look: 1.3, ring: 4.5, noShadow: true }, 0, 0, 0);
+    }
+    /* a U around the middle: the back row first, then the sides */
+    const spots = [[-2.8, 2.6, 0], [0, 3, 0], [2.8, 2.6, 0], [-3.6, 0.6, 70], [3.6, 0.6, -70], [-1.4, 3.4, 0], [1.4, 3.4, 0], [-3.4, -1.4, 80], [3.4, -1.4, -80]];
+    its.forEach((it, i) => {
+      const sp = spots[i];
+      if (!sp) return;
+      const def = defFromItem(it);
+      put(def, sp[0], -sp[1] + (INDOORS[world] ? 0.4 : 0), sp[2], it.fly || 0);
+    });
+    V.changed(true);
+    return its.length;
+  }
+
   function onSearchClick(e) {
     if (e.target === SW || e.target.closest("[data-sclose]")) return closeSearch();
+    const md = e.target.closest("[data-smode]");
+    if (md) return openSearch({ mode: md.dataset.smode });
+    const sc = e.target.closest("[data-setting], [data-prefab]");
+    if (sc) {
+      const repl = SW.querySelector("[data-repl]").checked;
+      if (sc.dataset.prefab) {
+        if (repl) {
+          V.edit("build-setting");
+          clearSetting();
+        }
+        const before = L().film.objects.length;
+        addPrefab(sc.dataset.prefab);
+        L().film.objects.slice(before).forEach((o) => (o.setting = sc.dataset.prefab));
+        V.changed(true);
+      } else addSetting(sc.dataset.setting, sc.dataset.sworld, repl);
+      flash("The scene now takes place in: " + sc.querySelector("b").textContent + ". Undo takes it back.");
+      return;
+    }
+    const cp = e.target.closest("[data-cpick]");
+    if (cp) {
+      selectIds([cp.dataset.cpick]);
+      closeSearch();
+      V.showTab("move");
+      return V.changed(true);
+    }
+    const ca = e.target.closest("[data-cact]");
+    if (ca && window.CurioActions) {
+      selectIds([ca.dataset.cact]);
+      V.changed(true);
+      return window.CurioActions.open(ca.dataset.cact, e.clientX, e.clientY);
+    }
+    const co = e.target.closest("[data-cout]");
+    if (co) {
+      removeThing(co.dataset.cout);
+      return fillInScene();
+    }
     const f = e.target.closest("[data-f]");
     if (f) {
       const name = f.dataset.f;
@@ -2136,6 +2333,7 @@
       const it = lib().find(c.dataset.item);
       if (!it) return;
       addItem(it);
+      if (filt.mode === "characters") fillInScene();
       c.classList.add("added");
       setTimeout(() => c.classList.remove("added"), 700);
       flash(it.name + " is in your picture. Drag it where you want it.");
@@ -2175,6 +2373,29 @@
 .cv-root .cvb-in input[type=color] { width: 30px; height: 24px; padding: 0; border: 0; background: none; vertical-align: middle; }
 .cvb-quick { display: grid; gap: 6px; }
 .cvb-trow { display: flex; gap: 2px; align-items: stretch; min-width: 0; }
+.cvb-finds { display: grid; gap: 4px; }
+.cv-root .cvb-finds button { text-align: left; font-weight: 600; }
+.cvb-scroll { display: grid; gap: 4px; align-content: start; overflow: auto; max-height: 34vh; min-height: 0; padding-right: 2px; scrollbar-width: thin; }
+.cvb-addlist { max-height: 26vh; gap: 2px; }
+.cv-root .cvb-addit { display: flex; align-items: center; justify-content: space-between; gap: 6px; text-align: left; padding: 3px 4px 3px 8px; }
+.cvb-addit b { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; background: var(--c-raised, #2a2c34); color: var(--c-accent); font-size: 15px; line-height: 1; flex: none; }
+.cvb-addit:hover b { background: var(--c-accent); color: #0b1a1d; }
+.cv-root .cvb-plus { color: var(--c-accent); font-weight: 700; font-size: 15px; }
+@media (max-width: 1100px) { .cvb-scroll { max-height: 30vh; width: 100%; } .cvb-finds { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.cvb-modes { display: flex; gap: 2px; }
+.cv-root .cvb-modes button { padding: 3px 8px; font-size: 12px; }
+.cvb-modes button.on { background: var(--c-accent); color: #0b1a1d; }
+.cvb-m-settings .cvb-cols { grid-template-columns: 150px 170px minmax(0, 1fr); }
+.cvb-inscene { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--c-line); }
+.cvb-inscene > b { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-dim); margin-right: 4px; }
+.cvb-chip { display: inline-flex; border: 1px solid var(--c-line); border-radius: 6px; overflow: hidden; }
+.cv-root .cvb-chip button { border: 0; border-radius: 0; padding: 3px 7px; }
+.cvb-chip i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+.cvb-m-settings .cvb-cards { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.cv-root .cvb-setcard { display: grid; gap: 3px; text-align: left; padding: 9px 10px; align-content: start; }
+.cvb-setcard small { color: var(--c-accent); font-size: 11px; }
+.cvb-setcard span { color: var(--c-dim); font-size: 12px; line-height: 1.35; }
+.cvb-repl { margin-left: 8px; color: var(--c-text, #e8e8ec); }
 .cvb-trow > .cv-thing { flex: 1; min-width: 0; }
 .cvb-trow.picked > .cv-thing { box-shadow: inset 0 0 0 1px var(--c-accent); border-style: dashed; }
 .cv-root .cvb-ic { padding: 2px 4px; font-size: 11px; background: transparent; opacity: 0.55; flex: none; }

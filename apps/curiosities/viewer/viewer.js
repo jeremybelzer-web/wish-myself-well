@@ -74,7 +74,9 @@
   const ADDABLE = ["person", "box", "ball", "tree", "lamp", "building"];
   /* Hooks for add-ons (viewer/build.js): extra tabs, a tool that takes over the pointer, drawings over the
      picture, extra rows in the "In the scene" list, and keys. */
-  const HOOK = { tabs: [], tool: null, over: [], things: [], keys: [], draw: [], change: [] };
+  const HOOK = { tabs: [], tool: null, over: [], things: [], keys: [], draw: [], change: [], parts: [] };
+  /* more poses for people (viewer/build.js adds run, lie down, swim ...): name -> fn(phase) giving limb angles */
+  const POSE_FX = {};
   const POSES = [
     ["stand", "Standing"],
     ["walk", "Walking"],
@@ -94,6 +96,7 @@
     let armA = 0;
     let armB = 0;
     let wave = 0;
+    let waveL = 0;
     let drop = 0;
     if (pose === "walk") {
       const s = Math.sin(phase) * 28;
@@ -104,6 +107,16 @@
     }
     if (pose === "reach" || pose === "sitreach") armA = armB = -80;
     if (pose === "wave") wave = 150 + Math.sin(phase * 1.4) * 15;
+    if (POSE_FX[pose]) {
+      const r = POSE_FX[pose].fn(phase || 0) || {};
+      legA = r.legA || 0;
+      legB = r.legB || 0;
+      armA = r.armA || 0;
+      armB = r.armB || 0;
+      wave = r.wave || 0;
+      waveL = r.waveL || 0;
+      drop = r.drop || 0;
+    }
     const P = [];
     if (/^sit/.test(pose)) {
       drop = -0.4;
@@ -116,8 +129,8 @@
       P.push({ box: [0.14, 0.85, 0.16], at: [0.1, 0.425, 0], pivot: [0.1, 0.85, 0], rx: legB, color: pants });
     }
     P.push({ box: [0.44, 0.6, 0.26], at: [0, 1.15, 0], color: shirt });
-    P.push({ box: [0.11, 0.56, 0.12], at: [-0.285, 1.16, 0], pivot: [-0.285, 1.42, 0], rx: armA, color: shirt });
-    P.push({ box: [0.1, 0.1, 0.1], at: [-0.285, 0.84, 0], pivot: [-0.285, 1.42, 0], rx: armA, color: skin });
+    P.push({ box: [0.11, 0.56, 0.12], at: [-0.285, 1.16, 0], pivot: [-0.285, 1.42, 0], rx: armA, rz: -waveL, color: shirt });
+    P.push({ box: [0.1, 0.1, 0.1], at: [-0.285, 0.84, 0], pivot: [-0.285, 1.42, 0], rx: armA, rz: -waveL, color: skin });
     P.push({ box: [0.11, 0.56, 0.12], at: [0.285, 1.16, 0], pivot: [0.285, 1.42, 0], rx: armB, rz: wave, color: shirt });
     P.push({ box: [0.1, 0.1, 0.1], at: [0.285, 0.84, 0], pivot: [0.285, 1.42, 0], rx: armB, rz: wave, color: skin });
     P.push({ box: [0.27, 0.3, 0.27], at: [0, 1.62, 0], color: skin });
@@ -309,7 +322,13 @@
 
   /* World faces of one thing at one moment. */
   function thingFaces(def, place, phase) {
-    const parts = kindParts(def, place, phase);
+    let parts = kindParts(def, place, phase);
+    /* HOOK.parts: change a thing's parts for this moment (fire, breaking apart, a color for this panel) */
+    HOOK.parts.forEach((fn) => {
+      try {
+        parts = fn(parts, def, place, phase) || parts;
+      } catch (e) {}
+    });
     const s = place.size || 1;
     /* sx, sy, sz stretch one way only (the Scale tool), on top of size */
     const S = [s * (place.sx || 1), s * (place.sy || 1), s * (place.sz || 1)];
@@ -317,8 +336,18 @@
     const st = Math.sin(t);
     const ct = Math.cos(t);
     const pos = [place.x || 0, place.y || 0, place.z || 0];
+    /* tilt (forward or back) and roll (side to side) turn the whole thing about its feet, or about lift height */
+    const tl = (place.tilt || 0) * DEG;
+    const rl = (place.roll || 0) * DEG;
+    const ph = place.pivotY || 0;
     const toWorld = (p) => {
-      const q = [p[0] * S[0], p[1] * S[1], p[2] * S[2]];
+      let q = [p[0] * S[0], p[1] * S[1], p[2] * S[2]];
+      if (tl || rl) {
+        q = [q[0], q[1] - ph, q[2]];
+        if (rl) q = rotZ(q, rl);
+        if (tl) q = rotX(q, tl);
+        q = [q[0], q[1] + ph, q[2]];
+      }
       return [pos[0] + (q[0] * ct + q[2] * st), pos[1] + q[1], pos[2] + (-q[0] * st + q[2] * ct)];
     };
     const out = [];
@@ -627,8 +656,13 @@
         sy: lerp(p.sy || 1, q.sy || 1, e),
         sz: lerp(p.sz || 1, q.sz || 1, e),
         show: p.show !== false,
-        pose: moving[o.id] && !/^sit/.test(p.pose || "") && !/^sit/.test(q.pose || "") && u < 0.999 ? "walk" : p.pose || "stand",
+        pose: moving[o.id] && !/^sit/.test(p.pose || "") && !/^sit/.test(q.pose || "") && !(POSE_FX[p.pose] && POSE_FX[p.pose].keep) && u < 0.999 ? "walk" : p.pose || "stand",
       };
+      /* anything else a panel keeps about a thing (tilt, a color for this panel, fire ...): numbers glide, the rest holds */
+      Object.keys(p).forEach((k) => {
+        if (k in place[o.id]) return;
+        place[o.id][k] = typeof p[k] === "number" && typeof q[k] === "number" ? (/^(tilt|roll)$/.test(k) ? lerpAngle(p[k], q[k], e) : lerp(p[k], q[k], e)) : p[k];
+      });
     });
     let c = a.cam;
     if (a.cam.move === "glide" && b !== a) {
@@ -2772,6 +2806,14 @@
     onOverlay: (fn) => HOOK.over.push(fn),
     onThings: (fn) => HOOK.things.push(fn),
     onKey: (fn) => HOOK.keys.push(fn),
+    /* onParts(fn(parts, def, place, phase) -> parts): change a thing's parts as it is drawn */
+    onParts: (fn) => HOOK.parts.push(fn),
+    /* addPose(id, label, fn(phase) -> {legA, legB, armA, armB, wave}, keep): a new pose for people; keep = it is
+       not swapped for walking while the person moves (running, swimming) */
+    addPose: (id, label, fn, keep) => {
+      POSE_FX[id] = { fn, keep: !!keep };
+      if (!POSES.some((p) => p[0] === id)) POSES.push([id, label]);
+    },
     /* the strip under the picture (viewer/focus-lane.js): onDraw(fn(seconds, panel, total)) runs on every
        drawn frame, onChange(fn) after every edit; under() is the box under the picture; seek(seconds) */
     onDraw: (fn) => HOOK.draw.push(fn),

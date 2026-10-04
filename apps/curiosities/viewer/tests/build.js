@@ -70,7 +70,8 @@ const ok = (cond, msg) => {
   const at = (fx, fy) => [box.x + box.width * fx, box.y + box.height * fy];
 
   ok(await page.isVisible('.cv-tabs [data-tab="build"]'), "the Details side has a Draw & build tab");
-  ok(await page.isVisible('[data-bq="search"]'), "the In the scene list has Draw, Words, Parts and Search objects");
+  ok(await page.isVisible('[data-find="objects"]') && await page.isVisible('[data-find="settings"]') && await page.isVisible('[data-find="characters"]'), "Object, Setting and Character search sit at the top of the In the scene list");
+  ok(await page.$$eval(".cvb-scene .cvb-trow", (r) => r.length > 3 && r.every((x) => x.querySelector("[data-bplus]"))) && await page.$$eval(".cvb-addlist .cvb-addit", (r) => r.length > 15), "the scene list scrolls, with a + on every row, and so does Add a shape");
 
   /* the pencil */
   await page.click('[data-bq="draw"]');
@@ -357,7 +358,7 @@ const ok = (cond, msg) => {
   const hasLib = await page.evaluate(() => !!window.CurioObjects);
   ok(hasLib, "the object library is loaded");
   if (hasLib) {
-    await page.click('[data-bq="search"]');
+    await page.click('[data-find="objects"]');
     ok(await page.isVisible(".cvb-search"), "Search objects opens the search window");
     await page.click('.cvb-col[data-col="world"] [data-v="City"]');
     await page.click('.cvb-col[data-col="place"] [data-v="Street"]');
@@ -381,6 +382,89 @@ const ok = (cond, msg) => {
     await page.evaluate(() => CurioBuild.addPrefab("kitchen"));
     ok((await film()).objects.length >= b2 + 5, "a ready-made set (Kitchen corner) puts several things in at once");
     await shot("11-kitchen");
+
+    /* Setting search: a place becomes the scene's setting, and a new one replaces it */
+    await page.click('[data-find="settings"]');
+    ok(await page.isVisible(".cvb-search.cvb-m-settings") && !(await page.isVisible('.cvb-col[data-col="type"]')), "Setting search opens with World and Place columns");
+    await page.fill(".cvb-q", "kitchen");
+    await page.click('.cvb-setcard[data-setting="Kitchen"]');
+    let fk = await film();
+    const kit = fk.objects.filter((o) => o.setting === "Kitchen");
+    ok(kit.length >= 4 && kit.some((o) => o.make === "walls" && o.floor), `the Kitchen setting puts in walls, a floor and kitchen things (${kit.length})`);
+    await page.fill(".cvb-q", "");
+    await page.click('.cvb-col[data-col="world"] [data-v="Country"]');
+    await page.click('.cvb-setcard[data-setting="Forest"]');
+    fk = await film();
+    ok(!fk.objects.some((o) => o.setting === "Kitchen") && fk.objects.some((o) => o.setting === "Forest"), "a new setting replaces the old one");
+    await shot("11b-forest");
+    /* Character search: people and animals only, the ones in the scene on top */
+    await page.click('.cvb-modes [data-smode="characters"]');
+    const types = await page.$$eval('.cvb-col[data-col="type"] [data-v]', (els) => els.map((e) => e.dataset.v).filter(Boolean));
+    ok(types.join(",") === "People,Animals" && (await page.isVisible(".cvb-inscene [data-cpick]")), "Character search shows people and animals, with who is in the scene");
+    const nC = (await film()).objects.length;
+    await page.fill(".cvb-q", "chef");
+    await page.click(".cvb-card >> nth=0");
+    const chef = (await film()).objects.find((o) => /chef/i.test(o.name));
+    ok(chef && chef.kind === "person" && (await film()).objects.length === nC + 1, "picking the chef brings a person in");
+    await page.click(`.cvb-inscene [data-cout="${chef.id}"]`);
+    ok(!(await film()).objects.some((o) => o.id === chef.id), "✕ takes a character out");
+    await page.keyboard.press("Escape");
+
+    /* Control+drag spins a thing; Control+click opens what it can do */
+    await page.evaluate(() => CurioBuild.setTool("select"));
+    const pid = (await film()).objects.find((o) => o.kind === "person").id;
+    const spot = await page.evaluate((id) => {
+      const lv = CurioViewer.live();
+      const pl = lv.panel.place[id];
+      const p = CurioViewer.projectNow([pl.x, pl.y + 1.1, pl.z]);
+      const r = lv.canvas.getBoundingClientRect();
+      return p && [r.left + (p[0] * r.width) / lv.canvas.width, r.top + (p[1] * r.height) / lv.canvas.height];
+    }, pid);
+    if (spot) {
+      const turn0 = (await film()).panels[0].place[pid].turn || 0;
+      await page.keyboard.down("Control");
+      await page.mouse.move(spot[0], spot[1]);
+      await page.mouse.down();
+      await page.mouse.move(spot[0] + 80, spot[1], { steps: 6 });
+      await page.mouse.up();
+      await page.keyboard.up("Control");
+      const turn1 = (await film()).panels[0].place[pid].turn || 0;
+      ok(Math.abs(turn1 - turn0) > 20, `Control+drag on a person spins them (${turn0} → ${turn1})`);
+      const spot2 = await page.evaluate((id) => {
+        const lv = CurioViewer.live();
+        const pl = lv.panel.place[id];
+        const p = CurioViewer.projectNow([pl.x, pl.y + 1.1, pl.z]);
+        const r = lv.canvas.getBoundingClientRect();
+        return [r.left + (p[0] * r.width) / lv.canvas.width, r.top + (p[1] * r.height) / lv.canvas.height];
+      }, pid);
+      await page.keyboard.down("Control");
+      await page.mouse.click(spot2[0], spot2[1]);
+      await page.keyboard.up("Control");
+      ok(await page.isVisible(".cva-menu"), "Control+click on a person opens what they can do");
+      const labels = await page.$$eval(".cva-list button", (els) => els.map((e) => e.firstChild.textContent));
+      ok(["Lie down", "Get up", "Run", "Climb", "Swim", "Jumping jacks", "Push-ups", "Eat"].every((l) => labels.includes(l)), "people can lie down, get up, run, climb, swim, do jumping jacks and push-ups, and eat");
+      await page.click('.cva-list [data-act="lie"]');
+      let pf = await film();
+      ok(pf.panels[0].place[pid].tilt === -90 && pf.panels[0].place[pid].pose === "lie" && pf.panels[pf.panels.length - 1].place[pid].pose === "lie", "Lie down lays them on their back from this panel on");
+      await shot("11c-lie-down");
+      await page.evaluate((id) => CurioActions.apply(id, "getup"), pid);
+      pf = await film();
+      ok(!pf.panels[0].place[pid].tilt && pf.panels[0].place[pid].pose === "stand", "Get up stands them back up");
+    } else ok(false, "found a person to spin");
+    const things = await page.evaluate(() => {
+      const f = CurioViewer.live().film;
+      const t = f.objects.find((o) => o.make === "catalog" && !/dog|cat|bird|squirrel|deer|fox|owl|rabbit|bear/i.test(o.item || ""));
+      const a = f.objects.find((o) => /squirrel|deer|fox|owl|rabbit|bear|dog/.test(o.item || ""));
+      return { t: t && t.id, a: a && a.id, tm: t && CurioActions.menuFor(t.id), am: a && CurioActions.menuFor(a.id) };
+    });
+    ok(things.tm && things.tm.kind === "thing" && ["Crumble to the ground", "Catch fire", "Get trampled", "Break apart"].every((l) => things.tm.actions.some((x) => x.label === l)), "things can crumble, catch fire, get trampled and break apart");
+    ok(things.am && things.am.kind === "animal" && things.am.actions.some((x) => x.label === "Sleep"), "animals have their own list");
+    const faces0 = await page.evaluate((id) => CurioViewer.faces(CurioViewer.live().film.objects.find((o) => o.id === id), CurioViewer.live().panel.place[id]).length, things.t);
+    await page.evaluate((id) => CurioActions.apply(id, "fire"), things.t);
+    const faces1 = await page.evaluate((id) => CurioViewer.faces(CurioViewer.live().film.objects.find((o) => o.id === id), CurioViewer.live().panel.place[id]).length, things.t);
+    ok(faces1 > faces0, `Catch fire adds flames (${faces0} → ${faces1} faces)`);
+    await shot("11d-fire");
+    await page.evaluate((id) => CurioActions.apply(id, "normal"), things.t);
   }
 
   /* survives a reload */
