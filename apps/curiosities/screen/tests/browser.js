@@ -2501,12 +2501,13 @@ const ok = (cond, msg) => {
     }
 
     /* Jump the playhead to a marker by its note, or to "moment 3". */
+    /* The note uses a word no curiosity label has, so a curiosity like "Joke about the film itself" cannot come first. */
     {
-      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the joke lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
+      const r4 = await page.evaluate(() => { const st = window.CurioEngine.state(); window.CurioLanes.tools().markers = [{ row: st.rows[4].id, color: "red", note: "the zeppelin lands" }]; window.CurioScreen.setRow(0); return st.rows[4].id; });
       await page.keyboard.press("Control+k");
-      await typeIn("joke");
+      await typeIn("zeppelin");
       const o = await opts();
-      ok(o[0] && o[0].id === "moment:" + r4 && /^Moment 5: the joke lands$/.test(o[0].label) && /Marker, red/.test(o[0].sub) && (await heads())[0] === "Moments and markers", "a marker is found by its note, under Moments and markers (" + (o[0] ? o[0].label + " · " + o[0].sub : "") + ")");
+      ok(o[0] && o[0].id === "moment:" + r4 && /^Moment 5: the zeppelin lands$/.test(o[0].label) && /Marker, red/.test(o[0].sub) && (await heads())[0] === "Moments and markers", "a marker is found by its note, under Moments and markers (" + (o[0] ? o[0].label + " · " + o[0].sub : "") + ")");
       await page.keyboard.press("Enter");
       ok((await page.evaluate(() => window.CurioScreen.row())) === 4, "Enter jumps the playhead to it");
       await page.keyboard.press("Control+k");
