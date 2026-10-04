@@ -27,10 +27,14 @@
    - Actors 2 to 4 are separate copies, each with its own skeleton (the .glb parsed again, so no shared bones), its
      own stage group, holder, joint table and a ctx of its own. Each frame they get a lighter rule pass: the rest
      pose, their clip or the rule-made walk and run (or hops, for objects), Spine and Breathing, joint limits, the
-     eyeline head aim, and the add-ons that act per body: the stoop of an old made character (maker.js), Face and
-     feelings (faces.js) and Acting moves (gestures.js). Not on actors 2 to 4: your own joint poses, Line through
-     the body, Twist, Balance, Even or uneven, Follow-through, Feet and hands IK, wind and Drop it, the Sketch
-     look and the Light add-on's cartoon shading (they still cast shadows). Their sliders start at the defaults;
+     eyeline head aim, and the add-ons that act per body: the stoop of an old made character (maker.js), sitting
+     in a set (sets.js: each actor's ctx carries main, the view's own ctx, so the set finds that actor's seat),
+     Face and feelings (faces.js) and Acting moves (gestures.js). Their stage groups carry userData.sketch, so
+     the Sketch look (snapshot.js) draws and outlines them like actor 1; an actor that leaves is handed to
+     CurioRigSnapshot.release first, so its own materials (not the drawing ones) are the ones disposed. Not on
+     actors 2 to 4: your own joint poses, Line through the body, Twist, Balance, Even or uneven, Follow-through,
+     Feet and hands IK, wind and Drop it, and the Light add-on's cartoon shading (they still cast shadows).
+     Their sliders start at the defaults;
      the style sliders (How far joints bend, Loose parts, How big the face goes, Blinks, the acting timing) are
      shared with actor 1.
    - The camera add-on frames everyone in a wide shot (its whole-body box becomes the group's); closer shots stay
@@ -41,7 +45,7 @@
    front, speaker, look, frame, line, lineA, lineB }.
    window.CurioRigStaging = { PRESETS, layout(preset, n, d, cheat), meters(v), state(ctl), ready(ctl),
      cast(list, ctl), preset(id, ctl), walkTo(i, target, ctl), beat(text, ctl), speaker(i, ctl), line(on, a, b, ctl),
-     sameSide(ctl), lookError(i, ctl), front(i, ctl) } */
+     sameSide(ctl), lookError(i, ctl), front(i, ctl), actors(ctl) -> where everyone stands, or null with one actor } */
 (function () {
   const R = window.CurioRig;
   if (!R || !R.extend) return;
@@ -154,7 +158,7 @@
   /* ---------- small 3D helpers (the same rules as rig.js, for the extra actors) ---------- */
   const PACE = { dragging: 0.4, slow: 0.7, normal: 1, brisk: 1.4, frantic: 2 };
   const SHARED = /^(rigRulesLens\.(limits|floppy)|faceLens\.|actingLens\.(size|speed|windup|hold|settle|pause)|faceDraw|faceBody|faceFilm)/;
-  const PER_BODY = ["maker", "faces", "gestures"];
+  const PER_BODY = ["maker", "sets", "faces", "gestures"];
   const bufs = new Map();
   function fetchBuf(url) {
     if (!bufs.has(url))
@@ -404,6 +408,7 @@
       status() {},
       data: (id) => (a.data[id] = a.data[id] || {}),
       actor: a,
+      main: ctx,
     };
   }
   /* the timeline's values for an actor's own track (on the Screen), read once a frame */
@@ -491,6 +496,7 @@
     const T = ctx.THREE;
     const g = new T.Group();
     g.name = "actor " + a.name;
+    g.userData.sketch = true; /* rig/snapshot.js draws this actor in the Sketch look too (and outlines it) */
     const holder = new T.Group();
     const model = gltf.scene;
     holder.add(model);
@@ -553,6 +559,9 @@
     }
     if (a.g) {
       if (a.g.parent) a.g.parent.remove(a.g);
+      /* the Sketch look gives this actor's own materials back first, so they are the ones disposed here */
+      const snap = window.CurioRigSnapshot;
+      if (snap && snap.release) snap.release(ctx, a.g);
       disposeTree(a.g);
     }
     a.g = a.holder = a.model = null;
@@ -1467,6 +1476,13 @@
       draw(ctx);
     },
     walkTo: (i, target, ctl, then) => walkTo(C(ctl), i, target, then),
+    /* everyone on the floor, cheaply (rig/sets.js keeps its set clear of them; rig/scene.js plays beats):
+       null when only one actor is in the view, else [{ i, name, x, z, yaw, walking, settled, loaded, ctx }] */
+    actors(ctl) {
+      const ctx = C(ctl);
+      if (!ctx || !active(ctx)) return null;
+      return everyone(ctx).map((a, i) => ({ i, name: a.name, x: a.pos.x, z: a.pos.z, yaw: a.pos.yaw, walking: !!a.pos.walk, settled: !a.pos.walk && a.pos.yawWant == null, loaded: a.primary ? !!ctx.model : !!live(a), ctx: a.primary ? ctx : a.ctx }));
+    },
     beat: (text, ctl) => beat(C(ctl), text),
     speaker: (i, ctl) => speaker(C(ctl), i),
     line(on, a, b, ctl) {

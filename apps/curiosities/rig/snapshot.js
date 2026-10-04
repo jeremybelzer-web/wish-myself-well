@@ -16,14 +16,16 @@
      right after the selected one; each panel's seconds is the gap, so the flip book plays them at the speed
      they happened. One undo step.
 
-   Anything else in the scene whose root has userData.sketch (a set from rig/sets.js) is drawn in the look too; its
-   parts belong to that add-on, so loading another character leaves them alone.
+   Anything else in the scene whose root has userData.sketch is drawn in the look too: a set from rig/sets.js and
+   actors 2 to 4 from rig/staging.js (so a storyboard frame of a group scene looks the same on everyone). Their
+   parts belong to those add-ons, so loading another character leaves them alone; before an add-on disposes such
+   a root it calls release(ctx, root), which puts each part's own material back and takes the outline off.
 
    Other add-ons may swap materials too (lights.js for shading bands): each frame this add-on wraps whatever
    material a part has now, and gives that one back when the look goes off.
 
    ctx.prefs.sketchLook keeps the look. window.CurioRigSnapshot = { LOOKS, state(ctx), setLook(ctx, look),
-   frame(ctx) -> data URL, send(ctx, opts), flipBook(ctx, { count, gap }) } for tests. */
+   frame(ctx) -> data URL, send(ctx, opts), flipBook(ctx, { count, gap }), release(ctx, root) } for tests and add-ons. */
 (function () {
   const R = window.CurioRig;
   if (!R || typeof R.extend !== "function") return;
@@ -655,5 +657,19 @@
     frame,
     send,
     flipBook,
+    /* give back everything wrapped under root (an actor about to be disposed): its own materials go back on */
+    release(ctx, root) {
+      const S = STATE.get(ctx);
+      if (!S || !root) return;
+      S.per.forEach((e, o) => {
+        let under = false;
+        for (let p = o; p && !under; p = p.parent) under = p === root;
+        if (!under) return;
+        if (o.material === e.mine) o.material = e.under;
+        disposeMat(e.mine);
+        dropHull(e.hull);
+        S.per.delete(o);
+      });
+    },
   };
 })();

@@ -26,6 +26,12 @@
      steering wheel). A car interior and a booth are sat in unless the words say standing. Four-legged
      characters and objects stand next to the furniture instead.
    Everything stands on the floor, against a wall or on top of another thing, and keeps clear of the character.
+   More than one actor (rig/staging.js): the set keeps clear of every actor where they stand (each one measured
+   in their own frame when they come in), and when the staging changes (a preset, an actor added or taken out,
+   someone walking to a mark) it is laid out again once everyone stands still. Sitting works for actors 2 to 4
+   too: every staged person sits (or only those given to CurioRigSets.sitters), each on a seat of their own
+   behind them, turned the way they face; two or more "at the table" share one table between them, as deep as
+   the gap in front of them, and their hands rest on its near half. A car interior seats actor 1 only.
    Feet and hands (rig/ik.js): with "What the hands hold: a surface", a person standing next to a table or desk
    in the set rests the hands on it (the table moves to where the hands are and the add-on's own plain table
    hides); a seated person rests them on the set's table.
@@ -35,7 +41,8 @@
    back when it is cleared or built again. Set pieces carry userData.setPiece (the kind); the set's root has
    userData.sketch, so rig/snapshot.js draws its outlines and flat tones too.
    CurioRig.sets = { read(text) -> plan, surprise() -> words, store(), KEY, START, KINDS }.
-   window.CurioRigSets = { state(ctx), make(ctx, text), clear(ctx) } for tests. */
+   window.CurioRigSets = { state(ctx), make(ctx, text), clear(ctx), sitters(ctx, list | null) } for tests and
+   rig/scene.js. */
 (function () {
   const R = window.CurioRig;
   if (!R || !R.extend) return;
@@ -683,7 +690,7 @@
     table(K, g, o) {
       const c = o.color != null ? o.color : WOOD;
       const w = 1.25 * o.scale;
-      const d = 0.8 * Math.sqrt(o.scale);
+      const d = o.tableD || 0.8 * Math.sqrt(o.scale);
       const h = o.tableH;
       K.box(g, w, 0.05, d, 0, h - 0.05, 0, c);
       K.box(g, w - 0.12, 0.06, d - 0.12, 0, h - 0.11, 0, dim(c, 0.15));
@@ -1429,8 +1436,20 @@
   }
 
   /* ---------- laying out the set ---------- */
-  function build(ctx, plan, fig, text) {
+  /* cast: everyone on the floor, actor 1 first: [{ x, z, yaw, fig, sit, i, actor }] (one at the middle, facing
+     front, when nobody else is staged). Each one's fig is measured in its own frame. */
+  function build(ctx, plan, fig, text, cast) {
     const T = ctx.THREE;
+    cast = cast && cast.length ? cast : [{ primary: true, i: 0, x: 0, z: 0, yaw: 0, fig, sit: true }];
+    const staged = cast.length > 1;
+    /* a point in someone's own frame (x to their left, z ahead) to the floor of the scene */
+    const toW = (c, lx, lz) => [c.x + lx * Math.cos(c.yaw) + lz * Math.sin(c.yaw), c.z - lx * Math.sin(c.yaw) + lz * Math.cos(c.yaw)];
+    const rectW = (c, r) => {
+      const pts = [toW(c, r.x0, r.z0), toW(c, r.x1, r.z0), toW(c, r.x0, r.z1), toW(c, r.x1, r.z1)];
+      return { x0: Math.min(...pts.map((p) => p[0])), x1: Math.max(...pts.map((p) => p[0])), z0: Math.min(...pts.map((p) => p[1])), z1: Math.max(...pts.map((p) => p[1])) };
+    };
+    /* how far the group reaches to the sides of the picture */
+    const spanX = Math.max(...cast.map((c) => Math.abs(c.x) + c.fig.halfW));
     const K = kit(T);
     const rnd = seeded(text || "");
     const root = new T.Group();
@@ -1449,12 +1468,13 @@
     const room = plan.car
       ? { x0: -1.3, x1: 0.6, z0: -1.2, z1: 1.3, H: 1.4 }
       : plan.indoor
-      ? { x0: -2.7 * S, x1: 2.7 * S, z0: plan.sitOn === "booth" && plan.sit && fig.person ? fig.seatFront - (fig.seatDepth + 0.2) - 0.02 : -2.3 * S, z1: 1.9 * S, H: 2.6 }
+      ? { x0: -2.7 * S, x1: 2.7 * S, z0: plan.sitOn === "booth" && plan.sit && fig.person && !staged ? fig.seatFront - (fig.seatDepth + 0.2) - 0.02 : -2.3 * S, z1: 1.9 * S, H: 2.6 }
       : { x0: -20, x1: 20, z0: -20, z1: 3.2, H: 0 };
     out.room = room;
     const placed = []; /* { x0, x1, z0, z1, kind, flat } */
     const onWall = { back: [], left: [], right: [] }; /* along the wall: { a0, a1, y0, y1 } */
-    const keep = fig.keep.map((r) => Object.assign({}, r));
+    const keep = [];
+    cast.forEach((c) => c.fig.keep.forEach((r) => keep.push(rectW(c, r))));
     const opts = (x, extraO) => Object.assign({ color: x.color, scale: x.scale || 1, rnd, sky: night ? 0x1c2848 : skyC.low, time, seatH: fig.seatH, tableH: fig.tableH, lit, indoor: plan.indoor, small: x.small, stop: x.stop, shop: x.shop, laptop: x.laptop, flowers: x.flowers, picnic: x.picnic, mouth: fig.mouth }, extraO || {});
     const make = (kind, o) => {
       const g = new T.Group();
@@ -1466,9 +1486,10 @@
       return g;
     };
     const rectOf = (x, z, rot, w, d) => {
-      const sw = Math.abs(Math.sin(rot)) > 0.5;
-      const W = sw ? d : w;
-      const D = sw ? w : d;
+      const c = Math.abs(Math.cos(rot));
+      const sn = Math.abs(Math.sin(rot));
+      const W = c < 1e-9 ? d : sn < 1e-9 ? w : c * w + sn * d;
+      const D = c < 1e-9 ? w : sn < 1e-9 ? d : sn * w + c * d;
       return { x0: x - W / 2, x1: x + W / 2, z0: z - D / 2, z1: z + D / 2 };
     };
     const hit = (a, b, gap) => a.x0 < b.x1 + gap && a.x1 > b.x0 - gap && a.z0 < b.z1 + gap && a.z1 > b.z0 - gap;
@@ -1550,7 +1571,7 @@
       for (let x = ax - span; x <= ax + span + 1e-6; x += step)
         for (let z = az - span; z <= az + span + 1e-6; z += step) {
           let cost = Math.hypot(x - ax, z - az);
-          if (!opts2.front && z > 0.35 && Math.abs(x) < 1.3 + info.w / 2 && info.h > 0.6) cost += 50; /* keep the camera's view of the character clear */
+          if (!opts2.front && z > 0.35 && Math.abs(x) < Math.max(1.3, spanX + 0.65) + info.w / 2 && info.h > 0.6) cost += 50; /* keep the camera's view of the character clear */
           cands.push([cost, x, z]);
         }
       cands.sort((p, q) => p[0] - q[0]);
@@ -1678,46 +1699,83 @@
       const i = items.findIndex((x) => x.kind === kind);
       return i < 0 ? null : items.splice(i, 1)[0];
     };
-    const sits = plan.sit && fig.person && !plan.car;
-    out.sits = sits || (plan.car && fig.person);
-    if (sits) {
-      const seatItem = take(plan.sitOn) || { kind: plan.sitOn, color: null, scale: 1 };
+    /* everyone staged who is a person sits (or those picked with CurioRigSets.sitters), each on a seat of their
+       own sized to their body, behind them in their own frame; two or more at one table share it, between them */
+    const sitters = plan.sit && !plan.car ? cast.filter((c) => c.fig.person && c.sit !== false) : [];
+    out.seats = [];
+    if (sitters.length) {
+      const seat0 = take(plan.sitOn) || { kind: plan.sitOn, color: null, scale: 1 };
       const at = plan.sitAt && plan.sitAt !== "booth" ? take(plan.sitAt) || { kind: plan.sitAt, color: null, scale: 1 } : plan.sitAt === "booth" ? take("table") || { kind: "table", color: null, scale: 1 } : null;
-      let g;
-      if (plan.sitOn === "bed") {
-        /* sat on its long side */
-        g = make("bed", opts(seatItem));
-        const z = fig.seatFront - g.userData.w / 2;
-        out.seat = commit(g, 0, z, Math.PI / 2, rectOf(0, z, Math.PI / 2, g.userData.w, g.userData.d), { anyKeep: true });
-      } else {
-        g = make(plan.sitOn, opts(seatItem, { color: seatItem.color, depth: fig.seatDepth }));
-        /* the seat's front edge just behind the knees */
-        const z = fig.seatFront - g.userData.front;
-        out.seat = commit(g, 0, z, 0, rectOf(0, z, 0, g.userData.w, g.userData.d), { anyKeep: true });
-      }
-      out.seat.seatTop = g.userData.seat;
-      if (at) {
-        const tk = at.kind === "coffee table" ? "coffee table" : at.kind === "counter" ? "counter" : at.kind === "desk" ? "desk" : "table";
-        const tg = make(tk, opts(at, { tableH: fig.tableSit, counterH: fig.tableSit }));
-        const d2 = tg.userData.d;
-        const z = tk === "coffee table" ? fig.seatFront + 0.45 + d2 / 2 : fig.tableFront + d2 / 2;
-        const rot = tk === "counter" || tk === "desk" ? Math.PI : 0;
-        out.table = commit(tg, 0, z, rot, rectOf(0, z, rot, tg.userData.w, d2), { anyKeep: true });
-        out.table.top = tg.userData.top;
-        out.table.seated = true;
-        if (plan.sitAt === "booth") {
-          /* the table is fixed to the wall behind: a booth reads best seen across its table */
+      const tk = at ? (at.kind === "coffee table" ? "coffee table" : at.kind === "counter" ? "counter" : at.kind === "desk" ? "desk" : "table") : "";
+      const share = at && sitters.length > 1 && tk === "table" && plan.sitOn !== "bed";
+      sitters.forEach((c, n) => {
+        const f = c.fig;
+        const seatItem = n === 0 ? seat0 : take(plan.sitOn) || seat0;
+        let g;
+        let lz;
+        let lrot = 0;
+        let dLocal;
+        if (plan.sitOn === "bed") {
+          /* sat on its long side */
+          g = make("bed", opts(seatItem, { seatH: f.seatH }));
+          lz = f.seatFront - g.userData.w / 2;
+          lrot = Math.PI / 2;
+          dLocal = g.userData.w;
+        } else {
+          g = make(plan.sitOn, opts(seatItem, { color: seatItem.color, depth: f.seatDepth, seatH: f.seatH }));
+          /* the seat's front edge just behind the knees */
+          lz = f.seatFront - g.userData.front;
+          dLocal = g.userData.d;
         }
+        const [x, z] = toW(c, 0, lz);
+        const rot = lrot + c.yaw;
+        const seat = commit(g, x, z, rot, rectOf(x, z, rot, g.userData.w, g.userData.d), { anyKeep: true });
+        seat.seatTop = g.userData.seat;
+        const rec = { cast: c, fig: f, frame: { x: c.x, z: c.z, yaw: c.yaw }, seat, table: null, local: { z0: lz - dLocal / 2, z1: f.seatFront + 0.5 } };
+        if (at && !share) {
+          const tg = make(tk, opts(at, { tableH: f.tableSit, counterH: f.tableSit }));
+          const d2 = tg.userData.d;
+          const tz = tk === "coffee table" ? f.seatFront + 0.45 + d2 / 2 : f.tableFront + d2 / 2;
+          const trot = (tk === "counter" || tk === "desk" ? Math.PI : 0) + c.yaw;
+          const [tx, tzw] = toW(c, 0, tz);
+          rec.table = commit(tg, tx, tzw, trot, rectOf(tx, tzw, trot, tg.userData.w, d2), { anyKeep: true });
+          rec.table.top = tg.userData.top;
+          rec.table.d = d2;
+          rec.table.seated = true;
+          rec.local.z1 = tz + d2 / 2;
+        }
+        out.seats.push(rec);
+      });
+      if (share) {
+        /* one table between them: as deep as the gap in front of the first two, as high as suits them all */
+        const [a, b] = sitters;
+        const gap = Math.hypot(b.x - a.x, b.z - a.z);
+        const front = (a.fig.tableFront + b.fig.tableFront) / 2;
+        const h = sitters.reduce((t, c) => t + c.fig.tableSit, 0) / sitters.length;
+        const tg = make("table", opts(at, { tableH: h, tableD: clamp(gap - 2 * front, 0.45, 1.4) }));
+        const mx = sitters.reduce((t, c) => t + c.x, 0) / sitters.length;
+        const mz = sitters.reduce((t, c) => t + c.z, 0) / sitters.length;
+        const trot = Math.atan2(b.x - a.x, b.z - a.z);
+        const table = commit(tg, mx, mz, trot, rectOf(mx, mz, trot, tg.userData.w, tg.userData.d), { anyKeep: true });
+        table.top = tg.userData.top;
+        table.d = tg.userData.d;
+        table.seated = true;
+        table.shared = true;
+        out.seats.forEach((r) => (r.table = table));
       }
-      /* the sitting person keeps the space in front of them */
+      /* each sitting person keeps the space from their seat to their table; the others keep their own spot */
       keep.length = 0;
-      keep.push({ x0: -0.45, x1: 0.45, z0: out.seat.z0, z1: out.table ? out.table.z1 : fig.seatFront + 0.5 });
-      if (plan.sitOn === "booth" && room.z0 > -1 && out.seat) {
-        /* the booth's back is the wall */
-      }
-    } else if (!plan.car) {
-      /* nobody sits: a booth still wants its table in front */
+      cast.forEach((c) => {
+        const r = out.seats.find((x) => x.cast === c);
+        if (r) keep.push(rectW(c, { x0: -0.45, x1: 0.45, z0: r.local.z0, z1: r.local.z1 }));
+        else c.fig.keep.forEach((k) => keep.push(rectW(c, k)));
+      });
     }
+    const mine = out.seats.find((r) => r.cast.primary || r.cast.i === 0);
+    out.seat = mine ? mine.seat : out.seat || null; /* a car's seat is made with the car */
+    out.table = mine ? mine.table : out.seats[0] ? out.seats[0].table : null;
+    out.sits = !!mine || !!(plan.car && fig.person);
+    out.anySits = out.sits || out.seats.length > 0;
 
     /* ----- everything else ----- */
     const sortKey = (k) => {
@@ -1936,7 +1994,7 @@
           const w2 = g.userData.w;
           lastSide.any = it.where === "left" ? -1 : it.where === "right" ? 1 : -(lastSide.any || 1);
           const side = lastSide.any;
-          ax = side * (fig.halfW + 0.35 + w2 / 2);
+          ax = side * (spanX + 0.35 + w2 / 2);
           az = plan.indoor ? -0.5 : -0.4;
           if (it.where === "behind") (ax = (rnd() - 0.5) * 1.5), (az = plan.indoor ? room.z0 + 0.8 : -2.2);
           if (it.where === "front") (ax = side * 1.6), (az = 1.0);
@@ -1962,7 +2020,7 @@
       if (!base || base.obj.userData.top == null) {
         if (it.kind === "lamp") {
           const g = make("lamp", Object.assign(o, { small: false }));
-          if (!placeNear(g, {}, -(fig.halfW + 0.6), -0.5, [0])) disposeTree(g), skipped.push(it.kind);
+          if (!placeNear(g, {}, -(spanX + 0.6), -0.5, [0])) disposeTree(g), skipped.push(it.kind);
         } else skipped.push(it.kind);
         continue;
       }
@@ -2105,7 +2163,28 @@
   }
 
   /* ---------- measuring the character once per load ---------- */
+  /* In its own frame: the group that holds it in the scene (rig/staging.js's stage group, which may stand on a
+     mark and turn) is put at the middle, facing front, while it is measured. */
   function measure(ctx) {
+    let top = ctx.holder;
+    while (top && top.parent && top.parent !== ctx.scene) top = top.parent;
+    const was = top && top.parent === ctx.scene ? { p: top.position.clone(), r: top.rotation.clone() } : null;
+    if (was) {
+      top.position.set(0, 0, 0);
+      top.rotation.set(0, 0, 0);
+      top.updateMatrixWorld(true);
+    }
+    try {
+      return measureHere(ctx);
+    } finally {
+      if (was) {
+        top.position.copy(was.p);
+        top.rotation.copy(was.r);
+        top.updateMatrixWorld(true);
+      }
+    }
+  }
+  function measureHere(ctx) {
     const T = ctx.THREE;
     const rig = ctx.rig;
     const model = ctx.model;
@@ -2177,19 +2256,22 @@
     const C2 = wp(c);
     ctx.rotateWorld(b, new T.Quaternion().setFromUnitVectors(C2.sub(B2).normalize(), A.clone().add(dir.multiplyScalar(dist)).sub(B2).normalize()));
   }
-  function sit(ctx, S) {
+  /* rec: { fig, frame: { x, z, yaw } (where they stand and face), table, wheel }; S keeps actor 1's numbers */
+  function sit(ctx, S, rec) {
     const T = ctx.THREE;
     const r = ctx.rig;
-    const fig = S.fig;
+    const fig = rec.fig;
+    const yaw = (rec.frame && rec.frame.yaw) || 0;
     const wp = (x) => x.getWorldPosition(new T.Vector3());
     const wq = (x) => x.getWorldQuaternion(new T.Quaternion());
-    const fwd = new T.Vector3(0, 0, 1);
+    const fwd = new T.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+    const left = new T.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
     const down = new T.Vector3(0, -1, 0);
     let lowest = Infinity;
     ["L", "R"].forEach((s) => {
       const [a, b, c] = r.legs[s];
       const foot = wq(c);
-      const out2 = new T.Vector3(s === "L" ? 1 : -1, 0, 0);
+      const out2 = left.clone().multiplyScalar(s === "L" ? 1 : -1);
       const want1 = fwd.clone().multiplyScalar(0.98).add(down.clone().multiplyScalar(0.06)).add(out2.clone().multiplyScalar(0.07)).normalize();
       ctx.rotateWorld(a, new T.Quaternion().setFromUnitVectors(wp(b).sub(wp(a)).normalize(), want1));
       const want2 = down.clone().add(fwd.clone().multiplyScalar(0.1)).normalize();
@@ -2200,9 +2282,10 @@
     const drop = lowest - fig.ankleY;
     ctx.holder.position.y -= drop;
     ctx.holder.updateMatrixWorld(true);
-    S.drop = drop;
+    rec.drop = drop;
+    if (!ctx.actor) S.drop = drop;
     /* the hands */
-    const hands = ctx.pick("poseRigLens.hands");
+    const hands = ctx.actor ? "empty" : ctx.pick("poseRigLens.hands");
     if (hands !== "empty" && hands !== "a surface") {
       const cup = ikCup(ctx);
       if (cup && cup.visible) cup.position.y -= drop;
@@ -2210,18 +2293,22 @@
     }
     const sh = (s) => wp(r.arms[s][0]);
     const targets = {};
-    if (S.out.wheel) {
-      const w = S.out.wheel;
+    if (rec.wheel) {
+      const w = rec.wheel;
       ["L", "R"].forEach((s) => (targets[s] = new T.Vector3((s === "L" ? 1 : -1) * w.r * 0.92, w.y + 0.03, w.z - 0.03)));
-    } else if (S.out.table && S.out.table.seated) {
-      const top = S.out.table.top;
+    } else if (rec.table && rec.table.seated) {
+      const tb = rec.table;
+      const top = tb.top;
+      const mid = new T.Vector3((tb.x0 + tb.x1) / 2, 0, (tb.z0 + tb.z1) / 2);
       ["L", "R"].forEach((s) => {
         const p0 = sh(s);
         const L = (fig.upper + fig.fore) * 0.93;
         const dy = top + 0.04 - p0.y;
         const dx = (s === "L" ? 1 : -1) * 0.07;
-        const dz = Math.sqrt(Math.max(0.01, L * L - dy * dy - dx * dx));
-        targets[s] = new T.Vector3(p0.x + dx, top + 0.04, Math.min(p0.z + dz, S.out.table.z1 - 0.1));
+        /* no further than the far edge of their own table, or the middle of a shared one */
+        const lim = mid.clone().sub(p0).setY(0).dot(fwd) + (tb.shared ? -0.06 : (tb.d || tb.z1 - tb.z0) / 2 - 0.1);
+        const dz = Math.min(Math.sqrt(Math.max(0.01, L * L - dy * dy - dx * dx)), Math.max(0.05, lim));
+        targets[s] = p0.clone().addScaledVector(left, dx).addScaledVector(fwd, dz).setY(top + 0.04);
       });
     } else {
       ["L", "R"].forEach((s) => {
@@ -2232,9 +2319,10 @@
     }
     ["L", "R"].forEach((s) => {
       const [a, b, c] = r.arms[s];
-      solve(ctx, a, b, c, targets[s], new T.Vector3(s === "L" ? 0.7 : -0.7, -0.3, -1));
+      solve(ctx, a, b, c, targets[s], left.clone().multiplyScalar(s === "L" ? 0.7 : -0.7).add(new T.Vector3(0, -0.3, 0)).addScaledVector(fwd, -1));
     });
-    S.handAims = targets;
+    rec.handAims = targets;
+    if (!ctx.actor) S.handAims = targets;
   }
   function ikGroup(ctx) {
     return ctx.scene && ctx.scene.getObjectByName("feet and hands");
@@ -2301,6 +2389,28 @@
     if (S.bg && S.bgHex != null) S.bg.setHex(S.bgHex);
     if (S.grid) S.grid.visible = true;
   }
+  /* Everyone the set keeps clear of and seats: actor 1 at the middle, or everyone rig/staging.js has on the floor
+     (each measured when they came in). */
+  function castOf(ctx, S) {
+    const St = window.CurioRigStaging;
+    let list = null;
+    try {
+      list = St && St.actors ? St.actors({ ctx }) : null;
+    } catch (e) {
+      list = null;
+    }
+    const sit = (i) => !S.sitWho || S.sitWho.includes(i);
+    if (!list) return [{ primary: true, i: 0, x: 0, z: 0, yaw: 0, fig: S.fig, sit: sit(0), settled: true }];
+    const out = [];
+    list.forEach((a) => {
+      if (!a.loaded) return;
+      const fig = a.i === 0 ? S.fig : a.ctx && a.ctx.data && a.ctx.data("sets").fig;
+      if (fig) out.push({ primary: a.i === 0, i: a.i, name: a.name, actor: a.i === 0 ? null : a.ctx.actor, x: a.x, z: a.z, yaw: a.yaw, fig, sit: sit(a.i), settled: a.settled });
+    });
+    if (!out.length || !out[0].primary) out.unshift({ primary: true, i: 0, x: 0, z: 0, yaw: 0, fig: S.fig, sit: sit(0), settled: true });
+    return out;
+  }
+  const castSig = (cast) => cast.map((c) => [c.i, Math.round(c.x * 20), Math.round(c.z * 20), Math.round(c.yaw * 20), c.fig.person ? 1 : 0, c.sit ? 1 : 0].join(",")).join(";");
   function show(ctx, text) {
     const S = st(ctx);
     clear(ctx);
@@ -2310,7 +2420,9 @@
       S.fig = measure(ctx);
       S.figModel = ctx.model;
     }
-    const out = build(ctx, plan, S.fig, text);
+    const cast = castOf(ctx, S);
+    S.castSig = castSig(cast);
+    const out = build(ctx, plan, S.fig, text, cast);
     ctx.scene.add(out.root);
     ctx.scene.add(out.extra);
     S.out = out;
@@ -2372,7 +2484,8 @@
     if (!p.found) return "No place or things found, so it made an empty room. Try a place (a kitchen, a country road), things (a table, two chairs, a big tree), colors and a time of day, or Surprise me.";
     let s = "Read as: " + p.said.join(", ") + ".";
     if (out && out.notes.length) s += " " + out.notes.join("; ").replace(/^./, (c) => c.toUpperCase()) + ".";
-    if (out && p.sit && !out.sits && !p.car) s += " This character cannot sit (only people can), so it stands by the furniture.";
+    if (out && p.sit && !out.anySits && !p.car) s += " This character cannot sit (only people can), so it stands by the furniture.";
+    if (out && out.seats && out.seats.length > 1) s += ` ${out.seats.length} people sit${out.seats[0].table && out.seats[0].table.shared ? " at one table" : ""}.`;
     if (out && p.car && !out.sits) s += " Only people can sit, so it stands in the car.";
     return s;
   }
@@ -2526,6 +2639,11 @@
       drawList();
     },
     built(ctx) {
+      /* an extra actor (rig/staging.js) is measured in its rest pose; the set is laid out again around it */
+      if (ctx.actor) {
+        ctx.data("sets").fig = measure(ctx);
+        return;
+      }
       /* a new character: the set is built again around it (seats and tables fit the new body) */
       const s = store();
       const S = st(ctx);
@@ -2542,22 +2660,47 @@
       if (el) el.textContent = S.said;
     },
     afterRules(ctx) {
+      if (ctx.actor) {
+        /* actors 2 to 4 sit on their own seat (rig/staging.js runs this on each one's ctx) */
+        const M = ctx.main && STATE.get(ctx.main);
+        const rec = M && M.out && ctx.rig && ctx.model ? M.out.seats.find((r) => r.cast.actor === ctx.actor) : null;
+        if (!rec) return;
+        rec.sitting = !ctx.actor.p.walk && !/walking|running/.test(ctx.pick("rigRulesLens.motion"));
+        if (rec.sitting) {
+          ctx.model.updateMatrixWorld(true);
+          sit(ctx, M, rec);
+        }
+        return;
+      }
       const S = st(ctx);
       S.sitting = false;
       if (!S.out || !ctx.rig || !ctx.model) return;
       const moving = /walking|running/.test(ctx.pick("rigRulesLens.motion"));
-      if (S.out.sits && S.fig && S.fig.person && !moving) {
+      const rec = S.out.seats.find((r) => r.cast.primary) || (S.plan && S.plan.car ? { fig: S.fig, frame: { x: 0, z: 0, yaw: 0 }, wheel: S.out.wheel } : null);
+      if (S.out.sits && rec && S.fig && S.fig.person && !moving) {
         ctx.model.updateMatrixWorld(true);
-        sit(ctx, S);
+        sit(ctx, S, rec);
         S.sitting = true;
-      }
+        rec.sitting = true;
+      } else if (rec) rec.sitting = false;
       surface(ctx, S);
       const it = ikTable(ctx);
       if (it && (S.sitting || S.moved)) it.visible = false;
     },
     beforeRender(ctx) {
+      if (ctx.actor) return;
       const S = st(ctx);
       if (!S.out) return;
+      /* people staged somewhere else (a new preset, an actor came or went, someone walked to a mark): once
+         everyone stands still, the set is laid out again around where they are now */
+      if (S.fig && S.figModel === ctx.model) {
+        const cast = castOf(ctx, S);
+        if (cast.every((c) => c.settled) && castSig(cast) !== S.castSig) {
+          show(ctx, S.text);
+          S.relaid = (S.relaid || 0) + 1;
+          if (!S.out) return;
+        }
+      }
       /* the set's own floor stands in for the grid and the Light add-on's dark floor */
       ctx.scene.children.forEach((o) => {
         if ((o.isGridHelper || o.type === "GridHelper" || o.name === "floor") && o.visible) o.visible = false;
@@ -2592,6 +2735,9 @@
         time: S.plan.time,
         sits: !!S.out.sits,
         sitting: !!S.sitting,
+        relaid: S.relaid || 0,
+        keep: S.castSig || "",
+        seats: S.out.seats.map((r) => ({ i: r.cast.i || 0, name: r.cast.name || "", sitting: !!r.sitting, seatTop: r.seat.seatTop, shared: !!(r.table && r.table.shared), drop: r.drop || 0 })),
         seatTop: S.out.seat ? S.out.seat.seatTop : null,
         table: S.out.table ? { top: S.out.table.top, z0: S.out.table.z0, z1: S.out.table.z1 } : null,
         room: S.out.room,
@@ -2624,6 +2770,11 @@
       s.on = false;
       keep(s);
       clear(ctx);
+    },
+    /* who sits when the words say sitting: a list of actor numbers (0 is actor 1), or null for every person */
+    sitters(ctx, list) {
+      const S = st(ctx);
+      S.sitWho = Array.isArray(list) ? list.slice() : null;
     },
   };
 })();

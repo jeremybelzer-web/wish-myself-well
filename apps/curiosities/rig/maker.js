@@ -24,7 +24,8 @@
    { text } still loads (it becomes the first character in the list).
    Face parts carry userData.face ("head", "eye", "brow", "mouth") for rig/faces.js.
    CurioRig.maker = { read(text) -> plan, surprise() -> words, store() -> the saved list, KEY, START,
-     dress(ctx, words) -> builds a made character on another skeleton (used by rig/staging.js) }. */
+     dress(ctx, words) -> builds a made character on another skeleton (used by rig/staging.js),
+     remember(name, words, makeCurrent) -> keeps a character by name, made or updated (used by rig/scene.js) }. */
 (function () {
   const R = window.CurioRig;
   if (!R || !R.extend) return;
@@ -1203,7 +1204,25 @@
 
   /* dress(ctx, words): hang a made character's parts on any Plain figure skeleton (another actor in the same view,
      rig/staging.js). ctx needs THREE, model, rig and data(id); it changes nothing else here. */
-  R.maker = { read: readWords, surprise, store, KEY, START, dress: (ctx, words) => build(ctx, readWords(words == null ? current(store()).text : words)) };
+  /* keep a character by name (rig/scene.js): the one with that name gets these words (made when there is none);
+     returns { id, made, changed }, or null when the list is full */
+  function remember(name, text, makeCurrent) {
+    const s = store();
+    const key = String(name || "").trim().toLowerCase();
+    let x = s.list.find((m) => m.name.trim().toLowerCase() === key);
+    const made = !x;
+    if (!x) {
+      if (s.list.length >= MAX) return null;
+      x = { id: newId(), name: String(name).trim().slice(0, 40) || "My character", text: text || START };
+      s.list.push(x);
+    }
+    const changed = !made && text != null && text !== x.text;
+    if (text != null) x.text = text;
+    if (makeCurrent) s.cur = x.id;
+    keep(s);
+    return { id: x.id, made, changed, text: x.text };
+  }
+  R.maker = { read: readWords, surprise, store, remember, KEY, START, dress: (ctx, words) => build(ctx, readWords(words == null ? current(store()).text : words)) };
 
   function sayPlan(p) {
     return p.found ? "Read as: " + p.said.join(", ") + "." : "No look words found, so it made a plain outfit. Try hair, a hat, a beard, glasses, clothes and colors, or Surprise me.";
