@@ -2253,9 +2253,12 @@
     if (!t) return flash("Describe the person first, for example: Ida: spiky red hair, overalls, boots.");
     const n = L().film.objects.filter((o) => o.kind === "person").length + 1;
     const name = nameOf(t) || "Person " + n;
-    const def = { id: uid("person"), kind: "person", name, color: "#7d8a96", pants: "#3d4a5e", skin: "#eac0a0", hair: "#4a3020", made: "words" };
-    const spot = Object.assign(dropSpot(0), { look: lookWords(t), rig: true });
+    /* rig: a full 3D character in the whole film (viewer/rig-actors.js; a panel's own place.rig wins) */
+    const def = { id: uid("person"), kind: "person", name, color: "#7d8a96", pants: "#3d4a5e", skin: "#eac0a0", hair: "#4a3020", made: "words", rig: true };
+    const spot = Object.assign(dropSpot(0), { look: lookWords(t) });
     insert(def, spot);
+    const RA = window.CurioRigActors;
+    if (RA && RA.load) Promise.resolve(RA.load()).then(() => V.redraw(), () => {});
     fillInScene();
     flash(name + " is in the picture. Pick them and open Windows to change any part, panel by panel.");
     return def;

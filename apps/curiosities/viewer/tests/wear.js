@@ -78,8 +78,8 @@ const ok = (cond, msg) => {
   await page.click(".cvb-search [data-cmake]");
   let f = await film();
   const ida = f.objects.find((o) => o.name === "Ida");
-  ok(f.objects.length === before + 1 && ida && ida.kind === "person", "Make puts a new person in, named Ida from the words");
-  ok(f.panels.every((p) => p.place[ida.id] && p.place[ida.id].look === "spiky red hair, overalls, boots" && p.place[ida.id].rig === true), "their look is kept in every panel, and they are a full 3D character");
+  ok(f.objects.length === before + 1 && ida && ida.kind === "person" && ida.rig === true, "Make puts a new person in, named Ida from the words, as a full 3D character");
+  ok(f.panels.every((p) => p.place[ida.id] && p.place[ida.id].look === "spiky red hair, overalls, boots" ), "their look is kept in every panel");
   ok((await page.textContent(".cvb-search [data-clook]")).includes("Ida"), "with Ida picked, the search offers to give Ida a look");
   await page.keyboard.press("Escape");
 
@@ -92,6 +92,18 @@ const ok = (cond, msg) => {
     const p = lv.film.objects.find((o) => o.kind === "person" && o.name !== "Ida");
     return CurioViewer.faces(p, lv.panel.place[p.id]).length;
   });
+  if (THREE_FILE && (await page.evaluate(() => !!window.CurioRigActors))) {
+    await page.waitForFunction((id) => CurioRigActors.ready(id), ida.id, { timeout: 30000 }).catch(() => {});
+    await page.evaluate(() => CurioViewer.redraw());
+    const tags = (await facesOf(ida.id)).filter((x) => x.tag === "rig").length;
+    ok(tags > 20, `Ida is drawn as a full 3D character (${tags} faces)`);
+    await shot("0-3d");
+  }
+  /* the block figure, for the checks below */
+  await page.evaluate((id) => {
+    CurioViewer.live().film.panels.forEach((p) => p.place[id] && (p.place[id].rig = false));
+    CurioViewer.changed(true);
+  }, ida.id);
   if (THREE_FILE) {
     const lk = await page.evaluate((id) => CurioWear.resolve(CurioViewer.live().panel.place[id]), ida.id);
     ok(lk.hair === "spiky" && lk.bottom === "overalls" && lk.feet === "boots", `the words become hair ${lk.hair}, ${lk.bottom}, ${lk.feet}`);

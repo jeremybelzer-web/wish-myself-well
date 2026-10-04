@@ -113,7 +113,11 @@
       }, get: (o, pl) => pl.act || "", set: null, tags: ["objectPath", "envMotion", "comicBeat", "gesture", "emoActions"], say: "The same list as Control+click on it." },
     { id: "fxAmt", label: "How far along", sec: "Action", kind: "num", scope: "place", apps: ["roblox"], only: (o, pl) => !!(pl && pl.fx), min: 0, max: 1, step: 0.05, unit: "", get: (o, pl) => (pl.fxAmt == null ? 1 : pl.fxAmt), set: (o, pl, v) => (pl.fxAmt = r3(clamp(v, 0, 1))), tags: ["objectPath", "envMotion"], say: "0 is not yet, 1 is all the way (burning, crumbled, broken apart)." },
     /* a person's look (viewer/wear.js): words, then any part changed by hand, panel by panel */
-    { id: "rig", label: "Full 3D character", sec: "Character", kind: "bool", scope: "place", apps: ["roblox", "sims"], only: isPerson, get: (o, pl) => !!pl.rig, set: (o, pl, v) => (v ? (pl.rig = true) : delete pl.rig), tags: ["characterDetail", "mainFit"], say: "Drawn as a full 3D character with a face and joints, instead of blocks." },
+    { id: "rig", label: "Full 3D character", sec: "Character", kind: "bool", scope: "place", apps: ["roblox", "sims"], only: isPerson, get: (o, pl) => (typeof pl.rig === "boolean" ? pl.rig : !!o.rig), set: (o, pl, v) => {
+        pl.rig = !!v;
+        const RA = window.CurioRigActors;
+        if (v && RA && RA.load) Promise.resolve(RA.load()).then(() => V.redraw(), () => {});
+      }, tags: ["characterDetail", "mainFit"], say: "Drawn as a full 3D character with a face and joints, instead of blocks." },
     { id: "look", label: "Look in words", sec: "Character", kind: "text", scope: "place", apps: ["roblox", "sims"], only: isPerson, get: (o, pl) => pl.look || "", set: (o, pl, v) => (String(v).trim() ? (pl.look = String(v).trim().slice(0, 200)) : delete pl.look), tags: ["mainEra", "mainFormality", "backEra", "backSameness"], say: "Describe them: spiky red hair, plaid shirt, overalls, boots. The parts below win over the words." },
     lookSel("hair", "Hair", ["mainEra", "mainFormality"]),
     lookCol("hairColor", "Hair color", ["palette", "colorAccent"]),

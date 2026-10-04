@@ -4,7 +4,8 @@
        look: words ("spiky red hair, overalls, boots"), read by the 3D characters' own reader (CurioRig.maker.read);
        lookParts: { hair, hairColor, hat, hatColor, top, topColor, bottom, bottomColor, feet, shoesColor, skin,
          build, height }, settings that win over the words (maker's own names; colors as "#rrggbb");
-       rig: true, show this person as a full 3D character (drawn by the Viewer thread's viewer/rig-actors.js).
+       rig: true or false, show this person as a full 3D character in this panel (drawn by the Viewer thread's
+         viewer/rig-actors.js; without it, the person's own o.rig decides for the whole film).
      Until then, and wherever 3D is off, the block figure takes the look's colors, hair, hat, skirt, build and height.
      The words are read once the 3D files have loaded (CurioRig.load(), started the first time a look is seen).
    - Stuck to a thing: a drawing (or any thing) with o.pin = { id, lx, ly, lz, dt, ds } follows that thing in every
@@ -102,6 +103,8 @@
   /* ---------- the block figure wears the look ---------- */
   function parts(list, def, place) {
     if (!def || def.kind !== "person" || !hasLook(place)) return list;
+    /* drawn as a 3D character (viewer/rig-actors.js): its own faces wear the look already */
+    if (list.some((p) => p.tag === "rig")) return list;
     const lk = resolve(place, def);
     const was = {
       shirt: (def.color || "#4a7bd0").toLowerCase(),
