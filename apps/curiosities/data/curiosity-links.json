@@ -21688,6 +21688,469 @@
    "then": "loneliness grows"
   },
   {
+   "id": "p:color-clash-tension",
+   "proximity": "color-clash-tension",
+   "label": "When the colors clash harder, the tension climbs",
+   "from": {
+    "curiosity": "colorClash",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the colors clash harder",
+   "then": "the tension climbs"
+  },
+  {
+   "id": "p:clashing-piece-color-clash",
+   "proximity": "clashing-piece-color-clash",
+   "label": "When one piece clashes, the whole frame starts to clash",
+   "from": {
+    "curiosity": "clashingPiece",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "colorClash",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one piece clashes",
+   "then": "the whole frame starts to clash"
+  },
+  {
+   "id": "p:saved-color-echo",
+   "proximity": "saved-color-echo",
+   "label": "When the saved color comes back, the old feeling comes with it",
+   "from": {
+    "curiosity": "savedColor",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "feelingEcho",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the saved color comes back",
+   "then": "the old feeling comes with it"
+  },
+  {
+   "id": "p:saved-color-pops",
+   "proximity": "saved-color-pops",
+   "label": "When a color is saved for big moments, it pops when it comes",
+   "from": {
+    "curiosity": "savedColor",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "colorAccent",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a color is saved for big moments",
+   "then": "it pops when it comes"
+  },
+  {
+   "id": "p:split-light-wrong-colors",
+   "proximity": "split-light-wrong-colors",
+   "label": "When the two colors mean a torn mind, the colors start to go wrong",
+   "from": {
+    "curiosity": "splitColorLight.means",
+    "track": "master",
+    "is": "a torn mind",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "wrongColors",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the two colors mean a torn mind",
+   "then": "the colors start to go wrong"
+  },
+  {
+   "id": "p:matches-room-loneliness",
+   "proximity": "matches-room-loneliness",
+   "label": "When they melt into the room, loneliness grows",
+   "from": {
+    "curiosity": "matchesTheRoom",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they melt into the room",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:stands-apart-unmatches",
+   "proximity": "stands-apart-unmatches",
+   "label": "When they dress apart from the crowd, they stop melting into the room",
+   "from": {
+    "curiosity": "backVsMain",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "matchesTheRoom",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they dress apart from the crowd",
+   "then": "they stop melting into the room"
+  },
+  {
+   "id": "p:still-rush-eye",
+   "proximity": "still-rush-eye",
+   "label": "When one thing stays still in the rush, the eye goes straight to it",
+   "from": {
+    "curiosity": "stillInTheRush",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "eyeFirst",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one thing stays still in the rush",
+   "then": "the eye goes straight to it"
+  },
+  {
+   "id": "p:one-face-shallow",
+   "proximity": "one-face-shallow",
+   "label": "When one face is picked out by focus, the rest goes soft",
+   "from": {
+    "curiosity": "oneFaceInCrowd.by",
+    "track": "character",
+    "is": "sharp focus",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "depthOfField",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "one face is picked out by focus",
+   "then": "the rest goes soft"
+  },
+  {
+   "id": "p:one-face-tenderness",
+   "proximity": "one-face-tenderness",
+   "label": "When the face in the crowd is the one they love, tenderness grows",
+   "from": {
+    "curiosity": "oneFaceInCrowd.who",
+    "track": "character",
+    "is": "the one they love",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the face in the crowd is the one they love",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:misdirect-behind",
+   "proximity": "misdirect-behind",
+   "label": "When the eye is pulled away, danger slips in behind them",
+   "from": {
+    "curiosity": "misdirectedEye",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "behindTheirBack",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the eye is pulled away",
+   "then": "danger slips in behind them"
+  },
+  {
+   "id": "p:misdirect-twist-herring",
+   "proximity": "misdirect-twist-herring",
+   "label": "When the trick sets up a twist, a clue points the wrong way",
+   "from": {
+    "curiosity": "misdirectedEye.goal",
+    "track": "character",
+    "is": "a twist",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "redHerring",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the trick sets up a twist",
+   "then": "a clue points the wrong way"
+  },
+  {
+   "id": "p:edge-frame-apart",
+   "proximity": "edge-frame-apart",
+   "label": "When they are pushed to the edge of the frame, they stand apart",
+   "from": {
+    "curiosity": "edgeOfFrame",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "apartFromGroup",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they are pushed to the edge of the frame",
+   "then": "they stand apart"
+  },
+  {
+   "id": "p:signs-words-world",
+   "proximity": "signs-words-world",
+   "label": "When the signs behind them can be read, the titles move into the world too",
+   "from": {
+    "curiosity": "signsInBackground",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "wordsInTheWorld",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the signs behind them can be read",
+   "then": "the titles move into the world too"
+  },
+  {
+   "id": "p:no-credits-late-title",
+   "proximity": "no-credits-late-title",
+   "label": "When the opening credits shrink, the title comes later",
+   "from": {
+    "curiosity": "openingCredits",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "titleDrop",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the opening credits shrink",
+   "then": "the title comes later"
+  },
+  {
+   "id": "p:credits-title-music",
+   "proximity": "credits-title-music",
+   "label": "When the opening credits grow, the title music grows with them",
+   "from": {
+    "curiosity": "openingCredits",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "titleMusic",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the opening credits grow",
+   "then": "the title music grows with them"
+  },
+  {
+   "id": "p:inner-voice-thoughts-text",
+   "proximity": "inner-voice-thoughts-text",
+   "label": "When the voice in their head gets louder, their thoughts appear on screen",
+   "from": {
+    "curiosity": "innerVoice",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "thoughtsAsText",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the voice in their head gets louder",
+   "then": "their thoughts appear on screen"
+  },
+  {
+   "id": "p:thoughts-lie-unreliable",
+   "proximity": "thoughts-lie-unreliable",
+   "label": "When the written thoughts lie, we stop trusting the view",
+   "from": {
+    "curiosity": "thoughtsAsText.honest",
+    "track": "master",
+    "is": "it lies",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "unreliableView",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the written thoughts lie",
+   "then": "we stop trusting the view"
+  },
+  {
+   "id": "p:subtitles-lie-misdirection",
+   "proximity": "subtitles-lie-misdirection",
+   "label": "When the subtitles lie, the joke comes from the other side",
+   "from": {
+    "curiosity": "playfulSubtitles.trick",
+    "track": "master",
+    "is": "they lie",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "misdirection",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the subtitles lie",
+   "then": "the joke comes from the other side"
+  },
+  {
+   "id": "p:split-screen-tension",
+   "proximity": "split-screen-tension",
+   "label": "When the screen splits, the tension climbs",
+   "from": {
+    "curiosity": "splitScreen",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the screen splits",
+   "then": "the tension climbs"
+  },
+  {
+   "id": "p:split-joins-shared-frame",
+   "proximity": "split-joins-shared-frame",
+   "label": "When the two halves meet, they share one frame",
+   "from": {
+    "curiosity": "splitScreen.joins",
+    "track": "master",
+    "is": "they meet in one frame",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sharedFrame",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the two halves meet",
+   "then": "they share one frame"
+  },
+  {
+   "id": "p:picture-shrinks-loneliness",
+   "proximity": "picture-shrinks-loneliness",
+   "label": "When the picture shrinks, loneliness grows",
+   "from": {
+    "curiosity": "pictureSize",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the picture shrinks",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:pov-mask-dread",
+   "proximity": "pov-mask-dread",
+   "label": "When we watch through the keyhole, dread grows",
+   "from": {
+    "curiosity": "povMask",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we watch through the keyhole",
+   "then": "dread grows"
+  },
+  {
+   "id": "p:stills-nostalgia",
+   "proximity": "stills-nostalgia",
+   "label": "When the film turns to still photos, nostalgia comes in",
+   "from": {
+    "curiosity": "stillsInMotion",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "nostalgia",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the film turns to still photos",
+   "then": "nostalgia comes in"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -27037,6 +27500,74 @@
     "p:last-word-walk-out",
     "p:door-shut-loneliness",
     "p:door-touch-tenderness"
+   ]
+  },
+  {
+   "id": "ps:colors-that-speak",
+   "label": "Colors that speak",
+   "plain": "Clashing colors raise the tension, one clashing piece spreads to the whole frame, a saved color brings back an old feeling, and two colored lights on a face turn into colors going wrong.",
+   "proximities": [
+    "color-clash-tension",
+    "clashing-piece-color-clash",
+    "saved-color-echo",
+    "split-light-wrong-colors"
+   ],
+   "links": [
+    "p:color-clash-tension",
+    "p:clashing-piece-color-clash",
+    "p:saved-color-echo",
+    "p:split-light-wrong-colors"
+   ]
+  },
+  {
+   "id": "ps:where-the-eye-lands",
+   "label": "Where the eye lands",
+   "plain": "The still one in the rush pulls the eye, a face in the crowd sharpens while the rest goes soft, a pulled-away eye lets danger in behind, and a person at the edge stands apart.",
+   "proximities": [
+    "still-rush-eye",
+    "one-face-shallow",
+    "misdirect-behind",
+    "edge-frame-apart"
+   ],
+   "links": [
+    "p:still-rush-eye",
+    "p:one-face-shallow",
+    "p:misdirect-behind",
+    "p:edge-frame-apart"
+   ]
+  },
+  {
+   "id": "ps:words-that-live-in-the-world",
+   "label": "Words that live in the world",
+   "plain": "Signs in the street pull the titles into the place, a short opening pushes the title later, a loud inner voice turns into words on screen, and lying words make us doubt the whole view.",
+   "proximities": [
+    "signs-words-world",
+    "no-credits-late-title",
+    "inner-voice-thoughts-text",
+    "thoughts-lie-unreliable"
+   ],
+   "links": [
+    "p:signs-words-world",
+    "p:no-credits-late-title",
+    "p:inner-voice-thoughts-text",
+    "p:thoughts-lie-unreliable"
+   ]
+  },
+  {
+   "id": "ps:the-frame-tells-it",
+   "label": "The frame tells it",
+   "plain": "A split screen raises the tension, a shrinking picture feels lonely, a keyhole view brings dread, and a run of still photos brings back the past.",
+   "proximities": [
+    "split-screen-tension",
+    "picture-shrinks-loneliness",
+    "pov-mask-dread",
+    "stills-nostalgia"
+   ],
+   "links": [
+    "p:split-screen-tension",
+    "p:picture-shrinks-loneliness",
+    "p:pov-mask-dread",
+    "p:stills-nostalgia"
    ]
   },
   {
