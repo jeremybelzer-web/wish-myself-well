@@ -327,7 +327,7 @@
 
   /* ---------- the film ---------- */
   function cam(o) {
-    return Object.assign({ shot: 2.2, lens: 35, fish: 0, height: 8, around: 0, tilt: 0, aim: null, move: "cut" }, o);
+    return Object.assign({ shot: 2.2, lens: 35, fish: 0, height: 8, around: 0, tilt: 0, aim: null, move: "cut", pan: [0, 0, 0] }, o);
   }
   function sampleFilm() {
     /* Episode 1, scene 1 ("The napkin") from Wish Myself Well, as 13 panels. */
@@ -565,6 +565,7 @@
         aimFrom: a.cam.aim,
         aimTo: n.aim,
         aimMix: e,
+        pan: [0, 1, 2].map((k) => lerp((a.cam.pan || [0, 0, 0])[k], (n.pan || [0, 0, 0])[k], e)),
       });
     }
     return { i, u, panel: a, place, cam: c, phase: t * Math.PI * 2 * 1.5 };
@@ -577,14 +578,26 @@
     const sitDrop = o.kind === "person" && /^sit/.test(p.pose || "") ? 0.4 : 0;
     return [p.x, p.y + ((k.look || 0) - sitDrop) * (p.size || 1), p.z];
   }
+  /* Where the camera looks: its subject, slid by pan (Control-drag, or a double-click zoom). */
   function camTarget(st) {
     const c = st.cam;
+    const pan = Array.isArray(c.pan) ? c.pan : [0, 0, 0];
+    let t;
     if (c.aimFrom !== undefined) {
       const a = aimPoint(c.aimFrom, st.place);
       const b = aimPoint(c.aimTo, st.place);
-      return [lerp(a[0], b[0], c.aimMix), lerp(a[1], b[1], c.aimMix), lerp(a[2], b[2], c.aimMix)];
-    }
-    return aimPoint(c.aim, st.place);
+      t = [lerp(a[0], b[0], c.aimMix), lerp(a[1], b[1], c.aimMix), lerp(a[2], b[2], c.aimMix)];
+    } else t = aimPoint(c.aim, st.place);
+    return [t[0] + (pan[0] || 0), Math.max(0, t[1] + (pan[1] || 0)), t[2] + (pan[2] || 0)];
+  }
+  /* The ray from the camera through a point of the picture (the projection run backwards). */
+  function unproject(C, sx, sy) {
+    const x = (sx - C.W / 2) / C.F;
+    const y = -(sy - C.H / 2) / C.F;
+    const r = Math.hypot(x, y);
+    if (r < 1e-9) return C.fwd;
+    const th = Math.atan(r * C.a) / C.a;
+    return norm(add(mul(C.fwd, Math.cos(th)), mul(add(mul(C.right, x / r), mul(C.up, y / r)), Math.sin(th))));
   }
 
   /* ---------- drawing a frame ---------- */
@@ -1266,7 +1279,7 @@
       const el = document.createElement("div");
       el.className = "cv-win";
       el.dataset.w = i;
-      el.innerHTML = `<canvas class="cv-canvas" tabindex="0" aria-label="The picture. Drag a shape to move it. Drag empty space to swing the camera. Scroll to go closer or farther."></canvas><video class="cv-video" muted playsinline loop hidden></video>
+      el.innerHTML = `<canvas class="cv-canvas" tabindex="0" aria-label="The picture. Drag a shape to move it. Drag empty space to swing the camera. Control-drag to slide around the world. Double-click to zoom in there. Scroll to go closer or farther."></canvas><video class="cv-video" muted playsinline loop hidden></video>
         <div class="cv-wtab" title="Swipe left or right here to switch films"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button></div>
         ${i ? `<button type="button" class="cv-wclose" data-wclose="${i}" title="Close this window" aria-label="Close this window">×</button>` : ""}
         <div class="cv-wmenu" hidden></div>
@@ -1287,9 +1300,9 @@
       w.canvas.addEventListener("wheel", on(onWheel), { passive: false });
       w.canvas.addEventListener("dblclick", on((e) => {
         if (wins[i] !== "mine") return;
-        const hit = pickAt(e);
-        if (hit) faceCamera(hit);
+        zoomAt(e, e.shiftKey || e.altKey ? 2 : 0.5);
       }));
+      w.canvas.addEventListener("contextmenu", (e) => wins[i] === "mine" && e.preventDefault());
       swipeable(el.querySelector(".cv-wtab"), i);
       W_EL.push(w);
     });
@@ -1553,6 +1566,8 @@
     const hw = heightWords(c.height);
     return `
       <p class="cv-help">The camera for <b>panel ${cur + 1}</b>. Drag empty space in the picture to swing the camera around; scroll to go closer or farther.</p>
+      <p class="cv-help"><b>Move yourself around:</b> hold Control and drag (or drag with the right mouse button) to slide through the world. <b>Double-click</b> a spot to zoom in there, like a map; Shift and double-click zooms out. Scroll to go closer or farther.</p>
+      <div class="cv-row"><button type="button" data-act="unpan" title="Point the camera straight back at what it looks at"${(c.pan || [0, 0, 0]).some((v) => Math.abs(v) > 0.001) ? "" : " disabled"}>Back to the subject</button></div>
       <label class="cv-field"><span><b>Looks at</b></span><select data-k="aim">${film.objects.map((o) => `<option value="${esc(o.id)}"${o.id === c.aim ? " selected" : ""}>${esc(o.name)}</option>`).join("")}</select></label>
       <div class="cv-presets">
         <button type="button" data-preset="normal" title="A normal lens at eye level">Normal</button>
@@ -1980,6 +1995,11 @@
         return setPlaying(!playing);
       case "addwin":
         return addWin();
+      case "unpan":
+        atPanelStart();
+        remember("unpan");
+        p.cam.pan = [0, 0, 0];
+        return changed(true);
       case "first":
         return selectPanel(0);
       case "prev":
@@ -2041,6 +2061,7 @@
         atPanelStart();
         remember("aim");
         p.cam.aim = film.sel;
+        p.cam.pan = [0, 0, 0];
         tab = "camera";
         return changed(true);
       case "delthing": {
@@ -2181,6 +2202,7 @@
         break;
       case "aim":
         p.cam.aim = v;
+        p.cam.pan = [0, 0, 0];
         break;
       case "shot":
         p.cam.shot = Math.round(shotFromSlider(+v) * 1000) / 1000;
@@ -2228,10 +2250,55 @@
     for (let i = picks.length - 1; i >= 0; i--) if (inside(pt, picks[i].s)) return picks[i].obj;
     return null;
   }
+  /* Double-click a spot: the view glides there and zooms in, like a map (Shift or Alt zooms out). */
+  let zoomAnim = 0;
+  function zoomAt(e, factor) {
+    atPanelStart();
+    const st = stateAt(T);
+    const C = makeCamera(st.cam, camTarget(st), canvas.width, canvas.height);
+    const pt = canvasPoint(e);
+    const hit = pickAt(e);
+    let P;
+    if (hit && st.place[hit]) {
+      P = aimPoint(hit, st.place);
+    } else {
+      const dir = unproject(C, pt[0], pt[1]);
+      P = dir[1] < -0.02 ? add(C.pos, mul(dir, -C.pos[1] / dir[1])) : add(C.pos, mul(dir, C.d));
+      if (len(sub(P, C.pos)) > 60) P = add(C.pos, mul(dir, 60));
+    }
+    const c = film.panels[cur].cam;
+    const base = aimPoint(c.aim, st.place);
+    remember("zoom");
+    const from = { pan: (c.pan || [0, 0, 0]).slice(), shot: c.shot };
+    const to = { pan: factor < 1 ? sub(P, base) : from.pan, shot: clamp(c.shot * factor, 0.08, 15) };
+    const t0 = performance.now();
+    const id = ++zoomAnim;
+    const stepZ = (now) => {
+      if (id !== zoomAnim) return;
+      const u = ease(clamp((now - t0) / 380, 0, 1));
+      c.pan = from.pan.map((v, k) => Math.round(lerp(v, to.pan[k], u) * 1000) / 1000);
+      c.shot = Math.round(Math.exp(lerp(Math.log(from.shot), Math.log(to.shot), u)) * 1000) / 1000;
+      if (u < 1) {
+        draw();
+        requestAnimationFrame(stepZ);
+      } else changed(tab === "camera");
+    };
+    requestAnimationFrame(stepZ);
+  }
   function onDown(e) {
-    if (e.button !== 0) return;
+    if (e.button > 2) return;
     if (wins[activeWin] !== "mine") return;
     if (playing) setPlaying(false);
+    if (e.ctrlKey || e.metaKey || e.button === 1 || e.button === 2) {
+      /* Control-drag (or right-drag, or middle-drag): slide yourself around the world */
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+      canvas.classList.add("dragging");
+      atPanelStart();
+      remember("pan");
+      drag = { kind: "pan", last: canvasPoint(e) };
+      return;
+    }
     const hit = pickAt(e);
     canvas.setPointerCapture(e.pointerId);
     canvas.classList.add("dragging");
@@ -2255,6 +2322,19 @@
     const dy = pt[1] - drag.last[1];
     drag.last = pt;
     const p = film.panels[cur];
+    if (drag.kind === "pan") {
+      const C = lastC;
+      if (!C) return;
+      const mpp = (p.cam.shot || 2) / canvas.height;
+      const { r, f } = floorDirs();
+      const pitch = Math.max(0.25, Math.sin(Math.abs(clamp(p.cam.height, -70, 89)) * DEG));
+      const pan = (p.cam.pan = (p.cam.pan || [0, 0, 0]).slice());
+      const fx = (dy * mpp) / pitch;
+      pan[0] += -r[0] * dx * mpp + f[0] * fx;
+      pan[2] += -r[2] * dx * mpp + f[2] * fx;
+      p.cam.pan = pan.map((v) => Math.round(v * 1000) / 1000);
+      return changed(false);
+    }
     if (drag.kind === "orbit") {
       p.cam.around = Math.round(wrap180(p.cam.around - (dx / canvas.width) * 220) * 10) / 10;
       p.cam.height = Math.round(clamp(p.cam.height + (dy / canvas.height) * 120, -40, 89) * 10) / 10;

@@ -22,7 +22,7 @@ controls to change what you see. Built because the metrics-first pages were hard
   subject keeps its size: a dolly zoom), Fisheye (bends straight lines; a full fisheye shows the round edge),
   camera height, side and lean, Cut or Glide into the next panel, presets (Normal, Fisheye, More
   foreshortening, Flat, Worm's eye, Bird's eye, Dutch angle) and a map from above. Every control says what it
-  does in plain words. Dragging empty space swings the camera; the scroll wheel goes closer or farther.
+  does in plain words. Dragging empty space swings the camera; the scroll wheel goes closer or farther. **Control-drag** (or right-drag, or middle-drag) slides you through the world, grab-style; **double-click** a spot and the view glides there and zooms in, like Google Maps (Shift or Alt with the double-click zooms out). The slide is kept per panel as `cam.pan` (metres added to what the camera looks at); Back to the subject clears it, and choosing a new subject clears it too.
 - **Words.** What happens, a narrator box (yellow), speech balloons whose tails point at whoever speaks,
   seconds on screen, rain falling, frozen or none.
 - **The strip.** Each panel is drawn with its balloons. Click to work on it, double-click to play from it,

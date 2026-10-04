@@ -116,6 +116,27 @@ const ok = (cond, msg) => {
     ok(Math.hypot(after.x - before.x, after.z - before.z) > 0.2, "dragging the Passenger in the picture moves her or him on the floor");
   }
 
+  /* move yourself around: Control-drag slides through the world, double-click zooms in there */
+  const box = await page.locator(".cv-canvas").first().boundingBox();
+  const cam0 = await page.evaluate(() => CurioViewer.film().panels[CurioViewer.panel()].cam);
+  await page.keyboard.down("Control");
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.85);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.7, { steps: 6 });
+  await page.mouse.up();
+  await page.keyboard.up("Control");
+  const cam1 = await page.evaluate(() => CurioViewer.film().panels[CurioViewer.panel()].cam);
+  ok(Math.hypot(cam1.pan[0] - (cam0.pan || [0, 0, 0])[0], cam1.pan[2] - (cam0.pan || [0, 0, 0])[2]) > 0.3, `Control-drag slides the view through the world (pan ${cam1.pan.map((v) => v.toFixed(2)).join(", ")})`);
+  await page.mouse.dblclick(box.x + box.width * 0.8, box.y + box.height * 0.8);
+  await page.waitForTimeout(700);
+  const cam2 = await page.evaluate(() => CurioViewer.film().panels[CurioViewer.panel()].cam);
+  ok(cam2.shot < cam1.shot * 0.6 && Math.hypot(cam2.pan[0] - cam1.pan[0], cam2.pan[2] - cam1.pan[2]) > 0.1, `double-click zooms in on that spot (shot ${cam1.shot} to ${cam2.shot})`);
+  await page.click('.cv-tabs [data-tab="camera"]');
+  await page.click('[data-act="unpan"]');
+  const cam3 = await page.evaluate(() => CurioViewer.film().panels[CurioViewer.panel()].cam);
+  ok(cam3.pan.every((v) => v === 0), "Back to the subject points the camera at its subject again");
+  await page.click('.cv-tabs [data-tab="move"]');
+
   /* the lens */
   await page.click('.cv-tabs [data-tab="camera"]');
   const shot = async (name) => page.evaluate(() => document.querySelector(".cv-canvas").toDataURL("image/png").length);
