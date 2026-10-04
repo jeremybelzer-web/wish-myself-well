@@ -373,10 +373,9 @@
   function makeCamera(cam, target, W, H) {
     const f = clamp(cam.lens || 35, 4, 600);
     const d = Math.max(0.12, ((cam.shot || 2) * f) / SENSOR_H);
-    const pitch = clamp(cam.height || 0, -70, 89.5) * DEG;
+    const pitch = clamp(cam.height || 0, -89, 89.5) * DEG;
     const yaw = (cam.around || 0) * DEG;
     const pos = [target[0] + d * Math.sin(yaw) * Math.cos(pitch), target[1] + d * Math.sin(pitch), target[2] + d * Math.cos(yaw) * Math.cos(pitch)];
-    if (pos[1] < 0.06) pos[1] = 0.06;
     const fwd = norm(sub(target, pos));
     let right = norm(cross(fwd, [0, 1, 0]));
     if (len(right) < 0.5) right = [Math.cos(yaw), 0, -Math.sin(yaw)];
@@ -384,8 +383,27 @@
     const r = (cam.tilt || 0) * DEG;
     const R = add(mul(right, Math.cos(r)), mul(up, Math.sin(r)));
     const U = add(mul(up, Math.cos(r)), mul(right, -Math.sin(r)));
-    const a = 1 - 0.75 * clamp(cam.fish || 0, 0, 1);
-    return { pos, fwd, right: R, up: U, a, F: (f / SENSOR_W) * W, W, H, thMax: Math.min((Math.PI / 2 / a) * 0.985, Math.PI * 0.96), target, d, lens: f };
+    /* Fisheye: 0 is a normal straight-line lens. Going up, the picture bends more and more like a real fisheye:
+       halfway is an "equidistant" fisheye, all the way is an "equisolid" one (like an 8mm circular fisheye),
+       which squeezes the edges hard and sees all round. The lens also widens as it bends, so more of the
+       background and foreground comes in at the edges. */
+    const fish = clamp(cam.fish || 0, 0, 1);
+    const a = 1 - 1.5 * fish;
+    const thMax = a > 1e-3 ? Math.min((Math.PI / 2 / a) * 0.985, Math.PI * 0.96) : Math.PI * 0.96;
+    return { pos, fwd, right: R, up: U, a, F: (f / SENSOR_W) * W * (1 - 0.4 * fish), W, H, thMax, target, d, lens: f };
+  }
+  /* how far from the middle of the picture a ray at angle th lands (per unit of F), and back again */
+  function lensR(C, th) {
+    const a = C.a;
+    if (a > 1e-3) return Math.tan(th * a) / a;
+    if (a > -1e-3) return th;
+    return Math.sin(th * -a) / -a;
+  }
+  function lensTh(C, r) {
+    const a = C.a;
+    if (a > 1e-3) return Math.atan(r * a) / a;
+    if (a > -1e-3) return r;
+    return Math.asin(Math.min(1, r * -a)) / -a;
   }
   function project(C, p) {
     const v = sub(p, C.pos);
@@ -394,9 +412,8 @@
     const z = dot(v, C.fwd);
     const rho = Math.hypot(x, y);
     const th = Math.atan2(rho, z);
-    if (th > C.thMax) return null;
-    if (C.a > 0.999 && z < 0.03) return null;
-    const k = rho < 1e-9 ? 0 : (C.F * (Math.tan(th * C.a) / C.a)) / rho;
+    if (C.a > 0.999 ? z < 0.03 : th > C.thMax) return null;
+    const k = rho < 1e-9 ? 0 : (C.F * lensR(C, th)) / rho;
     return [C.W / 2 + k * x, C.H / 2 - k * y, Math.hypot(x, y, z)];
   }
 
@@ -572,6 +589,35 @@
   if (!wins.length) wins = ["mine"];
   const W_EL = []; /* per window: { el, canvas, ctx, hud, video, picks } */
   let activeWin = 0;
+  /* Two ways to see many windows: "fit" shrinks them all to fit the stage, "swipe" keeps one big window and
+     you drag along its top edge (or click the dots) to see the others. */
+  const MKEY = "curiosities-viewer-winmode-v1";
+  let winMode = (() => {
+    try {
+      return localStorage.getItem(MKEY) === "swipe" ? "swipe" : "fit";
+    } catch (e) {
+      return "fit";
+    }
+  })();
+  let shownWin = 0;
+  function setWinMode(m) {
+    winMode = m === "swipe" ? "swipe" : "fit";
+    try {
+      localStorage.setItem(MKEY, winMode);
+    } catch (e) {}
+    shownWin = Math.min(shownWin, wins.length - 1);
+    buildWins();
+    draw();
+  }
+  function showWin(i) {
+    const n = wins.length;
+    shownWin = ((i % n) + n) % n;
+    activeWin = shownWin;
+    canvas = W_EL[shownWin].canvas;
+    picks = W_EL[shownWin].picks;
+    W_EL.forEach((w, k) => w.el.querySelectorAll(".cv-wdots i").forEach((d, j) => d.classList.toggle("on", j === shownWin)));
+    draw();
+  }
   function saveWins() {
     try {
       localStorage.setItem(WKEY, JSON.stringify(wins.filter((id) => id === "mine" || !/^vid-/.test(id))));
@@ -673,7 +719,7 @@
     const y = -(sy - C.H / 2) / C.F;
     const r = Math.hypot(x, y);
     if (r < 1e-9) return C.fwd;
-    const th = Math.atan(r * C.a) / C.a;
+    const th = lensTh(C, r);
     return norm(add(mul(C.fwd, Math.cos(th)), mul(add(mul(C.right, x / r), mul(C.up, y / r)), Math.sin(th))));
   }
 
@@ -707,9 +753,41 @@
   }
   function shadeColor(f, L, look, depth) {
     const lam = f.glow ? 1 : look.amb + (1 - look.amb) * Math.max(0, dot(f.n, L));
-    const fog = clamp((depth - 8) / 45, 0, 0.75);
+    const fog = clamp((depth - fogOff - 8) / 45, 0, 0.75);
     const c = f.color.map((v, k) => lerp(v * (f.glow ? 1.15 : lam), look.fog[k], fog));
     return `rgb(${c.map((v) => clamp(Math.round(v), 0, 255)).join(",")})`;
+  }
+  /* A face part behind the camera is cut off at the camera instead of the whole face being dropped, so walls
+     and buildings stay when you move right up to them or past them. A plain lens cuts the face at a plane just
+     in front of the camera; a fisheye (which can see further round) splits the face into smaller pieces and
+     keeps every piece it can see. */
+  const NEAR = 0.05;
+  /* Haze starts past the subject, not at a fixed distance, so a long lens far away (little foreshortening)
+     still shows a clear picture instead of a grey one. Set by drawFrame for the frame it draws. */
+  let fogOff = 0;
+  function clipNear(C, pts) {
+    const zs = pts.map((p) => dot(sub(p, C.pos), C.fwd));
+    if (zs.every((z) => z >= NEAR)) return pts;
+    if (zs.every((z) => z < NEAR)) return null;
+    const out = [];
+    pts.forEach((a, i) => {
+      const j = (i + 1) % pts.length;
+      const b = pts[j];
+      if (zs[i] >= NEAR) out.push(a);
+      if (zs[i] >= NEAR !== zs[j] >= NEAR) out.push(add(a, mul(sub(b, a), (NEAR - zs[i]) / (zs[j] - zs[i]))));
+    });
+    return out.length >= 3 ? out : null;
+  }
+  function projectFace(C, pts, depth) {
+    const s = pts.map((q) => project(C, q));
+    if (!s.some((q) => !q)) return [s];
+    if (C.a > 0.999 || pts.length !== 4 || (depth || 0) >= 3) {
+      const c = clipNear(C, pts);
+      if (!c) return [];
+      const t = c.map((q) => project(C, q));
+      return t.some((q) => !q) ? [] : [t];
+    }
+    return subdivide(pts, 2).flatMap((pp) => projectFace(C, pp, (depth || 0) + 1));
   }
   function polyPath(ctx, s) {
     ctx.beginPath();
@@ -721,7 +799,7 @@
   /* A pencil line in the world: thicker near, thinner far. Clicking near it picks its thing. */
   function drawLine(ctx, C, P, look, opts) {
     const f = P.f;
-    const fog = clamp((P.depth - 8) / 45, 0, 0.75);
+    const fog = clamp((P.depth - fogOff - 8) / 45, 0, 0.75);
     const c = f.color.map((v, k) => clamp(Math.round(lerp(v, look.fog[k], fog)), 0, 255));
     ctx.strokeStyle = `rgb(${c.join(",")})`;
     ctx.lineCap = "round";
@@ -779,7 +857,7 @@
     const a = [(px[0] - o[0]) / 0.01, (px[1] - o[1]) / 0.01];
     const b = [(py[0] - o[0]) / 0.01, (py[1] - o[1]) / 0.01];
     if (Math.abs(a[0] * b[1] - a[1] * b[0]) < 1e-6) return;
-    const fog = clamp((P.depth - 8) / 45, 0, 0.75);
+    const fog = clamp((P.depth - fogOff - 8) / 45, 0, 0.75);
     const c = f.color.map((v, k) => clamp(Math.round(lerp(v, look.fog[k], fog)), 0, 255));
     const PX = 100; /* draw the letters 100 px tall, then map to h metres */
     const k = f.h / PX;
@@ -818,6 +896,7 @@
     const look = LOOKS[film.look] || LOOKS.dusk;
     const target = camTarget(st);
     const C = makeCamera(st.cam, target, W, H);
+    fogOff = Math.max(0, C.d - 6);
     const L = norm(look.light);
     /* sky */
     const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -826,9 +905,11 @@
     g.addColorStop(1, look.sky[2]);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
-    const nsub = C.a < 0.999 ? 3 : 1;
+    const nsub = C.a < 0.999 ? (C.a < 0.4 ? 5 : 3) : 1;
+    /* from underneath, the floor is see-through like glass */
+    const under = C.pos[1] < 0.02;
     /* the ground all the way to the horizon, under the street's tiles */
-    {
+    if (!under) {
       const ring = [];
       const yaw0 = Math.atan2(C.fwd[0], C.fwd[2]);
       for (let k = -36; k <= 36; k++) {
@@ -857,13 +938,12 @@
     }
     /* the street */
     const floorN = [0, 1, 0];
+    if (under) ctx.globalAlpha = 0.28;
     floorFaces().forEach((f) => {
       const pieces = subdivide(f.pts, C.a < 0.999 || C.pos[1] < 0.6 ? 3 : 1);
-      pieces.forEach((pp) => {
-        const s = pp.map((p) => project(C, p));
-        if (s.some((q) => !q)) return;
+      pieces.forEach((pp) => projectFace(C, pp).forEach((s) => {
         const depth = s.reduce((a, q) => a + q[2], 0) / s.length;
-        const fog = clamp((depth - 8) / 45, 0, 0.8);
+        const fog = clamp((depth - fogOff - 8) / 45, 0, 0.8);
         const base = hex(look.floor[f.alt]);
         const lam = look.amb + (1 - look.amb) * Math.max(0, dot(floorN, L));
         const c = base.map((v, k) => Math.round(lerp(v * lam, look.fog[k], fog)));
@@ -873,8 +953,9 @@
         ctx.strokeStyle = `rgba(${c.join(",")},1)`;
         ctx.lineWidth = 1;
         ctx.stroke();
-      });
+      }));
     });
+    ctx.globalAlpha = 1;
     /* grid lines on the floor show the lens bending and stretching space */
     ctx.strokeStyle = film.look === "day" ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.08)";
     ctx.lineWidth = Math.max(1, W / 900);
@@ -968,12 +1049,12 @@
           f = Object.assign({}, f, { n: mul(f.n, -1) });
         }
         const big = nsub > 1 && Math.max(len(sub(f.pts[0], f.pts[2])), len(sub(f.pts[1], f.pts[f.pts.length - 1]))) > 0.6;
-        subdivide(f.pts, big ? nsub : 1).forEach((pp) => {
-          const s = pp.map((q) => project(C, q));
-          if (s.some((q) => !q)) return;
-          const depth = s.reduce((a, q) => a + q[2], 0) / s.length;
-          polys.push({ s, depth, f });
-        });
+        subdivide(f.pts, big ? nsub : 1).forEach((pp) =>
+          projectFace(C, pp).forEach((s) => {
+            const depth = s.reduce((a, q) => a + q[2], 0) / s.length;
+            polys.push({ s, depth, f });
+          }),
+        );
       });
     });
     polys.sort((a, b) => b.depth - a.depth);
@@ -1019,7 +1100,7 @@
     }
     /* a full fisheye shows the round edge of its picture */
     if ((st.cam.fish || 0) > 0.8) {
-      const R = C.F * (Math.tan(Math.min(Math.PI / 2, C.thMax) * C.a) / C.a);
+      const R = C.F * lensR(C, Math.min(Math.PI / 2, C.thMax));
       ctx.save();
       ctx.beginPath();
       ctx.rect(0, 0, W, H);
@@ -1171,6 +1252,7 @@
     return ["Very long", "almost no foreshortening: everything looks stacked flat, like a telephoto at a sports game"];
   }
   function heightWords(h) {
+    if (h < -45) return ["From underneath", "below the floor, looking up as if the floor were glass"];
     if (h < -20) return ["Worm's eye", "from the floor, looking up: they look huge and strong"];
     if (h < -4) return ["Low", "a little below, looking up: they look bigger"];
     if (h <= 12) return ["Eye level", "straight on, like a person standing there"];
@@ -1292,6 +1374,14 @@
 .cv-win:not(.is-mine) .cv-canvas { cursor: default; }
 .cv-wtab { position: absolute; left: 6px; top: 6px; display: flex; align-items: center; gap: 2px; background: rgba(12,12,14,0.78); border-radius: 6px; padding: 2px; touch-action: pan-y; user-select: none; max-width: calc(100% - 50px); z-index: 2; }
 .cv-root .cv-wtab button { background: transparent; padding: 3px 7px; font-size: 12px; }
+.cv-root .cv-wtab .cv-wplus { background: #22d3ee; color: #062a31; font-weight: 700; font-size: 15px; line-height: 1; padding: 2px 8px; margin-left: 4px; border-radius: 5px; }
+.cv-wtop { display: none; position: absolute; left: 0; right: 0; top: 0; height: 14px; z-index: 1; cursor: ew-resize; touch-action: pan-y; background: linear-gradient(rgba(34,211,238,0.35), transparent); }
+.cv-wins[data-mode="swipe"] .cv-wtop { display: flex; justify-content: center; align-items: center; }
+.cv-wins[data-mode="swipe"][data-n="1"] .cv-wtop { display: none; }
+.cv-wdots { display: flex; gap: 5px; }
+.cv-wdots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.4); cursor: pointer; }
+.cv-wdots i.on { background: #22d3ee; }
+.cv-wins[data-mode="swipe"] .cv-wtab { top: 16px; }
 .cv-root .cv-wtab .cv-wname { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .cv-win.is-mine .cv-wname { color: var(--c-accent); }
 .cv-wmenu { position: absolute; left: 6px; top: 38px; z-index: 3; display: grid; background: var(--c-panel); border: 1px solid var(--c-line); border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); max-width: calc(100% - 12px); }
@@ -1414,6 +1504,7 @@
             <span class="cv-time"></span>
             <input type="range" class="cv-scrub" min="0" max="1000" value="0" aria-label="Where in the film" />
             <button type="button" class="cv-wadd" data-act="addwin" title="Open another window next to your film, to watch an inspiration film side by side. Add as many as you like.">+ Window</button>
+            <select data-k="winmode" title="How to see many windows: fit them all on screen, or keep one big and swipe its top edge to see the others"><option value="fit">Fit all windows on screen</option><option value="swipe">Keep size, swipe the top edge</option></select>
             <select data-k="speed" title="How fast it plays"><option value="0.5">½ speed</option><option value="1" selected>Normal speed</option><option value="2">2× speed</option></select>
             <label title="Start again at the end"><input type="checkbox" data-k="loop" checked /> Loop</label>
           </div>
@@ -1469,7 +1560,8 @@
       el.className = "cv-win";
       el.dataset.w = i;
       el.innerHTML = `<canvas class="cv-canvas" tabindex="0" aria-label="The picture. Drag a shape to move it. Drag empty space to swing the camera. Control-drag to slide around the world. Double-click to zoom in there. Scroll to go closer or farther."></canvas><video class="cv-video" muted playsinline loop hidden></video>
-        <div class="cv-wtab" title="Swipe left or right here to switch films"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button></div>
+        <div class="cv-wtop" title="Drag left or right along the top edge to see your other open windows"><span class="cv-wdots">${wins.map((_, j) => `<i data-wshow="${j}" class="${j === shownWin ? "on" : ""}" title="Window ${j + 1}"></i>`).join("")}</span></div>
+        <div class="cv-wtab" title="Drag left or right here, or use the arrows, to switch which film this window shows"><button type="button" data-wstep="-1" aria-label="Previous film">‹</button><button type="button" class="cv-wname" data-wmenu="${i}"></button><button type="button" data-wstep="1" aria-label="Next film">›</button><button type="button" class="cv-wplus" data-act="addwin" title="Add a window, to watch another film beside this one" aria-label="Add a window">+</button></div>
         ${i ? `<button type="button" class="cv-wclose" data-wclose="${i}" title="Close this window" aria-label="Close this window">×</button>` : ""}
         <div class="cv-wmenu" hidden></div>
         <div class="cv-hud"></div><button type="button" class="cv-wuse" data-wuse="${i}" title="Copy this film's camera (shot size, lens, fisheye, height, side, lean) onto the panel you are working on" hidden>Use this camera in my panel</button>`;
@@ -1494,11 +1586,42 @@
       }));
       w.canvas.addEventListener("contextmenu", (e) => wins[i] === "mine" && e.preventDefault());
       swipeable(el.querySelector(".cv-wtab"), i);
+      topSwipe(el.querySelector(".cv-wtop"));
       W_EL.push(w);
     });
+    root.querySelector(".cv-wins").dataset.mode = winMode;
+    const ms = root.querySelector('[data-k="winmode"]');
+    if (ms) {
+      ms.value = winMode;
+      ms.disabled = wins.length < 2;
+    }
     canvas = W_EL[0].canvas;
     picks = W_EL[0].picks;
     root.querySelector(".cv-wins").dataset.n = wins.length;
+  }
+  /* In "swipe" mode, drag along a window's top edge to see the next or previous open window. */
+  function topSwipe(bar) {
+    let x0 = null;
+    bar.addEventListener("pointerdown", (e) => {
+      const d = e.target.closest("[data-wshow]");
+      if (d) return showWin(+d.dataset.wshow);
+      x0 = e.clientX;
+      try {
+        bar.setPointerCapture(e.pointerId);
+      } catch (err) {}
+    });
+    bar.addEventListener("pointermove", (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0;
+      /* one window per swipe, like turning a page */
+      if (Math.abs(dx) > 40) {
+        x0 = null;
+        showWin(shownWin + (dx < 0 ? 1 : -1));
+      }
+    });
+    const end = () => (x0 = null);
+    bar.addEventListener("pointerup", end);
+    bar.addEventListener("pointercancel", end);
   }
   /* Swipe the corner tab left or right to switch which film the window shows. */
   function swipeable(tabEl, i) {
@@ -1555,7 +1678,9 @@
     const next = INSP.find((f) => !shown.has(f.id)) || INSP[0];
     wins.push(next ? next.id : "mine");
     saveWins();
+    shownWin = wins.length - 1;
     buildWins();
+    if (winMode === "swipe") showWin(shownWin);
     draw();
   }
   function closeWin(i) {
@@ -1587,7 +1712,10 @@
   function layoutWins() {
     const stage = root.querySelector(".cv-stage");
     const r = stage.getBoundingClientRect();
-    const n = W_EL.length;
+    const swipe = winMode === "swipe" && W_EL.length > 1;
+    if (shownWin >= W_EL.length) shownWin = 0;
+    W_EL.forEach((w, i) => (w.el.hidden = swipe && i !== shownWin));
+    const n = swipe ? 1 : W_EL.length;
     const gap = 6;
     const autoH = r.height < 60 || window.innerWidth <= 760;
     let best = { cols: 1, w: r.width };
@@ -1784,7 +1912,7 @@
       <small class="cv-say" data-sayl="fore">${lw[1]}. The subject stays the same size: the camera moves back or in to make up for the lens.</small>
       ${rng("fish", "Fisheye", 0, 100, 1, Math.round(c.fish * 100), Math.round(c.fish * 100) + "%", ["straight lines", "round, bent lines"])}
       <small class="cv-say">Bends straight lines into curves and squeezes more of the world in at the edges, like a door's peephole.</small>
-      ${rng("height", "Camera height", -40, 89, 1, Math.round(c.height), hw[0], ["from the floor", "straight above"])}
+      ${rng("height", "Camera height", -89, 89, 1, Math.round(c.height), hw[0], ["straight below, through the floor", "straight above"])}
       <small class="cv-say" data-sayl="height">${hw[1]}</small>
       ${rng("around", "Camera side", -180, 180, 1, Math.round(c.around), aroundWords(c.around - aimTurn), ["", ""])}
       ${rng("tilt", "Lean", -30, 30, 1, Math.round(c.tilt), tiltWords(c.tilt))}
@@ -1836,7 +1964,7 @@
     }
     /* the view wedge */
     const cp = lastC.pos;
-    const hf = Math.min(85, Math.atan(SENSOR_W / 2 / lastC.lens) / DEG / Math.max(0.3, lastC.a));
+    const hf = Math.min(85, lensTh(lastC, lastC.W / 2 / lastC.F) / DEG);
     const yaw = Math.atan2(tg[0] - cp[0], tg[2] - cp[2]);
     const reach = span * 3;
     c.fillStyle = "rgba(34,211,238,0.14)";
@@ -2353,6 +2481,7 @@
     const live = e.type === "input";
     /* prefs, not part of the film */
     if (k === "speed") return (speed = +v);
+    if (k === "winmode") return setWinMode(v);
     if (k === "loop") return (loop = el.checked);
     if (k === "upMeans") return (upMeans = v);
     if (k === "step") return (step = +v);
@@ -2494,7 +2623,17 @@
     if (e.button > 2) return;
     if (wins[activeWin] !== "mine") return;
     if (playing) setPlaying(false);
-    if (HOOK.tool && HOOK.tool.down && HOOK.tool.down(e)) {
+    const took = HOOK.tool && HOOK.tool.down ? HOOK.tool.down(e) : false;
+    if (took === "orbit") {
+      /* the tool picked a thing on this click; dragging swings the camera */
+      canvas.setPointerCapture(e.pointerId);
+      canvas.classList.add("dragging");
+      atPanelStart();
+      remember("orbit");
+      drag = { kind: "orbit", last: canvasPoint(e) };
+      return;
+    }
+    if (took) {
       drag = { kind: "tool" };
       canvas.setPointerCapture(e.pointerId);
       return;
@@ -2513,7 +2652,14 @@
     canvas.setPointerCapture(e.pointerId);
     canvas.classList.add("dragging");
     atPanelStart();
-    if (hit) {
+    if (hit && hit !== film.sel) {
+      /* the first click picks it; a drag from there looks around. Drag it again to move it. */
+      film.sel = hit;
+      remember("orbit");
+      drag = { kind: "orbit", last: canvasPoint(e) };
+      drawThings();
+      if (tab === "move") drawDetails();
+    } else if (hit) {
       film.sel = hit;
       remember("drag");
       drag = { kind: "thing", last: canvasPoint(e), lift: e.shiftKey };
@@ -2549,7 +2695,7 @@
     }
     if (drag.kind === "orbit") {
       p.cam.around = Math.round(wrap180(p.cam.around - (dx / canvas.width) * 220) * 10) / 10;
-      p.cam.height = Math.round(clamp(p.cam.height + (dy / canvas.height) * 120, -40, 89) * 10) / 10;
+      p.cam.height = Math.round(clamp(p.cam.height + (dy / canvas.height) * 120, -89, 89) * 10) / 10;
     } else {
       const pl = selPlace();
       if (!pl || !lastC) return;

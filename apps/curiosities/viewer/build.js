@@ -1050,7 +1050,14 @@
         drag = { kind: "shift", ids, pt0: pt, was: cur };
         return true;
       }
-      if (e.altKey || !ids.every((id) => cur.includes(id))) selectIds(ids);
+      if (!e.altKey && !ids.every((id) => cur.includes(id))) {
+        /* the first click on a thing picks it; dragging from there swings the camera, so a plain drag
+           anywhere in the picture looks around. Drag a thing that is already picked to move it. */
+        selectIds(ids);
+        V.changed(true);
+        return "orbit";
+      }
+      if (e.altKey) selectIds(ids);
       else L().film.sel = o.id, (multi = cur.filter((id) => id !== o.id));
       V.edit("build-drag");
       const pl = placeOf(o.id);

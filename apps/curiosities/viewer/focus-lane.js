@@ -35,6 +35,26 @@
 .cf-now .cf-sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 3px 0 1px; vertical-align: 0; }
 .cf-now em { font-style: normal; color: #9b9ba3; }
 .cf-now .cf-trig { color: #fde047; }
+.cf-name { flex: none; max-width: 40%; font-size: 11px; color: #fff; background: #2a2a30; border-radius: 4px; padding: 1px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-name:empty { display: none; }
+.cf-body { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+.cf-charts { display: grid; grid-template-columns: 58px 150px 150px; gap: 6px; align-items: start; }
+.cf-charts canvas { display: block; cursor: zoom-in; background: #1d1d21; border-radius: 4px; }
+.cf-pie { width: 58px; height: 58px; border-radius: 50% !important; }
+.cf-graph { width: 150px; height: 58px; }
+.cf-list { list-style: none; margin: 0; padding: 0; max-height: 58px; overflow-y: auto; font-size: 10.5px; display: grid; gap: 1px; }
+.cf-list li { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 4px; align-items: center; }
+.cf-list li i { width: 8px; height: 8px; border-radius: 2px; }
+.cf-list li span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-list li b { font-weight: 500; color: #9b9ba3; font-variant-numeric: tabular-nums; }
+.cv-under[data-only="pie"] .cf-graph, .cv-under[data-only="graph"] .cf-pie { display: none; }
+.cv-under[data-only="pie"] .cf-charts { grid-template-columns: 120px 150px; }
+.cv-under[data-only="pie"] .cf-pie { width: 120px; height: 120px; cursor: zoom-out; }
+.cv-under[data-only="pie"] .cf-list { max-height: 120px; }
+.cv-under[data-only="graph"] .cf-charts { grid-template-columns: 300px 150px; }
+.cv-under[data-only="graph"] .cf-graph { width: 300px; height: 120px; cursor: zoom-out; }
+.cv-under[data-only="graph"] .cf-list { max-height: 120px; }
+@media (max-width: 900px) { .cf-body { grid-template-columns: minmax(0, 1fr); } .cf-charts { grid-template-columns: 58px minmax(0, 1fr) minmax(0, 1fr); } .cf-graph { width: 100%; } }
 .cf-rows { position: relative; display: grid; grid-template-columns: 58px minmax(0, 1fr); row-gap: 2px; align-items: center; }
 .cf-rows > span { font-size: 10px; color: #8b8b94; letter-spacing: 0.04em; }
 .cf-row { position: relative; height: 18px; background: #1d1d21; border-radius: 3px; overflow: hidden; }
@@ -278,10 +298,131 @@
         const n = M().note(trigger.who);
         second = { id: trigger.who, label: n.label, family: n.family, score: 99 };
       }
-      return { i, at: starts[i], sec: p.sec, lead, second, suite, trigger };
+      /* what changed here and how hard it pulls, for the attention pie and graph */
+      const changes = changedHere.map((id) => {
+        const n = M().note(base(id));
+        let pull = 1 + 0.15 * (n.push || 0) + (STORY[n.family] ? 0.4 : 0);
+        if (lead && lead.fresh && base(id) === lead.id) pull *= 1.8;
+        if (second && base(id) === second.id) pull *= 1.3;
+        return { id: base(id), label: n.label, family: n.family, pull };
+      });
+      const present = Object.keys(active(K[i])).map(base);
+      return { i, at: starts[i], sec: p.sec, lead, second, suite, trigger, changes, present };
     });
     cache = { key, total, segs, panels, stats: reading.stats, limit: reading.limit };
+    /* the graph: everyone's share of attention through the film, in small steps */
+    const step = Math.max(0.1, total / 240);
+    const samples = [];
+    for (let x = 0; x <= total + 1e-6; x += step) samples.push({ t: x, sh: sharesAt(cache, x) });
+    const sum = {};
+    samples.forEach((smp) => smp.sh.forEach((q) => (sum[q.id] = (sum[q.id] || 0) + q.share)));
+    cache.top = Object.keys(sum)
+      .sort((a, b) => sum[b] - sum[a])
+      .slice(0, 6);
+    cache.samples = samples;
     return cache;
+  }
+
+  /* How much of the audience's attention each curiosity has at time t, 0 to 1, adding up to 1. A change pulls
+     hardest the moment it happens and fades over a few seconds (TAU); whatever is on but not changing keeps a
+     small share. The leading curiosity's change counts most. A guess in plain numbers, like the attention model. */
+  const TAU = 3;
+  function sharesAt(r, t) {
+    const w = {};
+    let i = 0;
+    while (i + 1 < r.panels.length && r.panels[i + 1].at <= t + 1e-6) i++;
+    const info = {};
+    r.panels[i].present.forEach((id) => {
+      const n = M().note(id);
+      w[id] = 0.04 * ((n.push || 0) + 1);
+      info[id] = { label: n.label, family: n.family };
+    });
+    for (let j = 0; j <= i; j++) {
+      const P = r.panels[j];
+      const k = Math.exp(-Math.max(0, t - P.at) / TAU);
+      if (k < 0.01) continue;
+      P.changes.forEach((c) => {
+        if (!(c.id in w)) return;
+        w[c.id] += c.pull * k;
+      });
+    }
+    const all = Object.keys(w).reduce((a, id) => a + w[id], 0) || 1;
+    return Object.keys(w)
+      .map((id) => ({ id, label: info[id].label, family: info[id].family, share: w[id] / all }))
+      .sort((a, b) => b.share - a.share);
+  }
+  function tint(hex, k) {
+    const h = String(hex || "#888").replace("#", "");
+    const n = parseInt(h.length === 3 ? h.replace(/./g, "$&$&") : h, 16);
+    const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(v + (255 - v) * k));
+    return `rgb(${c.join(",")})`;
+  }
+  /* one color per curiosity: its family's color, lighter for the second and third of the same family */
+  function colorsFor(ids) {
+    const seen = {};
+    const out = {};
+    ids.forEach((id) => {
+      const fam = M().note(id).family;
+      const k = seen[fam] || 0;
+      seen[fam] = k + 1;
+      out[id] = tint(M().mark(fam).color, Math.min(0.6, k * 0.28));
+    });
+    return out;
+  }
+  function drawPie(cv, sh, cols) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const S = cv.clientWidth || 70;
+    if (cv.width !== Math.round(S * dpr)) cv.width = cv.height = Math.round(S * dpr);
+    const g = cv.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, S, S);
+    let a = -Math.PI / 2;
+    const r = S / 2 - 2;
+    sh.forEach((q) => {
+      const b = a + q.share * Math.PI * 2;
+      g.beginPath();
+      g.moveTo(S / 2, S / 2);
+      g.arc(S / 2, S / 2, r, a, b);
+      g.closePath();
+      g.fillStyle = cols[q.id] || "#55555c";
+      g.fill();
+      g.strokeStyle = "#141416";
+      g.lineWidth = 1;
+      g.stroke();
+      a = b;
+    });
+  }
+  function drawGraph(cv, r, t, cols) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = cv.clientWidth || 200;
+    const H = cv.clientHeight || 60;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) {
+      cv.width = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
+    }
+    const g = cv.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+    const n = r.samples.length;
+    const x = (k) => (k / Math.max(1, n - 1)) * W;
+    /* stacked: each of the top curiosities is a band; the rest is grey at the top */
+    let lower = r.samples.map(() => 0);
+    [...r.top, "_rest"].forEach((id) => {
+      const upper = r.samples.map((smp, k) => {
+        const v = id === "_rest" ? 1 - r.top.reduce((a, t2) => a + ((smp.sh.find((q) => q.id === t2) || {}).share || 0), 0) : (smp.sh.find((q) => q.id === id) || {}).share || 0;
+        return lower[k] + Math.max(0, v);
+      });
+      g.beginPath();
+      upper.forEach((v, k) => (k ? g.lineTo(x(k), H - v * H) : g.moveTo(x(k), H - v * H)));
+      for (let k = n - 1; k >= 0; k--) g.lineTo(x(k), H - lower[k] * H);
+      g.closePath();
+      g.fillStyle = id === "_rest" ? "#3a3a40" : cols[id];
+      g.fill();
+      lower = upper;
+    });
+    const px = (Math.max(0, Math.min(r.total, t)) / Math.max(0.001, r.total)) * W;
+    g.fillStyle = "#fff";
+    g.fillRect(px - 1, 0, 2, H);
   }
 
   /* ---------- drawing ---------- */
@@ -326,13 +467,22 @@
       .filter((p) => p.trigger)
       .map((p) => `<i class="cf-bolt" style="left:${pct(p.at, total)}" title="${esc(`Set off by: ${p.trigger.when}`)}">⚡</i>`)
       .join("");
-    el.innerHTML = `<div class="cf-top"><b title="Usually only one or two curiosities at a time move the plot forward and hold the audience's attention. This lane shows which, moment by moment.">Front and center</b><span class="cf-now" aria-live="polite"></span></div>
+    const was = box.dataset.only || "";
+    el.innerHTML = `<div class="cf-top"><b title="Usually only one or two curiosities at a time move the plot forward and hold the audience's attention. This lane shows which, moment by moment.">Front and center</b><span class="cf-now" aria-live="polite"></span><span class="cf-name" aria-live="polite"></span></div>
+      <div class="cf-body">
       <div class="cf-rows">
         <span>Leading</span><div class="cf-row cf-lead">${lead}${bolts}</div>
         <span>With it</span><div class="cf-row cf-thin cf-second">${second}</div>
         <span>Suite</span><div class="cf-row cf-thin cf-suite">${suite || ""}</div>
         <i class="cf-head"></i>
+      </div>
+      <div class="cf-charts" title="How much the app thinks the audience's attention is on each curiosity right now (the pie) and through the whole film (the graph). Click one to see it bigger; click again for both.">
+        <canvas class="cf-pie" data-cf-only="pie" role="img" aria-label="Attention right now"></canvas>
+        <canvas class="cf-graph" data-cf-only="graph" role="img" aria-label="Attention through the film"></canvas>
+        <ol class="cf-list" aria-label="Every curiosity on right now, by share of attention"></ol>
+      </div>
       </div>`;
+    el.dataset.only = was;
     el.hidden = false;
     lastNow = "";
   }
@@ -372,6 +522,25 @@
       line.title = line.textContent;
     }
   }
+  /* the pie, the graph and the list follow the playhead every frame */
+  function charts(t) {
+    const r = read();
+    if (!r || !box) return;
+    const sh = sharesAt(r, t);
+    const cols = colorsFor([...new Set([...r.top, ...sh.map((q) => q.id)])]);
+    const pie = box.querySelector(".cf-pie");
+    const graph = box.querySelector(".cf-graph");
+    if (pie && pie.offsetParent) drawPie(pie, sh, cols);
+    if (graph && graph.offsetParent) drawGraph(graph, r, t, cols);
+    const list = box.querySelector(".cf-list");
+    if (list) {
+      const sig = sh.map((q) => q.id + Math.round(q.share * 100)).join(",");
+      if (list.dataset.sig !== sig) {
+        list.dataset.sig = sig;
+        list.innerHTML = sh.map((q) => `<li title="${esc(q.label)}: ${Math.round(q.share * 100)}% of attention"><i style="background:${cols[q.id]}"></i><span>${esc(q.label)}</span><b>${Math.round(q.share * 100)}%</b></li>`).join("");
+      }
+    }
+  }
 
   function wire() {
     const v = V();
@@ -387,10 +556,32 @@
         if (box) box.dataset.key = (read() || {}).key || "";
       }
       now(t, i, total);
+      charts(t);
     });
     document.addEventListener("click", (e) => {
       const b = e.target.closest && e.target.closest(".cv-under [data-cf-at]");
-      if (b) V().seek(+b.dataset.cfAt);
+      if (b) {
+        showName(b);
+        V().seek(+b.dataset.cfAt);
+      }
+      const c = e.target.closest && e.target.closest(".cv-under [data-cf-only]");
+      if (c && box) {
+        box.dataset.only = box.dataset.only === c.dataset.cfOnly ? "" : c.dataset.cfOnly;
+        V().redraw();
+      }
+    });
+    /* a shortened name ("Shot…") shows in full at the top right when you point at it or pick it */
+    const showName = (b) => {
+      const n = box && box.querySelector(".cf-name");
+      if (n) n.textContent = b.getAttribute("aria-label") || b.textContent;
+    };
+    document.addEventListener("pointerover", (e) => {
+      const b = e.target.closest && e.target.closest(".cv-under [data-cf-at]");
+      if (b) showName(b);
+    });
+    document.addEventListener("focusin", (e) => {
+      const b = e.target.closest && e.target.closest(".cv-under [data-cf-at]");
+      if (b) showName(b);
     });
     try {
       v.redraw && v.isOpen() && v.redraw();

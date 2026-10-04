@@ -77,6 +77,18 @@ const ok = (cond, msg) => {
   ok(/Shot size/.test(line5) && /set off by something else: an object enters \(panel 4\)/.test(line5), "the line says what is in front and what set it off: " + line5);
   if (SHOTS) await page.locator(".cv-player").screenshot({ path: path.join(SHOTS, "focus-lane.png") });
 
+  ok(await page.isVisible(".cv-under .cf-pie") && await page.isVisible(".cv-under .cf-graph"), "the attention pie and graph are both shown");
+  const items = await page.$$eval(".cv-under .cf-list li", (l) => l.map((x) => x.textContent));
+  ok(items.length >= 3 && /Shot size/.test(items[0] + items[1]), "the list names every curiosity on, by share: " + items.slice(0, 4).join(" / "));
+  await page.click(".cv-under .cf-pie");
+  await page.waitForTimeout(150);
+  ok(!(await page.isVisible(".cv-under .cf-graph")) && (await page.$eval(".cv-under .cf-pie", (c) => c.clientWidth)) >= 100, "clicking the pie hides the graph and makes the pie bigger");
+  await page.click(".cv-under .cf-pie");
+  await page.waitForTimeout(150);
+  ok(await page.isVisible(".cv-under .cf-graph"), "clicking it again shows both");
+  await page.hover(".cv-under .cf-lead button:nth-of-type(4)");
+  const full = await page.textContent(".cv-under .cf-name");
+  ok(/^Leading: .{12,}/.test(full), "pointing at a shortened name shows it in full: " + full);
   const head0 = await page.$eval(".cv-under .cf-head", (h) => parseFloat(h.style.left));
   await page.evaluate(() => CurioViewer.select(0));
   await page.evaluate(() => CurioViewer.play(true));
