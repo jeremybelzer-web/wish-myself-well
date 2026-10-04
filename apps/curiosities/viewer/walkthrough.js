@@ -22,9 +22,16 @@
       if (b) b.click();
     }
   };
+  /* The Screen's steps need the Screen itself, in its Screen view (the library, Player, Details and timeline),
+     with the Viewer closed; the app's steps need both closed. stop() puts back what was open before. */
+  let was = null;
   const goScreen = () => {
     if (V() && V().isOpen()) V().close();
     if (S() && !S().isOpen()) S().open();
+    if (S() && S().view && S().view() !== "screen") {
+      if (was && !was.view) was.view = S().view();
+      S().view("screen");
+    }
   };
   const goApp = () => {
     if (V() && V().isOpen()) V().close();
@@ -92,7 +99,6 @@
   let light = null;
   let bubble = null;
   let dots = [];
-  let screenWasOpen = false;
 
   function style() {
     if (document.getElementById("cw-style")) return;
@@ -189,7 +195,7 @@
     try {
       localStorage.setItem(SEEN, "1");
     } catch (e) {}
-    if (at < 0) screenWasOpen = !!(S() && S().isOpen());
+    if (at < 0) was = { viewer: !!(V() && V().isOpen()), screen: !!(S() && S().isOpen()), view: null };
     if (!light) {
       light = document.createElement("div");
       light.className = "cw-light";
@@ -328,10 +334,14 @@
       document.removeEventListener("keydown", onKey, true);
       window.removeEventListener("resize", place);
     }
-    /* back where people start: the Screen as it was, the Viewer on top */
+    /* back to what was open when the tour started (the Viewer, the Screen and its view), however it ended */
+    const w = was;
+    was = null;
+    if (!w) return;
     try {
-      if (screenWasOpen && S() && !S().isOpen()) S().open();
-      if (V() && !V().isOpen()) V().open();
+      if (S() && w.view && S().view) S().view(w.view);
+      if (S() && w.screen !== S().isOpen()) w.screen ? S().open() : S().close();
+      if (V() && w.viewer !== V().isOpen()) w.viewer ? V().open() : V().close();
     } catch (e) {}
   }
 

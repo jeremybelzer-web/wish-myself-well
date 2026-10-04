@@ -27,8 +27,11 @@
    - Arrange: the timeline on its own (viewers hidden unless you want them), every automated curiosity as
      a lane, a curiosity dropdown on each lane, Show all potential curiosities, Show all potential suites.
 
-   window.CurioScreen = { open(), close(), isOpen(), mountViewer(el, opts), state(), setRow(i), row(),
+   window.CurioScreen = { open(), close(), isOpen(), view(v?), mountViewer(el, opts), state(), setRow(i), row(),
      addPanel({ id, label, place, mount(el) }), removePanel(id), on(fn) -> off() }
+   view() says which layout shows ("screen" or "arrange"); view("screen") switches to it (and leaves the
+   full-screen Player), so the App Walkthrough can show the library, Player, Details and timeline, then put
+   back the view you had.
    mountViewer lets any other screen of the app put a viewer at its top (Jeremy 17:20Z: "a view window for
    every single screen of the app"). Saved view: localStorage "curiosities-screen-v1". */
 (function () {
@@ -4200,6 +4203,8 @@ document.addEventListener("click", function (e) {
   /* Keys typed in a tool window over the Screen (a Maya tool such as 3D characters, or any open dialog) belong to
      that tool: the Screen's shortcuts and its ⌘Z leave them alone, so they never change the film behind it. */
   function inToolWindow(e) {
+    /* The Viewer (Draw & build) open over the Screen takes every key: html.cv-open is set while it shows. */
+    if (document.documentElement.classList.contains("cv-open")) return true;
     const t = e && e.target;
     if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg, .sc-find, .sc-tplpop, .sl-tplpop, .sc-txt-menu")) return true;
     /* Quick find (⌘K) takes every key while it is open. */
@@ -5791,7 +5796,18 @@ document.addEventListener("click", function (e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  function setView(v) {
+    if (v === "screen" || v === "arrange") {
+      if (page) fullPlayer(false);
+      if (prefs.view !== v) {
+        prefs.view = v;
+        save();
+        drawAll();
+      }
+    }
+    return prefs.view;
+  }
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), view: setView, openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
   /* My templates: list(), save(name, note), use(id, { at, stretch, analogy }), rename(id, name, note), remove(id),
      exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick), and as an analogy
      plan(id, picks?), preview(id) (the pop-up) and analogy(id, picks?). */
