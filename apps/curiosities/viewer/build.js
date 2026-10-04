@@ -622,11 +622,18 @@
     const { r } = V.floorDirs();
     const k = dropN++ % 5;
     const off = [0, 1, -1, 2, -2][k] * 0.8;
+    const surf = surfaces(null);
+    const toCam = C ? norm([C.pos[0] - tg[0], 0, C.pos[2] - tg[2]]) : [0, 0, 1];
     let x = tg[0] + r[0] * off;
     let z = tg[2] + r[2] * off;
+    /* if something already stands there (the tuk-tuk), step toward the camera until the floor is clear */
+    for (let k = 0; k < 12 && topAt(surf, x, z) > 0.05; k++) {
+      x += toCam[0] * 0.5;
+      z += toCam[2] * 0.5;
+    }
     x = r3(snapV(x, S.snap));
     z = r3(snapV(z, S.snap));
-    const y = fly ? fly : r3(S.land ? topAt(surfaces(null), x, z) : 0);
+    const y = fly ? fly : r3(S.land ? topAt(surf, x, z) : 0);
     return { x, y, z, turn: facingCamera(x, z), size: 1, show: true, pose: "stand" };
   }
 
@@ -731,6 +738,7 @@
     }
     if (tool !== "draw") pendingDrawing = null;
     V.redraw();
+    renderTab();
   }
 
   /* Roblox-style handles on the picked thing */
