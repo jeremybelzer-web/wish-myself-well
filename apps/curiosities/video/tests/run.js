@@ -530,6 +530,22 @@ check("grain and softness: grain is measured, a soft grainy inspiration softens 
   assert(!V.at(V.plan(p.insp, p.target, { on: { light: 1 } }), 1).looks, "off: no looks change");
   assert(V.GROUPS.find((g) => g.id === "shape").off && !V.GROUPS.find((g) => g.id === "palette").off, "frame shape is off unless turned on");
 });
+check("face swap: on for your own clips, others shown must agree", () => {
+  const store = {};
+  const ctx = { localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = String(v)) } };
+  ctx.window = ctx;
+  require("vm").runInNewContext(fs.readFileSync(path.join(__dirname, "..", "ai.js"), "utf8"), ctx);
+  const A = ctx.CurioAI;
+  assert(A.faceSwap().own === true, "on by default");
+  assert(A.faceOk("me.mp4", { others: false }) === null, "only you: allowed");
+  assert(/agreed/.test(A.faceOk("party.mp4")), "others may be shown: stopped until they agree");
+  A.agree("party.mp4", true);
+  assert(A.faceOk("party.mp4") === null && /agreed/.test(A.faceOk("other.mp4")), "agreement is per clip");
+  A.setFaceSwap({ own: false });
+  assert(/off/.test(A.faceOk("me.mp4", { others: false })), "turned off: stopped");
+  A.setFaceSwap({ own: true });
+  assert(A.faceOk("party.mp4") === null, "turned back on keeps the agreement");
+});
 check("paid AI: a price first, and caps that stop it", () => {
   const store = {};
   const ctx = { localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => (store[k] = String(v)) } };

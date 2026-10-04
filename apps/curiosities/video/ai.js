@@ -17,6 +17,10 @@
    - spent() -> { date, dollars, log }           today's spending in this browser
    - check(dollars) -> null | reason             why a job of that price would be stopped
    - falRun(app, input, { estimate, label })     refuses to start past a cap, and records the price when done
+   - faceSwap(), setFaceSwap({ own })            face swap on your own clips: on unless you turn it off
+   - agree(clipName, yes), agreed(clipName)      everyone shown in that clip agreed to a face swap (or it is only you)
+   - faceOk(clipName, { others }) -> null | reason   why a face swap on that clip would be stopped; others: the clip
+                                                 shows people besides you (true unless you said otherwise)
 
    Keys are stored under "curiomatic-ai-keys", not a "curiosities-" key, so they never go into a saved .curio project
    file. They are only ever sent to their own company (or your proxy). */
@@ -24,13 +28,14 @@
   const KEY = "curiomatic-ai-keys",
     PICKS = "curiosities-ai-picks-v1",
     CAPS = "curiosities-ai-caps-v1",
-    SPENT = "curiomatic-ai-spent";
+    SPENT = "curiomatic-ai-spent",
+    FACE = "curiosities-ai-face-v1";
   const FAMILIES = [
     { id: "cutout", label: "Cut-outs (people, clothes, hair, objects)" },
     { id: "picture", label: "Picture: color, light, look" },
     { id: "depth", label: "Depth and camera" },
     { id: "motion", label: "Motion and pose" },
-    { id: "face", label: "Face: expression (face replacement needs consent)" },
+    { id: "face", label: "Face: expression and face swap (other people shown must agree)" },
     { id: "voice", label: "Voice" },
     { id: "dialogue", label: "Dialogue writing" },
     { id: "music", label: "Music and sound" },
@@ -100,6 +105,25 @@
     const now = caps();
     const n = (v, d) => (Number(v) > 0 ? Math.min(100, Number(v)) : d);
     write(CAPS, { job: n(c && c.job, now.job), day: n(c && c.day, now.day) });
+  }
+  /* Face swap (Jeremy, 2026-10-04: "Turn it on for your own clips by default."). On for your own clips unless
+     turned off; a clip that shows anyone else needs everyone shown to have agreed, ticked per clip. */
+  function faceSwap() {
+    return { own: read(FACE).own !== false };
+  }
+  function setFaceSwap(o) {
+    write(FACE, Object.assign(read(FACE), { own: !(o && o.own === false) }));
+  }
+  function agree(clipName, yes) {
+    const f = read(FACE);
+    f.agreed = Object.assign({}, f.agreed, { [String(clipName)]: !!yes });
+    write(FACE, f);
+  }
+  const agreed = (clipName) => !!(read(FACE).agreed || {})[String(clipName)];
+  function faceOk(clipName, o) {
+    if (!faceSwap().own) return "Face swap is turned off.";
+    if ((!o || o.others !== false) && !agreed(clipName)) return "This clip may show other people: tick that everyone shown agreed (or that it's only you) before swapping faces.";
+    return null;
   }
   function spent() {
     const x = read(SPENT);
@@ -204,5 +228,5 @@
     },
   });
 
-  window.CurioAI = { FAMILIES, register, providers, use, choose, chosen, key, setKey, proxy, setProxy, price, caps, setCaps, spent, check, falRun };
+  window.CurioAI = { FAMILIES, register, providers, use, choose, chosen, key, setKey, proxy, setProxy, price, caps, setCaps, spent, check, falRun, faceSwap, setFaceSwap, agree, agreed, faceOk };
 })();
