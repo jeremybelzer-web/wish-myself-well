@@ -31,8 +31,9 @@ controls to change what you see. Built because the metrics-first pages were hard
 
 ## Draw & build (`viewer/build.js`, `viewer/objects.js`)
 
-A fourth tab, **Draw & build**, and quick buttons under "In the scene" (✏ Draw, T Words, ◼ Parts, 🔍 Search
-objects). Everything made here is a thing of kind `made` in the film (`o.make` names its maker), so it moves,
+A fourth tab, **Draw & build**. The "In the scene" list scrolls, with a + (add another like it), an eye and a
+lock on every row; Object search, Setting search and Character search sit at its top, and Add a shape is a list
+with a + on each (the Viewer's shapes, every part, a drawing, words). Everything made here is a thing of kind `made` in the film (`o.make` names its maker), so it moves,
 turns, glides between panels, saves and undoes like the people and the tuk-tuk. Simple shapes the app draws
 itself: no downloads, no paid assets, no AI.
 
@@ -55,6 +56,29 @@ itself: no downloads, no paid assets, no AI.
   (pencil lines in the air, seen from every side) or make it 3D: **Puff it up** (a pillow or balloon),
   **Push it out** (a cookie-cutter slab), **Make it a tube** (bent wire), **Spin it round** (a potter's wheel:
   draw half a vase, get a vase).
+- **Setting search** (World, Place): a place from the object library becomes the scene's setting: its things in
+  a U around the middle (the middle stays free for the characters), walls and a floor indoors. A new setting
+  replaces the old one (things carry `o.setting`). **Character search**: people and animals only, with who is
+  in the scene on top (pick to change them, ⋯ for what they can do, ✕ to take them out).
+- **Control+click** (`viewer/actions.js`, `window.CurioActions`): Control+drag a thing spins it (left and right
+  turns, up and down tips it; Shift for steps); Control+click or right-click opens what it can do. People: stand,
+  get up, lie down, fall over, sit, walk, run, climb, swim, jumping jacks, push-ups, eat, wave, reach, dance,
+  cheer, shrug, sleep, catch fire. Animals: walk, run, jump, sit, lie down, sleep, eat, chase its tail, shake
+  off, swim, fly away, land, roll over, get trampled. Things: back to normal, crumble, catch fire, smoke, get
+  trampled, break apart, fall over, upside down, melt, float away, drop, spin, shake, grow, shrink. An action
+  starts in the panel you are on and stays for the rest of the film (or only that panel); it is kept on the
+  panel's spot as `tilt`, `roll`, `lift`, `pose`, `fx`, `fxAmt` and `act`. viewer.js draws `tilt` and `roll`,
+  glides any number on a spot, and takes new poses (`addPose`) and part changes (`onParts`).
+- **Build windows** (`viewer/build-windows.js`, `window.CurioBuildWindows`, "Windows" at the top of the tab):
+  Roblox Studio's Properties (filter, Data, Appearance, Transform, Behavior, Action), The Sims' Build Mode (Hand,
+  Wall, Room, Sledgehammer, Design, 45° turns; catalog by function and by room; Design swatches; wall height)
+  and Fortnite Creative (Prefabs & Galleries, Building with materials, Phone; a quick bar). Their arrangement and
+  control names, drawn in this app's style. Each has a Curiosity menu: All of this window, the curiosities its
+  settings belong to, or any of the others by typing. A picked curiosity shows its own value per panel
+  (`panel.v`, which Front and center reads) with a lane, then the settings that belong to it, then the rest.
+  ⧉ opens another copy for another curiosity. Every per-panel setting has a ◇: hollow is the same in every
+  panel; ◆ (`o.auto[setting]`) keeps one value per panel with a lane (drag a dot, click to go to that panel,
+  double-click for the panel before's value). Open windows: localStorage `curiosities-build-windows-v1`.
 - **Words** (T): click the picture to place them. Twelve fonts every computer already has (Clean, Book,
   Typewriter, Comic, Poster, Handwriting, Rounded, Elegant, Marker, Old sign, Wide, Narrow), color, bold,
   slanted, outline, letter height, 3D thickness (solid letters), always face the camera, or lay flat on the floor.
@@ -69,7 +93,7 @@ Hooks in viewer.js for add-ons: `CurioViewer.makers` (a maker per `o.make`), `ad
 pointer), `onOverlay` (draw over the picture), `onThings`, `onKey`, and `live()`, `edit()`, `changed()`,
 `pickAt()`, `ray()`, `projectNow()`, `faces()`. Parts can now also be `cyl`, `wedge`, `flat`, `poly` (with
 `two` for both sides), `line` (a pencil line, `w` metres wide) and `text`, with `rx`, `ry`, `rz` turns.
-Settings: `localStorage` `curiosities-build-v1`. API: `window.CurioBuild`. Tests: `node viewer/tests/build.js`
+Settings: `localStorage` `curiosities-build-v1`. API: `window.CurioBuild`. Tests: `node viewer/tests/build.js`, `node viewer/tests/build-windows.js`
 (browser) and `node viewer/tests/objects.js`.
 
 The sample is Episode 1, scene 1 ("The napkin") from Wish Myself Well in 13 panels. Start over brings it back.
