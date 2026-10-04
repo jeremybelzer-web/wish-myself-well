@@ -91,7 +91,7 @@
     ["Timeline", [
       ["⌘B", "Split", "Cut the picked lane's line at the playhead with a node, keeping what plays", (e) => mod(e) && !e.shiftKey && key(e, "b"), lk("splitHere")],
       ["⇧⌘B", "Split all", "Cut every lane on the timeline at the playhead", (e) => mod(e) && e.shiftKey && key(e, "b"), lk("splitAll")],
-      ["A", "Select mode", "Click a node to pick it, click an empty spot to add one", (e) => plain(e) && !e.shiftKey && key(e, "a"), lk("select")],
+      ["A", "Select mode", "Click a node to pick it, click an empty spot or a line to add one; drag a line to move it; Alt + drag a line to curve it", (e) => plain(e) && !e.shiftKey && key(e, "a"), lk("select")],
       ["B", "Split mode", "Click a lane to cut its line with a node", (e) => plain(e) && !e.shiftKey && key(e, "b"), lk("split")],
       ["[", "Select leftward", "Pick the node to the left (CapCut picks every clip to the left)", (e) => plain(e) && !e.shiftKey && e.key === "[", lk("left")],
       ["]", "Select rightward", "Pick the node to the right", (e) => plain(e) && !e.shiftKey && e.key === "]", lk("right")],
@@ -120,7 +120,8 @@
       ["O", "Out", "End the play range at the playhead (not in CapCut's list; most editors use it)", (e) => plain(e) && !e.shiftKey && key(e, "o"), () => setRange("out")],
       ["⌥X", "Clear the range", "Play the whole film again", (e) => e.altKey && !mod(e) && e.code === "KeyX", () => setRange(null)],
       ["G", "Ghosts", "See the moments before and after faintly (Maya's ghosting); not in CapCut", (e) => plain(e) && !e.shiftKey && key(e, "g"), () => ((prefs.ghost = !prefs.ghost), save(), drawViewers())],
-      ["⌥K", "Show/hide keyframe panel", "Nothing yet: the timeline's lanes are always the keyframe panel"],
+      /* e.code, because Option changes e.key on a Mac (⌥K types ˚). */
+      ["⌥K", "Show/hide keyframe panel", "Open or fold the picked lane's automation group: a lane for each setting in its window", (e) => e.altKey && !e.shiftKey && !mod(e) && e.code === "KeyK", lk("subs")],
     ]],
     ["Player", [
       ["Space", "Play/Pause", "Play the film from the playhead", (e) => plain(e) && e.key === " ", () => play(!timer)],
@@ -4961,6 +4962,8 @@ document.addEventListener("click", function (e) {
       const r = st && st.rows[row];
       if (!r) return;
       const t = trackHas(d.key, st);
+      /* A lane locked on the timeline (🔒) keeps its nodes: the diamond can't set or take off a key there. */
+      if (t && window.CurioLanes && window.CurioLanes.isLocked(t.id + "|" + d.key)) return toast(`${labelOf(d.key)} is locked on the timeline (🔒 by its name), so its keys stay as they are.`);
       if (keyState(d.key) === "here") E().send({ type: "removePoint", row: r.id, track: t.id, curiosity: d.key, label: `Take the key off ${labelOf(d.key)}` });
       else {
         showLane(d.key);

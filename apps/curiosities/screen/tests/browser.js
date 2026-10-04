@@ -3665,6 +3665,170 @@ const ok = (cond, msg) => {
     await ctx.close();
   }
 
+  /* Ableton Live's lane editing (Jeremy, 2026-10-04): a click on a line adds a node at the line's own value, a drag on
+     a line moves both of its nodes (one undo, no new node), a double-click on a node removes it (and never adds one
+     first), Alt + drag curves a line, the master lane's ON/OFF and Steps/Lines switches, and the automation group
+     tab that unfolds a lane for every setting in the curiosity's window. Touch works too. */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, hasTouch: true });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    await p.evaluate(() => window.CurioEngine.reset(window.CurioSeeds.starter()));
+    await p.evaluate(() => window.CurioScreen.openWin("shotSize"));
+    await p.click('.sc-win [data-win-lane="shotSize"]');
+    await p.click('.sc-win[data-win="shotSize"] [data-win-close]');
+    const LK = await p.evaluate(() => {
+      const E = window.CurioEngine;
+      const S = window.CurioScale;
+      const st = E.state();
+      const t = st.tracks.find((x) => x.curiosities.includes("shotSize"));
+      const r = st.rows;
+      E.send({ type: "batch", label: "test lane", commands: [{ type: "setPoint", row: r[0].id, track: t.id, curiosity: "shotSize", value: S.at("shotSize", 0.2) }, { type: "setPoint", row: r[4].id, track: t.id, curiosity: "shotSize", value: S.at("shotSize", 0.8) }] });
+      E.send({ type: "laneMode", track: t.id, curiosity: "shotSize", mode: "ramp" });
+      const T = window.CurioLanes.tools();
+      T.zoom = 1;
+      T.laneH = 120;
+      window.CurioScreen.setRow(7);
+      return t.id + "|shotSize";
+    });
+    const nodesOf = (lk) => p.evaluate((lk) => { const st = window.CurioEngine.state(); const l = st.lanes[lk]; return l ? st.rows.map((r) => (l.points[r.id] == null ? null : l.points[r.id])) : null; }, lk);
+    const count = (lk) => p.evaluate((lk) => { const l = window.CurioEngine.state().lanes[lk]; return l ? Object.keys(l.points).length : 0; }, lk);
+    /* Where moment j's center and lane lk's line meet on the screen (nodes j0 and j1 around it, a straight line). */
+    const onLine = (lk, j, j0, j1) =>
+      p.evaluate(([lk, j, j0, j1]) => {
+        const sc = document.querySelector(".sl-scroll");
+        sc.scrollLeft = 0;
+        const st = window.CurioEngine.state();
+        const c = (jj) => document.querySelector(`.sl-node[data-node="${st.rows[jj].id}@${lk}"]`).getBoundingClientRect();
+        const head = [...document.querySelectorAll(".sl-heads .sl-head")].find((h) => h.querySelector(`[data-lk="${lk}"]`));
+        const bg = document.querySelectorAll(".sl-bg")[Number(head.dataset.i)];
+        sc.scrollTop = Math.max(0, bg.getBBox().y - 30);
+        const a = c(j0);
+        const b = c(j1);
+        const ax = a.x + a.width / 2, ay = a.y + a.height / 2, bx = b.x + b.width / 2, by = b.y + b.height / 2;
+        const t = (j - j0) / (j1 - j0);
+        return { x: ax + (bx - ax) * t, y: ay + (by - ay) * t, cw: (bx - ax) / (j1 - j0) };
+      }, [lk, j, j0, j1]);
+    await p.waitForTimeout(150);
+    /* 1. A click on the line adds one node at the line's value there. */
+    const n0 = await nodesOf(LK);
+    const want = await p.evaluate(() => window.CurioScale.at("shotSize", 0.2 + (0.8 - 0.2) * 0.5));
+    let pt = await onLine(LK, 2, 0, 4);
+    await p.mouse.click(pt.x, pt.y);
+    const n1 = await nodesOf(LK);
+    ok(n1.filter((v) => v != null).length === 3 && n1[2] === want && n1[0] === n0[0] && n1[4] === n0[4], `a click on a lane's line adds one node there, at the line's own value (${n1[2]}, the line plays ${want})`);
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok(JSON.stringify(await nodesOf(LK)) === JSON.stringify(n0), "one ⌘Z takes that node away again");
+    await p.keyboard.press("Control+Shift+z");
+    /* 2. Dragging a line down moves both of its nodes together and adds none: one undo step. */
+    const before = await nodesOf(LK);
+    pt = await onLine(LK, 3, 2, 4);
+    await p.mouse.move(pt.x, pt.y);
+    await p.mouse.down();
+    await p.mouse.move(pt.x, pt.y + 20, { steps: 4 });
+    await p.mouse.move(pt.x, pt.y + 40, { steps: 4 });
+    await p.mouse.up();
+    const moved = await nodesOf(LK);
+    const pos = (v) => p.evaluate((v) => window.CurioScale.pos("shotSize", v), v);
+    ok(moved.filter((v) => v != null).length === 3 && moved[0] === before[0] && (await pos(moved[2])) < (await pos(before[2])) && (await pos(moved[4])) < (await pos(before[4])), `dragging a line down moves both of its nodes lower (${before[2]}, ${before[4]} → ${moved[2]}, ${moved[4]}) and adds no node`);
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok(JSON.stringify(await nodesOf(LK)) === JSON.stringify(before), "one ⌘Z puts both nodes back (the drag was one undo step)");
+    /* 3. A double-click on a node removes it, and never adds a node first. */
+    const nd = await p.evaluate((lk) => { const st = window.CurioEngine.state(); const r = document.querySelector(`.sl-node[data-node="${st.rows[2].id}@${lk}"]`).getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, LK);
+    const seen = [];
+    await p.exposeFunction("slSeen", (n) => seen.push(n));
+    await p.evaluate((lk) => window.CurioEngine.on(() => { const l = window.CurioEngine.state().lanes[lk]; window.slSeen(l ? Object.keys(l.points).length : 0); }), LK);
+    await p.mouse.dblclick(nd.x, nd.y);
+    await p.waitForTimeout(100);
+    ok((await count(LK)) === 2 && (await nodesOf(LK))[2] == null && seen.every((n) => n <= 3), `a double-click on a node removes it, without adding a node first (counts seen: ${seen.join(", ") || "none"})`);
+    /* 4. Alt (Option) + drag on a line curves it, written into the same curve the Curves pop-up shows. */
+    pt = await onLine(LK, 2, 0, 4);
+    await p.mouse.move(pt.x, pt.y);
+    await p.keyboard.down("Alt");
+    ok(await p.evaluate(() => document.querySelector(".sl-svg").classList.contains("sl-alt")), "holding Alt over the lanes shows the curve pointer");
+    await p.mouse.down();
+    await p.mouse.move(pt.x, pt.y - 25, { steps: 5 });
+    ok(!!(await p.$(".sl-svg .sl-segghost")), "while Alt-dragging, the curved line is drawn as it will be");
+    await p.mouse.move(pt.x, pt.y - 50, { steps: 5 });
+    await p.mouse.up();
+    await p.keyboard.up("Alt");
+    const bent = await p.evaluate((lk) => { const st = window.CurioEngine.state(); const sk = lk + "|" + st.rows[0].id + "|" + st.rows[4].id; return { rec: window.CurioLanes.curves()[sk] || null, pts: Object.keys(st.lanes[lk].points).length }; }, LK);
+    ok(bent.rec && bent.rec.shape === "fastStart" && bent.rec.bend > 0 && bent.pts === 5, `Alt + drag up curves a rising line upward (${bent.rec ? bent.rec.shape + ", bend " + bent.rec.bend : "no curve"}), written as the line's curve points`);
+    const dlg = await p.evaluate((lk) => { const st = window.CurioEngine.state(); const sk = lk + "|" + st.rows[0].id + "|" + st.rows[4].id; const m = document.querySelector(".sl-pop"); if (m) m.remove(); return sk; }, LK);
+    await p.evaluate((sk) => { const hit = [...document.querySelectorAll(".sl-seghit")].find((x) => x.dataset.seg === sk); hit.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })); }, dlg);
+    ok(await p.evaluate(() => { const b = document.querySelector('.sl-curves [data-shape="fastStart"]'); return !!b && b.classList.contains("on"); }), "the Curves pop-up opens on the same shape");
+    await p.evaluate(() => document.querySelector('.sl-curves [data-l="cancel"]').click());
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    ok((await count(LK)) === 2, "one ⌘Z takes the curve back");
+    /* 5. Right-click a line: the ease words write the same curve data. */
+    pt = await onLine(LK, 2, 0, 4);
+    await p.mouse.click(pt.x, pt.y, { button: "right" });
+    ok(!!(await p.$('.sl-linemenu [data-m="easeIn"]')) && !!(await p.$('.sl-linemenu [data-m="simplify"]')), "right-clicking a line opens its menu (add a node, Ease in, Ease out, Curves…, Simplify)");
+    await p.click('.sl-linemenu [data-m="easeIn"]');
+    ok(await p.evaluate((lk) => { const st = window.CurioEngine.state(); const c = window.CurioLanes.curves()[lk + "|" + st.rows[0].id + "|" + st.rows[4].id]; return !!c && c.shape === "slowStart"; }, LK), "Ease in gives the line a slow start, the Curves pop-up's own shape");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    /* 6. Simplify takes out nodes that change nothing. */
+    const simp = await p.evaluate((lk) => { const E = window.CurioEngine; const st = E.state(); const [t, c] = lk.split("|"); const o = window.CurioScale.domain("shotSize").options; const fake = JSON.parse(JSON.stringify(st)); fake.lanes[lk] = { on: true, mode: "ramp", points: { [st.rows[0].id]: o[0], [st.rows[1].id]: o[1], [st.rows[2].id]: o[2], [st.rows[4].id]: o[0] } }; return window.CurioLanes.simplifyCommands(fake, lk); }, LK);
+    ok(simp.removed === 1 && simp.cmds[0].type === "removePoint", "Simplify takes out a node that sits on the line between its neighbours");
+    /* 7. The master lane's ON/OFF switch and its Steps / Lines switch. */
+    const sw = `.sl-heads [data-act="lane-off"][data-lk="${LK}"]`;
+    ok(await p.$eval(sw, (b) => b.textContent === "ON" && b.getBoundingClientRect().width > 10), "the master lane shows a clear ON switch");
+    await p.click(sw);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].on === false, LK) && (await p.$eval(sw, (b) => b.textContent)) === "OFF", "clicking it switches the lane's automation OFF");
+    await p.click(sw);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].on === true, LK), "and back ON");
+    await p.click(`.sl-heads [data-act="mset"][data-mode="hold"][data-lk="${LK}"]`);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].mode === "hold", LK) && (await p.$eval(`.sl-heads [data-act="mset"][data-mode="hold"][data-lk="${LK}"]`, (b) => b.classList.contains("on"))), "Steps makes it an on/off lane: straight up or down at each node, then flat");
+    await p.click(`.sl-heads [data-act="mset"][data-mode="ramp"][data-lk="${LK}"]`);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].mode === "ramp", LK), "Lines makes it nodes and lines again");
+    /* 8. The automation group tab. */
+    const group = await p.evaluate(() => window.CurioLanes.automationGroup("shotSize").map((x) => x.key));
+    const tab = '.sl-heads [data-act="subs"][data-cur="shotSize"]';
+    ok(group.length >= 2 && group[0] === "shotSize.amount" && /▸ \d+ settings/.test(await p.$eval(tab, (b) => b.textContent)), `the master lane has an automation group tab (${await p.$eval(tab, (b) => b.textContent)}), How much first`);
+    ok((await p.$$(".sl-heads .sl-sublane")).length === 0, "the group starts folded: only the master lane shows");
+    await p.click(tab);
+    const subs = await p.evaluate(() => [...document.querySelectorAll(".sl-heads .sl-sublane .sl-name")].map((b) => b.dataset.pick));
+    ok(JSON.stringify(subs) === JSON.stringify(group) && (await p.evaluate(() => JSON.parse(localStorage.getItem("curiosities-screen-tools-v1")).subs.shotSize === true)), `pressing it unfolds a lane for every setting in the window, under the master (${subs.length}), and remembers it`);
+    const amt = await p.evaluate(() => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; const h = document.querySelector('.sl-heads .sl-sublane .sl-name[data-pick="shotSize.amount"]').closest(".sl-head"); const bg = document.querySelectorAll(".sl-bg")[Number(h.dataset.i)]; sc.scrollTop = Math.max(0, bg.getBBox().y - 30); const r = bg.getBoundingClientRect(); return { x: r.x, y: r.y, h: r.height, cw: r.width / window.CurioEngine.state().rows.length }; });
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.mouse.click(amt.x + amt.cw * 3.5, amt.y + amt.h * 0.25);
+    const sub = await p.evaluate((lk) => { const st = window.CurioEngine.state(); const t = lk.split("|")[0]; const l = st.lanes[t + "|shotSize.amount"]; return l ? Object.keys(l.points).length : 0; }, LK);
+    ok(sub === 1, "a sub-lane takes nodes like any lane, on its master's track");
+    await p.click(tab);
+    ok((await p.$$(".sl-heads .sl-sublane")).length === 0 && (await p.$$(".sl-svg .sl-subdot")).length >= 1, "pressing it again folds them, and dots on the master lane show where they have nodes");
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    const nk = await p.evaluate((lk) => { const st = window.CurioEngine.state(); return st.rows[0].id + "@" + lk; }, LK);
+    await p.evaluate((k) => document.querySelector(`.sl-node[data-node="${k}"]`).dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, clientX: 1, clientY: 1 })), nk);
+    await p.mouse.up();
+    await p.evaluate(() => document.activeElement && document.activeElement.blur());
+    await p.keyboard.press("Alt+k");
+    ok((await p.$$(".sl-heads .sl-sublane")).length === group.length, "⌥K opens the picked lane's automation group too");
+    await p.keyboard.press("Alt+k");
+    /* 9. Touch: tap the line to add a node, and a locked lane takes no node from a click on its line. */
+    const c0 = await count(LK);
+    pt = await onLine(LK, 2, 0, 4);
+    await p.touchscreen.tap(pt.x, pt.y);
+    await p.waitForTimeout(100);
+    ok((await count(LK)) === c0 + 1, "a tap on the line adds a node on a touch screen too");
+    await p.focus(".sl");
+    await p.keyboard.press("Control+z");
+    await p.evaluate((lk) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${lk}"]`).click(), LK);
+    pt = await onLine(LK, 2, 0, 4);
+    await p.mouse.click(pt.x, pt.y);
+    ok((await count(LK)) === c0 && /locked/.test(await p.$eval(".sl-msg", (x) => x.textContent)), "a click on a locked lane's line adds no node, and says why");
+    await p.evaluate((lk) => document.querySelector(`.sl-heads [data-act="lane-lock"][data-lk="${lk}"]`).click(), LK);
+    await p.screenshot({ path: path.join(SHOTS, "screen-17-ableton-lanes.png") });
+    await ctx.close();
+  }
+
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
   server.close();

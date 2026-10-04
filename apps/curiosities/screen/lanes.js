@@ -15,9 +15,18 @@
      the whole group and its links, as one undo step. A group with several links is a proximity suite.
 
    Mouse: click an empty spot to add a node; drag a node up or down to change it, sideways to move it (and its
-   partners); hold Alt (or Shift) while dragging to copy instead; drop a node on a node in another lane to join
-   them; double-click a node to remove it. Click a line to switch it off or remove it. Drag across empty space to
-   select an area; drag inside the area sideways to move all its nodes in time (Alt when you let go: copy them).
+   partners); hold Alt (or Shift) while dragging to copy instead, ⌘/Ctrl to skip snapping to markers; drop a node
+   on a node in another lane to join them; double-click a node to remove it (two presses on one node, counted in
+   onDown, because the first press redraws). Click a proximity line to switch it off or remove it. Drag across
+   empty space to select an area; drag inside the area sideways to move all its nodes in time (Alt when you let
+   go: copy them).
+   A lane's own line, the Ableton Live way (Jeremy, 2026-10-04; /mnt/project-files/decisions/ableton-lane-gestures.md):
+   hover thickens it and shows its value; a click adds a node there at the line's value; a drag up or down moves
+   both of its nodes (one undo, no new node; a 4px move separates a click from a drag); Alt (Option) + drag curves
+   it into the Curves pop-up's own curve data; right-click opens a menu (add a node, ease in or out, straight,
+   Curves…, Shapes, Simplify). A double-click on a line keeps the one node its first click added. Touch is the
+   same (pointer events). The master lane's ON/OFF and Steps / Lines switches and its automation group tab
+   (▸ N settings: one sub-lane per setting in its window) are explained at automationGroup below.
 
    window.CurioLanes
    - mount(el, opts) -> { draw(), destroy() }
@@ -1609,7 +1618,7 @@
     const byId = {};
     const groups = [];
     lanes.forEach((ln) => {
-      const id = String(catOf(ln.cur) || "other");
+      const id = String(catOf(ln.parent || ln.cur) || "other");
       if (!byId[id]) groups.push((byId[id] = { id, label: labelOf(id), lanes: [] }));
       byId[id].lanes.push(ln);
     });
@@ -1748,6 +1757,141 @@
     return { ok: true, source: hasPush ? "momentum" : "change", moments, families };
   }
 
+  /* ---------- Ableton Live's lane editing (Jeremy, 2026-10-04: "make it like Ableton Live's automation lane") ----------
+     A curiosity's lane is its master lane. Its header has a clear On/Off switch (the engine lane's own on, as 👁
+     was), and a Steps / Lines / Smooth switch (the lane's mode: Steps jumps straight up or down at a node and runs
+     flat to the next one, which is how an on/off lane looks; Lines and Smooth draw free nodes and lines).
+     Every setting in the curiosity's pop-up window is a sub-lane in its automation group: the "▸ 7 settings" tab
+     under the lane's name unfolds them under the master lane, How much (its Amount, 0 to 100) first. The group
+     starts folded; a folded group shows dots where its sub-lanes have nodes. Open groups are kept per curiosity in
+     tools.subs = { curiosity: true }. automationGroup(cur) -> [{ key, slider, label, amount }]: the window's
+     settings other than its main one (the main one is the master lane itself), graded in this build. */
+  if (!tools.subs || typeof tools.subs !== "object") tools.subs = {};
+  function automationGroup(cur, h) {
+    const P = partHelpers(h);
+    if (!cur || String(cur).indexOf(".") >= 0) return [];
+    const c = P.row(cur);
+    if (!c || !Array.isArray(c.sliders)) return [];
+    const main = c.main || "setting";
+    const out = [];
+    c.sliders.forEach((s) => {
+      if (!s || !s.id || s.id === main || s.id === "setting") return;
+      const key = cur + "." + s.id;
+      if (!P.known(key) || out.some((x) => x.key === key)) return;
+      out.push({ key, slider: s.id, label: s.id === "amount" ? "How much (0 to 100)" : String(s.label || s.id), amount: s.id === "amount" });
+    });
+    return out.filter((x) => x.amount).concat(out.filter((x) => !x.amount));
+  }
+  /* Drag a line up or down (Ableton: dragging a segment moves both of its breakpoints together). Moves both end
+     nodes of the line from row ra to row rb on lane lk by dp (a share of the lane's height, -1 to 1), keeps a curve
+     between them (rec: { shape, bend }) by writing its in-between points again, and keeps joins' values in step.
+     -> { cmds, values: [va, vb] } or { error }. Adds no node. */
+  function segMoveCommands(st, lk, ra, rb, dp, rec) {
+    const lane = st.lanes[lk];
+    if (!lane || lane.points[ra] == null || lane.points[rb] == null) return { error: "That line is gone." };
+    const bar = lk.indexOf("|");
+    const track = lk.slice(0, bar);
+    const cur = lk.slice(bar + 1);
+    const move = (v) => {
+      const p = S().pos(cur, v);
+      return p == null ? v : S().at(cur, Math.max(0, Math.min(1, p + dp)));
+    };
+    const va = move(lane.points[ra]);
+    const vb = move(lane.points[rb]);
+    if (String(va) === String(lane.points[ra]) && String(vb) === String(lane.points[rb])) return { cmds: [], values: [va, vb] };
+    const cmds = [];
+    const ix = st.rows.map((r) => r.id);
+    const ja = ix.indexOf(ra);
+    const jb = ix.indexOf(rb);
+    if (rec && jb - ja >= 2) bake(cur, { j: ja, v: va }, { j: jb, v: vb }, rec, st.rows).forEach((p) => cmds.push({ type: "setPoint", row: p.row, track, curiosity: cur, value: p.value }));
+    [[ra, va], [rb, vb]].forEach(([r, v]) => {
+      cmds.push({ type: "setPoint", row: r, track, curiosity: cur, value: v });
+      st.links.forEach((l) => {
+        if (!l.scope) return;
+        if (l.from.track + "|" + l.from.curiosity === lk && l.scope.from === r) cmds.push({ type: "updateLink", link: l.id, changes: { from: { is: v } } });
+        if (l.to.track + "|" + l.to.curiosity === lk && l.scope.to === r && l.does === "set") cmds.push({ type: "updateLink", link: l.id, changes: { value: v } });
+      });
+    });
+    return { cmds, values: [va, vb] };
+  }
+  /* Alt (Option) + drag a line (Ableton: hold Alt or Option and drag a line between two breakpoints to curve it):
+     up bows the line upward, down bows it downward, further bows it more. pa, pb: the ends' places (0 to 1); dy:
+     how far the pointer went (screen pixels, up is negative); h: the lane's drawing height.
+     -> { shape, bend } in the Curves pop-up's own terms, or null for a straight line (or a flat one, which can't bow). */
+  function bendFrom(pa, pb, dy, h) {
+    if (pa == null || pb == null || Math.abs(pb - pa) < 1e-6 || Math.abs(dy) < 4) return null;
+    const bend = Math.max(1, Math.min(100, Math.round((Math.abs(dy) / Math.max(10, h || 40)) * 150)));
+    const up = dy < 0;
+    /* A rising line bows up by leaving fast (Fast start) and down by leaving slowly; a falling line the other way. */
+    const shape = (pb > pa) === up ? "fastStart" : "slowStart";
+    return { shape, bend };
+  }
+  /* Simplify (Ableton's Simplify Envelope): take out the nodes of lane lk that change nothing, the ones the line
+     from their neighbours already passes through at every moment. -> { cmds, removed } */
+  function simplifyCommands(st, lk, keep) {
+    const lane = st.lanes[lk];
+    if (!lane) return { cmds: [], removed: 0 };
+    const bar = lk.indexOf("|");
+    const cur = lk.slice(bar + 1);
+    const ix = {};
+    st.rows.forEach((r, i) => (ix[r.id] = i));
+    const want = laneSeries(st, lane, cur).map(String);
+    const pts = Object.assign({}, lane.points);
+    const order = Object.keys(pts).filter((r) => ix[r] != null).sort((a, b) => ix[a] - ix[b]);
+    const gone = [];
+    order.slice(1, -1).forEach((r) => {
+      if (keep && keep.includes(r)) return;
+      const trial = Object.assign({}, pts);
+      delete trial[r];
+      const got = laneSeries(st, { mode: lane.mode, points: trial }, cur).map(String);
+      if (got.every((v, i) => v === want[i])) {
+        delete pts[r];
+        gone.push(r);
+      }
+    });
+    const linked = new Set();
+    st.links.forEach((l) => l.scope && [[l.from, l.scope.from], [l.to, l.scope.to]].forEach(([e, r]) => e.track + "|" + e.curiosity === lk && linked.add(r)));
+    const cmds = gone.filter((r) => !linked.has(r)).map((r) => ({ type: "removePoint", row: r, track: lk.slice(0, bar), curiosity: cur }));
+    return { cmds, removed: cmds.length };
+  }
+  /* The ease words CapCut uses, mapped onto the Curves pop-up's shapes (Ease in starts gently, Ease out settles). */
+  const EASES = { easeIn: ["Ease in", "slowStart"], easeOut: ["Ease out", "fastStart"], easeBoth: ["Ease in and out", "smooth"] };
+  /* Its own few styles (hollow Ableton nodes, the line thickening under the pointer, the master lane's switches),
+     put in by this file so the timeline keeps them wherever it is mounted. */
+  if (typeof document !== "undefined" && !document.getElementById("sl-ableton-css")) {
+    const css = document.createElement("style");
+    css.id = "sl-ableton-css";
+    const curveCursor = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cpath d='M3 18 C 7 4, 15 4, 19 18' fill='none' stroke='white' stroke-width='3.5'/%3E%3Cpath d='M3 18 C 7 4, 15 4, 19 18' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E\") 11 11, ns-resize";
+    css.textContent = [
+      ".sl-svg .sl-node { fill: #0f0f10; stroke: var(--cc-accent, #22d3ee); stroke-width: 1.6; }",
+      ".sl-svg .sl-node.on, .sl-svg .sl-node.in { fill: var(--cc-accent, #22d3ee); }",
+      ".sl-svg .sl-node.on { stroke: #fff; }",
+      ".sl-svg .sl-node.sl-cpt { fill: var(--cc-accent, #22d3ee); stroke: none; }",
+      ".sl-svg .sl-auto { stroke-width: 1.4; }",
+      ".sl-svg .sl-seghit { cursor: ns-resize; }",
+      ".sl-svg .sl-seghit:hover, .sl-svg .sl-seghit.on { stroke: rgba(34, 211, 238, 0.12); }",
+      ".sl-svg .sl-segline { fill: none; stroke: transparent; stroke-width: 3; pointer-events: none; }",
+      ".sl-svg .sl-seghit:hover + .sl-segline, .sl-svg .sl-seghit.on + .sl-segline { stroke: var(--cc-accent, #22d3ee); }",
+      `.sl-svg.sl-alt .sl-seghit { cursor: ${curveCursor}; }`,
+      ".sl-svg .sl-segghost { fill: none; stroke: var(--cc-warm, #ffb347); stroke-width: 2; stroke-dasharray: 5 3; pointer-events: none; }",
+      ".sl-svg .sl-hoverval { font-size: 10px; fill: var(--cc-text, #eee); paint-order: stroke; stroke: #0f0f10; stroke-width: 3px; pointer-events: none; }",
+      ".sl-svg .sl-subdot { fill: var(--cc-dim, #999); }",
+      ".sc-page .sl-hb.sl-hb-switch, .sl-hb.sl-hb-switch { width: auto !important; min-width: 26px !important; padding: 0 4px !important; opacity: 1 !important; border: 1px solid var(--cc-accent, #22d3ee); color: var(--cc-accent, #22d3ee); border-radius: 8px; font-size: 9px; }",
+      ".sc-page .sl-hb.sl-hb-switch.on, .sl-hb.sl-hb-switch.on { background: none !important; border-color: var(--cc-dim, #777); color: var(--cc-dim, #777); }",
+      ".sl-hb.sl-hb-switch:disabled { opacity: 0.45 !important; }",
+      ".sc-page .sl-subtab, .sl-subtab { background: none; border: 0; box-shadow: none; padding: 0 3px 0 0; font-size: 10px; line-height: 12px; min-height: 0 !important; color: var(--cc-accent, #22d3ee); cursor: pointer; }",
+      ".sl-sub.sl-sub-flex { display: flex; align-items: center; gap: 2px; min-width: 0; }",
+      ".sl-sub.sl-sub-flex > .sl-subtab { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }",
+      ".sl-sub.sl-sub-flex > .sl-subrest { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }",
+      ".sl-mset { display: inline-flex; flex: none; gap: 0; margin-right: 3px; vertical-align: top; }",
+      ".sc-page .sl-mset button, .sl-mset button { background: none; box-shadow: none; border: 1px solid #3a3a42; padding: 0 2px; font-size: 10px; line-height: 11px; min-height: 0 !important; color: var(--cc-dim, #999); border-radius: 0; }",
+      ".sl-mset button.on { color: #0f0f10 !important; background: var(--cc-accent, #22d3ee) !important; border-color: var(--cc-accent, #22d3ee); }",
+      ".sl-head.sl-sublane { padding-left: 18px; border-left: 2px solid var(--cc-accent, #22d3ee); }",
+      ".sl-head.sl-sublane .sl-name { font-weight: 400; }",
+    ].join("\n");
+    document.head.appendChild(css);
+  }
+
   /* ---------- the view ---------- */
   /* Storyboard frames for My film's clip track, as data pictures (each frame stays self-contained, so its arrow
      ids never clash with the page's). Cached by the frame's own text so redraws stay fast. */
@@ -1775,10 +1919,36 @@
     let laneTop = 0;
 
     function lanesNow(st) {
-      return (opts.lanes ? opts.lanes() : []).map((ln) => {
+      const base = (opts.lanes ? opts.lanes() : []).map((ln) => {
         const track = ln.track && st.tracks.some((t) => t.id === ln.track && t.curiosities.includes(ln.cur)) ? ln.track : (st.tracks.find((t) => t.curiosities.includes(ln.cur)) || {}).id || null;
         return Object.assign({}, ln, { track, lk: track ? track + "|" + ln.cur : null });
       });
+      /* Each master lane's automation group: its window's settings as sub-lanes right under it, when unfolded.
+         A sub-lane sits on its master's track (host) once it has nodes; a setting already shown as a lane of its
+         own is not shown twice. */
+      const out = [];
+      const shown = new Set(base.map((ln) => ln.cur));
+      base.forEach((ln) => {
+        out.push(ln);
+        if (ln.sub || String(ln.cur).indexOf(".") >= 0) return;
+        let subs = [];
+        try {
+          subs = automationGroup(ln.cur).filter((x) => !shown.has(x.key));
+        } catch (e) {
+          subs = [];
+        }
+        if (!subs.length) return;
+        const rows = subs.map((x) => {
+          const on = st.tracks.filter((t) => t.curiosities.includes(x.key));
+          const t = (ln.track && on.find((y) => y.id === ln.track)) || (ln.trackLabel ? null : on[0]) || null;
+          return { cur: x.key, label: x.label, sub: true, parent: ln.cur, host: ln.track, trackLabel: ln.trackLabel, track: t ? t.id : null, lk: t ? t.id + "|" + x.key : null };
+        });
+        ln.subCount = rows.length;
+        ln.subOpen = !!tools.subs[ln.cur];
+        ln.subRows = rows;
+        if (ln.subOpen) rows.forEach((r) => out.push(r));
+      });
+      return out;
     }
     /* Where lane i starts, top to bottom: group headers sit between the groups, so lanes are not simply i * lh. */
     let yTops = [];
@@ -1808,7 +1978,7 @@
     const zoomOf = () => Math.max(0.25, Math.min(32, Number(tools.zoom) || 1));
     let lh = LANE_H;
     const hatchId = "sl-hatch-" + ++mounts;
-    /* The lane head's small buttons: Off (👁), Solo (S) and Lock (🔒). Off and Solo need an engine lane (a lane
+    /* The lane head's small buttons: the ON/OFF switch (always showing), Solo (S) and Lock (🔒). Off and Solo need an engine lane (a lane
        with nodes); Lock needs the lane to be on a track. They show on hover or focus, and always when in use. */
     function headBtns(ln, lane, off, solo, lock) {
       if (!ln.lk) return "";
@@ -1817,9 +1987,9 @@
       const b = (act, on, cls, label, title, aria) => `<button type="button" class="sl-hb ${cls}${on ? " on" : ""}" data-act="${act}" data-lk="${lk}" aria-pressed="${on}" title="${title}" aria-label="${aria}">${label}</button>`;
       return `<span class="sl-hbtns">${
         lane
-          ? b("lane-off", off, "sl-hb-off", "👁", off ? `${name}'s automation is off: it isn't changing the film. Click to turn it back on.` : `Turn ${name}'s automation off: it stops changing the film (its nodes stay, drawn faded). Click again to turn it back on.`, `${name}: automation off`) +
+          ? b("lane-off", off, "sl-hb-off sl-hb-switch", off ? "OFF" : "ON", off ? `${name}'s automation is off: it isn't changing the film. Click to turn it back on.` : `Turn ${name}'s automation off: it stops changing the film (its nodes stay, drawn faded). Click again to turn it back on.`, `${name}: automation off`) +
             b("lane-solo", solo, "sl-hb-solo", "S", solo ? `Solo: only ${name}'s automation is playing. Click to bring the other lanes back the way they were.` : `Solo: play only ${name}'s automation and turn every other lane off for now. Click again to bring them back.`, `${name}: solo`)
-          : ""
+          : `<button type="button" class="sl-hb sl-hb-switch" disabled title="${name} is on, but has no nodes yet: click its line area to add one, then this switch turns its automation off and on." aria-label="${name}: on (no nodes yet)">ON</button>`
       }${b("lane-lock", lock, "sl-hb-lock", "🔒", lock ? `Locked: ${name}'s nodes can't be added, moved or removed on the timeline. Click to unlock.` : `Lock ${name} so its nodes can't be added, moved or removed here by mistake. Click again to unlock.`, `${name}: lock`)}</span>`;
     }
     function draw() {
@@ -1888,9 +2058,20 @@
           const off = !!lane && !lane.on;
           const solo = !!lane && soloNow === ln.lk;
           const lock = isLocked(ln.lk);
-          return `<div class="sl-head${ln.group ? " sl-in-group" : ""}${picked ? " on" : ""}${ticks ? " has-ticks" : ""}${off ? " is-off" : ""}${solo ? " is-solo" : ""}${lock ? " is-locked" : ""}" style="height:${lh}px" data-i="${i}">
-            <div class="sl-head-top">${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}"${ln.trackLabel && ln.track ? ` data-pick-track="${esc(ln.track)}"` : ""}>${esc(ln.label || S().label(ln.cur))}</button>`}${headBtns(ln, lane, off, solo, lock)}<button type="button" class="sl-win" data-open-win="${esc(ln.cur)}" title="Fine-tune ${esc(S().label(ln.cur))}: every setting inside it, or say what you want" aria-label="Fine-tune ${esc(S().label(ln.cur))}">⧉</button></div>
-            <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(st.lanes[ln.lk])][2])} Click to change.">${MODES[modeOf(st.lanes[ln.lk])][1]}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
+          const engLane = ln.lk ? st.lanes[ln.lk] : null;
+          /* The master lane's Steps / Lines / Smooth switch (the lane's mode); a sub-lane keeps the one-button cycle. */
+          const modeHtml = !engLane
+            ? ""
+            : ln.sub
+              ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(engLane)][2])} Click to change.">${MODES[modeOf(engLane)][1]}</button> `
+              : `<span class="sl-mset" role="group" aria-label="How the line moves">${MSET.map(([m, word, tip]) => `<button type="button" class="sl-mode${modeOf(engLane) === m ? " on" : ""}" data-act="mset" data-mode="${m}" data-lk="${esc(ln.lk)}" aria-pressed="${modeOf(engLane) === m}" aria-label="${esc(tip.split(":")[0])}" title="${esc(tip)}">${word}</button>`).join("")}</span> `;
+          const subWords = ln.subCount ? `${ln.subOpen ? "▾" : "▸"} ${ln.subCount} setting${ln.subCount === 1 ? "" : "s"}` : "";
+          const subTab = ln.subCount
+            ? `<button type="button" class="sl-subtab" data-act="subs" data-cur="${esc(ln.cur)}" aria-expanded="${!!ln.subOpen}" title="${esc(ln.subOpen ? `Fold ${S().label(ln.cur)}'s automation group: hide its ${ln.subCount} setting lanes again (dots on this lane still show where they have nodes). ⌥K does it too.` : `Automation group: show a lane for each of the ${ln.subCount} settings in ${S().label(ln.cur)}'s window (⧉), How much (0 to 100) first, under this master lane. ⌥K does it too.`)}">${subWords}</button> `
+            : "";
+          return `<div class="sl-head${ln.group ? " sl-in-group" : ""}${ln.sub ? " sl-sublane" : ""}${picked ? " on" : ""}${ticks ? " has-ticks" : ""}${off ? " is-off" : ""}${solo ? " is-solo" : ""}${lock ? " is-locked" : ""}" style="height:${lh}px" data-i="${i}">
+            <div class="sl-head-top">${opts.header && !ln.sub ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}"${ln.trackLabel && ln.track ? ` data-pick-track="${esc(ln.track)}"` : ""}${ln.sub ? ` title="${esc(S().label(ln.cur))}: one setting in ${esc(S().label(ln.parent))}'s window, as its own lane"` : !ln.sub && ln.track ? ` title="${esc(MASTER_TIP(S().label(ln.cur)))}"` : ""}>${ln.sub ? "↳ " : ""}${esc(ln.label || S().label(ln.cur))}</button>`}${headBtns(ln, lane, off, solo, lock)}<button type="button" class="sl-win" data-open-win="${esc(ln.parent || ln.cur)}" title="Fine-tune ${esc(S().label(ln.parent || ln.cur))}: every setting inside it, or say what you want" aria-label="Fine-tune ${esc(S().label(ln.parent || ln.cur))}">⧉</button></div>
+            <span class="sl-sub${modeHtml || subTab ? " sl-sub-flex" : ""}">${modeHtml}${subTab}${modeHtml || subTab ? '<span class="sl-subrest">' : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}${modeHtml || subTab ? "</span>" : ""}</span>
             ${ticks}
           </div>`;
         });
@@ -2045,7 +2226,7 @@
             const part = rec ? curvePath(ln.cur, i, nodes[k - 1], nodes[k], rec, colW) : segPath(xy[k - 1], xy[k], lane.mode);
             d += " " + part;
             const hit = `M${xy[k - 1][0]} ${xy[k - 1][1]} ` + part;
-            svg.push(`<path class="sl-seghit${seg === sk ? " on" : ""}" d="${hit}" data-seg="${esc(sk)}"><title>A line from moment ${nodes[k - 1].j + 1} to ${nodes[k].j + 1}${rec ? ` (curve: ${esc(SHAPES[rec.shape] ? SHAPES[rec.shape][0] : rec.shape)})` : ""}. Click to pick it, double-click to shape its curve.</title></path>`);
+            svg.push(`<path class="sl-seghit${seg === sk ? " on" : ""}" d="${hit}" data-seg="${esc(sk)}"><title>A line from moment ${nodes[k - 1].j + 1} to ${nodes[k].j + 1}${rec ? ` (curve: ${esc(SHAPES[rec.shape] ? SHAPES[rec.shape][0] : rec.shape)})` : ""}. Click to add a node on it; drag it up or down to move both its nodes; Alt (Option) + drag to curve it; right-click for more.</title></path><path class="sl-segline" d="${hit}"/>`);
           }
           svg.push(`<path class="sl-auto${lane.on ? "" : " off"}" d="${d}"/>`);
         }
@@ -2053,8 +2234,17 @@
           const key = nodeKey(p.r, ln.lk);
           const c = xyOf(p);
           const small = cpts.has(p.r);
-          dots.push(`<circle class="sl-node${small ? " sl-cpt" : ""}${lane.on ? "" : " off"}${sel === key ? " on" : ""}${inArea(i, p.j) && !isLocked(ln.lk) ? " in" : ""}" cx="${c[0]}" cy="${c[1]}" r="${small ? 3.5 : 6}" data-node="${esc(key)}" data-lane="${i}"><title>${esc(S().label(ln.cur))}: ${esc(p.v)} at moment ${p.j + 1}${small ? " (on a curve)" : ""}</title></circle>`);
+          dots.push(`<circle class="sl-node${small ? " sl-cpt" : ""}${lane.on ? "" : " off"}${sel === key ? " on" : ""}${inArea(i, p.j) && !isLocked(ln.lk) ? " in" : ""}" cx="${c[0]}" cy="${c[1]}" r="${small ? 3 : 5}" data-node="${esc(key)}" data-lane="${i}"><title>${esc(S().label(ln.cur))}: ${esc(p.v)} at moment ${p.j + 1}${small ? " (on a curve)" : ""}</title></circle>`);
         });
+      });
+      /* A master lane whose automation group is folded: small dots along its bottom edge where its settings'
+         lanes have nodes (as a folded group of lanes shows them). */
+      lanes.forEach((ln, i) => {
+        if (!ln.subCount || ln.subOpen) return;
+        const cy = yTops[i] + lh - 3;
+        foldDots(st, ln.subRows).forEach((d) =>
+          dots.push(`<circle class="sl-gdot sl-subdot" cx="${d.j * colW + colW / 2}" cy="${cy}" r="2.5" data-gdot="${d.j}" data-subdot="${esc(ln.cur)}"><title>${esc(S().label(ln.cur))}'s automation group (folded): ${d.count} setting${d.count === 1 ? " has a node" : "s have nodes"} at moment ${d.j + 1}. Click to move the playhead here.</title></circle>`)
+        );
       });
       /* Proximities: a line from node to node. */
       const laneIx = {};
@@ -2080,14 +2270,14 @@
       const old = el.querySelector(".sl-scroll");
       const keep = old ? [old.scrollLeft, old.scrollTop] : scrollKeep;
       el.innerHTML = `<div class="sl-tools">
-          <span class="sl-seg" role="group" aria-label="Tool">${tb("tool-select", "Select", "Select (A): click a node to pick it, click an empty spot to add a node there, drag across empty space to select an area", tools.tool === "select")}${tb("tool-split", "Split", "Split (B): click a lane to cut its line with a node, keeping what plays", tools.tool === "split")}</span>
+          <span class="sl-seg" role="group" aria-label="Tool">${tb("tool-select", "Select", "Select (A): click a node to pick it, click an empty spot or a line to add a node there, drag a line to move both its nodes, Alt + drag a line to curve it, drag across empty space to select an area", tools.tool === "select")}${tb("tool-split", "Split", "Split (B): click a lane to cut its line with a node, keeping what plays", tools.tool === "split")}</span>
           ${opts.ripple ? `<span class="sl-seg sl-moments" role="group" aria-label="Moments">${tb("ripple-add", "+ Moment", `Add a moment here (⌥M): a copy of moment ${playRow + 1} goes right after it, so nothing jumps. Everything after it (nodes, joins, markers, transitions and words) slides one moment later.`)}${tb("ripple-delete", "− Moment", `Take out moment ${playRow + 1} (⌥⌫) and close the gap: everything after it slides one moment earlier. With a stretch selected, takes out the whole stretch.`)}</span>` : ""}
           <button type="button" data-act="undo" ${(opts.canUndo ? opts.canUndo("undo") : Eng.canUndo()) ? "" : "disabled"}>Undo</button><button type="button" data-act="redo" ${(opts.canUndo ? opts.canUndo("redo") : Eng.canRedo()) ? "" : "disabled"}>Redo</button>
           <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
           ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("area-take", "Take from the film", filmTip("take"))}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}${tb("tpl-save", "Save as template", "Save as template: keep the selected stretch under a name and a note, such as \"slow-burn reveal\", to use again anywhere from the library's Templates tab (My templates).")}${opts.ripple ? tb("ripple-duplicate", "Duplicate moments", `Duplicate moments (⇧⌥M): a copy of moments ${area.j0 + 1} to ${area.j1 + 1} (every lane, not only the selected ones) goes right after them, and everything after slides later.`) + tb("ripple-delete", "Take out moments", `Take out moments ${area.j0 + 1} to ${area.j1 + 1} (⌥⌫) on every lane and close the gap: everything after slides earlier. Remove nodes keeps the moments and only clears the selected lanes.`) : ""}</span>` : ""}
-          ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
+          ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (or hold Alt and drag a line, or right-click it)")}
           <span class="sl-seg" role="group" aria-label="Markers">${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off. Double-click a marker's flag on the ruler to write a note or change its color.")}${tb("marker-list", `Markers${marked.length ? " " + marked.length : ""} ▾`, "Every marker in your film, with its note: click one to move the playhead there")}</span>
           ${tb("suite-list", `Suite clips${suiteList.length ? " " + suiteList.length : ""} ▾`, "Your saved suite clips: drop one in at the playhead (as it is, or as an analogy), rename it or delete it")}
           ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
@@ -2423,6 +2613,8 @@
       const node = e.target.closest && e.target.closest("[data-node]");
       const link = e.target.closest && e.target.closest("[data-link]");
       const segEl = e.target.closest && e.target.closest("[data-seg]");
+      /* Only the second click of a double-click on a line lands on the node its first click added. */
+      if (lastAdd && !(node && node.dataset.node === lastAdd.key)) lastAdd = null;
       const clipEl = e.target.closest && e.target.closest("[data-clip]");
       const r = sc ? sc.getBoundingClientRect() : { left: 0, top: 0 };
       /* A text's bar on the Text row: drag its ends or its middle (opts.texts). */
@@ -2472,6 +2664,18 @@
         return;
       }
       if (node) {
+        /* A double-click on a node removes it. Picking the node on the first click redraws the lanes, so the
+           browser's own dblclick never reaches it: two presses on the same node close together count instead
+           (onDbl still answers a dblclick that does arrive). */
+        const now = Date.now();
+        if (nodeDown && nodeDown.key === node.dataset.node && now - nodeDown.t < DBL_MS) {
+          nodeDown = null;
+          dblDone = now;
+          e.preventDefault();
+          if (lastAdd && lastAdd.key === node.dataset.node) return (lastAdd = null);
+          return removeNode(node.dataset.node);
+        }
+        nodeDown = { key: node.dataset.node, t: now };
         sel = node.dataset.node;
         seg = null;
         drag = { key: sel, start: a, copy: e.altKey || e.shiftKey, moved: false, area: inArea };
@@ -2479,13 +2683,26 @@
         e.preventDefault();
         return;
       }
-      if (segEl) {
-        /* Pick the line (no redraw, so a double-click still lands on it and opens its curve). */
+      if (segEl && inArea) {
+        /* Inside the selected area a line is part of the block: a sideways drag moves the block. */
         seg = segEl.dataset.seg;
+        drag = { add: true, start: a, copy: e.altKey || e.shiftKey, area: true, quiet: true };
+        return;
+      }
+      if (segEl) {
+        /* Ableton's line gestures, decided when the pointer lets go: a click adds a node on the line, a drag up or
+           down moves both of its nodes, and Alt (Option) + drag curves it. */
+        const sk = segEl.dataset.seg;
+        const p = sk.split("|");
+        const lk = p[0] + "|" + p[1];
+        e.preventDefault();
         el.querySelectorAll(".sl-seghit.on").forEach((x) => x.classList.remove("on"));
         segEl.classList.add("on");
-        say("Line picked: double-click it, or press Curves, to shape its curve.");
-        if (inArea) drag = { add: true, start: a, copy: e.altKey || e.shiftKey, area: true, quiet: true };
+        if (isLocked(lk)) {
+          seg = sk;
+          return say(lockSay(lk));
+        }
+        drag = { seg: sk, lk, ra: p[2], rb: p[3], start: a, bend: e.altKey, moved: false, i: geo.lanes.findIndex((ln) => ln.lk === lk) };
         return;
       }
       if (!a.ln) return;
@@ -2627,10 +2844,16 @@
         if (a.j !== hoverJ) opts.onHover((hoverJ = a.j));
         return;
       }
+      if (geo && e.target && e.target.closest && el.contains(e.target)) {
+        const svgA = el.querySelector(".sl-svg");
+        if (svgA) svgA.classList.toggle("sl-alt", !!e.altKey);
+        if (!drag) hoverLine(e);
+      }
       if (!drag) return;
       const a = at(e);
       if (Math.abs(a.x - drag.start.x) + Math.abs(a.y - drag.start.y) > 4) drag.moved = true;
       if (!drag.moved) return;
+      if (drag.seg) return segPreview(drag, a);
       if (drag.area && !drag.areaMove) {
         /* Inside the selected area: mostly sideways moves the whole block; mostly up or down does what it did
            before (a node's setting, or a new selection box). */
@@ -2713,6 +2936,7 @@
       drag = null;
       const a = at(e);
       const st = E().state();
+      if (d.seg) return segUp(d, a);
       if (d.areaMove) return area ? dropArea(areaShift(a, d), d.copy || e.altKey || e.shiftKey) : draw();
       if (d.quiet && !d.moved) return;
       if (d.add && d.moved) {
@@ -2737,7 +2961,7 @@
         if (!a.ln || a.ln !== d.start.ln) return draw();
         if (isLocked(a.ln.lk)) return say(lockSay(a.ln.lk));
         let track = a.ln.track;
-        if (!track) track = ensure(a.ln.cur);
+        if (!track) track = a.ln.host ? ensureOn(a.ln.cur, a.ln.host) : ensure(a.ln.cur);
         if (!track) return say("Every track is full; remove a lane first.");
         const rowId = E().state().rows[a.j].id;
         const v = tools.tool === "split" ? E().value(rowId, track, a.ln.cur) : S().at(a.ln.cur, a.p);
@@ -2762,7 +2986,7 @@
       }
       const ix = st.rows.findIndex((r) => r.id === from.row);
       let tj = a.j;
-      if (tools.snap && tj !== ix) {
+      if (tools.snap && tj !== ix && !(e.ctrlKey || e.metaKey)) {
         /* Auto snapping: a marker one moment away pulls the node onto it (moments are whole steps already). */
         const pulls = st.rows.map((r, j) => (markerOf(r.id) ? j : -9));
         const near = pulls.filter((j) => j !== ix && Math.abs(j - tj) === 1);
@@ -2793,6 +3017,275 @@
       } else if (dj !== 0) sel = nodeKey(st.rows[ix + dj].id, from.lk);
       if (cmds.length) send({ type: "batch", label, commands: cmds });
       draw();
+    }
+    /* ---------- Ableton's line gestures (see automationGroup above for the master lane and its group) ---------- */
+    let lastAdd = null; /* the node a click on a line just added: { key, t } */
+    let nodeDown = null; /* the last press on a node, for double-clicks: { key, t } */
+    let dblDone = 0;
+    const DBL_MS = 450;
+    /* A line's two ends, now: { cur, track, lane, ja, jb, a, b, rec } (rec: its curve, when it still fits). */
+    function segInfo(st, d) {
+      const lane = st.lanes[d.lk];
+      if (!lane || lane.points[d.ra] == null || lane.points[d.rb] == null) return null;
+      const bar = d.lk.indexOf("|");
+      const ja = st.rows.findIndex((r) => r.id === d.ra);
+      const jb = st.rows.findIndex((r) => r.id === d.rb);
+      const a = { r: d.ra, j: ja, v: lane.points[d.ra] };
+      const b = { r: d.rb, j: jb, v: lane.points[d.rb] };
+      const rec = curves[d.seg] && curveOk(st, d.lk, a, b, curves[d.seg]) ? curves[d.seg] : null;
+      return { cur: d.lk.slice(bar + 1), track: d.lk.slice(0, bar), lane, ja, jb, a, b, rec };
+    }
+    /* The path from moment ja at place pa to moment jb at place pb on drawn lane i, straight or curved. */
+    function ghostPath(i, ja, pa, jb, pb, rec, mode) {
+      const top = geo.yTops[i];
+      const y = (p) => top + PAD + (1 - Math.max(0, Math.min(1, p))) * (geo.lh - PAD * 2);
+      const x0 = ja * geo.colW + geo.colW / 2;
+      const x1 = jb * geo.colW + geo.colW / 2;
+      if (!rec) return `M${x0} ${y(pa)} ` + segPath([x0, y(pa)], [x1, y(pb)], mode);
+      const out = [`M${x0} ${y(pa)}`];
+      for (let k = 1; k <= 32; k++) out.push(`L${(x0 + ((x1 - x0) * k) / 32).toFixed(1)} ${y(pa + (pb - pa) * shapeAt(rec.shape, rec.bend, k / 32)).toFixed(1)}`);
+      return out.join(" ");
+    }
+    function segGhost(dpath, ends) {
+      const svg = el.querySelector(".sl-svg");
+      if (!svg) return;
+      let g = svg.querySelector(".sl-segghost");
+      if (!g) {
+        g = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        g.setAttribute("class", "sl-segghost");
+        svg.appendChild(g);
+      }
+      g.setAttribute("d", dpath);
+      (ends || []).forEach(([key, cy]) => {
+        const c = svg.querySelector(`[data-node="${CSS.escape(key)}"]`);
+        if (c) c.setAttribute("cy", cy);
+      });
+    }
+    /* While dragging a line: both ends follow the pointer up or down, or (Alt) the line bows as it will. */
+    function segPreview(d, a) {
+      const st = E().state();
+      const g = segInfo(st, d);
+      if (!g || d.i < 0) return;
+      const pa = S().pos(g.cur, g.a.v);
+      const pb = S().pos(g.cur, g.b.v);
+      if (pa == null || pb == null) return;
+      const h = geo.lh - PAD * 2;
+      if (d.bend) {
+        const rec = bendFrom(pa, pb, a.y - d.start.y, h);
+        segGhost(ghostPath(d.i, g.ja, pa, g.jb, pb, rec, g.lane.mode));
+        return say(g.jb - g.ja < 2 ? "These two nodes are on neighbouring moments, so this line has no room to curve." : rec ? `Curving the line (${SHAPES[rec.shape][0].toLowerCase()}, bend ${rec.bend}). Let go to keep it.` : pa === pb ? "A flat line can't curve: move one of its nodes up or down first." : "Drag up or down to curve the line.");
+      }
+      const dp = -(a.y - d.start.y) / h;
+      const qa = Math.max(0, Math.min(1, pa + dp));
+      const qb = Math.max(0, Math.min(1, pb + dp));
+      const top = geo.yTops[d.i];
+      const yy = (p) => top + PAD + (1 - p) * h;
+      segGhost(ghostPath(d.i, g.ja, qa, g.jb, qb, g.rec, g.lane.mode), [[nodeKey(d.ra, d.lk), yy(qa)], [nodeKey(d.rb, d.lk), yy(qb)]]);
+      say(`Moving both nodes of this line: ${S().at(g.cur, qa)} and ${S().at(g.cur, qb)}. Let go to keep it.`);
+    }
+    /* Write a curve into the line sk (the Curves pop-up's Apply, Alt + drag and the ease words all use this):
+       clear the moments between, then bake the curve's points in, as one undo step. pick: { shape, bend }. */
+    function writeCurve(sk, pick, label) {
+      const parts = sk.split("|");
+      const lk = parts[0] + "|" + parts[1];
+      const cur = parts[1];
+      if (isLocked(lk)) return say(lockSay(lk)), { ok: false, locked: true };
+      const now = E().state();
+      const ln = now.lanes[lk];
+      const ja = now.rows.findIndex((r) => r.id === parts[2]);
+      const jb = now.rows.findIndex((r) => r.id === parts[3]);
+      if (!ln || ja < 0 || jb < 0 || ln.points[parts[2]] == null || ln.points[parts[3]] == null) return say("That line is gone."), { ok: false };
+      if (jb - ja < 2) return say("These two nodes are on neighbouring moments, so the line between them has no room to curve. Move one further away first."), { ok: false };
+      const a = { r: parts[2], j: ja, v: ln.points[parts[2]] };
+      const b = { r: parts[3], j: jb, v: ln.points[parts[3]] };
+      const cmds = [];
+      for (let j = ja + 1; j < jb; j++) if (ln.points[now.rows[j].id] != null) cmds.push({ type: "removePoint", row: now.rows[j].id, track: parts[0], curiosity: cur });
+      if (pick.shape !== "straight") bake(cur, a, b, pick, now.rows).forEach((p) => cmds.push({ type: "setPoint", row: p.row, track: parts[0], curiosity: cur, value: p.value }));
+      const had = curves[sk];
+      if (pick.shape === "straight") delete curves[sk];
+      else curves[sk] = { shape: pick.shape, bend: pick.bend };
+      saveCurves();
+      const r = cmds.length ? send({ type: "batch", label: label || "Shape a curve: " + SHAPES[pick.shape][0], commands: cmds }) : { ok: true };
+      if (!r.ok) {
+        if (had) curves[sk] = had;
+        else delete curves[sk];
+        saveCurves();
+      } else say(`${SHAPES[pick.shape][0]} ${pick.shape === "straight" ? "line" : "curve"} from moment ${ja + 1} to ${jb + 1}.`);
+      seg = sk;
+      return r;
+    }
+    /* Letting go of a line: a click adds a node on it, a drag moved both of its nodes, Alt + drag curved it. */
+    function segUp(d, a) {
+      const st = E().state();
+      const g = segInfo(st, d);
+      el.querySelectorAll(".sl-segghost").forEach((x) => x.remove());
+      if (!g) return draw();
+      if (d.bend) {
+        if (!d.moved) return (seg = d.seg), draw(), say("Line picked. Hold Alt (Option) and drag it up or down to curve it.");
+        const pa = S().pos(g.cur, g.a.v);
+        const pb = S().pos(g.cur, g.b.v);
+        if (pa == null || pb == null || pa === pb) return draw(), say("A flat line can't curve: move one of its nodes up or down first.");
+        const rec = bendFrom(pa, pb, a.y - d.start.y, geo.lh - PAD * 2);
+        const keep = (writeCurve(d.seg, rec || { shape: "straight", bend: 40 }, rec ? "Curve a line" : "Straighten a line"), msg);
+        draw();
+        return say(keep);
+      }
+      if (d.moved) {
+        const dp = -(a.y - d.start.y) / (geo.lh - PAD * 2);
+        const r = segMoveCommands(st, d.lk, d.ra, d.rb, dp, g.rec);
+        if (r.error) return draw(), say(r.error);
+        if (!r.cmds.length) return draw(), say("The line is already as far as it goes that way.");
+        const out = send({ type: "batch", label: "Move a line", commands: r.cmds });
+        seg = d.seg;
+        draw();
+        if (out.ok) say(`Moved the line from moment ${g.ja + 1} to ${g.jb + 1}: both nodes now ${String(r.values[0]) === String(r.values[1]) ? "at " + r.values[0] : `at ${r.values[0]} and ${r.values[1]}`}. No node was added. ⌘Z undoes it.`);
+        return out;
+      }
+      /* A click on the line: a node at the moment clicked, at the line's own value there. Nodes sit on whole
+         moments, so the click goes to the nearest moment between the line's two nodes. */
+      if (g.jb - g.ja < 2) {
+        seg = d.seg;
+        draw();
+        return say("These two nodes sit on neighbouring moments, so there is no moment between them for a new node. Zoom in, or move one of them further away.");
+      }
+      const j = Math.max(g.ja + 1, Math.min(g.jb - 1, Math.round((a.x - geo.colW / 2) / geo.colW)));
+      const rowId = st.rows[j].id;
+      if (g.lane.points[rowId] != null) {
+        /* The moment holds one of a curve's in-between points: the curve's points become nodes you can drag. */
+        delete curves[d.seg];
+        saveCurves();
+        sel = nodeKey(rowId, d.lk);
+        seg = null;
+        draw();
+        return say("This line was a curve. Its in-between points are now nodes you can drag; what plays is the same.");
+      }
+      const v = laneSeries(st, g.lane, g.cur)[j];
+      const r = send({ type: "setPoint", row: rowId, track: g.track, curiosity: g.cur, value: v, label: "Add a node on a line" });
+      if (r.ok) {
+        sel = nodeKey(rowId, d.lk);
+        lastAdd = { key: sel, t: Date.now() };
+        seg = null;
+      }
+      draw();
+      if (r.ok) say(`Added a node on the line: ${S().label(g.cur)} is ${v} at moment ${j + 1}. Double-click a node to take it away.`);
+      return r;
+    }
+    /* Hovering a line shows what it plays at that moment (Ableton shows the value under the pointer). */
+    function hoverLine(e) {
+      const svg = el.querySelector(".sl-svg");
+      if (!svg) return;
+      let t = svg.querySelector(".sl-hoverval");
+      const hit = e.target.closest && e.target.closest(".sl-seghit");
+      if (!hit) {
+        if (t) t.remove();
+        return;
+      }
+      const p = hit.dataset.seg.split("|");
+      const lk = p[0] + "|" + p[1];
+      const st = E().state();
+      const lane = st.lanes[lk];
+      if (!lane) return;
+      const a = at(e);
+      const v = laneSeries(st, lane, p[1])[a.j];
+      if (!t) {
+        t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("class", "sl-hoverval");
+        svg.appendChild(t);
+      }
+      t.setAttribute("x", Math.min(a.x + 10, geo.svgW - 80));
+      t.setAttribute("y", Math.max(10, a.y - 8));
+      t.textContent = `${v} · moment ${a.j + 1}`;
+    }
+    /* Alt (Option) held over a line shows the curve pointer, as Ableton does, even before the pointer moves. */
+    function altKey(e) {
+      if (e.key !== "Alt") return;
+      const svg = el.querySelector(".sl-svg");
+      if (svg) svg.classList.toggle("sl-alt", e.type === "keydown");
+    }
+    /* Right-click a node or a line (Ableton's context menu): the line gets add a node, the ease words, straight,
+       Curves…, Shapes (the area's Shape menu over this line's moments) and Simplify this lane. */
+    function lineMenu(e) {
+      const node = e.target.closest && e.target.closest(".sl-svg [data-node]");
+      const segEl = e.target.closest && e.target.closest(".sl-svg [data-seg]");
+      if (!node && !segEl) return false;
+      e.preventDefault();
+      if (node) {
+        const key = node.dataset.node;
+        const n = split(key);
+        sel = key;
+        const pop = popAt("sl-linemenu", "Node", e.clientX, e.clientY);
+        pop.innerHTML = `<p><strong>Node</strong> · ${esc(S().label(n.cur))}: ${esc(pointValue(E().state(), n))}</p><div class="sl-pop-btns" style="flex-wrap:wrap"><button type="button" data-m="remove">Remove this node</button><button type="button" data-m="copy">Copy proximity</button><button type="button" data-m="simplify">Simplify this lane</button><button type="button" data-m="close">Close</button></div>`;
+        pop.onclick = (ev) => {
+          ev.stopPropagation();
+          const b = ev.target.closest("[data-m]");
+          if (!b) return;
+          pop.remove();
+          if (b.dataset.m === "remove") return isLocked(n.lk) ? say(lockSay(n.lk)) : removeNode(key);
+          if (b.dataset.m === "copy") return command("copy");
+          if (b.dataset.m === "simplify") return simplifyLane(n.lk);
+          el.focus();
+        };
+        el.appendChild(pop);
+        return true;
+      }
+      const sk = segEl.dataset.seg;
+      const p = sk.split("|");
+      const lk = p[0] + "|" + p[1];
+      const a = at(e);
+      seg = sk;
+      const pop = popAt("sl-linemenu", "Line", e.clientX, e.clientY);
+      pop.innerHTML = `<p><strong>Line</strong> · ${esc(S().label(p[1]))}</p><div class="sl-pop-btns" style="flex-wrap:wrap"><button type="button" data-m="add">Add a node here</button>${Object.keys(EASES).map((k) => `<button type="button" data-m="${k}" title="${esc(SHAPES[EASES[k][1]][1])}">${esc(EASES[k][0])}</button>`).join("")}<button type="button" data-m="straight">Straight line</button><button type="button" data-m="curves">Curves…</button><button type="button" data-m="shapes">Shapes ▾</button><button type="button" data-m="simplify">Simplify this lane</button><button type="button" data-m="close">Close</button></div>`;
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("[data-m]");
+        if (!b) return;
+        pop.remove();
+        const m = b.dataset.m;
+        if (m === "close") return el.focus();
+        if (m === "add") return segUp({ seg: sk, lk, ra: p[2], rb: p[3], start: a, moved: false }, a);
+        if (EASES[m] || m === "straight") {
+          const r = writeCurve(sk, { shape: EASES[m] ? EASES[m][1] : "straight", bend: 40 }, EASES[m] ? EASES[m][0] : "Straighten a line");
+          const keep = msg;
+          draw();
+          say(keep);
+          return r;
+        }
+        if (m === "curves") return openCurves(sk);
+        if (m === "simplify") return simplifyLane(lk);
+        if (m === "shapes") {
+          const st = E().state();
+          const i = geo.lanes.findIndex((ln) => ln.lk === lk);
+          const ja = st.rows.findIndex((r) => r.id === p[2]);
+          const jb = st.rows.findIndex((r) => r.id === p[3]);
+          if (i < 0 || ja < 0 || jb < 0) return;
+          area = { i0: i, i1: i, j0: ja, j1: jb };
+          sel = null;
+          draw();
+          return shapeMenu();
+        }
+      };
+      el.appendChild(pop);
+      return true;
+    }
+    function simplifyLane(lk) {
+      if (isLocked(lk)) return say(lockSay(lk)), { ok: false };
+      const st = E().state();
+      /* Curve points stay: they are the curve's shape. */
+      const keep = [];
+      Object.keys(curves).forEach((sk) => {
+        if (!sk.startsWith(lk + "|")) return;
+        const q = sk.slice(lk.length + 1).split("|");
+        const ja = st.rows.findIndex((r) => r.id === q[0]);
+        const jb = st.rows.findIndex((r) => r.id === q[1]);
+        for (let j = ja; j <= jb && ja >= 0; j++) keep.push(st.rows[j].id);
+      });
+      const r = simplifyCommands(st, lk, keep);
+      if (!r.removed) return say(`${lkName(lk)}: every node changes something, so there is nothing to simplify.`), { ok: true, removed: 0 };
+      const out = send({ type: "batch", label: "Simplify a lane", commands: r.cmds });
+      if (out.ok && sel && r.cmds.some((c) => nodeKey(c.row, lk) === sel)) sel = null;
+      draw();
+      if (out.ok) say(`Simplified ${lkName(lk)}: took out ${r.removed} node${r.removed === 1 ? "" : "s"} that changed nothing. What plays is the same.`);
+      return Object.assign({}, out, { removed: r.removed });
     }
     function removeNode(key) {
       const st = E().state();
@@ -2878,6 +3371,41 @@
       }
       return { ok: i >= 0, opened: opened ? g.id : null };
     }
+    const st0 = () => E().state();
+    /* Put a sub-lane's setting on its master's track (where its window reads it), else wherever it fits. */
+    function ensureOn(cur, host) {
+      const st = E().state();
+      const on = st.tracks.find((t) => t.curiosities.includes(cur));
+      if (on) return on.id;
+      const t = st.tracks.find((x) => x.id === host);
+      if (t && t.curiosities.length < E().LIMIT.perTrack) {
+        const r = E().send({ type: "addCuriosity", track: t.id, curiosity: cur, label: "Add a lane: " + S().label(cur) });
+        if (r.ok) return t.id;
+      }
+      return ensure(cur);
+    }
+    /* A master lane's automation group: open or fold its sub-lanes (a view setting, kept in the tools). */
+    function subsToggle(cur, want) {
+      if (!cur) return { ok: false, error: "Pick a lane first." };
+      const subs = automationGroup(cur);
+      if (!subs.length) return say(`${S().label(cur)} has no other settings in its window, so it has no automation group.`), { ok: false };
+      const open = want == null ? !tools.subs[cur] : !!want;
+      if (open) tools.subs[cur] = true;
+      else delete tools.subs[cur];
+      area = null;
+      saveTools();
+      say(open ? `${S().label(cur)}'s automation group is open: a lane for each setting in its window, How much (0 to 100) first. Click a lane's line to add a node.` : `${S().label(cur)}'s automation group is folded. The small dots on its lane show where its settings have nodes.`);
+      return { ok: true, open };
+    }
+    function subsButton(cur) {
+      const out = subsToggle(cur);
+      const keep = msg;
+      draw();
+      say(keep);
+      const again = el.querySelector(`.sl-heads [data-act="subs"][data-cur="${CSS.escape(cur)}"]`);
+      if (again) again.focus();
+      return out;
+    }
     function foldButton(id) {
       const out = foldGroup(id);
       const keep = msg;
@@ -2905,7 +3433,7 @@
       if (!lane) return say("That lane has no nodes yet, so there is nothing to turn off."), { ok: false };
       const name = lkName(lk);
       const r = E().send(Object.assign(onCmd(lk, !lane.on), { label: lane.on ? "Turn a lane off" : "Turn a lane on" }));
-      say(r.ok ? (lane.on ? `${name}'s automation is off: it no longer changes the film. Its nodes stay; 👁 turns it back on.` : `${name}'s automation is on again.`) : r.error);
+      say(r.ok ? (lane.on ? `${name}'s automation is off: it no longer changes the film. Its nodes stay; its ON/OFF switch turns it back on.` : `${name}'s automation is on again.`) : r.error);
       return r;
     }
     function laneSolo(lk) {
@@ -2961,6 +3489,21 @@
       if (act === "lane-off" || act === "lane-solo" || act === "lane-lock") return laneButton(act, b.dataset.lk);
       if (act === "fold") return foldButton(b.dataset.group);
       if (act === "fold-all" || act === "open-all") return foldAll(act === "fold-all");
+      if (act === "subs") return subsButton(b.dataset.cur);
+      if (act === "mset" && b.dataset.lk) {
+        const at = b.dataset.lk.indexOf("|");
+        const m = b.dataset.mode;
+        if (st0().lanes[b.dataset.lk] && MODES[m]) {
+          const r = E().send({ type: "laneMode", track: b.dataset.lk.slice(0, at), curiosity: b.dataset.lk.slice(at + 1), mode: m, label: MODES[m][3] });
+          say(r.ok ? `${lkName(b.dataset.lk)}: ${MSET.find((x) => x[0] === m)[2]}` : m === "smooth" ? "This engine can't make a whole lane smooth yet; shape a line with Alt (Option) + drag instead." : r.error);
+        }
+        const keep = msg;
+        draw();
+        say(keep);
+        const again = el.querySelector(`.sl-heads [data-act="mset"][data-mode="${m}"][data-lk="${CSS.escape(b.dataset.lk)}"]`);
+        if (again) again.focus();
+        return;
+      }
       if (act === "mode" && b.dataset.lk) {
         /* Maya's graph editor tangents in plain words: glide (linear) or jump (stepped). */
         const st = E().state();
@@ -2988,6 +3531,13 @@
       hold: ["hold", "⌐ Jump", "Jumps: holds each node's setting until the next node (Maya's stepped curve).", "Make a lane jump"],
     };
     const modeOf = (lane) => (MODES[lane.mode] ? lane.mode : "ramp");
+    /* The master lane's switch, Jeremy's two settings: an on/off lane (Steps) or free nodes and lines. A whole lane
+       can still be made Smooth from the Curves pop-up (Whole lane); then neither button is lit. */
+    const MSET = [
+      ["hold", "⌐", "Steps (on and off): at each node the line goes straight up or down, then runs flat to the right until the next node."],
+      ["ramp", "⟋", "Lines: nodes joined by straight lines, any height from 0 (bottom) to 100 (top)."],
+    ];
+    const MASTER_TIP = (name) => `${name}: its master lane. ON/OFF switches its automation on or off for the whole film. Steps, Lines or Smooth says how the line moves between nodes (Steps is an on/off lane; Lines go anywhere from 0 to 100). The settings tab under the name opens a lane for every setting in its window, How much (0 to 100) first.`;
     const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit", "area-reverse": "reverse", "area-flip": "flip", "area-stretch": "stretch", "area-squeeze": "squeeze", "area-freeze": "freeze", "area-take": "take" };
     /* The nodes of a lane in film order, as keys. */
     function laneNodes(st, lk) {
@@ -3017,6 +3567,21 @@
       if (!st) return { ok: false };
       let out = { ok: true };
       const playRow = opts.row ? opts.row() : 0;
+      if (name === "subs") {
+        /* ⌥K (CapCut's Show/hide keyframe panel): open or fold the picked lane's automation group. */
+        let cur = preset || (sel ? split(sel).cur : area && geo.lanes[area.i0] ? geo.lanes[area.i0].cur : null);
+        if (!cur) {
+          const first = (geo ? geo.lanes : []).find((ln) => ln.subCount);
+          cur = first ? first.cur : null;
+        }
+        if (cur && cur.indexOf(".") > 0) cur = cur.slice(0, cur.indexOf("."));
+        const r = subsToggle(cur);
+        if (!r.ok && !cur) say("Pick a lane first (click one of its nodes), then ⌥K opens its automation group.");
+        const keep = msg;
+        draw();
+        say(keep);
+        return r;
+      }
       if (name === "select" || name === "split") {
         tools.tool = name;
         say(name === "split" ? "Split: click a lane to cut its line with a node." : "Select: click a node to pick it, or an empty spot to add one.");
@@ -3342,22 +3907,15 @@
           pop.remove();
           return draw();
         }
+        let keep = null;
         if (t.dataset.l === "apply") {
-          const now = E().state();
-          const ln = now.lanes[lk];
-          const cmds = [];
           /* Clear the moments between (old curve points), then write the curve. A straight line needs no points. */
-          for (let j = ja + 1; j < jb; j++) if (ln && ln.points[now.rows[j].id] != null) cmds.push({ type: "removePoint", row: now.rows[j].id, track: parts[0], curiosity: cur });
-          if (pick.shape !== "straight") bake(cur, a, b, pick, now.rows).forEach((p) => cmds.push({ type: "setPoint", row: p.row, track: parts[0], curiosity: cur, value: p.value }));
-          if (pick.shape === "straight") delete curves[sk];
-          else curves[sk] = { shape: pick.shape, bend: pick.bend };
-          saveCurves();
-          const r = cmds.length ? send({ type: "batch", label: "Shape a curve: " + SHAPES[pick.shape][0], commands: cmds }) : { ok: true };
-          if (r.ok) say(`${SHAPES[pick.shape][0]} curve from moment ${ja + 1} to ${jb + 1}.`);
-          seg = sk;
+          writeCurve(sk, pick);
+          keep = msg;
         }
         pop.remove();
         draw();
+        if (keep != null) say(keep);
       };
       el.appendChild(pop);
       return { ok: true, pop };
@@ -3910,6 +4468,7 @@
     el.addEventListener("dragover", onTplOver);
     el.addEventListener("drop", onTplDrop);
     function onMenu(e) {
+      if (lineMenu(e)) return;
       const mk = e.target.closest && e.target.closest(".sl-top [data-marker]");
       if (!mk) return;
       e.preventDefault();
@@ -3917,6 +4476,9 @@
     }
     function onDbl(e) {
       const node = e.target.closest && e.target.closest("[data-node]");
+      /* A double-click on a line: its first click added this node, so the second must not take it away again. */
+      if (node && lastAdd && lastAdd.key === node.dataset.node && Date.now() - lastAdd.t < 700) return (lastAdd = null);
+      if (node && Date.now() - dblDone < 700) return; /* already removed by its two presses (onDown) */
       if (node) return removeNode(node.dataset.node);
       const s2 = e.target.closest && e.target.closest("[data-seg]");
       if (s2) openCurves(s2.dataset.seg);
@@ -3960,6 +4522,8 @@
     el.addEventListener("dblclick", onDbl);
     el.addEventListener("contextmenu", onMenu);
     el.addEventListener("keydown", onKey);
+    window.addEventListener("keydown", altKey);
+    window.addEventListener("keyup", altKey);
     el.addEventListener("wheel", onWheel, { passive: false });
     document.addEventListener("click", filmCheck, true);
     document.addEventListener("change", filmCheck, true);
@@ -3971,6 +4535,21 @@
       area: () => area,
       selectArea: (a) => ((area = a), (sel = null), draw()),
       curves: (sk) => openCurves(sk),
+      subs: (cur, want) => {
+        const r = subsToggle(cur, want);
+        const keep = msg;
+        draw();
+        say(keep);
+        return r;
+      },
+      simplify: (lk) => simplifyLane(lk),
+      curveLine: (sk, shape, bend) => {
+        const r = writeCurve(sk, { shape, bend: bend == null ? 40 : bend });
+        const keep = msg;
+        draw();
+        say(keep);
+        return r;
+      },
       linkSettings,
       marker: (j) => openMarker(j, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
       markers: () => markerList(),
@@ -4042,11 +4621,13 @@
         document.removeEventListener("change", filmCheck, true);
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("keydown", altKey);
+        window.removeEventListener("keyup", altKey);
       },
     };
   }
 
-  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, textRows, TXT_ROW, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
+  root.CurioLanes = { SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, automationGroup, segMoveCommands, bendFrom, simplifyCommands, EASES, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, textRows, TXT_ROW, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
   /* Ripple (the Screen's Add a moment here, Duplicate and Take out moments): put back a whole marker list at once,
      saved, so one undo can bring back the markers on moments that were taken out. */
   root.CurioLanes.setMarkers = (list) => {
