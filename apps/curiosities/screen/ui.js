@@ -4200,6 +4200,8 @@ document.addEventListener("click", function (e) {
   /* Keys typed in a tool window over the Screen (a Maya tool such as 3D characters, or any open dialog) belong to
      that tool: the Screen's shortcuts and its ⌘Z leave them alone, so they never change the film behind it. */
   function inToolWindow(e) {
+    /* The Viewer (Draw & build) open over the Screen takes every key: html.cv-open is set while it shows. */
+    if (document.documentElement.classList.contains("cv-open")) return true;
     const t = e && e.target;
     if (t && t.closest && t.closest("dialog, .sc-maya-dlg, .rig-dlg, .sc-find, .sc-tplpop, .sl-tplpop, .sc-txt-menu")) return true;
     /* Quick find (⌘K) takes every key while it is open. */
