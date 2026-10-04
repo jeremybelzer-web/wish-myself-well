@@ -237,6 +237,102 @@ const ok = (cond, msg) => {
   ok(Math.abs(ballY - 0.8) < 0.06, `a ball dragged onto a table lands on top of it (y ${ballY})`);
   await shot("8-land");
 
+  /* picking several, groups, lock and eye (Roblox's selection, UEFN's outliner) */
+  await page.evaluate(() => CurioBuild.setTool("select"));
+  const two = await page.evaluate(() => {
+    const a = CurioBuild.addPart("block");
+    Object.assign(CurioViewer.live().panel.place[a.id], { x: -3, y: 0, z: 4 });
+    const b = CurioBuild.addPart("cylinder");
+    Object.assign(CurioViewer.live().panel.place[b.id], { x: -1.5, y: 0, z: 4 });
+    CurioViewer.changed(true);
+    return [a.id, b.id];
+  });
+  const scr = (oid) =>
+    page.evaluate((oid) => {
+      const lv = CurioViewer.live();
+      const p = lv.panel.place[oid];
+      const s = CurioViewer.projectNow([p.x, p.y + 0.5, p.z]);
+      const r = lv.canvas.getBoundingClientRect();
+      const k = r.width / lv.canvas.width;
+      return [r.left + s[0] * k, r.top + s[1] * k];
+    }, oid);
+  let q = await scr(two[0]);
+  await page.mouse.click(q[0], q[1]);
+  q = await scr(two[1]);
+  await page.keyboard.down("Shift");
+  await page.mouse.click(q[0], q[1]);
+  await page.keyboard.up("Shift");
+  let picked = await page.evaluate(() => CurioBuild.selection());
+  ok(picked.length === 2 && picked.includes(two[0]) && picked.includes(two[1]), "Shift-click picks a second thing");
+  await page.keyboard.press("Control+g");
+  let f2 = await film();
+  const g = f2.objects.find((o) => o.id === two[0]).group;
+  ok(g && f2.objects.find((o) => o.id === two[1]).group === g, "⌘G / Ctrl+G groups them");
+  await page.mouse.click(box.x + 5, box.y + box.height - 5);
+  q = await scr(two[0]);
+  await page.mouse.click(q[0], q[1]);
+  picked = await page.evaluate(() => CurioBuild.selection());
+  ok(picked.length === 2, "clicking one member of a group picks the whole group");
+  const b0 = await page.evaluate((ids) => ids.map((id) => CurioViewer.live().panel.place[id].x), two);
+  q = await scr(two[0]);
+  await page.mouse.move(q[0], q[1]);
+  await page.mouse.down();
+  await page.mouse.move(q[0] + 120, q[1], { steps: 6 });
+  await page.mouse.up();
+  const b1 = await page.evaluate((ids) => ids.map((id) => CurioViewer.live().panel.place[id].x), two);
+  ok(Math.abs(b1[0] - b0[0] - (b1[1] - b0[1])) < 1e-6 && Math.abs(b1[0] - b0[0]) > 0.2, "dragging one moves the whole group the same way");
+  q = await scr(two[1]);
+  await page.keyboard.down("Alt");
+  await page.mouse.click(q[0], q[1]);
+  await page.keyboard.up("Alt");
+  picked = await page.evaluate(() => CurioBuild.selection());
+  ok(picked.length === 1 && picked[0] === two[1], "Alt-click picks just one thing inside the group");
+  await page.keyboard.press("Control+u");
+  ok(!(await film()).objects.find((o) => o.id === two[0]).group, "⌘U / Ctrl+U ungroups");
+  await page.click(`[data-block="${two[0]}"]`);
+  ok((await film()).objects.find((o) => o.id === two[0]).locked, "the lock in the list locks it");
+  const lx = (await film()).panels[0].place[two[0]].x;
+  q = await scr(two[0]);
+  await page.mouse.move(q[0], q[1]);
+  await page.mouse.down();
+  await page.mouse.move(q[0] + 100, q[1], { steps: 5 });
+  await page.mouse.up();
+  ok((await film()).panels[0].place[two[0]].x === lx, "a locked thing can't be dragged");
+  await page.click(`[data-beye="${two[1]}"]`);
+  ok((await film()).panels[0].place[two[1]].show === false, "the eye hides it in this panel");
+  await page.click(`[data-beye="${two[1]}"]`);
+  /* Shift-drag a box around both */
+  await page.click(`[data-block="${two[0]}"]`);
+  const qa = await scr(two[0]);
+  const qb = await scr(two[1]);
+  await page.mouse.click(box.x + 5, box.y + box.height - 5);
+  /* start the box on a corner with nothing under it */
+  const xs = [Math.min(qa[0], qb[0]) - 50, Math.max(qa[0], qb[0]) + 50];
+  const ys = [Math.min(qa[1], qb[1]) - 50, Math.max(qa[1], qb[1]) + 50];
+  let corner = null;
+  for (const [i, j] of [[0, 0], [1, 1], [0, 1], [1, 0]]) {
+    const free = await page.evaluate(([x, y]) => !CurioViewer.pickAt({ clientX: x, clientY: y }), [xs[i], ys[j]]);
+    if (free) {
+      corner = [i, j];
+      break;
+    }
+  }
+  corner = corner || [1, 1];
+  await page.keyboard.down("Shift");
+  await page.mouse.move(xs[corner[0]], ys[corner[1]]);
+  await page.mouse.down();
+  await page.mouse.move(xs[1 - corner[0]], ys[1 - corner[1]], { steps: 5 });
+  await page.mouse.up();
+  await page.keyboard.up("Shift");
+  picked = await page.evaluate(() => CurioBuild.selection());
+  ok(two.every((id) => picked.includes(id)), `Shift-dragging a box on empty space picks what is inside (${picked.length})`);
+  await page.click('[data-ba="snapm"]');
+  ok((await page.evaluate(() => CurioBuild.settings().snap)) === 0.5, "the move steps button on the toolbar changes the step (25 cm to half a metre)");
+  await page.click('[data-btool="move"]');
+  await shot("8b-picked");
+  await page.evaluate(() => CurioBuild.set({ snap: 0.25 }));
+  await page.click('[data-btool="select"]');
+
   /* walls and a room */
   await page.keyboard.press("w");
   [x, y] = at(0.2, 0.8);

@@ -498,25 +498,47 @@
     return def;
   }
   function removeThing(id) {
+    const ids = Array.isArray(id) ? id : [id];
     const lv = L();
-    const o = obj(id);
-    if (!o) return;
+    if (!ids.some((x) => obj(x))) return;
     V.edit("build-del");
-    lv.film.objects = lv.film.objects.filter((x) => x.id !== id);
-    lv.film.panels.forEach((q) => {
-      delete q.place[id];
-      if (q.cam.aim === id) q.cam.aim = lv.film.objects[0] ? lv.film.objects[0].id : null;
-      (q.words || []).forEach((w) => w.who === id && (w.who = ""));
+    ids.forEach((id) => {
+      lv.film.objects = lv.film.objects.filter((x) => x.id !== id);
+      lv.film.panels.forEach((q) => {
+        delete q.place[id];
+        if (q.cam.aim === id) q.cam.aim = lv.film.objects[0] ? lv.film.objects[0].id : null;
+        (q.words || []).forEach((w) => w.who === id && (w.who = ""));
+      });
     });
     lv.film.sel = null;
+    multi = [];
     V.changed(true);
   }
   function duplicate(id) {
+    const ids = Array.isArray(id) ? id : [id];
+    if (ids.length > 1) {
+      V.edit("build-dup");
+      const ng = {};
+      const made = ids.map((x) => dupOne(x, ng)).filter(Boolean);
+      selectIds(made.map((c) => c.id));
+      V.changed(true);
+      return made[0] || null;
+    }
+    V.edit("build-dup");
+    const c = dupOne(ids[0], {});
+    if (c) {
+      L().film.sel = c.id;
+      multi = [];
+    }
+    V.changed(true);
+    return c;
+  }
+  function dupOne(id, ng) {
     const lv = L();
     const o = obj(id);
     if (!o) return null;
-    V.edit("build-dup");
     const c = clone(o);
+    if (o.group) c.group = ng[o.group] || (ng[o.group] = uid("group"));
     c.id = uid(o.kind === "made" ? o.make || "made" : o.kind);
     c.name = (o.name || "Thing").replace(/( copy( \d+)?)?$/, "") + " copy";
     const { r } = V.floorDirs();
@@ -529,9 +551,55 @@
       q.z = r3(q.z + r[2] * off);
       p.place[c.id] = q;
     });
-    lv.film.sel = c.id;
-    V.changed(true);
     return c;
+  }
+
+  /* ---------- picking several things (Roblox: Shift-click, Shift-drag a box; a click on a group picks the group) ---------- */
+  let multi = []; /* the other picked things, besides film.sel */
+  function selection() {
+    const lv = L();
+    const ids = [lv.film.sel].concat(multi).filter((id, i, a) => id && a.indexOf(id) === i && obj(id));
+    multi = ids.slice(1);
+    return ids;
+  }
+  function selectIds(ids) {
+    const lv = L();
+    ids = ids.filter((id, i, a) => a.indexOf(id) === i && obj(id));
+    lv.film.sel = ids[0] || null;
+    multi = ids.slice(1);
+  }
+  function groupOf(o) {
+    if (!o || !o.group) return [o.id];
+    return L().film.objects.filter((x) => x.group === o.group).map((x) => x.id);
+  }
+  function groupSel() {
+    const ids = selection();
+    if (ids.length < 2) return flash("Pick two or more things first (Shift-click, or Shift-drag a box), then group them.");
+    V.edit("build-group");
+    const lv = L();
+    const n = new Set(lv.film.objects.filter((o) => o.group).map((o) => o.group)).size + 1;
+    const g = uid("group");
+    ids.forEach((id) => {
+      const o = obj(id);
+      o.group = g;
+      o.groupName = "Group " + n;
+    });
+    V.changed(true);
+    flash(`Grouped ${ids.length} things as Group ${n}. Clicking any of them picks them all; Alt-click picks one.`);
+  }
+  function ungroupSel() {
+    const ids = selection();
+    const groups = new Set(ids.map((id) => obj(id).group).filter(Boolean));
+    if (!groups.size) return flash("Nothing picked is in a group.");
+    V.edit("build-ungroup");
+    L().film.objects.forEach((o) => {
+      if (groups.has(o.group)) {
+        delete o.group;
+        delete o.groupName;
+      }
+    });
+    V.changed(true);
+    flash("Ungrouped. Each thing moves on its own again.");
   }
 
   /* ---------- where things are: boxes and surfaces ---------- */
@@ -558,8 +626,9 @@
   function surfaces(skipId) {
     const lv = L();
     const out = [];
+    const skip = Array.isArray(skipId) ? skipId : [skipId];
     lv.film.objects.forEach((o) => {
-      if (o.id === skipId) return;
+      if (skip.includes(o.id)) return;
       const p = lv.panel.place[o.id];
       if (!p || p.show === false) return;
       V.faces(o, p).forEach((f) => {
@@ -749,7 +818,16 @@
     const o = id && obj(id);
     const pl = o && st.place[id];
     if (!o || !pl || !pl.show || !["move", "scale", "rotate"].includes(tool)) return;
-    const b = bounds(o, pl);
+    let b = bounds(o, pl);
+    if (tool !== "scale") {
+      /* several picked: one set of handles around all of them */
+      selection().forEach((x) => {
+        if (x === id || !st.place[x]) return;
+        const bb = bounds(obj(x), st.place[x]);
+        b = { lo: b.lo.map((v, k) => Math.min(v, bb.lo[k])), hi: b.hi.map((v, k) => Math.max(v, bb.hi[k])) };
+      });
+      b.c = mul(add(b.lo, b.hi), 0.5);
+    }
     const c = b.c;
     const ext = sub(b.hi, b.lo);
     const big = Math.max(0.6, Math.max(ext[0], ext[1], ext[2]) * 0.5 + 0.35);
@@ -951,10 +1029,29 @@
       if (tool === "paint") return paintAt(e);
       /* select, move, scale, rotate: pick and drag along the floor, in steps, landing on surfaces */
       const pk = V.pickAt(e);
-      if (!pk || e.shiftKey) return false; /* empty space swings the camera; Shift-drag lifts (the Viewer's own) */
-      const o = obj(pk.obj);
-      if (!o) return false;
-      lv.film.sel = o.id;
+      const o = pk && obj(pk.obj);
+      if (!o) {
+        if (e.shiftKey) {
+          /* Shift-drag on empty space: a box that picks everything inside it */
+          drag = { kind: "box", a: pt, b: pt, add: selection() };
+          return true;
+        }
+        multi = [];
+        return false; /* empty space swings the camera, as before */
+      }
+      if (o.locked) {
+        flash(o.name + " is locked. Unlock it with 🔒 in the list on the left.");
+        return true;
+      }
+      const ids = e.altKey ? [o.id] : groupOf(o);
+      const cur = selection();
+      if (e.shiftKey) {
+        /* Shift-click adds or takes away; Shift-drag lifts it into the air */
+        drag = { kind: "shift", ids, pt0: pt, was: cur };
+        return true;
+      }
+      if (e.altKey || !ids.every((id) => cur.includes(id))) selectIds(ids);
+      else L().film.sel = o.id, (multi = cur.filter((id) => id !== o.id));
       V.edit("build-drag");
       const pl = placeOf(o.id);
       const grab = hitLevel(e, pl.y);
@@ -962,9 +1059,12 @@
         V.changed(true);
         return true;
       }
-      const surf = surfaces(o.id);
+      const all = selection();
+      const surf = surfaces(all);
       const restTop = topAt(surf, pl.x, pl.z, pl.y + 0.05);
-      drag = { kind: "floor", id: o.id, off: [pl.x - grab[0], pl.z - grab[2]], y0: pl.y, surf, resting: Math.abs(pl.y - restTop) < 0.06 };
+      const starts = {};
+      all.forEach((id) => (starts[id] = clone(placeOf(id) || {})));
+      drag = { kind: "floor", id: o.id, ids: all, clickIds: ids, starts, off: [pl.x - grab[0], pl.z - grab[2]], y0: pl.y, surf, resting: Math.abs(pl.y - restTop) < 0.06 };
       V.changed(true);
       return true;
     },
@@ -974,12 +1074,25 @@
       if (drag.kind === "handle") return moveHandle(e);
       if (drag.kind === "stroke") return moveStroke(e);
       if (drag.kind === "wall") return moveWall(e);
+      if (drag.kind === "box") {
+        drag.b = V.canvasPoint(e);
+        return V.redraw();
+      }
+      if (drag.kind === "shift" || drag.kind === "lift") return moveLift(e);
     },
     up() {
       const d = drag;
       drag = null;
       if (d && d.kind === "stroke") endStroke(d);
       if (d && d.kind === "wall") endWall(d);
+      if (d && d.kind === "box") endBox(d);
+      /* a plain click (no drag) on one of several picked things picks just it (and its group) */
+      if (d && d.kind === "floor" && !d.moved && d.ids.length > d.clickIds.length) selectIds(d.clickIds);
+      if (d && d.kind === "shift") {
+        /* a Shift-click that did not move: add to or take away from what is picked */
+        const inAll = d.ids.every((id) => d.was.includes(id));
+        selectIds(inAll ? d.was.filter((id) => !d.ids.includes(id)) : d.was.concat(d.ids));
+      }
       V.changed(true);
     },
     hover(e, dragging) {
@@ -1003,8 +1116,61 @@
     const free = e.altKey;
     pl.x = r3(snapV(p[0] + drag.off[0], S.snap, free));
     pl.z = r3(snapV(p[2] + drag.off[1], S.snap, free));
+    drag.moved = true;
+    const s0 = drag.starts[drag.id];
+    const dy0 = pl.y;
     if (S.land && drag.resting) pl.y = r3(topAt(drag.surf, pl.x, pl.z));
+    /* everything else picked moves the same way */
+    drag.ids.forEach((id) => {
+      if (id === drag.id) return;
+      const q = placeOf(id);
+      const q0 = drag.starts[id];
+      if (!q || !q0) return;
+      q.x = r3(q0.x + pl.x - s0.x);
+      q.z = r3(q0.z + pl.z - s0.z);
+      q.y = r3(Math.max(0, q0.y + pl.y - s0.y));
+    });
+    void dy0;
     V.changed(false);
+  }
+  /* Shift-drag on a thing lifts it (and everything picked with it) straight up or down */
+  function moveLift(e) {
+    const pt = V.canvasPoint(e);
+    if (drag.kind === "shift") {
+      if (Math.hypot(pt[0] - drag.pt0[0], pt[1] - drag.pt0[1]) < 5) return;
+      if (!drag.ids.every((id) => drag.was.includes(id))) selectIds(drag.ids);
+      V.edit("build-lift");
+      const ids = selection();
+      const starts = {};
+      ids.forEach((id) => (starts[id] = clone(placeOf(id) || {})));
+      const p0 = placeOf(L().film.sel);
+      drag = { kind: "lift", ids, starts, pt0: drag.pt0, from: [p0.x, p0.y, p0.z] };
+    }
+    const d = snapV(alongAxis(e, drag.from, [0, 1, 0]), S.snap, e.altKey);
+    drag.ids.forEach((id) => {
+      const q = placeOf(id);
+      if (q) q.y = r3(Math.max(0, drag.starts[id].y + d));
+    });
+    V.changed(false);
+  }
+  function endBox(d) {
+    const x0 = Math.min(d.a[0], d.b[0]);
+    const x1 = Math.max(d.a[0], d.b[0]);
+    const y0 = Math.min(d.a[1], d.b[1]);
+    const y1 = Math.max(d.a[1], d.b[1]);
+    if (x1 - x0 < 4 && y1 - y0 < 4) return;
+    const lv = L();
+    const st = lv.state;
+    const hit = [];
+    lv.film.objects.forEach((o) => {
+      const p = st.place[o.id];
+      if (!p || !p.show || o.locked) return;
+      const b = bounds(o, p);
+      const q = V.projectNow(b.c);
+      if (q && q[0] >= x0 && q[0] <= x1 && q[1] >= y0 && q[1] <= y1) groupOf(o).forEach((id) => hit.push(id));
+    });
+    selectIds(d.add.concat(hit));
+    flash(hit.length ? `Picked ${selection().length} things. Drag one to move them all; ⌘G groups them.` : "Nothing inside the box.");
   }
   function startHandle(e, h) {
     const id = L().film.sel;
@@ -1012,7 +1178,9 @@
     if (!pl) return false;
     V.edit("build-" + h.kind);
     const R = V.ray(e);
-    drag = { kind: "handle", h, id, start: clone(pl), pt0: V.canvasPoint(e) };
+    const others = {};
+    selection().forEach((x) => x !== id && placeOf(x) && (others[x] = clone(placeOf(x))));
+    drag = { kind: "handle", h, id, start: clone(pl), others, pt0: V.canvasPoint(e) };
     if (h.kind === "rotate") {
       const p = hitLevel(e, h.c[1]);
       drag.a0 = p ? Math.atan2(p[0] - h.c[0], p[2] - h.c[2]) / DEG : 0;
@@ -1068,6 +1236,24 @@
       t = snapV(t, S.turnSnap, free);
       pl.turn = Math.round((((t + 180) % 360) + 360) % 360 - 180);
     }
+    /* the others picked with it: moved by the same amount, or turned around the same middle */
+    const dTurn = ((pl.turn - s0.turn) * Math.PI) / 180;
+    Object.keys(drag.others).forEach((id) => {
+      const q = placeOf(id);
+      const q0 = drag.others[id];
+      if (!q) return;
+      if (h.kind === "move") {
+        q.x = r3(q0.x + pl.x - s0.x);
+        q.y = r3(Math.max(0, q0.y + pl.y - s0.y));
+        q.z = r3(q0.z + pl.z - s0.z);
+      } else if (h.kind === "rotate") {
+        const dx = q0.x - h.c[0];
+        const dz = q0.z - h.c[2];
+        q.x = r3(h.c[0] + dx * Math.cos(dTurn) + dz * Math.sin(dTurn));
+        q.z = r3(h.c[2] - dx * Math.sin(dTurn) + dz * Math.cos(dTurn));
+        q.turn = Math.round(q0.turn + (dTurn * 180) / Math.PI);
+      }
+    });
     V.changed(false);
   }
 
@@ -1232,9 +1418,67 @@
   /* ---------- drawing over the picture: handles, the drawing sheet, the mirror line ---------- */
   V.onOverlay((ctx, C, st) => {
     computeHandles(C, st);
+    drawPicked(ctx, st);
     drawHandles(ctx, C);
+    drawSteps(ctx);
     if (tool === "draw" && C) drawSheetHint(ctx, C, st);
   });
+  /* the other picked things get a dashed box; a Shift-drag shows its box */
+  function drawPicked(ctx, st) {
+    const W = ctx.canvas.width;
+    ctx.save();
+    ctx.strokeStyle = "#22d3ee";
+    ctx.lineWidth = Math.max(1.5, W / 800);
+    ctx.setLineDash([6, 5]);
+    multi.forEach((id) => {
+      const o = obj(id);
+      const p = o && st.place[id];
+      if (!p || !p.show) return;
+      const b = bounds(o, p);
+      const pts = [];
+      for (let i = 0; i < 8; i++) {
+        const q = V.projectNow([i & 1 ? b.hi[0] : b.lo[0], i & 2 ? b.hi[1] : b.lo[1], i & 4 ? b.hi[2] : b.lo[2]]);
+        if (q) pts.push(q);
+      }
+      if (pts.length < 2) return;
+      const xs = pts.map((q) => q[0]);
+      const ys = pts.map((q) => q[1]);
+      ctx.strokeRect(Math.min(...xs) - 3, Math.min(...ys) - 3, Math.max(...xs) - Math.min(...xs) + 6, Math.max(...ys) - Math.min(...ys) + 6);
+    });
+    if (drag && drag.kind === "box") {
+      ctx.fillStyle = "rgba(34,211,238,0.12)";
+      const x = Math.min(drag.a[0], drag.b[0]);
+      const y = Math.min(drag.a[1], drag.b[1]);
+      ctx.fillRect(x, y, Math.abs(drag.b[0] - drag.a[0]), Math.abs(drag.b[1] - drag.a[1]));
+      ctx.strokeRect(x, y, Math.abs(drag.b[0] - drag.a[0]), Math.abs(drag.b[1] - drag.a[1]));
+    }
+    ctx.restore();
+  }
+  /* the step sizes, always in sight while building (UEFN shows them on its toolbar) */
+  function stepWords() {
+    const m = S.snap ? (S.snap < 1 ? Math.round(S.snap * 100) + " cm" : S.snap + " m") : "free";
+    const t = S.turnSnap ? S.turnSnap + "°" : "free";
+    return `Steps: move ${m} · turn ${t}`;
+  }
+  function drawSteps(ctx) {
+    if (!["select", "move", "scale", "rotate"].includes(tool)) return;
+    const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
+    const fs = Math.max(11, Math.round(W / 105));
+    ctx.save();
+    ctx.font = `600 ${fs}px -apple-system, "Segoe UI", system-ui, sans-serif`;
+    const n = selection().length;
+    const txt = TOOLS[tool][1] + " · " + stepWords() + (n > 1 ? ` · ${n} picked` : "");
+    const w = ctx.measureText(txt).width + fs * 1.2;
+    const x = W - w - fs * 0.6;
+    const y = H - fs * 2.4;
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(x, y, w, fs * 1.7);
+    ctx.fillStyle = "#ffffff";
+    ctx.textBaseline = "middle";
+    ctx.fillText(txt, x + fs * 0.6, y + fs * 0.85);
+    ctx.restore();
+  }
   function drawSheetHint(ctx, C) {
     const lv = L();
     const d = (pendingDrawing && obj(pendingDrawing)) || (lv.film.sel && obj(lv.film.sel) && obj(lv.film.sel).make === "sketch" ? obj(lv.film.sel) : null);
@@ -1291,16 +1535,33 @@
     if (!V.isOpen()) return false;
     const mod = e.metaKey || e.ctrlKey;
     const lv = L();
-    if (mod && (e.key === "d" || e.key === "D")) {
+    const k0 = (e.key || "").toLowerCase();
+    if (mod && k0 === "d") {
       if (!lv.film.sel) return false;
       e.preventDefault();
-      duplicate(lv.film.sel);
+      duplicate(selection());
+      return true;
+    }
+    if (mod && ((k0 === "g" && e.shiftKey) || k0 === "u")) {
+      e.preventDefault();
+      ungroupSel();
+      return true;
+    }
+    if (mod && k0 === "g") {
+      e.preventDefault();
+      groupSel();
+      return true;
+    }
+    if (mod && k0 === "a" && !e.shiftKey) {
+      e.preventDefault();
+      selectIds(lv.film.objects.filter((o) => !o.locked && lv.panel.place[o.id] && lv.panel.place[o.id].show !== false).map((o) => o.id));
+      V.changed(true);
       return true;
     }
     if (mod || e.altKey) return false;
     if ((e.key === "Delete" || e.key === "Backspace") && lv.film.sel) {
       e.preventDefault();
-      removeThing(lv.film.sel);
+      removeThing(selection());
       return true;
     }
     const map = { 1: "select", 2: "move", 3: "scale", 4: "rotate", p: "draw", t: "words", w: "wall", r: "room", c: "paint" };
@@ -1326,6 +1587,57 @@
 
   /* ---------- the "In the scene" list: quick buttons ---------- */
   V.onThings((box) => {
+    /* Explorer / Outliner: every row gets an eye (shown in this panel) and a lock (can't be picked by mistake) */
+    const lv = L();
+    const picked = selection();
+    box.querySelectorAll("button.cv-thing[data-thing]").forEach((b) => {
+      const id = b.dataset.thing;
+      const o = obj(id);
+      if (!o) return;
+      const pl = lv.panel.place[id];
+      const row = document.createElement("div");
+      row.className = "cvb-trow" + (picked.includes(id) && id !== lv.film.sel ? " picked" : "");
+      b.replaceWith(row);
+      row.appendChild(b);
+      if (o.group) b.insertAdjacentHTML("beforeend", `<small class="cvb-g" title="In ${esc(o.groupName || "a group")}">${esc((o.groupName || "Group").replace("Group ", "G"))}</small>`);
+      row.insertAdjacentHTML("beforeend", `<button type="button" class="cvb-ic${pl && pl.show === false ? " off" : ""}" data-beye="${esc(id)}" title="${pl && pl.show === false ? "Hidden in this panel: click to show" : "Shown in this panel: click to hide"}" aria-label="Show or hide ${esc(o.name)}">${pl && pl.show === false ? "◌" : "👁"}</button><button type="button" class="cvb-ic${o.locked ? " on" : ""}" data-block="${esc(id)}" title="${o.locked ? "Locked: click to unlock" : "Lock it so it can't be picked or moved by mistake"}" aria-label="Lock ${esc(o.name)}">${o.locked ? "🔒" : "🔓"}</button>`);
+    });
+    if (!box.dataset.cvbRows) {
+      box.dataset.cvbRows = "1";
+      box.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-beye], [data-block]");
+        if (b) {
+          const id = b.dataset.beye || b.dataset.block;
+          const o = obj(id);
+          if (!o) return;
+          if (b.dataset.beye) {
+            V.edit("build-eye");
+            const pl = placeOf(id);
+            if (pl) pl.show = pl.show === false;
+          } else {
+            V.edit("build-lock");
+            o.locked = !o.locked;
+            if (o.locked) selectIds(selection().filter((x) => x !== id));
+          }
+          return V.changed(true);
+        }
+        /* Shift-click a name adds it to what is picked; a plain click picks its whole group */
+        const t = e.target.closest("button.cv-thing[data-thing]");
+        if (!t) return;
+        const o = obj(t.dataset.thing);
+        if (!o) return;
+        if (e.shiftKey) {
+          const cur = selection().filter((x) => x !== o.id);
+          selectIds(cur.concat([o.id]));
+          setTimeout(() => V.changed(true), 0);
+        } else if (o.group && !e.altKey) {
+          setTimeout(() => {
+            selectIds([o.id].concat(groupOf(o).filter((x) => x !== o.id)));
+            V.changed(true);
+          }, 0);
+        } else multi = [];
+      }, true);
+    }
     const div = document.createElement("div");
     div.className = "cvb-quick";
     div.innerHTML = `<h3>Draw &amp; build</h3><div class="cv-addrow">
@@ -1369,8 +1681,12 @@
     h += `<div class="cvb-tools" role="toolbar" aria-label="Build tools">${Object.keys(TOOLS)
       .map((k) => `<button type="button" data-btool="${k}" class="${k === tool ? "on" : ""}" title="${esc(TOOLS[k][1])} (${TOOLS[k][2]}). ${esc(TOOLS[k][3])}"><span>${TOOLS[k][0]}</span><small>${esc(TOOLS[k][1])}</small></button>`)
       .join("")}</div>
-      <p class="cv-say cvb-hint"><b>${esc(T[1])}:</b> ${esc(T[3])}</p>`;
-    h += `<div class="cv-row"><button type="button" class="cv-primary" data-ba="search">🔍 Search objects</button><button type="button" data-ba="dup" ${o ? "" : "disabled"} title="Make a copy right next to it (⌘D)">Duplicate</button><button type="button" data-ba="del" ${o ? "" : "disabled"} title="Take it out of the film (Delete)">Delete</button></div>`;
+      <p class="cv-say cvb-hint"><b>${esc(T[1])}:</b> ${esc(T[3])}</p>
+      <div class="cv-row cvb-steps"><button type="button" data-ba="snapm" title="Click to change how far each move jumps">Move steps: <b>${S.snap ? (S.snap < 1 ? Math.round(S.snap * 100) + " cm" : S.snap + " m") : "free"}</b></button><button type="button" data-ba="snapt" title="Click to change how far each turn jumps">Turn steps: <b>${S.turnSnap ? S.turnSnap + "°" : "free"}</b></button></div>`;
+    const nSel = selection().length;
+    const inGroup = selection().some((id) => obj(id).group);
+    h += `<div class="cv-row"><button type="button" class="cv-primary" data-ba="search">🔍 Search objects</button><button type="button" data-ba="dup" ${o ? "" : "disabled"} title="Make a copy right next to it (⌘D)">Duplicate</button><button type="button" data-ba="del" ${o ? "" : "disabled"} title="Take it out of the film (Delete)">Delete</button></div>
+      <div class="cv-row"><button type="button" data-ba="group" ${nSel > 1 ? "" : "disabled"} title="Make the picked things one group that moves together (⌘G)">Group${nSel > 1 ? " " + nSel : ""}</button><button type="button" data-ba="ungroup" ${inGroup ? "" : "disabled"} title="Break the group apart (⌘U)">Ungroup</button><small class="cv-say">Shift-click to pick more, Shift-drag on empty space for a box, ⌘A for all.</small></div>`;
     if (o) h += sec("this", "This thing: " + esc(o.name), thisHtml(o));
     if (tool === "draw") h += sec("pencil", "Pencil", pencilHtml());
     if (tool === "words") h += sec("words", "Words", wordsHtml(null));
@@ -1514,9 +1830,27 @@
       case "search":
         return openSearch();
       case "dup":
-        return o && duplicate(o.id);
+        return o && duplicate(selection());
       case "del":
-        return o && removeThing(o.id);
+        return o && removeThing(selection());
+      case "group":
+        return groupSel();
+      case "ungroup":
+        return ungroupSel();
+      case "snapm": {
+        const L1 = [0, 0.1, 0.25, 0.5, 1, 3];
+        S.snap = L1[(L1.indexOf(S.snap) + 1) % L1.length];
+        saveS();
+        V.redraw();
+        return renderTab();
+      }
+      case "snapt": {
+        const L2 = [0, 5, 15, 45, 90];
+        S.turnSnap = L2[(L2.indexOf(S.turnSnap) + 1) % L2.length];
+        saveS();
+        V.redraw();
+        return renderTab();
+      }
       case "newdrawing":
         pendingDrawing = null;
         lv.film.sel = null;
@@ -1840,6 +2174,14 @@
 .cv-root .cvb-fonts button { font-size: 14px; padding: 6px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cv-root .cvb-in input[type=color] { width: 30px; height: 24px; padding: 0; border: 0; background: none; vertical-align: middle; }
 .cvb-quick { display: grid; gap: 6px; }
+.cvb-trow { display: flex; gap: 2px; align-items: stretch; min-width: 0; }
+.cvb-trow > .cv-thing { flex: 1; min-width: 0; }
+.cvb-trow.picked > .cv-thing { box-shadow: inset 0 0 0 1px var(--c-accent); border-style: dashed; }
+.cv-root .cvb-ic { padding: 2px 4px; font-size: 11px; background: transparent; opacity: 0.55; flex: none; }
+.cv-root .cvb-ic:hover { opacity: 1; }
+.cv-root .cvb-ic.off, .cv-root .cvb-ic.on { opacity: 1; }
+.cvb-g { margin-left: auto; font-size: 10px; color: var(--c-dim); border: 1px solid var(--c-line); border-radius: 4px; padding: 0 3px; }
+.cvb-steps button b { color: var(--c-accent); }
 .cvb-flash { position: fixed; left: 50%; bottom: 190px; transform: translateX(-50%); z-index: 90; background: rgba(12,12,14,0.92); color: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); font-size: 13px; pointer-events: none; max-width: calc(100vw - 32px); }
 .cvb-search { position: fixed; inset: 0; z-index: 85; background: rgba(0,0,0,0.55); display: grid; place-items: center; padding: 16px; }
 .cvb-sbox { width: min(1100px, 100%); height: min(720px, 100%); background: var(--c-panel); border: 1px solid var(--c-line); border-radius: 12px; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
@@ -1897,6 +2239,13 @@
     addItem: (id) => addItem(lib() && lib().find(id)),
     duplicate,
     remove: removeThing,
+    selection: () => selection(),
+    select: (ids) => {
+      selectIds(ids);
+      V.changed(true);
+    },
+    group: groupSel,
+    ungroup: ungroupSel,
     openSearch,
     closeSearch,
     parts: PART_KEYS.slice(),
