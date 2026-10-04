@@ -79,6 +79,19 @@ itself: no downloads, no paid assets, no AI.
   ⧉ opens another copy for another curiosity. Every per-panel setting has a ◇: hollow is the same in every
   panel; ◆ (`o.auto[setting]`) keeps one value per panel with a lane (drag a dot, click to go to that panel,
   double-click for the panel before's value). Open windows: localStorage `curiosities-build-windows-v1`.
+- **People's looks and stuck drawings** (`viewer/wear.js`, `window.CurioWear`; Jeremy 2026-10-04 22:06Z: 3D
+  characters "selectable and draw-able and tweak-able modifiable"). Character search has Make someone from words
+  ("Ida: spiky red hair, overalls, boots": the name before the colon, the rest is the look). Each panel's spot
+  of a person can carry `look` (the words, read by the 3D characters' own reader `CurioRig.maker.read`, loaded
+  with `CurioRig.load()` the first time a look is seen), `lookParts` (hair, hairColor, hat, hatColor, top,
+  topColor, bottom, bottomColor, feet, shoesColor, skin, build, height: maker's names, colors as `#rrggbb`,
+  winning over the words) and `rig: true` (draw as a full 3D character; the Viewer thread's
+  `viewer/rig-actors.js` draws those). The Properties window has a Character section with all of them, each
+  automatable with ◇; The Sims' Build Mode has Create a Sim, Looks (ready-made looks in words). The block
+  figure wears the look (colors, hair shapes, hats, skirts, build and height). A drawing made with the pencil
+  "on things" on a thing sticks to it (`o.pin = { id, lx, ly, lz, dt, ds }`, its spot in the thing's own turn
+  and size), and goes where it goes, turns when it turns and grows when it grows, in every panel; Properties'
+  Stuck to sticks or unsticks anything. A stuck thing dragged by hand stays where it is put, stuck there.
 - **Words** (T): click the picture to place them. Twelve fonts every computer already has (Clean, Book,
   Typewriter, Comic, Poster, Handwriting, Rounded, Elegant, Marker, Old sign, Wide, Narrow), color, bold,
   slanted, outline, letter height, 3D thickness (solid letters), always face the camera, or lay flat on the floor.
@@ -93,7 +106,7 @@ Hooks in viewer.js for add-ons: `CurioViewer.makers` (a maker per `o.make`), `ad
 pointer), `onOverlay` (draw over the picture), `onThings`, `onKey`, and `live()`, `edit()`, `changed()`,
 `pickAt()`, `ray()`, `projectNow()`, `faces()`. Parts can now also be `cyl`, `wedge`, `flat`, `poly` (with
 `two` for both sides), `line` (a pencil line, `w` metres wide) and `text`, with `rx`, `ry`, `rz` turns.
-Settings: `localStorage` `curiosities-build-v1`. API: `window.CurioBuild`. Tests: `node viewer/tests/build.js`, `node viewer/tests/build-windows.js`
+Settings: `localStorage` `curiosities-build-v1`. API: `window.CurioBuild`. Tests: `node viewer/tests/build.js`, `node viewer/tests/build-windows.js`, `node viewer/tests/wear.js [--three three.min.js]`
 (browser) and `node viewer/tests/objects.js`.
 
 The sample is Episode 1, scene 1 ("The napkin") from Wish Myself Well in 13 panels. Start over brings it back.
