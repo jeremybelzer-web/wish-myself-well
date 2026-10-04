@@ -288,15 +288,18 @@
     graph();
   }
   /* ---------- the 3D graph ---------- */
+  let held = null;
   function graphCam(W, H) {
     const L = V().live();
     const f = L.panel.flight;
     const pts = f && f.pts ? f.pts.map((q) => q.p) : [];
     const things = L.film.objects.map((o) => L.panel.place[o.id]).filter(Boolean);
     const all = pts.concat(things.map((p) => [p.x, p.y, p.z]));
-    if (L.C) all.push(L.C.pos);
-    const c = all.length ? mul(all.reduce((a, b) => add(a, b), [0, 0, 0]), 1 / all.length) : [0, 0, 0];
-    const span = Math.max(6, ...all.map((p) => len(sub(p, c))));
+    /* framed on the path and the things only: the moving camera would make the whole graph swim as the film plays,
+       and a drag keeps the frame it started with, so the point under the pointer stays put */
+    if (!all.length && L.C) all.push(L.C.pos);
+    const c = held ? held.c : all.length ? mul(all.reduce((a, b) => add(a, b), [0, 0, 0]), 1 / all.length) : [0, 0, 0];
+    const span = held ? held.span : Math.max(6, ...all.map((p) => len(sub(p, c))));
     const d = span * 2.4 * gv.zoom;
     const pos = add(c, [d * Math.sin(gv.yaw) * Math.cos(gv.pitch), d * Math.sin(gv.pitch), d * Math.cos(gv.yaw) * Math.cos(gv.pitch)]);
     const fwd = norm(sub(c, pos));
@@ -446,7 +449,11 @@
         if (d < best) (best = d), (hit = k);
       });
     }
-    if (hit >= 0) V().edit("flight-waypoint");
+    if (hit >= 0) {
+      const g = graphCam(cv.width, cv.height);
+      held = { c: g.c, span: g.span };
+      V().edit("flight-waypoint");
+    }
     gdrag = { x: e.clientX, y: e.clientY, hit, shift: e.shiftKey, cv };
     try {
       cv.setPointerCapture(e.pointerId);
@@ -482,6 +489,7 @@
     if (!gdrag) return;
     const moved = gdrag.hit >= 0;
     gdrag = null;
+    held = null;
     if (moved) render();
   }
 

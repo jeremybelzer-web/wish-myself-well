@@ -215,6 +215,25 @@
       }).observe(root, { attributes: true, attributeFilter: ["class"] });
     };
     watch();
+    /* panels change size without a redraw (a toolbar opens, words wrap, fonts arrive), so follow their sizes too */
+    const follow = () => {
+      const root = rootEl();
+      if (!root || !window.ResizeObserver) return setTimeout(follow, 300);
+      let queued = false;
+      const ro = new ResizeObserver(() => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(() => {
+          queued = false;
+          place();
+        });
+      });
+      [".cv-main", ".cv-player", ".cv-strip", ".cv-under"].forEach((q) => {
+        const el = root.querySelector(q);
+        if (el) ro.observe(el);
+      });
+    };
+    follow();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
