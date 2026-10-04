@@ -2851,6 +2851,150 @@ const ok = (cond, msg) => {
     }
   }
 
+  /* ---------- Look check of tonight's features (Captions, Look ▾, Transitions, Quick find, My templates, Words on
+     the frame) at 1440×1000, 1280×800 with the Momentum dock, and a 390px touch phone. Each in its own context. ---------- */
+  {
+    const fresh = async (opts) => {
+      const ctx = await browser.newContext(opts);
+      const p = await ctx.newPage();
+      p.on("pageerror", (e) => errors.push(String(e)));
+      await p.goto(base + "index.html?screen=1");
+      await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+      await p.click('button[data-view="screen"]');
+      await p.waitForTimeout(200);
+      return { ctx, p };
+    };
+    const frame2 = (p) => p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    /* Drag across the first lanes, moments 1 to 3, so the area tools (Save as template) show. */
+    const dragArea = async (p) => {
+      await p.focus(".sl");
+      await p.keyboard.press("Escape");
+      const g = await p.evaluate(() => {
+        const sc = document.querySelector(".sl-scroll");
+        sc.scrollLeft = 0;
+        sc.scrollTop = 0;
+        const bgs = document.querySelectorAll(".sl-bg");
+        const r0 = bgs[0].getBoundingClientRect();
+        const r1 = bgs[Math.min(1, bgs.length - 1)].getBoundingClientRect();
+        return { x: r0.x, y0: r0.y, y1: r1.y + r1.height, w: r0.width, n: window.CurioEngine.state().rows.length };
+      });
+      const cw = g.w / g.n;
+      await p.mouse.move(g.x + cw * 0.1, g.y0 + 2);
+      await p.mouse.down();
+      await p.mouse.move(g.x + cw * 2.9, g.y1 - 2, { steps: 8 });
+      await p.mouse.up();
+    };
+    /* 1280×800 with the Momentum dock: the Save as template pop-up opens low in a short timeline; it is lifted so
+       all of it, Save included, is on screen and inside the timeline panel. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 1280, height: 800 } });
+      await dragArea(p);
+      ok(!!(await p.$('.sl .sl-areatools [data-act="tpl-save"]')), "look check: at 1280×800 a selected area offers Save as template");
+      await p.click('.sl [data-act="tpl-save"]');
+      await frame2(p);
+      const g = await p.evaluate(() => {
+        const pop = document.querySelector(".sl-tplpop");
+        if (!pop) return null;
+        const r = pop.getBoundingClientRect();
+        const tl = document.querySelector(".sc-timeline").getBoundingClientRect();
+        const save = pop.querySelector('[data-l="ok"]').getBoundingClientRect();
+        const hit = document.elementFromPoint(save.left + save.width / 2, save.top + save.height / 2);
+        return { t: Math.round(r.top), b: Math.round(r.bottom), tlt: Math.round(tl.top), tlb: Math.round(tl.bottom), saveHit: !!hit && !!hit.closest('[data-l="ok"]'), focus: document.activeElement === pop.querySelector("[data-tpl-name]") };
+      });
+      await p.screenshot({ path: path.join(SHOTS, "screen-14-laptop-template-pop.png") });
+      ok(g && g.b <= 800 && g.b <= g.tlb && g.t >= g.tlt && g.saveHit && g.focus, `look check: at 1280×800 the Save as template pop-up is wholly on screen inside the timeline, Save can be clicked, the name has the focus (${g ? g.t + "–" + g.b + "px, timeline " + g.tlt + "–" + g.tlb : "no pop-up"})`);
+      await p.keyboard.press("Escape");
+      ok(!(await p.$(".sl-tplpop")), "look check: Esc still closes it");
+      await ctx.close();
+    }
+    /* 1440×1000: one pop-up at a time (Look ▾, the words editor, the ◇ chooser, Quick find), and the editor keeps
+       "Shows on moments" boxes together on one line. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 1440, height: 1000 } });
+      const open = () => p.evaluate(() => ({ tr: !!document.querySelector(".sc-tr-menu"), txt: !!document.querySelector(".sc-txt-menu"), look: !!document.querySelector(".sc-mlook-menu"), find: window.CurioScreenFind.isOpen() }));
+      await p.$eval(".sc-viewer.mine .sc-vname", (b) => b.click());
+      await p.click(".sc-inspector [data-look-menu]");
+      ok((await open()).look, "look check: Look ▾ opens");
+      await p.click('.sc-transport [data-act="txt-add"]');
+      let o = await open();
+      ok(o.txt && !o.look, "look check: T Text opens the words editor and closes Look ▾ (they overlapped over Details)");
+      const span = await p.evaluate(() => [...document.querySelectorAll(".sc-txt-menu .sc-txt-span input")].map((i) => Math.round(i.getBoundingClientRect().top)));
+      ok(span.length === 2 && span[0] === span[1], `look check: the editor's two moment boxes sit on one line (${span.join(", ")})`);
+      await p.focus('.sl-top [data-join="2"]');
+      await p.keyboard.press("Enter");
+      o = await open();
+      ok(o.tr && !o.txt, "look check: Enter on a ◇ opens its chooser and closes the words editor");
+      await p.keyboard.press("Control+k");
+      o = await open();
+      ok(o.find && !o.tr && !o.txt, "look check: Quick find closes the chooser rather than leaving it behind");
+      await p.keyboard.press("Escape");
+      await p.click('.sl-top [data-join="2"]');
+      await p.click('.sc-transport [data-act="txt-add"]');
+      o = await open();
+      ok(o.txt && !o.tr, "look check: T Text closes an open chooser");
+      await ctx.close();
+    }
+    /* A 390px touch phone: the new controls are at least 28px to tap (the ◇ 24px wide), the 9-spot grid is a grid,
+       and every pop-up opens wholly on screen. */
+    {
+      const { ctx, p } = await fresh({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      const small = (sel) => p.$$eval(sel, (bs) => bs.filter((b) => b.getClientRects().length).map((b) => { const r = b.getBoundingClientRect(); return { t: (b.textContent || b.getAttribute("aria-label") || b.tagName).trim().slice(0, 16), w: Math.round(r.width), h: Math.round(r.height) }; }).filter((x) => x.h < 27.5 || x.w < 27.5));
+      const onScreen = (sel) => p.evaluate((s) => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); return { ok: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight, at: [r.left, r.top, r.right, r.bottom].map(Math.round).join(",") }; }, sel);
+      const fmt = (l) => l.map((x) => x.t + " " + x.w + "×" + x.h).join(", ");
+      let s = await small('.sc-transport [data-act="captions"], .sc-transport [data-act="txt-add"], .sc-bar [data-act="find"], .sc-inspector [data-look-menu]');
+      ok(s.length === 0, "look check: on a phone Captions, T Text, 🔍 and Look ▾ are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.click('.sc-transport [data-act="captions"]');
+      s = await small(".sc-transport [data-captions-mode]");
+      ok(s.length === 0, "look check: on a phone the captions select is at least 28px tall" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.click('.sc-transport [data-act="txt-add"]');
+      await frame2(p);
+      s = await small(".sc-txt-menu button:not([data-txt-spot]), .sc-txt-menu input:not([type=checkbox])");
+      ok(s.length === 0, "look check: on a phone the words editor's buttons and boxes are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      const g9 = await p.evaluate(() => {
+        const grid = document.querySelector(".sc-txt-grid9").getBoundingClientRect();
+        const bs = [...document.querySelectorAll(".sc-txt-grid9 [data-txt-spot]")].map((b) => b.getBoundingClientRect());
+        const inside = bs.every((r) => r.top >= grid.top - 0.5 && r.bottom <= grid.bottom + 0.5 && r.left >= grid.left - 0.5 && r.right <= grid.right + 0.5);
+        const apart = bs.every((a, i) => bs.every((b, k) => k <= i || a.right <= b.left + 0.5 || b.right <= a.left + 0.5 || a.bottom <= b.top + 0.5 || b.bottom <= a.top + 0.5));
+        return { n: bs.length, inside, apart, h: Math.round(Math.min(...bs.map((r) => r.height))), w: Math.round(Math.min(...bs.map((r) => r.width))), rows: new Set(bs.map((r) => Math.round(r.top))).size };
+      });
+      ok(g9.n === 9 && g9.inside && g9.apart && g9.rows === 3 && g9.h >= 28 && g9.w >= 28, `look check: on a phone the editor's 9-spot grid is three rows of 28px spots inside its box, none on top of another (${g9.w}×${g9.h}, ${g9.rows} rows)`);
+      let os = await onScreen(".sc-txt-menu");
+      ok(os && os.ok, "look check: on a phone the words editor opens wholly on screen (" + (os && os.at) + ")");
+      await p.screenshot({ path: path.join(SHOTS, "screen-14-phone-text-editor.png") });
+      await p.keyboard.press("Escape");
+      const jw = await p.evaluate(() => Math.round(document.querySelector('.sl-top [data-join="2"] .sl-joinhit').getBoundingClientRect().width));
+      ok(jw >= 24, `look check: on a phone a ◇ is ${jw}px wide to tap`);
+      await p.click('.sl-top [data-join="2"]');
+      await frame2(p);
+      s = await small(".sc-tr-menu button, .sc-tr-menu select");
+      os = await onScreen(".sc-tr-menu");
+      ok(s.length === 0 && os && os.ok, "look check: on a phone the ◇ chooser is on screen and its buttons are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.keyboard.press("Escape");
+      await p.click(".sc-inspector [data-look-menu]");
+      os = await onScreen(".sc-mlook-menu");
+      ok(os && os.ok, "look check: on a phone Look ▾ opens on screen (" + (os && os.at) + ")");
+      await p.keyboard.press("Escape");
+      await p.click('.sc-bar [data-act="find"]');
+      os = await onScreen(".sc-find-in");
+      ok(os && os.ok, "look check: on a phone Quick find opens on screen (" + (os && os.at) + ")");
+      await p.keyboard.press("Escape");
+      await dragArea(p);
+      s = await small(".sl-areatools button");
+      ok(s.length === 0, "look check: on a phone the area tools, Save as template included, are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.click('.sl [data-act="tpl-save"]');
+      await frame2(p);
+      s = await small(".sl-tplpop button, .sl-tplpop input");
+      os = await onScreen(".sl-tplpop");
+      ok(s.length === 0 && os && os.ok, "look check: on a phone the template name pop-up is on screen and its buttons are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      await p.keyboard.press("Escape");
+      await p.click('[data-libtab="templates"]');
+      s = await small(".sc-mytpl-tools button");
+      ok(s.length === 0, "look check: on a phone the Templates tab's Export all and Import… are at least 28px" + (s.length ? " (" + fmt(s) + ")" : ""));
+      ok((await p.evaluate(() => document.querySelector(".sc-page").scrollWidth - innerWidth)) <= 1, "look check: on a phone none of it makes the page scroll sideways");
+      await ctx.close();
+    }
+  }
+
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
   server.close();

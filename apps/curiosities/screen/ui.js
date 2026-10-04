@@ -1348,6 +1348,10 @@ document.addEventListener("click", function (e) {
     return m;
   }
   function trMenuOpen(j, anchor) {
+    /* One pop-up at a time: the words editor and Look ▾ give way (their own outside-click closing never sees this
+       click, which stops here, nor Enter on a focused ◇). */
+    if (txtEditId) txtMenuClose();
+    closeLook();
     trMenuAt = j + 1;
     const m = trMenuDraw();
     const r = anchor.getBoundingClientRect();
@@ -1901,7 +1905,7 @@ document.addEventListener("click", function (e) {
       <div class="sc-seg sc-txt-styles" role="group" aria-label="Style">${TEXT.STYLES.map(([id, l, tip]) => `<button type="button" data-txt-style="${id}" class="${t.style === id ? "on" : ""}" aria-pressed="${t.style === id}" title="${esc(tip)}">${esc(l)}</button>`).join("")}</div>
       <div class="sc-txt-row"><div class="sc-txt-grid9" role="group" aria-label="Place in the frame">${TEXT.SPOTS.map(([id, l]) => `<button type="button" data-txt-spot="${id}" class="${t.spot === id ? "on" : ""}" aria-pressed="${t.spot === id}" aria-label="${esc(l)}" title="${esc(l)}"></button>`).join("")}</div>
       <div class="sc-txt-col"><span class="sc-seg" role="group" aria-label="Size">${TEXT.SIZES.map(([id, b, l]) => `<button type="button" data-txt-size="${id}" class="${t.size === id ? "on" : ""}" aria-pressed="${t.size === id}" title="${esc(l)}">${b}</button>`).join("")}</span>
-      <span class="sc-txt-span">Shows on moments <input type="number" data-txt-from min="1" max="${n}" value="${t.from}" aria-label="First moment it shows on"> to <input type="number" data-txt-to min="1" max="${n}" value="${t.to}" aria-label="Last moment it shows on"></span>
+      <span class="sc-txt-span">Shows on moments <span class="sc-txt-span-in"><input type="number" data-txt-from min="1" max="${n}" value="${t.from}" aria-label="First moment it shows on"> to <input type="number" data-txt-to min="1" max="${n}" value="${t.to}" aria-label="Last moment it shows on"></span></span>
       <label class="sc-txt-fade" title="The words fade in on their first moment and out at the end of their last, while Play runs"><input type="checkbox" data-txt-fade${t.fade ? " checked" : ""}> Fade in and out</label></div></div>
       <p class="sc-txt-tip">${esc(st[2])}</p>
       <p class="sc-txt-acts"><button type="button" class="sc-txt-del" data-txt-del title="Delete these words from your film (Undo brings them back)">Delete</button></p>`;
@@ -1918,6 +1922,8 @@ document.addEventListener("click", function (e) {
   }
   function txtMenuOpen(id) {
     if (!txtItem(id)) return;
+    if (trMenuAt) trMenuClose();
+    closeLook();
     txtEditId = id;
     const old = page.querySelector(".sc-txt-menu");
     if (old) old.remove();
@@ -4791,6 +4797,8 @@ document.addEventListener("click", function (e) {
     if (historyOpen) toggleHistory(false);
     closeLook();
     closeCurMenu();
+    if (trMenuAt) trMenuClose();
+    if (txtEditId) txtMenuClose();
     if (keysOpen) showKeys(false);
     if (!findRoot) findBuild();
     findItems = findCatalog();

@@ -943,3 +943,23 @@ html.sc-open, html.sc-open body { overflow: hidden; }
 @media (max-width: 600px) {
   .sc-txt-row { flex-wrap: wrap; }
 }
+
+/* ---------- Look check (1440×1000, 1280×800 with the Momentum dock, a 390px phone) of tonight's features ----------
+   The editor's "Shows on moments" keeps its two boxes together on one line when it wraps. */
+.sc-txt-span-in { display: inline-flex; gap: 4px; align-items: center; white-space: nowrap; }
+/* Phones: the controls of Captions, Look ▾, Transitions, Quick find, My templates and Words on the frame are at
+   least 28px to tap. The phone rule above makes every button 26px with a selector this block cannot outrank, so
+   it uses !important. The 9-spot grid grows its rows to match, instead of 26px buttons spilling out of 20px rows
+   (it drew as three tall bars). */
+@media (max-width: 480px) {
+  .sc-page .sc-transport [data-act="captions"], .sc-page .sc-transport [data-captions-mode], .sc-page .sc-transport [data-act="txt-add"],
+  .sc-page .sc-bar [data-act="find"], .sc-page .sc-mlook-b,
+  .sc-page .sc-trrow button, .sc-page .sc-trrow select, .sc-page .sc-tr-menu button, .sc-page .sc-tr-menu select,
+  .sc-page .sc-txt-menu button, .sc-page .sc-txt-menu input:not([type="checkbox"]),
+  .sc-page .sl-tplpop button, .sc-page .sl-tplpop input, .sc-page .sl-areatools button,
+  .sc-page .sc-mytpl-tools button, .sc-page .sc-tpl-acts button { min-height: 28px !important; }
+  .sc-page .sc-bar [data-act="find"], .sc-page .sc-tr-x, .sc-page .sc-txt-menu .sc-seg button { min-width: 28px; }
+  .sc-txt-fade, .sc-mytpl-tools label { min-height: 28px; }
+  .sc-txt-grid9 { grid-template: repeat(3, 28px) / repeat(3, 34px); }
+  .sc-page .sc-txt-grid9 button { min-height: 0 !important; }
+}

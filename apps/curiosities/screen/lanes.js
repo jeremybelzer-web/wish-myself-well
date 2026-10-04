@@ -1698,12 +1698,14 @@
            { kind, title } per moment, the join into it; the first is null). The page opens a chooser on click. */
         if (film && opts.joins) {
           const js = opts.joins() || [];
+          /* Wider to tap on a phone or touch screen (the clip between two ◇ keeps at least 22px). */
+          const joinW = groupH() === GROUP_H_TOUCH ? 24 : 16;
           for (let j = 1; j < n; j++) {
             const jn = js[j];
             if (!jn) continue;
             const x = j * colW;
             const cy = y + CLIP_H / 2;
-            tsvg.push(`<g class="sl-join${jn.kind && jn.kind !== "cut" ? " set" : ""}" data-join="${j}" data-kind="${esc(jn.kind || "cut")}" tabindex="0" role="button" aria-label="${esc(jn.title || "Transition")}"><rect class="sl-joinhit" x="${x - 8}" y="${y + 2}" width="16" height="${CLIP_H - 4}"/><path d="M${x} ${cy - 6}l6 6-6 6-6-6z"/><title>${esc(jn.title || "")}</title></g>`);
+            tsvg.push(`<g class="sl-join${jn.kind && jn.kind !== "cut" ? " set" : ""}" data-join="${j}" data-kind="${esc(jn.kind || "cut")}" tabindex="0" role="button" aria-label="${esc(jn.title || "Transition")}"><rect class="sl-joinhit" x="${x - joinW / 2}" y="${y + 2}" width="${joinW}" height="${CLIP_H - 4}"/><path d="M${x} ${cy - 6}l6 6-6 6-6-6z"/><title>${esc(jn.title || "")}</title></g>`);
           }
         }
       });
@@ -3173,6 +3175,20 @@
       requestAnimationFrame(() => {
         const over = pop.isConnected ? pop.offsetLeft + pop.offsetWidth - el.clientWidth : 0;
         if (over > 0) pop.style.left = Math.max(0, pop.offsetLeft - over) + "px";
+        /* And lift one that runs past the bottom of the window, or of the timeline panel when that scrolls on its
+           own (a short laptop screen), so its Save and Cancel stay in view; never above the panel's top. */
+        if (!pop.isConnected) return;
+        let box = { top: 0, bottom: window.innerHeight };
+        for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+          if (/(auto|scroll|hidden)/.test(getComputedStyle(a).overflowY)) {
+            const ar = a.getBoundingClientRect();
+            box = { top: Math.max(0, ar.top), bottom: Math.min(window.innerHeight, ar.bottom) };
+            break;
+          }
+        }
+        const pr = pop.getBoundingClientRect();
+        const down = pr.bottom - (box.bottom - 6);
+        if (down > 0) pop.style.top = pop.offsetTop - Math.min(down, Math.max(0, pr.top - (box.top + 4))) + "px";
       });
       return pop;
     }
