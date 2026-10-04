@@ -26,6 +26,7 @@
   "db-depth-sound.js",
   "db-depth-acting.js",
   "db-depth-world.js",
+  "db-depth-look.js",
   "db-model-scenes-2.js",
   "db-model-scenes-3.js"
 ]
