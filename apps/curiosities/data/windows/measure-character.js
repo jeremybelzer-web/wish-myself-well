@@ -51,14 +51,6 @@
     window: { groups: [{ label: "Measured", sliders: ["purity", "fearMoments"] }] },
   });
 
-  W.add("enneagramHealth", {
-    sliders: [
-      ["levelsMoved", "Levels moved since the start", [-8, 8, "levels", 1], "How many health levels they have climbed (plus) or slid (minus) since the story began.", { from: 0, to: 0 }],
-      ["scenesHere", "Scenes at this level", [0, 20, "scenes", 1], "How long they have stayed at this level of health.", { from: 1, to: 1 }],
-    ],
-    window: { groups: [{ label: "Measured", sliders: ["levelsMoved", "scenesHere"] }] },
-  });
-
   W.add("cm-stability", {
     sliders: [
       ["changes", "Things they change this scene", [0, 10, "", 1], "How many things are different because of them by the end of the scene.", { from: 1, to: 1 }],
