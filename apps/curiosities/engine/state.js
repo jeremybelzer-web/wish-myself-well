@@ -8,7 +8,10 @@
      rows    [{ id, label }]                   the moments of your film, top to bottom (a panel or a scene)
      tracks  [{ id, kind, label, curiosities }] the columns: Master, Camera, one per character
      source  { "row|track|curiosity": value }   your own material, cell by cell
-     lanes   { "track|curiosity": { on, mode, points: { rowId: value } } }  automation over the rows
+     lanes   { "track|curiosity": { on, mode, level?, points: { rowId: value } } }  automation over the rows;
+             level (0 to 1, kept only below 1) is the lane's level bar: 1 plays as drawn, 0 plays its neutral
+             value (the curiosity's starting value), in between that share of its distance from neutral
+     masters { list: [...] } (kept only when it has any) the master nodes: see MASTERS below
      links   [{ id, label, on, from, to, does, value, amount, within, every, scope }]  proximities, as data
      edits   { "row|track|curiosity": { v } or { off: true } }  your hand edits on the result, replayed last
      refs    [{ id, name, kind, rows, lanes }]  curiosities pulled out of reference works (values only)
@@ -36,7 +39,7 @@
   const S = root.CurioScale;
   const KEY = "curiosities-engine-v1";
   const VERSION = 2; /* 2: link suites, a link's chance, the print window */
-  const LIMIT = { suites: 60, rows: 64, tracks: 16, perTrack: 24, links: 200, refs: 12, refRows: 200, text: 80, undo: 300, hops: 8 };
+  const LIMIT = { suites: 60, rows: 64, tracks: 16, perTrack: 24, links: 200, refs: 12, refRows: 200, text: 80, undo: 300, hops: 8, masters: 120 };
   const DOES = ["follow", "oppose", "rise", "fall", "moveWith", "set"];
   const CHANGE = ["any", "rises", "drops"];
   const KINDS = ["master", "camera", "character", "look", "sound", "other"];
@@ -64,6 +67,65 @@
   }
   const cellKey = (r, t, c) => r + "|" + t + "|" + c;
   const laneKey = (t, c) => t + "|" + c;
+  /* ---------- the performance (Jeremy's triggers, "curiosity proximity") ----------
+     A trigger firing during playback is not an undo step: it is a performance, and it is put back when playback
+     stops (the music app's notes, section 6). So it is kept here, beside the state, never in it: not saved, not
+     fingerprinted, not on the undo list, and listeners are not told (whoever performs redraws). Named layers, so
+     the triggers (screen/triggers.js) and the master nodes each keep their own; they are laid over the saved lanes
+     in the order they were first set, before the rewrite's step 2, so links and hand edits still run after.
+     layer: { lanes: { "track|cur": { on?, mode?, points?: { rowId: value }, scale?: 0..100, set?: 0..1,
+     nodes?: { rowId: { off?, scale?, set? } } } } }. scale is how far each value goes from the
+     curiosity's start value (its neutral): 0 is the start value itself, 100 the value as drawn; set holds the whole lane at that
+     place on its scale. */
+  const performLayers = new Map();
+  function performedLanes(st) {
+    const lanes = Object.assign({}, st.lanes);
+    const firstRow = st.rows.length ? st.rows[0].id : null;
+    const carries = (t, c) => st.tracks.some((tr) => tr.id === t && tr.curiosities.includes(c));
+    const scaled = (c, v, s) => {
+      const p = S.pos(c, v);
+      const n = S.pos(c, S.start(c));
+      if (p == null || n == null) return v;
+      return S.at(c, Math.min(1, Math.max(0, n + (p - n) * (Math.max(0, Math.min(100, Number(s) || 0)) / 100))));
+    };
+    performLayers.forEach((layer) => {
+      const ls = layer && isObj(layer.lanes) ? layer.lanes : {};
+      Object.keys(ls).forEach((lk) => {
+        const o = ls[lk];
+        const [t, c] = lk.split("|");
+        if (!isObj(o) || !c || !carries(t, c)) return;
+        const was = lanes[lk];
+        const lane = was ? { on: was.on, mode: was.mode, points: Object.assign({}, was.points) } : { on: true, mode: "ramp", points: {} };
+        if (isObj(o.points)) {
+          lane.points = {};
+          Object.keys(o.points).forEach((r) => {
+            const v = S.fix(c, o.points[r]);
+            if (v != null) lane.points[r] = v;
+          });
+        }
+        if (typeof o.on === "boolean") lane.on = o.on;
+        if (MODES.includes(o.mode)) lane.mode = o.mode;
+        if (isObj(o.nodes))
+          Object.keys(o.nodes).forEach((r) => {
+            const nd = o.nodes[r];
+            if (!isObj(nd) || lane.points[r] == null) return;
+            if (nd.off) delete lane.points[r];
+            else if (typeof nd.set === "number") lane.points[r] = S.at(c, nd.set);
+            else if (typeof nd.scale === "number") lane.points[r] = scaled(c, lane.points[r], nd.scale);
+          });
+        if (typeof o.scale === "number") Object.keys(lane.points).forEach((r) => (lane.points[r] = scaled(c, lane.points[r], o.scale)));
+        if (typeof o.set === "number" && firstRow) {
+          lane.points = { [firstRow]: S.at(c, o.set) };
+          lane.mode = "hold";
+          lane.on = true;
+        }
+        if (!was && !Object.keys(lane.points).length) return;
+        lanes[lk] = lane;
+      });
+    });
+    return lanes;
+  }
+  const performed = (st) => (performLayers.size ? Object.assign({}, st, { lanes: performedLanes(st) }) : st);
   function idOk(s) {
     return typeof s === "string" && /^[A-Za-z0-9_.:@-]{1,80}$/.test(s) && !/^(__proto__|constructor|prototype|hasOwnProperty|toString|valueOf)$/.test(s);
   }
@@ -162,7 +224,11 @@
           });
         if (!Object.keys(points).length) return;
         st.lanes[k] = { on: l.on !== false, mode: MODES.includes(l.mode) ? l.mode : "ramp", points };
+        const lv = fixLevel(l.level);
+        if (lv < 1) st.lanes[k].level = lv;
       });
+    const ms = fixMasters(raw.masters, rowIds, trackOf);
+    if (ms) st.masters = ms;
     (Array.isArray(raw.suites) ? raw.suites : []).slice(0, LIMIT.suites).forEach((x) => {
       if (!isObj(x) || !idOk(x.id) || st.suites.some((y) => y.id === x.id)) return;
       const out = { id: x.id, label: text(x.label, 160) || x.id, on: x.on !== false };
@@ -184,6 +250,109 @@
     });
     st.print = { auto: !!(isObj(raw.print) && raw.print.auto === true), from: int(isObj(raw.print) ? raw.print.from : 0, 0, Math.max(0, st.rows.length - 1), 0) };
     return st;
+  }
+  /* A lane's level bar: 0 to 1 in hundredths (a percent). */
+  function fixLevel(v) {
+    return Math.round(num(v, 0, 1, 1) * 100) / 100;
+  }
+  /* ---------- MASTERS: master nodes (the music app's notes, section 6; Jeremy 2026-10-04) ----------
+     A master is a whole suite of automation placed on tracks as one thing. Its source ◇ is where it was copied
+     from; each destination ◆ (a node) is one placed copy on one track. The screen (screen/masters.js) writes a
+     master's automation into the lanes as ordinary points, after saving what lay under it (under), so the engine
+     plays lanes only and every player, preview and export agrees. This part only keeps the data valid:
+       { list: [{ id, label, src: { tracks, t0, t1 }, span, suite: { lanes: [{ cur, track, mode, points: [[at, value]] }] },
+                  on, gate: { k: 0 }, lfo, scale, nodes: [{ id, n, track, t, lks, on?, gate?, lfo?, scale?, under }] }],
+         seq }
+     t0, t1, t: row ids; span: how many moments; at, k: moments from the start; lfo 0, 1, 2 or 4 moments; scale 0
+     (off) to 100 (as copied); n: the order nodes were placed in (the newest wins where two overlap); under:
+     { "track|curiosity": { rowId: value or null } }, what each moment held before (null: no point). A node's own
+     on, gate, lfo or scale overrides its master's; left out, the master's (the source ◇) rules. */
+  const LFOS = [0, 1, 2, 4];
+  function fixGate(g, span) {
+    const out = {};
+    if (isObj(g)) Object.keys(g).forEach((k) => {
+      const i = int(k, 0, 999, -1);
+      if (i >= 0 && i < span && Number(g[k]) === 0) out[i] = 0;
+    });
+    return out;
+  }
+  function fixMasters(raw, rowIds, trackOf) {
+    if (!isObj(raw) || !Array.isArray(raw.list)) return null;
+    const list = [];
+    const ids = new Set();
+    raw.list.slice(0, LIMIT.masters).forEach((m) => {
+      if (!isObj(m) || !idOk(m.id) || ids.has(m.id)) return;
+      const span = int(m.span, 1, LIMIT.rows, 1);
+      const suite = { lanes: [] };
+      (isObj(m.suite) && Array.isArray(m.suite.lanes) ? m.suite.lanes : []).slice(0, 64).forEach((l) => {
+        if (!isObj(l) || !idOk(l.cur)) return suite.lanes.push(null);
+        const pts = [];
+        (Array.isArray(l.points) ? l.points : []).forEach((p) => {
+          if (!Array.isArray(p)) return;
+          const at = int(p[0], 0, span - 1, -1);
+          const v = at >= 0 ? fixValue(l.cur, p[1]) : null;
+          if (v != null && !pts.some((q) => q[0] === at)) pts.push([at, v]);
+        });
+        pts.sort((a, b) => a[0] - b[0]);
+        suite.lanes.push({ cur: l.cur, track: idOk(l.track) ? l.track : "", mode: MODES.includes(l.mode) ? l.mode : "ramp", points: pts });
+      });
+      const src = isObj(m.src) ? m.src : {};
+      const out = {
+        id: m.id,
+        label: text(m.label) || "Master",
+        src: { tracks: (Array.isArray(src.tracks) ? src.tracks : []).filter((t) => idOk(t) && trackOf[t]).slice(0, LIMIT.tracks), t0: rowIds.has(src.t0) ? src.t0 : "", t1: rowIds.has(src.t1) ? src.t1 : "" },
+        span,
+        suite,
+        on: m.on !== false,
+        gate: fixGate(m.gate, span),
+        lfo: LFOS.includes(Number(m.lfo)) ? Number(m.lfo) : 0,
+        scale: int(m.scale, 0, 100, 100),
+        nodes: [],
+      };
+      const nids = new Set();
+      (Array.isArray(m.nodes) ? m.nodes : []).slice(0, LIMIT.tracks * 4).forEach((x) => {
+        if (!isObj(x) || !idOk(x.id) || nids.has(x.id) || ids.has(x.id) || !trackOf[x.track] || !rowIds.has(x.t)) return;
+        const node = { id: x.id, n: int(x.n, 0, 1e9, 0), track: x.track, t: x.t, lks: [], under: {} };
+        suite.lanes.forEach((l, k) => {
+          const lk = Array.isArray(x.lks) ? x.lks[k] : null;
+          const [t, c] = String(lk || "").split("|");
+          node.lks.push(l && lk && trackOf[t] && trackOf[t].curiosities.includes(c) ? lk : null);
+        });
+        if (typeof x.on === "boolean") node.on = x.on;
+        if (isObj(x.gate)) node.gate = fixGate(x.gate, span);
+        if (x.lfo != null && LFOS.includes(Number(x.lfo))) node.lfo = Number(x.lfo);
+        if (x.scale != null && isFinite(Number(x.scale))) node.scale = int(x.scale, 0, 100, 100);
+        if (isObj(x.under))
+          Object.keys(x.under).forEach((lk) => {
+            if (!node.lks.includes(lk) || !isObj(x.under[lk])) return;
+            const c = lk.slice(lk.indexOf("|") + 1);
+            const u = {};
+            Object.keys(x.under[lk]).forEach((r) => {
+              if (!rowIds.has(r)) return;
+              const v = x.under[lk][r] === null ? null : fixValue(c, x.under[lk][r]);
+              if (v != null || x.under[lk][r] === null) u[r] = v;
+            });
+            node.under[lk] = u;
+          });
+        nids.add(x.id);
+        node.lks = node.lks.map((v) => v);
+        out.nodes.push(node);
+      });
+      ids.add(m.id);
+      nids.forEach((x) => ids.add(x));
+      list.push(out);
+    });
+    if (!list.length) return null;
+    return { list, seq: int(raw.seq, 0, 1e9, 0) };
+  }
+  /* Keep the masters valid after rows, tracks or curiosities go (so the state needs no fixing on reload). */
+  function tidyMasters(st) {
+    if (!st.masters) return;
+    const trackOf = Object.create(null);
+    st.tracks.forEach((t) => (trackOf[t.id] = t));
+    const ms = fixMasters(st.masters, new Set(st.rows.map((r) => r.id)), trackOf);
+    if (ms) st.masters = ms;
+    else delete st.masters;
   }
   function fixEnd(e, trackOf) {
     if (!isObj(e) || !trackOf[e.track] || !trackOf[e.track].curiosities.includes(e.curiosity)) return null;
@@ -277,7 +446,29 @@
         out[i] = pa == null || pb == null ? a.v : S.at(cur, pa + (pb - pa) * (lane.mode === "smooth" ? ease(t) : t));
       }
     }
-    return out;
+    return lane.level != null && lane.level < 1 ? out.map((v) => levelled(cur, v, lane.level)) : out;
+  }
+  /* The level bar: a value moved toward the curiosity's neutral value (its starting value) by the lane's level,
+     never toward zero blindly. 1 plays as drawn; 0 plays the neutral value. */
+  function levelled(cur, v, level) {
+    if (v === undefined || v === null || level >= 1) return v;
+    const p = S.pos(cur, v);
+    const pn = S.pos(cur, S.start(cur));
+    if (p == null || pn == null) return level <= 0 ? S.start(cur) : v;
+    return S.at(cur, pn + (p - pn) * Math.max(0, level));
+  }
+  /* The curve shapes a line between two nodes can take (the Curves pop-up and Alt + drag): where the line is at t
+     (0 to 1) between them, 0 at the first node and 1 at the second. The timeline bakes them into the moments
+     between the two nodes and draws them with this same function, so what is drawn is what plays. */
+  function shapeAt(shape, bend, t) {
+    const k = 1 + 4 * Math.max(0, Math.min(1, (Number(bend) || 0) / 100));
+    if (shape === "smooth") return t < 0.5 ? 0.5 * Math.pow(2 * t, k) : 1 - 0.5 * Math.pow(2 - 2 * t, k);
+    if (shape === "slowStart") return Math.pow(t, k);
+    if (shape === "fastStart") return 1 - Math.pow(1 - t, k);
+    if (shape === "overshoot") return 1 - Math.pow(1 - t, 2) + ((k - 1) / 4) * 0.35 * Math.sin(Math.PI * t);
+    if (shape === "jumpEarly") return t > 0 ? 1 : 0;
+    if (shape === "jumpLate") return t < 1 ? 0 : 1;
+    return t;
   }
   function stepsFor(cur, amount) {
     return amount > 0 ? Math.max(1, Math.round(amount * S.steps(cur))) : 0;
@@ -313,6 +504,7 @@
     return ((h >>> 0) % 100000) / 100000;
   }
   function rewrite(st) {
+    if (st === state) st = performed(st); /* the live film plays its performance; other states are rewritten as they are */
     const n = st.rows.length;
     const dest = Object.create(null);
     const why = Object.create(null);
@@ -492,12 +684,14 @@
     });
     st.links.forEach((l) => l.scope && (l.scope.from === id || l.scope.to === id) && delete l.scope);
     st.print.from = Math.min(st.print.from, Math.max(0, st.rows.length - 1));
+    tidyMasters(st);
   }
   function dropCuriosity(st, t, c) {
     t.curiosities = t.curiosities.filter((x) => x !== c);
     ["source", "edits"].forEach((part) => Object.keys(st[part]).forEach((k) => k.split("|")[1] === t.id && k.split("|")[2] === c && delete st[part][k]));
     delete st.lanes[laneKey(t.id, c)];
     st.links = st.links.filter((l) => !((l.from.track === t.id && l.from.curiosity === c) || (l.to.track === t.id && l.to.curiosity === c)));
+    tidyMasters(st);
   }
   function trackFrom(st, m) {
     const t = {
@@ -641,6 +835,7 @@
       const t = track(st, m.track);
       t.curiosities.slice().forEach((c) => dropCuriosity(st, t, c));
       st.tracks = st.tracks.filter((x) => x !== t);
+      tidyMasters(st);
     },
     renameTrack(st, m) {
       const t = track(st, m.track);
@@ -683,6 +878,22 @@
         lane.mode = m.mode;
       }
       if (m.on != null) lane.on = m.on === true;
+      if (m.level != null) {
+        const lv = fixLevel(m.level);
+        if (lv < 1) lane.level = lv;
+        else delete lane.level;
+      }
+    },
+    /* The master nodes, replaced as a whole (screen/masters.js sends them in the same batch as the points they
+       write, so a gesture is one undo step). masters: null or an empty list takes them all away. */
+    setMasters(st, m) {
+      need(isObj(m), "The message is empty.");
+      const trackOf = Object.create(null);
+      st.tracks.forEach((t) => (trackOf[t.id] = t));
+      const ms = m.masters == null ? null : fixMasters(m.masters, new Set(st.rows.map((r) => r.id)), trackOf);
+      need(m.masters == null || ms || (isObj(m.masters) && Array.isArray(m.masters.list) && !m.masters.list.length), "Those master nodes don't fit this film.");
+      if (ms) st.masters = ms;
+      else delete st.masters;
     },
     clearLane(st, m) {
       const t = track(st, m.track);
@@ -823,9 +1034,10 @@
     importFilm(st, m) {
       need(isObj(m) && isObj(m.film), "Nothing to import.");
       const f = m.film;
-      const next = normalize(Object.assign({}, st, { rows: f.rows, tracks: f.tracks, source: f.source || {}, edits: m.keepEdits ? st.edits : {}, lanes: m.keepLanes ? st.lanes : {} }));
+      const next = normalize(Object.assign({}, st, { rows: f.rows, tracks: f.tracks, source: f.source || {}, edits: m.keepEdits ? st.edits : {}, lanes: m.keepLanes ? st.lanes : {}, masters: m.keepLanes ? st.masters : null }));
       need(next.rows.length && next.tracks.length, "The import has no rows or no tracks.");
       Object.assign(st, next);
+      if (!next.masters) delete st.masters;
       if (f.name) st.name = text(f.name) || st.name;
       st.next = Math.max(st.next, int(f.next, 1, 1e9, 1));
     },
@@ -870,6 +1082,7 @@
     setPoint: "Set an automation point",
     removePoint: "Remove an automation point",
     laneMode: "Change a lane",
+    setMasters: "Change master nodes",
     clearLane: "Clear a lane",
     addLink: "Add a link",
     updateLink: "Change a link",
@@ -1064,6 +1277,12 @@
     },
     cellKey,
     laneKey,
+    /* A curiosity's neutral value (what "nothing applied" means: its starting value), the level bar's rule and the
+       curve shapes, so the timeline draws with the same functions the engine plays with. */
+    neutral: (cur) => S.start(cur),
+    levelled,
+    shapeAt,
+    LFOS: LFOS.slice(),
     /* Run fn without telling any window (the self-check uses it, so nothing redraws or prints meanwhile). */
     silently(fn) {
       hush++;
@@ -1073,6 +1292,16 @@
         hush--;
       }
     },
+    /* The performance (see performLayers): perform(name, layer) sets one layer, perform(name, null) clears it,
+       perform(null) clears them all (playback stopped). Not saved and not an undo step; listeners are not told. */
+    perform(name, layer) {
+      if (name == null) performLayers.clear();
+      else if (layer == null) performLayers.delete(String(name));
+      else performLayers.set(String(name), clone(layer));
+      result = rewrite(state);
+      return [...performLayers.keys()];
+    },
+    performing: () => [...performLayers.keys()],
     /* Forget the redo steps (after the self-check undid its own test steps). */
     dropRedo(n) {
       redoList.splice(Math.max(0, redoList.length - (n == null ? redoList.length : n)));

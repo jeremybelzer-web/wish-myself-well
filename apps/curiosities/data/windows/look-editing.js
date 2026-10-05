@@ -30,6 +30,21 @@
   /* A whole 320x180 scene drawn small at (x, y), w wide, clipped to its frame. */
   const mini = (id, x, y, w, inner, stroke) =>
     `<g transform="translate(${r1(x)} ${r1(y)}) scale(${r1((w / 320) * 1000) / 1000})"><clipPath id="${id}"><rect x="0" y="0" width="320" height="180"/></clipPath><g clip-path="url(#${id})">${inner}</g><rect x="0" y="0" width="320" height="180" fill="none" stroke="${stroke || "#666"}" stroke-width="6"/></g>`;
+  /* A film frame w by h at (x, y) holding a 320x180 drawing scaled to the frame's height and centred, clipped. */
+  const cell = (id, x, y, w, h, inner, stroke) => {
+    /* A frame wider than 16:9 fills its width and shows the middle band of the picture (around y 110). */
+    const s = Math.max(h / 180, w / 320);
+    const ty = Math.min(y, Math.max(y + h - 180 * s, y + h / 2 - 110 * s));
+    return `<clipPath id="${id}"><rect x="${r1(x)}" y="${r1(y)}" width="${r1(Math.max(0.5, w))}" height="${r1(h)}"/></clipPath><g clip-path="url(#${id})"><g transform="translate(${r1(x + w / 2 - 160 * s)} ${r1(ty)}) scale(${r1(s * 1000) / 1000})">${inner}</g></g>` + rect(x, y, w, h, "none", { stroke: stroke || "#0b0b0d", sw: 1 });
+  };
+  /* The dark band and sprocket holes behind a strip of film frames. */
+  const sprockets = (x, y, w, h) => {
+    let o = rect(x - 2, y - 6, w + 4, h + 12, "#0b0b0d");
+    for (let hx = x + 2; hx < x + w - 2; hx += 7) o += rect(hx, y - 4, 3, 2.5, "#4a4a52") + rect(hx, y + h + 1.5, 3, 2.5, "#4a4a52");
+    return o;
+  };
+  /* A plain backdrop with a floor, for people inside a frame. */
+  const set = (k, c) => rect(0, 0, 320, 180, c) + rect(0, 128, 320, 52, k.mix(c, "#000000", 0.45));
   const room = (k, o) => k.wall({ y: (o && o.y) || 125, color: (o && o.wall) || "#cdbfa8", floor: (o && o.floor) || "#7d6650" });
   const path = (pts, c, w, dash, fill) => `<path d="${pts.map((p, i) => (i ? "L" : "M") + r1(p[0]) + " " + r1(p[1])).join(" ")}" fill="${fill || "none"}" stroke="${c || "#ffd166"}" stroke-width="${w || 2}"${dash ? ` stroke-dasharray="${dash}"` : ""} stroke-linejoin="round" stroke-linecap="round"/>`;
   const star = (x, y, r, c, n) => {
@@ -79,17 +94,27 @@
     const icon = { "slow exhale": "~ phew", "a laugh": "ha!", "a shock": "!!", "a cut away": "| cut" }[rk] || rk;
     const grip = v.p("audienceGrip");
     const from = wordsOf(v, "tensionFrom");
-    const fromIcon = /clock/.test(from) ? k.clock({ x: 248, y: 30, r: 9, p: 0.8 }) : /threat/.test(from) ? star(248, 30, 9, "#ef476f", 5) : /secret/.test(from) ? rect(240, 24, 16, 12, "#c77dff", { stroke: "#000", rx: 2 }) : /person/.test(from) ? k.face({ x: 248, y: 30, r: 9, mood: -0.6 }) : k.text({ x: 248, y: 36, text: "?", size: 18, color: "#7fb7ff" });
+    const fromIcon = /clock/.test(from) ? k.clock({ x: 232, y: 88, r: 8, p: 0.8 }) : /threat/.test(from) ? star(232, 88, 8, "#ef476f", 5) : /secret/.test(from) ? rect(224, 82, 16, 12, "#c77dff", { stroke: "#000", rx: 2 }) : /person/.test(from) ? k.face({ x: 232, y: 88, r: 8, mood: -0.6 }) : k.text({ x: 232, y: 94, text: "?", size: 16, color: "#7fb7ff" });
+    /* The film: eight frames across the hour; the face moves closer and tenser as the tension climbs. */
+    const NF = 8;
+    const fw = 300 / NF;
+    let strip = sprockets(10, 24, 300, 44);
+    for (let f = 0; f < NF; f++) {
+      const e = pts[Math.round(((f + 0.5) / NF) * 160)];
+      const inner = rect(0, 0, 320, 180, k.mix("#2c3444", "#6a1a24", e)) + k.face({ x: 160, y: 96, r: 48 + e * 50, mood: 0.4 - e * 1.3, eyes: 0.5 + e * 0.5, brows: -e, mouth: e > 0.8 ? 0.5 : 0 });
+      strip += cell(`cw-tc-f${f}`, 10 + f * fw + 1, 24, fw - 2, 44, inner, e > 0.75 ? "#ef476f" : "#0b0b0d");
+    }
     return (
       k.bg(BG) +
       k.title("Tension through the hour") +
+      strip +
       axis(k, 14, 140, 196, "start", "end") +
-      k.graph({ x: 14, y: 30, w: 196, h: 108, points: pts, color: "#ef476f" }) +
-      tag(k, 112, 26, icon + " (how it lets go)", "#f2cc8f") +
+      k.graph({ x: 14, y: 80, w: 196, h: 58, points: pts, color: "#ef476f", w2: 1.5 }) +
+      tag(k, 112, 157, icon + " (how it lets go)", "#f2cc8f", "middle", 7) +
       fromIcon +
-      tag(k, 248, 50, from, "#ccc") +
-      k.face({ x: 268, y: 104, r: 26 + grip * 6, mood: -0.3 - grip * 0.6, eyes: 0.4 + grip * 0.6, mouth: grip > 0.9 ? 0.6 : 0, brows: -grip }) +
-      tag(k, 268, 150, v("audienceGrip"), "#ccc") +
+      tag(k, 244, 92, from, "#ccc", "start", 7) +
+      k.face({ x: 268, y: 124, r: 16 + grip * 6, mood: -0.3 - grip * 0.6, eyes: 0.4 + grip * 0.6, mouth: grip > 0.9 ? 0.6 : 0, brows: -grip }) +
+      tag(k, 268, 157, v("audienceGrip"), "#ccc", "middle", 7) +
       cap(k, `${v("shape")} · peaks every ${r1(v.n("peakSpacing"))} min · builds ${r1(v.n("buildTime"))} s, holds ${r1(v.n("peakHold"))} s, calm ${r1(v.n("releaseLength"))} s`)
     );
   });
@@ -108,19 +133,28 @@
     const sp = v("revealSpeed");
     const pieces = { "all at once": 1, "in two steps": 2, "in pieces": 5, "slow dawning": 10 }[sp] || 1;
     for (let i = 0; i < pieces; i++) out += rect(rx + (rw / pieces) * i, 38, rw / pieces - (pieces > 1 ? 1 : 0), 12, "#f4f1ea", { op: pieces === 10 ? 0.15 + (0.85 * i) / 9 : 1 });
-    out += star(rx + rw / 2, 64, 5 + v.p("size") * 12, "#ffd166", 7);
-    /* who learns first */
-    const shift = (v.p("setting") - 0.5) * -40 - v.n("aheadBy") * 1.5;
-    const ax = k.clamp(rx + shift, 20, 300);
-    out += tag(k, 16, 98, "we learn", "#ccc", "start") + k.dot({ x: ax, y: 95, r: 5, color: "#06d6a0" });
-    out += tag(k, 16, 116, `${v("aheadOf")} learns`, "#ccc", "start") + k.dot({ x: rx, y: 113, r: 5, color: "#e07a5f" });
-    out += line(ax, 95, rx, 113, "#666", 1, "2 2");
+    out += star(rx + rw / 2, 60, 4 + v.p("size") * 7, "#ffd166", 7);
+    /* the reveal on screen: a curtain pulled back on a hidden figure; the bigger the reveal, the bigger the light */
+    const sz = v.p("size");
+    const fig = pieces >= 10 ? 0.45 : 1;
+    let scr = k.bg("#2c2630") + k.floor(140, "#3b302a") + k.beam({ x: 160, y: 0, dir: 90, len: 170, spread: 16 + sz * 40, color: "#fff3c4", alpha: 0.2 + sz * 0.35 });
+    scr += `<g opacity="${fig}">${k.person({ x: 160, y: 160, s: 1.5, color: "#e07a5f", arms: 0.6, mood: 0.6 })}</g>`;
+    if (pieces === 5) scr += [0, 1, 2].map((i) => rect(110 + i * 40, 20, 20, 145, "#7a2a3a")).join("");
+    if (pieces === 2) scr += rect(160, 0, 160, 180, "#7a2a3a", { op: 0.9 });
+    scr += rect(0, 0, 70, 180, "#7a2a3a") + rect(250, 0, 70, 180, "#7a2a3a") + k.text({ x: 218, y: 70, text: "!", size: 30 + sz * 20, color: "#ffd166", weight: 800, outline: "#000" });
+    out += mini("cw-reveal-scr", 10, 74, 140, scr);
+    /* who learns first: two short tracks, the earlier dot learns first */
+    const shift = (v.p("setting") - 0.5) * 40 - v.n("aheadBy") * 1.5; /* "before": the audience learns before the characters */
+    const tx = (d) => k.clamp(198 + d * 0.6, 162, 236);
+    out += tag(k, 160, 88, "we learn", "#ccc", "start", 7) + line(162, 95, 236, 95, "#444", 2) + k.dot({ x: tx(shift), y: 95, r: 4.5, color: "#06d6a0" });
+    out += tag(k, 160, 110, `${v("aheadOf")} learns`, "#ccc", "start", 7) + line(162, 117, 236, 117, "#444", 2) + k.dot({ x: tx(0), y: 117, r: 4.5, color: "#e07a5f" });
+    out += tag(k, 160, 134, shift < -3 ? "we know first" : shift > 3 ? "they know first" : "together", "#ffd166", "start", 7);
     /* reaction */
     const rf = v("reactionFocus");
     const mood = { "the one who learns": -0.7, "the one who knew": 0.3, "a bystander": -0.2, nobody: 0 }[rf];
-    out += rf === "nobody" ? rect(250, 112, 40, 30, "#222", { stroke: "#555" }) + tag(k, 270, 131, "no face", "#777") : k.face({ x: 270, y: 126, r: 17, mood: mood == null ? 0 : mood, eyes: 1, mouth: rf === "the one who learns" ? 0.6 : 0 });
-    out += k.meter({ x: 210, y: 150, w: 100 * (0.1 + v.p("reactionHold") * 0.9), p: 1, color: "#e07a5f" });
-    return out + cap(k, `${v("setting")} · ${v("revealSpeed")} · held back ${r1(v.n("holdBack"))} min · on the reaction ${r1(v.n("reactionHold"))} s`);
+    out += rf === "nobody" ? rect(252, 96, 40, 30, "#222", { stroke: "#555" }) + tag(k, 272, 115, "no face", "#777") : k.face({ x: 272, y: 108, r: 17, mood: mood == null ? 0 : mood, eyes: 1, mouth: rf === "the one who learns" ? 0.6 : 0 });
+    out += tag(k, 160, 152, "on their face", "#aaa", "start", 7) + k.meter({ x: 212, y: 146, w: 98 * (0.1 + v.p("reactionHold") * 0.9), p: 1, color: "#e07a5f" });
+    return out + cap(k, `${v("setting")} · ${v("revealSpeed")} · held back ${r1(v.n("holdBack"))} min · on the reaction ${r1(v.n("reactionHold"))} s · we are ${v.n("aheadBy") >= 0 ? "ahead" : "behind"} by ${Math.abs(v.n("aheadBy"))} min`);
   });
 
   /* Mains: each lead's lane through the hour, who gets the most, when they meet, and the longest absence. */
@@ -131,19 +165,21 @@
     const wts = Array.from({ length: n }, (_, i) => (i === 0 ? 1 + pull * 4 : 1));
     const sw = wts.reduce((a, b) => a + b, 0);
     const slots = 2 + Math.round(v.p("handoffSpeed") * 10);
-    const X0 = 60;
-    const WW = 245;
+    const X0 = 50;
+    const WW = 258;
     const pxMin = WW / 60;
     const intro = v.n("introducedBy");
     const away = v.n("longestAway");
-    let out = k.bg(BG) + k.title("Who's on screen through the hour") + axis(k, X0, 30 + n * 28, WW, "0", "60 min");
+    const meets = { never: 0, once: 1, "a few times": 3, constantly: 7 }[v("crossPaths")] || 0;
+    const meetX = Array.from({ length: meets }, (_, m) => X0 + ((m + 0.5) / meets) * WW);
+    /* Where each main is on screen, as spans along the hour. */
+    const spans = [];
+    const covers = [];
     for (let i = 0; i < n; i++) {
-      const y = 28 + i * 28;
       const cover = k.clamp(share * ((n * wts[i]) / sw), 0.03, 1);
+      covers.push(cover);
       const start = n > 1 ? (intro * i) / (n - 1) : 0;
-      const col = PAL[i];
-      out += k.face({ x: 30, y: y + 8, r: 7 + cover * 8, color: col, mood: 0.3 });
-      out += rect(X0, y, WW, 16, "#202026");
+      const sp = [];
       for (let s = 0; s < slots; s++) {
         const a = (s + (i / n) * 0.6) / slots;
         let x1 = X0 + a * WW;
@@ -156,20 +192,40 @@
           if (x1 < g1 && x2 > g1) x2 = g1;
           if (x1 < g2 && x2 > g2) x1 = g2;
         }
-        if (x2 > x1) out += rect(x1, y + 1, Math.min(x2, X0 + WW) - x1, 14, col);
+        x2 = Math.min(x2, X0 + WW);
+        if (x2 > x1) sp.push([x1, x2]);
       }
-      if (i > 0 && intro > 0) out += line(X0 + start * pxMin, y - 2, X0 + start * pxMin, y + 18, "#fff", 1.5);
+      spans.push(sp);
+    }
+    /* The film: ten frames through the hour, each showing whoever is on screen then (everyone, when they meet). */
+    const NF = 10;
+    const fw = 300 / NF;
+    let out = k.bg(BG) + k.title("Who's on screen through the hour") + sprockets(10, 22, 300, 42);
+    for (let f = 0; f < NF; f++) {
+      const a = X0 + (f / NF) * WW;
+      const b = X0 + ((f + 1) / NF) * WW;
+      const meet = meetX.some((x) => x >= a && x < b);
+      const who = [];
+      for (let i = 0; i < n; i++) if (meet || spans[i].some(([x1, x2]) => x1 < b && x2 > a)) who.push(i);
+      let inner = set(k, who.length ? "#4a4458" : "#24222a");
+      who.forEach((i, j) => (inner += k.person({ x: 160 + (j - (who.length - 1) / 2) * 70, y: 168, s: 1.7, color: PAL[i], mood: meet ? 0.6 : 0.2 })));
+      out += cell(`cw-mains-f${f}`, 10 + f * fw + 1, 22, fw - 2, 42, inner, meet ? "#ffffff" : "#0b0b0d");
+    }
+    /* Thin lanes underneath: the same spans, one row per main. */
+    const L0 = 76;
+    out += axis(k, X0, L0 + n * 13 + 2, WW, "0", "60 min");
+    for (let i = 0; i < n; i++) {
+      const y = L0 + i * 13;
+      out += k.face({ x: 30, y: y + 4, r: 4 + covers[i] * 3, color: PAL[i], mood: 0.3 }) + rect(X0, y + 1, WW, 6, "#202026");
+      spans[i].forEach(([x1, x2]) => (out += rect(x1, y + 1, x2 - x1, 6, PAL[i])));
+      if (i > 0 && intro > 0) out += line(X0 + ((intro * i) / (n - 1)) * pxMin, y - 1, X0 + ((intro * i) / (n - 1)) * pxMin, y + 9, "#fff", 1.5);
     }
     if (away > 0) {
-      const y = 28 + (n - 1) * 28 + 20;
+      const y = L0 + (n - 1) * 13 + 10;
       const g1 = X0 + 30 * pxMin - (away * pxMin) / 2;
-      out += line(g1, y, g1 + away * pxMin, y, "#ffd166", 1.5) + tag(k, X0 + 30 * pxMin, y + 9, `away ${away} min`, "#ffd166", "middle", 7);
+      out += line(g1, y, g1 + away * pxMin, y, "#ffd166", 1.5) + tag(k, X0 + 30 * pxMin, L0 + n * 13 + 11, `away ${away} min`, "#ffd166", "middle", 7);
     }
-    const meets = { never: 0, once: 1, "a few times": 3, constantly: 7 }[v("crossPaths")] || 0;
-    for (let m = 0; m < meets; m++) {
-      const x = X0 + ((m + 0.5) / meets) * WW;
-      out += line(x, 26, x, 26 + n * 28 - 10, "#ffffff", 1, "2 2") + k.dot({ x, y: 22, r: 2.5, color: "#fff" });
-    }
+    meetX.forEach((x) => (out += line(x, L0 - 4, x, L0 + n * 13 - 4, "#ffffff", 1, "2 2")));
     return out + cap(k, `${n} mains · ${r1(v.n("share"))}% of the hour · ${v("focusPull")} · all met by ${intro} min`);
   });
 
@@ -182,11 +238,12 @@
     /* timeline */
     const ex = 20 + ({ opening: 0.15, middle: 0.5, "last minutes": 0.92 }[v("exitTiming")] || 0.5) * 280;
     const hx = Math.max(20, ex - (v.n("firstHint") / 60) * 140);
-    out += axis(k, 20, 18, 280) + k.dot({ x: hx, y: 18, r: 3, color: "#ffd166" }) + tag(k, hx, 12, "hint", "#ffd166", "middle", 7);
-    const warn = v.n("warning");
+    out += axis(k, 20, 18, 280) + k.dot({ x: hx, y: 18, r: 3, color: "#ffd166" }) + tag(k, Math.max(hx, 60), 12, `hint ${v.n("firstHint")} min before · warning ${v.n("warning")}/5`, "#ffd166", hx > 60 ? "middle" : "start", 7);
+    const warn = Math.min(v.n("warning"), Math.floor((ex - hx) / 8));
     for (let i = 0; i < warn; i++) out += tag(k, hx + ((ex - hx) * (i + 1)) / (warn + 1), 22, "!", "#f2cc8f", "middle", 9);
     out += rect(ex - 2, 12, 4, 12, "#ef476f");
-    for (let i = 0; i < v.n("afterglow"); i++) out += k.dot({ x: ex + 6 + i * 6, y: 18, r: 2.4, color: `rgba(239,71,111,${r1(1 - i / 11)})` });
+    const agStep = Math.min(6, (308 - ex - 6) / Math.max(1, v.n("afterglow")));
+    for (let i = 0; i < v.n("afterglow"); i++) out += k.dot({ x: ex + 6 + i * agStep, y: 18, r: 2.4, color: `rgba(239,71,111,${r1(1 - i / 11)})` });
     /* the screen */
     out += rect(60, 40, 200, 112, "#cdbfa8", { stroke: "#666", sw: 2 }) + rect(60, 120, 200, 32, "#7d6650");
     const on = v("onScreen");
@@ -223,7 +280,15 @@
       if (i % lines === 0) L *= lead;
       items.push({ len: Math.max(0.3, L), color: PAL[i % lines] });
     }
-    let out = k.bg(BG) + k.title("Cutting between storylines") + blocks(12, 24, 296, 30, items);
+    /* The film: each shot is a frame from its storyline (its own place and person), widths by time on screen. */
+    blocks(12, 24, 296, 30, items);
+    let out = k.bg(BG) + k.title("Cutting between storylines") + sprockets(12, 24, 296, 30);
+    items.forEach((it, i) => {
+      const sl = i % lines;
+      const w = it._w - 1.5;
+      if (w < 9) out += rect(it._x, 24, Math.max(0.5, w), 30, it.color, { stroke: "#0b0b0d" });
+      else out += cell(`cw-ic-f${i}`, it._x, 24, w, 30, set(k, k.mix(PAL[sl], "#1a1a20", 0.55)) + k.person({ x: 160, y: 168, s: 1.7, color: PAL[sl], walk: sl % 2, mood: 0.3 }), it.color);
+    });
     const match = v("cutOnMatch");
     items.forEach((it, i) => {
       if (!i) return;
@@ -251,7 +316,7 @@
       out += k.dot({ x: Math.min(300, endX), y: pts[30][1], r: 3.5, color: PAL[i] });
     }
     if (sync > 0.5) out += line(280, 76, 280, 144, "#fff", 1, "3 2");
-    return out + cap(k, `${lines} storylines · ${r1(v.n("dwell"))} s each, down to ${r1(v.n("finalDwell"))} s at the peak · ${v("converge")}`);
+    return out + cap(k, `${lines} storylines · ${r1(v.n("dwell"))} s each, down to ${r1(v.n("finalDwell"))} s at the peak · ${v("converge")} · ${v.n("switchesPerMin")} switches a minute`);
   });
 
   /* Point of view: the people whose story it is, who we're with over time, and how deep inside them we are. */
@@ -262,7 +327,7 @@
     const main = v.n("mainShare") / 100;
     const ret = v.p("returnTo");
     const minW = v.n("shortestStay");
-    let out = k.bg(BG) + k.title("Whose eyes we see through");
+    let out = k.bg(BG) + k.title(`Whose eyes we see through · ${v.n("switchesPerHour")} switches an hour`);
     for (let i = 0; i < n; i++) out += k.face({ x: 22 + i * 26, y: 38, r: 9, color: PAL[i % 8], mood: 0.2 });
     out += k.ring({ x: 22, y: 38, r: 12, color: "#fff", w: 2 });
     const back = ret * 4;
@@ -286,7 +351,7 @@
     const ho = v("handoff");
     const hoIcon = { "hard cut": line(206, 100, 206, 140, "#fff", 3), "a shared object": rect(196, 110, 20, 18, "#f2cc8f", { stroke: "#000", rx: 3 }), "a look": `<ellipse cx="206" cy="120" rx="14" ry="8" fill="#fff"/><circle cx="206" cy="120" r="4" fill="#000"/>`, "a sound": k.speaker({ x: 200, y: 120, s: 1, level: 1 }) }[ho] || "";
     out += k.face({ x: 160, y: 120, r: 13, color: PAL[0] }) + hoIcon + k.face({ x: 252, y: 120, r: 13, color: PAL[1] }) + k.arrow({ x1: 176, y1: 120, x2: 190, y2: 120, color: "#888", w: 1.5 }) + k.arrow({ x1: 222, y1: 120, x2: 236, y2: 120, color: "#888", w: 1.5 }) + tag(k, 206, 150, `passes by ${ho}`, "#ccc");
-    return out + cap(k, `${v("setting")} · ${n} people · ${r1(v.n("mainShare"))}% with the main · shortest stay ${r1(minW)} min`);
+    return out + cap(k, `${v("setting")} · ${n} people · ${r1(v.n("mainShare"))}% with the main · shortest stay ${Math.round(minW * 100) / 100} min`);
   });
 
   /* A scene's last moments: the last shot, how long it holds, the sound tail, and the pull into the next scene. */
@@ -320,7 +385,7 @@
       wpts.push([x, 142 + Math.sin(i * 1.3) * 5 * a]);
     }
     out += path(wpts, "#9fd3ff", 1.5);
-    return out + cap(k, `${end} · ends on ${on} · ${v("late")} · hold ${r1(v.n("holdAfter"))} s · sound ${so}`);
+    return out + cap(k, `${end} · ends on ${on} · ${v("late")} · hold ${r1(v.n("holdAfter"))} s · sound ${so} · last shot ${v.n("lastShotLength")} s`);
   });
 
   /* The opening seconds: the first image, the first sound, a viewer pulled in, and when the title lands. */
@@ -340,13 +405,13 @@
     out += fs === "silence" ? k.speaker({ x: 24, y: 128, s: 0.9, level: 0 }) + line(14, 120, 36, 138, "#ef476f", 2) : fs === "a voice" ? k.speaker({ x: 24, y: 128, s: 0.9, level: 0.3 }) + k.bubble({ x: 64, y: 122, text: "…", w: 30, h: 16, size: 9, tail: -8 }) : fs === "music" ? k.speaker({ x: 24, y: 128, s: 0.9, level: 0.6 }) + k.text({ x: 56, y: 134, text: "♪♫", size: 16, color: "#c77dff" }) : k.speaker({ x: 24, y: 128, s: 1.3, level: 1 });
     /* viewer */
     const hold = v.p("grabHold");
-    out += k.person({ x: 255, y: 150, s: 1.3, mood: -0.2 * hold, look: -1, lean: -hold * 14, eyes: 0.3 + hold * 0.7, arms: hold * 0.5, color: "#4a6fa5" }) + tag(k, 255, 160, v("grabHold"), "#ccc", "middle", 7);
+    out += k.person({ x: 255, y: 150, s: 1.3, mood: -0.2 * hold, look: -1, lean: -hold * 14, eyes: 0.3 + hold * 0.7, arms: hold * 0.5, color: "#4a6fa5" }) + tag(k, 255, 50, v("grabHold"), "#ccc", "middle", 7);
     const m = Math.round(v.p("mystery") * 5);
     for (let i = 0; i < m; i++) out += k.text({ x: 222 + i * 16, y: 34 - (i % 2) * 8, text: "?", size: 14, color: "#7fb7ff" });
     /* the first 30 seconds, and the whole film */
     const X = 80;
     const sec = (s) => X + (Math.min(s, 30) / 30) * 120;
-    out += axis(k, X, 134, 120, "0", "30 s") + line(sec(v.n("seconds")), 124, sec(v.n("seconds")), 140, "#ffd166", 2) + tag(k, sec(v.n("seconds")), 121, "lands", "#ffd166", "middle", 7) + line(sec(v.n("firstCutAt")), 128, sec(v.n("firstCutAt")), 140, "#fff", 2) + tag(k, sec(v.n("firstCutAt")), 149, "1st cut", "#ccc", "middle", 7);
+    out += axis(k, X, 134, 120, "0", "30 s") + line(sec(v.n("seconds")), 124, sec(v.n("seconds")), 140, "#ffd166", 2) + tag(k, sec(v.n("seconds")), 121, "lands", "#ffd166", "middle", 7) + line(sec(v.n("firstCutAt")), 128, sec(v.n("firstCutAt")), 140, "#fff", 2) + tag(k, sec(v.n("firstCutAt")), 152, "1st cut", "#ccc", "middle", 7);
     const fx = (min) => 210 + (Math.min(min, 120) / 120) * 100;
     out += axis(k, 210, 152, 100) + rect(fx(v.n("titleAt") / 60) - 1, 146, 3, 8, "#c77dff") + rect(fx(v.n("questionAnswered")) - 1, 146, 3, 8, "#06d6a0");
     return out + cap(k, `${g} · title at ${r1(v.n("titleAt"))} s · question answered by ${r1(v.n("questionAnswered"))} min`);
@@ -370,15 +435,15 @@
       return s;
     };
     if (two) {
-      out += cluster(78, 80, 14 + bal * 34, PAL[0]) + cluster(242, 80, 14 + (1 - bal) * 34, PAL[3]);
+      out += cluster(78, 72, 12 + bal * 30, PAL[0]) + cluster(242, 72, 12 + (1 - bal) * 30, PAL[3]);
       out += rect(128, 50, 64, 60, frCol, { op: 0.25, rx: 8 });
       if (fr > 0.9) out += path([[150, 55], [165, 78], [155, 80], [172, 105]], "#ef476f", 3);
       const c = v.n("crossings");
       for (let i = 0; i < c; i++) out += `<path d="M110 ${70 + i * 4} Q160 ${30 + i * 12} 210 ${70 + i * 4}" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="3 2"/>`;
       const b = v("bridge");
       if (b !== "nobody") out += k.person({ x: 160, y: 108, s: b === "a main" ? 0.8 : 0.55, color: b === "a main" ? "#ffd166" : "#bbb" }) + (b === "a messenger" ? rect(166, 82, 10, 7, "#fff", { stroke: "#000" }) : "");
-      out += tag(k, 160, 124, `${v("friction")}${b !== "nobody" ? ", linked by " + b : ""}`, "#ccc");
-    } else out += cluster(160, 80, 40, PAL[0]) + tag(k, 160, 132, `${v("friction")} · ${r1(v.n("crossings"))} crossings · linked by ${v("bridge")}`, "#888");
+      out += tag(k, 160, 129, `${v("friction")}${b !== "nobody" ? ", linked by " + b : ""}`, "#ccc");
+    } else out += cluster(160, 72, 36, PAL[0]) + tag(k, 160, 129, `${v("friction")} · ${r1(v.n("crossings"))} crossings · linked by ${v("bridge")}`, "#888");
     /* when they come together */
     const mp = { never: 1.2, midway: 0.5, "near the end": 0.8, "only at the end": 1 }[v("mergePoint")];
     const mx = 30 + Math.min(1, mp) * 260;
@@ -396,7 +461,7 @@
     const fan = v.p("returnFanfare");
     const cw = Math.min(22, 296 / H);
     const restStart = Math.floor(H * 0.4);
-    let out = k.bg(BG) + k.title("Hours of the season (filled = this main is in it)");
+    let out = k.bg(BG) + k.title("The season, one frame per hour");
     /* where they appear: evenly every N hours when spread is high, bunched together when it is low */
     const count = Math.ceil(H / every);
     const on = new Set();
@@ -406,25 +471,30 @@
       while (on.has(h)) h++;
       if (h < H) on.add(h);
     }
+    /* The season as a strip of episodes: the main is in the frame when they are in that hour, bigger the more
+       screen time they get; an hour built around them is lit gold; the hours away are dark. */
     let shown = 0;
+    out += sprockets(12, 50, H * cw - 2, 60);
     for (let h = 0; h < H; h++) {
       const x = 12 + h * cw;
       const inRest = h >= restStart && h < restStart + rest;
-      out += rect(x, 50, cw - 2, 60, "#222228", { stroke: "#444" });
+      let inner = set(k, inRest ? "#151518" : "#2a2a34");
+      let stroke = "#0b0b0d";
       if (on.has(h)) {
         const share = k.clamp((v.n("screenShare") / 100) * (1 + (k.rnd(h + 11) - 0.5) * (0.2 + spread)), 0.03, 1);
         const isSpot = shown < spot && (h % 3 === 1 || H - h <= spot - shown);
-        out += rect(x, 50 + 60 * (1 - share), cw - 2, 60 * share, isSpot ? "#ffd166" : PAL[0]);
-        if (isSpot) (out += star(x + cw / 2 - 1, 40, 5, "#ffd166", 5)), shown++;
+        inner = set(k, isSpot ? "#5a4a2a" : "#3a3a4a") + (isSpot ? k.beam({ x: 160, y: 0, dir: 90, len: 180, spread: 50, color: "#fff3c4", alpha: 0.4 }) : "") + k.person({ x: 160, y: 170, s: 0.7 + share * 1.5, color: isSpot ? "#ffd166" : PAL[0], mood: 0.4 });
+        out += rect(x, 118, (cw - 2) * share, 3, isSpot ? "#ffd166" : PAL[0]);
+        if (isSpot) (out += star(x + cw / 2 - 1, 36, 5, "#ffd166", 5)), (stroke = "#ffd166"), shown++;
       }
-      if (inRest) out += tag(k, x + cw / 2, 84, "–", "#555");
+      out += cell(`cw-fr-f${h}`, x, 50, cw - 2, 60, inner, stroke);
     }
     if (rest > 0 && fan > 0) {
       const rx = 12 + Math.min(H - 1, restStart + rest) * cw + cw / 2 - 1;
-      out += fan > 0.9 ? star(rx, 120, 8, "#c77dff", 6) + star(rx - 7, 128, 4, "#c77dff", 5) : k.ring({ x: rx, y: 120, r: 5, color: "#c77dff" });
+      out += fan > 0.9 ? star(rx, 130, 7, "#c77dff", 6) + star(rx - 7, 134, 3.5, "#c77dff", 5) : k.ring({ x: rx, y: 130, r: 4, color: "#c77dff" });
     }
     if (rest > 0) out += line(12 + restStart * cw, 140, 12 + Math.min(H, restStart + rest) * cw - 2, 140, "#ffd166", 2) + tag(k, 12 + (restStart + rest / 2) * cw, 152, `away ${rest} h`, "#ffd166", "middle", 8);
-    return out + cap(k, `${H}-hour season · every ${every} h · ${r1(v.n("screenShare"))}% screen time · return ${v("returnFanfare")}`);
+    return out + cap(k, `${H}-hour season · every ${every} h · ${r1(v.n("screenShare"))}% screen time · spotlight ${v("spotlightHour")} · return ${v("returnFanfare")}`);
   });
 
   /* Scenes through the hour: how many, a fast run then a breather, and the pace speeding up or slowing. */
@@ -442,7 +512,7 @@
       if (i === bStart + burst) l *= 1 + br * 5;
       L.push(Math.max(0.1, l));
     }
-    let out = k.bg(BG) + k.title("Scenes through the hour") + k.strip({ x: 10, y: 34, w: 300, h: 34, lengths: L, gap: n > 60 ? 0.3 : 1.2 });
+    let out = k.bg(BG) + k.title("Scenes through the hour") + k.label({ x: 310, y: 14, text: `set to ${v.n("perHour")} · new pace in ${v.n("paceChangeTime")} min`, size: 7, color: "#aaa", anchor: "end" }) + k.strip({ x: 10, y: 34, w: 300, h: 34, lengths: L, gap: n > 60 ? 0.3 : 1.2 });
     /* pace graph with the time to change pace */
     const ramp = v.n("paceChangeTime") / 30;
     const pts = [];
@@ -477,12 +547,14 @@
     /* the scene's full arc and where we join it */
     const X = 20;
     const late = v.n("lateness") / 5;
-    out += tag(k, X, 106, "the scene as written", "#888", "start") + rect(X, 110, 280, 8, "#33333a") + rect(X + late * 180, 110, 280 - late * 180, 8, "#6c8fb8") + k.arrow({ x1: X + late * 180, y1: 100, x2: X + late * 180, y2: 109, color: "#fff", w: 1.5 });
-    /* first minute */
-    const s = (t) => X + (Math.min(60, t) / 60) * 280;
-    out += axis(k, X, 150, 280, "0", "60 s") + rect(X, 136, s(v.n("firstShotLength")) - X, 10, "#81b29a", { stroke: "#000" }) + tag(k, X + 2, 133, "first shot", "#81b29a", "start", 7);
-    out += rect(X, 126, s(v.n("orientTime")) - X, 6, "#c77dff", { op: 0.6 }) + tag(k, s(v.n("orientTime")) + 3, 132, "where are we?", "#c77dff", "start", 7);
-    out += line(s(v.n("firstLineAt")), 122, s(v.n("firstLineAt")), 154, "#ffd166", 2) + tag(k, s(v.n("firstLineAt")), 120, "first line", "#ffd166", "middle", 7);
+    out += tag(k, X + 8, 106, "the scene as written", "#888", "start") + rect(X, 110, 280, 8, "#33333a") + rect(X + late * 180, 110, 280 - late * 180, 8, "#6c8fb8") + k.arrow({ x1: X + late * 180, y1: 100, x2: X + late * 180, y2: 109, color: "#fff", w: 1.5 });
+    /* the first minute, one row each, names in a column on the left */
+    const X2 = 86;
+    const s = (t) => X2 + (Math.min(60, t) / 60) * 214;
+    out += tag(k, 300, 106, "rows below: its first 60 s", "#888", "end", 7);
+    out += tag(k, X, 130, "where are we?", "#c77dff", "start", 7) + rect(X2, 124, 214, 7, "#26262c") + rect(X2, 124, s(v.n("orientTime")) - X2, 7, "#c77dff", { op: 0.75 });
+    out += tag(k, X, 141, "first shot", "#81b29a", "start", 7) + rect(X2, 135, 214, 7, "#26262c") + rect(X2, 135, s(v.n("firstShotLength")) - X2, 7, "#81b29a", { stroke: "#000" });
+    out += tag(k, X, 152, "first line", "#ffd166", "start", 7) + rect(X2, 148, 214, 2, "#26262c") + k.dot({ x: s(v.n("firstLineAt")), y: 149, r: 4, color: "#ffd166" });
     return out + cap(k, `${how} · first image: ${fi} · enter late ${r1(v.n("lateness"))}/5`);
   });
 
@@ -491,7 +563,7 @@
     const on = v.n("setting") > 0 || v("setting") === "yes";
     const cnt = v.n("count");
     const first = 20 + ({ opening: 0, early: 0.15, middle: 0.45, late: 0.7 }[v("firstShown")] || 0) * 280;
-    const last = 20 + ({ middle: 0.55, "near the end": 0.85, "final shot": 1 }[v("lastShown")] || 1) * 280;
+    const last = 20 + ({ middle: 0.55, "near the end": 0.85, "final shot": 1 }[v("lastShown")] || 1) * 262;
     const pay = v.p("payoff");
     const vari = v.n("variation") / 5;
     const spot = v.p("spotlight");
@@ -501,10 +573,10 @@
     for (let i = 1; i <= cnt; i++) xs.push(first + ((Math.max(first, last) - first) * i) / Math.max(1, cnt));
     xs.forEach((x, i) => {
       const t = xs.length > 1 ? i / (xs.length - 1) : 0;
-      const sz = 7 * (1 + pay * t * 1.2);
+      const sz = 6 * (1 + pay * t * 0.8);
       const col = pay > 0.9 ? k.mix("#ef476f", "#ffd166", t) : "#ef476f";
       const rot = (k.rnd(i + 1) - 0.5) * 80 * vari;
-      if (spot > 0.3) out += k.ring({ x, y: 66, r: sz + 4 + spot * 5, color: "#ffd166", w: 1 + spot * 2 });
+      if (spot > 0.3) out += k.ring({ x, y: 66, r: sz + 3 + spot * 3, color: "#ffd166", w: 1 + spot * 2 });
       out += `<g transform="rotate(${r1(rot)} ${r1(x)} 66)" opacity="${on ? 1 : 0.25}"><path d="M${r1(x)} ${r1(66 - sz)} L${r1(x + sz * 0.8)} 66 L${r1(x)} ${r1(66 + sz)} L${r1(x - sz * 0.8)} 66 Z" fill="${col}" stroke="#000"/></g>`;
       out += rect(x - (each / 30) * 9 - 1, 88, (each / 30) * 18 + 2, 8, "#f2cc8f");
     });
@@ -513,7 +585,7 @@
     /* how big in the frame */
     const fs = v.n("frameShare") / 100;
     out += rect(214, 112, 82, 46, "#2c3444", { stroke: "#666" }) + `<path d="M255 ${r1(135 - 22 * fs)} L${r1(255 + 18 * fs)} 135 L255 ${r1(135 + 22 * fs)} L${r1(255 - 18 * fs)} 135 Z" fill="#ef476f" stroke="#000"/>` + tag(k, 180, 138, "in frame:", "#888", "middle", 8);
-    return out + cap(k, `${on ? "yes" : "no signature image"} · ${cnt} returns · ${v("payoff")} · ${v("spotlight")}`);
+    return out + cap(k, `${on ? "yes" : "no signature image"} · ${cnt} returns · ${v("payoff")} · ${v("spotlight")} · ${v.n("secondsEach")} s each`);
   });
 
   /* Energy across the film: its peaks, the dips between, the flat stretches, and what happens at a cut. */
@@ -638,7 +710,7 @@
     const at = v.p("breakAt");
     const pace = v.p("runPace") - 0.5;
     const unit = 296 / (runs * runL + (runs - 1) * pause * 3);
-    let out = k.bg(BG) + k.title("Shots grouped into runs");
+    let out = k.bg(BG) + k.title("Shots grouped into runs") + sprockets(12, 44, 296, 40);
     let x = 12;
     const breaks = new Set();
     for (let b = 0; b < brk; b++) breaks.add(k.clamp(Math.round(at * (runs - 1)) + b * 2 * (at > 0.5 ? -1 : 1), 0, runs - 1));
@@ -647,11 +719,20 @@
       const m = odd ? per + 1 : per;
       const ls = Array.from({ length: m }, (_, i) => 1 - pace * 1.4 * (i / Math.max(1, m - 1) - 0.5));
       const w = runL * unit;
-      out += k.strip({ x, y: 44, w, h: 40, lengths: ls, gap: 1, color: odd ? ["#ef476f", "#f2a0b0"] : ["#6c8fb8", "#8fb2d8"] });
+      /* each run is one little moment in shots: the same place, the person moving across it shot by shot */
+      const tot = ls.reduce((a2, b2) => a2 + b2, 0);
+      let sx = x;
+      ls.forEach((l, j) => {
+        const sw2 = (l / tot) * w;
+        const bgc = odd ? "#5a2a36" : r % 2 ? "#2e3a52" : "#36324a";
+        if (sw2 < 7) out += rect(sx, 44, Math.max(0.6, sw2 - (sw2 > 2.5 ? 1 : 0.3)), 40, odd ? "#ef476f" : j % 2 ? "#6c8fb8" : "#8fb2d8");
+        else out += cell(`cw-ps-${r}-${j}`, sx, 44, sw2 - 1, 40, set(k, bgc) + k.person({ x: 110 + (j / Math.max(1, m - 1)) * 100, y: 168, s: 1.6, color: odd ? "#ef476f" : "#7fb7ff", walk: j % 2, arms: odd ? 0.8 : 0 }));
+        sx += sw2;
+      });
       if (odd) out += rect(x - 1, 42, w + 1, 44, "none", { stroke: "#ffd166", sw: 1.5 });
       x += w + pause * 3 * unit;
     }
-    if (!brk) out += tag(k, 12 + at * 280, 40, "▾", "#555", "middle", 9);
+    if (!brk) out += tag(k, 12 + at * 280, 34, "▾", "#555", "middle", 9);
     out += tag(k, 160, 104, `${per === 7 ? "long runs" : per + " shot" + (per > 1 ? "s" : "")} per run · ${v("runPace")} inside`, "#ccc");
     out += tag(k, 160, 122, `pause ${pause} s between runs · each run ${runL} s`, "#999");
     return out + cap(k, `${runs} runs per scene · pattern breaks ${v("break")}${brk ? " at the " + v("breakAt") : ""}`);
@@ -706,10 +787,16 @@
     let out = k.bg(BG) + k.title("Calls (?) and answers (!) across cuts") + blocks(10, 30, 300, 28, items);
     const step = how < 0.3 ? 0 : how < 0.7 ? 3 : 1;
     let c = 0;
+    let lastX = -99;
     if (step)
       for (let i = 0; i + delay < n && c < ex; i += step * 2, c++) {
         const a = items[i];
         const b = items[Math.min(n - 1, i + Math.max(1, delay))];
+        /* Skip a pair whose marks would crowd the last one drawn, so every ? and ! stays readable. */
+        const ax = a._x + a._w / 2;
+        const bxm = b._x + b._w / 2;
+        if (ax - lastX < 14 || bxm - ax < 10) continue;
+        lastX = bxm;
         out += tag(k, a._x + a._w / 2, 50, "?", "#fff", "middle", 12) + `<g opacity="${r1(0.3 + str * 0.7)}">${tag(k, b._x + b._w / 2, 50, "!", kc, "middle", 10 + str * 8)}</g>`;
         out += `<path d="M${r1(a._x + a._w / 2)} 62 Q${r1((a._x + b._x) / 2 + a._w / 2)} ${r1(70 + str * 10)} ${r1(b._x + b._w / 2)} 62" fill="none" stroke="${kc}" stroke-width="${r1(0.8 + str * 1.5)}" opacity="${r1(0.4 + str * 0.6)}"/>`;
       }
@@ -739,8 +826,9 @@
     for (let i = 0; i * unit <= 296; i++) out += line(12 + i * unit, 96, 12 + i * unit, 100, "#444", 1);
     out += tag(k, 12, 110, `scenes (one tick each)`, "#777", "start", 7);
     let x = 20;
-    let gap = sp * unit;
-    const tot = Math.max(2, n + 1);
+    /* With no returns yet, show a faded example of three, spaced so they read as frames. */
+    let gap = n ? sp * unit : 70;
+    const tot = n ? Math.max(2, n + 1) : 4;
     for (let i = 0; i < tot && x < 310; i++) {
       const t = i / (tot - 1);
       const ghost = i > n;
@@ -753,7 +841,9 @@
       if (what === "size") r = 10 * (1 + (k.rnd(i + 3) - 0.6) * vi * 1.4);
       if (what === "angle") rot = (k.rnd(i + 3) - 0.5) * 120 * vi;
       if (what === "color") col = k.mix("#ffd166", "#7fb7ff", (0.3 + k.rnd(i + 3) * 0.7) * vi);
-      if (what === "context") out += rect(x - 16, 50, 32, 40, k.mix("#2a2a30", "#3a5a4a", k.rnd(i + 3) * vari), {});
+      /* each return is a little film frame holding the same star */
+      if (what === "context") out += rect(x - 16, 50, 32, 40, k.mix("#2a2a30", "#3a5a4a", k.rnd(i + 3) * vari), { stroke: "#666" });
+      else if (gap >= 30 || i === 0) out += rect(x - 16, 50, 32, 40, "#24242a", { stroke: "#555" });
       if (isLast && land === "a twist") (rot += 180), (col = "#ef476f");
       if (isLast && land === "a payoff") (r *= 1.6), (out += k.ring({ x, y: 70, r: r + 6, color: "#ffd166", w: 3 }));
       out += `<g transform="rotate(${r1(rot)} ${r1(x)} 70)">${star(x, 70, r, col, 5)}</g>`;
@@ -765,7 +855,7 @@
       void t;
     }
     if (!n) out += tag(k, 160, 40, "no repeats yet (faded: what one would look like)", "#666");
-    return out + cap(k, `${n} returns · every ${sp} scenes, ${v("timingShift")} · varies by ${what} · last is ${land}`);
+    return out + cap(k, `${n} returns · every ${sp} scenes, ${v("timingShift")} · varies by ${what} · last is ${land} · ${v.n("returnLength")} s each`);
   });
 
   /* A contrast map: the film flipping between two sides of a pair (loud and quiet, dark and bright...). */
@@ -781,20 +871,35 @@
     const pair = v("mainPair");
     const aCol = k.mix("#555560", "#2a2a40", str);
     const bCol = k.mix("#666670", "#ffd166", str);
+    /* The two sides as frames of the film: the same person, played quiet then loud, still then moving, and so on.
+       Strength pushes the two sides further apart. */
+    const side = (B) => {
+      const d = B ? str : 0;
+      if (/dark/.test(pair)) return set(k, B ? k.mix("#6a6a70", "#f2e6c8", 0.3 + str * 0.7) : k.mix("#3a3a44", "#08080c", str)) + k.person({ x: 160, y: 168, s: 1.6, color: "#7fb7ff", mood: B ? 0.6 : -0.2 });
+      if (/crowded/.test(pair)) {
+        let o = set(k, "#3a3a48") + k.person({ x: 160, y: 168, s: 1.6, color: "#7fb7ff" });
+        if (B) for (let j = 0; j < 2 + Math.round(str * 6); j++) o += k.person({ x: 40 + ((j * 53) % 250), y: 150 + (j % 3) * 10, s: 1.1, color: "#8a8a96" });
+        return o;
+      }
+      if (/moving|fast/.test(pair)) return set(k, "#3a3a48") + (B ? [0, 1, 2].map((j) => line(30, 70 + j * 25, 100 + str * 30, 70 + j * 25, "#ddd", 4)).join("") : "") + k.person({ x: 170, y: 168, s: 1.6, color: "#7fb7ff", walk: B ? 1 : 0, lean: B ? 10 + str * 10 : 0, arms: B ? 0.6 : 0 });
+      return set(k, B ? k.mix("#3a3a48", "#6a2a30", str) : "#2e3444") + k.person({ x: 160, y: 168, s: 1.6, color: "#7fb7ff", mood: B ? -0.6 : 0.2 }) + (B ? k.text({ x: 230, y: 70, text: "!".repeat(1 + Math.round(d * 2)), size: 40 + d * 30, color: "#ffd166", weight: 800 }) : [0, 1, 2].map((j) => k.dot({ x: 212 + j * 14, y: 56, r: 4, color: "#9fd3ff" })).join(""));
+    };
+    const sideA = side(false);
+    const sideB = side(true);
+    out += sprockets(12, 30, 296, 60);
     for (let i = 0; i <= flips; i++) {
       const x = 12 + i * segW;
       const aw = segW * share;
-      out += rect(x, 30, aw, 60, aCol) + rect(x + aw, 30, segW - aw, 60, bCol);
-      if (edge < 0.9) out += rect(x + aw - (1 - edge) * 8, 30, (1 - edge) * 16, 60, k.mix(aCol, bCol, 0.5), { op: 0.8 });
+      if (aw >= 1) out += cell(`cw-cm-a${i}`, x, 30, aw, 60, sideA, "#0b0b0d");
+      if (segW - aw >= 1) out += cell(`cw-cm-b${i}`, x + aw, 30, segW - aw, 60, sideB, "#0b0b0d");
+      if (edge < 0.9 && aw >= 1 && segW - aw >= 1) out += rect(x + aw - (1 - edge) * 6, 30, (1 - edge) * 12, 60, k.mix(aCol, bCol, 0.5), { op: 0.5 });
       if (edge > 0.9 && i % 2 === 0) out += path([[x + aw, 30], [x + aw - 4, 50], [x + aw + 4, 70], [x + aw, 90]], "#fff", 1.5);
-      const mx = x + aw + (segW - aw) / 2;
-      if (/loud/.test(pair)) out += k.wave({ x: x + 2, y: 60, w: aw - 4, h: 20, amp: 0.2 * (1 - str), cycles: 2, color: "#9fd3ff" }) + k.wave({ x: x + aw + 2, y: 60, w: segW - aw - 4, h: 50, amp: 0.4 + str * 0.6, cycles: 3, color: "#1c1712" });
-      if (/crowded/.test(pair)) for (let j = 0; j < 2 + str * 8; j++) out += k.dot({ x: x + aw + k.rnd(i * 10 + j) * (segW - aw), y: 36 + k.rnd(j + i) * 48, r: 2, color: "#1c1712" });
-      if (/moving|fast/.test(pair)) out += line(mx - 6, 50, mx + 6, 50, "#1c1712", 2) + line(mx - 6, 60, mx + 6 + str * 6, 60, "#1c1712", 2);
+      if (/loud/.test(pair)) out += k.wave({ x: x + aw + 1, y: 84, w: Math.max(1, segW - aw - 2), h: 8, amp: 0.4 + str * 0.6, cycles: 2, color: "#ffd166" });
     }
     for (let p = 0; p < pairs; p++) out += rect(12, 104 + p * 8, 296, 5, p === 0 ? "#ffd166" : "#444", { op: 0.7, rx: 2 });
     out += tag(k, 12, 152, `${pairs} contrast pair${pairs === 1 ? "" : "s"} in play`, "#999", "start");
-    return out + cap(k, `${flips} flips an hour · ${r1(v.n("sideShare"))}% on "${pr[0]}" · ${v("edgeSharp")} switch`);
+    /* The real number in words (the strip draws at least one flip, so 0 and 1 drew the same before). */
+    return out + cap(k, `${v.n("flipsPerHour")} flip${v.n("flipsPerHour") === 1 ? "" : "s"} an hour · ${r1(v.n("sideShare"))}% on "${pr[0]}" · ${v("edgeSharp")} switch`);
   });
 
   /* A single cut seen up close: the seam, sound overlapping it, a breath of black, and action clipped short. */
@@ -828,7 +933,7 @@
     const ce = Math.round(v.p("clipEarly") * 4);
     for (let i = 0; i < 4; i++) out += rect(200 + i * 26, 136, i < ce ? 14 : 22, 12, i < ce ? "#ef476f" : "#555", { stroke: "#000" });
     out += tag(k, 196, 146, "moments cut short:", "#999", "end", 8);
-    return out + cap(k, `${style} · ${br} frames of breath · sound overlaps ${r1(v.n("overlap"))} s (${way})`);
+    return out + cap(k, `${style} · ${br} frames of breath · sound overlaps ${r1(v.n("overlap"))} s (${way}) · ${v.n("clipFrames")} frames clipped`);
   });
 
   /* A motif that rises and falls each time it returns: size, height, brightness or closeness. */
@@ -845,9 +950,9 @@
       const t = i / (n - 1);
       const x = 24 + i * gapPx;
       const q = 0.5 + (val(t) - 0.5) * amp;
-      if (trait === "size") out += k.dot({ x, y: 80, r: 3 + q * 16, color: "#ffd166" });
-      if (trait === "height") out += k.dot({ x, y: 130 - q * 90, r: 7, color: "#ffd166" });
-      if (trait === "brightness") out += k.dot({ x, y: 80, r: 9, color: k.mix("#2a2a2a", "#fff7c0", q) });
+      if (trait === "size") out += star(x, 80, 6 + q * 18, "#ffd166", 5);
+      if (trait === "height") out += star(x, 126 - q * 84, 9, "#ffd166", 5);
+      if (trait === "brightness") out += star(x, 80, 12, k.mix("#2a2a2a", "#fff7c0", q), 5);
       if (trait === "closeness") out += k.dot({ x: x - 3 - (1 - q) * 9, y: 80, r: 4, color: "#e07a5f" }) + k.dot({ x: x + 3 + (1 - q) * 9, y: 80, r: 4, color: "#7fb7ff" });
     }
     out += axis(k, 20, 142, 290, "first return", "") + tag(k, 24 + gapPx / 2, 134, `${r1(v.n("returnGap"))} min apart`, "#888", "middle", 7);
@@ -867,7 +972,7 @@
     const px = 296 / 60;
     const L = [];
     let tot = 0;
-    for (let i = 0; tot < 60 && i < 200; i++) {
+    for (let i = 0; tot < 60 && i < 700; i++) {
       const l = k.clamp(base * (1 + spread * (k.rnd(i + 5) - 0.5) * 1.8), smin, smax);
       L.push(l);
       tot += l;
@@ -879,13 +984,13 @@
     L.forEach((l, i) => {
       const w = Math.min(l * px, 308 - x);
       if (w <= 0) return;
-      out += rect(x, 40, w - 1, 46, i === li ? "#e07a5f" : "#6c8fb8", { stroke: "#000" });
+      out += w > 3 ? rect(x, 40, w - 1, 46, i === li ? "#e07a5f" : "#6c8fb8", { stroke: "#000" }) : rect(x, 40, w, 46, i === li ? "#e07a5f" : i % 2 ? "#6c8fb8" : "#9fbfe0");
       if (w > 4) out += rect(x + w * (0.6 + trim * 0.4) - 1, 40, w * (0.4 - trim * 0.4), 46, "#000", { op: 0.4 });
       x += l * px;
     });
     out += k.clock({ x: 40, y: 128, r: 18, p: base / 60 }) + tag(k, 66, 132, `typical ${r1(base)} min`, "#ccc", "start");
     out += k.meter({ x: 180, y: 118, w: 120, label: `shortest ${r1(smin)} min`, p: smin / 10, color: "#81b29a" }) + k.meter({ x: 180, y: 140, w: 120, label: `longest ${smax} min`, p: smax / 30, color: "#e07a5f" });
-    return out + cap(k, `${v("setting")} · ${v("lengthSpread")} · longest at the ${v("longestAt")} · ${v("trim")}`);
+    return out + cap(k, `${v("setting")} · ${v("lengthSpread")} · longest at the ${v("longestAt")} · ${v("trim")} · ${v.n("minutes")} min`);
   });
 
   /* Speed of time: a runner drawn as a trail of poses, spaced by speed, plus the speed ramp over time. */
@@ -1004,8 +1109,12 @@
     const cy = 82;
     const hw = 80;
     const hh = 45;
-    const yaw = dir === "left" ? -turn : dir === "right" ? turn : 0;
-    const pitch = (dir === "up" ? turn : dir === "down" ? -turn : 0) + tilt;
+    /* With no 3D move the frame stays flat; otherwise it turns (edge-on at 90°). */
+    const still = kind === "none";
+    const yawW = dir === "left" ? -turn : dir === "right" ? turn : 0;
+    const pitchW = (dir === "up" ? turn : dir === "down" ? -turn : 0) + tilt;
+    let yaw = still ? 0 : yawW;
+    let pitch = still ? 0 : pitchW;
     const dist = 260 + depth * 400;
     const proj = (x, y) => {
       let X = x * Math.cos(yaw);
@@ -1015,11 +1124,24 @@
       const f = 260 / (dist + Z);
       return [cx + X * f, cy + Y * f];
     };
-    const q = [proj(-hw * 1.4, -hh * 1.4), proj(hw * 1.4, -hh * 1.4), proj(hw * 1.4, hh * 1.4), proj(-hw * 1.4, hh * 1.4)];
+    const quad = () => [proj(-hw * 1.4, -hh * 1.4), proj(hw * 1.4, -hh * 1.4), proj(hw * 1.4, hh * 1.4), proj(-hw * 1.4, hh * 1.4)];
+    const q = quad();
+    /* With no move, a faint dashed outline shows where the frame would turn to. */
+    let ghostQ = "";
+    if (still && (yawW || pitchW)) {
+      yaw = yawW;
+      pitch = pitchW;
+      const g = quad();
+      ghostQ = path(g.concat([g[0]]), "#ffd166", 1.5, "5 4");
+      yaw = 0;
+      pitch = 0;
+    }
     const rev = v.p("revealsNext");
     let out = k.bg(BG) + k.title(kind);
-    out += `<g opacity="${r1(0.15 + rev * 0.85)}">${rect(40, 26, 240, 116, "#81b29a", { stroke: "#444" })}${k.person({ x: 230, y: 136, s: 1, color: "#06d6a0" })}</g>` + tag(k, 270, 152, "next shot", "#81b29a", "end", 7);
-    out += path(q.concat([q[0]]), "#000", 2, null, "#6c8fb8") + k.person({ x: (q[0][0] + q[2][0]) / 2, y: (q[2][1] + q[3][1]) / 2 - 4, s: k.clamp((q[2][1] - q[1][1]) / 110, 0.2, 1.2), color: "#e07a5f" });
+    out += `<g opacity="${r1(0.15 + rev * 0.85)}">${rect(40, 26, 240, 116, "#81b29a", { stroke: "#444" })}${k.person({ x: 230, y: 136, s: 1, color: "#06d6a0" })}</g>` + tag(k, 46, 37, "next shot", "#81b29a", "start", 7);
+    const faceW = Math.abs(q[1][0] - q[0][0]);
+    out += path(q.concat([q[0]]), "#000", 2, null, "#6c8fb8") + (faceW < 40 ? "" : k.person({ x: (q[0][0] + q[2][0]) / 2, y: (q[2][1] + q[3][1]) / 2 - 4, s: k.clamp((q[2][1] - q[1][1]) / 110, 0.2, 1.2), color: "#e07a5f" }));
+    out += ghostQ;
     if (kind === "cube spin") out += path([q[1], [q[1][0] + 30, q[1][1] - 14], [q[2][0] + 30, q[2][1] - 14], q[2]], "#888", 1.5, "3 2");
     if (kind === "shatter mirror") for (let i = 0; i < 6; i++) out += line(cx, cy, cx + Math.cos(i) * 70, cy + Math.sin(i * 1.7) * 40, "#fff", 1);
     if (kind === "earth zoom") out += k.ring({ x: cx, y: cy, r: 50, color: "#7fb7ff", w: 3 });
@@ -1195,13 +1317,13 @@
       if (what === "a color") out += rect(x + 11 - s, 60 - s, s * 2, s * 2, "#c77dff", { op: 0.8 });
       if (what === "a place") out += path([[x + 2, 72], [cx, 72 - s * 2], [x + 20, 72]], "#81b29a", 2);
       if (what === "a camera position") out += k.cam({ x: cx, y: 60, s: s / 14 });
-      if (what === "a pose") out += k.person({ x: cx, y: 78, s: s / 14, arms: 1, color: "#e07a5f" });
+      if (what === "a pose") out += k.person({ x: cx, y: 78, s: s / 28, arms: 1, color: "#e07a5f" });
       if (many > 0.9) out += k.dot({ x: cx, y: 46, r: 2.5, color: "#ffd166" });
     }
     if (!many) out += tag(k, 160, 64, "nothing held", "#777");
     const bp = { never: -1, "at the turn": 0.5, "at the climax": 0.8, "at the end": 1 }[v("breakAt")];
     out += axis(k, 10, 112, 300, "scene", "");
-    if (bp >= 0) out += star(10 + bp * 300, 108, 8, "#ffd166", 6) + tag(k, 10 + bp * 300, 128, "it changes", "#ffd166", "middle", 8);
+    if (bp >= 0) out += star(10 + bp * 300, 108, 8, "#ffd166", 6) + tag(k, k.clamp(10 + bp * 300, 34, 286), 128, "it changes", "#ffd166", "middle", 8);
     else out += tag(k, 300, 128, "never changes", "#888", "end", 8);
     return out + cap(k, `${v("setting")}: ${what} · held ${r1(v.n("length"))} panels · ${v("pressure")} · ${r1(v.n("heldShare"))}% attention`);
   });
@@ -1243,8 +1365,8 @@
     const seam = v.n("seamLength");
     const m = v("match");
     const cx = 160;
-    const cy = 84;
-    const R = 56;
+    const cy = 88;
+    const R = 54;
     let out = k.bg(BG) + k.title("End joins back to the start");
     const gapA = mode === 0 ? 0.5 : 0.05;
     const arc = (a0, a1) => `M${r1(cx + Math.cos(a0) * R)} ${r1(cy + Math.sin(a0) * R)} A${R} ${R} 0 1 1 ${r1(cx + Math.cos(a1) * R)} ${r1(cy + Math.sin(a1) * R)}`;
@@ -1260,7 +1382,7 @@
     out += mini("cw-loopEnding-end", 12, 30, 80, thumb(m === "the sound" ? diff : diff)) + tag(k, 52, 84, "the end", "#888");
     out += mini("cw-loopEnding-start", 228, 30, 80, thumb(m === "the picture" || m === "everything" ? 0 : diff * 0.5, ms > 0 ? k.mix("#ffd166", "#ef476f", ms) : null)) + tag(k, 268, 84, "the start, again", "#888");
     if (m === "the sound" || m === "everything") out += k.wave({ x: 12, y: 100, w: 80, h: 12, amp: 0.8, cycles: 3 }) + k.wave({ x: 228, y: 100, w: 80, h: 12, amp: 0.8 * (1 - diff * 0.7), cycles: 3 + diff * 3 });
-    out += k.text({ x: cx, y: 34 - sig * 2, text: "↻", size: 10 + sig * 18, color: "#06d6a0", alpha: 0.25 + sig * 0.75 });
+    out += k.text({ x: cx, y: cy + 34, text: "↻", size: 10 + sig * 18, color: "#06d6a0", alpha: 0.25 + sig * 0.75 });
     return out + cap(k, `${v("setting")} · matches ${m} ${r1(v.n("matchClose"))}% · seam ${seam} s · ${v("meaningShift")} new`);
   });
 
@@ -1275,9 +1397,9 @@
     const scene = k.sky(0.7) + k.floor(130, "#4a6a3a") + `<circle cx="60" cy="40" r="18" fill="#ffd166"/>` + k.person({ x: 210, y: 160, s: 1.6, color: "#e07a5f", arms: 0.8 });
     const tf = how === "mirrored" ? `translate(320 0) scale(-1 1)` : how === "flipped" ? `translate(0 180) scale(1 -1)` : how === "rotated" ? `rotate(${ang} ${r1(px)} ${r1(py)})` : how === "tilted" ? `rotate(${r1(ang / 6)} ${r1(px)} ${r1(py)})` : "";
     const z = 1 / (1 - crop);
-    const inner = `<g transform="translate(160 90) scale(${r1(z * 100) / 100}) translate(-160 -90)"><g transform="${tf}">${scene}</g></g>` + (un > 0 ? k.tint({ color: "#7a9a3a", alpha: un * 0.35 }) : "");
+    const inner = `<g transform="translate(200 105) scale(${r1(z * 100) / 100}) translate(-200 -105)"><g transform="${tf}">${scene}</g></g>` + (un > 0 ? k.tint({ color: "#7a9a3a", alpha: un * 0.35 }) : "");
     let out = k.bg(BG) + mini("cw-imageTransform-clip", 70, 8, 180, inner);
-    out += `<g transform="translate(70 8) scale(0.5625)"><rect x="40" y="25" width="240" height="130" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="6 5" transform="rotate(${r1(ang)} ${r1(px)} ${r1(py)})" opacity="0.6"/><circle cx="${r1(px)}" cy="${r1(py)}" r="7" fill="#ffd166" stroke="#000" stroke-width="2"/></g>`;
+    out += `<clipPath id="cw-imageTransform-ov"><rect x="70" y="8" width="180" height="101"/></clipPath><g clip-path="url(#cw-imageTransform-ov)"><g transform="translate(70 8) scale(0.5625)"><rect x="40" y="25" width="240" height="130" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="6 5" transform="rotate(${r1(ang)} ${r1(px)} ${r1(py)})" opacity="0.6"/><circle cx="${r1(px)}" cy="${r1(py)}" r="7" fill="#ffd166" stroke="#000" stroke-width="2"/></g></g>`;
     const tt = v.n("turnTime");
     const when = { "at the start": 0, "mid-shot": 0.45, "on a hit": 0.6, throughout: 0 }[v("turnWhen")];
     const w2 = v("turnWhen") === "throughout" ? 296 : Math.max(2, (tt / 10) * 140);
@@ -1347,7 +1469,9 @@
     }
     bgS += rect(cx, cy, cw, ch, "#000", { op: (v.n("bgDim") / 100) * 0.85 }) + "</g>";
     let out = k.bg(BG) + bgS + rect(cx, cy, cw, ch, "none", { stroke: fc === "#000000" ? "#555" : fc, sw: 2 });
-    out += mini("cw-canvasFill-clip", x, y, w, r < 1.2 ? scene : `<g transform="translate(160 0) scale(0.32 1) translate(-160 0)">${scene}</g>`, "#fff");
+    /* The clip keeps its own shape (a tall phone clip in a wide frame, or the other way round), cropped, not squashed. */
+    const cs = Math.max(w / 320, h / 180);
+    out += `<clipPath id="cw-canvasFill-k"><rect x="${r1(x)}" y="${r1(y)}" width="${r1(w)}" height="${r1(h)}"/></clipPath><g clip-path="url(#cw-canvasFill-k)"><g transform="translate(${r1(x + w / 2 - 160 * cs)} ${r1(y + h / 2 - 90 * cs)}) scale(${r1(cs * 1000) / 1000})">${scene}</g></g>` + rect(x, y, w, h, "none", { stroke: "#fff", sw: 1.5 });
     return out + cap(k, `${ratio} · edges: ${edge} · ${v("fillColor")} · blur ${r1(v.n("blur"))}% · clip ${r1(v.n("clipSize"))}%`);
   });
 

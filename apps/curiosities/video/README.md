@@ -42,7 +42,20 @@ The looks, the shot framing and the rhythm are lanes like the rest: in the clip'
 
 ## What it applies (one switch and amount each)
 
-Light and dark, contrast, color strength, warm and cool, camera shake (adds the inspiration's wobble and steadies your own), camera moves, how close the shot is (zooms in only), cuts (jump cuts), movement speed (a speed ramp), loudness, dialogue tempo (new lines on your clip's title, timed to the inspiration's sentences), and, off unless turned on, **Lay its graphics over** (the inspiration's picture on top with its pale background taken out).
+Every change is a switch with a slider for how much. There are about 25, so they sit in six sections that fold open and shut, each showing how many of its switches are on:
+
+| Section | Switches |
+| --- | --- |
+| Light and color | Light and dark, Contrast, Color strength, Warm and cool, Key light |
+| Camera | Camera shake, Camera moves, How close the shot is, Shot framing (with Dutch tilt), Camera angle, and the Sharper zooms tick |
+| People and the set | Clothes color, Hair color, Person size and place, The set |
+| Look of the picture | Borrowed palette, Grain and softness, Frame shape, Lay its graphics over |
+| Rhythm and motion | Cuts, Movement speed, Rhythm, Hold and burst, Motion feel |
+| Sound and words | Loudness, Dialogue tempo, Its music under yours |
+
+Each switch says in one line what it does ("More" has the whole story), and says so when it can't run yet: "needs the AI cut-outs of both clips" or "needs both clips brought in again". Four quick picks at the top set the switches in one click: **Just the look** (light, color, its grade and grain), **Its camera** (shake, moves, how close, framing), **Its rhythm** (its beat, speed and music) and **Everything** (all but Lay its graphics over, The set, and Hold and burst, which change too much at once). A pick keeps any amount you already set; **The usual** goes back to the switches that are on to start, **All off** turns them all off. The switches, their amounts and which sections are open are kept in this browser (`curiosities-video-v1`). A switch added by a new file that the sections don't list yet shows under **More**.
+
+In detail: light and dark, contrast, color strength, warm and cool, camera shake (adds the inspiration's wobble and steadies your own), camera moves, how close the shot is (zooms in only), cuts (jump cuts), movement speed (a speed ramp), loudness, dialogue tempo (new lines on your clip's title, timed to the inspiration's sentences), and, off unless turned on, **Lay its graphics over** (the inspiration's picture on top with its pale background taken out).
 
 Three looks, each its own switch and amount:
 
@@ -104,7 +117,7 @@ When a clip comes in, a free AI that runs in your browser (Google's MediaPipe, t
 ## Tests
 
 - `node apps/curiosities/video/tests/run.js`: made-up frames and sound, so every answer is known (Node, about a minute).
-- `NODE_PATH=/opt/node22/lib/node_modules node apps/curiosities/video/tests/browser.js [--mediapipe DIR]`: the real app in Chromium (with `--mediapipe`, a local copy of `@mediapipe/tasks-vision` plus the selfie multiclass model, the AI cut-out checks run too); the page records its own two clips, then brings them in, puts lanes on My film, checks light follows, saves a video, swaps, and opens from the Screen.
+- `NODE_PATH=/opt/node22/lib/node_modules node apps/curiosities/video/tests/browser.js [--mediapipe DIR]`: the real app in Chromium (with `--mediapipe`, a local copy of `@mediapipe/tasks-vision` plus the selfie multiclass model, the AI cut-out checks run too); the page records its own two clips, then brings them in, puts lanes on My film, checks the switch sections and a quick pick (and no sideways scroll at 390 px), checks light follows, saves a video, swaps, and opens from the Screen.
 
 ## Limits
 
