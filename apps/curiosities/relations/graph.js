@@ -38,9 +38,17 @@
   };
   const SUITE_CAP = 12; // a suite bigger than this is a whole look, not a direct tie between its members
 
-  function familyOf(ws) {
+  /* A workspace the map has not met yet goes where its name points; the rest go to Story & cut. */
+  function familyOf(ws, label) {
     const f = FAMILIES.find((f) => f.workspaces.includes(ws));
-    return f ? f.id : "story";
+    if (f) return f.id;
+    const t = (ws + " " + (label || "")).toLowerCase();
+    if (/charact|relation|person|people|belong|archetyp|enneagram|herd|mind|arc\b/.test(t)) return "character";
+    if (/emo|feel|comed|mood/.test(t)) return "feeling";
+    if (/body|move|motion|gesture|pose|wardrobe|act/.test(t)) return "body";
+    if (/camera|light|color|colour|look|set|lens|focus|frame/.test(t)) return "look";
+    if (/sound|music|line|word|voice|audio|dialog|title/.test(t)) return "sound";
+    return "story";
   }
 
   /* mine: { nodes: [{ id: "mine-...", label, family }], ties: [{ a, b }] }, what the user added on the map. */
@@ -55,7 +63,7 @@
       return n;
     };
     (data.curiosities || []).forEach((c) =>
-      add({ id: c.id, label: c.label, plain: c.plain || "", kind: "curiosity", group: c.workspace, groupLabel: wsLabel.get(c.workspace) || c.workspace, family: familyOf(c.workspace), mine: /^my-/.test(c.id) })
+      add({ id: c.id, label: c.label, plain: c.plain || "", kind: "curiosity", group: c.workspace, groupLabel: wsLabel.get(c.workspace) || c.workspace, family: (mine && mine.place && mine.place[c.id]) || familyOf(c.workspace, wsLabel.get(c.workspace)), mine: /^my-/.test(c.id) })
     );
     // Feelings the database already has stay as those curiosities; the rest are new nodes.
     const alias = new Map();
@@ -77,7 +85,7 @@
     const edges = [];
     const seen = new Map();
     const missing = [];
-    function edge(a, b, type, why) {
+    function edge(a, b, type, why, pid) {
       a = real(a);
       b = real(b);
       if (a === b) return;
@@ -90,12 +98,13 @@
         return;
       }
       const e = { a, b, type, why: why ? [why] : [] };
+      if (pid) e.pid = pid; // a proximity the user made in the app (CurioMine), so the map can take it away again
       seen.set(key, e);
       edges.push(e);
     }
 
     (data.proximities || []).forEach((p) => {
-      if (p.when && p.then && p.when.curiosity && p.then.curiosity) edge(p.when.curiosity, p.then.curiosity, "leads", p.label);
+      if (p.when && p.then && p.when.curiosity && p.then.curiosity) edge(p.when.curiosity, p.then.curiosity, "leads", p.label, /^my-/.test(p.id) ? p.id : "");
     });
     (data.suites || []).forEach((s) => {
       const ids = [...new Set((s.members || []).map((m) => m.curiosity).filter(Boolean))];

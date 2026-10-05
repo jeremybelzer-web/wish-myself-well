@@ -14,8 +14,10 @@ the live `CuriosityDB`, so a person's own curiosities show up too).
   and each double-click goes further in, like a map. Once you are inside, dragging looks around you. Show every
   proximity draws the whole web of cause and effect; Move curiosities lets you drag them somewhere else.
 - **Your own**: Add a curiosity (tied to whatever is selected), Tie to… then click anything to draw a line,
-  × to remove one. Your curiosities, ties and moves stay on this device (`curio-relations-v1`); they are not
-  in CuriosityDB yet.
+  × to remove one. Inside the app these go into the curiosity database as your own ("my-") curiosities and
+  proximities through `CurioMine` (screen/mine.js), so they can be automated, are saved in project files and
+  undo like everything else. Ties to archive items (movements, feelings, traits), everything on the standalone
+  page, and where you moved things stay on this device (`curio-relations-v1`).
 - **Movement archive** (a pop-up): what a body does, or stops doing, for each feeling. Pick a feeling to see its
   movements, or pick movements and it says which feelings they read as. Show on the map, or Copy as a note.
 

@@ -226,6 +226,29 @@ const ok = (cond, msg) => {
     await page.waitForSelector(".rl-overlay .rl-side h2", { timeout: 30000 });
     const live = await page.evaluate(() => document.querySelector(".rl-overlay .rl")._curioRelations.graph.nodes.length);
     ok(live >= chips, `Library, Relationship map opens over the app with the live database (${live})`);
+    // In the app, what you add goes into the curiosity database as your own curiosity and proximity.
+    const R = '.rl-overlay';
+    await page.click(`${R} .rl-find input`);
+    await page.fill(`${R} .rl-find input`, "Shame");
+    await page.click(`${R} .rl-hits button[data-id="shame"]`);
+    await page.click(`${R} [data-act="add"]`);
+    await page.fill("#rl-new-name", "Hides behind humor");
+    await page.click(`${R} .rl-form button[type="submit"]`);
+    const made = await page.evaluate(() => {
+      const id = document.querySelector(".rl-overlay .rl")._curioRelations.selected()[0];
+      const v = CurioMine.store().view();
+      return { id, inDb: !!CuriosityDB.get("curiosity", id), mine: v.curiosities.some((c) => c.id === id), prox: v.proximities.filter((p) => p.then.curiosity === id && p.when.curiosity === "shame").length };
+    });
+    ok(/^my-/.test(made.id) && made.inDb && made.mine, `Add a curiosity in the app makes one of your own in the database (${made.id})`);
+    ok(made.prox === 1, "and its tie is one of your own proximities");
+    await page.click(`${R} .rl-side [data-act="tie"]`);
+    await page.fill(`${R} .rl-find input`, "Pride");
+    await page.click(`${R} .rl-hits button[data-id="pride"]`);
+    const tie2 = await page.evaluate((id) => CurioMine.store().view().proximities.some((p) => p.when.curiosity === id && p.then.curiosity === "pride"), made.id);
+    ok(tie2, "Tie to… between two curiosities adds a proximity to the database");
+    await page.click(`${R} .rl-side [data-act="delnode"]`);
+    const gone = await page.evaluate((id) => !CuriosityDB.get("curiosity", id) && !CurioMine.store().view().proximities.some((p) => p.when.curiosity === id || p.then.curiosity === id), made.id);
+    ok(gone, "Remove this curiosity takes it and its proximities out of the database");
     await page.click(".rl-overlay .rl-close");
     ok(!(await page.locator(".rl-overlay").count()), "Close takes it away");
   } catch (e) {

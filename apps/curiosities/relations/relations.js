@@ -70,9 +70,22 @@
       adding: false,
       showAll: !!saved.showAll,
     };
+    /* Inside the app, what the user adds goes into the curiosity database as their own ("my-") curiosities and
+       proximities through CurioMine (screen/mine.js), so it can be automated, saved in project files and undone
+       like everything else. Ties to archive items (movements, feelings, traits), and everything on the standalone
+       page, stay in this map's own storage. */
+    const Mine = db === root.CuriosityDB && root.CurioMine && typeof root.CurioMine.store === "function" ? root.CurioMine : null;
+    const mineStore = () => {
+      try {
+        return Mine.store();
+      } catch (e) {
+        return null;
+      }
+    };
+    st.mine.place = st.mine.place || saved.place || {};
     let g = G.build(G.fromDB(db), A, st.mine);
     st.picked = st.picked.filter((id) => g.byId.has(id));
-    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, moved: st.moved, layerBy: st.layerBy, showAll: st.showAll });
+    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, place: st.mine.place, moved: st.moved, layerBy: st.layerBy, showAll: st.showAll });
     /* After the user adds or removes something: build the graph again and redraw, keeping the camera. */
     function rebuild() {
       g = G.build(G.fromDB(db), A, st.mine);
@@ -110,13 +123,36 @@
       st.sel.forEach((id) => near.delete(id));
       return near;
     }
+    /* A tie between two database curiosities becomes one of the user's own proximities in the app. */
+    const isDbNode = (id) => {
+      const n = g.byId.get(id);
+      return !!n && n.kind === "curiosity";
+    };
+    function addProximity(a, b) {
+      const store = Mine && isDbNode(a) && isDbNode(b) && mineStore();
+      if (!store) return false;
+      const A1 = g.byId.get(a).label;
+      const B1 = g.byId.get(b).label;
+      const id = Mine.newId("when " + A1 + " then " + B1, store.view());
+      const r = store.send({ type: "put", level: "proximity", label: "Tie on the relationship map", item: { id, label: `When ${A1} changes, ${B1} follows`, plain: "Drawn on the relationship map.", when: { curiosity: a, change: "changes" }, then: { curiosity: b, change: "changes" }, within: 2 } });
+      return !!(r && r.ok);
+    }
+    function addCuriosity(name, plain, family) {
+      const store = Mine && mineStore();
+      if (!store) return "";
+      const id = Mine.newId(name, store.view());
+      const cats = (root.CurioLevels && root.CurioLevels.CATEGORIES) || [];
+      const cat = (cats.find((c) => (c.workspaces || []).some((w) => G.familyOf(w) === family)) || {}).id;
+      const r = store.send({ type: "put", level: "curiosity", label: "Add " + name, item: { id, label: name, plain, cat, push: 2, scale: { kind: "steps", steps: ["off", "a little", "a lot"] }, extras: [] } });
+      return r && r.ok ? id : "";
+    }
     function select(ids) {
       // Drawing a tie: the next thing clicked is what the first one leads to.
       if (st.tieFrom && ids && !Array.isArray(ids) && g.real(ids) !== st.tieFrom && g.byId.has(g.real(ids))) {
         const a = st.tieFrom;
         const b = g.real(ids);
         st.tieFrom = "";
-        if (!st.mine.ties.some((t) => t.a === a && t.b === b)) st.mine.ties.push({ a, b });
+        if (!addProximity(a, b) && !st.mine.ties.some((t) => t.a === a && t.b === b)) st.mine.ties.push({ a, b });
         st.sel = [a];
         return rebuild();
       }
@@ -197,14 +233,14 @@
         <h2>${esc(n.label)}</h2><p>${esc(n.plain)}</p>
         <div class="rl-actions">
           <button data-act="tie" data-id="${esc(n.id)}" title="Draw a line from this to anything else">Tie to…</button>
-          ${n.kind === "mine" ? `<button data-act="delnode" data-id="${esc(n.id)}">Remove this curiosity</button>` : ""}
+          ${n.kind === "mine" || (n.mine && Mine) ? `<button data-act="delnode" data-id="${esc(n.id)}">Remove this curiosity</button>` : ""}
           ${st.moved[n.id] ? `<button data-act="unmove" data-id="${esc(n.id)}">Put back in its place</button>` : ""}
           ${isFeeling ? `<button data-act="archive" data-feeling="${esc(n.id)}">Movements for this feeling</button>` : ""}
           ${n.kind === "movement" ? `<button data-act="pick" data-id="${esc(n.id)}">${st.picked.includes(n.id) ? "Unpick" : "Pick"} this movement</button>` : ""}
         </div>
         ${linkGroups(n.id)
           .map((gr) => `<div class="rl-sub"><i style="--c:${TYPE_COLOR[gr.type]}"></i>${esc(gr.name)} (${gr.items.length})</div>
-            <div class="rl-links">${gr.items.map((l) => (l.edge.type === "mine" ? `<span class="rl-mine">${linkBtn(l.id, "", TYPE_COLOR.mine)}<button data-act="untie" data-a="${esc(l.edge.a)}" data-b="${esc(l.edge.b)}" aria-label="Remove this tie" title="Remove this tie">×</button></span>` : "") || linkBtn(l.id, l.edge.type === "suite" || l.edge.type === "leads" ? l.edge.why[0] + (l.edge.why.length > 1 || l.edge.more ? " +" + (l.edge.why.length - 1 + (l.edge.more || 0)) : "") : "", TYPE_COLOR[gr.type])).join("")}</div>`)
+            <div class="rl-links">${gr.items.map((l) => (l.edge.type === "mine" || (l.edge.pid && Mine) ? `<span class="rl-mine">${linkBtn(l.id, l.edge.pid ? "yours" : "", TYPE_COLOR[l.edge.type])}<button data-act="untie" data-a="${esc(l.edge.a)}" data-b="${esc(l.edge.b)}" data-pid="${esc(l.edge.pid || "")}" aria-label="Remove this tie" title="Remove this tie">×</button></span>` : "") || linkBtn(l.id, l.edge.type === "suite" || l.edge.type === "leads" ? l.edge.why[0] + (l.edge.why.length > 1 || l.edge.more ? " +" + (l.edge.why.length - 1 + (l.edge.more || 0)) : "") : "", TYPE_COLOR[gr.type])).join("")}</div>`)
           .join("") || "<p>Nothing is tied to this yet.</p>"}`;
     }
     function linkBtn(id, why, color) {
@@ -215,11 +251,20 @@
       e.preventDefault();
       const name = side.querySelector("#rl-new-name").value.trim();
       if (!name) return;
-      let id = "mine-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
-      while (g.byId.has(id)) id += "-2";
       const near = st.sel.length === 1 ? st.sel[0] : "";
-      st.mine.nodes.push({ id, label: name, plain: side.querySelector("#rl-new-plain").value.trim(), family: side.querySelector("#rl-new-family").value });
-      if (near) st.mine.ties.push({ a: near, b: id });
+      const plain = side.querySelector("#rl-new-plain").value.trim();
+      const family = side.querySelector("#rl-new-family").value;
+      let id = addCuriosity(name, plain, family);
+      if (id) {
+        st.mine.place[id] = family;
+        g = G.build(G.fromDB(db), A, st.mine); // so the new curiosity counts as a database one for its first tie
+        if (near && !addProximity(near, id)) st.mine.ties.push({ a: near, b: id });
+      } else {
+        id = "mine-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+        while (g.byId.has(id)) id += "-2";
+        st.mine.nodes.push({ id, label: name, plain, family });
+        if (near) st.mine.ties.push({ a: near, b: id });
+      }
       // Put it beside what it is tied to, so it is easy to find in the cube.
       if (near && view && view.posOf) {
         const p = view.posOf(near);
@@ -243,11 +288,20 @@
         return drawSide();
       }
       if (b.dataset.act === "untie") {
+        const store = b.dataset.pid && mineStore();
+        if (store) store.send({ type: "remove", level: "proximity", id: b.dataset.pid, label: "Remove a tie" });
         st.mine.ties = st.mine.ties.filter((t) => !(t.a === b.dataset.a && t.b === b.dataset.b));
         return rebuild();
       }
       if (b.dataset.act === "delnode") {
         const id = b.dataset.id;
+        const store = /^my-/.test(id) && mineStore();
+        if (store) {
+          // its proximities go with it, so nothing is left pointing at a curiosity that is gone
+          (store.view().proximities || []).filter((p) => p.when.curiosity === id || p.then.curiosity === id).forEach((p) => store.send({ type: "remove", level: "proximity", id: p.id }));
+          store.send({ type: "remove", level: "curiosity", id, label: "Remove " + id });
+          delete st.mine.place[id];
+        }
         st.mine.nodes = st.mine.nodes.filter((n) => n.id !== id);
         st.mine.ties = st.mine.ties.filter((t) => t.a !== id && t.b !== id);
         delete st.moved[id];
