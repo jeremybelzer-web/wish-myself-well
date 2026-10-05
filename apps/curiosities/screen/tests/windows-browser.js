@@ -4,7 +4,8 @@
    Opens the window of every curiosity on the Screen, one by one, and checks that each face its data asks for
    (data/windows/win-*.js) is drawn, that its groups list its settings, and that the page reports no errors.
    Then works one window the way a person would: a preset (several settings at the playhead, one undo step),
-   a tile, a shape drawn over the whole film (Rise), Surprise me, and a drag on a pad. */
+   a tile, a shape drawn over the whole film (Rise), Surprise me, and a drag on a pad; then the hand-made faces
+   (wheel, curve, stage) with the mouse, a finger and the arrow keys. */
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -315,6 +316,173 @@ const ok = (cond, msg) => {
   ok((await orbVal("cameraPlace.distance")) === (await page.evaluate(() => window.CurioScale.at("cameraPlace.distance", 1))), "a learned knob turned all the way sets the distance to its top");
   ok(await page.evaluate(() => window.CurioWindowFaces.midi.bindings()["cc:21"] === "cameraPlace.distance"), "the knob is remembered for that setting");
   ok(await page.$(`${orb} [data-cw-midi="cameraPlace.distance"].on`), "the 🎹 button shows which knob moves it");
+
+  /* The hand-made faces: a color wheel, a curve over my film and a floor plan from above. Each is dragged with
+     the mouse, moved with touch (pointer events) and the arrow keys, and writes its settings. */
+  const valAt = (k, j) => page.evaluate(([k, j]) => {
+    const st = window.CurioEngine.state();
+    const t = st.tracks.find((x) => x.curiosities.includes(k));
+    const r = st.rows[j == null ? window.CurioScreen.row() : j];
+    return t && r ? window.CurioEngine.value(r.id, t.id, k) : null;
+  }, [k, j]);
+  const undos = () => page.evaluate(() => (window.CurioEngine.history ? window.CurioEngine.history().undo.length : null));
+  const focusedHand = () => page.evaluate(() => (document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.handFocus || null : null));
+  const handFaces = await page.evaluate(() => {
+    const seen = { wheel: [], curve: [], stage: [] };
+    Object.entries(window.CuriosityWindows.specs).forEach(([id, s]) => (s.faces || []).forEach((f) => seen[f.face] && seen[f.face].push(id)));
+    return seen;
+  });
+  ok(handFaces.wheel.length >= 5 && handFaces.curve.length >= 5 && handFaces.stage.length >= 5, `hand-made faces in use: ${handFaces.wheel.length} wheels, ${handFaces.curve.length} curves, ${handFaces.stage.length} stages`);
+  /* Every one of them is drawn as itself (not its fallback) in its window. */
+  const handDrawn = await page.evaluate((all) => {
+    const miss = [];
+    Object.entries(all).forEach(([kind, ids]) => ids.forEach((id) => {
+      window.CurioScreen.openWin(id);
+      if (!document.querySelector(`.sc-win[data-win="${id}"] .cw-${kind}-face [data-cw-hand]`)) miss.push(`${id} (${kind})`);
+      document.querySelector(`.sc-win[data-win="${id}"] [data-win-close]`).click();
+    }));
+    return miss;
+  }, handFaces);
+  ok(!handDrawn.length, "every wheel, curve and stage draws itself: " + (handDrawn.join(", ") || "all drawn"));
+
+  /* Wheel (degrees): drag the dot to the right edge: hue about 90°, strength near the top. */
+  await page.evaluate(() => window.CurioScreen.openWin("filterHue"));
+  const fw = '.sc-win[data-win="filterHue"]';
+  const disc = `${fw} .cw-wheel-disc`;
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), disc);
+  let db = await (await page.$(disc)).boundingBox();
+  const lookBefore = await page.evaluate((w) => document.querySelector(`${w} [data-cw-look]`).innerHTML, fw);
+  let undo0 = await undos();
+  await page.mouse.move(db.x + db.width * 0.5, db.y + db.height * 0.2);
+  await page.mouse.down();
+  await page.mouse.move(db.x + db.width * 0.97, db.y + db.height * 0.5, { steps: 5 });
+  const lookMid = await page.evaluate((w) => document.querySelector(`${w} [data-cw-look]`).innerHTML, fw);
+  await page.mouse.up();
+  const hue = await valAt("filterHue.hueAngle");
+  const tint = await valAt("filterHue.tintStrength");
+  ok(hue >= 80 && hue <= 100 && tint >= 85, `dragging the wheel's dot to its right edge sets the color to about 90° and strong (${hue}°, ${tint}%)`);
+  ok(lookMid !== lookBefore, "the live picture redraws while the wheel's dot moves");
+  if (undo0 != null) ok((await undos()) === undo0 + 1, "one wheel drag is one undo step");
+  ok(await page.$(`${fw} .cw-wheel-face [data-cw-midi="filterHue.hueAngle"]`), "the wheel shows 🎹 MIDI learn for its settings");
+  ok(await page.$eval(disc, (e) => e.getAttribute("role") === "slider" && /Color wheel/.test(e.getAttribute("aria-label")) && e.tabIndex === 0), "the wheel is a labeled slider you can tab to");
+  await page.focus(disc);
+  await page.keyboard.press("ArrowRight");
+  ok((await valAt("filterHue.hueAngle")) === Math.min(360, hue + 15), `the right arrow turns the color 15° (${await valAt("filterHue.hueAngle")}°)`);
+  await page.keyboard.press("ArrowDown");
+  ok((await valAt("filterHue.tintStrength")) < tint, `the down arrow makes it weaker (${await valAt("filterHue.tintStrength")}%)`);
+  ok((await focusedHand()) === "wheel", "the keyboard stays on the wheel after it writes");
+
+  /* Wheel (words): aim at the "blue" label: the accent becomes blue; the middle-out distance sets its strength. */
+  await page.evaluate(() => window.CurioScreen.openWin("colorAccent"));
+  const aw = '.sc-win[data-win="colorAccent"]';
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), `${aw} .cw-wheel-disc`);
+  const aim = await page.evaluate((aw) => {
+    const d = document.querySelector(`${aw} .cw-wheel-disc`).getBoundingClientRect();
+    const l = [...document.querySelectorAll(`${aw} .cw-wheel-l`)].find((x) => x.textContent === "blue").getBoundingClientRect();
+    const cx = d.left + d.width / 2;
+    const cy = d.top + d.height / 2;
+    const vx = l.left + l.width / 2 - cx;
+    const vy = l.top + l.height / 2 - cy;
+    const n = Math.hypot(vx, vy);
+    return [cx + (vx / n) * d.width * 0.25, cy + (vy / n) * d.width * 0.25];
+  }, aw);
+  await page.mouse.click(aim[0], aim[1]);
+  const acc = [await valAt("colorAccent.accentHue"), await valAt("colorAccent.accentVsRest")];
+  ok(acc[0] === "blue" && acc[1] >= 40 && acc[1] <= 60, `aiming at blue, halfway out, picks blue at about half strength (${acc.join(", ")})`);
+
+  /* Touch: the same wheel moved by a finger (pointer events with pointerType touch). */
+  const touchDrag = (sel, from, to) => page.evaluate(([sel, from, to]) => {
+    const el = document.querySelector(sel);
+    const r = el.getBoundingClientRect();
+    const pt = (p) => ({ clientX: r.left + r.width * p[0], clientY: r.top + r.height * p[1], pointerType: "touch", isPrimary: true, bubbles: true, pointerId: 7 });
+    el.dispatchEvent(new PointerEvent("pointerdown", pt(from)));
+    window.dispatchEvent(new PointerEvent("pointermove", pt([(from[0] + to[0]) / 2, (from[1] + to[1]) / 2])));
+    window.dispatchEvent(new PointerEvent("pointermove", pt(to)));
+    window.dispatchEvent(new PointerEvent("pointerup", pt(to)));
+  }, [sel, from, to]);
+  await touchDrag(`${aw} .cw-wheel-disc`, [0.5, 0.5], [0.5, 0.02]);
+  ok((await valAt("colorAccent.accentHue")) === "red", `a finger dragged to the top of the wheel picks red (${await valAt("colorAccent.accentHue")})`);
+
+  /* Curve: drag the first point to the top and the last to the bottom: tension falls across every moment. */
+  await page.evaluate(() => window.CurioScreen.setRow(0));
+  await page.evaluate(() => window.CurioScreen.openWin("tensionCurve"));
+  const tw = '.sc-win[data-win="tensionCurve"]';
+  const curveSel = `${tw} .cw-curve-box`;
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), curveSel);
+  const nRows = await page.evaluate(() => window.CurioEngine.state().rows.length);
+  const dragCurve = async (fx, toY) => {
+    const b = await (await page.$(`${curveSel} svg`)).boundingBox();
+    await page.mouse.move(b.x + b.width * fx, b.y + b.height * 0.5);
+    await page.mouse.down();
+    await page.mouse.move(b.x + b.width * fx, b.y + b.height * toY, { steps: 4 });
+    await page.mouse.up();
+  };
+  undo0 = await undos();
+  await dragCurve(0.02, 0.0);
+  await dragCurve(0.98, 1.0);
+  const tens = [];
+  for (let j = 0; j < nRows; j++) tens.push(await valAt("tensionCurve", j));
+  ok(tens[0] === 5 && tens[nRows - 1] === 0 && tens.every((v) => v != null), `dragging the curve's ends writes every moment, from 5 down to 0: ${JSON.stringify(tens)}`);
+  if (undo0 != null) ok((await undos()) === undo0 + 2, "each curve drag is one undo step");
+  ok((await focusedHand()) === "curve", "the curve keeps the keyboard after a drag");
+  /* The last drag picked the last point; the left arrow picks the one before it, up lifts it. */
+  await page.keyboard.press("ArrowLeft");
+  const picked = await page.$eval(curveSel, (e) => e.getAttribute("aria-valuetext"));
+  const pm = /^Point (\d+) of (\d+), moment (\d+)/.exec(picked) || [];
+  ok(pm[1] && Number(pm[1]) === Number(pm[2]) - 1, `the left arrow picks the point before (${picked})`);
+  const mid = Number(pm[3]) - 1;
+  const before = await valAt("tensionCurve", mid);
+  await page.keyboard.press("ArrowUp");
+  ok((await valAt("tensionCurve", mid)) > before, `the up arrow lifts that point (moment ${mid + 1}: ${before} to ${await valAt("tensionCurve", mid)})`);
+
+  /* Curve on a word scale: the arc stage, raised at the end by a finger. */
+  await page.evaluate(() => window.CurioScreen.openWin("arcStage"));
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), '.sc-win[data-win="arcStage"] .cw-curve-box');
+  await touchDrag('.sc-win[data-win="arcStage"] .cw-curve-box svg', [0.99, 0.5], [0.99, 0]);
+  ok((await valAt("arcStage", nRows - 1)) === "change", `a finger lifting the last point of the arc ends it at "change" (${await valAt("arcStage", nRows - 1)})`);
+
+  /* Stage: drag the mover to the still one's right and far away. */
+  await page.evaluate(() => window.CurioScreen.setRow(2));
+  await page.evaluate(() => window.CurioScreen.openWin("whoMoves"));
+  const sw = '.sc-win[data-win="whoMoves"]';
+  const floor = `${sw} .cw-stage-floor`;
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), floor);
+  const fb = await (await page.$(floor)).boundingBox();
+  const tok = await (await page.$(`${sw} .cw-tok`)).boundingBox();
+  undo0 = await undos();
+  await page.mouse.move(tok.x + tok.width / 2, tok.y + tok.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(fb.x + fb.width * 0.96, fb.y + fb.height * 0.5, { steps: 5 });
+  await page.mouse.up();
+  const ar = await valAt("whoMoves.circleAround");
+  const gap = await valAt("whoMoves.endGap");
+  ok(ar >= 80 && ar <= 100 && gap >= 7, `dragging the mover to the far right ends them about 90° around and far off (${ar}°, ${gap} m)`);
+  if (undo0 != null) ok((await undos()) === undo0 + 1, "one stage drag is one undo step");
+  ok((await focusedHand()) === "tok1", "the moved person keeps the keyboard");
+  await page.keyboard.press("ArrowRight");
+  ok((await valAt("whoMoves.circleAround")) === Math.min(180, ar + 15), `the right arrow moves them 15° around (${await valAt("whoMoves.circleAround")}°)`);
+  await page.keyboard.press("ArrowDown");
+  ok((await valAt("whoMoves.endGap")) < gap, `the down arrow brings them nearer (${await valAt("whoMoves.endGap")} m)`);
+
+  /* Stage with the camera: a finger drags it behind the walkers. */
+  await page.evaluate(() => window.CurioScreen.openWin("walkAndTalk"));
+  const ww = '.sc-win[data-win="walkAndTalk"]';
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), `${ww} .cw-stage-floor`);
+  const camAt = await page.$eval(`${ww} .cw-tok.cam`, (e) => [parseFloat(e.style.left) / 100, parseFloat(e.style.top) / 100]);
+  await touchDrag(`${ww} .cw-stage-floor`, camAt, [0.5, 0.08]);
+  const behind = await valAt("walkAndTalk.camAround");
+  ok(Math.abs(behind) >= 165, `a finger drags the camera behind the walkers (${behind}°)`);
+
+  /* A face whose setting is missing draws its fallback instead. */
+  const fall = await page.evaluate(() => {
+    const c = window.CurioLevels.get("curiosity", "filterHue");
+    const fake = Object.assign({}, c, { sliders: c.sliders.filter((s) => s.id !== "hueAngle"), window: { faces: [{ face: "wheel", hue: "hueAngle", strength: "tintStrength", fallback: { face: "dial", slider: "tintStrength" } }, { face: "curve", slider: "nothingHere" }, { face: "stage", tokens: [{ who: "person" }, { who: "person", about: 0, distance: "nothingHere" }], fallback: { face: "dial", slider: "tintStrength" } }] } });
+    const h = { esc: (s) => String(s), sliderId: (cc, s) => (s.id === cc.main ? "filterHue" : "filterHue." + s.id), keyBtn: () => "", controlHtml: () => "", ctx: { value: () => undefined, edit: true, beats: [{}, {}, {}] } };
+    const out = window.CurioWindowFaces.html(fake, h);
+    return { dial: (out.match(/cw-dial-face/g) || []).length, hand: /data-cw-hand/.test(out) };
+  });
+  ok(fall.dial === 2 && !fall.hand, `a wheel or stage missing a setting draws its fallback dial instead (${JSON.stringify(fall)})`);
+  ok(!errors.length, "the hand-made faces run without errors" + (errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""));
 
   /* At phone width a new window stays on the screen, so its × can be tapped. */
   await page.setViewportSize({ width: 390, height: 844 });

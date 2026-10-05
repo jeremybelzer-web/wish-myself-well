@@ -1251,6 +1251,33 @@ ok(typeof w.CurioLanes.tools === "function" && w.CurioLanes.tools().linkage === 
   }
 }
 
+/* Triggers ("curiosity proximity", screen/triggers.js): the pure part, with no page. */
+{
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "triggers.js"), "utf8"), core.context || vm.createContext(w), { filename: "triggers.js" });
+  const C = w.CurioTriggers && w.CurioTriggers.core;
+  ok(!!C, "screen/triggers.js loads with no page");
+  if (C) {
+    const t = C.cleanOne({ target: { kind: "node", lk: "cam|shotSize", row: "r3" }, when: { kind: "midi", type: "cc", num: 300 }, does: { act: "scale", amount: -500, mode: "nope" }, limits: { lo: 90, hi: 10, ranges: [[5, 2], "x"], count: "nth", n: 0, sections: { mode: "only", list: ["a"] } } }, 0);
+    ok(t.when.num === 127 && t.does.amount === 0 && t.does.mode === "latch" && t.limits.lo === 10 && t.limits.hi === 90 && JSON.stringify(t.limits.ranges) === "[[2,5]]" && t.limits.n === 1, "a trigger is cleaned: numbers kept in range, ranges in order, unknown words back to the default");
+    ok(C.clean({ list: [{ target: { kind: "bogus" } }, null, { target: { kind: "suite", from: "library", id: "noir" } }] }).list.length === 1, "a broken saved trigger is dropped quietly");
+    const rows = [1, 2, 3, 4, 5, 6].map((i) => ({ id: "r" + i }));
+    const secs = C.sectionsOf([{ row: "r5", note: "" }, { row: "r3", note: "Act 2" }, { row: "gone" }], rows);
+    ok(secs.map((x) => `${x.label}:${x.from}-${x.to}`).join() === "Opening:0-1,Act 2:2-3,Section at moment 5:4-5", "sections run from each marker to the next, with the Opening before the first");
+    ok(C.sectionsOf([{ row: "r1", note: "Act 1" }], rows).length === 1, "no Opening when the first marker is on moment 1");
+    const vals = { "r2|a|eyeline.speaking": "speaking", "r3|a|eyeline.speaking": "speaking", "r5|a|eyeline.speaking": "speaking", "r4|a|bodyEnter": "enters" };
+    const look = { rows, tracks: [{ id: "a", curiosities: ["eyeline.speaking", "bodyEnter"] }], value: (r, t, c) => vals[r + "|" + t + "|" + c] || null, join: (j) => (j === 2 ? "fade" : "cut") };
+    const evs = rows.map((r, j) => C.eventsAt(look, j).map((e) => e.event).join("+"));
+    ok(evs.join(",") === ",cut+panel+line,panel,cut+panel+enter,cut+panel+line,cut+panel", "events: a cut (not a fade), a panel turn, a line where speaking starts, a character entering (" + evs + ")");
+    ok(C.eventHits({ kind: "event", event: "line", track: "a", row: "r5" }, C.eventsAt(look, 4), "r5") && !C.eventHits({ kind: "event", event: "line", track: "a", row: "r5" }, C.eventsAt(look, 1), "r2"), "one chosen event fires only at its own moment");
+    ok([0, 1, 2, 3, 4, 5].map((j) => (C.lfoAt(2, j) ? 1 : 0)).join("") === "110011", "the oscillator switches every N moments");
+    const lim = C.cleanOne({ target: { kind: "master", id: "m" }, limits: { lo: 20, hi: 80, ranges: [[1, 2], [5, 6]], sections: { mode: "never", list: ["s2"] }, playing: true } }, 0).limits;
+    const base = { j: 0, playing: true, value: 0.5, sections: [] };
+    ok(C.limitsPass(lim, base) && !C.limitsPass(lim, Object.assign({}, base, { playing: false })) && !C.limitsPass(lim, Object.assign({}, base, { value: 0.9 })) && !C.limitsPass(lim, Object.assign({}, base, { j: 2 })) && C.limitsPass(lim, Object.assign({}, base, { j: 5 })) && !C.limitsPass(lim, Object.assign({}, base, { sections: ["s2"] })), "limits: only while playing, between two values, several ranges, never in a section");
+    ok([1, 2, 3, 4].map((n) => C.countPass({ count: "first", n: 2 }, n)).join() === "true,true,false,false" && [1, 2, 3, 4].map((n) => C.countPass({ count: "nth", n: 2 }, n)).join() === "false,true,false,true", "first N times and every Nth time");
+    ok(JSON.stringify(C.effectFor({ act: "onoff" }, null, true)) === '{"on":false}' && C.effectFor({ act: "follow", value: 50 }, 0.25).set === 0.25 && C.effectFor({ act: "set", value: 40 }).set === 0.4 && C.nodeEffect({ act: "off" }).off === true, "what each action does to a lane and to a node");
+  }
+}
+
 
 /* Panels you can resize and fold away, and undo for the Screen's view (CurioScreenPanels): the pure part. */
 {

@@ -4,7 +4,7 @@
 
    Opens from Library, "Take a clip apart", and from an "Import a video" button on the Screen's bar.
    window.CurioVideoUI = { open(), close(), state() }
-   Settings (which curiosities to apply, how much, same speed or stretched) are kept under
+   Settings (which curiosities to apply, how much, which sections of the list are open, same speed or stretched) are kept under
    localStorage curiosities-video-v1. The clips themselves stay on your computer: nothing is uploaded or saved. */
 (function () {
   const V = () => window.CurioVideo;
@@ -31,7 +31,13 @@
     } catch (e) {}
     const on = {};
     (V() ? V().GROUPS : []).forEach((g) => (on[g.id] = p.on && typeof p.on[g.id] === "number" ? Math.max(0, Math.min(1, p.on[g.id])) : g.off ? 0 : 1));
-    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false, tilt: p.tilt === true, detail: p.detail !== false, pool: Array.isArray(p.pool) ? p.pool.slice(0, 200).map((x) => String(x).slice(0, 160)) : [] };
+    return { mode: p.mode === "stretch" ? "stretch" : "same", on, title: typeof p.title === "string" ? p.title.slice(0, 120) : "", ai: p.ai !== false, tilt: p.tilt === true, detail: p.detail !== false, open: openOf(p.open), pool: Array.isArray(p.pool) ? p.pool.slice(0, 200).map((x) => String(x).slice(0, 160)) : [] };
+  }
+  /* Which sections of the switch list are open: { sectionId: true or false }. */
+  function openOf(o) {
+    const r = {};
+    if (o && typeof o === "object") Object.keys(o).slice(0, 20).forEach((k) => typeof o[k] === "boolean" && (r[String(k).slice(0, 20)] = o[k]));
+    return r;
   }
   function keep() {
     try {
@@ -187,21 +193,105 @@
         .join("")}
     </section>`;
   }
+  /* The switches in a few plain sections, each folding open and shut (which are open is kept in prefs.open).
+     A switch from a file this list doesn't know yet lands in "More". */
+  const SECTIONS = [
+    { id: "light", label: "Light and color", ids: ["light", "contrast", "color", "warmth", "relight"] },
+    { id: "camera", label: "Camera", ids: ["shake", "move", "size", "framing", "angle"] },
+    { id: "people", label: "People and the set", ids: ["wardrobe", "hair", "figure", "set"] },
+    { id: "look", label: "Look of the picture", ids: ["palette", "grain", "shape", "overlay"] },
+    { id: "rhythm", label: "Rhythm and motion", ids: ["cuts", "speed", "rhythm", "burst", "shutter"] },
+    { id: "sound", label: "Sound and words", ids: ["loud", "dialogue", "music"] },
+  ];
+  /* One plain line per switch (the long story is under "More"). */
+  const SHORT = {
+    light: "Gets lighter and darker when the inspiration does.",
+    contrast: "Makes the darks and lights further apart or closer, like the inspiration.",
+    color: "Makes colors stronger or paler, like the inspiration.",
+    warmth: "Tints the picture orange or blue, like the inspiration.",
+    relight: "Lights your people from the same side as the inspiration's.",
+    shake: "Shakes like the inspiration's camera, or holds as still.",
+    move: "Slides and pushes in the way the inspiration's camera moves.",
+    size: "Moves in closer when the inspiration is closer.",
+    framing: "A virtual camera places your person in the frame where the inspiration's person is.",
+    angle: "Looks a little more down or up at your people, like the inspiration's camera height.",
+    wardrobe: "Changes only the clothes to the inspiration's clothes colors.",
+    hair: "Changes only the hair to the inspiration's hair color.",
+    figure: "Makes your people as big, and as far left or right, as the inspiration's.",
+    set: "Puts your people in the inspiration's place.",
+    palette: "Gives your clip the inspiration's color grade.",
+    grain: "Makes your picture as soft or sharp, and as grainy, as the inspiration.",
+    shape: "Black bars and dark edges like the inspiration's picture.",
+    overlay: "Lays the inspiration's shapes, logos and text on top of your clip.",
+    cuts: "Cuts where the inspiration cuts.",
+    speed: "Speeds up where the inspiration moves more, slows where it moves less.",
+    rhythm: "Cuts and punches in on the inspiration's beat.",
+    burst: "Freezes on each beat, then rushes to catch up.",
+    shutter: "Smears and stutters movement the way the inspiration does.",
+    loud: "Gets louder and quieter with the inspiration.",
+    dialogue: "Writes new lines timed like the inspiration's talking.",
+    music: "Plays the inspiration's sound under yours.",
+  };
+  /* One-click recipes: what they list goes on (an amount you already set is kept), everything else goes off. */
+  const RECIPES = [
+    { id: "look", label: "Just the look", plain: "light, color, grade, grain", ids: ["light", "contrast", "color", "warmth", "palette", "grain"] },
+    { id: "camera", label: "Its camera", plain: "shake, moves, how close", ids: ["shake", "move", "size", "framing"] },
+    { id: "rhythm", label: "Its rhythm", plain: "beat, speed, music", ids: ["rhythm", "speed", "music"] },
+    { id: "all", label: "Everything", plain: "all but the three big swaps", ids: null, skip: ["overlay", "set", "burst"] },
+  ];
+  const recipeIds = (r) => (r.ids ? r.ids.filter((id) => V().GROUPS.some((g) => g.id === id)) : V().GROUPS.map((g) => g.id).filter((id) => !r.skip.includes(id)));
+  function useRecipe(id) {
+    const r = RECIPES.find((x) => x.id === id);
+    if (!r) return;
+    const want = recipeIds(r);
+    V().GROUPS.forEach((g) => (prefs.on[g.id] = want.includes(g.id) ? prefs.on[g.id] || 1 : 0));
+    /* the sections it turned something on in fold open */
+    sectionsOf().forEach((s) => {
+      if (s.groups.some((g) => want.includes(g.id))) prefs.open[s.id] = true;
+    });
+  }
+  function sectionsOf() {
+    const all = V().GROUPS;
+    const known = new Set(SECTIONS.reduce((a, s) => a.concat(s.ids), []));
+    const list = SECTIONS.map((s) => ({ id: s.id, label: s.label, groups: s.ids.map((id) => all.find((g) => g.id === id)).filter(Boolean) }));
+    const rest = all.filter((g) => !known.has(g.id));
+    if (rest.length) list.push({ id: "more", label: "More", groups: rest });
+    return list.filter((s) => s.groups.length);
+  }
+  const missingOf = (g, A, B) => !!(g.needs && !(A[g.needs] && B[g.needs]));
+  const needText = (g) => (g.needs === "looks" || g.needs === "shutter" ? "needs both clips brought in again" : "needs the AI cut-outs of both clips");
+  function applyRow(g, A, B) {
+    const amt = prefs.on[g.id] || 0;
+    const ck = checks && checks[g.id];
+    const missing = missingOf(g, A, B);
+    const short = SHORT[g.id] || g.plain.split(/(?<=\.) /)[0];
+    return `<div class="vd-apply-row${amt && !missing ? "" : " off"}" data-row="${g.id}">
+          <label class="vd-sw"><input type="checkbox" data-on="${g.id}" ${amt ? "checked" : ""} ${missing ? "disabled" : ""}><span><strong>${esc(g.label)}</strong><small>${esc(short)}</small>${missing ? `<em class="vd-need">${needText(g)}</em>` : ""}</span></label>
+          <div class="vd-amt"><input type="range" min="0" max="100" step="5" value="${Math.round(amt * 100)}" data-amt="${g.id}" aria-label="How much of ${esc(g.label)}" ${amt && !missing ? "" : "disabled"}><output>${Math.round(amt * 100)}%</output></div>
+          ${ck ? `<span class="vd-check">${checkText(ck)}</span>` : ""}
+          ${g.id === "framing" && amt && !missing ? `<label class="vd-sub"><input type="checkbox" data-tilt ${prefs.tilt ? "checked" : ""}> Dutch tilt too <small>(roll the frame like the inspiration's horizon)</small></label>` : ""}
+          <details class="vd-more"><summary>More</summary><p>${esc(g.plain)}</p></details>
+        </div>`;
+  }
   function applySection() {
     const A = slot.a.d,
       B = slot.b.d;
     const title = prefs.title || B.title;
-    const rows = V()
-      .GROUPS.map((g) => {
-        const amt = prefs.on[g.id] || 0;
-        const ck = checks && checks[g.id];
-        const missing = g.needs && !(A[g.needs] && B[g.needs]);
-        return `<div class="vd-apply-row${amt && !missing ? "" : " off"}">
-          <label><input type="checkbox" data-on="${g.id}" ${amt ? "checked" : ""} ${missing ? "disabled" : ""}> <strong>${esc(g.label)}</strong>${missing ? ` <small class="vd-k">${g.needs === "looks" || g.needs === "shutter" ? "bring both clips in again to measure this" : "needs AI cut-outs of both clips"}</small>` : ""}</label>
-          <input type="range" min="0" max="100" step="5" value="${Math.round(amt * 100)}" data-amt="${g.id}" aria-label="How much of ${esc(g.label)}" ${amt ? "" : "disabled"}><output>${Math.round(amt * 100)}%</output>
-          <span class="vd-k">${esc(g.plain)}</span>${g.id === "framing" && amt && !missing ? `<label class="vd-k"><input type="checkbox" data-tilt ${prefs.tilt ? "checked" : ""}> Dutch tilt too (roll the frame like the inspiration's horizon, when it has straight lines to measure)</label>` : ""}
-          <span class="vd-check">${ck ? checkText(ck) : ""}</span>
-        </div>`;
+    const onIds = V().GROUPS.filter((g) => prefs.on[g.id] > 0).map((g) => g.id);
+    const same = (ids) => ids.length === onIds.length && ids.every((id) => onIds.includes(id));
+    const recipes = RECIPES.map((r) => {
+      const hit = onIds.length && same(recipeIds(r));
+      return `<button type="button" data-recipe="${r.id}" class="${hit ? "on" : ""}" aria-pressed="${hit ? "true" : "false"}"><strong>${esc(r.label)}</strong><small>${esc(r.plain)}</small></button>`;
+    }).join("");
+    const rows = sectionsOf()
+      .map((s) => {
+        const on = s.groups.filter((g) => prefs.on[g.id] > 0 && !missingOf(g, A, B));
+        const cant = s.groups.filter((g) => missingOf(g, A, B)).length;
+        const open = prefs.open[s.id] != null ? prefs.open[s.id] : s.id === "light";
+        return `<details class="vd-sec" data-sec="${s.id}"${open ? " open" : ""}>
+          <summary><strong>${esc(s.label)}</strong><span class="vd-count${on.length ? " some" : ""}">${on.length} of ${s.groups.length} on</span><span class="vd-which">${on.length ? esc(on.map((g) => g.label).join(", ")) : cant ? `${cant} need${cant === 1 ? "s" : ""} the AI cut-outs or both clips` : "all off"}</span></summary>
+          <div class="vd-sec-body">${s.groups.map((g) => applyRow(g, A, B)).join("")}${s.id === "camera" ? `<label class="vd-sub vd-detail" title="When your clip is zoomed in, its compression blocks are softened and its edges sharpened, without halos"><input type="checkbox" data-detail ${prefs.detail ? "checked" : ""}> Sharper zooms <small>(cleans and sharpens any zoomed-in picture)</small></label>` : ""}</div>
+        </details>`;
       })
       .join("");
     const p = currentPlan();
@@ -214,8 +304,9 @@
     return `<section class="vd-apply">
       <header><strong>Apply "${esc(A.title)}" to "${esc(B.title)}"</strong>
         <label>Timing <select data-mode><option value="same" ${prefs.mode === "same" ? "selected" : ""}>Same speed as the inspiration (repeats if your clip is longer)</option><option value="stretch" ${prefs.mode === "stretch" ? "selected" : ""}>Stretch the inspiration over your whole clip</option></select></label>
-        <label class="vd-k" title="When your clip is zoomed in, its compression blocks are softened and its edges sharpened, without halos"><input type="checkbox" data-detail ${prefs.detail ? "checked" : ""}> Sharper zooms</label>
-        <span class="vd-seg"><button type="button" data-all="1">All on</button><button type="button" data-all="0">All off</button></span></header>
+      </header>
+      <div class="vd-recipes" role="group" aria-label="Quick picks">${recipes}<span class="vd-seg"><button type="button" data-all="1" title="The switches that are on when you start">The usual</button><button type="button" data-all="0">All off</button></span></div>
+      <p class="vd-k">Or open a section and pick switches one by one. The slider sets how much.</p>
       <div class="vd-apply-list">${rows}</div>
       ${dlg}
       <div class="vd-player">
@@ -393,6 +484,11 @@
       "toggle",
       (e) => {
         if (e.target.classList && e.target.classList.contains("vd-ai-paid")) paidOpen = e.target.open;
+        /* a section of switches remembers whether it is open (no redraw: the page already shows it) */
+        if (e.target.dataset && e.target.dataset.sec && prefs.open[e.target.dataset.sec] !== e.target.open) {
+          prefs.open[e.target.dataset.sec] = e.target.open;
+          keep();
+        }
       },
       true
     );
@@ -430,6 +526,12 @@
       if (act === "ai-puppet") return aiPuppet();
       if (t.dataset.show) {
         show = t.dataset.show;
+        return draw();
+      }
+      if (t.dataset.recipe) {
+        useRecipe(t.dataset.recipe);
+        keep();
+        checks = null;
         return draw();
       }
       if (t.dataset.all != null) {

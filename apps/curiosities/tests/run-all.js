@@ -61,6 +61,7 @@ const suites = [
   { name: "engine bridge fuzz", ...node("engine/tests/bridge-fuzz.js") },
   { name: "screen", ...node("screen/tests/run.js") },
   { name: "curiosity windows", ...node("data/windows/check-windows.js", ["--strict", "--say", "--look"]) },
+  { name: "say what you want (704 beginner requests, at least 90% understood)", ...node("data/windows/say-eval.js", ["--min", "90", "--quiet"]) },
   { name: "character matrix on the screen", ...node("screen/tests/character.js") },
   { name: "momentum", ...node("momentum/tests/run.js") },
   { name: "video", ...node("video/tests/run.js") },
@@ -77,6 +78,7 @@ const suites = [
   /* secs: roughly how long a suite takes on a laptop, used only to deal suites out to --shard parts
      (a suite without it counts as 60). The long every-control runs are split in two by page. */
   { name: "screen in a browser", browser: true, secs: 65, ...node("screen/tests/browser.js") },
+  { name: "triggers in a browser", browser: true, secs: 25, ...node("screen/tests/triggers-browser.js") },
   { name: "every curiosity window in a browser", browser: true, secs: 30, ...node("screen/tests/windows-browser.js") },
   { name: "character matrix in a browser", browser: true, secs: 10, ...node("screen/tests/character-browser.js", threeArgs) },
   { name: "engine in a browser", browser: true, secs: 135, ...node("engine/tests/browser.js", threeArgs) },
