@@ -3378,6 +3378,16 @@ document.addEventListener("click", function (e) {
     return m ? { kind: "range", min: Number(m[1]), max: Number(m[2]), unit: m[3].trim() } : { kind: "steps", steps: text };
   }
   const myExtraRow = (x) => `<div class="sc-myextra"${x && x.id ? ` data-x-id="${esc(x.id)}"` : ""}><input data-x="label" maxlength="40" placeholder="Name, e.g. Speed" value="${esc(x ? x.label : "")}" aria-label="Slider name"><input data-x="scale" placeholder="slow, steady, fast  or  0 to 10 km/h" value="${esc(x ? myScaleText(x.scale) : "")}" aria-label="Its steps, or a number range"><button type="button" data-my-extra-del aria-label="Take this slider out" title="Take this slider out">×</button></div>`;
+  /* A new curiosity or suite starts named "My curiosity" / "My suite" (then 2, 3...), selected so typing replaces it:
+     any name you type is kept as is (Jeremy, 2026-10-05: "the user can rename it anything they type in. Not just
+     "My..." but that can be the default"). The "my-" id stays inside the app. */
+  function myDefaultName(level) {
+    const base = "My " + MY_WORD[level];
+    const taken = new Set(((window.CurioMine && window.CurioMine.data()[level === "suite" ? "suites" : "curiosities"]) || []).map((x) => String(x.label).toLowerCase()));
+    let n = 1;
+    while (taken.has((n === 1 ? base : base + " " + n).toLowerCase())) n++;
+    return n === 1 ? base : base + " " + n;
+  }
   function myFormHtml(level, it) {
     const cat = it ? it.cat : prefs.libTab ? "story" : category().id;
     const head = `<h2>${it ? `Change ${esc(MY_WORD[level])}: ${esc(it.label)}` : MY_NEW[level].replace("+ ", "")}</h2>`;
@@ -3389,7 +3399,7 @@ document.addEventListener("click", function (e) {
       const isRange = sc.kind === "range";
       return `<form class="sc-myform" data-my-form="curiosity" novalidate>${head}
         <p class="sc-k">A curiosity is one thing about a scene you can look at and change, with a scale from one end to the other, like how tense the room is: calm, tense, frantic.</p>
-        <label>Name <input name="label" maxlength="60" placeholder="e.g. Tension in the room" value="${esc(it ? it.label : "")}"></label>
+        <label>Name <input name="label" maxlength="60" placeholder="e.g. Tension in the room" value="${esc(it ? it.label : myDefaultName(level))}"></label>
         <label>What it is <textarea name="plain" rows="2" maxlength="400" placeholder="e.g. How wound up everyone in the scene is.">${esc(it ? it.plain : "")}</textarea></label>
         <label>How it moves the story forward and the audience's attention <textarea name="story" rows="2" maxlength="400" placeholder="e.g. Rising tension makes the audience lean in and wait for something to break.">${esc(it ? it.story : "")}</textarea></label>
         <label>What to try <input name="tryThis" maxlength="240" placeholder="e.g. Let it climb for three moments, then drop it to calm at once." value="${esc(it ? it.tryThis : "")}"></label>
@@ -3407,7 +3417,7 @@ document.addEventListener("click", function (e) {
     if (level === "suite") {
       return `<form class="sc-myform" data-my-form="suite" novalidate>${head}
         <p class="sc-k">A suite is a few curiosities you look at together, each at a setting if you like (a handheld chase: handheld camera, fast cutting, close shots).</p>
-        <label>Name <input name="label" maxlength="60" placeholder="e.g. The calm before the storm" value="${esc(it ? it.label : "")}"></label>
+        <label>Name <input name="label" maxlength="60" placeholder="e.g. The calm before the storm" value="${esc(it ? it.label : myDefaultName(level))}"></label>
         <label>What it is <textarea name="plain" rows="2" maxlength="400" placeholder="e.g. Everything goes quiet and still just before the big moment.">${esc(it ? it.plain : "")}</textarea></label>
         <div class="sc-myrow"><label>Category ${myCatSelect(cat)}</label></div>
         <fieldset><legend>Its curiosities <small data-my-count></small></legend>
@@ -3568,6 +3578,7 @@ document.addEventListener("click", function (e) {
     if (level === "proximity") myPreview();
     const first = el.querySelector(level === "proximity" ? '[name="whenCur"]' : '[name="label"]');
     if (first) first.focus();
+    if (first && !it && first.name === "label" && first.select) first.select();
     return el;
   }
   function myClose() {
