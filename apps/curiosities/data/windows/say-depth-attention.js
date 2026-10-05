@@ -1,0 +1,300 @@
+/* say for the attention and momentum curiosities in data/db-depth-attention.js (depth thread, attention): plain
+   words for "Say what you want". */
+(function (W) {
+  /* ---------- where the eye goes ---------- */
+
+  W.say("eyeTrace", {
+    "the eye never has to search": { match: 5 },
+    "make the eye hunt": { match: 0 },
+    "keep it in the center": { where: "the center" },
+    "keep it on the right": { where: "the right third" },
+    "keep it on the left": { where: "the left third" },
+    "no jump at the cut": { jump: "no jump" },
+    "jolt the eye": { jump: "a deliberate jolt" },
+    "make the eye cross the frame": { jump: "across the frame" },
+    "lead the eye with a movement": { leadBy: "a movement" },
+    "lead the eye with a look": { leadBy: "a look" },
+    "lead the eye with a bright spot": { leadBy: "a bright spot" },
+    "find it instantly": { findTime: 0 },
+    "take a moment to find it": { findTime: 1.5 },
+    "break it at the scary moment": { breaks: "at the scary moment" },
+    "break it at the big turn": { breaks: "at the big turn" },
+    "never break the match": { breaks: "never" },
+  });
+
+  W.say("allEyesTurn", {
+    "every head turns": { turn: 5 },
+    "a couple of heads turn": { turn: 1 },
+    "a huge crowd looks": { count: 50 },
+    "just a few people look": { count: 4 },
+    "they turn one by one": { timing: "slowly, one by one" },
+    "they all snap round": { timing: "in one sudden snap" },
+    "they turn together": { timing: "all together" },
+    "everyone looks at the door": { at: "a door" },
+    "everyone looks at the sky": { at: "the sky" },
+    "they look toward a sound": { at: "a sound off screen" },
+    "show what they see right away": { shown: "right away" },
+    "make us wait to see it": { shown: "after a long wait" },
+    "never show what they see": { shown: "never" },
+    "one person keeps eating": { holdout: "one person keeps eating" },
+    "one person looks away": { holdout: "one person looks away" },
+    "everyone looks": { holdout: "everyone looks" },
+  });
+
+  W.say("oddDetail", {
+    "something clearly impossible": { odd: 5 },
+    "something a little off": { odd: 1 },
+    "a stranger in the background": { kind: "a stranger in the back" },
+    "a clock with the wrong time": { kind: "a wrong time on a clock" },
+    "something is missing": { kind: "something missing" },
+    "a tiny detail": { size: "tiny" },
+    "hard to miss": { size: "huge" },
+    "only we notice": { noticed: "only us" },
+    "nobody notices": { noticed: "nobody" },
+    "everyone notices": { noticed: "everyone" },
+    "show it once": { shownTimes: 1 },
+    "show it again and again": { shownTimes: 5 },
+    "explain it right away": { explained: "right away" },
+    "explain it at the end": { explained: "at the end" },
+    "never explain it": { explained: "never" },
+  });
+
+  /* ---------- the shape of attention across the film ---------- */
+
+  W.say("surpriseSpacing", {
+    "a surprise around every corner": { surprise: 5 },
+    "hardly any surprises": { surprise: 0 },
+    "surprises close together": { gap: 3 },
+    "long gaps between surprises": { gap: 25 },
+    "surprises speed up": { pattern: "speeding up" },
+    "steady surprises": { pattern: "steady, like a clock" },
+    "surprises in bunches": { pattern: "bunched together" },
+    "each one bigger": { growth: "each bigger than the last" },
+    "each one smaller": { growth: "each smaller" },
+    "save the biggest for last": { lastOne: "the biggest of all" },
+    "a small last surprise": { lastOne: "small" },
+    "out of nowhere": { fair: "out of nowhere" },
+    "we could have guessed": { fair: "fully set up, we could have guessed" },
+    "a hint or two first": { fair: "a hint or two" },
+  });
+
+  W.say("openingPromise", {
+    "a very clear promise": { promise: 5 },
+    "an opening that could go anywhere": { promise: 0 },
+    "promise laughs": { kind: "laughs" },
+    "promise fear": { kind: "fear" },
+    "promise a mystery": { kind: "a mystery" },
+    "a scene before the titles": { how: "a short scene before the titles" },
+    "the first image says it": { how: "the first image" },
+    "a voice tells us": { how: "a voice telling us" },
+    "promise it fast": { minutes: 1 },
+    "take a while to promise": { minutes: 12 },
+    "keep reminding us": { reminders: 6 },
+    "never remind us": { reminders: 0 },
+    "keep the promise": { kept: "kept" },
+    "give more than promised": { kept: "kept and topped" },
+    "break the promise": { kept: "broken" },
+  });
+
+  W.say("lullStretch", {
+    "attention drifts away": { lull: 5 },
+    "still pulling a little": { lull: 1 },
+    "a long flat stretch": { minutes: 8 },
+    "a short flat stretch": { minutes: 1 },
+    "in the middle": { where: "the middle" },
+    "right at the opening": { where: "the opening" },
+    "just before the end": { where: "just before the end" },
+    "no question is open": { why: "no open question" },
+    "too much talking": { why: "too much talk" },
+    "the same beat again": { why: "the same beat again" },
+    "fix it with a deadline": { fix: "add a clock" },
+    "fix it with a question": { fix: "open a question" },
+    "just cut it shorter": { fix: "cut it shorter" },
+    "a planned rest": { planned: "on purpose, a rest" },
+    "it sags by accident": { planned: "an accident" },
+  });
+
+  W.say("cutAwayAtPeak", {
+    "leave at the best part": { peak: 5 },
+    "leave once it's over": { peak: 0 },
+    "two stories": { threads: 2 },
+    "many stories at once": { threads: 5 },
+    "one second before the answer": { leaves: "one second before the answer" },
+    "leave at the peak": { leaves: "at the peak" },
+    "leave as trouble starts": { leaves: "as trouble starts" },
+    "come right back": { away: 0.5 },
+    "stay away a long time": { away: 15 },
+    "cut to something calm": { other: "something calm" },
+    "cut to something even more tense": { other: "something even more tense" },
+    "come back where we left": { back: "where we left" },
+    "come back after it's over": { back: "after it's over" },
+    "come back a little later": { back: "a little later" },
+  });
+
+  /* ---------- questions the audience holds ---------- */
+
+  W.say("almostAnswer", {
+    "one word away": { almost: 5 },
+    "a faint hint": { almost: 1 },
+    "almost say who did it": { what: "who did it" },
+    "almost say how they feel": { what: "how they feel" },
+    "almost say where it is": { what: "where it is" },
+    "someone walks in": { stoppedBy: "someone walks in" },
+    "a phone rings": { stoppedBy: "a phone rings" },
+    "they change their mind": { stoppedBy: "they change their mind" },
+    "it slips away once": { times: 1 },
+    "it keeps slipping away": { times: 4 },
+    "answer it at the very end": { given: "at the very end" },
+    "never give the answer": { given: "never" },
+    "answer later that scene": { given: "later that scene" },
+    "worth the wait": { worth: "bigger than we hoped" },
+    "a letdown": { worth: "a letdown" },
+  });
+
+  W.say("lockedBox", {
+    "we're dying to open it": { pull: 5 },
+    "we barely care": { pull: 0 },
+    "a locked briefcase": { thing: "a briefcase" },
+    "a sealed letter": { thing: "a letter" },
+    "a door nobody opens": { thing: "a locked door" },
+    "almost see inside": { glimpses: 3 },
+    "no peeks at all": { glimpses: 0 },
+    "just lying there": { guarded: "just lying there" },
+    "under guard": { guarded: "guarded by someone" },
+    "locked up": { guarded: "locked" },
+    "open it at the end": { opened: "at the end" },
+    "never open it": { opened: "never" },
+    "open it early": { opened: "early" },
+    "something we never guessed": { inside: "something we never guessed" },
+    "less than we hoped": { inside: "less than we hoped" },
+  });
+
+  W.say("questionRelay", {
+    "every answer opens a new door": { relay: 5 },
+    "answers just close things": { relay: 0 },
+    "each question is much bigger": { bigger: "much bigger" },
+    "each question is a bit bigger": { bigger: "bigger" },
+    "the new question is smaller": { bigger: "smaller" },
+    "the next question comes right away": { soon: "right away" },
+    "the next question comes next scene": { soon: "by the next scene" },
+    "a long chain of questions": { links: 8 },
+    "just a couple of questions": { links: 2 },
+    "now we need to know why": { kind: "why" },
+    "now we wonder what is real": { kind: "what is real" },
+    "whose side are they on": { kind: "whose side they are on" },
+    "answer everything": { ends: "all answered" },
+    "leave the biggest open": { ends: "the biggest left open" },
+    "leave one open": { ends: "one left open" },
+  });
+
+  W.say("redHerring", {
+    "everyone's sure of the wrong answer": { mislead: 5 },
+    "a faint false hint": { mislead: 1 },
+    "suspect the wrong person": { at: "a person" },
+    "a misleading object": { at: "an object" },
+    "the wrong reason": { at: "a reason" },
+    "the real culprit planted it": { planted: "the real culprit" },
+    "it's just chance": { planted: "nobody, by chance" },
+    "the film itself fools us": { planted: "the storyteller" },
+    "one false clue": { count: 1 },
+    "lots of false clues": { count: 5 },
+    "cleared at the very end": { cleared: "at the very end" },
+    "cleared quickly": { cleared: "quickly" },
+    "cleared in the middle": { cleared: "in the middle" },
+    "fair, and it means something": { fair: "fair, and it means something" },
+    "it feels like cheating": { fair: "cheating" },
+  });
+
+  W.say("sceneGoalClear", {
+    "we know exactly what they want": { clear: 5 },
+    "no idea what they want": { clear: 0 },
+    "they want to get something": { want: "to get something" },
+    "they want to get away": { want: "to get away" },
+    "they want to hide something": { want: "to hide something" },
+    "they say what they want": { toldBy: "they say it" },
+    "we see what they want": { toldBy: "we see it" },
+    "we have to guess": { toldBy: "we have to guess" },
+    "clear from the first moment": { when: "the first moment" },
+    "only clear at the end": { when: "at the end" },
+    "someone says no": { blocked: "someone says no" },
+    "time runs out": { blocked: "time runs out" },
+    "nothing in the way": { blocked: "nothing" },
+    "they get it": { got: "yes" },
+    "they get it, but it costs them": { got: "yes, but at a cost" },
+    "they don't get it": { got: "no" },
+  });
+
+  W.say("ruleSetEarly", {
+    "drill the rule in": { rule: 5 },
+    "mention it in passing": { rule: 1 },
+    "never do this": { kind: "never do this" },
+    "a danger to avoid": { kind: "a danger to avoid" },
+    "a deal was made": { kind: "a deal made" },
+    "just say the rule": { told: "said out loud" },
+    "show someone pay for it": { told: "shown with a price paid" },
+    "show it twice": { told: "shown twice" },
+    "it matters right away": { gap: 0 },
+    "it matters much later": { gap: 80 },
+    "they keep the rule": { broken: "kept" },
+    "they break it by accident": { broken: "broken by accident" },
+    "they break it on purpose": { broken: "broken on purpose" },
+    "it costs everything": { price: "everything" },
+    "it costs nothing": { price: "nothing" },
+  });
+
+  W.say("voicedQuestion", {
+    "ask it word for word": { voiced: 5 },
+    "just hint at it": { voiced: 1 },
+    "the kid asks it": { who: "a child" },
+    "a friend asks it": { who: "a friend" },
+    "the villain asks it": { who: "the villain" },
+    "ask it straight out": { how: "asked straight out" },
+    "whisper it": { how: "whispered" },
+    "joke about it": { how: "joked about" },
+    "answer it right away": { answered: "right away" },
+    "never answer it": { answered: "never" },
+    "answer it later": { answered: "later" },
+    "ask it once": { times: 1 },
+    "ask it again and again": { times: 5 },
+    "a funny question": { lands: "funny" },
+    "a worried question": { lands: "worried" },
+  });
+
+  /* ---------- time and waiting ---------- */
+
+  W.say("readTime", {
+    "cut before we can read it": { read: 0 },
+    "let it sink in": { read: 5 },
+    "one thing to look at": { busy: "one thing" },
+    "a crowded frame": { busy: "a crowded frame" },
+    "words to read": { busy: "words to read" },
+    "a very short shot": { seconds: 0.5 },
+    "a long shot": { seconds: 7 },
+    "cut just as we get it": { when: "just as we get it" },
+    "cut too soon on purpose": { when: "too soon, on purpose" },
+    "hold long after": { when: "long after" },
+    "a view we know well": { seen: "many times" },
+    "a brand new view": { seen: "never" },
+    "keep up the pace": { aim: "to keep pace" },
+    "make it uneasy": { aim: "to make us uneasy" },
+    "confuse us": { aim: "to confuse" },
+  });
+
+  W.say("longAwaited", {
+    "hold it back to the end": { wait: 5 },
+    "give it right away": { wait: 0 },
+    "the two finally meet": { what: "two people meet" },
+    "the long-awaited kiss": { what: "a kiss" },
+    "the big fight": { what: "a fight" },
+    "the truth finally comes out": { what: "the truth comes out" },
+    "lots of near misses": { delays: 5 },
+    "no near misses": { delays: 0 },
+    "we just guess it's coming": { sure: "we guess it" },
+    "everyone talks about it": { sure: "the characters talk about it" },
+    "better than we hoped": { lands: "better than hoped" },
+    "a letdown when it comes": { lands: "a letdown" },
+    "flip it on its head": { lands: "turned on its head" },
+    "play it slowed down": { shown: "slowed down" },
+    "over in a flash": { shown: "quickly" },
+  });
+})(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));

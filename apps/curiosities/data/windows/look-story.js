@@ -3,6 +3,13 @@
    the scene with a "when" marker, a stopwatch for how long something takes, and little counters (dots, hearts,
    watchers) for how many. Decisions are listed in the window notes (look-story decisions) for Jeremy to review. */
 (function (W) {
+  /* The bottom caption, its words shrunk (and at worst cut) so a long one never runs off the picture. */
+  const fitCap = (k, text) => {
+    let t = String(text);
+    if (t.length > 74) t = t.slice(0, 73) + "…";
+    const sz = Math.round(Math.max(7.5, Math.min(10, 570 / Math.max(1, t.length))) * 10) / 10;
+    return k.caption(t).replace('font-size="10"', `font-size="${sz}"`);
+  };
   /* ---------- shared drawing for story pictures ---------- */
   const BG = "#15151b";
   const HERO = "#4a6fa5";
@@ -94,7 +101,11 @@
     path += `<polyline points="${pts.join(" ")}" fill="none" stroke="#8fb2d8" stroke-width="2.5"/>`;
     const pr = v.p("progress");
     const tip = v.p("tipPoint");
-    const px = xs[st] + pr * ws[st];
+    const px = k.clamp(xs[st] + pr * ws[st], xs[st] + 8, xs[st] + ws[st] - 8);
+    /* a face along the line in every other stage, showing how that stage feels */
+    const moods = [0.5, -0.2, -0.8, 0.1, 0.8];
+    let faces = "";
+    names.forEach((_, i) => { if (i !== st) faces += k.face({ x: r1(xs[i] + ws[i] / 2), y: r1(Math.max(50, yAt(i, 0.5) - 12)), r: 6, mood: moods[i], eyes: 1, color: "#d8b48c" }); });
     const tx = xs[st] + tip * ws[st];
     path += `<line x1="${r1(tx)}" y1="44" x2="${r1(tx)}" y2="134" stroke="${RED}" stroke-dasharray="3 3"/>${k.label({ x: tx, y: 132, text: "tips", size: 7, color: RED })}`;
     /* Moments that show the stage: dots along its stretch. */
@@ -105,8 +116,9 @@
     const fig = /couple/.test(who) ? k.person({ x: px - 5, y: yAt(st, pr) - 2, s: 0.34, color: col }) + k.person({ x: px + 5, y: yAt(st, pr) - 2, s: 0.34, color: "#a56a8a" }) : /group/.test(who) ? crowd(k, 3, px - 9, yAt(st, pr) - 2, { gap: 9, s: 0.3, color: col }) : k.person({ x: px, y: yAt(st, pr) - 2, s: 0.4, color: col, mood: st === 2 ? -0.7 : st === 4 ? 0.7 : 0 });
     /* Seen coming: an eye ahead of them, further ahead the more the audience knows. */
     const seen = v.p("seenComing");
-    const eye = `${k.arrow({ x1: px + 4, y1: yAt(st, pr) - 34, x2: px + 8 + seen * 40, y2: yAt(st, pr) - 34, color: "#9fd3ff", w: 1.2 })}`;
-    return `${k.bg(BG)}${k.title(`Arc of ${who}`)}${path}${eye}${fig}${hearts(k, v.n("rootingFor"), 262, 14, "rooting")}${watch(k, 236, 152, v.n("turnSeconds"), 120, `turn ${secs(v.n("turnSeconds"))}`)}${k.label({ x: 10, y: 150, text: `stage lasts ${v("stageLength")}`, size: 8, anchor: "start", color: "#aaa" })}${k.label({ x: 10, y: 160, text: `\u{1F441} ${v("seenComing")}`, size: 8, anchor: "start", color: "#9fd3ff" })}${k.caption(`${v("setting")}: ${Math.round(pr * 100)}% through, tips at ${Math.round(tip * 100)}%`)}`;
+    const ey = Math.max(46, yAt(st, pr) - 34);
+    const eye = `${k.arrow({ x1: px + 4, y1: ey, x2: px + 8 + seen * 40, y2: ey, color: "#9fd3ff", w: 1.2 })}`;
+    return `${k.bg(BG)}${k.title(`Arc of ${who}`)}${path}${faces}${eye}${fig}${hearts(k, v.n("rootingFor"), 262, 14, "rooting")}${watch(k, 236, 152, v.n("turnSeconds"), 120, `turn ${secs(v.n("turnSeconds"))}`)}${k.label({ x: 10, y: 150, text: `stage lasts ${v("stageLength")}`, size: 8, anchor: "start", color: "#aaa" })}${k.label({ x: 10, y: 160, text: `\u{1F441} ${v("seenComing")}`, size: 8, anchor: "start", color: "#9fd3ff" })}${fitCap(k, `${v("setting")}: ${Math.round(pr * 100)}% through, tips at ${Math.round(tip * 100)}%`)}`;
   });
 
   /* Arc direction: a line from who they were to who they become, rising (grows) or falling (falls); its shape
@@ -135,29 +147,30 @@
     let around = "";
     for (let i = 0; i < 5; i++) around += k.person({ x: 268 + (i % 3) * 16, y: 70 + Math.floor(i / 3) * 34, s: 0.28, color: i < ring ? GREEN : "#555", mood: i < ring ? 0.6 : 0 });
     const endMood = dir * 0.8;
-    return `${k.bg(BG)}${k.title("Where the arc heads")}<line x1="40" y1="140" x2="240" y2="140" stroke="#666"/>${ticks}${k.label({ x: 140, y: 154, text: `over ${span} scene${span === 1 ? "" : "s"} · ${v("pace")} · ends: ${v("certainty")}`, size: 8, color: "#aaa" })}<polyline points="${pts.join(" ")}" fill="none" stroke="${dir > 0 ? GREEN : dir < 0 ? RED : "#aaa"}" stroke-width="3"/>${k.person({ x: 40, y: y0 + 18, s: 0.36, color: HERO })}${k.label({ x: 40, y: y0 + 30, text: "start", size: 7, color: "#aaa" })}${k.person({ x: 240, y: y1 + 18, s: 0.36, color: HERO, mood: endMood, alpha: 0.4 + cert * 0.6 })}${endFog}${around}${k.label({ x: 284, y: 130, text: "others", size: 7, color: "#888" })}${hearts(k, v.n("hope"), 262, 14, "hope")}${k.caption(`${v("direction")} · compared with ${v("comparedWith")}`)}`;
+    return `${k.bg(BG)}${k.title("Where the arc heads")}<line x1="40" y1="140" x2="240" y2="140" stroke="#666"/>${ticks}${k.label({ x: 140, y: 154, text: `over ${span} scene${span === 1 ? "" : "s"} · ${v("pace")} · ends: ${v("certainty")}`, size: 8, color: "#aaa" })}<polyline points="${pts.join(" ")}" fill="none" stroke="${dir > 0 ? GREEN : dir < 0 ? RED : "#aaa"}" stroke-width="3"/>${k.person({ x: 40, y: y0 + 18, s: 0.36, color: HERO })}${k.label({ x: 40, y: y0 + 30, text: "start", size: 7, color: "#aaa" })}${k.person({ x: 240, y: y1 + 18, s: 0.36, color: HERO, mood: endMood, alpha: 0.4 + cert * 0.6 })}${endFog}${around}${k.label({ x: 284, y: 130, text: "others", size: 7, color: "#888" })}${hearts(k, v.n("hope"), 262, 14, "hope")}${fitCap(k, `${v("direction")} · compared with ${v("comparedWith")}`)}`;
   });
 
-  /* Want and need: a gold star (what they want) and a heart (what they need); the gap between them, the person
-     running at the star, and how much they see the heart. */
+  /* Want and need: a gold star on a post (what they want) and a heart (what they need); the further apart they
+     sit the bigger the gap; the person runs at the star and may or may not look at the heart. */
   W.look("plotWant", (v, k) => {
     const gapP = v.p("gap");
-    const wx = 220;
-    const wy = 60;
-    const nx = wx - 6 - gapP * 0;
-    const ny = wy + 8 + gapP * 40;
-    const needX = wx + (gapP > 0.9 ? 60 : 0) - gapP * 20;
+    const wx = 262;
+    const wy = 62;
+    const needX = r1(k.lerp(226, 176, gapP));
+    const ny = r1(k.lerp(108, 116, gapP));
     const chase = v.n("chase") / 5;
-    const px = 60 + chase * 50;
-    const py = 130;
+    const px = 50 + chase * 40;
+    const py = 132;
     const sees = idx(v, "sees");
-    const sight = sees === 0 ? "" : `<line x1="${px + 6}" y1="${py - 46}" x2="${needX}" y2="${ny}" stroke="#ff8fab" stroke-width="1.4" ${sees === 1 ? 'stroke-dasharray="3 4"' : ""}/>`;
-    const clarity = 0.3 + v.p("wantShown") * 0.7;
     const cost = idx(v, "needCost");
+    const hs = 16 + cost * 5;
+    const sight = sees === 0 ? "" : `<line x1="${r1(px + 4)}" y1="${py - 40}" x2="${r1(needX - 8)}" y2="${r1(ny - hs * 0.4)}" stroke="#ff8fab" stroke-width="1.4" ${sees === 1 ? 'stroke-dasharray="3 4"' : ""}/>`;
+    const clarity = 0.3 + v.p("wantShown") * 0.7;
     const trend = idx(v, "gapCloses");
-    const tArrow = trend === 1 ? k.label({ x: (wx + needX) / 2 + 30, y: (wy + ny) / 2, text: "= holds", size: 8, color: "#aaa" }) : k.arrow({ x1: (wx + needX) / 2 + 26, y1: trend === 2 ? ny - 4 : (wy + ny) / 2, x2: (wx + needX) / 2 + 26, y2: trend === 2 ? (wy + ny) / 2 : ny - 4, color: trend === 2 ? GREEN : RED, w: 1.5 });
-    const speed = chase > 0 ? [0, 1, 2].map((i) => `<line x1="${px - 16 - i * 4}" y1="${py - 30 + i * 8}" x2="${r1(px - 16 - i * 4 - chase * 22)}" y2="${py - 30 + i * 8}" stroke="#aaa" stroke-width="1.5"/>`).join("") : "";
-    return `${k.bg(BG)}${k.title("What they want vs what they need")}${k.text({ x: wx, y: wy + 8, text: "★", size: 30, color: GOLD, alpha: clarity })}${k.label({ x: wx, y: wy - 18, text: `WANT (${v("wantShown")})`, size: 8, color: GOLD })}${k.text({ x: needX, y: ny + 8, text: "♥", size: 18 + cost * 6, color: "#ff8fab" })}${k.label({ x: needX, y: ny + 22, text: `NEED: costs ${v("needCost")}`, size: 8, color: "#ff8fab" })}${tArrow}${k.arrow({ x1: px + 14, y1: py - 40, x2: wx - 20, y2: wy, color: GOLD, w: 1 + chase * 3 })}${speed}${k.person({ x: px, y: py, s: 0.5, color: HERO, lean: chase * 18, walk: chase, look: 1, eyes: sees === 0 ? 0.1 : 0.9 })}${pips(k, v.n("wantMentions"), 10, 30, GOLD)}${k.label({ x: 10, y: 24, text: `want said ${v.n("wantMentions")}×`, size: 8, anchor: "start", color: "#aaa" })}${when(k, v.p("needShownAt"), "need shows", { x: 175, w: 130 })}${k.caption(`Want and need: ${v("gap")} · ${v("sees")} · gap ${v("gapCloses")}`)}`;
+    const tWord = ["gap widening", "gap holds", "gap closing"][trend];
+    const speed = chase > 0 ? [0, 1, 2].map((i) => `<line x1="${r1(px - 14 - i * 3)}" y1="${py - 30 + i * 8}" x2="${r1(px - 14 - i * 3 - chase * 18)}" y2="${py - 30 + i * 8}" stroke="#aaa" stroke-width="1.5"/>`).join("") : "";
+    const post = `<line x1="${wx}" y1="${wy}" x2="${wx}" y2="${py}" stroke="#665a3a" stroke-width="3"/>`;
+    return `${k.bg(BG)}${k.floor(py, "#22201c")}${k.title("What they want vs what they need")}${post}${k.text({ x: wx, y: wy + 8, text: "★", size: 30, color: GOLD, alpha: clarity })}${k.label({ x: wx, y: wy - 20, text: `WANT (${v("wantShown")})`, size: 8, color: GOLD })}<line x1="${wx}" y1="${wy + 10}" x2="${needX}" y2="${r1(ny - hs * 0.4)}" stroke="#666" stroke-dasharray="2 3"/>${k.text({ x: needX, y: ny, text: "♥", size: hs, color: "#ff8fab" })}${k.fitText({ x: needX, y: ny + 12, text: `NEED: costs ${v("needCost")}`, size: 8, min: 6, w: 120, color: "#ff8fab" })}${k.label({ x: 310, y: 154, text: tWord, size: 8, anchor: "end", color: trend === 2 ? GREEN : trend === 0 ? RED : "#aaa" })}${k.arrow({ x1: px + 12, y1: py - 36, x2: wx - 18, y2: wy, color: GOLD, w: 1 + chase * 3 })}${sight}${speed}${k.person({ x: px, y: py, s: 0.5, color: HERO, lean: chase * 18, walk: chase, look: 1, eyes: sees === 0 ? 0.1 : 0.9 })}${pips(k, v.n("wantMentions"), 10, 30, GOLD)}${k.label({ x: 10, y: 24, text: `want said ${v.n("wantMentions")}×`, size: 8, anchor: "start", color: "#aaa" })}${when(k, v.p("needShownAt"), "need shows", { x: 10, y: 150, w: 120 })}${fitCap(k, `Want and need: ${v("gap")} · ${v("sees")} · gap ${v("gapCloses")}`)}`;
   });
 
   /* Arc test: the old temptation behind them, a hurdle ahead; result puts them past it, on it, or back. */
@@ -169,15 +182,15 @@
     const hurdle = `<rect x="${hx - 6}" y="${r1(130 - hh)}" width="12" height="${r1(hh)}" fill="#8a6a4a" stroke="#1c1712"/>`;
     const px = [120, hx - 14, 240][res];
     const near = v.n("temptNear");
-    const tx = Math.max(16, px - 14 - near * 4.5);
+    const tx = Math.max(16, px - 32 - near * 4.5);
     const tName = v("temptation");
     const temp = `${k.text({ x: tx, y: 112, text: "✦", size: 20, color: "#d58cff" })}${k.label({ x: tx, y: 124, text: tName, size: 8, color: "#d58cff" })}${k.arrow({ x1: px - 10, y1: 100, x2: tx + 12, y2: 104, color: "#d58cff", w: 1.2 })}`;
     /* Echo: a faint ghost of them from the earlier moment, clearer when it echoes exactly. */
     const echo = idx(v, "echo");
     const gx = Math.max(30, 110 - (v.n("echoGap") / 180) * 80);
-    const ghost = echo ? k.person({ x: gx, y: 70, s: 0.3, color: "#888", alpha: echo === 2 ? 0.7 : 0.3 }) + k.label({ x: gx, y: 80, text: `${mins(v.n("echoGap"))} ago`, size: 7, color: "#888" }) : k.label({ x: gx, y: 70, text: "(no echo)", size: 7, color: "#555" });
+    const ghost = echo ? k.person({ x: gx, y: 70, s: 0.42, color: "#888", alpha: echo === 2 ? 0.7 : 0.3 }) + k.label({ x: gx, y: 80, text: `${mins(v.n("echoGap"))} ago`, size: 7, color: "#888" }) : k.label({ x: gx, y: 70, text: "(no echo)", size: 7, color: "#555" });
     const wit = [0, 1, 3, 6][idx(v, "witnessed")];
-    return `${k.bg(BG)}${k.title(`The test: ${v("result")}`)}${k.floor(130, "#2a2620")}${hurdle}${temp}${ghost}${k.person({ x: px, y: 130, s: 0.5, color: HERO, mood: [-0.7, -0.2, 0.7][res], lean: [-10, 0, 8][res] })}${watchers(k, wit, 236, 30, 0)}${k.label({ x: 310, y: 46, text: `seen by ${v("witnessed")}`, size: 7, anchor: "end", color: "#aaa" })}${watch(k, 168, 152, v.n("hesitation"), 30, `hesitates ${v.n("hesitation")} s`)}${when(k, v.p("testAt"), "test comes", { w: 130 })}${k.caption(`Size ${v.n("size")}/5 · tempted by ${tName}, ${near} m away`)}`;
+    return `${k.bg(BG)}${k.title(`The test: ${v("result")}`)}${k.floor(130, "#2a2620")}${hurdle}${temp}${ghost}${k.person({ x: px, y: 130, s: 0.7, color: HERO, mood: [-0.7, -0.2, 0.7][res], lean: [-10, 0, 8][res] })}${watchers(k, wit, 236, 30, 0)}${k.label({ x: 310, y: 46, text: `seen by ${v("witnessed")}`, size: 7, anchor: "end", color: "#aaa" })}${watch(k, 168, 152, v.n("hesitation"), 30, `hesitates ${v.n("hesitation")} s`)}${when(k, v.p("testAt"), "test comes", { w: 130 })}${fitCap(k, `Size ${v.n("size")}/5 · tempted by ${tName}, ${near} m away`)}`;
   });
 
   /* Relapse: stairs they climbed since they began to change; they slide back down some, for a while. */
@@ -195,7 +208,7 @@
     const slide = back ? k.arrow({ x1: 43 + top * 26, y1: 130 - (top + 1) * 12 - 30, x2: px + 8, y2: py - 30, color: RED, w: 2 }) : "";
     const caught = [0, 0, 1, 4][idx(v, "caught")];
     const dread = v.n("dread") / 5;
-    return `${k.bg(BG)}${k.tint({ color: "#000", alpha: dread * 0.35 })}${k.title("Slipping back")}${st}${shade}${slide}${k.person({ x: px, y: py, s: 0.42, color: HERO, mood: -0.6, lean: -12 })}${k.label({ x: 43 + top * 26, y: 130 - (top + 1) * 12 - 4, text: "⚑", size: 12, color: GREEN })}${tag(k, 250, 40, `cause: ${v("cause")}`)}${k.label({ x: 250, y: 58, text: `stays slipped: ${v("duration")}`, size: 8, color: "#ccc" })}${watchers(k, caught, 220, 80, -0.4)}${k.label({ x: 250, y: 98, text: `caught by: ${v("caught")}`, size: 8, color: "#aaa" })}${k.label({ x: 250, y: 112, text: `dread ${v.n("dread")}/5`, size: 8, color: "#aaa" })}${watch(k, 168, 152, v.n("slideSeconds"), 120, `slide ${secs(v.n("slideSeconds"))}`)}${when(k, v.p("slipAt"), "slips at")}${k.caption(`Back ${v.n("size")}/5 steps · ${mins(v.n("sinceChange"))} since they began to change`)}`;
+    return `${k.bg(BG)}${k.tint({ color: "#000", alpha: dread * 0.35 })}${k.title("Slipping back")}${st}${shade}${slide}${k.person({ x: px, y: py, s: 0.42, color: HERO, mood: -0.6, lean: -12 })}${k.label({ x: 43 + top * 26, y: 130 - (top + 1) * 12 - 4, text: "⚑", size: 12, color: GREEN })}${tag(k, 250, 40, `cause: ${v("cause")}`)}${k.label({ x: 250, y: 58, text: `stays slipped: ${v("duration")}`, size: 8, color: "#ccc" })}${watchers(k, caught, 220, 80, -0.4)}${k.label({ x: 250, y: 98, text: `caught by: ${v("caught")}`, size: 8, color: "#aaa" })}${k.label({ x: 250, y: 112, text: `dread ${v.n("dread")}/5`, size: 8, color: "#aaa" })}${watch(k, 168, 152, v.n("slideSeconds"), 120, `slide ${secs(v.n("slideSeconds"))}`)}${when(k, v.p("slipAt"), "slips at")}${fitCap(k, `Back ${v.n("size")}/5 steps · ${mins(v.n("sinceChange"))} since they began to change`)}`;
   });
 
   /* Change shows: before and after side by side; how different the after looks, and through what. */
@@ -203,7 +216,7 @@
     const vis = v.n("visible") / 5;
     const thr = v("through");
     const con = idx(v, "contrast");
-    const after = k.mix("#4a6fa5", "#e0a040", /clothes/.test(thr) ? vis : vis * 0.3);
+    const after = k.mix("#4a6fa5", "#e0a040", /clothes/.test(thr) ? 0.25 + vis * 0.75 : vis * 0.3);
     const lean = /posture/.test(thr) ? -vis * 0 : 0;
     const bx = con === 3 ? 80 : con === 2 ? 80 : con === 1 ? 70 : 60;
     const ax = con === 3 ? 240 : con === 2 ? 240 : 250;
@@ -212,9 +225,9 @@
     const postureA = /posture/.test(thr) ? { lean: 0, arms: vis * 0.8, mood: vis * 0.8 } : { lean: 0, mood: vis * 0.5 };
     const divider = con === 0 ? "" : `<line x1="160" y1="26" x2="160" y2="140" stroke="#666" ${con === 1 ? 'stroke-dasharray="2 5"' : con === 2 ? 'stroke-dasharray="6 3"' : ""}/>`;
     let sparks = "";
-    for (let i = 0; i < v.n("signs"); i++) sparks += k.text({ x: ax - 36 + k.rnd(i + 1) * 72, y: 40 + k.rnd(i + 9) * 80, text: "✧", size: 9, color: GOLD });
+    for (let i = 0; i < v.n("signs"); i++) sparks += k.text({ x: ax - 24 - (i % 2) * 11, y: 62 + Math.floor(i / 2) * 13, text: "✧", size: 9, color: GOLD });
     const noticed = [0, 0, 1, 4][idx(v, "noticedBy")];
-    return `${k.bg(BG)}${k.title(`Change shown through ${thr}`)}${divider}${k.label({ x: bx, y: 30, text: "before", size: 8, color: "#888" })}${k.label({ x: ax, y: 30, text: "after", size: 8, color: GOLD })}${extra}${before}${k.person({ x: bx, y: 130, s: 0.55, color: "#4a6fa5", lean: /posture/.test(thr) ? 14 : 0, mood: -0.3, arms: /posture/.test(thr) ? -0.6 : 0 })}${k.person(Object.assign({ x: ax, y: 130, s: 0.55, color: after }, postureA, { lean }))}${sparks}${watchers(k, noticed, 116, 60, 0.4)}${k.label({ x: 160, y: 78, text: noticed ? `noticed by ${v("noticedBy")}` : v("noticedBy") === "no one" ? "no one notices" : "only we notice", size: 7, color: "#aaa" })}${watch(k, 168, 152, v.n("showSeconds"), 60, `on screen ${v.n("showSeconds")} s`)}${when(k, v.p("landsAt"), "shows at")}${k.caption(`Visible ${v.n("visible")}/5 · ${v("contrast")} · ${mins(v.n("sinceOldWay"))} since the old way`)}`;
+    return `${k.bg(BG)}${k.title(`Change shown through ${thr}`)}${divider}${k.label({ x: bx, y: 30, text: "before", size: 8, color: "#888" })}${k.label({ x: ax, y: 30, text: "after", size: 8, color: GOLD })}${extra}${before}${k.person({ x: bx, y: 130, s: 0.7, color: "#4a6fa5", lean: /posture/.test(thr) ? 14 : 0, mood: -0.3, arms: /posture/.test(thr) ? -0.6 : 0 })}${k.person(Object.assign({ x: ax, y: 130, s: 0.7, color: after }, postureA, { lean }))}${sparks}${watchers(k, noticed, 108, 112, 0.4)}${k.label({ x: 130, y: 130, text: noticed ? `noticed by ${v("noticedBy")}` : v("noticedBy") === "no one" ? "no one notices" : "only we notice", size: 7, color: "#aaa" })}${watch(k, 168, 152, v.n("showSeconds"), 60, `on screen ${v.n("showSeconds")} s`)}${when(k, v.p("landsAt"), "shows at")}${fitCap(k, `Visible ${v.n("visible")}/5 · ${v("contrast")} · ${mins(v.n("sinceOldWay"))} since the old way`)}`;
   });
 
   /* ---------- plot ---------- */
@@ -230,12 +243,12 @@
     const np = idx(v, "newProblem");
     const rock = np ? `<ellipse cx="${r1(Math.min(270, px + 40))}" cy="${104 - np * 6}" rx="${8 + np * 8}" ry="${6 + np * 6}" fill="#6a5a50" stroke="#1c1712"/>` : "";
     const sur = idx(v, "surprise");
-    const bangs = sur ? k.text({ x: px + 14, y: 50, text: "!".repeat(sur), size: 18, color: GOLD, weight: 700 }) : "";
+    const bangs = sur ? k.text({ x: px, y: 64, text: "!".repeat(sur), size: 16, color: GOLD, weight: 700 }) : "";
     const n = v.n("beats");
     const pts = [];
     for (let i = 0; i <= n; i++) pts.push(i === 0 ? 0.5 : i % 2 ? 0.85 : 0.15);
-    const zig = n ? k.graph({ x: 200, y: 22, w: 100, h: 24, points: pts, color: "#9fd3ff", w2: 1.5 }) : k.label({ x: 250, y: 38, text: "no ups and downs", size: 7, color: "#777" });
-    return `${k.bg(BG)}${k.title("Toward the goal")}${road}${zig}${k.label({ x: 250, y: 56, text: `${n} wins and losses`, size: 7, color: "#aaa" })}${rock}${arrow}${bangs}${k.person({ x: px, y: 104, s: 0.45, color: HERO, mood: mv * 0.35 })}${k.label({ x: px, y: 126, text: `by ${v("cause")}`, size: 8, color: "#ccc" })}${watch(k, 168, 152, v.n("landSeconds"), 60, `lands in ${v.n("landSeconds")} s`)}${when(k, v.p("lands"), "lands at")}${k.caption(`${v("move")} · ${v("surprise")} · ${Math.round(left * 100)}% of the way left`)}`;
+    const zig = n ? k.graph({ x: 10, y: 34, w: 90, h: 16, points: pts, color: "#9fd3ff", w2: 1.5 }) : "";
+    return `${k.bg(BG)}${k.title("Toward the goal")}${road}${zig}${k.label({ x: 10, y: 30, text: n ? `${n} wins and losses on the way` : "no ups and downs on the way", size: 7, anchor: "start", color: "#aaa" })}${rock}${arrow}${bangs}${k.person({ x: px, y: 104, s: 0.45, color: HERO, mood: mv * 0.35 })}${k.label({ x: px, y: 126, text: `by ${v("cause")}`, size: 8, color: "#ccc" })}${watch(k, 168, 152, v.n("landSeconds"), 60, `lands in ${v.n("landSeconds")} s`)}${when(k, v.p("lands"), "lands at")}${fitCap(k, `${v("move")} · ${v("surprise")} · ${Math.round(left * 100)}% of the way left`)}`;
   });
 
   /* Plot touch: the main plot as a straight line, their own plot as a second line that stays apart, crosses it
@@ -261,9 +274,12 @@
     const glow = `<circle cx="${r1(meet)}" cy="80" r="${r1(6 + ant * 14)}" fill="${GOLD}" opacity="${r1((0.1 + ant * 0.4) * 100) / 100}"/>`;
     const hint = idx(v, "foreshadow");
     let hints = "";
-    for (let i = 0; i < hint * 2; i++) hints += k.text({ x: meet - 30 - i * 18, y: 50, text: "…", size: 12, color: "#d58cff" });
+    for (let i = 0; i < hint * 2; i++) { const hx = meet - 26 - i * 16; if (hx > 16) hints += k.text({ x: hx, y: 50, text: "…", size: 12, color: "#d58cff" }); }
     const share = v.p("sharedShare");
-    return `${k.bg(BG)}${k.title(`Own plot ${v("setting")} the main plot`)}${glow}<polyline points="${main.join(" ")}" fill="none" stroke="#8fb2d8" stroke-width="3"/><polyline points="${own.join(" ")}" fill="none" stroke="#e0a040" stroke-width="2.5"/>${hints}${k.label({ x: 30, y: 100, text: "main plot", size: 8, anchor: "start", color: "#8fb2d8" })}${k.label({ x: 30, y: 36, text: "their plot", size: 8, anchor: "start", color: "#e0a040" })}${tag(k, 250, 128, `meets ${v("who")}`)}${k.label({ x: 250, y: 140, text: `${v("impact")} · ${cross} crossings`, size: 7, color: "#aaa" })}${k.meter({ x: 160, y: 150, w: 70, p: share, label: `shared ${Math.round(share * 100)}%`, color: "#e0a040" })}${when(k, v.p("meetAt"), "they meet")}${k.caption(`Pull ${v.n("pull")}/5 · ${v("foreshadow")} · we feel it ${v.n("anticipation")}/5`)}`;
+    /* a person walking each road: the hero on the main plot, the side character on their own */
+    const at = (pts, x) => { const i = Math.round(((x - 30) / 260) * 60); return Number(pts[k.clamp(i, 0, 60)].split(",")[1]); };
+    const walkers = `${k.person({ x: 96, y: at(main, 96), s: 0.3, color: HERO, walk: 0.5 })}${k.person({ x: 120, y: at(own, 120), s: 0.3, color: "#e0a040", walk: 0.5 })}`;
+    return `${k.bg(BG)}${k.title(`Own plot ${v("setting") === "apart" ? "apart from" : v("setting")} the main plot`)}${glow}<polyline points="${main.join(" ")}" fill="none" stroke="#8fb2d8" stroke-width="3"/><polyline points="${own.join(" ")}" fill="none" stroke="#e0a040" stroke-width="2.5"/>${hints}${walkers}${k.label({ x: 30, y: 100, text: "main plot", size: 8, anchor: "start", color: "#8fb2d8" })}${k.label({ x: 30, y: 36, text: "their plot", size: 8, anchor: "start", color: "#e0a040" })}${tag(k, 250, 112, `meets ${v("who")}`)}${k.label({ x: 250, y: 126, text: `${v("impact")} · ${cross} crossings`, size: 7, color: "#aaa" })}${k.meter({ x: 160, y: 150, w: 70, p: share, label: `shared ${Math.round(share * 100)}%`, color: "#e0a040" })}${when(k, v.p("meetAt"), "they meet")}${fitCap(k, `Pull ${v.n("pull")}/5 · ${v("foreshadow")} · we feel it ${v.n("anticipation")}/5`)}`;
   });
 
   /* Plot weight: their plot as a block on a scale; a spotlight; pies for share of scene and lines. */
@@ -281,7 +297,7 @@
     let shots = "";
     const cu = v.n("closeUps");
     for (let i = 0; i < Math.min(cu, 30); i++) shots += `<rect x="${186 + (i % 15) * 8}" y="${22 + Math.floor(i / 15) * 8}" width="6" height="5" fill="#9fd3ff"/>`;
-    return `${k.bg(BG)}${k.title("Weight of their plot")}${light}${beam}${trend}${k.person({ x: 230, y: 120, s: 0.45, color: "#e0a040" })}${hand}${shots}${k.label({ x: 186, y: 46, text: `${cu} close-ups`, size: 7, anchor: "start", color: "#aaa" })}${k.pie({ x: 186, y: 150, r: 9, p: v.p("screenShare"), color: "#e0a040" })}${k.label({ x: 199, y: 153, text: `scene ${v.n("screenShare")}%`, size: 8, anchor: "start", color: "#ccc" })}${k.pie({ x: 262, y: 150, r: 9, p: v.p("lineShare"), color: "#9fd3ff" })}${k.label({ x: 275, y: 153, text: `lines ${v.n("lineShare")}%`, size: 8, anchor: "start", color: "#ccc" })}${k.label({ x: 10, y: 154, text: `stakes: ${v("stakes")}`, size: 8, anchor: "start", color: "#ccc" })}${k.caption(`Weight ${v.n("setting")}/5, ${v("trend")} · camera: ${v("spotlight")}`)}`;
+    return `${k.bg(BG)}${k.title("Weight of their plot")}${light}${beam}${trend}${k.person({ x: 230, y: 120, s: 0.45, color: "#e0a040" })}${hand}${shots}${k.label({ x: 186, y: 46, text: `${cu} close-ups`, size: 7, anchor: "start", color: "#aaa" })}${k.pie({ x: 186, y: 150, r: 9, p: v.p("screenShare"), color: "#e0a040" })}${k.label({ x: 199, y: 153, text: `scene ${v.n("screenShare")}%`, size: 8, anchor: "start", color: "#ccc" })}${k.pie({ x: 262, y: 150, r: 9, p: v.p("lineShare"), color: "#9fd3ff" })}${k.label({ x: 275, y: 153, text: `lines ${v.n("lineShare")}%`, size: 8, anchor: "start", color: "#ccc" })}${k.label({ x: 10, y: 154, text: `stakes: ${v("stakes")}`, size: 8, anchor: "start", color: "#ccc" })}${fitCap(k, `Weight ${v.n("setting")}/5, ${v("trend")} · camera: ${v("spotlight")}`)}`;
   });
 
   /* Secret: a locked box; lid opens as it slips; who knows look at it; the proof lies some way off. */
@@ -294,30 +310,40 @@
     const knowers = [0, 1, 1, 4][idx(v, "whoKnows")];
     const hide = idx(v, "hiding");
     let sweat = "";
-    for (let i = 0; i < hide; i++) sweat += k.text({ x: 92 + i * 6, y: 62 - (i % 2) * 6, text: "\u{1F4A7}", size: 7 });
+    for (let i = 0; i < hide; i++) sweat += k.text({ x: 112 + i * 6, y: 96 - (i % 2) * 6, text: "\u{1F4A7}", size: 7 });
     const near = v.n("proofNear");
     const proofX = 290 - near * 3.5;
     let misses = "";
     for (let i = 0; i < v.n("nearMiss"); i++) misses += k.text({ x: 230 + i * 10, y: 34, text: "!", size: 12, color: RED, weight: 700 });
-    return `${k.bg(BG)}${k.title(`Secret kept from ${v("keptFrom")}`)}${k.floor(124, "#22201c")}${box}${fuse}${k.person({ x: 100, y: 124, s: 0.45, color: HERO, mood: -hide * 0.25, look: 1 })}${sweat}${watchers(k, knowers, 40, 40, 0.2)}${k.label({ x: 40, y: 56, text: v("whoKnows"), size: 7, anchor: "start", color: "#aaa" })}${k.person({ x: 270, y: 124, s: 0.42, color: "#8a5a6a", look: -1 })}${k.text({ x: proofX - 20, y: 120, text: "\u{1F4C4}", size: 11 })}${k.label({ x: proofX - 20, y: 134, text: `proof ${near} m`, size: 7, color: "#aaa" })}${misses}${k.label({ x: 228, y: 46, text: `${v.n("nearMiss")} close calls`, size: 7, anchor: "start", color: "#aaa" })}${when(k, v.p("revealAt"), `out by: ${v("revealWay")}`)}${k.label({ x: 170, y: 154, text: `kept ${v.n("keptFor")} years`, size: 8, anchor: "start", color: "#ccc" })}${k.caption(`${v("kept")} · hiding: ${v("hiding")} · cost ${v.n("cost")}/5`)}`;
+    return `${k.bg(BG)}${k.title(`Secret kept from ${v("keptFrom")}`)}${k.floor(124, "#22201c")}${box}${fuse}${k.person({ x: 100, y: 124, s: 0.45, color: HERO, mood: -hide * 0.25, look: 1 })}${sweat}${watchers(k, knowers, 40, 40, 0.2)}${k.label({ x: 40, y: 56, text: v("whoKnows"), size: 7, anchor: "start", color: "#aaa" })}${k.person({ x: 270, y: 124, s: 0.42, color: "#8a5a6a", look: -1 })}${k.text({ x: proofX - 20, y: 120, text: "\u{1F4C4}", size: 11 })}${k.label({ x: proofX - 20, y: 134, text: `proof ${near} m`, size: 7, color: "#aaa" })}${misses}${k.label({ x: 228, y: 46, text: `${v.n("nearMiss")} close calls`, size: 7, anchor: "start", color: "#aaa" })}${when(k, v.p("revealAt"), `out by: ${v("revealWay")}`)}${k.label({ x: 170, y: 154, text: `kept ${v.n("keptFor")} years`, size: 8, anchor: "start", color: "#ccc" })}${fitCap(k, `${v("kept")} · hiding: ${v("hiding")} · cost ${v.n("cost")}/5`)}`;
   });
 
-  /* Open questions: question marks over the scene; some answered (ticks), some new (small gold ones). */
+  /* Open questions: an audience in the seats with question marks over their heads; answered ones turn to ticks,
+     new ones pop up in gold; the redder and bigger the marks, the more badly we need to know. */
   W.look("openQuestions", (v, k) => {
     const n = v.n("setting");
     const ans = v.n("answered");
     const urg = v.n("urgency") / 5;
     const old = v.p("oldestOpen");
+    const raisedN = v.n("raised");
+    const marks = [];
+    for (let i = 0; i < n; i++) marks.push({ t: "?", col: k.mix("#9fd3ff", "#ff6b6b", urg), size: 18 + urg * 14, alpha: i === 0 ? 1 - old * 0.5 : 1 });
+    for (let i = 0; i < ans; i++) marks.push({ t: "✓", col: GREEN, size: 18, alpha: 1 });
+    for (let i = 0; i < raisedN; i++) marks.push({ t: "?", col: GOLD, size: 15, alpha: 1, isNew: true });
+    const gap = marks.length > 9 ? 27 : 32;
+    const x0 = 160 - ((marks.length - 1) * gap) / 2;
     let qs = "";
-    for (let i = 0; i < n + ans; i++) {
-      const isAns = i >= n;
-      const isOld = i === n - 1 && !isAns;
-      qs += k.text({ x: 30 + i * 36, y: 84 + (i % 2) * 14, text: isAns ? "✓" : "?", size: isAns ? 26 : 26 + urg * 18, color: isAns ? GREEN : k.mix("#9fd3ff", "#ff6b6b", urg), weight: 700, alpha: isOld ? 1 - old * 0.6 : 1 });
-    }
-    if (!n && !ans) qs += k.label({ x: 140, y: 84, text: "no open questions", size: 10, color: "#777" });
-    let raised = "";
-    for (let i = 0; i < v.n("raised"); i++) raised += k.text({ x: 250 + i * 18, y: 42, text: "?", size: 16, color: GOLD, weight: 700 }) + k.text({ x: 244 + i * 18, y: 32, text: "+", size: 8, color: GOLD });
-    return `${k.bg(BG)}${k.title(`Biggest: ${v("kind")}?`)}${qs}${raised}${k.label({ x: 270, y: 56, text: "new", size: 7, color: GOLD })}${k.label({ x: 10, y: 128, text: `answers: ${v("answerKind")} · oldest open ${mins(v.n("oldestOpen"))}`, size: 8, anchor: "start", color: "#ccc" })}${k.clock({ x: 290, y: 140, r: 12, p: v.p("nextAnswer") })}${k.label({ x: 274, y: 144, text: `next answer in ${mins(v.n("nextAnswer"))}`, size: 8, anchor: "end", color: "#ccc" })}${k.caption(`${n} open · ${ans} answered · need to know ${v.n("urgency")}/5`)}`;
+    marks.forEach((m, i) => {
+      const x = x0 + i * gap;
+      qs += k.text({ x, y: 74 - (i % 2) * 12, text: m.t, size: m.size, color: m.col, weight: 700, alpha: m.alpha });
+      if (m.isNew) qs += k.label({ x, y: 84 - (i % 2) * 12, text: "new", size: 7, color: GOLD });
+    });
+    if (!marks.length) qs = k.label({ x: 160, y: 66, text: "no open questions", size: 10, color: "#777" });
+    /* the audience: heads from the front, worried the more badly they need to know */
+    let seats = `<rect x="0" y="112" width="320" height="16" fill="#2a1f24"/>`;
+    for (let i = 0; i < 9; i++) seats += k.face({ x: 24 + i * 34, y: 104, r: 9, mood: n ? -urg * 0.7 : 0.4, brows: n ? -urg : 0.2, mouth: urg * 0.5, eyes: 1, color: "#d8b48c" });
+    const nxt = `next answer in ${mins(v.n("nextAnswer"))}`;
+    return `${k.bg(BG)}${k.title(`Biggest: ${v("kind")}?`)}${qs}${seats}${k.fitText({ x: 10, y: 138, text: `answers: ${v("answerKind")} · oldest open ${mins(v.n("oldestOpen"))}`, size: 8, min: 6.5, w: 200, anchor: "start", color: "#ccc" })}${k.clock({ x: 300, y: 146, r: 9, p: v.p("nextAnswer") })}${k.label({ x: 286, y: 151, text: nxt, size: 8, anchor: "end", color: "#ccc" })}${fitCap(k, `${n} open · ${ans} answered · ${raisedN} new · need to know ${v.n("urgency")}/5`)}`;
   });
 
   /* Ticking clock: a clock face running out; red as time runs out, motion lines as it speeds up. */
@@ -326,17 +352,20 @@
     const left = v.p("timeLeft");
     const shown = idx(v, "shown");
     const r = 26 + shown * 10;
+    const cx = 106;
     const col = k.mix("#9fd3ff", "#ff4b4b", tight / 3);
     const acc = idx(v, "acceleration");
     let lines = "";
-    for (let i = 0; i < acc * 2; i++) lines += `<path d="M${r1(90 - r - 6 - i * 5)} ${80 - 10 + i * 5} q-6 10 0 20" stroke="${col}" fill="none" stroke-width="1.5"/>`;
+    for (let i = 0; i < acc * 2; i++) lines += `<path d="M${r1(cx + r + 6 + i * 5)} ${80 - 10 + i * 5} q6 10 0 20" stroke="${col}" fill="none" stroke-width="1.5"/>`;
     const rem = idx(v, "reminders");
     let ticks = "";
     const nt = [1, 3, 6, 12][rem];
-    for (let i = 0; i < nt; i++) ticks += `<line x1="${r1(20 + (i / Math.max(1, nt - 1)) * 120)}" y1="138" x2="${r1(20 + (i / Math.max(1, nt - 1)) * 120)}" y2="146" stroke="${GOLD}" stroke-width="2"/>`;
+    for (let i = 0; i < nt; i++) ticks += `<line x1="${r1(176 + (i / Math.max(1, nt - 1)) * 124)}" y1="124" x2="${r1(176 + (i / Math.max(1, nt - 1)) * 124)}" y2="132" stroke="${GOLD}" stroke-width="2"/>`;
     const speed = v.n("clockSpeed");
+    /* the person racing the clock: running harder, and more worried, the tighter it is */
+    const runner = k.person({ x: 28, y: 132, s: 0.5, color: HERO, lean: tight * 6, walk: tight / 3, arms: tight ? 0.3 : 0, mood: -tight * 0.25, look: 1 });
     const hand = k.rad(-90 + ((speed - 10) / 490) * 300);
-    return `${k.bg(BG)}${k.title(`Clock: ${v("setting")}`)}${tight ? "" : k.tint({ color: "#000", alpha: 0.3 })}<g opacity="${r1((0.45 + shown * 0.27) * 100) / 100}">${k.pie({ x: 90, y: 80, r, p: 1 - left, color: col })}<circle cx="90" cy="80" r="${r}" fill="none" stroke="#eee" stroke-width="2"/><line x1="90" y1="80" x2="${r1(90 + Math.cos(hand) * r * 0.9)}" y2="${r1(80 + Math.sin(hand) * r * 0.9)}" stroke="#fff" stroke-width="2"/></g>${lines}${k.label({ x: 90, y: 80 + r + 12, text: `${v.n("timeLeft")} min left · ${v("shown")}`, size: 8, color: "#ccc" })}${tag(k, 240, 46, `if it runs out: ${v("consequence")}`, "#3a2020")}${tag(k, 240, 70, `whose: ${v("clockOf")}`)}${k.label({ x: 240, y: 96, text: `runs at ${speed}% of real time`, size: 8, color: "#aaa" })}${k.label({ x: 240, y: 110, text: `${v("acceleration")}`, size: 8, color: "#aaa" })}${ticks}${k.label({ x: 150, y: 146, text: `reminders: ${v("reminders")}`, size: 8, anchor: "start", color: "#aaa" })}${k.caption(`${v("setting")} · ${v.n("timeLeft")} min left · ${v("acceleration")}`)}`;
+    return `${k.bg(BG)}${k.title(`Clock: ${v("setting")}`)}${tight ? "" : k.tint({ color: "#000", alpha: 0.3 })}<g opacity="${r1((0.45 + shown * 0.27) * 100) / 100}">${k.pie({ x: cx, y: 80, r, p: 1 - left, color: col })}<circle cx="${cx}" cy="80" r="${r}" fill="none" stroke="#eee" stroke-width="2"/><line x1="${cx}" y1="80" x2="${r1(cx + Math.cos(hand) * r * 0.9)}" y2="${r1(80 + Math.sin(hand) * r * 0.9)}" stroke="#fff" stroke-width="2"/></g>${lines}${runner}${k.label({ x: cx, y: 80 + r + 12, text: `${v.n("timeLeft")} min left · ${v("shown")}`, size: 8, color: "#ccc" })}${tag(k, 240, 46, `if it runs out: ${v("consequence")}`, "#3a2020")}${tag(k, 240, 70, `whose: ${v("clockOf")}`)}${k.label({ x: 240, y: 96, text: `runs at ${speed}% of real time`, size: 8, color: "#aaa" })}${k.label({ x: 240, y: 110, text: `${v("acceleration")}`, size: 8, color: "#aaa" })}${ticks}${k.label({ x: 176, y: 146, text: `reminders: ${v("reminders")}`, size: 8, anchor: "start", color: "#aaa" })}${fitCap(k, `${v("setting")} · ${v.n("timeLeft")} min left · ${v("acceleration")}`)}`;
   });
 
   /* Knowledge gap: the audience (a face in the seats) and the character on a race to the truth; who is ahead. */
@@ -352,7 +381,7 @@
     const charX = Math.min(cx, chr);
     const tension = v.n("tension") / 5;
     const surprise = /nobody/.test(who);
-    return `${k.bg(BG)}${k.title(`Who knows first: ${who}`)}${k.text({ x: tx, y: 90, text: "\u{1F4A1}", size: 22 })}${k.label({ x: tx, y: 104, text: "truth", size: 7, color: "#aaa" })}<line x1="10" y1="60" x2="${tx - 12}" y2="60" stroke="#333"/><line x1="10" y1="118" x2="${tx - 12}" y2="118" stroke="#333"/>${k.face({ x: Math.min(tx - 30, aud), y: 48, r: 11, mood: -tension * 0.6, brows: -tension, mouth: tension * 0.4, eyes: 1 })}${k.label({ x: 14, y: 52, text: "us", size: 8, anchor: "start", color: "#aaa" })}${k.person({ x: charX, y: 118, s: 0.4, color: HERO })}${k.label({ x: 14, y: 112, text: "them", size: 8, anchor: "start", color: "#aaa" })}${surprise ? k.text({ x: 200, y: 92, text: "?!", size: 18, color: GOLD, weight: 700 }) : ""}${k.label({ x: charX, y: 130, text: `${near} m from it`, size: 7, color: "#aaa" })}${tag(k, 10, 32, `learned by ${v("howTold")}`, null, "start")}${tag(k, 310, 32, `in the dark: ${v("inTheDark")}`, null, "end")}${watch(k, 168, 152, v.n("catchUpSeconds"), 60, `catch-up ${v.n("catchUpSeconds")} s`)}${when(k, v.p("revealAt"), "gap closes")}${k.caption(`Ahead by ${v("gap")} · we squirm ${v.n("tension")}/5`)}`;
+    return `${k.bg(BG)}${k.title(`Who knows first: ${who}`)}${k.text({ x: tx, y: 90, text: "\u{1F4A1}", size: 22 })}${k.label({ x: tx, y: 104, text: "truth", size: 7, color: "#aaa" })}<line x1="10" y1="60" x2="${tx - 12}" y2="60" stroke="#333"/><line x1="10" y1="118" x2="${tx - 12}" y2="118" stroke="#333"/>${k.face({ x: Math.min(tx - 30, aud), y: 48, r: 11, mood: -tension * 0.6, brows: -tension, mouth: tension * 0.4, eyes: 1 })}${k.label({ x: 14, y: 52, text: "us", size: 8, anchor: "start", color: "#aaa" })}${k.person({ x: charX, y: 118, s: 0.55, color: HERO })}${k.label({ x: 14, y: 112, text: "them", size: 8, anchor: "start", color: "#aaa" })}${surprise ? k.text({ x: 200, y: 92, text: "?!", size: 18, color: GOLD, weight: 700 }) : ""}${k.label({ x: charX, y: 130, text: `${near} m from it`, size: 7, color: "#aaa" })}${tag(k, 10, 32, `learned by ${v("howTold")}`, null, "start")}${tag(k, 310, 32, `in the dark: ${v("inTheDark")}`, null, "end")}${watch(k, 168, 152, v.n("catchUpSeconds"), 60, `catch-up ${v.n("catchUpSeconds")} s`)}${when(k, v.p("revealAt"), "gap closes")}${fitCap(k, `Ahead by ${v("gap")} · we squirm ${v.n("tension")}/5`)}`;
   });
 
   /* ---------- roles and people ---------- */
@@ -368,7 +397,7 @@
     const spot = o.eye > 0 ? k.beam({ x: rx, y: 0, dir: 90, len: 130, spread: 10 + o.eye * 30, color: "#fff3c4", alpha: 0.05 + o.eye * 0.3 }) : "";
     const targets = target === 0 ? "" : target === 3 ? crowd(k, 4, 214, ry, { gap: 16, s: 0.34, color: "#7a8a5a" }) : k.person({ x: tx, y: ry, s: target === 2 ? 0.48 : 0.36, color: target === 2 ? HERO : "#7a8a5a" });
     const link = target === 0 ? "" : k.arrow({ x1: rx + 12, y1: ry - 30, x2: tx - 14, y2: ry - 30, color: GOLD, w: 1 + o.strength * 3 });
-    return `${spot}${glow}${targets}${link}${k.person({ x: rx, y: ry, s: 0.48, color: "#c07a3a", alpha, mood: o.mood || 0, eyes: o.eyes })}${k.text({ x: rx, y: ry - 66, text: roleIcon[o.role] || "★", size: 16 })}${k.label({ x: rx, y: ry + 10, text: `${o.dist} m`, size: 7, color: "#888" })}`;
+    return `${spot}${glow}${targets}${link}${k.person({ x: rx, y: ry, s: 0.48, color: "#c07a3a", alpha, mood: o.mood || 0, eyes: o.eyes })}${k.text({ x: rx, y: ry - 54, text: roleIcon[o.role] || "★", size: 14 })}${k.label({ x: rx, y: ry + 10, text: `${o.dist} m`, size: 7, color: "#888" })}`;
   };
 
   /* Dramatic role: the role-player (orange) and who they work on; glow is how strongly, the spotlight is how
@@ -377,8 +406,8 @@
     const role = v("setting");
     let bites = "";
     const n = v.n("roleMoments");
-    for (let i = 0; i < n; i++) bites += k.text({ x: 14 + (i % 10) * 12, y: 40 + Math.floor(i / 10) * 11, text: "⚡", size: 9, color: GOLD });
-    return `${k.bg(BG)}${k.title(`Role: ${role}`)}${k.floor(128, "#22201c")}${roleScene(k, { role, target: idx(v, "target"), dist: v.n("targetDistance"), present: idx(v, "onScreen"), strength: v.n("strength") / 5, eye: v.n("drawsEye") / 5 })}${bites}${k.label({ x: 10, y: 28, text: `bites ${n}×`, size: 7, anchor: "start", color: "#aaa" })}${when(k, v.p("roleStartsAt"), "kicks in", { x: 180, w: 130 })}${k.caption(`${role} on ${v("target")} · ${v("onScreen")} · strength ${v.n("strength")}/5`)}`;
+    for (let i = 0; i < n; i++) bites += k.text({ x: 304 - (i % 10) * 11, y: 42 + Math.floor(i / 10) * 11, text: "⚡", size: 9, color: GOLD });
+    return `${k.bg(BG)}${k.title(`Role: ${role}`)}${k.floor(128, "#22201c")}${roleScene(k, { role, target: idx(v, "target"), dist: v.n("targetDistance"), present: idx(v, "onScreen"), strength: v.n("strength") / 5, eye: v.n("drawsEye") / 5 })}${bites}${k.label({ x: 310, y: 30, text: n ? `bites ${n}× in the scene` : "no big moments yet", size: 7, anchor: "end", color: "#aaa" })}${when(k, v.p("roleStartsAt"), "kicks in")}${fitCap(k, `${role} on ${v("target")} · ${v("onScreen")} · strength ${v.n("strength")}/5`)}`;
   });
 
   W.look("cm-role", (v, k) => {
@@ -386,10 +415,10 @@
     const aw = idx(v, "awareness");
     let bites = "";
     const n = v.n("roleMoments");
-    for (let i = 0; i < n; i++) bites += k.text({ x: 14 + (i % 10) * 12, y: 40 + Math.floor(i / 10) * 11, text: "⚡", size: 9, color: GOLD });
+    for (let i = 0; i < n; i++) bites += k.text({ x: 304 - (i % 10) * 11, y: 42 + Math.floor(i / 10) * 11, text: "⚡", size: 9, color: GOLD });
     const shift = idx(v, "roleShift");
     const pts = [[0.5, 0.5, 0.5, 0.5], [0.3, 0.45, 0.6, 0.75], [0.3, 0.3, 0.7, 0.7], [0.3, 0.3, 0.3, 0.9]][shift];
-    return `${k.bg(BG)}${k.title(`Role: ${role}`)}${k.floor(128, "#22201c")}${roleScene(k, { role, target: idx(v, "target"), dist: v.n("targetDistance"), present: 2, strength: v.n("strength") / 5, eye: v.n("drawsEye") / 5, eyes: [0.25, 0.6, 1][aw] })}${bites}${k.label({ x: 10, y: 28, text: `bites ${n}×`, size: 7, anchor: "start", color: "#aaa" })}${k.graph({ x: 256, y: 64, w: 50, h: 18, points: pts, color: "#9fd3ff", w2: 1.5 })}${k.label({ x: 281, y: 92, text: `role ${v("roleShift")}`, size: 7, color: "#aaa" })}${watch(k, 20, 152, v.n("switchSeconds"), 60, `switch takes ${v.n("switchSeconds")} s`)}${k.caption(`${role}, ${v("awareness")}, on ${v("target")} · strength ${v.n("strength")}/5`)}`;
+    return `${k.bg(BG)}${k.title(`Role: ${role}`)}${k.floor(128, "#22201c")}${roleScene(k, { role, target: idx(v, "target"), dist: v.n("targetDistance"), present: 2, strength: v.n("strength") / 5, eye: v.n("drawsEye") / 5, eyes: [0.25, 0.6, 1][aw] })}${bites}${k.label({ x: 310, y: 30, text: n ? `bites ${n}× in the scene` : "no big moments yet", size: 7, anchor: "end", color: "#aaa" })}${k.graph({ x: 256, y: 72, w: 50, h: 14, points: pts, color: "#9fd3ff", w2: 1.5 })}${k.label({ x: 281, y: 96, text: `role ${v("roleShift")}`, size: 7, color: "#aaa" })}${watch(k, 20, 152, v.n("switchSeconds"), 60, `switch takes ${v.n("switchSeconds")} s`)}${fitCap(k, `${role}, ${v("awareness")}, on ${v("target")} · strength ${v.n("strength")}/5`)}`;
   });
 
   /* Dissenter: one person apart from the group, arms up the more openly they defy; some of the group may cross. */
@@ -405,7 +434,7 @@
     const dark = iso === 3 ? `<rect x="180" y="20" width="140" height="120" fill="#000" opacity="0.5"/>` : "";
     const bubble = ag >= 2 ? k.bubble({ x: dx + 30, y: 34, w: 64, h: 20, text: ag === 3 ? "NO!" : "I disagree", size: 9, tail: -20 }) : ag === 1 ? k.text({ x: dx + 18, y: 60, text: "…?", size: 12, color: "#aaa" }) : "";
     const cost = v.n("cost");
-    return `${k.bg(BG)}${k.title(`Against ${v("dissentsFrom")}`)}${k.floor(128, "#22201c")}${group}${dark}${frame}${k.person({ x: dx, y: 128, s: 0.48, color: "#c07a3a", arms: ag / 3, lean: [-14, -6, 0, 4][firm], mood: ag === 0 ? -0.4 : 0.2 })}${bubble}${k.label({ x: dx, y: 140, text: `${apart} m apart`, size: 7, color: "#aaa" })}${pips(k, cost, 262, 30, RED)}${k.label({ x: 258, y: 33, text: `cost ${cost}/5`, size: 7, anchor: "start", color: "#aaa" })}${hearts(k, v.n("rooting"), 262, 14)}${watch(k, 168, 152, v.n("speakSeconds"), 300, `speaks ${secs(v.n("speakSeconds"))}`)}${when(k, v.p("speakAt"), "speaks up")}${k.caption(`${v("against")} · ${v("firmness")} · joined by ${v("joined")}`)}`;
+    return `${k.bg(BG)}${k.title(`Against ${v("dissentsFrom")}`)}${k.floor(128, "#22201c")}${group}${dark}${frame}${k.person({ x: dx, y: 128, s: 0.48, color: "#c07a3a", arms: ag / 3, lean: [-14, -6, 0, 4][firm], mood: ag === 0 ? -0.4 : 0.2 })}${bubble}${k.label({ x: k.clamp(dx, 70, 200), y: 138, text: `${apart} m apart`, size: 7, color: "#aaa" })}${pips(k, cost, 262, 30, RED)}${k.label({ x: 256, y: 33, text: `cost ${cost}/5`, size: 7, anchor: "end", color: "#aaa" })}${hearts(k, v.n("rooting"), 262, 14)}${watch(k, 168, 152, v.n("speakSeconds"), 300, `speaks ${secs(v.n("speakSeconds"))}`)}${when(k, v.p("speakAt"), "speaks up")}${fitCap(k, `${v("against")} · ${v("firmness")} · joined by ${v("joined")}`)}`;
   });
 
   /* Group pressure: a group pressing in on one person; arrows are the press, distance is how near they stand. */
@@ -425,7 +454,7 @@
     const place = /placement|all/.test(by) ? `<line x1="${px + 18}" y1="134" x2="${gx - 8}" y2="134" stroke="#888" stroke-dasharray="2 3"/>` : "";
     const b = idx(v, "build");
     const pts = [[0.9, 0.9, 0.9, 0.9], [0.3, 0.8, 0.3, 0.9], [0.1, 0.35, 0.6, 0.95]][b];
-    return `${k.bg(BG)}${k.title(`Pressure by ${by}`)}${k.floor(128, "#22201c")}<rect x="0" y="20" width="${r1(px + 20 + iso * 30)}" height="108" fill="#000" opacity="${r1(iso * 0.4 * 100) / 100}"/>${group}${arrows}${words}${place}${k.person({ x: px, y: 128, s: 0.48, color: HERO, lean: [0, -8, -18][gives], mood: [0.2, -0.3, -0.8][gives], arms: gives === 0 ? 0.3 : -0.4 })}${k.label({ x: px, y: 142, text: `${near} m from the group`, size: 7, color: "#aaa" })}${k.graph({ x: 250, y: 140, w: 60, h: 14, points: pts, color: RED, w2: 1.5 })}${k.label({ x: 280, y: 136, text: v("build"), size: 7, color: "#aaa" })}${watch(k, 20, 158, v.n("pressSeconds"), 600, `lasts ${secs(v.n("pressSeconds"))}`)}${k.caption(`Press ${v.n("press")}/5 · ${v("outnumbered")} against one · ${v("gives")}`)}`;
+    return `${k.bg(BG)}${k.title(`Pressure by ${by}`)}${k.floor(128, "#22201c")}<rect x="0" y="20" width="${r1(px + 20 + iso * 30)}" height="108" fill="#000" opacity="${r1(iso * 0.4 * 100) / 100}"/>${group}${arrows}${words}${place}${k.person({ x: px, y: 128, s: 0.48, color: HERO, lean: [0, -8, -18][gives], mood: [0.2, -0.3, -0.8][gives], arms: gives === 0 ? 0.3 : -0.4 })}${k.label({ x: px, y: 142, text: `${near} m from the group`, size: 7, color: "#aaa" })}${k.graph({ x: 250, y: 140, w: 60, h: 14, points: pts, color: RED, w2: 1.5 })}${k.label({ x: 280, y: 136, text: v("build"), size: 7, color: "#aaa" })}${watch(k, 20, 158, v.n("pressSeconds"), 600, `lasts ${secs(v.n("pressSeconds"))}`)}${fitCap(k, `Press ${v.n("press")}/5 · ${v("outnumbered")} against one · ${v("gives")}`)}`;
   });
 
   /* Herd mentality: a crowd, more of them facing and leaning the same way the stronger the herd. */
@@ -439,45 +468,52 @@
     const holdouts = Math.min(size - 1, Math.round(v.n("holdouts") / 5));
     const dirCol = [GREEN, "#aaa", RED][dirI];
     let s = "";
+    /* fewer people are drawn bigger, so a pair reads as clearly as a crowd */
+    const ps = size <= 2 ? 0.75 : size <= 5 ? 0.62 : size <= 10 ? 0.48 : 0.38;
+    const cols = Math.min(size, 7);
+    const cl = frameI === 0 ? 1 : frameI === 1 ? 0.7 : frameI === 2 ? 0.45 : 0.25;
+    const gap = Math.min(36, ((8 + sp * 3) * cl + 4) * (ps / 0.34));
+    const x0 = 150 - ((cols - 1) * gap) / 2;
     for (let i = 0; i < size; i++) {
       const isOut = i >= size - holdouts;
       const agrees = !isOut && k.rnd(i + 2) < 0.2 + herd * 0.8;
-      const cl = frameI === 0 ? 1 : frameI === 1 ? 0.7 : frameI === 2 ? 0.45 : 0.25;
-      const gap = (8 + sp * 3) * cl + 4;
       const col = i % 7;
       const row = Math.floor(i / 7);
-      const x = 30 + col * gap + (frameI === 0 ? k.rnd(i + 5) * 30 : 0) + (frameI === 1 && col > 3 ? 30 : 0);
-      s += k.person({ x, y: 132 - row * 14 + (frameI === 0 ? k.rnd(i + 7) * 10 : 0), s: 0.34, color: isOut ? "#c07a3a" : agrees ? k.mix("#6a6a7a", dirCol, 0.6) : "#555", lean: agrees ? 8 + press * 10 : -4, look: agrees ? 1 : -1 });
+      const x = x0 + col * gap + (frameI === 0 ? (k.rnd(i + 5) - 0.5) * 24 : 0) + (frameI === 1 && col > 3 ? 20 : 0);
+      s += k.person({ x, y: 132 - row * 16 + (frameI === 0 ? k.rnd(i + 7) * 8 : 0), s: ps, color: isOut ? "#c07a3a" : agrees ? k.mix("#6a6a7a", dirCol, 0.6) : "#555", lean: agrees ? 8 + press * 10 : -4, look: agrees ? 1 : -1 });
     }
     const spd = v.n("speed") / 5;
     let lines = "";
     for (let i = 0; i < Math.round(spd * 4); i++) lines += `<line x1="${14}" y1="${70 + i * 12}" x2="${r1(14 + 10 + spd * 14)}" y2="${70 + i * 12}" stroke="#aaa" stroke-width="1.5"/>`;
-    return `${k.bg(BG)}${k.title(`Herd heads ${v("direction")}`)}${k.floor(134, "#22201c")}${k.arrow({ x1: 220, y1: 30, x2: 300, y2: 30, color: dirCol, w: 3 })}${lines}${s}${k.label({ x: 310, y: 50, text: `${holdouts ? v.n("holdouts") + " hold out" : "no holdouts"} · ${sp} m apart`, size: 7, anchor: "end", color: "#aaa" })}${k.label({ x: 310, y: 62, text: `${v("inFrame")} · spreads ${v.n("speed")}/5`, size: 7, anchor: "end", color: "#aaa" })}${k.caption(`Herd ${v.n("setting")}/5 · pressure ${v.n("pressure")}/5 · ${v("size")}`)}`;
+    return `${k.bg(BG)}${k.title(`Herd heads ${v("direction")}`)}${k.floor(134, "#22201c")}${k.arrow({ x1: 220, y1: 30, x2: 300, y2: 30, color: dirCol, w: 3 })}${lines}${s}${k.label({ x: 310, y: 50, text: `${v.n("holdouts") ? v.n("holdouts") + " hold out" : "no holdouts"} · ${sp} m apart`, size: 7, anchor: "end", color: "#aaa" })}${k.label({ x: 310, y: 62, text: `${v("inFrame")} · spreads ${v.n("speed")}/5`, size: 7, anchor: "end", color: "#aaa" })}${fitCap(k, `Herd ${v.n("setting")}/5 · pressure ${v.n("pressure")}/5 · ${v("size")}`)}`;
   });
 
   /* Herd leader: the leader placed in the frame, above and ahead of the followers, with lines of pull. */
   W.look("herdLeader", (v, k) => {
     const lead = idx(v, "setting");
     const str = v.n("strength") / 5;
-    const lx = 20 + v.p("placement") * 260;
+    const lx = 30 + v.p("placement") * 260;
     const above = v.n("leaderAbove");
     const ahead = v.n("leaderAhead");
-    const ly = 128 - above * 10;
+    /* height drawn up to 5 m (a plinth); below the group they stand in a dip, drawn a little lower */
+    const ly = 128 - k.clamp(above, -1, 5) * 10;
     const fCount = Math.max(1, Math.min(14, Math.round(Math.sqrt(v.n("followers")) * 0.65)));
-    const fx = k.clamp(lx - 26 - ahead * 4, 10, 300);
+    /* followers trail behind the leader, on whichever side has room */
+    const side = lx < 150 ? 1 : -1;
+    const fx = lx + side * (26 + Math.min(ahead, 20) * 3);
     let fol = "";
     let pull = "";
     for (let i = 0; i < fCount; i++) {
-      const x = fx - (i % 7) * 13;
-      const y = 128 - Math.floor(i / 7) * 10;
-      fol += k.person({ x, y, s: 0.3, color: "#6a6a7a", look: 1 });
+      const x = k.clamp(fx + side * (i % 7) * 17, 10, 310);
+      const y = 128 - Math.floor(i / 7) * 12;
+      fol += k.person({ x, y, s: 0.45, color: "#6a6a7a", look: -side });
       if (lead) pull += `<line x1="${r1(x)}" y1="${y - 20}" x2="${r1(lx)}" y2="${r1(ly - 30)}" stroke="${GOLD}" opacity="${r1((0.05 + str * 0.4) * 100) / 100}"/>`;
     }
-    const leaders = lead === 0 ? "" : lead === 3 ? crowd(k, 3, lx - 14, ly, { gap: 14, s: 0.4, color: "#c07a3a" }) : lead === 2 ? crowd(k, 2, lx - 7, ly, { gap: 14, s: 0.45, color: "#c07a3a" }) : k.person({ x: lx, y: ly, s: 0.5, color: "#c07a3a", arms: 0.6 });
+    const leaders = lead === 0 ? k.ring({ x: lx, y: ly - 24, r: 14, color: "#888", w: 1.5, dash: "3 3" }) + k.text({ x: lx, y: ly - 19, text: "?", size: 14, color: "#aaa" }) + k.label({ x: k.clamp(lx, 34, 286), y: ly - 44, text: "no leader", size: 8, color: "#aaa" }) : lead === 3 ? crowd(k, 3, lx - 14, ly, { gap: 14, s: 0.4, color: "#c07a3a" }) : lead === 2 ? crowd(k, 2, lx - 7, ly, { gap: 14, s: 0.45, color: "#c07a3a" }) : k.person({ x: lx, y: ly, s: 0.6, color: "#c07a3a", arms: 0.6 });
     const ch = idx(v, "challenged");
-    const chal = ch ? k.person({ x: k.clamp(lx + 36, 20, 306), y: 128, s: 0.4, color: RED, arms: ch / 3, lean: ch === 3 ? 0 : -6 }) + (ch === 3 ? k.text({ x: lx, y: ly - 64, text: "✕", size: 16, color: RED }) : "") : "";
-    const plinth = above > 0 ? `<rect x="${r1(lx - 14)}" y="${r1(ly)}" width="28" height="${r1(128 - ly)}" fill="#3a3a44"/>` : "";
-    return `${k.bg(BG)}${k.title(`Led by ${v("setting")}, through ${v("leadsBy")}`)}${k.floor(128, "#22201c")}${pull}${plinth}${fol}${leaders}${chal}${k.label({ x: 10, y: 154, text: `${v.n("followers")} follow · ${above} m above · ${ahead} m ahead`, size: 8, anchor: "start", color: "#ccc" })}${k.caption(`Pull ${v.n("strength")}/5 · ${v("challenged")} · placed at ${v.n("placement")}%`)}`;
+    const chal = ch ? k.person({ x: k.clamp(lx - side * 34, 14, 306), y: 128, s: 0.4, color: RED, arms: ch / 3, lean: ch === 3 ? 0 : -6 }) + (ch === 3 ? `<path d="M${r1(lx - 12)} ${r1(ly - 46)} l24 24 m0 -24 l-24 24" stroke="${RED}" stroke-width="3" stroke-linecap="round"/>` : "") : "";
+    const plinth = above > 0 ? `<rect x="${r1(lx - 14)}" y="${r1(ly)}" width="28" height="${r1(128 - ly)}" fill="#3a3a44"/>` : above < 0 ? `<rect x="${r1(lx - 16)}" y="128" width="32" height="${r1(ly - 128)}" fill="#0e0e12"/>` : "";
+    return `${k.bg(BG)}${k.title(`Led by ${v("setting")}, through ${v("leadsBy")}`)}${k.floor(128, "#22201c")}${pull}${plinth}${fol}${leaders}${chal}${k.label({ x: 10, y: 154, text: `${v.n("followers")} follow · ${above} m above · ${ahead} m ahead`, size: 8, anchor: "start", color: "#ccc" })}${fitCap(k, `Pull ${v.n("strength")}/5 · ${v("challenged")} · placed at ${v.n("placement")}%`)}`;
   });
 
   /* ---------- the inner life ---------- */
@@ -497,7 +533,7 @@
     const ch = v.n("challenged") / 5;
     let hits = "";
     for (let i = 0; i < blows; i++) { const a = k.rad(-80 + i * 17); hits += k.arrow({ x1: 110 + Math.cos(a) * (70 + ch * 30), y1: 84 + Math.sin(a) * (54 + ch * 20), x2: 110 + Math.cos(a) * 56, y2: 84 + Math.sin(a) * 52, color: RED, w: 0.8 + ch * 1.6 }); }
-    return `${k.bg(BG)}${k.title(`The lie about ${about}`)}${k.person({ x: 110, y: 124, s: 0.55, color: HERO, mood: -0.3 })}<ellipse cx="110" cy="84" rx="50" ry="50" fill="${shellCol}" opacity="${r1((0.85 - see * 0.6) * 100) / 100}" stroke="${shellCol}" stroke-width="${r1(2 + grip * 8)}"/>${cracks}${hits}${k.text({ x: 110, y: 46, text: sh === 0 ? "" : `"${about}"`, size: 10, color: "#fff", alpha: sh === 1 ? 0.45 : 1, italic: true })}${tag(k, 250, 50, `from ${v("learnedFrom")}`)}${k.label({ x: 250, y: 72, text: `believed ${v.n("heldFor")} years`, size: 8, color: "#ccc" })}${k.label({ x: 250, y: 86, text: `${blows} blows · pushed ${v.n("challenged")}/5`, size: 8, color: "#ccc" })}${k.label({ x: 250, y: 100, text: `we see through it: ${v("weSee")}`, size: 8, color: "#ccc" })}${k.caption(`Grip ${v.n("grip")}/5 · ${v("cracks")} · ${v("shown")}`)}`;
+    return `${k.bg(BG)}${k.title(`The lie about ${about}`)}${k.person({ x: 110, y: 124, s: 0.55, color: HERO, mood: -0.3 })}<ellipse cx="110" cy="84" rx="50" ry="50" fill="${shellCol}" opacity="${r1((0.85 - see * 0.6) * 100) / 100}" stroke="${shellCol}" stroke-width="${r1(2 + grip * 8)}"/>${cracks}${hits}${k.text({ x: 110, y: 46, text: sh === 0 ? "" : `"${about}"`, size: 10, color: "#fff", alpha: sh === 1 ? 0.45 : 1, italic: true })}${tag(k, 250, 50, `from ${v("learnedFrom")}`)}${k.label({ x: 250, y: 72, text: `believed ${v.n("heldFor")} years`, size: 8, color: "#ccc" })}${k.label({ x: 250, y: 86, text: `${blows} blows · pushed ${v.n("challenged")}/5`, size: 8, color: "#ccc" })}${k.label({ x: 250, y: 100, text: `we see through it: ${v("weSee")}`, size: 8, color: "#ccc" })}${fitCap(k, `Grip ${v.n("grip")}/5 · ${v("cracks")} · ${v("shown")}`)}`;
   });
 
   /* The wound: a mark on the chest, red when raw; a weight it hangs on them; a memory panel from years back. */
@@ -513,7 +549,7 @@
     const rev = idx(v, "revealed");
     const cur = v.n("curiosity") / 5;
     const qs = cur > 0 ? k.text({ x: 40, y: 40, text: "?".repeat(Math.round(cur * 5)), size: 12, color: GOLD }) : "";
-    return `${k.bg(BG)}${k.title(`A wound from ${v("woundBy")}`)}${k.person({ x: 100, y: 132, s: 0.65, color: HERO, lean: weight * 10, mood: -0.4 })}${pulses}<path d="M94 84 l12 8 M96 92 l8 -8" stroke="${col}" stroke-width="${2 + raw}" stroke-linecap="round"/><line x1="108" y1="96" x2="${r1(118 + weight * 10)}" y2="${r1(110 + weight * 14)}" stroke="#888"/><rect x="${r1(112 + weight * 10)}" y="${r1(110 + weight * 14)}" width="${r1(8 + weight * 16)}" height="${r1(8 + weight * 12)}" fill="#555" stroke="#1c1712"/>${qs}${k.panel({ x: mx - 30, y: 34, w: 60, h: 40, fill: "#2a2a34" })}${k.label({ x: mx, y: 58, text: "the past", size: 8, color: "#999" })}${k.label({ x: mx, y: 86, text: `${years} years ago`, size: 8, color: "#ccc" })}${tag(k, mx, 102, v("howShown"))}${watch(k, 168, 152, v.n("revealLength"), 300, `reveal ${secs(v.n("revealLength"))}`)}${rev === 0 ? k.label({ x: 10, y: 154, text: "we never learn it", size: 8, anchor: "start", color: "#aaa" }) : when(k, [0, 0.85, 0.5, 0.15][rev], `we learn it ${v("revealed")}`)}${k.caption(`Drives them ${v.n("weight")}/5 · ${v("rawness")} · touched ${touched}/5`)}`;
+    return `${k.bg(BG)}${k.title(`A wound from ${v("woundBy")}`)}${k.person({ x: 100, y: 132, s: 0.65, color: HERO, lean: weight * 10, mood: -0.4 })}${pulses}<path d="M94 84 l12 8 M96 92 l8 -8" stroke="${col}" stroke-width="${2 + raw}" stroke-linecap="round"/><line x1="108" y1="96" x2="${r1(118 + weight * 10)}" y2="${r1(110 + weight * 14)}" stroke="#888"/><rect x="${r1(112 + weight * 10)}" y="${r1(110 + weight * 14)}" width="${r1(8 + weight * 16)}" height="${r1(8 + weight * 12)}" fill="#555" stroke="#1c1712"/>${qs}${k.panel({ x: mx - 30, y: 34, w: 60, h: 40, fill: "#2a2a34" })}${k.label({ x: mx, y: 58, text: "the past", size: 8, color: "#999" })}${k.label({ x: mx, y: 86, text: `${years} years ago`, size: 8, color: "#ccc" })}${tag(k, mx, 102, v("howShown"))}${watch(k, 168, 152, v.n("revealLength"), 300, `reveal ${secs(v.n("revealLength"))}`)}${rev === 0 ? k.label({ x: 10, y: 154, text: "we never learn it", size: 8, anchor: "start", color: "#aaa" }) : when(k, [0, 0.85, 0.5, 0.15][rev], `we learn it ${v("revealed")}`)}${fitCap(k, `Drives them ${v.n("weight")}/5 · ${v("rawness")} · touched ${touched}/5`)}`;
   });
 
   /* Belief shown: what they say in a bubble, what they do with their hands; matching or opposite. */
@@ -527,7 +563,7 @@
     const wit = [0, 0, 1, 4][idx(v, "witness")];
     let shows = "";
     for (let i = 0; i < v.n("showings"); i++) shows += `<rect x="${200 + i * 10}" y="24" width="7" height="10" fill="${actCol}"/>`;
-    return `${k.bg(BG)}${k.title("Belief shown")}${k.floor(130, "#22201c")}${words}${k.person({ x: 110, y: 130, s: 0.55, color: HERO, arms: 0.2 + how * 0.2, mood: 0.2 })}${act}<rect x="170" y="${r1(112 - cost * 30)}" width="${r1(10 + cost * 14)}" height="${r1(4 + cost * 30)}" fill="#555" stroke="#1c1712"/>${k.label({ x: 186, y: 126, text: `costs ${v.n("cost")}/5`, size: 7, color: "#aaa" })}${watchers(k, wit, 240, 80, 0.3)}${k.label({ x: 270, y: 98, text: `seen by ${v("witness")}`, size: 7, color: "#aaa" })}${shows}${k.label({ x: 200, y: 44, text: `shows ${v.n("showings")}×`, size: 7, anchor: "start", color: "#aaa" })}${watch(k, 168, 152, v.n("showSeconds"), 120, `for ${secs(v.n("showSeconds"))}`)}${when(k, v.p("shownAt"), "shows at")}${k.caption(`${v("how")} · words and deeds: ${v("against")}`)}`;
+    return `${k.bg(BG)}${k.title("Belief shown")}${k.floor(130, "#22201c")}${words}${k.person({ x: 110, y: 130, s: 0.55, color: HERO, arms: 0.2 + how * 0.2, mood: 0.2 })}${act}<rect x="170" y="${r1(112 - cost * 30)}" width="${r1(10 + cost * 14)}" height="${r1(4 + cost * 30)}" fill="#555" stroke="#1c1712"/>${k.label({ x: 186, y: 126, text: `costs ${v.n("cost")}/5`, size: 7, color: "#aaa" })}${watchers(k, wit, 240, 80, 0.3)}${k.label({ x: 270, y: 98, text: `seen by ${v("witness")}`, size: 7, color: "#aaa" })}${shows}${k.label({ x: 200, y: 44, text: `shows ${v.n("showings")}×`, size: 7, anchor: "start", color: "#aaa" })}${watch(k, 168, 152, v.n("showSeconds"), 120, `for ${secs(v.n("showSeconds"))}`)}${when(k, v.p("shownAt"), "shows at")}${fitCap(k, `${v("how")} · words and deeds: ${v("against")}`)}`;
   });
 
   /* Mindset: a head with a door, shut (fixed) or open; pressure arrows and bolts of challenge hit it. */
@@ -546,7 +582,7 @@
     const nb = v.n("challenges");
     for (let i = 0; i < nb; i++) bolts += k.text({ x: cx + 54 + (i % 5) * 9, y: cy - 30 + Math.floor(i / 5) * 12, text: "⚡", size: 8 + ch * 8, color: GOLD });
     const ear = [0, 1, 2, 3].slice(0, listen).map((i) => `<path d="M${cx + 52 + i * 6} ${cy - 6 - i * 3} q5 ${6 + i * 3} 0 ${12 + i * 6}" stroke="#9fd3ff" fill="none"/>`).join("");
-    return `${k.bg(BG)}${k.title(`Mindset: ${v("setting")}`)}<circle cx="${cx}" cy="${cy}" r="48" fill="#f0c8a0" stroke="#1c1712" stroke-width="2"/>${door}<rect x="${cx - 40}" y="${cy - 34}" width="80" height="10" rx="4" fill="#222" opacity="${r1(deceit * 0.9 * 100) / 100}"/>${arrows}${bolts}${ear}${k.label({ x: 250, y: 104, text: `challenged by ${v("challengedBy")}`, size: 8, color: "#ccc" })}${k.label({ x: 250, y: 118, text: `listening: ${v("listening")}`, size: 7, color: "#aaa" })}${k.label({ x: 250, y: 130, text: `fooling self: ${v("selfDeceit")}`, size: 7, color: "#aaa" })}${watch(k, 168, 152, v.n("holdOut"), 600, `holds out ${secs(v.n("holdOut"))}`)}${when(k, v.p("turningPoint"), "mind shifts")}${k.caption(`Pressure ${v.n("pressure")}/5 · challenge ${v.n("challenge")}/5 · hit ${nb}×`)}`;
+    return `${k.bg(BG)}${k.title(`Mindset: ${v("setting")}`)}<circle cx="${cx}" cy="${cy}" r="48" fill="#f0c8a0" stroke="#1c1712" stroke-width="2"/>${door}<rect x="${cx - 40}" y="${cy - 34}" width="80" height="10" rx="4" fill="#222" opacity="${r1(deceit * 0.9 * 100) / 100}"/>${arrows}${bolts}${ear}${k.label({ x: 250, y: 104, text: `challenged by ${v("challengedBy")}`, size: 8, color: "#ccc" })}${k.label({ x: 250, y: 118, text: `listening: ${v("listening")}`, size: 7, color: "#aaa" })}${k.label({ x: 250, y: 130, text: `fooling self: ${v("selfDeceit")}`, size: 7, color: "#aaa" })}${watch(k, 168, 152, v.n("holdOut"), 600, `holds out ${secs(v.n("holdOut"))}`)}${when(k, v.p("turningPoint"), "mind shifts")}${fitCap(k, `Pressure ${v.n("pressure")}/5 · challenge ${v.n("challenge")}/5 · hit ${nb}×`)}`;
   });
 
   /* Resistance: someone pushes; they push back behind a shield that cracks as they start to give way. */
@@ -562,11 +598,11 @@
     for (let i = 0; i < crack * 2; i++) cr += `<path d="M${px + 26} ${70 + i * 10} l6 4 l-4 5" stroke="#fff" fill="none"/>`;
     let pb = "";
     for (let i = 0; i < v.n("pushBacks"); i++) pb += k.arrow({ x1: px + 34, y1: 40 + i * 3.5, x2: px + 44 + lvl * 20, y2: 40 + i * 3.5, color: "#9fd3ff", w: 1 });
-    return `${k.bg(BG)}${k.title(`Fighting it with ${v("how")}`)}${k.floor(130, "#22201c")}${pusher}${k.arrow({ x1: ox - 18, y1: 96, x2: px + 40, y2: 96, color: RED, w: 2 })}<rect x="${px + 20}" y="${r1(84 - lvl * 22)}" width="${r1(8 + lvl * 6)}" height="${r1(30 + lvl * 44)}" rx="3" fill="#8fb2d8" stroke="#1c1712"/>${cr}${k.person({ x: px, y: 130, s: 0.52, color: HERO, lean: lvl * 14, arms: 0.4, mood: -0.4 })}${pb}${k.label({ x: px + 40, y: 32, text: `pushes back ${v.n("pushBacks")}×`, size: 7, color: "#aaa" })}${k.label({ x: (px + ox) / 2 + 10, y: 144, text: `${away} m apart`, size: 7, color: "#aaa" })}${when(k, v.p("giveWay"), "gives way")}${k.caption(`Resists ${v.n("level")}/5 · ${v("cracking")} · pushed by ${who}`)}`;
+    return `${k.bg(BG)}${k.title(`Fighting it with ${v("how")}`)}${k.floor(130, "#22201c")}${pusher}${k.arrow({ x1: ox - 18, y1: 96, x2: px + 40, y2: 96, color: RED, w: 2 })}<rect x="${px + 20}" y="${r1(84 - lvl * 22)}" width="${r1(8 + lvl * 6)}" height="${r1(30 + lvl * 44)}" rx="3" fill="#8fb2d8" stroke="#1c1712"/>${cr}${k.person({ x: px, y: 130, s: 0.52, color: HERO, lean: lvl * 14, arms: 0.4, mood: -0.4 })}${pb}${k.label({ x: px + 40, y: 32, text: `pushes back ${v.n("pushBacks")}×`, size: 7, color: "#aaa" })}${k.label({ x: (px + ox) / 2 + 10, y: 144, text: `${away} m apart`, size: 7, color: "#aaa" })}${when(k, v.p("giveWay"), "gives way")}${fitCap(k, `Resists ${v.n("level")}/5 · ${v("cracking")} · pushed by ${who}`)}`;
   });
 
   /* ---------- focus and perspective ---------- */
-  /* A top-down eye with a cone of attention: angle is how wide, length is how far. */
+  /* A person with a cone of attention from their head: angle is how wide, length is how far. */
   const cone = (k, o) => {
     const x = o.x;
     const y = o.y;
@@ -585,30 +621,34 @@
     const d = idx(v, "setting");
     const spd = v.n("speed") / 5;
     const dist = v.n("focusDistance");
-    const tx = 50 + 20 + Math.min(1, dist / 50) * 200;
-    const angle = [20, 60, 140][d];
+    const hx = 76;
+    const hy = 91;
+    const tx = 120 + Math.min(1, dist / 50) * 160;
+    const angle = [16, 44, 100][d];
     const target = v("onto");
     const icon = { "a thought": "\u{1F4AD}", "a person": "\u{1F9CD}", "an object": "\u{1F4E6}", "a goal": "⚑", "a threat": "⚠" }[target] || "★";
     let lines = "";
-    for (let i = 0; i < Math.round(spd * 4); i++) lines += `<line x1="${60 + i * 8}" y1="${118}" x2="${60 + i * 8}" y2="${128 - spd * 4}" stroke="#aaa"/>`;
-    const arr = d === 1 ? "" : d === 0 ? k.arrow({ x1: 120, y1: 40, x2: 120, y2: 64, color: GOLD, w: 1.5 }) + k.arrow({ x1: 120, y1: 116, x2: 120, y2: 92, color: GOLD, w: 1.5 }) : k.arrow({ x1: 120, y1: 64, x2: 120, y2: 34, color: GOLD, w: 1.5 }) + k.arrow({ x1: 120, y1: 92, x2: 120, y2: 122, color: GOLD, w: 1.5 });
-    return `${k.bg(BG)}${k.title(`Focus ${v("setting")} on ${target}`)}${cone(k, { x: 50, y: 78, angle, len: tx - 40, dir: 0, color: GOLD, alpha: 0.22 })}${arr}${eye(k, 50, 78)}${k.text({ x: tx, y: 84, text: icon, size: 18 })}${k.label({ x: tx, y: 100, text: `${dist} m`, size: 7, color: "#aaa" })}${lines}${camFollow(k, idx(v, "cameraFollows"), 280, 140, tx, 78)}${k.pie({ x: 290, y: 30, r: 10, p: v.p("eyesOnIt"), color: GOLD })}${k.label({ x: 276, y: 34, text: `eyes on it ${v.n("eyesOnIt")}%`, size: 8, anchor: "end", color: "#ccc" })}${when(k, v.p("shiftAt"), "shifts at")}${k.caption(`Speed ${v.n("speed")}/5 · camera ${v("cameraFollows")}`)}`;
+    for (let i = 0; i < Math.round(spd * 4); i++) lines += `<line x1="${r1(hx + 30 + i * 8)}" y1="122" x2="${r1(hx + 30 + i * 8)}" y2="${r1(128 - spd * 4)}" stroke="#aaa"/>`;
+    const mx = (hx + tx) / 2;
+    const half = Math.tan(k.rad(angle / 2)) * (mx - hx);
+    const arr = d === 1 ? "" : d === 0 ? k.arrow({ x1: mx, y1: hy - half - 18, x2: mx, y2: hy - half + 4, color: GOLD, w: 1.5 }) + k.arrow({ x1: mx, y1: hy + half + 18, x2: mx, y2: hy + half - 4, color: GOLD, w: 1.5 }) : k.arrow({ x1: mx, y1: hy - half + 4, x2: mx, y2: hy - half - 18, color: GOLD, w: 1.5 }) + k.arrow({ x1: mx, y1: hy + half - 4, x2: mx, y2: hy + half + 18, color: GOLD, w: 1.5 });
+    return `${k.bg(BG)}${k.floor(130, "#22201c")}${k.title(`Focus ${v("setting")} on ${target}`)}${cone(k, { x: hx, y: hy, angle, len: tx - hx, dir: 0, color: GOLD, alpha: 0.22 })}${arr}${k.person({ x: 70, y: 130, s: 0.55, color: HERO, look: 1 })}${k.text({ x: tx, y: hy + 6, text: icon, size: 18 })}${k.label({ x: tx, y: hy + 20, text: `${dist} m`, size: 7, color: "#aaa" })}${lines}${camFollow(k, idx(v, "cameraFollows"), 296, 140, tx, hy)}${k.pie({ x: 300, y: 30, r: 9, p: v.p("eyesOnIt"), color: GOLD })}${k.label({ x: 286, y: 33, text: `eyes on it ${v.n("eyesOnIt")}%`, size: 8, anchor: "end", color: "#ccc" })}${when(k, v.p("shiftAt"), "shifts at")}${fitCap(k, `Speed ${v.n("speed")}/5 · camera ${v("cameraFollows")}`)}`;
   });
 
   W.look("focusWidth", (v, k) => {
     const w = idx(v, "setting");
     const ang = v.n("viewAngle");
     const reach = v.n("reach");
-    const len = 16 + Math.min(1, reach / 100) * 60;
+    const hx = 76;
+    const hy = 91;
+    const len = 30 + Math.min(1, reach / 100) * 150;
     const str = v.n("strength") / 5;
     const steer = idx(v, "steersUs");
-    const usAng = ang * [1.6, 1, 0.5][steer];
-    const ex = 150;
-    const ey = 92;
+    const usAng = Math.min(360, ang * [1.6, 1, 0.5][steer]);
     const things = ["\u{1F4E6}", "\u{1F9CD}", "\u{1F3E0}", "\u{1F465}", "\u{1F30D}"];
     const miss = idx(v, "misses");
-    const missed = miss ? k.text({ x: 40, y: 140, text: ["", "•", "⚠", "❗"][miss], size: 10 + miss * 4, color: RED }) + k.label({ x: 40, y: 152, text: `misses ${v("misses")}`, size: 7, color: RED }) : "";
-    return `${k.bg(BG)}${k.title(`Focus on ${v("setting")}`)}${cone(k, { x: ex, y: ey, angle: usAng, len: len + 8, dir: -90, color: "#9fd3ff", alpha: 0.12 })}${cone(k, { x: ex, y: ey, angle: ang, len, dir: -90, color: GOLD, alpha: r1((0.1 + str * 0.35) * 100) / 100 })}${eye(k, ex, ey)}${k.text({ x: ex, y: Math.max(26, ey - len + 14), text: things[w], size: 12 + w * 3 })}${missed}${camFollow(k, idx(v, "camera"), 290, 120, ex, ey - 40)}${k.label({ x: 290, y: 140, text: `camera ${v("camera")}`, size: 7, color: "#aaa" })}${k.label({ x: 10, y: 34, text: `${ang}° wide, ${reach} m`, size: 8, anchor: "start", color: "#ccc" })}${k.label({ x: 10, y: 46, text: `blue: we see ${steer === 0 ? "more" : steer === 1 ? "the same" : "less"}`, size: 7, anchor: "start", color: "#9fd3ff" })}${when(k, v.p("shiftAt"), "changes at", { x: 180, w: 120, y: 158 })}${k.caption(`How firmly ${v.n("strength")}/5 · ${v("setting")}`)}`;
+    const missed = miss ? k.text({ x: 28, y: 126, text: ["", "•", "⚠", "❗"][miss], size: 10 + miss * 4, color: RED }) + k.fitText({ x: 8, y: 152, text: `behind them they miss ${v("misses")}`, size: 7.5, min: 6, w: 160, anchor: "start", color: RED }) : "";
+    return `${k.bg(BG)}${k.floor(130, "#22201c")}${k.title(`Focus on ${v("setting")}`)}${cone(k, { x: hx, y: hy, angle: usAng, len: len + 10, dir: 0, color: "#9fd3ff", alpha: 0.12 })}${cone(k, { x: hx, y: hy, angle: ang, len, dir: 0, color: GOLD, alpha: r1((0.1 + str * 0.3) * 100) / 100 })}${k.person({ x: 70, y: 130, s: 0.55, color: HERO, look: 1 })}${k.text({ x: Math.min(270, hx + len * 0.75), y: hy + 6, text: things[w], size: 12 + w * 3 })}${missed}${camFollow(k, idx(v, "camera"), 296, 40, hx, hy)}${k.label({ x: 310, y: 62, text: `camera ${v("camera")}`, size: 7, anchor: "end", color: "#aaa" })}${k.label({ x: 10, y: 34, text: `${ang}° wide, ${reach} m`, size: 8, anchor: "start", color: "#ccc" })}${k.label({ x: 10, y: 46, text: `blue: we see ${steer === 0 ? "more" : steer === 1 ? "the same" : "less"}`, size: 7, anchor: "start", color: "#9fd3ff" })}${when(k, v.p("shiftAt"), "changes at", { x: 186, w: 120, y: 152 })}${fitCap(k, `How firmly ${v.n("strength")}/5 · ${v("setting")}`)}`;
   });
 
   W.look("cm-focus", (v, k) => {
@@ -616,70 +656,92 @@
     const swing = v.n("swing") / 100;
     const ang = 10 + pos * 260;
     const reach = v.n("reach");
-    const len = 16 + Math.min(1, reach / 100) * 64;
+    const len = 30 + Math.min(1, reach / 100) * 140;
     const sh = idx(v, "shown");
-    const ex = 130;
-    const ey = 100;
+    const hx = 76;
+    const hy = 91;
     const lo = Math.max(10, 10 + (pos - swing) * 260);
     const hi = 10 + Math.min(1, pos + swing) * 260;
-    return `${k.bg(BG)}${k.title(`Held by ${v("onWhat")}`)}${cone(k, { x: ex, y: ey, angle: hi, len: len + 6, dir: -90, color: "#9fd3ff", alpha: 0.1 })}${cone(k, { x: ex, y: ey, angle: lo, len: len + 3, dir: -90, color: "#15151b", alpha: 0.5 })}${cone(k, { x: ex, y: ey, angle: ang, len, dir: -90, color: GOLD, alpha: [0.12, 0.25, 0.45][sh] })}${eye(k, ex, ey)}${camFollow(k, idx(v, "cameraFollows"), 270, 120, ex, ey - 40)}${k.label({ x: 270, y: 140, text: `camera ${v("cameraFollows")}`, size: 7, color: "#aaa" })}${k.label({ x: 10, y: 34, text: `reach ${reach} m · ${v("shown")}`, size: 8, anchor: "start", color: "#ccc" })}${k.label({ x: 10, y: 46, text: `blue band: swings ±${v.n("swing")}`, size: 7, anchor: "start", color: "#9fd3ff" })}${watch(k, 168, 152, v.n("shiftSeconds"), 300, `shift ${secs(v.n("shiftSeconds"))}`)}${when(k, v.p("shiftAt"), "shifts at")}${k.caption(`${pos < 0.35 ? "Narrow" : pos > 0.65 ? "Wide" : "Middling"} focus (${v.n("position")})`)}`;
+    const icon = { "a task": "\u{1F4CB}", "a person": "\u{1F9CD}", "a worry": "\u{1F4AD}", "a goal": "⚑", "everything": "\u{1F30D}" }[v("onWhat")] || "★";
+    return `${k.bg(BG)}${k.floor(130, "#22201c")}${k.title(`Held by ${v("onWhat")}`)}${cone(k, { x: hx, y: hy, angle: hi, len: len + 6, dir: 0, color: "#9fd3ff", alpha: 0.1 })}${cone(k, { x: hx, y: hy, angle: lo, len: len + 3, dir: 0, color: "#15151b", alpha: 0.5 })}${cone(k, { x: hx, y: hy, angle: ang, len, dir: 0, color: GOLD, alpha: [0.12, 0.25, 0.45][sh] })}${k.person({ x: 70, y: 130, s: 0.55, color: HERO, look: 1 })}${k.text({ x: Math.min(270, hx + len * 0.75), y: hy + 6, text: icon, size: 16 })}${camFollow(k, idx(v, "cameraFollows"), 296, 40, hx, hy)}${k.label({ x: 310, y: 62, text: `camera ${v("cameraFollows")}`, size: 7, anchor: "end", color: "#aaa" })}${k.label({ x: 10, y: 34, text: `reach ${reach} m · ${v("shown")}`, size: 8, anchor: "start", color: "#ccc" })}${k.label({ x: 10, y: 46, text: `blue band: swings ±${v.n("swing")}`, size: 7, anchor: "start", color: "#9fd3ff" })}${watch(k, 168, 152, v.n("shiftSeconds"), 300, `shift ${secs(v.n("shiftSeconds"))}`)}${when(k, v.p("shiftAt"), "shifts at")}${fitCap(k, `${pos < 0.35 ? "Narrow" : pos > 0.65 ? "Wide" : "Middling"} focus (${v.n("position")})`)}`;
   });
 
-  /* Perspective width: rings of self, family, group, world; the lit ring is whose good they weigh. */
+  /* Perspective width: rings of self, family, group, world, each with its people; the lit rings are whose good
+     they weigh (those faces smile, the rest are grey). */
   W.look("perspectiveWidth", (v, k) => {
     const w = idx(v, "setting");
     const str = v.n("strength") / 5;
     const names = ["self", "family", "group", "world"];
     const cx = 100;
-    const cy = 86;
+    const cy = 88;
+    const R = [13, 29, 45, 61];
     let rings = "";
     names.forEach((n, i) => {
-      const r = 14 + i * 18;
-      rings += k.ring({ x: cx, y: cy, r, color: i <= w ? GOLD : "#444", w: i === w ? 1.5 + str * 3 : 1, dash: i <= w ? null : "2 3" });
-      rings += k.label({ x: cx, y: cy - r + 8, text: n, size: 7, color: i <= w ? GOLD : "#666" });
+      rings += k.ring({ x: cx, y: cy, r: R[i], color: i <= w ? GOLD : "#444", w: i === w ? 1.5 + str * 3 : 1, dash: i <= w ? null : "2 3" });
+      rings += k.label({ x: cx, y: cy - R[i] + 9, text: n, size: 7, color: i <= w ? GOLD : "#666" });
+    });
+    /* the people in each ring: 2 family, 4 of the group, 7 of the world, spread round the lower part */
+    let folk = "";
+    [[1, 2], [2, 4], [3, 7]].forEach(([ring, cnt]) => {
+      const rr = (R[ring - 1] + R[ring]) / 2;
+      for (let j = 0; j < cnt; j++) {
+        const a = k.rad(20 + (140 * (j + 0.5)) / cnt);
+        folk += k.face({ x: r1(cx + Math.cos(a) * rr), y: r1(cy + Math.sin(a) * rr), r: 4.5, mood: ring <= w ? 0.6 : 0, eyes: 1, color: ring <= w ? "#d8b48c" : "#6a6a72" });
+      }
     });
     const sh = idx(v, "shift");
-    const r0 = 14 + w * 18;
-    const shArr = sh === 1 ? "" : k.arrow({ x1: cx, y1: cy + r0 + (sh === 2 ? -4 : 6), x2: cx, y2: cy + r0 + (sh === 2 ? 8 : -8), color: sh === 2 ? GREEN : RED, w: 2 });
+    const r0 = R[w];
+    const shArr = sh === 1 ? "" : k.arrow({ x1: cx + r0 + (sh === 2 ? -4 : 12), y1: cy, x2: cx + r0 + (sh === 2 ? 12 : -4), y2: cy, color: sh === 2 ? GREEN : RED, w: 2 });
     const people = Math.round(Math.log10(Math.max(1, v.n("peopleWeighed"))) * 8) + 1;
     const tested = idx(v, "tested");
-    return `${k.bg(BG)}${k.title(`Whose good: ${v("setting")}`)}${rings}${shArr}${k.person({ x: cx, y: cy + 10, s: 0.24, color: HERO })}${pips(k, people, 200, 30, "#9fd3ff", 12)}${k.label({ x: 200, y: 24, text: `weighs ${v.n("peopleWeighed")} people`, size: 7, anchor: "start", color: "#aaa" })}${tested ? k.text({ x: 230, y: 92, text: tested === 2 ? "⚖️" : "⚖", size: 10 + tested * 8 }) : ""}${k.label({ x: 250, y: 108, text: `${v("tested")}`, size: 7, color: "#aaa" })}${tag(k, 250, 124, `moved by ${v("triggeredBy")}`)}${k.label({ x: 250, y: 140, text: `shown by ${v("shownTo")}`, size: 7, color: "#aaa" })}${watch(k, 168, 152, v.n("shiftSeconds"), 600, `takes ${secs(v.n("shiftSeconds"))}`)}${when(k, v.p("shiftAt"), "circle moves")}${k.caption(`How firmly ${v.n("strength")}/5 · circle ${v("shift")}`)}`;
+    return `${k.bg(BG)}${k.title(`Whose good: ${v("setting")}`)}${rings}${folk}${k.face({ x: cx, y: cy + 2, r: 7, mood: 0.3, eyes: 1, color: "#f0c8a0" })}${shArr}${pips(k, people, 200, 34, "#9fd3ff", 12)}${k.label({ x: 200, y: 28, text: `weighs ${v.n("peopleWeighed")} people`, size: 7, anchor: "start", color: "#aaa" })}${tested ? k.text({ x: 230, y: 92, text: "⚖", size: 10 + tested * 8 }) : ""}${k.label({ x: 250, y: 108, text: `${v("tested")}`, size: 7, color: "#aaa" })}${tag(k, 250, 124, `moved by ${v("triggeredBy")}`)}${k.label({ x: 250, y: 140, text: `shown by ${v("shownTo")}`, size: 7, color: "#aaa" })}${watch(k, 168, 152, v.n("shiftSeconds"), 600, `takes ${secs(v.n("shiftSeconds"))}`)}${when(k, v.p("shiftAt"), "circle moves", { w: 120 })}${fitCap(k, `How firmly ${v.n("strength")}/5 · circle ${v("shift")}`)}`;
   });
 
-  /* Closed to widening mindset: an iris that opens with the position; a wall for how hard they resist. */
+  /* Closed to widening mindset: a person behind a wall with a door that slides up as they open; through it, other
+     people in the light. The dashed marks are how far it swings between scenes; resisting, they lean away. */
   W.look("cm-perspective", (v, k) => {
     const pos = v.p("position");
     const swing = v.n("swing") / 100;
     const sh = idx(v, "shown");
     const res = v.n("resists") / 5;
-    const cx = 100;
-    const cy = 84;
-    const open = 6 + pos * 40;
-    const lo = 6 + Math.max(0, pos - swing) * 40;
-    const hi = 6 + Math.min(1, pos + swing) * 40;
-    return `${k.bg(BG)}${k.title(`Opened or closed by ${v("trigger")}`)}<circle cx="${cx}" cy="${cy}" r="52" fill="#2a2a34" stroke="#666" stroke-width="3"/>${k.ring({ x: cx, y: cy, r: hi, color: "#9fd3ff", w: 1, dash: "2 3" })}${k.ring({ x: cx, y: cy, r: lo, color: "#9fd3ff", w: 1, dash: "2 3" })}<circle cx="${cx}" cy="${cy}" r="${r1(open)}" fill="${k.mix("#3c3c48", "#fff3c4", pos)}" opacity="${[0.4, 0.7, 1][sh]}"/>${res > 0 ? `<rect x="${cx + 60}" y="${r1(130 - res * 90)}" width="10" height="${r1(res * 90)}" fill="#8a6a4a" stroke="#1c1712"/>` : ""}${k.label({ x: cx + 65, y: 142, text: `resists ${v.n("resists")}/5`, size: 7, color: "#aaa" })}${k.label({ x: 250, y: 60, text: `compared with`, size: 7, color: "#888" })}${k.label({ x: 250, y: 72, text: v("comparedWith"), size: 8, color: "#ccc" })}${k.label({ x: 250, y: 92, text: `${v("shown")} · swings ±${v.n("swing")}`, size: 8, color: "#ccc" })}${watch(k, 168, 152, v.n("shiftSeconds"), 600, `shift ${secs(v.n("shiftSeconds"))}`)}${when(k, v.p("shiftAt"), "shifts at")}${k.caption(`${pos < 0.35 ? "Closed" : pos > 0.65 ? "Widening" : "In between"} (${v.n("position")})`)}`;
+    const wx = 124;
+    const fy = 130;
+    const gapH = (p) => 6 + p * 84;
+    const oh = gapH(pos);
+    const lo = gapH(Math.max(0, pos - swing));
+    const hi = gapH(Math.min(1, pos + swing));
+    const lit = k.mix("#2a2a34", "#5a5236", pos);
+    let others = "";
+    for (let i = 0; i < 3; i++) others += k.person({ x: 152 + i * 22, y: fy, s: 0.36, color: k.mix("#555", ["#7a8a5a", "#a56a8a", "#c07a3a"][i], 0.3 + pos * 0.7), mood: pos * 0.6, look: -1 });
+    const light = `<path d="M${wx} ${r1(fy - oh)} L${wx} ${fy} L${r1(wx - 20 - pos * 70)} ${fy} Z" fill="#fff3c4" opacity="${r1((0.05 + pos * 0.25) * [0.5, 0.8, 1][sh] * 100) / 100}"/>`;
+    const marks = [lo, hi].map((h) => `<line x1="${wx - 4}" y1="${r1(fy - h)}" x2="${wx + 14}" y2="${r1(fy - h)}" stroke="#9fd3ff" stroke-dasharray="2 2"/>`).join("");
+    const wall = `<rect x="${wx}" y="28" width="10" height="${r1(fy - oh - 28)}" fill="#6a6a78" stroke="#1c1712"/>`;
+    return `${k.bg(BG)}<rect x="${wx + 10}" y="28" width="90" height="${fy - 28}" fill="${lit}"/>${k.floor(fy, "#22201c")}${k.title(`Opened or closed by ${v("trigger")}`)}${others}${light}${wall}${marks}${k.person({ x: 70, y: fy, s: 0.55, color: HERO, look: 1, lean: -res * 12, arms: res > 0.5 ? -0.6 : 0, mood: pos * 0.6 - 0.2 })}${k.label({ x: 270, y: 50, text: "compared with", size: 7, color: "#888" })}${k.fitText({ x: 270, y: 62, text: v("comparedWith"), size: 8, min: 6.5, w: 92, color: "#ccc" })}${k.fitText({ x: 270, y: 82, text: `${v("shown")} · swings ±${v.n("swing")}`, size: 8, min: 6.5, w: 92, color: "#ccc" })}${k.label({ x: 270, y: 100, text: `resists ${v.n("resists")}/5`, size: 8, color: "#ccc" })}${watch(k, 168, 152, v.n("shiftSeconds"), 600, `shift ${secs(v.n("shiftSeconds"))}`)}${when(k, v.p("shiftAt"), "shifts at")}${fitCap(k, `${pos < 0.35 ? "Closed" : pos > 0.65 ? "Widening" : "In between"} (${v.n("position")})`)}`;
   });
 
-  /* Distraction: they face their task; the distraction tugs them off at an angle and distance, while what they
-     miss sits behind them. */
+  /* Distraction: a person at their task (a desk in front of them) turns toward the distraction; 0° is straight
+     ahead, 90° off to the side (drawn above), 180° behind them. What they miss sits on the floor behind them. */
   W.look("distraction", (v, k) => {
     const pull = v.n("pull") / 5;
-    const ang = k.rad(v.n("pullAngle") - 90);
-    const dist = 20 + Math.min(1, v.n("pullDistance") / 50) * 60;
-    const px = 130;
-    const py = 90;
-    const dx = px + Math.cos(ang) * dist;
-    const dy = py + Math.sin(ang) * dist * 0.8;
+    const deg = Math.abs(v.n("pullAngle"));
+    const a = k.rad(deg);
+    const dist = 26 + Math.min(1, v.n("pullDistance") / 50) * 54;
+    const px = 112;
+    const fy = 130;
+    const hy = 93;
+    const dx = k.clamp(px + Math.cos(a) * dist, 16, 200);
+    const dy = hy - Math.sin(a) * dist * 0.7;
     const src = v("source");
     const icon = { "a thought": "\u{1F4AD}", "a person": "\u{1F9CD}", "an object": "\u{1F4E6}", "a sound": "\u{1F514}", "a screen": "\u{1F4F1}" }[src] || "★";
     const mi = idx(v, "missed");
-    const mdist = 14 + Math.min(1, v.n("missedNear") / 20) * 50;
-    const mx = px + mdist;
-    const my = py + 30;
+    const mx = k.clamp(px - 24 - Math.min(1, v.n("missedNear") / 20) * 60, 22, 90);
     const aud = idx(v, "audienceSees");
     const dur = idx(v, "duration");
     const snap = idx(v, "snapBack");
-    return `${k.bg(BG)}${k.title(`Pulled by ${src}`)}<line x1="${px}" y1="${py}" x2="${r1(dx)}" y2="${r1(dy)}" stroke="#d58cff" stroke-width="${r1(1 + pull * 4)}" stroke-dasharray="4 3"/>${k.text({ x: dx, y: dy + 6, text: icon, size: 16 })}${eye(k, px, py)}${k.arrow({ x1: px, y1: py - 10, x2: px, y2: py - 44, color: "#666", w: 1.5 })}${k.label({ x: px, y: py - 48, text: "the task", size: 7, color: "#888" })}${mi ? `${aud ? `<circle cx="${r1(mx)}" cy="${my}" r="12" fill="${GOLD}" opacity="${aud === 2 ? 0.4 : 0.15}"/>` : ""}${k.text({ x: mx, y: my + 5, text: ["", "•", "⚠", "❗"][mi], size: 10 + mi * 3, color: RED })}` : ""}${k.label({ x: mx, y: my + 18, text: `misses ${v("missed")}`, size: 7, color: RED })}${k.label({ x: 250, y: 50, text: `holds them: ${v("duration")}`, size: 8, color: "#ccc" })}${k.meter({ x: 210, y: 60, w: 80, p: (dur + 1) / 4, color: "#d58cff" })}${k.label({ x: 250, y: 90, text: `snaps back: ${v("snapBack")}`, size: 8, color: snap === 3 ? RED : "#ccc" })}${k.label({ x: 250, y: 104, text: `we see it: ${v("audienceSees")}`, size: 8, color: "#ccc" })}${k.caption(`Pull ${v.n("pull")}/5 at ${v.n("pullAngle")}°, ${v.n("pullDistance")} m · missed thing ${v.n("missedNear")} m away`)}`;
+    const desk = `<rect x="150" y="108" width="54" height="5" fill="#8a6a4a" stroke="#1c1712"/><line x1="156" y1="113" x2="156" y2="${fy}" stroke="#5a4a3a" stroke-width="3"/><line x1="198" y1="113" x2="198" y2="${fy}" stroke="#5a4a3a" stroke-width="3"/><rect x="166" y="102" width="20" height="6" fill="#eee" stroke="#1c1712"/>`;
+    const lookSide = Math.cos(a) >= 0 ? 1 : -1;
+    const missedThing = mi ? `${aud ? `<circle cx="${r1(mx)}" cy="120" r="12" fill="${GOLD}" opacity="${aud === 2 ? 0.4 : 0.15}"/>` : ""}${k.text({ x: mx, y: 126, text: ["", "•", "⚠", "❗"][mi], size: 10 + mi * 3, color: RED })}` : "";
+    return `${k.bg(BG)}${k.title(`Pulled by ${src}`)}${k.floor(fy, "#22201c")}${desk}${k.label({ x: 177, y: 142, text: "the task", size: 7, color: "#888" })}<line x1="${px}" y1="${hy}" x2="${r1(dx)}" y2="${r1(dy)}" stroke="#d58cff" stroke-width="${r1(1 + pull * 4)}" stroke-dasharray="4 3"/>${k.text({ x: dx, y: dy + 6, text: icon, size: 16 })}${missedThing}${k.person({ x: px, y: fy, s: 0.55, color: HERO, look: lookSide, lean: lookSide * -pull * 8, mood: -0.1 })}${k.fitText({ x: 8, y: 152, text: mi ? `behind them they miss ${v("missed")}` : "they miss nothing", size: 8, min: 6.5, w: 150, anchor: "start", color: RED })}${k.label({ x: 260, y: 50, text: `holds them: ${v("duration")}`, size: 8, color: "#ccc" })}${k.meter({ x: 220, y: 60, w: 80, p: (dur + 1) / 4, color: "#d58cff" })}${k.label({ x: 260, y: 90, text: `snaps back: ${v("snapBack")}`, size: 8, color: snap === 3 ? RED : "#ccc" })}${k.label({ x: 260, y: 104, text: `we see it: ${v("audienceSees")}`, size: 8, color: "#ccc" })}${fitCap(k, `Pull ${v.n("pull")}/5 at ${v.n("pullAngle")}°, ${v.n("pullDistance")} m · missed thing ${v.n("missedNear")} m away`)}`;
   });
 
   /* Fixation: they stare at one thing, rings of grip around it; others may look too; the camera frames it. */
@@ -697,7 +759,7 @@
     const sh = [0, 1, 3][idx(v, "shared")];
     const weLook = v.n("weLook") / 5;
     const frame = weLook > 0 ? k.frame({ x: tx - 20 - (1 - weLook) * 40, y: ty - 18 - (1 - weLook) * 26, w: 40 + (1 - weLook) * 80, h: 36 + (1 - weLook) * 52, color: "#fff", dash: "4 3", w2: 1 }) : "";
-    return `${k.bg(BG)}${k.title(`Fixed on ${v("onWhat")}`)}${looks}${frame}${rings}${k.text({ x: tx, y: ty + 7, text: icon, size: 18 })}${k.label({ x: tx, y: ty + 40, text: `${dist} m away`, size: 7, color: "#aaa" })}${k.person({ x: 50, y: 130, s: 0.5, color: HERO, look: 1, lean: grip * 10 })}${watchers(k, sh, 200, 140, 0)}${k.label({ x: 200, y: 156, text: sh ? `noticed by ${v("shared")}` : "no one notices", size: 7, anchor: "start", color: "#aaa" })}${k.pie({ x: 290, y: 30, r: 10, p: v.p("lookShare"), color: GOLD })}${k.label({ x: 276, y: 34, text: `${v.n("lookShare")}% of the scene`, size: 8, anchor: "end", color: "#ccc" })}${watch(k, 20, 154, v.n("longestLook"), 60, `longest look ${v.n("longestLook")} s`)}${k.caption(`Grip ${v.n("grip")}/5 · goes back ${v("returns")} · we look ${v.n("weLook")}/5`)}`;
+    return `${k.bg(BG)}${k.title(`Fixed on ${v("onWhat")}`)}${looks}${frame}${rings}${k.text({ x: tx, y: ty + 7, text: icon, size: 18 })}${k.label({ x: tx, y: ty + 40, text: `${dist} m away`, size: 7, color: "#aaa" })}${k.person({ x: 50, y: 130, s: 0.5, color: HERO, look: 1, lean: grip * 10 })}${watchers(k, sh, 200, 140, 0)}${k.label({ x: 200, y: 156, text: sh ? `noticed by ${v("shared")}` : "no one notices", size: 7, anchor: "start", color: "#aaa" })}${k.pie({ x: 290, y: 30, r: 10, p: v.p("lookShare"), color: GOLD })}${k.label({ x: 276, y: 34, text: `${v.n("lookShare")}% of the scene`, size: 8, anchor: "end", color: "#ccc" })}${watch(k, 20, 154, v.n("longestLook"), 60, `longest look ${v.n("longestLook")} s`)}${fitCap(k, `Grip ${v.n("grip")}/5 · goes back ${v("returns")} · we look ${v.n("weLook")}/5`)}`;
   });
 
   /* ---------- dot grids: two settings that pair naturally, dragged together (only where no pad exists) ---------- */

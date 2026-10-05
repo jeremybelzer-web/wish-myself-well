@@ -15,22 +15,69 @@
      the whole group and its links, as one undo step. A group with several links is a proximity suite.
 
    Mouse: click an empty spot to add a node; drag a node up or down to change it, sideways to move it (and its
-   partners); hold Alt (or Shift) while dragging to copy instead; drop a node on a node in another lane to join
-   them; double-click a node to remove it. Click a line to switch it off or remove it.
+   partners); hold Alt (or Shift) while dragging to copy instead, ⌘/Ctrl to skip snapping to markers; drop a node
+   on a node in another lane to join them; double-click a node to remove it (two presses on one node, counted in
+   onDown, because the first press redraws). Click a proximity line to switch it off or remove it. Drag across
+   empty space to select an area; drag inside the area sideways to move all its nodes in time (Alt when you let
+   go: copy them).
+   A lane's own line, the Ableton Live way (Jeremy, 2026-10-04; /mnt/project-files/decisions/ableton-lane-gestures.md):
+   hover thickens it and shows its value; a click adds a node there at the line's value; a drag up or down moves
+   both of its nodes (one undo, no new node; a 4px move separates a click from a drag); Alt (Option) + drag curves
+   it into the Curves pop-up's own curve data; right-click opens a menu (add a node, ease in or out, straight,
+   Curves…, Shapes, Simplify). A double-click on a line keeps the one node its first click added. Touch is the
+   same (pointer events). The master lane's ON/OFF and Steps / Lines switches and its automation group tab
+   (▸ N settings: one sub-lane per setting in its window) are explained at automationGroup below.
 
    window.CurioLanes
    - mount(el, opts) -> { draw(), destroy() }
        opts.lanes()      -> [{ track (or null), cur, label?, group? }]  which lanes to show, top to bottom
        opts.row()        -> the playhead's moment index (paste goes there)
-       opts.onSelect(cur) told when a lane or node is picked
+       opts.onSelect(cur, track) told when a lane or node is picked (track: the row's track when it names one)
        opts.header(lane) -> extra HTML for a lane's header (the Arrange view's dropdown)
        opts.ruler        draw moment numbers above the lanes
        opts.range()      -> [from, to] or null: the play range, drawn with the moments outside it dimmed
+       opts.thumbs()     -> one storyboard frame <svg> string per moment, drawn on My film's clip track when zoomed in
+       opts.joins()      -> per moment j, { kind, title } for the transition into it (null for the first): a ◇
+                         on My film's clip track at each join, [data-join=j]; the page handles its click
+       opts.texts()      -> { items: [{ id, j0, j1, style, text, title }], onSpan(id, j0, j1), onPick(id) }: the words
+                         drawn on My film's frames, as thin bars on a Text row just under My film's clip track
+                         (only while there are any); drag a bar's end to change its moments, its middle to move it,
+                         click it to pick it (textRows packs overlapping bars into sub-rows)
+       opts.beats()      -> [{ values }] My film's values per moment, read by Mark the turns (else read from the engine)
+       opts.showLanes(curs) adds lanes to the timeline for curiosities a dropped suite clip put into the film
+       opts.attention    the momentum reading the Attention track uses (else the page's CurioAttention)
+       opts.inspiration() -> { name, beats: [{ values }] } or null: the inspiration film picked in the Player, drawn
+                         as Film lines in each lane and used by Take from the film (filmBeat, filmLine and
+                         takeFromFilmCommands are exported; the film is stretched to My film's length)
+   - laneGroups(lanes, o) and foldDots(st, lanes): the lane groups (a folding header per category) and where a folded
+     group's lanes have nodes; the mounted lanes have fold(category, folded?), foldAll(folded?), groups() and
+     reveal(cur) (open a picked curiosity's folded group and scroll to its lane); groupText(g) is the header's words
+   - markerStep(markers, rows, j, dir) -> the moment of the next (1) or previous (-1) marker from moment j, or -1;
+     command("nextMarker") and command("prevMarker") move the playhead there (⇧] and ⇧[)
+   - turnMarkers(beats, rows, { attention, lanes }) -> the auto markers where the film turns (see below);
+     mergeTurnMarkers(markers, turns) and clearAutoMarkers(markers) put them in and take them off
+   - attentionTrack(beats, { attention, secondsPerBeat }) -> what the Attention track draws (see below)
    - trackFor(cur)       the track a curiosity goes on when it is not on one yet
+                         (a graded part goes on its own kind of track: partTrack(key) "character", "camera" or "master")
+   - laneParts(id, h?)   -> { parts: [{ key, slider, label, track, main }], bareSecond }: the graded lanes the pickers
+                         offer for curiosity id (see "graded lanes" below); lkName(laneKey) a lane's name with its
+                         track when several tracks carry the same curiosity ("Eyelines · Character B")
+   - opts.lanes() entries may name a track and a trackLabel: two tracks with the same curiosity are two rows
    - group(nodeKey)      the nodes and links joined to a node
    - copyGroup(nodeKey), paste(atRow) -> { ok, error? }   the proximity clipboard (kept across films)
    - ensure(cur)         make sure a lane's curiosity is on a track (one undo step), returns the track id
    - tools()             the timeline toolbar settings, kept in localStorage "curiosities-screen-tools-v1"
+   - suite clips: Save as suite clip (the area toolbar) keeps a selection under a name in localStorage
+     "curiosities-suite-clips-v1"; Suite clips ▾ drops one at the playhead (one undo step), as an analogy too.
+     suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips()
+   - soloCommands(st, laneKey, prev), soloActive(st, solo), isLocked(laneKey)   the lane heads' Solo and Lock
+   - templates: Save as template (the area toolbar) keeps a selection with a name and a note in localStorage
+     "curiosities-screen-templates-v1"; the library's My templates uses one (one undo step), and a card dragged onto
+     the lanes lands at that moment. template, migrateTemplates, templateSummary, templatePreview, stretchTemplate,
+     useTemplateCommands, exportTemplates, importTemplates, templates(), saveTemplates(list)
+   - a template as an analogy: analogyCandidates(cur, { avoid, max }) the curiosities most like one (best first),
+     templateAnalogy(t, { picks }) -> { pairs, left, clip, clash } (each lane's shape moved onto its cousin, values
+     keeping their place on the scale); useTemplateCommands(st, t, start, { analogy: true | picks }) uses it
 
    The toolbar copies CapCut's timeline toolbar (Jeremy's screenshots, 2026-10-02): the Select (A) and Split (B)
    tools, Undo, Delete, Add marker (M), the main track magnet (P), linkage (~), the preview axis (S) and zoom.
@@ -42,7 +89,9 @@
    - Linkage on (the default): joined nodes move and copy together. Off: a node moves alone and its lines stretch.
    - Auto snapping on (the default): a node dragged sideways to within one moment of a marker lands on it.
    - Preview axis on: hovering over the timeline moves the player to that moment (opts.onHover).
-   - Markers: flags on moments of the film, kept by row id.
+   - Markers: flags on moments of the film, kept by row id, each with a color and a note. Double-click (or
+     right-click) a marker's flag on the ruler to write its note, pick its color or delete it; Markers ▾ lists
+     them all, and clicking one moves the playhead there (opts.onRow, else opts.onClip).
    The mounted lanes answer command(name) so the Screen's keyboard shortcuts can drive them. */
 (function () {
   const root = typeof window !== "undefined" ? window : globalThis;
@@ -61,7 +110,112 @@
     const t = JSON.parse(localStorage.getItem(TOOLS_KEY));
     if (t && typeof t === "object") tools = Object.assign({}, TOOL_DEFAULTS, t);
   } catch (e) {}
-  if (!Array.isArray(tools.markers)) tools.markers = [];
+  /* Markers (CapCut's markers): a flag on one moment with a color and a short note ("the joke lands").
+     Kept as [{ row, color, note }]; older saves kept a plain list of row ids, which migrateMarkers turns into
+     orange markers with no note. */
+  const MARK_COLORS = [
+    ["red", "Red", "#ff5a5f"],
+    ["orange", "Orange", "#ff9f43"],
+    ["yellow", "Yellow", "#ffd43b"],
+    ["green", "Green", "#51cf66"],
+    ["blue", "Blue", "#4dabf7"],
+    ["purple", "Purple", "#b197fc"],
+  ];
+  const MARK_DEFAULT = "orange";
+  const NOTE_MAX = 80;
+  const markColor = (id) => MARK_COLORS.find((c) => c[0] === id) || MARK_COLORS.find((c) => c[0] === MARK_DEFAULT);
+  function migrateMarkers(list) {
+    const out = [];
+    const seen = new Set();
+    (Array.isArray(list) ? list : []).forEach((m) => {
+      const o = typeof m === "string" || typeof m === "number" ? { row: String(m) } : m && typeof m === "object" && m.row != null ? m : null;
+      if (!o || seen.has(String(o.row))) return;
+      seen.add(String(o.row));
+      const k = { row: String(o.row), color: markColor(o.color)[0], note: String(o.note == null ? "" : o.note).trim().slice(0, NOTE_MAX) };
+      if (o.auto) k.auto = true;
+      out.push(k);
+    });
+    return out;
+  }
+  /* Auto markers, the film's "Beats" (CapCut puts markers on a song's beats; here they go on the moments where
+     the film turns). turnMarkers(beats, rows, opts) -> [{ row, color, note, auto: true }], one per moment at most:
+     - purple where what holds the audience's attention moves to another family (opts.attention, the
+       CurioAttention ui.js uses: a new stretch of attention whose family differs from the one before);
+     - red where the feeling of the moment (the "emotion" curiosity) changes;
+     - yellow where a lane's value jumps by more than half its scale (opts.lanes: the curiosities to check).
+     beats: [{ values }] one per moment; rows: the moments' row ids (or rows with an id), in the same order.
+     opts.pos(cur, value) -> 0..1, opts.label(cur) and opts.familyLabel(family) can be stubbed for tests. */
+  const TURN_COLORS = { attention: "purple", feeling: "red", jump: "yellow" };
+  const TURN_FEELING = "emotion";
+  function turnMarkers(beats, rows, o) {
+    o = o || {};
+    beats = Array.isArray(beats) ? beats : [];
+    const ids = (Array.isArray(rows) ? rows : []).map((r) => (r == null ? null : String(typeof r === "object" ? r.id : r)));
+    const famName = (f) => {
+      if (o.familyLabel) return String(o.familyLabel(f));
+      const M = root.CurioMomentum;
+      const fam = M && M.family ? M.family(f) : null;
+      return String(fam ? fam.label : f).toLowerCase();
+    };
+    const labelOf = o.label || ((c) => (S() ? S().label(c) : c));
+    const posOf = o.pos || ((c, v) => (S() ? S().pos(c, v) : null));
+    const found = {};
+    const add = (i, kind, note) => {
+      if (!(i >= 1 && i < beats.length) || ids[i] == null) return;
+      (found[i] = found[i] || []).push({ kind, note });
+    };
+    if (o.attention && o.attention.read && beats.length > 1) {
+      let reading = null;
+      try {
+        reading = o.attention.read(beats.map((b) => ({ at: b && b.at, values: (b && b.values) || {} })));
+      } catch (e) {}
+      const segs = (reading && reading.segments) || [];
+      segs.forEach((s, k) => {
+        const p = segs[k - 1];
+        if (p && s.family && p.family && s.family !== p.family) add(s.beat, "attention", `attention moves from ${famName(p.family)} to ${famName(s.family)}`);
+      });
+    }
+    const val = (i, c) => (beats[i] && beats[i].values ? beats[i].values[c] : null);
+    const has = (v) => v != null && v !== "";
+    for (let i = 1; i < beats.length; i++) {
+      const a = val(i - 1, TURN_FEELING);
+      const b = val(i, TURN_FEELING);
+      if (has(a) && has(b) && String(a) !== String(b)) add(i, "feeling", `feeling turns from ${a} to ${b}`);
+      (o.lanes || []).forEach((c) => {
+        if (c === TURN_FEELING) return;
+        const x = val(i - 1, c);
+        const y = val(i, c);
+        if (!has(x) || !has(y) || String(x) === String(y)) return;
+        const px = posOf(c, x);
+        const py = posOf(c, y);
+        if (px == null || py == null || Math.abs(py - px) <= 0.5) return;
+        add(i, "jump", `${String(labelOf(c)).toLowerCase()} jumps from ${x} to ${y}`);
+      });
+    }
+    return Object.keys(found)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map((i) => {
+        const list = found[i];
+        /* The first kind found sets the color; the notes are joined while they fit (a note is never cut off
+           mid-sentence), and one big jump per moment is enough to say. */
+        let jumped = false;
+        const note = list
+          .filter((t) => (t.kind !== "jump" ? true : jumped ? false : (jumped = true)))
+          .reduce((s, t) => (!s ? t.note.slice(0, NOTE_MAX) : s.length + 2 + t.note.length <= NOTE_MAX ? s + "; " + t.note : s), "");
+        return { row: ids[i], color: TURN_COLORS[list[0].kind], note, auto: true };
+      });
+  }
+  /* Put auto markers into a marker list: the old auto ones go, the new ones are added, and a moment that already
+     has a marker of your own keeps yours just as it is. */
+  function mergeTurnMarkers(list, turns) {
+    const mine = migrateMarkers(list).filter((m) => !m.auto);
+    const taken = new Set(mine.map((m) => m.row));
+    return migrateMarkers(mine.concat((turns || []).filter((t) => t && !taken.has(String(t.row)))));
+  }
+  const clearAutoMarkers = (list) => migrateMarkers(list).filter((m) => !m.auto);
+  tools.markers = migrateMarkers(tools.markers);
+  const markerOf = (rowId) => tools.markers.find((m) => m.row === rowId) || null;
   if (!tools.linkKinds || typeof tools.linkKinds !== "object") tools.linkKinds = {};
   /* Linkage settings, modeled on CapCut's Linkage settings box ("When linkage is turned on, the selected items
      will move or get deleted with the clips on the main track", with a tick per kind: Text, Effects, Stickers,
@@ -79,6 +233,75 @@
     } catch (e) {}
   }
 
+  /* ---------- graded lanes: a curiosity's own sliders as lanes ("eyeline.speaking") ----------
+     The engine already reads any "curiosity.slider" lane whose slider the curiosity database grades
+     (CurioScale.known). Only a few of a curiosity's sliders are offered as lanes in the pickers, so a list of
+     thousands does not drown the timeline's dropdowns. A slider is offered when:
+     - it is one of the staging lanes the 3D characters read (PARTS: Eyelines' Speaking now, How they stand
+       together, Sitting or standing, Walks to, Who it frames, Where it happens), or
+     - its database row says lane: true (a later database change can add more without touching the Screen), or
+     - it is the main graded setting of a curiosity whose bare lane the app only knows as off or on (Eyelines:
+       eyeline.setting). Then the graded lane comes first and the bare lane is kept, offered second.
+     Each is offered only when the database grades it in this build, so the pickers work with or without them.
+     A part's track kind ("character": one lane per character, "camera", "master") says where it goes. */
+  const PARTS = { eyeline: ["setting", "speaking"], blocking: ["together", "seated"], characterPath: ["to"], shotSize: ["who"], setting: ["place"] };
+  const PART_TRACK = { "eyeline.setting": "character", "eyeline.speaking": "character", "blocking.seated": "character", "characterPath.to": "character", "shotSize.who": "camera", "blocking.together": "master", "setting.place": "master" };
+  const TRACK_KINDS = ["character", "camera", "master"];
+  function partHelpers(h) {
+    h = h || {};
+    return {
+      known: h.known || ((k) => !!(S() && S().known(k))),
+      row: h.row || ((id) => (L() && L().get ? L().get("curiosity", id) : null)),
+      /* The app's own idea of the bare lane (automation.js), before the engine grades it from the database. */
+      auto:
+        h.auto ||
+        ((id) => {
+          try {
+            return root.CurioAuto && root.CurioAuto.domain ? root.CurioAuto.domain(id) : null;
+          } catch (e) {
+            return null;
+          }
+        }),
+    };
+  }
+  const offOn = (d) => !!d && d.kind === "choice" && Array.isArray(d.options) && d.options.length === 2 && d.options[0] === "off" && d.options[1] === "on";
+  /* -> { parts: [{ key, slider, label, track, main }], bareSecond } for curiosity id (a bare id). */
+  function laneParts(id, h) {
+    const P = partHelpers(h);
+    const out = { parts: [], bareSecond: false };
+    if (!id || String(id).indexOf(".") >= 0) return out;
+    const c = P.row(id);
+    if (!c || !Array.isArray(c.sliders)) return out;
+    const main = c.main || "setting";
+    const bareOnOff = offOn(P.auto(id));
+    const want = [];
+    if (bareOnOff) want.push(main);
+    (PARTS[id] || []).forEach((s) => want.push(s));
+    c.sliders.forEach((s) => s && s.lane === true && want.push(s.id));
+    const seen = new Set();
+    want.forEach((sid) => {
+      const key = id + "." + sid;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const s = c.sliders.find((x) => x && x.id === sid);
+      if (!s || !P.known(key)) return;
+      /* A graded main setting is offered only to stand in for an off-or-on bare lane. */
+      if (sid === main && !bareOnOff && !(PARTS[id] || []).includes(sid) && s.lane !== true) return;
+      const track = TRACK_KINDS.includes(s.track) ? s.track : PART_TRACK[key] || "";
+      out.parts.push({ key, slider: sid, label: sid === main ? (c.label || id) + (bareOnOff ? "" : " (graded)") : (c.label || id) + ": " + String(s.label || sid), track, main: sid === main });
+    });
+    out.bareSecond = bareOnOff && out.parts.some((p) => p.main);
+    return out;
+  }
+  /* The kind of track a lane key goes on when it is a graded part with a known place, else "". */
+  function partTrack(key, h) {
+    key = String(key || "");
+    const dot = key.indexOf(".");
+    if (dot < 1) return "";
+    const p = laneParts(key.slice(0, dot), h).parts.find((x) => x.key === key);
+    return p ? p.track : PART_TRACK[key] || "";
+  }
+
   function trackFor(cur, st) {
     st = st || E().state();
     /* The character matrix's curiosities go on the picked character's own track (screen/character.js). */
@@ -86,9 +309,26 @@
     const have = st.tracks.find((t) => t.curiosities.includes(cur));
     if (have) return have.id;
     const cat = L() ? L().categoryOf(cur) : "";
-    const kind = cat === "camera" ? "camera" : cat === "performance" || cat === "wardrobe" ? "character" : "master";
+    const kind = partTrack(cur) || (cat === "camera" ? "camera" : cat === "performance" || cat === "wardrobe" ? "character" : "master");
     const t = st.tracks.find((x) => x.kind === kind && x.curiosities.length < E().LIMIT.perTrack) || st.tracks.find((x) => x.curiosities.length < E().LIMIT.perTrack);
     return t ? t.id : null;
+  }
+  /* A lane's plain name: the curiosity, and the track's name when more than one track carries that curiosity
+     ("Eyelines · Character B"), so a message says which of them changed. */
+  function lkName(lk, st) {
+    lk = String(lk || "");
+    const bar = lk.indexOf("|");
+    const cur = lk.slice(bar + 1);
+    const name = S() ? S().label(cur) : cur;
+    try {
+      st = st || (E() && E().state());
+    } catch (e) {
+      st = null;
+    }
+    if (!st || !st.tracks) return name;
+    const on = st.tracks.filter((t) => t.curiosities.includes(cur));
+    const t = on.length > 1 ? on.find((x) => x.id === lk.slice(0, bar)) : null;
+    return t ? name + " · " + (t.label || t.id) : name;
   }
   function ensure(cur) {
     const st = E().state();
@@ -240,11 +480,14 @@
   function paste(atRow) {
     if (clip && clip.kind === "area") {
       const st = E().state();
-      const r = pasteAreaCommands(st, clip, clip.lanes.map((l) => l && { cur: l.cur, track: l.track }), Math.max(0, Math.min(Number(atRow) || 0, st.rows.length - 1 - clip.span)));
+      /* Locked lanes are skipped (tools.locks). */
+      let skipped = 0;
+      const targets = clip.lanes.map((l) => (l && isLocked(l.track + "|" + l.cur) ? (skipped++, null) : l && { cur: l.cur, track: l.track }));
+      const r = pasteAreaCommands(st, clip, targets, Math.max(0, Math.min(Number(atRow) || 0, st.rows.length - 1 - clip.span)));
       if (r.error) return { ok: false, error: r.error };
-      if (!r.cmds.length) return { ok: false, error: "Nothing in the clipboard fits this film's tracks." };
+      if (!r.cmds.length) return { ok: false, error: skipped ? "Every lane in the clipboard is locked here, so nothing was pasted." : "Nothing in the clipboard fits this film's tracks." };
       const out = E().send({ type: "batch", label: "Paste automation", commands: r.cmds });
-      return out.ok ? { ok: true, nodes: r.cmds.filter((x) => x.type === "setPoint").length, links: clip.links.length } : out;
+      return out.ok ? { ok: true, nodes: r.cmds.filter((x) => x.type === "setPoint").length, links: r.cmds.filter((x) => x.type === "addLink").length, skipped } : out;
     }
     if (!clip || !clip.nodes || !clip.nodes.length) return { ok: false, error: "Copy a proximity first (pick a node, then Copy)." };
     let st = E().state();
@@ -280,9 +523,14 @@
       if (l.value != null) link.value = l.value;
       cmds.push(link);
     });
-    if (!cmds.length) return { ok: false, error: "Nothing in the clipboard fits this film's tracks." };
-    const out = E().send({ type: "batch", label: clip.links.length > 1 ? "Paste a proximity suite" : clip.links.length ? "Paste a proximity" : "Paste nodes", commands: adds.concat(cmds) });
-    return out.ok ? { ok: true, nodes: clip.nodes.length, links: clip.links.length } : out;
+    /* Locked lanes are skipped: their nodes, and the joins that would end on them. */
+    const lockedLk = (t, c) => isLocked(t + "|" + c);
+    const kept = cmds.filter((c) => !(c.type === "setPoint" ? lockedLk(c.track, c.curiosity) : lockedLk(c.from.track, c.from.curiosity) || lockedLk(c.to.track, c.to.curiosity)));
+    const skipped = cmds.filter((c) => c.type === "setPoint").length - kept.filter((c) => c.type === "setPoint").length;
+    if (!kept.length) return { ok: false, error: skipped ? "Every lane that proximity lands on is locked here, so nothing was pasted." : "Nothing in the clipboard fits this film's tracks." };
+    const links = kept.filter((c) => c.type === "addLink").length;
+    const out = E().send({ type: "batch", label: links > 1 ? "Paste a proximity suite" : links ? "Paste a proximity" : "Paste nodes", commands: adds.concat(kept) });
+    return out.ok ? { ok: true, nodes: kept.length - links, links, skipped } : out;
   }
 
   /* ---------- curves (Jeremy, 2026-10-02 20:26Z: "a curves pop-up menu that allow you to adjust precisely the
@@ -313,7 +561,10 @@
     jumpEarly: ["Jump early", "Jumps to the next node's setting right away and holds it.", false],
     jumpLate: ["Jump late", "Holds the first node's setting, then jumps at the last moment.", false],
   };
+  /* The shape math lives in the engine (CurioEngine.shapeAt), so the line drawn is the line played; this copy is
+     only for a page without the engine. */
   function shapeAt(shape, bend, t) {
+    if (E() && typeof E().shapeAt === "function") return E().shapeAt(shape, bend, t);
     const k = 1 + 4 * Math.max(0, Math.min(1, (Number(bend) || 0) / 100));
     if (shape === "smooth") return t < 0.5 ? 0.5 * Math.pow(2 * t, k) : 1 - 0.5 * Math.pow(2 - 2 * t, k);
     if (shape === "slowStart") return Math.pow(t, k);
@@ -355,6 +606,27 @@
     });
     return out;
   }
+  /* CapCut draws a clip's keyframes as small diamonds along the clip's bottom edge, one wherever any of its
+     settings has a keyframe (Jeremy, 2026-10-04 17:41Z: the ◇ system works like CapCut's). Here a curiosity's lane
+     is the clip and its settings are the master lane and its automation group's sub-lanes. clipKeys(st, lks) ->
+     [{ j, count, lks }]: each moment where one or more of the lanes lks has a node, leaving out the points that only
+     draw a curve. */
+  function clipKeys(st, lks) {
+    const real = {};
+    (lks || []).forEach((lk) => {
+      const lane = lk && st.lanes[lk];
+      if (!lane) return;
+      const all = st.rows.map((r, j) => (lane.points[r.id] != null ? { r: r.id, j, v: lane.points[r.id] } : null)).filter(Boolean);
+      const cp = curvePoints(st, lk, all);
+      real[lk] = new Set(all.filter((p) => !cp.has(p.r)).map((p) => p.r));
+    });
+    const out = [];
+    st.rows.forEach((r, j) => {
+      const hit = Object.keys(real).filter((lk) => real[lk].has(r.id));
+      if (hit.length) out.push({ j, count: hit.length, lks: hit });
+    });
+    return out;
+  }
   function segPath(p, q, mode) {
     if (mode === "hold") return `H${q[0]} V${q[1]}`;
     if (mode === "smooth") return `C${(p[0] + q[0]) / 2} ${p[1]} ${(p[0] + q[0]) / 2} ${q[1]} ${q[0]} ${q[1]}`;
@@ -389,11 +661,24 @@
       }
       out.lanes.push({ cur: ln.cur, track: ln.track, row: i - ar.i0, mode: lane ? lane.mode : "ramp", points: pts });
     }
+    /* Joined partners outside the box come along (ar.extra: their node keys), each on its own lane. */
+    const extraIx = {};
+    (ar.extra || []).forEach((key) => {
+      const n = split(key);
+      const lane = st.lanes[n.lk];
+      if (ix[n.row] == null || !lane || lane.points[n.row] == null || inside.has(key)) return;
+      if (!out.extra) out.extra = [];
+      extraIx[key] = out.extra.length;
+      out.extra.push({ cur: n.cur, track: n.track, at: ix[n.row] - ar.j0, value: lane.points[n.row] });
+      inside.add(key);
+    });
     st.links.forEach((l) => {
       const ends = linkEnds(l);
       if (!ends || !ends.every((k) => inside.has(k))) return;
       const li = (t, c) => out.lanes.findIndex((x) => x && x.track === t && x.cur === c);
-      out.links.push({ from: { lane: li(l.from.track, l.from.curiosity), at: ix[l.scope.from] - ar.j0, is: l.from.is }, to: { lane: li(l.to.track, l.to.curiosity), at: ix[l.scope.to] - ar.j0 }, does: l.does, value: l.value, amount: l.amount, within: l.within, label: l.label });
+      const end = (k, t, c, at) => (extraIx[k] != null ? { extra: extraIx[k], at } : { lane: li(t, c), at });
+      const from = Object.assign(end(ends[0], l.from.track, l.from.curiosity, ix[l.scope.from] - ar.j0), { is: l.from.is });
+      out.links.push({ from, to: end(ends[1], l.to.track, l.to.curiosity, ix[l.scope.to] - ar.j0), does: l.does, value: l.value, amount: l.amount, within: l.within, label: l.label });
     });
     return out;
   }
@@ -411,13 +696,14 @@
     targets.forEach((t, k) => {
       const src = c.lanes[k];
       if (!t || !src) return;
-      let track = placed[t.cur] || t.track || (st.tracks.find((x) => x.curiosities.includes(t.cur)) || {}).id;
+      /* A target that names its track keeps it (two tracks can carry the same curiosity, one lane each). */
+      let track = t.track || placed[t.cur] || (st.tracks.find((x) => x.curiosities.includes(t.cur)) || {}).id;
       if (!track) {
         track = trackFor(t.cur, st);
         if (!track) return;
         adds.push({ type: "addCuriosity", track, curiosity: t.cur });
       }
-      placed[t.cur] = track;
+      if (!placed[t.cur]) placed[t.cur] = track;
       const lane = st.lanes[track + "|" + t.cur];
       for (let j = start; j < Math.min(n, start + fill); j++) if (lane && lane.points[st.rows[j].id] != null) cmds.push({ type: "removePoint", row: st.rows[j].id, track, curiosity: t.cur });
       for (let rep = 0; rep * span < fill; rep++)
@@ -429,12 +715,22 @@
         });
       t.track = track;
     });
+    /* Joined partners that came from outside the copied box: each on its own lane (when this film has it). */
+    const extraT = (c.extra || []).map((x) => {
+      const t = st.tracks.find((y) => y.id === x.track && y.curiosities.includes(x.cur)) || st.tracks.find((y) => y.curiosities.includes(x.cur));
+      const j = start + x.at;
+      if (!t || j < 0 || j >= n || isLocked(t.id + "|" + x.cur)) return null;
+      cmds.push({ type: "setPoint", row: st.rows[j].id, track: t.id, curiosity: x.cur, value: x.value });
+      return { cur: x.cur, track: t.id };
+    });
+    const endT = (e) => (e.extra != null ? extraT[e.extra] : targets[e.lane]);
+    const endSrc = (e) => (e.extra != null ? c.extra[e.extra] : c.lanes[e.lane]);
     c.links.forEach((l) => {
-      const a = targets[l.from.lane];
-      const b = targets[l.to.lane];
-      if (!a || !b || !a.track || !b.track || start + Math.max(l.from.at, l.to.at) >= n) return;
-      const srcA = c.lanes[l.from.lane];
-      const srcB = c.lanes[l.to.lane];
+      const a = endT(l.from);
+      const b = endT(l.to);
+      if (!a || !b || !a.track || !b.track || start + Math.max(l.from.at, l.to.at) >= n || start + Math.min(l.from.at, l.to.at) < 0) return;
+      const srcA = endSrc(l.from);
+      const srcB = endSrc(l.to);
       const link = { type: "addLink", label: l.label, from: { track: a.track, curiosity: a.cur }, to: { track: b.track, curiosity: b.cur }, does: l.does, amount: l.amount, within: l.within, scope: { from: st.rows[start + l.from.at].id, to: st.rows[start + l.to.at].id } };
       if (l.from.is != null) link.from.is = S().fix(a.cur, convert(srcA.cur, a.cur, l.from.is));
       if (l.value != null) link.value = l.does === "set" ? S().fix(b.cur, convert(srcB.cur, b.cur, l.value)) : l.value;
@@ -443,26 +739,1335 @@
     return { cmds: adds.concat(cmds) };
   }
 
+  /* ---------- suite clips (CapCut's compound clip, and saving things to use again) ----------
+     A suite clip is a selected area kept under a name: its lanes' nodes and the joins inside it, as copyArea
+     gives them (values keep their place on each curiosity's scale). They are kept in localStorage
+     "curiosities-suite-clips-v1", a list of { id, name, made, span, lanes, links, curiosities }, so they last
+     across films and reloads; saving, renaming and deleting one is not a film change, so it is not in undo.
+     Dropping one is: it lands at the playhead as one undo step (pasteAreaCommands), each lane on the timeline's
+     lane for the same curiosity. A curiosity the timeline doesn't show goes into the film all the same (on its
+     usual track, as paste does); a locked lane is skipped. "Drop as an analogy" (the Prism's "Make it an
+     analogy") shifts each lane so the clip starts from the setting that lane has at the playhead and makes the
+     same moves, step for step on its scale, stopping at the ends of the scale. */
+  const SUITE_KEY = "curiosities-suite-clips-v1";
+  const SUITE_NAME_MAX = 60;
+  /* A suite clip from copyArea's result: lanes with no curiosity on a track are left out, joins re-pointed. */
+  function suiteClip(c, name, o) {
+    o = o || {};
+    if (!c || !Array.isArray(c.lanes)) return null;
+    const keep = [];
+    const map = {};
+    c.lanes.forEach((l, k) => {
+      if (!l || !l.cur || !Array.isArray(l.points) || !l.points.length) return;
+      map[k] = keep.length;
+      keep.push({ cur: l.cur, track: l.track || null, mode: l.mode || "ramp", points: l.points.map((p) => ({ at: Number(p.at) || 0, value: p.value })) });
+    });
+    if (!keep.length) return null;
+    const links = (c.links || [])
+      .filter((l) => l && l.from && l.to && map[l.from.lane] != null && map[l.to.lane] != null)
+      .map((l) => Object.assign(JSON.parse(JSON.stringify(l)), { from: Object.assign({}, l.from, { lane: map[l.from.lane] }), to: Object.assign({}, l.to, { lane: map[l.to.lane] }) }));
+    return {
+      id: o.id || "sc-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: String(name == null ? "" : name).trim().slice(0, SUITE_NAME_MAX) || "Suite clip",
+      made: o.made || new Date().toISOString(),
+      kind: "area",
+      span: Math.max(0, Number(c.span) || 0),
+      lanes: keep,
+      links,
+      curiosities: [...new Set(keep.map((l) => l.cur))],
+    };
+  }
+  /* What was saved, cleaned: broken entries dropped, names trimmed, each clip rebuilt the same way. */
+  function migrateSuiteClips(list) {
+    if (!Array.isArray(list)) return [];
+    const seen = new Set();
+    const out = [];
+    list.forEach((x) => {
+      if (!x || typeof x !== "object" || !x.id || seen.has(x.id)) return;
+      const c = suiteClip(x, x.name, { id: String(x.id), made: x.made });
+      if (!c) return;
+      seen.add(c.id);
+      out.push(c);
+    });
+    return out;
+  }
+  /* "4 moments · Shot size, Strength of the feeling", for the Suite clips list. */
+  function suiteClipSummary(c) {
+    const n = (c.span || 0) + 1;
+    const lab = (cur) => (S() && S().label ? S().label(cur) : cur);
+    return `${n} moment${n === 1 ? "" : "s"} long · ${(c.curiosities || []).map(lab).join(", ")}`;
+  }
+  /* Where each of a suite clip's lanes lands: the timeline's lane for the same curiosity (shown: [{ cur, track }]),
+     else the track this film already has it on, else nowhere yet (pasteAreaCommands puts it on its usual track).
+     Locked lanes are skipped. Returns { targets, hidden (curiosities not shown here), locked }. */
+  function suiteClipTargets(st, c, shown) {
+    const hidden = [];
+    const locked = [];
+    const targets = c.lanes.map((l) => {
+      if (!l) return null;
+      /* The shown lane on the same track first (one lane per track when several carry the curiosity). */
+      const ln = (shown || []).find((x) => x && x.cur === l.cur && l.track && x.track === l.track) || (shown || []).find((x) => x && x.cur === l.cur);
+      const holds = (id) => id && st.tracks.some((t) => t.id === id && t.curiosities.includes(l.cur));
+      const track = ln && holds(ln.track) ? ln.track : holds(l.track) ? l.track : (st.tracks.find((t) => t.curiosities.includes(l.cur)) || {}).id || null;
+      if (track && isLocked(track + "|" + l.cur)) {
+        locked.push(l.cur);
+        return null;
+      }
+      if (!ln) hidden.push(l.cur);
+      return { cur: l.cur, track };
+    });
+    return { targets, hidden, locked };
+  }
+  /* An analogy of a suite clip: starts[k] is the setting lane k has where the clip lands (null: none, so that lane
+     keeps the clip's own values). Each lane moves by whole steps of its scale so its first moment is that
+     setting; every later node keeps the same steps up or down from there, held at the top or bottom of the
+     scale. Joins move with their nodes. Returns { clip, moves: [{ cur, from, to, steps, clamped, kept }] }. */
+  function analogyClip(c, starts) {
+    const out = JSON.parse(JSON.stringify(c));
+    const by = [];
+    const moves = [];
+    const move = (cur, d, v) => {
+      const n = S().steps(cur);
+      const p = S().pos(cur, v);
+      if (p == null) return { v, clamped: false };
+      const raw = Math.round(p * n) + d;
+      return { v: S().at(cur, Math.max(0, Math.min(n, raw)) / n), clamped: raw < 0 || raw > n };
+    };
+    out.lanes.forEach((l, k) => {
+      if (!l || !l.points.length) return;
+      const first = l.points.reduce((a, p) => (p.at < a.at ? p : a), l.points[0]);
+      const s = starts ? starts[k] : null;
+      const n = S().steps(l.cur);
+      const p0 = S().pos(l.cur, first.value);
+      const ps = s == null ? null : S().pos(l.cur, s);
+      if (p0 == null || ps == null) {
+        by[k] = 0;
+        moves.push({ cur: l.cur, from: first.value, to: first.value, steps: 0, clamped: false, kept: true });
+        return;
+      }
+      const d = Math.round(ps * n) - Math.round(p0 * n);
+      by[k] = d;
+      let clamped = false;
+      l.points.forEach((p) => {
+        const m = move(l.cur, d, p.value);
+        if (m.clamped) clamped = true;
+        p.value = m.v;
+      });
+      moves.push({ cur: l.cur, from: first.value, to: move(l.cur, d, first.value).v, steps: d, clamped, kept: false });
+    });
+    out.links.forEach((l) => {
+      const a = out.lanes[l.from.lane];
+      const b = out.lanes[l.to.lane];
+      if (a && l.from.is != null && by[l.from.lane]) l.from.is = move(a.cur, by[l.from.lane], l.from.is).v;
+      if (b && l.does === "set" && l.value != null && by[l.to.lane]) l.value = move(b.cur, by[l.to.lane], l.value).v;
+    });
+    return { clip: out, moves };
+  }
+  /* The commands that drop a suite clip at moment `start` (moved earlier if it would run off the end).
+     o.shown: the timeline's lanes; o.analogy: start each lane from its setting there. Returns { cmds, start,
+     moved, lanes (curiosities that got nodes), hidden, locked, moves } or { error }. */
+  function dropSuiteClipCommands(st, c, start, o) {
+    o = o || {};
+    const n = st.rows.length;
+    if (!c || !c.lanes || !c.lanes.length) return { error: "That suite clip is empty." };
+    if (c.span + 1 > n) return { error: `"${c.name}" is ${c.span + 1} moments long, and your film has only ${n}.` };
+    const want = Math.max(0, Number(start) || 0);
+    const at = Math.min(want, n - 1 - c.span);
+    const { targets, hidden, locked } = suiteClipTargets(st, c, o.shown);
+    if (!targets.some(Boolean)) return { error: `Every lane in "${c.name}" is locked here (🔒), so nothing was dropped.`, locked };
+    let use = c;
+    let moves = [];
+    if (o.analogy) {
+      const row = st.rows[at].id;
+      const starts = targets.map((t) => (t && t.track ? E().value(row, t.track, t.cur) : null));
+      const an = analogyClip(c, starts);
+      use = an.clip;
+      moves = an.moves;
+    }
+    const r = pasteAreaCommands(st, use, targets, at);
+    if (r.error) return { error: r.error };
+    const lanes = targets.filter(Boolean).map((t) => t.cur);
+    return { cmds: r.cmds, start: at, moved: at !== want, lanes, hidden: hidden.filter((cur) => lanes.includes(cur)), locked, moves };
+  }
+  let suiteList = [];
+  function loadSuiteClips() {
+    try {
+      suiteList = migrateSuiteClips(JSON.parse(localStorage.getItem(SUITE_KEY)));
+    } catch (e) {
+      suiteList = suiteList || [];
+    }
+    return suiteList;
+  }
+  function saveSuiteClips() {
+    try {
+      localStorage.setItem(SUITE_KEY, JSON.stringify(suiteList));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  loadSuiteClips();
+
+  /* ---------- templates (CapCut's Templates, made curiosity-centric) ----------
+     A template is a selected stretch of the timeline (some lanes, moments A..B) kept under a name with a plain
+     note, such as "slow-burn reveal" or "comedy double take", to use again anywhere, in this film or another.
+     It is a suite clip with a note: copyArea's format, so each node sits relative to the stretch's start and
+     its value keeps its place on each curiosity's scale when it lands. Kept in localStorage
+     "curiosities-screen-templates-v1" as [{ id, name, note, made, span, lanes, links, curiosities }]; saving,
+     renaming and deleting one is not a film change, so it is not in undo. Using one is: one batch command.
+     Export and Import are a .json file { format: "curiomatic-templates", version: 1, templates: [...] }. */
+  const TEMPLATE_KEY = "curiosities-screen-templates-v1";
+  const TEMPLATE_FORMAT = "curiomatic-templates";
+  const TEMPLATE_NOTE_MAX = 240;
+  const templateId = () => "tp-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  /* A template from copyArea's result (or a saved one): suiteClip's cleaning, plus the note. */
+  function template(c, name, note, o) {
+    o = o || {};
+    const t = suiteClip(c, String(name == null ? "" : name).trim() || "Template", { id: o.id || templateId(), made: o.made });
+    if (!t) return null;
+    t.note = String(note == null ? "" : note).trim().slice(0, TEMPLATE_NOTE_MAX);
+    return t;
+  }
+  function migrateTemplates(list) {
+    if (!Array.isArray(list)) return [];
+    const seen = new Set();
+    const out = [];
+    list.forEach((x) => {
+      if (!x || typeof x !== "object" || !x.id || seen.has(String(x.id))) return;
+      const t = template(x, x.name, x.note, { id: String(x.id), made: x.made });
+      if (!t) return;
+      seen.add(t.id);
+      out.push(t);
+    });
+    return out;
+  }
+  /* "4 moments · Shot size and Emotion", for a template card. */
+  function templateSummary(t) {
+    const n = (t.span || 0) + 1;
+    const l = (t.curiosities || []).map((cur) => (S() && S().label ? S().label(cur) : cur));
+    return `${n} moment${n === 1 ? "" : "s"} · ${l.length > 1 ? l.slice(0, -1).join(", ") + " and " + l[l.length - 1] : l[0] || ""}`;
+  }
+  /* A tiny picture of the template's lane shapes: one polyline per lane, each in its own band (low at the bottom
+     of the band, high at the top), stepped when the lane jumps between nodes. */
+  const TEMPLATE_COLORS = ["#22d3ee", "#f59e0b", "#a78bfa", "#34d399", "#f472b6", "#60a5fa"];
+  function templatePreview(t, w, h) {
+    w = w || 120;
+    const lanes = (t && t.lanes) || [];
+    const band = Math.max(8, Math.min(18, Math.floor((h || 48) / Math.max(1, lanes.length))));
+    const H = band * Math.max(1, lanes.length);
+    const span = Math.max(1, (t && t.span) || 0);
+    const lines = lanes.map((l, k) => {
+      const pts = l.points.slice().sort((a, b) => a.at - b.at);
+      const y = (v) => {
+        const p = S() && S().pos ? S().pos(l.cur, v) : null;
+        return (k * band + 2 + (1 - (p == null ? 0.5 : p)) * (band - 4)).toFixed(1);
+      };
+      const x = (at) => ((at / span) * (w - 4) + 2).toFixed(1);
+      const xy = [];
+      pts.forEach((p, i) => {
+        if (l.mode === "hold" && i) xy.push(`${x(p.at)},${y(pts[i - 1].value)}`);
+        xy.push(`${x(p.at)},${y(p.value)}`);
+      });
+      if (xy.length === 1) xy.push(`${(w - 2).toFixed(1)},${y(pts[0].value)}`);
+      return `<polyline data-tpl-lane="${esc(l.cur)}" points="${xy.join(" ")}" fill="none" stroke="${TEMPLATE_COLORS[k % TEMPLATE_COLORS.length]}" stroke-width="1.5" stroke-linejoin="round"/>`;
+    });
+    return `<svg class="tpl-preview" viewBox="0 0 ${w} ${H}" width="${w}" height="${H}" role="img" aria-label="The shape of each lane in this template">${lines.join("")}</svg>`;
+  }
+  /* The template spread over `span` moments instead of its own (Stretch to the selected area): the same maths as
+     Stretch ×2 and Squeeze ½ (each node's distance from the start times the factor, rounded to a whole moment;
+     when two land on one moment the later one stays). Joins follow their nodes. A one-moment template is held. */
+  function stretchTemplate(t, span) {
+    span = Math.max(0, Math.round(Number(span) || 0));
+    const out = JSON.parse(JSON.stringify(t));
+    const f = t.span ? span / t.span : 0;
+    const map = (at) => Math.max(0, Math.min(span, Math.round(at * f)));
+    out.lanes.forEach((l) => {
+      const by = {};
+      const pts = l.points.slice().sort((a, b) => a.at - b.at);
+      pts.forEach((p) => (by[map(p.at)] = { at: map(p.at), value: p.value }));
+      if (!t.span && span && pts.length) by[span] = { at: span, value: pts[pts.length - 1].value };
+      l.points = Object.values(by).sort((a, b) => a.at - b.at);
+    });
+    out.links.forEach((l) => {
+      l.from.at = map(l.from.at);
+      l.to.at = map(l.to.at);
+      l.within = Math.max(0, Math.min(16, Math.abs(l.to.at - l.from.at)));
+    });
+    out.span = span;
+    return out;
+  }
+  /* The commands that use a template at moment `start` (moved earlier if it would run off the end). o.shown: the
+     timeline's lanes; o.span: stretch it over that many moments after start first. Missing curiosities go onto
+     their usual track; locked lanes are skipped. Returns dropSuiteClipCommands' answer, in template words. */
+  function useTemplateCommands(st, t, start, o) {
+    o = o || {};
+    if (!t || !t.lanes) return { error: "That template is gone." };
+    let use = o.span != null ? stretchTemplate(t, o.span) : t;
+    let an = null;
+    if (o.analogy) {
+      /* As an analogy: each lane's shape moves onto its cousin curiosity first (templateAnalogy). */
+      an = templateAnalogy(use, { picks: o.analogy === true ? null : o.analogy });
+      if (an.clash) return { error: `Two lanes of the template "${t.name}" would both land on ${S().label(an.clash)}. Pick a different cousin for one of them.`, pairs: an.pairs, left: an.left };
+      if (!an.clip) return { error: `Every lane in the template "${t.name}" is left out or has no close cousin to carry its shape onto, so it wasn't used.`, pairs: an.pairs, left: an.left };
+      use = an.clip;
+    }
+    const r = dropSuiteClipCommands(st, use, start, { shown: o.shown });
+    if (r.error) r.error = r.locked && r.locked.length ? `Every lane in the template "${t.name}" is locked here (🔒), so it wasn't used.` : r.error.replace(/suite clip/g, "template");
+    else r.span = use.span;
+    if (an) Object.assign(r, { pairs: an.pairs.filter((p) => p.to), left: an.left });
+    return r;
+  }
+
+  /* ---------- a template as an analogy: the same shape on a cousin curiosity ----------
+     "Shot size goes close, then wide" becomes "Lens length goes normal, then long": each lane's moves land on a
+     related curiosity instead, and each value keeps its place on its scale (low stays low, the top stays the top),
+     the same way area paste moves a lane onto a different curiosity. The cousin is picked from a short hand-made
+     list of clear pairs first, then by how close the two are in the curiosity database: the same workspace, the
+     same library category, how many suites hold both and how many proximities join them. Only curiosities with
+     an ordered scale (or a number range) count, and never one already in the template, so two lanes never land
+     on one curiosity. Then it is used like any template: dropSuiteClipCommands, one undo step, locked lanes
+     skipped, missing lanes added. */
+  const COUSINS = {
+    shotSize: ["lensLength"],
+    lensLength: ["shotSize"],
+    cutRate: ["shotDuration"],
+    shotDuration: ["cutRate"],
+    cameraMove: ["cameraCarry"],
+    cameraCarry: ["cameraMove"],
+    angleHeight: ["dutch"],
+    dutch: ["angleHeight"],
+  };
+  const DBget = (id) => {
+    const DB = root.CuriosityDB;
+    try {
+      return DB && typeof DB.get === "function" ? DB.get("curiosity", id) : null;
+    } catch (e) {
+      return null;
+    }
+  };
+  /* A curiosity whose main setting is a scale in order or a number range: its values have a place to keep. */
+  function hasOrder(id) {
+    if (!S() || !S().known(id)) return false;
+    const d = S().domain(id);
+    if (d.kind === "choice" ? d.options.length < 2 : !(d.max > d.min)) return false;
+    const c = DBget(id);
+    const s = c && Array.isArray(c.sliders) ? c.sliders.find((x) => x && (x.id === "setting" || x.id === c.main)) : null;
+    return !(s && s.unordered);
+  }
+  const cousinCache = Object.create(null);
+  /* The curiosities most like `cur`, best first: [{ cur, label, score }]. o.avoid: ids to leave out; o.max (6). */
+  function analogyCandidates(cur, o) {
+    o = o || {};
+    const DB = root.CuriosityDB;
+    const src = DBget(cur);
+    if (!DB || !DB.data || !src) return [];
+    if (!cousinCache[cur]) {
+      const score = Object.create(null);
+      const add = (id, n) => id && id !== cur && (score[id] = (score[id] || 0) + n);
+      const shared = Object.create(null);
+      (DB.data.suites || []).forEach((s) => {
+        const m = (s.members || []).map((x) => x && x.curiosity);
+        if (m.includes(cur)) new Set(m).forEach((id) => id !== cur && (shared[id] = (shared[id] || 0) + 1));
+      });
+      Object.keys(shared).forEach((id) => add(id, Math.min(5, shared[id])));
+      (DB.data.proximities || []).forEach((p) => {
+        const a = p.when && p.when.curiosity;
+        const b = p.then && p.then.curiosity;
+        if (a === cur) add(b, 2);
+        else if (b === cur) add(a, 2);
+      });
+      const cat = L() && L().categoryOf ? L().categoryOf(cur) : null;
+      (DB.data.curiosities || []).forEach((c) => {
+        if (c.id === cur) return;
+        if (c.workspace && c.workspace === src.workspace) add(c.id, 4);
+        if ((src.also || []).includes(c.workspace) || (c.also || []).includes(src.workspace)) add(c.id, 2);
+        if (cat && L().categoryOf(c.id) === cat) add(c.id, 1);
+      });
+      (COUSINS[cur] || []).forEach((id) => add(id, 100));
+      const order = (DB.data.curiosities || []).map((c) => c.id);
+      cousinCache[cur] = Object.keys(score)
+        .filter((id) => score[id] >= 2 && hasOrder(id))
+        .sort((a, b) => score[b] - score[a] || order.indexOf(a) - order.indexOf(b))
+        .map((id) => ({ cur: id, score: score[id] }));
+    }
+    const avoid = new Set(o.avoid || []);
+    return cousinCache[cur]
+      .filter((x) => !avoid.has(x.cur))
+      .slice(0, o.max || 6)
+      .map((x) => ({ cur: x.cur, label: S().label(x.cur), score: x.score }));
+  }
+  /* The plan for using template t as an analogy. o.picks: { fromCur: toCur } to choose a different cousin ("" leaves
+     that lane out). Returns { pairs: [{ from, to, fromLabel, toLabel, values: [{ from, to }], choices }], left
+     (curiosities with no cousin or left out), clip (the template moved onto the cousins, or null when nothing is
+     left), clash (a cousin picked for two lanes) }. */
+  function templateAnalogy(t, o) {
+    o = o || {};
+    const picks = o.picks || {};
+    const mine = (t.curiosities || t.lanes.map((l) => l.cur)).slice();
+    const taken = [];
+    const pairs = t.lanes.map((l) => {
+      const choices = analogyCandidates(l.cur, { avoid: mine, max: 6 });
+      let to = null;
+      if (Object.prototype.hasOwnProperty.call(picks, l.cur)) {
+        const p = picks[l.cur];
+        to = p && !mine.includes(p) && S().known(p) && hasOrder(p) ? p : null;
+        if (to && !choices.some((c) => c.cur === to)) choices.push({ cur: to, label: S().label(to), score: 0 });
+      } else to = (choices.find((c) => !taken.includes(c.cur)) || {}).cur || null;
+      if (to) taken.push(to);
+      const seen = new Set();
+      const values = [];
+      l.points.slice().sort((a, b) => a.at - b.at).forEach((p) => {
+        const k = String(p.value);
+        if (seen.has(k)) return;
+        seen.add(k);
+        values.push({ from: p.value, to: to ? S().fix(to, convert(l.cur, to, p.value)) : null });
+      });
+      return { from: l.cur, to, fromLabel: S().label(l.cur), toLabel: to ? S().label(to) : "", values, choices };
+    });
+    const tos = pairs.map((p) => p.to).filter(Boolean);
+    const clash = tos.find((x, i) => tos.indexOf(x) !== i) || null;
+    const left = pairs.filter((p) => !p.to).map((p) => p.from);
+    let clip = null;
+    if (tos.length && !clash) {
+      const moved = {
+        span: t.span,
+        lanes: t.lanes.map((l, k) => {
+          const to = pairs[k].to;
+          if (!to) return null;
+          return { cur: to, track: l.track, mode: l.mode, points: l.points.map((p) => ({ at: p.at, value: S().fix(to, convert(l.cur, to, p.value)) })).filter((p) => p.value != null) };
+        }),
+        links: (t.links || []).map((l) => {
+          const a = t.lanes[l.from.lane];
+          const b = t.lanes[l.to.lane];
+          const ta = pairs[l.from.lane] && pairs[l.from.lane].to;
+          const tb = pairs[l.to.lane] && pairs[l.to.lane].to;
+          const out = JSON.parse(JSON.stringify(l));
+          if (a && ta && l.from.is != null) out.from.is = S().fix(ta, convert(a.cur, ta, l.from.is));
+          if (b && tb && l.does === "set" && l.value != null) out.value = S().fix(tb, convert(b.cur, tb, l.value));
+          /* The join's old label named the old curiosities. */
+          if (ta && tb) out.label = `${S().label(ta)} leads ${S().label(tb)}`;
+          return out;
+        }),
+      };
+      clip = suiteClip(moved, (t.name || "Template") + " (analogy)", { id: t.id, made: t.made });
+    }
+    return { pairs, left, clip, clash };
+  }
+  /* The .json file's text for some templates. */
+  function exportTemplates(list) {
+    return JSON.stringify({ format: TEMPLATE_FORMAT, version: 1, made: new Date().toISOString(), templates: migrateTemplates(list) }, null, 2);
+  }
+  /* Templates read from a file's text, added to `have`: the file format, a bare list, or one template. A template
+     that is already here (same id and same nodes) is skipped; one whose id is taken by a different template gets
+     a new id. Lanes of curiosities this app doesn't know are left out (dropped counts them).
+     Returns { list, added, skipped, dropped } or { error }. */
+  function importTemplates(text, have) {
+    let data;
+    try {
+      data = typeof text === "string" ? JSON.parse(text) : text;
+    } catch (e) {
+      return { error: "That file isn't a templates file: it isn't JSON." };
+    }
+    const raw = Array.isArray(data) ? data : data && Array.isArray(data.templates) ? data.templates : data && Array.isArray(data.lanes) ? [data] : null;
+    if (!raw) return { error: "That file has no templates in it." };
+    const list = migrateTemplates(have);
+    const same = (a, b) => JSON.stringify([a.lanes, a.links]) === JSON.stringify([b.lanes, b.links]);
+    const known = (cur) => !S() || !S().known || S().known(cur);
+    const added = [];
+    let skipped = 0;
+    let dropped = 0;
+    raw.forEach((x) => {
+      if (!x || typeof x !== "object") return skipped++;
+      const lanes = (Array.isArray(x.lanes) ? x.lanes : []).map((l) => (l && known(l.cur) ? l : (l && dropped++, null)));
+      const t = template(Object.assign({}, x, { lanes }), x.name, x.note, { id: x.id ? String(x.id) : undefined, made: x.made });
+      if (!t) return skipped++;
+      const clash = list.find((y) => y.id === t.id);
+      if (clash && same(clash, t)) return skipped++;
+      if (clash) t.id = templateId();
+      list.push(t);
+      added.push(t);
+    });
+    return { list, added, skipped, dropped };
+  }
+  let templateList = [];
+  function loadTemplates() {
+    try {
+      templateList = migrateTemplates(JSON.parse(localStorage.getItem(TEMPLATE_KEY)));
+    } catch (e) {
+      templateList = templateList || [];
+    }
+    return templateList;
+  }
+  /* Keep the list (or a new one), and tell the page (the library's My templates) it changed. */
+  function saveTemplates(list) {
+    if (list) templateList = list;
+    let kept = true;
+    try {
+      localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templateList));
+    } catch (e) {
+      kept = false;
+    }
+    try {
+      if (root.dispatchEvent && typeof CustomEvent === "function") root.dispatchEvent(new CustomEvent("curio-templates"));
+    } catch (e) {}
+    return kept;
+  }
+  loadTemplates();
+
+  /* ---------- area tools: Reverse, Flip, Stretch and Squeeze (CapCut's Reverse and speed, for nodes) ----------
+     Each works on the selected area's nodes, lane by lane, as one batch (one undo step). lanes: [{ track, cur, lk }].
+     remapArea moves every node in the area from moment j to mapJ(j). When two nodes land on one moment the later
+     one wins. The area, and the moments a stretch now spreads over (until), are cleared first, so what was there
+     is replaced. Joins follow their nodes; a join whose node was dropped is removed. */
+  function remapArea(st, lanes, ar, mapJ, until) {
+    const n = st.rows.length;
+    const ix = {};
+    st.rows.forEach((r, i) => (ix[r.id] = i));
+    const cmds = [];
+    const moved = {}; /* old node key -> new row id, for nodes that survive */
+    const dropped = new Set();
+    let count = 0;
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      const to = {}; /* new j -> [old j, value]; later old j wins */
+      for (let j = ar.j0; j <= ar.j1; j++) {
+        const v = lane.points[st.rows[j].id];
+        if (v == null) continue;
+        const k = Math.max(0, Math.min(n - 1, mapJ(j)));
+        if (!to[k] || to[k][0] < j) to[k] = [j, v];
+      }
+      const news = Object.keys(to).map(Number);
+      if (!news.length) continue;
+      const a = Math.min(ar.j0, ...news);
+      const b = Math.max(ar.j1, until || 0, ...news);
+      for (let j = a; j <= b; j++) {
+        const r = st.rows[j].id;
+        if (lane.points[r] == null) continue;
+        cmds.push({ type: "removePoint", row: r, track: ln.track, curiosity: ln.cur });
+        dropped.add(nodeKey(r, ln.lk));
+      }
+      news.forEach((k) => {
+        const old = nodeKey(st.rows[to[k][0]].id, ln.lk);
+        cmds.push({ type: "setPoint", row: st.rows[k].id, track: ln.track, curiosity: ln.cur, value: to[k][1] });
+        moved[old] = st.rows[k].id;
+        dropped.delete(old);
+        count++;
+      });
+    }
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends || !ends.some((k) => moved[k] || dropped.has(k))) return;
+      if (ends.some((k) => dropped.has(k))) return cmds.push({ type: "removeLink", link: l.id });
+      const scope = { from: moved[ends[0]] || l.scope.from, to: moved[ends[1]] || l.scope.to };
+      if (scope.from !== l.scope.from || scope.to !== l.scope.to) cmds.push({ type: "updateLink", link: l.id, changes: { scope, within: Math.max(0, Math.min(16, Math.abs(ix[scope.to] - ix[scope.from]))) } });
+    });
+    return { cmds, nodes: count };
+  }
+  /* Reverse: the area's nodes play backwards (a node at moment j0 + k moves to j1 - k). */
+  function reverseAreaCommands(st, lanes, ar) {
+    return remapArea(st, lanes, ar, (j) => ar.j0 + ar.j1 - j);
+  }
+  /* Stretch (f = 2) or squeeze (f = 0.5): timing scaled from the area's first moment, clamped to the film's end. */
+  function stretchAreaCommands(st, lanes, ar, f) {
+    const last = Math.min(st.rows.length - 1, ar.j0 + Math.round((ar.j1 - ar.j0) * f));
+    const out = remapArea(st, lanes, ar, (j) => ar.j0 + Math.round((j - ar.j0) * f), last);
+    out.area = { i0: ar.i0, i1: ar.i1, j0: ar.j0, j1: Math.max(ar.j0, last) };
+    return out;
+  }
+  /* Flip: each node's setting mirrored on its lane's scale (low becomes high), joins kept in step. */
+  function flipAreaCommands(st, lanes, ar) {
+    const cmds = [];
+    const flipped = {};
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      for (let j = ar.j0; j <= ar.j1; j++) {
+        const r = st.rows[j].id;
+        const p = lane.points[r] == null ? null : S().pos(ln.cur, lane.points[r]);
+        if (p == null) continue;
+        const v = S().fix(ln.cur, S().at(ln.cur, 1 - p));
+        if (v == null) continue;
+        cmds.push({ type: "setPoint", row: r, track: ln.track, curiosity: ln.cur, value: v });
+        flipped[nodeKey(r, ln.lk)] = v;
+      }
+    }
+    const nodes = cmds.length;
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends) return;
+      if (flipped[ends[0]] != null && l.from.is != null) cmds.push({ type: "updateLink", link: l.id, changes: { from: { is: flipped[ends[0]] } } });
+      if (flipped[ends[1]] != null && l.does === "set") cmds.push({ type: "updateLink", link: l.id, changes: { value: flipped[ends[1]] } });
+    });
+    return { cmds, nodes };
+  }
+  /* ---------- area tools: Freeze and Shape (CapCut's Freeze frame and Speed > Curve presets, for settings) ----------
+     Both rewrite each selected lane's nodes over the area as one batch. laneSeries gives what a lane itself plays at
+     every moment (the engine's own rule: before the first node its setting, after the last node its setting, and
+     glide, smooth or jump between). rewriteArea puts a lane's new values (j -> value) in place of its nodes inside
+     the area: sets go before removes so a lane never empties, a join to a node that is gone is removed, and a join
+     to a node whose setting changed is kept in step (as Flip does). */
+  function laneSeries(st, lane, cur) {
+    const ix = {};
+    st.rows.forEach((r, i) => (ix[r.id] = i));
+    const pts = Object.keys(lane.points)
+      .filter((r) => ix[r] != null)
+      .map((r) => ({ i: ix[r], v: lane.points[r] }))
+      .sort((a, b) => a.i - b.i);
+    return st.rows.map((_, i) => {
+      if (!pts.length) return null;
+      let a = null;
+      let b = null;
+      for (const p of pts) {
+        if (p.i <= i) a = p;
+        if (p.i >= i && !b) b = p;
+      }
+      if (!a) return b.v;
+      if (!b || a === b || lane.mode === "hold") return a.v;
+      const pa = S().pos(cur, a.v);
+      const pb = S().pos(cur, b.v);
+      let t = (i - a.i) / (b.i - a.i);
+      if (lane.mode === "smooth") t = t * t * (3 - 2 * t);
+      return pa == null || pb == null ? a.v : S().at(cur, pa + (pb - pa) * t);
+    });
+  }
+  function rewriteArea(st, ar, edits) {
+    const sets = [];
+    const removes = [];
+    const changed = {};
+    const gone = new Set();
+    edits.forEach(({ ln, lane, put }) => {
+      for (let j = ar.j0; j <= ar.j1; j++) {
+        const r = st.rows[j].id;
+        const had = lane.points[r];
+        const v = put[j];
+        if (v == null) {
+          if (had != null) removes.push({ type: "removePoint", row: r, track: ln.track, curiosity: ln.cur }), gone.add(nodeKey(r, ln.lk));
+        } else if (had == null || String(had) !== String(v)) {
+          sets.push({ type: "setPoint", row: r, track: ln.track, curiosity: ln.cur, value: v });
+          if (had != null) changed[nodeKey(r, ln.lk)] = v;
+        }
+      }
+    });
+    const links = [];
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends) return;
+      if (ends.some((k) => gone.has(k))) return links.push({ type: "removeLink", link: l.id });
+      if (changed[ends[0]] != null && l.from.is != null) links.push({ type: "updateLink", link: l.id, changes: { from: { is: changed[ends[0]] } } });
+      if (changed[ends[1]] != null && l.does === "set") links.push({ type: "updateLink", link: l.id, changes: { value: changed[ends[1]] } });
+    });
+    return sets.concat(removes, links);
+  }
+  /* Freeze: every selected lane holds the setting it has at the area's first moment until its last moment. The
+     nodes inside go; a node at the first and last moment carry that one setting, so nothing drifts in between
+     (glide, smooth or jump alike). Returns { cmds, nodes, lanes }. */
+  function freezeAreaCommands(st, lanes, ar) {
+    const edits = [];
+    let nodes = 0;
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      const v = laneSeries(st, lane, ln.cur)[ar.j0];
+      if (v == null) continue;
+      const put = { [ar.j0]: v, [ar.j1]: v };
+      edits.push({ ln, lane, put });
+      nodes += ar.j1 > ar.j0 ? 2 : 1;
+    }
+    return { cmds: rewriteArea(st, ar, edits), nodes, lanes: edits.length };
+  }
+  /* Shape presets (CapCut's speed curves, Montage, Hero, Bullet and so on, used on settings instead of speed).
+     [name, what it does, f(k, n) -> 0..1 at moment k of the area's n + 1 moments, follows the lane's direction].
+     A preset that follows the direction falls instead of rising when the lane ends lower than it starts. */
+  const PRESETS = {
+    easeIn: ["Ease in", "Ease in: starts slowly, then speeds up to the finish.", (k, n) => Math.pow(k / n, 2), true],
+    easeOut: ["Ease out", "Ease out: moves fast at first, then settles gently.", (k, n) => 1 - Math.pow(1 - k / n, 2), true],
+    riseFall: ["Rise and fall", "Rise and fall: climbs to its highest in the middle, then comes back down (a montage).", (k, n) => Math.sin(Math.PI * (k / n)), false],
+    pulse: ["Pulse", "Pulse: a quick flash to its highest in the middle, low before and after.", (k, n) => (k > 0 && k < n && Math.abs(k - n / 2) < 1 ? 1 : 0), false],
+    holdJump: ["Hold then jump", "Hold then jump: stays still, then changes all at once at the last moment (a hero moment).", (k, n) => (k === n ? 1 : 0), true],
+    build: ["Build", "Build: climbs in a few even steps, like stairs.", (k, n) => { const L = Math.min(4, n + 1); return Math.min(1, Math.floor((k / n) * L) / (L - 1)); }, true],
+  };
+  /* Shape: each selected lane's settings over the area, rewritten by a preset between the lane's own lowest and
+     highest setting there. Nodes go on whole moments only, and only where the shape bends (a flat run keeps its
+     two ends). A lane that holds one setting over the whole area has nothing to shape and is left alone (flat).
+     Returns { cmds, nodes, lanes, flat } or { error }. */
+  function shapeAreaCommands(st, lanes, ar, preset) {
+    const p = PRESETS[preset];
+    if (!p) return { error: "There is no shape called " + preset + "." };
+    const n = ar.j1 - ar.j0;
+    if (n < 1) return { error: "Select at least two moments to shape." };
+    const edits = [];
+    let nodes = 0;
+    let flat = 0;
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      const series = laneSeries(st, lane, ln.cur);
+      const pos = [];
+      for (let j = ar.j0; j <= ar.j1; j++) pos.push(S().pos(ln.cur, series[j]));
+      if (pos.some((x) => x == null)) continue;
+      const lo = Math.min(...pos);
+      const hi = Math.max(...pos);
+      if (hi - lo < 1e-9) {
+        flat++;
+        continue;
+      }
+      const down = p[3] && pos[n] < pos[0];
+      const vals = pos.map((_, k) => {
+        const f = Math.max(0, Math.min(1, p[2](k, n)));
+        return S().fix(ln.cur, S().at(ln.cur, down ? hi - (hi - lo) * f : lo + (hi - lo) * f));
+      });
+      const put = {};
+      vals.forEach((v, k) => {
+        if (v == null) return;
+        if (k > 0 && k < n && String(vals[k - 1]) === String(v) && String(vals[k + 1]) === String(v)) return;
+        put[ar.j0 + k] = v;
+        nodes++;
+      });
+      edits.push({ ln, lane, put });
+    }
+    return { cmds: rewriteArea(st, ar, edits), nodes, lanes: edits.length, flat };
+  }
+  /* Film lines (the Prism in the lanes): the inspiration film picked in the Player, read for one curiosity at
+     each of My film's moments, so a lane can show where your film follows or departs from it.
+     How the two films line up: the inspiration film is STRETCHED to My film's length, the same way Blend reads
+     it. My film's moment j reads the film's beat round(j / (n - 1) * (beats - 1)), so the first and last
+     moments always meet. When both films have the same number of moments it is moment for moment (beat j for
+     moment j). A value carries forward from the last beat that set it; a moment before the film first sets it,
+     or a curiosity the film never sets, is null (no line there). Values are snapped to the curiosity's scale.
+     filmBeat(j, n, count) -> the beat index; filmLine(beats, n, cur) -> n values or null. */
+  function filmBeat(j, n, count) {
+    if (count === n) return j;
+    return n > 1 ? Math.round((j / (n - 1)) * (count - 1)) : 0;
+  }
+  function filmValue(beats, b, cur) {
+    const alt = L() && L().base ? L().base(cur) : cur;
+    for (let k = Math.min(b, beats.length - 1); k >= 0; k--) {
+      const vals = beats[k] && beats[k].values;
+      if (!vals) continue;
+      const v = vals[cur] != null ? vals[cur] : vals[alt];
+      if (v != null) return v;
+    }
+    return null;
+  }
+  function filmLine(beats, n, cur) {
+    beats = Array.isArray(beats) ? beats : [];
+    const out = [];
+    for (let j = 0; j < n; j++) {
+      const v = beats.length ? filmValue(beats, filmBeat(j, n, beats.length), cur) : null;
+      const f = v == null ? null : S() && S().known(cur) ? S().fix(cur, v) : v;
+      out.push(f == null ? null : f);
+    }
+    return out;
+  }
+  /* Take from the film (the Prism's "Copy it", for a stretch): the inspiration film's settings for the selected
+     lanes and moments become nodes. Where the film has no setting, your node (or no node) stays. A lane that is
+     not on a track yet is put on one; a locked lane (lk null but on a track, see openLanes) is skipped.
+     Returns { cmds, nodes, lanes, empty } (empty: lanes where the film has nothing in the selection). */
+  function takeFromFilmCommands(st, lanes, ar, beats) {
+    const n = st.rows.length;
+    const edits = [];
+    const add = [];
+    let nodes = 0;
+    let empty = 0;
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      if (!ln || (ln.track && !ln.lk)) continue;
+      const line = filmLine(beats, n, ln.cur);
+      let k = 0;
+      for (let j = ar.j0; j <= ar.j1; j++) if (line[j] != null) k++;
+      if (!k) {
+        empty++;
+        continue;
+      }
+      let track = ln.track;
+      if (!track) {
+        track = trackFor(ln.cur, st);
+        if (!track) continue;
+        add.push({ type: "addCuriosity", track, curiosity: ln.cur });
+      }
+      const lk = track + "|" + ln.cur;
+      const lane = st.lanes[lk] || { points: {} };
+      const put = {};
+      for (let j = ar.j0; j <= ar.j1; j++) {
+        const had = lane.points[st.rows[j].id];
+        put[j] = line[j] != null ? line[j] : had;
+        if (line[j] != null) nodes++;
+      }
+      edits.push({ ln: Object.assign({}, ln, { track, lk }), lane, put });
+    }
+    return { cmds: add.concat(rewriteArea(st, ar, edits)), nodes, lanes: edits.length, empty };
+  }
+  /* Move the selected area's nodes d moments later (d < 0: earlier), like dragging a group of clips sideways in
+     CapCut. copy: the originals stay and a copy lands d moments away (Alt while dropping). The block is the whole
+     area: whatever its lanes had over the moments it lands on is replaced, so one undo brings that back too. Sets
+     go before removes, so a lane never empties on the way (an empty lane forgets its mode). Joins with both ends
+     inside move (or are copied) with them; a join with one end left outside stretches; a join to a replaced node
+     is removed. Returns { cmds, nodes, replaced, links, moved (old node key -> new row id), area } or { error }. */
+  function moveAreaCommands(st, lanes, ar, d, copy) {
+    const n = st.rows.length;
+    d = Math.round(Number(d) || 0);
+    const out = { cmds: [], nodes: 0, replaced: 0, links: 0, moved: {}, area: { i0: ar.i0, i1: ar.i1, j0: ar.j0 + d, j1: ar.j1 + d } };
+    if (ar.j0 + d < 0 || ar.j1 + d > n - 1) return { error: "That would push part of the selection off the end of the film." };
+    if (!d) return out;
+    const ix = {};
+    st.rows.forEach((r, i) => (ix[r.id] = i));
+    const sets = [];
+    const removes = [];
+    const dropped = new Set(); /* nodes that are gone: replaced, or (copy) originals written over by their copy */
+    const inside = new Set();
+    for (let i = ar.i0; i <= ar.i1; i++) {
+      const ln = lanes[i];
+      const lane = ln && ln.lk && st.lanes[ln.lk];
+      if (!lane) continue;
+      const before = {};
+      for (let j = Math.min(ar.j0, ar.j0 + d); j <= Math.max(ar.j1, ar.j1 + d); j++) {
+        const v = lane.points[st.rows[j].id];
+        if (v != null) before[j] = v;
+      }
+      const after = Object.assign({}, before);
+      const src = [];
+      for (let j = ar.j0; j <= ar.j1; j++) if (before[j] != null) src.push([j, before[j]]);
+      if (!copy) src.forEach(([j]) => delete after[j]);
+      for (let j = ar.j0 + d; j <= ar.j1 + d; j++) {
+        if (before[j] == null) continue;
+        const k = nodeKey(st.rows[j].id, ln.lk);
+        const isSrc = j >= ar.j0 && j <= ar.j1;
+        if (copy || !isSrc) {
+          dropped.add(k);
+          if (!isSrc) out.replaced++;
+        }
+        delete after[j];
+      }
+      src.forEach(([j, v]) => {
+        after[j + d] = v;
+        const k = nodeKey(st.rows[j].id, ln.lk);
+        inside.add(k);
+        out.moved[k] = st.rows[j + d].id;
+        out.nodes++;
+      });
+      Object.keys(after).forEach((j) => {
+        if (before[j] == null || String(before[j]) !== String(after[j])) sets.push({ type: "setPoint", row: st.rows[j].id, track: ln.track, curiosity: ln.cur, value: after[j] });
+      });
+      Object.keys(before).forEach((j) => after[j] == null && removes.push({ type: "removePoint", row: st.rows[j].id, track: ln.track, curiosity: ln.cur }));
+    }
+    /* Joined partners outside the box (ar.extra) move with it. */
+    (ar.extra || []).forEach((key) => {
+      const k0 = split(key);
+      const lane = st.lanes[k0.lk];
+      const j = ix[k0.row];
+      if (!lane || j == null || lane.points[k0.row] == null || inside.has(key) || j + d < 0 || j + d > n - 1) return;
+      const to = st.rows[j + d].id;
+      if (!copy) removes.push({ type: "removePoint", row: k0.row, track: k0.track, curiosity: k0.cur });
+      sets.push({ type: "setPoint", row: to, track: k0.track, curiosity: k0.cur, value: lane.points[k0.row] });
+      inside.add(key);
+      out.moved[key] = to;
+      out.nodes++;
+    });
+    if (!out.nodes) return out;
+    const linkCmds = [];
+    st.links.forEach((l) => {
+      const ends = linkEnds(l);
+      if (!ends) return;
+      const a = inside.has(ends[0]);
+      const b = inside.has(ends[1]);
+      if (copy) {
+        /* The originals stay, unless their copy landed on them; joins with both ends inside get a copy. */
+        if (ends.some((k) => dropped.has(k))) linkCmds.push({ type: "removeLink", link: l.id });
+        if (!(a && b)) return;
+        const body = JSON.parse(JSON.stringify(l));
+        delete body.id;
+        linkCmds.push(Object.assign({ type: "addLink" }, body, { scope: { from: out.moved[ends[0]], to: out.moved[ends[1]] } }));
+        out.links++;
+        return;
+      }
+      if (ends.some((k) => dropped.has(k))) return linkCmds.push({ type: "removeLink", link: l.id });
+      if (!a && !b) return;
+      const scope = { from: a ? out.moved[ends[0]] : l.scope.from, to: b ? out.moved[ends[1]] : l.scope.to };
+      if (a && b) {
+        out.links++;
+        linkCmds.push({ type: "updateLink", link: l.id, changes: { scope } });
+      } else linkCmds.push({ type: "updateLink", link: l.id, changes: { scope, within: Math.max(0, Math.min(16, Math.abs(ix[scope.to] - ix[scope.from]))) } });
+    });
+    const setAt = new Set(sets.map((c) => c.row + "|" + c.track + "|" + c.curiosity));
+    out.cmds = sets.concat(removes.filter((c) => !setAt.has(c.row + "|" + c.track + "|" + c.curiosity)), linkCmds);
+    return out;
+  }
+
+  /* ---------- lane heads: Off, Solo and Lock (CapCut's track buttons: hide or mute a track, lock it; an audio
+     app's solo) ----------
+     Off is the engine lane's own `on` (film data, one undo step). Solo turns every other lane off as one batch and
+     remembers each lane's on/off from before in tools.solo = { lk, was: { laneKey: on } }, so pressing it again puts
+     them back (only lanes that still exist; lanes made since are left alone). Lock is a view setting, not film
+     data: tools.locks = { laneKey: true } stops the timeline from changing that lane's nodes. */
+  const onCmd = (lk, on) => {
+    const at = lk.indexOf("|");
+    return { type: "laneMode", track: lk.slice(0, at), curiosity: lk.slice(at + 1), on };
+  };
+  /* Is solo s still in force on this film: its lane is on and every lane it turned off is still off? */
+  function soloActive(st, s) {
+    if (!s || !s.lk || !st.lanes[s.lk] || !st.lanes[s.lk].on) return false;
+    return Object.keys(s.was || {}).every((k) => k === s.lk || !st.lanes[k] || !st.lanes[k].on);
+  }
+  /* The commands for pressing Solo on lane lk, given the solo now remembered (prev). Returns { cmds, solo, off }:
+     solo is what to remember next (null after un-solo); off is true when this press un-solos. */
+  function soloCommands(st, lk, prev) {
+    if (!st.lanes[lk]) return { error: "That lane has no nodes yet, so there is nothing to solo." };
+    const keys = Object.keys(st.lanes).sort();
+    const active = soloActive(st, prev);
+    if (active && prev.lk === lk) {
+      const cmds = keys.filter((k) => typeof prev.was[k] === "boolean" && st.lanes[k].on !== prev.was[k]).map((k) => onCmd(k, prev.was[k]));
+      return { cmds, solo: null, off: true };
+    }
+    /* Soloing another lane while one is soloed keeps the first "before". */
+    const base = active ? prev.was : {};
+    const was = {};
+    keys.forEach((k) => (was[k] = typeof base[k] === "boolean" ? base[k] : st.lanes[k].on !== false));
+    const cmds = keys.filter((k) => st.lanes[k].on !== (k === lk)).map((k) => onCmd(k, k === lk));
+    return { cmds, solo: { lk, was }, off: false };
+  }
+  if (!tools.locks || typeof tools.locks !== "object") tools.locks = {};
+  const isLocked = (lk) => !!(lk && tools.locks[lk]);
+  /* The lane a point command (or any command in a batch) would change that is locked, if any. */
+  function lockedIn(m) {
+    const list = m && m.type === "batch" ? m.commands || [] : [m];
+    const hit = list.find((c) => c && (c.type === "setPoint" || c.type === "removePoint" || c.type === "clearLane") && isLocked(c.track + "|" + c.curiosity));
+    return hit ? hit.track + "|" + hit.curiosity : null;
+  }
+  const lockSay = (lk) => `${S() ? S().label(lk.slice(lk.indexOf("|") + 1)) : lk} is locked (🔒 by its name), so its nodes stay as they are. Click the 🔒 to unlock it.`;
+
+  /* ---------- lane groups (CapCut folds its tracks into groups) ----------
+     The lanes are grouped under a header per filmmaking category, the same categories Details is built from
+     (CurioLevels.categoryOf). Groups come in the order their first lane does, so what you are looking through stays
+     on top, and lanes keep their order inside a group. A folded group shows one thin row with a dot at every moment
+     where any of its lanes has a node. Folds are a view setting: tools.folds = { category: true }, not film data.
+     laneGroups(lanes, o) -> { groups: [{ id, label, lanes, count, withNodes, folded }], visible: the lanes still
+     drawn, in order }. o.catOf(cur), o.labelOf(cat), o.hasNodes(lane) and o.folds can be stubbed for tests. With
+     fewer than GROUP_MIN lanes there are no groups (a header over one lane only takes room). */
+  const GROUP_MIN = 2;
+  /* A group's header row is 22px with a mouse and 32px on a phone or any touch screen, so a finger can hit it.
+     groupH() is the one place that decides: each draw reads it once into geo.gh, and the header, its band in the
+     picture and every hit test use that, so the rows and the canvas always agree. */
+  const GROUP_H_FINE = 22;
+  const GROUP_H_TOUCH = 32;
+  const GROUP_TOUCH_MEDIA = "(pointer: coarse), (max-width: 600px)";
+  function groupH() {
+    try {
+      return root.matchMedia && root.matchMedia(GROUP_TOUCH_MEDIA).matches ? GROUP_H_TOUCH : GROUP_H_FINE;
+    } catch (e) {
+      return GROUP_H_FINE;
+    }
+  }
+  if (!tools.folds || typeof tools.folds !== "object") tools.folds = {};
+  function laneGroups(lanes, o) {
+    o = o || {};
+    lanes = Array.isArray(lanes) ? lanes : [];
+    if (lanes.length < GROUP_MIN) return { groups: [], visible: lanes.slice() };
+    const catOf = o.catOf || ((c) => (L() && L().categoryOf ? L().categoryOf(c) : "") || "other");
+    const labelOf =
+      o.labelOf ||
+      ((id) => {
+        const c = L() && L().CATEGORIES ? L().CATEGORIES.find((x) => x.id === id) : null;
+        return c ? c.label : "Other";
+      });
+    const folds = o.folds || tools.folds;
+    const has = o.hasNodes || (() => false);
+    const byId = {};
+    const groups = [];
+    lanes.forEach((ln) => {
+      const id = String(catOf(ln.parent || ln.cur) || "other");
+      if (!byId[id]) groups.push((byId[id] = { id, label: labelOf(id), lanes: [] }));
+      byId[id].lanes.push(ln);
+    });
+    groups.forEach((g) => {
+      g.count = g.lanes.length;
+      g.withNodes = g.lanes.filter((ln) => has(ln)).length;
+      g.folded = !!folds[g.id];
+    });
+    return { groups, visible: [].concat(...groups.filter((g) => !g.folded).map((g) => g.lanes)) };
+  }
+  /* Where a folded group's lanes have nodes: [{ j, count }] for every moment where at least one of them has one. */
+  function foldDots(st, lanes) {
+    const out = [];
+    st.rows.forEach((r, j) => {
+      const count = (lanes || []).filter((ln) => ln.lk && st.lanes[ln.lk] && st.lanes[ln.lk].points[r.id] != null).length;
+      if (count) out.push({ j, count });
+    });
+    return out;
+  }
+  const groupSay = (g) => `${g.count} lane${g.count === 1 ? "" : "s"}, ${g.withNodes} with nodes`;
+  /* The header's words. The name column is 190px wide (124px on phones), so the header shows a short count,
+     "Camera · 5 · 4●" (5 lanes, 4 of them with nodes), and the full wording goes in its tooltip and aria-label. */
+  function groupText(g) {
+    return { short: `${g.count} · ${g.withNodes}●`, full: `${g.label}: ${groupSay(g)}` };
+  }
+  /* Next or previous marker (⇧] and ⇧[): the moment of the nearest marker after (dir 1) or before (dir -1) moment j,
+     or -1 when there is none that way. Markers on moments no longer in the film are skipped. */
+  function markerStep(markers, rows, j, dir) {
+    const at = (markers || []).map((m) => (rows || []).findIndex((r) => r.id === m.row)).filter((k) => k >= 0);
+    const hits = at.filter((k) => (dir < 0 ? k < j : k > j));
+    if (!hits.length) return -1;
+    return dir < 0 ? Math.max(...hits) : Math.min(...hits);
+  }
+
+  /* ---------- the Attention track ----------
+     CapCut draws a song's waveform under the clips so you can see the sound's shape while you edit. Curiomatic's
+     equivalent is the Attention track: a thin band right under My film's clip track that shows, for each moment,
+     what holds the audience's attention (one color per attention family) and how strongly the film pulls forward
+     (a filled line). attentionTrack(beats, opts) is the pure part:
+       beats: [{ at, values }] one per moment (the Screen's own reading, as Mark the turns uses);
+       opts.attention: the momentum reading (CurioAttention: read(beats) -> { segments, limit });
+       opts.secondsPerBeat: seconds per moment (the reading's clock); opts.familyLabel(f) can be stubbed for tests.
+     -> { ok, note?, source: "momentum" | "change", moments: [{ family, label, curiosity, strength 0..1 }],
+          families: [{ id, label, color }] in the order they first hold attention }.
+     Strength per moment: the reading has no per-moment number, but each stretch of attention carries the push of
+     the curiosity holding it (0 to 5, how hard it moves the story), and its overall momentum wears that push down
+     once one family has held attention past the limit. The track uses the same rule moment by moment. If the
+     reading gives no push at all, the strength is derived instead from how much the curiosities change between
+     one moment and the next (the share of values that differ), since a film that changes is a film that moves. */
+  const ATT_H = 32;
+  /* The Text row (opts.texts): each bar on the first sub-row where it fits, so bars never overlap.
+     items: [{ id, j0, j1 }] -> { rowOf: { id: k }, count } */
+  const TXT_ROW = 14;
+  function textRows(items) {
+    const ends = [];
+    const rowOf = {};
+    (items || [])
+      .slice()
+      .sort((a, b) => a.j0 - b.j0 || a.j1 - b.j1)
+      .forEach((t) => {
+        let k = ends.findIndex((e) => e < t.j0);
+        if (k < 0) k = ends.length;
+        ends[k] = Math.max(t.j0, t.j1);
+        rowOf[t.id] = k;
+      });
+    return { rowOf, count: ends.length };
+  }
+  const ATT_COLORS = { camera: "#4dabf7", movement: "#ff922b", voice: "#20c997", feeling: "#f06595", comedy: "#fcc419", wardrobe: "#cc5de8", place: "#94d82d", light: "#ffa8a8", music: "#1c7ed6", plot: "#ff6b6b", mind: "#9775fa", effects: "#66d9e8", cut: "#ced4da" };
+  const ATT_OTHER = "#868e96";
+  const ATT_NONE = "The Attention track needs the momentum code, which isn't loaded, so there is nothing to show.";
+  /* Momentum's own color per family when it is loaded, so a family looks the same here as on every Momentum tab. */
+  const attColor = (f) => {
+    const M = root.CurioMomentum;
+    try {
+      const mk = f && M && typeof M.mark === "function" ? M.mark(f) : null;
+      if (mk && mk.color) return mk.color;
+    } catch (e) {}
+    return ATT_COLORS[f] || ATT_OTHER;
+  };
+  /* Momentum docks its own Attention lane under the timeline (momentum/screen-lane.js) with the Compass's fixes in
+     it. When it is there, this band steps aside so the timeline never shows attention twice. */
+  const momentumLane = () => {
+    const ML = root.CurioMomentumLane;
+    try {
+      return !!(ML && typeof ML.attached === "function" && ML.attached());
+    } catch (e) {
+      return false;
+    }
+  };
+  function attentionTrack(beats, o) {
+    o = o || {};
+    beats = Array.isArray(beats) ? beats : [];
+    const A = o.attention;
+    if (!A || typeof A.read !== "function") return { ok: false, note: ATT_NONE, source: null, moments: [], families: [] };
+    const famName = (f) => {
+      if (o.familyLabel) return String(o.familyLabel(f));
+      const M = root.CurioMomentum;
+      const fam = M && M.family ? M.family(f) : null;
+      return String(fam ? fam.label : f);
+    };
+    const spb = Number(o.secondsPerBeat) > 0 ? Number(o.secondsPerBeat) : 3;
+    let reading = null;
+    try {
+      reading = A.read(beats.map((b) => ({ at: b && b.at, values: (b && b.values) || {} })), { secondsPerBeat: spb });
+    } catch (e) {}
+    const segs = ((reading && reading.segments) || []).filter((s) => s && s.beat >= 0).sort((a, b) => a.beat - b.beat);
+    const limit = reading && Number(reading.limit) > 0 ? Number(reading.limit) : 20;
+    const hasPush = segs.some((s) => typeof s.push === "number" && isFinite(s.push));
+    const moments = [];
+    const families = [];
+    let k = -1;
+    let runFam = null;
+    let runStart = 0;
+    for (let i = 0; i < beats.length; i++) {
+      while (k + 1 < segs.length && segs[k + 1].beat <= i) k++;
+      const s = k >= 0 ? segs[k] : null;
+      if (s && s.family !== runFam) {
+        runFam = s.family;
+        runStart = i;
+      }
+      let strength = 0;
+      if (s && hasPush) {
+        const into = (i - runStart + 1) * spb;
+        const fresh = into <= limit ? 1 : Math.max(0.2, limit / into);
+        strength = ((Number(s.push) || 0) * fresh) / 5;
+      } else if (!hasPush && i > 0) {
+        const a = (beats[i - 1] && beats[i - 1].values) || {};
+        const b = (beats[i] && beats[i].values) || {};
+        const keys = [...new Set(Object.keys(a).concat(Object.keys(b)))];
+        strength = keys.length ? keys.filter((c) => String(a[c] == null ? "" : a[c]) !== String(b[c] == null ? "" : b[c])).length / keys.length : 0;
+      }
+      const fam = s && s.family ? s.family : null;
+      if (fam && !families.some((f) => f.id === fam)) families.push({ id: fam, label: famName(fam), color: attColor(fam) });
+      moments.push({ family: fam, label: fam ? famName(fam) : "", curiosity: s ? s.label || s.curiosity || "" : "", strength: Math.max(0, Math.min(1, strength)) });
+    }
+    return { ok: true, source: hasPush ? "momentum" : "change", moments, families };
+  }
+
+  /* ---------- Ableton Live's lane editing (Jeremy, 2026-10-04: "make it like Ableton Live's automation lane") ----------
+     A curiosity's lane is its master lane. Its header has a clear On/Off switch (the engine lane's own on, as 👁
+     was), and a Steps / Lines / Smooth switch (the lane's mode: Steps jumps straight up or down at a node and runs
+     flat to the next one, which is how an on/off lane looks; Lines and Smooth draw free nodes and lines).
+     Every setting in the curiosity's pop-up window is a sub-lane in its automation group: the "▸ 7 settings" tab
+     under the lane's name unfolds them under the master lane, How much (its Amount, 0 to 100) first. The group
+     starts folded; a folded group shows dots where its sub-lanes have nodes. Open groups are kept per curiosity in
+     tools.subs = { curiosity: true }. automationGroup(cur) -> [{ key, slider, label, amount }]: the window's
+     settings other than its main one (the main one is the master lane itself), graded in this build. */
+  if (!tools.subs || typeof tools.subs !== "object") tools.subs = {};
+  function automationGroup(cur, h) {
+    const P = partHelpers(h);
+    if (!cur || String(cur).indexOf(".") >= 0) return [];
+    const c = P.row(cur);
+    if (!c || !Array.isArray(c.sliders)) return [];
+    const main = c.main || "setting";
+    const out = [];
+    c.sliders.forEach((s) => {
+      if (!s || !s.id || s.id === main || s.id === "setting") return;
+      const key = cur + "." + s.id;
+      if (!P.known(key) || out.some((x) => x.key === key)) return;
+      out.push({ key, slider: s.id, label: s.id === "amount" ? "How much (0 to 100)" : String(s.label || s.id), amount: s.id === "amount" });
+    });
+    return out.filter((x) => x.amount).concat(out.filter((x) => !x.amount));
+  }
+  /* Drag a line up or down (Ableton: dragging a segment moves both of its breakpoints together). Moves both end
+     nodes of the line from row ra to row rb on lane lk by dp (a share of the lane's height, -1 to 1), keeps a curve
+     between them (rec: { shape, bend }) by writing its in-between points again, and keeps joins' values in step.
+     -> { cmds, values: [va, vb] } or { error }. Adds no node. */
+  function segMoveCommands(st, lk, ra, rb, dp, rec) {
+    const lane = st.lanes[lk];
+    if (!lane || lane.points[ra] == null || lane.points[rb] == null) return { error: "That line is gone." };
+    const bar = lk.indexOf("|");
+    const track = lk.slice(0, bar);
+    const cur = lk.slice(bar + 1);
+    const move = (v) => {
+      const p = S().pos(cur, v);
+      return p == null ? v : S().at(cur, Math.max(0, Math.min(1, p + dp)));
+    };
+    const va = move(lane.points[ra]);
+    const vb = move(lane.points[rb]);
+    if (String(va) === String(lane.points[ra]) && String(vb) === String(lane.points[rb])) return { cmds: [], values: [va, vb] };
+    const cmds = [];
+    const ix = st.rows.map((r) => r.id);
+    const ja = ix.indexOf(ra);
+    const jb = ix.indexOf(rb);
+    if (rec && jb - ja >= 2) bake(cur, { j: ja, v: va }, { j: jb, v: vb }, rec, st.rows).forEach((p) => cmds.push({ type: "setPoint", row: p.row, track, curiosity: cur, value: p.value }));
+    [[ra, va], [rb, vb]].forEach(([r, v]) => {
+      cmds.push({ type: "setPoint", row: r, track, curiosity: cur, value: v });
+      st.links.forEach((l) => {
+        if (!l.scope) return;
+        if (l.from.track + "|" + l.from.curiosity === lk && l.scope.from === r) cmds.push({ type: "updateLink", link: l.id, changes: { from: { is: v } } });
+        if (l.to.track + "|" + l.to.curiosity === lk && l.scope.to === r && l.does === "set") cmds.push({ type: "updateLink", link: l.id, changes: { value: v } });
+      });
+    });
+    return { cmds, values: [va, vb] };
+  }
+  /* Alt (Option) + drag a line (Ableton: hold Alt or Option and drag a line between two breakpoints to curve it):
+     up bows the line upward, down bows it downward, further bows it more. pa, pb: the ends' places (0 to 1); dy:
+     how far the pointer went (screen pixels, up is negative); h: the lane's drawing height.
+     -> { shape, bend } in the Curves pop-up's own terms, or null for a straight line (or a flat one, which can't bow). */
+  function bendFrom(pa, pb, dy, h) {
+    if (pa == null || pb == null || Math.abs(pb - pa) < 1e-6 || Math.abs(dy) < 4) return null;
+    const bend = Math.max(1, Math.min(100, Math.round((Math.abs(dy) / Math.max(10, h || 40)) * 150)));
+    const up = dy < 0;
+    /* A rising line bows up by leaving fast (Fast start) and down by leaving slowly; a falling line the other way. */
+    const shape = (pb > pa) === up ? "fastStart" : "slowStart";
+    return { shape, bend };
+  }
+  /* Simplify (Ableton's Simplify Envelope): take out the nodes of lane lk that change nothing, the ones the line
+     from their neighbours already passes through at every moment. -> { cmds, removed } */
+  function simplifyCommands(st, lk, keep) {
+    const lane = st.lanes[lk];
+    if (!lane) return { cmds: [], removed: 0 };
+    const bar = lk.indexOf("|");
+    const cur = lk.slice(bar + 1);
+    const ix = {};
+    st.rows.forEach((r, i) => (ix[r.id] = i));
+    const want = laneSeries(st, lane, cur).map(String);
+    const pts = Object.assign({}, lane.points);
+    const order = Object.keys(pts).filter((r) => ix[r] != null).sort((a, b) => ix[a] - ix[b]);
+    const gone = [];
+    order.slice(1, -1).forEach((r) => {
+      if (keep && keep.includes(r)) return;
+      const trial = Object.assign({}, pts);
+      delete trial[r];
+      const got = laneSeries(st, { mode: lane.mode, points: trial }, cur).map(String);
+      if (got.every((v, i) => v === want[i])) {
+        delete pts[r];
+        gone.push(r);
+      }
+    });
+    const linked = new Set();
+    st.links.forEach((l) => l.scope && [[l.from, l.scope.from], [l.to, l.scope.to]].forEach(([e, r]) => e.track + "|" + e.curiosity === lk && linked.add(r)));
+    const cmds = gone.filter((r) => !linked.has(r)).map((r) => ({ type: "removePoint", row: r, track: lk.slice(0, bar), curiosity: cur }));
+    return { cmds, removed: cmds.length };
+  }
+  /* The ease words CapCut uses, mapped onto the Curves pop-up's shapes (Ease in starts gently, Ease out settles). */
+  const EASES = { easeIn: ["Ease in", "slowStart"], easeOut: ["Ease out", "fastStart"], easeBoth: ["Ease in and out", "smooth"] };
+  /* Its own few styles (hollow Ableton nodes, the line thickening under the pointer, the master lane's switches),
+     put in by this file so the timeline keeps them wherever it is mounted. */
+  if (typeof document !== "undefined" && !document.getElementById("sl-ableton-css")) {
+    const css = document.createElement("style");
+    css.id = "sl-ableton-css";
+    const curveCursor = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cpath d='M3 18 C 7 4, 15 4, 19 18' fill='none' stroke='white' stroke-width='3.5'/%3E%3Cpath d='M3 18 C 7 4, 15 4, 19 18' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E\") 11 11, ns-resize";
+    css.textContent = [
+      ".sl-svg .sl-node { fill: #0f0f10; stroke: var(--cc-accent, #22d3ee); stroke-width: 1.6; }",
+      ".sl-svg .sl-node.on, .sl-svg .sl-node.in { fill: var(--cc-accent, #22d3ee); }",
+      ".sl-svg .sl-node.on { stroke: #fff; }",
+      ".sl-svg .sl-node.sl-cpt { fill: var(--cc-accent, #22d3ee); stroke: none; }",
+      ".sl-svg .sl-auto { stroke-width: 1.4; }",
+      ".sl-svg .sl-seghit { cursor: ns-resize; }",
+      ".sl-svg .sl-seghit:hover, .sl-svg .sl-seghit.on { stroke: rgba(34, 211, 238, 0.12); }",
+      ".sl-svg .sl-segline { fill: none; stroke: transparent; stroke-width: 3; pointer-events: none; }",
+      ".sl-svg .sl-seghit:hover + .sl-segline, .sl-svg .sl-seghit.on + .sl-segline { stroke: var(--cc-accent, #22d3ee); }",
+      `.sl-svg.sl-alt .sl-seghit { cursor: ${curveCursor}; }`,
+      ".sl-svg .sl-segghost { fill: none; stroke: var(--cc-warm, #ffb347); stroke-width: 2; stroke-dasharray: 5 3; pointer-events: none; }",
+      ".sl-svg .sl-hoverval { font-size: 10px; fill: var(--cc-text, #eee); paint-order: stroke; stroke: #0f0f10; stroke-width: 3px; pointer-events: none; }",
+      ".sl-svg .sl-subdot { fill: var(--cc-dim, #999); }",
+      ".sl-svg .sl-ckey { fill: #dfe9f0; stroke: #0f0f10; stroke-width: 0.8; cursor: ew-resize; }",
+      ".sl-svg .sl-ckey.on { fill: var(--cc-warm, #ffb347); stroke: #fff; }",
+      ".sl-svg .sl-ckey.drag { fill: var(--cc-accent, #22d3ee); }",
+      ".sc-page .sl-hb.sl-hb-switch, .sl-hb.sl-hb-switch { width: auto !important; min-width: 26px !important; padding: 0 4px !important; opacity: 1 !important; border: 1px solid var(--cc-accent, #22d3ee); color: var(--cc-accent, #22d3ee); border-radius: 8px; font-size: 9px; }",
+      ".sc-page .sl-hb.sl-hb-switch.on, .sl-hb.sl-hb-switch.on { background: none !important; border-color: var(--cc-dim, #777); color: var(--cc-dim, #777); }",
+      ".sl-hb.sl-hb-switch:disabled { opacity: 0.45 !important; }",
+      ".sc-page .sl-subtab, .sl-subtab { background: none; border: 0; box-shadow: none; padding: 0 3px 0 0; font-size: 10px; line-height: 12px; min-height: 0 !important; color: var(--cc-accent, #22d3ee); cursor: pointer; }",
+      ".sl-sub.sl-sub-flex { display: flex; align-items: center; gap: 2px; min-width: 0; }",
+      ".sl-sub.sl-sub-flex > .sl-subtab { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }",
+      ".sl-sub.sl-sub-flex > .sl-subrest { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }",
+      ".sl-mset { display: inline-flex; flex: none; gap: 0; margin-right: 3px; vertical-align: top; }",
+      ".sc-page .sl-mset button, .sl-mset button { background: none; box-shadow: none; border: 1px solid #3a3a42; padding: 0 2px; font-size: 10px; line-height: 11px; min-height: 0 !important; color: var(--cc-dim, #999); border-radius: 0; }",
+      ".sl-mset button.on { color: #0f0f10 !important; background: var(--cc-accent, #22d3ee) !important; border-color: var(--cc-accent, #22d3ee); }",
+      ".sl-head.sl-sublane { padding-left: 18px; border-left: 2px solid var(--cc-accent, #22d3ee); }",
+      ".sl-head.sl-sublane .sl-name { font-weight: 400; }",
+      ".sl-head > .sl-level { grid-column: 1 / -1; }",
+      ".sl-level { position: relative; height: 4px; margin: 2px 2px 1px; border-radius: 2px; background: #2a2a31; cursor: ew-resize; touch-action: none; }",
+      ".sl-level > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--cc-accent, #22d3ee); opacity: 0.75; pointer-events: none; }",
+      ".sl-level.low > i { background: var(--cc-warm, #ffb347); }",
+      ".sl-level > b { position: absolute; right: 0; top: -9px; font-size: 8px; font-weight: 600; line-height: 9px; color: var(--cc-warm, #ffb347); pointer-events: none; }",
+      ".sl-level:focus-visible { outline: 2px solid var(--cc-accent, #22d3ee); outline-offset: 1px; }",
+      ".sl-svg .sl-auto.sl-low { stroke-dasharray: 5 4; opacity: 0.45; }",
+      ".sl-svg .sl-node.sl-low { opacity: 0.45; }",
+      ".sl-mhead { box-sizing: border-box; display: flex; align-items: center; gap: 2px; padding: 0 6px 0 2px; border-bottom: 1px solid var(--cc-line, #2a2a31); background: #17171c; font-size: 10px; overflow: hidden; }",
+      ".sl-mhead.on { background: #13353b; box-shadow: inset 3px 0 0 var(--cc-accent, #22d3ee); }",
+      ".sc-page .sl-mhead button, .sl-mhead button { background: none; border: 0; box-shadow: none; padding: 0 2px; min-height: 0 !important; font-size: 10px; line-height: 12px; color: var(--cc-text, #eee); cursor: pointer; }",
+      ".sl-mhead .sl-mname { flex: 1 1 auto; min-width: 0; text-align: left; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }",
+      ".sl-mhead.on .sl-mname { color: var(--cc-accent, #22d3ee); }",
+      ".sl-mhead .sl-mfold { color: var(--cc-dim, #999) !important; width: 14px; }",
+      ".sl-mcount { flex: none; color: var(--cc-dim, #999); font-size: 9px; }",
+      ".sl-svg .sl-mbg { fill: #141418; }",
+      ".sl-svg .sl-mbg.odd { fill: #17171c; }",
+      ".sl-svg .sl-mbg.on { fill: #10292e; }",
+      ".sl-svg .sl-mtick { stroke: var(--cc-dim, #999); stroke-width: 1; opacity: 0.35; pointer-events: none; }",
+      ".sl-svg .sl-mline { stroke: var(--cc-warm, #ffb347); stroke-width: 2; pointer-events: none; }",
+      ".sl-svg .sl-mline.src { stroke-dasharray: 4 3; opacity: 0.7; }",
+      ".sl-svg .sl-mline.gated { stroke-dasharray: 2 4; opacity: 0.35; }",
+      ".sl-svg .sl-mhit { fill: transparent; cursor: ns-resize; }",
+      ".sl-svg .sl-mhit:hover { fill: rgba(255, 179, 71, 0.08); }",
+      ".sl-svg .sl-mnode { fill: var(--cc-warm, #ffb347); stroke: #0f0f10; stroke-width: 1; cursor: ew-resize; }",
+      ".sl-svg .sl-mnode.off { fill: #55555f; }",
+      ".sl-svg .sl-mnode.on, .sl-svg .sl-msrc.on { stroke: #fff; stroke-width: 2; }",
+      ".sl-svg .sl-mnode.in { stroke: var(--cc-accent, #22d3ee); stroke-width: 2; }",
+      ".sl-svg .sl-msrc { fill: #0f0f10; stroke: var(--cc-warm, #ffb347); stroke-width: 1.5; cursor: pointer; }",
+      ".sl-svg .sl-msrc.off { stroke: #55555f; }",
+      ".sl-svg .sl-mtag { font-size: 8px; fill: var(--cc-warm, #ffb347); pointer-events: none; }",
+      ".sl-svg .sl-mtrig { fill: none; stroke: #b197fc; stroke-width: 1.4; opacity: 0.85; pointer-events: none; }",
+      ".sl-svg .sl-mtrigtag { fill: #b197fc; }",
+      /* The status line sits in the gap under the lanes (out of the flow, so the lanes keep their room). */
+      ".sl { position: relative; }",
+      ".sl-selstat { position: absolute; left: 0; right: 0; top: 100%; margin: 0; height: 11px; pointer-events: none; font-size: 9.5px; line-height: 11px; color: var(--cc-dim, #aaa); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }",
+      ".sl-mwin { position: fixed; right: 16px; top: 72px; z-index: 60; width: min(460px, calc(100vw - 32px)); max-height: calc(100vh - 100px); overflow: auto; background: var(--cc-raised, #1e1e24); color: var(--cc-text, #eee); border: 1px solid var(--cc-line, #333); border-radius: 10px; padding: 10px 12px; font-size: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55); display: grid; gap: 6px; }",
+      ".sl-mwin-h { display: flex; justify-content: space-between; align-items: center; }",
+      ".sl-mwin-sw { display: flex; gap: 6px; align-items: flex-start; }",
+      ".sl-mwin-m { border-top: 1px solid var(--cc-line, #333); padding-top: 6px; display: grid; gap: 4px; }",
+      ".sl-mwin-m p { margin: 0; }",
+      ".sl-mwin-m ul { margin: 0; padding-left: 14px; display: grid; gap: 4px; }",
+      ".sl-mwin-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }",
+      ".sl-mwin button.on, .sl-mgates button.on { background: var(--cc-accent, #22d3ee); color: #0f0f10; }",
+      ".sl-mgates { display: inline-flex; flex-wrap: wrap; gap: 2px; }",
+      ".sl-mgates button { min-width: 22px; padding: 0 3px; font-size: 10px; }",
+    ].join("\n");
+    document.head.appendChild(css);
+  }
+
   /* ---------- the view ---------- */
+  /* Storyboard frames for My film's clip track, as data pictures (each frame stays self-contained, so its arrow
+     ids never clash with the page's). Cached by the frame's own text so redraws stay fast. */
+  const THUMB_MIN = 40;
+  const FRAME_AR = 16 / 9;
+  const uris = new Map();
+  function frameUri(svg) {
+    let u = uris.get(svg);
+    if (!u) {
+      if (uris.size > 600) uris.clear();
+      u = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(/xmlns=/.test(svg) ? svg : svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"'));
+      uris.set(svg, u);
+    }
+    return u;
+  }
+  let mounts = 0;
   function mount(el, opts) {
     opts = opts || {};
     let sel = null; /* selected node key */
     let area = null; /* a selected area: lanes i0 to i1, moments j0 to j1 */
     let seg = null; /* a picked line between two nodes: "track|curiosity|rowA|rowB" */
     let drag = null;
+    let ckSel = null; /* a picked keyframe diamond on a curiosity's lane (CapCut's clip keyframe): { cur, j } */
+    let ckDrag = null;
     let msg = "";
     let geo = null;
     let laneTop = 0;
 
     function lanesNow(st) {
-      return (opts.lanes ? opts.lanes() : []).map((ln) => {
+      const base = (opts.lanes ? opts.lanes() : []).map((ln) => {
         const track = ln.track && st.tracks.some((t) => t.id === ln.track && t.curiosities.includes(ln.cur)) ? ln.track : (st.tracks.find((t) => t.curiosities.includes(ln.cur)) || {}).id || null;
         return Object.assign({}, ln, { track, lk: track ? track + "|" + ln.cur : null });
       });
+      /* Each master lane's automation group: its window's settings as sub-lanes right under it, when unfolded.
+         A sub-lane sits on its master's track (host) once it has nodes; a setting already shown as a lane of its
+         own is not shown twice. */
+      const out = [];
+      const shown = new Set(base.map((ln) => ln.cur));
+      base.forEach((ln) => {
+        out.push(ln);
+        if (ln.sub || String(ln.cur).indexOf(".") >= 0) return;
+        let subs = [];
+        try {
+          subs = automationGroup(ln.cur).filter((x) => !shown.has(x.key));
+        } catch (e) {
+          subs = [];
+        }
+        if (!subs.length) return;
+        const rows = subs.map((x) => {
+          const on = st.tracks.filter((t) => t.curiosities.includes(x.key));
+          const t = (ln.track && on.find((y) => y.id === ln.track)) || (ln.trackLabel ? null : on[0]) || null;
+          return { cur: x.key, label: x.label, sub: true, parent: ln.cur, host: ln.track, trackLabel: ln.trackLabel, track: t ? t.id : null, lk: t ? t.id + "|" + x.key : null };
+        });
+        ln.subCount = rows.length;
+        ln.subOpen = !!tools.subs[ln.cur];
+        ln.subRows = rows;
+        if (ln.subOpen) rows.forEach((r) => out.push(r));
+      });
+      return out;
     }
+    /* Where lane i starts, top to bottom: group headers sit between the groups, so lanes are not simply i * lh. */
+    let yTops = [];
+    const rowTop = (i) => laneTop + (yTops[i] != null ? yTops[i] : i * lh);
     function yFor(cur, v, i) {
       const p = S().pos(cur, v);
-      const top = laneTop + i * lh;
+      const top = rowTop(i);
       return top + PAD + (1 - (p == null ? 0.5 : p)) * (lh - PAD * 2);
     }
     /* Curves between two nodes, drawn from the curve's own shape (what plays is its value at each moment). */
@@ -471,7 +2076,7 @@
       const pb = S().pos(cur, b.v);
       const x0 = a.j * colW + colW / 2;
       const x1 = b.j * colW + colW / 2;
-      const top = laneTop + i * lh;
+      const top = rowTop(i);
       const out = [];
       for (let k = 1; k <= 32; k++) {
         const t = k / 32;
@@ -484,14 +2089,742 @@
     const laneH = () => Math.max(28, Math.min(320, Number(tools.laneH) || LANE_H));
     const zoomOf = () => Math.max(0.25, Math.min(32, Number(tools.zoom) || 1));
     let lh = LANE_H;
+    const hatchId = "sl-hatch-" + ++mounts;
+    /* The lane head's small buttons: the ON/OFF switch (always showing), Solo (S) and Lock (🔒). Off and Solo need an engine lane (a lane
+       with nodes); Lock needs the lane to be on a track. They show on hover or focus, and always when in use. */
+    /* The level bar under a lane's name (the music app's notes, section 3): 100% plays the lane as drawn, 0% plays
+       its neutral value (the curiosity's starting value), in between that share of its distance from neutral.
+       Drag along it (one undo step when you let go), or use the arrow keys on it; a double-click puts it back to
+       100%. It needs an engine lane (a lane with nodes). The engine plays it (CurioEngine levelled). */
+    function levelBar(ln, lane) {
+      if (!ln.lk || !lane) return "";
+      const pct = Math.round((lane.level == null ? 1 : lane.level) * 100);
+      const name = esc(lkName(ln.lk));
+      return `<div class="sl-level${pct < 100 ? " low" : ""}" data-lane-level="${esc(ln.lk)}" role="slider" tabindex="0" aria-label="${name}: level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-valuetext="${pct}%" title="Level ${pct}%: ${pct === 100 ? "plays as drawn" : pct === 0 ? "off, plays its neutral value" : `plays ${pct}% of the way from its neutral value to the drawing`}. Drag along the bar, or use ← →; double-click for 100%."><i style="width:${pct}%"></i>${pct < 100 ? `<b>${pct}%</b>` : ""}</div>`;
+    }
+    function headBtns(ln, lane, off, solo, lock) {
+      if (!ln.lk) return "";
+      const name = esc(S().label(ln.cur) + (ln.trackLabel ? " · " + ln.trackLabel : ""));
+      const lk = esc(ln.lk);
+      const b = (act, on, cls, label, title, aria) => `<button type="button" class="sl-hb ${cls}${on ? " on" : ""}" data-act="${act}" data-lk="${lk}" aria-pressed="${on}" title="${title}" aria-label="${aria}">${label}</button>`;
+      return `<span class="sl-hbtns">${
+        lane
+          ? b("lane-off", off, "sl-hb-off sl-hb-switch", off ? "OFF" : "ON", off ? `${name}'s automation is off: it isn't changing the film. Click to turn it back on.` : `Turn ${name}'s automation off: it stops changing the film (its nodes stay, drawn faded). Click again to turn it back on.`, `${name}: automation off`) +
+            b("lane-solo", solo, "sl-hb-solo", "S", solo ? `Solo: only ${name}'s automation is playing. Click to bring the other lanes back the way they were.` : `Solo: play only ${name}'s automation and turn every other lane off for now. Click again to bring them back.`, `${name}: solo`)
+          : `<button type="button" class="sl-hb sl-hb-switch" disabled title="${name} is on, but has no nodes yet: click its line area to add one, then this switch turns its automation off and on." aria-label="${name}: on (no nodes yet)">ON</button>`
+      }${b("lane-lock", lock, "sl-hb-lock", "🔒", lock ? `Locked: ${name}'s nodes can't be added, moved or removed on the timeline. Click to unlock.` : `Lock ${name} so its nodes can't be added, moved or removed here by mistake. Click again to unlock.`, `${name}: lock`)}</span>`;
+    }
+    /* ---------- track master lanes and master nodes (screen/masters.js has the rules; the music app's notes,
+       sections 3 to 6; /mnt/project-files/decisions/music-app-parity.md) ----------
+       One master lane per track, in a band under the lanes (shown for tracks with master nodes, lit or folded
+       tracks, or every track with Tracks on in the Master Nodes window): the track's name (click selects it; ⌘/Ctrl adds or takes away;
+       ⇧ selects a run), ▸/▾ folding every lane on that track (folded: faint ticks wherever the track holds
+       automation), and the track's master nodes: ◆ START, a line, ◆ END over each placed copy, and the source ◇
+       where it was copied from. */
+    const M = () => root.CurioMasters;
+    let selTracks = []; /* lit tracks, in film order: the targets of a multi-track paste */
+    let mSel = null; /* the picked master node: a node id, or "src:" + master id for a source ◇ */
+    let mDrag = null;
+    let mPress = null;
+    if (!tools.trackFolds || typeof tools.trackFolds !== "object") tools.trackFolds = {};
+    const mrowH = () => (groupH() === GROUP_H_TOUCH ? 32 : 20);
+    const mastersOf = (st) => (st && st.masters && Array.isArray(st.masters.list) ? st.masters.list : []);
+    /* "src:M1" -> { m, src: true }; a node id -> { m, node }; or null. */
+    function mFind(st, id) {
+      if (!id) return null;
+      for (const m of mastersOf(st)) {
+        if (id === "src:" + m.id) return { m, src: true };
+        const node = (m.nodes || []).find((x) => x.id === id);
+        if (node) return { m, node };
+      }
+      return null;
+    }
+    function mSpanOf(st, f) {
+      const ix = st.rows.map((r) => r.id);
+      if (f.src) {
+        const a = ix.indexOf(f.m.src.t0);
+        const b = ix.indexOf(f.m.src.t1);
+        return a < 0 ? null : [a, b < a ? Math.min(st.rows.length - 1, a + f.m.span - 1) : b];
+      }
+      const j0 = ix.indexOf(f.node.t);
+      return j0 < 0 ? null : [j0, Math.min(st.rows.length - 1, j0 + f.m.span - 1)];
+    }
+    const mName = (st, f) => {
+      if (!f) return "";
+      const tr = (id) => ((st.tracks.find((t) => t.id === id) || {}).label || id);
+      const sp = mSpanOf(st, f);
+      const where = sp ? `moments ${sp[0] + 1} to ${sp[1] + 1}` : "";
+      return f.src ? `${f.m.label}'s source ◇ (${(f.m.src.tracks || []).map(tr).join(", ") || "copied"}${where ? ", " + where : ""})` : `${f.m.label} ◆ on ${tr(f.node.track)}${where ? ", " + where : ""}`;
+    };
+    /* Change the masters as one undo step: fn(next) edits a copy; plan() puts back and rewrites what it touches. */
+    function masterChange(label, fn, extra) {
+      const Mx = M();
+      if (!Mx) return { ok: false };
+      const st = E().state();
+      const next = JSON.parse(JSON.stringify(st.masters || { list: [], seq: 0 }));
+      const why = fn(next, st);
+      if (typeof why === "string") return say(why), { ok: false, error: why };
+      const p = Mx.plan(st, next, { locked: isLocked });
+      if (p.error === "locked") return say(lockSay(p.lk)), { ok: false, locked: true };
+      const n0 = drawN;
+      const r = send({ type: "batch", label, commands: (extra || []).concat(p.cmds) });
+      r.drawn = drawN !== n0;
+      return r;
+    }
+    /* What a gesture changes: the source ◇ changes its master (every destination without its own setting); a ◆
+       changes only itself (its own setting). */
+    function mTarget(next, id) {
+      const f = mFind({ masters: next }, id);
+      if (!f) return null;
+      return f.src ? f.m : f.node;
+    }
+    function mEff(st, id) {
+      const f = mFind(st, id);
+      if (!f) return null;
+      return f.src ? M().effective(f.m, null) : M().effective(f.m, f.node);
+    }
+    function mToggle(id) {
+      const st = E().state();
+      const f = mFind(st, id);
+      if (!f) return;
+      const on = !mEff(st, id).on;
+      const r = masterChange(`Switch ${f.m.label} ${on ? "on" : "off"}`, (next) => {
+        mTarget(next, id).on = on;
+      });
+      if (!r.drawn) draw();
+      if (r.ok) say(`${mName(E().state(), mFind(E().state(), id))} is ${on ? "on" : "off: what was there before plays again"}.${f.src ? " Every destination ◆ without its own setting follows." : ""} Undo (⌘Z) puts it back.`);
+      return r;
+    }
+    function mGate(id, k) {
+      const st = E().state();
+      const f = mFind(st, id);
+      if (!f) return;
+      const g = Object.assign({}, mEff(st, id).gate || {});
+      const opening = g[k] === 0;
+      if (opening) delete g[k];
+      else g[k] = 0;
+      const sp = mSpanOf(st, f);
+      const r = masterChange(`Gate moment ${(sp ? sp[0] : 0) + k + 1} of ${f.m.label}`, (next) => {
+        mTarget(next, id).gate = g;
+      });
+      if (!r.drawn) draw();
+      if (r.ok) say(`Moment ${(sp ? sp[0] : 0) + k + 1} of ${f.m.label} ${opening ? "plays the suite again" : "is gated: what was there before plays there"}. Click it again to ${opening ? "gate" : "open"} it.`);
+      return r;
+    }
+    function mScale(id, s) {
+      const st = E().state();
+      const f = mFind(st, id);
+      if (!f) return;
+      s = Math.max(0, Math.min(100, Math.round(Number(s) || 0)));
+      const r = masterChange(`Scale ${f.m.label} to ${s}%`, (next) => {
+        mTarget(next, id).scale = s;
+      });
+      if (!r.drawn) draw();
+      if (r.ok) say(`${f.m.label} scaled to ${s}%${s <= 0 ? " (off: what was there before plays)" : s >= 100 ? " (as copied)" : ""}.`);
+      return r;
+    }
+    function mLfo(id, every) {
+      const st = E().state();
+      const f = mFind(st, id);
+      if (!f) return;
+      every = M().LFOS.includes(Number(every)) ? Number(every) : 0;
+      const r = masterChange(every ? `${f.m.label}: switch every ${every} moment${every === 1 ? "" : "s"}` : `${f.m.label}: LFO off`, (next) => {
+        mTarget(next, id).lfo = every;
+      });
+      if (!r.drawn) draw();
+      if (r.ok) say(every ? `${f.m.label} now switches on and off every ${every} moment${every === 1 ? "" : "s"}.` : `${f.m.label} no longer switches on and off by itself.`);
+      return r;
+    }
+    function mMove(id, dj) {
+      const st = E().state();
+      const f = mFind(st, id);
+      if (!f || f.src) return;
+      const sp = mSpanOf(st, f);
+      const to = Math.max(0, Math.min(st.rows.length - 1 - (sp[1] - sp[0]), sp[0] + dj));
+      if (to === sp[0]) return draw();
+      const r = masterChange(`Move ${f.m.label}`, (next) => {
+        mTarget(next, id).t = st.rows[to].id;
+      });
+      if (!r.drawn) draw();
+      if (r.ok) say(`Moved ${f.m.label} to moments ${to + 1} to ${to + 1 + sp[1] - sp[0]}; the old place is back as it was.`);
+      return r;
+    }
+    function mRemove(id) {
+      const st = E().state();
+      const f = mFind(st, id);
+      if (!f) return;
+      const r = masterChange(f.src ? `Remove ${f.m.label}` : `Remove a ${f.m.label} ◆`, (next) => {
+        const m = next.list.find((x) => x.id === f.m.id);
+        if (f.src) next.list = next.list.filter((x) => x !== m);
+        else {
+          m.nodes = m.nodes.filter((x) => x.id !== id);
+          if (!m.nodes.length) next.list = next.list.filter((x) => x !== m);
+        }
+      });
+      if (r.ok && mSel === id) mSel = null;
+      if (!r.drawn) draw();
+      if (r.ok) say(`${f.src ? `Removed ${f.m.label} and every copy of it` : `Removed that ${f.m.label} ◆`}; what was there before is back exactly. Undo (⌘Z) brings it back.`);
+      return r;
+    }
+    /* Master nodes inside a selection: on a selected track's master lane and over its moments. */
+    function mInArea(st, ar) {
+      if (!ar || ar.m0 == null || !M()) return [];
+      const tracks = ar.mtracks || [];
+      return M()
+        .placed(st, st.masters)
+        .filter((p) => tracks.includes(p.node.track) && p.j0 <= ar.j1 && p.j1 >= ar.j0)
+        .map((p) => p.node.id);
+    }
+    /* Joined partners (proximities) of the nodes inside a selection that sit outside it: they come along when
+       copying, moving or removing it (the music app: "two nodes the user joined count as one"). */
+    function extrasOf(st, ar) {
+      if (!ar || ar.i0 < 0) return [];
+      const inside = new Set();
+      const ix = {};
+      st.rows.forEach((r, j) => (ix[r.id] = j));
+      for (let i = ar.i0; i <= ar.i1; i++) {
+        const ln = geo && geo.lanes[i];
+        const lane = ln && ln.lk && !isLocked(ln.lk) && st.lanes[ln.lk];
+        if (!lane) continue;
+        for (let j = ar.j0; j <= ar.j1; j++) if (lane.points[st.rows[j].id] != null) inside.add(nodeKey(st.rows[j].id, ln.lk));
+      }
+      if (!tools.linkage || !inside.size) return [];
+      const out = new Set();
+      inside.forEach((k) => group(k, st, kindOk).nodes.forEach((x) => !inside.has(x) && !isLocked(split(x).lk) && st.lanes[split(x).lk] && st.lanes[split(x).lk].points[split(x).row] != null && out.add(x)));
+      return [...out];
+    }
+    /* The status line: what is selected, how many nodes, and where a copy starts and a paste lands. */
+    function selSummary(st) {
+      const playRow = opts.row ? opts.row() : 0;
+      const lands = selTracks.length ? `a paste goes onto the lit track${selTracks.length === 1 ? "" : "s"} at moment ${playRow + 1}` : `a paste lands at moment ${area && clip && clip.kind === "area" ? area.j0 + 1 : playRow + 1}${clip && clip.kind === "area" && area ? " (into the selection)" : " (the playhead)"}`;
+      const parts = [];
+      if (area) {
+        let nodes = 0;
+        for (let i = Math.max(0, area.i0); area.i0 >= 0 && i <= area.i1; i++) {
+          const ln = geo.lanes[i];
+          const lane = ln && ln.lk && st.lanes[ln.lk];
+          if (lane) for (let j = area.j0; j <= area.j1; j++) if (st.rows[j] && lane.points[st.rows[j].id] != null) nodes++;
+        }
+        const lanesN = area.i0 < 0 ? 0 : area.i1 - area.i0 + 1;
+        const ex = (area.extra || []).length;
+        const mn = mInArea(st, area).length;
+        const tr = area.m0 == null ? 0 : area.m1 - area.m0 + 1;
+        parts.push(`Selected: moments ${area.j0 + 1} to ${area.j1 + 1}${lanesN ? ` on ${lanesN} lane${lanesN === 1 ? "" : "s"}` : ""}${tr ? `${lanesN ? " and" : " on"} ${tr} master lane${tr === 1 ? "" : "s"}` : ""} · ${nodes + ex} node${nodes + ex === 1 ? "" : "s"}${ex ? ` (${ex} joined partner${ex === 1 ? "" : "s"} outside the box)` : ""}${mn ? ` · ${mn} master node${mn === 1 ? "" : "s"}` : ""} · a copy starts at moment ${area.j0 + 1}`);
+      } else if (sel) {
+        const n = split(sel);
+        const j = st.rows.findIndex((r) => r.id === n.row);
+        const g = tools.linkage ? group(sel, st, kindOk).nodes.length - 1 : 0;
+        parts.push(`Picked: ${lkName(n.lk)} at moment ${j + 1}${g ? ` with ${g} joined node${g === 1 ? "" : "s"}` : ""}`);
+      } else if (mSel && mFind(st, mSel)) parts.push(`Picked: ${mName(st, mFind(st, mSel))}`);
+      if (selTracks.length) parts.push(`Tracks lit: ${selTracks.map((id) => (st.tracks.find((t) => t.id === id) || {}).label || id).join(", ")}`);
+      if (!parts.length) parts.push("Nothing selected");
+      return parts.join(" · ") + " · " + lands + ".";
+    }
+    function paintSelStat() {
+      const s = el.querySelector(".sl-selstat");
+      if (s && geo) s.textContent = selSummary(geo.st);
+    }
+    /* The master lanes' rows: [{ track, y }] in film order, and their total height. */
+    /* Which tracks get a master lane: every track with Tracks on (tools.allTracks, the toolbar's Tracks button);
+       otherwise only the tracks that hold master nodes (or a source ◇), are lit or are folded, so the Screen's short
+       timeline keeps its room for lanes until there is something to show. */
+    function bandOf(st, shown) {
+      if (!M() || !st.tracks.length) return { rows: [], h: 0, mh: mrowH() };
+      const mh = mrowH();
+      const want = new Set();
+      if (!tools.allTracks) {
+        mastersOf(st).forEach((m) => ((m.src.tracks || []).forEach((t) => want.add(t)), (m.nodes || []).forEach((x) => want.add(x.track))));
+        selTracks.forEach((t) => want.add(t));
+        Object.keys(tools.trackFolds).forEach((t) => want.add(t));
+      }
+      const list = st.tracks.filter((t) => tools.allTracks || want.has(t.id));
+      return { rows: list.map((t, k) => ({ track: t, y: k * mh })), h: list.length * mh, mh, top: 0, all: !!tools.allTracks, hidden: st.tracks.length - list.length };
+    }
+    const diamond = (cx, cy, r) => `M${cx} ${cy - r} L${cx + r} ${cy} L${cx} ${cy + r} L${cx - r} ${cy} Z`;
+    /* The heads and the picture of the master lanes. */
+    function drawBand(st, band, colW, svgW, svg, dots) {
+      if (!band.rows.length) return "";
+      const Mx = M();
+      const all = Mx.placed(st, st.masters);
+      const ix = {};
+      st.rows.forEach((r, j) => (ix[r.id] = j));
+      const heads = band.rows
+        .map(({ track: t }) => {
+          const folded = !!tools.trackFolds[t.id];
+          const lit = selTracks.includes(t.id);
+          const lanesOn = Object.keys(st.lanes).filter((lk) => lk.startsWith(t.id + "|")).length;
+          const mn = all.filter((p) => p.node.track === t.id).length;
+          return `<div class="sl-mhead${lit ? " on" : ""}${folded ? " is-folded" : ""}" style="height:${band.mh}px" data-mtrack-row="${esc(t.id)}"><button type="button" class="sl-mfold" data-act="mfold" data-track="${esc(t.id)}" aria-expanded="${!folded}" title="${folded ? `Open ${esc(t.label)}: show its lanes again` : `Fold every lane on ${esc(t.label)}; its master lane then shows faint ticks where it holds automation`}">${folded ? "▸" : "▾"}</button><button type="button" class="sl-mname" data-act="mtrack" data-track="${esc(t.id)}" aria-pressed="${lit}" title="${esc(t.label)}: its master lane. Click to select this track, ⌘/Ctrl-click to add or take it away, ⇧-click for a run. Lit tracks are where a paste goes when several are lit.">${esc(t.label)}</button><span class="sl-mcount" aria-hidden="true">${lanesOn ? lanesOn + "≋" : ""}${mn ? " " + mn + "◆" : ""}</span></div>`;
+        })
+        .join("");
+      band.rows.forEach(({ track: t, y }, k) => {
+        const lit = selTracks.includes(t.id);
+        svg.push(`<rect class="sl-mbg${k % 2 ? " odd" : ""}${lit ? " on" : ""}" x="0" y="${y}" width="${svgW}" height="${band.mh}" data-mrow="${k}"/>`);
+        if (tools.trackFolds[t.id]) {
+          /* Folded: faint ticks wherever the track holds automation. */
+          st.rows.forEach((r, j) => {
+            const any = Object.keys(st.lanes).some((lk) => lk.startsWith(t.id + "|") && st.lanes[lk].points[r.id] != null);
+            if (any) svg.push(`<line class="sl-mtick" x1="${j * colW + colW / 2}" x2="${j * colW + colW / 2}" y1="${y + 3}" y2="${y + band.mh - 3}"/>`);
+          });
+        }
+      });
+      const rowY = {};
+      band.rows.forEach(({ track: t, y }) => (rowY[t.id] = y));
+      const yOf = (y, scale) => y + 4 + (1 - Mx.amountOf(scale)) * (band.mh - 8);
+      /* The source ◇ of each master, on each track it was copied from. */
+      mastersOf(st).forEach((m) => {
+        const a = ix[m.src.t0];
+        if (a == null) return;
+        const b = ix[m.src.t1] != null && ix[m.src.t1] >= a ? ix[m.src.t1] : Math.min(st.rows.length - 1, a + m.span - 1);
+        const eff = Mx.effective(m, null);
+        const id = "src:" + m.id;
+        (m.src.tracks || []).forEach((tid) => {
+          if (rowY[tid] == null) return;
+          const y = rowY[tid];
+          const ly = yOf(y, eff.scale);
+          for (let k = 0; k <= b - a; k++) {
+            const on = Mx.momentOn(eff, k);
+            svg.push(`<line class="sl-mline src${on ? "" : " gated"}" x1="${(a + k) * colW}" x2="${(a + k + 1) * colW}" y1="${ly}" y2="${ly}" data-mown="${esc(id)}"/><rect class="sl-mhit" x="${(a + k) * colW}" y="${y}" width="${colW}" height="${band.mh}" data-mline="${esc(id)}" data-master="${esc(m.id)}" data-k="${k}"><title>${esc(m.label)} (source ◇), moment ${a + k + 1}: ${on ? "plays" : "gated"}. Click to ${on ? "gate" : "open"} this moment for every copy; drag up or down to scale them all.</title></rect>`);
+          }
+          [a * colW + 6, (b + 1) * colW - 6].forEach((cx, e) =>
+            dots.push(`<path class="sl-msrc${eff.on ? "" : " off"}${mSel === id ? " on" : ""}" d="${diamond(cx, y + band.mh / 2, 5)}" data-msrc="${esc(m.id)}" data-master="${esc(m.id)}" data-end="${e}"><title>${esc(m.label)}: the source ◇, where it was copied from. It controls every copy that has no setting of its own. Double-click: on / off; ⌥-click: remove the master and every copy; right-click for more.</title></path>`)
+          );
+        });
+      });
+      /* The destination ◆ of each placed copy. */
+      all.forEach((p) => {
+        const y = rowY[p.node.track];
+        if (y == null) return;
+        const eff = Mx.effective(p.m, p.node);
+        const ly = yOf(y, eff.scale);
+        const id = p.node.id;
+        for (let k = 0; k <= p.j1 - p.j0; k++) {
+          const on = Mx.momentOn(eff, k);
+          svg.push(`<line class="sl-mline${on ? "" : " gated"}" x1="${(p.j0 + k) * colW}" x2="${(p.j0 + k + 1) * colW}" y1="${ly}" y2="${ly}" data-mown="${esc(id)}"/><rect class="sl-mhit" x="${(p.j0 + k) * colW}" y="${y}" width="${colW}" height="${band.mh}" data-mline="${esc(id)}" data-master="${esc(p.m.id)}" data-mnode="${esc(id)}" data-k="${k}"><title>${esc(p.m.label)}, moment ${p.j0 + k + 1}: ${on ? "plays" : "gated (what was there before plays)"}. Click to ${on ? "gate" : "open"} it; drag up or down to scale (${eff.scale > 0 ? "+" : ""}${eff.scale}%).</title></rect>`);
+        }
+        const tag = [eff.on ? "" : "off", eff.lfo ? `LFO ${eff.lfo}` : "", eff.scale !== 100 ? `${eff.scale}%` : ""].filter(Boolean).join(" ");
+        if (tag && (p.j1 - p.j0 + 1) * colW > 60) svg.push(`<text class="sl-mtag" x="${p.j0 * colW + 14}" y="${y + 9}" data-mown="${esc(id)}">${esc(tag)}</text>`);
+        [p.j0 * colW + 6, (p.j1 + 1) * colW - 6].forEach((cx, e) =>
+          dots.push(`<path class="sl-mnode${eff.on ? "" : " off"}${mSel === id ? " on" : ""}${area && mInArea(st, area).includes(id) ? " in" : ""}" d="${diamond(cx, y + band.mh / 2, 5.5)}" data-mnode="${esc(id)}" data-master="${esc(p.m.id)}" data-mown="${esc(id)}" data-end="${e}"><title>${esc(p.m.label)} ${e ? "END" : "START"} ◆, moments ${p.j0 + 1} to ${p.j1 + 1}${tag ? " (" + esc(tag) + ")" : ""}. Drag sideways to move; double-click: on / off; ⌥-click or Delete: remove; right-click for more.</title></path>`)
+        );
+      });
+      /* The Suite / Proximity view: a curved line from each master node to each of its triggers. */
+      if (tools.proxView) proxLines(st, band, colW, rowY, all, svg);
+      return heads;
+    }
+    function proxLines(st, band, colW, rowY, all, svg) {
+      const T = root.CurioTriggers;
+      const of = (id) => {
+        try {
+          return T && typeof T.forTarget === "function" ? T.forTarget(id) || [] : [];
+        } catch (e) {
+          return [];
+        }
+      };
+      const ix = {};
+      st.rows.forEach((r, j) => (ix[r.id] = j));
+      all.forEach((p) => {
+        const y = rowY[p.node.track];
+        if (y == null) return;
+        const x1 = p.j0 * colW + 6;
+        const y1 = y + band.mh / 2;
+        of("mnode:" + p.node.id)
+          .concat(of("master:" + p.m.id))
+          .forEach((tr, k) => {
+            const s = (tr && tr.source) || {};
+            const li = s.lk ? geo.lanes.findIndex((ln) => ln.lk === s.lk) : -1;
+            let x2;
+            let y2;
+            if (li >= 0 && s.row != null && ix[s.row] != null) {
+              x2 = ix[s.row] * colW + colW / 2;
+              y2 = (geo.yTops[li] != null ? geo.yTops[li] : 0) + geo.lh / 2;
+            } else {
+              x2 = Math.max(4, x1 - 60 - k * 14);
+              y2 = y1 + band.mh * 0.4;
+            }
+            const mx = (x1 + x2) / 2;
+            svg.push(`<path class="sl-mtrig" d="M${x1} ${y1} C${mx} ${y1 - 18}, ${mx} ${y2 - 18}, ${x2} ${y2}" data-mtrig="${esc(tr.id || "")}"><title>${esc(p.m.label)} ← trigger: ${esc(tr.label || s.kind || "a trigger")}</title></path>`);
+            if (li < 0) svg.push(`<text class="sl-mtag sl-mtrigtag" x="${x2}" y="${y2 + 9}">${esc(String(tr.label || s.kind || "trigger").slice(0, 18))}</text>`);
+          });
+      });
+    }
+    /* Pointer on a master lane's ◆, ◇ or line. Returns true when it took the press. */
+    function bandDown(e) {
+      const t = e.target.closest && e.target.closest(".sl-svg [data-mnode], .sl-svg [data-msrc], .sl-svg [data-mline]");
+      if (!t || !M()) return false;
+      e.preventDefault();
+      el.focus({ preventScroll: true });
+      const isLine = t.hasAttribute("data-mline");
+      const id = isLine ? t.dataset.mline : t.dataset.mnode || "src:" + t.dataset.msrc;
+      if (!isLine) {
+        if (e.altKey) {
+          mRemove(id);
+          return true;
+        }
+        const now = Date.now();
+        if (mPress && mPress.id === id && now - mPress.t < DBL_MS) {
+          mPress = null;
+          mToggle(id);
+          return true;
+        }
+        mPress = { id, t: now };
+        mDrag = { kind: id.startsWith("src:") ? "pick" : "move", id, x0: e.clientX, y0: e.clientY, moved: false, dj: 0 };
+        return true;
+      }
+      const eff = mEff(E().state(), id);
+      mDrag = { kind: "line", id, k: Number(t.dataset.k) || 0, x0: e.clientX, y0: e.clientY, moved: false, scale0: eff ? eff.scale : 100, scale: eff ? eff.scale : 100 };
+      return true;
+    }
+    function bandMove(e) {
+      const d = mDrag;
+      const dx = e.clientX - d.x0;
+      const dy = e.clientY - d.y0;
+      if (!d.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+      d.moved = true;
+      const svg = el.querySelector(".sl-svg");
+      const own = svg ? [...svg.querySelectorAll(`[data-mown="${CSS.escape(d.id)}"]`)] : [];
+      if (d.kind === "move") {
+        d.dj = Math.round(dx / (geo ? geo.colW : 40));
+        own.forEach((x) => x.setAttribute("transform", `translate(${d.dj * (geo ? geo.colW : 40)} 0)`));
+        say(d.dj ? `Move it ${Math.abs(d.dj)} moment${Math.abs(d.dj) === 1 ? "" : "s"} ${d.dj > 0 ? "later" : "earlier"}; let go to keep it.` : "Drag sideways to move it.");
+      } else if (d.kind === "line") {
+        const mh = mrowH();
+        d.scale = Math.max(0, Math.min(100, Math.round(d.scale0 - (dy / Math.max(8, mh - 8)) * 100)));
+        const shift = ((M().amountOf(d.scale0) - M().amountOf(d.scale)) * (mh - 8)).toFixed(1);
+        own.filter((x) => x.classList.contains("sl-mline")).forEach((x) => x.setAttribute("transform", `translate(0 ${shift})`));
+        say(`Scale ${d.scale}%${d.scale <= 0 ? " (off)" : ""}: let go to keep it.`);
+      }
+    }
+    function bandUp() {
+      const d = mDrag;
+      mDrag = null;
+      if (d.kind === "move" && d.moved && d.dj) return mMove(d.id, d.dj);
+      if (d.kind === "line" && d.moved && Math.abs(d.scale - d.scale0) >= 1) return mScale(d.id, d.scale);
+      if (d.kind === "line" && !d.moved) return mGate(d.id, d.k);
+      mSel = d.id;
+      sel = null;
+      seg = null;
+      draw();
+      say(`${mName(E().state(), mFind(E().state(), d.id))} is picked: ${d.id.startsWith("src:") ? "double-click to switch every copy on or off, ⌥-click to remove the master" : "drag it sideways to move it, double-click for on / off, Delete removes it"}; right-click for more.`);
+    }
+    /* Clicking a track's name: select it (⌘/Ctrl adds or takes away, ⇧ selects a run). */
+    function trackClick(id, e) {
+      const st = E().state();
+      const order = st.tracks.map((t) => t.id);
+      if (e.metaKey || e.ctrlKey) selTracks = selTracks.includes(id) ? selTracks.filter((x) => x !== id) : selTracks.concat(id);
+      else if (e.shiftKey && selTracks.length) {
+        const a = order.indexOf(selTracks[selTracks.length - 1]);
+        const b = order.indexOf(id);
+        const run = order.slice(Math.min(a, b), Math.max(a, b) + 1);
+        selTracks = [...new Set(selTracks.concat(run))];
+      } else selTracks = selTracks.length === 1 && selTracks[0] === id ? [] : [id];
+      selTracks = order.filter((x) => selTracks.includes(x));
+      draw();
+      say(selTracks.length ? `${selTracks.length} track${selTracks.length === 1 ? "" : "s"} lit. ${selTracks.length > 1 ? "Paste (⌘V) puts what you copied onto each of them, asking first: exact values, or up and down from where each one is." : "⌘-click another track's name to light more; ⇧-click for a run."}` : "No tracks lit.");
+    }
+    function trackFold(id) {
+      if (tools.trackFolds[id]) delete tools.trackFolds[id];
+      else tools.trackFolds[id] = true;
+      saveTools();
+      area = null;
+      draw();
+      const t = E().state().tracks.find((x) => x.id === id);
+      say(`${t ? t.label : id}: ${tools.trackFolds[id] ? "folded; faint ticks on its master lane show where it holds automation" : "open"}.`);
+    }
+    /* Right-click on a master lane's ◆, ◇ or line. */
+    function masterMenu(e) {
+      const t = e.target.closest && e.target.closest(".sl-svg [data-mnode], .sl-svg [data-msrc], .sl-svg [data-mline]");
+      if (!t || !M()) return false;
+      e.preventDefault();
+      const id = t.hasAttribute("data-mline") ? t.dataset.mline : t.dataset.mnode || "src:" + t.dataset.msrc;
+      const st = E().state();
+      const f = mFind(st, id);
+      if (!f) return true;
+      const eff = mEff(st, id);
+      mSel = id;
+      const pop = popAt("sl-mmenu sl-mastermenu", "Master node", e.clientX, e.clientY);
+      pop.dataset.masterMenu = "1";
+      pop.dataset.master = f.m.id;
+      if (f.node) pop.dataset.mnode = f.node.id;
+      pop.innerHTML = `<p><strong>${esc(mName(st, f))}</strong></p><div class="sl-pop-btns" style="flex-wrap:wrap;justify-content:flex-start"><button type="button" data-mm="toggle">${eff.on ? "Switch off" : "Switch on"}</button>${M()
+        .LFOS.map((n) => `<button type="button" data-mm="lfo" data-n="${n}" class="${eff.lfo === n ? "on" : ""}" aria-pressed="${eff.lfo === n}">${n ? `LFO ${n}` : "No LFO"}</button>`)
+        .join("")}${[100, 75, 50, 25, 0].map((s) => `<button type="button" data-mm="scale" data-n="${s}" class="${eff.scale === s ? "on" : ""}">${s}%</button>`).join("")}${f.node && (f.node.on != null || f.node.scale != null || f.node.lfo != null || f.node.gate != null) ? `<button type="button" data-mm="inherit" title="Take away this copy's own settings, so its source ◇ controls it again">Follow the source ◇</button>` : ""}<button type="button" data-mm="remove">${f.src ? "Remove the master" : "Remove"}</button><button type="button" data-mm="win">Master Nodes…</button><button type="button" data-mm="close" data-m="close">Close</button></div>`;
+      el.appendChild(pop);
+      pop.addEventListener("click", (ev) => {
+        const b = ev.target.closest("[data-mm]");
+        if (!b) return;
+        const m = b.dataset.mm;
+        pop.remove();
+        if (m === "toggle") mToggle(id);
+        else if (m === "lfo") mLfo(id, Number(b.dataset.n));
+        else if (m === "scale") mScale(id, Number(b.dataset.n));
+        else if (m === "remove") mRemove(id);
+        else if (m === "win") openMasterWin();
+        else if (m === "inherit") {
+          masterChange(`${f.m.label}: follow the source`, (next) => {
+            const n = mTarget(next, id);
+            ["on", "scale", "lfo", "gate"].forEach((k) => delete n[k]);
+          });
+          draw();
+        }
+        el.focus();
+      });
+      const first = pop.querySelector("button");
+      if (first) first.focus();
+      return true;
+    }
+    /* ---------- the Master Nodes window ---------- */
+    let mWin = null;
+    function openMasterWin(want) {
+      if (want === false || (want == null && mWin)) {
+        if (mWin) mWin.remove();
+        mWin = null;
+        return { ok: true, open: false };
+      }
+      if (!mWin) {
+        mWin = document.createElement("div");
+        mWin.className = "sl-mwin";
+        mWin.setAttribute("role", "dialog");
+        mWin.setAttribute("aria-label", "Master Nodes");
+        document.body.appendChild(mWin);
+        mWin.addEventListener("click", onWinClick);
+        mWin.addEventListener("change", onWinChange);
+        mWin.addEventListener("keydown", (e) => e.key === "Escape" && openMasterWin(false));
+      }
+      paintMasterWin();
+      const f = mWin.querySelector("button, input, select");
+      if (f) f.focus();
+      return { ok: true, open: true };
+    }
+    function paintMasterWin() {
+      if (!mWin || !M()) return;
+      const st = E().state();
+      const list = mastersOf(st);
+      const tr = (id) => ((st.tracks.find((t) => t.id === id) || {}).label || id);
+      const ix = st.rows.map((r) => r.id);
+      const lfoSel = (name, v, inherit) => `<select data-mw="${name}" aria-label="LFO">${inherit ? `<option value="inherit"${v == null ? " selected" : ""}>as the source ◇</option>` : ""}${M()
+        .LFOS.map((n) => `<option value="${n}"${v === n ? " selected" : ""}>${n ? `every ${n} moment${n === 1 ? "" : "s"}` : "no LFO"}</option>`)
+        .join("")}</select>`;
+      const onSel = (v) => `<select data-mw="non" aria-label="On or off"><option value="inherit"${v == null ? " selected" : ""}>as the source ◇</option><option value="on"${v === true ? " selected" : ""}>on</option><option value="off"${v === false ? " selected" : ""}>off</option></select>`;
+      const gates = (m, g, who) => `<span class="sl-mgates" role="group" aria-label="Gate each moment">${Array.from({ length: m.span }, (_, k) => `<button type="button" data-mw="gate" data-who="${esc(who)}" data-k="${k}" class="${g && g[k] === 0 ? "" : "on"}" aria-pressed="${!(g && g[k] === 0)}" title="Moment ${k + 1} of ${m.span}: ${g && g[k] === 0 ? "gated" : "plays"}">${k + 1}</button>`).join("")}</span>`;
+      mWin.innerHTML = `<div class="sl-mwin-h"><strong>Master Nodes</strong><button type="button" data-mw="close" aria-label="Close">✕</button></div>
+        <label class="sl-mwin-sw"><input type="checkbox" data-mw="pastemaster"${tools.masterPaste !== false ? " checked" : ""}> A paste makes a master node (START ◆ to END ◆ over the pasted moments)</label>
+        <label class="sl-mwin-sw"><input type="checkbox" data-mw="tracks"${tools.allTracks ? " checked" : ""}> Tracks: a master lane for every track (Master, Camera, each character) under the lanes. Click a track's name to light it (⌘-click for more, ⇧-click for a run); ▸ folds its lanes</label>
+        <label class="sl-mwin-sw"><input type="checkbox" data-mw="prox"${tools.proxView ? " checked" : ""}> Suite / Proximity view: curved lines from each master node to its triggers</label>
+        ${list.length ? "" : `<p class="sl-mwin-none">No master nodes yet. Select an area, Copy, then Paste: the paste becomes a master node you can switch, gate, scale, pulse and move as one thing.</p>`}
+        ${list
+          .map((m) => {
+            const a = ix.indexOf(m.src.t0);
+            return `<section class="sl-mwin-m" data-mid="${esc(m.id)}"><p><strong>${esc(m.label)}</strong> · ${m.span} moment${m.span === 1 ? "" : "s"} · ◇ from ${esc((m.src.tracks || []).map(tr).join(", ") || "elsewhere")}${a >= 0 ? `, moment ${a + 1}` : ""}</p>
+              <div class="sl-mwin-row"><button type="button" data-mw="mon" class="${m.on !== false ? "on" : ""}" aria-pressed="${m.on !== false}">${m.on !== false ? "ON" : "OFF"}</button>
+              <label>Scale <input type="range" min="0" max="100" step="1" value="${m.scale}" data-mw="mscale" aria-label="${esc(m.label)} scale"> <output>${m.scale}%</output></label>
+              ${lfoSel("mlfo", m.lfo, false)}<button type="button" data-mw="mremove">Remove</button></div>
+              ${gates(m, m.gate, "src:" + m.id)}
+              <ul>${(m.nodes || [])
+                .map((n) => {
+                  const j = ix.indexOf(n.t);
+                  return `<li data-nid="${esc(n.id)}"><span>◆ ${esc(tr(n.track))}, moments ${j + 1} to ${j + m.span}</span> ${onSel(n.on)} <label><input type="checkbox" data-mw="nownscale"${n.scale != null ? " checked" : ""}> own scale</label>${n.scale != null ? ` <input type="range" min="0" max="100" step="1" value="${n.scale}" data-mw="nscale" aria-label="Scale of this copy"> <output>${n.scale}%</output>` : ""} ${lfoSel("nlfo", n.lfo, true)} <button type="button" data-mw="nremove">Remove</button>${n.gate ? `<div>${gates(m, n.gate, n.id)} <button type="button" data-mw="ngateoff">Gate as the source ◇</button></div>` : ""}</li>`;
+                })
+                .join("")}</ul></section>`;
+          })
+          .join("")}`;
+    }
+    function winIds(t) {
+      const sec = t.closest("[data-mid]");
+      const li = t.closest("[data-nid]");
+      return { mid: sec ? sec.dataset.mid : null, nid: li ? li.dataset.nid : null };
+    }
+    function onWinClick(e) {
+      const b = e.target.closest("button[data-mw]");
+      if (!b) return;
+      const w = b.dataset.mw;
+      const { mid, nid } = winIds(b);
+      if (w === "close") return openMasterWin(false);
+      if (w === "mon") mToggle("src:" + mid);
+      if (w === "mremove") mRemove("src:" + mid);
+      if (w === "nremove") mRemove(nid);
+      if (w === "gate") mGate(b.dataset.who, Number(b.dataset.k));
+      if (w === "ngateoff")
+        masterChange("Gate as the source", (next) => {
+          delete mTarget(next, nid).gate;
+        }),
+          draw();
+    }
+    function onWinChange(e) {
+      const t = e.target;
+      const w = t.dataset.mw;
+      if (!w) return;
+      const { mid, nid } = winIds(t);
+      if (w === "pastemaster") {
+        tools.masterPaste = !!t.checked;
+        saveTools();
+        return say(t.checked ? "A paste now makes a master node too." : "A paste now writes the automation only (no master node).");
+      }
+      if (w === "tracks") {
+        tools.allTracks = !!t.checked;
+        saveTools();
+        draw();
+        return say(tools.allTracks ? "Every track's master lane shows under the lanes: click a name to light that track." : "Master lanes show only for tracks that hold master nodes.");
+      }
+      if (w === "prox") {
+        tools.proxView = !!t.checked;
+        saveTools();
+        return draw();
+      }
+      if (w === "mscale") return mScale("src:" + mid, Number(t.value));
+      if (w === "nscale") return mScale(nid, Number(t.value));
+      if (w === "mlfo") return mLfo("src:" + mid, Number(t.value));
+      if (w === "nlfo") {
+        if (t.value === "inherit") return masterChange("LFO as the source", (next) => void delete mTarget(next, nid).lfo), draw();
+        return mLfo(nid, Number(t.value));
+      }
+      if (w === "non") {
+        const v = t.value;
+        return masterChange(v === "inherit" ? "On / off as the source" : `Switch a copy ${v}`, (next) => {
+          const n = mTarget(next, nid);
+          if (v === "inherit") delete n.on;
+          else n.on = v === "on";
+        }), draw();
+      }
+      if (w === "nownscale") {
+        const st = E().state();
+        const f = mFind(st, nid);
+        return masterChange(t.checked ? "Give a copy its own scale" : "Scale as the source", (next) => {
+          const n = mTarget(next, nid);
+          if (t.checked) n.scale = f ? f.m.scale : 100;
+          else delete n.scale;
+        }), draw();
+      }
+    }
+    /* ---------- paste onto several lit tracks: A) exact or B) a percentage up or down from where each is ---------- */
+    function askMulti() {
+      const st = E().state();
+      const names = selTracks.map((id) => (st.tracks.find((t) => t.id === id) || {}).label || id);
+      const r = el.getBoundingClientRect();
+      const pop = popAt("sl-multipaste", "Paste onto several tracks", r.left + 60, r.top + 40);
+      pop.innerHTML = `<p><strong>Paste onto ${selTracks.length} tracks</strong> (${esc(names.join(", "))}) at moment ${(opts.row ? opts.row() : 0) + 1}</p><div class="sl-pop-btns" style="flex-direction:column;align-items:stretch"><button type="button" data-mp="exact">A) Paste exact automation: the same values</button><button type="button" data-mp="percent">B) Paste accurate percentage up / down from the current level</button><button type="button" data-mp="cancel">Cancel</button></div>`;
+      el.appendChild(pop);
+      pop.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-mp]");
+        if (!b) return;
+        pop.remove();
+        el.focus();
+        if (b.dataset.mp !== "cancel") multiPaste(b.dataset.mp);
+        else say("Nothing pasted.");
+      });
+      pop.querySelector("button").focus();
+      return { ok: true, asked: true };
+    }
+    function multiPaste(how) {
+      let st = E().state();
+      const c = clip;
+      if (!c || c.kind !== "area") return say("Copy a selection first."), { ok: false };
+      const start = Math.max(0, Math.min(opts.row ? opts.row() : 0, st.rows.length - 1 - c.span));
+      const copied = [];
+      c.lanes.forEach((l) => l && l.track && !copied.includes(l.track) && copied.push(l.track));
+      const pairs = M() ? M().repeatTracks(copied, selTracks) : selTracks.map((t, k) => [t, copied[k % copied.length]]);
+      const all = [];
+      const done = [];
+      let skipped = 0;
+      let sim = st;
+      const nodesFor = [];
+      pairs.forEach(([dest, from]) => {
+        const t = sim.tracks.find((x) => x.id === dest);
+        if (!t || !from) return;
+        const adds = [];
+        const lanes = c.lanes.map((l) => {
+          if (!l || l.track !== from) return null;
+          if (isLocked(dest + "|" + l.cur)) return skipped++, null;
+          if (!t.curiosities.includes(l.cur)) {
+            if (t.curiosities.length >= E().LIMIT.perTrack) return null;
+            adds.push({ type: "addCuriosity", track: dest, curiosity: l.cur });
+            t.curiosities.push(l.cur);
+          }
+          if (how !== "percent") return l;
+          const row = sim.rows[start];
+          const lk = dest + "|" + l.cur;
+          const lane = sim.lanes[lk];
+          const now = lane ? M().series(sim.rows, lane.points, lane.mode, l.cur)[start] : undefined;
+          const was = now === undefined ? (sim.source[row.id + "|" + lk] != null ? sim.source[row.id + "|" + lk] : S().start(l.cur)) : now;
+          return M().percentLane(l, l.cur, was);
+        });
+        if (!lanes.some(Boolean)) return;
+        const cc = Object.assign({}, c, { lanes });
+        const targets = lanes.map((l) => (l ? { cur: l.cur, track: dest } : null));
+        const r = pasteAreaCommands(simAdd(sim, adds), cc, targets, start, 0);
+        if (r.error) return;
+        let cmds = adds.concat(r.cmds);
+        if (tools.masterPaste !== false && M()) {
+          if (how === "percent") {
+            const w = M().wrapPaste(sim, cmds, start, c.span + 1, c.src, { locked: isLocked, label: "Pasted (+/− %) on " + t.label });
+            if (!w.error) cmds = w.cmds;
+          } else nodesFor.push(dest);
+        }
+        all.push(...cmds);
+        sim = M() ? M().simulate(sim, cmds) : sim;
+        done.push(t.label);
+      });
+      if (!all.length) return say(skipped ? "Every lane there is locked, so nothing was pasted." + skipNote(skipped) : "None of the lit tracks could take that paste."), { ok: false };
+      let cmds = all;
+      if (how !== "percent" && nodesFor.length && M()) {
+        /* A): one master with a ◆ on each lit track. */
+        const w = M().wrapPaste(st, all, start, c.span + 1, c.src, { locked: isLocked });
+        if (!w.error) cmds = w.cmds;
+      }
+      const out = send({ type: "batch", label: `Paste onto ${done.length} tracks (${how === "percent" ? "percentage" : "exact"})`, commands: cmds });
+      draw();
+      if (out.ok) say(`Pasted onto ${done.join(", ")} at moment ${start + 1}, ${how === "percent" ? "as a percentage up or down from each one's level there" : "with the exact values"}${copied.length < pairs.length && copied.length > 0 ? `; ${copied.length === 1 ? "the copied track repeats on each" : `the ${copied.length} copied tracks repeat in order`}` : ""}.${skipNote(skipped)} One ⌘Z takes it all back.`);
+      return out;
+    }
+    /* Move (or copy) master nodes by dj moments, after the batch's other commands. */
+    function mShiftCommands(st, cmds, ids, dj, copy) {
+      const sim = M().simulate(st, cmds);
+      const next = JSON.parse(JSON.stringify(sim.masters || { list: [], seq: 0 }));
+      next.seq = Number(next.seq) || 0;
+      const ix = sim.rows.map((r) => r.id);
+      let k = 0;
+      const fresh = () => {
+        let id;
+        const have = new Set();
+        next.list.forEach((m) => (have.add(m.id), m.nodes.forEach((x) => have.add(x.id))));
+        do id = "mn" + (++k + 1000);
+        while (have.has(id));
+        return id;
+      };
+      for (const m of next.list)
+        for (const node of m.nodes.slice()) {
+          if (!ids.includes(node.id)) continue;
+          const j = ix.indexOf(node.t) + dj;
+          if (j < 0 || j > ix.length - 1) return { error: "That would push a master node off the end of the film." };
+          if (copy) m.nodes.push(Object.assign(JSON.parse(JSON.stringify(node)), { id: fresh(), n: ++next.seq, t: ix[j], under: {} }));
+          else node.t = ix[j];
+        }
+      const p = M().plan(sim, next, { locked: isLocked });
+      if (p.error === "locked") return { error: lockSay(p.lk) };
+      return { cmds: p.cmds };
+    }
+    function simAdd(st, adds) {
+      return adds.length && M() ? M().simulate(st, adds) : st;
+    }
+    let drawN = 0;
+    /* Draw again only when the engine's listeners did not already (one repaint per edit). */
+    const drawUnlessDrawn = (n0) => drawN === n0 && draw();
     function draw() {
+      drawN++;
       const Eng = E();
       if (!Eng || !S()) {
         el.innerHTML = `<p class="sc-note">The engine is not loaded, so lanes cannot be drawn.</p>`;
         return;
       }
       const st = Eng.state();
-      const lanes = lanesNow(st);
+      /* Lane groups: folded groups' lanes are left out of the drawn lanes (so an area never takes them in). */
+      /* A folded track (▸ on its master lane) hides every lane on it. */
+      const nowLanes = lanesNow(st);
+      const band = bandOf(st, nowLanes);
+      const shownLanes = nowLanes.filter((ln) => !(ln.track && tools.trackFolds[ln.track]) && !(!ln.track && ln.host && tools.trackFolds[ln.host]));
+      const grouping = laneGroups(shownLanes, { hasNodes: (ln) => !!(ln.lk && st.lanes[ln.lk] && Object.keys(st.lanes[ln.lk].points).length) });
+      const groups = grouping.groups;
+      const lanes = grouping.visible;
       const n = st.rows.length;
       const width = el.clientWidth || 800;
       const fit = Math.floor((width - 200) / Math.max(1, n));
@@ -501,11 +2834,44 @@
       lh = laneH();
       const clipRows = opts.clips ? opts.clips() : [];
       const CLIP_H = 28;
-      const top = clipRows.length * CLIP_H + (opts.ruler ? RULER + 8 : 0);
-      const svgH = lanes.length * lh;
+      const txt = textBand(colW, svgW, n, clipRows.length * CLIP_H); /* the Text row, right under My film's clips */
+      const att = attentionBand(st, colW, svgW, clipRows.length * CLIP_H + txt.h); /* the Attention track, under them */
+      const top = clipRows.length * CLIP_H + txt.h + att.h + (opts.ruler ? RULER + 8 : 0);
+      /* Rows top to bottom: each group's header (a thin row), then its lanes unless it is folded. */
+      const gh = groupH();
+      yTops = [];
+      let svgH = 0;
+      if (!groups.length) lanes.forEach((ln, i) => (yTops[i] = i * lh)), (svgH = lanes.length * lh);
+      else {
+        let k = 0;
+        groups.forEach((g) => {
+          g.y = svgH;
+          svgH += gh;
+          if (!g.folded) g.lanes.forEach(() => ((yTops[k++] = svgH), (svgH += lh)));
+        });
+      }
+      /* The track master lanes sit under the lanes (the Screen's short timeline keeps its lanes where they were). */
+      band.top = svgH;
+      band.rows.forEach((r) => (r.y += svgH));
+      svgH += band.h;
       laneTop = 0;
       const playRow = opts.row ? opts.row() : -1;
-      geo = { colW, lanes, top: 0, n, st, svgW, svgH, lh };
+      geo = { colW, lanes, top: 0, n, st, svgW, svgH, lh, yTops: yTops.slice(), groups, gh, band };
+      /* A selection keeps to the lanes still drawn (folding or removing lanes can leave it pointing past the end). */
+      if (area && !lanes.length && area.m0 == null) area = null;
+      if (area && area.i0 >= 0) {
+        area.i1 = Math.min(area.i1, lanes.length - 1);
+        area.i0 = Math.min(area.i0, area.i1);
+        if (area.i0 < 0 && area.m0 == null) area = null;
+      }
+      if (area && area.mtracks) {
+        /* The master lanes a selection holds, by track (the shown master lanes can change). */
+        const at = area.mtracks.map((id) => band.rows.findIndex((r) => r.track.id === id)).filter((k) => k >= 0);
+        if (at.length) (area.m0 = Math.min(...at)), (area.m1 = Math.max(...at));
+        else (area.m0 = area.m1 = null), delete area.mtracks, area.i0 < 0 && (area = null);
+      }
+      if (mSel && !mFind(st, mSel)) mSel = null;
+      selTracks = selTracks.filter((id) => st.tracks.some((t) => t.id === id));
       /* Fine time lines: seconds inside each moment, then halves, quarters... as you zoom in (Jeremy, 20:26Z:
          "as you zoom in, you should see more and more fine grid lines"). A level shows once its lines are 10px apart. */
       const spm = Math.max(1, Math.round(Number(opts.secondsPerMoment ? opts.secondsPerMoment() : 3) || 3));
@@ -518,30 +2884,92 @@
         })
       );
       const inArea = (i, j) => area && i >= area.i0 && i <= area.i1 && j >= area.j0 && j <= area.j1;
-      const heads = lanes
+      const soloNow = soloActive(st, tools.solo) ? tools.solo.lk : null;
+      const laneHeads = lanes
         .map((ln, i) => {
           const picked = (sel && sel.endsWith("@" + ln.lk)) || (area && i >= area.i0 && i <= area.i1);
           const ticks = scaleTicks(ln.cur);
-          return `<div class="sl-head${ln.group ? " sl-in-group" : ""}${picked ? " on" : ""}${ticks ? " has-ticks" : ""}" style="height:${lh}px" data-i="${i}">
-            <div class="sl-head-top">${opts.header ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}">${esc(ln.label || S().label(ln.cur))}</button>`}<button type="button" class="sl-win" data-open-win="${esc(ln.cur)}" title="Fine-tune ${esc(S().label(ln.cur))}: every setting inside it, or say what you want" aria-label="Fine-tune ${esc(S().label(ln.cur))}">⧉</button></div>
-            <span class="sl-sub">${ln.lk && st.lanes[ln.lk] ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(st.lanes[ln.lk])][2])} Click to change.">${MODES[modeOf(st.lanes[ln.lk])][1]}</button> ` : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}</span>
+          const lane = ln.lk ? st.lanes[ln.lk] : null;
+          const off = !!lane && !lane.on;
+          const solo = !!lane && soloNow === ln.lk;
+          const lock = isLocked(ln.lk);
+          const engLane = ln.lk ? st.lanes[ln.lk] : null;
+          /* The master lane's Steps / Lines / Smooth switch (the lane's mode); a sub-lane keeps the one-button cycle. */
+          const modeHtml = !engLane
+            ? ""
+            : ln.sub
+              ? `<button type="button" class="sl-mode" data-act="mode" data-lk="${esc(ln.lk)}" title="${esc(MODES[modeOf(engLane)][2])} Click to change.">${MODES[modeOf(engLane)][1]}</button> `
+              : `<span class="sl-mset" role="group" aria-label="How the line moves">${MSET.map(([m, word, tip]) => `<button type="button" class="sl-mode${modeOf(engLane) === m ? " on" : ""}" data-act="mset" data-mode="${m}" data-lk="${esc(ln.lk)}" aria-pressed="${modeOf(engLane) === m}" aria-label="${esc(tip.split(":")[0])}" title="${esc(tip)}">${word}</button>`).join("")}</span> `;
+          const subWords = ln.subCount ? `${ln.subOpen ? "▾" : "▸"} ${ln.subCount} setting${ln.subCount === 1 ? "" : "s"}` : "";
+          const subTab = ln.subCount
+            ? `<button type="button" class="sl-subtab" data-act="subs" data-cur="${esc(ln.cur)}" aria-expanded="${!!ln.subOpen}" title="${esc(ln.subOpen ? `Fold ${S().label(ln.cur)}'s automation group: hide its ${ln.subCount} setting lanes again (dots on this lane still show where they have nodes). ⌥K does it too.` : `Automation group: show a lane for each of the ${ln.subCount} settings in ${S().label(ln.cur)}'s window (⧉), How much (0 to 100) first, under this master lane. ⌥K does it too.`)}">${subWords}</button> `
+            : "";
+          return `<div class="sl-head${ln.group ? " sl-in-group" : ""}${ln.sub ? " sl-sublane" : ""}${picked ? " on" : ""}${ticks ? " has-ticks" : ""}${off ? " is-off" : ""}${solo ? " is-solo" : ""}${lock ? " is-locked" : ""}" style="height:${lh}px" data-i="${i}">
+            <div class="sl-head-top">${opts.header && !ln.sub ? opts.header(ln, i) : `<button type="button" class="sl-name" data-pick="${esc(ln.cur)}"${ln.trackLabel && ln.track ? ` data-pick-track="${esc(ln.track)}"` : ""}${ln.sub ? ` title="${esc(S().label(ln.cur))}: one setting in ${esc(S().label(ln.parent))}'s window, as its own lane"` : !ln.sub && ln.track ? ` title="${esc(MASTER_TIP(S().label(ln.cur)))}"` : ""}>${ln.sub ? "↳ " : ""}${esc(ln.label || S().label(ln.cur))}</button>`}${headBtns(ln, lane, off, solo, lock)}<button type="button" class="sl-win" data-open-win="${esc(ln.parent || ln.cur)}" title="Fine-tune ${esc(S().label(ln.parent || ln.cur))}: every setting inside it, or say what you want" aria-label="Fine-tune ${esc(S().label(ln.parent || ln.cur))}">⧉</button></div>${levelBar(ln, engLane)}
+            <span class="sl-sub${modeHtml || subTab ? " sl-sub-flex" : ""}">${modeHtml}${subTab}${modeHtml || subTab ? '<span class="sl-subrest">' : ""}${ln.group ? esc(ln.group) + " · " : ""}${ln.track ? esc((st.tracks.find((t) => t.id === ln.track) || {}).label || "") : "not on a track yet"}${ln.lk && st.lanes[ln.lk] ? " · " + Object.keys(st.lanes[ln.lk].points).length + " nodes" : ""}${modeHtml || subTab ? "</span>" : ""}</span>
             ${ticks}
           </div>`;
-        })
-        .join("");
+        });
+      /* Group headers go between the lane heads: the category, how many lanes it holds and how many have nodes, and
+         ▸/▾ to fold it. The whole name is the fold button, so it is easy to hit. */
+      let heads = laneHeads.join("");
+      if (groups.length) {
+        let k = 0;
+        heads = groups
+          .map((g) => {
+            const words = groupText(g);
+            const tip = g.folded ? `Open ${g.label}: show its ${g.count} lane${g.count === 1 ? "" : "s"} again` : `Fold ${g.label} to one thin row; dots still show where its lanes have nodes`;
+            const head = `<div class="sl-ghead${g.folded ? " is-folded" : ""}" style="height:${gh}px" data-group="${esc(g.id)}" title="${esc(words.full)}"><button type="button" class="sl-fold" data-act="fold" data-group="${esc(g.id)}" aria-expanded="${!g.folded}" aria-label="${esc(words.full)}. ${esc(tip)}" title="${esc(words.full)}. ${esc(tip)}"><span class="sl-fold-arrow" aria-hidden="true">${g.folded ? "▸" : "▾"}</span> ${esc(g.label)}</button><span class="sl-gcount" title="${esc(words.full)}" aria-hidden="true">· ${esc(words.short)}</span></div>`;
+            const body = g.folded ? "" : g.lanes.map(() => laneHeads[k++]).join("");
+            return head + body;
+          })
+          .join("");
+      }
       const tsvg = []; /* the top bar: clip tracks and the ruler */
       const svg = [];
       const dots = []; /* nodes go on top of the lines */
+      const bandHeads = drawBand(st, band, colW, svgW, svg, dots);
       /* Film clip tracks first: one per inspiration film, then my film's moments. */
+      /* My film's clip track shows a small storyboard frame per moment once a moment is wide enough, like the
+         thumbnails on CapCut's main track (opts.thumbs() -> one frame <svg> string per moment). */
+      let frames = null;
       clipRows.forEach((cr, k) => {
         const y = k * CLIP_H;
+        const film = cr.thumbs || (cr.clips || []).some((c) => /\bmine\b/.test(c.cls || ""));
+        if (film && !frames && opts.thumbs && colW >= THUMB_MIN) frames = opts.thumbs() || [];
         (cr.clips || []).forEach((c) => {
           const x = c.from * svgW;
           const w = Math.max(3, (c.to - c.from) * svgW - 2);
-          tsvg.push(`<g class="sl-clip ${esc(c.cls || "")}" data-clip="${Math.floor(c.from * n + 1e-6)}"><rect x="${x + 1}" y="${y + 2}" width="${w}" height="${CLIP_H - 4}" rx="4"/><text x="${x + 6}" y="${y + 18}">${esc(String(c.text || "").slice(0, Math.max(0, Math.floor(w / 6))))}</text><title>${esc(c.title || c.text || "")}</title></g>`);
+          const j = Math.floor(c.from * n + 1e-6);
+          let tx = x + 6;
+          let pic = "";
+          const f = film && frames && frames[j];
+          if (f) {
+            const th = CLIP_H - 8;
+            const tw = Math.min(w - 4, Math.round(th * FRAME_AR));
+            pic = `<image class="sl-thumb" x="${x + 3}" y="${y + 4}" width="${tw}" height="${th}" preserveAspectRatio="xMidYMid slice" href="${frameUri(f)}"/>`;
+            tx = x + tw + 8;
+          }
+          tsvg.push(`<g class="sl-clip ${esc(c.cls || "")}${pic ? " has-thumb" : ""}" data-clip="${j}"><rect x="${x + 1}" y="${y + 2}" width="${w}" height="${CLIP_H - 4}" rx="4"/>${pic}<text x="${tx}" y="${y + 18}">${esc(String(c.text || "").slice(0, Math.max(0, Math.floor((x + w - tx) / 6))))}</text><title>${esc(c.title || c.text || "")}</title></g>`);
         });
+        /* Transitions: a small ◇ on My film's clip track at each join between two moments (opts.joins() -> one
+           { kind, title } per moment, the join into it; the first is null). The page opens a chooser on click. */
+        if (film && opts.joins) {
+          const js = opts.joins() || [];
+          /* Wider to tap on a phone or touch screen (the clip between two ◇ keeps at least 22px). */
+          const joinW = groupH() === GROUP_H_TOUCH ? 24 : 16;
+          for (let j = 1; j < n; j++) {
+            const jn = js[j];
+            if (!jn) continue;
+            const x = j * colW;
+            const cy = y + CLIP_H / 2;
+            tsvg.push(`<g class="sl-join${jn.kind && jn.kind !== "cut" ? " set" : ""}" data-join="${j}" data-kind="${esc(jn.kind || "cut")}" tabindex="0" role="button" aria-label="${esc(jn.title || "Transition")}"><rect class="sl-joinhit" x="${x - joinW / 2}" y="${y + 2}" width="${joinW}" height="${CLIP_H - 4}"/><path d="M${x} ${cy - 6}l6 6-6 6-6-6z"/><title>${esc(jn.title || "")}</title></g>`);
+          }
+        }
       });
-      const rulerY = clipRows.length * CLIP_H;
+      tsvg.push(txt.svg);
+      tsvg.push(att.svg);
+      const rulerY = clipRows.length * CLIP_H + txt.h + att.h;
       if (opts.ruler) {
         tsvg.push(`<rect class="sl-rulerbg" x="0" y="${rulerY}" width="${svgW}" height="${RULER + 8}"><title>Drag down to zoom in, up to zoom out, sideways to scroll</title></rect>`);
         st.rows.forEach((r, j) => tsvg.push(`<line class="sl-tick0" x1="${j * colW}" x2="${j * colW}" y1="${rulerY}" y2="${top}"/><text x="${j * colW + 4}" y="${rulerY + 12}" class="sl-ruler">${j + 1}</text>`));
@@ -549,9 +2977,19 @@
         /* Seconds under the moment numbers once there is room for them. */
         if (colW / spm >= 34) st.rows.forEach((r, j) => { for (let k = 1; k < spm; k++) { const t = j * spm + k; tsvg.push(`<text x="${j * colW + (k * colW) / spm + 2}" y="${rulerY + 12}" class="sl-ruler2">${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}</text>`); } });
       }
+      /* Each group's header row: a thin band, and when folded a dot at every moment where any of its lanes has a node. */
+      groups.forEach((g) => {
+        svg.push(`<rect class="sl-gbg${g.folded ? " folded" : ""}" x="0" y="${g.y}" width="${svgW}" height="${gh}" data-group="${esc(g.id)}"/>`);
+        if (!g.folded) return;
+        const cy = g.y + gh / 2;
+        foldDots(st, g.lanes).forEach((d) =>
+          dots.push(`<circle class="sl-gdot" cx="${d.j * colW + colW / 2}" cy="${cy}" r="${d.count > 1 ? 4 : 3}" data-gdot="${d.j}" data-group="${esc(g.id)}"><title>${esc(g.label)} (folded): ${d.count} lane${d.count === 1 ? " has a node" : "s have nodes"} at moment ${d.j + 1}. Click to move the playhead here.</title></circle>`)
+        );
+      });
       lanes.forEach((ln, i) => {
-        const y0 = i * lh;
+        const y0 = yTops[i];
         svg.push(`<rect class="sl-bg${i % 2 ? " odd" : ""}" x="0" y="${y0}" width="${svgW}" height="${lh}" data-lane="${i}"/>`);
+        if (isLocked(ln.lk)) svg.push(`<rect class="sl-lockbg" x="0" y="${y0}" width="${svgW}" height="${lh}" fill="url(#${hatchId})"/>`);
         if (ln.track || S().known(ln.cur)) svg.push(valueLines(ln.cur, y0, svgW));
       });
       fineX.forEach(([x, lv]) => svg.push(`<line class="sl-fine sl-fine${lv}" x1="${x}" x2="${x}" y1="0" y2="${svgH}"/>`));
@@ -565,14 +3003,46 @@
         both((h) => (rg[1] < n - 1 ? `<rect class="sl-out" x="${(rg[1] + 1) * colW}" y="0" width="${(n - rg[1] - 1) * colW}" height="${h}"/>` : ""));
         svg.push(`<path class="sl-range" d="M${rg[0] * colW + 6} 2 H${rg[0] * colW + 1} V${svgH - 2} H${rg[0] * colW + 6} M${(rg[1] + 1) * colW - 6} 2 H${(rg[1] + 1) * colW - 1} V${svgH - 2} H${(rg[1] + 1) * colW - 6}"><title>Play range: moments ${rg[0] + 1} to ${rg[1] + 1}</title></path>`);
       }
-      st.rows.forEach((r, j) => {
-        if (!tools.markers.includes(r.id)) return;
+      /* Markers in their own color, the note as the tooltip, and the note written beside the flag when there is
+         room before the next marker. */
+      const marked = st.rows.map((r, j) => [j, markerOf(r.id)]).filter((x) => x[1]);
+      marked.forEach(([j, m], k) => {
         const x = j * colW + colW / 2;
-        tsvg.push(`<g class="sl-marker" data-marker="${j}"><line x1="${x}" x2="${x}" y1="0" y2="${top}"/><path d="M${x - 5} ${Math.max(0, top - 11)}h10v7l-5 4-5-4z"/><title>Marker at moment ${j + 1}</title></g>`);
-        svg.push(`<g class="sl-marker" data-marker="${j}"><line x1="${x}" x2="${x}" y1="0" y2="${svgH}"/><title>Marker at moment ${j + 1}</title></g>`);
+        const c = markColor(m.color);
+        const tip = `Marker at moment ${j + 1}${m.note ? ": " + m.note : ""} (${c[1].toLowerCase()})`;
+        const room = (k + 1 < marked.length ? (marked[k + 1][0] - j) * colW : svgW - x) - 12;
+        const fit = Math.floor(room / 5.6);
+        const label = m.note && fit >= 3 ? (m.note.length > fit ? m.note.slice(0, fit - 1) + "…" : m.note) : "";
+        const fy = Math.max(0, top - 11);
+        tsvg.push(`<g class="sl-marker" data-marker="${j}" style="--mk:${c[2]}"><line x1="${x}" x2="${x}" y1="0" y2="${top}"/><rect class="sl-mkhit" x="${x - 7}" y="${Math.max(0, top - 16)}" width="14" height="16"/><path d="M${x - 5} ${fy}h10v7l-5 4-5-4z"/>${label ? `<text class="sl-mklabel" x="${x + 7}" y="${fy + 7}">${esc(label)}</text>` : ""}<title>${esc(tip)}. Double-click to write a note, change its color or delete it.</title></g>`);
+        svg.push(`<g class="sl-marker" data-marker="${j}" style="--mk:${c[2]}"><line x1="${x}" x2="${x}" y1="0" y2="${svgH}"/><title>${esc(tip)}</title></g>`);
       });
-      if (area) svg.push(`<rect class="sl-area" x="${area.j0 * colW}" y="${area.i0 * lh}" width="${(area.j1 - area.j0 + 1) * colW}" height="${(area.i1 - area.i0 + 1) * lh}"><title>Selected: moments ${area.j0 + 1} to ${area.j1 + 1}, ${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""}. Copy, then pick where it goes and Paste.</title></rect>`);
+      if (area) {
+        const ay0 = area.i0 >= 0 ? yTops[area.i0] : band.rows[area.m0].y;
+        const ay1 = area.m0 != null ? band.rows[area.m1].y + band.mh : yTops[area.i1] + lh;
+        svg.push(`<rect class="sl-area" x="${area.j0 * colW}" y="${ay0}" width="${(area.j1 - area.j0 + 1) * colW}" height="${ay1 - ay0}"><title>Selected: moments ${area.j0 + 1} to ${area.j1 + 1}, ${area.i0 < 0 ? "master lanes only" : `${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""}`}. Drag it sideways to move it (hold Alt to copy), or Copy, then pick where it goes and Paste.</title></rect>`);
+      }
       const ix = st.rows.map((r) => r.id);
+      /* Film lines: the picked inspiration film's own settings, stretched to My film's length (see filmLine), as
+         a faint dashed line behind each lane's nodes. Broken where the film has no setting; none at all when the
+         film never sets that curiosity. */
+      filmSeen = filmKey();
+      const film = filmLinesOn() && filmSeen ? inspirationNow() : null;
+      lanes.forEach((ln, i) => {
+        if (!film) return;
+        const line = filmLine(film.beats, n, ln.cur);
+        const runs = [];
+        let cur = null;
+        line.forEach((v, j) => {
+          if (v == null) return (cur = null);
+          if (!cur) runs.push((cur = []));
+          cur.push([j * colW + colW / 2, yFor(ln.cur, v, i), j, v]);
+        });
+        if (!runs.length) return;
+        const d = runs.map((r) => (r.length === 1 ? `M${r[0][0] - colW * 0.3} ${r[0][1]} H${r[0][0] + colW * 0.3}` : "M" + r.map((p) => p[0] + " " + p[1]).join(" L"))).join(" ");
+        const at = line[Math.min(playRow, n - 1)];
+        svg.push(`<path class="sl-film" data-film-line="${esc(ln.cur)}" d="${d}"><title>${esc(film.name)}: its ${esc(S().label(ln.cur).toLowerCase())}${at != null ? ` is ${esc(at)} at moment ${playRow + 1}` : ""} (the dashed line, stretched to your film's length)</title></path>`);
+      });
       lanes.forEach((ln, i) => {
         if (!ln.track) return;
         /* The result line (what plays), then the automation: nodes joined by lines. */
@@ -586,6 +3056,9 @@
           .sort((a, b) => a.j - b.j);
         const cpts = curvePoints(st, ln.lk, all);
         const nodes = all.filter((p) => !cpts.has(p.r));
+        /* A lane below 100% on its level bar is drawn faint, its drawing kept as a dashed line; the result line
+           under it shows what plays. */
+        const low = lane.level != null && lane.level < 1;
         const xyOf = (p) => [p.j * colW + colW / 2, yFor(ln.cur, p.v, i)];
         const xy = nodes.map(xyOf);
         if (xy.length > 1) {
@@ -596,15 +3069,30 @@
             const part = rec ? curvePath(ln.cur, i, nodes[k - 1], nodes[k], rec, colW) : segPath(xy[k - 1], xy[k], lane.mode);
             d += " " + part;
             const hit = `M${xy[k - 1][0]} ${xy[k - 1][1]} ` + part;
-            svg.push(`<path class="sl-seghit${seg === sk ? " on" : ""}" d="${hit}" data-seg="${esc(sk)}"><title>A line from moment ${nodes[k - 1].j + 1} to ${nodes[k].j + 1}${rec ? ` (curve: ${esc(SHAPES[rec.shape] ? SHAPES[rec.shape][0] : rec.shape)})` : ""}. Click to pick it, double-click to shape its curve.</title></path>`);
+            svg.push(`<path class="sl-seghit${seg === sk ? " on" : ""}" d="${hit}" data-seg="${esc(sk)}"><title>A line from moment ${nodes[k - 1].j + 1} to ${nodes[k].j + 1}${rec ? ` (curve: ${esc(SHAPES[rec.shape] ? SHAPES[rec.shape][0] : rec.shape)})` : ""}. Click to add a node on it; drag it up or down to move both its nodes; Alt (Option) + drag to curve it; right-click for more.</title></path><path class="sl-segline" d="${hit}"/>`);
           }
-          svg.push(`<path class="sl-auto${lane.on ? "" : " off"}" d="${d}"/>`);
+          svg.push(`<path class="sl-auto${lane.on ? "" : " off"}${low ? " sl-low" : ""}" d="${d}"/>`);
         }
         all.forEach((p) => {
           const key = nodeKey(p.r, ln.lk);
           const c = xyOf(p);
           const small = cpts.has(p.r);
-          dots.push(`<circle class="sl-node${small ? " sl-cpt" : ""}${sel === key ? " on" : ""}${inArea(i, p.j) ? " in" : ""}" cx="${c[0]}" cy="${c[1]}" r="${small ? 3.5 : 6}" data-node="${esc(key)}" data-lane="${i}"><title>${esc(S().label(ln.cur))}: ${esc(p.v)} at moment ${p.j + 1}${small ? " (on a curve)" : ""}</title></circle>`);
+          dots.push(`<circle class="sl-node${small ? " sl-cpt" : ""}${lane.on ? "" : " off"}${low ? " sl-low" : ""}${sel === key ? " on" : ""}${inArea(i, p.j) && !isLocked(ln.lk) ? " in" : ""}" cx="${c[0]}" cy="${c[1]}" r="${small ? 3 : 5}" data-node="${esc(key)}" data-lane="${i}"><title>${esc(S().label(ln.cur))}: ${esc(p.v)} at moment ${p.j + 1}${small ? " (on a curve)" : ""}</title></circle>`);
+        });
+      });
+      /* A master lane whose automation group is folded: small dots along its bottom edge where its settings'
+         lanes have nodes (as a folded group of lanes shows them). */
+      /* They are CapCut's keyframe diamonds on a clip: one wherever any of the curiosity's settings (the master lane
+         included) has a key. Click one to pick it and move the playhead there, drag it sideways to move those keys,
+         Delete takes them off, right-click for Ease in, Ease out and Ease in and out. */
+      lanes.forEach((ln, i) => {
+        if (!ln.subCount || ln.subOpen) return;
+        const cy = yTops[i] + lh - 5;
+        clipKeys(st, clipLks(ln)).forEach((d) => {
+          const cx = d.j * colW + colW / 2;
+          const on = ckSel && ckSel.cur === ln.cur && ckSel.j === d.j;
+          /* Drawn under the nodes (unshift), so a node that sits low on the lane is still the one a press finds. */
+          dots.unshift(`<path class="sl-gdot sl-subdot sl-ckey${on ? " on" : ""}" d="M${cx} ${cy - 4.5} L${cx + 4.5} ${cy} L${cx} ${cy + 4.5} L${cx - 4.5} ${cy} Z" data-gdot="${d.j}" data-subdot="${esc(ln.cur)}" data-ckey="${d.j}"><title>${esc(S().label(ln.cur))}: a keyframe at moment ${d.j + 1} on ${d.count} setting${d.count === 1 ? "" : "s"}. Click to go there; drag sideways to move it; Delete takes it off; right-click for Ease.</title></path>`);
         });
       });
       /* Proximities: a line from node to node. */
@@ -631,26 +3119,34 @@
       const old = el.querySelector(".sl-scroll");
       const keep = old ? [old.scrollLeft, old.scrollTop] : scrollKeep;
       el.innerHTML = `<div class="sl-tools">
-          <span class="sl-seg" role="group" aria-label="Tool">${tb("tool-select", "Select", "Select (A): click a node to pick it, click an empty spot to add a node there, drag across empty space to select an area", tools.tool === "select")}${tb("tool-split", "Split", "Split (B): click a lane to cut its line with a node, keeping what plays", tools.tool === "split")}</span>
-          <button type="button" data-act="undo" ${Eng.canUndo() ? "" : "disabled"}>Undo</button><button type="button" data-act="redo" ${Eng.canRedo() ? "" : "disabled"}>Redo</button>
+          <span class="sl-seg" role="group" aria-label="Tool">${tb("tool-select", "Select", "Select (A): click a node to pick it, click an empty spot or a line to add a node there, drag a line to move both its nodes, Alt + drag a line to curve it, drag across empty space to select an area", tools.tool === "select")}${tb("tool-split", "Split", "Split (B): click a lane to cut its line with a node, keeping what plays", tools.tool === "split")}</span>
+          ${opts.ripple ? `<span class="sl-seg sl-moments" role="group" aria-label="Moments">${tb("ripple-add", "+ Moment", `Add a moment here (⌥M): a copy of moment ${playRow + 1} goes right after it, so nothing jumps. Everything after it (nodes, joins, markers, transitions and words) slides one moment later.`)}${tb("ripple-delete", "− Moment", `Take out moment ${playRow + 1} (⌥⌫) and close the gap: everything after it slides one moment earlier. With a stretch selected, takes out the whole stretch.`)}</span>` : ""}
+          <button type="button" data-act="undo" ${(opts.canUndo ? opts.canUndo("undo") : Eng.canUndo()) ? "" : "disabled"}>Undo</button><button type="button" data-act="redo" ${(opts.canUndo ? opts.canUndo("redo") : Eng.canRedo()) ? "" : "disabled"}>Redo</button>
           <button type="button" data-act="copy" ${canCopy ? "" : "disabled"} title="${area ? "Copy every lane's automation inside the selected area" : "Copy the picked node with every node joined to it"}">${area ? "Copy selection" : "Copy proximity"}</button>
           <button type="button" data-act="paste" ${clip ? "" : "disabled"} title="${area ? "Paste into the selected area (onto other lanes too: each value keeps its place on the new lane's scale)" : "Paste at the playhead's moment"}">${esc(pasteLabel)}</button>
           <button type="button" data-act="del" ${canCopy ? "" : "disabled"} title="Delete (⌫)">${area ? "Remove nodes" : "Remove node"}</button>
-          ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (double-click a line too)")}
-          ${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off")}
+          ${area ? `<span class="sl-seg sl-areatools" role="group" aria-label="Change the selected area">${tb("area-reverse", "Reverse", "Reverse: play the selected stretch backwards. The last node comes first and the first comes last.")}${tb("area-flip", "Flip", "Flip: turn each selected node's setting upside down on its own lane. Low becomes high, high becomes low.")}${tb("area-stretch", "Stretch ×2", "Stretch: spread the selected nodes out so they take twice as long. Nodes already in the moments they spread over are replaced.")}${tb("area-squeeze", "Squeeze ½", "Squeeze: pull the selected nodes together so they take half as long.")}${tb("area-freeze", "Freeze", "Freeze: hold the first moment's settings still for the whole selected stretch.")}${tb("area-shape", "Shape ▾", "Shape: pick a ready-made shape (ease in, rise and fall, pulse and more) for each selected lane, between its own lowest and highest setting in the selection.")}${tb("area-take", "Take from the film", filmTip("take"))}${tb("suite-save", "Save as suite clip", "Save as suite clip: keep the selected lanes' nodes and joins under a name, to drop in again anywhere (in this film or another) from Suite clips ▾.")}${tb("tpl-save", "Save as template", "Save as template: keep the selected stretch under a name and a note, such as \"slow-burn reveal\", to use again anywhere from the library's Templates tab (My templates).")}${opts.ripple ? tb("ripple-duplicate", "Duplicate moments", `Duplicate moments (⇧⌥M): a copy of moments ${area.j0 + 1} to ${area.j1 + 1} (every lane, not only the selected ones) goes right after them, and everything after slides later.`) + tb("ripple-delete", "Take out moments", `Take out moments ${area.j0 + 1} to ${area.j1 + 1} (⌥⌫) on every lane and close the gap: everything after slides earlier. Remove nodes keeps the moments and only clears the selected lanes.`) : ""}</span>` : ""}
+          ${tb("curves", "Curves", "Shape the curve of the picked line, or the line under the playhead in the picked lane (or hold Alt and drag a line, or right-click it)")}
+          <span class="sl-seg" role="group" aria-label="Markers">${tb("marker", "Marker", "Add marker (M) at the playhead's moment; press again to take it off. Double-click a marker's flag on the ruler to write a note or change its color.")}${tb("marker-list", `Markers${marked.length ? " " + marked.length : ""} ▾`, "Every marker in your film, with its note: click one to move the playhead there")}</span>
+          ${tb("suite-list", `Suite clips${suiteList.length ? " " + suiteList.length : ""} ▾`, "Your saved suite clips: drop one in at the playhead (as it is, or as an analogy), rename it or delete it")}
+          ${M() ? tb("master-win", `◆${mastersOf(st).length ? " " + mastersOf(st).length : ""}`, "Master nodes: open the Master Nodes window: every master node (a pasted suite you can switch, gate, scale, pulse and move as one thing), plus the switches for a paste making a master node, a master lane for every track (Tracks) and the Suite / Proximity view", !!mWin) : ""}
           ${tb("magnet", "Magnet", "Main track magnet (P): moving a node moves every later node in its lane too", tools.magnet)}
           ${tb("snap", "Snapping", "Auto snapping (N): a node dropped next to a marker lands on it", tools.snap)}
           <span class="sl-seg" role="group" aria-label="Linkage">${tb("linkage", "Linkage", "Linkage (~): joined nodes move and copy together", tools.linkage)}${tb("link-settings", "⚙", "Linkage settings: which kinds of joined node move, copy or get deleted with the one you grab")}</span>
           ${tb("skim", "Preview axis", "Preview axis (S): hover over the timeline to see that moment in the player", tools.skim)}
+          ${groups.length ? tb(groups.some((g) => !g.folded) ? "fold-all" : "open-all", groups.some((g) => !g.folded) ? "Fold all" : "Open all", groups.some((g) => !g.folded) ? "Fold every group of lanes to one thin row each; dots still show where their lanes have nodes" : "Open every folded group of lanes") : ""}
+          ${tb("film-lines", "Film lines", filmTip("lines"), filmLinesOn())}
+          ${momentumLane() ? "" : tb("attention-track", "Attention", "Attention track: show or hide the thin band under My film that shows what holds the audience's attention at each moment, and how strongly the film pulls forward", tools.attention !== false)}
           <span class="sl-seg" role="group" aria-label="Zoom">${tb("zoom-out", "−", "Zoom out (⌘−), or drag up on the ruler")}${tb("zoom-fit", "Fit", "Zoom to fit the timeline (⇧Z)")}${tb("zoom-in", "+", "Zoom in (⌘+), or drag down on the ruler")}</span>
-          <span class="sl-msg" role="status">${esc(msg || (others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
+          <span class="sl-msg" role="status">${esc(msg || (area ? "Drag the selection sideways to move it; hold Alt (Option) to copy it instead." : others ? others + " more proximities between these lanes are rules for the whole lane (no nodes); the Engine's Links tab lists them." : "Drag down on the ruler to zoom in; drag right on the lane names for taller lanes. Drag across empty space to select."))}</span>
         </div>
         <div class="sl-scroll"><div class="sl-body" style="grid-template-columns: var(--sl-head-w, 190px) ${svgW}px">
-          <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
+          <div class="sl-corner" style="height:${top}px">${clipRows.map((cr) => `<div class="sl-head sl-cliphead" style="height:${CLIP_H}px" title="${esc(cr.title || "")}">${esc(cr.label)}</div>`).join("")}${txt.head}${att.head}${opts.ruler ? `<div class="sl-rulerhead" style="height:${RULER + 8}px" title="Drag the ruler: down zooms in, up zooms out, sideways scrolls">⇕ zoom · ⇔ scroll</div>` : ""}</div>
           <div class="sl-top" style="height:${top}px"><svg class="sl-topsvg" width="${svgW}" height="${top}" viewBox="0 0 ${svgW} ${Math.max(1, top)}">${tsvg.join("")}</svg></div>
-          <div class="sl-heads" title="Drag right for taller lanes, left for shorter; drag up and down to scroll. Click a lane's name area to select the whole lane (Shift adds more lanes).">${heads}</div>
-          <div class="sl-lanes"><svg class="sl-svg" width="${svgW}" height="${Math.max(1, svgH)}" viewBox="0 0 ${svgW} ${Math.max(1, svgH)}">${svg.join("")}${dots.join("")}${drag && drag.ghost ? drag.ghost : ""}</svg></div>
-        </div></div>`;
+          <div class="sl-heads" title="Drag right for taller lanes, left for shorter; drag up and down to scroll. Click a lane's name area to select the whole lane (Shift adds more lanes).">${heads}${bandHeads}</div>
+          <div class="sl-lanes"><svg class="sl-svg" width="${svgW}" height="${Math.max(1, svgH)}" viewBox="0 0 ${svgW} ${Math.max(1, svgH)}"><defs><pattern id="${hatchId}" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="sl-hatch" x1="0" y1="0" x2="0" y2="9"/></pattern></defs>${svg.join("")}${dots.join("")}${drag && drag.ghost ? drag.ghost : ""}</svg></div>
+        </div></div>
+        <p class="sl-selstat" role="status" aria-live="polite" title="What is selected">${esc(selSummary(st))}</p>`;
       const sc = el.querySelector(".sl-scroll");
       const box = el.closest(".sc-timeline");
       if (box) {
@@ -661,8 +3157,182 @@
         sc.scrollLeft = keep[0];
         sc.scrollTop = keep[1];
       }
+      if (mWin) paintMasterWin();
     }
     let scrollKeep = null;
+    /* ---------- the Text row (opts.texts): words on My film's frames as thin bars ----------
+       One bar per text item over the moments it shows on, packed into sub-rows so bars never overlap. Each end
+       is a handle: drag it to change the first or last moment; drag the middle to move the whole stretch; a
+       click picks it (the page opens its editor). The drag paints the bar as it goes and tells the page once,
+       when you let go, so it is one undo step. */
+    function textBand(colW, svgW, n, y) {
+      const d = opts.texts ? opts.texts() : null;
+      const items = d && Array.isArray(d.items) ? d.items.filter((t) => t && t.id != null) : [];
+      if (!items.length || !n) return { h: 0, svg: "", head: "" };
+      const pk = textRows(items);
+      const h = Math.max(1, pk.count) * TXT_ROW + 6;
+      const out = [`<g class="sl-txt"><rect class="sl-txtbg" x="0" y="${y}" width="${svgW}" height="${h}"/>`];
+      items.forEach((t) => {
+        const a = Math.max(0, Math.min(n - 1, t.j0 | 0));
+        const b = Math.max(a, Math.min(n - 1, t.j1 | 0));
+        const x = a * colW + 2;
+        const w = Math.max(8, (b - a + 1) * colW - 4);
+        const yy = y + 3 + (pk.rowOf[t.id] || 0) * TXT_ROW;
+        const bh = TXT_ROW - 3;
+        const words = String(t.text || "");
+        const room = Math.max(0, Math.floor((w - 16) / 5.5));
+        out.push(`<g class="sl-txtbar" data-txt-bar="${esc(t.id)}" data-style="${esc(t.style || "")}" data-j0="${a}" data-j1="${b}" tabindex="0" role="button" aria-label="${esc(t.title || words)}"><rect class="sl-txtbody" x="${x}" y="${yy}" width="${w}" height="${bh}" rx="3"/>${room > 2 ? `<text class="sl-txtword" x="${x + 8}" y="${yy + bh - 2.5}">${esc(words.length > room ? words.slice(0, room - 1) + "…" : words)}</text>` : ""}<rect class="sl-txtend" data-txt-end="a" x="${x}" y="${yy}" width="6" height="${bh}" rx="2"/><rect class="sl-txtend" data-txt-end="b" x="${x + w - 6}" y="${yy}" width="6" height="${bh}" rx="2"/><title>${esc(t.title || words)}</title></g>`);
+      });
+      out.push("</g>");
+      const tip = "Text: the words drawn on My film's picture. Each bar covers the moments one shows on: drag an end to change them, drag the middle to move it, click it to change the words.";
+      return { h, svg: out.join(""), head: `<div class="sl-head sl-cliphead sl-txthead" style="height:${h}px" title="${esc(tip)}"><b>T Text</b><span class="sl-txtcount">${items.length}</span></div>` };
+    }
+    function textDown(e, g) {
+      e.preventDefault();
+      e.stopPropagation();
+      const t = opts.texts ? opts.texts() : null;
+      if (!t) return;
+      const end = e.target.closest("[data-txt-end]");
+      const d = { id: g.dataset.txtBar, part: end ? end.dataset.txtEnd : "move", x0: e.clientX, j0: Number(g.dataset.j0) || 0, j1: Number(g.dataset.j1) || 0, moved: false };
+      d.a = d.j0;
+      d.b = d.j1;
+      const colW = geo.colW;
+      const n = geo.n;
+      const paint = () => {
+        const x = d.a * colW + 2;
+        const w = Math.max(8, (d.b - d.a + 1) * colW - 4);
+        const body = g.querySelector(".sl-txtbody");
+        if (body) body.setAttribute("x", x), body.setAttribute("width", w);
+        const ea = g.querySelector('[data-txt-end="a"]');
+        const eb = g.querySelector('[data-txt-end="b"]');
+        if (ea) ea.setAttribute("x", x);
+        if (eb) eb.setAttribute("x", x + w - 6);
+        const word = g.querySelector(".sl-txtword");
+        if (word) word.setAttribute("x", x + 8);
+        g.classList.add("dragging");
+        const m = el.querySelector(".sl-msg");
+        if (m) m.textContent = d.a === d.b ? `Shows on moment ${d.a + 1}` : `Shows on moments ${d.a + 1} to ${d.b + 1}`;
+      };
+      const move = (ev) => {
+        if (!d.moved && Math.abs(ev.clientX - d.x0) < 4) return;
+        d.moved = true;
+        const dj = Math.round((ev.clientX - d.x0) / colW);
+        if (d.part === "a") (d.a = Math.max(0, Math.min(d.j1, d.j0 + dj))), (d.b = d.j1);
+        else if (d.part === "b") (d.a = d.j0), (d.b = Math.min(n - 1, Math.max(d.j0, d.j1 + dj)));
+        else {
+          const s = Math.max(-d.j0, Math.min(n - 1 - d.j1, dj));
+          d.a = d.j0 + s;
+          d.b = d.j1 + s;
+        }
+        paint();
+      };
+      const up = () => {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        if (!d.moved) return t.onPick ? t.onPick(d.id) : null;
+        if ((d.a !== d.j0 || d.b !== d.j1) && t.onSpan) t.onSpan(d.id, d.a, d.b);
+        else draw();
+      };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+    }
+    /* The Attention track (see attentionTrack): one block per moment colored by what holds attention, a filled
+       line for how strongly the film pulls forward, and the families as a small key in its name. It lives in the
+       top bar, so it follows zoom and scroll, and a click on it moves the playhead like a click on the ruler.
+       The reading comes from opts.attention (else the page's CurioAttention) and opts.beats (as Mark the turns). */
+    let attCache = null;
+    function attentionData(st) {
+      const beats = beatsNow(st);
+      const A = opts.attention || root.CurioAttention;
+      const spm = Number(opts.secondsPerMoment ? opts.secondsPerMoment() : 3) || 3;
+      let key = null;
+      try {
+        key = JSON.stringify([!!A, spm, beats.map((b) => b && b.values)]);
+      } catch (e) {}
+      if (key && attCache && attCache.key === key) return attCache.data;
+      const data = attentionTrack(beats, { attention: A, secondsPerBeat: spm });
+      attCache = { key, data };
+      return data;
+    }
+    function attentionBand(st, colW, svgW, y) {
+      if (tools.attention === false || momentumLane()) return { h: 0, svg: "", head: "" };
+      const d = attentionData(st);
+      const h = ATT_H;
+      const out = [`<g class="sl-att" data-att-track="${d.ok ? "on" : "none"}"><rect class="sl-attbg" x="0" y="${y}" width="${svgW}" height="${h}"/>`];
+      let key = "";
+      if (!d.ok) out.push(`<text class="sl-attnote" x="8" y="${y + h / 2 + 4}">${esc(d.note)}</text>`);
+      else {
+        const base = y + h - 2;
+        const yOf = (v) => (base - v * (h - 6)).toFixed(1);
+        d.moments.forEach((m, j) => {
+          if (!m.family) return;
+          out.push(`<rect class="sl-attblock" data-att="${j}" data-family="${esc(m.family)}" x="${j * colW + 0.5}" y="${y + 1}" width="${Math.max(1, colW - 1)}" height="${h - 2}" fill="${attColor(m.family)}"><title>Moment ${j + 1}: the audience's attention is on ${esc(m.label.toLowerCase())}${m.curiosity ? ` (${esc(m.curiosity)})` : ""}. How strongly the film pulls forward: ${Math.round(m.strength * 100)}%. Click to go to this moment.</title></rect>`);
+        });
+        if (d.moments.length) {
+          const pts = d.moments.map((m, j) => `${j * colW + colW / 2} ${yOf(m.strength)}`);
+          const first = yOf(d.moments[0].strength);
+          const last = yOf(d.moments[d.moments.length - 1].strength);
+          out.push(`<path class="sl-attarea" d="M0 ${base} L0 ${first} L${pts.join(" L")} L${svgW} ${last} L${svgW} ${base} Z"/><path class="sl-attline" d="M0 ${first} L${pts.join(" L")} L${svgW} ${last}"/>`);
+        }
+        key = d.families.map((f) => `<span class="sl-attkey" title="${esc(f.label)}"><i style="background:${f.color}"></i>${esc(f.label)}</span>`).join("");
+      }
+      out.push("</g>");
+      const tip = d.ok
+        ? `Attention: what holds the audience's attention at each moment (one color each${d.families.length ? ": " + d.families.map((f) => f.label).join(", ") : ""}), and a line for how strongly the film pulls forward${d.source === "change" ? " (here, how much changes from one moment to the next)" : ""}. Click the band to go to a moment.`
+        : d.note;
+      return { h, svg: out.join(""), head: `<div class="sl-head sl-cliphead sl-atthead" style="height:${h}px" title="${esc(tip)}"><b>Attention</b><span class="sl-attkeys">${d.ok ? key || "nothing holds it yet" : "not available"}</span></div>` };
+    }
+    /* Film lines and Take from the film: the inspiration film picked in the Player comes from opts.inspiration()
+       -> { name, beats: [{ values }] } or null. */
+    function inspirationNow() {
+      let f = null;
+      try {
+        f = opts.inspiration ? opts.inspiration() : null;
+      } catch (e) {
+        f = null;
+      }
+      return f && Array.isArray(f.beats) && f.beats.length ? { name: String(f.name || "the inspiration film"), beats: f.beats } : null;
+    }
+    const filmLinesOn = () => tools.filmLines !== false;
+    function filmTip(what) {
+      const f = inspirationNow();
+      if (!f) return what === "take" ? "Take from the film: pick an inspiration film in the Player first." : "Film lines: pick an inspiration film in the Player to see its settings as a dashed line in each lane.";
+      return what === "take"
+        ? `Take from the film: put ${f.name}'s settings for the selected lanes and moments into your film as nodes, like the Prism's Copy it. One undo takes it back.`
+        : `Film lines: show or hide a faint dashed line in each lane for ${f.name}'s own settings, stretched to your film's length, so you can see where your film follows it and where it goes its own way.`;
+    }
+    function toggleFilmLines() {
+      tools.filmLines = !filmLinesOn();
+      const f = inspirationNow();
+      msg = tools.filmLines ? (f ? `Film lines on: the dashed line in each lane is ${f.name}.` : "Film lines on, but there is no inspiration film to draw. Add one in the Player.") : "Film lines hidden.";
+      saveTools();
+      draw();
+      return { ok: true, on: tools.filmLines };
+    }
+    /* The Player's picked film can change without the timeline being told (clicking a viewer's Inspect), so after
+       any click or change on the page, look again and redraw if it is a different film. */
+    let filmSeen = null;
+    const filmKey = () => {
+      const f = inspirationNow();
+      return f ? [f.name, f.beats] : null;
+    };
+    function filmCheck() {
+      setTimeout(() => {
+        if (!el.isConnected) return;
+        const k = filmKey();
+        const same = (k && filmSeen && k[0] === filmSeen[0] && k[1] === filmSeen[1]) || (!k && !filmSeen);
+        if (same) return;
+        filmSeen = k;
+        if (filmLinesOn()) draw();
+      }, 0);
+    }
+    function toggleAttention() {
+      tools.attention = tools.attention === false;
+      msg = tools.attention ? "Attention track on: the band under My film shows what holds the audience's attention at each moment." : "Attention track hidden.";
+      saveTools();
+      draw();
+      return { ok: true, on: tools.attention };
+    }
     /* The value lines inside a lane: one per step of its scale, thinned out until they are at least 7px apart, so a
        taller lane shows finer gradations (a 0 to 100 range: tens, then fives, then every step). */
     function valueLines(cur, y0, w) {
@@ -699,11 +3369,28 @@
       const x = e.clientX - r.left;
       const y = e.clientY - r.top;
       const j = Math.max(0, Math.min(geo.n - 1, Math.floor(x / geo.colW)));
-      const i = Math.floor((y - geo.top) / geo.lh);
+      const i = laneAtY(y - geo.top);
       const ln = geo.lanes[i];
       let p = null;
-      if (ln) p = 1 - (y - geo.top - i * geo.lh - PAD) / (geo.lh - PAD * 2);
-      return { x, y, j, i, ln, p: p == null ? null : Math.max(0, Math.min(1, p)) };
+      if (ln) p = 1 - (y - geo.top - geo.yTops[i] - PAD) / (geo.lh - PAD * 2);
+      /* On a track's master lane (above the lanes): which one. */
+      const mrow = geo.band && geo.band.h && y >= geo.band.top && y < geo.band.top + geo.band.h ? Math.floor((y - geo.band.top) / geo.band.mh) : null;
+      return { x, y, j, i, ln, mrow, p: p == null ? null : Math.max(0, Math.min(1, p)) };
+    }
+    /* The lane at height y in the lanes' picture, or -1 on a group's header row (or below the last lane). */
+    function laneAtY(y) {
+      return geo ? geo.yTops.findIndex((t) => y >= t && y < t + geo.lh) : -1;
+    }
+    /* The lanes a selection box from y0 to y1 covers: the first lane reaching below y0 to the last starting above
+       y1. A box drawn only over a header row takes the lane under it. */
+    function lanesBetween(y0, y1) {
+      const last = geo.lanes.length - 1;
+      let i0 = geo.yTops.findIndex((t) => t + geo.lh > y0);
+      if (i0 < 0) i0 = last;
+      let i1 = -1;
+      geo.yTops.forEach((t, i) => t <= y1 && (i1 = i));
+      if (i1 < i0) i1 = i0;
+      return [Math.max(0, i0), Math.max(0, Math.min(last, i1))];
     }
     function say(m) {
       msg = m || "";
@@ -711,6 +3398,12 @@
       if (s) s.textContent = msg;
     }
     function send(m) {
+      /* Lock: nothing on the timeline changes a locked lane's nodes. */
+      const lk = lockedIn(m);
+      if (lk) {
+        say(lockSay(lk));
+        return { ok: false, error: lockSay(lk), locked: true };
+      }
       const r = E().send(m);
       if (!r.ok) say(r.error);
       return r;
@@ -753,11 +3446,43 @@
     const touches = new Map();
     let pan = null;
     let topDrag = null;
+    let lastMark = null; /* the last click on a marker's flag: { j, t } */
     let leftDrag = null;
     const center = () => {
       const v = [...touches.values()];
       return [v.reduce((a, p) => a + p.x, 0) / v.length, v.reduce((a, p) => a + p.y, 0) / v.length];
     };
+    let levelDrag = null;
+    let levelPress = null;
+    function levelFrom(lvEl, x) {
+      const r = lvEl.getBoundingClientRect();
+      return Math.round(Math.max(0, Math.min(1, (x - r.left) / Math.max(1, r.width))) * 100);
+    }
+    function levelPaint(d) {
+      if (!d.el || !d.el.isConnected) return;
+      const i = d.el.querySelector("i");
+      if (i) i.style.width = d.pct + "%";
+      d.el.classList.toggle("low", d.pct < 100);
+      d.el.setAttribute("aria-valuenow", d.pct);
+      say(`${lkName(d.lk)}: level ${d.pct}%${d.pct === 0 ? " (off: plays its neutral value)" : d.pct === 100 ? " (as drawn)" : ""}. Let go to keep it.`);
+    }
+    /* One undo step: the lane's level, 0 to 100. */
+    function setLevel(lk, pct) {
+      const st = E().state();
+      if (!st.lanes[lk]) return say("That lane has no nodes yet, so it has no level to set."), { ok: false };
+      if (isLocked(lk)) return say(lockSay(lk)), { ok: false };
+      pct = Math.max(0, Math.min(100, Math.round(Number(pct) || 0)));
+      const at = lk.indexOf("|");
+      const n0 = drawN;
+      const r = E().send({ type: "laneMode", track: lk.slice(0, at), curiosity: lk.slice(at + 1), level: pct / 100, label: `Set ${lkName(lk)}'s level to ${pct}%` });
+      drawUnlessDrawn(n0);
+      say(r.ok ? `${lkName(lk)}: level ${pct}%${pct === 100 ? ", plays as drawn" : pct === 0 ? ", off: it plays its neutral value" : `, plays ${pct}% of the way from its neutral value`}. Undo (⌘Z) puts it back.` : r.error);
+      const again = el.querySelector(`[data-lane-level="${CSS.escape(lk)}"]`);
+      if (again && levelKeyed) again.focus();
+      levelKeyed = false;
+      return r;
+    }
+    let levelKeyed = false;
     function onDown(e) {
       if (e.button > 0) return;
       const sc = scroller();
@@ -773,14 +3498,40 @@
       const node = e.target.closest && e.target.closest("[data-node]");
       const link = e.target.closest && e.target.closest("[data-link]");
       const segEl = e.target.closest && e.target.closest("[data-seg]");
+      /* Only the second click of a double-click on a line lands on the node its first click added. */
+      if (lastAdd && !(node && node.dataset.node === lastAdd.key)) lastAdd = null;
       const clipEl = e.target.closest && e.target.closest("[data-clip]");
       const r = sc ? sc.getBoundingClientRect() : { left: 0, top: 0 };
+      /* A text's bar on the Text row: drag its ends or its middle (opts.texts). */
+      const tbar = e.target.closest && e.target.closest(".sl-top [data-txt-bar]");
+      if (tbar && geo) return textDown(e, tbar);
+      /* A transition's ◇ is the page's (opts.joins): its click opens the chooser, so no zoom drag or playhead move. */
+      if (e.target.closest && e.target.closest(".sl-top [data-join]")) return;
       if (e.target.closest && e.target.closest(".sl-top, .sl-rulerhead")) {
         let j = null;
-        if (clipEl) j = Number(clipEl.dataset.clip) || 0;
+        const markEl = e.target.closest(".sl-top [data-marker]");
+        if (markEl) j = Number(markEl.dataset.marker) || 0;
+        else if (clipEl) j = Number(clipEl.dataset.clip) || 0;
         else if (geo && e.target.closest(".sl-top")) j = Math.max(0, Math.min(geo.n - 1, Math.floor((sc.scrollLeft + e.clientX - r.left - headW()) / geo.colW)));
-        topDrag = { x0: e.clientX, y0: e.clientY, z0: zoomOf(), frac: geo ? (sc.scrollLeft + e.clientX - r.left - headW()) / Math.max(1, geo.svgW) : 0, clip: !!clipEl, j, moved: false };
+        topDrag = { x0: e.clientX, y0: e.clientY, z0: zoomOf(), frac: geo ? (sc.scrollLeft + e.clientX - r.left - headW()) / Math.max(1, geo.svgW) : 0, clip: !!clipEl, mark: !!markEl, j, moved: false };
         e.preventDefault();
+        return;
+      }
+      const lvEl = e.target.closest && e.target.closest("[data-lane-level]");
+      if (lvEl) {
+        e.preventDefault();
+        const lk = lvEl.dataset.laneLevel;
+        if (isLocked(lk)) return say(lockSay(lk));
+        /* A second press soon after the first is a double-click (the redraw replaces the bar, so the browser's own
+           dblclick may not fire): back to 100%. */
+        const now = Date.now();
+        if (levelPress && levelPress.lk === lk && now - levelPress.t < DBL_MS) {
+          levelPress = null;
+          return setLevel(lk, 100);
+        }
+        levelPress = { lk, t: now };
+        levelDrag = { lk, el: lvEl, pct: levelFrom(lvEl, e.clientX), x0: e.clientX, moved: false };
+        levelPaint(levelDrag);
         return;
       }
       if (e.target.closest && e.target.closest(".sl-heads") && !e.target.closest("button, select, input, a, label, option")) {
@@ -794,25 +3545,172 @@
         return;
       }
       if (!e.target.closest || !e.target.closest(".sl-svg")) return;
+      if (bandDown(e)) return;
+      if (mSel) (mSel = null), paintSelStat();
+      const ck = e.target.closest("[data-ckey]");
+      if (ck) {
+        /* A keyframe diamond: a click picks it and moves the playhead there; a drag sideways moves its keys. */
+        e.preventDefault();
+        el.focus({ preventScroll: true });
+        ckDrag = { cur: ck.dataset.subdot, j0: Number(ck.dataset.ckey) || 0, j: Number(ck.dataset.ckey) || 0, x0: e.clientX, el: ck, moved: false };
+        return;
+      }
+      ckSel = null;
+      const gdot = e.target.closest("[data-gdot]");
+      if (gdot) {
+        /* A folded group's dot: move the playhead to that moment. */
+        e.preventDefault();
+        if (opts.onClip) opts.onClip(Number(gdot.dataset.gdot) || 0);
+        return;
+      }
       const a = at(e);
-      if (node) {
+      /* A press inside the selected area may become a sideways drag of the whole block (decided in onMove). */
+      const inArea = !!area && (node ? node.classList.contains("in") : inBlock(a));
+      if (node && isLocked(split(node.dataset.node).lk) && !inArea) {
+        /* A locked lane's node can be picked (to copy it) but not dragged. */
         sel = node.dataset.node;
         seg = null;
-        drag = { key: sel, start: a, copy: e.altKey || e.shiftKey, moved: false };
-        if (opts.onSelect) opts.onSelect(split(sel).cur);
+        if (opts.onSelect) opts.onSelect(split(sel).cur, split(sel).track);
+        e.preventDefault();
+        draw();
+        say(lockSay(split(sel).lk));
+        return;
+      }
+      if (node) {
+        /* A double-click on a node removes it. Picking the node on the first click redraws the lanes, so the
+           browser's own dblclick never reaches it: two presses on the same node close together count instead
+           (onDbl still answers a dblclick that does arrive). */
+        const now = Date.now();
+        if (nodeDown && nodeDown.key === node.dataset.node && now - nodeDown.t < DBL_MS) {
+          nodeDown = null;
+          dblDone = now;
+          e.preventDefault();
+          if (lastAdd && lastAdd.key === node.dataset.node) return (lastAdd = null);
+          return removeNode(node.dataset.node);
+        }
+        nodeDown = { key: node.dataset.node, t: now };
+        sel = node.dataset.node;
+        seg = null;
+        drag = { key: sel, start: a, copy: e.altKey || e.shiftKey, moved: false, area: inArea };
+        if (opts.onSelect) opts.onSelect(split(sel).cur, split(sel).track);
         e.preventDefault();
         return;
       }
-      if (segEl) {
-        /* Pick the line (no redraw, so a double-click still lands on it and opens its curve). */
+      if (segEl && inArea) {
+        /* Inside the selected area a line is part of the block: a sideways drag moves the block. */
         seg = segEl.dataset.seg;
-        el.querySelectorAll(".sl-seghit.on").forEach((x) => x.classList.remove("on"));
-        segEl.classList.add("on");
-        say("Line picked: double-click it, or press Curves, to shape its curve.");
+        drag = { add: true, start: a, copy: e.altKey || e.shiftKey, area: true, quiet: true };
         return;
       }
-      if (!a.ln) return;
-      drag = { add: true, start: a };
+      if (segEl) {
+        /* Ableton's line gestures, decided when the pointer lets go: a click adds a node on the line, a drag up or
+           down moves both of its nodes, and Alt (Option) + drag curves it. */
+        const sk = segEl.dataset.seg;
+        const p = sk.split("|");
+        const lk = p[0] + "|" + p[1];
+        e.preventDefault();
+        el.querySelectorAll(".sl-seghit.on").forEach((x) => x.classList.remove("on"));
+        segEl.classList.add("on");
+        if (isLocked(lk)) {
+          seg = sk;
+          return say(lockSay(lk));
+        }
+        drag = { seg: sk, lk, ra: p[2], rb: p[3], start: a, bend: e.altKey, moved: false, i: geo.lanes.findIndex((ln) => ln.lk === lk) };
+        return;
+      }
+      if (!a.ln && a.mrow == null) return;
+      drag = { add: true, start: a, copy: e.altKey || e.shiftKey, area: inArea };
+      if (inArea) e.preventDefault();
+    }
+    /* The lanes with the locked ones inside the selected area left out (lk: null), and how many were left out:
+       the area tools, Move, Remove and Paste skip locked lanes. */
+    function openLanes() {
+      let skipped = 0;
+      const lanes = geo.lanes.map((ln, i) => (ln && area && i >= area.i0 && i <= area.i1 && isLocked(ln.lk) ? (skipped++, Object.assign({}, ln, { lk: null })) : ln));
+      return { lanes, skipped };
+    }
+    const skipNote = (n) => (n ? ` Skipped ${n} locked lane${n === 1 ? "" : "s"} (🔒).` : "");
+    const inBlock = (a) => !!area && a.x >= area.j0 * geo.colW && a.x < (area.j1 + 1) * geo.colW && ((!!a.ln && a.i >= area.i0 && a.i <= area.i1) || (area.m0 != null && a.mrow != null && a.mrow >= area.m0 && a.mrow <= area.m1));
+    /* ---------- dragging the selected area sideways (CapCut: drag a group of clips along the timeline) ----------
+       The whole block snaps to whole moments and stays inside the film. While dragging, a copy of the area's
+       outline and its nodes slides with the pointer (the originals fade, or stay put with Alt: a copy). */
+    function areaShift(a, d) {
+      const dj = Math.round((a.x - d.start.x) / geo.colW);
+      return Math.max(-area.j0, Math.min(geo.n - 1 - area.j1, dj));
+    }
+    function areaPreview(dj, copy) {
+      const svg = el.querySelector(".sl-svg");
+      if (!svg) return;
+      let g = svg.querySelector(".sl-areaghost");
+      if (!g) {
+        g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        const box = svg.querySelector(".sl-area");
+        if (box) g.appendChild(box.cloneNode(false));
+        svg.querySelectorAll(".sl-node.in").forEach((c) => {
+          const k = c.cloneNode(false);
+          k.removeAttribute("data-node");
+          g.appendChild(k);
+        });
+        svg.appendChild(g);
+      }
+      g.setAttribute("class", "sl-areaghost" + (copy ? " copy" : ""));
+      g.setAttribute("transform", `translate(${dj * geo.colW} 0)`);
+      svg.classList.toggle("sl-areamoving", !copy);
+      const count = svg.querySelectorAll(".sl-node.in[data-node]").length;
+      const nodes = `${count} node${count === 1 ? "" : "s"}`;
+      if (!dj) say(`Drag sideways to move the selection (${nodes}); hold Alt (Option) when you let go to copy instead.`);
+      else say(`${copy ? "Copy" : "Move"} ${nodes} ${Math.abs(dj)} moment${Math.abs(dj) === 1 ? "" : "s"} ${dj > 0 ? "later" : "earlier"}, to moments ${area.j0 + dj + 1} to ${area.j1 + dj + 1}.${copy ? " The originals stay." : " Hold Alt (Option) to copy instead."}`);
+    }
+    function dropArea(dj, copy) {
+      const st = E().state();
+      if (!dj) {
+        say("The selection is back where it was; nothing moved.");
+        return draw();
+      }
+      const open = openLanes();
+      const r = moveAreaCommands(st, open.lanes, area, dj, copy);
+      if (r.error) return say(r.error), draw();
+      const where = Math.abs(dj) + " moment" + (Math.abs(dj) === 1 ? "" : "s") + (dj > 0 ? " later" : " earlier");
+      /* Master nodes in the box move (or, with Alt, copy) with it, in the same undo step. */
+      const mIds = mInArea(st, area);
+      if (mIds.length) {
+        const mc = mShiftCommands(st, r.cmds || [], mIds, dj, copy);
+        if (mc.error) return say(mc.error), draw();
+        r.cmds = (r.cmds || []).concat(mc.cmds);
+        r.nodes = (r.nodes || 0) + mIds.length;
+        r.area = Object.assign({}, r.area || area, { m0: area.m0, m1: area.m1, mtracks: area.mtracks, i0: area.i0, i1: area.i1 });
+      } else if (r.area && area.mtracks) Object.assign(r.area, { m0: area.m0, m1: area.m1, mtracks: area.mtracks });
+      if (!r.nodes) {
+        area = r.area;
+        say(open.skipped ? `Every lane with nodes in the selection is locked, so nothing moved.${skipNote(open.skipped)}` : `The selection moved ${where}; it had no nodes in it, so the film is the same.`);
+        return draw();
+      }
+      const out = send({ type: "batch", label: copy ? "Copy the selection" : "Move the selection", commands: r.cmds });
+      if (out.ok) {
+        /* A curve whose two nodes both moved keeps its shape at the new moments. */
+        let kept = false;
+        Object.keys(curves).forEach((sk) => {
+          const p = sk.split("|");
+          const ra = r.moved[nodeKey(p[2], p[0] + "|" + p[1])];
+          const rb = r.moved[nodeKey(p[3], p[0] + "|" + p[1])];
+          if (ra && rb) (curves[segKey(p[0] + "|" + p[1], ra, rb)] = curves[sk]), (kept = true);
+        });
+        if (kept) saveCurves();
+        if (sel && r.moved[sel] && !copy) sel = nodeKey(r.moved[sel], split(sel).lk);
+        area = r.area;
+        const nodes = `${r.nodes} node${r.nodes === 1 ? "" : "s"}`;
+        say(
+          `${copy ? "Copied" : "Moved"} ${nodes} ${where}; they now sit at moments ${area.j0 + 1} to ${area.j1 + 1}.` +
+            (copy ? " The originals stayed where they were." : "") +
+            (r.links ? ` ${r.links} join${r.links === 1 ? "" : "s"} came along.` : "") +
+            (r.replaced ? ` ${r.replaced} node${r.replaced === 1 ? " that was" : "s that were"} already there ${r.replaced === 1 ? "was" : "were"} replaced.` : "") +
+            skipNote(open.skipped) +
+            " Undo (⌘Z) puts everything back."
+        );
+      }
+      const keep = msg;
+      draw();
+      say(keep);
     }
     let hoverJ = -1;
     function onMove(e) {
@@ -827,6 +3725,25 @@
           }
           return;
         }
+      }
+      if (mDrag) return bandMove(e);
+      if (levelDrag) {
+        levelDrag.pct = levelFrom(levelDrag.el, e.clientX);
+        levelDrag.moved = true;
+        return levelPaint(levelDrag);
+      }
+      if (ckDrag) {
+        const dx = e.clientX - ckDrag.x0;
+        if (!ckDrag.moved && Math.abs(dx) < 4) return;
+        ckDrag.moved = true;
+        const n = geo ? geo.n : 1;
+        ckDrag.j = Math.max(0, Math.min(n - 1, ckDrag.j0 + Math.round(dx / (geo ? geo.colW : 40))));
+        if (ckDrag.el && ckDrag.el.isConnected) {
+          ckDrag.el.setAttribute("transform", `translate(${(ckDrag.j - ckDrag.j0) * (geo ? geo.colW : 40)} 0)`);
+          ckDrag.el.classList.add("drag");
+        }
+        say(`Moving ${S().label(ckDrag.cur)}'s keyframe to moment ${ckDrag.j + 1}. Let go to keep it.`);
+        return;
       }
       if (topDrag) {
         const dx = e.clientX - topDrag.x0;
@@ -859,15 +3776,35 @@
         } else sc.scrollTop = Math.max(0, leftDrag.st0 - dy);
         return;
       }
+      if (!drag && area && geo && e.target.closest && e.target.closest(".sl-svg") && el.contains(e.target)) {
+        /* A grab hand over the selected area: it can be dragged sideways. */
+        el.querySelector(".sl-svg").classList.toggle("sl-overarea", inBlock(at(e)));
+      }
       if (!drag && tools.skim && opts.onHover && geo && e.target.closest && e.target.closest(".sl-svg") && el.contains(e.target)) {
         const a = at(e);
         if (a.j !== hoverJ) opts.onHover((hoverJ = a.j));
         return;
       }
+      if (geo && e.target && e.target.closest && el.contains(e.target)) {
+        const svgA = el.querySelector(".sl-svg");
+        if (svgA) svgA.classList.toggle("sl-alt", !!e.altKey);
+        if (!drag) hoverLine(e);
+      }
       if (!drag) return;
       const a = at(e);
       if (Math.abs(a.x - drag.start.x) + Math.abs(a.y - drag.start.y) > 4) drag.moved = true;
       if (!drag.moved) return;
+      if (drag.seg) return segPreview(drag, a);
+      if (drag.area && !drag.areaMove) {
+        /* Inside the selected area: mostly sideways moves the whole block; mostly up or down does what it did
+           before (a node's setting, or a new selection box). */
+        if (Math.abs(a.x - drag.start.x) >= Math.abs(a.y - drag.start.y)) drag.areaMove = true;
+        drag.area = false;
+      }
+      if (drag.areaMove) {
+        if (area) areaPreview(areaShift(a, drag), drag.copy || e.altKey || e.shiftKey);
+        return;
+      }
       const svg = el.querySelector(".sl-svg");
       if (drag.add) {
         /* Dragging across empty space draws a selection box. */
@@ -901,13 +3838,44 @@
           return;
         }
       }
+      if (mDrag) return bandUp(e);
+      if (levelDrag) {
+        const d = levelDrag;
+        levelDrag = null;
+        if (d.moved && Math.abs(d.x0 - e.clientX) > 3) levelPress = null;
+        return setLevel(d.lk, d.pct);
+      }
+      if (ckDrag) {
+        const d = ckDrag;
+        ckDrag = null;
+        if (d.moved && d.j !== d.j0) return moveClipKey(d.cur, d.j0, d.j);
+        ckSel = { cur: d.cur, j: d.j0 };
+        sel = null;
+        seg = null;
+        if (opts.onClip) opts.onClip(d.j0);
+        draw();
+        say(`${S().label(d.cur)}'s keyframe at moment ${d.j0 + 1} is picked: drag it sideways to move it, Delete takes it off, right-click for Ease.`);
+        return;
+      }
       if (topDrag) {
         const d = topDrag;
         topDrag = null;
         if (d.moved) {
+          lastMark = null;
           saveTools();
           say(`Zoom ${Math.round(zoomOf() * 100)}%. Finer lines show as you zoom in.`);
-        } else if (d.j != null && opts.onClip) opts.onClip(d.j);
+          return;
+        }
+        /* A second click on the same marker's flag soon after the first is a double-click: open its pop-up.
+           (The first click moved the playhead and redrew, so the browser's own dblclick may not reach the flag.) */
+        const now = Date.now();
+        if (d.mark && lastMark && lastMark.j === d.j && now - lastMark.t < 500) {
+          lastMark = null;
+          openMarker(d.j, e.clientX, e.clientY);
+          return;
+        }
+        lastMark = d.mark ? { j: d.j, t: now } : null;
+        if (d.j != null && opts.onClip) opts.onClip(d.j);
         return;
       }
       if (leftDrag) {
@@ -920,7 +3888,7 @@
         area = d.shift && area ? { i0: Math.min(area.i0, d.i), i1: Math.max(area.i1, d.i), j0: 0, j1: last } : { i0: d.i, i1: d.i, j0: 0, j1: last };
         sel = null;
         seg = null;
-        say(`${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""} selected. Copy, then pick another lane or area and Paste.`);
+        say(`${area.i1 - area.i0 + 1} lane${area.i1 > area.i0 ? "s" : ""} selected. Copy, then pick another lane or area and Paste. Drag a selection sideways to move it; hold Alt to copy.`);
         return draw();
       }
       if (!drag) return;
@@ -928,15 +3896,27 @@
       drag = null;
       const a = at(e);
       const st = E().state();
+      if (d.seg) return segUp(d, a);
+      if (d.areaMove) return area ? dropArea(areaShift(a, d), d.copy || e.altKey || e.shiftKey) : draw();
+      if (d.quiet && !d.moved) return;
       if (d.add && d.moved) {
         const j0 = Math.max(0, Math.min(geo.n - 1, Math.floor(Math.min(a.x, d.start.x) / geo.colW)));
         const j1 = Math.max(0, Math.min(geo.n - 1, Math.floor(Math.max(a.x, d.start.x) / geo.colW)));
-        const i0 = Math.max(0, Math.min(geo.lanes.length - 1, Math.floor(Math.min(a.y, d.start.y) / geo.lh)));
-        const i1 = Math.max(0, Math.min(geo.lanes.length - 1, Math.floor(Math.max(a.y, d.start.y) / geo.lh)));
+        const ya = Math.min(a.y, d.start.y);
+        const yb = Math.max(a.y, d.start.y);
+        const bt = geo.band && geo.band.h ? geo.band.top : Infinity;
+        /* A box over the master lanes (under the lanes) also holds their master nodes. */
+        const mm = yb >= bt ? [Math.max(0, Math.floor((Math.max(ya, bt) - bt) / geo.band.mh)), Math.min(geo.band.rows.length - 1, Math.floor((yb - bt) / geo.band.mh))] : null;
+        if (!geo.lanes.length && !mm) return say("Every group of lanes is folded; open one (▸ by its name) to select its lanes."), draw();
+        const [i0, i1] = ya >= bt || !geo.lanes.length ? [-1, -1] : lanesBetween(ya, Math.min(yb, bt - 1));
         area = { i0, i1, j0, j1 };
+        if (mm) (area.m0 = mm[0]), (area.m1 = mm[1]), (area.mtracks = geo.band.rows.slice(mm[0], mm[1] + 1).map((r) => r.track.id));
+        area.extra = extrasOf(st, area);
         sel = null;
         seg = null;
-        say(`Selected moments ${j0 + 1} to ${j1 + 1} on ${i1 - i0 + 1} lane${i1 > i0 ? "s" : ""}. Copy, then select where it goes and Paste.`);
+        mSel = null;
+        const mn = mInArea(st, area).length;
+        say(`Selected moments ${j0 + 1} to ${j1 + 1}${i0 >= 0 ? ` on ${i1 - i0 + 1} lane${i1 > i0 ? "s" : ""}` : ""}${mm ? `${i0 >= 0 ? " and" : " on"} ${mm[1] - mm[0] + 1} master lane${mm[1] > mm[0] ? "s" : ""}${mn ? ` (${mn} master node${mn === 1 ? "" : "s"})` : ""}` : ""}${area.extra.length ? `, with ${area.extra.length} joined partner${area.extra.length === 1 ? "" : "s"} outside the box` : ""}. Drag it sideways to move it (Alt copies), or Copy and Paste elsewhere.`);
         return draw();
       }
       if (d.add) {
@@ -948,8 +3928,9 @@
           return draw();
         }
         if (!a.ln || a.ln !== d.start.ln) return draw();
+        if (isLocked(a.ln.lk)) return say(lockSay(a.ln.lk));
         let track = a.ln.track;
-        if (!track) track = ensure(a.ln.cur);
+        if (!track) track = a.ln.host ? ensureOn(a.ln.cur, a.ln.host) : ensure(a.ln.cur);
         if (!track) return say("Every track is full; remove a lane first.");
         const rowId = E().state().rows[a.j].id;
         const v = tools.tool === "split" ? E().value(rowId, track, a.ln.cur) : S().at(a.ln.cur, a.p);
@@ -966,15 +3947,17 @@
       const copy = d.copy || e.altKey || e.shiftKey;
       /* Dropped on another lane's node: join them (a proximity). */
       if (target && target.dataset.node !== d.key && split(target.dataset.node).lk !== from.lk) {
+        const lockLk = [from.lk, split(target.dataset.node).lk].find(isLocked);
+        if (lockLk) return draw(), say(lockSay(lockLk));
         const r = send(Object.assign(linkCommand(st, from, split(target.dataset.node)), {}));
         if (r.ok) say("Joined: they now move and copy together. Copy proximity takes the pair to another scene.");
         return draw();
       }
       const ix = st.rows.findIndex((r) => r.id === from.row);
       let tj = a.j;
-      if (tools.snap && tj !== ix) {
+      if (tools.snap && tj !== ix && !(e.ctrlKey || e.metaKey)) {
         /* Auto snapping: a marker one moment away pulls the node onto it (moments are whole steps already). */
-        const pulls = st.rows.map((r, j) => (tools.markers.includes(r.id) ? j : -9));
+        const pulls = st.rows.map((r, j) => (markerOf(r.id) ? j : -9));
         const near = pulls.filter((j) => j !== ix && Math.abs(j - tj) === 1);
         if (near.length && !pulls.includes(tj)) tj = near[0];
       }
@@ -1003,6 +3986,397 @@
       } else if (dj !== 0) sel = nodeKey(st.rows[ix + dj].id, from.lk);
       if (cmds.length) send({ type: "batch", label, commands: cmds });
       draw();
+    }
+    /* ---------- Ableton's line gestures (see automationGroup above for the master lane and its group) ---------- */
+    let lastAdd = null; /* the node a click on a line just added: { key, t } */
+    let nodeDown = null; /* the last press on a node, for double-clicks: { key, t } */
+    let dblDone = 0;
+    const DBL_MS = 450;
+    /* A line's two ends, now: { cur, track, lane, ja, jb, a, b, rec } (rec: its curve, when it still fits). */
+    function segInfo(st, d) {
+      const lane = st.lanes[d.lk];
+      if (!lane || lane.points[d.ra] == null || lane.points[d.rb] == null) return null;
+      const bar = d.lk.indexOf("|");
+      const ja = st.rows.findIndex((r) => r.id === d.ra);
+      const jb = st.rows.findIndex((r) => r.id === d.rb);
+      const a = { r: d.ra, j: ja, v: lane.points[d.ra] };
+      const b = { r: d.rb, j: jb, v: lane.points[d.rb] };
+      const rec = curves[d.seg] && curveOk(st, d.lk, a, b, curves[d.seg]) ? curves[d.seg] : null;
+      return { cur: d.lk.slice(bar + 1), track: d.lk.slice(0, bar), lane, ja, jb, a, b, rec };
+    }
+    /* The path from moment ja at place pa to moment jb at place pb on drawn lane i, straight or curved. */
+    function ghostPath(i, ja, pa, jb, pb, rec, mode) {
+      const top = geo.yTops[i];
+      const y = (p) => top + PAD + (1 - Math.max(0, Math.min(1, p))) * (geo.lh - PAD * 2);
+      const x0 = ja * geo.colW + geo.colW / 2;
+      const x1 = jb * geo.colW + geo.colW / 2;
+      if (!rec) return `M${x0} ${y(pa)} ` + segPath([x0, y(pa)], [x1, y(pb)], mode);
+      const out = [`M${x0} ${y(pa)}`];
+      for (let k = 1; k <= 32; k++) out.push(`L${(x0 + ((x1 - x0) * k) / 32).toFixed(1)} ${y(pa + (pb - pa) * shapeAt(rec.shape, rec.bend, k / 32)).toFixed(1)}`);
+      return out.join(" ");
+    }
+    function segGhost(dpath, ends) {
+      const svg = el.querySelector(".sl-svg");
+      if (!svg) return;
+      let g = svg.querySelector(".sl-segghost");
+      if (!g) {
+        g = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        g.setAttribute("class", "sl-segghost");
+        svg.appendChild(g);
+      }
+      g.setAttribute("d", dpath);
+      (ends || []).forEach(([key, cy]) => {
+        const c = svg.querySelector(`[data-node="${CSS.escape(key)}"]`);
+        if (c) c.setAttribute("cy", cy);
+      });
+    }
+    /* While dragging a line: both ends follow the pointer up or down, or (Alt) the line bows as it will. */
+    function segPreview(d, a) {
+      const st = E().state();
+      const g = segInfo(st, d);
+      if (!g || d.i < 0) return;
+      const pa = S().pos(g.cur, g.a.v);
+      const pb = S().pos(g.cur, g.b.v);
+      if (pa == null || pb == null) return;
+      const h = geo.lh - PAD * 2;
+      if (d.bend) {
+        const rec = bendFrom(pa, pb, a.y - d.start.y, h);
+        segGhost(ghostPath(d.i, g.ja, pa, g.jb, pb, rec, g.lane.mode));
+        return say(g.jb - g.ja < 2 ? "These two nodes are on neighbouring moments, so this line has no room to curve." : rec ? `Curving the line (${SHAPES[rec.shape][0].toLowerCase()}, bend ${rec.bend}). Let go to keep it.` : pa === pb ? "A flat line can't curve: move one of its nodes up or down first." : "Drag up or down to curve the line.");
+      }
+      const dp = -(a.y - d.start.y) / h;
+      const qa = Math.max(0, Math.min(1, pa + dp));
+      const qb = Math.max(0, Math.min(1, pb + dp));
+      const top = geo.yTops[d.i];
+      const yy = (p) => top + PAD + (1 - p) * h;
+      segGhost(ghostPath(d.i, g.ja, qa, g.jb, qb, g.rec, g.lane.mode), [[nodeKey(d.ra, d.lk), yy(qa)], [nodeKey(d.rb, d.lk), yy(qb)]]);
+      say(`Moving both nodes of this line: ${S().at(g.cur, qa)} and ${S().at(g.cur, qb)}. Let go to keep it.`);
+    }
+    /* ---------- CapCut's keyframe diamonds on a curiosity's lane (its clip) ----------
+       The lanes a curiosity's diamonds stand for: its master lane and its automation group's sub-lanes that have a
+       track. A locked lane (🔒) is left out of every change. */
+    function clipLks(ln) {
+      return [ln.lk].concat((ln.subRows || []).map((r) => r.lk)).filter(Boolean);
+    }
+    function clipOf(cur) {
+      const ln = geo && geo.lanes.find((x) => x && !x.sub && x.cur === cur && x.subRows);
+      return ln ? clipLks(ln) : [];
+    }
+    function clipHere(cur, j) {
+      const st = E().state();
+      const k = clipKeys(st, clipOf(cur)).find((d) => d.j === j);
+      const lks = k ? k.lks : [];
+      return { st, lks: lks.filter((lk) => !isLocked(lk)), locked: lks.filter(isLocked) };
+    }
+    const lockedNote = (locked) => (locked.length ? ` ${locked.length === 1 ? lkName(locked[0]) + " is" : locked.length + " settings are"} locked (🔒), so ${locked.length === 1 ? "it stays" : "they stay"} as ${locked.length === 1 ? "it is" : "they are"}.` : "");
+    /* Drag a diamond sideways: every key it stands for moves from moment j0 to j1, as one undo step. Whatever those
+       lanes had at j1 is replaced, and joins move with their nodes (the area move's rules). */
+    function moveClipKey(cur, j0, j1) {
+      const h = clipHere(cur, j0);
+      if (!h.lks.length) return say(h.locked.length ? lockSay(h.locked[0]) : "That keyframe is gone."), { ok: false };
+      const list = h.lks.map((lk) => ({ lk, track: lk.slice(0, lk.indexOf("|")), cur: lk.slice(lk.indexOf("|") + 1) }));
+      const m = moveAreaCommands(h.st, list, { i0: 0, i1: list.length - 1, j0, j1: j0 }, j1 - j0, false);
+      if (m.error) return say(m.error), { ok: false };
+      if (!m.cmds.length) return { ok: true };
+      const r = send({ type: "batch", label: `Move a keyframe of ${S().label(cur)} to moment ${j1 + 1}`, commands: m.cmds });
+      if (r.ok) {
+        ckSel = { cur, j: j1 };
+        if (opts.onClip) opts.onClip(j1);
+        draw();
+        say(`Moved ${S().label(cur)}'s keyframe (${m.nodes} setting${m.nodes === 1 ? "" : "s"}) from moment ${j0 + 1} to ${j1 + 1}.${m.replaced ? ` It replaced ${m.replaced} key${m.replaced === 1 ? "" : "s"} there.` : ""}${lockedNote(h.locked)}`);
+      }
+      return r;
+    }
+    /* Delete (or the right-click menu) on a picked diamond: take off every key it stands for, joins to them too. */
+    function removeClipKey(cur, j) {
+      const h = clipHere(cur, j);
+      if (!h.lks.length) return say(h.locked.length ? lockSay(h.locked[0]) : "That keyframe is gone."), { ok: false };
+      const r0 = h.st.rows[j].id;
+      const doomed = h.lks.map((lk) => nodeKey(r0, lk));
+      const cmds = [];
+      h.st.links.forEach((l) => {
+        const ends = linkEnds(l);
+        if (ends && ends.some((k) => doomed.includes(k))) cmds.push({ type: "removeLink", link: l.id });
+      });
+      h.lks.forEach((lk) => cmds.push({ type: "removePoint", row: r0, track: lk.slice(0, lk.indexOf("|")), curiosity: lk.slice(lk.indexOf("|") + 1) }));
+      const r = send({ type: "batch", label: `Remove a keyframe of ${S().label(cur)} at moment ${j + 1}`, commands: cmds });
+      if (r.ok) {
+        ckSel = null;
+        draw();
+        say(`Took ${S().label(cur)}'s keyframe off moment ${j + 1} (${h.lks.length} setting${h.lks.length === 1 ? "" : "s"}).${lockedNote(h.locked)}`);
+      }
+      return r;
+    }
+    /* CapCut's Ease in, Ease out and Easing on a keyframe: the line leaving it, on each setting it stands for, gets
+       the same curve the line's right-click menu writes (EASES), all in one undo step. */
+    function easeClipKey(cur, j, ease) {
+      const h = clipHere(cur, j);
+      if (!h.lks.length) return say(h.locked.length ? lockSay(h.locked[0]) : "That keyframe is gone."), { ok: false };
+      const pick = { shape: EASES[ease][1], bend: 40 };
+      const r0 = h.st.rows[j].id;
+      const cmds = [];
+      const sks = [];
+      let tight = 0;
+      h.lks.forEach((lk) => {
+        const next = clipKeys(h.st, [lk]).find((d) => d.j > j);
+        if (!next) return;
+        const sk = segKey(lk, r0, h.st.rows[next.j].id);
+        const c = curveCommands(h.st, sk, pick);
+        if (c.error) return tight++;
+        cmds.push(...c.cmds);
+        sks.push(sk);
+      });
+      if (!sks.length) return say(tight ? "The next keyframe is on the very next moment, so there is no room to ease. Move it further away first." : `No line leaves this keyframe: ${S().label(cur)} has no key after moment ${j + 1}.`), { ok: false };
+      const had = {};
+      sks.forEach((sk) => ((had[sk] = curves[sk]), (curves[sk] = { shape: pick.shape, bend: pick.bend })));
+      saveCurves();
+      const r = cmds.length ? send({ type: "batch", label: `${EASES[ease][0]}: ${S().label(cur)} from moment ${j + 1}`, commands: cmds }) : { ok: true };
+      if (!r.ok) {
+        sks.forEach((sk) => (had[sk] ? (curves[sk] = had[sk]) : delete curves[sk]));
+        saveCurves();
+      } else {
+        draw();
+        say(`${EASES[ease][0]} on ${sks.length} setting${sks.length === 1 ? "" : "s"} of ${S().label(cur)}, from moment ${j + 1} to the next keyframe.${lockedNote(h.locked)}`);
+      }
+      return r;
+    }
+    function clipKeyMenu(e) {
+      const ck = e.target.closest && e.target.closest(".sl-svg [data-ckey]");
+      if (!ck) return false;
+      e.preventDefault();
+      const cur = ck.dataset.subdot;
+      const j = Number(ck.dataset.ckey) || 0;
+      ckSel = { cur, j };
+      sel = null;
+      seg = null;
+      draw();
+      const pop = popAt("sl-linemenu", "Keyframe", e.clientX, e.clientY);
+      pop.innerHTML = `<p><strong>Keyframe</strong> · ${esc(S().label(cur))}, moment ${j + 1}</p><div class="sl-pop-btns" style="flex-wrap:wrap">${Object.keys(EASES).map((k) => `<button type="button" data-m="${k}" title="${esc(SHAPES[EASES[k][1]][1])}">${esc(EASES[k][0])}</button>`).join("")}<button type="button" data-m="remove">Remove keyframe</button><button type="button" data-m="close">Close</button></div>`;
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("[data-m]");
+        if (!b) return;
+        pop.remove();
+        const m = b.dataset.m;
+        if (EASES[m]) return easeClipKey(cur, j, m);
+        if (m === "remove") return removeClipKey(cur, j);
+        el.focus();
+      };
+      el.appendChild(pop);
+      return true;
+    }
+    /* The commands that write curve pick into the line sk: clear the moments between, then bake the curve's points
+       in. -> { cmds } or { error }. */
+    function curveCommands(now, sk, pick) {
+      const parts = sk.split("|");
+      const cur = parts[1];
+      const ln = now.lanes[parts[0] + "|" + parts[1]];
+      const ja = now.rows.findIndex((r) => r.id === parts[2]);
+      const jb = now.rows.findIndex((r) => r.id === parts[3]);
+      if (!ln || ja < 0 || jb < 0 || ln.points[parts[2]] == null || ln.points[parts[3]] == null) return { error: "That line is gone." };
+      if (jb - ja < 2) return { error: "These two nodes are on neighbouring moments, so the line between them has no room to curve. Move one further away first." };
+      const a = { r: parts[2], j: ja, v: ln.points[parts[2]] };
+      const b = { r: parts[3], j: jb, v: ln.points[parts[3]] };
+      const cmds = [];
+      for (let j = ja + 1; j < jb; j++) if (ln.points[now.rows[j].id] != null) cmds.push({ type: "removePoint", row: now.rows[j].id, track: parts[0], curiosity: cur });
+      if (pick.shape !== "straight") bake(cur, a, b, pick, now.rows).forEach((p) => cmds.push({ type: "setPoint", row: p.row, track: parts[0], curiosity: cur, value: p.value }));
+      return { cmds, ja, jb };
+    }
+    /* Write a curve into the line sk (the Curves pop-up's Apply, Alt + drag and the ease words all use this):
+       clear the moments between, then bake the curve's points in, as one undo step. pick: { shape, bend }. */
+    function writeCurve(sk, pick, label) {
+      const parts = sk.split("|");
+      const lk = parts[0] + "|" + parts[1];
+      if (isLocked(lk)) return say(lockSay(lk)), { ok: false, locked: true };
+      const now = E().state();
+      const cc = curveCommands(now, sk, pick);
+      if (cc.error) return say(cc.error), { ok: false };
+      const { cmds, ja, jb } = cc;
+      const had = curves[sk];
+      if (pick.shape === "straight") delete curves[sk];
+      else curves[sk] = { shape: pick.shape, bend: pick.bend };
+      saveCurves();
+      const r = cmds.length ? send({ type: "batch", label: label || "Shape a curve: " + SHAPES[pick.shape][0], commands: cmds }) : { ok: true };
+      if (!r.ok) {
+        if (had) curves[sk] = had;
+        else delete curves[sk];
+        saveCurves();
+      } else say(`${SHAPES[pick.shape][0]} ${pick.shape === "straight" ? "line" : "curve"} from moment ${ja + 1} to ${jb + 1}.`);
+      seg = sk;
+      return r;
+    }
+    /* Letting go of a line: a click adds a node on it, a drag moved both of its nodes, Alt + drag curved it. */
+    function segUp(d, a) {
+      const st = E().state();
+      const g = segInfo(st, d);
+      el.querySelectorAll(".sl-segghost").forEach((x) => x.remove());
+      if (!g) return draw();
+      if (d.bend) {
+        if (!d.moved) return (seg = d.seg), draw(), say("Line picked. Hold Alt (Option) and drag it up or down to curve it.");
+        const pa = S().pos(g.cur, g.a.v);
+        const pb = S().pos(g.cur, g.b.v);
+        if (pa == null || pb == null || pa === pb) return draw(), say("A flat line can't curve: move one of its nodes up or down first.");
+        const rec = bendFrom(pa, pb, a.y - d.start.y, geo.lh - PAD * 2);
+        const keep = (writeCurve(d.seg, rec || { shape: "straight", bend: 40 }, rec ? "Curve a line" : "Straighten a line"), msg);
+        draw();
+        return say(keep);
+      }
+      if (d.moved) {
+        const dp = -(a.y - d.start.y) / (geo.lh - PAD * 2);
+        const r = segMoveCommands(st, d.lk, d.ra, d.rb, dp, g.rec);
+        if (r.error) return draw(), say(r.error);
+        if (!r.cmds.length) return draw(), say("The line is already as far as it goes that way.");
+        const out = send({ type: "batch", label: "Move a line", commands: r.cmds });
+        seg = d.seg;
+        draw();
+        if (out.ok) say(`Moved the line from moment ${g.ja + 1} to ${g.jb + 1}: both nodes now ${String(r.values[0]) === String(r.values[1]) ? "at " + r.values[0] : `at ${r.values[0]} and ${r.values[1]}`}. No node was added. ⌘Z undoes it.`);
+        return out;
+      }
+      /* A click on the line: a node at the moment clicked, at the line's own value there. Nodes sit on whole
+         moments, so the click goes to the nearest moment between the line's two nodes. */
+      if (g.jb - g.ja < 2) {
+        seg = d.seg;
+        draw();
+        return say("These two nodes sit on neighbouring moments, so there is no moment between them for a new node. Zoom in, or move one of them further away.");
+      }
+      const j = Math.max(g.ja + 1, Math.min(g.jb - 1, Math.round((a.x - geo.colW / 2) / geo.colW)));
+      const rowId = st.rows[j].id;
+      if (g.lane.points[rowId] != null) {
+        /* The moment holds one of a curve's in-between points: the curve's points become nodes you can drag. */
+        delete curves[d.seg];
+        saveCurves();
+        sel = nodeKey(rowId, d.lk);
+        seg = null;
+        draw();
+        return say("This line was a curve. Its in-between points are now nodes you can drag; what plays is the same.");
+      }
+      const v = laneSeries(st, g.lane, g.cur)[j];
+      const r = send({ type: "setPoint", row: rowId, track: g.track, curiosity: g.cur, value: v, label: "Add a node on a line" });
+      if (r.ok) {
+        sel = nodeKey(rowId, d.lk);
+        lastAdd = { key: sel, t: Date.now() };
+        seg = null;
+      }
+      if (!r.drawn) draw();
+      if (r.ok) say(`Added a node on the line: ${S().label(g.cur)} is ${v} at moment ${j + 1}. Double-click a node to take it away.`);
+      return r;
+    }
+    /* Hovering a line shows what it plays at that moment (Ableton shows the value under the pointer). */
+    function hoverLine(e) {
+      const svg = el.querySelector(".sl-svg");
+      if (!svg) return;
+      let t = svg.querySelector(".sl-hoverval");
+      const hit = e.target.closest && e.target.closest(".sl-seghit");
+      if (!hit) {
+        if (t) t.remove();
+        return;
+      }
+      const p = hit.dataset.seg.split("|");
+      const lk = p[0] + "|" + p[1];
+      const st = E().state();
+      const lane = st.lanes[lk];
+      if (!lane) return;
+      const a = at(e);
+      const v = laneSeries(st, lane, p[1])[a.j];
+      if (!t) {
+        t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("class", "sl-hoverval");
+        svg.appendChild(t);
+      }
+      t.setAttribute("x", Math.min(a.x + 10, geo.svgW - 80));
+      t.setAttribute("y", Math.max(10, a.y - 8));
+      t.textContent = `${v} · moment ${a.j + 1}`;
+    }
+    /* Alt (Option) held over a line shows the curve pointer, as Ableton does, even before the pointer moves. */
+    function altKey(e) {
+      if (e.key !== "Alt") return;
+      const svg = el.querySelector(".sl-svg");
+      if (svg) svg.classList.toggle("sl-alt", e.type === "keydown");
+    }
+    /* Right-click a node or a line (Ableton's context menu): the line gets add a node, the ease words, straight,
+       Curves…, Shapes (the area's Shape menu over this line's moments) and Simplify this lane. */
+    function lineMenu(e) {
+      const node = e.target.closest && e.target.closest(".sl-svg [data-node]");
+      const segEl = e.target.closest && e.target.closest(".sl-svg [data-seg]");
+      if (!node && !segEl) return false;
+      e.preventDefault();
+      if (node) {
+        const key = node.dataset.node;
+        const n = split(key);
+        sel = key;
+        const pop = popAt("sl-linemenu", "Node", e.clientX, e.clientY);
+        pop.innerHTML = `<p><strong>Node</strong> · ${esc(S().label(n.cur))}: ${esc(pointValue(E().state(), n))}</p><div class="sl-pop-btns" style="flex-wrap:wrap"><button type="button" data-m="remove">Remove this node</button><button type="button" data-m="copy">Copy proximity</button><button type="button" data-m="simplify">Simplify this lane</button><button type="button" data-m="close">Close</button></div>`;
+        pop.onclick = (ev) => {
+          ev.stopPropagation();
+          const b = ev.target.closest("[data-m]");
+          if (!b) return;
+          pop.remove();
+          if (b.dataset.m === "remove") return isLocked(n.lk) ? say(lockSay(n.lk)) : removeNode(key);
+          if (b.dataset.m === "copy") return command("copy");
+          if (b.dataset.m === "simplify") return simplifyLane(n.lk);
+          el.focus();
+        };
+        el.appendChild(pop);
+        return true;
+      }
+      const sk = segEl.dataset.seg;
+      const p = sk.split("|");
+      const lk = p[0] + "|" + p[1];
+      const a = at(e);
+      seg = sk;
+      const pop = popAt("sl-linemenu", "Line", e.clientX, e.clientY);
+      pop.innerHTML = `<p><strong>Line</strong> · ${esc(S().label(p[1]))}</p><div class="sl-pop-btns" style="flex-wrap:wrap"><button type="button" data-m="add">Add a node here</button>${Object.keys(EASES).map((k) => `<button type="button" data-m="${k}" title="${esc(SHAPES[EASES[k][1]][1])}">${esc(EASES[k][0])}</button>`).join("")}<button type="button" data-m="straight">Straight line</button><button type="button" data-m="curves">Curves…</button><button type="button" data-m="shapes">Shapes ▾</button><button type="button" data-m="simplify">Simplify this lane</button><button type="button" data-m="close">Close</button></div>`;
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("[data-m]");
+        if (!b) return;
+        pop.remove();
+        const m = b.dataset.m;
+        if (m === "close") return el.focus();
+        if (m === "add") return segUp({ seg: sk, lk, ra: p[2], rb: p[3], start: a, moved: false }, a);
+        if (EASES[m] || m === "straight") {
+          const r = writeCurve(sk, { shape: EASES[m] ? EASES[m][1] : "straight", bend: 40 }, EASES[m] ? EASES[m][0] : "Straighten a line");
+          const keep = msg;
+          draw();
+          say(keep);
+          return r;
+        }
+        if (m === "curves") return openCurves(sk);
+        if (m === "simplify") return simplifyLane(lk);
+        if (m === "shapes") {
+          const st = E().state();
+          const i = geo.lanes.findIndex((ln) => ln.lk === lk);
+          const ja = st.rows.findIndex((r) => r.id === p[2]);
+          const jb = st.rows.findIndex((r) => r.id === p[3]);
+          if (i < 0 || ja < 0 || jb < 0) return;
+          area = { i0: i, i1: i, j0: ja, j1: jb };
+          sel = null;
+          draw();
+          return shapeMenu();
+        }
+      };
+      el.appendChild(pop);
+      return true;
+    }
+    function simplifyLane(lk) {
+      if (isLocked(lk)) return say(lockSay(lk)), { ok: false };
+      const st = E().state();
+      /* Curve points stay: they are the curve's shape. */
+      const keep = [];
+      Object.keys(curves).forEach((sk) => {
+        if (!sk.startsWith(lk + "|")) return;
+        const q = sk.slice(lk.length + 1).split("|");
+        const ja = st.rows.findIndex((r) => r.id === q[0]);
+        const jb = st.rows.findIndex((r) => r.id === q[1]);
+        for (let j = ja; j <= jb && ja >= 0; j++) keep.push(st.rows[j].id);
+      });
+      const r = simplifyCommands(st, lk, keep);
+      if (!r.removed) return say(`${lkName(lk)}: every node changes something, so there is nothing to simplify.`), { ok: true, removed: 0 };
+      const out = send({ type: "batch", label: "Simplify a lane", commands: r.cmds });
+      if (out.ok && sel && r.cmds.some((c) => nodeKey(c.row, lk) === sel)) sel = null;
+      draw();
+      if (out.ok) say(`Simplified ${lkName(lk)}: took out ${r.removed} node${r.removed === 1 ? "" : "s"} that changed nothing. What plays is the same.`);
+      return Object.assign({}, out, { removed: r.removed });
     }
     function removeNode(key) {
       const st = E().state();
@@ -1041,21 +4415,189 @@
       };
       el.appendChild(pop);
     }
+    /* The lane head's buttons: Off, Solo and Lock. Focus goes back to the button after the redraw (keyboard). */
+    function laneButton(act, lk) {
+      const out = act === "lane-off" ? laneOff(lk) : act === "lane-solo" ? laneSolo(lk) : laneLock(lk);
+      const keep = msg;
+      draw();
+      say(keep);
+      const again = el.querySelector(`.sl-heads [data-act="${act}"][data-lk="${CSS.escape(lk)}"]`);
+      if (again) again.focus();
+      return out;
+    }
+    /* Lane groups: fold or open one group, or all of them. A fold is a view setting kept in the tools; the selected
+       area is let go, because the lanes under it change. */
+    function foldGroup(id, want) {
+      const g = geo && (geo.groups || []).find((x) => x.id === id);
+      if (!g) return { ok: false, error: "There is no such group of lanes here." };
+      const folded = want == null ? !tools.folds[id] : !!want;
+      if (folded) tools.folds[id] = true;
+      else delete tools.folds[id];
+      area = null;
+      saveTools();
+      say(folded ? `${g.label} folded: its ${g.count} lane${g.count === 1 ? " is" : "s are"} tucked into one row. The dots show where ${g.count === 1 ? "it has" : "they have"} nodes; ▸ opens it again.` : `${g.label} is open again.`);
+      return { ok: true, folded };
+    }
+    /* Picking a curiosity (in the library, Details, a window or a lane's name) opens its group if it is folded, so
+       its lane shows, and scrolls the timeline up or down to it. Other groups keep their folds. */
+    function reveal(cur) {
+      const st = E() && E().state();
+      if (!st || !cur) return { ok: false };
+      const g = laneGroups(lanesNow(st)).groups.find((x) => x.lanes.some((ln) => ln.cur === cur));
+      const opened = !!(g && tools.folds[g.id]);
+      if (opened) {
+        delete tools.folds[g.id];
+        area = null;
+        saveTools();
+        draw();
+        say(`${g.label} is open again, so ${(g.lanes.find((ln) => ln.cur === cur) || {}).label || (S() ? S().label(cur) : cur)} shows.`);
+      }
+      const i = geo ? geo.lanes.findIndex((ln) => ln.cur === cur) : -1;
+      const sc = scroller();
+      if (i >= 0 && sc) {
+        /* The ruler stays on top while the lanes scroll, so a lane hidden under it counts as out of view. */
+        const y = topH() + geo.yTops[i];
+        if (y < sc.scrollTop + topH()) sc.scrollTop = Math.max(0, y - topH() - (geo.gh || groupH()));
+        else if (y + geo.lh > sc.scrollTop + sc.clientHeight) sc.scrollTop = y + geo.lh - sc.clientHeight + 4;
+      }
+      return { ok: i >= 0, opened: opened ? g.id : null };
+    }
+    const st0 = () => E().state();
+    /* Put a sub-lane's setting on its master's track (where its window reads it), else wherever it fits. */
+    function ensureOn(cur, host) {
+      const st = E().state();
+      const on = st.tracks.find((t) => t.curiosities.includes(cur));
+      if (on) return on.id;
+      const t = st.tracks.find((x) => x.id === host);
+      if (t && t.curiosities.length < E().LIMIT.perTrack) {
+        const r = E().send({ type: "addCuriosity", track: t.id, curiosity: cur, label: "Add a lane: " + S().label(cur) });
+        if (r.ok) return t.id;
+      }
+      return ensure(cur);
+    }
+    /* A master lane's automation group: open or fold its sub-lanes (a view setting, kept in the tools). */
+    function subsToggle(cur, want) {
+      if (!cur) return { ok: false, error: "Pick a lane first." };
+      const subs = automationGroup(cur);
+      if (!subs.length) return say(`${S().label(cur)} has no other settings in its window, so it has no automation group.`), { ok: false };
+      const open = want == null ? !tools.subs[cur] : !!want;
+      if (open) tools.subs[cur] = true;
+      else delete tools.subs[cur];
+      area = null;
+      saveTools();
+      say(open ? `${S().label(cur)}'s automation group is open: a lane for each setting in its window, How much (0 to 100) first. Click a lane's line to add a node.` : `${S().label(cur)}'s automation group is folded. The small dots on its lane show where its settings have nodes.`);
+      return { ok: true, open };
+    }
+    function subsButton(cur) {
+      const out = subsToggle(cur);
+      const keep = msg;
+      draw();
+      say(keep);
+      const again = el.querySelector(`.sl-heads [data-act="subs"][data-cur="${CSS.escape(cur)}"]`);
+      if (again) again.focus();
+      return out;
+    }
+    function foldButton(id) {
+      const out = foldGroup(id);
+      const keep = msg;
+      draw();
+      say(keep);
+      const again = el.querySelector(`.sl-heads [data-act="fold"][data-group="${CSS.escape(id)}"]`);
+      if (again) again.focus();
+      return out;
+    }
+    function foldAll(want) {
+      const groups = (geo && geo.groups) || [];
+      if (!groups.length) return say("There are no groups of lanes to fold yet."), { ok: false };
+      groups.forEach((g) => (want ? (tools.folds[g.id] = true) : delete tools.folds[g.id]));
+      area = null;
+      saveTools();
+      draw();
+      say(want ? `Folded all ${groups.length} group${groups.length === 1 ? "" : "s"}. Each is one thin row with dots where its lanes have nodes.` : `Opened all ${groups.length} group${groups.length === 1 ? "" : "s"}.`);
+      const again = el.querySelector(`.sl-tools [data-act="${want ? "open-all" : "fold-all"}"]`);
+      if (again) again.focus();
+      return { ok: true };
+    }
+    function laneOff(lk) {
+      const st = E().state();
+      const lane = st.lanes[lk];
+      if (!lane) return say("That lane has no nodes yet, so there is nothing to turn off."), { ok: false };
+      const name = lkName(lk);
+      const r = E().send(Object.assign(onCmd(lk, !lane.on), { label: lane.on ? "Turn a lane off" : "Turn a lane on" }));
+      say(r.ok ? (lane.on ? `${name}'s automation is off: it no longer changes the film. Its nodes stay; its ON/OFF switch turns it back on.` : `${name}'s automation is on again.`) : r.error);
+      return r;
+    }
+    function laneSolo(lk) {
+      const st = E().state();
+      const r = soloCommands(st, lk, tools.solo);
+      if (r.error) return say(r.error), { ok: false };
+      const name = lkName(lk);
+      const out = r.cmds.length ? E().send({ type: "batch", label: r.off ? "Un-solo a lane" : "Solo a lane", commands: r.cmds }) : { ok: true };
+      if (!out.ok) return say(out.error), out;
+      tools.solo = r.solo;
+      saveTools();
+      say(r.off ? `Solo off: the other lanes are back the way they were.` : `Solo: only ${name}'s automation plays now. Press S again to bring the other lanes back.`);
+      return out;
+    }
+    function laneLock(lk) {
+      const name = lkName(lk);
+      if (tools.locks[lk]) delete tools.locks[lk];
+      else tools.locks[lk] = true;
+      saveTools();
+      say(tools.locks[lk] ? `${name} is locked: its nodes can't be added, moved or removed on the timeline.` : `${name} is unlocked.`);
+      return { ok: true, locked: !!tools.locks[lk] };
+    }
     function onClick(e) {
       const w = e.target.closest("[data-open-win]");
       if (w) return opts.onOpen ? opts.onOpen(w.dataset.openWin) : null;
       const b = e.target.closest("button[data-act]");
       const pick = e.target.closest("[data-pick]");
-      if (pick && opts.onSelect) opts.onSelect(pick.dataset.pick);
+      if (pick && opts.onSelect) opts.onSelect(pick.dataset.pick, pick.dataset.pickTrack || null);
       if (!b) return;
       const act = b.dataset.act;
-      if (act === "undo") E().undo();
-      if (act === "redo") E().redo();
+      if (act === "undo") opts.undo ? opts.undo("undo") : E().undo();
+      if (act === "redo") opts.undo ? opts.undo("redo") : E().redo();
+      /* Add, duplicate or take out moments: the Screen does it (opts.ripple), as one undo step. */
+      if (/^ripple-/.test(act) && opts.ripple) return opts.ripple(act.slice(7));
       if (act === "copy") return command("copy");
       if (act === "paste") return command("paste");
       if (act === "del") return command("delete");
       if (act === "curves") return command("curves");
       if (act === "link-settings") return linkSettings();
+      if (act === "marker-list") return markerList(b);
+      if (act === "area-shape") return shapeMenu(b);
+      if (act === "suite-save") {
+        const r = b.getBoundingClientRect();
+        return suiteNamePop(null, r.left, r.bottom);
+      }
+      if (act === "suite-list") return suiteMenu(b);
+      if (act === "tpl-save") {
+        const r = b.getBoundingClientRect();
+        return templateNamePop(null, r.left, r.bottom);
+      }
+      if (act === "attention-track") return toggleAttention();
+      if (act === "film-lines") return toggleFilmLines();
+      if (act === "lane-off" || act === "lane-solo" || act === "lane-lock") return laneButton(act, b.dataset.lk);
+      if (act === "fold") return foldButton(b.dataset.group);
+      if (act === "mtrack") return trackClick(b.dataset.track, e);
+      if (act === "mfold") return trackFold(b.dataset.track);
+      if (act === "master-win") return openMasterWin(), draw();
+      if (act === "fold-all" || act === "open-all") return foldAll(act === "fold-all");
+      if (act === "subs") return subsButton(b.dataset.cur);
+      if (act === "mset" && b.dataset.lk) {
+        const at = b.dataset.lk.indexOf("|");
+        const m = b.dataset.mode;
+        if (st0().lanes[b.dataset.lk] && MODES[m]) {
+          const r = E().send({ type: "laneMode", track: b.dataset.lk.slice(0, at), curiosity: b.dataset.lk.slice(at + 1), mode: m, label: MODES[m][3] });
+          say(r.ok ? `${lkName(b.dataset.lk)}: ${MSET.find((x) => x[0] === m)[2]}` : m === "smooth" ? "This engine can't make a whole lane smooth yet; shape a line with Alt (Option) + drag instead." : r.error);
+        }
+        const keep = msg;
+        draw();
+        say(keep);
+        const again = el.querySelector(`.sl-heads [data-act="mset"][data-mode="${m}"][data-lk="${CSS.escape(b.dataset.lk)}"]`);
+        if (again) again.focus();
+        return;
+      }
       if (act === "mode" && b.dataset.lk) {
         /* Maya's graph editor tangents in plain words: glide (linear) or jump (stepped). */
         const st = E().state();
@@ -1083,7 +4625,14 @@
       hold: ["hold", "⌐ Jump", "Jumps: holds each node's setting until the next node (Maya's stepped curve).", "Make a lane jump"],
     };
     const modeOf = (lane) => (MODES[lane.mode] ? lane.mode : "ramp");
-    const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit" };
+    /* The master lane's switch, Jeremy's two settings: an on/off lane (Steps) or free nodes and lines. A whole lane
+       can still be made Smooth from the Curves pop-up (Whole lane); then neither button is lit. */
+    const MSET = [
+      ["hold", "⌐", "Steps (on and off): at each node the line goes straight up or down, then runs flat to the right until the next node."],
+      ["ramp", "⟋", "Lines: nodes joined by straight lines, any height from 0 (bottom) to 100 (top)."],
+    ];
+    const MASTER_TIP = (name) => `${name}: its master lane. ON/OFF switches its automation on or off for the whole film. Steps, Lines or Smooth says how the line moves between nodes (Steps is an on/off lane; Lines go anywhere from 0 to 100). The settings tab under the name opens a lane for every setting in its window, How much (0 to 100) first.`;
+    const TOOL_ACTS = { "tool-select": "select", "tool-split": "split", marker: "marker", magnet: "magnet", snap: "snap", linkage: "linkage", skim: "skim", "zoom-in": "zoomIn", "zoom-out": "zoomOut", "zoom-fit": "zoomFit", "area-reverse": "reverse", "area-flip": "flip", "area-stretch": "stretch", "area-squeeze": "squeeze", "area-freeze": "freeze", "area-take": "take" };
     /* The nodes of a lane in film order, as keys. */
     function laneNodes(st, lk) {
       const lane = st.lanes[lk];
@@ -1103,15 +4652,32 @@
       const hit = dir < 0 ? list.filter((x) => x[1] < from).pop() : list.find((x) => x[1] > from);
       if (!hit) return { ok: false, error: dir < 0 ? "No node further left in this lane." : "No node further right in this lane." };
       sel = hit[0];
-      if (opts.onSelect) opts.onSelect(split(sel).cur);
+      if (opts.onSelect) opts.onSelect(split(sel).cur, split(sel).track);
       return { ok: true };
     }
     /* command(name): what the toolbar buttons and the Screen's keyboard shortcuts do. */
-    function command(name) {
+    function command(name, preset) {
       const st = E() && E().state();
       if (!st) return { ok: false };
       let out = { ok: true };
       const playRow = opts.row ? opts.row() : 0;
+      /* A picked master ◆ or ◇ is what Delete removes (before any area or node). */
+      if (name === "delete" && mSel && mFind(st, mSel)) return mRemove(mSel) || { ok: true };
+      if (name === "subs") {
+        /* ⌥K (CapCut's Show/hide keyframe panel): open or fold the picked lane's automation group. */
+        let cur = preset || (sel ? split(sel).cur : area && geo.lanes[area.i0] ? geo.lanes[area.i0].cur : null);
+        if (!cur) {
+          const first = (geo ? geo.lanes : []).find((ln) => ln.subCount);
+          cur = first ? first.cur : null;
+        }
+        if (cur && cur.indexOf(".") > 0) cur = cur.slice(0, cur.indexOf("."));
+        const r = subsToggle(cur);
+        if (!r.ok && !cur) say("Pick a lane first (click one of its nodes), then ⌥K opens its automation group.");
+        const keep = msg;
+        draw();
+        say(keep);
+        return r;
+      }
       if (name === "select" || name === "split") {
         tools.tool = name;
         say(name === "split" ? "Split: click a lane to cut its line with a node." : "Select: click a node to pick it, or an empty spot to add one.");
@@ -1152,17 +4718,78 @@
         return openCurves();
       } else if (area && (name === "copy" || name === "cut" || name === "delete")) {
         if (name !== "delete") {
-          setClip(copyArea(st, geo.lanes, area));
+          const cc = copyArea(st, geo.lanes, area);
+          /* Where it came from: the source ◇ of a master node a paste makes. */
+          const from = [];
+          cc.lanes.forEach((l) => l && l.track && !from.includes(l.track) && from.push(l.track));
+          cc.src = { tracks: from, t0: st.rows[area.j0].id, t1: st.rows[area.j1].id };
+          setClip(cc);
           const lanesN = clip.lanes.filter(Boolean).length;
-          say(`Copied ${lanesN} lane${lanesN === 1 ? "" : "s"} over ${clip.span + 1} moment${clip.span ? "s" : ""}. Select where it goes (another lane works too) and Paste.`);
+          const ex = (clip.extra || []).length;
+          say(`Copied ${lanesN} lane${lanesN === 1 ? "" : "s"} over ${clip.span + 1} moment${clip.span ? "s" : ""}${ex ? `, with ${ex} joined partner${ex === 1 ? "" : "s"} from outside the box` : ""}. Select where it goes (another lane works too) and Paste${selTracks.length > 1 ? `, or Paste onto the ${selTracks.length} lit tracks` : ""}.`);
         }
         if (name !== "copy") out = removeArea();
         const keep = msg;
         draw();
         say(keep);
         return out;
+      } else if (name === "reverse" || name === "flip" || name === "stretch" || name === "squeeze") {
+        /* The area tools: one batch each, so one ⌘Z takes it back. */
+        if (!area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+        const open = openLanes();
+        const r = name === "reverse" ? reverseAreaCommands(st, open.lanes, area) : name === "flip" ? flipAreaCommands(st, open.lanes, area) : stretchAreaCommands(st, open.lanes, area, name === "stretch" ? 2 : 0.5);
+        const what = { reverse: ["Reverse the selection", "Reversed"], flip: ["Flip the selection", "Flipped"], stretch: ["Stretch the selection", "Stretched"], squeeze: ["Squeeze the selection", "Squeezed"] }[name];
+        if (!r.nodes) {
+          say(open.skipped ? "Every lane with nodes in the selection is locked, so nothing changed." + skipNote(open.skipped) : "No nodes in the selection.");
+          out = { ok: false };
+        } else {
+          out = send({ type: "batch", label: what[0], commands: r.cmds });
+          if (out.ok) {
+            if (r.area) area = r.area;
+            say(`${what[1]} ${r.nodes} node${r.nodes === 1 ? "" : "s"}${r.area ? `; the selection is now moments ${area.j0 + 1} to ${area.j1 + 1}` : ""}. Undo takes it back.${skipNote(open.skipped)}`);
+          }
+        }
+      } else if (name === "take") {
+        /* Take from the film: the picked inspiration film's settings as nodes, one batch, so one ⌘Z takes it back. */
+        if (!area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+        const f = inspirationNow();
+        if (!f) return say("There is no inspiration film to take from. Add one in the Player."), { ok: false };
+        const open = openLanes();
+        const r = takeFromFilmCommands(st, open.lanes, area, f.beats);
+        const emptyNote = r.empty ? ` ${f.name} has no setting there for ${r.empty} lane${r.empty === 1 ? "" : "s"}, so ${r.empty === 1 ? "it was" : "they were"} left alone.` : "";
+        if (!r.lanes) {
+          say(open.skipped && !r.empty ? "Every selected lane is locked, so nothing changed." + skipNote(open.skipped) : `${f.name} has no settings for the selected lanes in moments ${area.j0 + 1} to ${area.j1 + 1}.` + skipNote(open.skipped));
+          out = { ok: false };
+        } else if (!r.cmds.length) {
+          say(`Your film already matches ${f.name} there.` + skipNote(open.skipped) + emptyNote);
+        } else {
+          out = send({ type: "batch", label: "Take from " + f.name, commands: r.cmds });
+          if (out.ok) say(`Took ${f.name}'s settings into ${r.lanes} lane${r.lanes === 1 ? "" : "s"} from moment ${area.j0 + 1} to ${area.j1 + 1}. Undo takes it back.` + skipNote(open.skipped) + emptyNote);
+        }
+      } else if (name === "freeze" || name === "shape") {
+        /* Freeze and Shape: one batch each, and the selection stays where it is. */
+        if (!area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+        const open = openLanes();
+        const r = name === "freeze" ? freezeAreaCommands(st, open.lanes, area) : shapeAreaCommands(st, open.lanes, area, preset);
+        const span = `moment ${area.j0 + 1} to ${area.j1 + 1}`;
+        const flatNote = r.flat ? ` Left ${r.flat} lane${r.flat === 1 ? "" : "s"} alone that stay${r.flat === 1 ? "s" : ""} at one setting there, so there is nothing to shape.` : "";
+        if (r.error) {
+          say(r.error);
+          out = { ok: false, error: r.error };
+        } else if (!r.lanes) {
+          say(open.skipped ? "Every lane with nodes in the selection is locked, so nothing changed." + skipNote(open.skipped) : r.flat ? "Each selected lane stays at one setting there, so there is nothing to shape. Shape works between a lane's lowest and highest setting in the selection." : "No lanes with nodes in the selection.");
+          out = { ok: false };
+        } else if (!r.cmds.length) {
+          say((name === "freeze" ? `Already still from ${span}.` : `Already in that shape from ${span}.`) + skipNote(open.skipped) + flatNote);
+        } else {
+          const label = name === "freeze" ? "Freeze the selection" : "Shape the selection: " + PRESETS[preset][0];
+          out = send({ type: "batch", label, commands: r.cmds });
+          const lanesN = `${r.lanes} lane${r.lanes === 1 ? "" : "s"}`;
+          if (out.ok) say((name === "freeze" ? `Froze ${lanesN} from ${span}: each holds its setting from moment ${area.j0 + 1}.` : `${PRESETS[preset][0]} on ${lanesN} from ${span}.`) + " Undo takes it back." + skipNote(open.skipped) + flatNote);
+        }
       } else if (name === "paste" && clip && clip.kind === "area") {
         out = pasteHere();
+        if (out && out.asked) return out; /* the A / B question is open */
         const keep = msg;
         draw();
         say(keep);
@@ -1193,9 +4820,22 @@
       } else if (name === "marker") {
         const r = st.rows[playRow];
         if (!r) return { ok: false };
-        const had = tools.markers.includes(r.id);
-        tools.markers = had ? tools.markers.filter((m) => m !== r.id) : tools.markers.concat(r.id);
-        say(had ? `Marker taken off moment ${playRow + 1}.` : `Marker added at moment ${playRow + 1}.`);
+        const had = markerOf(r.id);
+        tools.markers = had ? tools.markers.filter((m) => m.row !== r.id) : tools.markers.concat({ row: r.id, color: MARK_DEFAULT, note: "" });
+        say(had ? `Marker taken off moment ${playRow + 1}.` : `Marker added at moment ${playRow + 1}. Double-click its flag on the ruler to write a note or pick a color.`);
+      } else if (name === "prevMarker" || name === "nextMarker") {
+        /* CapCut's previous and next marker (⇧[ and ⇧]): the playhead jumps to the nearest marker that way. */
+        const dir = name === "nextMarker" ? 1 : -1;
+        const j = markerStep(tools.markers, st.rows, playRow, dir);
+        if (j < 0) {
+          const any = markerStep(tools.markers, st.rows, -1, 1) >= 0;
+          const why = any ? `No marker ${dir < 0 ? "before" : "after"} moment ${playRow + 1}.` : "There are no markers yet. Press M to put one at the playhead.";
+          return say(why), { ok: false, error: why };
+        }
+        const m = markerOf(st.rows[j].id);
+        goTo(j);
+        say(`Playhead on the ${dir < 0 ? "previous" : "next"} marker, at moment ${j + 1}${m && m.note ? ": " + m.note : ""}.`);
+        return { ok: true, row: j };
       } else if (name === "zoomIn" || name === "zoomOut" || name === "zoomFit") {
         const z = Number(tools.zoom) || 1;
         tools.zoom = name === "zoomFit" ? 1 : Math.max(0.25, Math.min(32, name === "zoomIn" ? z * 1.5 : z / 1.5));
@@ -1212,7 +4852,7 @@
         say(out.ok ? `Copied ${out.nodes} node${out.nodes === 1 ? "" : "s"} and ${out.links} line${out.links === 1 ? "" : "s"}. Move the playhead and press Paste.` : out.error);
       } else if (name === "paste") {
         out = paste(playRow);
-        say(out.ok ? `Pasted ${out.nodes} nodes and ${out.links} lines.` : out.error);
+        say(out.ok ? `Pasted ${out.nodes} nodes and ${out.links} lines.${out.skipped ? ` Skipped ${out.skipped} node${out.skipped === 1 ? "" : "s"} on locked lanes (🔒).` : ""}` : out.error);
       } else return { ok: false, error: "Unknown command." };
       saveTools();
       const keep = msg;
@@ -1222,16 +4862,34 @@
     }
     /* Every node inside the selected area, and the joins touching them, removed as one undo step. */
     function removeArea() {
-      const st = E().state();
+      let st = E().state();
       const doomed = [];
+      const open = openLanes();
+      /* Master nodes in the box go first (what lay under them comes back), then the nodes in the box. */
+      const mIds = mInArea(st, area);
+      let mCmds = [];
+      if (mIds.length) {
+        const next = JSON.parse(JSON.stringify(st.masters));
+        next.list.forEach((m) => (m.nodes = m.nodes.filter((x) => !mIds.includes(x.id))));
+        next.list = next.list.filter((m) => m.nodes.length);
+        const p = M().plan(st, next, { locked: isLocked });
+        if (p.error === "locked") return say(lockSay(p.lk)), { ok: false };
+        mCmds = p.cmds;
+        st = M().simulate(st, mCmds);
+      }
+      if (mIds.includes(mSel)) mSel = null;
+      (area.extra || []).forEach((k) => {
+        const n = split(k);
+        if (st.lanes[n.lk] && st.lanes[n.lk].points[n.row] != null && !isLocked(n.lk)) doomed.push(k);
+      });
       for (let i = area.i0; i <= area.i1; i++) {
-        const ln = geo.lanes[i];
+        const ln = open.lanes[i];
         const lane = ln && ln.lk && st.lanes[ln.lk];
         if (!lane) continue;
         for (let j = area.j0; j <= area.j1; j++) if (lane.points[st.rows[j].id] != null) doomed.push(nodeKey(st.rows[j].id, ln.lk));
       }
-      if (!doomed.length) return say("No nodes in the selection."), { ok: false };
-      const cmds = [];
+      if (!doomed.length && !mCmds.length) return say(open.skipped ? "Every lane with nodes in the selection is locked, so nothing was removed." + skipNote(open.skipped) : "No nodes in the selection."), { ok: false };
+      const cmds = mCmds.slice();
       st.links.forEach((l) => {
         const ends = linkEnds(l);
         if (ends && ends.some((k) => doomed.includes(k))) cmds.push({ type: "removeLink", link: l.id });
@@ -1241,43 +4899,56 @@
         cmds.push({ type: "removePoint", row: n.row, track: n.track, curiosity: n.cur });
       });
       const out = send({ type: "batch", label: "Remove the selected nodes", commands: cmds });
-      if (out.ok) say(`Removed ${doomed.length} node${doomed.length === 1 ? "" : "s"}.`);
+      if (out.ok) say(`Removed ${doomed.length} node${doomed.length === 1 ? "" : "s"}${mIds.length ? ` and ${mIds.length} master node${mIds.length === 1 ? "" : "s"} (what lay under ${mIds.length === 1 ? "it" : "them"} is back)` : ""}.${skipNote(open.skipped)}`);
+      if (out.ok && area) area.extra = [];
       return out;
     }
     /* Paste the copied area: into the selected area (repeating across a wider one; one copied lane fills every
        selected lane), else at the playhead, starting on the picked node's lane or the lane it came from. */
     function pasteHere() {
+      /* Lit tracks are the targets: several ask A) exact or B) a percentage first; one takes it as it is. */
+      if (selTracks.length > 1 && M()) return askMulti();
+      if (selTracks.length === 1 && !area && M()) return multiPaste("exact");
       const st = E().state();
       const lanes = geo.lanes;
       let c = clip;
       let i0;
       let start;
       let width = 0;
-      if (area) {
+      if (area && area.i0 >= 0) {
         i0 = area.i0;
         start = area.j0;
         width = area.j1 - area.j0 + 1;
         const rows = area.i1 - area.i0 + 1;
         if (c.lanes.length === 1 && rows > 1) c = Object.assign({}, c, { lanes: Array.from({ length: rows }, () => c.lanes[0]), links: [] });
       } else {
-        start = opts.row ? opts.row() : 0;
+        start = area ? area.j0 : opts.row ? opts.row() : 0;
         const first = c.lanes.find(Boolean);
-        i0 = sel ? lanes.findIndex((ln) => ln.lk === split(sel).lk) : first ? lanes.findIndex((ln) => ln.cur === first.cur) : 0;
+        i0 = sel ? lanes.findIndex((ln) => ln.lk === split(sel).lk) : first ? (lanes.findIndex((ln) => ln.cur === first.cur && first.track && ln.track === first.track) + 1 || lanes.findIndex((ln) => ln.cur === first.cur) + 1) - 1 : 0;
         if (i0 < 0) i0 = 0;
       }
+      let skipped = 0;
       const targets = c.lanes.map((src, k) => {
         const ln = lanes[i0 + k];
+        if (src && ln && isLocked(ln.lk)) return skipped++, null;
         return src && ln ? { cur: ln.cur, track: ln.track } : null;
       });
-      if (!targets.some(Boolean)) return say("There is no lane there to paste onto."), { ok: false };
+      if (!targets.some(Boolean)) return say(skipped ? "Every lane there is locked, so nothing was pasted." + skipNote(skipped) : "There is no lane there to paste onto."), { ok: false };
       const r = pasteAreaCommands(st, c, targets, start, width);
       if (r.error) return say(r.error), { ok: false };
-      const out = send({ type: "batch", label: "Paste automation", commands: r.cmds });
+      /* The complex way (on unless the Master Nodes window turns it off): the paste is also a master node. */
+      let made = null;
+      if (tools.masterPaste !== false && M()) {
+        const w = M().wrapPaste(st, r.cmds, start, Math.min(st.rows.length - start, Math.max(c.span + 1, width)), c.src, { locked: isLocked });
+        if (w.error === "locked") return say(lockSay(w.lk)), { ok: false };
+        if (!w.error && w.master) (r.cmds = w.cmds), (made = w);
+      }
+      const out = send({ type: "batch", label: made ? "Paste automation as a master node" : "Paste automation", commands: r.cmds });
       if (out.ok) {
         const across = targets.filter(Boolean).filter((t, k) => c.lanes[k] && t.cur !== c.lanes[k].cur).length;
         const span = Math.max(c.span + 1, width);
         area = { i0, i1: Math.min(lanes.length - 1, i0 + c.lanes.length - 1), j0: start, j1: Math.min(st.rows.length - 1, start + span - 1) };
-        say(`Pasted onto ${targets.filter(Boolean).length} lane${targets.filter(Boolean).length === 1 ? "" : "s"}${across ? `, ${across} of them a different curiosity (values keep their place on its scale)` : ""}.`);
+        say(`Pasted onto ${targets.filter(Boolean).length} lane${targets.filter(Boolean).length === 1 ? "" : "s"}${across ? `, ${across} of them a different curiosity (values keep their place on its scale)` : ""}${made ? `, as a master node (◆ on its track's master lane: double-click it for on / off, drag its line to scale it)` : ""}.${skipNote(skipped)}`);
       }
       return out;
     }
@@ -1304,6 +4975,7 @@
       if (!sk) return say("Make a lane with two nodes first; a curve shapes the line between them."), { ok: false };
       const parts = sk.split("|");
       const lk = parts[0] + "|" + parts[1];
+      if (isLocked(lk)) return say(lockSay(lk)), { ok: false, locked: true };
       const cur = parts[1];
       const lane = st.lanes[lk];
       const ja = st.rows.findIndex((r) => r.id === parts[2]);
@@ -1366,22 +5038,15 @@
           pop.remove();
           return draw();
         }
+        let keep = null;
         if (t.dataset.l === "apply") {
-          const now = E().state();
-          const ln = now.lanes[lk];
-          const cmds = [];
           /* Clear the moments between (old curve points), then write the curve. A straight line needs no points. */
-          for (let j = ja + 1; j < jb; j++) if (ln && ln.points[now.rows[j].id] != null) cmds.push({ type: "removePoint", row: now.rows[j].id, track: parts[0], curiosity: cur });
-          if (pick.shape !== "straight") bake(cur, a, b, pick, now.rows).forEach((p) => cmds.push({ type: "setPoint", row: p.row, track: parts[0], curiosity: cur, value: p.value }));
-          if (pick.shape === "straight") delete curves[sk];
-          else curves[sk] = { shape: pick.shape, bend: pick.bend };
-          saveCurves();
-          const r = cmds.length ? send({ type: "batch", label: "Shape a curve: " + SHAPES[pick.shape][0], commands: cmds }) : { ok: true };
-          if (r.ok) say(`${SHAPES[pick.shape][0]} curve from moment ${ja + 1} to ${jb + 1}.`);
-          seg = sk;
+          writeCurve(sk, pick);
+          keep = msg;
         }
         pop.remove();
         draw();
+        if (keep != null) say(keep);
       };
       el.appendChild(pop);
       return { ok: true, pop };
@@ -1422,8 +5087,533 @@
       el.appendChild(pop);
       return pop;
     }
+    /* ---------- markers: the note-and-color pop-up and the Markers list (CapCut's markers) ---------- */
+    const clockOf = (j) => {
+      if (!opts.secondsPerMoment) return "";
+      const t = Math.round(j * (Number(opts.secondsPerMoment()) || 3));
+      return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+    };
+    /* A pop-up placed near a point on the page, kept inside the timeline. */
+    function popAt(cls, label, cx, cy) {
+      const old = el.querySelector(".sl-pop");
+      if (old) old.remove();
+      const pop = document.createElement("div");
+      pop.className = "sl-pop " + cls;
+      pop.setAttribute("role", "dialog");
+      pop.setAttribute("aria-label", label);
+      const r = el.getBoundingClientRect();
+      pop.style.left = Math.max(0, Math.min((el.clientWidth || 800) - 280, cx - r.left - 40)) + "px";
+      pop.style.top = Math.max(0, cy - r.top + 10) + "px";
+      /* Once it is drawn, pull a pop-up wider than 280px back in so its right edge stays inside the timeline. */
+      requestAnimationFrame(() => {
+        const over = pop.isConnected ? pop.offsetLeft + pop.offsetWidth - el.clientWidth : 0;
+        if (over > 0) pop.style.left = Math.max(0, pop.offsetLeft - over) + "px";
+        /* And lift one that runs past the bottom of the window, or of the timeline panel when that scrolls on its
+           own (a short laptop screen), so its Save and Cancel stay in view; never above the panel's top. */
+        if (!pop.isConnected) return;
+        let box = { top: 0, bottom: window.innerHeight };
+        for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+          if (/(auto|scroll|hidden)/.test(getComputedStyle(a).overflowY)) {
+            const ar = a.getBoundingClientRect();
+            box = { top: Math.max(0, ar.top), bottom: Math.min(window.innerHeight, ar.bottom) };
+            break;
+          }
+        }
+        const pr = pop.getBoundingClientRect();
+        const down = pr.bottom - (box.bottom - 6);
+        if (down > 0) pop.style.top = pop.offsetTop - Math.min(down, Math.max(0, pr.top - (box.top + 4))) + "px";
+      });
+      return pop;
+    }
+    function openMarker(j, cx, cy) {
+      const st = E().state();
+      const r = st.rows[j];
+      const m = r && markerOf(r.id);
+      if (!m) return say("There is no marker on that moment."), { ok: false };
+      const pop = popAt("sl-mkpop", "Marker", cx, cy);
+      const tc = clockOf(j);
+      pop.innerHTML = `<p><strong>Marker</strong> · moment ${j + 1}${tc ? ` (${tc} into the film)` : ""}</p>
+        <label class="sl-mknote">Note <input type="text" data-mk-note maxlength="${NOTE_MAX}" placeholder="What happens here, e.g. the joke lands" value="${esc(m.note)}"></label>
+        <div class="sl-mkcolors" role="group" aria-label="Color">${MARK_COLORS.map((c) => `<button type="button" data-mk-color="${c[0]}" class="${m.color === c[0] ? "on" : ""}" aria-pressed="${m.color === c[0]}" title="${c[1]}" aria-label="${c[1]}" style="--mk:${c[2]}"></button>`).join("")}</div>
+        <div class="sl-pop-btns"><button type="button" data-l="delete" title="Take this marker off the film">Delete marker</button><button type="button" data-l="done" class="on">Done</button></div>`;
+      const close = (keepMsg) => {
+        pop.remove();
+        saveTools();
+        const k = keepMsg || msg;
+        draw();
+        say(k);
+        el.focus();
+      };
+      pop.addEventListener("input", (ev) => {
+        if (!ev.target.matches("[data-mk-note]")) return;
+        m.note = ev.target.value.slice(0, NOTE_MAX);
+        /* An auto marker you write on becomes your own: Clear auto markers leaves it. */
+        delete m.auto;
+        saveTools();
+      });
+      pop.addEventListener("keydown", (ev) => {
+        ev.stopPropagation();
+        if (ev.key === "Escape" || (ev.key === "Enter" && ev.target.matches("[data-mk-note]"))) {
+          ev.preventDefault();
+          m.note = m.note.trim();
+          close(m.note ? `Marker at moment ${j + 1}: ${m.note}.` : "");
+        }
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("button");
+        if (!b) return;
+        if (b.dataset.mkColor) {
+          m.color = markColor(b.dataset.mkColor)[0];
+          delete m.auto;
+          saveTools();
+          pop.querySelectorAll("[data-mk-color]").forEach((x) => {
+            x.classList.toggle("on", x === b);
+            x.setAttribute("aria-pressed", String(x === b));
+          });
+          return;
+        }
+        if (b.dataset.l === "delete") {
+          tools.markers = tools.markers.filter((x) => x !== m);
+          return close(`Marker taken off moment ${j + 1}.`);
+        }
+        m.note = m.note.trim();
+        close(m.note ? `Marker at moment ${j + 1}: ${m.note}.` : "");
+      };
+      el.appendChild(pop);
+      const inp = pop.querySelector("[data-mk-note]");
+      inp.focus();
+      inp.select();
+      return { ok: true, pop };
+    }
+    /* Move the playhead to a moment and scroll the timeline so it is in the middle of the view. */
+    function goTo(j) {
+      const move = opts.onRow || opts.onClip;
+      if (move) move(j);
+      else draw();
+      const sc = scroller();
+      if (sc && geo) sc.scrollLeft = Math.max(0, j * geo.colW + geo.colW / 2 - (sc.clientWidth - headW()) / 2);
+    }
+    /* Auto markers (Mark the turns): the film's values per moment come from opts.beats() (the Screen's own
+       reading, the same one its Player and attention use), else straight from the engine's tracks. */
+    function beatsNow(st) {
+      if (opts.beats) return opts.beats() || [];
+      return st.rows.map((r) => {
+        const values = {};
+        st.tracks.forEach((t) => t.curiosities.forEach((c) => values[c] == null && (values[c] = E().value(r.id, t.id, c))));
+        return { values, row: r.id };
+      });
+    }
+    function markTurns() {
+      const st = E().state();
+      const lanes = [...new Set(lanesNow(st).map((ln) => ln.cur))];
+      const turns = turnMarkers(beatsNow(st), st.rows, { attention: root.CurioAttention, lanes });
+      const before = tools.markers.filter((m) => !m.auto).length;
+      tools.markers = mergeTurnMarkers(tools.markers, turns);
+      const added = tools.markers.filter((m) => m.auto).length;
+      saveTools();
+      draw();
+      const kept = turns.length - added;
+      return {
+        ok: true,
+        added,
+        message: turns.length
+          ? `Marked ${added} turn${added === 1 ? "" : "s"} in your film${kept ? ` (${kept} moment${kept === 1 ? "" : "s"} already had a marker of yours, kept as it is)` : ""}.`
+          : `No turns found: the attention and the feeling stay the same all through the film${before ? "; your markers are untouched" : ""}.`,
+      };
+    }
+    function clearAuto() {
+      const n = tools.markers.filter((m) => m.auto).length;
+      tools.markers = clearAutoMarkers(tools.markers);
+      saveTools();
+      draw();
+      return { ok: true, removed: n, message: n ? `Took off ${n} auto marker${n === 1 ? "" : "s"}; your own markers stay.` : "There are no auto markers to take off." };
+    }
+    /* Shape ▾: the presets as a small menu under the button. Each one is one undo step; the menu closes. */
+    function shapeMenu(btn) {
+      if (!area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+      const b = (btn || el.querySelector('[data-act="area-shape"]') || el).getBoundingClientRect();
+      const pop = popAt("sl-shapemenu", "Shape", b.left + 40, b.bottom - 4);
+      pop.innerHTML = `<p><strong>Shape</strong> · each selected lane, between its own lowest and highest setting from moment ${area.j0 + 1} to ${area.j1 + 1}</p>
+        <div class="sl-presets" role="group" aria-label="Shapes">${Object.keys(PRESETS).map((k) => `<button type="button" data-preset="${k}" title="${esc(PRESETS[k][1])}">${esc(PRESETS[k][0])}</button>`).join("")}</div>
+        <div class="sl-pop-btns"><button type="button" data-l="close">Close</button></div>`;
+      pop.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Escape") return;
+        ev.stopPropagation();
+        pop.remove();
+        el.focus();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const t = ev.target.closest("button");
+        if (!t) return;
+        pop.remove();
+        if (t.dataset.preset) command("shape", t.dataset.preset);
+        else el.focus();
+      };
+      el.appendChild(pop);
+      const first = pop.querySelector("button");
+      if (first) first.focus();
+      return pop;
+    }
+    function markerList(btn) {
+      const st = E().state();
+      const b = (btn || el.querySelector('[data-act="marker-list"]') || el).getBoundingClientRect();
+      const pop = popAt("sl-marklist", "Markers", b.left + 40, b.bottom - 4);
+      const list = st.rows.map((r, j) => [j, markerOf(r.id)]).filter((x) => x[1]);
+      pop.innerHTML = `<p><strong>Markers</strong> · ${list.length ? `${list.length} in your film. Click one to move the playhead there.` : "none yet"}</p>
+        <div class="sl-mkturns"><button type="button" data-l="mark-turns" title="Put a marker on every moment where the film turns: purple where the audience's attention moves to something else, red where the feeling changes, yellow where a track jumps by more than half its range. Your own markers stay as they are.">Mark the turns</button>${list.some(([, m]) => m.auto) ? `<button type="button" data-l="clear-auto" title="Take off only the markers Mark the turns put on; your own markers stay">Clear auto markers</button>` : ""}</div>
+        ${list.length ? `<ul>${list.map(([j, m]) => { const c = markColor(m.color); const tc = clockOf(j); return `<li><button type="button" class="sl-mkgo" data-mk-go="${j}" title="Move the playhead to moment ${j + 1}"><i class="sl-mkdot" style="--mk:${c[2]}" aria-label="${c[1]}"></i><span class="sl-mkat">Moment ${j + 1}${tc ? ` <small>${tc}</small>` : ""}</span><span class="sl-mktext${m.note ? "" : " empty"}">${esc(m.note || "no note")}</span>${m.auto ? `<span class="sl-mkauto" title="Put here by Mark the turns">auto</span>` : ""}</button><button type="button" class="sl-mkedit" data-mk-edit="${j}" title="Write a note, change the color or delete this marker" aria-label="Edit the marker at moment ${j + 1}">✎</button></li>`; }).join("")}</ul>` : `<p class="sl-note">Press Marker (or M) to put a flag on the playhead's moment. Double-click a flag on the ruler to write what happens there and pick a color.</p>`}
+        <div class="sl-pop-btns"><button type="button" data-l="close">Close</button></div>`;
+      pop.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Escape") return;
+        ev.stopPropagation();
+        pop.remove();
+        el.focus();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const t = ev.target.closest("button");
+        if (!t) return;
+        if (t.dataset.l === "mark-turns" || t.dataset.l === "clear-auto") {
+          const r = t.dataset.l === "mark-turns" ? markTurns() : clearAuto();
+          pop.remove();
+          markerList();
+          say(r.message);
+          return;
+        }
+        if (t.dataset.mkEdit != null) {
+          const r = t.getBoundingClientRect();
+          return openMarker(Number(t.dataset.mkEdit), r.left, r.bottom);
+        }
+        pop.remove();
+        if (t.dataset.mkGo != null) {
+          const j = Number(t.dataset.mkGo);
+          const m = markerOf(st.rows[j].id);
+          goTo(j);
+          say(`Playhead on the marker at moment ${j + 1}${m && m.note ? ": " + m.note : ""}.`);
+        }
+      };
+      el.appendChild(pop);
+      const first = pop.querySelector("button");
+      if (first) first.focus();
+      return pop;
+    }
+    /* ---------- suite clips: Save as suite clip (the selected area's tools) and the Suite clips ▾ list ---------- */
+    const labOf = (cur) => (S() && S().label ? S().label(cur) : cur);
+    const listWords = (curs) => {
+      const l = [...new Set(curs)].map(labOf);
+      return l.length > 1 ? l.slice(0, -1).join(", ") + " and " + l[l.length - 1] : l[0] || "";
+    };
+    /* Keep the selected area as a named suite clip. Returns { ok, clip } or { ok: false, error }. */
+    function saveSuite(name) {
+      if (!area) return { ok: false, error: "Select an area first: drag across empty space on the lanes." };
+      if (!String(name || "").trim()) return { ok: false, error: "Give the suite clip a name first." };
+      const st = E().state();
+      const c = suiteClip(copyArea(st, geo.lanes, area), name);
+      if (!c) return { ok: false, error: "There are no curiosity lanes in the selection to save. Select some lanes that are in your film." };
+      loadSuiteClips();
+      suiteList.push(c);
+      const kept = saveSuiteClips();
+      const n = c.curiosities.length;
+      const message = `Saved "${c.name}" as a suite clip: ${n} curiosit${n === 1 ? "y" : "ies"} over ${c.span + 1} moment${c.span ? "s" : ""}. Suite clips ▾ drops it in anywhere, in this film or another.${kept ? "" : " This browser isn't keeping saved data for this page, so it will be gone after a reload."}`;
+      return { ok: true, clip: c, message };
+    }
+    /* The small name pop-up: for saving the selected area (clip null) or renaming a saved clip. */
+    function suiteNamePop(c, cx, cy) {
+      if (!c && !area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+      const pop = popAt("sl-suitepop", c ? "Rename suite clip" : "Save as suite clip", cx, cy);
+      const lanesN = c ? c.curiosities.length : new Set(geo.lanes.slice(area.i0, area.i1 + 1).filter((ln) => ln && ln.track).map((ln) => ln.cur)).size;
+      const span = c ? c.span + 1 : area.j1 - area.j0 + 1;
+      const start = c ? c.name : `Suite clip ${loadSuiteClips().length + 1}`;
+      pop.innerHTML = `<p><strong>${c ? "Rename suite clip" : "Save as suite clip"}</strong> · ${lanesN} lane${lanesN === 1 ? "" : "s"}, ${span} moment${span === 1 ? "" : "s"}</p>
+        <label class="sl-mknote">Name <input type="text" data-suite-name maxlength="${SUITE_NAME_MAX}" placeholder="e.g. the slow reveal" value="${esc(start)}"></label>
+        <p class="sl-note">${c ? "Only the name changes." : "Keeps the nodes and joins in the selection. Drop it in again from Suite clips ▾."}</p>
+        <div class="sl-pop-btns"><button type="button" data-l="cancel">Cancel</button><button type="button" data-l="ok" class="on">${c ? "Rename" : "Save"}</button></div>`;
+      const close = (m) => {
+        pop.remove();
+        draw();
+        say(m == null ? msg : m);
+        el.focus();
+      };
+      const done = () => {
+        const name = pop.querySelector("[data-suite-name]").value.trim().slice(0, SUITE_NAME_MAX);
+        if (!name) {
+          say("Give the suite clip a name first.");
+          return pop.querySelector("[data-suite-name]").focus();
+        }
+        if (c) {
+          const r = renameSuite(c.id, name);
+          return close(r.message || r.error);
+        }
+        const r = saveSuite(name);
+        close(r.ok ? r.message : r.error);
+      };
+      pop.addEventListener("keydown", (ev) => {
+        ev.stopPropagation();
+        if (ev.key === "Escape") return ev.preventDefault(), close(c ? "" : "Not saved.");
+        if (ev.key === "Enter" && ev.target.matches("[data-suite-name]")) ev.preventDefault(), done();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("button");
+        if (!b) return;
+        if (b.dataset.l === "ok") return done();
+        close(c ? "" : "Not saved.");
+      };
+      el.appendChild(pop);
+      const inp = pop.querySelector("[data-suite-name]");
+      inp.focus();
+      inp.select();
+      return { ok: true, pop };
+    }
+    function renameSuite(id, name) {
+      loadSuiteClips();
+      const c = suiteList.find((x) => x.id === id);
+      name = String(name || "").trim().slice(0, SUITE_NAME_MAX);
+      if (!c) return { ok: false, error: "That suite clip is gone." };
+      if (!name) return { ok: false, error: "Give the suite clip a name first." };
+      const was = c.name;
+      c.name = name;
+      saveSuiteClips();
+      return { ok: true, message: was === name ? `"${name}" keeps its name.` : `Renamed "${was}" to "${name}".` };
+    }
+    function deleteSuite(id) {
+      loadSuiteClips();
+      const c = suiteList.find((x) => x.id === id);
+      if (!c) return { ok: false, error: "That suite clip is gone." };
+      suiteList = suiteList.filter((x) => x !== c);
+      saveSuiteClips();
+      return { ok: true, message: `Deleted the suite clip "${c.name}". Your film is not changed.` };
+    }
+    /* Drop a saved suite clip at the playhead, as one undo step. */
+    function dropSuite(id, analogy) {
+      loadSuiteClips();
+      const c = suiteList.find((x) => x.id === id);
+      if (!c) return say("That suite clip is gone."), { ok: false };
+      const st = E().state();
+      const playRow = opts.row ? opts.row() : 0;
+      const r = dropSuiteClipCommands(st, c, playRow, { shown: lanesNow(st), analogy });
+      if (r.error) return say(r.error), { ok: false, error: r.error };
+      const out = send({ type: "batch", label: (analogy ? "Drop a suite clip as an analogy: " : "Drop a suite clip: ") + c.name, commands: r.cmds });
+      if (!out.ok) return out;
+      const parts = [`Dropped "${c.name}" ${analogy ? "as an analogy " : ""}at moment ${r.start + 1} onto ${r.lanes.length} lane${r.lanes.length === 1 ? "" : "s"}: ${listWords(r.lanes)}.`];
+      if (r.moved) parts.push(`It starts at moment ${r.start + 1} so it fits before the end of the film.`);
+      if (analogy) {
+        const moved = r.moves.filter((m) => !m.kept && m.steps);
+        const kept = r.moves.filter((m) => m.kept);
+        parts.push(moved.length ? `Each lane starts from its own setting there and makes the clip's moves: ${moved.map((m) => `${labOf(m.cur)} starts at ${m.to} instead of ${m.from}`).join("; ")}.` : "Every lane already had the clip's starting setting there, so the values are the clip's own.");
+        if (kept.length) parts.push(`${listWords(kept.map((m) => m.cur))} had no setting there yet, so ${kept.length === 1 ? "it keeps" : "they keep"} the clip's own values.`);
+        const top = r.moves.filter((m) => m.clamped);
+        if (top.length) parts.push(`${listWords(top.map((m) => m.cur))} reached the end of ${top.length === 1 ? "its" : "their"} scale, so some moves are smaller.`);
+      }
+      if (r.hidden.length && opts.showLanes) {
+        opts.showLanes(r.hidden);
+        parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "was" : "were"} not on this timeline, so ${r.hidden.length === 1 ? "it has" : "they have"} a lane now.`);
+      } else if (r.hidden.length) parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "is" : "are"} in your film now but not shown on this timeline (Arrange shows every lane).`);
+      if (r.locked.length) parts.push(`Skipped ${listWords(r.locked)}: locked (🔒).`);
+      parts.push("Undo takes it back.");
+      const m = parts.join(" ");
+      draw();
+      say(m);
+      return { ok: true, start: r.start, lanes: r.lanes, hidden: r.hidden, locked: r.locked, moves: r.moves, message: m };
+    }
+    /* Suite clips ▾: each saved clip with its length and curiosities, and Drop, Drop as an analogy, Rename, Delete. */
+    function suiteMenu(btn) {
+      const list = loadSuiteClips();
+      const b = (btn || el.querySelector('[data-act="suite-list"]') || el).getBoundingClientRect();
+      const pop = popAt("sl-suitelist", "Suite clips", b.left + 40, b.bottom - 4);
+      const playRow = opts.row ? opts.row() : 0;
+      pop.innerHTML = `<p><strong>Suite clips</strong> · ${list.length ? `${list.length} saved. Drop one in at the playhead (moment ${playRow + 1}).` : "none yet"}</p>
+        ${list.length ? `<ul>${list.map((c) => `<li data-suite="${esc(c.id)}"><div class="sl-suitehead"><span class="sl-suitename">${esc(c.name)}</span><small class="sl-suitewhat">${esc(suiteClipSummary(c))}</small></div><div class="sl-suiteacts"><button type="button" data-suite-drop="${esc(c.id)}" class="on" title="Drop this clip in starting at the playhead. It replaces what those lanes had over those moments; one undo takes it back.">Drop at the playhead</button><button type="button" data-suite-analogy="${esc(c.id)}" title="Drop it as an analogy: each lane starts from the setting it has at the playhead and makes the same moves up and down its scale">Drop as an analogy</button><button type="button" data-suite-rename="${esc(c.id)}" title="Change this suite clip's name">Rename</button><button type="button" data-suite-delete="${esc(c.id)}" title="Delete this suite clip (your film is not changed)">Delete</button></div></li>`).join("")}</ul>` : `<p class="sl-note">Select an area on the lanes, then press Save as suite clip to keep its nodes and joins under a name.</p>`}
+        <div class="sl-pop-btns"><button type="button" data-l="close">Close</button></div>`;
+      pop.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Escape") return;
+        ev.stopPropagation();
+        pop.remove();
+        el.focus();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const t = ev.target.closest("button");
+        if (!t) return;
+        const d = t.dataset;
+        if (d.suiteDelete) {
+          /* Two clicks: deleting a saved clip can't be undone. */
+          if (t.dataset.sure !== "1") {
+            t.dataset.sure = "1";
+            t.textContent = "Delete for good?";
+            t.classList.add("sl-warn");
+            return say("Press Delete for good? to delete it. Your film is not changed.");
+          }
+          const r = deleteSuite(d.suiteDelete);
+          draw();
+          suiteMenu();
+          say(r.message || r.error);
+          return;
+        }
+        if (d.suiteRename) {
+          const c = suiteList.find((x) => x.id === d.suiteRename);
+          const r = t.getBoundingClientRect();
+          if (c) return suiteNamePop(c, r.left, r.bottom);
+          return;
+        }
+        pop.remove();
+        if (d.suiteDrop || d.suiteAnalogy) return dropSuite(d.suiteDrop || d.suiteAnalogy, !!d.suiteAnalogy);
+        el.focus();
+      };
+      el.appendChild(pop);
+      const first = pop.querySelector("button");
+      if (first) first.focus();
+      return pop;
+    }
+    /* ---------- templates: Save as template (the selected area's tools), and using one from the library ---------- */
+    /* Keep the selected area as a named template with a plain note. Returns { ok, template, message } or { ok: false, error }. */
+    function saveTemplate(name, note) {
+      if (!area) return { ok: false, error: "Select an area first: drag across empty space on the lanes." };
+      if (!String(name || "").trim()) return { ok: false, error: "Give the template a name first." };
+      const t = template(copyArea(E().state(), geo.lanes, area), String(name).slice(0, SUITE_NAME_MAX), note);
+      if (!t) return { ok: false, error: "There are no curiosity lanes in the selection to save. Select some lanes that are in your film." };
+      const list = loadTemplates().concat(t);
+      const kept = saveTemplates(list);
+      const n = t.curiosities.length;
+      const message = `Saved the template "${t.name}": ${n} curiosit${n === 1 ? "y" : "ies"} over ${t.span + 1} moment${t.span ? "s" : ""}. Find it in the library's Templates tab, under My templates, to use it anywhere.${kept ? "" : " This browser isn't keeping saved data for this page, so it will be gone after a reload."}`;
+      return { ok: true, template: t, message };
+    }
+    function renameTemplate(id, name, note) {
+      const list = loadTemplates();
+      const t = list.find((x) => x.id === id);
+      name = String(name || "").trim().slice(0, SUITE_NAME_MAX);
+      if (!t) return { ok: false, error: "That template is gone." };
+      if (!name) return { ok: false, error: "Give the template a name first." };
+      const was = t.name;
+      t.name = name;
+      if (note != null) t.note = String(note).trim().slice(0, TEMPLATE_NOTE_MAX);
+      saveTemplates(list);
+      return { ok: true, message: was === name ? `Kept the template "${name}"${note != null ? " with its new note" : ""}.` : `Renamed the template "${was}" to "${name}".` };
+    }
+    function deleteTemplate(id) {
+      const list = loadTemplates();
+      const t = list.find((x) => x.id === id);
+      if (!t) return { ok: false, error: "That template is gone." };
+      saveTemplates(list.filter((x) => x !== t));
+      return { ok: true, template: t, message: `Deleted the template "${t.name}". Your film is not changed.` };
+    }
+    /* Use a template: at moment o.at (the playhead when left out), or stretched over the selected area (o.stretch);
+       o.analogy (true, or { fromCur: toCur } picks) moves each lane's shape onto its cousin curiosity. One undo step. Says what it did in the status line. */
+    function useTemplate(id, o) {
+      o = o || {};
+      const t = loadTemplates().find((x) => x.id === id);
+      if (!t) return say("That template is gone."), { ok: false, error: "That template is gone." };
+      if (o.stretch && !area) {
+        const e = "Select an area on the timeline first, then the template is stretched to fit it.";
+        return say(e), { ok: false, error: e };
+      }
+      const st = E().state();
+      const at = o.stretch ? area.j0 : o.at != null ? Math.max(0, Math.min(st.rows.length - 1, Number(o.at) || 0)) : opts.row ? opts.row() : 0;
+      const r = useTemplateCommands(st, t, at, { shown: lanesNow(st), span: o.stretch ? area.j1 - area.j0 : null, analogy: o.analogy || null });
+      if (r.error) return say(r.error), { ok: false, error: r.error };
+      const out = send({ type: "batch", label: (o.analogy ? "Use a template as an analogy: " : o.stretch ? "Use a template, stretched: " : "Use a template: ") + t.name, commands: r.cmds });
+      if (!out.ok) return out;
+      const parts = [`Used the template "${t.name}" ${o.analogy ? "as an analogy " : ""}at moment ${r.start + 1} on ${r.lanes.length} lane${r.lanes.length === 1 ? "" : "s"}: ${listWords(r.lanes)}.`];
+      if (o.analogy) {
+        const used = (r.pairs || []).filter((p) => r.lanes.includes(p.to));
+        if (used.length) parts.push(`The shapes moved over, each value keeping its place on its scale: ${used.map((p) => `${p.fromLabel} → ${p.toLabel}`).join("; ")}.`);
+        if (r.left && r.left.length) parts.push(`${listWords(r.left)} had no cousin to move onto, so ${r.left.length === 1 ? "it was" : "they were"} left out.`);
+      }
+      if (o.stretch && r.span !== t.span) parts.push(`It was ${t.span + 1} moment${t.span ? "s" : ""} long and now fills the selected ${r.span + 1}.`);
+      else if (o.stretch) parts.push("It already fit the selected area.");
+      if (r.moved) parts.push(`It starts at moment ${r.start + 1} so it fits before the end of the film.`);
+      if (r.hidden.length && opts.showLanes) {
+        opts.showLanes(r.hidden);
+        parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "was" : "were"} not on this timeline, so ${r.hidden.length === 1 ? "it has" : "they have"} a lane now.`);
+      } else if (r.hidden.length) parts.push(`${listWords(r.hidden)} ${r.hidden.length === 1 ? "is" : "are"} in your film now but not shown on this timeline (Arrange shows every lane).`);
+      if (r.locked.length) parts.push(`Skipped ${listWords(r.locked)}: locked (🔒).`);
+      parts.push("Undo takes it back.");
+      const m = parts.join(" ");
+      draw();
+      say(m);
+      return { ok: true, start: r.start, span: r.span, lanes: r.lanes, hidden: r.hidden, locked: r.locked, pairs: r.pairs, left: r.left, message: m };
+    }
+    /* The small pop-up for a template's name and note: saving the selected area (t null) or renaming a saved one. */
+    function templateNamePop(t, cx, cy) {
+      if (!t && !area) return say("Select an area first: drag across empty space on the lanes."), { ok: false };
+      const pop = popAt("sl-suitepop sl-tplpop", t ? "Rename template" : "Save as template", cx, cy);
+      const lanesN = t ? t.curiosities.length : new Set(geo.lanes.slice(area.i0, area.i1 + 1).filter((ln) => ln && ln.track).map((ln) => ln.cur)).size;
+      const span = t ? t.span + 1 : area.j1 - area.j0 + 1;
+      pop.innerHTML = `<p><strong>${t ? "Rename template" : "Save as template"}</strong> · ${lanesN} lane${lanesN === 1 ? "" : "s"}, ${span} moment${span === 1 ? "" : "s"}</p>
+        <label class="sl-mknote">Name <input type="text" data-tpl-name maxlength="${SUITE_NAME_MAX}" placeholder="e.g. slow-burn reveal" value="${esc(t ? t.name : `Template ${loadTemplates().length + 1}`)}"></label>
+        <label class="sl-mknote">Note (optional) <input type="text" data-tpl-note maxlength="${TEMPLATE_NOTE_MAX}" placeholder="e.g. hold wide, then push in on the face" value="${esc(t ? t.note || "" : "")}"></label>
+        <p class="sl-note">${t ? "Only the name and note change." : "Keeps the nodes and joins in the selection, each in its place on its curiosity's scale. Use it again from the library's Templates tab."}</p>
+        <div class="sl-pop-btns"><button type="button" data-l="cancel">Cancel</button><button type="button" data-l="ok" class="on">${t ? "Rename" : "Save"}</button></div>`;
+      const close = (m) => {
+        pop.remove();
+        draw();
+        say(m == null ? msg : m);
+        el.focus();
+      };
+      const done = () => {
+        const name = pop.querySelector("[data-tpl-name]").value.trim();
+        const note = pop.querySelector("[data-tpl-note]").value;
+        if (!name) {
+          say("Give the template a name first.");
+          return pop.querySelector("[data-tpl-name]").focus();
+        }
+        const r = t ? renameTemplate(t.id, name, note) : saveTemplate(name, note);
+        close(r.message || r.error);
+      };
+      pop.addEventListener("keydown", (ev) => {
+        ev.stopPropagation();
+        if (ev.key === "Escape") return ev.preventDefault(), close(t ? "" : "Not saved.");
+        if (ev.key === "Enter" && ev.target.matches("input")) ev.preventDefault(), done();
+      });
+      pop.onclick = (ev) => {
+        ev.stopPropagation();
+        const b = ev.target.closest("button");
+        if (!b) return;
+        if (b.dataset.l === "ok") return done();
+        close(t ? "" : "Not saved.");
+      };
+      el.appendChild(pop);
+      const inp = pop.querySelector("[data-tpl-name]");
+      inp.focus();
+      inp.select();
+      return { ok: true, pop };
+    }
+    /* A template card dragged from the library onto the timeline lands at the moment under the pointer. */
+    const TPL_MIME = "application/x-curiomatic-template";
+    const tplDrag = (e) => !!(e.dataTransfer && [...(e.dataTransfer.types || [])].includes(TPL_MIME));
+    function onTplOver(e) {
+      if (!tplDrag(e)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    }
+    function onTplDrop(e) {
+      if (!tplDrag(e) || !geo) return;
+      e.preventDefault();
+      const svg = el.querySelector(".sl-svg");
+      const r = (svg || el).getBoundingClientRect();
+      const j = Math.max(0, Math.min(geo.n - 1, Math.floor((e.clientX - r.left) / geo.colW)));
+      useTemplate(e.dataTransfer.getData(TPL_MIME), { at: j });
+    }
+    el.addEventListener("dragover", onTplOver);
+    el.addEventListener("drop", onTplDrop);
+    function onMenu(e) {
+      if (masterMenu(e)) return;
+      if (clipKeyMenu(e)) return;
+      if (lineMenu(e)) return;
+      const mk = e.target.closest && e.target.closest(".sl-top [data-marker]");
+      if (!mk) return;
+      e.preventDefault();
+      openMarker(Number(mk.dataset.marker) || 0, e.clientX, e.clientY);
+    }
     function onDbl(e) {
+      const lvEl = e.target.closest && e.target.closest("[data-lane-level]");
+      if (lvEl) return setLevel(lvEl.dataset.laneLevel, 100);
       const node = e.target.closest && e.target.closest("[data-node]");
+      /* A double-click on a line: its first click added this node, so the second must not take it away again. */
+      if (node && lastAdd && lastAdd.key === node.dataset.node && Date.now() - lastAdd.t < 700) return (lastAdd = null);
+      if (node && Date.now() - dblDone < 700) return; /* already removed by its two presses (onDown) */
       if (node) return removeNode(node.dataset.node);
       const s2 = e.target.closest && e.target.closest("[data-seg]");
       if (s2) openCurves(s2.dataset.seg);
@@ -1442,14 +5632,38 @@
       }
     }
     function onKey(e) {
+      const lvEl = e.target && e.target.closest && e.target.closest("[data-lane-level]");
+      if (lvEl && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+        const now = Number(lvEl.getAttribute("aria-valuenow")) || 0;
+        const step = e.shiftKey ? 1 : 5;
+        const pct = e.key === "Home" ? 0 : e.key === "End" ? 100 : now + (e.key === "ArrowLeft" || e.key === "ArrowDown" ? -step : step);
+        levelKeyed = true;
+        return setLevel(lvEl.dataset.laneLevel, pct);
+      }
+      const pop = el.querySelector(".sl-pop");
+      if (e.key === "Escape" && pop) {
+        /* Esc closes any pop-up (curves, linkage settings, a line's menu). */
+        pop.remove();
+        return el.focus();
+      }
       if (e.key === "Escape" && (area || seg)) {
         area = null;
         seg = null;
         return draw();
       }
-      if (area && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return command("delete");
+      if (mSel && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) {
+        /* Only the master node: the page's own ⌫ shortcut must not also remove the selected nodes. */
+        e.preventDefault();
+        e.stopPropagation();
+        return mRemove(mSel);
+      }
+      /* ⌥⌫ is the Screen's Take out moments, not Remove nodes. */
+      if (area && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return command("delete");
+      if (ckSel && !sel && !e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) return removeClipKey(ckSel.cur, ckSel.j);
       if (!sel || !el.contains(document.activeElement || el)) return;
-      if ((e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) removeNode(sel);
+      if (!e.altKey && (e.key === "Delete" || e.key === "Backspace") && document.activeElement === el) removeNode(sel);
     }
     el.classList.add("sl");
     el.tabIndex = el.tabIndex >= 0 ? el.tabIndex : 0;
@@ -1458,24 +5672,149 @@
     window.addEventListener("pointerup", onUp);
     el.addEventListener("click", onClick);
     el.addEventListener("dblclick", onDbl);
+    el.addEventListener("contextmenu", onMenu);
     el.addEventListener("keydown", onKey);
+    window.addEventListener("keydown", altKey);
+    window.addEventListener("keyup", altKey);
     el.addEventListener("wheel", onWheel, { passive: false });
+    document.addEventListener("click", filmCheck, true);
+    document.addEventListener("change", filmCheck, true);
     draw();
-    return {
+    const api = {
       draw,
       select: (key) => ((sel = key), draw()),
       selected: () => sel,
       area: () => area,
       selectArea: (a) => ((area = a), (sel = null), draw()),
       curves: (sk) => openCurves(sk),
+      subs: (cur, want) => {
+        const r = subsToggle(cur, want);
+        const keep = msg;
+        draw();
+        say(keep);
+        return r;
+      },
+      simplify: (lk) => simplifyLane(lk),
+      curveLine: (sk, shape, bend) => {
+        const r = writeCurve(sk, { shape, bend: bend == null ? 40 : bend });
+        const keep = msg;
+        draw();
+        say(keep);
+        return r;
+      },
       linkSettings,
+      marker: (j) => openMarker(j, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
+      markers: () => markerList(),
+      shapeMenu: () => shapeMenu(),
+      shape: (preset) => command("shape", preset),
+      saveSuite: (name) => {
+        const r = saveSuite(name);
+        draw();
+        say(r.ok ? r.message : r.error);
+        return r;
+      },
+      suiteName: () => suiteNamePop(null, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
+      suiteClips: () => suiteMenu(),
+      dropSuite,
+      renameSuite: (id, name) => {
+        const r = renameSuite(id, name);
+        draw();
+        say(r.message || r.error);
+        return r;
+      },
+      deleteSuite: (id) => {
+        const r = deleteSuite(id);
+        draw();
+        say(r.message || r.error);
+        return r;
+      },
+      /* templates: saveTemplate(name, note), templateName() (the pop-up), useTemplate(id, { at, stretch, analogy }),
+         renameTemplate(id, name, note), deleteTemplate(id) */
+      saveTemplate: (name, note) => {
+        const r = saveTemplate(name, note);
+        draw();
+        say(r.ok ? r.message : r.error);
+        return r;
+      },
+      templateName: () => templateNamePop(null, el.getBoundingClientRect().left + 40, el.getBoundingClientRect().top + 30),
+      useTemplate,
+      renameTemplate: (id, name, note) => {
+        const r = renameTemplate(id, name, note);
+        say(r.message || r.error);
+        return r;
+      },
+      deleteTemplate: (id) => {
+        const r = deleteTemplate(id);
+        say(r.message || r.error);
+        return r;
+      },
+      say,
+      markTurns,
+      clearAuto,
+      attention: toggleAttention,
+      filmLines: toggleFilmLines,
+      take: () => command("take"),
       command,
+      laneOff: (lk) => laneButton("lane-off", lk),
+      solo: (lk) => laneButton("lane-solo", lk),
+      lock: (lk) => laneButton("lane-lock", lk),
+      fold: (id, want) => {
+        const out = foldGroup(id, want);
+        const keep = msg;
+        draw();
+        say(keep);
+        return out;
+      },
+      foldAll: (want) => foldAll(want !== false),
+      reveal,
+      groups: () => ((geo && geo.groups) || []).map((g) => ({ id: g.id, label: g.label, count: g.count, withNodes: g.withNodes, folded: g.folded })),
+      /* Track master lanes and master nodes (screen/masters.js). */
+      tracks: () => selTracks.slice(),
+      selectTracks: (ids) => ((selTracks = (ids || []).slice()), draw(), selTracks.slice()),
+      foldTrack: (id) => trackFold(id),
+      masterPick: () => mSel,
+      masterToggle: (id) => mToggle(id),
+      masterGate: (id, k) => mGate(id, k),
+      masterScale: (id, s) => mScale(id, s),
+      masterLfo: (id, n) => mLfo(id, n),
+      masterMove: (id, dj) => mMove(id, dj),
+      masterRemove: (id) => mRemove(id),
+      masterWindow: (want) => openMasterWin(want),
+      multiPaste: (how) => multiPaste(how),
+      setLevel: (lk, pct) => setLevel(lk, pct),
+      selection: () => (geo ? selSummary(geo.st) : ""),
       destroy() {
+        if (mWin) mWin.remove();
+        mWin = null;
+        document.removeEventListener("click", filmCheck, true);
+        document.removeEventListener("change", filmCheck, true);
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("keydown", altKey);
+        window.removeEventListener("keyup", altKey);
+        if (lastMount === api) lastMount = null;
       },
     };
+    lastMount = api;
+    return api;
   }
+  /* The timeline mounted last (tests and other files reach its master lanes and selection through it). */
+  let lastMount = null;
 
-  root.CurioLanes = { SHAPES, shapeAt, copyArea, pasteAreaCommands, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H };
+  root.CurioLanes = { clipKeys, SHAPES, MARK_COLORS, migrateMarkers, soloCommands, soloActive, isLocked, shapeAt, copyArea, pasteAreaCommands, reverseAreaCommands, flipAreaCommands, stretchAreaCommands, freezeAreaCommands, shapeAreaCommands, PRESETS, moveAreaCommands, laneGroups, foldDots, groupText, markerStep, automationGroup, segMoveCommands, bendFrom, simplifyCommands, EASES, get GROUP_H() { return groupH(); }, groupH, curves: () => curves, tools: () => tools, mount, trackFor, ensure, group, copyGroup, paste, shiftCommands, linkCommand, nodeKey, clip: () => clip, LANE_H, TURN_COLORS, turnMarkers, mergeTurnMarkers, clearAutoMarkers, ATT_COLORS, attentionTrack, textRows, TXT_ROW, SUITE_KEY, suiteClip, migrateSuiteClips, suiteClipSummary, suiteClipTargets, analogyClip, dropSuiteClipCommands, suiteClips: () => loadSuiteClips(), filmBeat, filmLine, takeFromFilmCommands };
+  /* Ripple (the Screen's Add a moment here, Duplicate and Take out moments): put back a whole marker list at once,
+     saved, so one undo can bring back the markers on moments that were taken out. */
+  root.CurioLanes.mounted = () => lastMount;
+  root.CurioLanes.setMarkers = (list) => {
+    tools.markers = migrateMarkers(list);
+    saveTools();
+    return tools.markers;
+  };
+  /* Graded lanes (a curiosity's own sliders offered as lanes) and lane names with their track. */
+  Object.assign(root.CurioLanes, { PARTS, PART_TRACK, laneParts, partTrack, lkName });
+  /* Templates (Save as template; the library's My templates). */
+  Object.assign(root.CurioLanes, { TEMPLATE_KEY, TEMPLATE_FORMAT, TPL_MIME: "application/x-curiomatic-template", template, migrateTemplates, templateSummary, templatePreview, stretchTemplate, useTemplateCommands, analogyCandidates, templateAnalogy, exportTemplates, importTemplates, templates: () => loadTemplates(), saveTemplates });
 })();
+/* The master-node hook the Triggers helper calls (screen/masters.js has it; this name is kept for the music app's
+   MASTER.trigger(id, on)). */
+if (typeof window !== "undefined" && window.CurioLanes) window.CurioLanes.trigger = (id, on, o) => (window.CurioMasters ? window.CurioMasters.trigger(id, on, o) : { ok: false });

@@ -59,17 +59,6 @@
     "at their best": { arrow: "their growth type" },
     "show what they fear": { fearShown: 5, fearMoments: 6 },
   });
-  W.say("enneagramHealth", {
-    "falling apart": { setting: "unhealthy", level: 8, pull: "toward stress" },
-    "breaking bad": { setting: "unhealthy", level: 9, pull: "toward stress", drift: 2 },
-    "redemption arc": { pull: "toward growth", setting: "average", level: 5 },
-    "at their best": { setting: "healthy", level: 1 },
-    "coping": { setting: "average", level: 5, pull: "neither" },
-    "spiraling": { pull: "toward stress", drift: 3, levelsMoved: 4 },
-    "love saves them": { trigger: "love", pull: "toward growth" },
-    "cracks under pressure": { trigger: "pressure", pull: "toward stress" },
-    "only we see it": { seenBy: "the audience" },
-  });
   W.say("cm-stability", {
     "agent of chaos": { position: 100, arrival: "things stir up", ripple: "the whole world" },
     "the rock": { position: 5, arrival: "things calm down" },

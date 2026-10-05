@@ -11,7 +11,11 @@ Or, inside `apps/curiosities/`: `npm test`, `npm run test:browser`, `npm run tes
 The summary lists each suite as **pass**, **FAIL** or **skip** (a tool it needs is not installed, such as
 Blender). The exit code is 1 when anything failed. GitHub runs the quick and browser tests on every push to a
 `curiosities-*` branch and every pull request that touches `apps/curiosities/`
-(`.github/workflows/curiomatic-tests.yml`).
+(`.github/workflows/curiomatic-tests.yml`). It runs them as three parts side by side, so a run fits the job time
+limit: `--shard 1/3` (and `2/3`, `3/3`) runs one part. Part 1 has all the quick checks; the browser and long
+suites are dealt out longest first, using the rough `secs` each suite lists in `run-all.js` (give a new slow
+suite a `secs`). The two every-control runs are each split in half by page (`every-control.js --part 1/2`).
+On GitHub a failing suite's FAIL lines also appear as notes on the check's page, so you rarely need the log.
 
 ## Setting up the browser tests
 
@@ -31,6 +35,7 @@ Blender). The exit code is 1 when anything failed. GitHub runs the quick and bro
 | engine bridge fuzz | `engine/tests/bridge-fuzz.js` | 20,000 malformed bridge messages: nothing throws, nothing odd is saved |
 | screen | `screen/tests/run.js` | the Screen's levels, lanes, nodes, proximities, copy, paste and undo |
 | momentum | `momentum/tests/run.js` | film profiles, the compass, attention and cue lanes |
+| vcv rack jacks | `vcv/tests/run.js` | every item has one VCV jack, no two share a cable, channel and CC; the bridge reads a second MIDI cable |
 | video | `video/tests/run.js`, `video/tests/browser.js` | taking a clip apart into lanes and applying it, with and without a browser |
 | cloud saving | `sync/tests/run.js` | the (still switched off) cloud saving merges a project part by part |
 | site files | `core/site-check.js` | every file the page loads is committed, so it works when hosted |
