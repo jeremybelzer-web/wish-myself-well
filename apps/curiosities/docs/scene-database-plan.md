@@ -17,6 +17,12 @@ curiosities, searchable by topic and filter columns, with clips played from YouT
   Log a clip keeps what you saw in a clip as curiosities; Watch counts views. Kept in `curiosities-inspire-v1`
   (so it is saved in the .curio project file).
 
+- `inspire/writing.js` — books, short stories, essays and poems (public domain, described in our own words, no
+  quotes), equal to films and games, starting with how characters move to show a feeling. Each lists `movements`
+  that link to the emotion-movement archive. Read opens a Project Gutenberg search.
+- `CurioInspire.openSearch(curiosityId, { anchor })` — the search pop-up a curiosity window's search button opens,
+  beside that window, with six filter columns (Source, Topics, Curiosities, Values, How fast, Movements).
+
 ## Why bots cannot just watch every YouTube clip
 
 YouTube's terms do not allow downloading videos or reading them with automated tools, and a browser cannot read

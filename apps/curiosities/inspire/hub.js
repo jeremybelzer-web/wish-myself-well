@@ -40,6 +40,7 @@
     if (f.text) return `“${f.text}”`;
     if (f.kind) return f.kind;
     if (f.feeling) return "feels " + f.feeling;
+    if (f.movement) return "moves: " + f.movement;
     if (f.suite) return "suite: " + ((h.suiteList([]).find((s) => s.id === f.suite) || {}).label || f.suite);
     if (f.curiosity && f.value !== undefined) return h.label(f.curiosity) + " = " + f.value;
     if (f.curiosity && f.rate) return h.label(f.curiosity) + " " + (h.RATES.find((r) => r.id === f.rate) || {}).label;
@@ -86,26 +87,31 @@
       c3 = h.values(view.key, F).map((v) => row(`data-i="value" data-v="${esc(v.value)}"`, v.value, v.count, has({ curiosity: view.key, value: v.value })));
       c4 = h.rates(view.key, F).map((r) => row(`data-i="rate" data-v="${r.id}"`, r.label, r.count, has({ curiosity: view.key, rate: r.id })));
     }
-    const kinds = h.kinds(F).map((k) => `<button type="button" class="ci-pill${has({ kind: k.id }) ? " on" : ""}" data-i="kind" data-v="${esc(k.id)}">${esc(k.id)} <small>${k.count}</small></button>`).join("");
+    const KIND_LABEL = { film: "Films", tv: "TV", anime: "Anime", game: "Games", book: "Books", "short story": "Short stories", essay: "Essays", poem: "Poems", "my clip": "My clips" };
+    const c0 = h.kinds(F).map((k) => row(`data-i="kind" data-v="${esc(k.id)}"`, KIND_LABEL[k.id] || k.id, k.count, has({ kind: k.id })));
+    const c5 = h.movements(F).map((m) => row(`data-i="movement" data-v="${esc(m.id)}"`, m.id, m.count, has({ movement: m.id })));
     const feels = h.feelings(F).map((k) => `<button type="button" class="ci-pill${has({ feeling: k.id }) ? " on" : ""}" data-i="feeling" data-v="${esc(k.id)}">${esc(k.id)} <small>${k.count}</small></button>`).join("");
     const chips = F.map((f, i) => `<button type="button" class="ci-chip" data-i="unfilter" data-v="${i}" title="Remove this filter">${esc(chipText(f))} ×</button>`).join("");
+    const picked = view.key && view.topic !== "all";
+    const dim = (t) => `<div class="ci-col ci-dim"><h4>${t}</h4><p class="ci-small">Pick a curiosity.</p></div>`;
     body.innerHTML = `<div class="ci-top">
-        <input type="search" class="ci-search" placeholder="Type a film, a game, a feeling, a moment" data-i="text" value="${esc((F.find((f) => f.text) || {}).text || "")}">
+        <input type="search" class="ci-search" placeholder="Type a film, a book, an author, a feeling, a movement" data-i="text" value="${esc((F.find((f) => f.text) || {}).text || "")}">
         <label class="ci-small">Watch on <select data-i="watch">${Object.entries(h.WATCH).map(([id, w]) => `<option value="${id}" ${store.watch === id ? "selected" : ""}>${esc(w.label)}</option>`).join("")}</select></label>
         <button type="button" data-i="log">Log a clip you watched</button>
       </div>
-      <div class="ci-pills"><span class="ci-small">Kind</span> ${kinds}</div>
       <div class="ci-pills"><span class="ci-small">What the audience feels</span> ${feels}</div>
-      <div class="ci-pills ci-chips">${chips ? `<span class="ci-small">Filters</span> ${chips} <button type="button" class="ci-link" data-i="clear">Clear all</button>` : `<span class="ci-small">Pick a topic, then a curiosity, then a value or how fast it changes. Every pick narrows the list on the right.</span>`}</div>
+      <div class="ci-pills ci-chips">${chips ? `<span class="ci-small">Filters</span> ${chips} <button type="button" class="ci-link" data-i="clear">Clear all</button>` : `<span class="ci-small">Every column is a filter: pick in any order. Every pick narrows the list below.</span>`}</div>
       <div class="ci-grid">
+        ${col("Source", c0)}
         ${col("Topics", c1)}
         ${col(c2title, c2)}
-        ${view.key && view.topic !== "all" ? col(h.label(view.key), c3) : `<div class="ci-col ci-dim"><h4>Values</h4><p class="ci-small">Pick a curiosity.</p></div>`}
-        ${view.key && view.topic !== "all" ? col("How fast it changes", c4) : `<div class="ci-col ci-dim"><h4>How fast it changes</h4><p class="ci-small">Pick a curiosity.</p></div>`}
-        <div class="ci-results"><h4>${list.length} scene${list.length === 1 ? "" : "s"} <small class="ci-small">of ${h.scenes.length}</small></h4>
-          ${list.map(card).join("") || `<p class="ci-small">No scene has all of these. Remove a filter.</p>`}</div>
+        ${picked ? col(h.label(view.key), c3) : dim("Values")}
+        ${picked ? col("How fast it changes", c4) : dim("How fast it changes")}
+        ${col("Movements", c5)}
       </div>
-      <p class="ci-small">Only shared curiosities are kept for each scene (shot size, light, music, feeling and how fast each changes), never footage, scripts or lines. Values are first guesses: log a clip to add or correct one.</p>`;
+      <div class="ci-results"><h4>${list.length} source${list.length === 1 ? "" : "s"} <small class="ci-small">of ${h.scenes.length}: films, games, books, stories, essays and poems</small></h4>
+        ${list.map(card).join("") || `<p class="ci-small">Nothing has all of these. Remove a filter.</p>`}</div>
+      <p class="ci-small">Only shared curiosities are kept for each source (shot size, light, music, feeling, how characters move and how fast each changes), never footage or quoted text. Values are first guesses: log a clip to add or correct one.</p>`;
   }
   function card(s) {
     const h = getHub();
@@ -113,10 +119,11 @@
     const focus = view.key && view.topic !== "all" ? h.details(s).find((d) => d.key === view.key) : null;
     const views = store.views[s.id] || 0;
     return `<article class="ci-card${open ? " open" : ""}">
-      <header><strong>${esc(s.work)}</strong> <small>${esc(s.year)} · ${esc(s.kind)}${s.logged ? " · logged by you" : ""}${views ? ` · watched ${views}×` : ""}</small></header>
+      <header><strong>${esc(s.work)}</strong> <small>${s.author ? esc(s.author) + " · " : ""}${esc(s.year)} · ${esc(s.kind)}${s.logged ? " · logged by you" : ""}${views ? ` · ${h.isWritten(s) ? "read" : "watched"} ${views}×` : ""}</small></header>
       <p>${esc(s.moment)} <small class="ci-small">(${esc(s.feelings.join(", "))})</small></p>
+      ${(s.movements || []).length ? `<p class="ci-small">Movements: ${s.movements.map(esc).join(", ")}</p>` : ""}
       ${focus ? `<p class="ci-small">${esc(focus.label)}: ${focus.path.map(esc).join(" → ")} <em>(${esc(focus.rate)})</em></p>` : ""}
-      <p class="ci-actions"><button type="button" data-i="watch-go" data-v="${esc(s.id)}">Watch</button>
+      <p class="ci-actions"><button type="button" data-i="watch-go" data-v="${esc(s.id)}">${h.isWritten(s) ? "Read" : "Watch"}</button>
         <button type="button" data-i="borrow" data-v="${esc(s.id)}" title="Open it in the Prism, then drop any curiosity onto a moment of your film">Borrow its curiosities</button>
         <button type="button" class="ci-link" data-i="open" data-v="${esc(s.id)}">${open ? "Hide" : "Every curiosity"}</button>
         ${s.logged ? `<button type="button" class="ci-link" data-i="forget" data-v="${esc(s.id)}">Forget</button>` : ""}</p>
@@ -232,6 +239,7 @@
     if (i === "rate") return toggle({ curiosity: view.key, rate: v });
     if (i === "kind") return toggle({ kind: v });
     if (i === "feeling") return toggle({ feeling: v });
+    if (i === "movement") return toggle({ movement: v });
     if (i === "unfilter") {
       view.filters.splice(Number(v), 1);
       return draw();
@@ -249,7 +257,7 @@
       if (!s) return;
       store.views[s.id] = (store.views[s.id] || 0) + 1;
       save();
-      window.open(getHub().WATCH[store.watch || "youtube"].url(s.search), "_blank", "noopener");
+      window.open(getHub().watchUrl(s, store.watch), "_blank", "noopener");
       return draw();
     }
     if (i === "borrow") return sceneOf(v) && borrow(sceneOf(v));
@@ -320,20 +328,84 @@
     }, 250);
   }
 
+  function make() {
+    if (dlg) return;
+    dlg = document.createElement("dialog");
+    dlg.className = "ci-hub";
+    dlg.innerHTML = `<header><strong>Scene inspiration</strong> <span class="ci-small ci-sub">search films, games, books, stories, essays and poems by their curiosities</span><button type="button" data-ci="close">Close</button></header><div class="ci-body"></div>`;
+    document.body.appendChild(dlg);
+    dlg.addEventListener("click", (e) => (e.target.closest('[data-ci="close"]') ? dlg.close() : onClick(e)));
+    dlg.addEventListener("change", onChange);
+    dlg.addEventListener("input", onInput);
+    /* The pop-up can be dragged by its title bar. */
+    const head = dlg.querySelector("header");
+    head.addEventListener("pointerdown", (e) => {
+      if (!dlg.classList.contains("ci-pop") || e.target.closest("button")) return;
+      const r = dlg.getBoundingClientRect();
+      const dx = e.clientX - r.left;
+      const dy = e.clientY - r.top;
+      const move = (m) => ((dlg.style.left = Math.max(0, m.clientX - dx) + "px"), (dlg.style.top = Math.max(0, m.clientY - dy) + "px"));
+      const up = () => (removeEventListener("pointermove", move), removeEventListener("pointerup", up));
+      addEventListener("pointermove", move);
+      addEventListener("pointerup", up);
+    });
+  }
+  function setSub(text) {
+    dlg.querySelector(".ci-sub").innerHTML = text;
+  }
+  /* The whole hub, from the Library. */
   function open(opts) {
-    if (!dlg) {
-      dlg = document.createElement("dialog");
-      dlg.className = "ci-hub";
-      dlg.innerHTML = `<header><strong>Scene inspiration</strong> <span class="ci-small">a research hub of scenes, by their curiosities</span><button type="button" data-ci="close">Close</button></header><div class="ci-body"></div>`;
-      document.body.appendChild(dlg);
-      dlg.addEventListener("click", (e) => (e.target.closest('[data-ci="close"]') ? dlg.close() : onClick(e)));
-      dlg.addEventListener("change", onChange);
-      dlg.addEventListener("input", onInput);
-    }
+    make();
+    if (dlg.open && dlg.classList.contains("ci-pop")) dlg.close();
+    dlg.classList.remove("ci-pop");
+    dlg.removeAttribute("style");
+    setSub("search films, games, books, stories, essays and poems by their curiosities");
     if (opts && opts.filters) view.filters = opts.filters.slice();
     if (typeof dlg.showModal === "function" && !dlg.open) dlg.showModal();
     else dlg.setAttribute("open", "");
     draw();
+  }
+  /* The search pop-up a curiosity window opens with its search button: openSearch(curiosityId, { anchor, movement,
+     filters }). It opens beside the window it came from (anchor: that window's element), already on that curiosity,
+     and can be dragged anywhere. Every column is a filter over the whole database. Returns the pop-up's element. */
+  function openSearch(curiosityId, opts) {
+    opts = opts || {};
+    make();
+    view.logging = false;
+    const h = getHub();
+    const key = curiosityId ? String(curiosityId).replace(/^c:/, "") : null;
+    view.filters = (opts.filters || []).slice();
+    if (opts.movement) view.filters.push({ movement: opts.movement });
+    view.topic = key ? h.topicOf(key) : "all";
+    view.key = key;
+    if (dlg.open) dlg.close();
+    dlg.classList.add("ci-pop");
+    setSub(key ? `<span class="ci-from">from ${esc(h.label(key))}</span>` : "search everything");
+    /* A curiosity window that is itself modal would cover a plain pop-up, so stack on top of it as modal too. */
+    const overModal = typeof document.querySelector === "function" && document.querySelector("dialog:modal");
+    if (overModal && dlg.showModal) dlg.showModal();
+    else if (dlg.show) dlg.show();
+    else dlg.setAttribute("open", "");
+    place(opts.anchor);
+    draw();
+    return dlg;
+  }
+  /* Beside the anchor: to its right when there is room, else to its left, else centered; kept on the screen. */
+  function place(anchor) {
+    const W = innerWidth;
+    const H = innerHeight;
+    const w = Math.min(980, W * 0.94);
+    const hgt = Math.min(H * 0.8, 760);
+    let x = (W - w) / 2;
+    let y = (H - hgt) / 2;
+    if (anchor && anchor.getBoundingClientRect) {
+      const r = anchor.getBoundingClientRect();
+      if (W - r.right >= w + 8) x = r.right + 8;
+      else if (r.left >= w + 8) x = r.left - w - 8;
+      y = Math.min(Math.max(8, r.top), H - hgt - 8);
+    }
+    dlg.style.left = Math.max(0, x) + "px";
+    dlg.style.top = Math.max(0, y) + "px";
   }
 
   function wire() {
@@ -350,8 +422,10 @@ dialog.ci-hub>header button{margin-left:auto}
 .ci-pill.on,.ci-row.on{background:var(--saffron,#c45c26);color:#fff}
 .ci-chip{background:var(--gold,#b8892d);color:#fff}
 .ci-link{background:none;border:0;text-decoration:underline;cursor:pointer;font:inherit;font-size:.85rem;padding:0 .2rem}
-.ci-grid{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(150px,1fr) minmax(120px,.8fr) minmax(120px,.8fr) minmax(280px,2fr);gap:.5rem;margin-top:.5rem;align-items:start}
-.ci-col,.ci-results{border:1px solid var(--line,#8884);border-radius:8px;padding:.35rem;max-height:62vh;overflow:auto}
+.ci-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.4rem;margin-top:.5rem;align-items:stretch}
+.ci-col,.ci-results{border:1px solid var(--line,#8884);border-radius:8px;padding:.35rem;overflow:auto}
+.ci-col{height:30vh}
+.ci-results{margin-top:.5rem}
 .ci-col h4,.ci-results h4{margin:.1rem .2rem .35rem;font-size:.9rem}
 .ci-dim{opacity:.6}
 .ci-row{display:flex;width:100%;justify-content:space-between;gap:.4rem;border:0;background:transparent;text-align:left;padding:.2rem .35rem;border-radius:5px;font:inherit;font-size:.85rem;cursor:pointer}
@@ -363,7 +437,11 @@ dialog.ci-hub>header button{margin-left:auto}
 .ci-table th,.ci-table td{border:1px solid #8885;padding:.15rem .35rem;text-align:left}
 .ci-form{display:flex;flex-wrap:wrap;gap:.5rem .8rem;margin:.5rem 0}
 .ci-form label{display:flex;flex-direction:column;font-size:.82rem}
-@media (max-width:900px){.ci-grid{grid-template-columns:1fr 1fr}.ci-results{grid-column:1/-1}}`;
+@media (max-width:900px){.ci-grid{grid-template-columns:1fr 1fr}}
+dialog.ci-hub.ci-pop{position:fixed;margin:0;width:min(980px,94vw);height:min(80vh,760px);box-shadow:0 12px 40px #0005}
+dialog.ci-hub.ci-pop .ci-body{height:calc(100% - 3rem)}
+dialog.ci-hub.ci-pop>header{cursor:move}
+.ci-from{font-size:.8rem;background:var(--gold,#b8892d);color:#fff;border-radius:99px;padding:.05rem .5rem}`;
     document.head.appendChild(css);
     const menu = document.getElementById("lib-menu");
     if (menu && !menu.querySelector("[data-inspire]")) {
@@ -384,5 +462,5 @@ dialog.ci-hub>header button{margin-left:auto}
     else setTimeout(wire, 0);
   }
 
-  window.CurioInspire = { open, hub: getHub, store: () => store, borrow: (id) => sceneOf(id) && borrow(sceneOf(id)), view };
+  window.CurioInspire = { open, openSearch, hub: getHub, store: () => store, borrow: (id) => sceneOf(id) && borrow(sceneOf(id)), view };
 })();

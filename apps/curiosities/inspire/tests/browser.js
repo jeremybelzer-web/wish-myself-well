@@ -72,6 +72,29 @@ function serve() {
       return { study: !!s, prism: !document.getElementById("prism").classList.contains("hidden"), closed: !document.querySelector("dialog.ci-hub").open };
     });
     ok(st.study && st.prism && st.closed, "Borrow makes it a curated film and opens the Prism");
+    /* The search pop-up a curiosity window opens: beside its anchor, on that curiosity, every column a filter. */
+    await page.evaluate(() => {
+      const a = document.createElement("div");
+      a.id = "fake-window";
+      a.style.cssText = "position:fixed;left:10px;top:60px;width:200px;height:200px";
+      document.body.appendChild(a);
+      window.CurioInspire.openSearch("pacing", { anchor: a });
+    });
+    const pop = await page.evaluate(() => {
+      const d = document.querySelector("dialog.ci-hub");
+      const r = d.getBoundingClientRect();
+      return { pop: d.classList.contains("ci-pop"), open: d.open, left: r.left, cols: d.querySelectorAll(".ci-grid > .ci-col").length, picked: !!d.querySelector('[data-i="key"][data-v="pacing"].on'), from: d.querySelector(".ci-from") && d.querySelector(".ci-from").textContent };
+    });
+    ok(pop.pop && pop.open && pop.left >= 210, "openSearch opens a pop-up beside the window it came from");
+    ok(pop.cols === 6 && pop.picked && /Walking back and forth/.test(pop.from || ""), "it has six filter columns and starts on that curiosity");
+    await page.click('dialog.ci-hub [data-i="kind"][data-v="book"]');
+    const books = await page.$$eval("dialog.ci-hub .ci-card", (x) => x.map((c) => c.textContent));
+    ok(books.length >= 1 && books.every((t) => /Read/.test(t)), "books are sources too, read rather than watched (" + books.length + ")");
+    await page.click('dialog.ci-hub [data-i="clear"]');
+    await page.click('dialog.ci-hub [data-i="movement"][data-v="pacing"]');
+    ok((await count()) >= 2, "the Movements column filters by how characters move");
+    await page.click('dialog.ci-hub [data-ci="close"]');
+
     await page.evaluate(() => window.CurioInspire.open({ filters: [] }));
     await page.click('dialog.ci-hub [data-i="log"]');
     await page.fill('dialog.ci-hub [data-l="work"]', "Test clip");

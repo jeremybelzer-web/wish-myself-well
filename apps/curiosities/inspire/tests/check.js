@@ -5,6 +5,7 @@ const assert = require("assert");
 const path = require("path");
 const db = require(path.join(__dirname, "../../data/curiosity-db.json"));
 const { scenes } = require("../scenes.js");
+require("../writing.js");
 const Hub = require("../search.js");
 
 const byId = {};
@@ -64,4 +65,12 @@ assert.ok(Array.isArray(sm));
 const logged = hub.logClip({ work: "My clip", moment: "a test", feelings: ["joy"], search: "my clip", beats: [{ at: 0, values: { shotSize: "wide" } }, { at: 5, values: { shotSize: "close" } }] });
 hub.add(logged);
 assert.strictEqual(hub.results([{ text: "my clip" }]).length, 1);
+// Written sources are equal sources: found by kind, author and movement, and read on Gutenberg.
+const books = hub.results([{ kind: "poem" }]);
+assert.ok(books.length >= 4, "poems are in the list");
+assert.ok(hub.results([{ text: "poe" }]).length >= 2, "authors are searchable");
+assert.ok(hub.movements([]).some((m) => m.id === "pacing") && hub.results([{ movement: "pacing" }]).length >= 2, "movement words filter");
+assert.ok(/gutenberg\.org/.test(hub.watchUrl(books[0], "youtube")), "writing opens on Project Gutenberg");
+assert.ok(/youtube/.test(hub.watchUrl(psycho, "youtube")), "films open on YouTube");
+assert.ok(scenes.filter((s) => s.written).every((s) => s.author && s.movements.length && s.year < 1930), "written sources: author, movements, public domain");
 console.log(`inspire: ${scenes.length} scenes, ${topics.length} topics, every value on its scale; filters narrow (${all} -> ${n1} -> ${n2}).`);

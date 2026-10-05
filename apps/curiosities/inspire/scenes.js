@@ -16,8 +16,9 @@
     ST: "stakes",
   };
   const scenes = [];
-  /* s(work, year, kind, moment, feeling, search, beats: [[seconds, {short: value}]]) */
-  function s(work, year, kind, moment, feelings, search, beats) {
+  /* s(work, year, kind, moment, feelings, search, beats: [[seconds, {short: value}]], extra) — extra adds fields
+     such as author or movements (written sources, inspire/writing.js). */
+  function s(work, year, kind, moment, feelings, search, beats, extra) {
     let carry = {};
     const id = (work + "-" + moment).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
     scenes.push({
@@ -34,6 +35,7 @@
         carry = Object.assign({}, carry, values);
         return { at, values: carry };
       }),
+      ...(extra || {}),
     });
   }
 
@@ -237,6 +239,6 @@
     [60, { S: "close", X: 5, EY: "both hold" }],
   ]);
 
-  root.CurioInspireScenes = { scenes, SHORT: K };
+  root.CurioInspireScenes = { scenes, SHORT: K, add: s };
   if (typeof module !== "undefined") module.exports = root.CurioInspireScenes;
 })(typeof window !== "undefined" ? window : globalThis);
