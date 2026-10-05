@@ -60,6 +60,10 @@
     /* A list with no order (which track, which type) steps from item to item instead of gliding. */
     out.curve = s.curve || (s.unordered ? "steps" : "linear");
     if (s.unordered) out.unordered = true;
+    /* lane: the Screen offers this slider as a timeline lane of its own; track says which kind of track it sits on
+       ("character": one lane per character track, "camera", or "master": one lane for the whole scene). */
+    if (s.lane) out.lane = true;
+    if (s.track) out.track = s.track;
     return out;
   }
 
@@ -74,6 +78,10 @@
       /* A later file can enrich an earlier row: new sliders are added (before "amount"), other fields only
          fill gaps, and fields named in item.override (workspace, plain...) replace the earlier value. */
       const old = index[level][item.id];
+      /* Suites, proximities and proximity suites are not enriched: a second one with the same id but a different
+         label is almost always a new idea that picked a taken id, and would otherwise vanish silently. */
+      if (level !== "curiosity" && level !== "workspace" && item.label && old.label && item.label !== old.label)
+        clashes.push(`${level} ${item.id}: "${item.label}" was dropped, "${old.label}" already uses that id`);
       (item.sliders || []).forEach((s) => {
         if (!old.sliders) return;
         const same = old.sliders.find((o) => o.id === s.id);
@@ -184,6 +192,18 @@
     /* ---------- reading ---------- */
 
     get: (level, id) => (index[level] || {})[id] || null,
+    /* Take a row out of its list and its index, so a curiosity someone made and then deleted is gone everywhere.
+       Returns the removed row, or null when nothing has that id. Other rows that name it (a suite's members,
+       a proximity's from/to) are left alone; check() reports them as missing. */
+    remove(level, id) {
+      const item = (index[level] || {})[id];
+      if (!item) return null;
+      const list = level === "workspace" ? db.workspaces : db[level === "curiosity" ? "curiosities" : level === "suite" ? "suites" : level === "proximity" ? "proximities" : "proximitySuites"];
+      const at = list.indexOf(item);
+      if (at >= 0) list.splice(at, 1);
+      delete index[level][id];
+      return item;
+    },
     find(id) {
       for (const l of ["curiosity", "suite", "proximity", "proximitySuite"]) if (index[l][id]) return index[l][id];
       return null;
@@ -491,7 +511,17 @@
     install(t) {
       api.resolve();
       t = t || {};
-      if (t.CURIOSITIES) api.legacyRows(t.CURIOSITIES).forEach((r) => t.CURIOSITIES.push(r));
+      if (t.CURIOSITIES) {
+        /* Rows the app already has keep their own values, except a label or note that data/db-plain.js rewrote
+           in plain words: those follow the database, so lanes, lists and the inspector all say the same thing. */
+        t.CURIOSITIES.forEach((r) => {
+          const c = index.curiosity[r.id];
+          if (!c) return;
+          if (c.relabeled) r.label = c.label;
+          if (c.replained && "note" in r) r.note = c.plain;
+        });
+        api.legacyRows(t.CURIOSITIES).forEach((r) => t.CURIOSITIES.push(r));
+      }
       if (t.SUITES) {
         /* Suites the app already has keep their own values; they only gain the database's member weights (0..1). */
         const have = Object.fromEntries(api.legacySuites([]).map((r) => [r.id, r]));

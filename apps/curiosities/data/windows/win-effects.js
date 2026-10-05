@@ -360,7 +360,7 @@
     window: {
       faces: [
         { face: "tiles", slider: "setting", icons: { none: "➖", "light trails": "✨", "flame eyes": "🔥", "electric eyes": "⚡", "laser eyes": "🔴", lightning: "🌩️", "speed streaks": "💨", "flaming horns": "😈", "roaring tiger": "🐯", "outline scan": "📡", "face glitch": "📺", "violet galaxy": "🌌" } },
-        { face: "swatches", slider: "powerColor", colors: { blue: "#3d8bff", white: "#f5f5f5", gold: "#f2b632", red: "#e23b2e", purple: "#9b4dff", green: "#3ccf6e" } },
+        { face: "wheel", title: "Color of the power, and how intense", hue: "powerColor", strength: "intensity", colors: { blue: "#3d8bff", white: "#f5f5f5", gold: "#f2b632", red: "#e23b2e", purple: "#9b4dff", green: "#3ccf6e" }, fallback: { face: "swatches", slider: "powerColor", colors: { blue: "#3d8bff", white: "#f5f5f5", gold: "#f2b632", red: "#e23b2e", purple: "#9b4dff", green: "#3ccf6e" } } },
         { face: "dial", slider: "intensity" },
       ],
       groups: [

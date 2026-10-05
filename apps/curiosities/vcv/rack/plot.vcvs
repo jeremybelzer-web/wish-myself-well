@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "PERSONAL PLOT\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 4, CC 17 to 32\n   1 Own plot weight\n   2 Own plot meets the main plot\n   3 What they want, against what they need\n   4 Secret\n   5 Closer to or further from the goal\n   6 Questions the audience is holding\n   7 A clock running out\n   8 Who knows first\n   9 suite: Hidden agenda\n  10 suite: Chasing the wrong thing\n  11 suite: We know, they don't\n  12 suite: Bomb under the table\n  13 pair: When a secret starts slipping, cringe rises\n  14 pair: When the character is set back, their emotional road drops\n  15 pair: When a scene ends on a cliffhanger, the audience's questions rise\n  16 pair: When the opening grabs with a question, a question opens\nCV-CC 2: MIDI channel 4, CC 33 to 34\n   1 pairs: Secrets and lies\n   2 pairs: Questions pull the audience forward"
+    "text": "PERSONAL PLOT\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 8, CC 33 to 48\n   1 Own plot weight\n   2 Own plot meets the main plot\n   3 What they want, against what they need\n   4 Secret\n   5 Closer to or further from the goal\n   6 Questions the audience is holding\n   7 A clock running out\n   8 Who knows first\n   9 What starts it all\n  10 Things get worse\n  11 The reversal\n  12 A choice with a cost\n  13 No going back\n  14 The other side makes a move\n  15 The forgotten plant\n  16 Showing the plan\nCV-CC 2: MIDI channel 8, CC 49 to 64\n   1 The answer almost given\n   2 The closed box we want opened\n   3 One answer opens a bigger question\n   4 The clue that points the wrong way\n   5 Knowing what they want in this scene\n   6 A rule we learn early\n   7 Asking our question for us\n   8 suite: Hidden agenda\n   9 suite: Chasing the wrong thing\n  10 suite: We know, they don't\n  11 suite: Bomb under the table\n  12 suite: Whodunit hook\n  13 suite: Two steps forward, one back\n  14 suite: The plan goes wrong\n  15 suite: Crossing the point of no return\n  16 suite: Enemy closing in\nCV-CC 3: MIDI channel 8, CC 65 to 80\n   1 suite: The mystery that keeps you guessing\n   2 suite: We know what they want\n   3 suite: Heist caper\n   4 pair: When a secret starts slipping, cringe rises\n   5 pair: When the character is set back, their emotional road drops\n   6 pair: When a scene ends on a cliffhanger, the audience's questions rise\n   7 pair: When the opening grabs with a question, a question opens\n   8 pair: When the clock gets tight, the scenes speed up\n   9 pair: When the audience knows first, every calm moment fills with dread\n  10 pair: When a side story grows heavy enough, it gets pulled into the main plot\n  11 pair: When a side story merges into the main plot, the stakes jump\n  12 pair: When what they want is the opposite of what they need, they fight the change\n  13 pair: When what they want finally lines up with what they need, they act on what they believe\n  14 pair: When something starts it all, the audience starts asking questions\n  15 pair: When they refuse the call twice, the stakes rise\n  16 pair: When things get worse, tension climbs\nCV-CC 4: MIDI channel 8, CC 81 to 96\n   1 pair: When trouble lands just as it was going well, hope drops\n   2 pair: When the whole plan is told, it falls apart\n   3 pair: When the real plan is hidden, a reversal follows\n   4 pair: When things flip for the worse, the goal slips away\n   5 pair: When a choice costs a lot, the feeling is held in\n   6 pair: When a choice can never be undone, there is no going back\n   7 pair: When there is no going back, the stakes rise\n   8 pair: When the other side moves, dread grows\n   9 pair: When we see the other side's move, we know first\n  10 pair: When the other side is at the door, things get worse\n  11 pair: When a plant is well hidden, the reveal is bigger\n  12 pair: When the answer almost comes, the question gets sharper\n  13 pair: When we want the box opened more, the question grows\n  14 pair: When each answer opens a much bigger question, the stakes climb\n  15 pair: When the false clue points harder, we are misled\n  16 pair: When the false trail is cleared only at the end, the story flips\nCV-CC 5: MIDI channel 8, CC 97 to 112\n   1 pair: When we know what they want, we feel with them\n   2 pair: When time is what stands in the way, a clock starts running\n   3 pair: When the rule is set more firmly, dread builds\n   4 pair: When the rule is broken by accident, things get worse\n   5 pair: When the question asked out loud is never answered, it stays open\n   6 pair: When the clock is down to seconds, the cuts speed up\n   7 pair: When the talk loosens up, a secret slips out\n   8 pair: When the plan is laid out in full, something is bound to go wrong\n   9 pair: When it all seems to fall apart, the hidden part of the plan pays off\n  10 pair: When the plan is laid out step by step, it starts to fall apart\n  11 pair: When the lie is about to fall, someone gets hurt\n  12 pair: When the jokes never stop, the story barely matters\n  13 pair: When the night has a deadline, every detour costs more\n  14 pairs: Secrets and lies\n  15 pairs: Questions pull the audience forward\n  16 pairs: Knowing too much\nCV-CC 6: MIDI channel 9, CC 1 to 7\n   1 pairs: The side story takes over\n   2 pairs: Plan to pieces\n   3 pairs: The line crossed\n   4 pairs: Enemy at the door\n   5 pairs: Questions that keep us watching\n   6 pairs: Rules and false trails\n   7 pairs: Heist caper: the moves"
    },
    "pos": [
     0,
@@ -27,25 +27,25 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     17,
-     18,
-     19,
-     20,
-     21,
-     22,
-     23,
-     24,
-     25,
-     26,
-     27,
-     28,
-     29,
-     30,
-     31,
-     32
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
     ],
     "midi": {
-     "channel": 3
+     "channel": 7
     }
    },
    "pos": [
@@ -59,13 +59,141 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     33,
-     34,
-     -1,
-     -1,
-     -1,
-     -1,
-     -1,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64
+    ],
+    "midi": {
+     "channel": 7
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
+    ],
+    "midi": {
+     "channel": 7
+    }
+   },
+   "pos": [
+    40,
+    0
+   ]
+  },
+  {
+   "id": 7,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 7
+    }
+   },
+   "pos": [
+    48,
+    0
+   ]
+  },
+  {
+   "id": 8,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 7
+    }
+   },
+   "pos": [
+    56,
+    0
+   ]
+  },
+  {
+   "id": 9,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
      -1,
      -1,
      -1,
@@ -77,11 +205,11 @@
      -1
     ],
     "midi": {
-     "channel": 3
+     "channel": 8
     }
    },
    "pos": [
-    32,
+    64,
     0
    ]
   }

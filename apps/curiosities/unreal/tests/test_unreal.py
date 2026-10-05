@@ -25,15 +25,17 @@ from curiosities_unreal import unreal_link as link  # noqa: E402
 class Bridge(object):
     """timeline=None is an app without the engine ("unknown type"); a list is the engine's film."""
 
-    def __init__(self, panels, timeline=None):
-        self.panels, self.sent, self.queue, self.closed, self.timeline = panels, [], [], False, timeline
+    def __init__(self, panels, timeline=None, old=False):
+        self.panels, self.sent, self.queue, self.closed, self.timeline, self.old = panels, [], [], False, timeline, old
 
     def send(self, msg):
         self.sent.append(msg)
         if msg["type"] == "panels":
             self.queue.append({"type": "panels", "panels": self.panels})
         elif msg["type"] == "timeline":
-            if self.timeline is None:
+            if self.old:
+                self.queue.append({"type": "error", "error": "unknown key undefined"})  # apps before the engine
+            elif self.timeline is None:
                 self.queue.append({"type": "error", "error": "unknown type timeline"})
             else:
                 self.queue.append({"type": "timeline", "panels": self.timeline, "rows": [], "tracks": [], "byTrack": {}})
@@ -139,6 +141,20 @@ class InUnreal(unittest.TestCase):
         link._tick(0.01)
         self.assertEqual(len(got[0]), 3)
         self.assertTrue(link.state["timeline"], "still asks the engine next time")
+
+    def test_app_from_before_the_engine_falls_back_to_panels(self):
+        bridge = Bridge(PANELS, old=True)  # it answers "unknown key undefined" to a timeline ask
+        link.state["client"] = bridge
+        link.state["timeline"] = True
+        got = []
+        link._with_panels(got.append)
+        link._tick(0.01)
+        link._tick(0.01)
+        self.assertEqual(len(got[0]), 3)
+        self.assertFalse(link.state["timeline"], "asks for panels from now on")
+        self.assertTrue(link.no_timeline("unknown type timeline"))
+        self.assertFalse(link.no_timeline("unknown type panels"))
+        self.assertFalse(link.no_timeline(None))
 
     def test_key_shots(self):
         seq = link._key_shots(PANELS)

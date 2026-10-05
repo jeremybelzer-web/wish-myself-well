@@ -83,6 +83,45 @@
     [2, "A strong pose shows what a character is about to do, so the audience is a step ahead of the plot.", "How someone holds their body says how they feel about their place in the world.", "The eye reads a clear outline before a word is said, so a strong pose grabs attention first.", "movement", "Hold the strongest pose of the scene for the line that turns it."]
   );
 
+  /* A 3D character that moves by rules (Jeremy, 2026-10-03 14:30Z: "Create 3D models that move and behave in a
+     specific way... lots and lots of rules about the movement"). rig/rig.js draws it; each slider is a rule. */
+  c("rigRulesLens", "Movement rules", "character-motion", ["movement-lines", "emotion"], "rig3d",
+    "Skeletons and joint limits, aim constraints, Set Driven Key, dynamic joint chains, Time Editor clips",
+    "The rules a 3D character's body follows: which move it plays, how fast, how it holds its spine, where it looks, how loose its parts are and how far its joints may bend.",
+    "motion",
+    [
+      ["motion", "What the body is doing", ["standing still", "looking around", "walking", "running"], "The move the character plays. Bought and free characters come with moves like these already made (clips).", { unordered: true }],
+      ["pace", "Pace", ["dragging", "slow", "normal", "brisk", "frantic"], "How fast the move plays. The same walk slowed down reads tired; sped up reads late or scared."],
+      ["slump", "Spine", ["proud and upright", "relaxed", "slumped", "collapsed"], "One control that bends the whole spine, the neck and the head together. Maya calls a control like this a driven key."],
+      ["lookAt", "Where the eyes go", ["straight ahead", "at the camera", "at the ground", "up", "all around"], "The head turns to look at something by itself, within what a neck can do (an aim constraint in Maya).", { unordered: true }],
+      ["floppy", "Loose parts", ["stiff", "a little give", "loose", "floppy"], "Whether arms, head and tail lag behind and keep moving after the body stops (follow-through)."],
+      ["breath", "Breathing", ["held", "calm", "heavy", "heaving"], "How much the chest rises and falls. Heavy breathing after a run, held breath before a scare."],
+      ["limits", "How far joints bend", ["like rubber", "natural", "stiff"], "The rule that stops a knee bending backwards. Rubber lets cartoon bodies break it; stiff keeps every joint close to straight."],
+    ],
+    [2, "A body that follows its own rules (a tired slump, eyes that keep going to the door) tells the audience what the character wants before a word is said.", "How a body is allowed to move is how free a character is: stiff joints for someone boxed in, loose limbs for someone let go.", "The eye follows where a character looks, so the head's aim steers the audience's attention.", "movement", "Change one rule at the turn of the scene: the spine lifts, or the eyes finally go to the camera."]
+  );
+
+  /* Acting moves for the 3D characters (rig/gestures.js): short timed moves played on top of the walk and the
+     pose rules. Comedy lives on timing, so each move has the classic timing parts as sliders: the wind-up, the
+     hold, the settle, and a pause before the payoff. A node on the "Acting move" lane plays that move when the
+     playhead reaches it; "Play it" turning to go plays it again. */
+  c("actingLens", "Acting moves", "character-motion", ["comedy", "emotion"], "rig3d",
+    "Pose-to-pose animation, Trax and Time Editor clips, animation layers (a move layered on top of a walk)",
+    "Short acting moves a 3D character plays on top of whatever else it is doing: a double take, a shrug, a pratfall, a wave, a bow. How big, how fast, and the timing that makes them funny.",
+    "move",
+    [
+      ["move", "Acting move", ["none", "double take", "shrug", "facepalm", "spit take", "pratfall", "slow burn", "freeze in shock", "wobbly knees", "victory dance", "wave", "point", "nod yes", "shake no", "hands on hips", "cross arms", "sigh", "look around", "jump for joy", "bow"], "Which move the character plays. Put one on the timeline and it plays when the playhead gets there.", { unordered: true }],
+      ["size", "How big", ["tiny", "small", "normal", "big", "huge"], "How far the body goes. Small reads as real life; huge reads as a cartoon."],
+      ["speed", "How fast", ["very slow", "slow", "normal", "quick", "snappy"], "How fast the move plays from start to end."],
+      ["windup", "Wind-up first", ["none", "a little", "clear", "big"], "A small move the other way before the big one, so the eye knows something is coming (animators call it anticipation)."],
+      ["hold", "Hold the pose", ["no hold", "short", "clear", "long"], "How long the strongest pose stays still so the audience can read it."],
+      ["settle", "Settle at the end", ["stops dead", "eases back", "overshoots and wobbles"], "How the body comes back to rest: all at once, gently, or going a little past and wobbling (overshoot and settle)."],
+      ["pause", "Comedy timing", ["no pause", "a beat", "a long beat", "painfully long"], "A pause just before the payoff. The longer the wait, the bigger the laugh, until it gets awkward (which is funny too)."],
+      ["cue", "Play it", ["wait", "go"], "Each time this turns to go, the move plays again. Use it to repeat the same move later in the film."],
+    ],
+    [2, "A clear acting beat tells the audience exactly how a character takes the news, so the story can move on.", "The same move played twice (a second double take, a bigger pratfall) turns a gag into a running theme.", "A sudden move after stillness pulls every eye in the frame.", "movement", "Hold still one beat longer than feels right, then do the double take."]
+  );
+
   c("faceLens", "Face acting", "character-motion", ["emotion", "lines"], "face",
     "Blend Shapes and the Shape Editor, Pose Library, eye darts and blinks, lip sync",
     "What the face does: how big the expression is, brows, eyes, mouth, blinks, which side moves, and how fast it changes.",

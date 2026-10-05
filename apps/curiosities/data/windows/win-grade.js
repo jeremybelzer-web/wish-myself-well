@@ -239,7 +239,7 @@
     ],
     window: {
       faces: [
-        { face: "swatches", slider: "shadowHue", colors: WHEEL },
+        { face: "wheel", title: "Shadow color, and how hard it is pushed", hue: "shadowHue", strength: "strength", colors: WHEEL, fallback: { face: "swatches", slider: "shadowHue", colors: WHEEL } },
         { face: "swatches", slider: "highlightHue", colors: WHEEL },
         { face: "mixer", sliders: ["shadowLevel", "highlightLevel", "strength"] },
       ],

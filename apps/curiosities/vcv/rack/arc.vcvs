@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "CHARACTER ARC\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 3, CC 97 to 112\n   1 Arc stage\n   2 Role in the scene\n   3 Dramatic role\n   4 Which way they change\n   5 The lie they believe\n   6 The old wound\n   7 Fighting the change\n   8 The test\n   9 Slipping back\n  10 How the change shows\n  11 suite: Growing up\n  12 suite: The fall\n  13 suite: The steady one\n  14 suite: Refuses to change\n  15 suite: The mirror ending\n  16 pair: When the lie is exposed, the crisis comes\nCV-CC 2: MIDI channel 4, CC 1 to 6\n   1 pair: When the old wound is touched, they fight the change harder\n   2 pair: When the test is passed, the change shows\n   3 pair: When they slip back, their road drops\n   4 pair: When they fight the change with jokes, the laughs rise\n   5 pair: When the change comes, the posture opens\n   6 pairs: The arc engine"
+    "text": "CHARACTER ARC\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 65 to 80\n   1 Arc stage\n   2 Role in the scene (short list)\n   3 Role in the scene\n   4 Which way they change\n   5 The lie they believe\n   6 The old wound\n   7 Fighting the change\n   8 The test\n   9 Slipping back\n  10 How the change shows\n  11 A mentor's lesson\n  12 The character they could become\n  13 The moment they see it\n  14 Giving it up\n  15 The first small step\n  16 Changing for show\nCV-CC 2: MIDI channel 7, CC 81 to 96\n   1 Others notice the change\n   2 Chasing a new goal\n   3 A promise to themself\n   4 Changed, but too late\n   5 suite: Ends better than they began\n   6 suite: The fall\n   7 suite: The steady one\n   8 suite: Refuses to change\n   9 suite: The mirror ending\n  10 suite: Mentor at their best\n  11 suite: The mentor's road\n  12 suite: Dark mirror\n  13 suite: Small steps\n  14 suite: The act that became real\n  15 suite: The lesson passed on\n  16 suite: Coming of age\nCV-CC 3: MIDI channel 7, CC 97 to 112\n   1 pair: When the lie is exposed, the crisis comes\n   2 pair: When the old wound is touched, they fight the change harder\n   3 pair: When the test is passed, the change shows\n   4 pair: When they slip back, their road drops\n   5 pair: When they fight the change with jokes, the laughs rise\n   6 pair: When the change comes, the posture opens\n   7 pair: When a character becomes the spark in a scene, the plot takes a turn\n   8 pair: When someone is set up as the lead's opposite, the lead's flaw becomes obvious\n   9 pair: When a character is growing, the change starts to show on the outside\n  10 pair: When a character is falling, they slip back into old habits\n  11 pair: When the lesson comes back at the key moment, the test is passed\n  12 pair: When the mentor dies, grief follows\n  13 pair: When the hero sees themself in the mirror character, they understand\n  14 pair: When the mirror character clashes harder, the hero fights the change\n  15 pair: When they see it, they give something up\n  16 pair: When they give it up, the change shows\nCV-CC 4: MIDI channel 8, CC 1 to 16\n   1 pair: When the lie grips harder, they cannot see the truth\n   2 pair: When a character sees the truth, the background stretches\n   3 pair: When they finally see it, the clothes change\n   4 pair: When the old wound is deeper, the promise to themself is stronger\n   5 pair: When they take a brave first step, hope rises\n   6 pair: When they step back after the first step, they slip\n   7 pair: When the change is only for show, a test comes\n   8 pair: When others notice, the change shows more\n   9 pair: When others pull them back, they slip\n  10 pair: When winning feels empty, they see it\n  11 pair: When they break the promise for good reason, there is no going back\n  12 pair: When the change comes too late, grief deepens\n  13 pair: When they leave the place they always came back to, they grow up a little\n  14 pairs: The arc engine\n  15 pairs: Finally seeing\n  16 pairs: Changing for real\nCV-CC 5: MIDI channel 8, CC 17 to 17\n   1 pairs: Coming of age: the moves"
    },
    "pos": [
     0,
@@ -23,6 +23,70 @@
   },
   {
    "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 6
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -45,16 +109,16 @@
      112
     ],
     "midi": {
-     "channel": 2
+     "channel": 6
     }
    },
    "pos": [
-    24,
+    40,
     0
    ]
   },
   {
-   "id": 5,
+   "id": 7,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -65,6 +129,38 @@
      4,
      5,
      6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 7
+    }
+   },
+   "pos": [
+    48,
+    0
+   ]
+  },
+  {
+   "id": 8,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -77,11 +173,11 @@
      -1
     ],
     "midi": {
-     "channel": 3
+     "channel": 7
     }
    },
    "pos": [
-    32,
+    56,
     0
    ]
   }

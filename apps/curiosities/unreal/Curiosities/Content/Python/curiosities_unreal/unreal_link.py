@@ -140,6 +140,13 @@ def disconnect():
     say("disconnected.")
 
 
+def no_timeline(error):
+    """True when the app cannot send a whole film: it says "unknown type timeline", or, before the engine,
+    "unknown key ..." (older apps checked the key first)."""
+    error = str(error or "")
+    return error.startswith("unknown type timeline") or error.startswith("unknown key")
+
+
 def _tick(dt):
     c = state["client"]
     if not c:
@@ -149,7 +156,7 @@ def _tick(dt):
         if kind == "timeline" and not msg.get("panels"):
             _send({"type": "panels", "ids": list(cc.CURIOSITIES)})  # the engine has no film yet: My film's panels
             continue
-        if kind == "error" and "unknown type timeline" in str(msg.get("error")):
+        if kind == "error" and no_timeline(msg.get("error")):
             state["timeline"] = False  # an app without the engine: ask for panels from now on
             _send({"type": "panels", "ids": list(cc.CURIOSITIES)})
             continue

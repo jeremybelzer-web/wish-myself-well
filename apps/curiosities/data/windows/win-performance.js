@@ -192,6 +192,7 @@
         { face: "tiles", slider: "setting", icons: { speaker: "🗣️", listener: "👂", both: "👥", neither: "🧍" } },
         { face: "dial", slider: "share" },
         { face: "balance", slider: "power", left: "weaker", right: "in control" },
+        { face: "stage", title: "Where the mover ends up", tokens: [{ who: "person", label: "Still one" }, { who: "person", label: "Mover", about: 0, around: "circleAround", distance: "endGap" }, { who: "camera" }] },
       ],
       groups: [
         { label: "Who and how much", sliders: ["setting", "share", "moveWhen"] },
@@ -292,6 +293,7 @@
         { face: "tiles", slider: "where", icons: { hand: "🤝", arm: "💪", shoulder: "🫲", face: "🫳", embrace: "🫂" } },
         { face: "dial", slider: "pressure" },
         { face: "ladder", slider: "welcome" },
+        { face: "stage", title: "Where the touch comes from", tokens: [{ who: "person" }, { who: "person", about: 0, around: "fromAngle", distance: "gapBefore" }, { who: "camera" }] },
       ],
       groups: [
         { label: "The touch", sliders: ["setting", "where", "pressure"] },
@@ -420,6 +422,7 @@
         { face: "dial", slider: "share" },
         { face: "tiles", slider: "pace", icons: { strolling: "🚶", walking: "🚶‍♂️", hurrying: "🏃", running: "💨" } },
         { face: "ladder", slider: "stopForLine" },
+        { face: "stage", title: "Walkers and camera, from above", walk: true, tokens: [{ who: "person" }, { who: "person", about: 0, distance: "sideGap" }, { who: "camera", about: 0, around: "camAround", distance: "camDistance" }] },
       ],
       groups: [
         { label: "The walk", sliders: ["share", "pace", "routeLength"] },
@@ -1116,6 +1119,27 @@
         { label: "Proud entrance", plain: "Upright and brisk, looking straight at us.", set: { setting: "walking", pace: "brisk", slump: "proud and upright", lookAt: "at the camera" } },
         { label: "Nervous lookout", plain: "Still, holding breath, the head checking everywhere.", set: { setting: "looking around", breath: "held", lookAt: "all around", headTurn: 85 } },
         { label: "Cartoon rubber", plain: "Joints bend any way and everything flops.", set: { limits: "like rubber", floppy: "floppy", lag: 0.6 } },
+      ],
+    },
+  });
+
+  /* Acting moves (actingLens, rig/gestures.js): short moves a 3D character plays, with comedy timing. */
+  W.add("actingLens", {
+    window: {
+      faces: [
+        { face: "tiles", slider: "move", icons: { none: "🧍", "double take": "👀", shrug: "🤷", facepalm: "🤦", "spit take": "💦", pratfall: "🍌", "slow burn": "😤", "freeze in shock": "🥶", "wobbly knees": "🦵", "victory dance": "🕺", wave: "👋", point: "👉", "nod yes": "🙂", "shake no": "🙅", "hands on hips": "🦸", "cross arms": "🙎", sigh: "😮‍💨", "look around": "🔍", "jump for joy": "🙌", bow: "🙇" } },
+        { face: "ladder", slider: "size" },
+        { face: "mixer", sliders: ["windup", "hold", "pause", "settle"] },
+      ],
+      groups: [
+        { label: "The move", sliders: ["move", "size", "speed", "cue"] },
+        { label: "Comedy timing", sliders: ["windup", "hold", "settle", "pause"] },
+      ],
+      presets: [
+        { label: "Cartoon double take", plain: "A big wind-up, a snappy look back, and a wobble at the end.", set: { move: "double take", size: "huge", speed: "snappy", windup: "big", settle: "overshoots and wobbles" } },
+        { label: "Deadpan shrug", plain: "A tiny shrug after a long, awkward wait.", set: { move: "shrug", size: "small", speed: "slow", pause: "painfully long", settle: "stops dead" } },
+        { label: "Silent-film pratfall", plain: "A big fall, held so everyone sees it land.", set: { move: "pratfall", size: "big", windup: "clear", hold: "long", pause: "a beat" } },
+        { label: "Slow burn to the camera", plain: "Anger that builds slowly and holds.", set: { move: "slow burn", speed: "very slow", hold: "long", windup: "none" } },
       ],
     },
   });

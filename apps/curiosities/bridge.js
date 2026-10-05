@@ -72,6 +72,7 @@
       A.stopAll();
       return null;
     }
+    if (msg.type !== "set" && msg.type !== "trigger") return { type: "error", error: "unknown type " + msg.type };
     if (!known(msg.key)) return { type: "error", error: "unknown key " + msg.key };
     if (msg.type === "set") {
       A.set(msg.key, { mod: "manual", manual: clamp(msg.m) });
@@ -82,7 +83,6 @@
       A.trigger(msg.key, !!msg.on);
       return null;
     }
-    return { type: "error", error: "unknown type " + msg.type };
   }
 
   /* Other parts of the app can send values out too: addSource(fn), fn() -> [{ type: "value", key, m }].
