@@ -36,9 +36,13 @@
       .lib-menu small { font-family: var(--sans); font-size: 12px; text-transform: none; letter-spacing: 0; opacity: 0.75; }
       /* The phone bar's "Workspaces" button and its sheet: shown only on narrow screens. */
       .ws-pick, .ws-sheet-head { display: none; }
+      /* Viewer and Help ▸ App Walkthrough: buttons in the top row, moved into Library on phones so the row fits. */
+      .tabs .lib-menu button.phone-only { display: none; }
       .ws-sheet-back[hidden] { display: none; }
       @media (max-width: 600px) {
         .tabs-top { flex-wrap: nowrap; gap: 5px; }
+        .tabs-top > .cv-open-btn, .tabs-top > .cw-help { display: none; }
+        .tabs .lib-menu button.phone-only { display: grid; }
         .tabs-top > button, .tabs-top .lib > button { font-size: 10px; letter-spacing: 0.04em; padding: 6px 7px; }
         .tabs .tabs-top .proj-ind { flex: none; font-size: 0; padding: 4px 6px; }
         .tabs .tabs-top .proj-ind::before { font-size: 12px; content: "●"; }
@@ -302,5 +306,20 @@
     <script src="screen-maya.js"></script>
     <script src="media/media.js"></script>
     <script src="video/load.js"></script>
+    <script src="viewer/viewer.js"></script>
+    <script src="viewer/objects.js"></script>
+    <script src="viewer/build.js"></script>
+    <script src="viewer/actions.js"></script>
+    <script src="viewer/build-windows.js"></script>
+    <script src="viewer/flight.js"></script>
+    <script src="character-matrix/data.js"></script>
+    <script src="viewer/people.js"></script>
+    <script src="viewer/speech.js"></script>
+    <script src="viewer/comic.js"></script>
+    <script src="viewer/borders.js"></script>
+    <script src="viewer/rig-actors.js"></script>
+    <script src="viewer/focus-lane.js"></script>
+    <script src="viewer/hoverhelp.js"></script>
+    <script src="viewer/walkthrough.js"></script>
   </body>
 </html>

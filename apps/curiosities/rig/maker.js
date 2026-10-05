@@ -25,7 +25,8 @@
    Face parts carry userData.face ("head", "eye", "brow", "mouth") for rig/faces.js.
    CurioRig.maker = { read(text) -> plan, surprise() -> words, store() -> the saved list, KEY, START,
      dress(ctx, words) -> builds a made character on another skeleton (used by rig/staging.js),
-     remember(name, words, makeCurrent) -> keeps a character by name, made or updated (used by rig/scene.js) }. */
+     remember(name, words, makeCurrent) -> keeps a character by name, made or updated (used by rig/scene.js),
+     make(ctx, plan) -> builds from a plan read() gave, with parts changed (used by viewer/rig-actors.js) }. */
 (function () {
   const R = window.CurioRig;
   if (!R || !R.extend) return;
@@ -1222,7 +1223,9 @@
     keep(s);
     return { id: x.id, made, changed, text: x.text };
   }
-  R.maker = { read: readWords, surprise, store, remember, KEY, START, dress: (ctx, words) => build(ctx, readWords(words == null ? current(store()).text : words)) };
+  R.maker = { read: readWords, surprise, store, remember, KEY, START, dress: (ctx, words) => build(ctx, readWords(words == null ? current(store()).text : words)),
+    /* make(ctx, plan): builds from a plan (read(words) with some parts changed); the Viewer's 3D characters use it */
+    make: (ctx, plan) => build(ctx, plan) };
 
   function sayPlan(p) {
     return p.found ? "Read as: " + p.said.join(", ") + "." : "No look words found, so it made a plain outfit. Try hair, a hat, a beard, glasses, clothes and colors, or Surprise me.";
