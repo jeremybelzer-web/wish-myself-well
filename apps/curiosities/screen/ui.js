@@ -6124,6 +6124,11 @@ document.addEventListener("click", function (e) {
       });
     return curs.concat(suites, findActions(), findMoments());
   }
+  /* Quick find's whole list ({ id, group, label, sub, run }) for voice/ (CurioScreen.commands()), so every
+     action can be said. */
+  const commandList = () => (page && L() ? findCatalog() : []);
+  /* Set right after this file has run (CurioScreen is made at its end); kept here, away from that line. */
+  Promise.resolve().then(() => window.CurioScreen && !window.CurioScreen.commands && (window.CurioScreen.commands = commandList));
   const FIND_KIND = { cur: "Curiosity", suite: "Suite", act: "Action", moment: "Moment" };
   /* With nothing typed: the recent picks, then a few to try. */
   const FIND_TRY = ["act:export-sheet", "act:guides-menu", "act:mark-turns", "act:history", "act:key:Shortcuts"];
