@@ -62,8 +62,16 @@ const ok = (cond, msg) => {
     await page.waitForTimeout(800);
     return bubble();
   };
+  /* wait until the thing stops moving (the page can still be settling on a slow machine) */
   const mid = async (sel) => {
-    const b = await page.locator(sel).first().boundingBox();
+    let b = await page.locator(sel).first().boundingBox();
+    for (let i = 0; i < 20; i++) {
+      await page.waitForTimeout(150);
+      const n = await page.locator(sel).first().boundingBox();
+      const same = Math.abs(n.x - b.x) < 1 && Math.abs(n.y - b.y) < 1;
+      b = n;
+      if (same) break;
+    }
     return [b.x + b.width / 2, b.y + b.height / 2];
   };
   ok(await L(() => CurioHoverHelp.on()), "hover help is on");
