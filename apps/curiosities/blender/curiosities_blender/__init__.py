@@ -63,6 +63,13 @@ def follow(scene):
     return True
 
 
+def no_timeline(error):
+    """True when the app cannot send a whole film: it says "unknown type timeline", or, before the engine,
+    "unknown key ..." (older apps checked the key first)."""
+    error = str(error or "")
+    return error.startswith("unknown type timeline") or error.startswith("unknown key")
+
+
 def tick():
     """Timer: read the bridge, ask for the panels a few times a second, follow the board."""
     if S.client is None:
@@ -72,7 +79,7 @@ def tick():
             kind = msg.get("type")
             if kind == "timeline" and not msg.get("panels"):
                 S.client.send({"type": "panels", "ids": IDS})  # the engine has no film yet: My film's panels
-            elif kind == "error" and "unknown type timeline" in str(msg.get("error")):
+            elif kind == "error" and no_timeline(msg.get("error")):
                 S.timeline = False  # an app without the engine
                 S.client.send({"type": "panels", "ids": IDS})
             elif kind in ("panels", "timeline"):
