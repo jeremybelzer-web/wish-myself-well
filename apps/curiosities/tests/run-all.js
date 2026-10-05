@@ -93,6 +93,7 @@ const suites = [
   { name: "viewer looks and stuck drawings in a browser", browser: true, secs: 15, ...node("viewer/tests/wear.js", threeArgs) },
   { name: "app walkthrough in a browser", browser: true, secs: 15, ...node("viewer/tests/walkthrough.js") },
   { name: "front and center lane", browser: true, secs: 10, ...node("viewer/tests/focus-lane.js") },
+  { name: "scene focus pop-up", browser: true, secs: 15, ...node("viewer/tests/scene-focus.js") },
   { name: "viewer camera and windows", browser: true, secs: 12, ...node("viewer/tests/camera.js") },
   { name: "camera flight path", browser: true, secs: 15, ...node("viewer/tests/flight.js") },
   { name: "people: feelings, Enneagram, chaos matrix", browser: true, secs: 12, ...node("viewer/tests/people.js") },
