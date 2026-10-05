@@ -54,12 +54,31 @@
     if (f.text) return `“${f.text}”`;
     if (f.kind) return f.kind;
     if (f.feeling) return "feels " + f.feeling;
-    if (f.movement) return "moves: " + f.movement;
+    if (f.movement) return "moves: " + archiveLabel(f.movement);
     if (f.suite) return "suite: " + ((h.suiteList([]).find((s) => s.id === f.suite) || {}).label || f.suite);
     if (f.curiosity && f.value !== undefined) return h.label(f.curiosity) + " = " + f.value;
     if (f.curiosity && f.rate) return h.label(f.curiosity) + " " + (h.RATES.find((r) => r.id === f.rate) || {}).label;
     if (f.curiosity) return "uses " + h.label(f.curiosity);
     return "?";
+  }
+  /* A movement from the emotion-movement archive (relations/archive.js), by id; plain words stay as they are. */
+  function archiveLabel(id) {
+    const A = window.CurioArchive;
+    const m = A && /^mv-/.test(id) ? (A.movements || []).find((x) => x.id === id) : null;
+    return m ? m.label : String(id).replace(/^mv-/, "").replace(/-/g, " ");
+  }
+  /* Show a movement on the relationship map (relations/, loaded on first use). */
+  function showOnMap(id) {
+    const L = window.CurioRelationsLoad;
+    return Promise.resolve(L && L.load ? L.load() : null)
+      .then(() => {
+        const R = window.CurioRelations;
+        if (!R || !R.open) return;
+        const api = R.open() || R;
+        if (api && api.select) api.select(id);
+        if (dlg && dlg.open && dlg.classList.contains("ci-pop")) dlg.close();
+      })
+      .catch(() => {});
   }
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   function toggle(f) {
@@ -137,6 +156,7 @@
       <header><strong>${esc(s.work)}</strong> <small>${s.author ? esc(s.author) + " · " : ""}${esc(s.year)} · ${esc(s.kind)}${s.logged ? " · logged by you" : ""}${views ? ` · ${h.isWritten(s) ? "read" : "watched"} ${views}×` : ""}</small></header>
       <p>${esc(s.moment)} <small class="ci-small">(${esc(s.feelings.join(", "))})</small></p>
       ${(s.movements || []).length ? `<p class="ci-small">Movements: ${s.movements.map(esc).join(", ")}</p>` : ""}
+      ${(s.archive || []).length && (window.CurioRelationsLoad || window.CurioRelations) ? `<p class="ci-small">On the relationship map: ${s.archive.map((id) => `<button type="button" class="ci-link" data-i="map" data-v="${esc(id)}">${esc(archiveLabel(id))}</button>`).join(" ")}</p>` : ""}
       ${focus ? `<p class="ci-small">${esc(focus.label)}: ${focus.path.map(esc).join(" → ")} <em>(${esc(focus.rate)})</em></p>` : ""}
       <p class="ci-actions"><button type="button" data-i="watch-go" data-v="${esc(s.id)}">${h.isWritten(s) ? "Read" : "Watch"}</button>
         <button type="button" data-i="borrow" data-v="${esc(s.id)}" title="Open it in the Prism, then drop any curiosity onto a moment of your film">Borrow its curiosities</button>
@@ -260,6 +280,7 @@
     if (i === "kind") return toggle({ kind: v });
     if (i === "feeling") return toggle({ feeling: v });
     if (i === "movement") return toggle({ movement: v });
+    if (i === "map") return void showOnMap(v);
     if (i === "unfilter") {
       view.filters.splice(Number(v), 1);
       return draw();

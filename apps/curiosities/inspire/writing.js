@@ -2,7 +2,7 @@
    novels, short stories, essays and poems. Equal sources of inspiration to films and games, starting with how characters move to show what they feel. Only public-domain works, described in our
    own words: no quotes. Each passage is a few beats of curiosity values ("at" is how far through the passage,
    0 to 100), plus `movements`, the movement words it shows. Those words link to the emotion-movement archive
-   (owned by the "Curiosity relationship map in 3D" work) once it exists: an id there with the same words wins.
+   (relations/archive.js, owned by the relationship map): ARCHIVE below maps each word to its mv-* id.
    `search` finds the full text on Project Gutenberg. Loads after inspire/scenes.js. */
 (function (root) {
   const S = root.CurioInspireScenes;
@@ -126,7 +126,26 @@
     [90, { characterPath: "retreat", E: "melancholy", X: 2 }],
   ]);
 
+
+  /* Movement words -> the emotion-movement archive (relations/archive.js, window.CurioArchive; ids fixed). Words
+     with no close match keep only the word. */
+  const ARCHIVE = {
+    pacing: "mv-pacing", "stops still": "mv-freeze", "turns away": "mv-turning-away", "face colors": "mv-blush",
+    "heavy tread": "mv-heavy-step", "stares out": "mv-held-stare", "reaches out": "mv-reaching", "freeze in shock": "mv-freeze",
+    flees: "mv-stepping-back", trembles: "mv-trembling-hands", collapses: "mv-collapse", "sits frozen": "mv-too-still",
+    creeps: "mv-tiptoe", freezes: "mv-freeze", "holds breath": "mv-held-breath", shrinks: "mv-shrinking",
+    "steps back to admire": "mv-stepping-back", "pretends not to notice": "mv-busy-hands-task", "lies still": "mv-too-still",
+    "inches forward": "mv-tiptoe", "holds still": "mv-waiting-stillness", listens: "mv-waiting-stillness",
+    "stands still at the mirror": "mv-waiting-stillness", searches: "mv-searching-eyes", "frantic hands": "mv-fidgeting",
+    slumps: "mv-slumped", circles: "mv-pacing", "looks around": "mv-searching-eyes", saunters: "mv-loose",
+    strides: "mv-expansive", leaps: "mv-bouncing", "loose easy walk": "mv-loose", "sinks into a chair": "mv-collapse",
+    "leans forward": "mv-leaning-in", "frozen bird": "mv-statue-calm", "shattered stillness": "mv-statue-calm",
+    "strains against ropes": "mv-rigid", swaggers: "mv-chest-out", "waves it off": "mv-shrug", "stops to look": "mv-waiting-stillness",
+    "heart dances": "mv-bouncing", charge: "mv-closing-in", charges: "mv-closing-in",
+  };
+  works.forEach((w) => (w.archive = Array.from(new Set(w.movements.map((m) => ARCHIVE[m]).filter(Boolean)))));
+
   /* The subcategories, in the order the Source column shows them. */
-  root.CurioInspireWriting = { works, KINDS: ["novel", "short story", "essay", "poem"] };
+  root.CurioInspireWriting = { works, ARCHIVE, KINDS: ["novel", "short story", "essay", "poem"] };
   if (typeof module !== "undefined") module.exports = root.CurioInspireWriting;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -139,7 +139,7 @@
       if (f.text) return f.text.toLowerCase().split(/\s+/).filter(Boolean).every((w) => text(scene).includes(w));
       if (f.kind) return scene.kind === f.kind;
       if (f.feeling) return scene.feelings.includes(f.feeling);
-      if (f.movement) return (scene.movements || []).includes(f.movement);
+      if (f.movement) return (scene.movements || []).includes(f.movement) || (scene.archive || []).includes(f.movement);
       if (f.suite) return suitesFor(scene).some((s) => s.id === f.suite);
       if (f.topic) return keys(scene).some((k) => topicOf(k) === f.topic);
       if (f.curiosity) {

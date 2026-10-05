@@ -77,4 +77,7 @@ assert.ok(wh.movements([]).some((m) => m.id === "pacing") && wh.results([{ movem
 assert.ok(/gutenberg\.org/.test(wh.watchUrl(books[0], "youtube")), "writing opens on Project Gutenberg");
 assert.ok(/youtube/.test(hub.watchUrl(psycho, "youtube")), "films open on YouTube");
 assert.ok(works.every((s) => s.author && s.movements.length && s.year < 1930), "written sources: author, movements, public domain");
+// Every written work links its movements to the emotion-movement archive (relations/archive.js ids, mv-*).
+assert.ok(works.every((w) => w.archive.length && w.archive.every((id) => /^mv-[a-z-]+$/.test(id))), "movements link to the archive");
+assert.ok(wh.results([{ movement: "mv-pacing" }]).length >= 2, "an archive movement id filters too");
 console.log(`inspire: ${scenes.length} film and game scenes, ${works.length} written works, ${topics.length} topics, every value on its scale; filters narrow (${all} -> ${n1} -> ${n2}).`);
