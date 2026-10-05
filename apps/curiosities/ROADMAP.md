@@ -44,8 +44,8 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 611 curiosities, 397 suites,
-851 proximities, 170 proximity suites and 13,203 sliders, across 32 workspaces, plus 24 model scenes.
+Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 632 curiosities, 412 suites,
+898 proximities, 176 proximity suites and 13,827 sliders, across 32 workspaces, plus 32 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -77,6 +77,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 611
 - [x] Acting, camera, place and page, deeper: 20 curiosities for line delivery, movement and camera moves (cut off mid-sentence, a speech that builds, one side of a phone call, a habit of their own, making an entrance, squaring off, a slow push in on a face, the stretching background shot ...) and 21 for background, set, placement and comic pages (danger behind their back, the season, crossing the doorway, a mirror in the room, who stands higher, a line between them, a full-page picture, a panel with no words ...), each with its own window
 - [x] Filters, camera angles, character types and wardrobe, deeper: 20 curiosities (a glow around bright things, blacks that swallow the detail, over the shoulder, the camera at a child's height, the trickster, the caretaker, the rival who becomes a friend, a change of clothes marks the turn, taking off the uniform ...)
 - [x] Style playbooks: 16 directing styles you can apply to your own film, each a look plus its signature "When ..., then ..." moves, in the spirit of Tarantino, Wes Anderson, Hitchcock, Keaton, Spielberg, Ozu, Nora Ephron, Soderbergh and others (data/db-styles.js)
+- [x] Light, effects, layers, structure and the emotional road, deeper: 21 curiosities (a light that flickers when something is wrong, only an outline against the light, rain on the window, fog that hides then shows, one thing keeps its color, a map that shows the journey, the story told backwards, a glimpse of what is coming, it seems to end but doesn't, all seems lost, the calm before the storm ...)
 - [x] Database check for near-duplicates and film jargon (report: /mnt/project-files/database/audit-2026-10-03.md). 104 labels and 200 descriptions rewritten in plain words (data/db-plain.js); nothing merged or deleted yet
 - [ ] Jeremy and Sharani decide the 24 possible merges in the audit (keep, merge or rename), then the database thread merges them
 - [x] Momentum: attention meter, pie, timeline, cues, momentum notes, film rates, the Prism Compass, attention lanes on the engine and a performable meter (PRs #18, #20, #21); the meter beside the Screen's Player (draft PR, Momentum thread)
@@ -101,6 +102,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 611
 - [x] Show the model scenes as curated films in the app, marked "made up for practice" (app thread)
 - [x] Eight more model scenes built on the new comedy and emotion curiosities (funeral giggles, toast that bombs, car betrayal, cartoon chase, canyon awe, sisters forgive, talent show, jealous party) in data/db-model-scenes-2.js
 - [x] Eight more model scenes built on the new music, story and cut curiosities (a heist plan, a town rumor, a first day seen through a phone, a band's first gig, a rooftop chase, a crossroads choice, a station reunion, a night shift) in data/db-model-scenes-3.js
+- [x] Eight practice scenes, one per director style (a diner talk that snaps, a pastel hotel counting spoons, ice cracking behind two people, a wrong obituary, a window washer in the wind, a last supper at home, a taxi in neon rain, a giant pumpkin show) in data/db-model-scenes-4.js
 - [x] Prism splits by the new lenses too: music, wardrobe, set, color, emotion, emotional road, comedy and comedy from the mix (grouping in PR #4; every model scene now has values through every lens, tested)
 - [x] "A is to B as C is to D": take one slice of a film and fit it to a different moment of yours ("Make it an analogy" on every Prism row, PR #4)
 - [x] Emotional roadmap: the feeling of each character and the whole film, scene by scene, that you can borrow from a curated film ("Borrow this film's emotional road", PR #4)
@@ -121,7 +123,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 611
 - [ ] Logins and cloud sync, optional (Phase 3)
 - [ ] Desktop app (Phase 4)
 - [ ] Panel inside Maya, with curiosities driving the camera and keys (Phase 5)
-- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 2,029 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). The extra jacks past the first 105 modules now go on a second MIDI cable, so the database can keep growing. Next: someone with VCV Rack opens the files and builds the plugin
+- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 2,118 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). The extra jacks past the first 105 modules now go on a second MIDI cable, so the database can keep growing. Next: someone with VCV Rack opens the files and builds the plugin
 - [ ] Other tools: Unreal, Blender, Resolve (Phase 7)
 
 ## 6. Checks with people

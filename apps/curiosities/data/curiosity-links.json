@@ -17783,6 +17783,924 @@
    "then": "tenderness grows"
   },
   {
+   "id": "p:flicker-brings-dread",
+   "proximity": "flicker-brings-dread",
+   "label": "When the light flickers more, dread rises",
+   "from": {
+    "curiosity": "flickerWarning",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the light flickers more",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:light-back-someone-gone-questions",
+   "proximity": "light-back-someone-gone-questions",
+   "label": "When the light comes back and someone is gone, the questions pile up",
+   "from": {
+    "curiosity": "flickerWarning.changed",
+    "track": "master",
+    "is": "someone is gone",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the light comes back and someone is gone",
+   "then": "the questions pile up"
+  },
+  {
+   "id": "p:clock-runs-lights-fail",
+   "proximity": "clock-runs-lights-fail",
+   "label": "When the clock is running out, the lights start to fail",
+   "from": {
+    "curiosity": "tickingClock",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "flickerWarning",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clock is running out",
+   "then": "the lights start to fail"
+  },
+  {
+   "id": "p:towering-shadow-dread",
+   "proximity": "towering-shadow-dread",
+   "label": "When the shadow towers over the room, dread rises",
+   "from": {
+    "curiosity": "shadowTells.size",
+    "track": "master",
+    "is": "huge, towering",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the shadow towers over the room",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:shadow-tells-out-of-sight",
+   "proximity": "shadow-tells-out-of-sight",
+   "label": "When the shadow tells more, more happens out of sight",
+   "from": {
+    "curiosity": "shadowTells",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "offscreen",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the shadow tells more",
+   "then": "more happens out of sight"
+  },
+  {
+   "id": "p:shadow-smaller-relief",
+   "proximity": "shadow-smaller-relief",
+   "label": "When the real thing turns out smaller than its shadow, relief comes",
+   "from": {
+    "curiosity": "shadowTells.meets",
+    "track": "master",
+    "is": "yes, and it is smaller",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "relief",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the real thing turns out smaller than its shadow",
+   "then": "relief comes"
+  },
+  {
+   "id": "p:unknown-outline-questions",
+   "proximity": "unknown-outline-questions",
+   "label": "When we have no idea who the outline is, the questions pile up",
+   "from": {
+    "curiosity": "silhouetteShot.who",
+    "track": "master",
+    "is": "no idea",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we have no idea who the outline is",
+   "then": "the questions pile up"
+  },
+  {
+   "id": "p:steps-into-light-reveal",
+   "proximity": "steps-into-light-reveal",
+   "label": "When they step into the light as they speak, the reveal lands",
+   "from": {
+    "curiosity": "silhouetteShot.stepsIn",
+    "track": "master",
+    "is": "when they speak",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reveal",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they step into the light as they speak",
+   "then": "the reveal lands"
+  },
+  {
+   "id": "p:small-pool-loneliness",
+   "proximity": "small-pool-loneliness",
+   "label": "When the pool of light gets smaller, loneliness grows",
+   "from": {
+    "curiosity": "lightPool",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the pool of light gets smaller",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:light-going-out-clock",
+   "proximity": "light-going-out-clock",
+   "label": "When the only light is going out, the clock starts running",
+   "from": {
+    "curiosity": "lightPool.moves",
+    "track": "master",
+    "is": "is going out",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tickingClock",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the only light is going out",
+   "then": "the clock starts running"
+  },
+  {
+   "id": "p:rain-on-glass-longing",
+   "proximity": "rain-on-glass-longing",
+   "label": "When more rain runs down the glass, longing grows",
+   "from": {
+    "curiosity": "rainOnWindow",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "longing",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more rain runs down the glass",
+   "then": "longing grows"
+  },
+  {
+   "id": "p:rain-streak-cheek-empathy",
+   "proximity": "rain-streak-cheek-empathy",
+   "label": "When a rain streak runs over the cheek, we feel with them",
+   "from": {
+    "curiosity": "rainOnWindow.tears",
+    "track": "master",
+    "is": "right over the cheek",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a rain streak runs over the cheek",
+   "then": "we feel with them"
+  },
+  {
+   "id": "p:grief-brings-rain-on-glass",
+   "proximity": "grief-brings-rain-on-glass",
+   "label": "When grief gets heavier, the rain comes to the window",
+   "from": {
+    "curiosity": "grief",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "rainOnWindow",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "grief gets heavier",
+   "then": "the rain comes to the window"
+  },
+  {
+   "id": "p:breath-mixes-tenderness",
+   "proximity": "breath-mixes-tenderness",
+   "label": "When their breath mixes in the cold air, tenderness grows",
+   "from": {
+    "curiosity": "visibleBreath.mix",
+    "track": "master",
+    "is": "they mix in the air",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "their breath mixes in the cold air",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:gasping-breath-tension",
+   "proximity": "gasping-breath-tension",
+   "label": "When the breath comes in gasps, tension rises",
+   "from": {
+    "curiosity": "visibleBreath.pace",
+    "track": "master",
+    "is": "gasping",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the breath comes in gasps",
+   "then": "tension rises"
+  },
+  {
+   "id": "p:held-breath-hiding-dread",
+   "proximity": "held-breath-hiding-dread",
+   "label": "When they hold their breath to hide, dread rises",
+   "from": {
+    "curiosity": "visibleBreath.held",
+    "track": "master",
+    "is": "to hide",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they hold their breath to hide",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:sun-at-funeral-mixed",
+   "proximity": "sun-at-funeral-mixed",
+   "label": "When the sky goes against the feeling, our feelings get mixed",
+   "from": {
+    "curiosity": "skyMatchesMood.way",
+    "track": "master",
+    "is": "against it, like sun at a funeral",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mixedFeelings",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the sky goes against the feeling",
+   "then": "our feelings get mixed"
+  },
+  {
+   "id": "p:warning-sky-dread",
+   "proximity": "warning-sky-dread",
+   "label": "When the sky turns before the feeling, dread rises",
+   "from": {
+    "curiosity": "skyMatchesMood.timing",
+    "track": "master",
+    "is": "before the feeling, as a warning",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the sky turns before the feeling",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:calm-ends-in-storm",
+   "proximity": "calm-ends-in-storm",
+   "label": "When the calm before the storm lasts longer, the sky turns harder",
+   "from": {
+    "curiosity": "calmBeforeStorm",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "skyMatchesMood",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the calm before the storm lasts longer",
+   "then": "the sky turns harder"
+  },
+  {
+   "id": "p:thick-fog-questions",
+   "proximity": "thick-fog-questions",
+   "label": "When the fog gets thicker, the questions pile up",
+   "from": {
+    "curiosity": "fogReveal",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the fog gets thicker",
+   "then": "the questions pile up"
+  },
+  {
+   "id": "p:shape-in-fog-outline",
+   "proximity": "shape-in-fog-outline",
+   "label": "When a shape comes out of the fog first, we see only its outline",
+   "from": {
+    "curiosity": "fogReveal.first",
+    "track": "master",
+    "is": "a shape",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silhouetteShot",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a shape comes out of the fog first",
+   "then": "we see only its outline"
+  },
+  {
+   "id": "p:crowd-from-fog-awe",
+   "proximity": "crowd-from-fog-awe",
+   "label": "When a crowd comes out of the fog, awe rises",
+   "from": {
+    "curiosity": "fogReveal.hides",
+    "track": "master",
+    "is": "a crowd",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "awe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a crowd comes out of the fog",
+   "then": "awe rises"
+  },
+  {
+   "id": "p:memory-over-now-nostalgia",
+   "proximity": "memory-over-now-nostalgia",
+   "label": "When the memory shows more strongly over the present, nostalgia comes",
+   "from": {
+    "curiosity": "memoryOverlay",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "nostalgia",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the memory shows more strongly over the present",
+   "then": "nostalgia comes"
+  },
+  {
+   "id": "p:memory-follows-grief",
+   "proximity": "memory-follows-grief",
+   "label": "When the memory stays and follows them, grief gets heavier",
+   "from": {
+    "curiosity": "memoryOverlay.leaves",
+    "track": "master",
+    "is": "stays and follows them",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "grief",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the memory stays and follows them",
+   "then": "grief gets heavier"
+  },
+  {
+   "id": "p:feeling-echo-brings-memory",
+   "proximity": "feeling-echo-brings-memory",
+   "label": "When a feeling comes back, the memory shows over the present",
+   "from": {
+    "curiosity": "feelingEcho",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "memoryOverlay",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a feeling comes back",
+   "then": "the memory shows over the present"
+  },
+  {
+   "id": "p:kept-color-eye-first",
+   "proximity": "kept-color-eye-first",
+   "label": "When only one thing keeps its color, the eye goes there first",
+   "from": {
+    "curiosity": "oneColorLeft",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "eyeFirst",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "only one thing keeps its color",
+   "then": "the eye goes there first"
+  },
+  {
+   "id": "p:kept-color-gone-grief",
+   "proximity": "kept-color-gone-grief",
+   "label": "When the one colored thing is gone, grief comes",
+   "from": {
+    "curiosity": "oneColorLeft.lasts",
+    "track": "master",
+    "is": "until it is gone",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "grief",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the one colored thing is gone",
+   "then": "grief comes"
+  },
+  {
+   "id": "p:drawn-thoughts-empathy",
+   "proximity": "drawn-thoughts-empathy",
+   "label": "When the drawings show the hero's thoughts, we feel with them",
+   "from": {
+    "curiosity": "scribblesOnTop.whose",
+    "track": "master",
+    "is": "the hero's thoughts",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the drawings show the hero's thoughts",
+   "then": "we feel with them"
+  },
+  {
+   "id": "p:drawn-plan-shown",
+   "proximity": "drawn-plan-shown",
+   "label": "When the drawings sketch a plan, the plan is shown",
+   "from": {
+    "curiosity": "scribblesOnTop.shows",
+    "track": "master",
+    "is": "a plan",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "planShown",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the drawings sketch a plan",
+   "then": "the plan is shown"
+  },
+  {
+   "id": "p:map-line-skips-time",
+   "proximity": "map-line-skips-time",
+   "label": "When the map line travels further, more time is skipped",
+   "from": {
+    "curiosity": "journeyMap",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "timeSkip",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the map line travels further",
+   "then": "more time is skipped"
+  },
+  {
+   "id": "p:backwards-knows-ending",
+   "proximity": "backwards-knows-ending",
+   "label": "When the story runs backwards, we already know how it ends",
+   "from": {
+    "curiosity": "toldBackwards",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "doomedFromStart",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the story runs backwards",
+   "then": "we already know how it ends"
+  },
+  {
+   "id": "p:backwards-asks-why",
+   "proximity": "backwards-asks-why",
+   "label": "When the story runs backwards, we ask why",
+   "from": {
+    "curiosity": "toldBackwards",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the story runs backwards",
+   "then": "we ask why"
+  },
+  {
+   "id": "p:glimpse-of-death-dread",
+   "proximity": "glimpse-of-death-dread",
+   "label": "When the glimpse of the future shows a death, dread rises",
+   "from": {
+    "curiosity": "flashForward.shows",
+    "track": "master",
+    "is": "a death",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the glimpse of the future shows a death",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:glimpse-feels-fated",
+   "proximity": "glimpse-feels-fated",
+   "label": "When the glimpse of the future is clearer, the ending feels fixed",
+   "from": {
+    "curiosity": "flashForward",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "doomedFromStart",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the glimpse of the future is clearer",
+   "then": "the ending feels fixed"
+  },
+  {
+   "id": "p:second-look-who-knows",
+   "proximity": "second-look-who-knows",
+   "label": "When the second look changes more, we know more than they do",
+   "from": {
+    "curiosity": "sameMomentAgain",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "knowledgeGap",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the second look changes more",
+   "then": "we know more than they do"
+  },
+  {
+   "id": "p:second-look-flips-all",
+   "proximity": "second-look-flips-all",
+   "label": "When the second look changes everything, the story flips",
+   "from": {
+    "curiosity": "sameMomentAgain.newSide",
+    "track": "master",
+    "is": "it changes everything",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reversal",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the second look changes everything",
+   "then": "the story flips"
+  },
+  {
+   "id": "p:fake-ending-relief",
+   "proximity": "fake-ending-relief",
+   "label": "When the fake ending is more convincing, we let our breath out",
+   "from": {
+    "curiosity": "falseEnding",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "relief",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the fake ending is more convincing",
+   "then": "we let our breath out"
+  },
+  {
+   "id": "p:villain-back-things-worse",
+   "proximity": "villain-back-things-worse",
+   "label": "When the villain comes back after the ending, things get worse",
+   "from": {
+    "curiosity": "falseEnding.comesBack",
+    "track": "master",
+    "is": "the villain",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the villain comes back after the ending",
+   "then": "things get worse"
+  },
+  {
+   "id": "p:lying-teller-untrusted",
+   "proximity": "lying-teller-untrusted",
+   "label": "When the teller is lying, we cannot trust what we see",
+   "from": {
+    "curiosity": "toldBySomeone.trust",
+    "track": "master",
+    "is": "lying",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "unreliableView",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the teller is lying",
+   "then": "we cannot trust what we see"
+  },
+  {
+   "id": "p:told-to-a-child-warmth",
+   "proximity": "told-to-a-child-warmth",
+   "label": "When the story is told to a child, tenderness grows",
+   "from": {
+    "curiosity": "toldBySomeone.listener",
+    "track": "master",
+    "is": "a child",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the story is told to a child",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:all-lost-hope-drops",
+   "proximity": "all-lost-hope-drops",
+   "label": "When all seems lost, hope drops",
+   "from": {
+    "curiosity": "allIsLost",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "hope",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "all seems lost",
+   "then": "hope drops"
+  },
+  {
+   "id": "p:bottom-then-small-win",
+   "proximity": "bottom-then-small-win",
+   "label": "When they hit the bottom, a small win comes next",
+   "from": {
+    "curiosity": "allIsLost",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "smallWin",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they hit the bottom",
+   "then": "a small win comes next"
+  },
+  {
+   "id": "p:small-win-hope-rises",
+   "proximity": "small-win-hope-rises",
+   "label": "When the small win matters more, hope rises",
+   "from": {
+    "curiosity": "smallWin",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "hope",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the small win matters more",
+   "then": "hope rises"
+  },
+  {
+   "id": "p:audience-knows-storm-dread",
+   "proximity": "audience-knows-storm-dread",
+   "label": "When only the audience knows the storm is coming, dread rises",
+   "from": {
+    "curiosity": "calmBeforeStorm.knows",
+    "track": "master",
+    "is": "only the audience",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "only the audience knows the storm is coming",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:long-calm-tenderness",
+   "proximity": "long-calm-tenderness",
+   "label": "When the calm lasts longer, tenderness grows",
+   "from": {
+    "curiosity": "calmBeforeStorm",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the calm lasts longer",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:known-end-earned-tears",
+   "proximity": "known-end-earned-tears",
+   "label": "When we are surer it ends badly, the tears are earned",
+   "from": {
+    "curiosity": "doomedFromStart",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "earnedTears",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we are surer it ends badly",
+   "then": "the tears are earned"
+  },
+  {
+   "id": "p:known-end-happy-mixed",
+   "proximity": "known-end-happy-mixed",
+   "label": "When the happy moments come before a known bad end, our feelings get mixed",
+   "from": {
+    "curiosity": "doomedFromStart.joy",
+    "track": "master",
+    "is": 10,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mixedFeelings",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the happy moments come before a known bad end",
+   "then": "our feelings get mixed"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -21582,6 +22500,104 @@
     "p:costume-turn-change-shows",
     "p:clothes-fit-change-shows",
     "p:uniform-left-no-return"
+   ]
+  },
+  {
+   "id": "ps:the-light-turns-on-us",
+   "label": "The light turns on us",
+   "plain": "The clock runs and the lights start to fail, the flicker brings dread, a shadow towers over the room, and when the light comes back someone is gone.",
+   "proximities": [
+    "clock-runs-lights-fail",
+    "flicker-brings-dread",
+    "towering-shadow-dread",
+    "light-back-someone-gone-questions"
+   ],
+   "links": [
+    "p:clock-runs-lights-fail",
+    "p:flicker-brings-dread",
+    "p:towering-shadow-dread",
+    "p:light-back-someone-gone-questions"
+   ]
+  },
+  {
+   "id": "ps:weather-of-the-heart",
+   "label": "The weather of the heart",
+   "plain": "Grief brings the rain to the window, the rain on the glass makes longing grow, a streak runs over the cheek and we feel with them, and a sun that shines anyway mixes our feelings.",
+   "proximities": [
+    "grief-brings-rain-on-glass",
+    "rain-on-glass-longing",
+    "rain-streak-cheek-empathy",
+    "sun-at-funeral-mixed"
+   ],
+   "links": [
+    "p:grief-brings-rain-on-glass",
+    "p:rain-on-glass-longing",
+    "p:rain-streak-cheek-empathy",
+    "p:sun-at-funeral-mixed"
+   ]
+  },
+  {
+   "id": "ps:something-in-the-fog",
+   "label": "Something in the fog",
+   "plain": "The fog thickens and the questions pile up, a shape comes out first as an outline, and it steps into the light to show who it is.",
+   "proximities": [
+    "thick-fog-questions",
+    "shape-in-fog-outline",
+    "steps-into-light-reveal"
+   ],
+   "links": [
+    "p:thick-fog-questions",
+    "p:shape-in-fog-outline",
+    "p:steps-into-light-reveal"
+   ]
+  },
+  {
+   "id": "ps:the-past-lays-over-us",
+   "label": "The past lays over us",
+   "plain": "An old feeling brings a memory over the present, the memory brings nostalgia, it stays and follows them, and the last bit of color fades into grief.",
+   "proximities": [
+    "feeling-echo-brings-memory",
+    "memory-over-now-nostalgia",
+    "memory-follows-grief",
+    "kept-color-gone-grief"
+   ],
+   "links": [
+    "p:feeling-echo-brings-memory",
+    "p:memory-over-now-nostalgia",
+    "p:memory-follows-grief",
+    "p:kept-color-gone-grief"
+   ]
+  },
+  {
+   "id": "ps:we-know-how-it-ends",
+   "label": "We know how it ends",
+   "plain": "The story runs backwards or flashes ahead, the ending feels fixed, the happy moments turn bittersweet, and the tears at the end are earned.",
+   "proximities": [
+    "backwards-knows-ending",
+    "glimpse-feels-fated",
+    "known-end-happy-mixed",
+    "known-end-earned-tears"
+   ],
+   "links": [
+    "p:backwards-knows-ending",
+    "p:glimpse-feels-fated",
+    "p:known-end-happy-mixed",
+    "p:known-end-earned-tears"
+   ]
+  },
+  {
+   "id": "ps:the-climb-back",
+   "label": "The climb back",
+   "plain": "All seems lost and hope drops, then a small win comes, and with it hope rises again.",
+   "proximities": [
+    "all-lost-hope-drops",
+    "bottom-then-small-win",
+    "small-win-hope-rises"
+   ],
+   "links": [
+    "p:all-lost-hope-drops",
+    "p:bottom-then-small-win",
+    "p:small-win-hope-rises"
    ]
   },
   {
