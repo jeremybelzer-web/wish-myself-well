@@ -1803,6 +1803,8 @@
     function enterLane(li, at) {
       const l = lanes[li];
       if (!l || !l.id) return;
+      // a 3D graph shown on a screen inside a cube flies to that lane's own cube instead of nesting another inside
+      if (given && given.onEnter) return given.onEnter(l.id);
       toFront(li);
       select(l.id);
       clearTimeout(entering);
@@ -1848,6 +1850,7 @@
     return {
       update,
       enter: enterLane,
+      ids: () => lanes.map((l) => l.id),
       walkCorridor: walkLane,
       corridor: () => corrK,
       inside: () => inside,
@@ -2292,7 +2295,7 @@
       bodyOf("tracks").innerHTML = tracksHtml();
       bodyOf("flatgraph").innerHTML = graphHtml();
       bodyOf("pie").innerHTML = pieHtml();
-      bodyOf("graph").innerHTML = '<p class="rl-innote">The lanes of this curiosity and its ties, standing in 3D. Open this screen to turn them and shuffle them like cards.</p>';
+      bodyOf("graph").innerHTML = deckHtml();
       bodyOf("all").innerHTML = allHtml("");
     }
     function show(tab) {
@@ -2306,9 +2309,29 @@
       const g3 = bodyOf("graph");
       if (focus === "graph") {
         g3.innerHTML = '<div class="rl-cube rl-ingraph"><div class="rl-labels"></div><div class="rl-filmnote"></div><div class="rl-cube-ui"><button data-c="home">Straight on</button><button data-c="side">From the side</button><button data-c="spin">Spin</button></div></div>';
-        const f = Object.assign({}, film, { note: (film.example ? "Example values. " : "") + "The curiosities tied to " + nd.label + ", busiest at the back." });
+        const f = Object.assign({}, film, { note: (film.example ? "Example values. " : "") + "The curiosities tied to " + nd.label + ", busiest at the back.", onEnter: (other) => act.go(other) });
         sub = initLanes(g3.firstChild, g, st, act.select, null, true, f);
-      } else if (!g3.querySelector(".rl-innote")) fill();
+      } else if (!g3.querySelector(".rl-deckpic")) fill();
+    }
+    // A still picture of the 3D graph while its screen floats: the lanes as ribbons standing one behind another.
+    function deckHtml() {
+      const N = film.rows.length;
+      const ls = film.lanes.slice(0, 8);
+      const W = 360;
+      const H = 220;
+      const ribbons = ls
+        .map((l, k) => {
+          const d = ls.length - 1 - k; // the cube's own lane stands at the front
+          const ox = 20 + d * 14;
+          const oy = 150 - d * 14;
+          const sx = (W - 140) / Math.max(1, N - 1);
+          const pts = l.vals.map((v, i) => `${(ox + i * sx).toFixed(1)},${(oy - (v == null ? 0 : v) * 60).toFixed(1)}`).join(" ");
+          const base = `${(ox + (N - 1) * sx).toFixed(1)},${oy} ${ox},${oy}`;
+          return `<polygon points="${pts} ${base}" fill="${FAMILY_COLOR[l.family]}" fill-opacity="${k === 0 ? 0.55 : 0.28}" stroke="${FAMILY_COLOR[l.family]}" stroke-width="${k === 0 ? 2 : 1}" />`;
+        })
+        .reverse()
+        .join("");
+      return `<svg viewBox="0 0 ${W} ${H}" class="rl-deckpic">${ribbons}</svg><p class="rl-innote">The lanes of this curiosity and its ties, standing in 3D. Open this screen to turn them and shuffle them like cards.</p>`;
     }
     // What this curiosity is directly tied to, grouped by how.
     function oneHtml() {
@@ -2447,6 +2470,7 @@
     return {
       id,
       tab: () => box.dataset.tab,
+      sub: () => sub,
       screens: () => [...box.querySelectorAll(".rl-screen")].map((el) => el.dataset.screen),
       show,
       web: () => webOf(g, id),

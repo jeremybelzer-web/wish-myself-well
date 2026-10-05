@@ -167,7 +167,8 @@ const ok = (cond, msg) => {
       const rMid = await call((c) => c.stage.orb.r);
       ok(!(await page.locator(".rl-inside").count()) && rMid < r0, `double-clicking a cube flies you into it first (${r0.toFixed(1)} to ${rMid.toFixed(1)})`);
       await page.waitForSelector(".rl-inside.rl-jarvis");
-      ok((await call((c) => c.stage.orb.r)) < 1, "then you are inside it");
+      const rIn = await call((c) => c.stage.orb.r);
+      ok(rIn < 1, `then you are inside it (${rIn.toFixed(2)})`);
       const scr = await call((c) => c.inside().screens());
       ok(scr.length === 7 && scr.includes("one") && scr.includes("web") && scr.includes("all"), `the world fills with screens: connected to this, connected to those, all curiosities and more (${scr.join(", ")})`);
       await page.waitForTimeout(1100);
@@ -227,10 +228,23 @@ const ok = (cond, msg) => {
       const tracks = await page.locator(".rl-inside .rl-track:not(.rl-ruler)").count();
       ok(tracks >= 5 && /Suspicion/.test(await page.textContent(".rl-track.own")), `inside a cube its curiosity and every tie are automation lanes, Ableton style (${tracks})`);
       await page.screenshot({ path: path.join(SHOTS, "relations-inside.png") });
+      ok((await page.locator('.rl-screen[data-screen="graph"] .rl-deckpic polygon').count()) >= 2, "the floating 3D graph screen shows a picture of its ribbons");
       await page.click('.rl-inside [data-tab="graph"]');
       await page.waitForSelector(".rl-inside .rl-ingraph canvas");
       ok(true, "the 3D graph tab shows the same lanes in 3D");
-      await page.click(".rl-backall");
+      const target = await call((c) => {
+        const ins = c.inside();
+        const ids = ins.sub().ids();
+        const li = ids.findIndex((x) => x && x !== ins.id && c.pos.has(x));
+        ins.sub().enter(li); // what a double-click on that lane does
+        return ids[li];
+      });
+      await page.waitForTimeout(900);
+      const nowIn = await call((c) => c.inside() && c.inside().id);
+      ok(nowIn === target && (await page.locator(".rl-inside").count()) === 1, `a lane in the inside 3D graph flies to its own cube, no nested inside (${target})`);
+      await call((c) => c.enter("em-suspicion"));
+      await page.waitForTimeout(900);
+      await page.waitForSelector(".rl-inside .rl-track.own");
       await page.click('.rl-inside [data-tab="flatgraph"]');
       ok((await page.locator(".rl-graph polyline").count()) === tracks && (await page.locator(".rl-graph polyline.own").count()) === 1, "the Graph tab draws every lane on one chart, this cube's thick");
       await page.click(".rl-backall");

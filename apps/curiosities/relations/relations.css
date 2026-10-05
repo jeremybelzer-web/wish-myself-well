@@ -277,3 +277,4 @@
 .rl-allq { width: 100%; font: inherit; font-size: 13px; padding: 4px 8px; border: 1px solid #1c1712; margin-bottom: 4px; }
 @media (max-width: 860px) { .rl-screens { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rl-screen:nth-child(odd) { --ry: 8deg; } .rl-screen:nth-child(even) { --ry: -8deg; } }
 @media (prefers-reduced-motion: reduce) { .rl-screen, .rl-inside.rl-jarvis, .rl-zooming canvas { animation-duration: 0.01s; animation-delay: 0s; } }
+.rl-jarvis .rl-deckpic { width: 100%; max-height: 160px; display: block; }
