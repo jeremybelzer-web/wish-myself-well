@@ -50,6 +50,14 @@
   }
 
   const VIEWS = ["cube", "slices", "lanes", "lanes-swipe", "flat"];
+  // what to do, in words, under each view
+  const UNDER = {
+    cube: "Click and drag to look around · double-click a cube to fly closer, and again to go inside · Slide the corridor to move down the gap between two faces",
+    slices: "Click and drag to turn it · swipe right or left to move the slabs · double-click to zoom in",
+    lanes: "Click and drag to see the lanes from any angle · double-click to zoom in",
+    "lanes-swipe": "Click and drag to turn · swipe right or left to move the lanes",
+    flat: "Click any name to see what it is tied to",
+  };
   function mount(el, opts) {
     opts = opts || {};
     const G = root.CurioGraph;
@@ -111,6 +119,7 @@
       <div class="rl-grid">
         <div class="rl-stage"></div>
         <aside class="rl-side"></aside>
+        <p class="rl-under"></p>
       </div>`;
     const stage = el.querySelector(".rl-stage");
     const side = el.querySelector(".rl-side");
@@ -357,6 +366,7 @@
       st.view = v;
       persist();
       el.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("on", b.dataset.view === v));
+      el.querySelector(".rl-under").textContent = UNDER[v] || "";
       view && view.destroy();
       stage.innerHTML = "";
       const keep = (st.camera = view && view.camera ? view.camera() || st.camera : st.camera);
@@ -568,7 +578,8 @@
       orb.theta = keep.theta;
       orb.phi = keep.phi;
     }
-    const home = { target: orb.target.clone(), r: opts.r || 60, theta: orb.theta, phi: orb.phi };
+    // home is always the whole view this stage was made for, wherever a kept camera put you
+    const home = { target: new T.Vector3(0, 0, 0), r: opts.r || 60, theta: opts.theta == null ? 0.55 : opts.theta, phi: opts.phi || 1.2 };
     const dir = () => new T.Vector3(Math.sin(orb.phi) * Math.sin(orb.theta), Math.cos(orb.phi), Math.sin(orb.phi) * Math.cos(orb.theta));
     let fly = null;
     const S = {
@@ -585,6 +596,9 @@
         S.flyTo([home.target.x, home.target.y, home.target.z], home.r, { theta: home.theta, phi: home.phi });
       },
       flying: () => !!fly,
+      flyStop() {
+        fly = null;
+      },
       state: () => ({ view: opts.kind, target: [orb.target.x, orb.target.y, orb.target.z], r: orb.r, theta: orb.theta, phi: orb.phi }),
       onFrame: null,
       onClick: null,
@@ -806,7 +820,7 @@
         <button data-c="home">Whole cube</button><button data-c="all">Show every proximity</button>
         <button data-c="corridor" title="Fly into the corridor between two faces">Walk a corridor</button><button data-c="inside" title="Go inside the selected cube">Go inside</button>
       </div>
-      <div class="rl-corridor" hidden><label>Slide the corridor <input type="range" min="0" max="1000" value="0" aria-label="Slide the corridor"></label><small></small></div>
+      <div class="rl-corridor"><label>Slide the corridor <input type="range" min="0" max="1000" value="0" aria-label="Slide the corridor"></label><small></small></div>
       <div class="rl-hint">${slices ? "Swipe right: front slab to the back · swipe left: back slab to the front · drag slowly to turn · double-click to zoom in" : "Drag to turn it 360° · click a cube · double-click to zoom in, again to go further · scroll or pinch to zoom"}</div>`;
     return threeView(stage, kind, html, (host) => initBlock(host, g, st, select, persist, keep, slices));
   }
@@ -820,6 +834,14 @@
     const T = S.T;
     const labels = host.querySelector(".rl-labels");
     const tip = host.querySelector(".rl-tip");
+    if (!slices && !keep && n >= 2) {
+      // Opens zoomed in at the mouth of the first corridor, looking down it; drag to look round at the whole block.
+      const z = (zOf(0, n) + zOf(1, n)) / 2;
+      S.orb.target.set(-(L.cols * CELL) / 2 - 3 + 1.5, 0.6, z);
+      S.orb.r = 1.5;
+      S.orb.theta = -Math.PI / 2 + 0.12;
+      S.orb.phi = Math.PI / 2 - 0.1;
+    }
     // the order of slabs front to back (Cube slices moves it); depth index of each slab
     const order = L.slabs.map((_, i) => i);
     const depthOf = () => {
@@ -1097,7 +1119,32 @@
       for (let k = 0; k < n - 1; k++) if (p.z < zOf(k, n) - 0.5 && p.z > zOf(k + 1, n) + 0.5) return k;
       return -1;
     }
+    const nearestK = (z) => {
+      let best = 0;
+      for (let k = 0; k < n - 1; k++) if (Math.abs(z - (zOf(k, n) + zOf(k + 1, n)) / 2) < Math.abs(z - (zOf(best, n) + zOf(best + 1, n)) / 2)) best = k;
+      return best;
+    };
+    // Not in a corridor yet: step sideways into the nearest one first (and face along it if you were looking away).
+    function snapIn() {
+      const p = S.camera.position.clone();
+      const k = nearestK(p.z);
+      p.z = (zOf(k, n) + zOf(k + 1, n)) / 2;
+      p.y = Math.max(-HY + 0.3, Math.min(HY - 0.3, p.y));
+      const h = new T.Vector3();
+      S.camera.getWorldDirection(h);
+      h.z = 0;
+      const inX = Math.abs(p.x) <= HX;
+      if (h.length() < 0.15 || (!inX && Math.sign(h.x) === Math.sign(p.x))) h.set(p.x > 0 ? -1 : 1, 0, 0);
+      h.normalize();
+      S.flyStop && S.flyStop();
+      S.orb.theta = Math.atan2(-h.x, -h.z);
+      S.orb.phi = Math.PI / 2 - 0.05;
+      S.orb.target.copy(p).addScaledVector(h, S.orb.r);
+      S.camera.position.copy(p);
+      S.camera.lookAt(S.orb.target);
+    }
     function aimCorridor() {
+      if (corridorAt(S.camera.position) < 0) snapIn();
       const p0 = S.camera.position.clone();
       const h = new T.Vector3();
       S.camera.getWorldDirection(h);
@@ -1114,6 +1161,13 @@
         t0 = Math.max(t0, Math.min(ta, tb));
         t1 = Math.min(t1, Math.max(ta, tb));
       });
+      if (!(t1 > t0)) {
+        t0 = 0;
+        t1 = 0.01;
+      }
+      // from outside the block, the slide starts where you stand
+      if (t0 > 0) t0 = 0;
+      if (t1 < 0) t1 = 0;
       lane = { p0, h, t0, t1 };
       corrIn.value = String(Math.round((-t0 / Math.max(0.01, t1 - t0)) * 1000));
     }
@@ -1127,19 +1181,20 @@
     corrIn.addEventListener("pointerdown", aimCorridor);
     corrIn.addEventListener("keydown", () => lane || aimCorridor());
     corrIn.addEventListener("input", () => slideTo(+corrIn.value));
-    let corrK = -1;
+    let corrK = null; // so the first frame fills in the slider's words
     function watchCorridor() {
-      const k = inside ? -1 : corridorAt(S.camera.position);
+      const k = inside ? -2 : corridorAt(S.camera.position);
       if (k === corrK) return;
       corrK = k;
-      corr.hidden = k < 0;
+      // The slider is always there (you can always slide down a corridor); only inside a cube it steps aside.
+      corr.hidden = !!inside || n < 2;
       lane = null;
-      if (k >= 0) {
-        const d = depthOf();
-        const name = (dd) => L.slabs[d.indexOf(dd)].label;
-        corr.querySelector("small").textContent = "Between " + name(k) + " and " + name(k + 1);
-        aimCorridor();
-      }
+      const d = depthOf();
+      const name = (dd) => L.slabs[d.indexOf(dd)].label;
+      const kk = k >= 0 ? k : nearestK(S.camera.position.z);
+      if (n >= 2) corr.querySelector("small").textContent = (k >= 0 ? "Between " : "Nearest corridor: between ") + name(kk) + " and " + name(kk + 1);
+      if (k >= 0) aimCorridor();
+      else if (k === -1) corrIn.value = "0";
     }
     function walkCorridor() {
       // the corridor behind the selected cube's face, or behind the front face; stand at its left end, looking along it

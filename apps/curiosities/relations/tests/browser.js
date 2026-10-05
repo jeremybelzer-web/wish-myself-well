@@ -116,6 +116,21 @@ const ok = (cond, msg) => {
     if (THREE_FILE) {
       await page.waitForSelector(".rl-cube.cube canvas");
       await page.waitForTimeout(400);
+      // It opens zoomed in at the mouth of a corridor, looking down it, with the slider and "Click and drag" showing.
+      const start = await call((c) => ({ r: c.stage.orb.r, th: c.stage.orb.theta, z: c.stage.camera.position.z }));
+      ok(start.r < 3 && Math.abs(start.th + Math.PI / 2) < 0.3, `the Cube matrix opens zoomed in, looking down a corridor (r ${start.r.toFixed(1)})`);
+      ok((await page.isVisible(".rl-corridor")) && /Click and drag/.test(await page.textContent(".rl-under")), "the corridor slider and a Click and drag line show from the start");
+      await page.screenshot({ path: path.join(SHOTS, "relations-start.png") });
+      await page.evaluate(() => {
+        const i = document.querySelector(".rl-corridor input");
+        i.dispatchEvent(new Event("pointerdown"));
+        i.value = "500";
+        i.dispatchEvent(new Event("input"));
+      });
+      await page.waitForTimeout(100);
+      ok((await call((c) => c.corridor())) >= 0, "from the mouth, the slider slides you into the corridor");
+      await page.click('[data-c="home"]');
+      await page.waitForTimeout(1100);
       const block = await call((c) => ({ cubes: c.pos.size, slabs: c.slabs.length, zs: new Set([...c.pos.values()].map((p) => Math.round(p[2] * 10))).size }));
       ok(block.cubes > 900 && block.slabs === 6 && block.zs === 6, `every curiosity is a cube in a block of 6 slabs (${block.cubes} cubes)`);
       await page.evaluate(() => document.getElementById("relations")._curioRelations.select("tr-suspicious-authority"));
@@ -160,8 +175,8 @@ const ok = (cond, msg) => {
       // Corridors: stand between two faces and the slider slides you along it, never into a cube.
       await page.click('[data-c="corridor"]');
       await page.waitForTimeout(1200);
-      ok(await page.isVisible(".rl-corridor"), "between two faces the Slide the corridor slider shows");
-      ok(/Between .+ and .+/.test(await page.textContent(".rl-corridor small")), "it says which two faces you are between");
+      ok((await call((c) => c.corridor())) >= 0 && (await page.isVisible(".rl-corridor")), "Walk a corridor puts you between two faces, slider showing");
+      ok(/^Between .+ and .+/.test(await page.textContent(".rl-corridor small")), "it says which two faces you are between");
       const c0 = await call((c) => c.stage.camera.position.toArray());
       await page.evaluate(() => {
         const i = document.querySelector(".rl-corridor input");
