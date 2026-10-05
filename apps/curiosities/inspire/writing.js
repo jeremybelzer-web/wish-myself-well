@@ -1,5 +1,5 @@
-/* Written sources: books, short stories, essays and poems, as equal sources of inspiration next to films and
-   games, starting with how characters move to show what they feel. Only public-domain works, described in our
+/* The writing database: its own database, apart from films and games (Jeremy, 2026-10-05), with subcategories
+   novels, short stories, essays and poems. Equal sources of inspiration to films and games, starting with how characters move to show what they feel. Only public-domain works, described in our
    own words: no quotes. Each passage is a few beats of curiosity values ("at" is how far through the passage,
    0 to 100), plus `movements`, the movement words it shows. Those words link to the emotion-movement archive
    (owned by the "Curiosity relationship map in 3D" work) once it exists: an id there with the same words wins.
@@ -7,50 +7,52 @@
 (function (root) {
   const S = root.CurioInspireScenes;
   if (!S) return;
+  const works = [];
+  const add = S.into(works);
   const G = (q) => q; // the search words; the hub turns them into a Gutenberg (or other) search
   /* w(work, author, year, kind, moment, feelings, movements, beats) */
   function w(work, author, year, kind, moment, feelings, movements, beats) {
-    S.add(work, year, kind, moment, feelings, G(work + " " + author), beats, { author, movements, unit: "percent", written: true });
+    add(work, year, kind, moment, feelings, G(work + " " + author), beats, { author, movements, unit: "percent", written: true });
   }
 
-  /* ---------- books ---------- */
-  w("Pride and Prejudice", "Jane Austen", 1813, "book", "A proud man paces the parlor before a proposal that goes badly", "tension, anger", ["pacing", "stops still", "turns away", "face colors"], [
+  /* ---------- novels ---------- */
+  w("Pride and Prejudice", "Jane Austen", 1813, "novel", "A proud man paces the parlor before a proposal that goes badly", "tension, anger", ["pacing", "stops still", "turns away", "face colors"], [
     [0, { pacing: "steady", stillness: 1, posture: "closed", E: "anxious", X: 2, PL: "a living room", "blocking.together": "face to face" }],
     [40, { pacing: "slow", stillness: 4, faceOff: "a few steps", E: "angry", X: 4, faceIntensity: 3 }],
     [80, { walkOut: "storms off", E: "angry", X: 5, standSit: "shoots to their feet" }],
   ]);
-  w("Moby-Dick", "Herman Melville", 1851, "book", "A captain paces the deck at night, his bone leg striking the boards", "dread, obsession", ["pacing", "heavy tread", "stares out", "stops still"], [
+  w("Moby-Dick", "Herman Melville", 1851, "novel", "A captain paces the deck at night, his bone leg striking the boards", "dread, obsession", ["pacing", "heavy tread", "stares out", "stops still"], [
     [0, { pacing: "steady", characterSpeed: 2, stillness: 1, ownHabit: 4, E: "anxious", X: 3, Q: "night", PL: "outside" }],
     [60, { stillness: 5, EY: "one holds the look", E: "angry", X: 4 }],
   ]);
-  w("Frankenstein", "Mary Shelley", 1818, "book", "A maker wakes to his creation reaching toward the bed, and runs", "horror, dread", ["reaches out", "freeze in shock", "flees"], [
+  w("Frankenstein", "Mary Shelley", 1818, "novel", "A maker wakes to his creation reaching toward the bed, and runs", "horror, dread", ["reaches out", "freeze in shock", "flees"], [
     [0, { stillness: 5, E: "melancholy", X: 2, Q: "night", PL: "a bedroom" }],
     [40, { characterPath: "approach", gesture: 3, X: 4, E: "fearful", AC: "freeze in shock" }],
     [70, { characterPath: "retreat", characterSpeed: 5, walkOut: "leaves for good", X: 5 }],
   ]);
-  w("Jane Eyre", "Charlotte Brontë", 1847, "book", "A child locked in a red room panics and beats at the door", "panic, dread", ["trembles", "rushes the door", "collapses"], [
+  w("Jane Eyre", "Charlotte Brontë", 1847, "novel", "A child locked in a red room panics and beats at the door", "panic, dread", ["trembles", "rushes the door", "collapses"], [
     [0, { stillness: 4, posture: "closed", E: "anxious", X: 3, PL: "a room", Q: "dusk" }],
     [50, { characterSpeed: 5, gesture: 5, E: "fearful", X: 5, throughTheDoor: "a locked door" }],
     [90, { standSit: "sinks down hard", stillness: 5, E: "melancholy", X: 2 }],
   ]);
-  w("Great Expectations", "Charles Dickens", 1861, "book", "A jilted bride sits motionless among stopped clocks", "melancholy, unease", ["sits frozen", "slow turn of the head"], [
+  w("Great Expectations", "Charles Dickens", 1861, "novel", "A jilted bride sits motionless among stopped clocks", "melancholy, unease", ["sits frozen", "slow turn of the head"], [
     [0, { stillness: 5, characterSpeed: 1, posture: "closed", E: "melancholy", X: 2, LM: "dim", PL: "a room" }],
     [60, { gesture: 1, leadPart: "head", EY: "one holds the look", X: 3 }],
   ]);
-  w("Crime and Punishment", "Fyodor Dostoevsky", 1866, "book", "A man creeps down a stairwell, freezing at every sound", "dread, guilt", ["creeps", "freezes", "holds breath"], [
+  w("Crime and Punishment", "Fyodor Dostoevsky", 1866, "novel", "A man creeps down a stairwell, freezing at every sound", "dread, guilt", ["creeps", "freezes", "holds breath"], [
     [0, { characterSpeed: 2, stillness: 2, posture: "closed", E: "anxious", X: 4, SI: "long" }],
     [50, { stillness: 5, AC: "freeze in shock", X: 5, E: "fearful", gazeShift: 6 }],
     [80, { characterSpeed: 4, characterPath: "retreat", X: 3 }],
   ]);
-  w("Alice's Adventures in Wonderland", "Lewis Carroll", 1865, "book", "A girl grows too big for the room and folds herself up", "absurdity, laughter", ["stretches", "shrinks", "squeezes in"], [
+  w("Alice's Adventures in Wonderland", "Lewis Carroll", 1865, "novel", "A girl grows too big for the room and folds herself up", "absurdity, laughter", ["stretches", "shrinks", "squeezes in"], [
     [0, { squash: 2, E: "curious", J: "absurdity", LP: 3, PL: "a room" }],
     [50, { squash: 5, gesture: 4, E: "absurd", LP: 6, CH: "one chaos character" }],
   ]);
-  w("The Adventures of Tom Sawyer", "Mark Twain", 1876, "book", "A boy paints a fence slowly, pretending it is the best job in the world", "laughter, mischief", ["slow careful strokes", "steps back to admire", "pretends not to notice"], [
+  w("The Adventures of Tom Sawyer", "Mark Twain", 1876, "novel", "A boy paints a fence slowly, pretending it is the best job in the world", "laughter, mischief", ["slow careful strokes", "steps back to admire", "pretends not to notice"], [
     [0, { characterSpeed: 1, propBusiness: 5, bodySaysOpposite: 4, E: "melancholy", J: "irony", LP: 2, PL: "outside", Q: "day" }],
     [50, { bodySaysOpposite: 5, E: "joyful", J: "reversal", LP: 5, EY: "glances" }],
   ]);
-  w("Don Quixote", "Miguel de Cervantes", 1605, "book", "A knight charges a windmill and is flung off", "laughter, absurdity", ["charges", "pratfall", "lies still"], [
+  w("Don Quixote", "Miguel de Cervantes", 1605, "novel", "A knight charges a windmill and is flung off", "laughter, absurdity", ["charges", "pratfall", "lies still"], [
     [0, { bigEntrance: 4, characterSpeed: 5, posture: "open", E: "triumphant", J: "fish out of water", LP: 4, PL: "outside" }],
     [60, { AC: "pratfall", squash: 4, E: "absurd", J: "slapstick", LP: 8 }],
     [90, { stillness: 5, standSit: "sinks down hard", LP: 5 }],
@@ -123,4 +125,8 @@
     [60, { E: "triumphant", X: 5 }],
     [90, { characterPath: "retreat", E: "melancholy", X: 2 }],
   ]);
+
+  /* The subcategories, in the order the Source column shows them. */
+  root.CurioInspireWriting = { works, KINDS: ["novel", "short story", "essay", "poem"] };
+  if (typeof module !== "undefined") module.exports = root.CurioInspireWriting;
 })(typeof window !== "undefined" ? window : globalThis);

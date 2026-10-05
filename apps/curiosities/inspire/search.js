@@ -23,9 +23,9 @@
     { id: "steps", label: "steps" },
     { id: "snaps", label: "snaps or jumps" },
   ];
-  const KINDS = ["film", "tv", "anime", "game", "book", "short story", "essay", "poem", "my clip"];
+  const KINDS = ["film", "tv", "anime", "game", "novel", "short story", "essay", "poem", "my clip"];
   /* Written sources open as reading, not watching. */
-  const WRITTEN = ["book", "short story", "essay", "poem"];
+  const WRITTEN = ["novel", "short story", "essay", "poem"];
   const WATCH = {
     youtube: { label: "YouTube", url: (q) => "https://www.youtube.com/results?search_query=" + encodeURIComponent(q) },
     vimeo: { label: "Vimeo", url: (q) => "https://vimeo.com/search?q=" + encodeURIComponent(q) },

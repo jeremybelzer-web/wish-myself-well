@@ -3,7 +3,9 @@
    (a list that shrinks with every filter). Watch opens a search on YouTube (or another clip site), so links never
    break; Borrow turns the scene into a curated film and opens it in the Prism, where its curiosities (and how fast
    they change) drop onto your own film. Log a clip keeps the curiosities of a clip you watched.
-   window.CurioInspire = { open, hub, store }. Kept in localStorage `curiosities-inspire-v1`. */
+   Two databases, switched at the top: films and games, and writing (novels, short stories, essays, poems).
+   window.CurioInspire = { open, openSearch, mount, hub, store }; window.CurioSceneSearch = { mount } for the lanes'
+   docked search window. Kept in localStorage `curiosities-inspire-v1`. */
 (function () {
   const KEY = "curiosities-inspire-v1";
   let store = { clips: [], views: {}, watch: "youtube" };
@@ -17,23 +19,35 @@
   };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-  let hub = null;
+  /* Two databases (Jeremy, 2026-10-05): films and games ("screen"), and writing (novels, short stories, essays,
+     poems). The switch at the top of the search picks one; each keeps its own sources. */
+  const hubs = {};
+  const DBS = [
+    { id: "screen", label: "Films and games" },
+    { id: "writing", label: "Writing" },
+  ];
   function db() {
     const DB = window.CuriosityDB;
     const j = DB && DB.toJSON ? DB.toJSON() : null;
     return j || { curiosities: [], suites: [], workspaces: [] };
   }
-  function getHub() {
-    if (hub) return hub;
+  function getHub(which) {
+    const id = which || view.db;
+    if (hubs[id]) return hubs[id];
     const d = db();
-    hub = window.CurioInspireSearch.create({ scenes: (window.CurioInspireScenes || { scenes: [] }).scenes, curiosities: d.curiosities, suites: d.suites, workspaces: d.workspaces });
-    (store.clips || []).forEach((c) => hub.add(c));
-    return hub;
+    const S = window.CurioInspireSearch;
+    const sources = id === "writing" ? (window.CurioInspireWriting || { works: [] }).works : (window.CurioInspireScenes || { scenes: [] }).scenes;
+    const h = S.create({ scenes: sources, curiosities: d.curiosities, suites: d.suites, workspaces: d.workspaces });
+    (store.clips || []).filter((c) => S.isWritten(c) === (id === "writing")).forEach((c) => h.add(c));
+    hubs[id] = h;
+    return h;
   }
 
   /* The view: the filters in force, the topic and curiosity picked in the columns, the open scene. */
-  const view = { filters: [], topic: "all", key: null, open: null, logging: false };
+  const view = { db: "screen", filters: [], topic: "all", key: null, open: null, logging: false };
   let dlg = null;
+  /* Where the search draws: the dialog, or the body of a docked window (CurioSceneSearch.mount). */
+  let host = null;
 
   function chipText(f) {
     const h = getHub();
@@ -64,11 +78,11 @@
   }
 
   function draw() {
-    if (!dlg) return;
+    if (!host) return;
     const h = getHub();
     const F = view.filters;
     const list = h.results(F);
-    const body = dlg.querySelector(".ci-body");
+    const body = host.querySelector(".ci-body");
     if (view.logging) return drawLog(body);
     const topics = h.topics(F);
     const c1 = [row('data-i="topic" data-v="all"', "ALL", list.length, view.topic === "all")].concat(topics.map((t) => row(`data-i="topic" data-v="${t.id}"`, t.label, t.count, view.topic === t.id)));
@@ -87,17 +101,18 @@
       c3 = h.values(view.key, F).map((v) => row(`data-i="value" data-v="${esc(v.value)}"`, v.value, v.count, has({ curiosity: view.key, value: v.value })));
       c4 = h.rates(view.key, F).map((r) => row(`data-i="rate" data-v="${r.id}"`, r.label, r.count, has({ curiosity: view.key, rate: r.id })));
     }
-    const KIND_LABEL = { film: "Films", tv: "TV", anime: "Anime", game: "Games", book: "Books", "short story": "Short stories", essay: "Essays", poem: "Poems", "my clip": "My clips" };
+    const KIND_LABEL = { film: "Films", tv: "TV", anime: "Anime", game: "Games", novel: "Novels", "short story": "Short stories", essay: "Essays", poem: "Poems", "my clip": "My clips" };
     const c0 = h.kinds(F).map((k) => row(`data-i="kind" data-v="${esc(k.id)}"`, KIND_LABEL[k.id] || k.id, k.count, has({ kind: k.id })));
     const c5 = h.movements(F).map((m) => row(`data-i="movement" data-v="${esc(m.id)}"`, m.id, m.count, has({ movement: m.id })));
     const feels = h.feelings(F).map((k) => `<button type="button" class="ci-pill${has({ feeling: k.id }) ? " on" : ""}" data-i="feeling" data-v="${esc(k.id)}">${esc(k.id)} <small>${k.count}</small></button>`).join("");
     const chips = F.map((f, i) => `<button type="button" class="ci-chip" data-i="unfilter" data-v="${i}" title="Remove this filter">${esc(chipText(f))} ×</button>`).join("");
     const picked = view.key && view.topic !== "all";
     const dim = (t) => `<div class="ci-col ci-dim"><h4>${t}</h4><p class="ci-small">Pick a curiosity.</p></div>`;
-    body.innerHTML = `<div class="ci-top">
+    const tabs = DBS.map((d) => `<button type="button" class="ci-db${view.db === d.id ? " on" : ""}" data-i="db" data-v="${d.id}">${esc(d.label)} <small>${getHub(d.id).scenes.length}</small></button>`).join("");
+    body.innerHTML = `<div class="ci-dbs" role="tablist" aria-label="Database">${tabs}</div><div class="ci-top">
         <input type="search" class="ci-search" placeholder="Type a film, a book, an author, a feeling, a movement" data-i="text" value="${esc((F.find((f) => f.text) || {}).text || "")}">
         <label class="ci-small">Watch on <select data-i="watch">${Object.entries(h.WATCH).map(([id, w]) => `<option value="${id}" ${store.watch === id ? "selected" : ""}>${esc(w.label)}</option>`).join("")}</select></label>
-        <button type="button" data-i="log">Log a clip you watched</button>
+        <button type="button" data-i="log">${view.db === "writing" ? "Log a passage you read" : "Log a clip you watched"}</button>
       </div>
       <div class="ci-pills"><span class="ci-small">What the audience feels</span> ${feels}</div>
       <div class="ci-pills ci-chips">${chips ? `<span class="ci-small">Filters</span> ${chips} <button type="button" class="ci-link" data-i="clear">Clear all</button>` : `<span class="ci-small">Every column is a filter: pick in any order. Every pick narrows the list below.</span>`}</div>
@@ -109,7 +124,7 @@
         ${picked ? col("How fast it changes", c4) : dim("How fast it changes")}
         ${col("Movements", c5)}
       </div>
-      <div class="ci-results"><h4>${list.length} source${list.length === 1 ? "" : "s"} <small class="ci-small">of ${h.scenes.length}: films, games, books, stories, essays and poems</small></h4>
+      <div class="ci-results"><h4>${list.length} source${list.length === 1 ? "" : "s"} <small class="ci-small">of ${h.scenes.length} ${view.db === "writing" ? "novels, short stories, essays and poems" : "films, TV and games"}</small></h4>
         ${list.map(card).join("") || `<p class="ci-small">Nothing has all of these. Remove a filter.</p>`}</div>
       <p class="ci-small">Only shared curiosities are kept for each source (shot size, light, music, feeling, how characters move and how fast each changes), never footage or quoted text. Values are first guesses: log a clip to add or correct one.</p>`;
   }
@@ -167,7 +182,7 @@
       <div class="ci-form">
         <label>Film, show or game <input data-l="work" placeholder="Title"></label>
         <label>Year <input data-l="year" inputmode="numeric" size="5"></label>
-        <label>Kind <select data-l="kind">${["film", "tv", "anime", "game", "my clip"].map((k) => `<option>${k}</option>`).join("")}</select></label>
+        <label>Kind <select data-l="kind">${(view.db === "writing" ? ["novel", "short story", "essay", "poem"] : ["film", "tv", "anime", "game", "my clip"]).map((k) => `<option>${k}</option>`).join("")}</select></label>
         <label>The moment, in your words <input data-l="moment" placeholder="Two old friends meet at a station"></label>
         <label>What the audience feels <input data-l="feelings" placeholder="joy, nostalgia"></label>
         <label>Search words to find it again <input data-l="search" placeholder="title + scene name"></label>
@@ -185,8 +200,8 @@
     void h;
   }
   function saveLog() {
-    const v = (n) => (dlg.querySelector(`[data-l="${n}"]`) || {}).value || "";
-    const msg = dlg.querySelector(".ci-msg");
+    const v = (n) => (host.querySelector(`[data-l="${n}"]`) || {}).value || "";
+    const msg = host.querySelector(".ci-msg");
     if (!v("work").trim()) return (msg.textContent = "Give it a title first.");
     const len = Math.max(1, Number(v("length")) || 60);
     const start = {};
@@ -199,6 +214,7 @@
     const clip = getHub().logClip({ work: v("work"), year: v("year"), kind: v("kind"), moment: v("moment"), feelings: v("feelings").split(/,\s*/).map((x) => x.trim().toLowerCase()), search: v("search"), beats: [{ at: 0, values: start }, { at: len, values: end }] });
     store.clips = (store.clips || []).filter((c) => c.id !== clip.id).concat([clip]);
     save();
+    view.db = window.CurioInspireSearch.isWritten(clip) ? "writing" : "screen";
     getHub().add(clip);
     view.logging = false;
     view.filters = [{ text: clip.work }];
@@ -225,6 +241,10 @@
     if (!b || b.tagName === "INPUT" || b.tagName === "SELECT") return;
     const i = b.dataset.i;
     const v = b.dataset.v;
+    if (i === "db") {
+      if (view.db !== v) Object.assign(view, { db: v, filters: [], open: null });
+      return draw();
+    }
     if (i === "topic") {
       view.topic = v;
       view.key = null;
@@ -289,8 +309,8 @@
   function keepLogFields() {
     /* Redrawing the log form for a new row should not lose what was typed. */
     const keep = {};
-    dlg.querySelectorAll(".ci-form [data-l]").forEach((x) => (keep[x.dataset.l] = x.value));
-    return () => dlg.querySelectorAll(".ci-form [data-l]").forEach((x) => keep[x.dataset.l] !== undefined && (x.value = keep[x.dataset.l]));
+    host.querySelectorAll(".ci-form [data-l]").forEach((x) => (keep[x.dataset.l] = x.value));
+    return () => host.querySelectorAll(".ci-form [data-l]").forEach((x) => keep[x.dataset.l] !== undefined && (x.value = keep[x.dataset.l]));
   }
   function onChange(e) {
     const t = e.target;
@@ -320,7 +340,7 @@
       view.filters = view.filters.filter((f) => !f.text);
       if (val) view.filters.unshift({ text: val });
       draw();
-      const box = dlg.querySelector(".ci-search");
+      const box = host.querySelector(".ci-search");
       if (box) {
         box.focus();
         box.setSelectionRange(box.value.length, box.value.length);
@@ -356,10 +376,11 @@
   /* The whole hub, from the Library. */
   function open(opts) {
     make();
+    host = dlg;
     if (dlg.open && dlg.classList.contains("ci-pop")) dlg.close();
     dlg.classList.remove("ci-pop");
     dlg.removeAttribute("style");
-    setSub("search films, games, books, stories, essays and poems by their curiosities");
+    setSub("search films, games and writing by their curiosities");
     if (opts && opts.filters) view.filters = opts.filters.slice();
     if (typeof dlg.showModal === "function" && !dlg.open) dlg.showModal();
     else dlg.setAttribute("open", "");
@@ -371,13 +392,9 @@
   function openSearch(curiosityId, opts) {
     opts = opts || {};
     make();
-    view.logging = false;
+    host = dlg;
+    const key = aim(curiosityId, opts);
     const h = getHub();
-    const key = curiosityId ? String(curiosityId).replace(/^c:/, "") : null;
-    view.filters = (opts.filters || []).slice();
-    if (opts.movement) view.filters.push({ movement: opts.movement });
-    view.topic = key ? h.topicOf(key) : "all";
-    view.key = key;
     if (dlg.open) dlg.close();
     dlg.classList.add("ci-pop");
     setSub(key ? `<span class="ci-from">from ${esc(h.label(key))}</span>` : "search everything");
@@ -389,6 +406,48 @@
     place(opts.anchor);
     draw();
     return dlg;
+  }
+  /* Point the search at one curiosity (or one lane, "id.slider"), in the database asked for. */
+  function aim(curiosityId, opts) {
+    view.logging = false;
+    view.open = null;
+    const base = curiosityId ? String(curiosityId).replace(/^c:/, "") : null;
+    const lane = opts.lane ? String(opts.lane).replace(/^c:/, "") : null;
+    const usedIn = (id, k) => k && getHub(id).scenes.some((sc) => sc.beats.some((b) => b.values[k] !== undefined));
+    if (opts.db === "writing" || opts.db === "screen") view.db = opts.db;
+    else if (!usedIn(view.db, lane) && !usedIn(view.db, base)) {
+      /* Only the other database has this curiosity (how characters move is mostly in writing): open that one. */
+      const other = DBS.find((d) => d.id !== view.db).id;
+      if (usedIn(other, lane) || usedIn(other, base)) view.db = other;
+    }
+    const h = getHub();
+    const used = (k) => usedIn(view.db, k);
+    const key = used(lane) ? lane : base || lane;
+    view.filters = (opts.filters || []).slice();
+    if (opts.movement) view.filters.push({ movement: opts.movement });
+    view.topic = key ? h.topicOf(key) : "all";
+    view.key = key;
+    return key;
+  }
+  /* The search inside a docked window (the lanes' search window): CurioSceneSearch.mount(el, { curiosity, lane,
+     label, from, db }). Draws the same six filter columns and list into el, already on that curiosity. */
+  function mount(el, opts) {
+    opts = opts || {};
+    if (!el) return null;
+    let wrap = el.querySelector(":scope > .ci-docked");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.className = "ci-hub ci-docked";
+      wrap.innerHTML = `<div class="ci-body"></div>`;
+      el.appendChild(wrap);
+      wrap.addEventListener("click", onClick);
+      wrap.addEventListener("change", onChange);
+      wrap.addEventListener("input", onInput);
+    }
+    host = wrap;
+    aim(opts.curiosity, opts);
+    draw();
+    return wrap;
   }
   /* Beside the anchor: to its right when there is room, else to its left, else centered; kept on the screen. */
   function place(anchor) {
@@ -441,6 +500,12 @@ dialog.ci-hub>header button{margin-left:auto}
 dialog.ci-hub.ci-pop{position:fixed;margin:0;width:min(980px,94vw);height:min(80vh,760px);box-shadow:0 12px 40px #0005}
 dialog.ci-hub.ci-pop .ci-body{height:calc(100% - 3rem)}
 dialog.ci-hub.ci-pop>header{cursor:move}
+.ci-dbs{display:flex;gap:.3rem;margin-bottom:.45rem}
+.ci-db{border:1px solid var(--line,#8884);border-radius:8px 8px 0 0;padding:.25rem .8rem;background:transparent;font:inherit;cursor:pointer}
+.ci-db.on{background:var(--ink,#1c1712);color:var(--panel,#fffaf2)}
+.ci-docked .ci-body{height:auto;padding:.3rem}
+.ci-docked .ci-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.ci-docked .ci-col{height:22vh}
 .ci-from{font-size:.8rem;background:var(--gold,#b8892d);color:#fff;border-radius:99px;padding:.05rem .5rem}`;
     document.head.appendChild(css);
     const menu = document.getElementById("lib-menu");
@@ -462,5 +527,6 @@ dialog.ci-hub.ci-pop>header{cursor:move}
     else setTimeout(wire, 0);
   }
 
-  window.CurioInspire = { open, openSearch, hub: getHub, store: () => store, borrow: (id) => sceneOf(id) && borrow(sceneOf(id)), view };
+  window.CurioSceneSearch = { mount };
+  window.CurioInspire = { open, openSearch, mount, hub: getHub, store: () => store, borrow: (id) => sceneOf(id) && borrow(sceneOf(id)), view };
 })();
