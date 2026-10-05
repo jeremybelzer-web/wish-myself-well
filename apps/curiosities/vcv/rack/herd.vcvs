@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "HERD MENTALITY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 65 to 80\n   1 Herd mentality\n   2 Who leads the herd\n   3 Dissenter\n   4 Group pressure\n   5 The crowd turns\n   6 The lone voice wins them over\n   7 Copying the others\n   8 A rumor spreads\n   9 suite: A mob forms\n  10 suite: The lone voice\n  11 suite: Mob rule\n  12 suite: One against many\n  13 pair: When someone defies the group, the pressure rises\n  14 pair: When the herd grows, doubts go quiet\n  15 pair: When one loud voice leads the group, the pressure to agree builds\n  16 pair: When a rumor spreads further, the crowd turns\nCV-CC 2: MIDI channel 9, CC 81 to 88\n   1 pair: When the rumor becomes a monster, the pressure builds\n   2 pair: When people copy each other more, the herd moves as one\n   3 pair: When the crowd turns, someone speaks up\n   4 pair: When someone openly defies the group, they start to win them over\n   5 pair: When the lone voice wins them over, the crowd turns\n   6 pair: When someone bursts into song, the people around join in\n   7 pairs: The group closes ranks\n   8 pairs: From rumor to rally"
+    "text": "HERD MENTALITY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 81 to 96\n   1 Herd mentality\n   2 Who leads the herd\n   3 Dissenter\n   4 Group pressure\n   5 The crowd turns\n   6 The lone voice wins them over\n   7 Copying the others\n   8 A rumor spreads\n   9 suite: A mob forms\n  10 suite: The lone voice\n  11 suite: Mob rule\n  12 suite: One against many\n  13 pair: When someone defies the group, the pressure rises\n  14 pair: When the herd grows, doubts go quiet\n  15 pair: When one loud voice leads the group, the pressure to agree builds\n  16 pair: When a rumor spreads further, the crowd turns\nCV-CC 2: MIDI channel 9, CC 97 to 105\n   1 pair: When the rumor becomes a monster, the pressure builds\n   2 pair: When people copy each other more, the herd moves as one\n   3 pair: When the crowd turns, someone speaks up\n   4 pair: When someone openly defies the group, they start to win them over\n   5 pair: When the lone voice wins them over, the crowd turns\n   6 pair: When someone bursts into song, the people around join in\n   7 pair: When everyone sees the embarrassing moment, it becomes the story of the night\n   8 pairs: The group closes ranks\n   9 pairs: From rumor to rally"
    },
    "pos": [
     0,
@@ -27,22 +27,22 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
     ],
     "midi": {
      "channel": 8
@@ -59,15 +59,15 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     -1,
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
      -1,
      -1,
      -1,

@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "EDITING & STRUCTURE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 2, CC 81 to 96\n   1 Number of main characters\n   2 Groups in the hour\n   3 Exit\n   4 How often a main is in the season\n   5 Scene change rate\n   6 Sequence lengths\n   7 How a scene begins\n   8 How scenes join (storytelling)\n   9 Call and response\n  10 Repetition scheme\n  11 Signature image or line\n  12 Contrast map\n  13 Tension\n  14 Energy\n  15 Visual density\n  16 Constant\nCV-CC 2: PORT 2 (your second cable), MIDI channel 2, CC 97 to 112\n   1 Psych-out shift\n   2 Clipped or flowing cuts\n   3 Human touch in camera and cuts\n   4 Motif shape\n   5 Cross-cutting\n   6 When the audience learns it\n   7 Story point of view\n   8 Scene length\n   9 How the scene ends\n  10 The opening grab\n  11 Ends where it starts\n  12 Multicam angle switching\n  13 Nested scene\n  14 Time and speed\n  15 Shots in order\n  16 The story told backwards\nCV-CC 3: PORT 2 (your second cable), MIDI channel 3, CC 1 to 16\n   1 A glimpse of what is coming\n   2 The same moment from another side\n   3 It seems to end, but doesn't\n   4 Someone telling the story\n   5 suite: Two-person hour\n   6 suite: Build\n   7 suite: Drop\n   8 suite: Signature return\n   9 suite: Crime, Tarantino style\n  10 suite: Horror\n  11 suite: Action\n  12 suite: Western\n  13 suite: Musical\n  14 suite: Documentary look (camera and light)\n  15 suite: Surrealist\n  16 suite: Romantic comedy\nCV-CC 4: PORT 2 (your second cable), MIDI channel 3, CC 17 to 32\n   1 suite: Viral short: hook and loop\n   2 suite: Episode cliffhanger\n   3 suite: Stop-motion feel\n   4 suite: The big moment\n   5 suite: Breakneck pace\n   6 suite: Slow and patient\n   7 suite: Cut like music\n   8 suite: Ensemble patchwork\n   9 suite: Losing a main character\n  10 suite: Studio sitcom\n  11 suite: A story inside the story\n  12 suite: From the end, back\n  13 suite: How did I get here?\n  14 suite: The same night, twice\n  15 suite: It is not over\n  16 suite: Long talk that snaps into violence\nCV-CC 5: PORT 2 (your second cable), MIDI channel 3, CC 33 to 48\n   1 pair: When tension peaks, a long silence\n   2 pair: When energy drops, the hold is long\n   3 pair: When suite Build, suite Drop\n   4 pair: When suite Aggressive camera, suite Quiet confession\n   5 pair: When suite Storm, suite Breathing room\n   6 pair: When time slows, the bits in the air hang\n   7 pair: When scenes start changing faster, the tension climbs\n   8 pair: When tension climbs, scenes get shorter\n   9 pair: When the hour splits into two groups, the film cuts back and forth between them\n  10 pair: When the film cuts between two places faster and faster, the clock feels tighter\n  11 pair: When a scene starts in the middle of the action, the audience starts asking questions\n  12 pair: When every shot answers the one before, laughs come faster\n  13 pair: When shots come in threes, the third one becomes the punchline\n  14 pair: When the same moment keeps repeating, it turns into a running gag\n  15 pair: When the film's signature image comes back, the old feeling comes back with it\n  16 pair: When scenes are built to clash, the feeling flips at the cut\nCV-CC 6: PORT 2 (your second cable), MIDI channel 3, CC 49 to 64\n   1 pair: When one sound or image is held under everything, dread builds\n   2 pair: When a scare turns out to be fake, the audience laughs with relief\n   3 pair: When the cuts get louder and sharper, the energy jumps\n   4 pair: When the camera feels like a nosy person in the room, awkward moments get more awkward\n   5 pair: When a repeating tune or image keeps climbing, hope climbs with it\n   6 pair: When the story hops between characters, the audience learns things before they do\n   7 pair: When a main character shows up more often, their own story gets heavier\n   8 pair: When more main characters share the spotlight, their stories start crossing\n   9 pair: When a main character dies, the tears come soon after\n  10 pair: When a scene plays out inside another scene, the audience starts doubting what's real\n  11 pair: When the shots get short, the energy climbs\n  12 pair: When the story runs backwards, we already know how it ends\n  13 pair: When the story runs backwards, we ask why\n  14 pair: When the glimpse of the future shows a death, dread rises\n  15 pair: When the glimpse of the future is clearer, the ending feels fixed\n  16 pair: When the second look changes more, we know more than they do\nCV-CC 7: PORT 2 (your second cable), MIDI channel 3, CC 65 to 77\n   1 pair: When the second look changes everything, the story flips\n   2 pair: When the fake ending is more convincing, we let our breath out\n   3 pair: When the villain comes back after the ending, things get worse\n   4 pair: When the teller is lying, we cannot trust what we see\n   5 pair: When the story is told to a child, tenderness grows\n   6 pair: When the talk runs long and casual, violence arrives without warning\n   7 pair: When a chapter card appears, the story jumps to someone else's side\n   8 pair: When a false scare passes, the real one comes right after\n   9 pair: When the cutting jumps between the crew, the tension climbs\n  10 pairs: Long-form shape\n  11 pairs: The squeeze\n  12 pairs: We know how it ends\n  13 pairs: Long talk that snaps into violence: the moves"
+    "text": "EDITING & STRUCTURE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 4, CC 1 to 16\n   1 Number of main characters\n   2 Groups in the hour\n   3 Exit\n   4 How often a main is in the season\n   5 Scene change rate\n   6 Sequence lengths\n   7 How a scene begins\n   8 How scenes join (storytelling)\n   9 Call and response\n  10 Repetition scheme\n  11 Signature image or line\n  12 Contrast map\n  13 Tension\n  14 Energy\n  15 Visual density\n  16 Constant\nCV-CC 2: PORT 2 (your second cable), MIDI channel 4, CC 17 to 32\n   1 Psych-out shift\n   2 Clipped or flowing cuts\n   3 Human touch in camera and cuts\n   4 Motif shape\n   5 Cross-cutting\n   6 When the audience learns it\n   7 Story point of view\n   8 Scene length\n   9 How the scene ends\n  10 The opening grab\n  11 Ends where it starts\n  12 Multicam angle switching\n  13 Nested scene\n  14 Time and speed\n  15 Shots in order\n  16 The story told backwards\nCV-CC 3: PORT 2 (your second cable), MIDI channel 4, CC 33 to 48\n   1 A glimpse of what is coming\n   2 The same moment from another side\n   3 It seems to end, but doesn't\n   4 Someone telling the story\n   5 suite: Two-person hour\n   6 suite: Build\n   7 suite: Drop\n   8 suite: Signature return\n   9 suite: Crime, Tarantino style\n  10 suite: Horror\n  11 suite: Action\n  12 suite: Western\n  13 suite: Musical\n  14 suite: Documentary look (camera and light)\n  15 suite: Surrealist\n  16 suite: Romantic comedy\nCV-CC 4: PORT 2 (your second cable), MIDI channel 4, CC 49 to 64\n   1 suite: Viral short: hook and loop\n   2 suite: Episode cliffhanger\n   3 suite: Stop-motion feel\n   4 suite: The big moment\n   5 suite: Breakneck pace\n   6 suite: Slow and patient\n   7 suite: Cut like music\n   8 suite: Ensemble patchwork\n   9 suite: Losing a main character\n  10 suite: Studio sitcom\n  11 suite: A story inside the story\n  12 suite: From the end, back\n  13 suite: How did I get here?\n  14 suite: The same night, twice\n  15 suite: It is not over\n  16 suite: Long talk that snaps into violence\nCV-CC 5: PORT 2 (your second cable), MIDI channel 4, CC 65 to 80\n   1 pair: When tension peaks, a long silence\n   2 pair: When energy drops, the hold is long\n   3 pair: When suite Build, suite Drop\n   4 pair: When suite Aggressive camera, suite Quiet confession\n   5 pair: When suite Storm, suite Breathing room\n   6 pair: When time slows, the bits in the air hang\n   7 pair: When scenes start changing faster, the tension climbs\n   8 pair: When tension climbs, scenes get shorter\n   9 pair: When the hour splits into two groups, the film cuts back and forth between them\n  10 pair: When the film cuts between two places faster and faster, the clock feels tighter\n  11 pair: When a scene starts in the middle of the action, the audience starts asking questions\n  12 pair: When every shot answers the one before, laughs come faster\n  13 pair: When shots come in threes, the third one becomes the punchline\n  14 pair: When the same moment keeps repeating, it turns into a running gag\n  15 pair: When the film's signature image comes back, the old feeling comes back with it\n  16 pair: When scenes are built to clash, the feeling flips at the cut\nCV-CC 6: PORT 2 (your second cable), MIDI channel 4, CC 81 to 96\n   1 pair: When one sound or image is held under everything, dread builds\n   2 pair: When a scare turns out to be fake, the audience laughs with relief\n   3 pair: When the cuts get louder and sharper, the energy jumps\n   4 pair: When the camera feels like a nosy person in the room, awkward moments get more awkward\n   5 pair: When a repeating tune or image keeps climbing, hope climbs with it\n   6 pair: When the story hops between characters, the audience learns things before they do\n   7 pair: When a main character shows up more often, their own story gets heavier\n   8 pair: When more main characters share the spotlight, their stories start crossing\n   9 pair: When a main character dies, the tears come soon after\n  10 pair: When a scene plays out inside another scene, the audience starts doubting what's real\n  11 pair: When the shots get short, the energy climbs\n  12 pair: When the story runs backwards, we already know how it ends\n  13 pair: When the story runs backwards, we ask why\n  14 pair: When the glimpse of the future shows a death, dread rises\n  15 pair: When the glimpse of the future is clearer, the ending feels fixed\n  16 pair: When the second look changes more, we know more than they do\nCV-CC 7: PORT 2 (your second cable), MIDI channel 4, CC 97 to 112\n   1 pair: When the second look changes everything, the story flips\n   2 pair: When the fake ending is more convincing, we let our breath out\n   3 pair: When the villain comes back after the ending, things get worse\n   4 pair: When the teller is lying, we cannot trust what we see\n   5 pair: When the story is told to a child, tenderness grows\n   6 pair: When the talk runs long and casual, violence arrives without warning\n   7 pair: When a chapter card appears, the story jumps to someone else's side\n   8 pair: When a false scare passes, the real one comes right after\n   9 pair: When the cutting jumps between the crew, the tension climbs\n  10 pair: When the film notices it has gone too far, it just stops and moves on\n  11 pair: When the cut goes to whoever is listening, the joke lands twice\n  12 pair: When violence breaks out, the next scene is calm and ordinary\n  13 pairs: Long-form shape\n  14 pairs: The squeeze\n  15 pairs: We know how it ends\n  16 pairs: Long talk that snaps into violence: the moves"
    },
    "pos": [
     0,
@@ -23,70 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     81,
-     82,
-     83,
-     84,
-     85,
-     86,
-     87,
-     88,
-     89,
-     90,
-     91,
-     92,
-     93,
-     94,
-     95,
-     96
-    ],
-    "midi": {
-     "channel": 1
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     97,
-     98,
-     99,
-     100,
-     101,
-     102,
-     103,
-     104,
-     105,
-     106,
-     107,
-     108,
-     109,
-     110,
-     111,
-     112
-    ],
-    "midi": {
-     "channel": 1
-    }
-   },
-   "pos": [
-    32,
-    0
-   ]
-  },
-  {
-   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -109,16 +45,16 @@
      16
     ],
     "midi": {
-     "channel": 2
+     "channel": 3
     }
    },
    "pos": [
-    40,
+    24,
     0
    ]
   },
   {
-   "id": 7,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -141,16 +77,16 @@
      32
     ],
     "midi": {
-     "channel": 2
+     "channel": 3
     }
    },
    "pos": [
-    48,
+    32,
     0
    ]
   },
   {
-   "id": 8,
+   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -173,16 +109,16 @@
      48
     ],
     "midi": {
-     "channel": 2
+     "channel": 3
     }
    },
    "pos": [
-    56,
+    40,
     0
    ]
   },
   {
-   "id": 9,
+   "id": 7,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -205,16 +141,16 @@
      64
     ],
     "midi": {
-     "channel": 2
+     "channel": 3
     }
    },
    "pos": [
-    64,
+    48,
     0
    ]
   },
   {
-   "id": 10,
+   "id": 8,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -232,12 +168,76 @@
      75,
      76,
      77,
-     -1,
-     -1,
-     -1
+     78,
+     79,
+     80
     ],
     "midi": {
-     "channel": 2
+     "channel": 3
+    }
+   },
+   "pos": [
+    56,
+    0
+   ]
+  },
+  {
+   "id": 9,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 3
+    }
+   },
+   "pos": [
+    64,
+    0
+   ]
+  },
+  {
+   "id": 10,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 3
     }
    },
    "pos": [

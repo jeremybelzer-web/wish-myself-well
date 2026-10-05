@@ -18701,6 +18701,884 @@
    "then": "our feelings get mixed"
   },
   {
+   "id": "p:overheard-mix-up",
+   "proximity": "overheard-mix-up",
+   "label": "When the wrong person overhears more, the mix-up grows",
+   "from": {
+    "curiosity": "wrongEar",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "misunderstanding",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the wrong person overhears more",
+   "then": "the mix-up grows"
+  },
+  {
+   "id": "p:overheard-spread",
+   "proximity": "overheard-spread",
+   "label": "When the one who overheard tells everyone, more of the room is in on it",
+   "from": {
+    "curiosity": "wrongEar.response",
+    "track": "master",
+    "is": "spreads it to everyone",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "whoKnows",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the one who overheard tells everyone",
+   "then": "more of the room is in on it"
+  },
+  {
+   "id": "p:speaker-turns-around-cringe",
+   "proximity": "speaker-turns-around-cringe",
+   "label": "When the speaker turns around and sees who heard, the cringe rises",
+   "from": {
+    "curiosity": "wrongEar.speakerKnows",
+    "track": "master",
+    "is": "the moment they turn around",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the speaker turns around and sees who heard",
+   "then": "the cringe rises"
+  },
+  {
+   "id": "p:cool-act-collapse-humiliation",
+   "proximity": "cool-act-collapse-humiliation",
+   "label": "When the cool act collapses completely, someone is humiliated",
+   "from": {
+    "curiosity": "tryingTooHard.cracks",
+    "track": "master",
+    "is": "a total collapse",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "humiliation",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the cool act collapses completely",
+   "then": "someone is humiliated"
+  },
+  {
+   "id": "p:trying-hard-copies",
+   "proximity": "trying-hard-copies",
+   "label": "When someone tries harder to be cool, they start copying the cool one",
+   "from": {
+    "curiosity": "tryingTooHard",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "copycat",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone tries harder to be cool",
+   "then": "they start copying the cool one"
+  },
+  {
+   "id": "p:humiliation-long-walk",
+   "proximity": "humiliation-long-walk",
+   "label": "When the humiliation is bigger, the walk out gets longer",
+   "from": {
+    "curiosity": "humiliation",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "walkOfShame",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the humiliation is bigger",
+   "then": "the walk out gets longer"
+  },
+  {
+   "id": "p:long-walk-shame",
+   "proximity": "long-walk-shame",
+   "label": "When the walk of shame gets longer, shame gets heavier",
+   "from": {
+    "curiosity": "walkOfShame",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the walk of shame gets longer",
+   "then": "shame gets heavier"
+  },
+  {
+   "id": "p:slow-clap-cringe",
+   "proximity": "slow-clap-cringe",
+   "label": "When one person claps during the walk out, the cringe rises",
+   "from": {
+    "curiosity": "walkOfShame.silence",
+    "track": "master",
+    "is": "one person clapping",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one person claps during the walk out",
+   "then": "the cringe rises"
+  },
+  {
+   "id": "p:literal-acted-out-slapstick",
+   "proximity": "literal-acted-out-slapstick",
+   "label": "When the words are acted out in full, the slapstick gets bigger",
+   "from": {
+    "curiosity": "literalMinded.acted",
+    "track": "master",
+    "is": "act it out in full, at length",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "physicalComedy",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the words are acted out in full",
+   "then": "the slapstick gets bigger"
+  },
+  {
+   "id": "p:literal-newcomer-out-of-place",
+   "proximity": "literal-newcomer-out-of-place",
+   "label": "When the literal one is new to the language, they feel out of place",
+   "from": {
+    "curiosity": "literalMinded.who",
+    "track": "master",
+    "is": "someone new to the language",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fishOutOfWater",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the literal one is new to the language",
+   "then": "they feel out of place"
+  },
+  {
+   "id": "p:plan-fails-complication",
+   "proximity": "plan-fails-complication",
+   "label": "When the careful plan fails at once, things get worse",
+   "from": {
+    "curiosity": "planFailsFirst",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the careful plan fails at once",
+   "then": "things get worse"
+  },
+  {
+   "id": "p:new-plan-running-gag",
+   "proximity": "new-plan-running-gag",
+   "label": "When every failed plan brings a longer one, it becomes a running gag",
+   "from": {
+    "curiosity": "planFailsFirst.after",
+    "track": "master",
+    "is": "start a new, longer plan",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "runningGag",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "every failed plan brings a longer one",
+   "then": "it becomes a running gag"
+  },
+  {
+   "id": "p:improvised-worse-everyone-helps",
+   "proximity": "improvised-worse-everyone-helps",
+   "label": "When they make it up and make it worse, everyone jumps in to fix it",
+   "from": {
+    "curiosity": "planFailsFirst.after",
+    "track": "master",
+    "is": "improvise and make it worse",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tooManyCooks",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they make it up and make it worse",
+   "then": "everyone jumps in to fix it"
+  },
+  {
+   "id": "p:cheap-effect-absurd",
+   "proximity": "cheap-effect-absurd",
+   "label": "When the effect looks cheaper, the absurdity grows",
+   "from": {
+    "curiosity": "cheapEffect",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "absurdity",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the effect looks cheaper",
+   "then": "the absurdity grows"
+  },
+  {
+   "id": "p:old-style-copy-parody",
+   "proximity": "old-style-copy-parody",
+   "label": "When the cheap effect copies an old style in full, the parody shows",
+   "from": {
+    "curiosity": "cheapEffect.homage",
+    "track": "master",
+    "is": "a full copy of an old style",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "parody",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the cheap effect copies an old style in full",
+   "then": "the parody shows"
+  },
+  {
+   "id": "p:hidden-joke-long-payoff",
+   "proximity": "hidden-joke-long-payoff",
+   "label": "When the joke is hidden deeper, the payoff comes from further away",
+   "from": {
+    "curiosity": "rewatchGag",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "payoffDistance",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the joke is hidden deeper",
+   "then": "the payoff comes from further away"
+  },
+  {
+   "id": "p:polite-mask-subtext",
+   "proximity": "polite-mask-subtext",
+   "label": "When they stay more polite, what they mean slips under the words",
+   "from": {
+    "curiosity": "politeSurface",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they stay more polite",
+   "then": "what they mean slips under the words"
+  },
+  {
+   "id": "p:manners-crack-room-stops",
+   "proximity": "manners-crack-room-stops",
+   "label": "When everyone's manners crack at the end, the room stops dead",
+   "from": {
+    "curiosity": "politeSurface.breaks",
+    "track": "master",
+    "is": "everyone at the end",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "roomStops",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone's manners crack at the end",
+   "then": "the room stops dead"
+  },
+  {
+   "id": "p:formal-rules-polite-war",
+   "proximity": "formal-rules-polite-war",
+   "label": "When the manners must hold, the fight goes polite",
+   "from": {
+    "curiosity": "politeSurface",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "politeWar",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the manners must hold",
+   "then": "the fight goes polite"
+  },
+  {
+   "id": "p:egos-clash-politely",
+   "proximity": "egos-clash-politely",
+   "label": "When egos clash at a formal table, the war goes polite",
+   "from": {
+    "curiosity": "egoClash",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "politeWar",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "egos clash at a formal table",
+   "then": "the war goes polite"
+  },
+  {
+   "id": "p:polite-war-real-fight",
+   "proximity": "polite-war-real-fight",
+   "label": "When the polite war turns into a real fight, chaos fills the room",
+   "from": {
+    "curiosity": "politeWar.snap",
+    "track": "master",
+    "is": "it turns into a real fight",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "chaosInRoom",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the polite war turns into a real fight",
+   "then": "chaos fills the room"
+  },
+  {
+   "id": "p:never-gets-it-odd-one-out",
+   "proximity": "never-gets-it-odd-one-out",
+   "label": "When one person never gets the joke, they stop fitting the group",
+   "from": {
+    "curiosity": "neverGetsIt",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "oddOneOut",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one person never gets the joke",
+   "then": "they stop fitting the group"
+  },
+  {
+   "id": "p:late-joke-topper",
+   "proximity": "late-joke-topper",
+   "label": "When the one who never got it makes the best joke, it tops them all",
+   "from": {
+    "curiosity": "neverGetsIt.finally",
+    "track": "master",
+    "is": "they make the best joke at the end",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "topper",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the one who never got it makes the best joke",
+   "then": "it tops them all"
+  },
+  {
+   "id": "p:unseen-crash-reactions",
+   "proximity": "unseen-crash-reactions",
+   "label": "When the crash stays out of sight, the faces carry the joke",
+   "from": {
+    "curiosity": "offscreenGag",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicReaction",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the crash stays out of sight",
+   "then": "the faces carry the joke"
+  },
+  {
+   "id": "p:calm-return-understatement",
+   "proximity": "calm-return-understatement",
+   "label": "When they walk back in calm after the crash, the understatement lands",
+   "from": {
+    "curiosity": "offscreenGag.after",
+    "track": "master",
+    "is": "the person walks back in calm",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "understatement",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they walk back in calm after the crash",
+   "then": "the understatement lands"
+  },
+  {
+   "id": "p:interruptions-running-gag",
+   "proximity": "interruptions-running-gag",
+   "label": "When the big moment keeps getting cut off, it becomes a running gag",
+   "from": {
+    "curiosity": "worstMoment",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "runningGag",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the big moment keeps getting cut off",
+   "then": "it becomes a running gag"
+  },
+  {
+   "id": "p:moment-lost-questions",
+   "proximity": "moment-lost-questions",
+   "label": "When the big moment is lost, the question stays open",
+   "from": {
+    "curiosity": "worstMoment.mood",
+    "track": "master",
+    "is": "it is lost",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the big moment is lost",
+   "then": "the question stays open"
+  },
+  {
+   "id": "p:playing-along-lie-grows",
+   "proximity": "playing-along-lie-grows",
+   "label": "When they happily play the wrong person, the lie grows",
+   "from": {
+    "curiosity": "mistakenIdentity.plays",
+    "track": "master",
+    "is": "happily play along",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "escalatingLie",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they happily play the wrong person",
+   "then": "the lie grows"
+  },
+  {
+   "id": "p:mix-up-near-miss",
+   "proximity": "mix-up-near-miss",
+   "label": "When the mix-up grows, the real one keeps nearly turning up",
+   "from": {
+    "curiosity": "mistakenIdentity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "nearMiss",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the mix-up grows",
+   "then": "the real one keeps nearly turning up"
+  },
+  {
+   "id": "p:real-one-arrives-collision",
+   "proximity": "real-one-arrives-collision",
+   "label": "When the real one turns up, every problem meets in one room",
+   "from": {
+    "curiosity": "mistakenIdentity.truth",
+    "track": "master",
+    "is": "the real one turns up",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "farceCollision",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the real one turns up",
+   "then": "every problem meets in one room"
+  },
+  {
+   "id": "p:animal-pulls-the-eye",
+   "proximity": "animal-pulls-the-eye",
+   "label": "When the animal steals more of the scene, the eye leaves the people",
+   "from": {
+    "curiosity": "sceneStealer",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "distraction",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the animal steals more of the scene",
+   "then": "the eye leaves the people"
+  },
+  {
+   "id": "p:ignore-the-goat-polite",
+   "proximity": "ignore-the-goat-polite",
+   "label": "When the humans pretend not to see the animal, the polite act strains",
+   "from": {
+    "curiosity": "sceneStealer.humans",
+    "track": "master",
+    "is": "pretend not to notice",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "politeSurface",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the humans pretend not to see the animal",
+   "then": "the polite act strains"
+  },
+  {
+   "id": "p:fumbled-hello-cringe",
+   "proximity": "fumbled-hello-cringe",
+   "label": "When the greeting fumbles longer, the cringe rises",
+   "from": {
+    "curiosity": "fumbledHello",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the greeting fumbles longer",
+   "then": "the cringe rises"
+  },
+  {
+   "id": "p:bumped-heads-slapstick",
+   "proximity": "bumped-heads-slapstick",
+   "label": "When the greeting ends in bumped heads, the slapstick lands",
+   "from": {
+    "curiosity": "fumbledHello.ending",
+    "track": "master",
+    "is": "they bump heads",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "physicalComedy",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the greeting ends in bumped heads",
+   "then": "the slapstick lands"
+  },
+  {
+   "id": "p:crossed-talk-mix-up",
+   "proximity": "crossed-talk-mix-up",
+   "label": "When the two talks cross more, misunderstandings grow",
+   "from": {
+    "curiosity": "crossedTalk",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "misunderstanding",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the two talks cross more",
+   "then": "misunderstandings grow"
+  },
+  {
+   "id": "p:crossed-line-secret-out",
+   "proximity": "crossed-line-secret-out",
+   "label": "When a crossed line gives away a secret, more people know it",
+   "from": {
+    "curiosity": "crossedTalk.land",
+    "track": "master",
+    "is": "gives away a secret",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "whoKnows",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a crossed line gives away a secret",
+   "then": "more people know it"
+  },
+  {
+   "id": "p:helpers-escalate",
+   "proximity": "helpers-escalate",
+   "label": "When more helpers make it worse, the trouble escalates",
+   "from": {
+    "curiosity": "tooManyCooks",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicEscalation",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more helpers make it worse",
+   "then": "the trouble escalates"
+  },
+  {
+   "id": "p:helpers-break-things-chaos",
+   "proximity": "helpers-break-things-chaos",
+   "label": "When every helper breaks something new, chaos fills the room",
+   "from": {
+    "curiosity": "tooManyCooks.clash",
+    "track": "master",
+    "is": "they each break something new",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "chaosInRoom",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "every helper breaks something new",
+   "then": "chaos fills the room"
+  },
+  {
+   "id": "p:genre-swap-parody",
+   "proximity": "genre-swap-parody",
+   "label": "When the scene copies another kind of film more fully, it becomes a parody",
+   "from": {
+    "curiosity": "genreSwap",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "parody",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the scene copies another kind of film more fully",
+   "then": "it becomes a parody"
+  },
+  {
+   "id": "p:genre-swap-hard-cut",
+   "proximity": "genre-swap-hard-cut",
+   "label": "When the borrowed style snaps back to normal, a hard comic cut pops it",
+   "from": {
+    "curiosity": "genreSwap.snap",
+    "track": "master",
+    "is": "a hard cut to normal",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicEdit",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the borrowed style snaps back to normal",
+   "then": "a hard comic cut pops it"
+  },
+  {
+   "id": "p:lie-grows-threads-collide",
+   "proximity": "lie-grows-threads-collide",
+   "label": "When the lie keeps growing, every problem heads for one room",
+   "from": {
+    "curiosity": "escalatingLie",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "farceCollision",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the lie keeps growing",
+   "then": "every problem heads for one room"
+  },
+  {
+   "id": "p:collision-near-misses",
+   "proximity": "collision-near-misses",
+   "label": "When more problems meet in one room, the near misses pile up",
+   "from": {
+    "curiosity": "farceCollision",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "nearMiss",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more problems meet in one room",
+   "then": "the near misses pile up"
+  },
+  {
+   "id": "p:collision-ends-in-chase",
+   "proximity": "collision-ends-in-chase",
+   "label": "When the farce blows up into a chase, the comic chase begins",
+   "from": {
+    "curiosity": "farceCollision.blowUp",
+    "track": "master",
+    "is": "it ends in a chase",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicChase",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the farce blows up into a chase",
+   "then": "the comic chase begins"
+  },
+  {
+   "id": "p:copying-cringe",
+   "proximity": "copying-cringe",
+   "label": "When the copying goes further, the cringe rises",
+   "from": {
+    "curiosity": "copycat",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the copying goes further",
+   "then": "the cringe rises"
+  },
+  {
+   "id": "p:copied-back-double-act",
+   "proximity": "copied-back-double-act",
+   "label": "When the copied one starts copying back, a double act is born",
+   "from": {
+    "curiosity": "copycat.noticed",
+    "track": "master",
+    "is": "they start copying back",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "doubleAct",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the copied one starts copying back",
+   "then": "a double act is born"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -19987,6 +20865,1101 @@
    "does": "rise",
    "when": "their shame is seen by others",
    "then": "the resentment boils"
+  },
+  {
+   "id": "p:style-borrowed-rule-broken",
+   "proximity": "style-borrowed-rule-broken",
+   "label": "When the genre's rules are clearly borrowed, breaking them gets the laugh",
+   "from": {
+    "curiosity": "parody",
+    "track": "master",
+    "is": "clearly borrowed",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "subversion",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the genre's rules are clearly borrowed",
+   "then": "breaking them gets the laugh"
+  },
+  {
+   "id": "p:style-score-in-room",
+   "proximity": "style-score-in-room",
+   "label": "When the music turns out to be playing in the room, the film winks at itself",
+   "from": {
+    "curiosity": "sourceToScore",
+    "track": "master",
+    "is": "from the soundtrack into the room",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "metaJoke",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music turns out to be playing in the room",
+   "then": "the film winks at itself"
+  },
+  {
+   "id": "p:style-self-aware-faster",
+   "proximity": "style-self-aware-faster",
+   "label": "When the film jokes about being a film, the laughs come faster",
+   "from": {
+    "curiosity": "metaJoke",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the film jokes about being a film",
+   "then": "the laughs come faster"
+  },
+  {
+   "id": "p:style-pun-topped",
+   "proximity": "style-pun-topped",
+   "label": "When a groaning pun lands, another gag tops it right away",
+   "from": {
+    "curiosity": "wordplay",
+    "track": "master",
+    "is": "pun",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "topper",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a groaning pun lands",
+   "then": "another gag tops it right away"
+  },
+  {
+   "id": "p:style-nobody-blinks",
+   "proximity": "style-nobody-blinks",
+   "label": "When nobody in the scene blinks at the absurd, it gets funnier",
+   "from": {
+    "curiosity": "absurdity.acceptance",
+    "track": "master",
+    "is": "nobody blinks",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "nobody in the scene blinks at the absurd",
+   "then": "it gets funnier"
+  },
+  {
+   "id": "p:style-logic-climbs",
+   "proximity": "style-logic-climbs",
+   "label": "When one silly idea is followed with strict logic, it climbs higher and higher",
+   "from": {
+    "curiosity": "comicPremise.mined",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicEscalation",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one silly idea is followed with strict logic",
+   "then": "it climbs higher and higher"
+  },
+  {
+   "id": "p:style-serious-answer-absurd",
+   "proximity": "style-serious-answer-absurd",
+   "label": "When a silly question gets a dead serious answer, the absurdity grows",
+   "from": {
+    "curiosity": "straightAnswer",
+    "track": "master",
+    "is": "dead serious",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "absurdity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a silly question gets a dead serious answer",
+   "then": "the absurdity grows"
+  },
+  {
+   "id": "p:style-sketch-just-stops",
+   "proximity": "style-sketch-just-stops",
+   "label": "When the film notices it has gone too far, it just stops and moves on",
+   "from": {
+    "curiosity": "metaJoke",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sceneEnding",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "smash cut",
+   "when": "the film notices it has gone too far",
+   "then": "it just stops and moves on"
+  },
+  {
+   "id": "p:style-officials-sillier",
+   "proximity": "style-officials-sillier",
+   "label": "When the joke aims at people in charge, the rules get sillier",
+   "from": {
+    "curiosity": "comedyTopic.punch",
+    "track": "master",
+    "is": "the powerful",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "absurdity",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the joke aims at people in charge",
+   "then": "the rules get sillier"
+  },
+  {
+   "id": "p:style-beat-chores-epic",
+   "proximity": "style-beat-chores-epic",
+   "label": "When the cuts land on the beat, an everyday chore feels like an action scene",
+   "from": {
+    "curiosity": "beatSync",
+    "track": "master",
+    "is": "on beats",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mockEpic",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the cuts land on the beat",
+   "then": "an everyday chore feels like an action scene"
+  },
+  {
+   "id": "p:style-sound-snaps-cut",
+   "proximity": "style-sound-snaps-cut",
+   "label": "When every tiny action gets a whoosh or a thud, the cuts snap harder",
+   "from": {
+    "curiosity": "sfxHits",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicEdit",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "every tiny action gets a whoosh or a thud",
+   "then": "the cuts snap harder"
+  },
+  {
+   "id": "p:style-planted-pays-later",
+   "proximity": "style-planted-pays-later",
+   "label": "When a joke is quietly planted early, it pays off much later",
+   "from": {
+    "curiosity": "comicBeat.visibility",
+    "track": "master",
+    "is": "background",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "payoffDistance",
+    "track": "master"
+   },
+   "within": 8,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a joke is quietly planted early",
+   "then": "it pays off much later"
+  },
+  {
+   "id": "p:style-action-on-beat-laughs",
+   "proximity": "style-action-on-beat-laughs",
+   "label": "When every action lands on the beat, the laughs come faster",
+   "from": {
+    "curiosity": "music.cutSync",
+    "track": "master",
+    "is": "every action on the beat",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "every action lands on the beat",
+   "then": "the laughs come faster"
+  },
+  {
+   "id": "p:style-whip-scenes-fly",
+   "proximity": "style-whip-scenes-fly",
+   "label": "When the camera whips from place to place, the scenes fly by faster",
+   "from": {
+    "curiosity": "transitionKind",
+    "track": "master",
+    "is": "whip pan",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sceneRate",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera whips from place to place",
+   "then": "the scenes fly by faster"
+  },
+  {
+   "id": "p:style-tangents-real",
+   "proximity": "style-tangents-real",
+   "label": "When the talk wanders off topic, the friends feel more real",
+   "from": {
+    "curiosity": "improvFeel.tangents",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the talk wanders off topic",
+   "then": "the friends feel more real"
+  },
+  {
+   "id": "p:style-loving-roast-warmth",
+   "proximity": "style-loving-roast-warmth",
+   "label": "When friends roast each other with love, the warmth between them grows",
+   "from": {
+    "curiosity": "roast.affection",
+    "track": "master",
+    "is": "loving",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "friends roast each other with love",
+   "then": "the warmth between them grows"
+  },
+  {
+   "id": "p:style-crack-up-spreads",
+   "proximity": "style-crack-up-spreads",
+   "label": "When one person cracks up, the laughing spreads around the room",
+   "from": {
+    "curiosity": "corpsing",
+    "track": "master",
+    "is": "laughing out loud",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "corpsing.spreads",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one person cracks up",
+   "then": "the laughing spreads around the room"
+  },
+  {
+   "id": "p:style-long-loose-ache",
+   "proximity": "style-long-loose-ache",
+   "label": "When a loose scene runs long, a true feeling slips out between the jokes",
+   "from": {
+    "curiosity": "sceneLength",
+    "track": "master",
+    "is": "long",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsToTears.depth",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a loose scene runs long",
+   "then": "a true feeling slips out between the jokes"
+  },
+  {
+   "id": "p:style-reaction-cut-twice",
+   "proximity": "style-reaction-cut-twice",
+   "label": "When the cut goes to whoever is listening, the joke lands twice",
+   "from": {
+    "curiosity": "multicamSwitch",
+    "track": "master",
+    "is": "switch on reactions",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the cut goes to whoever is listening",
+   "then": "the joke lands twice"
+  },
+  {
+   "id": "p:style-plan-falls-apart",
+   "proximity": "style-plan-falls-apart",
+   "label": "When the plan is laid out step by step, it starts to fall apart",
+   "from": {
+    "curiosity": "planShown",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the plan is laid out step by step",
+   "then": "it starts to fall apart"
+  },
+  {
+   "id": "p:style-greed-fix-worse",
+   "proximity": "style-greed-fix-worse",
+   "label": "When greed blinds them, every fix makes it worse",
+   "from": {
+    "curiosity": "comicFlaw",
+    "track": "master",
+    "is": "greed",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "escalatingLie",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "greed blinds them",
+   "then": "every fix makes it worse"
+  },
+  {
+   "id": "p:style-lie-turns-violent",
+   "proximity": "style-lie-turns-violent",
+   "label": "When the lie is about to fall, someone gets hurt",
+   "from": {
+    "curiosity": "escalatingLie.near",
+    "track": "master",
+    "is": "about to fall",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoActions",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "drastic",
+   "when": "the lie is about to fall",
+   "then": "someone gets hurt"
+  },
+  {
+   "id": "p:style-polite-horror-laugh",
+   "proximity": "style-polite-horror-laugh",
+   "label": "When something awful is said in a flat, polite voice, the dark laugh comes",
+   "from": {
+    "curiosity": "understatement.delivery",
+    "track": "master",
+    "is": "matter of fact",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "something awful is said in a flat",
+   "then": "polite voice, the dark laugh comes"
+  },
+  {
+   "id": "p:style-violence-then-calm",
+   "proximity": "style-violence-then-calm",
+   "label": "When violence breaks out, the next scene is calm and ordinary",
+   "from": {
+    "curiosity": "emoActions",
+    "track": "master",
+    "is": "drastic",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoContrastPrev",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "the opposite",
+   "when": "violence breaks out",
+   "then": "the next scene is calm and ordinary"
+  },
+  {
+   "id": "p:style-losing-root-harder",
+   "proximity": "style-losing-root-harder",
+   "label": "When the little hero keeps losing, we root for them harder",
+   "from": {
+    "curiosity": "punchingBag",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sideTaking",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "we root for them",
+   "when": "the little hero keeps losing",
+   "then": "we root for them harder"
+  },
+  {
+   "id": "p:style-music-bridge-tears",
+   "proximity": "style-music-bridge-tears",
+   "label": "When music carries the turn from funny to sad, the tears feel earned",
+   "from": {
+    "curiosity": "laughsToTears.bridge",
+    "track": "master",
+    "is": "music",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "earnedTears",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "music carries the turn from funny to sad",
+   "then": "the tears feel earned"
+  },
+  {
+   "id": "p:style-gap-punch-up",
+   "proximity": "style-gap-punch-up",
+   "label": "When the rich look down on the little hero, the gags punch upward",
+   "from": {
+    "curiosity": "statusGap",
+    "track": "master",
+    "is": "big gap",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comedyTopic.punch",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "the powerful",
+   "when": "the rich look down on the little hero",
+   "then": "the gags punch upward"
+  },
+  {
+   "id": "p:style-small-win-relief",
+   "proximity": "style-small-win-relief",
+   "label": "When a small win comes after many losses, the relief is huge",
+   "from": {
+    "curiosity": "smallWin",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "relief",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a small win comes after many losses",
+   "then": "the relief is huge"
+  },
+  {
+   "id": "p:style-no-words-feel-more",
+   "proximity": "style-no-words-feel-more",
+   "label": "When no one speaks, we read the face and feel more for them",
+   "from": {
+    "curiosity": "wordsAmount",
+    "track": "master",
+    "is": 0,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "no one speaks",
+   "then": "we read the face and feel more for them"
+  },
+  {
+   "id": "p:style-pause-dry-laugh",
+   "proximity": "style-pause-dry-laugh",
+   "label": "When the pause after a line runs long, the dry laugh comes in the silence",
+   "from": {
+    "curiosity": "silence.seconds",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the pause after a line runs long",
+   "then": "the dry laugh comes in the silence"
+  },
+  {
+   "id": "p:style-still-tiny-says-all",
+   "proximity": "style-still-tiny-says-all",
+   "label": "When everyone stays very still, the smallest reaction says everything",
+   "from": {
+    "curiosity": "stillness",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "understatement.gap",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone stays very still",
+   "then": "the smallest reaction says everything"
+  },
+  {
+   "id": "p:style-blank-face-lonely",
+   "proximity": "style-blank-face-lonely",
+   "label": "When nobody shows a feeling, the loneliness shows through",
+   "from": {
+    "curiosity": "faceIntensity",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "nobody shows a feeling",
+   "then": "the loneliness shows through"
+  },
+  {
+   "id": "p:style-few-words-longer-hold",
+   "proximity": "style-few-words-longer-hold",
+   "label": "When almost nothing is said, each line is held longer before the cut",
+   "from": {
+    "curiosity": "wordsAmount",
+    "track": "master",
+    "is": 1,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicTiming.holdAfter",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "almost nothing is said",
+   "then": "each line is held longer before the cut"
+  },
+  {
+   "id": "p:style-flat-sad-both",
+   "proximity": "style-flat-sad-both",
+   "label": "When a sad thing is said flatly, we laugh and ache at once",
+   "from": {
+    "curiosity": "comicRegister",
+    "track": "master",
+    "is": "deadpan",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mixedFeelings",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "even",
+   "when": "a sad thing is said flatly",
+   "then": "we laugh and ache at once"
+  },
+  {
+   "id": "p:style-double-meaning-comeback",
+   "proximity": "style-double-meaning-comeback",
+   "label": "When a line has a second meaning, the sharp listener fires one back",
+   "from": {
+    "curiosity": "subtext",
+    "track": "master",
+    "is": "far apart",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "wordplay",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "comeback",
+   "when": "a line has a second meaning",
+   "then": "the sharp listener fires one back"
+  },
+  {
+   "id": "p:style-brilliant-line-topped",
+   "proximity": "style-brilliant-line-topped",
+   "label": "When a brilliant line lands, someone tops it",
+   "from": {
+    "curiosity": "wordplay.cleverness",
+    "track": "master",
+    "is": "brilliant",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "topper",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a brilliant line lands",
+   "then": "someone tops it"
+  },
+  {
+   "id": "p:style-phrase-new-meaning",
+   "proximity": "style-phrase-new-meaning",
+   "label": "When a phrase comes back with a new meaning, it hits harder than the first time",
+   "from": {
+    "curiosity": "callback.form",
+    "track": "master",
+    "is": "same words, new meaning",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "sceneAftertaste",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a phrase comes back with a new meaning",
+   "then": "it hits harder than the first time"
+  },
+  {
+   "id": "p:style-faster-barbs-sharper",
+   "proximity": "style-faster-barbs-sharper",
+   "label": "When the talk speeds up, the barbs get sharper",
+   "from": {
+    "curiosity": "pace.wpm",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "roast",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the talk speeds up",
+   "then": "the barbs get sharper"
+  },
+  {
+   "id": "p:style-explain-joke-silence",
+   "proximity": "style-explain-joke-silence",
+   "label": "When a dead joke gets explained, the silence grows",
+   "from": {
+    "curiosity": "jokeBombs.recovery",
+    "track": "master",
+    "is": "explains it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence.seconds",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a dead joke gets explained",
+   "then": "the silence grows"
+  },
+  {
+   "id": "p:style-needy-tries-too-hard",
+   "proximity": "style-needy-tries-too-hard",
+   "label": "When they need to be liked, they try too hard and it gets worse",
+   "from": {
+    "curiosity": "comicFlaw",
+    "track": "master",
+    "is": "neediness",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they need to be liked",
+   "then": "they try too hard and it gets worse"
+  },
+  {
+   "id": "p:style-boss-plays-pal",
+   "proximity": "style-boss-plays-pal",
+   "label": "When the boss pretends to be one of the team, the room goes stiff",
+   "from": {
+    "curiosity": "statusGap.playing",
+    "track": "master",
+    "is": "the high one plays low",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "personalSpace.comfort",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "uneasy",
+   "when": "the boss pretends to be one of the team",
+   "then": "the room goes stiff"
+  },
+  {
+   "id": "p:style-sees-self-pity",
+   "proximity": "style-sees-self-pity",
+   "label": "When the clueless one finally sees how they look, we feel for them",
+   "from": {
+    "curiosity": "cringe.selfAware",
+    "track": "master",
+    "is": "painfully aware",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clueless one finally sees how they look",
+   "then": "we feel for them"
+  },
+  {
+   "id": "p:style-straight-face-bigger",
+   "proximity": "style-straight-face-bigger",
+   "label": "When the actors play it dead straight, the laughs get bigger",
+   "from": {
+    "curiosity": "comicRegister",
+    "track": "master",
+    "is": "deadpan",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute.size",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the actors play it dead straight",
+   "then": "the laughs get bigger"
+  },
+  {
+   "id": "p:style-literal-picture",
+   "proximity": "style-literal-picture",
+   "label": "When a phrase is taken word for word, the picture shows it",
+   "from": {
+    "curiosity": "wordplay",
+    "track": "master",
+    "is": "misunderstanding",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "visualGag",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "center",
+   "when": "a phrase is taken word for word",
+   "then": "the picture shows it"
+  },
+  {
+   "id": "p:style-more-gags-more-laughs",
+   "proximity": "style-more-gags-more-laughs",
+   "label": "When gags fill every corner of the frame, the laughs never stop",
+   "from": {
+    "curiosity": "visualGag.count",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "gags fill every corner of the frame",
+   "then": "the laughs never stop"
+  },
+  {
+   "id": "p:style-extras-carry-on",
+   "proximity": "style-extras-carry-on",
+   "label": "When the people behind carry on as normal, the absurd looks even stranger",
+   "from": {
+    "curiosity": "crowdReacts",
+    "track": "master",
+    "is": "carry on as normal",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "absurdity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the people behind carry on as normal",
+   "then": "the absurd looks even stranger"
+  },
+  {
+   "id": "p:style-jokes-story-thin",
+   "proximity": "style-jokes-story-thin",
+   "label": "When the jokes never stop, the story barely matters",
+   "from": {
+    "curiosity": "laughsPerMinute",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotWeight",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the jokes never stop",
+   "then": "the story barely matters"
+  },
+  {
+   "id": "p:style-deadline-detours",
+   "proximity": "style-deadline-detours",
+   "label": "When the night has a deadline, every detour costs more",
+   "from": {
+    "curiosity": "tickingClock",
+    "track": "character",
+    "is": "tight",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the night has a deadline",
+   "then": "every detour costs more"
+  },
+  {
+   "id": "p:style-careful-friend-dragged",
+   "proximity": "style-careful-friend-dragged",
+   "label": "When the careful friend is dragged along, the wild one pushes harder",
+   "from": {
+    "curiosity": "typeClash",
+    "track": "master",
+    "is": "opposite types",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicEscalation",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the careful friend is dragged along",
+   "then": "the wild one pushes harder"
+  },
+  {
+   "id": "p:style-embarrassment-legend",
+   "proximity": "style-embarrassment-legend",
+   "label": "When everyone sees the embarrassing moment, it becomes the story of the night",
+   "from": {
+    "curiosity": "humiliation.witnesses",
+    "track": "master",
+    "is": "everyone",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "rumor",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone sees the embarrassing moment",
+   "then": "it becomes the story of the night"
+  },
+  {
+   "id": "p:style-dawn-honest",
+   "proximity": "style-dawn-honest",
+   "label": "When dawn comes, the friends finally say what they mean",
+   "from": {
+    "curiosity": "timeOfDay",
+    "track": "master",
+    "is": "dawn",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "says what they mean",
+   "when": "dawn comes",
+   "then": "the friends finally say what they mean"
+  },
+  {
+   "id": "p:style-door-closes-imagine",
+   "proximity": "style-door-closes-imagine",
+   "label": "When the door closes on the couple, we imagine more than we would see",
+   "from": {
+    "curiosity": "threshold",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "offscreen",
+    "track": "character"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the door closes on the couple",
+   "then": "we imagine more than we would see"
+  },
+  {
+   "id": "p:style-opposite-words-spark",
+   "proximity": "style-opposite-words-spark",
+   "label": "When polite words say the opposite of the wish, the spark grows",
+   "from": {
+    "curiosity": "subtext",
+    "track": "master",
+    "is": "the opposite",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "chemistry",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "polite words say the opposite of the wish",
+   "then": "the spark grows"
+  },
+  {
+   "id": "p:style-object-tells-all",
+   "proximity": "style-object-tells-all",
+   "label": "When a small object is shown up close, we know more than the people do",
+   "from": {
+    "curiosity": "closeOnThing",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "knowledgeGap",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "audience first",
+   "when": "a small object is shown up close",
+   "then": "we know more than the people do"
+  },
+  {
+   "id": "p:style-manners-jealousy",
+   "proximity": "style-manners-jealousy",
+   "label": "When perfect manners are kept up, jealousy simmers underneath",
+   "from": {
+    "curiosity": "comedyTopic",
+    "track": "master",
+    "is": "manners",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "jealousy",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "perfect manners are kept up",
+   "then": "jealousy simmers underneath"
   }
  ],
  "groups": [
@@ -22601,6 +24574,93 @@
    ]
   },
   {
+   "id": "ps:one-overheard-line",
+   "label": "From one overheard line",
+   "plain": "The wrong person overhears, the mix-up grows, they tell the whole room, and the speaker turns around to find them there.",
+   "proximities": [
+    "overheard-mix-up",
+    "overheard-spread",
+    "speaker-turns-around-cringe"
+   ],
+   "links": [
+    "p:overheard-mix-up",
+    "p:overheard-spread",
+    "p:speaker-turns-around-cringe"
+   ]
+  },
+  {
+   "id": "ps:from-cool-to-the-door",
+   "label": "From cool to the door",
+   "plain": "The effort to look cool turns into copying, the act collapses into humiliation, and the long walk out brings shame and a slow clap.",
+   "proximities": [
+    "trying-hard-copies",
+    "cool-act-collapse-humiliation",
+    "humiliation-long-walk",
+    "long-walk-shame",
+    "slow-clap-cringe"
+   ],
+   "links": [
+    "p:trying-hard-copies",
+    "p:cool-act-collapse-humiliation",
+    "p:humiliation-long-walk",
+    "p:long-walk-shame",
+    "p:slow-clap-cringe"
+   ]
+  },
+  {
+   "id": "ps:plan-to-pandemonium",
+   "label": "Plan to pandemonium",
+   "plain": "The careful plan fails at once, the improvised fix makes it worse, everyone jumps in, and every helper breaks something new.",
+   "proximities": [
+    "plan-fails-complication",
+    "improvised-worse-everyone-helps",
+    "helpers-escalate",
+    "helpers-break-things-chaos"
+   ],
+   "links": [
+    "p:plan-fails-complication",
+    "p:improvised-worse-everyone-helps",
+    "p:helpers-escalate",
+    "p:helpers-break-things-chaos"
+   ]
+  },
+  {
+   "id": "ps:manners-at-war",
+   "label": "Manners at war",
+   "plain": "Strict manners push the fight underground, the rivals fight politely, the war turns real, and the room stops dead.",
+   "proximities": [
+    "formal-rules-polite-war",
+    "polite-mask-subtext",
+    "polite-war-real-fight",
+    "manners-crack-room-stops"
+   ],
+   "links": [
+    "p:formal-rules-polite-war",
+    "p:polite-mask-subtext",
+    "p:polite-war-real-fight",
+    "p:manners-crack-room-stops"
+   ]
+  },
+  {
+   "id": "ps:wrong-man-to-farce",
+   "label": "From the wrong man to a farce",
+   "plain": "The wrong man plays along, the lie grows, the real one turns up, every problem meets in one room, and it ends in a chase.",
+   "proximities": [
+    "playing-along-lie-grows",
+    "lie-grows-threads-collide",
+    "real-one-arrives-collision",
+    "collision-near-misses",
+    "collision-ends-in-chase"
+   ],
+   "links": [
+    "p:playing-along-lie-grows",
+    "p:lie-grows-threads-collide",
+    "p:real-one-arrives-collision",
+    "p:collision-near-misses",
+    "p:collision-ends-in-chase"
+   ]
+  },
+  {
    "id": "ps:style-long-talk-snap-moves",
    "label": "Long talk that snaps into violence: the moves",
    "plain": "Talk long about odd little things, let the unease climb, lay a cheerful old song over cruelty, split the story into chapters, and hold the standoff in silence. In the spirit of Quentin Tarantino.",
@@ -22872,6 +24932,224 @@
     "p:style-trouble-home-shabbier",
     "p:style-no-music-kindness",
     "p:style-shame-lashes-out"
+   ]
+  },
+  {
+   "id": "ps:style-genre-spoof-moves",
+   "label": "Genre spoof, gag after gag: the moves",
+   "plain": "Borrow the genre's rules so breaking them is funny, let the music show up in the room, wink about being a film, and top every pun. In the spirit of Mel Brooks.",
+   "proximities": [
+    "style-borrowed-rule-broken",
+    "style-score-in-room",
+    "style-self-aware-faster",
+    "style-pun-topped"
+   ],
+   "links": [
+    "p:style-borrowed-rule-broken",
+    "p:style-score-in-room",
+    "p:style-self-aware-faster",
+    "p:style-pun-topped"
+   ]
+  },
+  {
+   "id": "ps:style-sketch-logic-moves",
+   "label": "Absurd sketch logic: the moves",
+   "plain": "Let nobody blink, follow one silly idea with strict logic, answer foolish questions seriously, mock the people in charge, and stop the sketch the moment it goes too far. In the spirit of Monty Python.",
+   "proximities": [
+    "style-nobody-blinks",
+    "style-logic-climbs",
+    "style-serious-answer-absurd",
+    "style-sketch-just-stops",
+    "style-officials-sillier"
+   ],
+   "links": [
+    "p:style-nobody-blinks",
+    "p:style-logic-climbs",
+    "p:style-serious-answer-absurd",
+    "p:style-sketch-just-stops",
+    "p:style-officials-sillier"
+   ]
+  },
+  {
+   "id": "ps:style-cut-to-the-beat-moves",
+   "label": "Fast visual comedy cut to the beat: the moves",
+   "plain": "Cut chores to the beat, put a sound on every move, plant jokes early to pay off late, land the action on the music, and whip from place to place. In the spirit of Edgar Wright.",
+   "proximities": [
+    "style-beat-chores-epic",
+    "style-sound-snaps-cut",
+    "style-planted-pays-later",
+    "style-action-on-beat-laughs",
+    "style-whip-scenes-fly"
+   ],
+   "links": [
+    "p:style-beat-chores-epic",
+    "p:style-sound-snaps-cut",
+    "p:style-planted-pays-later",
+    "p:style-action-on-beat-laughs",
+    "p:style-whip-scenes-fly"
+   ]
+  },
+  {
+   "id": "ps:style-hangout-comedy-moves",
+   "label": "Loose improvised hangout comedy: the moves",
+   "plain": "Let the talk wander, roast with love, keep the real crack-ups, let a long scene find a true feeling, and cut to the listener. In the spirit of Judd Apatow.",
+   "proximities": [
+    "style-tangents-real",
+    "style-loving-roast-warmth",
+    "style-crack-up-spreads",
+    "style-long-loose-ache",
+    "style-reaction-cut-twice"
+   ],
+   "links": [
+    "p:style-tangents-real",
+    "p:style-loving-roast-warmth",
+    "p:style-crack-up-spreads",
+    "p:style-long-loose-ache",
+    "p:style-reaction-cut-twice"
+   ]
+  },
+  {
+   "id": "ps:style-bad-plans-moves",
+   "label": "Dark comedy of bad plans: the moves",
+   "plain": "Lay out the plan so it can fall apart, let greed make every fix worse, let the lie turn violent, say awful things politely, and follow the shock with calm. In the spirit of the Coen brothers.",
+   "proximities": [
+    "style-plan-falls-apart",
+    "style-greed-fix-worse",
+    "style-lie-turns-violent",
+    "style-polite-horror-laugh",
+    "style-violence-then-calm"
+   ],
+   "links": [
+    "p:style-plan-falls-apart",
+    "p:style-greed-fix-worse",
+    "p:style-lie-turns-violent",
+    "p:style-polite-horror-laugh",
+    "p:style-violence-then-calm"
+   ]
+  },
+  {
+   "id": "ps:style-sweet-clown-moves",
+   "label": "Sweet clown with a broken heart: the moves",
+   "plain": "Let him lose so we root for him, bridge the laugh to tears with music, aim the gags upward, give him one small win, and let the face speak instead of words. In the spirit of Charlie Chaplin.",
+   "proximities": [
+    "style-losing-root-harder",
+    "style-music-bridge-tears",
+    "style-gap-punch-up",
+    "style-small-win-relief",
+    "style-no-words-feel-more"
+   ],
+   "links": [
+    "p:style-losing-root-harder",
+    "p:style-music-bridge-tears",
+    "p:style-gap-punch-up",
+    "p:style-small-win-relief",
+    "p:style-no-words-feel-more"
+   ]
+  },
+  {
+   "id": "ps:style-deadpan-pauses-moves",
+   "label": "Deadpan stillness and long pauses: the moves",
+   "plain": "Stretch the pause until it gets the laugh, keep everyone still so tiny reactions speak, keep faces blank so loneliness shows, hold each rare line, and say sad things flatly. In the spirit of Jim Jarmusch and Aki Kaurismaki.",
+   "proximities": [
+    "style-pause-dry-laugh",
+    "style-still-tiny-says-all",
+    "style-blank-face-lonely",
+    "style-few-words-longer-hold",
+    "style-flat-sad-both"
+   ],
+   "links": [
+    "p:style-pause-dry-laugh",
+    "p:style-still-tiny-says-all",
+    "p:style-blank-face-lonely",
+    "p:style-few-words-longer-hold",
+    "p:style-flat-sad-both"
+   ]
+  },
+  {
+   "id": "ps:style-rapid-wit-moves",
+   "label": "Rapid wordplay and wit: the moves",
+   "plain": "Hide a second meaning and fire one back, top every brilliant line, bring a phrase back with a new meaning, and speed up so the barbs get sharper. In the spirit of Billy Wilder and Preston Sturges.",
+   "proximities": [
+    "style-double-meaning-comeback",
+    "style-brilliant-line-topped",
+    "style-phrase-new-meaning",
+    "style-faster-barbs-sharper"
+   ],
+   "links": [
+    "p:style-double-meaning-comeback",
+    "p:style-brilliant-line-topped",
+    "p:style-phrase-new-meaning",
+    "p:style-faster-barbs-sharper"
+   ]
+  },
+  {
+   "id": "ps:style-squirm-boss-moves",
+   "label": "Squirm comedy of the clueless boss: the moves",
+   "plain": "Explain the dead joke so the silence grows, let neediness make it worse, have the boss play pal, and give them one moment of seeing themselves. In the spirit of Ricky Gervais.",
+   "proximities": [
+    "style-explain-joke-silence",
+    "style-needy-tries-too-hard",
+    "style-boss-plays-pal",
+    "style-sees-self-pity"
+   ],
+   "links": [
+    "p:style-explain-joke-silence",
+    "p:style-needy-tries-too-hard",
+    "p:style-boss-plays-pal",
+    "p:style-sees-self-pity"
+   ]
+  },
+  {
+   "id": "ps:style-gag-a-second-moves",
+   "label": "Gag every second, played straight: the moves",
+   "plain": "Keep the faces dead straight, show phrases word for word, fill every corner with gags, let the extras carry on, and let the story thin out under the jokes. In the spirit of the Zucker brothers and Jim Abrahams.",
+   "proximities": [
+    "style-straight-face-bigger",
+    "style-literal-picture",
+    "style-more-gags-more-laughs",
+    "style-extras-carry-on",
+    "style-jokes-story-thin"
+   ],
+   "links": [
+    "p:style-straight-face-bigger",
+    "p:style-literal-picture",
+    "p:style-more-gags-more-laughs",
+    "p:style-extras-carry-on",
+    "p:style-jokes-story-thin"
+   ]
+  },
+  {
+   "id": "ps:style-one-wild-night-moves",
+   "label": "One wild night teen comedy: the moves",
+   "plain": "Put a deadline on the night, drag the careful friend along, let the embarrassment become a legend, and let the truth come out at dawn. In the spirit of John Hughes and Greg Mottola.",
+   "proximities": [
+    "style-deadline-detours",
+    "style-careful-friend-dragged",
+    "style-embarrassment-legend",
+    "style-dawn-honest"
+   ],
+   "links": [
+    "p:style-deadline-detours",
+    "p:style-careful-friend-dragged",
+    "p:style-embarrassment-legend",
+    "p:style-dawn-honest"
+   ]
+  },
+  {
+   "id": "ps:style-comedy-of-manners-moves",
+   "label": "Romantic comedy of manners: the moves",
+   "plain": "Close the door and let us imagine, let polite words say the opposite, show the object that gives the secret away, and let jealousy simmer under perfect manners. In the spirit of Ernst Lubitsch.",
+   "proximities": [
+    "style-door-closes-imagine",
+    "style-opposite-words-spark",
+    "style-object-tells-all",
+    "style-manners-jealousy"
+   ],
+   "links": [
+    "p:style-door-closes-imagine",
+    "p:style-opposite-words-spark",
+    "p:style-object-tells-all",
+    "p:style-manners-jealousy"
    ]
   }
  ]
