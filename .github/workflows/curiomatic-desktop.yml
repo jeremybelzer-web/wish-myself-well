@@ -1,0 +1,41 @@
+name: Curiomatic desktop installers
+# Builds the desktop app for Mac, Windows and Linux on GitHub's own machines and keeps the installers
+# as downloads on the run's page (Actions > this workflow > a run > Artifacts). They are not signed yet,
+# so Mac asks you to right-click > Open the first time and Windows shows "More info > Run anyway".
+on:
+  workflow_dispatch:
+  push:
+    branches: ["curiosities-desktop-*"]
+    paths: ["apps/curiosities/desktop/**", ".github/workflows/curiomatic-desktop.yml"]
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: apps/curiosities/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - name: The page's files are all in the installer
+        run: node check.js
+      - name: Build the installer
+        run: npx electron-builder --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: curiomatic-${{ runner.os }}
+          path: |
+            apps/curiosities/desktop/dist/*.dmg
+            apps/curiosities/desktop/dist/*.exe
+            apps/curiosities/desktop/dist/*.AppImage
+          if-no-files-found: error
+          retention-days: 30
