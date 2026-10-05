@@ -34,6 +34,7 @@
   "win-depth-minds.js",
   "win-depth-lines.js",
   "win-depth-frame.js",
+  "win-depth-telling.js",
   "measure-camera.js",
   "measure-performance.js",
   "measure-light.js",
@@ -83,6 +84,7 @@
   "say-depth-minds.js",
   "say-depth-lines.js",
   "say-depth-frame.js",
+  "say-depth-telling.js",
   "look-camera.js",
   "look-story.js",
   "look-comedy.js",
@@ -114,5 +116,6 @@
   "look-depth-feeling.js",
   "look-depth-minds.js",
   "look-depth-lines.js",
-  "look-depth-frame.js"
+  "look-depth-frame.js",
+  "look-depth-telling.js"
 ]

@@ -106955,6 +106955,1838 @@
     "cue": "visual",
     "tryThis": "Tell their twenty years of marriage in twelve photos, then let the last one start to move."
    }
+  },
+  {
+   "id": "listenerPlace",
+   "level": "curiosity",
+   "label": "Where the audience stands in the telling",
+   "plain": "Who the film makes us while we watch: someone spoken to directly, a friend let into one character's head, a witness who sees everything, or a stranger peeking in. In writing this is the listener's perspective (first person, second person, third person omniscient). Not \"Whose eyes the shot sees through\", which is one shot.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "closeness",
+   "sliders": [
+    {
+     "id": "closeness",
+     "label": "How close we sit",
+     "plain": "How far inside the story the film puts us, from a wide view of the world to a voice talking straight to us.",
+     "scale": [
+      "far off, seeing it all",
+      "beside them",
+      "inside one head",
+      "spoken right into our ear"
+     ],
+     "from": "far off, seeing it all",
+     "to": "spoken right into our ear",
+     "curve": "linear"
+    },
+    {
+     "id": "addressed",
+     "label": "Are we spoken to",
+     "plain": "Whether the telling talks to us as 'you', the way a narrator or a character looking at the lens does.",
+     "scale": [
+      "never named",
+      "we overhear",
+      "now and then",
+      "spoken to the whole time"
+     ],
+     "from": "never named",
+     "to": "spoken to the whole time",
+     "curve": "linear"
+    },
+    {
+     "id": "knows",
+     "label": "What we know against the hero",
+     "plain": "Whether we learn things before, with or after the main character.",
+     "scale": [
+      "less than the hero",
+      "the same as the hero",
+      "more than the hero",
+      "everything, even their thoughts"
+     ],
+     "from": "less than the hero",
+     "to": "everything, even their thoughts",
+     "curve": "linear"
+    },
+    {
+     "id": "role",
+     "label": "The part we play",
+     "plain": "The role the telling quietly hands the audience.",
+     "scale": [
+      "a confidant",
+      "an eavesdropper",
+      "a juror",
+      "a witness",
+      "the film crew",
+      "a player in the game"
+     ],
+     "from": "a confidant",
+     "to": "a player in the game",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "side",
+     "label": "Whose side it puts us on",
+     "plain": "0 is firmly with the main character; 100 is set against them.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "steady",
+     "label": "Does it change",
+     "plain": "Whether the audience's place in the telling stays put or moves.",
+     "scale": [
+      "one place the whole film",
+      "changes by section",
+      "changes scene to scene"
+     ],
+     "from": "one place the whole film",
+     "to": "changes scene to scene",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Decides what we may know and when, which sets up every surprise and every bit of suspense.",
+    "theme": "Shows whose story this is and how much we are trusted with.",
+    "pull": "We want to know what the telling is keeping from us, or what it trusts us with.",
+    "cue": "thought",
+    "tryThis": "Open on a voice that says 'You've seen this man before' over a crowd, then hold on one face."
+   }
+  },
+  {
+   "id": "unreliableTelling",
+   "level": "curiosity",
+   "label": "The telling we can't trust",
+   "plain": "The one telling the story (a voice-over, a character's memory, even the camera) is wrong, lying or leaving things out, and we find out later.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "doubt",
+   "sliders": [
+    {
+     "id": "doubt",
+     "label": "How much we should doubt it",
+     "plain": "How far the telling is from what really happened.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "who",
+     "label": "Who we can't trust",
+     "plain": "Which teller turns out to be wrong.",
+     "scale": [
+      "a voice-over",
+      "the hero's memory",
+      "a witness",
+      "the camera itself",
+      "a letter or diary"
+     ],
+     "from": "a voice-over",
+     "to": "a letter or diary",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "why",
+     "label": "Why it is wrong",
+     "plain": "What makes the telling bend the truth.",
+     "scale": [
+      "they lie",
+      "they forget",
+      "they don't understand",
+      "they are not well",
+      "they are protecting someone"
+     ],
+     "from": "they lie",
+     "to": "they are protecting someone",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "clues",
+     "label": "Clues we are given",
+     "plain": "How many small signs warn us not to believe it.",
+     "range": {
+      "min": 0,
+      "max": 8,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 8,
+     "curve": "linear"
+    },
+    {
+     "id": "found",
+     "label": "When we find out",
+     "plain": "When the audience learns the telling was off.",
+     "scale": [
+      "never sure",
+      "slowly, scene by scene",
+      "in one late twist",
+      "at the very end"
+     ],
+     "from": "never sure",
+     "to": "at the very end",
+     "curve": "linear"
+    },
+    {
+     "id": "after",
+     "label": "What it makes us do",
+     "plain": "How the discovery lands with the audience.",
+     "scale": [
+      "shrug",
+      "doubt everything",
+      "rethink the whole film",
+      "want to watch again"
+     ],
+     "from": "shrug",
+     "to": "want to watch again",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "A late discovery turns the whole story over and sends us back to rethink it.",
+    "theme": "Shows how memory and pride rewrite the past.",
+    "pull": "We start checking every scene for the lie.",
+    "cue": "thought",
+    "tryThis": "Let the voice-over say 'I never touched her', while for one frame the picture shows his hand on her arm."
+   }
+  },
+  {
+   "id": "storyOrder",
+   "level": "curiosity",
+   "label": "The order the story is told in",
+   "plain": "Whether the film tells events from start to finish, starts in the middle of the action, starts at the end and goes back, runs backwards, or jumps around in time.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "order",
+   "sliders": [
+    {
+     "id": "order",
+     "label": "How the order runs",
+     "plain": "The overall shape of time in the telling.",
+     "scale": [
+      "start to finish",
+      "starts in the middle",
+      "starts at the end",
+      "jumps around",
+      "runs backwards"
+     ],
+     "from": "start to finish",
+     "to": "runs backwards",
+     "curve": "linear"
+    },
+    {
+     "id": "jumps",
+     "label": "Jumps in time",
+     "plain": "How many times the film leaves one time for another.",
+     "range": {
+      "min": 0,
+      "max": 20,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 20,
+     "curve": "linear"
+    },
+    {
+     "id": "marked",
+     "label": "How clearly jumps are marked",
+     "plain": "How easy it is to tell when we are.",
+     "scale": [
+      "not at all",
+      "a hint",
+      "a clear sign",
+      "a title card every time"
+     ],
+     "from": "not at all",
+     "to": "a title card every time",
+     "curve": "linear"
+    },
+    {
+     "id": "marker",
+     "label": "What marks the time",
+     "plain": "The sign that tells us which time we are in.",
+     "scale": [
+      "a date on screen",
+      "a different look",
+      "a haircut or age",
+      "a place",
+      "a voice saying when"
+     ],
+     "from": "a date on screen",
+     "to": "a voice saying when",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "meet",
+     "label": "When the times meet",
+     "plain": "When the separate times finally catch up with each other.",
+     "scale": [
+      "never",
+      "halfway",
+      "at the end",
+      "in the very last shot"
+     ],
+     "from": "never",
+     "to": "in the very last shot",
+     "curve": "linear"
+    },
+    {
+     "id": "why",
+     "label": "Why this order",
+     "plain": "What the order does for the audience.",
+     "scale": [
+      "to grab us early",
+      "to hide the answer",
+      "to build dread",
+      "to show memory"
+     ],
+     "from": "to grab us early",
+     "to": "to show memory",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "Starting late or out of order hands us a question the rest of the film must answer.",
+    "theme": "Shows how the past keeps pressing on the present.",
+    "pull": "We want to see how it got from there to here.",
+    "cue": "plot",
+    "tryThis": "Open on him soaking wet in a police station, then cut to 'Three days earlier'."
+   }
+  },
+  {
+   "id": "frameStory",
+   "level": "curiosity",
+   "label": "A story told inside a story",
+   "plain": "Someone in the film tells the story we watch: an old woman to her grandson, a man to a police officer, a diary read years later. We keep coming back to the teller.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "frame",
+   "sliders": [
+    {
+     "id": "frame",
+     "label": "How much the frame matters",
+     "plain": "How much of the film belongs to the telling around the story.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "teller",
+     "label": "Who tells it",
+     "plain": "Who is telling the story inside the story.",
+     "scale": [
+      "an old version of the hero",
+      "a stranger",
+      "someone being questioned",
+      "a diary or letter",
+      "a parent at bedtime"
+     ],
+     "from": "an old version of the hero",
+     "to": "a parent at bedtime",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "returns",
+     "label": "Returns to the teller",
+     "plain": "How many times we go back to the person telling it.",
+     "range": {
+      "min": 0,
+      "max": 12,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 12,
+     "curve": "linear"
+    },
+    {
+     "id": "layers",
+     "label": "Stories inside stories",
+     "plain": "How many tellings sit one inside another.",
+     "range": {
+      "min": 1,
+      "max": 3,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "trust",
+     "label": "Can we trust the teller",
+     "plain": "Whether the teller tells it straight.",
+     "scale": [
+      "fully",
+      "mostly",
+      "not really"
+     ],
+     "from": "fully",
+     "to": "not really",
+     "curve": "linear"
+    },
+    {
+     "id": "ending",
+     "label": "What the frame does at the end",
+     "plain": "How the outer story pays off.",
+     "scale": [
+      "just closes",
+      "adds a twist",
+      "changes the teller",
+      "turns out to be part of the story"
+     ],
+     "from": "just closes",
+     "to": "turns out to be part of the story",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "The teller's own story can quietly become the real one, and the ending can turn on it.",
+    "theme": "Shows that every story is told by someone, for a reason.",
+    "pull": "We wonder why this teller is telling it, and to whom.",
+    "cue": "audio",
+    "tryThis": "Every time the war story reaches a death, cut back to the old soldier pausing over his coffee."
+   }
+  },
+  {
+   "id": "foreshadowHint",
+   "level": "curiosity",
+   "label": "A hint of what's to come",
+   "plain": "A small sign early on (a line, an object, a picture, a sound) that quietly points to something that will happen later. Not \"A glimpse of what is coming\", which jumps ahead in time.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "strength",
+   "sliders": [
+    {
+     "id": "strength",
+     "label": "How clear the hint is",
+     "plain": "From hidden in plain sight to almost a warning.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "form",
+     "label": "What the hint is",
+     "plain": "What carries the hint.",
+     "scale": [
+      "a line",
+      "an object",
+      "a picture on the wall",
+      "a sound",
+      "a dream",
+      "the weather"
+     ],
+     "from": "a line",
+     "to": "the weather",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "scenes",
+     "label": "Scenes until it comes true",
+     "plain": "How long before what it points to happens.",
+     "range": {
+      "min": 1,
+      "max": 40,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "mood",
+     "label": "Good or bad sign",
+     "plain": "Whether it points to something hopeful or something dark.",
+     "scale": [
+      "a good sign",
+      "mixed",
+      "a bad sign"
+     ],
+     "from": "a good sign",
+     "to": "a bad sign",
+     "curve": "linear"
+    },
+    {
+     "id": "noticed",
+     "label": "When we notice it",
+     "plain": "When the audience realises it was a hint.",
+     "scale": [
+      "only on a second watch",
+      "when it comes true",
+      "right away"
+     ],
+     "from": "only on a second watch",
+     "to": "right away",
+     "curve": "linear"
+    },
+    {
+     "id": "times",
+     "label": "Hints for the same thing",
+     "plain": "How many hints point at the same event.",
+     "range": {
+      "min": 1,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Prepares us so that what happens later feels meant, not random.",
+    "theme": "Ties the beginning to the ending.",
+    "pull": "We feel something coming without knowing what.",
+    "cue": "visual",
+    "tryThis": "On the drive to the lake, let the kid point out a crow on the guardrail while the radio talks about ice."
+   }
+  },
+  {
+   "id": "plantedThing",
+   "level": "curiosity",
+   "label": "Planted early, used later",
+   "plain": "Something shown early (a gun on the wall, a skill, a fact, a key) that must matter later. When it comes back, it pays off. Writers call it Chekhov's gun.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "plant",
+   "sliders": [
+    {
+     "id": "plant",
+     "label": "How clearly it is shown",
+     "plain": "How much attention the film gives the thing when it first appears.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "what",
+     "label": "What is planted",
+     "plain": "The kind of thing that will come back.",
+     "scale": [
+      "an object",
+      "a skill",
+      "a fact",
+      "a person",
+      "a place",
+      "a rule"
+     ],
+     "from": "an object",
+     "to": "a rule",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "between",
+     "label": "Scenes between plant and payoff",
+     "plain": "How long the film waits before using it.",
+     "range": {
+      "min": 1,
+      "max": 40,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "reminders",
+     "label": "Reminders on the way",
+     "plain": "How many times we see it again before it pays off.",
+     "range": {
+      "min": 0,
+      "max": 4,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "payoff",
+     "label": "Size of the payoff",
+     "plain": "How much the story depends on it when it comes back.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "surprise",
+     "label": "How surprising the payoff is",
+     "plain": "Whether we expected it to come back this way.",
+     "scale": [
+      "we saw it coming",
+      "a small surprise",
+      "a big surprise"
+     ],
+     "from": "we saw it coming",
+     "to": "a big surprise",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "A thing shown early saves the day, ruins it, or opens the last door.",
+    "theme": "Shows that nothing in a well-told story is wasted.",
+    "pull": "We keep watching the thing, waiting for it to matter.",
+    "cue": "visual",
+    "tryThis": "Show her learning to pick a lock in scene 2, and leave her locked in the basement in scene 30."
+   }
+  },
+  {
+   "id": "backstoryDelivery",
+   "level": "curiosity",
+   "label": "How we learn what happened before",
+   "plain": "How the film tells us the past and the rules of its world: shown in action, slipped into a fight, told in one long speech, read off a screen, or kept back until late. Writers call this exposition, and 'show, don't tell'.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "showing",
+   "sliders": [
+    {
+     "id": "showing",
+     "label": "Shown or told",
+     "plain": "0 is told outright in words; 5 is shown only through what people do.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "how",
+     "label": "How it comes out",
+     "plain": "The way the past reaches us.",
+     "scale": [
+      "a long speech",
+      "slipped into a fight",
+      "a voice-over",
+      "words on screen",
+      "a flashback",
+      "something we see in the room"
+     ],
+     "from": "a long speech",
+     "to": "something we see in the room",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "amount",
+     "label": "How much past there is",
+     "plain": "How much we need to know about what happened before.",
+     "scale": [
+      "a little",
+      "some",
+      "a lot",
+      "a whole world"
+     ],
+     "from": "a little",
+     "to": "a whole world",
+     "curve": "linear"
+    },
+    {
+     "id": "when",
+     "label": "When it comes",
+     "plain": "Whether the past is given up front or rationed.",
+     "scale": [
+      "all at the start",
+      "a bit at a time",
+      "saved for late"
+     ],
+     "from": "all at the start",
+     "to": "saved for late",
+     "curve": "linear"
+    },
+    {
+     "id": "clunk",
+     "label": "How natural it feels",
+     "plain": "Whether people say things they would never really say just so we learn them.",
+     "scale": [
+      "clunky",
+      "a little obvious",
+      "natural",
+      "invisible"
+     ],
+     "from": "clunky",
+     "to": "invisible",
+     "curve": "linear"
+    },
+    {
+     "id": "held",
+     "label": "What is held back",
+     "plain": "How much of the past is kept secret for later.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "Gives us just enough to follow, and keeps back the part that will hurt later.",
+    "theme": "Shows that the past is still alive in the room.",
+    "pull": "We piece the past together ourselves, and want the missing piece.",
+    "cue": "thought",
+    "tryThis": "Instead of telling us they divorced, let him hesitate at her door and knock instead of using his key."
+   }
+  },
+  {
+   "id": "incitingMoment",
+   "level": "curiosity",
+   "label": "The moment that starts it all",
+   "plain": "The event that knocks the main character out of normal life and starts the story: a stranger arrives, a letter comes, someone dies, a mistake is made.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "force",
+   "sliders": [
+    {
+     "id": "force",
+     "label": "How hard it hits",
+     "plain": "How big the jolt to normal life is.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "minutes",
+     "label": "When it comes",
+     "plain": "How far into the film it happens.",
+     "range": {
+      "min": 0,
+      "max": 40,
+      "unit": "minutes",
+      "step": 1
+     },
+     "from": 0,
+     "to": 40,
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "What it is",
+     "plain": "The kind of event that starts it.",
+     "scale": [
+      "an arrival",
+      "a loss",
+      "a message",
+      "a mistake",
+      "a discovery",
+      "a chance meeting"
+     ],
+     "from": "an arrival",
+     "to": "a chance meeting",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "choice",
+     "label": "Chosen or forced",
+     "plain": "Whether it happens to them or they make it happen.",
+     "scale": [
+      "forced on them",
+      "half chosen",
+      "they choose it"
+     ],
+     "from": "forced on them",
+     "to": "they choose it",
+     "curve": "linear"
+    },
+    {
+     "id": "seen",
+     "label": "How we see it",
+     "plain": "Whether the film shows it or reports it.",
+     "scale": [
+      "before the film starts",
+      "told about",
+      "on screen"
+     ],
+     "from": "before the film starts",
+     "to": "on screen",
+     "curve": "linear"
+    },
+    {
+     "id": "refusal",
+     "label": "Do they say no at first",
+     "plain": "Whether the hero tries to ignore the call before giving in.",
+     "scale": [
+      "no",
+      "for a moment",
+      "for a long time"
+     ],
+     "from": "no",
+     "to": "for a long time",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "Starts the story moving and sets the question the ending must answer.",
+    "theme": "Shows what the hero's normal life was hiding.",
+    "pull": "We want to know what they will do about it.",
+    "cue": "plot",
+    "tryThis": "Let the phone ring during the birthday toast, and keep it ringing while nobody answers."
+   }
+  },
+  {
+   "id": "symbolThing",
+   "level": "curiosity",
+   "label": "A thing that stands for something bigger",
+   "plain": "An object, place, animal or kind of weather that comes to stand for a bigger idea (a bird for freedom, a ring for a promise) and changes as the story changes.",
+   "workspace": "plot",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "weight",
+   "sliders": [
+    {
+     "id": "weight",
+     "label": "How much it carries",
+     "plain": "How much meaning the film loads onto it.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "what",
+     "label": "What it is",
+     "plain": "The thing that carries the meaning.",
+     "scale": [
+      "an object",
+      "a place",
+      "an animal",
+      "the weather",
+      "a color",
+      "a sound"
+     ],
+     "from": "an object",
+     "to": "a sound",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "standsFor",
+     "label": "What it stands for",
+     "plain": "The bigger idea it carries.",
+     "scale": [
+      "love",
+      "freedom",
+      "guilt",
+      "home",
+      "death",
+      "hope"
+     ],
+     "from": "love",
+     "to": "hope",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "returns",
+     "label": "Times it comes back",
+     "plain": "How often it appears across the film.",
+     "range": {
+      "min": 1,
+      "max": 10,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 10,
+     "curve": "linear"
+    },
+    {
+     "id": "changes",
+     "label": "What happens to it",
+     "plain": "How the thing changes along with the story.",
+     "scale": [
+      "stays the same",
+      "wears down",
+      "is broken",
+      "is passed on",
+      "is set free"
+     ],
+     "from": "stays the same",
+     "to": "is set free",
+     "curve": "linear"
+    },
+    {
+     "id": "noticed",
+     "label": "How obvious it is",
+     "plain": "How loudly the film tells us it means something.",
+     "scale": [
+      "hidden",
+      "felt",
+      "noticed",
+      "pointed at"
+     ],
+     "from": "hidden",
+     "to": "pointed at",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "When the thing breaks or is passed on, we feel the story turn without a word.",
+    "theme": "Carries the theme in something we can see and hear.",
+    "pull": "We watch the thing to know how the story is going.",
+    "cue": "visual",
+    "tryThis": "Let the cracked teapot from the wedding show up at each family dinner, and finally be glued back together."
+   }
+  },
+  {
+   "id": "typeTalk",
+   "level": "curiosity",
+   "label": "Talks like their personality type",
+   "plain": "Each character's lines sound like their Enneagram type: what they push for, what they avoid saying, how they deflect. Under stress they slip toward another type's way of talking; when healthy they grow toward a better one.",
+   "workspace": "lines",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "strength",
+   "sliders": [
+    {
+     "id": "strength",
+     "label": "How strongly the type shows",
+     "plain": "How clearly their lines sound like their type.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "type",
+     "label": "Their type",
+     "plain": "The character's Enneagram type.",
+     "scale": [
+      "1 the perfectionist",
+      "2 the helper",
+      "3 the achiever",
+      "4 the individualist",
+      "5 the investigator",
+      "6 the loyalist",
+      "7 the enthusiast",
+      "8 the challenger",
+      "9 the peacemaker"
+     ],
+     "from": "1 the perfectionist",
+     "to": "9 the peacemaker",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "health",
+     "label": "How healthy they are right now",
+     "plain": "Their emotional health in this moment, which bends how they talk.",
+     "scale": [
+      "at their worst",
+      "under stress",
+      "average",
+      "doing well",
+      "at their best"
+     ],
+     "from": "at their worst",
+     "to": "at their best",
+     "curve": "linear"
+    },
+    {
+     "id": "avoids",
+     "label": "What they won't say",
+     "plain": "The thing their type works hardest not to say out loud.",
+     "scale": [
+      "that they are angry",
+      "that they need help",
+      "that they failed",
+      "that they are ordinary",
+      "that they don't know",
+      "that they are scared",
+      "that they are hurting",
+      "that they are weak",
+      "that they disagree"
+     ],
+     "from": "that they are angry",
+     "to": "that they disagree",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "deflect",
+     "label": "How they dodge",
+     "plain": "What they do with their words when the talk gets close.",
+     "scale": [
+      "correct someone",
+      "help someone",
+      "change the subject to a win",
+      "go quiet and deep",
+      "ask for facts",
+      "ask what could go wrong",
+      "make a joke",
+      "push harder",
+      "agree to keep the peace"
+     ],
+     "from": "correct someone",
+     "to": "agree to keep the peace",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "words",
+     "label": "How much they say",
+     "plain": "How many words their type tends to use.",
+     "scale": [
+      "very little",
+      "some",
+      "a lot",
+      "they never stop"
+     ],
+     "from": "very little",
+     "to": "they never stop",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "When someone talks against their type, we feel something has changed in them.",
+    "theme": "Shows character through how people speak, not what they announce.",
+    "pull": "We wait for the line they would never say.",
+    "cue": "audio",
+    "tryThis": "Let the peacemaker agree to every plan all scene, then quietly say 'No' to the last one."
+   }
+  },
+  {
+   "id": "themeAloud",
+   "level": "curiosity",
+   "label": "The theme said out loud",
+   "plain": "Someone says the film's big idea in words, often early and often a side character, before the hero is ready to hear it.",
+   "workspace": "lines",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "blunt",
+   "sliders": [
+    {
+     "id": "blunt",
+     "label": "How plainly it is said",
+     "plain": "From a hint inside a joke to a speech about the meaning of the film.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "who",
+     "label": "Who says it",
+     "plain": "Who speaks the idea.",
+     "scale": [
+      "a side character",
+      "the hero",
+      "the villain",
+      "a stranger",
+      "a sign or a song"
+     ],
+     "from": "a side character",
+     "to": "a sign or a song",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "when",
+     "label": "When it is said",
+     "plain": "Where in the film the line falls.",
+     "scale": [
+      "in the first minutes",
+      "in the middle",
+      "near the end"
+     ],
+     "from": "in the first minutes",
+     "to": "near the end",
+     "curve": "linear"
+    },
+    {
+     "id": "heard",
+     "label": "Does the hero hear it",
+     "plain": "How the main character takes it at first.",
+     "scale": [
+      "ignores it",
+      "laughs it off",
+      "thinks about it",
+      "lives by it"
+     ],
+     "from": "ignores it",
+     "to": "lives by it",
+     "curve": "linear"
+    },
+    {
+     "id": "again",
+     "label": "Times it comes back",
+     "plain": "How many times the line or idea is heard again.",
+     "range": {
+      "min": 1,
+      "max": 4,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "changed",
+     "label": "Said back changed at the end",
+     "plain": "Whether the hero says it back in the end, and how.",
+     "scale": [
+      "no",
+      "the same words",
+      "new words, same idea"
+     ],
+     "from": "no",
+     "to": "new words, same idea",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 1,
+    "plot": "Gives the ending something to answer: the hero finally understands the line.",
+    "theme": "It is the theme, in someone's mouth.",
+    "pull": "We wait for the hero to understand what we already heard.",
+    "cue": "audio",
+    "tryThis": "Let the bus driver say 'Nobody gets anywhere alone' in scene 1, and the hero say it to her kid in the last scene."
+   }
   }
  ],
  "suites": [
@@ -171928,6 +173760,601 @@
      },
      "from": 0,
      "to": 60,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "trust-me-telling",
+   "level": "suite",
+   "label": "Trust me (don't)",
+   "plain": "A voice talks straight to us, starts at the end, and turns out to be bending the truth.",
+   "workspace": "structure",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "listenerPlace",
+     "value": "spoken right into our ear"
+    },
+    {
+     "weight": 100,
+     "curiosity": "listenerPlace",
+     "slider": "addressed",
+     "value": "spoken to the whole time"
+    },
+    {
+     "weight": 100,
+     "curiosity": "unreliableTelling",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "storyOrder",
+     "value": "starts at the end"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:listenerPlace",
+     "label": "Weight of listenerPlace",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:listenerPlace.addressed",
+     "label": "Weight of listenerPlace addressed",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:unreliableTelling",
+     "label": "Weight of unreliableTelling",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:storyOrder",
+     "label": "Weight of storyOrder",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "all-seeing-telling",
+   "level": "suite",
+   "label": "We know everything",
+   "plain": "We stand far off, know more than the hero, and see the hints they miss.",
+   "workspace": "structure",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "listenerPlace",
+     "value": "far off, seeing it all"
+    },
+    {
+     "weight": 100,
+     "curiosity": "listenerPlace",
+     "slider": "knows",
+     "value": "more than the hero"
+    },
+    {
+     "weight": 100,
+     "curiosity": "foreshadowHint",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "knowledgeGap"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:listenerPlace",
+     "label": "Weight of listenerPlace",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:listenerPlace.knows",
+     "label": "Weight of listenerPlace knows",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:foreshadowHint",
+     "label": "Weight of foreshadowHint",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:knowledgeGap",
+     "label": "Weight of knowledgeGap",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "fireside-tale",
+   "level": "suite",
+   "label": "A tale by the fire",
+   "plain": "An old teller, a story inside a story, the theme said early and a symbol that keeps coming back.",
+   "workspace": "structure",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "frameStory",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "frameStory",
+     "slider": "teller",
+     "value": "an old version of the hero"
+    },
+    {
+     "weight": 100,
+     "curiosity": "themeAloud",
+     "value": 2
+    },
+    {
+     "weight": 100,
+     "curiosity": "symbolThing",
+     "value": 3
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:frameStory",
+     "label": "Weight of frameStory",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:frameStory.teller",
+     "label": "Weight of frameStory teller",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:themeAloud",
+     "label": "Weight of themeAloud",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:symbolThing",
+     "label": "Weight of symbolThing",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "well-made-plot",
+   "level": "suite",
+   "label": "The well-made plot",
+   "plain": "A hard start, a thing planted early, hints along the way and the past shown, not told.",
+   "workspace": "plot",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "incitingMoment",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "plantedThing",
+     "value": 3
+    },
+    {
+     "weight": 100,
+     "curiosity": "foreshadowHint",
+     "value": 2
+    },
+    {
+     "weight": 100,
+     "curiosity": "backstoryDelivery",
+     "value": 4
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:incitingMoment",
+     "label": "Weight of incitingMoment",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plantedThing",
+     "label": "Weight of plantedThing",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:foreshadowHint",
+     "label": "Weight of foreshadowHint",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:backstoryDelivery",
+     "label": "Weight of backstoryDelivery",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "people-talking-true",
+   "level": "suite",
+   "label": "People talking true to type",
+   "plain": "Every character sounds like their type, says the theme without meaning to, and hides what matters under the words.",
+   "workspace": "lines",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "typeTalk",
+     "value": 4
+    },
+    {
+     "weight": 100,
+     "curiosity": "themeAloud",
+     "value": 1
+    },
+    {
+     "weight": 100,
+     "curiosity": "subtext"
+    },
+    {
+     "weight": 100,
+     "curiosity": "wayOfTalking"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:typeTalk",
+     "label": "Weight of typeTalk",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:themeAloud",
+     "label": "Weight of themeAloud",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:subtext",
+     "label": "Weight of subtext",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:wayOfTalking",
+     "label": "Weight of wayOfTalking",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
      "curve": "linear"
     },
     {
@@ -272137,6 +274564,1346 @@
    "tags": []
   },
   {
+   "id": "closer-telling-voiceover",
+   "level": "proximity",
+   "label": "When we are let into one head, the voice-over grows",
+   "plain": "When the telling brings us closer inside one character, voice-over rises within a beat.",
+   "workspace": "structure",
+   "also": [
+    "audio-mix"
+   ],
+   "when": {
+    "curiosity": "listenerPlace",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "voiceover",
+    "change": "rises"
+   },
+   "whenText": "we are let into one head",
+   "thenText": "the voice-over grows",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "addressed-fourth-wall",
+   "level": "proximity",
+   "label": "When the telling talks to us, the character looks at the lens",
+   "plain": "When the audience is spoken to the whole time, talking to the camera rises within a beat.",
+   "workspace": "structure",
+   "also": [
+    "comedy"
+   ],
+   "when": {
+    "curiosity": "listenerPlace",
+    "slider": "addressed",
+    "is": "spoken to the whole time"
+   },
+   "then": {
+    "curiosity": "fourthWall",
+    "change": "rises"
+   },
+   "whenText": "the telling talks to us",
+   "thenText": "the character looks at the lens",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "knows-more-suspense",
+   "level": "proximity",
+   "label": "When we know more than the hero, suspense builds",
+   "plain": "When we know more than the main character, the gap in who knows first rises within 2 beats.",
+   "workspace": "structure",
+   "also": [
+    "plot"
+   ],
+   "when": {
+    "curiosity": "listenerPlace",
+    "slider": "knows",
+    "is": "more than the hero"
+   },
+   "then": {
+    "curiosity": "knowledgeGap",
+    "change": "rises"
+   },
+   "whenText": "we know more than the hero",
+   "thenText": "suspense builds",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "doubt-same-moment",
+   "level": "proximity",
+   "label": "When the telling can't be trusted, we see the moment again",
+   "plain": "When the telling grows less trustworthy, the same moment from another side rises within 3 beats.",
+   "workspace": "structure",
+   "also": [],
+   "when": {
+    "curiosity": "unreliableTelling",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "sameMomentAgain",
+    "change": "rises"
+   },
+   "whenText": "the telling can't be trusted",
+   "thenText": "we see the moment again",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "doubt-subtext",
+   "level": "proximity",
+   "label": "When the teller is lying, said and meant pull apart",
+   "plain": "When the telling grows less trustworthy, the gap between what is said and what is meant rises within a beat.",
+   "workspace": "structure",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "unreliableTelling",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "subtext",
+    "change": "rises"
+   },
+   "whenText": "the teller is lying",
+   "thenText": "said and meant pull apart",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "jumps-memory",
+   "level": "proximity",
+   "label": "When time jumps more, memories lie over the present",
+   "plain": "When the film jumps in time more often, a memory laid over the present rises within 2 beats.",
+   "workspace": "structure",
+   "also": [
+    "layers"
+   ],
+   "when": {
+    "curiosity": "storyOrder",
+    "slider": "jumps",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "memoryOverlay",
+    "change": "rises"
+   },
+   "whenText": "time jumps more",
+   "thenText": "memories lie over the present",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "ends-first-flash-forward",
+   "level": "proximity",
+   "label": "When the story starts at the end, glimpses of it return",
+   "plain": "When the film starts at the end, a glimpse of what is coming rises within 3 beats.",
+   "workspace": "structure",
+   "also": [],
+   "when": {
+    "curiosity": "storyOrder",
+    "is": "starts at the end"
+   },
+   "then": {
+    "curiosity": "flashForward",
+    "change": "rises"
+   },
+   "whenText": "the story starts at the end",
+   "thenText": "glimpses of it return",
+   "within": 3,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "frame-read-aloud",
+   "level": "proximity",
+   "label": "When the frame is a diary, words are read out loud",
+   "plain": "When the teller is a diary or letter, reading words out loud rises within a beat.",
+   "workspace": "structure",
+   "also": [
+    "lines"
+   ],
+   "when": {
+    "curiosity": "frameStory",
+    "slider": "teller",
+    "is": "a diary or letter"
+   },
+   "then": {
+    "curiosity": "readAloud",
+    "change": "rises"
+   },
+   "whenText": "the frame is a diary",
+   "thenText": "words are read out loud",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "hint-planted",
+   "level": "proximity",
+   "label": "When the hints grow clearer, the planted thing matters more",
+   "plain": "When the hint gets clearer, the size of the planted thing's payoff rises within 4 beats.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "foreshadowHint",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "plantedThing",
+    "slider": "payoff",
+    "change": "rises"
+   },
+   "whenText": "the hints grow clearer",
+   "thenText": "the planted thing matters more",
+   "within": 4,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 4,
+     "to": 6,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "inciting-open-questions",
+   "level": "proximity",
+   "label": "When the start hits harder, our questions pile up",
+   "plain": "When the moment that starts it all hits harder, the questions the audience is holding rise within a beat.",
+   "workspace": "plot",
+   "also": [],
+   "when": {
+    "curiosity": "incitingMoment",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "openQuestions",
+    "change": "rises"
+   },
+   "whenText": "the start hits harder",
+   "thenText": "our questions pile up",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "told-not-shown-flat",
+   "level": "proximity",
+   "label": "When the past is shown, not told, we hold more back",
+   "plain": "When the past is shown more and told less, how much of it is held back rises within 2 beats.",
+   "workspace": "structure",
+   "also": [],
+   "when": {
+    "curiosity": "backstoryDelivery",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "backstoryDelivery",
+    "slider": "held",
+    "change": "rises"
+   },
+   "whenText": "the past is shown",
+   "thenText": "not told, we hold more back",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "symbol-broken-theme",
+   "level": "proximity",
+   "label": "When the symbol is broken, the theme is said again",
+   "plain": "When the thing that stands for something bigger is broken, the theme said out loud rises within 2 beats.",
+   "workspace": "plot",
+   "also": [
+    "lines"
+   ],
+   "when": {
+    "curiosity": "symbolThing",
+    "slider": "changes",
+    "is": "is broken"
+   },
+   "then": {
+    "curiosity": "themeAloud",
+    "change": "rises"
+   },
+   "whenText": "the symbol is broken",
+   "thenText": "the theme is said again",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "stress-type-subtext",
+   "level": "proximity",
+   "label": "When a character is under stress, what they won't say presses harder",
+   "plain": "When their health drops toward their worst, the gap between said and meant rises within a beat.",
+   "workspace": "lines",
+   "also": [
+    "emotion"
+   ],
+   "when": {
+    "curiosity": "typeTalk",
+    "slider": "health",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "subtext",
+    "change": "rises"
+   },
+   "whenText": "a character is under stress",
+   "thenText": "what they won't say presses harder",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "type-voice-marks",
+   "level": "proximity",
+   "label": "When the type shows strongly, their way of talking stands out",
+   "plain": "When their type shows more strongly in their lines, how much their way of talking marks them rises within 2 beats.",
+   "workspace": "lines",
+   "also": [],
+   "when": {
+    "curiosity": "typeTalk",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "wayOfTalking",
+    "change": "rises"
+   },
+   "whenText": "the type shows strongly",
+   "thenText": "their way of talking stands out",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
    "id": "style-long-talk-violence",
    "level": "proximity",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -309919,6 +313686,580 @@
     {
      "id": "chance:stills-nostalgia",
      "label": "How often stills-nostalgia",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "the-telling-turns",
+   "level": "proximitySuite",
+   "label": "The telling turns",
+   "plain": "A voice talks to us, then the teller is caught lying, we see the moment again, and what was said and meant come apart.",
+   "workspace": "structure",
+   "also": [],
+   "members": [
+    "addressed-fourth-wall",
+    "doubt-same-moment",
+    "doubt-subtext",
+    "closer-telling-voiceover"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:addressed-fourth-wall",
+     "label": "Delay of addressed-fourth-wall",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:addressed-fourth-wall",
+     "label": "How often addressed-fourth-wall",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:doubt-same-moment",
+     "label": "Delay of doubt-same-moment",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:doubt-same-moment",
+     "label": "How often doubt-same-moment",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:doubt-subtext",
+     "label": "Delay of doubt-subtext",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:doubt-subtext",
+     "label": "How often doubt-subtext",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:closer-telling-voiceover",
+     "label": "Delay of closer-telling-voiceover",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:closer-telling-voiceover",
+     "label": "How often closer-telling-voiceover",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "seeds-and-harvest",
+   "level": "proximitySuite",
+   "label": "Seeds and harvest",
+   "plain": "A hard start raises questions, hints point ahead, the planted thing pays off, and the broken symbol says the theme.",
+   "workspace": "plot",
+   "also": [],
+   "members": [
+    "inciting-open-questions",
+    "hint-planted",
+    "symbol-broken-theme",
+    "knows-more-suspense"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:inciting-open-questions",
+     "label": "Delay of inciting-open-questions",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:inciting-open-questions",
+     "label": "How often inciting-open-questions",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:hint-planted",
+     "label": "Delay of hint-planted",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:hint-planted",
+     "label": "How often hint-planted",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:symbol-broken-theme",
+     "label": "Delay of symbol-broken-theme",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:symbol-broken-theme",
+     "label": "How often symbol-broken-theme",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:knows-more-suspense",
+     "label": "Delay of knows-more-suspense",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:knows-more-suspense",
+     "label": "How often knows-more-suspense",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "time-out-of-order",
+   "level": "proximitySuite",
+   "label": "Time out of order",
+   "plain": "The story starts at the end, jumps around, lays memories over the present and reads an old diary aloud.",
+   "workspace": "structure",
+   "also": [],
+   "members": [
+    "ends-first-flash-forward",
+    "jumps-memory",
+    "frame-read-aloud",
+    "told-not-shown-flat"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:ends-first-flash-forward",
+     "label": "Delay of ends-first-flash-forward",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:ends-first-flash-forward",
+     "label": "How often ends-first-flash-forward",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:jumps-memory",
+     "label": "Delay of jumps-memory",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:jumps-memory",
+     "label": "How often jumps-memory",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:frame-read-aloud",
+     "label": "Delay of frame-read-aloud",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:frame-read-aloud",
+     "label": "How often frame-read-aloud",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:told-not-shown-flat",
+     "label": "Delay of told-not-shown-flat",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:told-not-shown-flat",
+     "label": "How often told-not-shown-flat",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "talking-true",
+   "level": "proximitySuite",
+   "label": "Talking true to type",
+   "plain": "Under stress each character hides more under their words, and their way of talking stands out.",
+   "workspace": "lines",
+   "also": [],
+   "members": [
+    "stress-type-subtext",
+    "type-voice-marks"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:stress-type-subtext",
+     "label": "Delay of stress-type-subtext",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:stress-type-subtext",
+     "label": "How often stress-type-subtext",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:type-voice-marks",
+     "label": "Delay of type-voice-marks",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:type-voice-marks",
+     "label": "How often type-voice-marks",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,

@@ -22151,6 +22151,277 @@
    "then": "nostalgia comes in"
   },
   {
+   "id": "p:closer-telling-voiceover",
+   "proximity": "closer-telling-voiceover",
+   "label": "When we are let into one head, the voice-over grows",
+   "from": {
+    "curiosity": "listenerPlace",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "voiceover",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we are let into one head",
+   "then": "the voice-over grows"
+  },
+  {
+   "id": "p:addressed-fourth-wall",
+   "proximity": "addressed-fourth-wall",
+   "label": "When the telling talks to us, the character looks at the lens",
+   "from": {
+    "curiosity": "listenerPlace.addressed",
+    "track": "master",
+    "is": "spoken to the whole time",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "fourthWall",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the telling talks to us",
+   "then": "the character looks at the lens"
+  },
+  {
+   "id": "p:knows-more-suspense",
+   "proximity": "knows-more-suspense",
+   "label": "When we know more than the hero, suspense builds",
+   "from": {
+    "curiosity": "listenerPlace.knows",
+    "track": "master",
+    "is": "more than the hero",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "knowledgeGap",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we know more than the hero",
+   "then": "suspense builds"
+  },
+  {
+   "id": "p:doubt-same-moment",
+   "proximity": "doubt-same-moment",
+   "label": "When the telling can't be trusted, we see the moment again",
+   "from": {
+    "curiosity": "unreliableTelling",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sameMomentAgain",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the telling can't be trusted",
+   "then": "we see the moment again"
+  },
+  {
+   "id": "p:doubt-subtext",
+   "proximity": "doubt-subtext",
+   "label": "When the teller is lying, said and meant pull apart",
+   "from": {
+    "curiosity": "unreliableTelling",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the teller is lying",
+   "then": "said and meant pull apart"
+  },
+  {
+   "id": "p:jumps-memory",
+   "proximity": "jumps-memory",
+   "label": "When time jumps more, memories lie over the present",
+   "from": {
+    "curiosity": "storyOrder.jumps",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "memoryOverlay",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "time jumps more",
+   "then": "memories lie over the present"
+  },
+  {
+   "id": "p:ends-first-flash-forward",
+   "proximity": "ends-first-flash-forward",
+   "label": "When the story starts at the end, glimpses of it return",
+   "from": {
+    "curiosity": "storyOrder",
+    "track": "master",
+    "is": "starts at the end",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "flashForward",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the story starts at the end",
+   "then": "glimpses of it return"
+  },
+  {
+   "id": "p:frame-read-aloud",
+   "proximity": "frame-read-aloud",
+   "label": "When the frame is a diary, words are read out loud",
+   "from": {
+    "curiosity": "frameStory.teller",
+    "track": "master",
+    "is": "a diary or letter",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "readAloud",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the frame is a diary",
+   "then": "words are read out loud"
+  },
+  {
+   "id": "p:hint-planted",
+   "proximity": "hint-planted",
+   "label": "When the hints grow clearer, the planted thing matters more",
+   "from": {
+    "curiosity": "foreshadowHint",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plantedThing.payoff",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hints grow clearer",
+   "then": "the planted thing matters more"
+  },
+  {
+   "id": "p:inciting-open-questions",
+   "proximity": "inciting-open-questions",
+   "label": "When the start hits harder, our questions pile up",
+   "from": {
+    "curiosity": "incitingMoment",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the start hits harder",
+   "then": "our questions pile up"
+  },
+  {
+   "id": "p:told-not-shown-flat",
+   "proximity": "told-not-shown-flat",
+   "label": "When the past is shown, not told, we hold more back",
+   "from": {
+    "curiosity": "backstoryDelivery",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "backstoryDelivery.held",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the past is shown",
+   "then": "not told, we hold more back"
+  },
+  {
+   "id": "p:symbol-broken-theme",
+   "proximity": "symbol-broken-theme",
+   "label": "When the symbol is broken, the theme is said again",
+   "from": {
+    "curiosity": "symbolThing.changes",
+    "track": "character",
+    "is": "is broken",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "themeAloud",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the symbol is broken",
+   "then": "the theme is said again"
+  },
+  {
+   "id": "p:stress-type-subtext",
+   "proximity": "stress-type-subtext",
+   "label": "When a character is under stress, what they won't say presses harder",
+   "from": {
+    "curiosity": "typeTalk.health",
+    "track": "character",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character is under stress",
+   "then": "what they won't say presses harder"
+  },
+  {
+   "id": "p:type-voice-marks",
+   "proximity": "type-voice-marks",
+   "label": "When the type shows strongly, their way of talking stands out",
+   "from": {
+    "curiosity": "typeTalk",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "wayOfTalking",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the type shows strongly",
+   "then": "their way of talking stands out"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -27568,6 +27839,70 @@
     "p:picture-shrinks-loneliness",
     "p:pov-mask-dread",
     "p:stills-nostalgia"
+   ]
+  },
+  {
+   "id": "ps:the-telling-turns",
+   "label": "The telling turns",
+   "plain": "A voice talks to us, then the teller is caught lying, we see the moment again, and what was said and meant come apart.",
+   "proximities": [
+    "addressed-fourth-wall",
+    "doubt-same-moment",
+    "doubt-subtext",
+    "closer-telling-voiceover"
+   ],
+   "links": [
+    "p:addressed-fourth-wall",
+    "p:doubt-same-moment",
+    "p:doubt-subtext",
+    "p:closer-telling-voiceover"
+   ]
+  },
+  {
+   "id": "ps:seeds-and-harvest",
+   "label": "Seeds and harvest",
+   "plain": "A hard start raises questions, hints point ahead, the planted thing pays off, and the broken symbol says the theme.",
+   "proximities": [
+    "inciting-open-questions",
+    "hint-planted",
+    "symbol-broken-theme",
+    "knows-more-suspense"
+   ],
+   "links": [
+    "p:inciting-open-questions",
+    "p:hint-planted",
+    "p:symbol-broken-theme",
+    "p:knows-more-suspense"
+   ]
+  },
+  {
+   "id": "ps:time-out-of-order",
+   "label": "Time out of order",
+   "plain": "The story starts at the end, jumps around, lays memories over the present and reads an old diary aloud.",
+   "proximities": [
+    "ends-first-flash-forward",
+    "jumps-memory",
+    "frame-read-aloud",
+    "told-not-shown-flat"
+   ],
+   "links": [
+    "p:ends-first-flash-forward",
+    "p:jumps-memory",
+    "p:frame-read-aloud",
+    "p:told-not-shown-flat"
+   ]
+  },
+  {
+   "id": "ps:talking-true",
+   "label": "Talking true to type",
+   "plain": "Under stress each character hides more under their words, and their way of talking stands out.",
+   "proximities": [
+    "stress-type-subtext",
+    "type-voice-marks"
+   ],
+   "links": [
+    "p:stress-type-subtext",
+    "p:type-voice-marks"
    ]
   },
   {
