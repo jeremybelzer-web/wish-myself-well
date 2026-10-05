@@ -91,6 +91,10 @@ function serve() {
     await page.fill('dialog.wt-watch [data-w="link"]', "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30");
     await page.click('dialog.wt-watch [data-w="load"]');
     ok((await page.getAttribute("dialog.wt-watch .wt-player iframe", "src")).includes("youtube-nocookie.com/embed/dQw4w9WgXcQ?") , "a YouTube link plays in YouTube's own player");
+    await page.fill('dialog.wt-watch [data-w="cend"]', "1:10");
+    await page.fill('dialog.wt-watch [data-w="backup"]', "https://youtu.be/9bZkp7q19f0");
+    await page.click('dialog.wt-watch [data-w="addbackup"]');
+    ok((await page.$$('dialog.wt-watch [data-w="useid"]')).length === 2 && (await page.inputValue('dialog.wt-watch [data-w="cstart"]')) === "0:30" && (await page.getAttribute("dialog.wt-watch .wt-player iframe", "src")).includes("&end=70"), "the scene's start and end are kept and a backup link is added");
     await page.selectOption('dialog.wt-watch [data-w="key"]', "shotSize");
     await page.selectOption('dialog.wt-watch [data-w="value"]', "wide");
     await page.fill('dialog.wt-watch [data-w="at"]', "0:30");
@@ -106,6 +110,7 @@ function serve() {
     await page.click('dialog.wt-watch [data-w="keep"]');
     const tagged = await page.evaluate(() => window.CurioInspire.store().clips.find((c) => c.work === "Tagged clip"));
     ok(tagged && tagged.video && tagged.video.id === "dQw4w9WgXcQ" && tagged.beats.length === 2 && tagged.beats[0].at === 30 && tagged.beats[1].values.shotSize === "close", "Keep saves the tags as beats with the video id");
+    ok(tagged.video.start === 30 && tagged.video.end === 70 && tagged.video.ids.join() === "dQw4w9WgXcQ,9bZkp7q19f0", "Keep saves the stretch and the backup");
     ok(!JSON.stringify(tagged).includes("youtube.com/watch"), "only the id is kept, no link or title from YouTube");
     ok(await page.evaluate(() => document.querySelector("dialog.ci-hub").open && document.querySelector("dialog.ci-hub .ci-card").textContent.includes("Tagged clip")), "the tagged clip shows in the hub");
     await page.click('dialog.ci-hub .ci-card [data-i="tag-scene"]');

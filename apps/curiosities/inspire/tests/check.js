@@ -86,4 +86,25 @@ assert.deepStrictEqual(tagged.feelings, ["joy", "dread"]);
 const tscene = hub.logClip(tagged);
 assert.strictEqual(tscene.video.id, "dQw4w9WgXcQ");
 assert.strictEqual(tscene.beats[1].values.emotion, "joy", "each beat keeps the values before it");
+// Clip stretch and backups are kept; the link check moves a live link to the front and marks lost clips.
+const withBackups = W.toClip({ work: "B", video: "AAAAAAAAAAA", ids: ["BBBBBBBBBBB", "AAAAAAAAAAA"], clipStart: 30, clipEnd: 72.4 }, [{ at: 31, key: "shotSize", value: "wide" }]);
+assert.deepStrictEqual(withBackups.video, { site: "youtube", id: "AAAAAAAAAAA", ids: ["AAAAAAAAAAA", "BBBBBBBBBBB"], start: 30, end: 72 });
+const bscene = hub.logClip(withBackups);
+assert.deepStrictEqual(bscene.video.ids, ["AAAAAAAAAAA", "BBBBBBBBBBB"]);
+const lost = hub.logClip(W.toClip({ work: "L", video: "CCCCCCCCCCC" }, []));
+const fresh = hub.logClip(W.toClip({ work: "F", video: "DDDDDDDDDDD" }, []));
+fresh.video.checked = 1000;
+const alive = { jNQXAC9IVRw: true, AAAAAAAAAAA: false, BBBBBBBBBBB: true, CCCCCCCCCCC: false };
+(async () => {
+  const n = await W.check([bscene, lost, fresh], { probe: async (id) => alive[id], now: 2000 });
+  assert.strictEqual(n, 2, "only clips not checked in 30 days are checked");
+  assert.strictEqual(bscene.video.id, "BBBBBBBBBBB", "a live backup moves to the front");
+  assert.deepStrictEqual(bscene.video.gone, ["AAAAAAAAAAA"]);
+  assert.ok(lost.video.lost && !bscene.video.lost);
+  assert.strictEqual(await W.check([hub.logClip(W.toClip({ work: "O", video: "EEEEEEEEEEE" }, []))], { probe: async () => null }), 0, "offline marks nothing");
+  assert.strictEqual(await W.check([hub.logClip(W.toClip({ work: "X", video: "EEEEEEEEEEE" }, []))], { probe: async () => false }), 0, "a page that can't reach YouTube marks nothing");
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
 console.log(`inspire: ${scenes.length} scenes, ${topics.length} topics, every value on its scale; filters narrow (${all} -> ${n1} -> ${n2}).`);

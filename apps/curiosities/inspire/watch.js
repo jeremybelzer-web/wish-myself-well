@@ -6,7 +6,10 @@
    (YouTube's terms: no copies of the video, and its own data must be refreshed every 30 days, so we keep none).
    The player is talked to with YouTube's postMessage protocol, so no outside script is loaded. If the player can't
    load (offline, or a page that blocks it), type the time instead.
-   window.CurioWatchTag = { open, parseId, toClip, fmt, parseTime }. */
+   A clip keeps a start and end (the player plays just that stretch) and backup links: the same scene from other
+   uploads. If the player reports a video gone or not embeddable, the next backup plays. check() runs in the
+   background (from the hub) and moves a live link to the front for any clip not checked in 30 days.
+   window.CurioWatchTag = { open, parseId, toClip, fmt, parseTime, linkStart, probe, check }. */
 (function (root) {
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
@@ -38,6 +41,14 @@
     if (m && (m[1] || m[2])) return (+m[1] || 0) * 60 + (+m[2] || 0);
     return null;
   }
+  /* The stored video: the id playing first, every id (backups after it), and the stretch to play. */
+  function videoOf(id, ids, start, end) {
+    const all = [id].concat(ids || []).filter((x, i, a) => x && a.indexOf(x) === i);
+    const v = { site: "youtube", id: all[0], ids: all };
+    if (start != null && start !== "") v.start = Math.max(0, Math.round(Number(start)));
+    if (end != null && end !== "" && Number(end) > (v.start || 0)) v.end = Math.round(Number(end));
+    return v;
+  }
   /* Tags [{at, key, value}] -> the clip the hub keeps: one beat per moment, in time order. */
   function toClip(info, tags) {
     const byAt = new Map();
@@ -59,9 +70,64 @@
         .map((x) => x.trim().toLowerCase())
         .filter(Boolean),
       search: info.search || [info.work, info.moment].filter(Boolean).join(" "),
-      video: info.video ? { site: "youtube", id: info.video } : null,
+      video: info.video ? videoOf(info.video, info.ids, info.clipStart, info.clipEnd) : null,
       beats: Array.from(byAt, ([at, values]) => ({ at, values })),
     };
+  }
+
+  /* Is a YouTube video still there? Free and key-free: a missing video's thumbnail is YouTube's 120 x 90 grey
+     placeholder or an error. true = there, false = gone, null = can't tell (offline). Only the answer is kept. */
+  function probe(id) {
+    return new Promise((resolve) => {
+      if (typeof Image === "undefined") return resolve(null);
+      const img = new Image();
+      const done = (v) => {
+        clearTimeout(t);
+        img.onload = img.onerror = null;
+        resolve(v);
+      };
+      const t = setTimeout(() => done(null), 8000);
+      img.onload = () => done(!(img.naturalWidth === 120 && img.naturalHeight === 90));
+      img.onerror = () => done(typeof navigator !== "undefined" && navigator.onLine === false ? null : false);
+      img.src = "https://i.ytimg.com/vi/" + encodeURIComponent(id) + "/mqdefault.jpg";
+    });
+  }
+  const MONTH = 30 * 24 * 3600 * 1000;
+  const CANARY = "jNQXAC9IVRw";
+  /* Check the links of clips not checked in 30 days (YouTube's rule for stored ids). A live link moves to the front;
+     gone ones are listed in video.gone; a clip with none left gets video.lost and plays from its search words.
+     If any answer is "can't tell" (offline), the clip waits for next time. Changes the clips in place; resolves to
+     how many changed. opts: { probe, now, every } */
+  async function check(clips, opts) {
+    const o = opts || {};
+    const test = o.probe || probe;
+    const now = o.now || Date.now();
+    let changed = 0;
+    const due = (clips || []).filter((c) => c && c.video && c.video.site === "youtube" && c.video.id && !(c.video.checked && now - c.video.checked < (o.every || MONTH)));
+    if (!due.length) return 0;
+    /* First a video that is always there ("Me at the zoo", YouTube's first). If even it fails, the page can't reach
+       YouTube's pictures (offline, or a page that blocks them), so nothing is marked gone. */
+    if ((await test(CANARY)) !== true) return 0;
+    for (const c of due) {
+      const v = c && c.video;
+      if (!v || v.site !== "youtube" || !v.id) continue;
+      if (v.checked && now - v.checked < (o.every || MONTH)) continue;
+      const ids = (v.ids || [v.id]).filter(Boolean);
+      const answers = [];
+      for (const id of ids) answers.push(await test(id));
+      if (answers.some((r) => r !== true && r !== false)) continue;
+      const live = ids.filter((x, i) => answers[i]);
+      const gone = ids.filter((x, i) => !answers[i]);
+      v.ids = live.concat(gone);
+      v.id = live[0] || ids[0];
+      if (gone.length) v.gone = gone;
+      else delete v.gone;
+      if (live.length) delete v.lost;
+      else v.lost = true;
+      v.checked = now;
+      changed++;
+    }
+    return changed;
   }
 
   /* Curiosities most scenes lean on, offered first. */
@@ -137,6 +203,8 @@
     }
     if (!d || typeof d !== "object") return;
     if (d.event === "onReady") player.ready = true;
+    /* 2 bad id, 5 can't play, 100 gone, 101/150 the owner blocks embedding: try the next backup. */
+    if (d.event === "onError") return failover(d.info);
     const info = d.info || {};
     if (typeof info.currentTime === "number") {
       player.ready = true;
@@ -147,6 +215,17 @@
       if (at && document.activeElement !== at) at.value = fmt(player.time);
     }
     if (typeof info.duration === "number" && info.duration > 0) player.duration = info.duration;
+  }
+
+  function failover(code) {
+    const bad = state.video;
+    state.gone = (state.gone || []).concat(bad ? [bad] : []);
+    const next = state.ids.find((x) => x !== bad && state.gone.indexOf(x) < 0);
+    if (!next) return msg("This video won't play here" + (code ? " (YouTube says " + code + ")" : "") + ". Add a backup link, or press \"Find it on YouTube\".");
+    state.video = next;
+    state.start = state.clipStart || 0;
+    draw();
+    msg("That link stopped working, so a backup is playing.");
   }
 
   /* ---------- drawing ---------- */
@@ -163,9 +242,19 @@
         </div>
         <div class="wt-player">${
           id
-            ? `<iframe title="YouTube player" src="https://www.youtube-nocookie.com/embed/${esc(id)}?enablejsapi=1&playsinline=1&rel=0${state.start ? "&start=" + state.start : ""}&origin=${esc(encodeURIComponent(location.origin))}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`
+            ? `<iframe title="YouTube player" src="https://www.youtube-nocookie.com/embed/${esc(id)}?enablejsapi=1&playsinline=1&rel=0${state.start ? "&start=" + Math.floor(state.start) : ""}${state.clipEnd ? "&end=" + Math.ceil(state.clipEnd) : ""}&origin=${esc(encodeURIComponent(location.origin))}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`
             : `<p class="ci-small">Paste a YouTube link to play the clip here. Type search words and press "Find it on YouTube" to look for it in a new tab, then copy the link back.</p>`
         }</div>
+        ${
+          id
+            ? `<div class="wt-clipbar ci-small">
+          <span>The scene runs from</span> <input data-w="cstart" size="6" value="${state.clipStart != null ? fmt(state.clipStart) : ""}" placeholder="0:00"> <button type="button" class="ci-link" data-w="setstart">now</button>
+          <span>to</span> <input data-w="cend" size="6" value="${state.clipEnd != null ? fmt(state.clipEnd) : ""}" placeholder="end"> <button type="button" class="ci-link" data-w="setend">now</button>
+          <span class="wt-sep">Backup links (the same scene, other uploads)</span> <input data-w="backup" size="22" placeholder="paste another link"> <button type="button" class="ci-link" data-w="addbackup">Add</button>
+          ${state.ids.length > 1 ? `<span>${state.ids.map((x, i) => `<button type="button" class="ci-pill${x === id ? " on" : ""}" data-w="useid" data-v="${esc(x)}" title="Play this one">${i ? "backup " + i : "main"}${(state.gone || []).indexOf(x) >= 0 ? " ✕" : ""}</button>${i ? `<button type="button" class="ci-link" data-w="dropid" data-v="${esc(x)}" title="Remove this backup">×</button>` : ""}`).join(" ")}</span>` : ""}
+        </div>`
+            : ""
+        }
         <div class="wt-tagbar">
           <span class="wt-clock" title="Where the player is">${fmt(player.time)}</span>
           <select data-w="key">${curiosityOptions(state.key)}</select>
@@ -206,6 +295,10 @@
     dlg.querySelectorAll("[data-f]").forEach((x) => (state.info[x.dataset.f] = x.value));
     const link = dlg.querySelector('[data-w="link"]');
     if (link) state.link = link.value;
+    const cs = dlg.querySelector('[data-w="cstart"]');
+    if (cs) state.clipStart = parseTime(cs.value);
+    const ce = dlg.querySelector('[data-w="cend"]');
+    if (ce) state.clipEnd = parseTime(ce.value);
   }
   function msg(text) {
     const m = dlg.querySelector(".wt-msg");
@@ -215,8 +308,11 @@
     readInfo();
     const id = parseId(state.link);
     if (!id) return msg(state.link.trim() ? "That isn't a YouTube link. Press \"Find it on YouTube\" to search, then paste the clip's link here." : "Paste a YouTube link first.");
+    if (state.video && state.video !== id && state.ids.indexOf(state.video) < 0) state.ids.push(state.video);
+    state.ids = [id].concat(state.ids.filter((x) => x !== id));
     state.video = id;
     state.start = linkStart(state.link);
+    if (state.clipStart == null && state.start) state.clipStart = state.start;
     player.time = state.start;
     if (!state.info.search) state.info.search = "";
     draw();
@@ -239,7 +335,7 @@
     if (!state.info.work.trim()) return msg("Give it a title first.");
     if (!state.tags.length) return msg("Tag at least one curiosity.");
     const searchWords = parseId(state.link) ? "" : state.link.trim();
-    const clip = toClip(Object.assign({}, state.info, { video: state.video, search: state.info.search || searchWords }), state.tags);
+    const clip = toClip(Object.assign({}, state.info, { video: state.video, ids: state.ids, clipStart: state.clipStart, clipEnd: state.clipEnd, search: state.info.search || searchWords }), state.tags);
     const kept = window.CurioInspire && window.CurioInspire.keep ? window.CurioInspire.keep(clip) : null;
     state = null;
     shut();
@@ -274,6 +370,34 @@
     }
     if (w === "keep") return keep();
     if (w === "layout") return setLayout(b.dataset.v);
+    if (w === "setstart" || w === "setend") {
+      readInfo();
+      const t = Math.round((player.ready ? player.time : parseTime((dlg.querySelector('[data-w="at"]') || {}).value) || 0) * 10) / 10;
+      if (w === "setstart") state.clipStart = t;
+      else state.clipEnd = t;
+      return draw();
+    }
+    if (w === "addbackup") {
+      readInfo();
+      const box = dlg.querySelector('[data-w="backup"]');
+      const id = parseId(box && box.value);
+      if (!id) return msg("Paste a YouTube link for the backup.");
+      if (state.ids.indexOf(id) < 0) state.ids.push(id);
+      draw();
+      return msg("Backup added. It plays if the main link stops working.");
+    }
+    if (w === "useid") {
+      readInfo();
+      state.video = b.dataset.v;
+      state.ids = [state.video].concat(state.ids.filter((x) => x !== state.video));
+      state.start = state.clipStart || 0;
+      return draw();
+    }
+    if (w === "dropid") {
+      readInfo();
+      state.ids = state.ids.filter((x) => x !== b.dataset.v);
+      return draw();
+    }
     if (w === "shut") return shut();
     if (w === "close") {
       shut();
@@ -339,10 +463,16 @@
         document.body.classList.remove("wt-dock-side", "wt-dock-stack");
       });
     }
+    const v = o.video && o.video.id ? o.video : null;
+    const ids = v ? (v.ids || [v.id]).filter(Boolean) : o.link && parseId(o.link) ? [parseId(o.link)] : [];
     state = {
-      link: o.link || o.search || "",
-      video: o.link ? parseId(o.link) : null,
-      start: o.link ? linkStart(o.link) : 0,
+      link: v ? "https://youtu.be/" + v.id : o.link || o.search || "",
+      video: v ? v.id : o.link ? parseId(o.link) : null,
+      ids,
+      gone: v && v.gone ? v.gone.slice() : [],
+      clipStart: v && v.start != null ? v.start : o.link && linkStart(o.link) ? linkStart(o.link) : null,
+      clipEnd: v && v.end != null ? v.end : null,
+      start: v ? v.start || 0 : o.link ? linkStart(o.link) : 0,
       key: "emotion",
       value: "",
       pause: false,
@@ -397,6 +527,8 @@ dialog.wt-watch>.wt-body{flex:1;height:auto;min-height:0}
 .wt-player p{padding:1rem}
 .wt-player iframe{width:100%;height:100%;border:0}
 .wt-tagbar{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:.5rem 0}
+.wt-clipbar{display:flex;flex-wrap:wrap;gap:.3rem;align-items:center;margin:.4rem 0 0}
+.wt-clipbar .wt-sep{margin-left:.6rem}
 .wt-tagbar select{width:auto;max-width:16rem}
 .wt-clock{font-variant-numeric:tabular-nums;font-weight:600;min-width:3.2rem}
 .wt-tag{background:var(--saffron,#c45c26);color:#fff;border:0;border-radius:6px;padding:.3rem .8rem;font:inherit;cursor:pointer}
@@ -424,7 +556,7 @@ dialog.wt-watch>.wt-body{flex:1;height:auto;min-height:0}
     else setTimeout(wire, 0);
   }
 
-  const api = { open, parseId, toClip, fmt, parseTime, linkStart };
+  const api = { open, parseId, toClip, fmt, parseTime, linkStart, probe, check };
   root.CurioWatchTag = api;
   if (typeof module !== "undefined") module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

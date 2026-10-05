@@ -114,7 +114,7 @@
     const focus = view.key && view.topic !== "all" ? h.details(s).find((d) => d.key === view.key) : null;
     const views = store.views[s.id] || 0;
     return `<article class="ci-card${open ? " open" : ""}">
-      <header><strong>${esc(s.work)}</strong> <small>${esc(s.year)} · ${esc(s.kind)}${s.logged ? " · logged by you" : ""}${views ? ` · watched ${views}×` : ""}</small></header>
+      <header><strong>${esc(s.work)}</strong> <small>${esc(s.year)} · ${esc(s.kind)}${s.logged ? " · logged by you" : ""}${s.video && s.video.lost ? " · link lost, Watch searches for it" : ""}${views ? ` · watched ${views}×` : ""}</small></header>
       <p>${esc(s.moment)} <small class="ci-small">(${esc(s.feelings.join(", "))})</small></p>
       ${focus ? `<p class="ci-small">${esc(focus.label)}: ${focus.path.map(esc).join(" → ")} <em>(${esc(focus.rate)})</em></p>` : ""}
       <p class="ci-actions"><button type="button" data-i="watch-go" data-v="${esc(s.id)}">Watch</button>
@@ -251,7 +251,9 @@
       if (!s) return;
       store.views[s.id] = (store.views[s.id] || 0) + 1;
       save();
-      window.open(getHub().WATCH[store.watch || "youtube"].url(s.search), "_blank", "noopener");
+      /* A kept YouTube link opens right at the scene; a lost one (or another site) opens a search. */
+      const yt = s.video && s.video.site === "youtube" && !s.video.lost && (store.watch || "youtube") === "youtube";
+      window.open(yt ? "https://www.youtube.com/watch?v=" + encodeURIComponent(s.video.id) + (s.video.start ? "&t=" + s.video.start + "s" : "") : getHub().WATCH[store.watch || "youtube"].url(s.search), "_blank", "noopener");
       return draw();
     }
     if (i === "borrow") return sceneOf(v) && borrow(sceneOf(v));
@@ -282,7 +284,7 @@
     if ((i === "tag" || i === "tag-scene") && window.CurioWatchTag) {
       const sc = i === "tag-scene" ? sceneOf(v) : null;
       if (dlg.open) dlg.close();
-      return window.CurioWatchTag.open(sc ? { search: sc.search, work: sc.work, year: sc.year, kind: sc.kind, moment: sc.moment, feelings: sc.feelings, link: sc.video && sc.video.id ? "https://youtu.be/" + sc.video.id : "" } : {});
+      return window.CurioWatchTag.open(sc ? { search: sc.search, work: sc.work, year: sc.year, kind: sc.kind, moment: sc.moment, feelings: sc.feelings, video: sc.video } : {});
     }
   }
   function keepLogFields() {
@@ -341,6 +343,22 @@
     if (typeof dlg.showModal === "function" && !dlg.open) dlg.showModal();
     else dlg.setAttribute("open", "");
     draw();
+    recheck();
+  }
+  /* In the background: links not checked in 30 days are checked, a live one moves to the front. */
+  let checking = false;
+  function recheck() {
+    if (checking || !window.CurioWatchTag || !window.CurioWatchTag.check) return;
+    checking = true;
+    window.CurioWatchTag.check(store.clips || [])
+      .then((n) => {
+        if (!n) return;
+        (store.clips || []).forEach((c) => getHub().add(c));
+        save();
+        if (dlg && dlg.open && !view.logging) draw();
+      })
+      .catch(() => {})
+      .then(() => (checking = false));
   }
 
   function wire() {
