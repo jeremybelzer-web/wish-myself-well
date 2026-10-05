@@ -641,7 +641,7 @@
 
   W.add("cameraEffect", {
     sliders: [
-      ["timedTo", "What it's timed to", ["anywhere", "a hit", "the music beat", "a line"], "The moment that triggers the move.", U],
+      ["timedTo", "What it's timed to", ["anywhere", "a hit", "the music beat", "a line"], "The moment that sparks the move.", U],
       ["ease", "How it starts and stops", ["sudden", "quick ease", "smooth ease"], "Whether the move kicks in hard or glides."],
       ["effectLength", "How long it lasts", [0, 10, "s"], "Seconds the added move runs."],
     ],

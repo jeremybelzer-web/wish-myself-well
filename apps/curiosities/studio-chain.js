@@ -222,7 +222,7 @@
     let y = TOP;
     const parts = [];
     /* Event row */
-    parts.push(`<text x="4" y="${TOP - 10}" font-size="10" font-weight="700">Triggers</text>`);
+    parts.push(`<text x="4" y="${TOP - 10}" font-size="10" font-weight="700">Sparks</text>`);
     for (let b = 0; b < n; b++) {
       const x = LW + b * CW;
       const ev = s.events.filter(([eb]) => eb === b).map(([, t]) => EVENTS[t]).filter(Boolean);
@@ -311,12 +311,12 @@
 
 
     el.innerHTML = `
-      <div class="ch-presets"><span class="cap">Suite presets:</span>${PRESETS.map((p) => `<button type="button" data-preset="${p.id}" class="${s.preset === p.id ? "on" : ""}">${esc(p.label)}</button>`).join("")}<button type="button" data-act="clear">Clear triggers</button></div>
+      <div class="ch-presets"><span class="cap">Suite presets:</span>${PRESETS.map((p) => `<button type="button" data-preset="${p.id}" class="${s.preset === p.id ? "on" : ""}">${esc(p.label)}</button>`).join("")}<button type="button" data-act="clear">Clear sparks</button></div>
       <div class="bar-actions">
-        <label class="field">Trigger to drop<select id="ch-palette">${Object.entries(EVENTS).map(([k, e]) => `<option value="${k}" ${s.palette === k ? "selected" : ""}>${esc(e.icon + " · " + e.label)}</option>`).join("")}</select></label>
+        <label class="field">Spark to drop<select id="ch-palette">${Object.entries(EVENTS).map(([k, e]) => `<option value="${k}" ${s.palette === k ? "selected" : ""}>${esc(e.icon + " · " + e.label)}</option>`).join("")}</select></label>
         <label class="field">Beats: ${s.beats}<input type="range" min="8" max="16" id="ch-beats" value="${s.beats}"></label>
       </div>
-      <p class="cap">Click a beat in the Triggers row to drop the chosen trigger, click again to remove it. Orange cells were set by a trigger, gold cells by a rule; arrows run from cause to effect.</p>
+      <p class="cap">Click a beat in the Sparks row to drop the chosen spark, click again to remove it. Orange cells were set by a spark, gold cells by a rule; arrows run from cause to effect.</p>
       <div class="ch-wrap">${gridSvg(s, res, esc)}</div>
       <div class="bar-actions" style="margin:8px 0">
         <button type="button" data-act="prev">&lt;</button>
@@ -325,7 +325,7 @@
         <span class="mono">beat ${s.head + 1}/${s.beats}</span>
         <button type="button" data-act="shelf">Keep on Shelf</button>
         <button type="button" data-act="board">Send to board</button>
-        <button type="button" data-act="export">Export suite + proximities</button>
+        <button type="button" data-act="export">Export suite + sparks</button>
       </div>
       <div class="studio-grid">
         <div>
@@ -335,7 +335,7 @@
           <div id="ch-suites"></div>
         </div>
         <div>
-          <h3>Proximities</h3>
+          <h3>Sparks</h3>
           <table class="trace ch-rules"><thead><tr><th>On</th><th>When … then …</th><th>Delay</th></tr></thead><tbody>
             ${ruleHolds.map(({ r, cfg }) => `<tr><td><input type="checkbox" data-rule="${r.id}" ${cfg.on ? "checked" : ""}> <span class="chip lit" data-autorule="${r.id}" hidden>automated</span></td><td>When ${esc(r.when)} <span class="cap">(${esc(r.from)})</span>, ${esc(r.then)} <span class="cap">(${esc(r.to)})</span>, within ${r.within}</td><td><input type="number" min="0" max="6" data-delay="${r.id}" value="${cfg.delay}"></td></tr>`).join("")}
           </tbody></table>
@@ -576,7 +576,7 @@
       });
       const name = (PRESETS.find((p) => p.id === s.preset) || { label: "Six areas" }).label;
       const data = {
-        suite: { id: "chain-" + name.toLowerCase().replace(/\s+/g, "-"), label: name + " chain", note: "Built in the Chain studio from triggers on " + s.beats + " beats.", set },
+        suite: { id: "chain-" + name.toLowerCase().replace(/\s+/g, "-"), label: name + " chain", note: "Built in the Chain studio from sparks on " + s.beats + " beats.", set },
         proximities: RULES.filter((r) => ruleCfg(s, r).on).map((r) => ({
           id: "chain-" + r.id,
           when: r.when,

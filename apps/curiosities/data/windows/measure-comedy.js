@@ -421,7 +421,7 @@
 
   W.add("cutawayGag", {
     sliders: [
-      ["triggerGap", "Line to cutaway", [0, 2, "s", 0.1], "How soon after the trigger the cut away happens.", { from: 0.2, to: 0.2 }],
+      ["triggerGap", "Line to cutaway", [0, 2, "s", 0.1], "How soon after the spark the cut away happens.", { from: 0.2, to: 0.2 }],
       ["backBeat", "Beat back in the scene", [0, 5, "s", 0.25], "The silence after we cut back, before anyone speaks.", { from: 1, to: 1 }],
     ],
     window: { groups: [{ label: "Measured", sliders: ["triggerGap", "backBeat"] }] },
