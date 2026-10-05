@@ -1114,3 +1114,24 @@ html[data-sc-splitting="xy"], html[data-sc-splitting="xy"] * { cursor: nwse-resi
   .sc-myextra, .sc-mymember { grid-template-columns: minmax(0, 1fr) auto; }
   .sc-myextra > input:nth-child(2), .sc-mymember > :nth-child(2) { grid-column: 1 / 2; grid-row: 2; }
 }
+
+/* ---------- One part on its own (Jeremy, 2026-10-05: the full editor "is way too hard to read"; "we can make
+   multiple views where each element of that over-all screen is front and center, but they should be different
+   views"). Views ▾ in the Viewer calls CurioScreen.solo(part): the page gets data-solo, its busy bar gives way to
+   a slim one with the way back, and only that part shows, filling the window. ---------- */
+.sc-solo-bar { display: none; }
+.sc-page[data-solo] > .sc-solo-bar { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 8px 12px; background: var(--cc-ground); }
+.sc-solo-bar strong { font-size: 15px; margin-right: 6px; }
+.sc-solo-bar [data-solo-to].on { color: var(--cc-accent, #22d3ee); box-shadow: inset 0 0 0 1px currentColor; }
+.sc-solo-bar [data-solo-back] { margin-right: 8px; }
+.sc-page[data-solo] > .sc-bar, .sc-page[data-solo] .sc-splits { display: none !important; }
+.sc-page[data-solo] .sc-main, .sc-page[data-solo] .sc-main[data-cols], .sc-page[data-solo] .sc-main[data-rows] { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: minmax(0, 1fr) !important; grid-template-areas: "solo" !important; }
+.sc-page[data-solo="lib"] .sc-main > .sc-panel:not(.sc-lib),
+.sc-page[data-solo="insp"] .sc-main > .sc-panel:not(.sc-inspector),
+.sc-page[data-solo="tl"] .sc-main > .sc-panel:not(.sc-timeline),
+.sc-page[data-solo="momentum"] .sc-main > .sc-panel:not(.sc-player) { display: none !important; }
+.sc-page[data-solo] .sc-main > .sc-panel { grid-area: solo !important; visibility: visible !important; }
+.sc-page[data-solo="momentum"] .sc-player > :not(.sc-docks), .sc-page[data-solo="momentum"] .sc-docks > :not([data-panel="momentum"]) { display: none !important; }
+.sc-page[data-solo="momentum"] .sc-player, .sc-page[data-solo="momentum"] .sc-player.sc-has-dock { grid-template-columns: minmax(0, 1fr) !important; }
+.sc-page[data-solo="momentum"] .sc-player > .sc-docks { grid-column: 1 !important; grid-row: 1 / -1; max-height: none; border: 0; visibility: visible !important; }
+.sc-page[data-solo="momentum"] .sc-docks > .sc-dock { flex: 1 1 auto; }

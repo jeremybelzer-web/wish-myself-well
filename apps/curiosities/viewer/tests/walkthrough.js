@@ -102,12 +102,13 @@ async function walkAll(page, steps, prefix) {
   }
   return seen;
 }
-function checkParts(seen, label) {
+function checkParts(seen, label, screen) {
   const bad = seen.filter((x) => x.sel && !(x.seen && x.seen.onScreen && x.seen.content));
   ok(bad.length === 0, `${label}: every lit part is on screen and has something in it` + (bad.length ? ": " + bad.map((x) => `${x.title} ${JSON.stringify(x.seen)}`).join(" | ") : ""));
   const named = (list) => list.map((t) => seen.find((x) => x.title === t));
   const sc = named(SCREEN_STEPS);
-  ok(sc.every((x) => x && x.seen && x.seen.ok && x.seen.screen && !x.seen.viewer), `${label}: the Screen's ${SCREEN_STEPS.length} steps show the Screen itself, with the Viewer closed` + (sc.some((x) => !x) ? ": missing " + SCREEN_STEPS.filter((t, i) => !sc[i]).join(", ") : ""));
+  if (!screen) ok(sc.every((x) => !x), `${label}: no step points at the full editor, which is no longer an option`);
+  else ok(sc.every((x) => x && x.seen && x.seen.ok && x.seen.screen && !x.seen.viewer), `${label}: the Screen's ${SCREEN_STEPS.length} steps show the Screen itself, with the Viewer closed` + (sc.some((x) => !x) ? ": missing " + SCREEN_STEPS.filter((t, i) => !sc[i]).join(", ") : ""));
   const ap = named(APP_STEPS);
   ok(ap.every((x) => x && x.seen && x.seen.ok && !x.seen.screen && !x.seen.viewer), `${label}: the app's ${APP_STEPS.length} steps show the app's own pages, with the Viewer and the Screen closed` + (ap.some((x) => !x) ? ": missing " + APP_STEPS.filter((t, i) => !ap[i]).join(", ") : ""));
 }
@@ -142,7 +143,7 @@ const ok = (cond, msg) => {
   ok(seen.length >= steps.length - 1, `Next walks the tour (${seen.length} of ${steps.length} steps shown)`);
   ok(missed.length === 0, "every step lights up its part" + (missed.length ? ": missed " + missed.map((x) => x.title).join(", ") : ""));
   ok(seen.every((x) => x.inView), "every bubble fits on the screen");
-  ok(parts.size >= 3, `the tour covers the Viewer, the Screen and the app (${[...parts].join(", ")})`);
+  ok(parts.size >= 3, `the tour covers the Viewer, the app and Help (${[...parts].join(", ")})`);
   ok(!(await page.isVisible(".cw-bubble")), "Done closes the walkthrough");
   ok(await page.evaluate(() => CurioViewer.isOpen()), "the Viewer is back on top afterward");
   checkParts(seen, "first walk");
@@ -197,7 +198,7 @@ const ok = (cond, msg) => {
   ok(await real.evaluate(() => !!document.querySelector(".cv-root[data-other]") && CurioScreen.isOpen() && CurioViewer.isOpen()), "second walk: the Screen is open under the Viewer, with another part's .cv-root on the page");
   const seen2 = await walkAll(real, steps, "real");
   ok(seen2.length >= steps.length - 1, `second walk: Next walks the tour (${seen2.length} of ${steps.length} steps shown)`);
-  checkParts(seen2, "second walk");
+  checkParts(seen2, "second walk", true);
   ok(await real.evaluate(() => { const o = document.querySelector(".cv-root[data-other]").getBoundingClientRect(); return o.width < 200 && o.height < 200; }), "the Viewer's full-window layout stays on its own root, not on another part's .cv-root");
   ok(await real.evaluate(() => CurioViewer.isOpen() && CurioScreen.isOpen()), "second walk: Done puts back the Viewer over the Screen");
 

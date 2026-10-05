@@ -370,8 +370,42 @@
     ensureFilm();
     drawAll();
   }
+  /* One part on its own, filling the window (Views ▾ in the Viewer). The way back closes the Screen and opens
+     the Viewer again. */
+  const SOLO = [
+    ["lib", "Curiosity library"],
+    ["insp", "Details"],
+    ["momentum", "Momentum"],
+    ["tl", "Timeline"],
+  ];
+  function solo(part) {
+    if (!SOLO.some(([id]) => id === part)) return false;
+    if (!page) build();
+    if (prefs.view !== "screen") setView("screen");
+    if (page.dataset.fullplayer) fullPlayer(false);
+    page.dataset.solo = part;
+    let bar = page.querySelector(":scope > .sc-solo-bar");
+    if (!bar) {
+      bar = document.createElement("header");
+      bar.className = "sc-solo-bar";
+      page.insertBefore(bar, page.firstChild);
+      bar.addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (!b) return;
+        if (b.dataset.soloTo) return solo(b.dataset.soloTo);
+        if (b.dataset.soloBack !== undefined) {
+          close();
+          if (window.CurioViewer && typeof window.CurioViewer.open === "function") window.CurioViewer.open();
+        }
+      });
+    }
+    bar.innerHTML = `<button type="button" data-solo-back title="Back to the picture of your film and the comic strip">◂ Viewer</button><strong>${esc(SOLO.find(([id]) => id === part)[1])}</strong>${SOLO.map(([id, label]) => `<button type="button" data-solo-to="${id}"${id === part ? ' class="on" aria-current="true"' : ""}>${esc(label)}</button>`).join("")}`;
+    open();
+    return true;
+  }
   function close() {
     play(false);
+    if (page) delete page.dataset.solo;
     if (page) page.hidden = true;
     document.documentElement.classList.remove("sc-open");
     prefs.open = false;
@@ -6309,7 +6343,7 @@ document.addEventListener("click", function (e) {
       i = i % b.length;
       const vals = b[i].values || {};
       const cats = opts.category ? [opts.category] : (opts.curiosities || []).map((c) => L().categoryOf(c));
-      el.innerHTML = `<div class="sc-mini">${F().svg(vals, { highlight: cats, labels: (opts.curiosities || []).slice(0, 4).map((c) => [labelOf(c), vals[c]]), cast: Number(vals.peopleCount) || castOf() })}<div class="sc-mini-bar"><button type="button" data-m="play">${t ? "Pause" : "Play"}</button><span>${i + 1} / ${b.length}</span><button type="button" data-m="screen">Open the Screen</button></div></div>`;
+      el.innerHTML = `<div class="sc-mini">${F().svg(vals, { highlight: cats, labels: (opts.curiosities || []).slice(0, 4).map((c) => [labelOf(c), vals[c]]), cast: Number(vals.peopleCount) || castOf() })}<div class="sc-mini-bar"><button type="button" data-m="play">${t ? "Pause" : "Play"}</button><span>${i + 1} / ${b.length}</span>${allowed() ? `<button type="button" data-m="screen">Open the Screen</button>` : ""}</div></div>`;
     }
     el.onclick = (e) => {
       const b = e.target.closest("[data-m]");
@@ -6318,14 +6352,25 @@ document.addEventListener("click", function (e) {
         if (t) clearInterval(t);
         t = t ? null : setInterval(() => ((i += 1), draw()), 1100);
         draw();
-      } else open();
+      } else if (allowed()) open();
     };
     draw();
     return { draw, stop: () => t && clearInterval(t) };
   }
 
   /* ---------- into the app ---------- */
+  /* Jeremy 2026-10-05: the full editor was "way too hard to read" and should not be an option, so the
+     Viewer is the only main view. The Screen's code stays loaded (lanes, windows and other parts use its
+     hooks), but nothing opens it unless the page is loaded with ?screen=1 (screen/tests/browser.js does). */
+  function allowed() {
+    try {
+      return /[?&]screen=1\b/.test(location.search);
+    } catch (e) {
+      return false;
+    }
+  }
   function wire() {
+    if (!allowed()) return;
     const top = document.querySelector(".tabs-top");
     if (top && !top.querySelector("[data-screen]")) {
       const b = document.createElement("button");
@@ -6385,7 +6430,7 @@ document.addEventListener("click", function (e) {
     }
     return prefs.view;
   }
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), view: setView, openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, playing: () => !!timer, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, solo, soloPart: () => (page && !page.hidden && page.dataset.solo) || "", isOpen: () => !!(page && !page.hidden), view: setView, openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, playing: () => !!timer, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
   /* My templates: list(), save(name, note), use(id, { at, stretch, analogy }), rename(id, name, note), remove(id),
      exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick), and as an analogy
      plan(id, picks?), preview(id) (the pop-up) and analogy(id, picks?). */

@@ -216,7 +216,7 @@ const ok = (cond, msg) => {
 
   /* full editor and back */
   await page.click('[data-act="close"]');
-  ok(!(await page.evaluate(() => CurioViewer.isOpen())), "Full editor closes the Viewer");
+  ok(!(await page.evaluate(() => CurioViewer.isOpen())), "More pages closes the Viewer");
   ok((await page.locator("[data-viewer]").count()) >= 1, "a Viewer button brings it back");
 
   /* it is kept */

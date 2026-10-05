@@ -43,7 +43,7 @@
   };
 
   /* Each step: where it is (go), what to light up (sel; none = the middle of the screen), a title and the words. */
-  const STEPS = [
+  const ALL_STEPS = [
     { go: goViewer("move"), title: "Welcome to Curiomatic", text: "This walk shows you every part of the app, one at a time, for Jeremy and Sharani. Press Next (or the → key). You can stop any time and open it again from Help ▸ App Walkthrough at the top." },
     { part: "The Viewer", go: goViewer("move"), sel: ".cv-win", title: "The picture of your film", text: "This is your film as a moving picture. Things in the scene are simple shapes, so it opens fast and you can change anything. Drag a shape to move it. Drag empty space to swing the camera around." },
     { part: "The Viewer", go: goViewer(), sel: ".cv-win", title: "Move yourself around", text: "Drag anywhere in the picture to swing the camera around and look from a new side, even from underneath. Hold Control and drag to slide yourself through the world, like grabbing a map. Double-click a spot to zoom in there, like Google Maps; Shift and double-click zooms out. The scroll wheel goes closer or farther. To move a thing instead, click it once to pick it, then drag it." },
@@ -61,7 +61,8 @@
     { part: "The Viewer", go: goViewer("build"), sel: '.cvb-finds [data-find="objects"]', title: "Search objects, settings and characters", text: "Hundreds of simple everyday things: kitchens and bedrooms, city streets and the people in them, farms and forests, boats, birds and planes. Pick a world, then a place, then a type, like Omnisphere's columns, or just type what you want. Setting search puts a whole place around your characters; Character search brings people and animals in or takes them out, or makes someone from words (\"Ida: spiky red hair, overalls, boots\"), and their look can be changed part by part in the Properties window." },
     { part: "The Viewer", go: goViewer("move"), sel: ".cv-strip", title: "The comic strip", text: "Every panel of your film, with its picture and its words, like a comic strip. The orange line with the ▼ is the playhead: drag along the ruler above the panels to scrub through the film and hear it (voices, rain, a tick at each new panel; 🔊 Sound turns that off). Click anywhere in a panel to jump to that moment. Double-click to play from it. + New panel adds the next moment. When you pause, the film goes back to where you pressed Play; under the picture you can choose to stay where it stopped instead." },
     { part: "The Viewer", go: goViewer(), sel: '[data-act="comic"]', title: "Read as a comic", text: "Shows every panel big, like a comic book page. Press Play there and each panel comes alive in its place. Layout picks the page: Simple grid, Modern comic (wide panels for big views, a large splash for the big moments, small insets for small things, tall panels for views from high or low, slanted frames for tilted shots), or Zine (photocopied cut-outs on paper)." },
-    { part: "The Viewer", go: goViewer(), sel: '.cv-bar [data-act="close"]', title: "Full editor", text: "The Viewer is the simple, picture-first way in. The full editor is the rest of the app behind it, laid out like CapCut: the library of every curiosity, a player, the Details panel, and a timeline where every curiosity gets its own lane you can automate. Use it when you want to change things the Viewer doesn't show yet. The Viewer button at the top of the full editor brings you back here." },
+    { part: "The Viewer", go: goViewer(), sel: '.cv-bar [data-act="views"]', title: "Views", text: "Opens one part of the editor on its own, big and easy to read: the Curiosity library (every curiosity, to add to your film), Details (everything about the curiosity you picked), Momentum (what holds the audience's attention, and for how long) or the Timeline (a lane for each curiosity, to automate it). The bar at the top of each view switches between them, and ◂ Viewer brings you back here." },
+    { part: "The Viewer", go: goViewer(), sel: '.cv-bar [data-act="close"]', title: "More pages", text: "The Viewer is your main view: the picture of your film with the comic strip under it. More pages takes you to the older pages of the app: My film boards, Storyboard, the Workspaces and the Library. The Viewer button at the top of those pages brings you back here." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-bar", title: "The Screen", text: "The full editor, laid out like CapCut. Screen shows the library, the player, the details and the timeline. Arrange shows every curiosity as a track, left to right." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-look", title: "Looking through", text: "A curiosity is one thing about a scene you can look at and change: how close the camera is, a feeling, a joke's timing. A suite is a group of them. A proximity is when one leads to another soon after. Pick which kind you are looking through here." },
     { part: "The Screen", go: goScreen, sel: ".sc-page .sc-lib", title: "The curiosity library", text: "Every curiosity, sorted by filmmaking category like CapCut's media tabs. Press + on a card to put it into your film at the playhead." },
@@ -74,6 +75,16 @@
     { part: "The rest of the app", go: goApp, sel: "#lib-btn", title: "Library", text: "Curated films and the Shelf, the Prism (split a whole film into its curiosities), All curiosities, the Maya manual, Words (every film word in plain language) and Print." },
     { part: "Help", go: goViewer("move"), sel: ".cv-bar .cw-help", title: "Help ▸ App Walkthrough", text: "That's the tour. Open it again any time from Help at the top of any page. Help ▸ Hover help (on to start with) shows a little bubble saying what anything does when you rest the pointer on it; turn it off there when you know your way around. Have fun making your film." },
   ];
+  /* Jeremy 2026-10-05: the full editor (the Screen) is no longer an option, so its steps only show when the
+     page is loaded with ?screen=1, the one way the Screen still opens (its own tests use it). */
+  const screenAllowed = (() => {
+    try {
+      return /[?&]screen=1\b/.test(location.search);
+    } catch (e) {
+      return false;
+    }
+  })();
+  const STEPS = ALL_STEPS.filter((s) => screenAllowed || s.part !== "The Screen");
 
   /* ---------- the look ---------- */
   const CSS = `

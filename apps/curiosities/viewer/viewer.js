@@ -1474,6 +1474,11 @@
 .cv-title { font-size: 14px; color: var(--c-dim); padding: 2px 6px; border-radius: 4px; outline: none; }
 .cv-title:focus { background: var(--c-raised); color: var(--c-text); }
 .cv-bar-r { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cv-views { position: relative; }
+.cv-views-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; min-width: 250px; display: grid; gap: 2px; padding: 4px; background: var(--c-raised); border: 1px solid var(--c-line); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
+.cv-views-menu[hidden] { display: none; }
+.cv-views-menu button { display: grid; text-align: left; gap: 1px; }
+.cv-views-menu small { color: var(--c-dim); font-size: 11px; }
 .cv-main { display: grid; grid-template-columns: 190px minmax(0, 1fr) 330px; gap: 6px; padding: 6px; min-height: 0; }
 .cv-pane { background: var(--c-panel); border-radius: 8px; min-height: 0; overflow: auto; }
 .cv-things { padding: 10px; display: grid; align-content: start; gap: 6px; }
@@ -1610,7 +1615,13 @@
           <button type="button" data-act="redo" title="Redo (⇧⌘Z)">Redo</button>
           <button type="button" data-act="comic" title="See every panel big, like a comic book page">Read as a comic</button>
           <button type="button" data-act="sample" title="Throw away your changes and load the Episode 1 sample again">Start over</button>
-          <button type="button" class="cv-primary" data-act="close" title="The full editor: every curiosity, the timeline and the automation lanes">Full editor ▸</button>
+          <span class="cv-views"><button type="button" data-act="views" aria-haspopup="true" aria-expanded="false" title="Open one part of the editor on its own, big and easy to read">Views ▾</button><span class="cv-views-menu" role="menu" hidden>
+            <button type="button" data-view="lib" role="menuitem">Curiosity library<small>every curiosity, to add to your film</small></button>
+            <button type="button" data-view="insp" role="menuitem">Details<small>everything about the curiosity you picked</small></button>
+            <button type="button" data-view="momentum" role="menuitem">Momentum<small>what holds attention, and for how long</small></button>
+            <button type="button" data-view="tl" role="menuitem">Timeline<small>a lane for each curiosity, to automate it</small></button>
+          </span></span>
+          <button type="button" data-act="close" title="The other pages: My film boards, Storyboard, the Workspaces and the Library. The Viewer button there brings you back.">More pages ▸</button>
         </div>
       </header>
       <div class="cv-main">
@@ -2412,9 +2423,11 @@
 
   function onClick(e) {
     if (!e.target.closest(".cv-wmenu, .cv-wname")) root.querySelectorAll(".cv-wmenu").forEach((m) => (m.hidden = true));
+    if (!e.target.closest(".cv-views")) viewsMenu(false);
     const b = e.target.closest("button, [data-thing]");
     if (!b || !root.contains(b)) return;
     const d = b.dataset;
+    if (d.view && b.closest(".cv-views-menu")) return openView(d.view);
     if (d.tab) {
       tab = d.tab;
       drawDetails();
@@ -2502,6 +2515,8 @@
         return selectPanel(panelAt(T).i + 1);
       case "close":
         return close();
+      case "views":
+        return viewsMenu();
       case "comic":
         root.classList.toggle("cv-comic");
         thumbsDirty = true;
@@ -2978,6 +2993,23 @@
     drawAll();
     /* the layout settles after fonts and the first paint */
     requestAnimationFrame(() => draw());
+  }
+  /* Views ▾ (Jeremy 2026-10-05): the full editor showed every part at once and was too hard to read, so each of
+     its parts opens on its own instead, big, with a way back here (CurioScreen.solo in screen/ui.js). */
+  function viewsMenu(show) {
+    const m = root && root.querySelector(".cv-views-menu");
+    if (!m) return;
+    const on = show === undefined ? m.hidden : !!show;
+    m.hidden = !on;
+    const b = root.querySelector('[data-act="views"]');
+    if (b) b.setAttribute("aria-expanded", String(on));
+  }
+  function openView(part) {
+    viewsMenu(false);
+    const S = window.CurioScreen;
+    if (!S || typeof S.solo !== "function") return;
+    close();
+    S.solo(part);
   }
   function close() {
     setPlaying(false);
