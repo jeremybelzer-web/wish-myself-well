@@ -18,6 +18,10 @@ LFO / sequencer ──► CV-CC module ──► MIDI ──► a virtual MIDI c
    - **Mac:** open Audio MIDI Setup, show the MIDI Studio, double-click IAC Driver, and tick "Device is online".
    - **Windows:** install the free loopMIDI and add one port.
    - **Linux:** `sudo modprobe snd-virmidi`.
+
+   Once the database grows past 1,680 jacks, the extra modules use a **second cable**. Add one more (IAC: click +
+   under Ports; loopMIDI: add a port) and give it a name that ends in 2, such as "Curiosities 2". The Notes module
+   marks those modules "PORT 2"; pick the second cable on them.
 2. **In VCV Rack 2**, use File > Import selection and pick a file from `vcv/rack/`. Each workspace has its own file
    (`music.vcvs`, `comedy.vcvs` and so on), and `all-curiosities.vcvs` has every one. Each file brings in:
    - a **Notes** module listing every jack: what it drives, its MIDI channel and its CC number,
@@ -48,8 +52,9 @@ node vcv/tools/make-vcv.js
 ```
 
 This rewrites `curiosity-jacks.js` (read by the app), `curiosity-jacks.json` and `rack/*.vcvs`. Each workspace
-starts on a fresh CV-CC module, so its jacks stay together. Today there are 1239 jacks on 92 CV-CC modules, using
-MIDI channels 1 to 14 and CC numbers 1 to 112. Channel 16 is kept for Focus.
+starts on a fresh CV-CC module, so its jacks stay together. Today there are 1430 jacks on 104 CV-CC modules, using
+MIDI channels 1 to 15 and CC numbers 1 to 112. Channel 16 is kept for Focus. One cable holds 105 modules; after that,
+modules go on a second cable (port 2), and the jacks already made never move. `node vcv/tests/run.js` checks it.
 
 ## Tested
 

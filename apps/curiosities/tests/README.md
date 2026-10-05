@@ -35,6 +35,7 @@ On GitHub a failing suite's FAIL lines also appear as notes on the check's page,
 | engine bridge fuzz | `engine/tests/bridge-fuzz.js` | 20,000 malformed bridge messages: nothing throws, nothing odd is saved |
 | screen | `screen/tests/run.js` | the Screen's levels, lanes, nodes, proximities, copy, paste and undo |
 | momentum | `momentum/tests/run.js` | film profiles, the compass, attention and cue lanes |
+| vcv rack jacks | `vcv/tests/run.js` | every item has one VCV jack, no two share a cable, channel and CC; the bridge reads a second MIDI cable |
 | video | `video/tests/run.js`, `video/tests/browser.js` | taking a clip apart into lanes and applying it, with and without a browser |
 | cloud saving | `sync/tests/run.js` | the (still switched off) cloud saving merges a project part by part |
 | site files | `core/site-check.js` | every file the page loads is committed, so it works when hosted |
