@@ -150,7 +150,13 @@ const ok = (cond, msg) => {
   ok(g1.s !== g0.s, "dragging the graph turns it");
 
   /* drag a waypoint on the graph; Shift-drag lifts it */
-  const k = Math.floor(f.pts.length / 2);
+  /* a waypoint that sits apart from the others on the graph (a slow take can leave two in the same spot) */
+  const k = await L((n) => {
+    const pts = CurioViewer.live().panel.flight.pts.map((q, i) => CurioFlight.graphPoint(i));
+    const apart = (i) => pts[i] && pts.every((p, j) => j === i || !p || Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]) > 20);
+    for (let d = 0; d < n; d++) for (const i of [Math.floor(n / 2) + d, Math.floor(n / 2) - d]) if (i >= 0 && i < n && apart(i)) return i;
+    return Math.floor(n / 2);
+  }, f.pts.length);
   const before = await L((k) => CurioViewer.live().panel.flight.pts[k].p.slice(), k);
   await g.scrollIntoViewIfNeeded();
   let at = await L((k) => CurioFlight.graphPoint(k), k);
@@ -235,14 +241,20 @@ const ok = (cond, msg) => {
   const p1 = await pix();
   ok(p1.sat < p0.sat * 0.25, `the Noir filter drains the color (${p0.sat.toFixed(1)} → ${p1.sat.toFixed(1)})`);
   await page.selectOption('[data-k="filter"]', "none");
+  /* a fresh sharp picture at the same moment to compare the blur with (a slow machine may have moved on) */
+  const still = () => L(() => CurioViewer.time(CurioViewer.starts()[CurioViewer.panel()] + 0.2));
+  await still();
+  await page.waitForTimeout(120);
+  const p0b = await pix();
   await page.$eval('[data-k="blur"]', (el) => {
     el.value = "100";
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
   });
-  await page.waitForTimeout(80);
+  await still();
+  await page.waitForTimeout(120);
   const p2 = await pix();
-  ok(p2.edge < p0.edge * 0.9, `background blur softens the picture (${p0.edge} → ${p2.edge})`);
+  ok(p2.edge < p0b.edge * 0.9, `background blur softens the picture (${p0b.edge} → ${p2.edge})`);
   await shot("flight-blur");
 
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));

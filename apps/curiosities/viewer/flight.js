@@ -446,7 +446,8 @@
         const a = pr(q.p);
         if (!a) return;
         const d = Math.hypot(a[0] - sx, a[1] - sy);
-        if (d < best) (best = d), (hit = k);
+        /* points drawn later sit on top, so a tie goes to the later one */
+        if (d <= best) (best = d), (hit = k);
       });
     }
     if (hit >= 0) {

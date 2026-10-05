@@ -66,6 +66,9 @@ const ok = (cond, msg) => {
     return f.objects.find((o) => o.id === f.sel);
   };
   const canvas = page.locator(".cv-win.is-mine canvas");
+  /* the borders set the panel sizes once they are wired, so measure the picture after that */
+  await page.waitForFunction(() => !window.CurioBorders || document.querySelector(".cvd-border"), null, { timeout: 10000 }).catch(() => {});
+  await page.waitForTimeout(100);
   const box = await canvas.boundingBox();
   const at = (fx, fy) => [box.x + box.width * fx, box.y + box.height * fy];
   /* a point on the picture as it is now (the borders can move it), nudged off anything lying over it */
@@ -345,6 +348,7 @@ const ok = (cond, msg) => {
 
   /* walls and a room */
   await page.keyboard.press("w");
+  Object.assign(box, await canvas.boundingBox());
   [x, y] = await floorAt(0.2, 0.8);
   /* when this fails, the message says which tool was on and what was under the pointer */
   const wallWhy = await page.evaluate(([x, y]) => {
