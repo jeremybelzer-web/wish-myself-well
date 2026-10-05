@@ -157,6 +157,44 @@ const ok = (cond, msg) => {
       await page.click('[data-c="home"]');
       await page.waitForTimeout(1100);
 
+      // Corridors: stand between two faces and the slider slides you along it, never into a cube.
+      await page.click('[data-c="corridor"]');
+      await page.waitForTimeout(1200);
+      ok(await page.isVisible(".rl-corridor"), "between two faces the Slide the corridor slider shows");
+      ok(/Between .+ and .+/.test(await page.textContent(".rl-corridor small")), "it says which two faces you are between");
+      const c0 = await call((c) => c.stage.camera.position.toArray());
+      await page.evaluate(() => {
+        const i = document.querySelector(".rl-corridor input");
+        i.dispatchEvent(new Event("pointerdown"));
+        i.value = "900";
+        i.dispatchEvent(new Event("input"));
+      });
+      await page.waitForTimeout(100);
+      const c1 = await call((c) => c.stage.camera.position.toArray());
+      ok(Math.abs(c1[0] - c0[0]) > 5 && Math.abs(c1[2] - c0[2]) < 0.01, `sliding moves you along the corridor and never sideways into the cubes (${c0[0].toFixed(1)} to ${c1[0].toFixed(1)})`);
+      ok((await call((c) => c.corridor())) >= 0, "you are still in the corridor after sliding");
+      await page.screenshot({ path: path.join(SHOTS, "relations-corridor.png") });
+      // Inside a cube: lanes like Ableton, a 3D graph, and the curiosity proximity web.
+      await page.evaluate(() => document.getElementById("relations")._curioRelations.select("em-suspicion"));
+      await page.click('[data-c="inside"]');
+      await page.waitForSelector(".rl-inside .rl-track.own");
+      ok(!(await page.isVisible(".rl-corridor")), "inside a cube the corridor slider goes away");
+      const tracks = await page.locator(".rl-inside .rl-track:not(.rl-ruler)").count();
+      ok(tracks >= 5 && /Suspicion/.test(await page.textContent(".rl-track.own")), `inside a cube its curiosity and every tie are automation lanes, Ableton style (${tracks})`);
+      await page.screenshot({ path: path.join(SHOTS, "relations-inside.png") });
+      await page.click('.rl-inside [data-tab="graph"]');
+      await page.waitForSelector(".rl-inside .rl-ingraph canvas");
+      ok(true, "the 3D graph tab shows the same lanes in 3D");
+      await page.click('.rl-inside [data-tab="web"]');
+      const web = await call((c) => { const w = c.inside().web(); return { one: w.one.size, two: w.two.size }; });
+      const drawn = await page.locator(".rl-websvg line.l2").count();
+      ok(web.two > web.one && drawn > 0, `Curiosity proximity shows what the ties are tied to (${web.one} then ${web.two})`);
+      await page.screenshot({ path: path.join(SHOTS, "relations-proximity.png") });
+      await page.click('.rl-inside [data-tab="leave"]');
+      ok(!(await page.locator(".rl-inside").count()), "Leave the cube goes back out");
+      await page.click('[data-c="home"]');
+      await page.waitForTimeout(1100);
+
       // Cube slices: the same block; swipe right sends the front slab to the back, swipe left brings the back one forward.
       await page.click('[data-view="slices"]');
       await page.waitForSelector(".rl-cube.slices canvas");

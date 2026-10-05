@@ -9,6 +9,13 @@ the live `CuriosityDB`, so a person's own curiosities show up too).
   Rubik's cube with many more cubes (longer than it is wide when it needs to be). Drag to turn it all the way
   round, click a cube to select it and lines run to every cube it is tied to, double-click to zoom in (each
   double-click goes further, like a map; inside, dragging looks around you). Show every proximity draws the whole web.
+- **Corridors**: the gaps between two faces. Walk a corridor (or zoom and look around until you stand in one) and
+  a "Slide the corridor" slider shows in the lower right: it moves you the way you are looking, kept inside the
+  corridor, so you never go into a cube on either side.
+- **Inside a cube**: double-click a cube you are right up against, or Go inside. Its curiosity and everything tied
+  to it show as automation lanes stacked like Ableton Live (the open film's own values, else marked example), with
+  a 3D graph tab, and a Curiosity proximity tab: what it is tied to and what those are tied to, so changing any
+  outer one changes something that affects this cube. Leave the cube goes back out.
 - **Cube slices**: the same block seen face on. Swipe right (or the right arrow) and the front slab goes to the
   back; swipe left and the back slab comes to the front. Click a slab's name to bring that face forward; each
   name counts the selection's ties on it. You can still turn it and double-click to zoom in.

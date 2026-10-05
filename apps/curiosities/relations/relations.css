@@ -120,3 +120,42 @@
 .rl-mine { display: inline-flex; }
 .rl-mine > button + button { border-width: 1px; padding: 0 7px; }
 @media (max-width: 860px) { .rl-cube-ui button { font-size: 10px; padding: 4px 6px; } .rl-hint { display: none; } }
+
+/* Corridors between two faces */
+.rl-corridor { position: absolute; right: 8px; bottom: 8px; z-index: 3; background: var(--rl-panel); border: 2px solid var(--rl-ink); padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 240px; }
+.rl-corridor[hidden] { display: none; }
+.rl-corridor label { font-family: var(--mono, monospace); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; display: flex; flex-direction: column; gap: 4px; }
+.rl-corridor input { width: 100%; accent-color: var(--rl-accent); }
+.rl-corridor small { font-size: 11px; color: var(--rl-soft); }
+
+/* Inside a cube */
+.rl-inside { position: absolute; inset: 0; z-index: 4; background: var(--rl-panel); display: flex; flex-direction: column; }
+.rl-inside header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 2px solid var(--rl-ink); }
+.rl-inside h3 { font-family: var(--serif, serif); font-weight: 500; font-size: 20px; margin: 0; }
+.rl-inbody { flex: 1; overflow: auto; position: relative; padding: 6px 10px 10px; }
+.rl-innote { font-size: 12px; color: var(--rl-soft); margin: 2px 0 8px; }
+.rl-track { display: grid; grid-template-columns: 190px 1fr; border-bottom: 1px solid var(--rl-line); min-height: 46px; }
+.rl-track svg { width: 100%; height: 46px; display: block; background: #fbf6ee; }
+.rl-track svg polygon { fill: var(--c); opacity: 0.18; }
+.rl-track svg polyline { fill: none; stroke: var(--c); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.rl-track svg circle { fill: var(--c); }
+.rl-track.own svg { background: #f3e9da; }
+.rl .rl-tname { text-align: left; border: 0; border-left: 6px solid var(--c); background: var(--rl-paper); font-family: var(--sans, sans-serif); font-size: 12px; padding: 3px 8px; min-height: 46px; }
+.rl-tname small { display: block; font-family: var(--mono, monospace); font-size: 9px; color: var(--rl-soft); }
+.rl-track.own .rl-tname { background: var(--rl-ink); color: var(--rl-panel); }
+.rl-ruler { min-height: 0; border: 0; }
+.rl-ruler svg { height: 16px; background: none; }
+.rl-ruler text { font-family: var(--mono, monospace); font-size: 10px; fill: var(--rl-soft); }
+.rl-ingraph { position: absolute; inset: 0; }
+.rl-web { display: grid; grid-template-columns: minmax(260px, 520px) 1fr; gap: 12px; align-items: start; }
+.rl-websvg { width: 100%; height: auto; }
+.rl-websvg line.l1 { stroke: #c45c26; stroke-width: 1.6; }
+.rl-websvg line.l2 { stroke: #8a7f72; stroke-width: 0.6; opacity: 0.5; }
+.rl-websvg text { font-size: 10px; fill: var(--rl-ink); }
+.rl-websvg text.me { font-size: 13px; font-weight: 600; paint-order: stroke; stroke: #fffaf2; stroke-width: 4px; }
+.rl-websvg text.r1 { font-size: 8.5px; paint-order: stroke; stroke: #fffaf2; stroke-width: 3px; }
+.rl .rl-via button { font-family: var(--sans, sans-serif); }
+.rl-websvg [data-go] { cursor: pointer; }
+.rl-via { font-size: 12px; margin-bottom: 8px; line-height: 1.9; }
+.rl .rl-via button { font-size: 11px; padding: 1px 6px; border-width: 1px; border-left: 4px solid var(--c); margin: 0 2px; }
+@media (max-width: 860px) { .rl-web { grid-template-columns: 1fr; } .rl-track { grid-template-columns: 120px 1fr; } .rl-corridor { min-width: 180px; } }

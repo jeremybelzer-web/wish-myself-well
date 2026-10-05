@@ -804,7 +804,9 @@
         <div class="rl-seg" role="group" aria-label="Slabs"><button data-c="by-family">6 slabs</button><button data-c="by-workspace">A slab per workspace</button></div>
         ${slices ? '<button data-c="back" aria-label="Bring the back slab to the front">◀ Back to front</button><button data-c="front" aria-label="Send the front slab to the back">Front to back ▶</button>' : '<button data-c="spin">Spin</button>'}
         <button data-c="home">Whole cube</button><button data-c="all">Show every proximity</button>
+        <button data-c="corridor" title="Fly into the corridor between two faces">Walk a corridor</button><button data-c="inside" title="Go inside the selected cube">Go inside</button>
       </div>
+      <div class="rl-corridor" hidden><label>Slide the corridor <input type="range" min="0" max="1000" value="0" aria-label="Slide the corridor"></label><small></small></div>
       <div class="rl-hint">${slices ? "Swipe right: front slab to the back · swipe left: back slab to the front · drag slowly to turn · double-click to zoom in" : "Drag to turn it 360° · click a cube · double-click to zoom in, again to go further · scroll or pinch to zoom"}</div>`;
     return threeView(stage, kind, html, (host) => initBlock(host, g, st, select, persist, keep, slices));
   }
@@ -963,6 +965,7 @@
 
     let moving = 0;
     S.onFrame = () => {
+      watchCorridor();
       if (!moving) return;
       let still = true;
       cur.forEach((p, id) => {
@@ -1005,8 +1008,11 @@
     S.onDouble = (e) => {
       const nd = pickCube(e);
       if (nd) {
+        const p = cur.get(nd.id);
+        // already right up against this cube: the next double-click goes inside it
+        if (st.sel[0] === nd.id && S.orb.r <= 2.7 && S.orb.target.distanceTo(new T.Vector3(p[0], p[1], p[2])) < 0.6) return enter(nd.id);
         if (!st.sel.includes(nd.id)) select(nd.id);
-        return S.zoomTo(cur.get(nd.id), 2.5);
+        return S.zoomTo(p, 2.5);
       }
       // empty space: toward the cube nearest that spot, so you always land somewhere
       S.aim(e);
@@ -1050,7 +1056,13 @@
       const c = b.dataset.c;
       if (b.dataset.slab) bring(+b.dataset.slab);
       if (c === "front" || c === "back") shift(c);
-      if (c === "home") S.home();
+      if (c === "home") {
+        inside && inside.destroy();
+        inside = null;
+        S.home();
+      }
+      if (c === "corridor") walkCorridor();
+      if (c === "inside") st.sel[0] && cur.has(st.sel[0]) ? enter(st.sel[0]) : (b.title = "Pick a cube first");
       if (c === "spin") b.classList.toggle("on", (S.orb.spin = !S.orb.spin));
       if (c === "all") {
         st.showAll = !st.showAll;
@@ -1072,6 +1084,96 @@
     }
     sync();
 
+    /* Corridors: the gaps between two faces (slabs). When you stand in one, the "Slide the corridor" slider shows
+       in the lower right; it moves you along the way you are looking, flattened into the corridor, so you never
+       go into a cube on either side. Where you look when you grab the slider sets the way it slides. */
+    const HX = (L.cols * CELL) / 2 + 0.3;
+    const HY = (L.rows * CELL) / 2 + 0.3;
+    const corr = host.querySelector(".rl-corridor");
+    const corrIn = corr.querySelector("input");
+    let lane = null; // { p0, h, t0, t1 } while the slider is showing
+    function corridorAt(p) {
+      if (n < 2 || Math.abs(p.x) > HX || Math.abs(p.y) > HY) return -1;
+      for (let k = 0; k < n - 1; k++) if (p.z < zOf(k, n) - 0.5 && p.z > zOf(k + 1, n) + 0.5) return k;
+      return -1;
+    }
+    function aimCorridor() {
+      const p0 = S.camera.position.clone();
+      const h = new T.Vector3();
+      S.camera.getWorldDirection(h);
+      h.z = 0;
+      if (h.length() < 0.15) h.set(1, 0, 0);
+      h.normalize();
+      // how far you can go each way before leaving the block's side
+      let t0 = -Infinity;
+      let t1 = Infinity;
+      [["x", HX], ["y", HY]].forEach(([a, lim]) => {
+        if (Math.abs(h[a]) < 1e-6) return;
+        const ta = (-lim - p0[a]) / h[a];
+        const tb = (lim - p0[a]) / h[a];
+        t0 = Math.max(t0, Math.min(ta, tb));
+        t1 = Math.min(t1, Math.max(ta, tb));
+      });
+      lane = { p0, h, t0, t1 };
+      corrIn.value = String(Math.round((-t0 / Math.max(0.01, t1 - t0)) * 1000));
+    }
+    function slideTo(v) {
+      if (!lane) aimCorridor();
+      const t = lane.t0 + (v / 1000) * (lane.t1 - lane.t0);
+      const want = lane.p0.clone().addScaledVector(lane.h, t);
+      S.orb.target.add(want.sub(S.camera.position));
+      S.camera.position.copy(lane.p0).addScaledVector(lane.h, t);
+    }
+    corrIn.addEventListener("pointerdown", aimCorridor);
+    corrIn.addEventListener("keydown", () => lane || aimCorridor());
+    corrIn.addEventListener("input", () => slideTo(+corrIn.value));
+    let corrK = -1;
+    function watchCorridor() {
+      const k = inside ? -1 : corridorAt(S.camera.position);
+      if (k === corrK) return;
+      corrK = k;
+      corr.hidden = k < 0;
+      lane = null;
+      if (k >= 0) {
+        const d = depthOf();
+        const name = (dd) => L.slabs[d.indexOf(dd)].label;
+        corr.querySelector("small").textContent = "Between " + name(k) + " and " + name(k + 1);
+        aimCorridor();
+      }
+    }
+    function walkCorridor() {
+      // the corridor behind the selected cube's face, or behind the front face; stand at its left end, looking along it
+      const c = st.sel[0] && L.cell.get(st.sel[0]);
+      const d = depthOf();
+      const k = Math.min(n - 2, c ? d[c.slab] : 0);
+      const z = (zOf(k, n) + zOf(k + 1, n)) / 2;
+      const r = 1.2;
+      S.flyTo([-HX + 0.6 + r, 0, z], r, { theta: -Math.PI / 2, phi: Math.PI / 2 - 0.08 });
+    }
+
+    /* Inside a cube: its curiosity and everything tied to it as automation lanes (stacked tracks like Ableton Live
+       by default, or the 3D lanes), and the Curiosity proximity tab: the things tied to the things it is tied to. */
+    let inside = null;
+    function enter(id) {
+      const p = cur.get(id);
+      if (!p) return;
+      if (!st.sel.includes(id)) select(id);
+      S.flyTo(p, 0.3);
+      inside && inside.destroy();
+      inside = insideView(host, g, st, id, {
+        select,
+        leave: () => {
+          inside && inside.destroy();
+          inside = null;
+          S.flyTo(cur.get(id), 6);
+        },
+        go: (other) => {
+          if (cur.has(other)) enter(other);
+          else select(other);
+        },
+      });
+    }
+
     function update() {
       near = new Map();
       st.sel.forEach((id) => g.links(id).forEach((l) => near.set(l.id, l)));
@@ -1090,7 +1192,24 @@
     }
     setLabels();
     S.start();
-    return { update, focus, stage: S, pos: cur, order: () => order.map((si) => L.slabs[si].label), shift, bring, slabs: L.slabs, destroy: S.destroy };
+    return {
+      update,
+      focus,
+      stage: S,
+      pos: cur,
+      order: () => order.map((si) => L.slabs[si].label),
+      shift,
+      bring,
+      slabs: L.slabs,
+      enter,
+      walkCorridor,
+      corridor: () => corrK,
+      inside: () => inside,
+      destroy: () => {
+        inside && inside.destroy();
+        S.destroy();
+      },
+    };
   }
 
   /* ---------- Lanes in depth ----------
@@ -1154,8 +1273,8 @@
     return threeView(stage, kind, html, (host) => initLanes(host, g, st, select, keep, swipe));
   }
 
-  function initLanes(host, g, st, select, keep, swipe) {
-    const film = filmLanes(g);
+  function initLanes(host, g, st, select, keep, swipe, given) {
+    const film = given || filmLanes(g);
     // the lane that moves the most stands at the back
     const lanes = film.lanes.map((l) => Object.assign({ move: movementOf(l.vals) }, l)).sort((a, b) => a.move - b.move);
     const N = film.rows.length;
@@ -1166,7 +1285,7 @@
     const S = threeStage(host, keep, { kind: swipe ? "lanes-swipe" : "lanes", r: Math.max(width, lanes.length * GAP) * 1.5, theta: 0.42, phi: 1.25, closeAt: 3 });
     const T = S.T;
     const labels = host.querySelector(".rl-labels");
-    host.querySelector(".rl-filmnote").textContent = film.example ? "Example film: open a film on the Screen and its own lanes show here." : "Your film's automation lanes, busiest at the back.";
+    host.querySelector(".rl-filmnote").textContent = film.note || (film.example ? "Example film: open a film on the Screen and its own lanes show here." : "Your film's automation lanes, busiest at the back.");
     const order = lanes.map((_, i) => i);
     const zFor = (k) => (lanes.length - 1) / 2 * GAP - k * GAP;
     const depth = () => {
@@ -1324,6 +1443,152 @@
       example: film.example,
       shift,
       destroy: S.destroy,
+    };
+  }
+
+  /* ---------- Inside a cube ----------
+     The lanes of one cube: its own curiosity first, then everything it is directly tied to, each with the film's
+     own values where the open film has that lane, else a gentle example line (marked "example"). */
+  function hashOf(id) {
+    let h = 7;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 100003;
+    return h;
+  }
+  function cubeLanes(g, id, cap) {
+    const film = filmLanes(g);
+    const real = film.example ? new Map() : new Map(film.lanes.filter((l) => l.id).map((l) => [l.id, l]));
+    const rows = film.rows;
+    const N = rows.length;
+    const tieOf = (l) => g.types[l.edge.type][l.out ? "label" : "back"];
+    const seen = new Set([id]);
+    const list = [{ id, why: "This cube" }];
+    g.links(id).forEach((l) => {
+      if (seen.has(l.id)) return;
+      seen.add(l.id);
+      list.push({ id: l.id, why: tieOf(l) });
+    });
+    const lanes = list.slice(0, cap || 16).map((x) => {
+      const nd = g.byId.get(x.id);
+      const own = real.get(x.id);
+      const h = hashOf(x.id);
+      const amp = 0.1 + (h % 7) * 0.05;
+      const f = 0.3 + (h % 5) * 0.12;
+      const vals = own ? own.vals : Array.from({ length: N }, (_, i) => Math.max(0, Math.min(1, 0.5 + amp * Math.sin(i * f + h))));
+      return { id: x.id, label: nd.label, family: nd.family, why: x.why, vals, example: !own };
+    });
+    return { lanes, rows, example: lanes.every((l) => l.example), more: Math.max(0, list.length - (cap || 16)) };
+  }
+  /* Two steps out: what this cube is tied to (ring 1), and what those are tied to (ring 2). Changing anything in
+     ring 2 changes something in ring 1, which changes this cube. */
+  function webOf(g, id) {
+    const one = new Map();
+    g.links(id).forEach((l) => one.has(l.id) || one.set(l.id, l));
+    const two = new Map(); // id -> the ring-1 ids it comes through
+    one.forEach((_, a) =>
+      g.links(a).forEach((l) => {
+        if (l.id === id || one.has(l.id)) return;
+        if (!two.has(l.id)) two.set(l.id, []);
+        if (!two.get(l.id).includes(a)) two.get(l.id).push(a);
+      })
+    );
+    return { one, two };
+  }
+
+  function insideView(host, g, st, id, act) {
+    const nd = g.byId.get(id);
+    const box = document.createElement("div");
+    box.className = "rl-inside";
+    box.innerHTML = `<header><div><span class="rl-tag" style="color:${FAMILY_COLOR[nd.family]}">Inside the cube</span><h3>${esc(nd.label)}</h3></div>
+        <div class="rl-seg" role="tablist"><button data-tab="tracks" class="on">Lanes</button><button data-tab="graph">3D graph</button><button data-tab="web">Curiosity proximity</button></div>
+        <button data-tab="leave">Leave the cube</button></header><div class="rl-inbody"></div>`;
+    host.appendChild(box);
+    const body = box.querySelector(".rl-inbody");
+    const film = cubeLanes(g, id);
+    let sub = null;
+    function show(tab) {
+      sub && sub.destroy && sub.destroy();
+      sub = null;
+      box.querySelectorAll("[data-tab]").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
+      box.dataset.tab = tab;
+      if (tab === "tracks") body.innerHTML = tracksHtml();
+      if (tab === "web") body.innerHTML = webHtml();
+      if (tab === "graph") {
+        body.innerHTML = '<div class="rl-cube rl-ingraph"><div class="rl-labels"></div><div class="rl-filmnote"></div><div class="rl-cube-ui"><button data-c="home">Straight on</button><button data-c="side">From the side</button><button data-c="spin">Spin</button></div></div>';
+        const h = body.firstChild;
+        const f = Object.assign({}, film, { note: (film.example ? "Example values. " : "") + "The curiosities tied to " + nd.label + ", busiest at the back." });
+        sub = initLanes(h, g, st, act.select, null, false, f);
+      }
+    }
+    // Stacked tracks, like Ableton Live's automation lanes: a name strip on the left, the lane over time on the right.
+    function tracksHtml() {
+      const N = film.rows.length;
+      const W = 600;
+      const H = 44;
+      const x = (i) => 6 + (i * (W - 12)) / Math.max(1, N - 1);
+      const y = (v) => H - 5 - (v == null ? 0 : v) * (H - 10);
+      const ruler = `<div class="rl-track rl-ruler"><div></div><svg viewBox="0 0 ${W} 16" preserveAspectRatio="none">${film.rows.map((r, i) => `<text x="${x(i)}" y="12" text-anchor="${i === 0 ? "start" : i === N - 1 ? "end" : "middle"}">${i + 1}</text>`).join("")}</svg></div>`;
+      const rows = film.lanes
+        .map((l, li) => {
+          const pts = l.vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+          return `<div class="rl-track${li === 0 ? " own" : ""}" style="--c:${FAMILY_COLOR[l.family]}">
+            <button class="rl-tname" data-go="${esc(l.id)}" title="Go to this cube">${esc(l.label)}<small>${esc(l.why)}${l.example ? " · example" : ""}</small></button>
+            <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polygon points="6,${H} ${pts} ${W - 6},${H}" /><polyline points="${pts}" />${l.vals.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" />`).join("")}</svg></div>`;
+        })
+        .join("");
+      return `<p class="rl-innote">${film.example ? "Example values: open a film on the Screen and these lanes show its own automation." : "The open film's automation for this cube and its ties."}${film.more ? ` ${film.more} more ties not shown.` : ""}</p>${ruler}${rows}`;
+    }
+    function webHtml() {
+      const w = webOf(g, id);
+      const one = [...w.one.keys()];
+      const two = [...w.two.keys()].sort((a, b) => w.two.get(b).length - w.two.get(a).length);
+      const S = 520;
+      const c = S / 2;
+      const at = (k, cnt, r, off) => {
+        const a = off + (k / Math.max(1, cnt)) * Math.PI * 2;
+        return [c + r * Math.cos(a), c + r * Math.sin(a)];
+      };
+      const p1 = new Map(one.map((o, k) => [o, at(k, one.length, 95, -Math.PI / 2)]));
+      const shown2 = two.slice(0, 120);
+      const p2 = new Map(shown2.map((o, k) => [o, at(k, shown2.length, 240, -Math.PI / 2 + 0.02)]));
+      const col = (x) => FAMILY_COLOR[g.byId.get(x).family] || "#888";
+      // ring-1 names run outward like spokes, so many of them never sit on top of each other
+      const spoke = (o, p) => {
+        let deg = (Math.atan2(p[1] - c, p[0] - c) * 180) / Math.PI;
+        const flip = deg > 90 || deg < -90;
+        if (flip) deg += 180;
+        const t = esc(g.byId.get(o).label);
+        return `<text transform="translate(${p[0].toFixed(1)} ${p[1].toFixed(1)}) rotate(${deg.toFixed(1)})" x="${flip ? -12 : 12}" y="3" text-anchor="${flip ? "end" : "start"}" class="r1">${t.length > 26 ? t.slice(0, 25) + "…" : t}</text>`;
+      };
+      const lines = one.map((o) => `<line x1="${c}" y1="${c}" x2="${p1.get(o)[0]}" y2="${p1.get(o)[1]}" class="l1" />`).join("") + shown2.map((o) => w.two.get(o).map((a) => `<line x1="${p1.get(a)[0]}" y1="${p1.get(a)[1]}" x2="${p2.get(o)[0]}" y2="${p2.get(o)[1]}" class="l2" />`).join("")).join("");
+      const dots = shown2.map((o) => `<circle cx="${p2.get(o)[0]}" cy="${p2.get(o)[1]}" r="5" fill="${col(o)}" data-go="${esc(o)}"><title>${esc(g.byId.get(o).label)} (through ${esc(w.two.get(o).map((a) => g.byId.get(a).label).join(", "))})</title></circle>`).join("") + one.map((o) => `<g data-go="${esc(o)}"><circle cx="${p1.get(o)[0]}" cy="${p1.get(o)[1]}" r="8" fill="${col(o)}" />${spoke(o, p1.get(o))}<title>${esc(g.byId.get(o).label)}</title></g>`).join("") + `<circle cx="${c}" cy="${c}" r="15" fill="#1c1712" /><text x="${c}" y="${c + 32}" text-anchor="middle" class="me">${esc(nd.label)}</text>`;
+      const groups = one
+        .map((a) => {
+          const via = two.filter((o) => w.two.get(o).includes(a));
+          if (!via.length) return "";
+          return `<div class="rl-via"><button data-go="${esc(a)}" style="--c:${col(a)}">${esc(g.byId.get(a).label)}</button> is touched by ${via.slice(0, 14).map((o) => `<button data-go="${esc(o)}" style="--c:${col(o)}">${esc(g.byId.get(o).label)}</button>`).join("")}${via.length > 14 ? ` <span>+${via.length - 14}</span>` : ""}</div>`;
+        })
+        .join("");
+      return `<p class="rl-innote">${one.length} things are tied to this cube, and ${two.length} more are tied to those. Change any outer one and it changes something that affects ${esc(nd.label)}.${two.length > shown2.length ? ` The ${shown2.length} with the most paths in are drawn.` : ""}</p>
+        <div class="rl-web"><svg viewBox="0 0 ${S} ${S}" class="rl-websvg">${lines}${dots}</svg><div class="rl-vias">${groups || "<p>Nothing further out yet.</p>"}</div></div>`;
+    }
+    box.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-tab],[data-go]");
+      if (!t) return;
+      if (t.dataset.tab === "leave") return act.leave();
+      if (t.dataset.tab) return show(t.dataset.tab);
+      if (t.dataset.go) act.go(t.dataset.go);
+    });
+    show("tracks");
+    return {
+      id,
+      tab: () => box.dataset.tab,
+      show,
+      web: () => webOf(g, id),
+      lanes: () => film.lanes.map((l) => l.id),
+      destroy: () => {
+        sub && sub.destroy && sub.destroy();
+        box.remove();
+      },
     };
   }
 
