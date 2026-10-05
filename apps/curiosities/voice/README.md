@@ -1,8 +1,11 @@
 # Voice: say what you want, and Curiomatic does it
 
-Every screen has a 🎤 in the bottom-left corner. Press it (or **Alt+V**, **⌥V** on a Mac), say what you want,
-and the app does it. Tick **Hands-free** to keep it listening, one command per sentence, until you say
-"stop listening". The same box takes typed commands, so it also works where the browser can't listen.
+Like Claude, every screen has a bar at the bottom: a 🎤 and a box to type in. Press 🎤 (or **Alt+V**, **⌥V** on a
+Mac) and say what you want, or type it and press Enter, and the app does it. What it did, "Which one?" and
+**?** (What can I say?) open in a box above the bar. Tick **Hands-free** there to keep it listening, one command
+per sentence, until you say "stop listening". **−** tucks the bar into a small 🎤 when the bottom is crowded
+(remembered per device); the 🎤 in each top menu (the Viewer, the Screen next to 🔍, the app's bar) brings it back
+and listens. The bar takes its own strip: full pages end above it, and the VCV and Attention badges sit above it.
 
 It is free: it uses the browser's own speech recognizer. Chrome and Edge send the sound to Google or Microsoft
 to turn it into words; Safari does it on the device; Firefox and the desktop app (Electron) can't listen, so

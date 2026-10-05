@@ -61,7 +61,7 @@
   window.CurioCommands = CurioCommands;
 
   /* ---------- what is on the page right now ---------- */
-  const ours = (el) => !!(el.closest && el.closest(".vo-root"));
+  const ours = (el) => !!(el.closest && el.closest(".vo-root, .vo-top"));
   const visible = (el) => !!(el.getClientRects && el.getClientRects().length) && getComputedStyle(el).visibility !== "hidden";
   function nameOf(el) {
     const own = el.getAttribute("aria-label") || "";
@@ -475,7 +475,7 @@
   /* ---------- the microphone ---------- */
   const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
   const supported = () => !!Rec;
-  let prefs = { handsFree: false, talkBack: false };
+  let prefs = { handsFree: false, talkBack: false, min: false };
   try {
     prefs = Object.assign(prefs, JSON.parse(localStorage.getItem(PREF)) || {});
   } catch (e) {}
@@ -548,7 +548,10 @@
     if (!on && listening) stop();
   }
 
-  /* ---------- the box ---------- */
+  /* ---------- the bar ----------
+     Like Claude's: always at the bottom of every screen, a 🎤 and a box to type in. What it did, "Which one?" and
+     "What can I say?" open in a box above it. − tucks the bar away into a small 🎤 (remembered); a 🎤 in each top
+     menu (the Viewer, the Screen, the app's bar) brings it back and listens, for when the bottom is crowded. */
   let root = null;
   let helpOpen = false;
   function build() {
@@ -558,16 +561,16 @@
     document.head.appendChild(css);
     root = document.createElement("div");
     root.className = "vo-root";
-    root.innerHTML = `<button type="button" class="vo-mic" aria-label="Talk to Curiomatic (Alt+V)" title="Talk to Curiomatic: press and say what you want (Alt+V, ⌥V on a Mac)">🎤</button>
-      <div class="vo-box" role="dialog" aria-label="Voice commands" hidden>
-        <header><strong>Voice</strong><label class="vo-hf" title="Keep listening, one command per sentence, until you say &quot;stop listening&quot;"><input type="checkbox" data-vo="hf"> Hands-free</label><button type="button" data-vo="help" aria-expanded="false">What can I say?</button><button type="button" data-vo="close" aria-label="Close">×</button></header>
+    root.innerHTML = `<div class="vo-strip" aria-hidden="true"></div><div class="vo-box" role="dialog" aria-label="Voice commands" hidden>
+        <header><strong>Voice</strong><label class="vo-hf" title="Keep listening, one command per sentence, until you say &quot;stop listening&quot;"><input type="checkbox" data-vo="hf"> Hands-free</label><button type="button" data-vo="close" aria-label="Close">×</button></header>
         <p class="vo-live" aria-live="polite"></p>
         <p class="vo-did" role="status" aria-live="polite"></p>
         <ol class="vo-choices" hidden></ol>
-        <form class="vo-form"><input type="text" class="vo-q" placeholder="Or type it: &quot;go to moment 3 then play&quot;" aria-label="Type a command" autocomplete="off" spellcheck="false"><button type="submit">Do it</button></form>
         <div class="vo-help" hidden></div>
         <p class="vo-foot"><label><input type="checkbox" data-vo="talk"> Say the answer out loud</label> · Everything is one undo step: say "undo".</p>
-      </div>`;
+      </div>
+      <form class="vo-form vo-bar"><button type="button" class="vo-mic" aria-label="Talk to Curiomatic (Alt+V)" title="Talk to Curiomatic: press and say what you want (Alt+V, ⌥V on a Mac)">🎤</button><input type="text" class="vo-q" placeholder="Say or type what you want…" aria-label="Type a command" autocomplete="off" spellcheck="false"><button type="submit" class="vo-send" aria-label="Do it" title="Do it (Enter)">↑</button><button type="button" data-vo="help" aria-expanded="false" title="What can I say?" aria-label="What can I say?">?</button><button type="button" data-vo="min" title="Tuck the bar away (the 🎤 stays, and there is one in the top menu)" aria-label="Tuck the bar away">−</button></form>
+      <button type="button" class="vo-pill" data-vo="max" title="Talk to Curiomatic: bring back the bar" aria-label="Bring back the voice bar" hidden>🎤</button>`;
     document.body.appendChild(root);
     const box = root.querySelector(".vo-box");
     root.querySelector(".vo-mic").addEventListener("click", () => (listening ? stop() : listen()));
@@ -582,6 +585,8 @@
       const b = e.target.closest("[data-vo]");
       if (b && b.dataset.vo === "close") return close();
       if (b && b.dataset.vo === "help") return toggleHelp(!helpOpen);
+      if (b && b.dataset.vo === "min") return tuck(true);
+      if (b && b.dataset.vo === "max") return tuck(false), root.querySelector(".vo-q").focus();
       const li = e.target.closest("[data-vo-pick]");
       if (li) hear(String(Number(li.dataset.voPick) + 1));
       const ex = e.target.closest("[data-vo-try]");
@@ -591,14 +596,61 @@
       if (e.target.dataset.vo === "hf") handsFree(e.target.checked);
       if (e.target.dataset.vo === "talk") (prefs.talkBack = e.target.checked), savePrefs();
     });
-    /* Keys typed in the box stay in the box (the Screen's shortcuts do not see them). */
+    /* Keys typed in the bar or the box stay there (the Screen's shortcuts do not see them). */
     ["keydown", "keyup", "keypress"].forEach((t) =>
-      box.addEventListener(t, (e) => {
+      root.addEventListener(t, (e) => {
         if (e.key === "Escape" && t === "keydown") return close();
         e.stopPropagation();
       })
     );
+    tuck(!!prefs.min);
+    tops();
+    new MutationObserver(() => topsSoon()).observe(document.body, { childList: true, subtree: true });
     drawState();
+  }
+  /* The bar takes its own strip at the bottom: full pages (Viewer, Screen, Engine, video) end above it. */
+  function tuck(on) {
+    prefs.min = !!on;
+    savePrefs();
+    if (!root) return;
+    root.querySelector(".vo-bar").hidden = prefs.min;
+    root.querySelector(".vo-pill").hidden = !prefs.min;
+    root.classList.toggle("min", prefs.min);
+    document.documentElement.classList.toggle("vo-on", !prefs.min);
+  }
+  /* A 🎤 in each top menu. Those menus are redrawn often, so it is put back after each redraw. */
+  const TOPS = [
+    [".sc-bar", '[data-act="find"]'],
+    [".cv-bar-r", ":scope > *"],
+    ["#tabs .tabs-top", ".lib"],
+  ];
+  let topsQueued = false;
+  function topsSoon() {
+    if (topsQueued) return;
+    topsQueued = true;
+    requestAnimationFrame(() => ((topsQueued = false), tops()));
+  }
+  function tops() {
+    TOPS.forEach(([where, before]) =>
+      document.querySelectorAll(where).forEach((bar) => {
+        if (bar.querySelector(":scope > .vo-top")) return;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "vo-top";
+        b.textContent = "🎤";
+        b.title = "Talk to Curiomatic: say or type what you want (Alt+V)";
+        b.setAttribute("aria-label", "Talk to Curiomatic");
+        b.addEventListener("click", () => {
+          tuck(false);
+          if (listening) return stop();
+          root.querySelector(".vo-q").focus();
+          if (Rec) listen();
+        });
+        const at = bar.querySelector(before);
+        bar.insertBefore(b, at && at.parentNode === bar ? at : null);
+      })
+    );
+    document.querySelectorAll(".vo-top").forEach((b) => b.classList.toggle("on", listening));
   }
   function open() {
     build();
@@ -616,6 +668,8 @@
     const mic = root.querySelector(".vo-mic");
     mic.classList.toggle("on", listening);
     mic.setAttribute("aria-pressed", String(listening));
+    root.querySelector(".vo-pill").classList.toggle("on", listening);
+    document.querySelectorAll(".vo-top").forEach((b) => b.classList.toggle("on", listening));
     root.querySelector("[data-vo=hf]").checked = !!prefs.handsFree;
     root.querySelector("[data-vo=hf]").disabled = !Rec;
     root.querySelector("[data-vo=talk]").checked = !!prefs.talkBack;
@@ -679,13 +733,31 @@
   );
 
   const CSS_TEXT = `
-.vo-root { position: fixed; left: 12px; bottom: 12px; z-index: 2147483000; font: 13px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: #e8e8ea; color-scheme: dark; }
-.vo-mic { width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a3a40; background: #1f1f24; font-size: 20px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
-.vo-mic:hover { background: #2a2a31; }
-.vo-mic.on { background: #c7354a; border-color: #ff6b7f; animation: vo-pulse 1.2s ease-in-out infinite; }
-@keyframes vo-pulse { 50% { box-shadow: 0 0 0 8px rgba(255,107,127,.25); } }
-@media (prefers-reduced-motion: reduce) { .vo-mic.on { animation: none; } }
-.vo-box { position: absolute; left: 0; bottom: 54px; width: min(380px, calc(100vw - 24px)); max-height: min(70vh, 560px); overflow: auto; background: #18181c; border: 1px solid #34343b; border-radius: 10px; padding: 10px 12px; box-shadow: 0 8px 28px rgba(0,0,0,.5); }
+:root { --vo-h: 56px; }
+html.vo-on body { padding-bottom: var(--vo-h); }
+html.vo-on .sc-page, html.vo-on .cv-root.cv-viewer, html.vo-on .en-overlay, html.vo-on .cs-overlay, html.vo-on .vd-page { bottom: var(--vo-h); }
+.vo-root { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2147483000; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 12px 8px; font: 13px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: #e8e8ea; color-scheme: dark; }
+.vo-root > * { pointer-events: auto; }
+.vo-root > .vo-strip { position: fixed; left: 0; right: 0; bottom: 0; height: var(--vo-h); z-index: -1; background: #111114; border-top: 1px solid #26262c; pointer-events: none; }
+.vo-root.min > .vo-strip { display: none; }
+.vo-root.min { padding-bottom: 12px; }
+html.vo-on .vcv-badge, html.vo-on .mo-baro { bottom: calc(var(--vo-h) + 6px) !important; }
+.vo-bar { display: flex; gap: 6px; align-items: center; width: min(620px, 100%); height: 44px; box-sizing: border-box; padding: 4px 5px; background: #1c1c21; border: 1px solid #3a3a42; border-radius: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.45); }
+.vo-bar:focus-within { border-color: #5b5b66; }
+.vo-bar button { flex: none; height: 34px; min-width: 34px; border-radius: 17px; border: 0; background: transparent; color: #b8b8c0; font: inherit; font-size: 16px; cursor: pointer; }
+.vo-bar button:hover { background: #2a2a31; color: #fff; }
+.vo-bar .vo-send { background: #e8e8ea; color: #18181c; font-weight: 700; }
+.vo-bar .vo-send:hover { background: #fff; color: #000; }
+.vo-mic, .vo-pill, .vo-top { font-size: 18px; }
+.vo-pill { width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a3a40; background: #1f1f24; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
+.vo-mic.on, .vo-pill.on, .vo-top.on { background: #c7354a !important; color: #fff !important; animation: vo-pulse 1.2s ease-in-out infinite; }
+@keyframes vo-pulse { 50% { box-shadow: 0 0 0 6px rgba(255,107,127,.25); } }
+@media (prefers-reduced-motion: reduce) { .vo-mic.on, .vo-pill.on, .vo-top.on { animation: none; } }
+.vo-top { cursor: pointer; }
+.vo-q { flex: 1; min-width: 0; height: 34px; font: inherit; font-size: 14px; color: inherit; background: transparent; border: 0; outline: none; padding: 0 4px; }
+.vo-q::placeholder { color: #8d8d96; }
+.vo-box { box-sizing: border-box; width: min(620px, 100%); max-height: min(60vh, 520px); overflow: auto; background: #18181c; border: 1px solid #34343b; border-radius: 12px; padding: 10px 12px; box-shadow: 0 8px 28px rgba(0,0,0,.5); }
+.vo-root.min .vo-box { width: min(420px, calc(100vw - 24px)); }
 .vo-box[hidden], .vo-root [hidden] { display: none !important; }
 .vo-box header { display: flex; gap: 8px; align-items: center; }
 .vo-box header strong { flex: 1; }
@@ -699,8 +771,6 @@
 .vo-choices li:hover, .vo-choices li:focus { background: #2e2e36; outline: none; }
 .vo-choices b { display: inline-block; width: 1.4em; color: #ffcf5c; }
 .vo-choices small { display: block; color: #8d8d96; margin-left: 1.6em; }
-.vo-form { display: flex; gap: 6px; }
-.vo-q { flex: 1; min-width: 0; font: inherit; color: inherit; background: #101013; border: 1px solid #3a3a40; border-radius: 6px; padding: 5px 8px; }
 .vo-help h5 { margin: 10px 0 4px; font-size: 12px; color: #b8b8c0; }
 .vo-help p { margin: 4px 0; }
 .vo-help p button { margin: 0 4px 4px 0; }
@@ -713,5 +783,5 @@
   if (document.body) start();
   else document.addEventListener("DOMContentLoaded", start);
 
-  window.CurioVoice = { hear, find, listen, stop, handsFree, open, close, supported, history: () => log.slice(), help: toggleHelp, examples: () => EXAMPLES.map(([t, l]) => [t, l.slice()]), _one: one, _pageItems: pageItems };
+  window.CurioVoice = { hear, find, listen, stop, handsFree, open, close, tuck, supported, history: () => log.slice(), help: toggleHelp, examples: () => EXAMPLES.map(([t, l]) => [t, l.slice()]), _one: one, _pageItems: pageItems };
 })();

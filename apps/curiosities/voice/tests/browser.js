@@ -77,6 +77,20 @@ const COVERAGE = () => {
   ok(await page.evaluate(() => !!document.querySelector(".vo-root .vo-mic")), "the 🎤 button is on the Screen");
   ok(await page.evaluate(() => { const b = document.querySelector(".vo-mic").getBoundingClientRect(); const h = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return !!(h && h.closest(".vo-root")); }), "the 🎤 button sits on top of the Screen (nothing covers it)");
 
+  /* The bar at the bottom, like Claude's: always there, with a 🎤 and a box to type in. */
+  ok(await page.evaluate(() => { const q = document.querySelector(".vo-bar .vo-q"); return !!q && q.offsetParent !== null; }), "the bar with a box to type in is at the bottom from the start");
+  ok(await page.evaluate(() => { const p = document.querySelector(".sc-page").getBoundingClientRect(); const b = document.querySelector(".vo-bar").getBoundingClientRect(); return p.bottom <= b.top; }), "the Screen ends above the bar (the bar covers none of it)");
+  ok(await page.evaluate(() => !!document.querySelector('.sc-bar > .vo-top + [data-act="find"]')), "a 🎤 sits in the Screen's top menu, next to 🔍");
+  await page.click(".vo-bar [data-vo=min]");
+  ok(await page.evaluate(() => document.querySelector(".vo-bar").offsetParent === null && document.querySelector(".vo-pill").offsetParent !== null && !document.documentElement.classList.contains("vo-on")), "− tucks the bar into a small 🎤 and gives the space back");
+  await page.click(".sc-bar .vo-top");
+  await page.evaluate(() => window.CurioVoice.stop());
+  ok(await page.evaluate(() => document.querySelector(".vo-bar").offsetParent !== null && document.activeElement === document.querySelector(".vo-q")), "the top menu's 🎤 brings the bar back, ready to type");
+  await page.click('.sc-bar [data-view="arrange"]');
+  await page.click('.sc-bar [data-view="screen"]');
+  await page.waitForTimeout(80);
+  ok(await page.evaluate(() => document.querySelectorAll(".sc-bar > .vo-top").length === 1), "the top menu's 🎤 stays put (one) when the Screen redraws");
+
   /* Moments, and words for numbers. */
   await hear("go to moment 3");
   ok((await row()) === 2, '"go to moment 3" moves the playhead to moment 3');
@@ -169,6 +183,7 @@ const COVERAGE = () => {
   const leave = await hear("open my film");
   ok(/Opened/.test(leave) && (await page.evaluate(() => !window.CurioScreen.isOpen())), '"open my film" leaves the Screen for My film, from the bar under it', leave);
   ok(await page.evaluate(() => !!document.querySelector(".vo-root .vo-mic") && document.querySelector(".vo-mic").offsetParent !== null), "the 🎤 button is there off the Screen too");
+  ok(await page.evaluate(() => !!document.querySelector("#tabs .tabs-top > .vo-top")), "and a 🎤 in the app's top bar");
   report.push(["My film", await page.evaluate(COVERAGE)]);
   for (const ws of ["Storyboard", "Camera angle", "Color", "Comedy"]) {
     const r = await hear("open " + ws.toLowerCase());
