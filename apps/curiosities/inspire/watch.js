@@ -67,6 +67,21 @@
   /* Curiosities most scenes lean on, offered first. */
   const FRONT = ["emotion", "shotSize", "cameraMove", "music", "lightingMood", "cutRate", "tensionCurve", "pace"];
 
+  /* How the panel sits: "full" (the whole screen), "side" (right half, your film on the left) or "stack" (top half,
+     your film below). Side by side is the default: wide screens fit two 16:9 pictures across at the same size as
+     stacked, and leave the bottom free for lanes, like an editor's two monitors. Kept per device. */
+  const LAYOUT_KEY = "curio-watch-layout-v1";
+  const LAYOUTS = [
+    ["full", "Full screen"],
+    ["side", "Side by side"],
+    ["stack", "Stacked"],
+  ];
+  let layout = "side";
+  try {
+    const l = localStorage.getItem(LAYOUT_KEY);
+    if (LAYOUTS.some(([id]) => id === l)) layout = l;
+  } catch (e) {}
+
   let dlg = null;
   let state = null;
   let player = { time: 0, duration: 0, ready: false, frame: null };
@@ -227,7 +242,7 @@
     const clip = toClip(Object.assign({}, state.info, { video: state.video, search: state.info.search || searchWords }), state.tags);
     const kept = window.CurioInspire && window.CurioInspire.keep ? window.CurioInspire.keep(clip) : null;
     state = null;
-    dlg.close();
+    shut();
     if (window.CurioInspire && window.CurioInspire.open) window.CurioInspire.open({ filters: [{ text: clip.work }] });
     return kept;
   }
@@ -258,10 +273,27 @@
       return;
     }
     if (w === "keep") return keep();
+    if (w === "layout") return setLayout(b.dataset.v);
+    if (w === "shut") return shut();
     if (w === "close") {
-      dlg.close();
+      shut();
       if (window.CurioInspire && window.CurioInspire.open) window.CurioInspire.open();
     }
+  }
+  function shut() {
+    dlg.close();
+    document.body.classList.remove("wt-dock-side", "wt-dock-stack");
+  }
+  function setLayout(id) {
+    if (!LAYOUTS.some(([x]) => x === id) || id === layout) return;
+    readInfo();
+    layout = id;
+    try {
+      localStorage.setItem(LAYOUT_KEY, id);
+    } catch (e) {}
+    /* The player is drawn again, so pick up where it was. */
+    state.start = Math.floor(player.time || state.start || 0);
+    show();
   }
   function onChange(e) {
     const t = e.target;
@@ -294,13 +326,18 @@
     if (!dlg) {
       dlg = document.createElement("dialog");
       dlg.className = "ci-hub wt-watch";
-      dlg.innerHTML = `<header><strong>Watch and tag</strong> <span class="ci-small">play a clip, tag its curiosities as they change</span><button type="button" data-w="close">Close</button></header><div class="wt-body ci-body"></div>`;
+      dlg.innerHTML = `<header><strong>Watch and tag</strong> <span class="ci-small">play a clip, tag its curiosities as they change</span><span class="wt-layouts" role="group" aria-label="How the panel sits">${LAYOUTS.map(([id, l]) => `<button type="button" class="ci-pill" data-w="layout" data-v="${id}">${l}</button>`).join("")}</span><button type="button" data-w="shut">Close</button></header><div class="wt-body ci-body"></div>`;
       document.body.appendChild(dlg);
       dlg.addEventListener("click", onClick);
       dlg.addEventListener("change", onChange);
       dlg.addEventListener("keydown", onKey);
       window.addEventListener("message", onMessage);
-      dlg.addEventListener("close", () => send("pauseVideo"));
+      dlg.addEventListener("close", () => {
+        /* Switching layouts closes and reopens at once; the close event arrives after, so check it's still shut. */
+        if (dlg.open) return;
+        send("pauseVideo");
+        document.body.classList.remove("wt-dock-side", "wt-dock-stack");
+      });
     }
     state = {
       link: o.link || o.search || "",
@@ -314,9 +351,21 @@
       info: { work: o.work || "", year: o.year || "", kind: o.kind || "film", moment: o.moment || "", feelings: Array.isArray(o.feelings) ? o.feelings.join(", ") : o.feelings || "", search: o.search || "" },
     };
     player = { time: state.start, duration: 0, ready: false, frame: null };
+    if (o.layout && LAYOUTS.some(([id]) => id === o.layout)) layout = o.layout;
+    show();
+  }
+  /* Full screen covers the app (modal); side by side and stacked leave your film usable in the other half. */
+  function show() {
+    if (dlg.open) dlg.close();
+    document.body.classList.remove("wt-dock-side", "wt-dock-stack");
+    dlg.classList.remove("wt-full", "wt-side", "wt-stack");
+    dlg.classList.add("wt-" + layout);
+    dlg.querySelectorAll('[data-w="layout"]').forEach((b) => b.classList.toggle("on", b.dataset.v === layout));
     draw();
-    if (typeof dlg.showModal === "function" && !dlg.open) dlg.showModal();
+    if (layout === "full" && typeof dlg.showModal === "function") dlg.showModal();
+    else if (typeof dlg.show === "function") dlg.show();
     else dlg.setAttribute("open", "");
+    if (layout !== "full") document.body.classList.add("wt-dock-" + layout);
     /* Opening a dialog focuses (and scrolls to) a field; start at the top with the link box ready. */
     dlg.scrollTop = 0;
     dlg.querySelector(".wt-body").scrollTop = 0;
@@ -328,6 +377,20 @@
     const css = document.createElement("style");
     css.textContent = `dialog.wt-watch{overflow:hidden;display:flex;flex-direction:column}
 dialog.wt-watch:not([open]){display:none}
+dialog.wt-watch>header{flex-wrap:wrap}
+.wt-layouts{display:inline-flex;gap:.25rem;margin-left:auto}
+dialog.wt-watch>header .wt-layouts+button{margin-left:.4rem}
+dialog.ci-hub.wt-full{position:fixed;inset:0;width:100vw;max-width:100vw;height:100vh;max-height:100vh;margin:0;border-radius:0}
+dialog.ci-hub.wt-side,dialog.ci-hub.wt-stack{position:fixed;margin:0;z-index:900;box-shadow:0 0 18px #0003}
+dialog.ci-hub.wt-side{inset:0 0 0 auto;width:50vw;height:100vh;max-height:100vh;border-radius:0}
+dialog.ci-hub.wt-stack{inset:0 0 auto 0;width:100vw;max-width:100vw;height:50vh;max-height:50vh;border-radius:0}
+body.wt-dock-side{margin-right:50vw}
+body.wt-dock-stack{margin-top:50vh}
+dialog.ci-hub.wt-side .wt-grid{grid-template-columns:1fr}
+dialog.ci-hub.wt-stack .wt-grid{grid-template-columns:auto minmax(280px,1fr)}
+dialog.ci-hub.wt-stack .wt-player{height:calc(50vh - 9.5rem);width:auto;max-width:60vw}
+dialog.ci-hub.wt-stack .wt-tags{max-height:14vh}
+dialog.ci-hub.wt-full .wt-player{max-height:calc(100vh - 10rem)}
 dialog.wt-watch>.wt-body{flex:1;height:auto;min-height:0}
 .wt-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:.8rem;align-items:start}
 .wt-player{aspect-ratio:16/9;background:#0002;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0}
@@ -341,6 +404,24 @@ dialog.wt-watch>.wt-body{flex:1;height:auto;min-height:0}
 .wt-tags{max-height:34vh}
 @media (max-width:900px){.wt-grid{grid-template-columns:1fr}}`;
     (document.head || document.documentElement).appendChild(css);
+    /* Open it from the Library menu too, next to Scene inspiration. */
+    const wire = () => {
+      const menu = document.getElementById("lib-menu");
+      if (!menu || menu.querySelector("[data-watch-tag]")) return;
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.watchTag = "open";
+      b.innerHTML = "Watch and tag<small>play a YouTube clip beside your film and tag its curiosities</small>";
+      const after = menu.querySelector("[data-inspire]") || menu.querySelector('[data-tab="prism"]');
+      menu.insertBefore(b, after ? after.nextSibling : null);
+      b.addEventListener("click", () => {
+        menu.hidden = true;
+        open();
+      });
+    };
+    /* After hub.js has added Scene inspiration, so this lands under it. */
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(wire, 0));
+    else setTimeout(wire, 0);
   }
 
   const api = { open, parseId, toClip, fmt, parseTime, linkStart };

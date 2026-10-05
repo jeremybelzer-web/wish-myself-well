@@ -110,7 +110,16 @@ function serve() {
     ok(await page.evaluate(() => document.querySelector("dialog.ci-hub").open && document.querySelector("dialog.ci-hub .ci-card").textContent.includes("Tagged clip")), "the tagged clip shows in the hub");
     await page.click('dialog.ci-hub .ci-card [data-i="tag-scene"]');
     ok((await page.getAttribute("dialog.wt-watch .wt-player iframe", "src")).includes("dQw4w9WgXcQ"), "Watch and tag on a tagged clip plays it again");
-    await page.click('dialog.wt-watch [data-w="close"]');
+    await page.click('dialog.wt-watch [data-w="layout"][data-v="full"]');
+    ok(await page.evaluate(() => { const d = document.querySelector("dialog.wt-watch"); const r = d.getBoundingClientRect(); return d.open && d.classList.contains("wt-full") && r.width >= innerWidth - 2 && r.height >= innerHeight - 2 && d.querySelector(".wt-player iframe").src.includes("dQw4w9WgXcQ"); }), "Full screen fills the window and keeps the clip");
+    await page.click('dialog.wt-watch [data-w="layout"][data-v="side"]');
+    ok(await page.evaluate(() => { const r = document.querySelector("dialog.wt-watch").getBoundingClientRect(); return document.body.classList.contains("wt-dock-side") && Math.abs(r.width - innerWidth / 2) < 3 && r.right >= innerWidth - 2; }), "Side by side takes the right half and leaves the film beside it");
+    ok(await page.evaluate(() => localStorage.getItem("curio-watch-layout-v1") === "side"), "the choice is remembered on this device");
+    await page.click('dialog.wt-watch [data-w="layout"][data-v="stack"]');
+    ok(await page.evaluate(() => { const r = document.querySelector("dialog.wt-watch").getBoundingClientRect(); return document.body.classList.contains("wt-dock-stack") && !document.body.classList.contains("wt-dock-side") && r.top <= 1 && Math.abs(r.height - innerHeight / 2) < 3; }), "Stacked takes the top half");
+    await page.click('dialog.wt-watch [data-w="shut"]');
+    ok(await page.evaluate(() => !document.querySelector("dialog.wt-watch").open && !/wt-dock/.test(document.body.className)), "Close gives the whole window back");
+    ok(await page.evaluate(() => !!document.querySelector("#lib-menu [data-watch-tag]")), "the Library menu opens Watch and tag");
     ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   } catch (e) {
     ok(false, e.message + (errors.length ? " page errors: " + errors.join(" | ") : ""));
