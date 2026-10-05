@@ -4,20 +4,24 @@ Every curiosity, feeling, movement, character trait and the people traits react 
 directly tied to. Open `index.html` here on its own, or Library, Relationship map inside the app (which reads
 the live `CuriosityDB`, so a person's own curiosities show up too).
 
-- **Flat matrix**: six columns (Character, Feeling, Body & movement, Camera & look, Sound & words, Story & cut),
-  split by workspace. Click anything and lines run to everything it is directly tied to.
-- **Layers**: flat grids stacked like the slices of a cube (6 layers, or one per workspace). Swipe right, the
-  right arrow or a sideways trackpad swipe sends the front layer to the back; left brings the back one forward.
-  A picked curiosity draws lines on the front layer and each tab counts its ties on that layer.
-- **3D cube**: the same six columns as six slabs of a cube. Drag to spin it all the way round, scroll or pinch to
-  zoom, click to select. Double-click flies closer to what you clicked (or to the curiosity nearest that spot),
-  and each double-click goes further in, like a map. Once you are inside, dragging looks around you. Show every
-  proximity draws the whole web of cause and effect; Move curiosities lets you drag them somewhere else.
+- **Cube matrix** (opens first): every curiosity, feeling, movement and trait is one small 3D cube, and the cubes
+  stand in slabs, one slab per column (the six groups, or a slab per workspace), stacked into one block like a
+  Rubik's cube with many more cubes (longer than it is wide when it needs to be). Drag to turn it all the way
+  round, click a cube to select it and lines run to every cube it is tied to, double-click to zoom in (each
+  double-click goes further, like a map; inside, dragging looks around you). Show every proximity draws the whole web.
+- **Cube slices**: the same block seen face on. Swipe right (or the right arrow) and the front slab goes to the
+  back; swipe left and the back slab comes to the front. Click a slab's name to bring that face forward; each
+  name counts the selection's ties on it. You can still turn it and double-click to zoom in.
+- **Lanes in depth**: the film's automation lanes over time as ribbons in 3D, the curiosity that moves most at the
+  back and the stiller ones in front. Turn it to any angle (Straight on, From the side, Spin). It reads the
+  Screen's own lanes (`CurioEngine`) when a film is open, else shows an example film and says so.
+- **Lanes, swipe**: the same lanes; swipe right or left to send the front lane back or bring the back one forward.
+- **Flat list**: six columns, split by workspace, for reading names quickly.
 - **Your own**: Add a curiosity (tied to whatever is selected), Tie to… then click anything to draw a line,
   × to remove one. Inside the app these go into the curiosity database as your own ("my-") curiosities and
   proximities through `CurioMine` (screen/mine.js), so they can be automated, are saved in project files and
   undo like everything else. Ties to archive items (movements, feelings, traits), everything on the standalone
-  page, and where you moved things stay on this device (`curio-relations-v1`).
+  page stay on this device (`curio-relations-v1`).
 - **Movement archive** (a pop-up): what a body does, or stops doing, for each feeling. Pick a feeling to see its
   movements, or pick movements and it says which feelings they read as. Show on the map, or Copy as a note.
 

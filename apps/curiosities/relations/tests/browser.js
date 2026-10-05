@@ -54,6 +54,9 @@ const ok = (cond, msg) => {
     await page.goto(base + "relations/index.html");
     await page.evaluate(() => localStorage.clear());
     await page.reload();
+    await page.waitForSelector(".rl-bar");
+    ok((await page.getAttribute(".rl-bar .on[data-view]", "data-view")) === "cube", "it opens on the Cube matrix");
+    await page.click('[data-view="flat"]');
     await page.waitForSelector(".rl-chip");
     const chips = await page.locator(".rl-chip").count();
     ok(chips > 900, `the flat matrix shows every node (${chips})`);
@@ -87,69 +90,133 @@ const ok = (cond, msg) => {
     ok((await page.textContent(".rl-side h2")) === "3 picked", "Show on the map selects the picked movements");
     ok(await page.evaluate(() => JSON.parse(localStorage.getItem("curio-relations-v1")).picked.length === 3), "picks are kept on this device");
 
+    const call = (fn) => page.evaluate(`(${fn})(document.getElementById("relations")._curioRelations.view().inner())`);
+    const flick = async (sel, dx) => {
+      const b = await page.locator(sel).boundingBox();
+      const x = b.x + b.width / 2 - dx / 2;
+      const y = b.y + b.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x + dx, y, { steps: 2 });
+      await page.mouse.up();
+      await page.waitForTimeout(150);
+    };
+    // where a cube is on the screen now
+    const spotOf = (id) =>
+      page.evaluate((id) => {
+        const c = document.getElementById("relations")._curioRelations.view().inner();
+        const p = c.pos.get(id);
+        const v = new THREE.Vector3(p[0], p[1], p[2]).project(c.stage.camera);
+        const r = c.stage.host.getBoundingClientRect();
+        return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
+      }, id);
+
+    // Cube matrix: a block of small 3D cubes, one per curiosity, a slab per column.
     await page.click('[data-view="cube"]');
     if (THREE_FILE) {
-      await page.waitForSelector(".rl-cube canvas");
+      await page.waitForSelector(".rl-cube.cube canvas");
+      await page.waitForTimeout(400);
+      const block = await call((c) => ({ cubes: c.pos.size, slabs: c.slabs.length, zs: new Set([...c.pos.values()].map((p) => Math.round(p[2] * 10))).size }));
+      ok(block.cubes > 900 && block.slabs === 6 && block.zs === 6, `every curiosity is a cube in a block of 6 slabs (${block.cubes} cubes)`);
       await page.evaluate(() => document.getElementById("relations")._curioRelations.select("tr-suspicious-authority"));
       await page.waitForTimeout(300);
       const labels = await page.locator(".rl-labels div:not(.slab)").count();
-      ok(labels >= 15, `the cube labels the selection and its ties (${labels})`);
-      const spot = await page.evaluate(() => {
-        const c = document.getElementById("relations")._curioRelations.view().inner();
-        const p = c.pos.get("em-suspicion");
-        const v = new THREE.Vector3(p[0], p[1], p[2]).project(c.camera);
-        const r = c.host.getBoundingClientRect();
-        return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
-      });
-      await page.mouse.dblclick(spot.x, spot.y);
-      await page.waitForTimeout(1100);
-      // Like a map: the curiosity is now in the middle, and each double-click on it goes further in.
-      const mid = await page.evaluate(() => {
-        const r = document.querySelector(".rl-cube canvas").getBoundingClientRect();
-        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-      });
-      for (let i = 0; i < 2; i++) {
-        await page.mouse.dblclick(mid.x, mid.y);
-        await page.waitForTimeout(1100);
-      }
-      const flown = await page.evaluate(() => {
-        const c = document.getElementById("relations")._curioRelations.view().inner();
-        return { r: c.orbit.r, sel: document.getElementById("relations")._curioRelations.selected() };
-      });
-      ok(flown.sel[0] === "em-suspicion" && flown.r < 20, `double-clicking a curiosity flies inside to it (r ${flown.r.toFixed(1)})`);
-      await page.screenshot({ path: path.join(SHOTS, "relations-cube-inside.png") });
-      const box = await page.locator(".rl-cube canvas").boundingBox();
-      await page.mouse.move(box.x + 30, box.y + 30);
-      await page.mouse.down();
-      await page.mouse.move(box.x + 330, box.y + 60, { steps: 8 });
-      await page.mouse.up();
-      await page.click('[data-c="out"]');
-      await page.waitForTimeout(1500);
-      ok(await page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner().orbit.r > 150), "Fly out goes back outside the cube");
+      ok(labels >= 15, `the cube labels the selection and every cube it ties to (${labels})`);
       await page.screenshot({ path: path.join(SHOTS, "relations-cube.png") });
-    } else ok(await page.locator(".rl-cube .rl-note").count(), "without three.js the cube says so");
+      // turn it all the way round
+      const th0 = await call((c) => c.stage.orb.theta);
+      const cb = await page.locator(".rl-cube.cube canvas").boundingBox();
+      await page.mouse.move(cb.x + 60, cb.y + cb.height - 60);
+      await page.mouse.down();
+      await page.mouse.move(cb.x + 460, cb.y + cb.height - 40, { steps: 20 });
+      await page.mouse.up();
+      const th1 = await call((c) => c.stage.orb.theta);
+      ok(Math.abs(th1 - th0) > 1, `dragging turns the cube around (${(((th1 - th0) * 180) / Math.PI).toFixed(0)}°)`);
+      await page.click('[data-c="home"]');
+      await page.waitForTimeout(1100);
+      // click a cube on the front face: it is selected
+      const front = await call((c) => {
+        let best = null;
+        c.pos.forEach((p, id) => {
+          if (!best || p[2] > best.p[2] + 0.01 || (Math.abs(p[2] - best.p[2]) < 0.01 && Math.hypot(p[0], p[1]) < Math.hypot(best.p[0], best.p[1]))) best = { id, p };
+        });
+        return best.id;
+      });
+      const fs = await spotOf(front);
+      await page.mouse.click(fs.x, fs.y);
+      ok((await page.evaluate(() => document.getElementById("relations")._curioRelations.selected()))[0] === front, `clicking a cube selects it (${front})`);
+      const r0 = await call((c) => c.stage.orb.r);
+      await page.mouse.dblclick(fs.x, fs.y);
+      await page.waitForTimeout(1100);
+      const mid = { x: cb.x + cb.width / 2, y: cb.y + cb.height / 2 };
+      await page.mouse.dblclick(mid.x, mid.y);
+      await page.waitForTimeout(1100);
+      const r2 = await call((c) => c.stage.orb.r);
+      ok(r2 < r0 * 0.3, `each double-click zooms further in (${r0.toFixed(0)} to ${r2.toFixed(1)})`);
+      await page.screenshot({ path: path.join(SHOTS, "relations-cube-inside.png") });
+      await page.click('[data-c="home"]');
+      await page.waitForTimeout(1100);
 
-    // Round two: layers, adding your own, ties, moving, flying in step by step, looking around.
-    await page.click('[data-view="layers"]');
-    await page.waitForSelector(".rl-layer.front");
-    const before = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().order());
-    const st0 = await page.locator(".rl-stack").boundingBox();
-    await page.mouse.move(st0.x + 100, st0.y + st0.height - 20);
-    await page.mouse.down();
-    await page.mouse.move(st0.x + 300, st0.y + st0.height - 20, { steps: 5 });
-    await page.mouse.up();
-    let after = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().order());
-    ok(after[after.length - 1] === before[0] && after[0] === before[1], "swiping right sends the front layer to the back");
-    await page.keyboard.press("ArrowLeft");
-    after = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().order());
-    ok(after[0] === before[0], "the left arrow brings the back layer to the front");
-    await page.click('[data-by="workspace"]');
-    const many = await page.locator(".rl-layer").count();
-    ok(many > 30, `one layer per workspace (${many})`);
-    await page.click('[data-by="family"]');
-    await page.click('.rl-cell[data-id="tr-suspicious-authority"]');
-    ok((await page.locator(".rl-layer.front .rl-svg line").count()) > 0 && (await page.locator(".rl-tabs b").count()) >= 3, "a picked cell draws lines on its layer and counts ties on the other layers");
-    await page.screenshot({ path: path.join(SHOTS, "relations-layers.png") });
+      // Cube slices: the same block; swipe right sends the front slab to the back, swipe left brings the back one forward.
+      await page.click('[data-view="slices"]');
+      await page.waitForSelector(".rl-cube.slices canvas");
+      await page.waitForTimeout(300);
+      const before = await call((c) => c.order());
+      await flick(".rl-cube.slices canvas", 220);
+      let after = await call((c) => c.order());
+      ok(after[after.length - 1] === before[0] && after[0] === before[1], "swiping right sends the front slab to the back");
+      await flick(".rl-cube.slices canvas", -220);
+      after = await call((c) => c.order());
+      ok(after[0] === before[0], "swiping left brings the back slab to the front");
+      await page.focus(".rl-cube.slices");
+      await page.keyboard.press("ArrowRight");
+      after = await call((c) => c.order());
+      ok(after[0] === before[1], "the right arrow does the same as a swipe right");
+      await page.click(`.rl-slabtabs button[data-slab]:nth-child(3)`);
+      after = await call((c) => c.order());
+      ok(after[0] === before[3] || after[0] !== before[1], "clicking a slab's name brings that face to the front");
+      await page.evaluate(() => document.getElementById("relations")._curioRelations.select("tr-suspicious-authority"));
+      await page.waitForTimeout(900);
+      ok((await page.locator(".rl-slabtabs b").count()) >= 3, "each slab's name counts the ties on it");
+      await page.screenshot({ path: path.join(SHOTS, "relations-slices.png") });
+      await page.click('[data-c="by-workspace"]');
+      await page.waitForSelector(".rl-cube.slices canvas");
+      await page.waitForTimeout(300);
+      const many = await call((c) => c.slabs.length);
+      ok(many > 30, `a slab per workspace makes a longer block (${many} slabs)`);
+      await page.click('[data-c="by-family"]');
+      await page.waitForTimeout(300);
+
+      // Lanes in depth: the film's automation lanes in 3D, the one that moves most at the back.
+      await page.click('[data-view="lanes"]');
+      await page.waitForSelector(".rl-cube.lanes canvas");
+      await page.waitForTimeout(400);
+      const lanes = await call((c) => ({ order: c.order(), lanes: c.lanes(), example: c.example }));
+      const most = lanes.lanes.slice().sort((a, b) => b.move - a.move)[0];
+      ok(lanes.order.length >= 6 && lanes.order[lanes.order.length - 1] === most.label, `the lane that moves most stands at the back (${most.label})`);
+      ok(lanes.example && /Example film/.test(await page.textContent(".rl-filmnote")), "with no film open it says the lanes are an example film");
+      const lth = await call((c) => c.stage.orb.theta);
+      await page.click('[data-c="side"]');
+      await page.waitForTimeout(1100);
+      ok(Math.abs((await call((c) => c.stage.orb.theta)) - lth) > 0.5, "From the side turns the lanes to another angle");
+      await page.click('[data-c="home"]');
+      await page.waitForTimeout(1100);
+      await page.screenshot({ path: path.join(SHOTS, "relations-lanes.png") });
+
+      // Lanes, swipe: the same lanes; swipe moves them front to back.
+      await page.click('[data-view="lanes-swipe"]');
+      await page.waitForSelector(".rl-cube.lanes-swipe canvas");
+      await page.waitForTimeout(300);
+      const lb = await call((c) => c.order());
+      await flick(".rl-cube.lanes-swipe canvas", 220);
+      const la = await call((c) => c.order());
+      ok(la[la.length - 1] === lb[0], "swiping right sends the front lane to the back");
+      await flick(".rl-cube.lanes-swipe canvas", -220);
+      ok((await call((c) => c.order()))[0] === lb[0], "swiping left brings the back lane to the front");
+      await page.click('[data-view="cube"]');
+      await page.waitForSelector(".rl-cube.cube canvas");
+    } else ok(await page.locator(".rl-cube .rl-note").count(), "without three.js the 3D views say so");
+
 
     await page.click('[data-act="add"]');
     await page.fill("#rl-new-name", "Distrust of doctors");
@@ -169,54 +236,31 @@ const ok = (cond, msg) => {
 
     await page.click('[data-view="cube"]');
     if (THREE_FILE) {
-      await page.waitForSelector(".rl-cube canvas");
+      await page.waitForSelector(".rl-cube.cube canvas");
       await page.waitForTimeout(300);
-      const view = () => page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner());
-      const box = await page.locator(".rl-cube canvas").boundingBox();
+      ok(await call((c) => c.pos.has("mine-distrust-of-doctors")), "your own curiosity is a cube in the block too");
+      const box = await page.locator(".rl-cube.cube canvas").boundingBox();
       const cx = box.x + box.width / 2;
       const cy = box.y + box.height / 2;
-      await page.click('[data-c="out"]');
+      await page.mouse.dblclick(cx, cy);
       await page.waitForTimeout(1100);
-      const r = async () => page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner().orbit.r);
-      const r0 = await r();
-      await page.mouse.dblclick(box.x + 20, box.y + 20);
+      await page.mouse.dblclick(cx, cy);
       await page.waitForTimeout(1100);
-      const r1 = await r();
-      await page.mouse.dblclick(box.x + 20, box.y + 20);
+      await page.mouse.dblclick(cx, cy);
       await page.waitForTimeout(1100);
-      const r2 = await r();
-      ok(r1 < r0 * 0.6 && r2 < r1 * 0.6, `each double-click flies further in (${r0.toFixed(0)}, ${r1.toFixed(0)}, ${r2.toFixed(0)})`);
-      const eye0 = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner().camera.position.toArray());
+      const eye0 = await call((c) => c.stage.camera.position.toArray());
       await page.mouse.move(cx, cy);
       await page.mouse.down();
       await page.mouse.move(cx + 250, cy + 40, { steps: 6 });
       await page.mouse.up();
       await page.waitForTimeout(100);
-      const eye1 = await page.evaluate(() => document.getElementById("relations")._curioRelations.view().inner().camera.position.toArray());
+      const eye1 = await call((c) => c.stage.camera.position.toArray());
       ok(eye0.every((v, i) => Math.abs(v - eye1[i]) < 0.5), "inside, dragging looks around without moving where you stand");
       await page.click('[data-c="all"]');
       ok(await page.evaluate(() => JSON.parse(localStorage.getItem("curio-relations-v1")).showAll === true), "Show every proximity stays on");
-      await page.click('[data-c="out"]');
+      await page.click('[data-c="home"]');
       await page.waitForTimeout(1100);
       await page.screenshot({ path: path.join(SHOTS, "relations-cube-web.png") });
-      // Move: drag the selected curiosity somewhere else.
-      await page.click('[data-c="out"]');
-      await page.evaluate(() => document.getElementById("relations")._curioRelations.select("em-suspicion"));
-      await page.waitForTimeout(1100);
-      const sp = await page.evaluate(() => {
-        const c = document.getElementById("relations")._curioRelations.view().inner();
-        const p = c.pos.get("em-suspicion");
-        const v = new THREE.Vector3(p[0], p[1], p[2]).project(c.camera);
-        const r = c.host.getBoundingClientRect();
-        return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
-      });
-      await page.click('[data-c="move"]');
-      await page.mouse.move(sp.x, sp.y);
-      await page.mouse.down();
-      await page.mouse.move(sp.x + 120, sp.y + 80, { steps: 6 });
-      await page.mouse.up();
-      const moved = await page.evaluate(() => JSON.parse(localStorage.getItem("curio-relations-v1")).moved["em-suspicion"]);
-      ok(Array.isArray(moved), "Move curiosities: a dragged curiosity stays where it was put");
     }
 
     // Inside the app, from the Library.

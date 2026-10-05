@@ -1,15 +1,15 @@
 /* relations/relations.js: the relationship map. Every curiosity, feeling, movement, character trait and the people
    traits react to, shown two ways:
 
-   - Flat matrix: six columns (Character, Feeling, Body & movement, Camera & look, Sound & words, Story & cut),
-     each split by workspace. Click a curiosity and lines run to everything it is directly tied to.
-   - Layers: flat grids stacked like the slices of a cube (six, or one per workspace). Swipe right and the front
-     layer goes to the back; swipe left and the back one comes to the front.
-   - 3D cube: the same six columns as six slabs of a cube. Drag to spin it all the way round; once inside, dragging
-     looks around you. Double-click flies closer to what you clicked, and again goes further in, like a map.
-     "Show every proximity" draws the whole web of cause and effect; "Move curiosities" lets you drag them.
-   - Your own: Add a curiosity, and Tie to… draws a line from one thing to another. Kept on this device with the
-     moves, in localStorage "curio-relations-v1".
+   - Cube matrix: every item is one small 3D cube; the cubes stand in slabs (one per column: the six groups, or a
+     slab per workspace) stacked into one block. Drag turns it 360 degrees, click selects (lines run to every tie),
+     double-click zooms in and again goes further, like a map; inside, dragging looks around you.
+   - Cube slices: the same block face on; swipe right sends the front slab to the back, swipe left brings the back
+     one to the front, and a slab's name brings that face forward.
+   - Lanes in depth: the film's automation lanes as 3D ribbons, the one that moves most at the back.
+   - Lanes, swipe: the same, and swiping sends lanes front to back.
+   - Flat list: six columns split by workspace.
+   - Your own: Add a curiosity, and Tie to… draws a line from one thing to another. Kept on this device in localStorage "curio-relations-v1".
    - Movement archive: a pop-up of what bodies do, or stop doing, for each feeling. Pick a feeling to see its
      movements, or pick movements to see which feelings they describe, then show them on the map.
 
@@ -49,6 +49,7 @@
     });
   }
 
+  const VIEWS = ["cube", "slices", "lanes", "lanes-swipe", "flat"];
   function mount(el, opts) {
     opts = opts || {};
     const G = root.CurioGraph;
@@ -60,12 +61,12 @@
     }
     const saved = load();
     const st = {
-      view: ["flat", "layers", "cube"].includes(saved.view) ? saved.view : "flat",
+      view: VIEWS.includes(saved.view) ? saved.view : "cube",
       sel: [],
       picked: saved.picked || [],
       mine: { nodes: (saved.mine && saved.mine.nodes) || [], ties: (saved.mine && saved.mine.ties) || [] },
-      moved: saved.moved || {},
-      layerBy: saved.layerBy === "workspace" ? "workspace" : "family",
+      slabBy: saved.slabBy === "workspace" ? "workspace" : "family",
+      camera: saved.camera || null,
       tieFrom: "",
       adding: false,
       showAll: !!saved.showAll,
@@ -85,7 +86,7 @@
     st.mine.place = st.mine.place || saved.place || {};
     let g = G.build(G.fromDB(db), A, st.mine);
     st.picked = st.picked.filter((id) => g.byId.has(id));
-    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, place: st.mine.place, moved: st.moved, layerBy: st.layerBy, showAll: st.showAll });
+    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, place: st.mine.place, slabBy: st.slabBy, showAll: st.showAll, camera: st.camera });
     /* After the user adds or removes something: build the graph again and redraw, keeping the camera. */
     function rebuild() {
       g = G.build(G.fromDB(db), A, st.mine);
@@ -100,7 +101,7 @@
     el.innerHTML = `
       <div class="rl-bar">
         <div class="rl-seg" role="group" aria-label="View">
-          <button data-view="flat">Flat matrix</button><button data-view="layers">Layers</button><button data-view="cube">3D cube</button>
+          <button data-view="cube">Cube matrix</button><button data-view="slices">Cube slices</button><button data-view="lanes">Lanes in depth</button><button data-view="lanes-swipe">Lanes, swipe</button><button data-view="flat">Flat list</button>
         </div>
         <div class="rl-find"><input type="search" placeholder="Find a curiosity, feeling or movement" aria-label="Find"><div class="rl-hits"></div></div>
         <button data-act="archive">Movement archive</button>
@@ -234,7 +235,6 @@
         <div class="rl-actions">
           <button data-act="tie" data-id="${esc(n.id)}" title="Draw a line from this to anything else">Tie to…</button>
           ${n.kind === "mine" || (n.mine && Mine) ? `<button data-act="delnode" data-id="${esc(n.id)}">Remove this curiosity</button>` : ""}
-          ${st.moved[n.id] ? `<button data-act="unmove" data-id="${esc(n.id)}">Put back in its place</button>` : ""}
           ${isFeeling ? `<button data-act="archive" data-feeling="${esc(n.id)}">Movements for this feeling</button>` : ""}
           ${n.kind === "movement" ? `<button data-act="pick" data-id="${esc(n.id)}">${st.picked.includes(n.id) ? "Unpick" : "Pick"} this movement</button>` : ""}
         </div>
@@ -264,11 +264,6 @@
         while (g.byId.has(id)) id += "-2";
         st.mine.nodes.push({ id, label: name, plain, family });
         if (near) st.mine.ties.push({ a: near, b: id });
-      }
-      // Put it beside what it is tied to, so it is easy to find in the cube.
-      if (near && view && view.posOf) {
-        const p = view.posOf(near);
-        if (p) st.moved[id] = [p[0] + 3, p[1] + 3, p[2] + 3];
       }
       st.adding = false;
       st.sel = [id];
@@ -304,12 +299,7 @@
         }
         st.mine.nodes = st.mine.nodes.filter((n) => n.id !== id);
         st.mine.ties = st.mine.ties.filter((t) => t.a !== id && t.b !== id);
-        delete st.moved[id];
         st.sel = [];
-        return rebuild();
-      }
-      if (b.dataset.act === "unmove") {
-        delete st.moved[b.dataset.id];
         return rebuild();
       }
       if (b.dataset.act === "pick") {
@@ -356,6 +346,13 @@
 
     /* ---------- views ---------- */
     let view = null;
+    // A view asks to be built again (the cube switched between six slabs and a slab per workspace).
+    el.addEventListener("rl-rebuild", () => {
+      view && view.destroy();
+      view = null;
+      st.camera = null; // the block changed size, so start from the whole-cube view
+      setView(st.view);
+    });
     function setView(v) {
       st.view = v;
       persist();
@@ -363,7 +360,12 @@
       view && view.destroy();
       stage.innerHTML = "";
       const keep = (st.camera = view && view.camera ? view.camera() || st.camera : st.camera);
-      view = v === "cube" ? cubeView(stage, g, st, select, persist, keep) : v === "layers" ? layersView(stage, g, st, select, persist) : flatView(stage, g, st, select, nearSet);
+      view =
+        v === "cube" || v === "slices"
+          ? cubeView(stage, g, st, select, persist, keep, v === "slices")
+          : v === "lanes" || v === "lanes-swipe"
+          ? lanesView(stage, g, st, select, persist, keep, v === "lanes-swipe")
+          : flatView(stage, g, st, select, nearSet);
       view.update();
     }
 
@@ -541,466 +543,92 @@
     return { update, focus: () => {}, chip, svg, destroy: () => window.removeEventListener("resize", onResize) };
   }
 
-  /* ---------- layers: flat matrices stacked like the slices of a cube ----------
-     Each layer is one flat grid of curiosities (one per group, or one per workspace). Swipe right (or press the
-     right arrow) and the front layer goes to the back; swipe left and the back layer comes to the front. Picking a
-     curiosity lights its ties on every layer: lines on the front layer, a count on each layer's tab. */
-  function layersView(stage, g, st, select, persist) {
-    const wrap = document.createElement("div");
-    wrap.className = "rl-layers";
-    wrap.tabIndex = 0;
-    wrap.setAttribute("aria-label", "Layers: swipe or use the arrow keys to move through them");
-    stage.appendChild(wrap);
-    let layers = [];
-    let order = [];
-    let cellOf = new Map();
-    let layerOf = new Map();
-
-    function build() {
-      if (st.layerBy === "workspace") {
-        const groups = [];
-        g.families.forEach((f) =>
-          g.nodes
-            .filter((n) => n.family === f.id)
-            .forEach((n) => {
-              let gr = groups.find((x) => x.key === n.group);
-              if (!gr) groups.push((gr = { key: n.group, label: n.groupLabel, family: f.id, nodes: [] }));
-              gr.nodes.push(n);
-            })
-        );
-        layers = groups;
-      } else layers = g.families.map((f) => ({ key: f.id, label: f.label, family: f.id, nodes: g.nodes.filter((n) => n.family === f.id) }));
-      order = layers.map((_, i) => i);
-      wrap.innerHTML = `<div class="rl-ltop">
-          <div class="rl-seg" role="group" aria-label="Layers by"><button data-by="family">6 layers</button><button data-by="workspace">${layers.length > 6 ? layers.length : "One per workspace"} layers</button></div>
-          <button data-move="back" aria-label="Bring the back layer to the front">◀ Back to front</button>
-          <button data-move="front" aria-label="Send the front layer to the back">Front to back ▶</button>
-        </div>
-        <div class="rl-tabs"></div>
-        <div class="rl-stack">${layers
-          .map(
-            (L, i) => `<section class="rl-layer" data-i="${i}" style="--c:${FAMILY_COLOR[L.family]}">
-              <h3>${esc(L.label)} <span class="rl-tag">${L.nodes.length}</span></h3>
-              <div class="rl-lscroll"><div class="rl-cells">${L.nodes
-                .map((n) => `<button class="rl-cell${n.kind === "mine" ? " mine" : ""}" data-id="${esc(n.id)}" title="${esc(n.plain)}">${esc(n.label)}</button>`)
-                .join("")}<svg class="rl-svg" xmlns="http://www.w3.org/2000/svg"></svg></div></div>
-            </section>`
-          )
-          .join("")}</div>
-        <p class="rl-hint-l">Swipe right to send the front layer to the back, left to bring the back one forward. Arrow keys work too.</p>`;
-      wrap.querySelectorAll("[data-by]").forEach((b) => b.classList.toggle("on", b.dataset.by === st.layerBy));
-      if (st.layerBy === "workspace") wrap.querySelector('[data-by="workspace"]').textContent = layers.length + " layers";
-      cellOf = new Map([...wrap.querySelectorAll(".rl-cell")].map((b) => [b.dataset.id, b]));
-      layerOf = new Map();
-      layers.forEach((L, i) => L.nodes.forEach((n) => layerOf.set(n.id, i)));
-    }
-
-    function place() {
-      const els = wrap.querySelectorAll(".rl-layer");
-      order.forEach((li, d) => {
-        const el = els[li];
-        el.style.transform = `translate3d(${d * 14}px, ${-d * 14}px, ${-d * 40}px)`;
-        el.style.zIndex = String(500 - d);
-        el.style.opacity = d > 7 ? "0" : String(1 - d * 0.1);
-        el.classList.toggle("front", d === 0);
-        el.setAttribute("aria-hidden", d === 0 ? "false" : "true");
-      });
-      tabs();
-      lines();
-    }
-    function counts() {
-      const c = new Map();
-      st.sel.forEach((id) =>
-        g.links(id).forEach((l) => {
-          const li = layerOf.get(l.id);
-          if (li != null) c.set(li, (c.get(li) || 0) + 1);
-        })
-      );
-      return c;
-    }
-    function tabs() {
-      const c = counts();
-      wrap.querySelector(".rl-tabs").innerHTML = order
-        .map((li, d) => `<button data-layer="${li}" class="${d === 0 ? "on" : ""}" style="--c:${FAMILY_COLOR[layers[li].family]}">${esc(layers[li].label)}${c.get(li) ? ` <b>${c.get(li)}</b>` : ""}</button>`)
-        .join("");
-    }
-    function lines() {
-      const front = wrap.querySelector(".rl-layer.front");
-      wrap.querySelectorAll(".rl-svg").forEach((s) => (s.innerHTML = ""));
-      if (!front || !st.sel.length) return;
-      const cells = front.querySelector(".rl-cells");
-      const svg = cells.querySelector(".rl-svg");
-      svg.setAttribute("width", cells.scrollWidth);
-      svg.setAttribute("height", cells.scrollHeight);
-      const o = cells.getBoundingClientRect();
-      const mid = (b) => {
-        const r = b.getBoundingClientRect();
-        return [r.left - o.left + r.width / 2, r.top - o.top + r.height / 2];
-      };
-      let out = "";
-      st.sel.forEach((id) => {
-        const a = cellOf.get(id);
-        if (!a || !front.contains(a)) return;
-        const [x1, y1] = mid(a);
-        g.links(id).forEach((l) => {
-          const b = cellOf.get(l.id);
-          if (!b || !front.contains(b)) return;
-          const [x2, y2] = mid(b);
-          out += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${TYPE_COLOR[l.edge.type]}" stroke-width="2" opacity="0.75"/>`;
-        });
-      });
-      svg.innerHTML = out;
-    }
-    function update() {
-      const near = new Map();
-      st.sel.forEach((id) => g.links(id).forEach((l) => near.set(l.id, l)));
-      cellOf.forEach((b, id) => {
-        b.classList.toggle("sel", st.sel.includes(id));
-        const l = !st.sel.includes(id) && near.get(id);
-        b.classList.toggle("near", !!l);
-        if (l) b.style.setProperty("--t", TYPE_COLOR[l.edge.type]);
-      });
-      wrap.classList.toggle("has-sel", st.sel.length > 0);
-      tabs();
-      lines();
-    }
-    function spin(dir) {
-      if (dir === "front") order.push(order.shift());
-      else order.unshift(order.pop());
-      place();
-    }
-    function bring(li) {
-      while (order[0] !== li) order.push(order.shift());
-      place();
-    }
-
-    let down = null;
-    let swiped = false;
-    wrap.addEventListener("pointerdown", (e) => {
-      if (e.target.closest(".rl-ltop, .rl-tabs")) return;
-      down = { x: e.clientX, y: e.clientY };
-      swiped = false;
-    });
-    wrap.addEventListener("pointerup", (e) => {
-      if (!down) return;
-      const dx = e.clientX - down.x;
-      const dy = e.clientY - down.y;
-      down = null;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) {
-        swiped = true;
-        spin(dx > 0 ? "front" : "back");
-      }
-    });
-    wrap.addEventListener("click", (e) => {
-      const b = e.target.closest("button");
-      if (!b) return;
-      if (b.dataset.move) return spin(b.dataset.move);
-      if (b.dataset.layer) return bring(+b.dataset.layer);
-      if (b.dataset.by) {
-        st.layerBy = b.dataset.by;
-        persist();
-        build();
-        place();
-        return update();
-      }
-      if (b.dataset.id && !swiped) select(st.sel.length === 1 && st.sel[0] === b.dataset.id && !st.tieFrom ? [] : b.dataset.id);
-    });
-    wrap.addEventListener("keydown", (e) => {
-      if (e.target.closest("input")) return;
-      if (e.key === "ArrowRight") spin("front");
-      else if (e.key === "ArrowLeft") spin("back");
-      else return;
-      e.preventDefault();
-    });
-    // a sideways trackpad swipe counts too
-    let wheelX = 0;
-    let wheelT = 0;
-    wrap.addEventListener("wheel", (e) => {
-      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
-      e.preventDefault();
-      const now = performance.now();
-      if (now - wheelT > 400) wheelX = 0;
-      wheelT = now;
-      wheelX += e.deltaX;
-      if (Math.abs(wheelX) > 120) {
-        spin(wheelX < 0 ? "front" : "back");
-        wheelX = 0;
-        wheelT = now + 500;
-      }
-    }, { passive: false });
-    const onResize = () => lines();
-    window.addEventListener("resize", onResize);
-
-    build();
-    place();
-    return {
-      update,
-      focus: (id) => {
-        const li = layerOf.get(g.real(id));
-        if (li != null) bring(li);
-      },
-      spin,
-      order: () => order.map((li) => layers[li].label),
-      destroy: () => window.removeEventListener("resize", onResize),
-    };
-  }
-
-  /* ---------- 3D cube ---------- */
-  function cubeView(stage, g, st, select, persist, keep) {
-    const host = document.createElement("div");
-    host.className = "rl-cube";
-    host.innerHTML = `<div class="rl-labels"></div><div class="rl-tip"></div>
-      <div class="rl-cube-ui"><button data-c="out">Fly out</button><button data-c="in">Fly to the middle</button><button data-c="spin">Spin</button><button data-c="all">Show every proximity</button><button data-c="move">Move curiosities</button></div>
-      <div class="rl-hint">Drag to turn · double-click to fly closer, again to go further in · scroll or pinch to zoom</div>`;
-    stage.appendChild(host);
-    let alive = true;
-    let ctx = null;
-    const pending = { focus: null };
-    loadThree().then((ok) => {
-      if (!alive) return;
-      if (!ok) {
-        host.innerHTML = '<p class="rl-note">The 3D cube needs three.js, which loads from cdnjs. Check the connection and reload. The flat matrix and the layers still work.</p>';
-        return;
-      }
-      ctx = initCube(host, g, st, select, persist, keep);
-      ctx.update();
-      if (pending.focus) ctx.focus(pending.focus);
-    });
-    return {
-      update: () => ctx && ctx.update(),
-      focus: (id) => (ctx ? ctx.focus(id) : (pending.focus = id)),
-      posOf: (id) => (ctx ? ctx.pos.get(id) : null),
-      camera: () => (ctx ? ctx.cameraState() : keep),
-      inner: () => ctx,
-      destroy: () => {
-        alive = false;
-        ctx && ctx.destroy();
-      },
-    };
-  }
-
-  /* Positions: the six families are six slabs along x; inside a slab, nodes fill a square grid on y and z,
-     ordered by workspace so each workspace sits together. The whole cube spans -50..50 on every axis.
-     Curiosities the user made sit in the middle of their slab; anything the user dragged keeps where they put it. */
-  function layout(g, moved) {
-    const pos = new Map();
-    const F = g.families.length;
-    g.families.forEach((f, fi) => {
-      const ns = g.nodes.filter((n) => n.family === f.id && n.kind !== "mine").sort((a, b) => (a.kind === "curiosity") - (b.kind === "curiosity") || (a.group < b.group ? -1 : a.group > b.group ? 1 : 0));
-      const side = Math.ceil(Math.sqrt(ns.length));
-      const x = -50 + (100 * (fi + 0.5)) / F;
-      ns.forEach((n, i) => {
-        const r = Math.floor(i / side);
-        const c = i % side;
-        const y = 46 - (92 * r) / Math.max(1, side - 1);
-        const z = -46 + (92 * c) / Math.max(1, side - 1);
-        // a small x jitter keeps rows from lining up into one flat sheet
-        pos.set(n.id, [x + ((r + c) % 3) * 2 - 2, y, z]);
-      });
-      g.nodes.filter((n) => n.family === f.id && n.kind === "mine").forEach((n, i) => pos.set(n.id, [x + 4, ((i % 5) - 2) * 6, Math.floor(i / 5) * 6]));
-    });
-    Object.keys(moved || {}).forEach((id) => pos.has(id) && Array.isArray(moved[id]) && pos.set(id, moved[id].slice(0, 3)));
-    return pos;
-  }
-
-  function initCube(host, g, st, select, persist, keep) {
+  /* ---------- the 3D views: a shared stage (renderer, camera you can turn, fly, labels) ----------
+     Drag turns the view all the way round; once you are close in, dragging looks around where you stand.
+     Double-click flies toward what you clicked and halves the distance each time, like zooming into a map.
+     Scroll or pinch zooms. Each view adds its own objects to stage.scene and its own pick(). */
+  function threeStage(host, keep, opts) {
     const T = root.THREE;
-    const labels = host.querySelector(".rl-labels");
-    const tip = host.querySelector(".rl-tip");
     const renderer = new T.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(2, root.devicePixelRatio || 1));
     host.insertBefore(renderer.domElement, host.firstChild);
     const scene = new T.Scene();
-    const camera = new T.PerspectiveCamera(60, 1, 0.1, 2000);
-    scene.add(new T.AmbientLight(0xffffff, 0.75));
-    const sun = new T.DirectionalLight(0xffffff, 0.6);
-    sun.position.set(80, 120, 60);
+    const camera = new T.PerspectiveCamera(50, 1, 0.05, 2000);
+    scene.add(new T.AmbientLight(0xffffff, 0.62));
+    const sun = new T.DirectionalLight(0xffffff, 0.75);
+    sun.position.set(30, 50, 40);
     scene.add(sun);
-
-    scene.add(new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(108, 108, 108)), new T.LineBasicMaterial({ color: 0x8a7f72, transparent: true, opacity: 0.5 })));
-    const F = g.families.length;
-    for (let i = 1; i < F; i++) {
-      const wall = new T.LineSegments(new T.EdgesGeometry(new T.PlaneGeometry(108, 108)), new T.LineBasicMaterial({ color: 0x8a7f72, transparent: true, opacity: 0.18 }));
-      wall.rotation.y = Math.PI / 2;
-      wall.position.x = -50 + (100 * i) / F;
-      scene.add(wall);
-    }
-
-    const pos = layout(g, st.moved);
-    const nodes = g.nodes;
-    const mesh = new T.InstancedMesh(new T.SphereGeometry(1, 12, 8), new T.MeshLambertMaterial({ color: 0xffffff }), nodes.length);
-    const base = nodes.map((n) => new T.Color(n.kind === "mine" ? "#1c1712" : FAMILY_COLOR[n.family] || "#888"));
-    const grey = new T.Color(0xd9d0c3);
-    const m4 = new T.Matrix4();
-    const col = new T.Color();
-    let near = new Map();
-    function paintOne(i) {
-      const n = nodes[i];
-      const p = pos.get(n.id);
-      const isSel = st.sel.includes(n.id);
-      const isNear = near.has(n.id);
-      const s = isSel ? 2 : isNear ? 1.6 : n.kind === "curiosity" ? 0.9 : 1.15;
-      m4.makeScale(s, s, s).setPosition(p[0], p[1], p[2]);
-      mesh.setMatrixAt(i, m4);
-      col.copy(base[i]);
-      if (st.sel.length && !isSel && !isNear) col.lerp(grey, 0.8);
-      if (isSel) col.set(0x1c1712);
-      mesh.setColorAt(i, col);
-    }
-    function paint() {
-      nodes.forEach((n, i) => paintOne(i));
-      mesh.instanceMatrix.needsUpdate = true;
-      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    }
-    paint(); // colours must exist before the first render, or three.js builds the material without them
-    scene.add(mesh);
-
-    /* Lines: the selection's ties, bright; with "Show every proximity", every proximity and every tie the
-       user drew, faint, so the whole web of cause and effect shows. */
-    let lines = null;
-    let web = null;
-    function segs(list, alpha) {
-      const v = [];
-      const c = [];
-      list.forEach((e) => {
-        const a = pos.get(e.a);
-        const b = pos.get(e.b);
-        const k = new T.Color(TYPE_COLOR[e.type]);
-        v.push(a[0], a[1], a[2], b[0], b[1], b[2]);
-        c.push(k.r, k.g, k.b, k.r, k.g, k.b);
-      });
-      const geo = new T.BufferGeometry();
-      geo.setAttribute("position", new T.Float32BufferAttribute(v, 3));
-      geo.setAttribute("color", new T.Float32BufferAttribute(c, 3));
-      return new T.LineSegments(geo, new T.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: alpha }));
-    }
-    function drop(o) {
-      if (!o) return null;
-      scene.remove(o);
-      o.geometry.dispose();
-      return null;
-    }
-    function drawLines() {
-      lines = drop(lines);
-      web = drop(web);
-      if (st.showAll) scene.add((web = segs(g.edges.filter((e) => e.type === "leads" || e.type === "mine"), st.sel.length ? 0.12 : 0.3)));
-      if (!st.sel.length) return;
-      const list = [];
-      st.sel.forEach((id) => g.links(id).forEach((l) => list.push(l.edge)));
-      scene.add((lines = segs(list, 0.85)));
-    }
-
-    /* The camera: it sits at `eye` and looks along (theta, phi), `r` units ahead to `target`. Dragging turns the
-       camera where it stands, so inside the cube you look all the way round you. Double-click flies toward what was
-       clicked and halves the distance each time, like zooming into a map. */
-    const orb = { target: new T.Vector3(0, 0, 0), r: 210, theta: 0.7, phi: 1.15, spin: false };
-    if (keep) {
+    const back = new T.DirectionalLight(0xffffff, 0.25);
+    back.position.set(-30, -20, -40);
+    scene.add(back);
+    const orb = { target: new T.Vector3(0, 0, 0), r: opts.r || 60, theta: opts.theta == null ? 0.55 : opts.theta, phi: opts.phi || 1.2, spin: false };
+    if (keep && keep.view === opts.kind) {
       orb.target.set(keep.target[0], keep.target[1], keep.target[2]);
       orb.r = keep.r;
       orb.theta = keep.theta;
       orb.phi = keep.phi;
     }
+    const home = { target: orb.target.clone(), r: opts.r || 60, theta: orb.theta, phi: orb.phi };
     const dir = () => new T.Vector3(Math.sin(orb.phi) * Math.sin(orb.theta), Math.cos(orb.phi), Math.sin(orb.phi) * Math.cos(orb.theta));
     let fly = null;
-    function flyTo(target, r) {
-      fly = { from: orb.target.clone(), to: new T.Vector3(target[0], target[1], target[2]), r0: orb.r, r1: r, start: performance.now() };
-    }
-    function placeCamera() {
-      camera.position.copy(orb.target).addScaledVector(dir(), orb.r);
-      camera.lookAt(orb.target);
-    }
-    const inside = () => Math.abs(camera.position.x) < 54 && Math.abs(camera.position.y) < 54 && Math.abs(camera.position.z) < 54;
-
-    // Labels: the selected nodes, their direct ties (up to 60), and the six slab names.
-    let labelIds = [];
-    const slabs = g.families.map((f, i) => ({ f, p: [-50 + (100 * (i + 0.5)) / F, 58, 0] }));
-    function setLabels() {
-      labelIds = st.sel.concat([...near.keys()].slice(0, 60));
-      labels.innerHTML =
-        labelIds.map((id) => `<div class="${st.sel.includes(id) ? "sel" : ""}">${esc(g.byId.get(id).label)}</div>`).join("") +
-        slabs.map((s) => `<div class="slab" style="--c:${FAMILY_COLOR[s.f.id]}">${esc(s.f.label)}</div>`).join("");
-    }
-    const v3 = new T.Vector3();
-    function placeLabels() {
+    const S = {
+      T,
+      scene,
+      camera,
+      renderer,
+      orb,
+      host,
+      flyTo(target, r, angles) {
+        fly = { from: orb.target.clone(), to: new T.Vector3(target[0], target[1], target[2]), r0: orb.r, r1: r, th0: orb.theta, th1: angles ? angles.theta : orb.theta, ph0: orb.phi, ph1: angles ? angles.phi : orb.phi, start: performance.now() };
+      },
+      home() {
+        S.flyTo([home.target.x, home.target.y, home.target.z], home.r, { theta: home.theta, phi: home.phi });
+      },
+      flying: () => !!fly,
+      state: () => ({ view: opts.kind, target: [orb.target.x, orb.target.y, orb.target.z], r: orb.r, theta: orb.theta, phi: orb.phi }),
+      onFrame: null,
+      onClick: null,
+      onDouble: null,
+      onSwipe: null,
+      onHover: null,
+      dragOverride: null,
+      ray: new T.Raycaster(),
+    };
+    S.ray.params.Line = { threshold: 0.3 };
+    const mouse = new T.Vector2();
+    S.aim = (e) => {
+      const r = renderer.domElement.getBoundingClientRect();
+      mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      S.ray.setFromCamera(mouse, camera);
+      return S.ray;
+    };
+    S.project = (p) => {
+      const v = new T.Vector3(p[0], p[1], p[2]).project(camera);
       const w = host.clientWidth;
       const h = host.clientHeight;
-      const els = labels.children;
-      const put = (el, p) => {
-        if (!el) return;
-        v3.set(p[0], p[1], p[2]).project(camera);
-        const vis = v3.z < 1 && v3.z > -1 && Math.abs(v3.x) < 1.1 && Math.abs(v3.y) < 1.1;
-        el.style.display = vis ? "" : "none";
-        if (vis) {
-          el.style.left = ((v3.x + 1) / 2) * w + "px";
-          el.style.top = ((1 - v3.y) / 2) * h + "px";
-        }
-      };
-      labelIds.forEach((id, i) => put(els[i], pos.get(id)));
-      slabs.forEach((s, i) => put(els[labelIds.length + i], s.p));
-    }
-
-    function update() {
-      near = new Map();
-      st.sel.forEach((id) => g.links(id).forEach((l) => near.set(l.id, l)));
-      st.sel.forEach((id) => near.delete(id));
-      paint();
-      drawLines();
-      setLabels();
-    }
-    function focus(id) {
-      const p = pos.get(g.real(id));
-      if (p) flyTo(p, 30);
-    }
-
-    /* Pointer: drag turns, click selects, double-click flies in, wheel and pinch zoom; in Move mode, dragging a
-       curiosity carries it across the screen at its own depth and it stays there (saved on this device). */
-    const ray = new T.Raycaster();
-    const mouse = new T.Vector2();
+      return { x: ((v.x + 1) / 2) * w, y: ((1 - v.y) / 2) * h, vis: v.z < 1 && v.z > -1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1 };
+    };
     const cv = renderer.domElement;
-    function aim(e) {
-      const r = cv.getBoundingClientRect();
-      mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
-      ray.setFromCamera(mouse, camera);
-    }
-    function pick(e) {
-      aim(e);
-      const hit = ray.intersectObject(mesh)[0];
-      return hit ? nodes[hit.instanceId] : null;
-    }
-    let moveMode = false;
-    let carry = null;
     const ptrs = new Map();
     let drag = null;
     let pinch = 0;
     cv.addEventListener("pointerdown", (e) => {
       cv.setPointerCapture(e.pointerId);
       ptrs.set(e.pointerId, [e.clientX, e.clientY]);
-      drag = { x: e.clientX, y: e.clientY, moved: 0 };
+      drag = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, t0: performance.now(), moved: 0, own: S.dragOverride ? S.dragOverride.down(e) : false };
       orb.spin = false;
       fly = null;
-      if (moveMode && ptrs.size === 1) {
-        const n = pick(e);
-        if (n) {
-          const p = pos.get(n.id);
-          const normal = new T.Vector3();
-          camera.getWorldDirection(normal);
-          carry = { id: n.id, plane: new T.Plane().setFromNormalAndCoplanarPoint(normal, new T.Vector3(p[0], p[1], p[2])) };
-          cv.style.cursor = "grabbing";
-        }
-      }
       if (ptrs.size === 2) {
         const [a, b] = [...ptrs.values()];
         pinch = Math.hypot(a[0] - b[0], a[1] - b[1]);
-        carry = null;
       }
     });
-    const hitPoint = new T.Vector3();
     cv.addEventListener("pointermove", (e) => {
       if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, [e.clientX, e.clientY]);
       if (ptrs.size === 2) {
         const [a, b] = [...ptrs.values()];
         const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
-        if (pinch) orb.r = Math.max(1.5, Math.min(500, orb.r * (pinch / d)));
+        if (pinch) orb.r = Math.max(0.8, Math.min(600, orb.r * (pinch / d)));
         pinch = d;
         if (drag) drag.moved = 99;
         return;
@@ -1011,21 +639,9 @@
         drag.moved += Math.abs(dx) + Math.abs(dy);
         drag.x = e.clientX;
         drag.y = e.clientY;
-        tip.style.display = "none";
-        if (carry) {
-          aim(e);
-          if (ray.ray.intersectPlane(carry.plane, hitPoint)) {
-            const p = [hitPoint.x, hitPoint.y, hitPoint.z].map((v) => Math.round(v * 10) / 10);
-            pos.set(carry.id, p);
-            st.moved[carry.id] = p;
-            paintOne(nodes.indexOf(g.byId.get(carry.id)));
-            mesh.instanceMatrix.needsUpdate = true;
-            drawLines();
-          }
-          return;
-        }
-        if (inside() || orb.r < 60) {
-          // Look around from where you stand: the eye stays put, the target swings round it.
+        if (drag.own) return S.dragOverride.move(e);
+        if (S.close()) {
+          // Close in: turn where you stand, so dragging looks all the way round you.
           const eye = camera.position.clone();
           orb.theta += dx * 0.005;
           orb.phi = Math.max(0.05, Math.min(Math.PI - 0.05, orb.phi + dy * 0.005));
@@ -1036,92 +652,32 @@
         }
         return;
       }
-      const n = pick(e);
-      if (n) {
-        const r = host.getBoundingClientRect();
-        tip.textContent = n.label + " · " + n.groupLabel;
-        tip.style.display = "block";
-        tip.style.left = e.clientX - r.left + 12 + "px";
-        tip.style.top = e.clientY - r.top + 12 + "px";
-      } else tip.style.display = "none";
+      S.onHover && S.onHover(e);
     });
     const up = (e) => {
       ptrs.delete(e.pointerId);
       if (ptrs.size < 2) pinch = 0;
-      if (carry) {
-        if (drag && drag.moved >= 4) persist();
-        else delete st.moved[carry.id];
-        carry = null;
-        cv.style.cursor = "";
+      if (drag && ptrs.size === 0) {
+        const dx = e.clientX - drag.x0;
+        const dy = e.clientY - drag.y0;
+        if (drag.own) S.dragOverride.up(e, drag.moved);
+        else if (drag.moved < 6) S.onClick && S.onClick(e);
+        else if (S.onSwipe && Math.abs(dx) > 60 && Math.abs(dy) < Math.abs(dx) * 0.5 && performance.now() - drag.t0 < 600) S.onSwipe(dx > 0 ? "right" : "left");
+        drag = null;
       }
-      if (drag && drag.moved < 6 && ptrs.size === 0) {
-        const n = pick(e);
-        if (n) select(st.sel.length === 1 && st.sel[0] === n.id && !st.tieFrom ? [] : n.id);
-      }
-      if (ptrs.size === 0) drag = null;
     };
     cv.addEventListener("pointerup", up);
     cv.addEventListener("pointercancel", up);
-    cv.addEventListener("dblclick", (e) => {
-      const n = pick(e);
-      const r1 = Math.max(4, orb.r * 0.45);
-      if (n) {
-        if (!st.sel.includes(n.id)) select(n.id);
-        return flyTo(pos.get(n.id), Math.min(r1, 60));
-      }
-      // Empty space: fly toward the curiosity nearest to where you clicked (within a few degrees), so you
-      // always land somewhere; with none near, fly toward the spot at the depth you are looking at now.
-      aim(e);
-      const o = ray.ray.origin;
-      const d = ray.ray.direction;
-      let best = null;
-      let bestA = 0.12;
-      const q = new T.Vector3();
-      pos.forEach((p) => {
-        q.set(p[0], p[1], p[2]).sub(o);
-        const along = q.dot(d);
-        if (along <= 1) return;
-        const ang = Math.acos(Math.min(1, along / q.length()));
-        if (ang < bestA) {
-          bestA = ang;
-          best = p;
-        }
-      });
-      const p = best || ray.ray.at(orb.r, new T.Vector3()).toArray();
-      flyTo(p, r1);
-    });
+    cv.addEventListener("dblclick", (e) => S.onDouble && S.onDouble(e));
     cv.addEventListener(
       "wheel",
       (e) => {
         e.preventDefault();
-        orb.r = Math.max(1.5, Math.min(500, orb.r * Math.exp(e.deltaY * 0.001)));
+        orb.r = Math.max(0.8, Math.min(600, orb.r * Math.exp(e.deltaY * 0.001)));
       },
       { passive: false }
     );
-    host.querySelector(".rl-cube-ui").addEventListener("click", (e) => {
-      const b = e.target.closest("button");
-      const c = b && b.dataset.c;
-      if (c === "out") flyTo([0, 0, 0], 210);
-      if (c === "in") flyTo([0, 0, 0], 30);
-      if (c === "spin") b.classList.toggle("on", (orb.spin = !orb.spin));
-      if (c === "all") {
-        st.showAll = !st.showAll;
-        persist();
-        drawLines();
-      }
-      if (c === "move") moveMode = !moveMode;
-      sync();
-    });
-    function sync() {
-      const ui = host.querySelector(".rl-cube-ui");
-      ui.querySelector('[data-c="all"]').classList.toggle("on", st.showAll);
-      ui.querySelector('[data-c="move"]').classList.toggle("on", moveMode);
-      host.querySelector(".rl-hint").textContent = moveMode
-        ? "Move: drag a curiosity to put it somewhere else · it stays there on this device"
-        : "Drag to turn · double-click to fly closer, again to go further in · scroll or pinch to zoom";
-    }
-    sync();
-
+    S.close = () => orb.r < (opts.closeAt || 12);
     let raf = 0;
     let w0 = 0;
     let h0 = 0;
@@ -1141,28 +697,633 @@
         const k = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
         orb.target.lerpVectors(fly.from, fly.to, k);
         orb.r = fly.r0 + (fly.r1 - fly.r0) * k;
+        orb.theta = fly.th0 + (fly.th1 - fly.th0) * k;
+        orb.phi = fly.ph0 + (fly.ph1 - fly.ph0) * k;
         if (t >= 1) fly = null;
       }
       if (orb.spin) orb.theta += 0.004;
-      placeCamera();
+      camera.position.copy(orb.target).addScaledVector(dir(), orb.r);
+      camera.lookAt(orb.target);
+      S.onFrame && S.onFrame();
       renderer.render(scene, camera);
-      placeLabels();
+      S.afterRender && S.afterRender();
+    }
+    S.start = () => frame();
+    S.destroy = () => {
+      cancelAnimationFrame(raf);
+      renderer.dispose();
+    };
+    /* Double-click: fly toward a point and halve the distance (never closer than `min`). */
+    S.zoomTo = (p, min) => S.flyTo(p, Math.max(min || 1.5, orb.r * 0.45));
+    return S;
+  }
+
+  /* A 3D view that waits for three.js, then builds. */
+  function threeView(stage, cls, html, build) {
+    const host = document.createElement("div");
+    host.className = "rl-cube " + cls;
+    host.tabIndex = 0;
+    host.innerHTML = html;
+    stage.appendChild(host);
+    let alive = true;
+    let ctx = null;
+    const pending = { focus: null };
+    loadThree().then((ok) => {
+      if (!alive) return;
+      if (!ok) {
+        host.innerHTML = '<p class="rl-note">The 3D views need three.js, which loads from cdnjs. Check the connection and reload. The flat list still works.</p>';
+        return;
+      }
+      ctx = build(host);
+      ctx.update();
+      if (pending.focus) ctx.focus(pending.focus);
+    });
+    return {
+      update: () => ctx && ctx.update(),
+      focus: (id) => (ctx ? ctx.focus(id) : (pending.focus = id)),
+      posOf: (id) => (ctx && ctx.pos ? ctx.pos.get(id) : null),
+      camera: () => (ctx ? ctx.stage.state() : null),
+      inner: () => ctx,
+      destroy: () => {
+        alive = false;
+        ctx && ctx.destroy();
+      },
+    };
+  }
+
+  /* ---------- Cube matrix and Cube slices ----------
+     Every curiosity, feeling, movement, trait and figure is one small 3D cube. The cubes stand in slabs, one slab
+     per column (the six groups, or one per workspace); the slabs stack front to back into one block, like a Rubik's
+     cube with many more cubes, longer than it is wide when it needs to be. Pick a cube and lines run to every cube
+     it is directly tied to. In Cube slices, swipe right (or the right arrow) and the front slab goes to the back;
+     swipe left and the back slab comes to the front; click a slab's name to bring it to the front. */
+  const CELL = 1.3;
+  const SLAB = 2.6;
+  function slabsOf(g, by) {
+    if (by === "workspace") {
+      const out = [];
+      g.families.forEach((f) =>
+        g.nodes
+          .filter((n) => n.family === f.id)
+          .sort((a, b) => (a.kind === "curiosity") - (b.kind === "curiosity"))
+          .forEach((n) => {
+            let s = out.find((x) => x.key === n.group);
+            if (!s) out.push((s = { key: n.group, label: n.groupLabel, family: f.id, ids: [] }));
+            s.ids.push(n.id);
+          })
+      );
+      return out;
+    }
+    return g.families.map((f) => ({
+      key: f.id,
+      label: f.label,
+      family: f.id,
+      ids: g.nodes
+        .filter((n) => n.family === f.id)
+        .sort((a, b) => (a.kind === "curiosity") - (b.kind === "curiosity") || (a.group < b.group ? -1 : a.group > b.group ? 1 : 0))
+        .map((n) => n.id),
+    }));
+  }
+  /* Where each cube sits: slab d (0 = front) at z, its cubes in a grid of `cols` by `rows`, the same for every slab. */
+  function blockLayout(g, by) {
+    const slabs = slabsOf(g, by);
+    const most = Math.max(1, ...slabs.map((s) => s.ids.length));
+    const cols = Math.ceil(Math.sqrt(most * 1.3));
+    const rows = Math.ceil(most / cols);
+    const cell = new Map();
+    slabs.forEach((s, si) => s.ids.forEach((id, i) => cell.set(id, { slab: si, x: ((i % cols) - (cols - 1) / 2) * CELL, y: ((rows - 1) / 2 - Math.floor(i / cols)) * CELL })));
+    return { slabs, cols, rows, cell, depth: (slabs.length - 1) * SLAB };
+  }
+  const zOf = (d, n) => ((n - 1) / 2 - d) * SLAB;
+
+  function cubeView(stage, g, st, select, persist, keep, slices) {
+    const kind = slices ? "slices" : "cube";
+    const html = `<div class="rl-labels"></div><div class="rl-tip"></div>
+      ${slices ? '<div class="rl-slabtabs"></div>' : ""}
+      <div class="rl-cube-ui">
+        <div class="rl-seg" role="group" aria-label="Slabs"><button data-c="by-family">6 slabs</button><button data-c="by-workspace">A slab per workspace</button></div>
+        ${slices ? '<button data-c="back" aria-label="Bring the back slab to the front">◀ Back to front</button><button data-c="front" aria-label="Send the front slab to the back">Front to back ▶</button>' : '<button data-c="spin">Spin</button>'}
+        <button data-c="home">Whole cube</button><button data-c="all">Show every proximity</button>
+      </div>
+      <div class="rl-hint">${slices ? "Swipe right: front slab to the back · swipe left: back slab to the front · drag slowly to turn · double-click to zoom in" : "Drag to turn it 360° · click a cube · double-click to zoom in, again to go further · scroll or pinch to zoom"}</div>`;
+    return threeView(stage, kind, html, (host) => initBlock(host, g, st, select, persist, keep, slices));
+  }
+
+  function initBlock(host, g, st, select, persist, keep, slices) {
+    const by = st.slabBy === "workspace" ? "workspace" : "family";
+    const L = blockLayout(g, by);
+    const n = L.slabs.length;
+    const span = Math.max(L.cols * CELL, L.rows * CELL, L.depth);
+    const S = threeStage(host, keep, { kind: slices ? "slices" : "cube", r: span * 1.9, theta: slices ? 0.0001 : 0.62, phi: slices ? 1.42 : 1.12, closeAt: 6 });
+    const T = S.T;
+    const labels = host.querySelector(".rl-labels");
+    const tip = host.querySelector(".rl-tip");
+    // the order of slabs front to back (Cube slices moves it); depth index of each slab
+    const order = L.slabs.map((_, i) => i);
+    const depthOf = () => {
+      const d = [];
+      order.forEach((si, k) => (d[si] = k));
+      return d;
+    };
+    const nodes = g.nodes.filter((nd) => L.cell.has(nd.id));
+    const index = new Map(nodes.map((nd, i) => [nd.id, i]));
+    const cur = new Map(); // where each cube is drawn now (eases toward its place when slabs move)
+    const goal = new Map();
+    function place(instant) {
+      const d = depthOf();
+      nodes.forEach((nd) => {
+        const c = L.cell.get(nd.id);
+        const p = [c.x, c.y, zOf(d[c.slab], n)];
+        goal.set(nd.id, p);
+        if (instant || !cur.has(nd.id)) cur.set(nd.id, p.slice());
+      });
+    }
+    place(true);
+
+    // the block's frame: a wire box round it, and a thin outline round each slab
+    const box = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(L.cols * CELL + 0.8, L.rows * CELL + 0.8, L.depth + 1.6)), new T.LineBasicMaterial({ color: 0x8a7f72, transparent: true, opacity: 0.45 }));
+    S.scene.add(box);
+
+    const mesh = new T.InstancedMesh(new T.BoxGeometry(0.92, 0.92, 0.92), new T.MeshLambertMaterial({ color: 0xffffff }), nodes.length);
+    // each workspace a shade of its group's colour, so the regions read on every face
+    const shade = new Map();
+    g.families.forEach((f) => {
+      const groups = [...new Set(g.nodes.filter((x) => x.family === f.id).map((x) => x.group))];
+      groups.forEach((gr, i) => shade.set(gr, 0.85 + ((i % 4) * 0.12)));
+    });
+    const base = nodes.map((nd) => {
+      const c = new T.Color(nd.kind === "mine" ? "#1c1712" : FAMILY_COLOR[nd.family] || "#888");
+      return c.multiplyScalar(shade.get(nd.group) || 1);
+    });
+    const ground = new T.Color(0xe6ddcf);
+    const m4 = new T.Matrix4();
+    const col = new T.Color();
+    let near = new Map();
+    function paint() {
+      const d = depthOf();
+      nodes.forEach((nd, i) => {
+        const p = cur.get(nd.id);
+        const isSel = st.sel.includes(nd.id);
+        const isNear = near.has(nd.id);
+        const s = isSel ? 1.35 : isNear ? 1.12 : 1;
+        m4.makeScale(s, s, s).setPosition(p[0], p[1], p[2]);
+        mesh.setMatrixAt(i, m4);
+        col.copy(base[i]);
+        const behind = slices ? d[L.cell.get(nd.id).slab] : 0;
+        if (st.sel.length && !isSel && !isNear) col.lerp(ground, 0.75);
+        else if (behind > 0) col.lerp(ground, Math.min(0.7, 0.35 + behind * 0.05));
+        if (isSel) col.set(0x1c1712);
+        mesh.setColorAt(i, col);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    }
+    paint(); // colours must exist before the first render
+    S.scene.add(mesh);
+
+    let lines = null;
+    let web = null;
+    function segs(list, alpha) {
+      const v = [];
+      const c = [];
+      list.forEach((e) => {
+        const a = cur.get(e.a);
+        const b = cur.get(e.b);
+        if (!a || !b) return;
+        const k = new T.Color(TYPE_COLOR[e.type]);
+        v.push(a[0], a[1], a[2], b[0], b[1], b[2]);
+        c.push(k.r, k.g, k.b, k.r, k.g, k.b);
+      });
+      const geo = new T.BufferGeometry();
+      geo.setAttribute("position", new T.Float32BufferAttribute(v, 3));
+      geo.setAttribute("color", new T.Float32BufferAttribute(c, 3));
+      return new T.LineSegments(geo, new T.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: alpha }));
+    }
+    function drop(o) {
+      if (o) {
+        S.scene.remove(o);
+        o.geometry.dispose();
+      }
+      return null;
+    }
+    function drawLines() {
+      lines = drop(lines);
+      web = drop(web);
+      if (st.showAll) S.scene.add((web = segs(g.edges.filter((e) => e.type === "leads" || e.type === "mine"), st.sel.length ? 0.1 : 0.22)));
+      if (!st.sel.length) return;
+      const list = [];
+      st.sel.forEach((id) => g.links(id).forEach((l) => list.push(l.edge)));
+      S.scene.add((lines = segs(list, 0.9)));
+    }
+
+    // Labels: the selection and its ties (up to 60), and each slab's name on its top edge.
+    let labelIds = [];
+    function setLabels() {
+      labelIds = st.sel.concat([...near.keys()].filter((id) => cur.has(id)).slice(0, 60));
+      const slabLabels = L.slabs.map((s) => `<div class="slab" style="--c:${FAMILY_COLOR[s.family]}">${esc(s.label)}</div>`).join("");
+      labels.innerHTML = labelIds.map((id) => `<div class="${st.sel.includes(id) ? "sel" : ""}">${esc(g.byId.get(id).label)}</div>`).join("") + slabLabels;
+    }
+    function placeLabels() {
+      const els = labels.children;
+      const put = (el, p) => {
+        if (!el) return;
+        const q = S.project(p);
+        el.style.display = q.vis ? "" : "none";
+        if (q.vis) {
+          el.style.left = q.x + "px";
+          el.style.top = q.y + "px";
+        }
+      };
+      labelIds.forEach((id, i) => put(els[i], cur.get(id)));
+      const d = depthOf();
+      const top = (L.rows * CELL) / 2 + 0.9;
+      // slab names run along the top edge on the side you are looking from, so they spread out front to back
+      const side = Math.sin(S.orb.theta) >= 0 ? 1 : -1;
+      const edge = slices ? (-L.cols * CELL) / 2 : side * ((L.cols * CELL) / 2 + 0.6);
+      L.slabs.forEach((s, i) => {
+        const el = els[labelIds.length + i];
+        if (!el) return;
+        // in slices the tabs name every slab, so only the front one is named on the block
+        if (slices && d[i] > 0) return void (el.style.display = "none");
+        put(el, [edge, top, zOf(d[i], n)]);
+      });
+    }
+    S.afterRender = placeLabels;
+
+    function tabs() {
+      const box = host.querySelector(".rl-slabtabs");
+      if (!box) return;
+      const counts = new Map();
+      st.sel.forEach((id) => g.links(id).forEach((l) => {
+        const c = L.cell.get(l.id);
+        if (c) counts.set(c.slab, (counts.get(c.slab) || 0) + 1);
+      }));
+      box.innerHTML = order.map((si, k) => `<button data-slab="${si}" class="${k === 0 ? "on" : ""}" style="--c:${FAMILY_COLOR[L.slabs[si].family]}">${esc(L.slabs[si].label)}${counts.get(si) ? ` <b>${counts.get(si)}</b>` : ""}</button>`).join("");
+    }
+
+    let moving = 0;
+    S.onFrame = () => {
+      if (!moving) return;
+      let still = true;
+      cur.forEach((p, id) => {
+        const q = goal.get(id);
+        for (let k = 0; k < 3; k++) {
+          const dd = q[k] - p[k];
+          if (Math.abs(dd) > 0.01) {
+            p[k] += dd * 0.18;
+            still = false;
+          } else p[k] = q[k];
+        }
+      });
+      paint();
+      drawLines();
+      if (still) moving = 0;
+    };
+    function shift(dir) {
+      if (dir === "front") order.push(order.shift());
+      else order.unshift(order.pop());
+      place(false);
+      moving = 1;
+      tabs();
+    }
+    function bring(si) {
+      while (order[0] !== si) order.push(order.shift());
+      place(false);
+      moving = 1;
+      tabs();
+    }
+
+    function pickCube(e) {
+      S.aim(e);
+      const hit = S.ray.intersectObject(mesh)[0];
+      return hit ? nodes[hit.instanceId] : null;
+    }
+    S.onClick = (e) => {
+      const nd = pickCube(e);
+      if (nd) select(st.sel.length === 1 && st.sel[0] === nd.id && !st.tieFrom ? [] : nd.id);
+    };
+    S.onDouble = (e) => {
+      const nd = pickCube(e);
+      if (nd) {
+        if (!st.sel.includes(nd.id)) select(nd.id);
+        return S.zoomTo(cur.get(nd.id), 2.5);
+      }
+      // empty space: toward the cube nearest that spot, so you always land somewhere
+      S.aim(e);
+      const o = S.ray.ray.origin;
+      const dv = S.ray.ray.direction;
+      let best = null;
+      let bestA = 0.15;
+      const q = new T.Vector3();
+      cur.forEach((p) => {
+        q.set(p[0], p[1], p[2]).sub(o);
+        const along = q.dot(dv);
+        if (along <= 0.5) return;
+        const ang = Math.acos(Math.min(1, along / q.length()));
+        if (ang < bestA) {
+          bestA = ang;
+          best = p;
+        }
+      });
+      S.zoomTo(best || S.ray.ray.at(S.orb.r, new T.Vector3()).toArray(), 2.5);
+    };
+    S.onHover = (e) => {
+      const nd = pickCube(e);
+      if (!nd) return void (tip.style.display = "none");
+      const r = host.getBoundingClientRect();
+      tip.textContent = nd.label + " · " + nd.groupLabel;
+      tip.style.display = "block";
+      tip.style.left = e.clientX - r.left + 12 + "px";
+      tip.style.top = e.clientY - r.top + 12 + "px";
+    };
+    if (slices) S.onSwipe = (d) => shift(d === "right" ? "front" : "back");
+    host.addEventListener("keydown", (e) => {
+      if (!slices) return;
+      if (e.key === "ArrowRight") shift("front");
+      else if (e.key === "ArrowLeft") shift("back");
+      else return;
+      e.preventDefault();
+    });
+    host.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      const c = b.dataset.c;
+      if (b.dataset.slab) bring(+b.dataset.slab);
+      if (c === "front" || c === "back") shift(c);
+      if (c === "home") S.home();
+      if (c === "spin") b.classList.toggle("on", (S.orb.spin = !S.orb.spin));
+      if (c === "all") {
+        st.showAll = !st.showAll;
+        persist();
+        drawLines();
+      }
+      if (c === "by-family" || c === "by-workspace") {
+        st.slabBy = c === "by-family" ? "family" : "workspace";
+        persist();
+        st.camera = null;
+        return host.dispatchEvent(new CustomEvent("rl-rebuild", { bubbles: true }));
+      }
+      sync();
+    });
+    function sync() {
+      const all = host.querySelector('[data-c="all"]');
+      all && all.classList.toggle("on", st.showAll);
+      host.querySelectorAll("[data-c^=by-]").forEach((b) => b.classList.toggle("on", b.dataset.c === "by-" + by));
+    }
+    sync();
+
+    function update() {
+      near = new Map();
+      st.sel.forEach((id) => g.links(id).forEach((l) => near.set(l.id, l)));
+      st.sel.forEach((id) => near.delete(id));
+      paint();
+      drawLines();
+      setLabels();
+      tabs();
+    }
+    function focus(id) {
+      const c = L.cell.get(g.real(id));
+      if (!c) return;
+      if (slices) bring(c.slab);
+      const p = slices ? goal.get(g.real(id)) : cur.get(g.real(id));
+      S.flyTo(p, Math.min(S.orb.r, 14));
     }
     setLabels();
-    frame();
+    S.start();
+    return { update, focus, stage: S, pos: cur, order: () => order.map((si) => L.slabs[si].label), shift, bring, slabs: L.slabs, destroy: S.destroy };
+  }
+
+  /* ---------- Lanes in depth ----------
+     The automation lanes of a film over time, as ribbons standing one behind another: time runs left to right,
+     each lane's height is where it sits on its scale, and the lane that moves the most stands at the back, so
+     every lane in front of it can be seen. Drag to see it from any angle. In "Lanes, swipe", swipe right and the
+     front lane goes to the back; swipe left and the back one comes forward. Click a lane to see its curiosity's ties.
+     The lanes come from the film open in the app (CurioEngine); with none, an example film is shown and says so. */
+  function filmLanes(g) {
+    const E = root.CurioEngine;
+    const Sc = root.CurioScale;
+    if (E && Sc && typeof E.state === "function") {
+      try {
+        const s = E.state();
+        const rows = s.rows || [];
+        const out = [];
+        Object.keys(s.lanes || {}).forEach((key) => {
+          const [track, cur] = key.split("|");
+          const base = String(cur).split(".")[0];
+          const vals = rows.map((r) => {
+            const v = E.value(r.id, track, cur);
+            const p = v == null ? null : Sc.pos(cur, v);
+            return typeof p === "number" && isFinite(p) ? p : null;
+          });
+          if (vals.filter((v) => v != null).length < 2) return;
+          const tr = (s.tracks || []).find((t) => t.id === track);
+          const nd = g.byId.get(base);
+          out.push({ id: nd ? base : "", label: (nd ? nd.label : cur) + (tr && tr.label ? " · " + tr.label : ""), family: nd ? nd.family : "story", vals });
+        });
+        if (out.length >= 2 && rows.length >= 2) return { lanes: out, rows: rows.map((r) => r.label || r.id), example: false };
+      } catch (e) {}
+    }
+    // An example film: twelve moments, a few lanes that move by different amounts.
+    const pick = ["emotionIntensity", "shotSize", "cameraMove", "volume", "gesture", "lightingMood", "cutRate", "personalSpace", "pace", "faceIntensity", "musicIntensity", "tension"].filter((id) => g.byId.has(id)).slice(0, 9);
+    const N = 12;
+    const lanes = pick.map((id, k) => {
+      const amp = 0.08 + (k % 5) * 0.09;
+      const f = 0.35 + (k % 3) * 0.3;
+      return { id, label: g.byId.get(id).label, family: g.byId.get(id).family, vals: Array.from({ length: N }, (_, i) => Math.max(0, Math.min(1, 0.45 + amp * Math.sin(i * f + k) + (k === 0 ? (i / N) * 0.4 - 0.2 : 0)))) };
+    });
+    return { lanes, rows: Array.from({ length: N }, (_, i) => "Moment " + (i + 1)), example: true };
+  }
+  const movementOf = (vals) => {
+    let m = 0;
+    let prev = null;
+    vals.forEach((v) => {
+      if (v != null && prev != null) m += Math.abs(v - prev);
+      if (v != null) prev = v;
+    });
+    return m;
+  };
+
+  function lanesView(stage, g, st, select, persist, keep, swipe) {
+    const kind = swipe ? "lanes-swipe" : "lanes";
+    const html = `<div class="rl-labels"></div><div class="rl-filmnote"></div>
+      <div class="rl-cube-ui">
+        ${swipe ? '<button data-c="back" aria-label="Bring the back lane to the front">◀ Back to front</button><button data-c="front" aria-label="Send the front lane to the back">Front to back ▶</button>' : ""}
+        <button data-c="home">Straight on</button><button data-c="side">From the side</button><button data-c="spin">Spin</button>
+      </div>
+      <div class="rl-hint">${swipe ? "Swipe right: front lane to the back · swipe left: back lane to the front · drag slowly to turn" : "Drag to see the lanes from any angle · double-click to zoom in · click a lane"}</div>`;
+    return threeView(stage, kind, html, (host) => initLanes(host, g, st, select, keep, swipe));
+  }
+
+  function initLanes(host, g, st, select, keep, swipe) {
+    const film = filmLanes(g);
+    // the lane that moves the most stands at the back
+    const lanes = film.lanes.map((l) => Object.assign({ move: movementOf(l.vals) }, l)).sort((a, b) => a.move - b.move);
+    const N = film.rows.length;
+    const STEP = 1.6;
+    const H = 6;
+    const GAP = 2.4;
+    const width = (N - 1) * STEP;
+    const S = threeStage(host, keep, { kind: swipe ? "lanes-swipe" : "lanes", r: Math.max(width, lanes.length * GAP) * 1.5, theta: 0.42, phi: 1.25, closeAt: 3 });
+    const T = S.T;
+    const labels = host.querySelector(".rl-labels");
+    host.querySelector(".rl-filmnote").textContent = film.example ? "Example film: open a film on the Screen and its own lanes show here." : "Your film's automation lanes, busiest at the back.";
+    const order = lanes.map((_, i) => i);
+    const zFor = (k) => (lanes.length - 1) / 2 * GAP - k * GAP;
+    const depth = () => {
+      const d = [];
+      order.forEach((li, k) => (d[li] = k));
+      return d;
+    };
+    const objs = lanes.map((l, li) => {
+      const grp = new T.Group();
+      const color = new T.Color(FAMILY_COLOR[l.family] || "#888");
+      // a filled ribbon from the floor up to the lane's value, then the lane's line and a dot per moment
+      const v = [];
+      const idx = [];
+      l.vals.forEach((p, i) => {
+        const x = -width / 2 + i * STEP;
+        const y = (p == null ? 0 : p) * H;
+        v.push(x, 0, 0, x, y, 0);
+        if (i > 0) {
+          const a = (i - 1) * 2;
+          idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+        }
+      });
+      const geo = new T.BufferGeometry();
+      geo.setAttribute("position", new T.Float32BufferAttribute(v, 3));
+      geo.setIndex(idx);
+      geo.computeVertexNormals();
+      const fill = new T.Mesh(geo, new T.MeshLambertMaterial({ color, transparent: true, opacity: 0.38, side: T.DoubleSide, depthWrite: false }));
+      fill.userData.lane = li;
+      grp.add(fill);
+      const pts = l.vals.map((p, i) => new T.Vector3(-width / 2 + i * STEP, (p == null ? 0 : p) * H, 0));
+      const line = new T.Line(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({ color }));
+      grp.add(line);
+      const dot = new T.SphereGeometry(0.13, 8, 6);
+      pts.forEach((p) => {
+        const m = new T.Mesh(dot, new T.MeshLambertMaterial({ color }));
+        m.position.copy(p);
+        m.userData.lane = li;
+        grp.add(m);
+      });
+      const floor = new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(-width / 2, 0, 0), new T.Vector3(width / 2, 0, 0)]), new T.LineBasicMaterial({ color: 0x8a7f72, transparent: true, opacity: 0.5 }));
+      grp.add(floor);
+      grp.position.z = zFor(li);
+      S.scene.add(grp);
+      return { grp, fill, z: zFor(li), goal: zFor(li) };
+    });
+    function place() {
+      const d = depth();
+      objs.forEach((o, li) => (o.goal = zFor(d[li])));
+    }
+    place();
+    objs.forEach((o) => (o.grp.position.z = o.goal));
+    // a time axis along the front
+    const axis = new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(-width / 2, -0.3, zFor(0) + 1), new T.Vector3(width / 2, -0.3, zFor(0) + 1)]), new T.LineBasicMaterial({ color: 0x1c1712 }));
+    S.scene.add(axis);
+
+    function paint() {
+      const sel = st.sel[0] || "";
+      const d = depth();
+      objs.forEach((o, li) => {
+        const on = lanes[li].id && lanes[li].id === sel;
+        o.fill.material.opacity = on ? 0.75 : sel ? 0.16 : swipe ? (d[li] === 0 ? 0.6 : 0.3) : 0.38;
+      });
+    }
+    function setLabels() {
+      labels.innerHTML =
+        lanes.map((l, li) => `<div class="lane${st.sel[0] && l.id === st.sel[0] ? " sel" : ""}" style="--c:${FAMILY_COLOR[l.family]}">${esc(l.label)}<small>${l.move < 0.05 ? "holds" : "moves " + l.move.toFixed(1)}</small></div>`).join("") +
+        film.rows.map((r) => `<div class="tick">${esc(r)}</div>`).join("");
+    }
+    S.afterRender = () => {
+      const els = labels.children;
+      lanes.forEach((l, li) => {
+        const el = els[li];
+        const q = S.project([-width / 2 - 0.4, (l.vals.find((x) => x != null) || 0) * H, objs[li].grp.position.z]);
+        el.style.display = q.vis ? "" : "none";
+        el.style.left = q.x + "px";
+        el.style.top = q.y + "px";
+      });
+      film.rows.forEach((r, i) => {
+        const el = els[lanes.length + i];
+        const q = S.project([-width / 2 + i * STEP, -0.7, zFor(0) + 1]);
+        el.style.display = q.vis && (N <= 16 || i % Math.ceil(N / 16) === 0) ? "" : "none";
+        el.style.left = q.x + "px";
+        el.style.top = q.y + "px";
+      });
+    };
+    let moving = false;
+    S.onFrame = () => {
+      if (!moving) return;
+      let still = true;
+      objs.forEach((o) => {
+        const dz = o.goal - o.grp.position.z;
+        if (Math.abs(dz) > 0.01) {
+          o.grp.position.z += dz * 0.18;
+          still = false;
+        } else o.grp.position.z = o.goal;
+      });
+      if (still) moving = false;
+    };
+    function shift(dir) {
+      if (dir === "front") order.push(order.shift());
+      else order.unshift(order.pop());
+      place();
+      moving = true;
+      paint();
+    }
+    function pickLane(e) {
+      S.aim(e);
+      const hit = S.ray.intersectObjects(objs.map((o) => o.grp), true).find((h) => h.object.userData.lane != null);
+      return hit ? hit.object.userData.lane : -1;
+    }
+    S.onClick = (e) => {
+      const li = pickLane(e);
+      if (li >= 0 && lanes[li].id) select(st.sel[0] === lanes[li].id ? [] : lanes[li].id);
+    };
+    S.onDouble = (e) => {
+      const li = pickLane(e);
+      S.aim(e);
+      const hit = S.ray.intersectObjects(objs.map((o) => o.grp), true)[0];
+      if (hit) S.zoomTo(hit.point.toArray(), 1.5);
+      if (li >= 0 && lanes[li].id && !st.sel.includes(lanes[li].id)) select(lanes[li].id);
+    };
+    if (swipe) S.onSwipe = (d) => shift(d === "right" ? "front" : "back");
+    host.addEventListener("keydown", (e) => {
+      if (!swipe) return;
+      if (e.key === "ArrowRight") shift("front");
+      else if (e.key === "ArrowLeft") shift("back");
+      else return;
+      e.preventDefault();
+    });
+    host.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      const c = b.dataset.c;
+      if (c === "front" || c === "back") shift(c);
+      if (c === "home") S.home();
+      if (c === "side") S.flyTo([0, H / 2, 0], S.orb.r, { theta: Math.PI / 2 - 0.05, phi: 1.2 });
+      if (c === "spin") b.classList.toggle("on", (S.orb.spin = !S.orb.spin));
+    });
+    function update() {
+      paint();
+      setLabels();
+    }
+    setLabels();
+    S.start();
     return {
       update,
-      focus,
-      flyTo,
-      orbit: orb,
-      camera,
-      pos,
-      host,
-      cameraState: () => ({ target: [orb.target.x, orb.target.y, orb.target.z], r: orb.r, theta: orb.theta, phi: orb.phi }),
-      destroy: () => {
-        cancelAnimationFrame(raf);
-        renderer.dispose();
+      focus: (id) => {
+        const li = lanes.findIndex((l) => l.id === g.real(id));
+        if (li < 0) return;
+        if (swipe) while (order[0] !== li) shift("front");
       },
+      stage: S,
+      order: () => order.map((li) => lanes[li].label),
+      lanes: () => lanes.map((l) => ({ id: l.id, label: l.label, move: l.move })),
+      example: film.example,
+      shift,
+      destroy: S.destroy,
     };
   }
 
@@ -1183,5 +1344,5 @@
     return api;
   }
 
-  root.CurioRelations = { mount, open, layout, KEY };
+  root.CurioRelations = { mount, open, KEY, VIEWS, blockLayout, movementOf };
 })(typeof window !== "undefined" ? window : globalThis);
