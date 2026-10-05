@@ -6,6 +6,8 @@ Mac) and say what you want, or type it and press Enter, and the app does it. Wha
 per sentence, until you say "stop listening". **−** tucks the bar into a small 🎤 when the bottom is crowded
 (remembered per device); the 🎤 in each top menu (the Viewer, the Screen next to 🔍, the app's bar) brings it back
 and listens. The bar takes its own strip: full pages end above it, and the VCV and Attention badges sit above it.
+The Screen is the exception: its timeline runs to the bottom edge, so there the bar waits in the top menu (🎤 next
+to 🔍). That 🎤, or Alt+V, brings the bar up over the bottom edge; ×, Esc or a click elsewhere sends it back.
 
 It is free: it uses the browser's own speech recognizer. Chrome and Edge send the sound to Google or Microsoft
 to turn it into words; Safari does it on the device; Firefox and the desktop app (Electron) can't listen, so

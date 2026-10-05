@@ -586,7 +586,7 @@
       if (b && b.dataset.vo === "close") return close();
       if (b && b.dataset.vo === "help") return toggleHelp(!helpOpen);
       if (b && b.dataset.vo === "min") return tuck(true);
-      if (b && b.dataset.vo === "max") return tuck(false), root.querySelector(".vo-q").focus();
+      if (b && b.dataset.vo === "max") return summon();
       const li = e.target.closest("[data-vo-pick]");
       if (li) hear(String(Number(li.dataset.voPick) + 1));
       const ex = e.target.closest("[data-vo-try]");
@@ -603,20 +603,48 @@
         e.stopPropagation();
       })
     );
-    tuck(!!prefs.min);
+    layout();
     tops();
+    /* On the Screen, a click anywhere else sends the bar back up to the top menu (not while listening). */
+    document.addEventListener("pointerdown", (e) => summoned && !listening && !root.contains(e.target) && !(e.target.closest && e.target.closest(".vo-top")) && dismiss(), true);
     new MutationObserver(() => topsSoon()).observe(document.body, { childList: true, subtree: true });
     drawState();
   }
-  /* The bar takes its own strip at the bottom: full pages (Viewer, Screen, Engine, video) end above it. */
+  /* The bar takes its own strip at the bottom: full pages (Viewer, Engine, video, the app) end above it.
+     The Screen is crowded (its timeline runs to the bottom edge), so there the bar waits in the top menu: its 🎤
+     (or Alt+V) brings the bar up over the bottom edge, and it goes again on ×, Esc or a click elsewhere. */
+  let summoned = false;
+  const crowded = () => !!(window.CurioScreen && window.CurioScreen.isOpen && window.CurioScreen.isOpen());
+  function layout() {
+    if (!root) return;
+    const busy = crowded();
+    if (!busy && summoned && root.querySelector(".vo-box").hidden) summoned = false;
+    const bar = summoned || (!busy && !prefs.min);
+    const show = (sel, on) => root.querySelector(sel).hidden !== !on && (root.querySelector(sel).hidden = !on);
+    show(".vo-bar", bar);
+    show(".vo-pill", !bar && !busy);
+    root.classList.toggle("min", !bar);
+    root.classList.toggle("float", busy && bar);
+    document.documentElement.classList.toggle("vo-on", !busy && !prefs.min);
+  }
   function tuck(on) {
     prefs.min = !!on;
     savePrefs();
-    if (!root) return;
-    root.querySelector(".vo-bar").hidden = prefs.min;
-    root.querySelector(".vo-pill").hidden = !prefs.min;
-    root.classList.toggle("min", prefs.min);
-    document.documentElement.classList.toggle("vo-on", !prefs.min);
+    if (on) summoned = false;
+    layout();
+  }
+  function summon() {
+    build();
+    if (crowded()) summoned = true;
+    else tuck(false);
+    layout();
+    root.querySelector(".vo-q").focus();
+  }
+  function dismiss() {
+    if (!summoned) return;
+    summoned = false;
+    root.querySelector(".vo-box").hidden = true;
+    layout();
   }
   /* A 🎤 in each top menu. Those menus are redrawn often, so it is put back after each redraw. */
   const TOPS = [
@@ -641,9 +669,8 @@
         b.title = "Talk to Curiomatic: say or type what you want (Alt+V)";
         b.setAttribute("aria-label", "Talk to Curiomatic");
         b.addEventListener("click", () => {
-          tuck(false);
           if (listening) return stop();
-          root.querySelector(".vo-q").focus();
+          summon();
           if (Rec) listen();
         });
         const at = bar.querySelector(before);
@@ -651,10 +678,13 @@
       })
     );
     document.querySelectorAll(".vo-top").forEach((b) => b.classList.toggle("on", listening));
+    layout();
   }
   function open() {
     build();
     root.querySelector(".vo-box").hidden = false;
+    if (crowded()) summoned = true;
+    layout();
     drawState();
   }
   function close() {
@@ -662,6 +692,8 @@
     stop();
     handsFree(false);
     root.querySelector(".vo-box").hidden = true;
+    summoned = false;
+    layout();
   }
   function drawState() {
     if (!root) return;
@@ -739,7 +771,7 @@ html.vo-on .sc-page, html.vo-on .cv-root.cv-viewer, html.vo-on .en-overlay, html
 .vo-root { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2147483000; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 12px 8px; font: 13px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; color: #e8e8ea; color-scheme: dark; }
 .vo-root > * { pointer-events: auto; }
 .vo-root > .vo-strip { position: fixed; left: 0; right: 0; bottom: 0; height: var(--vo-h); z-index: -1; background: #111114; border-top: 1px solid #26262c; pointer-events: none; }
-.vo-root.min > .vo-strip { display: none; }
+html:not(.vo-on) .vo-root > .vo-strip { display: none; }
 .vo-root.min { padding-bottom: 12px; }
 html.vo-on .vcv-badge, html.vo-on .mo-baro { bottom: calc(var(--vo-h) + 6px) !important; }
 .vo-bar { display: flex; gap: 6px; align-items: center; width: min(620px, 100%); height: 44px; box-sizing: border-box; padding: 4px 5px; background: #1c1c21; border: 1px solid #3a3a42; border-radius: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.45); }
