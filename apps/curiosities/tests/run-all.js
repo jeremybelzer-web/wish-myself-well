@@ -61,6 +61,7 @@ const suites = [
   { name: "engine bridge fuzz", ...node("engine/tests/bridge-fuzz.js") },
   { name: "screen", ...node("screen/tests/run.js") },
   { name: "curiosity windows", ...node("data/windows/check-windows.js", ["--strict", "--say", "--look"]) },
+  { name: "say what you want (704 beginner requests, at least 90% understood)", ...node("data/windows/say-eval.js", ["--min", "90", "--quiet"]) },
   { name: "character matrix on the screen", ...node("screen/tests/character.js") },
   { name: "momentum", ...node("momentum/tests/run.js") },
   { name: "video", ...node("video/tests/run.js") },

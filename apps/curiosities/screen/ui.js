@@ -3832,7 +3832,7 @@ document.addEventListener("click", function (e) {
     }
     if (kind === "knob") return knob(id, s, val == null ? s.range.min : val, disabled);
     const r = s.range || { min: 0, max: 100, step: 1, unit: "" };
-    return `<span class="sc-steps"><input type="range" min="${r.min}" max="${r.max}" step="${r.step || 1}" value="${esc(val == null ? r.min : val)}" data-set="${esc(id)}"${dis} aria-label="${esc(s.label)}"><output>${esc(val == null ? "–" : val + (r.unit || ""))}</output></span>`;
+    return `<span class="sc-steps"><input type="range" min="${r.min}" max="${r.max}" step="${r.step || 1}" value="${esc(val == null ? r.min : val)}" data-set="${esc(id)}"${dis} aria-label="${esc(s.label)}"><output>${esc(val == null ? "–" : val + (r.unit ? (/^[a-z]{3,}/i.test(r.unit) ? " " : "") + r.unit : ""))}</output></span>`;
   }
   function spark(id, beats) {
     const pts = beats.map((b, i) => {

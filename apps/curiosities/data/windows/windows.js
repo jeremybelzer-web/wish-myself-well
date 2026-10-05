@@ -22,10 +22,28 @@
      { face: "orbit", around, height?, distance?, offAxis?, roll? }   the subject seen from above and from the
                                                     side, with the camera (or light, or sound) around it in 3D;
                                                     every one a number range in degrees or meters
+   Hand-made faces (2026-10-03), for curiosities a generic knob or pad fits poorly. Each may name a "fallback"
+   face, drawn when a setting it needs is missing (otherwise a plain control for its first setting is):
+     { face: "wheel", hue, strength, colors?: { option: "#hex" } }   a color wheel with one dot: the angle is the
+                                                    color (a word scale placed by its colors, or degrees), the
+                                                    distance from the middle how strong (a number or an ordered scale)
+     { face: "curve", slider, points?: 3 to 5 }     drag points to draw how one setting rises and falls across my
+                                                    film; writes a node on every moment, one undo step
+     { face: "stage", walk?, tokens: [{ who: "person" | "camera", label?, about?, around?, distance?, angle? }] }
+                                                    the floor from above: one or two people and the camera. A token
+                                                    with "about" (an earlier token's index) is dragged around it:
+                                                    "around" in degrees (0 = in front, 90 = its right) or an ordered
+                                                    scale (front to behind), "distance" nearer or farther
+   A later add's pad, orbit or dial whose settings a wheel or stage already moves is left out (it becomes that
+   face's fallback), so the look files' generic pads do not repeat a hand-made face.
    Rows another file never loaded (an editing row in a Node check without db-editing.js) are skipped. */
 (function (root) {
   const DB = root.CuriosityDB || (typeof require !== "undefined" ? require("../curiosity-db.js") : null);
-  const FACES = ["tiles", "dial", "pad", "swatches", "frame", "compass", "mixer", "ladder", "balance", "orbit"];
+  const FACES = ["tiles", "dial", "pad", "swatches", "frame", "compass", "mixer", "ladder", "balance", "orbit", "wheel", "curve", "stage"];
+  const HAND = ["wheel", "curve", "stage"];
+  /* The settings a wheel or stage moves, and the settings a plain pad, orbit or dial moves. */
+  const handCovers = (f) => (f.face === "wheel" ? [f.hue, f.strength] : f.face === "stage" ? (f.tokens || []).flatMap((t) => [t.around, t.distance]) : []).filter(Boolean);
+  const plainSets = (f) => (f.face === "pad" ? [f.x, f.y] : f.face === "orbit" ? ["around", "height", "distance", "offAxis", "roll"].map((k) => f[k]) : f.face === "dial" ? [f.slider] : []).filter(Boolean);
   const W = { FACES, specs: {}, added: {}, skipped: [], files: [] };
   W.add = function (id, def) {
     if (!DB || !DB.find(id) || DB.find(id).level !== "curiosity") return W.skipped.push(id), null;
@@ -54,9 +72,18 @@
       /* A second add on the same curiosity (measure-<category>.js) adds to its window: faces and presets are
          appended, and a group with the same label gains the new sliders. */
       const old = W.specs[id];
+      const norm = (sid) => (sid === "setting" ? row.main : sid);
+      const hands = old ? (old.faces || []).filter((f) => HAND.includes(f.face)) : [];
+      const fresh = (def.window.faces || []).filter((f) => {
+        const sets = plainSets(f).map(norm);
+        const by = sets.length && hands.find((hf) => sets.every((sid) => handCovers(hf).map(norm).includes(sid)));
+        if (!by) return true;
+        if (!by.fallback) by.fallback = f;
+        return false;
+      });
       const spec = old
         ? {
-            faces: (old.faces || []).concat(def.window.faces || []),
+            faces: (old.faces || []).concat(fresh),
             groups: (old.groups || []).map((g) => Object.assign({}, g, { sliders: (g.sliders || []).slice() })),
             presets: (old.presets || []).concat(def.window.presets || []),
           }
@@ -140,8 +167,7 @@
       const spec = W.specs[id];
       const sl = (sid) => c.sliders.find((s) => s.id === sid || (sid === "setting" && s.id === c.main));
       const need = (sid, where) => (sl(sid) ? sl(sid) : (out.push(`${id}: ${where} names unknown slider "${sid}"`), null));
-      (spec.faces || []).forEach((f, i) => {
-        const where = `face ${i + 1} (${f.face})`;
+      const checkFace = (f, where) => {
         if (!FACES.includes(f.face)) return out.push(`${id}: ${where} is not a known face`);
         const one = (k, kind) => {
           if (f[k] == null) return out.push(`${id}: ${where} needs "${k}"`);
@@ -161,7 +187,44 @@
         if (f.face === "orbit") one("around", "range"), ["height", "distance", "offAxis", "roll"].forEach((k) => f[k] != null && one(k, "range"));
         if (f.face === "frame") ["x", "y", "size"].filter((k) => f[k] != null).length ? ["x", "y", "size"].forEach((k) => f[k] != null && need(f[k], where)) : out.push(`${id}: ${where} needs x, y or size`);
         if (f.face === "mixer") Array.isArray(f.sliders) && f.sliders.length >= 2 ? f.sliders.forEach((s) => need(s, where)) : out.push(`${id}: ${where} needs two or more sliders`);
-      });
+        const ord = (k) => {
+          const s = one(k);
+          if (s && !(s.range || (s.scale && !s.unordered && s.scale.length > 1))) out.push(`${id}: ${where} "${k}" must be a number range or an ordered word scale`);
+          return s;
+        };
+        if (f.face === "wheel") {
+          const hs = one("hue");
+          ord("strength");
+          opts(f.colors, hs && hs.scale ? hs : null);
+          if (hs && hs.range && !/°/.test(hs.range.unit || "") && hs.range.max - hs.range.min < 300) out.push(`${id}: ${where} "hue" must be a word scale or degrees around the whole wheel`);
+        }
+        if (f.face === "curve") {
+          ord("slider");
+          if (f.points != null && !(Number.isInteger(f.points) && f.points >= 3 && f.points <= 5)) out.push(`${id}: ${where} "points" must be 3, 4 or 5`);
+        }
+        if (f.face === "stage") {
+          const toks = Array.isArray(f.tokens) ? f.tokens : [];
+          if (!toks.length || toks.length > 3) out.push(`${id}: ${where} needs one to three tokens`);
+          if (toks.filter((t) => t.who === "camera").length > 1 || toks.filter((t) => t.who !== "camera").length > 2) out.push(`${id}: ${where} has at most one camera and two people`);
+          toks.forEach((t, ti) => {
+            const tw = `${where} token ${ti + 1}`;
+            if (!["person", "camera"].includes(t.who)) out.push(`${id}: ${tw} must be a person or the camera`);
+            if ((t.around || t.distance) && !(Number.isInteger(t.about) && t.about >= 0 && t.about < ti)) out.push(`${id}: ${tw} moves, so it needs "about": an earlier token's index`);
+            ["around", "distance"].forEach((k) => {
+              if (t[k] == null) return;
+              const s = need(t[k], tw);
+              if (s && !(s.range || (s.scale && !s.unordered && s.scale.length > 1))) out.push(`${id}: ${tw} "${k}" must be a number range or an ordered word scale`);
+            });
+          });
+          if (!toks.some((t) => t.around || t.distance)) out.push(`${id}: ${where} has nothing to drag (no token with around or distance)`);
+        }
+        if (f.fallback) {
+          if (!HAND.includes(f.face)) out.push(`${id}: ${where} has a fallback, but only wheel, curve and stage use one`);
+          else if (HAND.includes(f.fallback.face) || !FACES.includes(f.fallback.face)) out.push(`${id}: ${where} fallback must be one of the plain faces`);
+          else checkFace(f.fallback, `${where} fallback (${f.fallback.face})`);
+        }
+      };
+      (spec.faces || []).forEach((f, i) => checkFace(f, `face ${i + 1} (${f.face})`));
       (spec.groups || []).forEach((g) => (g.label ? (g.sliders || []).forEach((s) => need(s, `group "${g.label}"`)) : out.push(`${id}: a group has no label`)));
       (spec.presets || []).forEach((p) => {
         if (!p.label) out.push(`${id}: a preset has no label`);
