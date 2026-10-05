@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "SPEED & TIMING\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 9, CC 49 to 64\n   1 Clip speed\n   2 Reverse and replay\n   3 Freeze frame\n   4 Jump cuts\n   5 Cutting to the beat\n   6 Cutting speed across the scene\n   7 Edit template\n   8 Something new every\n   9 Slow motion quality\n  10 Time-lapse\n  11 Slowing down for the detail\n  12 Frozen moment, camera circles\n  13 Skipping ahead in time\n  14 Stretching a moment\n  15 Time to take in the shot\n  16 suite: Phone-video editing tricks\nCV-CC 2: PORT 2 (your second cable), MIDI channel 9, CC 65 to 80\n   1 suite: Music video cutting\n   2 suite: Trailer\n   3 suite: Vlog kit\n   4 suite: Instant replay\n   5 suite: Action showcase\n   6 suite: Time flies\n   7 pair: When the music is featured, the cuts find the beat\n   8 pair: When jump cuts go rhythmic, a joke builds\n   9 pair: When seconds are left on the clock, the cutting gets fast\n  10 pair: When a clip slows way down, it needs smooth in-between frames\n  11 pair: When something new arrives every second or two, the jokes come faster\n  12 pair: When the edit template is meme, the smash cuts pile up\n  13 pair: When a time-lapse squeezes the day, the story skips ahead\n  14 pair: When a person waits through a time-lapse, loneliness grows\n  15 pair: When the picture slows for the detail, the sound drops to a heartbeat\n  16 pair: When the slow detail is shown, the story turns\nCV-CC 3: PORT 2 (your second cable), MIDI channel 9, CC 81 to 89\n   1 pair: When time freezes and the camera circles, the hit lands harder\n   2 pair: When years are skipped, a card says so\n   3 pair: When a moment is stretched, the tension rises\n   4 pair: When the moment is life or death, we cut to the faces watching\n   5 pair: When shots are held long after we have read them, the camera lingers\n   6 pair: When the cuts land on the beat, an everyday chore feels like an action scene\n   7 pairs: Featured music drives the edit\n   8 pairs: Time gets away\n   9 pairs: One second, forever"
+    "text": "SPEED & TIMING\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 9, CC 65 to 80\n   1 Clip speed\n   2 Reverse and replay\n   3 Freeze frame\n   4 Jump cuts\n   5 Cutting to the beat\n   6 Cutting speed across the scene\n   7 Edit template\n   8 Something new every\n   9 Slow motion quality\n  10 Time-lapse\n  11 Slowing down for the detail\n  12 Frozen moment, camera circles\n  13 Skipping ahead in time\n  14 Stretching a moment\n  15 Time to take in the shot\n  16 suite: Phone-video editing tricks\nCV-CC 2: PORT 2 (your second cable), MIDI channel 9, CC 81 to 96\n   1 suite: Music video cutting\n   2 suite: Trailer\n   3 suite: Vlog kit\n   4 suite: Instant replay\n   5 suite: Action showcase\n   6 suite: Time flies\n   7 pair: When the music is featured, the cuts find the beat\n   8 pair: When jump cuts go rhythmic, a joke builds\n   9 pair: When seconds are left on the clock, the cutting gets fast\n  10 pair: When a clip slows way down, it needs smooth in-between frames\n  11 pair: When something new arrives every second or two, the jokes come faster\n  12 pair: When the edit template is meme, the smash cuts pile up\n  13 pair: When a time-lapse squeezes the day, the story skips ahead\n  14 pair: When a person waits through a time-lapse, loneliness grows\n  15 pair: When the picture slows for the detail, the sound drops to a heartbeat\n  16 pair: When the slow detail is shown, the story turns\nCV-CC 3: PORT 2 (your second cable), MIDI channel 9, CC 97 to 105\n   1 pair: When time freezes and the camera circles, the hit lands harder\n   2 pair: When years are skipped, a card says so\n   3 pair: When a moment is stretched, the tension rises\n   4 pair: When the moment is life or death, we cut to the faces watching\n   5 pair: When shots are held long after we have read them, the camera lingers\n   6 pair: When the cuts land on the beat, an everyday chore feels like an action scene\n   7 pairs: Featured music drives the edit\n   8 pairs: Time gets away\n   9 pairs: One second, forever"
    },
    "pos": [
     0,
@@ -23,38 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
-    ],
-    "midi": {
-     "channel": 8
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -81,12 +49,12 @@
     }
    },
    "pos": [
-    32,
+    24,
     0
    ]
   },
   {
-   "id": 6,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -100,6 +68,38 @@
      87,
      88,
      89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 8
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
      -1,
      -1,
      -1,

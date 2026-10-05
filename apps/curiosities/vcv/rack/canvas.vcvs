@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "FRAME & CANVAS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 11, CC 1 to 16\n   1 Punch-in made in the edit\n   2 Mirror and rotate\n   3 Shake removed in the edit\n   4 Canvas edges\n   5 Camera move added in the edit\n   6 3D frame move\n   7 Focus changed in the edit\n   8 Frame within a frame\n   9 Seen through a screen\n  10 Bursting past the film frame\n  11 The closing circle\n  12 Splitting the screen\n  13 The picture shrinks or grows\n  14 Seeing through a keyhole or binoculars\n  15 A run of still photos\n  16 suite: Kaleidoscope\nCV-CC 2: PORT 2 (your second cable), MIDI channel 11, CC 17 to 32\n   1 suite: Boxed in\n   2 suite: Silent film homage (closing circle)\n   3 suite: Comic book frame\n   4 suite: Two lives on one screen\n   5 suite: The watcher next door\n   6 pair: When the joke pays off, the editor punches in\n   7 pair: When the camera goes handheld, the shake is left in\n   8 pair: When impacts rise, the editor slam zooms\n   9 pair: When the frame spins like a cube, the pace jumps\n  10 pair: When the picture is tilted, the tension rises\n  11 pair: When someone is boxed in by a frame, loneliness grows\n  12 pair: When we watch through a security camera, dread rises\n  13 pair: When the black bars are thick, something breaks out of them\n  14 pair: When the circle closes in, the scene ends\n  15 pair: When the screen splits, the tension climbs\n  16 pair: When the two halves meet, they share one frame\nCV-CC 3: PORT 2 (your second cable), MIDI channel 11, CC 33 to 38\n   1 pair: When the picture shrinks, loneliness grows\n   2 pair: When we watch through the keyhole, dread grows\n   3 pair: When the film turns to still photos, nostalgia comes in\n   4 pair: When someone says something awkward, the camera snaps in on a face\n   5 pairs: The editor tells the joke\n   6 pairs: The frame tells it"
+    "text": "FRAME & CANVAS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 11, CC 17 to 32\n   1 Punch-in made in the edit\n   2 Mirror and rotate\n   3 Shake removed in the edit\n   4 Canvas edges\n   5 Camera move added in the edit\n   6 3D frame move\n   7 Focus changed in the edit\n   8 Frame within a frame\n   9 Seen through a screen\n  10 Bursting past the film frame\n  11 The closing circle\n  12 Splitting the screen\n  13 The picture shrinks or grows\n  14 Seeing through a keyhole or binoculars\n  15 A run of still photos\n  16 suite: Kaleidoscope\nCV-CC 2: PORT 2 (your second cable), MIDI channel 11, CC 33 to 48\n   1 suite: Boxed in\n   2 suite: Silent film homage (closing circle)\n   3 suite: Comic book frame\n   4 suite: Two lives on one screen\n   5 suite: The watcher next door\n   6 pair: When the joke pays off, the editor punches in\n   7 pair: When the camera goes handheld, the shake is left in\n   8 pair: When impacts rise, the editor slam zooms\n   9 pair: When the frame spins like a cube, the pace jumps\n  10 pair: When the picture is tilted, the tension rises\n  11 pair: When someone is boxed in by a frame, loneliness grows\n  12 pair: When we watch through a security camera, dread rises\n  13 pair: When the black bars are thick, something breaks out of them\n  14 pair: When the circle closes in, the scene ends\n  15 pair: When the screen splits, the tension climbs\n  16 pair: When the two halves meet, they share one frame\nCV-CC 3: PORT 2 (your second cable), MIDI channel 11, CC 49 to 54\n   1 pair: When the picture shrinks, loneliness grows\n   2 pair: When we watch through the keyhole, dread grows\n   3 pair: When the film turns to still photos, nostalgia comes in\n   4 pair: When someone says something awkward, the camera snaps in on a face\n   5 pairs: The editor tells the joke\n   6 pairs: The frame tells it"
    },
    "pos": [
     0,
@@ -23,38 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     1,
-     2,
-     3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10,
-     11,
-     12,
-     13,
-     14,
-     15,
-     16
-    ],
-    "midi": {
-     "channel": 10
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -81,12 +49,12 @@
     }
    },
    "pos": [
-    32,
+    24,
     0
    ]
   },
   {
-   "id": 6,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -97,6 +65,38 @@
      36,
      37,
      38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 10
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
      -1,
      -1,
      -1,

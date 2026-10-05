@@ -115,4 +115,99 @@
       ],
     },
   });
+  W.add("driveOrPeace", {
+    window: {
+      faces: [
+        { face: "dial", slider: "drive" },
+        { face: "tiles", slider: "by", icons: { "a need": "🫀", "a want": "🎯", fear: "😨", love: "❤️", duty: "📜", revenge: "🗡️" } },
+        { face: "ladder", slider: "turns" },
+      ],
+      groups: [
+        { label: "The drive", sliders: ["drive", "by", "restless"] },
+        { label: "Peace and cost", sliders: ["peace", "cost", "turns"] },
+      ],
+      presets: [
+        { label: "Can't rest", plain: "Driven by fear, pacing, running over everyone.", set: { drive: 95, by: "fear", restless: 5, peace: "nowhere yet", cost: 4, turns: "winding up" } },
+        { label: "Enough", plain: "Content, relaxed, at peace with what they have.", set: { drive: 5, by: "a need", restless: 0, peace: "having enough", cost: 0, turns: "steady" } },
+        { label: "Letting go", plain: "Was driven, now settling down.", set: { drive: 40, by: "revenge", restless: 2, peace: "letting go", cost: 1, turns: "settling down" } },
+      ],
+    },
+  });
+
+  W.add("needMet", {
+    window: {
+      faces: [
+        { face: "dial", slider: "met" },
+        { face: "tiles", slider: "need", icons: { safety: "🛡️", belonging: "🏠", respect: "🙇", love: "❤️", freedom: "🕊️", meaning: "✨" } },
+        { face: "ladder", slider: "shift" },
+      ],
+      groups: [
+        { label: "The need", sliders: ["met", "need", "shift"] },
+        { label: "The person", sliders: ["by", "aware", "reacts"] },
+      ],
+      presets: [
+        { label: "Starved for respect", plain: "A rival blocks the respect he needs, and he lashes out.", set: { met: 10, need: "respect", shift: "starves it", by: "a rival", aware: "half knows", reacts: "lash out" } },
+        { label: "Finally belongs", plain: "The group takes her in at last.", set: { met: 90, need: "belonging", shift: "fulfills it", by: "the group", aware: "knows it well", reacts: "give thanks" } },
+        { label: "Unknown hunger", plain: "Needs love, doesn't know it, and hides it.", set: { met: 30, need: "love", shift: "leaves it", by: "themselves", aware: "no idea", reacts: "hide it" } },
+      ],
+    },
+  });
+
+  W.add("wantMet", {
+    window: {
+      faces: [
+        { face: "dial", slider: "met" },
+        { face: "tiles", slider: "want", icons: { "a person": "💑", money: "💰", "a win": "🏆", "a place": "📍", "a job": "💼", "to be left alone": "🚪" } },
+        { face: "ladder", slider: "shift" },
+      ],
+      groups: [
+        { label: "The want", sliders: ["met", "want", "shift"] },
+        { label: "The chase", sliders: ["blocker", "chase", "worth"] },
+      ],
+      presets: [
+        { label: "So close", plain: "The win is almost theirs, and a rival steps in.", set: { met: 70, want: "a win", shift: "snatches it away", blocker: "a rival", worth: "fine", chase: 5 } },
+        { label: "Empty prize", plain: "Handed the money, and it's not what they needed.", set: { met: 100, want: "money", shift: "hands it to them", blocker: "nobody", worth: "empty", chase: 2 } },
+        { label: "Their own worst enemy", plain: "The only thing in the way is themselves.", set: { met: 30, want: "a person", shift: "blocks it", blocker: "themselves", worth: "everything", chase: 3 } },
+      ],
+    },
+  });
+
+  W.add("influence", {
+    window: {
+      faces: [
+        { face: "pad", x: "gives", y: "takes" },
+        { face: "tiles", slider: "how", icons: { words: "💬", actions: "✋", "just being there": "🧍", "being missing": "🪑", "a look": "👀" } },
+        { face: "ladder", slider: "kind" },
+      ],
+      groups: [
+        { label: "Give and take", sliders: ["gives", "takes"] },
+        { label: "How and whom", sliders: ["how", "whom", "kind", "lasts"] },
+      ],
+      presets: [
+        { label: "Changes the room", plain: "One sentence from her changes everyone, for good.", set: { gives: 90, takes: 20, how: "words", whom: "the whole room", kind: "for the better", lasts: "the story" } },
+        { label: "Sponge", plain: "Moves no one, moved by everyone.", set: { gives: 10, takes: 90, how: "just being there", whom: "one person", kind: "mixed", lasts: "a moment" } },
+        { label: "The empty chair", plain: "Their absence changes everyone, for the worse.", set: { gives: 80, takes: 0, how: "being missing", whom: "a few", kind: "for the worse", lasts: "a lifetime" } },
+      ],
+    },
+  });
+
+  W.add("plotPull", {
+    window: {
+      faces: [
+        { face: "dial", slider: "pull" },
+        { face: "ladder", slider: "tension" },
+        { face: "ladder", slider: "chaos" },
+      ],
+      groups: [
+        { label: "The plot", sliders: ["pull", "way", "meant"] },
+        { label: "Tension and chaos", sliders: ["tension", "chaos", "seen"] },
+      ],
+      presets: [
+        { label: "The spark", plain: "Pushes the story forward on purpose and explodes the tension.", set: { pull: 5, way: "push it forward", tension: "explode it", chaos: "bring chaos", meant: "on purpose", seen: "everyone" } },
+        { label: "The peacemaker", plain: "Holds the story back by calming everything down.", set: { pull: 3, way: "hold it back", tension: "resolve it", chaos: "bring order", meant: "on purpose", seen: "one person" } },
+        { label: "The accident", plain: "Turns the whole plot without meaning to.", set: { pull: 4, way: "turn it", tension: "raise it", chaos: "stir things", meant: "by accident", seen: "no one" } },
+      ],
+    },
+  });
+
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));

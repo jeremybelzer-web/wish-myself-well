@@ -206,4 +206,35 @@
     out += strip(k, [g.num("now", "Now", "%", S.blue), g.steps("past", "Before"), g.steps("heading", "Heading"), g.steps("area", "Area"), g.steps("shows", "Shows"), g.steps("knows", "Sees it")]);
     return out + k.caption(`${v("past")} before, ${v("heading")} now`);
   });
+  /* ======================= driveOrPeace, needMet, wantMet, influence, plotPull ======================= */
+  /* One character on the stage, leaning and glowing with the main value; the strip shows every setting. */
+  const simple = (id, o) => look(id, (v, k, g) => {
+    const p = v.p(o.main);
+    let out = stage(k);
+    out += guy(k, 160, { color: k.mix(o.lo, o.hi, p), lean: (p - 0.5) * o.lean, arms: o.arms ? p * 2 - 1 : 0, mood: o.mood ? p * 2 - 1 : 0 });
+    out += glow(160, 60, 8 + p * 30, o.hi, 0.15 + p * 0.4);
+    out += o.extra ? o.extra(v, k, p) : "";
+    out += strip(k, o.strip(g));
+    return out + k.caption(o.cap(v));
+  });
+  simple("driveOrPeace", { main: "drive", lo: S.green, hi: S.red, lean: 30, arms: true,
+    extra: (v, k) => marks(20, 10, 100, 5, v.n("restless"), S.orange, 5) + k.text({ x: 290, y: 30, text: ["⬇️", "⏸️", "⬆️"][idx(v, "turns", 3)], size: 12 }),
+    strip: (g) => [g.num("drive", "Drive", "%", S.red), g.steps("by", "Driven by"), g.num("restless", "Restless"), g.steps("peace", "Peace", S.green), g.num("cost", "Cost"), g.steps("turns", "Turning")],
+    cap: (v) => v.n("drive") > 50 ? `driven by ${v("by")}` : `at peace: ${v("peace")}` });
+  simple("needMet", { main: "met", lo: S.red, hi: S.green, lean: 0, mood: true,
+    extra: (v, k) => k.text({ x: 230, y: 50, text: ["🛡️", "🏠", "🙇", "❤️", "🕊️", "✨"][idx(v, "need", 6)], size: 18 }) + marks(20, 10, 100, 5, idx(v, "shift", 5) + 1, S.green, 5),
+    strip: (g) => [g.num("met", "Met", "%", S.green), g.steps("need", "Need"), g.steps("shift", "This scene"), g.steps("by", "Decided by"), g.steps("aware", "Aware"), g.steps("reacts", "Reacts")],
+    cap: (v) => `${v("need")}: ${v.n("met")}% met` });
+  simple("wantMet", { main: "met", lo: S.grey, hi: S.gold, lean: 20, arms: true,
+    extra: (v, k, p) => k.text({ x: 160 + (1 - p) * 120, y: 70, text: ["💑", "💰", "🏆", "📍", "💼", "🚪"][idx(v, "want", 6)], size: 16 }) + marks(20, 10, 100, 5, v.n("chase"), S.gold, 5),
+    strip: (g) => [g.num("met", "Met", "%", S.gold), g.steps("want", "Want"), g.steps("shift", "This scene"), g.steps("blocker", "Blocker", S.red), g.steps("worth", "Worth it"), g.num("chase", "Chase")],
+    cap: (v) => `wants ${v("want")}: ${v("shift")}` });
+  simple("influence", { main: "gives", lo: S.grey, hi: S.purple, lean: 0,
+    extra: (v, k) => { let o = ""; const t = v.p("takes"); for (let i = 0; i < 4; i++) o += guy(k, 40 + i * 30 + (i > 1 ? 160 : 0), { s: 0.5, color: [S.red, S.grey, S.green][idx(v, "kind", 3)], lean: (i > 1 ? -1 : 1) * t * 15 }); return o; },
+    strip: (g) => [g.num("gives", "Moves others", "%", S.purple), g.num("takes", "Is moved", "%"), g.steps("how", "How"), g.steps("whom", "Whom"), g.steps("kind", "Better/worse"), g.steps("lasts", "Lasts")],
+    cap: (v) => `moves others ${v.n("gives")}%, is moved ${v.n("takes")}%` });
+  simple("plotPull", { main: "pull", lo: S.grey, hi: S.gold, lean: 20,
+    extra: (v, k, p) => k.arrow({ x1: 60, y1: 20, x2: 60 + [10, 30, 60, 120][idx(v, "way", 4)], y2: 20, color: S.gold, w: 1 + p * 2 }) + marks(200, 10, 100, 5, idx(v, "tension", 5) + 1, S.red, 4) + marks(200, 20, 100, 5, idx(v, "chaos", 5) + 1, S.purple, 4),
+    strip: (g) => [g.num("pull", "Pull"), g.steps("way", "Way"), g.steps("tension", "Tension", S.red), g.steps("chaos", "Chaos", S.purple), g.steps("meant", "Meant"), g.steps("seen", "Seen")],
+    cap: (v) => `${v("way")}, ${v("tension")}` });
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));

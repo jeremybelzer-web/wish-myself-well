@@ -22634,6 +22634,103 @@
    "then": "emotional health drops"
   },
   {
+   "id": "p:need-starved-drive",
+   "proximity": "need-starved-drive",
+   "label": "When a need is starved, the drive grows",
+   "from": {
+    "curiosity": "needMet",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "driveOrPeace",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a need is starved",
+   "then": "the drive grows"
+  },
+  {
+   "id": "p:want-blocked-tension",
+   "proximity": "want-blocked-tension",
+   "label": "When the want is blocked, the tension rises",
+   "from": {
+    "curiosity": "wantMet",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the want is blocked",
+   "then": "the tension rises"
+  },
+  {
+   "id": "p:need-met-peace",
+   "proximity": "need-met-peace",
+   "label": "When a need is met, they find peace",
+   "from": {
+    "curiosity": "needMet.shift",
+    "track": "master",
+    "is": "fulfills it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "driveOrPeace",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a need is met",
+   "then": "they find peace"
+  },
+  {
+   "id": "p:drive-pulls-plot",
+   "proximity": "drive-pulls-plot",
+   "label": "When the drive grows, they pull the plot",
+   "from": {
+    "curiosity": "driveOrPeace",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotPull",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the drive grows",
+   "then": "they pull the plot"
+  },
+  {
+   "id": "p:influence-chaos",
+   "proximity": "influence-chaos",
+   "label": "When someone moves the room for the worse, chaos follows",
+   "from": {
+    "curiosity": "influence.kind",
+    "track": "master",
+    "is": "for the worse",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "plotPull.chaos",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone moves the room for the worse",
+   "then": "chaos follows"
+  },
+  {
    "id": "p:style-long-talk-violence",
    "proximity": "style-long-talk-violence",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -28153,6 +28250,25 @@
     "p:rank-leads-herd",
     "p:leaned-on-caretaker",
     "p:approval-withheld-turns"
+   ]
+  },
+  {
+   "id": "ps:needs-wants-and-drive",
+   "label": "Needs, wants and drive",
+   "plain": "A starved need drives them, the blocked want raises the tension, the drive pulls the plot, and a met need finally brings peace.",
+   "proximities": [
+    "need-starved-drive",
+    "want-blocked-tension",
+    "drive-pulls-plot",
+    "need-met-peace",
+    "influence-chaos"
+   ],
+   "links": [
+    "p:need-starved-drive",
+    "p:want-blocked-tension",
+    "p:drive-pulls-plot",
+    "p:need-met-peace",
+    "p:influence-chaos"
    ]
   },
   {

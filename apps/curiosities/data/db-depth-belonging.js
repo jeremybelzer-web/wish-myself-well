@@ -1,6 +1,6 @@
 /* data/db-depth-belonging.js: where a character stands with other people (Jeremy, 2026-10-05: groupthink, how much
    they need the group's approval, the love of the group or of one person, a small or large circle, being in charge,
-   relying or being relied on, struggling or thriving in the past, now and next). 6 curiosities, kept per character
+   relying or being relied on, struggling or thriving in the past, now and next; then: driven or at peace, needs and wants met or frustrated in each scene, moving others and being moved, and their pull on the plot, tension and chaos). 11 curiosities, kept per character
    per scene like the Character matrix's axes. Ideas already in the database (Conformist to Individualist, Stabilizer
    to Catalyst, Orderly to Chaotic, Surrender to Controlling, External to Internal motivation, Enneagram type and
    health, herd mentality, loneliness, the caretaker) are linked to, not repeated. Loaded after db-depth-telling.js.
@@ -98,6 +98,69 @@
     ],
     [2, "A life heading the wrong way sets a clock: something must change before it hits bottom.", "Shows fortune as a road, not a place.", "We want to know if they'll climb back or keep falling.", "plot", "Show the trophy shelf from his glory years, then the unpaid bills under it."], PER);
 
+  /* ---------- what each character does to the scene (Jeremy, 2026-10-05: needs and wants, driven or at peace,
+     affecting and affected by others, pull on the plot, making or resolving tension and chaos) ---------- */
+
+  c("driveOrPeace", "Driven or at peace", "herd",
+    "How hard this character is pushing to get what they need and want in this scene, or how content, relaxed and at peace they are.",
+    [
+      ["drive", "Driven or at peace", [0, 100, "%"], "0 is content and relaxed; 100 is driven and can't rest."],
+      ["by", "What drives them", ["a need", "a want", "fear", "love", "duty", "revenge"], "The engine under the push.", U],
+      ["restless", "How restless the body is", [0, 5], "How much the drive shows in fidgeting, pacing, never sitting."],
+      ["peace", "Where peace comes from", ["nowhere yet", "having enough", "letting go", "being loved", "being done"], "What makes them settle, when they can."],
+      ["cost", "What the drive costs others", [0, 5], "How much their push runs over the people around them."],
+      ["turns", "Which way it is moving", ["settling down", "steady", "winding up"], "Whether they are calming or getting more driven this scene."],
+    ],
+    [3, "A driven character makes things happen; a content one has to be pushed out of peace, which is a story too.", "Shows the price of wanting and the gift of enough.", "We watch to see whether they get it, or let it go.", "movement", "Let her pace the kitchen the whole scene, and sit down only when the phone finally rings."], PER);
+
+  c("needMet", "A need met or frustrated", "herd",
+    "In each scene, one of the character's deep needs (safety, belonging, respect, love, freedom, meaning) is fed or starved.",
+    [
+      ["met", "Met or frustrated", [0, 100, "%"], "0 the need is badly frustrated; 100 it is fully met."],
+      ["need", "Which need", ["safety", "belonging", "respect", "love", "freedom", "meaning"], "The deep need at stake.", U],
+      ["shift", "What this scene does to it", ["starves it", "blocks it", "leaves it", "feeds it", "fulfills it"], "Which way the scene moves the need."],
+      ["by", "Who or what decides it", ["themselves", "a loved one", "a rival", "the group", "chance"], "Who feeds or blocks the need here.", U],
+      ["aware", "Do they know the need", ["no idea", "half knows", "knows it well"], "Whether the character can name what they are missing."],
+      ["reacts", "How they take it", ["hide it", "lash out", "withdraw", "try harder", "give thanks"], "What they do when the need is fed or starved."],
+    ],
+    [3, "A starved need pushes a character into the choices that make the plot; a met one releases the tension.", "Shows what people really need under what they say they want.", "We ache for the need to be met.", "thought", "Let him be thanked by a stranger, the respect his father never gave, and watch him not know what to do with it."], PER);
+
+  c("wantMet", "A want met or frustrated", "herd",
+    "In each scene, the thing the character says they want (a job, a person, money, a win) gets closer or further away. Not \"What they want, against what they need\", which is the gap between the two.",
+    [
+      ["met", "Met or frustrated", [0, 100, "%"], "0 the want is badly blocked; 100 they have it."],
+      ["want", "What they want", ["a person", "money", "a win", "a place", "a job", "to be left alone"], "The goal they are chasing.", U],
+      ["shift", "What this scene does to it", ["snatches it away", "blocks it", "leaves it", "brings it closer", "hands it to them"], "Which way the scene moves the want."],
+      ["blocker", "What stands in the way", ["nobody", "themselves", "a rival", "the rules", "bad luck"], "The obstacle in this scene.", U],
+      ["worth", "Is it worth having", ["poison", "empty", "fine", "everything"], "Whether getting it would really help them."],
+      ["chase", "How hard they chase it here", [0, 5], "How much effort they spend on it in this scene."],
+    ],
+    [3, "Each scene that moves the want closer or further is a step in the plot.", "Shows the difference between getting what you want and being happy.", "We want to see if they get it, and fear what it costs.", "plot", "Hand her the promotion she wanted, on the day her marriage ends."], PER);
+
+  c("influence", "Moving others, and being moved", "herd",
+    "How much this character changes the people around them in a scene, and how much the others change them.",
+    [
+      ["gives", "How much they move others", [0, 100, "%"], "0 nobody is changed by them; 100 everyone in the scene is."],
+      ["takes", "How much others move them", [0, 100, "%"], "0 nothing reaches them; 100 every word changes them."],
+      ["how", "How they move people", ["words", "actions", "just being there", "being missing", "a look"], "The way their effect reaches others.", U],
+      ["whom", "Who they move most", ["one person", "a few", "the whole room", "the audience"], "How widely their effect spreads."],
+      ["kind", "For better or worse", ["for the worse", "mixed", "for the better"], "Whether they leave people better or worse off."],
+      ["lasts", "How long it lasts", ["a moment", "the scene", "the story", "a lifetime"], "How long the change stays with the people they touched."],
+    ],
+    [2, "Who changes whom decides where the story goes next.", "Shows how people make and remake each other.", "We wait to see who changes whom.", "movement", "Let the quiet grandmother say one sentence that changes the whole table, then go back to her soup."], PER);
+
+  c("plotPull", "This character's pull on the plot", "herd",
+    "How much this character moves the story in a scene: driving it forward, holding it back, turning it, and stirring up or settling tension and chaos.",
+    [
+      ["pull", "Pull on the plot", [0, 5], "How much the story moves because of them in this scene."],
+      ["way", "Which way they move it", ["stall it", "hold it back", "turn it", "push it forward"], "What they do to the plot."],
+      ["tension", "Tension", ["resolve it", "ease it", "leave it", "raise it", "explode it"], "Whether they build or settle tension."],
+      ["chaos", "Chaos", ["bring order", "calm things", "leave it", "stir things", "bring chaos"], "Whether they stir up or settle the chaos."],
+      ["meant", "On purpose", ["by accident", "half meaning to", "on purpose"], "Whether they mean to move the story."],
+      ["seen", "Do the others notice", ["no one", "one person", "everyone"], "Whether the other characters see what they did."],
+    ],
+    [3, "Every scene has someone moving the story; this shows who, which way, and what it does to the tension.", "Shows that every character, even a small one, can turn a story.", "We watch the one who is about to change everything.", "plot", "Let the kid who has said nothing knock over the candle, and the argument stops."], PER);
+
   /* ---------- suites ---------- */
 
   S("people-pleaser", "The people pleaser", "herd",
@@ -126,6 +189,23 @@
       { curiosity: "circleSize", slider: "changes", value: "shrinking fast" },
     ]);
 
+  S("restless-striver", "The restless striver", "herd",
+    "Driven, chasing a want hard, a need starving underneath, pushing the plot and raising the tension.",
+    [
+      { curiosity: "driveOrPeace", value: 90 },
+      { curiosity: "wantMet", slider: "chase", value: 5 },
+      { curiosity: "needMet", value: 15 },
+      { curiosity: "plotPull", slider: "tension", value: "raise it" },
+    ]);
+  S("at-peace", "At peace", "herd",
+    "Content, needs met, moving others for the better and settling the chaos around them.",
+    [
+      { curiosity: "driveOrPeace", value: 10 },
+      { curiosity: "needMet", value: 90 },
+      { curiosity: "influence", slider: "kind", value: "for the better" },
+      { curiosity: "plotPull", slider: "chaos", value: "calm things" },
+    ]);
+
   /* ---------- proximities ---------- */
 
   P("approval-copying", "When the need for approval grows, they copy the others", "herd",
@@ -150,6 +230,22 @@
     "When how well they are doing falls, Enneagram health moves toward unhealthy within 2 beats.",
     { curiosity: "thriving", change: "drops" }, { curiosity: "cm-health", change: "rises" }, 2, { also: ["archetype"] });
 
+  P("need-starved-drive", "When a need is starved, the drive grows", "herd",
+    "When a need is more frustrated, how driven the character is rises within a beat.",
+    { curiosity: "needMet", change: "drops" }, { curiosity: "driveOrPeace", change: "rises" }, 1);
+  P("want-blocked-tension", "When the want is blocked, the tension rises", "herd",
+    "When the want is pushed further away, tension rises within a beat.",
+    { curiosity: "wantMet", change: "drops" }, { curiosity: "tensionCurve", change: "rises" }, 1, { also: ["structure"] });
+  P("need-met-peace", "When a need is met, they find peace", "herd",
+    "When the need is fully met, how driven they are drops within 2 beats.",
+    { curiosity: "needMet", slider: "shift", is: "fulfills it" }, { curiosity: "driveOrPeace", change: "drops" }, 2);
+  P("drive-pulls-plot", "When the drive grows, they pull the plot", "herd",
+    "When they become more driven, their pull on the plot rises within a beat.",
+    { curiosity: "driveOrPeace", change: "rises" }, { curiosity: "plotPull", change: "rises" }, 1);
+  P("influence-chaos", "When someone moves the room for the worse, chaos follows", "herd",
+    "When a character moves others for the worse, chaos in the scene rises within 2 beats.",
+    { curiosity: "influence", slider: "kind", is: "for the worse" }, { curiosity: "plotPull", slider: "chaos", change: "rises" }, 2);
+
   /* ---------- proximity suites ---------- */
 
   PS("losing-their-place", "Losing their place", "herd",
@@ -158,4 +254,7 @@
   PS("the-weight-of-the-crown", "The weight of the crown", "herd",
     "They rise to the top, everyone leans on them, and when the nod is withheld they turn on the group.",
     ["rank-leads-herd", "leaned-on-caretaker", "approval-withheld-turns"]);
+  PS("needs-wants-and-drive", "Needs, wants and drive", "herd",
+    "A starved need drives them, the blocked want raises the tension, the drive pulls the plot, and a met need finally brings peace.",
+    ["need-starved-drive", "want-blocked-tension", "drive-pulls-plot", "need-met-peace", "influence-chaos"]);
 })(typeof window !== "undefined" ? window.CuriosityDB : require("./curiosity-db.js"));

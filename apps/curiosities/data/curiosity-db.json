@@ -110138,6 +110138,852 @@
     "cue": "plot",
     "tryThis": "Show the trophy shelf from his glory years, then the unpaid bills under it."
    }
+  },
+  {
+   "id": "driveOrPeace",
+   "level": "curiosity",
+   "label": "Driven or at peace",
+   "plain": "How hard this character is pushing to get what they need and want in this scene, or how content, relaxed and at peace they are.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "drive",
+   "sliders": [
+    {
+     "id": "drive",
+     "label": "Driven or at peace",
+     "plain": "0 is content and relaxed; 100 is driven and can't rest.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "by",
+     "label": "What drives them",
+     "plain": "The engine under the push.",
+     "scale": [
+      "a need",
+      "a want",
+      "fear",
+      "love",
+      "duty",
+      "revenge"
+     ],
+     "from": "a need",
+     "to": "revenge",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "restless",
+     "label": "How restless the body is",
+     "plain": "How much the drive shows in fidgeting, pacing, never sitting.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "peace",
+     "label": "Where peace comes from",
+     "plain": "What makes them settle, when they can.",
+     "scale": [
+      "nowhere yet",
+      "having enough",
+      "letting go",
+      "being loved",
+      "being done"
+     ],
+     "from": "nowhere yet",
+     "to": "being done",
+     "curve": "linear"
+    },
+    {
+     "id": "cost",
+     "label": "What the drive costs others",
+     "plain": "How much their push runs over the people around them.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "turns",
+     "label": "Which way it is moving",
+     "plain": "Whether they are calming or getting more driven this scene.",
+     "scale": [
+      "settling down",
+      "steady",
+      "winding up"
+     ],
+     "from": "settling down",
+     "to": "winding up",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "A driven character makes things happen; a content one has to be pushed out of peace, which is a story too.",
+    "theme": "Shows the price of wanting and the gift of enough.",
+    "pull": "We watch to see whether they get it, or let it go.",
+    "cue": "movement",
+    "tryThis": "Let her pace the kitchen the whole scene, and sit down only when the phone finally rings."
+   }
+  },
+  {
+   "id": "needMet",
+   "level": "curiosity",
+   "label": "A need met or frustrated",
+   "plain": "In each scene, one of the character's deep needs (safety, belonging, respect, love, freedom, meaning) is fed or starved.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "met",
+   "sliders": [
+    {
+     "id": "met",
+     "label": "Met or frustrated",
+     "plain": "0 the need is badly frustrated; 100 it is fully met.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "need",
+     "label": "Which need",
+     "plain": "The deep need at stake.",
+     "scale": [
+      "safety",
+      "belonging",
+      "respect",
+      "love",
+      "freedom",
+      "meaning"
+     ],
+     "from": "safety",
+     "to": "meaning",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "shift",
+     "label": "What this scene does to it",
+     "plain": "Which way the scene moves the need.",
+     "scale": [
+      "starves it",
+      "blocks it",
+      "leaves it",
+      "feeds it",
+      "fulfills it"
+     ],
+     "from": "starves it",
+     "to": "fulfills it",
+     "curve": "linear"
+    },
+    {
+     "id": "by",
+     "label": "Who or what decides it",
+     "plain": "Who feeds or blocks the need here.",
+     "scale": [
+      "themselves",
+      "a loved one",
+      "a rival",
+      "the group",
+      "chance"
+     ],
+     "from": "themselves",
+     "to": "chance",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "aware",
+     "label": "Do they know the need",
+     "plain": "Whether the character can name what they are missing.",
+     "scale": [
+      "no idea",
+      "half knows",
+      "knows it well"
+     ],
+     "from": "no idea",
+     "to": "knows it well",
+     "curve": "linear"
+    },
+    {
+     "id": "reacts",
+     "label": "How they take it",
+     "plain": "What they do when the need is fed or starved.",
+     "scale": [
+      "hide it",
+      "lash out",
+      "withdraw",
+      "try harder",
+      "give thanks"
+     ],
+     "from": "hide it",
+     "to": "give thanks",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "A starved need pushes a character into the choices that make the plot; a met one releases the tension.",
+    "theme": "Shows what people really need under what they say they want.",
+    "pull": "We ache for the need to be met.",
+    "cue": "thought",
+    "tryThis": "Let him be thanked by a stranger, the respect his father never gave, and watch him not know what to do with it."
+   }
+  },
+  {
+   "id": "wantMet",
+   "level": "curiosity",
+   "label": "A want met or frustrated",
+   "plain": "In each scene, the thing the character says they want (a job, a person, money, a win) gets closer or further away. Not \"What they want, against what they need\", which is the gap between the two.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "met",
+   "sliders": [
+    {
+     "id": "met",
+     "label": "Met or frustrated",
+     "plain": "0 the want is badly blocked; 100 they have it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "want",
+     "label": "What they want",
+     "plain": "The goal they are chasing.",
+     "scale": [
+      "a person",
+      "money",
+      "a win",
+      "a place",
+      "a job",
+      "to be left alone"
+     ],
+     "from": "a person",
+     "to": "to be left alone",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "shift",
+     "label": "What this scene does to it",
+     "plain": "Which way the scene moves the want.",
+     "scale": [
+      "snatches it away",
+      "blocks it",
+      "leaves it",
+      "brings it closer",
+      "hands it to them"
+     ],
+     "from": "snatches it away",
+     "to": "hands it to them",
+     "curve": "linear"
+    },
+    {
+     "id": "blocker",
+     "label": "What stands in the way",
+     "plain": "The obstacle in this scene.",
+     "scale": [
+      "nobody",
+      "themselves",
+      "a rival",
+      "the rules",
+      "bad luck"
+     ],
+     "from": "nobody",
+     "to": "bad luck",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "worth",
+     "label": "Is it worth having",
+     "plain": "Whether getting it would really help them.",
+     "scale": [
+      "poison",
+      "empty",
+      "fine",
+      "everything"
+     ],
+     "from": "poison",
+     "to": "everything",
+     "curve": "linear"
+    },
+    {
+     "id": "chase",
+     "label": "How hard they chase it here",
+     "plain": "How much effort they spend on it in this scene.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "Each scene that moves the want closer or further is a step in the plot.",
+    "theme": "Shows the difference between getting what you want and being happy.",
+    "pull": "We want to see if they get it, and fear what it costs.",
+    "cue": "plot",
+    "tryThis": "Hand her the promotion she wanted, on the day her marriage ends."
+   }
+  },
+  {
+   "id": "influence",
+   "level": "curiosity",
+   "label": "Moving others, and being moved",
+   "plain": "How much this character changes the people around them in a scene, and how much the others change them.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "gives",
+   "sliders": [
+    {
+     "id": "gives",
+     "label": "How much they move others",
+     "plain": "0 nobody is changed by them; 100 everyone in the scene is.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "takes",
+     "label": "How much others move them",
+     "plain": "0 nothing reaches them; 100 every word changes them.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "how",
+     "label": "How they move people",
+     "plain": "The way their effect reaches others.",
+     "scale": [
+      "words",
+      "actions",
+      "just being there",
+      "being missing",
+      "a look"
+     ],
+     "from": "words",
+     "to": "a look",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "whom",
+     "label": "Who they move most",
+     "plain": "How widely their effect spreads.",
+     "scale": [
+      "one person",
+      "a few",
+      "the whole room",
+      "the audience"
+     ],
+     "from": "one person",
+     "to": "the audience",
+     "curve": "linear"
+    },
+    {
+     "id": "kind",
+     "label": "For better or worse",
+     "plain": "Whether they leave people better or worse off.",
+     "scale": [
+      "for the worse",
+      "mixed",
+      "for the better"
+     ],
+     "from": "for the worse",
+     "to": "for the better",
+     "curve": "linear"
+    },
+    {
+     "id": "lasts",
+     "label": "How long it lasts",
+     "plain": "How long the change stays with the people they touched.",
+     "scale": [
+      "a moment",
+      "the scene",
+      "the story",
+      "a lifetime"
+     ],
+     "from": "a moment",
+     "to": "a lifetime",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "Who changes whom decides where the story goes next.",
+    "theme": "Shows how people make and remake each other.",
+    "pull": "We wait to see who changes whom.",
+    "cue": "movement",
+    "tryThis": "Let the quiet grandmother say one sentence that changes the whole table, then go back to her soup."
+   }
+  },
+  {
+   "id": "plotPull",
+   "level": "curiosity",
+   "label": "This character's pull on the plot",
+   "plain": "How much this character moves the story in a scene: driving it forward, holding it back, turning it, and stirring up or settling tension and chaos.",
+   "workspace": "herd",
+   "also": [
+    "archetype"
+   ],
+   "group": "",
+   "kind": "lens",
+   "per": "character per scene",
+   "main": "pull",
+   "sliders": [
+    {
+     "id": "pull",
+     "label": "Pull on the plot",
+     "plain": "How much the story moves because of them in this scene.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "way",
+     "label": "Which way they move it",
+     "plain": "What they do to the plot.",
+     "scale": [
+      "stall it",
+      "hold it back",
+      "turn it",
+      "push it forward"
+     ],
+     "from": "stall it",
+     "to": "push it forward",
+     "curve": "linear"
+    },
+    {
+     "id": "tension",
+     "label": "Tension",
+     "plain": "Whether they build or settle tension.",
+     "scale": [
+      "resolve it",
+      "ease it",
+      "leave it",
+      "raise it",
+      "explode it"
+     ],
+     "from": "resolve it",
+     "to": "explode it",
+     "curve": "linear"
+    },
+    {
+     "id": "chaos",
+     "label": "Chaos",
+     "plain": "Whether they stir up or settle the chaos.",
+     "scale": [
+      "bring order",
+      "calm things",
+      "leave it",
+      "stir things",
+      "bring chaos"
+     ],
+     "from": "bring order",
+     "to": "bring chaos",
+     "curve": "linear"
+    },
+    {
+     "id": "meant",
+     "label": "On purpose",
+     "plain": "Whether they mean to move the story.",
+     "scale": [
+      "by accident",
+      "half meaning to",
+      "on purpose"
+     ],
+     "from": "by accident",
+     "to": "on purpose",
+     "curve": "linear"
+    },
+    {
+     "id": "seen",
+     "label": "Do the others notice",
+     "plain": "Whether the other characters see what they did.",
+     "scale": [
+      "no one",
+      "one person",
+      "everyone"
+     ],
+     "from": "no one",
+     "to": "everyone",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 3,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 3,
+    "plot": "Every scene has someone moving the story; this shows who, which way, and what it does to the tension.",
+    "theme": "Shows that every character, even a small one, can turn a story.",
+    "pull": "We watch the one who is about to change everything.",
+    "cue": "plot",
+    "tryThis": "Let the kid who has said nothing knock over the candle, and the argument stops."
+   }
   }
  ],
  "suites": [
@@ -176078,6 +176924,248 @@
     {
      "id": "weight:circleSize.changes",
      "label": "Weight of circleSize changes",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "restless-striver",
+   "level": "suite",
+   "label": "The restless striver",
+   "plain": "Driven, chasing a want hard, a need starving underneath, pushing the plot and raising the tension.",
+   "workspace": "herd",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "driveOrPeace",
+     "value": 90
+    },
+    {
+     "weight": 100,
+     "curiosity": "wantMet",
+     "slider": "chase",
+     "value": 5
+    },
+    {
+     "weight": 100,
+     "curiosity": "needMet",
+     "value": 15
+    },
+    {
+     "weight": 100,
+     "curiosity": "plotPull",
+     "slider": "tension",
+     "value": "raise it"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:driveOrPeace",
+     "label": "Weight of driveOrPeace",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:wantMet.chase",
+     "label": "Weight of wantMet chase",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:needMet",
+     "label": "Weight of needMet",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotPull.tension",
+     "label": "Weight of plotPull tension",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "at-peace",
+   "level": "suite",
+   "label": "At peace",
+   "plain": "Content, needs met, moving others for the better and settling the chaos around them.",
+   "workspace": "herd",
+   "also": [],
+   "kind": "",
+   "members": [
+    {
+     "weight": 100,
+     "curiosity": "driveOrPeace",
+     "value": 10
+    },
+    {
+     "weight": 100,
+     "curiosity": "needMet",
+     "value": 90
+    },
+    {
+     "weight": 100,
+     "curiosity": "influence",
+     "slider": "kind",
+     "value": "for the better"
+    },
+    {
+     "weight": 100,
+     "curiosity": "plotPull",
+     "slider": "chaos",
+     "value": "calm things"
+    }
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How much of the suite is laid over the moment, from none to all of it.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:driveOrPeace",
+     "label": "Weight of driveOrPeace",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:needMet",
+     "label": "Weight of needMet",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:influence.kind",
+     "label": "Weight of influence kind",
+     "plain": "How strongly the suite pushes this member toward its setting.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "weight:plotPull.chaos",
+     "label": "Weight of plotPull chaos",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
       "min": 0,
@@ -278686,6 +279774,481 @@
    "tags": []
   },
   {
+   "id": "need-starved-drive",
+   "level": "proximity",
+   "label": "When a need is starved, the drive grows",
+   "plain": "When a need is more frustrated, how driven the character is rises within a beat.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "needMet",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "driveOrPeace",
+    "change": "rises"
+   },
+   "whenText": "a need is starved",
+   "thenText": "the drive grows",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "want-blocked-tension",
+   "level": "proximity",
+   "label": "When the want is blocked, the tension rises",
+   "plain": "When the want is pushed further away, tension rises within a beat.",
+   "workspace": "herd",
+   "also": [
+    "structure"
+   ],
+   "when": {
+    "curiosity": "wantMet",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "tensionCurve",
+    "change": "rises"
+   },
+   "whenText": "the want is blocked",
+   "thenText": "the tension rises",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "need-met-peace",
+   "level": "proximity",
+   "label": "When a need is met, they find peace",
+   "plain": "When the need is fully met, how driven they are drops within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "needMet",
+    "slider": "shift",
+    "is": "fulfills it"
+   },
+   "then": {
+    "curiosity": "driveOrPeace",
+    "change": "drops"
+   },
+   "whenText": "a need is met",
+   "thenText": "they find peace",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "drive-pulls-plot",
+   "level": "proximity",
+   "label": "When the drive grows, they pull the plot",
+   "plain": "When they become more driven, their pull on the plot rises within a beat.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "driveOrPeace",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "plotPull",
+    "change": "rises"
+   },
+   "whenText": "the drive grows",
+   "thenText": "they pull the plot",
+   "within": 1,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 1,
+     "to": 3,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "influence-chaos",
+   "level": "proximity",
+   "label": "When someone moves the room for the worse, chaos follows",
+   "plain": "When a character moves others for the worse, chaos in the scene rises within 2 beats.",
+   "workspace": "herd",
+   "also": [],
+   "when": {
+    "curiosity": "influence",
+    "slider": "kind",
+    "is": "for the worse"
+   },
+   "then": {
+    "curiosity": "plotPull",
+    "slider": "chaos",
+    "change": "rises"
+   },
+   "whenText": "someone moves the room for the worse",
+   "thenText": "chaos follows",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
    "id": "style-long-talk-violence",
    "level": "proximity",
    "label": "When the talk runs long and casual, violence arrives without warning",
@@ -317416,6 +318979,193 @@
     {
      "id": "chance:approval-withheld-turns",
      "label": "How often approval-withheld-turns",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "needs-wants-and-drive",
+   "level": "proximitySuite",
+   "label": "Needs, wants and drive",
+   "plain": "A starved need drives them, the blocked want raises the tension, the drive pulls the plot, and a met need finally brings peace.",
+   "workspace": "herd",
+   "also": [],
+   "members": [
+    "need-starved-drive",
+    "want-blocked-tension",
+    "drive-pulls-plot",
+    "need-met-peace",
+    "influence-chaos"
+   ],
+   "sliders": [
+    {
+     "id": "blend",
+     "label": "Blend",
+     "plain": "How many of the pairs are switched on together.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:need-starved-drive",
+     "label": "Delay of need-starved-drive",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:need-starved-drive",
+     "label": "How often need-starved-drive",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:want-blocked-tension",
+     "label": "Delay of want-blocked-tension",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:want-blocked-tension",
+     "label": "How often want-blocked-tension",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:drive-pulls-plot",
+     "label": "Delay of drive-pulls-plot",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:drive-pulls-plot",
+     "label": "How often drive-pulls-plot",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:need-met-peace",
+     "label": "Delay of need-met-peace",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:need-met-peace",
+     "label": "How often need-met-peace",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:influence-chaos",
+     "label": "Delay of influence-chaos",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:influence-chaos",
+     "label": "How often influence-chaos",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,

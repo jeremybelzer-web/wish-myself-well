@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "HERD MENTALITY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 10, CC 97 to 112\n   1 Herd mentality\n   2 Who leads the herd\n   3 Dissenter\n   4 Group pressure\n   5 The crowd turns\n   6 The lone voice wins them over\n   7 Copying the others\n   8 A rumor spreads\n   9 The quiet majority\n  10 The group's inside joke\n  11 Earning a place in the group\n  12 The leader's right hand\n  13 Everyone watches, nobody helps\n  14 Blaming one of their own\n  15 How much they need the group's approval\n  16 The love they want: the group's or one person's\nCV-CC 2: MIDI channel 11, CC 1 to 16\n   1 The size of their circle\n   2 Being in charge, or not\n   3 Relied on, or relying on others\n   4 Struggling or thriving, past, now and next\n   5 suite: A mob forms\n   6 suite: The lone voice\n   7 suite: Mob rule\n   8 suite: One against many\n   9 suite: The silent room\n  10 suite: Getting in\n  11 suite: Turning on one of their own\n  12 suite: The people pleaser\n  13 suite: The lone wolf\n  14 suite: The fallen king\n  15 pair: When someone defies the group, the pressure rises\n  16 pair: When the herd grows, doubts go quiet\nCV-CC 3: MIDI channel 11, CC 17 to 32\n   1 pair: When one loud voice leads the group, the pressure to agree builds\n   2 pair: When a rumor spreads further, the crowd turns\n   3 pair: When the rumor becomes a monster, the pressure builds\n   4 pair: When people copy each other more, the herd moves as one\n   5 pair: When the crowd turns, someone speaks up\n   6 pair: When someone openly defies the group, they start to win them over\n   7 pair: When the lone voice wins them over, the crowd turns\n   8 pair: When most keep quiet, the pressure grows\n   9 pair: When one voice breaks the silence, the crowd turns\n  10 pair: When the joke shuts someone out, they stand out more\n  11 pair: When the way in is a cruel act, guilt follows\n  12 pair: When the leader grows stronger, the right hand grows more loyal\n  13 pair: When the right hand doubts out loud, the leader weakens\n  14 pair: When the least likely person helps, the others follow\n  15 pair: When a rumor spreads, the group finds someone to blame\n  16 pair: When the group feels shame later, guilt comes\nCV-CC 4: MIDI channel 11, CC 33 to 47\n   1 pair: When everyone just watches, shame follows\n   2 pair: When the need for approval grows, they copy the others\n   3 pair: When approval is withheld and they turn, the group pressure rises\n   4 pair: When they want love but don't get it, loneliness grows\n   5 pair: When the circle shrinks, loneliness grows\n   6 pair: When they rise to the top, they lead the herd\n   7 pair: When everyone leans on them, they become the caretaker\n   8 pair: When life starts falling, emotional health drops\n   9 pair: When someone bursts into song, the people around join in\n  10 pair: When everyone sees the embarrassing moment, it becomes the story of the night\n  11 pairs: The group closes ranks\n  12 pairs: From rumor to rally\n  13 pairs: Silence in the crowd\n  14 pairs: Losing their place\n  15 pairs: The weight of the crown"
+    "text": "HERD MENTALITY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 10, CC 97 to 112\n   1 Herd mentality\n   2 Who leads the herd\n   3 Dissenter\n   4 Group pressure\n   5 The crowd turns\n   6 The lone voice wins them over\n   7 Copying the others\n   8 A rumor spreads\n   9 The quiet majority\n  10 The group's inside joke\n  11 Earning a place in the group\n  12 The leader's right hand\n  13 Everyone watches, nobody helps\n  14 Blaming one of their own\n  15 How much they need the group's approval\n  16 The love they want: the group's or one person's\nCV-CC 2: MIDI channel 11, CC 1 to 16\n   1 The size of their circle\n   2 Being in charge, or not\n   3 Relied on, or relying on others\n   4 Struggling or thriving, past, now and next\n   5 Driven or at peace\n   6 A need met or frustrated\n   7 A want met or frustrated\n   8 Moving others, and being moved\n   9 This character's pull on the plot\n  10 suite: A mob forms\n  11 suite: The lone voice\n  12 suite: Mob rule\n  13 suite: One against many\n  14 suite: The silent room\n  15 suite: Getting in\n  16 suite: Turning on one of their own\nCV-CC 3: MIDI channel 11, CC 17 to 32\n   1 suite: The people pleaser\n   2 suite: The lone wolf\n   3 suite: The fallen king\n   4 suite: The restless striver\n   5 suite: At peace\n   6 pair: When someone defies the group, the pressure rises\n   7 pair: When the herd grows, doubts go quiet\n   8 pair: When one loud voice leads the group, the pressure to agree builds\n   9 pair: When a rumor spreads further, the crowd turns\n  10 pair: When the rumor becomes a monster, the pressure builds\n  11 pair: When people copy each other more, the herd moves as one\n  12 pair: When the crowd turns, someone speaks up\n  13 pair: When someone openly defies the group, they start to win them over\n  14 pair: When the lone voice wins them over, the crowd turns\n  15 pair: When most keep quiet, the pressure grows\n  16 pair: When one voice breaks the silence, the crowd turns\nCV-CC 4: MIDI channel 11, CC 33 to 48\n   1 pair: When the joke shuts someone out, they stand out more\n   2 pair: When the way in is a cruel act, guilt follows\n   3 pair: When the leader grows stronger, the right hand grows more loyal\n   4 pair: When the right hand doubts out loud, the leader weakens\n   5 pair: When the least likely person helps, the others follow\n   6 pair: When a rumor spreads, the group finds someone to blame\n   7 pair: When the group feels shame later, guilt comes\n   8 pair: When everyone just watches, shame follows\n   9 pair: When the need for approval grows, they copy the others\n  10 pair: When approval is withheld and they turn, the group pressure rises\n  11 pair: When they want love but don't get it, loneliness grows\n  12 pair: When the circle shrinks, loneliness grows\n  13 pair: When they rise to the top, they lead the herd\n  14 pair: When everyone leans on them, they become the caretaker\n  15 pair: When life starts falling, emotional health drops\n  16 pair: When a need is starved, the drive grows\nCV-CC 5: MIDI channel 11, CC 49 to 60\n   1 pair: When the want is blocked, the tension rises\n   2 pair: When a need is met, they find peace\n   3 pair: When the drive grows, they pull the plot\n   4 pair: When someone moves the room for the worse, chaos follows\n   5 pair: When someone bursts into song, the people around join in\n   6 pair: When everyone sees the embarrassing moment, it becomes the story of the night\n   7 pairs: The group closes ranks\n   8 pairs: From rumor to rally\n   9 pairs: Silence in the crowd\n  10 pairs: Losing their place\n  11 pairs: The weight of the crown\n  12 pairs: Needs, wants and drive"
    },
    "pos": [
     0,
@@ -138,7 +138,7 @@
      45,
      46,
      47,
-     -1
+     48
     ],
     "midi": {
      "channel": 10
@@ -146,6 +146,38 @@
    },
    "pos": [
     48,
+    0
+   ]
+  },
+  {
+   "id": 8,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 10
+    }
+   },
+   "pos": [
+    56,
     0
    ]
   }

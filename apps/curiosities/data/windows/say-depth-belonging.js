@@ -56,4 +56,50 @@
     "money trouble": { area: "money" },
     "hiding how bad it is": { shows: "hidden" },
   });
+  W.say("driveOrPeace", {
+    "driven": { drive: 90 },
+    "at peace": { drive: 5, peace: "having enough" },
+    "can't sit still": { restless: 5 },
+    "driven by revenge": { by: "revenge" },
+    "driven by fear": { by: "fear" },
+    "calming down": { turns: "settling down" },
+    "winding up": { turns: "winding up" },
+  });
+  W.say("needMet", {
+    "the need is met": { met: 95, shift: "fulfills it" },
+    "the need is frustrated": { met: 10, shift: "starves it" },
+    "needs to belong": { need: "belonging" },
+    "needs respect": { need: "respect" },
+    "needs to feel safe": { need: "safety" },
+    "doesn't know what they need": { aware: "no idea" },
+    "lashes out": { reacts: "lash out" },
+  });
+  W.say("wantMet", {
+    "they get what they want": { met: 100, shift: "hands it to them" },
+    "the want is blocked": { met: 15, shift: "blocks it" },
+    "wants money": { want: "money" },
+    "wants to win": { want: "a win" },
+    "in their own way": { blocker: "themselves" },
+    "not worth having": { worth: "empty" },
+    "chasing it hard": { chase: 5 },
+  });
+  W.say("influence", {
+    "changes everyone around them": { gives: 95, whom: "the whole room" },
+    "easily influenced": { takes: 90 },
+    "nothing gets to them": { takes: 0 },
+    "a bad influence": { kind: "for the worse" },
+    "a good influence": { kind: "for the better" },
+    "their absence is felt": { how: "being missing" },
+    "changes them for life": { lasts: "a lifetime" },
+  });
+  W.say("plotPull", {
+    "drives the plot": { pull: 5, way: "push it forward" },
+    "holds the story back": { way: "hold it back" },
+    "raises the tension": { tension: "raise it" },
+    "resolves the tension": { tension: "resolve it" },
+    "brings chaos": { chaos: "bring chaos" },
+    "brings order": { chaos: "bring order" },
+    "by accident": { meant: "by accident" },
+  });
+
 })(typeof window !== "undefined" ? window.CuriosityWindows : require("./windows.js"));
