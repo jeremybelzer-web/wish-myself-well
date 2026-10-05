@@ -52,10 +52,10 @@
   const VIEWS = ["cube", "slices", "graph", "lanes", "story", "tracks", "flat"];
   // what to do, in words, under each view
   const UNDER = {
-    cube: "Click and drag to look around · double-click a cube to fly closer, and again to go inside · Slide the corridor to move down the gap between two faces",
-    slices: "Click and drag to turn it · swipe right or left to move the slabs · double-click to zoom in",
+    cube: "Click and drag to look around · Slide the corridor to move between the cubes · double-click empty space to land in a corridor · double-click a cube to go inside it",
+    slices: "Click and drag to turn it · swipe right or left to move the slabs · double-click a cube to go inside it",
     graph: "Click a node to light its lines · click a slice of the pie to light that group",
-    lanes: "Click and drag to turn · swipe right or left to shuffle the lanes like cards · click a lane (or its name) to bring it to the front",
+    lanes: "Click and drag to turn · swipe right or left to shuffle the lanes like cards · click a lane (or its name) to bring it to the front · double-click a lane to go inside it",
     story: "Each card is one moment; the big box is what holds front and center then · click a box to select it",
     tracks: "▸ opens a suite to show its parts · ⚙ adjusts and records the parts without opening it",
     flat: "Click any name to see what it is tied to",
@@ -1160,33 +1160,21 @@
       const nd = pickCube(e);
       if (nd) select(st.sel.length === 1 && st.sel[0] === nd.id && !st.tieFrom ? [] : nd.id);
     };
+    /* Double-click a cube: you fly into it and the screens come up around you. Double-click empty space: you land
+       in the corridor nearest that spot, looking along it, ready to slide (sliding is the way to move around). */
     S.onDouble = (e) => {
       const nd = pickCube(e);
-      if (nd) {
-        const p = cur.get(nd.id);
-        // already right up against this cube: the next double-click goes inside it
-        if (st.sel[0] === nd.id && S.orb.r <= 2.7 && S.orb.target.distanceTo(new T.Vector3(p[0], p[1], p[2])) < 0.6) return enter(nd.id);
-        if (!st.sel.includes(nd.id)) select(nd.id);
-        return S.zoomTo(p, 2.5);
-      }
-      // empty space: toward the cube nearest that spot, so you always land somewhere
+      if (nd) return enter(nd.id);
       S.aim(e);
-      const o = S.ray.ray.origin;
-      const dv = S.ray.ray.direction;
-      let best = null;
-      let bestA = 0.15;
-      const q = new T.Vector3();
-      cur.forEach((p) => {
-        q.set(p[0], p[1], p[2]).sub(o);
-        const along = q.dot(dv);
-        if (along <= 0.5) return;
-        const ang = Math.acos(Math.min(1, along / q.length()));
-        if (ang < bestA) {
-          bestA = ang;
-          best = p;
-        }
-      });
-      S.zoomTo(best || S.ray.ray.at(S.orb.r, new T.Vector3()).toArray(), 2.5);
+      const P = S.ray.ray.at(Math.min(S.orb.r, 8), new T.Vector3());
+      if (slices || n < 2) return S.zoomTo(P.toArray(), 2.5);
+      const k = nearestK(P.z);
+      P.z = (zOf(k, n) + zOf(k + 1, n)) / 2;
+      P.x = Math.max(-HX + 0.4, Math.min(HX - 0.4, P.x));
+      P.y = Math.max(-HY + 0.4, Math.min(HY - 0.4, P.y));
+      const hx = S.ray.ray.direction.x < -0.05 ? -1 : 1;
+      const r = 1.2;
+      S.flyTo([P.x + hx * r, P.y, P.z], r, { theta: -hx * Math.PI / 2, phi: Math.PI / 2 - 0.05 });
     };
     S.onHover = (e) => {
       const nd = pickCube(e);
@@ -1382,12 +1370,23 @@
     /* Inside a cube: its curiosity and everything tied to it as automation lanes (stacked tracks like Ableton Live
        by default, or the 3D lanes), and the Curiosity proximity tab: the things tied to the things it is tied to. */
     let inside = null;
+    let entering = 0;
     function enter(id) {
       const p = cur.get(id);
       if (!p) return;
       if (!st.sel.includes(id)) select(id);
-      S.flyTo(p, 0.3);
+      clearTimeout(entering);
       inside && inside.destroy();
+      inside = null;
+      // first the zoom (you see yourself fly in), then the world fills with screens
+      S.flyTo(p, 0.3);
+      host.classList.add("rl-zooming");
+      entering = setTimeout(() => {
+        host.classList.remove("rl-zooming");
+        openInside(id);
+      }, 650);
+    }
+    function openInside(id) {
       inside = insideView(host, g, st, id, {
         select,
         leave: () => {
@@ -1435,6 +1434,7 @@
       conn,
       inside: () => inside,
       destroy: () => {
+        clearTimeout(entering);
         inside && inside.destroy();
         S.destroy();
       },
@@ -1669,7 +1669,7 @@
       const li = pickLane(e);
       S.aim(e);
       const hit = S.ray.intersectObjects(objs.map((o) => o.grp), true)[0];
-      if (li >= 0 && lanes[li].id && st.sel[0] === lanes[li].id && S.orb.r <= 2) return enterLane(li);
+      if (li >= 0 && lanes[li].id) return enterLane(li, hit && hit.point.toArray());
       if (hit) S.zoomTo(hit.point.toArray(), 1.5);
       if (li >= 0 && lanes[li].id && !st.sel.includes(lanes[li].id)) select(lanes[li].id);
     };
@@ -1799,12 +1799,20 @@
       S.flyTo([-XL + 0.2 + 1.2, H * 0.55, midZ(k)], 1.2, { theta: -Math.PI / 2, phi: Math.PI / 2 - 0.05 });
     }
     // Inside a lane: the same inside view as a cube (its lanes, graphs, pie and Curiosity proximity).
-    function enterLane(li) {
+    let entering = 0;
+    function enterLane(li, at) {
       const l = lanes[li];
       if (!l || !l.id) return;
       toFront(li);
       select(l.id);
+      clearTimeout(entering);
       inside && inside.destroy();
+      inside = null;
+      // fly into the lane first, then the screens come up around you
+      if (at) S.flyTo(at, 0.3);
+      entering = setTimeout(() => openLane(l), at ? 650 : 0);
+    }
+    function openLane(l) {
       inside = insideView(host, g, st, l.id, {
         select,
         leave: () => {
@@ -1855,6 +1863,7 @@
       example: film.example,
       shift,
       destroy: () => {
+        clearTimeout(entering);
         inside && inside.destroy();
         S.destroy();
       },
@@ -2256,30 +2265,74 @@
   function insideView(host, g, st, id, act) {
     g = g.full || g;
     const nd = g.byId.get(id);
+    /* Like Jarvis in Iron Man: once you are inside, the world around you fills with floating screens, each one a
+       view of this curiosity. Click a screen to bring it to the middle, full size; "All screens" sends it back. */
+    const SCREENS = [
+      ["one", "Connected to this"],
+      ["web", "Connected to those"],
+      ["tracks", "Lanes"],
+      ["flatgraph", "Graph"],
+      ["pie", "Pie"],
+      ["graph", "3D graph"],
+      ["all", "All curiosities"],
+    ];
     const box = document.createElement("div");
-    box.className = "rl-inside";
+    box.className = "rl-inside rl-jarvis";
     box.innerHTML = `<header><div><span class="rl-tag" style="color:${FAMILY_COLOR[nd.family]}">Inside the cube</span><h3>${esc(nd.label)}</h3></div>
-        <div class="rl-seg" role="tablist"><button data-tab="tracks" class="on">Lanes</button><button data-tab="flatgraph">Graph</button><button data-tab="graph">3D graph</button><button data-tab="pie">Pie</button><button data-tab="web">Curiosity proximity</button></div>
-        <button data-tab="leave">Leave the cube</button></header><div class="rl-inbody"></div>`;
+        <button data-tab="screens" class="rl-backall" hidden>◀ All screens</button>
+        <button data-tab="leave">Leave the cube</button></header>
+        <div class="rl-screens">${SCREENS.map(([k, label], i) => `<section class="rl-screen" data-screen="${k}" style="--i:${i}"><h4 data-tab="${k}">${esc(label)}</h4><div class="rl-sbody"></div></section>`).join("")}</div>`;
     host.appendChild(box);
-    const body = box.querySelector(".rl-inbody");
     const film = cubeLanes(g, id);
     let sub = null;
+    const bodyOf = (k) => box.querySelector(`.rl-screen[data-screen="${k}"] .rl-sbody`);
+    function fill() {
+      bodyOf("one").innerHTML = oneHtml();
+      bodyOf("web").innerHTML = webHtml();
+      bodyOf("tracks").innerHTML = tracksHtml();
+      bodyOf("flatgraph").innerHTML = graphHtml();
+      bodyOf("pie").innerHTML = pieHtml();
+      bodyOf("graph").innerHTML = '<p class="rl-innote">The lanes of this curiosity and its ties, standing in 3D. Open this screen to turn them and shuffle them like cards.</p>';
+      bodyOf("all").innerHTML = allHtml("");
+    }
     function show(tab) {
       sub && sub.destroy && sub.destroy();
       sub = null;
-      box.querySelectorAll("[data-tab]").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
-      box.dataset.tab = tab;
-      if (tab === "tracks") body.innerHTML = tracksHtml();
-      if (tab === "web") body.innerHTML = webHtml();
-      if (tab === "flatgraph") body.innerHTML = graphHtml();
-      if (tab === "pie") body.innerHTML = pieHtml();
-      if (tab === "graph") {
-        body.innerHTML = '<div class="rl-cube rl-ingraph"><div class="rl-labels"></div><div class="rl-filmnote"></div><div class="rl-cube-ui"><button data-c="home">Straight on</button><button data-c="side">From the side</button><button data-c="spin">Spin</button></div></div>';
-        const h = body.firstChild;
+      const focus = tab && tab !== "screens" ? tab : "";
+      box.dataset.tab = focus;
+      box.classList.toggle("has-focus", !!focus);
+      box.querySelector(".rl-backall").hidden = !focus;
+      box.querySelectorAll(".rl-screen").forEach((el) => el.classList.toggle("focus", el.dataset.screen === focus));
+      const g3 = bodyOf("graph");
+      if (focus === "graph") {
+        g3.innerHTML = '<div class="rl-cube rl-ingraph"><div class="rl-labels"></div><div class="rl-filmnote"></div><div class="rl-cube-ui"><button data-c="home">Straight on</button><button data-c="side">From the side</button><button data-c="spin">Spin</button></div></div>';
         const f = Object.assign({}, film, { note: (film.example ? "Example values. " : "") + "The curiosities tied to " + nd.label + ", busiest at the back." });
-        sub = initLanes(h, g, st, act.select, null, false, f);
-      }
+        sub = initLanes(g3.firstChild, g, st, act.select, null, true, f);
+      } else if (!g3.querySelector(".rl-innote")) fill();
+    }
+    // What this curiosity is directly tied to, grouped by how.
+    function oneHtml() {
+      const groups = new Map();
+      g.links(id).forEach((l) => {
+        const name = g.types[l.edge.type][l.out ? "label" : "back"];
+        if (!groups.has(name)) groups.set(name, { type: l.edge.type, ids: [] });
+        if (!groups.get(name).ids.includes(l.id)) groups.get(name).ids.push(l.id);
+      });
+      if (!groups.size) return '<p class="rl-innote">Nothing is tied to this yet.</p>';
+      return [...groups]
+        .map(([name, gr]) => `<div class="rl-sub"><i style="--c:${TYPE_COLOR[gr.type]}"></i>${esc(name)} (${gr.ids.length})</div><div class="rl-key">${gr.ids.map((x) => `<button data-go="${esc(x)}" style="--c:${FAMILY_COLOR[g.byId.get(x).family]}">${esc(g.byId.get(x).label)}</button>`).join("")}</div>`)
+        .join("");
+    }
+    // A plain list of every curiosity, by group, with a filter; pick one to go inside it.
+    function allHtml(q) {
+      const want = q.toLowerCase();
+      const fams = g.families
+        .map((f) => {
+          const ns = g.nodes.filter((n) => n.family === f.id && (!want || n.label.toLowerCase().includes(want))).sort((a, b) => a.label.localeCompare(b.label));
+          return ns.length ? `<div class="rl-sub"><i style="--c:${FAMILY_COLOR[f.id]}"></i>${esc(f.label)} (${ns.length})</div><div class="rl-alllist">${ns.map((n) => `<button data-go="${esc(n.id)}" class="${n.id === id ? "me" : ""}">${esc(n.label)}</button>`).join("")}</div>` : "";
+        })
+        .join("");
+      return `<input type="search" class="rl-allq" placeholder="Filter all curiosities" value="${esc(q)}" aria-label="Filter all curiosities"><div class="rl-allres">${fams || '<p class="rl-innote">No match.</p>'}</div>`;
     }
     // Stacked tracks, like Ableton Live's automation lanes: a name strip on the left, the lane over time on the right.
     function tracksHtml() {
@@ -2378,15 +2431,23 @@
     }
     box.addEventListener("click", (e) => {
       const t = e.target.closest("[data-tab],[data-go]");
-      if (!t) return;
-      if (t.dataset.tab === "leave") return act.leave();
-      if (t.dataset.tab) return show(t.dataset.tab);
-      if (t.dataset.go) act.go(t.dataset.go);
+      if (t && t.dataset.tab === "leave") return act.leave();
+      if (t && t.dataset.tab) return show(t.dataset.tab);
+      // a screen that is still floating comes to the middle first
+      const scr = e.target.closest(".rl-screen");
+      if (scr && !scr.classList.contains("focus")) return show(scr.dataset.screen);
+      if (t && t.dataset.go) act.go(t.dataset.go);
     });
-    show("tracks");
+    box.addEventListener("input", (e) => {
+      if (!e.target.classList.contains("rl-allq")) return;
+      box.querySelector('.rl-screen[data-screen="all"] .rl-allres').outerHTML = allHtml(e.target.value).replace(/^<input[^>]*>/, "");
+    });
+    fill();
+    show("");
     return {
       id,
       tab: () => box.dataset.tab,
+      screens: () => [...box.querySelectorAll(".rl-screen")].map((el) => el.dataset.screen),
       show,
       web: () => webOf(g, id),
       lanes: () => film.lanes.map((l) => l.id),

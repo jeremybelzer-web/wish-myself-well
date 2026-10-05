@@ -7,8 +7,8 @@ the live `CuriosityDB`, so a person's own curiosities show up too).
 - **Cube matrix** (opens first, zoomed in at the mouth of a corridor; a line under the view says what to do): every curiosity, feeling, movement and trait is one small 3D cube, and the cubes
   stand in slabs, one slab per column (the six groups, or a slab per workspace), stacked into one block like a
   Rubik's cube with many more cubes (longer than it is wide when it needs to be). Drag to turn it all the way
-  round, click a cube to select it and lines run to every cube it is tied to, double-click to zoom in (each
-  double-click goes further, like a map; inside, dragging looks around you). Show every proximity draws the whole web.
+  round, click a cube to select it and lines run to every cube it is tied to, slide the corridors
+  to move (double-click empty space to land in the nearest corridor; close in, dragging looks around you). Show every proximity draws the whole web.
 - **Corridors**: the gaps between two faces. The "Slide the corridor" slider in the lower right is always
   there: it moves you the way you are looking, kept inside the corridor, so you never go into a cube on either
   side (from outside one, it steps you into the nearest corridor first). Walk a corridor flies you into one.
@@ -16,10 +16,12 @@ the live `CuriosityDB`, so a person's own curiosities show up too).
   pick it, then "Save as a proximity group" keeps the picks (`groups` in `curio-relations-v1`; in the app also one
   of your own suites of the curiosities at their ends). Saved groups are the first tracks on the Tracks view.
   The 3D graph has the same corridors (between lanes, sliding along time) and Go inside.
-- **Inside a cube**: double-click a cube you are right up against, or Go inside. Its curiosity and everything tied
-  to it show as automation lanes stacked like Ableton Live (the open film's own values, else marked example), with
-  a 3D graph tab, and a Curiosity proximity tab: what it is tied to and what those are tied to, so changing any
-  outer one changes something that affects this cube. Leave the cube goes back out.
+- **Inside a cube**: double-click any cube (or a lane in the 3D graph), or Go inside. You fly in, then the world
+  turns dark and seven screens float round you like Jarvis in Iron Man: Connected to this, Connected to those
+  (what the ties are tied to, so changing any outer one changes something that affects this cube), Lanes stacked
+  like Ableton Live (the open film's own values, else marked example), Graph, Pie, 3D graph, and All curiosities
+  (a plain list with a filter). Click a screen to bring it to the middle; All screens sends it back; any name
+  flies you into that cube. Leave the cube goes back out.
 - **Cube slices**: the same block seen face on. Swipe right (or the right arrow) and the front slab goes to the
   back; swipe left and the back slab comes to the front. Click a slab's name to bring that face forward; each
   name counts the selection's ties on it. You can still turn it and double-click to zoom in.
