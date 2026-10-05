@@ -57,7 +57,10 @@
 .cf-list li b { font-weight: 500; color: #9b9ba3; font-variant-numeric: tabular-nums; }
 .cv-under[data-tab="focus"] .cf-pane-lanes, .cv-under[data-tab="moments"] .cf-pane-lanes, .cv-under[data-tab="lanes"] .cf-pane-focus, .cv-under[data-tab="lanes"] .cf-pane-moments { display: none; }
 .cf-lanes { display: grid; gap: 3px; max-height: 106px; overflow-y: auto; padding-right: 2px; }
-.cf-ln { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 6px; align-items: center; }
+.cf-ln { display: grid; grid-template-columns: 150px minmax(0, 1fr) 24px; gap: 6px; align-items: center; }
+/* the pop-up button at the end of each lane (Jeremy 2026-10-05): opens that curiosity's window */
+.cv-root .cf-ln-pop { width: 24px; height: 22px; padding: 0; border-radius: 5px; border: 1px solid #4a4a54; background: #26262b; color: #e6e6ea; font-size: 13px; line-height: 20px; cursor: pointer; }
+.cv-root .cf-ln-pop:hover, .cv-root .cf-ln-pop:focus-visible { background: #22d3ee; color: #062a31; border-color: #22d3ee; }
 .cf-ln-name { font-size: 11px; line-height: 1.2; min-width: 0; }
 .cf-ln-name b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cf-ln-name small { display: block; color: #9b9ba3; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -78,6 +81,25 @@
 .cv-root .cf-pie { cursor: pointer; }
 .cf-list li { cursor: pointer; border-radius: 3px; padding: 0 2px; }
 .cf-list li.on { background: #2c2c33; outline: 1px solid #22d3ee; }
+/* a curiosity's window, and its search window docked beside it */
+.cf-cwin, .cf-swin { position: fixed; z-index: 2147482990; width: 330px; max-height: min(560px, 80vh); display: grid; grid-template-rows: auto minmax(0, 1fr); background: #1b1b1f; color: #e6e6ea; border: 1px solid #3a3a42; border-radius: 8px; box-shadow: 0 12px 32px rgba(0,0,0,0.6); font: 12px/1.35 system-ui, sans-serif; }
+.cf-cwin header, .cf-swin header { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid #2e2e33; cursor: move; touch-action: none; }
+.cf-cwin header b, .cf-swin header b { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-cwin header i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.cf-cwin button, .cf-swin button, .cf-cwin select, .cf-swin input { font: inherit; background: #26262b; color: #e6e6ea; border: 1px solid #3a3a42; border-radius: 5px; padding: 3px 7px; }
+.cf-cwin button, .cf-swin button { cursor: pointer; }
+.cf-cwin [data-cw="search"] { background: #22d3ee; color: #062a31; border-color: #22d3ee; font-weight: 600; }
+.cf-cwin-b, .cf-swin-b { overflow-y: auto; padding: 8px 10px 10px; display: grid; gap: 8px; align-content: start; }
+.cf-cwin-b > p { margin: 0; color: #b5b5bd; }
+.cf-cw-row { display: grid; gap: 3px; padding: 6px; background: #222226; border-radius: 6px; }
+.cf-cw-row > div { display: flex; align-items: center; gap: 6px; }
+.cf-cw-row b { flex: 1; font-weight: 600; }
+.cf-cw-row small { color: #9b9ba3; }
+.cf-cw-row select, .cf-cw-row input[type="range"] { flex: 1; min-width: 0; }
+.cf-cw-row output { min-width: 2.2em; text-align: right; font-variant-numeric: tabular-nums; }
+.cf-cw-key { width: 22px; padding: 0 !important; color: #fde047 !important; }
+.cf-cw-key.off { color: #6b6b74 !important; }
+.cf-swin-b p { margin: 0; color: #b5b5bd; }
 /* the Curve window (Ctrl+click or double-click a line) */
 .cf-ln-play { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(0,0,0,0.6); pointer-events: none; z-index: 1; }
 .cf-seg.on { stroke: rgba(34,211,238,0.45); }
@@ -94,7 +116,7 @@
 /* Automation lanes, big (Jeremy 2026-10-05): stacked like tracks in Ableton Live, the top 4 in view, the rest a
    two-finger scroll away; the storyboards shrink while this tab is open so the lanes sit large and in front */
 .cv-root.cf-big .cf-lanes { max-height: 196px; overscroll-behavior: contain; gap: 2px; }
-.cv-root.cf-big .cf-ln { grid-template-columns: 170px minmax(0, 1fr); background: #18181b; border-radius: 4px; padding: 2px 4px 2px 0; border-left: 4px solid var(--ln-c, #444); }
+.cv-root.cf-big .cf-ln { grid-template-columns: 170px minmax(0, 1fr) 26px; background: #18181b; border-radius: 4px; padding: 2px 4px 2px 0; border-left: 4px solid var(--ln-c, #444); }
 .cv-root.cf-big .cf-ln-track { height: 42px; }
 .cv-root.cf-big .cf-ln.cf-ln-suite .cf-ln-track { height: 30px; }
 .cv-root.cf-big .cf-ln-name { padding-left: 6px; font-size: 12px; }
@@ -120,7 +142,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
 .cv-root .cvd-border { z-index: 8; }
 .cv-root.cvd-on .cv-things { margin-bottom: var(--cf-cover-l, 0px); }
 .cv-root.cvd-on .cv-details { padding-bottom: var(--cf-cover-r, 0px); box-sizing: border-box; }
-@media (max-width: 900px) { .cf-grip { display: none; } .cv-under[data-out] { margin: 0; } .cf-ln { grid-template-columns: 100px minmax(0, 1fr); } }
+@media (max-width: 900px) { .cf-grip { display: none; } .cv-under[data-out] { margin: 0; } .cf-ln { grid-template-columns: 100px minmax(0, 1fr) 24px; } }
 .cf-pane-moments { grid-template-columns: minmax(0, 1fr) minmax(180px, 280px); align-items: start; gap: 8px; }
 .cf-mag { background: #1d1d21; border: 1px solid #2e2e33; border-radius: 6px; padding: 6px 8px; max-height: 96px; overflow-y: auto; display: grid; gap: 4px; font-size: 11.5px; line-height: 1.35; }
 .cf-mag .cf-now { display: block; overflow: visible; -webkit-line-clamp: unset; }
@@ -745,7 +767,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     const rows = laneIds(r).map((id) => {
       const { n, sc, where, edit, svg, dots } = laneParts(r, id);
       const tip = edit ? "Drag a dot up or down to change that panel" : where ? `Read from the picture: change it in ${where}` : "Set in the panels themselves";
-      return `<div class="cf-ln${edit ? " cf-ln-edit" : ""}" data-ln="${esc(id)}" style="--ln-c:${M().mark(n.family).color}"><span class="cf-ln-name" title="${esc(n.label + ". " + tip)}"><b>${esc(laneName(id, n))}</b><small>${esc(edit ? (sc.list ? sc.list[0] + " to " + sc.list[sc.list.length - 1] : sc.lo + " to " + sc.hi) : tip)}</small></span><div class="cf-ln-track">${seps}<div class="cf-ln-in">${svg}${dots}<i class="cf-ln-play" data-play="${esc(id)}"></i></div><i class="cf-ln-head"></i></div></div>`;
+      return `<div class="cf-ln${edit ? " cf-ln-edit" : ""}" data-ln="${esc(id)}" style="--ln-c:${M().mark(n.family).color}"><span class="cf-ln-name" title="${esc(n.label + ". " + tip)}"><b>${esc(laneName(id, n))}</b><small>${esc(edit ? (sc.list ? sc.list[0] + " to " + sc.list[sc.list.length - 1] : sc.lo + " to " + sc.hi) : tip)}</small></span><div class="cf-ln-track">${seps}<div class="cf-ln-in">${svg}${dots}<i class="cf-ln-play" data-play="${esc(id)}"></i></div><i class="cf-ln-head"></i></div><button type="button" class="cf-ln-pop" data-cwin="${esc(id)}" title="${esc("Open the " + n.label + " window")}" aria-label="${esc("Open the " + n.label + " window")}">⧉</button></div>`;
     });
     /* suites: how much of each suite in front is on, panel by panel */
     const suiteIds = [...new Set(r.panels.filter((p) => p.suite).map((p) => p.suite.id))];
@@ -761,7 +783,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
         const x1 = ((p.at + p.sec) / total) * 1000;
         path += `${path ? "L" : "M"}${x0.toFixed(1)},${((1 - y) * 100).toFixed(1)} L${x1.toFixed(1)},${((1 - y) * 100).toFixed(1)} `;
       });
-      rows.push(`<div class="cf-ln cf-ln-suite" data-ln-suite="${esc(sid)}"><span class="cf-ln-name" title="${esc("Suite: " + su.label + ". How much of it is on in each panel; it follows its curiosities.")}"><b>Suite: ${esc(su.label)}</b><small>how much of it is on</small></span><div class="cf-ln-track">${seps}<div class="cf-ln-in"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="${path}" fill="none" stroke="#a78bfa" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></div><i class="cf-ln-head"></i></div></div>`);
+      rows.push(`<div class="cf-ln cf-ln-suite" data-ln-suite="${esc(sid)}"><span class="cf-ln-name" title="${esc("Suite: " + su.label + ". How much of it is on in each panel; it follows its curiosities.")}"><b>Suite: ${esc(su.label)}</b><small>how much of it is on</small></span><div class="cf-ln-track">${seps}<div class="cf-ln-in"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="${path}" fill="none" stroke="#a78bfa" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></div><i class="cf-ln-head"></i></div><span></span></div>`);
     });
     return rows.join("") || `<p class="cf-lanes-hint">Nothing is set yet.</p>`;
   }
@@ -873,6 +895,180 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     };
     g.addEventListener("pointermove", move);
     g.addEventListener("pointerup", up);
+  }
+
+  /* ---------- a curiosity's window (Jeremy 2026-10-05: "a little button ... at the end of each track ... that
+     should launch it. There should also be a search button inside of each pop-up window") ----------
+     ⧉ at the end of a lane opens that curiosity's window over the Viewer: what it is, then each of its sliders
+     from the database with a control for the selected panel. A slider set in a panel becomes a lane of its own
+     (◆: this panel sets it; ◇: it holds what came before), so every slider is automatable. Search opens a search
+     window docked to its right edge, which moves and closes with it. The search itself (columns as filters over
+     films, books, short stories, essays and poems) is built by the scene inspiration thread: when it provides
+     window.CurioSceneSearch.mount(el, { curiosity, lane, label, from }), the search window hands it its body. */
+  let cwin = null;
+  let swin = null;
+  function closeWin() {
+    if (swin) swin.remove();
+    if (cwin) cwin.remove();
+    cwin = swin = null;
+  }
+  function closeSearch() {
+    if (swin) swin.remove();
+    swin = null;
+  }
+  const laneIdOf = (c, sl) => (sl.id === (c.main || "setting") ? c.id : c.id + "." + sl.id);
+  function winRows(id) {
+    const live = V().live();
+    const i = live.cur;
+    const r = read();
+    const c = M().find ? M().find(base(id)) : null;
+    const n = M().note(base(id));
+    const sliders = c && Array.isArray(c.sliders) && c.sliders.length ? c.sliders : [{ id: (c && c.main) || "setting", label: n.label, plain: "Its setting in this panel." }];
+    const own = (live.panel && live.panel.v) || {};
+    return sliders
+      .map((sl) => {
+        const lid = c ? laneIdOf(c, sl) : id;
+        const held = r && r.K[i] ? r.K[i][lid] : undefined;
+        const where = READ_FROM_PICTURE[lid];
+        const set = Object.prototype.hasOwnProperty.call(own, lid);
+        let ctl;
+        if (where) ctl = `<small>${esc(held == null ? "not set" : String(held))} · read from the picture: change it in ${esc(where)}</small>`;
+        else if (Array.isArray(sl.scale) && sl.scale.length) ctl = `<select data-cw-set="${esc(lid)}" aria-label="${esc(sl.label)}"><option value="">(not set)</option>${sl.scale.map((o) => `<option${String(o) === String(held) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+        else {
+          const g = sl.range || { min: 0, max: 5, step: 1 };
+          const v = held == null || held === "" || !isFinite(Number(held)) ? g.min : Number(held);
+          ctl = `<input type="range" data-cw-set="${esc(lid)}" min="${g.min}" max="${g.max}" step="${g.step || 1}" value="${v}" aria-label="${esc(sl.label)}"><output>${held == null ? "–" : esc(held)}</output>`;
+        }
+        const key = where ? "" : `<button type="button" class="cf-cw-key${set ? "" : " off"}" data-cw-key="${esc(lid)}" title="${set ? "This panel sets it (a node on its lane). Click to take the node out, so it holds what came before." : "This panel holds what came before. Pick a setting to put a node here."}">${set ? "◆" : "◇"}</button>`;
+        return `<div class="cf-cw-row"><div><b>${esc(sl.label || lid)}</b>${key}</div><small>${esc(sl.plain || "")}</small><div>${ctl}</div></div>`;
+      })
+      .join("");
+  }
+  function drawWin() {
+    if (!cwin) return;
+    const id = cwin.dataset.cwin;
+    const live = V().live();
+    const c = M().find ? M().find(base(id)) : null;
+    const n = M().note(base(id));
+    cwin.querySelector(".cf-cwin-b").innerHTML = `<p>${esc((c && c.plain) || n.label)}</p><p><small>Panel ${live.cur + 1}: pick another panel in the storyboard to set it there.</small></p>${winRows(id)}`;
+  }
+  function dock() {
+    if (!cwin || !swin) return;
+    const b = cwin.getBoundingClientRect();
+    const w = swin.offsetWidth;
+    const right = b.right + 6 + w <= innerWidth - 8;
+    swin.style.left = (right ? b.right + 6 : Math.max(8, b.left - 6 - w)) + "px";
+    swin.style.top = b.top + "px";
+  }
+  function openSearch() {
+    if (!cwin) return;
+    if (swin) return closeSearch();
+    const id = cwin.dataset.cwin;
+    const n = M().note(base(id));
+    swin = document.createElement("div");
+    swin.className = "cf-swin";
+    swin.setAttribute("role", "dialog");
+    swin.setAttribute("aria-label", "Search: " + n.label);
+    swin.innerHTML = `<header><b>Search: ${esc(n.label)}</b><button type="button" data-sw="close" title="Close the search" aria-label="Close the search">✕</button></header><div class="cf-swin-b"></div>`;
+    document.body.appendChild(swin);
+    const body = swin.querySelector(".cf-swin-b");
+    const S2 = window.CurioSceneSearch;
+    if (S2 && typeof S2.mount === "function") {
+      try {
+        S2.mount(body, { curiosity: base(id), lane: id, label: n.label, from: "viewer" });
+      } catch (e) {
+        body.innerHTML = `<p>The search could not open: ${esc(e.message)}</p>`;
+      }
+    } else body.innerHTML = `<input type="search" placeholder="Search for ${esc(n.label.toLowerCase())}" aria-label="Search"><p>Coming next: search films, books, short stories, essays and poems for ${esc(n.label.toLowerCase())}, with columns that filter each other.</p>`;
+    dock();
+  }
+  function openWin(id, btn) {
+    const same = cwin && cwin.dataset.cwin === id;
+    closeWin();
+    if (same) return;
+    const n = M().note(base(id));
+    cwin = document.createElement("div");
+    cwin.className = "cf-cwin";
+    cwin.dataset.cwin = id;
+    cwin.setAttribute("role", "dialog");
+    cwin.setAttribute("aria-label", n.label + " window");
+    cwin.innerHTML = `<header title="Drag to move"><i style="background:${M().mark(n.family).color}"></i><b>${esc(laneName(id, n))}</b><button type="button" data-cw="search" title="Search films and writing for this curiosity (opens beside this window)">🔍 Search</button><button type="button" data-cw="close" title="Close (Esc)" aria-label="Close">✕</button></header><div class="cf-cwin-b"></div>`;
+    document.body.appendChild(cwin);
+    drawWin();
+    const b = btn ? btn.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2 };
+    const h = cwin.offsetHeight;
+    cwin.style.left = Math.max(8, Math.min(innerWidth - cwin.offsetWidth - 8, b.left - cwin.offsetWidth - 8)) + "px";
+    cwin.style.top = Math.max(8, Math.min(innerHeight - h - 8, b.top - h / 2)) + "px";
+    cwin.addEventListener("click", (e) => {
+      const t = e.target;
+      if (t.closest('[data-cw="close"]')) return closeWin();
+      if (t.closest('[data-cw="search"]')) return openSearch();
+      const k = t.closest("[data-cw-key]");
+      if (k && !k.classList.contains("off")) {
+        const lid = k.dataset.cwKey;
+        const live = V().live();
+        V().remember("win-" + lid + "-" + live.cur);
+        const p = live.panel;
+        const v = Object.assign({}, storyOf(p));
+        delete v[lid];
+        p.v = v;
+        cache = null;
+        V().changed(true);
+      }
+    });
+    const write = (el, final) => {
+      const lid = el.dataset.cwSet;
+      const live = V().live();
+      const p = live.panel;
+      const v = Object.assign({}, storyOf(p));
+      if (el.value === "") delete v[lid];
+      else v[lid] = el.type === "range" ? Number(el.value) : el.value;
+      p.v = v;
+      cache = null;
+      const o = el.parentElement.querySelector("output");
+      if (o) o.textContent = el.value;
+      if (final) V().changed(true);
+      else V().redraw();
+    };
+    let began = null;
+    cwin.addEventListener("input", (e) => {
+      const el = e.target.closest("[data-cw-set]");
+      if (!el) return;
+      if (began !== el) {
+        V().remember("win-" + el.dataset.cwSet + "-" + V().live().cur);
+        began = el;
+      }
+      write(el, el.tagName === "SELECT");
+      if (el.tagName === "SELECT") began = null;
+    });
+    cwin.addEventListener("change", (e) => {
+      const el = e.target.closest('input[data-cw-set]');
+      if (!el) return;
+      if (began !== el) V().remember("win-" + el.dataset.cwSet + "-" + V().live().cur);
+      began = null;
+      write(el, true);
+    });
+    /* drag it by its title bar; the search window moves with it */
+    cwin.querySelector("header").addEventListener("pointerdown", (e) => {
+      if (e.target.closest("button")) return;
+      e.preventDefault();
+      const r0 = cwin.getBoundingClientRect();
+      const x0 = e.clientX;
+      const y0 = e.clientY;
+      const hd = e.currentTarget;
+      hd.setPointerCapture && hd.setPointerCapture(e.pointerId);
+      const move = (ev) => {
+        cwin.style.left = Math.max(0, Math.min(innerWidth - 60, r0.left + ev.clientX - x0)) + "px";
+        cwin.style.top = Math.max(0, Math.min(innerHeight - 40, r0.top + ev.clientY - y0)) + "px";
+        dock();
+      };
+      const up = () => {
+        hd.removeEventListener("pointermove", move);
+        hd.removeEventListener("pointerup", up);
+      };
+      hd.addEventListener("pointermove", move);
+      hd.addEventListener("pointerup", up);
+    });
   }
 
   /* ---------- the Curve window (Jeremy 2026-10-05, his spec from the music app's Slide window) ----------
@@ -1331,6 +1527,22 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       if (sg) openCurve(sg, e);
     });
     v.onChange(() => cpop && cpop.paint && setTimeout(() => cpop && cpop.paint(), 0));
+    /* the window follows the selected panel and undo */
+    let winSig = "";
+    v.onDraw(() => {
+      if (!cwin) return;
+      const live = V().live();
+      const sig = live.cur + "|" + JSON.stringify(live.panel && live.panel.v) + "|" + (read() || {}).key;
+      if (sig === winSig || (document.activeElement && cwin.contains(document.activeElement) && document.activeElement.type === "range")) return;
+      winSig = sig;
+      drawWin();
+    });
+    document.addEventListener("click", (e) => {
+      const b = e.target.closest && e.target.closest(".cv-under [data-cwin]");
+      if (b) openWin(b.dataset.cwin, b);
+      const sc = e.target.closest && e.target.closest('.cf-swin [data-sw="close"]');
+      if (sc) closeSearch();
+    });
     document.addEventListener("contextmenu", (e) => {
       const sg = segAt(e);
       if (!sg) return;
@@ -1340,7 +1552,12 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     document.addEventListener("pointerdown", (e) => {
       if (cpop && !cpop.contains(e.target) && !segAt(e)) closeCurve();
     }, true);
-    document.addEventListener("keydown", (e) => e.key === "Escape" && cpop && closeCurve());
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (cpop) return closeCurve();
+      if (swin) return closeSearch();
+      if (cwin) closeWin();
+    });
     /* a color in the pie or a row in the list picks that curiosity's lane in the graph */
     document.addEventListener("click", (e) => {
       const sg = segAt(e);
@@ -1406,6 +1623,9 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     },
     /* the lane picked in the graph (from the pie or the list), or null */
     picked: () => picked,
+    /* a curiosity's window (⧉ at the end of its lane) and its search window */
+    openWindow: (id) => openWin(id, document.querySelector(`.cv-under [data-cwin="${CSS.escape(id)}"]`)),
+    closeWindow: closeWin,
     /* the curve between two nodes (the Curve window's maths), and where a lane is at time t: what the lanes play */
     curve: { eval: curveEval, PRESETS: PRESETS.map((q) => ({ name: q[0], nodes: q[1] })), place: placeNode, add: addNode, remove: removeNode, describe, limits: CURVE },
     valueAt: (id, t) => {
