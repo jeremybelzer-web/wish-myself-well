@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "FOCUS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 7, CC 33 to 48\n   1 Focus width\n   2 Focus shift\n   3 Narrow focus to Wide focus\n   4 Distraction\n   5 Fixation\n   6 Where the eye goes first\n   7 The object we keep seeing\n   8 A view we cannot trust\n   9 What we do not see\n  10 The camera stays too long\n  11 suite: Tunnel vision\n  12 suite: Looks away at the wrong moment\n  13 suite: Narrowing in\n  14 suite: Hidden in plain sight\n  15 suite: Guide the eye\n  16 suite: Trust no one\nCV-CC 2: MIDI channel 7, CC 49 to 63\n   1 pair: When a fixation tightens, the shots get closer\n   2 pair: When a distraction pulls hard, something is missed\n   3 pair: When attention starts narrowing, it hardens into a fixation\n   4 pair: When a character's attention shrinks to one thing, they miss the warning\n   5 pair: When an object is planted, the camera comes back to it\n   6 pair: When sharp focus pulls the eye, attention narrows to one thing\n   7 pair: When too many things compete for the eye, distraction grows\n   8 pair: When the camera keeps returning to an object, questions grow\n   9 pair: When the camera stays too long, dread creeps in\n  10 pair: When the lingering shot hints at a clue, the plant is less hidden\n  11 pair: When more is kept out of sight, dread grows\n  12 pair: When we catch the false view near the end, everything flips\n  13 pair: When the view gets less trustworthy, the misdirection grows\n  14 pairs: Eyes on one thing\n  15 pairs: Clue in plain sight"
+    "text": "FOCUS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 8, CC 17 to 32\n   1 What they pay attention to\n   2 Focus shift\n   3 Narrow focus to Wide focus\n   4 Distraction\n   5 Fixation\n   6 Where the eye goes first\n   7 The object we keep seeing\n   8 A view we cannot trust\n   9 What we do not see\n  10 The camera stays too long\n  11 suite: Tunnel vision\n  12 suite: Looks away at the wrong moment\n  13 suite: Narrowing in\n  14 suite: Hidden in plain sight\n  15 suite: Guide the eye\n  16 suite: Trust no one\nCV-CC 2: MIDI channel 8, CC 33 to 48\n   1 pair: When a fixation tightens, the shots get closer\n   2 pair: When a distraction pulls hard, something is missed\n   3 pair: When attention starts narrowing, it hardens into a fixation\n   4 pair: When a character's attention shrinks to one thing, they miss the warning\n   5 pair: When an object is planted, the camera comes back to it\n   6 pair: When sharp focus pulls the eye, attention narrows to one thing\n   7 pair: When too many things compete for the eye, distraction grows\n   8 pair: When the camera keeps returning to an object, questions grow\n   9 pair: When the camera stays too long, dread creeps in\n  10 pair: When the lingering shot hints at a clue, the plant is less hidden\n  11 pair: When more is kept out of sight, dread grows\n  12 pair: When we catch the false view near the end, everything flips\n  13 pair: When the view gets less trustworthy, the misdirection grows\n  14 pair: When the camera stays too long, the dread rises\n  15 pair: When the big thing stays off screen, the dread builds\n  16 pairs: Eyes on one thing\nCV-CC 3: MIDI channel 8, CC 49 to 49\n   1 pairs: Clue in plain sight"
    },
    "pos": [
     0,
@@ -23,6 +23,38 @@
   },
   {
    "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32
+    ],
+    "midi": {
+     "channel": 7
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -45,43 +77,43 @@
      48
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
-    24,
+    32,
     0
    ]
   },
   {
-   "id": 5,
+   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
     "ccs": [
      49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1
     ],
     "midi": {
-     "channel": 6
+     "channel": 7
     }
    },
    "pos": [
-    32,
+    40,
     0
    ]
   }

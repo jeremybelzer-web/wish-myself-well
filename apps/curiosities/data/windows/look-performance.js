@@ -415,7 +415,7 @@
     });
     /* The second voice, smaller or bigger by the gap between voices. */
     const gap = v.p("spread");
-    s += k.text({ x: 120, y: 66, text: "— so?", size: k.clamp(fsz * (1 - gap * 0.55), 3, 30), color: "#9fd3ff", anchor: "start", weight: 600 });
+    s += k.text({ x: 120, y: 66, text: ", so?", size: k.clamp(fsz * (1 - gap * 0.55), 3, 30), color: "#9fd3ff", anchor: "start", weight: 600 });
     /* The level over time: building or falling, with sudden jumps; and the voice above the room. */
     const jumps = idx(v, "sudden", 3);
     const pts = Array.from({ length: 24 }, (_, i) => { const f = i / 23; let y = 0.3 + vol * 0.4 + (trend === 0 ? 0.25 - f * 0.4 : trend === 2 ? -0.2 + f * 0.4 : 0); if (jumps && i % (jumps === 1 ? 11 : 4) === 3) y += 0.35; return k.clamp(y, 0.03, 0.97); });

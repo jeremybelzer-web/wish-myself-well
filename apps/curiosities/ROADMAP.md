@@ -44,8 +44,8 @@ VCV Rack. You then drop any of those pieces onto a moment of **your own** film. 
 ## 1. The curiosity database **(beta)**
 
 One list of everything the app knows how to look at, so every workspace reads from the same place.
-Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 591 curiosities, 367 suites,
-733 proximities, 148 proximity suites and 11,894 sliders, across 32 workspaces, plus 24 model scenes.
+Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 611 curiosities, 397 suites,
+851 proximities, 170 proximity suites and 13,203 sliders, across 32 workspaces, plus 24 model scenes.
 
 - [x] Set up the database: the four levels, sliders with a from, a to and a curve, plain descriptions, workspace for each item
 - [x] Bring in every existing curiosity, suite and proximity from the catalog
@@ -75,6 +75,10 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 591
 - [x] Comedy and emotion, deeper: 28 comedy curiosities (the button, the joke that falls flat, cartoon rules, cracking up, the record scratch ...) and 23 emotion curiosities (empathy, awe, shame, guilt, pride, jealousy, grief, betrayal, forgiveness, the feeling left when the film ends ...), each with its own window, phrases and live picture (data/db-heart.js)
 - [x] Thin workspaces, deeper: 22 music and sound curiosities (tempo and key changes, a character's own tune, someone humming, repeating notes that build tension, music that warns us early, handmade sounds, the sound of the place, hearing through their ears ...), 25 story and attention curiosities (what starts it all, the reversal, a choice with a cost, no going back, the forgotten plant, where the eye goes first, what we do not see, blind spot, the crowd turns, a rumor spreads ...) and 22 cut, speed, text, frame and color curiosities (holding before the cut, a hidden cut, time-lapse, stretching a moment, texts on screen, the title drop, frame within a frame, a color for each character ...), each with its own window and tied into the four levels
 - [x] Acting, camera, place and page, deeper: 20 curiosities for line delivery, movement and camera moves (cut off mid-sentence, a speech that builds, one side of a phone call, a habit of their own, making an entrance, squaring off, a slow push in on a face, the stretching background shot ...) and 21 for background, set, placement and comic pages (danger behind their back, the season, crossing the doorway, a mirror in the room, who stands higher, a line between them, a full-page picture, a panel with no words ...), each with its own window
+- [x] Filters, camera angles, character types and wardrobe, deeper: 20 curiosities (a glow around bright things, blacks that swallow the detail, over the shoulder, the camera at a child's height, the trickster, the caretaker, the rival who becomes a friend, a change of clothes marks the turn, taking off the uniform ...)
+- [x] Style playbooks: 16 directing styles you can apply to your own film, each a look plus its signature "When ..., then ..." moves, in the spirit of Tarantino, Wes Anderson, Hitchcock, Keaton, Spielberg, Ozu, Nora Ephron, Soderbergh and others (data/db-styles.js)
+- [x] Database check for near-duplicates and film jargon (report: /mnt/project-files/database/audit-2026-10-03.md). 104 labels and 200 descriptions rewritten in plain words (data/db-plain.js); nothing merged or deleted yet
+- [ ] Jeremy and Sharani decide the 24 possible merges in the audit (keep, merge or rename), then the database thread merges them
 - [x] Momentum: attention meter, pie, timeline, cues, momentum notes, film rates, the Prism Compass, attention lanes on the engine and a performable meter (PRs #18, #20, #21); the meter beside the Screen's Player (draft PR, Momentum thread)
 - [ ] Jeremy and Sharani review the database and mark rows to keep, rename or drop. The review page is ready: https://claude.ai/artifact/MRmTHSusCBtFhkXgkBXoY8 (share it with Sharani from its Share menu)
 - [x] The three new workspaces (Music & sound, Editing & structure, Page & panel) show as tabs: Music under a new Sound group, Page under Look, Editing under Story (app thread). Jeremy can still say no.
@@ -117,7 +121,7 @@ Lives in `apps/curiosities/data/` (in the test version since PR #47). Today: 591
 - [ ] Logins and cloud sync, optional (Phase 3)
 - [ ] Desktop app (Phase 4)
 - [ ] Panel inside Maya, with curiosities driving the camera and keys (Phase 5)
-- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 1,839 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). The extra jacks past the first 105 modules now go on a second MIDI cable, so the database can keep growing. Next: someone with VCV Rack opens the files and builds the plugin
+- [ ] VCV Rack module with a jack per curiosity (Phase 6). Built (PR #9, in the test version): a jack for each of the 2,029 items through VCV's own CV-CC modules, ready-made Rack files and a VCV badge in the app, plus a generated plugin (named jacks, OSC to the desktop app, a gate per item, and a Return module for values coming back). The extra jacks past the first 105 modules now go on a second MIDI cable, so the database can keep growing. Next: someone with VCV Rack opens the files and builds the plugin
 - [ ] Other tools: Unreal, Blender, Resolve (Phase 7)
 
 ## 6. Checks with people

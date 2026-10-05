@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "COMEDY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 12, CC 17 to 32\n   1 Kind of joke\n   2 What the joke is about\n   3 Pause before the punchline\n   4 Escalation\n   5 Absurdity\n   6 Deadpan to broad\n   7 Cringe\n   8 Setup and payoff\n   9 Scenes from setup to payoff\n  10 Laughs per minute\n  11 Who carries the joke\n  12 Reaction to the joke\n  13 Running gag\n  14 Callback\n  15 Rule of three\n  16 Physical comedy\nCV-CC 2: MIDI channel 12, CC 33 to 48\n   1 Wordplay\n   2 Misdirection\n   3 Irony\n   4 Understatement\n   5 Fish out of water\n   6 Visual gag\n   7 Subversion\n   8 Comic edit\n   9 Comic sound\n  10 Comic flaw\n  11 Comic premise\n  12 The topper\n  13 Oddly specific\n  14 Talking to the camera\n  15 Exaggeration\n  16 Humiliation\nCV-CC 3: MIDI channel 12, CC 49 to 64\n   1 The lie that grows\n   2 Misunderstanding\n   3 Cutaway gag\n   4 Serious answer to a silly question\n   5 Catchphrase\n   6 The button\n   7 Tiny want, huge effort\n   8 Insults and roasts\n   9 Parody\n  10 Satire\n  11 Joke about the film itself\n  12 The joke that falls flat\n  13 Seeing the gag coming\n  14 Made up on the spot\n  15 Cartoon rules\n  16 Funny to sad switch\nCV-CC 4: MIDI channel 12, CC 65 to 80\n   1 Making fun of yourself\n   2 The bad disguise\n   3 The tag scene\n   4 Talking past the point\n   5 Saying it back\n   6 Cracking up\n   7 suite: Comedy lens\n   8 suite: Where the laugh comes from\n   9 suite: Deadpan\n  10 suite: Slapstick\n  11 suite: Mockumentary\n  12 suite: Screwball\n  13 suite: Cringe comedy\n  14 suite: Absurdist\n  15 suite: Dark comedy\n  16 suite: Rom-com banter\nCV-CC 5: MIDI channel 12, CC 81 to 96\n   1 suite: Snowball disaster\n   2 suite: Pull-back reveal\n   3 suite: Smash cut contradiction\n   4 suite: Background gags\n   5 suite: Farce\n   6 suite: The topper\n   7 suite: Punching up\n   8 suite: The aside\n   9 suite: Oddly specific world\n  10 suite: Blind to their flaw\n  11 suite: The cutaway that contradicts\n  12 suite: Bigger than life\n  13 suite: Slow-burn gags\n  14 suite: Stranger in a strange land\n  15 suite: Twisting the familiar\n  16 suite: Spoof movie\nCV-CC 6: MIDI channel 12, CC 97 to 112\n   1 suite: Roast battle\n   2 suite: The flop\n   3 suite: Loose and improvised\n   4 suite: Sad clown\n   5 suite: Sharp satire\n   6 suite: Sitcom habits\n   7 suite: Petty quest\n   8 pair: When a joke's setup is planted, the payoff lands\n   9 pair: When the escalation rises, the absurdity rises\n  10 pair: When the pause before the punchline grows, laughs per minute drop but each lands harder\n  11 pair: After a big joke, cut to a reaction\n  12 pair: Two of a pattern, then the break\n  13 pair: \"I'll never\", then they do\n  14 pair: After a cringe, a pointed silence\n  15 pair: As trouble escalates, the frame widens\n  16 pair: A running gag returns, bigger\nCV-CC 7: MIDI channel 13, CC 1 to 16\n   1 pair: A joke line returns in a tender moment\n   2 pair: Something absurd, nobody reacts\n   3 pair: Misdirection pays off with a pull-back\n   4 pair: After tension, a laugh breaks it\n   5 pair: When a joke lands, a topper follows\n   6 pair: When a lie wobbles, a bigger lie covers it\n   7 pair: When the lie collapses, someone is humiliated\n   8 pair: When a misunderstanding deepens, the chaos grows\n   9 pair: When someone is humiliated in front of others, the cringe rises\n  10 pair: When a blind flaw grows, the character is set back\n  11 pair: When a character talks to us, the others react a beat late\n  12 pair: An oddly specific detail comes back later\n  13 pair: When the physical comedy turns destructive, things shatter\n  14 pair: When the joke is built on a misunderstanding, the confusion keeps getting deeper\n  15 pair: When the joke aims at the powerful, the audience laughs harder\n  16 pair: When the comedy goes cartoon-big, the falls get bigger\nCV-CC 8: MIDI channel 13, CC 17 to 32\n   1 pair: When the payoff comes long after its setup, the laugh is bigger\n   2 pair: When the joke rests on the straight one, they stay perfectly calm\n   3 pair: When someone lands a sharp comeback, the pecking order wobbles\n   4 pair: When a disaster is treated as no big deal, the laugh comes in the pause\n   5 pair: When someone is badly out of place, the awkward moments pile up\n   6 pair: When more sight gags fill the frame, the laughs come faster\n   7 pair: When the setup feels very familiar, the payoff gets turned upside down\n   8 pair: When the comic idea is crystal clear, the scene can push it further and further\n   9 pair: When the situation keeps escalating, everything gets exaggerated\n  10 pair: When things get exaggerated far enough, they tip into the absurd\n  11 pair: When a cutaway shows the opposite of what was just said, the laugh lands on the cut\n  12 pair: When a silly question gets a dead serious answer, the reactions grow\n  13 pair: When a silly answer turns into a lecture, someone says it back\n  14 pair: When everyone waits for the catchphrase, holding it back gets the laugh\n  15 pair: When the catchphrase comes back with a new meaning, the callback turns sweet\n  16 pair: When the topper lands, a button closes the scene\nCV-CC 9: MIDI channel 13, CC 33 to 48\n   1 pair: When the button lands, the scene ends on it\n   2 pair: When a tiny want meets a huge effort, the trouble escalates\n   3 pair: When the tiny want is won and ruined, someone is humiliated\n   4 pair: When a roast stings, a better comeback follows\n   5 pair: When a roast is loving, the warmth between them grows\n   6 pair: When a roast goes too far, everything stops\n   7 pair: When a parody copies shot for shot, the twist gets the laugh\n   8 pair: When the satire bites harder, the jokes get darker\n   9 pair: When the film jokes about itself, a character talks to us\n  10 pair: When a joke falls flat, the silence stretches\n  11 pair: When the teller explains the failed joke, they talk past the point\n  12 pair: When we see the gag coming, the payoff gets a bigger laugh\n  13 pair: When the trap is shown clearly, the fall comes\n  14 pair: When the scene loosens up, the lines start to overlap\n  15 pair: When the scene feels improvised, someone cracks up\n  16 pair: When cartoon rules take over, the falls stop hurting\nCV-CC 10: MIDI channel 13, CC 49 to 64\n   1 pair: When a joke turns sad on one line, the music drops away\n   2 pair: When tears turn into a laugh, the release comes through laughing\n   3 pair: When self-mockery hides hurt, mixed feelings show\n   4 pair: When the disguise slips, the lie grows bigger\n   5 pair: When a tag scene ties back, an old joke returns\n   6 pair: When someone talks past the point, the cringe rises\n   7 pair: When something absurd is said, someone says it back\n   8 pair: When the performers laugh out loud, the warmth grows\n   9 pairs: Joke machine\n  10 pairs: Long-game comedy\n  11 pairs: Comic reversals\n  12 pairs: The camera sells the joke\n  13 pairs: The farce engine\n  14 pairs: Stacking laughs\n  15 pairs: Comedy of a flaw\n  16 pairs: Smash and scatter\nCV-CC 11: MIDI channel 13, CC 65 to 71\n   1 pairs: The cartoon spiral\n   2 pairs: The calm one cracks\n   3 pairs: The flop spiral\n   4 pairs: Petty quest to ruin\n   5 pairs: Roast night\n   6 pairs: Laugh, then cry\n   7 pairs: Sitcom scene shape"
+    "text": "COMEDY\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 13, CC 81 to 96\n   1 Kind of joke\n   2 What the joke is about\n   3 Pause before the punchline\n   4 Escalation\n   5 Absurdity\n   6 Deadpan to broad\n   7 Cringe\n   8 Setup and payoff\n   9 Scenes from setup to payoff\n  10 Laughs per minute\n  11 Who carries the joke\n  12 Reaction to the joke\n  13 Running gag\n  14 Callback\n  15 Rule of three\n  16 Physical comedy\nCV-CC 2: MIDI channel 13, CC 97 to 112\n   1 Wordplay\n   2 Misdirection\n   3 Irony\n   4 Understatement\n   5 Out of place in a strange world\n   6 Visual gag\n   7 Subversion\n   8 Comic edit\n   9 Comic sound\n  10 Comic flaw\n  11 Comic premise\n  12 The topper\n  13 Oddly specific\n  14 Talking to the camera\n  15 Exaggeration\n  16 Humiliation\nCV-CC 3: MIDI channel 14, CC 1 to 16\n   1 The lie that grows\n   2 Misunderstanding\n   3 Cutaway gag\n   4 Serious answer to a silly question\n   5 Catchphrase\n   6 The button\n   7 Tiny want, huge effort\n   8 Insults and roasts\n   9 Parody\n  10 Satire\n  11 Joke about the film itself\n  12 The joke that falls flat\n  13 Seeing the gag coming\n  14 Made up on the spot\n  15 Cartoon rules\n  16 The turn from funny to sad\nCV-CC 4: MIDI channel 14, CC 17 to 32\n   1 Making fun of yourself\n   2 The bad disguise\n   3 The tag scene\n   4 Talking past the point\n   5 Saying it back\n   6 Cracking up\n   7 suite: Comedy lens\n   8 suite: Where the laugh comes from\n   9 suite: Deadpan\n  10 suite: Slapstick\n  11 suite: Mockumentary\n  12 suite: Screwball\n  13 suite: Cringe comedy\n  14 suite: Absurdist\n  15 suite: Dark comedy\n  16 suite: Rom-com banter\nCV-CC 5: MIDI channel 14, CC 33 to 48\n   1 suite: Snowball disaster\n   2 suite: Pull-back reveal\n   3 suite: Smash cut contradiction\n   4 suite: Background gags\n   5 suite: Farce\n   6 suite: Topping the joke, twice\n   7 suite: Punching up\n   8 suite: The aside\n   9 suite: Oddly specific world\n  10 suite: Blind to their flaw\n  11 suite: The cutaway that contradicts\n  12 suite: Bigger than life\n  13 suite: Slow-burn gags\n  14 suite: Stranger in a strange land\n  15 suite: Twisting the familiar\n  16 suite: Spoof movie\nCV-CC 6: MIDI channel 14, CC 49 to 64\n   1 suite: Roast battle\n   2 suite: The flop\n   3 suite: Loose and improvised\n   4 suite: Sad clown\n   5 suite: Sharp satire\n   6 suite: Sitcom habits\n   7 suite: Petty quest\n   8 suite: Silent-film physical comedy\n   9 suite: Mockumentary (full style)\n  10 pair: When a joke's setup is planted, the payoff lands\n  11 pair: When the escalation rises, the absurdity rises\n  12 pair: When the pause before the punchline grows, laughs per minute drop but each lands harder\n  13 pair: After a big joke, cut to a reaction\n  14 pair: Two of a pattern, then the break\n  15 pair: \"I'll never\", then they do\n  16 pair: After a cringe, a pointed silence\nCV-CC 7: MIDI channel 14, CC 65 to 80\n   1 pair: As trouble escalates, the frame widens\n   2 pair: A running gag returns, bigger\n   3 pair: A joke line returns in a tender moment\n   4 pair: Something absurd, nobody reacts\n   5 pair: Misdirection pays off with a pull-back\n   6 pair: After tension, a laugh breaks it\n   7 pair: When a joke lands, a topper follows\n   8 pair: When a lie wobbles, a bigger lie covers it\n   9 pair: When the lie collapses, someone is humiliated\n  10 pair: When a misunderstanding deepens, the chaos grows\n  11 pair: When someone is humiliated in front of others, the cringe rises\n  12 pair: When a blind flaw grows, the character is set back\n  13 pair: When a character talks to us, the others react a beat late\n  14 pair: An oddly specific detail comes back later\n  15 pair: When the physical comedy turns destructive, things shatter\n  16 pair: When the joke is built on a misunderstanding, the confusion keeps getting deeper\nCV-CC 8: MIDI channel 14, CC 81 to 96\n   1 pair: When the joke aims at the powerful, the audience laughs harder\n   2 pair: When the comedy goes cartoon-big, the falls get bigger\n   3 pair: When the payoff comes long after its setup, the laugh is bigger\n   4 pair: When the joke rests on the straight one, they stay perfectly calm\n   5 pair: When someone lands a sharp comeback, the pecking order wobbles\n   6 pair: When a disaster is treated as no big deal, the laugh comes in the pause\n   7 pair: When someone is badly out of place, the awkward moments pile up\n   8 pair: When more sight gags fill the frame, the laughs come faster\n   9 pair: When the setup feels very familiar, the payoff gets turned upside down\n  10 pair: When the comic idea is crystal clear, the scene can push it further and further\n  11 pair: When the situation keeps escalating, everything gets exaggerated\n  12 pair: When things get exaggerated far enough, they tip into the absurd\n  13 pair: When a cutaway shows the opposite of what was just said, the laugh lands on the cut\n  14 pair: When a silly question gets a dead serious answer, the reactions grow\n  15 pair: When a silly answer turns into a lecture, someone says it back\n  16 pair: When everyone waits for the catchphrase, holding it back gets the laugh\nCV-CC 9: MIDI channel 14, CC 97 to 112\n   1 pair: When the catchphrase comes back with a new meaning, the callback turns sweet\n   2 pair: When the topper lands, a button closes the scene\n   3 pair: When the button lands, the scene ends on it\n   4 pair: When a tiny want meets a huge effort, the trouble escalates\n   5 pair: When the tiny want is won and ruined, someone is humiliated\n   6 pair: When a roast stings, a better comeback follows\n   7 pair: When a roast is loving, the warmth between them grows\n   8 pair: When a roast goes too far, everything stops\n   9 pair: When a parody copies shot for shot, the twist gets the laugh\n  10 pair: When the satire bites harder, the jokes get darker\n  11 pair: When the film jokes about itself, a character talks to us\n  12 pair: When a joke falls flat, the silence stretches\n  13 pair: When the teller explains the failed joke, they talk past the point\n  14 pair: When we see the gag coming, the payoff gets a bigger laugh\n  15 pair: When the trap is shown clearly, the fall comes\n  16 pair: When the scene loosens up, the lines start to overlap\nCV-CC 10: MIDI channel 15, CC 1 to 16\n   1 pair: When the scene feels improvised, someone cracks up\n   2 pair: When cartoon rules take over, the falls stop hurting\n   3 pair: When a joke turns sad on one line, the music drops away\n   4 pair: When tears turn into a laugh, the release comes through laughing\n   5 pair: When self-mockery hides hurt, mixed feelings show\n   6 pair: When the disguise slips, the lie grows bigger\n   7 pair: When a tag scene ties back, an old joke returns\n   8 pair: When someone talks past the point, the cringe rises\n   9 pair: When something absurd is said, someone says it back\n  10 pair: When the performers laugh out loud, the warmth grows\n  11 pair: When the details are absurdly specific, the sadness underneath shows through\n  12 pair: When the talk speeds up, the chaos around them grows\n  13 pair: When the stunt is shown wide in one shot, our jaw drops\n  14 pair: When we see the trap before the hero does, the laugh grows\n  15 pair: When the face stays blank, the chaos around gets funnier\n  16 pair: When someone looks straight at the camera, the laugh doubles\nCV-CC 11: MIDI channel 15, CC 17 to 32\n   1 pair: When the next shot shows the opposite of the interview, the irony is plain\n   2 pairs: Joke machine\n   3 pairs: Long-game comedy\n   4 pairs: Comic reversals\n   5 pairs: The camera sells the joke\n   6 pairs: The farce engine\n   7 pairs: Stacking laughs\n   8 pairs: Comedy of a flaw\n   9 pairs: Smash and scatter\n  10 pairs: The cartoon spiral\n  11 pairs: The calm one cracks\n  12 pairs: The flop spiral\n  13 pairs: Petty quest to ruin\n  14 pairs: Roast night\n  15 pairs: Laugh, then cry\n  16 pairs: Sitcom scene shape\nCV-CC 12: MIDI channel 15, CC 33 to 34\n   1 pairs: Silent-film physical comedy: the moves\n   2 pairs: Mockumentary: the moves"
    },
    "pos": [
     0,
@@ -23,134 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     17,
-     18,
-     19,
-     20,
-     21,
-     22,
-     23,
-     24,
-     25,
-     26,
-     27,
-     28,
-     29,
-     30,
-     31,
-     32
-    ],
-    "midi": {
-     "channel": 11
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     43,
-     44,
-     45,
-     46,
-     47,
-     48
-    ],
-    "midi": {
-     "channel": 11
-    }
-   },
-   "pos": [
-    32,
-    0
-   ]
-  },
-  {
-   "id": 6,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
-    ],
-    "midi": {
-     "channel": 11
-    }
-   },
-   "pos": [
-    40,
-    0
-   ]
-  },
-  {
-   "id": 7,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
-     72,
-     73,
-     74,
-     75,
-     76,
-     77,
-     78,
-     79,
-     80
-    ],
-    "midi": {
-     "channel": 11
-    }
-   },
-   "pos": [
-    48,
-    0
-   ]
-  },
-  {
-   "id": 8,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -173,16 +45,16 @@
      96
     ],
     "midi": {
-     "channel": 11
+     "channel": 12
     }
    },
    "pos": [
-    56,
+    24,
     0
    ]
   },
   {
-   "id": 9,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -205,16 +77,16 @@
      112
     ],
     "midi": {
-     "channel": 11
+     "channel": 12
     }
    },
    "pos": [
-    64,
+    32,
     0
    ]
   },
   {
-   "id": 10,
+   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -237,16 +109,16 @@
      16
     ],
     "midi": {
-     "channel": 12
+     "channel": 13
     }
    },
    "pos": [
-    72,
+    40,
     0
    ]
   },
   {
-   "id": 11,
+   "id": 7,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -269,16 +141,16 @@
      32
     ],
     "midi": {
-     "channel": 12
+     "channel": 13
     }
    },
    "pos": [
-    80,
+    48,
     0
    ]
   },
   {
-   "id": 12,
+   "id": 8,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -301,16 +173,16 @@
      48
     ],
     "midi": {
-     "channel": 12
+     "channel": 13
     }
    },
    "pos": [
-    88,
+    56,
     0
    ]
   },
   {
-   "id": 13,
+   "id": 9,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -333,7 +205,135 @@
      64
     ],
     "midi": {
-     "channel": 12
+     "channel": 13
+    }
+   },
+   "pos": [
+    64,
+    0
+   ]
+  },
+  {
+   "id": 10,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     65,
+     66,
+     67,
+     68,
+     69,
+     70,
+     71,
+     72,
+     73,
+     74,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
+    ],
+    "midi": {
+     "channel": 13
+    }
+   },
+   "pos": [
+    72,
+    0
+   ]
+  },
+  {
+   "id": 11,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96
+    ],
+    "midi": {
+     "channel": 13
+    }
+   },
+   "pos": [
+    80,
+    0
+   ]
+  },
+  {
+   "id": 12,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 13
+    }
+   },
+   "pos": [
+    88,
+    0
+   ]
+  },
+  {
+   "id": 13,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 14
     }
    },
    "pos": [
@@ -347,13 +347,45 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     65,
-     66,
-     67,
-     68,
-     69,
-     70,
-     71,
+     17,
+     18,
+     19,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25,
+     26,
+     27,
+     28,
+     29,
+     30,
+     31,
+     32
+    ],
+    "midi": {
+     "channel": 14
+    }
+   },
+   "pos": [
+    104,
+    0
+   ]
+  },
+  {
+   "id": 15,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
      -1,
      -1,
      -1,
@@ -365,11 +397,11 @@
      -1
     ],
     "midi": {
-     "channel": 12
+     "channel": 14
     }
    },
    "pos": [
-    104,
+    112,
     0
    ]
   }

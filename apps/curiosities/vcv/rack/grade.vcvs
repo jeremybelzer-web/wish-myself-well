@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "FILTERS & ADJUSTMENTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 2, CC 1 to 16\n   1 Filter\n   2 Exposure\n   3 Warmth and tint\n   4 Film texture\n   5 Shot matching\n   6 Texture effect\n   7 Retro look\n   8 Filter family\n   9 LUT (a color recipe)\n  10 Color wheels\n  11 Color curves\n  12 suite: Dream sequence\n  13 suite: Silent film\n  14 suite: Zine scrapbook\n  15 suite: Old home video\n  16 suite: Final Cut finishing pass\nCV-CC 2: PORT 2 (your second cable), MIDI channel 2, CC 17 to 31\n   1 suite: True to life grade\n   2 suite: Summer blockbuster grade\n   3 pair: When the focus pulls to an object, the shadows turn\n   4 pair: When the night filter goes on, the scene plays as night\n   5 pair: When the picture is blown out, the whole room seems to glow\n   6 pair: When the color is pushed very warm, the place feels cozy\n   7 pair: When the image turns gritty, the world feels harsh\n   8 pair: When a shot is graded to clash on purpose, the feeling jumps\n   9 pair: When the blacks are crushed, the contrast jumps\n  10 pair: When the teal and orange recipe goes on, skin stays warm while the rest turns teal\n  11 pair: When a movie filter goes on, black bars come with it\n  12 pair: When the picture gets a polaroid look, copies stack like photos on a table\n  13 pair: When it looks like old home video, the feeling turns bittersweet\n  14 pairs: Memory box\n  15 pairs: Hard-edge grade"
+    "text": "FILTERS & ADJUSTMENTS\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 4, CC 1 to 16\n   1 Filter\n   2 Exposure (brightness set in the edit)\n   3 Warmth set in the edit\n   4 Film texture\n   5 Shot matching\n   6 Texture effect\n   7 Retro look\n   8 Filter family\n   9 LUT (a color recipe)\n  10 Color wheels\n  11 Color curves\n  12 A glow around bright things\n  13 Blacks that swallow the detail\n  14 The picture hardens as things get worse\n  15 A look too perfect to trust\n  16 Colors go wrong when the mind does\nCV-CC 2: PORT 2 (your second cable), MIDI channel 4, CC 17 to 32\n   1 suite: Dream sequence\n   2 suite: Silent film look (in the edit)\n   3 suite: Zine scrapbook\n   4 suite: Old home video\n   5 suite: Final Cut finishing pass\n   6 suite: True to life grade\n   7 suite: Summer blockbuster grade\n   8 suite: The soft glow of memory\n   9 suite: Into the dark\n  10 suite: The perfect town\n  11 suite: The picture falls apart\n  12 pair: When the focus pulls to an object, the shadows turn\n  13 pair: When the night filter goes on, the scene plays as night\n  14 pair: When the picture is blown out, the whole room seems to glow\n  15 pair: When the color is pushed very warm, the place feels cozy\n  16 pair: When the image turns gritty, the world feels harsh\nCV-CC 3: PORT 2 (your second cable), MIDI channel 4, CC 33 to 48\n   1 pair: When a shot is graded to clash on purpose, the feeling jumps\n   2 pair: When the blacks are crushed, the contrast jumps\n   3 pair: When the teal and orange recipe goes on, skin stays warm while the rest turns teal\n   4 pair: When a movie filter goes on, black bars come with it\n   5 pair: When the picture gets a polaroid look, copies stack like photos on a table\n   6 pair: When it looks like old home video, the feeling turns bittersweet\n   7 pair: When the bright parts glow more, nostalgia comes\n   8 pair: When the glow has a red edge, the picture looks like old film\n   9 pair: When the glow only comes around one person, tenderness grows\n  10 pair: When the blacks swallow more, dread rises\n  11 pair: When the black hides a person, more is kept from us\n  12 pair: When more of the frame is black, the questions pile up\n  13 pair: When the dark lifts at the reveal, a question is answered\n  14 pair: When the look follows the trouble closely, tension rises\n  15 pair: When the color drains away, hope fades\n  16 pair: When the look gets more perfect, we trust it less\nCV-CC 4: PORT 2 (your second cable), MIDI channel 4, CC 49 to 54\n   1 pair: When the perfect look breaks apart, everything flips\n   2 pair: When the colors go wrong, we cannot trust what we see\n   3 pairs: Memory box\n   4 pairs: Hard-edge grade\n   5 pairs: The look darkens\n   6 pairs: The lie in the picture"
    },
    "pos": [
     0,
@@ -45,7 +45,7 @@
      16
     ],
     "midi": {
-     "channel": 1
+     "channel": 3
     }
    },
    "pos": [
@@ -74,14 +74,78 @@
      29,
      30,
      31,
-     -1
+     32
     ],
     "midi": {
-     "channel": 1
+     "channel": 3
     }
    },
    "pos": [
     32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 3
+    }
+   },
+   "pos": [
+    40,
+    0
+   ]
+  },
+  {
+   "id": 7,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 3
+    }
+   },
+   "pos": [
+    48,
     0
    ]
   }

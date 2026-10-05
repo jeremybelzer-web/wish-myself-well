@@ -1676,7 +1676,7 @@
   pad("mixLaughs", "inFrame", "reactRoom", "People in frame", "Room for reactions");
 
   /* A line of words with the pun word lit up; the listener groans or tops it. */
-  const PUN = { pun: ["I'm reading a book on", "anti-gravity", "— can't put it down."], misunderstanding: ["Did you", "steal", "the show? I only borrowed it."], comeback: ["You're late.", "Early", "for tomorrow."], malapropism: ["It's a", "pigment", "of your imagination."], repetition: ["No.", "No.", "No no no."] };
+  const PUN = { pun: ["I'm reading a book on", "anti-gravity", ", can't put it down."], misunderstanding: ["Did you", "steal", "the show? I only borrowed it."], comeback: ["You're late.", "Early", "for tomorrow."], malapropism: ["It's a", "pigment", "of your imagination."], repetition: ["No.", "No.", "No no no."] };
   look("wordplay", (v, k, g) => {
     const p = PUN[v("kind")] || PUN.pun;
     const cl = idx(v, "cleverness");

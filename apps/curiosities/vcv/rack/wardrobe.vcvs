@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "WARDROBE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 8, CC 49 to 64\n   1 Era of the clothes\n   2 Cheap to expensive\n   3 How much skin is covered\n   4 Looks or function\n   5 The job the clothes do\n   6 Wear and tear\n   7 Fit\n   8 Casual to formal\n   9 Clothes against the set\n  10 Era of the clothes\n  11 Cheap to expensive\n  12 How much skin is covered\n  13 Looks or function\n  14 The job the clothes do\n  15 Wear and tear\n  16 All different to all alike\nCV-CC 2: MIDI channel 8, CC 65 to 80\n   1 True to the time\n   2 Background against the main character\n   3 suite: Main character's clothes lens\n   4 suite: Background clothes lens\n   5 suite: Period truth\n   6 suite: Deliberate anachronism\n   7 suite: Working uniform\n   8 suite: Dressed to impress\n   9 suite: Falling apart\n  10 suite: Frontier\n  11 pair: A new outfit marks a change in the character\n  12 pair: A disguise is followed by its unmasking\n  13 pair: Clashing clothes get noticed\n  14 pair: When the crowd is in rags, the hero's clean clothes make them the only one\n  15 pair: When the hero is the only one dressed that way, the eye finds them in the crowd\n  16 pair: When the hero dresses unlike everyone else, they feel out of place\nCV-CC 3: MIDI channel 8, CC 81 to 96\n   1 pair: When the hero's clothes are luxury, they stand out from the room\n   2 pair: When the clothes are very formal, people move stiffly\n   3 pair: When the clothes are baggy, a trip or a snag is waiting\n   4 pair: When a layer of clothing comes off, the characters get closer\n   5 pair: When the hero suits up in armor, big action follows\n   6 pair: When the outfit is only for show, the hero is wrong for the job\n   7 pair: When the crowd dresses in 1920s clothes, the room follows\n   8 pair: When the background clothes are clearly wrong for the time, the scene turns into a joke\n   9 pair: When everyone wears the same uniform, the place feels oppressive\n  10 pair: When the crowd's clothes are torn and dirty, the place reads as run down\n  11 pair: When the crowd is bundled up, the picture turns cool\n  12 pair: When the crowd wears work clothes, the place reads as a working site\n  13 pair: When the crowd dresses only for show, the room is rich\n  14 pairs: Clothes tell the story\n  15 pairs: The standout hero\n  16 pairs: Dressed wrong for it"
+    "text": "WARDROBE\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 9, CC 65 to 80\n   1 Main: era of the clothes\n   2 Main: cheap to expensive\n   3 Main: how much skin is covered\n   4 Main: looks or function\n   5 Main: the job the clothes do\n   6 Main: wear and tear\n   7 Fit\n   8 Casual to formal\n   9 Clothes against the set\n  10 Crowd: era of the clothes\n  11 Crowd: cheap to expensive\n  12 Crowd: how much skin is covered\n  13 Crowd: looks or function\n  14 Crowd: the job the clothes do\n  15 Crowd: wear and tear\n  16 All different to all alike\nCV-CC 2: MIDI channel 9, CC 81 to 96\n   1 True to the time\n   2 Background against the main character\n   3 A change of clothes marks the turn\n   4 The group dresses as one\n   5 The one piece that clashes\n   6 Clothes that are not theirs\n   7 Taking off the uniform\n   8 suite: Main character's clothes lens\n   9 suite: Background clothes lens\n  10 suite: Period truth\n  11 suite: Deliberate anachronism\n  12 suite: Working uniform\n  13 suite: Dressed to impress\n  14 suite: Falling apart\n  15 suite: Frontier\n  16 suite: The gang look\nCV-CC 3: MIDI channel 9, CC 97 to 112\n   1 suite: Growing into it\n   2 suite: Laying down the badge\n   3 pair: A new outfit marks a change in the character\n   4 pair: A disguise is followed by its unmasking\n   5 pair: Clashing clothes get noticed\n   6 pair: When the crowd is in rags, the hero's clean clothes make them the only one\n   7 pair: When the hero is the only one dressed that way, the eye finds them in the crowd\n   8 pair: When the hero dresses unlike everyone else, they feel out of place\n   9 pair: When the hero's clothes are luxury, they stand out from the room\n  10 pair: When the clothes are very formal, people move stiffly\n  11 pair: When the clothes are baggy, a trip or a snag is waiting\n  12 pair: When a layer of clothing comes off, the characters get closer\n  13 pair: When the hero suits up in armor, big action follows\n  14 pair: When the outfit is only for show, the hero is wrong for the job\n  15 pair: When the crowd dresses in 1920s clothes, the room follows\n  16 pair: When the background clothes are clearly wrong for the time, the scene turns into a joke\nCV-CC 4: MIDI channel 10, CC 1 to 16\n   1 pair: When everyone wears the same uniform, the place feels oppressive\n   2 pair: When the crowd's clothes are torn and dirty, the place reads as run down\n   3 pair: When the crowd is bundled up, the picture turns cool\n   4 pair: When the crowd wears work clothes, the place reads as a working site\n   5 pair: When the crowd dresses only for show, the room is rich\n   6 pair: When the change of clothes is bigger, the inner change shows\n   7 pair: When everyone stares at the new look, pride rises\n   8 pair: When the hero breaks from the group's look, they stand apart\n   9 pair: When the group's look splits in two, so do the sides\n  10 pair: When the piece clashes more, the eye goes there first\n  11 pair: When the odd piece is a memory of someone, nostalgia comes\n  12 pair: When the clothes fit worse, we feel for them\n  13 pair: When they are teased for the bad fit, shame rises\n  14 pair: When the clothes finally fit, the change shows\n  15 pair: When the uniform is folded and left behind, there is no going back\n  16 pair: When taking off the uniform matters more, the look turns\nCV-CC 5: MIDI channel 10, CC 17 to 21\n   1 pair: When the uniform comes off in front of someone they trust, tenderness grows\n   2 pairs: Clothes tell the story\n   3 pairs: The standout hero\n   4 pairs: Dressed wrong for it\n   5 pairs: The change you can wear"
    },
    "pos": [
     0,
@@ -23,38 +23,6 @@
   },
   {
    "id": 3,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     49,
-     50,
-     51,
-     52,
-     53,
-     54,
-     55,
-     56,
-     57,
-     58,
-     59,
-     60,
-     61,
-     62,
-     63,
-     64
-    ],
-    "midi": {
-     "channel": 7
-    }
-   },
-   "pos": [
-    24,
-    0
-   ]
-  },
-  {
-   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -77,16 +45,16 @@
      80
     ],
     "midi": {
-     "channel": 7
+     "channel": 8
     }
    },
    "pos": [
-    32,
+    24,
     0
    ]
   },
   {
-   "id": 6,
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -109,11 +77,107 @@
      96
     ],
     "midi": {
-     "channel": 7
+     "channel": 8
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 8
     }
    },
    "pos": [
     40,
+    0
+   ]
+  },
+  {
+   "id": 7,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15,
+     16
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    48,
+    0
+   ]
+  },
+  {
+   "id": 8,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     17,
+     18,
+     19,
+     20,
+     21,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1,
+     -1
+    ],
+    "midi": {
+     "channel": 9
+    }
+   },
+   "pos": [
+    56,
     0
    ]
   }

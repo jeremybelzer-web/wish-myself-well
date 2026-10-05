@@ -16746,6 +16746,2329 @@
    "does": "rise",
    "when": "the page has more balloons",
    "then": "the words pile up"
+  },
+  {
+   "id": "p:glow-nostalgia",
+   "proximity": "glow-nostalgia",
+   "label": "When the bright parts glow more, nostalgia comes",
+   "from": {
+    "curiosity": "highlightGlow",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "nostalgia",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the bright parts glow more",
+   "then": "nostalgia comes"
+  },
+  {
+   "id": "p:glow-red-edge-old-film",
+   "proximity": "glow-red-edge-old-film",
+   "label": "When the glow has a red edge, the picture looks like old film",
+   "from": {
+    "curiosity": "highlightGlow.tint",
+    "track": "master",
+    "is": "red edge, like old film",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "retroEffect",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "old film",
+   "when": "the glow has a red edge",
+   "then": "the picture looks like old film"
+  },
+  {
+   "id": "p:glow-around-one-tenderness",
+   "proximity": "glow-around-one-tenderness",
+   "label": "When the glow only comes around one person, tenderness grows",
+   "from": {
+    "curiosity": "highlightGlow.when",
+    "track": "master",
+    "is": "only around one person",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the glow only comes around one person",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:dark-swallows-dread",
+   "proximity": "dark-swallows-dread",
+   "label": "When the blacks swallow more, dread rises",
+   "from": {
+    "curiosity": "darkSwallows",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the blacks swallow more",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:dark-hides-person",
+   "proximity": "dark-hides-person",
+   "label": "When the black hides a person, more is kept from us",
+   "from": {
+    "curiosity": "darkSwallows.hides",
+    "track": "master",
+    "is": "a person",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "offscreen",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the black hides a person",
+   "then": "more is kept from us"
+  },
+  {
+   "id": "p:more-black-more-questions",
+   "proximity": "more-black-more-questions",
+   "label": "When more of the frame is black, the questions pile up",
+   "from": {
+    "curiosity": "darkSwallows.share",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more of the frame is black",
+   "then": "the questions pile up"
+  },
+  {
+   "id": "p:dark-lifts-answers",
+   "proximity": "dark-lifts-answers",
+   "label": "When the dark lifts at the reveal, a question is answered",
+   "from": {
+    "curiosity": "darkSwallows.lifted",
+    "track": "master",
+    "is": "at the reveal",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the dark lifts at the reveal",
+   "then": "a question is answered"
+  },
+  {
+   "id": "p:hardening-tension",
+   "proximity": "hardening-tension",
+   "label": "When the look follows the trouble closely, tension rises",
+   "from": {
+    "curiosity": "hardeningLook",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the look follows the trouble closely",
+   "then": "tension rises"
+  },
+  {
+   "id": "p:drained-hope-drops",
+   "proximity": "drained-hope-drops",
+   "label": "When the color drains away, hope fades",
+   "from": {
+    "curiosity": "hardeningLook.drain",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "hope",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the color drains away",
+   "then": "hope fades"
+  },
+  {
+   "id": "p:hope-softens-look",
+   "proximity": "hope-softens-look",
+   "label": "When hope comes back, the picture softens",
+   "from": {
+    "curiosity": "hope",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "hardeningLook",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "hope comes back",
+   "then": "the picture softens"
+  },
+  {
+   "id": "p:perfect-look-doubt",
+   "proximity": "perfect-look-doubt",
+   "label": "When the look gets more perfect, we trust it less",
+   "from": {
+    "curiosity": "tooPerfectLook",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "unreliableView",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the look gets more perfect",
+   "then": "we trust it less"
+  },
+  {
+   "id": "p:perfect-breaks-reversal",
+   "proximity": "perfect-breaks-reversal",
+   "label": "When the perfect look breaks apart, everything flips",
+   "from": {
+    "curiosity": "tooPerfectLook.crack",
+    "track": "master",
+    "is": "it breaks apart",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "reversal",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the perfect look breaks apart",
+   "then": "everything flips"
+  },
+  {
+   "id": "p:wrong-colors-doubt",
+   "proximity": "wrong-colors-doubt",
+   "label": "When the colors go wrong, we cannot trust what we see",
+   "from": {
+    "curiosity": "wrongColors",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "unreliableView",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the colors go wrong",
+   "then": "we cannot trust what we see"
+  },
+  {
+   "id": "p:dread-bends-colors",
+   "proximity": "dread-bends-colors",
+   "label": "When dread runs high, the colors start to go wrong",
+   "from": {
+    "curiosity": "dread",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "wrongColors",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "dread runs high",
+   "then": "the colors start to go wrong"
+  },
+  {
+   "id": "p:shot-alone-loneliness",
+   "proximity": "shot-alone-loneliness",
+   "label": "When the one losing gets a shot alone, loneliness grows",
+   "from": {
+    "curiosity": "overShoulder.alone",
+    "track": "camera",
+    "is": "the one losing",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the one losing gets a shot alone",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:more-shoulder-closer",
+   "proximity": "more-shoulder-closer",
+   "label": "When more of the near person fills the frame, they feel closer",
+   "from": {
+    "curiosity": "overShoulder",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "personalSpace",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "close",
+   "when": "more of the near person fills the frame",
+   "then": "they feel closer"
+  },
+  {
+   "id": "p:shared-frame-warmth",
+   "proximity": "shared-frame-warmth",
+   "label": "When they share the frame more, warmth grows",
+   "from": {
+    "curiosity": "sharedFrame",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they share the frame more",
+   "then": "warmth grows"
+  },
+  {
+   "id": "p:feeling-gap-splits-frame",
+   "proximity": "feeling-gap-splits-frame",
+   "label": "When their feelings drift apart, the frame splits them",
+   "from": {
+    "curiosity": "emotionGap",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "sharedFrame",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "their feelings drift apart",
+   "then": "the frame splits them"
+  },
+  {
+   "id": "p:together-on-touch-tenderness",
+   "proximity": "together-on-touch-tenderness",
+   "label": "When they come together in the frame on a touch, tenderness grows",
+   "from": {
+    "curiosity": "sharedFrame.when",
+    "track": "camera",
+    "is": "when they touch",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they come together in the frame on a touch",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:towering-awe",
+   "proximity": "towering-awe",
+   "label": "When everything towers over them, awe rises",
+   "from": {
+    "curiosity": "childHeight.size",
+    "track": "camera",
+    "is": "towering",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "awe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everything towers over them",
+   "then": "awe rises"
+  },
+  {
+   "id": "p:at-their-height-empathy",
+   "proximity": "at-their-height-empathy",
+   "label": "When more of the film stays at their height, we feel with them",
+   "from": {
+    "curiosity": "childHeight.share",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more of the film stays at their height",
+   "then": "we feel with them"
+  },
+  {
+   "id": "p:parent-kneels-warmth",
+   "proximity": "parent-kneels-warmth",
+   "label": "When a parent kneels down to their height, warmth returns",
+   "from": {
+    "curiosity": "childHeight.kneels",
+    "track": "camera",
+    "is": "a parent",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a parent kneels down to their height",
+   "then": "warmth returns"
+  },
+  {
+   "id": "p:close-look-unburies-plant",
+   "proximity": "close-look-unburies-plant",
+   "label": "When the close look matters more, the planted clue is less hidden",
+   "from": {
+    "curiosity": "closeOnThing",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plantForgotten",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the close look matters more",
+   "then": "the planted clue is less hidden"
+  },
+  {
+   "id": "p:close-look-we-know-first",
+   "proximity": "close-look-we-know-first",
+   "label": "When only we see the small thing, we know before they do",
+   "from": {
+    "curiosity": "closeOnThing.seenBy",
+    "track": "camera",
+    "is": "only us",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "knowledgeGap",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "audience first",
+   "when": "only we see the small thing",
+   "then": "we know before they do"
+  },
+  {
+   "id": "p:glance-empathy",
+   "proximity": "glance-empathy",
+   "label": "When their look puts us in their head, we feel with them",
+   "from": {
+    "curiosity": "glanceThenSee",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "their look puts us in their head",
+   "then": "we feel with them"
+  },
+  {
+   "id": "p:glance-unseen-offscreen",
+   "proximity": "glance-unseen-offscreen",
+   "label": "When we don't get to see what they see, more is kept from us",
+   "from": {
+    "curiosity": "glanceThenSee.seen",
+    "track": "camera",
+    "is": "something we don't get to see",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "offscreen",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we don't get to see what they see",
+   "then": "more is kept from us"
+  },
+  {
+   "id": "p:face-hold-realization",
+   "proximity": "face-hold-realization",
+   "label": "When we stay on their face longer, we watch them understand",
+   "from": {
+    "curiosity": "glanceThenSee.faceHold",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "realization",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we stay on their face longer",
+   "then": "we watch them understand"
+  },
+  {
+   "id": "p:trickster-complication",
+   "proximity": "trickster-complication",
+   "label": "When the trickster stirs more trouble, things get worse",
+   "from": {
+    "curiosity": "tricksterRole",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the trickster stirs more trouble",
+   "then": "things get worse"
+  },
+  {
+   "id": "p:trickster-truth-realization",
+   "proximity": "trickster-truth-realization",
+   "label": "When the tricks hide more truth, someone sees it",
+   "from": {
+    "curiosity": "tricksterRole.truth",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "realization",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the tricks hide more truth",
+   "then": "someone sees it"
+  },
+  {
+   "id": "p:trickster-swaps-laughs",
+   "proximity": "trickster-swaps-laughs",
+   "label": "When the trickster swaps and switches, the laughs come",
+   "from": {
+    "curiosity": "tricksterRole.tool",
+    "track": "character",
+    "is": "swaps and switches",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the trickster swaps and switches",
+   "then": "the laughs come"
+  },
+  {
+   "id": "p:caretaker-tenderness",
+   "proximity": "caretaker-tenderness",
+   "label": "When the caretaker looks after others more, tenderness grows",
+   "from": {
+    "curiosity": "caretaker",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the caretaker looks after others more",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:caretaker-unthanked-empathy",
+   "proximity": "caretaker-unthanked-empathy",
+   "label": "When nobody thanks the caretaker, we feel for them",
+   "from": {
+    "curiosity": "caretaker.thanks",
+    "track": "character",
+    "is": "none",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "nobody thanks the caretaker",
+   "then": "we feel for them"
+  },
+  {
+   "id": "p:caretaker-walks-complication",
+   "proximity": "caretaker-walks-complication",
+   "label": "When the caretaker walks away, everything falls apart",
+   "from": {
+    "curiosity": "caretaker.breaks",
+    "track": "character",
+    "is": "they walk away",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the caretaker walks away",
+   "then": "everything falls apart"
+  },
+  {
+   "id": "p:rivals-closer-warmth",
+   "proximity": "rivals-closer-warmth",
+   "label": "When the rivals come closer, warmth grows",
+   "from": {
+    "curiosity": "rivalToFriend",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the rivals come closer",
+   "then": "warmth grows"
+  },
+  {
+   "id": "p:rivals-spark-chemistry",
+   "proximity": "rivals-spark-chemistry",
+   "label": "When the rivals keep their sharp words, the spark grows",
+   "from": {
+    "curiosity": "rivalToFriend.spark",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "chemistry",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the rivals keep their sharp words",
+   "then": "the spark grows"
+  },
+  {
+   "id": "p:shared-enemy-sides",
+   "proximity": "shared-enemy-sides",
+   "label": "When a shared enemy turns them, the sides shift",
+   "from": {
+    "curiosity": "rivalToFriend.turn",
+    "track": "character",
+    "is": "a shared enemy",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "alliances",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a shared enemy turns them",
+   "then": "the sides shift"
+  },
+  {
+   "id": "p:sidekick-laughs",
+   "proximity": "sidekick-laughs",
+   "label": "When the sidekick gets funnier, the laughs come more often",
+   "from": {
+    "curiosity": "comicSidekick",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the sidekick gets funnier",
+   "then": "the laughs come more often"
+  },
+  {
+   "id": "p:sidekick-saves-pride",
+   "proximity": "sidekick-saves-pride",
+   "label": "When the sidekick saves the day, pride rises",
+   "from": {
+    "curiosity": "comicSidekick.brave",
+    "track": "character",
+    "is": "saves the day",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pride",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the sidekick saves the day",
+   "then": "pride rises"
+  },
+  {
+   "id": "p:villain-like-hero-mirror",
+   "proximity": "villain-like-hero-mirror",
+   "label": "When the villain is more like the hero, the mirror grows",
+   "from": {
+    "curiosity": "rightfulVillain.likeHero",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "foil",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the villain is more like the hero",
+   "then": "the mirror grows"
+  },
+  {
+   "id": "p:villain-mostly-right-mixed",
+   "proximity": "villain-mostly-right-mixed",
+   "label": "When the villain is mostly right, our feelings get mixed",
+   "from": {
+    "curiosity": "rightfulVillain.point",
+    "track": "character",
+    "is": "mostly",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mixedFeelings",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the villain is mostly right",
+   "then": "our feelings get mixed"
+  },
+  {
+   "id": "p:costume-turn-change-shows",
+   "proximity": "costume-turn-change-shows",
+   "label": "When the change of clothes is bigger, the inner change shows",
+   "from": {
+    "curiosity": "costumeTurn",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "changeShows",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the change of clothes is bigger",
+   "then": "the inner change shows"
+  },
+  {
+   "id": "p:realization-new-clothes",
+   "proximity": "realization-new-clothes",
+   "label": "When they finally see it, the clothes change",
+   "from": {
+    "curiosity": "realization",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "costumeTurn",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they finally see it",
+   "then": "the clothes change"
+  },
+  {
+   "id": "p:everyone-stares-pride",
+   "proximity": "everyone-stares-pride",
+   "label": "When everyone stares at the new look, pride rises",
+   "from": {
+    "curiosity": "costumeTurn.seen",
+    "track": "character",
+    "is": "everyone stares",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pride",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "everyone stares at the new look",
+   "then": "pride rises"
+  },
+  {
+   "id": "p:breaks-from-look-apart",
+   "proximity": "breaks-from-look-apart",
+   "label": "When the hero breaks from the group's look, they stand apart",
+   "from": {
+    "curiosity": "groupDressed.outOfStep",
+    "track": "character",
+    "is": "the hero breaks away",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "apartFromGroup",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hero breaks from the group's look",
+   "then": "they stand apart"
+  },
+  {
+   "id": "p:group-look-splits-sides",
+   "proximity": "group-look-splits-sides",
+   "label": "When the group's look splits in two, so do the sides",
+   "from": {
+    "curiosity": "groupDressed.drift",
+    "track": "character",
+    "is": "splits in two",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "alliances",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the group's look splits in two",
+   "then": "so do the sides"
+  },
+  {
+   "id": "p:clash-eye-first",
+   "proximity": "clash-eye-first",
+   "label": "When the piece clashes more, the eye goes there first",
+   "from": {
+    "curiosity": "clashingPiece",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "eyeFirst",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the piece clashes more",
+   "then": "the eye goes there first"
+  },
+  {
+   "id": "p:piece-memory-nostalgia",
+   "proximity": "piece-memory-nostalgia",
+   "label": "When the odd piece is a memory of someone, nostalgia comes",
+   "from": {
+    "curiosity": "clashingPiece.meaning",
+    "track": "character",
+    "is": "a memory of someone",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "nostalgia",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the odd piece is a memory of someone",
+   "then": "nostalgia comes"
+  },
+  {
+   "id": "p:bad-fit-empathy",
+   "proximity": "bad-fit-empathy",
+   "label": "When the clothes fit worse, we feel for them",
+   "from": {
+    "curiosity": "notTheirClothes",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clothes fit worse",
+   "then": "we feel for them"
+  },
+  {
+   "id": "p:bad-fit-teased-shame",
+   "proximity": "bad-fit-teased-shame",
+   "label": "When they are teased for the bad fit, shame rises",
+   "from": {
+    "curiosity": "notTheirClothes.others",
+    "track": "character",
+    "is": "teasing",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they are teased for the bad fit",
+   "then": "shame rises"
+  },
+  {
+   "id": "p:clothes-fit-change-shows",
+   "proximity": "clothes-fit-change-shows",
+   "label": "When the clothes finally fit, the change shows",
+   "from": {
+    "curiosity": "notTheirClothes.grows",
+    "track": "character",
+    "is": "by the end they fit",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "changeShows",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the clothes finally fit",
+   "then": "the change shows"
+  },
+  {
+   "id": "p:uniform-left-no-return",
+   "proximity": "uniform-left-no-return",
+   "label": "When the uniform is folded and left behind, there is no going back",
+   "from": {
+    "curiosity": "uniformOff.how",
+    "track": "character",
+    "is": "folded and left behind",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pointOfNoReturn",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the uniform is folded and left behind",
+   "then": "there is no going back"
+  },
+  {
+   "id": "p:uniform-off-costume-turn",
+   "proximity": "uniform-off-costume-turn",
+   "label": "When taking off the uniform matters more, the look turns",
+   "from": {
+    "curiosity": "uniformOff",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "costumeTurn",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "taking off the uniform matters more",
+   "then": "the look turns"
+  },
+  {
+   "id": "p:uniform-off-trust-tenderness",
+   "proximity": "uniform-off-trust-tenderness",
+   "label": "When the uniform comes off in front of someone they trust, tenderness grows",
+   "from": {
+    "curiosity": "uniformOff.who",
+    "track": "character",
+    "is": "one person they trust",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the uniform comes off in front of someone they trust",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:style-long-talk-violence",
+   "proximity": "style-long-talk-violence",
+   "label": "When the talk runs long and casual, violence arrives without warning",
+   "from": {
+    "curiosity": "sceneLength",
+    "track": "master",
+    "is": "long",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoActions",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "drastic",
+   "when": "the talk runs long and casual",
+   "then": "violence arrives without warning"
+  },
+  {
+   "id": "p:style-odd-topic-tension",
+   "proximity": "style-odd-topic-tension",
+   "label": "When small talk turns to an oddly specific topic, the tension quietly climbs",
+   "from": {
+    "curiosity": "specificity",
+    "track": "master",
+    "is": "oddly specific",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "small talk turns to an oddly specific topic",
+   "then": "the tension quietly climbs"
+  },
+  {
+   "id": "p:style-pop-song-cold",
+   "proximity": "style-pop-song-cold",
+   "label": "When a cheerful old song plays over cruelty, the audience feels something stranger than the scene",
+   "from": {
+    "curiosity": "music.counterpoint",
+    "track": "master",
+    "is": "opposite",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "audienceFeeling",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "different",
+   "when": "a cheerful old song plays over cruelty",
+   "then": "the audience feels something stranger than the scene"
+  },
+  {
+   "id": "p:style-chapter-new-view",
+   "proximity": "style-chapter-new-view",
+   "label": "When a chapter card appears, the story jumps to someone else's side",
+   "from": {
+    "curiosity": "chapterCard",
+    "track": "master",
+    "is": "number and title",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "povSwitch",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "switches sometimes",
+   "when": "a chapter card appears",
+   "then": "the story jumps to someone else's side"
+  },
+  {
+   "id": "p:style-silence-standoff",
+   "proximity": "style-silence-standoff",
+   "label": "When the room goes quiet, the standoff holds longer",
+   "from": {
+    "curiosity": "silence",
+    "track": "character",
+    "is": "long",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "faceOff.hold",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the room goes quiet",
+   "then": "the standoff holds longer"
+  },
+  {
+   "id": "p:style-center-deadpan-lands",
+   "proximity": "style-center-deadpan-lands",
+   "label": "When the frame is dead center and still, the deadpan joke lands harder",
+   "from": {
+    "curiosity": "composition",
+    "track": "camera",
+    "is": "center",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the frame is dead center and still",
+   "then": "the deadpan joke lands harder"
+  },
+  {
+   "id": "p:style-feeling-flat-face",
+   "proximity": "style-feeling-flat-face",
+   "label": "When the feeling runs high, the face stays flat",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "faceIntensity",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the feeling runs high",
+   "then": "the face stays flat"
+  },
+  {
+   "id": "p:style-whip-to-tableau",
+   "proximity": "style-whip-to-tableau",
+   "label": "When the camera whips to the side, a new neat picture is waiting",
+   "from": {
+    "curiosity": "panReveal.turnSpeed",
+    "track": "camera",
+    "is": "a whip",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "composition",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "center",
+   "when": "the camera whips to the side",
+   "then": "a new neat picture is waiting"
+  },
+  {
+   "id": "p:style-specific-sadness",
+   "proximity": "style-specific-sadness",
+   "label": "When the details are absurdly specific, the sadness underneath shows through",
+   "from": {
+    "curiosity": "specificity",
+    "track": "master",
+    "is": "absurdly specific",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsToTears.depth",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the details are absurdly specific",
+   "then": "the sadness underneath shows through"
+  },
+  {
+   "id": "p:style-know-first-dread",
+   "proximity": "style-know-first-dread",
+   "label": "When the audience knows the danger first, every calm line adds dread",
+   "from": {
+    "curiosity": "knowledgeGap",
+    "track": "character",
+    "is": "audience first",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the audience knows the danger first",
+   "then": "every calm line adds dread"
+  },
+  {
+   "id": "p:style-linger-dread",
+   "proximity": "style-linger-dread",
+   "label": "When the camera stays too long, the dread rises",
+   "from": {
+    "curiosity": "lingeringShot",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera stays too long",
+   "then": "the dread rises"
+  },
+  {
+   "id": "p:style-clock-fast-cuts",
+   "proximity": "style-clock-fast-cuts",
+   "label": "When the clock is down to seconds, the cuts speed up",
+   "from": {
+    "curiosity": "tickingClock",
+    "track": "character",
+    "is": "seconds left",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "fast",
+   "when": "the clock is down to seconds",
+   "then": "the cuts speed up"
+  },
+  {
+   "id": "p:style-danger-music-dead",
+   "proximity": "style-danger-music-dead",
+   "label": "When the danger rushes in, the music stops dead",
+   "from": {
+    "curiosity": "behindTheirBack.closing",
+    "track": "master",
+    "is": "rushes in",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "music.exit",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "cut dead mid-phrase",
+   "when": "the danger rushes in",
+   "then": "the music stops dead"
+  },
+  {
+   "id": "p:style-overlap-sparks",
+   "proximity": "style-overlap-sparks",
+   "label": "When they talk over each other, the sparks between them grow",
+   "from": {
+    "curiosity": "pace.overlap",
+    "track": "character",
+    "is": "talking over each other",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "chemistry",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they talk over each other",
+   "then": "the sparks between them grow"
+  },
+  {
+   "id": "p:style-faster-talk-chaos",
+   "proximity": "style-faster-talk-chaos",
+   "label": "When the talk speeds up, the chaos around them grows",
+   "from": {
+    "curiosity": "pace.wpm",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicEscalation",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the talk speeds up",
+   "then": "the chaos around them grows"
+  },
+  {
+   "id": "p:style-calm-one-snaps",
+   "proximity": "style-calm-one-snaps",
+   "label": "When the calm one finally loses it, the biggest laugh lands",
+   "from": {
+    "curiosity": "straightMan",
+    "track": "master",
+    "is": "loses it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the calm one finally loses it",
+   "then": "the biggest laugh lands"
+  },
+  {
+   "id": "p:style-cutoff-quicker",
+   "proximity": "style-cutoff-quicker",
+   "label": "When lines keep getting cut off, the pace gets even quicker",
+   "from": {
+    "curiosity": "cutOff.count",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "pace.wpm",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "lines keep getting cut off",
+   "then": "the pace gets even quicker"
+  },
+  {
+   "id": "p:style-follow-close-empathy",
+   "proximity": "style-follow-close-empathy",
+   "label": "When the camera follows close behind them, we feel what they feel",
+   "from": {
+    "curiosity": "moveFollows.tightness",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera follows close behind them",
+   "then": "we feel what they feel"
+  },
+  {
+   "id": "p:style-no-score-room-louder",
+   "proximity": "style-no-score-room-louder",
+   "label": "When there is no music, the sound of the place fills in",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "none",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "ambienceBed",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "there is no music",
+   "then": "the sound of the place fills in"
+  },
+  {
+   "id": "p:style-panic-shakes",
+   "proximity": "style-panic-shakes",
+   "label": "When the person panics, the camera shakes more",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cameraShake",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the person panics",
+   "then": "the camera shakes more"
+  },
+  {
+   "id": "p:style-long-take-loose",
+   "proximity": "style-long-take-loose",
+   "label": "When the take runs long, the acting loosens up",
+   "from": {
+    "curiosity": "shotDuration",
+    "track": "camera",
+    "is": "long",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "improvFeel",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the take runs long",
+   "then": "the acting loosens up"
+  },
+  {
+   "id": "p:style-wide-stunt-awe",
+   "proximity": "style-wide-stunt-awe",
+   "label": "When the stunt is shown wide in one shot, our jaw drops",
+   "from": {
+    "curiosity": "shotSize",
+    "track": "camera",
+    "is": "wide",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "awe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the stunt is shown wide in one shot",
+   "then": "our jaw drops"
+  },
+  {
+   "id": "p:style-see-trap-laugh",
+   "proximity": "style-see-trap-laugh",
+   "label": "When we see the trap before the hero does, the laugh grows",
+   "from": {
+    "curiosity": "comicSuspense",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we see the trap before the hero does",
+   "then": "the laugh grows"
+  },
+  {
+   "id": "p:style-stone-face-chaos",
+   "proximity": "style-stone-face-chaos",
+   "label": "When the face stays blank, the chaos around gets funnier",
+   "from": {
+    "curiosity": "comicRegister",
+    "track": "master",
+    "is": "deadpan",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicEscalation",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the face stays blank",
+   "then": "the chaos around gets funnier"
+  },
+  {
+   "id": "p:style-no-words-music-steps",
+   "proximity": "style-no-words-music-steps",
+   "label": "When no one speaks, the music follows every step",
+   "from": {
+    "curiosity": "wordsAmount",
+    "track": "master",
+    "is": 0,
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "comicScore.followsMoves",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "every step",
+   "when": "no one speaks",
+   "then": "the music follows every step"
+  },
+  {
+   "id": "p:style-face-before-wonder",
+   "proximity": "style-face-before-wonder",
+   "label": "When a face stares up in wonder, the reveal feels bigger",
+   "from": {
+    "curiosity": "pushInFace",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a face stares up in wonder",
+   "then": "the reveal feels bigger"
+  },
+  {
+   "id": "p:style-unseen-dread",
+   "proximity": "style-unseen-dread",
+   "label": "When the big thing stays off screen, the dread builds",
+   "from": {
+    "curiosity": "offscreen",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the big thing stays off screen",
+   "then": "the dread builds"
+  },
+  {
+   "id": "p:style-reveal-orchestra",
+   "proximity": "style-reveal-orchestra",
+   "label": "When the big reveal lands, the orchestra swells",
+   "from": {
+    "curiosity": "panReveal",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "music.energy",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the big reveal lands",
+   "then": "the orchestra swells"
+  },
+  {
+   "id": "p:style-theme-returns-release",
+   "proximity": "style-theme-returns-release",
+   "label": "When the hero's tune comes back, the audience lets go",
+   "from": {
+    "curiosity": "characterTheme",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "catharsis",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hero's tune comes back",
+   "then": "the audience lets go"
+  },
+  {
+   "id": "p:style-end-empty-room",
+   "proximity": "style-end-empty-room",
+   "label": "When a scene ends quietly, the camera rests on an empty room",
+   "from": {
+    "curiosity": "sceneEnding",
+    "track": "master",
+    "is": "quiet fade",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "holdBeforeCut",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a scene ends quietly",
+   "then": "the camera rests on an empty room"
+  },
+  {
+   "id": "p:style-held-in-weight",
+   "proximity": "style-held-in-weight",
+   "label": "When the feeling is kept inside, the weight we carry grows",
+   "from": {
+    "curiosity": "emoShown",
+    "track": "master",
+    "is": "mostly hidden",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotionalDebt",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the feeling is kept inside",
+   "then": "the weight we carry grows"
+  },
+  {
+   "id": "p:style-still-camera-closer",
+   "proximity": "style-still-camera-closer",
+   "label": "When the camera stays still and low, we feel closer to the family",
+   "from": {
+    "curiosity": "cameraMove",
+    "track": "camera",
+    "is": "none",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera stays still and low",
+   "then": "we feel closer to the family"
+  },
+  {
+   "id": "p:style-leaves-house-quiet",
+   "proximity": "style-leaves-house-quiet",
+   "label": "When someone leaves home for good, the house goes lonely",
+   "from": {
+    "curiosity": "walkOut",
+    "track": "character",
+    "is": "leaves for good",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone leaves home for good",
+   "then": "the house goes lonely"
+  },
+  {
+   "id": "p:style-wet-neon-glow",
+   "proximity": "style-wet-neon-glow",
+   "label": "When the streets are wet at night, the neon glows twice as bright",
+   "from": {
+    "curiosity": "wetness",
+    "track": "master",
+    "is": "soaked",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "glow.brightness",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the streets are wet at night",
+   "then": "the neon glows twice as bright"
+  },
+  {
+   "id": "p:style-narrator-murky",
+   "proximity": "style-narrator-murky",
+   "label": "When the hero tells the story in voice-over, the truth gets murkier",
+   "from": {
+    "curiosity": "voiceover",
+    "track": "master",
+    "is": "running",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "unreliableView",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hero tells the story in voice-over",
+   "then": "the truth gets murkier"
+  },
+  {
+   "id": "p:style-shadow-entrance-trust",
+   "proximity": "style-shadow-entrance-trust",
+   "label": "When a stranger first appears as a shadow, trust drops",
+   "from": {
+    "curiosity": "bigEntrance.firstSeen",
+    "track": "character",
+    "is": "a shadow",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "a stranger first appears as a shadow",
+   "then": "trust drops"
+  },
+  {
+   "id": "p:style-blinds-trapped",
+   "proximity": "style-blinds-trapped",
+   "label": "When the blinds cut the light into bars, the hero looks trapped",
+   "from": {
+    "curiosity": "lightShape",
+    "track": "master",
+    "is": "blinds",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "waysOut",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the blinds cut the light into bars",
+   "then": "the hero looks trapped"
+  },
+  {
+   "id": "p:style-awkward-snap-zoom",
+   "proximity": "style-awkward-snap-zoom",
+   "label": "When someone says something awkward, the camera snaps in on a face",
+   "from": {
+    "curiosity": "cringe",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "reframe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "strong punch-in",
+   "when": "someone says something awkward",
+   "then": "the camera snaps in on a face"
+  },
+  {
+   "id": "p:style-look-at-lens-laugh",
+   "proximity": "style-look-at-lens-laugh",
+   "label": "When someone looks straight at the camera, the laugh doubles",
+   "from": {
+    "curiosity": "comicReaction.toCamera",
+    "track": "master",
+    "is": "a long look",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone looks straight at the camera",
+   "then": "the laugh doubles"
+  },
+  {
+   "id": "p:style-interview-contradicted",
+   "proximity": "style-interview-contradicted",
+   "label": "When the next shot shows the opposite of the interview, the irony is plain",
+   "from": {
+    "curiosity": "cutawayGag.kind",
+    "track": "master",
+    "is": "a contradiction",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "irony.obviousness",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the next shot shows the opposite of the interview",
+   "then": "the irony is plain"
+  },
+  {
+   "id": "p:style-loose-truth-slips",
+   "proximity": "style-loose-truth-slips",
+   "label": "When the talk loosens up, a secret slips out",
+   "from": {
+    "curiosity": "improvFeel",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plotSecret",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "set",
+   "value": "slipping",
+   "when": "the talk loosens up",
+   "then": "a secret slips out"
+  },
+  {
+   "id": "p:style-silence-brace",
+   "proximity": "style-silence-brace",
+   "label": "When the music drains away, we brace for a shock",
+   "from": {
+    "curiosity": "noMusic",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the music drains away",
+   "then": "we brace for a shock"
+  },
+  {
+   "id": "p:style-false-then-real",
+   "proximity": "style-false-then-real",
+   "label": "When a false scare passes, the real one comes right after",
+   "from": {
+    "curiosity": "psychOut",
+    "track": "master",
+    "is": "psych-out",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "bigHit",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a false scare passes",
+   "then": "the real one comes right after"
+  },
+  {
+   "id": "p:style-empty-space-search",
+   "proximity": "style-empty-space-search",
+   "label": "When the frame leaves dark empty space, we search it for what is hidden",
+   "from": {
+    "curiosity": "emptySpace",
+    "track": "character",
+    "is": "most",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "offscreen",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the frame leaves dark empty space",
+   "then": "we search it for what is hidden"
+  },
+  {
+   "id": "p:style-scare-slams-loud",
+   "proximity": "style-scare-slams-loud",
+   "label": "When the scare hits, the sound slams to its loudest",
+   "from": {
+    "curiosity": "bigHit",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "loudness",
+    "track": "master"
+   },
+   "within": 0,
+   "amount": 0.25,
+   "does": "set",
+   "value": "peaking",
+   "when": "the scare hits",
+   "then": "the sound slams to its loudest"
+  },
+  {
+   "id": "p:style-bump-spark",
+   "proximity": "style-bump-spark",
+   "label": "When two strangers bump into each other, the spark starts",
+   "from": {
+    "curiosity": "physicalComedy",
+    "track": "master",
+    "is": "a small fumble",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "chemistry",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "two strangers bump into each other",
+   "then": "the spark starts"
+  },
+  {
+   "id": "p:style-bicker-warms",
+   "proximity": "style-bicker-warms",
+   "label": "When they argue, they warm to each other",
+   "from": {
+    "curiosity": "egoClash",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they argue",
+   "then": "they warm to each other"
+  },
+  {
+   "id": "p:style-mixup-longing",
+   "proximity": "style-mixup-longing",
+   "label": "When a mix-up pulls them apart, the longing grows",
+   "from": {
+    "curiosity": "misunderstanding",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "longing",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a mix-up pulls them apart",
+   "then": "the longing grows"
+  },
+  {
+   "id": "p:style-close-music-swells",
+   "proximity": "style-close-music-swells",
+   "label": "When they finally stand close, the music swells",
+   "from": {
+    "curiosity": "personalSpace",
+    "track": "master",
+    "is": "close",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "music.energy",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they finally stand close",
+   "then": "the music swells"
+  },
+  {
+   "id": "p:style-plan-told-goes-wrong",
+   "proximity": "style-plan-told-goes-wrong",
+   "label": "When the plan is laid out in full, something is bound to go wrong",
+   "from": {
+    "curiosity": "planShown",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the plan is laid out in full",
+   "then": "something is bound to go wrong"
+  },
+  {
+   "id": "p:style-falls-apart-payoff",
+   "proximity": "style-falls-apart-payoff",
+   "label": "When it all seems to fall apart, the hidden part of the plan pays off",
+   "from": {
+    "curiosity": "complication",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "plantForgotten.payoffSize",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "it all seems to fall apart",
+   "then": "the hidden part of the plan pays off"
+  },
+  {
+   "id": "p:style-crosscut-tension",
+   "proximity": "style-crosscut-tension",
+   "label": "When the cutting jumps between the crew, the tension climbs",
+   "from": {
+    "curiosity": "intercut",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the cutting jumps between the crew",
+   "then": "the tension climbs"
+  },
+  {
+   "id": "p:style-clock-music-faster",
+   "proximity": "style-clock-music-faster",
+   "label": "When the clock is down to seconds, the music speeds up",
+   "from": {
+    "curiosity": "tickingClock",
+    "track": "character",
+    "is": "seconds left",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tempoShift",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "speeds a lot",
+   "when": "the clock is down to seconds",
+   "then": "the music speeds up"
+  },
+  {
+   "id": "p:style-song-floods-back",
+   "proximity": "style-song-floods-back",
+   "label": "When a famous song from their youth plays, the past floods back",
+   "from": {
+    "curiosity": "music.familiarity",
+    "track": "master",
+    "is": "famous",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "nostalgia",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a famous song from their youth plays",
+   "then": "the past floods back"
+  },
+  {
+   "id": "p:style-night-walk-opens",
+   "proximity": "style-night-walk-opens",
+   "label": "When they walk and talk through the night, they open up",
+   "from": {
+    "curiosity": "walkAndTalk",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emoShown",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they walk and talk through the night",
+   "then": "they open up"
+  },
+  {
+   "id": "p:style-leave-home-grow",
+   "proximity": "style-leave-home-grow",
+   "label": "When they leave the place they always came back to, they grow up a little",
+   "from": {
+    "curiosity": "homeBase.lastVisit",
+    "track": "master",
+    "is": "it is left behind",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "arcDirection",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "grows",
+   "when": "they leave the place they always came back to",
+   "then": "they grow up a little"
+  },
+  {
+   "id": "p:style-summer-ends-longing",
+   "proximity": "style-summer-ends-longing",
+   "label": "When summer turns to autumn, the longing sets in",
+   "from": {
+    "curiosity": "seasons.season",
+    "track": "master",
+    "is": "autumn",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "longing",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "summer turns to autumn",
+   "then": "the longing sets in"
+  },
+  {
+   "id": "p:style-sounds-start-song",
+   "proximity": "style-sounds-start-song",
+   "label": "When everyday sounds fall into a beat, the song begins",
+   "from": {
+    "curiosity": "soundsBecomeMusic",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "music",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "featured",
+   "when": "everyday sounds fall into a beat",
+   "then": "the song begins"
+  },
+  {
+   "id": "p:style-feeling-bursts-song",
+   "proximity": "style-feeling-bursts-song",
+   "label": "When the feeling gets too big for talking, they burst into song",
+   "from": {
+    "curiosity": "emotionIntensity",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "onScreenPerformance",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "takes over the scene",
+   "when": "the feeling gets too big for talking",
+   "then": "they burst into song"
+  },
+  {
+   "id": "p:style-crowd-joins",
+   "proximity": "style-crowd-joins",
+   "label": "When someone bursts into song, the people around join in",
+   "from": {
+    "curiosity": "onScreenPerformance.kind",
+    "track": "master",
+    "is": "bursting into song",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "copying",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone bursts into song",
+   "then": "the people around join in"
+  },
+  {
+   "id": "p:style-peak-camera-rises",
+   "proximity": "style-peak-camera-rises",
+   "label": "When the number peaks, the camera rises above them",
+   "from": {
+    "curiosity": "music.energy",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cameraMove",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "crane",
+   "when": "the number peaks",
+   "then": "the camera rises above them"
+  },
+  {
+   "id": "p:style-money-louder",
+   "proximity": "style-money-louder",
+   "label": "When the money runs out, the kitchen arguments get louder",
+   "from": {
+    "curiosity": "stakes",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "volume",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the money runs out",
+   "then": "the kitchen arguments get louder"
+  },
+  {
+   "id": "p:style-trouble-home-shabbier",
+   "proximity": "style-trouble-home-shabbier",
+   "label": "When things go wrong outside, the home gets shabbier",
+   "from": {
+    "curiosity": "complication",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "setUpkeep",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "things go wrong outside",
+   "then": "the home gets shabbier"
+  },
+  {
+   "id": "p:style-no-music-kindness",
+   "proximity": "style-no-music-kindness",
+   "label": "When no music tells us what to feel, a small kindness hits harder",
+   "from": {
+    "curiosity": "music",
+    "track": "master",
+    "is": "none",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "no music tells us what to feel",
+   "then": "a small kindness hits harder"
+  },
+  {
+   "id": "p:style-shame-lashes-out",
+   "proximity": "style-shame-lashes-out",
+   "label": "When their shame is seen by others, the resentment boils",
+   "from": {
+    "curiosity": "shame",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "resentment",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "their shame is seen by others",
+   "then": "the resentment boils"
   }
  ],
  "groups": [
@@ -16766,8 +19089,8 @@
   },
   {
    "id": "ps:emotion-steers-lens",
-   "label": "Emotion steers the lens",
-   "plain": "Emotion steers the lens: when the emotion changes, the angle height changes; when the emotion changes, the move temper changes.",
+   "label": "Feeling sets the camera height",
+   "plain": "When the feeling changes, the camera's height changes, and so does its attitude (gentle or aggressive).",
    "proximities": [
     "emotion-angle",
     "emotion-temper"
@@ -16793,7 +19116,7 @@
   {
    "id": "ps:weather-and-surface",
    "label": "Weather and surface",
-   "plain": "Weather and surface: when it rains, surfaces are soaked; when the render goes toon, the ink line is heavy; when impacts rise, the shake rises.",
+   "plain": "Weather and surface: when it rains, surfaces are soaked; when the render goes toon, the ink line is heavy; when impacts rise, the shake rises. Its toon line and impact shake pairs are not about weather; they may belong elsewhere.",
    "proximities": [
     "rain-wet",
     "toon-line",
@@ -17026,7 +19349,7 @@
   },
   {
    "id": "ps:light-follows-feeling",
-   "label": "Light follows feeling",
+   "label": "Light follows loss and reunion",
    "plain": "The light and color change with what the characters feel.",
    "proximities": [
     "drain-on-loss",
@@ -17269,8 +19592,8 @@
   },
   {
    "id": "ps:color-follows-feeling",
-   "label": "Color follows the feeling",
-   "plain": "Anger warms the picture, fear drains it, joy warms the light.",
+   "label": "Color follows anger, fear and joy",
+   "plain": "Anger warms the picture, fear drains it, joy warms the light. Close to \"Light follows loss and reunion\"; both share joy warming the light.",
    "proximities": [
     "anger-warm-red",
     "fear-color-drains",
@@ -17392,7 +19715,7 @@
   {
    "id": "ps:secret-in-the-room",
    "label": "The secret in the room",
-   "plain": "The outsider nears the truth, the room squirms, and the group closes ranks.",
+   "plain": "The outsider nears the truth, the room squirms, and the group closes ranks. Close to \"Secrets and lies\"; that one follows a secret slipping and the setbacks, this one the outsider getting close.",
    "proximities": [
     "secret-cringe",
     "oddone-group"
@@ -17432,8 +19755,8 @@
   },
   {
    "id": "ps:room-to-breathe",
-   "label": "Breathing room",
-   "plain": "A big feeling is followed by rest, and lifted dread by a laugh.",
+   "label": "Rest after a big feeling",
+   "plain": "A big feeling is followed by rest, and lifted dread by a laugh. Not \"Breathing room\", which sets a quiet, empty, long-held moment.",
    "proximities": [
     "big-then-breather",
     "relief-laugh"
@@ -17475,8 +19798,8 @@
   },
   {
    "id": "ps:body-tells-the-line",
-   "label": "The body tells the line",
-   "plain": "The body freezes on the key word, the listener leans in, and anger goes into the task.",
+   "label": "The body moves with the words",
+   "plain": "The body freezes on the key word, the listener leans in, and anger goes into the task. Close in name to \"The body tells first\", which is the feeling showing before the words; this one is the body moving with them.",
    "proximities": [
     "line-freeze",
     "listener-leans",
@@ -17504,7 +19827,7 @@
   {
    "id": "ps:camera-follows-feeling",
    "label": "The camera follows the feeling",
-   "plain": "The camera moves in at the peak, tilts with dread, and looks up when status flips.",
+   "plain": "The camera moves in at the peak, tilts with dread, and looks up when status flips. Close to \"Feeling sets the camera height\"; this one moves closer at the peak, tilts with dread and looks up when status flips.",
    "proximities": [
     "feeling-closer",
     "dread-tilt",
@@ -17550,8 +19873,8 @@
   },
   {
    "id": "ps:music-leads-the-edit",
-   "label": "Music leads the edit",
-   "plain": "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out.",
+   "label": "Featured music drives the edit",
+   "plain": "Featured music pulls the cuts onto the beat, slow motion lifts the music, and a scene that races then stops fades out. Close to \"Music steers the edit\"; that one starts from the tempo and builds to silence, this one starts from featured music and ends in a fade out.",
    "proximities": [
     "featured-music-beat",
     "slowmo-music",
@@ -17619,7 +19942,7 @@
   {
    "id": "ps:mood-moves-the-feeling",
    "label": "The mood moves the feeling",
-   "plain": "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh.",
+   "plain": "Mood stickers push the feeling: tears drop it, a sun lifts it, steam and crackles wind it up, a mallet makes it absurd, laughing till crying makes the audience laugh. Runs the other way from \"The face tells the feeling\"; with both on, each sets off the other in a loop.",
    "proximities": [
     "tears-lower",
     "sun-lifts",
@@ -17997,7 +20320,7 @@
   {
    "id": "ps:noir-squeeze",
    "label": "Noir squeeze",
-   "plain": "Side light, rising contrast, a dark picture, and characters hiding what they mean: the classic crime-film tightening.",
+   "plain": "Side light, rising contrast, a dark picture (low key: mostly dark with deep shadows) and characters hiding what they mean: the classic crime-film tightening, starting from the light.",
    "proximities": [
     "side-key-raises-contrast",
     "contrast-goes-low-key",
@@ -18183,7 +20506,7 @@
   {
    "id": "ps:dark-room-secrets",
    "label": "Dark room secrets",
-   "plain": "Dark walls push the picture into low key, and in the dark people stop saying what they mean.",
+   "plain": "Dark walls push the picture into low key, and in the dark people stop saying what they mean. Close to \"Noir squeeze\"; same ending, but this one starts from the set.",
    "proximities": [
     "dark-set-low-key",
     "low-key-hides-meaning"
@@ -18209,7 +20532,7 @@
   {
    "id": "ps:hard-edge-grade",
    "label": "Hard-edge grade",
-   "plain": "Crushed blacks push the contrast up, the picture goes dark, and the characters start hiding things.",
+   "plain": "Crushed blacks push the contrast up, the picture goes dark, and the characters start hiding things. Close to \"Noir squeeze\"; same ending, but this one starts in the edit.",
    "proximities": [
     "crushed-blacks-contrast",
     "contrast-goes-low-key",
@@ -18345,8 +20668,8 @@
   },
   {
    "id": "ps:growing-up",
-   "label": "Growing up",
-   "plain": "Caring wider lines up want and need, they act on their belief, the choice changes them, and the change shows.",
+   "label": "Caring wider leads to change",
+   "plain": "Caring wider lines up want and need, they act on their belief, the choice changes them, and the change shows. Close to \"Ends better than they began\", which sets where the arc ends; this one is the chain of causes that gets them there.",
    "proximities": [
     "wider-care-want-meets-need",
     "aligned-want-big-choice",
@@ -18493,7 +20816,7 @@
   {
    "id": "ps:sitcom-scene-shape",
    "label": "Sitcom scene shape",
-   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke.",
+   "plain": "Set up the catchphrase, a joke lands, a topper follows, a button closes the scene, and the tag brings back an old joke. Shares the topper pair with \"Stacking laughs\"; this one is the shape of a whole sitcom scene.",
    "proximities": [
     "catchphrase-held-back",
     "laugh-topper",
@@ -18512,7 +20835,7 @@
   {
    "id": "ps:farce-at-the-doors",
    "label": "Farce at the doors",
-   "plain": "Two people just miss each other, tension jumps, the disguise slips and the lie grows, until the near misses tip the room into chaos.",
+   "plain": "Two people just miss each other, tension jumps, the disguise slips and the lie grows, until the near misses tip the room into chaos. Close to \"The farce engine\"; this one is the doors and disguises kind.",
    "proximities": [
     "near-miss-tension",
     "disguise-slips-lie-grows",
@@ -19002,7 +21325,7 @@
   {
    "id": "ps:the-truth-comes-out-sideways",
    "label": "The truth comes out sideways",
-   "plain": "The big line is thrown away into silence, the next one trails off, the body answers instead, and a line cut off before the key word leaves us with a question.",
+   "plain": "The big line is thrown away into silence, the next one trails off, the body answers instead, and a line cut off before the key word leaves us with a question. Close to \"What isn't said\"; that one is about the face and the camera, this one about the lines.",
    "proximities": [
     "thrown-line-silence",
     "trailing-off-body-answers",
@@ -19163,6 +21486,376 @@
     "p:room-follows-change-shows",
     "p:room-comes-alive-hope",
     "p:home-lost-grief"
+   ]
+  },
+  {
+   "id": "ps:the-look-darkens",
+   "label": "The look darkens",
+   "plain": "The picture hardens as the trouble grows, tension climbs, the color drains and hope fades, the blacks swallow more and dread rises.",
+   "proximities": [
+    "hardening-tension",
+    "drained-hope-drops",
+    "dark-swallows-dread",
+    "more-black-more-questions"
+   ],
+   "links": [
+    "p:hardening-tension",
+    "p:drained-hope-drops",
+    "p:dark-swallows-dread",
+    "p:more-black-more-questions"
+   ]
+  },
+  {
+   "id": "ps:the-lie-in-the-picture",
+   "label": "The lie in the picture",
+   "plain": "The look gets too perfect and we trust it less, the colors go wrong and we doubt what we see, and then the perfect look breaks apart and everything flips.",
+   "proximities": [
+    "perfect-look-doubt",
+    "wrong-colors-doubt",
+    "perfect-breaks-reversal"
+   ],
+   "links": [
+    "p:perfect-look-doubt",
+    "p:wrong-colors-doubt",
+    "p:perfect-breaks-reversal"
+   ]
+  },
+  {
+   "id": "ps:apart-then-together",
+   "label": "Apart, then together",
+   "plain": "Their feelings drift and the frame splits them, the one losing stands alone, then a touch puts them back in one shot and warmth returns.",
+   "proximities": [
+    "feeling-gap-splits-frame",
+    "shot-alone-loneliness",
+    "together-on-touch-tenderness",
+    "shared-frame-warmth"
+   ],
+   "links": [
+    "p:feeling-gap-splits-frame",
+    "p:shot-alone-loneliness",
+    "p:together-on-touch-tenderness",
+    "p:shared-frame-warmth"
+   ]
+  },
+  {
+   "id": "ps:the-small-ones-view",
+   "label": "The small one's view",
+   "plain": "The camera stays at their height and we feel with them, the world towers and awe rises, and a parent kneels down and warmth returns.",
+   "proximities": [
+    "at-their-height-empathy",
+    "towering-awe",
+    "parent-kneels-warmth"
+   ],
+   "links": [
+    "p:at-their-height-empathy",
+    "p:towering-awe",
+    "p:parent-kneels-warmth"
+   ]
+  },
+  {
+   "id": "ps:enemy-to-ally",
+   "label": "Enemy to ally",
+   "plain": "A shared enemy shifts the sides, the rivals come closer and warmth grows, and their sharp words keep the spark alive.",
+   "proximities": [
+    "shared-enemy-sides",
+    "rivals-closer-warmth",
+    "rivals-spark-chemistry"
+   ],
+   "links": [
+    "p:shared-enemy-sides",
+    "p:rivals-closer-warmth",
+    "p:rivals-spark-chemistry"
+   ]
+  },
+  {
+   "id": "ps:the-change-you-can-wear",
+   "label": "The change you can wear",
+   "plain": "They finally see it and the clothes change, the new look shows the inner change, the clothes that were not theirs now fit, and the uniform comes off for good.",
+   "proximities": [
+    "realization-new-clothes",
+    "costume-turn-change-shows",
+    "clothes-fit-change-shows",
+    "uniform-left-no-return"
+   ],
+   "links": [
+    "p:realization-new-clothes",
+    "p:costume-turn-change-shows",
+    "p:clothes-fit-change-shows",
+    "p:uniform-left-no-return"
+   ]
+  },
+  {
+   "id": "ps:style-long-talk-snap-moves",
+   "label": "Long talk that snaps into violence: the moves",
+   "plain": "Talk long about odd little things, let the unease climb, lay a cheerful old song over cruelty, split the story into chapters, and hold the standoff in silence. In the spirit of Quentin Tarantino.",
+   "proximities": [
+    "style-long-talk-violence",
+    "style-odd-topic-tension",
+    "style-pop-song-cold",
+    "style-chapter-new-view",
+    "style-silence-standoff"
+   ],
+   "links": [
+    "p:style-long-talk-violence",
+    "p:style-odd-topic-tension",
+    "p:style-pop-song-cold",
+    "p:style-chapter-new-view",
+    "p:style-silence-standoff"
+   ]
+  },
+  {
+   "id": "ps:style-symmetry-deadpan-moves",
+   "label": "Symmetry and deadpan pastel: the moves",
+   "plain": "Center the frame so the dry joke lands, keep the face flat as the feeling grows, whip the camera to the next neat picture, and let fussy details open onto sadness. In the spirit of Wes Anderson.",
+   "proximities": [
+    "style-center-deadpan-lands",
+    "style-feeling-flat-face",
+    "style-whip-to-tableau",
+    "style-specific-sadness"
+   ],
+   "links": [
+    "p:style-center-deadpan-lands",
+    "p:style-feeling-flat-face",
+    "p:style-whip-to-tableau",
+    "p:style-specific-sadness"
+   ]
+  },
+  {
+   "id": "ps:style-slow-burn-dread-moves",
+   "label": "Slow-burn dread: the moves",
+   "plain": "Let us know first, hold the camera too long, tighten the clock until the cuts speed up, and stop the music dead when the danger arrives. In the spirit of Alfred Hitchcock.",
+   "proximities": [
+    "style-know-first-dread",
+    "style-linger-dread",
+    "style-clock-fast-cuts",
+    "style-danger-music-dead"
+   ],
+   "links": [
+    "p:style-know-first-dread",
+    "p:style-linger-dread",
+    "p:style-clock-fast-cuts",
+    "p:style-danger-music-dead"
+   ]
+  },
+  {
+   "id": "ps:style-rapid-screwball-moves",
+   "label": "Rapid-fire screwball: the moves",
+   "plain": "Overlap the lines so the spark grows, speed up so the chaos grows, keep cutting each other off, and save the biggest laugh for the calm one cracking. In the spirit of Howard Hawks.",
+   "proximities": [
+    "style-overlap-sparks",
+    "style-faster-talk-chaos",
+    "style-calm-one-snaps",
+    "style-cutoff-quicker"
+   ],
+   "links": [
+    "p:style-overlap-sparks",
+    "p:style-faster-talk-chaos",
+    "p:style-calm-one-snaps",
+    "p:style-cutoff-quicker"
+   ]
+  },
+  {
+   "id": "ps:style-handheld-realism-moves",
+   "label": "Handheld realism: the moves",
+   "plain": "Follow close so we feel with them, drop the music so the place speaks, let panic shake the camera, and hold long takes so the acting breathes. In the spirit of the Dardenne brothers.",
+   "proximities": [
+    "style-follow-close-empathy",
+    "style-no-score-room-louder",
+    "style-panic-shakes",
+    "style-long-take-loose"
+   ],
+   "links": [
+    "p:style-follow-close-empathy",
+    "p:style-no-score-room-louder",
+    "p:style-panic-shakes",
+    "p:style-long-take-loose"
+   ]
+  },
+  {
+   "id": "ps:style-silent-physical-moves",
+   "label": "Silent-film physical comedy: the moves",
+   "plain": "Shoot the stunt wide so it is real, show the trap early, keep the face blank as the chaos grows, and let the music speak when no one does. In the spirit of Buster Keaton.",
+   "proximities": [
+    "style-wide-stunt-awe",
+    "style-see-trap-laugh",
+    "style-stone-face-chaos",
+    "style-no-words-music-steps"
+   ],
+   "links": [
+    "p:style-wide-stunt-awe",
+    "p:style-see-trap-laugh",
+    "p:style-stone-face-chaos",
+    "p:style-no-words-music-steps"
+   ]
+  },
+  {
+   "id": "ps:style-blockbuster-awe-moves",
+   "label": "Big blockbuster awe: the moves",
+   "plain": "Show the face before the wonder, keep the big thing hidden, swell the orchestra on the reveal, and bring the hero's tune back for the release. In the spirit of Steven Spielberg.",
+   "proximities": [
+    "style-face-before-wonder",
+    "style-unseen-dread",
+    "style-reveal-orchestra",
+    "style-theme-returns-release"
+   ],
+   "links": [
+    "p:style-face-before-wonder",
+    "p:style-unseen-dread",
+    "p:style-reveal-orchestra",
+    "p:style-theme-returns-release"
+   ]
+  },
+  {
+   "id": "ps:style-quiet-family-moves",
+   "label": "Quiet family drama: the moves",
+   "plain": "End on the empty room, keep feelings inside until they weigh on us, hold the camera still and low, and let a departure leave the house lonely. In the spirit of Yasujiro Ozu.",
+   "proximities": [
+    "style-end-empty-room",
+    "style-held-in-weight",
+    "style-still-camera-closer",
+    "style-leaves-house-quiet"
+   ],
+   "links": [
+    "p:style-end-empty-room",
+    "p:style-held-in-weight",
+    "p:style-still-camera-closer",
+    "p:style-leaves-house-quiet"
+   ]
+  },
+  {
+   "id": "ps:style-neon-noir-moves",
+   "label": "Neon noir: the moves",
+   "plain": "Wet the streets so the neon doubles, let a narrator bend the truth, bring strangers in as shadows, and bar the light like a cell. In the spirit of classic film noir and its neon-lit heirs.",
+   "proximities": [
+    "style-wet-neon-glow",
+    "style-narrator-murky",
+    "style-shadow-entrance-trust",
+    "style-blinds-trapped"
+   ],
+   "links": [
+    "p:style-wet-neon-glow",
+    "p:style-narrator-murky",
+    "p:style-shadow-entrance-trust",
+    "p:style-blinds-trapped"
+   ]
+  },
+  {
+   "id": "ps:style-mockumentary-moves",
+   "label": "Mockumentary: the moves",
+   "plain": "Snap in on awkward faces, share a look at the lens, cut from the boast to the failure, and let people relax until secrets slip. In the spirit of Christopher Guest.",
+   "proximities": [
+    "style-awkward-snap-zoom",
+    "style-look-at-lens-laugh",
+    "style-interview-contradicted",
+    "style-loose-truth-slips"
+   ],
+   "links": [
+    "p:style-awkward-snap-zoom",
+    "p:style-look-at-lens-laugh",
+    "p:style-interview-contradicted",
+    "p:style-loose-truth-slips"
+   ]
+  },
+  {
+   "id": "ps:style-jump-scare-build-moves",
+   "label": "Horror jump scare build: the moves",
+   "plain": "Drain the music, leave empty dark space to search, give a false scare first, then slam the real one loud. In the spirit of James Wan.",
+   "proximities": [
+    "style-silence-brace",
+    "style-empty-space-search",
+    "style-false-then-real",
+    "style-scare-slams-loud"
+   ],
+   "links": [
+    "p:style-silence-brace",
+    "p:style-empty-space-search",
+    "p:style-false-then-real",
+    "p:style-scare-slams-loud"
+   ]
+  },
+  {
+   "id": "ps:style-meet-cute-moves",
+   "label": "Romantic comedy meet-cute: the moves",
+   "plain": "Bump them together, let the bickering warm them, pull them apart with a mix-up, and swell the music when they stand close. In the spirit of Nora Ephron.",
+   "proximities": [
+    "style-bump-spark",
+    "style-bicker-warms",
+    "style-mixup-longing",
+    "style-close-music-swells"
+   ],
+   "links": [
+    "p:style-bump-spark",
+    "p:style-bicker-warms",
+    "p:style-mixup-longing",
+    "p:style-close-music-swells"
+   ]
+  },
+  {
+   "id": "ps:style-heist-caper-moves",
+   "label": "Heist caper: the moves",
+   "plain": "Lay out the plan, let it go wrong, cut between the crew as the clock and music speed up, and pay off the hidden part at the end. In the spirit of Steven Soderbergh.",
+   "proximities": [
+    "style-plan-told-goes-wrong",
+    "style-crosscut-tension",
+    "style-clock-music-faster",
+    "style-falls-apart-payoff"
+   ],
+   "links": [
+    "p:style-plan-told-goes-wrong",
+    "p:style-crosscut-tension",
+    "p:style-clock-music-faster",
+    "p:style-falls-apart-payoff"
+   ]
+  },
+  {
+   "id": "ps:style-coming-of-age-moves",
+   "label": "Coming of age: the moves",
+   "plain": "Play the song that brings the past back, walk them through the night until they open up, end the summer, and leave the old place behind. In the spirit of Richard Linklater.",
+   "proximities": [
+    "style-song-floods-back",
+    "style-night-walk-opens",
+    "style-summer-ends-longing",
+    "style-leave-home-grow"
+   ],
+   "links": [
+    "p:style-song-floods-back",
+    "p:style-night-walk-opens",
+    "p:style-summer-ends-longing",
+    "p:style-leave-home-grow"
+   ]
+  },
+  {
+   "id": "ps:style-musical-number-moves",
+   "label": "Musical number: the moves",
+   "plain": "Find the beat in everyday sounds, burst into song when talk is not enough, let the crowd join, and lift the camera at the peak. In the spirit of classic Hollywood musicals.",
+   "proximities": [
+    "style-sounds-start-song",
+    "style-feeling-bursts-song",
+    "style-crowd-joins",
+    "style-peak-camera-rises"
+   ],
+   "links": [
+    "p:style-sounds-start-song",
+    "p:style-feeling-bursts-song",
+    "p:style-crowd-joins",
+    "p:style-peak-camera-rises"
+   ]
+  },
+  {
+   "id": "ps:style-kitchen-sink-moves",
+   "label": "Kitchen-sink realism: the moves",
+   "plain": "Let money troubles raise the voices, let trouble outside wear down the home, cut the music so small kindness lands, and let shame turn into resentment. In the spirit of Ken Loach.",
+   "proximities": [
+    "style-money-louder",
+    "style-trouble-home-shabbier",
+    "style-no-music-kindness",
+    "style-shame-lashes-out"
+   ],
+   "links": [
+    "p:style-money-louder",
+    "p:style-trouble-home-shabbier",
+    "p:style-no-music-kindness",
+    "p:style-shame-lashes-out"
    ]
   }
  ]

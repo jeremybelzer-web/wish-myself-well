@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "PAGE & PANEL\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 1, CC 17 to 32\n   1 Panels\n   2 Gutter\n   3 Balloon against caption\n   4 Panel size\n   5 Breaking the frame\n   6 Words per panel\n   7 Sound effects\n   8 Page-turn reveal\n   9 A full-page picture\n  10 The jump between panels\n  11 A panel with no words\n  12 The same panel again\n  13 The path the eye reads\n  14 suite: Steady six-panel grid\n  15 suite: Splash-page reveal\n  16 suite: Silent page\nCV-CC 2: PORT 2 (your second cable), MIDI channel 1, CC 33 to 48\n   1 suite: Talky page\n   2 suite: Three-panel strip gag\n   3 suite: Action page\n   4 suite: Ink comic\n   5 suite: Big reveal page\n   6 suite: The comic pause on the page\n   7 pair: When a page ends on a cliffhanger, the next page opens big\n   8 pair: When the feeling peaks, the panel grows\n   9 pair: When the talk speeds up, panels shrink and multiply\n  10 pair: When a scene ends, the gutter widens\n  11 pair: When words move from speech balloons into captions, we hear what the character is really thinking\n  12 pair: When a picture breaks out of its panel, the page bursts with energy\n  13 pair: When the words thin out, the pictures get bigger\n  14 pair: When a picture fills the whole page, the sound effects grow as big as the page\n  15 pair: When a sound effect fills the page, the picture bursts out of its frame\n  16 pair: When the page turn is a reveal, a full-page picture follows\nCV-CC 3: PORT 2 (your second cable), MIDI channel 1, CC 49 to 60\n   1 pair: When the picture takes more of the page, awe rises\n   2 pair: When the jump is to another place or time, the gap between panels marks a new scene\n   3 pair: When the reader fills in more, the questions pile up\n   4 pair: When the panels go silent, the words thin out\n   5 pair: When a silent panel shows an empty room, loneliness grows\n   6 pair: When the same panel repeats more, the comic pause gets longer\n   7 pair: When the repeat is an awkward silence, the cringe grows\n   8 pair: When the reading path is clearer, the eye lands where it should\n   9 pair: When the page has more balloons, the words pile up\n  10 pairs: The page breathes with the story\n  11 pairs: The loud page\n  12 pairs: Turn the page"
+    "text": "PAGE & PANEL\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: PORT 2 (your second cable), MIDI channel 3, CC 17 to 32\n   1 Panels\n   2 Gutter\n   3 Balloon against caption\n   4 Panel size\n   5 Breaking the panel border\n   6 Words per panel\n   7 Sound effects\n   8 Page-turn reveal\n   9 A full-page picture\n  10 The jump between panels\n  11 A panel with no words\n  12 The same panel again\n  13 The path the eye reads\n  14 suite: Steady six-panel grid\n  15 suite: Splash-page reveal\n  16 suite: Silent page\nCV-CC 2: PORT 2 (your second cable), MIDI channel 3, CC 33 to 48\n   1 suite: Talky page\n   2 suite: Three-panel strip gag\n   3 suite: Action page\n   4 suite: Printed comic page look\n   5 suite: Big reveal page\n   6 suite: The comic pause on the page\n   7 pair: When a page ends on a cliffhanger, the next page opens big\n   8 pair: When the feeling peaks, the panel grows\n   9 pair: When the talk speeds up, panels shrink and multiply\n  10 pair: When a scene ends, the gutter widens\n  11 pair: When words move from speech balloons into captions, we hear what the character is really thinking\n  12 pair: When a picture breaks out of its panel, the page bursts with energy\n  13 pair: When the words thin out, the pictures get bigger\n  14 pair: When a picture fills the whole page, the sound effects grow as big as the page\n  15 pair: When a sound effect fills the page, the picture bursts out of its frame\n  16 pair: When the page turn is a reveal, a full-page picture follows\nCV-CC 3: PORT 2 (your second cable), MIDI channel 3, CC 49 to 60\n   1 pair: When the picture takes more of the page, awe rises\n   2 pair: When the jump is to another place or time, the gap between panels marks a new scene\n   3 pair: When the reader fills in more, the questions pile up\n   4 pair: When the panels go silent, the words thin out\n   5 pair: When a silent panel shows an empty room, loneliness grows\n   6 pair: When the same panel repeats more, the comic pause gets longer\n   7 pair: When the repeat is an awkward silence, the cringe grows\n   8 pair: When the reading path is clearer, the eye lands where it should\n   9 pair: When the page has more balloons, the words pile up\n  10 pairs: The page breathes with the story\n  11 pairs: The loud page\n  12 pairs: Turn the page"
    },
    "pos": [
     0,
@@ -45,7 +45,7 @@
      32
     ],
     "midi": {
-     "channel": 0
+     "channel": 2
     }
    },
    "pos": [
@@ -77,7 +77,7 @@
      48
     ],
     "midi": {
-     "channel": 0
+     "channel": 2
     }
    },
    "pos": [
@@ -109,7 +109,7 @@
      -1
     ],
     "midi": {
-     "channel": 0
+     "channel": 2
     }
    },
    "pos": [

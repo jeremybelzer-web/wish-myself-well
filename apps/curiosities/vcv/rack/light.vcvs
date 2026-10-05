@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "LIGHT & LOOK\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 4, CC 49 to 64\n   1 Key direction\n   2 Contrast\n   3 Color of the light\n   4 Lighting\n   5 Time of day\n   6 Softness\n   7 Rim light\n   8 Sources\n   9 Source in frame\n  10 Shaped light\n  11 Air\n  12 When the light changes\n  13 Brightness key\n  14 Render style\n  15 Ink line\n  16 Gloss\nCV-CC 2: MIDI channel 4, CC 65 to 80\n   1 Wetness\n   2 Light in skin\n   3 Something glows\n   4 Wear\n   5 Color saturation\n   6 Dominant color\n   7 Lighting\n   8 Light setup\n   9 Surfaces and materials\n  10 Skin\n  11 Drawn or real look\n  12 Layers of the picture\n  13 suite: Noir\n  14 suite: Golden hour\n  15 suite: Comic ink\n  16 suite: Wet night\nCV-CC 3: MIDI channel 4, CC 81 to 96\n   1 suite: Clean product\n   2 suite: Neon night\n   3 suite: Candlelit\n   4 suite: Sitcom bright\n   5 suite: Interrogation\n   6 suite: Campfire night\n   7 suite: Warm animated feature\n   8 suite: Magic hour\n   9 suite: Candlelit room\n  10 pair: When the render goes toon, the ink line is heavy\n  11 pair: When a secret comes out, the face goes half lit\n  12 pair: After a loss, the color drains\n  13 pair: A flashback brings the faded look\n  14 pair: When danger rises, the shadows deepen\n  15 pair: A reunion warms the color\n  16 pair: When the fire grows, faces go warm and red\nCV-CC 4: MIDI channel 4, CC 97 to 112\n   1 pair: When night falls, the light turns to moonlight\n   2 pair: When moonlight takes over, the light turns blue\n   3 pair: When the light goes cold, the characters drift apart\n   4 pair: When the day reaches dusk, the light goes low and golden\n   5 pair: When dusk light is used, the light changes while the shot holds\n   6 pair: When the light shifts during a held shot, the feeling inside grows\n   7 pair: When light glows warm through the skin, the feeling gets stronger\n   8 pair: When a lamp is in the shot, the light seems to come from it\n   9 pair: When the light comes from lamps, it turns warm\n  10 pair: When the light is warm lamplight, the room feels cozy\n  11 pair: When the main light moves to the side, half the face falls into shadow\n  12 pair: When the contrast climbs, the whole picture goes dark\n  13 pair: When the picture goes dark, people hide more than they say\n  14 pair: When haze fills the air, the shaped light shows up as beams\n  15 pair: When blind stripes fall across a face, the tension rises\n  16 pair: When the main light goes behind the actor, a strong edge of light appears\nCV-CC 5: MIDI channel 5, CC 1 to 16\n   1 pair: When a strong edge light outlines the actor, they pop off the background\n   2 pair: When the hair is pale, a thin edge light is enough\n   3 pair: When the street is soaked, every surface turns to a mirror\n   4 pair: When surfaces are mirror-shiny, every lamp appears twice\n   5 pair: When everything looks worn and ruined, the place feels gloomy\n   6 pair: When the colors narrow to one, any other color jumps out\n   7 pair: When an object glows, the eye goes straight to it\n   8 pair: When the light comes from a window, it falls soft across faces\n   9 pair: When the picture looks drawn, the comedy can go cartoon-big\n  10 pair: When the picture goes bright and even, the comedy gets playful\n  11 pairs: Weather and surface\n  12 pairs: Light follows feeling\n  13 pairs: Night comes down\n  14 pairs: The golden hour turn\n  15 pairs: Lamplit closeness\n  16 pairs: Noir squeeze\nCV-CC 6: MIDI channel 5, CC 17 to 19\n   1 pairs: Smoky blinds\n   2 pairs: Halo from behind\n   3 pairs: Wet neon street"
+    "text": "LIGHT & LOOK\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 5, CC 33 to 48\n   1 Where the main light comes from\n   2 Contrast\n   3 Color of the light\n   4 Lighting preset\n   5 Time of day\n   6 Softness\n   7 Rim light\n   8 Sources\n   9 Source in frame\n  10 Shaped light\n  11 Air\n  12 When the light changes\n  13 Dark or bright overall (in the lighting)\n  14 Render style\n  15 Ink line\n  16 Gloss\nCV-CC 2: MIDI channel 5, CC 49 to 64\n   1 Wetness\n   2 Light in skin\n   3 Something glows\n   4 Surface wear\n   5 Color saturation\n   6 Range of colors\n   7 Lighting\n   8 Light setup\n   9 Surfaces and materials\n  10 Skin\n  11 Drawn or real look\n  12 Layers of the picture\n  13 suite: Noir\n  14 suite: Golden hour: warm light from behind\n  15 suite: Cartoon look with heavy ink lines\n  16 suite: Wet night\nCV-CC 3: MIDI channel 5, CC 65 to 80\n   1 suite: Clean product\n   2 suite: Neon night\n   3 suite: Candlelight on faces\n   4 suite: Sitcom bright\n   5 suite: Interrogation\n   6 suite: Campfire night\n   7 suite: Warm animated feature\n   8 suite: Magic hour: the last golden minutes\n   9 suite: A room lit by a few flames\n  10 suite: Neon noir\n  11 pair: When the render goes toon, the ink line is heavy\n  12 pair: When a secret comes out, the face goes half lit\n  13 pair: After a loss, the color drains\n  14 pair: A flashback brings the faded look\n  15 pair: When danger rises, the shadows deepen\n  16 pair: A reunion warms the color\nCV-CC 4: MIDI channel 5, CC 81 to 96\n   1 pair: When the fire grows, faces go warm and red\n   2 pair: When night falls, the light turns to moonlight\n   3 pair: When moonlight takes over, the light turns blue\n   4 pair: When the light goes cold, the characters drift apart\n   5 pair: When the day reaches dusk, the light goes low and golden\n   6 pair: When dusk light is used, the light changes while the shot holds\n   7 pair: When the light shifts during a held shot, the feeling inside grows\n   8 pair: When light glows warm through the skin, the feeling gets stronger\n   9 pair: When a lamp is in the shot, the light seems to come from it\n  10 pair: When the light comes from lamps, it turns warm\n  11 pair: When the light is warm lamplight, the room feels cozy\n  12 pair: When the main light moves to the side, half the face falls into shadow\n  13 pair: When the contrast climbs, the whole picture goes dark\n  14 pair: When the picture goes dark, people hide more than they say\n  15 pair: When haze fills the air, the shaped light shows up as beams\n  16 pair: When blind stripes fall across a face, the tension rises\nCV-CC 5: MIDI channel 5, CC 97 to 112\n   1 pair: When the main light goes behind the actor, a strong edge of light appears\n   2 pair: When a strong edge light outlines the actor, they pop off the background\n   3 pair: When the hair is pale, a thin edge light is enough\n   4 pair: When the street is soaked, every surface turns to a mirror\n   5 pair: When surfaces are mirror-shiny, every lamp appears twice\n   6 pair: When everything looks worn and ruined, the place feels gloomy\n   7 pair: When the colors narrow to one, any other color jumps out\n   8 pair: When an object glows, the eye goes straight to it\n   9 pair: When the light comes from a window, it falls soft across faces\n  10 pair: When the picture looks drawn, the comedy can go cartoon-big\n  11 pair: When the picture goes bright and even, the comedy gets playful\n  12 pair: When the streets are wet at night, the neon glows twice as bright\n  13 pair: When the blinds cut the light into bars, the hero looks trapped\n  14 pairs: Weather and surface\n  15 pairs: Light follows loss and reunion\n  16 pairs: Night comes down\nCV-CC 6: MIDI channel 6, CC 1 to 7\n   1 pairs: The golden hour turn\n   2 pairs: Lamplit closeness\n   3 pairs: Noir squeeze\n   4 pairs: Smoky blinds\n   5 pairs: Halo from behind\n   6 pairs: Wet neon street\n   7 pairs: Neon noir: the moves"
    },
    "pos": [
     0,
@@ -23,6 +23,38 @@
   },
   {
    "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     33,
+     34,
+     35,
+     36,
+     37,
+     38,
+     39,
+     40,
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     47,
+     48
+    ],
+    "midi": {
+     "channel": 4
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -45,16 +77,16 @@
      64
     ],
     "midi": {
-     "channel": 3
+     "channel": 4
     }
    },
    "pos": [
-    24,
+    32,
     0
    ]
   },
   {
-   "id": 5,
+   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -77,16 +109,16 @@
      80
     ],
     "midi": {
-     "channel": 3
+     "channel": 4
     }
    },
    "pos": [
-    32,
+    40,
     0
    ]
   },
   {
-   "id": 6,
+   "id": 7,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -109,16 +141,16 @@
      96
     ],
     "midi": {
-     "channel": 3
+     "channel": 4
     }
    },
    "pos": [
-    40,
+    48,
     0
    ]
   },
   {
-   "id": 7,
+   "id": 8,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -141,38 +173,6 @@
      112
     ],
     "midi": {
-     "channel": 3
-    }
-   },
-   "pos": [
-    48,
-    0
-   ]
-  },
-  {
-   "id": 8,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     1,
-     2,
-     3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10,
-     11,
-     12,
-     13,
-     14,
-     15,
-     16
-    ],
-    "midi": {
      "channel": 4
     }
    },
@@ -187,13 +187,13 @@
    "model": "CV-CC",
    "data": {
     "ccs": [
-     17,
-     18,
-     19,
-     -1,
-     -1,
-     -1,
-     -1,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
      -1,
      -1,
      -1,
@@ -205,7 +205,7 @@
      -1
     ],
     "midi": {
-     "channel": 4
+     "channel": 5
     }
    },
    "pos": [

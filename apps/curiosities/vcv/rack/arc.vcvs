@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "CHARACTER ARC\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 1 to 16\n   1 Arc stage\n   2 Role in the scene\n   3 Dramatic role\n   4 Which way they change\n   5 The lie they believe\n   6 The old wound\n   7 Fighting the change\n   8 The test\n   9 Slipping back\n  10 How the change shows\n  11 A mentor's lesson\n  12 The mirror character\n  13 The moment they see it\n  14 Giving it up\n  15 suite: Growing up\n  16 suite: The fall\nCV-CC 2: MIDI channel 6, CC 17 to 32\n   1 suite: The steady one\n   2 suite: Refuses to change\n   3 suite: The mirror ending\n   4 suite: Mentor at their best\n   5 suite: The mentor's road\n   6 suite: Dark mirror\n   7 pair: When the lie is exposed, the crisis comes\n   8 pair: When the old wound is touched, they fight the change harder\n   9 pair: When the test is passed, the change shows\n  10 pair: When they slip back, their road drops\n  11 pair: When they fight the change with jokes, the laughs rise\n  12 pair: When the change comes, the posture opens\n  13 pair: When a character becomes the spark in a scene, the plot takes a turn\n  14 pair: When someone is set up as the lead's opposite, the lead's flaw becomes obvious\n  15 pair: When a character is growing, the change starts to show on the outside\n  16 pair: When a character is falling, they slip back into old habits\nCV-CC 3: MIDI channel 6, CC 33 to 42\n   1 pair: When the lesson comes back at the key moment, the test is passed\n   2 pair: When the mentor dies, grief follows\n   3 pair: When the hero sees themself in the mirror character, they understand\n   4 pair: When the mirror character clashes harder, the hero fights the change\n   5 pair: When they see it, they give something up\n   6 pair: When they give it up, the change shows\n   7 pair: When the lie grips harder, they cannot see the truth\n   8 pair: When a character sees the truth, the background stretches\n   9 pairs: The arc engine\n  10 pairs: Finally seeing"
+    "text": "CHARACTER ARC\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 6, CC 97 to 112\n   1 Arc stage\n   2 Role in the scene (short list)\n   3 Role in the scene\n   4 Which way they change\n   5 The lie they believe\n   6 The old wound\n   7 Fighting the change\n   8 The test\n   9 Slipping back\n  10 How the change shows\n  11 A mentor's lesson\n  12 The character they could become\n  13 The moment they see it\n  14 Giving it up\n  15 suite: Ends better than they began\n  16 suite: The fall\nCV-CC 2: MIDI channel 7, CC 1 to 16\n   1 suite: The steady one\n   2 suite: Refuses to change\n   3 suite: The mirror ending\n   4 suite: Mentor at their best\n   5 suite: The mentor's road\n   6 suite: Dark mirror\n   7 suite: Coming of age\n   8 pair: When the lie is exposed, the crisis comes\n   9 pair: When the old wound is touched, they fight the change harder\n  10 pair: When the test is passed, the change shows\n  11 pair: When they slip back, their road drops\n  12 pair: When they fight the change with jokes, the laughs rise\n  13 pair: When the change comes, the posture opens\n  14 pair: When a character becomes the spark in a scene, the plot takes a turn\n  15 pair: When someone is set up as the lead's opposite, the lead's flaw becomes obvious\n  16 pair: When a character is growing, the change starts to show on the outside\nCV-CC 3: MIDI channel 7, CC 17 to 30\n   1 pair: When a character is falling, they slip back into old habits\n   2 pair: When the lesson comes back at the key moment, the test is passed\n   3 pair: When the mentor dies, grief follows\n   4 pair: When the hero sees themself in the mirror character, they understand\n   5 pair: When the mirror character clashes harder, the hero fights the change\n   6 pair: When they see it, they give something up\n   7 pair: When they give it up, the change shows\n   8 pair: When the lie grips harder, they cannot see the truth\n   9 pair: When a character sees the truth, the background stretches\n  10 pair: When they finally see it, the clothes change\n  11 pair: When they leave the place they always came back to, they grow up a little\n  12 pairs: The arc engine\n  13 pairs: Finally seeing\n  14 pairs: Coming of age: the moves"
    },
    "pos": [
     0,
@@ -23,6 +23,38 @@
   },
   {
    "id": 3,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     105,
+     106,
+     107,
+     108,
+     109,
+     110,
+     111,
+     112
+    ],
+    "midi": {
+     "channel": 5
+    }
+   },
+   "pos": [
+    24,
+    0
+   ]
+  },
+  {
+   "id": 5,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -45,16 +77,16 @@
      16
     ],
     "midi": {
-     "channel": 5
+     "channel": 6
     }
    },
    "pos": [
-    24,
+    32,
     0
    ]
   },
   {
-   "id": 5,
+   "id": 6,
    "plugin": "Core",
    "model": "CV-CC",
    "data": {
@@ -73,43 +105,11 @@
      28,
      29,
      30,
-     31,
-     32
-    ],
-    "midi": {
-     "channel": 5
-    }
-   },
-   "pos": [
-    32,
-    0
-   ]
-  },
-  {
-   "id": 6,
-   "plugin": "Core",
-   "model": "CV-CC",
-   "data": {
-    "ccs": [
-     33,
-     34,
-     35,
-     36,
-     37,
-     38,
-     39,
-     40,
-     41,
-     42,
-     -1,
-     -1,
-     -1,
-     -1,
      -1,
      -1
     ],
     "midi": {
-     "channel": 5
+     "channel": 6
     }
    },
    "pos": [
