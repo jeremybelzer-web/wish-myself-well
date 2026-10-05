@@ -110,7 +110,7 @@
     const dim = (t) => `<div class="ci-col ci-dim"><h4>${t}</h4><p class="ci-small">Pick a curiosity.</p></div>`;
     const tabs = DBS.map((d) => `<button type="button" class="ci-db${view.db === d.id ? " on" : ""}" data-i="db" data-v="${d.id}">${esc(d.label)} <small>${getHub(d.id).scenes.length}</small></button>`).join("");
     body.innerHTML = `<div class="ci-dbs" role="tablist" aria-label="Database">${tabs}</div><div class="ci-top">
-        <input type="search" class="ci-search" placeholder="Type a film, a book, an author, a feeling, a movement" data-i="text" value="${esc((F.find((f) => f.text) || {}).text || "")}">
+        <input type="search" class="ci-search" placeholder="${view.db === "writing" ? "Type a title, an author, a feeling, a movement" : "Type a film, a game, a feeling, a moment"}" data-i="text" value="${esc((F.find((f) => f.text) || {}).text || "")}">
         <label class="ci-small">Watch on <select data-i="watch">${Object.entries(h.WATCH).map(([id, w]) => `<option value="${id}" ${store.watch === id ? "selected" : ""}>${esc(w.label)}</option>`).join("")}</select></label>
         <button type="button" data-i="log">${view.db === "writing" ? "Log a passage you read" : "Log a clip you watched"}</button>
       </div>
@@ -497,7 +497,7 @@ dialog.ci-hub>header button{margin-left:auto}
 .ci-form{display:flex;flex-wrap:wrap;gap:.5rem .8rem;margin:.5rem 0}
 .ci-form label{display:flex;flex-direction:column;font-size:.82rem}
 @media (max-width:900px){.ci-grid{grid-template-columns:1fr 1fr}}
-dialog.ci-hub.ci-pop{position:fixed;margin:0;width:min(980px,94vw);height:min(80vh,760px);box-shadow:0 12px 40px #0005}
+dialog.ci-hub.ci-pop{position:fixed;margin:0;z-index:2147483000;width:min(980px,94vw);height:min(80vh,760px);box-shadow:0 12px 40px #0005}
 dialog.ci-hub.ci-pop .ci-body{height:calc(100% - 3rem)}
 dialog.ci-hub.ci-pop>header{cursor:move}
 .ci-dbs{display:flex;gap:.3rem;margin-bottom:.45rem}
