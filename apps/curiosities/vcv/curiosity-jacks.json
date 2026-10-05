@@ -2,12 +2,12 @@
  "made": "vcv/tools/make-vcv.js from the curiosity database",
  "counts": {
   "workspaces": 32,
-  "curiosities": 734,
+  "curiosities": 737,
   "suites": 479,
   "proximities": 1130,
   "proximitySuites": 213,
   "scenes": 80,
-  "sliders": 17050
+  "sliders": 17088
  },
  "focus": {
   "channel": 16,
@@ -1605,554 +1605,576 @@
    "jack": 16
   },
   {
-   "key": "c:faceLens",
+   "key": "c:rigRulesLens",
    "port": 1,
    "channel": 2,
    "cc": 49,
-   "label": "Face acting",
+   "label": "Movement rules",
    "level": "curiosity",
    "workspace": "character-motion",
    "module": 11,
    "jack": 1
+  },
+  {
+   "key": "c:actingLens",
+   "port": 1,
+   "channel": 2,
+   "cc": 50,
+   "label": "Acting moves",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 11,
+   "jack": 2
+  },
+  {
+   "key": "c:faceLens",
+   "port": 1,
+   "channel": 2,
+   "cc": 51,
+   "label": "Face acting",
+   "level": "curiosity",
+   "workspace": "character-motion",
+   "module": 11,
+   "jack": 3
   },
   {
    "key": "c:pacing",
    "port": 1,
    "channel": 2,
-   "cc": 50,
+   "cc": 52,
    "label": "Walking back and forth",
    "level": "curiosity",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 2
+   "jack": 4
   },
   {
    "key": "c:bigEntrance",
    "port": 1,
    "channel": 2,
-   "cc": 51,
+   "cc": 53,
    "label": "Making an entrance",
    "level": "curiosity",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 3
+   "jack": 5
   },
   {
    "key": "c:walkOut",
    "port": 1,
    "channel": 2,
-   "cc": 52,
+   "cc": 54,
    "label": "Walking out",
    "level": "curiosity",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 4
+   "jack": 6
   },
   {
    "key": "c:faceOff",
    "port": 1,
    "channel": 2,
-   "cc": 53,
+   "cc": 55,
    "label": "Squaring off",
    "level": "curiosity",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 5
+   "jack": 7
   },
   {
    "key": "c:standSit",
    "port": 1,
    "channel": 2,
-   "cc": 54,
+   "cc": 56,
    "label": "Standing up and sitting down",
    "level": "curiosity",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 6
+   "jack": 8
   },
   {
    "key": "s:crossing",
    "port": 1,
    "channel": 2,
-   "cc": 55,
+   "cc": 57,
    "label": "Crossing",
    "level": "suite",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 7
+   "jack": 9
   },
   {
    "key": "s:snappy-cartoon",
    "port": 1,
    "channel": 2,
-   "cc": 56,
+   "cc": 58,
    "label": "Snappy cartoon moves",
    "level": "suite",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 8
+   "jack": 10
   },
   {
    "key": "s:grounded-realism",
    "port": 1,
    "channel": 2,
-   "cc": 57,
+   "cc": 59,
    "label": "Grounded realism (how they move)",
    "level": "suite",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 9
+   "jack": 11
   },
   {
    "key": "s:chase",
    "port": 1,
    "channel": 2,
-   "cc": 58,
+   "cc": 60,
    "label": "The chase",
    "level": "suite",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 10
+   "jack": 12
   },
   {
    "key": "s:burst-in",
    "port": 1,
    "channel": 2,
-   "cc": 59,
+   "cc": 61,
    "label": "Bursting in",
    "level": "suite",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 11
+   "jack": 13
   },
   {
    "key": "s:cartoon-bounce",
    "port": 1,
    "channel": 2,
-   "cc": 60,
+   "cc": 62,
    "label": "Rubbery cartoon bodies",
    "level": "suite",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 12
+   "jack": 14
   },
   {
    "key": "s:heavy-and-real",
    "port": 1,
    "channel": 2,
-   "cc": 61,
+   "cc": 63,
    "label": "Heavy and real (weight and landing)",
    "level": "suite",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 13
+   "jack": 15
   },
   {
    "key": "s:poker-face",
    "port": 1,
    "channel": 2,
-   "cc": 62,
+   "cc": 64,
    "label": "Poker face",
    "level": "suite",
    "workspace": "character-motion",
    "module": 11,
-   "jack": 14
+   "jack": 16
   },
   {
    "key": "s:old-cartoon-bounce",
    "port": 1,
    "channel": 2,
-   "cc": 63,
+   "cc": 65,
    "label": "1930s rubber-hose cartoon",
    "level": "suite",
    "workspace": "character-motion",
-   "module": 11,
-   "jack": 15
+   "module": 12,
+   "jack": 1
   },
   {
    "key": "s:budget-tv-animation",
    "port": 1,
    "channel": 2,
-   "cc": 64,
+   "cc": 66,
    "label": "Budget TV animation",
    "level": "suite",
    "workspace": "character-motion",
-   "module": 11,
-   "jack": 16
+   "module": 12,
+   "jack": 2
   },
   {
    "key": "s:the-standoff",
    "port": 1,
    "channel": 2,
-   "cc": 65,
+   "cc": 67,
    "label": "The standoff",
    "level": "suite",
    "workspace": "character-motion",
    "module": 12,
-   "jack": 1
+   "jack": 3
   },
   {
    "key": "s:storming-out",
    "port": 1,
    "channel": 2,
-   "cc": 66,
+   "cc": 68,
    "label": "Storming out",
    "level": "suite",
    "workspace": "character-motion",
    "module": 12,
-   "jack": 2
+   "jack": 4
   },
   {
    "key": "s:grand-arrival",
    "port": 1,
    "channel": 2,
-   "cc": 67,
+   "cc": 69,
    "label": "Grand arrival",
    "level": "suite",
    "workspace": "character-motion",
    "module": 12,
-   "jack": 3
+   "jack": 5
   },
   {
    "key": "p:approach-push",
    "port": 1,
    "channel": 2,
-   "cc": 68,
-   "label": "When a person approaches, the camera pushes in",
-   "level": "proximity",
-   "workspace": "character-motion",
-   "module": 12,
-   "jack": 4
-  },
-  {
-   "key": "p:approach-space",
-   "port": 1,
-   "channel": 2,
-   "cc": 69,
-   "label": "When a character approaches, personal space shrinks",
-   "level": "proximity",
-   "workspace": "character-motion",
-   "module": 12,
-   "jack": 5
-  },
-  {
-   "key": "p:speed-cuts",
-   "port": 1,
-   "channel": 2,
    "cc": 70,
-   "label": "When characters speed up, the cutting speeds up",
+   "label": "When a person approaches, the camera pushes in",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 6
   },
   {
-   "key": "p:windup-hit",
+   "key": "p:approach-space",
    "port": 1,
    "channel": 2,
    "cc": 71,
-   "label": "When the wind-up grows, the move lands bigger",
+   "label": "When a character approaches, personal space shrinks",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 7
   },
   {
-   "key": "p:big-face-big-body",
+   "key": "p:speed-cuts",
    "port": 1,
    "channel": 2,
    "cc": 72,
-   "label": "When the face goes big, the body follows",
+   "label": "When characters speed up, the cutting speeds up",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 8
   },
   {
-   "key": "p:eyes-lead",
+   "key": "p:windup-hit",
    "port": 1,
    "channel": 2,
    "cc": 73,
-   "label": "When the eyes dart, the expression changes next",
+   "label": "When the wind-up grows, the move lands bigger",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 9
   },
   {
-   "key": "p:toward-lens-close-up",
+   "key": "p:big-face-big-body",
    "port": 1,
    "channel": 2,
    "cc": 74,
-   "label": "When a character walks toward the lens, the shot becomes a close-up",
+   "label": "When the face goes big, the body follows",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 10
   },
   {
-   "key": "p:toward-lens-looms",
+   "key": "p:eyes-lead",
    "port": 1,
    "channel": 2,
    "cc": 75,
-   "label": "When a hand reaches toward the lens, it looms huge",
+   "label": "When the eyes dart, the expression changes next",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 11
   },
   {
-   "key": "p:listener-moves-gets-screen-time",
+   "key": "p:toward-lens-close-up",
    "port": 1,
    "channel": 2,
    "cc": 76,
-   "label": "When the listener moves and the speaker stays still, the edit turns to the listener",
+   "label": "When a character walks toward the lens, the shot becomes a close-up",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 12
   },
   {
-   "key": "p:snap-move-bounces",
+   "key": "p:toward-lens-looms",
    "port": 1,
    "channel": 2,
    "cc": 77,
-   "label": "When a move snaps into place, it bounces past its mark",
+   "label": "When a hand reaches toward the lens, it looms huge",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 13
   },
   {
-   "key": "p:bounce-feels-playful",
+   "key": "p:listener-moves-gets-screen-time",
    "port": 1,
    "channel": 2,
    "cc": 78,
-   "label": "When moves bounce past their mark, the scene feels playful",
+   "label": "When the listener moves and the speaker stays still, the edit turns to the listener",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 14
   },
   {
-   "key": "p:sudden-stop-hair-keeps-going",
+   "key": "p:snap-move-bounces",
    "port": 1,
    "channel": 2,
    "cc": 79,
-   "label": "When a character stops suddenly, the hair and clothes keep going",
+   "label": "When a move snaps into place, it bounces past its mark",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 15
   },
   {
-   "key": "p:fast-move-every-frame",
+   "key": "p:bounce-feels-playful",
    "port": 1,
    "channel": 2,
    "cc": 80,
-   "label": "When a character moves fast, every frame gets its own drawing",
+   "label": "When moves bounce past their mark, the scene feels playful",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 12,
    "jack": 16
   },
   {
-   "key": "p:straight-paths-robotic",
+   "key": "p:sudden-stop-hair-keeps-going",
    "port": 1,
    "channel": 2,
    "cc": 81,
-   "label": "When moves travel in straight lines, the character looks robotic",
+   "label": "When a character stops suddenly, the hair and clothes keep going",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 1
   },
   {
-   "key": "p:pacing-muttering",
+   "key": "p:fast-move-every-frame",
    "port": 1,
    "channel": 2,
    "cc": 82,
-   "label": "When they pace, they start talking to themselves",
+   "label": "When a character moves fast, every frame gets its own drawing",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 2
   },
   {
-   "key": "p:pacing-quickens-cuts",
+   "key": "p:straight-paths-robotic",
    "port": 1,
    "channel": 2,
    "cc": 83,
-   "label": "When the pacing speeds up, the cuts come faster",
+   "label": "When moves travel in straight lines, the character looks robotic",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 3
   },
   {
-   "key": "p:entrance-hushes-room",
+   "key": "p:pacing-muttering",
    "port": 1,
    "channel": 2,
    "cc": 84,
-   "label": "When the entrance is big, the talking stops",
+   "label": "When they pace, they start talking to themselves",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 4
   },
   {
-   "key": "p:slam-then-silence",
+   "key": "p:pacing-quickens-cuts",
    "port": 1,
    "channel": 2,
    "cc": 85,
-   "label": "When the door is slammed, silence follows",
+   "label": "When the pacing speeds up, the cuts come faster",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 5
   },
   {
-   "key": "p:left-behind-loneliness",
+   "key": "p:entrance-hushes-room",
    "port": 1,
    "channel": 2,
    "cc": 86,
-   "label": "When we stay with the one left behind, loneliness grows",
+   "label": "When the entrance is big, the talking stops",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 6
   },
   {
-   "key": "p:exit-shot-lingers",
+   "key": "p:slam-then-silence",
    "port": 1,
    "channel": 2,
    "cc": 87,
-   "label": "When the shot holds after they go, it stays too long on purpose",
+   "label": "When the door is slammed, silence follows",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 7
   },
   {
-   "key": "p:faceoff-tension",
+   "key": "p:left-behind-loneliness",
    "port": 1,
    "channel": 2,
    "cc": 88,
-   "label": "When they square off, tension climbs",
+   "label": "When we stay with the one left behind, loneliness grows",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 8
   },
   {
-   "key": "p:faceoff-circled",
+   "key": "p:exit-shot-lingers",
    "port": 1,
    "channel": 2,
    "cc": 89,
-   "label": "When they square off, the camera circles them",
+   "label": "When the shot holds after they go, it stays too long on purpose",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 9
   },
   {
-   "key": "p:standing-takes-the-room",
+   "key": "p:faceoff-tension",
    "port": 1,
    "channel": 2,
    "cc": 90,
-   "label": "When they shoot to their feet, the speaker holds the power",
+   "label": "When they square off, tension climbs",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 10
   },
   {
-   "key": "p:style-silence-standoff",
+   "key": "p:faceoff-circled",
    "port": 1,
    "channel": 2,
    "cc": 91,
-   "label": "When the room goes quiet, the standoff holds longer",
+   "label": "When they square off, the camera circles them",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 11
   },
   {
-   "key": "p:style-shadow-entrance-trust",
+   "key": "p:standing-takes-the-room",
    "port": 1,
    "channel": 2,
    "cc": 92,
-   "label": "When a stranger first appears as a shadow, trust drops",
+   "label": "When they shoot to their feet, the speaker holds the power",
    "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 12
   },
   {
-   "key": "ps:motion-drives-cutting",
+   "key": "p:style-silence-standoff",
    "port": 1,
    "channel": 2,
    "cc": 93,
-   "label": "Movement drives the cutting",
-   "level": "proximitySuite",
+   "label": "When the room goes quiet, the standoff holds longer",
+   "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 13
   },
   {
-   "key": "ps:acting-from-the-inside",
+   "key": "p:style-shadow-entrance-trust",
    "port": 1,
    "channel": 2,
    "cc": 94,
-   "label": "Acting from the inside out",
-   "level": "proximitySuite",
+   "label": "When a stranger first appears as a shadow, trust drops",
+   "level": "proximity",
    "workspace": "character-motion",
    "module": 13,
    "jack": 14
   },
   {
-   "key": "ps:coming-at-the-lens",
+   "key": "ps:motion-drives-cutting",
    "port": 1,
    "channel": 2,
    "cc": 95,
-   "label": "Coming at the lens",
+   "label": "Movement drives the cutting",
    "level": "proximitySuite",
    "workspace": "character-motion",
    "module": 13,
    "jack": 15
   },
   {
-   "key": "ps:cartoon-physics",
+   "key": "ps:acting-from-the-inside",
    "port": 1,
    "channel": 2,
    "cc": 96,
-   "label": "Cartoon physics",
+   "label": "Acting from the inside out",
    "level": "proximitySuite",
    "workspace": "character-motion",
    "module": 13,
    "jack": 16
   },
   {
-   "key": "ps:smooth-or-stiff",
+   "key": "ps:coming-at-the-lens",
    "port": 1,
    "channel": 2,
    "cc": 97,
-   "label": "Smooth or stiff",
+   "label": "Coming at the lens",
    "level": "proximitySuite",
    "workspace": "character-motion",
    "module": 14,
    "jack": 1
   },
   {
-   "key": "ps:the-fight-ends-at-the-door",
+   "key": "ps:cartoon-physics",
    "port": 1,
    "channel": 2,
    "cc": 98,
-   "label": "The fight ends at the door",
+   "label": "Cartoon physics",
    "level": "proximitySuite",
    "workspace": "character-motion",
    "module": 14,
    "jack": 2
+  },
+  {
+   "key": "ps:smooth-or-stiff",
+   "port": 1,
+   "channel": 2,
+   "cc": 99,
+   "label": "Smooth or stiff",
+   "level": "proximitySuite",
+   "workspace": "character-motion",
+   "module": 14,
+   "jack": 3
+  },
+  {
+   "key": "ps:the-fight-ends-at-the-door",
+   "port": 1,
+   "channel": 2,
+   "cc": 100,
+   "label": "The fight ends at the door",
+   "level": "proximitySuite",
+   "workspace": "character-motion",
+   "module": 14,
+   "jack": 4
   },
   {
    "key": "c:objectKind",
@@ -13551,1830 +13573,1841 @@
    "jack": 11
   },
   {
-   "key": "c:mixedFeelings",
+   "key": "c:feelingFaceLens",
    "port": 1,
    "channel": 13,
    "cc": 44,
-   "label": "Mixed feelings",
+   "label": "Face and feelings",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 87,
    "jack": 12
+  },
+  {
+   "key": "c:mixedFeelings",
+   "port": 1,
+   "channel": 13,
+   "cc": 45,
+   "label": "Mixed feelings",
+   "level": "curiosity",
+   "workspace": "emotion",
+   "module": 87,
+   "jack": 13
   },
   {
    "key": "c:subtext",
    "port": 1,
    "channel": 13,
-   "cc": 45,
+   "cc": 46,
    "label": "Said against meant",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 87,
-   "jack": 13
+   "jack": 14
   },
   {
    "key": "c:emoEyes",
    "port": 1,
    "channel": 13,
-   "cc": 46,
+   "cc": 47,
    "label": "The eyes, for the feeling",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 87,
-   "jack": 14
+   "jack": 15
   },
   {
    "key": "c:emoHands",
    "port": 1,
    "channel": 13,
-   "cc": 47,
+   "cc": 48,
    "label": "The hands",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 87,
-   "jack": 15
+   "jack": 16
   },
   {
    "key": "c:personalSpace",
    "port": 1,
    "channel": 13,
-   "cc": 48,
+   "cc": 49,
    "label": "Personal space",
    "level": "curiosity",
    "workspace": "emotion",
-   "module": 87,
-   "jack": 16
+   "module": 88,
+   "jack": 1
   },
   {
    "key": "c:emoRelease",
    "port": 1,
    "channel": 13,
-   "cc": 49,
+   "cc": 50,
    "label": "Release",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 1
+   "jack": 2
   },
   {
    "key": "c:audienceFeeling",
    "port": 1,
    "channel": 13,
-   "cc": 50,
+   "cc": 51,
    "label": "What the audience feels",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 2
+   "jack": 3
   },
   {
    "key": "c:empathy",
    "port": 1,
    "channel": 13,
-   "cc": 51,
+   "cc": 52,
    "label": "Feeling with them",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 3
+   "jack": 4
   },
   {
    "key": "c:awe",
    "port": 1,
    "channel": 13,
-   "cc": 52,
+   "cc": 53,
    "label": "Awe",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 4
+   "jack": 5
   },
   {
    "key": "c:shame",
    "port": 1,
    "channel": 13,
-   "cc": 53,
+   "cc": 54,
    "label": "Shame",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 5
+   "jack": 6
   },
   {
    "key": "c:pride",
    "port": 1,
    "channel": 13,
-   "cc": 54,
+   "cc": 55,
    "label": "Pride",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 6
+   "jack": 7
   },
   {
    "key": "c:jealousy",
    "port": 1,
    "channel": 13,
-   "cc": 55,
+   "cc": 56,
    "label": "Jealousy",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 7
+   "jack": 8
   },
   {
    "key": "c:relief",
    "port": 1,
    "channel": 13,
-   "cc": 56,
+   "cc": 57,
    "label": "Relief",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 8
+   "jack": 9
   },
   {
    "key": "c:sentimentality",
    "port": 1,
    "channel": 13,
-   "cc": 57,
+   "cc": 58,
    "label": "Too sweet",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 9
+   "jack": 10
   },
   {
    "key": "c:bodyFeeling",
    "port": 1,
    "channel": 13,
-   "cc": 58,
+   "cc": 59,
    "label": "Feeling in the body",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 10
+   "jack": 11
   },
   {
    "key": "c:sceneAftertaste",
    "port": 1,
    "channel": 13,
-   "cc": 59,
+   "cc": 60,
    "label": "Feeling left at the end of the scene",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 11
+   "jack": 12
   },
   {
    "key": "c:laughThroughGrief",
    "port": 1,
    "channel": 13,
-   "cc": 60,
+   "cc": 61,
    "label": "A laugh inside grief",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 12
+   "jack": 13
   },
   {
    "key": "c:tenderness",
    "port": 1,
    "channel": 13,
-   "cc": 61,
+   "cc": 62,
    "label": "Tenderness",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 13
+   "jack": 14
   },
   {
    "key": "c:shockNumb",
    "port": 1,
    "channel": 13,
-   "cc": 62,
+   "cc": 63,
    "label": "Numb after the shock",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 14
+   "jack": 15
   },
   {
    "key": "c:displacedFeeling",
    "port": 1,
    "channel": 13,
-   "cc": 63,
+   "cc": 64,
    "label": "Taking it out on the wrong thing",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 88,
-   "jack": 15
+   "jack": 16
   },
   {
    "key": "c:bigFeelingSmall",
    "port": 1,
    "channel": 13,
-   "cc": 64,
+   "cc": 65,
    "label": "Playing the big moment small",
    "level": "curiosity",
    "workspace": "emotion",
-   "module": 88,
-   "jack": 16
+   "module": 89,
+   "jack": 1
   },
   {
    "key": "c:moodOutOfStep",
    "port": 1,
    "channel": 13,
-   "cc": 65,
+   "cc": 66,
    "label": "Out of step with the room",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 89,
-   "jack": 1
+   "jack": 2
   },
   {
    "key": "c:comfortOffered",
    "port": 1,
    "channel": 13,
-   "cc": 66,
+   "cc": 67,
    "label": "Comfort, taken or pushed away",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 89,
-   "jack": 2
+   "jack": 3
   },
   {
    "key": "c:bracing",
    "port": 1,
    "channel": 13,
-   "cc": 67,
+   "cc": 68,
    "label": "Bracing for it",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 89,
-   "jack": 3
+   "jack": 4
   },
   {
    "key": "c:reactionHolder",
    "port": 1,
    "channel": 13,
-   "cc": 68,
+   "cc": 69,
    "label": "Whose face carries it",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 89,
-   "jack": 4
+   "jack": 5
   },
   {
    "key": "c:keepingBusy",
    "port": 1,
    "channel": 13,
-   "cc": 69,
+   "cc": 70,
    "label": "Keeping busy so as not to feel",
    "level": "curiosity",
    "workspace": "emotion",
    "module": 89,
-   "jack": 5
+   "jack": 6
   },
   {
    "key": "s:emotion-loving",
    "port": 1,
    "channel": 13,
-   "cc": 70,
+   "cc": 71,
    "label": "Feels loving",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 6
+   "jack": 7
   },
   {
    "key": "s:emotion-joyful",
    "port": 1,
    "channel": 13,
-   "cc": 71,
+   "cc": 72,
    "label": "Feels joyful",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 7
+   "jack": 8
   },
   {
    "key": "s:emotion-curious",
    "port": 1,
    "channel": 13,
-   "cc": 72,
+   "cc": 73,
    "label": "Feels curious",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 8
+   "jack": 9
   },
   {
    "key": "s:emotion-melancholy",
    "port": 1,
    "channel": 13,
-   "cc": 73,
+   "cc": 74,
    "label": "Feels melancholy",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 9
+   "jack": 10
   },
   {
    "key": "s:emotion-anxious",
    "port": 1,
    "channel": 13,
-   "cc": 74,
+   "cc": 75,
    "label": "Feels anxious",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 10
+   "jack": 11
   },
   {
    "key": "s:emotion-fearful",
    "port": 1,
    "channel": 13,
-   "cc": 75,
+   "cc": 76,
    "label": "Feels fearful",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 11
+   "jack": 12
   },
   {
    "key": "s:emotion-angry",
    "port": 1,
    "channel": 13,
-   "cc": 76,
+   "cc": 77,
    "label": "Feels angry",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 12
+   "jack": 13
   },
   {
    "key": "s:emotion-triumphant",
    "port": 1,
    "channel": 13,
-   "cc": 77,
+   "cc": 78,
    "label": "Feels triumphant",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 13
+   "jack": 14
   },
   {
    "key": "s:emotion-absurd",
    "port": 1,
    "channel": 13,
-   "cc": 78,
+   "cc": 79,
    "label": "Feels absurd",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 14
+   "jack": 15
   },
   {
    "key": "s:emotion-dreamlike",
    "port": 1,
    "channel": 13,
-   "cc": 79,
+   "cc": 80,
    "label": "Feels dreamlike",
    "level": "suite",
    "workspace": "emotion",
    "module": 89,
-   "jack": 15
+   "jack": 16
   },
   {
    "key": "s:lens-emotion",
    "port": 1,
    "channel": 13,
-   "cc": 80,
+   "cc": 81,
    "label": "Emotion lens",
    "level": "suite",
    "workspace": "emotion",
-   "module": 89,
-   "jack": 16
+   "module": 90,
+   "jack": 1
   },
   {
    "key": "s:lens-feeling",
    "port": 1,
    "channel": 13,
-   "cc": 81,
+   "cc": 82,
    "label": "Feeling of the scene",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 1
+   "jack": 2
   },
   {
    "key": "s:held-back-tears",
    "port": 1,
    "channel": 13,
-   "cc": 82,
+   "cc": 83,
    "label": "Held-back tears",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 2
+   "jack": 3
   },
   {
    "key": "s:rage-boils-over",
    "port": 1,
    "channel": 13,
-   "cc": 83,
+   "cc": 84,
    "label": "Rage boils over",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 3
+   "jack": 4
   },
   {
    "key": "s:quiet-joy",
    "port": 1,
    "channel": 13,
-   "cc": 84,
+   "cc": 85,
    "label": "Quiet joy",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 4
+   "jack": 5
   },
   {
    "key": "s:frozen-fear",
    "port": 1,
    "channel": 13,
-   "cc": 85,
+   "cc": 86,
    "label": "Frozen fear",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 5
+   "jack": 6
   },
   {
    "key": "s:mood-whiplash",
    "port": 1,
    "channel": 13,
-   "cc": 86,
+   "cc": 87,
    "label": "Mood whiplash",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 6
+   "jack": 7
   },
   {
    "key": "s:calm-in-the-storm",
    "port": 1,
    "channel": 13,
-   "cc": 87,
+   "cc": 88,
    "label": "Calm in the storm",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 7
+   "jack": 8
   },
   {
    "key": "s:mask-slips",
    "port": 1,
    "channel": 13,
-   "cc": 88,
+   "cc": 89,
    "label": "The mask slips",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 8
+   "jack": 9
   },
   {
    "key": "s:laughing-through-tears",
    "port": 1,
    "channel": 13,
-   "cc": 89,
+   "cc": 90,
    "label": "Laughing through tears",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 9
+   "jack": 10
   },
   {
    "key": "s:brave-face",
    "port": 1,
    "channel": 13,
-   "cc": 90,
+   "cc": 91,
    "label": "Brave face",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 10
+   "jack": 11
   },
   {
    "key": "s:dawning-realization",
    "port": 1,
    "channel": 13,
-   "cc": 91,
+   "cc": 92,
    "label": "Dawning realization",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 11
+   "jack": 12
   },
   {
    "key": "s:the-breakdown",
    "port": 1,
    "channel": 13,
-   "cc": 92,
+   "cc": 93,
    "label": "Breaking down in tears",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 12
+   "jack": 13
   },
   {
    "key": "s:cold-fury",
    "port": 1,
    "channel": 13,
-   "cc": 93,
+   "cc": 94,
    "label": "Cold fury",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 13
+   "jack": 14
   },
   {
    "key": "s:giddy-relief",
    "port": 1,
    "channel": 13,
-   "cc": 94,
+   "cc": 95,
    "label": "Giddy relief",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 14
+   "jack": 15
   },
   {
    "key": "s:numb-shock",
    "port": 1,
    "channel": 13,
-   "cc": 95,
+   "cc": 96,
    "label": "Numb shock",
    "level": "suite",
    "workspace": "emotion",
    "module": 90,
-   "jack": 15
+   "jack": 16
   },
   {
    "key": "s:awkward-tenderness",
    "port": 1,
    "channel": 13,
-   "cc": 96,
+   "cc": 97,
    "label": "Awkward tenderness",
    "level": "suite",
    "workspace": "emotion",
-   "module": 90,
-   "jack": 16
+   "module": 91,
+   "jack": 1
   },
   {
    "key": "s:dramatic-dread",
    "port": 1,
    "channel": 13,
-   "cc": 97,
+   "cc": 98,
    "label": "We see the danger, they don't",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 1
+   "jack": 2
   },
   {
    "key": "s:cartoon-feelings",
    "port": 1,
    "channel": 13,
-   "cc": 98,
+   "cc": 99,
    "label": "Cartoon feelings",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 2
+   "jack": 3
   },
   {
    "key": "s:laying-it-on-thick",
    "port": 1,
    "channel": 13,
-   "cc": 99,
+   "cc": 100,
    "label": "Laying it on thick",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 3
+   "jack": 4
   },
   {
    "key": "s:struck-with-awe",
    "port": 1,
    "channel": 13,
-   "cc": 100,
+   "cc": 101,
    "label": "Struck with awe",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 4
+   "jack": 5
   },
   {
    "key": "s:laughing-at-the-funeral",
    "port": 1,
    "channel": 13,
-   "cc": 101,
+   "cc": 102,
    "label": "Laughing at the funeral",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 5
+   "jack": 6
   },
   {
    "key": "s:wanting-to-disappear",
    "port": 1,
    "channel": 13,
-   "cc": 102,
+   "cc": 103,
    "label": "Wanting to disappear",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 6
+   "jack": 7
   },
   {
    "key": "s:green-with-envy",
    "port": 1,
    "channel": 13,
-   "cc": 103,
+   "cc": 104,
    "label": "Green with envy",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 7
+   "jack": 8
   },
   {
    "key": "s:proud-moment",
    "port": 1,
    "channel": 13,
-   "cc": 104,
+   "cc": 105,
    "label": "Proud moment",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 8
+   "jack": 9
   },
   {
    "key": "s:right-there-with-them",
    "port": 1,
    "channel": 13,
-   "cc": 105,
+   "cc": 106,
    "label": "Right there with them",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 9
+   "jack": 10
   },
   {
    "key": "s:a-scene-that-lingers",
    "port": 1,
    "channel": 13,
-   "cc": 106,
+   "cc": 107,
    "label": "A scene that lingers",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 10
+   "jack": 11
   },
   {
    "key": "s:gentle-care",
    "port": 1,
    "channel": 13,
-   "cc": 107,
+   "cc": 108,
    "label": "Gentle care",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 11
+   "jack": 12
   },
   {
    "key": "s:shaking-with-it",
    "port": 1,
    "channel": 13,
-   "cc": 108,
+   "cc": 109,
    "label": "Shaking with it",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 12
+   "jack": 13
   },
   {
    "key": "s:phew",
    "port": 1,
    "channel": 13,
-   "cc": 109,
+   "cc": 110,
    "label": "Phew",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 13
+   "jack": 14
   },
   {
    "key": "s:after-the-news",
    "port": 1,
    "channel": 13,
-   "cc": 110,
+   "cc": 111,
    "label": "After the news",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 14
+   "jack": 15
   },
   {
    "key": "s:the-quiet-reunion",
    "port": 1,
    "channel": 13,
-   "cc": 111,
+   "cc": 112,
    "label": "The quiet reunion",
    "level": "suite",
    "workspace": "emotion",
    "module": 91,
-   "jack": 15
+   "jack": 16
   },
   {
    "key": "s:anger-with-nowhere-to-go",
    "port": 1,
-   "channel": 13,
-   "cc": 112,
+   "channel": 14,
+   "cc": 1,
    "label": "Anger with nowhere to go",
    "level": "suite",
    "workspace": "emotion",
-   "module": 91,
-   "jack": 16
+   "module": 92,
+   "jack": 1
   },
   {
    "key": "s:the-proud-face-in-the-crowd",
    "port": 1,
    "channel": 14,
-   "cc": 1,
+   "cc": 2,
    "label": "The proud face in the crowd",
    "level": "suite",
    "workspace": "emotion",
    "module": 92,
-   "jack": 1
+   "jack": 2
   },
   {
    "key": "s:style-blockbuster-awe",
    "port": 1,
    "channel": 14,
-   "cc": 2,
+   "cc": 3,
    "label": "Big blockbuster awe",
    "level": "suite",
    "workspace": "emotion",
    "module": 92,
-   "jack": 2
+   "jack": 3
   },
   {
    "key": "p:light-mood-intensity",
    "port": 1,
    "channel": 14,
-   "cc": 3,
+   "cc": 4,
    "label": "When the mood of the light drops, the strength of the feeling rises",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 3
+   "jack": 4
   },
   {
    "key": "p:intensity-moves",
    "port": 1,
    "channel": 14,
-   "cc": 4,
+   "cc": 5,
    "label": "When the feeling grows stronger, the posture changes more often",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 4
+   "jack": 5
   },
   {
    "key": "p:contrast-prev-color",
    "port": 1,
    "channel": 14,
-   "cc": 5,
+   "cc": 6,
    "label": "When a scene feels the opposite of the last one, the color shifts too",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 5
+   "jack": 6
   },
   {
    "key": "p:feeling-shows-face-first",
    "port": 1,
    "channel": 14,
-   "cc": 6,
+   "cc": 7,
    "label": "When a feeling rises, the face shows it before the words",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 6
+   "jack": 7
   },
   {
    "key": "p:anger-louder",
    "port": 1,
    "channel": 14,
-   "cc": 7,
+   "cc": 8,
    "label": "When anger rises, the voice gets louder",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 7
+   "jack": 8
   },
   {
    "key": "p:fear-still",
    "port": 1,
    "channel": 14,
-   "cc": 8,
+   "cc": 9,
    "label": "When fear rises, movement stops",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 8
+   "jack": 9
   },
   {
    "key": "p:contagion-spreads",
    "port": 1,
    "channel": 14,
-   "cc": 9,
+   "cc": 10,
    "label": "When one character's feeling overflows, others catch it",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 9
+   "jack": 10
   },
   {
    "key": "p:joy-light-warms",
    "port": 1,
    "channel": 14,
-   "cc": 10,
+   "cc": 11,
    "label": "When joy rises, the light warms",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 10
+   "jack": 11
   },
   {
    "key": "p:trigger-turns",
    "port": 1,
    "channel": 14,
-   "cc": 11,
+   "cc": 12,
    "label": "When a trigger appears, the feeling turns",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 11
+   "jack": 12
   },
   {
    "key": "p:release-lighter",
    "port": 1,
    "channel": 14,
-   "cc": 12,
+   "cc": 13,
    "label": "After a release, the character is lighter",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 12
+   "jack": 13
   },
   {
    "key": "p:subtext-pause",
    "port": 1,
    "channel": 14,
-   "cc": 13,
+   "cc": 14,
    "label": "When said and meant pull apart, the pauses grow",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 13
+   "jack": 14
   },
   {
    "key": "p:space-closes-intensity",
    "port": 1,
    "channel": 14,
-   "cc": 14,
+   "cc": 15,
    "label": "When people move closer, the feeling grows",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 14
+   "jack": 15
   },
   {
    "key": "p:tears-close-up",
    "port": 1,
    "channel": 14,
-   "cc": 15,
+   "cc": 16,
    "label": "When tears well, the shot gets closer",
    "level": "proximity",
    "workspace": "emotion",
    "module": 92,
-   "jack": 15
+   "jack": 16
   },
   {
    "key": "p:we-know-tension",
    "port": 1,
    "channel": 14,
-   "cc": 16,
+   "cc": 17,
    "label": "When we know more than they do, tension rises",
    "level": "proximity",
    "workspace": "emotion",
-   "module": 92,
-   "jack": 16
+   "module": 93,
+   "jack": 1
   },
   {
    "key": "p:mixed-face-flicker",
    "port": 1,
    "channel": 14,
-   "cc": 17,
+   "cc": 18,
    "label": "When feelings mix, the face flickers",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 1
+   "jack": 2
   },
   {
    "key": "p:face-loving",
    "port": 1,
    "channel": 14,
-   "cc": 18,
+   "cc": 19,
    "label": "When someone feels loving, hearts pop onto their face",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 2
+   "jack": 3
   },
   {
    "key": "p:face-joyful",
    "port": 1,
    "channel": 14,
-   "cc": 19,
+   "cc": 20,
    "label": "When someone is joyful, a sun pops onto their face",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 3
+   "jack": 4
   },
   {
    "key": "p:face-melancholy",
    "port": 1,
    "channel": 14,
-   "cc": 20,
+   "cc": 21,
    "label": "When someone turns sad, tears are drawn on",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 4
+   "jack": 5
   },
   {
    "key": "p:face-anxious",
    "port": 1,
    "channel": 14,
-   "cc": 21,
+   "cc": 22,
    "label": "When someone is anxious, they blush",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 5
+   "jack": 6
   },
   {
    "key": "p:face-fearful",
    "port": 1,
    "channel": 14,
-   "cc": 22,
+   "cc": 23,
    "label": "When someone is scared, their soul leaves their body",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 6
+   "jack": 7
   },
   {
    "key": "p:face-curious",
    "port": 1,
    "channel": 14,
-   "cc": 23,
+   "cc": 24,
    "label": "When someone gets curious, a light bulb pops on",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 7
+   "jack": 8
   },
   {
    "key": "p:face-triumphant",
    "port": 1,
    "channel": 14,
-   "cc": 24,
+   "cc": 25,
    "label": "When someone triumphs, shades pop on",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 8
+   "jack": 9
   },
   {
    "key": "p:face-absurd",
    "port": 1,
    "channel": 14,
-   "cc": 25,
+   "cc": 26,
    "label": "When things turn absurd, question marks pop on",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 9
+   "jack": 10
   },
   {
    "key": "p:tears-lower",
    "port": 1,
    "channel": 14,
-   "cc": 26,
+   "cc": 27,
    "label": "When tears are drawn on, the feeling drops",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 10
+   "jack": 11
   },
   {
    "key": "p:sun-lifts",
    "port": 1,
    "channel": 14,
-   "cc": 27,
+   "cc": 28,
    "label": "When a sun pops onto a face, the feeling lifts",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 11
+   "jack": 12
   },
   {
    "key": "p:steam-winds-up",
    "port": 1,
    "channel": 14,
-   "cc": 28,
+   "cc": 29,
    "label": "When steam pops on, the feeling winds up",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 12
+   "jack": 13
   },
   {
    "key": "p:crackle-winds-up",
    "port": 1,
    "channel": 14,
-   "cc": 29,
+   "cc": 30,
    "label": "When a face crackles, the feeling winds up",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 13
+   "jack": 14
   },
   {
    "key": "p:laugh-tears-laughter",
    "port": 1,
    "channel": 14,
-   "cc": 30,
+   "cc": 31,
    "label": "When someone laughs till they cry, the audience laughs more",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 14
+   "jack": 15
   },
   {
    "key": "p:mallet-absurd",
    "port": 1,
    "channel": 14,
-   "cc": 31,
+   "cc": 32,
    "label": "When the mallet bonks, the feeling turns absurd",
    "level": "proximity",
    "workspace": "emotion",
    "module": 93,
-   "jack": 15
+   "jack": 16
   },
   {
    "key": "p:cozy-pulls-close",
    "port": 1,
    "channel": 14,
-   "cc": 32,
+   "cc": 33,
    "label": "When the room feels cozy, people sit closer",
    "level": "proximity",
    "workspace": "emotion",
-   "module": 93,
-   "jack": 16
+   "module": 94,
+   "jack": 1
   },
   {
    "key": "p:breaking-voice-tears",
    "port": 1,
    "channel": 14,
-   "cc": 33,
+   "cc": 34,
    "label": "When the voice breaks, the tears come",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 1
+   "jack": 2
   },
   {
    "key": "p:clenched-hands-bigger-action",
    "port": 1,
    "channel": 14,
-   "cc": 34,
+   "cc": 35,
    "label": "When the hands clench, a bigger action follows",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 2
+   "jack": 3
   },
   {
    "key": "p:big-actions-voice-gives",
    "port": 1,
    "channel": 14,
-   "cc": 35,
+   "cc": 36,
    "label": "When the actions get bigger, the voice gives way",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 3
+   "jack": 4
   },
   {
    "key": "p:freeze-slow-burn",
    "port": 1,
    "channel": 14,
-   "cc": 36,
+   "cc": 37,
    "label": "When someone freezes, a slow-burn reaction follows",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 4
+   "jack": 5
   },
   {
    "key": "p:close-face-pulls-us-in",
    "port": 1,
    "channel": 14,
-   "cc": 37,
+   "cc": 38,
    "label": "When we see their face up close, we feel with them more",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 5
+   "jack": 6
   },
   {
    "key": "p:vast-place-brings-awe",
    "port": 1,
    "channel": 14,
-   "cc": 38,
+   "cc": 39,
    "label": "When the place is huge, awe arrives",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 6
+   "jack": 7
   },
   {
    "key": "p:awe-hushes-voices",
    "port": 1,
    "channel": 14,
-   "cc": 39,
+   "cc": 40,
    "label": "When awe hits, the talking stops",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 7
+   "jack": 8
   },
   {
    "key": "p:awe-backlight",
    "port": 1,
    "channel": 14,
-   "cc": 40,
+   "cc": 41,
    "label": "When awe hits, light pours in from behind",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 8
+   "jack": 9
   },
   {
    "key": "p:humiliation-to-shame",
    "port": 1,
    "channel": 14,
-   "cc": 41,
+   "cc": 42,
    "label": "When they are humiliated, shame sets in",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 9
+   "jack": 10
   },
   {
    "key": "p:wound-touched-shame",
    "port": 1,
    "channel": 14,
-   "cc": 42,
+   "cc": 43,
    "label": "When the old wound is touched, shame comes back",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 10
+   "jack": 11
   },
   {
    "key": "p:shame-eyes-drop",
    "port": 1,
    "channel": 14,
-   "cc": 43,
+   "cc": 44,
    "label": "When shame rises, the eyes drop",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 11
+   "jack": 12
   },
   {
    "key": "p:shame-room-squirms",
    "port": 1,
    "channel": 14,
-   "cc": 44,
+   "cc": 45,
    "label": "When shame rises, the room squirms",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 12
+   "jack": 13
   },
   {
    "key": "p:amends-bring-relief",
    "port": 1,
    "channel": 14,
-   "cc": 45,
+   "cc": 46,
    "label": "When they make it right, relief follows",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 13
+   "jack": 14
   },
   {
    "key": "p:pride-swells-setback",
    "port": 1,
    "channel": 14,
-   "cc": 46,
+   "cc": 47,
    "label": "When pride swells, a setback follows",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 14
+   "jack": 15
   },
   {
    "key": "p:jealousy-opens-gap",
    "port": 1,
    "channel": 14,
-   "cc": 47,
+   "cc": 48,
    "label": "When jealousy flares, the two drift apart",
    "level": "proximity",
    "workspace": "emotion",
    "module": 94,
-   "jack": 15
+   "jack": 16
   },
   {
    "key": "p:dread-lifts-relief",
    "port": 1,
    "channel": 14,
-   "cc": 48,
+   "cc": 49,
    "label": "When the dread lifts, relief floods in",
    "level": "proximity",
    "workspace": "emotion",
-   "module": 94,
-   "jack": 16
+   "module": 95,
+   "jack": 1
   },
   {
    "key": "p:relief-breath-out",
    "port": 1,
    "channel": 14,
-   "cc": 49,
+   "cc": 50,
    "label": "When relief comes, the breath slows",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 1
+   "jack": 2
   },
   {
    "key": "p:loud-music-too-sweet",
    "port": 1,
    "channel": 14,
-   "cc": 50,
+   "cc": 51,
    "label": "When the music swells into a wall of sound, it turns too sweet",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 2
+   "jack": 3
   },
   {
    "key": "p:sugar-pushes-away",
    "port": 1,
    "channel": 14,
-   "cc": 51,
+   "cc": 52,
    "label": "When it gets too sweet, the audience pulls back",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 3
+   "jack": 4
   },
   {
    "key": "p:strong-feeling-in-body",
    "port": 1,
    "channel": 14,
-   "cc": 52,
+   "cc": 53,
    "label": "When the feeling grows strong, the body shows it",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 4
+   "jack": 5
   },
   {
    "key": "p:lump-breaks-voice",
    "port": 1,
    "channel": 14,
-   "cc": 53,
+   "cc": 54,
    "label": "When their throat closes, the voice breaks",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 5
+   "jack": 6
   },
   {
    "key": "p:fade-leaves-aftertaste",
    "port": 1,
    "channel": 14,
-   "cc": 54,
+   "cc": 55,
    "label": "When the scene fades out, the feeling lingers",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 6
+   "jack": 7
   },
   {
    "key": "p:aftertaste-colors-next",
    "port": 1,
    "channel": 14,
-   "cc": 55,
+   "cc": 56,
    "label": "When the feeling lingers, the next scene feels the same",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 7
+   "jack": 8
   },
   {
    "key": "p:laugh-into-tears",
    "port": 1,
    "channel": 14,
-   "cc": 56,
+   "cc": 57,
    "label": "When they laugh through sadness, the tears come",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 8
+   "jack": 9
   },
   {
    "key": "p:laugh-and-sorrow-mix",
    "port": 1,
    "channel": 14,
-   "cc": 57,
+   "cc": 58,
    "label": "When they laugh through sadness, the feelings blend",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 9
+   "jack": 10
   },
   {
    "key": "p:tenderness-holds-hands",
    "port": 1,
    "channel": 14,
-   "cc": 58,
+   "cc": 59,
    "label": "When tenderness grows, hands are held",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 10
+   "jack": 11
   },
   {
    "key": "p:subtext-trails-off",
    "port": 1,
    "channel": 14,
-   "cc": 59,
+   "cc": 60,
    "label": "When what they mean drifts far from what they say, sentences trail off",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 11
+   "jack": 12
   },
   {
    "key": "p:feeling-gap-splits-frame",
    "port": 1,
    "channel": 14,
-   "cc": 60,
+   "cc": 61,
    "label": "When their feelings drift apart, the frame splits them",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 12
+   "jack": 13
   },
   {
    "key": "p:numb-holds-feeling-in",
    "port": 1,
    "channel": 14,
-   "cc": 61,
+   "cc": 62,
    "label": "When they go numb, the feeling is held in",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 13
+   "jack": 14
   },
   {
    "key": "p:numb-hits-later",
    "port": 1,
    "channel": 14,
-   "cc": 62,
+   "cc": 63,
    "label": "When they go numb for long, the feeling hits later",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 14
+   "jack": 15
   },
   {
    "key": "p:numb-quiet-sound",
    "port": 1,
    "channel": 14,
-   "cc": 63,
+   "cc": 64,
    "label": "When the sound goes silent in the numbness, the music drops out",
    "level": "proximity",
    "workspace": "emotion",
    "module": 95,
-   "jack": 15
+   "jack": 16
   },
   {
    "key": "p:held-in-wrong-target",
    "port": 1,
    "channel": 14,
-   "cc": 64,
+   "cc": 65,
    "label": "When a feeling is held in too long, it lands on the wrong thing",
    "level": "proximity",
    "workspace": "emotion",
-   "module": 95,
-   "jack": 16
+   "module": 96,
+   "jack": 1
   },
   {
    "key": "p:wrong-target-friend-gap",
    "port": 1,
    "channel": 14,
-   "cc": 65,
+   "cc": 66,
    "label": "When it lands on a friend, the gap between them grows",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
-   "jack": 1
+   "jack": 2
   },
   {
    "key": "p:small-play-audience",
    "port": 1,
    "channel": 14,
-   "cc": 66,
+   "cc": 67,
    "label": "When the big moment is played smaller, the audience feels more",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
-   "jack": 2
+   "jack": 3
   },
   {
    "key": "p:out-of-step-apart",
    "port": 1,
    "channel": 14,
-   "cc": 67,
-   "label": "When they are out of step with the room, they stand apart",
-   "level": "proximity",
-   "workspace": "emotion",
-   "module": 96,
-   "jack": 3
-  },
-  {
-   "key": "p:room-catches-spread",
-   "port": 1,
-   "channel": 14,
    "cc": 68,
-   "label": "When the room catches their feeling, it spreads",
+   "label": "When they are out of step with the room, they stand apart",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 4
   },
   {
-   "key": "p:comfort-taken-warmth",
+   "key": "p:room-catches-spread",
    "port": 1,
    "channel": 14,
    "cc": 69,
-   "label": "When comfort is taken, the warmth between them grows",
+   "label": "When the room catches their feeling, it spreads",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 5
   },
   {
-   "key": "p:brace-falls-apart-release",
+   "key": "p:comfort-taken-warmth",
    "port": 1,
    "channel": 14,
    "cc": 70,
-   "label": "When the bracing falls apart, the feeling spills out",
+   "label": "When comfort is taken, the warmth between them grows",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 6
   },
   {
-   "key": "p:reaction-holder-empathy",
+   "key": "p:brace-falls-apart-release",
    "port": 1,
    "channel": 14,
    "cc": 71,
-   "label": "When we watch a loving face, we feel more",
+   "label": "When the bracing falls apart, the feeling spills out",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 7
   },
   {
-   "key": "p:reaction-holder-push-in",
+   "key": "p:reaction-holder-empathy",
    "port": 1,
    "channel": 14,
    "cc": 72,
-   "label": "When the face is shown up to the eyes, the camera pushes in",
+   "label": "When we watch a loving face, we feel more",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 8
   },
   {
-   "key": "p:busy-hands-strain",
+   "key": "p:reaction-holder-push-in",
    "port": 1,
    "channel": 14,
    "cc": 73,
-   "label": "When they keep busier, the hands show the strain",
+   "label": "When the face is shown up to the eyes, the camera pushes in",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 9
   },
   {
-   "key": "p:busy-stopped-comfort",
+   "key": "p:busy-hands-strain",
    "port": 1,
    "channel": 14,
    "cc": 74,
-   "label": "When someone stops their hands, comfort comes in",
+   "label": "When they keep busier, the hands show the strain",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 10
   },
   {
-   "key": "p:style-feeling-flat-face",
+   "key": "p:busy-stopped-comfort",
    "port": 1,
    "channel": 14,
    "cc": 75,
-   "label": "When the feeling runs high, the face stays flat",
+   "label": "When someone stops their hands, comfort comes in",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 11
   },
   {
-   "key": "p:style-face-before-wonder",
+   "key": "p:style-feeling-flat-face",
    "port": 1,
    "channel": 14,
    "cc": 76,
-   "label": "When a face stares up in wonder, the reveal feels bigger",
+   "label": "When the feeling runs high, the face stays flat",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 12
   },
   {
-   "key": "p:style-held-in-weight",
+   "key": "p:style-face-before-wonder",
    "port": 1,
    "channel": 14,
    "cc": 77,
-   "label": "When the feeling is kept inside, the weight we carry grows",
+   "label": "When a face stares up in wonder, the reveal feels bigger",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 13
   },
   {
-   "key": "p:style-feeling-bursts-song",
+   "key": "p:style-held-in-weight",
    "port": 1,
    "channel": 14,
    "cc": 78,
-   "label": "When the feeling gets too big for talking, they burst into song",
+   "label": "When the feeling is kept inside, the weight we carry grows",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 14
   },
   {
-   "key": "p:style-no-music-kindness",
+   "key": "p:style-feeling-bursts-song",
    "port": 1,
    "channel": 14,
    "cc": 79,
-   "label": "When no music tells us what to feel, a small kindness hits harder",
+   "label": "When the feeling gets too big for talking, they burst into song",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 15
   },
   {
-   "key": "p:style-long-loose-ache",
+   "key": "p:style-no-music-kindness",
    "port": 1,
    "channel": 14,
    "cc": 80,
-   "label": "When a loose scene runs long, a true feeling slips out between the jokes",
+   "label": "When no music tells us what to feel, a small kindness hits harder",
    "level": "proximity",
    "workspace": "emotion",
    "module": 96,
    "jack": 16
   },
   {
-   "key": "p:style-no-words-feel-more",
+   "key": "p:style-long-loose-ache",
    "port": 1,
    "channel": 14,
    "cc": 81,
-   "label": "When no one speaks, we read the face and feel more for them",
+   "label": "When a loose scene runs long, a true feeling slips out between the jokes",
    "level": "proximity",
    "workspace": "emotion",
    "module": 97,
    "jack": 1
   },
   {
-   "key": "p:style-flat-sad-both",
+   "key": "p:style-no-words-feel-more",
    "port": 1,
    "channel": 14,
    "cc": 82,
-   "label": "When a sad thing is said flatly, we laugh and ache at once",
+   "label": "When no one speaks, we read the face and feel more for them",
    "level": "proximity",
    "workspace": "emotion",
    "module": 97,
    "jack": 2
   },
   {
-   "key": "p:style-sees-self-pity",
+   "key": "p:style-flat-sad-both",
    "port": 1,
    "channel": 14,
    "cc": 83,
-   "label": "When the clueless one finally sees how they look, we feel for them",
+   "label": "When a sad thing is said flatly, we laugh and ache at once",
    "level": "proximity",
    "workspace": "emotion",
    "module": 97,
    "jack": 3
   },
   {
-   "key": "p:style-manners-jealousy",
+   "key": "p:style-sees-self-pity",
    "port": 1,
    "channel": 14,
    "cc": 84,
-   "label": "When perfect manners are kept up, jealousy simmers underneath",
+   "label": "When the clueless one finally sees how they look, we feel for them",
    "level": "proximity",
    "workspace": "emotion",
    "module": 97,
    "jack": 4
   },
   {
-   "key": "ps:body-tells-first",
+   "key": "p:style-manners-jealousy",
    "port": 1,
    "channel": 14,
    "cc": 85,
-   "label": "The body tells first",
-   "level": "proximitySuite",
+   "label": "When perfect manners are kept up, jealousy simmers underneath",
+   "level": "proximity",
    "workspace": "emotion",
    "module": 97,
    "jack": 5
   },
   {
-   "key": "ps:feelings-spread",
+   "key": "ps:body-tells-first",
    "port": 1,
    "channel": 14,
    "cc": 86,
-   "label": "Feelings spread",
+   "label": "The body tells first",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 6
   },
   {
-   "key": "ps:what-isnt-said",
+   "key": "ps:feelings-spread",
    "port": 1,
    "channel": 14,
    "cc": 87,
-   "label": "What isn't said",
+   "label": "Feelings spread",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 7
   },
   {
-   "key": "ps:closeness-and-dread",
+   "key": "ps:what-isnt-said",
    "port": 1,
    "channel": 14,
    "cc": 88,
-   "label": "Closeness and dread",
+   "label": "What isn't said",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 8
   },
   {
-   "key": "ps:face-tells-the-feeling",
+   "key": "ps:closeness-and-dread",
    "port": 1,
    "channel": 14,
    "cc": 89,
-   "label": "The face tells the feeling",
+   "label": "Closeness and dread",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 9
   },
   {
-   "key": "ps:mood-moves-the-feeling",
+   "key": "ps:face-tells-the-feeling",
    "port": 1,
    "channel": 14,
    "cc": 90,
-   "label": "The mood moves the feeling",
+   "label": "The face tells the feeling",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 10
   },
   {
-   "key": "ps:holding-it-in-until",
+   "key": "ps:mood-moves-the-feeling",
    "port": 1,
    "channel": 14,
    "cc": 91,
-   "label": "Holding it in, until",
+   "label": "The mood moves the feeling",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 11
   },
   {
-   "key": "ps:shame-spiral",
+   "key": "ps:holding-it-in-until",
    "port": 1,
    "channel": 14,
    "cc": 92,
-   "label": "Shame spiral",
+   "label": "Holding it in, until",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 12
   },
   {
-   "key": "ps:sugar-backfires",
+   "key": "ps:shame-spiral",
    "port": 1,
    "channel": 14,
    "cc": 93,
-   "label": "Too much sugar backfires",
+   "label": "Shame spiral",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 13
   },
   {
-   "key": "ps:envy-turns-sour",
+   "key": "ps:sugar-backfires",
    "port": 1,
    "channel": 14,
    "cc": 94,
-   "label": "Envy turns sour",
+   "label": "Too much sugar backfires",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 14
   },
   {
-   "key": "ps:the-feeling-that-waits",
+   "key": "ps:envy-turns-sour",
    "port": 1,
    "channel": 14,
    "cc": 95,
-   "label": "The feeling that waits",
+   "label": "Envy turns sour",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 15
   },
   {
-   "key": "ps:saved-and-small",
+   "key": "ps:the-feeling-that-waits",
    "port": 1,
    "channel": 14,
    "cc": 96,
-   "label": "Saved and played small",
+   "label": "The feeling that waits",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 97,
    "jack": 16
   },
   {
-   "key": "ps:style-blockbuster-awe-moves",
+   "key": "ps:saved-and-small",
    "port": 1,
    "channel": 14,
    "cc": 97,
-   "label": "Big blockbuster awe: the moves",
+   "label": "Saved and played small",
    "level": "proximitySuite",
    "workspace": "emotion",
    "module": 98,
    "jack": 1
+  },
+  {
+   "key": "ps:style-blockbuster-awe-moves",
+   "port": 1,
+   "channel": 14,
+   "cc": 98,
+   "label": "Big blockbuster awe: the moves",
+   "level": "proximitySuite",
+   "workspace": "emotion",
+   "module": 98,
+   "jack": 2
   },
   {
    "key": "c:emoRoadCharacter",

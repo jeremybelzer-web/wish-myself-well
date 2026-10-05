@@ -45,6 +45,9 @@ function serve() {
   const base = `http://127.0.0.1:${server.address().port}/`;
   const browser = await chromium.launch({ args: ["--use-gl=swiftshader", "--ignore-gpu-blocklist"] });
   const page = await browser.newPage({ viewport: { width: 1400, height: 950 }, serviceWorkers: "block" });
+  /* The browser keeps only 250 file timings by default, and the page loads more files than that, so later 3D files
+     would drop out of the count. Keep them all. */
+  await page.addInitScript(() => performance.setResourceTimingBufferSize(5000));
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   page.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g|WebGL|GPU stall/.test(m.text()) && errors.push(m.text()));

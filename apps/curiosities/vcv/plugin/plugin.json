@@ -133,7 +133,7 @@
     {
       "slug": "Curio-character-motion-5",
       "name": "Character motion 5",
-      "description": "2 curiosities, suites and pairs from Character motion, one jack each, sent to the Curiosities app as MIDI CC on channel 2.",
+      "description": "4 curiosities, suites and pairs from Character motion, one jack each, sent to the Curiosities app as MIDI CC on channel 2.",
       "tags": [
         "Controller",
         "MIDI"
@@ -889,7 +889,7 @@
     {
       "slug": "Curio-emotion-12",
       "name": "Emotion 12",
-      "description": "1 curiosities, suites and pairs from Emotion, one jack each, sent to the Curiosities app as MIDI CC on channel 14.",
+      "description": "2 curiosities, suites and pairs from Emotion, one jack each, sent to the Curiosities app as MIDI CC on channel 14.",
       "tags": [
         "Controller",
         "MIDI"
