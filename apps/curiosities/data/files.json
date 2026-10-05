@@ -24,5 +24,8 @@
   "db-depth-story.js",
   "db-depth-cut.js",
   "db-depth-sound.js",
-  "db-model-scenes-2.js"
+  "db-depth-acting.js",
+  "db-depth-world.js",
+  "db-model-scenes-2.js",
+  "db-model-scenes-3.js"
 ]

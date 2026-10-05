@@ -14985,6 +14985,1767 @@
    "does": "rise",
    "when": "the big hit is followed by silence",
    "then": "the music drops out"
+  },
+  {
+   "id": "p:cutoff-opens-question",
+   "proximity": "cutoff-opens-question",
+   "label": "When a line is cut just before the key word, the audience holds a question",
+   "from": {
+    "curiosity": "cutOff",
+    "track": "character",
+    "is": "just before the key word",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a line is cut just before the key word",
+   "then": "the audience holds a question"
+  },
+  {
+   "id": "p:many-cutoffs-overlap",
+   "proximity": "many-cutoffs-overlap",
+   "label": "When lines keep getting cut off, people talk over each other",
+   "from": {
+    "curiosity": "cutOff.count",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "pace.overlap",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "talking over each other",
+   "when": "lines keep getting cut off",
+   "then": "people talk over each other"
+  },
+  {
+   "id": "p:thrown-line-silence",
+   "proximity": "thrown-line-silence",
+   "label": "When a big line is thrown away, a silence follows",
+   "from": {
+    "curiosity": "throwaway",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a big line is thrown away",
+   "then": "a silence follows"
+  },
+  {
+   "id": "p:thrown-while-working",
+   "proximity": "thrown-while-working",
+   "label": "When a line is thrown away mid-task, the task takes over",
+   "from": {
+    "curiosity": "throwaway.busy",
+    "track": "character",
+    "is": "working on something",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "propBusiness",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a line is thrown away mid-task",
+   "then": "the task takes over"
+  },
+  {
+   "id": "p:speech-gets-louder",
+   "proximity": "speech-gets-louder",
+   "label": "When the speech builds, the voice gets louder",
+   "from": {
+    "curiosity": "buildingSpeech",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "volume",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the speech builds",
+   "then": "the voice gets louder"
+  },
+  {
+   "id": "p:speech-turns-the-crowd",
+   "proximity": "speech-turns-the-crowd",
+   "label": "When the speech makes the room erupt, the crowd turns",
+   "from": {
+    "curiosity": "buildingSpeech.reaction",
+    "track": "character",
+    "is": "the room erupts",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "crowdTurns",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the speech makes the room erupt",
+   "then": "the crowd turns"
+  },
+  {
+   "id": "p:speech-brings-them-up",
+   "proximity": "speech-brings-them-up",
+   "label": "When the speech builds, the speaker gets to their feet",
+   "from": {
+    "curiosity": "buildingSpeech",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "standSit",
+    "track": "character"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the speech builds",
+   "then": "the speaker gets to their feet"
+  },
+  {
+   "id": "p:trailing-off-body-answers",
+   "proximity": "trailing-off-body-answers",
+   "label": "When a sentence trails off, the body answers instead",
+   "from": {
+    "curiosity": "trailingOff",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "wordlessAnswer",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a sentence trails off",
+   "then": "the body answers instead"
+  },
+  {
+   "id": "p:trailing-into-memory",
+   "proximity": "trailing-into-memory",
+   "label": "When they trail off lost in a memory, nostalgia rises",
+   "from": {
+    "curiosity": "trailingOff.why",
+    "track": "character",
+    "is": "lost in a memory",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "nostalgia",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they trail off lost in a memory",
+   "then": "nostalgia rises"
+  },
+  {
+   "id": "p:subtext-trails-off",
+   "proximity": "subtext-trails-off",
+   "label": "When what they mean drifts far from what they say, sentences trail off",
+   "from": {
+    "curiosity": "subtext",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "trailingOff",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "what they mean drifts far from what they say",
+   "then": "sentences trail off"
+  },
+  {
+   "id": "p:caught-talking-shame",
+   "proximity": "caught-talking-shame",
+   "label": "When they are caught talking to themselves, shame rises",
+   "from": {
+    "curiosity": "talkingToSelf.caught",
+    "track": "character",
+    "is": "caught, embarrassed",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they are caught talking to themselves",
+   "then": "shame rises"
+  },
+  {
+   "id": "p:pacing-muttering",
+   "proximity": "pacing-muttering",
+   "label": "When they pace, they start talking to themselves",
+   "from": {
+    "curiosity": "pacing",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "talkingToSelf",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they pace",
+   "then": "they start talking to themselves"
+  },
+  {
+   "id": "p:call-threat-dread",
+   "proximity": "call-threat-dread",
+   "label": "When the call is a threat, dread builds",
+   "from": {
+    "curiosity": "oneSidedCall.news",
+    "track": "character",
+    "is": "a threat",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the call is a threat",
+   "then": "dread builds"
+  },
+  {
+   "id": "p:call-bad-news-turn-away",
+   "proximity": "call-bad-news-turn-away",
+   "label": "When the call brings bad news, they turn their back",
+   "from": {
+    "curiosity": "oneSidedCall.news",
+    "track": "character",
+    "is": "bad news",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "backTurned",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the call brings bad news",
+   "then": "they turn their back"
+  },
+  {
+   "id": "p:call-hidden-push-in",
+   "proximity": "call-hidden-push-in",
+   "label": "When we cannot hear the other side, the camera creeps in on the face",
+   "from": {
+    "curiosity": "oneSidedCall",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "pushInFace",
+    "track": "camera"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we cannot hear the other side",
+   "then": "the camera creeps in on the face"
+  },
+  {
+   "id": "p:back-turned-hides-feeling",
+   "proximity": "back-turned-hides-feeling",
+   "label": "When they turn their back to hide tears, the feeling stays hidden",
+   "from": {
+    "curiosity": "backTurned.why",
+    "track": "character",
+    "is": "hiding tears",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emoShown",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they turn their back to hide tears",
+   "then": "the feeling stays hidden"
+  },
+  {
+   "id": "p:back-turned-no-look",
+   "proximity": "back-turned-no-look",
+   "label": "When they turn their back, the eyes stop meeting",
+   "from": {
+    "curiosity": "backTurned",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "eyeline",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "they turn their back",
+   "then": "the eyes stop meeting"
+  },
+  {
+   "id": "p:habit-gives-away-lie",
+   "proximity": "habit-gives-away-lie",
+   "label": "When the habit comes from lying, the gap between words and meaning grows",
+   "from": {
+    "curiosity": "ownHabit.triggeredBy",
+    "track": "character",
+    "is": "lying",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the habit comes from lying",
+   "then": "the gap between words and meaning grows"
+  },
+  {
+   "id": "p:habit-copied-mirroring",
+   "proximity": "habit-copied-mirroring",
+   "label": "When someone copies the habit, the two start mirroring",
+   "from": {
+    "curiosity": "ownHabit.noticed",
+    "track": "character",
+    "is": "another character copies it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "mirroring",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone copies the habit",
+   "then": "the two start mirroring"
+  },
+  {
+   "id": "p:mirroring-warmth",
+   "proximity": "mirroring-warmth",
+   "label": "When two people mirror each other, warmth grows between them",
+   "from": {
+    "curiosity": "mirroring",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "two people mirror each other",
+   "then": "warmth grows between them"
+  },
+  {
+   "id": "p:mirroring-closer",
+   "proximity": "mirroring-closer",
+   "label": "When two people mirror each other, they stand closer",
+   "from": {
+    "curiosity": "mirroring",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "personalSpace",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "two people mirror each other",
+   "then": "they stand closer"
+  },
+  {
+   "id": "p:pushed-for-words-faceoff",
+   "proximity": "pushed-for-words-faceoff",
+   "label": "When the asker pushes for words, they square off",
+   "from": {
+    "curiosity": "wordlessAnswer.asker",
+    "track": "character",
+    "is": "pushes for words",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "faceOff",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the asker pushes for words",
+   "then": "they square off"
+  },
+  {
+   "id": "p:pacing-quickens-cuts",
+   "proximity": "pacing-quickens-cuts",
+   "label": "When the pacing speeds up, the cuts come faster",
+   "from": {
+    "curiosity": "pacing",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "cutRate",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the pacing speeds up",
+   "then": "the cuts come faster"
+  },
+  {
+   "id": "p:entrance-hushes-room",
+   "proximity": "entrance-hushes-room",
+   "label": "When the entrance is big, the talking stops",
+   "from": {
+    "curiosity": "bigEntrance",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "wordsAmount",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the entrance is big",
+   "then": "the talking stops"
+  },
+  {
+   "id": "p:reveal-a-person-entrance",
+   "proximity": "reveal-a-person-entrance",
+   "label": "When the camera turns to reveal a person, it becomes an entrance",
+   "from": {
+    "curiosity": "panReveal.revealed",
+    "track": "camera",
+    "is": "a person",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "bigEntrance",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera turns to reveal a person",
+   "then": "it becomes an entrance"
+  },
+  {
+   "id": "p:slam-then-silence",
+   "proximity": "slam-then-silence",
+   "label": "When the door is slammed, silence follows",
+   "from": {
+    "curiosity": "walkOut.door",
+    "track": "character",
+    "is": "slammed",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "silence",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the door is slammed",
+   "then": "silence follows"
+  },
+  {
+   "id": "p:left-behind-loneliness",
+   "proximity": "left-behind-loneliness",
+   "label": "When we stay with the one left behind, loneliness grows",
+   "from": {
+    "curiosity": "walkOut.stayWith",
+    "track": "character",
+    "is": "the one left behind",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "we stay with the one left behind",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:exit-shot-lingers",
+   "proximity": "exit-shot-lingers",
+   "label": "When the shot holds after they go, it stays too long on purpose",
+   "from": {
+    "curiosity": "walkOut.holdAfter",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "lingeringShot",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the shot holds after they go",
+   "then": "it stays too long on purpose"
+  },
+  {
+   "id": "p:faceoff-tension",
+   "proximity": "faceoff-tension",
+   "label": "When they square off, tension climbs",
+   "from": {
+    "curiosity": "faceOff",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they square off",
+   "then": "tension climbs"
+  },
+  {
+   "id": "p:faceoff-circled",
+   "proximity": "faceoff-circled",
+   "label": "When they square off, the camera circles them",
+   "from": {
+    "curiosity": "faceOff",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "circlingCamera",
+    "track": "camera"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they square off",
+   "then": "the camera circles them"
+  },
+  {
+   "id": "p:standing-takes-the-room",
+   "proximity": "standing-takes-the-room",
+   "label": "When they shoot to their feet, the speaker holds the power",
+   "from": {
+    "curiosity": "standSit",
+    "track": "character",
+    "is": "shoots to their feet",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "blocking.power",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "the speaker",
+   "when": "they shoot to their feet",
+   "then": "the speaker holds the power"
+  },
+  {
+   "id": "p:push-in-empathy",
+   "proximity": "push-in-empathy",
+   "label": "When the camera pushes in on a face, we feel with them",
+   "from": {
+    "curiosity": "pushInFace",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera pushes in on a face",
+   "then": "we feel with them"
+  },
+  {
+   "id": "p:push-in-realisation",
+   "proximity": "push-in-realisation",
+   "label": "When the camera pushes in as they realise, the realisation lands",
+   "from": {
+    "curiosity": "pushInFace.during",
+    "track": "camera",
+    "is": "realise something",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "realization",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera pushes in as they realise",
+   "then": "the realisation lands"
+  },
+  {
+   "id": "p:realisation-stretches-room",
+   "proximity": "realisation-stretches-room",
+   "label": "When a character sees the truth, the background stretches",
+   "from": {
+    "curiosity": "realization",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dollyZoom",
+    "track": "camera"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a character sees the truth",
+   "then": "the background stretches"
+  },
+  {
+   "id": "p:stretch-in-the-body",
+   "proximity": "stretch-in-the-body",
+   "label": "When the background stretches, we feel it in the body",
+   "from": {
+    "curiosity": "dollyZoom",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "bodyFeeling",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the background stretches",
+   "then": "we feel it in the body"
+  },
+  {
+   "id": "p:stretch-sound-drops",
+   "proximity": "stretch-sound-drops",
+   "label": "When the sound drops out under the stretch, we hear through their ears",
+   "from": {
+    "curiosity": "dollyZoom.sound",
+    "track": "camera",
+    "is": "drops out",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "subjectiveSound",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the sound drops out under the stretch",
+   "then": "we hear through their ears"
+  },
+  {
+   "id": "p:circle-kiss-tenderness",
+   "proximity": "circle-kiss-tenderness",
+   "label": "When the camera circles a kiss, tenderness grows",
+   "from": {
+    "curiosity": "circlingCamera.moment",
+    "track": "camera",
+    "is": "a kiss",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tenderness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera circles a kiss",
+   "then": "tenderness grows"
+  },
+  {
+   "id": "p:whirling-circle-intensity",
+   "proximity": "whirling-circle-intensity",
+   "label": "When the camera whirls around them, the feeling peaks",
+   "from": {
+    "curiosity": "circlingCamera.speed",
+    "track": "camera",
+    "is": "whirling",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "emotionIntensity",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera whirls around them",
+   "then": "the feeling peaks"
+  },
+  {
+   "id": "p:reveal-threat-dread",
+   "proximity": "reveal-threat-dread",
+   "label": "When the turn reveals a threat, dread rises",
+   "from": {
+    "curiosity": "panReveal.revealed",
+    "track": "camera",
+    "is": "a threat",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the turn reveals a threat",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:whip-turn-blur",
+   "proximity": "whip-turn-blur",
+   "label": "When the turn is a whip, the picture blurs",
+   "from": {
+    "curiosity": "panReveal.turnSpeed",
+    "track": "camera",
+    "is": "a whip",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "motionBlur",
+    "track": "camera"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the turn is a whip",
+   "then": "the picture blurs"
+  },
+  {
+   "id": "p:wander-plants-question",
+   "proximity": "wander-plants-question",
+   "label": "When the camera wanders off to a clue, the audience holds a question",
+   "from": {
+    "curiosity": "wanderingCamera.meaning",
+    "track": "camera",
+    "is": "a clue",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera wanders off to a clue",
+   "then": "the audience holds a question"
+  },
+  {
+   "id": "p:wander-lingers",
+   "proximity": "wander-lingers",
+   "label": "When the camera wanders off, it lingers where it lands",
+   "from": {
+    "curiosity": "wanderingCamera",
+    "track": "camera",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "lingeringShot",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the camera wanders off",
+   "then": "it lingers where it lands"
+  },
+  {
+   "id": "p:people-react-shame",
+   "proximity": "people-react-shame",
+   "label": "When the people behind stop and stare, shame rises",
+   "from": {
+    "curiosity": "crowdReacts",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the people behind stop and stare",
+   "then": "shame rises"
+  },
+  {
+   "id": "p:people-carry-on-loneliness",
+   "proximity": "people-carry-on-loneliness",
+   "label": "When the people behind carry on as normal, loneliness grows",
+   "from": {
+    "curiosity": "crowdReacts",
+    "track": "master",
+    "is": "carry on as normal",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the people behind carry on as normal",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:people-cheer-pride",
+   "proximity": "people-cheer-pride",
+   "label": "When the people behind cheer, pride rises",
+   "from": {
+    "curiosity": "crowdReacts.kind",
+    "track": "master",
+    "is": "cheer",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pride",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the people behind cheer",
+   "then": "pride rises"
+  },
+  {
+   "id": "p:back-story-crash-complication",
+   "proximity": "back-story-crash-complication",
+   "label": "When the little story behind crashes into the main one, things get worse",
+   "from": {
+    "curiosity": "backStory.ending",
+    "track": "master",
+    "is": "it crashes into the main story",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "complication",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the little story behind crashes into the main one",
+   "then": "things get worse"
+  },
+  {
+   "id": "p:back-story-laughs",
+   "proximity": "back-story-laughs",
+   "label": "When the little story behind gets easier to spot, the laughs come more often",
+   "from": {
+    "curiosity": "backStory",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "laughsPerMinute",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the little story behind gets easier to spot",
+   "then": "the laughs come more often"
+  },
+  {
+   "id": "p:danger-behind-dread",
+   "proximity": "danger-behind-dread",
+   "label": "When the danger behind them shows more clearly, dread rises",
+   "from": {
+    "curiosity": "behindTheirBack",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the danger behind them shows more clearly",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:danger-behind-we-know-first",
+   "proximity": "danger-behind-we-know-first",
+   "label": "When we see danger they cannot, we know before they do",
+   "from": {
+    "curiosity": "behindTheirBack",
+    "track": "master",
+    "is": "in sharp focus",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "knowledgeGap",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "audience first",
+   "when": "we see danger they cannot",
+   "then": "we know before they do"
+  },
+  {
+   "id": "p:danger-rushes-tension",
+   "proximity": "danger-rushes-tension",
+   "label": "When the danger behind them rushes in, the tension spikes",
+   "from": {
+    "curiosity": "behindTheirBack.closing",
+    "track": "master",
+    "is": "rushes in",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the danger behind them rushes in",
+   "then": "the tension spikes"
+  },
+  {
+   "id": "p:sign-joke-visual-gag",
+   "proximity": "sign-joke-visual-gag",
+   "label": "When a sign behind them jokes about the scene, a visual gag lands",
+   "from": {
+    "curiosity": "signsInBackground.job",
+    "track": "master",
+    "is": "jokes about the scene",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "visualGag",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a sign behind them jokes about the scene",
+   "then": "a visual gag lands"
+  },
+  {
+   "id": "p:sign-news-plants-clue",
+   "proximity": "sign-news-plants-clue",
+   "label": "When a screen behind them tells us news, a clue is planted",
+   "from": {
+    "curiosity": "signsInBackground.job",
+    "track": "master",
+    "is": "tells us news",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "plantForgotten",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a screen behind them tells us news",
+   "then": "a clue is planted"
+  },
+  {
+   "id": "p:seasons-pass-time-skips",
+   "proximity": "seasons-pass-time-skips",
+   "label": "When more seasons pass, the story skips further in time",
+   "from": {
+    "curiosity": "seasons.passes",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "timeSkip",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more seasons pass",
+   "then": "the story skips further in time"
+  },
+  {
+   "id": "p:autumn-nostalgia",
+   "proximity": "autumn-nostalgia",
+   "label": "When the season stands for things fading, nostalgia comes",
+   "from": {
+    "curiosity": "seasons.meaning",
+    "track": "master",
+    "is": "things fading",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "nostalgia",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the season stands for things fading",
+   "then": "nostalgia comes"
+  },
+  {
+   "id": "p:room-follows-change-shows",
+   "proximity": "room-follows-change-shows",
+   "label": "When the place follows the character closely, their change shows",
+   "from": {
+    "curiosity": "roomMirrorsThem",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "changeShows",
+    "track": "character"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the place follows the character closely",
+   "then": "their change shows"
+  },
+  {
+   "id": "p:room-comes-alive-hope",
+   "proximity": "room-comes-alive-hope",
+   "label": "When the place comes back to life with them, hope rises",
+   "from": {
+    "curiosity": "roomMirrorsThem.direction",
+    "track": "master",
+    "is": "comes back to life with them",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "hope",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the place comes back to life with them",
+   "then": "hope rises"
+  },
+  {
+   "id": "p:room-falls-apart-upkeep-drops",
+   "proximity": "room-falls-apart-upkeep-drops",
+   "label": "When the place falls apart with them, it gets run down",
+   "from": {
+    "curiosity": "roomMirrorsThem.direction",
+    "track": "master",
+    "is": "falls apart with them",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "setUpkeep",
+    "track": "master"
+   },
+   "within": 3,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the place falls apart with them",
+   "then": "it gets run down"
+  },
+  {
+   "id": "p:step-through-no-return",
+   "proximity": "step-through-no-return",
+   "label": "When they step through the doorway, there is no going back",
+   "from": {
+    "curiosity": "threshold.way",
+    "track": "master",
+    "is": "step through",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "pointOfNoReturn",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they step through the doorway",
+   "then": "there is no going back"
+  },
+  {
+   "id": "p:door-pause-tension",
+   "proximity": "door-pause-tension",
+   "label": "When they stop longer at the door, tension builds",
+   "from": {
+    "curiosity": "threshold.pause",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they stop longer at the door",
+   "then": "tension builds"
+  },
+  {
+   "id": "p:doorway-frames-them",
+   "proximity": "doorway-frames-them",
+   "label": "When the doorway matters more, it frames them",
+   "from": {
+    "curiosity": "threshold",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "frameInFrame.framer",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a doorway",
+   "when": "the doorway matters more",
+   "then": "it frames them"
+  },
+  {
+   "id": "p:trapped-dread",
+   "proximity": "trapped-dread",
+   "label": "When the room feels more trapped, dread rises",
+   "from": {
+    "curiosity": "waysOut",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "dread",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the room feels more trapped",
+   "then": "dread rises"
+  },
+  {
+   "id": "p:hiding-places-danger-behind",
+   "proximity": "hiding-places-danger-behind",
+   "label": "When there are more places to hide, danger can wait behind them",
+   "from": {
+    "curiosity": "waysOut.hiding",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "behindTheirBack",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "there are more places to hide",
+   "then": "danger can wait behind them"
+  },
+  {
+   "id": "p:mirror-someone-behind",
+   "proximity": "mirror-someone-behind",
+   "label": "When the mirror shows someone behind them, we see the danger first",
+   "from": {
+    "curiosity": "mirrorInRoom.shows",
+    "track": "master",
+    "is": "them and someone behind",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "behindTheirBack",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the mirror shows someone behind them",
+   "then": "we see the danger first"
+  },
+  {
+   "id": "p:avoid-mirror-shame",
+   "proximity": "avoid-mirror-shame",
+   "label": "When they avoid their own reflection, shame shows",
+   "from": {
+    "curiosity": "mirrorInRoom.face",
+    "track": "master",
+    "is": "avoid it",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "shame",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they avoid their own reflection",
+   "then": "shame shows"
+  },
+  {
+   "id": "p:many-reflections-doubt",
+   "proximity": "many-reflections-doubt",
+   "label": "When the reflections multiply, we start to doubt what we see",
+   "from": {
+    "curiosity": "mirrorInRoom.copies",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "unreliableView",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the reflections multiply",
+   "then": "we start to doubt what we see"
+  },
+  {
+   "id": "p:home-base-warmth",
+   "proximity": "home-base-warmth",
+   "label": "When the home place matters more, warmth grows",
+   "from": {
+    "curiosity": "homeBase",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the home place matters more",
+   "then": "warmth grows"
+  },
+  {
+   "id": "p:home-lost-grief",
+   "proximity": "home-lost-grief",
+   "label": "When the home place is lost, grief follows",
+   "from": {
+    "curiosity": "homeBase.lastVisit",
+    "track": "master",
+    "is": "it is lost",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "grief",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the home place is lost",
+   "then": "grief follows"
+  },
+  {
+   "id": "p:one-place-trapped",
+   "proximity": "one-place-trapped",
+   "label": "When more of the film stays in one place, it feels more trapped",
+   "from": {
+    "curiosity": "oneLocation",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "waysOut",
+    "track": "master"
+   },
+   "within": 4,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "more of the film stays in one place",
+   "then": "it feels more trapped"
+  },
+  {
+   "id": "p:one-place-squeeze-tension",
+   "proximity": "one-place-squeeze-tension",
+   "label": "When the place squeezes them harder, tension rises",
+   "from": {
+    "curiosity": "oneLocation.squeeze",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "tensionCurve",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the place squeezes them harder",
+   "then": "tension rises"
+  },
+  {
+   "id": "p:height-gap-status",
+   "proximity": "height-gap-status",
+   "label": "When one stands higher, the gap in rank grows",
+   "from": {
+    "curiosity": "heightGap",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "statusGap",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "one stands higher",
+   "then": "the gap in rank grows"
+  },
+  {
+   "id": "p:height-flip-status-flip",
+   "proximity": "height-flip-status-flip",
+   "label": "When the height gap flips, the power flips",
+   "from": {
+    "curiosity": "heightGap.flips",
+    "track": "character",
+    "is": "once",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "statusGap.flip",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "a full reversal",
+   "when": "the height gap flips",
+   "then": "the power flips"
+  },
+  {
+   "id": "p:nearest-pulls-eye",
+   "proximity": "nearest-pulls-eye",
+   "label": "When the near one fills more of the frame, the eye goes there first",
+   "from": {
+    "curiosity": "nearestCamera",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "eyeFirst",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the near one fills more of the frame",
+   "then": "the eye goes there first"
+  },
+  {
+   "id": "p:near-one-hides-other-offscreen",
+   "proximity": "near-one-hides-other-offscreen",
+   "label": "When the near one hides the other, more is kept from us",
+   "from": {
+    "curiosity": "nearestCamera.hides",
+    "track": "character",
+    "is": "almost hidden",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "offscreen",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the near one hides the other",
+   "then": "more is kept from us"
+  },
+  {
+   "id": "p:line-splits-feelings",
+   "proximity": "line-splits-feelings",
+   "label": "When the line between them grows stronger, their feelings drift apart",
+   "from": {
+    "curiosity": "dividingLine",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "emotionGap",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the line between them grows stronger",
+   "then": "their feelings drift apart"
+  },
+  {
+   "id": "p:line-crossed-warmth",
+   "proximity": "line-crossed-warmth",
+   "label": "When someone steps across the line, warmth returns",
+   "from": {
+    "curiosity": "dividingLine.crossed",
+    "track": "character",
+    "is": "steps across",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone steps across the line",
+   "then": "warmth returns"
+  },
+  {
+   "id": "p:turned-away-subtext",
+   "proximity": "turned-away-subtext",
+   "label": "When they turn further away, what they mean drifts from what they say",
+   "from": {
+    "curiosity": "facingAway",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "subtext",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they turn further away",
+   "then": "what they mean drifts from what they say"
+  },
+  {
+   "id": "p:hiding-tears-empathy",
+   "proximity": "hiding-tears-empathy",
+   "label": "When they turn away to hide tears, we feel with them",
+   "from": {
+    "curiosity": "facingAway.why",
+    "track": "character",
+    "is": "hiding tears",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "empathy",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they turn away to hide tears",
+   "then": "we feel with them"
+  },
+  {
+   "id": "p:apart-loneliness",
+   "proximity": "apart-loneliness",
+   "label": "When they stand further from the group, loneliness grows",
+   "from": {
+    "curiosity": "apartFromGroup",
+    "track": "character",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "they stand further from the group",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:dissent-stands-apart",
+   "proximity": "dissent-stands-apart",
+   "label": "When someone defies the group, they end up standing apart",
+   "from": {
+    "curiosity": "dissenter",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "apartFromGroup",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "someone defies the group",
+   "then": "they end up standing apart"
+  },
+  {
+   "id": "p:group-comes-warmth",
+   "proximity": "group-comes-warmth",
+   "label": "When the group comes to the one apart, warmth grows",
+   "from": {
+    "curiosity": "apartFromGroup.joins",
+    "track": "character",
+    "is": "the group comes to them",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "warmth",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the group comes to the one apart",
+   "then": "warmth grows"
+  },
+  {
+   "id": "p:reveal-turn-splash",
+   "proximity": "reveal-turn-splash",
+   "label": "When the page turn is a reveal, a full-page picture follows",
+   "from": {
+    "curiosity": "pageTurn",
+    "track": "master",
+    "is": "reveal",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "splashPage",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the page turn is a reveal",
+   "then": "a full-page picture follows"
+  },
+  {
+   "id": "p:splash-awe",
+   "proximity": "splash-awe",
+   "label": "When the picture takes more of the page, awe rises",
+   "from": {
+    "curiosity": "splashPage",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "awe",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the picture takes more of the page",
+   "then": "awe rises"
+  },
+  {
+   "id": "p:big-jump-scene-gutter",
+   "proximity": "big-jump-scene-gutter",
+   "label": "When the jump is to another place or time, the gap between panels marks a new scene",
+   "from": {
+    "curiosity": "panelJump",
+    "track": "master",
+    "is": "another place or time",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "gutter",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "set",
+   "value": "scene",
+   "when": "the jump is to another place or time",
+   "then": "the gap between panels marks a new scene"
+  },
+  {
+   "id": "p:reader-fills-questions",
+   "proximity": "reader-fills-questions",
+   "label": "When the reader fills in more, the questions pile up",
+   "from": {
+    "curiosity": "panelJump.fillIn",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "openQuestions",
+    "track": "character"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the reader fills in more",
+   "then": "the questions pile up"
+  },
+  {
+   "id": "p:silence-fewer-words",
+   "proximity": "silence-fewer-words",
+   "label": "When the panels go silent, the words thin out",
+   "from": {
+    "curiosity": "silentPanel",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "textDensity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "fall",
+   "when": "the panels go silent",
+   "then": "the words thin out"
+  },
+  {
+   "id": "p:silent-empty-room-loneliness",
+   "proximity": "silent-empty-room-loneliness",
+   "label": "When a silent panel shows an empty room, loneliness grows",
+   "from": {
+    "curiosity": "silentPanel.shows",
+    "track": "master",
+    "is": "an empty room",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "loneliness",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "a silent panel shows an empty room",
+   "then": "loneliness grows"
+  },
+  {
+   "id": "p:repeat-comic-pause",
+   "proximity": "repeat-comic-pause",
+   "label": "When the same panel repeats more, the comic pause gets longer",
+   "from": {
+    "curiosity": "repeatedPanel",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "comicTiming",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the same panel repeats more",
+   "then": "the comic pause gets longer"
+  },
+  {
+   "id": "p:repeat-awkward-cringe",
+   "proximity": "repeat-awkward-cringe",
+   "label": "When the repeat is an awkward silence, the cringe grows",
+   "from": {
+    "curiosity": "repeatedPanel.purpose",
+    "track": "master",
+    "is": "awkward silence",
+    "change": "any"
+   },
+   "to": {
+    "curiosity": "cringe",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the repeat is an awkward silence",
+   "then": "the cringe grows"
+  },
+  {
+   "id": "p:clear-path-eye-first",
+   "proximity": "clear-path-eye-first",
+   "label": "When the reading path is clearer, the eye lands where it should",
+   "from": {
+    "curiosity": "readingPath",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "eyeFirst",
+    "track": "character"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the reading path is clearer",
+   "then": "the eye lands where it should"
+  },
+  {
+   "id": "p:more-balloons-more-words",
+   "proximity": "more-balloons-more-words",
+   "label": "When the page has more balloons, the words pile up",
+   "from": {
+    "curiosity": "readingPath.balloons",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "textDensity",
+    "track": "master"
+   },
+   "within": 1,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the page has more balloons",
+   "then": "the words pile up"
   }
  ],
  "groups": [
@@ -17202,6 +18963,206 @@
     "p:saved-music-hits-harder",
     "p:hit-feeling-peaks",
     "p:end-music-aftertaste"
+   ]
+  },
+  {
+   "id": "ps:the-fight-ends-at-the-door",
+   "label": "The fight ends at the door",
+   "plain": "They square off and tension climbs, one shoots to their feet and takes the room, slams the door, and the one left behind is alone.",
+   "proximities": [
+    "faceoff-tension",
+    "standing-takes-the-room",
+    "slam-then-silence",
+    "left-behind-loneliness"
+   ],
+   "links": [
+    "p:faceoff-tension",
+    "p:standing-takes-the-room",
+    "p:slam-then-silence",
+    "p:left-behind-loneliness"
+   ]
+  },
+  {
+   "id": "ps:the-call",
+   "label": "The call",
+   "plain": "We cannot hear the other side, so the camera creeps in, the bad news turns their back, the tears stay hidden, and we feel it with them.",
+   "proximities": [
+    "call-hidden-push-in",
+    "call-bad-news-turn-away",
+    "back-turned-hides-feeling",
+    "push-in-empathy"
+   ],
+   "links": [
+    "p:call-hidden-push-in",
+    "p:call-bad-news-turn-away",
+    "p:back-turned-hides-feeling",
+    "p:push-in-empathy"
+   ]
+  },
+  {
+   "id": "ps:the-truth-comes-out-sideways",
+   "label": "The truth comes out sideways",
+   "plain": "The big line is thrown away into silence, the next one trails off, the body answers instead, and a line cut off before the key word leaves us with a question.",
+   "proximities": [
+    "thrown-line-silence",
+    "trailing-off-body-answers",
+    "subtext-trails-off",
+    "cutoff-opens-question"
+   ],
+   "links": [
+    "p:thrown-line-silence",
+    "p:trailing-off-body-answers",
+    "p:subtext-trails-off",
+    "p:cutoff-opens-question"
+   ]
+  },
+  {
+   "id": "ps:the-ground-gives-way",
+   "label": "The ground gives way",
+   "plain": "The camera pushes in as they realise, the room stretches behind them, the sound drops away, and we feel it in our own body.",
+   "proximities": [
+    "push-in-realisation",
+    "realisation-stretches-room",
+    "stretch-sound-drops",
+    "stretch-in-the-body"
+   ],
+   "links": [
+    "p:push-in-realisation",
+    "p:realisation-stretches-room",
+    "p:stretch-sound-drops",
+    "p:stretch-in-the-body"
+   ]
+  },
+  {
+   "id": "ps:growing-close",
+   "label": "Growing close",
+   "plain": "One copies the other's habit, they fall into step, stand closer, warm to each other, and the camera circles their kiss.",
+   "proximities": [
+    "habit-copied-mirroring",
+    "mirroring-closer",
+    "mirroring-warmth",
+    "circle-kiss-tenderness"
+   ],
+   "links": [
+    "p:habit-copied-mirroring",
+    "p:mirroring-closer",
+    "p:mirroring-warmth",
+    "p:circle-kiss-tenderness"
+   ]
+  },
+  {
+   "id": "ps:someone-is-there",
+   "label": "Someone is there",
+   "plain": "The camera wanders off to a clue and lingers, then turns to find a person who arrives like an entrance, and the room goes quiet.",
+   "proximities": [
+    "wander-plants-question",
+    "wander-lingers",
+    "reveal-a-person-entrance",
+    "entrance-hushes-room"
+   ],
+   "links": [
+    "p:wander-plants-question",
+    "p:wander-lingers",
+    "p:reveal-a-person-entrance",
+    "p:entrance-hushes-room"
+   ]
+  },
+  {
+   "id": "ps:nowhere-to-run",
+   "label": "Nowhere to run",
+   "plain": "The story stays in one place, the room feels more trapped, there are more places for danger to hide, and dread rises.",
+   "proximities": [
+    "one-place-trapped",
+    "trapped-dread",
+    "hiding-places-danger-behind",
+    "danger-behind-dread"
+   ],
+   "links": [
+    "p:one-place-trapped",
+    "p:trapped-dread",
+    "p:hiding-places-danger-behind",
+    "p:danger-behind-dread"
+   ]
+  },
+  {
+   "id": "ps:look-behind-you",
+   "label": "Look behind you",
+   "plain": "The mirror shows someone behind them, we know before they do, the danger rushes in and tension spikes.",
+   "proximities": [
+    "mirror-someone-behind",
+    "danger-behind-we-know-first",
+    "danger-rushes-tension"
+   ],
+   "links": [
+    "p:mirror-someone-behind",
+    "p:danger-behind-we-know-first",
+    "p:danger-rushes-tension"
+   ]
+  },
+  {
+   "id": "ps:left-out-then-let-in",
+   "label": "Left out, then let in",
+   "plain": "Someone defies the group and ends up standing apart, the people behind carry on without them, loneliness grows, and then the group comes to them.",
+   "proximities": [
+    "dissent-stands-apart",
+    "apart-loneliness",
+    "people-carry-on-loneliness",
+    "group-comes-warmth"
+   ],
+   "links": [
+    "p:dissent-stands-apart",
+    "p:apart-loneliness",
+    "p:people-carry-on-loneliness",
+    "p:group-comes-warmth"
+   ]
+  },
+  {
+   "id": "ps:the-turn-of-power",
+   "label": "The turn of power",
+   "plain": "One stands higher and the gap in rank grows, the near one fills the frame, and then the height flips and so does the power.",
+   "proximities": [
+    "height-gap-status",
+    "nearest-pulls-eye",
+    "height-flip-status-flip"
+   ],
+   "links": [
+    "p:height-gap-status",
+    "p:nearest-pulls-eye",
+    "p:height-flip-status-flip"
+   ]
+  },
+  {
+   "id": "ps:turn-the-page",
+   "label": "Turn the page",
+   "plain": "The panels go silent, the reader fills in the gap, the page turn hides a reveal, and the full-page picture brings awe.",
+   "proximities": [
+    "silence-fewer-words",
+    "reader-fills-questions",
+    "reveal-turn-splash",
+    "splash-awe"
+   ],
+   "links": [
+    "p:silence-fewer-words",
+    "p:reader-fills-questions",
+    "p:reveal-turn-splash",
+    "p:splash-awe"
+   ]
+  },
+  {
+   "id": "ps:a-life-in-a-room",
+   "label": "A life in a room",
+   "plain": "The home place matters more, the room follows the character, their change shows, and in the end the place comes back to life with hope, or is lost to grief.",
+   "proximities": [
+    "home-base-warmth",
+    "room-follows-change-shows",
+    "room-comes-alive-hope",
+    "home-lost-grief"
+   ],
+   "links": [
+    "p:home-base-warmth",
+    "p:room-follows-change-shows",
+    "p:room-comes-alive-hope",
+    "p:home-lost-grief"
    ]
   }
  ]

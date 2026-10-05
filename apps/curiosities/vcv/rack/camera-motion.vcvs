@@ -5,7 +5,7 @@
    "plugin": "Core",
    "model": "Notes",
    "data": {
-    "text": "CAMERA MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 49 to 64\n   1 Frequency of angle changes\n   2 Hold\n   3 Camera carry\n   4 Camera move\n   5 Move speed\n   6 Move follows\n   7 Move starts on\n   8 Camera owner\n   9 Move against loudness\n  10 Shake\n  11 Time speed\n  12 suite: Handheld hunt\n  13 suite: Smooth push\n  14 suite: Object insert\n  15 suite: Loving camera\n  16 suite: Aggressive camera\nCV-CC 2: MIDI channel 1, CC 65 to 74\n   1 suite: Follows the voice\n   2 suite: Video game camera\n   3 pair: When the camera goes handheld, gesture grows\n   4 pair: When the player takes the camera, the view becomes theirs\n   5 pair: When a character crosses the room, the camera move starts with them\n   6 pair: When the camera follows a character, it tracks alongside them\n   7 pair: When the camera moves on a breath, a small pause opens up\n   8 pair: When the camera jumps on loud moments, the shot gets shakier\n   9 pairs: The camera answers the body\n  10 pairs: Camera moves with a reason"
+    "text": "CAMERA MOTION\nPatch any CV (0 to 10 V) into a jack. 0 V is the item's From setting, 10 V its To.\n\nCV-CC 1: MIDI channel 1, CC 49 to 64\n   1 Frequency of angle changes\n   2 Hold\n   3 Camera carry\n   4 Camera move\n   5 Move speed\n   6 Move follows\n   7 Move starts on\n   8 Camera owner\n   9 Move against loudness\n  10 Shake\n  11 Time speed\n  12 Slow push in on a face\n  13 The camera circles them\n  14 Turning to reveal\n  15 The camera wanders off\n  16 The stretching background shot\nCV-CC 2: MIDI channel 1, CC 65 to 80\n   1 suite: Handheld hunt\n   2 suite: Smooth push\n   3 suite: Object insert\n   4 suite: Loving camera\n   5 suite: Aggressive camera\n   6 suite: Follows the voice\n   7 suite: Video game camera\n   8 suite: The floor drops\n   9 suite: Something in the room\n  10 pair: When the camera goes handheld, gesture grows\n  11 pair: When the player takes the camera, the view becomes theirs\n  12 pair: When a character crosses the room, the camera move starts with them\n  13 pair: When the camera follows a character, it tracks alongside them\n  14 pair: When the camera moves on a breath, a small pause opens up\n  15 pair: When the camera jumps on loud moments, the shot gets shakier\n  16 pair: When the camera turns to reveal a person, it becomes an entrance\nCV-CC 3: MIDI channel 1, CC 81 to 94\n   1 pair: When the camera pushes in on a face, we feel with them\n   2 pair: When the camera pushes in as they realise, the realisation lands\n   3 pair: When the background stretches, we feel it in the body\n   4 pair: When the sound drops out under the stretch, we hear through their ears\n   5 pair: When the camera circles a kiss, tenderness grows\n   6 pair: When the camera whirls around them, the feeling peaks\n   7 pair: When the turn reveals a threat, dread rises\n   8 pair: When the turn is a whip, the picture blurs\n   9 pair: When the camera wanders off to a clue, the audience holds a question\n  10 pair: When the camera wanders off, it lingers where it lands\n  11 pairs: The camera answers the body\n  12 pairs: Camera moves with a reason\n  13 pairs: The ground gives way\n  14 pairs: Someone is there"
    },
    "pos": [
     0,
@@ -69,10 +69,42 @@
      72,
      73,
      74,
-     -1,
-     -1,
-     -1,
-     -1,
+     75,
+     76,
+     77,
+     78,
+     79,
+     80
+    ],
+    "midi": {
+     "channel": 0
+    }
+   },
+   "pos": [
+    32,
+    0
+   ]
+  },
+  {
+   "id": 6,
+   "plugin": "Core",
+   "model": "CV-CC",
+   "data": {
+    "ccs": [
+     81,
+     82,
+     83,
+     84,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
      -1,
      -1
     ],
@@ -81,7 +113,7 @@
     }
    },
    "pos": [
-    32,
+    40,
     0
    ]
   }
