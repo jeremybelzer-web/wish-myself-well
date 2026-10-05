@@ -88,6 +88,20 @@ const ok = (cond, msg) => {
   ok(cards.length === 13 && cards.every(Boolean), "every storyboard panel is titled with its force: " + cards.slice(0, 4).join(" / "));
   const labels = await page.$$eval(".cv-card .cv-focus", (l) => l.map((x) => x.textContent));
   ok(labels.every((x) => / \+ /.test(x)), "and labelled with 2 or 3 things holding attention: " + labels.slice(0, 3).join(" / "));
+  /* Jeremy 2026-10-05: the graph is one view of the automation lanes, nodes and lines you can drag */
+  const gd = await page.locator(".cv-under .cf-graph .cf-ln-dot.cf-ed").first();
+  ok((await page.locator(".cv-under .cf-graph .cf-ln-dot").count()) >= 13 && (await page.locator(".cv-under .cf-graph path").count()) >= 2, "the graph is lines with a node per panel for the top curiosities");
+  const g0 = await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)));
+  const gb = await gd.boundingBox();
+  await page.mouse.move(gb.x + 5, gb.y + 5);
+  await page.mouse.down();
+  await page.mouse.move(gb.x + 5, gb.y + 40, { steps: 4 });
+  await page.mouse.up();
+  await page.waitForTimeout(200);
+  ok((await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)))) !== g0, "dragging a node on the graph changes that panel's value");
+  await page.evaluate(() => CurioViewer.undo());
+  await page.waitForTimeout(150);
+  ok((await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)))) === g0, "and Undo puts it back");
   ok(!(await page.isVisible(".cv-under .cf-rows")), "the colored blocks wait in the Moments tab");
   await page.click('.cv-under [data-cf-tab="moments"]');
   await page.waitForTimeout(150);
@@ -95,6 +109,27 @@ const ok = (cond, msg) => {
   await page.hover(".cv-under .cf-lead button:nth-of-type(4)");
   const full = await page.textContent(".cv-under .cf-pick");
   ok(full.length > 20, "pointing at a block reads it in full at the top: " + full);
+  await page.click('.cv-under [data-cf-tab="lanes"]');
+  await page.waitForTimeout(150);
+  const big = await page.evaluate(() => ({ card: document.querySelector(".cv-card").offsetWidth, on: document.querySelector(".cv-root").classList.contains("cf-big"), shown: [...document.querySelectorAll(".cv-under .cf-lanes .cf-ln")].filter((l) => { const a = l.getBoundingClientRect(), b = document.querySelector(".cv-under .cf-lanes").getBoundingClientRect(); return a.top >= b.top - 1 && a.bottom <= b.bottom + 1; }).length }));
+  ok(big.on && big.card < 120 && big.shown >= 4, `the Automation lanes tab shrinks the storyboards (${big.card}px) and shows the top lanes large (${big.shown} in view)`);
+  const lanes = await page.$$eval(".cv-under .cf-ln", (l) => l.map((x) => x.dataset.ln || "suite:" + x.dataset.lnSuite));
+  ok(lanes.length >= 8 && lanes.some((x) => x.startsWith("suite:")), "Automation lanes: a lane per curiosity and suite (" + lanes.slice(0, 5).join(", ") + " ...)");
+  const v0 = await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)));
+  const dot = await page.locator(".cv-under .cf-ln-edit .cf-ln-dot").first().boundingBox();
+  await page.mouse.move(dot.x + 5, dot.y + 5);
+  await page.mouse.down();
+  await page.mouse.move(dot.x + 5, dot.y + 28, { steps: 4 });
+  await page.mouse.up();
+  await page.waitForTimeout(200);
+  const v1 = await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)));
+  ok(v0 !== v1, "dragging a dot changes that panel's value");
+  await page.evaluate(() => CurioViewer.undo());
+  await page.waitForTimeout(150);
+  ok((await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)))) === v0, "and Undo puts it back");
+  await page.click('.cv-under [data-cf-tab="moments"]');
+  await page.waitForTimeout(150);
+  ok(!(await page.evaluate(() => document.querySelector(".cv-root").classList.contains("cf-big"))), "leaving the tab gives the storyboards their size back");
   const head0 = await page.$eval(".cv-under .cf-head", (h) => parseFloat(h.style.left));
   await page.evaluate(() => CurioViewer.select(0));
   await page.evaluate(() => CurioViewer.play(true));
@@ -103,6 +138,14 @@ const ok = (cond, msg) => {
   const head1 = await page.$eval(".cv-under .cf-head", (h) => parseFloat(h.style.left));
   ok(head1 > 0 && head1 !== head0, "the playhead line follows Play");
 
+  /* the space bar plays and stops even right after picking from the Pause menu */
+  await page.focus('[data-k="afterstop"]');
+  await page.keyboard.press(" ");
+  await page.waitForTimeout(300);
+  ok(await page.evaluate(() => CurioViewer.playing && CurioViewer.playing()), "space plays after picking from the Pause menu");
+  await page.keyboard.press(" ");
+  await page.waitForTimeout(100);
+  ok(!(await page.evaluate(() => CurioViewer.playing && CurioViewer.playing())), "and space stops it");
   const target = await page.$eval(".cv-under .cf-lead button:nth-of-type(8)", (b) => +b.dataset.cfAt);
   await page.click(".cv-under .cf-lead button:nth-of-type(8)");
   await page.waitForTimeout(200);

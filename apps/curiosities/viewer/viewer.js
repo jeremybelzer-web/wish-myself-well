@@ -1552,10 +1552,13 @@
 .cv-strip-head b { font-size: 13px; }
 .cv-strip-head .cv-k { color: var(--c-dim); font-size: 12px; margin-right: auto; }
 .cv-cards { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 6px; scroll-snap-type: x proximity; }
-.cv-card { flex: 0 0 184px; background: #f4efe3; color: #111; border: 3px solid #111; border-radius: 3px; padding: 0; cursor: pointer; display: grid; text-align: left; scroll-snap-align: start; position: relative; }
+.cv-card { flex: 0 0 172px; background: #f4efe3; color: #111; border: 3px solid #111; border-radius: 3px; padding: 0; cursor: pointer; display: grid; text-align: left; scroll-snap-align: start; position: relative; }
 .cv-root .cv-card { background: #f4efe3; color: #111; padding: 0; border-radius: 3px; }
 .cv-root .cv-card:hover { background: #fffaf0; }
 .cv-card.on { outline: 3px solid var(--c-accent); outline-offset: 2px; }
+/* the picked panel keeps its own dark, readable words; only the outline is blue (Jeremy 2026-10-05) */
+.cv-root .cv-card.on .cv-cap, .cv-root .cv-card.on .cv-focus { color: #111; }
+.cv-root .cv-card.on .cv-how { color: #6a5d4c; }
 .cv-card.now { outline: 3px solid var(--c-warm); outline-offset: 2px; }
 .cv-card canvas { width: 100%; aspect-ratio: 16 / 9; display: block; border-bottom: 3px solid #111; background: #333; }
 .cv-card .cv-cap { padding: 4px 7px 6px; font-size: 11px; line-height: 1.3; font-family: ${COMIC}; }
@@ -1564,7 +1567,8 @@
 .cv-card .cv-force { display: block; padding: 3px 44px 3px 7px; background: #111; color: #fde68a; font: 700 11px/1.3 system-ui, sans-serif; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cv-card .cv-focus { display: block; padding: 3px 7px 4px; border-top: 2px solid #111; background: #e6dcc6; color: #2b2418; font: 600 10.5px/1.3 system-ui, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cv-card .cv-force:empty, .cv-card .cv-focus:empty { display: none; }
-.cv-root:not(.cv-comic) .cv-card .cv-cap { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+/* the words scroll inside the card (two fingers on a trackpad, or the wheel) */
+.cv-root:not(.cv-comic) .cv-card .cv-cap { height: 4.1em; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .cv-card .cv-num { position: absolute; top: 4px; right: 4px; background: #111; color: #fff; font-size: 10px; padding: 1px 5px; border-radius: 3px; font-family: system-ui; }
 .cv-card .cv-how { display: block; color: #6a5d4c; font-family: system-ui; font-size: 10px; margin-top: 2px; }
 .cv-addcard { flex: 0 0 120px; border: 2px dashed var(--c-line); background: transparent; color: var(--c-dim); border-radius: 6px; }
@@ -2964,7 +2968,11 @@
   function onKey(e) {
     if (!root || root.hidden) return;
     const t = e.target;
-    const typing = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+    /* the space bar plays and stops even after picking from a menu (Jeremy 2026-10-05): a menu or a slider keeps
+       its own keys, but not the space bar */
+    const spaceOk = e.key === " " && t && (t.tagName === "SELECT" || (t.tagName === "INPUT" && /^(range|checkbox|radio|button)$/.test(t.type)));
+    if (spaceOk && t.blur) t.blur();
+    const typing = !spaceOk && t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
     const mod = e.metaKey || e.ctrlKey;
     if (mod && (e.key === "z" || e.key === "Z")) {
       if (typing && t.tagName !== "INPUT") return;

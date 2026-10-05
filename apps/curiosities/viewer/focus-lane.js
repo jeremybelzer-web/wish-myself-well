@@ -49,12 +49,56 @@
 .cf-charts { display: grid; grid-template-columns: 64px minmax(0, 1fr) minmax(150px, 220px); gap: 8px; align-items: stretch; }
 .cf-charts canvas { display: block; background: #1d1d21; border-radius: 4px; }
 .cf-pie { width: 64px; height: 64px; border-radius: 50% !important; }
-.cf-graph { width: 100%; height: 64px; }
+.cf-graph.cf-ln-track { width: 100%; height: 64px; }
 .cf-list { list-style: none; margin: 0; padding: 0; height: 64px; overflow-y: auto; font-size: 10.5px; display: grid; align-content: start; gap: 1px; }
 .cf-list li { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 4px; align-items: center; }
 .cf-list li i { width: 8px; height: 8px; border-radius: 2px; }
 .cf-list li span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cf-list li b { font-weight: 500; color: #9b9ba3; font-variant-numeric: tabular-nums; }
+.cv-under[data-tab="focus"] .cf-pane-lanes, .cv-under[data-tab="moments"] .cf-pane-lanes, .cv-under[data-tab="lanes"] .cf-pane-focus, .cv-under[data-tab="lanes"] .cf-pane-moments { display: none; }
+.cf-lanes { display: grid; gap: 3px; max-height: 106px; overflow-y: auto; padding-right: 2px; }
+.cf-ln { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 6px; align-items: center; }
+.cf-ln-name { font-size: 11px; line-height: 1.2; min-width: 0; }
+.cf-ln-name b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-ln-name small { display: block; color: #9b9ba3; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-ln-track { position: relative; height: 32px; background: #1d1d21; border-radius: 4px; touch-action: none; }
+.cf-ln-in { position: absolute; inset: 5px 0; }
+.cf-ln-in svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.cf-ln-track .cf-ln-sep { position: absolute; top: 0; bottom: 0; width: 1px; background: #2c2c32; }
+.cf-ln-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; border: 2px solid #111; box-sizing: border-box; }
+.cf-ln-dot.cf-ed { cursor: ns-resize; }
+/* Automation lanes, big (Jeremy 2026-10-05): stacked like tracks in Ableton Live, the top 4 in view, the rest a
+   two-finger scroll away; the storyboards shrink while this tab is open so the lanes sit large and in front */
+.cv-root.cf-big .cf-lanes { max-height: 196px; overscroll-behavior: contain; gap: 2px; }
+.cv-root.cf-big .cf-ln { grid-template-columns: 170px minmax(0, 1fr); background: #18181b; border-radius: 4px; padding: 2px 4px 2px 0; border-left: 4px solid var(--ln-c, #444); }
+.cv-root.cf-big .cf-ln-track { height: 42px; }
+.cv-root.cf-big .cf-ln.cf-ln-suite .cf-ln-track { height: 30px; }
+.cv-root.cf-big .cf-ln-name { padding-left: 6px; font-size: 12px; }
+.cv-root.cf-big .cv-under { height: auto !important; }
+.cv-root.cf-big .cv-strip { height: auto !important; padding-top: 2px; padding-bottom: 4px; }
+.cv-root.cf-big .cv-card { flex-basis: 92px; }
+.cv-root.cf-big .cv-card .cv-cap, .cv-root.cf-big .cv-card .cv-how, .cv-root.cf-big .cv-card .cv-focus { display: none; }
+.cf-ln-dot:hover, .cf-ln-dot.cf-drag { outline: 2px solid #fff; }
+.cf-ln-head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; opacity: 0.7; pointer-events: none; }
+.cf-ln.cf-ln-suite .cf-ln-track { height: 22px; }
+.cf-lanes-hint { margin: 0; font-size: 10.5px; color: #9b9ba3; }
+/* drag Front and center out over the side panels (Jeremy 2026-10-05) */
+.cf-grip { position: absolute; top: 0; bottom: 0; width: 8px; cursor: ew-resize; z-index: 3; touch-action: none; }
+.cf-grip::after { content: ""; position: absolute; top: 50%; left: 2px; width: 4px; height: 28px; margin-top: -14px; border-radius: 2px; background: #3a3a42; }
+.cf-grip:hover::after, .cf-grip.cf-drag::after { background: #22d3ee; }
+.cf-grip-l { left: 0; }
+.cf-grip-r { right: 0; }
+.cv-root.cvd-on .cv-under { overflow: visible; }
+body.cf-dragging { user-select: none; -webkit-user-select: none; }
+.cv-under { position: relative; }
+.cv-under[data-out] { margin-left: calc(-1 * var(--cf-out-l, 0px)); margin-right: calc(-1 * var(--cf-out-r, 0px)); z-index: 6; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+.cv-player:has(> .cv-under[data-out]) { overflow: visible; z-index: 6; }
+.cv-root .cvd-border { z-index: 8; }
+@media (max-width: 900px) { .cf-grip { display: none; } .cv-under[data-out] { margin: 0; } .cf-ln { grid-template-columns: 100px minmax(0, 1fr); } }
+.cf-pane-moments { grid-template-columns: minmax(0, 1fr) minmax(180px, 280px); align-items: start; gap: 8px; }
+.cf-mag { background: #1d1d21; border: 1px solid #2e2e33; border-radius: 6px; padding: 6px 8px; max-height: 96px; overflow-y: auto; display: grid; gap: 4px; font-size: 11.5px; line-height: 1.35; }
+.cf-mag .cf-now { display: block; overflow: visible; -webkit-line-clamp: unset; }
+@media (max-width: 900px) { .cf-pane-moments { grid-template-columns: minmax(0, 1fr); } }
 .cf-pick { margin: 0; font-size: 12px; font-weight: 600; color: #fff; line-height: 1.35; }
 .cf-pick:empty { display: none; }
 @media (max-width: 900px) { .cf-charts { grid-template-columns: 64px minmax(0, 1fr); } .cf-list { grid-column: 1 / -1; height: auto; max-height: 90px; } }
@@ -332,26 +376,33 @@
      complex (a third that pulls nearly as hard as the second). A feeling is named by its value (Melancholy),
      anything else by its name (Shot size). */
   const cap = (w) => String(w).charAt(0).toUpperCase() + String(w).slice(1);
-  function nameAt(r, id, i) {
-    const n = M().note(id);
-    const val = r.K[i] && r.K[i][id];
-    const feeling = n.family === "feeling" || /emotion|feeling|mood/i.test(id);
-    if (feeling && typeof val === "string" && val && isNaN(Number(val))) return cap(val);
-    return n.label || id;
+  /* Jeremy 2026-10-05: "emotion and tension are the same thing" (any feeling reads as Tension), and lean on what
+     the audience sees first, then what it hears; temperature only shows when it is extreme (snow, shivering). */
+  const TENSION = /^(emotion|emo[A-Z]|tension|feeling|mood)/;
+  const SENSE = { camera: 1.7, movement: 1.5, light: 1.5, effects: 1.5, cut: 1.4, wardrobe: 1.3, place: 1.2, voice: 1.3, music: 1.3, feeling: 1, comedy: 0.8, plot: 0.7, mind: 0.7 };
+  function nameAt(r, id) {
+    if (TENSION.test(String(id))) return "Tension";
+    return M().note(base(id)).label || id;
+  }
+  function weightOf(id) {
+    if (TENSION.test(String(id))) return 1;
+    if (base(id) === "temperature") return 0.6;
+    return SENSE[M().note(base(id)).family] || 1;
   }
   function focusAt(r, i) {
     const p = r.panels[i];
     if (!p) return { force: "", focus: [] };
     const sh = sharesAt(r, p.at + Math.min(0.5, p.sec / 2));
-    let n = 2;
-    if (sh[2] && sh[2].share >= 0.2 && sh[2].share >= 0.75 * sh[1].share) n = 3;
-    const ids = sh.slice(0, n).map((q) => q.id);
-    const names = [];
-    ids.forEach((id) => {
-      const nm = nameAt(r, id, i);
-      if (!names.includes(nm)) names.push(nm);
+    const by = {};
+    sh.forEach((q) => {
+      const nm = nameAt(r, q.id);
+      by[nm] = (by[nm] || 0) + q.share * weightOf(q.id);
     });
-    return { force: p.lead ? nameAt(r, p.lead.id, i) : names[0] || "", focus: names };
+    const ranked = Object.keys(by).sort((a, b) => by[b] - by[a]);
+    let n = 2;
+    if (ranked[2] && by[ranked[2]] >= 0.75 * by[ranked[1]] && by[ranked[2]] >= 0.15) n = 3;
+    const names = ranked.slice(0, n);
+    return { force: p.lead ? nameAt(r, p.lead.id) : names[0] || "", focus: names };
   }
 
   /* the storyboard cards under the picture: the force as each one's title, what holds attention at the bottom */
@@ -434,51 +485,224 @@
       a = b;
     });
   }
-  function drawGraph(cv, r, t, cols) {
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const W = cv.clientWidth || 200;
-    const H = cv.clientHeight || 60;
-    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) {
-      cv.width = Math.round(W * dpr);
-      cv.height = Math.round(H * dpr);
+
+
+  /* ---------- Automation lanes (Jeremy 2026-10-05: "the main thing that is missing is the automation lanes") ----------
+     One lane per curiosity in the film, panel by panel, the things holding the most attention first, then a lane
+     per suite (how much of it is on). Values a panel carries itself (panel.v: feelings, plot, comedy ...) can be
+     dragged up or down a step of their scale; values read from the picture (shot size, lens, who moves) say where
+     to change them instead. Every drag is one undo step. */
+  const READ_FROM_PICTURE = { shotSize: "Camera & lens", angleHeight: "Camera & lens", lensLength: "Camera & lens", "lensLength.distortion": "Camera & lens", weather: "Words (the rain)", balloon: "Words", cameraMove: "Camera & lens", characterPath: "Move it", bodyEnter: "Move it", objectEnter: "Move it" };
+  function scaleOf(id, vals) {
+    const c = M().find ? M().find(base(id)) : null;
+    const slider = String(id).split(".")[1];
+    const sl = c && Array.isArray(c.sliders) ? c.sliders.find((x) => x.id === (slider || c.main || "setting")) || c.sliders[0] : null;
+    const list = sl && Array.isArray(sl.scale) ? sl.scale : c && Array.isArray(c.options) ? c.options : null;
+    if (list && list.length > 1) return { list: list.slice() };
+    const nums = vals.filter((v) => v != null && v !== "" && isFinite(Number(v))).map(Number);
+    if (nums.length && nums.length === vals.filter((v) => v != null && v !== "").length) {
+      const lo = Math.min(0, ...nums);
+      const hi = Math.max(lo + 1, ...nums, sl && isFinite(sl.max) ? sl.max : -Infinity);
+      return { lo, hi, step: nums.every((n) => Number.isInteger(n)) ? 1 : 0.1 };
     }
-    const g = cv.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, W, H);
-    const n = r.samples.length;
-    const x = (k) => (k / Math.max(1, n - 1)) * W;
-    /* stacked: each of the top curiosities is a band; the rest is grey at the top */
-    let lower = r.samples.map(() => 0);
-    [...r.top, "_rest"].forEach((id) => {
-      const upper = r.samples.map((smp, k) => {
-        const v = id === "_rest" ? 1 - r.top.reduce((a, t2) => a + ((smp.sh.find((q) => q.id === t2) || {}).share || 0), 0) : (smp.sh.find((q) => q.id === id) || {}).share || 0;
-        return lower[k] + Math.max(0, v);
-      });
-      g.beginPath();
-      upper.forEach((v, k) => (k ? g.lineTo(x(k), H - v * H) : g.moveTo(x(k), H - v * H)));
-      for (let k = n - 1; k >= 0; k--) g.lineTo(x(k), H - lower[k] * H);
-      g.closePath();
-      g.fillStyle = id === "_rest" ? "#3a3a40" : cols[id];
-      g.fill();
-      lower = upper;
+    /* words with no known scale: the ones the film uses, in the order they first come */
+    const seen = [];
+    vals.forEach((v) => v != null && v !== "" && !seen.includes(String(v)) && seen.push(String(v)));
+    return { list: seen, loose: true };
+  }
+  const yOf = (sc, v) => {
+    if (v == null || v === "") return null;
+    if (sc.list) {
+      const k = sc.list.indexOf(v) >= 0 ? sc.list.indexOf(v) : sc.list.map(String).indexOf(String(v));
+      return k < 0 ? null : sc.list.length > 1 ? k / (sc.list.length - 1) : 0.5;
+    }
+    return (Number(v) - sc.lo) / Math.max(1e-6, sc.hi - sc.lo);
+  };
+  function laneIds(r) {
+    const all = {};
+    r.K.forEach((k) => Object.keys(active(k)).forEach((id) => (all[id] = 1)));
+    const order = [];
+    r.top.forEach((id) => Object.keys(all).forEach((full) => base(full) === id && !order.includes(full) && order.push(full)));
+    const score = (id) => M().note(base(id)).push || 0;
+    Object.keys(all)
+      .filter((id) => !order.includes(id))
+      .sort((a, b) => score(b) - score(a))
+      .forEach((id) => order.push(id));
+    return order;
+  }
+  /* one curiosity's lane: a line through its value in each panel, a node per panel (draggable when it can be set here) */
+  function laneParts(r, id, color) {
+    const total = r.total;
+    const n = M().note(base(id));
+    const vals = r.K.map((k) => k[id]);
+    const sc = scaleOf(id, vals);
+    const where = READ_FROM_PICTURE[id];
+    const edit = !where && !sc.loose;
+    const col = color || M().mark(n.family).color;
+    let path = "";
+    const dots = r.panels
+      .map((p, i) => {
+        const y = yOf(sc, vals[i]);
+        if (y == null) return "";
+        const x0 = (p.at / total) * 1000;
+        const x1 = ((p.at + p.sec) / total) * 1000;
+        const Y = (1 - y) * 100;
+        path += `${path ? "L" : "M"}${x0.toFixed(1)},${Y.toFixed(1)} L${x1.toFixed(1)},${Y.toFixed(1)} `;
+        return `<i class="cf-ln-dot${edit ? " cf-ed" : ""}" data-ln="${esc(id)}" data-ln-i="${i}" style="left:${pct(p.at + p.sec / 2, total)};top:${(Y).toFixed(1)}%;background:${col}" title="${esc(`${n.label}, panel ${i + 1}: ${vals[i]}`)}"></i>`;
+      })
+      .join("");
+    const svg = `<svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="${path}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+    return { n, sc, where, edit, svg, dots };
+  }
+  const sepsOf = (r) => r.panels.map((p) => `<i class="cf-ln-sep" style="left:${pct(p.at, r.total)}"></i>`).join("");
+  const laneName = (id, n) => (TENSION.test(String(id)) && n.label !== "Tension" ? "Tension: " + n.label : n.label || id);
+  /* the Viewer focus graph is one view of the automation lanes: the top curiosities on one track, nodes and lines */
+  function graphHtml(r) {
+    const ids = laneIds(r).slice(0, 4);
+    const cols = colorsFor([...new Set([...r.top, ...ids.map(base)])]);
+    const parts = ids.map((id) => laneParts(r, id, cols[base(id)]));
+    return `${sepsOf(r)}<div class="cf-ln-in">${parts.map((q) => q.svg).join("")}${parts.map((q) => q.dots).join("")}</div><i class="cf-ln-head"></i>`;
+  }
+  function lanesHtml(r) {
+    const total = r.total;
+    const seps = sepsOf(r);
+    const rows = laneIds(r).map((id) => {
+      const { n, sc, where, edit, svg, dots } = laneParts(r, id);
+      const tip = edit ? "Drag a dot up or down to change that panel" : where ? `Read from the picture: change it in ${where}` : "Set in the panels themselves";
+      return `<div class="cf-ln${edit ? " cf-ln-edit" : ""}" data-ln="${esc(id)}" style="--ln-c:${M().mark(n.family).color}"><span class="cf-ln-name" title="${esc(n.label + ". " + tip)}"><b>${esc(laneName(id, n))}</b><small>${esc(edit ? (sc.list ? sc.list[0] + " to " + sc.list[sc.list.length - 1] : sc.lo + " to " + sc.hi) : tip)}</small></span><div class="cf-ln-track">${seps}<div class="cf-ln-in">${svg}${dots}</div><i class="cf-ln-head"></i></div></div>`;
     });
-    const px = (Math.max(0, Math.min(r.total, t)) / Math.max(0.001, r.total)) * W;
-    g.fillStyle = "#fff";
-    g.fillRect(px - 1, 0, 2, H);
+    /* suites: how much of each suite in front is on, panel by panel */
+    const suiteIds = [...new Set(r.panels.filter((p) => p.suite).map((p) => p.suite.id))];
+    const all = typeof SUITES !== "undefined" ? SUITES : [];
+    suiteIds.forEach((sid) => {
+      const su = all.find((x) => x && x.id === sid);
+      if (!su || !S()) return;
+      let path = "";
+      r.panels.forEach((p, i) => {
+        const m = S().match(su, r.K[i]);
+        const y = m ? m.share : 0;
+        const x0 = (p.at / total) * 1000;
+        const x1 = ((p.at + p.sec) / total) * 1000;
+        path += `${path ? "L" : "M"}${x0.toFixed(1)},${((1 - y) * 100).toFixed(1)} L${x1.toFixed(1)},${((1 - y) * 100).toFixed(1)} `;
+      });
+      rows.push(`<div class="cf-ln cf-ln-suite" data-ln-suite="${esc(sid)}"><span class="cf-ln-name" title="${esc("Suite: " + su.label + ". How much of it is on in each panel; it follows its curiosities.")}"><b>Suite: ${esc(su.label)}</b><small>how much of it is on</small></span><div class="cf-ln-track">${seps}<div class="cf-ln-in"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="${path}" fill="none" stroke="#a78bfa" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></div><i class="cf-ln-head"></i></div></div>`);
+    });
+    return rows.join("") || `<p class="cf-lanes-hint">Nothing is set yet.</p>`;
+  }
+  /* drag a dot: the panel's own value moves a step along the curiosity's scale */
+  function laneDrag(e, dot) {
+    if (!dot.classList.contains("cf-ed")) return;
+    const id = dot.dataset.ln;
+    const i = +dot.dataset.lnI;
+    const r = read();
+    const sc = scaleOf(id, r.K.map((k) => k[id]));
+    const track = dot.closest(".cf-ln-in").getBoundingClientRect();
+    e.preventDefault();
+    dot.setPointerCapture && dot.setPointerCapture(e.pointerId);
+    dot.classList.add("cf-drag");
+    document.body.classList.add("cf-dragging");
+    V().remember("lane-" + id + "-" + i);
+    const valueAt = (cy) => {
+      const y = Math.max(0, Math.min(1, 1 - (cy - track.top) / Math.max(1, track.height)));
+      if (sc.list) return sc.list[Math.round(y * (sc.list.length - 1))];
+      const raw = sc.lo + y * (sc.hi - sc.lo);
+      return Math.round(raw / sc.step) * sc.step;
+    };
+    const move = (ev) => {
+      const v = valueAt(ev.clientY);
+      const live = V().live();
+      const p = live.film.panels[i];
+      p.v = Object.assign({}, storyOf(p), { [id]: typeof v === "number" ? Number(v.toFixed(2)) : v });
+      dot.style.top = ((1 - yOf(sc, p.v[id])) * 100).toFixed(1) + "%";
+      dot.title = `${M().note(base(id)).label}, panel ${i + 1}: ${p.v[id]}`;
+    };
+    const up = () => {
+      dot.removeEventListener("pointermove", move);
+      dot.removeEventListener("pointerup", up);
+      dot.removeEventListener("pointercancel", up);
+      dot.classList.remove("cf-drag");
+      document.body.classList.remove("cf-dragging");
+      cache = null;
+      V().changed(true);
+    };
+    dot.addEventListener("pointermove", move);
+    dot.addEventListener("pointerup", up);
+    dot.addEventListener("pointercancel", up);
+  }
+  /* drag Front and center wider, over the side panels; kept per device */
+  const OUT_KEY = "curio-focus-out-v1";
+  /* by default it runs from where it is to the right side of the screen (Jeremy 2026-10-05) */
+  let out = { l: 0, r: "max" };
+  try {
+    out = Object.assign(out, JSON.parse(localStorage.getItem(OUT_KEY) || "{}"));
+  } catch (e) {}
+  function room(side) {
+    const main = document.querySelector(".cv-root .cv-main");
+    const player = document.querySelector(".cv-root .cv-player");
+    if (!main || !player) return 0;
+    const mr = main.getBoundingClientRect();
+    const pr = player.getBoundingClientRect();
+    return side === "l" ? Math.max(0, pr.left - mr.left - 6) : Math.max(0, mr.right - pr.right - 6);
+  }
+  const px = (side) => (out[side] === "max" ? room(side) : Math.min(room(side), +out[side] || 0));
+  function applyOut() {
+    if (!box) return;
+    const L = px("l");
+    const R = px("r");
+    box.style.setProperty("--cf-out-l", L + "px");
+    box.style.setProperty("--cf-out-r", R + "px");
+    if (L || R) box.dataset.out = "1";
+    else delete box.dataset.out;
+  }
+  function gripDrag(e, g) {
+    const side = g.dataset.cfGrip;
+    const main = document.querySelector(".cv-root .cv-main");
+    const player = document.querySelector(".cv-root .cv-player");
+    if (!main || !player) return;
+    e.preventDefault();
+    g.setPointerCapture && g.setPointerCapture(e.pointerId);
+    g.classList.add("cf-drag");
+    document.body.classList.add("cf-dragging");
+    const max = room(side);
+    const x0 = e.clientX;
+    const start = px(side);
+    const move = (ev) => {
+      const d = side === "l" ? x0 - ev.clientX : ev.clientX - x0;
+      out[side] = Math.round(Math.max(0, Math.min(max, start + d)));
+      applyOut();
+      V().redraw();
+    };
+    const up = () => {
+      g.removeEventListener("pointermove", move);
+      g.removeEventListener("pointerup", up);
+      g.classList.remove("cf-drag");
+      document.body.classList.remove("cf-dragging");
+      try {
+        localStorage.setItem(OUT_KEY, JSON.stringify(out));
+      } catch (err) {}
+    };
+    g.addEventListener("pointermove", move);
+    g.addEventListener("pointerup", up);
   }
 
-  /* ---------- the two tabs ---------- */
+  /* ---------- the tabs ---------- */
   const TAB_KEY = "curio-focus-tab-v1";
   function savedTab() {
     try {
-      return localStorage.getItem(TAB_KEY) === "moments" ? "moments" : "focus";
+      const t = localStorage.getItem(TAB_KEY);
+      return t === "moments" || t === "lanes" ? t : "focus";
     } catch (e) {
       return "focus";
     }
   }
   function setTab(t) {
     if (!box) return;
-    box.dataset.tab = t === "moments" ? "moments" : "focus";
+    box.dataset.tab = t === "moments" || t === "lanes" ? t : "focus";
+    const root = box.closest(".cv-root");
+    if (root && root.classList.contains("cf-big") !== (box.dataset.tab === "lanes")) {
+      root.classList.toggle("cf-big", box.dataset.tab === "lanes");
+      setTimeout(() => V().redraw(), 0);
+    }
     box.querySelectorAll("[data-cf-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.cfTab === box.dataset.tab)));
   }
 
@@ -525,25 +749,30 @@
       .map((p) => `<i class="cf-bolt" style="left:${pct(p.at, total)}" title="${esc(`Set off by: ${p.trigger.when}`)}">⚡</i>`)
       .join("");
     const tab = box.dataset.tab || savedTab();
-    el.innerHTML = `<div class="cf-top"><b title="Usually only one or two curiosities at a time move the plot forward and hold the audience's attention. This lane shows which, moment by moment.">Front and center</b><nav class="cf-tabs" role="tablist"><button type="button" role="tab" data-cf-tab="focus" title="The things holding the audience's attention now, the pie, and the graph through the scene">Viewer focus</button><button type="button" role="tab" data-cf-tab="moments" title="Who leads, moment by moment, as colored blocks. Pick one to read it in full.">Moments</button></nav><strong class="cf-force" aria-live="polite" title="The force driving the scene and the plot forward right now"></strong></div>
+    el.innerHTML = `<div class="cf-top"><b title="Usually only one or two curiosities at a time move the plot forward and hold the audience's attention. This lane shows which, moment by moment.">Front and center</b><nav class="cf-tabs" role="tablist"><button type="button" role="tab" data-cf-tab="focus" title="The things holding the audience's attention now, the pie, and the graph through the scene">Viewer focus</button><button type="button" role="tab" data-cf-tab="moments" title="Who leads, moment by moment, as colored blocks. Pick one to read it in full.">Moments</button><button type="button" role="tab" data-cf-tab="lanes" title="A lane for every curiosity and suite in your film, panel by panel. Drag a dot up or down to change it.">Automation lanes</button></nav><strong class="cf-force" aria-live="polite" title="The force driving the scene and the plot forward right now"></strong></div>
       <div class="cf-pane cf-pane-focus">
         <p class="cf-focus" aria-live="polite" title="What holds the audience's attention in this panel: 2 things, or 3 in a busy scene"></p>
         <div class="cf-charts" title="How much the app thinks the audience's attention is on each curiosity right now (the pie), through the scene (the graph), and every one on now (the list).">
           <canvas class="cf-pie" role="img" aria-label="Attention right now"></canvas>
-          <canvas class="cf-graph" role="img" aria-label="Attention through the scene"></canvas>
+          <div class="cf-graph cf-ln-track" role="img" aria-label="The top curiosities through the scene: drag a node to change that panel">${graphHtml(r)}</div>
           <ol class="cf-list" aria-label="Every curiosity on right now, by share of attention"></ol>
         </div>
       </div>
       <div class="cf-pane cf-pane-moments">
-        <p class="cf-pick" aria-live="polite"></p>
-        <span class="cf-now" aria-live="polite"></span>
         <div class="cf-rows">
           <span>Leading</span><div class="cf-row cf-lead">${lead}${bolts}</div>
           <span>With it</span><div class="cf-row cf-thin cf-second">${second}</div>
           <span>Suite</span><div class="cf-row cf-thin cf-suite">${suite || ""}</div>
           <i class="cf-head"></i>
         </div>
-      </div>`;
+        <div class="cf-mag" title="The block you point at or pick, in full; otherwise what is in front now"><p class="cf-pick" aria-live="polite"></p><span class="cf-now" aria-live="polite"></span></div>
+      </div>
+      <div class="cf-pane cf-pane-lanes">
+        <p class="cf-lanes-hint">The things holding attention come first; scroll for every other curiosity and suite. Drag a dot up or down to change that panel.</p>
+        <div class="cf-lanes">${lanesHtml(r)}</div>
+      </div>
+      <i class="cf-grip cf-grip-l" data-cf-grip="l" title="Drag to widen Front and center over the left panel; double-click to put it back"></i><i class="cf-grip cf-grip-r" data-cf-grip="r" title="Drag to widen Front and center over the right panel; double-click to put it back"></i>`;
+    applyOut();
     setTab(tab);
     el.hidden = false;
     labelCards(r);
@@ -564,6 +793,7 @@
       const left = lane.offsetLeft + (lane.offsetWidth * Math.max(0, Math.min(total, t))) / Math.max(0.001, total);
       head.style.left = left + "px";
     }
+    box.querySelectorAll(".cf-ln-head").forEach((h) => (h.style.left = ((Math.max(0, Math.min(total, t)) / Math.max(0.001, total)) * 100).toFixed(3) + "%"));
     const p = r.panels[i];
     if (!p) return;
     const seg = r.segs.find((s) => t >= s.from - 1e-6 && t < s.to) || null;
@@ -597,9 +827,7 @@
     const sh = sharesAt(r, t);
     const cols = colorsFor([...new Set([...r.top, ...sh.map((q) => q.id)])]);
     const pie = box.querySelector(".cf-pie");
-    const graph = box.querySelector(".cf-graph");
     if (pie && pie.offsetParent) drawPie(pie, sh, cols);
-    if (graph && graph.offsetParent) drawGraph(graph, r, t, cols);
     const list = box.querySelector(".cf-list");
     if (list) {
       const sig = sh.map((q) => q.id + Math.round(q.share * 100)).join(",");
@@ -640,6 +868,23 @@
         } catch (err) {}
         V().redraw();
       }
+    });
+    document.addEventListener("pointerdown", (e) => {
+      const d = e.target.closest && e.target.closest(".cv-under .cf-ln-dot");
+      if (d) return laneDrag(e, d);
+      const g = e.target.closest && e.target.closest(".cv-under [data-cf-grip]");
+      if (g) gripDrag(e, g);
+    });
+    window.addEventListener("resize", () => applyOut());
+    document.addEventListener("dblclick", (e) => {
+      const g = e.target.closest && e.target.closest(".cv-under [data-cf-grip]");
+      if (!g) return;
+      out[g.dataset.cfGrip] = 0;
+      applyOut();
+      try {
+        localStorage.setItem(OUT_KEY, JSON.stringify(out));
+      } catch (err) {}
+      V().redraw();
     });
     /* the block you point at or pick reads in full at the top of Moments */
     const showName = (b) => {
