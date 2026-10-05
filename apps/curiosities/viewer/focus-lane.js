@@ -903,8 +903,9 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
      from the database with a control for the selected panel. A slider set in a panel becomes a lane of its own
      (◆: this panel sets it; ◇: it holds what came before), so every slider is automatable. Search opens a search
      window docked to its right edge, which moves and closes with it. The search itself (columns as filters over
-     films, books, short stories, essays and poems) is built by the scene inspiration thread: when it provides
-     window.CurioSceneSearch.mount(el, { curiosity, lane, label, from }), the search window hands it its body. */
+     films, games, books, short stories, essays and poems) is the scene inspiration search (inspire/*.js,
+     window.CurioInspire.openSearch(curiosityId, { anchor })): when it is loaded, Search opens it beside this
+     window, already on this curiosity; without it, a plain search box stands in. */
   let cwin = null;
   let swin = null;
   function closeWin() {
@@ -964,6 +965,12 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     if (!cwin) return;
     if (swin) return closeSearch();
     const id = cwin.dataset.cwin;
+    const I = window.CurioInspire;
+    if (I && typeof I.openSearch === "function") {
+      try {
+        return void I.openSearch(base(id), { anchor: cwin });
+      } catch (e) {}
+    }
     const n = M().note(base(id));
     swin = document.createElement("div");
     swin.className = "cf-swin";
@@ -972,14 +979,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     swin.innerHTML = `<header><b>Search: ${esc(n.label)}</b><button type="button" data-sw="close" title="Close the search" aria-label="Close the search">✕</button></header><div class="cf-swin-b"></div>`;
     document.body.appendChild(swin);
     const body = swin.querySelector(".cf-swin-b");
-    const S2 = window.CurioSceneSearch;
-    if (S2 && typeof S2.mount === "function") {
-      try {
-        S2.mount(body, { curiosity: base(id), lane: id, label: n.label, from: "viewer" });
-      } catch (e) {
-        body.innerHTML = `<p>The search could not open: ${esc(e.message)}</p>`;
-      }
-    } else body.innerHTML = `<input type="search" placeholder="Search for ${esc(n.label.toLowerCase())}" aria-label="Search"><p>Coming next: search films, books, short stories, essays and poems for ${esc(n.label.toLowerCase())}, with columns that filter each other.</p>`;
+    body.innerHTML = `<input type="search" placeholder="Search for ${esc(n.label.toLowerCase())}" aria-label="Search"><p>Coming next: search films, books, short stories, essays and poems for ${esc(n.label.toLowerCase())}, with columns that filter each other.</p>`;
     dock();
   }
   function openWin(id, btn) {

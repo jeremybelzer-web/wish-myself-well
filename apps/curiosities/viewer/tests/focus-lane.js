@@ -158,6 +158,15 @@ const ok = (cond, msg) => {
   ok(docked, "Search opens a search window docked beside it");
   await page.keyboard.press("Escape");
   ok(!(await page.isVisible(".cf-swin")) && (await page.isVisible(".cf-cwin")), "Esc closes the search first");
+  /* with the scene inspiration search loaded, Search hands it this curiosity and the window to sit beside */
+  const asked = await page.evaluate(() => {
+    let got = null;
+    window.CurioInspire = { openSearch: (id, o) => (got = [id, !!(o && o.anchor && o.anchor.classList.contains("cf-cwin"))]) };
+    document.querySelector('.cf-cwin [data-cw="search"]').click();
+    delete window.CurioInspire;
+    return got;
+  });
+  ok(asked && asked[0] === "tensionCurve" && asked[1] && !(await page.isVisible(".cf-swin")), "with the inspiration search loaded, Search opens it on this curiosity, beside the window: " + JSON.stringify(asked));
   await page.keyboard.press("Escape");
   ok(!(await page.isVisible(".cf-cwin")), "then the window");
   const v0 = await page.evaluate(() => JSON.stringify(CurioViewer.film().panels.map((p) => p.v || null)));
