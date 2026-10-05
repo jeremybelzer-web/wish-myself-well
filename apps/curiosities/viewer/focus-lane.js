@@ -968,7 +968,10 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     const I = window.CurioInspire;
     if (I && typeof I.openSearch === "function") {
       try {
-        return void I.openSearch(base(id), { anchor: cwin });
+        const d = I.openSearch(base(id), { anchor: cwin, lane: id });
+        /* it opens as a plain (not modal) pop-up, so lift it over the Viewer like this window */
+        if (d && d.style) d.style.zIndex = "2147482995";
+        return;
       } catch (e) {}
     }
     const n = M().note(base(id));
