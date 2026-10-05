@@ -92,6 +92,7 @@
     body.innerHTML = `<div class="ci-top">
         <input type="search" class="ci-search" placeholder="Type a film, a game, a feeling, a moment" data-i="text" value="${esc((F.find((f) => f.text) || {}).text || "")}">
         <label class="ci-small">Watch on <select data-i="watch">${Object.entries(h.WATCH).map(([id, w]) => `<option value="${id}" ${store.watch === id ? "selected" : ""}>${esc(w.label)}</option>`).join("")}</select></label>
+        <button type="button" data-i="tag">Watch and tag a clip</button>
         <button type="button" data-i="log">Log a clip you watched</button>
       </div>
       <div class="ci-pills"><span class="ci-small">Kind</span> ${kinds}</div>
@@ -118,6 +119,7 @@
       ${focus ? `<p class="ci-small">${esc(focus.label)}: ${focus.path.map(esc).join(" → ")} <em>(${esc(focus.rate)})</em></p>` : ""}
       <p class="ci-actions"><button type="button" data-i="watch-go" data-v="${esc(s.id)}">Watch</button>
         <button type="button" data-i="borrow" data-v="${esc(s.id)}" title="Open it in the Prism, then drop any curiosity onto a moment of your film">Borrow its curiosities</button>
+        <button type="button" data-i="tag-scene" data-v="${esc(s.id)}" title="Play it here and tag its curiosities as they change">Watch and tag</button>
         <button type="button" class="ci-link" data-i="open" data-v="${esc(s.id)}">${open ? "Hide" : "Every curiosity"}</button>
         ${s.logged ? `<button type="button" class="ci-link" data-i="forget" data-v="${esc(s.id)}">Forget</button>` : ""}</p>
       ${open ? details(s) : ""}
@@ -277,6 +279,11 @@
       return draw();
     }
     if (i === "logsave") return saveLog();
+    if ((i === "tag" || i === "tag-scene") && window.CurioWatchTag) {
+      const sc = i === "tag-scene" ? sceneOf(v) : null;
+      if (dlg.open) dlg.close();
+      return window.CurioWatchTag.open(sc ? { search: sc.search, work: sc.work, year: sc.year, kind: sc.kind, moment: sc.moment, feelings: sc.feelings, link: sc.video && sc.video.id ? "https://youtu.be/" + sc.video.id : "" } : {});
+    }
   }
   function keepLogFields() {
     /* Redrawing the log form for a new row should not lose what was typed. */
@@ -384,5 +391,15 @@ dialog.ci-hub>header button{margin-left:auto}
     else setTimeout(wire, 0);
   }
 
-  window.CurioInspire = { open, hub: getHub, store: () => store, borrow: (id) => sceneOf(id) && borrow(sceneOf(id)), view };
+  /* Keep a clip (from Log a clip or Watch and tag) in the scene database. */
+  function keep(clip) {
+    const scene = getHub().logClip(clip);
+    store.clips = (store.clips || []).filter((c) => c.id !== scene.id).concat([scene]);
+    save();
+    getHub().add(scene);
+    view.logging = false;
+    return scene;
+  }
+
+  window.CurioInspire = { open, keep, hub: getHub, store: () => store, borrow: (id) => sceneOf(id) && borrow(sceneOf(id)), view };
 })();

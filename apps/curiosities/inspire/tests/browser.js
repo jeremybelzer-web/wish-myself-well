@@ -83,9 +83,37 @@ function serve() {
     await page.reload();
     await page.waitForFunction(() => window.CurioInspire);
     ok(await page.evaluate(() => window.CurioInspire.hub().scenes.some((s) => s.work === "Test clip")), "logged clips survive a reload");
+    // Watch and tag: a YouTube link loads the player (blocked here, so times are typed), tags keep their times.
+    await page.route(/youtube(-nocookie)?\.com|ytimg|googlevideo/, (r) => r.abort());
+    await page.evaluate(() => window.CurioInspire.open({ filters: [] }));
+    await page.click('dialog.ci-hub [data-i="tag"]');
+    await page.waitForSelector("dialog.wt-watch[open]");
+    await page.fill('dialog.wt-watch [data-w="link"]', "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30");
+    await page.click('dialog.wt-watch [data-w="load"]');
+    ok((await page.getAttribute("dialog.wt-watch .wt-player iframe", "src")).includes("youtube-nocookie.com/embed/dQw4w9WgXcQ?") , "a YouTube link plays in YouTube's own player");
+    await page.selectOption('dialog.wt-watch [data-w="key"]', "shotSize");
+    await page.selectOption('dialog.wt-watch [data-w="value"]', "wide");
+    await page.fill('dialog.wt-watch [data-w="at"]', "0:30");
+    await page.click('dialog.wt-watch [data-w="tag"]');
+    await page.selectOption('dialog.wt-watch [data-w="value"]', "close");
+    await page.fill('dialog.wt-watch [data-w="at"]', "0:42");
+    await page.press('dialog.wt-watch [data-w="at"]', "Enter");
+    ok((await page.$$("dialog.wt-watch .wt-tags tr")).length === 3, "two tags, each with its time");
+    await page.click('dialog.wt-watch [data-w="keep"]');
+    ok((await page.textContent("dialog.wt-watch .wt-msg")).includes("title"), "a clip needs a title");
+    await page.fill('dialog.wt-watch [data-f="work"]', "Tagged clip");
+    await page.fill('dialog.wt-watch [data-f="feelings"]', "joy");
+    await page.click('dialog.wt-watch [data-w="keep"]');
+    const tagged = await page.evaluate(() => window.CurioInspire.store().clips.find((c) => c.work === "Tagged clip"));
+    ok(tagged && tagged.video && tagged.video.id === "dQw4w9WgXcQ" && tagged.beats.length === 2 && tagged.beats[0].at === 30 && tagged.beats[1].values.shotSize === "close", "Keep saves the tags as beats with the video id");
+    ok(!JSON.stringify(tagged).includes("youtube.com/watch"), "only the id is kept, no link or title from YouTube");
+    ok(await page.evaluate(() => document.querySelector("dialog.ci-hub").open && document.querySelector("dialog.ci-hub .ci-card").textContent.includes("Tagged clip")), "the tagged clip shows in the hub");
+    await page.click('dialog.ci-hub .ci-card [data-i="tag-scene"]');
+    ok((await page.getAttribute("dialog.wt-watch .wt-player iframe", "src")).includes("dQw4w9WgXcQ"), "Watch and tag on a tagged clip plays it again");
+    await page.click('dialog.wt-watch [data-w="close"]');
     ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   } catch (e) {
-    ok(false, e.message);
+    ok(false, e.message + (errors.length ? " page errors: " + errors.join(" | ") : ""));
   }
   await browser.close();
   server.close();

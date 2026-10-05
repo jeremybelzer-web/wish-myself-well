@@ -64,4 +64,26 @@ assert.ok(Array.isArray(sm));
 const logged = hub.logClip({ work: "My clip", moment: "a test", feelings: ["joy"], search: "my clip", beats: [{ at: 0, values: { shotSize: "wide" } }, { at: 5, values: { shotSize: "close" } }] });
 hub.add(logged);
 assert.strictEqual(hub.results([{ text: "my clip" }]).length, 1);
+// Watch and tag: links to ids, times, and tags to beats.
+const W = require("../watch.js");
+assert.strictEqual(W.parseId("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30"), "dQw4w9WgXcQ");
+assert.strictEqual(W.parseId("https://youtu.be/dQw4w9WgXcQ?t=5"), "dQw4w9WgXcQ");
+assert.strictEqual(W.parseId("https://www.youtube.com/shorts/dQw4w9WgXcQ"), "dQw4w9WgXcQ");
+assert.strictEqual(W.parseId("dQw4w9WgXcQ"), "dQw4w9WgXcQ");
+assert.strictEqual(W.parseId("jaws beach scene"), null);
+assert.strictEqual(W.linkStart("https://youtu.be/x?t=1m30s"), 90);
+assert.strictEqual(W.parseTime("1:05"), 65);
+assert.strictEqual(W.parseTime("65"), 65);
+assert.strictEqual(W.parseTime("1m5s"), 65);
+assert.strictEqual(W.fmt(65), "1:05");
+const tagged = W.toClip({ work: "T", feelings: "Joy, dread", video: "dQw4w9WgXcQ" }, [
+  { at: 12, key: "shotSize", value: "close" },
+  { at: 0, key: "shotSize", value: "wide" },
+  { at: 0, key: "emotion", value: "joy" },
+]);
+assert.deepStrictEqual(tagged.beats.map((b) => b.at), [0, 12]);
+assert.deepStrictEqual(tagged.feelings, ["joy", "dread"]);
+const tscene = hub.logClip(tagged);
+assert.strictEqual(tscene.video.id, "dQw4w9WgXcQ");
+assert.strictEqual(tscene.beats[1].values.emotion, "joy", "each beat keeps the values before it");
 console.log(`inspire: ${scenes.length} scenes, ${topics.length} topics, every value on its scale; filters narrow (${all} -> ${n1} -> ${n2}).`);

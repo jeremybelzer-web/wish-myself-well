@@ -228,6 +228,7 @@
         feelings: (c.feelings || []).filter(Boolean),
         search: c.search || (work + " " + moment).trim(),
         logged: true,
+        video: c.video && c.video.id ? { site: c.video.site || "youtube", id: String(c.video.id) } : undefined,
         beats: (c.beats || []).map((b) => ((carry = Object.assign({}, carry, b.values)), { at: Number(b.at) || 0, values: carry })),
       };
     }
