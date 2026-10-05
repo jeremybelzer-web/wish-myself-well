@@ -102,27 +102,6 @@
     return out + k.caption(`we are ${v("role")}, ${v("closeness")}`);
   });
 
-  /* ======================= unreliableTelling ======================= */
-  /* What the teller says (a bubble) against what we see (the stage), with a crack growing between them. */
-  look("unreliableTelling", (v, k, g) => {
-    const d = v.n("doubt") / 5;
-    const wh = idx(v, "who", 5);
-    const why = idx(v, "why", 5);
-    const cn = v.n("clues");
-    const fd = idx(v, "found", 4);
-    const af = idx(v, "after", 4);
-    let out = stage(k);
-    out += k.text({ x: 24, y: 40, text: ["🎙️", "🧠", "🧍", "🎥", "📔"][wh], size: 18 });
-    out += k.bubble({ x: 90, y: 30, text: ["I lied", "I forgot", "I misread it", "I was unwell", "I covered for them"][why], w: 110, tail: -1 });
-    out += guy(k, 230, { color: S.blue, mood: -0.4 * d });
-    out += `<path d="M160 10 L${r1(166 + d * 8)} ${r1(40 + d * 20)} L${r1(156 - d * 6)} ${r1(70 + d * 20)} L162 112" stroke="${S.red}" stroke-width="${r1(0.5 + d * 3)}" fill="none" opacity="${r1(0.2 + d * 0.8)}"/>`;
-    for (let i = 0; i < cn; i++) out += k.dot({ x: 180 + (i % 4) * 12, y: 60 + Math.floor(i / 4) * 12, r: 2.5, color: S.gold });
-    out += marks(200, 6, 110, 4, fd + 1, S.purple);
-    out += k.text({ x: 300, y: 100, text: ["🤷", "❓", "🔄", "🔁"][af], size: 14 });
-    out += strip(k, [g.num("doubt", "Doubt", "", S.red), g.steps("who", "Teller"), g.steps("why", "Why"), g.num("clues", "Clues"), g.steps("found", "Found out", S.purple), g.steps("after", "After")]);
-    return out + k.caption(`${v("who")} we can't trust: ${v("why")}`);
-  });
-
   /* ======================= storyOrder ======================= */
   /* Scenes as numbered cards in the order the film shows them, with jump arrows and a time marker. */
   look("storyOrder", (v, k, g) => {

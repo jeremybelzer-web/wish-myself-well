@@ -107123,174 +107123,6 @@
    }
   },
   {
-   "id": "unreliableTelling",
-   "level": "curiosity",
-   "label": "The telling we can't trust",
-   "plain": "The one telling the story (a voice-over, a character's memory, even the camera) is wrong, lying or leaving things out, and we find out later.",
-   "workspace": "structure",
-   "also": [],
-   "group": "",
-   "kind": "lens",
-   "per": "panel",
-   "main": "doubt",
-   "sliders": [
-    {
-     "id": "doubt",
-     "label": "How much we should doubt it",
-     "plain": "How far the telling is from what really happened.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 0,
-     "to": 5,
-     "curve": "linear"
-    },
-    {
-     "id": "who",
-     "label": "Who we can't trust",
-     "plain": "Which teller turns out to be wrong.",
-     "scale": [
-      "a voice-over",
-      "the hero's memory",
-      "a witness",
-      "the camera itself",
-      "a letter or diary"
-     ],
-     "from": "a voice-over",
-     "to": "a letter or diary",
-     "curve": "steps",
-     "unordered": true
-    },
-    {
-     "id": "why",
-     "label": "Why it is wrong",
-     "plain": "What makes the telling bend the truth.",
-     "scale": [
-      "they lie",
-      "they forget",
-      "they don't understand",
-      "they are not well",
-      "they are protecting someone"
-     ],
-     "from": "they lie",
-     "to": "they are protecting someone",
-     "curve": "steps",
-     "unordered": true
-    },
-    {
-     "id": "clues",
-     "label": "Clues we are given",
-     "plain": "How many small signs warn us not to believe it.",
-     "range": {
-      "min": 0,
-      "max": 8,
-      "unit": "",
-      "step": 1
-     },
-     "from": 0,
-     "to": 8,
-     "curve": "linear"
-    },
-    {
-     "id": "found",
-     "label": "When we find out",
-     "plain": "When the audience learns the telling was off.",
-     "scale": [
-      "never sure",
-      "slowly, scene by scene",
-      "in one late twist",
-      "at the very end"
-     ],
-     "from": "never sure",
-     "to": "at the very end",
-     "curve": "linear"
-    },
-    {
-     "id": "after",
-     "label": "What it makes us do",
-     "plain": "How the discovery lands with the audience.",
-     "scale": [
-      "shrug",
-      "doubt everything",
-      "rethink the whole film",
-      "want to watch again"
-     ],
-     "from": "shrug",
-     "to": "want to watch again",
-     "curve": "linear"
-    },
-    {
-     "id": "push",
-     "label": "Pushes the story",
-     "plain": "How much this curiosity moves the story forward here.",
-     "range": {
-      "min": 0,
-      "max": 5,
-      "unit": "",
-      "step": 1
-     },
-     "from": 3,
-     "to": 5,
-     "curve": "linear"
-    },
-    {
-     "id": "pointsAhead",
-     "label": "Points ahead",
-     "plain": "Whether it settles something or leaves a question the next moment must answer.",
-     "scale": [
-      "closes a door",
-      "holds",
-      "hints at what's next",
-      "demands what's next"
-     ],
-     "from": "holds",
-     "to": "demands what's next",
-     "curve": "linear"
-    },
-    {
-     "id": "themeLink",
-     "label": "Tied to a theme",
-     "plain": "How closely it carries one of the film's themes here.",
-     "scale": [
-      "not at all",
-      "loosely",
-      "clearly",
-      "it is the theme"
-     ],
-     "from": "loosely",
-     "to": "clearly",
-     "curve": "linear"
-    },
-    {
-     "id": "amount",
-     "label": "Amount",
-     "plain": "Share of panels in the moment where it plays.",
-     "range": {
-      "min": 0,
-      "max": 100,
-      "unit": "%",
-      "step": 1
-     },
-     "from": 100,
-     "to": 100,
-     "curve": "linear"
-    }
-   ],
-   "source": "database",
-   "tags": [],
-   "momentum": {
-    "push": 3,
-    "plot": "A late discovery turns the whole story over and sends us back to rethink it.",
-    "theme": "Shows how memory and pride rewrite the past.",
-    "pull": "We start checking every scene for the lie.",
-    "cue": "thought",
-    "tryThis": "Let the voice-over say 'I never touched her', while for one frame the picture shows his hand on her arm."
-   }
-  },
-  {
    "id": "storyOrder",
    "level": "curiosity",
    "label": "The order the story is told in",
@@ -175999,7 +175831,7 @@
     },
     {
      "weight": 100,
-     "curiosity": "unreliableTelling",
+     "curiosity": "unreliableView",
      "value": 4
     },
     {
@@ -176052,8 +175884,8 @@
      "curve": "linear"
     },
     {
-     "id": "weight:unreliableTelling",
-     "label": "Weight of unreliableTelling",
+     "id": "weight:unreliableView",
+     "label": "Weight of unreliableView",
      "plain": "How strongly the suite pushes this member toward its setting.",
      "range": {
       "min": 0,
@@ -277681,7 +277513,7 @@
    "workspace": "structure",
    "also": [],
    "when": {
-    "curiosity": "unreliableTelling",
+    "curiosity": "unreliableView",
     "change": "rises"
    },
    "then": {
@@ -277777,7 +277609,7 @@
     "emotion"
    ],
    "when": {
-    "curiosity": "unreliableTelling",
+    "curiosity": "unreliableView",
     "change": "rises"
    },
    "then": {
@@ -279024,7 +278856,7 @@
     "change": "rises"
    },
    "then": {
-    "curiosity": "unreliableTelling",
+    "curiosity": "unreliableView",
     "change": "rises"
    },
    "whenText": "the view is colored more",

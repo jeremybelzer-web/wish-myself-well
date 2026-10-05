@@ -2,12 +2,12 @@
  "made": "vcv/tools/make-vcv.js from the curiosity database",
  "counts": {
   "workspaces": 32,
-  "curiosities": 761,
+  "curiosities": 760,
   "suites": 489,
   "proximities": 1160,
   "proximitySuites": 220,
   "scenes": 80,
-  "sliders": 17610
+  "sliders": 17600
  },
  "focus": {
   "channel": 16,
@@ -23616,1258 +23616,1247 @@
    "jack": 9
   },
   {
-   "key": "c:unreliableTelling",
-   "port": 2,
-   "channel": 6,
-   "cc": 74,
-   "label": "The telling we can't trust",
-   "level": "curiosity",
-   "workspace": "structure",
-   "module": 145,
-   "jack": 10
-  },
-  {
    "key": "c:storyOrder",
    "port": 2,
    "channel": 6,
-   "cc": 75,
+   "cc": 74,
    "label": "The order the story is told in",
    "level": "curiosity",
    "workspace": "structure",
    "module": 145,
-   "jack": 11
+   "jack": 10
   },
   {
    "key": "c:frameStory",
    "port": 2,
    "channel": 6,
-   "cc": 76,
+   "cc": 75,
    "label": "A story told inside a story",
    "level": "curiosity",
    "workspace": "structure",
    "module": 145,
-   "jack": 12
+   "jack": 11
   },
   {
    "key": "c:projection",
    "port": 2,
    "channel": 6,
-   "cc": 77,
+   "cc": 76,
    "label": "Seeing others through their own life",
    "level": "curiosity",
    "workspace": "structure",
    "module": 145,
-   "jack": 13
+   "jack": 12
   },
   {
    "key": "c:backstoryDelivery",
    "port": 2,
    "channel": 6,
-   "cc": 78,
+   "cc": 77,
    "label": "How we learn what happened before",
    "level": "curiosity",
    "workspace": "structure",
    "module": 145,
-   "jack": 14
+   "jack": 13
   },
   {
    "key": "c:glimpseOfALife",
    "port": 2,
    "channel": 6,
-   "cc": 79,
+   "cc": 78,
    "label": "A glimpse of someone's whole life",
    "level": "curiosity",
    "workspace": "structure",
    "module": 145,
-   "jack": 15
+   "jack": 14
   },
   {
    "key": "s:two-person",
    "port": 2,
    "channel": 6,
-   "cc": 80,
+   "cc": 79,
    "label": "Two-person hour",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 145,
+   "jack": 15
+  },
+  {
+   "key": "s:build",
+   "port": 2,
+   "channel": 6,
+   "cc": 80,
+   "label": "Build",
    "level": "suite",
    "workspace": "structure",
    "module": 145,
    "jack": 16
   },
   {
-   "key": "s:build",
-   "port": 2,
-   "channel": 6,
-   "cc": 81,
-   "label": "Build",
-   "level": "suite",
-   "workspace": "structure",
-   "module": 146,
-   "jack": 1
-  },
-  {
    "key": "s:drop",
    "port": 2,
    "channel": 6,
-   "cc": 82,
+   "cc": 81,
    "label": "Drop",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 2
+   "jack": 1
   },
   {
    "key": "s:signature-return",
    "port": 2,
    "channel": 6,
-   "cc": 83,
+   "cc": 82,
    "label": "Signature return",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 3
+   "jack": 2
   },
   {
    "key": "s:genre-crime",
    "port": 2,
    "channel": 6,
-   "cc": 84,
+   "cc": 83,
    "label": "Crime, Tarantino style",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 4
+   "jack": 3
   },
   {
    "key": "s:genre-horror",
    "port": 2,
    "channel": 6,
-   "cc": 85,
+   "cc": 84,
    "label": "Horror",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 5
+   "jack": 4
   },
   {
    "key": "s:genre-action",
    "port": 2,
    "channel": 6,
-   "cc": 86,
+   "cc": 85,
    "label": "Action",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 6
+   "jack": 5
   },
   {
    "key": "s:genre-western",
    "port": 2,
    "channel": 6,
-   "cc": 87,
+   "cc": 86,
    "label": "Western",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 7
+   "jack": 6
   },
   {
    "key": "s:genre-musical",
    "port": 2,
    "channel": 6,
-   "cc": 88,
+   "cc": 87,
    "label": "Musical",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 8
+   "jack": 7
   },
   {
    "key": "s:genre-documentary",
    "port": 2,
    "channel": 6,
-   "cc": 89,
+   "cc": 88,
    "label": "Documentary look (camera and light)",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 9
+   "jack": 8
   },
   {
    "key": "s:genre-surrealist",
    "port": 2,
    "channel": 6,
-   "cc": 90,
+   "cc": 89,
    "label": "Surrealist",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 10
+   "jack": 9
   },
   {
    "key": "s:genre-romcom",
    "port": 2,
    "channel": 6,
-   "cc": 91,
+   "cc": 90,
    "label": "Romantic comedy",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 11
+   "jack": 10
   },
   {
    "key": "s:viral-short",
    "port": 2,
    "channel": 6,
-   "cc": 92,
+   "cc": 91,
    "label": "Viral short: hook and loop",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 12
+   "jack": 11
   },
   {
    "key": "s:episode-cliffhanger",
    "port": 2,
    "channel": 6,
-   "cc": 93,
+   "cc": 92,
    "label": "Episode cliffhanger",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 13
+   "jack": 12
   },
   {
    "key": "s:stop-motion-feel",
    "port": 2,
    "channel": 6,
-   "cc": 94,
+   "cc": 93,
    "label": "Stop-motion feel",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 14
+   "jack": 13
   },
   {
    "key": "s:the-big-moment",
    "port": 2,
    "channel": 6,
-   "cc": 95,
+   "cc": 94,
    "label": "The big moment",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
-   "jack": 15
+   "jack": 14
   },
   {
    "key": "s:breakneck-pace",
    "port": 2,
    "channel": 6,
-   "cc": 96,
+   "cc": 95,
    "label": "Breakneck pace",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 146,
+   "jack": 15
+  },
+  {
+   "key": "s:slow-and-patient",
+   "port": 2,
+   "channel": 6,
+   "cc": 96,
+   "label": "Slow and patient",
    "level": "suite",
    "workspace": "structure",
    "module": 146,
    "jack": 16
   },
   {
-   "key": "s:slow-and-patient",
-   "port": 2,
-   "channel": 6,
-   "cc": 97,
-   "label": "Slow and patient",
-   "level": "suite",
-   "workspace": "structure",
-   "module": 147,
-   "jack": 1
-  },
-  {
    "key": "s:cut-like-music",
    "port": 2,
    "channel": 6,
-   "cc": 98,
+   "cc": 97,
    "label": "Cut like music",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 2
+   "jack": 1
   },
   {
    "key": "s:ensemble-patchwork",
    "port": 2,
    "channel": 6,
-   "cc": 99,
+   "cc": 98,
    "label": "Ensemble patchwork",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 3
+   "jack": 2
   },
   {
    "key": "s:losing-a-main",
    "port": 2,
    "channel": 6,
-   "cc": 100,
+   "cc": 99,
    "label": "Losing a main character",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 4
+   "jack": 3
   },
   {
    "key": "s:studio-sitcom",
    "port": 2,
    "channel": 6,
-   "cc": 101,
+   "cc": 100,
    "label": "Studio sitcom",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 5
+   "jack": 4
   },
   {
    "key": "s:story-inside-the-story",
    "port": 2,
    "channel": 6,
-   "cc": 102,
+   "cc": 101,
    "label": "A story inside the story",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 6
+   "jack": 5
   },
   {
    "key": "s:from-the-end-back",
    "port": 2,
    "channel": 6,
-   "cc": 103,
+   "cc": 102,
    "label": "From the end, back",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 7
+   "jack": 6
   },
   {
    "key": "s:how-did-i-get-here",
    "port": 2,
    "channel": 6,
-   "cc": 104,
+   "cc": 103,
    "label": "How did I get here?",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 8
+   "jack": 7
   },
   {
    "key": "s:the-same-night-twice",
    "port": 2,
    "channel": 6,
-   "cc": 105,
+   "cc": 104,
    "label": "The same night, twice",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 9
+   "jack": 8
   },
   {
    "key": "s:it-is-not-over",
    "port": 2,
    "channel": 6,
-   "cc": 106,
+   "cc": 105,
    "label": "It is not over",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 10
+   "jack": 9
   },
   {
    "key": "s:one-more-episode",
    "port": 2,
    "channel": 6,
-   "cc": 107,
+   "cc": 106,
    "label": "Just one more episode",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 11
+   "jack": 10
   },
   {
    "key": "s:a-promise-kept",
    "port": 2,
    "channel": 6,
-   "cc": 108,
+   "cc": 107,
    "label": "A promise kept",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 12
+   "jack": 11
   },
   {
    "key": "s:waking-a-flat-middle",
    "port": 2,
    "channel": 6,
-   "cc": 109,
+   "cc": 108,
    "label": "Waking up a flat middle",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 13
+   "jack": 12
   },
   {
    "key": "s:trust-me-telling",
    "port": 2,
    "channel": 6,
-   "cc": 110,
+   "cc": 109,
    "label": "Trust me (don't)",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 14
+   "jack": 13
   },
   {
    "key": "s:all-seeing-telling",
    "port": 2,
    "channel": 6,
-   "cc": 111,
+   "cc": 110,
    "label": "We know everything",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
-   "jack": 15
+   "jack": 14
   },
   {
    "key": "s:fireside-tale",
    "port": 2,
    "channel": 6,
-   "cc": 112,
+   "cc": 111,
    "label": "A tale by the fire",
+   "level": "suite",
+   "workspace": "structure",
+   "module": 147,
+   "jack": 15
+  },
+  {
+   "key": "s:style-long-talk-snap",
+   "port": 2,
+   "channel": 6,
+   "cc": 112,
+   "label": "Long talk that snaps into violence",
    "level": "suite",
    "workspace": "structure",
    "module": 147,
    "jack": 16
   },
   {
-   "key": "s:style-long-talk-snap",
-   "port": 2,
-   "channel": 7,
-   "cc": 1,
-   "label": "Long talk that snaps into violence",
-   "level": "suite",
-   "workspace": "structure",
-   "module": 148,
-   "jack": 1
-  },
-  {
    "key": "p:tension-silence",
    "port": 2,
    "channel": 7,
-   "cc": 2,
+   "cc": 1,
    "label": "When tension peaks, a long silence",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 2
+   "jack": 1
   },
   {
    "key": "p:energy-hold",
    "port": 2,
    "channel": 7,
-   "cc": 3,
+   "cc": 2,
    "label": "When energy drops, the hold is long",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 3
+   "jack": 2
   },
   {
    "key": "p:build-drop",
    "port": 2,
    "channel": 7,
-   "cc": 4,
+   "cc": 3,
    "label": "When suite Build, suite Drop",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 4
+   "jack": 3
   },
   {
    "key": "p:aggressive-quiet",
    "port": 2,
    "channel": 7,
-   "cc": 5,
+   "cc": 4,
    "label": "When suite Aggressive camera, suite Quiet confession",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 5
+   "jack": 4
   },
   {
    "key": "p:storm-room",
    "port": 2,
    "channel": 7,
-   "cc": 6,
+   "cc": 5,
    "label": "When suite Storm, suite Breathing room",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 6
+   "jack": 5
   },
   {
    "key": "p:slowmo-linger",
    "port": 2,
    "channel": 7,
-   "cc": 7,
+   "cc": 6,
    "label": "When time slows, the bits in the air hang",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 7
+   "jack": 6
   },
   {
    "key": "p:faster-scenes-more-tension",
    "port": 2,
    "channel": 7,
-   "cc": 8,
+   "cc": 7,
    "label": "When scenes start changing faster, the tension climbs",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 8
+   "jack": 7
   },
   {
    "key": "p:tension-shortens-scenes",
    "port": 2,
    "channel": 7,
-   "cc": 9,
+   "cc": 8,
    "label": "When tension climbs, scenes get shorter",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 9
+   "jack": 8
   },
   {
    "key": "p:two-groups-cross-cut",
    "port": 2,
    "channel": 7,
-   "cc": 10,
+   "cc": 9,
    "label": "When the hour splits into two groups, the film cuts back and forth between them",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 10
+   "jack": 9
   },
   {
    "key": "p:cross-cutting-tightens-clock",
    "port": 2,
    "channel": 7,
-   "cc": 11,
+   "cc": 10,
    "label": "When the film cuts between two places faster and faster, the clock feels tighter",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 11
+   "jack": 10
   },
   {
    "key": "p:in-action-raises-questions",
    "port": 2,
    "channel": 7,
-   "cc": 12,
+   "cc": 11,
    "label": "When a scene starts in the middle of the action, the audience starts asking questions",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 12
+   "jack": 11
   },
   {
    "key": "p:answering-shots-faster-laughs",
    "port": 2,
    "channel": 7,
-   "cc": 13,
+   "cc": 12,
    "label": "When every shot answers the one before, laughs come faster",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 13
+   "jack": 12
   },
   {
    "key": "p:threes-land-the-joke",
    "port": 2,
    "channel": 7,
-   "cc": 14,
+   "cc": 13,
    "label": "When shots come in threes, the third one becomes the punchline",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 14
+   "jack": 13
   },
   {
    "key": "p:repeat-becomes-gag",
    "port": 2,
    "channel": 7,
-   "cc": 15,
+   "cc": 14,
    "label": "When the same moment keeps repeating, it turns into a running gag",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
-   "jack": 15
+   "jack": 14
   },
   {
    "key": "p:signature-image-brings-feeling",
    "port": 2,
    "channel": 7,
-   "cc": 16,
+   "cc": 15,
    "label": "When the film's signature image comes back, the old feeling comes back with it",
+   "level": "proximity",
+   "workspace": "structure",
+   "module": 148,
+   "jack": 15
+  },
+  {
+   "key": "p:clash-flips-feeling",
+   "port": 2,
+   "channel": 7,
+   "cc": 16,
+   "label": "When scenes are built to clash, the feeling flips at the cut",
    "level": "proximity",
    "workspace": "structure",
    "module": 148,
    "jack": 16
   },
   {
-   "key": "p:clash-flips-feeling",
-   "port": 2,
-   "channel": 7,
-   "cc": 17,
-   "label": "When scenes are built to clash, the feeling flips at the cut",
-   "level": "proximity",
-   "workspace": "structure",
-   "module": 149,
-   "jack": 1
-  },
-  {
    "key": "p:held-thing-builds-dread",
    "port": 2,
    "channel": 7,
-   "cc": 18,
+   "cc": 17,
    "label": "When one sound or image is held under everything, dread builds",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 2
+   "jack": 1
   },
   {
    "key": "p:fake-scare-relief-laugh",
    "port": 2,
    "channel": 7,
-   "cc": 19,
+   "cc": 18,
    "label": "When a scare turns out to be fake, the audience laughs with relief",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 3
+   "jack": 2
   },
   {
    "key": "p:sharp-cuts-jump-energy",
    "port": 2,
    "channel": 7,
-   "cc": 20,
+   "cc": 19,
    "label": "When the cuts get louder and sharper, the energy jumps",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 4
+   "jack": 3
   },
   {
    "key": "p:nosy-camera-more-cringe",
    "port": 2,
    "channel": 7,
-   "cc": 21,
+   "cc": 20,
    "label": "When the camera feels like a nosy person in the room, awkward moments get more awkward",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 5
+   "jack": 4
   },
   {
    "key": "p:rising-motif-lifts-hope",
    "port": 2,
    "channel": 7,
-   "cc": 22,
+   "cc": 21,
    "label": "When a repeating tune or image keeps climbing, hope climbs with it",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 6
+   "jack": 5
   },
   {
    "key": "p:hopping-pov-audience-first",
    "port": 2,
    "channel": 7,
-   "cc": 23,
+   "cc": 22,
    "label": "When the story hops between characters, the audience learns things before they do",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 7
+   "jack": 6
   },
   {
    "key": "p:more-screen-time-heavier-plot",
    "port": 2,
    "channel": 7,
-   "cc": 24,
+   "cc": 23,
    "label": "When a main character shows up more often, their own story gets heavier",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 8
+   "jack": 7
   },
   {
    "key": "p:more-mains-stories-cross",
    "port": 2,
    "channel": 7,
-   "cc": 25,
+   "cc": 24,
    "label": "When more main characters share the spotlight, their stories start crossing",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 9
+   "jack": 8
   },
   {
    "key": "p:death-brings-tears",
    "port": 2,
    "channel": 7,
-   "cc": 26,
+   "cc": 25,
    "label": "When a main character dies, the tears come soon after",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 10
+   "jack": 9
   },
   {
    "key": "p:inner-scene-raises-doubt",
    "port": 2,
    "channel": 7,
-   "cc": 27,
+   "cc": 26,
    "label": "When a scene plays out inside another scene, the audience starts doubting what's real",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 11
+   "jack": 10
   },
   {
    "key": "p:short-shots-more-energy",
    "port": 2,
    "channel": 7,
-   "cc": 28,
+   "cc": 27,
    "label": "When the shots get short, the energy climbs",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 12
+   "jack": 11
   },
   {
    "key": "p:backwards-knows-ending",
    "port": 2,
    "channel": 7,
-   "cc": 29,
+   "cc": 28,
    "label": "When the story runs backwards, we already know how it ends",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 13
+   "jack": 12
   },
   {
    "key": "p:backwards-asks-why",
    "port": 2,
    "channel": 7,
-   "cc": 30,
+   "cc": 29,
    "label": "When the story runs backwards, we ask why",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 14
+   "jack": 13
   },
   {
    "key": "p:glimpse-of-death-dread",
    "port": 2,
    "channel": 7,
-   "cc": 31,
+   "cc": 30,
    "label": "When the glimpse of the future shows a death, dread rises",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
-   "jack": 15
+   "jack": 14
   },
   {
    "key": "p:glimpse-feels-fated",
    "port": 2,
    "channel": 7,
-   "cc": 32,
+   "cc": 31,
    "label": "When the glimpse of the future is clearer, the ending feels fixed",
+   "level": "proximity",
+   "workspace": "structure",
+   "module": 149,
+   "jack": 15
+  },
+  {
+   "key": "p:second-look-who-knows",
+   "port": 2,
+   "channel": 7,
+   "cc": 32,
+   "label": "When the second look changes more, we know more than they do",
    "level": "proximity",
    "workspace": "structure",
    "module": 149,
    "jack": 16
   },
   {
-   "key": "p:second-look-who-knows",
-   "port": 2,
-   "channel": 7,
-   "cc": 33,
-   "label": "When the second look changes more, we know more than they do",
-   "level": "proximity",
-   "workspace": "structure",
-   "module": 150,
-   "jack": 1
-  },
-  {
    "key": "p:second-look-flips-all",
    "port": 2,
    "channel": 7,
-   "cc": 34,
+   "cc": 33,
    "label": "When the second look changes everything, the story flips",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 2
+   "jack": 1
   },
   {
    "key": "p:fake-ending-relief",
    "port": 2,
    "channel": 7,
-   "cc": 35,
+   "cc": 34,
    "label": "When the fake ending is more convincing, we let our breath out",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 3
+   "jack": 2
   },
   {
    "key": "p:villain-back-things-worse",
    "port": 2,
    "channel": 7,
-   "cc": 36,
+   "cc": 35,
    "label": "When the villain comes back after the ending, things get worse",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 4
+   "jack": 3
   },
   {
    "key": "p:lying-teller-untrusted",
    "port": 2,
    "channel": 7,
-   "cc": 37,
+   "cc": 36,
    "label": "When the teller is lying, we cannot trust what we see",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 5
+   "jack": 4
   },
   {
    "key": "p:told-to-a-child-warmth",
    "port": 2,
    "channel": 7,
-   "cc": 38,
+   "cc": 37,
    "label": "When the story is told to a child, tenderness grows",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 6
+   "jack": 5
   },
   {
    "key": "p:surprises-closer-tension",
    "port": 2,
    "channel": 7,
-   "cc": 39,
+   "cc": 38,
    "label": "When surprises come more often, tension rises",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 7
+   "jack": 6
   },
   {
    "key": "p:grab-promise",
    "port": 2,
    "channel": 7,
-   "cc": 40,
+   "cc": 39,
    "label": "When the opening grabs with a promise, the promise gets clearer",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 8
+   "jack": 7
   },
   {
    "key": "p:promise-broken-subversion",
    "port": 2,
    "channel": 7,
-   "cc": 41,
+   "cc": 40,
    "label": "When the opening's promise is broken, the film turns on us",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 9
+   "jack": 8
   },
   {
    "key": "p:lull-distraction",
    "port": 2,
    "channel": 7,
-   "cc": 42,
+   "cc": 41,
    "label": "When nothing pulls, the audience drifts",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 10
+   "jack": 9
   },
   {
    "key": "p:lull-fix-clock",
    "port": 2,
    "channel": 7,
-   "cc": 43,
+   "cc": 42,
    "label": "When a flat stretch is fixed with a clock, the clock starts running",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 11
+   "jack": 10
   },
   {
    "key": "p:lull-fix-voiced-question",
    "port": 2,
    "channel": 7,
-   "cc": 44,
+   "cc": 43,
    "label": "When a flat stretch is fixed with a question, someone asks it out loud",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
-   "jack": 12
+   "jack": 11
   },
   {
    "key": "p:cliffhanger-cut-away",
    "port": 2,
    "channel": 7,
-   "cc": 45,
+   "cc": 44,
    "label": "When a scene ends on a cliffhanger, we leave at the best part",
+   "level": "proximity",
+   "workspace": "structure",
+   "module": 150,
+   "jack": 12
+  },
+  {
+   "key": "p:cross-cutting-leave-peak",
+   "port": 2,
+   "channel": 7,
+   "cc": 45,
+   "label": "When the film cuts between stories more, it leaves each nearer its peak",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
    "jack": 13
   },
   {
-   "key": "p:cross-cutting-leave-peak",
+   "key": "p:leave-peak-questions",
    "port": 2,
    "channel": 7,
    "cc": 46,
-   "label": "When the film cuts between stories more, it leaves each nearer its peak",
+   "label": "When we leave a story at its peak, its question rides along",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
    "jack": 14
   },
   {
-   "key": "p:leave-peak-questions",
+   "key": "p:closer-telling-voiceover",
    "port": 2,
    "channel": 7,
    "cc": 47,
-   "label": "When we leave a story at its peak, its question rides along",
+   "label": "When we are let into one head, the voice-over grows",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
    "jack": 15
   },
   {
-   "key": "p:closer-telling-voiceover",
+   "key": "p:addressed-fourth-wall",
    "port": 2,
    "channel": 7,
    "cc": 48,
-   "label": "When we are let into one head, the voice-over grows",
+   "label": "When the telling talks to us, the character looks at the lens",
    "level": "proximity",
    "workspace": "structure",
    "module": 150,
    "jack": 16
   },
   {
-   "key": "p:addressed-fourth-wall",
+   "key": "p:knows-more-suspense",
    "port": 2,
    "channel": 7,
    "cc": 49,
-   "label": "When the telling talks to us, the character looks at the lens",
+   "label": "When we know more than the hero, suspense builds",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 1
   },
   {
-   "key": "p:knows-more-suspense",
+   "key": "p:doubt-same-moment",
    "port": 2,
    "channel": 7,
    "cc": 50,
-   "label": "When we know more than the hero, suspense builds",
+   "label": "When the telling can't be trusted, we see the moment again",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 2
   },
   {
-   "key": "p:doubt-same-moment",
+   "key": "p:doubt-subtext",
    "port": 2,
    "channel": 7,
    "cc": 51,
-   "label": "When the telling can't be trusted, we see the moment again",
+   "label": "When the teller is lying, said and meant pull apart",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 3
   },
   {
-   "key": "p:doubt-subtext",
+   "key": "p:jumps-memory",
    "port": 2,
    "channel": 7,
    "cc": 52,
-   "label": "When the teller is lying, said and meant pull apart",
+   "label": "When time jumps more, memories lie over the present",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 4
   },
   {
-   "key": "p:jumps-memory",
+   "key": "p:ends-first-flash-forward",
    "port": 2,
    "channel": 7,
    "cc": 53,
-   "label": "When time jumps more, memories lie over the present",
+   "label": "When the story starts at the end, glimpses of it return",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 5
   },
   {
-   "key": "p:ends-first-flash-forward",
+   "key": "p:frame-read-aloud",
    "port": 2,
    "channel": 7,
    "cc": 54,
-   "label": "When the story starts at the end, glimpses of it return",
+   "label": "When the frame is a diary, words are read out loud",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 6
   },
   {
-   "key": "p:frame-read-aloud",
+   "key": "p:told-not-shown-flat",
    "port": 2,
    "channel": 7,
    "cc": 55,
-   "label": "When the frame is a diary, words are read out loud",
+   "label": "When the past is shown, not told, we hold more back",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 7
   },
   {
-   "key": "p:told-not-shown-flat",
+   "key": "p:glimpse-echo-theme",
    "port": 2,
    "channel": 7,
    "cc": 56,
-   "label": "When the past is shown, not told, we hold more back",
+   "label": "When a stranger's life echoes the hero's, the theme sharpens",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 8
   },
   {
-   "key": "p:glimpse-echo-theme",
+   "key": "p:glimpse-foil",
    "port": 2,
    "channel": 7,
    "cc": 57,
-   "label": "When a stranger's life echoes the hero's, the theme sharpens",
+   "label": "When we glimpse a whole life, a road not taken appears",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 9
   },
   {
-   "key": "p:glimpse-foil",
+   "key": "p:struggle-projection",
    "port": 2,
    "channel": 7,
    "cc": 58,
-   "label": "When we glimpse a whole life, a road not taken appears",
+   "label": "When the hero's life falls, they see the worst in others",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 10
   },
   {
-   "key": "p:struggle-projection",
+   "key": "p:projection-unreliable",
    "port": 2,
    "channel": 7,
    "cc": 59,
-   "label": "When the hero's life falls, they see the worst in others",
+   "label": "When the view is colored more, the telling can't be trusted",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 11
   },
   {
-   "key": "p:projection-unreliable",
+   "key": "p:style-long-talk-violence",
    "port": 2,
    "channel": 7,
    "cc": 60,
-   "label": "When the view is colored more, the telling can't be trusted",
+   "label": "When the talk runs long and casual, violence arrives without warning",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 12
   },
   {
-   "key": "p:style-long-talk-violence",
+   "key": "p:style-chapter-new-view",
    "port": 2,
    "channel": 7,
    "cc": 61,
-   "label": "When the talk runs long and casual, violence arrives without warning",
+   "label": "When a chapter card appears, the story jumps to someone else's side",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 13
   },
   {
-   "key": "p:style-chapter-new-view",
+   "key": "p:style-false-then-real",
    "port": 2,
    "channel": 7,
    "cc": 62,
-   "label": "When a chapter card appears, the story jumps to someone else's side",
+   "label": "When a false scare passes, the real one comes right after",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 14
   },
   {
-   "key": "p:style-false-then-real",
+   "key": "p:style-crosscut-tension",
    "port": 2,
    "channel": 7,
    "cc": 63,
-   "label": "When a false scare passes, the real one comes right after",
+   "label": "When the cutting jumps between the crew, the tension climbs",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 15
   },
   {
-   "key": "p:style-crosscut-tension",
+   "key": "p:style-sketch-just-stops",
    "port": 2,
    "channel": 7,
    "cc": 64,
-   "label": "When the cutting jumps between the crew, the tension climbs",
+   "label": "When the film notices it has gone too far, it just stops and moves on",
    "level": "proximity",
    "workspace": "structure",
    "module": 151,
    "jack": 16
   },
   {
-   "key": "p:style-sketch-just-stops",
+   "key": "p:style-reaction-cut-twice",
    "port": 2,
    "channel": 7,
    "cc": 65,
-   "label": "When the film notices it has gone too far, it just stops and moves on",
+   "label": "When the cut goes to whoever is listening, the joke lands twice",
    "level": "proximity",
    "workspace": "structure",
    "module": 152,
    "jack": 1
   },
   {
-   "key": "p:style-reaction-cut-twice",
+   "key": "p:style-violence-then-calm",
    "port": 2,
    "channel": 7,
    "cc": 66,
-   "label": "When the cut goes to whoever is listening, the joke lands twice",
+   "label": "When violence breaks out, the next scene is calm and ordinary",
    "level": "proximity",
    "workspace": "structure",
    "module": 152,
    "jack": 2
   },
   {
-   "key": "p:style-violence-then-calm",
+   "key": "ps:long-form",
    "port": 2,
    "channel": 7,
    "cc": 67,
-   "label": "When violence breaks out, the next scene is calm and ordinary",
-   "level": "proximity",
+   "label": "Long-form shape",
+   "level": "proximitySuite",
    "workspace": "structure",
    "module": 152,
    "jack": 3
   },
   {
-   "key": "ps:long-form",
+   "key": "ps:the-squeeze",
    "port": 2,
    "channel": 7,
    "cc": 68,
-   "label": "Long-form shape",
+   "label": "The squeeze",
    "level": "proximitySuite",
    "workspace": "structure",
    "module": 152,
    "jack": 4
   },
   {
-   "key": "ps:the-squeeze",
+   "key": "ps:we-know-how-it-ends",
    "port": 2,
    "channel": 7,
    "cc": 69,
-   "label": "The squeeze",
+   "label": "We know how it ends",
    "level": "proximitySuite",
    "workspace": "structure",
    "module": 152,
    "jack": 5
   },
   {
-   "key": "ps:we-know-how-it-ends",
+   "key": "ps:leaving-at-the-peak",
    "port": 2,
    "channel": 7,
    "cc": 70,
-   "label": "We know how it ends",
+   "label": "Leaving at the peak",
    "level": "proximitySuite",
    "workspace": "structure",
    "module": 152,
    "jack": 6
   },
   {
-   "key": "ps:leaving-at-the-peak",
+   "key": "ps:waking-the-middle",
    "port": 2,
    "channel": 7,
    "cc": 71,
-   "label": "Leaving at the peak",
+   "label": "Waking the middle",
    "level": "proximitySuite",
    "workspace": "structure",
    "module": 152,
    "jack": 7
   },
   {
-   "key": "ps:waking-the-middle",
+   "key": "ps:the-telling-turns",
    "port": 2,
    "channel": 7,
    "cc": 72,
-   "label": "Waking the middle",
+   "label": "The telling turns",
    "level": "proximitySuite",
    "workspace": "structure",
    "module": 152,
    "jack": 8
   },
   {
-   "key": "ps:the-telling-turns",
+   "key": "ps:time-out-of-order",
    "port": 2,
    "channel": 7,
    "cc": 73,
-   "label": "The telling turns",
+   "label": "Time out of order",
    "level": "proximitySuite",
    "workspace": "structure",
    "module": 152,
    "jack": 9
   },
   {
-   "key": "ps:time-out-of-order",
-   "port": 2,
-   "channel": 7,
-   "cc": 74,
-   "label": "Time out of order",
-   "level": "proximitySuite",
-   "workspace": "structure",
-   "module": 152,
-   "jack": 10
-  },
-  {
    "key": "ps:style-long-talk-snap-moves",
    "port": 2,
    "channel": 7,
-   "cc": 75,
+   "cc": 74,
    "label": "Long talk that snaps into violence: the moves",
    "level": "proximitySuite",
    "workspace": "structure",
    "module": 152,
-   "jack": 11
+   "jack": 10
   },
   {
    "key": "c:panelCount",

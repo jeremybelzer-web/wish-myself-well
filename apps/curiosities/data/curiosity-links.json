@@ -22214,8 +22214,8 @@
    "proximity": "doubt-same-moment",
    "label": "When the telling can't be trusted, we see the moment again",
    "from": {
-    "curiosity": "unreliableTelling",
-    "track": "master",
+    "curiosity": "unreliableView",
+    "track": "character",
     "change": "rises"
    },
    "to": {
@@ -22233,8 +22233,8 @@
    "proximity": "doubt-subtext",
    "label": "When the teller is lying, said and meant pull apart",
    "from": {
-    "curiosity": "unreliableTelling",
-    "track": "master",
+    "curiosity": "unreliableView",
+    "track": "character",
     "change": "rises"
    },
    "to": {
@@ -22488,8 +22488,8 @@
     "change": "rises"
    },
    "to": {
-    "curiosity": "unreliableTelling",
-    "track": "master"
+    "curiosity": "unreliableView",
+    "track": "character"
    },
    "within": 2,
    "amount": 0.25,

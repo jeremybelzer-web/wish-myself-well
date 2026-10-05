@@ -22,25 +22,6 @@
     },
   });
 
-  W.add("unreliableTelling", {
-    window: {
-      faces: [
-        { face: "dial", slider: "doubt" },
-        { face: "tiles", slider: "who", icons: { "a voice-over": "🎙️", "the hero's memory": "🧠", "a witness": "🧍", "the camera itself": "🎥", "a letter or diary": "📔" } },
-        { face: "ladder", slider: "found" },
-      ],
-      groups: [
-        { label: "The teller", sliders: ["doubt", "who", "why"] },
-        { label: "Finding out", sliders: ["clues", "found", "after"] },
-      ],
-      presets: [
-        { label: "The big twist", plain: "The voice-over lies all film, and one late twist turns everything over.", set: { doubt: 5, who: "a voice-over", why: "they lie", clues: 4, found: "in one late twist", after: "rethink the whole film" } },
-        { label: "Fading memory", plain: "The hero remembers it wrong, and we learn it slowly.", set: { doubt: 3, who: "the hero's memory", why: "they forget", clues: 6, found: "slowly, scene by scene", after: "doubt everything" } },
-        { label: "Every witness differs", plain: "Each witness tells it their own way, and we never know for sure.", set: { doubt: 4, who: "a witness", why: "they are protecting someone", clues: 3, found: "never sure", after: "want to watch again" } },
-      ],
-    },
-  });
-
   W.add("storyOrder", {
     window: {
       faces: [

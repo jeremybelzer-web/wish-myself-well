@@ -1,11 +1,11 @@
 /* data/db-depth-telling.js: the telling, borrowed from writing (Jeremy, 2026-10-05: research the curiosities of
    writing, keep the ones that apply most directly to film here, and send the writing-only ones to the separate
-   writing app). 13 curiosities: seeing others through their own life, where the audience stands in the telling (the writing app's "listener's
-   perspective"), the telling we can't trust, the order the story is told in, a story told inside a story, a hint of
+   writing app). 12 curiosities: seeing others through their own life, where the audience stands in the telling (the writing app's "listener's
+   perspective"), the order the story is told in, a story told inside a story, a hint of
    what's to come, planted early and used later, how we learn what happened before, the moment that starts it all, a
    thing that stands for something bigger, talking like their personality type (Enneagram), and the theme said out
    loud, plus a glimpse of someone's whole life (like walking into a different book for a moment). Each has its own graded sliders and a momentum note, tied into suites, proximities and proximity suites.
-   Ideas already in the database (whose eyes the shot sees through, story point of view, who knows first, talking to
+   Ideas already in the database (a view we cannot trust, whose eyes the shot sees through, story point of view, who knows first, talking to
    the camera, voice-over, a glimpse of what is coming, said against meant, the promise of the opening, the same
    moment from another side, a memory laid over the present, reading words out loud, how they talk marks who they
    are) are linked to, not repeated. The writing-only list is in the project's writing app handoff. Loaded after
@@ -40,18 +40,6 @@
       ["steady", "Does it change", ["one place the whole film", "changes by section", "changes scene to scene"], "Whether the audience's place in the telling stays put or moves."],
     ],
     [2, "Decides what we may know and when, which sets up every surprise and every bit of suspense.", "Shows whose story this is and how much we are trusted with.", "We want to know what the telling is keeping from us, or what it trusts us with.", "thought", "Open on a voice that says 'You've seen this man before' over a crowd, then hold on one face."]);
-
-  c("unreliableTelling", "The telling we can't trust", "structure",
-    "The one telling the story (a voice-over, a character's memory, even the camera) is wrong, lying or leaving things out, and we find out later.",
-    [
-      ["doubt", "How much we should doubt it", [0, 5], "How far the telling is from what really happened."],
-      ["who", "Who we can't trust", ["a voice-over", "the hero's memory", "a witness", "the camera itself", "a letter or diary"], "Which teller turns out to be wrong.", U],
-      ["why", "Why it is wrong", ["they lie", "they forget", "they don't understand", "they are not well", "they are protecting someone"], "What makes the telling bend the truth.", U],
-      ["clues", "Clues we are given", [0, 8], "How many small signs warn us not to believe it."],
-      ["found", "When we find out", ["never sure", "slowly, scene by scene", "in one late twist", "at the very end"], "When the audience learns the telling was off."],
-      ["after", "What it makes us do", ["shrug", "doubt everything", "rethink the whole film", "want to watch again"], "How the discovery lands with the audience."],
-    ],
-    [3, "A late discovery turns the whole story over and sends us back to rethink it.", "Shows how memory and pride rewrite the past.", "We start checking every scene for the lie.", "thought", "Let the voice-over say 'I never touched her', while for one frame the picture shows his hand on her arm."]);
 
   c("storyOrder", "The order the story is told in", "structure",
     "Whether the film tells events from start to finish, starts in the middle of the action, starts at the end and goes back, runs backwards, or jumps around in time.",
@@ -196,7 +184,7 @@
     [
       { curiosity: "listenerPlace", value: "spoken right into our ear" },
       { curiosity: "listenerPlace", slider: "addressed", value: "spoken to the whole time" },
-      { curiosity: "unreliableTelling", value: 4 },
+      { curiosity: "unreliableView", value: 4 },
       { curiosity: "storyOrder", value: "starts at the end" },
     ]);
   S("all-seeing-telling", "We know everything", "structure",
@@ -245,10 +233,10 @@
     { curiosity: "listenerPlace", slider: "knows", is: "more than the hero" }, { curiosity: "knowledgeGap", change: "rises" }, 2, { also: ["plot"] });
   P("doubt-same-moment", "When the telling can't be trusted, we see the moment again", "structure",
     "When the telling grows less trustworthy, the same moment from another side rises within 3 beats.",
-    { curiosity: "unreliableTelling", change: "rises" }, { curiosity: "sameMomentAgain", change: "rises" }, 3);
+    { curiosity: "unreliableView", change: "rises" }, { curiosity: "sameMomentAgain", change: "rises" }, 3);
   P("doubt-subtext", "When the teller is lying, said and meant pull apart", "structure",
     "When the telling grows less trustworthy, the gap between what is said and what is meant rises within a beat.",
-    { curiosity: "unreliableTelling", change: "rises" }, { curiosity: "subtext", change: "rises" }, 1, { also: ["emotion"] });
+    { curiosity: "unreliableView", change: "rises" }, { curiosity: "subtext", change: "rises" }, 1, { also: ["emotion"] });
   P("jumps-memory", "When time jumps more, memories lie over the present", "structure",
     "When the film jumps in time more often, a memory laid over the present rises within 2 beats.",
     { curiosity: "storyOrder", slider: "jumps", change: "rises" }, { curiosity: "memoryOverlay", change: "rises" }, 2, { also: ["layers"] });
@@ -289,7 +277,7 @@
     { curiosity: "thriving", change: "drops" }, { curiosity: "projection", change: "rises" }, 2, { also: ["herd"] });
   P("projection-unreliable", "When the view is colored more, the telling can't be trusted", "structure",
     "When the hero's view colors other people more, the telling we can't trust rises within 2 beats.",
-    { curiosity: "projection", change: "rises" }, { curiosity: "unreliableTelling", change: "rises" }, 2);
+    { curiosity: "projection", change: "rises" }, { curiosity: "unreliableView", change: "rises" }, 2);
 
   /* ---------- proximity suites ---------- */
 

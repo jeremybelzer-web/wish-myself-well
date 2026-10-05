@@ -16,18 +16,6 @@
     "put us on the hero's side": { side: 5 },
   });
 
-  W.say("unreliableTelling", {
-    "the narrator is lying": { doubt: 5, why: "they lie" },
-    "we can trust the narrator": { doubt: 0 },
-    "the memory is wrong": { who: "the hero's memory", why: "they forget" },
-    "the camera lies": { who: "the camera itself" },
-    "a big twist at the end": { found: "in one late twist" },
-    "leave lots of clues": { clues: 7 },
-    "no clues": { clues: 0 },
-    "we never find out": { found: "never sure" },
-    "make us want to watch again": { after: "want to watch again" },
-  });
-
   W.say("storyOrder", {
     "tell it in order": { order: "start to finish", jumps: 0 },
     "start in the middle": { order: "starts in the middle" },
