@@ -81,6 +81,25 @@
     },
   });
 
+  W.add("projection", {
+    window: {
+      faces: [
+        { face: "dial", slider: "tint" },
+        { face: "ladder", slider: "mood" },
+        { face: "tiles", slider: "sees", icons: { threats: "⚠️", judgment: "👀", "people just like them": "🪞", kindness: "🤗", potential: "🌱" } },
+      ],
+      groups: [
+        { label: "The hero's view", sliders: ["tint", "mood", "sees"] },
+        { label: "On screen", sliders: ["shownBy", "gap", "changes"] },
+      ],
+      presets: [
+        { label: "Through a mirror, darkly", plain: "A struggling hero sees threats everywhere, shown in harsh light.", set: { tint: 5, mood: "struggling badly", sees: "threats", shownBy: "the light and color", gap: "a hint", changes: "darkens" } },
+        { label: "Rose-colored", plain: "A thriving hero sees only kindness, and the music agrees.", set: { tint: 4, mood: "thriving", sees: "kindness", shownBy: "the music", gap: "a clear moment", changes: "stays the same" } },
+        { label: "The view flips", plain: "The same people look different once the hero's life turns.", set: { tint: 3, mood: "getting by", sees: "judgment", shownBy: "the lens and framing", gap: "a full reveal", changes: "flips" } },
+      ],
+    },
+  });
+
   W.add("foreshadowHint", {
     window: {
       faces: [

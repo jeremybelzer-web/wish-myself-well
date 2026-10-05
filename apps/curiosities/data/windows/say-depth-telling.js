@@ -52,6 +52,16 @@
     "a twist in the frame": { ending: "adds a twist" },
   });
 
+  W.say("projection", {
+    "through a mirror darkly": { tint: 5, sees: "threats" },
+    "see people as they really are": { tint: 0 },
+    "rose-colored glasses": { mood: "thriving", sees: "kindness" },
+    "they think everyone is like them": { sees: "people just like them" },
+    "everyone looks like a threat": { sees: "threats" },
+    "the view flips": { changes: "flips" },
+    "show it with the light": { shownBy: "the light and color" },
+  });
+
   W.say("foreshadowHint", {
     "foreshadow it": { strength: 3 },
     "a subtle hint": { strength: 1 },

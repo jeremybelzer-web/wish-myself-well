@@ -1,6 +1,6 @@
 /* data/db-depth-telling.js: the telling, borrowed from writing (Jeremy, 2026-10-05: research the curiosities of
    writing, keep the ones that apply most directly to film here, and send the writing-only ones to the separate
-   writing app). 12 curiosities: where the audience stands in the telling (the writing app's "listener's
+   writing app). 13 curiosities: seeing others through their own life, where the audience stands in the telling (the writing app's "listener's
    perspective"), the telling we can't trust, the order the story is told in, a story told inside a story, a hint of
    what's to come, planted early and used later, how we learn what happened before, the moment that starts it all, a
    thing that stands for something bigger, talking like their personality type (Enneagram), and the theme said out
@@ -76,6 +76,18 @@
       ["ending", "What the frame does at the end", ["just closes", "adds a twist", "changes the teller", "turns out to be part of the story"], "How the outer story pays off."],
     ],
     [2, "The teller's own story can quietly become the real one, and the ending can turn on it.", "Shows that every story is told by someone, for a reason.", "We wonder why this teller is telling it, and to whom.", "audio", "Every time the war story reaches a death, cut back to the old soldier pausing over his coffee."]);
+
+  c("projection", "Seeing others through their own life", "structure",
+    "The point-of-view character's own struggle or thriving colors how they see everyone else. We think others are like us, so a struggling hero sees threats and a thriving one sees friends: through a mirror, darkly. The film shows other people the way the hero sees them, not as they are.",
+    [
+      ["tint", "How much it colors what we see", [0, 5], "0 shows people as they are; 5 shows them only as the hero sees them."],
+      ["mood", "The hero's own state", ["struggling badly", "struggling", "getting by", "doing well", "thriving"], "How the point-of-view character's own life is going, which sets the tint."],
+      ["sees", "What they see in others", ["threats", "judgment", "people just like them", "kindness", "potential"], "What the hero projects onto the people around them.", U],
+      ["shownBy", "How the film shows it", ["the light and color", "the lens and framing", "how others act", "what they say", "the music"], "Which tool bends other people toward the hero's view.", U],
+      ["gap", "The truth we glimpse", ["never", "a hint", "a clear moment", "a full reveal"], "Whether we ever see someone as they really are, apart from the hero's view."],
+      ["changes", "Does the view change", ["stays the same", "darkens", "brightens", "flips"], "How the hero's view of others moves as their own life changes."],
+    ],
+    [2, "When the hero's own life turns, the same people suddenly look different, and the story turns with them.", "Shows that we see others through ourselves.", "We start to wonder what the other people are really like.", "visual", "Shoot the same neighbor twice: from below in harsh light while the hero is broke, and at eye level in warm light once he is back on his feet."]);
 
   /* ---------- seeds and payoffs ---------- */
 
@@ -272,11 +284,18 @@
     "When we see more of a passing character's life, the character they could become rises within 2 beats.",
     { curiosity: "glimpseOfALife", change: "rises" }, { curiosity: "foil", change: "rises" }, 2, { also: ["arc"] });
 
+  P("struggle-projection", "When the hero's life falls, they see the worst in others", "structure",
+    "When the point-of-view character's life starts falling, how much their view colors other people rises within 2 beats.",
+    { curiosity: "thriving", change: "drops" }, { curiosity: "projection", change: "rises" }, 2, { also: ["herd"] });
+  P("projection-unreliable", "When the view is colored more, the telling can't be trusted", "structure",
+    "When the hero's view colors other people more, the telling we can't trust rises within 2 beats.",
+    { curiosity: "projection", change: "rises" }, { curiosity: "unreliableTelling", change: "rises" }, 2);
+
   /* ---------- proximity suites ---------- */
 
   PS("the-telling-turns", "The telling turns", "structure",
     "A voice talks to us, then the teller is caught lying, we see the moment again, and what was said and meant come apart.",
-    ["addressed-fourth-wall", "doubt-same-moment", "doubt-subtext", "closer-telling-voiceover"]);
+    ["addressed-fourth-wall", "doubt-same-moment", "doubt-subtext", "closer-telling-voiceover", "projection-unreliable"]);
   PS("seeds-and-harvest", "Seeds and harvest", "plot",
     "A hard start raises questions, hints point ahead, the planted thing pays off, and the broken symbol says the theme.",
     ["inciting-open-questions", "hint-planted", "symbol-broken-theme", "knows-more-suspense", "glimpse-echo-theme", "glimpse-foil"]);

@@ -169,6 +169,31 @@
     return out + k.caption(`told by ${v("teller")}`);
   });
 
+  /* ======================= projection ======================= */
+  /* The hero on the left, other people seen through a tinted lens whose color follows the hero's own state. */
+  look("projection", (v, k, g) => {
+    const t = v.n("tint") / 5;
+    const md = idx(v, "mood", 5);
+    const se = idx(v, "sees", 5);
+    const sb = idx(v, "shownBy", 5);
+    const gp = idx(v, "gap", 4);
+    const ch = idx(v, "changes", 4);
+    const col = [S.red, S.orange, S.grey, S.green, S.gold][md];
+    let out = stage(k);
+    out += guy(k, 50, { color: S.blue, mood: (md - 2) / 2, look: 1 });
+    out += k.beam({ x: 62, y: 60, dir: 0, len: 250, spread: 30, color: col, alpha: 0.1 + t * 0.4 });
+    const others = ["😠", "🤨", "🪞", "🙂", "🌱"][se];
+    for (let i = 0; i < 3; i++) {
+      out += guy(k, 160 + i * 55, { color: k.mix(S.grey, col, t), mood: (md - 2) / 2 * t, s: sb === 1 ? 0.8 + t * 0.4 : 0.8 });
+      out += k.text({ x: 160 + i * 55, y: 30, text: others, size: 8 + t * 8 });
+    }
+    if (gp > 0) out += k.ring({ x: 215, y: 70, r: 10 + gp * 6, color: S.white, w: 1, dash: "2 2" });
+    out += k.text({ x: 20, y: 20, text: ["🎨", "🔭", "🎭", "💬", "🎵"][sb], size: 12 });
+    out += k.text({ x: 300, y: 104, text: ["⏸️", "🌑", "☀️", "🔄"][ch], size: 12 });
+    out += strip(k, [g.num("tint", "Tint", "", col), g.steps("mood", "Hero's life"), g.steps("sees", "Sees"), g.steps("shownBy", "Shown by"), g.steps("gap", "Truth"), g.steps("changes", "Changes")]);
+    return out + k.caption(`${v("mood")}, sees ${v("sees")}`);
+  });
+
   /* ======================= foreshadowHint / plantedThing ======================= */
   /* A row of scenes; the hint or plant glows early and links by an arc to where it comes true. */
   const seedLook = (id, o) => look(id, (v, k, g) => {

@@ -107624,6 +107624,175 @@
    }
   },
   {
+   "id": "projection",
+   "level": "curiosity",
+   "label": "Seeing others through their own life",
+   "plain": "The point-of-view character's own struggle or thriving colors how they see everyone else. We think others are like us, so a struggling hero sees threats and a thriving one sees friends: through a mirror, darkly. The film shows other people the way the hero sees them, not as they are.",
+   "workspace": "structure",
+   "also": [],
+   "group": "",
+   "kind": "lens",
+   "per": "panel",
+   "main": "tint",
+   "sliders": [
+    {
+     "id": "tint",
+     "label": "How much it colors what we see",
+     "plain": "0 shows people as they are; 5 shows them only as the hero sees them.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 0,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "mood",
+     "label": "The hero's own state",
+     "plain": "How the point-of-view character's own life is going, which sets the tint.",
+     "scale": [
+      "struggling badly",
+      "struggling",
+      "getting by",
+      "doing well",
+      "thriving"
+     ],
+     "from": "struggling badly",
+     "to": "thriving",
+     "curve": "linear"
+    },
+    {
+     "id": "sees",
+     "label": "What they see in others",
+     "plain": "What the hero projects onto the people around them.",
+     "scale": [
+      "threats",
+      "judgment",
+      "people just like them",
+      "kindness",
+      "potential"
+     ],
+     "from": "threats",
+     "to": "potential",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "shownBy",
+     "label": "How the film shows it",
+     "plain": "Which tool bends other people toward the hero's view.",
+     "scale": [
+      "the light and color",
+      "the lens and framing",
+      "how others act",
+      "what they say",
+      "the music"
+     ],
+     "from": "the light and color",
+     "to": "the music",
+     "curve": "steps",
+     "unordered": true
+    },
+    {
+     "id": "gap",
+     "label": "The truth we glimpse",
+     "plain": "Whether we ever see someone as they really are, apart from the hero's view.",
+     "scale": [
+      "never",
+      "a hint",
+      "a clear moment",
+      "a full reveal"
+     ],
+     "from": "never",
+     "to": "a full reveal",
+     "curve": "linear"
+    },
+    {
+     "id": "changes",
+     "label": "Does the view change",
+     "plain": "How the hero's view of others moves as their own life changes.",
+     "scale": [
+      "stays the same",
+      "darkens",
+      "brightens",
+      "flips"
+     ],
+     "from": "stays the same",
+     "to": "flips",
+     "curve": "linear"
+    },
+    {
+     "id": "push",
+     "label": "Pushes the story",
+     "plain": "How much this curiosity moves the story forward here.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "pointsAhead",
+     "label": "Points ahead",
+     "plain": "Whether it settles something or leaves a question the next moment must answer.",
+     "scale": [
+      "closes a door",
+      "holds",
+      "hints at what's next",
+      "demands what's next"
+     ],
+     "from": "holds",
+     "to": "demands what's next",
+     "curve": "linear"
+    },
+    {
+     "id": "themeLink",
+     "label": "Tied to a theme",
+     "plain": "How closely it carries one of the film's themes here.",
+     "scale": [
+      "not at all",
+      "loosely",
+      "clearly",
+      "it is the theme"
+     ],
+     "from": "loosely",
+     "to": "clearly",
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": [],
+   "momentum": {
+    "push": 2,
+    "plot": "When the hero's own life turns, the same people suddenly look different, and the story turns with them.",
+    "theme": "Shows that we see others through ourselves.",
+    "pull": "We start to wonder what the other people are really like.",
+    "cue": "visual",
+    "tryThis": "Shoot the same neighbor twice: from below in harsh light while the hero is broke, and at eye level in warm light once he is back on his feet."
+   }
+  },
+  {
    "id": "foreshadowHint",
    "level": "curiosity",
    "label": "A hint of what's to come",
@@ -277660,6 +277829,196 @@
    "tags": []
   },
   {
+   "id": "struggle-projection",
+   "level": "proximity",
+   "label": "When the hero's life falls, they see the worst in others",
+   "plain": "When the point-of-view character's life starts falling, how much their view colors other people rises within 2 beats.",
+   "workspace": "structure",
+   "also": [
+    "herd"
+   ],
+   "when": {
+    "curiosity": "thriving",
+    "change": "drops"
+   },
+   "then": {
+    "curiosity": "projection",
+    "change": "rises"
+   },
+   "whenText": "the hero's life falls",
+   "thenText": "they see the worst in others",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
+   "id": "projection-unreliable",
+   "level": "proximity",
+   "label": "When the view is colored more, the telling can't be trusted",
+   "plain": "When the hero's view colors other people more, the telling we can't trust rises within 2 beats.",
+   "workspace": "structure",
+   "also": [],
+   "when": {
+    "curiosity": "projection",
+    "change": "rises"
+   },
+   "then": {
+    "curiosity": "unreliableTelling",
+    "change": "rises"
+   },
+   "whenText": "the view is colored more",
+   "thenText": "the telling can't be trusted",
+   "within": 2,
+   "often": null,
+   "sliders": [
+    {
+     "id": "cause",
+     "label": "Cause",
+     "plain": "Share of panels where the cause is set.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 0,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay",
+     "label": "Delay",
+     "plain": "Beats between the cause and the effect.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 2,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance",
+     "label": "How often",
+     "plain": "How often the effect follows the cause.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 70,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "effect",
+     "label": "Effect size",
+     "plain": "How big the effect is when it follows.",
+     "range": {
+      "min": 0,
+      "max": 5,
+      "unit": "",
+      "step": 1
+     },
+     "from": 2,
+     "to": 5,
+     "curve": "linear"
+    },
+    {
+     "id": "amount",
+     "label": "Amount",
+     "plain": "Share of panels in the moment where it plays.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 100,
+     "to": 100,
+     "curve": "linear"
+    }
+   ],
+   "source": "database",
+   "tags": []
+  },
+  {
    "id": "approval-copying",
    "level": "proximity",
    "label": "When the need for approval grows, they copy the others",
@@ -316149,7 +316508,8 @@
     "addressed-fourth-wall",
     "doubt-same-moment",
     "doubt-subtext",
-    "closer-telling-voiceover"
+    "closer-telling-voiceover",
+    "projection-unreliable"
    ],
    "sliders": [
     {
@@ -316267,6 +316627,34 @@
     {
      "id": "chance:closer-telling-voiceover",
      "label": "How often closer-telling-voiceover",
+     "plain": "How often this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "step": 1
+     },
+     "from": 50,
+     "to": 100,
+     "curve": "linear"
+    },
+    {
+     "id": "delay:projection-unreliable",
+     "label": "Delay of projection-unreliable",
+     "plain": "Beats before this pair's effect follows.",
+     "range": {
+      "min": 0,
+      "max": 16,
+      "unit": "beats",
+      "step": 1
+     },
+     "from": 0,
+     "to": 4,
+     "curve": "linear"
+    },
+    {
+     "id": "chance:projection-unreliable",
+     "label": "How often projection-unreliable",
      "plain": "How often this pair's effect follows.",
      "range": {
       "min": 0,

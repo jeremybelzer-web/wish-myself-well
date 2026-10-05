@@ -22460,6 +22460,44 @@
    "then": "a road not taken appears"
   },
   {
+   "id": "p:struggle-projection",
+   "proximity": "struggle-projection",
+   "label": "When the hero's life falls, they see the worst in others",
+   "from": {
+    "curiosity": "thriving",
+    "track": "master",
+    "change": "drops"
+   },
+   "to": {
+    "curiosity": "projection",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the hero's life falls",
+   "then": "they see the worst in others"
+  },
+  {
+   "id": "p:projection-unreliable",
+   "proximity": "projection-unreliable",
+   "label": "When the view is colored more, the telling can't be trusted",
+   "from": {
+    "curiosity": "projection",
+    "track": "master",
+    "change": "rises"
+   },
+   "to": {
+    "curiosity": "unreliableTelling",
+    "track": "master"
+   },
+   "within": 2,
+   "amount": 0.25,
+   "does": "rise",
+   "when": "the view is colored more",
+   "then": "the telling can't be trusted"
+  },
+  {
    "id": "p:approval-copying",
    "proximity": "approval-copying",
    "label": "When the need for approval grows, they copy the others",
@@ -28023,13 +28061,15 @@
     "addressed-fourth-wall",
     "doubt-same-moment",
     "doubt-subtext",
-    "closer-telling-voiceover"
+    "closer-telling-voiceover",
+    "projection-unreliable"
    ],
    "links": [
     "p:addressed-fourth-wall",
     "p:doubt-same-moment",
     "p:doubt-subtext",
-    "p:closer-telling-voiceover"
+    "p:closer-telling-voiceover",
+    "p:projection-unreliable"
    ]
   },
   {
