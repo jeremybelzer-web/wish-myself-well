@@ -245,7 +245,7 @@ const ok = (cond, msg) => {
       await page.click('[data-c="by-family"]');
       await page.waitForTimeout(300);
 
-      // Lanes in depth: the film's automation lanes in 3D, the one that moves most at the back.
+      // 3D graph: the film's automation lanes in 3D, the one that moves most at the back.
       await page.click('[data-view="lanes"]');
       await page.waitForSelector(".rl-cube.lanes canvas");
       await page.waitForTimeout(400);
@@ -261,16 +261,67 @@ const ok = (cond, msg) => {
       await page.waitForTimeout(1100);
       await page.screenshot({ path: path.join(SHOTS, "relations-lanes.png") });
 
-      // Lanes, swipe: the same lanes; swipe moves them front to back.
-      await page.click('[data-view="lanes-swipe"]');
-      await page.waitForSelector(".rl-cube.lanes-swipe canvas");
-      await page.waitForTimeout(300);
+      // The 3D graph is a deck: swipe moves lanes front to back, clicking a lane's name brings it to the front.
       const lb = await call((c) => c.order());
-      await flick(".rl-cube.lanes-swipe canvas", 220);
+      await flick(".rl-cube.lanes canvas", 220);
       const la = await call((c) => c.order());
       ok(la[la.length - 1] === lb[0], "swiping right sends the front lane to the back");
-      await flick(".rl-cube.lanes-swipe canvas", -220);
+      await flick(".rl-cube.lanes canvas", -220);
       ok((await call((c) => c.order()))[0] === lb[0], "swiping left brings the back lane to the front");
+      await page.click(`.rl-labels div.lane[data-lane]:nth-child(3)`);
+      await page.waitForTimeout(200);
+      const pickedLane = (await call((c) => c.lanes()))[2].label;
+      ok((await call((c) => c.order()))[0] === pickedLane, `clicking a lane's name brings it to the front (${pickedLane})`);
+
+      // Graph & pie: nodes and lines with the pie to its left.
+      await page.click('[data-view="graph"]');
+      await page.waitForSelector(".rl-gp-graph circle");
+      ok((await page.locator(".rl-gp-pie path").count()) === 6 && (await page.locator(".rl-gp-graph circle").count()) > 900, "Graph & pie: a pie of the six groups beside every item as a node");
+      await page.evaluate(() => document.getElementById("relations")._curioRelations.select("tr-suspicious-authority"));
+      ok((await page.locator(".rl-gp-graph path.l").count()) >= 15, "selecting one lights its lines in the graph");
+      await page.click('.rl-gp-pie path[data-group="feeling"]');
+      ok((await call((c) => c.lit())) === "feeling", "clicking a slice lights that group");
+      await page.screenshot({ path: path.join(SHOTS, "relations-graph.png") });
+
+      // One category in every view: pick Feeling and the views show only feelings.
+      await page.selectOption(".rl-cat", "fam:feeling");
+      await page.waitForSelector(".rl-gp-graph circle");
+      const feel = await page.locator(".rl-gp-graph circle").count();
+      ok(feel > 30 && feel < 200, `the category picker shows one category in the same view (${feel} feelings)`);
+      await page.click('[data-view="cube"]');
+      await page.waitForSelector(".rl-cube.cube canvas");
+      await page.waitForTimeout(300);
+      ok((await call((c) => c.slabs.length)) >= 3, "one group picked: its workspaces become the faces of the cube");
+      await page.selectOption(".rl-cat", "all");
+
+      // Storyboard: a card per moment, the big box is what holds front and center.
+      await page.click('[data-view="story"]');
+      await page.waitForSelector(".rl-card");
+      ok((await page.locator(".rl-card").count()) === 12 && (await page.locator(".rl-card .rl-fc.big").count()) === 12, "Storyboard: a card per moment, each with what holds front and center");
+      await page.screenshot({ path: path.join(SHOTS, "relations-story.png") });
+
+      // Tracks: a suite per track, opens to its parts, and the pop-up adjusts and records without opening it.
+      await page.click('[data-view="tracks"]');
+      await page.waitForSelector(".rl-suite");
+      ok((await page.locator(".rl-suite").count()) >= 10, "Tracks: one track per suite, top to bottom");
+      await page.click(".rl-suite .rl-tog >> nth=0");
+      ok((await page.locator(".rl-part").count()) >= 2, "▸ opens a suite to show its parts' lanes");
+      await page.click(".rl-suite .rl-tog >> nth=0");
+      await page.click(".rl-suite .rl-adj >> nth=1");
+      await page.waitForSelector(".rl-pop");
+      const part = await page.getAttribute(".rl-pop-parts input >> nth=0", "data-id");
+      await page.fill(".rl-pop-parts input >> nth=0", "90");
+      const saved = await page.evaluate((id) => JSON.parse(localStorage.getItem("curio-relations-v1")).rec[id], part);
+      ok(Array.isArray(saved) && Math.abs(saved[0] - 0.9) < 0.01, "moving a part's slider sets it at the playhead and keeps it");
+      await call((c) => { const p = c.pop(); p.el.querySelector('[data-p="rec"]').click(); return 1; });
+      await page.evaluate((id) => { const i = document.querySelector(`.rl-pop-parts input[data-id="${id}"]`); i.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true })); i.value = "20"; i.dispatchEvent(new Event("input", { bubbles: true })); }, part);
+      await call((c) => { c.pop().tick(); c.pop().tick(); return 1; });
+      const recd = await page.evaluate((id) => JSON.parse(localStorage.getItem("curio-relations-v1")).rec[id], part);
+      ok(Math.abs(recd[1] - 0.2) < 0.01 && Math.abs(recd[2] - 0.2) < 0.01, "with Record on, a held slider is written into each moment the playhead passes");
+      ok(!(await page.locator(".rl-part").count()), "all without opening the group");
+      await page.screenshot({ path: path.join(SHOTS, "relations-tracks.png") });
+      await page.click('.rl-pop [data-p="clear"]');
+      await page.click('.rl-pop [data-p="close"]');
       await page.click('[data-view="cube"]');
       await page.waitForSelector(".rl-cube.cube canvas");
     } else ok(await page.locator(".rl-cube .rl-note").count(), "without three.js the 3D views say so");

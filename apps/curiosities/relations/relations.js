@@ -49,13 +49,15 @@
     });
   }
 
-  const VIEWS = ["cube", "slices", "lanes", "lanes-swipe", "flat"];
+  const VIEWS = ["cube", "slices", "graph", "lanes", "story", "tracks", "flat"];
   // what to do, in words, under each view
   const UNDER = {
     cube: "Click and drag to look around · double-click a cube to fly closer, and again to go inside · Slide the corridor to move down the gap between two faces",
     slices: "Click and drag to turn it · swipe right or left to move the slabs · double-click to zoom in",
-    lanes: "Click and drag to see the lanes from any angle · double-click to zoom in",
-    "lanes-swipe": "Click and drag to turn · swipe right or left to move the lanes",
+    graph: "Click a node to light its lines · click a slice of the pie to light that group",
+    lanes: "Click and drag to turn · swipe right or left to shuffle the lanes like cards · click a lane (or its name) to bring it to the front",
+    story: "Each card is one moment; the big box is what holds front and center then · click a box to select it",
+    tracks: "▸ opens a suite to show its parts · ⚙ adjusts and records the parts without opening it",
     flat: "Click any name to see what it is tied to",
   };
   function mount(el, opts) {
@@ -74,6 +76,9 @@
       picked: saved.picked || [],
       mine: { nodes: (saved.mine && saved.mine.nodes) || [], ties: (saved.mine && saved.mine.ties) || [] },
       slabBy: saved.slabBy === "workspace" ? "workspace" : "family",
+      cat: saved.cat || "all", // which curiosity category every view shows ("all", "fam:<family>" or "ws:<group>")
+      rec: saved.rec || {}, // recorded or adjusted lane values, id -> one value per moment
+      open: saved.open || [], // suites opened on the Tracks view
       camera: null, // each visit starts at the corridor; the camera is kept only while switching views
       tieFrom: "",
       adding: false,
@@ -92,12 +97,19 @@
       }
     };
     st.mine.place = st.mine.place || saved.place || {};
-    let g = G.build(G.fromDB(db), A, st.mine);
+    function buildGraph() {
+      const data = G.fromDB(db);
+      const out = G.build(data, A, st.mine);
+      out.suites = data.suites || [];
+      out.proximities = data.proximities || [];
+      return out;
+    }
+    let g = buildGraph();
     st.picked = st.picked.filter((id) => g.byId.has(id));
-    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, place: st.mine.place, slabBy: st.slabBy, showAll: st.showAll });
+    const persist = () => save({ view: st.view, picked: st.picked, mine: st.mine, place: st.mine.place, slabBy: st.slabBy, showAll: st.showAll, cat: st.cat, rec: st.rec, open: st.open });
     /* After the user adds or removes something: build the graph again and redraw, keeping the camera. */
     function rebuild() {
-      g = G.build(G.fromDB(db), A, st.mine);
+      g = buildGraph();
       api.graph = g;
       persist();
       st.sel = st.sel.filter((id) => g.byId.has(id));
@@ -109,8 +121,9 @@
     el.innerHTML = `
       <div class="rl-bar">
         <div class="rl-seg" role="group" aria-label="View">
-          <button data-view="cube">Cube matrix</button><button data-view="slices">Cube slices</button><button data-view="lanes">Lanes in depth</button><button data-view="lanes-swipe">Lanes, swipe</button><button data-view="flat">Flat list</button>
+          <button data-view="cube">Cube matrix</button><button data-view="slices">Cube slices</button><button data-view="graph">Graph &amp; pie</button><button data-view="lanes">3D graph</button><button data-view="story">Storyboard</button><button data-view="tracks">Tracks</button><button data-view="flat">Flat list</button>
         </div>
+        <select class="rl-cat" aria-label="Category"></select>
         <div class="rl-find"><input type="search" placeholder="Find a curiosity, feeling or movement" aria-label="Find"><div class="rl-hits"></div></div>
         <button data-act="archive">Movement archive</button>
         <button data-act="add">Add a curiosity</button>
@@ -266,7 +279,7 @@
       let id = addCuriosity(name, plain, family);
       if (id) {
         st.mine.place[id] = family;
-        g = G.build(G.fromDB(db), A, st.mine); // so the new curiosity counts as a database one for its first tie
+        g = buildGraph(); // so the new curiosity counts as a database one for its first tie
         if (near && !addProximity(near, id)) st.mine.ties.push({ a: near, b: id });
       } else {
         id = "mine-" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
@@ -367,17 +380,47 @@
       persist();
       el.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("on", b.dataset.view === v));
       el.querySelector(".rl-under").textContent = UNDER[v] || "";
+      fillCats();
       view && view.destroy();
       stage.innerHTML = "";
       const keep = (st.camera = view && view.camera ? view.camera() || st.camera : st.camera);
+      // every view shows the chosen category; the side panel and Find keep the whole map
+      const gv = subGraph(g, st.cat);
       view =
         v === "cube" || v === "slices"
-          ? cubeView(stage, g, st, select, persist, keep, v === "slices")
-          : v === "lanes" || v === "lanes-swipe"
-          ? lanesView(stage, g, st, select, persist, keep, v === "lanes-swipe")
-          : flatView(stage, g, st, select, nearSet);
+          ? cubeView(stage, gv, st, select, persist, keep, v === "slices")
+          : v === "lanes"
+          ? lanesView(stage, gv, st, select, persist, keep, true)
+          : v === "graph"
+          ? graphView(stage, gv, st, select)
+          : v === "story"
+          ? storyView(stage, gv, st, select)
+          : v === "tracks"
+          ? tracksView(stage, gv, st, select, persist)
+          : flatView(stage, gv, st, select, nearSet);
       view.update();
     }
+
+    /* The category picker: the whole map, one of the six groups, or one workspace. */
+    const catSel = el.querySelector(".rl-cat");
+    function fillCats() {
+      const groups = new Map();
+      g.nodes.forEach((n) => groups.has(n.group) || groups.set(n.group, { label: n.groupLabel, family: n.family }));
+      catSel.innerHTML =
+        '<option value="all">All curiosities</option>' +
+        g.families
+          .map((f) => `<optgroup label="${esc(f.label)}"><option value="fam:${esc(f.id)}">All of ${esc(f.label)}</option>${[...groups].filter(([, x]) => x.family === f.id).map(([id, x]) => `<option value="ws:${esc(id)}">${esc(x.label)}</option>`).join("")}</optgroup>`)
+          .join("");
+      catSel.value = st.cat;
+      if (catSel.value !== st.cat) catSel.value = st.cat = "all";
+    }
+    catSel.addEventListener("change", () => {
+      st.cat = catSel.value;
+      st.camera = null;
+      view && view.destroy();
+      view = null;
+      setView(st.view);
+    });
 
     /* ---------- movement archive ---------- */
     function togglePick(id) {
@@ -800,7 +843,9 @@
   }
   /* Where each cube sits: slab d (0 = front) at z, its cubes in a grid of `cols` by `rows`, the same for every slab. */
   function blockLayout(g, by) {
-    const slabs = slabsOf(g, by);
+    let slabs = slabsOf(g, by);
+    // one group picked: its workspaces become the faces, so there is still a block to walk through
+    if (by === "family" && slabs.length < 3) slabs = slabsOf(g, "workspace");
     const most = Math.max(1, ...slabs.map((s) => s.ids.length));
     const cols = Math.ceil(Math.sqrt(most * 1.3));
     const rows = Math.ceil(most / cols);
@@ -943,7 +988,7 @@
     // Labels: the selection and its ties (up to 60), and each slab's name on its top edge.
     let labelIds = [];
     function setLabels() {
-      labelIds = st.sel.concat([...near.keys()].filter((id) => cur.has(id)).slice(0, 60));
+      labelIds = st.sel.filter((id) => cur.has(id)).concat([...near.keys()].filter((id) => cur.has(id)).slice(0, 60));
       const slabLabels = L.slabs.map((s) => `<div class="slab" style="--c:${FAMILY_COLOR[s.family]}">${esc(s.label)}</div>`).join("");
       labels.innerHTML = labelIds.map((id) => `<div class="${st.sel.includes(id) ? "sel" : ""}">${esc(g.byId.get(id).label)}</div>`).join("") + slabLabels;
     }
@@ -1292,13 +1337,23 @@
           if (vals.filter((v) => v != null).length < 2) return;
           const tr = (s.tracks || []).find((t) => t.id === track);
           const nd = g.byId.get(base);
+          if (g.cat && !nd) return; // a category shows only its own lanes
           out.push({ id: nd ? base : "", label: (nd ? nd.label : cur) + (tr && tr.label ? " · " + tr.label : ""), family: nd ? nd.family : "story", vals });
         });
         if (out.length >= 2 && rows.length >= 2) return { lanes: out, rows: rows.map((r) => r.label || r.id), example: false };
       } catch (e) {}
     }
     // An example film: twelve moments, a few lanes that move by different amounts.
-    const pick = ["emotionIntensity", "shotSize", "cameraMove", "volume", "gesture", "lightingMood", "cutRate", "personalSpace", "pace", "faceIntensity", "musicIntensity", "tension"].filter((id) => g.byId.has(id)).slice(0, 9);
+    let pick = ["emotionIntensity", "shotSize", "cameraMove", "volume", "gesture", "lightingMood", "cutRate", "personalSpace", "pace", "faceIntensity", "musicIntensity", "tension"].filter((id) => g.byId.has(id)).slice(0, 9);
+    // a category without those: its own most-tied curiosities
+    if (pick.length < 6)
+      pick = pick.concat(
+        g.nodes
+          .filter((n) => !pick.includes(n.id))
+          .sort((a, b) => (b.kind === "curiosity") - (a.kind === "curiosity") || b.degree - a.degree)
+          .slice(0, 9 - pick.length)
+          .map((n) => n.id)
+      );
     const N = 12;
     const lanes = pick.map((id, k) => {
       const amp = 0.08 + (k % 5) * 0.09;
@@ -1318,13 +1373,13 @@
   };
 
   function lanesView(stage, g, st, select, persist, keep, swipe) {
-    const kind = swipe ? "lanes-swipe" : "lanes";
+    const kind = "lanes";
     const html = `<div class="rl-labels"></div><div class="rl-filmnote"></div>
       <div class="rl-cube-ui">
         ${swipe ? '<button data-c="back" aria-label="Bring the back lane to the front">◀ Back to front</button><button data-c="front" aria-label="Send the front lane to the back">Front to back ▶</button>' : ""}
         <button data-c="home">Straight on</button><button data-c="side">From the side</button><button data-c="spin">Spin</button>
       </div>
-      <div class="rl-hint">${swipe ? "Swipe right: front lane to the back · swipe left: back lane to the front · drag slowly to turn" : "Drag to see the lanes from any angle · double-click to zoom in · click a lane"}</div>`;
+      <div class="rl-hint">Swipe right: front lane to the back · swipe left: back lane to the front · click a lane to bring it forward · drag slowly to turn</div>`;
     return threeView(stage, kind, html, (host) => initLanes(host, g, st, select, keep, swipe));
   }
 
@@ -1337,7 +1392,7 @@
     const H = 6;
     const GAP = 2.4;
     const width = (N - 1) * STEP;
-    const S = threeStage(host, keep, { kind: swipe ? "lanes-swipe" : "lanes", r: Math.max(width, lanes.length * GAP) * 1.5, theta: 0.42, phi: 1.25, closeAt: 3 });
+    const S = threeStage(host, keep, { kind: "lanes", r: Math.max(width, lanes.length * GAP) * 1.5, theta: 0.42, phi: 1.25, closeAt: 3 });
     const T = S.T;
     const labels = host.querySelector(".rl-labels");
     host.querySelector(".rl-filmnote").textContent = film.note || (film.example ? "Example film: open a film on the Screen and its own lanes show here." : "Your film's automation lanes, busiest at the back.");
@@ -1406,7 +1461,7 @@
     }
     function setLabels() {
       labels.innerHTML =
-        lanes.map((l, li) => `<div class="lane${st.sel[0] && l.id === st.sel[0] ? " sel" : ""}" style="--c:${FAMILY_COLOR[l.family]}">${esc(l.label)}<small>${l.move < 0.05 ? "holds" : "moves " + l.move.toFixed(1)}</small></div>`).join("") +
+        lanes.map((l, li) => `<div data-lane="${li}" class="lane${st.sel[0] && l.id === st.sel[0] ? " sel" : ""}" style="--c:${FAMILY_COLOR[l.family]}">${esc(l.label)}<small>${l.move < 0.05 ? "holds" : "moves " + l.move.toFixed(1)}</small></div>`).join("") +
         film.rows.map((r) => `<div class="tick">${esc(r)}</div>`).join("");
     }
     S.afterRender = () => {
@@ -1451,10 +1506,28 @@
       const hit = S.ray.intersectObjects(objs.map((o) => o.grp), true).find((h) => h.object.userData.lane != null);
       return hit ? hit.object.userData.lane : -1;
     }
+    // Like a deck of cards: the lane you click (or whose name you click) comes to the front.
+    function toFront(li) {
+      if (order[0] !== li) {
+        while (order[0] !== li) order.push(order.shift());
+        place();
+        moving = true;
+      }
+      paint();
+    }
     S.onClick = (e) => {
       const li = pickLane(e);
-      if (li >= 0 && lanes[li].id) select(st.sel[0] === lanes[li].id ? [] : lanes[li].id);
+      if (li < 0) return;
+      toFront(li);
+      if (lanes[li].id) select(lanes[li].id);
     };
+    labels.addEventListener("click", (e) => {
+      const d = e.target.closest("[data-lane]");
+      if (!d) return;
+      const li = +d.dataset.lane;
+      toFront(li);
+      if (lanes[li].id) select(lanes[li].id);
+    });
     S.onDouble = (e) => {
       const li = pickLane(e);
       S.aim(e);
@@ -1489,16 +1562,357 @@
       update,
       focus: (id) => {
         const li = lanes.findIndex((l) => l.id === g.real(id));
-        if (li < 0) return;
-        if (swipe) while (order[0] !== li) shift("front");
+        if (li >= 0) toFront(li);
       },
       stage: S,
       order: () => order.map((li) => lanes[li].label),
       lanes: () => lanes.map((l) => ({ id: l.id, label: l.label, move: l.move })),
+      toFront,
       example: film.example,
       shift,
       destroy: S.destroy,
     };
+  }
+
+
+  /* ---------- one category, any view ----------
+     Every view can show the whole map or one category: one of the six groups ("fam:feeling") or one workspace
+     ("ws:emotion"). The category's graph keeps only its own items and the ties between them; g.full is the whole
+     map, used inside a cube so every tie still shows there. */
+  function subGraph(g, cat) {
+    if (!cat || cat === "all") return Object.assign({}, g, { full: g, cat: "" });
+    const [kind, key] = cat.split(":");
+    const nodes = g.nodes.filter((n) => (kind === "fam" ? n.family === key : n.group === key));
+    if (!nodes.length) return Object.assign({}, g, { full: g, cat: "" });
+    const keep = new Set(nodes.map((n) => n.id));
+    const edges = g.edges.filter((e) => keep.has(e.a) && keep.has(e.b));
+    const adj = new Map(nodes.map((n) => [n.id, []]));
+    edges.forEach((e) => {
+      adj.get(e.a).push({ id: e.b, edge: e, out: true });
+      adj.get(e.b).push({ id: e.a, edge: e, out: false });
+    });
+    return Object.assign({}, g, {
+      nodes,
+      byId: new Map(nodes.map((n) => [n.id, n])),
+      edges,
+      links: (id) => adj.get(g.real(id)) || [],
+      families: g.families.filter((f) => nodes.some((n) => n.family === f.id)),
+      full: g,
+      cat,
+    });
+  }
+
+  /* Values for any list of ids over the film's moments: what the user recorded or adjusted (st.rec) first, then
+     the open film's own automation, then a gentle example line from the id (marked example). */
+  function lanesFor(g, ids, st) {
+    const film = filmLanes(g.full || g);
+    const real = film.example ? new Map() : new Map(film.lanes.filter((l) => l.id).map((l) => [l.id, l]));
+    const N = film.rows.length;
+    const full = g.full || g;
+    const lanes = ids
+      .filter((id) => full.byId.has(id))
+      .map((id) => {
+        const nd = full.byId.get(id);
+        const rec = st && st.rec && Array.isArray(st.rec[id]) && st.rec[id].length === N ? st.rec[id] : null;
+        const own = real.get(id);
+        const h = hashOf(id);
+        const amp = 0.1 + (h % 7) * 0.05;
+        const f = 0.3 + (h % 5) * 0.12;
+        const vals = rec ? rec.slice() : own ? own.vals.slice() : Array.from({ length: N }, (_, i) => Math.max(0, Math.min(1, 0.5 + amp * Math.sin(i * f + h))));
+        return { id, label: nd.label, family: nd.family, vals, example: !rec && !own, recorded: !!rec };
+      });
+    return { lanes, rows: film.rows, N };
+  }
+  const svgLane = (vals, W, H, cls) => {
+    const N = vals.length;
+    const x = (i) => 4 + (i * (W - 8)) / Math.max(1, N - 1);
+    const y = (v) => H - 4 - (v == null ? 0 : v) * (H - 8);
+    const pts = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+    return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="${cls || ""}"><polygon points="4,${H} ${pts} ${W - 4},${H}" /><polyline points="${pts}" />${vals.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.6" />`).join("")}</svg>`;
+  };
+  function htmlView(stage, cls, render) {
+    const box = document.createElement("div");
+    box.className = "rl-html " + cls;
+    stage.appendChild(box);
+    const api = render(box) || {};
+    const v = Object.assign({ update: () => {}, focus: () => {}, destroy: () => box.remove(), box }, api);
+    v.inner = () => v;
+    return v;
+  }
+
+  /* ---------- Graph & pie ----------
+     Left, a pie of the category by group (how much of it each workspace is); click a slice to light that group.
+     Right, the flat graph: every item a node round a circle, sorted by group, and every tie a line bent toward
+     the middle. Click a node and its lines and names light up. */
+  function graphView(stage, g, st, select) {
+    return htmlView(stage, "rl-gp", (box) => {
+      let lit = "";
+      const byGroup = new Map();
+      g.nodes.forEach((n) => {
+        const k = g.cat ? n.group : n.family;
+        if (!byGroup.has(k)) byGroup.set(k, { key: k, label: g.cat ? n.groupLabel : (g.families.find((f) => f.id === n.family) || {}).label || n.family, family: n.family, ids: [] });
+        byGroup.get(k).ids.push(n.id);
+      });
+      const groups = [...byGroup.values()];
+      const order = groups.flatMap((gr) => gr.ids);
+      const W = 640;
+      const c = W / 2;
+      const R = 250;
+      const pos = new Map(order.map((id, i) => { const a = -Math.PI / 2 + (i / order.length) * Math.PI * 2; return [id, [c + R * Math.cos(a), c + R * Math.sin(a), a]]; }));
+      const groupOf = new Map();
+      groups.forEach((gr) => gr.ids.forEach((id) => groupOf.set(id, gr.key)));
+      function pie() {
+        const total = order.length;
+        let a0 = -Math.PI / 2;
+        const pc = 150;
+        const pr = 130;
+        return `<svg viewBox="0 0 300 300" class="rl-gp-pie">${groups
+          .map((gr, k) => {
+            const a1 = a0 + (gr.ids.length / total) * Math.PI * 2;
+            const mid = (a0 + a1) / 2;
+            const off = lit === gr.key ? 10 : 0;
+            const ox = Math.cos(mid) * off;
+            const oy = Math.sin(mid) * off;
+            const big = a1 - a0 > Math.PI ? 1 : 0;
+            const d = groups.length === 1 ? `M${pc},${pc - pr} A${pr},${pr} 0 1 1 ${pc - 0.01},${pc - pr} Z` : `M${pc + ox},${pc + oy} L${pc + ox + pr * Math.cos(a0)},${pc + oy + pr * Math.sin(a0)} A${pr},${pr} 0 ${big} 1 ${pc + ox + pr * Math.cos(a1)},${pc + oy + pr * Math.sin(a1)} Z`;
+            a0 = a1;
+            return `<path d="${d}" fill="${FAMILY_COLOR[gr.family]}" fill-opacity="${0.45 + (k % 5) * 0.12}" data-group="${esc(gr.key)}"><title>${esc(gr.label)}: ${gr.ids.length}</title></path>`;
+          })
+          .join("")}</svg><div class="rl-key">${groups.map((gr) => `<button data-group="${esc(gr.key)}" class="${lit === gr.key ? "on" : ""}" style="--c:${FAMILY_COLOR[gr.family]}">${esc(gr.label)} <b>${gr.ids.length}</b></button>`).join("")}</div>`;
+      }
+      function graph() {
+        const sel = new Set(st.sel.filter((id) => pos.has(id)));
+        const near = new Set();
+        sel.forEach((id) => g.links(id).forEach((l) => near.add(l.id)));
+        const bend = (a, b) => `M${a[0].toFixed(1)},${a[1].toFixed(1)} Q${(c + (a[0] + b[0] - 2 * c) * 0.25).toFixed(1)},${(c + (a[1] + b[1] - 2 * c) * 0.25).toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)}`;
+        const quiet = g.edges.filter((e) => pos.has(e.a) && pos.has(e.b) && !sel.has(e.a) && !sel.has(e.b)).slice(0, 2500);
+        const loud = g.edges.filter((e) => sel.has(e.a) || sel.has(e.b)).filter((e) => pos.has(e.a) && pos.has(e.b));
+        const small = order.length > 300;
+        const named = order.length <= 60 ? order : [...sel, ...near].filter((id) => pos.has(id));
+        const label = (id) => {
+          const p = pos.get(id);
+          let deg = (p[2] * 180) / Math.PI;
+          const flip = Math.cos(p[2]) < 0;
+          if (flip) deg += 180;
+          const t = g.byId.get(id).label;
+          return `<text transform="translate(${p[0].toFixed(1)} ${p[1].toFixed(1)}) rotate(${deg.toFixed(1)})" x="${flip ? -8 : 8}" y="3" text-anchor="${flip ? "end" : "start"}" class="${sel.has(id) ? "me" : ""}">${esc(t.length > 28 ? t.slice(0, 27) + "…" : t)}</text>`;
+        };
+        return `<svg viewBox="-110 -110 ${W + 220} ${W + 220}" class="rl-gp-graph${sel.size ? " has-sel" : ""}">
+          ${quiet.map((e) => `<path d="${bend(pos.get(e.a), pos.get(e.b))}" class="q" stroke="${TYPE_COLOR[e.type]}" />`).join("")}
+          ${loud.map((e) => `<path d="${bend(pos.get(e.a), pos.get(e.b))}" class="l" stroke="${TYPE_COLOR[e.type]}" />`).join("")}
+          ${order.map((id) => { const p = pos.get(id); const n = g.byId.get(id); const on = sel.has(id); const nr = near.has(id); const dim = (sel.size && !on && !nr) || (lit && groupOf.get(id) !== lit); return `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${on ? 7 : nr ? 5 : small ? 2.6 : 4}" fill="${on ? "#1c1712" : FAMILY_COLOR[n.family]}" opacity="${dim ? 0.25 : 1}" data-id="${esc(id)}"><title>${esc(n.label)} · ${esc(n.groupLabel)}</title></circle>`; }).join("")}
+          ${named.map(label).join("")}
+        </svg>`;
+      }
+      function draw() {
+        box.innerHTML = `<div class="rl-gp-left">${pie()}</div><div class="rl-gp-right">${graph()}</div>`;
+      }
+      box.addEventListener("click", (e) => {
+        const t = e.target.closest("[data-group],[data-id]");
+        if (!t) return;
+        if (t.dataset.group) {
+          lit = lit === t.dataset.group ? "" : t.dataset.group;
+          return draw();
+        }
+        select(st.sel[0] === t.dataset.id ? [] : t.dataset.id);
+      });
+      draw();
+      return { update: draw, lit: () => lit, groups: () => groups.map((gr) => ({ key: gr.key, n: gr.ids.length })) };
+    });
+  }
+
+  /* ---------- Storyboard ----------
+     The film zoomed out: one card per moment, and in each card a coloured box for the curiosity holding front and
+     center then (the one changing most), with a smaller box for the runner-up when it is close. */
+  function frontOf(lanes, i) {
+    return lanes
+      .map((l) => ({ l, s: i ? Math.abs((l.vals[i] || 0) - (l.vals[i - 1] || 0)) : Math.abs((l.vals[0] || 0) - 0.5) * 0.5, up: i ? (l.vals[i] || 0) >= (l.vals[i - 1] || 0) : true }))
+      .sort((a, b) => b.s - a.s);
+  }
+  function storyView(stage, g, st, select) {
+    return htmlView(stage, "rl-story", (box) => {
+      const film = filmLanes(g);
+      const lanes = lanesFor(g, film.lanes.map((l) => l.id).filter(Boolean), st).lanes;
+      function draw() {
+        const sel = st.sel[0];
+        box.innerHTML = `<p class="rl-innote">${film.example ? "Example film. " : ""}What holds front and center at each moment: the curiosity that changes the most, then the runner-up.</p><div class="rl-cards">${film.rows
+          .map((r, i) => {
+            const f = frontOf(lanes, i);
+            const a = f[0];
+            const b = f[1] && f[1].s > 0.02 && f[1].s >= a.s * 0.5 ? f[1] : null;
+            const box1 = (x, big) => `<button class="rl-fc${big ? " big" : ""}${x.l.id === sel ? " sel" : ""}" data-id="${esc(x.l.id)}" style="--c:${FAMILY_COLOR[x.l.family]}">${esc(x.l.label)}<small>${x.up ? "rises" : "falls"}${x.s > 0.001 ? " " + Math.round(x.s * 100) : ""}</small></button>`;
+            const rest = f.slice(b ? 2 : 1).map((x) => `<i style="--c:${FAMILY_COLOR[x.l.family]}" title="${esc(x.l.label)}"></i>`).join("");
+            const hold = lanes.some((l) => l.id === sel) && (a.l.id === sel || (b && b.l.id === sel));
+            return `<div class="rl-card${hold ? " hold" : ""}"><h4>${esc(r)}</h4>${box1(a, true)}${b ? box1(b, false) : ""}<div class="rl-rest">${rest}</div></div>`;
+          })
+          .join("")}</div>`;
+      }
+      box.addEventListener("click", (e) => {
+        const t = e.target.closest("[data-id]");
+        if (t && t.dataset.id) select(t.dataset.id);
+      });
+      draw();
+      return { update: draw, fronts: () => film.rows.map((_, i) => frontOf(lanes, i)[0].l.id) };
+    });
+  }
+
+  /* ---------- Tracks (Ableton Live style) ----------
+     One track per suite, top to bottom. A track is a group: its lane is the mix of its parts, and ▸ opens it to
+     show each part's own lane and the proximities (Sparks) that run between its parts. ⚙ opens a pop-up with a
+     slider per part: move them at the playhead, or press Record and Play and your moves are written into the
+     lanes as the playhead passes, without opening the group. */
+  function tracksView(stage, g, st, select, persist) {
+    return htmlView(stage, "rl-tracks", (box) => {
+      const inCat = new Set(g.nodes.map((n) => n.id));
+      const all = (g.suites || [])
+        .map((s, i) => ({ key: "s" + i + ":" + s.label, label: s.label, ids: [...new Set((s.members || []).map((m) => m.curiosity).filter((id) => (g.full || g).byId.has(id)))] }))
+        .filter((s) => s.ids.length && s.ids.some((id) => inCat.has(id)))
+        .sort((a, b) => b.ids.filter((id) => inCat.has(id)).length - a.ids.filter((id) => inCat.has(id)).length || a.label.localeCompare(b.label));
+      const CAP = 40;
+      const suites = all.slice(0, CAP);
+      const film = filmLanes(g.full || g);
+      const N = film.rows.length;
+      let pop = null;
+      const list = document.createElement("div");
+      list.className = "rl-tlist";
+      box.appendChild(list);
+      const valsOf = (ids) => {
+        const ls = lanesFor(g, ids, st).lanes;
+        return { ls, mix: Array.from({ length: N }, (_, i) => ls.reduce((a, l) => a + (l.vals[i] || 0), 0) / Math.max(1, ls.length)) };
+      };
+      const sparksIn = (s) => (g.proximities || []).filter((p) => p.when && p.then && s.ids.includes(p.when.curiosity) && s.ids.includes(p.then.curiosity));
+      function draw() {
+        const ruler = `<div class="rl-track rl-ruler"><div></div><svg viewBox="0 0 600 16" preserveAspectRatio="none">${film.rows.map((r, i) => `<text x="${4 + (i * 592) / Math.max(1, N - 1)}" y="12" text-anchor="${i === 0 ? "start" : i === N - 1 ? "end" : "middle"}">${i + 1}</text>`).join("")}</svg></div>`;
+        list.innerHTML = `<p class="rl-innote">${suites.length} suites${all.length > CAP ? ` (the ${CAP} with the most parts here; ${all.length - CAP} more)` : ""}. Each track is a suite: its lane is the mix of its parts.${film.example ? " Example values until a film is open." : ""}</p>${ruler}${suites
+          .map((s) => {
+            const open = st.open.includes(s.key);
+            const v = valsOf(s.ids);
+            const fam = ((g.full || g).byId.get(s.ids[0]) || {}).family;
+            const sp = sparksIn(s);
+            const head = `<div class="rl-track rl-suite${open ? " open" : ""}" style="--c:${FAMILY_COLOR[fam] || "#888"}"><div class="rl-thead"><button class="rl-tog" data-tog="${esc(s.key)}" aria-label="${open ? "Close" : "Open"} the group">${open ? "▾" : "▸"}</button><span class="rl-tlabel">${esc(s.label)}<small>Suite · ${s.ids.length} parts${sp.length ? " · " + sp.length + " sparks" : ""}${v.ls.some((l) => l.recorded) ? " · recorded" : ""}</small></span><button class="rl-adj" data-adj="${esc(s.key)}" title="Adjust and record the parts">⚙</button></div>${svgLane(v.mix, 600, 44)}</div>`;
+            if (!open) return head;
+            return (
+              head +
+              v.ls.map((l) => `<div class="rl-track rl-part" style="--c:${FAMILY_COLOR[l.family]}"><button class="rl-tname" data-id="${esc(l.id)}">${esc(l.label)}<small>${l.recorded ? "recorded" : l.example ? "example" : "from the film"}</small></button>${svgLane(l.vals, 600, 36)}</div>`).join("") +
+              (sp.length ? `<div class="rl-sparks">Sparks inside: ${sp.slice(0, 8).map((p) => esc(p.label)).join(" · ")}${sp.length > 8 ? " …" : ""}</div>` : "")
+            );
+          })
+          .join("")}`;
+      }
+      function openPop(key) {
+        closePop();
+        const s = suites.find((x) => x.key === key);
+        if (!s) return;
+        const el = document.createElement("div");
+        el.className = "rl-pop";
+        let at = 0;
+        let rec = false;
+        let timer = 0;
+        const held = new Map();
+        el.innerHTML = `<header><b>${esc(s.label)}</b><button data-p="close" aria-label="Close">×</button></header>
+          <div class="rl-pop-play"><button data-p="play">▶ Play</button><button data-p="rec">● Record</button><label>Moment <input type="range" min="1" max="${N}" value="1" data-p="at"><span>1</span></label><button data-p="clear">Clear recording</button></div>
+          <div class="rl-pop-parts">${s.ids.map((id) => `<label><span>${esc((g.full || g).byId.get(id).label)}</span><input type="range" min="0" max="100" data-id="${esc(id)}"><b></b></label>`).join("")}</div>
+          <p class="rl-innote">Move a slider to set that part at this moment. With Record on, press Play and hold a slider: your moves are written in as the playhead passes.</p>`;
+        const now = () => valsOf(s.ids).ls;
+        function show() {
+          el.querySelector('[data-p="at"]').value = String(at + 1);
+          el.querySelector('[data-p="at"] + span').textContent = String(at + 1);
+          const ls = now();
+          el.querySelectorAll(".rl-pop-parts input").forEach((inp) => {
+            const l = ls.find((x) => x.id === inp.dataset.id);
+            if (!l || held.has(inp.dataset.id)) return;
+            inp.value = String(Math.round((l.vals[at] || 0) * 100));
+            inp.nextElementSibling.textContent = inp.value;
+          });
+        }
+        function write(id, v) {
+          const l = now().find((x) => x.id === id);
+          if (!l) return;
+          const vals = l.vals.slice();
+          vals[at] = v;
+          st.rec[id] = vals;
+        }
+        function tick() {
+          at = (at + 1) % N;
+          if (rec) held.forEach((v, id) => write(id, v));
+          if (rec && held.size) persist();
+          show();
+          draw();
+        }
+        el.addEventListener("input", (e) => {
+          const t = e.target;
+          if (t.dataset.p === "at") {
+            at = +t.value - 1;
+            return show();
+          }
+          if (!t.dataset.id) return;
+          const v = +t.value / 100;
+          t.nextElementSibling.textContent = t.value;
+          if (held.has(t.dataset.id)) held.set(t.dataset.id, v);
+          write(t.dataset.id, v);
+          persist();
+          draw();
+        });
+        el.addEventListener("pointerdown", (e) => e.target.dataset && e.target.dataset.id && held.set(e.target.dataset.id, +e.target.value / 100));
+        const let_go = () => held.clear();
+        el.addEventListener("pointerup", let_go);
+        el.addEventListener("pointercancel", let_go);
+        el.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-p]");
+          if (!b || b.tagName === "INPUT") return;
+          const c = b.dataset.p;
+          if (c === "close") return closePop();
+          if (c === "rec") b.classList.toggle("on", (rec = !rec));
+          if (c === "play") {
+            if (timer) {
+              clearInterval(timer);
+              timer = 0;
+              b.textContent = "▶ Play";
+            } else {
+              timer = setInterval(tick, 450);
+              b.textContent = "■ Stop";
+            }
+          }
+          if (c === "clear") {
+            s.ids.forEach((id) => delete st.rec[id]);
+            persist();
+            show();
+            draw();
+          }
+        });
+        pop = { el, key, stop: () => clearInterval(timer), state: () => ({ at, rec, playing: !!timer }), write: (id, v) => { write(id, v); persist(); draw(); }, tick };
+        box.appendChild(el);
+        show();
+      }
+      function closePop() {
+        if (!pop) return;
+        pop.stop();
+        pop.el.remove();
+        pop = null;
+      }
+      box.addEventListener("click", (e) => {
+        const t = e.target.closest("[data-tog],[data-adj],.rl-tname[data-id]");
+        if (!t) return;
+        if (t.dataset.tog) {
+          const k = t.dataset.tog;
+          st.open = st.open.includes(k) ? st.open.filter((x) => x !== k) : st.open.concat(k);
+          persist();
+          return draw();
+        }
+        if (t.dataset.adj) return openPop(t.dataset.adj);
+        if (t.dataset.id) select(t.dataset.id);
+      });
+      draw();
+      return {
+        update: () => {},
+        suites: () => suites.map((s) => ({ key: s.key, label: s.label, ids: s.ids })),
+        pop: () => pop,
+        destroy: () => {
+          closePop();
+          box.remove();
+        },
+      };
+    });
   }
 
   /* ---------- Inside a cube ----------
@@ -1550,6 +1964,7 @@
   }
 
   function insideView(host, g, st, id, act) {
+    g = g.full || g;
     const nd = g.byId.get(id);
     const box = document.createElement("div");
     box.className = "rl-inside";
