@@ -200,6 +200,11 @@ const ok = (cond, msg) => {
       await page.click('.rl-inside [data-tab="graph"]');
       await page.waitForSelector(".rl-inside .rl-ingraph canvas");
       ok(true, "the 3D graph tab shows the same lanes in 3D");
+      await page.click('.rl-inside [data-tab="flatgraph"]');
+      ok((await page.locator(".rl-graph polyline").count()) === tracks && (await page.locator(".rl-graph polyline.own").count()) === 1, "the Graph tab draws every lane on one chart, this cube's thick");
+      await page.click('.rl-inside [data-tab="pie"]');
+      ok((await page.locator(".rl-pie path").count()) === tracks, "the Pie tab gives each lane its share of the movement");
+      await page.screenshot({ path: path.join(SHOTS, "relations-pie.png") });
       await page.click('.rl-inside [data-tab="web"]');
       const web = await call((c) => { const w = c.inside().web(); return { one: w.one.size, two: w.two.size }; });
       const drawn = await page.locator(".rl-websvg line.l2").count();

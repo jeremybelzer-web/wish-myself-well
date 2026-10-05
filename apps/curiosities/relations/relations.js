@@ -1554,7 +1554,7 @@
     const box = document.createElement("div");
     box.className = "rl-inside";
     box.innerHTML = `<header><div><span class="rl-tag" style="color:${FAMILY_COLOR[nd.family]}">Inside the cube</span><h3>${esc(nd.label)}</h3></div>
-        <div class="rl-seg" role="tablist"><button data-tab="tracks" class="on">Lanes</button><button data-tab="graph">3D graph</button><button data-tab="web">Curiosity proximity</button></div>
+        <div class="rl-seg" role="tablist"><button data-tab="tracks" class="on">Lanes</button><button data-tab="flatgraph">Graph</button><button data-tab="graph">3D graph</button><button data-tab="pie">Pie</button><button data-tab="web">Curiosity proximity</button></div>
         <button data-tab="leave">Leave the cube</button></header><div class="rl-inbody"></div>`;
     host.appendChild(box);
     const body = box.querySelector(".rl-inbody");
@@ -1567,6 +1567,8 @@
       box.dataset.tab = tab;
       if (tab === "tracks") body.innerHTML = tracksHtml();
       if (tab === "web") body.innerHTML = webHtml();
+      if (tab === "flatgraph") body.innerHTML = graphHtml();
+      if (tab === "pie") body.innerHTML = pieHtml();
       if (tab === "graph") {
         body.innerHTML = '<div class="rl-cube rl-ingraph"><div class="rl-labels"></div><div class="rl-filmnote"></div><div class="rl-cube-ui"><button data-c="home">Straight on</button><button data-c="side">From the side</button><button data-c="spin">Spin</button></div></div>';
         const h = body.firstChild;
@@ -1591,6 +1593,49 @@
         })
         .join("");
       return `<p class="rl-innote">${film.example ? "Example values: open a film on the Screen and these lanes show its own automation." : "The open film's automation for this cube and its ties."}${film.more ? ` ${film.more} more ties not shown.` : ""}</p>${ruler}${rows}`;
+    }
+    // Graph: every lane on one flat chart, time across, value up; the cube's own lane drawn thick.
+    function graphHtml() {
+      const N = film.rows.length;
+      const W = 720;
+      const H = 300;
+      const x = (i) => 40 + (i * (W - 60)) / Math.max(1, N - 1);
+      const y = (v) => H - 24 - (v == null ? 0 : v) * (H - 44);
+      const grid = [0, 0.25, 0.5, 0.75, 1].map((v) => `<line x1="40" x2="${W - 20}" y1="${y(v)}" y2="${y(v)}" class="g" /><text x="34" y="${y(v) + 3}" text-anchor="end">${Math.round(v * 100)}</text>`).join("") + film.rows.map((r, i) => `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${i + 1}</text>`).join("");
+      const lines = film.lanes
+        .slice()
+        .reverse()
+        .map((l, k) => `<polyline points="${l.vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}" stroke="${FAMILY_COLOR[l.family]}" class="${l.id === id ? "own" : ""}" data-go="${esc(l.id)}"><title>${esc(l.label)}</title></polyline>`)
+        .join("");
+      const key = film.lanes.map((l) => `<button data-go="${esc(l.id)}" style="--c:${FAMILY_COLOR[l.family]}">${esc(l.label)}</button>`).join("");
+      return `<p class="rl-innote">Every lane tied to this cube on one chart: across is time, up is where the lane sits on its scale (0 to 100). The thick line is ${esc(nd.label)}.</p><svg viewBox="0 0 ${W} ${H}" class="rl-graph">${grid}${lines}</svg><div class="rl-key">${key}</div>`;
+    }
+    // Pie: how much of all the movement in these lanes each one makes; the cube's own slice pulled out.
+    function pieHtml() {
+      const parts = film.lanes.map((l) => ({ l, m: movementOf(l.vals) + 0.02 }));
+      const total = parts.reduce((a, p) => a + p.m, 0);
+      const R = 130;
+      const c = 160;
+      let a0 = -Math.PI / 2;
+      const slices = parts
+        .map((p) => {
+          const a1 = a0 + (p.m / total) * Math.PI * 2;
+          const mid = (a0 + a1) / 2;
+          const off = p.l.id === id ? 10 : 0;
+          const ox = Math.cos(mid) * off;
+          const oy = Math.sin(mid) * off;
+          const big = a1 - a0 > Math.PI ? 1 : 0;
+          const d = `M${c + ox},${c + oy} L${c + ox + R * Math.cos(a0)},${c + oy + R * Math.sin(a0)} A${R},${R} 0 ${big} 1 ${c + ox + R * Math.cos(a1)},${c + oy + R * Math.sin(a1)} Z`;
+          a0 = a1;
+          return `<path d="${d}" fill="${FAMILY_COLOR[p.l.family]}" fill-opacity="${0.45 + (hashOf(p.l.id) % 5) * 0.12}" data-go="${esc(p.l.id)}"><title>${esc(p.l.label)}: ${Math.round((p.m / total) * 100)}%</title></path>`;
+        })
+        .join("");
+      const key = parts
+        .slice()
+        .sort((a, b) => b.m - a.m)
+        .map((p) => `<button data-go="${esc(p.l.id)}" style="--c:${FAMILY_COLOR[p.l.family]}">${esc(p.l.label)} <b>${Math.round((p.m / total) * 100)}%</b></button>`)
+        .join("");
+      return `<p class="rl-innote">Who moves the most: each slice is one lane's share of all the change in these lanes over the film. ${esc(nd.label)}'s slice is pulled out.</p><div class="rl-pie"><svg viewBox="0 0 320 320">${slices}</svg><div class="rl-key">${key}</div></div>`;
     }
     function webHtml() {
       const w = webOf(g, id);
