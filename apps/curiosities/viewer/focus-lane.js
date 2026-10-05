@@ -67,6 +67,29 @@
 .cf-ln-track .cf-ln-sep { position: absolute; top: 0; bottom: 0; width: 1px; background: #2c2c32; }
 .cf-ln-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; border: 2px solid #111; box-sizing: border-box; }
 .cf-ln-dot.cf-ed { cursor: ns-resize; }
+.cf-ln-in svg { pointer-events: none; }
+.cf-seg { fill: none; stroke: transparent; stroke-width: 10; vector-effect: non-scaling-stroke; pointer-events: stroke; cursor: context-menu; }
+.cf-seg:hover { stroke: rgba(255,255,255,0.18); }
+.cf-g { position: absolute; inset: 0; pointer-events: none; }
+.cf-g .cf-ln-dot { pointer-events: auto; }
+.cf-graph.cf-picked .cf-g:not(.on) { opacity: 0.28; }
+.cf-g.on { z-index: 2; }
+.cf-g.on > svg > path:first-child { stroke-width: 3.5; }
+.cv-root .cf-pie { cursor: pointer; }
+.cf-list li { cursor: pointer; border-radius: 3px; padding: 0 2px; }
+.cf-list li.on { background: #2c2c33; outline: 1px solid #22d3ee; }
+/* the curve window (Ctrl+click a line): the music app's slide window, as in the Screen's curves pop-up */
+.cf-cpop { position: fixed; z-index: 2147483000; width: 300px; background: #1b1b1f; color: #e6e6ea; border: 1px solid #3a3a42; border-radius: 8px; box-shadow: 0 12px 32px rgba(0,0,0,0.6); padding: 8px 10px 10px; font: 12px/1.35 system-ui, sans-serif; display: grid; gap: 7px; }
+.cf-cpop header { display: flex; align-items: center; gap: 6px; }
+.cf-cpop header b { flex: 1; font-size: 12.5px; }
+.cf-cpop button { font: inherit; background: #26262b; color: #e6e6ea; border: 1px solid #3a3a42; border-radius: 5px; padding: 3px 7px; cursor: pointer; }
+.cf-cpop button.on { background: #22d3ee; color: #062a31; border-color: #22d3ee; font-weight: 600; }
+.cf-cpop .cf-cshapes { display: flex; flex-wrap: wrap; gap: 4px; }
+.cf-cpop canvas { width: 100%; height: 140px; background: #111114; border-radius: 5px; touch-action: none; cursor: crosshair; display: block; }
+.cf-cpop label { display: flex; align-items: center; gap: 8px; }
+.cf-cpop label input { flex: 1; }
+.cf-cpop .cf-cdo { display: flex; gap: 6px; justify-content: flex-end; }
+.cf-cpop small { color: #9b9ba3; }
 /* Automation lanes, big (Jeremy 2026-10-05): stacked like tracks in Ableton Live, the top 4 in view, the rest a
    two-finger scroll away; the storyboards shrink while this tab is open so the lanes sit large and in front */
 .cv-root.cf-big .cf-lanes { max-height: 196px; overscroll-behavior: contain; gap: 2px; }
@@ -264,7 +287,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     /* edits clear the cache (onChange), so playing never re-reads */
     if (cache) return cache;
     const film = v.film();
-    const key = JSON.stringify(film.panels.map((p) => [p.sec, p.cam, p.place, p.words.length, !!p.caption, p.rain, p.v || null, p.id, p.note]));
+    const key = JSON.stringify(film.panels.map((p) => [p.sec, p.cam, p.place, p.words.length, !!p.caption, p.rain, p.v || null, p.id, p.note, p.curves || null]));
     const starts = [];
     let t = 0;
     film.panels.forEach((p) => (starts.push(t), (t += p.sec)));
@@ -356,7 +379,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       const present = Object.keys(active(K[i])).map(base);
       return { i, at: starts[i], sec: p.sec, lead, second, suite, trigger, changes, present };
     });
-    cache = { key, total, segs, panels, K, stats: reading.stats, limit: reading.limit };
+    cache = { key, total, segs, panels, K, stats: reading.stats, limit: reading.limit, curves: film.panels.map((p) => p.curves || null) };
     /* the graph: everyone's share of attention through the film, in small steps */
     const step = Math.max(0.1, total / 240);
     const samples = [];
@@ -462,7 +485,23 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     });
     return out;
   }
+  let pieSh = [];
+  function pieHit(cv, e) {
+    const b = cv.getBoundingClientRect();
+    const dx = e.clientX - b.left - b.width / 2;
+    const dy = e.clientY - b.top - b.height / 2;
+    if (Math.hypot(dx, dy) > b.width / 2) return null;
+    let a = Math.atan2(dy, dx) + Math.PI / 2;
+    if (a < 0) a += Math.PI * 2;
+    let acc = 0;
+    for (const q of pieSh) {
+      acc += q.share * Math.PI * 2;
+      if (a <= acc) return q.id;
+    }
+    return null;
+  }
   function drawPie(cv, sh, cols) {
+    pieSh = sh;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const S = cv.clientWidth || 70;
     if (cv.width !== Math.round(S * dpr)) cv.width = cv.height = Math.round(S * dpr);
@@ -531,6 +570,38 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     return order;
   }
   /* one curiosity's lane: a line through its value in each panel, a node per panel (draggable when it can be set here) */
+  /* the line between two nodes: a step at the panel edge, unless it was given a curve (Ctrl+click the line) */
+  const SHAPES = {
+    straight: ["Straight", "An even line from node to node."],
+    smooth: ["Smooth", "Eases out of the first node and into the next; more bend, a stronger S."],
+    slowStart: ["Slow start", "Starts gently and speeds up into the next node."],
+    fastStart: ["Fast start", "Leaps away from the first node, then settles into the next."],
+    overshoot: ["Overshoot", "Goes past the next node's setting, then settles back."],
+    jumpEarly: ["Jump early", "Jumps to the next node's setting right away and holds it."],
+    jumpLate: ["Jump late", "Holds the first node's setting, then jumps at the last moment."],
+    draw: ["Draw your own", "The line you draw in the box."],
+  };
+  function shapeAt(c, t) {
+    const E = window.CurioEngine;
+    if (c.shape === "draw") {
+      const pts = c.pts || [];
+      if (pts.length < 2) return t;
+      const x = t * (pts.length - 1);
+      const k = Math.min(pts.length - 2, Math.floor(x));
+      return pts[k] + (pts[k + 1] - pts[k]) * (x - k);
+    }
+    if (E && typeof E.shapeAt === "function") return E.shapeAt(c.shape, c.bend, t);
+    const k = 1 + 4 * Math.max(0, Math.min(1, (Number(c.bend) || 0) / 100));
+    if (c.shape === "smooth") return t < 0.5 ? 0.5 * Math.pow(2 * t, k) : 1 - 0.5 * Math.pow(2 - 2 * t, k);
+    if (c.shape === "slowStart") return Math.pow(t, k);
+    if (c.shape === "fastStart") return 1 - Math.pow(1 - t, k);
+    if (c.shape === "overshoot") return 1 - Math.pow(1 - t, 2) + ((k - 1) / 4) * 0.35 * Math.sin(Math.PI * t);
+    if (c.shape === "jumpEarly") return t > 0 ? 1 : 0;
+    if (c.shape === "jumpLate") return t < 1 ? 0 : 1;
+    return t;
+  }
+  const curveOf = (r, i, id) => (r.curves && r.curves[i] && r.curves[i][id]) || null;
+  /* one curiosity's lane: a line through its value in each panel, a node per panel (draggable when it can be set here) */
   function laneParts(r, id, color) {
     const total = r.total;
     const n = M().note(base(id));
@@ -539,29 +610,72 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     const where = READ_FROM_PICTURE[id];
     const edit = !where && !sc.loose;
     const col = color || M().mark(n.family).color;
-    let path = "";
+    const X = (sec) => ((sec / total) * 1000).toFixed(1);
+    const nodes = [];
     const dots = r.panels
       .map((p, i) => {
         const y = yOf(sc, vals[i]);
         if (y == null) return "";
-        const x0 = (p.at / total) * 1000;
-        const x1 = ((p.at + p.sec) / total) * 1000;
         const Y = (1 - y) * 100;
-        path += `${path ? "L" : "M"}${x0.toFixed(1)},${Y.toFixed(1)} L${x1.toFixed(1)},${Y.toFixed(1)} `;
-        return `<i class="cf-ln-dot${edit ? " cf-ed" : ""}" data-ln="${esc(id)}" data-ln-i="${i}" style="left:${pct(p.at + p.sec / 2, total)};top:${(Y).toFixed(1)}%;background:${col}" title="${esc(`${n.label}, panel ${i + 1}: ${vals[i]}`)}"></i>`;
+        nodes.push({ i, x: p.at + p.sec / 2, Y, edge: p.at + p.sec });
+        return `<i class="cf-ln-dot${edit ? " cf-ed" : ""}" data-ln="${esc(id)}" data-ln-i="${i}" style="left:${pct(p.at + p.sec / 2, total)};top:${Y.toFixed(1)}%;background:${col}" title="${esc(`${n.label}, panel ${i + 1}: ${vals[i]}`)}"></i>`;
       })
       .join("");
-    const svg = `<svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="${path}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+    let path = "";
+    const hits = [];
+    if (nodes.length) {
+      const a0 = r.panels[nodes[0].i].at;
+      path = `M${X(a0)},${nodes[0].Y.toFixed(1)} L${X(nodes[0].x)},${nodes[0].Y.toFixed(1)} `;
+      nodes.forEach((A, k) => {
+        const B = nodes[k + 1];
+        if (!B) return void (path += `L${X(A.edge)},${A.Y.toFixed(1)} `);
+        const c = curveOf(r, A.i, id);
+        let seg = "";
+        if (c) {
+          for (let s2 = 1; s2 <= 32; s2++) {
+            const t = s2 / 32;
+            const Y = c.shape === "draw" ? (1 - shapeAt(c, t)) * 100 : A.Y + (B.Y - A.Y) * shapeAt(c, t);
+            seg += `L${X(A.x + (B.x - A.x) * t)},${Y.toFixed(1)} `;
+          }
+        } else {
+          const e = r.panels[B.i].at;
+          seg = `L${X(e)},${A.Y.toFixed(1)} L${X(e)},${B.Y.toFixed(1)} L${X(B.x)},${B.Y.toFixed(1)} `;
+        }
+        path += seg;
+        hits.push(`<path class="cf-seg" d="M${X(A.x)},${A.Y.toFixed(1)} ${seg}" data-ln="${esc(id)}" data-seg="${A.i}" data-to="${B.i}"><title>${esc(`${n.label}: the line from panel ${A.i + 1} to ${B.i + 1}${c ? " (" + SHAPES[c.shape][0] + ")" : ""}. Ctrl+click to give it a curve.`)}</title></path>`);
+      });
+    }
+    const svg = `<svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="${path}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/>${hits.join("")}</svg>`;
     return { n, sc, where, edit, svg, dots };
   }
   const sepsOf = (r) => r.panels.map((p) => `<i class="cf-ln-sep" style="left:${pct(p.at, r.total)}"></i>`).join("");
   const laneName = (id, n) => (TENSION.test(String(id)) && n.label !== "Tension" ? "Tension: " + n.label : n.label || id);
   /* the Viewer focus graph is one view of the automation lanes: the top curiosities on one track, nodes and lines */
+  let picked = null; /* the lane picked from the pie or the list: drawn on top, the others dimmed */
   function graphHtml(r) {
     const ids = laneIds(r).slice(0, 4);
+    if (picked && !ids.some((id) => base(id) === picked)) {
+      const more = laneIds(r).find((id) => base(id) === picked);
+      if (more) ids.push(more);
+    }
     const cols = colorsFor([...new Set([...r.top, ...ids.map(base)])]);
-    const parts = ids.map((id) => laneParts(r, id, cols[base(id)]));
-    return `${sepsOf(r)}<div class="cf-ln-in">${parts.map((q) => q.svg).join("")}${parts.map((q) => q.dots).join("")}</div><i class="cf-ln-head"></i>`;
+    return `${sepsOf(r)}<div class="cf-ln-in">${ids
+      .map((id) => {
+        const q = laneParts(r, id, cols[base(id)]);
+        return `<div class="cf-g${picked === base(id) ? " on" : ""}" data-g="${esc(base(id))}">${q.svg}${q.dots}</div>`;
+      })
+      .join("")}</div><i class="cf-ln-head"></i>`;
+  }
+  function pick(id) {
+    picked = picked === id ? null : id;
+    const g = box && box.querySelector(".cf-graph");
+    const r = read();
+    if (g && r) {
+      g.innerHTML = graphHtml(r);
+      g.classList.toggle("cf-picked", !!picked);
+    }
+    box && box.querySelectorAll(".cf-list li").forEach((li) => li.classList.toggle("on", li.dataset.g === picked));
+    V().redraw();
   }
   function lanesHtml(r) {
     const total = r.total;
@@ -685,6 +799,154 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
     g.addEventListener("pointerup", up);
   }
 
+  /* ---------- the curve window: Ctrl+click a line between two nodes (Jeremy 2026-10-05) ----------
+     Pick a shape and a bend, or draw your own line in the box; Apply keeps it on the panel the line leaves
+     (panel.curves[curiosity]) as one undo step. */
+  let cpop = null;
+  function closeCurve() {
+    if (cpop) cpop.remove();
+    cpop = null;
+  }
+  function openCurve(seg, ev) {
+    closeCurve();
+    const r = read();
+    if (!r) return;
+    const id = seg.dataset.ln;
+    const i = +seg.dataset.seg;
+    const j = +seg.dataset.to;
+    const sc = scaleOf(id, r.K.map((k) => k[id]));
+    const yA = yOf(sc, r.K[i][id]);
+    const yB = yOf(sc, r.K[j][id]);
+    const had = curveOf(r, i, id);
+    const c = had ? JSON.parse(JSON.stringify(had)) : { shape: "smooth", bend: 40 };
+    const label = laneName(id, M().note(base(id)));
+    cpop = document.createElement("div");
+    cpop.className = "cf-cpop";
+    cpop.setAttribute("role", "dialog");
+    cpop.innerHTML = `<header><b>Curve: ${esc(label)}, panel ${i + 1} to ${j + 1}</b><button type="button" data-c="close" title="Close" aria-label="Close">✕</button></header>
+      <div class="cf-cshapes">${Object.keys(SHAPES)
+        .map((k) => `<button type="button" data-shape="${k}" title="${esc(SHAPES[k][1])}">${esc(SHAPES[k][0])}</button>`)
+        .join("")}</div>
+      <canvas aria-label="The line from one node to the next: draw in it to make your own"></canvas>
+      <label>Bend <input type="range" min="0" max="100" step="1" data-c="bend"></label>
+      <small>Draw in the box with your finger or the mouse to make your own curve.</small>
+      <div class="cf-cdo"><button type="button" data-c="step" title="Take the curve off: hold, then step at the panel's edge">No curve</button><button type="button" data-c="apply" class="on">Apply</button></div>`;
+    document.body.appendChild(cpop);
+    const cv = cpop.querySelector("canvas");
+    const bend = cpop.querySelector('[data-c="bend"]');
+    const W = 280;
+    const H = 140;
+    const pad = 12;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = W * dpr;
+    cv.height = H * dpr;
+    const g = cv.getContext("2d");
+    const yAt = (t) => (c.shape === "draw" ? shapeAt(c, t) : yA + (yB - yA) * shapeAt(c, t));
+    const px = (t, y) => [pad + t * (W - 2 * pad), pad + (1 - y) * (H - 2 * pad)];
+    function paint() {
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, W, H);
+      g.strokeStyle = "#26262c";
+      g.lineWidth = 1;
+      for (let k = 0; k <= 4; k++) {
+        const y = pad + (k / 4) * (H - 2 * pad);
+        g.beginPath();
+        g.moveTo(pad, y);
+        g.lineTo(W - pad, y);
+        g.stroke();
+      }
+      g.strokeStyle = "#22d3ee";
+      g.lineWidth = 2.5;
+      g.beginPath();
+      for (let k = 0; k <= 64; k++) {
+        const [x, y] = px(k / 64, yAt(k / 64));
+        k ? g.lineTo(x, y) : g.moveTo(x, y);
+      }
+      g.stroke();
+      [[0, yA], [1, yB]].forEach(([t, y]) => {
+        const [x, yy] = px(t, y);
+        g.fillStyle = "#fff";
+        g.beginPath();
+        g.arc(x, yy, 5, 0, Math.PI * 2);
+        g.fill();
+      });
+      cpop.querySelectorAll("[data-shape]").forEach((b) => b.classList.toggle("on", b.dataset.shape === c.shape));
+      bend.value = c.bend == null ? 40 : c.bend;
+      bend.disabled = !/smooth|slowStart|fastStart|overshoot/.test(c.shape);
+    }
+    paint();
+    const b = seg.getBoundingClientRect();
+    const x = Math.max(8, Math.min(innerWidth - 310, (ev ? ev.clientX : b.left) - 150));
+    const top = (ev ? ev.clientY : b.top) - cpop.offsetHeight - 12;
+    cpop.style.left = x + "px";
+    cpop.style.top = Math.max(8, top < 8 ? (ev ? ev.clientY : b.bottom) + 12 : top) + "px";
+    cpop.addEventListener("click", (e) => {
+      const sh = e.target.closest("[data-shape]");
+      if (sh) {
+        c.shape = sh.dataset.shape;
+        if (c.shape === "draw" && !(c.pts && c.pts.length)) c.pts = Array.from({ length: 33 }, (_, k) => yA + ((yB - yA) * k) / 32);
+        return paint();
+      }
+      const d = e.target.closest("[data-c]");
+      if (!d) return;
+      if (d.dataset.c === "close") return closeCurve();
+      if (d.dataset.c === "apply" || d.dataset.c === "step") {
+        V().remember("curve-" + id + "-" + i);
+        const p = V().live().film.panels[i];
+        const all = Object.assign({}, p.curves || {});
+        if (d.dataset.c === "step") delete all[id];
+        else {
+          if (c.shape === "draw") {
+            c.pts[0] = yA;
+            c.pts[c.pts.length - 1] = yB;
+          } else delete c.pts;
+          all[id] = c;
+        }
+        if (Object.keys(all).length) p.curves = all;
+        else delete p.curves;
+        cache = null;
+        V().changed(true);
+        closeCurve();
+      }
+    });
+    bend.addEventListener("input", () => {
+      c.bend = +bend.value;
+      paint();
+    });
+    /* draw your own: each point you pass sets the line there */
+    cv.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      cv.setPointerCapture && cv.setPointerCapture(e.pointerId);
+      if (c.shape !== "draw") {
+        const pts = Array.from({ length: 33 }, (_, k) => yAt(k / 32));
+        c.shape = "draw";
+        c.pts = pts;
+      }
+      let last = null;
+      const at = (ev2) => {
+        const bb = cv.getBoundingClientRect();
+        const t = Math.max(0, Math.min(1, (((ev2.clientX - bb.left) / bb.width) * W - pad) / (W - 2 * pad)));
+        const y = Math.max(0, Math.min(1, 1 - (((ev2.clientY - bb.top) / bb.height) * H - pad) / (H - 2 * pad)));
+        const k = Math.round(t * 32);
+        if (last) {
+          const [k0, y0] = last;
+          const n = Math.abs(k - k0);
+          for (let q = 0; q <= n; q++) c.pts[k0 + Math.sign(k - k0) * q] = y0 + (y - y0) * (n ? q / n : 1);
+        } else c.pts[k] = y;
+        last = [k, y];
+        paint();
+      };
+      at(e);
+      const move = (ev2) => at(ev2);
+      const up = () => {
+        cv.removeEventListener("pointermove", move);
+        cv.removeEventListener("pointerup", up);
+      };
+      cv.addEventListener("pointermove", move);
+      cv.addEventListener("pointerup", up);
+    });
+  }
+
   /* ---------- the tabs ---------- */
   const TAB_KEY = "curio-focus-tab-v1";
   function savedTab() {
@@ -753,8 +1015,8 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       <div class="cf-pane cf-pane-focus">
         <p class="cf-focus" aria-live="polite" title="What holds the audience's attention in this panel: 2 things, or 3 in a busy scene"></p>
         <div class="cf-charts" title="How much the app thinks the audience's attention is on each curiosity right now (the pie), through the scene (the graph), and every one on now (the list).">
-          <canvas class="cf-pie" role="img" aria-label="Attention right now"></canvas>
-          <div class="cf-graph cf-ln-track" role="img" aria-label="The top curiosities through the scene: drag a node to change that panel">${graphHtml(r)}</div>
+          <canvas class="cf-pie" role="img" aria-label="Attention right now: click a color to pick its lane in the graph" title="Click a color to pick that curiosity's lane in the graph"></canvas>
+          <div class="cf-graph cf-ln-track${picked ? " cf-picked" : ""}" role="img" aria-label="The top curiosities through the scene: drag a node to change that panel">${graphHtml(r)}</div>
           <ol class="cf-list" aria-label="Every curiosity on right now, by share of attention"></ol>
         </div>
       </div>
@@ -833,7 +1095,7 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       const sig = sh.map((q) => q.id + Math.round(q.share * 100)).join(",");
       if (list.dataset.sig !== sig) {
         list.dataset.sig = sig;
-        list.innerHTML = sh.map((q) => `<li title="${esc(q.label)}: ${Math.round(q.share * 100)}% of attention"><i style="background:${cols[q.id]}"></i><span>${esc(q.label)}</span><b>${Math.round(q.share * 100)}%</b></li>`).join("");
+        list.innerHTML = sh.map((q) => `<li data-g="${esc(q.id)}" class="${q.id === picked ? "on" : ""}" title="${esc(q.label)}: ${Math.round(q.share * 100)}% of attention. Click to pick its lane in the graph."><i style="background:${cols[q.id]}"></i><span>${esc(q.label)}</span><b>${Math.round(q.share * 100)}%</b></li>`).join("");
       }
     }
   }
@@ -868,6 +1130,31 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
         } catch (err) {}
         V().redraw();
       }
+    });
+    /* Ctrl+click (or right-click) a line between two nodes: the curve window */
+    const segAt = (e) => e.target.closest && e.target.closest(".cv-under .cf-seg");
+    document.addEventListener("contextmenu", (e) => {
+      const sg = segAt(e);
+      if (!sg) return;
+      e.preventDefault();
+      openCurve(sg, e);
+    });
+    document.addEventListener("pointerdown", (e) => {
+      if (cpop && !cpop.contains(e.target) && !segAt(e)) closeCurve();
+    }, true);
+    document.addEventListener("keydown", (e) => e.key === "Escape" && cpop && closeCurve());
+    /* a color in the pie or a row in the list picks that curiosity's lane in the graph */
+    document.addEventListener("click", (e) => {
+      const sg = segAt(e);
+      if (sg && (e.ctrlKey || e.metaKey)) return openCurve(sg, e);
+      const pie = e.target.closest && e.target.closest(".cv-under .cf-pie");
+      if (pie) {
+        const id = pieHit(pie, e);
+        if (id) pick(id);
+        return;
+      }
+      const li = e.target.closest && e.target.closest(".cv-under .cf-list li[data-g]");
+      if (li) pick(li.dataset.g);
     });
     document.addEventListener("pointerdown", (e) => {
       const d = e.target.closest && e.target.closest(".cv-under .cf-ln-dot");
@@ -918,5 +1205,8 @@ body.cf-dragging { user-select: none; -webkit-user-select: none; }
       const r = read();
       return r ? focusAt(r, i) : null;
     },
+    /* the lane picked in the graph (from the pie or the list), or null */
+    picked: () => picked,
+    pick: (id) => (pick(id), picked),
   };
 })();
