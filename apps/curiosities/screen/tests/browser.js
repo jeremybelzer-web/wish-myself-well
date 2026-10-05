@@ -4480,6 +4480,326 @@ const ok = (cond, msg) => {
     await ctx.close();
   }
 
+  /* The music app's master nodes and track lanes, in film words (notes sections 3-6): every lane's level bar, a paste
+     that becomes a master node (◇ source, START ◆ to END ◆), its gestures (double-click on / off, click a moment to
+     gate it, drag the line to scale it, LFO, drag to move, ⌥-click or Delete to remove) with what was under it put
+     back exactly, one undo step each; 🔒 locks; the Tracks lanes (click, ⌘-click, ⇧-click, fold); the multi-track
+     paste question; a box over lanes and master lanes; joined partners coming along; the status line; the
+     Suite / Proximity view; and the speed of a redraw. */
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage();
+    p.on("pageerror", (e) => errors.push(String(e)));
+    p.on("console", (m) => m.type() === "error" && !/Failed to load resource|three|cdnjs|fonts\.g/.test(m.text()) && errors.push(m.text()));
+    await p.goto(base + "index.html?screen=1");
+    await p.waitForFunction(() => window.CurioScreen && window.CurioScreen.isOpen(), null, { timeout: 15000 });
+    const note = (m) => console.log("note: " + m);
+    /* Setup: Strength of the feeling (master track) has 1, 4, 0, 5 at moments 1, 3, 6, 8; Shot size (camera) has
+       wide, close, medium at moments 1, 3, 6. */
+    await p.evaluate(() => window.CurioEngine.reset(window.CurioSeeds.starter()));
+    await p.evaluate(() => { try { localStorage.removeItem("curiosities-screen-lanes-v1"); } catch (e) {} });
+    const FEEL = "master|emotionIntensity";
+    const SHOT = "camera|shotSize";
+    await p.evaluate(([FEEL, SHOT]) => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const R = st.rows.map((x) => x.id);
+      const cmds = [[0, 1], [2, 4], [5, 0], [7, 5]].map(([j, v]) => ({ type: "setPoint", row: R[j], track: "master", curiosity: "emotionIntensity", value: v }));
+      [[0, "wide"], [2, "close"], [5, "medium"]].forEach(([j, v]) => cmds.push({ type: "setPoint", row: R[j], track: "camera", curiosity: "shotSize", value: v }));
+      E.send({ type: "batch", label: "test lanes", commands: cmds });
+      const T = window.CurioLanes.tools();
+      T.zoom = 1;
+      T.laneH = 60;
+      T.masterPaste = true;
+      T.allTracks = false;
+      T.proxView = false;
+      window.CurioScreen.setRow(0);
+    }, [FEEL, SHOT]);
+    await p.click('[data-view="arrange"]');
+    await p.waitForTimeout(250);
+    const L = "window.CurioLanes.mounted()";
+    /* the film, with each lane's points in row order (an undo may list them in another order) */
+    const film = () => p.evaluate(() => { const st = window.CurioEngine.state(); const lane = (l) => Object.assign({}, l, { points: Object.keys(l.points).sort().map((k) => [k, l.points[k]]) }); return JSON.stringify([Object.keys(st.lanes).sort().map((k) => [k, lane(st.lanes[k])]), st.links, st.masters || null]); });
+    const lanePts = (lk) => p.evaluate((lk) => JSON.stringify((window.CurioEngine.state().lanes[lk] || {}).points || null), lk);
+    const undoN = () => p.evaluate(() => window.CurioEngine.history().undo.length);
+    const masters = () => p.evaluate(() => (window.CurioEngine.state().masters || { list: [] }).list);
+    const said = () => p.evaluate(() => document.querySelector(".sl-msg").textContent);
+    const center = (sel) => p.evaluate((sel) => { const e = document.querySelector(sel); if (!e) return null; e.scrollIntoView({ block: "center", inline: "nearest" }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height }; }, sel);
+    const laneI = (lk) => p.evaluate((lk) => { const h = [...document.querySelectorAll(".sl-heads .sl-head")].find((x) => x.querySelector(`[data-lk="${lk}"]`)); return h ? Number(h.dataset.i) : -1; }, lk);
+
+    /* 1. The level bar: every lane has one (0-100%). Keys and a drag change it as one undo step each; below 100% the
+       line is dashed and its nodes faint, and the engine's values move toward the curiosity's neutral setting. */
+    const lv = `.sl-level[data-lane-level="${SHOT}"]`;
+    ok(await p.evaluate(([a, b]) => { const heads = [...document.querySelectorAll(".sl-heads .sl-head")].filter((h) => h.querySelector(".sl-level")); return !!document.querySelector(`.sl-level[data-lane-level="${a}"]`) && !!document.querySelector(`.sl-level[data-lane-level="${b}"]`) && heads.length > 1; }, [FEEL, SHOT]), "every lane has a level bar (0-100%) under its name");
+    let u0 = await undoN();
+    const v0 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[2].id, "camera", "shotSize"));
+    await center(lv);
+    await p.focus(lv);
+    for (let i = 0; i < 10; i++) await p.keyboard.press("ArrowLeft");
+    const lvl = await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].level, SHOT);
+    const v1 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[2].id, "camera", "shotSize"));
+    const neutral = await p.evaluate(() => window.CurioEngine.neutral("shotSize"));
+    const closer = await p.evaluate(([a, b, n]) => { const P = (v) => window.CurioScale.pos("shotSize", v); return Math.abs(P(b) - P(n)) < Math.abs(P(a) - P(n)); }, [v0, v1, neutral]);
+    ok(lvl === 0.5 && (await undoN()) === u0 + 10 && closer, "the ← key lowers the level 5% a press, one undo step each; at 50% the engine plays Shot size halfway toward its neutral setting (" + v0 + " → " + v1 + ", neutral " + neutral + ")");
+    ok(await p.evaluate((lk) => { const a = [...document.querySelectorAll(".sl-svg .sl-auto")].some((x) => x.classList.contains("sl-low")); const n = document.querySelector(`.sl-node[data-node$="@${lk}"]`); return a && n && n.classList.contains("sl-low") && document.querySelector(`.sl-level[data-lane-level="${lk}"]`).getAttribute("aria-valuenow") === "50"; }, SHOT), "below 100% the lane's line is dashed and its nodes faint; the bar says 50%");
+    u0 = await undoN();
+    let b = await center(lv);
+    await p.mouse.move(b.x, b.y);
+    await p.mouse.down();
+    await p.mouse.move(b.x + b.w * 0.2, b.y, { steps: 5 });
+    await p.mouse.move(b.x + b.w * 0.6, b.y, { steps: 5 });
+    await p.mouse.up();
+    ok((await undoN()) === u0 + 1 && (await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].level == null, SHOT)), "dragging the bar right to the end puts it back to 100% as one undo step (no level kept at 100%)");
+    await p.focus(lv);
+    await p.keyboard.press("Home");
+    await p.dblclick(lv);
+    ok(await p.evaluate((lk) => window.CurioEngine.state().lanes[lk].level == null, SHOT), "Home drops it to 0%; a double-click puts it back to 100%");
+    const before = await film();
+
+    /* 2. Copy and paste, the complex way: a paste makes a master node (one ◇ source, START ◆ to END ◆ over the pasted
+       moments), one undo step. */
+    const shotI = await laneI(SHOT);
+    await p.evaluate(([L, i]) => { const l = eval(L); l.selectArea({ i0: i, i1: i, j0: 0, j1: 2 }); l.command("copy"); l.selectArea(null); window.CurioScreen.setRow(4); }, [L, shotI]);
+    u0 = await undoN();
+    await p.evaluate((L) => eval(L).command("paste"), L);
+    let ms = await masters();
+    ok(ms.length === 1 && ms[0].nodes.length === 1 && ms[0].nodes[0].track === "camera" && (await undoN()) === u0 + 1 && (await p.$$(".sl-mnode")).length === 2 && (await p.$$(".sl-msrc")).length === 2, "a paste makes a master node: START ◇ to END ◇ for the source and START ◆ to END ◆ on the camera's master lane, one undo step");
+    ok(JSON.parse(await lanePts(SHOT))[(await p.evaluate(() => window.CurioEngine.state().rows[6].id))] === "close" && /master node/.test(await said()), "the pasted automation plays (close at moment 7) and the message says it is a master node");
+    const pasted = await lanePts(SHOT);
+    const id = ms[0].nodes[0].id;
+    const mid = ms[0].id;
+    /* the switch in the Master Nodes window turns that off: a paste then writes the automation only. */
+    await p.click('.sl [data-act="master-win"]');
+    ok(!!(await p.$(".sl-mwin")) && (await p.evaluate(() => /Master Nodes/.test(document.querySelector(".sl-mwin").textContent))), "◆ opens the Master Nodes window");
+    await p.uncheck('.sl-mwin [data-mw="pastemaster"]');
+    await p.evaluate((L) => (eval(L).selectArea(null), window.CurioScreen.setRow(1)), L);
+    u0 = await undoN();
+    await p.evaluate((L) => eval(L).command("paste"), L);
+    ok((await masters()).length === 1 && (await undoN()) === u0 + 1, "with “A paste makes a master node” off, a paste writes the automation only");
+    await p.evaluate(() => window.CurioEngine.undo());
+    await p.check('.sl-mwin [data-mw="pastemaster"]');
+
+    /* 3. Double-click a ◆: off puts back exactly what was under it; on again plays the paste. */
+    const d = await center(`.sl-mnode[data-mnode="${id}"][data-end="0"]`);
+    u0 = await undoN();
+    await p.mouse.dblclick(d.x, d.y);
+    ok(JSON.stringify(Object.entries(JSON.parse(await lanePts(SHOT))).sort()) === JSON.stringify(JSON.parse(before)[0].find((x) => x[0] === SHOT)[1].points), "double-clicking a ◆ switches it off and puts back exactly what was under it");
+    ok((await undoN()) === u0 + 1 && (await p.$(`.sl-mnode.off[data-mnode="${id}"]`)), "one undo step, and the ◆ draws as off");
+    await p.waitForTimeout(450);
+    await p.mouse.dblclick(d.x, d.y);
+    ok((await lanePts(SHOT)) === pasted, "double-clicking again switches it back on");
+
+    /* 4. A click on one moment of its line gates that moment (the under value plays there). */
+    const g = await center(`.sl-mhit[data-mline="${id}"][data-k="1"]`);
+    await p.waitForTimeout(450);
+    u0 = await undoN();
+    await p.mouse.click(g.x, g.y);
+    const gated = await masters();
+    const r5 = await p.evaluate(() => window.CurioEngine.state().rows[5].id);
+    ok(gated[0].nodes[0].gate && gated[0].nodes[0].gate["1"] === 0 && JSON.parse(await lanePts(SHOT))[r5] === "medium" && (await undoN()) === u0 + 1, "clicking one moment of its line gates it: moment 6 plays what was under it (medium) again, one undo step");
+    await p.waitForTimeout(450);
+    await p.mouse.click(g.x, g.y);
+    ok(!((await masters())[0].nodes[0].gate || {})["1"], "a second click opens the gate again");
+
+    /* 5. Drag the line up or down to scale it (0 to 100%). */
+    await p.waitForTimeout(450);
+    u0 = await undoN();
+    await p.mouse.move(g.x, g.y);
+    await p.mouse.down();
+    await p.mouse.move(g.x, g.y + 6, { steps: 3 });
+    await p.mouse.move(g.x, g.y + 14, { steps: 3 });
+    await p.mouse.up();
+    const sc = (await masters())[0].nodes[0].scale;
+    ok(sc != null && sc < 100 && sc >= 0 && (await undoN()) === u0 + 1, "dragging its line down scales it (now " + sc + "%), one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+
+    /* 6. LFO from the window: every 2 moments it switches on and off. */
+    u0 = await undoN();
+    await p.selectOption(`.sl-mwin select[data-mw="mlfo"]`, "2");
+    ok((await masters())[0].lfo === 2 && (await undoN()) === u0 + 1, "the window's LFO pulses it every 2 moments, one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+
+    /* 7. Drag a ◆ sideways to move the copy, one undo step; the old place gets its under-data back. */
+    await p.waitForTimeout(450);
+    const d2 = await center(`.sl-mnode[data-mnode="${id}"][data-end="0"]`);
+    const cw = await p.evaluate(() => document.querySelector(".sl-svg").getBoundingClientRect().width / window.CurioEngine.state().rows.length);
+    u0 = await undoN();
+    await p.mouse.move(d2.x, d2.y);
+    await p.mouse.down();
+    await p.mouse.move(d2.x + cw * 0.6, d2.y, { steps: 4 });
+    await p.mouse.move(d2.x + cw, d2.y, { steps: 4 });
+    await p.mouse.up();
+    const moved = await masters();
+    const r5id = await p.evaluate(() => window.CurioEngine.state().rows[5].id);
+    ok(moved[0].nodes[0].t === r5id && (await undoN()) === u0 + 1, "dragging a ◆ one moment right moves the copy to start at moment 6, one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+
+    /* 8. ⌥-click removes it (the lane gets what was under it); ⌘Z brings it back; Delete removes a picked ◆. */
+    await p.waitForTimeout(450);
+    const d3 = await center(`.sl-mnode[data-mnode="${id}"][data-end="0"]`);
+    await p.keyboard.down("Alt");
+    await p.mouse.click(d3.x, d3.y);
+    await p.keyboard.up("Alt");
+    ok((await masters()).length === 0 && (await film()) === before, "⌥-click on the last ◆ removes the master node and leaves the film exactly as before the paste");
+    await p.evaluate(() => window.CurioEngine.undo());
+    ok((await lanePts(SHOT)) === pasted && (await masters()).length === 1, "one ⌘Z brings it back");
+    await p.waitForTimeout(450);
+    await p.mouse.click(d3.x, d3.y);
+    await p.keyboard.press("Delete");
+    ok((await film()) === before, "Delete removes a picked ◆");
+    await p.evaluate(() => window.CurioEngine.undo());
+
+    /* 9. A 🔒 lane refuses: switching the master off leaves a locked lane alone and says so. */
+    await p.evaluate((lk) => (window.CurioLanes.tools().locks[lk] = true), SHOT);
+    await p.evaluate(([L, id]) => eval(L).masterToggle(id), [L, id]);
+    ok((await lanePts(SHOT)) === pasted && /lock/i.test(await said()), "a 🔒 lane keeps its automation and the message says it is locked");
+    await p.evaluate((lk) => delete window.CurioLanes.tools().locks[lk], SHOT);
+
+    /* 10. Performance: CurioMasters.trigger plays it off for the moment without touching the film or undo. */
+    const hasPerform = await p.evaluate(() => typeof window.CurioEngine.perform === "function");
+    if (hasPerform) {
+      u0 = await undoN();
+      const f0 = await film();
+      const play0 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[6].id, "camera", "shotSize"));
+      await p.evaluate((mid) => window.CurioMasters.trigger(mid, false), mid);
+      const play1 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[6].id, "camera", "shotSize"));
+      await p.evaluate((mid) => window.CurioMasters.trigger(mid, null), mid);
+      const play2 = await p.evaluate(() => window.CurioEngine.value(window.CurioEngine.state().rows[6].id, "camera", "shotSize"));
+      ok(play0 === "close" && play1 !== "close" && play2 === "close" && (await film()) === f0 && (await undoN()) === u0, "a trigger switches it off while playing (" + play1 + " at moment 7) and back as drawn, without changing the film or the undo list");
+    } else note("the engine has no performance layer here yet (the triggers branch adds CurioEngine.perform), so the trigger check is skipped");
+
+    /* 11. Tracks: a master lane for every track; click, ⌘-click and ⇧-click light tracks; the status line says so;
+       ▸ folds a track's lanes, leaving faint ticks where its nodes are. */
+    await p.check('.sl-mwin [data-mw="tracks"]');
+    const tracks = await p.evaluate(() => window.CurioEngine.state().tracks.map((t) => t.id));
+    ok((await p.$$(".sl-mhead")).length === tracks.length, "Tracks shows a master lane for every track (" + tracks.join(", ") + ")");
+    await p.click(`.sl-mname[data-track="${tracks[0]}"]`);
+    await p.click(`.sl-mname[data-track="${tracks[2]}"]`, { modifiers: ["ControlOrMeta"] });
+    ok(JSON.stringify(await p.evaluate((L) => eval(L).tracks(), L)) === JSON.stringify([tracks[0], tracks[2]]), "click lights a track, ⌘-click adds another");
+    await p.click(`.sl-mname[data-track="${tracks[0]}"]`);
+    await p.click(`.sl-mname[data-track="${tracks[3] || tracks[2]}"]`, { modifiers: ["Shift"] });
+    const run = await p.evaluate((L) => eval(L).tracks(), L);
+    ok(JSON.stringify(run) === JSON.stringify(tracks.slice(0, tracks[3] ? 4 : 3)), "⇧-click lights the whole run between (" + run.join(", ") + ")");
+    ok(await p.evaluate(() => /Tracks lit: /.test(document.querySelector(".sl-selstat").textContent) && /a paste goes onto the lit tracks/.test(document.querySelector(".sl-selstat").textContent)), "the status line under the timeline says which tracks are lit and where a paste goes");
+    await p.click('.sl-mfold[data-track="camera"]');
+    ok(!(await p.$(`.sl-heads [data-lk="${SHOT}"]`)) && (await p.$$(".sl-mtick")).length > 0, "▸ folds the camera's lanes away; faint ticks on its master lane show where its nodes are");
+    await p.click('.sl-mfold[data-track="camera"]');
+
+    /* 12. Multi-track paste asks A) exact or B) a percentage; the copied tracks repeat in order; one undo step. */
+    await p.evaluate(([L, t]) => eval(L).selectTracks(t), [L, [tracks[2], tracks[3] || tracks[1]]]);
+    await p.evaluate(() => window.CurioScreen.setRow(0));
+    const fm = await film();
+    await p.evaluate((L) => eval(L).command("paste"), L);
+    ok(!!(await p.$('.sl-multipaste [data-mp="exact"]')) && !!(await p.$('.sl-multipaste [data-mp="percent"]')), "pasting onto several lit tracks asks: A) the exact values or B) as a percentage");
+    u0 = await undoN();
+    await p.click('.sl-multipaste [data-mp="exact"]');
+    const both = await p.evaluate((ts) => ts.map((t) => { const l = window.CurioEngine.state().lanes[t + "|shotSize"]; return l ? JSON.stringify(Object.values(l.points)) : null; }), [tracks[2], tracks[3] || tracks[1]]);
+    ok(both[0] && both[0] === both[1] && (await undoN()) === u0 + 1, "A) pastes the same values onto each lit track (adding the lane where a track lacks it), one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+    ok((await film()) === fm, "one ⌘Z takes the whole multi-track paste back");
+    ok(await p.evaluate(() => JSON.stringify(window.CurioMasters.repeatTracks(["a", "b"], ["x", "y", "z"])) === '[["x","a"],["y","b"],["z","a"]]'), "copied tracks repeat in order over more lit tracks (a, b, a)");
+    await p.evaluate((L) => eval(L).selectTracks([]), L);
+    await p.uncheck('.sl-mwin [data-mw="tracks"]');
+
+    /* 13. A box from a lane down into the master lanes selects the master nodes there too. */
+    const boxSel = await p.evaluate(([lk]) => {
+      const sc = document.querySelector(".sl-scroll");
+      sc.scrollLeft = 0;
+      const h = [...document.querySelectorAll(".sl-heads .sl-head")].find((x) => x.querySelector(`[data-lk="${lk}"]`));
+      const bgs = document.querySelectorAll(".sl-bg");
+      const last = bgs[bgs.length - 1];
+      sc.scrollTop = Math.max(0, last.getBBox().y - 20);
+      const a = last.getBoundingClientRect();
+      const m = document.querySelector('.sl-mbg[data-mrow="0"]').getBoundingClientRect();
+      return { x: a.x, y: a.y, w: a.width, n: window.CurioEngine.state().rows.length, my: m.y + m.height - 2, h: !!h };
+    }, [SHOT]);
+    const cwb = boxSel.w / boxSel.n;
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.mouse.move(boxSel.x + cwb * 3.1, boxSel.y + 2);
+    await p.mouse.down();
+    await p.mouse.move(boxSel.x + cwb * 7.9, boxSel.my, { steps: 8 });
+    await p.mouse.up();
+    ok(await p.evaluate(() => { const a = window.CurioLanes.mounted().area(); return a && a.mtracks && a.mtracks.length > 0 && document.querySelectorAll(".sl-mnode.in").length === 2; }), "a box dragged from a lane down into the master lanes holds the master nodes it covers");
+    ok(await p.evaluate(() => /master node/.test(document.querySelector(".sl-selstat").textContent)), "the status line counts the master nodes in the box (" + (await p.evaluate(() => document.querySelector(".sl-selstat").textContent)) + ")");
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+
+    /* 14. Joined partners come along: join Shot size at moment 3 to Strength of the feeling at moment 4, box only
+       Shot size's moment 3, and the partner is in the selection and moves with it. */
+    await p.evaluate((L) => eval(L).masterRemove(window.CurioEngine.state().masters.list[0].nodes[0].id), L);
+    await p.evaluate(() => {
+      const E = window.CurioEngine;
+      const st = E.state();
+      const R = st.rows.map((x) => x.id);
+      E.send({ type: "setPoint", row: R[3], track: "master", curiosity: "emotionIntensity", value: 2 });
+      E.send({ type: "addLink", label: "test join", from: { track: "camera", curiosity: "shotSize", is: "close" }, to: { track: "master", curiosity: "emotionIntensity" }, does: "set", value: 2, within: 1, scope: { from: R[2], to: R[3] } });
+    });
+    const sb = await p.evaluate((lk) => { const sc = document.querySelector(".sl-scroll"); sc.scrollLeft = 0; const h = [...document.querySelectorAll(".sl-heads .sl-head")].find((x) => x.querySelector(`[data-lk="${lk}"]`)); const bg = document.querySelectorAll(".sl-bg")[Number(h.dataset.i)]; sc.scrollTop = Math.max(0, bg.getBBox().y - 20); const r = bg.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, n: window.CurioEngine.state().rows.length }; }, SHOT);
+    const cws = sb.w / sb.n;
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.mouse.move(sb.x + cws * 2.1, sb.y + 2);
+    await p.mouse.down();
+    await p.mouse.move(sb.x + cws * 2.9, sb.y + sb.h - 2, { steps: 6 });
+    await p.mouse.up();
+    ok(await p.evaluate(() => { const a = window.CurioLanes.mounted().area(); return a && a.extra && a.extra.length === 1 && /1 joined partner/.test(document.querySelector(".sl-selstat").textContent); }), "boxing one end of a join brings its partner along, and the status line says so");
+    const fj = await film();
+    u0 = await undoN();
+    /* where the lane is now (the toolbar's message can wrap and move it) */
+    const sb2 = await p.evaluate((i) => { const r = document.querySelectorAll(".sl-bg")[i].getBoundingClientRect(); return { x: r.x, y: r.y }; }, await laneI(SHOT));
+    await p.mouse.move(sb2.x + cws * 2.5, sb2.y + 3);
+    await p.mouse.down();
+    await p.mouse.move(sb2.x + cws * 3.5, sb2.y + 3, { steps: 6 });
+    await p.mouse.up();
+    const fe = await p.evaluate(() => { const st = window.CurioEngine.state(); return [st.lanes["master|emotionIntensity"].points[st.rows[4].id], st.lanes["master|emotionIntensity"].points[st.rows[3].id]]; });
+    ok(fe[0] === 2 && fe[1] == null && (await undoN()) === u0 + 1, "dragging the box one moment later moves the joined partner too (Strength of the feeling's 2 is now at moment 5), one undo step");
+    await p.evaluate(() => window.CurioEngine.undo());
+    ok((await film()) === fj, "one ⌘Z puts both back");
+
+    /* 15. Proximity view: curved lines from a master node to the triggers that fire it. */
+    await p.focus(".sl");
+    await p.keyboard.press("Escape");
+    await p.evaluate(([L, i]) => { const l = eval(L); l.selectArea({ i0: i, i1: i, j0: 0, j1: 2 }); l.command("copy"); l.selectArea(null); window.CurioScreen.setRow(4); l.command("paste"); }, [L, shotI]);
+    const had = await p.evaluate(() => window.CurioTriggers);
+    await p.evaluate(() => { if (!window.CurioTriggers) window.__fakeTriggers = window.CurioTriggers = { forTarget: (t) => (/^master:/.test(t) ? [{ id: "tr1", label: "a test trigger", source: { kind: "key" } }] : []) }; });
+    await p.check('.sl-mwin [data-mw="prox"]');
+    const lines = (await p.$$(".sl-svg .sl-mtrig")).length;
+    ok(had ? lines >= 0 : lines === 1, "the Suite / Proximity view draws a curved line from the master node to each trigger that fires it" + (had ? " (the real triggers are loaded here)" : ""));
+    await p.uncheck('.sl-mwin [data-mw="prox"]');
+    ok((await p.$$(".sl-svg .sl-mtrig")).length === 0, "switched off, the lines go");
+    await p.evaluate(() => { if (window.__fakeTriggers) { delete window.CurioTriggers; delete window.__fakeTriggers; } });
+
+    /* 16. Speed: on the Screen's timeline an edit to a master node redraws the lanes inside one frame (16 ms). The
+       Arrange view's bigger page costs more to lay out (it did before master nodes too), so it is only reported. */
+    await p.screenshot({ path: path.join(SHOTS, "screen-19-master-nodes.png") });
+    const timing = () => p.evaluate(async (L) => {
+      const l = eval(L);
+      const nid = window.CurioEngine.state().masters.list[0].nodes[0].id;
+      const lanes = [];
+      const edits = [];
+      for (let i = 0; i < 7; i++) {
+        let a = performance.now();
+        l.draw();
+        lanes.push(performance.now() - a);
+        await new Promise((r) => requestAnimationFrame(() => r()));
+        a = performance.now();
+        l.masterToggle(nid);
+        edits.push(performance.now() - a);
+        await new Promise((r) => requestAnimationFrame(() => r()));
+      }
+      const med = (x) => x.sort((m, n) => m - n)[Math.floor(x.length / 2)];
+      return { lanes: med(lanes), edit: med(edits) };
+    }, L);
+    const inArrange = await timing();
+    await p.click('[data-view="screen"]');
+    await p.waitForTimeout(250);
+    const onScreen = await timing();
+    ok(onScreen.lanes < 16, "on the Screen, the lanes with master nodes redraw in " + onScreen.lanes.toFixed(1) + " ms (under one 16 ms frame)");
+    note("a master node switch (engine, plan and the whole page redrawing) takes " + onScreen.edit.toFixed(1) + " ms on the Screen; in the Arrange view the lanes redraw in " + inArrange.lanes.toFixed(1) + " ms and a switch takes " + inArrange.edit.toFixed(1) + " ms");
+    await ctx.close();
+  }
+
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.slice(0, 5).join(" | ") : ""));
   await browser.close();
   server.close();

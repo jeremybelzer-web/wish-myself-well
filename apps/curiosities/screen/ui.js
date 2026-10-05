@@ -310,6 +310,7 @@
       }, Math.round(1100 / ((prefs.speed || 1) * playRate)));
     const b = page && page.querySelector('[data-act="play"]');
     if (b) b.textContent = on ? "Pause" : "Play";
+    tell(); /* screen/triggers.js puts a performance back when playback stops */
   }
 
   /* ---------- looking through ---------- */
@@ -523,7 +524,7 @@
   function tell() {
     listeners.forEach((fn) => {
       try {
-        fn({ row, rows: nRows() });
+        fn({ row, rows: nRows(), playing: !!timer });
       } catch (e) {}
     });
   }
@@ -562,6 +563,7 @@
       <button type="button" data-act="shortcuts" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="sc-ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="5" width="17" height="10" rx="1.5"/><path d="M5 8h1M8 8h1M11 8h1M14 8h1M5 11.5h10"/></svg> Shortcuts</button>
       ${exportMenuHtml()}
       ${historyMenuHtml()}
+      ${window.CurioTriggers ? window.CurioTriggers.barHtml() : ""}
       <button type="button" data-act="close" class="sc-close">Back to the app</button>
       <p class="sc-what">${esc(sel.label)}${sel.plain ? ": " + esc(sel.plain) : ""}</p>`;
     if (histFocus) historyRefocus(histFocus);
@@ -6364,7 +6366,7 @@ document.addEventListener("click", function (e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire);
   else setTimeout(wire, 0);
 
-  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
+  window.CurioScreen = { open, close, isOpen: () => !!(page && !page.hidden), openWin, wins: () => wins.map((w) => w.id), mountViewer, state: () => JSON.parse(JSON.stringify(prefs)), blendCommands, guides: { list: () => GUIDES.map(([id, label, tip]) => ({ id, label, tip })), on: guidesOn, spot: guideSpot }, compare: { list: () => COMPARE_WITH.map(([id, label]) => ({ id, label })), now: compareNow }, captions: { list: () => CAPTION_MODES.map(([id, label]) => ({ id, label })), now: captionsNow, caption: captionFor }, faves: { key: FAVE_KEY, max: RECENT_MAX, now: () => JSON.parse(JSON.stringify(faves)), items: (which) => faveItems(faves[which === "recent" ? "recent" : "faves"]).map((x) => faveRef(x.level, x.it.id)), toggle: faveToggle, used: faveUsed, clean: faveClean }, text: { key: TXT_KEY, styles: () => TEXT.STYLES.map(([id, label, tip]) => ({ id, label, tip })), now: () => txtData(), add: txtAdd, set: (id, patch) => txtSet(id, patch), move: txtMove, span: txtSpan, remove: txtDel, edit: (id) => (id ? txtMenuOpen(id) : txtMenuClose()), editing: () => txtEditId }, transitions: { key: TR_KEY, kinds: () => TRANSITIONS.KINDS.map(([id, label, tip]) => ({ id, label, tip })), now: () => TRANSITIONS.clean(trData()), at: trAt, set: trSet, all: trAll, preview: trPreview, playing: () => (trAnim ? { into: trAnim.into, kind: trAnim.kind, p: trAnim.p } : null) }, setRow, row: () => row, playing: () => !!timer, addPanel, removePanel, on: (fn) => (typeof fn === "function" && listeners.push(fn), () => listeners.splice(listeners.indexOf(fn) >>> 0, 1)) };
   /* My templates: list(), save(name, note), use(id, { at, stretch, analogy }), rename(id, name, note), remove(id),
      exportJson(ids?), importJson(text), stretch(on?) (the Stretch to the selected area tick), and as an analogy
      plan(id, picks?), preview(id) (the pop-up) and analogy(id, picks?). */
