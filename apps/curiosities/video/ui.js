@@ -106,6 +106,8 @@
       <header><strong>AI cut-outs</strong><span class="vd-k">Finds the people in every frame and splits them into hair, face, skin and clothes, with the rest as the set, so one element can change on its own (${esc(st)}).</span></header>
       <div class="vd-ai-row">
         <label><input type="checkbox" data-ai-on ${prefs.ai ? "checked" : ""}> Do it automatically when a clip comes in</label>
+        <label title="Face swaps run on the paid tier. On for your own clips; anyone else shown must agree first."><input type="checkbox" data-ai-face ${AI.faceSwap().own ? "checked" : ""}> Face swap on my own clips</label>
+        ${slot.b.clip && AI.faceSwap().own ? `<label><input type="checkbox" data-ai-agree ${AI.agreed(slot.b.clip.name) ? "checked" : ""}> Everyone in "${esc(slot.b.clip.name)}" agreed (or it's only me)</label>` : ""}
         <label>Which AI <select data-ai-pick>${list.map((x) => `<option value="${esc(x.id)}" ${x.id === pick ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select></label>
         ${slot.b.clip && M.ready() ? `<button type="button" data-act="ai-preview" title="Tints what the AI found on the frame showing in your clip's box">Show what it found</button>` : ""}
         ${slot.b.clip && M.ready() && window.CurioRig && window.CurioRig.fromCutout ? `<button type="button" data-act="ai-puppet" title="Cuts the people out of the frame showing in your clip's box and opens them as a rigged flat puppet">Make a puppet</button>` : ""}
@@ -548,6 +550,14 @@
         window.CurioAI.setCaps({ [t.dataset.aiCap]: t.value });
         const c = window.CurioAI.caps();
         return say(`Paid AI stops at $${c.job.toFixed(2)} a job and $${c.day.toFixed(2)} a day.`);
+      }
+      if (t.dataset.aiFace != null) {
+        window.CurioAI.setFaceSwap({ own: t.checked });
+        return draw();
+      }
+      if (t.dataset.aiAgree != null && slot.b.clip) {
+        window.CurioAI.agree(slot.b.clip.name, t.checked);
+        return say(t.checked ? "Noted: everyone shown agreed, so faces in this clip can be swapped." : "Faces in this clip won't be swapped until everyone shown agrees.");
       }
       if (t.dataset.aiOn != null) {
         prefs.ai = t.checked;
